@@ -19,10 +19,11 @@
       ],
       "target_area": "root / docs / planning",
       "depends_on": [],
-      "status": "ACTIVE",
+      "status": "DRAFT_PR",
       "branch": "codex/mj-pr-001-governance-safety",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting.",
+      "pr_number": 367
     },
     {
       "id": "MJ-PR-002",

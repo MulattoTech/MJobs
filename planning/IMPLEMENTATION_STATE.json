@@ -21,14 +21,27 @@
   "partially_completed_capabilities": [
     "Submission/truthfulness policy slice; durable counters and browser worker not yet implemented"
   ],
-  "blocked_capabilities": [],
+  "blocked_capabilities": [
+    {
+      "capability": "Remote GitHub Actions verification",
+      "result": "BLOCKED_EXTERNAL",
+      "reason": "OAuth authorization lacks workflow scope; reviewed workflow staged at infra/ci/verification.yml"
+    }
+  ],
   "active_requirements": [
     "MJ-REQ-000",
     "MJ-REQ-001",
     "MJ-REQ-002",
     "MJ-REQ-003"
   ],
-  "active_prs": [],
+  "active_prs": [
+    {
+      "number": 367,
+      "url": "https://github.com/MulattoTech/MJobs/pull/367",
+      "branch": "codex/mj-pr-001-governance-safety",
+      "status": "DRAFT_PR"
+    }
+  ],
   "tests_passed": [
     "28 domain/control-plane unit tests",
     "Live backlog synchronization: 366 mapped; rerun 0 created",
@@ -42,7 +55,7 @@
   "known_product_defects": [],
   "known_test_harness_defects": [],
   "last_verified_checkpoint": {
-    "timestamp": "2026-09-29T23:32:18.716999+00:00",
+    "timestamp": "2026-09-29T23:34:05.097306+00:00",
     "command": "python -m unittest discover -s tests -p test_*.py -v; python bootstrap-tools/sync_backlog.py --repo MulattoTech/MJobs; python -m tools.verification.catalogue",
     "target": "governance bootstrap",
     "result": "PASS",
