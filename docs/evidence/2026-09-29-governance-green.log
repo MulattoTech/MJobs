@@ -1,0 +1,34 @@
+test_real_catalogue_covers_every_requirement (unit.test_catalogue.CatalogueTests.test_real_catalogue_covers_every_requirement) ... ok
+test_validator_catches_missing_requirement_and_cycle (unit.test_catalogue.CatalogueTests.test_validator_catches_missing_requirement_and_cycle) ... ok
+test_duplicate_fact_identity_is_ambiguous (unit.test_safety_policy.FactTests.test_duplicate_fact_identity_is_ambiguous) ... ok
+test_duplicate_selection_does_not_repeat_facts (unit.test_safety_policy.FactTests.test_duplicate_selection_does_not_repeat_facts) ... ok
+test_only_existing_verified_approved_facts_are_selected (unit.test_safety_policy.FactTests.test_only_existing_verified_approved_facts_are_selected) ... ok
+test_strings_are_not_boolean_verification (unit.test_safety_policy.FactTests.test_strings_are_not_boolean_verification) ... ok
+test_unknown_requirement_does_not_invent_a_fact (unit.test_safety_policy.FactTests.test_unknown_requirement_does_not_invent_a_fact) ... ok
+test_unverified_unapproved_or_unproven_facts_are_rejected (unit.test_safety_policy.FactTests.test_unverified_unapproved_or_unproven_facts_are_rejected) ... ok
+test_ambiguous_submission_never_blindly_retries (unit.test_safety_policy.SubmissionPolicyTests.test_ambiguous_submission_never_blindly_retries) ... ok
+test_challenges_always_require_intervention (unit.test_safety_policy.SubmissionPolicyTests.test_challenges_always_require_intervention) ... ok
+test_confirmed_submission_does_not_retry (unit.test_safety_policy.SubmissionPolicyTests.test_confirmed_submission_does_not_retry) ... ok
+test_enablement_does_not_override_any_quality_gate (unit.test_safety_policy.SubmissionPolicyTests.test_enablement_does_not_override_any_quality_gate) ... ok
+test_external_is_disabled_by_default (unit.test_safety_policy.SubmissionPolicyTests.test_external_is_disabled_by_default) ... ok
+test_invalid_inputs_fail_closed (unit.test_safety_policy.SubmissionPolicyTests.test_invalid_inputs_fail_closed) ... ok
+test_invalid_policy_cannot_remove_limits (unit.test_safety_policy.SubmissionPolicyTests.test_invalid_policy_cannot_remove_limits) ... ok
+test_local_mock_with_all_gates_can_submit (unit.test_safety_policy.SubmissionPolicyTests.test_local_mock_with_all_gates_can_submit) ... ok
+test_policy_enablement_does_not_replace_explicit_user_enablement (unit.test_safety_policy.SubmissionPolicyTests.test_policy_enablement_does_not_replace_explicit_user_enablement) ... ok
+test_threshold_boundary_is_inclusive (unit.test_safety_policy.SubmissionPolicyTests.test_threshold_boundary_is_inclusive) ... ok
+test_ambiguous_previous_creation_is_not_blindly_retried (unit.test_sync_backlog.BacklogTests.test_ambiguous_previous_creation_is_not_blindly_retried) ... ok
+test_atomic_checkpoint_can_be_read_after_each_acknowledged_issue (unit.test_sync_backlog.BacklogTests.test_atomic_checkpoint_can_be_read_after_each_acknowledged_issue) ... ok
+test_dead_owner_lock_can_be_recovered_after_explicit_request (unit.test_sync_backlog.BacklogTests.test_dead_owner_lock_can_be_recovered_after_explicit_request) ... ok
+test_duplicate_remote_markers_are_not_silently_overwritten (unit.test_sync_backlog.BacklogTests.test_duplicate_remote_markers_are_not_silently_overwritten) ... ok
+test_existing_labels_are_preserved (unit.test_sync_backlog.BacklogTests.test_existing_labels_are_preserved) ... ok
+test_external_process_timeout_is_bounded_and_classified (unit.test_sync_backlog.BacklogTests.test_external_process_timeout_is_bounded_and_classified) ... ok
+created A -> #17
+test_failed_creation_retains_acknowledged_map_and_pending_marker (unit.test_sync_backlog.BacklogTests.test_failed_creation_retains_acknowledged_map_and_pending_marker) ... ok
+test_malformed_existing_map_is_preserved_and_classified (unit.test_sync_backlog.BacklogTests.test_malformed_existing_map_is_preserved_and_classified) ... ok
+test_recovery_never_removes_live_owner_lock (unit.test_sync_backlog.BacklogTests.test_recovery_never_removes_live_owner_lock) ... ok
+test_second_local_sync_cannot_acquire_same_mutation_lock (unit.test_sync_backlog.BacklogTests.test_second_local_sync_cannot_acquire_same_mutation_lock) ... ok
+
+----------------------------------------------------------------------
+Ran 28 tests in 0.039s
+
+OK

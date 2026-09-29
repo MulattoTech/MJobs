@@ -1,0 +1,134 @@
+[
+  {
+    "name": "mj:catalogued",
+    "description": "Generated from the authoritative MJobs requirements catalogue"
+  },
+  {
+    "name": "child-requirement",
+    "description": "Independently shippable child of a numbered MJobs requirement"
+  },
+  {
+    "name": "priority:P0",
+    "description": "MJobs priority P0"
+  },
+  {
+    "name": "priority:P1",
+    "description": "MJobs priority P1"
+  },
+  {
+    "name": "priority:P2",
+    "description": "MJobs priority P2"
+  },
+  {
+    "name": "priority:P3",
+    "description": "MJobs priority P3"
+  },
+  {
+    "name": "priority:P4",
+    "description": "MJobs priority P4"
+  },
+  {
+    "name": "priority:P5",
+    "description": "MJobs priority P5"
+  },
+  {
+    "name": "priority:P6",
+    "description": "MJobs priority P6"
+  },
+  {
+    "name": "type:docs",
+    "description": "MJobs issue type: docs"
+  },
+  {
+    "name": "type:feature",
+    "description": "MJobs issue type: feature"
+  },
+  {
+    "name": "type:frontend",
+    "description": "MJobs issue type: frontend"
+  },
+  {
+    "name": "type:governance",
+    "description": "MJobs issue type: governance"
+  },
+  {
+    "name": "type:integration",
+    "description": "MJobs issue type: integration"
+  },
+  {
+    "name": "type:ops",
+    "description": "MJobs issue type: ops"
+  },
+  {
+    "name": "type:security",
+    "description": "MJobs issue type: security"
+  },
+  {
+    "name": "type:test",
+    "description": "MJobs issue type: test"
+  },
+  {
+    "name": "type:tracking",
+    "description": "MJobs issue type: tracking"
+  },
+  {
+    "name": "area:governance_safety",
+    "description": "MJobs area: governance_safety"
+  },
+  {
+    "name": "area:core_search_model",
+    "description": "MJobs area: core_search_model"
+  },
+  {
+    "name": "area:job_identity_dedupe",
+    "description": "MJobs area: job_identity_dedupe"
+  },
+  {
+    "name": "area:company_ats_discovery",
+    "description": "MJobs area: company_ats_discovery"
+  },
+  {
+    "name": "area:job_lifecycle",
+    "description": "MJobs area: job_lifecycle"
+  },
+  {
+    "name": "area:career_profile_documents",
+    "description": "MJobs area: career_profile_documents"
+  },
+  {
+    "name": "area:matching_ai",
+    "description": "MJobs area: matching_ai"
+  },
+  {
+    "name": "area:application_automation",
+    "description": "MJobs area: application_automation"
+  },
+  {
+    "name": "area:orchestration_data_security",
+    "description": "MJobs area: orchestration_data_security"
+  },
+  {
+    "name": "area:web_api_analytics",
+    "description": "MJobs area: web_api_analytics"
+  },
+  {
+    "name": "area:test_harness",
+    "description": "MJobs area: test_harness"
+  },
+  {
+    "name": "area:performance_learning_history",
+    "description": "MJobs area: performance_learning_history"
+  },
+  {
+    "name": "area:operations_ux_ci",
+    "description": "MJobs area: operations_ux_ci"
+  },
+  {
+    "name": "area:docs_verification",
+    "description": "MJobs area: docs_verification"
+  },
+  {
+    "name": "area:delivery_control",
+    "description": "MJobs area: delivery_control"
+  }
+]

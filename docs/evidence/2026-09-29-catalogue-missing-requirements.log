@@ -1,0 +1,32 @@
+test_real_catalogue_covers_every_requirement (tests.unit.test_catalogue.CatalogueTests.test_real_catalogue_covers_every_requirement) ... FAIL
+test_validator_catches_missing_requirement_and_cycle (tests.unit.test_catalogue.CatalogueTests.test_validator_catches_missing_requirement_and_cycle) ... ok
+
+======================================================================
+FAIL: test_real_catalogue_covers_every_requirement (tests.unit.test_catalogue.CatalogueTests.test_real_catalogue_covers_every_requirement)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Tools\Dev\MJobs\tests\unit\test_catalogue.py", line 13, in test_real_catalogue_covers_every_requirement
+    self.assertEqual(validate_catalogue(ROOT), [])
+AssertionError: Lists differ: ['Unqueued requirement: MJ-REQ-290', 'Unqu[349 chars]300'] != []
+
+First list contains 11 additional elements.
+First extra element 0:
+'Unqueued requirement: MJ-REQ-290'
+
++ []
+- ['Unqueued requirement: MJ-REQ-290',
+-  'Unqueued requirement: MJ-REQ-291',
+-  'Unqueued requirement: MJ-REQ-292',
+-  'Unqueued requirement: MJ-REQ-293',
+-  'Unqueued requirement: MJ-REQ-294',
+-  'Unqueued requirement: MJ-REQ-295',
+-  'Unqueued requirement: MJ-REQ-296',
+-  'Unqueued requirement: MJ-REQ-297',
+-  'Unqueued requirement: MJ-REQ-298',
+-  'Unqueued requirement: MJ-REQ-299',
+-  'Unqueued requirement: MJ-REQ-300']
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.025s
+
+FAILED (failures=1)

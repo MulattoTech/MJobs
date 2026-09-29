@@ -1,0 +1,21 @@
+test_duplicate_fact_identity_is_ambiguous (unit.test_safety_policy.FactTests.test_duplicate_fact_identity_is_ambiguous) ... ok
+test_duplicate_selection_does_not_repeat_facts (unit.test_safety_policy.FactTests.test_duplicate_selection_does_not_repeat_facts) ... ok
+test_only_existing_verified_approved_facts_are_selected (unit.test_safety_policy.FactTests.test_only_existing_verified_approved_facts_are_selected) ... ok
+test_strings_are_not_boolean_verification (unit.test_safety_policy.FactTests.test_strings_are_not_boolean_verification) ... ok
+test_unknown_requirement_does_not_invent_a_fact (unit.test_safety_policy.FactTests.test_unknown_requirement_does_not_invent_a_fact) ... ok
+test_unverified_unapproved_or_unproven_facts_are_rejected (unit.test_safety_policy.FactTests.test_unverified_unapproved_or_unproven_facts_are_rejected) ... ok
+test_ambiguous_submission_never_blindly_retries (unit.test_safety_policy.SubmissionPolicyTests.test_ambiguous_submission_never_blindly_retries) ... ok
+test_challenges_always_require_intervention (unit.test_safety_policy.SubmissionPolicyTests.test_challenges_always_require_intervention) ... ok
+test_confirmed_submission_does_not_retry (unit.test_safety_policy.SubmissionPolicyTests.test_confirmed_submission_does_not_retry) ... ok
+test_enablement_does_not_override_any_quality_gate (unit.test_safety_policy.SubmissionPolicyTests.test_enablement_does_not_override_any_quality_gate) ... ok
+test_external_is_disabled_by_default (unit.test_safety_policy.SubmissionPolicyTests.test_external_is_disabled_by_default) ... ok
+test_invalid_inputs_fail_closed (unit.test_safety_policy.SubmissionPolicyTests.test_invalid_inputs_fail_closed) ... ok
+test_invalid_policy_cannot_remove_limits (unit.test_safety_policy.SubmissionPolicyTests.test_invalid_policy_cannot_remove_limits) ... ok
+test_local_mock_with_all_gates_can_submit (unit.test_safety_policy.SubmissionPolicyTests.test_local_mock_with_all_gates_can_submit) ... ok
+test_policy_enablement_does_not_replace_explicit_user_enablement (unit.test_safety_policy.SubmissionPolicyTests.test_policy_enablement_does_not_replace_explicit_user_enablement) ... ok
+test_threshold_boundary_is_inclusive (unit.test_safety_policy.SubmissionPolicyTests.test_threshold_boundary_is_inclusive) ... ok
+
+----------------------------------------------------------------------
+Ran 16 tests in 0.001s
+
+OK

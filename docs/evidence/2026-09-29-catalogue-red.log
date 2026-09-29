@@ -1,0 +1,19 @@
+test_catalogue (unittest.loader._FailedTest.test_catalogue) ... ERROR
+
+======================================================================
+ERROR: test_catalogue (unittest.loader._FailedTest.test_catalogue)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_catalogue
+Traceback (most recent call last):
+  File "C:\Users\Dylan\AppData\Local\Programs\Python\Python312\Lib\unittest\loader.py", line 137, in loadTestsFromName
+    module = __import__(module_name)
+             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Tools\Dev\MJobs\tests\unit\test_catalogue.py", line 6, in <module>
+    from tools.verification.catalogue import validate_catalogue
+ModuleNotFoundError: No module named 'tools'
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.000s
+
+FAILED (errors=1)

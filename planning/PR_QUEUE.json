@@ -1,0 +1,2642 @@
+{
+  "schema_version": 1,
+  "policy": {
+    "max_active_prs": 4,
+    "open_draft_only_after_first_real_commit": true,
+    "never_create_empty_prs": true,
+    "merge_order": "dependency-aware; keep main green"
+  },
+  "items": [
+    {
+      "id": "MJ-PR-001",
+      "title": "Governance Safety: Highest-Priority Directives; Protected Host / Development Safety",
+      "domain": "governance_safety",
+      "requirements": [
+        "MJ-REQ-000",
+        "MJ-REQ-001",
+        "MJ-REQ-002",
+        "MJ-REQ-003"
+      ],
+      "target_area": "root / docs / planning",
+      "depends_on": [],
+      "status": "ACTIVE",
+      "branch": "codex/mj-pr-001-governance-safety",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-002",
+      "title": "Governance Safety: Bound External Operations; Control Concurrency",
+      "domain": "governance_safety",
+      "requirements": [
+        "MJ-REQ-004",
+        "MJ-REQ-005",
+        "MJ-REQ-006",
+        "MJ-REQ-007"
+      ],
+      "target_area": "root / docs / planning",
+      "depends_on": [
+        "MJ-PR-001"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-002-governance-safety",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-003",
+      "title": "Governance Safety: Save Implementation Progress; Separate Development From Production Operation",
+      "domain": "governance_safety",
+      "requirements": [
+        "MJ-REQ-008",
+        "MJ-REQ-009",
+        "MJ-REQ-010",
+        "MJ-REQ-011"
+      ],
+      "target_area": "root / docs / planning",
+      "depends_on": [
+        "MJ-PR-002"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-003-governance-safety",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-004",
+      "title": "Governance Safety: Service Architecture; Local-First / Self-Hosted",
+      "domain": "governance_safety",
+      "requirements": [
+        "MJ-REQ-012",
+        "MJ-REQ-013",
+        "MJ-REQ-014"
+      ],
+      "target_area": "root / docs / planning",
+      "depends_on": [
+        "MJ-PR-003"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-004-governance-safety",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-005",
+      "title": "Core Search Model: Domain Model \u2014 Core Concepts; Global Job Sources",
+      "domain": "core_search_model",
+      "requirements": [
+        "MJ-REQ-015",
+        "MJ-REQ-016",
+        "MJ-REQ-017",
+        "MJ-REQ-018"
+      ],
+      "target_area": "packages/domain; apps/api; services/search",
+      "depends_on": [
+        "MJ-PR-001"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-005-core-search-model",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-006",
+      "title": "Core Search Model: Source Capability Model; Source Policy",
+      "domain": "core_search_model",
+      "requirements": [
+        "MJ-REQ-019",
+        "MJ-REQ-020",
+        "MJ-REQ-021",
+        "MJ-REQ-022"
+      ],
+      "target_area": "packages/domain; apps/api; services/search",
+      "depends_on": [
+        "MJ-PR-005",
+        "MJ-PR-001"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-006-core-search-model",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-007",
+      "title": "Core Search Model: Search Query Language; Location Filtering",
+      "domain": "core_search_model",
+      "requirements": [
+        "MJ-REQ-023",
+        "MJ-REQ-024",
+        "MJ-REQ-025",
+        "MJ-REQ-026"
+      ],
+      "target_area": "packages/domain; apps/api; services/search",
+      "depends_on": [
+        "MJ-PR-006",
+        "MJ-PR-001"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-007-core-search-model",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-008",
+      "title": "Core Search Model: Experience Level; Salary Filtering",
+      "domain": "core_search_model",
+      "requirements": [
+        "MJ-REQ-027",
+        "MJ-REQ-028",
+        "MJ-REQ-029",
+        "MJ-REQ-030"
+      ],
+      "target_area": "packages/domain; apps/api; services/search",
+      "depends_on": [
+        "MJ-PR-007",
+        "MJ-PR-001"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-008-core-search-model",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-009",
+      "title": "Core Search Model: Skill Filtering; Skill Taxonomy",
+      "domain": "core_search_model",
+      "requirements": [
+        "MJ-REQ-031",
+        "MJ-REQ-032",
+        "MJ-REQ-033",
+        "MJ-REQ-034"
+      ],
+      "target_area": "packages/domain; apps/api; services/search",
+      "depends_on": [
+        "MJ-PR-008",
+        "MJ-PR-001"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-009-core-search-model",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-010",
+      "title": "Core Search Model: Experience Requirement Parsing; Certification Parsing",
+      "domain": "core_search_model",
+      "requirements": [
+        "MJ-REQ-035",
+        "MJ-REQ-036",
+        "MJ-REQ-037",
+        "MJ-REQ-038"
+      ],
+      "target_area": "packages/domain; apps/api; services/search",
+      "depends_on": [
+        "MJ-PR-009",
+        "MJ-PR-001"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-010-core-search-model",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-011",
+      "title": "Core Search Model: User Negative Filters",
+      "domain": "core_search_model",
+      "requirements": [
+        "MJ-REQ-039"
+      ],
+      "target_area": "packages/domain; apps/api; services/search",
+      "depends_on": [
+        "MJ-PR-010",
+        "MJ-PR-001"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-011-core-search-model",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-012",
+      "title": "Job Identity Dedupe: Job Normalization; Raw Source Data",
+      "domain": "job_identity_dedupe",
+      "requirements": [
+        "MJ-REQ-040",
+        "MJ-REQ-041",
+        "MJ-REQ-042",
+        "MJ-REQ-043"
+      ],
+      "target_area": "services/normalization; services/dedupe",
+      "depends_on": [
+        "MJ-PR-005"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-012-job-identity-dedupe",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-013",
+      "title": "Job Identity Dedupe: Deduplication \u2014 Strong Signals; Deduplication \u2014 Company Identity",
+      "domain": "job_identity_dedupe",
+      "requirements": [
+        "MJ-REQ-044",
+        "MJ-REQ-045",
+        "MJ-REQ-046",
+        "MJ-REQ-047"
+      ],
+      "target_area": "services/normalization; services/dedupe",
+      "depends_on": [
+        "MJ-PR-012",
+        "MJ-PR-005"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-013-job-identity-dedupe",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-014",
+      "title": "Job Identity Dedupe: Company Boilerplate Handling; Deduplication Confidence",
+      "domain": "job_identity_dedupe",
+      "requirements": [
+        "MJ-REQ-048",
+        "MJ-REQ-049",
+        "MJ-REQ-050",
+        "MJ-REQ-051"
+      ],
+      "target_area": "services/normalization; services/dedupe",
+      "depends_on": [
+        "MJ-PR-013",
+        "MJ-PR-005"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-014-job-identity-dedupe",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-015",
+      "title": "Job Identity Dedupe: Do Not Delete Duplicate Source Records; Apply Through Multiple Sources",
+      "domain": "job_identity_dedupe",
+      "requirements": [
+        "MJ-REQ-052",
+        "MJ-REQ-053"
+      ],
+      "target_area": "services/normalization; services/dedupe",
+      "depends_on": [
+        "MJ-PR-014",
+        "MJ-PR-005"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-015-job-identity-dedupe",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-016",
+      "title": "Company Ats Discovery: Automatic Company Career-Site Discovery Is Core; Company Discovery Flywheel",
+      "domain": "company_ats_discovery",
+      "requirements": [
+        "MJ-REQ-054",
+        "MJ-REQ-055",
+        "MJ-REQ-056",
+        "MJ-REQ-057"
+      ],
+      "target_area": "services/company_discovery; services/ats_detection",
+      "depends_on": [
+        "MJ-PR-012"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-016-company-ats-discovery",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-017",
+      "title": "Company Ats Discovery: Company Aliases; Company Domains",
+      "domain": "company_ats_discovery",
+      "requirements": [
+        "MJ-REQ-058",
+        "MJ-REQ-059",
+        "MJ-REQ-060",
+        "MJ-REQ-061"
+      ],
+      "target_area": "services/company_discovery; services/ats_detection",
+      "depends_on": [
+        "MJ-PR-016",
+        "MJ-PR-012"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-017-company-ats-discovery",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-018",
+      "title": "Company Ats Discovery: External Search Provider Abstraction; Ats Auto-Detection",
+      "domain": "company_ats_discovery",
+      "requirements": [
+        "MJ-REQ-062",
+        "MJ-REQ-063",
+        "MJ-REQ-064",
+        "MJ-REQ-065"
+      ],
+      "target_area": "services/company_discovery; services/ats_detection",
+      "depends_on": [
+        "MJ-PR-017",
+        "MJ-PR-012"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-018-company-ats-discovery",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-019",
+      "title": "Company Ats Discovery: Ats Tenant Model; Company Job Source",
+      "domain": "company_ats_discovery",
+      "requirements": [
+        "MJ-REQ-066",
+        "MJ-REQ-067",
+        "MJ-REQ-068",
+        "MJ-REQ-069"
+      ],
+      "target_area": "services/company_discovery; services/ats_detection",
+      "depends_on": [
+        "MJ-PR-018",
+        "MJ-PR-012"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-019-company-ats-discovery",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-020",
+      "title": "Company Ats Discovery: Machine-Readable Employer Job Endpoints; Automatic Source Enrollment",
+      "domain": "company_ats_discovery",
+      "requirements": [
+        "MJ-REQ-070",
+        "MJ-REQ-071",
+        "MJ-REQ-072",
+        "MJ-REQ-073"
+      ],
+      "target_area": "services/company_discovery; services/ats_detection",
+      "depends_on": [
+        "MJ-PR-019",
+        "MJ-PR-012"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-020-company-ats-discovery",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-021",
+      "title": "Company Ats Discovery: Company Source Priority; Auto-Discovered Vs User-Watched",
+      "domain": "company_ats_discovery",
+      "requirements": [
+        "MJ-REQ-074",
+        "MJ-REQ-075",
+        "MJ-REQ-076",
+        "MJ-REQ-077"
+      ],
+      "target_area": "services/company_discovery; services/ats_detection",
+      "depends_on": [
+        "MJ-PR-020",
+        "MJ-PR-012"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-021-company-ats-discovery",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-022",
+      "title": "Company Ats Discovery: Company Discovery Confidence; Discovery Provenance",
+      "domain": "company_ats_discovery",
+      "requirements": [
+        "MJ-REQ-078",
+        "MJ-REQ-079",
+        "MJ-REQ-080",
+        "MJ-REQ-081"
+      ],
+      "target_area": "services/company_discovery; services/ats_detection",
+      "depends_on": [
+        "MJ-PR-021",
+        "MJ-PR-012"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-022-company-ats-discovery",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-023",
+      "title": "Company Ats Discovery: Company Discovery Activity; Company Source Quality Score",
+      "domain": "company_ats_discovery",
+      "requirements": [
+        "MJ-REQ-082",
+        "MJ-REQ-083",
+        "MJ-REQ-084"
+      ],
+      "target_area": "services/company_discovery; services/ats_detection",
+      "depends_on": [
+        "MJ-PR-022",
+        "MJ-PR-012"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-023-company-ats-discovery",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-024",
+      "title": "Job Lifecycle: Job Status; Closed Job First-Party Authority",
+      "domain": "job_lifecycle",
+      "requirements": [
+        "MJ-REQ-085",
+        "MJ-REQ-086",
+        "MJ-REQ-087"
+      ],
+      "target_area": "packages/domain/jobs; services/discovery",
+      "depends_on": [
+        "MJ-PR-016"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-024-job-lifecycle",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-025",
+      "title": "Career Profile Documents: User Career Profile; User Contact Information",
+      "domain": "career_profile_documents",
+      "requirements": [
+        "MJ-REQ-088",
+        "MJ-REQ-089",
+        "MJ-REQ-090",
+        "MJ-REQ-091"
+      ],
+      "target_area": "services/career_profile; services/documents",
+      "depends_on": [
+        "MJ-PR-024"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-025-career-profile-documents",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-026",
+      "title": "Career Profile Documents: Master Career Fact Store; Document Library",
+      "domain": "career_profile_documents",
+      "requirements": [
+        "MJ-REQ-092",
+        "MJ-REQ-093",
+        "MJ-REQ-094",
+        "MJ-REQ-095"
+      ],
+      "target_area": "services/career_profile; services/documents",
+      "depends_on": [
+        "MJ-PR-025",
+        "MJ-PR-024"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-026-career-profile-documents",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-027",
+      "title": "Career Profile Documents: Resume Factual Validation; Ats-Friendly Resumes",
+      "domain": "career_profile_documents",
+      "requirements": [
+        "MJ-REQ-096",
+        "MJ-REQ-097",
+        "MJ-REQ-098",
+        "MJ-REQ-099"
+      ],
+      "target_area": "services/career_profile; services/documents",
+      "depends_on": [
+        "MJ-PR-026",
+        "MJ-PR-024"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-027-career-profile-documents",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-028",
+      "title": "Career Profile Documents: Cover Letter Engine; Cover Letter Length",
+      "domain": "career_profile_documents",
+      "requirements": [
+        "MJ-REQ-100",
+        "MJ-REQ-101",
+        "MJ-REQ-102",
+        "MJ-REQ-103"
+      ],
+      "target_area": "services/career_profile; services/documents",
+      "depends_on": [
+        "MJ-PR-027",
+        "MJ-PR-024"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-028-career-profile-documents",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-029",
+      "title": "Career Profile Documents: Answer Matching; Application Answer Confidence",
+      "domain": "career_profile_documents",
+      "requirements": [
+        "MJ-REQ-104",
+        "MJ-REQ-105",
+        "MJ-REQ-106",
+        "MJ-REQ-107"
+      ],
+      "target_area": "services/career_profile; services/documents",
+      "depends_on": [
+        "MJ-PR-028",
+        "MJ-PR-024"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-029-career-profile-documents",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-030",
+      "title": "Matching Ai: Ai Provider Abstraction; Ai Task Configuration",
+      "domain": "matching_ai",
+      "requirements": [
+        "MJ-REQ-108",
+        "MJ-REQ-109",
+        "MJ-REQ-110",
+        "MJ-REQ-111"
+      ],
+      "target_area": "services/matching; services/ai",
+      "depends_on": [
+        "MJ-PR-025"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-030-matching-ai",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-031",
+      "title": "Matching Ai: Job Matching Engine; Match Components",
+      "domain": "matching_ai",
+      "requirements": [
+        "MJ-REQ-112",
+        "MJ-REQ-113",
+        "MJ-REQ-114",
+        "MJ-REQ-115"
+      ],
+      "target_area": "services/matching; services/ai",
+      "depends_on": [
+        "MJ-PR-030",
+        "MJ-PR-025"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-031-matching-ai",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-032",
+      "title": "Matching Ai: Match Categories; Match Weight Configuration",
+      "domain": "matching_ai",
+      "requirements": [
+        "MJ-REQ-116",
+        "MJ-REQ-117",
+        "MJ-REQ-118",
+        "MJ-REQ-119"
+      ],
+      "target_area": "services/matching; services/ai",
+      "depends_on": [
+        "MJ-PR-031",
+        "MJ-PR-025"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-032-matching-ai",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-033",
+      "title": "Matching Ai: Feedback",
+      "domain": "matching_ai",
+      "requirements": [
+        "MJ-REQ-120"
+      ],
+      "target_area": "services/matching; services/ai",
+      "depends_on": [
+        "MJ-PR-032",
+        "MJ-PR-025"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-033-matching-ai",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-034",
+      "title": "Application Automation: Application Automation Architecture; Ats Application Adapters",
+      "domain": "application_automation",
+      "requirements": [
+        "MJ-REQ-121",
+        "MJ-REQ-122",
+        "MJ-REQ-123",
+        "MJ-REQ-124"
+      ],
+      "target_area": "services/applications; workers/applications",
+      "depends_on": [
+        "MJ-PR-030"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-034-application-automation",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-035",
+      "title": "Application Automation: Source-Specific Submission Policy; Browser Profile Management",
+      "domain": "application_automation",
+      "requirements": [
+        "MJ-REQ-125",
+        "MJ-REQ-126",
+        "MJ-REQ-127",
+        "MJ-REQ-128"
+      ],
+      "target_area": "services/applications; workers/applications",
+      "depends_on": [
+        "MJ-PR-034",
+        "MJ-PR-030"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-035-application-automation",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-036",
+      "title": "Application Automation: Standard Field Taxonomy; Form Matching Fallback Order",
+      "domain": "application_automation",
+      "requirements": [
+        "MJ-REQ-129",
+        "MJ-REQ-130",
+        "MJ-REQ-131",
+        "MJ-REQ-132"
+      ],
+      "target_area": "services/applications; workers/applications",
+      "depends_on": [
+        "MJ-PR-035",
+        "MJ-PR-030"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-036-application-automation",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-037",
+      "title": "Application Automation: Dynamic Forms; File Upload",
+      "domain": "application_automation",
+      "requirements": [
+        "MJ-REQ-133",
+        "MJ-REQ-134",
+        "MJ-REQ-135",
+        "MJ-REQ-136"
+      ],
+      "target_area": "services/applications; workers/applications",
+      "depends_on": [
+        "MJ-PR-036",
+        "MJ-PR-030"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-037-application-automation",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-038",
+      "title": "Application Automation: Application State Machine; Application Attempt Model",
+      "domain": "application_automation",
+      "requirements": [
+        "MJ-REQ-137",
+        "MJ-REQ-138",
+        "MJ-REQ-139",
+        "MJ-REQ-140"
+      ],
+      "target_area": "services/applications; workers/applications",
+      "depends_on": [
+        "MJ-PR-037",
+        "MJ-PR-030"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-038-application-automation",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-039",
+      "title": "Application Automation: Captcha Behavior; Authentication Behavior",
+      "domain": "application_automation",
+      "requirements": [
+        "MJ-REQ-141",
+        "MJ-REQ-142",
+        "MJ-REQ-143",
+        "MJ-REQ-144"
+      ],
+      "target_area": "services/applications; workers/applications",
+      "depends_on": [
+        "MJ-PR-038",
+        "MJ-PR-030"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-039-application-automation",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-040",
+      "title": "Application Automation: Application Idempotency; Application Route Canonicalization",
+      "domain": "application_automation",
+      "requirements": [
+        "MJ-REQ-145",
+        "MJ-REQ-146",
+        "MJ-REQ-147",
+        "MJ-REQ-148"
+      ],
+      "target_area": "services/applications; workers/applications",
+      "depends_on": [
+        "MJ-PR-039",
+        "MJ-PR-030"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-040-application-automation",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-041",
+      "title": "Application Automation: Automatic Application Rule Engine; Auto-Submit Rule",
+      "domain": "application_automation",
+      "requirements": [
+        "MJ-REQ-149",
+        "MJ-REQ-150",
+        "MJ-REQ-151",
+        "MJ-REQ-152"
+      ],
+      "target_area": "services/applications; workers/applications",
+      "depends_on": [
+        "MJ-PR-040",
+        "MJ-PR-030"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-041-application-automation",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-042",
+      "title": "Application Automation: Pause / Resume; Quiet Hours",
+      "domain": "application_automation",
+      "requirements": [
+        "MJ-REQ-153",
+        "MJ-REQ-154"
+      ],
+      "target_area": "services/applications; workers/applications",
+      "depends_on": [
+        "MJ-PR-041",
+        "MJ-PR-030"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-042-application-automation",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-043",
+      "title": "Orchestration Data Security: Continuous Pipeline; Persistent Operations",
+      "domain": "orchestration_data_security",
+      "requirements": [
+        "MJ-REQ-155",
+        "MJ-REQ-156",
+        "MJ-REQ-157",
+        "MJ-REQ-158"
+      ],
+      "target_area": "workers; packages/persistence; services/security; observability",
+      "depends_on": [
+        "MJ-PR-034"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-043-orchestration-data-security",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-044",
+      "title": "Orchestration Data Security: Task Idempotency; Retries",
+      "domain": "orchestration_data_security",
+      "requirements": [
+        "MJ-REQ-159",
+        "MJ-REQ-160",
+        "MJ-REQ-161",
+        "MJ-REQ-162"
+      ],
+      "target_area": "workers; packages/persistence; services/security; observability",
+      "depends_on": [
+        "MJ-PR-043",
+        "MJ-PR-034"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-044-orchestration-data-security",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-045",
+      "title": "Orchestration Data Security: Database Constraints; Database Indexes",
+      "domain": "orchestration_data_security",
+      "requirements": [
+        "MJ-REQ-163",
+        "MJ-REQ-164",
+        "MJ-REQ-165",
+        "MJ-REQ-166"
+      ],
+      "target_area": "workers; packages/persistence; services/security; observability",
+      "depends_on": [
+        "MJ-PR-044",
+        "MJ-PR-034"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-045-orchestration-data-security",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-046",
+      "title": "Orchestration Data Security: Data Backup; Restore",
+      "domain": "orchestration_data_security",
+      "requirements": [
+        "MJ-REQ-167",
+        "MJ-REQ-168",
+        "MJ-REQ-169",
+        "MJ-REQ-170"
+      ],
+      "target_area": "workers; packages/persistence; services/security; observability",
+      "depends_on": [
+        "MJ-PR-045",
+        "MJ-PR-034"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-046-orchestration-data-security",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-047",
+      "title": "Orchestration Data Security: Security \u2014 Pii; Security \u2014 Web",
+      "domain": "orchestration_data_security",
+      "requirements": [
+        "MJ-REQ-171",
+        "MJ-REQ-172",
+        "MJ-REQ-173",
+        "MJ-REQ-174"
+      ],
+      "target_area": "workers; packages/persistence; services/security; observability",
+      "depends_on": [
+        "MJ-PR-046",
+        "MJ-PR-034"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-047-orchestration-data-security",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-048",
+      "title": "Orchestration Data Security: Security \u2014 Secret Management; Audit Log",
+      "domain": "orchestration_data_security",
+      "requirements": [
+        "MJ-REQ-175",
+        "MJ-REQ-176",
+        "MJ-REQ-177",
+        "MJ-REQ-178"
+      ],
+      "target_area": "workers; packages/persistence; services/security; observability",
+      "depends_on": [
+        "MJ-PR-047",
+        "MJ-PR-034"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-048-orchestration-data-security",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-049",
+      "title": "Orchestration Data Security: Debug Capture; Redact Debug Data",
+      "domain": "orchestration_data_security",
+      "requirements": [
+        "MJ-REQ-179",
+        "MJ-REQ-180"
+      ],
+      "target_area": "workers; packages/persistence; services/security; observability",
+      "depends_on": [
+        "MJ-PR-048",
+        "MJ-PR-034"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-049-orchestration-data-security",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-050",
+      "title": "Web Api Analytics: Source Health Dashboard; Company Health Dashboard",
+      "domain": "web_api_analytics",
+      "requirements": [
+        "MJ-REQ-181",
+        "MJ-REQ-182",
+        "MJ-REQ-183",
+        "MJ-REQ-184"
+      ],
+      "target_area": "apps/web; apps/api; services/analytics",
+      "depends_on": [
+        "MJ-PR-043"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-050-web-api-analytics",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-051",
+      "title": "Web Api Analytics: Primary Ui Navigation; Jobs Screen",
+      "domain": "web_api_analytics",
+      "requirements": [
+        "MJ-REQ-185",
+        "MJ-REQ-186",
+        "MJ-REQ-187",
+        "MJ-REQ-188"
+      ],
+      "target_area": "apps/web; apps/api; services/analytics",
+      "depends_on": [
+        "MJ-PR-050",
+        "MJ-PR-043"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-051-web-api-analytics",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-052",
+      "title": "Web Api Analytics: Job Filter Sidebar; Job Sorting",
+      "domain": "web_api_analytics",
+      "requirements": [
+        "MJ-REQ-189",
+        "MJ-REQ-190",
+        "MJ-REQ-191",
+        "MJ-REQ-192"
+      ],
+      "target_area": "apps/web; apps/api; services/analytics",
+      "depends_on": [
+        "MJ-PR-051",
+        "MJ-PR-043"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-052-web-api-analytics",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-053",
+      "title": "Web Api Analytics: Bulk Actions; Companies Screen",
+      "domain": "web_api_analytics",
+      "requirements": [
+        "MJ-REQ-193",
+        "MJ-REQ-194",
+        "MJ-REQ-195",
+        "MJ-REQ-196"
+      ],
+      "target_area": "apps/web; apps/api; services/analytics",
+      "depends_on": [
+        "MJ-PR-052",
+        "MJ-PR-043"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-053-web-api-analytics",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-054",
+      "title": "Web Api Analytics: Application Review Ux; Documents Screen",
+      "domain": "web_api_analytics",
+      "requirements": [
+        "MJ-REQ-197",
+        "MJ-REQ-198",
+        "MJ-REQ-199",
+        "MJ-REQ-200"
+      ],
+      "target_area": "apps/web; apps/api; services/analytics",
+      "depends_on": [
+        "MJ-PR-053",
+        "MJ-PR-043"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-054-web-api-analytics",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-055",
+      "title": "Web Api Analytics: Analytics; Source Attribution Analytics",
+      "domain": "web_api_analytics",
+      "requirements": [
+        "MJ-REQ-201",
+        "MJ-REQ-202",
+        "MJ-REQ-203",
+        "MJ-REQ-204"
+      ],
+      "target_area": "apps/web; apps/api; services/analytics",
+      "depends_on": [
+        "MJ-PR-054",
+        "MJ-PR-043"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-055-web-api-analytics",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-056",
+      "title": "Web Api Analytics: Api Design; Real-Time Ui Updates",
+      "domain": "web_api_analytics",
+      "requirements": [
+        "MJ-REQ-205",
+        "MJ-REQ-206",
+        "MJ-REQ-207"
+      ],
+      "target_area": "apps/web; apps/api; services/analytics",
+      "depends_on": [
+        "MJ-PR-055",
+        "MJ-PR-043"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-056-web-api-analytics",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-057",
+      "title": "Test Harness: Dry-Run Mode; Mock Source Environment",
+      "domain": "test_harness",
+      "requirements": [
+        "MJ-REQ-208",
+        "MJ-REQ-209",
+        "MJ-REQ-210",
+        "MJ-REQ-211"
+      ],
+      "target_area": "tests; fixtures; mock-services",
+      "depends_on": [
+        "MJ-PR-050"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-057-test-harness",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-058",
+      "title": "Test Harness: Automatic Company Discovery Test; Full Application E2E Test",
+      "domain": "test_harness",
+      "requirements": [
+        "MJ-REQ-212",
+        "MJ-REQ-213",
+        "MJ-REQ-214",
+        "MJ-REQ-215"
+      ],
+      "target_area": "tests; fixtures; mock-services",
+      "depends_on": [
+        "MJ-PR-057",
+        "MJ-PR-050"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-058-test-harness",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-059",
+      "title": "Test Harness: Unit Tests \u2014 Company Resolution; Unit Tests \u2014 Ats Detection",
+      "domain": "test_harness",
+      "requirements": [
+        "MJ-REQ-216",
+        "MJ-REQ-217",
+        "MJ-REQ-218",
+        "MJ-REQ-219"
+      ],
+      "target_area": "tests; fixtures; mock-services",
+      "depends_on": [
+        "MJ-PR-058",
+        "MJ-PR-050"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-059-test-harness",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-060",
+      "title": "Test Harness: Unit Tests \u2014 Application State; Application Idempotency Test",
+      "domain": "test_harness",
+      "requirements": [
+        "MJ-REQ-220",
+        "MJ-REQ-221",
+        "MJ-REQ-222",
+        "MJ-REQ-223"
+      ],
+      "target_area": "tests; fixtures; mock-services",
+      "depends_on": [
+        "MJ-PR-059",
+        "MJ-PR-050"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-060-test-harness",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-061",
+      "title": "Test Harness: Application Adapter Contract Tests; Security Tests",
+      "domain": "test_harness",
+      "requirements": [
+        "MJ-REQ-224",
+        "MJ-REQ-225",
+        "MJ-REQ-226",
+        "MJ-REQ-227"
+      ],
+      "target_area": "tests; fixtures; mock-services",
+      "depends_on": [
+        "MJ-PR-060",
+        "MJ-PR-050"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-061-test-harness",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-062",
+      "title": "Test Harness: Live Source Testing; Live Company Discovery Test",
+      "domain": "test_harness",
+      "requirements": [
+        "MJ-REQ-228",
+        "MJ-REQ-229",
+        "MJ-REQ-230"
+      ],
+      "target_area": "tests; fixtures; mock-services",
+      "depends_on": [
+        "MJ-PR-061",
+        "MJ-PR-050"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-062-test-harness",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-063",
+      "title": "Performance Learning History: Performance Target; Server-Side Pagination",
+      "domain": "performance_learning_history",
+      "requirements": [
+        "MJ-REQ-231",
+        "MJ-REQ-232",
+        "MJ-REQ-233",
+        "MJ-REQ-234"
+      ],
+      "target_area": "services/discovery; services/learning; packages/persistence",
+      "depends_on": [
+        "MJ-PR-057"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-063-performance-learning-history",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-064",
+      "title": "Performance Learning History: Browser Resource Management; Search History",
+      "domain": "performance_learning_history",
+      "requirements": [
+        "MJ-REQ-235",
+        "MJ-REQ-236",
+        "MJ-REQ-237",
+        "MJ-REQ-238"
+      ],
+      "target_area": "services/discovery; services/learning; packages/persistence",
+      "depends_on": [
+        "MJ-PR-063",
+        "MJ-PR-057"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-064-performance-learning-history",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-065",
+      "title": "Performance Learning History: User Notes; Company Blacklist",
+      "domain": "performance_learning_history",
+      "requirements": [
+        "MJ-REQ-239",
+        "MJ-REQ-240",
+        "MJ-REQ-241",
+        "MJ-REQ-242"
+      ],
+      "target_area": "services/discovery; services/learning; packages/persistence",
+      "depends_on": [
+        "MJ-PR-064",
+        "MJ-PR-057"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-065-performance-learning-history",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-066",
+      "title": "Performance Learning History: Company Source Search Filtering; Search Profile Suggestions",
+      "domain": "performance_learning_history",
+      "requirements": [
+        "MJ-REQ-243",
+        "MJ-REQ-244",
+        "MJ-REQ-245",
+        "MJ-REQ-246"
+      ],
+      "target_area": "services/discovery; services/learning; packages/persistence",
+      "depends_on": [
+        "MJ-PR-065",
+        "MJ-PR-057"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-066-performance-learning-history",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-067",
+      "title": "Performance Learning History: Do Not Delete Failed Sources",
+      "domain": "performance_learning_history",
+      "requirements": [
+        "MJ-REQ-247"
+      ],
+      "target_area": "services/discovery; services/learning; packages/persistence",
+      "depends_on": [
+        "MJ-PR-066",
+        "MJ-PR-057"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-067-performance-learning-history",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-068",
+      "title": "Operations Ux Ci: Health Endpoints; Docker Health Checks",
+      "domain": "operations_ux_ci",
+      "requirements": [
+        "MJ-REQ-248",
+        "MJ-REQ-249",
+        "MJ-REQ-250",
+        "MJ-REQ-251"
+      ],
+      "target_area": "apps/web; infra; .github; cli",
+      "depends_on": [
+        "MJ-PR-063"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-068-operations-ux-ci",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-069",
+      "title": "Operations Ux Ci: Search Profile Seed; Default Technology Seed",
+      "domain": "operations_ux_ci",
+      "requirements": [
+        "MJ-REQ-252",
+        "MJ-REQ-253",
+        "MJ-REQ-254",
+        "MJ-REQ-255"
+      ],
+      "target_area": "apps/web; infra; .github; cli",
+      "depends_on": [
+        "MJ-PR-068",
+        "MJ-PR-063"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-069-operations-ux-ci",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-070",
+      "title": "Operations Ux Ci: Accessibility; Light / Dark Mode",
+      "domain": "operations_ux_ci",
+      "requirements": [
+        "MJ-REQ-256",
+        "MJ-REQ-257",
+        "MJ-REQ-258",
+        "MJ-REQ-259"
+      ],
+      "target_area": "apps/web; infra; .github; cli",
+      "depends_on": [
+        "MJ-PR-069",
+        "MJ-PR-063"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-070-operations-ux-ci",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-071",
+      "title": "Operations Ux Ci: Optional Email Status Ingestion; Source Vs Ats Separation",
+      "domain": "operations_ux_ci",
+      "requirements": [
+        "MJ-REQ-260",
+        "MJ-REQ-261",
+        "MJ-REQ-262",
+        "MJ-REQ-263"
+      ],
+      "target_area": "apps/web; infra; .github; cli",
+      "depends_on": [
+        "MJ-PR-070",
+        "MJ-PR-063"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-071-operations-ux-ci",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-072",
+      "title": "Operations Ux Ci: Priority Company Discovery; Configurable Company-Discovery Thresholds",
+      "domain": "operations_ux_ci",
+      "requirements": [
+        "MJ-REQ-264",
+        "MJ-REQ-265",
+        "MJ-REQ-266",
+        "MJ-REQ-267"
+      ],
+      "target_area": "apps/web; infra; .github; cli",
+      "depends_on": [
+        "MJ-PR-071",
+        "MJ-PR-063"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-072-operations-ux-ci",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-073",
+      "title": "Operations Ux Ci: Application Status Tracking; Document Fact Trace",
+      "domain": "operations_ux_ci",
+      "requirements": [
+        "MJ-REQ-268",
+        "MJ-REQ-269",
+        "MJ-REQ-270",
+        "MJ-REQ-271"
+      ],
+      "target_area": "apps/web; infra; .github; cli",
+      "depends_on": [
+        "MJ-PR-072",
+        "MJ-PR-063"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-073-operations-ux-ci",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-074",
+      "title": "Operations Ux Ci: Document Generation Failure; Application Worker Failure",
+      "domain": "operations_ux_ci",
+      "requirements": [
+        "MJ-REQ-272",
+        "MJ-REQ-273",
+        "MJ-REQ-274",
+        "MJ-REQ-275"
+      ],
+      "target_area": "apps/web; infra; .github; cli",
+      "depends_on": [
+        "MJ-PR-073",
+        "MJ-PR-063"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-074-operations-ux-ci",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-075",
+      "title": "Operations Ux Ci: Settings Versioning; Import / Export Settings",
+      "domain": "operations_ux_ci",
+      "requirements": [
+        "MJ-REQ-276",
+        "MJ-REQ-277",
+        "MJ-REQ-278",
+        "MJ-REQ-279"
+      ],
+      "target_area": "apps/web; infra; .github; cli",
+      "depends_on": [
+        "MJ-PR-074",
+        "MJ-PR-063"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-075-operations-ux-ci",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-076",
+      "title": "Operations Ux Ci: Typescript Quality",
+      "domain": "operations_ux_ci",
+      "requirements": [
+        "MJ-REQ-280"
+      ],
+      "target_area": "apps/web; infra; .github; cli",
+      "depends_on": [
+        "MJ-PR-075",
+        "MJ-PR-063"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-076-operations-ux-ci",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-077",
+      "title": "Docs Verification: Repository Structure; Source Adapter Development Guide",
+      "domain": "docs_verification",
+      "requirements": [
+        "MJ-REQ-281",
+        "MJ-REQ-282",
+        "MJ-REQ-283",
+        "MJ-REQ-284"
+      ],
+      "target_area": "docs; tools/verification",
+      "depends_on": [
+        "MJ-PR-068"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-077-docs-verification",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-078",
+      "title": "Docs Verification: Architecture Document; Database Documentation",
+      "domain": "docs_verification",
+      "requirements": [
+        "MJ-REQ-285",
+        "MJ-REQ-286",
+        "MJ-REQ-287",
+        "MJ-REQ-288"
+      ],
+      "target_area": "docs; tools/verification",
+      "depends_on": [
+        "MJ-PR-077",
+        "MJ-PR-068"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-078-docs-verification",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-079",
+      "title": "Docs Verification: Deep Verification",
+      "domain": "docs_verification",
+      "requirements": [
+        "MJ-REQ-289"
+      ],
+      "target_area": "docs; tools/verification",
+      "depends_on": [
+        "MJ-PR-078",
+        "MJ-PR-068"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-079-docs-verification",
+      "draft_until_verified": true,
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+    },
+    {
+      "id": "MJ-PR-080",
+      "title": "Global job-source adapter: Dice",
+      "domain": "core_search_model",
+      "requirements": [
+        "MJ-REQ-017.S01"
+      ],
+      "target_area": "services/discovery/sources",
+      "depends_on": [
+        "MJ-PR-005"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-080-mj-req-017-s01-global-job-source-adapter-dice",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-081",
+      "title": "Global job-source adapter: We Work Remotely",
+      "domain": "core_search_model",
+      "requirements": [
+        "MJ-REQ-017.S02"
+      ],
+      "target_area": "services/discovery/sources",
+      "depends_on": [
+        "MJ-PR-005"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-081-mj-req-017-s02-global-job-source-adapter-we-work-remotely",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-082",
+      "title": "Global job-source adapter: Wellfound",
+      "domain": "core_search_model",
+      "requirements": [
+        "MJ-REQ-017.S03"
+      ],
+      "target_area": "services/discovery/sources",
+      "depends_on": [
+        "MJ-PR-005"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-082-mj-req-017-s03-global-job-source-adapter-wellfound",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-083",
+      "title": "Global job-source adapter: HiringCafe",
+      "domain": "core_search_model",
+      "requirements": [
+        "MJ-REQ-017.S04"
+      ],
+      "target_area": "services/discovery/sources",
+      "depends_on": [
+        "MJ-PR-005"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-083-mj-req-017-s04-global-job-source-adapter-hiringcafe",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-084",
+      "title": "Global job-source adapter: Working Nomads",
+      "domain": "core_search_model",
+      "requirements": [
+        "MJ-REQ-017.S05"
+      ],
+      "target_area": "services/discovery/sources",
+      "depends_on": [
+        "MJ-PR-005"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-084-mj-req-017-s05-global-job-source-adapter-working-nomads",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-085",
+      "title": "Global job-source adapter: Remote Rocketship",
+      "domain": "core_search_model",
+      "requirements": [
+        "MJ-REQ-017.S06"
+      ],
+      "target_area": "services/discovery/sources",
+      "depends_on": [
+        "MJ-PR-005"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-085-mj-req-017-s06-global-job-source-adapter-remote-rocketship",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-086",
+      "title": "Global job-source adapter: Remote OK",
+      "domain": "core_search_model",
+      "requirements": [
+        "MJ-REQ-017.S07"
+      ],
+      "target_area": "services/discovery/sources",
+      "depends_on": [
+        "MJ-PR-005"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-086-mj-req-017-s07-global-job-source-adapter-remote-ok",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-087",
+      "title": "Global job-source adapter: Remotive",
+      "domain": "core_search_model",
+      "requirements": [
+        "MJ-REQ-017.S08"
+      ],
+      "target_area": "services/discovery/sources",
+      "depends_on": [
+        "MJ-PR-005"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-087-mj-req-017-s08-global-job-source-adapter-remotive",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-088",
+      "title": "Global job-source adapter: Built In",
+      "domain": "core_search_model",
+      "requirements": [
+        "MJ-REQ-017.S09"
+      ],
+      "target_area": "services/discovery/sources",
+      "depends_on": [
+        "MJ-PR-005"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-088-mj-req-017-s09-global-job-source-adapter-built-in",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-089",
+      "title": "Future global job-source adapter: LinkedIn",
+      "domain": "core_search_model",
+      "requirements": [
+        "MJ-REQ-017.F01"
+      ],
+      "target_area": "services/discovery/sources",
+      "depends_on": [
+        "MJ-PR-005"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-089-mj-req-017-f01-future-global-job-source-adapter-linkedin",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-090",
+      "title": "Future global job-source adapter: Indeed",
+      "domain": "core_search_model",
+      "requirements": [
+        "MJ-REQ-017.F02"
+      ],
+      "target_area": "services/discovery/sources",
+      "depends_on": [
+        "MJ-PR-005"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-090-mj-req-017-f02-future-global-job-source-adapter-indeed",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-091",
+      "title": "Future global job-source adapter: ZipRecruiter",
+      "domain": "core_search_model",
+      "requirements": [
+        "MJ-REQ-017.F03"
+      ],
+      "target_area": "services/discovery/sources",
+      "depends_on": [
+        "MJ-PR-005"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-091-mj-req-017-f03-future-global-job-source-adapter-ziprecruiter",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-092",
+      "title": "Future global job-source adapter: Glassdoor",
+      "domain": "core_search_model",
+      "requirements": [
+        "MJ-REQ-017.F04"
+      ],
+      "target_area": "services/discovery/sources",
+      "depends_on": [
+        "MJ-PR-005"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-092-mj-req-017-f04-future-global-job-source-adapter-glassdoor",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-093",
+      "title": "Future global job-source adapter: Monster",
+      "domain": "core_search_model",
+      "requirements": [
+        "MJ-REQ-017.F05"
+      ],
+      "target_area": "services/discovery/sources",
+      "depends_on": [
+        "MJ-PR-005"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-093-mj-req-017-f05-future-global-job-source-adapter-monster",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-094",
+      "title": "Future global job-source adapter: Government job systems",
+      "domain": "core_search_model",
+      "requirements": [
+        "MJ-REQ-017.F06"
+      ],
+      "target_area": "services/discovery/sources",
+      "depends_on": [
+        "MJ-PR-005"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-094-mj-req-017-f06-future-global-job-source-adapter-government-j",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-095",
+      "title": "Future global job-source adapter: Specialized niche boards",
+      "domain": "core_search_model",
+      "requirements": [
+        "MJ-REQ-017.F07"
+      ],
+      "target_area": "services/discovery/sources",
+      "depends_on": [
+        "MJ-PR-005"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-095-mj-req-017-f07-future-global-job-source-adapter-specialized-",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-096",
+      "title": "ATS detection adapter: Greenhouse",
+      "domain": "company_ats_discovery",
+      "requirements": [
+        "MJ-REQ-063.D01"
+      ],
+      "target_area": "services/ats_detection/providers",
+      "depends_on": [
+        "MJ-PR-018"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-096-mj-req-063-d01-ats-detection-adapter-greenhouse",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-097",
+      "title": "ATS detection adapter: Lever",
+      "domain": "company_ats_discovery",
+      "requirements": [
+        "MJ-REQ-063.D02"
+      ],
+      "target_area": "services/ats_detection/providers",
+      "depends_on": [
+        "MJ-PR-018"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-097-mj-req-063-d02-ats-detection-adapter-lever",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-098",
+      "title": "ATS detection adapter: Ashby",
+      "domain": "company_ats_discovery",
+      "requirements": [
+        "MJ-REQ-063.D03"
+      ],
+      "target_area": "services/ats_detection/providers",
+      "depends_on": [
+        "MJ-PR-018"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-098-mj-req-063-d03-ats-detection-adapter-ashby",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-099",
+      "title": "ATS detection adapter: SmartRecruiters",
+      "domain": "company_ats_discovery",
+      "requirements": [
+        "MJ-REQ-063.D04"
+      ],
+      "target_area": "services/ats_detection/providers",
+      "depends_on": [
+        "MJ-PR-018"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-099-mj-req-063-d04-ats-detection-adapter-smartrecruiters",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-100",
+      "title": "ATS detection adapter: Workable",
+      "domain": "company_ats_discovery",
+      "requirements": [
+        "MJ-REQ-063.D05"
+      ],
+      "target_area": "services/ats_detection/providers",
+      "depends_on": [
+        "MJ-PR-018"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-100-mj-req-063-d05-ats-detection-adapter-workable",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-101",
+      "title": "ATS detection adapter: Workday",
+      "domain": "company_ats_discovery",
+      "requirements": [
+        "MJ-REQ-063.D06"
+      ],
+      "target_area": "services/ats_detection/providers",
+      "depends_on": [
+        "MJ-PR-018"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-101-mj-req-063-d06-ats-detection-adapter-workday",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-102",
+      "title": "ATS detection adapter: Jobvite",
+      "domain": "company_ats_discovery",
+      "requirements": [
+        "MJ-REQ-063.D07"
+      ],
+      "target_area": "services/ats_detection/providers",
+      "depends_on": [
+        "MJ-PR-018"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-102-mj-req-063-d07-ats-detection-adapter-jobvite",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-103",
+      "title": "ATS detection adapter: BambooHR",
+      "domain": "company_ats_discovery",
+      "requirements": [
+        "MJ-REQ-063.D08"
+      ],
+      "target_area": "services/ats_detection/providers",
+      "depends_on": [
+        "MJ-PR-018"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-103-mj-req-063-d08-ats-detection-adapter-bamboohr",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-104",
+      "title": "ATS detection adapter: Recruitee",
+      "domain": "company_ats_discovery",
+      "requirements": [
+        "MJ-REQ-063.D09"
+      ],
+      "target_area": "services/ats_detection/providers",
+      "depends_on": [
+        "MJ-PR-018"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-104-mj-req-063-d09-ats-detection-adapter-recruitee",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-105",
+      "title": "ATS detection adapter: Teamtailor",
+      "domain": "company_ats_discovery",
+      "requirements": [
+        "MJ-REQ-063.D10"
+      ],
+      "target_area": "services/ats_detection/providers",
+      "depends_on": [
+        "MJ-PR-018"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-105-mj-req-063-d10-ats-detection-adapter-teamtailor",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-106",
+      "title": "ATS detection adapter: Breezy",
+      "domain": "company_ats_discovery",
+      "requirements": [
+        "MJ-REQ-063.D11"
+      ],
+      "target_area": "services/ats_detection/providers",
+      "depends_on": [
+        "MJ-PR-018"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-106-mj-req-063-d11-ats-detection-adapter-breezy",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-107",
+      "title": "ATS detection adapter: iCIMS",
+      "domain": "company_ats_discovery",
+      "requirements": [
+        "MJ-REQ-063.D12"
+      ],
+      "target_area": "services/ats_detection/providers",
+      "depends_on": [
+        "MJ-PR-018"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-107-mj-req-063-d12-ats-detection-adapter-icims",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-108",
+      "title": "ATS detection adapter: Oracle/Taleo",
+      "domain": "company_ats_discovery",
+      "requirements": [
+        "MJ-REQ-063.D13"
+      ],
+      "target_area": "services/ats_detection/providers",
+      "depends_on": [
+        "MJ-PR-018"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-108-mj-req-063-d13-ats-detection-adapter-oracle-taleo",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-109",
+      "title": "ATS detection adapter: SuccessFactors",
+      "domain": "company_ats_discovery",
+      "requirements": [
+        "MJ-REQ-063.D14"
+      ],
+      "target_area": "services/ats_detection/providers",
+      "depends_on": [
+        "MJ-PR-018"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-109-mj-req-063-d14-ats-detection-adapter-successfactors",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-110",
+      "title": "ATS detection adapter: Dayforce",
+      "domain": "company_ats_discovery",
+      "requirements": [
+        "MJ-REQ-063.D15"
+      ],
+      "target_area": "services/ats_detection/providers",
+      "depends_on": [
+        "MJ-PR-018"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-110-mj-req-063-d15-ats-detection-adapter-dayforce",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-111",
+      "title": "ATS detection adapter: ADP Recruiting",
+      "domain": "company_ats_discovery",
+      "requirements": [
+        "MJ-REQ-063.D16"
+      ],
+      "target_area": "services/ats_detection/providers",
+      "depends_on": [
+        "MJ-PR-018"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-111-mj-req-063-d16-ats-detection-adapter-adp-recruiting",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-112",
+      "title": "ATS detection adapter: JazzHR",
+      "domain": "company_ats_discovery",
+      "requirements": [
+        "MJ-REQ-063.D17"
+      ],
+      "target_area": "services/ats_detection/providers",
+      "depends_on": [
+        "MJ-PR-018"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-112-mj-req-063-d17-ats-detection-adapter-jazzhr",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-113",
+      "title": "ATS detection adapter: ApplicantPro",
+      "domain": "company_ats_discovery",
+      "requirements": [
+        "MJ-REQ-063.D18"
+      ],
+      "target_area": "services/ats_detection/providers",
+      "depends_on": [
+        "MJ-PR-018"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-113-mj-req-063-d18-ats-detection-adapter-applicantpro",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-114",
+      "title": "ATS detection adapter: UKG",
+      "domain": "company_ats_discovery",
+      "requirements": [
+        "MJ-REQ-063.D19"
+      ],
+      "target_area": "services/ats_detection/providers",
+      "depends_on": [
+        "MJ-PR-018"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-114-mj-req-063-d19-ats-detection-adapter-ukg",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-115",
+      "title": "ATS detection adapter: Paycom",
+      "domain": "company_ats_discovery",
+      "requirements": [
+        "MJ-REQ-063.D20"
+      ],
+      "target_area": "services/ats_detection/providers",
+      "depends_on": [
+        "MJ-PR-018"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-115-mj-req-063-d20-ats-detection-adapter-paycom",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-116",
+      "title": "ATS detection adapter: Paylocity",
+      "domain": "company_ats_discovery",
+      "requirements": [
+        "MJ-REQ-063.D21"
+      ],
+      "target_area": "services/ats_detection/providers",
+      "depends_on": [
+        "MJ-PR-018"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-116-mj-req-063-d21-ats-detection-adapter-paylocity",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-117",
+      "title": "ATS detection adapter: NEOGOV / GovernmentJobs",
+      "domain": "company_ats_discovery",
+      "requirements": [
+        "MJ-REQ-063.D22"
+      ],
+      "target_area": "services/ats_detection/providers",
+      "depends_on": [
+        "MJ-PR-018"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-117-mj-req-063-d22-ats-detection-adapter-neogov-governmentjobs",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-118",
+      "title": "AI provider implementation: OpenAI-compatible",
+      "domain": "matching_ai",
+      "requirements": [
+        "MJ-REQ-108.A01"
+      ],
+      "target_area": "services/ai/providers",
+      "depends_on": [
+        "MJ-PR-030"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-118-mj-req-108-a01-ai-provider-implementation-openai-compatible",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-119",
+      "title": "AI provider implementation: OpenAI",
+      "domain": "matching_ai",
+      "requirements": [
+        "MJ-REQ-108.A02"
+      ],
+      "target_area": "services/ai/providers",
+      "depends_on": [
+        "MJ-PR-030"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-119-mj-req-108-a02-ai-provider-implementation-openai",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-120",
+      "title": "AI provider implementation: Azure OpenAI",
+      "domain": "matching_ai",
+      "requirements": [
+        "MJ-REQ-108.A03"
+      ],
+      "target_area": "services/ai/providers",
+      "depends_on": [
+        "MJ-PR-030"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-120-mj-req-108-a03-ai-provider-implementation-azure-openai",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-121",
+      "title": "AI provider implementation: Ollama",
+      "domain": "matching_ai",
+      "requirements": [
+        "MJ-REQ-108.A04"
+      ],
+      "target_area": "services/ai/providers",
+      "depends_on": [
+        "MJ-PR-030"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-121-mj-req-108-a04-ai-provider-implementation-ollama",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-122",
+      "title": "AI provider implementation: Local endpoint",
+      "domain": "matching_ai",
+      "requirements": [
+        "MJ-REQ-108.A05"
+      ],
+      "target_area": "services/ai/providers",
+      "depends_on": [
+        "MJ-PR-030"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-122-mj-req-108-a05-ai-provider-implementation-local-endpoint",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-123",
+      "title": "AI provider implementation: Disabled/no-AI provider",
+      "domain": "matching_ai",
+      "requirements": [
+        "MJ-REQ-108.A06"
+      ],
+      "target_area": "services/ai/providers",
+      "depends_on": [
+        "MJ-PR-030"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-123-mj-req-108-a06-ai-provider-implementation-disabled-no-ai-pro",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-124",
+      "title": "Application adapter: Greenhouse",
+      "domain": "application_automation",
+      "requirements": [
+        "MJ-REQ-122.A01"
+      ],
+      "target_area": "services/applications/adapters",
+      "depends_on": [
+        "MJ-PR-034"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-124-mj-req-122-a01-application-adapter-greenhouse",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-125",
+      "title": "Application adapter: Lever",
+      "domain": "application_automation",
+      "requirements": [
+        "MJ-REQ-122.A02"
+      ],
+      "target_area": "services/applications/adapters",
+      "depends_on": [
+        "MJ-PR-034"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-125-mj-req-122-a02-application-adapter-lever",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-126",
+      "title": "Application adapter: Ashby",
+      "domain": "application_automation",
+      "requirements": [
+        "MJ-REQ-122.A03"
+      ],
+      "target_area": "services/applications/adapters",
+      "depends_on": [
+        "MJ-PR-034"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-126-mj-req-122-a03-application-adapter-ashby",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-127",
+      "title": "Application adapter: SmartRecruiters",
+      "domain": "application_automation",
+      "requirements": [
+        "MJ-REQ-122.A04"
+      ],
+      "target_area": "services/applications/adapters",
+      "depends_on": [
+        "MJ-PR-034"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-127-mj-req-122-a04-application-adapter-smartrecruiters",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-128",
+      "title": "Application adapter: Workable",
+      "domain": "application_automation",
+      "requirements": [
+        "MJ-REQ-122.A05"
+      ],
+      "target_area": "services/applications/adapters",
+      "depends_on": [
+        "MJ-PR-034"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-128-mj-req-122-a05-application-adapter-workable",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-129",
+      "title": "Application adapter: Recruitee",
+      "domain": "application_automation",
+      "requirements": [
+        "MJ-REQ-122.A06"
+      ],
+      "target_area": "services/applications/adapters",
+      "depends_on": [
+        "MJ-PR-034"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-129-mj-req-122-a06-application-adapter-recruitee",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-130",
+      "title": "Application adapter: Teamtailor",
+      "domain": "application_automation",
+      "requirements": [
+        "MJ-REQ-122.A07"
+      ],
+      "target_area": "services/applications/adapters",
+      "depends_on": [
+        "MJ-PR-034"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-130-mj-req-122-a07-application-adapter-teamtailor",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-131",
+      "title": "Application adapter: Breezy",
+      "domain": "application_automation",
+      "requirements": [
+        "MJ-REQ-122.A08"
+      ],
+      "target_area": "services/applications/adapters",
+      "depends_on": [
+        "MJ-PR-034"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-131-mj-req-122-a08-application-adapter-breezy",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-132",
+      "title": "Application adapter: BambooHR",
+      "domain": "application_automation",
+      "requirements": [
+        "MJ-REQ-122.A09"
+      ],
+      "target_area": "services/applications/adapters",
+      "depends_on": [
+        "MJ-PR-034"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-132-mj-req-122-a09-application-adapter-bamboohr",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-133",
+      "title": "Application adapter: Generic HTML",
+      "domain": "application_automation",
+      "requirements": [
+        "MJ-REQ-122.A10"
+      ],
+      "target_area": "services/applications/adapters",
+      "depends_on": [
+        "MJ-PR-034"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-133-mj-req-122-a10-application-adapter-generic-html",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-134",
+      "title": "Later application adapter: Workday",
+      "domain": "application_automation",
+      "requirements": [
+        "MJ-REQ-122.L01"
+      ],
+      "target_area": "services/applications/adapters",
+      "depends_on": [
+        "MJ-PR-034"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-134-mj-req-122-l01-later-application-adapter-workday",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-135",
+      "title": "Later application adapter: iCIMS",
+      "domain": "application_automation",
+      "requirements": [
+        "MJ-REQ-122.L02"
+      ],
+      "target_area": "services/applications/adapters",
+      "depends_on": [
+        "MJ-PR-034"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-135-mj-req-122-l02-later-application-adapter-icims",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-136",
+      "title": "Later application adapter: Jobvite",
+      "domain": "application_automation",
+      "requirements": [
+        "MJ-REQ-122.L03"
+      ],
+      "target_area": "services/applications/adapters",
+      "depends_on": [
+        "MJ-PR-034"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-136-mj-req-122-l03-later-application-adapter-jobvite",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-137",
+      "title": "Later application adapter: SuccessFactors",
+      "domain": "application_automation",
+      "requirements": [
+        "MJ-REQ-122.L04"
+      ],
+      "target_area": "services/applications/adapters",
+      "depends_on": [
+        "MJ-PR-034"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-137-mj-req-122-l04-later-application-adapter-successfactors",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-138",
+      "title": "Later application adapter: Taleo",
+      "domain": "application_automation",
+      "requirements": [
+        "MJ-REQ-122.L05"
+      ],
+      "target_area": "services/applications/adapters",
+      "depends_on": [
+        "MJ-PR-034"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-138-mj-req-122-l05-later-application-adapter-taleo",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-139",
+      "title": "Later application adapter: Dayforce",
+      "domain": "application_automation",
+      "requirements": [
+        "MJ-REQ-122.L06"
+      ],
+      "target_area": "services/applications/adapters",
+      "depends_on": [
+        "MJ-PR-034"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-139-mj-req-122-l06-later-application-adapter-dayforce",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-140",
+      "title": "Notification provider: Email",
+      "domain": "web_api_analytics",
+      "requirements": [
+        "MJ-REQ-204.N01"
+      ],
+      "target_area": "services/notifications/providers",
+      "depends_on": [
+        "MJ-PR-055"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-140-mj-req-204-n01-notification-provider-email",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-141",
+      "title": "Notification provider: ntfy",
+      "domain": "web_api_analytics",
+      "requirements": [
+        "MJ-REQ-204.N02"
+      ],
+      "target_area": "services/notifications/providers",
+      "depends_on": [
+        "MJ-PR-055"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-141-mj-req-204-n02-notification-provider-ntfy",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-142",
+      "title": "Notification provider: Discord",
+      "domain": "web_api_analytics",
+      "requirements": [
+        "MJ-REQ-204.N03"
+      ],
+      "target_area": "services/notifications/providers",
+      "depends_on": [
+        "MJ-PR-055"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-142-mj-req-204-n03-notification-provider-discord",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-143",
+      "title": "Notification provider: Slack",
+      "domain": "web_api_analytics",
+      "requirements": [
+        "MJ-REQ-204.N04"
+      ],
+      "target_area": "services/notifications/providers",
+      "depends_on": [
+        "MJ-PR-055"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-143-mj-req-204-n04-notification-provider-slack",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-144",
+      "title": "Notification provider: Desktop",
+      "domain": "web_api_analytics",
+      "requirements": [
+        "MJ-REQ-204.N05"
+      ],
+      "target_area": "services/notifications/providers",
+      "depends_on": [
+        "MJ-PR-055"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-144-mj-req-204-n05-notification-provider-desktop",
+      "draft_until_verified": true,
+      "notes": "Independent provider PR. Declare only capabilities actually verified."
+    },
+    {
+      "id": "MJ-PR-145",
+      "title": "Delivery control: MJ-REQ-290, MJ-REQ-291, MJ-REQ-292, MJ-REQ-293",
+      "domain": "delivery_control",
+      "requirements": [
+        "MJ-REQ-290",
+        "MJ-REQ-291",
+        "MJ-REQ-292",
+        "MJ-REQ-293"
+      ],
+      "target_area": "planning; docs; tools/verification",
+      "depends_on": [
+        "MJ-PR-001"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-145-delivery-control",
+      "draft_until_verified": true,
+      "notes": "Restores catalogued requirements omitted from the original queue; full acceptance remains required."
+    },
+    {
+      "id": "MJ-PR-146",
+      "title": "Delivery control: MJ-REQ-294, MJ-REQ-295, MJ-REQ-296, MJ-REQ-297",
+      "domain": "delivery_control",
+      "requirements": [
+        "MJ-REQ-294",
+        "MJ-REQ-295",
+        "MJ-REQ-296",
+        "MJ-REQ-297"
+      ],
+      "target_area": "planning; docs; tools/verification",
+      "depends_on": [
+        "MJ-PR-145"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-146-delivery-control",
+      "draft_until_verified": true,
+      "notes": "Restores catalogued requirements omitted from the original queue; full acceptance remains required."
+    },
+    {
+      "id": "MJ-PR-147",
+      "title": "Delivery control: MJ-REQ-298, MJ-REQ-299, MJ-REQ-300",
+      "domain": "delivery_control",
+      "requirements": [
+        "MJ-REQ-298",
+        "MJ-REQ-299",
+        "MJ-REQ-300"
+      ],
+      "target_area": "planning; docs; tools/verification",
+      "depends_on": [
+        "MJ-PR-146"
+      ],
+      "status": "QUEUED",
+      "branch": "codex/mj-pr-147-delivery-control",
+      "draft_until_verified": true,
+      "notes": "Restores catalogued requirements omitted from the original queue; full acceptance remains required."
+    }
+  ]
+}

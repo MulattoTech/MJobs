@@ -1,0 +1,17 @@
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+node_modules/
+.next/
+.env
+.env.*
+!.env.example
+.worktrees/
+.superpowers/
+outputs/
+playwright-report/
+test-results/
+planning/GITHUB_ISSUE_MAP.lock

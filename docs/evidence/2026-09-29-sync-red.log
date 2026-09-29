@@ -1,0 +1,59 @@
+test_atomic_checkpoint_can_be_read_after_each_acknowledged_issue (tests.unit.test_sync_backlog.BacklogTests.test_atomic_checkpoint_can_be_read_after_each_acknowledged_issue) ... ERROR
+test_duplicate_remote_markers_are_not_silently_overwritten (tests.unit.test_sync_backlog.BacklogTests.test_duplicate_remote_markers_are_not_silently_overwritten) ... FAIL
+test_external_process_timeout_is_bounded_and_classified (tests.unit.test_sync_backlog.BacklogTests.test_external_process_timeout_is_bounded_and_classified) ... ERROR
+test_second_local_sync_cannot_acquire_same_mutation_lock (tests.unit.test_sync_backlog.BacklogTests.test_second_local_sync_cannot_acquire_same_mutation_lock) ... ERROR
+
+======================================================================
+ERROR: test_atomic_checkpoint_can_be_read_after_each_acknowledged_issue (tests.unit.test_sync_backlog.BacklogTests.test_atomic_checkpoint_can_be_read_after_each_acknowledged_issue)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Tools\Dev\MJobs\tests\unit\test_sync_backlog.py", line 33, in test_atomic_checkpoint_can_be_read_after_each_acknowledged_issue
+    sync.write_map("owner/repo", {"A": 17}, path=target)
+    ^^^^^^^^^^^^^^
+AttributeError: module 'sync_backlog' has no attribute 'write_map'
+
+======================================================================
+ERROR: test_external_process_timeout_is_bounded_and_classified (tests.unit.test_sync_backlog.BacklogTests.test_external_process_timeout_is_bounded_and_classified)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Tools\Dev\MJobs\tests\unit\test_sync_backlog.py", line 28, in test_external_process_timeout_is_bounded_and_classified
+    sync.run(["gh", "api", "test"])
+  File "C:\Tools\Dev\MJobs\bootstrap-tools\sync_backlog.py", line 12, in run
+    p = subprocess.run(args, text=True, capture_output=True)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Dylan\AppData\Local\Programs\Python\Python312\Lib\unittest\mock.py", line 1139, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Dylan\AppData\Local\Programs\Python\Python312\Lib\unittest\mock.py", line 1143, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Dylan\AppData\Local\Programs\Python\Python312\Lib\unittest\mock.py", line 1204, in _execute_mock_call
+    result = effect(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Tools\Dev\MJobs\tests\unit\test_sync_backlog.py", line 24, in subprocess_run
+    self.assertGreater(kwargs["timeout"], 0)
+                       ~~~~~~^^^^^^^^^^^
+KeyError: 'timeout'
+
+======================================================================
+ERROR: test_second_local_sync_cannot_acquire_same_mutation_lock (tests.unit.test_sync_backlog.BacklogTests.test_second_local_sync_cannot_acquire_same_mutation_lock)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Tools\Dev\MJobs\tests\unit\test_sync_backlog.py", line 40, in test_second_local_sync_cannot_acquire_same_mutation_lock
+    with sync.mutation_lock(path):
+         ^^^^^^^^^^^^^^^^^^
+AttributeError: module 'sync_backlog' has no attribute 'mutation_lock'
+
+======================================================================
+FAIL: test_duplicate_remote_markers_are_not_silently_overwritten (tests.unit.test_sync_backlog.BacklogTests.test_duplicate_remote_markers_are_not_silently_overwritten)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Tools\Dev\MJobs\tests\unit\test_sync_backlog.py", line 19, in test_duplicate_remote_markers_are_not_silently_overwritten
+    with patch.object(sync, "gh_json", return_value=rows), self.assertRaises(SystemExit):
+                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: SystemExit not raised
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.015s
+
+FAILED (failures=1, errors=3)

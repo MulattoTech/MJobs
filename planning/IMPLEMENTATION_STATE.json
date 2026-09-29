@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-09-29",
+  "baseline": {
+    "local_path": "C:\\Tools\\Dev\\MJobs",
+    "github_repo": "MulattoTech/MJobs",
+    "observed_local_state": "directory exists, empty, not a git repository",
+    "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
+    "baseline_must_be_reverified": false,
+    "current_verified_local_state": "Initialized from newer origin/main; supplied control pack retained on governance branch",
+    "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
+  },
+  "current_milestone": "M0_BOOTSTRAP",
+  "current_objective": "Control-plane preservation, complete backlog, tested safety policy, then mock vertical spine.",
+  "status": "PARTIAL",
+  "completed_capabilities": [
+    "Control plane reconciled with existing GitHub history",
+    "366 stable marked issues mapped; idempotent live reconciliation",
+    "Catalogue completeness and dependency consistency validator"
+  ],
+  "partially_completed_capabilities": [
+    "Submission/truthfulness policy slice; durable counters and browser worker not yet implemented"
+  ],
+  "blocked_capabilities": [],
+  "active_requirements": [
+    "MJ-REQ-000",
+    "MJ-REQ-001",
+    "MJ-REQ-002",
+    "MJ-REQ-003"
+  ],
+  "active_prs": [],
+  "tests_passed": [
+    "28 domain/control-plane unit tests",
+    "Live backlog synchronization: 366 mapped; rerun 0 created",
+    "Catalogue validation: PASS"
+  ],
+  "tests_failed": [],
+  "tests_not_run": [
+    "all product tests"
+  ],
+  "known_external_limitations": [],
+  "known_product_defects": [],
+  "known_test_harness_defects": [],
+  "last_verified_checkpoint": {
+    "timestamp": "2026-09-29T23:32:18.716999+00:00",
+    "command": "python -m unittest discover -s tests -p test_*.py -v; python bootstrap-tools/sync_backlog.py --repo MulattoTech/MJobs; python -m tools.verification.catalogue",
+    "target": "governance bootstrap",
+    "result": "PASS",
+    "evidence_path": "docs/evidence/2026-09-29-bootstrap.json"
+  },
+  "recommended_resume_step": "Finish backlog reconciliation, create tested governance PR, then CODEX_START section 7 mock spine."
+}

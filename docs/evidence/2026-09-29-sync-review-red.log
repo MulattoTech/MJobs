@@ -1,0 +1,50 @@
+test_ambiguous_previous_creation_is_not_blindly_retried (tests.unit.test_sync_backlog.BacklogTests.test_ambiguous_previous_creation_is_not_blindly_retried) ... ERROR
+test_atomic_checkpoint_can_be_read_after_each_acknowledged_issue (tests.unit.test_sync_backlog.BacklogTests.test_atomic_checkpoint_can_be_read_after_each_acknowledged_issue) ... ok
+test_dead_owner_lock_can_be_recovered_after_explicit_request (tests.unit.test_sync_backlog.BacklogTests.test_dead_owner_lock_can_be_recovered_after_explicit_request) ... ERROR
+test_duplicate_remote_markers_are_not_silently_overwritten (tests.unit.test_sync_backlog.BacklogTests.test_duplicate_remote_markers_are_not_silently_overwritten) ... ok
+test_external_process_timeout_is_bounded_and_classified (tests.unit.test_sync_backlog.BacklogTests.test_external_process_timeout_is_bounded_and_classified) ... ok
+created A -> #17
+test_failed_creation_retains_acknowledged_map_and_pending_marker (tests.unit.test_sync_backlog.BacklogTests.test_failed_creation_retains_acknowledged_map_and_pending_marker) ... ok
+test_recovery_never_removes_live_owner_lock (tests.unit.test_sync_backlog.BacklogTests.test_recovery_never_removes_live_owner_lock) ... ERROR
+test_second_local_sync_cannot_acquire_same_mutation_lock (tests.unit.test_sync_backlog.BacklogTests.test_second_local_sync_cannot_acquire_same_mutation_lock) ... ok
+
+======================================================================
+ERROR: test_ambiguous_previous_creation_is_not_blindly_retried (tests.unit.test_sync_backlog.BacklogTests.test_ambiguous_previous_creation_is_not_blindly_retried)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Tools\Dev\MJobs\tests\unit\test_sync_backlog.py", line 62, in test_ambiguous_previous_creation_is_not_blindly_retried
+    sync.synchronize("owner/repo", [{"id": "B"}], path=target, delay=0, labels=True)
+TypeError: synchronize() got an unexpected keyword argument 'labels'
+
+======================================================================
+ERROR: test_dead_owner_lock_can_be_recovered_after_explicit_request (tests.unit.test_sync_backlog.BacklogTests.test_dead_owner_lock_can_be_recovered_after_explicit_request)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Tools\Dev\MJobs\tests\unit\test_sync_backlog.py", line 69, in test_dead_owner_lock_can_be_recovered_after_explicit_request
+    with patch.object(sync, "pid_alive", return_value=False):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Dylan\AppData\Local\Programs\Python\Python312\Lib\unittest\mock.py", line 1467, in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Dylan\AppData\Local\Programs\Python\Python312\Lib\unittest\mock.py", line 1437, in get_original
+    raise AttributeError(
+AttributeError: <module 'sync_backlog' from 'C:\\Tools\\Dev\\MJobs\\bootstrap-tools\\sync_backlog.py'> does not have the attribute 'pid_alive'
+
+======================================================================
+ERROR: test_recovery_never_removes_live_owner_lock (tests.unit.test_sync_backlog.BacklogTests.test_recovery_never_removes_live_owner_lock)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Tools\Dev\MJobs\tests\unit\test_sync_backlog.py", line 78, in test_recovery_never_removes_live_owner_lock
+    with patch.object(sync, "pid_alive", return_value=True), self.assertRaisesRegex(SystemExit, "LOCKED"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Dylan\AppData\Local\Programs\Python\Python312\Lib\unittest\mock.py", line 1467, in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Dylan\AppData\Local\Programs\Python\Python312\Lib\unittest\mock.py", line 1437, in get_original
+    raise AttributeError(
+AttributeError: <module 'sync_backlog' from 'C:\\Tools\\Dev\\MJobs\\bootstrap-tools\\sync_backlog.py'> does not have the attribute 'pid_alive'
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.027s
+
+FAILED (errors=3)

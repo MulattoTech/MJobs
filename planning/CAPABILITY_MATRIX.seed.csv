@@ -1,0 +1,13 @@
+capability,requirement_id,status,evidence,last_tested,limitations
+running_product_spine,MJ-REQ-293,NOT_RUN,,,
+company_discovery_flywheel,MJ-REQ-055,NOT_RUN,,,
+canonical_job_dedupe,MJ-REQ-042,NOT_RUN,,,
+application_route_dedupe,MJ-REQ-043,NOT_RUN,,,
+career_fact_truth_gate,MJ-REQ-092,NOT_RUN,,,
+tailored_resume,MJ-REQ-095,NOT_RUN,,,
+cover_letter,MJ-REQ-100,NOT_RUN,,,
+application_form_automation,MJ-REQ-128,NOT_RUN,,,
+submission_idempotency,MJ-REQ-145,NOT_RUN,,,
+mock_full_e2e,MJ-REQ-213,NOT_RUN,,,
+backup_restore,MJ-REQ-168,NOT_RUN,,,
+docker_compose_startup,MJ-REQ-014,NOT_RUN,,,
