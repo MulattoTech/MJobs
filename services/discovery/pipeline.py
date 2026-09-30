@@ -11,7 +11,7 @@ from packages.persistence.store import identity, now, upsert
 
 
 class MockClient:
-    def __init__(self, origin):
+    def __init__(self, origin, check=None):
         parsed = urlsplit(origin)
         allowed_hosts = ("127.0.0.1", "localhost") + (("mock",) if os.environ.get("MJOBS_COMPOSE_MOCK") == "1" else ())
         if (parsed.scheme != "http" or parsed.hostname not in allowed_hosts
@@ -19,6 +19,7 @@ class MockClient:
             raise ValueError("Mock origin must be an explicit local fixture server")
         self.origin = origin.rstrip("/")
         self.client = httpx.Client(timeout=10, follow_redirects=False, trust_env=False)
+        self.check = check or (lambda: None)
 
     def allowed(self, url):
         parsed = urlsplit(url)
@@ -26,6 +27,7 @@ class MockClient:
 
     def get(self, url):
         for _ in range(4):
+            self.check()
             if not self.allowed(url):
                 raise ValueError("Untrusted external redirect blocked")
             response = self.client.get(url)
@@ -42,8 +44,8 @@ class MockClient:
         self.client.close()
 
 
-def discover(store, mock_origin, profile_id):
-    profile = store.profile(profile_id)
+def discover(store, mock_origin, profile_id, check=None, profile_version=None):
+    profile = store.profile(profile_id, profile_version)
     usable = []
     for row in profile["facts"]:
         fact = Fact(id=row["fact_id"], **{key: row[key] for key in ("text", "source", "verified", "user_approved", "confidence")})
@@ -53,7 +55,7 @@ def discover(store, mock_origin, profile_id):
             continue
         if row["kind"] == "skill":
             usable.append(fact.text.casefold())
-    client = MockClient(mock_origin)
+    client = MockClient(mock_origin, check=check)
     try:
         aggregator = client.get(mock_origin + "/board/jobs").json()["jobs"]
         sources = {}
@@ -74,6 +76,7 @@ def discover(store, mock_origin, profile_id):
             if not any(source == endpoint for source, _ in all_rows):
                 all_rows.extend((endpoint, employer) for employer in client.get(endpoint).json()["jobs"])
         with store.engine.begin() as connection:
+            client.check()
             for company_id, source in sources.items():
                 upsert(connection, m.companies, {"id": company_id, "name": source["company"], "domain": source["domain"]})
                 upsert(connection, m.company_sources, {"id": identity(company_id, "mock-ats", source["tenant"]), "company_id": company_id,

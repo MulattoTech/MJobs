@@ -12,6 +12,8 @@ from packages.persistence.store import Store
 from tests.integration.test_spine import PROFILE
 from workers.dispatch import enqueue_operation, dispatch_pending
 from fixtures.mock_server import fixture_server
+from services.discovery.pipeline import discover
+from workers.tasks import execute_operation
 
 
 class ApiQueueTests(unittest.TestCase):
@@ -77,6 +79,24 @@ class ApiQueueTests(unittest.TestCase):
                 response = client.get("/readiness")
         self.assertEqual(response.status_code, 503)
         self.assertFalse(response.json()["checks"]["worker"])
+
+    def test_preparation_is_durable_background_work_and_cancel_is_visible(self):
+        with fixture_server() as origin, TestClient(create_app(self.store, origin, self.root)) as client:
+            client.put("/profiles", json=PROFILE).raise_for_status()
+            discover(self.store, origin, "fixture")
+            job = self.store.jobs()[0]
+            response = client.post("/applications", json={"profile_id": "fixture", "job_id": job["id"]})
+            self.assertEqual(response.status_code, 202)
+            queued = response.json()
+            self.assertEqual(queued["state"], "QUEUED")
+            self.assertEqual(self.store.count("applications"), 0)
+            with patch.dict("os.environ", MJOBS_DATABASE_URL=self.store.url, MJOBS_MOCK_ORIGIN=origin, MJOBS_OUTPUT_DIR=str(self.root)):
+                self.assertEqual(execute_operation(queued["operation_id"])["status"], "COMPLETED")
+            self.assertEqual(client.get("/applications/" + queued["application_id"]).json()["state"], "PREPARED")
+            discovery = client.post("/discovery", json={"profile_id": "fixture"}).json()
+            cancelled = client.post("/operations/" + discovery["operation_id"] + "/cancel")
+            self.assertEqual(cancelled.status_code, 202)
+            self.assertEqual(cancelled.json()["state"], "CANCELLED")
 
 
 if __name__ == "__main__":

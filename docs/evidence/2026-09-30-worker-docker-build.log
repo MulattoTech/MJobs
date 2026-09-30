@@ -1,0 +1,61 @@
+ Image mjobs-local:spine Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 1.31kB done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 508B done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/python:3.12-slim
+#3 ...
+
+#4 [auth] library/python:pull token for registry-1.docker.io
+#4 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/python:3.12-slim
+#3 DONE 0.7s
+
+#5 [internal] load .dockerignore
+#5 transferring context: 127B done
+#5 DONE 0.0s
+
+#6 [1/6] FROM docker.io/library/python:3.12-slim@sha256:f77ac9e44ae96ef2c90b8053ea08c31f8be030f824196b0ae4db6d462c84e51f
+#6 resolve docker.io/library/python:3.12-slim@sha256:f77ac9e44ae96ef2c90b8053ea08c31f8be030f824196b0ae4db6d462c84e51f 0.0s done
+#6 DONE 0.0s
+
+#7 [internal] load build context
+#7 transferring context: 289.45kB 0.0s done
+#7 DONE 0.0s
+
+#8 [2/6] WORKDIR /app
+#8 CACHED
+
+#9 [3/6] COPY requirements.lock ./requirements.lock
+#9 CACHED
+
+#10 [4/6] RUN pip install --no-cache-dir -r requirements.lock && python -m playwright install --with-deps chromium
+#10 CACHED
+
+#11 [5/6] COPY . .
+#11 DONE 0.1s
+
+#12 [6/6] RUN useradd --create-home --uid 10001 mjobs && mkdir -p /data/documents && mv /root/.cache/ms-playwright /opt/playwright && chown -R mjobs:mjobs /data /app /opt/playwright
+#12 DONE 4.8s
+
+#13 exporting to image
+#13 exporting layers
+#13 exporting layers 16.4s done
+#13 exporting manifest sha256:26b8f9f733b486268d88e8ea78a372aa5a7962c1a6969aa1f45d79c105f4e69c 0.0s done
+#13 exporting config sha256:23338bb67473a9a8747c4677ec25f021e953159ad213e8d0f028c275ba9afeb7 0.0s done
+#13 exporting attestation manifest sha256:fe8d6df0f9e658100c0cc92b3aefd9ab38a3bbef39189720fe1d532969976309 0.0s done
+#13 exporting manifest list sha256:d1e85c12801906b0045af0065914701b994e4c18ee78122c6dd191706d45b03e 0.0s done
+#13 naming to docker.io/library/mjobs-local:spine
+#13 naming to docker.io/library/mjobs-local:spine done
+#13 unpacking to docker.io/library/mjobs-local:spine
+#13 unpacking to docker.io/library/mjobs-local:spine 3.0s done
+#13 DONE 19.5s
+
+#14 resolving provenance for metadata file
+#14 DONE 0.0s
+ Image mjobs-local:spine Built 

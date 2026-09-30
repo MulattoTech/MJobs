@@ -1,0 +1,23 @@
+{
+  "result": "PASS",
+  "timestamp": "2026-09-30T11:33:41.095290+00:00",
+  "command": "python -m cli.compose_recovery --baseline docs/evidence/2026-09-30-worker-compose-e2e.json",
+  "target": "Project-only PostgreSQL/Redis/RQ/mock persistence and outage recovery",
+  "actions": [
+    {
+      "action": "Redis disconnected; discovery persisted",
+      "result": "PASS",
+      "operation_id": "140487eb6886fbd2d954c141cddb53ac9d81ec7357efd752d70ba6f32bd5062f"
+    },
+    {
+      "action": "Worker supervision and durable outbox recovered after Redis returned",
+      "result": "PASS"
+    },
+    {
+      "action": "All services restarted; original application, operation and independent receipt survived without another submission",
+      "result": "PASS"
+    }
+  ],
+  "application_id": "617a048d8a667bae54f67451ae3cd47a57d75dd6a0ee661153f27048332344ed",
+  "external_submission_enabled": false
+}

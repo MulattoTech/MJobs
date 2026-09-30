@@ -25,11 +25,13 @@ def _receipt(client, application, requisition):
     return None
 
 
-def _authorize(store, application_id, confidence, policy=Policy()):
+def _authorize(store, application_id, confidence, policy=Policy(), check=None):
     with store.engine.begin() as connection:
         application = connection.execute(select(m.applications).where(m.applications.c.id == application_id).with_for_update()).mappings().one()
         # Serialize all submission reservations for the same profile in PostgreSQL.
         connection.execute(select(m.profiles).where(m.profiles.c.id == application["profile_id"]).with_for_update()).one()
+        if check:
+            check()
         job = connection.execute(select(m.jobs).where(m.jobs.c.id == application["job_id"])).mappings().one()
         match = connection.execute(select(m.matches).where(m.matches.c.job_id == job["id"], m.matches.c.profile_id == application["profile_id"],
             m.matches.c.profile_version == application["profile_version"])).mappings().one()
@@ -53,7 +55,8 @@ def _authorize(store, application_id, confidence, policy=Policy()):
         return decision
 
 
-def apply_mock(store, application_id, mock_origin, output_dir, submit=False):
+def apply_mock(store, application_id, mock_origin, output_dir, submit=False, check=None):
+    check = check or (lambda: None)
     if type(submit) is not bool:
         raise ValueError("Mock submission selection must be explicit boolean")
     client = MockClient(mock_origin)
@@ -75,6 +78,7 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False):
             return store.application(application_id)
         if application["state"] not in ("PREPARED", "DRY_RUN_COMPLETE"):
             return application
+        check()
         profile = store.profile(application["profile_id"], application["profile_version"])
         answers = select_verified_facts([Fact(**row) for row in profile["answers"]], ["country", "remote", "fixture_question"])
         answer = {fact.id: fact.text for fact in answers}
@@ -101,6 +105,7 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False):
                 try:
                     context.route("**/*", lambda route: route.continue_() if client.allowed(route.request.url) else route.abort())
                     page = context.new_page()
+                    check()
                     page.set_default_timeout(10000)
                     page.goto(route["url"], wait_until="domcontentloaded", timeout=15000)
                     if page.locator("[data-intervention]").count():
@@ -121,6 +126,7 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False):
                     if not page.locator("form").evaluate("form => form.checkValidity()"):
                         raise ValueError("Mock form validation failed")
                     page.get_by_role("button", name="Review application", exact=True).click()
+                    check()
                     page.locator('[data-validated="true"]').wait_for()
                     page.get_by_label("Application ID", exact=True).fill(application_id)
                     page.get_by_label("Approved fixture answer", exact=True).fill(answer["fixture_question"])
@@ -131,7 +137,7 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False):
                     if not submit:
                         store.transition(application_id, ["READY_TO_SUBMIT"], "DRY_RUN_COMPLETE", "STOP_BEFORE_SUBMIT")
                         return store.application(application_id)
-                    decision = _authorize(store, application_id, min(fact.confidence for fact in (*facts, *answers)))
+                    decision = _authorize(store, application_id, min(fact.confidence for fact in (*facts, *answers)), check=check)
                     if not decision.allowed:
                         store.transition(application_id, ["READY_TO_SUBMIT"], "REVIEW_REQUIRED", "POLICY_GATE")
                         return store.application(application_id)
