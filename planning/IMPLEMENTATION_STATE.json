@@ -11,7 +11,7 @@
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
   "current_milestone": "M3_LOCAL_USER_TESTING_VERIFIED",
-  "current_objective": "Local user-testing milestone verified; resolve remote CI gate before integration and subsequent workflow improvements",
+  "current_objective": "Connected UI remote CI passed; integrate PR #370 and continue dependency-eligible original requirements",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -33,13 +33,7 @@
     "Heuristic description skill coverage for real jobs and exact structured skills for mock; advanced matching remains open",
     "Real jobs support manual preparation only; manual status updates, real automation and intervention resume remain open"
   ],
-  "blocked_capabilities": [
-    {
-      "capability": "Remote GitHub Actions verification",
-      "result": "BLOCKED_EXTERNAL",
-      "reason": "OAuth authorization lacks workflow scope; reviewed workflow staged at infra/ci/verification.yml"
-    }
-  ],
+  "blocked_capabilities": [],
   "active_requirements": [
     "MJ-REQ-016",
     "MJ-REQ-018",
@@ -70,19 +64,19 @@
       "number": 367,
       "url": "https://github.com/MulattoTech/MJobs/pull/367",
       "branch": "codex/mj-pr-001-governance-safety",
-      "status": "DRAFT_PR"
+      "status": "MERGED"
     },
     {
       "number": 368,
       "url": "https://github.com/MulattoTech/MJobs/pull/368",
       "branch": "codex/mj-pr-148-mock-product-spine",
-      "status": "DRAFT_PR"
+      "status": "MERGED"
     },
     {
       "number": 369,
       "url": "https://github.com/MulattoTech/MJobs/pull/369",
       "branch": "codex/mj-pr-002-governance-safety",
-      "status": "DRAFT_PR"
+      "status": "MERGED"
     },
     {
       "number": 370,
@@ -102,11 +96,14 @@
     "67 Python tests across domain, persistence, sources, API, durable workers and headless ATS",
     "Final affected search/read-model suite: 4 tests",
     "Frontend: 2 tests, strict TypeScript check and production build under Docker Node24",
-    "Actual Chromium connected UI against existing and fresh Compose deployments; live source browser readback; final outage/restart PASS"
+    "Actual Chromium connected UI against existing and fresh Compose deployments; live source browser readback; final outage/restart PASS",
+    "Remote governance CI: pull_request run 36765678280 PASS at e97d8b0",
+    "Remote mock-spine CI: pull_request run 36766636806 PASS at 90b59ca",
+    "Remote worker-lifecycle CI: pull_request run 36767410947 PASS at 29012e0",
+    "Remote connected-UI CI: pull_request run 36768260666 and push run 36768256061 PASS at d807851"
   ],
   "tests_failed": [],
   "tests_not_run": [
-    "Remote CI: BLOCKED_EXTERNAL (workflow OAuth scope)",
     "Remaining full-spec integrations and product/release requirements"
   ],
   "known_external_limitations": [],
@@ -127,7 +124,32 @@
     "result": "PASS",
     "evidence_path": "docs/evidence/2026-09-30-mvp-recovery-final.json"
   },
-  "recommended_resume_step": "Read docs/RESUME.md and docs/evidence/2026-09-30-user-testing-checkpoint.json; resolve native workflow scope then execute prompts/NEXT_USER_TESTING_GOAL.md",
+  "ci_verification": {
+    "result": "PASS",
+    "scope": "governance domain/control-plane and catalogue only",
+    "head": "e97d8b0a35219bf4c053cf663c5d44f6f1be522c",
+    "pull_request_run_id": 36765678280,
+    "evidence_path": "docs/evidence/2026-09-30-governance-ci.json"
+  },
+  "mock_spine_ci": {
+    "result": "PASS",
+    "head": "90b59ca019ee57c1fe3e47897bce26b9c128ebe8",
+    "pull_request_run_id": 36766636806,
+    "evidence_path": "docs/evidence/2026-09-30-ci-368.json"
+  },
+  "worker_lifecycle_ci": {
+    "result": "PASS",
+    "head": "29012e09e048ec9aeeb26c7e03f728fac8d77b91",
+    "pull_request_run_id": 36767410947,
+    "evidence_path": "docs/evidence/2026-09-30-ci-369.json"
+  },
+  "connected_ui_ci": {
+    "result": "PASS",
+    "head": "d80785150e5a651b96be56c39310956d49f7b26d",
+    "pull_request_run_id": 36768260666,
+    "evidence_path": "docs/evidence/2026-09-30-ci-370.json"
+  },
+  "recommended_resume_step": "Integrate PR #370 after final head checks; reconcile #427 reference catalogue and continue primary original requirement queue",
   "migrations_applied": [
     "92f0997f753e",
     "098f12099319",

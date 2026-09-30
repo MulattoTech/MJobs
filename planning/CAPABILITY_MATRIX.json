@@ -113,7 +113,8 @@
       "requirement_id": "MJ-REQ-016",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-09-30-user-testing.md"
+        "docs/evidence/2026-09-30-user-testing.md",
+        "docs/evidence/2026-09-30-ci-370.json"
       ],
       "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open"
     },
@@ -1349,7 +1350,8 @@
       "requirement_id": "MJ-REQ-208",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-09-29-mock-spine.md"
+        "docs/evidence/2026-09-29-mock-spine.md",
+        "docs/evidence/2026-09-30-ci-370.json"
       ],
       "note": "Initial scoped behavior only; full requirement remains open"
     },
@@ -1381,7 +1383,8 @@
       "requirement_id": "MJ-REQ-212",
       "result": "PASS",
       "evidence": [
-        "docs/evidence/2026-09-29-mock-spine.md"
+        "docs/evidence/2026-09-29-mock-spine.md",
+        "docs/evidence/2026-09-30-ci-370.json"
       ],
       "note": "Controlled local company flywheel executed"
     },
@@ -1389,7 +1392,8 @@
       "requirement_id": "MJ-REQ-213",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-09-29-mock-spine.md"
+        "docs/evidence/2026-09-29-mock-spine.md",
+        "docs/evidence/2026-09-30-ci-370.json"
       ],
       "note": "Initial scoped behavior only; full requirement remains open"
     },
@@ -1759,7 +1763,8 @@
       "requirement_id": "MJ-REQ-274",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-09-30-user-testing.md"
+        "docs/evidence/2026-09-30-user-testing.md",
+        "docs/evidence/2026-09-30-ci-370.json"
       ],
       "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open"
     },

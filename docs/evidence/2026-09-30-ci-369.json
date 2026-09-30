@@ -1,0 +1,46 @@
+{
+  "timestamp": "2026-09-30T19:40:37Z",
+  "target": "PR #369, codex/mj-pr-002-governance-safety at e54275314d1f5aa741bc026dc16f364ce928c9b1",
+  "action": "Verify bounded durable worker lifecycle on local suite and GitHub Actions mock/recovery workflow",
+  "result": "PASS",
+  "local_validation": [
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py' -v",
+      "result": "PASS",
+      "observed": "55 tests"
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -m tools.verification.catalogue",
+      "result": "PASS"
+    }
+  ],
+  "remote_validation": {
+    "pull_request_run_id": 36766864456,
+    "pull_request_job_id": 110063106000,
+    "push_run_id": 36766859460,
+    "url": "https://github.com/MulattoTech/MJobs/actions/runs/36766864456",
+    "result": "PASS",
+    "executed": [
+      "locked dependency install and headless Chromium setup",
+      "55 unit, integration and browser tests",
+      "catalogue validator and environment initialization",
+      "three-queue Compose startup and controlled mock application E2E",
+      "Redis outage, durable outbox recovery and full service restart",
+      "artifact upload and Compose teardown"
+    ]
+  },
+  "artifacts": [
+    {
+      "path": "docs/evidence/2026-09-30-ci-369-mock-e2e.json",
+      "sha256": "56A7A3351E39577E885FA7AE0A36093D4BBF4C1F6DF58E7EDED70A204C91B436"
+    },
+    {
+      "path": "docs/evidence/2026-09-30-ci-369-recovery.json",
+      "sha256": "4CDC624C632E6633161FE22B1CDB3299AFF56A9AC991BE1174B56FDC41CDB800"
+    }
+  ],
+  "limitations": [
+    "Only fictional mock submission was exercised; real external submission remained disabled.",
+    "AI/OCR limits, independent company discovery limits and manual challenge resume remain open."
+  ]
+}
