@@ -1,0 +1,19 @@
+test_mock_application (unittest.loader._FailedTest.test_mock_application) ... ERROR
+
+======================================================================
+ERROR: test_mock_application (unittest.loader._FailedTest.test_mock_application)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_mock_application
+Traceback (most recent call last):
+  File "C:\Users\Dylan\AppData\Local\Programs\Python\Python312\Lib\unittest\loader.py", line 137, in loadTestsFromName
+    module = __import__(module_name)
+             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Tools\Dev\MJobs\tests\browser\test_mock_application.py", line 11, in <module>
+    from services.applications.mock_adapter import apply_mock
+ModuleNotFoundError: No module named 'services.applications'
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.000s
+
+FAILED (errors=1)

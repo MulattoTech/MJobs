@@ -1,0 +1,15 @@
+test_api_saves_explicit_facts_and_reports_durable_queueing (tests.integration.test_api_queue.ApiQueueTests.test_api_saves_explicit_facts_and_reports_durable_queueing) ... ERROR
+
+======================================================================
+ERROR: test_api_saves_explicit_facts_and_reports_durable_queueing (tests.integration.test_api_queue.ApiQueueTests.test_api_saves_explicit_facts_and_reports_durable_queueing)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Tools\Dev\MJobs\tests\integration\test_api_queue.py", line 42, in test_api_saves_explicit_facts_and_reports_durable_queueing
+    self.assertEqual(queued.json()["state"], "QUEUED")
+                     ~~~~~~~~~~~~~^^^^^^^^^
+KeyError: 'state'
+
+----------------------------------------------------------------------
+Ran 1 test in 0.358s
+
+FAILED (errors=1)

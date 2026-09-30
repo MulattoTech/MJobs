@@ -1,0 +1,9 @@
+.git
+.venv
+.env
+.env.*
+outputs
+**/__pycache__
+.superpowers
+.worktrees
+docs/spec/source

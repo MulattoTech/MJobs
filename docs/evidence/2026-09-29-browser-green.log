@@ -1,0 +1,29 @@
+test_captcha_requires_intervention (tests.browser.test_mock_application.MockApplicationTests.test_captcha_requires_intervention) ... ok
+test_changed_profile_does_not_change_prepared_contact_or_answers (tests.browser.test_mock_application.MockApplicationTests.test_changed_profile_does_not_change_prepared_contact_or_answers) ... C:\Tools\Dev\MJobs\.venv\Lib\site-packages\starlette\routing.py:282: ResourceWarning: Unclosed file <tempfile.SpooledTemporaryFile object at 0x000002A9A64CD120>
+  await self.app(scope, receive, send)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Tools\Dev\MJobs\.venv\Lib\site-packages\starlette\routing.py:282: ResourceWarning: Unclosed file <tempfile.SpooledTemporaryFile object at 0x000002A9A64CD600>
+  await self.app(scope, receive, send)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+test_dry_run_fills_two_pages_uploads_and_stops_before_submit (tests.browser.test_mock_application.MockApplicationTests.test_dry_run_fills_two_pages_uploads_and_stops_before_submit) ... C:\Tools\Dev\MJobs\.venv\Lib\site-packages\starlette\routing.py:282: ResourceWarning: Unclosed file <tempfile.SpooledTemporaryFile object at 0x000002A9A65E04F0>
+  await self.app(scope, receive, send)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Tools\Dev\MJobs\.venv\Lib\site-packages\starlette\routing.py:282: ResourceWarning: Unclosed file <tempfile.SpooledTemporaryFile object at 0x000002A9A65E03A0>
+  await self.app(scope, receive, send)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+test_mock_submission_confirmed_once_and_survives_restart (tests.browser.test_mock_application.MockApplicationTests.test_mock_submission_confirmed_once_and_survives_restart) ... C:\Tools\Dev\MJobs\.venv\Lib\site-packages\starlette\routing.py:282: ResourceWarning: Unclosed file <tempfile.SpooledTemporaryFile object at 0x000002A9A6573F40>
+  await self.app(scope, receive, send)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Tools\Dev\MJobs\.venv\Lib\site-packages\starlette\routing.py:282: ResourceWarning: Unclosed file <tempfile.SpooledTemporaryFile object at 0x000002A9A6573FD0>
+  await self.app(scope, receive, send)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+test_nonlocal_mock_origin_is_rejected_before_any_request (tests.browser.test_mock_application.MockApplicationTests.test_nonlocal_mock_origin_is_rejected_before_any_request) ... ok
+test_uncertain_submission_without_receipt_does_not_retry (tests.browser.test_mock_application.MockApplicationTests.test_uncertain_submission_without_receipt_does_not_retry) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 8.618s
+
+OK

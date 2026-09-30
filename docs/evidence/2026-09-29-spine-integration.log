@@ -1,0 +1,8 @@
+test_flywheel_enrolls_company_and_finds_employer_only_job (tests.integration.test_spine.SpineTests.test_flywheel_enrolls_company_and_finds_employer_only_job) ... ok
+test_preparation_provenance_and_idempotency_survive_restart (tests.integration.test_spine.SpineTests.test_preparation_provenance_and_idempotency_survive_restart) ... ok
+test_unapproved_facts_cannot_prepare_an_application (tests.integration.test_spine.SpineTests.test_unapproved_facts_cannot_prepare_an_application) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 2.042s
+
+OK

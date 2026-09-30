@@ -1,0 +1,19 @@
+test_spine (unittest.loader._FailedTest.test_spine) ... ERROR
+
+======================================================================
+ERROR: test_spine (unittest.loader._FailedTest.test_spine)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_spine
+Traceback (most recent call last):
+  File "C:\Users\Dylan\AppData\Local\Programs\Python\Python312\Lib\unittest\loader.py", line 137, in loadTestsFromName
+    module = __import__(module_name)
+             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Tools\Dev\MJobs\tests\integration\test_spine.py", line 6, in <module>
+    from packages.persistence.store import Store
+ModuleNotFoundError: No module named 'packages.persistence'
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.000s
+
+FAILED (errors=1)

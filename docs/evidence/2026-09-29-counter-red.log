@@ -1,0 +1,14 @@
+test_hourly_limit_counts_submission_time_for_old_prepared_application (tests.browser.test_mock_application.MockApplicationTests.test_hourly_limit_counts_submission_time_for_old_prepared_application) ... FAIL
+
+======================================================================
+FAIL: test_hourly_limit_counts_submission_time_for_old_prepared_application (tests.browser.test_mock_application.MockApplicationTests.test_hourly_limit_counts_submission_time_for_old_prepared_application)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Tools\Dev\MJobs\tests\browser\test_mock_application.py", line 103, in test_hourly_limit_counts_submission_time_for_old_prepared_application
+    self.assertIn("HOURLY_LIMIT_REACHED", decision.reasons)
+AssertionError: 'HOURLY_LIMIT_REACHED' not found in ('COMPANY_LIMIT_REACHED',)
+
+----------------------------------------------------------------------
+Ran 1 test in 1.680s
+
+FAILED (failures=1)

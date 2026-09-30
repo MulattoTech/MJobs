@@ -1,0 +1,2273 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-09-30T00:26:40.337802+00:00",
+  "overall_result": "PARTIAL",
+  "requirements": [
+    {
+      "requirement_id": "MJ-REQ-000",
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-29-mock-spine.md"
+      ],
+      "note": "Initial scoped behavior only; full requirement remains open"
+    },
+    {
+      "requirement_id": "MJ-REQ-001",
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-29-mock-spine.md"
+      ],
+      "note": "Initial scoped behavior only; full requirement remains open"
+    },
+    {
+      "requirement_id": "MJ-REQ-002",
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-29-mock-spine.md"
+      ],
+      "note": "Initial scoped behavior only; full requirement remains open"
+    },
+    {
+      "requirement_id": "MJ-REQ-003",
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-29-mock-spine.md"
+      ],
+      "note": "Initial scoped behavior only; full requirement remains open"
+    },
+    {
+      "requirement_id": "MJ-REQ-004",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-005",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-006",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-007",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-008",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-009",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-010",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-011",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-012",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-013",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-014",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-015",
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-29-mock-spine.md"
+      ],
+      "note": "Initial scoped behavior only; full requirement remains open"
+    },
+    {
+      "requirement_id": "MJ-REQ-016",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-017",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-018",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-019",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-020",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-021",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-022",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-023",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-024",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-025",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-026",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-027",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-028",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-029",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-030",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-031",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-032",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-033",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-034",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-035",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-036",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-037",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-038",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-039",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-040",
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-29-mock-spine.md"
+      ],
+      "note": "Initial scoped behavior only; full requirement remains open"
+    },
+    {
+      "requirement_id": "MJ-REQ-041",
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-29-mock-spine.md"
+      ],
+      "note": "Initial scoped behavior only; full requirement remains open"
+    },
+    {
+      "requirement_id": "MJ-REQ-042",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-043",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-044",
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-29-mock-spine.md"
+      ],
+      "note": "Initial scoped behavior only; full requirement remains open"
+    },
+    {
+      "requirement_id": "MJ-REQ-045",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-046",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-047",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-048",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-049",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-050",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-051",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-052",
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-29-mock-spine.md"
+      ],
+      "note": "Initial scoped behavior only; full requirement remains open"
+    },
+    {
+      "requirement_id": "MJ-REQ-053",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-054",
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-29-mock-spine.md"
+      ],
+      "note": "Initial scoped behavior only; full requirement remains open"
+    },
+    {
+      "requirement_id": "MJ-REQ-055",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-056",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-057",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-058",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-059",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-060",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-061",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-062",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-063",
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-29-mock-spine.md"
+      ],
+      "note": "Initial scoped behavior only; full requirement remains open"
+    },
+    {
+      "requirement_id": "MJ-REQ-064",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-065",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-066",
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-29-mock-spine.md"
+      ],
+      "note": "Initial scoped behavior only; full requirement remains open"
+    },
+    {
+      "requirement_id": "MJ-REQ-067",
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-29-mock-spine.md"
+      ],
+      "note": "Initial scoped behavior only; full requirement remains open"
+    },
+    {
+      "requirement_id": "MJ-REQ-068",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-069",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-070",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-071",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-072",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-073",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-074",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-075",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-076",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-077",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-078",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-079",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-080",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-081",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-082",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-083",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-084",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-085",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-086",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-087",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-088",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-089",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-090",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-091",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-092",
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-29-mock-spine.md"
+      ],
+      "note": "Initial scoped behavior only; full requirement remains open"
+    },
+    {
+      "requirement_id": "MJ-REQ-093",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-094",
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-29-mock-spine.md"
+      ],
+      "note": "Initial scoped behavior only; full requirement remains open"
+    },
+    {
+      "requirement_id": "MJ-REQ-095",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-096",
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-29-mock-spine.md"
+      ],
+      "note": "Initial scoped behavior only; full requirement remains open"
+    },
+    {
+      "requirement_id": "MJ-REQ-097",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-098",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-099",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-100",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-101",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-102",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-103",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-104",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-105",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-106",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-107",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-108",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-109",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-110",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-111",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-112",
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-29-mock-spine.md"
+      ],
+      "note": "Initial scoped behavior only; full requirement remains open"
+    },
+    {
+      "requirement_id": "MJ-REQ-113",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-114",
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-29-mock-spine.md"
+      ],
+      "note": "Initial scoped behavior only; full requirement remains open"
+    },
+    {
+      "requirement_id": "MJ-REQ-115",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-116",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-117",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-118",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-119",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-120",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-121",
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-29-mock-spine.md"
+      ],
+      "note": "Initial scoped behavior only; full requirement remains open"
+    },
+    {
+      "requirement_id": "MJ-REQ-122",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-123",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-124",
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-29-mock-spine.md"
+      ],
+      "note": "Initial scoped behavior only; full requirement remains open"
+    },
+    {
+      "requirement_id": "MJ-REQ-125",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-126",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-127",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-128",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-129",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-130",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-131",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-132",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-133",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-134",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-135",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-136",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-137",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-138",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-139",
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-29-mock-spine.md"
+      ],
+      "note": "Initial scoped behavior only; full requirement remains open"
+    },
+    {
+      "requirement_id": "MJ-REQ-140",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-141",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-142",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-143",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-144",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-145",
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-29-mock-spine.md"
+      ],
+      "note": "Initial scoped behavior only; full requirement remains open"
+    },
+    {
+      "requirement_id": "MJ-REQ-146",
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-29-mock-spine.md"
+      ],
+      "note": "Initial scoped behavior only; full requirement remains open"
+    },
+    {
+      "requirement_id": "MJ-REQ-147",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-148",
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-29-mock-spine.md"
+      ],
+      "note": "Initial scoped behavior only; full requirement remains open"
+    },
+    {
+      "requirement_id": "MJ-REQ-149",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-150",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-151",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-152",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-153",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-154",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-155",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-156",
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-29-mock-spine.md"
+      ],
+      "note": "Initial scoped behavior only; full requirement remains open"
+    },
+    {
+      "requirement_id": "MJ-REQ-157",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-158",
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-29-mock-spine.md"
+      ],
+      "note": "Initial scoped behavior only; full requirement remains open"
+    },
+    {
+      "requirement_id": "MJ-REQ-159",
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-29-mock-spine.md"
+      ],
+      "note": "Initial scoped behavior only; full requirement remains open"
+    },
+    {
+      "requirement_id": "MJ-REQ-160",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-161",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-162",
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-29-mock-spine.md"
+      ],
+      "note": "Initial scoped behavior only; full requirement remains open"
+    },
+    {
+      "requirement_id": "MJ-REQ-163",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-164",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-165",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-166",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-167",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-168",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-169",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-170",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-171",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-172",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-173",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-174",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-175",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-176",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-177",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-178",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-179",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-180",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-181",
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-29-mock-spine.md"
+      ],
+      "note": "Initial scoped behavior only; full requirement remains open"
+    },
+    {
+      "requirement_id": "MJ-REQ-182",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-183",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-184",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-185",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-186",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-187",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-188",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-189",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-190",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-191",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-192",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-193",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-194",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-195",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-196",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-197",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-198",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-199",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-200",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-201",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-202",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-203",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-204",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-205",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-206",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-207",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-208",
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-29-mock-spine.md"
+      ],
+      "note": "Initial scoped behavior only; full requirement remains open"
+    },
+    {
+      "requirement_id": "MJ-REQ-209",
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-29-mock-spine.md"
+      ],
+      "note": "Initial scoped behavior only; full requirement remains open"
+    },
+    {
+      "requirement_id": "MJ-REQ-210",
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-29-mock-spine.md"
+      ],
+      "note": "Initial scoped behavior only; full requirement remains open"
+    },
+    {
+      "requirement_id": "MJ-REQ-211",
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-29-mock-spine.md"
+      ],
+      "note": "Initial scoped behavior only; full requirement remains open"
+    },
+    {
+      "requirement_id": "MJ-REQ-212",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-09-29-mock-spine.md"
+      ],
+      "note": "Controlled local company flywheel executed"
+    },
+    {
+      "requirement_id": "MJ-REQ-213",
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-29-mock-spine.md"
+      ],
+      "note": "Initial scoped behavior only; full requirement remains open"
+    },
+    {
+      "requirement_id": "MJ-REQ-214",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-215",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-216",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-217",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-218",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-219",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-220",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-221",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-222",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-223",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-224",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-225",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-226",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-227",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-228",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-229",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-230",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-231",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-232",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-233",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-234",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-235",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-236",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-237",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-238",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-239",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-240",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-241",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-242",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-243",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-244",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-245",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-246",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-247",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-248",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-249",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-250",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-251",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-252",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-253",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-254",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-255",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-256",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-257",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-258",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-259",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-260",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-261",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-262",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-263",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-264",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-265",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-266",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-267",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-268",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-269",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-270",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-271",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-272",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-273",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-274",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-275",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-276",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-277",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-278",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-279",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-280",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-281",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-282",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-283",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-284",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-285",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-286",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-287",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-288",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-289",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-290",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-291",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-292",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-293",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-294",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-295",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-296",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-297",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-298",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-299",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-300",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-017.S01",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-017.S02",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-017.S03",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-017.S04",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-017.S05",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-017.S06",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-017.S07",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-017.S08",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-017.S09",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-017.F01",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-017.F02",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-017.F03",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-017.F04",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-017.F05",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-017.F06",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-017.F07",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-063.D01",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-063.D02",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-063.D03",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-063.D04",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-063.D05",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-063.D06",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-063.D07",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-063.D08",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-063.D09",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-063.D10",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-063.D11",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-063.D12",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-063.D13",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-063.D14",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-063.D15",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-063.D16",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-063.D17",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-063.D18",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-063.D19",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-063.D20",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-063.D21",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-063.D22",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-108.A01",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-108.A02",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-108.A03",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-108.A04",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-108.A05",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-108.A06",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-122.A01",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-122.A02",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-122.A03",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-122.A04",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-122.A05",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-122.A06",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-122.A07",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-122.A08",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-122.A09",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-122.A10",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-122.L01",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-122.L02",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-122.L03",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-122.L04",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-122.L05",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-122.L06",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-204.N01",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-204.N02",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-204.N03",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-204.N04",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    },
+    {
+      "requirement_id": "MJ-REQ-204.N05",
+      "result": "NOT_RUN",
+      "evidence": [],
+      "note": "Not implemented or verified in current milestones"
+    }
+  ]
+}
