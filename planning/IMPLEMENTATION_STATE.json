@@ -11,7 +11,7 @@
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
   "current_milestone": "M1_MOCK_SPINE",
-  "current_objective": "Publish verified mock spine; continue bounded worker lifecycle and real read-only sources, with remote CI blocked",
+  "current_objective": "Run mock-spine remote CI with the newly authorized governance workflow, then continue bounded worker lifecycle and read-only sources",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -25,13 +25,7 @@
     "Submission/truthfulness gates and persisted counters implemented for mock adapter; real adapters disabled",
     "Profile, provenance, required-skill matching, documents, API and one worker implemented; broader specs still pending"
   ],
-  "blocked_capabilities": [
-    {
-      "capability": "Remote GitHub Actions verification",
-      "result": "BLOCKED_EXTERNAL",
-      "reason": "OAuth authorization lacks workflow scope; reviewed workflow staged at infra/ci/verification.yml"
-    }
-  ],
+  "blocked_capabilities": [],
   "active_requirements": [
     "MJ-REQ-015",
     "MJ-REQ-040",
@@ -85,11 +79,12 @@
     "Catalogue validation: PASS",
     "47 local unit/integration/headless-browser tests",
     "Compose PostgreSQL/Redis/RQ mock E2E; repeat operation keeps receipt count one",
-    "Final isolated Compose outage/restart proof: exact original application/operation/receipt retained"
+    "Final isolated Compose outage/restart proof: exact original application/operation/receipt retained",
+    "Remote governance CI: pull_request run 36765449832 and push run 36765449435 PASS at 35908bb"
   ],
   "tests_failed": [],
   "tests_not_run": [
-    "Remote CI: BLOCKED_EXTERNAL (workflow OAuth scope)",
+    "Mock spine remote CI: NOT_RUN at this branch head",
     "Real read-only source/company integrations",
     "Frontend and remaining product requirements"
   ],
@@ -109,7 +104,14 @@
     "result": "PASS",
     "evidence_path": "docs/evidence/2026-09-29-spine-final-suite.log"
   },
-  "recommended_resume_step": "Continue dependency-unblocked queue from current stacked branches, preserving main and native data; GitHub CI still requires workflow scope",
+  "ci_verification": {
+    "result": "PASS",
+    "scope": "governance domain/control-plane and catalogue only",
+    "head": "35908bb3be4f061e6c87903241e393b238b62402",
+    "pull_request_run_id": 36765449832,
+    "evidence_path": "docs/evidence/2026-09-30-governance-ci.json"
+  },
+  "recommended_resume_step": "Verify mock spine remote CI, then continue dependency-unblocked queue without losing newer stacked work",
   "migrations_applied": [
     "92f0997f753e",
     "098f12099319"

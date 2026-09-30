@@ -1,0 +1,34 @@
+{
+  "timestamp": "2026-09-30T19:25:05Z",
+  "target": "codex/mj-pr-001-governance-safety at 35908bb3be4f061e6c87903241e393b238b62402",
+  "action": "Publish .github/workflows/ci.yml with an authorized workflow-scoped credential and execute governance verification",
+  "result": "PASS",
+  "local_validation": [
+    {
+      "command": "python -m unittest discover -s tests -p 'test_*.py' -v",
+      "result": "PASS",
+      "observed": "28 tests"
+    },
+    {
+      "command": "python -m tools.verification.catalogue",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --cached --check",
+      "result": "PASS"
+    }
+  ],
+  "remote_validation": {
+    "workflow": ".github/workflows/ci.yml",
+    "pull_request_run_id": 36765449832,
+    "pull_request_run_url": "https://github.com/MulattoTech/MJobs/actions/runs/36765449832",
+    "pull_request_job_id": 110058340298,
+    "push_run_id": 36765449435,
+    "result": "PASS",
+    "observed": "domain-and-control-plane completed successfully for pull_request and push at the exact head"
+  },
+  "limitations": [
+    "This governance branch only contains domain and catalogue tests; mock, UI and recovery checks belong to dependent implementation branches.",
+    "Original umbrella requirement acceptance and release readiness remain PARTIAL."
+  ]
+}
