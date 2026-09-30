@@ -1,0 +1,41 @@
+{
+  "timestamp": "2026-09-30T21:23:28Z",
+  "target": "MJ-REQ-009 controlled public-source read in isolated personal operation",
+  "action": "Gate the deployed live-source probe on observed personal mode before profile/source writes and add bounded personal Compose probe and browser readback to CI",
+  "result": "PARTIAL",
+  "validation": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_public_source_probe -v",
+      "result": "PASS",
+      "observed": "One test verifies mismatched operation mode or enabled external submission refuses the live probe before any profile or source write; the test first failed for the missing required-mode contract"
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p test_*.py -v",
+      "result": "PASS",
+      "observed": "80 Python tests including safety, public source, persistence, browser, recovery, catalogue and progress tests"
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -c \"from services.discovery.sources.greenhouse import Greenhouse; b=Greenhouse('greenhouse').collect(); print('company:', b['company'], 'jobs:', len(b['jobs']))\"",
+      "result": "PASS",
+      "observed": "Direct bounded public GET returned Greenhouse board metadata and 21 postings; this did not exercise the deployed worker or personal Compose runtime"
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.catalogue",
+      "result": "PASS",
+      "observed": "Original and reference catalogue validation passed without status promotion"
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.progress validate",
+      "result": "PASS",
+      "observed": "Existing milestone journal remained valid"
+    }
+  ],
+  "data_impact": "No schema migration. The CI probe writes a clearly fictional test profile and public job/source data only to its isolated, short-lived personal Compose project; no user workspace or external application is submitted.",
+  "recovery": "The personal project is torn down after CI while its fixture project remains separate. Provider failures do not rewrite prior source snapshots or imply product-suite PASS for the live stage; review the exact step and artifact before rerun.",
+  "limitations": [
+    "The new deployed personal worker and Chromium live-read steps have not yet run on this implementation head.",
+    "Local Docker Desktop Linux engine remains unavailable; direct host GET is narrower than deployed personal-mode proof.",
+    "The live provider step is nonrequired CI evidence because provider availability can change. Only an observed successful step and artifact can promote the stage.",
+    "MJ-REQ-009 remains PARTIAL; release readiness remains NOT_RUN."
+  ]
+}

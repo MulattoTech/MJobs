@@ -11,7 +11,7 @@
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
   "current_milestone": "M3_LOCAL_USER_TESTING_VERIFIED",
-  "current_objective": "Continue the dependency-eligible original P0 MJ-PR-003 requirements after remote verification of the personal-operation boundary",
+  "current_objective": "Verify the P0 MJ-REQ-009 controlled live public-source read through an isolated personal worker and browser, then continue original dependency-eligible requirements",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -112,7 +112,8 @@
     "P0 progress journal: 5 targeted and 73 affected Python tests PASS locally; catalogue and progress validators PASS",
     "Remote P0 progress-journal CI: PR run 36772030057 and push run 36772022282 PASS at 6c3801f",
     "P0 personal-operation boundary: 36 targeted and 79 full Python tests, 2 frontend tests/build, Compose config and PowerShell parse PASS locally",
-    "Remote personal-operation CI: PR run 36776229356 and push run 36776224242 PASS at 5048e81; fixture mock/UI/recovery and isolated personal Compose/Chromium PASS"
+    "Remote personal-operation CI: PR run 36776229356 and push run 36776224242 PASS at 5048e81; fixture mock/UI/recovery and isolated personal Compose/Chromium PASS",
+    "P0 personal live-read gate: one targeted test, 80 full Python tests, direct bounded public GET of 21 postings, catalogue and progress validators PASS locally"
   ],
   "tests_failed": [],
   "tests_not_run": [
@@ -175,7 +176,7 @@
     "push_run_id": 36776224242,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-personal.json"
   },
-  "recommended_resume_step": "Refetch the original P0 queue and active issues before selecting the next MJ-PR-003 vertical slice; keep external submission disabled",
+  "recommended_resume_step": "Inspect exact-head CI live-source and browser steps separately from required product checks; promote MJ-REQ-009 evidence only if both deployed personal-stage artifacts pass",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -361,11 +362,60 @@
         "git_commit": "5048e81758a25f8b9168103a1f09eef21a1a4457",
         "evidence_path": "docs/evidence/2026-09-30-ci-428-personal.json"
       }
+    },
+    {
+      "milestone_id": "M3-PERSONAL-LIVE-READ-STAGED",
+      "timestamp": "2026-09-30T21:23:28Z",
+      "current_phase": "M3_PERSONAL_LIVE_READ_STAGED",
+      "completed_steps": [
+        "Added an observed operation-mode gate before the controlled public-source probe writes any test data",
+        "Added a bounded optional live provider and browser readback stage after isolated personal Compose startup",
+        "Validated the mode gate, full Python suite, direct bounded public GET, catalogue and progress journal locally"
+      ],
+      "files_added": [
+        "tests/unit/test_public_source_probe.py",
+        "docs/evidence/2026-09-30-personal-live-read-local.json"
+      ],
+      "files_modified": [
+        "cli/public_source_probe.py",
+        ".github/workflows/ci.yml",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json"
+      ],
+      "tests_completed": [
+        "One targeted probe guard test PASS after an observed RED failure",
+        "80 full Python tests PASS",
+        "Direct bounded public Greenhouse GET returned 21 postings",
+        "Catalogue and progress journal validators PASS"
+      ],
+      "tests_remaining": [
+        "Exact-head remote deployed personal Compose public-source worker and Chromium readback",
+        "Full staged production deployment and release acceptance"
+      ],
+      "migrations_applied": [
+        "92f0997f753e",
+        "098f12099319",
+        "547acf656c37",
+        "792dc0dc5664"
+      ],
+      "live_integrations_tested": [
+        "Direct bounded public Greenhouse GET only; deployed personal worker pending"
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "Local Docker Desktop Linux engine unavailable; remote CI pending",
+        "External provider availability is nonrequired CI evidence and must be inspected separately"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "a5d4095ece4bf7ff0faa9ce75b7f71bfdcf1c5b0",
+        "evidence_path": "docs/evidence/2026-09-30-ci-428-personal.json"
+      }
     }
   ],
-  "current_phase": "M3_PERSONAL_OPERATION_REMOTE_VERIFIED",
+  "current_phase": "M3_PERSONAL_LIVE_READ_STAGED",
   "last_safe_checkpoint": {
-    "git_commit": "5048e81758a25f8b9168103a1f09eef21a1a4457",
+    "git_commit": "a5d4095ece4bf7ff0faa9ce75b7f71bfdcf1c5b0",
     "evidence_path": "docs/evidence/2026-09-30-ci-428-personal.json"
   }
 }

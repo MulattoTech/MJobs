@@ -33,6 +33,12 @@ jobs:
       - run: docker compose down
       - run: MJOBS_PORT=18701 MJOBS_OPERATION_MODE=PERSONAL MJOBS_COMPOSE_MOCK=0 docker compose -p mjobs-personal up -d --no-build --wait --wait-timeout 120
       - run: python -m cli.personal_mode_e2e --api http://127.0.0.1:18701 --evidence outputs/ci-personal-mode.json
+      - id: personal_public_read
+        continue-on-error: true
+        run: python -m cli.public_source_probe --base-url http://127.0.0.1:18701 --tenant greenhouse --required-mode PERSONAL --evidence outputs/ci-personal-public-source.json
+      - if: steps.personal_public_read.outcome == 'success'
+        continue-on-error: true
+        run: python -m cli.ui_source_readback --base-url http://127.0.0.1:18701 --evidence outputs/ci-personal-public-ui.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
