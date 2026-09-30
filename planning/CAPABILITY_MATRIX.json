@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-09-30T20:12:40Z",
+  "timestamp": "2026-09-30T20:55:36Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -70,9 +70,11 @@
     },
     {
       "requirement_id": "MJ-REQ-009",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-30-operation-mode.json"
+      ],
+      "note": "Personal API and worker reject fictional actions, including stale queued work; production API rejects databases with mock routes. Staged deployment and isolated personal-mode remote E2E remain unverified"
     },
     {
       "requirement_id": "MJ-REQ-010",

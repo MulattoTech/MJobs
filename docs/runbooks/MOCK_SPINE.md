@@ -63,9 +63,10 @@ revisions instead of editing an applied revision.
   or recurring source scheduler is provided yet.
 - No real read-only providers, application providers, AI or notifications are
   included in this milestone.
-- The reviewed CI definition is in `infra/ci/verification.yml`. GitHub rejected
-  creation under `.github/workflows` because current OAuth authorization lacks
-  workflow scope. Remote CI is BLOCKED_EXTERNAL, not PASS.
+- The active CI definition is `.github/workflows/ci.yml`. Workflow authorization
+  was restored on 2026-09-30; the merged connected UI spine passed remote CI
+  (see `docs/evidence/2026-09-30-ci-370.json`). The current PR head must pass
+  its own workflow before any newer change is called verified.
 
 For local tests run `python -m unittest discover -s tests -p test_*.py -v` using
 the project environment. SQLite is only the explicit test backend; deployment

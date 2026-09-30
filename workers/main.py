@@ -7,11 +7,13 @@ from redis import Redis
 from rq import Worker
 
 from packages.persistence.store import Store
+from packages.domain.operation_mode import operation_mode_from_env
 from workers.dispatch import dispatch_pending
 from workers.operations import QUEUES, timeout, limit
 
 
 def main():
+    operation_mode_from_env()
     store = Store(os.environ["MJOBS_DATABASE_URL"])
     redis_url = os.environ["MJOBS_REDIS_URL"]
     queue = os.environ.get("MJOBS_WORKER_QUEUE", "mjobs-application")

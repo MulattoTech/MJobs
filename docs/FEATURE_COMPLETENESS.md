@@ -9,12 +9,12 @@ A percentage is a navigation aid, never a release claim. Only evidence-backed PA
 ## Original specification
 - Catalogue items: **366**
 - PASS: **1** (0.27%)
-- PARTIAL: **54** (14.75%)
-- NOT_RUN: **311** (84.97%)
+- PARTIAL: **55** (15.03%)
+- NOT_RUN: **310** (84.70%)
 - Full-spec state: **PARTIAL**
 - Release readiness: **not established**
 The low PASS percentage does **not** mean only 0.27% of code exists. Many requirements are broad umbrella capabilities
-and 54 are already PARTIAL. The current vertical slice is useful and tested, but the repository correctly refuses to
+and 55 are already PARTIAL. The current vertical slice is useful and tested, but the repository correctly refuses to
 turn partial evidence into completed requirements.
 
 ## Current verified implementation spine
@@ -25,6 +25,7 @@ turn partial evidence into completed requirements.
 - Factual PDF/DOCX generation and revisions
 - Restart/outage recovery and duplicate-submission protection
 - Evidence-linked, atomic implementation milestone journal with reload, failed-write preservation, and remote CI evidence (MJ-REQ-008 PARTIAL; `docs/evidence/2026-09-30-ci-428.json`)
+- Separate personal operation mode blocks fictional actions at the API and worker; fixture verification remains available (MJ-REQ-009 PARTIAL; `docs/evidence/2026-09-30-operation-mode.json`)
 - Real external submission remains disabled
 - GitHub Actions passed the final #367-#370 PR heads and the connected UI, mock application, and restart recovery workflow; see `docs/evidence/2026-09-30-ci-370.json`
 ## Reference-project gap catalogue

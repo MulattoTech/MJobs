@@ -1,13 +1,21 @@
 param(
     [switch]$NoBuild,
     [switch]$NoOpen,
+    [switch]$Personal,
     [ValidatePattern('^[a-z][a-z0-9-]{0,39}$')][string]$Project = 'mjobs',
     [ValidateRange(1024,65535)][int]$Port = 18700
 )
 $ErrorActionPreference = 'Stop'
 Push-Location $PSScriptRoot
 $priorPort = $env:MJOBS_PORT
+$priorMode = $env:MJOBS_OPERATION_MODE
+$priorMock = $env:MJOBS_COMPOSE_MOCK
 try {
+    if ($Personal) {
+        if (-not $PSBoundParameters.ContainsKey('Project')) { $Project = 'mjobs-personal' }
+        if (-not $PSBoundParameters.ContainsKey('Port')) { $Port = 18701 }
+        if ($Project -eq 'mjobs') { throw 'Personal operation requires a separate Compose project from the fictional verification workspace.' }
+    }
     if (-not (Get-Command docker -ErrorAction SilentlyContinue)) { throw 'Docker Desktop with Linux containers is required.' }
     docker info --format '{{.OSType}}' | Out-Null
     if ($LASTEXITCODE -ne 0) { throw 'Start Docker Desktop, then run this command again.' }
@@ -28,6 +36,8 @@ try {
         throw 'The .env file still contains the example placeholder. Replace it with a private generated password before first startup.'
     }
     $env:MJOBS_PORT = [string]$Port
+    $env:MJOBS_OPERATION_MODE = if ($Personal) { 'PERSONAL' } else { 'FIXTURE' }
+    $env:MJOBS_COMPOSE_MOCK = if ($Personal) { '0' } else { '1' }
     $composeArgs = @('compose','-p',$Project,'up','-d','--wait','--wait-timeout','180')
     if (-not $NoBuild) { $composeArgs += '--build' }
     & docker @composeArgs
@@ -41,9 +51,12 @@ try {
         Start-Sleep -Seconds 1
     }
     if (-not $ready) { throw "Services are not ready. Open $address and inspect Activity or docker compose logs." }
-    Write-Host "MJobs is ready at $address. Real external submission is OFF."
+    $operationLabel = if ($Personal) { 'Personal operation; fictional actions OFF' } else { 'Fictional verification' }
+    Write-Host "MJobs is ready at $address. $operationLabel. Real external submission is OFF."
     if (-not $NoOpen) { Start-Process $address }
 } finally {
     $env:MJOBS_PORT = $priorPort
+    $env:MJOBS_OPERATION_MODE = $priorMode
+    $env:MJOBS_COMPOSE_MOCK = $priorMock
     Pop-Location
 }

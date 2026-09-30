@@ -17,6 +17,12 @@ checks the workers, and opens http://127.0.0.1:18700. See
 [the user-testing guide](docs/USER_TESTING.md) for the connected journey,
 diagnostics, verification commands, and current limitations.
 
+For a separate personal workspace without fictional discovery or mock application
+actions, run `./Start-MJobs.ps1 -Personal` in PowerShell. It uses a separate
+Compose project and data volumes at http://127.0.0.1:18701. Public read-only
+source collection and factual manual preparation remain available. Real external
+auto-submit stays off in both modes.
+
 Repository operating instructions live in [AGENTS.md](AGENTS.md). The complete
 requirements remain in the GitHub backlog and scoped [area specifications](docs/spec/areas).
 This milestone does not represent completion of the full specification.

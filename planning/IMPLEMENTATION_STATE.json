@@ -11,7 +11,7 @@
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
   "current_milestone": "M3_LOCAL_USER_TESTING_VERIFIED",
-  "current_objective": "Implement the P0 MJ-PR-003 progress-journal slice, then verify CI and continue dependency-eligible original requirements",
+  "current_objective": "Verify the P0 MJ-PR-003 personal-operation boundary through remote Compose/Chromium, then continue original dependency-eligible requirements",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -36,6 +36,7 @@
   "blocked_capabilities": [],
   "active_requirements": [
     "MJ-REQ-008",
+    "MJ-REQ-009",
     "MJ-REQ-016",
     "MJ-REQ-018",
     "MJ-REQ-019",
@@ -109,7 +110,8 @@
     "Remote worker-lifecycle CI: pull_request run 36767410947 PASS at 29012e0",
     "Remote connected-UI CI: pull_request run 36768260666 and push run 36768256061 PASS at d807851",
     "P0 progress journal: 5 targeted and 73 affected Python tests PASS locally; catalogue and progress validators PASS",
-    "Remote P0 progress-journal CI: PR run 36772030057 and push run 36772022282 PASS at 6c3801f"
+    "Remote P0 progress-journal CI: PR run 36772030057 and push run 36772022282 PASS at 6c3801f",
+    "P0 personal-operation boundary: 36 targeted and 79 full Python tests, 2 frontend tests/build, Compose config and PowerShell parse PASS locally"
   ],
   "tests_failed": [],
   "tests_not_run": [
@@ -165,7 +167,7 @@
     "push_run_id": 36772022282,
     "evidence_path": "docs/evidence/2026-09-30-ci-428.json"
   },
-  "recommended_resume_step": "Verify the current MJ-PR-003 progress-journal draft PR in GitHub Actions, then continue its remaining P0 scope in dependency order",
+  "recommended_resume_step": "Verify MJ-PR-003 personal-mode API, worker and Chromium mode-switch E2E on exact-head GitHub Actions; keep external submission disabled",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -254,11 +256,60 @@
         "git_commit": "8ee6b0a7578ab4c8a46f1bac2c707a88048473ab",
         "evidence_path": "docs/evidence/2026-09-30-ci-370.json"
       }
+    },
+    {
+      "milestone_id": "M3-PERSONAL-OPERATION-LOCAL",
+      "timestamp": "2026-09-30T20:55:36Z",
+      "current_phase": "M3_PERSONAL_OPERATION_LOCAL_VERIFIED",
+      "completed_steps": [
+        "Added explicit FIXTURE and PERSONAL operation modes to API, workers, Compose, launcher and UI",
+        "Blocked stale queued fictional actions before browser execution and rejected mixed-data production API startup in PERSONAL mode",
+        "Validated local Python, frontend, Compose configuration and PowerShell launcher parsing"
+      ],
+      "files_added": [
+        "packages/domain/operation_mode.py",
+        "cli/personal_mode_e2e.py",
+        "docs/evidence/2026-09-30-operation-mode.json"
+      ],
+      "files_modified": [
+        "apps/api/main.py",
+        "workers/tasks.py",
+        "apps/web/src/main.tsx",
+        "compose.yml",
+        "Start-MJobs.ps1",
+        "planning/IMPLEMENTATION_STATE.json"
+      ],
+      "tests_completed": [
+        "36 targeted Python API, worker and safety tests PASS",
+        "79 full Python tests PASS",
+        "2 frontend tests and strict production build PASS",
+        "Personal Compose configuration and PowerShell launcher parse PASS"
+      ],
+      "tests_remaining": [
+        "Remote isolated Compose and Chromium personal-mode E2E",
+        "Full staged production deployment and release acceptance"
+      ],
+      "migrations_applied": [
+        "92f0997f753e",
+        "098f12099319",
+        "547acf656c37",
+        "792dc0dc5664"
+      ],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "Local Docker Desktop Linux engine unavailable; remote CI pending",
+        "No real external auto-submit path is enabled"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "1ed56d60ed6e61b0525d94ad8aa2d8fc8cb6fa6c",
+        "evidence_path": "docs/evidence/2026-09-30-ci-428.json"
+      }
     }
   ],
-  "current_phase": "M3_LOCAL_USER_TESTING_VERIFIED",
+  "current_phase": "M3_PERSONAL_OPERATION_LOCAL_VERIFIED",
   "last_safe_checkpoint": {
-    "git_commit": "8ee6b0a7578ab4c8a46f1bac2c707a88048473ab",
-    "evidence_path": "docs/evidence/2026-09-30-ci-370.json"
+    "git_commit": "1ed56d60ed6e61b0525d94ad8aa2d8fc8cb6fa6c",
+    "evidence_path": "docs/evidence/2026-09-30-ci-428.json"
   }
 }

@@ -16,6 +16,18 @@ and the mock service. No separate Node/Python install is needed for normal use.
 For startup without opening a browser, add `-NoOpen`. Use `-NoBuild` only when
 the current source has already been built.
 
+For personal job-search operation, run `./Start-MJobs.ps1 -Personal`. The
+launcher defaults to the separate `mjobs-personal` Compose project and port
+18701, so its PostgreSQL, queue, documents and mock receipts do not share the
+fictional verification project's volumes. Personal mode hides the demo and
+rejects fictional discovery, preparation and mock submission at the API and
+worker, including old queued fixture work. Public Greenhouse reads, matching,
+factual document preparation and manual application links remain available.
+Switching modes does not copy profiles or documents between projects. External
+auto-submit remains disabled; this milestone is not a release-readiness claim.
+The production API refuses personal startup against a database containing mock
+application routes. Use a separate project instead of deleting verification data.
+
 ## Try the full safe journey
 
 1. Choose **Load fictional demo**. This creates a separate labeled profile and
@@ -68,7 +80,8 @@ also reject attempts to run the mock adapter on real applications.
 
 ## Diagnostics and recovery
 
-**Activity** shows database/queue/worker/mock readiness and durable operation
+**Activity** shows database/queue/worker readiness and, in fictional verification
+mode, mock readiness. Durable operation
 states. Failed, blocked, and cancelled work stops UI polling and displays an
 error category. Cancellation is available before a submission reservation;
 an uncertain or reserved submission requires reconciliation instead of retry.

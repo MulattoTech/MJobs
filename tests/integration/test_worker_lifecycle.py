@@ -99,11 +99,46 @@ class WorkerLifecycleTests(unittest.TestCase):
             application = prepare(self.store, self.store.jobs()[0]["id"], "fixture", self.root)
             self.store.transition(application, ["PREPARED"], "SUBMITTING")
             operation = enqueue_operation(self.store, "APPLY_MOCK", application, {"submit": True})
-            with patch.dict("os.environ", MJOBS_DATABASE_URL=self.store.url, MJOBS_MOCK_ORIGIN=origin, MJOBS_OUTPUT_DIR=str(self.root)):
+            with patch.dict("os.environ", MJOBS_DATABASE_URL=self.store.url, MJOBS_MOCK_ORIGIN=origin, MJOBS_OUTPUT_DIR=str(self.root), MJOBS_OPERATION_MODE="FIXTURE"):
                 result = execute_operation(operation)
         self.assertEqual(result["status"], "BLOCKED")
         self.assertEqual(self.read(operation)["error"], "SUBMISSION_UNCONFIRMED")
         self.assertEqual(self.store.application(application)["state"], "SUBMISSION_UNCONFIRMED")
+
+    def test_personal_worker_blocks_stale_fixture_submission_before_browser(self):
+        with fixture_server() as origin:
+            discover(self.store, origin, "fixture")
+            application = prepare(self.store, self.store.jobs()[0]["id"], "fixture", self.root)
+            operation = enqueue_operation(self.store, "APPLY_MOCK", application, {"submit": True})
+            with patch.dict("os.environ", MJOBS_DATABASE_URL=self.store.url, MJOBS_MOCK_ORIGIN=origin,
+                            MJOBS_OUTPUT_DIR=str(self.root), MJOBS_OPERATION_MODE="PERSONAL"), \
+                    patch("workers.tasks.apply_mock", side_effect=AssertionError("browser was called")):
+                result = execute_operation(operation)
+        self.assertEqual(result["status"], "BLOCKED")
+        self.assertEqual(self.read(operation)["error"], "FIXTURE_OPERATION_DISABLED")
+        self.assertEqual(self.store.application(application)["state"], "PREPARED")
+        self.assertIsNone(self.store.application(application)["submitted_at"])
+
+    def test_personal_worker_blocks_stale_fixture_discovery(self):
+        operation = enqueue_operation(self.store, "DISCOVER", "fixture", {})
+        with patch.dict("os.environ", MJOBS_DATABASE_URL=self.store.url, MJOBS_MOCK_ORIGIN="http://127.0.0.1:8090",
+                        MJOBS_OUTPUT_DIR=str(self.root), MJOBS_OPERATION_MODE="PERSONAL"), \
+                patch("workers.tasks.discover", side_effect=AssertionError("fixture was called")):
+            result = execute_operation(operation)
+        self.assertEqual(result["status"], "BLOCKED")
+        self.assertEqual(self.read(operation)["error"], "FIXTURE_OPERATION_DISABLED")
+
+    def test_personal_worker_blocks_stale_fixture_preparation(self):
+        with fixture_server() as origin:
+            discover(self.store, origin, "fixture")
+        operation = enqueue_operation(self.store, "PREPARE", "fixture",
+                                      {"job_id": self.store.jobs()[0]["id"]})
+        with patch.dict("os.environ", MJOBS_DATABASE_URL=self.store.url, MJOBS_MOCK_ORIGIN="http://127.0.0.1:8090",
+                        MJOBS_OUTPUT_DIR=str(self.root), MJOBS_OPERATION_MODE="PERSONAL"), \
+                patch("workers.tasks.prepare", side_effect=AssertionError("fixture preparation was called")):
+            result = execute_operation(operation)
+        self.assertEqual(result["status"], "BLOCKED")
+        self.assertEqual(self.read(operation)["error"], "FIXTURE_OPERATION_DISABLED")
 
     def test_cancelled_running_browser_never_reserves_submission(self):
         with fixture_server() as origin:
@@ -114,7 +149,7 @@ class WorkerLifecycleTests(unittest.TestCase):
                 if store.application(application)["state"] == "FILLING":
                     request_cancel(store, identifier)
                 check_cancelled(store, identifier)
-            with patch.dict("os.environ", MJOBS_DATABASE_URL=self.store.url, MJOBS_MOCK_ORIGIN=origin, MJOBS_OUTPUT_DIR=str(self.root)), patch("workers.tasks.check_cancelled", side_effect=cancel_in_form):
+            with patch.dict("os.environ", MJOBS_DATABASE_URL=self.store.url, MJOBS_MOCK_ORIGIN=origin, MJOBS_OUTPUT_DIR=str(self.root), MJOBS_OPERATION_MODE="FIXTURE"), patch("workers.tasks.check_cancelled", side_effect=cancel_in_form):
                 result = execute_operation(operation)
         self.assertEqual(result["status"], "CANCELLED")
         saved = self.store.application(application)

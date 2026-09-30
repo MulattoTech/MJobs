@@ -11,7 +11,8 @@ x-runtime: &runtime
     MJOBS_DATABASE_URL: postgresql+psycopg://mjobs:${POSTGRES_PASSWORD:?Run python cli/init_env.py}@postgres/mjobs
     MJOBS_REDIS_URL: redis://redis:6379/0
     MJOBS_MOCK_ORIGIN: http://mock:8090
-    MJOBS_COMPOSE_MOCK: '1'
+    MJOBS_COMPOSE_MOCK: ${MJOBS_COMPOSE_MOCK:-1}
+    MJOBS_OPERATION_MODE: ${MJOBS_OPERATION_MODE:-FIXTURE}
     MJOBS_OUTPUT_DIR: /data/documents
   volumes:
     - documents:/data/documents

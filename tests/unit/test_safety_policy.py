@@ -1,6 +1,9 @@
 """Catch authorization, truthfulness, limit and retry gate regressions."""
 from dataclasses import replace
 import unittest
+from unittest.mock import patch
+
+from packages.domain.operation_mode import operation_mode_from_env, parse_operation_mode
 
 from packages.domain.safety import (
     Fact, Policy, SubmissionContext, evaluate_submission, select_verified_facts,
@@ -22,6 +25,13 @@ class SubmissionPolicyTests(unittest.TestCase):
         result = evaluate_submission(replace(self.context, target="EXTERNAL"), Policy())
         self.assertFalse(result.allowed)
         self.assertIn("EXTERNAL_SUBMISSION_DISABLED", result.reasons)
+
+    def test_operation_mode_defaults_to_personal_and_rejects_unknown_values(self):
+        with patch.dict("os.environ", {}, clear=True):
+            self.assertEqual(operation_mode_from_env(), "PERSONAL")
+        for value in ("", "production", "FIXTURE ", False, None):
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                parse_operation_mode(value)
 
     def test_policy_enablement_does_not_replace_explicit_user_enablement(self):
         result = evaluate_submission(replace(self.context, target="EXTERNAL"),
