@@ -21,13 +21,7 @@
   "partially_completed_capabilities": [
     "Submission/truthfulness policy slice; durable counters and browser worker not yet implemented"
   ],
-  "blocked_capabilities": [
-    {
-      "capability": "Remote GitHub Actions verification",
-      "result": "BLOCKED_EXTERNAL",
-      "reason": "OAuth authorization lacks workflow scope; reviewed workflow staged at infra/ci/verification.yml"
-    }
-  ],
+  "blocked_capabilities": [],
   "active_requirements": [
     "MJ-REQ-000",
     "MJ-REQ-001",
@@ -45,7 +39,8 @@
   "tests_passed": [
     "28 domain/control-plane unit tests",
     "Live backlog synchronization: 366 mapped; rerun 0 created",
-    "Catalogue validation: PASS"
+    "Catalogue validation: PASS",
+    "Remote governance CI: pull_request run 36765449832 and push run 36765449435 PASS at 35908bb"
   ],
   "tests_failed": [],
   "tests_not_run": [
@@ -60,6 +55,13 @@
     "target": "governance bootstrap",
     "result": "PASS",
     "evidence_path": "docs/evidence/2026-09-29-bootstrap.json"
+  },
+  "ci_verification": {
+    "result": "PASS",
+    "scope": "governance domain/control-plane and catalogue only",
+    "head": "35908bb3be4f061e6c87903241e393b238b62402",
+    "pull_request_run_id": 36765449832,
+    "evidence_path": "docs/evidence/2026-09-30-governance-ci.json"
   },
   "recommended_resume_step": "Finish backlog reconciliation, create tested governance PR, then CODEX_START section 7 mock spine."
 }
