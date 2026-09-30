@@ -1,0 +1,43 @@
+{
+  "result": "PASS",
+  "timestamp": "2026-09-30T21:04:56.707623+00:00",
+  "command": "python -m cli.ui_e2e --base-url http://127.0.0.1:18700",
+  "target": "Connected React UI / PostgreSQL / three RQ queues / actual Chromium",
+  "profile_id": "demo-07479f2d-da04-444c-9998-831feb81ef48",
+  "application_id": "983b4b342a7406c003f9ceac93ecbd7432632b8034e55c3f4dfa49a3d3b3c937",
+  "operation_id": "09dc5f099a0b231d0870d53468e739260a1feeab55c5662d5c9ff06e5d1f2787",
+  "confirmation": {
+    "application_id": "983b4b342a7406c003f9ceac93ecbd7432632b8034e55c3f4dfa49a3d3b3c937",
+    "requisition": "B",
+    "receipt": "MOCK-983b4b342a7406c0",
+    "submission_count": 1
+  },
+  "external_submission_enabled": false,
+  "actions": [
+    {
+      "action": "Explicit fictional demo, connected search, match explanation and raw provenance",
+      "result": "PASS"
+    },
+    {
+      "action": "Pending fact excluded from matching and downloaded factual DOCX",
+      "result": "PASS"
+    },
+    {
+      "action": "Approved profile revision generates new documents, preserves original bytes, and PDF downloads through UI",
+      "result": "PASS"
+    },
+    {
+      "action": "Browser dry-run stops before submission; explicit local mock receipt count remains one on repeat",
+      "result": "PASS"
+    },
+    {
+      "action": "Browser reload restores selected profile and application history; responsive Activity has no horizontal overflow or browser exceptions",
+      "result": "PASS"
+    }
+  ],
+  "artifacts": [
+    "outputs/ui-e2e/18700/activity-mobile.png",
+    "outputs/ui-e2e/18700/fictional-document.pdf",
+    "outputs/ui-e2e/18700/application-confirmed.png"
+  ]
+}

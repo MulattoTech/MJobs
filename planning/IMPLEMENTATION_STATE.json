@@ -11,7 +11,7 @@
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
   "current_milestone": "M3_LOCAL_USER_TESTING_VERIFIED",
-  "current_objective": "Verify the P0 MJ-PR-003 personal-operation boundary through remote Compose/Chromium, then continue original dependency-eligible requirements",
+  "current_objective": "Continue the dependency-eligible original P0 MJ-PR-003 requirements after remote verification of the personal-operation boundary",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -111,7 +111,8 @@
     "Remote connected-UI CI: pull_request run 36768260666 and push run 36768256061 PASS at d807851",
     "P0 progress journal: 5 targeted and 73 affected Python tests PASS locally; catalogue and progress validators PASS",
     "Remote P0 progress-journal CI: PR run 36772030057 and push run 36772022282 PASS at 6c3801f",
-    "P0 personal-operation boundary: 36 targeted and 79 full Python tests, 2 frontend tests/build, Compose config and PowerShell parse PASS locally"
+    "P0 personal-operation boundary: 36 targeted and 79 full Python tests, 2 frontend tests/build, Compose config and PowerShell parse PASS locally",
+    "Remote personal-operation CI: PR run 36776229356 and push run 36776224242 PASS at 5048e81; fixture mock/UI/recovery and isolated personal Compose/Chromium PASS"
   ],
   "tests_failed": [],
   "tests_not_run": [
@@ -167,7 +168,14 @@
     "push_run_id": 36772022282,
     "evidence_path": "docs/evidence/2026-09-30-ci-428.json"
   },
-  "recommended_resume_step": "Verify MJ-PR-003 personal-mode API, worker and Chromium mode-switch E2E on exact-head GitHub Actions; keep external submission disabled",
+  "personal_operation_ci": {
+    "result": "PASS",
+    "head": "5048e81758a25f8b9168103a1f09eef21a1a4457",
+    "pull_request_run_id": 36776229356,
+    "push_run_id": 36776224242,
+    "evidence_path": "docs/evidence/2026-09-30-ci-428-personal.json"
+  },
+  "recommended_resume_step": "Refetch the original P0 queue and active issues before selecting the next MJ-PR-003 vertical slice; keep external submission disabled",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -305,11 +313,59 @@
         "git_commit": "1ed56d60ed6e61b0525d94ad8aa2d8fc8cb6fa6c",
         "evidence_path": "docs/evidence/2026-09-30-ci-428.json"
       }
+    },
+    {
+      "milestone_id": "M3-PERSONAL-OPERATION-REMOTE",
+      "timestamp": "2026-09-30T21:08:41Z",
+      "current_phase": "M3_PERSONAL_OPERATION_REMOTE_VERIFIED",
+      "completed_steps": [
+        "Both exact implementation-head CI runs passed 79 Python tests, frontend tests/build, catalogue and progress validation",
+        "Fixture Compose mock, connected Chromium UI, and Redis outage/restart recovery passed",
+        "Separate personal Compose project started empty and passed API/Chromium action-boundary checks",
+        "Downloaded, inspected and hashed four fictional or empty-state CI evidence artifacts"
+      ],
+      "files_added": [
+        "docs/evidence/2026-09-30-ci-428-personal.json",
+        "docs/evidence/2026-09-30-ci-428-5048e81-mock-e2e.json",
+        "docs/evidence/2026-09-30-ci-428-5048e81-ui.json",
+        "docs/evidence/2026-09-30-ci-428-5048e81-recovery.json",
+        "docs/evidence/2026-09-30-ci-428-5048e81-personal-mode.json"
+      ],
+      "files_modified": [
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "docs/FEATURE_COMPLETENESS.md"
+      ],
+      "tests_completed": [
+        "79 Python tests and 2 frontend tests/build PASS on PR and push CI runs at 5048e81",
+        "Fixture mock application, Chromium UI, Redis outage/recovery PASS on PR and push CI runs",
+        "Isolated personal Compose API/Chromium E2E PASS on PR and push CI runs"
+      ],
+      "tests_remaining": [
+        "Controlled live public-source read in isolated personal mode",
+        "Physical host restart and full staged production/release acceptance"
+      ],
+      "migrations_applied": [
+        "92f0997f753e",
+        "098f12099319",
+        "547acf656c37",
+        "792dc0dc5664"
+      ],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "Remote CI used fictional mock and empty personal data; no real employer submission",
+        "MJ-REQ-008/009 remain PARTIAL; release readiness NOT_RUN"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "5048e81758a25f8b9168103a1f09eef21a1a4457",
+        "evidence_path": "docs/evidence/2026-09-30-ci-428-personal.json"
+      }
     }
   ],
-  "current_phase": "M3_PERSONAL_OPERATION_LOCAL_VERIFIED",
+  "current_phase": "M3_PERSONAL_OPERATION_REMOTE_VERIFIED",
   "last_safe_checkpoint": {
-    "git_commit": "1ed56d60ed6e61b0525d94ad8aa2d8fc8cb6fa6c",
-    "evidence_path": "docs/evidence/2026-09-30-ci-428.json"
+    "git_commit": "5048e81758a25f8b9168103a1f09eef21a1a4457",
+    "evidence_path": "docs/evidence/2026-09-30-ci-428-personal.json"
   }
 }

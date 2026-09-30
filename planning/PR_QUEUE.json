@@ -63,7 +63,7 @@
       "status": "DRAFT_PR",
       "branch": "codex/mj-pr-003-governance-safety",
       "draft_until_verified": true,
-      "notes": "P0 vertical slices: MJ-REQ-008 evidence-linked atomic progress journal and MJ-REQ-009 personal/fixture operation boundary are PARTIAL; MJ-REQ-010 and MJ-REQ-011 retain separate unverified acceptance scope.",
+      "notes": "P0 vertical slices: MJ-REQ-008 evidence-linked atomic progress journal and MJ-REQ-009 personal/fixture operation boundary are PARTIAL; the isolated personal Compose/Chromium CI passed at 5048e81. MJ-REQ-010 and MJ-REQ-011 retain separate unverified acceptance scope.",
       "pr_number": 428
     },
     {

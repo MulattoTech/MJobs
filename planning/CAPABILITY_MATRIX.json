@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-09-30T20:55:36Z",
+  "timestamp": "2026-09-30T21:08:41Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -72,9 +72,10 @@
       "requirement_id": "MJ-REQ-009",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-09-30-operation-mode.json"
+        "docs/evidence/2026-09-30-operation-mode.json",
+        "docs/evidence/2026-09-30-ci-428-personal.json"
       ],
-      "note": "Personal API and worker reject fictional actions, including stale queued work; production API rejects databases with mock routes. Staged deployment and isolated personal-mode remote E2E remain unverified"
+      "note": "Personal API and worker reject fictional actions, including stale queued work; production API rejects databases with mock routes. Isolated personal Compose/Chromium CI passed; full staged deployment and controlled live read in personal mode remain unverified"
     },
     {
       "requirement_id": "MJ-REQ-010",
