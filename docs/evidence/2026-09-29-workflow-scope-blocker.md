@@ -17,3 +17,13 @@ interactive command is `gh auth refresh -h github.com -s workflow`. After the
 user completes that consent, promote the staged definition to
 `.github/workflows/verification.yml`, push, and inspect executed Actions evidence.
 Do not mark CI PASS or merge dependent implementation solely from local tests.
+
+## Resolution on 2026-09-30
+
+The active GitHub authorization now includes `workflow` scope. The preserved
+governance workflow was published on PR #367. The governance, mock spine,
+worker lifecycle, and connected UI branches each completed their scoped
+GitHub Actions checks. Exact heads, run IDs, commands and retained artifacts
+are recorded in `2026-09-30-governance-ci.json`, `2026-09-30-ci-368.json`,
+`2026-09-30-ci-369.json` and `2026-09-30-ci-370.json`. Full-spec and release
+readiness remain separate from these branch checks.

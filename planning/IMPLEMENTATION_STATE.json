@@ -11,7 +11,7 @@
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
   "current_milestone": "M3_LOCAL_USER_TESTING_VERIFIED",
-  "current_objective": "Local user-testing milestone verified; execute connected UI remote CI before integration and subsequent dependency-eligible work",
+  "current_objective": "Connected UI remote CI passed; integrate PR #370 and continue dependency-eligible original requirements",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -99,11 +99,11 @@
     "Actual Chromium connected UI against existing and fresh Compose deployments; live source browser readback; final outage/restart PASS",
     "Remote governance CI: pull_request run 36765678280 PASS at e97d8b0",
     "Remote mock-spine CI: pull_request run 36766636806 PASS at 90b59ca",
-    "Remote worker-lifecycle CI: pull_request run 36767410947 PASS at 29012e0"
+    "Remote worker-lifecycle CI: pull_request run 36767410947 PASS at 29012e0",
+    "Remote connected-UI CI: pull_request run 36768260666 and push run 36768256061 PASS at d807851"
   ],
   "tests_failed": [],
   "tests_not_run": [
-    "Connected UI remote CI: NOT_RUN at this branch head",
     "Remaining full-spec integrations and product/release requirements"
   ],
   "known_external_limitations": [],
@@ -143,7 +143,13 @@
     "pull_request_run_id": 36767410947,
     "evidence_path": "docs/evidence/2026-09-30-ci-369.json"
   },
-  "recommended_resume_step": "Verify connected UI remote CI, integrate PR #370, then continue the primary original requirement queue",
+  "connected_ui_ci": {
+    "result": "PASS",
+    "head": "d80785150e5a651b96be56c39310956d49f7b26d",
+    "pull_request_run_id": 36768260666,
+    "evidence_path": "docs/evidence/2026-09-30-ci-370.json"
+  },
+  "recommended_resume_step": "Integrate PR #370 after final head checks; reconcile #427 reference catalogue and continue primary original requirement queue",
   "migrations_applied": [
     "92f0997f753e",
     "098f12099319",
