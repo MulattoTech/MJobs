@@ -1,0 +1,47 @@
+{
+  "timestamp": "2026-09-30T22:45:10Z",
+  "target": "P0 MJ-REQ-010 primary product architecture and MJ-REQ-011 preferred technology stack on PR #428",
+  "action": "Compare active issue #11/#12 and governance_safety area spec with the deployed application paths, locked dependencies, Compose services and exact-head GitHub Actions outcomes",
+  "commands": [
+    "git status --short --branch; git fetch origin --prune; gh pr list --state open",
+    "gh issue view 11 --json body,state,labels; gh issue view 12 --json body,state,labels",
+    "gh pr view 428 --json headRefOid,statusCheckRollup",
+    "gh run view 36786495249 --json headSha,event,conclusion,jobs",
+    "gh run view 36786496324 --json headSha,event,conclusion,jobs"
+  ],
+  "observed_head": "53ee96e7e413db07f0f6bb918c524d853d3901cf",
+  "runs": [
+    {"event": "push", "id": 36786495249, "conclusion": "PASS"},
+    {"event": "pull_request", "id": 36786496324, "conclusion": "PASS"}
+  ],
+  "requirements": {
+    "MJ-REQ-010": {
+      "result": "PARTIAL",
+      "observed": "Connected React dashboard and FastAPI, durable Redis/RQ workers, PostgreSQL migrations, bounded Greenhouse company-board collection, canonical posting/route storage, matching, factual documents and a controlled Playwright mock application/recovery path passed deployed CI.",
+      "remaining": "Global sources, automatic company discovery, broader company resolution and deduplication, AI engine and real supported ATS application services are not implemented or fully accepted. The conceptual architecture is not yet complete."
+    },
+    "MJ-REQ-011": {
+      "result": "PASS",
+      "observed": "The exact-head CI workflow ran with Python 3.12 and Node 24; installed pinned FastAPI, Pydantic 2, SQLAlchemy 2, Alembic, Redis/RQ and Playwright; built strict TypeScript React/Vite; migrated and exercised PostgreSQL 17, Redis, three RQ workers, headless Chromium, and fixture/personal Docker Compose deployments. Both runs passed Python/frontend tests, mock/browser/recovery and personal public-read/browser checks. Vite is the mature React architecture selected by ADR 0003; pg_trgm and pgvector are optional."
+    }
+  },
+  "evidence_paths": [
+    "requirements.lock",
+    "apps/web/package.json",
+    "infra/docker/Dockerfile",
+    "compose.yml",
+    ".github/workflows/ci.yml",
+    "docs/decisions/0002-first-vertical-spine.md",
+    "docs/decisions/0003-user-testing-mvp.md",
+    "docs/evidence/2026-09-30-ci-428-workspace-identity.json",
+    "docs/evidence/2026-09-30-ci-370.json"
+  ],
+  "data_impact": "Evidence and catalogue status only; no database, application, user profile or external submission mutation.",
+  "recovery": "Revert this evidence/status commit if the component mapping is disproved; runtime data and migrations are unchanged.",
+  "limitations": [
+    "MJ-REQ-011 PASS establishes preferred stack acceptance, not full product or release acceptance.",
+    "MJ-REQ-010 remains PARTIAL and the missing architecture components retain their original requirement issues.",
+    "MJ-REF-001..042 and release readiness remain separate from these original requirement results."
+  ],
+  "result": "PARTIAL"
+}

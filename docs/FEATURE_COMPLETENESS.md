@@ -8,13 +8,13 @@ A percentage is a navigation aid, never a release claim. Only evidence-backed PA
 
 ## Original specification
 - Catalogue items: **366**
-- PASS: **1** (0.27%)
-- PARTIAL: **55** (15.03%)
-- NOT_RUN: **310** (84.70%)
+- PASS: **2** (0.55%)
+- PARTIAL: **56** (15.30%)
+- NOT_RUN: **308** (84.15%)
 - Full-spec state: **PARTIAL**
 - Release readiness: **not established**
-The low PASS percentage does **not** mean only 0.27% of code exists. Many requirements are broad umbrella capabilities
-and 55 are already PARTIAL. The current vertical slice is useful and tested, but the repository correctly refuses to
+The low PASS percentage does **not** mean only 0.55% of code exists. Many requirements are broad umbrella capabilities
+and 56 are already PARTIAL. The current vertical slice is useful and tested, but the repository correctly refuses to
 turn partial evidence into completed requirements.
 
 ## Current verified implementation spine
@@ -27,6 +27,7 @@ turn partial evidence into completed requirements.
 - Evidence-linked, atomic implementation milestone journal with reload, failed-write preservation, and remote CI evidence (MJ-REQ-008 PARTIAL; `docs/evidence/2026-09-30-ci-428.json`)
 - Separate personal operation mode blocks fictional actions at the API and worker; fixture verification remains available. Direct Compose defaults to PERSONAL without the fictional mock service. Both exact-head CI runs passed actual fixture mock and personal no-mock service checks, isolated personal Chromium, and live public read/browser proof of 21 jobs; an earlier optional provider read timed out. MJ-REQ-009 remains PARTIAL (`docs/evidence/2026-09-30-ci-428-compose-isolation.json`).
 - A database identity slice binds each empty database to FIXTURE or PERSONAL and refuses startup or worker claims against a conflicting or nonempty unbound database. Legacy data is preserved for explicit snapshot-matched owner adoption. Local 91-test and temporary SQLite migration checks passed; both exact-head CI runs passed explicit PostgreSQL revision and stored-mode assertions, fixture recovery and separate personal Chromium/public-read proof (`docs/evidence/2026-09-30-ci-428-workspace-identity.json`). MJ-REQ-009 remains PARTIAL.
+- The preferred technology stack is PASS for MJ-REQ-011 after both deployed CI runs exercised the pinned Python/FastAPI/SQLAlchemy/Alembic, TypeScript React/Vite, PostgreSQL, Redis/RQ, Playwright Chromium and Compose paths. The broader product architecture MJ-REQ-010 is PARTIAL pending global/company discovery, fuller resolution/deduplication, AI and supported real ATS services (`docs/evidence/2026-09-30-architecture-stack-reconciliation.json`).
 - Real external submission remains disabled
 - GitHub Actions passed the final #367-#370 PR heads and the connected UI, mock application, and restart recovery workflow; see `docs/evidence/2026-09-30-ci-370.json`
 ## Reference-project gap catalogue

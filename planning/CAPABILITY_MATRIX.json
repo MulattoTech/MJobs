@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-09-30T22:34:00Z",
+  "timestamp": "2026-09-30T22:45:10Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -85,15 +85,19 @@
     },
     {
       "requirement_id": "MJ-REQ-010",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-30-architecture-stack-reconciliation.json"
+      ],
+      "note": "Deployed dashboard/API, PostgreSQL, durable RQ workers, company-board source, matching, factual documents and controlled browser mock path verified. Global sources, automatic company discovery, broad resolution/dedupe, AI and real ATS application branches remain"
     },
     {
       "requirement_id": "MJ-REQ-011",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-09-30-architecture-stack-reconciliation.json"
+      ],
+      "note": "Both exact-head GitHub Actions runs executed pinned Python 3.12/FastAPI/Pydantic/SQLAlchemy/Alembic, TypeScript React/Vite, PostgreSQL 17, Redis/RQ, Playwright Chromium and Docker Compose deployments; Vite is an accepted mature React architecture"
     },
     {
       "requirement_id": "MJ-REQ-012",

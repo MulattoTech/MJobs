@@ -63,7 +63,7 @@
       "status": "DRAFT_PR",
       "branch": "codex/mj-pr-003-governance-safety",
       "draft_until_verified": true,
-      "notes": "P0 vertical slices: MJ-REQ-008 progress journal and MJ-REQ-009 personal/fixture boundary remain PARTIAL. Durable database identity rejects mode flips and nonempty unbound legacy data; owner adoption requires an exact reviewed snapshot. At 05b570d, PR and push CI passed explicit PostgreSQL migration and FIXTURE/PERSONAL row assertions, fixture recovery, isolated personal no-mock Chromium and public read/browser proof. Legacy owner-data adoption, physical host restart and complete staged operation remain open. MJ-REQ-010/011 retain separate unverified acceptance scope.",
+      "notes": "P0 vertical slices: MJ-REQ-008 progress journal and MJ-REQ-009 personal/fixture boundary remain PARTIAL; durable identity and explicit PostgreSQL fixture/personal checks passed exact-head CI. MJ-REQ-010 architecture is PARTIAL: the deployed dashboard/API, durable source/match/document/application mock spine exists, while global/company discovery, broader resolution/dedupe, AI and real ATS services remain. MJ-REQ-011 preferred stack is PASS from deployed Python/FastAPI/React/Vite/PostgreSQL/Redis/RQ/Playwright/Compose evidence. Legacy owner-data adoption, physical host restart and complete staged operation remain open.",
       "pr_number": 428
     },
     {
