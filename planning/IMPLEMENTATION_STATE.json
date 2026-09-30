@@ -128,12 +128,13 @@
     "Exact-head c2fcc9d PR run 36781332556 and push run 36781327411 PASS: actual fixture mock and personal no-mock service assertions, fixture recovery, isolated personal Chromium, deployed public read/browser",
     "P0 durable workspace identity local: 91 Python tests and temporary SQLite Alembic upgrade/bound-downgrade refusal PASS",
     "Exact-head 05b570d PR run 36785750958 and push run 36785746644 PASS: PostgreSQL Alembic a6e7f3c48921 and stored FIXTURE/PERSONAL modes, fixture recovery, isolated personal Chromium and public read/browser",
-    "MJ-PR-005 rebased local: 13 targeted source tests and 96 full Python tests; catalogue and progress validators PASS"
+    "MJ-PR-005 rebased local: 13 targeted source tests and 96 full Python tests; catalogue and progress validators PASS",
+    "MJ-PR-005 exact-head 2222cb1 push run 36789502626 and PR run 36789504355 PASS: 96 Python tests, frontend/build, fixture mock/browser/recovery and personal mode/public read/browser"
   ],
   "tests_failed": [],
   "tests_not_run": [
     "Remaining full-spec integrations and product/release requirements",
-    "MJ-PR-005 exact-head deployed CI and live public read after draft PR publication"
+    "MJ-PR-005 evidence-only successor exact-head CI"
   ],
   "known_external_limitations": [],
   "known_product_defects": [
@@ -216,7 +217,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Verify #429 exact-head CI on the #428 stack, then work the next dependency-eligible original requirement while preserving both draft PRs.",
+  "recommended_resume_step": "Verify the #429 evidence-only successor head, then continue dependency-eligible original requirements with #428/#429 draft stack preserved.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -837,11 +838,68 @@
         "git_commit": "9b895cfdb2cbca5a0f55a6f1b9a35702f599766c",
         "evidence_path": "docs/evidence/2026-09-30-source-adapter-foundation.json"
       }
+    },
+    {
+      "milestone_id": "M4-SOURCE-ADAPTER-REMOTE",
+      "timestamp": "2026-09-30T23:15:11.938920Z",
+      "current_phase": "M4_SOURCE_ADAPTER_REMOTE_VERIFIED",
+      "completed_steps": [
+        "Verified exact-head push and PR runs succeeded on 2222cb1",
+        "Verified fixture mock/Chromium/recovery and personal no-mock/Chromium/public source paths",
+        "Downloaded, inspected and hashed twelve CI JSON artifacts",
+        "Retained MJ-REQ-016 PASS and MJ-REQ-018 PARTIAL without changing reference or release results"
+      ],
+      "files_added": [
+        "docs/evidence/2026-09-30-ci-429.json",
+        "docs/evidence/2026-09-30-ci-429-entry.json",
+        "docs/evidence/2026-09-30-ci-429-2222cb1-pr-ci-mock-e2e.json",
+        "docs/evidence/2026-09-30-ci-429-2222cb1-pr-ci-personal-mode.json",
+        "docs/evidence/2026-09-30-ci-429-2222cb1-pr-ci-personal-public-source.json",
+        "docs/evidence/2026-09-30-ci-429-2222cb1-pr-ci-personal-public-ui.json",
+        "docs/evidence/2026-09-30-ci-429-2222cb1-pr-ci-recovery.json",
+        "docs/evidence/2026-09-30-ci-429-2222cb1-pr-ci-ui.json",
+        "docs/evidence/2026-09-30-ci-429-2222cb1-push-ci-mock-e2e.json",
+        "docs/evidence/2026-09-30-ci-429-2222cb1-push-ci-personal-mode.json",
+        "docs/evidence/2026-09-30-ci-429-2222cb1-push-ci-personal-public-source.json",
+        "docs/evidence/2026-09-30-ci-429-2222cb1-push-ci-personal-public-ui.json",
+        "docs/evidence/2026-09-30-ci-429-2222cb1-push-ci-recovery.json",
+        "docs/evidence/2026-09-30-ci-429-2222cb1-push-ci-ui.json"
+      ],
+      "files_modified": [
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "docs/FEATURE_COMPLETENESS.md"
+      ],
+      "tests_completed": [
+        "PR run 36789504355 and push run 36789502626 PASS at 2222cb1",
+        "Both runs: 21 live public Greenhouse jobs through personal RQ source worker, no external application requests",
+        "All twelve retained JSON artifacts report PASS and external submission disabled"
+      ],
+      "tests_remaining": [
+        "Evidence-only successor exact-head CI",
+        "Broader production source strategy and original/reference/release acceptance"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "GitHub Actions PostgreSQL/Redis/RQ/Chromium fixture and personal Compose",
+        "Public read-only Greenhouse GET via deployed personal source worker"
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "Only Greenhouse is a production source adapter",
+        "Multi-company collision proof is synthetic",
+        "Release readiness remains NOT_RUN"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "2222cb10a2817724d4a06b80b743c08c9603fc75",
+        "evidence_path": "docs/evidence/2026-09-30-ci-429.json"
+      }
     }
   ],
-  "current_phase": "M4_SOURCE_ADAPTER_FOUNDATION",
+  "current_phase": "M4_SOURCE_ADAPTER_REMOTE_VERIFIED",
   "last_safe_checkpoint": {
-    "git_commit": "9b895cfdb2cbca5a0f55a6f1b9a35702f599766c",
-    "evidence_path": "docs/evidence/2026-09-30-source-adapter-foundation.json"
+    "git_commit": "2222cb10a2817724d4a06b80b743c08c9603fc75",
+    "evidence_path": "docs/evidence/2026-09-30-ci-429.json"
   }
 }

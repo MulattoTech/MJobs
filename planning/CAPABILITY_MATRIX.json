@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-09-30T23:06:00Z",
+  "timestamp": "2026-09-30T23:15:11.938920Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -131,9 +131,10 @@
       "evidence": [
         "docs/evidence/2026-09-30-user-testing.md",
         "docs/evidence/2026-09-30-ci-370.json",
-        "docs/evidence/2026-09-30-source-adapter-foundation.json"
+        "docs/evidence/2026-09-30-source-adapter-foundation.json",
+        "docs/evidence/2026-09-30-ci-429.json"
       ],
-      "note": "Search/fetch/normalize/health/capabilities adapter contract and generic attributed persistence passed 13 source integration tests and 96 full Python tests; only Greenhouse is production registered."
+      "note": "Search/fetch/normalize/health/capabilities adapter contract and generic attributed persistence passed 13 source integration tests and 96 full Python tests; only Greenhouse is production registered. Both exact-head deployed CI runs passed fixture and personal source/UI paths with 21 public jobs and no submission."
     },
     {
       "requirement_id": "MJ-REQ-017",
@@ -146,9 +147,10 @@
       "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-09-30-user-testing.md",
-        "docs/evidence/2026-09-30-source-adapter-foundation.json"
+        "docs/evidence/2026-09-30-source-adapter-foundation.json",
+        "docs/evidence/2026-09-30-ci-429.json"
       ],
-      "note": "PARTIAL: documented Greenhouse public API collection is bounded and browser-free; strategy ladder for other providers is not implemented or verified."
+      "note": "PARTIAL: documented Greenhouse public API collection is bounded and browser-free; strategy ladder for other providers is not implemented or verified. Both exact-head deployed CI runs passed Greenhouse API public reads."
     },
     {
       "requirement_id": "MJ-REQ-019",

@@ -1,0 +1,79 @@
+{
+  "timestamp": "2026-09-30T23:15:11.938920Z",
+  "target": "Draft PR #429 implementation head; MJ-REQ-016 source adapter and MJ-REQ-018 Greenhouse API strategy",
+  "head_sha": "2222cb10a2817724d4a06b80b743c08c9603fc75",
+  "base_pr": 428,
+  "action": "Verify exact-head push and pull_request workflows, inspect deployed output artifacts and independently hash each retained JSON file",
+  "commands": [
+    "gh run view 36789504355 --repo MulattoTech/MJobs --json status,conclusion,headSha,event,jobs",
+    "gh run view 36789502626 --repo MulattoTech/MJobs --json status,conclusion,headSha,event,jobs",
+    "gh run download 36789504355 --name fictional-mock-evidence",
+    "gh run download 36789502626 --name fictional-mock-evidence"
+  ],
+  "runs": [
+    {
+      "event": "pull_request",
+      "run_id": 36789504355,
+      "artifact_id": 11131281256,
+      "head_sha": "2222cb10a2817724d4a06b80b743c08c9603fc75",
+      "conclusion": "PASS",
+      "public_read": {
+        "provider": "greenhouse",
+        "jobs": 21,
+        "operation_state": "COMPLETED",
+        "external_application_requests": 0
+      },
+      "artifact_sha256": {
+        "docs/evidence/2026-09-30-ci-429-2222cb1-pr-ci-mock-e2e.json": "a103439c5273401df18d2bacabb40a0ccf032d869d892c2ee96d19e2d65a9661",
+        "docs/evidence/2026-09-30-ci-429-2222cb1-pr-ci-personal-mode.json": "df4c8f59d19a9509d7f510056fccd7e59dd5405a5b552c0f302a17d080edd01a",
+        "docs/evidence/2026-09-30-ci-429-2222cb1-pr-ci-personal-public-source.json": "10f7904a8dde016d0a7ad0d826ca5f1ab63ba73e62d2cbbad986263159d3cdec",
+        "docs/evidence/2026-09-30-ci-429-2222cb1-pr-ci-personal-public-ui.json": "62b647f3cc29c37a70d0b6ddc2c36cd7130c54a5860d53f1a20cd96c125cd131",
+        "docs/evidence/2026-09-30-ci-429-2222cb1-pr-ci-recovery.json": "0a64807d82f3a4cdc8f481b93352d12221c0ea66ad972473c3b8e2db3e17d35f",
+        "docs/evidence/2026-09-30-ci-429-2222cb1-pr-ci-ui.json": "d811109aa484f6050c11dc41e2281ef8d252bcc05e32e2577241e787ab9b1cbb"
+      }
+    },
+    {
+      "event": "push",
+      "run_id": 36789502626,
+      "artifact_id": 11131850636,
+      "head_sha": "2222cb10a2817724d4a06b80b743c08c9603fc75",
+      "conclusion": "PASS",
+      "public_read": {
+        "provider": "greenhouse",
+        "jobs": 21,
+        "operation_state": "COMPLETED",
+        "external_application_requests": 0
+      },
+      "artifact_sha256": {
+        "docs/evidence/2026-09-30-ci-429-2222cb1-push-ci-mock-e2e.json": "9841ab8551cb33bfb654e7a1ebafd261c44a3d96d647b7247a56634668026ea6",
+        "docs/evidence/2026-09-30-ci-429-2222cb1-push-ci-personal-mode.json": "88fa3a131233959d7ec810d858090198149c0d7b958c473a5f63b694a89c6710",
+        "docs/evidence/2026-09-30-ci-429-2222cb1-push-ci-personal-public-source.json": "2ea324b4e6b856d65a0dc9d89a93db42125486095b25213ac992239c6c9dc27a",
+        "docs/evidence/2026-09-30-ci-429-2222cb1-push-ci-personal-public-ui.json": "750dbbe38742fb451879325170dffb12e58d52b847a609b856ee40b4305ad4f2",
+        "docs/evidence/2026-09-30-ci-429-2222cb1-push-ci-recovery.json": "11aa0e2a6947443502191e1e053c35cfef8646728e4170f251e3f822c82e8262",
+        "docs/evidence/2026-09-30-ci-429-2222cb1-push-ci-ui.json": "0355565ad5971551ccfc8e518da45e96e0fd56f704a218f0a08298ebc3927ae2"
+      }
+    }
+  ],
+  "observed": [
+    "Both runs completed successfully at the identical 2222cb1 head; no failed workflow steps were observed",
+    "Python suite, frontend tests/build, catalogue and progress validators, fixture mock/browser/recovery and isolated personal Compose paths all passed",
+    "Both personal public-source worker probes returned 21 Greenhouse jobs with API strategy, healthy source state and zero external application requests",
+    "Both personal Chromium source readbacks passed with external submission disabled"
+  ],
+  "requirements": {
+    "MJ-REQ-016": "PASS",
+    "MJ-REQ-018": "PARTIAL",
+    "MJ-REQ-015": "PARTIAL",
+    "MJ-REQ-017": "NOT_RUN"
+  },
+  "reference_gap_status": "All 42 canonical MJ-REF items remain NOT_RUN",
+  "release_readiness": "NOT_RUN",
+  "migration_data_impact": "No new migration. CI used isolated fixture and personal PostgreSQL databases; no user database or real application was mutated.",
+  "rollback_recovery": "Revert the source adapter commits if needed; existing Greenhouse IDs, source policy rows and immutable posting snapshots stay compatible.",
+  "limitations": [
+    "Greenhouse is the sole production adapter; the two-company collision test is synthetic contract proof",
+    "These CI runs verify the implementation head; a subsequent evidence-only commit needs its own exact-head checks",
+    "No real external application submission was attempted"
+  ],
+  "result": "PASS"
+}

@@ -1,0 +1,57 @@
+{
+  "milestone_id": "M4-SOURCE-ADAPTER-REMOTE",
+  "timestamp": "2026-09-30T23:15:11.938920Z",
+  "current_phase": "M4_SOURCE_ADAPTER_REMOTE_VERIFIED",
+  "completed_steps": [
+    "Verified exact-head push and PR runs succeeded on 2222cb1",
+    "Verified fixture mock/Chromium/recovery and personal no-mock/Chromium/public source paths",
+    "Downloaded, inspected and hashed twelve CI JSON artifacts",
+    "Retained MJ-REQ-016 PASS and MJ-REQ-018 PARTIAL without changing reference or release results"
+  ],
+  "files_added": [
+    "docs/evidence/2026-09-30-ci-429.json",
+    "docs/evidence/2026-09-30-ci-429-entry.json",
+    "docs/evidence/2026-09-30-ci-429-2222cb1-pr-ci-mock-e2e.json",
+    "docs/evidence/2026-09-30-ci-429-2222cb1-pr-ci-personal-mode.json",
+    "docs/evidence/2026-09-30-ci-429-2222cb1-pr-ci-personal-public-source.json",
+    "docs/evidence/2026-09-30-ci-429-2222cb1-pr-ci-personal-public-ui.json",
+    "docs/evidence/2026-09-30-ci-429-2222cb1-pr-ci-recovery.json",
+    "docs/evidence/2026-09-30-ci-429-2222cb1-pr-ci-ui.json",
+    "docs/evidence/2026-09-30-ci-429-2222cb1-push-ci-mock-e2e.json",
+    "docs/evidence/2026-09-30-ci-429-2222cb1-push-ci-personal-mode.json",
+    "docs/evidence/2026-09-30-ci-429-2222cb1-push-ci-personal-public-source.json",
+    "docs/evidence/2026-09-30-ci-429-2222cb1-push-ci-personal-public-ui.json",
+    "docs/evidence/2026-09-30-ci-429-2222cb1-push-ci-recovery.json",
+    "docs/evidence/2026-09-30-ci-429-2222cb1-push-ci-ui.json"
+  ],
+  "files_modified": [
+    "planning/CAPABILITY_MATRIX.json",
+    "planning/IMPLEMENTATION_STATE.json",
+    "planning/PR_QUEUE.json",
+    "docs/FEATURE_COMPLETENESS.md"
+  ],
+  "tests_completed": [
+    "PR run 36789504355 and push run 36789502626 PASS at 2222cb1",
+    "Both runs: 21 live public Greenhouse jobs through personal RQ source worker, no external application requests",
+    "All twelve retained JSON artifacts report PASS and external submission disabled"
+  ],
+  "tests_remaining": [
+    "Evidence-only successor exact-head CI",
+    "Broader production source strategy and original/reference/release acceptance"
+  ],
+  "migrations_applied": [],
+  "live_integrations_tested": [
+    "GitHub Actions PostgreSQL/Redis/RQ/Chromium fixture and personal Compose",
+    "Public read-only Greenhouse GET via deployed personal source worker"
+  ],
+  "known_errors": [],
+  "known_limitations": [
+    "Only Greenhouse is a production source adapter",
+    "Multi-company collision proof is synthetic",
+    "Release readiness remains NOT_RUN"
+  ],
+  "last_safe_checkpoint": {
+    "git_commit": "2222cb10a2817724d4a06b80b743c08c9603fc75",
+    "evidence_path": "docs/evidence/2026-09-30-ci-429.json"
+  }
+}
