@@ -1,0 +1,44 @@
+{
+  "timestamp": "2026-09-30T21:50:00Z",
+  "target": "PR #428 implementation head c2fcc9da13c3ee52d30014f0d6c18029ce655875; MJ-REQ-009 fixture-only mock service in deployed Compose modes",
+  "action": "Inspect both exact-head GitHub Actions runs, actual running Compose service assertions, fixture recovery, isolated personal-mode browser and public-read artifacts",
+  "result": "PASS",
+  "runs": [
+    {
+      "event": "pull_request",
+      "id": 36781332556,
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/36781332556",
+      "conclusion": "PASS"
+    },
+    {
+      "event": "push",
+      "id": 36781327411,
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/36781327411",
+      "conclusion": "PASS"
+    }
+  ],
+  "observed_in_both_runs": [
+    "82 Python tests, two frontend tests, strict TypeScript and Vite build, catalogue and progress validators passed",
+    "Explicit FIXTURE Compose startup included a running fictional mock service and passed mock application, connected Chromium UI and durable Redis outage/restart recovery",
+    "After fixture teardown, separate PERSONAL Compose startup passed an assertion that no mock service was running while API and all three workers were running",
+    "Isolated personal API and connected Chromium started with empty profiles, jobs, applications and sources; fictional discovery and submission returned 409, fictional actions were hidden, and external submission was disabled",
+    "Optional deployed PERSONAL public Greenhouse worker read completed and persisted 21 public jobs, with connected Chromium readback of source policy, manual-only preparation and real-target mock-run rejection",
+    "Both runs uploaded evidence artifacts and tore down the fixture and personal projects"
+  ],
+  "artifacts": [
+    {"path": "docs/evidence/2026-09-30-ci-428-c2fcc9d-mock-e2e.json", "sha256": "3678C441743C13EB04354B40359785CA58F99D1710AD9BC4F00A731F1CC751FC"},
+    {"path": "docs/evidence/2026-09-30-ci-428-c2fcc9d-ui.json", "sha256": "DDA15C4268F8EC48B8FDFA4F3BF63F1E06374A25B0FEBFC8BA86F159B39D816D"},
+    {"path": "docs/evidence/2026-09-30-ci-428-c2fcc9d-recovery.json", "sha256": "ECD0B8CB52E576A55EA65BCF8BFDCFDFC3864FA58D2385F9B4682704C351C5FE"},
+    {"path": "docs/evidence/2026-09-30-ci-428-c2fcc9d-personal-mode.json", "sha256": "2F9158F481CB6C95DEE0E86E174EBAF2B61F713D8DDC5A93F5661A2AA9853570"},
+    {"path": "docs/evidence/2026-09-30-ci-428-c2fcc9d-personal-public-source.json", "sha256": "4C1AE411461A184A33A2A29B3FE39DF368C0BE00E68EFD5F674AC14E462FA89B"},
+    {"path": "docs/evidence/2026-09-30-ci-428-c2fcc9d-personal-public-ui.json", "sha256": "014BB06602593BB5F8B8F3268020E051DAAF25BDCFE63BCFDC86F0142FF4658B"},
+    {"path": "docs/evidence/2026-09-30-ci-428-c2fcc9d-pr-personal-public-source.json", "sha256": "FF02AFEA0EE3A63415625DF8BE79673277792D910B5B5C7C37E9FF3878D0E6B8"},
+    {"path": "docs/evidence/2026-09-30-ci-428-c2fcc9d-pr-personal-public-ui.json", "sha256": "D0ABEFED516ED33DFC4CC0E6950130E0148603AD4D01E87490E595F6C6DEB293"}
+  ],
+  "data_impact": "No migration and no real application. Fixture and personal projects use separate PostgreSQL, Redis, document and mock-receipt volumes. Personal startup omits the mock service and mock-origin permission; public read-only job data and fictional CI probe profiles existed only in ephemeral CI personal projects.",
+  "recovery": "Preserve named volumes. Use explicit fixture mode/profile for fictional recovery proof. Personal startup refuses a database with fictional application routes; a failed source read preserves health/backoff and must not trigger a blind application retry.",
+  "limitations": [
+    "This proves service separation in fresh isolated GitHub Actions projects; a previously mixed user database and physical host restart remain outside this slice.",
+    "The original MJ-REQ-009 staged production operation remains PARTIAL; release readiness remains NOT_RUN."
+  ]
+}

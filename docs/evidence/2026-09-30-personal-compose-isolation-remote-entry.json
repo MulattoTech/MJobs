@@ -1,0 +1,55 @@
+{
+  "milestone_id": "M3-PERSONAL-COMPOSE-ISOLATION-REMOTE",
+  "timestamp": "2026-09-30T21:50:00Z",
+  "current_phase": "M3_PERSONAL_COMPOSE_ISOLATION_VERIFIED",
+  "completed_steps": [
+    "Verified two exact-head GitHub Actions runs passed fixture and personal actual service-set assertions",
+    "Verified fixture mock/Chromium and durable recovery plus isolated personal API/Chromium with mock service absent",
+    "Verified both optional personal public-read worker and browser steps passed against the same code head",
+    "Downloaded and hashed eight exact-head CI artifacts and kept original/reference/release status distinct"
+  ],
+  "files_added": [
+    "docs/evidence/2026-09-30-ci-428-compose-isolation.json",
+    "docs/evidence/2026-09-30-ci-428-c2fcc9d-mock-e2e.json",
+    "docs/evidence/2026-09-30-ci-428-c2fcc9d-ui.json",
+    "docs/evidence/2026-09-30-ci-428-c2fcc9d-recovery.json",
+    "docs/evidence/2026-09-30-ci-428-c2fcc9d-personal-mode.json",
+    "docs/evidence/2026-09-30-ci-428-c2fcc9d-personal-public-source.json",
+    "docs/evidence/2026-09-30-ci-428-c2fcc9d-personal-public-ui.json",
+    "docs/evidence/2026-09-30-ci-428-c2fcc9d-pr-personal-public-source.json",
+    "docs/evidence/2026-09-30-ci-428-c2fcc9d-pr-personal-public-ui.json"
+  ],
+  "files_modified": [
+    "planning/IMPLEMENTATION_STATE.json",
+    "planning/CAPABILITY_MATRIX.json",
+    "planning/PR_QUEUE.json",
+    "docs/FEATURE_COMPLETENESS.md"
+  ],
+  "tests_completed": [
+    "PR run 36781332556 and push run 36781327411 required CI PASS at c2fcc9d",
+    "Both runs passed actual running fixture mock and personal no-mock service assertions",
+    "Both runs passed fixture mock E2E, connected browser, outage/restart recovery, isolated personal API/browser, deployed public read and public browser readback"
+  ],
+  "tests_remaining": [
+    "Complete MJ-REQ-009 staged production operation and physical host restart",
+    "MJ-REQ-010/011 original P0 foundation acceptance and full release acceptance"
+  ],
+  "migrations_applied": [
+    "92f0997f753e",
+    "098f12099319",
+    "547acf656c37",
+    "792dc0dc5664"
+  ],
+  "live_integrations_tested": [
+    "Public Greenhouse GET through deployed source workers in both isolated personal CI projects; each stored 21 jobs"
+  ],
+  "known_errors": [],
+  "known_limitations": [
+    "Fresh isolated Compose projects do not prove an already mixed user database is safe",
+    "MJ-REQ-009 remains PARTIAL and release readiness NOT_RUN"
+  ],
+  "last_safe_checkpoint": {
+    "git_commit": "c2fcc9da13c3ee52d30014f0d6c18029ce655875",
+    "evidence_path": "docs/evidence/2026-09-30-ci-428-compose-isolation.json"
+  }
+}

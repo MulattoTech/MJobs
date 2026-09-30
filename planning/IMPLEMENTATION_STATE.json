@@ -10,8 +10,8 @@
     "current_verified_local_state": "Initialized from newer origin/main; supplied control pack retained on governance branch",
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
-  "current_milestone": "M3_LOCAL_USER_TESTING_VERIFIED",
-  "current_objective": "Verify the P0 MJ-REQ-009 fixture-only mock service and fail-closed direct Compose defaults in deployed fixture/personal CI, then continue original dependency-eligible requirements",
+  "current_milestone": "M3_PERSONAL_COMPOSE_ISOLATION_VERIFIED",
+  "current_objective": "Continue P0 MJ-REQ-009 personal/fixture data separation and then dependency-eligible MJ-REQ-010/011 architecture foundations; keep original/reference/release status distinct",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -115,7 +115,8 @@
     "Remote personal-operation CI: PR run 36776229356 and push run 36776224242 PASS at 5048e81; fixture mock/UI/recovery and isolated personal Compose/Chromium PASS",
     "P0 personal live-read gate: one targeted test, 80 full Python tests, direct bounded public GET of 21 postings, catalogue and progress validators PASS locally",
     "Exact-head fb55d44 push run 36779321690: required suite, isolated personal public read of 21 jobs and Chromium readback PASS; PR run 36779328463 required suite PASS but optional live read ReadTimeout and browser skipped",
-    "P0 Compose mode isolation: two rendered-config tests PASS after observed RED, 82 full Python tests, PowerShell launcher parse, catalogue and progress validators PASS locally"
+    "P0 Compose mode isolation: two rendered-config tests PASS after observed RED, 82 full Python tests, PowerShell launcher parse, catalogue and progress validators PASS locally",
+    "Exact-head c2fcc9d PR run 36781332556 and push run 36781327411 PASS: actual fixture mock and personal no-mock service assertions, fixture recovery, isolated personal Chromium, deployed public read/browser"
   ],
   "tests_failed": [],
   "tests_not_run": [
@@ -188,7 +189,14 @@
     "failure_category": "ReadTimeout",
     "evidence_path": "docs/evidence/2026-09-30-ci-428-personal-live-read.json"
   },
-  "recommended_resume_step": "Inspect exact-head fixture/personal Compose service-set and recovery CI, recording remote results before continuing MJ-REQ-010/011 foundation gaps; preserve MJ-REQ-009 PARTIAL and provider timeout evidence",
+  "personal_compose_isolation_ci": {
+    "result": "PASS",
+    "head": "c2fcc9da13c3ee52d30014f0d6c18029ce655875",
+    "pull_request_run_id": 36781332556,
+    "push_run_id": 36781327411,
+    "evidence_path": "docs/evidence/2026-09-30-ci-428-compose-isolation.json"
+  },
+  "recommended_resume_step": "Re-fetch GitHub/local state and address the remaining P0 personal/fixture mixed-database boundary before considering PR #428 ready; then continue MJ-REQ-010/011 architecture foundations. MJ-REQ-009 remains PARTIAL",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -527,11 +535,66 @@
         "git_commit": "d4f8e95f4cb56fde10f1c6f2cadf606444177f71",
         "evidence_path": "docs/evidence/2026-09-30-ci-428-personal-live-read.json"
       }
+    },
+    {
+      "milestone_id": "M3-PERSONAL-COMPOSE-ISOLATION-REMOTE",
+      "timestamp": "2026-09-30T21:50:00Z",
+      "current_phase": "M3_PERSONAL_COMPOSE_ISOLATION_VERIFIED",
+      "completed_steps": [
+        "Verified two exact-head GitHub Actions runs passed fixture and personal actual service-set assertions",
+        "Verified fixture mock/Chromium and durable recovery plus isolated personal API/Chromium with mock service absent",
+        "Verified both optional personal public-read worker and browser steps passed against the same code head",
+        "Downloaded and hashed eight exact-head CI artifacts and kept original/reference/release status distinct"
+      ],
+      "files_added": [
+        "docs/evidence/2026-09-30-ci-428-compose-isolation.json",
+        "docs/evidence/2026-09-30-ci-428-c2fcc9d-mock-e2e.json",
+        "docs/evidence/2026-09-30-ci-428-c2fcc9d-ui.json",
+        "docs/evidence/2026-09-30-ci-428-c2fcc9d-recovery.json",
+        "docs/evidence/2026-09-30-ci-428-c2fcc9d-personal-mode.json",
+        "docs/evidence/2026-09-30-ci-428-c2fcc9d-personal-public-source.json",
+        "docs/evidence/2026-09-30-ci-428-c2fcc9d-personal-public-ui.json",
+        "docs/evidence/2026-09-30-ci-428-c2fcc9d-pr-personal-public-source.json",
+        "docs/evidence/2026-09-30-ci-428-c2fcc9d-pr-personal-public-ui.json"
+      ],
+      "files_modified": [
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "docs/FEATURE_COMPLETENESS.md"
+      ],
+      "tests_completed": [
+        "PR run 36781332556 and push run 36781327411 required CI PASS at c2fcc9d",
+        "Both runs passed actual running fixture mock and personal no-mock service assertions",
+        "Both runs passed fixture mock E2E, connected browser, outage/restart recovery, isolated personal API/browser, deployed public read and public browser readback"
+      ],
+      "tests_remaining": [
+        "Complete MJ-REQ-009 staged production operation and physical host restart",
+        "MJ-REQ-010/011 original P0 foundation acceptance and full release acceptance"
+      ],
+      "migrations_applied": [
+        "92f0997f753e",
+        "098f12099319",
+        "547acf656c37",
+        "792dc0dc5664"
+      ],
+      "live_integrations_tested": [
+        "Public Greenhouse GET through deployed source workers in both isolated personal CI projects; each stored 21 jobs"
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "Fresh isolated Compose projects do not prove an already mixed user database is safe",
+        "MJ-REQ-009 remains PARTIAL and release readiness NOT_RUN"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "c2fcc9da13c3ee52d30014f0d6c18029ce655875",
+        "evidence_path": "docs/evidence/2026-09-30-ci-428-compose-isolation.json"
+      }
     }
   ],
-  "current_phase": "M3_PERSONAL_COMPOSE_ISOLATION_STAGED",
+  "current_phase": "M3_PERSONAL_COMPOSE_ISOLATION_VERIFIED",
   "last_safe_checkpoint": {
-    "git_commit": "d4f8e95f4cb56fde10f1c6f2cadf606444177f71",
-    "evidence_path": "docs/evidence/2026-09-30-ci-428-personal-live-read.json"
+    "git_commit": "c2fcc9da13c3ee52d30014f0d6c18029ce655875",
+    "evidence_path": "docs/evidence/2026-09-30-ci-428-compose-isolation.json"
   }
 }

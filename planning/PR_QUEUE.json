@@ -63,7 +63,7 @@
       "status": "DRAFT_PR",
       "branch": "codex/mj-pr-003-governance-safety",
       "draft_until_verified": true,
-      "notes": "P0 vertical slices: MJ-REQ-008 evidence-linked atomic progress journal and MJ-REQ-009 personal/fixture operation boundary remain PARTIAL. At fb55d44, push CI passed deployed personal public read of 21 jobs and Chromium policy readback; concurrent PR optional live read hit provider ReadTimeout. Direct Compose PERSONAL default and fixture-only mock service passed local rendered-config tests; exact-head deployed service isolation CI is pending. MJ-REQ-010/011 retain separate unverified acceptance scope.",
+      "notes": "P0 vertical slices: MJ-REQ-008 evidence-linked atomic progress journal and MJ-REQ-009 personal/fixture operation boundary remain PARTIAL. At c2fcc9d, PR and push CI passed actual fixture mock and personal no-mock service assertions, fixture recovery, isolated personal Chromium and public read/browser proof. A previous optional provider read timed out; preexisting mixed-database and complete staged operation remain open. MJ-REQ-010/011 retain separate unverified acceptance scope.",
       "pr_number": 428
     },
     {

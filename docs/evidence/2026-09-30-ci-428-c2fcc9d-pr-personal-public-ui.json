@@ -1,0 +1,19 @@
+{
+  "result": "PASS",
+  "timestamp": "2026-09-30T21:48:30.445164+00:00",
+  "command": "python -m cli.ui_source_readback",
+  "target": "Actual browser readback of persisted first-party public jobs",
+  "application_id": "3116dc31f3ddbd1fe34e2620fe323a94cc80ffdc43db836f2401a963758dace6",
+  "external_submission_enabled": false,
+  "actions": [
+    {
+      "action": "Stored live public jobs render heuristic match limitation and provider URL; factual preparation is manual-only and server rejects mock-run on real target",
+      "result": "PASS"
+    },
+    {
+      "action": "Source cooldown is visible as a failed operation without repeating public requests",
+      "result": "PASS"
+    }
+  ],
+  "artifact": "outputs/ui-e2e/public-source-policy.png"
+}
