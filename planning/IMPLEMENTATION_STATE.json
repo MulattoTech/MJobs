@@ -10,8 +10,8 @@
     "current_verified_local_state": "Initialized from newer origin/main; supplied control pack retained on governance branch",
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
-  "current_milestone": "M4_SOURCE_ADAPTER_FOUNDATION",
-  "current_objective": "Continue dependency-eligible original requirements with MJ-PR-003 and MJ-PR-005 draft stack verified; prioritize P0-P3 safety, durability, identity and source foundations before reference enrichment",
+  "current_milestone": "M5_P0_RUNTIME_RESTART_FOUNDATION",
+  "current_objective": "Verify draft PR-004 exact-head CI, then continue original P0 local-first startup, backup/restore, identity and safety prerequisites before reference enrichment",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -25,7 +25,8 @@
     "Immutable factual document revisions, checksum downloads and exclusion of pending facts",
     "Fresh isolated PostgreSQL/Redis/three-worker startup and browser acceptance",
     "Final Redis outage/outbox recovery and all-service restart retain original UI application/operation/receipt",
-    "Provider-neutral source search contract and multi-company attributed persistence with collision-safe posting provenance"
+    "Provider-neutral source search contract and multi-company attributed persistence with collision-safe posting provenance",
+    "Separate application/browser, source discovery and document worker queues; PostgreSQL/Redis restart with the runtime"
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
@@ -33,7 +34,8 @@
     "Factual fact-list PDF/DOCX templates verified; import, tailoring, AI and advanced document-quality requirements remain open",
     "Heuristic description skill coverage for real jobs and exact structured skills for mock; advanced matching remains open",
     "Real jobs support manual preparation only; manual status updates, real automation and intervention resume remain open",
-    "Greenhouse API-first source strategy verified; additional global feeds and strategy ladder remain open"
+    "Greenhouse API-first source strategy verified; additional global feeds and strategy ladder remain open",
+    "Local personal first-run and stored-profile relaunch verified; backup/restore, uploaded resumes and complete startup acceptance remain"
   ],
   "blocked_capabilities": [],
   "active_requirements": [
@@ -62,7 +64,10 @@
     "MJ-REQ-205",
     "MJ-REQ-206",
     "MJ-REQ-228",
-    "MJ-REQ-274"
+    "MJ-REQ-274",
+    "MJ-REQ-012",
+    "MJ-REQ-013",
+    "MJ-REQ-014"
   ],
   "active_prs": [
     {
@@ -130,7 +135,10 @@
     "Exact-head 05b570d PR run 36785750958 and push run 36785746644 PASS: PostgreSQL Alembic a6e7f3c48921 and stored FIXTURE/PERSONAL modes, fixture recovery, isolated personal Chromium and public read/browser",
     "MJ-PR-005 rebased local: 13 targeted source tests and 96 full Python tests; catalogue and progress validators PASS",
     "MJ-PR-005 exact-head 2222cb1 push run 36789502626 and PR run 36789504355 PASS: 96 Python tests, frontend/build, fixture mock/browser/recovery and personal mode/public read/browser",
-    "MJ-PR-005 evidence head 255f480 push run 36790131817 and PR run 36790138449 PASS: fixture/personal deployments, 21 public jobs in both runs, zero external application requests"
+    "MJ-PR-005 evidence head 255f480 push run 36790131817 and PR run 36790138449 PASS: fixture/personal deployments, 21 public jobs in both runs, zero external application requests",
+    "MJ-PR-004 local: 14 targeted Compose/worker-lifecycle tests PASS after observed postgres/redis restart-policy RED; worker queue-binding test PASS",
+    "MJ-PR-004 local: 99 full Python tests PASS; isolated personal Docker Compose first-run, Chromium, six service restart policies and stored-profile relaunch PASS",
+    "Existing mjobs project after Docker Desktop relaunch: postgres/redis started in place and restart policy updated; API readiness database/queue/worker/mock all true"
   ],
   "tests_failed": [],
   "tests_not_run": [
@@ -217,7 +225,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Continue the next dependency-eligible original requirement while preserving clean main and the verified #428/#429 draft stack; release readiness is still NOT_RUN.",
+  "recommended_resume_step": "Publish MJ-PR-004 as a draft stacked on #429, verify exact-head CI, then continue P0 startup and local-data recovery work.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -249,7 +257,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "9b895cfdb2cbca5a0f55a6f1b9a35702f599766c",
+  "last_implementation_commit": "e920fa412675016d7558393c6f9b7727bfd0cf70",
   "publication": {
     "result": "PASS",
     "transport": "Authenticated Git push and GitHub draft PR",
@@ -895,11 +903,67 @@
         "git_commit": "2222cb10a2817724d4a06b80b743c08c9603fc75",
         "evidence_path": "docs/evidence/2026-09-30-ci-429.json"
       }
+    },
+    {
+      "milestone_id": "M5-P0-RUNTIME-RESTART-FOUNDATION",
+      "timestamp": "2026-09-30T23:49:31.865512Z",
+      "current_phase": "M5_P0_RUNTIME_RESTART_FOUNDATION",
+      "completed_steps": [
+        "Re-fetched GitHub and Git, read original and reference queues/completion surfaces, issues #13-#15 and governance area spec",
+        "Diagnosed existing mjobs postgres/redis restart=no after Docker Desktop relaunch and repaired those existing containers without replacing volumes",
+        "Added postgres/redis Compose restart policies and verified three independent worker queue consumers",
+        "Built fresh isolated personal Compose project, verified Chromium and zero fictional actions, stopped all services and confirmed stored synthetic profile after relaunch",
+        "Recorded MJ-REQ-012 PASS, MJ-REQ-013/014 PARTIAL, reference backlog unchanged and release NOT_RUN"
+      ],
+      "files_added": [
+        "docs/evidence/2026-09-30-pr004-entry.json",
+        "docs/evidence/2026-09-30-pr004-local-restart.json",
+        "docs/evidence/2026-09-30-pr004-local-personal-mode.json",
+        "tests/unit/test_worker_queue_binding.py"
+      ],
+      "files_modified": [
+        "compose.yml",
+        "tests/unit/test_compose_modes.py",
+        "README.md",
+        "docs/USER_TESTING.md",
+        "docs/runbooks/MOCK_SPINE.md",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "docs/FEATURE_COMPLETENESS.md"
+      ],
+      "tests_completed": [
+        "14 targeted Compose/worker lifecycle tests PASS after observed restart-policy RED",
+        "Worker queue binding test PASS for all three configured queues",
+        "99 full Python tests PASS in 38.316 seconds",
+        "Local Docker Compose PERSONAL first-run and stopped-service relaunch, Chromium, readiness and synthetic profile persistence PASS",
+        "Catalogue, progress journal and Compose config validators PASS before status update"
+      ],
+      "tests_remaining": [
+        "Exact-head remote CI after draft PR publication",
+        "Real Docker daemon relaunch proof for the new policy",
+        "P0 backup/restore, uploaded resumes and full startup acceptance"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Local Docker Desktop Linux engine, isolated PostgreSQL/Redis/three RQ workers/Chromium personal Compose",
+        "Existing mjobs fixture project database/queue/worker/mock readiness after in-place dependency repair"
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "No host or Docker daemon restart was performed by this validation",
+        "Local isolated test volumes remain after container/network cleanup",
+        "MJ-REQ-013/014 remain PARTIAL; all 42 MJ-REF items and release readiness remain NOT_RUN"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "e920fa412675016d7558393c6f9b7727bfd0cf70",
+        "evidence_path": "docs/evidence/2026-09-30-pr004-local-restart.json"
+      }
     }
   ],
-  "current_phase": "M4_SOURCE_ADAPTER_REMOTE_VERIFIED",
+  "current_phase": "M5_P0_RUNTIME_RESTART_FOUNDATION",
   "last_safe_checkpoint": {
-    "git_commit": "2222cb10a2817724d4a06b80b743c08c9603fc75",
-    "evidence_path": "docs/evidence/2026-09-30-ci-429.json"
+    "git_commit": "e920fa412675016d7558393c6f9b7727bfd0cf70",
+    "evidence_path": "docs/evidence/2026-09-30-pr004-local-restart.json"
   }
 }

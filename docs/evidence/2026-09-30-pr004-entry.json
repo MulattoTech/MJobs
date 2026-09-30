@@ -1,0 +1,56 @@
+{
+  "milestone_id": "M5-P0-RUNTIME-RESTART-FOUNDATION",
+  "timestamp": "2026-09-30T23:49:31.865512Z",
+  "current_phase": "M5_P0_RUNTIME_RESTART_FOUNDATION",
+  "completed_steps": [
+    "Re-fetched GitHub and Git, read original and reference queues/completion surfaces, issues #13-#15 and governance area spec",
+    "Diagnosed existing mjobs postgres/redis restart=no after Docker Desktop relaunch and repaired those existing containers without replacing volumes",
+    "Added postgres/redis Compose restart policies and verified three independent worker queue consumers",
+    "Built fresh isolated personal Compose project, verified Chromium and zero fictional actions, stopped all services and confirmed stored synthetic profile after relaunch",
+    "Recorded MJ-REQ-012 PASS, MJ-REQ-013/014 PARTIAL, reference backlog unchanged and release NOT_RUN"
+  ],
+  "files_added": [
+    "docs/evidence/2026-09-30-pr004-entry.json",
+    "docs/evidence/2026-09-30-pr004-local-restart.json",
+    "docs/evidence/2026-09-30-pr004-local-personal-mode.json",
+    "tests/unit/test_worker_queue_binding.py"
+  ],
+  "files_modified": [
+    "compose.yml",
+    "tests/unit/test_compose_modes.py",
+    "README.md",
+    "docs/USER_TESTING.md",
+    "docs/runbooks/MOCK_SPINE.md",
+    "planning/CAPABILITY_MATRIX.json",
+    "planning/IMPLEMENTATION_STATE.json",
+    "planning/PR_QUEUE.json",
+    "docs/FEATURE_COMPLETENESS.md"
+  ],
+  "tests_completed": [
+    "14 targeted Compose/worker lifecycle tests PASS after observed restart-policy RED",
+    "Worker queue binding test PASS for all three configured queues",
+    "99 full Python tests PASS in 38.316 seconds",
+    "Local Docker Compose PERSONAL first-run and stopped-service relaunch, Chromium, readiness and synthetic profile persistence PASS",
+    "Catalogue, progress journal and Compose config validators PASS before status update"
+  ],
+  "tests_remaining": [
+    "Exact-head remote CI after draft PR publication",
+    "Real Docker daemon relaunch proof for the new policy",
+    "P0 backup/restore, uploaded resumes and full startup acceptance"
+  ],
+  "migrations_applied": [],
+  "live_integrations_tested": [
+    "Local Docker Desktop Linux engine, isolated PostgreSQL/Redis/three RQ workers/Chromium personal Compose",
+    "Existing mjobs fixture project database/queue/worker/mock readiness after in-place dependency repair"
+  ],
+  "known_errors": [],
+  "known_limitations": [
+    "No host or Docker daemon restart was performed by this validation",
+    "Local isolated test volumes remain after container/network cleanup",
+    "MJ-REQ-013/014 remain PARTIAL; all 42 MJ-REF items and release readiness remain NOT_RUN"
+  ],
+  "last_safe_checkpoint": {
+    "git_commit": "e920fa412675016d7558393c6f9b7727bfd0cf70",
+    "evidence_path": "docs/evidence/2026-09-30-pr004-local-restart.json"
+  }
+}

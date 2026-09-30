@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-09-30T23:15:11.938920Z",
+  "timestamp": "2026-09-30T23:49:31.865512Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -101,21 +101,30 @@
     },
     {
       "requirement_id": "MJ-REQ-012",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-09-30-pr004-local-restart.json",
+        "docs/evidence/2026-09-30-pr004-local-personal-mode.json"
+      ],
+      "note": "Distinct application, discovery and document RQ consumers verified by rendered Compose tests, worker queue-binding test and running local personal Compose readiness. Browser work cannot consume the discovery queue."
     },
     {
       "requirement_id": "MJ-REQ-013",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-30-pr004-local-restart.json",
+        "docs/evidence/2026-09-30-pr004-local-personal-mode.json"
+      ],
+      "note": "Self-hosted PostgreSQL/Redis/documents and ignored local configuration exist; an isolated synthetic profile survived complete service stop and launcher relaunch. Uploaded-resume persistence and full data backup/restore remain open."
     },
     {
       "requirement_id": "MJ-REQ-014",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-30-pr004-local-restart.json",
+        "docs/evidence/2026-09-30-pr004-local-personal-mode.json"
+      ],
+      "note": "First-run PowerShell launcher generated ignored configuration, built images, migrated PostgreSQL and reached API/worker/Chromium readiness; local restart preserved data. Backup/restore commands and direct Compose first-run acceptance remain open."
     },
     {
       "requirement_id": "MJ-REQ-015",

@@ -1,5 +1,7 @@
 {
   "timestamp": "2026-09-30T23:43:36Z",
+  "updated_at": "2026-09-30T23:47:58Z",
+  "implementation_head": "e920fa412675016d7558393c6f9b7727bfd0cf70",
   "target": "MJ-PR-004 P0 service startup and local persistence; MJ-REQ-012, MJ-REQ-013, MJ-REQ-014",
   "action": "Diagnose Docker Desktop relaunch, repair the existing MJobs project without replacing its volumes, and verify the Compose restart-policy change in an isolated personal project",
   "observations": [
@@ -35,6 +37,18 @@
     "result": "PASS",
     "observed": "14 tests passed in 5.790 seconds; restart-policy test first failed for postgres and redis before the Compose change"
   },
+  "additional_tests": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_worker_queue_binding -v",
+      "result": "PASS",
+      "observed": "One test asserted each of the three worker processes consumes only its configured RQ queue."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py'",
+      "result": "PASS",
+      "observed": "99 tests in 38.316 seconds at the implementation head."
+    }
+  ],
   "migration_data_impact": "No schema migration or existing business-row change. The live mjobs project retained its original volumes. The isolated project uses separately named volumes and a synthetic test-only profile.",
   "cleanup": "docker compose -p mjobs-pr004-20260930 down removed only the isolated project's containers and networks; its three named test volumes were retained. After the isolated build, docker compose build --quiet api in clean main restored the shared mjobs-local:spine tag to main's source (main_contract_search=False). The existing mjobs project still returned HTTP 200 readiness with all four checks true.",
   "rollback_recovery": "For a code rollback, revert the two Compose restart lines; existing data volumes remain. The live Docker policy adjustment is reversible with docker update --restart no on the two verified mjobs dependency containers, but reverting it would reproduce the relaunch failure until the Compose change is deployed.",

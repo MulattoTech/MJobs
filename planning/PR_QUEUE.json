@@ -79,10 +79,10 @@
       "depends_on": [
         "MJ-PR-003"
       ],
-      "status": "QUEUED",
+      "status": "IMPLEMENTED_PENDING_PR",
       "branch": "codex/mj-pr-004-governance-safety",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "P0 vertical slice: MJ-REQ-012 queue separation PASS; MJ-REQ-013/014 PARTIAL. Docker Desktop relaunch exposed postgres/redis restart=no; live existing stack repaired in place and isolated personal Compose first-run/relaunch verified. Backup/restore and uploaded resumes remain open. Stack on #429 to preserve all newer work; no migration or real submission."
     },
     {
       "id": "MJ-PR-005",
