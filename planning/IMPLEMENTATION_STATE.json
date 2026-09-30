@@ -11,7 +11,7 @@
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
   "current_milestone": "M1_MOCK_SPINE",
-  "current_objective": "Run mock-spine remote CI with the newly authorized governance workflow, then continue bounded worker lifecycle and read-only sources",
+  "current_objective": "Mock-spine CI passed; continue bounded worker lifecycle and read-only source/UI validation in stack order",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -80,11 +80,11 @@
     "47 local unit/integration/headless-browser tests",
     "Compose PostgreSQL/Redis/RQ mock E2E; repeat operation keeps receipt count one",
     "Final isolated Compose outage/restart proof: exact original application/operation/receipt retained",
-    "Remote governance CI: pull_request run 36765449832 and push run 36765449435 PASS at 35908bb"
+    "Remote governance CI: pull_request run 36765449832 and push run 36765449435 PASS at 35908bb",
+    "Remote mock-spine CI: pull_request run 36766115299 and push run 36766108657 PASS at 782f04e"
   ],
   "tests_failed": [],
   "tests_not_run": [
-    "Mock spine remote CI: NOT_RUN at this branch head",
     "Real read-only source/company integrations",
     "Frontend and remaining product requirements"
   ],
@@ -111,7 +111,13 @@
     "pull_request_run_id": 36765449832,
     "evidence_path": "docs/evidence/2026-09-30-governance-ci.json"
   },
-  "recommended_resume_step": "Verify mock spine remote CI, then continue dependency-unblocked queue without losing newer stacked work",
+  "mock_spine_ci": {
+    "result": "PASS",
+    "head": "782f04ec206d012b1002f31af4fcf0b8cf236e18",
+    "pull_request_run_id": 36766115299,
+    "evidence_path": "docs/evidence/2026-09-30-ci-368.json"
+  },
+  "recommended_resume_step": "Continue with PR #369 worker lifecycle verification, then PR #370 connected UI verification",
   "migrations_applied": [
     "92f0997f753e",
     "098f12099319"
