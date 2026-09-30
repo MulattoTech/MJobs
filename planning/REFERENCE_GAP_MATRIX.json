@@ -1,0 +1,21 @@
+{
+  "schema_version": 2,
+  "generated_at": "2026-09-30",
+  "canonical_namespace": "MJ-REF",
+  "original_catalogue_count": 366,
+  "reference_gap_count": 42,
+  "completion_policy": {
+    "original_spec_and_reference_gaps_reported_separately": true,
+    "pass_only_counts_complete": true,
+    "release_readiness_is_separate": true
+  },
+  "canonical_issue_range": "#371-#408 plus #415, #416, #424, #426",
+  "canonical_ids": [
+    "MJ-REF-001","MJ-REF-002","MJ-REF-003","MJ-REF-004","MJ-REF-005","MJ-REF-006","MJ-REF-007",
+    "MJ-REF-008","MJ-REF-009","MJ-REF-010","MJ-REF-011","MJ-REF-012","MJ-REF-013","MJ-REF-014",
+    "MJ-REF-015","MJ-REF-016","MJ-REF-017","MJ-REF-018","MJ-REF-019","MJ-REF-020","MJ-REF-021",
+    "MJ-REF-022","MJ-REF-023","MJ-REF-024","MJ-REF-025","MJ-REF-026","MJ-REF-027","MJ-REF-028",
+    "MJ-REF-029","MJ-REF-030","MJ-REF-031","MJ-REF-032","MJ-REF-033","MJ-REF-034","MJ-REF-035",
+    "MJ-REF-036","MJ-REF-037","MJ-REF-038","MJ-REF-039","MJ-REF-040","MJ-REF-041","MJ-REF-042"
+  ]
+}
