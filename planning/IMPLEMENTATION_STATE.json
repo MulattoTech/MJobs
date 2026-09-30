@@ -105,6 +105,12 @@
       "url": "https://github.com/MulattoTech/MJobs/pull/429",
       "branch": "codex/mj-pr-005-core-search-model",
       "status": "DRAFT_PR"
+    },
+    {
+      "number": 430,
+      "url": "https://github.com/MulattoTech/MJobs/pull/430",
+      "branch": "codex/mj-pr-004-governance-safety",
+      "status": "DRAFT_PR"
     }
   ],
   "tests_passed": [
@@ -225,7 +231,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Publish MJ-PR-004 as a draft stacked on #429, verify exact-head CI, then continue P0 startup and local-data recovery work.",
+  "recommended_resume_step": "Verify #430 exact-head CI on the #428/#429 stack, then continue P0 startup and local-data recovery work while preserving clean main.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
