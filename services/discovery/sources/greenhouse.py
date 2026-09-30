@@ -8,6 +8,8 @@ from urllib.parse import urlsplit
 from bs4 import BeautifulSoup
 import httpx
 
+from services.discovery.sources.contract import SearchBatch, SourceCompany, SourceItem
+
 HOST = "https://boards-api.greenhouse.io"
 SKILLS = ("Python", "SQL", "JavaScript", "TypeScript", "Java", "C#", "C++", "Go", "Rust", "Linux", "Windows", "Docker", "Kubernetes", "AWS", "Azure", "Terraform", "PowerShell", "React", "PostgreSQL")
 
@@ -92,14 +94,23 @@ class Greenhouse:
                 self.status = "HEALTHY"
                 return payload
 
-    def collect(self):
+    def search(self):
         board = self._get("")
         payload = self._get("/jobs", {"content": "true"})
         if not isinstance(board, dict) or not isinstance(payload, dict) or not isinstance(payload.get("jobs"), list):
             raise SourceError("SOURCE_INVALID_FORMAT")
         if len(payload["jobs"]) > 1000:
             raise SourceError("SOURCE_JOB_LIMIT")
-        return {"company": plain_text(board.get("name") or self.tenant)[:200], "jobs": payload["jobs"], "endpoint": HOST + "/v1/boards/" + self.tenant + "/jobs"}
+        company = SourceCompany(("greenhouse", self.tenant), plain_text(board.get("name") or self.tenant)[:200],
+                                "https://job-boards.greenhouse.io/" + self.tenant)
+        return SearchBatch(HOST + "/v1/boards/" + self.tenant + "/jobs",
+                           tuple(SourceItem(raw, company) for raw in payload["jobs"]), company)
+
+    def collect(self):
+        """Compatibility for callers of the original bounded board collection API."""
+        batch = self.search()
+        return {"company": batch.source_company.name if batch.source_company else self.tenant,
+                "jobs": [item.raw for item in batch.items], "endpoint": batch.endpoint}
 
     def fetch(self, job_id):
         if type(job_id) is not int or job_id <= 0:
