@@ -1,0 +1,15 @@
+test_scores_are_scoped_to_selected_profile (tests.integration.test_spine.SpineTests.test_scores_are_scoped_to_selected_profile) ... ERROR
+
+======================================================================
+ERROR: test_scores_are_scoped_to_selected_profile (tests.integration.test_spine.SpineTests.test_scores_are_scoped_to_selected_profile)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Tools\Dev\MJobs\tests\integration\test_spine.py", line 82, in test_scores_are_scoped_to_selected_profile
+    self.assertEqual({job["match_score"] for job in self.store.jobs("fixture")}, {100})
+                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: Store.jobs() takes 1 positional argument but 2 were given
+
+----------------------------------------------------------------------
+Ran 1 test in 0.787s
+
+FAILED (errors=1)

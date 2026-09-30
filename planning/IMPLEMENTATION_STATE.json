@@ -10,16 +10,20 @@
     "current_verified_local_state": "Initialized from newer origin/main; supplied control pack retained on governance branch",
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
-  "current_milestone": "M0_BOOTSTRAP",
-  "current_objective": "Control-plane preservation, complete backlog, tested safety policy, then mock vertical spine.",
+  "current_milestone": "M1_MOCK_SPINE",
+  "current_objective": "Publish verified mock spine; continue bounded worker lifecycle and real read-only sources, with remote CI blocked",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
     "366 stable marked issues mapped; idempotent live reconciliation",
-    "Catalogue completeness and dependency consistency validator"
+    "Catalogue completeness and dependency consistency validator",
+    "Controlled mock employer flywheel executed against HTTP fixtures and PostgreSQL",
+    "Factual PDF/DOCX preparation and controlled headless ATS confirmation",
+    "Durable Redis/RQ outbox recovery and restart persistence"
   ],
   "partially_completed_capabilities": [
-    "Submission/truthfulness policy slice; durable counters and browser worker not yet implemented"
+    "Submission/truthfulness gates and persisted counters implemented for mock adapter; real adapters disabled",
+    "Profile, provenance, required-skill matching, documents, API and one worker implemented; broader specs still pending"
   ],
   "blocked_capabilities": [
     {
@@ -29,10 +33,37 @@
     }
   ],
   "active_requirements": [
-    "MJ-REQ-000",
-    "MJ-REQ-001",
-    "MJ-REQ-002",
-    "MJ-REQ-003"
+    "MJ-REQ-015",
+    "MJ-REQ-040",
+    "MJ-REQ-041",
+    "MJ-REQ-044",
+    "MJ-REQ-052",
+    "MJ-REQ-054",
+    "MJ-REQ-063",
+    "MJ-REQ-066",
+    "MJ-REQ-067",
+    "MJ-REQ-092",
+    "MJ-REQ-094",
+    "MJ-REQ-096",
+    "MJ-REQ-112",
+    "MJ-REQ-114",
+    "MJ-REQ-121",
+    "MJ-REQ-124",
+    "MJ-REQ-139",
+    "MJ-REQ-145",
+    "MJ-REQ-146",
+    "MJ-REQ-148",
+    "MJ-REQ-156",
+    "MJ-REQ-158",
+    "MJ-REQ-159",
+    "MJ-REQ-162",
+    "MJ-REQ-181",
+    "MJ-REQ-208",
+    "MJ-REQ-209",
+    "MJ-REQ-210",
+    "MJ-REQ-211",
+    "MJ-REQ-212",
+    "MJ-REQ-213"
   ],
   "active_prs": [
     {
@@ -45,21 +76,36 @@
   "tests_passed": [
     "28 domain/control-plane unit tests",
     "Live backlog synchronization: 366 mapped; rerun 0 created",
-    "Catalogue validation: PASS"
+    "Catalogue validation: PASS",
+    "47 local unit/integration/headless-browser tests",
+    "Compose PostgreSQL/Redis/RQ mock E2E; repeat operation keeps receipt count one",
+    "Final isolated Compose outage/restart proof: exact original application/operation/receipt retained"
   ],
   "tests_failed": [],
   "tests_not_run": [
-    "all product tests"
+    "Remote CI: BLOCKED_EXTERNAL (workflow OAuth scope)",
+    "Real read-only source/company integrations",
+    "Frontend and remaining product requirements"
   ],
   "known_external_limitations": [],
-  "known_product_defects": [],
-  "known_test_harness_defects": [],
+  "known_product_defects": [
+    "RUNNING operation leases/cancellation and pre-submit crash recovery are not implemented",
+    "Manual CAPTCHA/login intervention resume is not implemented",
+    "Independent discovery/browser queues not implemented"
+  ],
+  "known_test_harness_defects": [
+    "Historical recovery run used Compose dependency startup; corrected to --no-deps and final isolated run is canonical"
+  ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-09-29T23:34:05.097306+00:00",
-    "command": "python -m unittest discover -s tests -p test_*.py -v; python bootstrap-tools/sync_backlog.py --repo MulattoTech/MJobs; python -m tools.verification.catalogue",
-    "target": "governance bootstrap",
+    "timestamp": "2026-09-30T00:24:57.360126+00:00",
+    "command": "python -m unittest discover -s tests -p test_*.py -v",
+    "target": "mock spine local suite",
     "result": "PASS",
-    "evidence_path": "docs/evidence/2026-09-29-bootstrap.json"
+    "evidence_path": "docs/evidence/2026-09-29-spine-final-suite.log"
   },
-  "recommended_resume_step": "Finish backlog reconciliation, create tested governance PR, then CODEX_START section 7 mock spine."
+  "recommended_resume_step": "Continue dependency-unblocked queue from current stacked branches, preserving main and native data; GitHub CI still requires workflow scope",
+  "migrations_applied": [
+    "92f0997f753e",
+    "098f12099319"
+  ]
 }

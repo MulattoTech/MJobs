@@ -2638,6 +2638,52 @@
       "branch": "codex/mj-pr-147-delivery-control",
       "draft_until_verified": true,
       "notes": "Restores catalogued requirements omitted from the original queue; full acceptance remains required."
+    },
+    {
+      "id": "MJ-PR-148",
+      "title": "Initial durable mock discovery-to-application spine",
+      "domain": "test_harness",
+      "requirements": [
+        "MJ-REQ-015",
+        "MJ-REQ-040",
+        "MJ-REQ-041",
+        "MJ-REQ-044",
+        "MJ-REQ-052",
+        "MJ-REQ-054",
+        "MJ-REQ-063",
+        "MJ-REQ-066",
+        "MJ-REQ-067",
+        "MJ-REQ-092",
+        "MJ-REQ-094",
+        "MJ-REQ-096",
+        "MJ-REQ-112",
+        "MJ-REQ-114",
+        "MJ-REQ-121",
+        "MJ-REQ-124",
+        "MJ-REQ-139",
+        "MJ-REQ-145",
+        "MJ-REQ-146",
+        "MJ-REQ-148",
+        "MJ-REQ-156",
+        "MJ-REQ-158",
+        "MJ-REQ-159",
+        "MJ-REQ-162",
+        "MJ-REQ-181",
+        "MJ-REQ-208",
+        "MJ-REQ-209",
+        "MJ-REQ-210",
+        "MJ-REQ-211",
+        "MJ-REQ-212",
+        "MJ-REQ-213"
+      ],
+      "target_area": "initial integrated product spine; exact ownership in AREA.md files",
+      "depends_on": [
+        "MJ-PR-001"
+      ],
+      "status": "ACTIVE",
+      "branch": "codex/mj-pr-148-mock-product-spine",
+      "draft_until_verified": true,
+      "notes": "CODEX_START section 7 and MJ-REQ-290 authorize initial vertical slice before the broader waterfall. Original umbrella entries remain queued/partial; this slice does not close them. Stacked on implemented governance branch."
     }
   ]
 }

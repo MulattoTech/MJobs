@@ -1,0 +1,58 @@
+ Image mjobs-local:spine Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 1.31kB done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 508B done
+#2 DONE 0.0s
+
+#3 [auth] library/python:pull token for registry-1.docker.io
+#3 DONE 0.0s
+
+#4 [internal] load metadata for docker.io/library/python:3.12-slim
+#4 DONE 0.7s
+
+#5 [internal] load .dockerignore
+#5 transferring context: 127B done
+#5 DONE 0.0s
+
+#6 [1/6] FROM docker.io/library/python:3.12-slim@sha256:f77ac9e44ae96ef2c90b8053ea08c31f8be030f824196b0ae4db6d462c84e51f
+#6 resolve docker.io/library/python:3.12-slim@sha256:f77ac9e44ae96ef2c90b8053ea08c31f8be030f824196b0ae4db6d462c84e51f 0.0s done
+#6 DONE 0.0s
+
+#7 [internal] load build context
+#7 transferring context: 235.68kB 0.0s done
+#7 DONE 0.0s
+
+#8 [2/6] WORKDIR /app
+#8 CACHED
+
+#9 [3/6] COPY requirements.lock ./requirements.lock
+#9 CACHED
+
+#10 [4/6] RUN pip install --no-cache-dir -r requirements.lock && python -m playwright install --with-deps chromium
+#10 CACHED
+
+#11 [5/6] COPY . .
+#11 DONE 0.1s
+
+#12 [6/6] RUN useradd --create-home --uid 10001 mjobs && mkdir -p /data/documents && mv /root/.cache/ms-playwright /opt/playwright && chown -R mjobs:mjobs /data /app /opt/playwright
+#12 DONE 1.5s
+
+#13 exporting to image
+#13 exporting layers
+#13 exporting layers 16.1s done
+#13 exporting manifest sha256:82123f7d93e1c21922d3e60763506b4fa3402626036b3128327cd953b3014ef0 0.0s done
+#13 exporting config sha256:a30399846de3ac59719d4784a4aab77f42d839a4655dcdca647b6fe749ef2ee6 0.0s done
+#13 exporting attestation manifest sha256:b4f0660aebf53b0643145e116feb409a413ab5f6ff9c9eacf04f8653f7ac4d5e 0.0s done
+#13 exporting manifest list sha256:b9d50e3baf03a06765ef71c3c455a7aa16d661e8d76309425e19d4f31c263dd8 0.0s done
+#13 naming to docker.io/library/mjobs-local:spine
+#13 naming to docker.io/library/mjobs-local:spine done
+#13 unpacking to docker.io/library/mjobs-local:spine
+#13 unpacking to docker.io/library/mjobs-local:spine 2.5s done
+#13 DONE 18.7s
+
+#14 resolving provenance for metadata file
+#14 DONE 0.0s
+ Image mjobs-local:spine Built 

@@ -1,0 +1,95 @@
+name: mjobs
+x-runtime: &runtime
+  image: mjobs-local:spine
+  build:
+    context: .
+    dockerfile: infra/docker/Dockerfile
+  init: true
+  cpus: 2
+  mem_limit: 2g
+  environment: &environment
+    MJOBS_DATABASE_URL: postgresql+psycopg://mjobs:${POSTGRES_PASSWORD:?Run python cli/init_env.py}@postgres/mjobs
+    MJOBS_REDIS_URL: redis://redis:6379/0
+    MJOBS_MOCK_ORIGIN: http://mock:8090
+    MJOBS_COMPOSE_MOCK: '1'
+    MJOBS_OUTPUT_DIR: /data/documents
+  volumes:
+    - documents:/data/documents
+  networks: [private]
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: mjobs
+      POSTGRES_DB: mjobs
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run python cli/init_env.py}
+    volumes: [database:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U mjobs -d mjobs']
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    networks: [private]
+    mem_limit: 512m
+  redis:
+    image: redis:7
+    command: [redis-server, --appendonly, 'yes']
+    volumes: [queue:/data]
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    networks: [private]
+    mem_limit: 256m
+  migrate:
+    <<: *runtime
+    command: [python, -m, alembic, upgrade, head]
+    depends_on:
+      postgres: {condition: service_healthy}
+  api:
+    <<: *runtime
+    command: [python, -m, uvicorn, apps.api.main:create_from_env, --factory, --host, 0.0.0.0, --port, '8000']
+    ports: ['127.0.0.1:18700:8000']
+    networks: [private, ui]
+    restart: unless-stopped
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      redis: {condition: service_healthy}
+      mock: {condition: service_healthy}
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"]
+      interval: 5s
+      timeout: 4s
+      retries: 20
+  mock:
+    <<: *runtime
+    command: [python, -m, fixtures.mock_server]
+    environment:
+      MOCK_RECEIPT_FILE: /data/receipts.json
+    volumes: [mock-receipts:/data]
+    restart: unless-stopped
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8090/health', timeout=3)"]
+      interval: 3s
+      timeout: 4s
+      retries: 20
+  worker:
+    <<: *runtime
+    command: [python, -m, workers.main]
+    restart: unless-stopped
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      redis: {condition: service_healthy}
+      mock: {condition: service_healthy}
+networks:
+  private:
+    internal: true
+  ui:
+    driver_opts:
+      com.docker.network.bridge.host_binding_ipv4: 127.0.0.1
+volumes:
+  database:
+  queue:
+  documents:
+  mock-receipts:

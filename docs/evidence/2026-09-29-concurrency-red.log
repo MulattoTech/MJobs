@@ -1,0 +1,69 @@
+test_concurrent_preparation_preserves_one_application_and_document_hashes (tests.integration.test_spine.SpineTests.test_concurrent_preparation_preserves_one_application_and_document_hashes) ... ERROR
+test_concurrent_requests_share_one_durable_operation (tests.integration.test_api_queue.ApiQueueTests.test_concurrent_requests_share_one_durable_operation) ... ok
+
+======================================================================
+ERROR: test_concurrent_preparation_preserves_one_application_and_document_hashes (tests.integration.test_spine.SpineTests.test_concurrent_preparation_preserves_one_application_and_document_hashes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Tools\Dev\MJobs\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1943, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Tools\Dev\MJobs\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 1180, in do_execute
+    cursor.execute(statement, parameters)
+sqlite3.IntegrityError: UNIQUE constraint failed: applications.job_id, applications.profile_id
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Tools\Dev\MJobs\tests\integration\test_spine.py", line 95, in test_concurrent_preparation_preserves_one_application_and_document_hashes
+    identifiers = list(pool.map(lambda _: prepare(self.store, job["id"], "fixture", self.root), range(2)))
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Dylan\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\_base.py", line 619, in result_iterator
+    yield _result_or_cancel(fs.pop())
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Dylan\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\_base.py", line 317, in _result_or_cancel
+    return fut.result(timeout)
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Dylan\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\_base.py", line 456, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Dylan\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\_base.py", line 401, in __get_result
+    raise self._exception
+  File "C:\Users\Dylan\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\thread.py", line 59, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Tools\Dev\MJobs\tests\integration\test_spine.py", line 95, in <lambda>
+    identifiers = list(pool.map(lambda _: prepare(self.store, job["id"], "fixture", self.root), range(2)))
+                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Tools\Dev\MJobs\services\documents\generate.py", line 52, in prepare
+    upsert(connection, m.applications, {"id": application_id, "job_id": job_id, "route_id": route["id"], "profile_id": profile_id,
+  File "C:\Tools\Dev\MJobs\packages\persistence\store.py", line 27, in upsert
+    connection.execute(table.insert().values(**data))
+  File "C:\Tools\Dev\MJobs\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1448, in execute
+    return meth(
+           ^^^^^
+  File "C:\Tools\Dev\MJobs\.venv\Lib\site-packages\sqlalchemy\sql\elements.py", line 533, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Tools\Dev\MJobs\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1668, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Tools\Dev\MJobs\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1822, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Tools\Dev\MJobs\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1962, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "C:\Tools\Dev\MJobs\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 2332, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Tools\Dev\MJobs\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1943, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Tools\Dev\MJobs\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 1180, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) UNIQUE constraint failed: applications.job_id, applications.profile_id
+[SQL: INSERT INTO applications (id, job_id, route_id, profile_id, profile_version, state, target, fact_ids, trace, confirmation, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)]
+[parameters: ('a8d71d0bd7c94b59e1420e452a5a7a86dce15de503b74d6d2fbc3f01b911a311', '6b64c895905a3966ad678b220534d794d9890bafa57ec0553325c9f6059a805a', '6b64c895905a3966ad678b220534d794d9890bafa57ec0553325c9f6059a805a', 'fixture', '319d261b169cca93c6b3d0c9ed4eb1305a0b0adb6170666cfe9b86c4837b5ed5', 'PREPARED', 'MOCK', '["python", "sql"]', '["GENERATE_DOCUMENTS", "PREPARE_APPLICATION"]', 'null', '2026-09-30T00:14:47.383276+00:00')]
+(Background on this error at: https://sqlalche.me/e/21/gkpj)
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.788s
+
+FAILED (errors=1)

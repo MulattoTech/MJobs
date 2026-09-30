@@ -1,0 +1,7 @@
+test_concurrent_preparation_preserves_one_application_and_document_hashes (tests.integration.test_spine.SpineTests.test_concurrent_preparation_preserves_one_application_and_document_hashes) ... ok
+test_concurrent_requests_share_one_durable_operation (tests.integration.test_api_queue.ApiQueueTests.test_concurrent_requests_share_one_durable_operation) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.728s
+
+OK

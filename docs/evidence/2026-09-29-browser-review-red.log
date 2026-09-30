@@ -1,0 +1,39 @@
+test_receipt_network_failure_is_persisted_as_uncertain (tests.browser.test_mock_application.MockApplicationTests.test_receipt_network_failure_is_persisted_as_uncertain) ... ERROR
+test_nonlocal_mock_origin_is_rejected_before_any_request (tests.browser.test_mock_application.MockApplicationTests.test_nonlocal_mock_origin_is_rejected_before_any_request) ... FAIL
+
+======================================================================
+ERROR: test_receipt_network_failure_is_persisted_as_uncertain (tests.browser.test_mock_application.MockApplicationTests.test_receipt_network_failure_is_persisted_as_uncertain)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Tools\Dev\MJobs\tests\browser\test_mock_application.py", line 87, in test_receipt_network_failure_is_persisted_as_uncertain
+    result = apply_mock(self.store, app_id, origin, self.root, submit=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Tools\Dev\MJobs\services\applications\mock_adapter.py", line 66, in apply_mock
+    receipt = _receipt(client, application, route["requisition"])
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Tools\Dev\MJobs\services\applications\mock_adapter.py", line 17, in _receipt
+    receipt = client.get(client.origin + "/ats/receipts/" + application["id"]).json()
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Dylan\AppData\Local\Programs\Python\Python312\Lib\unittest\mock.py", line 1139, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Dylan\AppData\Local\Programs\Python\Python312\Lib\unittest\mock.py", line 1143, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Dylan\AppData\Local\Programs\Python\Python312\Lib\unittest\mock.py", line 1198, in _execute_mock_call
+    raise effect
+httpx.ConnectError: fixture receipt unavailable
+
+======================================================================
+FAIL: test_nonlocal_mock_origin_is_rejected_before_any_request (tests.browser.test_mock_application.MockApplicationTests.test_nonlocal_mock_origin_is_rejected_before_any_request)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Tools\Dev\MJobs\tests\browser\test_mock_application.py", line 78, in test_nonlocal_mock_origin_is_rejected_before_any_request
+    with self.assertRaises(ValueError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+----------------------------------------------------------------------
+Ran 2 tests in 1.126s
+
+FAILED (failures=1, errors=1)

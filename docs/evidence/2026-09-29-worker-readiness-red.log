@@ -1,0 +1,23 @@
+test_readiness_requires_the_application_queue_worker (tests.integration.test_api_queue.ApiQueueTests.test_readiness_requires_the_application_queue_worker) ... FAIL
+test_readiness_degrades_on_invalid_worker_metadata (tests.integration.test_api_queue.ApiQueueTests.test_readiness_degrades_on_invalid_worker_metadata) ... FAIL
+
+======================================================================
+FAIL: test_readiness_requires_the_application_queue_worker (tests.integration.test_api_queue.ApiQueueTests.test_readiness_requires_the_application_queue_worker)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Tools\Dev\MJobs\tests\integration\test_api_queue.py", line 70, in test_readiness_requires_the_application_queue_worker
+    self.assertEqual(response.status_code, 503)
+AssertionError: 200 != 503
+
+======================================================================
+FAIL: test_readiness_degrades_on_invalid_worker_metadata (tests.integration.test_api_queue.ApiQueueTests.test_readiness_degrades_on_invalid_worker_metadata)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Tools\Dev\MJobs\tests\integration\test_api_queue.py", line 78, in test_readiness_degrades_on_invalid_worker_metadata
+    self.assertEqual(response.status_code, 503)
+AssertionError: 422 != 503
+
+----------------------------------------------------------------------
+Ran 2 tests in 1.214s
+
+FAILED (failures=2)

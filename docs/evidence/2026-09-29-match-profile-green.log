@@ -1,0 +1,6 @@
+test_scores_are_scoped_to_selected_profile (tests.integration.test_spine.SpineTests.test_scores_are_scoped_to_selected_profile) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.781s
+
+OK

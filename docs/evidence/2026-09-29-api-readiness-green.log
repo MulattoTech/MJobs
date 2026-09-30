@@ -1,0 +1,8 @@
+test_api_saves_explicit_facts_and_reports_durable_queueing (tests.integration.test_api_queue.ApiQueueTests.test_api_saves_explicit_facts_and_reports_durable_queueing) ... ok
+test_queue_disconnect_preserves_one_durable_operation (tests.integration.test_api_queue.ApiQueueTests.test_queue_disconnect_preserves_one_durable_operation) ... ok
+test_untrusted_browser_origin_and_string_verification_are_rejected (tests.integration.test_api_queue.ApiQueueTests.test_untrusted_browser_origin_and_string_verification_are_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 6.954s
+
+OK

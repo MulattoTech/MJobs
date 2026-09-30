@@ -1,0 +1,147 @@
+"""Explicit fictional local ATS/aggregator fixtures, never production job data."""
+from contextlib import contextmanager
+import json
+from pathlib import Path
+import socket
+import threading
+import time
+
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse, RedirectResponse
+import uvicorn
+
+
+def create_mock_app(receipt_file=None):
+    app = FastAPI(title="MJobs fictional mock ATS")
+    receipts = json.loads(Path(receipt_file).read_text(encoding="utf-8")) if receipt_file and Path(receipt_file).exists() else {}
+    lock = threading.Lock()
+
+    def jobs(origin):
+        return [{"source_job_id": f"employer-{key}", "requisition": key, "tenant": "example",
+                 "company": "Example Systems Inc.", "company_website": origin + "/company",
+                 "title": "Python Developer" if key == "A" else "Data Engineer",
+                 "description": "<p>Required: Python and SQL</p>", "skills": ["Python", "SQL"],
+                 "location": "United States", "remote_type": "REMOTE", "salary_min": 80000,
+                 "salary_max": 110000, "salary_currency": "USD", "salary_period": "YEAR",
+                 "application_url": origin + "/ats/apply/" + key} for key in ("A", "B")]
+
+    @app.get("/health")
+    def health():
+        return {"status": "ok", "mode": "MOCK"}
+
+    @app.get("/board/jobs")
+    def board(request: Request):
+        row = jobs(str(request.base_url).rstrip("/"))[0]
+        origin = str(request.base_url).rstrip("/")
+        return {"jobs": [dict(row, source_job_id="board-A", application_url=origin + "/board/apply/A"),
+                         dict(row, source_job_id="board-A-syndicated", salary_min=90000, remote_type="HYBRID", application_url=origin + "/board/apply/A")]}
+
+    @app.get("/board/apply/{requisition}")
+    def application_redirect(requisition: str):
+        return RedirectResponse("/ats/apply/" + requisition)
+
+    @app.get("/company", response_class=HTMLResponse)
+    def company():
+        return '<h1>Example Systems Inc.</h1><a rel="careers" href="/company/careers">Careers</a>'
+
+    @app.get("/company/careers")
+    def careers():
+        return RedirectResponse("/ats/example")
+
+    @app.get("/ats/example", response_class=HTMLResponse)
+    def tenant():
+        return '<h1>Example Systems jobs</h1><a data-provider="mock-ats" data-tenant="example" href="/ats/example/jobs">Jobs</a>'
+
+    @app.get("/ats/example/jobs")
+    def employer(request: Request):
+        return {"jobs": jobs(str(request.base_url).rstrip("/"))}
+
+    @app.get("/ats/apply/{requisition}", response_class=HTMLResponse)
+    def application(requisition: str, challenge: bool = False):
+        if challenge:
+            return '<h1 data-intervention="CAPTCHA">Manual challenge required</h1>'
+        return f'''<h1>Mock ATS application {requisition}</h1>
+        <form action="/ats/review/{requisition}" method="post" enctype="multipart/form-data">
+        <label>Name<input name="name" required maxlength="200"></label>
+        <label>Email<input name="email" type="email" required></label>
+        <label>Resume<input name="resume" type="file" accept=".pdf" required></label>
+        <label>Cover letter<input name="cover" type="file" accept=".pdf" required></label>
+        <label>Country<select name="country" required><option value="">Choose</option><option>United States</option></select></label>
+        <label>Remote role<input type="radio" name="remote" value="yes" required>Yes</label>
+        <label><input name="reviewed" type="checkbox" required>Documents reviewed</label>
+        <button type="submit">Review application</button></form>'''
+
+    @app.post("/ats/review/{requisition}", response_class=HTMLResponse)
+    async def review(requisition: str, request: Request):
+        form = await request.form()
+        if not all(form.get(field) for field in ("name", "email", "resume", "cover", "country", "remote", "reviewed")):
+            await form.close()
+            return HTMLResponse('<p role="alert">Validation failed</p>', status_code=422)
+        for field in ("resume", "cover"):
+            data = await form[field].read(2_000_001)
+            if len(data) > 2_000_000 or not data.startswith(b"%PDF-"):
+                await form.close()
+                return HTMLResponse('<p role="alert">Invalid document</p>', status_code=422)
+        await form.close()
+        # A fictional question, supplied only by an explicitly approved test answer.
+        return f'''<h1>Review mock application</h1><p data-validated="true">Documents validated</p>
+        <form method="post" action="/ats/submit/{requisition}">
+        <label>Application ID<input name="application_id" required></label>
+        <label>Approved fixture answer<textarea name="answer" required></textarea></label>
+        <label><input name="confirmed" type="checkbox" required>Confirm fictional test submission</label>
+        <button type="submit">Submit mock application</button></form>'''
+
+    @app.post("/ats/submit/{requisition}", response_class=HTMLResponse)
+    async def submit(requisition: str, request: Request):
+        form = await request.form()
+        if (not all(form.get(key) for key in ("application_id", "answer", "confirmed"))
+                or form.get("answer") != "Controlled fictional test application."):
+            await form.close()
+            return HTMLResponse('<p role="alert">Validation failed</p>', status_code=422)
+        application_id = str(form["application_id"])
+        with lock:
+            receipts.setdefault(application_id, {"application_id": application_id, "requisition": requisition,
+                                                  "receipt": "MOCK-" + application_id[:16], "submission_count": 1})
+            if receipt_file:
+                path = Path(receipt_file)
+                path.parent.mkdir(parents=True, exist_ok=True)
+                temporary = path.with_suffix(".tmp")
+                temporary.write_text(json.dumps(receipts), encoding="utf-8")
+                temporary.replace(path)
+        await form.close()
+        return f'<h1 data-confirmation="{receipts[application_id]["receipt"]}">Mock application confirmed</h1>'
+
+    @app.get("/ats/receipts/{application_id}")
+    def receipt(application_id: str):
+        with lock:
+            return receipts.get(application_id, {"status": "not_found"})
+
+    return app
+
+
+@contextmanager
+def fixture_server(receipt_file=None):
+    sock = socket.socket()
+    sock.bind(("127.0.0.1", 0))
+    port = sock.getsockname()[1]
+    server = uvicorn.Server(uvicorn.Config(create_mock_app(receipt_file), log_level="error"))
+    thread = threading.Thread(target=server.run, kwargs={"sockets": [sock]}, daemon=True)
+    thread.start()
+    deadline = time.monotonic() + 10
+    while not server.started:
+        if not thread.is_alive() or time.monotonic() > deadline:
+            raise RuntimeError("Fixture server failed to start")
+        time.sleep(0.02)
+    try:
+        yield f"http://127.0.0.1:{port}"
+    finally:
+        server.should_exit = True
+        thread.join(timeout=10)
+        sock.close()
+        if thread.is_alive():
+            raise RuntimeError("Fixture server failed to stop")
+
+
+if __name__ == "__main__":
+    import os
+    uvicorn.run(create_mock_app(os.environ.get("MOCK_RECEIPT_FILE")), host="0.0.0.0", port=8090)

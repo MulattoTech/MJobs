@@ -1,0 +1,1 @@
+"""Controlled headless browser acceptance."""
