@@ -98,10 +98,10 @@
       "depends_on": [
         "MJ-PR-001"
       ],
-      "status": "QUEUED",
+      "status": "IMPLEMENTED_PENDING_PR",
       "branch": "codex/mj-pr-005-core-search-model",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "MJ-REQ-016 source adapter interface PASS locally; MJ-REQ-018 strategy PARTIAL (only Greenhouse production API). Attributed multi-company persistence and duplicate-requisition provenance verified. MJ-REQ-015 remains PARTIAL; MJ-REQ-017 NOT_RUN. Stack on #428 to preserve newer P0 work."
     },
     {
       "id": "MJ-PR-006",

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-09-30T22:45:10Z",
+  "timestamp": "2026-09-30T23:06:00Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -127,12 +127,13 @@
     },
     {
       "requirement_id": "MJ-REQ-016",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
         "docs/evidence/2026-09-30-user-testing.md",
-        "docs/evidence/2026-09-30-ci-370.json"
+        "docs/evidence/2026-09-30-ci-370.json",
+        "docs/evidence/2026-09-30-source-adapter-foundation.json"
       ],
-      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open"
+      "note": "Search/fetch/normalize/health/capabilities adapter contract and generic attributed persistence passed 13 source integration tests and 96 full Python tests; only Greenhouse is production registered."
     },
     {
       "requirement_id": "MJ-REQ-017",
@@ -144,9 +145,10 @@
       "requirement_id": "MJ-REQ-018",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-09-30-user-testing.md"
+        "docs/evidence/2026-09-30-user-testing.md",
+        "docs/evidence/2026-09-30-source-adapter-foundation.json"
       ],
-      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open"
+      "note": "PARTIAL: documented Greenhouse public API collection is bounded and browser-free; strategy ladder for other providers is not implemented or verified."
     },
     {
       "requirement_id": "MJ-REQ-019",

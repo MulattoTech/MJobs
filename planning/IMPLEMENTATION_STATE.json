@@ -10,8 +10,8 @@
     "current_verified_local_state": "Initialized from newer origin/main; supplied control pack retained on governance branch",
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
-  "current_milestone": "M3_ARCHITECTURE_STACK_RECONCILED",
-  "current_objective": "Continue dependency-eligible original requirements: MJ-REQ-010 product architecture remains PARTIAL after MJ-REQ-011 stack acceptance; keep original/reference/release status distinct",
+  "current_milestone": "M4_SOURCE_ADAPTER_FOUNDATION",
+  "current_objective": "Reconcile exact-head CI for MJ-PR-005, then continue original dependency-eligible source/domain requirements before reference enrichment",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -24,14 +24,16 @@
     "Live public Greenhouse GET discovery: 20 native postings, raw snapshots, fixed-origin request bounds and source policy",
     "Immutable factual document revisions, checksum downloads and exclusion of pending facts",
     "Fresh isolated PostgreSQL/Redis/three-worker startup and browser acceptance",
-    "Final Redis outage/outbox recovery and all-service restart retain original UI application/operation/receipt"
+    "Final Redis outage/outbox recovery and all-service restart retain original UI application/operation/receipt",
+    "Provider-neutral source search contract and multi-company attributed persistence with collision-safe posting provenance"
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
     "Configured Greenhouse boards support public GET; broader providers, recurring scheduling and automatic employer enrollment remain open",
     "Factual fact-list PDF/DOCX templates verified; import, tailoring, AI and advanced document-quality requirements remain open",
     "Heuristic description skill coverage for real jobs and exact structured skills for mock; advanced matching remains open",
-    "Real jobs support manual preparation only; manual status updates, real automation and intervention resume remain open"
+    "Real jobs support manual preparation only; manual status updates, real automation and intervention resume remain open",
+    "Greenhouse API-first source strategy verified; additional global feeds and strategy ladder remain open"
   ],
   "blocked_capabilities": [],
   "active_requirements": [
@@ -119,11 +121,13 @@
     "P0 Compose mode isolation: two rendered-config tests PASS after observed RED, 82 full Python tests, PowerShell launcher parse, catalogue and progress validators PASS locally",
     "Exact-head c2fcc9d PR run 36781332556 and push run 36781327411 PASS: actual fixture mock and personal no-mock service assertions, fixture recovery, isolated personal Chromium, deployed public read/browser",
     "P0 durable workspace identity local: 91 Python tests and temporary SQLite Alembic upgrade/bound-downgrade refusal PASS",
-    "Exact-head 05b570d PR run 36785750958 and push run 36785746644 PASS: PostgreSQL Alembic a6e7f3c48921 and stored FIXTURE/PERSONAL modes, fixture recovery, isolated personal Chromium and public read/browser"
+    "Exact-head 05b570d PR run 36785750958 and push run 36785746644 PASS: PostgreSQL Alembic a6e7f3c48921 and stored FIXTURE/PERSONAL modes, fixture recovery, isolated personal Chromium and public read/browser",
+    "MJ-PR-005 rebased local: 13 targeted source tests and 96 full Python tests; catalogue and progress validators PASS"
   ],
   "tests_failed": [],
   "tests_not_run": [
-    "Remaining full-spec integrations and product/release requirements"
+    "Remaining full-spec integrations and product/release requirements",
+    "MJ-PR-005 exact-head deployed CI and live public read after draft PR publication"
   ],
   "known_external_limitations": [],
   "known_product_defects": [
@@ -206,7 +210,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Re-fetch GitHub/local state and continue the original queue with an executable source/architecture foundation for MJ-REQ-010 and MJ-REQ-016/018; keep PR #428 draft until its next exact-head checks pass. Preserve unbound legacy data for explicit owner adoption. MJ-REQ-008/009/010 remain PARTIAL",
+  "recommended_resume_step": "Publish MJ-PR-005 as a draft stacked on #428, verify its exact-head CI, then work the next dependency-eligible original requirement.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -238,7 +242,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "836d320130452fb88352a4fb6eb89bc3b89fc1f5",
+  "last_implementation_commit": "9b895cfdb2cbca5a0f55a6f1b9a35702f599766c",
   "publication": {
     "result": "PASS",
     "transport": "Authenticated GitHub Git Database API",
@@ -778,11 +782,60 @@
         "git_commit": "53ee96e7e413db07f0f6bb918c524d853d3901cf",
         "evidence_path": "docs/evidence/2026-09-30-architecture-stack-reconciliation.json"
       }
+    },
+    {
+      "milestone_id": "M4-SOURCE-ADAPTER-FOUNDATION",
+      "timestamp": "2026-09-30T23:06:00Z",
+      "current_phase": "M4_SOURCE_ADAPTER_FOUNDATION",
+      "completed_steps": [
+        "Re-fetched GitHub and Git state, read both queues, three completion surfaces, active issues #16-#19 and the core search area spec",
+        "Implemented attributed source search through a closed Greenhouse registry and provider-independent durable collector",
+        "Preserved Greenhouse IDs and separated same-number postings from different employers in one feed",
+        "Recorded MJ-REQ-016 PASS, MJ-REQ-018 PARTIAL, unchanged reference backlog and release NOT_RUN"
+      ],
+      "files_added": [
+        "services/discovery/sources/registry.py",
+        "docs/evidence/2026-09-30-source-adapter-foundation.json",
+        "docs/evidence/2026-09-30-source-adapter-entry.json"
+      ],
+      "files_modified": [
+        "services/discovery/sources/contract.py",
+        "services/discovery/sources/greenhouse.py",
+        "services/discovery/sources/collect.py",
+        "services/discovery/sources/AREA.md",
+        "tests/integration/test_greenhouse.py",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "docs/FEATURE_COMPLETENESS.md"
+      ],
+      "tests_completed": [
+        "13 focused source integration tests PASS after duplicate-requisition RED/GREEN regression",
+        "96 full Python tests PASS on rebased source implementation",
+        "Catalogue and progress journal validators PASS before evidence update"
+      ],
+      "tests_remaining": [
+        "Exact-head GitHub Actions deployed Compose, worker, browser and recovery checks after publication",
+        "Broader production source strategies and initial global source targets",
+        "Full original catalogue, canonical reference backlog and release acceptance"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "Only Greenhouse is a production adapter; two-company feed evidence is synthetic integration proof",
+        "Local Docker Desktop Linux engine unavailable for local deployed E2E",
+        "MJ-REQ-018 remains PARTIAL; all MJ-REF items and release readiness remain NOT_RUN"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "9b895cfdb2cbca5a0f55a6f1b9a35702f599766c",
+        "evidence_path": "docs/evidence/2026-09-30-source-adapter-foundation.json"
+      }
     }
   ],
-  "current_phase": "M3_ARCHITECTURE_STACK_RECONCILED",
+  "current_phase": "M4_SOURCE_ADAPTER_FOUNDATION",
   "last_safe_checkpoint": {
-    "git_commit": "53ee96e7e413db07f0f6bb918c524d853d3901cf",
-    "evidence_path": "docs/evidence/2026-09-30-architecture-stack-reconciliation.json"
+    "git_commit": "9b895cfdb2cbca5a0f55a6f1b9a35702f599766c",
+    "evidence_path": "docs/evidence/2026-09-30-source-adapter-foundation.json"
   }
 }

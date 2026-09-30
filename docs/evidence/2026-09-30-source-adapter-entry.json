@@ -1,0 +1,49 @@
+{
+  "milestone_id": "M4-SOURCE-ADAPTER-FOUNDATION",
+  "timestamp": "2026-09-30T23:06:00Z",
+  "current_phase": "M4_SOURCE_ADAPTER_FOUNDATION",
+  "completed_steps": [
+    "Re-fetched GitHub and Git state, read both queues, three completion surfaces, active issues #16-#19 and the core search area spec",
+    "Implemented attributed source search through a closed Greenhouse registry and provider-independent durable collector",
+    "Preserved Greenhouse IDs and separated same-number postings from different employers in one feed",
+    "Recorded MJ-REQ-016 PASS, MJ-REQ-018 PARTIAL, unchanged reference backlog and release NOT_RUN"
+  ],
+  "files_added": [
+    "services/discovery/sources/registry.py",
+    "docs/evidence/2026-09-30-source-adapter-foundation.json",
+    "docs/evidence/2026-09-30-source-adapter-entry.json"
+  ],
+  "files_modified": [
+    "services/discovery/sources/contract.py",
+    "services/discovery/sources/greenhouse.py",
+    "services/discovery/sources/collect.py",
+    "services/discovery/sources/AREA.md",
+    "tests/integration/test_greenhouse.py",
+    "planning/CAPABILITY_MATRIX.json",
+    "planning/IMPLEMENTATION_STATE.json",
+    "planning/PR_QUEUE.json",
+    "docs/FEATURE_COMPLETENESS.md"
+  ],
+  "tests_completed": [
+    "13 focused source integration tests PASS after duplicate-requisition RED/GREEN regression",
+    "96 full Python tests PASS on rebased source implementation",
+    "Catalogue and progress journal validators PASS before evidence update"
+  ],
+  "tests_remaining": [
+    "Exact-head GitHub Actions deployed Compose, worker, browser and recovery checks after publication",
+    "Broader production source strategies and initial global source targets",
+    "Full original catalogue, canonical reference backlog and release acceptance"
+  ],
+  "migrations_applied": [],
+  "live_integrations_tested": [],
+  "known_errors": [],
+  "known_limitations": [
+    "Only Greenhouse is a production adapter; two-company feed evidence is synthetic integration proof",
+    "Local Docker Desktop Linux engine unavailable for local deployed E2E",
+    "MJ-REQ-018 remains PARTIAL; all MJ-REF items and release readiness remain NOT_RUN"
+  ],
+  "last_safe_checkpoint": {
+    "git_commit": "9b895cfdb2cbca5a0f55a6f1b9a35702f599766c",
+    "evidence_path": "docs/evidence/2026-09-30-source-adapter-foundation.json"
+  }
+}
