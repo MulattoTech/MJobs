@@ -21,6 +21,11 @@ It is an inspiration and gap catalogue, not permission to copy incompatible code
 - Real external submission remains disabled and the full product specification remains incomplete.
 - Remote GitHub Actions execution is BLOCKED_EXTERNAL by the current workflow OAuth scope.
 
+Post-audit reconciliation (2026-09-30): the workflow authorization was restored;
+#367 through #370 were verified and merged in order. The final connected UI
+Actions evidence is `docs/evidence/2026-09-30-ci-370.json`. The baseline above
+records the audit-time state and is not the current release decision.
+
 ## Project nature and spirit
 
 ### JobSpy — broad normalized discovery library

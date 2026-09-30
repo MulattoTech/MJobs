@@ -2721,10 +2721,10 @@
       "depends_on": [
         "MJ-PR-002"
       ],
-      "status": "DRAFT_PR",
+      "status": "MERGED",
       "branch": "codex/mj-pr-149-user-testing-mvp",
       "draft_until_verified": true,
-      "notes": "Local user-testing PASS with native browser, live public GET, fresh startup and restart evidence; remote CI BLOCKED_EXTERNAL; broader requirements remain PARTIAL",
+      "notes": "Local user-testing PASS with native browser, live public GET, fresh startup and restart evidence; final head GitHub Actions passed with connected UI, mock application and recovery (docs/evidence/2026-09-30-ci-370.json); broader requirements remain PARTIAL",
       "pr_number": 370
     }
   ]

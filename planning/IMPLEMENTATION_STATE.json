@@ -11,7 +11,7 @@
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
   "current_milestone": "M3_LOCAL_USER_TESTING_VERIFIED",
-  "current_objective": "Connected UI remote CI passed; integrate PR #370 and continue dependency-eligible original requirements",
+  "current_objective": "Stacked implementation spine merged; continue dependency-eligible original requirements before optional reference features",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -82,7 +82,7 @@
       "number": 370,
       "url": "https://github.com/MulattoTech/MJobs/pull/370",
       "branch": "codex/mj-pr-149-user-testing-mvp",
-      "status": "DRAFT_PR"
+      "status": "MERGED"
     }
   ],
   "tests_passed": [
@@ -149,7 +149,12 @@
     "pull_request_run_id": 36768260666,
     "evidence_path": "docs/evidence/2026-09-30-ci-370.json"
   },
-  "recommended_resume_step": "Integrate PR #370 after final head checks; reconcile #427 reference catalogue and continue primary original requirement queue",
+  "recommended_resume_step": "Reconcile #427 reference catalogue and select the smallest dependency-eligible original PR_QUEUE slice",
+  "release_readiness": {
+    "result": "NOT_RUN",
+    "evidence": [],
+    "note": "Full-spec release acceptance is separate from merged milestone and CI checks"
+  },
   "migrations_applied": [
     "92f0997f753e",
     "098f12099319",

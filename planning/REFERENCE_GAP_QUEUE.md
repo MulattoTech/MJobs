@@ -2,8 +2,8 @@
 
 This queue complements `planning/PR_QUEUE.json`; it does not replace original dependency order.
 
-## Gate 0 — current stacked spine
-Reconcile and integrate #367 -> #368 -> #369 -> #370 once checks and evidence permit. Resolve the current GitHub Actions authorization blocker before claiming remote CI PASS.
+## Gate 0 — integrated stacked spine
+Completed 2026-09-30: #367 -> #368 -> #369 -> #370 merged in dependency order. The workflow-scope blocker was resolved, and the final #370 head passed GitHub Actions including the connected UI and recovery journey (`docs/evidence/2026-09-30-ci-370.json`). The primary `planning/PR_QUEUE.json` remains next in line.
 
 ## RG-PR-001 — Career memory and presentation
 Issues: #371, #372, #373, #375, #380, #384.

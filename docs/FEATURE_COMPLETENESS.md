@@ -25,16 +25,16 @@ turn partial evidence into completed requirements.
 - Factual PDF/DOCX generation and revisions
 - Restart/outage recovery and duplicate-submission protection
 - Real external submission remains disabled
-- Remote GitHub Actions execution remains blocked by workflow authorization scope
+- GitHub Actions passed the final #367-#370 PR heads and the connected UI, mock application, and restart recovery workflow; see `docs/evidence/2026-09-30-ci-370.json`
 ## Reference-project gap catalogue
 Canonical issues: **MJ-REF-001 through MJ-REF-042**.
 These are additive ideas discovered by comparing JobSpy, CareerWeaver, Resume Matcher, AutoApply,
 Personal JobPilot, ResuMorph and AIHawk.
 
 Reference gaps must be reported separately from the original 366 requirements:
-- PASS: 0 at catalogue creation
-- PARTIAL: 0 at catalogue creation
-- NOT_RUN: 42 at catalogue creation
+- PASS: 0
+- PARTIAL: 0
+- NOT_RUN: 42
 
 When implementation overlaps existing MJobs behavior, the reference issue still requires its own acceptance evidence
 before it becomes PASS. Closing a reference issue must never auto-close an original MJ-REQ issue or vice versa.
