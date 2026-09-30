@@ -101,7 +101,7 @@
       "status": "DRAFT_PR",
       "branch": "codex/mj-pr-005-core-search-model",
       "draft_until_verified": true,
-      "notes": "MJ-REQ-016 source adapter interface PASS locally; MJ-REQ-018 strategy PARTIAL (only Greenhouse production API). Attributed multi-company persistence and duplicate-requisition provenance verified. MJ-REQ-015 remains PARTIAL; MJ-REQ-017 NOT_RUN. Draft #429 stacks on #428 to preserve newer P0 work. Push 36789502626 and PR 36789504355 passed at 2222cb1; evidence-only successor CI pending.",
+      "notes": "MJ-REQ-016 source adapter interface PASS; MJ-REQ-018 strategy PARTIAL (only Greenhouse production API). Attributed multi-company persistence and duplicate-requisition provenance verified. MJ-REQ-015 remains PARTIAL; MJ-REQ-017 NOT_RUN. Draft #429 stacks on #428 to preserve newer P0 work. Push 36789502626 and PR 36789504355 passed at 2222cb1; evidence head 255f480 push 36790131817 and PR 36790138449 also passed.",
       "pr_number": 429
     },
     {

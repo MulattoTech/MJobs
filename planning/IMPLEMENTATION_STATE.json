@@ -11,7 +11,7 @@
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
   "current_milestone": "M4_SOURCE_ADAPTER_FOUNDATION",
-  "current_objective": "Reconcile exact-head CI for MJ-PR-005, then continue original dependency-eligible source/domain requirements before reference enrichment",
+  "current_objective": "Continue dependency-eligible original requirements with MJ-PR-003 and MJ-PR-005 draft stack verified; prioritize P0-P3 safety, durability, identity and source foundations before reference enrichment",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -129,12 +129,12 @@
     "P0 durable workspace identity local: 91 Python tests and temporary SQLite Alembic upgrade/bound-downgrade refusal PASS",
     "Exact-head 05b570d PR run 36785750958 and push run 36785746644 PASS: PostgreSQL Alembic a6e7f3c48921 and stored FIXTURE/PERSONAL modes, fixture recovery, isolated personal Chromium and public read/browser",
     "MJ-PR-005 rebased local: 13 targeted source tests and 96 full Python tests; catalogue and progress validators PASS",
-    "MJ-PR-005 exact-head 2222cb1 push run 36789502626 and PR run 36789504355 PASS: 96 Python tests, frontend/build, fixture mock/browser/recovery and personal mode/public read/browser"
+    "MJ-PR-005 exact-head 2222cb1 push run 36789502626 and PR run 36789504355 PASS: 96 Python tests, frontend/build, fixture mock/browser/recovery and personal mode/public read/browser",
+    "MJ-PR-005 evidence head 255f480 push run 36790131817 and PR run 36790138449 PASS: fixture/personal deployments, 21 public jobs in both runs, zero external application requests"
   ],
   "tests_failed": [],
   "tests_not_run": [
-    "Remaining full-spec integrations and product/release requirements",
-    "MJ-PR-005 evidence-only successor exact-head CI"
+    "Remaining full-spec integrations and product/release requirements"
   ],
   "known_external_limitations": [],
   "known_product_defects": [
@@ -217,7 +217,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Verify the #429 evidence-only successor head, then continue dependency-eligible original requirements with #428/#429 draft stack preserved.",
+  "recommended_resume_step": "Continue the next dependency-eligible original requirement while preserving clean main and the verified #428/#429 draft stack; release readiness is still NOT_RUN.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
