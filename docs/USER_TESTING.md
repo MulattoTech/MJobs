@@ -25,8 +25,9 @@ worker, including old queued fixture work. Public Greenhouse reads, matching,
 factual document preparation and manual application links remain available.
 Switching modes does not copy profiles or documents between projects. External
 auto-submit remains disabled; this milestone is not a release-readiness claim.
-The production API refuses personal startup against a database containing mock
-application routes. Use a separate project instead of deleting verification data.
+The API and workers bind each fresh database to one operation mode and refuse a
+mode flip. An older database with data but no binding is preserved and pauses
+startup for explicit review; see the [workspace mode runbook](runbooks/WORKSPACE_MODE.md).
 
 ## Try the full safe journey
 

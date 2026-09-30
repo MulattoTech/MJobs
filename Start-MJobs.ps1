@@ -43,7 +43,7 @@ try {
     $composeArgs = @('compose','-p',$Project,'up','-d','--wait','--wait-timeout','180')
     if (-not $NoBuild) { $composeArgs += '--build' }
     & docker @composeArgs
-    if ($LASTEXITCODE -ne 0) { throw 'Project startup failed. Inspect docker compose logs; existing data has been preserved.' }
+    if ($LASTEXITCODE -ne 0) { throw 'Project startup failed. Inspect docker compose logs; existing data has been preserved. For WORKSPACE_MODE_UNBOUND, see docs/runbooks/WORKSPACE_MODE.md.' }
     $address = "http://127.0.0.1:$Port"
     $deadline = (Get-Date).AddSeconds(120)
     $ready = $false

@@ -24,6 +24,7 @@ def execute_operation(operation_id):
     operation_mode = operation_mode_from_env()
     store = Store(os.environ["MJOBS_DATABASE_URL"])
     try:
+        store.assert_workspace_mode(operation_mode)
         operation = claim(store, operation_id)
         if operation is None:
             return {"status": "ALREADY_CLAIMED_OR_CAPACITY"}

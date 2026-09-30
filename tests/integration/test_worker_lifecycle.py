@@ -24,6 +24,7 @@ class WorkerLifecycleTests(unittest.TestCase):
         self.root = Path(self.directory.name)
         self.store = Store(f"sqlite:///{(self.root / 'test.db').as_posix()}")
         self.store.migrate()
+        self.store.bind_workspace_mode("FIXTURE")
         self.store.save_profile(PROFILE)
 
     def tearDown(self):
@@ -113,9 +114,10 @@ class WorkerLifecycleTests(unittest.TestCase):
             with patch.dict("os.environ", MJOBS_DATABASE_URL=self.store.url, MJOBS_MOCK_ORIGIN=origin,
                             MJOBS_OUTPUT_DIR=str(self.root), MJOBS_OPERATION_MODE="PERSONAL"), \
                     patch("workers.tasks.apply_mock", side_effect=AssertionError("browser was called")):
-                result = execute_operation(operation)
-        self.assertEqual(result["status"], "BLOCKED")
-        self.assertEqual(self.read(operation)["error"], "FIXTURE_OPERATION_DISABLED")
+                with self.assertRaisesRegex(RuntimeError, "WORKSPACE_MODE_MISMATCH"):
+                    execute_operation(operation)
+        self.assertEqual(self.read(operation)["state"], "QUEUED")
+        self.assertEqual(self.read(operation)["attempt_count"], 0)
         self.assertEqual(self.store.application(application)["state"], "PREPARED")
         self.assertIsNone(self.store.application(application)["submitted_at"])
 
@@ -124,9 +126,10 @@ class WorkerLifecycleTests(unittest.TestCase):
         with patch.dict("os.environ", MJOBS_DATABASE_URL=self.store.url, MJOBS_MOCK_ORIGIN="http://127.0.0.1:8090",
                         MJOBS_OUTPUT_DIR=str(self.root), MJOBS_OPERATION_MODE="PERSONAL"), \
                 patch("workers.tasks.discover", side_effect=AssertionError("fixture was called")):
-            result = execute_operation(operation)
-        self.assertEqual(result["status"], "BLOCKED")
-        self.assertEqual(self.read(operation)["error"], "FIXTURE_OPERATION_DISABLED")
+            with self.assertRaisesRegex(RuntimeError, "WORKSPACE_MODE_MISMATCH"):
+                execute_operation(operation)
+        self.assertEqual(self.read(operation)["state"], "QUEUED")
+        self.assertEqual(self.read(operation)["attempt_count"], 0)
 
     def test_personal_worker_blocks_stale_fixture_preparation(self):
         with fixture_server() as origin:
@@ -136,9 +139,10 @@ class WorkerLifecycleTests(unittest.TestCase):
         with patch.dict("os.environ", MJOBS_DATABASE_URL=self.store.url, MJOBS_MOCK_ORIGIN="http://127.0.0.1:8090",
                         MJOBS_OUTPUT_DIR=str(self.root), MJOBS_OPERATION_MODE="PERSONAL"), \
                 patch("workers.tasks.prepare", side_effect=AssertionError("fixture preparation was called")):
-            result = execute_operation(operation)
-        self.assertEqual(result["status"], "BLOCKED")
-        self.assertEqual(self.read(operation)["error"], "FIXTURE_OPERATION_DISABLED")
+            with self.assertRaisesRegex(RuntimeError, "WORKSPACE_MODE_MISMATCH"):
+                execute_operation(operation)
+        self.assertEqual(self.read(operation)["state"], "QUEUED")
+        self.assertEqual(self.read(operation)["attempt_count"], 0)
 
     def test_cancelled_running_browser_never_reserves_submission(self):
         with fixture_server() as origin:

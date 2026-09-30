@@ -63,26 +63,21 @@ class ApiQueueTests(unittest.TestCase):
             self.assertEqual(client.put("/profiles", json=invalid).status_code, 422)
 
     def test_personal_mode_rejects_fixture_actions_and_keeps_public_collection(self):
+        self.store.bind_workspace_mode("PERSONAL")
         self.store.save_profile(PROFILE)
-        with fixture_server() as origin:
-            discover(self.store, origin, "fixture")
-            mock_job = self.store.jobs()[0]["id"]
-            application = prepare(self.store, mock_job, "fixture", self.root)
-            with TestClient(create_app(self.store, origin, self.root)) as client:
-                self.assertEqual(client.get("/settings").json()["operation_mode"], "PERSONAL")
-                self.assertNotIn("mock", client.get("/readiness").json()["checks"])
-                self.assertEqual(client.post("/discovery", json={"profile_id": "fixture"}).status_code, 409)
-                self.assertEqual(client.post("/applications/" + application + "/mock-run",
-                                             json={"submit": True}).status_code, 409)
-                self.assertEqual(client.post("/applications", json={"profile_id": "fixture",
-                                                              "job_id": mock_job}).status_code, 409)
-                source = client.put("/sources", json={"tenant": "example"})
-                self.assertEqual(source.status_code, 200)
-                collect = client.post("/sources/" + source.json()["id"] + "/collect",
-                                      json={"profile_id": "fixture"})
-                self.assertEqual(collect.status_code, 202)
+        with TestClient(create_app(self.store, "http://127.0.0.1:8090", self.root)) as client:
+            self.assertEqual(client.get("/settings").json()["operation_mode"], "PERSONAL")
+            self.assertNotIn("mock", client.get("/readiness").json()["checks"])
+            self.assertEqual(client.post("/discovery", json={"profile_id": "fixture"}).status_code, 409)
+            self.assertEqual(client.post("/applications/nonexistent/mock-run",
+                                         json={"submit": True}).status_code, 409)
+            source = client.put("/sources", json={"tenant": "example"})
+            self.assertEqual(source.status_code, 200)
+            collect = client.post("/sources/" + source.json()["id"] + "/collect",
+                                  json={"profile_id": "fixture"})
+            self.assertEqual(collect.status_code, 202)
         self.assertEqual(self.store.count("worker_operations"), 1)
-        with patch.dict("os.environ", MJOBS_DATABASE_URL=self.store.url, MJOBS_MOCK_ORIGIN=origin,
+        with patch.dict("os.environ", MJOBS_DATABASE_URL=self.store.url, MJOBS_MOCK_ORIGIN="http://127.0.0.1:8090",
                         MJOBS_OUTPUT_DIR=str(self.root), MJOBS_OPERATION_MODE="PERSONAL"), \
                 patch("workers.tasks.collect_source") as collect_source:
             self.assertEqual(execute_operation(collect.json()["operation_id"])["status"], "COMPLETED")

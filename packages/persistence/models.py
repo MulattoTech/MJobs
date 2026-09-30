@@ -8,6 +8,10 @@ def table(name, *columns, constraints=()):
     return Table(name, metadata, Column("id", String(128), primary_key=True), *columns, *constraints)
 
 
+workspace_identity = table("workspace_identity", Column("operation_mode", String(16), nullable=False),
+                           Column("bound_at", String(64), nullable=False))
+
+
 profiles = table("career_profiles", Column("name", String(200), nullable=False),
                  Column("email", String(320), nullable=False), Column("version", String(64), nullable=False))
 profile_versions = table("profile_versions", Column("profile_id", ForeignKey("career_profiles.id"), nullable=False),

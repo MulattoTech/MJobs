@@ -1,0 +1,40 @@
+{
+  "timestamp": "2026-09-30T22:16:25Z",
+  "target": "P0 MJ-REQ-009 durable fixture/personal database identity and explicit legacy adoption",
+  "action": "Add a singleton workspace-mode record, bind empty databases once, reject legacy data and mode flips before API reads or worker claims, and provide a sanitized inspect plus snapshot-matched legacy adoption path",
+  "result": "PARTIAL",
+  "validation": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_workspace_identity -v",
+      "result": "PASS",
+      "observed": "Focused workspace identity tests passed after observed RED failures for missing bind/guard behavior; empty bind, reopen, opposite-mode concurrency, legacy refusal/adoption, changed snapshot refusal, sanitized CLI and unchanged worker operation were exercised"
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p test_*.py -q",
+      "result": "PASS",
+      "observed": "91 Python tests passed, including browser fixture, source policy, durable recovery, API, worker lifecycle and mode isolation"
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m alembic upgrade head (temporary SQLite database)",
+      "result": "PASS",
+      "observed": "Schema upgraded through new revision a6e7f3c48921 without rewriting business data"
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m alembic downgrade -1 (temporary bound SQLite database)",
+      "result": "PASS",
+      "observed": "Downgrade refused to drop a bound workspace identity; persisted PERSONAL marker remained readable"
+    },
+    {
+      "command": "PowerShell Parser.ParseFile(Start-MJobs.ps1)",
+      "result": "PASS",
+      "observed": "Launcher syntax parsed without errors"
+    }
+  ],
+  "data_impact": "New workspace_identity table and one mode record per fresh database. No profile, job, application, document, operation or source row is rewritten or deleted. Existing nonempty databases remain unbound and refuse startup until their owner explicitly reviews and adopts one mode with an exact database fingerprint.",
+  "recovery": "Preserve named volumes and backup before review. Use cli.workspace_identity inspect to obtain sanitized counts and fingerprint; adopt requires explicit mode, exact matching fingerprint and acknowledgement. Code rollback can retain the new table; Alembic downgrade refuses to drop a bound identity.",
+  "limitations": [
+    "PostgreSQL migration, concurrent API/worker startup and connected fixture/personal Compose E2E are pending at this implementation head.",
+    "An older database with data and no identity requires an operator's explicit classification; no mode is inferred from fictional-looking fields or partial provenance.",
+    "MJ-REQ-009 remains PARTIAL and release readiness remains NOT_RUN."
+  ]
+}

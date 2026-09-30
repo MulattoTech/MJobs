@@ -7,11 +7,12 @@ import hashlib
 import json
 from uuid import uuid4
 
-from sqlalchemy import create_engine, event, func, select, update
+from sqlalchemy import create_engine, event, func, select, text, update
 from sqlalchemy.dialects.postgresql import insert as postgres_insert
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 
 from packages.domain.safety import Fact
+from packages.domain.operation_mode import WorkspaceModeError, parse_operation_mode
 from packages.persistence import models as m
 
 
@@ -47,6 +48,97 @@ class Store:
         if not self.url.startswith("sqlite:"):
             raise ValueError("Use alembic upgrade head for PostgreSQL")
         m.metadata.create_all(self.engine)
+
+    @staticmethod
+    def _business_tables():
+        return sorted((table for table in m.metadata.tables.values() if table is not m.workspace_identity),
+                      key=lambda table: table.name)
+
+    @staticmethod
+    def _workspace_snapshot(connection):
+        digest = hashlib.sha256(b"MJobs workspace snapshot v1\0")
+        counts = {}
+        for table in Store._business_tables():
+            count = 0
+            digest.update(table.name.encode("utf-8") + b"\0")
+            for row in connection.execute(select(table).order_by(table.c.id)).mappings():
+                digest.update(json.dumps(dict(row), sort_keys=True, default=str, ensure_ascii=False,
+                                         separators=(",", ":")).encode("utf-8") + b"\0")
+                count += 1
+            counts[table.name] = count
+        return {"fingerprint": digest.hexdigest(), "counts": counts}
+
+    def workspace_status(self):
+        """Return a sanitized inventory and fingerprint for explicit legacy review."""
+        with self.engine.connect() as connection:
+            row = connection.execute(select(m.workspace_identity).where(
+                m.workspace_identity.c.id == "workspace")).mappings().one_or_none()
+            snapshot = self._workspace_snapshot(connection)
+        return {"state": "ACTIVE" if row else "UNBOUND", "operation_mode": row["operation_mode"] if row else None,
+                **snapshot}
+
+    def adopt_legacy_workspace_mode(self, mode, expected_fingerprint):
+        """Bind reviewed legacy data only when its complete snapshot still matches."""
+        mode = parse_operation_mode(mode)
+        if not isinstance(expected_fingerprint, str) or len(expected_fingerprint) != 64 or any(
+                character not in "0123456789abcdef" for character in expected_fingerprint.lower()):
+            raise ValueError("Expected a 64-character workspace snapshot fingerprint")
+        with self.engine.begin() as connection:
+            if connection.dialect.name == "postgresql":
+                connection.execute(text("SET LOCAL lock_timeout = '10s'"))
+                connection.execute(text("SELECT pg_advisory_xact_lock(73041516369901)"))
+                for table in self._business_tables():
+                    connection.execute(text(f'LOCK TABLE "{table.name}" IN SHARE MODE'))
+            elif connection.dialect.name == "sqlite":
+                connection.exec_driver_sql("BEGIN IMMEDIATE")
+            else:
+                raise ValueError("Unsupported persistence backend")
+            if connection.execute(select(m.workspace_identity.c.id).where(
+                    m.workspace_identity.c.id == "workspace")).first():
+                raise WorkspaceModeError("WORKSPACE_ALREADY_BOUND", "Database already has a durable operation mode")
+            snapshot = self._workspace_snapshot(connection)
+            if snapshot["fingerprint"] != expected_fingerprint.lower():
+                raise WorkspaceModeError("WORKSPACE_SNAPSHOT_CHANGED", "Legacy data changed after inspection; inspect again before binding")
+            upsert(connection, m.workspace_identity, {"id": "workspace", "operation_mode": mode, "bound_at": now()})
+            return {"state": "ACTIVE", "operation_mode": mode, **snapshot}
+
+    def bind_workspace_mode(self, mode):
+        """Bind an empty database once; never infer a legacy database's mode."""
+        mode = parse_operation_mode(mode)
+        with self.engine.begin() as connection:
+            if connection.dialect.name == "postgresql":
+                connection.execute(text("SELECT pg_advisory_xact_lock(73041516369901)"))
+            elif connection.dialect.name == "sqlite":
+                connection.exec_driver_sql("BEGIN IMMEDIATE")
+            else:
+                raise ValueError("Unsupported persistence backend")
+            row = connection.execute(select(m.workspace_identity).where(
+                m.workspace_identity.c.id == "workspace")).mappings().one_or_none()
+            if row is None:
+                for table in m.metadata.sorted_tables:
+                    if table is not m.workspace_identity and connection.execute(
+                            select(table.c.id).limit(1)).first():
+                        raise WorkspaceModeError("WORKSPACE_MODE_UNBOUND",
+                            "Existing data has no durable operation-mode identity; preserve it for review and use a separate Compose project")
+                upsert(connection, m.workspace_identity, {"id": "workspace", "operation_mode": mode, "bound_at": now()})
+                row = connection.execute(select(m.workspace_identity).where(
+                    m.workspace_identity.c.id == "workspace")).mappings().one()
+            if row["operation_mode"] != mode:
+                raise WorkspaceModeError("WORKSPACE_MODE_MISMATCH",
+                    f"Database is bound to {row['operation_mode']}; requested {mode}. Use a separate Compose project")
+            return dict(row)
+
+    def assert_workspace_mode(self, mode):
+        """Read-only guard before claiming an operation or exposing data."""
+        mode = parse_operation_mode(mode)
+        with self.engine.connect() as connection:
+            row = connection.execute(select(m.workspace_identity.c.operation_mode).where(
+                m.workspace_identity.c.id == "workspace")).scalar_one_or_none()
+        if row is None:
+            raise WorkspaceModeError("WORKSPACE_MODE_UNBOUND", "Database has no durable operation-mode identity")
+        if row != mode:
+            raise WorkspaceModeError("WORKSPACE_MODE_MISMATCH",
+                f"Database is bound to {row}; requested {mode}. Use a separate Compose project")
 
     def save_profile(self, profile):
         if not all(isinstance(profile.get(field), str) and profile[field].strip() for field in ("id", "name", "email")):

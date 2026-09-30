@@ -10,7 +10,7 @@
     "current_verified_local_state": "Initialized from newer origin/main; supplied control pack retained on governance branch",
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
-  "current_milestone": "M3_PERSONAL_COMPOSE_ISOLATION_VERIFIED",
+  "current_milestone": "M3_WORKSPACE_IDENTITY_STAGED",
   "current_objective": "Continue P0 MJ-REQ-009 personal/fixture data separation and then dependency-eligible MJ-REQ-010/011 architecture foundations; keep original/reference/release status distinct",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -116,7 +116,8 @@
     "P0 personal live-read gate: one targeted test, 80 full Python tests, direct bounded public GET of 21 postings, catalogue and progress validators PASS locally",
     "Exact-head fb55d44 push run 36779321690: required suite, isolated personal public read of 21 jobs and Chromium readback PASS; PR run 36779328463 required suite PASS but optional live read ReadTimeout and browser skipped",
     "P0 Compose mode isolation: two rendered-config tests PASS after observed RED, 82 full Python tests, PowerShell launcher parse, catalogue and progress validators PASS locally",
-    "Exact-head c2fcc9d PR run 36781332556 and push run 36781327411 PASS: actual fixture mock and personal no-mock service assertions, fixture recovery, isolated personal Chromium, deployed public read/browser"
+    "Exact-head c2fcc9d PR run 36781332556 and push run 36781327411 PASS: actual fixture mock and personal no-mock service assertions, fixture recovery, isolated personal Chromium, deployed public read/browser",
+    "P0 durable workspace identity local: 91 Python tests and temporary SQLite Alembic upgrade/bound-downgrade refusal PASS; PostgreSQL Compose pending"
   ],
   "tests_failed": [],
   "tests_not_run": [
@@ -196,7 +197,7 @@
     "push_run_id": 36781327411,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-compose-isolation.json"
   },
-  "recommended_resume_step": "Re-fetch GitHub/local state and address the remaining P0 personal/fixture mixed-database boundary before considering PR #428 ready; then continue MJ-REQ-010/011 architecture foundations. MJ-REQ-009 remains PARTIAL",
+  "recommended_resume_step": "Verify exact-head PR/push CI PostgreSQL migration, fixture/personal Compose isolation and recovery for durable workspace identity; preserve unbound legacy data for explicit owner adoption. Then continue original P0 MJ-REQ-010/011 foundations. MJ-REQ-009 remains PARTIAL",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -590,11 +591,73 @@
         "git_commit": "c2fcc9da13c3ee52d30014f0d6c18029ce655875",
         "evidence_path": "docs/evidence/2026-09-30-ci-428-compose-isolation.json"
       }
+    },
+    {
+      "milestone_id": "M3-WORKSPACE-IDENTITY-LOCAL",
+      "timestamp": "2026-09-30T22:16:25Z",
+      "current_phase": "M3_WORKSPACE_IDENTITY_STAGED",
+      "completed_steps": [
+        "Added durable workspace_identity schema and startup binding before API reads or worker claims",
+        "Preserved unbound legacy data and added explicit snapshot-matched adoption with sanitized inspection",
+        "Updated tests that previously switched one database between fictional and personal modes to require the fail-closed boundary",
+        "Validated focused tests, full suite, temporary migration upgrade and bound-identity downgrade refusal locally"
+      ],
+      "files_added": [
+        "migrations/versions/a6e7f3c48921_bind_workspace_operation_mode.py",
+        "cli/workspace_identity.py",
+        "docs/runbooks/WORKSPACE_MODE.md",
+        "tests/integration/test_workspace_identity.py",
+        "docs/evidence/2026-09-30-workspace-identity-local.json"
+      ],
+      "files_modified": [
+        "packages/domain/operation_mode.py",
+        "packages/persistence/models.py",
+        "packages/persistence/store.py",
+        "apps/api/main.py",
+        "workers/main.py",
+        "workers/tasks.py",
+        "tests/integration/test_api_queue.py",
+        "tests/integration/test_user_read_models.py",
+        "tests/integration/test_worker_lifecycle.py",
+        "Start-MJobs.ps1",
+        "docs/USER_TESTING.md",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json"
+      ],
+      "tests_completed": [
+        "Focused workspace identity tests PASS after observed RED failures",
+        "91 full Python tests PASS",
+        "Temporary SQLite migration upgrade and bound-identity downgrade refusal PASS",
+        "PowerShell launcher parse PASS"
+      ],
+      "tests_remaining": [
+        "Exact-head PostgreSQL migration and fixture/personal Compose E2E",
+        "Complete MJ-REQ-009 staged production operation and release acceptance"
+      ],
+      "migrations_applied": [
+        "92f0997f753e",
+        "098f12099319",
+        "547acf656c37",
+        "792dc0dc5664",
+        "a6e7f3c48921 (temporary SQLite only; PostgreSQL pending)"
+      ],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "Local Docker Desktop Linux engine unavailable; PostgreSQL Compose CI pending",
+        "Legacy data is preserved but requires an explicit owner mode decision before startup",
+        "MJ-REQ-009 remains PARTIAL; release readiness NOT_RUN"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "f7cae108aee3cd4939fdf162edeb40abeb6af4d7",
+        "evidence_path": "docs/evidence/2026-09-30-ci-428-compose-isolation.json"
+      }
     }
   ],
-  "current_phase": "M3_PERSONAL_COMPOSE_ISOLATION_VERIFIED",
+  "current_phase": "M3_WORKSPACE_IDENTITY_STAGED",
   "last_safe_checkpoint": {
-    "git_commit": "c2fcc9da13c3ee52d30014f0d6c18029ce655875",
+    "git_commit": "f7cae108aee3cd4939fdf162edeb40abeb6af4d7",
     "evidence_path": "docs/evidence/2026-09-30-ci-428-compose-isolation.json"
   }
 }

@@ -74,6 +74,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     if operation_mode == "FIXTURE":
         guard = MockClient(mock_origin)
         guard.close()
+    store.bind_workspace_mode(operation_mode)
     app = FastAPI(title="MJobs", description="Local job discovery, factual preparation and tracking. External submission disabled.")
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost", "api", "testserver"])
 
@@ -279,14 +280,11 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
 def create_from_env():
     operation_mode = operation_mode_from_env()
     store = Store(os.environ["MJOBS_DATABASE_URL"])
-    if operation_mode == "PERSONAL":
-        with store.engine.connect() as connection:
-            fixture_route = connection.execute(select(m.routes.c.id).where(
-                m.routes.c.provider == "mock-ats").limit(1)).first()
-        if fixture_route:
-            store.engine.dispose()
-            raise RuntimeError("Personal operation cannot use a database containing fictional application routes; use a separate Compose project")
-    app = create_app(store, os.environ["MJOBS_MOCK_ORIGIN"], Path(os.environ["MJOBS_OUTPUT_DIR"]), os.environ["MJOBS_REDIS_URL"], operation_mode=operation_mode)
+    try:
+        app = create_app(store, os.environ["MJOBS_MOCK_ORIGIN"], Path(os.environ["MJOBS_OUTPUT_DIR"]), os.environ["MJOBS_REDIS_URL"], operation_mode=operation_mode)
+    except Exception:
+        store.engine.dispose()
+        raise
 
     @asynccontextmanager
     async def lifespan(_):

@@ -26,6 +26,7 @@ turn partial evidence into completed requirements.
 - Restart/outage recovery and duplicate-submission protection
 - Evidence-linked, atomic implementation milestone journal with reload, failed-write preservation, and remote CI evidence (MJ-REQ-008 PARTIAL; `docs/evidence/2026-09-30-ci-428.json`)
 - Separate personal operation mode blocks fictional actions at the API and worker; fixture verification remains available. Direct Compose defaults to PERSONAL without the fictional mock service. Both exact-head CI runs passed actual fixture mock and personal no-mock service checks, isolated personal Chromium, and live public read/browser proof of 21 jobs; an earlier optional provider read timed out. MJ-REQ-009 remains PARTIAL (`docs/evidence/2026-09-30-ci-428-compose-isolation.json`).
+- A staged database identity slice binds each empty database to FIXTURE or PERSONAL and refuses startup or worker claims against a conflicting or nonempty unbound database. Legacy data is preserved for explicit snapshot-matched owner adoption. Local 91-test and temporary SQLite migration evidence passed; PostgreSQL Compose verification is pending (`docs/evidence/2026-09-30-workspace-identity-local.json`). MJ-REQ-009 remains PARTIAL.
 - Real external submission remains disabled
 - GitHub Actions passed the final #367-#370 PR heads and the connected UI, mock application, and restart recovery workflow; see `docs/evidence/2026-09-30-ci-370.json`
 ## Reference-project gap catalogue
