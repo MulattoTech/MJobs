@@ -94,6 +94,12 @@
       "url": "https://github.com/MulattoTech/MJobs/pull/428",
       "branch": "codex/mj-pr-003-governance-safety",
       "status": "DRAFT_PR"
+    },
+    {
+      "number": 429,
+      "url": "https://github.com/MulattoTech/MJobs/pull/429",
+      "branch": "codex/mj-pr-005-core-search-model",
+      "status": "DRAFT_PR"
     }
   ],
   "tests_passed": [
@@ -210,7 +216,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Publish MJ-PR-005 as a draft stacked on #428, verify its exact-head CI, then work the next dependency-eligible original requirement.",
+  "recommended_resume_step": "Verify #429 exact-head CI on the #428 stack, then work the next dependency-eligible original requirement while preserving both draft PRs.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -245,7 +251,7 @@
   "last_implementation_commit": "9b895cfdb2cbca5a0f55a6f1b9a35702f599766c",
   "publication": {
     "result": "PASS",
-    "transport": "Authenticated GitHub Git Database API",
+    "transport": "Authenticated Git push and GitHub draft PR",
     "local_remote_commit_identical": true,
     "force": false
   },
