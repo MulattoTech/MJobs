@@ -8,10 +8,11 @@ from sqlalchemy import select, text
 
 from packages.persistence import models as m
 from packages.persistence.store import identity, now, upsert
+from workers.operations import QUEUES, recover_expired, timeout
 
 
 def enqueue_operation(store, kind, entity_id, params):
-    if kind not in ("DISCOVER", "APPLY_MOCK"):
+    if kind not in QUEUES:
         raise ValueError("Unsupported operation kind")
     operation_id = identity(kind, entity_id, params)
     with store.engine.begin() as connection:
@@ -21,10 +22,10 @@ def enqueue_operation(store, kind, entity_id, params):
 
 
 def dispatch_pending(store, redis_url):
+    recover_expired(store)
     redis = Redis.from_url(redis_url, socket_connect_timeout=2, socket_timeout=2)
     try:
         redis.ping()
-        queue = Queue("mjobs", connection=redis)
         # One dispatcher owns the outbox at a time, including the Redis enqueue.
         with store.engine.begin() as connection:
             if connection.dialect.name == "postgresql":
@@ -42,7 +43,7 @@ def dispatch_pending(store, redis_url):
                     job.delete()
                 except NoSuchJobError:
                     pass
-                queue.enqueue("workers.tasks.execute_operation", row["id"], job_id=row["id"], job_timeout=180,
+                Queue(QUEUES[row["kind"]], connection=redis).enqueue("workers.tasks.execute_operation", row["id"], job_id=row["id"], job_timeout=timeout(),
                               result_ttl=86400, failure_ttl=86400)
                 count += 1
         return {"status": "DISPATCHED", "count": count}

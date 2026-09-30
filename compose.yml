@@ -78,6 +78,31 @@ services:
     <<: *runtime
     command: [python, -m, workers.main]
     restart: unless-stopped
+    environment:
+      <<: *environment
+      MJOBS_WORKER_QUEUE: mjobs-application
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      redis: {condition: service_healthy}
+      mock: {condition: service_healthy}
+  source-worker:
+    <<: *runtime
+    command: [python, -m, workers.main]
+    restart: unless-stopped
+    environment:
+      <<: *environment
+      MJOBS_WORKER_QUEUE: mjobs-discovery
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      redis: {condition: service_healthy}
+      mock: {condition: service_healthy}
+  document-worker:
+    <<: *runtime
+    command: [python, -m, workers.main]
+    restart: unless-stopped
+    environment:
+      <<: *environment
+      MJOBS_WORKER_QUEUE: mjobs-document
     depends_on:
       migrate: {condition: service_completed_successfully}
       redis: {condition: service_healthy}

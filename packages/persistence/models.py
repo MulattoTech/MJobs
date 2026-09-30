@@ -1,5 +1,5 @@
 """Relational authority for the initial product spine."""
-from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, JSON, MetaData, String, Table, UniqueConstraint
+from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, JSON, MetaData, String, Table, UniqueConstraint, false
 
 metadata = MetaData()
 
@@ -52,6 +52,9 @@ attempts = table("application_attempts", Column("application_id", ForeignKey("ap
                  Column("state", String(64), nullable=False), Column("steps", JSON, nullable=False), Column("started_at", String(64), nullable=False))
 operations = table("worker_operations", Column("kind", String(64), nullable=False), Column("entity_id", String(128), nullable=False),
                    Column("params", JSON, nullable=False), Column("state", String(64), nullable=False),
-                   Column("error", String(1000)), Column("updated_at", String(64), nullable=False))
+                   Column("error", String(1000)), Column("updated_at", String(64), nullable=False),
+                   Column("attempt_count", Integer, nullable=False, server_default="0"),
+                   Column("cancel_requested", Boolean, nullable=False, server_default=false()),
+                   Column("lease_expires_at", String(64)))
 audit = table("audit_events", Column("entity_id", String(128), nullable=False), Column("action", String(64), nullable=False),
               Column("payload", JSON, nullable=False), Column("timestamp", String(64), nullable=False))

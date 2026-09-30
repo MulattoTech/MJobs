@@ -1,0 +1,14 @@
+test_preparation_is_durable_background_work_and_cancel_is_visible (tests.integration.test_api_queue.ApiQueueTests.test_preparation_is_durable_background_work_and_cancel_is_visible) ... FAIL
+
+======================================================================
+FAIL: test_preparation_is_durable_background_work_and_cancel_is_visible (tests.integration.test_api_queue.ApiQueueTests.test_preparation_is_durable_background_work_and_cancel_is_visible)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Tools\Dev\MJobs\tests\integration\test_api_queue.py", line 89, in test_preparation_is_durable_background_work_and_cancel_is_visible
+    self.assertEqual(response.status_code, 202)
+AssertionError: 201 != 202
+
+----------------------------------------------------------------------
+Ran 1 test in 0.763s
+
+FAILED (failures=1)

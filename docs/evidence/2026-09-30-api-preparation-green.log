@@ -1,0 +1,6 @@
+test_preparation_is_durable_background_work_and_cancel_is_visible (tests.integration.test_api_queue.ApiQueueTests.test_preparation_is_durable_background_work_and_cancel_is_visible) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.771s
+
+OK

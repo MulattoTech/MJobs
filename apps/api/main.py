@@ -14,10 +14,10 @@ from sqlalchemy.exc import NoResultFound
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from packages.persistence import models as m
-from packages.persistence.store import Store
+from packages.persistence.store import Store, identity
 from services.discovery.pipeline import MockClient
-from services.documents.generate import prepare
 from workers.dispatch import enqueue_operation
+from workers.operations import QUEUES, request_cancel, limit
 
 
 class FactInput(BaseModel):
@@ -46,6 +46,7 @@ class ProfileInput(BaseModel):
 class DiscoveryInput(BaseModel):
     model_config = ConfigDict(extra="forbid")
     profile_id: str = Field(min_length=1, max_length=128)
+    request_id: str | None = Field(default=None, min_length=1, max_length=64)
 
 
 class ApplicationInput(DiscoveryInput):
@@ -96,7 +97,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         redis = Redis.from_url(redis_url, socket_connect_timeout=2, socket_timeout=2)
         try:
             checks["queue"] = bool(redis.ping())
-            checks["worker"] = any("mjobs" in worker.queue_names() and worker.get_state() in ("idle", "busy") for worker in Worker.all(connection=redis))
+            active_queues = {name for worker in Worker.all(connection=redis) if worker.get_state() in ("idle", "busy") for name in worker.queue_names()}
+            checks["worker"] = set(QUEUES.values()).issubset(active_queues)
         except Exception:
             pass
         finally:
@@ -120,7 +122,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
 
     @app.get("/settings")
     def settings():
-        return {"mode": "MOCK", "external_submission_enabled": False, "browser_workers": 1}
+        return {"mode": "MOCK", "external_submission_enabled": False, "browser_workers": limit("APPLY_MOCK"), "worker_limits": {kind: limit(kind) for kind in QUEUES}}
 
     @app.put("/profiles")
     def profile(value: ProfileInput):
@@ -128,17 +130,20 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
 
     @app.post("/discovery", status_code=202)
     def discovery(value: DiscoveryInput):
-        store.profile(value.profile_id)
-        return queued("DISCOVER", value.profile_id, {})
+        profile = store.profile(value.profile_id)
+        return queued("DISCOVER", value.profile_id, {"profile_version": profile["version"], "request_id": value.request_id})
 
     @app.get("/jobs")
     def jobs(profile_id: str | None = None):
         return {"jobs": store.jobs(profile_id)}
 
-    @app.post("/applications", status_code=201)
+    @app.post("/applications", status_code=202)
     def application(value: ApplicationInput):
-        identifier = prepare(store, value.job_id, value.profile_id, output_dir)
-        return store.application(identifier)
+        profile = store.profile(value.profile_id)
+        with store.engine.connect() as connection:
+            connection.execute(select(m.jobs.c.id).where(m.jobs.c.id == value.job_id)).one()
+        operation = queued("PREPARE", value.profile_id, {"job_id": value.job_id, "profile_version": profile["version"]})
+        return {**operation, "application_id": identity(value.job_id, value.profile_id)}
 
     @app.get("/applications/{application_id}")
     def application_read(application_id: str):
@@ -153,6 +158,13 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     def operation(operation_id: str):
         with store.engine.connect() as connection:
             return dict(connection.execute(select(m.operations).where(m.operations.c.id == operation_id)).mappings().one())
+
+    @app.post("/operations/{operation_id}/cancel", status_code=202)
+    def cancel(operation_id: str):
+        result = request_cancel(store, operation_id)
+        if result.get("reason") == "RECONCILIATION_REQUIRED":
+            return JSONResponse(result, status_code=409)
+        return result
 
     return app
 

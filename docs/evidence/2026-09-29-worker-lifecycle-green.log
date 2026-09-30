@@ -1,0 +1,10 @@
+test_cancel_before_claim_and_running_cancellation_are_durable (tests.integration.test_worker_lifecycle.WorkerLifecycleTests.test_cancel_before_claim_and_running_cancellation_are_durable) ... ok
+test_capacity_is_independent_and_a_duplicate_cannot_claim (tests.integration.test_worker_lifecycle.WorkerLifecycleTests.test_capacity_is_independent_and_a_duplicate_cannot_claim) ... ok
+test_discovery_expiry_retries_at_most_three_claims (tests.integration.test_worker_lifecycle.WorkerLifecycleTests.test_discovery_expiry_retries_at_most_three_claims) ... ok
+test_pre_submit_crash_stops_for_review (tests.integration.test_worker_lifecycle.WorkerLifecycleTests.test_pre_submit_crash_stops_for_review) ... ok
+test_reserved_submission_only_reconciles_and_cannot_cancel (tests.integration.test_worker_lifecycle.WorkerLifecycleTests.test_reserved_submission_only_reconciles_and_cannot_cancel) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 1.612s
+
+OK

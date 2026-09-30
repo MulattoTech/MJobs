@@ -1,0 +1,50 @@
+{
+  "timestamp": "2026-09-30T00:40:24.265807+00:00",
+  "overall_result": "PARTIAL",
+  "branch": "codex/mj-pr-002-governance-safety",
+  "head": "80037984cc7b9ed19dbcea1cdf0feb7f333c93bb",
+  "conversation_id": "01a0ef75-a0bd-7b90-8725-6dacd68f6716",
+  "open_prs": [
+    {
+      "number": 367,
+      "url": "https://github.com/MulattoTech/MJobs/pull/367"
+    },
+    {
+      "number": 368,
+      "url": "https://github.com/MulattoTech/MJobs/pull/368"
+    }
+  ],
+  "verified_baseline": {
+    "local_tests": 47,
+    "result": "PASS",
+    "evidence": "docs/evidence/2026-09-29-spine-final-suite.log",
+    "compose_e2e": "docs/evidence/2026-09-29-compose-final-e2e.json",
+    "compose_recovery": "docs/evidence/2026-09-29-compose-final-recovery.json"
+  },
+  "unfinished_work": {
+    "result": "PARTIAL",
+    "files": [
+      "packages/persistence/models.py",
+      "workers/dispatch.py",
+      "workers/operations.py",
+      "tests/integration/test_worker_lifecycle.py",
+      "docs/superpowers/plans/2026-09-29-worker-lifecycle.md"
+    ],
+    "targeted_tests": "Five lifecycle contracts passed with explicit SQLite backend",
+    "pending": [
+      "Wire execution claims and cancellation checks into tasks/discovery/documents/browser adapter",
+      "Add and execute a new Alembic migration; current Docker schema has no lease/cancellation columns",
+      "Wire separate queue workers and API cancellation/readiness; current dispatch queue names do not yet match deployed worker",
+      "Run affected suite and Compose proof before publishing this branch"
+    ],
+    "warning": "Do not deploy the unfinished working tree; running Docker image is the verified PR368 baseline"
+  },
+  "blocked_remote_ci": {
+    "result": "BLOCKED_EXTERNAL",
+    "reason": "OAuth authorization lacks workflow scope",
+    "workflow": "infra/ci/verification.yml"
+  },
+  "permission_note": "Current managed permission profile declares .git read-only; re-verify in resumed session and do not bypass it",
+  "real_external_submissions": 0,
+  "next_goal": "prompts/USER_TESTABLE_MVP_GOAL.md"
+}

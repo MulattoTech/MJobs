@@ -21,7 +21,7 @@ def run(api_url, evidence_path=None):
             deadline = time.monotonic() + 120
             while time.monotonic() < deadline:
                 operation = call("GET", "/operations/" + operation_id)
-                if operation["state"] in ("COMPLETED", "FAILED"):
+                if operation["state"] in ("COMPLETED", "FAILED", "BLOCKED", "CANCELLED"):
                     if operation["state"] != "COMPLETED":
                         raise RuntimeError("Operation failed: " + str(operation["error"]))
                     return operation
@@ -37,7 +37,9 @@ def run(api_url, evidence_path=None):
         wait(discovery["operation_id"])
         jobs = call("GET", "/jobs", params={"profile_id": profile["id"]})["jobs"]
         job_b = next(job for job in jobs if job["requisition"] == "B")
-        application = call("POST", "/applications", json={"job_id": job_b["id"], "profile_id": profile["id"]})
+        preparation = call("POST", "/applications", json={"job_id": job_b["id"], "profile_id": profile["id"]})
+        wait(preparation["operation_id"])
+        application = call("GET", "/applications/" + preparation["application_id"])
         request = call("POST", "/applications/" + application["id"] + "/mock-run", json={"submit": True})
         wait(request["operation_id"])
         confirmed = call("GET", "/applications/" + application["id"])

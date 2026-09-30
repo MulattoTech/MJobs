@@ -42,7 +42,7 @@ def run(baseline_path, evidence_path):
             raise TimeoutError("Project recovery did not complete within 120 seconds")
 
         try:
-            compose("stop", "worker", "redis")
+            compose("stop", "worker", "source-worker", "document-worker", "redis")
             profile = dict(PROFILE, id="recovery-fictional-" + uuid4().hex[:12])
             request("PUT", "/profiles", json=profile)
             queued = request("POST", "/discovery", json={"profile_id": profile["id"]})
@@ -55,10 +55,11 @@ def run(baseline_path, evidence_path):
             until(lambda: int(subprocess.run(["docker", "inspect", "mjobs-worker-1", "--format", "{{.RestartCount}}"],
                 capture_output=True, text=True, timeout=10, check=True).stdout.strip()) > 0)
             compose("start", "redis")
+            compose("start", "worker", "source-worker", "document-worker")
             until(lambda: request("GET", "/operations/" + queued["operation_id"])["state"] == "COMPLETED")
             until(lambda: client.get("/readiness").status_code == 200)
             actions.append({"action": "Worker supervision and durable outbox recovered after Redis returned", "result": "PASS"})
-            compose("restart", "postgres", "redis", "mock", "api", "worker")
+            compose("restart", "postgres", "redis", "mock", "api", "worker", "source-worker", "document-worker")
             until(lambda: client.get("/readiness").status_code == 200)
             application = request("GET", "/applications/" + baseline["application_id"])
             assert application["state"] == "CONFIRMED"
@@ -73,7 +74,7 @@ def run(baseline_path, evidence_path):
             assert receipt == baseline["confirmation"] and receipt["submission_count"] == 1
             actions.append({"action": "All services restarted; original application, operation and independent receipt survived without another submission", "result": "PASS"})
         finally:
-            compose("start", "redis", "worker")
+            compose("start", "redis", "worker", "source-worker", "document-worker")
     evidence = {"result": "PASS", "timestamp": datetime.now(timezone.utc).isoformat(),
         "command": "python -m cli.compose_recovery --baseline " + str(baseline_path),
         "target": "Project-only PostgreSQL/Redis/RQ/mock persistence and outage recovery", "actions": actions,

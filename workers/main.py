@@ -8,11 +8,18 @@ from rq import Worker
 
 from packages.persistence.store import Store
 from workers.dispatch import dispatch_pending
+from workers.operations import QUEUES, timeout, limit
 
 
 def main():
     store = Store(os.environ["MJOBS_DATABASE_URL"])
     redis_url = os.environ["MJOBS_REDIS_URL"]
+    queue = os.environ.get("MJOBS_WORKER_QUEUE", "mjobs-application")
+    if queue not in QUEUES.values():
+        raise ValueError("Unsupported worker queue")
+    timeout()
+    for kind in QUEUES:
+        limit(kind)
     stopped = threading.Event()
 
     def dispatch():
@@ -27,7 +34,7 @@ def main():
     thread.start()
     redis = Redis.from_url(redis_url, socket_connect_timeout=5, socket_timeout=10)
     try:
-        Worker(["mjobs"], connection=redis).work(logging_level="WARNING")
+        Worker([queue], connection=redis).work(logging_level="WARNING")
     finally:
         stopped.set()
         thread.join(timeout=5)

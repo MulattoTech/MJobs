@@ -10,8 +10,8 @@
     "current_verified_local_state": "Initialized from newer origin/main; supplied control pack retained on governance branch",
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
-  "current_milestone": "M1_MOCK_SPINE",
-  "current_objective": "Publish verified mock spine; continue bounded worker lifecycle and real read-only sources, with remote CI blocked",
+  "current_milestone": "M2_WORKER_LIFECYCLE",
+  "current_objective": "Publish verified worker lifecycle; implement connected web UI and Greenhouse read-only discovery",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -33,37 +33,8 @@
     }
   ],
   "active_requirements": [
-    "MJ-REQ-015",
-    "MJ-REQ-040",
-    "MJ-REQ-041",
-    "MJ-REQ-044",
-    "MJ-REQ-052",
-    "MJ-REQ-054",
-    "MJ-REQ-063",
-    "MJ-REQ-066",
-    "MJ-REQ-067",
-    "MJ-REQ-092",
-    "MJ-REQ-094",
-    "MJ-REQ-096",
-    "MJ-REQ-112",
-    "MJ-REQ-114",
-    "MJ-REQ-121",
-    "MJ-REQ-124",
-    "MJ-REQ-139",
-    "MJ-REQ-145",
-    "MJ-REQ-146",
-    "MJ-REQ-148",
-    "MJ-REQ-156",
-    "MJ-REQ-158",
-    "MJ-REQ-159",
-    "MJ-REQ-162",
-    "MJ-REQ-181",
-    "MJ-REQ-208",
-    "MJ-REQ-209",
-    "MJ-REQ-210",
-    "MJ-REQ-211",
-    "MJ-REQ-212",
-    "MJ-REQ-213"
+    "MJ-REQ-004",
+    "MJ-REQ-005"
   ],
   "active_prs": [
     {
@@ -85,7 +56,8 @@
     "Catalogue validation: PASS",
     "47 local unit/integration/headless-browser tests",
     "Compose PostgreSQL/Redis/RQ mock E2E; repeat operation keeps receipt count one",
-    "Final isolated Compose outage/restart proof: exact original application/operation/receipt retained"
+    "Final isolated Compose outage/restart proof: exact original application/operation/receipt retained",
+    "55 current lifecycle and mock-spine tests; deployed three-queue Compose E2E and outage/restart PASS"
   ],
   "tests_failed": [],
   "tests_not_run": [
@@ -95,23 +67,25 @@
   ],
   "known_external_limitations": [],
   "known_product_defects": [
-    "RUNNING operation leases/cancellation and pre-submit crash recovery are not implemented",
     "Manual CAPTCHA/login intervention resume is not implemented",
-    "Independent discovery/browser queues not implemented"
+    "Connected web UI and first-party read-only source adapter pending"
   ],
   "known_test_harness_defects": [
     "Historical recovery run used Compose dependency startup; corrected to --no-deps and final isolated run is canonical"
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-09-30T00:24:57.360126+00:00",
-    "command": "python -m unittest discover -s tests -p test_*.py -v",
-    "target": "mock spine local suite",
+    "timestamp": "2026-09-30T11:38:04.004486+00:00",
+    "command": "python -m cli.compose_recovery",
+    "target": "Three-queue PostgreSQL/Redis/RQ lifecycle",
     "result": "PASS",
-    "evidence_path": "docs/evidence/2026-09-29-spine-final-suite.log"
+    "evidence_path": "docs/evidence/2026-09-30-worker-compose-recovery.json"
   },
-  "recommended_resume_step": "Continue dependency-unblocked queue from current stacked branches, preserving main and native data; GitHub CI still requires workflow scope",
+  "recommended_resume_step": "Read docs/evidence/2026-09-29-resume-checkpoint.json and prompts/USER_TESTABLE_MVP_GOAL.md; preserve unfinished current branch and PR367/368",
   "migrations_applied": [
     "92f0997f753e",
-    "098f12099319"
-  ]
+    "098f12099319",
+    "547acf656c37"
+  ],
+  "unfinished_work_evidence": "docs/evidence/2026-09-29-resume-checkpoint.json",
+  "authorization": "User explicitly provided 100% Git and GitHub authorization on 2026-09-30; still verify native permissions and required checks"
 }

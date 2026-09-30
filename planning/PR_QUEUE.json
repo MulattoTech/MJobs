@@ -37,12 +37,13 @@
       ],
       "target_area": "root / docs / planning",
       "depends_on": [
-        "MJ-PR-001"
+        "MJ-PR-001",
+        "MJ-PR-148"
       ],
-      "status": "QUEUED",
+      "status": "ACTIVE",
       "branch": "codex/mj-pr-002-governance-safety",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "Bounded durable worker lifecycle slice, stacked on actual mock spine; preserve broader independent-limit requirements"
     },
     {
       "id": "MJ-PR-003",
