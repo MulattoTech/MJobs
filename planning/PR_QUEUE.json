@@ -40,10 +40,11 @@
         "MJ-PR-001",
         "MJ-PR-148"
       ],
-      "status": "ACTIVE",
+      "status": "DRAFT_PR",
       "branch": "codex/mj-pr-002-governance-safety",
       "draft_until_verified": true,
-      "notes": "Bounded durable worker lifecycle slice, stacked on actual mock spine; preserve broader independent-limit requirements"
+      "notes": "Bounded durable worker lifecycle slice, stacked on actual mock spine; preserve broader independent-limit requirements",
+      "pr_number": 369
     },
     {
       "id": "MJ-PR-003",
@@ -2686,6 +2687,44 @@
       "draft_until_verified": true,
       "notes": "CODEX_START section 7 and MJ-REQ-290 authorize initial vertical slice before the broader waterfall. Original umbrella entries remain queued/partial; this slice does not close them. Stacked on implemented governance branch.",
       "pr_number": 368
+    },
+    {
+      "id": "MJ-PR-149",
+      "title": "Connected local user-testing UI and first-party read-only discovery",
+      "domain": "web_api_analytics",
+      "requirements": [
+        "MJ-REQ-016",
+        "MJ-REQ-018",
+        "MJ-REQ-019",
+        "MJ-REQ-020",
+        "MJ-REQ-063.D01",
+        "MJ-REQ-088",
+        "MJ-REQ-092",
+        "MJ-REQ-096",
+        "MJ-REQ-098",
+        "MJ-REQ-112",
+        "MJ-REQ-114",
+        "MJ-REQ-183",
+        "MJ-REQ-184",
+        "MJ-REQ-185",
+        "MJ-REQ-186",
+        "MJ-REQ-187",
+        "MJ-REQ-188",
+        "MJ-REQ-195",
+        "MJ-REQ-198",
+        "MJ-REQ-205",
+        "MJ-REQ-206",
+        "MJ-REQ-228",
+        "MJ-REQ-274"
+      ],
+      "target_area": "apps/web; apps/api; services/discovery/sources; packages/persistence",
+      "depends_on": [
+        "MJ-PR-002"
+      ],
+      "status": "ACTIVE",
+      "branch": "codex/mj-pr-149-user-testing-mvp",
+      "draft_until_verified": true,
+      "notes": "User-goal connected MVP slice; preserve broader requirements and provider limitations"
     }
   ]
 }

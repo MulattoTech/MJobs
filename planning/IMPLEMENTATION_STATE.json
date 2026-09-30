@@ -10,8 +10,8 @@
     "current_verified_local_state": "Initialized from newer origin/main; supplied control pack retained on governance branch",
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
-  "current_milestone": "M2_WORKER_LIFECYCLE",
-  "current_objective": "Publish verified worker lifecycle; implement connected web UI and Greenhouse read-only discovery",
+  "current_milestone": "M3_USER_TESTING_MVP",
+  "current_objective": "Connected local web UI, read-only Greenhouse discovery, factual documents and safe application tracker",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -33,8 +33,29 @@
     }
   ],
   "active_requirements": [
-    "MJ-REQ-004",
-    "MJ-REQ-005"
+    "MJ-REQ-016",
+    "MJ-REQ-018",
+    "MJ-REQ-019",
+    "MJ-REQ-020",
+    "MJ-REQ-063.D01",
+    "MJ-REQ-088",
+    "MJ-REQ-092",
+    "MJ-REQ-096",
+    "MJ-REQ-098",
+    "MJ-REQ-112",
+    "MJ-REQ-114",
+    "MJ-REQ-183",
+    "MJ-REQ-184",
+    "MJ-REQ-185",
+    "MJ-REQ-186",
+    "MJ-REQ-187",
+    "MJ-REQ-188",
+    "MJ-REQ-195",
+    "MJ-REQ-198",
+    "MJ-REQ-205",
+    "MJ-REQ-206",
+    "MJ-REQ-228",
+    "MJ-REQ-274"
   ],
   "active_prs": [
     {
@@ -47,6 +68,12 @@
       "number": 368,
       "url": "https://github.com/MulattoTech/MJobs/pull/368",
       "branch": "codex/mj-pr-148-mock-product-spine",
+      "status": "DRAFT_PR"
+    },
+    {
+      "number": 369,
+      "url": "https://github.com/MulattoTech/MJobs/pull/369",
+      "branch": "codex/mj-pr-002-governance-safety",
       "status": "DRAFT_PR"
     }
   ],
