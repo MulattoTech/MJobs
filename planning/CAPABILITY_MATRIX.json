@@ -75,9 +75,10 @@
         "docs/evidence/2026-09-30-operation-mode.json",
         "docs/evidence/2026-09-30-ci-428-personal.json",
         "docs/evidence/2026-09-30-personal-live-read-local.json",
-        "docs/evidence/2026-09-30-ci-428-personal-live-read.json"
+        "docs/evidence/2026-09-30-ci-428-personal-live-read.json",
+        "docs/evidence/2026-09-30-personal-compose-isolation-local.json"
       ],
-      "note": "Personal API and worker reject fictional actions, including stale queued work; production API rejects databases with mock routes. Isolated personal Compose/Chromium CI passed. One exact-head push run proved a mode-gated deployed public read of 21 jobs and browser policy readback; concurrent PR live read hit provider ReadTimeout and skipped browser readback. Complete staged deployment remains unverified"
+      "note": "Personal API and worker reject fictional actions, including stale queued work; production API rejects databases with mock routes. Isolated personal Compose/Chromium CI passed. One exact-head push run proved a mode-gated deployed public read of 21 jobs and browser policy readback; concurrent PR live read hit provider ReadTimeout. Direct Compose now defaults to PERSONAL with mock origin disabled and fictional mock service behind an explicit fixture profile; exact-head deployed isolation validation remains pending. Complete staged deployment remains unverified"
     },
     {
       "requirement_id": "MJ-REQ-010",

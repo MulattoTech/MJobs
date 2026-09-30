@@ -1,0 +1,53 @@
+{
+  "milestone_id": "M3-PERSONAL-COMPOSE-ISOLATION-LOCAL",
+  "timestamp": "2026-09-30T21:41:49Z",
+  "current_phase": "M3_PERSONAL_COMPOSE_ISOLATION_STAGED",
+  "completed_steps": [
+    "Confirmed prior API factory and progress-journal review concerns were already fixed at current head",
+    "Found plain Compose still started the fictional mock server and enabled mock origin by default",
+    "Changed direct Compose to PERSONAL without mock by default, fixture launch to explicit profile, and recovery to explicit fixture environment",
+    "Validated rendered modes, full Python suite, launcher parser, catalogue and progress journal locally"
+  ],
+  "files_added": [
+    "tests/unit/test_compose_modes.py",
+    "docs/evidence/2026-09-30-personal-compose-isolation-local.json"
+  ],
+  "files_modified": [
+    "compose.yml",
+    "Start-MJobs.ps1",
+    "cli/compose_recovery.py",
+    ".github/workflows/ci.yml",
+    "docs/USER_TESTING.md",
+    "docs/runbooks/MOCK_SPINE.md",
+    "planning/IMPLEMENTATION_STATE.json",
+    "planning/CAPABILITY_MATRIX.json",
+    "planning/PR_QUEUE.json"
+  ],
+  "tests_completed": [
+    "Two rendered-Compose regression tests PASS after observed RED failures",
+    "82 full Python tests PASS",
+    "PowerShell launcher parse, catalogue and progress validator PASS"
+  ],
+  "tests_remaining": [
+    "Exact-head deployed fixture and personal Compose service-set and recovery CI",
+    "Complete MJ-REQ-009 staged deployment and release acceptance"
+  ],
+  "migrations_applied": [
+    "92f0997f753e",
+    "098f12099319",
+    "547acf656c37",
+    "792dc0dc5664"
+  ],
+  "live_integrations_tested": [
+    "Compose CLI configuration rendering only; Docker engine unavailable locally"
+  ],
+  "known_errors": [],
+  "known_limitations": [
+    "Local Docker Desktop Linux engine unavailable; exact-head deployed CI pending",
+    "MJ-REQ-009 remains PARTIAL; release readiness NOT_RUN"
+  ],
+  "last_safe_checkpoint": {
+    "git_commit": "d4f8e95f4cb56fde10f1c6f2cadf606444177f71",
+    "evidence_path": "docs/evidence/2026-09-30-ci-428-personal-live-read.json"
+  }
+}

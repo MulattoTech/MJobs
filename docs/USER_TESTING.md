@@ -48,7 +48,7 @@ application routes. Use a separate project instead of deleting verification data
 6. To test fictional confirmation, check **I approve one fictional mock
    submission**, then choose **Submit to local mock**. The local receipt has a
    submission count of one. Repeated requests reuse the durable operation.
-7. Reload the page or restart with `docker compose restart`. The selected profile,
+7. Reload the page or restart the fictional workspace with `docker compose --profile fixture restart`. The selected profile,
    document revisions, application history, and receipt remain available.
 
 ## Use your own profile and real public listings

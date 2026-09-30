@@ -10,6 +10,7 @@ Push-Location $PSScriptRoot
 $priorPort = $env:MJOBS_PORT
 $priorMode = $env:MJOBS_OPERATION_MODE
 $priorMock = $env:MJOBS_COMPOSE_MOCK
+$priorProfiles = $env:COMPOSE_PROFILES
 try {
     if ($Personal) {
         if (-not $PSBoundParameters.ContainsKey('Project')) { $Project = 'mjobs-personal' }
@@ -38,6 +39,7 @@ try {
     $env:MJOBS_PORT = [string]$Port
     $env:MJOBS_OPERATION_MODE = if ($Personal) { 'PERSONAL' } else { 'FIXTURE' }
     $env:MJOBS_COMPOSE_MOCK = if ($Personal) { '0' } else { '1' }
+    $env:COMPOSE_PROFILES = if ($Personal) { '' } else { 'fixture' }
     $composeArgs = @('compose','-p',$Project,'up','-d','--wait','--wait-timeout','180')
     if (-not $NoBuild) { $composeArgs += '--build' }
     & docker @composeArgs
@@ -58,5 +60,6 @@ try {
     $env:MJOBS_PORT = $priorPort
     $env:MJOBS_OPERATION_MODE = $priorMode
     $env:MJOBS_COMPOSE_MOCK = $priorMock
+    $env:COMPOSE_PROFILES = $priorProfiles
     Pop-Location
 }

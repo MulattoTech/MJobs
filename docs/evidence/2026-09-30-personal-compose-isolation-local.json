@@ -1,0 +1,44 @@
+{
+  "timestamp": "2026-09-30T21:41:49Z",
+  "target": "MJ-REQ-009 fixture-only mock service and fail-closed direct Compose defaults",
+  "action": "Make the fictional ATS an explicit Compose fixture profile; default direct Compose and the personal launcher to PERSONAL without mock origin; keep fixture recovery explicit",
+  "result": "PARTIAL",
+  "validation": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_compose_modes -v",
+      "result": "PASS",
+      "observed": "Two rendered-Compose tests PASS after observed RED failures: default PERSONAL omits mock and disables mock origin, while explicit FIXTURE includes mock and enables mock origin"
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p test_*.py -v",
+      "result": "PASS",
+      "observed": "82 Python tests including safety, browser fixture, worker lifecycle, source policy, progress journal and rendered Compose modes"
+    },
+    {
+      "command": "PowerShell Parser.ParseFile(Start-MJobs.ps1)",
+      "result": "PASS",
+      "observed": "Launcher syntax parsed without errors after preserving and setting COMPOSE_PROFILES"
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.catalogue",
+      "result": "PASS",
+      "observed": "Original and reference catalogue remained consistent"
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.progress validate",
+      "result": "PASS",
+      "observed": "Existing milestone journal remained valid"
+    },
+    {
+      "command": "docker info --format '{{.OSType}}'",
+      "result": "BLOCKED_ENVIRONMENT",
+      "observed": "Docker Desktop Linux engine pipe was unavailable on the local Windows host; deployed Compose integration will run in GitHub Actions"
+    }
+  ],
+  "data_impact": "No migration. Direct Compose defaults to PERSONAL, disables mock-origin discovery, and excludes the fictional ATS. The fixture launcher and CI explicitly activate the fixture profile; personal and fixture Compose projects retain separate volumes.",
+  "recovery": "Existing named volumes are preserved. For fictional verification, use Start-MJobs.ps1 without -Personal or explicitly set FIXTURE mode, mock-origin enabled and the fixture Compose profile. For personal operation, use Start-MJobs.ps1 -Personal with a separate project. A stale fixture database is refused by the personal API.",
+  "limitations": [
+    "Deployed fixture and personal Compose startup with actual service-set assertions are pending at this implementation head.",
+    "MJ-REQ-009 remains PARTIAL; complete staged operation and release readiness remain unverified."
+  ]
+}
