@@ -63,7 +63,8 @@
       "status": "DRAFT_PR",
       "branch": "codex/mj-pr-003-governance-safety",
       "draft_until_verified": true,
-      "notes": "Initial P0 vertical slice: MJ-REQ-008 evidence-linked atomic progress journal; MJ-REQ-009 through MJ-REQ-011 retain their separate unverified acceptance scope."
+      "notes": "Initial P0 vertical slice: MJ-REQ-008 evidence-linked atomic progress journal; MJ-REQ-009 through MJ-REQ-011 retain their separate unverified acceptance scope.",
+      "pr_number": 428
     },
     {
       "id": "MJ-PR-004",

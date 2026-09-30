@@ -84,6 +84,12 @@
       "url": "https://github.com/MulattoTech/MJobs/pull/370",
       "branch": "codex/mj-pr-149-user-testing-mvp",
       "status": "MERGED"
+    },
+    {
+      "number": 428,
+      "url": "https://github.com/MulattoTech/MJobs/pull/428",
+      "branch": "codex/mj-pr-003-governance-safety",
+      "status": "DRAFT_PR"
     }
   ],
   "tests_passed": [
@@ -102,7 +108,7 @@
     "Remote mock-spine CI: pull_request run 36766636806 PASS at 90b59ca",
     "Remote worker-lifecycle CI: pull_request run 36767410947 PASS at 29012e0",
     "Remote connected-UI CI: pull_request run 36768260666 and push run 36768256061 PASS at d807851",
-    "P0 progress journal: 3 targeted and 71 affected Python tests PASS locally; catalogue and progress validators PASS"
+    "P0 progress journal: 4 targeted and 72 affected Python tests PASS locally; catalogue and progress validators PASS"
   ],
   "tests_failed": [],
   "tests_not_run": [

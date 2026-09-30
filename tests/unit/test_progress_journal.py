@@ -66,6 +66,15 @@ class ProgressJournalTests(unittest.TestCase):
         self.assertEqual(self.state_path.read_bytes(), before)
         self.assertEqual(list((self.root / "planning").glob("*.tmp")), [])
 
+    def test_milestone_chronology_uses_actual_utc_time(self):
+        append_milestone(self.state_path, self.entry)
+        before = self.state_path.read_bytes()
+        earlier = {**self.entry, "milestone_id": "M3-EARLIER",
+                   "timestamp": "2026-09-30T19:59:59+00:00"}
+        with self.assertRaises(ValueError):
+            append_milestone(self.state_path, earlier)
+        self.assertEqual(self.state_path.read_bytes(), before)
+
 
 if __name__ == "__main__":
     unittest.main()

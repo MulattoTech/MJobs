@@ -19,6 +19,15 @@ LIST_FIELDS = (
 )
 
 
+def _utc_timestamp(value: object) -> datetime:
+    if not isinstance(value, str):
+        raise ValueError("timestamp must be text")
+    stamp = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    if stamp.utcoffset() != timedelta(0):
+        raise ValueError("UTC required")
+    return stamp
+
+
 def _entry_errors(root: Path, entry: object) -> list[str]:
     if not isinstance(entry, dict):
         return ["Milestone must be an object"]
@@ -27,9 +36,7 @@ def _entry_errors(root: Path, entry: object) -> list[str]:
         if not isinstance(entry.get(key), str) or not entry[key].strip():
             errors.append(f"Missing milestone {key}")
     try:
-        stamp = datetime.fromisoformat(entry["timestamp"].replace("Z", "+00:00"))
-        if stamp.utcoffset() != timedelta(0):
-            raise ValueError("UTC required")
+        _utc_timestamp(entry["timestamp"])
     except (KeyError, AttributeError, TypeError, ValueError):
         errors.append("Milestone timestamp must be UTC ISO-8601")
     for key in LIST_FIELDS:
@@ -62,7 +69,7 @@ def validate_journal(root: Path) -> list[str]:
         return ["Implementation milestone journal is empty or missing"]
     errors = []
     seen = set()
-    previous = ""
+    previous = None
     for entry in entries:
         errors.extend(_entry_errors(root, entry))
         if not isinstance(entry, dict):
@@ -72,10 +79,13 @@ def validate_journal(root: Path) -> list[str]:
             errors.append(f"Duplicate milestone: {identifier}")
         seen.add(identifier)
         timestamp = entry.get("timestamp")
-        if isinstance(timestamp, str):
-            if timestamp < previous:
+        try:
+            stamp = _utc_timestamp(timestamp)
+            if previous is not None and stamp < previous:
                 errors.append(f"Milestones out of timestamp order: {identifier}")
-            previous = timestamp
+            previous = stamp
+        except ValueError:
+            pass
     if isinstance(entries[-1], dict):
         if entries[-1].get("current_phase") != state.get("current_phase"):
             errors.append("Current phase disagrees with last milestone")
@@ -98,7 +108,7 @@ def append_milestone(state_path: Path, entry: dict) -> None:
         raise ValueError("Existing milestone journal contains an invalid entry")
     if any(item.get("milestone_id") == entry["milestone_id"] for item in entries):
         raise ValueError(f"Duplicate milestone: {entry['milestone_id']}")
-    if entries and entry["timestamp"] < entries[-1]["timestamp"]:
+    if entries and _utc_timestamp(entry["timestamp"]) < _utc_timestamp(entries[-1]["timestamp"]):
         raise ValueError("Milestone timestamp precedes existing checkpoint")
     entries.append(entry)
     state["current_phase"] = entry["current_phase"]
