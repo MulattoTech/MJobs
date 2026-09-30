@@ -80,11 +80,11 @@
     "Final isolated Compose outage/restart proof: exact original application/operation/receipt retained",
     "55 current lifecycle and mock-spine tests; deployed three-queue Compose E2E and outage/restart PASS",
     "Remote governance CI: pull_request run 36765678280 PASS at e97d8b0",
-    "Remote mock-spine CI: pull_request run 36766115299 PASS at 782f04e"
+    "Remote mock-spine CI: pull_request run 36766115299 PASS at 782f04e",
+    "Remote worker-lifecycle CI: pull_request run 36766864456 and push run 36766859460 PASS at e542753"
   ],
   "tests_failed": [],
   "tests_not_run": [
-    "Worker lifecycle remote CI: NOT_RUN at this branch head",
     "Real read-only source/company integrations",
     "Frontend and remaining product requirements"
   ],
@@ -115,6 +115,12 @@
     "head": "782f04ec206d012b1002f31af4fcf0b8cf236e18",
     "pull_request_run_id": 36766115299,
     "evidence_path": "docs/evidence/2026-09-30-ci-368.json"
+  },
+  "worker_lifecycle_ci": {
+    "result": "PASS",
+    "head": "e54275314d1f5aa741bc026dc16f364ce928c9b1",
+    "pull_request_run_id": 36766864456,
+    "evidence_path": "docs/evidence/2026-09-30-ci-369.json"
   },
   "recommended_resume_step": "Read docs/evidence/2026-09-29-resume-checkpoint.json and prompts/USER_TESTABLE_MVP_GOAL.md; preserve unfinished current branch and PR367/368",
   "migrations_applied": [
