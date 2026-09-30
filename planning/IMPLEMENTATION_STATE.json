@@ -83,6 +83,12 @@
       "url": "https://github.com/MulattoTech/MJobs/pull/369",
       "branch": "codex/mj-pr-002-governance-safety",
       "status": "DRAFT_PR"
+    },
+    {
+      "number": 370,
+      "url": "https://github.com/MulattoTech/MJobs/pull/370",
+      "branch": "codex/mj-pr-149-user-testing-mvp",
+      "status": "DRAFT_PR"
     }
   ],
   "tests_passed": [
@@ -146,5 +152,16 @@
     "startup_command": ".\\Start-MJobs.ps1",
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
+  },
+  "last_implementation_commit": "836d320130452fb88352a4fb6eb89bc3b89fc1f5",
+  "publication": {
+    "result": "PASS",
+    "transport": "Authenticated GitHub Git Database API",
+    "local_remote_commit_identical": true,
+    "force": false
+  },
+  "optional_afk_journal": {
+    "result": "BLOCKED_ENVIRONMENT",
+    "reason": "Managed filesystem rejected direct Python write-lock under .git/afk-dev; repository planning/evidence remains the durable handoff. Original full-spec AFK goal remains IN_PROGRESS."
   }
 }

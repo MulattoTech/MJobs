@@ -1,0 +1,61 @@
+{
+  "timestamp": "2026-09-30T13:24:41.674420+00:00",
+  "local_user_testing_result": "PASS",
+  "overall_result": "PARTIAL",
+  "branch": "codex/mj-pr-149-user-testing-mvp",
+  "implementation_commit": "836d320130452fb88352a4fb6eb89bc3b89fc1f5",
+  "conversation_id": "01a0ef75-a0bd-7b90-8725-6dacd68f6716",
+  "origin_main_preserved": "4b8b6ed8e3b3e792d78e55df4742a7cd3b05244c",
+  "open_draft_prs": [
+    367,
+    368,
+    369,
+    370
+  ],
+  "publication": {
+    "result": "PASS",
+    "transport": "Authenticated GitHub Git Database API",
+    "local_remote_commit_identical": true,
+    "force": false
+  },
+  "requirements_preserved": 366,
+  "user_testing": {
+    "result": "PASS",
+    "timestamp": "2026-09-30T13:05:46.654343+00:00",
+    "evidence": [
+      "docs/evidence/2026-09-30-mvp-ui-final.json",
+      "docs/evidence/2026-09-30-mvp-fresh-start.json",
+      "docs/evidence/2026-09-30-mvp-fresh-ui.json",
+      "docs/evidence/2026-09-30-mvp-recovery-final.json",
+      "docs/evidence/2026-09-30-mvp-public-source.json",
+      "docs/evidence/2026-09-30-mvp-ui-public-verified.json"
+    ],
+    "scope": "Connected local single-user testing; full specification and release remain PARTIAL",
+    "url": "http://127.0.0.1:18700",
+    "startup_command": ".\\Start-MJobs.ps1",
+    "guide": "docs/USER_TESTING.md",
+    "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
+  },
+  "startup_command": ".\\Start-MJobs.ps1",
+  "guide": "docs/USER_TESTING.md",
+  "resume_guide": "docs/RESUME.md",
+  "agents_server_command": "codex agents",
+  "resume_command": "codex resume 01a0ef75-a0bd-7b90-8725-6dacd68f6716 --remote 'unix://C:\\Users\\Dylan\\.codex\\app-server-control\\agents-local.sock' -C C:\\Tools\\Dev\\MJobs",
+  "next_goal_file": "prompts/NEXT_USER_TESTING_GOAL.md",
+  "external_submission_enabled": false,
+  "remote_ci": {
+    "result": "BLOCKED_EXTERNAL",
+    "reason": "OAuth token lacks workflow scope. Interactive gh auth refresh continuation was rejected by tool policy: approval required but session approval policy is Never.",
+    "user_terminal_command": "gh auth refresh -h github.com -s workflow",
+    "staged_workflow": "infra/ci/verification.yml"
+  },
+  "optional_afk_journal": {
+    "result": "BLOCKED_ENVIRONMENT",
+    "reason": "Managed filesystem rejected direct Python write-lock under .git/afk-dev; repository planning/evidence remains the durable handoff. Original full-spec AFK goal remains IN_PROGRESS."
+  },
+  "notes": [
+    "Standalone native Git stage/commit succeeded; combined commit command was denied, and normal Git HTTPS transport failed on managed Windows credentials. GitHub API publication preserved the exact local commit hash and parent without force.",
+    "Default localhost deployment remains ready; fresh test project stopped, volumes retained.",
+    "Re-verify local/GitHub authority before continuing. Preserve newer work and do not claim full-spec/release completion."
+  ]
+}
