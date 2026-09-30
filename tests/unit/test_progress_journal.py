@@ -75,6 +75,19 @@ class ProgressJournalTests(unittest.TestCase):
             append_milestone(self.state_path, earlier)
         self.assertEqual(self.state_path.read_bytes(), before)
 
+    def test_corrupt_prior_checkpoint_is_not_silently_extended(self):
+        append_milestone(self.state_path, self.entry)
+        (self.root / "docs/evidence/checkpoint.json").unlink()
+        (self.root / "docs/evidence/next.json").write_text("{}", encoding="utf-8")
+        before = self.state_path.read_bytes()
+        next_entry = {**self.entry, "milestone_id": "M3-NEXT",
+                      "timestamp": "2026-09-30T20:01:00Z",
+                      "last_safe_checkpoint": {"git_commit": "b" * 40,
+                                               "evidence_path": "docs/evidence/next.json"}}
+        with self.assertRaisesRegex(ValueError, "Existing milestone journal is invalid"):
+            append_milestone(self.state_path, next_entry)
+        self.assertEqual(self.state_path.read_bytes(), before)
+
 
 if __name__ == "__main__":
     unittest.main()

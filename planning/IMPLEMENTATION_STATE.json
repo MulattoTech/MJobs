@@ -108,7 +108,7 @@
     "Remote mock-spine CI: pull_request run 36766636806 PASS at 90b59ca",
     "Remote worker-lifecycle CI: pull_request run 36767410947 PASS at 29012e0",
     "Remote connected-UI CI: pull_request run 36768260666 and push run 36768256061 PASS at d807851",
-    "P0 progress journal: 4 targeted and 72 affected Python tests PASS locally; catalogue and progress validators PASS"
+    "P0 progress journal: 5 targeted and 73 affected Python tests PASS locally; catalogue and progress validators PASS"
   ],
   "tests_failed": [],
   "tests_not_run": [

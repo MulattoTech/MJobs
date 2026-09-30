@@ -104,8 +104,10 @@ def append_milestone(state_path: Path, entry: dict) -> None:
     entries = state.setdefault("milestone_journal", [])
     if not isinstance(entries, list):
         raise ValueError("Implementation milestone journal is not a list")
-    if any(not isinstance(item, dict) for item in entries):
-        raise ValueError("Existing milestone journal contains an invalid entry")
+    if entries:
+        prior_errors = validate_journal(root)
+        if prior_errors:
+            raise ValueError("Existing milestone journal is invalid: " + "; ".join(prior_errors))
     if any(item.get("milestone_id") == entry["milestone_id"] for item in entries):
         raise ValueError(f"Duplicate milestone: {entry['milestone_id']}")
     if entries and _utc_timestamp(entry["timestamp"]) < _utc_timestamp(entries[-1]["timestamp"]):

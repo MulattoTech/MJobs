@@ -7,12 +7,12 @@
     {
       "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_progress_journal -v",
       "result": "PASS",
-      "observed": "4 tests: reload, duplicate/missing-evidence rejection, failed replacement preserves previous state, UTC chronology"
+      "observed": "5 tests: reload, duplicate/missing-evidence rejection, failed replacement preservation, UTC chronology, corrupt-prior-journal rejection"
     },
     {
       "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py' -v",
       "result": "PASS",
-      "observed": "72 tests including affected browser, API, persistence, source, worker and safety suites"
+      "observed": "73 tests including affected browser, API, persistence, source, worker and safety suites"
     },
     {
       "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.catalogue",
