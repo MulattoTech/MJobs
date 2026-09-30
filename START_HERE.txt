@@ -1,0 +1,14 @@
+MJOBS CODEX CONTROL PACK
+
+Recommended:
+1. Extract the CONTENTS of this ZIP into C:\Tools\Dev\MJobs.
+   If that directory is no longer empty, do not overwrite newer files; give the ZIP to Codex to reconcile.
+2. Start Codex CLI in C:\Tools\Dev\MJobs.
+3. Prompt:
+   Read CODEX_START.md and execute it completely. Treat AGENTS.md as the durable repository instruction
+   contract. Re-verify local and GitHub state first; preserve any newer work. Do not perform real external
+   job application submission without my explicit enablement.
+4. Future sessions: read and execute prompts\CONTINUE_NEXT_PR.md.
+
+The giant original prompt is preserved under docs\spec\source for traceability, but routine work uses scoped
+area specs and requirement issues.

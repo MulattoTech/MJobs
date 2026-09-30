@@ -1,0 +1,44 @@
+{
+  "timestamp": "2026-09-29T23:32:18.716999+00:00",
+  "target": "M0 bootstrap and policy slice",
+  "result": "PASS",
+  "source_main": "4b8b6ed8e3b3e792d78e55df4742a7cd3b05244c",
+  "checks": [
+    {
+      "command": "python -m unittest discover -s tests -p test_*.py -v",
+      "result": "PASS",
+      "tests": 28,
+      "evidence_path": "docs/evidence/2026-09-29-governance-green.log"
+    },
+    {
+      "command": "python bootstrap-tools/sync_backlog.py --repo MulattoTech/MJobs",
+      "result": "PASS",
+      "mapped": 366,
+      "created_on_rerun": 0,
+      "evidence_path": "docs/evidence/2026-09-29-backlog-idempotence.log"
+    },
+    {
+      "command": "python -m tools.verification.catalogue",
+      "result": "PASS",
+      "queued_units": 147,
+      "requirement_ids": 366
+    },
+    {
+      "command": "docker info --format ServerVersion",
+      "result": "PASS",
+      "server_version": "29.8.1"
+    }
+  ],
+  "requirement_acceptance": {
+    "MJ-REQ-000": "PARTIAL",
+    "MJ-REQ-001": "PARTIAL",
+    "MJ-REQ-002": "PARTIAL",
+    "MJ-REQ-003": "NOT_RUN"
+  },
+  "limitations": [
+    "Full application and browser spine not implemented in this slice",
+    "Policy counters must come from atomic durable authority; the pure policy does not reserve them",
+    "General CLI malformed seed validation remains the catalogue validator responsibility"
+  ],
+  "review": "Independent read-only audit; substantive lock and reconciliation-order findings reproduced and fixed with tests"
+}

@@ -1,0 +1,14 @@
+{
+  "name": "MJobs Codex Project Control Pack",
+  "generated_date": "2026-09-29",
+  "source_file": "docs/spec/source/MJobs_Startup_Prompt.original.md",
+  "source_sha256": "1cf94181ae4b8e599063ada219759cb39b766f9d1bb7d860b99f4bb58adc0998",
+  "source_lines": 8246,
+  "source_words": 16486,
+  "numbered_requirements": 301,
+  "provider_child_issues": 65,
+  "issue_seed_total": 366,
+  "planned_pr_units": 144,
+  "mutated_local_workspace": false,
+  "mutated_github_repo": false
+}

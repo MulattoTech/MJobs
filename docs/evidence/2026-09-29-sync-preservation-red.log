@@ -1,0 +1,70 @@
+test_ambiguous_previous_creation_is_not_blindly_retried (tests.unit.test_sync_backlog.BacklogTests.test_ambiguous_previous_creation_is_not_blindly_retried) ... ok
+test_atomic_checkpoint_can_be_read_after_each_acknowledged_issue (tests.unit.test_sync_backlog.BacklogTests.test_atomic_checkpoint_can_be_read_after_each_acknowledged_issue) ... ok
+test_dead_owner_lock_can_be_recovered_after_explicit_request (tests.unit.test_sync_backlog.BacklogTests.test_dead_owner_lock_can_be_recovered_after_explicit_request) ... ok
+test_duplicate_remote_markers_are_not_silently_overwritten (tests.unit.test_sync_backlog.BacklogTests.test_duplicate_remote_markers_are_not_silently_overwritten) ... ok
+test_existing_labels_are_preserved (tests.unit.test_sync_backlog.BacklogTests.test_existing_labels_are_preserved) ... FAIL
+test_external_process_timeout_is_bounded_and_classified (tests.unit.test_sync_backlog.BacklogTests.test_external_process_timeout_is_bounded_and_classified) ... ok
+created A -> #17
+test_failed_creation_retains_acknowledged_map_and_pending_marker (tests.unit.test_sync_backlog.BacklogTests.test_failed_creation_retains_acknowledged_map_and_pending_marker) ... ok
+test_malformed_existing_map_is_preserved_and_classified (tests.unit.test_sync_backlog.BacklogTests.test_malformed_existing_map_is_preserved_and_classified) ... ERROR
+test_recovery_never_removes_live_owner_lock (tests.unit.test_sync_backlog.BacklogTests.test_recovery_never_removes_live_owner_lock) ... ok
+test_second_local_sync_cannot_acquire_same_mutation_lock (tests.unit.test_sync_backlog.BacklogTests.test_second_local_sync_cannot_acquire_same_mutation_lock) ... ok
+
+======================================================================
+ERROR: test_malformed_existing_map_is_preserved_and_classified (tests.unit.test_sync_backlog.BacklogTests.test_malformed_existing_map_is_preserved_and_classified)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Tools\Dev\MJobs\tests\unit\test_sync_backlog.py", line 94, in test_malformed_existing_map_is_preserved_and_classified
+    sync.synchronize("owner/repo", [], path=path, delay=0)
+  File "C:\Tools\Dev\MJobs\bootstrap-tools\sync_backlog.py", line 125, in synchronize
+    if prior["repository"] != repo:
+       ~~~~~^^^^^^^^^^^^^^
+KeyError: 'repository'
+
+======================================================================
+FAIL: test_existing_labels_are_preserved (tests.unit.test_sync_backlog.BacklogTests.test_existing_labels_are_preserved)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Tools\Dev\MJobs\tests\unit\test_sync_backlog.py", line 87, in test_existing_labels_are_preserved
+    command.assert_not_called()
+  File "C:\Users\Dylan\AppData\Local\Programs\Python\Python312\Lib\unittest\mock.py", line 910, in assert_not_called
+    raise AssertionError(msg)
+AssertionError: Expected 'run' to not have been called. Called 33 times.
+Calls: [call(['gh', 'label', 'create', 'mj:catalogued', '--repo', 'owner/repo', '--description', 'Generated from the authoritative MJobs requirements catalogue', '--color', 'BFD4F2', '--force']),
+ call(['gh', 'label', 'create', 'child-requirement', '--repo', 'owner/repo', '--description', 'Independently shippable child of a numbered MJobs requirement', '--color', 'BFD4F2', '--force']),
+ call(['gh', 'label', 'create', 'priority:P0', '--repo', 'owner/repo', '--description', 'MJobs priority P0', '--color', 'BFD4F2', '--force']),
+ call(['gh', 'label', 'create', 'priority:P1', '--repo', 'owner/repo', '--description', 'MJobs priority P1', '--color', 'BFD4F2', '--force']),
+ call(['gh', 'label', 'create', 'priority:P2', '--repo', 'owner/repo', '--description', 'MJobs priority P2', '--color', 'BFD4F2', '--force']),
+ call(['gh', 'label', 'create', 'priority:P3', '--repo', 'owner/repo', '--description', 'MJobs priority P3', '--color', 'BFD4F2', '--force']),
+ call(['gh', 'label', 'create', 'priority:P4', '--repo', 'owner/repo', '--description', 'MJobs priority P4', '--color', 'BFD4F2', '--force']),
+ call(['gh', 'label', 'create', 'priority:P5', '--repo', 'owner/repo', '--description', 'MJobs priority P5', '--color', 'BFD4F2', '--force']),
+ call(['gh', 'label', 'create', 'priority:P6', '--repo', 'owner/repo', '--description', 'MJobs priority P6', '--color', 'BFD4F2', '--force']),
+ call(['gh', 'label', 'create', 'type:docs', '--repo', 'owner/repo', '--description', 'MJobs issue type: docs', '--color', 'BFD4F2', '--force']),
+ call(['gh', 'label', 'create', 'type:feature', '--repo', 'owner/repo', '--description', 'MJobs issue type: feature', '--color', 'BFD4F2', '--force']),
+ call(['gh', 'label', 'create', 'type:frontend', '--repo', 'owner/repo', '--description', 'MJobs issue type: frontend', '--color', 'BFD4F2', '--force']),
+ call(['gh', 'label', 'create', 'type:governance', '--repo', 'owner/repo', '--description', 'MJobs issue type: governance', '--color', 'BFD4F2', '--force']),
+ call(['gh', 'label', 'create', 'type:integration', '--repo', 'owner/repo', '--description', 'MJobs issue type: integration', '--color', 'BFD4F2', '--force']),
+ call(['gh', 'label', 'create', 'type:ops', '--repo', 'owner/repo', '--description', 'MJobs issue type: ops', '--color', 'BFD4F2', '--force']),
+ call(['gh', 'label', 'create', 'type:security', '--repo', 'owner/repo', '--description', 'MJobs issue type: security', '--color', 'BFD4F2', '--force']),
+ call(['gh', 'label', 'create', 'type:test', '--repo', 'owner/repo', '--description', 'MJobs issue type: test', '--color', 'BFD4F2', '--force']),
+ call(['gh', 'label', 'create', 'type:tracking', '--repo', 'owner/repo', '--description', 'MJobs issue type: tracking', '--color', 'BFD4F2', '--force']),
+ call(['gh', 'label', 'create', 'area:governance_safety', '--repo', 'owner/repo', '--description', 'MJobs area: governance_safety', '--color', 'BFD4F2', '--force']),
+ call(['gh', 'label', 'create', 'area:core_search_model', '--repo', 'owner/repo', '--description', 'MJobs area: core_search_model', '--color', 'BFD4F2', '--force']),
+ call(['gh', 'label', 'create', 'area:job_identity_dedupe', '--repo', 'owner/repo', '--description', 'MJobs area: job_identity_dedupe', '--color', 'BFD4F2', '--force']),
+ call(['gh', 'label', 'create', 'area:company_ats_discovery', '--repo', 'owner/repo', '--description', 'MJobs area: company_ats_discovery', '--color', 'BFD4F2', '--force']),
+ call(['gh', 'label', 'create', 'area:job_lifecycle', '--repo', 'owner/repo', '--description', 'MJobs area: job_lifecycle', '--color', 'BFD4F2', '--force']),
+ call(['gh', 'label', 'create', 'area:career_profile_documents', '--repo', 'owner/repo', '--description', 'MJobs area: career_profile_documents', '--color', 'BFD4F2', '--force']),
+ call(['gh', 'label', 'create', 'area:matching_ai', '--repo', 'owner/repo', '--description', 'MJobs area: matching_ai', '--color', 'BFD4F2', '--force']),
+ call(['gh', 'label', 'create', 'area:application_automation', '--repo', 'owner/repo', '--description', 'MJobs area: application_automation', '--color', 'BFD4F2', '--force']),
+ call(['gh', 'label', 'create', 'area:orchestration_data_security', '--repo', 'owner/repo', '--description', 'MJobs area: orchestration_data_security', '--color', 'BFD4F2', '--force']),
+ call(['gh', 'label', 'create', 'area:web_api_analytics', '--repo', 'owner/repo', '--description', 'MJobs area: web_api_analytics', '--color', 'BFD4F2', '--force']),
+ call(['gh', 'label', 'create', 'area:test_harness', '--repo', 'owner/repo', '--description', 'MJobs area: test_harness', '--color', 'BFD4F2', '--force']),
+ call(['gh', 'label', 'create', 'area:performance_learning_history', '--repo', 'owner/repo', '--description', 'MJobs area: performance_learning_history', '--color', 'BFD4F2', '--force']),
+ call(['gh', 'label', 'create', 'area:operations_ux_ci', '--repo', 'owner/repo', '--description', 'MJobs area: operations_ux_ci', '--color', 'BFD4F2', '--force']),
+ call(['gh', 'label', 'create', 'area:docs_verification', '--repo', 'owner/repo', '--description', 'MJobs area: docs_verification', '--color', 'BFD4F2', '--force']),
+ call(['gh', 'label', 'create', 'area:delivery_control', '--repo', 'owner/repo', '--description', 'MJobs area: delivery_control', '--color', 'BFD4F2', '--force'])].
+
+----------------------------------------------------------------------
+Ran 10 tests in 0.031s
+
+FAILED (failures=1, errors=1)
