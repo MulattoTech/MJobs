@@ -10,6 +10,11 @@
       "observed": "Catalogue validation: PASS"
     },
     {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_catalogue -v",
+      "result": "PASS",
+      "observed": "3 tests; reference status coverage and evidence-free PASS are rejected"
+    },
+    {
       "command": "python -m json.tool planning/REFERENCE_GAP_MATRIX.json; python -m json.tool planning/REFERENCE_GAP_ISSUE_MAP.json; python -m json.tool planning/IMPLEMENTATION_STATE.json; python -m json.tool planning/PR_QUEUE.json",
       "result": "PASS"
     },

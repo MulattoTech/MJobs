@@ -48,6 +48,32 @@ def validate_catalogue(root: Path) -> list[str]:
 
     for identifier in queue:
         visit(identifier)
+    reference_matrix = root / "planning/REFERENCE_GAP_MATRIX.json"
+    reference_map = root / "planning/REFERENCE_GAP_ISSUE_MAP.json"
+    if reference_matrix.exists() or reference_map.exists():
+        if not reference_matrix.exists() or not reference_map.exists():
+            errors.append("Reference matrix and issue map must both exist")
+        else:
+            matrix = json.loads(reference_matrix.read_text(encoding="utf-8"))
+            issue_map = json.loads(reference_map.read_text(encoding="utf-8"))
+            expected = {f"MJ-REF-{number:03d}" for number in range(1, 43)}
+            listed = matrix.get("canonical_ids", [])
+            if len(listed) != 42 or set(listed) != expected:
+                errors.append("Reference catalogue must contain each MJ-REF-001..042 exactly once")
+            if matrix.get("reference_gap_count") != 42 or matrix.get("original_catalogue_count") != len(ids):
+                errors.append("Reference catalogue counts disagree with original and canonical catalogues")
+            issues = issue_map.get("issues", {})
+            if set(issues) != expected or len(set(issues.values())) != 42:
+                errors.append("Reference issue map must contain 42 distinct canonical issues")
+            statuses = matrix.get("result_by_id", {})
+            if set(statuses) != expected:
+                errors.append("Reference completion statuses must cover all 42 canonical issues")
+            allowed = {"PASS", "FAIL", "PARTIAL", "BLOCKED_EXTERNAL", "BLOCKED_ENVIRONMENT", "NOT_RUN", "NOT_APPLICABLE"}
+            for identifier, status in statuses.items():
+                if status.get("result") not in allowed or not isinstance(status.get("evidence"), list):
+                    errors.append(f"Invalid reference completion record: {identifier}")
+                elif status["result"] == "PASS" and not status["evidence"]:
+                    errors.append(f"Reference PASS requires evidence: {identifier}")
     return errors
 
 
