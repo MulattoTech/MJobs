@@ -53,8 +53,9 @@ revisions instead of editing an applied revision.
 
 ## Current limits and recovery
 
-- The single worker shares discovery and browser work; independent queues,
-  general cancellation and RUNNING leases are still required.
+- Discovery, document preparation, and browser application work have separate
+  queues and worker processes. General cancellation and RUNNING leases remain
+  incomplete.
 - An interrupted pre-submit FILLING operation needs operator review. A
   SUBMITTING application is reconciled from a receipt or remains
   SUBMISSION_UNCONFIRMED. Never reset it to retry a click.
@@ -64,8 +65,8 @@ revisions instead of editing an applied revision.
 - Each durable operation has a stable identity. Existing terminal operations
   are returned with their current state; no automatic failed-operation retry
   or recurring source scheduler is provided yet.
-- No real read-only providers, application providers, AI or notifications are
-  included in this milestone.
+- Configured public Greenhouse boards are the only real read-only provider;
+  real application providers, AI, and notifications remain incomplete.
 - The active CI definition is `.github/workflows/ci.yml`. Workflow authorization
   was restored on 2026-09-30; the merged connected UI spine passed remote CI
   (see `docs/evidence/2026-09-30-ci-370.json`). The current PR head must pass

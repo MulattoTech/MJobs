@@ -16,6 +16,10 @@ The command preserves local data, builds the application, applies migrations,
 checks the workers, and opens http://127.0.0.1:18700. See
 [the user-testing guide](docs/USER_TESTING.md) for the connected journey,
 diagnostics, verification commands, and current limitations.
+Run the same command after Docker Desktop restarts to reconcile services without
+deleting their named data volumes. The PostgreSQL, Redis, API, and worker
+containers use `unless-stopped` restart policies; applying a newer Compose file
+to an existing project requires another launcher run.
 
 For a separate personal workspace without fictional discovery or mock application
 actions, run `./Start-MJobs.ps1 -Personal` in PowerShell. It uses a separate

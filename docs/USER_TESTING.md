@@ -133,10 +133,9 @@ verification is opt-in with `python -m cli.public_source_probe --tenant <token>
 - A normal generation failure/cancellation removes its uncommitted files. A
   process kill can leave unreferenced files in the local document volume; no
   automatic retention/garbage-collection policy is implemented yet.
-- GitHub Actions publication/execution requires the account token's `workflow`
-  scope. The reviewed workflow is staged in `infra/ci/verification.yml`.
-  Local validation is separate from remote CI; implementation PRs remain drafts
-  while this gate is unresolved.
+- GitHub Actions workflow authorization was restored on 2026-09-30. Local
+  validation and exact-head remote CI remain separate evidence; newer
+  implementation PRs stay draft until their own checks pass.
 
 The full requirement catalogue is preserved. These limits are delivery scope,
 not deleted requirements.
