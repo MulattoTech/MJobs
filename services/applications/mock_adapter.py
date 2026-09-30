@@ -64,7 +64,8 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
         application = store.application(application_id)
         with store.engine.connect() as connection:
             route = dict(connection.execute(select(m.routes).where(m.routes.c.id == application["route_id"])).mappings().one())
-            documents = list(connection.execute(select(m.documents).where(m.documents.c.application_id == application_id)).mappings())
+            documents = list(connection.execute(select(m.documents).where(m.documents.c.application_id == application_id,
+                m.documents.c.version == application["document_version"])).mappings())
         if application["target"] != "MOCK" or route["provider"] != "mock-ats" or not client.allowed(route["url"]):
             raise ValueError("This adapter supports only the configured local mock origin")
         if application["state"] == "CONFIRMED":

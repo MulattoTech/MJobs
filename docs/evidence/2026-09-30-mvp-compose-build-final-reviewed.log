@@ -1,0 +1,111 @@
+ Image mjobs-local:spine Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 1.31kB done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 729B done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/python:3.12-slim
+#3 ...
+
+#4 [internal] load metadata for docker.io/library/node:24-slim
+#4 DONE 0.3s
+
+#3 [internal] load metadata for docker.io/library/python:3.12-slim
+#3 DONE 0.3s
+
+#5 [internal] load .dockerignore
+#5 transferring context: 166B done
+#5 DONE 0.0s
+
+#6 [stage-1 1/7] FROM docker.io/library/python:3.12-slim@sha256:f77ac9e44ae96ef2c90b8053ea08c31f8be030f824196b0ae4db6d462c84e51f
+#6 resolve docker.io/library/python:3.12-slim@sha256:f77ac9e44ae96ef2c90b8053ea08c31f8be030f824196b0ae4db6d462c84e51f 0.0s done
+#6 DONE 0.0s
+
+#7 [web 1/6] FROM docker.io/library/node:24-slim@sha256:0e0ff40c39bc087845bfb27465a0df4ea419520094bc35842ff83dd8cbe6f9b6
+#7 resolve docker.io/library/node:24-slim@sha256:0e0ff40c39bc087845bfb27465a0df4ea419520094bc35842ff83dd8cbe6f9b6 0.0s done
+#7 DONE 0.0s
+
+#8 [internal] load build context
+#8 transferring context: 43.59kB 0.0s done
+#8 DONE 0.0s
+
+#9 [stage-1 3/7] COPY requirements.lock ./requirements.lock
+#9 CACHED
+
+#10 [stage-1 2/7] WORKDIR /app
+#10 CACHED
+
+#11 [stage-1 4/7] RUN pip install --no-cache-dir -r requirements.lock && python -m playwright install --with-deps chromium
+#11 CACHED
+
+#12 [web 2/6] WORKDIR /web
+#12 CACHED
+
+#13 [web 3/6] COPY apps/web/package.json apps/web/package-lock.json ./
+#13 CACHED
+
+#14 [web 4/6] RUN npm ci --no-audit --no-fund
+#14 CACHED
+
+#15 [web 5/6] COPY apps/web/ ./
+#15 DONE 0.1s
+
+#16 [stage-1 5/7] COPY . .
+#16 DONE 0.1s
+
+#17 [web 6/6] RUN npm test && npm run build
+#17 0.300 
+#17 0.300 > mjobs-web@0.1.0 test
+#17 0.300 > vitest run
+#17 0.300 
+#17 0.511 
+#17 0.511 [1m[30m[46m RUN [49m[39m[22m [36mv5.0.3 [39m[90m/web[39m
+#17 0.511 
+#17 0.627  [32m✓[39m src/api.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+#17 0.630 
+#17 0.631 [2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+#17 0.631 [2m      Tests [22m [1m[32m2 passed[39m[22m[90m (2)[39m
+#17 0.631 [2m   Start at [22m 12:47:13
+#17 0.632 [2m   Duration [22m 115ms[2m (transform 63%, import 21%, tests 8%, worker 7%)[22m
+#17 0.633 
+#17 0.748 
+#17 0.748 > mjobs-web@0.1.0 build
+#17 0.748 > tsc --noEmit && vite build
+#17 0.748 
+#17 1.010 vite v8.3.1 building client environment for production...
+#17 1.021 transforming...
+#17 1.072 ✓ 16 modules transformed.
+#17 1.104 rendering chunks...
+#17 1.137 computing gzip size...
+#17 1.141 dist/index.html                   0.41 kB │ gzip:  0.29 kB
+#17 1.141 dist/assets/index-CyB1Z4rG.css    6.76 kB │ gzip:  2.21 kB
+#17 1.141 dist/assets/index-Cz03MVtT.js   243.76 kB │ gzip: 75.38 kB
+#17 1.141 
+#17 1.141 ✓ built in 131ms
+#17 DONE 1.2s
+
+#18 [stage-1 6/7] COPY --from=web /web/dist /app/apps/web/dist
+#18 DONE 0.1s
+
+#19 [stage-1 7/7] RUN useradd --create-home --uid 10001 mjobs && mkdir -p /data/documents && mv /root/.cache/ms-playwright /opt/playwright && chown -R mjobs:mjobs /data /app /opt/playwright
+#19 DONE 1.8s
+
+#20 exporting to image
+#20 exporting layers
+#20 exporting layers 15.8s done
+#20 exporting manifest sha256:d7cd7e445da4a848641e4ee03e4fcc1cbd9a192d31eaa1d6a538f744f6e30d6f 0.0s done
+#20 exporting config sha256:26428b6579f6f9055ee50f1298a04562cb2a97c9c449cac9ae606ee97a2c28cd 0.0s done
+#20 exporting attestation manifest sha256:5eba9a8b81325e6273bb0a090e3758c2d6ea83131dcbb377b207cfe38950cc81 0.0s done
+#20 exporting manifest list sha256:41c6b6b64609bd5b24b9b42738f8c788086d49e4e70b9c2c71d5bcaff10ba3ef 0.0s done
+#20 naming to docker.io/library/mjobs-local:spine
+#20 naming to docker.io/library/mjobs-local:spine done
+#20 unpacking to docker.io/library/mjobs-local:spine
+#20 unpacking to docker.io/library/mjobs-local:spine 2.5s done
+#20 DONE 18.5s
+
+#21 resolving provenance for metadata file
+#21 DONE 0.0s
+ Image mjobs-local:spine Built 

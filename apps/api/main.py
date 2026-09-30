@@ -1,11 +1,13 @@
 """Local-first product API; mock submission is explicit and external is off."""
 from contextlib import asynccontextmanager
+import hashlib
 import os
 from pathlib import Path
 from typing import Literal
 
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, HTTPException, Request, Query
+from fastapi.responses import JSONResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field
 from redis import Redis
 from rq import Worker
@@ -16,6 +18,7 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 from packages.persistence import models as m
 from packages.persistence.store import Store, identity
 from services.discovery.pipeline import MockClient
+from services.discovery.sources.collect import configure_source
 from workers.dispatch import enqueue_operation
 from workers.operations import QUEUES, request_cancel, limit
 
@@ -58,10 +61,17 @@ class MockRunInput(BaseModel):
     submit: bool = False
 
 
+class SourceInput(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+    tenant: str = Field(min_length=1, max_length=80)
+    enabled: bool = True
+    poll_interval: int = Field(default=300, ge=300, le=86400)
+
+
 def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379/0"):
     guard = MockClient(mock_origin)
     guard.close()
-    app = FastAPI(title="MJobs", description="Initial controlled mock product spine. External submission disabled.")
+    app = FastAPI(title="MJobs", description="Local job discovery, factual preparation and tracking. External submission disabled.")
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost", "api", "testserver"])
 
     @app.middleware("http")
@@ -69,7 +79,14 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         origin = request.headers.get("origin")
         if request.method not in ("GET", "HEAD", "OPTIONS") and origin and origin != str(request.base_url).rstrip("/"):
             return JSONResponse({"detail": "Cross-origin mutation blocked"}, status_code=403)
-        return await call_next(request)
+        if request.headers.get("sec-fetch-site") == "cross-site" and request.url.path.startswith(("/profiles", "/documents", "/applications", "/operations")):
+            return JSONResponse({"detail": "Cross-site personal data access blocked"}, status_code=403)
+        response = await call_next(request)
+        response.headers["Cache-Control"] = "no-store"
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["Referrer-Policy"] = "no-referrer"
+        response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+        return response
 
     @app.exception_handler(ValueError)
     async def invalid(_, error):
@@ -83,7 +100,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     def health():
         with store.engine.connect() as connection:
             connection.execute(text("SELECT 1"))
-        return {"status": "ok", "check": "liveness", "mode": "MOCK", "external_submission_enabled": False}
+        return {"status": "ok", "check": "liveness", "mode": "LOCAL_FIRST", "external_submission_enabled": False}
 
     @app.get("/readiness")
     def readiness():
@@ -122,7 +139,15 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
 
     @app.get("/settings")
     def settings():
-        return {"mode": "MOCK", "external_submission_enabled": False, "browser_workers": limit("APPLY_MOCK"), "worker_limits": {kind: limit(kind) for kind in QUEUES}}
+        return {"mode": "LOCAL_FIRST", "external_submission_enabled": False, "browser_workers": limit("APPLY_MOCK"), "worker_limits": {kind: limit(kind) for kind in QUEUES}}
+
+    @app.get("/profiles")
+    def profiles():
+        return {"profiles": store.profiles()}
+
+    @app.get("/profiles/{profile_id}")
+    def profile_read(profile_id: str):
+        return store.profile(profile_id)
 
     @app.put("/profiles")
     def profile(value: ProfileInput):
@@ -133,26 +158,92 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         profile = store.profile(value.profile_id)
         return queued("DISCOVER", value.profile_id, {"profile_version": profile["version"], "request_id": value.request_id})
 
+    @app.post("/matches", status_code=202)
+    def matches(value: DiscoveryInput):
+        profile = store.profile(value.profile_id)
+        return queued("DISCOVER", value.profile_id, {"profile_version": profile["version"], "rescore_only": True, "request_id": value.request_id})
+
+    @app.get("/sources")
+    def sources():
+        with store.engine.connect() as connection:
+            return {"sources": [dict(row) for row in connection.execute(select(m.job_sources).order_by(m.job_sources.c.name)).mappings()]}
+
+    @app.put("/sources")
+    def source_configure(value: SourceInput):
+        return {"id": configure_source(store, **value.model_dump())}
+
+    @app.post("/sources/{source_id}/collect", status_code=202)
+    def source_collect(source_id: str, value: DiscoveryInput):
+        profile = store.profile(value.profile_id)
+        with store.engine.connect() as connection:
+            connection.execute(select(m.job_sources.c.id).where(m.job_sources.c.id == source_id)).one()
+        return queued("DISCOVER", value.profile_id, {"source_id": source_id, "profile_version": profile["version"], "request_id": value.request_id})
+
     @app.get("/jobs")
-    def jobs(profile_id: str | None = None):
-        return {"jobs": store.jobs(profile_id)}
+    def jobs(profile_id: str | None = None, q: str = Query(default="", max_length=200),
+             remote_type: Literal["REMOTE", "HYBRID", "ONSITE", "UNKNOWN"] | None = None,
+             provider: Literal["mock-ats", "greenhouse"] | None = None, sort: Literal["score", "title"] = "score",
+             limit: int = Query(default=200, ge=1, le=500)):
+        return {"jobs": store.jobs(profile_id, q, remote_type, provider, sort, limit)}
+
+    @app.get("/jobs/{job_id}")
+    def job(job_id: str, profile_id: str | None = None):
+        return store.job(job_id, profile_id)
+
+    @app.get("/applications")
+    def applications(profile_id: str | None = None):
+        return {"applications": store.applications(profile_id)}
 
     @app.post("/applications", status_code=202)
     def application(value: ApplicationInput):
         profile = store.profile(value.profile_id)
         with store.engine.connect() as connection:
             connection.execute(select(m.jobs.c.id).where(m.jobs.c.id == value.job_id)).one()
-        operation = queued("PREPARE", value.profile_id, {"job_id": value.job_id, "profile_version": profile["version"]})
+        operation = queued("PREPARE", value.profile_id, {"job_id": value.job_id, "profile_version": profile["version"], "request_id": value.request_id})
         return {**operation, "application_id": identity(value.job_id, value.profile_id)}
 
     @app.get("/applications/{application_id}")
     def application_read(application_id: str):
-        return store.application(application_id)
+        data = store.application(application_id)
+        with store.engine.connect() as connection:
+            data["attempts"] = [dict(row) for row in connection.execute(select(m.attempts).where(m.attempts.c.application_id == application_id).order_by(m.attempts.c.started_at)).mappings()]
+        return data
+
+    @app.get("/applications/{application_id}/documents")
+    def documents(application_id: str):
+        store.application(application_id)
+        with store.engine.connect() as connection:
+            return {"documents": [dict(row) for row in connection.execute(select(m.documents).where(m.documents.c.application_id == application_id).order_by(m.documents.c.version.desc(), m.documents.c.kind)).mappings()]}
+
+    @app.get("/documents/{document_id}/{format}")
+    def download(document_id: str, format: Literal["pdf", "docx"]):
+        with store.engine.connect() as connection:
+            document = connection.execute(select(m.documents).where(m.documents.c.id == document_id)).mappings().one()
+        root = Path(output_dir).resolve()
+        app_root = (root / document["application_id"]).resolve()
+        relative = document["files"].get(format)
+        path = (app_root / relative).resolve() if isinstance(relative, str) else root
+        if not app_root.is_relative_to(root) or not path.is_relative_to(app_root) or not path.is_file():
+            raise HTTPException(409, "Document unavailable or path invalid; regenerate for review")
+        if hashlib.sha256(path.read_bytes()).hexdigest() != document["sha256"].get(format):
+            raise HTTPException(409, "Document integrity check failed; regenerate for review")
+        media = "application/pdf" if format == "pdf" else "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        return FileResponse(path, media_type=media, filename=f"{document['kind']}-v{document['version']}.{format}")
 
     @app.post("/applications/{application_id}/mock-run", status_code=202)
     def mock_run(application_id: str, value: MockRunInput):
-        store.application(application_id)
+        if store.application(application_id)["target"] != "MOCK":
+            raise HTTPException(409, "External submission is disabled; this application supports manual preparation only")
         return queued("APPLY_MOCK", application_id, {"submit": value.submit})
+
+    @app.get("/operations")
+    def operations(profile_id: str | None = None):
+        with store.engine.connect() as connection:
+            statement = select(m.operations)
+            if profile_id:
+                app_ids = select(m.applications.c.id).where(m.applications.c.profile_id == profile_id)
+                statement = statement.where((m.operations.c.entity_id == profile_id) | m.operations.c.entity_id.in_(app_ids))
+            return {"operations": [dict(row) for row in connection.execute(statement.order_by(m.operations.c.updated_at.desc()).limit(100)).mappings()]}
 
     @app.get("/operations/{operation_id}")
     def operation(operation_id: str):
@@ -166,6 +257,9 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             return JSONResponse(result, status_code=409)
         return result
 
+    web = Path(__file__).resolve().parents[1] / "web" / "dist"
+    if web.is_dir():
+        app.mount("/", StaticFiles(directory=web, html=True), name="web")
     return app
 
 

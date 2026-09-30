@@ -85,18 +85,54 @@ class Store:
             data["facts"] = [dict(fact) for fact in connection.execute(select(m.facts).where(m.facts.c.profile_id == profile_id, m.facts.c.version == data["version"])).mappings()]
             return data
 
-    def jobs(self, profile_id=None):
+    def profiles(self):
+        with self.engine.connect() as connection:
+            return [dict(row) for row in connection.execute(select(m.profiles).order_by(m.profiles.c.name)).mappings()]
+
+    def jobs(self, profile_id=None, q="", remote_type=None, provider=None, sort="score", limit=200):
         profile = self.profile(profile_id) if profile_id else None
         with self.engine.connect() as connection:
-            result = []
-            for row in connection.execute(select(m.jobs)).mappings():
-                data = dict(row)
-                data["posting_count"] = connection.execute(select(func.count()).select_from(m.postings).where(m.postings.c.job_id == row["id"])).scalar_one()
-                score = connection.execute(select(m.matches.c.score).where(m.matches.c.job_id == row["id"],
-                    m.matches.c.profile_id == profile_id, m.matches.c.profile_version == profile["version"])).first() if profile else None
-                data["match_score"] = score[0] if score else None
-                result.append(data)
-            return result
+            counts = select(m.postings.c.job_id, func.count().label("posting_count")).group_by(m.postings.c.job_id).subquery()
+            statement = select(m.jobs, m.companies.c.name.label("company"), m.routes.c.provider, m.routes.c.url.label("application_url"),
+                counts.c.posting_count, m.matches.c.score.label("match_score"), m.matches.c.components.label("match_components"), m.matches.c.missing,
+                m.applications.c.state.label("application_state"), m.applications.c.id.label("application_id")).select_from(
+                m.jobs.join(m.companies, m.jobs.c.company_id == m.companies.c.id).join(m.routes, m.routes.c.job_id == m.jobs.c.id)
+                .outerjoin(counts, counts.c.job_id == m.jobs.c.id)
+                .outerjoin(m.matches, (m.matches.c.job_id == m.jobs.c.id) & (m.matches.c.profile_id == profile_id) &
+                           (m.matches.c.profile_version == (profile["version"] if profile else "")))
+                .outerjoin(m.applications, (m.applications.c.job_id == m.jobs.c.id) & (m.applications.c.profile_id == profile_id)))
+            if q:
+                statement = statement.where(m.jobs.c.title.icontains(q, autoescape=True) | m.companies.c.name.icontains(q, autoescape=True) | m.jobs.c.description.icontains(q, autoescape=True))
+            if remote_type:
+                statement = statement.where(m.jobs.c.remote_type == remote_type)
+            if provider:
+                statement = statement.where(m.routes.c.provider == provider)
+            statement = statement.order_by(m.matches.c.score.desc().nulls_last(), m.jobs.c.title, m.jobs.c.id) if sort == "score" else statement.order_by(m.jobs.c.title, m.jobs.c.id)
+            return [dict(row) for row in connection.execute(statement.limit(limit)).mappings()]
+
+    def job(self, job_id, profile_id=None):
+        profile = self.profile(profile_id) if profile_id else None
+        with self.engine.connect() as connection:
+            data = dict(connection.execute(select(m.jobs, m.companies.c.name.label("company"), m.routes.c.provider, m.routes.c.url.label("application_url"))
+                .join(m.companies, m.jobs.c.company_id == m.companies.c.id).join(m.routes, m.routes.c.job_id == m.jobs.c.id).where(m.jobs.c.id == job_id)).mappings().one())
+            match = connection.execute(select(m.matches).where(m.matches.c.job_id == job_id, m.matches.c.profile_id == profile_id,
+                m.matches.c.profile_version == (profile["version"] if profile else ""))).mappings().one_or_none()
+            data["match"] = dict(match) if match else None
+            data["postings"] = []
+            for row in connection.execute(select(m.postings).where(m.postings.c.job_id == job_id)).mappings():
+                posting = dict(row)
+                posting["snapshots"] = [dict(snapshot) for snapshot in connection.execute(select(m.posting_snapshots.c.id, m.posting_snapshots.c.sha256,
+                    m.posting_snapshots.c.retrieved_at).where(m.posting_snapshots.c.posting_id == row["id"])).mappings()]
+                data["postings"].append(posting)
+            return data
+
+    def applications(self, profile_id=None):
+        with self.engine.connect() as connection:
+            statement = select(m.applications, m.jobs.c.title, m.companies.c.name.label("company"), m.routes.c.url.label("application_url")).join(m.jobs,
+                m.jobs.c.id == m.applications.c.job_id).join(m.companies, m.companies.c.id == m.jobs.c.company_id).join(m.routes, m.routes.c.id == m.applications.c.route_id)
+            if profile_id:
+                statement = statement.where(m.applications.c.profile_id == profile_id)
+            return [dict(row) for row in connection.execute(statement.order_by(m.applications.c.created_at.desc()).limit(200)).mappings()]
 
     def count(self, name):
         table = m.metadata.tables[name]

@@ -10,8 +10,8 @@
     "current_verified_local_state": "Initialized from newer origin/main; supplied control pack retained on governance branch",
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
-  "current_milestone": "M3_USER_TESTING_MVP",
-  "current_objective": "Connected local web UI, read-only Greenhouse discovery, factual documents and safe application tracker",
+  "current_milestone": "M3_LOCAL_USER_TESTING_VERIFIED",
+  "current_objective": "Local user-testing milestone verified; resolve remote CI gate before integration and subsequent workflow improvements",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -19,11 +19,19 @@
     "Catalogue completeness and dependency consistency validator",
     "Controlled mock employer flywheel executed against HTTP fixtures and PostgreSQL",
     "Factual PDF/DOCX preparation and controlled headless ATS confirmation",
-    "Durable Redis/RQ outbox recovery and restart persistence"
+    "Durable Redis/RQ outbox recovery and restart persistence",
+    "Connected React UI with explicit profile facts/approvals, search, provenance, downloads, dry-run/mock and persistent tracker",
+    "Live public Greenhouse GET discovery: 20 native postings, raw snapshots, fixed-origin request bounds and source policy",
+    "Immutable factual document revisions, checksum downloads and exclusion of pending facts",
+    "Fresh isolated PostgreSQL/Redis/three-worker startup and browser acceptance",
+    "Final Redis outage/outbox recovery and all-service restart retain original UI application/operation/receipt"
   ],
   "partially_completed_capabilities": [
-    "Submission/truthfulness gates and persisted counters implemented for mock adapter; real adapters disabled",
-    "Profile, provenance, required-skill matching, documents, API and one worker implemented; broader specs still pending"
+    "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
+    "Configured Greenhouse boards support public GET; broader providers, recurring scheduling and automatic employer enrollment remain open",
+    "Factual fact-list PDF/DOCX templates verified; import, tailoring, AI and advanced document-quality requirements remain open",
+    "Heuristic description skill coverage for real jobs and exact structured skills for mock; advanced matching remains open",
+    "Real jobs support manual preparation only; manual status updates, real automation and intervention resume remain open"
   ],
   "blocked_capabilities": [
     {
@@ -84,35 +92,59 @@
     "47 local unit/integration/headless-browser tests",
     "Compose PostgreSQL/Redis/RQ mock E2E; repeat operation keeps receipt count one",
     "Final isolated Compose outage/restart proof: exact original application/operation/receipt retained",
-    "55 current lifecycle and mock-spine tests; deployed three-queue Compose E2E and outage/restart PASS"
+    "55 current lifecycle and mock-spine tests; deployed three-queue Compose E2E and outage/restart PASS",
+    "67 Python tests across domain, persistence, sources, API, durable workers and headless ATS",
+    "Final affected search/read-model suite: 4 tests",
+    "Frontend: 2 tests, strict TypeScript check and production build under Docker Node24",
+    "Actual Chromium connected UI against existing and fresh Compose deployments; live source browser readback; final outage/restart PASS"
   ],
   "tests_failed": [],
   "tests_not_run": [
     "Remote CI: BLOCKED_EXTERNAL (workflow OAuth scope)",
-    "Real read-only source/company integrations",
-    "Frontend and remaining product requirements"
+    "Remaining full-spec integrations and product/release requirements"
   ],
   "known_external_limitations": [],
   "known_product_defects": [
-    "Manual CAPTCHA/login intervention resume is not implemented",
-    "Connected web UI and first-party read-only source adapter pending"
+    "Manual real-submission status updates and manual CAPTCHA/login intervention resume not implemented",
+    "Abrupt process kill during document generation can leave unreferenced local files; retention/garbage collection pending"
   ],
   "known_test_harness_defects": [
-    "Historical recovery run used Compose dependency startup; corrected to --no-deps and final isolated run is canonical"
+    "Historical recovery run used Compose dependency startup; corrected to --no-deps and final isolated run is canonical",
+    "Earlier MVP recovery input lacked operation_id; final UI proof now records it, and recovery validates baseline before any outage",
+    "Earlier public-browser selector/filter race corrected; final public readback and source cooldown error PASS",
+    "Host Node25 unsupported by Vitest5 and managed Windows Vite spawn restricted; production Node24 Docker build/tests PASS"
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-09-30T11:38:04.004486+00:00",
-    "command": "python -m cli.compose_recovery",
-    "target": "Three-queue PostgreSQL/Redis/RQ lifecycle",
+    "timestamp": "2026-09-30T13:05:46.654343+00:00",
+    "command": "python -m cli.compose_recovery --baseline docs/evidence/2026-09-30-mvp-ui-final.json",
+    "target": "Connected local user-testing persistence and outage/restart recovery",
     "result": "PASS",
-    "evidence_path": "docs/evidence/2026-09-30-worker-compose-recovery.json"
+    "evidence_path": "docs/evidence/2026-09-30-mvp-recovery-final.json"
   },
-  "recommended_resume_step": "Read docs/evidence/2026-09-29-resume-checkpoint.json and prompts/USER_TESTABLE_MVP_GOAL.md; preserve unfinished current branch and PR367/368",
+  "recommended_resume_step": "Read docs/RESUME.md and docs/evidence/2026-09-30-user-testing-checkpoint.json; resolve native workflow scope then execute prompts/NEXT_USER_TESTING_GOAL.md",
   "migrations_applied": [
     "92f0997f753e",
     "098f12099319",
-    "547acf656c37"
+    "547acf656c37",
+    "792dc0dc5664"
   ],
   "unfinished_work_evidence": "docs/evidence/2026-09-29-resume-checkpoint.json",
-  "authorization": "User explicitly provided 100% Git and GitHub authorization on 2026-09-30; still verify native permissions and required checks"
+  "authorization": "User explicitly provided 100% Git and GitHub authorization on 2026-09-30; still verify native permissions and required checks",
+  "user_testing": {
+    "result": "PASS",
+    "timestamp": "2026-09-30T13:05:46.654343+00:00",
+    "evidence": [
+      "docs/evidence/2026-09-30-mvp-ui-final.json",
+      "docs/evidence/2026-09-30-mvp-fresh-start.json",
+      "docs/evidence/2026-09-30-mvp-fresh-ui.json",
+      "docs/evidence/2026-09-30-mvp-recovery-final.json",
+      "docs/evidence/2026-09-30-mvp-public-source.json",
+      "docs/evidence/2026-09-30-mvp-ui-public-verified.json"
+    ],
+    "scope": "Connected local single-user testing; full specification and release remain PARTIAL",
+    "url": "http://127.0.0.1:18700",
+    "startup_command": ".\\Start-MJobs.ps1",
+    "guide": "docs/USER_TESTING.md",
+    "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
+  }
 }

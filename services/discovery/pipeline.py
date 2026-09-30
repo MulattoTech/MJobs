@@ -8,6 +8,7 @@ import httpx
 from packages.domain.safety import Fact, select_verified_facts
 from packages.persistence import models as m
 from packages.persistence.store import identity, now, upsert
+from services.discovery.sources.collect import persist_posting
 
 
 class MockClient:
@@ -88,18 +89,20 @@ def discover(store, mock_origin, profile_id, check=None, profile_version=None):
                 job_id = identity(company_id, "mock-ats", row["tenant"], row["requisition"])
                 job = {"id": job_id, "company_id": company_id, "requisition": row["requisition"], "title": row["title"].strip(),
                        "description": BeautifulSoup(row["description"], "html.parser").get_text(" ", strip=True),
-                       "skills": row["skills"], "location": row["location"], "remote_type": row["remote_type"]}
+                       "skills": row["skills"], "location": row["location"], "remote_type": row["remote_type"],
+                       "attributes": {"fictional": True, "skill_evidence": "structured_required_skills", "provider": "mock-ats"}}
                 upsert(connection, m.jobs, job, replace=source != "mock-board")
                 upsert(connection, m.routes, {"id": job_id, "job_id": job_id, "company_id": company_id, "provider": "mock-ats",
                     "tenant": row["tenant"], "requisition": row["requisition"], "url": row["application_url"]}, replace=source != "mock-board")
-                upsert(connection, m.postings, {"id": identity(source, row["source_job_id"]), "job_id": job_id,
-                    "source": source, "source_job_id": row["source_job_id"], "raw": row, "fetched_at": now()}, replace=True)
+                persist_posting(connection, {"id": identity(source, row["source_job_id"]), "job_id": job_id,
+                    "source": source, "source_job_id": row["source_job_id"], "raw": row, "fetched_at": now()})
                 required = {skill.casefold() for skill in row["skills"]}
                 missing = sorted(required - set(usable))
                 score = round(100 * len(required & set(usable)) / len(required), 2) if required else 0
                 upsert(connection, m.matches, {"id": identity(job_id, profile_id, profile["version"]), "job_id": job_id,
                     "profile_id": profile_id, "profile_version": profile["version"], "score": score, "missing": missing,
-                    "components": {"required_skill_coverage": score}}, replace=True)
+                    "components": {"method": "structured_required_skills", "required_skill_coverage": score,
+                        "matched": sorted(required & set(usable)), "detected": sorted(required)}}, replace=True)
             store._audit(connection, profile_id, "MOCK_DISCOVERY_COMPLETE", {"sources": len(sources), "raw_postings": len(all_rows)})
         return store.jobs(profile_id)
     finally:

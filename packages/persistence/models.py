@@ -24,7 +24,8 @@ company_sources = table("company_job_sources", Column("company_id", ForeignKey("
 jobs = table("canonical_jobs", Column("company_id", ForeignKey("companies.id"), nullable=False),
              Column("requisition", String(128), nullable=False), Column("title", String(500), nullable=False),
              Column("description", String(50000), nullable=False), Column("skills", JSON, nullable=False),
-             Column("location", String(1000), nullable=False), Column("remote_type", String(32), nullable=False))
+             Column("location", String(1000), nullable=False), Column("remote_type", String(32), nullable=False),
+             Column("attributes", JSON, nullable=False, server_default="{}"))
 routes = table("application_routes", Column("job_id", ForeignKey("canonical_jobs.id"), nullable=False),
                Column("company_id", ForeignKey("companies.id"), nullable=False), Column("provider", String(32), nullable=False),
                Column("tenant", String(128), nullable=False), Column("requisition", String(128), nullable=False),
@@ -34,6 +35,16 @@ postings = table("job_postings", Column("job_id", ForeignKey("canonical_jobs.id"
                  Column("source", String(200), nullable=False), Column("source_job_id", String(128), nullable=False),
                  Column("raw", JSON, nullable=False), Column("fetched_at", String(64), nullable=False),
                  constraints=(UniqueConstraint("source", "source_job_id"),))
+posting_snapshots = table("posting_snapshots", Column("posting_id", ForeignKey("job_postings.id"), nullable=False),
+                          Column("raw", JSON, nullable=False), Column("sha256", String(64), nullable=False),
+                          Column("retrieved_at", String(64), nullable=False))
+job_sources = table("job_sources", Column("provider", String(32), nullable=False), Column("tenant", String(128), nullable=False),
+                    Column("name", String(200), nullable=False), Column("enabled", Boolean, nullable=False),
+                    Column("strategy", String(32), nullable=False), Column("poll_interval", Integer, nullable=False),
+                    Column("last_attempt", String(64)), Column("last_success", String(64)), Column("backoff_until", String(64)),
+                    Column("consecutive_failures", Integer, nullable=False, server_default="0"),
+                    Column("health_status", String(64), nullable=False), Column("last_error", String(200)),
+                    Column("jobs_seen", Integer, nullable=False, server_default="0"))
 matches = table("job_matches", Column("job_id", ForeignKey("canonical_jobs.id"), nullable=False),
                 Column("profile_id", ForeignKey("career_profiles.id"), nullable=False), Column("profile_version", String(64), nullable=False),
                 Column("score", Float, nullable=False), Column("missing", JSON, nullable=False), Column("components", JSON, nullable=False))
@@ -42,10 +53,12 @@ applications = table("applications", Column("job_id", ForeignKey("canonical_jobs
                      Column("profile_id", ForeignKey("career_profiles.id"), nullable=False), Column("profile_version", String(64), nullable=False),
                      Column("state", String(64), nullable=False), Column("target", String(32), nullable=False),
                      Column("fact_ids", JSON, nullable=False), Column("trace", JSON, nullable=False),
+                     Column("document_version", Integer, nullable=False, server_default="1"),
                      Column("confirmation", JSON), Column("created_at", String(64), nullable=False), Column("submitted_at", String(64)),
                      constraints=(UniqueConstraint("job_id", "profile_id"),))
 documents = table("documents", Column("application_id", ForeignKey("applications.id"), nullable=False),
                   Column("kind", String(32), nullable=False), Column("version", Integer, nullable=False),
+                  Column("profile_version", String(64), nullable=False),
                   Column("files", JSON, nullable=False), Column("fact_ids", JSON, nullable=False),
                   Column("sha256", JSON, nullable=False), Column("template", String(128), nullable=False))
 attempts = table("application_attempts", Column("application_id", ForeignKey("applications.id"), nullable=False),

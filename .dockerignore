@@ -7,3 +7,6 @@ outputs
 .superpowers
 .worktrees
 docs/spec/source
+**/node_modules
+apps/web/dist
+test-tmp

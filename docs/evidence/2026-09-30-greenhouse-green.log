@@ -1,0 +1,10 @@
+test_collection_preserves_provenance_and_labels_live_matching (tests.integration.test_greenhouse.GreenhouseTests.test_collection_preserves_provenance_and_labels_live_matching) ... ok
+test_cooldown_prevents_repeated_requests_and_failure_does_not_erase_jobs (tests.integration.test_greenhouse.GreenhouseTests.test_cooldown_prevents_repeated_requests_and_failure_does_not_erase_jobs) ... ok
+test_missing_fields_are_normalized_without_inventing_data (tests.integration.test_greenhouse.GreenhouseTests.test_missing_fields_are_normalized_without_inventing_data) ... ok
+test_rate_limit_persists_provider_backoff (tests.integration.test_greenhouse.GreenhouseTests.test_rate_limit_persists_provider_backoff) ... ok
+test_tenant_redirect_and_large_payload_are_rejected (tests.integration.test_greenhouse.GreenhouseTests.test_tenant_redirect_and_large_payload_are_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.671s
+
+OK

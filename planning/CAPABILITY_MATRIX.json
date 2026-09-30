@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-09-30T00:26:40.337802+00:00",
+  "timestamp": "2026-09-30T13:05:46.654343+00:00",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -111,9 +111,11 @@
     },
     {
       "requirement_id": "MJ-REQ-016",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-30-user-testing.md"
+      ],
+      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open"
     },
     {
       "requirement_id": "MJ-REQ-017",
@@ -123,21 +125,27 @@
     },
     {
       "requirement_id": "MJ-REQ-018",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-30-user-testing.md"
+      ],
+      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open"
     },
     {
       "requirement_id": "MJ-REQ-019",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-30-user-testing.md"
+      ],
+      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open"
     },
     {
       "requirement_id": "MJ-REQ-020",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-30-user-testing.md"
+      ],
+      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open"
     },
     {
       "requirement_id": "MJ-REQ-021",
@@ -559,9 +567,11 @@
     },
     {
       "requirement_id": "MJ-REQ-088",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-30-user-testing.md"
+      ],
+      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open"
     },
     {
       "requirement_id": "MJ-REQ-089",
@@ -585,9 +595,10 @@
       "requirement_id": "MJ-REQ-092",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-09-29-mock-spine.md"
+        "docs/evidence/2026-09-29-mock-spine.md",
+        "docs/evidence/2026-09-30-user-testing.md"
       ],
-      "note": "Initial scoped behavior only; full requirement remains open"
+      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open"
     },
     {
       "requirement_id": "MJ-REQ-093",
@@ -613,9 +624,10 @@
       "requirement_id": "MJ-REQ-096",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-09-29-mock-spine.md"
+        "docs/evidence/2026-09-29-mock-spine.md",
+        "docs/evidence/2026-09-30-user-testing.md"
       ],
-      "note": "Initial scoped behavior only; full requirement remains open"
+      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open"
     },
     {
       "requirement_id": "MJ-REQ-097",
@@ -625,9 +637,11 @@
     },
     {
       "requirement_id": "MJ-REQ-098",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-30-user-testing.md"
+      ],
+      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open"
     },
     {
       "requirement_id": "MJ-REQ-099",
@@ -711,9 +725,10 @@
       "requirement_id": "MJ-REQ-112",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-09-29-mock-spine.md"
+        "docs/evidence/2026-09-29-mock-spine.md",
+        "docs/evidence/2026-09-30-user-testing.md"
       ],
-      "note": "Initial scoped behavior only; full requirement remains open"
+      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open"
     },
     {
       "requirement_id": "MJ-REQ-113",
@@ -725,9 +740,10 @@
       "requirement_id": "MJ-REQ-114",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-09-29-mock-spine.md"
+        "docs/evidence/2026-09-29-mock-spine.md",
+        "docs/evidence/2026-09-30-user-testing.md"
       ],
-      "note": "Initial scoped behavior only; full requirement remains open"
+      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open"
     },
     {
       "requirement_id": "MJ-REQ-115",
@@ -1161,39 +1177,51 @@
     },
     {
       "requirement_id": "MJ-REQ-183",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-30-user-testing.md"
+      ],
+      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open"
     },
     {
       "requirement_id": "MJ-REQ-184",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-30-user-testing.md"
+      ],
+      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open"
     },
     {
       "requirement_id": "MJ-REQ-185",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-30-user-testing.md"
+      ],
+      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open"
     },
     {
       "requirement_id": "MJ-REQ-186",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-30-user-testing.md"
+      ],
+      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open"
     },
     {
       "requirement_id": "MJ-REQ-187",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-30-user-testing.md"
+      ],
+      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open"
     },
     {
       "requirement_id": "MJ-REQ-188",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-30-user-testing.md"
+      ],
+      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open"
     },
     {
       "requirement_id": "MJ-REQ-189",
@@ -1233,9 +1261,11 @@
     },
     {
       "requirement_id": "MJ-REQ-195",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-30-user-testing.md"
+      ],
+      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open"
     },
     {
       "requirement_id": "MJ-REQ-196",
@@ -1251,9 +1281,11 @@
     },
     {
       "requirement_id": "MJ-REQ-198",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-30-user-testing.md"
+      ],
+      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open"
     },
     {
       "requirement_id": "MJ-REQ-199",
@@ -1293,15 +1325,19 @@
     },
     {
       "requirement_id": "MJ-REQ-205",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-30-user-testing.md"
+      ],
+      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open"
     },
     {
       "requirement_id": "MJ-REQ-206",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-30-user-testing.md"
+      ],
+      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open"
     },
     {
       "requirement_id": "MJ-REQ-207",
@@ -1443,9 +1479,11 @@
     },
     {
       "requirement_id": "MJ-REQ-228",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-30-user-testing.md"
+      ],
+      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open"
     },
     {
       "requirement_id": "MJ-REQ-229",
@@ -1719,9 +1757,11 @@
     },
     {
       "requirement_id": "MJ-REQ-274",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-30-user-testing.md"
+      ],
+      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open"
     },
     {
       "requirement_id": "MJ-REQ-275",
@@ -1977,9 +2017,11 @@
     },
     {
       "requirement_id": "MJ-REQ-063.D01",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-30-user-testing.md"
+      ],
+      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open"
     },
     {
       "requirement_id": "MJ-REQ-063.D02",
@@ -2269,5 +2311,22 @@
       "evidence": [],
       "note": "Not implemented or verified in current milestones"
     }
-  ]
+  ],
+  "local_user_testing_milestone": {
+    "result": "PASS",
+    "timestamp": "2026-09-30T13:05:46.654343+00:00",
+    "evidence": [
+      "docs/evidence/2026-09-30-mvp-ui-final.json",
+      "docs/evidence/2026-09-30-mvp-fresh-start.json",
+      "docs/evidence/2026-09-30-mvp-fresh-ui.json",
+      "docs/evidence/2026-09-30-mvp-recovery-final.json",
+      "docs/evidence/2026-09-30-mvp-public-source.json",
+      "docs/evidence/2026-09-30-mvp-ui-public-verified.json"
+    ],
+    "scope": "Connected local single-user testing; full specification and release remain PARTIAL",
+    "url": "http://127.0.0.1:18700",
+    "startup_command": ".\\Start-MJobs.ps1",
+    "guide": "docs/USER_TESTING.md",
+    "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
+  }
 }

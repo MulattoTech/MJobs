@@ -1,0 +1,28 @@
+{
+  "result": "PASS",
+  "recorded_at": "2026-09-30T13:05:46.654343+00:00",
+  "observer": "/root/control_audit read-only chore",
+  "target": "Independent live localhost identity/readiness/document/source verification",
+  "commands": [
+    "GET /health and /readiness",
+    "GET original /applications/{id}, /operations/{id}, /applications/{id}/documents",
+    "GET /sources",
+    "python -m unittest tests.integration.test_user_read_models (4 tests)"
+  ],
+  "findings": {
+    "external_submission_enabled": false,
+    "all_readiness_checks": true,
+    "original_application": "CONFIRMED",
+    "target": "MOCK",
+    "operation": "COMPLETED",
+    "submission_count": 1,
+    "documents": 4,
+    "document_revisions": [
+      1,
+      2
+    ],
+    "greenhouse_jobs_seen": 20,
+    "source_poll_interval": 300
+  },
+  "scope_limits": "Local milestone PASS; overall product/release PARTIAL; remote CI BLOCKED_EXTERNAL"
+}

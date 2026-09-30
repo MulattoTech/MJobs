@@ -1,0 +1,40 @@
+test_integrity_checked_downloads_and_traversal_rejection (tests.integration.test_user_read_models.UserReadModelTests.test_integrity_checked_downloads_and_traversal_rejection) ... ERROR
+test_mixed_pending_facts_are_excluded_and_revision_does_not_rewrite_history (tests.integration.test_user_read_models.UserReadModelTests.test_mixed_pending_facts_are_excluded_and_revision_does_not_rewrite_history) ... ERROR
+test_profile_job_match_and_application_history_are_connected (tests.integration.test_user_read_models.UserReadModelTests.test_profile_job_match_and_application_history_are_connected) ... ERROR
+
+======================================================================
+ERROR: test_integrity_checked_downloads_and_traversal_rejection (tests.integration.test_user_read_models.UserReadModelTests.test_integrity_checked_downloads_and_traversal_rejection)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Tools\Dev\MJobs\tests\integration\test_user_read_models.py", line 50, in test_integrity_checked_downloads_and_traversal_rejection
+    documents = client.get("/applications/" + application + "/documents").json()["documents"]
+                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+KeyError: 'documents'
+
+======================================================================
+ERROR: test_mixed_pending_facts_are_excluded_and_revision_does_not_rewrite_history (tests.integration.test_user_read_models.UserReadModelTests.test_mixed_pending_facts_are_excluded_and_revision_does_not_rewrite_history)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Tools\Dev\MJobs\tests\integration\test_user_read_models.py", line 67, in test_mixed_pending_facts_are_excluded_and_revision_does_not_rewrite_history
+    application = prepare(self.store, job["id"], "fixture", self.root)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Tools\Dev\MJobs\services\documents\generate.py", line 32, in prepare
+    selected = select_verified_facts([Fact(id=row["fact_id"], **{key: row[key] for key in ("text", "source", "verified", "user_approved", "confidence")})
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Tools\Dev\MJobs\packages\domain\safety.py", line 142, in select_verified_facts
+    raise ValueError(f"Missing verified approved fact: {fact_id}")
+ValueError: Missing verified approved fact: sql
+
+======================================================================
+ERROR: test_profile_job_match_and_application_history_are_connected (tests.integration.test_user_read_models.UserReadModelTests.test_profile_job_match_and_application_history_are_connected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Tools\Dev\MJobs\tests\integration\test_user_read_models.py", line 33, in test_profile_job_match_and_application_history_are_connected
+    self.assertEqual(client.get("/profiles/fixture").json()["facts"][0]["fact_id"], "python")
+                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+KeyError: 'facts'
+
+----------------------------------------------------------------------
+Ran 3 tests in 2.052s
+
+FAILED (errors=3)

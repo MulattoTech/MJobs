@@ -1,0 +1,69 @@
+"""Verify stored real public jobs, manual preparation and visible source policy errors."""
+import argparse
+from datetime import datetime, timezone
+import json
+from pathlib import Path
+
+from playwright.sync_api import sync_playwright, expect
+
+
+def run(base_url, evidence_path):
+    with sync_playwright() as browser_api:
+        browser = browser_api.chromium.launch(headless=True)
+        context = browser.new_context(viewport={"width": 1440, "height": 1000})
+        page = context.new_page()
+        page.set_default_timeout(45000)
+        page.goto(base_url, wait_until="networkidle")
+        profiles = context.request.get(base_url + "/profiles").json()["profiles"]
+        profile = next(row for row in profiles if row["id"].startswith("public-probe-fictional-"))
+        page.get_by_label("Active profile").select_option(profile["id"])
+        page.get_by_label("Source", exact=True).select_option("greenhouse")
+        expect(page.locator(".job-list .job-card").first).to_be_visible()
+        expect(page.locator(".job-list .job-card").first).to_contain_text("greenhouse · read only")
+        page.locator(".job-list .job-card").first.click()
+        expect(page.get_by_text("Skill mentions are not verified mandatory requirements or a full qualification assessment.", exact=True)).to_be_visible()
+        expect(page.get_by_role("link", name="Open employer application")).to_be_visible()
+        page.get_by_role("button", name="Prepare documents", exact=True).click()
+        expect(page.get_by_role("heading", name="Application details")).to_be_visible()
+        expect(page.get_by_text("Manual preparation only. Review the documents and use the employer’s own application page.", exact=True)).to_be_visible()
+        expect(page.get_by_role("button", name="Submit to local mock", exact=True)).to_have_count(0)
+        app = context.request.get(base_url + "/applications?profile_id=" + profile["id"]).json()["applications"][0]
+        assert app["target"] == "REAL" and app["state"] == "PREPARED"
+        rejected = context.request.post(base_url + "/applications/" + app["id"] + "/mock-run", data={"submit": True})
+        assert rejected.status == 409
+        # An ordinary second collection within cooldown executes zero provider requests.
+        source = next(row for row in context.request.get(base_url + "/sources").json()["sources"] if row["tenant"] == "greenhouse")
+        # Temporarily make the local cooldown test deterministic, preserving policy.
+        prior_interval = source["poll_interval"]
+        changed = context.request.put(base_url + "/sources", data={"tenant": source["tenant"], "enabled": source["enabled"], "poll_interval": 86400})
+        assert changed.ok
+        within_interval = (datetime.now(timezone.utc) - datetime.fromisoformat(source["last_attempt"])).total_seconds() < 86400
+        actions = [{"action": "Stored live public jobs render heuristic match limitation and provider URL; factual preparation is manual-only and server rejects mock-run on real target", "result": "PASS"}]
+        if within_interval:
+            try:
+                page.get_by_role("navigation").get_by_role("button", name="Sources").click()
+                page.get_by_role("button", name="Collect jobs", exact=True).click()
+                expect(page.get_by_role("alert")).to_contain_text("SOURCE_COOLDOWN")
+                actions.append({"action": "Source cooldown is visible as a failed operation without repeating public requests", "result": "PASS"})
+            finally:
+                restored = context.request.put(base_url + "/sources", data={"tenant": source["tenant"], "enabled": source["enabled"], "poll_interval": prior_interval})
+                assert restored.ok
+        else:
+            actions.append({"action": "Browser cooldown error after live collection", "result": "NOT_RUN", "reason": "Cooldown already elapsed; no redundant provider read was performed"})
+        artifact = Path("outputs/ui-e2e/public-source-policy.png")
+        artifact.parent.mkdir(parents=True, exist_ok=True)
+        page.screenshot(path=str(artifact), full_page=True)
+        context.close()
+        browser.close()
+    evidence = {"result": "PASS", "timestamp": datetime.now(timezone.utc).isoformat(), "command": "python -m cli.ui_source_readback", "target": "Actual browser readback of persisted first-party public jobs",
+        "application_id": app["id"], "external_submission_enabled": False, "actions": actions, "artifact": str(artifact)}
+    Path(evidence_path).write_text(json.dumps(evidence, indent=2) + "\n", encoding="utf-8")
+    print(json.dumps(evidence, indent=2))
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--base-url", default="http://127.0.0.1:18700")
+    parser.add_argument("--evidence", required=True)
+    args = parser.parse_args()
+    run(args.base_url, args.evidence)

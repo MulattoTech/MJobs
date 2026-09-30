@@ -29,8 +29,8 @@ def run(api_url, evidence_path=None):
             raise TimeoutError("Mock operation exceeded bounded completion window")
 
         health = call("GET", "/health")
-        if health.get("external_submission_enabled") is not False or health.get("mode") != "MOCK":
-            raise RuntimeError("Expected explicit MOCK mode and external submission OFF")
+        if health.get("external_submission_enabled") is not False or health.get("mode") not in ("MOCK", "LOCAL_FIRST"):
+            raise RuntimeError("Expected local mode and external submission OFF")
         profile = dict(PROFILE, id="e2e-fictional-" + uuid4().hex[:12])
         call("PUT", "/profiles", json=profile)
         discovery = call("POST", "/discovery", json={"profile_id": profile["id"]})

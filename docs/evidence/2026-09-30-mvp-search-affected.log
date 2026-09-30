@@ -1,0 +1,9 @@
+test_integrity_checked_downloads_and_traversal_rejection (tests.integration.test_user_read_models.UserReadModelTests.test_integrity_checked_downloads_and_traversal_rejection) ... ok
+test_live_preparation_is_manual_only_and_profile_edits_rescore_without_fetch (tests.integration.test_user_read_models.UserReadModelTests.test_live_preparation_is_manual_only_and_profile_edits_rescore_without_fetch) ... ok
+test_mixed_pending_facts_are_excluded_and_revision_does_not_rewrite_history (tests.integration.test_user_read_models.UserReadModelTests.test_mixed_pending_facts_are_excluded_and_revision_does_not_rewrite_history) ... ok
+test_profile_job_match_and_application_history_are_connected (tests.integration.test_user_read_models.UserReadModelTests.test_profile_job_match_and_application_history_are_connected) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 2.789s
+
+OK

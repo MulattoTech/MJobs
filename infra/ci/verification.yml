@@ -19,6 +19,7 @@ jobs:
       - run: python -m cli.init_env
       - run: docker compose up -d --build --wait --wait-timeout 120
       - run: python -m cli.mock_e2e --evidence outputs/ci-mock-e2e.json
+      - run: python -m cli.ui_e2e --evidence outputs/ci-ui.json
       - run: python -m cli.compose_recovery --baseline outputs/ci-mock-e2e.json --evidence outputs/ci-recovery.json
       - uses: actions/upload-artifact@v4
         if: always()

@@ -50,7 +50,7 @@ services:
   api:
     <<: *runtime
     command: [python, -m, uvicorn, apps.api.main:create_from_env, --factory, --host, 0.0.0.0, --port, '8000']
-    ports: ['127.0.0.1:18700:8000']
+    ports: ['127.0.0.1:${MJOBS_PORT:-18700}:8000']
     networks: [private, ui]
     restart: unless-stopped
     depends_on:
@@ -87,6 +87,7 @@ services:
       mock: {condition: service_healthy}
   source-worker:
     <<: *runtime
+    networks: [private, source-egress]
     command: [python, -m, workers.main]
     restart: unless-stopped
     environment:
@@ -113,6 +114,9 @@ networks:
   ui:
     driver_opts:
       com.docker.network.bridge.host_binding_ipv4: 127.0.0.1
+  source-egress:
+    # The read-only adapter validates one fixed provider HTTPS origin. No host ports.
+    driver: bridge
 volumes:
   database:
   queue:
