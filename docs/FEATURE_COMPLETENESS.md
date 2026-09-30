@@ -24,7 +24,7 @@ turn partial evidence into completed requirements.
 - Public read-only Greenhouse discovery with provenance
 - Factual PDF/DOCX generation and revisions
 - Restart/outage recovery and duplicate-submission protection
-- Evidence-linked, atomic implementation milestone journal with reload and failed-write preservation tests (MJ-REQ-008 PARTIAL)
+- Evidence-linked, atomic implementation milestone journal with reload, failed-write preservation, and remote CI evidence (MJ-REQ-008 PARTIAL; `docs/evidence/2026-09-30-ci-428.json`)
 - Real external submission remains disabled
 - GitHub Actions passed the final #367-#370 PR heads and the connected UI, mock application, and restart recovery workflow; see `docs/evidence/2026-09-30-ci-370.json`
 ## Reference-project gap catalogue

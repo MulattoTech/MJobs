@@ -1,0 +1,39 @@
+{
+  "timestamp": "2026-09-30T20:25:42Z",
+  "target": "PR #428 progress-journal implementation at 6c3801f4a4e5c5079ed95512f97ce4b0382fb93a",
+  "action": "Verify Python, reference catalogue, progress journal, Node UI, controlled mock application, connected browser, and outage recovery in GitHub Actions",
+  "result": "PASS",
+  "remote_validation": {
+    "pull_request_run_id": 36772030057,
+    "push_run_id": 36772022282,
+    "url": "https://github.com/MulattoTech/MJobs/actions/runs/36772030057",
+    "result": "PASS",
+    "observed": [
+      "Node 24 npm ci, two frontend tests, strict TypeScript check and production build",
+      "Locked Python dependencies, Chromium setup, 73 Python tests, catalogue and progress journal validators",
+      "Compose service build/start and controlled mock application E2E",
+      "Actual headless Chromium connected UI journey with factual downloads, dry-run and one mock receipt",
+      "Redis outage, durable outbox recovery and all-service restart",
+      "Artifact upload and Compose teardown"
+    ]
+  },
+  "artifacts": [
+    {
+      "path": "docs/evidence/2026-09-30-ci-428-mock-e2e.json",
+      "sha256": "E4794444FDA7E94315E755122D29C649CF0E3572BED306A797B284F33A5BF97D"
+    },
+    {
+      "path": "docs/evidence/2026-09-30-ci-428-ui.json",
+      "sha256": "719420DC8402DFCC974F4201C69F906DD9A7F081D87BE69B7F1438DDC738D7FC"
+    },
+    {
+      "path": "docs/evidence/2026-09-30-ci-428-recovery.json",
+      "sha256": "D2EF72BFC6DC0D4E69303E22EB83FB11D818E10600769F3DEB375AC0FB9FDE8E"
+    }
+  ],
+  "limitations": [
+    "The connected browser and application used fictional mock data; real external submission remained disabled.",
+    "Physical host restart and adoption of future milestone records remain unverified for MJ-REQ-008.",
+    "MJ-REQ-008 remains PARTIAL, MJ-REF-001..042 remain NOT_RUN, and release readiness remains NOT_RUN."
+  ]
+}

@@ -108,7 +108,8 @@
     "Remote mock-spine CI: pull_request run 36766636806 PASS at 90b59ca",
     "Remote worker-lifecycle CI: pull_request run 36767410947 PASS at 29012e0",
     "Remote connected-UI CI: pull_request run 36768260666 and push run 36768256061 PASS at d807851",
-    "P0 progress journal: 5 targeted and 73 affected Python tests PASS locally; catalogue and progress validators PASS"
+    "P0 progress journal: 5 targeted and 73 affected Python tests PASS locally; catalogue and progress validators PASS",
+    "Remote P0 progress-journal CI: PR run 36772030057 and push run 36772022282 PASS at 6c3801f"
   ],
   "tests_failed": [],
   "tests_not_run": [
@@ -156,6 +157,13 @@
     "head": "d80785150e5a651b96be56c39310956d49f7b26d",
     "pull_request_run_id": 36768260666,
     "evidence_path": "docs/evidence/2026-09-30-ci-370.json"
+  },
+  "progress_journal_ci": {
+    "result": "PASS",
+    "head": "6c3801f4a4e5c5079ed95512f97ce4b0382fb93a",
+    "pull_request_run_id": 36772030057,
+    "push_run_id": 36772022282,
+    "evidence_path": "docs/evidence/2026-09-30-ci-428.json"
   },
   "recommended_resume_step": "Verify the current MJ-PR-003 progress-journal draft PR in GitHub Actions, then continue its remaining P0 scope in dependency order",
   "release_readiness": {

@@ -63,9 +63,10 @@
       "requirement_id": "MJ-REQ-008",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-09-30-progress-journal.json"
+        "docs/evidence/2026-09-30-progress-journal.json",
+        "docs/evidence/2026-09-30-ci-428.json"
       ],
-      "note": "Atomic evidence-linked progress journal and restart reload verified locally; broader interruption/resume use and CI pending"
+      "note": "Atomic evidence-linked progress journal, reload, failed-write preservation and remote CI verified; physical host restart and future milestone adoption remain"
     },
     {
       "requirement_id": "MJ-REQ-009",

@@ -26,9 +26,10 @@
     }
   ],
   "data_impact": "planning/IMPLEMENTATION_STATE.json gains an append-only milestone_journal and last_safe_checkpoint; no database migration or personal application data",
+  "remote_evidence": "docs/evidence/2026-09-30-ci-428.json",
   "recovery": "A failed atomic replace retains the prior state file. The last verified Git commit and evidence path are carried in the journal entry; preserve committed entries when repairing a later checkpoint.",
   "limitations": [
-    "MJ-REQ-008 remains PARTIAL until this branch's CI and broader interruption/resume use are verified.",
+    "MJ-REQ-008 remains PARTIAL because physical host restart and future milestone adoption are not yet verified.",
     "MJ-REQ-009 through MJ-REQ-011 remain NOT_RUN in the original matrix for this slice.",
     "Real external auto-submit remains disabled and is not a validation harness."
   ]
