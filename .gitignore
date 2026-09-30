@@ -5,6 +5,8 @@ __pycache__/
 .ruff_cache/
 .coverage
 node_modules/
+apps/web/dist/
+test-tmp/
 .next/
 .env
 .env.*

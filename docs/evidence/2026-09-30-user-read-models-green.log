@@ -1,0 +1,15 @@
+test_integrity_checked_downloads_and_traversal_rejection (tests.integration.test_user_read_models.UserReadModelTests.test_integrity_checked_downloads_and_traversal_rejection) ... ok
+test_mixed_pending_facts_are_excluded_and_revision_does_not_rewrite_history (tests.integration.test_user_read_models.UserReadModelTests.test_mixed_pending_facts_are_excluded_and_revision_does_not_rewrite_history) ... ok
+test_profile_job_match_and_application_history_are_connected (tests.integration.test_user_read_models.UserReadModelTests.test_profile_job_match_and_application_history_are_connected) ... ok
+test_adapter_health_and_detail_validation (tests.integration.test_greenhouse.GreenhouseTests.test_adapter_health_and_detail_validation) ... ok
+test_collection_preserves_provenance_and_labels_live_matching (tests.integration.test_greenhouse.GreenhouseTests.test_collection_preserves_provenance_and_labels_live_matching) ... ok
+test_cooldown_prevents_repeated_requests_and_failure_does_not_erase_jobs (tests.integration.test_greenhouse.GreenhouseTests.test_cooldown_prevents_repeated_requests_and_failure_does_not_erase_jobs) ... ok
+test_malformed_rows_and_untrusted_routes_do_not_invent_evidence (tests.integration.test_greenhouse.GreenhouseTests.test_malformed_rows_and_untrusted_routes_do_not_invent_evidence) ... ok
+test_missing_fields_are_normalized_without_inventing_data (tests.integration.test_greenhouse.GreenhouseTests.test_missing_fields_are_normalized_without_inventing_data) ... ok
+test_rate_limit_persists_provider_backoff (tests.integration.test_greenhouse.GreenhouseTests.test_rate_limit_persists_provider_backoff) ... ok
+test_tenant_redirect_and_large_payload_are_rejected (tests.integration.test_greenhouse.GreenhouseTests.test_tenant_redirect_and_large_payload_are_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 2.979s
+
+OK

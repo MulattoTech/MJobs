@@ -1,0 +1,4 @@
+Lowercase data search returned 0 fictional jobs
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+AssertionError: Case-insensitive job search required

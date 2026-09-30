@@ -1,0 +1,80 @@
+ Image mjobs-local:spine Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 1.31kB done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 729B done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/python:3.12-slim
+#3 DONE 0.4s
+
+#4 [internal] load metadata for docker.io/library/node:24-slim
+#4 DONE 0.4s
+
+#5 [internal] load .dockerignore
+#5 transferring context: 166B done
+#5 DONE 0.0s
+
+#6 [web 1/6] FROM docker.io/library/node:24-slim@sha256:0e0ff40c39bc087845bfb27465a0df4ea419520094bc35842ff83dd8cbe6f9b6
+#6 resolve docker.io/library/node:24-slim@sha256:0e0ff40c39bc087845bfb27465a0df4ea419520094bc35842ff83dd8cbe6f9b6 0.0s done
+#6 DONE 0.0s
+
+#7 [stage-1 1/7] FROM docker.io/library/python:3.12-slim@sha256:f77ac9e44ae96ef2c90b8053ea08c31f8be030f824196b0ae4db6d462c84e51f
+#7 resolve docker.io/library/python:3.12-slim@sha256:f77ac9e44ae96ef2c90b8053ea08c31f8be030f824196b0ae4db6d462c84e51f 0.0s done
+#7 DONE 0.0s
+
+#8 [internal] load build context
+#8 transferring context: 33.14kB 0.0s done
+#8 DONE 0.0s
+
+#9 [web 3/6] COPY apps/web/package.json apps/web/package-lock.json ./
+#9 CACHED
+
+#10 [web 5/6] COPY apps/web/ ./
+#10 CACHED
+
+#11 [web 4/6] RUN npm ci --no-audit --no-fund
+#11 CACHED
+
+#12 [web 2/6] WORKDIR /web
+#12 CACHED
+
+#13 [stage-1 2/7] WORKDIR /app
+#13 CACHED
+
+#14 [stage-1 3/7] COPY requirements.lock ./requirements.lock
+#14 CACHED
+
+#15 [web 6/6] RUN npm test && npm run build
+#15 CACHED
+
+#16 [stage-1 4/7] RUN pip install --no-cache-dir -r requirements.lock && python -m playwright install --with-deps chromium
+#16 CACHED
+
+#17 [stage-1 5/7] COPY . .
+#17 DONE 0.1s
+
+#18 [stage-1 6/7] COPY --from=web /web/dist /app/apps/web/dist
+#18 DONE 0.1s
+
+#19 [stage-1 7/7] RUN useradd --create-home --uid 10001 mjobs && mkdir -p /data/documents && mv /root/.cache/ms-playwright /opt/playwright && chown -R mjobs:mjobs /data /app /opt/playwright
+#19 DONE 1.7s
+
+#20 exporting to image
+#20 exporting layers
+#20 exporting layers 16.0s done
+#20 exporting manifest sha256:de86ddf51e0dd11d6dcbf085fd6be4bbd15c26010f15e43f90cbb18d563ca7fb 0.0s done
+#20 exporting config sha256:41d5c385b990d6ba5b70e87047b51a307554455cb759245134335137bd3f108b 0.0s done
+#20 exporting attestation manifest sha256:d19a8be01d0f193eedf79e4f3b22604574236e6cf78d6752f3b5dad7f1385647 0.0s done
+#20 exporting manifest list sha256:7255572a52f9aca68544c6e6cd0d94aae3c4f73f0e7b349c80ffdc9cc1b3d7f4
+#20 exporting manifest list sha256:7255572a52f9aca68544c6e6cd0d94aae3c4f73f0e7b349c80ffdc9cc1b3d7f4 0.0s done
+#20 naming to docker.io/library/mjobs-local:spine done
+#20 unpacking to docker.io/library/mjobs-local:spine
+#20 unpacking to docker.io/library/mjobs-local:spine 2.5s done
+#20 DONE 18.6s
+
+#21 resolving provenance for metadata file
+#21 DONE 0.0s
+ Image mjobs-local:spine Built 

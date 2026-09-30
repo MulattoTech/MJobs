@@ -61,10 +61,12 @@ class SpineTests(unittest.TestCase):
         self.assertEqual(application["fact_ids"], ["python", "sql"])
         self.assertEqual(self.store.count("applications"), 1)
         self.assertEqual(self.store.count("documents"), 2)
-        document_root = self.root / first / application["profile_version"]
-        self.assertTrue((document_root / "resume.pdf").exists())
+        with self.store.engine.connect() as connection:
+            record = connection.execute(select(m.documents).where(m.documents.c.application_id == first, m.documents.c.kind == "resume")).mappings().one()
+        document_root = self.root / first
+        self.assertTrue((document_root / record["files"]["pdf"]).exists())
         from docx import Document
-        text = "\n".join(p.text for p in Document(document_root / "resume.docx").paragraphs)
+        text = "\n".join(p.text for p in Document(document_root / record["files"]["docx"]).paragraphs)
         self.assertIn("Python", text)
         self.assertNotIn("AWS Lambda", text)
 

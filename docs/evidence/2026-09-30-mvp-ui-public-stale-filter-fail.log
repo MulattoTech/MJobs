@@ -1,0 +1,188 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Tools\Dev\MJobs\cli\ui_source_readback.py", line 68, in <module>
+    run(args.base_url, args.evidence)
+  File "C:\Tools\Dev\MJobs\cli\ui_source_readback.py", line 23, in run
+    expect(page.get_by_text("Skill mentions are not verified mandatory requirements or a full qualification assessment.", exact=True)).to_be_visible()
+  File "C:\Tools\Dev\MJobs\.venv\Lib\site-packages\playwright\sync_api\_generated.py", line 23501, in to_be_visible
+    self._sync(
+  File "C:\Tools\Dev\MJobs\.venv\Lib\site-packages\playwright\_impl\_sync_base.py", line 115, in _sync
+    return task.result()
+           ^^^^^^^^^^^^^
+  File "C:\Tools\Dev\MJobs\.venv\Lib\site-packages\playwright\_impl\_assertions.py", line 852, in to_be_visible
+    await self._expect_impl(
+  File "C:\Tools\Dev\MJobs\.venv\Lib\site-packages\playwright\_impl\_assertions.py", line 128, in _expect_impl
+    _record_soft_or_raise(
+  File "C:\Tools\Dev\MJobs\.venv\Lib\site-packages\playwright\_impl\_assertions.py", line 60, in _record_soft_or_raise
+    raise error
+AssertionError: Locator expected to be visible
+Actual value: None
+Error: element(s) not found 
+Call log:
+  - Expect "to_be_visible" get_by_text("Skill mentions are not verified mandatory requirements or a full qualification assessment.", exact=True) with timeout 5000ms
+  - waiting for get_by_text("Skill mentions are not verified mandatory requirements or a full qualification assessment.", exact=True)
+
+Aria snapshot:
+- complementary:
+  - link "MJobs YOUR LOCAL WORKSPACE":
+    - /url: /
+  - navigation "Main navigation":
+    - button "Jobs 20"
+    - button "Profile"
+    - button "Sources"
+    - button "Applications 0"
+    - button "Activity"
+  - strong: Built around your facts.
+  - paragraph: Discover opportunities, prepare truthful documents, and keep a clear record.
+  - text: External submission OFF
+- main:
+  - text: LOCAL FIRST · USER TESTING
+  - heading "Find your next opportunity." [level=1]
+  - text: Services ready Active profile
+  - combobox "Active profile":
+    - option "Select a profile"
+    - option "Alex Fixture"
+    - option "Alex Fixture"
+    - option "Alex Fixture"
+    - option "Alex Fixture"
+    - option "Alex Fixture"
+    - option "Alex Fixture"
+    - option "Alex Fixture"
+    - option "Alex Fixture"
+    - option "Alex Fixture" [selected]
+    - option "Fictional Test Applicant"
+  - button "New profile"
+  - text: Real applications require your own manual review and submission. This workspace cannot submit to an external employer.
+  - paragraph: 20 stored opportunities · matching uses approved facts
+  - button "Refresh matches"
+  - text: Search jobs
+  - searchbox "Search jobs"
+  - text: Work location
+  - combobox "Work location":
+    - option "All locations" [selected]
+    - option "REMOTE"
+    - option "HYBRID"
+    - option "ONSITE"
+    - option "UNKNOWN"
+  - text: Source
+  - combobox "Source":
+    - option "All sources"
+    - option "Greenhouse" [selected]
+    - option "Fictional mock"
+  - text: Sort
+  - combobox "Sort":
+    - option "Match score" [selected]
+    - option "Title"
+  - button "Greenhouse 14.29% Senior Software Engineer Ontario · UNKNOWN greenhouse · read only 1 posting":
+    - text: Greenhouse 14.29%
+    - heading "Senior Software Engineer" [level=2]
+    - paragraph: Ontario · UNKNOWN
+    - text: greenhouse · read only 1 posting
+  - button "Greenhouse 14.29% Senior Software Engineer Ontario · UNKNOWN greenhouse · read only 1 posting":
+    - text: Greenhouse 14.29%
+    - heading "Senior Software Engineer" [level=2]
+    - paragraph: Ontario · UNKNOWN
+    - text: greenhouse · read only 1 posting
+  - button "Greenhouse 14.29% Senior Software Engineer British Columbia · UNKNOWN greenhouse · read only 1 posting":
+    - text: Greenhouse 14.29%
+    - heading "Senior Software Engineer" [level=2]
+    - paragraph: British Columbia · UNKNOWN
+    - text: greenhouse · read only 1 posting
+  - button "Greenhouse 14.29% Software Engineer Ontario · UNKNOWN greenhouse · read only 1 posting":
+    - text: Greenhouse 14.29%
+    - heading "Software Engineer" [level=2]
+    - paragraph: Ontario · UNKNOWN
+    - text: greenhouse · read only 1 posting
+  - button "Greenhouse 14.29% Software Engineer (Contract, Argentina) Argentina · UNKNOWN greenhouse · read only 1 posting":
+    - text: Greenhouse 14.29%
+    - heading "Software Engineer (Contract, Argentina)" [level=2]
+    - paragraph: Argentina · UNKNOWN
+    - text: greenhouse · read only 1 posting
+  - button "Greenhouse 0% Engineering Manager, Cloud Platform Ontario · UNKNOWN greenhouse · read only 1 posting":
+    - text: Greenhouse 0%
+    - heading "Engineering Manager, Cloud Platform" [level=2]
+    - paragraph: Ontario · UNKNOWN
+    - text: greenhouse · read only 1 posting
+  - button "Greenhouse 0% Engineering Manager, Cloud Platform British Columbia · UNKNOWN greenhouse · read only 1 posting":
+    - text: Greenhouse 0%
+    - heading "Engineering Manager, Cloud Platform" [level=2]
+    - paragraph: British Columbia · UNKNOWN
+    - text: greenhouse · read only 1 posting
+  - button "Greenhouse 0% Enterprise Sales Development Representative Anywhere in the United States · UNKNOWN greenhouse · read only 1 posting":
+    - text: Greenhouse 0%
+    - heading "Enterprise Sales Development Representative" [level=2]
+    - paragraph: Anywhere in the United States · UNKNOWN
+    - text: greenhouse · read only 1 posting
+  - button "Greenhouse 0% Growth Account Executive Anywhere in Ireland · UNKNOWN greenhouse · read only 1 posting":
+    - text: Greenhouse 0%
+    - heading "Growth Account Executive" [level=2]
+    - paragraph: Anywhere in Ireland · UNKNOWN
+    - text: greenhouse · read only 1 posting
+  - button "Greenhouse 0% Manager, Corporate IT Northern Ireland, United Kingdom · UNKNOWN greenhouse · read only 1 posting":
+    - text: Greenhouse 0%
+    - heading "Manager, Corporate IT" [level=2]
+    - paragraph: Northern Ireland, United Kingdom · UNKNOWN
+    - text: greenhouse · read only 1 posting
+  - button "Greenhouse 0% Manager, Security Engineering British Columbia · UNKNOWN greenhouse · read only 1 posting":
+    - text: Greenhouse 0%
+    - heading "Manager, Security Engineering" [level=2]
+    - paragraph: British Columbia · UNKNOWN
+    - text: greenhouse · read only 1 posting
+  - button "Greenhouse 0% Manager, Security Engineering Ontario · UNKNOWN greenhouse · read only 1 posting":
+    - text: Greenhouse 0%
+    - heading "Manager, Security Engineering" [level=2]
+    - paragraph: Ontario · UNKNOWN
+    - text: greenhouse · read only 1 posting
+  - button "Greenhouse 0% Program Manager, Product & GTM Enablement Anywhere in the United States · UNKNOWN greenhouse · read only 1 posting":
+    - text: Greenhouse 0%
+    - heading "Program Manager, Product & GTM Enablement" [level=2]
+    - paragraph: Anywhere in the United States · UNKNOWN
+    - text: greenhouse · read only 1 posting
+  - button "Greenhouse 0% Senior Account Executive, Mid-Market Anywhere in Ireland · UNKNOWN greenhouse · read only 1 posting":
+    - text: Greenhouse 0%
+    - heading "Senior Account Executive, Mid-Market" [level=2]
+    - paragraph: Anywhere in Ireland · UNKNOWN
+    - text: greenhouse · read only 1 posting
+  - button "Greenhouse 0% Senior Product Manager British Columbia · UNKNOWN greenhouse · read only 1 posting":
+    - text: Greenhouse 0%
+    - heading "Senior Product Manager" [level=2]
+    - paragraph: British Columbia · UNKNOWN
+    - text: greenhouse · read only 1 posting
+  - button "Greenhouse 0% Senior Product Manager Ontario · UNKNOWN greenhouse · read only 1 posting":
+    - text: Greenhouse 0%
+    - heading "Senior Product Manager" [level=2]
+    - paragraph: Ontario · UNKNOWN
+    - text: greenhouse · read only 1 posting
+  - button "Greenhouse 0% Senior Program Manager, GTM & Field Enablement Anywhere in Ireland · UNKNOWN greenhouse · read only 1 posting":
+    - text: Greenhouse 0%
+    - heading "Senior Program Manager, GTM & Field Enablement" [level=2]
+    - paragraph: Anywhere in Ireland · UNKNOWN
+    - text: greenhouse · read only 1 posting
+  - button "Greenhouse 0% Strategic Consultant Pacific or Mountain Timezone · UNKNOWN greenhouse · read only 1 posting":
+    - text: Greenhouse 0%
+    - heading "Strategic Consultant" [level=2]
+    - paragraph: Pacific or Mountain Timezone · UNKNOWN
+    - text: greenhouse · read only 1 posting
+  - button "Greenhouse 0% Strategic Consultant Anywhere in Ireland · UNKNOWN greenhouse · read only 1 posting":
+    - text: Greenhouse 0%
+    - heading "Strategic Consultant" [level=2]
+    - paragraph: Anywhere in Ireland · UNKNOWN
+    - text: greenhouse · read only 1 posting
+  - button "Greenhouse 0% Strategic Consultant I London, United Kingdom · UNKNOWN greenhouse · read only 1 posting":
+    - text: Greenhouse 0%
+    - heading "Strategic Consultant I" [level=2]
+    - paragraph: London, United Kingdom · UNKNOWN
+    - text: greenhouse · read only 1 posting
+  - text: Example Systems Inc.
+  - heading "Data Engineer" [level=2]
+  - paragraph: United States · REMOTE
+  - heading "Why this match?" [level=3]
+  - paragraph: Select a profile and refresh matches.
+  - button "Prepare documents"
+  - heading "Job description" [level=3]
+  - paragraph: "Required: Python and SQL"
+  - heading "Source evidence" [level=3]
+  - code: http://mock:8090/ats/example/jobs
+  - paragraph: Native posting employer-B · fetched 9/30/2026, 7:37:30 AM
+  - text: SHA256 62ff499dd635b5017686eb680495f2834815d9239416d19b730fa9099a1749cc MJobs · Your data stays in this local workspace. User-testing milestone; broader integrations and automation are still in development.

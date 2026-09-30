@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Tools\Dev\MJobs\cli\compose_recovery.py", line 91, in <module>
+    run(args.baseline, args.evidence)
+  File "C:\Tools\Dev\MJobs\cli\compose_recovery.py", line 67, in run
+    operation = request("GET", "/operations/" + baseline["operation_id"])
+                                                ~~~~~~~~^^^^^^^^^^^^^^^^
+KeyError: 'operation_id'

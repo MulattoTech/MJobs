@@ -1,0 +1,117 @@
+ Image mjobs-local:spine Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 1.31kB done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 729B done
+#2 DONE 0.0s
+
+#3 [auth] library/python:pull token for registry-1.docker.io
+#3 DONE 0.0s
+
+#4 [auth] library/node:pull token for registry-1.docker.io
+#4 DONE 0.0s
+
+#5 [internal] load metadata for docker.io/library/node:24-slim
+#5 ...
+
+#6 [internal] load metadata for docker.io/library/python:3.12-slim
+#6 DONE 0.6s
+
+#5 [internal] load metadata for docker.io/library/node:24-slim
+#5 DONE 0.6s
+
+#7 [internal] load .dockerignore
+#7 transferring context: 166B done
+#7 DONE 0.0s
+
+#8 [stage-1 1/7] FROM docker.io/library/python:3.12-slim@sha256:f77ac9e44ae96ef2c90b8053ea08c31f8be030f824196b0ae4db6d462c84e51f
+#8 resolve docker.io/library/python:3.12-slim@sha256:f77ac9e44ae96ef2c90b8053ea08c31f8be030f824196b0ae4db6d462c84e51f 0.0s done
+#8 DONE 0.0s
+
+#9 [web 1/6] FROM docker.io/library/node:24-slim@sha256:0e0ff40c39bc087845bfb27465a0df4ea419520094bc35842ff83dd8cbe6f9b6
+#9 resolve docker.io/library/node:24-slim@sha256:0e0ff40c39bc087845bfb27465a0df4ea419520094bc35842ff83dd8cbe6f9b6 0.0s done
+#9 DONE 0.0s
+
+#10 [internal] load build context
+#10 transferring context: 71.95kB 0.0s done
+#10 DONE 0.0s
+
+#11 [web 2/6] WORKDIR /web
+#11 CACHED
+
+#12 [web 3/6] COPY apps/web/package.json apps/web/package-lock.json ./
+#12 CACHED
+
+#13 [stage-1 2/7] WORKDIR /app
+#13 CACHED
+
+#14 [stage-1 3/7] COPY requirements.lock ./requirements.lock
+#14 CACHED
+
+#15 [web 4/6] RUN npm ci --no-audit --no-fund
+#15 CACHED
+
+#16 [stage-1 4/7] RUN pip install --no-cache-dir -r requirements.lock && python -m playwright install --with-deps chromium
+#16 CACHED
+
+#17 [web 5/6] COPY apps/web/ ./
+#17 DONE 0.1s
+
+#18 [stage-1 5/7] COPY . .
+#18 DONE 0.1s
+
+#19 [web 6/6] RUN npm test && npm run build
+#19 0.290 
+#19 0.290 > mjobs-web@0.1.0 test
+#19 0.290 > vitest run
+#19 0.290 
+#19 0.483 
+#19 0.483 [1m[30m[46m RUN [49m[39m[22m [36mv5.0.3 [39m[90m/web[39m
+#19 0.483 
+#19 0.584  [32m✓[39m src/api.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 2[2mms[22m[39m
+#19 0.588 
+#19 0.588 [2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+#19 0.588 [2m      Tests [22m [1m[32m2 passed[39m[22m[90m (2)[39m
+#19 0.588 [2m   Start at [22m 12:45:01
+#19 0.589 [2m   Duration [22m 100ms[2m (transform 63%, import 22%, worker 8%, tests 7%)[22m
+#19 0.590 
+#19 0.712 
+#19 0.712 > mjobs-web@0.1.0 build
+#19 0.712 > tsc --noEmit && vite build
+#19 0.712 
+#19 0.977 vite v8.3.1 building client environment for production...
+#19 0.985 transforming...
+#19 1.033 ✓ 16 modules transformed.
+#19 1.062 rendering chunks...
+#19 1.087 computing gzip size...
+#19 1.090 dist/index.html                   0.41 kB │ gzip:  0.29 kB
+#19 1.090 dist/assets/index-CyB1Z4rG.css    6.76 kB │ gzip:  2.21 kB
+#19 1.090 dist/assets/index-DOIwNACa.js   243.56 kB │ gzip: 75.34 kB
+#19 1.090 
+#19 1.090 ✓ built in 112ms
+#19 DONE 1.1s
+
+#20 [stage-1 6/7] COPY --from=web /web/dist /app/apps/web/dist
+#20 DONE 0.1s
+
+#21 [stage-1 7/7] RUN useradd --create-home --uid 10001 mjobs && mkdir -p /data/documents && mv /root/.cache/ms-playwright /opt/playwright && chown -R mjobs:mjobs /data /app /opt/playwright
+#21 DONE 1.7s
+
+#22 exporting to image
+#22 exporting layers
+#22 exporting layers 15.9s done
+#22 exporting manifest sha256:e9907cf63bf5c7f5c4ab1cfa2555521d6fb8befcf3e93f3c312b7d9304128084 0.0s done
+#22 exporting config sha256:e9f53efc7bf0b534dfe8b652a05a0b4b38e62d7c1ec8cb06017973843819d08c 0.0s done
+#22 exporting attestation manifest sha256:551461220ed27172cad1214e8ce2c32451e74ab94312277960f7cc8b2190c3c5 0.0s done
+#22 exporting manifest list sha256:ea6f4863b03d9192814acc73793bbf65ff49444fa31dcd0be9dbfd270dabb472 0.0s done
+#22 naming to docker.io/library/mjobs-local:spine
+#22 naming to docker.io/library/mjobs-local:spine done
+#22 unpacking to docker.io/library/mjobs-local:spine
+#22 unpacking to docker.io/library/mjobs-local:spine 2.5s done
+#22 DONE 18.5s
+
+#23 resolving provenance for metadata file
+#23 DONE 0.0s
+ Image mjobs-local:spine Built 

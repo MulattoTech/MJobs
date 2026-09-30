@@ -1,0 +1,12 @@
+{
+  "result": "PASS",
+  "timestamp": "2026-09-30T13:21:06.890329+00:00",
+  "command": "python outputs/publish-exact-commit.py",
+  "target": "MulattoTech/MJobs/codex/mj-pr-149-user-testing-mvp",
+  "commit": "836d320130452fb88352a4fb6eb89bc3b89fc1f5",
+  "tree": "e66d25dadb09cce6e4d10742d5b688b392e17592",
+  "parent": "f822ca6131f1bb3c28a83d6c457831171a17f2c4",
+  "changed_files": 91,
+  "transport": "Authenticated GitHub Git Database API",
+  "force": false
+}

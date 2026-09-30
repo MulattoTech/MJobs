@@ -1,0 +1,56 @@
+{
+  "timestamp": "2026-09-30T19:52:54Z",
+  "target": "PR #370, codex/mj-pr-149-user-testing-mvp at d80785150e5a651b96be56c39310956d49f7b26d",
+  "action": "Verify connected local UI, factual documents, controlled mock application and recovery on GitHub Actions",
+  "result": "PASS",
+  "local_validation": [
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py' -v",
+      "result": "PASS",
+      "observed": "67 tests"
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -m tools.verification.catalogue",
+      "result": "PASS"
+    },
+    {
+      "command": "docker run --rm --mount project bind ... node:24 sh -lc 'npm ci && npm test && npm run build'",
+      "result": "BLOCKED_ENVIRONMENT",
+      "observed": "Local Docker Desktop Linux engine pipe absent; remote Actions Node 24 checks executed successfully"
+    }
+  ],
+  "remote_validation": {
+    "pull_request_run_id": 36768260666,
+    "pull_request_job_id": 110067796164,
+    "push_run_id": 36768256061,
+    "url": "https://github.com/MulattoTech/MJobs/actions/runs/36768260666",
+    "result": "PASS",
+    "executed": [
+      "Node 24 npm ci, two frontend tests, strict TypeScript check and production build",
+      "locked Python dependency install, Chromium setup, 67 Python tests and catalogue validation",
+      "Compose service build/start and controlled mock application E2E",
+      "actual headless Chromium connected UI journey with factual downloads, dry-run and one mock receipt",
+      "Redis outage, durable outbox recovery and all-service restart",
+      "artifact upload and Compose teardown"
+    ]
+  },
+  "artifacts": [
+    {
+      "path": "docs/evidence/2026-09-30-ci-370-mock-e2e.json",
+      "sha256": "4A925EE4CDB2C0DDCA8246AB5C8CCDC126D651E1C2E7730A095B92D96E2C1FA5"
+    },
+    {
+      "path": "docs/evidence/2026-09-30-ci-370-ui.json",
+      "sha256": "24112D5C1E94FC0BAB66EA055A4075E161691C40F6C5088027B101CBE1698AF3"
+    },
+    {
+      "path": "docs/evidence/2026-09-30-ci-370-recovery.json",
+      "sha256": "10D40868B87C0FE67091C44AD4849C517F0608AA73E8F392D6B1AB1703888668"
+    }
+  ],
+  "limitations": [
+    "The remote browser journey uses fictional mock application data; real external submission remained disabled.",
+    "The controlled live public Greenhouse GET and fresh local startup are earlier scoped evidence, not claims about this CI run.",
+    "Original full-spec and release readiness remain PARTIAL."
+  ]
+}

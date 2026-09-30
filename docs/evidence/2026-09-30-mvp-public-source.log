@@ -1,0 +1,58 @@
+{
+  "result": "PASS",
+  "timestamp": "2026-09-30T12:33:24.309761+00:00",
+  "command": "python -m cli.public_source_probe --tenant greenhouse",
+  "target": "Actual public Greenhouse GET / deployed RQ source worker / PostgreSQL provenance",
+  "source_id": "d6c6529006317081b49c8c002da3323606c5f271cb9e345c14cd201948541061",
+  "operation_id": "164aa9a953323c55cc53fed6e96ca8189530bfdc74698e9c81d4da45f8dea9fa",
+  "operation_state": "COMPLETED",
+  "error_category": null,
+  "source": {
+    "id": "d6c6529006317081b49c8c002da3323606c5f271cb9e345c14cd201948541061",
+    "provider": "greenhouse",
+    "tenant": "greenhouse",
+    "name": "Greenhouse",
+    "enabled": true,
+    "strategy": "API",
+    "poll_interval": 300,
+    "last_attempt": "2026-09-30T12:33:23.637534+00:00",
+    "last_success": "2026-09-30T12:33:23.637534+00:00",
+    "backoff_until": null,
+    "consecutive_failures": 0,
+    "health_status": "HEALTHY",
+    "last_error": null,
+    "jobs_seen": 20
+  },
+  "job_count_returned": 20,
+  "examples": [
+    {
+      "job_id": "573bfb367075b81a1d2f3de59dcb67f682526e26202eb449bce8777be61eeb48",
+      "title": "Senior Software Engineer",
+      "company": "Greenhouse",
+      "native_posting_id": 8204473,
+      "source_endpoint": "https://boards-api.greenhouse.io/v1/boards/greenhouse/jobs",
+      "sha256": "974745a62ae29f35271bcac7ea5c2eb2542e24ce058673c3b3eeec2d484e5052",
+      "submission_capability": "MANUAL_ONLY"
+    },
+    {
+      "job_id": "ae936234dfaad251c1e58da38eba51e9ea206dac317e208551eab48fc010f128",
+      "title": "Senior Software Engineer",
+      "company": "Greenhouse",
+      "native_posting_id": 8211828,
+      "source_endpoint": "https://boards-api.greenhouse.io/v1/boards/greenhouse/jobs",
+      "sha256": "511a3e2844fd249383c86d44f4c6c3dc5290b2be797b39d0fc7585ad50920857",
+      "submission_capability": "MANUAL_ONLY"
+    },
+    {
+      "job_id": "bcaa17e072c5891df5c4cc487eb30133d060a170c52c127a05435cbc01dd93d7",
+      "title": "Senior Software Engineer",
+      "company": "Greenhouse",
+      "native_posting_id": 8204474,
+      "source_endpoint": "https://boards-api.greenhouse.io/v1/boards/greenhouse/jobs",
+      "sha256": "baa93f0f8fcba2f67838d4ff46b75a8e3f96f4f3c23b0e86cb7bf3facf037a3d",
+      "submission_capability": "MANUAL_ONLY"
+    }
+  ],
+  "external_submission_enabled": false,
+  "external_application_requests": 0
+}

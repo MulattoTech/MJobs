@@ -21,6 +21,9 @@ def compose(*arguments):
 
 def run(baseline_path, evidence_path):
     baseline = json.loads(Path(baseline_path).read_text(encoding="utf-8"))
+    for key in ("application_id", "operation_id", "confirmation"):
+        if key not in baseline:
+            raise ValueError("Baseline is missing required recovery evidence: " + key)
     api = "http://127.0.0.1:18700"
     actions = []
     with httpx.Client(base_url=api, timeout=15, trust_env=False) as client:
