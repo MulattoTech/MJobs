@@ -1,0 +1,46 @@
+{
+  "timestamp": "2026-09-30T19:33:26Z",
+  "target": "PR #368, codex/mj-pr-148-mock-product-spine at 782f04ec206d012b1002f31af4fcf0b8cf236e18",
+  "action": "Run local tests and GitHub Actions mock-spine verification with fictional application data",
+  "result": "PASS",
+  "local_validation": [
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py' -v",
+      "result": "PASS",
+      "observed": "47 tests"
+    },
+    {
+      "command": "python -m tools.verification.catalogue",
+      "result": "PASS"
+    }
+  ],
+  "remote_validation": {
+    "pull_request_run_id": 36766115299,
+    "pull_request_job_id": 110060590694,
+    "push_run_id": 36766108657,
+    "url": "https://github.com/MulattoTech/MJobs/actions/runs/36766115299",
+    "result": "PASS",
+    "executed": [
+      "locked dependency install and headless Chromium setup",
+      "47 unit, integration and browser tests",
+      "catalogue validator and environment initialization",
+      "Compose service startup and controlled mock application E2E",
+      "Redis outage, durable outbox recovery and full service restart",
+      "artifact upload and Compose teardown"
+    ]
+  },
+  "artifacts": [
+    {
+      "path": "docs/evidence/2026-09-30-ci-368-mock-e2e.json",
+      "sha256": "00A585686E8398811DD0DA073FF9FF0586C404C7604A7742879CF302615FE618"
+    },
+    {
+      "path": "docs/evidence/2026-09-30-ci-368-recovery.json",
+      "sha256": "592D3925A49E78918EDCCFE47C537BECCDCB87802239C068E7A271BF8645E04E"
+    }
+  ],
+  "limitations": [
+    "This is a fictional mock application; external submission remained disabled.",
+    "Broader original requirements and release readiness remain PARTIAL."
+  ]
+}

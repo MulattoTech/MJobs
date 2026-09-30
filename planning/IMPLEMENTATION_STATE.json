@@ -25,13 +25,7 @@
     "Submission/truthfulness gates and persisted counters implemented for mock adapter; real adapters disabled",
     "Profile, provenance, required-skill matching, documents, API and one worker implemented; broader specs still pending"
   ],
-  "blocked_capabilities": [
-    {
-      "capability": "Remote GitHub Actions verification",
-      "result": "BLOCKED_EXTERNAL",
-      "reason": "OAuth authorization lacks workflow scope; reviewed workflow staged at infra/ci/verification.yml"
-    }
-  ],
+  "blocked_capabilities": [],
   "active_requirements": [
     "MJ-REQ-016",
     "MJ-REQ-018",
@@ -84,11 +78,13 @@
     "47 local unit/integration/headless-browser tests",
     "Compose PostgreSQL/Redis/RQ mock E2E; repeat operation keeps receipt count one",
     "Final isolated Compose outage/restart proof: exact original application/operation/receipt retained",
-    "55 current lifecycle and mock-spine tests; deployed three-queue Compose E2E and outage/restart PASS"
+    "55 current lifecycle and mock-spine tests; deployed three-queue Compose E2E and outage/restart PASS",
+    "Remote governance CI: pull_request run 36765678280 PASS at e97d8b0",
+    "Remote mock-spine CI: pull_request run 36766115299 PASS at 782f04e"
   ],
   "tests_failed": [],
   "tests_not_run": [
-    "Remote CI: BLOCKED_EXTERNAL (workflow OAuth scope)",
+    "Worker lifecycle remote CI: NOT_RUN at this branch head",
     "Real read-only source/company integrations",
     "Frontend and remaining product requirements"
   ],
@@ -106,6 +102,19 @@
     "target": "Three-queue PostgreSQL/Redis/RQ lifecycle",
     "result": "PASS",
     "evidence_path": "docs/evidence/2026-09-30-worker-compose-recovery.json"
+  },
+  "ci_verification": {
+    "result": "PASS",
+    "scope": "governance domain/control-plane and catalogue only",
+    "head": "e97d8b0a35219bf4c053cf663c5d44f6f1be522c",
+    "pull_request_run_id": 36765678280,
+    "evidence_path": "docs/evidence/2026-09-30-governance-ci.json"
+  },
+  "mock_spine_ci": {
+    "result": "PASS",
+    "head": "782f04ec206d012b1002f31af4fcf0b8cf236e18",
+    "pull_request_run_id": 36766115299,
+    "evidence_path": "docs/evidence/2026-09-30-ci-368.json"
   },
   "recommended_resume_step": "Read docs/evidence/2026-09-29-resume-checkpoint.json and prompts/USER_TESTABLE_MVP_GOAL.md; preserve unfinished current branch and PR367/368",
   "migrations_applied": [
