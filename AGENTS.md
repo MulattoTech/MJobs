@@ -61,3 +61,6 @@ assumptions while preserving provenance; durable/idempotent state before concurr
 Follow `docs/AREA_ROUTING.md` and `docs/REPO_MAP.md`.
 Create each implementation area's `AREA.md` when that area first becomes active; do not create broad empty
 code scaffolding merely to imply progress.
+
+## Reference-project backlog
+When a task involves reference-inspired work, also read `planning/REFERENCE_GAP_MATRIX.json` and `docs/reference/REFERENCE_PROJECT_GAP_ANALYSIS.md`. `MJ-REF-001..042` is the canonical additive namespace. Do not recreate closed duplicate `REF-GAP` issues. Reference ideas never override original P0-P3 requirements or safety/truthfulness rules, and incompatible evasion/block-bypass patterns are explicitly out of scope.

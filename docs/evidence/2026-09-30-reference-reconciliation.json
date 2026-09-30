@@ -1,0 +1,49 @@
+{
+  "timestamp": "2026-09-30T20:03:21Z",
+  "target": "PR #427 reference catalogue rebased by merge on merged main through #370",
+  "action": "Reconcile original requirement, canonical reference-gap, and release-readiness truth surfaces after stacked-spine integration",
+  "result": "PASS",
+  "validation": [
+    {
+      "command": "python -m tools.verification.catalogue",
+      "result": "PASS",
+      "observed": "Catalogue validation: PASS"
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_catalogue -v",
+      "result": "PASS",
+      "observed": "3 tests; reference status coverage and evidence-free PASS are rejected"
+    },
+    {
+      "command": "python -m json.tool planning/REFERENCE_GAP_MATRIX.json; python -m json.tool planning/REFERENCE_GAP_ISSUE_MAP.json; python -m json.tool planning/IMPLEMENTATION_STATE.json; python -m json.tool planning/PR_QUEUE.json",
+      "result": "PASS"
+    },
+    {
+      "command": "Compare planning/REFERENCE_GAP_ISSUE_MAP.json with gh issue list --state all --limit 500 --json number,title",
+      "result": "PASS",
+      "observed": "42 canonical MJ-REF IDs; zero remote issue number/title mismatches"
+    },
+    {
+      "command": "Count planning/CAPABILITY_MATRIX.json and planning/REFERENCE_GAP_MATRIX.json results",
+      "result": "PASS",
+      "observed": "Original 366: PASS 1, PARTIAL 53, NOT_RUN 312. Reference 42: NOT_RUN 42. Release readiness: NOT_RUN."
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS",
+      "observed": "No whitespace errors; Git reported a CRLF-to-LF working-copy warning for REFERENCE_GAP_MATRIX.json."
+    }
+  ],
+  "stacked_spine": {
+    "merged_pull_requests": [367, 368, 369, 370],
+    "main_post_merge_run_id": 36769434214,
+    "main_post_merge_head": "8ee6b0a7578ab4c8a46f1bac2c707a88048473ab",
+    "main_post_merge_result": "PASS",
+    "url": "https://github.com/MulattoTech/MJobs/actions/runs/36769434214"
+  },
+  "limitations": [
+    "Reference catalogue reconciliation does not implement or close any MJ-REF issue.",
+    "Original full-spec completion and release readiness remain unverified.",
+    "The connected UI and recovery CI exercised fictional mock application data; real external submission remained disabled."
+  ]
+}
