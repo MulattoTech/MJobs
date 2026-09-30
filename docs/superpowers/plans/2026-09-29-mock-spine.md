@@ -54,4 +54,4 @@ Files: apps/api/main.py, workers/dispatch.py, migrations/, compose.yml, infra/do
 - [x] Test API profile/discovery/application/operation reads and queue-disconnect recovery.
 - [x] Implement API/worker and initial migration; add Compose PostgreSQL, Redis, mock service, API and a single worker.
 - [x] Run build, migrations, health, complete mock E2E, restart and persisted readback.
-- [ ] Record local evidence, update state/queue, push real implementation, and open a stacked draft PR. Remote CI remains BLOCKED_EXTERNAL until workflow authorization is supplied.
+- [x] Record local evidence, update state/queue, push real implementation, and open a stacked draft PR. Remote CI remains BLOCKED_EXTERNAL until workflow authorization is supplied.

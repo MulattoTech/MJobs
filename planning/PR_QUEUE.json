@@ -2680,10 +2680,11 @@
       "depends_on": [
         "MJ-PR-001"
       ],
-      "status": "ACTIVE",
+      "status": "DRAFT_PR",
       "branch": "codex/mj-pr-148-mock-product-spine",
       "draft_until_verified": true,
-      "notes": "CODEX_START section 7 and MJ-REQ-290 authorize initial vertical slice before the broader waterfall. Original umbrella entries remain queued/partial; this slice does not close them. Stacked on implemented governance branch."
+      "notes": "CODEX_START section 7 and MJ-REQ-290 authorize initial vertical slice before the broader waterfall. Original umbrella entries remain queued/partial; this slice does not close them. Stacked on implemented governance branch.",
+      "pr_number": 368
     }
   ]
 }

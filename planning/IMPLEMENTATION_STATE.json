@@ -71,6 +71,12 @@
       "url": "https://github.com/MulattoTech/MJobs/pull/367",
       "branch": "codex/mj-pr-001-governance-safety",
       "status": "DRAFT_PR"
+    },
+    {
+      "number": 368,
+      "url": "https://github.com/MulattoTech/MJobs/pull/368",
+      "branch": "codex/mj-pr-148-mock-product-spine",
+      "status": "DRAFT_PR"
     }
   ],
   "tests_passed": [
