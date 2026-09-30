@@ -10,8 +10,8 @@
     "current_verified_local_state": "Initialized from newer origin/main; supplied control pack retained on governance branch",
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
-  "current_milestone": "M5_P0_RUNTIME_RESTART_FOUNDATION",
-  "current_objective": "Verify draft PR-004 exact-head CI, then continue original P0 local-first startup, backup/restore, identity and safety prerequisites before reference enrichment",
+  "current_milestone": "M5_P0_RUNTIME_RESTART_REMOTE_VERIFIED",
+  "current_objective": "Continue original P0 local-first backup/restore, uploaded-resume persistence, identity and safety prerequisites before reference enrichment",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -965,11 +965,69 @@
         "git_commit": "e920fa412675016d7558393c6f9b7727bfd0cf70",
         "evidence_path": "docs/evidence/2026-09-30-pr004-local-restart.json"
       }
+    },
+    {
+      "milestone_id": "M5-P0-RUNTIME-RESTART-REMOTE",
+      "timestamp": "2026-09-30T23:57:56.980518Z",
+      "current_phase": "M5_P0_RUNTIME_RESTART_REMOTE_VERIFIED",
+      "completed_steps": [
+        "Verified push and pull_request required workflows succeeded at implementation head 44ce3d5",
+        "Inspected and hashed twelve artifact JSON files with all PASS and external submission disabled",
+        "Retained MJ-REQ-012 PASS, MJ-REQ-013/014 PARTIAL, all MJ-REF NOT_RUN and release NOT_RUN"
+      ],
+      "files_added": [
+        "docs/evidence/2026-09-30-ci-430-44ce3d5-pr-ci-mock-e2e.json",
+        "docs/evidence/2026-09-30-ci-430-44ce3d5-pr-ci-personal-mode.json",
+        "docs/evidence/2026-09-30-ci-430-44ce3d5-pr-ci-personal-public-source.json",
+        "docs/evidence/2026-09-30-ci-430-44ce3d5-pr-ci-personal-public-ui.json",
+        "docs/evidence/2026-09-30-ci-430-44ce3d5-pr-ci-recovery.json",
+        "docs/evidence/2026-09-30-ci-430-44ce3d5-pr-ci-ui.json",
+        "docs/evidence/2026-09-30-ci-430-44ce3d5-push-ci-mock-e2e.json",
+        "docs/evidence/2026-09-30-ci-430-44ce3d5-push-ci-personal-mode.json",
+        "docs/evidence/2026-09-30-ci-430-44ce3d5-push-ci-personal-public-source.json",
+        "docs/evidence/2026-09-30-ci-430-44ce3d5-push-ci-personal-public-ui.json",
+        "docs/evidence/2026-09-30-ci-430-44ce3d5-push-ci-recovery.json",
+        "docs/evidence/2026-09-30-ci-430-44ce3d5-push-ci-ui.json",
+        "docs/evidence/2026-09-30-ci-430.json",
+        "docs/evidence/2026-09-30-ci-430-entry.json"
+      ],
+      "files_modified": [
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "docs/FEATURE_COMPLETENESS.md"
+      ],
+      "tests_completed": [
+        "PR run 36793203240 and push run 36793197626 PASS at 44ce3d5",
+        "Both runs: Python suite, frontend tests/build, validators, fixture Compose mock/Chromium/recovery and personal Compose no-mock/Chromium/public read PASS",
+        "Both runs: 21 public Greenhouse jobs via deployed worker, source HEALTHY and zero external application requests",
+        "Local existing mjobs readiness HTTP 200 with all four checks true"
+      ],
+      "tests_remaining": [
+        "Evidence-only successor exact-head CI",
+        "Docker daemon relaunch proof for the new policy",
+        "P0 backup/restore, uploaded resumes and complete startup acceptance"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "GitHub Actions PostgreSQL/Redis/RQ/Chromium fixture and personal Compose",
+        "Public read-only Greenhouse GET via deployed personal source worker",
+        "Existing local MJobs Docker Desktop project readiness after in-place dependency repair"
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "No actual Docker daemon relaunch during PR implementation validation",
+        "MJ-REQ-013/014 remain PARTIAL; all 42 MJ-REF items and release readiness remain NOT_RUN"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "44ce3d5a3ff57670eb829e0bd74ecb8f702bcab4",
+        "evidence_path": "docs/evidence/2026-09-30-ci-430.json"
+      }
     }
   ],
-  "current_phase": "M5_P0_RUNTIME_RESTART_FOUNDATION",
+  "current_phase": "M5_P0_RUNTIME_RESTART_REMOTE_VERIFIED",
   "last_safe_checkpoint": {
-    "git_commit": "e920fa412675016d7558393c6f9b7727bfd0cf70",
-    "evidence_path": "docs/evidence/2026-09-30-pr004-local-restart.json"
+    "git_commit": "44ce3d5a3ff57670eb829e0bd74ecb8f702bcab4",
+    "evidence_path": "docs/evidence/2026-09-30-ci-430.json"
   }
 }

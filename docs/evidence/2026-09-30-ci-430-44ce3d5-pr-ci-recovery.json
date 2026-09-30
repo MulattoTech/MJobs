@@ -1,0 +1,23 @@
+{
+  "result": "PASS",
+  "timestamp": "2026-09-30T23:54:13.245105+00:00",
+  "command": "python -m cli.compose_recovery --baseline outputs/ci-mock-e2e.json",
+  "target": "Project-only PostgreSQL/Redis/RQ/mock persistence and outage recovery",
+  "actions": [
+    {
+      "action": "Redis disconnected; discovery persisted",
+      "result": "PASS",
+      "operation_id": "57d86332e817d32adcd258c655ae1eb497f13746839dd001e8e893f41e1cef6f"
+    },
+    {
+      "action": "Worker supervision and durable outbox recovered after Redis returned",
+      "result": "PASS"
+    },
+    {
+      "action": "All services restarted; original application, operation and independent receipt survived without another submission",
+      "result": "PASS"
+    }
+  ],
+  "application_id": "0d9a750336fd0d3458cf185f7a55bb953332db8e174ef24b962f2af4af021f72",
+  "external_submission_enabled": false
+}

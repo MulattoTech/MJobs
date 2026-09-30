@@ -82,7 +82,7 @@
       "status": "DRAFT_PR",
       "branch": "codex/mj-pr-004-governance-safety",
       "draft_until_verified": true,
-      "notes": "P0 vertical slice: MJ-REQ-012 queue separation PASS; MJ-REQ-013/014 PARTIAL. Docker Desktop relaunch exposed postgres/redis restart=no; live existing stack repaired in place and isolated personal Compose first-run/relaunch verified. Backup/restore and uploaded resumes remain open. Draft #430 stacks on #429 to preserve all newer work; no migration or real submission.",
+      "notes": "P0 vertical slice: MJ-REQ-012 queue separation PASS; MJ-REQ-013/014 PARTIAL. Docker Desktop relaunch exposed postgres/redis restart=no; live existing stack repaired in place and isolated personal Compose first-run/relaunch verified. Backup/restore and uploaded resumes remain open. Draft #430 stacks on #429 to preserve all newer work; no migration or real submission. Both implementation-head CI runs PASS with twelve retained artifacts (docs/evidence/2026-09-30-ci-430.json); partial requirements stay partial.",
       "pr_number": 430
     },
     {

@@ -1,0 +1,28 @@
+{
+  "result": "PASS",
+  "target": "PostgreSQL/Redis/RQ controlled mock application spine",
+  "timestamp": "2026-09-30T23:53:41.012901+00:00",
+  "command": "python -m cli.mock_e2e --api http://127.0.0.1:18700",
+  "application_id": "0d9a750336fd0d3458cf185f7a55bb953332db8e174ef24b962f2af4af021f72",
+  "operation_id": "f2cd1d9fec8bfeba18a7f6fe1ada9044af72bf19722adce7dc7bfef7dec9f9c4",
+  "profile_id": "e2e-fictional-7e9166ae5fe5",
+  "canonical_jobs": 2,
+  "confirmation": {
+    "application_id": "0d9a750336fd0d3458cf185f7a55bb953332db8e174ef24b962f2af4af021f72",
+    "requisition": "B",
+    "receipt": "MOCK-0d9a750336fd0d34",
+    "submission_count": 1
+  },
+  "trace": [
+    "GENERATE_DOCUMENTS",
+    "PREPARE_APPLICATION",
+    "NAVIGATE",
+    "DETECT_FORM",
+    "FILL_CONTACT",
+    "UPLOAD_RESUME",
+    "VALIDATE",
+    "SUBMIT",
+    "VERIFY_CONFIRMATION"
+  ],
+  "external_submission_enabled": false
+}

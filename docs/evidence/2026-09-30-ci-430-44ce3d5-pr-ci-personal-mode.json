@@ -1,0 +1,20 @@
+{
+  "result": "PASS",
+  "timestamp": "2026-09-30T23:54:26.536876+00:00",
+  "target": "Isolated personal Compose project, API and connected Chromium UI",
+  "command": "python -m cli.personal_mode_e2e --api http://127.0.0.1:18701",
+  "operation_mode": "PERSONAL",
+  "rejected_fixture_actions": {
+    "fictional_discovery": 409,
+    "fictional_submission": 409
+  },
+  "empty_personal_surfaces": [
+    "profiles",
+    "jobs",
+    "applications",
+    "sources"
+  ],
+  "public_source_ui_available": true,
+  "fictional_ui_actions_hidden": true,
+  "external_submission_enabled": false
+}

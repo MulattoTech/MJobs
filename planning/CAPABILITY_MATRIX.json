@@ -104,7 +104,8 @@
       "result": "PASS",
       "evidence": [
         "docs/evidence/2026-09-30-pr004-local-restart.json",
-        "docs/evidence/2026-09-30-pr004-local-personal-mode.json"
+        "docs/evidence/2026-09-30-pr004-local-personal-mode.json",
+        "docs/evidence/2026-09-30-ci-430.json"
       ],
       "note": "Distinct application, discovery and document RQ consumers verified by rendered Compose tests, worker queue-binding test and running local personal Compose readiness. Browser work cannot consume the discovery queue."
     },
@@ -113,7 +114,8 @@
       "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-09-30-pr004-local-restart.json",
-        "docs/evidence/2026-09-30-pr004-local-personal-mode.json"
+        "docs/evidence/2026-09-30-pr004-local-personal-mode.json",
+        "docs/evidence/2026-09-30-ci-430.json"
       ],
       "note": "Self-hosted PostgreSQL/Redis/documents and ignored local configuration exist; an isolated synthetic profile survived complete service stop and launcher relaunch. Uploaded-resume persistence and full data backup/restore remain open."
     },
@@ -122,7 +124,8 @@
       "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-09-30-pr004-local-restart.json",
-        "docs/evidence/2026-09-30-pr004-local-personal-mode.json"
+        "docs/evidence/2026-09-30-pr004-local-personal-mode.json",
+        "docs/evidence/2026-09-30-ci-430.json"
       ],
       "note": "First-run PowerShell launcher generated ignored configuration, built images, migrated PostgreSQL and reached API/worker/Chromium readiness; local restart preserved data. Backup/restore commands and direct Compose first-run acceptance remain open."
     },
