@@ -1,0 +1,51 @@
+{
+  "milestone_id": "M3-PERSONAL-LIVE-READ-REMOTE",
+  "timestamp": "2026-09-30T21:32:09Z",
+  "current_phase": "M3_PERSONAL_LIVE_READ_REMOTE_VERIFIED",
+  "completed_steps": [
+    "Inspected exact-head PR and push GitHub Actions step outcomes separately from required job conclusions",
+    "Verified one deployed isolated PERSONAL worker public read of 21 Greenhouse jobs and connected Chromium policy readback",
+    "Preserved the concurrent PR run ReadTimeout, failed source health, cooldown and skipped browser step as separate external evidence"
+  ],
+  "files_added": [
+    "docs/evidence/2026-09-30-ci-428-personal-live-read.json",
+    "docs/evidence/2026-09-30-ci-428-fb55d44-public-source.json",
+    "docs/evidence/2026-09-30-ci-428-fb55d44-public-ui.json",
+    "docs/evidence/2026-09-30-ci-428-fb55d44-pr-public-source-failed.json"
+  ],
+  "files_modified": [
+    "planning/IMPLEMENTATION_STATE.json",
+    "planning/CAPABILITY_MATRIX.json",
+    "planning/PR_QUEUE.json",
+    "docs/FEATURE_COMPLETENESS.md"
+  ],
+  "tests_completed": [
+    "Push run 36779321690 required CI, optional live source and Chromium browser steps PASS",
+    "PR run 36779328463 required CI PASS; optional live source FAIL ReadTimeout and dependent browser NOT_RUN",
+    "Downloaded and hashed three exact-head live evidence artifacts"
+  ],
+  "tests_remaining": [
+    "MJ-REQ-009 complete staged deployment and release acceptance",
+    "MJ-REQ-010/011 original P0 foundation acceptance"
+  ],
+  "migrations_applied": [
+    "92f0997f753e",
+    "098f12099319",
+    "547acf656c37",
+    "792dc0dc5664"
+  ],
+  "live_integrations_tested": [
+    "Public Greenhouse GET through deployed RQ source worker in isolated personal Compose; one run PASS, one provider ReadTimeout"
+  ],
+  "known_errors": [
+    "Concurrent optional PR live probe ReadTimeout with source cooldown; required CI and push live proof passed"
+  ],
+  "known_limitations": [
+    "External provider availability varies across CI runs",
+    "MJ-REQ-009 remains PARTIAL; release readiness NOT_RUN"
+  ],
+  "last_safe_checkpoint": {
+    "git_commit": "fb55d44da1b9634fdfd7f1240ab3e57aba2df60d",
+    "evidence_path": "docs/evidence/2026-09-30-ci-428-personal-live-read.json"
+  }
+}

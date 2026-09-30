@@ -11,7 +11,7 @@
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
   "current_milestone": "M3_LOCAL_USER_TESTING_VERIFIED",
-  "current_objective": "Verify the P0 MJ-REQ-009 controlled live public-source read through an isolated personal worker and browser, then continue original dependency-eligible requirements",
+  "current_objective": "Continue original P0 dependency-eligible requirements after an exact-head controlled personal public-source read and browser proof; keep MJ-REQ-009 PARTIAL",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -113,7 +113,8 @@
     "Remote P0 progress-journal CI: PR run 36772030057 and push run 36772022282 PASS at 6c3801f",
     "P0 personal-operation boundary: 36 targeted and 79 full Python tests, 2 frontend tests/build, Compose config and PowerShell parse PASS locally",
     "Remote personal-operation CI: PR run 36776229356 and push run 36776224242 PASS at 5048e81; fixture mock/UI/recovery and isolated personal Compose/Chromium PASS",
-    "P0 personal live-read gate: one targeted test, 80 full Python tests, direct bounded public GET of 21 postings, catalogue and progress validators PASS locally"
+    "P0 personal live-read gate: one targeted test, 80 full Python tests, direct bounded public GET of 21 postings, catalogue and progress validators PASS locally",
+    "Exact-head fb55d44 push run 36779321690: required suite, isolated personal public read of 21 jobs and Chromium readback PASS; PR run 36779328463 required suite PASS but optional live read ReadTimeout and browser skipped"
   ],
   "tests_failed": [],
   "tests_not_run": [
@@ -176,7 +177,17 @@
     "push_run_id": 36776224242,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-personal.json"
   },
-  "recommended_resume_step": "Inspect exact-head CI live-source and browser steps separately from required product checks; promote MJ-REQ-009 evidence only if both deployed personal-stage artifacts pass",
+  "personal_live_read_ci": {
+    "result": "PARTIAL",
+    "head": "fb55d44da1b9634fdfd7f1240ab3e57aba2df60d",
+    "push_run_id": 36779321690,
+    "push_live_stage": "PASS",
+    "pull_request_run_id": 36779328463,
+    "pull_request_live_stage": "FAIL",
+    "failure_category": "ReadTimeout",
+    "evidence_path": "docs/evidence/2026-09-30-ci-428-personal-live-read.json"
+  },
+  "recommended_resume_step": "Re-fetch GitHub/local state and select the smallest dependency-eligible original P0 slice, starting with MJ-REQ-010/011 foundation gaps; preserve MJ-REQ-009 PARTIAL and the provider timeout evidence",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -411,11 +422,62 @@
         "git_commit": "a5d4095ece4bf7ff0faa9ce75b7f71bfdcf1c5b0",
         "evidence_path": "docs/evidence/2026-09-30-ci-428-personal.json"
       }
+    },
+    {
+      "milestone_id": "M3-PERSONAL-LIVE-READ-REMOTE",
+      "timestamp": "2026-09-30T21:32:09Z",
+      "current_phase": "M3_PERSONAL_LIVE_READ_REMOTE_VERIFIED",
+      "completed_steps": [
+        "Inspected exact-head PR and push GitHub Actions step outcomes separately from required job conclusions",
+        "Verified one deployed isolated PERSONAL worker public read of 21 Greenhouse jobs and connected Chromium policy readback",
+        "Preserved the concurrent PR run ReadTimeout, failed source health, cooldown and skipped browser step as separate external evidence"
+      ],
+      "files_added": [
+        "docs/evidence/2026-09-30-ci-428-personal-live-read.json",
+        "docs/evidence/2026-09-30-ci-428-fb55d44-public-source.json",
+        "docs/evidence/2026-09-30-ci-428-fb55d44-public-ui.json",
+        "docs/evidence/2026-09-30-ci-428-fb55d44-pr-public-source-failed.json"
+      ],
+      "files_modified": [
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "docs/FEATURE_COMPLETENESS.md"
+      ],
+      "tests_completed": [
+        "Push run 36779321690 required CI, optional live source and Chromium browser steps PASS",
+        "PR run 36779328463 required CI PASS; optional live source FAIL ReadTimeout and dependent browser NOT_RUN",
+        "Downloaded and hashed three exact-head live evidence artifacts"
+      ],
+      "tests_remaining": [
+        "MJ-REQ-009 complete staged deployment and release acceptance",
+        "MJ-REQ-010/011 original P0 foundation acceptance"
+      ],
+      "migrations_applied": [
+        "92f0997f753e",
+        "098f12099319",
+        "547acf656c37",
+        "792dc0dc5664"
+      ],
+      "live_integrations_tested": [
+        "Public Greenhouse GET through deployed RQ source worker in isolated personal Compose; one run PASS, one provider ReadTimeout"
+      ],
+      "known_errors": [
+        "Concurrent optional PR live probe ReadTimeout with source cooldown; required CI and push live proof passed"
+      ],
+      "known_limitations": [
+        "External provider availability varies across CI runs",
+        "MJ-REQ-009 remains PARTIAL; release readiness NOT_RUN"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "fb55d44da1b9634fdfd7f1240ab3e57aba2df60d",
+        "evidence_path": "docs/evidence/2026-09-30-ci-428-personal-live-read.json"
+      }
     }
   ],
-  "current_phase": "M3_PERSONAL_LIVE_READ_STAGED",
+  "current_phase": "M3_PERSONAL_LIVE_READ_REMOTE_VERIFIED",
   "last_safe_checkpoint": {
-    "git_commit": "a5d4095ece4bf7ff0faa9ce75b7f71bfdcf1c5b0",
-    "evidence_path": "docs/evidence/2026-09-30-ci-428-personal.json"
+    "git_commit": "fb55d44da1b9634fdfd7f1240ab3e57aba2df60d",
+    "evidence_path": "docs/evidence/2026-09-30-ci-428-personal-live-read.json"
   }
 }

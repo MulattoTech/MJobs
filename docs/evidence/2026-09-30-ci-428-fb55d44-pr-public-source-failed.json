@@ -1,0 +1,32 @@
+{
+  "result": "FAIL",
+  "timestamp": "2026-09-30T21:29:48.823305+00:00",
+  "command": "python -m cli.public_source_probe --base-url http://127.0.0.1:18701 --tenant greenhouse --required-mode PERSONAL",
+  "target": "Actual public Greenhouse GET / deployed RQ source worker / PostgreSQL provenance",
+  "source_id": "d6c6529006317081b49c8c002da3323606c5f271cb9e345c14cd201948541061",
+  "profile_id": "public-probe-fictional-e625acaf3f40",
+  "operation_id": "cbef90ce626a2b49832cde80b54d64e6e8243e50d24d387ecf2df95c0605f633",
+  "operation_state": "FAILED",
+  "error_category": "ReadTimeout",
+  "source": {
+    "id": "d6c6529006317081b49c8c002da3323606c5f271cb9e345c14cd201948541061",
+    "provider": "greenhouse",
+    "tenant": "greenhouse",
+    "name": "greenhouse",
+    "enabled": true,
+    "strategy": "API",
+    "poll_interval": 300,
+    "last_attempt": "2026-09-30T21:29:38.351424+00:00",
+    "last_success": null,
+    "backoff_until": "2026-09-30T21:30:48.498357+00:00",
+    "consecutive_failures": 1,
+    "health_status": "FAILED",
+    "last_error": "ReadTimeout",
+    "jobs_seen": 0
+  },
+  "job_count_returned": 0,
+  "examples": [],
+  "operation_mode": "PERSONAL",
+  "external_submission_enabled": false,
+  "external_application_requests": 0
+}
