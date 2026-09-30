@@ -9,12 +9,12 @@ A percentage is a navigation aid, never a release claim. Only evidence-backed PA
 ## Original specification
 - Catalogue items: **366**
 - PASS: **1** (0.27%)
-- PARTIAL: **53** (14.48%)
-- NOT_RUN: **312** (85.25%)
+- PARTIAL: **54** (14.75%)
+- NOT_RUN: **311** (84.97%)
 - Full-spec state: **PARTIAL**
 - Release readiness: **not established**
 The low PASS percentage does **not** mean only 0.27% of code exists. Many requirements are broad umbrella capabilities
-and 53 are already PARTIAL. The current vertical slice is useful and tested, but the repository correctly refuses to
+and 54 are already PARTIAL. The current vertical slice is useful and tested, but the repository correctly refuses to
 turn partial evidence into completed requirements.
 
 ## Current verified implementation spine
@@ -24,6 +24,7 @@ turn partial evidence into completed requirements.
 - Public read-only Greenhouse discovery with provenance
 - Factual PDF/DOCX generation and revisions
 - Restart/outage recovery and duplicate-submission protection
+- Evidence-linked, atomic implementation milestone journal with reload and failed-write preservation tests (MJ-REQ-008 PARTIAL)
 - Real external submission remains disabled
 - GitHub Actions passed the final #367-#370 PR heads and the connected UI, mock application, and restart recovery workflow; see `docs/evidence/2026-09-30-ci-370.json`
 ## Reference-project gap catalogue

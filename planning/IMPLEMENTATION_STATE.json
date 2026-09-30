@@ -11,7 +11,7 @@
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
   "current_milestone": "M3_LOCAL_USER_TESTING_VERIFIED",
-  "current_objective": "Stacked implementation spine merged; continue dependency-eligible original requirements before optional reference features",
+  "current_objective": "Implement the P0 MJ-PR-003 progress-journal slice, then verify CI and continue dependency-eligible original requirements",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -35,6 +35,7 @@
   ],
   "blocked_capabilities": [],
   "active_requirements": [
+    "MJ-REQ-008",
     "MJ-REQ-016",
     "MJ-REQ-018",
     "MJ-REQ-019",
@@ -100,7 +101,8 @@
     "Remote governance CI: pull_request run 36765678280 PASS at e97d8b0",
     "Remote mock-spine CI: pull_request run 36766636806 PASS at 90b59ca",
     "Remote worker-lifecycle CI: pull_request run 36767410947 PASS at 29012e0",
-    "Remote connected-UI CI: pull_request run 36768260666 and push run 36768256061 PASS at d807851"
+    "Remote connected-UI CI: pull_request run 36768260666 and push run 36768256061 PASS at d807851",
+    "P0 progress journal: 3 targeted and 71 affected Python tests PASS locally; catalogue and progress validators PASS"
   ],
   "tests_failed": [],
   "tests_not_run": [
@@ -149,7 +151,7 @@
     "pull_request_run_id": 36768260666,
     "evidence_path": "docs/evidence/2026-09-30-ci-370.json"
   },
-  "recommended_resume_step": "Reconcile #427 reference catalogue and select the smallest dependency-eligible original PR_QUEUE slice",
+  "recommended_resume_step": "Verify the current MJ-PR-003 progress-journal draft PR in GitHub Actions, then continue its remaining P0 scope in dependency order",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -190,5 +192,59 @@
   "optional_afk_journal": {
     "result": "BLOCKED_ENVIRONMENT",
     "reason": "Managed filesystem rejected direct Python write-lock under .git/afk-dev; repository planning/evidence remains the durable handoff. Original full-spec AFK goal remains IN_PROGRESS."
+  },
+  "milestone_journal": [
+    {
+      "milestone_id": "M3-STACKED-SPINE-INTEGRATED",
+      "timestamp": "2026-09-30T20:10:29Z",
+      "current_phase": "M3_LOCAL_USER_TESTING_VERIFIED",
+      "completed_steps": [
+        "Merged PRs #367, #368, #369 and #370 in dependency order after exact-head CI checks",
+        "Verified post-merge main Actions run 36769434214",
+        "Reconciled original and reference issue catalogues without promoting incomplete requirements"
+      ],
+      "files_added": [
+        "docs/evidence/2026-09-30-ci-370.json",
+        "docs/evidence/2026-09-30-reference-reconciliation.json"
+      ],
+      "files_modified": [
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/REFERENCE_GAP_MATRIX.json"
+      ],
+      "tests_completed": [
+        "PR #370 CI: 67 Python tests, 2 frontend tests/build, catalogue, Compose mock E2E, connected UI and recovery PASS",
+        "Main post-merge Actions run 36769434214 PASS",
+        "Reference issue map compared against live GitHub: 42 canonical issues, zero mismatches"
+      ],
+      "tests_remaining": [
+        "Original full-spec product and release acceptance",
+        "Real external submission remains disabled and is not a test harness"
+      ],
+      "migrations_applied": [
+        "92f0997f753e",
+        "098f12099319",
+        "547acf656c37",
+        "792dc0dc5664"
+      ],
+      "live_integrations_tested": [
+        "Controlled public Greenhouse read-only GET in earlier local user-testing evidence"
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "Original MJ-REQ catalogue remains 1 PASS, 53 PARTIAL, 312 NOT_RUN",
+        "Reference MJ-REF catalogue remains 42 NOT_RUN",
+        "Release readiness remains NOT_RUN"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "8ee6b0a7578ab4c8a46f1bac2c707a88048473ab",
+        "evidence_path": "docs/evidence/2026-09-30-ci-370.json"
+      }
+    }
+  ],
+  "current_phase": "M3_LOCAL_USER_TESTING_VERIFIED",
+  "last_safe_checkpoint": {
+    "git_commit": "8ee6b0a7578ab4c8a46f1bac2c707a88048473ab",
+    "evidence_path": "docs/evidence/2026-09-30-ci-370.json"
   }
 }
