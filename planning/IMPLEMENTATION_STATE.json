@@ -10,7 +10,7 @@
     "current_verified_local_state": "Initialized from newer origin/main; supplied control pack retained on governance branch",
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
-  "current_milestone": "M3_WORKSPACE_IDENTITY_STAGED",
+  "current_milestone": "M3_WORKSPACE_IDENTITY_VERIFIED",
   "current_objective": "Continue P0 MJ-REQ-009 personal/fixture data separation and then dependency-eligible MJ-REQ-010/011 architecture foundations; keep original/reference/release status distinct",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -117,7 +117,8 @@
     "Exact-head fb55d44 push run 36779321690: required suite, isolated personal public read of 21 jobs and Chromium readback PASS; PR run 36779328463 required suite PASS but optional live read ReadTimeout and browser skipped",
     "P0 Compose mode isolation: two rendered-config tests PASS after observed RED, 82 full Python tests, PowerShell launcher parse, catalogue and progress validators PASS locally",
     "Exact-head c2fcc9d PR run 36781332556 and push run 36781327411 PASS: actual fixture mock and personal no-mock service assertions, fixture recovery, isolated personal Chromium, deployed public read/browser",
-    "P0 durable workspace identity local: 91 Python tests and temporary SQLite Alembic upgrade/bound-downgrade refusal PASS; PostgreSQL Compose pending"
+    "P0 durable workspace identity local: 91 Python tests and temporary SQLite Alembic upgrade/bound-downgrade refusal PASS",
+    "Exact-head 05b570d PR run 36785750958 and push run 36785746644 PASS: PostgreSQL Alembic a6e7f3c48921 and stored FIXTURE/PERSONAL modes, fixture recovery, isolated personal Chromium and public read/browser"
   ],
   "tests_failed": [],
   "tests_not_run": [
@@ -197,7 +198,14 @@
     "push_run_id": 36781327411,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-compose-isolation.json"
   },
-  "recommended_resume_step": "Verify exact-head PR/push CI PostgreSQL migration, fixture/personal Compose isolation and recovery for durable workspace identity; preserve unbound legacy data for explicit owner adoption. Then continue original P0 MJ-REQ-010/011 foundations. MJ-REQ-009 remains PARTIAL",
+  "workspace_identity_ci": {
+    "result": "PASS",
+    "head": "05b570d564c645e372a9c793c06b4cd3e5da1b3e",
+    "pull_request_run_id": 36785750958,
+    "push_run_id": 36785746644,
+    "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
+  },
+  "recommended_resume_step": "Re-fetch GitHub/local state and select the next dependency-eligible original P0 requirement, likely MJ-REQ-010/011; preserve unbound legacy data for explicit owner adoption. MJ-REQ-009 remains PARTIAL pending staged operation and physical host restart",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -653,11 +661,75 @@
         "git_commit": "f7cae108aee3cd4939fdf162edeb40abeb6af4d7",
         "evidence_path": "docs/evidence/2026-09-30-ci-428-compose-isolation.json"
       }
+    },
+    {
+      "milestone_id": "M3-WORKSPACE-IDENTITY-REMOTE",
+      "timestamp": "2026-09-30T22:34:00Z",
+      "current_phase": "M3_WORKSPACE_IDENTITY_VERIFIED",
+      "completed_steps": [
+        "Verified exact-head push and PR GitHub Actions checks passed on 05b570d",
+        "Verified deployed PostgreSQL Alembic revision and persisted FIXTURE/PERSONAL modes in separate Compose projects",
+        "Verified fixture mock/Chromium/recovery and personal no-mock/Chromium/public read with external submission off",
+        "Downloaded, inspected and hashed twelve exact-head CI JSON artifacts"
+      ],
+      "files_added": [
+        "docs/evidence/2026-09-30-ci-428-workspace-identity.json",
+        "docs/evidence/2026-09-30-ci-428-05b570d-pr-mock-e2e.json",
+        "docs/evidence/2026-09-30-ci-428-05b570d-pr-personal-mode.json",
+        "docs/evidence/2026-09-30-ci-428-05b570d-pr-personal-public-source.json",
+        "docs/evidence/2026-09-30-ci-428-05b570d-pr-personal-public-ui.json",
+        "docs/evidence/2026-09-30-ci-428-05b570d-pr-recovery.json",
+        "docs/evidence/2026-09-30-ci-428-05b570d-pr-ui.json",
+        "docs/evidence/2026-09-30-ci-428-05b570d-push-mock-e2e.json",
+        "docs/evidence/2026-09-30-ci-428-05b570d-push-personal-mode.json",
+        "docs/evidence/2026-09-30-ci-428-05b570d-push-personal-public-source.json",
+        "docs/evidence/2026-09-30-ci-428-05b570d-push-personal-public-ui.json",
+        "docs/evidence/2026-09-30-ci-428-05b570d-push-recovery.json",
+        "docs/evidence/2026-09-30-ci-428-05b570d-push-ui.json"
+      ],
+      "files_modified": [
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "docs/FEATURE_COMPLETENESS.md"
+      ],
+      "tests_completed": [
+        "Both runs: 91 Python tests, 2 frontend tests, TypeScript/Vite build, catalogue and progress validators PASS",
+        "Both runs: explicit PostgreSQL Alembic a6e7f3c48921 and FIXTURE/PERSONAL workspace identity assertions PASS",
+        "Both runs: fixture mock E2E, connected Chromium, Redis outage and service restart recovery PASS",
+        "Both runs: personal no-mock service isolation, fictional-action rejection, public source worker and browser readback PASS"
+      ],
+      "tests_remaining": [
+        "Preexisting PostgreSQL owner-data adoption and physical host restart",
+        "Complete MJ-REQ-009 staged production operation and release acceptance",
+        "Original P0 MJ-REQ-010/011 foundations"
+      ],
+      "migrations_applied": [
+        "92f0997f753e",
+        "098f12099319",
+        "547acf656c37",
+        "792dc0dc5664",
+        "a6e7f3c48921"
+      ],
+      "live_integrations_tested": [
+        "GitHub Actions PostgreSQL/Redis/three-worker/Chromium Compose fixture and personal deployments",
+        "Public Greenhouse GET returned 21 jobs in each run with manual-only application capability"
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "Fresh isolated CI databases do not establish safe adoption of a preexisting user database",
+        "Local Docker Desktop Linux engine unavailable; physical host restart not tested",
+        "MJ-REQ-009 remains PARTIAL and release readiness NOT_RUN"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "05b570d564c645e372a9c793c06b4cd3e5da1b3e",
+        "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
+      }
     }
   ],
-  "current_phase": "M3_WORKSPACE_IDENTITY_STAGED",
+  "current_phase": "M3_WORKSPACE_IDENTITY_VERIFIED",
   "last_safe_checkpoint": {
-    "git_commit": "f7cae108aee3cd4939fdf162edeb40abeb6af4d7",
-    "evidence_path": "docs/evidence/2026-09-30-ci-428-compose-isolation.json"
+    "git_commit": "05b570d564c645e372a9c793c06b4cd3e5da1b3e",
+    "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   }
 }

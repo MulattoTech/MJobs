@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-09-30T22:18:40Z",
+  "timestamp": "2026-09-30T22:34:00Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -78,9 +78,10 @@
         "docs/evidence/2026-09-30-ci-428-personal-live-read.json",
         "docs/evidence/2026-09-30-personal-compose-isolation-local.json",
         "docs/evidence/2026-09-30-ci-428-compose-isolation.json",
-        "docs/evidence/2026-09-30-workspace-identity-local.json"
+        "docs/evidence/2026-09-30-workspace-identity-local.json",
+        "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
       ],
-      "note": "Personal API and worker reject fictional actions; direct Compose defaults to PERSONAL without the mock service. Earlier exact-head CI passed fixture/personal service isolation, Chromium, recovery and public read. A new local slice adds durable per-database FIXTURE/PERSONAL identity, refuses legacy nonempty databases before startup or claim, and requires explicit snapshot-matched adoption without rewriting business rows. Local 91-test and temporary SQLite migration evidence passed; exact-head PostgreSQL Compose proof, existing-data owner adoption, staged operation and release acceptance remain open"
+      "note": "Personal API and worker reject fictional actions; direct Compose defaults to PERSONAL without mock. Durable per-database FIXTURE/PERSONAL identity refuses legacy nonempty databases before startup or claim and requires explicit snapshot-matched adoption without rewriting business rows. Local 91-test and SQLite migration checks passed; both exact-head CI runs passed PostgreSQL Alembic a6e7f3c48921 and stored-mode assertions, fixture recovery, separate personal no-mock Chromium and public read. Existing-data owner adoption, physical host restart, complete staged operation and release acceptance remain open"
     },
     {
       "requirement_id": "MJ-REQ-010",
