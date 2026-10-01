@@ -11,7 +11,7 @@
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
   "current_milestone": "M17_COMPANY_ALIASES_DOMAINS_CAREER_DISCOVERY_PARTIAL",
-  "current_objective": "MJ-PR-017 local slice implemented and verified; publish exact branch head, verify remote CI, then continue from live dependency frontier.",
+  "current_objective": "Draft PR #444 published; verify the final bookkeeping head with exact-head CI, then continue from live dependency frontier.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -185,11 +185,13 @@
       "merged_at": "2026-10-01T22:31:45Z"
     },
     {
-      "number": null,
+      "number": 444,
       "branch": "codex/mj-pr-017-company-ats-discovery",
       "worktree": "C:\\Tools\\Dev\\MJobs-pr-017",
-      "status": "ACTIVE_WORK",
-      "base": "12e7ef6c9eb5ff1c7a8fd775361a9ee7e1b28aea"
+      "status": "DRAFT_PR",
+      "base": "12e7ef6c9eb5ff1c7a8fd775361a9ee7e1b28aea",
+      "url": "https://github.com/MulattoTech/MJobs/pull/444",
+      "head": "cb7bbd716fb0f689107db591950efa62b88b4828"
     }
   ],
   "tests_passed": [
@@ -296,10 +298,10 @@
     "evidence_path": "docs/evidence/2026-10-01-company-alias-domain-career-discovery.json"
   },
   "ci_verification": {
-    "result": "NOT_RUN",
-    "scope": "MJ-PR-017 local implementation; no PR exists yet",
+    "result": "PENDING",
+    "scope": "PR #444 exact current head after PR-number/state bookkeeping",
     "verified_head": null,
-    "next_action": "Commit implementation and updated control-plane evidence, push, create draft PR, then verify workflows against the newly published exact head."
+    "next_action": "Fetch PR head after the bookkeeping push and require successful PR Verification and push Verification runs on that exact SHA."
   },
   "mock_spine_ci": {
     "result": "PASS",
@@ -357,7 +359,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Review the PR-017 diff and evidence, commit the validated branch, push and create a draft PR; fetch the new exact head and run the exact-head CI loop.",
+  "recommended_resume_step": "Fetch PR #444 after the PR number/state bookkeeping commit and require successful Verification runs on that exact head; merge only after all current gates pass.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -399,9 +401,9 @@
     "transport": "Authenticated Git push and GitHub draft PR",
     "local_remote_commit_identical": true,
     "force": false,
-    "pr_number": 443,
-    "url": "https://github.com/MulattoTech/MJobs/pull/443",
-    "initial_head": "c436999e4d2d3737a1a37d6f08d3d975be3c0392"
+    "pr_number": 444,
+    "url": "https://github.com/MulattoTech/MJobs/pull/444",
+    "initial_head": "cb7bbd716fb0f689107db591950efa62b88b4828"
   },
   "optional_afk_journal": {
     "result": "BLOCKED_ENVIRONMENT",

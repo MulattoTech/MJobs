@@ -377,10 +377,12 @@
         "MJ-PR-016",
         "MJ-PR-012"
       ],
-      "status": "ACTIVE_WORK",
+      "status": "DRAFT_PR",
       "branch": "codex/mj-pr-017-company-ats-discovery",
       "draft_until_verified": true,
-      "notes": "Existing PR-017 worktree adopted on current main 12e7ef6c9eb5ff1c7a8fd775361a9ee7e1b28aea; local implementation and validation recorded in docs/evidence/2026-10-01-company-alias-domain-career-discovery.json. Requirements 058-059 PASS, 060-061 PARTIAL."
+      "notes": "Draft PR #444 published from codex/mj-pr-017-company-ats-discovery at cb7bbd716fb0f689107db591950efa62b88b4828. Local evidence and truthful requirement statuses are recorded in docs/evidence/2026-10-01-company-alias-domain-career-discovery.json; exact-head CI is pending.",
+      "pr_number": 444,
+      "url": "https://github.com/MulattoTech/MJobs/pull/444"
     },
     {
       "id": "MJ-PR-018",
