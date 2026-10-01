@@ -204,10 +204,11 @@
         "MJ-PR-009",
         "MJ-PR-001"
       ],
-      "status": "IMPLEMENTED_LOCAL",
+      "status": "DRAFT_PR",
       "branch": "codex/mj-pr-010-core-search-model",
       "draft_until_verified": true,
-      "notes": "MJ-REQ-035..038 implemented and locally verified; evidence docs/evidence/2026-10-01-requirement-parsing.json; open draft after commit/push"
+      "notes": "MJ-REQ-035..038 locally verified; draft #437 published; await exact-head CI",
+      "pr_number": 437
     },
     {
       "id": "MJ-PR-011",
