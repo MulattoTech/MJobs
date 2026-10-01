@@ -8,7 +8,10 @@ from urllib.parse import urlsplit
 from bs4 import BeautifulSoup
 import httpx
 
-from services.discovery.sources.contract import SearchBatch, SourceCompany, SourceItem
+from services.discovery.sources.contract import (
+    CollectionStrategy, SearchBatch, SourceCapabilities, SourceCapability,
+    SourceCompany, SourceItem,
+)
 
 HOST = "https://boards-api.greenhouse.io"
 SKILLS = ("Python", "SQL", "JavaScript", "TypeScript", "Java", "C#", "C++", "Go", "Rust", "Linux", "Windows", "Docker", "Kubernetes", "AWS", "Azure", "Terraform", "PowerShell", "React", "PostgreSQL")
@@ -38,14 +41,28 @@ def plain_text(value):
 
 
 class Greenhouse:
-    def __init__(self, tenant, transport=None, check=None):
+    def __init__(self, tenant, transport=None, check=None, request_timeout=10, rate_limit=60, concurrency=1):
         self.tenant = tenant_identifier(tenant)
+        if type(request_timeout) is not int or not 2 <= request_timeout <= 60:
+            raise ValueError("SOURCE_INVALID_REQUEST_TIMEOUT")
+        if type(rate_limit) is not int or not 1 <= rate_limit <= 600:
+            raise ValueError("SOURCE_INVALID_RATE_LIMIT")
+        if type(concurrency) is not int or not 1 <= concurrency <= 8:
+            raise ValueError("SOURCE_INVALID_CONCURRENCY")
         self.transport = transport
         self.check = check or (lambda: None)
+        self.request_timeout = request_timeout
+        self.rate_limit = rate_limit
+        self.concurrency = concurrency
+        self._last_request = 0.0
         self.status = "NOT_CHECKED"
 
     def capabilities(self):
-        return {"discovery": True, "job_detail": True, "strategy": "API", "direct_application": False, "application_status": False}
+        return SourceCapabilities(CollectionStrategy.API, frozenset({
+            SourceCapability.DISCOVERY, SourceCapability.JOB_DETAIL,
+            SourceCapability.SALARY, SourceCapability.REMOTE_METADATA,
+            SourceCapability.APPLICATION_REDIRECT,
+        }))
 
     def health(self):
         return self.status
@@ -62,8 +79,13 @@ class Greenhouse:
 
     def _request(self, suffix, params=None):
         self.check()
+        if self.transport is None and self._last_request:
+            wait = (60 / self.rate_limit) - (time.monotonic() - self._last_request)
+            if wait > 0:
+                time.sleep(wait)
+        self._last_request = time.monotonic()
         path = "/v1/boards/" + self.tenant + suffix
-        with httpx.Client(timeout=10, follow_redirects=False, trust_env=False, transport=self.transport,
+        with httpx.Client(timeout=self.request_timeout, follow_redirects=False, trust_env=False, transport=self.transport,
                           headers={"User-Agent": "MJobs/0.1 public-read-only", "Accept": "application/json"}) as client:
             with client.stream("GET", HOST + path, params=params) as response:
                 if response.is_redirect:
@@ -79,7 +101,7 @@ class Greenhouse:
                 if "application/json" not in response.headers.get("content-type", "").lower():
                     raise SourceError("SOURCE_INVALID_CONTENT_TYPE")
                 content = bytearray()
-                deadline = time.monotonic() + 15
+                deadline = time.monotonic() + max(5, min(120, self.request_timeout * 2))
                 for chunk in response.iter_bytes(chunk_size=65536):
                     self.check()
                     content.extend(chunk)

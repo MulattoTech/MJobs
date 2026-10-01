@@ -47,7 +47,16 @@ def execute_operation(operation_id):
             if operation["kind"] == "DISCOVER":
                 params = operation["params"]
                 if params.get("source_id"):
-                    collect_source(store, params["source_id"], operation["entity_id"], check=check, profile_version=params.get("profile_version"))
+                    profile_ids = params.get("profile_ids") or [operation["entity_id"]]
+                    if not isinstance(profile_ids, list) or not profile_ids or any(
+                            not isinstance(profile_id, str) or not profile_id for profile_id in profile_ids):
+                        raise ValueError("Invalid scheduled profile set")
+                    primary = profile_ids[0]
+                    collect_source(store, params["source_id"], primary, check=check,
+                                   profile_version=params.get("profile_version"))
+                    for profile_id in profile_ids[1:]:
+                        check()
+                        recalculate(store, profile_id, check=check)
                 elif params.get("rescore_only"):
                     recalculate(store, operation["entity_id"], check=check, profile_version=params.get("profile_version"))
                 else:

@@ -21,6 +21,7 @@ from packages.persistence.store import Store, identity
 from packages.domain.operation_mode import parse_operation_mode, operation_mode_from_env
 from services.discovery.pipeline import MockClient
 from services.discovery.sources.collect import configure_source
+from services.discovery.search_profiles import get_search_profile, list_search_profiles, save_search_profile
 from services.documents.uploads import MAX_UPLOAD_BYTES, UploadIntegrityError, list_resumes, save_resume, read_resume
 from workers.dispatch import enqueue_operation
 from workers.operations import QUEUES, request_cancel, limit
@@ -68,7 +69,24 @@ class SourceInput(BaseModel):
     model_config = ConfigDict(strict=True, extra="forbid")
     tenant: str = Field(min_length=1, max_length=80)
     enabled: bool = True
-    poll_interval: int = Field(default=300, ge=300, le=86400)
+    poll_interval: int = Field(default=300, ge=300, le=604800)
+    concurrency: int = Field(default=1, ge=1, le=8)
+    request_timeout: int = Field(default=10, ge=2, le=60)
+    rate_limit: int = Field(default=60, ge=1, le=600)
+    jitter_seconds: int = Field(default=30, ge=0, le=300)
+
+
+class SearchProfileInput(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+    id: str = Field(min_length=1, max_length=128)
+    profile_id: str = Field(min_length=1, max_length=128)
+    name: str = Field(min_length=1, max_length=200)
+    enabled: bool = True
+    include_titles: list[str] = Field(default_factory=list, max_length=100)
+    remote: Literal["ANY", "REQUIRED", "EXCLUDED"] = "ANY"
+    employment_types: list[Literal["FULL_TIME", "PART_TIME", "CONTRACT", "CONTRACT_TO_HIRE",
+                                   "TEMPORARY", "INTERNSHIP", "OTHER"]] = Field(default_factory=list, max_length=20)
+    source_ids: list[str] = Field(default_factory=list, max_length=100)
 
 
 def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379/0", operation_mode="PERSONAL"):
@@ -209,6 +227,18 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     def sources():
         with store.engine.connect() as connection:
             return {"sources": [dict(row) for row in connection.execute(select(m.job_sources).order_by(m.job_sources.c.name)).mappings()]}
+
+    @app.get("/search-profiles")
+    def search_profiles(profile_id: str | None = None):
+        return {"search_profiles": list_search_profiles(store, profile_id)}
+
+    @app.get("/search-profiles/{search_profile_id}")
+    def search_profile_read(search_profile_id: str):
+        return get_search_profile(store, search_profile_id)
+
+    @app.put("/search-profiles")
+    def search_profile_save(value: SearchProfileInput):
+        return {"id": save_search_profile(store, value.model_dump())}
 
     @app.put("/sources")
     def source_configure(value: SourceInput):

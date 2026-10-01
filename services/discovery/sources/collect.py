@@ -7,23 +7,39 @@ from sqlalchemy import select, update
 
 from packages.persistence import models as m
 from packages.persistence.store import identity, now, upsert
-from services.discovery.sources.contract import SourceAdapter
+from services.discovery.sources.contract import SourceAdapter, SourceCapability
 from services.discovery.sources.greenhouse import SourceError, tenant_identifier
 from services.discovery.sources.registry import source_adapter
 
 
-def configure_source(store, tenant, enabled=True, poll_interval=300):
+def configure_source(store, tenant, enabled=True, poll_interval=300, concurrency=1,
+                     request_timeout=10, rate_limit=60, jitter_seconds=30):
     tenant = tenant_identifier(tenant)
-    if type(enabled) is not bool or type(poll_interval) is not int or not 300 <= poll_interval <= 86400:
-        raise ValueError("Source enabled must be boolean; collection interval must be 300 through 86400 seconds")
+    values = (poll_interval, concurrency, request_timeout, rate_limit, jitter_seconds)
+    if type(enabled) is not bool or any(type(value) is not int for value in values):
+        raise ValueError("Source policy values must use explicit boolean/integer types")
+    if not 300 <= poll_interval <= 604800 or not 1 <= concurrency <= 8 or not 2 <= request_timeout <= 60:
+        raise ValueError("Source poll interval, concurrency, or request timeout is outside supported bounds")
+    if not 1 <= rate_limit <= 600 or not 0 <= jitter_seconds <= 300:
+        raise ValueError("Source rate limit or jitter is outside supported bounds")
     source_id = identity("greenhouse", tenant)
+    policy = {"provider": "greenhouse", "tenant": tenant, "request_timeout": request_timeout,
+              "rate_limit": rate_limit, "concurrency": concurrency}
+    capabilities = source_adapter(policy).capabilities()
     with store.engine.begin() as connection:
         upsert(connection, m.job_sources, {"id": source_id, "provider": "greenhouse", "tenant": tenant,
-            "name": tenant, "enabled": enabled, "strategy": "API", "poll_interval": poll_interval,
+            "name": tenant, "enabled": enabled, "strategy": capabilities.strategy.value,
+            "capabilities": capabilities.as_dict(), "poll_interval": poll_interval, "concurrency": concurrency,
+            "request_timeout": request_timeout, "rate_limit": rate_limit, "jitter_seconds": jitter_seconds,
             "health_status": "NOT_CHECKED"})
-        # Preserve attempts, provider backoff and failures on ordinary configuration.
-        connection.execute(update(m.job_sources).where(m.job_sources.c.id == source_id).values(enabled=enabled, poll_interval=poll_interval))
-        store._audit(connection, source_id, "SOURCE_CONFIGURED", {"provider": "greenhouse", "tenant": tenant})
+        connection.execute(update(m.job_sources).where(m.job_sources.c.id == source_id).values(
+            enabled=enabled, strategy=capabilities.strategy.value, capabilities=capabilities.as_dict(),
+            poll_interval=poll_interval, concurrency=concurrency, request_timeout=request_timeout,
+            rate_limit=rate_limit, jitter_seconds=jitter_seconds))
+        store._audit(connection, source_id, "SOURCE_CONFIGURED", {
+            "provider": "greenhouse", "tenant": tenant, "strategy": capabilities.strategy.value,
+            "poll_interval": poll_interval, "concurrency": concurrency,
+            "request_timeout": request_timeout, "rate_limit": rate_limit, "jitter_seconds": jitter_seconds})
     return source_id
 
 
@@ -64,8 +80,8 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
         if batch.items and not normalized:
             raise SourceError("SOURCE_NO_VALID_JOBS")
         capabilities = adapter.capabilities()
-        strategy = capabilities["strategy"]
-        direct_application = capabilities["direct_application"]
+        strategy = capabilities.strategy.value
+        direct_application = capabilities.supports(SourceCapability.DIRECT_APPLICATION)
         usable = {fact["text"].strip().casefold() for fact in profile["facts"] if fact["kind"] == "skill"
                   and fact["verified"] and fact["user_approved"] and fact["source"].strip() and fact["confidence"] >= 80}
         with store.engine.begin() as connection:

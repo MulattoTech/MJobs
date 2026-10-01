@@ -10,7 +10,10 @@ from sqlalchemy import select
 
 from packages.persistence import models as m
 from packages.persistence.store import Store, identity, upsert
-from services.discovery.sources.contract import SearchBatch, SourceCompany, SourceItem
+from services.discovery.sources.contract import (
+    CollectionStrategy, SearchBatch, SourceCapabilities, SourceCapability,
+    SourceCompany, SourceItem,
+)
 from services.discovery.sources.greenhouse import Greenhouse
 from services.discovery.sources.collect import configure_source, collect_source
 from services.discovery.sources.registry import source_adapter
@@ -52,8 +55,8 @@ class GreenhouseTests(unittest.TestCase):
         self.assertEqual(batch.items[0].company.identity_parts, ("greenhouse", "example"))
         self.assertEqual(batch.items[0].company.name, "Example Public Employer")
         self.assertEqual(batch.items[0].company.domain, "https://job-boards.greenhouse.io/example")
-        self.assertEqual(adapter.capabilities()["strategy"], "API")
-        self.assertFalse(adapter.capabilities()["direct_application"])
+        self.assertEqual(adapter.capabilities().strategy, CollectionStrategy.API)
+        self.assertFalse(adapter.capabilities().supports(SourceCapability.DIRECT_APPLICATION))
 
     def test_empty_board_collection_preserves_provider_company_name(self):
         def empty_board(request):
@@ -79,7 +82,7 @@ class GreenhouseTests(unittest.TestCase):
         self.assertEqual(len(snapshots[0]["sha256"]), 64)
         self.assertEqual(match["components"]["method"], "description_skill_mentions")
         self.assertTrue(all("jobs" in str(request.url) or str(request.url).endswith("/example") for request in self.requests))
-        self.assertFalse(Greenhouse("example").capabilities()["direct_application"])
+        self.assertFalse(Greenhouse("example").capabilities().supports(SourceCapability.DIRECT_APPLICATION))
 
     def test_worker_collection_uses_search_contract(self):
         source = configure_source(self.store, "example")
@@ -92,8 +95,10 @@ class GreenhouseTests(unittest.TestCase):
         source_id = identity("synthetic", "mixed")
         with self.store.engine.begin() as connection:
             upsert(connection, m.job_sources, {"id": source_id, "provider": "synthetic", "tenant": "mixed",
-                "name": "Mixed Feed", "enabled": True, "strategy": "PUBLIC_JSON", "poll_interval": 300,
-                "health_status": "NOT_CHECKED"})
+                "name": "Mixed Feed", "enabled": True, "strategy": "PUBLIC_JSON",
+                "capabilities": SourceCapabilities(CollectionStrategy.PUBLIC_JSON, frozenset({SourceCapability.DISCOVERY})).as_dict(),
+                "poll_interval": 300, "concurrency": 1, "request_timeout": 10, "rate_limit": 60,
+                "jitter_seconds": 0, "health_status": "NOT_CHECKED"})
 
         class MultiCompanyAdapter:
             def search(self):
@@ -108,7 +113,7 @@ class GreenhouseTests(unittest.TestCase):
                     "attributes": {"provider": "synthetic", "fictional": False, "submission_capability": "MANUAL_ONLY"}}
 
             def capabilities(self):
-                return {"strategy": "PUBLIC_JSON", "direct_application": False}
+                return SourceCapabilities(CollectionStrategy.PUBLIC_JSON, frozenset({SourceCapability.DISCOVERY}))
 
         module = importlib.import_module("services.discovery.sources.collect")
         self.assertTrue(hasattr(module, "source_adapter"))

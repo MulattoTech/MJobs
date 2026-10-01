@@ -11,8 +11,9 @@ cd C:\Tools\Dev\MJobs
 
 Open http://127.0.0.1:18700. First startup downloads/builds the images. The script
 creates an ignored private `.env` only when absent; existing configuration and
-volumes are preserved. It waits for PostgreSQL, Redis, all three worker queues,
-and the mock service. No separate Node/Python install is needed for normal use.
+volumes are preserved. It waits for PostgreSQL, Redis, the scheduler, all three
+worker queues, and the mock service. No separate Node/Python install is needed
+for normal use.
 For startup without opening a browser, add `-NoOpen`. Use `-NoBuild` only when
 the current source has already been built.
 
@@ -68,13 +69,25 @@ enter and review career facts separately. Offline backup includes the uploaded
 bytes and metadata together with the rest of the document volume and database.
 
 In **Sources**, enter an employer's Greenhouse board token, such as the token
-in its Greenhouse careers URL, and choose **Collect jobs** with a profile active.
-The `greenhouse` board was verified live on 2026-09-30. Public listings can change.
+in its Greenhouse careers URL. Each source exposes its declared capabilities and
+keeps independent poll interval, timeout, rate-limit, concurrency, jitter,
+health, cooldown and provider-backoff policy. **Collect now** runs an immediate
+bounded collection with a selected career profile.
+
+To run discovery continuously, create one or more **Scheduled search profiles**
+for the selected career profile. Give each search a name and desired titles,
+remote preference, employment type, and either one source or all enabled
+sources. The local scheduler evaluates each source independently, queues only
+durable work when that source is due, and never receives external-network
+access itself; the discovery worker remains the egress boundary. Pause/resume
+is persistent. The Greenhouse board was verified live again on 2026-10-01.
+Public listings can change.
+
 Collection performs bounded public GET requests, preserves native posting IDs
-and raw snapshots, and records health/backoff. Default collection cooldown is
-five minutes. Repeated clicks cannot override cooldown or provider backoff.
-After profile edits, **Refresh matches** recalculates stored jobs without
-contacting the provider.
+and raw snapshots, and records health/backoff. Repeated clicks and scheduler
+ticks cannot override cooldown, active-operation deduplication, or provider
+backoff. After profile edits, **Refresh matches** recalculates stored jobs
+without contacting the provider.
 
 Live matching measures coverage of detected skill mentions. It does not prove
 mandatory requirements or overall suitability. Missing salary/remote data stays

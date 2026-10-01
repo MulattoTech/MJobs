@@ -87,6 +87,12 @@ services:
     depends_on:
       migrate: {condition: service_completed_successfully}
       redis: {condition: service_healthy}
+  scheduler:
+    <<: *runtime
+    command: [python, -m, services.discovery.scheduler]
+    restart: unless-stopped
+    depends_on:
+      migrate: {condition: service_completed_successfully}
   source-worker:
     <<: *runtime
     networks: [private, source-egress]
