@@ -34,19 +34,24 @@ def run(base_url, evidence_path):
         # An ordinary second collection within cooldown executes zero provider requests.
         source = next(row for row in context.request.get(base_url + "/sources").json()["sources"] if row["tenant"] == "greenhouse")
         # Temporarily make the local cooldown test deterministic, preserving policy.
-        prior_interval = source["poll_interval"]
-        changed = context.request.put(base_url + "/sources", data={"tenant": source["tenant"], "enabled": source["enabled"], "poll_interval": 86400})
+        policy = {
+            "tenant": source["tenant"], "enabled": source["enabled"],
+            "poll_interval": source["poll_interval"], "concurrency": source["concurrency"],
+            "request_timeout": source["request_timeout"], "rate_limit": source["rate_limit"],
+            "jitter_seconds": source["jitter_seconds"],
+        }
+        changed = context.request.put(base_url + "/sources", data={**policy, "poll_interval": 86400})
         assert changed.ok
         within_interval = (datetime.now(timezone.utc) - datetime.fromisoformat(source["last_attempt"])).total_seconds() < 86400
         actions = [{"action": "Stored live public jobs render heuristic match limitation and provider URL; factual preparation is manual-only and server rejects mock-run on real target", "result": "PASS"}]
         if within_interval:
             try:
                 page.get_by_role("navigation").get_by_role("button", name="Sources").click()
-                page.get_by_role("button", name="Collect jobs", exact=True).click()
+                page.get_by_role("button", name="Collect now", exact=True).click()
                 expect(page.get_by_role("alert")).to_contain_text("SOURCE_COOLDOWN")
                 actions.append({"action": "Source cooldown is visible as a failed operation without repeating public requests", "result": "PASS"})
             finally:
-                restored = context.request.put(base_url + "/sources", data={"tenant": source["tenant"], "enabled": source["enabled"], "poll_interval": prior_interval})
+                restored = context.request.put(base_url + "/sources", data=policy)
                 assert restored.ok
         else:
             actions.append({"action": "Browser cooldown error after live collection", "result": "NOT_RUN", "reason": "Cooldown already elapsed; no redundant provider read was performed"})
