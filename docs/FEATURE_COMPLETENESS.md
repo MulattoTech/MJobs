@@ -8,12 +8,12 @@ A percentage is a navigation aid, never a release claim. Only evidence-backed PA
 
 ## Original specification
 - Catalogue items: **366**
-- PASS: **24** (6.56%)
+- PASS: **28** (7.65%)
 - PARTIAL: **60** (16.39%)
-- NOT_RUN: **282** (77.05%)
+- NOT_RUN: **278** (75.96%)
 - Full-spec state: **PARTIAL**
 - Release readiness: **not established**
-The low PASS percentage does **not** mean only 6.56% of code exists. Many requirements are broad umbrella capabilities
+The low PASS percentage does **not** mean only 7.65% of code exists. Many requirements are broad umbrella capabilities
 and 60 are already PARTIAL. The current vertical slice is useful and tested, but the repository correctly refuses to
 turn partial evidence into completed requirements.
 
@@ -38,6 +38,7 @@ turn partial evidence into completed requirements.
 - Normalized skill filtering/taxonomy, conservative title normalization and education-requirement parsing are PASS for MJ-REQ-031..034. Alias matches retain original wording, no technology is globally required, short aliases avoid common-word false positives, title families avoid unrelated administrator over-collapse, and required/preferred/equivalent education language remains distinct. The focused 41-test slice and 133-test full Python suite passed (docs/evidence/2026-10-01-skill-title-education.json).
 - Experience-year requirements, certification strength, clearance level and work-authorization statements are PASS for MJ-REQ-035..038. Parsers preserve matched wording and local clauses; search profiles can explicitly exclude clearance/work-authorization requirements without inferring the user's own status. The focused 40-test slice and 145-test full Python suite passed (docs/evidence/2026-10-01-requirement-parsing.json).
 - Explicit user negative filters are PASS for MJ-REQ-039. Jobs retain evidence for on-call, night shift, 1099, commission, door-to-door, clearance, mandatory relocation and stated travel percentage; profiles exclude only conditions the user selects, and unknown travel is never guessed. The focused 45-test slice and 150-test full Python suite passed (docs/evidence/2026-10-01-negative-filters.json).
+- Canonical job normalization, raw-source provenance, canonical-job versus posting separation, and application-route separation are PASS for MJ-REQ-040..043. Each raw posting now stores source URL, application URL, source job ID, fetch timestamp and untouched provider payload separately from the canonical view; multiple postings can reference one canonical job while a single underlying route remains singular. A previous-head database with existing posting data migrated/backfilled without raw-data loss, and the focused 24-test plus 154-test full suite passed (docs/evidence/2026-10-01-canonical-job-provenance.json).
 - Real external submission remains disabled
 - GitHub Actions passed the final #367-#370 PR heads and the connected UI, mock application, and restart recovery workflow; see `docs/evidence/2026-09-30-ci-370.json`
 ## Reference-project gap catalogue

@@ -139,7 +139,8 @@ def discover(store, mock_origin, profile_id, check=None, profile_version=None):
                 upsert(connection, m.routes, {"id": job_id, "job_id": job_id, "company_id": company_id, "provider": "mock-ats",
                     "tenant": row["tenant"], "requisition": row["requisition"], "url": row["application_url"]}, replace=source != "mock-board")
                 persist_posting(connection, {"id": identity(source, row["source_job_id"]), "job_id": job_id,
-                    "source": source, "source_job_id": row["source_job_id"], "raw": row, "fetched_at": now()})
+                    "source": source, "source_job_id": row["source_job_id"], "source_url": source,
+                    "application_url": row["application_url"], "raw": row, "fetched_at": now()})
                 required = {skill.casefold() for skill in job["skills"]}
                 missing = sorted(required - set(usable))
                 score = round(100 * len(required & set(usable)) / len(required), 2) if required else 0

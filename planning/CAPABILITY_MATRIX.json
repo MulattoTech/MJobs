@@ -340,31 +340,35 @@
     },
     {
       "requirement_id": "MJ-REQ-040",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
-        "docs/evidence/2026-09-29-mock-spine.md"
+        "docs/evidence/2026-10-01-canonical-job-provenance.json"
       ],
-      "note": "Initial scoped behavior only; full requirement remains open"
+      "note": "Verified canonical job/posting/application-route separation and raw provenance in MJ-PR-012"
     },
     {
       "requirement_id": "MJ-REQ-041",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
-        "docs/evidence/2026-09-29-mock-spine.md"
+        "docs/evidence/2026-10-01-canonical-job-provenance.json"
       ],
-      "note": "Initial scoped behavior only; full requirement remains open"
+      "note": "Verified canonical job/posting/application-route separation and raw provenance in MJ-PR-012"
     },
     {
       "requirement_id": "MJ-REQ-042",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-01-canonical-job-provenance.json"
+      ],
+      "note": "Verified canonical job/posting/application-route separation and raw provenance in MJ-PR-012"
     },
     {
       "requirement_id": "MJ-REQ-043",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-01-canonical-job-provenance.json"
+      ],
+      "note": "Verified canonical job/posting/application-route separation and raw provenance in MJ-PR-012"
     },
     {
       "requirement_id": "MJ-REQ-044",
