@@ -1,0 +1,33 @@
+{
+  "timestamp": "2026-10-01T01:19:02Z",
+  "result": "PARTIAL",
+  "target": "Merge MJobs stack and leave merged main launchable before user-requested pause",
+  "github": {
+    "merged_in_dependency_order": [
+      {"pr": 428, "merge_commit": "65efa0d6dd0c77e6f7a8b9f8a0108a08fc714939"},
+      {"pr": 429, "merge_commit": "602fc26e411953d5adec48fc8642ec1a406ec147"},
+      {"pr": 430, "merge_commit": "b747089274e0b45531c637c7f6b1991da75081b8"}
+    ],
+    "pr430_exact_head": "14401a5c00f8ab6fd09a81bc997f80a6ed2c73dc",
+    "pr430_push_run": {"id": 36799748653, "result": "PASS"},
+    "pr430_pull_request_run": {"id": 36799753601, "result": "PASS"},
+    "post_merge_main_run": {"id": 36800230873, "head": "b747089274e0b45531c637c7f6b1991da75081b8", "result": "PASS"},
+    "observed": "Both required jobs completed successfully. All six downloaded PR JSON artifacts reported PASS and external submission disabled. The earlier upload head 98706b2 failed an outdated CI migration-revision assertion; commit 14401a5 corrected it before these runs.",
+    "open_prs_after_merge": 0
+  },
+  "local_launch": {
+    "command": ".\\Start-MJobs.ps1 -NoBuild -NoOpen",
+    "result": "PASS",
+    "url": "http://127.0.0.1:18700",
+    "readiness": {"status": "ready", "checks": {"database": true, "queue": true, "worker": true, "mock": true}},
+    "settings": {"mode": "LOCAL_FIRST", "operation_mode": "FIXTURE", "external_submission_enabled": false},
+    "migration_revision": "b7e10a34c921",
+    "preceding_failure": "First merged-code launch migrated the preserved database but refused API/worker startup with WORKSPACE_MODE_UNBOUND because existing business rows predated durable identity.",
+    "recovery": "Stopped writers, copied a private pg_dump and document volume to ignored test-tmp/mjobs-pre-identity-20261001, inspected row counts and fingerprint, confirmed the existing default mjobs mock project was FIXTURE, adopted that exact fingerprint, and relaunched. Business-row fingerprint ea865932b6365847d5255bed3d58b4ac89884e6cdb9c38448e9a1175457f57f3 and all 17 reported table counts were unchanged by identity adoption. The private snapshot is not committed."
+  },
+  "cleanup": "Removed the three isolated synthetic upload source/restore/upgrade Compose projects and their volumes; retained the real mjobs project and all of its named volumes.",
+  "original_requirements": "4 PASS, 61 PARTIAL, 301 NOT_RUN; the upload and local-first requirements remain PARTIAL",
+  "reference_gaps": "42 NOT_RUN",
+  "release_readiness": "NOT_RUN",
+  "external_limitations": ["No real external application was submitted", "Physical host restart and complete product/release acceptance remain unverified"]
+}

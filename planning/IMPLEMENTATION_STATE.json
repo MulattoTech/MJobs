@@ -10,8 +10,8 @@
     "current_verified_local_state": "Initialized from newer origin/main; supplied control pack retained on governance branch",
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
-  "current_milestone": "M5_P0_UPLOAD_RESTORE_VERIFIED",
-  "current_objective": "Continue original P0 local-first configuration, startup, identity and safety prerequisites before reference enrichment",
+  "current_milestone": "M5_P0_UPLOAD_RESTORE_MERGED_LOCAL_READY",
+  "current_objective": "Paused at user request after merging the current stack and verifying the local launch; resume original dependency-eligible P0 work only on request",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -116,7 +116,7 @@
       "number": 430,
       "url": "https://github.com/MulattoTech/MJobs/pull/430",
       "branch": "codex/mj-pr-004-governance-safety",
-      "status": "DRAFT_PR"
+      "status": "MERGED"
     }
   ],
   "tests_passed": [
@@ -153,7 +153,8 @@
     "Existing mjobs project after Docker Desktop relaunch: postgres/redis started in place and restart policy updated; API readiness database/queue/worker/mock all true",
     "P0 offline backup/restore: 7 targeted and 106 full Python tests PASS; isolated FIXTURE and PERSONAL fresh-project restores preserve data/documents, recover queued fixture work and keep external submission off",
     "P0 resume upload: 11 targeted and 110 full Python tests PASS; Node24 3 frontend tests, strict TypeScript and Vite build PASS",
-    "Fresh direct PERSONAL Compose and Chromium upload, checksum readback, offline fresh-project restore and pre-upload archive migration to b7e10a34c921 PASS"
+    "Fresh direct PERSONAL Compose and Chromium upload, checksum readback, offline fresh-project restore and pre-upload archive migration to b7e10a34c921 PASS",
+    "PR #430 exact-head 14401a5 push run 36799748653 and PR run 36799753601 PASS after fixing stale migration assertion; post-merge main run 36800230873 PASS; merged main launched locally with readiness and FIXTURE identity"
   ],
   "tests_failed": [],
   "tests_not_run": [
@@ -240,7 +241,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Verify #430 upload-slice exact-head CI on main; then continue original dependency-eligible P0 local-first startup, configuration and safety requirements.",
+  "recommended_resume_step": "Goal paused by user after main consolidation. On explicit resume, re-fetch GitHub and inspect local state, then select the next original dependency-eligible P0 slice.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -1151,11 +1152,45 @@
         "git_commit": "b10a55ba6823c9264d0b1e37c60c725d9679ba35",
         "evidence_path": "docs/evidence/2026-09-30-pr004-upload-restore-local.json"
       }
+    },
+    {
+      "milestone_id": "M5-P0-STACK-MERGED-LOCAL-READY",
+      "timestamp": "2026-10-01T01:19:02Z",
+      "current_phase": "M5_P0_UPLOAD_RESTORE_MERGED_LOCAL_READY",
+      "completed_steps": [
+        "Merged #428, #429 and #430 in dependency order after exact-head required checks",
+        "Resolved #430 stale CI migration assertion and verified exact-head push/PR runs plus six PR artifacts",
+        "Built merged main and preserved existing legacy data through snapshot-matched FIXTURE identity adoption",
+        "Relaunched existing mjobs project on merged main with database/queue/worker/mock ready, b7e10a34c921 and external submission off",
+        "Removed isolated synthetic upload Compose projects; no active implementation PR remains"
+      ],
+      "files_added": ["docs/evidence/2026-09-30-pr004-closure.json"],
+      "files_modified": ["planning/PR_QUEUE.json", "planning/IMPLEMENTATION_STATE.json"],
+      "tests_completed": [
+        "#430 exact-head push run 36799748653, PR run 36799753601, and post-merge main run 36800230873 PASS",
+        "Merged main local launcher, readiness, settings, migration revision and unchanged business-row fingerprint PASS",
+        "Progress journal and catalogue validation PASS"
+      ],
+      "tests_remaining": [
+        "Original P0-P3 and MJ-REF backlog acceptance after user resumes",
+        "Physical host restart and full product/release acceptance"
+      ],
+      "migrations_applied": ["b7e10a34c921"],
+      "live_integrations_tested": ["Existing local Docker Desktop mjobs FIXTURE project and merged main"],
+      "known_errors": [],
+      "known_limitations": [
+        "Existing database required one-time reviewed FIXTURE identity adoption; private snapshot remains ignored and local",
+        "No real external application submitted; 42 MJ-REF and release readiness remain NOT_RUN"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "b747089274e0b45531c637c7f6b1991da75081b8",
+        "evidence_path": "docs/evidence/2026-09-30-pr004-closure.json"
+      }
     }
   ],
-  "current_phase": "M5_P0_UPLOAD_RESTORE_VERIFIED",
+  "current_phase": "M5_P0_UPLOAD_RESTORE_MERGED_LOCAL_READY",
   "last_safe_checkpoint": {
-    "git_commit": "b10a55ba6823c9264d0b1e37c60c725d9679ba35",
-    "evidence_path": "docs/evidence/2026-09-30-pr004-upload-restore-local.json"
+    "git_commit": "b747089274e0b45531c637c7f6b1991da75081b8",
+    "evidence_path": "docs/evidence/2026-09-30-pr004-closure.json"
   }
 }

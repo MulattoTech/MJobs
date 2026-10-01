@@ -79,10 +79,10 @@
       "depends_on": [
         "MJ-PR-003"
       ],
-      "status": "DRAFT_PR",
+      "status": "MERGED",
       "branch": "codex/mj-pr-004-governance-safety",
       "draft_until_verified": true,
-      "notes": "P0 MJ-REQ-012 PASS; MJ-REQ-013/014/167/168 PARTIAL. Draft #430 now targets main after #428/#429 merged. Docker relaunch repair, fresh direct PERSONAL Compose, bounded profile resume storage, browser upload, offline database/document restore and pre-upload archive migration passed locally. MJ-REQ-090/173 are PARTIAL; native extraction, protected host configuration, physical host restart and complete acceptance remain open. New upload head awaits exact-head CI; external submission remains disabled.",
+      "notes": "Merged as b747089274e0b45531c637c7f6b1991da75081b8 after exact-head push run 36799748653 and PR run 36799753601 passed. Existing default mjobs FIXTURE database was backed up, fingerprint-bound and relaunched on merged main with readiness true. MJ-REQ-012 PASS; MJ-REQ-013/014/090/167/168/173 PARTIAL. Native extraction, protected host configuration, physical host restart and complete acceptance remain open. User requested pause; external submission remains disabled.",
       "pr_number": 430
     },
     {
