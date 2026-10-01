@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-10-01T19:35:00Z",
+  "scope": "MJ-PR-012 / MJ-REQ-040..043",
+  "result": "PASS",
+  "requirements": {
+    "MJ-REQ-040": "PASS",
+    "MJ-REQ-041": "PASS",
+    "MJ-REQ-042": "PASS",
+    "MJ-REQ-043": "PASS"
+  },
+  "implemented": [
+    "stable provider-neutral canonical job read representation",
+    "raw job posting persistence remains separate from canonical jobs",
+    "raw postings explicitly retain source URL, application URL, source job ID, fetch timestamp and untouched structured payload",
+    "posting snapshots remain checksum-addressed and retain historical raw payloads",
+    "application routes remain separate from listing/source URLs",
+    "multiple postings can reference one canonical job while one application route remains singular",
+    "company-name normalization is presentation/search normalization only and does not merge identities"
+  ],
+  "tests": [
+    {
+      "command": "python -m unittest tests.unit.test_job_normalization tests.integration.test_greenhouse tests.integration.test_user_read_models",
+      "result": "PASS",
+      "count": 24
+    },
+    {
+      "command": "python -m unittest discover -s tests -p test_*.py",
+      "result": "PASS",
+      "count": 154
+    },
+    {"command": "python tools/verification/catalogue.py", "result": "PASS"},
+    {"command": "python tools/verification/progress.py validate", "result": "PASS"},
+    {"command": "git diff --check", "result": "PASS"}
+  ],
+  "migration": {
+    "revision": "d5a9c38e21f4",
+    "previous_revision": "c4f8912d6a10",
+    "previous_head_with_existing_posting_upgrade": "PASS",
+    "source_url_backfill": "PASS",
+    "application_url_from_route_backfill": "PASS",
+    "raw_payload_preserved": "PASS"
+  },
+  "boundaries": {
+    "cross_source_dedupe_algorithm": "DEFERRED_TO_MJ_PR_013_PLUS",
+    "ambiguous_merge_policy": "DEFERRED",
+    "external_submission": "OFF",
+    "raw_provider_payload_rewritten": false
+  }
+}

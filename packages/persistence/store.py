@@ -14,6 +14,7 @@ from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from packages.domain.safety import Fact
 from packages.domain.operation_mode import WorkspaceModeError, parse_operation_mode
 from packages.persistence import models as m
+from services.normalization.jobs import canonical_job_view, raw_posting_view
 
 
 def now():
@@ -203,19 +204,19 @@ class Store:
             if provider:
                 statement = statement.where(m.routes.c.provider == provider)
             statement = statement.order_by(m.matches.c.score.desc().nulls_last(), m.jobs.c.title, m.jobs.c.id) if sort == "score" else statement.order_by(m.jobs.c.title, m.jobs.c.id)
-            return [dict(row) for row in connection.execute(statement.limit(limit)).mappings()]
+            return [canonical_job_view(dict(row)) for row in connection.execute(statement.limit(limit)).mappings()]
 
     def job(self, job_id, profile_id=None):
         profile = self.profile(profile_id) if profile_id else None
         with self.engine.connect() as connection:
-            data = dict(connection.execute(select(m.jobs, m.companies.c.name.label("company"), m.routes.c.provider, m.routes.c.url.label("application_url"))
-                .join(m.companies, m.jobs.c.company_id == m.companies.c.id).join(m.routes, m.routes.c.job_id == m.jobs.c.id).where(m.jobs.c.id == job_id)).mappings().one())
+            data = canonical_job_view(dict(connection.execute(select(m.jobs, m.companies.c.name.label("company"), m.routes.c.provider, m.routes.c.url.label("application_url"))
+                .join(m.companies, m.jobs.c.company_id == m.companies.c.id).join(m.routes, m.routes.c.job_id == m.jobs.c.id).where(m.jobs.c.id == job_id)).mappings().one()))
             match = connection.execute(select(m.matches).where(m.matches.c.job_id == job_id, m.matches.c.profile_id == profile_id,
                 m.matches.c.profile_version == (profile["version"] if profile else ""))).mappings().one_or_none()
             data["match"] = dict(match) if match else None
             data["postings"] = []
             for row in connection.execute(select(m.postings).where(m.postings.c.job_id == job_id)).mappings():
-                posting = dict(row)
+                posting = raw_posting_view(dict(row))
                 posting["snapshots"] = [dict(snapshot) for snapshot in connection.execute(select(m.posting_snapshots.c.id, m.posting_snapshots.c.sha256,
                     m.posting_snapshots.c.retrieved_at).where(m.posting_snapshots.c.posting_id == row["id"])).mappings()]
                 data["postings"].append(posting)

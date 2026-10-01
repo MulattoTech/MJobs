@@ -9,13 +9,13 @@ import httpx
 from sqlalchemy import select
 
 from packages.persistence import models as m
-from packages.persistence.store import Store, identity, upsert
+from packages.persistence.store import Store, identity, now, upsert
 from services.discovery.sources.contract import (
     CollectionStrategy, SearchBatch, SourceCapabilities, SourceCapability,
     SourceCompany, SourceItem,
 )
 from services.discovery.sources.greenhouse import Greenhouse
-from services.discovery.sources.collect import configure_source, collect_source
+from services.discovery.sources.collect import configure_source, collect_source, persist_posting
 from services.discovery.sources.registry import source_adapter
 from tests.integration.test_spine import PROFILE
 
@@ -77,12 +77,36 @@ class GreenhouseTests(unittest.TestCase):
         self.assertEqual(self.store.job(job_id)["requisition"], "1234")
         with self.store.engine.connect() as connection:
             snapshots = list(connection.execute(select(m.posting_snapshots)).mappings())
+            posting = dict(connection.execute(select(m.postings).where(m.postings.c.source_job_id == "1234")).mappings().one())
             match = connection.execute(select(m.matches)).mappings().first()
         self.assertEqual(snapshots[0]["raw"], RAW)
+        self.assertEqual(posting["source_url"], "https://boards-api.greenhouse.io/v1/boards/example/jobs")
+        self.assertEqual(posting["application_url"], RAW["absolute_url"])
+        self.assertEqual(posting["raw"], RAW)
         self.assertEqual(len(snapshots[0]["sha256"]), 64)
         self.assertEqual(match["components"]["method"], "description_skill_mentions")
         self.assertTrue(all("jobs" in str(request.url) or str(request.url).endswith("/example") for request in self.requests))
         self.assertFalse(Greenhouse("example").capabilities().supports(SourceCapability.DIRECT_APPLICATION))
+
+    def test_multiple_postings_share_one_canonical_job_and_route(self):
+        source = configure_source(self.store, "example")
+        collect_source(self.store, source, "fixture", transport=httpx.MockTransport(self.transport))
+        job_id = identity(identity("greenhouse", "example"), "greenhouse", "example", "1234")
+        raw = {"aggregator_id": "agg-1234", "title": "Python Engineer"}
+        with self.store.engine.begin() as connection:
+            persist_posting(connection, {
+                "id": identity("aggregator", "agg-1234"), "job_id": job_id,
+                "source": "https://aggregator.test/jobs", "source_job_id": "agg-1234",
+                "source_url": "https://aggregator.test/jobs/agg-1234",
+                "application_url": RAW["absolute_url"], "raw": raw, "fetched_at": now(),
+            })
+        self.assertEqual(len([row for row in self.store.jobs() if row["canonical_job_id"] == job_id]), 1)
+        detail = self.store.job(job_id)
+        self.assertEqual(len(detail["postings"]), 2)
+        self.assertEqual({row["application_url"] for row in detail["postings"]}, {RAW["absolute_url"]})
+        self.assertEqual({row["source_job_id"] for row in detail["postings"]}, {"1234", "agg-1234"})
+        with self.store.engine.connect() as connection:
+            self.assertEqual(len(list(connection.execute(select(m.routes).where(m.routes.c.job_id == job_id)))), 1)
 
     def test_worker_collection_uses_search_contract(self):
         source = configure_source(self.store, "example")

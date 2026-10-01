@@ -43,6 +43,7 @@ routes = table("application_routes", Column("job_id", ForeignKey("canonical_jobs
                constraints=(UniqueConstraint("company_id", "provider", "tenant", "requisition"),))
 postings = table("job_postings", Column("job_id", ForeignKey("canonical_jobs.id"), nullable=False),
                  Column("source", String(200), nullable=False), Column("source_job_id", String(128), nullable=False),
+                 Column("source_url", String(2000), nullable=False), Column("application_url", String(2000), nullable=False),
                  Column("raw", JSON, nullable=False), Column("fetched_at", String(64), nullable=False),
                  constraints=(UniqueConstraint("source", "source_job_id"),))
 posting_snapshots = table("posting_snapshots", Column("posting_id", ForeignKey("job_postings.id"), nullable=False),

@@ -115,7 +115,9 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                     "tenant": source["tenant"], "requisition": job["requisition"], "url": url}, replace=True)
                 source_job_id = (job["requisition"] if batch.source_company == item.company else identity(company_id, job["requisition"]))
                 persist_posting(connection, {"id": identity(source_id, source_job_id), "job_id": job_id,
-                    "source": batch.endpoint, "source_job_id": source_job_id, "raw": item.raw, "fetched_at": timestamp})
+                    "source": batch.endpoint, "source_job_id": source_job_id,
+                    "source_url": batch.endpoint, "application_url": url,
+                    "raw": item.raw, "fetched_at": timestamp})
                 mentions = {skill.casefold() for skill in job["skills"]}
                 score = round(100 * len(mentions & usable) / len(mentions), 2) if mentions else 0
                 upsert(connection, m.matches, {"id": identity(job_id, profile_id, profile["version"]), "job_id": job_id,
