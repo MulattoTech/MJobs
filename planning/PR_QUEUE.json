@@ -284,10 +284,11 @@
         "MJ-PR-013",
         "MJ-PR-005"
       ],
-      "status": "IMPLEMENTED_LOCAL",
+      "status": "DRAFT_PR",
       "branch": "codex/mj-pr-014-job-identity-dedupe",
       "draft_until_verified": true,
-      "notes": "MJ-REQ-048..051 locally verified; evidence docs/evidence/2026-10-01-dedupe-review-precedence.json; publish draft after commit"
+      "notes": "MJ-REQ-048..051 locally verified; draft #441 published; await exact-head CI",
+      "pr_number": 441
     },
     {
       "id": "MJ-PR-015",

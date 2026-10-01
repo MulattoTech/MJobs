@@ -11,7 +11,7 @@
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
   "current_milestone": "M14_DEDUPE_REVIEW_LOCAL_VERIFIED",
-  "current_objective": "MJ-PR-014 locally verified; publish draft, verify exact-head CI, integrate, then continue MJ-PR-015",
+  "current_objective": "MJ-PR-014 draft #441 published; verify exact-head CI, integrate, then continue MJ-PR-015",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -129,6 +129,12 @@
       "number": 440,
       "url": "https://github.com/MulattoTech/MJobs/pull/440",
       "branch": "codex/mj-pr-013-job-identity-dedupe",
+      "status": "DRAFT_PR"
+    },
+    {
+      "number": 441,
+      "url": "https://github.com/MulattoTech/MJobs/pull/441",
+      "branch": "codex/mj-pr-014-job-identity-dedupe",
       "status": "DRAFT_PR"
     }
   ],
@@ -283,7 +289,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Commit/push MJ-PR-014, open draft PR, verify exact-head Actions, integrate, then select MJ-PR-015.",
+  "recommended_resume_step": "Inspect exact-head Actions for PR #441; fix failures or merge on success, then select MJ-PR-015.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
