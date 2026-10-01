@@ -5,6 +5,8 @@ from services.discovery.search_semantics import (
     evaluate_search,
     filter_jobs,
     normalize_employment_type,
+    normalize_experience_level,
+    parse_salary,
 )
 
 
@@ -111,6 +113,67 @@ class SearchSemanticsTests(unittest.TestCase):
         result = filter_jobs(rows, {"include_titles": ["System Administrator"]})
         self.assertEqual(len(result), 1)
         self.assertTrue(result[0]["search_evidence"]["matched"])
+
+    def test_experience_level_normalization_preserves_original_phrase(self):
+        cases = {
+            "Senior Systems Administrator": ("SENIOR", "Senior"),
+            "Lead Infrastructure Engineer": ("LEAD", "Lead"),
+            "Entry-Level Support Analyst": ("ENTRY", "Entry-Level"),
+            "Director of Cloud Operations": ("DIRECTOR", "Director"),
+            "Platform Engineer": ("UNKNOWN", None),
+        }
+        for title, expected in cases.items():
+            with self.subTest(title=title):
+                result = normalize_experience_level(title)
+                self.assertEqual((result["level"], result["raw"]), expected)
+
+    def test_salary_parser_handles_required_forms_and_provenance(self):
+        cases = [
+            ("$60,000–$75,000 annually", 60000, 75000, "YEAR"),
+            ("$32–38/hour", 32, 38, "HOUR"),
+            ("$70k+", 70000, None, "UNKNOWN"),
+            ("Up to $95,000 per year", None, 95000, "YEAR"),
+            ("Starting at $65k", 65000, None, "UNKNOWN"),
+            ("$30/hr", 30, 30, "HOUR"),
+        ]
+        for text, low, high, period in cases:
+            with self.subTest(text=text):
+                result = parse_salary(text, "EMPLOYER_PROVIDED")
+                self.assertEqual((result["salary_min"], result["salary_max"]), (low, high))
+                self.assertEqual(result["salary_period"], period)
+                self.assertEqual(result["salary_source"], "EMPLOYER_PROVIDED")
+                self.assertIsNotNone(result["salary_raw"])
+
+    def test_experience_salary_and_date_filters_are_deterministic(self):
+        job = {
+            "title": "Senior Platform Engineer", "company": "Example", "description": "", "skills": [],
+            "location": "Remote US", "remote_type": "REMOTE_US",
+            "attributes": {
+                "experience_level": "SENIOR",
+                "salary_min": 120000.0, "salary_max": 150000.0,
+                "salary_period": "YEAR", "salary_source": "EMPLOYER_PROVIDED",
+                "reported_posted_at": "2026-10-01T16:30:00+00:00",
+            },
+        }
+        criteria = {
+            "experience_levels": ["SENIOR", "LEAD"],
+            "salary_min": 100000.0, "salary_max": 160000.0, "salary_period": "YEAR",
+            "salary_known_only": True, "date_window": "LAST_HOUR",
+        }
+        self.assertTrue(evaluate_search(criteria, job, at="2026-10-01T17:00:00+00:00")["matched"])
+        too_low = {**job, "attributes": {**job["attributes"], "salary_max": 90000.0}}
+        self.assertIn("SALARY_BELOW_MINIMUM", evaluate_search(criteria, too_low, at="2026-10-01T17:00:00+00:00")["reasons"])
+        old = {**job, "attributes": {**job["attributes"], "reported_posted_at": "2026-09-30T12:00:00+00:00"}}
+        self.assertIn("DATE_OUTSIDE_WINDOW", evaluate_search(criteria, old, at="2026-10-01T17:00:00+00:00")["reasons"])
+
+    def test_date_filter_falls_back_to_first_seen_without_fabricating_posted_time(self):
+        job = {
+            "title": "Role", "company": "Example", "description": "", "skills": [],
+            "location": "Unknown", "remote_type": "UNKNOWN",
+            "attributes": {"reported_posted_at": None, "first_seen_at": "2026-10-01T16:45:00+00:00"},
+        }
+        result = evaluate_search({"date_window": "LAST_HOUR"}, job, at="2026-10-01T17:00:00+00:00")
+        self.assertTrue(result["matched"], result["reasons"])
 
 
 if __name__ == "__main__":

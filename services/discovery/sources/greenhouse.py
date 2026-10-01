@@ -12,7 +12,9 @@ from services.discovery.sources.contract import (
     CollectionStrategy, SearchBatch, SourceCapabilities, SourceCapability,
     SourceCompany, SourceItem,
 )
-from services.discovery.search_semantics import classify_location, normalize_employment_type
+from services.discovery.search_semantics import (
+    classify_location, normalize_employment_type, normalize_experience_level, parse_salary, parse_timestamp,
+)
 
 HOST = "https://boards-api.greenhouse.io"
 SKILLS = ("Python", "SQL", "JavaScript", "TypeScript", "Java", "C#", "C++", "Go", "Rust", "Linux", "Windows", "Docker", "Kubernetes", "AWS", "Azure", "Terraform", "PowerShell", "React", "PostgreSQL")
@@ -154,6 +156,7 @@ class Greenhouse:
         location_facts = classify_location(location, description)
         combined = plain_text(raw["title"]) + " " + description
         employment_type = normalize_employment_type(combined)
+        experience = normalize_experience_level(plain_text(raw["title"]))
         skills = [skill for skill in SKILLS if re.search(r"(?<!\w)" + re.escape(skill) + r"(?!\w)", combined, re.I)]
         url = str(raw.get("absolute_url") or "")
         try:
@@ -169,11 +172,24 @@ class Greenhouse:
             lower, upper = row.get("min_cents"), row.get("max_cents")
             if all(type(value) in (int, float) and math.isfinite(value) and 0 <= value < 1e11 for value in (lower, upper)) and lower <= upper:
                 ranges.append({"min": lower / 100, "max": upper / 100, "currency": str(row.get("currency_type") or "Unknown")[:8], "period": "UNKNOWN"})
+        if ranges:
+            currencies = {row["currency"] for row in ranges}
+            salary = {"salary_min": min(row["min"] for row in ranges), "salary_max": max(row["max"] for row in ranges),
+                      "salary_period": "UNKNOWN", "currency": next(iter(currencies)) if len(currencies) == 1 else None,
+                      "salary_source": "EMPLOYER_PROVIDED", "salary_raw": ranges}
+        else:
+            salary = parse_salary(description, "EMPLOYER_PROVIDED")
+        reported = parse_timestamp(raw.get("first_published_at") or raw.get("published_at"))
         return {"requisition": str(raw["id"]), "title": plain_text(raw["title"])[:500], "description": description,
                 "skills": skills, "location": location, "remote_type": location_facts["remote_type"], "application_url": url,
                 "attributes": {"provider": "greenhouse", "tenant": self.tenant, "native_job_id": raw.get("internal_job_id"),
                     "native_posting_id": raw["id"], "updated_at": raw.get("updated_at"), "salary": ranges or None,
-                    "employment_type": employment_type, "remote_regions": location_facts["remote_regions"],
+                    "employment_type": employment_type, "experience_level": experience["level"],
+                    "experience_level_raw": experience["raw"], "salary_min": salary["salary_min"],
+                    "salary_max": salary["salary_max"], "salary_period": salary["salary_period"],
+                    "salary_currency": salary["currency"], "salary_source": salary["salary_source"],
+                    "salary_raw": salary["salary_raw"], "reported_posted_at": reported.isoformat() if reported else None,
+                    "remote_regions": location_facts["remote_regions"],
                     "remote_indicated": location_facts["remote_indicated"], "country": location_facts["country"],
                     "state": location_facts["state"], "city": location_facts["city"],
                     "skill_evidence": "description_mentions", "submission_capability": "MANUAL_ONLY", "fictional": False,

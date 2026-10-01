@@ -99,7 +99,17 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                 company_id = identity(*item.company.identity_parts)
                 job_id = identity(company_id, source["provider"], source["tenant"], job["requisition"])
                 url = job.pop("application_url")
-                job["attributes"].update(source_id=source_id, source_endpoint=batch.endpoint, last_collected_at=timestamp)
+                existing_attributes = connection.execute(select(m.jobs.c.attributes).where(m.jobs.c.id == job_id)).scalar_one_or_none()
+                existing_attributes = dict(existing_attributes or {})
+                if not job["attributes"].get("reported_posted_at") and existing_attributes.get("reported_posted_at"):
+                    job["attributes"]["reported_posted_at"] = existing_attributes["reported_posted_at"]
+                job["attributes"].update(
+                    source_id=source_id,
+                    source_endpoint=batch.endpoint,
+                    first_seen_at=existing_attributes.get("first_seen_at") or timestamp,
+                    last_seen_at=timestamp,
+                    last_collected_at=timestamp,
+                )
                 upsert(connection, m.jobs, {"id": job_id, "company_id": company_id, **job}, replace=True)
                 upsert(connection, m.routes, {"id": job_id, "job_id": job_id, "company_id": company_id, "provider": source["provider"],
                     "tenant": source["tenant"], "requisition": job["requisition"], "url": url}, replace=True)

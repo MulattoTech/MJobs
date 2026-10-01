@@ -10,8 +10,8 @@
     "current_verified_local_state": "Initialized from newer origin/main; supplied control pack retained on governance branch",
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
-  "current_milestone": "M7_SEARCH_SEMANTICS_LOCAL_VERIFIED",
-  "current_objective": "MJ-PR-007 draft #432 published; verify exact-head CI for MJ-REQ-023..026 PASS, then integrate before MJ-PR-008",
+  "current_milestone": "M8_EXPERIENCE_SALARY_DATE_LOCAL_VERIFIED",
+  "current_objective": "MJ-PR-008 locally verified for MJ-REQ-027..030; publish draft, verify exact-head CI, then integrate before MJ-PR-009",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -33,7 +33,8 @@
     "Complete persisted per-source policy exposed in the local UI",
     "Persistent data-driven search profiles with source scoping and pause/resume",
     "Durable continuous scheduler separated from external source egress",
-    "Structured search query, location, remote-restriction and employment-type semantics with persisted search-profile criteria"
+    "Structured search query, location, remote-restriction and employment-type semantics with persisted search-profile criteria",
+    "Deterministic experience-level, salary parsing/filtering and date-window semantics with source provenance and first/last-seen timestamps"
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
@@ -46,10 +47,10 @@
   ],
   "blocked_capabilities": [],
   "active_requirements": [
-    "MJ-REQ-023",
-    "MJ-REQ-024",
-    "MJ-REQ-025",
-    "MJ-REQ-026"
+    "MJ-REQ-027",
+    "MJ-REQ-028",
+    "MJ-REQ-029",
+    "MJ-REQ-030"
   ],
   "active_prs": [
     {
@@ -93,12 +94,6 @@
       "url": "https://github.com/MulattoTech/MJobs/pull/430",
       "branch": "codex/mj-pr-004-governance-safety",
       "status": "MERGED"
-    },
-    {
-      "number": 432,
-      "url": "https://github.com/MulattoTech/MJobs/pull/432",
-      "branch": "codex/mj-pr-007-core-search-model",
-      "status": "DRAFT_PR"
     }
   ],
   "tests_passed": [
@@ -146,7 +141,9 @@
     "MJ-PR-007: 23 focused search/source tests PASS",
     "MJ-PR-007: 27 affected read-model/search/source tests PASS",
     "MJ-PR-007: 120 full Python tests PASS",
-    "MJ-PR-007: catalogue and progress validators PASS"
+    "MJ-PR-007: catalogue and progress validators PASS",
+    "MJ-PR-008: 29 focused search/source tests PASS",
+    "MJ-PR-008: 126 full Python tests PASS"
   ],
   "tests_failed": [],
   "tests_not_run": [
@@ -164,11 +161,11 @@
     "Host Node25 unsupported by Vitest5 and managed Windows Vite spawn restricted; production Node24 Docker build/tests PASS"
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-01T17:45:00+00:00",
-    "command": "full Python suite plus catalogue/progress validation",
-    "target": "MJ-PR-007 search query, location, remote and employment semantics",
+    "timestamp": "2026-10-01T18:15:00+00:00",
+    "command": "focused search/source suite plus full Python suite",
+    "target": "MJ-PR-008 experience, salary and date semantics",
     "result": "PASS",
-    "evidence_path": "docs/evidence/2026-10-01-search-semantics.json"
+    "evidence_path": "docs/evidence/2026-10-01-experience-salary-date.json"
   },
   "ci_verification": {
     "result": "PASS",
@@ -233,7 +230,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Inspect exact-head workflows for PR #432; fix failures or, when verification passes, mark ready/integrate before selecting MJ-PR-008.",
+  "recommended_resume_step": "Commit/push MJ-PR-008, open draft PR, verify exact-head workflow success, then integrate before selecting MJ-PR-009.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],

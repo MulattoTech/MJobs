@@ -4,12 +4,13 @@ import os
 
 from bs4 import BeautifulSoup
 import httpx
+from sqlalchemy import select
 
 from packages.domain.safety import Fact, select_verified_facts
 from packages.persistence import models as m
 from packages.persistence.store import identity, now, upsert
 from services.discovery.sources.collect import persist_posting
-from services.discovery.search_semantics import classify_location, normalize_employment_type
+from services.discovery.search_semantics import classify_location, normalize_employment_type, normalize_experience_level
 
 
 class MockClient:
@@ -95,11 +96,24 @@ def discover(store, mock_origin, profile_id, check=None, profile_version=None):
                     location_facts["remote_type"] = "REMOTE_US" if location_facts["country"] == "US" else "UNKNOWN"
                     if location_facts["country"]:
                         location_facts["remote_regions"] = [location_facts["country"]]
+                existing_attributes = connection.execute(select(m.jobs.c.attributes).where(m.jobs.c.id == job_id)).scalar_one_or_none()
+                existing_attributes = dict(existing_attributes or {})
+                experience = normalize_experience_level(row["title"])
+                salary_period = str(row.get("salary_period") or "UNKNOWN").upper()
+                if salary_period not in {"HOUR", "YEAR"}:
+                    salary_period = "UNKNOWN"
                 job = {"id": job_id, "company_id": company_id, "requisition": row["requisition"], "title": row["title"].strip(),
                        "description": description, "skills": row["skills"], "location": row["location"],
                        "remote_type": location_facts["remote_type"],
                        "attributes": {"fictional": True, "skill_evidence": "structured_required_skills", "provider": "mock-ats",
                            "employment_type": normalize_employment_type(row["title"] + " " + description),
+                           "experience_level": experience["level"], "experience_level_raw": experience["raw"],
+                           "salary_min": row.get("salary_min"), "salary_max": row.get("salary_max"),
+                           "salary_period": salary_period, "salary_currency": row.get("salary_currency"),
+                           "salary_source": "SOURCE_PROVIDED" if row.get("salary_min") is not None or row.get("salary_max") is not None else "UNKNOWN",
+                           "salary_raw": {key: row.get(key) for key in ("salary_min", "salary_max", "salary_currency", "salary_period")},
+                           "reported_posted_at": row.get("reported_posted_at"),
+                           "first_seen_at": existing_attributes.get("first_seen_at") or now(), "last_seen_at": now(),
                            "remote_regions": location_facts["remote_regions"], "remote_indicated": location_facts["remote_indicated"],
                            "country": location_facts["country"], "state": location_facts["state"], "city": location_facts["city"]}}
                 upsert(connection, m.jobs, job, replace=source != "mock-board")
