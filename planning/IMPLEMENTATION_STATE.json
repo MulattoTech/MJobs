@@ -203,6 +203,16 @@
         "pull_request_verification": 36939463587,
         "push_verification": 36939459649
       }
+    },
+    {
+      "number": 445,
+      "url": "https://github.com/MulattoTech/MJobs/pull/445",
+      "branch": "codex/mj-pr-018-company-ats-discovery",
+      "worktree": "C:\\Tools\\Dev\\MJobs-pr-018",
+      "status": "DRAFT_PR",
+      "base": "5e66bfe7029698b590fb57987a7ac657a958b516",
+      "head": "0f5e6c5946de839e0fcbe335abca2d06a9881990",
+      "note": "Initial head will be superseded by the PR-number/state bookkeeping commit; exact-head CI is not yet verified."
     }
   ],
   "tests_passed": [
@@ -320,9 +330,9 @@
   },
   "ci_verification": {
     "result": "NOT_RUN",
-    "scope": "MJ-PR-018 has not yet been published; no exact PR head exists.",
+    "scope": "PR #445 initial head is superseded by required PR-number/state bookkeeping commit.",
     "verified_head": null,
-    "next_action": "Publish MJ-PR-018, fetch its exact current head, then require both PR Verification and push Verification on that SHA."
+    "next_action": "Push the bookkeeping commit, read back the new exact PR head, and require PR Verification and push Verification on that SHA."
   },
   "mock_spine_ci": {
     "result": "PASS",
@@ -380,7 +390,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Commit the reconciled PR-017/PR-018 control-plane and evidence updates, re-run catalogue/progress validation, push codex/mj-pr-018-company-ats-discovery, create a draft PR, and verify exact-head Actions before marking ready.",
+  "recommended_resume_step": "Push the PR #445 bookkeeping commit, fetch its new exact head, and verify both required GitHub Actions workflows and review/mergeability on that SHA.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -418,14 +428,14 @@
   },
   "last_implementation_commit": "56448464ef4ab5c045c86884bc54b12353158600",
   "publication": {
-    "result": "NOT_RUN",
-    "transport": null,
-    "local_remote_commit_identical": null,
+    "result": "PASS",
+    "transport": "Authenticated Git push and GitHub draft PR",
+    "local_remote_commit_identical": true,
     "force": false,
-    "pr_number": null,
-    "url": null,
-    "initial_head": null,
-    "scope": "MJ-PR-018 local branch; publish after control-plane commit and exact-head CI has not started."
+    "pr_number": 445,
+    "url": "https://github.com/MulattoTech/MJobs/pull/445",
+    "initial_head": "0f5e6c5946de839e0fcbe335abca2d06a9881990",
+    "base": "5e66bfe7029698b590fb57987a7ac657a958b516"
   },
   "optional_afk_journal": {
     "result": "BLOCKED_ENVIRONMENT",

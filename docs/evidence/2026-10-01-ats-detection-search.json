@@ -43,8 +43,12 @@
         }
       }
     },
-    "pr018_publication": "NOT_RUN",
-    "pr018_exact_head_ci": "NOT_RUN"
+    "pr018_publication": "DRAFT_PR",
+    "pr018_exact_head_ci": "NOT_RUN; the initial head will be superseded by the required bookkeeping update.",
+    "pr018_number": 445,
+    "pr018_url": "https://github.com/MulattoTech/MJobs/pull/445",
+    "pr018_initial_head": "0f5e6c5946de839e0fcbe335abca2d06a9881990",
+    "pr018_base": "5e66bfe7029698b590fb57987a7ac657a958b516"
   },
   "implemented": [
     "Added provider-neutral WebDiscoveryProvider protocol, opt-in injected provider support, bounded URL candidate validation, and a disabled default that preserves supplied-site discovery.",

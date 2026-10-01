@@ -403,15 +403,18 @@
         "MJ-PR-017",
         "MJ-PR-012"
       ],
-      "status": "IN_PROGRESS",
+      "status": "DRAFT_PR",
       "branch": "codex/mj-pr-018-company-ats-discovery",
       "draft_until_verified": true,
-      "notes": "Active local implementation in C:\\Tools\\Dev\\MJobs-pr-018 on current main 5e66bfe7029698b590fb57987a7ac657a958b516. Local code commit 5644846; 205 Python tests, focused suite and isolated fixture Compose/company-discovery acceptance PASS. REQ-062/063/065 PASS; REQ-064 PARTIAL. Draft publication and exact-head remote CI remain NOT_RUN.",
+      "notes": "Draft PR #445 is open on initial head 0f5e6c5946de839e0fcbe335abca2d06a9881990, based on main 5e66bfe7029698b590fb57987a7ac657a958b516. PR-number bookkeeping will create a new head; exact-head CI is NOT_RUN pending that update. REQ-062/063/065 PASS; REQ-064 PARTIAL.",
       "worktree": "C:\\Tools\\Dev\\MJobs-pr-018",
       "base": "5e66bfe7029698b590fb57987a7ac657a958b516",
       "local_head": "56448464ef4ab5c045c86884bc54b12353158600",
-      "publication_state": "NOT_PUBLISHED",
-      "validation_result": "PASS_WITH_PARTIAL_REQUIREMENT_COVERAGE"
+      "publication_state": "DRAFT_PR",
+      "validation_result": "PASS_WITH_PARTIAL_REQUIREMENT_COVERAGE",
+      "pr_number": 445,
+      "url": "https://github.com/MulattoTech/MJobs/pull/445",
+      "head": "0f5e6c5946de839e0fcbe335abca2d06a9881990"
     },
     {
       "id": "MJ-PR-019",
