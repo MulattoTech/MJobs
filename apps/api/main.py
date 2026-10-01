@@ -25,6 +25,7 @@ from services.discovery.search_profiles import get_search_profile, list_search_p
 from services.discovery.search_semantics import filter_jobs
 from services.dedupe.reviews import list_duplicate_reviews, record_review_decision
 from services.dedupe.routes import load_job_routes, list_route_choices, plan_application_routes, source_provenance_inventory
+from services.company_discovery.triggers import queue_company_discovery
 from services.documents.uploads import MAX_UPLOAD_BYTES, UploadIntegrityError, list_resumes, save_resume, read_resume
 from workers.dispatch import enqueue_operation
 from workers.operations import QUEUES, request_cancel, limit
@@ -73,6 +74,18 @@ class MockRunInput(BaseModel):
 class DedupeDecisionInput(BaseModel):
     model_config = ConfigDict(strict=True, extra="forbid")
     action: Literal["MERGE", "KEEP_SEPARATE", "NEVER_MERGE"]
+
+
+class CompanyDiscoveryInput(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+    company_name: str = Field(min_length=1, max_length=200)
+    company_website: str | None = Field(default=None, max_length=2000)
+    application_url: str | None = Field(default=None, max_length=2000)
+    ats_tenant: str | None = Field(default=None, max_length=128)
+    reason: Literal["PREVIOUSLY_UNSEEN_COMPANY", "HIGH_MATCH_JOB", "USER_SAVED_COMPANY",
+                    "USER_PREFERRED_COMPANY", "USER_ADDED_COMPANY", "NEW_ATS_TENANT",
+                    "REPEATED_AGGREGATOR_APPEARANCE", "KNOWN_SOURCE_BROKEN"]
+    profile_id: str | None = Field(default=None, max_length=128)
 
 
 class SourceInput(BaseModel):
@@ -266,6 +279,13 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     def matches(value: DiscoveryInput):
         profile = store.profile(value.profile_id)
         return queued("DISCOVER", value.profile_id, {"profile_version": profile["version"], "rescore_only": True, "request_id": value.request_id})
+
+    @app.post("/companies/discovery", status_code=202)
+    def company_discovery(value: CompanyDiscoveryInput):
+        if value.profile_id:
+            store.profile(value.profile_id)
+        candidate = value.model_dump(exclude={"reason", "profile_id"})
+        return queue_company_discovery(store, candidate, value.reason, value.profile_id)
 
     @app.get("/sources")
     def sources():

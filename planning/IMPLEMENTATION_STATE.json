@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-09-29",
+  "generated_at": "2026-10-01",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -10,8 +10,8 @@
     "current_verified_local_state": "Initialized from newer origin/main; supplied control pack retained on governance branch",
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
-  "current_milestone": "M15_MULTI_ROUTE_LOCAL_VERIFIED",
-  "current_objective": "MJ-PR-015 draft #442 published; verify exact-head CI, integrate, then continue MJ-PR-016",
+  "current_milestone": "M16_COMPANY_DISCOVERY_FIXTURE_VERIFIED",
+  "current_objective": "MJ-PR-016 draft #443 published; verify exact current head after PR bookkeeping, then continue from live dependency frontier.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -50,97 +50,135 @@
     "Heuristic description skill coverage for real jobs and exact structured skills for mock; advanced matching remains open",
     "Real jobs support manual preparation only; manual status updates, real automation and intervention resume remain open",
     "Greenhouse API-first source strategy verified; additional global feeds and strategy ladder remain open",
-    "Local personal first-run, stored-profile relaunch and scoped backup/restore verified; protected configuration, native resume extraction/review and complete startup acceptance remain"
+    "Local personal first-run, stored-profile relaunch and scoped backup/restore verified; protected configuration, native resume extraction/review and complete startup acceptance remain",
+    "Mock-ATS company discovery supports a durable user-added trigger, evidence-based identity, automatic fixture source enrollment, and immediate employer-only job matching; production ATS providers and automatic trigger wiring remain open."
   ],
   "blocked_capabilities": [],
   "active_requirements": [
-    "MJ-REQ-052",
-    "MJ-REQ-053"
+    "MJ-REQ-054",
+    "MJ-REQ-055",
+    "MJ-REQ-056",
+    "MJ-REQ-057"
   ],
   "active_prs": [
     {
       "number": 367,
       "url": "https://github.com/MulattoTech/MJobs/pull/367",
       "branch": "codex/mj-pr-001-governance-safety",
-      "status": "MERGED"
+      "status": "MERGED",
+      "merge_commit": "b7bdd711bc7f4984e59620e585557aeb4fc06fa6",
+      "merged_at": "2026-09-30T19:38:24Z"
     },
     {
       "number": 368,
       "url": "https://github.com/MulattoTech/MJobs/pull/368",
       "branch": "codex/mj-pr-148-mock-product-spine",
-      "status": "MERGED"
+      "status": "MERGED",
+      "merge_commit": "681ee0f825d4a2a19544f4fa80b1994f99092567",
+      "merged_at": "2026-09-30T19:39:12Z"
     },
     {
       "number": 369,
       "url": "https://github.com/MulattoTech/MJobs/pull/369",
       "branch": "codex/mj-pr-002-governance-safety",
-      "status": "MERGED"
+      "status": "MERGED",
+      "merge_commit": "f30a2e5b82ff61204fa4f94c69280f8097da9b90",
+      "merged_at": "2026-09-30T19:45:13Z"
     },
     {
       "number": 370,
       "url": "https://github.com/MulattoTech/MJobs/pull/370",
       "branch": "codex/mj-pr-149-user-testing-mvp",
-      "status": "MERGED"
+      "status": "MERGED",
+      "merge_commit": "8ee6b0a7578ab4c8a46f1bac2c707a88048473ab",
+      "merged_at": "2026-09-30T19:59:03Z"
     },
     {
       "number": 428,
       "url": "https://github.com/MulattoTech/MJobs/pull/428",
       "branch": "codex/mj-pr-003-governance-safety",
-      "status": "MERGED"
+      "status": "MERGED",
+      "merge_commit": "65efa0d6dd0c77e6f7a8b9f8a0108a08fc714939",
+      "merged_at": "2026-10-01T00:48:51Z"
     },
     {
       "number": 429,
       "url": "https://github.com/MulattoTech/MJobs/pull/429",
       "branch": "codex/mj-pr-005-core-search-model",
-      "status": "MERGED"
+      "status": "MERGED",
+      "merge_commit": "602fc26e411953d5adec48fc8642ec1a406ec147",
+      "merged_at": "2026-10-01T00:49:46Z"
     },
     {
       "number": 430,
       "url": "https://github.com/MulattoTech/MJobs/pull/430",
       "branch": "codex/mj-pr-004-governance-safety",
-      "status": "MERGED"
+      "status": "MERGED",
+      "merge_commit": "b747089274e0b45531c637c7f6b1991da75081b8",
+      "merged_at": "2026-10-01T01:15:31Z"
     },
     {
       "number": 436,
       "url": "https://github.com/MulattoTech/MJobs/pull/436",
       "branch": "codex/mj-pr-009-core-search-model",
-      "status": "DRAFT_PR"
+      "status": "MERGED",
+      "merge_commit": "6cd1fe6d069f18857eab1c64014af779d3d01f2b",
+      "merged_at": "2026-10-01T18:32:39Z"
     },
     {
       "number": 437,
       "url": "https://github.com/MulattoTech/MJobs/pull/437",
       "branch": "codex/mj-pr-010-core-search-model",
-      "status": "DRAFT_PR"
+      "status": "MERGED",
+      "merge_commit": "1d80a61a4faf9c5e1d8704c11cf929dff448651d",
+      "merged_at": "2026-10-01T19:12:08Z"
     },
     {
       "number": 438,
       "url": "https://github.com/MulattoTech/MJobs/pull/438",
       "branch": "codex/mj-pr-011-core-search-model",
-      "status": "DRAFT_PR"
+      "status": "MERGED",
+      "merge_commit": "9645601bb19d41a9946c3114fe92e1d4af72e535",
+      "merged_at": "2026-10-01T19:21:17Z"
     },
     {
       "number": 439,
       "url": "https://github.com/MulattoTech/MJobs/pull/439",
       "branch": "codex/mj-pr-012-job-identity-dedupe",
-      "status": "DRAFT_PR"
+      "status": "MERGED",
+      "merge_commit": "333d9a41d29ff12805ee15ff80cfe17a3fa4b426",
+      "merged_at": "2026-10-01T19:43:59Z"
     },
     {
       "number": 440,
       "url": "https://github.com/MulattoTech/MJobs/pull/440",
       "branch": "codex/mj-pr-013-job-identity-dedupe",
-      "status": "DRAFT_PR"
+      "status": "MERGED",
+      "merge_commit": "f6867a4cf13a44b69921710634fa1e2b809b2b5d",
+      "merged_at": "2026-10-01T19:56:09Z"
     },
     {
       "number": 441,
       "url": "https://github.com/MulattoTech/MJobs/pull/441",
       "branch": "codex/mj-pr-014-job-identity-dedupe",
-      "status": "DRAFT_PR"
+      "status": "MERGED",
+      "merge_commit": "098f3d77ae3b41dc7ec666be47e767e040fd57d7",
+      "merged_at": "2026-10-01T20:08:38Z"
     },
     {
       "number": 442,
       "url": "https://github.com/MulattoTech/MJobs/pull/442",
       "branch": "codex/mj-pr-015-job-identity-dedupe",
-      "status": "DRAFT_PR"
+      "status": "MERGED",
+      "merge_commit": "6267044c2e93a058eab61011164b828a542f7bdc",
+      "merged_at": "2026-10-01T20:17:53Z"
+    },
+    {
+      "number": 443,
+      "url": "https://github.com/MulattoTech/MJobs/pull/443",
+      "branch": "codex/mj-pr-016-company-ats-discovery",
+      "status": "DRAFT_PR",
+      "head": "c436999e4d2d3737a1a37d6f08d3d975be3c0392"
     }
   ],
   "tests_passed": [
@@ -210,7 +248,15 @@
     "MJ-PR-014: Alembic f71c9d2a4b80 upgrade PASS and populated downgrade refusal PASS",
     "MJ-PR-015: 19 focused route/dedupe tests PASS",
     "MJ-PR-015: 173 full Python tests PASS; catalogue and progress validators PASS",
-    "MJ-PR-015: Alembic a82e4c19d753 upgrade PASS and populated downgrade refusal PASS"
+    "MJ-PR-015: Alembic a82e4c19d753 upgrade PASS and populated downgrade refusal PASS",
+    "MJ-PR-016: 5 company-discovery integration tests PASS under requirements.lock Python 3.12 environment",
+    "MJ-PR-016: 14 affected company-discovery/spine/source-policy integration tests PASS",
+    "MJ-PR-016: 178 full Python tests PASS",
+    "MJ-PR-016: catalogue and progress validators PASS",
+    "MJ-PR-016: isolated branch Compose migration a82e4c19d753 equals Alembic head; FIXTURE identity and API/PostgreSQL/Redis/workers healthy",
+    "MJ-PR-016: PostgreSQL/Redis/RQ company discovery operation COMPLETED; employer-only Job B matched at 100; external submission remained disabled",
+    "MJ-PR-016: connected Chromium UI acceptance 5 actions PASS on isolated Compose fixture stack",
+    "MJ-PR-016: 5 live-feedback URL/privacy compatibility tests PASS"
   ],
   "tests_failed": [],
   "tests_not_run": [
@@ -225,21 +271,23 @@
     "Historical recovery run used Compose dependency startup; corrected to --no-deps and final isolated run is canonical",
     "Earlier MVP recovery input lacked operation_id; final UI proof now records it, and recovery validates baseline before any outage",
     "Earlier public-browser selector/filter race corrected; final public readback and source cooldown error PASS",
-    "Host Node25 unsupported by Vitest5 and managed Windows Vite spawn restricted; production Node24 Docker build/tests PASS"
+    "Host Node25 unsupported by Vitest5 and managed Windows Vite spawn restricted; production Node24 Docker build/tests PASS",
+    "MJ-PR-016 local Chromium first run used Docker DNS host api, which is not a secure browser origin for crypto.randomUUID; loopback URL rerun passed all five connected UI actions."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-01T20:15:00+00:00",
-    "command": "focused/full tests plus Alembic route-choice upgrade and populated downgrade-refusal proof",
-    "target": "MJ-PR-015 source record preservation and multi-route planning",
+    "timestamp": "2026-10-01T22:25:03Z",
+    "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_company_discovery tests.integration.test_spine tests.integration.test_source_policy_scheduler; .venv\\Scripts\\python.exe -m unittest discover -s tests -p test_*.py; python -m tools.verification.catalogue; python -m tools.verification.progress validate; isolated Compose worker/API operation, migration revision check, Chromium UI and live-feedback compatibility; committed c436999 and created draft PR #443; CI pending for post-bookkeeping head",
+    "target": "MJ-PR-016 company discovery fixture vertical slice",
     "result": "PASS",
-    "evidence_path": "docs/evidence/2026-10-01-multi-route-provenance.json"
+    "evidence_path": "docs/evidence/2026-10-01-company-discovery-core.json"
   },
   "ci_verification": {
-    "result": "PASS",
-    "scope": "governance domain/control-plane and catalogue only",
-    "head": "e97d8b0a35219bf4c053cf663c5d44f6f1be522c",
-    "pull_request_run_id": 36765678280,
-    "evidence_path": "docs/evidence/2026-09-30-governance-ci.json"
+    "result": "PENDING",
+    "scope": "MJ-PR-016 exact current PR head; CI on initial head was in progress before branch bookkeeping commit",
+    "verified_head": "c436999e4d2d3737a1a37d6f08d3d975be3c0392",
+    "initial_pull_request_run_id": 36934813152,
+    "initial_push_run_id": 36934774339,
+    "next_action": "Fetch PR head after bookkeeping push and require successful Verification runs on that exact SHA."
   },
   "mock_spine_ci": {
     "result": "PASS",
@@ -297,7 +345,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Inspect exact-head Actions for PR #442; fix failures or merge on success, then continue MJ-PR-016.",
+  "recommended_resume_step": "Fetch PR #443 latest exact head after bookkeeping push; wait for and inspect both Verification Actions runs on that SHA, fix failures without weakening requirements, then merge only if head is current, mergeable, and review threads are resolved.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -332,12 +380,15 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "60d4c012f53f28998565e5448b0576f8357a7f1d",
+  "last_implementation_commit": "c436999e4d2d3737a1a37d6f08d3d975be3c0392",
   "publication": {
     "result": "PASS",
     "transport": "Authenticated Git push and GitHub draft PR",
     "local_remote_commit_identical": true,
-    "force": false
+    "force": false,
+    "pr_number": 443,
+    "url": "https://github.com/MulattoTech/MJobs/pull/443",
+    "initial_head": "c436999e4d2d3737a1a37d6f08d3d975be3c0392"
   },
   "optional_afk_journal": {
     "result": "BLOCKED_ENVIRONMENT",

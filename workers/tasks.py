@@ -8,7 +8,8 @@ from packages.domain.operation_mode import operation_mode_from_env
 from packages.persistence import models as m
 from packages.persistence.store import Store, now
 from services.applications.mock_adapter import apply_mock
-from services.discovery.pipeline import discover
+from services.discovery.pipeline import discover, MockClient
+from services.company_discovery.flywheel import discover_company_source
 from services.discovery.sources.collect import collect_source
 from services.discovery.sources.greenhouse import SourceError
 from services.discovery.matching import recalculate
@@ -34,7 +35,7 @@ def execute_operation(operation_id):
             check()
             state, error = "COMPLETED", None
             if operation_mode == "PERSONAL":
-                if operation["kind"] == "APPLY_MOCK" or (operation["kind"] == "DISCOVER"
+                if operation["kind"] in {"APPLY_MOCK", "COMPANY_DISCOVER"} or (operation["kind"] == "DISCOVER"
                         and not operation["params"].get("source_id")
                         and not operation["params"].get("rescore_only")):
                     raise FixtureOperationDisabled()
@@ -61,6 +62,16 @@ def execute_operation(operation_id):
                     recalculate(store, operation["entity_id"], check=check, profile_version=params.get("profile_version"))
                 else:
                     discover(store, origin, operation["entity_id"], check=check, profile_version=params.get("profile_version"))
+            elif operation["kind"] == "COMPANY_DISCOVER":
+                params = operation["params"]
+                client = MockClient(origin, check=check)
+                try:
+                    result = discover_company_source(store, params["candidate"], client, check=check)
+                finally:
+                    client.close()
+                if params.get("profile_id"):
+                    check()
+                    discover(store, origin, params["profile_id"], check=check)
             elif operation["kind"] == "PREPARE":
                 prepare(store, operation["params"]["job_id"], operation["entity_id"], Path(os.environ["MJOBS_OUTPUT_DIR"]),
                         check=check, profile_version=operation["params"].get("profile_version"),
