@@ -3,7 +3,9 @@ from sqlalchemy import select
 
 from packages.persistence import models as m
 from packages.persistence.store import now, upsert
-from services.discovery.search_semantics import EMPLOYMENT_TYPES
+from services.discovery.search_semantics import (
+    DATE_WINDOWS, EMPLOYMENT_TYPES, EXPERIENCE_LEVELS, SALARY_PERIODS, parse_timestamp,
+)
 
 
 REMOTE_PREFERENCES = {"ANY", "REQUIRED", "EXCLUDED"}
@@ -65,6 +67,31 @@ def save_search_profile(store, data):
     arrangements = _clean_strings(data.get("work_arrangements", []), limit=3, length=16)
     if any(value not in WORK_ARRANGEMENTS for value in arrangements):
         raise ValueError("Search profile work arrangement is invalid")
+    experience = _clean_strings(data.get("experience_levels", []), limit=20, length=32)
+    if any(value not in EXPERIENCE_LEVELS for value in experience):
+        raise ValueError("Search profile experience level is invalid")
+    salary_period = data.get("salary_period")
+    if salary_period is not None and salary_period not in SALARY_PERIODS - {"UNKNOWN"}:
+        raise ValueError("Search profile salary period is invalid")
+    salary_min = _bounded_float(data.get("salary_min"), 0, 100000000, "Minimum salary")
+    salary_max = _bounded_float(data.get("salary_max"), 0, 100000000, "Maximum salary")
+    if salary_min is not None and salary_max is not None and salary_min > salary_max:
+        raise ValueError("Minimum salary cannot exceed maximum salary")
+    if (salary_min is not None or salary_max is not None) and salary_period is None:
+        raise ValueError("Salary filtering requires HOUR or YEAR period")
+    if type(data.get("salary_known_only", False)) is not bool or type(data.get("salary_unknown_allowed", True)) is not bool:
+        raise ValueError("Salary known/unknown policy must be boolean")
+    date_window = data.get("date_window", "ANY")
+    if date_window not in DATE_WINDOWS:
+        raise ValueError("Search profile date window is invalid")
+    date_start, date_end = data.get("date_start"), data.get("date_end")
+    if date_window == "CUSTOM":
+        start, end = parse_timestamp(date_start), parse_timestamp(date_end)
+        if start is None or end is None or start > end:
+            raise ValueError("Custom date filtering requires an ordered ISO start/end")
+        date_start, date_end = start.isoformat(), end.isoformat()
+    elif date_start is not None or date_end is not None:
+        raise ValueError("Custom date bounds require date_window=CUSTOM")
 
     criteria = {
         "include_titles": _clean_strings(data.get("include_titles", [])),
@@ -83,6 +110,15 @@ def save_search_profile(store, data):
         "cities": _clean_strings(data.get("cities", []), limit=100, length=200),
         "remote_regions": _clean_strings(data.get("remote_regions", []), limit=100, length=100),
         "employment_types": employment,
+        "experience_levels": experience,
+        "salary_min": salary_min,
+        "salary_max": salary_max,
+        "salary_period": salary_period,
+        "salary_known_only": data.get("salary_known_only", False),
+        "salary_unknown_allowed": data.get("salary_unknown_allowed", True),
+        "date_window": date_window,
+        "date_start": date_start,
+        "date_end": date_end,
         "radius_miles": _bounded_float(data.get("radius_miles"), 1, 10000, "Search radius"),
         "radius_latitude": _bounded_float(data.get("radius_latitude"), -90, 90, "Search latitude"),
         "radius_longitude": _bounded_float(data.get("radius_longitude"), -180, 180, "Search longitude"),

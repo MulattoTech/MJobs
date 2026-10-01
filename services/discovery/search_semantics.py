@@ -1,6 +1,7 @@
 """Deterministic job/search semantics for filtering and normalized facets."""
 from __future__ import annotations
 
+from datetime import datetime, timedelta, timezone
 from math import asin, cos, radians, sin, sqrt
 import re
 
@@ -14,15 +15,16 @@ REMOTE_TYPES = {
     "UNKNOWN",
 }
 EMPLOYMENT_TYPES = {
-    "FULL_TIME",
-    "PART_TIME",
-    "CONTRACT",
-    "CONTRACT_TO_HIRE",
-    "TEMPORARY",
-    "INTERNSHIP",
-    "OTHER",
-    "UNKNOWN",
+    "FULL_TIME", "PART_TIME", "CONTRACT", "CONTRACT_TO_HIRE",
+    "TEMPORARY", "INTERNSHIP", "OTHER", "UNKNOWN",
 }
+EXPERIENCE_LEVELS = {
+    "INTERNSHIP", "ENTRY", "JUNIOR", "ASSOCIATE", "MID", "SENIOR",
+    "LEAD", "MANAGER", "DIRECTOR", "EXECUTIVE", "UNKNOWN",
+}
+SALARY_PERIODS = {"HOUR", "YEAR", "UNKNOWN"}
+SALARY_SOURCES = {"EMPLOYER_PROVIDED", "SOURCE_PROVIDED", "ESTIMATED", "UNKNOWN"}
+DATE_WINDOWS = {"ANY", "LAST_HOUR", "TODAY", "LAST_24_HOURS", "LAST_3_DAYS", "LAST_7_DAYS", "LAST_30_DAYS", "CUSTOM"}
 US_STATES = {
     "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA",
     "KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ",
@@ -47,6 +49,115 @@ def normalize_employment_type(text):
         if any(re.search(pattern, value) for pattern in patterns):
             return result
     return "UNKNOWN"
+
+def normalize_experience_level(text):
+    value = str(text or "")
+    folded = value.casefold()
+    patterns = (
+        ("EXECUTIVE", r"\b(chief|c-suite|vice president|vp)\b"),
+        ("DIRECTOR", r"\bdirector\b"),
+        ("MANAGER", r"\bmanager\b"),
+        ("LEAD", r"\b(lead|principal|staff)\b"),
+        ("SENIOR", r"\b(senior|sr\.?)(?:\s|$)"),
+        ("MID", r"\b(mid[- ]level|midlevel|intermediate)\b"),
+        ("ASSOCIATE", r"\bassociate\b"),
+        ("JUNIOR", r"\b(junior|jr\.?)(?:\s|$)"),
+        ("ENTRY", r"\b(entry[- ]level|entry level|new grad(?:uate)?)\b"),
+        ("INTERNSHIP", r"\b(internship|intern)\b"),
+    )
+    for level, pattern in patterns:
+        match = re.search(pattern, folded, re.I)
+        if match:
+            return {"level": level, "raw": value[match.start():match.end()].strip()}
+    return {"level": "UNKNOWN", "raw": None}
+
+
+def _money_value(value):
+    compact = str(value).replace("$", "").replace(",", "").strip()
+    multiplier = 1000 if compact.casefold().endswith("k") else 1
+    if multiplier != 1:
+        compact = compact[:-1]
+    try:
+        return round(float(compact) * multiplier, 2)
+    except ValueError:
+        return None
+
+
+def parse_salary(text, source="UNKNOWN"):
+    if source not in SALARY_SOURCES:
+        raise ValueError("Salary source is invalid")
+    value = str(text or "")
+    amount = r"\$\s*\d[\d,]*(?:\.\d+)?\s*[kK]?"
+    amount_optional_currency = r"\$?\s*\d[\d,]*(?:\.\d+)?\s*[kK]?"
+    period = "HOUR" if re.search(r"(?:/|per\s+)?(?:hour|hr)\b|hourly", value, re.I) else (
+        "YEAR" if re.search(r"(?:/|per\s+)?(?:year|yr)\b|annual(?:ly)?", value, re.I) else "UNKNOWN"
+    )
+    range_match = re.search(fr"(?P<low>{amount})\s*(?:-|–|—|to)\s*(?P<high>{amount_optional_currency})", value, re.I)
+    if range_match:
+        low = _money_value(range_match.group("low"))
+        high = _money_value(range_match.group("high"))
+        if low is not None and high is not None and low <= high:
+            return {"salary_min": low, "salary_max": high, "salary_period": period, "currency": "USD",
+                    "salary_source": source, "salary_raw": range_match.group(0).strip()}
+    up_to = re.search(fr"\bup\s+to\s+(?P<amount>{amount})", value, re.I)
+    if up_to:
+        high = _money_value(up_to.group("amount"))
+        return {"salary_min": None, "salary_max": high, "salary_period": period, "currency": "USD",
+                "salary_source": source, "salary_raw": up_to.group(0).strip()}
+    starting = re.search(fr"\bstarting\s+at\s+(?P<amount>{amount})", value, re.I)
+    if starting:
+        low = _money_value(starting.group("amount"))
+        return {"salary_min": low, "salary_max": None, "salary_period": period, "currency": "USD",
+                "salary_source": source, "salary_raw": starting.group(0).strip()}
+    plus = re.search(fr"(?P<amount>{amount})\s*\+", value, re.I)
+    if plus:
+        low = _money_value(plus.group("amount"))
+        return {"salary_min": low, "salary_max": None, "salary_period": period, "currency": "USD",
+                "salary_source": source, "salary_raw": plus.group(0).strip()}
+    single = re.search(fr"(?P<amount>{amount})", value, re.I)
+    if single:
+        exact = _money_value(single.group("amount"))
+        return {"salary_min": exact, "salary_max": exact, "salary_period": period, "currency": "USD",
+                "salary_source": source, "salary_raw": single.group(0).strip()}
+    return {"salary_min": None, "salary_max": None, "salary_period": "UNKNOWN", "currency": None,
+            "salary_source": "UNKNOWN", "salary_raw": None}
+
+
+def parse_timestamp(value):
+    if not value:
+        return None
+    if isinstance(value, datetime):
+        parsed = value
+    else:
+        try:
+            parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+        except ValueError:
+            return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
+
+
+def effective_job_timestamp(job):
+    attrs = dict(job.get("attributes") or {})
+    return parse_timestamp(attrs.get("reported_posted_at")) or parse_timestamp(attrs.get("first_seen_at"))
+
+
+def _date_window_bounds(criteria, at):
+    window = criteria.get("date_window", "ANY")
+    if window == "ANY":
+        return None, None
+    if window == "LAST_HOUR":
+        return at - timedelta(hours=1), at
+    if window == "TODAY":
+        return at.replace(hour=0, minute=0, second=0, microsecond=0), at
+    days = {"LAST_24_HOURS": 1, "LAST_3_DAYS": 3, "LAST_7_DAYS": 7, "LAST_30_DAYS": 30}
+    if window in days:
+        return at - timedelta(days=days[window]), at
+    if window == "CUSTOM":
+        return parse_timestamp(criteria.get("date_start")), parse_timestamp(criteria.get("date_end"))
+    raise ValueError("Date window is invalid")
+
 
 def _state_codes(text):
     return sorted(set(re.findall(r"(?<![A-Z])(" + "|".join(sorted(US_STATES)) + r")(?![A-Z])", str(text or "").upper())))
@@ -139,8 +250,9 @@ def _haversine_miles(lat1, lon1, lat2, lon2):
     value = sin(dlat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(dlon / 2) ** 2
     return 3958.7613 * 2 * asin(sqrt(value))
 
-def evaluate_search(criteria, job):
+def evaluate_search(criteria, job, at=None):
     attrs = dict(job.get("attributes") or {})
+    at = parse_timestamp(at) or datetime.now(timezone.utc)
     title = _fold(job.get("title"))
     company = _fold(job.get("company"))
     description = _fold(job.get("description"))
@@ -196,6 +308,35 @@ def evaluate_search(criteria, job):
     employment = set(criteria.get("employment_types") or [])
     if employment and attrs.get("employment_type", "UNKNOWN") not in employment:
         reasons.append("EMPLOYMENT_TYPE_MISMATCH")
+
+    experience = set(criteria.get("experience_levels") or [])
+    if experience and attrs.get("experience_level", "UNKNOWN") not in experience:
+        reasons.append("EXPERIENCE_LEVEL_MISMATCH")
+
+    salary_min = attrs.get("salary_min")
+    salary_max = attrs.get("salary_max")
+    salary_known = salary_min is not None or salary_max is not None
+    if criteria.get("salary_known_only") and not salary_known:
+        reasons.append("SALARY_UNKNOWN")
+    if salary_known and criteria.get("salary_period") and attrs.get("salary_period", "UNKNOWN") != criteria["salary_period"]:
+        reasons.append("SALARY_PERIOD_MISMATCH")
+    elif salary_known:
+        wanted_min = criteria.get("salary_min")
+        wanted_max = criteria.get("salary_max")
+        if wanted_min is not None and salary_max is not None and salary_max < wanted_min:
+            reasons.append("SALARY_BELOW_MINIMUM")
+        if wanted_max is not None and salary_min is not None and salary_min > wanted_max:
+            reasons.append("SALARY_ABOVE_MAXIMUM")
+    elif (criteria.get("salary_min") is not None or criteria.get("salary_max") is not None) and not criteria.get("salary_unknown_allowed", True):
+        reasons.append("SALARY_UNKNOWN")
+
+    date_start, date_end = _date_window_bounds(criteria, at)
+    if date_start is not None or date_end is not None:
+        effective = effective_job_timestamp(job)
+        if effective is None:
+            reasons.append("DATE_UNKNOWN")
+        elif (date_start is not None and effective < date_start) or (date_end is not None and effective > date_end):
+            reasons.append("DATE_OUTSIDE_WINDOW")
 
     radius = criteria.get("radius_miles")
     if radius is not None:

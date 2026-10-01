@@ -193,6 +193,34 @@ class GreenhouseTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "SOURCE_INVALID_JOB"):
             Greenhouse("example", transport=httpx.MockTransport(lambda _: httpx.Response(200, json={"not": "job"}))).fetch(1234)
 
+
+    def test_experience_salary_and_reported_date_normalize_with_provenance(self):
+        raw = dict(
+            RAW,
+            title="Senior Platform Engineer",
+            content="<p>Base compensation is $120,000-$150,000 per year.</p>",
+            first_published_at="2026-09-30T14:00:00Z",
+        )
+        job = Greenhouse("example").normalize(raw)
+        attrs = job["attributes"]
+        self.assertEqual((attrs["experience_level"], attrs["experience_level_raw"]), ("SENIOR", "Senior"))
+        self.assertEqual((attrs["salary_min"], attrs["salary_max"], attrs["salary_period"]), (120000.0, 150000.0, "YEAR"))
+        self.assertEqual(attrs["salary_source"], "EMPLOYER_PROVIDED")
+        self.assertEqual(attrs["reported_posted_at"], "2026-09-30T14:00:00+00:00")
+
+    def test_collection_persists_first_and_last_seen_without_inventing_posted_date(self):
+        source = configure_source(self.store, "example")
+        collect_source(self.store, source, "fixture", transport=httpx.MockTransport(self.transport))
+        with self.store.engine.connect() as connection:
+            rows = [dict(row) for row in connection.execute(select(m.jobs)).mappings()]
+        self.assertTrue(rows)
+        for row in rows:
+            attrs = row["attributes"]
+            self.assertIsNotNone(attrs["first_seen_at"])
+            self.assertIsNotNone(attrs["last_seen_at"])
+            self.assertEqual(attrs["first_seen_at"], attrs["last_seen_at"])
+            self.assertIsNone(attrs["reported_posted_at"])
+
     def test_extreme_provider_backoff_cannot_be_shortened_by_reconfiguration(self):
         source = configure_source(self.store, "example")
         with self.assertRaisesRegex(ValueError, "SOURCE_RATE_LIMITED"):

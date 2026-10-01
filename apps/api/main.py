@@ -103,6 +103,16 @@ class SearchProfileInput(BaseModel):
     radius_longitude: float | None = Field(default=None, ge=-180, le=180)
     employment_types: list[Literal["FULL_TIME", "PART_TIME", "CONTRACT", "CONTRACT_TO_HIRE",
                                    "TEMPORARY", "INTERNSHIP", "OTHER", "UNKNOWN"]] = Field(default_factory=list, max_length=20)
+    experience_levels: list[Literal["INTERNSHIP", "ENTRY", "JUNIOR", "ASSOCIATE", "MID", "SENIOR",
+                                    "LEAD", "MANAGER", "DIRECTOR", "EXECUTIVE", "UNKNOWN"]] = Field(default_factory=list, max_length=20)
+    salary_min: float | None = Field(default=None, ge=0, le=100000000)
+    salary_max: float | None = Field(default=None, ge=0, le=100000000)
+    salary_period: Literal["HOUR", "YEAR"] | None = None
+    salary_known_only: bool = False
+    salary_unknown_allowed: bool = True
+    date_window: Literal["ANY", "LAST_HOUR", "TODAY", "LAST_24_HOURS", "LAST_3_DAYS", "LAST_7_DAYS", "LAST_30_DAYS", "CUSTOM"] = "ANY"
+    date_start: str | None = Field(default=None, max_length=64)
+    date_end: str | None = Field(default=None, max_length=64)
     source_ids: list[str] = Field(default_factory=list, max_length=100)
 
 

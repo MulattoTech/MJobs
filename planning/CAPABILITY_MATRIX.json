@@ -236,27 +236,35 @@
     },
     {
       "requirement_id": "MJ-REQ-027",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-01-experience-salary-date.json"
+      ],
+      "note": "Verified deterministic experience, salary, and date semantics in MJ-PR-008"
     },
     {
       "requirement_id": "MJ-REQ-028",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-01-experience-salary-date.json"
+      ],
+      "note": "Verified deterministic experience, salary, and date semantics in MJ-PR-008"
     },
     {
       "requirement_id": "MJ-REQ-029",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-01-experience-salary-date.json"
+      ],
+      "note": "Verified deterministic experience, salary, and date semantics in MJ-PR-008"
     },
     {
       "requirement_id": "MJ-REQ-030",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-01-experience-salary-date.json"
+      ],
+      "note": "Verified deterministic experience, salary, and date semantics in MJ-PR-008"
     },
     {
       "requirement_id": "MJ-REQ-031",
