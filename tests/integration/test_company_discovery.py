@@ -6,7 +6,7 @@ import unittest
 from unittest.mock import patch
 
 from fastapi.testclient import TestClient
-from sqlalchemy import select
+from sqlalchemy import select, text
 
 from apps.api.main import create_app
 from fixtures.mock_server import fixture_server
@@ -41,7 +41,8 @@ class CompanyDiscoveryTests(unittest.TestCase):
         first = resolve_company(self.store, candidate)
         self.assertTrue(first["is_new"])
         self.assertEqual(first["company_id"], identity(candidate["company_website"]))
-        self.assertGreaterEqual(first["confidence"], 0.90)
+        self.assertEqual(first["confidence"], 0.45)
+        self.assertEqual(first["evidence"], ["CANDIDATE_DOMAIN_UNVERIFIED"])
         with self.store.engine.begin() as connection:
             upsert(connection, m.companies, {
                 "id": first["company_id"],
@@ -51,7 +52,127 @@ class CompanyDiscoveryTests(unittest.TestCase):
         second = resolve_company(self.store, candidate)
         self.assertFalse(second["is_new"])
         self.assertEqual(second["company_id"], first["company_id"])
-        self.assertIn("OFFICIAL_DOMAIN_EXACT", second["evidence"])
+        self.assertIn("NORMALIZED_NAME_EXACT", second["evidence"])
+        self.assertNotIn("OFFICIAL_DOMAIN_EXACT", second["evidence"])
+
+    def test_aggregator_domain_does_not_establish_company_identity(self):
+        with self.store.engine.begin() as connection:
+            upsert(connection, m.companies, {
+                "id": "known-company", "name": "Known Corporation",
+                "domain": "https://linkedin.com/company/known",
+            })
+        result = resolve_company(self.store, {
+            "company_name": "Different Employer",
+            "company_website": "https://linkedin.com/company/different",
+        })
+        self.assertTrue(result["is_new"])
+        self.assertNotEqual(result["company_id"], "known-company")
+        self.assertEqual(result["confidence"], 0.45)
+        self.assertEqual(result["evidence"], ["UNTRUSTED_AGGREGATOR_DOMAIN"])
+
+    def test_resolver_matches_only_a_persisted_verified_company_domain(self):
+        with self.store.engine.begin() as connection:
+            upsert(connection, m.companies, {
+                "id": "verified-company", "name": "Acme Holdings", "domain": "",
+            })
+            try:
+                connection.execute(text("""
+                    INSERT INTO company_domains
+                        (id, company_id, domain, confidence, verified, verification_method,
+                         first_seen_at, last_verified_at, evidence)
+                    VALUES
+                        ('verified-domain', 'verified-company', 'acme.example', 0.99, 1,
+                         'FIRST_PARTY_CAREER_LINK', '2026-10-01T00:00:00Z',
+                         '2026-10-01T00:00:00Z', '[]')
+                """))
+            except Exception as failure:
+                self.fail(f"verified company domain should be persistable: {failure}")
+        result = resolve_company(self.store, {
+            "company_name": "Acme Holdings",
+            "application_url": "https://careers.acme.example/jobs",
+        })
+        self.assertFalse(result["is_new"])
+        self.assertEqual(result["company_id"], "verified-company")
+        self.assertIn("VERIFIED_DOMAIN_MATCH", result["evidence"])
+
+    def test_resolver_uses_a_verified_company_alias(self):
+        with self.store.engine.begin() as connection:
+            upsert(connection, m.companies, {
+                "id": "alias-company", "name": "Acme Holdings", "domain": "",
+            })
+            try:
+                connection.execute(text("""
+                    INSERT INTO company_aliases
+                        (id, company_id, alias, normalized_alias, alias_type, confidence,
+                         verified, source, evidence, created_at)
+                    VALUES
+                        ('alias-acme', 'alias-company', 'Acme Data Labs', 'acme data labs',
+                         'BRAND', 0.93, 1, 'OFFICIAL_CAREER_PAGE',
+                         '["verified company page"]', '2026-10-01T00:00:00Z')
+                """))
+            except Exception as failure:
+                self.fail(f"verified company alias should be persistable: {failure}")
+        result = resolve_company(self.store, {"company_name": "Acme Data Labs"})
+        self.assertFalse(result["is_new"])
+        self.assertEqual(result["company_id"], "alias-company")
+        self.assertEqual(result["confidence"], 0.93)
+        self.assertIn("VERIFIED_ALIAS_EXACT", result["evidence"])
+
+    def test_domain_evidence_promotes_candidate_without_later_downgrade(self):
+        from services.company_discovery.domains import record_company_domain, resolve_official_domain
+
+        with self.store.engine.begin() as connection:
+            upsert(connection, m.companies, {
+                "id": "promoted-company", "name": "Promoted Co", "domain": "",
+            })
+        candidate = record_company_domain(self.store, "promoted-company", "https://www.promoted.example/jobs")
+        self.assertFalse(candidate["verified"])
+        verified = record_company_domain(
+            self.store, "promoted-company", "promoted.example", "FIRST_PARTY_JOB_LINK", ["first-party URL"]
+        )
+        self.assertTrue(verified["verified"])
+        retained = record_company_domain(self.store, "promoted-company", "promoted.example")
+        self.assertTrue(retained["verified"])
+        self.assertEqual(retained["last_verified_at"], verified["last_verified_at"])
+        winner = resolve_official_domain([
+            {"domain": "linkedin.com/company/promoted", "method": "FIRST_PARTY_JOB_LINK"},
+            {"domain": "promoted.example", "method": "FIRST_PARTY_JOB_LINK", "evidence": ["job link"]},
+            {"domain": "search.example", "method": "CONFIGURED_WEB_SEARCH"},
+        ])
+        self.assertEqual(winner["status"], "VERIFIED")
+        self.assertEqual(winner["domain"], "promoted.example")
+
+    def test_domain_resolver_preserves_equal_rank_ambiguity(self):
+        from services.company_discovery.domains import resolve_official_domain
+
+        result = resolve_official_domain([
+            {"domain": "one.example", "method": "ATS_COMPANY_METADATA"},
+            {"domain": "two.example", "method": "ATS_COMPANY_METADATA"},
+        ])
+        self.assertEqual(result["status"], "AMBIGUOUS")
+        self.assertEqual(result["candidates"], ["one.example", "two.example"])
+
+    def test_company_domain_normalization_rejects_private_ip_literals(self):
+        from services.company_discovery.domains import normalize_domain
+
+        for value in ("http://127.0.0.1/admin", "http://10.0.0.8", "http://169.254.169.254/latest"):
+            with self.subTest(value=value):
+                self.assertEqual(normalize_domain(value), "")
+
+    def test_alias_evidence_does_not_downgrade_verified_alias(self):
+        from services.company_discovery.aliases import record_company_alias
+
+        with self.store.engine.begin() as connection:
+            upsert(connection, m.companies, {
+                "id": "alias-retained", "name": "Canonical Co", "domain": "",
+            })
+        verified = record_company_alias(
+            self.store, "alias-retained", "C.C.", alias_type="ABBREVIATION", verified=True,
+            source="OFFICIAL_CAREER_PAGE", evidence=["official page"], confidence=0.93,
+        )
+        retained = record_company_alias(self.store, "alias-retained", "C.C.", verified=False)
+        self.assertTrue(retained["verified"])
+        self.assertEqual(retained["confidence"], verified["confidence"])
 
     def test_trigger_is_durable_and_idempotent(self):
         candidate = {
@@ -102,6 +223,155 @@ class CompanyDiscoveryTests(unittest.TestCase):
             source = dict(connection.execute(select(m.company_sources)).mappings().one())
         self.assertTrue(source["discovered_automatically"])
         self.assertEqual(next(row for row in jobs if row["requisition"] == "B")["match_score"], 100)
+
+    def test_career_discovery_finds_navigation_link_without_rel_careers_marker(self):
+        from types import SimpleNamespace
+        from services.company_discovery.flywheel import discover_company_source
+
+        origin = "https://employer.example"
+        pages = {
+            origin + "/": SimpleNamespace(
+                url=origin + "/",
+                text='<header><nav><a href="/careers">Jobs and Careers</a></nav></header>',
+            ),
+            origin + "/careers": SimpleNamespace(
+                url=origin + "/careers",
+                text='<main><a data-provider="mock-ats" data-tenant="employer" href="/ats/jobs">Open roles</a></main>',
+            ),
+        }
+
+        class FixtureTransport:
+            bounded_redirects = True
+            fixture_only = True
+
+            def __init__(self):
+                self.urls = []
+
+            def allowed(self, url):
+                from urllib.parse import urlsplit
+                return (urlsplit(url).scheme, urlsplit(url).netloc) == ("https", "employer.example")
+
+            def get(self, url):
+                self.urls.append(url)
+                if url == origin + "/ats/jobs":
+                    return SimpleNamespace(url=url, json=lambda: {"jobs": []})
+                return pages[url]
+
+        client = FixtureTransport()
+        try:
+            result = discover_company_source(self.store, {
+                "company_name": "Employer Example",
+                "company_website": origin + "/",
+            }, client)
+        except ValueError as failure:
+            self.fail(f"career navigation link should be discovered: {failure}")
+        self.assertEqual(result["careers_url"], origin + "/careers")
+        self.assertEqual(result["provider"], "mock-ats")
+        self.assertIn(origin + "/careers", client.urls)
+
+    def test_company_discovery_blocks_private_or_off_origin_fetch_targets(self):
+        from types import SimpleNamespace
+        from services.company_discovery.flywheel import discover_company_source
+
+        origin = "https://employer.example"
+        pages = {
+            origin + "/": SimpleNamespace(url=origin + "/", text='<nav><a href="/careers">Careers</a></nav>'),
+            origin + "/careers": SimpleNamespace(
+                url=origin + "/careers",
+                text='<main><a data-provider="mock-ats" data-tenant="employer" href="http://169.254.169.254/latest/meta-data">Open roles</a></main>',
+            ),
+        }
+
+        class FixtureTransport:
+            bounded_redirects = True
+            fixture_only = True
+
+            def __init__(self):
+                self.urls = []
+
+            def allowed(self, url):
+                from urllib.parse import urlsplit
+                parts = urlsplit(url)
+                return (parts.scheme, parts.netloc) == ("https", "employer.example")
+
+            def get(self, url):
+                self.urls.append(url)
+                return pages[url]
+
+        client = FixtureTransport()
+        with self.assertRaisesRegex(ValueError, "COMPANY_DISCOVERY_URL_BLOCKED"):
+            discover_company_source(self.store, {
+                "company_name": "Employer Example", "company_website": origin + "/",
+            }, client)
+        self.assertNotIn("http://169.254.169.254/latest/meta-data", client.urls)
+
+    def test_company_discovery_rejects_cross_origin_redirect_result(self):
+        from types import SimpleNamespace
+        from services.company_discovery.flywheel import discover_company_source
+
+        class RedirectingTransport:
+            bounded_redirects = True
+            fixture_only = True
+
+            def __init__(self):
+                self.urls = []
+
+            def allowed(self, url):
+                from urllib.parse import urlsplit
+                return (urlsplit(url).scheme, urlsplit(url).netloc) == ("https", "employer.example")
+
+            def get(self, url):
+                self.urls.append(url)
+                return SimpleNamespace(url="http://169.254.169.254/metadata", text="")
+
+        client = RedirectingTransport()
+        with self.assertRaisesRegex(ValueError, "COMPANY_DISCOVERY_REDIRECT_BLOCKED"):
+            discover_company_source(self.store, {
+                "company_name": "Employer Example", "company_website": "https://employer.example/",
+            }, client)
+        self.assertEqual(client.urls, ["https://employer.example/"])
+
+    def test_career_discovery_accepts_common_route_only_with_ats_content(self):
+        from types import SimpleNamespace
+        from services.company_discovery.flywheel import discover_company_source
+
+        origin = "https://employer.example"
+        pages = {
+            origin + "/": SimpleNamespace(url=origin + "/", text="<main>Welcome to Employer</main>"),
+            origin + "/careers": SimpleNamespace(
+                url=origin + "/careers",
+                text='<main><a data-provider="mock-ats" data-tenant="employer" href="/ats/jobs">Open roles</a></main>',
+            ),
+        }
+
+        class FixtureTransport:
+            bounded_redirects = True
+            fixture_only = True
+
+            def __init__(self):
+                self.urls = []
+
+            def allowed(self, url):
+                from urllib.parse import urlsplit
+                return (urlsplit(url).scheme, urlsplit(url).netloc) == ("https", "employer.example")
+
+            def get(self, url):
+                self.urls.append(url)
+                if url == origin + "/ats/jobs":
+                    return SimpleNamespace(url=url, json=lambda: {"jobs": []})
+                if url not in pages:
+                    import httpx
+                    request = httpx.Request("GET", url)
+                    response = httpx.Response(404, request=request)
+                    raise httpx.HTTPStatusError("not found", request=request, response=response)
+                return pages[url]
+
+        client = FixtureTransport()
+        result = discover_company_source(self.store, {
+            "company_name": "Employer Example", "company_website": origin + "/",
+        }, client)
+        self.assertEqual(result["careers_url"], origin + "/careers")
+        self.assertIn(origin + "/careers", client.urls)
     def test_api_can_queue_user_added_company_without_performing_network_io(self):
         with fixture_server() as origin, TestClient(create_app(
             self.store, origin, self.root,

@@ -28,6 +28,18 @@ uploaded_resumes = table("uploaded_resumes", Column("profile_id", ForeignKey("ca
                          Column("created_at", String(64), nullable=False),
                          constraints=(UniqueConstraint("profile_id", "sha256"),))
 companies = table("companies", Column("name", String(200), nullable=False), Column("domain", String(1000), nullable=False))
+company_aliases = table("company_aliases", Column("company_id", ForeignKey("companies.id"), nullable=False),
+                        Column("alias", String(200), nullable=False), Column("normalized_alias", String(200), nullable=False),
+                        Column("alias_type", String(32), nullable=False), Column("confidence", Float, nullable=False),
+                        Column("verified", Boolean, nullable=False), Column("source", String(200), nullable=False),
+                        Column("evidence", JSON, nullable=False), Column("created_at", String(64), nullable=False),
+                        constraints=(UniqueConstraint("company_id", "normalized_alias"),))
+company_domains = table("company_domains", Column("company_id", ForeignKey("companies.id"), nullable=False),
+                        Column("domain", String(253), nullable=False), Column("confidence", Float, nullable=False),
+                        Column("verified", Boolean, nullable=False), Column("verification_method", String(64), nullable=False),
+                        Column("first_seen_at", String(64), nullable=False), Column("last_verified_at", String(64)),
+                        Column("evidence", JSON, nullable=False),
+                        constraints=(UniqueConstraint("company_id", "domain"),))
 company_sources = table("company_job_sources", Column("company_id", ForeignKey("companies.id"), nullable=False),
                         Column("provider", String(32), nullable=False), Column("tenant", String(128), nullable=False),
                         Column("endpoint", String(2000), nullable=False), Column("discovered_automatically", Boolean, nullable=False))

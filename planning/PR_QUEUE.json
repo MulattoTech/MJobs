@@ -353,12 +353,14 @@
       "depends_on": [
         "MJ-PR-012"
       ],
-      "status": "DRAFT_PR",
+      "status": "MERGED",
       "branch": "codex/mj-pr-016-company-ats-discovery",
       "draft_until_verified": true,
-      "notes": "Published draft PR #443 after local Python, Compose, migration, Chromium and catalogue/progress verification. Initial exact head c436999e4d2d3737a1a37d6f08d3d975be3c0392 Actions runs were IN_PROGRESS; this bookkeeping commit changes the head and requires fresh exact-head verification.",
+      "notes": "GitHub reports merged at 2026-10-01T22:31:45Z. Exact head ac74d84bf74c42a25cefffd6c06b207aedaa865b passed PR Verification run 36934935946 and push Verification run 36934929963; merge commit 12e7ef6c9eb5ff1c7a8fd775361a9ee7e1b28aea.",
       "pr_number": 443,
-      "url": "https://github.com/MulattoTech/MJobs/pull/443"
+      "url": "https://github.com/MulattoTech/MJobs/pull/443",
+      "merge_commit": "12e7ef6c9eb5ff1c7a8fd775361a9ee7e1b28aea",
+      "merged_at": "2026-10-01T22:31:45Z"
     },
     {
       "id": "MJ-PR-017",
@@ -375,10 +377,12 @@
         "MJ-PR-016",
         "MJ-PR-012"
       ],
-      "status": "QUEUED",
+      "status": "DRAFT_PR",
       "branch": "codex/mj-pr-017-company-ats-discovery",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "Draft PR #444 is open. A validated fetch-safety fix is committed locally but not pushed yet; published head 57a75a5b6d9d2f68bf1a735de921f4946d717779 is superseded. Push latest commits and rerun exact-head CI. Requirement states remain 058-059 PASS, 060-061 PARTIAL.",
+      "pr_number": 444,
+      "url": "https://github.com/MulattoTech/MJobs/pull/444"
     },
     {
       "id": "MJ-PR-018",

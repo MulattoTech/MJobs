@@ -20,6 +20,11 @@ from services.discovery.negative_filters import parse_negative_conditions
 
 
 class MockClient:
+    # Company discovery requires a transport that checks every redirect against
+    # its allowlist. This implementation is restricted to one local fixture origin.
+    bounded_redirects = True
+    fixture_only = True
+
     def __init__(self, origin, check=None):
         parsed = urlsplit(origin)
         allowed_hosts = ("127.0.0.1", "localhost") + (("mock",) if os.environ.get("MJOBS_COMPOSE_MOCK") == "1" else ())

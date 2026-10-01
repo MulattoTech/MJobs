@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-01T22:23:22Z",
+  "timestamp": "2026-10-01T23:10:18.898519+00:00",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -485,27 +485,35 @@
     },
     {
       "requirement_id": "MJ-REQ-058",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-01-company-alias-domain-career-discovery.json"
+      ],
+      "note": "CompanyAlias records model legal, brand, abbreviation, former and source spelling; normalization, verified persistence, no-downgrade behavior, and exact verified-alias identity matching passed focused and full Python suites."
     },
     {
       "requirement_id": "MJ-REQ-059",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-01-company-alias-domain-career-discovery.json"
+      ],
+      "note": "Candidate/verified company-domain records include confidence, verification method and first/last timestamps. PostgreSQL migration and legacy candidate-only backfill passed; populated downgrade refuses data loss."
     },
     {
       "requirement_id": "MJ-REQ-060",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-01-company-alias-domain-career-discovery.json"
+      ],
+      "note": "Allowlisted domain evidence is ranked; aggregator/directory/staffing sources are rejected and equal-rank domains remain ambiguous. Production first-party/job/ATS/search-provider evidence acquisition is not integrated."
     },
     {
       "requirement_id": "MJ-REQ-061",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-01-company-alias-domain-career-discovery.json"
+      ],
+      "note": "Fixture discovery inspects same-origin navigation/footer/internal links, sitemap XML and JSON-LD URL hints, probes common routes only with ATS-content corroboration, and blocks private/off-origin fetch targets. Sitemap fetching, production site acquisition and broader employer acceptance remain open."
     },
     {
       "requirement_id": "MJ-REQ-062",
