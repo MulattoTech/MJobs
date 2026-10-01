@@ -88,6 +88,8 @@ class SourcePolicySchedulerTests(unittest.TestCase):
                 "experience_levels": ["MID", "SENIOR"], "salary_min": 90000, "salary_max": 180000,
                 "salary_period": "YEAR", "salary_known_only": True, "salary_unknown_allowed": False,
                 "date_window": "CUSTOM", "date_start": "2026-09-01T00:00:00Z", "date_end": "2026-10-31T23:59:59Z",
+                "clearance_levels": ["NONE_STATED", "PUBLIC_TRUST"], "exclude_clearance_required": False,
+                "excluded_work_authorization_flags": ["NO_SPONSORSHIP", "US_CITIZENSHIP_REQUIRED"],
                 "source_ids": [first],
             })
             self.assertEqual(response.status_code, 200)
@@ -112,6 +114,8 @@ class SourcePolicySchedulerTests(unittest.TestCase):
         self.assertEqual((infra["criteria"]["salary_min"], infra["criteria"]["salary_max"], infra["criteria"]["salary_period"]), (90000.0, 180000.0, "YEAR"))
         self.assertEqual(infra["criteria"]["date_window"], "CUSTOM")
         self.assertTrue(infra["criteria"]["date_start"].endswith("+00:00"))
+        self.assertEqual(infra["criteria"]["clearance_levels"], ["NONE_STATED", "PUBLIC_TRUST"])
+        self.assertEqual(infra["criteria"]["excluded_work_authorization_flags"], ["NO_SPONSORSHIP", "US_CITIZENSHIP_REQUIRED"])
         self.assertEqual(infra["source_ids"], [first])
         self.assertEqual(self.store.count("search_profiles"), 2)
 

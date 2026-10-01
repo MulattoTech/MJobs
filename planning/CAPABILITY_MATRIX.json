@@ -300,27 +300,35 @@
     },
     {
       "requirement_id": "MJ-REQ-035",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-01-requirement-parsing.json"
+      ],
+      "note": "Verified deterministic requirement parsing and explicit filters in MJ-PR-010"
     },
     {
       "requirement_id": "MJ-REQ-036",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-01-requirement-parsing.json"
+      ],
+      "note": "Verified deterministic requirement parsing and explicit filters in MJ-PR-010"
     },
     {
       "requirement_id": "MJ-REQ-037",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-01-requirement-parsing.json"
+      ],
+      "note": "Verified deterministic requirement parsing and explicit filters in MJ-PR-010"
     },
     {
       "requirement_id": "MJ-REQ-038",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-01-requirement-parsing.json"
+      ],
+      "note": "Verified deterministic requirement parsing and explicit filters in MJ-PR-010"
     },
     {
       "requirement_id": "MJ-REQ-039",

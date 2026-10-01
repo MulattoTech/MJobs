@@ -379,6 +379,19 @@ def evaluate_search(criteria, job, at=None):
         elif (date_start is not None and effective < date_start) or (date_end is not None and effective > date_end):
             reasons.append("DATE_OUTSIDE_WINDOW")
 
+    clearance = attrs.get("clearance") or {"level": "NONE_STATED"}
+    clearance_level = clearance.get("level", "NONE_STATED") if isinstance(clearance, dict) else "NONE_STATED"
+    allowed_clearances = set(criteria.get("clearance_levels") or [])
+    if allowed_clearances and clearance_level not in allowed_clearances:
+        reasons.append("CLEARANCE_LEVEL_MISMATCH")
+    if criteria.get("exclude_clearance_required") and clearance_level != "NONE_STATED":
+        reasons.append("CLEARANCE_REQUIRED")
+
+    work_authorization = attrs.get("work_authorization") or {"flags": []}
+    job_auth_flags = set(work_authorization.get("flags") or []) if isinstance(work_authorization, dict) else set()
+    for flag in sorted(set(criteria.get("excluded_work_authorization_flags") or []) & job_auth_flags):
+        reasons.append("WORK_AUTHORIZATION_EXCLUDED:" + flag)
+
     radius = criteria.get("radius_miles")
     if radius is not None:
         coordinates = attrs.get("coordinates") or {}
