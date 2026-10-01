@@ -303,10 +303,11 @@
         "MJ-PR-014",
         "MJ-PR-005"
       ],
-      "status": "IMPLEMENTED_LOCAL",
+      "status": "DRAFT_PR",
       "branch": "codex/mj-pr-015-job-identity-dedupe",
       "draft_until_verified": true,
-      "notes": "MJ-REQ-052..053 locally verified; evidence docs/evidence/2026-10-01-multi-route-provenance.json; publish draft after commit"
+      "notes": "MJ-REQ-052..053 locally verified; draft #442 published; await exact-head CI",
+      "pr_number": 442
     },
     {
       "id": "MJ-PR-016",
