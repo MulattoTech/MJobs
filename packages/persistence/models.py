@@ -50,11 +50,19 @@ posting_snapshots = table("posting_snapshots", Column("posting_id", ForeignKey("
                           Column("retrieved_at", String(64), nullable=False))
 job_sources = table("job_sources", Column("provider", String(32), nullable=False), Column("tenant", String(128), nullable=False),
                     Column("name", String(200), nullable=False), Column("enabled", Boolean, nullable=False),
-                    Column("strategy", String(32), nullable=False), Column("poll_interval", Integer, nullable=False),
+                    Column("strategy", String(32), nullable=False), Column("capabilities", JSON, nullable=False),
+                    Column("poll_interval", Integer, nullable=False), Column("concurrency", Integer, nullable=False),
+                    Column("request_timeout", Integer, nullable=False), Column("rate_limit", Integer, nullable=False),
+                    Column("jitter_seconds", Integer, nullable=False),
                     Column("last_attempt", String(64)), Column("last_success", String(64)), Column("backoff_until", String(64)),
                     Column("consecutive_failures", Integer, nullable=False, server_default="0"),
                     Column("health_status", String(64), nullable=False), Column("last_error", String(200)),
                     Column("jobs_seen", Integer, nullable=False, server_default="0"))
+search_profiles = table("search_profiles", Column("profile_id", ForeignKey("career_profiles.id"), nullable=False),
+                        Column("name", String(200), nullable=False), Column("enabled", Boolean, nullable=False),
+                        Column("criteria", JSON, nullable=False), Column("source_ids", JSON, nullable=False),
+                        Column("created_at", String(64), nullable=False), Column("updated_at", String(64), nullable=False),
+                        constraints=(UniqueConstraint("profile_id", "name"),))
 matches = table("job_matches", Column("job_id", ForeignKey("canonical_jobs.id"), nullable=False),
                 Column("profile_id", ForeignKey("career_profiles.id"), nullable=False), Column("profile_version", String(64), nullable=False),
                 Column("score", Float, nullable=False), Column("missing", JSON, nullable=False), Column("components", JSON, nullable=False))

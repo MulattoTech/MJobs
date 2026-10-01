@@ -12,7 +12,8 @@ type Application = {id:string; title:string; company:string; state:string; targe
 type Doc = {id:string;kind:string;version:number;profile_version:string;fact_ids:string[];sha256:Record<string,string>};
 type Resume = {id:string;profile_id:string;filename:string;format:string;size_bytes:number;sha256:string;status:string;created_at:string};
 type Operation = {id:string; kind:string; state:string; error:string|null;attempt_count:number;cancel_requested:boolean;updated_at:string};
-type Source = {id:string;tenant:string;name:string;enabled:boolean;health_status:string;jobs_seen:number;last_error:string|null;last_success:string|null;backoff_until:string|null;poll_interval:number};
+type Source = {id:string;provider:string;tenant:string;name:string;enabled:boolean;health_status:string;jobs_seen:number;last_error:string|null;last_success:string|null;backoff_until:string|null;poll_interval:number;concurrency:number;request_timeout:number;rate_limit:number;jitter_seconds:number;strategy:string;capabilities:{capabilities:string[]}};
+type SearchProfile = {id:string;profile_id:string;name:string;enabled:boolean;criteria:{include_titles:string[];remote:string;employment_types:string[]};source_ids:string[];created_at:string;updated_at:string};
 type OperationMode = 'FIXTURE'|'PERSONAL';
 type Tab = 'Jobs'|'Profile'|'Sources'|'Applications'|'Activity';
 const newFact = ():Fact => ({id:crypto.randomUUID(),kind:'skill',text:'',source:'',confidence:100,verified:false,user_approved:false});
@@ -35,7 +36,9 @@ function App() {
   const [selectedApp,setSelectedApp]=useState<Application|null>(null);
   const [docs,setDocs]=useState<Doc[]>([]);
   const [resumes,setResumes]=useState<Resume[]>([]); const [resumeFile,setResumeFile]=useState<File|null>(null);
-  const [tenant,setTenant]=useState(''); const [mockConsent,setMockConsent]=useState(false);
+  const [tenant,setTenant]=useState(''); const [sourceIntervalMinutes,setSourceIntervalMinutes]=useState(30); const [sourceConcurrency,setSourceConcurrency]=useState(1); const [sourceTimeout,setSourceTimeout]=useState(10); const [sourceRate,setSourceRate]=useState(60); const [sourceJitter,setSourceJitter]=useState(30);
+  const [searchProfiles,setSearchProfiles]=useState<SearchProfile[]>([]); const [searchName,setSearchName]=useState(''); const [searchTitles,setSearchTitles]=useState(''); const [searchRemote,setSearchRemote]=useState<'ANY'|'REQUIRED'|'EXCLUDED'>('ANY'); const [searchEmployment,setSearchEmployment]=useState('FULL_TIME'); const [searchSource,setSearchSource]=useState('');
+  const [mockConsent,setMockConsent]=useState(false);
   const [busy,setBusy]=useState(''); const [error,setError]=useState(''); const [notice,setNotice]=useState('');
   const [activeOp,setActiveOp]=useState('');
   const profileRef = useRef(profileId); profileRef.current = profileId;
@@ -45,8 +48,8 @@ function App() {
 
   async function refresh(id=profileId) {
     const suffix = id ? `?profile_id=${encodeURIComponent(id)}` : '';
-    const [p,a,s,o] = await Promise.all([api<{profiles:Profile[]}>('/profiles'),api<{applications:Application[]}>('/applications'+suffix),api<{sources:Source[]}>('/sources'),api<{operations:Operation[]}>('/operations'+suffix)]);
-    setProfiles(p.profiles);setSources(s.sources);if(id===profileRef.current){setApps(a.applications);setOps(o.operations);}
+    const [p,a,s,o,sp] = await Promise.all([api<{profiles:Profile[]}>('/profiles'),api<{applications:Application[]}>('/applications'+suffix),api<{sources:Source[]}>('/sources'),api<{operations:Operation[]}>('/operations'+suffix),id?api<{search_profiles:SearchProfile[]}>('/search-profiles'+suffix):Promise.resolve({search_profiles:[]} as {search_profiles:SearchProfile[]})]);
+    setProfiles(p.profiles);setSources(s.sources);if(id===profileRef.current){setApps(a.applications);setOps(o.operations);setSearchProfiles(sp.search_profiles);}
   }
   async function loadJobs(id=profileId) {
     const sequence=++jobsSequence.current; const current=queryRef.current;
@@ -123,7 +126,60 @@ function App() {
         <section className="panel"><h2>Base resume files</h2><p>Keep a PDF, DOCX, or UTF-8 TXT resume in this local workspace. Stored files are unreviewed and never add or approve career facts automatically.</p>{profileId&&editor.id===profileId&&profiles.some(p=>p.id===profileId)?<><label>Choose a resume (up to 10 MiB)<input ref={resumeInputRef} type="file" accept=".pdf,.docx,.txt" onChange={e=>setResumeFile(e.target.files?.[0]||null)}/></label><button type="button" disabled={!!busy||!resumeFile} onClick={()=>void action('Storing base resume',async()=>{if(!resumeFile)throw new Error('Choose a resume first.');const selected=profileId;await uploadResume<Resume>(selected,resumeFile);const result=await api<{resumes:Resume[]}>('/profiles/'+encodeURIComponent(selected)+'/resumes');if(selected===profileRef.current)setResumes(result.resumes);setResumeFile(null);if(resumeInputRef.current)resumeInputRef.current.value='';setNotice('Resume stored locally. Review and enter facts separately before approving their use.');})}>Store resume</button>{resumes.map(resume=><div className="document" key={resume.id}><strong>{resume.filename}</strong><p>{resume.status.replaceAll('_',' ')} · {(resume.size_bytes/1024).toFixed(1)} KiB · stored {stamp(resume.created_at)}</p><a className="button-link" href={'/profiles/'+encodeURIComponent(profileId)+'/resumes/'+encodeURIComponent(resume.id)}>Download original</a></div>)}</>:<p className="muted">Save and select this profile before uploading a resume.</p>}</section>
         {operationMode==='FIXTURE'&&<section className="panel"><h2>Try the local demo</h2><p>Creates a separate fictional profile and two fictional jobs. It never overwrites your profile.</p><button type="button" disabled={!!busy} onClick={()=>void action('Loading fictional demo',demo)}>Load fictional demo</button></section>}
       </form>}
-      {tab==='Sources'&&<><section className="panel"><h2>Public Greenhouse board</h2><p>Reads public job listings from the provider API. Enter the board token from an employer’s Greenhouse careers URL. No login or application submission is performed.</p><form onSubmit={e=>{e.preventDefault();void action('Saving source',async()=>{await api('/sources',{method:'PUT',body:JSON.stringify({tenant,enabled:true,poll_interval:300})});setTenant('');setNotice('Source saved. Select a profile, then collect jobs.');});}}><div className="source-add"><label>Board token<input required pattern="[A-Za-z0-9][A-Za-z0-9_-]{0,79}" value={tenant} onChange={e=>setTenant(e.target.value)} placeholder="e.g. greenhouse"/></label><button disabled={!!busy}>Add board</button></div></form></section>{sources.map(source=><section className="panel" key={source.id}><div className="toolbar"><div><h2>{source.name}</h2><p>greenhouse / {source.tenant} · {source.jobs_seen} jobs collected</p></div><span className="tag">{source.enabled?source.health_status:'DISABLED'}</span></div><p>Last success: {stamp(source.last_success)} · Minimum interval: {source.poll_interval/60} minutes</p>{source.backoff_until&&<p className="alert">Backoff until {stamp(source.backoff_until)}: {source.last_error}</p>}<button disabled={!!busy||!profileId||!source.enabled} onClick={()=>void action('Collecting public jobs',async()=>{await queue('/sources/'+source.id+'/collect',request());setTab('Jobs');})}>Collect jobs</button> <button className="quiet" disabled={!!busy} onClick={()=>void action('Updating source',async()=>{await api('/sources',{method:'PUT',body:JSON.stringify({tenant:source.tenant,enabled:!source.enabled,poll_interval:source.poll_interval})});})}>{source.enabled?'Disable':'Enable'}</button></section>)}{operationMode==='FIXTURE'&&<section className="panel"><h2>Fictional local source</h2><p>Use the demo to test document preparation, dry-run, mock confirmation and tracking without contacting an employer.</p><button disabled={!!busy} onClick={()=>void action('Loading fictional demo',demo)}>Load fictional demo</button></section>}</>}
+      {tab==='Sources'&&<>
+        <section className="panel">
+          <h2>Public Greenhouse board</h2>
+          <p>Reads public job listings from the provider API. Each board keeps its own bounded schedule, timeout, rate limit, and backoff state. No login or application submission is performed.</p>
+          <form onSubmit={e=>{e.preventDefault();void action('Saving source',async()=>{
+            await api('/sources',{method:'PUT',body:JSON.stringify({tenant,enabled:true,poll_interval:sourceIntervalMinutes*60,concurrency:sourceConcurrency,request_timeout:sourceTimeout,rate_limit:sourceRate,jitter_seconds:sourceJitter})});
+            setTenant('');setNotice('Source saved. Create a search profile below to enable scheduled discovery.');
+          });}}>
+            <div className="source-add">
+              <label>Board token<input required pattern="[A-Za-z0-9][A-Za-z0-9_-]{0,79}" value={tenant} onChange={e=>setTenant(e.target.value)} placeholder="e.g. greenhouse"/></label>
+              <label>Interval (minutes)<input type="number" min={5} max={10080} required value={sourceIntervalMinutes} onChange={e=>setSourceIntervalMinutes(Number(e.target.value))}/></label>
+              <button disabled={!!busy}>Add board</button>
+            </div>
+            <div className="two-col">
+              <label>Request timeout (seconds)<input type="number" min={2} max={60} value={sourceTimeout} onChange={e=>setSourceTimeout(Number(e.target.value))}/></label>
+              <label>Rate limit (requests/minute)<input type="number" min={1} max={600} value={sourceRate} onChange={e=>setSourceRate(Number(e.target.value))}/></label>
+              <label>Source concurrency<input type="number" min={1} max={8} value={sourceConcurrency} onChange={e=>setSourceConcurrency(Number(e.target.value))}/></label>
+              <label>Schedule jitter (seconds)<input type="number" min={0} max={300} value={sourceJitter} onChange={e=>setSourceJitter(Number(e.target.value))}/></label>
+            </div>
+          </form>
+        </section>
+        {sources.map(source=><section className="panel" key={source.id}>
+          <div className="toolbar"><div><h2>{source.name}</h2><p>{source.provider} / {source.tenant} · {source.jobs_seen} jobs collected</p></div><span className="tag">{source.enabled?source.health_status:'DISABLED'}</span></div>
+          <p>{source.strategy} · every {source.poll_interval/60} minutes · timeout {source.request_timeout}s · rate {source.rate_limit}/min · concurrency {source.concurrency} · jitter ≤ {source.jitter_seconds}s</p>
+          <p className="muted">Capabilities: {source.capabilities?.capabilities?.join(', ')||'Not declared'}</p>
+          <p>Last success: {stamp(source.last_success)}</p>
+          {source.backoff_until&&<p className="alert">Backoff until {stamp(source.backoff_until)}: {source.last_error}</p>}
+          <button disabled={!!busy||!profileId||!source.enabled} onClick={()=>void action('Collecting public jobs',async()=>{await queue('/sources/'+source.id+'/collect',request());setTab('Jobs');})}>Collect now</button>{' '}
+          <button className="quiet" disabled={!!busy} onClick={()=>void action('Updating source',async()=>{await api('/sources',{method:'PUT',body:JSON.stringify({tenant:source.tenant,enabled:!source.enabled,poll_interval:source.poll_interval,concurrency:source.concurrency,request_timeout:source.request_timeout,rate_limit:source.rate_limit,jitter_seconds:source.jitter_seconds})});})}>{source.enabled?'Disable':'Enable'}</button>
+        </section>)}
+        <section className="panel">
+          <div className="toolbar"><div><h2>Scheduled search profiles</h2><p>Profiles are data-driven. The scheduler evaluates each enabled source independently and queues durable discovery work when it is due.</p></div><span className="tag">{searchProfiles.length} saved</span></div>
+          {!profileId?<p className="muted">Select or create a career profile before adding a scheduled search.</p>:<form onSubmit={e=>{e.preventDefault();void action('Saving search profile',async()=>{
+            const titles=searchTitles.split(/[\n,]+/).map(value=>value.trim()).filter(Boolean);
+            await api('/search-profiles',{method:'PUT',body:JSON.stringify({id:crypto.randomUUID(),profile_id:profileId,name:searchName,enabled:true,include_titles:titles,remote:searchRemote,employment_types:searchEmployment?[searchEmployment]:[],source_ids:searchSource?[searchSource]:[]})});
+            setSearchName('');setSearchTitles('');setNotice('Search profile saved. Due enabled sources will now be scheduled automatically.');
+          });}}>
+            <div className="two-col">
+              <label>Search name<input required maxLength={200} value={searchName} onChange={e=>setSearchName(e.target.value)} placeholder="Remote Infrastructure"/></label>
+              <label>Source<select value={searchSource} onChange={e=>setSearchSource(e.target.value)}><option value="">All enabled sources</option>{sources.map(source=><option key={source.id} value={source.id}>{source.name}</option>)}</select></label>
+              <label>Remote preference<select value={searchRemote} onChange={e=>setSearchRemote(e.target.value as 'ANY'|'REQUIRED'|'EXCLUDED')}><option value="ANY">Any</option><option value="REQUIRED">Remote required</option><option value="EXCLUDED">Exclude remote</option></select></label>
+              <label>Employment type<select value={searchEmployment} onChange={e=>setSearchEmployment(e.target.value)}><option value="">Any</option><option value="FULL_TIME">Full-time</option><option value="PART_TIME">Part-time</option><option value="CONTRACT">Contract</option><option value="CONTRACT_TO_HIRE">Contract-to-hire</option><option value="TEMPORARY">Temporary</option><option value="INTERNSHIP">Internship</option><option value="OTHER">Other</option></select></label>
+            </div>
+            <label>Include titles<textarea required value={searchTitles} onChange={e=>setSearchTitles(e.target.value)} placeholder={"System Administrator\nInfrastructure Engineer\nNOC Engineer"}/></label>
+            <button disabled={!!busy||sources.length===0}>Save scheduled search</button>
+          </form>}
+          {searchProfiles.map(search=><div className="document" key={search.id}>
+            <div className="toolbar"><div><strong>{search.name}</strong><p>{search.criteria.include_titles.join(', ')||'Any title'} · remote {search.criteria.remote.toLowerCase()} · {search.criteria.employment_types.join(', ')||'any employment type'}</p></div><span className="tag">{search.enabled?'ENABLED':'PAUSED'}</span></div>
+            <p className="muted">{search.source_ids.length?(search.source_ids.length+' selected source(s)'):'All enabled sources'} · updated {stamp(search.updated_at)}</p>
+            <button type="button" className="quiet" disabled={!!busy} onClick={()=>void action(search.enabled?'Pausing search':'Resuming search',async()=>{await api('/search-profiles',{method:'PUT',body:JSON.stringify({id:search.id,profile_id:search.profile_id,name:search.name,enabled:!search.enabled,include_titles:search.criteria.include_titles,remote:search.criteria.remote,employment_types:search.criteria.employment_types,source_ids:search.source_ids})});})}>{search.enabled?'Pause':'Resume'}</button>
+          </div>)}
+        </section>
+        {operationMode==='FIXTURE'&&<section className="panel"><h2>Fictional local source</h2><p>Use the demo to test document preparation, dry-run, mock confirmation and tracking without contacting an employer.</p><button disabled={!!busy} onClick={()=>void action('Loading fictional demo',demo)}>Load fictional demo</button></section>}
+      </>}
       {tab==='Applications'&&<div className="job-grid"><section><h2>{apps.length} prepared applications</h2>{apps.map(application=><button className="job-card" key={application.id} onClick={()=>void showApp(application.id).catch(e=>setError(String(e)))}><div className="card-top"><span className="eyebrow">{application.company}</span><span className="tag">{application.target==='MOCK'?'Fictional mock':'Manual only'}</span></div><h2>{application.title}</h2><p>{application.state} · documents v{application.document_version}</p></button>)}{!apps.length&&<p className="empty">Select a job and prepare documents to start tracking it here.</p>}</section><section className="job-detail">{selectedApp?<><h2>Application details</h2><span className="tag">{selectedApp.state}</span><p>Document revision {selectedApp.document_version} · {selectedApp.fact_ids.length} approved facts</p><h3>Documents</h3>{docs.map(document=><div className="document" key={document.id}><strong>{document.kind} · v{document.version}</strong><p>{document.fact_ids.length} factual sources · profile snapshot {document.profile_version.slice(0,10)}</p><a className="button-link" href={'/documents/'+document.id+'/pdf'}>Download PDF</a><a className="button-link" href={'/documents/'+document.id+'/docx'}>Download DOCX</a></div>)}
         {selectedApp.target==='MOCK'?(operationMode==='FIXTURE'?<section className="mock-box"><h3>Controlled fictional test</h3><p>The dry-run fills and reviews the local mock form, then stops before submission.</p><button disabled={!!busy||selectedApp.state==='CONFIRMED'} onClick={()=>void action('Running mock dry-run',async()=>{await queue('/applications/'+selectedApp.id+'/mock-run',{submit:false});await showApp(selectedApp.id);})}>Run dry-run</button><label className="consent"><input type="checkbox" checked={mockConsent} onChange={e=>setMockConsent(e.target.checked)}/> I approve one fictional mock submission</label><button disabled={!!busy||!mockConsent||selectedApp.state==='CONFIRMED'} onClick={()=>void action('Submitting to local mock',async()=>{await queue('/applications/'+selectedApp.id+'/mock-run',{submit:true});await showApp(selectedApp.id);})}>Submit to local mock</button></section>:<p className="safety">Fictional application actions are disabled in personal mode.</p>):<p className="safety">Manual preparation only. Review the documents and use the employer’s own application page.</p>}
         <h3>Tracking evidence</h3><p className="description">{selectedApp.trace.join(' → ')}</p>{selectedApp.confirmation&&<pre>{JSON.stringify(selectedApp.confirmation,null,2)}</pre>}<h3>Attempts</h3>{selectedApp.attempts?.map((attempt,i)=><p key={i}>{stamp(attempt.started_at)} · {attempt.state} · {attempt.steps.join(' → ')}</p>)}</>:<div className="empty"><h2>Your paper trail.</h2><p>Select an application to download documents and inspect its status and attempts.</p></div>}</section></div>}

@@ -1,0 +1,84 @@
+{
+  "result": "PASS",
+  "target": "MJ-REQ-019/020/021/022 source capability, policy, scheduling and search profiles",
+  "timestamp": "2026-10-01T08:18:29.949998+00:00",
+  "branch": "codex/mj-pr-006-core-search-model",
+  "requirements": [
+    "MJ-REQ-019",
+    "MJ-REQ-020",
+    "MJ-REQ-021",
+    "MJ-REQ-022"
+  ],
+  "external_submission_enabled": false,
+  "validation": {
+    "targeted_python": "17/17 PASS",
+    "full_python": "114/114 PASS",
+    "catalogue": "PASS",
+    "progress_journal": "PASS",
+    "frontend": "3/3 PASS; strict TypeScript and Vite production build PASS",
+    "compose": "fresh isolated fixture stack PASS; scheduler/API/three workers/PostgreSQL/Redis/mock healthy",
+    "migration_upgrade": "previous b7e10a34c921 PostgreSQL with existing source row -> c4f8912d6a10 PASS",
+    "mock_e2e": "PASS against isolated http://127.0.0.1:18706; one fictional confirmation; external submission disabled",
+    "ui_browser": "PASS: source policy visible; scheduled profile created and paused"
+  },
+  "live_read_only": {
+    "provider": "Greenhouse public board API",
+    "jobs_seen": 21,
+    "source_health": "HEALTHY",
+    "completed_scheduler_operations": 3,
+    "observed_schedule": [
+      "initial",
+      "2026-10-01T08:10:30.061205+00:00",
+      "2026-10-01T08:15:56.789365+00:00"
+    ],
+    "latest_success": "2026-10-01T08:16:07.898631+00:00",
+    "application_requests": 0
+  },
+  "scope": {
+    "typed_capabilities": [
+      "DISCOVERY",
+      "JOB_DETAIL",
+      "SALARY",
+      "REMOTE_METADATA",
+      "APPLICATION_REDIRECT"
+    ],
+    "collection_strategy": "API",
+    "persisted_policy": [
+      "enabled",
+      "poll_interval",
+      "concurrency",
+      "request_timeout",
+      "rate_limit",
+      "jitter_seconds",
+      "last_attempt",
+      "last_success",
+      "consecutive_failures",
+      "backoff_until",
+      "health_status",
+      "strategy"
+    ],
+    "search_profile_fields": [
+      "name",
+      "include_titles",
+      "remote",
+      "employment_types",
+      "source_ids",
+      "enabled"
+    ],
+    "scheduler_boundary": "database/outbox only; external egress remains source-worker"
+  },
+  "excluded_evidence": [
+    "One preliminary mock_e2e invocation used the CLI default 127.0.0.1:18700 because an environment variable was ignored; it is explicitly excluded. The same test was rerun with --api 127.0.0.1:18706 and passed."
+  ],
+  "pull_request": 431,
+  "implementation_commit": "60d4c012f53f28998565e5448b0576f8357a7f1d",
+  "requirement_results": {
+    "MJ-REQ-019": "PASS",
+    "MJ-REQ-020": "PASS",
+    "MJ-REQ-021": "PASS",
+    "MJ-REQ-022": "PARTIAL"
+  },
+  "known_limitations": [
+    "Search-profile criteria are persisted and scheduled but do not yet implement the MJ-REQ-023 query-language/filter semantics."
+  ]
+}

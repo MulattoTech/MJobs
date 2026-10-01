@@ -31,7 +31,7 @@ class ComposeModeTests(unittest.TestCase):
         services = self.render("--services").splitlines()
         configuration = json.loads(self.render("--format", "json"))
         self.assertNotIn("mock", services)
-        for name in ("api", "worker", "source-worker", "document-worker"):
+        for name in ("api", "scheduler", "worker", "source-worker", "document-worker"):
             service = configuration["services"][name]
             self.assertEqual(service["environment"]["MJOBS_OPERATION_MODE"], "PERSONAL")
             self.assertEqual(service["environment"]["MJOBS_COMPOSE_MOCK"], "0")
@@ -47,7 +47,7 @@ class ComposeModeTests(unittest.TestCase):
     def test_durable_dependencies_restart_with_runtime(self):
         configuration = json.loads(self.render("--format", "json"))
         services = configuration["services"]
-        for name in ("postgres", "redis", "api", "worker", "source-worker", "document-worker"):
+        for name in ("postgres", "redis", "api", "scheduler", "worker", "source-worker", "document-worker"):
             with self.subTest(service=name):
                 self.assertEqual(services[name]["restart"], "unless-stopped")
         self.assertNotIn("restart", services["migrate"])
@@ -60,6 +60,8 @@ class ComposeModeTests(unittest.TestCase):
         self.assertEqual(queues, {"worker": "mjobs-application", "source-worker": "mjobs-discovery",
                                   "document-worker": "mjobs-document"})
         self.assertEqual(len(set(queues.values())), len(queues))
+        self.assertEqual(services["scheduler"].get("networks"), {"private": None})
+        self.assertIn("source-egress", services["source-worker"].get("networks", {}))
 
 
 if __name__ == "__main__":

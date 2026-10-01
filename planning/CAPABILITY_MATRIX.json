@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-09-30T23:49:31.865512Z",
+  "timestamp": "2026-10-01T08:18:29.949998+00:00",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -170,31 +170,37 @@
     },
     {
       "requirement_id": "MJ-REQ-019",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
-        "docs/evidence/2026-09-30-user-testing.md"
+        "docs/evidence/2026-09-30-user-testing.md",
+        "docs/evidence/2026-10-01-source-policy-scheduler.json"
       ],
-      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open"
+      "note": "Typed strategy/capability contract is persisted and rendered; Greenhouse live evidence declares exact supported and unsupported capabilities."
     },
     {
       "requirement_id": "MJ-REQ-020",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
-        "docs/evidence/2026-09-30-user-testing.md"
+        "docs/evidence/2026-09-30-user-testing.md",
+        "docs/evidence/2026-10-01-source-policy-scheduler.json"
       ],
-      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open"
+      "note": "Per-source enablement, cadence, concurrency, timeout, request rate, jitter, health, timestamps, failure/backoff and strategy are persisted/configurable; source failures remain isolated durable operations."
     },
     {
       "requirement_id": "MJ-REQ-021",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-01-source-policy-scheduler.json"
+      ],
+      "note": "A persistent scheduler service independently evaluates source cadence/backoff/jitter and enqueues idempotent durable work. Three successive live read-only scheduler operations completed at the configured five-minute cadence."
     },
     {
       "requirement_id": "MJ-REQ-022",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-01-source-policy-scheduler.json"
+      ],
+      "note": "Persistent unlimited search-profile CRUD, source scoping, pause/resume and scheduling are verified in API/UI; title/remote/employment query semantics are intentionally deferred to MJ-REQ-023 / MJ-PR-007."
     },
     {
       "requirement_id": "MJ-REQ-023",

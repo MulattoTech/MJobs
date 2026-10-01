@@ -10,8 +10,8 @@
     "current_verified_local_state": "Initialized from newer origin/main; supplied control pack retained on governance branch",
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
-  "current_milestone": "M5_P0_UPLOAD_RESTORE_MERGED_LOCAL_READY",
-  "current_objective": "Paused at user request after merging the current stack and verifying the local launch; resume original dependency-eligible P0 work only on request",
+  "current_milestone": "M6_SOURCE_POLICY_SCHEDULER_LOCAL_VERIFIED",
+  "current_objective": "MJ-PR-006 draft #431 published; verify exact-head CI for MJ-REQ-019..021 PASS and MJ-REQ-022 PARTIAL, then integrate",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -28,11 +28,15 @@
     "Provider-neutral source search contract and multi-company attributed persistence with collision-safe posting provenance",
     "Separate application/browser, source discovery and document worker queues; PostgreSQL/Redis restart with the runtime",
     "Offline PostgreSQL/generated-document backup and fresh-target restore executed in isolated FIXTURE and PERSONAL Compose projects",
-    "Profile-scoped unreviewed PDF/DOCX/TXT upload, browser/API readback and offline restore of original bytes executed in isolated PERSONAL Compose project"
+    "Profile-scoped unreviewed PDF/DOCX/TXT upload, browser/API readback and offline restore of original bytes executed in isolated PERSONAL Compose project",
+    "Typed source capability and collection-strategy contract with explicit unsupported capabilities",
+    "Complete persisted per-source policy exposed in the local UI",
+    "Persistent data-driven search profiles with source scoping and pause/resume",
+    "Durable continuous scheduler separated from external source egress"
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
-    "Configured Greenhouse boards support public GET; broader providers, recurring scheduling and automatic employer enrollment remain open",
+    "Configured Greenhouse boards support public GET; broader providers and automatic employer enrollment remain open",
     "Factual fact-list PDF/DOCX templates verified; import, tailoring, AI and advanced document-quality requirements remain open",
     "Heuristic description skill coverage for real jobs and exact structured skills for mock; advanced matching remains open",
     "Real jobs support manual preparation only; manual status updates, real automation and intervention resume remain open",
@@ -41,39 +45,10 @@
   ],
   "blocked_capabilities": [],
   "active_requirements": [
-    "MJ-REQ-008",
-    "MJ-REQ-009",
-    "MJ-REQ-010",
-    "MJ-REQ-016",
-    "MJ-REQ-018",
     "MJ-REQ-019",
     "MJ-REQ-020",
-    "MJ-REQ-063.D01",
-    "MJ-REQ-088",
-    "MJ-REQ-092",
-    "MJ-REQ-096",
-    "MJ-REQ-098",
-    "MJ-REQ-112",
-    "MJ-REQ-114",
-    "MJ-REQ-183",
-    "MJ-REQ-184",
-    "MJ-REQ-185",
-    "MJ-REQ-186",
-    "MJ-REQ-187",
-    "MJ-REQ-188",
-    "MJ-REQ-195",
-    "MJ-REQ-198",
-    "MJ-REQ-205",
-    "MJ-REQ-206",
-    "MJ-REQ-228",
-    "MJ-REQ-274",
-    "MJ-REQ-012",
-    "MJ-REQ-013",
-    "MJ-REQ-014",
-    "MJ-REQ-167",
-    "MJ-REQ-168",
-    "MJ-REQ-090",
-    "MJ-REQ-173"
+    "MJ-REQ-021",
+    "MJ-REQ-022"
   ],
   "active_prs": [
     {
@@ -117,6 +92,12 @@
       "url": "https://github.com/MulattoTech/MJobs/pull/430",
       "branch": "codex/mj-pr-004-governance-safety",
       "status": "MERGED"
+    },
+    {
+      "number": 431,
+      "url": "https://github.com/MulattoTech/MJobs/pull/431",
+      "branch": "codex/mj-pr-006-core-search-model",
+      "status": "DRAFT_PR"
     }
   ],
   "tests_passed": [
@@ -154,7 +135,13 @@
     "P0 offline backup/restore: 7 targeted and 106 full Python tests PASS; isolated FIXTURE and PERSONAL fresh-project restores preserve data/documents, recover queued fixture work and keep external submission off",
     "P0 resume upload: 11 targeted and 110 full Python tests PASS; Node24 3 frontend tests, strict TypeScript and Vite build PASS",
     "Fresh direct PERSONAL Compose and Chromium upload, checksum readback, offline fresh-project restore and pre-upload archive migration to b7e10a34c921 PASS",
-    "PR #430 exact-head 14401a5 push run 36799748653 and PR run 36799753601 PASS after fixing stale migration assertion; post-merge main run 36800230873 PASS; merged main launched locally with readiness and FIXTURE identity"
+    "PR #430 exact-head 14401a5 push run 36799748653 and PR run 36799753601 PASS after fixing stale migration assertion; post-merge main run 36800230873 PASS; merged main launched locally with readiness and FIXTURE identity",
+    "MJ-PR-006: 17 targeted source/scheduler tests PASS",
+    "MJ-PR-006: 114 full Python tests PASS; catalogue and progress validators PASS",
+    "MJ-PR-006: frontend 3 tests, strict TypeScript and production build PASS",
+    "MJ-PR-006: isolated Compose build/migration/scheduler health and mock E2E PASS",
+    "MJ-PR-006: existing-schema PostgreSQL upgrade to c4f8912d6a10 PASS",
+    "MJ-PR-006: headless UI scheduled-search create/pause PASS"
   ],
   "tests_failed": [],
   "tests_not_run": [
@@ -172,11 +159,11 @@
     "Host Node25 unsupported by Vitest5 and managed Windows Vite spawn restricted; production Node24 Docker build/tests PASS"
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-09-30T13:05:46.654343+00:00",
-    "command": "python -m cli.compose_recovery --baseline docs/evidence/2026-09-30-mvp-ui-final.json",
-    "target": "Connected local user-testing persistence and outage/restart recovery",
+    "timestamp": "2026-10-01T08:18:29.949998+00:00",
+    "command": "live scheduler observation plus isolated browser/UI/Compose verification",
+    "target": "MJ-PR-006 source policy scheduling and search profiles",
     "result": "PASS",
-    "evidence_path": "docs/evidence/2026-09-30-mvp-recovery-final.json"
+    "evidence_path": "docs/evidence/2026-10-01-source-policy-scheduler.json"
   },
   "ci_verification": {
     "result": "PASS",
@@ -241,7 +228,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Goal paused by user after main consolidation. On explicit resume, re-fetch GitHub and inspect local state, then select the next original dependency-eligible P0 slice.",
+  "recommended_resume_step": "Inspect exact-head workflows for PR #431; fix failures or, when both push and pull_request verification pass, mark ready/integrate before selecting MJ-PR-007.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -253,7 +240,8 @@
     "547acf656c37",
     "792dc0dc5664",
     "a6e7f3c48921",
-    "b7e10a34c921"
+    "b7e10a34c921",
+    "c4f8912d6a10"
   ],
   "unfinished_work_evidence": "docs/evidence/2026-09-29-resume-checkpoint.json",
   "authorization": "User explicitly provided 100% Git and GitHub authorization on 2026-09-30; still verify native permissions and required checks",
@@ -274,7 +262,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "e920fa412675016d7558393c6f9b7727bfd0cf70",
+  "last_implementation_commit": "60d4c012f53f28998565e5448b0576f8357a7f1d",
   "publication": {
     "result": "PASS",
     "transport": "Authenticated Git push and GitHub draft PR",
@@ -1138,7 +1126,9 @@
         "Native resume extraction and explicit reviewed fact import",
         "Physical host restart and full product/release acceptance"
       ],
-      "migrations_applied": ["b7e10a34c921"],
+      "migrations_applied": [
+        "b7e10a34c921"
+      ],
       "live_integrations_tested": [
         "Local Docker Desktop PostgreSQL, Redis, RQ, API, Chromium, migration and fresh-project backup/restore"
       ],
@@ -1164,8 +1154,13 @@
         "Relaunched existing mjobs project on merged main with database/queue/worker/mock ready, b7e10a34c921 and external submission off",
         "Removed isolated synthetic upload Compose projects; no active implementation PR remains"
       ],
-      "files_added": ["docs/evidence/2026-09-30-pr004-closure.json"],
-      "files_modified": ["planning/PR_QUEUE.json", "planning/IMPLEMENTATION_STATE.json"],
+      "files_added": [
+        "docs/evidence/2026-09-30-pr004-closure.json"
+      ],
+      "files_modified": [
+        "planning/PR_QUEUE.json",
+        "planning/IMPLEMENTATION_STATE.json"
+      ],
       "tests_completed": [
         "#430 exact-head push run 36799748653, PR run 36799753601, and post-merge main run 36800230873 PASS",
         "Merged main local launcher, readiness, settings, migration revision and unchanged business-row fingerprint PASS",
@@ -1175,8 +1170,12 @@
         "Original P0-P3 and MJ-REF backlog acceptance after user resumes",
         "Physical host restart and full product/release acceptance"
       ],
-      "migrations_applied": ["b7e10a34c921"],
-      "live_integrations_tested": ["Existing local Docker Desktop mjobs FIXTURE project and merged main"],
+      "migrations_applied": [
+        "b7e10a34c921"
+      ],
+      "live_integrations_tested": [
+        "Existing local Docker Desktop mjobs FIXTURE project and merged main"
+      ],
       "known_errors": [],
       "known_limitations": [
         "Existing database required one-time reviewed FIXTURE identity adoption; private snapshot remains ignored and local",
@@ -1192,5 +1191,8 @@
   "last_safe_checkpoint": {
     "git_commit": "b747089274e0b45531c637c7f6b1991da75081b8",
     "evidence_path": "docs/evidence/2026-09-30-pr004-closure.json"
-  }
+  },
+  "live_integrations_tested": [
+    "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
+  ]
 }
