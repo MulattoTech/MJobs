@@ -141,10 +141,11 @@
         "MJ-PR-006",
         "MJ-PR-001"
       ],
-      "status": "IMPLEMENTED_LOCAL",
+      "status": "DRAFT_PR",
       "branch": "codex/mj-pr-007-core-search-model",
       "draft_until_verified": true,
-      "notes": "MJ-REQ-023..026 implemented and locally verified; evidence docs/evidence/2026-10-01-search-semantics.json; open draft after commit/push"
+      "notes": "MJ-REQ-023..026 locally verified; draft #432 published; await exact-head CI",
+      "pr_number": 432
     },
     {
       "id": "MJ-PR-008",
