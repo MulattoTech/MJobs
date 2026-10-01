@@ -141,10 +141,11 @@
         "MJ-PR-006",
         "MJ-PR-001"
       ],
-      "status": "QUEUED",
+      "status": "DRAFT_PR",
       "branch": "codex/mj-pr-007-core-search-model",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "MJ-REQ-023..026 locally verified; draft #432 published; await exact-head CI",
+      "pr_number": 432
     },
     {
       "id": "MJ-PR-008",

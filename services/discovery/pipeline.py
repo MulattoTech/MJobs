@@ -9,6 +9,7 @@ from packages.domain.safety import Fact, select_verified_facts
 from packages.persistence import models as m
 from packages.persistence.store import identity, now, upsert
 from services.discovery.sources.collect import persist_posting
+from services.discovery.search_semantics import classify_location, normalize_employment_type
 
 
 class MockClient:
@@ -87,10 +88,20 @@ def discover(store, mock_origin, profile_id, check=None, profile_version=None):
                 if not client.allowed(row["application_url"]):
                     raise ValueError("External mock application URL blocked")
                 job_id = identity(company_id, "mock-ats", row["tenant"], row["requisition"])
+                description = BeautifulSoup(row["description"], "html.parser").get_text(" ", strip=True)
+                location_facts = classify_location(row["location"], description)
+                if str(row.get("remote_type") or "").upper() == "REMOTE" and not location_facts["remote_indicated"]:
+                    location_facts["remote_indicated"] = True
+                    location_facts["remote_type"] = "REMOTE_US" if location_facts["country"] == "US" else "UNKNOWN"
+                    if location_facts["country"]:
+                        location_facts["remote_regions"] = [location_facts["country"]]
                 job = {"id": job_id, "company_id": company_id, "requisition": row["requisition"], "title": row["title"].strip(),
-                       "description": BeautifulSoup(row["description"], "html.parser").get_text(" ", strip=True),
-                       "skills": row["skills"], "location": row["location"], "remote_type": row["remote_type"],
-                       "attributes": {"fictional": True, "skill_evidence": "structured_required_skills", "provider": "mock-ats"}}
+                       "description": description, "skills": row["skills"], "location": row["location"],
+                       "remote_type": location_facts["remote_type"],
+                       "attributes": {"fictional": True, "skill_evidence": "structured_required_skills", "provider": "mock-ats",
+                           "employment_type": normalize_employment_type(row["title"] + " " + description),
+                           "remote_regions": location_facts["remote_regions"], "remote_indicated": location_facts["remote_indicated"],
+                           "country": location_facts["country"], "state": location_facts["state"], "city": location_facts["city"]}}
                 upsert(connection, m.jobs, job, replace=source != "mock-board")
                 upsert(connection, m.routes, {"id": job_id, "job_id": job_id, "company_id": company_id, "provider": "mock-ats",
                     "tenant": row["tenant"], "requisition": row["requisition"], "url": row["application_url"]}, replace=source != "mock-board")

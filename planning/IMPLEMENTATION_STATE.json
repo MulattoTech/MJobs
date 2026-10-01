@@ -10,8 +10,8 @@
     "current_verified_local_state": "Initialized from newer origin/main; supplied control pack retained on governance branch",
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
-  "current_milestone": "M6_SOURCE_POLICY_SCHEDULER_LOCAL_VERIFIED",
-  "current_objective": "MJ-PR-006 draft #431 published; verify exact-head CI for MJ-REQ-019..021 PASS and MJ-REQ-022 PARTIAL, then integrate",
+  "current_milestone": "M7_SEARCH_SEMANTICS_LOCAL_VERIFIED",
+  "current_objective": "MJ-PR-007 draft #432 published; verify exact-head CI for MJ-REQ-023..026 PASS, then integrate before MJ-PR-008",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -32,7 +32,8 @@
     "Typed source capability and collection-strategy contract with explicit unsupported capabilities",
     "Complete persisted per-source policy exposed in the local UI",
     "Persistent data-driven search profiles with source scoping and pause/resume",
-    "Durable continuous scheduler separated from external source egress"
+    "Durable continuous scheduler separated from external source egress",
+    "Structured search query, location, remote-restriction and employment-type semantics with persisted search-profile criteria"
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
@@ -45,10 +46,10 @@
   ],
   "blocked_capabilities": [],
   "active_requirements": [
-    "MJ-REQ-019",
-    "MJ-REQ-020",
-    "MJ-REQ-021",
-    "MJ-REQ-022"
+    "MJ-REQ-023",
+    "MJ-REQ-024",
+    "MJ-REQ-025",
+    "MJ-REQ-026"
   ],
   "active_prs": [
     {
@@ -94,9 +95,9 @@
       "status": "MERGED"
     },
     {
-      "number": 431,
-      "url": "https://github.com/MulattoTech/MJobs/pull/431",
-      "branch": "codex/mj-pr-006-core-search-model",
+      "number": 432,
+      "url": "https://github.com/MulattoTech/MJobs/pull/432",
+      "branch": "codex/mj-pr-007-core-search-model",
       "status": "DRAFT_PR"
     }
   ],
@@ -141,7 +142,11 @@
     "MJ-PR-006: frontend 3 tests, strict TypeScript and production build PASS",
     "MJ-PR-006: isolated Compose build/migration/scheduler health and mock E2E PASS",
     "MJ-PR-006: existing-schema PostgreSQL upgrade to c4f8912d6a10 PASS",
-    "MJ-PR-006: headless UI scheduled-search create/pause PASS"
+    "MJ-PR-006: headless UI scheduled-search create/pause PASS",
+    "MJ-PR-007: 23 focused search/source tests PASS",
+    "MJ-PR-007: 27 affected read-model/search/source tests PASS",
+    "MJ-PR-007: 120 full Python tests PASS",
+    "MJ-PR-007: catalogue and progress validators PASS"
   ],
   "tests_failed": [],
   "tests_not_run": [
@@ -159,11 +164,11 @@
     "Host Node25 unsupported by Vitest5 and managed Windows Vite spawn restricted; production Node24 Docker build/tests PASS"
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-01T08:18:29.949998+00:00",
-    "command": "live scheduler observation plus isolated browser/UI/Compose verification",
-    "target": "MJ-PR-006 source policy scheduling and search profiles",
+    "timestamp": "2026-10-01T17:45:00+00:00",
+    "command": "full Python suite plus catalogue/progress validation",
+    "target": "MJ-PR-007 search query, location, remote and employment semantics",
     "result": "PASS",
-    "evidence_path": "docs/evidence/2026-10-01-source-policy-scheduler.json"
+    "evidence_path": "docs/evidence/2026-10-01-search-semantics.json"
   },
   "ci_verification": {
     "result": "PASS",
@@ -228,7 +233,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Inspect exact-head workflows for PR #431; fix failures or, when both push and pull_request verification pass, mark ready/integrate before selecting MJ-PR-007.",
+  "recommended_resume_step": "Inspect exact-head workflows for PR #432; fix failures or, when verification passes, mark ready/integrate before selecting MJ-PR-008.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],

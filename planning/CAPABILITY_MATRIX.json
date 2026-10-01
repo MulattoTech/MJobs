@@ -204,27 +204,35 @@
     },
     {
       "requirement_id": "MJ-REQ-023",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-01-search-semantics.json"
+      ],
+      "note": "Verified deterministic search/location/remote/employment semantics in MJ-PR-007"
     },
     {
       "requirement_id": "MJ-REQ-024",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-01-search-semantics.json"
+      ],
+      "note": "Verified deterministic search/location/remote/employment semantics in MJ-PR-007"
     },
     {
       "requirement_id": "MJ-REQ-025",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-01-search-semantics.json"
+      ],
+      "note": "Verified deterministic search/location/remote/employment semantics in MJ-PR-007"
     },
     {
       "requirement_id": "MJ-REQ-026",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-01-search-semantics.json"
+      ],
+      "note": "Verified deterministic search/location/remote/employment semantics in MJ-PR-007"
     },
     {
       "requirement_id": "MJ-REQ-027",
