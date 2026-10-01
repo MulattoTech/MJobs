@@ -377,12 +377,16 @@
         "MJ-PR-016",
         "MJ-PR-012"
       ],
-      "status": "DRAFT_PR",
+      "status": "MERGED",
       "branch": "codex/mj-pr-017-company-ats-discovery",
       "draft_until_verified": true,
-      "notes": "Draft PR #444 is open. A validated fetch-safety fix is committed locally but not pushed yet; published head 57a75a5b6d9d2f68bf1a735de921f4946d717779 is superseded. Push latest commits and rerun exact-head CI. Requirement states remain 058-059 PASS, 060-061 PARTIAL.",
+      "notes": "GitHub reports MERGED. Exact head d93508f4da500e139c62eedc5171ff975ef70462 passed PR Verification run 36939463587 and push Verification run 36939459649; merge commit 5e66bfe7029698b590fb57987a7ac657a958b516. MJ-REQ-058..059 PASS; MJ-REQ-060..061 PARTIAL.",
       "pr_number": 444,
-      "url": "https://github.com/MulattoTech/MJobs/pull/444"
+      "url": "https://github.com/MulattoTech/MJobs/pull/444",
+      "head": "d93508f4da500e139c62eedc5171ff975ef70462",
+      "base": "12e7ef6c9eb5ff1c7a8fd775361a9ee7e1b28aea",
+      "merge_commit": "5e66bfe7029698b590fb57987a7ac657a958b516",
+      "merged_at": "2026-10-01T23:17:15Z"
     },
     {
       "id": "MJ-PR-018",
@@ -399,10 +403,15 @@
         "MJ-PR-017",
         "MJ-PR-012"
       ],
-      "status": "QUEUED",
+      "status": "IN_PROGRESS",
       "branch": "codex/mj-pr-018-company-ats-discovery",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "Active local implementation in C:\\Tools\\Dev\\MJobs-pr-018 on current main 5e66bfe7029698b590fb57987a7ac657a958b516. Local code commit 5644846; 205 Python tests, focused suite and isolated fixture Compose/company-discovery acceptance PASS. REQ-062/063/065 PASS; REQ-064 PARTIAL. Draft publication and exact-head remote CI remain NOT_RUN.",
+      "worktree": "C:\\Tools\\Dev\\MJobs-pr-018",
+      "base": "5e66bfe7029698b590fb57987a7ac657a958b516",
+      "local_head": "56448464ef4ab5c045c86884bc54b12353158600",
+      "publication_state": "NOT_PUBLISHED",
+      "validation_result": "PASS_WITH_PARTIAL_REQUIREMENT_COVERAGE"
     },
     {
       "id": "MJ-PR-019",

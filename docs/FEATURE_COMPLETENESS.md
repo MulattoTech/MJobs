@@ -8,14 +8,12 @@ A percentage is a navigation aid, never a release claim. Only evidence-backed PA
 
 ## Original specification
 - Catalogue items: **366**
-- PASS: **41** (11.20%)
+- PASS: **44** (12.02%)
 - PARTIAL: **60** (16.39%)
-- NOT_RUN: **265** (72.40%)
+- NOT_RUN: **262** (71.58%)
 - Full-spec state: **PARTIAL**
 - Release readiness: **not established**
-The low PASS percentage does **not** mean only 10.66% of code exists. Many requirements are broad umbrella capabilities
-and 56 are already PARTIAL. The current vertical slice is useful and tested, but the repository correctly refuses to
-turn partial evidence into completed requirements.
+PASS counts complete requirement items, not the fraction of source code implemented. Many requirements span multiple product capabilities, and 60 remain PARTIAL; the repository does not turn partial evidence into completed requirements.
 
 ## Current verified implementation spine
 - Durable PostgreSQL/Redis worker architecture and migrations
@@ -45,6 +43,8 @@ turn partial evidence into completed requirements.
 - MJ-REQ-057 company identity resolution and MJ-REQ-058..059 verified alias/domain data are PASS; MJ-REQ-054..056 and MJ-REQ-060..061 remain PARTIAL. The PR-016 fixture flywheel, verified-only identity matching, evidence-ranked domain candidates and corroborated fixture career-page discovery passed 16 focused and 189 full Python tests, PostgreSQL migration and isolated Compose operation acceptance. Production ATS/domain-source acquisition, automatic trigger wiring and sitemap fetching remain open; discovery fetch targets are allowlist-, same-origin- and redirect-checked (`docs/evidence/2026-10-01-company-alias-domain-career-discovery.json`).
 - Real external submission remains disabled
 - GitHub Actions passed the final #367-#370 PR heads and the connected UI, mock application, and restart recovery workflow; see `docs/evidence/2026-09-30-ci-370.json`
+- Optional provider-neutral company search and evidence-based ATS detection now cover all 22 named host families and synthetic custom-domain ATS embeds. MJ-REQ-062, 063 and 065 are PASS; MJ-REQ-064 is PARTIAL because HTML-signature and network-observed public-endpoint detection remain open. Search stays disabled unless a provider is injected; no production search or ATS site was contacted (`docs/evidence/2026-10-01-ats-detection-search.json`).
+
 ## Reference-project gap catalogue
 Canonical issues: **MJ-REF-001 through MJ-REF-042**.
 These are additive ideas discovered by comparing JobSpy, CareerWeaver, Resume Matcher, AutoApply,

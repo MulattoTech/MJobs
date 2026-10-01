@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-01T23:10:18.898519+00:00",
+  "timestamp": "2026-10-01T23:55:59.049070+00:00",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -517,29 +517,35 @@
     },
     {
       "requirement_id": "MJ-REQ-062",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-01-ats-detection-search.json"
+      ],
+      "note": "Provider-neutral optional WebDiscoveryProvider protocol, disabled default, bounded injected-provider candidate path, provenance and fixture tests pass. No production search provider is configured; this is allowed by the requirement. See docs/evidence/2026-10-01-ats-detection-search.json."
     },
     {
       "requirement_id": "MJ-REQ-063",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
-        "docs/evidence/2026-09-29-mock-spine.md"
+        "docs/evidence/2026-10-01-ats-detection-search.json"
       ],
-      "note": "Initial scoped behavior only; full requirement remains open"
+      "note": "Deterministic detector recognizes all 22 named ATS host families and separates identification from unsupported application/enumeration; synthetic hostname, redirect and custom-domain tests pass. See docs/evidence/2026-10-01-ats-detection-search.json."
     },
     {
       "requirement_id": "MJ-REQ-064",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-01-ats-detection-search.json"
+      ],
+      "note": "Hostname, redirect, URL structure, script/public API URL patterns, form actions, explicit widget configuration and structured JSON-LD are covered. HTML-signature and network-observed public endpoint detection remain unimplemented. See docs/evidence/2026-10-01-ats-detection-search.json."
     },
     {
       "requirement_id": "MJ-REQ-065",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-01-ats-detection-search.json"
+      ],
+      "note": "Synthetic custom-domain careers page with a Greenhouse embedded script is identified and audited while retaining the visible careers URL and reporting application_supported=false. Production sites were not fetched. See docs/evidence/2026-10-01-ats-detection-search.json."
     },
     {
       "requirement_id": "MJ-REQ-066",
