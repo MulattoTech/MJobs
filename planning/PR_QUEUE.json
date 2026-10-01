@@ -353,12 +353,14 @@
       "depends_on": [
         "MJ-PR-012"
       ],
-      "status": "DRAFT_PR",
+      "status": "MERGED",
       "branch": "codex/mj-pr-016-company-ats-discovery",
       "draft_until_verified": true,
-      "notes": "Published draft PR #443 after local Python, Compose, migration, Chromium and catalogue/progress verification. Initial exact head c436999e4d2d3737a1a37d6f08d3d975be3c0392 Actions runs were IN_PROGRESS; this bookkeeping commit changes the head and requires fresh exact-head verification.",
+      "notes": "GitHub reports merged at 2026-10-01T22:31:45Z. Exact head ac74d84bf74c42a25cefffd6c06b207aedaa865b passed PR Verification run 36934935946 and push Verification run 36934929963; merge commit 12e7ef6c9eb5ff1c7a8fd775361a9ee7e1b28aea.",
       "pr_number": 443,
-      "url": "https://github.com/MulattoTech/MJobs/pull/443"
+      "url": "https://github.com/MulattoTech/MJobs/pull/443",
+      "merge_commit": "12e7ef6c9eb5ff1c7a8fd775361a9ee7e1b28aea",
+      "merged_at": "2026-10-01T22:31:45Z"
     },
     {
       "id": "MJ-PR-017",
@@ -375,10 +377,10 @@
         "MJ-PR-016",
         "MJ-PR-012"
       ],
-      "status": "QUEUED",
+      "status": "ACTIVE_WORK",
       "branch": "codex/mj-pr-017-company-ats-discovery",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "Existing PR-017 worktree adopted on current main 12e7ef6c9eb5ff1c7a8fd775361a9ee7e1b28aea; local implementation and validation recorded in docs/evidence/2026-10-01-company-alias-domain-career-discovery.json. Requirements 058-059 PASS, 060-061 PARTIAL."
     },
     {
       "id": "MJ-PR-018",

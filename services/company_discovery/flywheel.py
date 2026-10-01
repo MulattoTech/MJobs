@@ -4,10 +4,13 @@ from __future__ import annotations
 from urllib.parse import urljoin
 
 from bs4 import BeautifulSoup
+import httpx
 from sqlalchemy import select
 
 from packages.persistence import models as m
 from packages.persistence.store import identity, upsert
+from services.company_discovery.career_pages import common_career_routes, internal_career_links
+from services.company_discovery.domains import normalize_domain, record_company_domain
 from services.company_discovery.resolution import resolve_company
 
 
@@ -20,12 +23,32 @@ def discover_company_source(store, candidate, client, check=None):
         raise ValueError("COMPANY_OFFICIAL_WEBSITE_REQUIRED")
     check()
     homepage = client.get(website)
-    careers_link = BeautifulSoup(homepage.text, "html.parser").find("a", attrs={"rel": "careers"})
-    if careers_link is None or not careers_link.get("href"):
+    careers_links = internal_career_links(str(homepage.url), homepage.text)
+    careers = None
+    careers_url = careers_links[0] if careers_links else ""
+    if careers_url:
+        check()
+        careers = client.get(careers_url)
+    else:
+        # Guesses are low-confidence probes only. A guessed route is accepted only
+        # after its fetched content exposes a supported ATS integration.
+        for guessed_url in common_career_routes(str(homepage.url)):
+            check()
+            try:
+                guessed_page = client.get(guessed_url)
+            except httpx.HTTPStatusError as error:
+                if error.response.status_code == 404:
+                    continue
+                raise
+            guessed_ats = BeautifulSoup(guessed_page.text, "html.parser").find(
+                "a", attrs={"data-provider": True, "data-tenant": True}
+            )
+            if guessed_ats is not None:
+                careers_url, careers = str(guessed_page.url), guessed_page
+                break
+    if careers is None:
         raise ValueError("COMPANY_CAREERS_LINK_UNPROVEN")
-    careers_url = urljoin(str(homepage.url), careers_link["href"])
     check()
-    careers = client.get(careers_url)
     # PR-016 proves the extensible discovery boundary with the fixture detector.
     # Production ATS families remain independently tracked provider requirements.
     ats_link = BeautifulSoup(careers.text, "html.parser").find("a", attrs={"data-provider": True, "data-tenant": True})
@@ -46,7 +69,9 @@ def discover_company_source(store, candidate, client, check=None):
         upsert(connection, m.companies, {
             "id": resolved["company_id"],
             "name": resolved["name"],
-            "domain": website,
+            # Legacy domain storage has no verification semantics. Keep it empty;
+            # all observed domains go through the evidence-aware relation below.
+            "domain": "",
         }, replace=True)
         upsert(connection, m.company_sources, {
             "id": source_id,
@@ -66,6 +91,11 @@ def discover_company_source(store, candidate, client, check=None):
             "endpoint": endpoint,
             "jobs_enumerated": len(jobs),
         })
+    homepage_domain = normalize_domain(str(homepage.url))
+    if homepage_domain:
+        record_company_domain(store, resolved["company_id"], homepage_domain,
+                              "CANDIDATE_DOMAIN_UNVERIFIED",
+                              ["homepage supplied for bounded career discovery"])
     return {
         "company": resolved,
         "company_source_id": source_id,

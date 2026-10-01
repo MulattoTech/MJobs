@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-10-01T22:57:01.571962+00:00",
+  "scope": "MJ-PR-017 / MJ-REQ-058..061",
+  "result": "PARTIAL",
+  "requirements": {
+    "MJ-REQ-058": "PASS",
+    "MJ-REQ-059": "PASS",
+    "MJ-REQ-060": "PARTIAL",
+    "MJ-REQ-061": "PARTIAL"
+  },
+  "github_issues": {
+    "MJ-REQ-058": "https://github.com/MulattoTech/MJobs/issues/59",
+    "MJ-REQ-059": "https://github.com/MulattoTech/MJobs/issues/60",
+    "MJ-REQ-060": "https://github.com/MulattoTech/MJobs/issues/61",
+    "MJ-REQ-061": "https://github.com/MulattoTech/MJobs/issues/62"
+  },
+  "github_reconciliation": {
+    "main_before_pr017": "12e7ef6c9eb5ff1c7a8fd775361a9ee7e1b28aea",
+    "pr443_state": "MERGED",
+    "pr443_head": "ac74d84bf74c42a25cefffd6c06b207aedaa865b",
+    "pr443_merge_commit": "12e7ef6c9eb5ff1c7a8fd775361a9ee7e1b28aea",
+    "pr443_merged_at": "2026-10-01T22:31:45Z",
+    "pr443_exact_head_runs": {
+      "pull_request": {
+        "id": 36934935946,
+        "result": "PASS"
+      },
+      "push": {
+        "id": 36934929963,
+        "result": "PASS"
+      }
+    },
+    "open_prs_at_pr017_start": 0
+  },
+  "implemented": [
+    "Versioned company_aliases and company_domains schemas with uniqueness constraints and foreign keys.",
+    "Legacy company.domain backfill is normalized and explicitly unverified at confidence 0.45; legacy source values are preserved.",
+    "Verified alias and domain persistence is evidence-bearing; weaker repeated observations do not demote verified records.",
+    "Identity matching uses verified aliases/domains, normalized employer name and ATS tenant; unverified legacy domain values do not establish official identity.",
+    "Official-domain candidate resolver ranks allowlisted evidence and preserves equal-rank disagreement as ambiguous; known aggregator domains and source categories are excluded.",
+    "Career discovery reads internal navigation/footer links, sitemap XML input, structured JSON-LD URLs and common route guesses; guessed routes are accepted only when fetched content shows a supported ATS integration.",
+    "The Company Discover fixture workflow persists observed domains as unverified candidates and no longer writes them into the legacy official-domain field."
+  ],
+  "limitations": [
+    "Production external career-site/domain acquisition, configured web search, and non-mock ATS metadata integrations are not connected or verified.",
+    "The sitemap parser handles sitemap XML supplied to it; automatic discovery and fetching of sitemap locations is not integrated.",
+    "Only fixture workflows are used for the end-to-end company source operation; no external employer site was contacted.",
+    "Career-page discovery remains PARTIAL pending production source acquisition and broader first-party acceptance coverage."
+  ],
+  "validation": [
+    {
+      "command": "..\\MJobs-pr-016\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_company_discovery -v",
+      "result": "PASS",
+      "count": 13
+    },
+    {
+      "command": "..\\MJobs-pr-016\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py'",
+      "result": "PASS",
+      "count": 186,
+      "duration_seconds": 44.751
+    },
+    {
+      "command": "..\\MJobs-pr-016\\.venv\\Scripts\\python.exe -m tools.verification.catalogue",
+      "result": "PASS"
+    },
+    {
+      "command": "..\\MJobs-pr-016\\.venv\\Scripts\\python.exe -m tools.verification.progress validate",
+      "result": "PASS"
+    },
+    {
+      "command": "Alembic SQLite legacy-schema upgrade from a82e4c19d753 to head",
+      "result": "PASS",
+      "detail": "https://www.legacy.example/careers backfilled as legacy.example, confidence 0.45, verified false, CANDIDATE_DOMAIN_UNVERIFIED."
+    },
+    {
+      "command": "Alembic downgrade populated company_domains to a82e4c19d753",
+      "result": "PASS",
+      "detail": "Downgrade refused data loss and preserved the populated domain table."
+    },
+    {
+      "command": "docker compose --env-file ..\\MJobs\\.env -p mjobs-pr017-validation-cb72f904 -f compose.yml -f compose.pr017-validation.yml --profile fixture up -d --build --wait --wait-timeout 240",
+      "result": "PASS",
+      "detail": "Isolated project used a unique image, networks, volumes and port 18717; PostgreSQL, Redis, API, mock, scheduler and workers reached healthy state."
+    },
+    {
+      "command": "PostgreSQL SELECT version_num FROM alembic_version; SELECT to_regclass('public.company_aliases'), to_regclass('public.company_domains')",
+      "result": "PASS",
+      "detail": "Database revision cb72f9041d6a; both new tables present."
+    },
+    {
+      "command": "..\\MJobs-pr-016\\.venv\\Scripts\\python.exe -m cli.mock_e2e --api http://127.0.0.1:18717",
+      "result": "PASS",
+      "detail": "Fictional PostgreSQL/Redis/RQ mock application spine completed; external_submission_enabled false."
+    },
+    {
+      "command": "POST /companies/discovery reason=KNOWN_SOURCE_BROKEN; poll GET /operations/{id} until state terminal",
+      "result": "PASS",
+      "detail": "Operation c2d47d9cc3c91a18c54b78cce14d86d3730b3c1b4b87d0c9ca1bc8bd1b875d95 state COMPLETED, error null, kind COMPANY_DISCOVER; local mock host only."
+    },
+    {
+      "command": "git fetch origin --prune; gh pr list --state open",
+      "result": "PASS",
+      "detail": "origin/main remained 12e7ef6c9eb5ff1c7a8fd775361a9ee7e1b28aea; no open PRs while PR-017 was implemented."
+    }
+  ],
+  "merge_validation": {
+    "migration": {
+      "result": "PASS",
+      "detail": "PostgreSQL Compose startup applied cb72f9041d6a; SQLite previous-revision backfill and populated downgrade refusal passed."
+    },
+    "compose": {
+      "result": "PASS",
+      "project": "mjobs-pr017-validation-cb72f904",
+      "detail": "Isolated fixture stack and durable company discovery operation passed; project-owned containers, networks and volumes were removed after verification."
+    },
+    "browser": {
+      "result": "NOT_RUN",
+      "detail": "No browser/UI files changed in PR-017; backend behavior was exercised through PostgreSQL-backed API and worker acceptance."
+    },
+    "remote_exact_head_ci": "NOT_RUN: implementation is not published yet.",
+    "external_submission": "NOT_PERFORMED",
+    "external_employer_network_access": "NOT_PERFORMED"
+  },
+  "validation_environment": {
+    "python": "3.12.10",
+    "dependencies": "requirements.lock environment in sibling PR-016 worktree"
+  }
+}
