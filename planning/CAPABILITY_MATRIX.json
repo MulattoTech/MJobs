@@ -372,29 +372,35 @@
     },
     {
       "requirement_id": "MJ-REQ-044",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
-        "docs/evidence/2026-09-29-mock-spine.md"
+        "docs/evidence/2026-10-01-dedupe-strong-signals.json"
       ],
-      "note": "Initial scoped behavior only; full requirement remains open"
+      "note": "Verified deterministic dedupe strong/company/title/description evidence in MJ-PR-013"
     },
     {
       "requirement_id": "MJ-REQ-045",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-01-dedupe-strong-signals.json"
+      ],
+      "note": "Verified deterministic dedupe strong/company/title/description evidence in MJ-PR-013"
     },
     {
       "requirement_id": "MJ-REQ-046",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-01-dedupe-strong-signals.json"
+      ],
+      "note": "Verified deterministic dedupe strong/company/title/description evidence in MJ-PR-013"
     },
     {
       "requirement_id": "MJ-REQ-047",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-01-dedupe-strong-signals.json"
+      ],
+      "note": "Verified deterministic dedupe strong/company/title/description evidence in MJ-PR-013"
     },
     {
       "requirement_id": "MJ-REQ-048",

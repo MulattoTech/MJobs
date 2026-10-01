@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-10-01T19:50:00Z",
+  "scope": "MJ-PR-013 / MJ-REQ-044..047",
+  "result": "PASS",
+  "requirements": {
+    "MJ-REQ-044": "PASS",
+    "MJ-REQ-045": "PASS",
+    "MJ-REQ-046": "PASS",
+    "MJ-REQ-047": "PASS"
+  },
+  "implemented": [
+    "canonical application URL comparison with tracking-only query removal",
+    "ATS tenant plus requisition, employer requisition, and source-job relationship strong signals",
+    "company identity corroboration by official ID, domain, ATS tenant, or known relationship",
+    "company name and alias overlap retained as evidence but never sufficient alone",
+    "title normalization across case, punctuation, spacing, and known abbreviations",
+    "normalized description hashes before fuzzy trigram Jaccard comparison",
+    "duplicate candidate evidence that requires company corroboration before a strong match"
+  ],
+  "validation": [
+    {"command": "python -m unittest tests.unit.test_dedupe_signals tests.unit.test_job_normalization", "result": "PASS", "count": 10},
+    {"command": "python -m unittest discover -s tests -p test_*.py", "result": "PASS", "count": 161},
+    {"command": "python tools/verification/catalogue.py", "result": "PASS"},
+    {"command": "python tools/verification/progress.py validate", "result": "PASS"}
+  ],
+  "red_green": {
+    "observed_red": "description exact-hash path initially treated period and semicolon punctuation differently",
+    "fix": "description normalization now removes punctuation while retaining technology-significant + and # characters",
+    "final": "focused and full suites pass"
+  },
+  "safety": {
+    "ambiguous_auto_merge": false,
+    "raw_postings_preserved": true,
+    "external_submission": "OFF"
+  }
+}
