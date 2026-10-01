@@ -10,8 +10,8 @@
     "current_verified_local_state": "Initialized from newer origin/main; supplied control pack retained on governance branch",
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
-  "current_milestone": "M3_LOCAL_USER_TESTING_VERIFIED",
-  "current_objective": "Stacked implementation spine merged; continue dependency-eligible original requirements before optional reference features",
+  "current_milestone": "M3_ARCHITECTURE_STACK_RECONCILED",
+  "current_objective": "Continue dependency-eligible original requirements: MJ-REQ-010 product architecture remains PARTIAL after MJ-REQ-011 stack acceptance; keep original/reference/release status distinct",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -35,6 +35,9 @@
   ],
   "blocked_capabilities": [],
   "active_requirements": [
+    "MJ-REQ-008",
+    "MJ-REQ-009",
+    "MJ-REQ-010",
     "MJ-REQ-016",
     "MJ-REQ-018",
     "MJ-REQ-019",
@@ -83,6 +86,12 @@
       "url": "https://github.com/MulattoTech/MJobs/pull/370",
       "branch": "codex/mj-pr-149-user-testing-mvp",
       "status": "MERGED"
+    },
+    {
+      "number": 428,
+      "url": "https://github.com/MulattoTech/MJobs/pull/428",
+      "branch": "codex/mj-pr-003-governance-safety",
+      "status": "DRAFT_PR"
     }
   ],
   "tests_passed": [
@@ -100,7 +109,17 @@
     "Remote governance CI: pull_request run 36765678280 PASS at e97d8b0",
     "Remote mock-spine CI: pull_request run 36766636806 PASS at 90b59ca",
     "Remote worker-lifecycle CI: pull_request run 36767410947 PASS at 29012e0",
-    "Remote connected-UI CI: pull_request run 36768260666 and push run 36768256061 PASS at d807851"
+    "Remote connected-UI CI: pull_request run 36768260666 and push run 36768256061 PASS at d807851",
+    "P0 progress journal: 5 targeted and 73 affected Python tests PASS locally; catalogue and progress validators PASS",
+    "Remote P0 progress-journal CI: PR run 36772030057 and push run 36772022282 PASS at 6c3801f",
+    "P0 personal-operation boundary: 36 targeted and 79 full Python tests, 2 frontend tests/build, Compose config and PowerShell parse PASS locally",
+    "Remote personal-operation CI: PR run 36776229356 and push run 36776224242 PASS at 5048e81; fixture mock/UI/recovery and isolated personal Compose/Chromium PASS",
+    "P0 personal live-read gate: one targeted test, 80 full Python tests, direct bounded public GET of 21 postings, catalogue and progress validators PASS locally",
+    "Exact-head fb55d44 push run 36779321690: required suite, isolated personal public read of 21 jobs and Chromium readback PASS; PR run 36779328463 required suite PASS but optional live read ReadTimeout and browser skipped",
+    "P0 Compose mode isolation: two rendered-config tests PASS after observed RED, 82 full Python tests, PowerShell launcher parse, catalogue and progress validators PASS locally",
+    "Exact-head c2fcc9d PR run 36781332556 and push run 36781327411 PASS: actual fixture mock and personal no-mock service assertions, fixture recovery, isolated personal Chromium, deployed public read/browser",
+    "P0 durable workspace identity local: 91 Python tests and temporary SQLite Alembic upgrade/bound-downgrade refusal PASS",
+    "Exact-head 05b570d PR run 36785750958 and push run 36785746644 PASS: PostgreSQL Alembic a6e7f3c48921 and stored FIXTURE/PERSONAL modes, fixture recovery, isolated personal Chromium and public read/browser"
   ],
   "tests_failed": [],
   "tests_not_run": [
@@ -149,7 +168,45 @@
     "pull_request_run_id": 36768260666,
     "evidence_path": "docs/evidence/2026-09-30-ci-370.json"
   },
-  "recommended_resume_step": "Reconcile #427 reference catalogue and select the smallest dependency-eligible original PR_QUEUE slice",
+  "progress_journal_ci": {
+    "result": "PASS",
+    "head": "6c3801f4a4e5c5079ed95512f97ce4b0382fb93a",
+    "pull_request_run_id": 36772030057,
+    "push_run_id": 36772022282,
+    "evidence_path": "docs/evidence/2026-09-30-ci-428.json"
+  },
+  "personal_operation_ci": {
+    "result": "PASS",
+    "head": "5048e81758a25f8b9168103a1f09eef21a1a4457",
+    "pull_request_run_id": 36776229356,
+    "push_run_id": 36776224242,
+    "evidence_path": "docs/evidence/2026-09-30-ci-428-personal.json"
+  },
+  "personal_live_read_ci": {
+    "result": "PARTIAL",
+    "head": "fb55d44da1b9634fdfd7f1240ab3e57aba2df60d",
+    "push_run_id": 36779321690,
+    "push_live_stage": "PASS",
+    "pull_request_run_id": 36779328463,
+    "pull_request_live_stage": "FAIL",
+    "failure_category": "ReadTimeout",
+    "evidence_path": "docs/evidence/2026-09-30-ci-428-personal-live-read.json"
+  },
+  "personal_compose_isolation_ci": {
+    "result": "PASS",
+    "head": "c2fcc9da13c3ee52d30014f0d6c18029ce655875",
+    "pull_request_run_id": 36781332556,
+    "push_run_id": 36781327411,
+    "evidence_path": "docs/evidence/2026-09-30-ci-428-compose-isolation.json"
+  },
+  "workspace_identity_ci": {
+    "result": "PASS",
+    "head": "05b570d564c645e372a9c793c06b4cd3e5da1b3e",
+    "pull_request_run_id": 36785750958,
+    "push_run_id": 36785746644,
+    "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
+  },
+  "recommended_resume_step": "Re-fetch GitHub/local state and continue the original queue with an executable source/architecture foundation for MJ-REQ-010 and MJ-REQ-016/018; keep PR #428 draft until its next exact-head checks pass. Preserve unbound legacy data for explicit owner adoption. MJ-REQ-008/009/010 remain PARTIAL",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -159,7 +216,8 @@
     "92f0997f753e",
     "098f12099319",
     "547acf656c37",
-    "792dc0dc5664"
+    "792dc0dc5664",
+    "a6e7f3c48921"
   ],
   "unfinished_work_evidence": "docs/evidence/2026-09-29-resume-checkpoint.json",
   "authorization": "User explicitly provided 100% Git and GitHub authorization on 2026-09-30; still verify native permissions and required checks",
@@ -190,5 +248,541 @@
   "optional_afk_journal": {
     "result": "BLOCKED_ENVIRONMENT",
     "reason": "Managed filesystem rejected direct Python write-lock under .git/afk-dev; repository planning/evidence remains the durable handoff. Original full-spec AFK goal remains IN_PROGRESS."
+  },
+  "milestone_journal": [
+    {
+      "milestone_id": "M3-STACKED-SPINE-INTEGRATED",
+      "timestamp": "2026-09-30T20:10:29Z",
+      "current_phase": "M3_LOCAL_USER_TESTING_VERIFIED",
+      "completed_steps": [
+        "Merged PRs #367, #368, #369 and #370 in dependency order after exact-head CI checks",
+        "Verified post-merge main Actions run 36769434214",
+        "Reconciled original and reference issue catalogues without promoting incomplete requirements"
+      ],
+      "files_added": [
+        "docs/evidence/2026-09-30-ci-370.json",
+        "docs/evidence/2026-09-30-reference-reconciliation.json"
+      ],
+      "files_modified": [
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/REFERENCE_GAP_MATRIX.json"
+      ],
+      "tests_completed": [
+        "PR #370 CI: 67 Python tests, 2 frontend tests/build, catalogue, Compose mock E2E, connected UI and recovery PASS",
+        "Main post-merge Actions run 36769434214 PASS",
+        "Reference issue map compared against live GitHub: 42 canonical issues, zero mismatches"
+      ],
+      "tests_remaining": [
+        "Original full-spec product and release acceptance",
+        "Real external submission remains disabled and is not a test harness"
+      ],
+      "migrations_applied": [
+        "92f0997f753e",
+        "098f12099319",
+        "547acf656c37",
+        "792dc0dc5664"
+      ],
+      "live_integrations_tested": [
+        "Controlled public Greenhouse read-only GET in earlier local user-testing evidence"
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "Original MJ-REQ catalogue remains 1 PASS, 53 PARTIAL, 312 NOT_RUN",
+        "Reference MJ-REF catalogue remains 42 NOT_RUN",
+        "Release readiness remains NOT_RUN"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "8ee6b0a7578ab4c8a46f1bac2c707a88048473ab",
+        "evidence_path": "docs/evidence/2026-09-30-ci-370.json"
+      }
+    },
+    {
+      "milestone_id": "M3-PERSONAL-OPERATION-LOCAL",
+      "timestamp": "2026-09-30T20:55:36Z",
+      "current_phase": "M3_PERSONAL_OPERATION_LOCAL_VERIFIED",
+      "completed_steps": [
+        "Added explicit FIXTURE and PERSONAL operation modes to API, workers, Compose, launcher and UI",
+        "Blocked stale queued fictional actions before browser execution and rejected mixed-data production API startup in PERSONAL mode",
+        "Validated local Python, frontend, Compose configuration and PowerShell launcher parsing"
+      ],
+      "files_added": [
+        "packages/domain/operation_mode.py",
+        "cli/personal_mode_e2e.py",
+        "docs/evidence/2026-09-30-operation-mode.json"
+      ],
+      "files_modified": [
+        "apps/api/main.py",
+        "workers/tasks.py",
+        "apps/web/src/main.tsx",
+        "compose.yml",
+        "Start-MJobs.ps1",
+        "planning/IMPLEMENTATION_STATE.json"
+      ],
+      "tests_completed": [
+        "36 targeted Python API, worker and safety tests PASS",
+        "79 full Python tests PASS",
+        "2 frontend tests and strict production build PASS",
+        "Personal Compose configuration and PowerShell launcher parse PASS"
+      ],
+      "tests_remaining": [
+        "Remote isolated Compose and Chromium personal-mode E2E",
+        "Full staged production deployment and release acceptance"
+      ],
+      "migrations_applied": [
+        "92f0997f753e",
+        "098f12099319",
+        "547acf656c37",
+        "792dc0dc5664"
+      ],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "Local Docker Desktop Linux engine unavailable; remote CI pending",
+        "No real external auto-submit path is enabled"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "1ed56d60ed6e61b0525d94ad8aa2d8fc8cb6fa6c",
+        "evidence_path": "docs/evidence/2026-09-30-ci-428.json"
+      }
+    },
+    {
+      "milestone_id": "M3-PERSONAL-OPERATION-REMOTE",
+      "timestamp": "2026-09-30T21:08:41Z",
+      "current_phase": "M3_PERSONAL_OPERATION_REMOTE_VERIFIED",
+      "completed_steps": [
+        "Both exact implementation-head CI runs passed 79 Python tests, frontend tests/build, catalogue and progress validation",
+        "Fixture Compose mock, connected Chromium UI, and Redis outage/restart recovery passed",
+        "Separate personal Compose project started empty and passed API/Chromium action-boundary checks",
+        "Downloaded, inspected and hashed four fictional or empty-state CI evidence artifacts"
+      ],
+      "files_added": [
+        "docs/evidence/2026-09-30-ci-428-personal.json",
+        "docs/evidence/2026-09-30-ci-428-5048e81-mock-e2e.json",
+        "docs/evidence/2026-09-30-ci-428-5048e81-ui.json",
+        "docs/evidence/2026-09-30-ci-428-5048e81-recovery.json",
+        "docs/evidence/2026-09-30-ci-428-5048e81-personal-mode.json"
+      ],
+      "files_modified": [
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "docs/FEATURE_COMPLETENESS.md"
+      ],
+      "tests_completed": [
+        "79 Python tests and 2 frontend tests/build PASS on PR and push CI runs at 5048e81",
+        "Fixture mock application, Chromium UI, Redis outage/recovery PASS on PR and push CI runs",
+        "Isolated personal Compose API/Chromium E2E PASS on PR and push CI runs"
+      ],
+      "tests_remaining": [
+        "Controlled live public-source read in isolated personal mode",
+        "Physical host restart and full staged production/release acceptance"
+      ],
+      "migrations_applied": [
+        "92f0997f753e",
+        "098f12099319",
+        "547acf656c37",
+        "792dc0dc5664"
+      ],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "Remote CI used fictional mock and empty personal data; no real employer submission",
+        "MJ-REQ-008/009 remain PARTIAL; release readiness NOT_RUN"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "5048e81758a25f8b9168103a1f09eef21a1a4457",
+        "evidence_path": "docs/evidence/2026-09-30-ci-428-personal.json"
+      }
+    },
+    {
+      "milestone_id": "M3-PERSONAL-LIVE-READ-STAGED",
+      "timestamp": "2026-09-30T21:23:28Z",
+      "current_phase": "M3_PERSONAL_LIVE_READ_STAGED",
+      "completed_steps": [
+        "Added an observed operation-mode gate before the controlled public-source probe writes any test data",
+        "Added a bounded optional live provider and browser readback stage after isolated personal Compose startup",
+        "Validated the mode gate, full Python suite, direct bounded public GET, catalogue and progress journal locally"
+      ],
+      "files_added": [
+        "tests/unit/test_public_source_probe.py",
+        "docs/evidence/2026-09-30-personal-live-read-local.json"
+      ],
+      "files_modified": [
+        "cli/public_source_probe.py",
+        ".github/workflows/ci.yml",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json"
+      ],
+      "tests_completed": [
+        "One targeted probe guard test PASS after an observed RED failure",
+        "80 full Python tests PASS",
+        "Direct bounded public Greenhouse GET returned 21 postings",
+        "Catalogue and progress journal validators PASS"
+      ],
+      "tests_remaining": [
+        "Exact-head remote deployed personal Compose public-source worker and Chromium readback",
+        "Full staged production deployment and release acceptance"
+      ],
+      "migrations_applied": [
+        "92f0997f753e",
+        "098f12099319",
+        "547acf656c37",
+        "792dc0dc5664"
+      ],
+      "live_integrations_tested": [
+        "Direct bounded public Greenhouse GET only; deployed personal worker pending"
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "Local Docker Desktop Linux engine unavailable; remote CI pending",
+        "External provider availability is nonrequired CI evidence and must be inspected separately"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "a5d4095ece4bf7ff0faa9ce75b7f71bfdcf1c5b0",
+        "evidence_path": "docs/evidence/2026-09-30-ci-428-personal.json"
+      }
+    },
+    {
+      "milestone_id": "M3-PERSONAL-LIVE-READ-REMOTE",
+      "timestamp": "2026-09-30T21:32:09Z",
+      "current_phase": "M3_PERSONAL_LIVE_READ_REMOTE_VERIFIED",
+      "completed_steps": [
+        "Inspected exact-head PR and push GitHub Actions step outcomes separately from required job conclusions",
+        "Verified one deployed isolated PERSONAL worker public read of 21 Greenhouse jobs and connected Chromium policy readback",
+        "Preserved the concurrent PR run ReadTimeout, failed source health, cooldown and skipped browser step as separate external evidence"
+      ],
+      "files_added": [
+        "docs/evidence/2026-09-30-ci-428-personal-live-read.json",
+        "docs/evidence/2026-09-30-ci-428-fb55d44-public-source.json",
+        "docs/evidence/2026-09-30-ci-428-fb55d44-public-ui.json",
+        "docs/evidence/2026-09-30-ci-428-fb55d44-pr-public-source-failed.json"
+      ],
+      "files_modified": [
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "docs/FEATURE_COMPLETENESS.md"
+      ],
+      "tests_completed": [
+        "Push run 36779321690 required CI, optional live source and Chromium browser steps PASS",
+        "PR run 36779328463 required CI PASS; optional live source FAIL ReadTimeout and dependent browser NOT_RUN",
+        "Downloaded and hashed three exact-head live evidence artifacts"
+      ],
+      "tests_remaining": [
+        "MJ-REQ-009 complete staged deployment and release acceptance",
+        "MJ-REQ-010/011 original P0 foundation acceptance"
+      ],
+      "migrations_applied": [
+        "92f0997f753e",
+        "098f12099319",
+        "547acf656c37",
+        "792dc0dc5664"
+      ],
+      "live_integrations_tested": [
+        "Public Greenhouse GET through deployed RQ source worker in isolated personal Compose; one run PASS, one provider ReadTimeout"
+      ],
+      "known_errors": [
+        "Concurrent optional PR live probe ReadTimeout with source cooldown; required CI and push live proof passed"
+      ],
+      "known_limitations": [
+        "External provider availability varies across CI runs",
+        "MJ-REQ-009 remains PARTIAL; release readiness NOT_RUN"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "fb55d44da1b9634fdfd7f1240ab3e57aba2df60d",
+        "evidence_path": "docs/evidence/2026-09-30-ci-428-personal-live-read.json"
+      }
+    },
+    {
+      "milestone_id": "M3-PERSONAL-COMPOSE-ISOLATION-LOCAL",
+      "timestamp": "2026-09-30T21:41:49Z",
+      "current_phase": "M3_PERSONAL_COMPOSE_ISOLATION_STAGED",
+      "completed_steps": [
+        "Confirmed prior API factory and progress-journal review concerns were already fixed at current head",
+        "Found plain Compose still started the fictional mock server and enabled mock origin by default",
+        "Changed direct Compose to PERSONAL without mock by default, fixture launch to explicit profile, and recovery to explicit fixture environment",
+        "Validated rendered modes, full Python suite, launcher parser, catalogue and progress journal locally"
+      ],
+      "files_added": [
+        "tests/unit/test_compose_modes.py",
+        "docs/evidence/2026-09-30-personal-compose-isolation-local.json"
+      ],
+      "files_modified": [
+        "compose.yml",
+        "Start-MJobs.ps1",
+        "cli/compose_recovery.py",
+        ".github/workflows/ci.yml",
+        "docs/USER_TESTING.md",
+        "docs/runbooks/MOCK_SPINE.md",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json"
+      ],
+      "tests_completed": [
+        "Two rendered-Compose regression tests PASS after observed RED failures",
+        "82 full Python tests PASS",
+        "PowerShell launcher parse, catalogue and progress validator PASS"
+      ],
+      "tests_remaining": [
+        "Exact-head deployed fixture and personal Compose service-set and recovery CI",
+        "Complete MJ-REQ-009 staged deployment and release acceptance"
+      ],
+      "migrations_applied": [
+        "92f0997f753e",
+        "098f12099319",
+        "547acf656c37",
+        "792dc0dc5664"
+      ],
+      "live_integrations_tested": [
+        "Compose CLI configuration rendering only; Docker engine unavailable locally"
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "Local Docker Desktop Linux engine unavailable; exact-head deployed CI pending",
+        "MJ-REQ-009 remains PARTIAL; release readiness NOT_RUN"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "d4f8e95f4cb56fde10f1c6f2cadf606444177f71",
+        "evidence_path": "docs/evidence/2026-09-30-ci-428-personal-live-read.json"
+      }
+    },
+    {
+      "milestone_id": "M3-PERSONAL-COMPOSE-ISOLATION-REMOTE",
+      "timestamp": "2026-09-30T21:50:00Z",
+      "current_phase": "M3_PERSONAL_COMPOSE_ISOLATION_VERIFIED",
+      "completed_steps": [
+        "Verified two exact-head GitHub Actions runs passed fixture and personal actual service-set assertions",
+        "Verified fixture mock/Chromium and durable recovery plus isolated personal API/Chromium with mock service absent",
+        "Verified both optional personal public-read worker and browser steps passed against the same code head",
+        "Downloaded and hashed eight exact-head CI artifacts and kept original/reference/release status distinct"
+      ],
+      "files_added": [
+        "docs/evidence/2026-09-30-ci-428-compose-isolation.json",
+        "docs/evidence/2026-09-30-ci-428-c2fcc9d-mock-e2e.json",
+        "docs/evidence/2026-09-30-ci-428-c2fcc9d-ui.json",
+        "docs/evidence/2026-09-30-ci-428-c2fcc9d-recovery.json",
+        "docs/evidence/2026-09-30-ci-428-c2fcc9d-personal-mode.json",
+        "docs/evidence/2026-09-30-ci-428-c2fcc9d-personal-public-source.json",
+        "docs/evidence/2026-09-30-ci-428-c2fcc9d-personal-public-ui.json",
+        "docs/evidence/2026-09-30-ci-428-c2fcc9d-pr-personal-public-source.json",
+        "docs/evidence/2026-09-30-ci-428-c2fcc9d-pr-personal-public-ui.json"
+      ],
+      "files_modified": [
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "docs/FEATURE_COMPLETENESS.md"
+      ],
+      "tests_completed": [
+        "PR run 36781332556 and push run 36781327411 required CI PASS at c2fcc9d",
+        "Both runs passed actual running fixture mock and personal no-mock service assertions",
+        "Both runs passed fixture mock E2E, connected browser, outage/restart recovery, isolated personal API/browser, deployed public read and public browser readback"
+      ],
+      "tests_remaining": [
+        "Complete MJ-REQ-009 staged production operation and physical host restart",
+        "MJ-REQ-010/011 original P0 foundation acceptance and full release acceptance"
+      ],
+      "migrations_applied": [
+        "92f0997f753e",
+        "098f12099319",
+        "547acf656c37",
+        "792dc0dc5664"
+      ],
+      "live_integrations_tested": [
+        "Public Greenhouse GET through deployed source workers in both isolated personal CI projects; each stored 21 jobs"
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "Fresh isolated Compose projects do not prove an already mixed user database is safe",
+        "MJ-REQ-009 remains PARTIAL and release readiness NOT_RUN"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "c2fcc9da13c3ee52d30014f0d6c18029ce655875",
+        "evidence_path": "docs/evidence/2026-09-30-ci-428-compose-isolation.json"
+      }
+    },
+    {
+      "milestone_id": "M3-WORKSPACE-IDENTITY-LOCAL",
+      "timestamp": "2026-09-30T22:16:25Z",
+      "current_phase": "M3_WORKSPACE_IDENTITY_STAGED",
+      "completed_steps": [
+        "Added durable workspace_identity schema and startup binding before API reads or worker claims",
+        "Preserved unbound legacy data and added explicit snapshot-matched adoption with sanitized inspection",
+        "Updated tests that previously switched one database between fictional and personal modes to require the fail-closed boundary",
+        "Validated focused tests, full suite, temporary migration upgrade and bound-identity downgrade refusal locally"
+      ],
+      "files_added": [
+        "migrations/versions/a6e7f3c48921_bind_workspace_operation_mode.py",
+        "cli/workspace_identity.py",
+        "docs/runbooks/WORKSPACE_MODE.md",
+        "tests/integration/test_workspace_identity.py",
+        "docs/evidence/2026-09-30-workspace-identity-local.json"
+      ],
+      "files_modified": [
+        "packages/domain/operation_mode.py",
+        "packages/persistence/models.py",
+        "packages/persistence/store.py",
+        "apps/api/main.py",
+        "workers/main.py",
+        "workers/tasks.py",
+        "tests/integration/test_api_queue.py",
+        "tests/integration/test_user_read_models.py",
+        "tests/integration/test_worker_lifecycle.py",
+        "Start-MJobs.ps1",
+        "docs/USER_TESTING.md",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json"
+      ],
+      "tests_completed": [
+        "Focused workspace identity tests PASS after observed RED failures",
+        "91 full Python tests PASS",
+        "Temporary SQLite migration upgrade and bound-identity downgrade refusal PASS",
+        "PowerShell launcher parse PASS"
+      ],
+      "tests_remaining": [
+        "Exact-head PostgreSQL migration and fixture/personal Compose E2E",
+        "Complete MJ-REQ-009 staged production operation and release acceptance"
+      ],
+      "migrations_applied": [
+        "92f0997f753e",
+        "098f12099319",
+        "547acf656c37",
+        "792dc0dc5664",
+        "a6e7f3c48921 (temporary SQLite only; PostgreSQL pending)"
+      ],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "Local Docker Desktop Linux engine unavailable; PostgreSQL Compose CI pending",
+        "Legacy data is preserved but requires an explicit owner mode decision before startup",
+        "MJ-REQ-009 remains PARTIAL; release readiness NOT_RUN"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "f7cae108aee3cd4939fdf162edeb40abeb6af4d7",
+        "evidence_path": "docs/evidence/2026-09-30-ci-428-compose-isolation.json"
+      }
+    },
+    {
+      "milestone_id": "M3-WORKSPACE-IDENTITY-REMOTE",
+      "timestamp": "2026-09-30T22:34:00Z",
+      "current_phase": "M3_WORKSPACE_IDENTITY_VERIFIED",
+      "completed_steps": [
+        "Verified exact-head push and PR GitHub Actions checks passed on 05b570d",
+        "Verified deployed PostgreSQL Alembic revision and persisted FIXTURE/PERSONAL modes in separate Compose projects",
+        "Verified fixture mock/Chromium/recovery and personal no-mock/Chromium/public read with external submission off",
+        "Downloaded, inspected and hashed twelve exact-head CI JSON artifacts"
+      ],
+      "files_added": [
+        "docs/evidence/2026-09-30-ci-428-workspace-identity.json",
+        "docs/evidence/2026-09-30-ci-428-05b570d-pr-mock-e2e.json",
+        "docs/evidence/2026-09-30-ci-428-05b570d-pr-personal-mode.json",
+        "docs/evidence/2026-09-30-ci-428-05b570d-pr-personal-public-source.json",
+        "docs/evidence/2026-09-30-ci-428-05b570d-pr-personal-public-ui.json",
+        "docs/evidence/2026-09-30-ci-428-05b570d-pr-recovery.json",
+        "docs/evidence/2026-09-30-ci-428-05b570d-pr-ui.json",
+        "docs/evidence/2026-09-30-ci-428-05b570d-push-mock-e2e.json",
+        "docs/evidence/2026-09-30-ci-428-05b570d-push-personal-mode.json",
+        "docs/evidence/2026-09-30-ci-428-05b570d-push-personal-public-source.json",
+        "docs/evidence/2026-09-30-ci-428-05b570d-push-personal-public-ui.json",
+        "docs/evidence/2026-09-30-ci-428-05b570d-push-recovery.json",
+        "docs/evidence/2026-09-30-ci-428-05b570d-push-ui.json"
+      ],
+      "files_modified": [
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "docs/FEATURE_COMPLETENESS.md"
+      ],
+      "tests_completed": [
+        "Both runs: 91 Python tests, 2 frontend tests, TypeScript/Vite build, catalogue and progress validators PASS",
+        "Both runs: explicit PostgreSQL Alembic a6e7f3c48921 and FIXTURE/PERSONAL workspace identity assertions PASS",
+        "Both runs: fixture mock E2E, connected Chromium, Redis outage and service restart recovery PASS",
+        "Both runs: personal no-mock service isolation, fictional-action rejection, public source worker and browser readback PASS"
+      ],
+      "tests_remaining": [
+        "Preexisting PostgreSQL owner-data adoption and physical host restart",
+        "Complete MJ-REQ-009 staged production operation and release acceptance",
+        "Original P0 MJ-REQ-010/011 foundations"
+      ],
+      "migrations_applied": [
+        "92f0997f753e",
+        "098f12099319",
+        "547acf656c37",
+        "792dc0dc5664",
+        "a6e7f3c48921"
+      ],
+      "live_integrations_tested": [
+        "GitHub Actions PostgreSQL/Redis/three-worker/Chromium Compose fixture and personal deployments",
+        "Public Greenhouse GET returned 21 jobs in each run with manual-only application capability"
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "Fresh isolated CI databases do not establish safe adoption of a preexisting user database",
+        "Local Docker Desktop Linux engine unavailable; physical host restart not tested",
+        "MJ-REQ-009 remains PARTIAL and release readiness NOT_RUN"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "05b570d564c645e372a9c793c06b4cd3e5da1b3e",
+        "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
+      }
+    },
+    {
+      "milestone_id": "M3-ARCHITECTURE-STACK-RECONCILED",
+      "timestamp": "2026-09-30T22:46:56Z",
+      "current_phase": "M3_ARCHITECTURE_STACK_RECONCILED",
+      "completed_steps": [
+        "Re-fetched GitHub and local Git and read the active queue, original/reference completion surfaces, issues #11/#12 and governance area spec",
+        "Traced the running dashboard, API, source, worker, document, browser, PostgreSQL and Redis paths against MJ-REQ-010/011",
+        "Recorded MJ-REQ-010 PARTIAL and MJ-REQ-011 PASS with exact-head deployed CI evidence",
+        "Kept all 42 canonical reference gaps and release readiness separate from the original catalogue"
+      ],
+      "files_added": [
+        "docs/evidence/2026-09-30-architecture-stack-reconciliation.json"
+      ],
+      "files_modified": [
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "docs/FEATURE_COMPLETENESS.md"
+      ],
+      "tests_completed": [
+        "Push run 36786495249 and PR run 36786496324 passed the full Python/frontend, deployed Compose, browser and recovery checks at 53ee96e",
+        "Local catalogue and progress journal validators PASS",
+        "Catalogue result counts independently recalculated as 2 PASS, 56 PARTIAL and 308 NOT_RUN"
+      ],
+      "tests_remaining": [
+        "MJ-REQ-010 global/company discovery, normalization/resolution/dedupe, AI and real ATS application architecture",
+        "MJ-REQ-008/009 remaining staged and physical-host acceptance",
+        "Full original catalogue, reference-gap and release acceptance"
+      ],
+      "migrations_applied": [
+        "92f0997f753e",
+        "098f12099319",
+        "547acf656c37",
+        "792dc0dc5664",
+        "a6e7f3c48921"
+      ],
+      "live_integrations_tested": [
+        "Existing exact-head CI: PostgreSQL/Redis/RQ/Chromium Compose fixture and personal deployments",
+        "Existing exact-head CI: bounded Greenhouse public GET through deployed source worker"
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "MJ-REQ-010 remains PARTIAL; provider breadth and company/AI branches are not complete",
+        "MJ-REQ-011 PASS is technology-stack acceptance only, not release readiness",
+        "All 42 MJ-REF items remain NOT_RUN and release readiness remains NOT_RUN"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "53ee96e7e413db07f0f6bb918c524d853d3901cf",
+        "evidence_path": "docs/evidence/2026-09-30-architecture-stack-reconciliation.json"
+      }
+    }
+  ],
+  "current_phase": "M3_ARCHITECTURE_STACK_RECONCILED",
+  "last_safe_checkpoint": {
+    "git_commit": "53ee96e7e413db07f0f6bb918c524d853d3901cf",
+    "evidence_path": "docs/evidence/2026-09-30-architecture-stack-reconciliation.json"
   }
 }

@@ -1,0 +1,49 @@
+{
+  "timestamp": "2026-09-30T21:32:09Z",
+  "target": "PR #428 implementation head fb55d44da1b9634fdfd7f1240ab3e57aba2df60d; MJ-REQ-009 controlled personal-mode public read",
+  "action": "Inspect exact-head GitHub Actions step outcomes and downloaded artifacts for the isolated personal Compose public-source worker and Chromium readback",
+  "result": "PARTIAL",
+  "push_run": {
+    "id": 36779321690,
+    "url": "https://github.com/MulattoTech/MJobs/actions/runs/36779321690",
+    "required_job": "PASS",
+    "live_source_step": "PASS",
+    "browser_readback_step": "PASS",
+    "observed": [
+      "Observed PERSONAL operation mode with external submission disabled before profile/source writes",
+      "Deployed RQ source worker completed a public Greenhouse API read and persisted 21 jobs with source endpoint, raw snapshot hash, MANUAL_ONLY submission capability and healthy source status",
+      "Connected Chromium readback showed persisted public jobs, heuristic match limitation, provider URL, manual-only factual preparation and rejection of mock-run for a real target",
+      "Source cooldown appeared as a failed operation without repeating public requests; external application requests remained zero",
+      "Fixture mock E2E, fixture browser, outage/restart recovery, isolated personal-mode E2E, 80 Python tests, two frontend tests/build, catalogue and progress validators passed"
+    ]
+  },
+  "pull_request_run": {
+    "id": 36779328463,
+    "url": "https://github.com/MulattoTech/MJobs/actions/runs/36779328463",
+    "required_job": "PASS",
+    "live_source_step": "FAIL",
+    "browser_readback_step": "NOT_RUN",
+    "observed": "The optional live source operation failed with ReadTimeout, persisted FAILED source health with one consecutive failure and backoff_until 2026-09-30T21:30:48.498357+00:00; no jobs were returned. The dependent browser step was skipped. Green required CI does not convert this optional external read into PASS."
+  },
+  "artifacts": [
+    {
+      "path": "docs/evidence/2026-09-30-ci-428-fb55d44-public-source.json",
+      "sha256": "BAFBECE09227238A5C3F83290375EC1080264F611CD62660E6212EDE439E40C8"
+    },
+    {
+      "path": "docs/evidence/2026-09-30-ci-428-fb55d44-public-ui.json",
+      "sha256": "F0A3761B2E8BF94C4452FE0D7605AB62011621B338E62AF065B3204B53F4ED1F"
+    },
+    {
+      "path": "docs/evidence/2026-09-30-ci-428-fb55d44-pr-public-source-failed.json",
+      "sha256": "285D571AF95DDF1265EFB8C00251EE64292CD46CB2D244A29925704B832E1C2C"
+    }
+  ],
+  "data_impact": "No database migration or real application. Public jobs and a clearly fictional probe profile were written only in isolated, short-lived CI personal Compose projects; external submission remained disabled.",
+  "recovery": "Preserve failed source health and cooldown evidence; the provider-dependent read can be retried only after backoff and a fresh operation. Do not blindly resubmit any application. Both CI projects were torn down without deleting tracked evidence.",
+  "limitations": [
+    "The live stage passed in one exact-head push run and failed from a provider ReadTimeout in the concurrent PR run; availability is not deterministic.",
+    "Local Docker Desktop Linux engine was unavailable; this deployed proof ran in GitHub Actions.",
+    "MJ-REQ-009 remains PARTIAL because complete staged operation/deployment acceptance is unverified; release readiness remains NOT_RUN."
+  ]
+}

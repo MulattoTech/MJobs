@@ -17,6 +17,7 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from packages.persistence import models as m
 from packages.persistence.store import Store, identity
+from packages.domain.operation_mode import parse_operation_mode, operation_mode_from_env
 from services.discovery.pipeline import MockClient
 from services.discovery.sources.collect import configure_source
 from workers.dispatch import enqueue_operation
@@ -68,9 +69,12 @@ class SourceInput(BaseModel):
     poll_interval: int = Field(default=300, ge=300, le=86400)
 
 
-def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379/0"):
-    guard = MockClient(mock_origin)
-    guard.close()
+def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379/0", operation_mode="PERSONAL"):
+    operation_mode = parse_operation_mode(operation_mode)
+    if operation_mode == "FIXTURE":
+        guard = MockClient(mock_origin)
+        guard.close()
+    store.bind_workspace_mode(operation_mode)
     app = FastAPI(title="MJobs", description="Local job discovery, factual preparation and tracking. External submission disabled.")
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost", "api", "testserver"])
 
@@ -100,11 +104,13 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     def health():
         with store.engine.connect() as connection:
             connection.execute(text("SELECT 1"))
-        return {"status": "ok", "check": "liveness", "mode": "LOCAL_FIRST", "external_submission_enabled": False}
+        return {"status": "ok", "check": "liveness", "mode": "LOCAL_FIRST", "operation_mode": operation_mode, "external_submission_enabled": False}
 
     @app.get("/readiness")
     def readiness():
-        checks = {"database": False, "queue": False, "worker": False, "mock": False}
+        checks = {"database": False, "queue": False, "worker": False}
+        if operation_mode == "FIXTURE":
+            checks["mock"] = False
         try:
             with store.engine.connect() as connection:
                 connection.execute(text("SELECT 1"))
@@ -120,14 +126,15 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             pass
         finally:
             redis.close()
-        client = MockClient(mock_origin)
-        try:
-            client.client.timeout = 2
-            checks["mock"] = client.get(mock_origin + "/health").json().get("status") == "ok"
-        except Exception:
-            pass
-        finally:
-            client.close()
+        if operation_mode == "FIXTURE":
+            client = MockClient(mock_origin)
+            try:
+                client.client.timeout = 2
+                checks["mock"] = client.get(mock_origin + "/health").json().get("status") == "ok"
+            except Exception:
+                pass
+            finally:
+                client.close()
         ready = all(checks.values())
         return JSONResponse({"status": "ready" if ready else "degraded", "checks": checks}, status_code=200 if ready else 503)
 
@@ -139,7 +146,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
 
     @app.get("/settings")
     def settings():
-        return {"mode": "LOCAL_FIRST", "external_submission_enabled": False, "browser_workers": limit("APPLY_MOCK"), "worker_limits": {kind: limit(kind) for kind in QUEUES}}
+        return {"mode": "LOCAL_FIRST", "operation_mode": operation_mode, "external_submission_enabled": False, "browser_workers": limit("APPLY_MOCK") if operation_mode == "FIXTURE" else 0, "worker_limits": {kind: limit(kind) for kind in QUEUES}}
 
     @app.get("/profiles")
     def profiles():
@@ -155,6 +162,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
 
     @app.post("/discovery", status_code=202)
     def discovery(value: DiscoveryInput):
+        if operation_mode != "FIXTURE":
+            raise HTTPException(409, "Fictional discovery is available only in verification mode")
         profile = store.profile(value.profile_id)
         return queued("DISCOVER", value.profile_id, {"profile_version": profile["version"], "request_id": value.request_id})
 
@@ -199,6 +208,9 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         profile = store.profile(value.profile_id)
         with store.engine.connect() as connection:
             connection.execute(select(m.jobs.c.id).where(m.jobs.c.id == value.job_id)).one()
+            if operation_mode == "PERSONAL" and connection.execute(select(m.routes.c.id).where(
+                    m.routes.c.job_id == value.job_id, m.routes.c.provider == "mock-ats")).first():
+                raise HTTPException(409, "Fictional applications are unavailable in personal mode")
         operation = queued("PREPARE", value.profile_id, {"job_id": value.job_id, "profile_version": profile["version"], "request_id": value.request_id})
         return {**operation, "application_id": identity(value.job_id, value.profile_id)}
 
@@ -232,6 +244,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
 
     @app.post("/applications/{application_id}/mock-run", status_code=202)
     def mock_run(application_id: str, value: MockRunInput):
+        if operation_mode != "FIXTURE":
+            raise HTTPException(409, "Fictional application actions are available only in verification mode")
         if store.application(application_id)["target"] != "MOCK":
             raise HTTPException(409, "External submission is disabled; this application supports manual preparation only")
         return queued("APPLY_MOCK", application_id, {"submit": value.submit})
@@ -264,8 +278,13 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
 
 
 def create_from_env():
+    operation_mode = operation_mode_from_env()
     store = Store(os.environ["MJOBS_DATABASE_URL"])
-    app = create_app(store, os.environ["MJOBS_MOCK_ORIGIN"], Path(os.environ["MJOBS_OUTPUT_DIR"]), os.environ["MJOBS_REDIS_URL"])
+    try:
+        app = create_app(store, os.environ["MJOBS_MOCK_ORIGIN"], Path(os.environ["MJOBS_OUTPUT_DIR"]), os.environ["MJOBS_REDIS_URL"], operation_mode=operation_mode)
+    except Exception:
+        store.engine.dispose()
+        raise
 
     @asynccontextmanager
     async def lifespan(_):

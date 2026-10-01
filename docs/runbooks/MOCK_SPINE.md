@@ -14,11 +14,14 @@ python -m venv .venv
 .venv\Scripts\python -m pip install -r requirements.lock
 .venv\Scripts\python -m playwright install chromium
 .venv\Scripts\python -m cli.init_env
-docker compose up -d --build
+$env:MJOBS_OPERATION_MODE = 'FIXTURE'
+$env:MJOBS_COMPOSE_MOCK = '1'
+docker compose --profile fixture up -d --build
 .venv\Scripts\python -m cli.mock_e2e --evidence outputs/mock-e2e.json
 ```
 
-The proof creates only an explicit fictional Alex Fixture profile. It discovers
+The explicit fixture profile starts the fictional ATS. Plain `docker compose up`
+uses PERSONAL mode and omits that service. The proof creates only an explicit fictional Alex Fixture profile. It discovers
 the board's Job A, resolves Example Systems' careers page and mock ATS, enrolls
 the employer, discovers employer-only Job B, matches verified skills, generates
 PDF/DOCX resume and cover letter, queues a real headless browser form flow and
@@ -27,7 +30,7 @@ identity and does not click Submit again.
 
 The API is at `http://127.0.0.1:18700`, with OpenAPI at `/docs`. `/health` checks
 database liveness; `/readiness` checks database, Redis, a worker for the `mjobs`
-queue and the mock service. `/settings` identifies MOCK mode and external OFF.
+queue and the mock service. `/settings` identifies FIXTURE operation mode and external OFF.
 Supply `profile_id` to `/jobs` to obtain that profile version's match scores.
 Profile facts and approved answers must be explicit, sourced and verified.
 
@@ -43,7 +46,7 @@ Redis, then restarts all five long-running services. It checks the original
 application, operation and independent mock receipt and requires submission
 count one. Do not run two recovery proofs concurrently.
 
-`docker compose stop` stops the project. `docker compose down` removes project
+`docker compose --profile fixture stop` stops the project. `docker compose --profile fixture down` removes project
 containers/networks while preserving named volumes. Do not remove volumes when
 preserving data. Alembic migrations run before API/worker startup; use new
 revisions instead of editing an applied revision.
@@ -63,9 +66,10 @@ revisions instead of editing an applied revision.
   or recurring source scheduler is provided yet.
 - No real read-only providers, application providers, AI or notifications are
   included in this milestone.
-- The reviewed CI definition is in `infra/ci/verification.yml`. GitHub rejected
-  creation under `.github/workflows` because current OAuth authorization lacks
-  workflow scope. Remote CI is BLOCKED_EXTERNAL, not PASS.
+- The active CI definition is `.github/workflows/ci.yml`. Workflow authorization
+  was restored on 2026-09-30; the merged connected UI spine passed remote CI
+  (see `docs/evidence/2026-09-30-ci-370.json`). The current PR head must pass
+  its own workflow before any newer change is called verified.
 
 For local tests run `python -m unittest discover -s tests -p test_*.py -v` using
 the project environment. SQLite is only the explicit test backend; deployment

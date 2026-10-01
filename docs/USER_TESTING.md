@@ -16,6 +16,19 @@ and the mock service. No separate Node/Python install is needed for normal use.
 For startup without opening a browser, add `-NoOpen`. Use `-NoBuild` only when
 the current source has already been built.
 
+For personal job-search operation, run `./Start-MJobs.ps1 -Personal`. The
+launcher defaults to the separate `mjobs-personal` Compose project and port
+18701, so its PostgreSQL, queue, documents and mock receipts do not share the
+fictional verification project's volumes. Personal mode hides the demo and
+rejects fictional discovery, preparation and mock submission at the API and
+worker, including old queued fixture work. Public Greenhouse reads, matching,
+factual document preparation and manual application links remain available.
+Switching modes does not copy profiles or documents between projects. External
+auto-submit remains disabled; this milestone is not a release-readiness claim.
+The API and workers bind each fresh database to one operation mode and refuse a
+mode flip. An older database with data but no binding is preserved and pauses
+startup for explicit review; see the [workspace mode runbook](runbooks/WORKSPACE_MODE.md).
+
 ## Try the full safe journey
 
 1. Choose **Load fictional demo**. This creates a separate labeled profile and
@@ -36,7 +49,7 @@ the current source has already been built.
 6. To test fictional confirmation, check **I approve one fictional mock
    submission**, then choose **Submit to local mock**. The local receipt has a
    submission count of one. Repeated requests reuse the durable operation.
-7. Reload the page or restart with `docker compose restart`. The selected profile,
+7. Reload the page or restart the fictional workspace with `docker compose --profile fixture restart`. The selected profile,
    document revisions, application history, and receipt remain available.
 
 ## Use your own profile and real public listings
@@ -68,7 +81,8 @@ also reject attempts to run the mock adapter on real applications.
 
 ## Diagnostics and recovery
 
-**Activity** shows database/queue/worker/mock readiness and durable operation
+**Activity** shows database/queue/worker readiness and, in fictional verification
+mode, mock readiness. Durable operation
 states. Failed, blocked, and cancelled work stops UI polling and displays an
 error category. Cancellation is available before a submission reservation;
 an uncertain or reserved submission requires reconciliation instead of retry.

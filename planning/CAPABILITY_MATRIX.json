@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-09-30T13:05:46.654343+00:00",
+  "timestamp": "2026-09-30T22:45:10Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -61,27 +61,43 @@
     },
     {
       "requirement_id": "MJ-REQ-008",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-30-progress-journal.json",
+        "docs/evidence/2026-09-30-ci-428.json"
+      ],
+      "note": "Atomic evidence-linked progress journal, reload, failed-write preservation and remote CI verified; physical host restart and future milestone adoption remain"
     },
     {
       "requirement_id": "MJ-REQ-009",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-30-operation-mode.json",
+        "docs/evidence/2026-09-30-ci-428-personal.json",
+        "docs/evidence/2026-09-30-personal-live-read-local.json",
+        "docs/evidence/2026-09-30-ci-428-personal-live-read.json",
+        "docs/evidence/2026-09-30-personal-compose-isolation-local.json",
+        "docs/evidence/2026-09-30-ci-428-compose-isolation.json",
+        "docs/evidence/2026-09-30-workspace-identity-local.json",
+        "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
+      ],
+      "note": "Personal API and worker reject fictional actions; direct Compose defaults to PERSONAL without mock. Durable per-database FIXTURE/PERSONAL identity refuses legacy nonempty databases before startup or claim and requires explicit snapshot-matched adoption without rewriting business rows. Local 91-test and SQLite migration checks passed; both exact-head CI runs passed PostgreSQL Alembic a6e7f3c48921 and stored-mode assertions, fixture recovery, separate personal no-mock Chromium and public read. Existing-data owner adoption, physical host restart, complete staged operation and release acceptance remain open"
     },
     {
       "requirement_id": "MJ-REQ-010",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-30-architecture-stack-reconciliation.json"
+      ],
+      "note": "Deployed dashboard/API, PostgreSQL, durable RQ workers, company-board source, matching, factual documents and controlled browser mock path verified. Global sources, automatic company discovery, broad resolution/dedupe, AI and real ATS application branches remain"
     },
     {
       "requirement_id": "MJ-REQ-011",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-09-30-architecture-stack-reconciliation.json"
+      ],
+      "note": "Both exact-head GitHub Actions runs executed pinned Python 3.12/FastAPI/Pydantic/SQLAlchemy/Alembic, TypeScript React/Vite, PostgreSQL 17, Redis/RQ, Playwright Chromium and Docker Compose deployments; Vite is an accepted mature React architecture"
     },
     {
       "requirement_id": "MJ-REQ-012",

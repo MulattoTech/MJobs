@@ -25,6 +25,7 @@ class UserReadModelTests(unittest.TestCase):
         self.root = Path(self.directory.name)
         self.store = Store(f"sqlite:///{(self.root / 'test.db').as_posix()}")
         self.store.migrate()
+        self.store.bind_workspace_mode("FIXTURE")
         self.store.save_profile(PROFILE)
 
     def tearDown(self):
@@ -32,7 +33,7 @@ class UserReadModelTests(unittest.TestCase):
         self.directory.cleanup()
 
     def test_profile_job_match_and_application_history_are_connected(self):
-        with fixture_server() as origin, TestClient(create_app(self.store, origin, self.root)) as client:
+        with fixture_server() as origin, TestClient(create_app(self.store, origin, self.root, operation_mode="FIXTURE")) as client:
             discover(self.store, origin, "fixture")
             self.assertEqual(client.get("/profiles/fixture").json()["facts"][0]["fact_id"], "python")
             jobs = client.get("/jobs", params={"profile_id": "fixture", "q": "data", "remote_type": "REMOTE"}).json()["jobs"]
@@ -48,7 +49,7 @@ class UserReadModelTests(unittest.TestCase):
             self.assertEqual(history[0]["target"], "MOCK")
 
     def test_integrity_checked_downloads_and_traversal_rejection(self):
-        with fixture_server() as origin, TestClient(create_app(self.store, origin, self.root)) as client:
+        with fixture_server() as origin, TestClient(create_app(self.store, origin, self.root, operation_mode="FIXTURE")) as client:
             discover(self.store, origin, "fixture")
             application = prepare(self.store, self.store.jobs()[0]["id"], "fixture", self.root)
             documents = client.get("/applications/" + application + "/documents").json()["documents"]
@@ -88,7 +89,7 @@ class UserReadModelTests(unittest.TestCase):
         job = self.store.jobs("fixture")[0]
         application = prepare(self.store, job["id"], "fixture", self.root)
         self.assertEqual(self.store.application(application)["target"], "REAL")
-        with fixture_server() as origin, TestClient(create_app(self.store, origin, self.root)) as client:
+        with fixture_server() as origin, TestClient(create_app(self.store, origin, self.root, operation_mode="FIXTURE")) as client:
             self.assertEqual(client.post("/applications/" + application + "/mock-run", json={"submit": True}).status_code, 409)
             self.assertEqual(client.get("/profiles/fixture", headers={"Sec-Fetch-Site": "cross-site"}).status_code, 403)
         self.store.save_profile(dict(PROFILE, facts=[dict(row, user_approved=False) for row in PROFILE["facts"]]))

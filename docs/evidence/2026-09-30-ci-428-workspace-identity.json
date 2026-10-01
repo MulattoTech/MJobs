@@ -1,0 +1,86 @@
+{
+  "timestamp": "2026-09-30T22:33:26Z",
+  "target": "PR #428 implementation and CI-assertion head 05b570d564c645e372a9c793c06b4cd3e5da1b3e; P0 MJ-REQ-009 durable workspace identity",
+  "action": "Inspect both exact-head GitHub Actions runs, explicit PostgreSQL Alembic revision and workspace-mode assertions, fixture/personal service sets, recovery and connected browser artifacts",
+  "result": "PASS",
+  "runs": [
+    {
+      "event": "push",
+      "id": 36785746644,
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/36785746644",
+      "conclusion": "PASS"
+    },
+    {
+      "event": "pull_request",
+      "id": 36785750958,
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/36785750958",
+      "conclusion": "PASS"
+    }
+  ],
+  "observed_in_both_runs": [
+    "91 Python tests, two frontend tests, TypeScript/Vite build, catalogue and progress validators passed",
+    "PostgreSQL fixture startup passed explicit SELECT checks for Alembic version a6e7f3c48921 and durable operation_mode FIXTURE",
+    "Actual fixture Compose service set included mock; mock application, connected Chromium UI and Redis outage/all-service restart recovery passed",
+    "Separate personal PostgreSQL startup passed explicit SELECT checks for Alembic version a6e7f3c48921 and durable operation_mode PERSONAL",
+    "Actual personal Compose service set omitted mock while API and three workers were running; personal API and connected Chromium rejected or hid fictional actions",
+    "Optional bounded public Greenhouse GET, deployed source-worker persistence and connected browser readback passed; each read observed 21 jobs, manual-only submission capability and external auto-submit disabled",
+    "Twelve downloaded GitHub Actions JSON artifacts were inspected and SHA-256 hashed"
+  ],
+  "artifacts": [
+    {
+      "path": "docs/evidence/2026-09-30-ci-428-05b570d-pr-mock-e2e.json",
+      "sha256": "98418c7784ce52b3a9dec35521e3e849c8dd02afa350fe0c00d5b29d21ab4936"
+    },
+    {
+      "path": "docs/evidence/2026-09-30-ci-428-05b570d-pr-personal-mode.json",
+      "sha256": "af1c3d877a07b8737eabdf069659c9e2a5ac03de80ee01aad38641228568e40e"
+    },
+    {
+      "path": "docs/evidence/2026-09-30-ci-428-05b570d-pr-personal-public-source.json",
+      "sha256": "b069e75ace7524a0ac531dedc3104acdfb21f645ac458503160295de5481f95e"
+    },
+    {
+      "path": "docs/evidence/2026-09-30-ci-428-05b570d-pr-personal-public-ui.json",
+      "sha256": "02ebb95343874de1c89644ac004fc0722428680d57e6139c487e37773ee0abb9"
+    },
+    {
+      "path": "docs/evidence/2026-09-30-ci-428-05b570d-pr-recovery.json",
+      "sha256": "2303f48700689b7f000654e59c425a6a56dcea347f9bf3c95255318a5061705f"
+    },
+    {
+      "path": "docs/evidence/2026-09-30-ci-428-05b570d-pr-ui.json",
+      "sha256": "debaf16e4b0bf210ad9e7024d50932fd9c9292acac5dcd552523ef0f08aa942b"
+    },
+    {
+      "path": "docs/evidence/2026-09-30-ci-428-05b570d-push-mock-e2e.json",
+      "sha256": "57101b60269fed87805953b2933ec6d0ac8918fa8b33a37e9d56819efdbb2c8a"
+    },
+    {
+      "path": "docs/evidence/2026-09-30-ci-428-05b570d-push-personal-mode.json",
+      "sha256": "ef8aa7b5a6dad6ef70b4700257e8b202894416138e64e12dac3880999a6d13f4"
+    },
+    {
+      "path": "docs/evidence/2026-09-30-ci-428-05b570d-push-personal-public-source.json",
+      "sha256": "5fac6794412052182f8d77dcc99e94bbbe66e8b03df3eb36efb07a60fa3f6f55"
+    },
+    {
+      "path": "docs/evidence/2026-09-30-ci-428-05b570d-push-personal-public-ui.json",
+      "sha256": "1215f3e1a1e78b7525d491ab56d9e132e292c92e51e2b53e69170b5eb07c511c"
+    },
+    {
+      "path": "docs/evidence/2026-09-30-ci-428-05b570d-push-recovery.json",
+      "sha256": "6b7fedaa2cc46a7d6c8f1a70b36065cfc32331bbe14cea40bfdf42f5e4a4e647"
+    },
+    {
+      "path": "docs/evidence/2026-09-30-ci-428-05b570d-push-ui.json",
+      "sha256": "ee5faea11ba1559803efb38d420819fdafcf09bb248a5f943d7a2b0fa0f5945f"
+    }
+  ],
+  "data_impact": "The migration created workspace_identity in fresh ephemeral CI PostgreSQL databases and each project bound to its own mode. No existing user database was migrated or adopted. Fixture and personal Compose volumes stayed separate; no real external application POST occurred.",
+  "recovery": "Preserve project volumes and backups. Existing populated databases remain unbound until explicit owner inspection and snapshot-matched adoption per docs/runbooks/WORKSPACE_MODE.md. Roll back code while retaining the identity table; downgrade refuses to drop a bound marker.",
+  "limitations": [
+    "This verifies fresh deployed PostgreSQL databases; adoption of a preexisting PostgreSQL workspace with real owner data and physical host restart were not exercised.",
+    "Direct maintenance scripts that bypass API/worker startup must invoke the Store workspace-mode guard.",
+    "MJ-REQ-009 remains PARTIAL; all MJ-REF items remain NOT_RUN; release readiness remains NOT_RUN."
+  ]
+}

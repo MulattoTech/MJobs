@@ -2,6 +2,7 @@
 import argparse
 from datetime import datetime, timezone
 import json
+import os
 from pathlib import Path
 import subprocess
 import time
@@ -13,7 +14,10 @@ from tests.integration.test_spine import PROFILE
 
 
 def compose(*arguments):
-    result = subprocess.run(["docker", "compose", *arguments], capture_output=True, text=True, timeout=90)
+    environment = os.environ.copy()
+    environment.update(MJOBS_OPERATION_MODE="FIXTURE", MJOBS_COMPOSE_MOCK="1", COMPOSE_PROFILES="fixture")
+    result = subprocess.run(["docker", "compose", "--profile", "fixture", *arguments], env=environment,
+                            capture_output=True, text=True, timeout=90)
     if result.returncode:
         raise RuntimeError("Project Compose action failed: " + " ".join(arguments))
     return result.stdout

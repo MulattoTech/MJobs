@@ -1,0 +1,49 @@
+{
+  "milestone_id": "M3-PERSONAL-LIVE-READ-STAGED",
+  "timestamp": "2026-09-30T21:23:28Z",
+  "current_phase": "M3_PERSONAL_LIVE_READ_STAGED",
+  "completed_steps": [
+    "Added an observed operation-mode gate before the controlled public-source probe writes any test data",
+    "Added a bounded optional live provider and browser readback stage after isolated personal Compose startup",
+    "Validated the mode gate, full Python suite, direct bounded public GET, catalogue and progress journal locally"
+  ],
+  "files_added": [
+    "tests/unit/test_public_source_probe.py",
+    "docs/evidence/2026-09-30-personal-live-read-local.json"
+  ],
+  "files_modified": [
+    "cli/public_source_probe.py",
+    ".github/workflows/ci.yml",
+    "planning/IMPLEMENTATION_STATE.json",
+    "planning/CAPABILITY_MATRIX.json",
+    "planning/PR_QUEUE.json"
+  ],
+  "tests_completed": [
+    "One targeted probe guard test PASS after an observed RED failure",
+    "80 full Python tests PASS",
+    "Direct bounded public Greenhouse GET returned 21 postings",
+    "Catalogue and progress journal validators PASS"
+  ],
+  "tests_remaining": [
+    "Exact-head remote deployed personal Compose public-source worker and Chromium readback",
+    "Full staged production deployment and release acceptance"
+  ],
+  "migrations_applied": [
+    "92f0997f753e",
+    "098f12099319",
+    "547acf656c37",
+    "792dc0dc5664"
+  ],
+  "live_integrations_tested": [
+    "Direct bounded public Greenhouse GET only; deployed personal worker pending"
+  ],
+  "known_errors": [],
+  "known_limitations": [
+    "Local Docker Desktop Linux engine unavailable; remote CI pending",
+    "External provider availability is nonrequired CI evidence and must be inspected separately"
+  ],
+  "last_safe_checkpoint": {
+    "git_commit": "a5d4095ece4bf7ff0faa9ce75b7f71bfdcf1c5b0",
+    "evidence_path": "docs/evidence/2026-09-30-ci-428-personal.json"
+  }
+}

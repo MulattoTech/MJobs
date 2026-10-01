@@ -2,8 +2,9 @@
 import os
 from pathlib import Path
 
-from sqlalchemy import update
+from sqlalchemy import select, update
 
+from packages.domain.operation_mode import operation_mode_from_env
 from packages.persistence import models as m
 from packages.persistence.store import Store, now
 from services.applications.mock_adapter import apply_mock
@@ -15,9 +16,15 @@ from services.documents.generate import prepare, PreparationError
 from workers.operations import claim, check_cancelled, OperationCancelled
 
 
+class FixtureOperationDisabled(Exception):
+    """A queued fixture task must not run after switching to personal mode."""
+
+
 def execute_operation(operation_id):
+    operation_mode = operation_mode_from_env()
     store = Store(os.environ["MJOBS_DATABASE_URL"])
     try:
+        store.assert_workspace_mode(operation_mode)
         operation = claim(store, operation_id)
         if operation is None:
             return {"status": "ALREADY_CLAIMED_OR_CAPACITY"}
@@ -26,6 +33,17 @@ def execute_operation(operation_id):
             check = lambda: check_cancelled(store, operation_id)
             check()
             state, error = "COMPLETED", None
+            if operation_mode == "PERSONAL":
+                if operation["kind"] == "APPLY_MOCK" or (operation["kind"] == "DISCOVER"
+                        and not operation["params"].get("source_id")
+                        and not operation["params"].get("rescore_only")):
+                    raise FixtureOperationDisabled()
+                if operation["kind"] == "PREPARE":
+                    with store.engine.connect() as connection:
+                        if connection.execute(select(m.routes.c.id).where(
+                                m.routes.c.job_id == operation["params"]["job_id"],
+                                m.routes.c.provider == "mock-ats")).first():
+                            raise FixtureOperationDisabled()
             if operation["kind"] == "DISCOVER":
                 params = operation["params"]
                 if params.get("source_id"):
@@ -45,6 +63,8 @@ def execute_operation(operation_id):
                 raise ValueError("Unsupported operation")
         except OperationCancelled:
             state, error = "CANCELLED", "CANCEL_REQUESTED"
+        except FixtureOperationDisabled:
+            state, error = "BLOCKED", "FIXTURE_OPERATION_DISABLED"
         except Exception as failure:
             state, error = "FAILED", failure.code if isinstance(failure, (SourceError, PreparationError)) else type(failure).__name__
         with store.engine.begin() as connection:

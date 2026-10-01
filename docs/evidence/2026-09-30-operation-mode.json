@@ -1,0 +1,50 @@
+{
+  "timestamp": "2026-09-30T20:55:36Z",
+  "target": "MJ-REQ-009 personal operation boundary on PR #428",
+  "action": "Separate fictional verification actions from personal API, worker, launcher and UI paths",
+  "result": "PARTIAL",
+  "validation": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_api_queue tests.integration.test_worker_lifecycle tests.unit.test_safety_policy -v",
+      "result": "PASS",
+      "observed": "36 tests; personal API blocks fixture actions and mixed-data runtime startup, public source queueing remains available, and stale fixture jobs become BLOCKED before browser execution"
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py' -v",
+      "result": "PASS",
+      "observed": "79 Python tests including browser, source, persistence, worker recovery and safety suites"
+    },
+    {
+      "command": "npm test --prefix apps/web",
+      "result": "PASS",
+      "observed": "2 frontend tests on installed Node 25; npm warned that Vitest declares Node 22/24/26 support"
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "observed": "Strict TypeScript check and production Vite build"
+    },
+    {
+      "command": "docker compose config --format json with POSTGRES_PASSWORD=config-check-only, MJOBS_OPERATION_MODE=PERSONAL and MJOBS_COMPOSE_MOCK=0",
+      "result": "PASS",
+      "observed": "API and worker render PERSONAL; mock access flag renders string 0; no containers started"
+    },
+    {
+      "command": "PowerShell Parser.ParseFile on Start-MJobs.ps1",
+      "result": "PASS",
+      "observed": "No syntax errors"
+    },
+    {
+      "command": "docker info --format '{{.OSType}}'",
+      "result": "BLOCKED_ENVIRONMENT",
+      "observed": "Local Docker Desktop Linux engine pipe is absent; isolated personal Compose/Chromium proof remains pending in GitHub Actions"
+    }
+  ],
+  "data_impact": "No schema migration. Start-MJobs.ps1 -Personal defaults to a separate Compose project and port; it does not copy fictional verification data into the personal project. The production API rejects PERSONAL startup if its database has mock application routes.",
+  "recovery": "Return to the existing fixture project to inspect its prior data; preserve volumes. If personal startup rejects a fixture database, choose a separate Compose project without deleting either volume set. A personal worker marks queued fictional work BLOCKED without changing application submission state or retrying an ambiguous submission.",
+  "limitations": [
+    "A full staged production deployment and release-readiness gate are not established.",
+    "The controlled live public source read was previously verified in fixture mode; isolated personal-mode remote E2E is pending.",
+    "Real external auto-submit remains disabled in both modes."
+  ]
+}

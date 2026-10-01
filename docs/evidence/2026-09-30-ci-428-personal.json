@@ -1,0 +1,44 @@
+{
+  "timestamp": "2026-09-30T21:08:41Z",
+  "target": "PR #428 MJ-REQ-009 implementation head 5048e81758a25f8b9168103a1f09eef21a1a4457",
+  "action": "Verify local personal/fixture boundary tests and remote fixture Compose, isolated personal Compose, connected Chromium, recovery and evidence capture",
+  "result": "PASS",
+  "remote_validation": {
+    "pull_request_run_id": 36776229356,
+    "push_run_id": 36776224242,
+    "pull_request_url": "https://github.com/MulattoTech/MJobs/actions/runs/36776229356",
+    "push_url": "https://github.com/MulattoTech/MJobs/actions/runs/36776224242",
+    "head_sha": "5048e81758a25f8b9168103a1f09eef21a1a4457",
+    "observed": [
+      "Both runs passed Node 24 installation, two frontend tests, strict TypeScript and Vite build",
+      "Both runs passed locked Python dependency installation, Chromium setup, 79 Python tests, catalogue and progress validators",
+      "Both runs passed fixture Compose build/start, controlled fictional mock application, connected Chromium UI and Redis outage/restart recovery",
+      "Both runs passed separate mjobs-personal Compose project startup and personal-mode Chromium/API E2E",
+      "Personal project began with empty profiles, jobs, applications and sources, rejected fictional discovery and submission with HTTP 409, hid fictional UI actions, and reported external submission disabled",
+      "Both runs uploaded evidence artifacts and completed project-specific Compose teardown"
+    ]
+  },
+  "artifacts": [
+    {
+      "path": "docs/evidence/2026-09-30-ci-428-5048e81-mock-e2e.json",
+      "sha256": "706082AFC095EBF46898A0C5D3C76768D525F3C236CABCD3138D3C783B78F175"
+    },
+    {
+      "path": "docs/evidence/2026-09-30-ci-428-5048e81-ui.json",
+      "sha256": "44888A26C63B2E31BC83EB08EB2AF5DB5638AA9DCA22E31070502BC6B41080C2"
+    },
+    {
+      "path": "docs/evidence/2026-09-30-ci-428-5048e81-recovery.json",
+      "sha256": "36E2B5EB8FA172510C3A57076F6ADE9B1595B2855FFDF9AC7438D56F31AFE905"
+    },
+    {
+      "path": "docs/evidence/2026-09-30-ci-428-5048e81-personal-mode.json",
+      "sha256": "DC1B44798155291F6DF6DA54CC3D755378902CF6BEE73F3F1720FD2DB2D13E4D"
+    }
+  ],
+  "limitations": [
+    "The fixture application and its receipt are fictional; no real external submission occurred.",
+    "The isolated personal project proved startup, empty data, action blocking and UI visibility; controlled live-source read and physical host restart were not run in personal mode.",
+    "MJ-REQ-008 and MJ-REQ-009 remain PARTIAL, MJ-REF-001..042 remain NOT_RUN, and release readiness remains NOT_RUN."
+  ]
+}

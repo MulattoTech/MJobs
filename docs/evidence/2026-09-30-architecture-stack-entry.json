@@ -1,0 +1,51 @@
+{
+  "milestone_id": "M3-ARCHITECTURE-STACK-RECONCILED",
+  "timestamp": "2026-09-30T22:46:56Z",
+  "current_phase": "M3_ARCHITECTURE_STACK_RECONCILED",
+  "completed_steps": [
+    "Re-fetched GitHub and local Git and read the active queue, original/reference completion surfaces, issues #11/#12 and governance area spec",
+    "Traced the running dashboard, API, source, worker, document, browser, PostgreSQL and Redis paths against MJ-REQ-010/011",
+    "Recorded MJ-REQ-010 PARTIAL and MJ-REQ-011 PASS with exact-head deployed CI evidence",
+    "Kept all 42 canonical reference gaps and release readiness separate from the original catalogue"
+  ],
+  "files_added": [
+    "docs/evidence/2026-09-30-architecture-stack-reconciliation.json"
+  ],
+  "files_modified": [
+    "planning/CAPABILITY_MATRIX.json",
+    "planning/IMPLEMENTATION_STATE.json",
+    "planning/PR_QUEUE.json",
+    "docs/FEATURE_COMPLETENESS.md"
+  ],
+  "tests_completed": [
+    "Push run 36786495249 and PR run 36786496324 passed the full Python/frontend, deployed Compose, browser and recovery checks at 53ee96e",
+    "Local catalogue and progress journal validators PASS",
+    "Catalogue result counts independently recalculated as 2 PASS, 56 PARTIAL and 308 NOT_RUN"
+  ],
+  "tests_remaining": [
+    "MJ-REQ-010 global/company discovery, normalization/resolution/dedupe, AI and real ATS application architecture",
+    "MJ-REQ-008/009 remaining staged and physical-host acceptance",
+    "Full original catalogue, reference-gap and release acceptance"
+  ],
+  "migrations_applied": [
+    "92f0997f753e",
+    "098f12099319",
+    "547acf656c37",
+    "792dc0dc5664",
+    "a6e7f3c48921"
+  ],
+  "live_integrations_tested": [
+    "Existing exact-head CI: PostgreSQL/Redis/RQ/Chromium Compose fixture and personal deployments",
+    "Existing exact-head CI: bounded Greenhouse public GET through deployed source worker"
+  ],
+  "known_errors": [],
+  "known_limitations": [
+    "MJ-REQ-010 remains PARTIAL; provider breadth and company/AI branches are not complete",
+    "MJ-REQ-011 PASS is technology-stack acceptance only, not release readiness",
+    "All 42 MJ-REF items remain NOT_RUN and release readiness remains NOT_RUN"
+  ],
+  "last_safe_checkpoint": {
+    "git_commit": "53ee96e7e413db07f0f6bb918c524d853d3901cf",
+    "evidence_path": "docs/evidence/2026-09-30-architecture-stack-reconciliation.json"
+  }
+}

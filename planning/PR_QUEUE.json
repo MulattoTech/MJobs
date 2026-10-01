@@ -60,10 +60,11 @@
       "depends_on": [
         "MJ-PR-002"
       ],
-      "status": "QUEUED",
+      "status": "DRAFT_PR",
       "branch": "codex/mj-pr-003-governance-safety",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "P0 vertical slices: MJ-REQ-008 progress journal and MJ-REQ-009 personal/fixture boundary remain PARTIAL; durable identity and explicit PostgreSQL fixture/personal checks passed exact-head CI. MJ-REQ-010 architecture is PARTIAL: the deployed dashboard/API, durable source/match/document/application mock spine exists, while global/company discovery, broader resolution/dedupe, AI and real ATS services remain. MJ-REQ-011 preferred stack is PASS from deployed Python/FastAPI/React/Vite/PostgreSQL/Redis/RQ/Playwright/Compose evidence. Legacy owner-data adoption, physical host restart and complete staged operation remain open.",
+      "pr_number": 428
     },
     {
       "id": "MJ-PR-004",

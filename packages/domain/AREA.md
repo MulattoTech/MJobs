@@ -5,6 +5,8 @@ No network, browser, database, AI, or host configuration side effects belong her
 
 Public interfaces: immutable Fact, Policy, SubmissionContext, Decision;
 evaluate_submission(context, policy); select_verified_facts(profile, requested_ids).
+`operation_mode_from_env()` defaults to PERSONAL for directly launched services;
+FIXTURE must be explicit. Unknown values fail closed before API/worker startup.
 Policy defaults are conservative initial values, configurable without bypassing
 truthfulness, intervention, source permission, or explicit enablement gates.
 

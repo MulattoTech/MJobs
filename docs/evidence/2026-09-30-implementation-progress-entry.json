@@ -1,0 +1,47 @@
+{
+  "milestone_id": "M3-STACKED-SPINE-INTEGRATED",
+  "timestamp": "2026-09-30T20:10:29Z",
+  "current_phase": "M3_LOCAL_USER_TESTING_VERIFIED",
+  "completed_steps": [
+    "Merged PRs #367, #368, #369 and #370 in dependency order after exact-head CI checks",
+    "Verified post-merge main Actions run 36769434214",
+    "Reconciled original and reference issue catalogues without promoting incomplete requirements"
+  ],
+  "files_added": [
+    "docs/evidence/2026-09-30-ci-370.json",
+    "docs/evidence/2026-09-30-reference-reconciliation.json"
+  ],
+  "files_modified": [
+    "planning/IMPLEMENTATION_STATE.json",
+    "planning/PR_QUEUE.json",
+    "planning/REFERENCE_GAP_MATRIX.json"
+  ],
+  "tests_completed": [
+    "PR #370 CI: 67 Python tests, 2 frontend tests/build, catalogue, Compose mock E2E, connected UI and recovery PASS",
+    "Main post-merge Actions run 36769434214 PASS",
+    "Reference issue map compared against live GitHub: 42 canonical issues, zero mismatches"
+  ],
+  "tests_remaining": [
+    "Original full-spec product and release acceptance",
+    "Real external submission remains disabled and is not a test harness"
+  ],
+  "migrations_applied": [
+    "92f0997f753e",
+    "098f12099319",
+    "547acf656c37",
+    "792dc0dc5664"
+  ],
+  "live_integrations_tested": [
+    "Controlled public Greenhouse read-only GET in earlier local user-testing evidence"
+  ],
+  "known_errors": [],
+  "known_limitations": [
+    "Original MJ-REQ catalogue remains 1 PASS, 53 PARTIAL, 312 NOT_RUN",
+    "Reference MJ-REF catalogue remains 42 NOT_RUN",
+    "Release readiness remains NOT_RUN"
+  ],
+  "last_safe_checkpoint": {
+    "git_commit": "8ee6b0a7578ab4c8a46f1bac2c707a88048473ab",
+    "evidence_path": "docs/evidence/2026-09-30-ci-370.json"
+  }
+}

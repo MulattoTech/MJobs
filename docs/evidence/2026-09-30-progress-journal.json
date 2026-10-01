@@ -1,0 +1,36 @@
+{
+  "timestamp": "2026-09-30T20:12:40Z",
+  "target": "MJ-PR-003 initial P0 progress-journal slice, MJ-REQ-008",
+  "action": "Record and validate an evidence-linked implementation milestone with atomic state replacement",
+  "result": "PARTIAL",
+  "validation": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_progress_journal -v",
+      "result": "PASS",
+      "observed": "5 tests: reload, duplicate/missing-evidence rejection, failed replacement preservation, UTC chronology, corrupt-prior-journal rejection"
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py' -v",
+      "result": "PASS",
+      "observed": "73 tests including affected browser, API, persistence, source, worker and safety suites"
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.catalogue",
+      "result": "PASS",
+      "observed": "Catalogue validation: PASS"
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.progress record --entry docs/evidence/2026-09-30-implementation-progress-entry.json",
+      "result": "PASS",
+      "observed": "Progress journal validation: PASS; state reloaded with milestone M3-STACKED-SPINE-INTEGRATED"
+    }
+  ],
+  "data_impact": "planning/IMPLEMENTATION_STATE.json gains an append-only milestone_journal and last_safe_checkpoint; no database migration or personal application data",
+  "remote_evidence": "docs/evidence/2026-09-30-ci-428.json",
+  "recovery": "A failed atomic replace retains the prior state file. The last verified Git commit and evidence path are carried in the journal entry; preserve committed entries when repairing a later checkpoint.",
+  "limitations": [
+    "MJ-REQ-008 remains PARTIAL because physical host restart and future milestone adoption are not yet verified.",
+    "MJ-REQ-009 through MJ-REQ-011 remain NOT_RUN in the original matrix for this slice.",
+    "Real external auto-submit remains disabled and is not a validation harness."
+  ]
+}

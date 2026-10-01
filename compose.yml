@@ -11,7 +11,8 @@ x-runtime: &runtime
     MJOBS_DATABASE_URL: postgresql+psycopg://mjobs:${POSTGRES_PASSWORD:?Run python cli/init_env.py}@postgres/mjobs
     MJOBS_REDIS_URL: redis://redis:6379/0
     MJOBS_MOCK_ORIGIN: http://mock:8090
-    MJOBS_COMPOSE_MOCK: '1'
+    MJOBS_COMPOSE_MOCK: ${MJOBS_COMPOSE_MOCK:-0}
+    MJOBS_OPERATION_MODE: ${MJOBS_OPERATION_MODE:-PERSONAL}
     MJOBS_OUTPUT_DIR: /data/documents
   volumes:
     - documents:/data/documents
@@ -56,7 +57,6 @@ services:
     depends_on:
       migrate: {condition: service_completed_successfully}
       redis: {condition: service_healthy}
-      mock: {condition: service_healthy}
     healthcheck:
       test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"]
       interval: 5s
@@ -64,6 +64,7 @@ services:
       retries: 20
   mock:
     <<: *runtime
+    profiles: [fixture]
     command: [python, -m, fixtures.mock_server]
     environment:
       MOCK_RECEIPT_FILE: /data/receipts.json
@@ -84,7 +85,6 @@ services:
     depends_on:
       migrate: {condition: service_completed_successfully}
       redis: {condition: service_healthy}
-      mock: {condition: service_healthy}
   source-worker:
     <<: *runtime
     networks: [private, source-egress]
@@ -96,7 +96,6 @@ services:
     depends_on:
       migrate: {condition: service_completed_successfully}
       redis: {condition: service_healthy}
-      mock: {condition: service_healthy}
   document-worker:
     <<: *runtime
     command: [python, -m, workers.main]
@@ -107,7 +106,6 @@ services:
     depends_on:
       migrate: {condition: service_completed_successfully}
       redis: {condition: service_healthy}
-      mock: {condition: service_healthy}
 networks:
   private:
     internal: true
