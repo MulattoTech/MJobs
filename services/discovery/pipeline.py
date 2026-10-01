@@ -16,6 +16,7 @@ from services.discovery.search_semantics import (
 )
 from services.discovery.skill_taxonomy import extract_skills
 from services.discovery.requirement_parsers import parse_job_requirements
+from services.discovery.negative_filters import parse_negative_conditions
 
 
 class MockClient:
@@ -107,6 +108,7 @@ def discover(store, mock_origin, profile_id, check=None, profile_version=None):
                 title_info = normalize_title(row["title"])
                 education = parse_education_requirement(description)
                 requirements = parse_job_requirements(description)
+                negative_conditions = parse_negative_conditions(description, requirements["clearance"])
                 skill_data = extract_skills(row["title"] + " " + description + " " + " ".join(row.get("skills") or []))
                 salary_period = str(row.get("salary_period") or "UNKNOWN").upper()
                 if salary_period not in {"HOUR", "YEAR"}:
@@ -124,6 +126,7 @@ def discover(store, mock_origin, profile_id, check=None, profile_version=None):
                            "certifications": requirements["certifications"],
                            "clearance": requirements["clearance"],
                            "work_authorization": requirements["work_authorization"],
+                           "negative_conditions": negative_conditions,
                            "salary_min": row.get("salary_min"), "salary_max": row.get("salary_max"),
                            "salary_period": salary_period, "salary_currency": row.get("salary_currency"),
                            "salary_source": "SOURCE_PROVIDED" if row.get("salary_min") is not None or row.get("salary_max") is not None else "UNKNOWN",

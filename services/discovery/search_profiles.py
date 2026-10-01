@@ -8,6 +8,7 @@ from services.discovery.search_semantics import (
 )
 from services.discovery.skill_taxonomy import normalize_skill_list
 from services.discovery.requirement_parsers import CLEARANCE_LEVELS, WORK_AUTHORIZATION_FLAGS
+from services.discovery.negative_filters import NEGATIVE_CONDITIONS
 
 
 REMOTE_PREFERENCES = {"ANY", "REQUIRED", "EXCLUDED"}
@@ -95,6 +96,10 @@ def save_search_profile(store, data):
     excluded_auth = _clean_strings(data.get("excluded_work_authorization_flags", []), limit=20, length=64)
     if any(value not in WORK_AUTHORIZATION_FLAGS for value in excluded_auth):
         raise ValueError("Search profile work authorization flag is invalid")
+    excluded_conditions = _clean_strings(data.get("excluded_conditions", []), limit=20, length=64)
+    if any(value not in NEGATIVE_CONDITIONS for value in excluded_conditions):
+        raise ValueError("Search profile negative condition is invalid")
+    max_travel_percent = _bounded_float(data.get("max_travel_percent"), 0, 100, "Maximum travel percent")
     if date_window == "CUSTOM":
         start, end = parse_timestamp(date_start), parse_timestamp(date_end)
         if start is None or end is None or start > end:
@@ -135,6 +140,8 @@ def save_search_profile(store, data):
         "clearance_levels": clearance_levels,
         "exclude_clearance_required": data.get("exclude_clearance_required", False),
         "excluded_work_authorization_flags": excluded_auth,
+        "excluded_conditions": excluded_conditions,
+        "max_travel_percent": max_travel_percent,
         "radius_miles": _bounded_float(data.get("radius_miles"), 1, 10000, "Search radius"),
         "radius_latitude": _bounded_float(data.get("radius_latitude"), -90, 90, "Search latitude"),
         "radius_longitude": _bounded_float(data.get("radius_longitude"), -180, 180, "Search longitude"),

@@ -18,6 +18,7 @@ from services.discovery.search_semantics import (
 )
 from services.discovery.skill_taxonomy import extract_skills
 from services.discovery.requirement_parsers import parse_job_requirements
+from services.discovery.negative_filters import parse_negative_conditions
 
 HOST = "https://boards-api.greenhouse.io"
 
@@ -186,6 +187,7 @@ class Greenhouse:
             salary = parse_salary(description, "EMPLOYER_PROVIDED")
         reported = parse_timestamp(raw.get("first_published_at") or raw.get("published_at"))
         requirements = parse_job_requirements(description)
+        negative_conditions = parse_negative_conditions(description, requirements["clearance"])
         return {"requisition": str(raw["id"]), "title": title, "description": description,
                 "skills": skill_data["labels"], "location": location, "remote_type": location_facts["remote_type"], "application_url": url,
                 "attributes": {"provider": "greenhouse", "tenant": self.tenant, "native_job_id": raw.get("internal_job_id"),
@@ -199,6 +201,7 @@ class Greenhouse:
                     "certifications": requirements["certifications"],
                     "clearance": requirements["clearance"],
                     "work_authorization": requirements["work_authorization"],
+                    "negative_conditions": negative_conditions,
                     "salary_min": salary["salary_min"],
                     "salary_max": salary["salary_max"], "salary_period": salary["salary_period"],
                     "salary_currency": salary["currency"], "salary_source": salary["salary_source"],

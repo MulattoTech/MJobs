@@ -332,9 +332,11 @@
     },
     {
       "requirement_id": "MJ-REQ-039",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-01-negative-filters.json"
+      ],
+      "note": "Verified explicit user negative filters in MJ-PR-011"
     },
     {
       "requirement_id": "MJ-REQ-040",
