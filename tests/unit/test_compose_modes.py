@@ -44,6 +44,23 @@ class ComposeModeTests(unittest.TestCase):
         self.assertEqual(configuration["services"]["api"]["environment"]["MJOBS_OPERATION_MODE"], "FIXTURE")
         self.assertEqual(configuration["services"]["api"]["environment"]["MJOBS_COMPOSE_MOCK"], "1")
 
+    def test_durable_dependencies_restart_with_runtime(self):
+        configuration = json.loads(self.render("--format", "json"))
+        services = configuration["services"]
+        for name in ("postgres", "redis", "api", "worker", "source-worker", "document-worker"):
+            with self.subTest(service=name):
+                self.assertEqual(services[name]["restart"], "unless-stopped")
+        self.assertNotIn("restart", services["migrate"])
+
+    def test_browser_document_and_discovery_have_distinct_consumers(self):
+        configuration = json.loads(self.render("--format", "json"))
+        services = configuration["services"]
+        queues = {name: services[name]["environment"]["MJOBS_WORKER_QUEUE"]
+                  for name in ("worker", "source-worker", "document-worker")}
+        self.assertEqual(queues, {"worker": "mjobs-application", "source-worker": "mjobs-discovery",
+                                  "document-worker": "mjobs-document"})
+        self.assertEqual(len(set(queues.values())), len(queues))
+
 
 if __name__ == "__main__":
     unittest.main()

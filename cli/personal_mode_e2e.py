@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 from datetime import datetime, timezone
+import hashlib
 import json
 from pathlib import Path
 import time
@@ -43,6 +44,13 @@ def run(api_url: str, evidence_path: Path | None = None) -> dict:
         }
         if any(status != 409 for status in rejected.values()):
             raise RuntimeError("A fictional action was available in personal mode: " + repr(rejected))
+        profile_id = "personal-upload-probe"
+        profile = {"id": profile_id, "name": "Synthetic Upload Probe", "email": "upload@example.invalid",
+                   "facts": [{"id": "synthetic", "kind": "skill", "text": "Synthetic test input",
+                              "source": "Isolated CI test", "verified": False, "user_approved": False,
+                              "confidence": 0}], "answers": []}
+        client.put("/profiles", json=profile).raise_for_status()
+    sample = b"%PDF-1.4\n%%EOF\n"
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch(headless=True)
         try:
@@ -55,8 +63,27 @@ def run(api_url: str, evidence_path: Path | None = None) -> dict:
             page.get_by_role("heading", name="Public Greenhouse board").wait_for(timeout=10000)
             if page.get_by_role("heading", name="Fictional local source").count():
                 raise RuntimeError("Personal UI still offers fictional source actions")
+            page.locator("#active-profile").select_option(profile_id)
+            page.get_by_role("button", name="Profile", exact=True).click()
+            page.get_by_label("Choose a resume (up to 10 MiB)").set_input_files({
+                "name": "Synthetic Resume.pdf", "mimeType": "application/pdf", "buffer": sample})
+            page.get_by_role("button", name="Store resume").click()
+            page.get_by_text("STORED UNREVIEWED").wait_for(timeout=15000)
         finally:
             browser.close()
+    with httpx.Client(base_url=api_url, timeout=15, trust_env=False) as client:
+        stored = client.get(f"/profiles/{profile_id}/resumes")
+        stored.raise_for_status()
+        resumes = stored.json()["resumes"]
+        if len(resumes) != 1 or resumes[0]["status"] != "STORED_UNREVIEWED":
+            raise RuntimeError("Browser upload did not create one unreviewed resume")
+        downloaded = client.get(f"/profiles/{profile_id}/resumes/{resumes[0]['id']}")
+        downloaded.raise_for_status()
+        if downloaded.content != sample or resumes[0]["sha256"] != hashlib.sha256(sample).hexdigest():
+            raise RuntimeError("Stored resume failed API download/checksum readback")
+        facts = client.get(f"/profiles/{profile_id}").json()["facts"]
+        if len(facts) != 1 or facts[0]["verified"] or facts[0]["user_approved"]:
+            raise RuntimeError("Resume upload silently approved a career fact")
     evidence = {
         "result": "PASS",
         "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -67,6 +94,8 @@ def run(api_url: str, evidence_path: Path | None = None) -> dict:
         "empty_personal_surfaces": list(empty_surfaces),
         "public_source_ui_available": True,
         "fictional_ui_actions_hidden": True,
+        "uploaded_resume": {"status": "STORED_UNREVIEWED", "format": "pdf", "bytes_verified": len(sample),
+                            "browser_path": "Profile file input and Store resume", "facts_approved": 0},
         "external_submission_enabled": False,
     }
     if evidence_path:

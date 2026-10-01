@@ -1,0 +1,79 @@
+{
+  "timestamp": "2026-09-30T23:57:56.980518Z",
+  "target": "Draft PR #430 P0 service queues, Docker dependency restart and local-first startup; MJ-REQ-012/013/014",
+  "head_sha": "44ce3d5a3ff57670eb829e0bd74ecb8f702bcab4",
+  "base_pr": 429,
+  "action": "Verify exact-head push and pull_request workflows, inspect all deployed artifacts and retain SHA256 hashes",
+  "commands": [
+    "gh run view 36793203240 --repo MulattoTech/MJobs --json status,conclusion,headSha,event,jobs",
+    "gh run view 36793197626 --repo MulattoTech/MJobs --json status,conclusion,headSha,event,jobs",
+    "gh run download 36793203240 --repo MulattoTech/MJobs --name fictional-mock-evidence",
+    "gh run download 36793197626 --repo MulattoTech/MJobs --name fictional-mock-evidence"
+  ],
+  "runs": [
+    {
+      "event": "pull_request",
+      "run_id": 36793203240,
+      "artifact_id": 11133025980,
+      "head_sha": "44ce3d5a3ff57670eb829e0bd74ecb8f702bcab4",
+      "conclusion": "PASS",
+      "public_read": {
+        "provider": "greenhouse",
+        "jobs": 21,
+        "operation_state": "COMPLETED",
+        "external_application_requests": 0
+      },
+      "artifact_sha256": {
+        "docs/evidence/2026-09-30-ci-430-44ce3d5-pr-ci-mock-e2e.json": "9e4676b1285d8b7d4591e6c792427104365ca8298e0b441f53530e6a7a06460d",
+        "docs/evidence/2026-09-30-ci-430-44ce3d5-pr-ci-personal-mode.json": "d5db3d9655ded6ed771c8b1dcaa2172e8add05319f7ac358a15ae728f09be1ee",
+        "docs/evidence/2026-09-30-ci-430-44ce3d5-pr-ci-personal-public-source.json": "4f4e472711b1a044b275cedceae94de90009bbbfbe24c17922906a23301f9d59",
+        "docs/evidence/2026-09-30-ci-430-44ce3d5-pr-ci-personal-public-ui.json": "13e0453e2ae1429bbeaaa948eb4bb493334617e6e89658ff8dd5d5676688583e",
+        "docs/evidence/2026-09-30-ci-430-44ce3d5-pr-ci-recovery.json": "e177013089628d148534b142fc5caff60ec039afe66559e30a41268379787368",
+        "docs/evidence/2026-09-30-ci-430-44ce3d5-pr-ci-ui.json": "480563330c7bdbe5e4e0a09457f1f612fc7923a985e078acc80cb1e6d04e0231"
+      }
+    },
+    {
+      "event": "push",
+      "run_id": 36793197626,
+      "artifact_id": 11133381020,
+      "head_sha": "44ce3d5a3ff57670eb829e0bd74ecb8f702bcab4",
+      "conclusion": "PASS",
+      "public_read": {
+        "provider": "greenhouse",
+        "jobs": 21,
+        "operation_state": "COMPLETED",
+        "external_application_requests": 0
+      },
+      "artifact_sha256": {
+        "docs/evidence/2026-09-30-ci-430-44ce3d5-push-ci-mock-e2e.json": "81bb1ed19f87a983f1336d96ccb5a7e41af59a1505590b979eff68f2e9880619",
+        "docs/evidence/2026-09-30-ci-430-44ce3d5-push-ci-personal-mode.json": "5262e1cc15760c478860eabe6e6793f79fc847561b357b9164c32bbb98e88c16",
+        "docs/evidence/2026-09-30-ci-430-44ce3d5-push-ci-personal-public-source.json": "6a2d1d1974e751a3dd33dada5c2dafcdff0fd164091a76d8aa30d6d8c777db5d",
+        "docs/evidence/2026-09-30-ci-430-44ce3d5-push-ci-personal-public-ui.json": "ce6bc413b0973c6b367e5fc4398eab90dd11fd46cc0eb59f3e369ba796b6c289",
+        "docs/evidence/2026-09-30-ci-430-44ce3d5-push-ci-recovery.json": "f43143468e18c2a26b015a8474dd315b82615212d7ac048596057c82949ddba1",
+        "docs/evidence/2026-09-30-ci-430-44ce3d5-push-ci-ui.json": "510234783b1717c5d2843b76ba52b12cb3506649f2e17cbc838833c792bc8caa"
+      }
+    }
+  ],
+  "observed": [
+    "Both required product-suite-and-connected-ui jobs succeeded at identical implementation head; no failed steps",
+    "Both runs executed Python unit suite, frontend test/build, catalogue/progress validators, fixture mock/browser/recovery, personal no-mock/Chromium/public source paths",
+    "Both personal public-source probes returned 21 public Greenhouse jobs via deployed source worker with healthy source, completed operation and zero external application requests",
+    "All twelve retained artifacts report PASS and external submission disabled",
+    "Existing local mjobs project readiness independently returned HTTP 200 with database, queue, worker and mock true after Docker Desktop relaunch"
+  ],
+  "requirements": {
+    "MJ-REQ-012": "PASS",
+    "MJ-REQ-013": "PARTIAL",
+    "MJ-REQ-014": "PARTIAL"
+  },
+  "reference_gap_status": "All 42 canonical MJ-REF items remain NOT_RUN",
+  "release_readiness": "NOT_RUN",
+  "migration_data_impact": "No schema migration or user-data change. CI used isolated fixture and personal PostgreSQL databases. Existing local mjobs volumes were retained.",
+  "rollback_recovery": "Revert the two Compose restart-policy lines if necessary; data volumes remain. Restart existing postgres/redis containers in place and verify /readiness if Docker Desktop restarts before code integration.",
+  "limitations": [
+    "CI validated Compose startup and deployed workers, not a host or Docker daemon relaunch",
+    "Uploaded resumes, backup/restore and full raw Compose first-run acceptance remain open",
+    "No real external application submission was attempted"
+  ],
+  "result": "PASS"
+}

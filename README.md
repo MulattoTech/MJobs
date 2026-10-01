@@ -16,12 +16,21 @@ The command preserves local data, builds the application, applies migrations,
 checks the workers, and opens http://127.0.0.1:18700. See
 [the user-testing guide](docs/USER_TESTING.md) for the connected journey,
 diagnostics, verification commands, and current limitations.
+Run the same command after Docker Desktop restarts to reconcile services without
+deleting their named data volumes. The PostgreSQL, Redis, API, and worker
+containers use `unless-stopped` restart policies; applying a newer Compose file
+to an existing project requires another launcher run.
 
 For a separate personal workspace without fictional discovery or mock application
 actions, run `./Start-MJobs.ps1 -Personal` in PowerShell. It uses a separate
 Compose project and data volumes at http://127.0.0.1:18701. Public read-only
 source collection and factual manual preparation remain available. Real external
 auto-submit stays off in both modes.
+
+For an offline PostgreSQL and document backup, followed by a restore into a
+separate empty Compose project, use the
+[local backup runbook](docs/runbooks/LOCAL_BACKUP.md). Keep backup archives
+outside this repository and protect them as personal data.
 
 Repository operating instructions live in [AGENTS.md](AGENTS.md). The complete
 requirements remain in the GitHub backlog and scoped [area specifications](docs/spec/areas).

@@ -1,0 +1,26 @@
+{
+  "result": "PASS",
+  "timestamp": "2026-10-01T00:23:38.645641+00:00",
+  "target": "fresh isolated PERSONAL project restored from offline PostgreSQL and document backup",
+  "source_project": "mjobs-bk-pers-src-20261001",
+  "target_project": "mjobs-bk-pers-dst-20261001",
+  "profile_preserved": true,
+  "source_catalog_count": 1,
+  "job_postings_preserved": 1,
+  "application_state": "PREPARED",
+  "application_target": "REAL",
+  "operation_state": "COMPLETED",
+  "document_records": 2,
+  "verified_document_downloads": 4,
+  "readiness": {
+    "status": "ready",
+    "checks": {
+      "database": true,
+      "queue": true,
+      "worker": true
+    }
+  },
+  "operation_mode": "PERSONAL",
+  "external_submission_enabled": false,
+  "real_external_application_requests": 0
+}

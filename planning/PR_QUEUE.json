@@ -60,10 +60,10 @@
       "depends_on": [
         "MJ-PR-002"
       ],
-      "status": "DRAFT_PR",
+      "status": "MERGED",
       "branch": "codex/mj-pr-003-governance-safety",
       "draft_until_verified": true,
-      "notes": "P0 vertical slices: MJ-REQ-008 progress journal and MJ-REQ-009 personal/fixture boundary remain PARTIAL; durable identity and explicit PostgreSQL fixture/personal checks passed exact-head CI. MJ-REQ-010 architecture is PARTIAL: the deployed dashboard/API, durable source/match/document/application mock spine exists, while global/company discovery, broader resolution/dedupe, AI and real ATS services remain. MJ-REQ-011 preferred stack is PASS from deployed Python/FastAPI/React/Vite/PostgreSQL/Redis/RQ/Playwright/Compose evidence. Legacy owner-data adoption, physical host restart and complete staged operation remain open.",
+      "notes": "Merged as 65efa0d6dd0c77e6f7a8b9f8a0108a08fc714939 after exact-head required checks. P0 MJ-REQ-008/009/010 remain PARTIAL; MJ-REQ-011 PASS. Legacy owner-data adoption, physical host restart and complete staged operation remain open.",
       "pr_number": 428
     },
     {
@@ -79,10 +79,11 @@
       "depends_on": [
         "MJ-PR-003"
       ],
-      "status": "QUEUED",
+      "status": "DRAFT_PR",
       "branch": "codex/mj-pr-004-governance-safety",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "P0 MJ-REQ-012 PASS; MJ-REQ-013/014/167/168 PARTIAL. Draft #430 now targets main after #428/#429 merged. Docker relaunch repair, fresh direct PERSONAL Compose, bounded profile resume storage, browser upload, offline database/document restore and pre-upload archive migration passed locally. MJ-REQ-090/173 are PARTIAL; native extraction, protected host configuration, physical host restart and complete acceptance remain open. New upload head awaits exact-head CI; external submission remains disabled.",
+      "pr_number": 430
     },
     {
       "id": "MJ-PR-005",
@@ -98,10 +99,10 @@
       "depends_on": [
         "MJ-PR-001"
       ],
-      "status": "DRAFT_PR",
+      "status": "MERGED",
       "branch": "codex/mj-pr-005-core-search-model",
       "draft_until_verified": true,
-      "notes": "MJ-REQ-016 source adapter interface PASS; MJ-REQ-018 strategy PARTIAL (only Greenhouse production API). Attributed multi-company persistence and duplicate-requisition provenance verified. MJ-REQ-015 remains PARTIAL; MJ-REQ-017 NOT_RUN. Draft #429 stacks on #428 to preserve newer P0 work. Push 36789502626 and PR 36789504355 passed at 2222cb1; evidence head 255f480 push 36790131817 and PR 36790138449 also passed.",
+      "notes": "Merged as 602fc26e411953d5adec48fc8642ec1a406ec147 after exact-head required checks. MJ-REQ-016 source adapter interface PASS; MJ-REQ-018 strategy PARTIAL with Greenhouse the sole production adapter. Attributed multi-company persistence and duplicate-requisition provenance verified. MJ-REQ-015 PARTIAL; MJ-REQ-017 NOT_RUN.",
       "pr_number": 429
     },
     {
@@ -903,7 +904,7 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-046-orchestration-data-security",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "MJ-REQ-167/168 have a PARTIAL offline PostgreSQL/generated-document backup and fresh-project restore slice in draft #430, shared with P0 local-first durability. MJ-PR-046 remains QUEUED for full data coverage and MJ-REQ-169/170; do not open a duplicate PR for the overlap."
     },
     {
       "id": "MJ-PR-047",

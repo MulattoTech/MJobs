@@ -1,0 +1,62 @@
+{
+  "timestamp": "2026-09-30T23:43:36Z",
+  "updated_at": "2026-09-30T23:47:58Z",
+  "implementation_head": "e920fa412675016d7558393c6f9b7727bfd0cf70",
+  "target": "MJ-PR-004 P0 service startup and local persistence; MJ-REQ-012, MJ-REQ-013, MJ-REQ-014",
+  "action": "Diagnose Docker Desktop relaunch, repair the existing MJobs project without replacing its volumes, and verify the Compose restart-policy change in an isolated personal project",
+  "observations": [
+    {
+      "target": "existing Compose project mjobs at 127.0.0.1:18700",
+      "before": "After Docker Desktop relaunched, postgres and redis were exited with restart=no; API and three workers were restarting or unready because their dependencies were absent.",
+      "commands": [
+        "docker compose -p mjobs ps -a",
+        "docker start mjobs-postgres-1 mjobs-redis-1",
+        "docker update --restart unless-stopped mjobs-postgres-1 mjobs-redis-1",
+        "GET http://127.0.0.1:18700/readiness"
+      ],
+      "result": "PASS",
+      "observed": "Both existing dependency containers were started in place and changed from restart=no to restart=unless-stopped. API readiness returned HTTP 200 with database, queue, worker and mock checks true. No named volume was replaced or deleted."
+    },
+    {
+      "target": "isolated Compose project mjobs-pr004-20260930 at 127.0.0.1:18704",
+      "commands": [
+        "Start-MJobs.ps1 -Personal -Project mjobs-pr004-20260930 -Port 18704 -NoOpen",
+        "docker inspect restart policies for postgres, redis, API and three workers",
+        "python -m cli.personal_mode_e2e --api http://127.0.0.1:18704 --evidence docs/evidence/2026-09-30-pr004-local-personal-mode.json",
+        "PUT /profiles with labeled synthetic test-only profile pr004-restart-probe",
+        "docker compose -p mjobs-pr004-20260930 stop api worker source-worker document-worker postgres redis",
+        "Start-MJobs.ps1 -Personal -Project mjobs-pr004-20260930 -Port 18704 -NoBuild -NoOpen",
+        "GET /profiles/pr004-restart-probe; GET /readiness; GET /settings"
+      ],
+      "result": "PASS",
+      "observed": "First run created an ignored local .env without printing its secret, applied migrations and reached readiness. All six long-running containers carried restart=unless-stopped. The personal browser/API probe passed with fictional actions rejected and external submission disabled. After a complete controlled service stop and relaunch, the synthetic profile remained readable; database, queue and worker checks were true and external submission remained false."
+    }
+  ],
+  "local_tests": {
+    "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_compose_modes tests.integration.test_worker_lifecycle -v",
+    "result": "PASS",
+    "observed": "14 tests passed in 5.790 seconds; restart-policy test first failed for postgres and redis before the Compose change"
+  },
+  "additional_tests": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_worker_queue_binding -v",
+      "result": "PASS",
+      "observed": "One test asserted each of the three worker processes consumes only its configured RQ queue."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py'",
+      "result": "PASS",
+      "observed": "99 tests in 38.316 seconds at the implementation head."
+    }
+  ],
+  "migration_data_impact": "No schema migration or existing business-row change. The live mjobs project retained its original volumes. The isolated project uses separately named volumes and a synthetic test-only profile.",
+  "cleanup": "docker compose -p mjobs-pr004-20260930 down removed only the isolated project's containers and networks; its three named test volumes were retained. After the isolated build, docker compose build --quiet api in clean main restored the shared mjobs-local:spine tag to main's source (main_contract_search=False). The existing mjobs project still returned HTTP 200 readiness with all four checks true.",
+  "rollback_recovery": "For a code rollback, revert the two Compose restart lines; existing data volumes remain. The live Docker policy adjustment is reversible with docker update --restart no on the two verified mjobs dependency containers, but reverting it would reproduce the relaunch failure until the Compose change is deployed.",
+  "limitations": [
+    "No Docker Desktop or host daemon restart was performed by this test; runtime inspection and controlled service stop/relaunch prove the configured policy and volume persistence, not a full host-reboot test.",
+    "Backup and restore commands, uploaded resume persistence, and complete raw docker compose first-run acceptance remain open; MJ-REQ-013 and MJ-REQ-014 are PARTIAL.",
+    "The live mjobs project uses its existing main checkout configuration; the PR code change must be integrated to persist the policy through future Compose reconciliation."
+  ],
+  "release_readiness": "NOT_RUN",
+  "result": "PARTIAL"
+}

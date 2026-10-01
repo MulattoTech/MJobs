@@ -1,0 +1,58 @@
+{
+  "milestone_id": "M5-P0-LOCAL-BACKUP-RESTORE",
+  "timestamp": "2026-10-01T00:36:16Z",
+  "current_phase": "M5_P0_LOCAL_BACKUP_RESTORE_VERIFIED",
+  "completed_steps": [
+    "Re-fetched GitHub and Git; read AGENTS, implementation state, original/reference queues, feature report, active issues and relevant area specs before selecting this slice",
+    "Added offline PostgreSQL/generated-document archive with checksum manifest, stopped-writer gate and browser-profile exclusion",
+    "Added fresh distinct-project restore with occupied-target refusal, migration/mode checks, exact document inventory, readiness and external-submission-off check",
+    "Exercised FIXTURE and PERSONAL isolated Docker source/restore pairs; fixture queued operation recovered with fresh Redis",
+    "Recorded MJ-REQ-013/014/167/168 PARTIAL, all 42 MJ-REF NOT_RUN and release NOT_RUN"
+  ],
+  "files_added": [
+    "cli/AREA.md",
+    "cli/local_backup.py",
+    "tests/unit/test_local_backup.py",
+    "docs/runbooks/LOCAL_BACKUP.md",
+    "docs/evidence/2026-09-30-pr004-backup-entry.json",
+    "docs/evidence/2026-09-30-pr004-backup-restore-local.json",
+    "docs/evidence/2026-09-30-pr004-fixture-restore-readback.json",
+    "docs/evidence/2026-09-30-pr004-personal-restore-readback.json"
+  ],
+  "files_modified": [
+    "README.md",
+    "docs/USER_TESTING.md",
+    "docs/FEATURE_COMPLETENESS.md",
+    "planning/CAPABILITY_MATRIX.json",
+    "planning/PR_QUEUE.json",
+    "planning/IMPLEMENTATION_STATE.json"
+  ],
+  "tests_completed": [
+    "Seven targeted backup tests PASS after restored-document inventory RED",
+    "106 full Python tests PASS in pinned repository virtual environment",
+    "Isolated FIXTURE and PERSONAL PostgreSQL/document backup and fresh-project restore readbacks PASS",
+    "Final image rebuild and second fresh FIXTURE restore with exact-document inventory verifier PASS",
+    "Running-writer backup and occupied-target restore both refused with exit 2"
+  ],
+  "tests_remaining": [
+    "Exact-head remote CI after draft #430 update",
+    "Uploaded-resume and protected host-configuration backup coverage",
+    "Physical Docker daemon relaunch and complete direct Compose first-run acceptance"
+  ],
+  "migrations_applied": [],
+  "live_integrations_tested": [
+    "Local Docker Desktop PostgreSQL, Redis, RQ, API, generated-document volume and fresh Compose project restore",
+    "Read-only public Greenhouse source probe returned 21 jobs in PERSONAL source project"
+  ],
+  "known_errors": [],
+  "known_limitations": [
+    "No physical host restart or real external application submission",
+    "Archived data is personal and remains only in ignored local test-tmp; no .env, browser cookies or uploaded resumes are captured",
+    "Two failed trial restore projects retain isolated partial test volumes for diagnosis; no existing project was overwritten",
+    "MJ-REQ-013/014/167/168 remain PARTIAL; all 42 MJ-REF and release readiness remain NOT_RUN"
+  ],
+  "last_safe_checkpoint": {
+    "git_commit": "b79e8d3b1a1f9c8462d9378d8bc4e190434a2ae0",
+    "evidence_path": "docs/evidence/2026-09-30-pr004-backup-restore-local.json"
+  }
+}
