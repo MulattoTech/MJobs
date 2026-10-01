@@ -196,7 +196,10 @@ class Store:
             if q:
                 statement = statement.where(m.jobs.c.title.icontains(q, autoescape=True) | m.companies.c.name.icontains(q, autoescape=True) | m.jobs.c.description.icontains(q, autoescape=True))
             if remote_type:
-                statement = statement.where(m.jobs.c.remote_type == remote_type)
+                if remote_type == "REMOTE":
+                    statement = statement.where(m.jobs.c.remote_type.in_(("REMOTE", "REMOTE_WORLDWIDE", "REMOTE_US", "REMOTE_COUNTRY", "REMOTE_SPECIFIC_STATES")))
+                else:
+                    statement = statement.where(m.jobs.c.remote_type == remote_type)
             if provider:
                 statement = statement.where(m.routes.c.provider == provider)
             statement = statement.order_by(m.matches.c.score.desc().nulls_last(), m.jobs.c.title, m.jobs.c.id) if sort == "score" else statement.order_by(m.jobs.c.title, m.jobs.c.id)

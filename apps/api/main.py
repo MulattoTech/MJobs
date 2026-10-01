@@ -22,6 +22,7 @@ from packages.domain.operation_mode import parse_operation_mode, operation_mode_
 from services.discovery.pipeline import MockClient
 from services.discovery.sources.collect import configure_source
 from services.discovery.search_profiles import get_search_profile, list_search_profiles, save_search_profile
+from services.discovery.search_semantics import filter_jobs
 from services.documents.uploads import MAX_UPLOAD_BYTES, UploadIntegrityError, list_resumes, save_resume, read_resume
 from workers.dispatch import enqueue_operation
 from workers.operations import QUEUES, request_cancel, limit
@@ -83,9 +84,25 @@ class SearchProfileInput(BaseModel):
     name: str = Field(min_length=1, max_length=200)
     enabled: bool = True
     include_titles: list[str] = Field(default_factory=list, max_length=100)
+    exclude_titles: list[str] = Field(default_factory=list, max_length=100)
+    required_keywords: list[str] = Field(default_factory=list, max_length=100)
+    optional_keywords: list[str] = Field(default_factory=list, max_length=100)
+    excluded_keywords: list[str] = Field(default_factory=list, max_length=100)
+    exact_phrases: list[str] = Field(default_factory=list, max_length=100)
+    technology_aliases: dict[str, list[str]] = Field(default_factory=dict)
+    company_include: list[str] = Field(default_factory=list, max_length=100)
+    company_exclude: list[str] = Field(default_factory=list, max_length=100)
     remote: Literal["ANY", "REQUIRED", "EXCLUDED"] = "ANY"
+    work_arrangements: list[Literal["REMOTE", "HYBRID", "ONSITE"]] = Field(default_factory=list, max_length=3)
+    countries: list[str] = Field(default_factory=list, max_length=50)
+    states: list[str] = Field(default_factory=list, max_length=100)
+    cities: list[str] = Field(default_factory=list, max_length=100)
+    remote_regions: list[str] = Field(default_factory=list, max_length=100)
+    radius_miles: float | None = Field(default=None, ge=1, le=10000)
+    radius_latitude: float | None = Field(default=None, ge=-90, le=90)
+    radius_longitude: float | None = Field(default=None, ge=-180, le=180)
     employment_types: list[Literal["FULL_TIME", "PART_TIME", "CONTRACT", "CONTRACT_TO_HIRE",
-                                   "TEMPORARY", "INTERNSHIP", "OTHER"]] = Field(default_factory=list, max_length=20)
+                                   "TEMPORARY", "INTERNSHIP", "OTHER", "UNKNOWN"]] = Field(default_factory=list, max_length=20)
     source_ids: list[str] = Field(default_factory=list, max_length=100)
 
 
@@ -253,10 +270,17 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
 
     @app.get("/jobs")
     def jobs(profile_id: str | None = None, q: str = Query(default="", max_length=200),
-             remote_type: Literal["REMOTE", "HYBRID", "ONSITE", "UNKNOWN"] | None = None,
+             remote_type: str | None = Query(default=None, max_length=32),
              provider: Literal["mock-ats", "greenhouse"] | None = None, sort: Literal["score", "title"] = "score",
+             search_profile_id: str | None = Query(default=None, max_length=128),
              limit: int = Query(default=200, ge=1, le=500)):
-        return {"jobs": store.jobs(profile_id, q, remote_type, provider, sort, limit)}
+        rows = store.jobs(profile_id, q, remote_type, provider, sort, limit)
+        if search_profile_id:
+            search_profile = get_search_profile(store, search_profile_id)
+            if profile_id and search_profile["profile_id"] != profile_id:
+                raise HTTPException(409, "Search profile belongs to a different career profile")
+            rows = filter_jobs(rows, search_profile["criteria"])
+        return {"jobs": rows}
 
     @app.get("/jobs/{job_id}")
     def job(job_id: str, profile_id: str | None = None):

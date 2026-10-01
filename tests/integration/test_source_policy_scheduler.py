@@ -76,7 +76,14 @@ class SourcePolicySchedulerTests(unittest.TestCase):
             response = client.put("/search-profiles", json={
                 "id": "infra", "profile_id": "fixture", "name": "Remote Infrastructure",
                 "include_titles": ["System Administrator", "system administrator", "NOC Engineer"],
-                "remote": "REQUIRED", "employment_types": ["FULL_TIME"],
+                "exclude_titles": ["Senior"],
+                "required_keywords": ["Active Directory", "Microsoft 365"],
+                "optional_keywords": ["Azure"], "excluded_keywords": ["commission"],
+                "exact_phrases": ["Group Policy"], "technology_aliases": {"Microsoft 365": ["M365"]},
+                "company_include": ["Example"], "company_exclude": ["Staffing"],
+                "remote": "REQUIRED", "work_arrangements": ["REMOTE"],
+                "countries": ["US"], "states": ["TX"], "cities": ["Sherman"],
+                "remote_regions": ["TX", "OK"], "employment_types": ["FULL_TIME"],
                 "source_ids": [first],
             })
             self.assertEqual(response.status_code, 200)
@@ -89,6 +96,11 @@ class SourcePolicySchedulerTests(unittest.TestCase):
         infra = next(row for row in rows if row["id"] == "infra")
         self.assertEqual(infra["criteria"]["include_titles"], ["System Administrator", "NOC Engineer"])
         self.assertEqual(infra["criteria"]["remote"], "REQUIRED")
+        self.assertEqual(infra["criteria"]["exclude_titles"], ["Senior"])
+        self.assertEqual(infra["criteria"]["required_keywords"], ["Active Directory", "Microsoft 365"])
+        self.assertEqual(infra["criteria"]["technology_aliases"], {"Microsoft 365": ["M365"]})
+        self.assertEqual(infra["criteria"]["work_arrangements"], ["REMOTE"])
+        self.assertEqual(infra["criteria"]["remote_regions"], ["TX", "OK"])
         self.assertEqual(infra["source_ids"], [first])
         self.assertEqual(self.store.count("search_profiles"), 2)
 

@@ -3,26 +3,48 @@ from sqlalchemy import select
 
 from packages.persistence import models as m
 from packages.persistence.store import now, upsert
+from services.discovery.search_semantics import EMPLOYMENT_TYPES
 
 
-EMPLOYMENT_TYPES = {
-    "FULL_TIME", "PART_TIME", "CONTRACT", "CONTRACT_TO_HIRE",
-    "TEMPORARY", "INTERNSHIP", "OTHER",
-}
 REMOTE_PREFERENCES = {"ANY", "REQUIRED", "EXCLUDED"}
+WORK_ARRANGEMENTS = {"REMOTE", "HYBRID", "ONSITE"}
 
 
 def _clean_strings(values, *, limit=100, length=200):
     if not isinstance(values, list) or len(values) > limit:
         raise ValueError("Search profile list is invalid or too large")
     cleaned = []
+    seen = set()
     for value in values:
         if not isinstance(value, str) or not value.strip() or len(value.strip()) > length:
             raise ValueError("Search profile list contains an invalid value")
         item = value.strip()
-        if item.casefold() not in {existing.casefold() for existing in cleaned}:
+        folded = item.casefold()
+        if folded not in seen:
             cleaned.append(item)
+            seen.add(folded)
     return cleaned
+
+
+def _clean_aliases(value):
+    if value is None:
+        return {}
+    if not isinstance(value, dict) or len(value) > 100:
+        raise ValueError("Technology aliases must be an object with at most 100 entries")
+    result = {}
+    for canonical, aliases in value.items():
+        if not isinstance(canonical, str) or not canonical.strip() or len(canonical.strip()) > 100:
+            raise ValueError("Technology alias canonical name is invalid")
+        result[canonical.strip()] = _clean_strings(aliases, limit=30, length=100)
+    return result
+
+
+def _bounded_float(value, low, high, label):
+    if value is None:
+        return None
+    if type(value) not in (int, float) or not low <= value <= high:
+        raise ValueError(f"{label} is invalid")
+    return float(value)
 
 
 def save_search_profile(store, data):
@@ -33,15 +55,43 @@ def save_search_profile(store, data):
         raise ValueError("Search profile identity or name is too long")
     if type(data.get("enabled", True)) is not bool:
         raise ValueError("Search profile enabled must be boolean")
+
     remote = data.get("remote", "ANY")
     if remote not in REMOTE_PREFERENCES:
         raise ValueError("Search profile remote preference is invalid")
     employment = _clean_strings(data.get("employment_types", []), limit=20, length=32)
     if any(value not in EMPLOYMENT_TYPES for value in employment):
         raise ValueError("Search profile employment type is invalid")
-    titles = _clean_strings(data.get("include_titles", []), limit=100, length=200)
+    arrangements = _clean_strings(data.get("work_arrangements", []), limit=3, length=16)
+    if any(value not in WORK_ARRANGEMENTS for value in arrangements):
+        raise ValueError("Search profile work arrangement is invalid")
+
+    criteria = {
+        "include_titles": _clean_strings(data.get("include_titles", [])),
+        "exclude_titles": _clean_strings(data.get("exclude_titles", [])),
+        "required_keywords": _clean_strings(data.get("required_keywords", [])),
+        "optional_keywords": _clean_strings(data.get("optional_keywords", [])),
+        "excluded_keywords": _clean_strings(data.get("excluded_keywords", [])),
+        "exact_phrases": _clean_strings(data.get("exact_phrases", [])),
+        "technology_aliases": _clean_aliases(data.get("technology_aliases", {})),
+        "company_include": _clean_strings(data.get("company_include", [])),
+        "company_exclude": _clean_strings(data.get("company_exclude", [])),
+        "remote": remote,
+        "work_arrangements": arrangements,
+        "countries": _clean_strings(data.get("countries", []), limit=50, length=100),
+        "states": _clean_strings(data.get("states", []), limit=100, length=100),
+        "cities": _clean_strings(data.get("cities", []), limit=100, length=200),
+        "remote_regions": _clean_strings(data.get("remote_regions", []), limit=100, length=100),
+        "employment_types": employment,
+        "radius_miles": _bounded_float(data.get("radius_miles"), 1, 10000, "Search radius"),
+        "radius_latitude": _bounded_float(data.get("radius_latitude"), -90, 90, "Search latitude"),
+        "radius_longitude": _bounded_float(data.get("radius_longitude"), -180, 180, "Search longitude"),
+    }
+    radius_values = (criteria["radius_miles"], criteria["radius_latitude"], criteria["radius_longitude"])
+    if any(value is not None for value in radius_values) and any(value is None for value in radius_values):
+        raise ValueError("Radius filtering requires miles, latitude, and longitude together")
+
     source_ids = _clean_strings(data.get("source_ids", []), limit=100, length=128)
-    criteria = {"include_titles": titles, "remote": remote, "employment_types": employment}
     timestamp = now()
     with store.engine.begin() as connection:
         connection.execute(select(m.profiles.c.id).where(m.profiles.c.id == data["profile_id"])).one()
@@ -54,12 +104,18 @@ def save_search_profile(store, data):
             m.search_profiles.c.id == data["id"])).mappings().one_or_none()
         created_at = existing["created_at"] if existing else timestamp
         upsert(connection, m.search_profiles, {
-            "id": data["id"], "profile_id": data["profile_id"], "name": data["name"].strip(),
-            "enabled": data.get("enabled", True), "criteria": criteria, "source_ids": source_ids,
-            "created_at": created_at, "updated_at": timestamp,
+            "id": data["id"],
+            "profile_id": data["profile_id"],
+            "name": data["name"].strip(),
+            "enabled": data.get("enabled", True),
+            "criteria": criteria,
+            "source_ids": source_ids,
+            "created_at": created_at,
+            "updated_at": timestamp,
         }, replace=True)
         store._audit(connection, data["id"], "SEARCH_PROFILE_SAVED", {
-            "profile_id": data["profile_id"], "enabled": data.get("enabled", True),
+            "profile_id": data["profile_id"],
+            "enabled": data.get("enabled", True),
             "source_count": len(source_ids),
         })
     return data["id"]

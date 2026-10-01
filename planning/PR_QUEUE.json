@@ -141,10 +141,10 @@
         "MJ-PR-006",
         "MJ-PR-001"
       ],
-      "status": "QUEUED",
+      "status": "IMPLEMENTED_LOCAL",
       "branch": "codex/mj-pr-007-core-search-model",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "MJ-REQ-023..026 implemented and locally verified; evidence docs/evidence/2026-10-01-search-semantics.json; open draft after commit/push"
     },
     {
       "id": "MJ-PR-008",

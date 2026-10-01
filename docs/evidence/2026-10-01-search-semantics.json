@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-10-01T17:45:00Z",
+  "scope": "MJ-PR-007 / MJ-REQ-023..026",
+  "result": "PASS",
+  "requirements": {
+    "MJ-REQ-023": "PASS",
+    "MJ-REQ-024": "PASS",
+    "MJ-REQ-025": "PASS",
+    "MJ-REQ-026": "PASS"
+  },
+  "implemented": [
+    "structured include/exclude title, required/optional/excluded keyword, exact phrase, technology alias and company filters",
+    "AND/OR/NOT semantics through required, include/optional and excluded criteria",
+    "remote/hybrid/onsite, country, state, city, remote-region and coordinate-backed radius filtering",
+    "remote classification that preserves specific-state restrictions and does not treat unspecified remote as unrestricted",
+    "employment type normalization including UNKNOWN",
+    "API search-profile filtering with per-job search evidence",
+    "legacy REMOTE read filter compatibility across richer normalized remote types"
+  ],
+  "tests": [
+    {
+      "command": "python -m unittest tests.unit.test_search_semantics tests.integration.test_greenhouse tests.integration.test_source_policy_scheduler",
+      "result": "PASS",
+      "count": 23
+    },
+    {
+      "command": "python -m unittest tests.integration.test_user_read_models tests.unit.test_search_semantics tests.integration.test_greenhouse tests.integration.test_source_policy_scheduler",
+      "result": "PASS",
+      "count": 27
+    },
+    {
+      "command": "python -m unittest discover -s tests -p test_*.py",
+      "result": "PASS",
+      "count": 120
+    },
+    {
+      "command": "python -m unittest tests.integration.test_source_policy_scheduler tests.unit.test_search_semantics tests.integration.test_user_read_models",
+      "result": "PASS",
+      "count": 14
+    },
+    {
+      "command": "python tools/verification/catalogue.py",
+      "result": "PASS"
+    },
+    {
+      "command": "python tools/verification/progress.py validate",
+      "result": "PASS"
+    }
+  ],
+  "observed_red_green": {
+    "initial_failure": "regex escape corruption from file transport caused 7 unit failures; repaired literal boundaries and whitespace regexes",
+    "regression_failure": "fixture source-provided REMOTE hint was initially discarded; preserved structured source evidence and retained legacy REMOTE query compatibility",
+    "final": "affected and full suites pass"
+  },
+  "safety": {
+    "external_submission": "OFF",
+    "external_application_requests": 0,
+    "ai_used_for_integrity": false,
+    "radius_policy": "No geocoding is invented; radius requires explicit coordinates on both search and job data."
+  },
+  "migration": "NONE - existing JSON criteria and job attributes carry the new semantics"
+}

@@ -12,6 +12,7 @@ from services.discovery.sources.contract import (
     CollectionStrategy, SearchBatch, SourceCapabilities, SourceCapability,
     SourceCompany, SourceItem,
 )
+from services.discovery.search_semantics import classify_location, normalize_employment_type
 
 HOST = "https://boards-api.greenhouse.io"
 SKILLS = ("Python", "SQL", "JavaScript", "TypeScript", "Java", "C#", "C++", "Go", "Rust", "Linux", "Windows", "Docker", "Kubernetes", "AWS", "Azure", "Terraform", "PowerShell", "React", "PostgreSQL")
@@ -150,8 +151,9 @@ class Greenhouse:
         if raw.get("location") and not isinstance(raw["location"], dict):
             raise SourceError("SOURCE_INVALID_JOB_LOCATION")
         location = plain_text((raw.get("location") or {}).get("name") or "Unknown")[:1000]
-        remote = "HYBRID" if "hybrid" in location.casefold() else ("REMOTE" if "remote" in location.casefold() else "UNKNOWN")
+        location_facts = classify_location(location, description)
         combined = plain_text(raw["title"]) + " " + description
+        employment_type = normalize_employment_type(combined)
         skills = [skill for skill in SKILLS if re.search(r"(?<!\w)" + re.escape(skill) + r"(?!\w)", combined, re.I)]
         url = str(raw.get("absolute_url") or "")
         try:
@@ -168,8 +170,11 @@ class Greenhouse:
             if all(type(value) in (int, float) and math.isfinite(value) and 0 <= value < 1e11 for value in (lower, upper)) and lower <= upper:
                 ranges.append({"min": lower / 100, "max": upper / 100, "currency": str(row.get("currency_type") or "Unknown")[:8], "period": "UNKNOWN"})
         return {"requisition": str(raw["id"]), "title": plain_text(raw["title"])[:500], "description": description,
-                "skills": skills, "location": location, "remote_type": remote, "application_url": url,
+                "skills": skills, "location": location, "remote_type": location_facts["remote_type"], "application_url": url,
                 "attributes": {"provider": "greenhouse", "tenant": self.tenant, "native_job_id": raw.get("internal_job_id"),
                     "native_posting_id": raw["id"], "updated_at": raw.get("updated_at"), "salary": ranges or None,
+                    "employment_type": employment_type, "remote_regions": location_facts["remote_regions"],
+                    "remote_indicated": location_facts["remote_indicated"], "country": location_facts["country"],
+                    "state": location_facts["state"], "city": location_facts["city"],
                     "skill_evidence": "description_mentions", "submission_capability": "MANUAL_ONLY", "fictional": False,
                     "application_url_status": "PROVIDER_SUPPLIED" if url else "UNAVAILABLE"}}
