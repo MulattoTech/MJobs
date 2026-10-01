@@ -11,7 +11,7 @@
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
   "current_milestone": "M12_CANONICAL_JOB_PROVENANCE_LOCAL_VERIFIED",
-  "current_objective": "MJ-PR-012 locally verified for MJ-REQ-040..043; publish draft, verify exact-head CI, then integrate before MJ-PR-013",
+  "current_objective": "MJ-PR-012 draft #439 published; verify exact-head CI for MJ-REQ-040..043 PASS, then integrate before MJ-PR-013",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -115,6 +115,12 @@
       "number": 438,
       "url": "https://github.com/MulattoTech/MJobs/pull/438",
       "branch": "codex/mj-pr-011-core-search-model",
+      "status": "DRAFT_PR"
+    },
+    {
+      "number": 439,
+      "url": "https://github.com/MulattoTech/MJobs/pull/439",
+      "branch": "codex/mj-pr-012-job-identity-dedupe",
       "status": "DRAFT_PR"
     }
   ],
@@ -264,7 +270,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Commit/push MJ-PR-012, open draft PR, verify exact-head workflow success, then integrate before selecting MJ-PR-013.",
+  "recommended_resume_step": "Inspect exact-head workflows for PR #439; fix failures or, when verification passes, mark ready/integrate before selecting MJ-PR-013.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],

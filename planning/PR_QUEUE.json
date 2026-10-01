@@ -242,10 +242,11 @@
       "depends_on": [
         "MJ-PR-005"
       ],
-      "status": "IMPLEMENTED_LOCAL",
+      "status": "DRAFT_PR",
       "branch": "codex/mj-pr-012-job-identity-dedupe",
       "draft_until_verified": true,
-      "notes": "MJ-REQ-040..043 implemented and locally verified; evidence docs/evidence/2026-10-01-canonical-job-provenance.json; open draft after commit/push"
+      "notes": "MJ-REQ-040..043 locally verified; draft #439 published; await exact-head CI",
+      "pr_number": 439
     },
     {
       "id": "MJ-PR-013",
