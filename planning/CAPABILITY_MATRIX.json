@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-01T08:18:29.949998+00:00",
+  "timestamp": "2026-10-01T22:23:22Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -454,27 +454,34 @@
       "requirement_id": "MJ-REQ-054",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-09-29-mock-spine.md"
+        "docs/evidence/2026-09-29-mock-spine.md",
+        "docs/evidence/2026-10-01-company-discovery-core.json"
       ],
-      "note": "Initial scoped behavior only; full requirement remains open"
+      "note": "Durable company discovery and explicit user-added discovery are locally verified against the mock ATS fixture. Automatic discovery from general useful-job intake and production career-site/ATS support remain unverified."
     },
     {
       "requirement_id": "MJ-REQ-055",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-01-company-discovery-core.json"
+      ],
+      "note": "The mock fixture enrolls an employer source and imports an employer-only job through the normal profile matching path. Production ATS breadth and continuous first-party monitoring remain unverified."
     },
     {
       "requirement_id": "MJ-REQ-056",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-01-company-discovery-core.json"
+      ],
+      "note": "The durable queue/API accepts the enumerated trigger reasons and user-added discovery is verified. Automatic wiring from high-match jobs, saved/preferred companies, ATS redirects, repeated aggregator appearances, and source failures is not implemented."
     },
     {
       "requirement_id": "MJ-REQ-057",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-01-company-discovery-core.json"
+      ],
+      "note": "Dedicated resolver returns stable company_id, confidence, and explainable evidence; normalized official-domain identity is covered by focused integration tests. Alias and broad provider enrichment belong to later requirements."
     },
     {
       "requirement_id": "MJ-REQ-058",

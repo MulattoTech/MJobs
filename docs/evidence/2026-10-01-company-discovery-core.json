@@ -1,0 +1,145 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-10-01T22:20:43Z",
+  "scope": "MJ-PR-016 / MJ-REQ-054..057",
+  "result": "PARTIAL",
+  "requirements": {
+    "MJ-REQ-054": "PARTIAL",
+    "MJ-REQ-055": "PARTIAL",
+    "MJ-REQ-056": "PARTIAL",
+    "MJ-REQ-057": "PASS"
+  },
+  "github_issues": {
+    "MJ-REQ-054": "https://github.com/MulattoTech/MJobs/issues/55",
+    "MJ-REQ-055": "https://github.com/MulattoTech/MJobs/issues/56",
+    "MJ-REQ-056": "https://github.com/MulattoTech/MJobs/issues/57",
+    "MJ-REQ-057": "https://github.com/MulattoTech/MJobs/issues/58"
+  },
+  "implemented": [
+    "dedicated side-effect-free company identity resolver returns stable company_id, confidence, evidence, and new/existing state",
+    "durable COMPANY_DISCOVER operation is routed to the discovery worker queue",
+    "explicit API trigger reasons include all eight requirement categories; user-added discovery is exercised end to end",
+    "automatic enrollment and immediate employer-only job matching work in the fictional mock ATS fixture",
+    "ordinary trigger does not requeue an already monitored fixture company",
+    "API queues discovery without doing network I/O in the API process"
+  ],
+  "limitations": [
+    "company source detection and enumeration currently hard-code the local mock-ats fixture",
+    "general useful-job ingestion does not enqueue the new durable company-discovery operation",
+    "automatic high-match, saved/preferred company, ATS redirect, repeated aggregator, and broken-source trigger paths are not connected",
+    "production ATS providers and continuous polling of auto-discovered company sources are not verified",
+    "no database schema migration was needed or changed; browser UI was not changed"
+  ],
+  "validation": [
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_company_discovery -v",
+      "result": "PASS",
+      "count": 5
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_company_discovery tests.integration.test_spine tests.integration.test_source_policy_scheduler -v",
+      "result": "PASS",
+      "count": 14
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py'",
+      "result": "PASS",
+      "count": 178
+    },
+    {
+      "command": "python -m tools.verification.catalogue",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.progress validate",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m json.tool docs/evidence/2026-10-01-company-discovery-core.json",
+      "result": "PASS after replacing malformed draft"
+    },
+    {
+      "command": "docker compose -p mjobs-pr016-validation-cf86cd85 -f compose.yml -f %TEMP%\\mjobs-pr016-validation-cf86cd85.yml --profile fixture up -d --build --wait --wait-timeout 240",
+      "result": "PASS",
+      "target": "isolated branch Compose fixture stack; API, PostgreSQL, Redis, mock ATS, application/document/source workers and scheduler healthy"
+    },
+    {
+      "command": "python -m cli.mock_e2e --api http://127.0.0.1:18716",
+      "result": "PASS",
+      "target": "PostgreSQL/Redis/RQ mock spine; employer-only Job B; fictional receipt count one; external submission disabled"
+    },
+    {
+      "command": "POST /companies/discovery reason=KNOWN_SOURCE_BROKEN; poll GET /operations/{id}; GET /jobs?profile_id",
+      "result": "PASS",
+      "target": "durable COMPANY_DISCOVER worker operation COMPLETED; employer-only Job B match score 100; FIXTURE mode"
+    },
+    {
+      "command": "docker compose -p mjobs-pr016-validation-cf86cd85 -f compose.yml -f %TEMP%\\mjobs-pr016-validation-cf86cd85.yml exec -T api python -m cli.ui_e2e --base-url http://127.0.0.1:8000 --evidence /tmp/pr016-ui-e2e.json",
+      "result": "PASS",
+      "count": 5,
+      "target": "connected React UI / PostgreSQL / three RQ queues / Chromium"
+    },
+    {
+      "command": "docker compose -p mjobs-pr016-validation-cf86cd85 -f compose.yml -f %TEMP%\\mjobs-pr016-validation-cf86cd85.yml --profile fixture exec -T postgres psql -U mjobs -d mjobs -Atc \"SELECT version_num FROM alembic_version\"; .venv\\Scripts\\python.exe -m alembic heads",
+      "result": "PASS",
+      "target": "Compose migration revision a82e4c19d753 equals repository Alembic head"
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.unit.test_live_feedback -v",
+      "result": "PASS",
+      "count": 5,
+      "target": "VS Code live-feedback redaction and safe local URL compatibility"
+    }
+  ],
+  "acceptance_proof": {
+    "direct_source_enrolled": true,
+    "fixture_provider": "mock-ats",
+    "employer_only_job": "B",
+    "employer_only_job_imported": true,
+    "employer_only_job_match_score": 100,
+    "trigger_reasons_accepted_by_api": 8,
+    "automatic_trigger_sources_verified": [
+      "USER_ADDED_COMPANY"
+    ],
+    "resolution_result_fields": [
+      "company_id",
+      "confidence",
+      "evidence"
+    ],
+    "compose_trigger_test": {
+      "reason": "KNOWN_SOURCE_BROKEN",
+      "operation_state": "COMPLETED",
+      "operation_kind": "COMPANY_DISCOVER"
+    }
+  },
+  "merge_validation": {
+    "migration": {
+      "result": "PASS",
+      "detail": "Compose migration completed; PostgreSQL alembic_version a82e4c19d753 matched repository head. This branch adds no schema migration."
+    },
+    "compose": {
+      "result": "PASS",
+      "project": "mjobs-pr016-validation-cf86cd85",
+      "detail": "Isolated PostgreSQL/Redis/three-worker fixture deployment healthy; durable COMPANY_DISCOVER operation completed and employer-only Job B matched at 100; existing full mock spine passed."
+    },
+    "browser": {
+      "result": "PASS",
+      "detail": "Connected Chromium UI acceptance passed all five actions on isolated Compose. Initial attempt using Docker DNS host api failed because it was an insecure browser origin; rerun at loopback 127.0.0.1 passed."
+    },
+    "live_feedback_compatibility": {
+      "result": "PASS",
+      "count": 5,
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.unit.test_live_feedback -v"
+    },
+    "remote_exact_head_ci": "NOT_RUN: no PR has been published yet"
+  },
+  "validation_environment": {
+    "python": "3.12",
+    "dependencies": "requirements.lock in isolated .venv"
+  },
+  "compose_validation_project": {
+    "project": "mjobs-pr016-validation-cf86cd85",
+    "temporary_override": "%TEMP%\\mjobs-pr016-validation-cf86cd85.yml",
+    "override_detail": "Maps api, worker, scheduler, source-worker, document-worker, migrate, and mock to the unique image mjobs-pr016-validation-cf86cd85; isolated project owns all created networks and volumes."
+  }
+}

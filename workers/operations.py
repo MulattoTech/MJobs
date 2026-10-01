@@ -7,7 +7,7 @@ from sqlalchemy import func, select, text, update
 from packages.persistence import models as m
 from packages.persistence.store import now
 
-QUEUES = {"DISCOVER": "mjobs-discovery", "PREPARE": "mjobs-document", "APPLY_MOCK": "mjobs-application"}
+QUEUES = {"DISCOVER": "mjobs-discovery", "COMPANY_DISCOVER": "mjobs-discovery", "PREPARE": "mjobs-document", "APPLY_MOCK": "mjobs-application"}
 MAX_ATTEMPTS = 3
 
 

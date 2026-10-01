@@ -22,8 +22,10 @@
       "status": "MERGED",
       "branch": "codex/mj-pr-001-governance-safety",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting.",
-      "pr_number": 367
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Live GitHub reconciliation: PR #367 merged at b7bdd711bc7f4984e59620e585557aeb4fc06fa6.",
+      "pr_number": 367,
+      "merge_commit": "b7bdd711bc7f4984e59620e585557aeb4fc06fa6",
+      "merged_at": "2026-09-30T19:38:24Z"
     },
     {
       "id": "MJ-PR-002",
@@ -43,8 +45,10 @@
       "status": "MERGED",
       "branch": "codex/mj-pr-002-governance-safety",
       "draft_until_verified": true,
-      "notes": "Bounded durable worker lifecycle slice, stacked on actual mock spine; preserve broader independent-limit requirements",
-      "pr_number": 369
+      "notes": "Bounded durable worker lifecycle slice, stacked on actual mock spine; preserve broader independent-limit requirements Live GitHub reconciliation: PR #369 merged at f30a2e5b82ff61204fa4f94c69280f8097da9b90.",
+      "pr_number": 369,
+      "merge_commit": "f30a2e5b82ff61204fa4f94c69280f8097da9b90",
+      "merged_at": "2026-09-30T19:45:13Z"
     },
     {
       "id": "MJ-PR-003",
@@ -63,8 +67,10 @@
       "status": "MERGED",
       "branch": "codex/mj-pr-003-governance-safety",
       "draft_until_verified": true,
-      "notes": "Merged as 65efa0d6dd0c77e6f7a8b9f8a0108a08fc714939 after exact-head required checks. P0 MJ-REQ-008/009/010 remain PARTIAL; MJ-REQ-011 PASS. Legacy owner-data adoption, physical host restart and complete staged operation remain open.",
-      "pr_number": 428
+      "notes": "Merged as 65efa0d6dd0c77e6f7a8b9f8a0108a08fc714939 after exact-head required checks. P0 MJ-REQ-008/009/010 remain PARTIAL; MJ-REQ-011 PASS. Legacy owner-data adoption, physical host restart and complete staged operation remain open. Live GitHub reconciliation: PR #428 merged at 65efa0d6dd0c77e6f7a8b9f8a0108a08fc714939.",
+      "pr_number": 428,
+      "merge_commit": "65efa0d6dd0c77e6f7a8b9f8a0108a08fc714939",
+      "merged_at": "2026-10-01T00:48:51Z"
     },
     {
       "id": "MJ-PR-004",
@@ -82,8 +88,10 @@
       "status": "MERGED",
       "branch": "codex/mj-pr-004-governance-safety",
       "draft_until_verified": true,
-      "notes": "Merged as b747089274e0b45531c637c7f6b1991da75081b8 after exact-head push run 36799748653 and PR run 36799753601 passed. Existing default mjobs FIXTURE database was backed up, fingerprint-bound and relaunched on merged main with readiness true. MJ-REQ-012 PASS; MJ-REQ-013/014/090/167/168/173 PARTIAL. Native extraction, protected host configuration, physical host restart and complete acceptance remain open. User requested pause; external submission remains disabled.",
-      "pr_number": 430
+      "notes": "Merged as b747089274e0b45531c637c7f6b1991da75081b8 after exact-head push run 36799748653 and PR run 36799753601 passed. Existing default mjobs FIXTURE database was backed up, fingerprint-bound and relaunched on merged main with readiness true. MJ-REQ-012 PASS; MJ-REQ-013/014/090/167/168/173 PARTIAL. Native extraction, protected host configuration, physical host restart and complete acceptance remain open. User requested pause; external submission remains disabled. Live GitHub reconciliation: PR #430 merged at b747089274e0b45531c637c7f6b1991da75081b8.",
+      "pr_number": 430,
+      "merge_commit": "b747089274e0b45531c637c7f6b1991da75081b8",
+      "merged_at": "2026-10-01T01:15:31Z"
     },
     {
       "id": "MJ-PR-005",
@@ -102,8 +110,10 @@
       "status": "MERGED",
       "branch": "codex/mj-pr-005-core-search-model",
       "draft_until_verified": true,
-      "notes": "Merged as 602fc26e411953d5adec48fc8642ec1a406ec147 after exact-head required checks. MJ-REQ-016 source adapter interface PASS; MJ-REQ-018 strategy PARTIAL with Greenhouse the sole production adapter. Attributed multi-company persistence and duplicate-requisition provenance verified. MJ-REQ-015 PARTIAL; MJ-REQ-017 NOT_RUN.",
-      "pr_number": 429
+      "notes": "Merged as 602fc26e411953d5adec48fc8642ec1a406ec147 after exact-head required checks. MJ-REQ-016 source adapter interface PASS; MJ-REQ-018 strategy PARTIAL with Greenhouse the sole production adapter. Attributed multi-company persistence and duplicate-requisition provenance verified. MJ-REQ-015 PARTIAL; MJ-REQ-017 NOT_RUN. Live GitHub reconciliation: PR #429 merged at 602fc26e411953d5adec48fc8642ec1a406ec147.",
+      "pr_number": 429,
+      "merge_commit": "602fc26e411953d5adec48fc8642ec1a406ec147",
+      "merged_at": "2026-10-01T00:49:46Z"
     },
     {
       "id": "MJ-PR-006",
@@ -120,11 +130,13 @@
         "MJ-PR-005",
         "MJ-PR-001"
       ],
-      "status": "DRAFT_PR",
+      "status": "MERGED",
       "branch": "codex/mj-pr-006-core-search-model",
       "draft_until_verified": true,
-      "notes": "Typed source capabilities/policy, persistent scheduled search profiles, and durable private-network scheduler locally verified; exact-head CI pending.",
-      "pr_number": 431
+      "notes": "Typed source capabilities/policy, persistent scheduled search profiles, and durable private-network scheduler locally verified; exact-head CI pending. Live GitHub reconciliation: PR #431 merged at 563d386376afe537045a29d9ab892819b27f8535.",
+      "pr_number": 431,
+      "merge_commit": "563d386376afe537045a29d9ab892819b27f8535",
+      "merged_at": "2026-10-01T17:30:51Z"
     },
     {
       "id": "MJ-PR-007",
@@ -141,11 +153,13 @@
         "MJ-PR-006",
         "MJ-PR-001"
       ],
-      "status": "DRAFT_PR",
+      "status": "MERGED",
       "branch": "codex/mj-pr-007-core-search-model",
       "draft_until_verified": true,
-      "notes": "MJ-REQ-023..026 locally verified; draft #432 published; await exact-head CI",
-      "pr_number": 432
+      "notes": "MJ-REQ-023..026 locally verified; draft #432 published; await exact-head CI Live GitHub reconciliation: PR #432 merged at 28c8f6312ef40f3a92ea4c486bf0efefa9e41487.",
+      "pr_number": 432,
+      "merge_commit": "28c8f6312ef40f3a92ea4c486bf0efefa9e41487",
+      "merged_at": "2026-10-01T18:03:20Z"
     },
     {
       "id": "MJ-PR-008",
@@ -162,11 +176,13 @@
         "MJ-PR-007",
         "MJ-PR-001"
       ],
-      "status": "DRAFT_PR",
+      "status": "MERGED",
       "branch": "codex/mj-pr-008-core-search-model",
       "draft_until_verified": true,
-      "notes": "MJ-REQ-027..030 locally verified; draft #433 published; await exact-head CI",
-      "pr_number": 433
+      "notes": "MJ-REQ-027..030 locally verified; draft #433 published; await exact-head CI Live GitHub reconciliation: PR #433 merged at 801faf814f3784f6585118c8a0716b18b9deba31.",
+      "pr_number": 433,
+      "merge_commit": "801faf814f3784f6585118c8a0716b18b9deba31",
+      "merged_at": "2026-10-01T18:20:12Z"
     },
     {
       "id": "MJ-PR-009",
@@ -183,11 +199,13 @@
         "MJ-PR-008",
         "MJ-PR-001"
       ],
-      "status": "DRAFT_PR",
+      "status": "MERGED",
       "branch": "codex/mj-pr-009-core-search-model",
       "draft_until_verified": true,
-      "notes": "MJ-REQ-031..034 locally verified; draft #436 published; await exact-head CI",
-      "pr_number": 436
+      "notes": "MJ-REQ-031..034 locally verified; draft #436 published; await exact-head CI Live GitHub reconciliation: PR #436 merged at 6cd1fe6d069f18857eab1c64014af779d3d01f2b.",
+      "pr_number": 436,
+      "merge_commit": "6cd1fe6d069f18857eab1c64014af779d3d01f2b",
+      "merged_at": "2026-10-01T18:32:39Z"
     },
     {
       "id": "MJ-PR-010",
@@ -204,11 +222,13 @@
         "MJ-PR-009",
         "MJ-PR-001"
       ],
-      "status": "DRAFT_PR",
+      "status": "MERGED",
       "branch": "codex/mj-pr-010-core-search-model",
       "draft_until_verified": true,
-      "notes": "MJ-REQ-035..038 locally verified; draft #437 published; await exact-head CI",
-      "pr_number": 437
+      "notes": "MJ-REQ-035..038 locally verified; draft #437 published; await exact-head CI Live GitHub reconciliation: PR #437 merged at 1d80a61a4faf9c5e1d8704c11cf929dff448651d.",
+      "pr_number": 437,
+      "merge_commit": "1d80a61a4faf9c5e1d8704c11cf929dff448651d",
+      "merged_at": "2026-10-01T19:12:08Z"
     },
     {
       "id": "MJ-PR-011",
@@ -222,11 +242,13 @@
         "MJ-PR-010",
         "MJ-PR-001"
       ],
-      "status": "DRAFT_PR",
+      "status": "MERGED",
       "branch": "codex/mj-pr-011-core-search-model",
       "draft_until_verified": true,
-      "notes": "MJ-REQ-039 locally verified; draft #438 published; await exact-head CI",
-      "pr_number": 438
+      "notes": "MJ-REQ-039 locally verified; draft #438 published; await exact-head CI Live GitHub reconciliation: PR #438 merged at 9645601bb19d41a9946c3114fe92e1d4af72e535.",
+      "pr_number": 438,
+      "merge_commit": "9645601bb19d41a9946c3114fe92e1d4af72e535",
+      "merged_at": "2026-10-01T19:21:17Z"
     },
     {
       "id": "MJ-PR-012",
@@ -242,11 +264,13 @@
       "depends_on": [
         "MJ-PR-005"
       ],
-      "status": "DRAFT_PR",
+      "status": "MERGED",
       "branch": "codex/mj-pr-012-job-identity-dedupe",
       "draft_until_verified": true,
-      "notes": "MJ-REQ-040..043 locally verified; draft #439 published; await exact-head CI",
-      "pr_number": 439
+      "notes": "MJ-REQ-040..043 locally verified; draft #439 published; await exact-head CI Live GitHub reconciliation: PR #439 merged at 333d9a41d29ff12805ee15ff80cfe17a3fa4b426.",
+      "pr_number": 439,
+      "merge_commit": "333d9a41d29ff12805ee15ff80cfe17a3fa4b426",
+      "merged_at": "2026-10-01T19:43:59Z"
     },
     {
       "id": "MJ-PR-013",
@@ -263,11 +287,13 @@
         "MJ-PR-012",
         "MJ-PR-005"
       ],
-      "status": "DRAFT_PR",
+      "status": "MERGED",
       "branch": "codex/mj-pr-013-job-identity-dedupe",
       "draft_until_verified": true,
-      "notes": "MJ-REQ-044..047 locally verified; draft #440 published; await exact-head CI",
-      "pr_number": 440
+      "notes": "MJ-REQ-044..047 locally verified; draft #440 published; await exact-head CI Live GitHub reconciliation: PR #440 merged at f6867a4cf13a44b69921710634fa1e2b809b2b5d.",
+      "pr_number": 440,
+      "merge_commit": "f6867a4cf13a44b69921710634fa1e2b809b2b5d",
+      "merged_at": "2026-10-01T19:56:09Z"
     },
     {
       "id": "MJ-PR-014",
@@ -284,11 +310,13 @@
         "MJ-PR-013",
         "MJ-PR-005"
       ],
-      "status": "DRAFT_PR",
+      "status": "MERGED",
       "branch": "codex/mj-pr-014-job-identity-dedupe",
       "draft_until_verified": true,
-      "notes": "MJ-REQ-048..051 locally verified; draft #441 published; await exact-head CI",
-      "pr_number": 441
+      "notes": "MJ-REQ-048..051 locally verified; draft #441 published; await exact-head CI Live GitHub reconciliation: PR #441 merged at 098f3d77ae3b41dc7ec666be47e767e040fd57d7.",
+      "pr_number": 441,
+      "merge_commit": "098f3d77ae3b41dc7ec666be47e767e040fd57d7",
+      "merged_at": "2026-10-01T20:08:38Z"
     },
     {
       "id": "MJ-PR-015",
@@ -303,11 +331,13 @@
         "MJ-PR-014",
         "MJ-PR-005"
       ],
-      "status": "DRAFT_PR",
+      "status": "MERGED",
       "branch": "codex/mj-pr-015-job-identity-dedupe",
       "draft_until_verified": true,
-      "notes": "MJ-REQ-052..053 locally verified; draft #442 published; await exact-head CI",
-      "pr_number": 442
+      "notes": "MJ-REQ-052..053 locally verified; draft #442 published; await exact-head CI Live GitHub reconciliation: PR #442 merged at 6267044c2e93a058eab61011164b828a542f7bdc.",
+      "pr_number": 442,
+      "merge_commit": "6267044c2e93a058eab61011164b828a542f7bdc",
+      "merged_at": "2026-10-01T20:17:53Z"
     },
     {
       "id": "MJ-PR-016",
@@ -323,10 +353,10 @@
       "depends_on": [
         "MJ-PR-012"
       ],
-      "status": "QUEUED",
+      "status": "ACTIVE",
       "branch": "codex/mj-pr-016-company-ats-discovery",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "Existing dirty worktree adopted from codex/mj-pr-016-company-ats-discovery; local fixture-focused and full Python validation passed. Production ATS coverage and automatic trigger wiring remain partial."
     },
     {
       "id": "MJ-PR-017",
@@ -2698,8 +2728,10 @@
       "status": "MERGED",
       "branch": "codex/mj-pr-148-mock-product-spine",
       "draft_until_verified": true,
-      "notes": "CODEX_START section 7 and MJ-REQ-290 authorize initial vertical slice before the broader waterfall. Original umbrella entries remain queued/partial; this slice does not close them. Stacked on implemented governance branch.",
-      "pr_number": 368
+      "notes": "CODEX_START section 7 and MJ-REQ-290 authorize initial vertical slice before the broader waterfall. Original umbrella entries remain queued/partial; this slice does not close them. Stacked on implemented governance branch. Live GitHub reconciliation: PR #368 merged at 681ee0f825d4a2a19544f4fa80b1994f99092567.",
+      "pr_number": 368,
+      "merge_commit": "681ee0f825d4a2a19544f4fa80b1994f99092567",
+      "merged_at": "2026-09-30T19:39:12Z"
     },
     {
       "id": "MJ-PR-149",
@@ -2737,8 +2769,10 @@
       "status": "MERGED",
       "branch": "codex/mj-pr-149-user-testing-mvp",
       "draft_until_verified": true,
-      "notes": "Local user-testing PASS with native browser, live public GET, fresh startup and restart evidence; final head GitHub Actions passed with connected UI, mock application and recovery (docs/evidence/2026-09-30-ci-370.json); broader requirements remain PARTIAL",
-      "pr_number": 370
+      "notes": "Local user-testing PASS with native browser, live public GET, fresh startup and restart evidence; final head GitHub Actions passed with connected UI, mock application and recovery (docs/evidence/2026-09-30-ci-370.json); broader requirements remain PARTIAL Live GitHub reconciliation: PR #370 merged at 8ee6b0a7578ab4c8a46f1bac2c707a88048473ab.",
+      "pr_number": 370,
+      "merge_commit": "8ee6b0a7578ab4c8a46f1bac2c707a88048473ab",
+      "merged_at": "2026-09-30T19:59:03Z"
     }
   ]
 }

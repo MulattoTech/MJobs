@@ -8,12 +8,12 @@ A percentage is a navigation aid, never a release claim. Only evidence-backed PA
 
 ## Original specification
 - Catalogue items: **366**
-- PASS: **38** (10.38%)
-- PARTIAL: **56** (15.30%)
-- NOT_RUN: **272** (74.32%)
+- PASS: **39** (10.66%)
+- PARTIAL: **58** (15.85%)
+- NOT_RUN: **269** (73.50%)
 - Full-spec state: **PARTIAL**
 - Release readiness: **not established**
-The low PASS percentage does **not** mean only 10.38% of code exists. Many requirements are broad umbrella capabilities
+The low PASS percentage does **not** mean only 10.66% of code exists. Many requirements are broad umbrella capabilities
 and 56 are already PARTIAL. The current vertical slice is useful and tested, but the repository correctly refuses to
 turn partial evidence into completed requirements.
 
@@ -42,6 +42,7 @@ turn partial evidence into completed requirements.
 - Strong dedupe identifiers, corroborated company identity, normalized-title comparison and cheap normalized-hash/trigram description similarity are PASS for MJ-REQ-044..047. Company-name similarity alone never establishes identity, ambiguous candidates are not auto-merged, and exact normalized descriptions avoid expensive fuzzy work. The focused 10-test slice and 161-test full Python suite passed with catalogue/progress validation (docs/evidence/2026-10-01-dedupe-strong-signals.json).
 - Boilerplate-resistant similarity, explainable configurable dedupe confidence, persistent ambiguous-review decisions, and first-party value precedence are PASS for MJ-REQ-048..051. MERGE is stored as approval rather than an immediate destructive collapse, NEVER_MERGE is sticky, verified employer/ATS values outrank aggregator disagreements while all provenance remains visible, and populated downgrade refuses to discard review decisions. The focused 16-test slice, 167-test full suite, and Alembic migration/refusal proof passed (docs/evidence/2026-10-01-dedupe-review-precedence.json).
 - Every duplicate source posting remains inspectable and genuinely distinct application destinations are planned without repeated submission to the same underlying requisition, establishing PASS for MJ-REQ-052..053. A durable route-choice ledger supports this route, employer site, default, and all-distinct modes while retaining one canonical application history; redirect aliases for one requisition collapse to one planned destination. The focused 19-test slice, 173-test full suite, and Alembic migration/refusal proof passed (docs/evidence/2026-10-01-multi-route-provenance.json).
+- MJ-REQ-057 company identity resolution is PASS; MJ-REQ-054..056 remain PARTIAL. Focused identity/trigger, fixture source enrollment and employer-only matching are covered by 14 affected tests and 178 full Python tests. This slice supports only the fictional mock ATS; production ATS detection and automatic trigger wiring remain open (`docs/evidence/2026-10-01-company-discovery-core.json`).
 - Real external submission remains disabled
 - GitHub Actions passed the final #367-#370 PR heads and the connected UI, mock application, and restart recovery workflow; see `docs/evidence/2026-09-30-ci-370.json`
 ## Reference-project gap catalogue
