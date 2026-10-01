@@ -162,10 +162,11 @@
         "MJ-PR-007",
         "MJ-PR-001"
       ],
-      "status": "IMPLEMENTED_LOCAL",
+      "status": "DRAFT_PR",
       "branch": "codex/mj-pr-008-core-search-model",
       "draft_until_verified": true,
-      "notes": "MJ-REQ-027..030 locally verified; evidence docs/evidence/2026-10-01-experience-salary-date.json; publish draft after commit"
+      "notes": "MJ-REQ-027..030 locally verified; draft #433 published; await exact-head CI",
+      "pr_number": 433
     },
     {
       "id": "MJ-PR-009",

@@ -11,7 +11,7 @@
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
   "current_milestone": "M8_EXPERIENCE_SALARY_DATE_LOCAL_VERIFIED",
-  "current_objective": "MJ-PR-008 locally verified for MJ-REQ-027..030; publish draft, verify exact-head CI, then integrate before MJ-PR-009",
+  "current_objective": "MJ-PR-008 draft #433 published; verify exact-head CI for MJ-REQ-027..030 PASS, then integrate before MJ-PR-009",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -94,6 +94,12 @@
       "url": "https://github.com/MulattoTech/MJobs/pull/430",
       "branch": "codex/mj-pr-004-governance-safety",
       "status": "MERGED"
+    },
+    {
+      "number": 433,
+      "url": "https://github.com/MulattoTech/MJobs/pull/433",
+      "branch": "codex/mj-pr-008-core-search-model",
+      "status": "DRAFT_PR"
     }
   ],
   "tests_passed": [
@@ -230,7 +236,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Commit/push MJ-PR-008, open draft PR, verify exact-head workflow success, then integrate before selecting MJ-PR-009.",
+  "recommended_resume_step": "Inspect exact-head workflows for PR #433; fix failures or, when verification passes, mark ready/integrate before selecting MJ-PR-009.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
