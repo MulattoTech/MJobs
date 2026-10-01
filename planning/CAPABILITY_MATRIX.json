@@ -116,9 +116,10 @@
         "docs/evidence/2026-09-30-pr004-local-restart.json",
         "docs/evidence/2026-09-30-pr004-local-personal-mode.json",
         "docs/evidence/2026-09-30-ci-430.json",
-        "docs/evidence/2026-09-30-pr004-backup-restore-local.json"
+        "docs/evidence/2026-09-30-pr004-backup-restore-local.json",
+        "docs/evidence/2026-09-30-pr004-upload-restore-local.json"
       ],
-      "note": "Self-hosted PostgreSQL/Redis/documents and ignored local configuration exist; an isolated synthetic profile survived service relaunch. Offline PostgreSQL and generated-document backup/restore passed fresh FIXTURE and PERSONAL target checks. Uploaded-resume storage and protected host-configuration backup remain open."
+      "note": "Self-hosted PostgreSQL/Redis/documents and ignored local configuration exist. Fresh PERSONAL direct Compose, browser upload, and fresh-project offline restore retained an unreviewed original with exact checksum. Protected host-configuration backup, physical host restart and full local-first acceptance remain open."
     },
     {
       "requirement_id": "MJ-REQ-014",
@@ -127,9 +128,10 @@
         "docs/evidence/2026-09-30-pr004-local-restart.json",
         "docs/evidence/2026-09-30-pr004-local-personal-mode.json",
         "docs/evidence/2026-09-30-ci-430.json",
-        "docs/evidence/2026-09-30-pr004-backup-restore-local.json"
+        "docs/evidence/2026-09-30-pr004-backup-restore-local.json",
+        "docs/evidence/2026-09-30-pr004-upload-restore-local.json"
       ],
-      "note": "First-run PowerShell launcher generated ignored configuration, built images, migrated PostgreSQL and reached API/worker/Chromium readiness; local restart preserved data. Offline backup and fresh-project restore passed FIXTURE and PERSONAL checks. Direct raw Compose first-run acceptance and uploaded-resume durability remain open."
+      "note": "First-run launcher and fresh direct Compose reached API/worker/Chromium readiness; a browser-uploaded resume survived a separate-project offline restore. Migration of a pre-upload PERSONAL archive retained its profile and 21 jobs. Complete startup/recovery and physical host restart acceptance remain open."
     },
     {
       "requirement_id": "MJ-REQ-015",
@@ -616,9 +618,11 @@
     },
     {
       "requirement_id": "MJ-REQ-090",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-30-pr004-upload-restore-local.json"
+      ],
+      "note": "Profile-scoped PDF/DOCX/UTF-8 TXT originals are accepted, stored unreviewed and checksum downloaded. Native text extraction, OCR for scanned documents and review-to-fact workflow remain open."
     },
     {
       "requirement_id": "MJ-REQ-091",
@@ -1116,17 +1120,19 @@
       "requirement_id": "MJ-REQ-167",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-09-30-pr004-backup-restore-local.json"
+        "docs/evidence/2026-09-30-pr004-backup-restore-local.json",
+        "docs/evidence/2026-09-30-pr004-upload-restore-local.json"
       ],
-      "note": "Quiescent local PostgreSQL and generated-document archives passed manifest/inventory verification in FIXTURE and PERSONAL runs. Uploaded resumes and protected host configuration are not included; full backup requirement remains open."
+      "note": "Quiescent FIXTURE/PERSONAL archives passed manifest and inventory verification. Uploaded originals and metadata survived exact-checksum fresh restore. Protected host configuration and complete operational backup acceptance remain open."
     },
     {
       "requirement_id": "MJ-REQ-168",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-09-30-pr004-backup-restore-local.json"
+        "docs/evidence/2026-09-30-pr004-backup-restore-local.json",
+        "docs/evidence/2026-09-30-pr004-upload-restore-local.json"
       ],
-      "note": "Fresh isolated FIXTURE and PERSONAL Compose restores preserved PostgreSQL records and generated documents with readiness and external submission disabled. Occupied targets are refused. Full data coverage and failure-recovery acceptance remain open."
+      "note": "Fresh FIXTURE/PERSONAL restores preserved PostgreSQL records, generated documents and uploaded originals with readiness and external submission disabled. An older PERSONAL archive migrated while retaining its profile and jobs. Protected host configuration and complete failure-recovery acceptance remain open."
     },
     {
       "requirement_id": "MJ-REQ-169",
@@ -1154,9 +1160,11 @@
     },
     {
       "requirement_id": "MJ-REQ-173",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-30-pr004-upload-restore-local.json"
+      ],
+      "note": "Local resume endpoint bounds raw bodies to 10 MiB, checks extension/MIME/content, rejects unsafe names and DOCX entries, scopes profile reads and verifies stored hashes. Broader upload-security acceptance across future document types remains open."
     },
     {
       "requirement_id": "MJ-REQ-174",

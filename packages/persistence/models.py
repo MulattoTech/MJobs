@@ -21,6 +21,12 @@ facts = table("career_facts", Column("profile_id", ForeignKey("career_profiles.i
               Column("kind", String(32), nullable=False), Column("text", String(10000), nullable=False),
               Column("source", String(1000), nullable=False), Column("verified", Boolean, nullable=False),
               Column("user_approved", Boolean, nullable=False), Column("confidence", Float, nullable=False))
+uploaded_resumes = table("uploaded_resumes", Column("profile_id", ForeignKey("career_profiles.id"), nullable=False),
+                         Column("filename", String(200), nullable=False), Column("format", String(8), nullable=False),
+                         Column("media_type", String(128), nullable=False), Column("size_bytes", Integer, nullable=False),
+                         Column("sha256", String(64), nullable=False), Column("status", String(32), nullable=False),
+                         Column("created_at", String(64), nullable=False),
+                         constraints=(UniqueConstraint("profile_id", "sha256"),))
 companies = table("companies", Column("name", String(200), nullable=False), Column("domain", String(1000), nullable=False))
 company_sources = table("company_job_sources", Column("company_id", ForeignKey("companies.id"), nullable=False),
                         Column("provider", String(32), nullable=False), Column("tenant", String(128), nullable=False),

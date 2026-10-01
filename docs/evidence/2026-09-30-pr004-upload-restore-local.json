@@ -1,0 +1,51 @@
+{
+  "timestamp": "2026-10-01T01:01:47Z",
+  "result": "PARTIAL",
+  "implemented_slice_result": "PASS",
+  "target": "MJ-PR-004 local-first profile resume upload, durable metadata, UI, and offline restore",
+  "requirements": {
+    "MJ-REQ-013": "PARTIAL",
+    "MJ-REQ-014": "PARTIAL",
+    "MJ-REQ-090": "PARTIAL",
+    "MJ-REQ-167": "PARTIAL",
+    "MJ-REQ-168": "PARTIAL",
+    "MJ-REQ-173": "PARTIAL"
+  },
+  "actions": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_resume_upload tests.unit.test_local_backup -v",
+      "result": "PASS",
+      "observed": "11 tests passed after the upload endpoint tests first failed with 404. PDF, DOCX and UTF-8 TXT accept matched formats, unsafe/path/mismatch/oversize inputs are refused, file tampering returns 409, profile scope and cross-site read are enforced, duplicate content reuses its identity, and no fact is approved."
+    },
+    {
+      "command": "docker compose build api",
+      "result": "PASS",
+      "observed": "Node24 image ran 3 Vitest tests, strict TypeScript check and Vite production build. The new MIME mapping test first failed before implementation."
+    },
+    {
+      "command": "docker compose -p mjobs-upload-20261001 up -d --no-build --wait --wait-timeout 180; python -m cli.personal_mode_e2e --api http://127.0.0.1:18714 --evidence test-tmp/upload-personal-mode-e2e.json",
+      "result": "PASS",
+      "observed": "Fresh PERSONAL PostgreSQL, Redis, migration, API and three workers became healthy at schema b7e10a34c921. Chromium stored a 15-byte synthetic PDF from Profile; API returned one STORED_UNREVIEWED item with exact bytes and SHA-256, zero approved facts, mock actions 409 and external submission disabled.",
+      "evidence_path": "test-tmp/upload-personal-mode-e2e.json"
+    },
+    {
+      "command": "docker compose -p mjobs-upload-20261001 stop api worker source-worker document-worker; python -m cli.local_backup backup --project mjobs-upload-20261001 --archive test-tmp/upload-backup-20261001; python -m cli.local_backup verify --archive test-tmp/upload-backup-20261001; python -m cli.local_backup restore --archive test-tmp/upload-backup-20261001 --target-project mjobs-upload-restored-20261001 --port 18715; python test-tmp/upload-restore-readback.py",
+      "result": "PASS",
+      "observed": "Verified archive included database.dump and the uploaded PDF in documents/uploads. New PERSONAL target read back one unreviewed resume with the original 15 bytes and SHA-256 14bcd090baf31edba64e9cbd8cdfc15f943344aa72cb3675ad8e91bfcbce03ad. Database/queue/worker readiness true, zero facts approved and external submission false.",
+      "evidence_path": "test-tmp/upload-restore-readback.json"
+    },
+    {
+      "command": "python -m cli.local_backup restore --archive test-tmp/backup-personal-snapshot --target-project mjobs-upload-upgrade-20261001 --port 18716; psql SELECT version_num FROM alembic_version; GET /profiles, /jobs, /settings",
+      "result": "PASS",
+      "observed": "An archive captured at predecessor revision a6e7f3c48921 restored under the new image and migrated to b7e10a34c921; one existing profile and 21 public jobs remained, PERSONAL mode and external submission disabled."
+    }
+  ],
+  "migration_data_impact": "New uploaded_resumes table references career_profiles; originals are private files under the existing documents/uploads volume. Existing business rows are unchanged. Upgrade from a6e7f3c48921 was exercised on an isolated restored PERSONAL archive. No existing user project or main branch data was overwritten.",
+  "rollback_recovery": "Back up the database and complete document volume together before upgrading. The downgrade refuses to drop uploaded metadata while rows exist; restore the verified pre-upgrade archive to a distinct fresh Compose project for intentional rollback. Partial restore targets are retained for diagnosis; the source project is preserved.",
+  "external_limitations": [
+    "The original MJ-REQ-090 also requires native extraction, OCR for scans and reviewed fact import; those are not implemented in this slice.",
+    "Protected host configuration, browser cookies, external provider sessions and physical host restart are outside the backup proof.",
+    "No real external application was submitted; external auto-submit remained disabled.",
+    "Reference-gap catalogue and release readiness have no new PASS evidence."
+  ]
+}

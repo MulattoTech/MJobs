@@ -4,9 +4,10 @@ import hashlib
 import os
 from pathlib import Path
 from typing import Literal
+from urllib.parse import unquote
 
 from fastapi import FastAPI, HTTPException, Request, Query
-from fastapi.responses import JSONResponse, FileResponse
+from fastapi.responses import JSONResponse, FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field
 from redis import Redis
@@ -20,6 +21,7 @@ from packages.persistence.store import Store, identity
 from packages.domain.operation_mode import parse_operation_mode, operation_mode_from_env
 from services.discovery.pipeline import MockClient
 from services.discovery.sources.collect import configure_source
+from services.documents.uploads import MAX_UPLOAD_BYTES, UploadIntegrityError, list_resumes, save_resume, read_resume
 from workers.dispatch import enqueue_operation
 from workers.operations import QUEUES, request_cancel, limit
 
@@ -159,6 +161,37 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     @app.put("/profiles")
     def profile(value: ProfileInput):
         return {"id": value.id, "version": store.save_profile(value.model_dump())}
+
+    @app.get("/profiles/{profile_id}/resumes")
+    def profile_resumes(profile_id: str):
+        return {"resumes": list_resumes(store, profile_id)}
+
+    @app.post("/profiles/{profile_id}/resumes", status_code=201)
+    async def profile_resume_upload(profile_id: str, request: Request):
+        store.profile(profile_id)
+        filename = unquote(request.headers.get("x-filename", ""))
+        media_type = request.headers.get("content-type", "").split(";", 1)[0].strip().lower()
+        length = request.headers.get("content-length")
+        if length is not None and (not length.isdecimal() or int(length) > MAX_UPLOAD_BYTES):
+            raise HTTPException(413, "Resume upload exceeds the 10 MiB limit")
+        content = bytearray()
+        async for chunk in request.stream():
+            if len(content) + len(chunk) > MAX_UPLOAD_BYTES:
+                raise HTTPException(413, "Resume upload exceeds the 10 MiB limit")
+            content.extend(chunk)
+        try:
+            return save_resume(store, output_dir, profile_id, filename, media_type, bytes(content))
+        except UploadIntegrityError as exc:
+            raise HTTPException(409, str(exc)) from exc
+
+    @app.get("/profiles/{profile_id}/resumes/{resume_id}")
+    def profile_resume_download(profile_id: str, resume_id: str):
+        try:
+            record, data = read_resume(store, output_dir, profile_id, resume_id)
+        except UploadIntegrityError as exc:
+            raise HTTPException(409, str(exc)) from exc
+        return Response(data, media_type="application/octet-stream", headers={
+            "Content-Disposition": f'attachment; filename="base-resume-{record["id"][:12]}.{record["format"]}"'})
 
     @app.post("/discovery", status_code=202)
     def discovery(value: DiscoveryInput):

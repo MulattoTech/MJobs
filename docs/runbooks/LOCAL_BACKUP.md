@@ -3,7 +3,7 @@
 This procedure covers the PostgreSQL database and local document volume for one
 Compose project. It has been exercised with isolated FIXTURE and PERSONAL
 projects. The archive contains career profiles, application history, source
-catalog data and generated documents. Treat it as sensitive personal data and
+catalog data, generated documents and uploaded base resumes. Treat it as sensitive personal data and
 store it outside this Git checkout on a protected local disk.
 
 The archive does **not** copy `.env` secrets, Redis's rebuildable queue, or
@@ -80,6 +80,11 @@ restored a fictional confirmed application, profile, source catalog, four
 document downloads and a queued operation into a different FIXTURE project.
 A separate PERSONAL restore preserved a manually prepared real-job tracker
 entry, first-party public posting provenance, profile, source catalog and four
-document downloads with external submission disabled. Neither proof submitted
-a real external application. Uploaded-resume storage does not yet exist, so
-its backup/restore path remains unverified.
+document downloads with external submission disabled. A later isolated PERSONAL
+browser run uploaded a synthetic base resume, and a fresh-project restore
+preserved its metadata and exact bytes while keeping every CareerFact unapproved
+(`docs/evidence/2026-09-30-pr004-upload-restore-local.json`). A pre-upload
+archive also restored into a new project and upgraded to the new schema without
+losing its profile or 21 public jobs. Neither proof submitted a real external
+application. Protected host configuration, browser authentication and physical
+host restart remain outside this validation.

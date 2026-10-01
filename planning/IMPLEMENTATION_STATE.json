@@ -10,8 +10,8 @@
     "current_verified_local_state": "Initialized from newer origin/main; supplied control pack retained on governance branch",
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
-  "current_milestone": "M5_P0_LOCAL_BACKUP_RESTORE_VERIFIED",
-  "current_objective": "Continue original P0 uploaded-resume persistence, direct Compose first-run, identity and safety prerequisites before reference enrichment",
+  "current_milestone": "M5_P0_UPLOAD_RESTORE_VERIFIED",
+  "current_objective": "Continue original P0 local-first configuration, startup, identity and safety prerequisites before reference enrichment",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -27,7 +27,8 @@
     "Final Redis outage/outbox recovery and all-service restart retain original UI application/operation/receipt",
     "Provider-neutral source search contract and multi-company attributed persistence with collision-safe posting provenance",
     "Separate application/browser, source discovery and document worker queues; PostgreSQL/Redis restart with the runtime",
-    "Offline PostgreSQL/generated-document backup and fresh-target restore executed in isolated FIXTURE and PERSONAL Compose projects"
+    "Offline PostgreSQL/generated-document backup and fresh-target restore executed in isolated FIXTURE and PERSONAL Compose projects",
+    "Profile-scoped unreviewed PDF/DOCX/TXT upload, browser/API readback and offline restore of original bytes executed in isolated PERSONAL Compose project"
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
@@ -36,7 +37,7 @@
     "Heuristic description skill coverage for real jobs and exact structured skills for mock; advanced matching remains open",
     "Real jobs support manual preparation only; manual status updates, real automation and intervention resume remain open",
     "Greenhouse API-first source strategy verified; additional global feeds and strategy ladder remain open",
-    "Local personal first-run, stored-profile relaunch and scoped backup/restore verified; uploaded resumes, protected configuration and complete startup acceptance remain"
+    "Local personal first-run, stored-profile relaunch and scoped backup/restore verified; protected configuration, native resume extraction/review and complete startup acceptance remain"
   ],
   "blocked_capabilities": [],
   "active_requirements": [
@@ -70,7 +71,9 @@
     "MJ-REQ-013",
     "MJ-REQ-014",
     "MJ-REQ-167",
-    "MJ-REQ-168"
+    "MJ-REQ-168",
+    "MJ-REQ-090",
+    "MJ-REQ-173"
   ],
   "active_prs": [
     {
@@ -101,13 +104,13 @@
       "number": 428,
       "url": "https://github.com/MulattoTech/MJobs/pull/428",
       "branch": "codex/mj-pr-003-governance-safety",
-      "status": "DRAFT_PR"
+      "status": "MERGED"
     },
     {
       "number": 429,
       "url": "https://github.com/MulattoTech/MJobs/pull/429",
       "branch": "codex/mj-pr-005-core-search-model",
-      "status": "DRAFT_PR"
+      "status": "MERGED"
     },
     {
       "number": 430,
@@ -148,7 +151,9 @@
     "MJ-PR-004 local: 14 targeted Compose/worker-lifecycle tests PASS after observed postgres/redis restart-policy RED; worker queue-binding test PASS",
     "MJ-PR-004 local: 99 full Python tests PASS; isolated personal Docker Compose first-run, Chromium, six service restart policies and stored-profile relaunch PASS",
     "Existing mjobs project after Docker Desktop relaunch: postgres/redis started in place and restart policy updated; API readiness database/queue/worker/mock all true",
-    "P0 offline backup/restore: 7 targeted and 106 full Python tests PASS; isolated FIXTURE and PERSONAL fresh-project restores preserve data/documents, recover queued fixture work and keep external submission off"
+    "P0 offline backup/restore: 7 targeted and 106 full Python tests PASS; isolated FIXTURE and PERSONAL fresh-project restores preserve data/documents, recover queued fixture work and keep external submission off",
+    "P0 resume upload: 11 targeted and 110 full Python tests PASS; Node24 3 frontend tests, strict TypeScript and Vite build PASS",
+    "Fresh direct PERSONAL Compose and Chromium upload, checksum readback, offline fresh-project restore and pre-upload archive migration to b7e10a34c921 PASS"
   ],
   "tests_failed": [],
   "tests_not_run": [
@@ -235,7 +240,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Verify #430 backup-slice exact-head CI on the #428/#429 stack, then continue P0 uploaded-resume and complete startup acceptance while preserving clean main.",
+  "recommended_resume_step": "Verify #430 upload-slice exact-head CI on main; then continue original dependency-eligible P0 local-first startup, configuration and safety requirements.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -246,7 +251,8 @@
     "098f12099319",
     "547acf656c37",
     "792dc0dc5664",
-    "a6e7f3c48921"
+    "a6e7f3c48921",
+    "b7e10a34c921"
   ],
   "unfinished_work_evidence": "docs/evidence/2026-09-29-resume-checkpoint.json",
   "authorization": "User explicitly provided 100% Git and GitHub authorization on 2026-09-30; still verify native permissions and required checks",
@@ -1085,11 +1091,71 @@
         "git_commit": "b79e8d3b1a1f9c8462d9378d8bc4e190434a2ae0",
         "evidence_path": "docs/evidence/2026-09-30-pr004-backup-restore-local.json"
       }
+    },
+    {
+      "milestone_id": "M5-P0-RESUME-UPLOAD-RESTORE",
+      "timestamp": "2026-10-01T01:01:47Z",
+      "current_phase": "M5_P0_UPLOAD_RESTORE_VERIFIED",
+      "completed_steps": [
+        "Merged #428 and #429 in dependency order after exact-head checks and unchanged diff/tree comparison; retargeted #430 to main",
+        "Added profile-scoped bounded and integrity-checked PDF/DOCX/TXT originals without career-fact approval",
+        "Exercised direct PERSONAL Compose first-run, Chromium upload and fresh-project offline resume restore",
+        "Restored a pre-upload PERSONAL archive and migrated to b7e10a34c921 while retaining its profile and 21 public jobs",
+        "Kept MJ-REQ-013/014/090/167/168/173 PARTIAL, all 42 MJ-REF NOT_RUN and release NOT_RUN"
+      ],
+      "files_added": [
+        "services/documents/uploads.py",
+        "migrations/versions/b7e10a34c921_store_unreviewed_uploaded_resumes.py",
+        "tests/integration/test_resume_upload.py",
+        "docs/evidence/2026-09-30-pr004-upload-restore-local.json"
+      ],
+      "files_modified": [
+        "apps/api/main.py",
+        "apps/web/src/api.ts",
+        "apps/web/src/api.test.ts",
+        "apps/web/src/main.tsx",
+        "cli/personal_mode_e2e.py",
+        "packages/persistence/models.py",
+        "services/documents/AREA.md",
+        "docs/runbooks/LOCAL_BACKUP.md",
+        "docs/USER_TESTING.md",
+        "docs/FEATURE_COMPLETENESS.md",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "planning/IMPLEMENTATION_STATE.json"
+      ],
+      "tests_completed": [
+        "11 targeted and 110 full Python tests PASS",
+        "Node24 3 Vitest tests, strict TypeScript and Vite production build PASS",
+        "Fresh PERSONAL Compose migration, API/three-worker readiness and Chromium upload PASS",
+        "Fresh-project offline original-byte restore and pre-upload archive migration/readback PASS",
+        "Catalogue validator and git diff --check PASS"
+      ],
+      "tests_remaining": [
+        "Exact-head remote CI after #430 upload update",
+        "Protected host configuration and complete startup/recovery acceptance",
+        "Native resume extraction and explicit reviewed fact import",
+        "Physical host restart and full product/release acceptance"
+      ],
+      "migrations_applied": ["b7e10a34c921"],
+      "live_integrations_tested": [
+        "Local Docker Desktop PostgreSQL, Redis, RQ, API, Chromium, migration and fresh-project backup/restore"
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "No real external application submission or physical host restart",
+        "Private test archives remain ignored and are not committed",
+        "All 42 MJ-REF and release readiness remain NOT_RUN"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "b10a55ba6823c9264d0b1e37c60c725d9679ba35",
+        "evidence_path": "docs/evidence/2026-09-30-pr004-upload-restore-local.json"
+      }
     }
   ],
-  "current_phase": "M5_P0_LOCAL_BACKUP_RESTORE_VERIFIED",
+  "current_phase": "M5_P0_UPLOAD_RESTORE_VERIFIED",
   "last_safe_checkpoint": {
-    "git_commit": "b79e8d3b1a1f9c8462d9378d8bc4e190434a2ae0",
-    "evidence_path": "docs/evidence/2026-09-30-pr004-backup-restore-local.json"
+    "git_commit": "b10a55ba6823c9264d0b1e37c60c725d9679ba35",
+    "evidence_path": "docs/evidence/2026-09-30-pr004-upload-restore-local.json"
   }
 }

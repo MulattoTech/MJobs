@@ -60,6 +60,13 @@ contain factual experience statements. Supply evidence/source, confidence,
 verification, and approval. Facts below confidence 80, unsourced facts, and
 pending facts are excluded. No experience, qualification, or answer is inferred.
 
+After saving and selecting the profile, use **Base resume files** in **Profile**
+to store a PDF, DOCX, or UTF-8 TXT original up to 10 MiB. The local copy is
+marked **STORED UNREVIEWED** and can be downloaded for a checksum-checked
+readback. It does not extract, verify, approve, or use facts automatically;
+enter and review career facts separately. Offline backup includes the uploaded
+bytes and metadata together with the rest of the document volume and database.
+
 In **Sources**, enter an employer's Greenhouse board token, such as the token
 in its Greenhouse careers URL, and choose **Collect jobs** with a profile active.
 The `greenhouse` board was verified live on 2026-09-30. Public listings can change.
@@ -94,7 +101,8 @@ an operation fails. `SOURCE_COOLDOWN` and `SOURCE_BACKOFF` mean wait for the
 recorded policy time; `DOCUMENT_NO_APPROVED_FACTS` means approve and verify at
 least one sourced fact. `DOCUMENT_PROFILE_CHANGED` means prepare again from
 the current profile. Do not delete volumes to retry; they contain local data.
-For an offline PostgreSQL/document backup and tested fresh-project restore,
+For an offline PostgreSQL/document backup, including uploaded base resumes,
+and a tested fresh-project restore,
 follow the [local backup runbook](runbooks/LOCAL_BACKUP.md). It preserves the
 original project and refuses an occupied restore target.
 

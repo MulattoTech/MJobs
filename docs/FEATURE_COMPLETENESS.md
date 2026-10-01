@@ -9,12 +9,12 @@ A percentage is a navigation aid, never a release claim. Only evidence-backed PA
 ## Original specification
 - Catalogue items: **366**
 - PASS: **4** (1.09%)
-- PARTIAL: **59** (16.12%)
-- NOT_RUN: **303** (82.79%)
+- PARTIAL: **61** (16.67%)
+- NOT_RUN: **301** (82.24%)
 - Full-spec state: **PARTIAL**
 - Release readiness: **not established**
 The low PASS percentage does **not** mean only 1.09% of code exists. Many requirements are broad umbrella capabilities
-and 59 are already PARTIAL. The current vertical slice is useful and tested, but the repository correctly refuses to
+and 61 are already PARTIAL. The current vertical slice is useful and tested, but the repository correctly refuses to
 turn partial evidence into completed requirements.
 
 ## Current verified implementation spine
@@ -30,7 +30,8 @@ turn partial evidence into completed requirements.
 - The preferred technology stack is PASS for MJ-REQ-011 after both deployed CI runs exercised the pinned Python/FastAPI/SQLAlchemy/Alembic, TypeScript React/Vite, PostgreSQL, Redis/RQ, Playwright Chromium and Compose paths. The broader product architecture MJ-REQ-010 is PARTIAL pending global/company discovery, fuller resolution/deduplication, AI and supported real ATS services (`docs/evidence/2026-09-30-architecture-stack-reconciliation.json`).
 - A first-class source adapter interface and provider-independent collection path are PASS for MJ-REQ-016. Greenhouse remains the only production adapter. A synthetic two-company batch verifies distinct employers can reuse a requisition without overwriting posting provenance. The documented API-first collection strategy is PARTIAL for MJ-REQ-018 pending broader production source coverage. Both exact-head CI runs deployed the source worker and personal browser, read 21 public Greenhouse jobs and made zero external application requests (`docs/evidence/2026-09-30-ci-429.json`).
 - Three independent RQ consumers for application browser, document, and discovery work, plus matching Compose configuration and live readiness, establish MJ-REQ-012 PASS. A Docker Desktop relaunch exposed missing PostgreSQL/Redis restart policies; the existing local stack was repaired in place and a fresh isolated PERSONAL deployment passed first-run, Chromium, restart-policy and stored-profile relaunch checks (`docs/evidence/2026-09-30-pr004-local-restart.json`). Both earlier implementation-head CI runs passed fixture/personal Compose, Python/frontend, Chromium, recovery and public source checks, with twelve retained artifacts (`docs/evidence/2026-09-30-ci-430.json`).
-- Offline PostgreSQL and generated-document backup with SHA-256 manifest verification and fresh-project restore passed local FIXTURE and PERSONAL Docker exercises. A queued fixture operation recovered with fresh Redis; a personal prepared real-job tracker entry and public posting provenance survived. Restores refused occupied targets, checked exact document inventory, reached readiness and kept external submission disabled. MJ-REQ-013/014/167/168 remain PARTIAL because uploaded resumes, protected host configuration and complete startup/recovery acceptance are open (`docs/evidence/2026-09-30-pr004-backup-restore-local.json`).
+- Offline PostgreSQL and document backup with SHA-256 manifest verification and fresh-project restore passed local FIXTURE and PERSONAL Docker exercises. A queued fixture operation recovered with fresh Redis; a personal prepared real-job tracker entry and public posting provenance survived. Restores refused occupied targets, checked exact document inventory, reached readiness and kept external submission disabled (`docs/evidence/2026-09-30-pr004-backup-restore-local.json`).
+- Fresh direct PERSONAL Compose startup migrated PostgreSQL and passed connected Chromium upload of a synthetic PDF. Profile-scoped PDF/DOCX/UTF-8 TXT originals are stored unreviewed, bounded and checksum verified; uploading does not approve CareerFacts. A fresh-project restore retained the original bytes and metadata, and a pre-upload PERSONAL archive migrated without losing one profile or 21 jobs. MJ-REQ-013/014/090/167/168/173 remain PARTIAL: native extraction/review, protected host configuration, physical host restart and complete acceptance are open (`docs/evidence/2026-09-30-pr004-upload-restore-local.json`).
 - Real external submission remains disabled
 - GitHub Actions passed the final #367-#370 PR heads and the connected UI, mock application, and restart recovery workflow; see `docs/evidence/2026-09-30-ci-370.json`
 ## Reference-project gap catalogue
