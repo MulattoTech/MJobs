@@ -10,8 +10,8 @@
     "current_verified_local_state": "Initialized from newer origin/main; supplied control pack retained on governance branch",
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
-  "current_milestone": "M10_REQUIREMENT_PARSING_LOCAL_VERIFIED",
-  "current_objective": "MJ-PR-010 draft #437 published; verify exact-head CI for MJ-REQ-035..038 PASS, then integrate before MJ-PR-011",
+  "current_milestone": "M11_NEGATIVE_FILTERS_LOCAL_VERIFIED",
+  "current_objective": "MJ-PR-011 draft #438 published; verify exact-head CI for MJ-REQ-039 PASS, then integrate before MJ-PR-012",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -36,7 +36,8 @@
     "Structured search query, location, remote-restriction and employment-type semantics with persisted search-profile criteria",
     "Deterministic experience-level, salary parsing/filtering and date-window semantics with source provenance and first/last-seen timestamps",
     "Normalized skill taxonomy/filtering, conservative title families and education-requirement parsing with original wording preserved",
-    "Explicit experience-year, certification-strength, clearance and work-authorization parsing with search-profile exclusions"
+    "Explicit experience-year, certification-strength, clearance and work-authorization parsing with search-profile exclusions",
+    "User-configured negative filters for travel, on-call, shift, contract/commission, door-to-door, clearance and relocation conditions"
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
@@ -49,10 +50,7 @@
   ],
   "blocked_capabilities": [],
   "active_requirements": [
-    "MJ-REQ-035",
-    "MJ-REQ-036",
-    "MJ-REQ-037",
-    "MJ-REQ-038"
+    "MJ-REQ-039"
   ],
   "active_prs": [
     {
@@ -108,6 +106,12 @@
       "url": "https://github.com/MulattoTech/MJobs/pull/437",
       "branch": "codex/mj-pr-010-core-search-model",
       "status": "DRAFT_PR"
+    },
+    {
+      "number": 438,
+      "url": "https://github.com/MulattoTech/MJobs/pull/438",
+      "branch": "codex/mj-pr-011-core-search-model",
+      "status": "DRAFT_PR"
     }
   ],
   "tests_passed": [
@@ -162,7 +166,10 @@
     "MJ-PR-009: 133 full Python tests PASS",
     "MJ-PR-010: 40 focused parser/search/source tests PASS",
     "MJ-PR-010: 145 full Python tests PASS",
-    "MJ-PR-010: catalogue and progress validators PASS"
+    "MJ-PR-010: catalogue and progress validators PASS",
+    "MJ-PR-011: 45 focused negative-filter/search/source tests PASS",
+    "MJ-PR-011: 150 full Python tests PASS",
+    "MJ-PR-011: catalogue and progress validators PASS"
   ],
   "tests_failed": [],
   "tests_not_run": [
@@ -180,11 +187,11 @@
     "Host Node25 unsupported by Vitest5 and managed Windows Vite spawn restricted; production Node24 Docker build/tests PASS"
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-01T18:45:00+00:00",
+    "timestamp": "2026-10-01T19:20:00+00:00",
     "command": "full Python suite plus catalogue/progress validation",
-    "target": "MJ-PR-010 requirement parsing and explicit filters",
+    "target": "MJ-PR-011 explicit user negative filters",
     "result": "PASS",
-    "evidence_path": "docs/evidence/2026-10-01-requirement-parsing.json"
+    "evidence_path": "docs/evidence/2026-10-01-negative-filters.json"
   },
   "ci_verification": {
     "result": "PASS",
@@ -249,7 +256,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Inspect exact-head workflows for PR #437; fix failures or, when verification passes, mark ready/integrate before selecting MJ-PR-011.",
+  "recommended_resume_step": "Inspect exact-head workflows for PR #438; fix failures or, when verification passes, mark ready/integrate before selecting MJ-PR-012.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],

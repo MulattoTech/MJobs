@@ -392,6 +392,15 @@ def evaluate_search(criteria, job, at=None):
     for flag in sorted(set(criteria.get("excluded_work_authorization_flags") or []) & job_auth_flags):
         reasons.append("WORK_AUTHORIZATION_EXCLUDED:" + flag)
 
+    negative_conditions = attrs.get("negative_conditions") or {"flags": [], "travel_percent": None}
+    job_negative_flags = set(negative_conditions.get("flags") or []) if isinstance(negative_conditions, dict) else set()
+    for flag in sorted(set(criteria.get("excluded_conditions") or []) & job_negative_flags):
+        reasons.append("NEGATIVE_CONDITION:" + flag)
+    max_travel = criteria.get("max_travel_percent")
+    job_travel = negative_conditions.get("travel_percent") if isinstance(negative_conditions, dict) else None
+    if max_travel is not None and job_travel is not None and job_travel > max_travel:
+        reasons.append("TRAVEL_EXCEEDS_MAXIMUM")
+
     radius = criteria.get("radius_miles")
     if radius is not None:
         coordinates = attrs.get("coordinates") or {}

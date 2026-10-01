@@ -90,6 +90,7 @@ class SourcePolicySchedulerTests(unittest.TestCase):
                 "date_window": "CUSTOM", "date_start": "2026-09-01T00:00:00Z", "date_end": "2026-10-31T23:59:59Z",
                 "clearance_levels": ["NONE_STATED", "PUBLIC_TRUST"], "exclude_clearance_required": False,
                 "excluded_work_authorization_flags": ["NO_SPONSORSHIP", "US_CITIZENSHIP_REQUIRED"],
+                "excluded_conditions": ["ON_CALL", "NIGHT_SHIFT", "COMMISSION"], "max_travel_percent": 25,
                 "source_ids": [first],
             })
             self.assertEqual(response.status_code, 200)
@@ -116,6 +117,8 @@ class SourcePolicySchedulerTests(unittest.TestCase):
         self.assertTrue(infra["criteria"]["date_start"].endswith("+00:00"))
         self.assertEqual(infra["criteria"]["clearance_levels"], ["NONE_STATED", "PUBLIC_TRUST"])
         self.assertEqual(infra["criteria"]["excluded_work_authorization_flags"], ["NO_SPONSORSHIP", "US_CITIZENSHIP_REQUIRED"])
+        self.assertEqual(infra["criteria"]["excluded_conditions"], ["ON_CALL", "NIGHT_SHIFT", "COMMISSION"])
+        self.assertEqual(infra["criteria"]["max_travel_percent"], 25.0)
         self.assertEqual(infra["source_ids"], [first])
         self.assertEqual(self.store.count("search_profiles"), 2)
 

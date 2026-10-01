@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-10-01T19:20:00Z",
+  "scope": "MJ-PR-011 / MJ-REQ-039",
+  "result": "PASS",
+  "requirements": {"MJ-REQ-039": "PASS"},
+  "implemented": [
+    "explicit detection for on-call, night shift, 1099, commission, door-to-door, mandatory relocation and clearance-required conditions",
+    "bounded explicit travel-percentage extraction",
+    "search profiles persist selected excluded conditions and an optional maximum travel percentage",
+    "default search policy excludes nothing unless the user configures a preference",
+    "unknown travel percentage is not guessed and does not trigger the travel ceiling",
+    "Greenhouse and fixture jobs preserve condition evidence in canonical-job attributes"
+  ],
+  "tests": [
+    {
+      "command": "python -m unittest tests.unit.test_negative_filters tests.unit.test_requirement_parsers tests.unit.test_search_semantics tests.integration.test_greenhouse tests.integration.test_source_policy_scheduler",
+      "result": "PASS",
+      "count": 45
+    },
+    {
+      "command": "python -m unittest discover -s tests -p test_*.py",
+      "result": "PASS",
+      "count": 150
+    },
+    {"command": "python tools/verification/catalogue.py", "result": "PASS"},
+    {"command": "python tools/verification/progress.py validate", "result": "PASS"},
+    {"command": "git diff --check", "result": "PASS"}
+  ],
+  "truthfulness": {
+    "preferences_assumed": false,
+    "unknown_travel_invented": false,
+    "raw_evidence_preserved": true,
+    "external_submission": "OFF"
+  },
+  "migration": "NONE - existing JSON attributes and search-profile criteria"
+}

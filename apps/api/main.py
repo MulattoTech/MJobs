@@ -119,6 +119,8 @@ class SearchProfileInput(BaseModel):
     clearance_levels: list[Literal["NONE_STATED", "PUBLIC_TRUST", "SECRET", "TOP_SECRET", "TS_SCI", "OTHER"]] = Field(default_factory=list, max_length=10)
     exclude_clearance_required: bool = False
     excluded_work_authorization_flags: list[Literal["US_CITIZENSHIP_REQUIRED", "SPONSORSHIP_AVAILABLE", "NO_SPONSORSHIP", "ALREADY_AUTHORIZED_REQUIRED"]] = Field(default_factory=list, max_length=20)
+    excluded_conditions: list[Literal["ON_CALL", "NIGHT_SHIFT", "CONTRACT_1099", "COMMISSION", "DOOR_TO_DOOR", "CLEARANCE_REQUIRED", "MANDATORY_RELOCATION"]] = Field(default_factory=list, max_length=20)
+    max_travel_percent: float | None = Field(default=None, ge=0, le=100)
     source_ids: list[str] = Field(default_factory=list, max_length=100)
 
 
