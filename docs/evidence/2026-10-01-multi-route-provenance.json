@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-10-01T20:15:00Z",
+  "scope": "MJ-PR-015 / MJ-REQ-052..053",
+  "result": "PASS",
+  "requirements": {
+    "MJ-REQ-052": "PASS",
+    "MJ-REQ-053": "PASS"
+  },
+  "implemented": [
+    "every job posting/source record remains stored and individually inspectable",
+    "job read model returns all postings and all application routes without duplicating canonical job list rows",
+    "route planner supports DEFAULT, THIS_ROUTE, EMPLOYER_SITE, and ALL_DISTINCT",
+    "underlying route identity prefers company plus requisition, then ATS tenant plus requisition, then canonical URL",
+    "redirect aliases for the same employer requisition collapse to one route choice",
+    "first-party ATS/employer route is preferred within an alias group",
+    "application route choices are durable and unique per application plus underlying destination",
+    "ALL_DISTINCT persists exactly one planned choice per genuinely distinct route",
+    "one canonical application intent remains the shared history anchor"
+  ],
+  "validation": [
+    {
+      "command": "python -m unittest tests.unit.test_application_routes tests.unit.test_dedupe_policy tests.unit.test_dedupe_signals",
+      "result": "PASS",
+      "count": 19
+    },
+    {
+      "command": "python -m unittest discover -s tests -p test_*.py",
+      "result": "PASS",
+      "count": 173
+    },
+    {"command": "python tools/verification/catalogue.py", "result": "PASS"},
+    {"command": "python tools/verification/progress.py validate", "result": "PASS"},
+    {
+      "command": "alembic upgrade f71c9d2a4b80; alembic upgrade head; alembic current",
+      "result": "PASS",
+      "observed_head": "a82e4c19d753"
+    },
+    {
+      "command": "populate application_route_choices then alembic downgrade f71c9d2a4b80",
+      "result": "PASS",
+      "expected_behavior": "downgrade refused with RuntimeError"
+    }
+  ],
+  "migration": {
+    "revision": "a82e4c19d753",
+    "down_revision": "f71c9d2a4b80",
+    "table": "application_route_choices",
+    "destructive_populated_downgrade": "REFUSED"
+  },
+  "safety": {
+    "source_records_deleted": false,
+    "same_underlying_requisition_planned_twice": false,
+    "external_submission": "OFF",
+    "real_external_application_requests": 0
+  }
+}

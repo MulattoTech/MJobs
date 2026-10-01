@@ -186,10 +186,13 @@ class Store:
         profile = self.profile(profile_id) if profile_id else None
         with self.engine.connect() as connection:
             counts = select(m.postings.c.job_id, func.count().label("posting_count")).group_by(m.postings.c.job_id).subquery()
+            display_routes = select(m.routes.c.job_id, func.min(m.routes.c.id).label("route_id")).group_by(m.routes.c.job_id).subquery()
             statement = select(m.jobs, m.companies.c.name.label("company"), m.routes.c.provider, m.routes.c.url.label("application_url"),
                 counts.c.posting_count, m.matches.c.score.label("match_score"), m.matches.c.components.label("match_components"), m.matches.c.missing,
                 m.applications.c.state.label("application_state"), m.applications.c.id.label("application_id")).select_from(
-                m.jobs.join(m.companies, m.jobs.c.company_id == m.companies.c.id).join(m.routes, m.routes.c.job_id == m.jobs.c.id)
+                m.jobs.join(m.companies, m.jobs.c.company_id == m.companies.c.id)
+                .join(display_routes, display_routes.c.job_id == m.jobs.c.id)
+                .join(m.routes, m.routes.c.id == display_routes.c.route_id)
                 .outerjoin(counts, counts.c.job_id == m.jobs.c.id)
                 .outerjoin(m.matches, (m.matches.c.job_id == m.jobs.c.id) & (m.matches.c.profile_id == profile_id) &
                            (m.matches.c.profile_version == (profile["version"] if profile else "")))
@@ -202,15 +205,21 @@ class Store:
                 else:
                     statement = statement.where(m.jobs.c.remote_type == remote_type)
             if provider:
-                statement = statement.where(m.routes.c.provider == provider)
+                statement = statement.where(m.jobs.c.id.in_(select(m.routes.c.job_id).where(m.routes.c.provider == provider)))
             statement = statement.order_by(m.matches.c.score.desc().nulls_last(), m.jobs.c.title, m.jobs.c.id) if sort == "score" else statement.order_by(m.jobs.c.title, m.jobs.c.id)
             return [canonical_job_view(dict(row)) for row in connection.execute(statement.limit(limit)).mappings()]
 
     def job(self, job_id, profile_id=None):
         profile = self.profile(profile_id) if profile_id else None
         with self.engine.connect() as connection:
-            data = canonical_job_view(dict(connection.execute(select(m.jobs, m.companies.c.name.label("company"), m.routes.c.provider, m.routes.c.url.label("application_url"))
-                .join(m.companies, m.jobs.c.company_id == m.companies.c.id).join(m.routes, m.routes.c.job_id == m.jobs.c.id).where(m.jobs.c.id == job_id)).mappings().one()))
+            data = canonical_job_view(dict(connection.execute(select(m.jobs, m.companies.c.name.label("company"))
+                .join(m.companies, m.jobs.c.company_id == m.companies.c.id).where(m.jobs.c.id == job_id)).mappings().one()))
+            routes = [dict(row) for row in connection.execute(select(m.routes).where(m.routes.c.job_id == job_id).order_by(m.routes.c.id)).mappings()]
+            if not routes:
+                raise ValueError("APPLICATION_ROUTE_UNAVAILABLE")
+            data["routes"] = routes
+            data["provider"] = routes[0]["provider"]
+            data["application_url"] = routes[0]["url"]
             match = connection.execute(select(m.matches).where(m.matches.c.job_id == job_id, m.matches.c.profile_id == profile_id,
                 m.matches.c.profile_version == (profile["version"] if profile else ""))).mappings().one_or_none()
             data["match"] = dict(match) if match else None

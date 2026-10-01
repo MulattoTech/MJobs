@@ -1,0 +1,132 @@
+import tempfile
+import unittest
+from pathlib import Path
+
+from fastapi.testclient import TestClient
+
+from apps.api.main import create_app
+from packages.persistence import models as m
+from packages.persistence.store import Store, upsert
+from services.dedupe.routes import (
+    distinct_route_options,
+    list_route_choices,
+    plan_application_routes,
+    route_underlying_key,
+    source_provenance_inventory,
+)
+from services.documents.generate import prepare
+from tests.integration.test_spine import PROFILE
+
+
+class ApplicationRouteTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp.name)
+        self.store = Store(f"sqlite:///{(self.root / 'test.db').as_posix()}")
+        self.store.migrate()
+        self.store.bind_workspace_mode("PERSONAL")
+        self.store.save_profile(PROFILE)
+        with self.store.engine.begin() as connection:
+            upsert(connection, m.companies, {"id": "company", "name": "Example", "domain": "example.test"})
+            upsert(connection, m.jobs, {
+                "id": "job", "company_id": "company", "requisition": "CANON",
+                "title": "Systems Administrator", "description": "Manage systems",
+                "skills": ["Windows"], "location": "Dallas, TX", "remote_type": "HYBRID",
+                "attributes": {},
+            })
+            routes = [
+                {"id": "agg-a", "job_id": "job", "company_id": "company", "provider": "job-board",
+                 "tenant": "board", "requisition": "REQ-A", "url": "https://redirect.example/apply/a"},
+                {"id": "ats-a", "job_id": "job", "company_id": "company", "provider": "greenhouse",
+                 "tenant": "example", "requisition": "REQ-A", "url": "https://job-boards.greenhouse.io/example/jobs/1"},
+                {"id": "ats-b", "job_id": "job", "company_id": "company", "provider": "lever",
+                 "tenant": "example", "requisition": "REQ-B", "url": "https://jobs.lever.co/example/2"},
+            ]
+            for route in routes:
+                upsert(connection, m.routes, route)
+            for identifier, source, source_job_id, application_url in (
+                ("p1", "board-a", "1", "https://redirect.example/apply/a"),
+                ("p2", "greenhouse:example", "1", "https://job-boards.greenhouse.io/example/jobs/1"),
+                ("p3", "lever:example", "2", "https://jobs.lever.co/example/2"),
+            ):
+                upsert(connection, m.postings, {
+                    "id": identifier, "job_id": "job", "source": source,
+                    "source_job_id": source_job_id, "source_url": source,
+                    "application_url": application_url, "raw": {"source": source},
+                    "fetched_at": "2026-10-01T12:00:00Z",
+                })
+
+    def tearDown(self):
+        self.store.engine.dispose()
+        self.temp.cleanup()
+
+    def routes(self):
+        with self.store.engine.connect() as connection:
+            return [dict(row) for row in connection.execute(m.routes.select().where(m.routes.c.job_id == "job")).mappings()]
+
+    def test_same_employer_requisition_collapses_redirect_aliases(self):
+        options = distinct_route_options(self.routes())
+        self.assertEqual(len(options), 2)
+        req_a = next(option for option in options if option["underlying_key"].endswith(":req-a"))
+        self.assertEqual(req_a["preferred_route"]["id"], "ats-a")
+        self.assertEqual({row["id"] for row in req_a["aliases"]}, {"agg-a", "ats-a"})
+        self.assertEqual(route_underlying_key(req_a["aliases"][0]), "employer:company:req-a")
+
+    def test_route_modes_select_this_employer_or_all_distinct(self):
+        routes = self.routes()
+        this_route = plan_application_routes(routes, "THIS_ROUTE", "agg-a")
+        self.assertEqual(len(this_route["selected"]), 1)
+        self.assertEqual(this_route["selected"][0]["underlying_key"], "employer:company:req-a")
+
+        employer = plan_application_routes(routes, "EMPLOYER_SITE")
+        self.assertEqual(len(employer["selected"]), 1)
+        self.assertIn(employer["selected"][0]["preferred_route"]["provider"], {"greenhouse", "lever"})
+
+        all_distinct = plan_application_routes(routes, "ALL_DISTINCT")
+        self.assertEqual(all_distinct["distinct_count"], 2)
+        self.assertEqual(len(all_distinct["selected"]), 2)
+
+    def test_prepare_all_distinct_persists_one_choice_per_underlying_route(self):
+        application_id = prepare(
+            self.store, "job", "fixture", self.root,
+            route_mode="ALL_DISTINCT",
+        )
+        choices = list_route_choices(self.store, application_id)
+        self.assertEqual(len(choices), 2)
+        self.assertEqual({row["underlying_key"] for row in choices},
+                         {"employer:company:req-a", "employer:company:req-b"})
+        self.assertEqual(self.store.count("job_postings"), 3)
+        self.assertEqual(self.store.count("canonical_jobs"), 1)
+
+    def test_job_read_model_keeps_all_routes_and_postings_without_duplicate_list_rows(self):
+        rows = self.store.jobs("fixture")
+        self.assertEqual(len(rows), 1)
+        detail = self.store.job("job", "fixture")
+        self.assertEqual(len(detail["routes"]), 3)
+        self.assertEqual(len(detail["postings"]), 3)
+
+    def test_route_endpoint_exposes_distinct_options_and_every_source_record(self):
+        with TestClient(create_app(
+            self.store, "http://127.0.0.1:8090", self.root,
+            "redis://127.0.0.1:1/0", operation_mode="PERSONAL",
+        )) as client:
+            response = client.get("/jobs/job/routes")
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        self.assertEqual(body["distinct_count"], 2)
+        self.assertEqual(len(body["source_records"]), 3)
+        self.assertEqual({row["posting_id"] for row in body["source_records"]}, {"p1", "p2", "p3"})
+
+    def test_source_inventory_never_collapses_records(self):
+        postings = [
+            {"id": "a", "source": "board", "source_job_id": "1", "source_url": "u1",
+             "application_url": "a1", "fetched_at": "t1"},
+            {"id": "b", "source": "employer", "source_job_id": "1", "source_url": "u2",
+             "application_url": "a2", "fetched_at": "t2"},
+        ]
+        inventory = source_provenance_inventory(postings)
+        self.assertEqual([row["posting_id"] for row in inventory], ["a", "b"])
+
+
+if __name__ == "__main__":
+    unittest.main()

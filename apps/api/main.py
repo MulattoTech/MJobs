@@ -24,6 +24,7 @@ from services.discovery.sources.collect import configure_source
 from services.discovery.search_profiles import get_search_profile, list_search_profiles, save_search_profile
 from services.discovery.search_semantics import filter_jobs
 from services.dedupe.reviews import list_duplicate_reviews, record_review_decision
+from services.dedupe.routes import load_job_routes, list_route_choices, plan_application_routes, source_provenance_inventory
 from services.documents.uploads import MAX_UPLOAD_BYTES, UploadIntegrityError, list_resumes, save_resume, read_resume
 from workers.dispatch import enqueue_operation
 from workers.operations import QUEUES, request_cancel, limit
@@ -60,6 +61,8 @@ class DiscoveryInput(BaseModel):
 
 class ApplicationInput(DiscoveryInput):
     job_id: str = Field(min_length=64, max_length=64)
+    route_mode: Literal["DEFAULT", "THIS_ROUTE", "EMPLOYER_SITE", "ALL_DISTINCT"] = "DEFAULT"
+    route_id: str | None = Field(default=None, min_length=1, max_length=128)
 
 
 class MockRunInput(BaseModel):
@@ -306,6 +309,14 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             rows = filter_jobs(rows, search_profile["criteria"])
         return {"jobs": rows}
 
+    @app.get("/jobs/{job_id}/routes")
+    def job_routes(job_id: str):
+        routes = load_job_routes(store, job_id)
+        plan = plan_application_routes(routes, "ALL_DISTINCT")
+        with store.engine.connect() as connection:
+            postings = [dict(row) for row in connection.execute(select(m.postings).where(m.postings.c.job_id == job_id).order_by(m.postings.c.id)).mappings()]
+        return {**plan, "source_records": source_provenance_inventory(postings)}
+
     @app.get("/jobs/{job_id}")
     def job(job_id: str, profile_id: str | None = None):
         return store.job(job_id, profile_id)
@@ -327,17 +338,24 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         profile = store.profile(value.profile_id)
         with store.engine.connect() as connection:
             connection.execute(select(m.jobs.c.id).where(m.jobs.c.id == value.job_id)).one()
-            if operation_mode == "PERSONAL" and connection.execute(select(m.routes.c.id).where(
-                    m.routes.c.job_id == value.job_id, m.routes.c.provider == "mock-ats")).first():
-                raise HTTPException(409, "Fictional applications are unavailable in personal mode")
-        operation = queued("PREPARE", value.profile_id, {"job_id": value.job_id, "profile_version": profile["version"], "request_id": value.request_id})
-        return {**operation, "application_id": identity(value.job_id, value.profile_id)}
+        routes = load_job_routes(store, value.job_id)
+        route_plan = plan_application_routes(routes, value.route_mode, value.route_id)
+        selected_routes = [option["preferred_route"] for option in route_plan["selected"]]
+        if operation_mode == "PERSONAL" and any(route["provider"] == "mock-ats" for route in selected_routes):
+            raise HTTPException(409, "Fictional applications are unavailable in personal mode")
+        operation = queued("PREPARE", value.profile_id, {
+            "job_id": value.job_id, "profile_version": profile["version"], "request_id": value.request_id,
+            "route_mode": value.route_mode, "route_id": value.route_id,
+        })
+        return {**operation, "application_id": identity(value.job_id, value.profile_id),
+                "route_mode": route_plan["mode"], "route_ids": [route["id"] for route in selected_routes]}
 
     @app.get("/applications/{application_id}")
     def application_read(application_id: str):
         data = store.application(application_id)
         with store.engine.connect() as connection:
             data["attempts"] = [dict(row) for row in connection.execute(select(m.attempts).where(m.attempts.c.application_id == application_id).order_by(m.attempts.c.started_at)).mappings()]
+        data["route_choices"] = list_route_choices(store, application_id)
         return data
 
     @app.get("/applications/{application_id}/documents")

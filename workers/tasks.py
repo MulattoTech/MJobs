@@ -62,7 +62,9 @@ def execute_operation(operation_id):
                 else:
                     discover(store, origin, operation["entity_id"], check=check, profile_version=params.get("profile_version"))
             elif operation["kind"] == "PREPARE":
-                prepare(store, operation["params"]["job_id"], operation["entity_id"], Path(os.environ["MJOBS_OUTPUT_DIR"]), check=check, profile_version=operation["params"].get("profile_version"))
+                prepare(store, operation["params"]["job_id"], operation["entity_id"], Path(os.environ["MJOBS_OUTPUT_DIR"]),
+                        check=check, profile_version=operation["params"].get("profile_version"),
+                        route_mode=operation["params"].get("route_mode", "DEFAULT"), route_id=operation["params"].get("route_id"))
             elif operation["kind"] == "APPLY_MOCK":
                 application = apply_mock(store, operation["entity_id"], origin, Path(os.environ["MJOBS_OUTPUT_DIR"]),
                            submit=operation["params"].get("submit", False), check=check)
