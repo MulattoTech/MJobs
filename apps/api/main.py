@@ -116,6 +116,9 @@ class SearchProfileInput(BaseModel):
     date_window: Literal["ANY", "LAST_HOUR", "TODAY", "LAST_24_HOURS", "LAST_3_DAYS", "LAST_7_DAYS", "LAST_30_DAYS", "CUSTOM"] = "ANY"
     date_start: str | None = Field(default=None, max_length=64)
     date_end: str | None = Field(default=None, max_length=64)
+    clearance_levels: list[Literal["NONE_STATED", "PUBLIC_TRUST", "SECRET", "TOP_SECRET", "TS_SCI", "OTHER"]] = Field(default_factory=list, max_length=10)
+    exclude_clearance_required: bool = False
+    excluded_work_authorization_flags: list[Literal["US_CITIZENSHIP_REQUIRED", "SPONSORSHIP_AVAILABLE", "NO_SPONSORSHIP", "ALREADY_AUTHORIZED_REQUIRED"]] = Field(default_factory=list, max_length=20)
     source_ids: list[str] = Field(default_factory=list, max_length=100)
 
 

@@ -17,6 +17,7 @@ from services.discovery.search_semantics import (
     parse_education_requirement, parse_salary, parse_timestamp,
 )
 from services.discovery.skill_taxonomy import extract_skills
+from services.discovery.requirement_parsers import parse_job_requirements
 
 HOST = "https://boards-api.greenhouse.io"
 
@@ -184,6 +185,7 @@ class Greenhouse:
         else:
             salary = parse_salary(description, "EMPLOYER_PROVIDED")
         reported = parse_timestamp(raw.get("first_published_at") or raw.get("published_at"))
+        requirements = parse_job_requirements(description)
         return {"requisition": str(raw["id"]), "title": title, "description": description,
                 "skills": skill_data["labels"], "location": location, "remote_type": location_facts["remote_type"], "application_url": url,
                 "attributes": {"provider": "greenhouse", "tenant": self.tenant, "native_job_id": raw.get("internal_job_id"),
@@ -192,7 +194,12 @@ class Greenhouse:
                     "experience_level_raw": experience["raw"], "normalized_title": title_info["normalized_title"],
                     "title_family": title_info["title_family"], "skill_ids": skill_data["ids"],
                     "skill_mentions": skill_data["mentions"], "education_requirement": education["classification"],
-                    "education_requirement_raw": education["raw"], "salary_min": salary["salary_min"],
+                    "education_requirement_raw": education["raw"],
+                    "experience_requirements": requirements["experience"],
+                    "certifications": requirements["certifications"],
+                    "clearance": requirements["clearance"],
+                    "work_authorization": requirements["work_authorization"],
+                    "salary_min": salary["salary_min"],
                     "salary_max": salary["salary_max"], "salary_period": salary["salary_period"],
                     "salary_currency": salary["currency"], "salary_source": salary["salary_source"],
                     "salary_raw": salary["salary_raw"], "reported_posted_at": reported.isoformat() if reported else None,
