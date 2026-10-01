@@ -183,10 +183,11 @@
         "MJ-PR-008",
         "MJ-PR-001"
       ],
-      "status": "IMPLEMENTED_LOCAL",
+      "status": "DRAFT_PR",
       "branch": "codex/mj-pr-009-core-search-model",
       "draft_until_verified": true,
-      "notes": "MJ-REQ-031..034 locally verified; evidence docs/evidence/2026-10-01-skill-title-education.json; publish draft after commit"
+      "notes": "MJ-REQ-031..034 locally verified; draft #436 published; await exact-head CI",
+      "pr_number": 436
     },
     {
       "id": "MJ-PR-010",
