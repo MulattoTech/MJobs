@@ -8,12 +8,12 @@ A percentage is a navigation aid, never a release claim. Only evidence-backed PA
 
 ## Original specification
 - Catalogue items: **366**
-- PASS: **15** (4.10%)
+- PASS: **19** (5.19%)
 - PARTIAL: **60** (16.39%)
-- NOT_RUN: **291** (79.51%)
+- NOT_RUN: **287** (78.42%)
 - Full-spec state: **PARTIAL**
 - Release readiness: **not established**
-The low PASS percentage does **not** mean only 4.10% of code exists. Many requirements are broad umbrella capabilities
+The low PASS percentage does **not** mean only 5.19% of code exists. Many requirements are broad umbrella capabilities
 and 60 are already PARTIAL. The current vertical slice is useful and tested, but the repository correctly refuses to
 turn partial evidence into completed requirements.
 
@@ -35,6 +35,7 @@ turn partial evidence into completed requirements.
 - Typed source capabilities/policy, persistent scheduled search profiles, and a database-only scheduler are PASS for MJ-REQ-019..021; MJ-REQ-022 remains PARTIAL for broader search-profile lifecycle coverage. A fresh isolated Compose deployment, previous-schema PostgreSQL upgrade, headless UI flow and three durable public Greenhouse scheduler operations passed; 21 jobs remained healthy and no external application request occurred (docs/evidence/2026-10-01-source-policy-scheduler.json).
 - Deterministic structured query semantics, location/work-arrangement filtering, remote restriction classification and employment-type normalization are PASS for MJ-REQ-023..026. Search profiles persist include/exclude title, required/optional/excluded keyword, exact phrase, technology alias, company, location, remote-region and coordinate-backed radius criteria; radius filtering refuses to invent geocodes. Focused, affected and 120-test full Python suites passed with catalogue/progress validation (docs/evidence/2026-10-01-search-semantics.json).
 - Experience-level normalization, salary parse/filter semantics and date filtering are PASS for MJ-REQ-027..030. Original seniority phrases are preserved, compensation provenance stays distinct, unknown periods/dates remain unknown, and canonical jobs persist true provider-reported posted times separately from MJobs first/last-seen timestamps. The focused 29-test slice and 126-test full Python suite passed (docs/evidence/2026-10-01-experience-salary-date.json).
+- Normalized skill filtering/taxonomy, conservative title normalization and education-requirement parsing are PASS for MJ-REQ-031..034. Alias matches retain original wording, no technology is globally required, short aliases avoid common-word false positives, title families avoid unrelated administrator over-collapse, and required/preferred/equivalent education language remains distinct. The focused 41-test slice and 133-test full Python suite passed (docs/evidence/2026-10-01-skill-title-education.json).
 - Real external submission remains disabled
 - GitHub Actions passed the final #367-#370 PR heads and the connected UI, mock application, and restart recovery workflow; see `docs/evidence/2026-09-30-ci-370.json`
 ## Reference-project gap catalogue

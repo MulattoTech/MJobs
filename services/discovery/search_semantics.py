@@ -232,6 +232,40 @@ def classify_location(location_text, description=""):
         "location_text": location,
     }
 
+def normalize_title(value):
+    original = " ".join(str(value or "").split())
+    folded = original.casefold()
+    families = (
+        ("SYSTEMS_ADMINISTRATION", "Systems Administrator",
+         r"\b(?:windows\s+)?(?:sys(?:tem|tems)?\s+admin(?:istrator)?|sysadmin)\b"),
+        ("IT_SUPPORT", "IT Support",
+         r"\b(?:help\s*desk|service\s*desk|desktop\s+support|technical\s+support)\b"),
+    )
+    for family, normalized, pattern in families:
+        if re.search(pattern, folded, re.I):
+            return {"original_title": original, "normalized_title": normalized, "title_family": family}
+    return {"original_title": original, "normalized_title": original, "title_family": None}
+
+
+def parse_education_requirement(text):
+    value = str(text or "")
+    patterns = (
+        ("BACHELORS_OR_EQUIVALENT_EXPERIENCE",
+         r"\bbachelor(?:'s|s)?(?:\s+degree)?\b[^.;\n]{0,80}\b(?:or|and/or)\b[^.;\n]{0,60}\bequivalent\s+(?:experience|combination)\b"),
+        ("BACHELORS_PREFERRED",
+         r"\bbachelor(?:'s|s)?(?:\s+degree)?\b[^.;\n]{0,80}\bpreferred\b"),
+        ("BACHELORS_REQUIRED",
+         r"\bbachelor(?:'s|s)?(?:\s+degree)?\b[^.;\n]{0,80}\b(?:required|mandatory)\b"),
+        ("DEGREE_PREFERRED",
+         r"\b(?:college\s+|university\s+)?degree\b[^.;\n]{0,60}\bpreferred\b"),
+    )
+    for classification, pattern in patterns:
+        match = re.search(pattern, value, re.I)
+        if match:
+            return {"classification": classification, "raw": " ".join(match.group(0).split())}
+    return {"classification": "NONE_SPECIFIED", "raw": None}
+
+
 def _aliases(criteria):
     raw = criteria.get("technology_aliases") or {}
     result = {}
@@ -277,6 +311,13 @@ def evaluate_search(criteria, job, at=None):
     for value in criteria.get("exact_phrases", []):
         if _fold(value) not in corpus:
             reasons.append("EXACT_PHRASE_MISSING:" + str(value))
+
+    job_skill_ids = set(attrs.get("skill_ids") or [])
+    required_skills = set(criteria.get("required_skills") or [])
+    for identifier in sorted(required_skills - job_skill_ids):
+        reasons.append("REQUIRED_SKILL_MISSING:" + identifier)
+    for identifier in sorted(set(criteria.get("excluded_skills") or []) & job_skill_ids):
+        reasons.append("EXCLUDED_SKILL:" + identifier)
 
     company_include = [_fold(v) for v in criteria.get("company_include", [])]
     if company_include and not any(value in company for value in company_include):
@@ -349,7 +390,9 @@ def evaluate_search(criteria, job, at=None):
             reasons.append("OUTSIDE_RADIUS")
 
     optional = [value for value in criteria.get("optional_keywords", []) if _contains(value, corpus, aliases)]
-    return {"matched": not reasons, "reasons": reasons, "optional_matches": optional}
+    optional_skills = sorted(set(criteria.get("optional_skills") or []) & job_skill_ids)
+    return {"matched": not reasons, "reasons": reasons, "optional_matches": optional,
+            "optional_skill_matches": optional_skills}
 
 def filter_jobs(rows, criteria):
     results = []

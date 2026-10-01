@@ -80,6 +80,7 @@ class SourcePolicySchedulerTests(unittest.TestCase):
                 "required_keywords": ["Active Directory", "Microsoft 365"],
                 "optional_keywords": ["Azure"], "excluded_keywords": ["commission"],
                 "exact_phrases": ["Group Policy"], "technology_aliases": {"Microsoft 365": ["M365"]},
+                "required_skills": ["M365", "Active Directory"], "optional_skills": ["Rubrik"], "excluded_skills": ["AWS"],
                 "company_include": ["Example"], "company_exclude": ["Staffing"],
                 "remote": "REQUIRED", "work_arrangements": ["REMOTE"],
                 "countries": ["US"], "states": ["TX"], "cities": ["Sherman"],
@@ -102,6 +103,9 @@ class SourcePolicySchedulerTests(unittest.TestCase):
         self.assertEqual(infra["criteria"]["exclude_titles"], ["Senior"])
         self.assertEqual(infra["criteria"]["required_keywords"], ["Active Directory", "Microsoft 365"])
         self.assertEqual(infra["criteria"]["technology_aliases"], {"Microsoft 365": ["M365"]})
+        self.assertEqual(infra["criteria"]["required_skills"], ["MICROSOFT_365", "ACTIVE_DIRECTORY"])
+        self.assertEqual(infra["criteria"]["optional_skills"], ["RUBRIK"])
+        self.assertEqual(infra["criteria"]["excluded_skills"], ["AWS"])
         self.assertEqual(infra["criteria"]["work_arrangements"], ["REMOTE"])
         self.assertEqual(infra["criteria"]["remote_regions"], ["TX", "OK"])
         self.assertEqual(infra["criteria"]["experience_levels"], ["MID", "SENIOR"])

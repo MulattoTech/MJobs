@@ -6,6 +6,7 @@ from packages.persistence.store import now, upsert
 from services.discovery.search_semantics import (
     DATE_WINDOWS, EMPLOYMENT_TYPES, EXPERIENCE_LEVELS, SALARY_PERIODS, parse_timestamp,
 )
+from services.discovery.skill_taxonomy import normalize_skill_list
 
 
 REMOTE_PREFERENCES = {"ANY", "REQUIRED", "EXCLUDED"}
@@ -101,6 +102,9 @@ def save_search_profile(store, data):
         "excluded_keywords": _clean_strings(data.get("excluded_keywords", [])),
         "exact_phrases": _clean_strings(data.get("exact_phrases", [])),
         "technology_aliases": _clean_aliases(data.get("technology_aliases", {})),
+        "required_skills": normalize_skill_list(data.get("required_skills", [])),
+        "optional_skills": normalize_skill_list(data.get("optional_skills", [])),
+        "excluded_skills": normalize_skill_list(data.get("excluded_skills", [])),
         "company_include": _clean_strings(data.get("company_include", [])),
         "company_exclude": _clean_strings(data.get("company_exclude", [])),
         "remote": remote,

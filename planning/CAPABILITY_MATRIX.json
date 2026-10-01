@@ -268,27 +268,35 @@
     },
     {
       "requirement_id": "MJ-REQ-031",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-01-skill-title-education.json"
+      ],
+      "note": "Verified normalized skill filtering/taxonomy, conservative title families, and education parsing in MJ-PR-009"
     },
     {
       "requirement_id": "MJ-REQ-032",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-01-skill-title-education.json"
+      ],
+      "note": "Verified normalized skill filtering/taxonomy, conservative title families, and education parsing in MJ-PR-009"
     },
     {
       "requirement_id": "MJ-REQ-033",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-01-skill-title-education.json"
+      ],
+      "note": "Verified normalized skill filtering/taxonomy, conservative title families, and education parsing in MJ-PR-009"
     },
     {
       "requirement_id": "MJ-REQ-034",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-01-skill-title-education.json"
+      ],
+      "note": "Verified normalized skill filtering/taxonomy, conservative title families, and education parsing in MJ-PR-009"
     },
     {
       "requirement_id": "MJ-REQ-035",

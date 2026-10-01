@@ -13,11 +13,12 @@ from services.discovery.sources.contract import (
     SourceCompany, SourceItem,
 )
 from services.discovery.search_semantics import (
-    classify_location, normalize_employment_type, normalize_experience_level, parse_salary, parse_timestamp,
+    classify_location, normalize_employment_type, normalize_experience_level, normalize_title,
+    parse_education_requirement, parse_salary, parse_timestamp,
 )
+from services.discovery.skill_taxonomy import extract_skills
 
 HOST = "https://boards-api.greenhouse.io"
-SKILLS = ("Python", "SQL", "JavaScript", "TypeScript", "Java", "C#", "C++", "Go", "Rust", "Linux", "Windows", "Docker", "Kubernetes", "AWS", "Azure", "Terraform", "PowerShell", "React", "PostgreSQL")
 
 
 class SourceError(ValueError):
@@ -154,10 +155,13 @@ class Greenhouse:
             raise SourceError("SOURCE_INVALID_JOB_LOCATION")
         location = plain_text((raw.get("location") or {}).get("name") or "Unknown")[:1000]
         location_facts = classify_location(location, description)
-        combined = plain_text(raw["title"]) + " " + description
+        title = plain_text(raw["title"])[:500]
+        combined = title + " " + description
         employment_type = normalize_employment_type(combined)
-        experience = normalize_experience_level(plain_text(raw["title"]))
-        skills = [skill for skill in SKILLS if re.search(r"(?<!\w)" + re.escape(skill) + r"(?!\w)", combined, re.I)]
+        experience = normalize_experience_level(title)
+        title_info = normalize_title(title)
+        education = parse_education_requirement(description)
+        skill_data = extract_skills(combined)
         url = str(raw.get("absolute_url") or "")
         try:
             parsed = urlsplit(url)
@@ -180,12 +184,15 @@ class Greenhouse:
         else:
             salary = parse_salary(description, "EMPLOYER_PROVIDED")
         reported = parse_timestamp(raw.get("first_published_at") or raw.get("published_at"))
-        return {"requisition": str(raw["id"]), "title": plain_text(raw["title"])[:500], "description": description,
-                "skills": skills, "location": location, "remote_type": location_facts["remote_type"], "application_url": url,
+        return {"requisition": str(raw["id"]), "title": title, "description": description,
+                "skills": skill_data["labels"], "location": location, "remote_type": location_facts["remote_type"], "application_url": url,
                 "attributes": {"provider": "greenhouse", "tenant": self.tenant, "native_job_id": raw.get("internal_job_id"),
                     "native_posting_id": raw["id"], "updated_at": raw.get("updated_at"), "salary": ranges or None,
                     "employment_type": employment_type, "experience_level": experience["level"],
-                    "experience_level_raw": experience["raw"], "salary_min": salary["salary_min"],
+                    "experience_level_raw": experience["raw"], "normalized_title": title_info["normalized_title"],
+                    "title_family": title_info["title_family"], "skill_ids": skill_data["ids"],
+                    "skill_mentions": skill_data["mentions"], "education_requirement": education["classification"],
+                    "education_requirement_raw": education["raw"], "salary_min": salary["salary_min"],
                     "salary_max": salary["salary_max"], "salary_period": salary["salary_period"],
                     "salary_currency": salary["currency"], "salary_source": salary["salary_source"],
                     "salary_raw": salary["salary_raw"], "reported_posted_at": reported.isoformat() if reported else None,

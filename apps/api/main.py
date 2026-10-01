@@ -90,6 +90,9 @@ class SearchProfileInput(BaseModel):
     excluded_keywords: list[str] = Field(default_factory=list, max_length=100)
     exact_phrases: list[str] = Field(default_factory=list, max_length=100)
     technology_aliases: dict[str, list[str]] = Field(default_factory=dict)
+    required_skills: list[str] = Field(default_factory=list, max_length=100)
+    optional_skills: list[str] = Field(default_factory=list, max_length=100)
+    excluded_skills: list[str] = Field(default_factory=list, max_length=100)
     company_include: list[str] = Field(default_factory=list, max_length=100)
     company_exclude: list[str] = Field(default_factory=list, max_length=100)
     remote: Literal["ANY", "REQUIRED", "EXCLUDED"] = "ANY"
