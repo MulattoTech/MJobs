@@ -152,6 +152,13 @@ class CompanyDiscoveryTests(unittest.TestCase):
         self.assertEqual(result["status"], "AMBIGUOUS")
         self.assertEqual(result["candidates"], ["one.example", "two.example"])
 
+    def test_company_domain_normalization_rejects_private_ip_literals(self):
+        from services.company_discovery.domains import normalize_domain
+
+        for value in ("http://127.0.0.1/admin", "http://10.0.0.8", "http://169.254.169.254/latest"):
+            with self.subTest(value=value):
+                self.assertEqual(normalize_domain(value), "")
+
     def test_alias_evidence_does_not_downgrade_verified_alias(self):
         from services.company_discovery.aliases import record_company_alias
 
@@ -234,8 +241,15 @@ class CompanyDiscoveryTests(unittest.TestCase):
         }
 
         class FixtureTransport:
+            bounded_redirects = True
+            fixture_only = True
+
             def __init__(self):
                 self.urls = []
+
+            def allowed(self, url):
+                from urllib.parse import urlsplit
+                return (urlsplit(url).scheme, urlsplit(url).netloc) == ("https", "employer.example")
 
             def get(self, url):
                 self.urls.append(url)
@@ -255,6 +269,68 @@ class CompanyDiscoveryTests(unittest.TestCase):
         self.assertEqual(result["provider"], "mock-ats")
         self.assertIn(origin + "/careers", client.urls)
 
+    def test_company_discovery_blocks_private_or_off_origin_fetch_targets(self):
+        from types import SimpleNamespace
+        from services.company_discovery.flywheel import discover_company_source
+
+        origin = "https://employer.example"
+        pages = {
+            origin + "/": SimpleNamespace(url=origin + "/", text='<nav><a href="/careers">Careers</a></nav>'),
+            origin + "/careers": SimpleNamespace(
+                url=origin + "/careers",
+                text='<main><a data-provider="mock-ats" data-tenant="employer" href="http://169.254.169.254/latest/meta-data">Open roles</a></main>',
+            ),
+        }
+
+        class FixtureTransport:
+            bounded_redirects = True
+            fixture_only = True
+
+            def __init__(self):
+                self.urls = []
+
+            def allowed(self, url):
+                from urllib.parse import urlsplit
+                parts = urlsplit(url)
+                return (parts.scheme, parts.netloc) == ("https", "employer.example")
+
+            def get(self, url):
+                self.urls.append(url)
+                return pages[url]
+
+        client = FixtureTransport()
+        with self.assertRaisesRegex(ValueError, "COMPANY_DISCOVERY_URL_BLOCKED"):
+            discover_company_source(self.store, {
+                "company_name": "Employer Example", "company_website": origin + "/",
+            }, client)
+        self.assertNotIn("http://169.254.169.254/latest/meta-data", client.urls)
+
+    def test_company_discovery_rejects_cross_origin_redirect_result(self):
+        from types import SimpleNamespace
+        from services.company_discovery.flywheel import discover_company_source
+
+        class RedirectingTransport:
+            bounded_redirects = True
+            fixture_only = True
+
+            def __init__(self):
+                self.urls = []
+
+            def allowed(self, url):
+                from urllib.parse import urlsplit
+                return (urlsplit(url).scheme, urlsplit(url).netloc) == ("https", "employer.example")
+
+            def get(self, url):
+                self.urls.append(url)
+                return SimpleNamespace(url="http://169.254.169.254/metadata", text="")
+
+        client = RedirectingTransport()
+        with self.assertRaisesRegex(ValueError, "COMPANY_DISCOVERY_REDIRECT_BLOCKED"):
+            discover_company_source(self.store, {
+                "company_name": "Employer Example", "company_website": "https://employer.example/",
+            }, client)
+        self.assertEqual(client.urls, ["https://employer.example/"])
+
     def test_career_discovery_accepts_common_route_only_with_ats_content(self):
         from types import SimpleNamespace
         from services.company_discovery.flywheel import discover_company_source
@@ -269,8 +345,15 @@ class CompanyDiscoveryTests(unittest.TestCase):
         }
 
         class FixtureTransport:
+            bounded_redirects = True
+            fixture_only = True
+
             def __init__(self):
                 self.urls = []
+
+            def allowed(self, url):
+                from urllib.parse import urlsplit
+                return (urlsplit(url).scheme, urlsplit(url).netloc) == ("https", "employer.example")
 
             def get(self, url):
                 self.urls.append(url)

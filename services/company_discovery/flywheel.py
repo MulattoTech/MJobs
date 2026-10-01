@@ -11,6 +11,7 @@ from packages.persistence import models as m
 from packages.persistence.store import identity, upsert
 from services.company_discovery.career_pages import common_career_routes, internal_career_links
 from services.company_discovery.domains import normalize_domain, record_company_domain
+from services.company_discovery.fetch_policy import bounded_get
 from services.company_discovery.resolution import resolve_company
 
 
@@ -22,20 +23,20 @@ def discover_company_source(store, candidate, client, check=None):
     if not website:
         raise ValueError("COMPANY_OFFICIAL_WEBSITE_REQUIRED")
     check()
-    homepage = client.get(website)
+    homepage = bounded_get(client, website)
     careers_links = internal_career_links(str(homepage.url), homepage.text)
     careers = None
     careers_url = careers_links[0] if careers_links else ""
     if careers_url:
         check()
-        careers = client.get(careers_url)
+        careers = bounded_get(client, careers_url, str(homepage.url))
     else:
         # Guesses are low-confidence probes only. A guessed route is accepted only
         # after its fetched content exposes a supported ATS integration.
         for guessed_url in common_career_routes(str(homepage.url)):
             check()
             try:
-                guessed_page = client.get(guessed_url)
+                guessed_page = bounded_get(client, guessed_url, str(homepage.url))
             except httpx.HTTPStatusError as error:
                 if error.response.status_code == 404:
                     continue
@@ -60,7 +61,7 @@ def discover_company_source(store, candidate, client, check=None):
         raise ValueError("COMPANY_ATS_UNSUPPORTED")
     endpoint = urljoin(str(careers.url), ats_link["href"])
     check()
-    payload = client.get(endpoint).json()
+    payload = bounded_get(client, endpoint, str(careers.url)).json()
     jobs = payload.get("jobs") if isinstance(payload, dict) else None
     if not isinstance(jobs, list):
         raise ValueError("COMPANY_JOB_ENUMERATION_INVALID")

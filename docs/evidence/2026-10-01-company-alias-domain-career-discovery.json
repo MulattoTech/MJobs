@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-01T22:57:01.571962+00:00",
+  "timestamp": "2026-10-01T23:10:18.898519+00:00",
   "scope": "MJ-PR-017 / MJ-REQ-058..061",
   "result": "PARTIAL",
   "requirements": {
@@ -40,13 +40,17 @@
     "Identity matching uses verified aliases/domains, normalized employer name and ATS tenant; unverified legacy domain values do not establish official identity.",
     "Official-domain candidate resolver ranks allowlisted evidence and preserves equal-rank disagreement as ambiguous; known aggregator domains and source categories are excluded.",
     "Career discovery reads internal navigation/footer links, sitemap XML input, structured JSON-LD URLs and common route guesses; guessed routes are accepted only when fetched content shows a supported ATS integration.",
-    "The Company Discover fixture workflow persists observed domains as unverified candidates and no longer writes them into the legacy official-domain field."
+    "The Company Discover fixture workflow persists observed domains as unverified candidates and no longer writes them into the legacy official-domain field.",
+    "Company fetches now require an allowlist-aware transport, reject private IP literals and resolved non-public DNS, enforce same-origin career/ATS targets, and reject unsafe cross-origin final redirects.",
+    "Company fetches now require an allowlist-aware transport, reject private IP literals and resolved non-public DNS, enforce same-origin career/ATS targets, and reject unsafe cross-origin final redirects."
   ],
   "limitations": [
     "Production external career-site/domain acquisition, configured web search, and non-mock ATS metadata integrations are not connected or verified.",
     "The sitemap parser handles sitemap XML supplied to it; automatic discovery and fetching of sitemap locations is not integrated.",
     "Only fixture workflows are used for the end-to-end company source operation; no external employer site was contacted.",
-    "Career-page discovery remains PARTIAL pending production source acquisition and broader first-party acceptance coverage."
+    "Career-page discovery remains PARTIAL pending production source acquisition and broader first-party acceptance coverage.",
+    "External ATS domains are intentionally rejected until a future provider detector supplies an explicit approved-origin policy; current COMPANY_DISCOVER transport remains local-fixture only.",
+    "External ATS domains are intentionally rejected until a future provider detector supplies an explicit approved-origin policy; current COMPANY_DISCOVER transport remains local-fixture only."
   ],
   "validation": [
     {
@@ -57,8 +61,8 @@
     {
       "command": "..\\MJobs-pr-016\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py'",
       "result": "PASS",
-      "count": 186,
-      "duration_seconds": 44.751
+      "count": 189,
+      "duration_seconds": 48.826
     },
     {
       "command": "..\\MJobs-pr-016\\.venv\\Scripts\\python.exe -m tools.verification.catalogue",
@@ -81,17 +85,17 @@
     {
       "command": "docker compose --env-file ..\\MJobs\\.env -p mjobs-pr017-validation-cb72f904 -f compose.yml -f compose.pr017-validation.yml --profile fixture up -d --build --wait --wait-timeout 240",
       "result": "PASS",
-      "detail": "Isolated project used a unique image, networks, volumes and port 18717; PostgreSQL, Redis, API, mock, scheduler and workers reached healthy state."
+      "detail": "Fresh isolated project used unique fetch-guard image, networks, volumes and port 18717; PostgreSQL, Redis, API, mock, scheduler and workers reached healthy state."
     },
     {
       "command": "PostgreSQL SELECT version_num FROM alembic_version; SELECT to_regclass('public.company_aliases'), to_regclass('public.company_domains')",
       "result": "PASS",
-      "detail": "Database revision cb72f9041d6a; both new tables present."
+      "detail": "Fresh fetch-guard build database revision cb72f9041d6a; both new tables present."
     },
     {
       "command": "..\\MJobs-pr-016\\.venv\\Scripts\\python.exe -m cli.mock_e2e --api http://127.0.0.1:18717",
       "result": "PASS",
-      "detail": "Fictional PostgreSQL/Redis/RQ mock application spine completed; external_submission_enabled false."
+      "detail": "Fresh fetch-guard build: fictional PostgreSQL/Redis/RQ mock spine completed; external_submission_enabled false."
     },
     {
       "command": "POST /companies/discovery reason=KNOWN_SOURCE_BROKEN; poll GET /operations/{id} until state terminal",
@@ -102,6 +106,26 @@
       "command": "git fetch origin --prune; gh pr list --state open",
       "result": "PASS",
       "detail": "origin/main remained 12e7ef6c9eb5ff1c7a8fd775361a9ee7e1b28aea; no open PRs while PR-017 was implemented."
+    },
+    {
+      "command": "Regression tests for private IP literal rejection, external ATS target rejection, and cross-origin redirect result rejection",
+      "result": "PASS",
+      "count": 3
+    },
+    {
+      "command": "POST /companies/discovery reason=KNOWN_SOURCE_BROKEN; poll GET /operations/{id} until state terminal",
+      "result": "PASS",
+      "detail": "Fresh fetch-guard project operation 55ba82eea242fa1291a52be2cd9745adea40dc179c899ab1d3c2a3a39981d18f state COMPLETED, error null, kind COMPANY_DISCOVER; mock host only."
+    },
+    {
+      "command": "Regression tests for private IP literal rejection, external ATS target rejection, and cross-origin redirect result rejection",
+      "result": "PASS",
+      "count": 3
+    },
+    {
+      "command": "POST /companies/discovery reason=KNOWN_SOURCE_BROKEN; poll GET /operations/{id} until state terminal",
+      "result": "PASS",
+      "detail": "Fresh fetch-guard project operation 55ba82eea242fa1291a52be2cd9745adea40dc179c899ab1d3c2a3a39981d18f state COMPLETED, error null, kind COMPANY_DISCOVER; mock host only."
     }
   ],
   "merge_validation": {
@@ -112,15 +136,19 @@
     "compose": {
       "result": "PASS",
       "project": "mjobs-pr017-validation-cb72f904",
-      "detail": "Isolated fixture stack and durable company discovery operation passed; project-owned containers, networks and volumes were removed after verification."
+      "detail": "Fresh fetch-guard build isolated fixture stack, PostgreSQL migration, mock E2E and durable company-discovery worker operation passed; project resources were removed after verification."
     },
     "browser": {
       "result": "NOT_RUN",
       "detail": "No browser/UI files changed in PR-017; backend behavior was exercised through PostgreSQL-backed API and worker acceptance."
     },
-    "remote_exact_head_ci": "NOT_RUN: implementation is not published yet.",
+    "remote_exact_head_ci": "NOT_RUN on the uncommitted fetch-guard changes; previous published head checks are superseded by these changes.",
     "external_submission": "NOT_PERFORMED",
-    "external_employer_network_access": "NOT_PERFORMED"
+    "external_employer_network_access": "NOT_PERFORMED",
+    "ssrf_guard": {
+      "result": "PASS",
+      "detail": "Current transport restricts local fixture origin; policy blocks non-public IP/DNS, off-origin discovery links, and unsafe final redirects."
+    }
   },
   "validation_environment": {
     "python": "3.12.10",

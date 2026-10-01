@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+import ipaddress
 from urllib.parse import urlsplit
 
 from sqlalchemy import select
@@ -45,6 +46,11 @@ def normalize_domain(value):
             return ""
         if host == "localhost" or host.endswith((".localhost", ".local", ".internal")):
             return ""
+        try:
+            ipaddress.ip_address(host)
+            return ""
+        except ValueError:
+            pass
         return host
     except ValueError:
         return ""

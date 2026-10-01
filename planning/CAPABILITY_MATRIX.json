@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-01T22:57:01.571962+00:00",
+  "timestamp": "2026-10-01T23:10:18.898519+00:00",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -513,7 +513,7 @@
       "evidence": [
         "docs/evidence/2026-10-01-company-alias-domain-career-discovery.json"
       ],
-      "note": "Fixture discovery inspects same-origin navigation/footer/internal links, sitemap XML and JSON-LD URL hints, and probes common routes only with ATS-content corroboration. Sitemap fetching, production site acquisition and broader employer acceptance remain open."
+      "note": "Fixture discovery inspects same-origin navigation/footer/internal links, sitemap XML and JSON-LD URL hints, probes common routes only with ATS-content corroboration, and blocks private/off-origin fetch targets. Sitemap fetching, production site acquisition and broader employer acceptance remain open."
     },
     {
       "requirement_id": "MJ-REQ-062",
