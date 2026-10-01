@@ -1,0 +1,50 @@
+{
+  "timestamp": "2026-09-30T23:06:00Z",
+  "target": "MJ-PR-005 source adapter vertical slice; MJ-REQ-016 and MJ-REQ-018",
+  "implementation_head": "9b895cfdb2cbca5a0f55a6f1b9a35702f599766c",
+  "action": "Reconcile existing Greenhouse collection with a provider-neutral search contract, per-posting company identity and durable multi-company provenance",
+  "tests": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py'",
+      "target": "rebased MJ-PR-005 branch at source adapter implementation head",
+      "result": "PASS",
+      "observed": "96 tests in 44.484 seconds"
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_greenhouse -v",
+      "target": "Greenhouse public GET, source policy, worker collection, provider registry and two-company posting provenance",
+      "result": "PASS",
+      "observed": "13 tests in 1.653 seconds"
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.catalogue; C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.progress validate; git diff --check",
+      "target": "original and canonical reference catalogues, milestone journal and patch whitespace",
+      "result": "PASS",
+      "observed": "Catalogue validation PASS; Progress journal validation PASS; git diff --check exited 0 before evidence update"
+    }
+  ],
+  "requirements": {
+    "MJ-REQ-016": {
+      "result": "PASS",
+      "scope": "First-class search/fetch/normalize/health/capabilities interface, closed production provider registry, provider-independent collection persistence and per-posting company attribution executed through Greenhouse and a synthetic two-company batch.",
+      "evidence": "The collector calls search(); 13 focused tests include a fail-if-legacy-collect-is-called worker path, multi-company persistence with duplicate requisition numbers, Greenhouse stable IDs and existing source safety checks."
+    },
+    "MJ-REQ-018": {
+      "result": "PARTIAL",
+      "scope": "Configured Greenhouse boards use the documented public structured API via bounded GET, with API strategy and no direct application.",
+      "remaining": "The priority ladder has not been evaluated and exercised for other source types; no global production feed or browser fallback was added."
+    },
+    "MJ-REQ-015": {"result": "PARTIAL", "remaining": "The complete domain model and resolution/deduplication requirements exceed this slice."},
+    "MJ-REQ-017": {"result": "NOT_RUN", "remaining": "Initial global source targets are not implemented in this slice."}
+  },
+  "reference_gap_status": "MJ-REF-001..042 remain NOT_RUN; this slice does not claim reference completion.",
+  "release_readiness": "NOT_RUN",
+  "migration_data_impact": "No schema migration. Existing Greenhouse company, job, route and posting IDs remain stable; multi-company feeds use company-scoped source posting IDs to avoid requisition collisions. Existing stored records are not rewritten by this commit.",
+  "rollback_recovery": "Revert the adapter-contract and collector commit if needed. Existing Greenhouse IDs and database schema remain compatible; preserve stored posting snapshots and source policy/backoff rows.",
+  "limitations": [
+    "Only Greenhouse is registered as a production source; synthetic multi-company data verifies the persistence contract but is not live global-feed proof.",
+    "No real external submission was performed and source direct-application capability remains false.",
+    "Local Docker Desktop Linux engine was unavailable; deployed source/worker/Chromium evidence must be read from exact-head CI after PR publication."
+  ],
+  "result": "PARTIAL"
+}

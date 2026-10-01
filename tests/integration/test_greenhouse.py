@@ -1,15 +1,19 @@
 """First-party public source contracts; no employer submission endpoints."""
 from pathlib import Path
+import importlib
 import tempfile
 import unittest
+from unittest.mock import patch
 
 import httpx
 from sqlalchemy import select
 
 from packages.persistence import models as m
-from packages.persistence.store import Store
+from packages.persistence.store import Store, identity, upsert
+from services.discovery.sources.contract import SearchBatch, SourceCompany, SourceItem
 from services.discovery.sources.greenhouse import Greenhouse
 from services.discovery.sources.collect import configure_source, collect_source
+from services.discovery.sources.registry import source_adapter
 from tests.integration.test_spine import PROFILE
 
 RAW = {"id": 1234, "internal_job_id": 5678, "title": "Python Engineer", "location": {"name": "Remote - United States"},
@@ -38,13 +42,36 @@ class GreenhouseTests(unittest.TestCase):
             return httpx.Response(200, json={"jobs": [RAW, dict(RAW, id=1235, title="Platform Engineer")], "meta": {"total": 2}})
         return httpx.Response(200, json={"name": "Example Public Employer"})
 
+    def test_search_contract_keeps_raw_jobs_and_company_attribution(self):
+        adapter = Greenhouse("example", transport=httpx.MockTransport(self.transport))
+        self.assertTrue(callable(getattr(adapter, "search", None)))
+        batch = adapter.search()
+        self.assertEqual(batch.endpoint, "https://boards-api.greenhouse.io/v1/boards/example/jobs")
+        self.assertEqual(len(batch.items), 2)
+        self.assertEqual(batch.items[0].raw, RAW)
+        self.assertEqual(batch.items[0].company.identity_parts, ("greenhouse", "example"))
+        self.assertEqual(batch.items[0].company.name, "Example Public Employer")
+        self.assertEqual(batch.items[0].company.domain, "https://job-boards.greenhouse.io/example")
+        self.assertEqual(adapter.capabilities()["strategy"], "API")
+        self.assertFalse(adapter.capabilities()["direct_application"])
+
+    def test_empty_board_collection_preserves_provider_company_name(self):
+        def empty_board(request):
+            return httpx.Response(200, json={"jobs": []}) if request.url.path.endswith("/jobs") else httpx.Response(200, json={"name": "Employer With No Openings"})
+        batch = Greenhouse("example", transport=httpx.MockTransport(empty_board)).collect()
+        self.assertEqual(batch["company"], "Employer With No Openings")
+        self.assertEqual(batch["jobs"], [])
+
     def test_collection_preserves_provenance_and_labels_live_matching(self):
         source = configure_source(self.store, "example")
         result = collect_source(self.store, source, "fixture", transport=httpx.MockTransport(self.transport))
         self.assertEqual(result["jobs_seen"], 2)
         self.assertEqual(self.store.count("canonical_jobs"), 2)
+        self.assertEqual(self.store.count("job_postings"), 2)
         self.assertEqual(self.store.count("posting_snapshots"), 2)
         self.assertEqual(self.store.count("company_job_sources"), 1)
+        job_id = identity(identity("greenhouse", "example"), "greenhouse", "example", "1234")
+        self.assertEqual(self.store.job(job_id)["requisition"], "1234")
         with self.store.engine.connect() as connection:
             snapshots = list(connection.execute(select(m.posting_snapshots)).mappings())
             match = connection.execute(select(m.matches)).mappings().first()
@@ -53,6 +80,49 @@ class GreenhouseTests(unittest.TestCase):
         self.assertEqual(match["components"]["method"], "description_skill_mentions")
         self.assertTrue(all("jobs" in str(request.url) or str(request.url).endswith("/example") for request in self.requests))
         self.assertFalse(Greenhouse("example").capabilities()["direct_application"])
+
+    def test_worker_collection_uses_search_contract(self):
+        source = configure_source(self.store, "example")
+        with patch.object(Greenhouse, "collect", side_effect=AssertionError("legacy collect path called")):
+            result = collect_source(self.store, source, "fixture", transport=httpx.MockTransport(self.transport))
+        self.assertEqual(result["jobs_seen"], 2)
+        self.assertEqual(self.store.count("canonical_jobs"), 2)
+
+    def test_collector_persists_two_companies_from_one_adapter_batch(self):
+        source_id = identity("synthetic", "mixed")
+        with self.store.engine.begin() as connection:
+            upsert(connection, m.job_sources, {"id": source_id, "provider": "synthetic", "tenant": "mixed",
+                "name": "Mixed Feed", "enabled": True, "strategy": "PUBLIC_JSON", "poll_interval": 300,
+                "health_status": "NOT_CHECKED"})
+
+        class MultiCompanyAdapter:
+            def search(self):
+                return SearchBatch("https://example.test/feed", (
+                    SourceItem({"id": 1, "title": "Python Engineer"}, SourceCompany(("domain", "alpha.test"), "Alpha", "https://alpha.test")),
+                    SourceItem({"id": 1, "title": "Platform Engineer"}, SourceCompany(("domain", "beta.test"), "Beta", "https://beta.test")),
+                ))
+
+            def normalize(self, raw):
+                return {"requisition": str(raw["id"]), "title": raw["title"], "description": "Python systems",
+                    "skills": ["Python"], "location": "Remote", "remote_type": "REMOTE", "application_url": "",
+                    "attributes": {"provider": "synthetic", "fictional": False, "submission_capability": "MANUAL_ONLY"}}
+
+            def capabilities(self):
+                return {"strategy": "PUBLIC_JSON", "direct_application": False}
+
+        module = importlib.import_module("services.discovery.sources.collect")
+        self.assertTrue(hasattr(module, "source_adapter"))
+        with patch.object(module, "source_adapter", return_value=MultiCompanyAdapter()):
+            result = collect_source(self.store, source_id, "fixture")
+        self.assertEqual((result["jobs_seen"], result["strategy"], result["direct_application"]), (2, "PUBLIC_JSON", False))
+        self.assertEqual(self.store.count("companies"), 2)
+        self.assertEqual(self.store.count("company_job_sources"), 2)
+        self.assertEqual(self.store.count("canonical_jobs"), 2)
+        self.assertEqual(self.store.count("job_postings"), 2)
+        self.assertEqual(self.store.count("posting_snapshots"), 2)
+        with self.store.engine.connect() as connection:
+            self.assertEqual(connection.execute(select(m.job_sources.c.name)).scalar_one(), "Mixed Feed")
+            self.assertEqual({row["name"] for row in connection.execute(select(m.companies)).mappings()}, {"Alpha", "Beta"})
 
     def test_cooldown_prevents_repeated_requests_and_failure_does_not_erase_jobs(self):
         source = configure_source(self.store, "example")
@@ -74,6 +144,10 @@ class GreenhouseTests(unittest.TestCase):
             Greenhouse("example", transport=httpx.MockTransport(lambda _: httpx.Response(302, headers={"location": "http://127.0.0.1"}))).collect()
         with self.assertRaisesRegex(ValueError, "SOURCE_PAYLOAD_LIMIT"):
             Greenhouse("example", transport=httpx.MockTransport(lambda _: httpx.Response(200, content=b"x" * 5_000_001, headers={"content-type": "application/json"}))).collect()
+
+    def test_adapter_registry_rejects_unimplemented_provider(self):
+        with self.assertRaisesRegex(ValueError, "SOURCE_UNSUPPORTED"):
+            source_adapter({"provider": "unknown", "tenant": "example"})
 
     def test_rate_limit_persists_provider_backoff(self):
         source = configure_source(self.store, "example")
