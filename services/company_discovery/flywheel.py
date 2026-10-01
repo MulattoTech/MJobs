@@ -1,6 +1,7 @@
 """Bounded company-career discovery and immediate first-party enrollment."""
 from __future__ import annotations
 
+import re
 from urllib.parse import urljoin
 
 from bs4 import BeautifulSoup
@@ -13,17 +14,103 @@ from services.company_discovery.career_pages import common_career_routes, intern
 from services.company_discovery.domains import normalize_domain, record_company_domain
 from services.company_discovery.fetch_policy import bounded_get
 from services.company_discovery.resolution import resolve_company
+from services.company_discovery.search import search_company_careers
+from services.ats_detection.detector import detect_ats
 
 
-def discover_company_source(store, candidate, client, check=None):
+_LEGAL_NAME_WORDS = {"inc", "incorporated", "corp", "corporation", "llc", "ltd", "limited", "company", "co"}
+
+
+def _company_name_appears(company_name, html):
+    expected = {word for word in re.findall(r"[a-z0-9]+", str(company_name or "").casefold())
+                if len(word) > 1 and word not in _LEGAL_NAME_WORDS}
+    if not expected:
+        return False
+    visible = BeautifulSoup(str(html or "")[:2_000_000], "html.parser").get_text(" ", strip=True).casefold()
+    observed = set(re.findall(r"[a-z0-9]+", visible))
+    return expected.issubset(observed)
+
+
+def _search_provenance(candidate, provider, selected, rejected, attempted=False):
+    company_name = str(candidate.get("company_name") or "").strip()
+    query = f"{' '.join(company_name.split())[:200]} careers jobs" if company_name else ""
+    return {
+        "discovery_method": "WEB_SEARCH" if attempted else "PROVIDED_COMPANY_WEBSITE",
+        "search_provider": (selected.provider if selected else str(getattr(provider, "provider_id", "disabled")))
+        if attempted else None,
+        "search_query": (selected.query if selected else query) if attempted else None,
+        "search_result_url": selected.url if selected else None,
+        "search_rejected_candidates": list(rejected),
+    }
+
+
+def discover_company_source(store, candidate, client, check=None, search_provider=None):
     """Resolve one employer, prove its careers/ATS source, enroll, and enumerate immediately."""
     check = check or (lambda: None)
     resolved = resolve_company(store, candidate)
     website = str(candidate.get("company_website") or candidate.get("website_url") or "").strip()
+    search_context = None
+    rejected_search_candidates = []
+    homepage = None
+    search_attempted = False
     if not website:
-        raise ValueError("COMPANY_OFFICIAL_WEBSITE_REQUIRED")
+        search_attempted = True
+        search_candidates = search_company_careers(candidate.get("company_name"), search_provider)
+        if not search_candidates:
+            provenance = _search_provenance(candidate, search_provider, None, (), attempted=True)
+            with store.engine.begin() as connection:
+                store._audit(connection, resolved["company_id"], "COMPANY_SEARCH_REVIEW", {
+                    "status": "NO_SEARCH_CANDIDATES",
+                    "candidate_count": 0,
+                    **provenance,
+                })
+            raise ValueError("COMPANY_OFFICIAL_WEBSITE_REQUIRED")
+        for search_candidate in search_candidates:
+            check()
+            try:
+                candidate_page = bounded_get(client, search_candidate.url)
+            except httpx.HTTPStatusError:
+                rejected_search_candidates.append({"url": search_candidate.url, "reason": "HTTP_STATUS"})
+                continue
+            except ValueError as error:
+                if str(error) in {"COMPANY_DISCOVERY_URL_BLOCKED", "COMPANY_DISCOVERY_REDIRECT_BLOCKED"}:
+                    rejected_search_candidates.append({"url": search_candidate.url, "reason": "FETCH_POLICY"})
+                    continue
+                raise
+            fixture_ats = BeautifulSoup(candidate_page.text, "html.parser").find(
+                "a", attrs={"data-provider": True, "data-tenant": True}
+            )
+            candidate_detection = detect_ats(
+                str(candidate_page.url), candidate_page.text,
+                redirect_chain=[str(response.url) for response in getattr(candidate_page, "history", ())],
+            )
+            if not (internal_career_links(str(candidate_page.url), candidate_page.text)
+                    or fixture_ats is not None or candidate_detection.status == "MATCH"):
+                rejected_search_candidates.append({"url": search_candidate.url,
+                                                   "reason": "CAREER_OR_ATS_EVIDENCE_MISSING"})
+                continue
+            if not _company_name_appears(candidate.get("company_name"), candidate_page.text):
+                rejected_search_candidates.append({"url": search_candidate.url,
+                                                   "reason": "COMPANY_NAME_NOT_FOUND"})
+                continue
+            website = search_candidate.url
+            homepage = candidate_page
+            search_context = search_candidate
+            break
+        if not website:
+            provenance = _search_provenance(candidate, search_provider, None, rejected_search_candidates,
+                                            attempted=search_attempted)
+            with store.engine.begin() as connection:
+                store._audit(connection, resolved["company_id"], "COMPANY_SEARCH_REVIEW", {
+                    "status": "NO_RELEVANT_COMPANY_SITE",
+                    "candidate_count": len(search_candidates),
+                    **provenance,
+                })
+            raise ValueError("COMPANY_OFFICIAL_WEBSITE_NOT_FOUND")
+        candidate = {**candidate, "company_website": website}
     check()
-    homepage = bounded_get(client, website)
+    if homepage is None:
+        homepage = bounded_get(client, website)
     careers_links = internal_career_links(str(homepage.url), homepage.text)
     careers = None
     careers_url = careers_links[0] if careers_links else ""
@@ -44,22 +131,50 @@ def discover_company_source(store, candidate, client, check=None):
             guessed_ats = BeautifulSoup(guessed_page.text, "html.parser").find(
                 "a", attrs={"data-provider": True, "data-tenant": True}
             )
-            if guessed_ats is not None:
+            guessed_detection = detect_ats(
+                str(guessed_page.url), guessed_page.text,
+                redirect_chain=[str(response.url) for response in getattr(guessed_page, "history", ())],
+            )
+            if guessed_ats is not None or guessed_detection.status == "MATCH":
                 careers_url, careers = str(guessed_page.url), guessed_page
                 break
     if careers is None:
+        provenance = _search_provenance(candidate, search_provider, search_context, rejected_search_candidates,
+                                        attempted=search_attempted)
+        with store.engine.begin() as connection:
+            store._audit(connection, resolved["company_id"], "COMPANY_CAREERS_DISCOVERY_REVIEW", {
+                "status": "CAREERS_LINK_UNPROVEN",
+                "homepage_url": str(homepage.url),
+                **provenance,
+            })
         raise ValueError("COMPANY_CAREERS_LINK_UNPROVEN")
     check()
-    # PR-016 proves the extensible discovery boundary with the fixture detector.
-    # Production ATS families remain independently tracked provider requirements.
     ats_link = BeautifulSoup(careers.text, "html.parser").find("a", attrs={"data-provider": True, "data-tenant": True})
-    if ats_link is None or not ats_link.get("href"):
-        raise ValueError("COMPANY_ATS_REVIEW_REQUIRED")
-    provider = str(ats_link["data-provider"]).strip().casefold()
-    tenant = str(ats_link["data-tenant"]).strip().casefold()
-    if provider != "mock-ats":
-        raise ValueError("COMPANY_ATS_UNSUPPORTED")
-    endpoint = urljoin(str(careers.url), ats_link["href"])
+    if ats_link is not None and ats_link.get("href") and str(ats_link.get("data-provider", "")).strip().casefold() == "mock-ats":
+        provider = "mock-ats"
+        tenant = str(ats_link["data-tenant"]).strip().casefold()
+        endpoint = urljoin(str(careers.url), ats_link["href"])
+    else:
+        redirects = [str(response.url) for response in getattr(careers, "history", ())]
+        detected = detect_ats(str(careers.url), careers.text, redirect_chain=redirects)
+        with store.engine.begin() as connection:
+            store._audit(connection, resolved["company_id"], "COMPANY_ATS_DETECTION_REVIEW", {
+                "status": detected.status,
+                "provider": detected.provider,
+                "confidence": detected.confidence,
+                "evidence": list(detected.evidence),
+                "candidates": [
+                    {"provider": item.provider, "confidence": item.confidence,
+                     "evidence": list(item.evidence)} for item in detected.candidates
+                ],
+                "visible_careers_url": str(careers.url),
+                "application_supported": detected.application_supported,
+                **_search_provenance(candidate, search_provider, search_context,
+                                     rejected_search_candidates, attempted=search_attempted),
+            })
+        if detected.status != "MATCH" or not detected.provider:
+            raise ValueError("COMPANY_ATS_REVIEW_REQUIRED")
+        raise ValueError("COMPANY_ATS_ENUMERATION_UNSUPPORTED")
     check()
     payload = bounded_get(client, endpoint, str(careers.url)).json()
     jobs = payload.get("jobs") if isinstance(payload, dict) else None
@@ -91,6 +206,8 @@ def discover_company_source(store, candidate, client, check=None):
             "tenant": tenant,
             "endpoint": endpoint,
             "jobs_enumerated": len(jobs),
+            **_search_provenance(candidate, search_provider, search_context, rejected_search_candidates,
+                                 attempted=search_attempted),
         })
     homepage_domain = normalize_domain(str(homepage.url))
     if homepage_domain:

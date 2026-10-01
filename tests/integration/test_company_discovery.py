@@ -6,6 +6,7 @@ import unittest
 from unittest.mock import patch
 
 from fastapi.testclient import TestClient
+import httpx
 from sqlalchemy import select, text
 
 from apps.api.main import create_app
@@ -268,6 +269,139 @@ class CompanyDiscoveryTests(unittest.TestCase):
         self.assertEqual(result["careers_url"], origin + "/careers")
         self.assertEqual(result["provider"], "mock-ats")
         self.assertIn(origin + "/careers", client.urls)
+
+    def test_optional_search_provider_supplies_only_a_bounded_site_candidate(self):
+        from types import SimpleNamespace
+        from services.company_discovery.flywheel import discover_company_source
+
+        origin = "https://employer.example"
+        pages = {
+            origin + "/directory": SimpleNamespace(
+                url=origin + "/directory", text="<main>Employer Example open job listings</main>"
+            ),
+            origin + "/": SimpleNamespace(
+                url=origin + "/",
+                text='<h1>Employer Example</h1><header><a href="/careers">Careers</a></header>',
+            ),
+            origin + "/careers": SimpleNamespace(
+                url=origin + "/careers",
+                text='<a data-provider="mock-ats" data-tenant="employer" href="/ats/jobs">Open roles</a>',
+            ),
+        }
+
+        class FixtureTransport:
+            bounded_redirects = True
+            fixture_only = True
+
+            def allowed(self, url):
+                from urllib.parse import urlsplit
+                return (urlsplit(url).scheme, urlsplit(url).netloc) == ("https", "employer.example")
+
+            def get(self, url):
+                if url == origin + "/ats/jobs":
+                    return SimpleNamespace(url=url, json=lambda: {"jobs": []})
+                return pages[url]
+
+        class SearchProvider:
+            provider_id = "fixture-search"
+
+            def search(self, query, *, limit):
+                return [
+                    {"url": origin + "/directory", "title": "Employer careers listing", "snippet": "Open roles"},
+                    {"url": origin + "/", "title": "Employer Careers", "snippet": "Open roles"},
+                ]
+
+        result = discover_company_source(self.store, {"company_name": "Employer Example"},
+                                         FixtureTransport(), search_provider=SearchProvider())
+        self.assertEqual(result["provider"], "mock-ats")
+        self.assertEqual(result["jobs_enumerated"], 0)
+
+    def test_custom_domain_ats_detection_is_audited_without_claiming_application_support(self):
+        from types import SimpleNamespace
+        from services.company_discovery.flywheel import discover_company_source
+
+        origin = "https://employer.example"
+        pages = {
+            origin + "/": SimpleNamespace(
+                url=origin + "/",
+                text='<h1>Employer Example</h1><header><a href="/careers">Careers</a></header>',
+            ),
+            origin + "/careers": SimpleNamespace(
+                url=origin + "/careers",
+                text='<script src="https://boards.greenhouse.io/embed/job_board/js?for=employer"></script>',
+            ),
+        }
+
+        class FixtureTransport:
+            bounded_redirects = True
+            fixture_only = True
+
+            def allowed(self, url):
+                from urllib.parse import urlsplit
+                return (urlsplit(url).scheme, urlsplit(url).netloc) == ("https", "employer.example")
+
+            def get(self, url):
+                return pages[url]
+
+        class SearchProvider:
+            provider_id = "fixture-search"
+
+            def search(self, query, *, limit):
+                return [{"url": origin + "/", "title": "Employer Careers", "snippet": "Open roles"}]
+
+        with self.assertRaisesRegex(ValueError, "COMPANY_ATS_ENUMERATION_UNSUPPORTED"):
+            discover_company_source(self.store, {"company_name": "Employer Example"},
+                                    FixtureTransport(), search_provider=SearchProvider())
+        with self.store.engine.connect() as connection:
+            events = [dict(row) for row in connection.execute(select(m.audit)).mappings().all()]
+        event = next(row for row in events if row["action"] == "COMPANY_ATS_DETECTION_REVIEW")
+        self.assertEqual(event["payload"]["provider"], "greenhouse")
+        self.assertEqual(event["payload"]["visible_careers_url"], origin + "/careers")
+        self.assertFalse(event["payload"]["application_supported"])
+        self.assertEqual(event["payload"]["discovery_method"], "WEB_SEARCH")
+        self.assertEqual(event["payload"]["search_provider"], "fixture-search")
+        self.assertEqual(event["payload"]["search_query"], "Employer Example careers jobs")
+
+    def test_custom_domain_ats_signature_corroborates_a_guessed_career_route(self):
+        from types import SimpleNamespace
+        from services.company_discovery.flywheel import discover_company_source
+
+        origin = "https://employer.example"
+        pages = {
+            origin + "/": SimpleNamespace(url=origin + "/", text="<h1>Employer</h1>"),
+            origin + "/careers": SimpleNamespace(
+                url=origin + "/careers",
+                text='<script src="https://boards.greenhouse.io/embed/job_board/js?for=employer"></script>',
+            ),
+        }
+
+        class FixtureTransport:
+            bounded_redirects = True
+            fixture_only = True
+
+            def allowed(self, url):
+                from urllib.parse import urlsplit
+                return (urlsplit(url).scheme, urlsplit(url).netloc) == ("https", "employer.example")
+
+            def get(self, url):
+                if url not in pages:
+                    from types import SimpleNamespace
+                    error = httpx.HTTPStatusError(
+                        "not found", request=httpx.Request("GET", url),
+                        response=httpx.Response(404, request=httpx.Request("GET", url)),
+                    )
+                    raise error
+                return pages[url]
+
+        with self.assertRaisesRegex(ValueError, "COMPANY_ATS_ENUMERATION_UNSUPPORTED"):
+            discover_company_source(self.store, {
+                "company_name": "Employer Example", "company_website": origin + "/",
+            }, FixtureTransport())
+        with self.store.engine.connect() as connection:
+            events = [dict(row) for row in connection.execute(select(m.audit)).mappings().all()]
+        event = next(row for row in events if row["action"] == "COMPANY_ATS_DETECTION_REVIEW")
+        self.assertEqual(event["payload"]["provider"], "greenhouse")
+        self.assertEqual(event["payload"]["visible_careers_url"], origin + "/careers")
 
     def test_company_discovery_blocks_private_or_off_origin_fetch_targets(self):
         from types import SimpleNamespace
