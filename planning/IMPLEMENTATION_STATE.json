@@ -10,8 +10,8 @@
     "current_verified_local_state": "Initialized from newer origin/main; supplied control pack retained on governance branch",
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
-  "current_milestone": "M16_COMPANY_DISCOVERY_FIXTURE_VERIFIED",
-  "current_objective": "MJ-PR-016 draft #443 published; verify exact current head after PR bookkeeping, then continue from live dependency frontier.",
+  "current_milestone": "M17_COMPANY_ALIASES_DOMAINS_CAREER_DISCOVERY_PARTIAL",
+  "current_objective": "MJ-PR-017 local slice implemented and verified; publish exact branch head, verify remote CI, then continue from live dependency frontier.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -41,7 +41,8 @@
     "Provider-neutral canonical job representation with separate raw postings, snapshots, and application routes",
     "Explainable duplicate candidate evidence across strong identifiers, corroborated company identity, normalized titles and cheap description similarity",
     "Boilerplate-resistant duplicate confidence, persistent ambiguous review decisions, and first-party source precedence",
-    "Preserved duplicate source records with explicit genuinely-distinct application route planning and durable route-choice ledger"
+    "Preserved duplicate source records with explicit genuinely-distinct application route planning and durable route-choice ledger",
+    "Persisted candidate and verified company domains and aliases with evidence, safe legacy candidate backfill, verified-only identity matching, and deterministic ambiguity handling (MJ-PR-017 local evidence)."
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
@@ -51,14 +52,15 @@
     "Real jobs support manual preparation only; manual status updates, real automation and intervention resume remain open",
     "Greenhouse API-first source strategy verified; additional global feeds and strategy ladder remain open",
     "Local personal first-run, stored-profile relaunch and scoped backup/restore verified; protected configuration, native resume extraction/review and complete startup acceptance remain",
-    "Mock-ATS company discovery supports a durable user-added trigger, evidence-based identity, automatic fixture source enrollment, and immediate employer-only job matching; production ATS providers and automatic trigger wiring remain open."
+    "Mock-ATS company discovery supports a durable user-added trigger, evidence-based identity, automatic fixture source enrollment, and immediate employer-only job matching; production ATS providers and automatic trigger wiring remain open.",
+    "Official-domain source acquisition and career-site discovery currently use fixture acceptance; production provider/search integration and automatic sitemap acquisition remain open (MJ-REQ-060..061 PARTIAL)."
   ],
   "blocked_capabilities": [],
   "active_requirements": [
-    "MJ-REQ-054",
-    "MJ-REQ-055",
-    "MJ-REQ-056",
-    "MJ-REQ-057"
+    "MJ-REQ-058",
+    "MJ-REQ-059",
+    "MJ-REQ-060",
+    "MJ-REQ-061"
   ],
   "active_prs": [
     {
@@ -177,8 +179,17 @@
       "number": 443,
       "url": "https://github.com/MulattoTech/MJobs/pull/443",
       "branch": "codex/mj-pr-016-company-ats-discovery",
-      "status": "DRAFT_PR",
-      "head": "c436999e4d2d3737a1a37d6f08d3d975be3c0392"
+      "status": "MERGED",
+      "head": "ac74d84bf74c42a25cefffd6c06b207aedaa865b",
+      "merge_commit": "12e7ef6c9eb5ff1c7a8fd775361a9ee7e1b28aea",
+      "merged_at": "2026-10-01T22:31:45Z"
+    },
+    {
+      "number": null,
+      "branch": "codex/mj-pr-017-company-ats-discovery",
+      "worktree": "C:\\Tools\\Dev\\MJobs-pr-017",
+      "status": "ACTIVE_WORK",
+      "base": "12e7ef6c9eb5ff1c7a8fd775361a9ee7e1b28aea"
     }
   ],
   "tests_passed": [
@@ -256,13 +267,19 @@
     "MJ-PR-016: isolated branch Compose migration a82e4c19d753 equals Alembic head; FIXTURE identity and API/PostgreSQL/Redis/workers healthy",
     "MJ-PR-016: PostgreSQL/Redis/RQ company discovery operation COMPLETED; employer-only Job B matched at 100; external submission remained disabled",
     "MJ-PR-016: connected Chromium UI acceptance 5 actions PASS on isolated Compose fixture stack",
-    "MJ-PR-016: 5 live-feedback URL/privacy compatibility tests PASS"
+    "MJ-PR-016: 5 live-feedback URL/privacy compatibility tests PASS",
+    "MJ-PR-017: 13 focused company-alias/domain/career-discovery integration tests PASS",
+    "MJ-PR-017: 186 full Python tests PASS; catalogue and progress validators PASS",
+    "MJ-PR-017: SQLite legacy-domain backfill and populated downgrade refusal PASS; PostgreSQL Compose migration reached cb72f9041d6a",
+    "MJ-PR-017: isolated fixture Compose mock E2E and PostgreSQL-backed COMPANY_DISCOVER operation COMPLETED; external submission disabled"
   ],
   "tests_failed": [],
   "tests_not_run": [
     "Remaining full-spec integrations and product/release requirements"
   ],
-  "known_external_limitations": [],
+  "known_external_limitations": [
+    "Production external career-site/domain acquisition, configured web-search provider and non-mock ATS metadata integration are not verified in MJ-PR-017."
+  ],
   "known_product_defects": [
     "Manual real-submission status updates and manual CAPTCHA/login intervention resume not implemented",
     "Abrupt process kill during document generation can leave unreferenced local files; retention/garbage collection pending"
@@ -275,19 +292,14 @@
     "MJ-PR-016 local Chromium first run used Docker DNS host api, which is not a secure browser origin for crypto.randomUUID; loopback URL rerun passed all five connected UI actions."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-01T22:25:03Z",
-    "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_company_discovery tests.integration.test_spine tests.integration.test_source_policy_scheduler; .venv\\Scripts\\python.exe -m unittest discover -s tests -p test_*.py; python -m tools.verification.catalogue; python -m tools.verification.progress validate; isolated Compose worker/API operation, migration revision check, Chromium UI and live-feedback compatibility; committed c436999 and created draft PR #443; CI pending for post-bookkeeping head",
-    "target": "MJ-PR-016 company discovery fixture vertical slice",
-    "result": "PASS",
-    "evidence_path": "docs/evidence/2026-10-01-company-discovery-core.json"
+    "git_commit": "12e7ef6c9eb5ff1c7a8fd775361a9ee7e1b28aea",
+    "evidence_path": "docs/evidence/2026-10-01-company-alias-domain-career-discovery.json"
   },
   "ci_verification": {
-    "result": "PENDING",
-    "scope": "MJ-PR-016 exact current PR head; CI on initial head was in progress before branch bookkeeping commit",
-    "verified_head": "c436999e4d2d3737a1a37d6f08d3d975be3c0392",
-    "initial_pull_request_run_id": 36934813152,
-    "initial_push_run_id": 36934774339,
-    "next_action": "Fetch PR head after bookkeeping push and require successful Verification runs on that exact SHA."
+    "result": "NOT_RUN",
+    "scope": "MJ-PR-017 local implementation; no PR exists yet",
+    "verified_head": null,
+    "next_action": "Commit implementation and updated control-plane evidence, push, create draft PR, then verify workflows against the newly published exact head."
   },
   "mock_spine_ci": {
     "result": "PASS",
@@ -345,7 +357,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Fetch PR #443 latest exact head after bookkeeping push; wait for and inspect both Verification Actions runs on that SHA, fix failures without weakening requirements, then merge only if head is current, mergeable, and review threads are resolved.",
+  "recommended_resume_step": "Review the PR-017 diff and evidence, commit the validated branch, push and create a draft PR; fetch the new exact head and run the exact-head CI loop.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -359,9 +371,10 @@
     "a6e7f3c48921",
     "b7e10a34c921",
     "c4f8912d6a10",
-    "d5a9c38e21f4"
+    "d5a9c38e21f4",
+    "cb72f9041d6a"
   ],
-  "unfinished_work_evidence": "docs/evidence/2026-09-29-resume-checkpoint.json",
+  "unfinished_work_evidence": "docs/evidence/2026-10-01-company-alias-domain-career-discovery.json",
   "authorization": "User explicitly provided 100% Git and GitHub authorization on 2026-09-30; still verify native permissions and required checks",
   "user_testing": {
     "result": "PASS",
@@ -380,7 +393,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "c436999e4d2d3737a1a37d6f08d3d975be3c0392",
+  "last_implementation_commit": "9348993c1ffd85472688c7bdc5dff65b129b407e",
   "publication": {
     "result": "PASS",
     "transport": "Authenticated Git push and GitHub draft PR",
@@ -1306,12 +1319,66 @@
         "git_commit": "b747089274e0b45531c637c7f6b1991da75081b8",
         "evidence_path": "docs/evidence/2026-09-30-pr004-closure.json"
       }
+    },
+    {
+      "milestone_id": "M17-COMPANY-IDENTITY-DATA-LOCAL",
+      "timestamp": "2026-10-01T22:59:20.640374+00:00",
+      "current_phase": "M17_COMPANY_IDENTITY_LOCAL_VERIFIED",
+      "completed_steps": [
+        "Reconciled merged PR #443 and adopted the dependency-eligible PR-017 worktree on current main.",
+        "Added verified alias/domain persistence and conservative identity resolution; corrected candidate domains to remain unverified.",
+        "Added first-party evidence ranking and career-page link/common-route discovery with content corroboration.",
+        "Recorded truthful PASS/PARTIAL requirement states, queue reconciliation, feature counts and local evidence."
+      ],
+      "files_added": [
+        "migrations/versions/cb72f9041d6a_company_identity_aliases_and_domains.py",
+        "services/company_discovery/aliases.py",
+        "services/company_discovery/career_pages.py",
+        "services/company_discovery/domains.py",
+        "docs/evidence/2026-10-01-company-alias-domain-career-discovery.json"
+      ],
+      "files_modified": [
+        "packages/persistence/models.py",
+        "services/company_discovery/flywheel.py",
+        "services/company_discovery/resolution.py",
+        "tests/integration/test_company_discovery.py",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "docs/FEATURE_COMPLETENESS.md"
+      ],
+      "tests_completed": [
+        "13 focused company alias/domain/career discovery tests PASS.",
+        "186 full Python tests PASS; catalogue validator PASS.",
+        "SQLite previous-revision domain backfill and populated downgrade refusal PASS.",
+        "Isolated PostgreSQL Compose migration, mock E2E and durable COMPANY_DISCOVER worker operation PASS."
+      ],
+      "tests_remaining": [
+        "Exact-head remote Actions after PR-017 publication.",
+        "Production configured web-search, external career-site and non-mock ATS discovery remain open.",
+        "Original P0-P3 full acceptance and release readiness remain open."
+      ],
+      "migrations_applied": [
+        "cb72f9041d6a"
+      ],
+      "live_integrations_tested": [
+        "Isolated local PostgreSQL 17, Redis, fixture mock, API and discovery worker; external site access was not performed."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "MJ-REQ-060..061 are PARTIAL because production domain evidence acquisition and sitemap fetching are not integrated.",
+        "MJ-REQ-054..056 and production ATS provider breadth remain PARTIAL from the prior fixture-only slice."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "9348993c1ffd85472688c7bdc5dff65b129b407e",
+        "evidence_path": "docs/evidence/2026-10-01-company-alias-domain-career-discovery.json"
+      }
     }
   ],
-  "current_phase": "M5_P0_UPLOAD_RESTORE_MERGED_LOCAL_READY",
+  "current_phase": "M17_COMPANY_IDENTITY_LOCAL_VERIFIED",
   "last_safe_checkpoint": {
-    "git_commit": "b747089274e0b45531c637c7f6b1991da75081b8",
-    "evidence_path": "docs/evidence/2026-09-30-pr004-closure.json"
+    "git_commit": "9348993c1ffd85472688c7bdc5dff65b129b407e",
+    "evidence_path": "docs/evidence/2026-10-01-company-alias-domain-career-discovery.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
