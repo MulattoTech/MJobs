@@ -11,7 +11,7 @@
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
   "current_milestone": "M16_COMPANY_DISCOVERY_FIXTURE_VERIFIED",
-  "current_objective": "MJ-PR-016 local implementation verified; publish draft and validate exact PR head before merge.",
+  "current_objective": "MJ-PR-016 draft #443 published; verify exact current head after PR bookkeeping, then continue from live dependency frontier.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -172,6 +172,13 @@
       "status": "MERGED",
       "merge_commit": "6267044c2e93a058eab61011164b828a542f7bdc",
       "merged_at": "2026-10-01T20:17:53Z"
+    },
+    {
+      "number": 443,
+      "url": "https://github.com/MulattoTech/MJobs/pull/443",
+      "branch": "codex/mj-pr-016-company-ats-discovery",
+      "status": "DRAFT_PR",
+      "head": "c436999e4d2d3737a1a37d6f08d3d975be3c0392"
     }
   ],
   "tests_passed": [
@@ -268,18 +275,19 @@
     "MJ-PR-016 local Chromium first run used Docker DNS host api, which is not a secure browser origin for crypto.randomUUID; loopback URL rerun passed all five connected UI actions."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-01T22:20:43Z",
-    "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_company_discovery tests.integration.test_spine tests.integration.test_source_policy_scheduler; .venv\\Scripts\\python.exe -m unittest discover -s tests -p test_*.py; python -m tools.verification.catalogue; python -m tools.verification.progress validate; isolated Compose worker/API operation, migration revision check, Chromium UI and live-feedback compatibility",
+    "timestamp": "2026-10-01T22:25:03Z",
+    "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_company_discovery tests.integration.test_spine tests.integration.test_source_policy_scheduler; .venv\\Scripts\\python.exe -m unittest discover -s tests -p test_*.py; python -m tools.verification.catalogue; python -m tools.verification.progress validate; isolated Compose worker/API operation, migration revision check, Chromium UI and live-feedback compatibility; committed c436999 and created draft PR #443; CI pending for post-bookkeeping head",
     "target": "MJ-PR-016 company discovery fixture vertical slice",
     "result": "PASS",
     "evidence_path": "docs/evidence/2026-10-01-company-discovery-core.json"
   },
   "ci_verification": {
-    "result": "PASS",
-    "scope": "governance domain/control-plane and catalogue only",
-    "head": "e97d8b0a35219bf4c053cf663c5d44f6f1be522c",
-    "pull_request_run_id": 36765678280,
-    "evidence_path": "docs/evidence/2026-09-30-governance-ci.json"
+    "result": "PENDING",
+    "scope": "MJ-PR-016 exact current PR head; CI on initial head was in progress before branch bookkeeping commit",
+    "verified_head": "c436999e4d2d3737a1a37d6f08d3d975be3c0392",
+    "initial_pull_request_run_id": 36934813152,
+    "initial_push_run_id": 36934774339,
+    "next_action": "Fetch PR head after bookkeeping push and require successful Verification runs on that exact SHA."
   },
   "mock_spine_ci": {
     "result": "PASS",
@@ -337,7 +345,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Commit and publish MJ-PR-016, then verify the exact current GitHub PR head and all required CI before merge; continue from live dependency state.",
+  "recommended_resume_step": "Fetch PR #443 latest exact head after bookkeeping push; wait for and inspect both Verification Actions runs on that SHA, fix failures without weakening requirements, then merge only if head is current, mergeable, and review threads are resolved.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -372,12 +380,15 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "60d4c012f53f28998565e5448b0576f8357a7f1d",
+  "last_implementation_commit": "c436999e4d2d3737a1a37d6f08d3d975be3c0392",
   "publication": {
     "result": "PASS",
     "transport": "Authenticated Git push and GitHub draft PR",
     "local_remote_commit_identical": true,
-    "force": false
+    "force": false,
+    "pr_number": 443,
+    "url": "https://github.com/MulattoTech/MJobs/pull/443",
+    "initial_head": "c436999e4d2d3737a1a37d6f08d3d975be3c0392"
   },
   "optional_afk_journal": {
     "result": "BLOCKED_ENVIRONMENT",

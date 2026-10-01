@@ -95,7 +95,7 @@
     },
     {
       "id": "MJ-PR-005",
-      "title": "Core Search Model: Domain Model \u2014 Core Concepts; Global Job Sources",
+      "title": "Core Search Model: Domain Model — Core Concepts; Global Job Sources",
       "domain": "core_search_model",
       "requirements": [
         "MJ-REQ-015",
@@ -274,7 +274,7 @@
     },
     {
       "id": "MJ-PR-013",
-      "title": "Job Identity Dedupe: Deduplication \u2014 Strong Signals; Deduplication \u2014 Company Identity",
+      "title": "Job Identity Dedupe: Deduplication — Strong Signals; Deduplication — Company Identity",
       "domain": "job_identity_dedupe",
       "requirements": [
         "MJ-REQ-044",
@@ -353,10 +353,12 @@
       "depends_on": [
         "MJ-PR-012"
       ],
-      "status": "ACTIVE",
+      "status": "DRAFT_PR",
       "branch": "codex/mj-pr-016-company-ats-discovery",
       "draft_until_verified": true,
-      "notes": "Existing dirty worktree adopted from codex/mj-pr-016-company-ats-discovery; local fixture-focused and full Python validation passed. Production ATS coverage and automatic trigger wiring remain partial."
+      "notes": "Published draft PR #443 after local Python, Compose, migration, Chromium and catalogue/progress verification. Initial exact head c436999e4d2d3737a1a37d6f08d3d975be3c0392 Actions runs were IN_PROGRESS; this bookkeeping commit changes the head and requires fresh exact-head verification.",
+      "pr_number": 443,
+      "url": "https://github.com/MulattoTech/MJobs/pull/443"
     },
     {
       "id": "MJ-PR-017",
@@ -948,7 +950,7 @@
     },
     {
       "id": "MJ-PR-047",
-      "title": "Orchestration Data Security: Security \u2014 Pii; Security \u2014 Web",
+      "title": "Orchestration Data Security: Security — Pii; Security — Web",
       "domain": "orchestration_data_security",
       "requirements": [
         "MJ-REQ-171",
@@ -968,7 +970,7 @@
     },
     {
       "id": "MJ-PR-048",
-      "title": "Orchestration Data Security: Security \u2014 Secret Management; Audit Log",
+      "title": "Orchestration Data Security: Security — Secret Management; Audit Log",
       "domain": "orchestration_data_security",
       "requirements": [
         "MJ-REQ-175",
@@ -1183,7 +1185,7 @@
     },
     {
       "id": "MJ-PR-059",
-      "title": "Test Harness: Unit Tests \u2014 Company Resolution; Unit Tests \u2014 Ats Detection",
+      "title": "Test Harness: Unit Tests — Company Resolution; Unit Tests — Ats Detection",
       "domain": "test_harness",
       "requirements": [
         "MJ-REQ-216",
@@ -1203,7 +1205,7 @@
     },
     {
       "id": "MJ-PR-060",
-      "title": "Test Harness: Unit Tests \u2014 Application State; Application Idempotency Test",
+      "title": "Test Harness: Unit Tests — Application State; Application Idempotency Test",
       "domain": "test_harness",
       "requirements": [
         "MJ-REQ-220",

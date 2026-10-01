@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-01T22:20:43Z",
+  "timestamp": "2026-10-01T22:25:03Z",
   "scope": "MJ-PR-016 / MJ-REQ-054..057",
   "result": "PARTIAL",
   "requirements": {
@@ -131,7 +131,7 @@
       "count": 5,
       "command": ".venv\\Scripts\\python.exe -m unittest tests.unit.test_live_feedback -v"
     },
-    "remote_exact_head_ci": "NOT_RUN: no PR has been published yet"
+    "remote_exact_head_ci": "PENDING: draft PR #443 published; initial c436999 runs were in progress before bookkeeping commit, so the new current head must be checked."
   },
   "validation_environment": {
     "python": "3.12",
