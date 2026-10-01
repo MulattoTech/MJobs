@@ -23,6 +23,7 @@ from services.discovery.pipeline import MockClient
 from services.discovery.sources.collect import configure_source
 from services.discovery.search_profiles import get_search_profile, list_search_profiles, save_search_profile
 from services.discovery.search_semantics import filter_jobs
+from services.dedupe.reviews import list_duplicate_reviews, record_review_decision
 from services.documents.uploads import MAX_UPLOAD_BYTES, UploadIntegrityError, list_resumes, save_resume, read_resume
 from workers.dispatch import enqueue_operation
 from workers.operations import QUEUES, request_cancel, limit
@@ -64,6 +65,11 @@ class ApplicationInput(DiscoveryInput):
 class MockRunInput(BaseModel):
     model_config = ConfigDict(strict=True, extra="forbid")
     submit: bool = False
+
+
+class DedupeDecisionInput(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+    action: Literal["MERGE", "KEEP_SEPARATE", "NEVER_MERGE"]
 
 
 class SourceInput(BaseModel):
@@ -138,7 +144,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         origin = request.headers.get("origin")
         if request.method not in ("GET", "HEAD", "OPTIONS") and origin and origin != str(request.base_url).rstrip("/"):
             return JSONResponse({"detail": "Cross-origin mutation blocked"}, status_code=403)
-        if request.headers.get("sec-fetch-site") == "cross-site" and request.url.path.startswith(("/profiles", "/documents", "/applications", "/operations")):
+        if request.headers.get("sec-fetch-site") == "cross-site" and request.url.path.startswith(("/profiles", "/documents", "/applications", "/operations", "/duplicate-reviews")):
             return JSONResponse({"detail": "Cross-site personal data access blocked"}, status_code=403)
         response = await call_next(request)
         response.headers["Cache-Control"] = "no-store"
@@ -303,6 +309,14 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     @app.get("/jobs/{job_id}")
     def job(job_id: str, profile_id: str | None = None):
         return store.job(job_id, profile_id)
+
+    @app.get("/duplicate-reviews")
+    def duplicate_reviews(state: str | None = Query(default=None, max_length=64)):
+        return {"duplicate_reviews": list_duplicate_reviews(store, state)}
+
+    @app.put("/duplicate-reviews/{review_id}")
+    def duplicate_review_decision(review_id: str, value: DedupeDecisionInput):
+        return record_review_decision(store, review_id, value.action)
 
     @app.get("/applications")
     def applications(profile_id: str | None = None):

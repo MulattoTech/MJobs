@@ -404,27 +404,35 @@
     },
     {
       "requirement_id": "MJ-REQ-048",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-01-dedupe-review-precedence.json"
+      ],
+      "note": "Verified boilerplate/confidence/review/first-party precedence in MJ-PR-014"
     },
     {
       "requirement_id": "MJ-REQ-049",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-01-dedupe-review-precedence.json"
+      ],
+      "note": "Verified boilerplate/confidence/review/first-party precedence in MJ-PR-014"
     },
     {
       "requirement_id": "MJ-REQ-050",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-01-dedupe-review-precedence.json"
+      ],
+      "note": "Verified boilerplate/confidence/review/first-party precedence in MJ-PR-014"
     },
     {
       "requirement_id": "MJ-REQ-051",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-01-dedupe-review-precedence.json"
+      ],
+      "note": "Verified boilerplate/confidence/review/first-party precedence in MJ-PR-014"
     },
     {
       "requirement_id": "MJ-REQ-052",

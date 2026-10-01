@@ -8,12 +8,12 @@ A percentage is a navigation aid, never a release claim. Only evidence-backed PA
 
 ## Original specification
 - Catalogue items: **366**
-- PASS: **32** (8.74%)
+- PASS: **36** (9.84%)
 - PARTIAL: **57** (15.57%)
-- NOT_RUN: **277** (75.68%)
+- NOT_RUN: **273** (74.59%)
 - Full-spec state: **PARTIAL**
 - Release readiness: **not established**
-The low PASS percentage does **not** mean only 8.74% of code exists. Many requirements are broad umbrella capabilities
+The low PASS percentage does **not** mean only 9.84% of code exists. Many requirements are broad umbrella capabilities
 and 57 are already PARTIAL. The current vertical slice is useful and tested, but the repository correctly refuses to
 turn partial evidence into completed requirements.
 
@@ -40,6 +40,7 @@ turn partial evidence into completed requirements.
 - Explicit user negative filters are PASS for MJ-REQ-039. Jobs retain evidence for on-call, night shift, 1099, commission, door-to-door, clearance, mandatory relocation and stated travel percentage; profiles exclude only conditions the user selects, and unknown travel is never guessed. The focused 45-test slice and 150-test full Python suite passed (docs/evidence/2026-10-01-negative-filters.json).
 - Canonical job normalization, raw-source provenance, canonical-job versus posting separation, and application-route separation are PASS for MJ-REQ-040..043. Each raw posting now stores source URL, application URL, source job ID, fetch timestamp and untouched provider payload separately from the canonical view; multiple postings can reference one canonical job while a single underlying route remains singular. A previous-head database with existing posting data migrated/backfilled without raw-data loss, and the focused 24-test plus 154-test full suite passed (docs/evidence/2026-10-01-canonical-job-provenance.json).
 - Strong dedupe identifiers, corroborated company identity, normalized-title comparison and cheap normalized-hash/trigram description similarity are PASS for MJ-REQ-044..047. Company-name similarity alone never establishes identity, ambiguous candidates are not auto-merged, and exact normalized descriptions avoid expensive fuzzy work. The focused 10-test slice and 161-test full Python suite passed with catalogue/progress validation (docs/evidence/2026-10-01-dedupe-strong-signals.json).
+- Boilerplate-resistant similarity, explainable configurable dedupe confidence, persistent ambiguous-review decisions, and first-party value precedence are PASS for MJ-REQ-048..051. MERGE is stored as approval rather than an immediate destructive collapse, NEVER_MERGE is sticky, verified employer/ATS values outrank aggregator disagreements while all provenance remains visible, and populated downgrade refuses to discard review decisions. The focused 16-test slice, 167-test full suite, and Alembic migration/refusal proof passed (docs/evidence/2026-10-01-dedupe-review-precedence.json).
 - Real external submission remains disabled
 - GitHub Actions passed the final #367-#370 PR heads and the connected UI, mock application, and restart recovery workflow; see `docs/evidence/2026-09-30-ci-370.json`
 ## Reference-project gap catalogue

@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-10-01T20:05:00Z",
+  "scope": "MJ-PR-014 / MJ-REQ-048..051",
+  "result": "PASS",
+  "requirements": {
+    "MJ-REQ-048": "PASS",
+    "MJ-REQ-049": "PASS",
+    "MJ-REQ-050": "PASS",
+    "MJ-REQ-051": "PASS"
+  },
+  "implemented": [
+    "boilerplate-resistant description comparison with removal evidence",
+    "configurable duplicate confidence thresholds and explainable dispositions",
+    "persistent DUPLICATE_REVIEW_REQUIRED records",
+    "user decisions MERGE, KEEP_SEPARATE, and NEVER_MERGE with audit events",
+    "MERGE records approval only and does not destructively collapse canonical jobs in this slice",
+    "NEVER_MERGE remains sticky when the candidate pair is observed again",
+    "first-party authority resolver prioritizes verified employer/ATS values while preserving all conflicting provenance",
+    "cross-site access protection includes duplicate-review data"
+  ],
+  "validation": [
+    {
+      "command": "python -m unittest tests.unit.test_dedupe_policy tests.unit.test_dedupe_signals tests.unit.test_job_normalization",
+      "result": "PASS",
+      "count": 16
+    },
+    {
+      "command": "python -m unittest discover -s tests -p test_*.py",
+      "result": "PASS",
+      "count": 167
+    },
+    {
+      "command": "python tools/verification/catalogue.py",
+      "result": "PASS"
+    },
+    {
+      "command": "python tools/verification/progress.py validate",
+      "result": "PASS"
+    },
+    {
+      "command": "alembic upgrade d5a9c38e21f4; alembic upgrade head; alembic current",
+      "result": "PASS",
+      "observed_head": "f71c9d2a4b80"
+    },
+    {
+      "command": "populate dedupe_reviews then alembic downgrade d5a9c38e21f4",
+      "result": "PASS",
+      "expected_behavior": "downgrade refused with RuntimeError to preserve review decisions"
+    }
+  ],
+  "migration": {
+    "revision": "f71c9d2a4b80",
+    "down_revision": "d5a9c38e21f4",
+    "table": "dedupe_reviews",
+    "destructive_populated_downgrade": "REFUSED"
+  },
+  "safety": {
+    "uncertain_merge_forced": false,
+    "merge_decision_destructive": false,
+    "raw_postings_preserved": true,
+    "conflicting_source_values_preserved": true,
+    "external_submission": "OFF"
+  }
+}

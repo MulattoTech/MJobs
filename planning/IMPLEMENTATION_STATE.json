@@ -10,8 +10,8 @@
     "current_verified_local_state": "Initialized from newer origin/main; supplied control pack retained on governance branch",
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
-  "current_milestone": "M13_DEDUPE_SIGNALS_LOCAL_VERIFIED",
-  "current_objective": "MJ-PR-013 draft #440 published; verify exact-head CI, integrate, then continue MJ-PR-014",
+  "current_milestone": "M14_DEDUPE_REVIEW_LOCAL_VERIFIED",
+  "current_objective": "MJ-PR-014 locally verified; publish draft, verify exact-head CI, integrate, then continue MJ-PR-015",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -39,7 +39,8 @@
     "Explicit experience-year, certification-strength, clearance and work-authorization parsing with search-profile exclusions",
     "User-configured negative filters for travel, on-call, shift, contract/commission, door-to-door, clearance and relocation conditions",
     "Provider-neutral canonical job representation with separate raw postings, snapshots, and application routes",
-    "Explainable duplicate candidate evidence across strong identifiers, corroborated company identity, normalized titles and cheap description similarity"
+    "Explainable duplicate candidate evidence across strong identifiers, corroborated company identity, normalized titles and cheap description similarity",
+    "Boilerplate-resistant duplicate confidence, persistent ambiguous review decisions, and first-party source precedence"
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
@@ -52,10 +53,10 @@
   ],
   "blocked_capabilities": [],
   "active_requirements": [
-    "MJ-REQ-044",
-    "MJ-REQ-045",
-    "MJ-REQ-046",
-    "MJ-REQ-047"
+    "MJ-REQ-048",
+    "MJ-REQ-049",
+    "MJ-REQ-050",
+    "MJ-REQ-051"
   ],
   "active_prs": [
     {
@@ -192,7 +193,10 @@
     "MJ-PR-012: previous-head posting migration/backfill PASS",
     "MJ-PR-012: catalogue and progress validators PASS",
     "MJ-PR-013: 10 focused dedupe/normalization tests PASS",
-    "MJ-PR-013: 161 full Python tests PASS; catalogue and progress validators PASS"
+    "MJ-PR-013: 161 full Python tests PASS; catalogue and progress validators PASS",
+    "MJ-PR-014: 16 focused dedupe policy/review tests PASS",
+    "MJ-PR-014: 167 full Python tests PASS; catalogue and progress validators PASS",
+    "MJ-PR-014: Alembic f71c9d2a4b80 upgrade PASS and populated downgrade refusal PASS"
   ],
   "tests_failed": [],
   "tests_not_run": [
@@ -210,11 +214,11 @@
     "Host Node25 unsupported by Vitest5 and managed Windows Vite spawn restricted; production Node24 Docker build/tests PASS"
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-01T19:50:00+00:00",
-    "command": "focused dedupe suite plus full Python suite and catalogue/progress validation",
-    "target": "MJ-PR-013 dedupe strong/company/title/description evidence",
+    "timestamp": "2026-10-01T20:05:00+00:00",
+    "command": "focused/full tests plus Alembic upgrade and populated downgrade-refusal proof",
+    "target": "MJ-PR-014 boilerplate/confidence/review/first-party precedence",
     "result": "PASS",
-    "evidence_path": "docs/evidence/2026-10-01-dedupe-strong-signals.json"
+    "evidence_path": "docs/evidence/2026-10-01-dedupe-review-precedence.json"
   },
   "ci_verification": {
     "result": "PASS",
@@ -279,7 +283,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Inspect exact-head Actions for PR #440; fix failures or merge on success, then select MJ-PR-014.",
+  "recommended_resume_step": "Commit/push MJ-PR-014, open draft PR, verify exact-head Actions, integrate, then select MJ-PR-015.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
