@@ -11,7 +11,7 @@
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
   "current_milestone": "M6_SOURCE_POLICY_SCHEDULER_LOCAL_VERIFIED",
-  "current_objective": "MJ-PR-006 draft #431 published; obtain exact-head GitHub Actions evidence, fix any failures, then integrate",
+  "current_objective": "MJ-PR-006 draft #431 published; verify exact-head CI for MJ-REQ-019..021 PASS and MJ-REQ-022 PARTIAL, then integrate",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",

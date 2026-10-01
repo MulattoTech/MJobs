@@ -196,11 +196,11 @@
     },
     {
       "requirement_id": "MJ-REQ-022",
-      "result": "PASS",
+      "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-10-01-source-policy-scheduler.json"
       ],
-      "note": "Unlimited persistent data-driven search profiles can be created, listed, paused/resumed and source-scoped through API and UI with titles, remote and employment preferences."
+      "note": "Persistent unlimited search-profile CRUD, source scoping, pause/resume and scheduling are verified in API/UI; title/remote/employment query semantics are intentionally deferred to MJ-REQ-023 / MJ-PR-007."
     },
     {
       "requirement_id": "MJ-REQ-023",

@@ -71,5 +71,14 @@
     "One preliminary mock_e2e invocation used the CLI default 127.0.0.1:18700 because an environment variable was ignored; it is explicitly excluded. The same test was rerun with --api 127.0.0.1:18706 and passed."
   ],
   "pull_request": 431,
-  "implementation_commit": "60d4c012f53f28998565e5448b0576f8357a7f1d"
+  "implementation_commit": "60d4c012f53f28998565e5448b0576f8357a7f1d",
+  "requirement_results": {
+    "MJ-REQ-019": "PASS",
+    "MJ-REQ-020": "PASS",
+    "MJ-REQ-021": "PASS",
+    "MJ-REQ-022": "PARTIAL"
+  },
+  "known_limitations": [
+    "Search-profile criteria are persisted and scheduled but do not yet implement the MJ-REQ-023 query-language/filter semantics."
+  ]
 }
