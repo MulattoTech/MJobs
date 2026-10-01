@@ -30,7 +30,9 @@ jobs:
       - run: python -c "import subprocess; services=subprocess.check_output(['docker','compose','--profile','fixture','ps','--services','--status','running'], text=True).splitlines(); assert 'mock' in services, services"
       - name: Assert fixture PostgreSQL revision and workspace identity
         run: |
-          test "$(docker compose --profile fixture exec -T postgres psql -U mjobs -d mjobs -Atc 'SELECT version_num FROM alembic_version')" = a6e7f3c48921
+          expected_revision="$(python -m alembic heads | awk '{print $1}')"
+          test -n "$expected_revision"
+          test "$(docker compose --profile fixture exec -T postgres psql -U mjobs -d mjobs -Atc 'SELECT version_num FROM alembic_version')" = "$expected_revision"
           test "$(docker compose --profile fixture exec -T postgres psql -U mjobs -d mjobs -Atc 'SELECT operation_mode FROM workspace_identity')" = FIXTURE
       - run: python -m cli.mock_e2e --evidence outputs/ci-mock-e2e.json
       - run: python -m cli.ui_e2e --evidence outputs/ci-ui.json
@@ -40,7 +42,9 @@ jobs:
       - run: python -c "import subprocess; services=subprocess.check_output(['docker','compose','-p','mjobs-personal','ps','--services','--status','running'], text=True).splitlines(); assert 'mock' not in services and {'api','worker','source-worker','document-worker'} <= set(services), services"
       - name: Assert personal PostgreSQL revision and workspace identity
         run: |
-          test "$(docker compose -p mjobs-personal exec -T postgres psql -U mjobs -d mjobs -Atc 'SELECT version_num FROM alembic_version')" = a6e7f3c48921
+          expected_revision="$(python -m alembic heads | awk '{print $1}')"
+          test -n "$expected_revision"
+          test "$(docker compose -p mjobs-personal exec -T postgres psql -U mjobs -d mjobs -Atc 'SELECT version_num FROM alembic_version')" = "$expected_revision"
           test "$(docker compose -p mjobs-personal exec -T postgres psql -U mjobs -d mjobs -Atc 'SELECT operation_mode FROM workspace_identity')" = PERSONAL
       - run: python -m cli.personal_mode_e2e --api http://127.0.0.1:18701 --evidence outputs/ci-personal-mode.json
       - id: personal_public_read
