@@ -6,6 +6,8 @@ from services.discovery.search_semantics import (
     filter_jobs,
     normalize_employment_type,
     normalize_experience_level,
+    normalize_title,
+    parse_education_requirement,
     parse_salary,
 )
 
@@ -174,6 +176,51 @@ class SearchSemanticsTests(unittest.TestCase):
         }
         result = evaluate_search({"date_window": "LAST_HOUR"}, job, at="2026-10-01T17:00:00+00:00")
         self.assertTrue(result["matched"], result["reasons"])
+
+    def test_title_normalization_is_conservative_and_preserves_original(self):
+        examples = [
+            "Sys Admin", "System Admin", "Systems Administrator", "Windows Sysadmin",
+        ]
+        for title in examples:
+            with self.subTest(title=title):
+                result = normalize_title(title)
+                self.assertEqual(result["title_family"], "SYSTEMS_ADMINISTRATION")
+                self.assertEqual(result["normalized_title"], "Systems Administrator")
+                self.assertEqual(result["original_title"], title)
+        database = normalize_title("Database Administrator")
+        self.assertIsNone(database["title_family"])
+        self.assertEqual(database["normalized_title"], "Database Administrator")
+
+    def test_education_requirement_categories_remain_distinct(self):
+        cases = {
+            "Bachelor's degree required.": "BACHELORS_REQUIRED",
+            "Bachelor's degree preferred.": "BACHELORS_PREFERRED",
+            "Bachelor's degree or equivalent experience required.": "BACHELORS_OR_EQUIVALENT_EXPERIENCE",
+            "College degree preferred.": "DEGREE_PREFERRED",
+            "Three years of operations experience.": "NONE_SPECIFIED",
+        }
+        for text, expected in cases.items():
+            with self.subTest(text=text):
+                self.assertEqual(parse_education_requirement(text)["classification"], expected)
+
+    def test_normalized_skill_filters_are_optional_and_explicit(self):
+        job = {
+            "title": "Systems Administrator", "company": "Example", "description": "", "skills": ["Active Directory", "Rubrik"],
+            "location": "Remote", "remote_type": "REMOTE_US",
+            "attributes": {"skill_ids": ["ACTIVE_DIRECTORY", "RUBRIK"]},
+        }
+        self.assertTrue(evaluate_search({}, job)["matched"])
+        result = evaluate_search({
+            "required_skills": ["ACTIVE_DIRECTORY"],
+            "optional_skills": ["RUBRIK", "AZURE"],
+            "excluded_skills": ["AWS"],
+        }, job)
+        self.assertTrue(result["matched"], result["reasons"])
+        self.assertEqual(result["optional_skill_matches"], ["RUBRIK"])
+        missing = evaluate_search({"required_skills": ["AZURE"]}, job)
+        self.assertIn("REQUIRED_SKILL_MISSING:AZURE", missing["reasons"])
+        excluded = evaluate_search({"excluded_skills": ["RUBRIK"]}, job)
+        self.assertIn("EXCLUDED_SKILL:RUBRIK", excluded["reasons"])
 
 
 if __name__ == "__main__":

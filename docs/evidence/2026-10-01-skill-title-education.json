@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-10-01T18:35:00Z",
+  "scope": "MJ-PR-009 / MJ-REQ-031..034",
+  "result": "PASS",
+  "requirements": {
+    "MJ-REQ-031": "PASS",
+    "MJ-REQ-032": "PASS",
+    "MJ-REQ-033": "PASS",
+    "MJ-REQ-034": "PASS"
+  },
+  "implemented": [
+    "provider-neutral normalized skill taxonomy covering required example technologies plus existing language/platform skills",
+    "alias normalization with original source wording and offsets preserved",
+    "explicit required/optional/excluded normalized skill filtering with no globally required technology",
+    "short-alias false-positive protections for AD and Go",
+    "conservative title families preserving original titles and avoiding unrelated administrator over-collapse",
+    "distinct education requirement classifications for required, preferred, equivalent-experience and unspecified cases",
+    "Greenhouse and fictional discovery paths persist normalized title, skill and education evidence"
+  ],
+  "validation": {
+    "focused_tests": {"count": 41, "result": "PASS"},
+    "full_python_suite": {"count": 133, "result": "PASS"}
+  },
+  "truthfulness": {
+    "original_skill_wording_preserved": true,
+    "original_title_preserved": true,
+    "education_raw_phrase_preserved": true,
+    "unknown_or_unmapped_values_not_invented": true,
+    "external_submission": "OFF"
+  },
+  "data_impact": "No schema migration; normalized identifiers and source wording are stored in canonical-job attributes and search-profile criteria.",
+  "release_readiness": "NOT_RUN"
+}

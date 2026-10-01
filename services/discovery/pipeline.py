@@ -10,7 +10,11 @@ from packages.domain.safety import Fact, select_verified_facts
 from packages.persistence import models as m
 from packages.persistence.store import identity, now, upsert
 from services.discovery.sources.collect import persist_posting
-from services.discovery.search_semantics import classify_location, normalize_employment_type, normalize_experience_level
+from services.discovery.search_semantics import (
+    classify_location, normalize_employment_type, normalize_experience_level, normalize_title,
+    parse_education_requirement,
+)
+from services.discovery.skill_taxonomy import extract_skills
 
 
 class MockClient:
@@ -99,15 +103,21 @@ def discover(store, mock_origin, profile_id, check=None, profile_version=None):
                 existing_attributes = connection.execute(select(m.jobs.c.attributes).where(m.jobs.c.id == job_id)).scalar_one_or_none()
                 existing_attributes = dict(existing_attributes or {})
                 experience = normalize_experience_level(row["title"])
+                title_info = normalize_title(row["title"])
+                education = parse_education_requirement(description)
+                skill_data = extract_skills(row["title"] + " " + description + " " + " ".join(row.get("skills") or []))
                 salary_period = str(row.get("salary_period") or "UNKNOWN").upper()
                 if salary_period not in {"HOUR", "YEAR"}:
                     salary_period = "UNKNOWN"
                 job = {"id": job_id, "company_id": company_id, "requisition": row["requisition"], "title": row["title"].strip(),
-                       "description": description, "skills": row["skills"], "location": row["location"],
+                       "description": description, "skills": skill_data["labels"], "location": row["location"],
                        "remote_type": location_facts["remote_type"],
                        "attributes": {"fictional": True, "skill_evidence": "structured_required_skills", "provider": "mock-ats",
                            "employment_type": normalize_employment_type(row["title"] + " " + description),
                            "experience_level": experience["level"], "experience_level_raw": experience["raw"],
+                           "normalized_title": title_info["normalized_title"], "title_family": title_info["title_family"],
+                           "skill_ids": skill_data["ids"], "skill_mentions": skill_data["mentions"],
+                           "education_requirement": education["classification"], "education_requirement_raw": education["raw"],
                            "salary_min": row.get("salary_min"), "salary_max": row.get("salary_max"),
                            "salary_period": salary_period, "salary_currency": row.get("salary_currency"),
                            "salary_source": "SOURCE_PROVIDED" if row.get("salary_min") is not None or row.get("salary_max") is not None else "UNKNOWN",
@@ -121,7 +131,7 @@ def discover(store, mock_origin, profile_id, check=None, profile_version=None):
                     "tenant": row["tenant"], "requisition": row["requisition"], "url": row["application_url"]}, replace=source != "mock-board")
                 persist_posting(connection, {"id": identity(source, row["source_job_id"]), "job_id": job_id,
                     "source": source, "source_job_id": row["source_job_id"], "raw": row, "fetched_at": now()})
-                required = {skill.casefold() for skill in row["skills"]}
+                required = {skill.casefold() for skill in job["skills"]}
                 missing = sorted(required - set(usable))
                 score = round(100 * len(required & set(usable)) / len(required), 2) if required else 0
                 upsert(connection, m.matches, {"id": identity(job_id, profile_id, profile["version"]), "job_id": job_id,

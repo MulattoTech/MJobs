@@ -221,6 +221,24 @@ class GreenhouseTests(unittest.TestCase):
             self.assertEqual(attrs["first_seen_at"], attrs["last_seen_at"])
             self.assertIsNone(attrs["reported_posted_at"])
 
+
+    def test_skill_title_and_education_normalization_preserve_source_wording(self):
+        raw = dict(
+            RAW,
+            title="Windows Sysadmin",
+            content="<p>Manage Microsoft Active Directory, M365 and Rubrik. Bachelor's degree preferred.</p>",
+        )
+        job = Greenhouse("example").normalize(raw)
+        attrs = job["attributes"]
+        self.assertEqual(attrs["title_family"], "SYSTEMS_ADMINISTRATION")
+        self.assertEqual(attrs["normalized_title"], "Systems Administrator")
+        self.assertEqual(attrs["skill_ids"], ["ACTIVE_DIRECTORY", "MICROSOFT_365", "RUBRIK"])
+        originals = {row["id"]: row["original"] for row in attrs["skill_mentions"]}
+        self.assertEqual(originals["ACTIVE_DIRECTORY"], "Microsoft Active Directory")
+        self.assertEqual(originals["MICROSOFT_365"], "M365")
+        self.assertEqual(attrs["education_requirement"], "BACHELORS_PREFERRED")
+        self.assertIn("Bachelor's degree preferred", attrs["education_requirement_raw"])
+
     def test_extreme_provider_backoff_cannot_be_shortened_by_reconfiguration(self):
         source = configure_source(self.store, "example")
         with self.assertRaisesRegex(ValueError, "SOURCE_RATE_LIMITED"):
