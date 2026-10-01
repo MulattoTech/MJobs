@@ -284,10 +284,11 @@
         "MJ-PR-013",
         "MJ-PR-005"
       ],
-      "status": "QUEUED",
+      "status": "DRAFT_PR",
       "branch": "codex/mj-pr-014-job-identity-dedupe",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "MJ-REQ-048..051 locally verified; draft #441 published; await exact-head CI",
+      "pr_number": 441
     },
     {
       "id": "MJ-PR-015",

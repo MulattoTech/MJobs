@@ -49,6 +49,12 @@ postings = table("job_postings", Column("job_id", ForeignKey("canonical_jobs.id"
 posting_snapshots = table("posting_snapshots", Column("posting_id", ForeignKey("job_postings.id"), nullable=False),
                           Column("raw", JSON, nullable=False), Column("sha256", String(64), nullable=False),
                           Column("retrieved_at", String(64), nullable=False))
+dedupe_reviews = table("dedupe_reviews", Column("left_job_id", ForeignKey("canonical_jobs.id"), nullable=False),
+                       Column("right_job_id", ForeignKey("canonical_jobs.id"), nullable=False),
+                       Column("confidence", Float, nullable=False), Column("state", String(64), nullable=False),
+                       Column("evidence", JSON, nullable=False), Column("decision", String(32)),
+                       Column("created_at", String(64), nullable=False), Column("updated_at", String(64), nullable=False),
+                       constraints=(UniqueConstraint("left_job_id", "right_job_id"),))
 job_sources = table("job_sources", Column("provider", String(32), nullable=False), Column("tenant", String(128), nullable=False),
                     Column("name", String(200), nullable=False), Column("enabled", Boolean, nullable=False),
                     Column("strategy", String(32), nullable=False), Column("capabilities", JSON, nullable=False),
