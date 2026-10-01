@@ -82,7 +82,7 @@
       "status": "DRAFT_PR",
       "branch": "codex/mj-pr-004-governance-safety",
       "draft_until_verified": true,
-      "notes": "P0 vertical slice: MJ-REQ-012 queue separation PASS; MJ-REQ-013/014 PARTIAL. Docker Desktop relaunch exposed postgres/redis restart=no; live existing stack repaired in place and isolated personal Compose first-run/relaunch verified. Backup/restore and uploaded resumes remain open. Draft #430 stacks on #429 to preserve all newer work; no migration or real submission. Both implementation-head CI runs PASS with twelve retained artifacts (docs/evidence/2026-09-30-ci-430.json); partial requirements stay partial.",
+      "notes": "P0 vertical slices: MJ-REQ-012 queue separation PASS; MJ-REQ-013/014 PARTIAL. Docker Desktop relaunch exposed postgres/redis restart=no; live existing stack repaired in place and isolated personal Compose first-run/relaunch verified. A further offline PostgreSQL/generated-document backup and fresh-project restore slice passed local FIXTURE and PERSONAL Docker checks; MJ-REQ-167/168 are PARTIAL. Uploaded resumes, protected host configuration and direct raw Compose first-run remain open. Draft #430 stacks on #429; no migration or real external submission. Earlier implementation-head CI runs PASS (docs/evidence/2026-09-30-ci-430.json); backup slice awaits its own exact-head CI.",
       "pr_number": 430
     },
     {
@@ -904,7 +904,7 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-046-orchestration-data-security",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "MJ-REQ-167/168 have a PARTIAL offline PostgreSQL/generated-document backup and fresh-project restore slice in draft #430, shared with P0 local-first durability. MJ-PR-046 remains QUEUED for full data coverage and MJ-REQ-169/170; do not open a duplicate PR for the overlap."
     },
     {
       "id": "MJ-PR-047",

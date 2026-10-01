@@ -1,0 +1,87 @@
+{
+  "timestamp": "2026-10-01T00:33:15Z",
+  "target": "MJ-PR-004 local-first backup and fresh-project restore; MJ-REQ-013, MJ-REQ-014, MJ-REQ-167, MJ-REQ-168",
+  "action": "Exercise quiescent PostgreSQL and generated-document archives in isolated FIXTURE and PERSONAL Compose projects after Docker Desktop relaunched",
+  "result": "PARTIAL",
+  "implemented_slice_result": "PASS",
+  "source_revision": "b79e8d3b1a1f9c8462d9378d8bc4e190434a2ae0 plus uncommitted backup slice",
+  "checks": [
+    {
+      "target": "FIXTURE source mjobs-bk-src-20261001 and fresh target mjobs-bk-dst4-20261001",
+      "commands": [
+        "Start-MJobs.ps1 -Project mjobs-bk-src-20261001 -Port 18705 -NoOpen",
+        "python -m cli.mock_e2e against source with fictional profile",
+        "docker compose -p mjobs-bk-src-20261001 stop api worker source-worker document-worker",
+        "python -m cli.local_backup backup --project mjobs-bk-src-20261001 --archive test-tmp/backup-recovery-snapshot-v3",
+        "python -m cli.local_backup verify --archive test-tmp/backup-recovery-snapshot-v3",
+        "python -m cli.local_backup restore --archive test-tmp/backup-recovery-snapshot-v3 --target-project mjobs-bk-dst4-20261001 --port 18709"
+      ],
+      "result": "PASS",
+      "observed": "The verified archive contained database.dump and four generated document files; browser-profile files were excluded. A fictional confirmed application, source catalog, profile and all four document downloads survived with matching checksums. A queued discovery operation reached COMPLETED after restore with a fresh Redis volume. API readiness database/queue/worker/mock checks were true; external submission was false and zero real external application requests were made.",
+      "evidence_path": "docs/evidence/2026-09-30-pr004-fixture-restore-readback.json"
+    },
+    {
+      "target": "PERSONAL source mjobs-bk-pers-src-20261001 and fresh target mjobs-bk-pers-dst-20261001",
+      "commands": [
+        "Start-MJobs.ps1 -Personal -Project mjobs-bk-pers-src-20261001 -Port 18710 -NoBuild -NoOpen",
+        "python -m cli.public_source_probe against source; read-only Greenhouse GET",
+        "docker compose -p mjobs-bk-pers-src-20261001 stop api worker source-worker document-worker",
+        "python -m cli.local_backup backup --project mjobs-bk-pers-src-20261001 --archive test-tmp/backup-personal-snapshot",
+        "python -m cli.local_backup verify --archive test-tmp/backup-personal-snapshot",
+        "python -m cli.local_backup restore --archive test-tmp/backup-personal-snapshot --target-project mjobs-bk-pers-dst-20261001 --port 18711"
+      ],
+      "result": "PASS",
+      "observed": "Read-only source probe returned 21 public jobs and HEALTHY. A synthetic profile and manually PREPARED real-target tracker entry, first-party posting provenance, source catalog, operation and four checksum-verified document downloads survived. PERSONAL mode, database/queue/worker readiness, external submission disabled and zero external application requests were confirmed.",
+      "evidence_path": "docs/evidence/2026-09-30-pr004-personal-restore-readback.json"
+    },
+    {
+      "target": "fresh FIXTURE restore with final exact-document-inventory verifier",
+      "commands": [
+        "docker compose build api",
+        "python -m cli.local_backup verify --archive test-tmp/backup-recovery-snapshot-v3",
+        "python -m cli.local_backup restore --archive test-tmp/backup-recovery-snapshot-v3 --target-project mjobs-bk-dst5-20261001 --port 18712",
+        "GET http://127.0.0.1:18712/readiness",
+        "GET http://127.0.0.1:18712/settings"
+      ],
+      "result": "PASS",
+      "observed": "Final image and CLI restored all five archived files to a previously absent project. The in-container verifier accepted the exact document inventory and hashes; readiness database/queue/worker/mock checks were true, FIXTURE mode was bound, and external submission remained false."
+    },
+    {
+      "target": "refusal and unit checks",
+      "commands": [
+        "python -m unittest tests.unit.test_local_backup -v",
+        "backup against running target writers",
+        "restore against occupied target project"
+      ],
+      "result": "PASS",
+      "observed": "Seven targeted tests passed after an observed RED for missing restored-volume inventory verification. A backup while writers ran exited 2 without publishing an archive; restore against an occupied target exited 2 without interrupting its readiness. Tampered and unlisted archive files are rejected."
+    },
+    {
+      "target": "affected Python suite",
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p test_*.py",
+      "result": "PASS",
+      "observed": "106 tests passed in 36.485 seconds. An initial run with system Python failed at import because SQLAlchemy and Redis were absent from that interpreter; the pinned repository virtual environment passed."
+    }
+  ],
+  "observed_fixes": [
+    "Removed unsupported --no-deps option from docker compose create after a fresh target refused it; that partial target was left intact.",
+    "Preserved the source '/.' suffix for docker cp after a fresh target received a nested documents directory; that partial target was left intact.",
+    "Final restore now rejects unlisted files in the restored document volume as well as hash mismatches."
+  ],
+  "migration_data_impact": "No schema migration and no mutation of the existing mjobs project. Restores created only isolated fresh Compose projects and volumes. Synthetic profiles and generated documents are in local ignored test archives; no archive content is committed.",
+  "rollback_recovery": "Backups are never overwritten. Restore refuses existing target containers or named volumes and does not delete source data. If restore fails, preserve its new partial volumes for diagnosis and retry with another fresh project name. To remove code, revert the backup CLI, tests and runbook; existing volumes remain untouched.",
+  "external_limitations": [
+    "Archives exclude .env and other protected host configuration, Redis queue state and Playwright browser profiles/cookies. Pending operations rely on PostgreSQL outbox recovery; authenticated browser work requires operator review.",
+    "Uploaded-resume storage does not yet exist, so complete backup/restore coverage is not established.",
+    "Direct raw Compose first-run acceptance and physical host/Docker-daemon restart proof are still open.",
+    "No real external job application was submitted; external auto-submit remained disabled."
+  ],
+  "original_requirements": {
+    "MJ-REQ-013": "PARTIAL",
+    "MJ-REQ-014": "PARTIAL",
+    "MJ-REQ-167": "PARTIAL",
+    "MJ-REQ-168": "PARTIAL"
+  },
+  "reference_gap_requirements": "42 NOT_RUN",
+  "release_readiness": "NOT_RUN"
+}

@@ -10,8 +10,8 @@
     "current_verified_local_state": "Initialized from newer origin/main; supplied control pack retained on governance branch",
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
-  "current_milestone": "M5_P0_RUNTIME_RESTART_REMOTE_VERIFIED",
-  "current_objective": "Continue original P0 local-first backup/restore, uploaded-resume persistence, identity and safety prerequisites before reference enrichment",
+  "current_milestone": "M5_P0_LOCAL_BACKUP_RESTORE_VERIFIED",
+  "current_objective": "Continue original P0 uploaded-resume persistence, direct Compose first-run, identity and safety prerequisites before reference enrichment",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -26,7 +26,8 @@
     "Fresh isolated PostgreSQL/Redis/three-worker startup and browser acceptance",
     "Final Redis outage/outbox recovery and all-service restart retain original UI application/operation/receipt",
     "Provider-neutral source search contract and multi-company attributed persistence with collision-safe posting provenance",
-    "Separate application/browser, source discovery and document worker queues; PostgreSQL/Redis restart with the runtime"
+    "Separate application/browser, source discovery and document worker queues; PostgreSQL/Redis restart with the runtime",
+    "Offline PostgreSQL/generated-document backup and fresh-target restore executed in isolated FIXTURE and PERSONAL Compose projects"
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
@@ -35,7 +36,7 @@
     "Heuristic description skill coverage for real jobs and exact structured skills for mock; advanced matching remains open",
     "Real jobs support manual preparation only; manual status updates, real automation and intervention resume remain open",
     "Greenhouse API-first source strategy verified; additional global feeds and strategy ladder remain open",
-    "Local personal first-run and stored-profile relaunch verified; backup/restore, uploaded resumes and complete startup acceptance remain"
+    "Local personal first-run, stored-profile relaunch and scoped backup/restore verified; uploaded resumes, protected configuration and complete startup acceptance remain"
   ],
   "blocked_capabilities": [],
   "active_requirements": [
@@ -67,7 +68,9 @@
     "MJ-REQ-274",
     "MJ-REQ-012",
     "MJ-REQ-013",
-    "MJ-REQ-014"
+    "MJ-REQ-014",
+    "MJ-REQ-167",
+    "MJ-REQ-168"
   ],
   "active_prs": [
     {
@@ -144,7 +147,8 @@
     "MJ-PR-005 evidence head 255f480 push run 36790131817 and PR run 36790138449 PASS: fixture/personal deployments, 21 public jobs in both runs, zero external application requests",
     "MJ-PR-004 local: 14 targeted Compose/worker-lifecycle tests PASS after observed postgres/redis restart-policy RED; worker queue-binding test PASS",
     "MJ-PR-004 local: 99 full Python tests PASS; isolated personal Docker Compose first-run, Chromium, six service restart policies and stored-profile relaunch PASS",
-    "Existing mjobs project after Docker Desktop relaunch: postgres/redis started in place and restart policy updated; API readiness database/queue/worker/mock all true"
+    "Existing mjobs project after Docker Desktop relaunch: postgres/redis started in place and restart policy updated; API readiness database/queue/worker/mock all true",
+    "P0 offline backup/restore: 7 targeted and 106 full Python tests PASS; isolated FIXTURE and PERSONAL fresh-project restores preserve data/documents, recover queued fixture work and keep external submission off"
   ],
   "tests_failed": [],
   "tests_not_run": [
@@ -231,7 +235,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Verify #430 exact-head CI on the #428/#429 stack, then continue P0 startup and local-data recovery work while preserving clean main.",
+  "recommended_resume_step": "Verify #430 backup-slice exact-head CI on the #428/#429 stack, then continue P0 uploaded-resume and complete startup acceptance while preserving clean main.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -1023,11 +1027,69 @@
         "git_commit": "44ce3d5a3ff57670eb829e0bd74ecb8f702bcab4",
         "evidence_path": "docs/evidence/2026-09-30-ci-430.json"
       }
+    },
+    {
+      "milestone_id": "M5-P0-LOCAL-BACKUP-RESTORE",
+      "timestamp": "2026-10-01T00:36:16Z",
+      "current_phase": "M5_P0_LOCAL_BACKUP_RESTORE_VERIFIED",
+      "completed_steps": [
+        "Re-fetched GitHub and Git; read AGENTS, implementation state, original/reference queues, feature report, active issues and relevant area specs before selecting this slice",
+        "Added offline PostgreSQL/generated-document archive with checksum manifest, stopped-writer gate and browser-profile exclusion",
+        "Added fresh distinct-project restore with occupied-target refusal, migration/mode checks, exact document inventory, readiness and external-submission-off check",
+        "Exercised FIXTURE and PERSONAL isolated Docker source/restore pairs; fixture queued operation recovered with fresh Redis",
+        "Recorded MJ-REQ-013/014/167/168 PARTIAL, all 42 MJ-REF NOT_RUN and release NOT_RUN"
+      ],
+      "files_added": [
+        "cli/AREA.md",
+        "cli/local_backup.py",
+        "tests/unit/test_local_backup.py",
+        "docs/runbooks/LOCAL_BACKUP.md",
+        "docs/evidence/2026-09-30-pr004-backup-entry.json",
+        "docs/evidence/2026-09-30-pr004-backup-restore-local.json",
+        "docs/evidence/2026-09-30-pr004-fixture-restore-readback.json",
+        "docs/evidence/2026-09-30-pr004-personal-restore-readback.json"
+      ],
+      "files_modified": [
+        "README.md",
+        "docs/USER_TESTING.md",
+        "docs/FEATURE_COMPLETENESS.md",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "planning/IMPLEMENTATION_STATE.json"
+      ],
+      "tests_completed": [
+        "Seven targeted backup tests PASS after restored-document inventory RED",
+        "106 full Python tests PASS in pinned repository virtual environment",
+        "Isolated FIXTURE and PERSONAL PostgreSQL/document backup and fresh-project restore readbacks PASS",
+        "Final image rebuild and second fresh FIXTURE restore with exact-document inventory verifier PASS",
+        "Running-writer backup and occupied-target restore both refused with exit 2"
+      ],
+      "tests_remaining": [
+        "Exact-head remote CI after draft #430 update",
+        "Uploaded-resume and protected host-configuration backup coverage",
+        "Physical Docker daemon relaunch and complete direct Compose first-run acceptance"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Local Docker Desktop PostgreSQL, Redis, RQ, API, generated-document volume and fresh Compose project restore",
+        "Read-only public Greenhouse source probe returned 21 jobs in PERSONAL source project"
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "No physical host restart or real external application submission",
+        "Archived data is personal and remains only in ignored local test-tmp; no .env, browser cookies or uploaded resumes are captured",
+        "Two failed trial restore projects retain isolated partial test volumes for diagnosis; no existing project was overwritten",
+        "MJ-REQ-013/014/167/168 remain PARTIAL; all 42 MJ-REF and release readiness remain NOT_RUN"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "b79e8d3b1a1f9c8462d9378d8bc4e190434a2ae0",
+        "evidence_path": "docs/evidence/2026-09-30-pr004-backup-restore-local.json"
+      }
     }
   ],
-  "current_phase": "M5_P0_RUNTIME_RESTART_REMOTE_VERIFIED",
+  "current_phase": "M5_P0_LOCAL_BACKUP_RESTORE_VERIFIED",
   "last_safe_checkpoint": {
-    "git_commit": "44ce3d5a3ff57670eb829e0bd74ecb8f702bcab4",
-    "evidence_path": "docs/evidence/2026-09-30-ci-430.json"
+    "git_commit": "b79e8d3b1a1f9c8462d9378d8bc4e190434a2ae0",
+    "evidence_path": "docs/evidence/2026-09-30-pr004-backup-restore-local.json"
   }
 }

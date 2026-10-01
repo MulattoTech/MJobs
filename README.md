@@ -27,6 +27,11 @@ Compose project and data volumes at http://127.0.0.1:18701. Public read-only
 source collection and factual manual preparation remain available. Real external
 auto-submit stays off in both modes.
 
+For an offline PostgreSQL and document backup, followed by a restore into a
+separate empty Compose project, use the
+[local backup runbook](docs/runbooks/LOCAL_BACKUP.md). Keep backup archives
+outside this repository and protect them as personal data.
+
 Repository operating instructions live in [AGENTS.md](AGENTS.md). The complete
 requirements remain in the GitHub backlog and scoped [area specifications](docs/spec/areas).
 This milestone does not represent completion of the full specification.

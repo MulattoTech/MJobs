@@ -1,0 +1,26 @@
+{
+  "result": "PASS",
+  "timestamp": "2026-10-01T00:21:17.843802+00:00",
+  "target": "fresh isolated FIXTURE project from offline PostgreSQL/document backup",
+  "action": "Restore to a different Compose project with new Redis; compare persisted profile, confirmed application, source catalog and four document downloads; wait for queued fixture discovery to recover",
+  "source_project": "mjobs-bk-src-20261001",
+  "target_project": "mjobs-bk-dst4-20261001",
+  "application_id": "8cbbe851061f3318959d6c6447193a700adc99eb8f54b303426ab9a36d0c99a1",
+  "queued_operation_id": "eb0784954969414a4c1f79a174e59849a5da5536f5898e5703bb1580c3d874d2",
+  "queued_state_before": "QUEUED",
+  "queued_state_after": "COMPLETED",
+  "source_catalog_count": 1,
+  "document_records": 2,
+  "verified_document_downloads": 4,
+  "readiness": {
+    "status": "ready",
+    "checks": {
+      "database": true,
+      "queue": true,
+      "worker": true,
+      "mock": true
+    }
+  },
+  "external_submission_enabled": false,
+  "real_external_application_requests": 0
+}

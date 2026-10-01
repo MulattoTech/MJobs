@@ -115,9 +115,10 @@
       "evidence": [
         "docs/evidence/2026-09-30-pr004-local-restart.json",
         "docs/evidence/2026-09-30-pr004-local-personal-mode.json",
-        "docs/evidence/2026-09-30-ci-430.json"
+        "docs/evidence/2026-09-30-ci-430.json",
+        "docs/evidence/2026-09-30-pr004-backup-restore-local.json"
       ],
-      "note": "Self-hosted PostgreSQL/Redis/documents and ignored local configuration exist; an isolated synthetic profile survived complete service stop and launcher relaunch. Uploaded-resume persistence and full data backup/restore remain open."
+      "note": "Self-hosted PostgreSQL/Redis/documents and ignored local configuration exist; an isolated synthetic profile survived service relaunch. Offline PostgreSQL and generated-document backup/restore passed fresh FIXTURE and PERSONAL target checks. Uploaded-resume storage and protected host-configuration backup remain open."
     },
     {
       "requirement_id": "MJ-REQ-014",
@@ -125,9 +126,10 @@
       "evidence": [
         "docs/evidence/2026-09-30-pr004-local-restart.json",
         "docs/evidence/2026-09-30-pr004-local-personal-mode.json",
-        "docs/evidence/2026-09-30-ci-430.json"
+        "docs/evidence/2026-09-30-ci-430.json",
+        "docs/evidence/2026-09-30-pr004-backup-restore-local.json"
       ],
-      "note": "First-run PowerShell launcher generated ignored configuration, built images, migrated PostgreSQL and reached API/worker/Chromium readiness; local restart preserved data. Backup/restore commands and direct Compose first-run acceptance remain open."
+      "note": "First-run PowerShell launcher generated ignored configuration, built images, migrated PostgreSQL and reached API/worker/Chromium readiness; local restart preserved data. Offline backup and fresh-project restore passed FIXTURE and PERSONAL checks. Direct raw Compose first-run acceptance and uploaded-resume durability remain open."
     },
     {
       "requirement_id": "MJ-REQ-015",
@@ -1112,15 +1114,19 @@
     },
     {
       "requirement_id": "MJ-REQ-167",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-30-pr004-backup-restore-local.json"
+      ],
+      "note": "Quiescent local PostgreSQL and generated-document archives passed manifest/inventory verification in FIXTURE and PERSONAL runs. Uploaded resumes and protected host configuration are not included; full backup requirement remains open."
     },
     {
       "requirement_id": "MJ-REQ-168",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-09-30-pr004-backup-restore-local.json"
+      ],
+      "note": "Fresh isolated FIXTURE and PERSONAL Compose restores preserved PostgreSQL records and generated documents with readiness and external submission disabled. Occupied targets are refused. Full data coverage and failure-recovery acceptance remain open."
     },
     {
       "requirement_id": "MJ-REQ-169",
