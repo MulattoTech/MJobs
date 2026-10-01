@@ -81,6 +81,14 @@ applications = table("applications", Column("job_id", ForeignKey("canonical_jobs
                      Column("document_version", Integer, nullable=False, server_default="1"),
                      Column("confirmation", JSON), Column("created_at", String(64), nullable=False), Column("submitted_at", String(64)),
                      constraints=(UniqueConstraint("job_id", "profile_id"),))
+application_route_choices = table("application_route_choices",
+                                  Column("application_id", ForeignKey("applications.id"), nullable=False),
+                                  Column("route_id", ForeignKey("application_routes.id"), nullable=False),
+                                  Column("underlying_key", String(2200), nullable=False),
+                                  Column("requested_mode", String(32), nullable=False),
+                                  Column("state", String(32), nullable=False),
+                                  Column("created_at", String(64), nullable=False),
+                                  constraints=(UniqueConstraint("application_id", "underlying_key"),))
 documents = table("documents", Column("application_id", ForeignKey("applications.id"), nullable=False),
                   Column("kind", String(32), nullable=False), Column("version", Integer, nullable=False),
                   Column("profile_version", String(64), nullable=False),

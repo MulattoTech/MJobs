@@ -13,6 +13,7 @@ from sqlalchemy import select
 from packages.domain.safety import Fact, select_verified_facts
 from packages.persistence import models as m
 from packages.persistence.store import identity, now, upsert
+from services.dedupe.routes import persist_route_choices, plan_application_routes
 
 
 class PreparationError(ValueError):
@@ -32,7 +33,7 @@ def uncommitted_files():
         raise
 
 
-def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=None):
+def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=None, route_mode="DEFAULT", route_id=None):
     check = check or (lambda: None)
     with uncommitted_files() as staged, store.engine.begin() as connection:
         # A profile row serializes preparation and submission reservations.
@@ -44,14 +45,17 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
             raise PreparationError("DOCUMENT_PROFILE_CHANGED", "Profile changed; prepare documents using its current version")
         profile = store.profile(profile_id, profile_version)
         check()
+        job = dict(connection.execute(select(m.jobs).where(m.jobs.c.id == job_id)).mappings().one())
+        routes = [dict(row) for row in connection.execute(select(m.routes).where(m.routes.c.job_id == job_id).order_by(m.routes.c.id)).mappings()]
+        route_plan = plan_application_routes(routes, route_mode, route_id)
+        route = route_plan["selected"][0]["preferred_route"]
         prior = connection.execute(select(m.applications).where(m.applications.c.job_id == job_id, m.applications.c.profile_id == profile_id).with_for_update()).mappings().one_or_none()
         if prior:
             if prior["profile_version"] == profile["version"]:
+                persist_route_choices(connection, prior["id"], route_plan)
                 return prior["id"]
             if prior["state"] not in ("PREPARED", "DRY_RUN_COMPLETE", "REVIEW_REQUIRED"):
                 raise PreparationError("DOCUMENT_HISTORY_LOCKED", "Historical or active application cannot be regenerated")
-        job = dict(connection.execute(select(m.jobs).where(m.jobs.c.id == job_id)).mappings().one())
-        route = dict(connection.execute(select(m.routes).where(m.routes.c.job_id == job_id)).mappings().one())
         eligible = [row for row in profile["facts"] if row["verified"] and row["user_approved"] and row["confidence"] >= 80 and row["source"].strip()]
         if not eligible:
             raise PreparationError("DOCUMENT_NO_APPROVED_FACTS", "Approve and verify at least one sourced career fact before generating documents")
@@ -89,7 +93,8 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
         upsert(connection, m.applications, {"id": application_id, "job_id": job_id, "route_id": route["id"], "profile_id": profile_id,
             "profile_version": profile["version"], "document_version": revision, "state": "PREPARED", "target": "MOCK" if route["provider"] == "mock-ats" else "REAL", "fact_ids": fact_ids,
             "trace": [*(prior["trace"] if prior else []), "GENERATE_DOCUMENTS", "PREPARE_APPLICATION"], "confirmation": None, "created_at": prior["created_at"] if prior else now()}, replace=bool(prior))
+        selected_route_ids = persist_route_choices(connection, application_id, route_plan)
         for record in records:
             upsert(connection, m.documents, record)
-        store._audit(connection, application_id, "DOCUMENTS_PREPARED", {"fact_ids": fact_ids, "profile_version": profile["version"]})
+        store._audit(connection, application_id, "DOCUMENTS_PREPARED", {"fact_ids": fact_ids, "profile_version": profile["version"], "route_ids": selected_route_ids, "route_mode": route_plan["mode"]})
         return application_id

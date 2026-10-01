@@ -436,17 +436,19 @@
     },
     {
       "requirement_id": "MJ-REQ-052",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
-        "docs/evidence/2026-09-29-mock-spine.md"
+        "docs/evidence/2026-10-01-multi-route-provenance.json"
       ],
-      "note": "Initial scoped behavior only; full requirement remains open"
+      "note": "Verified source-record preservation and distinct multi-route planning in MJ-PR-015"
     },
     {
       "requirement_id": "MJ-REQ-053",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-01-multi-route-provenance.json"
+      ],
+      "note": "Verified source-record preservation and distinct multi-route planning in MJ-PR-015"
     },
     {
       "requirement_id": "MJ-REQ-054",
