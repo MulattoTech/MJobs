@@ -1,0 +1,53 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "MJobs: Start Personal (No Browser)",
+      "type": "shell",
+      "command": "powershell",
+      "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}\\Start-MJobs.ps1", "-Personal", "-NoOpen"],
+      "problemMatcher": []
+    },
+    {
+      "label": "MJobs: Start Fixture (No Browser)",
+      "type": "shell",
+      "command": "powershell",
+      "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}\\Start-MJobs.ps1", "-NoOpen"],
+      "problemMatcher": []
+    },
+    {
+      "label": "MJobs: Live Feedback - Personal",
+      "type": "shell",
+      "command": "${workspaceFolder}\\.venv\\Scripts\\python.exe",
+      "args": ["-m", "cli.live_feedback", "run", "--base-url", "http://127.0.0.1:18701"],
+      "dependsOn": ["MJobs: Start Personal (No Browser)"],
+      "dependsOrder": "sequence",
+      "problemMatcher": [],
+      "presentation": {"reveal": "always", "panel": "dedicated"}
+    },
+    {
+      "label": "MJobs: Live Feedback - Fixture",
+      "type": "shell",
+      "command": "${workspaceFolder}\\.venv\\Scripts\\python.exe",
+      "args": ["-m", "cli.live_feedback", "run", "--base-url", "http://127.0.0.1:18700"],
+      "dependsOn": ["MJobs: Start Fixture (No Browser)"],
+      "dependsOrder": "sequence",
+      "problemMatcher": [],
+      "presentation": {"reveal": "always", "panel": "dedicated"}
+    },
+    {
+      "label": "MJobs: Summarize Latest Feedback",
+      "type": "shell",
+      "command": "${workspaceFolder}\\.venv\\Scripts\\python.exe",
+      "args": ["-m", "cli.live_feedback", "summarize"],
+      "problemMatcher": []
+    },
+    {
+      "label": "MJobs: Install Playwright Chromium",
+      "type": "shell",
+      "command": "${workspaceFolder}\\.venv\\Scripts\\python.exe",
+      "args": ["-m", "playwright", "install", "chromium"],
+      "problemMatcher": []
+    }
+  ]
+}
