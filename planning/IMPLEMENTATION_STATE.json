@@ -10,8 +10,8 @@
     "current_verified_local_state": "Initialized from newer origin/main; supplied control pack retained on governance branch",
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
-  "current_milestone": "M17_COMPANY_ALIASES_DOMAINS_CAREER_DISCOVERY_PARTIAL",
-  "current_objective": "Draft PR #444 published; verify the final bookkeeping head with exact-head CI, then continue from live dependency frontier.",
+  "current_milestone": "M17_COMPANY_FETCH_GUARDS_LOCAL_VERIFIED",
+  "current_objective": "PR #444 has locally verified fetch-boundary security fixes; push the new commits, then verify the updated exact head.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -191,7 +191,9 @@
       "status": "DRAFT_PR",
       "base": "12e7ef6c9eb5ff1c7a8fd775361a9ee7e1b28aea",
       "url": "https://github.com/MulattoTech/MJobs/pull/444",
-      "head": "cb7bbd716fb0f689107db591950efa62b88b4828"
+      "head": "57a75a5b6d9d2f68bf1a735de921f4946d717779",
+      "local_pending_commit": "bcb47c79309c905930f1f1b6adc80974bf61365d",
+      "note": "Published head is superseded locally by the validated fetch-safety fix; push and exact-head checks remain."
     }
   ],
   "tests_passed": [
@@ -270,10 +272,11 @@
     "MJ-PR-016: PostgreSQL/Redis/RQ company discovery operation COMPLETED; employer-only Job B matched at 100; external submission remained disabled",
     "MJ-PR-016: connected Chromium UI acceptance 5 actions PASS on isolated Compose fixture stack",
     "MJ-PR-016: 5 live-feedback URL/privacy compatibility tests PASS",
-    "MJ-PR-017: 13 focused company-alias/domain/career-discovery integration tests PASS",
-    "MJ-PR-017: 186 full Python tests PASS; catalogue and progress validators PASS",
+    "MJ-PR-017: 16 focused company-alias/domain/career-discovery/fetch-policy integration tests PASS",
+    "MJ-PR-017: 189 full Python tests PASS; catalogue and progress validators PASS",
     "MJ-PR-017: SQLite legacy-domain backfill and populated downgrade refusal PASS; PostgreSQL Compose migration reached cb72f9041d6a",
-    "MJ-PR-017: isolated fixture Compose mock E2E and PostgreSQL-backed COMPANY_DISCOVER operation COMPLETED; external submission disabled"
+    "MJ-PR-017: isolated fixture Compose mock E2E and PostgreSQL-backed COMPANY_DISCOVER operation COMPLETED; external submission disabled",
+    "MJ-PR-017 security review fix: private IP/DNS, off-origin ATS target and cross-origin redirect tests PASS; fresh isolated Compose mock flow PASS"
   ],
   "tests_failed": [],
   "tests_not_run": [
@@ -299,9 +302,9 @@
   },
   "ci_verification": {
     "result": "PENDING",
-    "scope": "PR #444 exact current head after PR-number/state bookkeeping",
+    "scope": "PR #444 new local fetch-safety code; latest GitHub head 57a75a5b6d9d2f68bf1a735de921f4946d717779 is superseded",
     "verified_head": null,
-    "next_action": "Fetch PR head after the bookkeeping push and require successful PR Verification and push Verification runs on that exact SHA."
+    "next_action": "Push the new local commits and require successful PR Verification and push Verification on the resulting exact current head."
   },
   "mock_spine_ci": {
     "result": "PASS",
@@ -359,7 +362,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Fetch PR #444 after the PR number/state bookkeeping commit and require successful Verification runs on that exact head; merge only after all current gates pass.",
+  "recommended_resume_step": "Push the locally validated PR-017 fetch-safety fix and control-plane record; fetch PR #444's new exact head and verify both required Actions runs before considering merge.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -395,7 +398,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "9348993c1ffd85472688c7bdc5dff65b129b407e",
+  "last_implementation_commit": "bcb47c79309c905930f1f1b6adc80974bf61365d",
   "publication": {
     "result": "PASS",
     "transport": "Authenticated Git push and GitHub draft PR",
@@ -1375,11 +1378,60 @@
         "git_commit": "9348993c1ffd85472688c7bdc5dff65b129b407e",
         "evidence_path": "docs/evidence/2026-10-01-company-alias-domain-career-discovery.json"
       }
+    },
+    {
+      "milestone_id": "M17-COMPANY-FETCH-SAFETY",
+      "timestamp": "2026-10-01T23:11:30.474326+00:00",
+      "current_phase": "M17_COMPANY_FETCH_GUARDS_LOCAL_VERIFIED",
+      "completed_steps": [
+        "Reviewed PR feedback against current worker/client boundaries and confirmed all discovery fetches need explicit destination and redirect checks.",
+        "Added fail-closed URL parsing, private IP and non-public DNS rejection, strict origin allowlisting and same-origin career/ATS fetches.",
+        "Added regression coverage for private IP literals, off-origin ATS links and cross-origin redirect results.",
+        "Re-ran focused and full Python suites, isolated PostgreSQL Compose migration and discovery acceptance; all passed."
+      ],
+      "files_added": [
+        "services/company_discovery/fetch_policy.py"
+      ],
+      "files_modified": [
+        "services/company_discovery/domains.py",
+        "services/company_discovery/flywheel.py",
+        "services/discovery/pipeline.py",
+        "tests/integration/test_company_discovery.py",
+        "docs/evidence/2026-10-01-company-alias-domain-career-discovery.json",
+        "docs/FEATURE_COMPLETENESS.md",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json"
+      ],
+      "tests_completed": [
+        "16 focused company discovery and fetch-policy tests PASS.",
+        "189 full Python tests PASS; catalogue and progress journal validators PASS.",
+        "Fresh isolated PostgreSQL Compose migrated to cb72f9041d6a, mock E2E PASS, durable COMPANY_DISCOVER worker operation COMPLETED.",
+        "Private IP, external ATS target and cross-origin redirect regressions PASS."
+      ],
+      "tests_remaining": [
+        "Push latest update and run exact-head remote CI for PR #444.",
+        "Production external domain/search acquisition, sitemap fetching and non-mock ATS discovery remain open.",
+        "Original P0-P3 full acceptance and release readiness remain open."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Isolated local PostgreSQL/Redis and local mock-only discovery transport."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "Production discovery remains fixture-only; external ATS origins require a future explicit provider allowlist.",
+        "The latest remotely published PR head is superseded by unpushed local changes; CI on the updated head is NOT_RUN."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "bcb47c79309c905930f1f1b6adc80974bf61365d",
+        "evidence_path": "docs/evidence/2026-10-01-company-alias-domain-career-discovery.json"
+      }
     }
   ],
-  "current_phase": "M17_COMPANY_IDENTITY_LOCAL_VERIFIED",
+  "current_phase": "M17_COMPANY_FETCH_GUARDS_LOCAL_VERIFIED",
   "last_safe_checkpoint": {
-    "git_commit": "9348993c1ffd85472688c7bdc5dff65b129b407e",
+    "git_commit": "bcb47c79309c905930f1f1b6adc80974bf61365d",
     "evidence_path": "docs/evidence/2026-10-01-company-alias-domain-career-discovery.json"
   },
   "live_integrations_tested": [

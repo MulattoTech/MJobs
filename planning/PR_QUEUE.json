@@ -380,7 +380,7 @@
       "status": "DRAFT_PR",
       "branch": "codex/mj-pr-017-company-ats-discovery",
       "draft_until_verified": true,
-      "notes": "Draft PR #444 published from codex/mj-pr-017-company-ats-discovery at cb7bbd716fb0f689107db591950efa62b88b4828. Local evidence and truthful requirement statuses are recorded in docs/evidence/2026-10-01-company-alias-domain-career-discovery.json; exact-head CI is pending.",
+      "notes": "Draft PR #444 is open. A validated fetch-safety fix is committed locally but not pushed yet; published head 57a75a5b6d9d2f68bf1a735de921f4946d717779 is superseded. Push latest commits and rerun exact-head CI. Requirement states remain 058-059 PASS, 060-061 PARTIAL.",
       "pr_number": 444,
       "url": "https://github.com/MulattoTech/MJobs/pull/444"
     },
