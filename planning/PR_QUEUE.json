@@ -263,10 +263,11 @@
         "MJ-PR-012",
         "MJ-PR-005"
       ],
-      "status": "IMPLEMENTED_LOCAL",
+      "status": "DRAFT_PR",
       "branch": "codex/mj-pr-013-job-identity-dedupe",
       "draft_until_verified": true,
-      "notes": "MJ-REQ-044..047 locally verified; evidence docs/evidence/2026-10-01-dedupe-strong-signals.json; publish draft after commit"
+      "notes": "MJ-REQ-044..047 locally verified; draft #440 published; await exact-head CI",
+      "pr_number": 440
     },
     {
       "id": "MJ-PR-014",
