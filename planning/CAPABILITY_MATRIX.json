@@ -613,27 +613,31 @@
     },
     {
       "requirement_id": "MJ-REQ-074",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-02-company-source-watch-and-priority.json"
+      ],
+      "note": "Existing priority classes persist, but full ranking across job relevance, match, recency, application and interview outcomes is not implemented. See evidence for tested scope and gaps."
     },
     {
       "requirement_id": "MJ-REQ-075",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-02-company-source-watch-and-priority.json"
+      ],
+      "note": "User watch origin persists at source level, API changes are tested, and automatic refresh preserves watch and priority. Company-level UI/read model remains open; see evidence."
     },
     {
       "requirement_id": "MJ-REQ-076",
       "result": "NOT_RUN",
       "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "note": "Periodic source validation and ATS migration detection/rediscovery chain are not implemented in this milestone."
     },
     {
       "requirement_id": "MJ-REQ-077",
       "result": "NOT_RUN",
       "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "note": "Periodic source validation and ATS migration detection/rediscovery chain are not implemented in this milestone."
     },
     {
       "requirement_id": "MJ-REQ-078",

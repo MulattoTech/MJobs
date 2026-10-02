@@ -473,21 +473,27 @@
         "MJ-PR-019",
         "MJ-PR-012"
       ],
-      "status": "DRAFT_PR",
+      "status": "MERGED",
       "branch": "codex/mj-pr-020-company-ats-discovery",
       "draft_until_verified": true,
-      "notes": "Same-origin RSS/Atom/JSON Feed detection, bounded validation, automatic source enrollment and immediate idempotent canonical job/route/posting/match persistence are locally tested. REQ-070..073 remain PARTIAL: provider-specific ATS endpoint precedence/scheduling and the complete aggregator-trigger-to-feed-only-job acceptance path remain open.",
+      "notes": "Merged after both required Verification workflows passed on exact final head 5a2599026f8fb68def60e3deec2aeacd73d80ea3; REQ-070..073 remain PARTIAL for vendor-specific source precedence/scheduling and complete aggregator-trigger coverage.",
       "worktree": "C:\\Tools\\Dev\\MJobs-pr-020",
       "base": "b096b868b4feb6df6afbe1581ff7a6a80a891c16",
       "stacked_on": "codex/mj-pr-019-company-ats-discovery",
-      "local_head": "5e470c0592f9360a7122fdf50ba391ee3bf7f756",
+      "local_head": "5a2599026f8fb68def60e3deec2aeacd73d80ea3",
       "validation_result": "PASS_WITH_PARTIAL_REQUIREMENT_COVERAGE",
       "evidence_path": "docs/evidence/2026-10-02-company-machine-readable-feeds.json",
-      "publication_state": "DRAFT_PR",
+      "publication_state": "MERGED",
       "pr_number": 447,
       "url": "https://github.com/MulattoTech/MJobs/pull/447",
-      "head": "5e470c0592f9360a7122fdf50ba391ee3bf7f756",
-      "initial_head": "5e470c0592f9360a7122fdf50ba391ee3bf7f756"
+      "head": "5a2599026f8fb68def60e3deec2aeacd73d80ea3",
+      "initial_head": "5e470c0592f9360a7122fdf50ba391ee3bf7f756",
+      "merge_commit": "1dc6cd4fc9b9eb2797994ff7321e15dd83e6c2d7",
+      "merged_at": "2026-10-02T01:17:07Z",
+      "exact_head_checks": {
+        "pull_request_verification": 36949709396,
+        "push_verification": 36949702239
+      }
     },
     {
       "id": "MJ-PR-021",
@@ -504,10 +510,14 @@
         "MJ-PR-020",
         "MJ-PR-012"
       ],
-      "status": "QUEUED",
+      "status": "IN_PROGRESS",
       "branch": "codex/mj-pr-021-company-ats-discovery",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "Durable source-level AUTO_DISCOVERED/USER_WATCHED classification, no-silent-demotion refresh and exact portal history preservation are locally tested. REQ-074 remains PARTIAL pending full outcome-based ranking; REQ-075 remains PARTIAL pending company-level UI/read model; REQ-076..077 are NOT_RUN.",
+      "worktree": "C:\\Tools\\Dev\\MJobs-pr-021",
+      "base": "1dc6cd4fc9b9eb2797994ff7321e15dd83e6c2d7",
+      "validation_result": "PASS_WITH_PARTIAL_REQUIREMENT_COVERAGE",
+      "evidence_path": "docs/evidence/2026-10-02-company-source-watch-and-priority.json"
     },
     {
       "id": "MJ-PR-022",

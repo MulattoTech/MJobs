@@ -31,6 +31,10 @@ class CompanySourceMigrationTests(unittest.TestCase):
                         "INSERT INTO company_job_sources (id, company_id, provider, tenant, endpoint, discovered_automatically) "
                         "VALUES ('legacy-source', 'legacy-co', 'mock-ats', 'legacy-board', 'http://fixture/ats/jobs', 1)"
                     ))
+                    connection.execute(text(
+                        "INSERT INTO company_job_sources (id, company_id, provider, tenant, endpoint, discovered_automatically) "
+                        "VALUES ('manual-source', 'legacy-co', 'greenhouse', 'manual-board', 'https://careers.example/jobs', 0)"
+                    ))
                 command.upgrade(config, "head")
                 with engine.connect() as connection:
                     source = connection.execute(select(m.company_sources).where(
@@ -39,13 +43,23 @@ class CompanySourceMigrationTests(unittest.TestCase):
                     tenant = connection.execute(select(m.company_ats_tenants).where(
                         m.company_ats_tenants.c.id == source["ats_tenant_id"]
                     )).mappings().one()
+                    manual = connection.execute(select(m.company_sources).where(
+                        m.company_sources.c.id == "manual-source"
+                    )).mappings().one()
                 self.assertEqual(source["endpoint"], "http://fixture/ats/jobs")
                 self.assertEqual(source["provider"], "mock-ats")
                 self.assertIsNone(source["career_url"])
                 self.assertEqual(source["collection_strategy"], "UNKNOWN")
                 self.assertTrue(source["enabled"])
+                self.assertEqual(source["origin"], "AUTO_DISCOVERED")
                 self.assertEqual(tenant["tenant_identifier"], "legacy-board")
                 self.assertEqual(tenant["confidence"], 0.45)
+                self.assertEqual(manual["origin"], "USER_WATCHED")
+                self.assertFalse(manual["discovered_automatically"])
+                with self.assertRaisesRegex(RuntimeError, "Refusing to discard company source watch or pin decisions"):
+                    command.downgrade(config, "e14ac893620f")
+                with engine.begin() as connection:
+                    connection.execute(text("UPDATE company_job_sources SET origin = 'AUTO_DISCOVERED'"))
                 with self.assertRaisesRegex(RuntimeError, "Refusing to discard company ATS tenant evidence"):
                     command.downgrade(config, "cb72f9041d6a")
                 engine.dispose()

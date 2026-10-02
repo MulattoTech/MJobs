@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-10-02T01:36:31+00:00",
+  "scope": "MJ-PR-021 / MJ-REQ-074..077",
+  "result": "PARTIAL",
+  "base": {
+    "origin_main": "1dc6cd4fc9b9eb2797994ff7321e15dd83e6c2d7",
+    "branch": "codex/mj-pr-021-company-ats-discovery",
+    "worktree": "C:\\Tools\\Dev\\MJobs-pr-021"
+  },
+  "requirements": {
+    "MJ-REQ-074": "PARTIAL",
+    "MJ-REQ-075": "PARTIAL",
+    "MJ-REQ-076": "NOT_RUN",
+    "MJ-REQ-077": "NOT_RUN"
+  },
+  "implemented": [
+    "Company source records now persist AUTO_DISCOVERED or USER_WATCHED origin independently of the legacy discovered_automatically acquisition flag.",
+    "Existing source rows are backfilled deterministically from discovered_automatically; manual/configured sources map to USER_WATCHED and automatic sources map to AUTO_DISCOVERED.",
+    "A company source listing API and explicit watch/unwatch API expose and update the persisted classification.",
+    "Automatic rediscovery preserves USER_WATCHED and its existing priority; users can explicitly clear the watch state.",
+    "Migration downgrade refuses to discard user watch or USER_PINNED decisions."
+  ],
+  "limitations": [
+    "REQ-074 remains PARTIAL: no automated ranking from relevant-job count, match score, new-job frequency, application success, interview outcomes, user preference and recency is implemented. Application outcome/interview data is not modeled.",
+    "REQ-075 remains PARTIAL: the classification is per company source rather than a first-class company watch view, and no connected UI controls are included.",
+    "REQ-076 and REQ-077 remain NOT_RUN: periodic infrastructure/provider/parser revalidation, queued rediscovery on changed identities, ATS migration validation and preserved migration history have not been implemented end to end."
+  ],
+  "actions": [
+    {
+      "action": "Expected RED regression before implementation",
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_company_sources",
+      "target": "explicit watch behavior and automated-refresh preservation",
+      "result": "RED: ImportError because set_company_source_watch did not exist."
+    },
+    {
+      "action": "Focused company source and ATS discovery regressions",
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_company_sources tests.integration.test_company_sources_migration tests.integration.test_company_discovery",
+      "target": "company source API, priority preservation, legacy migration and discovery safety",
+      "result": "PASS: 35 tests after watch-state, portal identity, legacy preservation, migration and discovery-safety fixes."
+    },
+    {
+      "action": "Legacy source reuse RED/GREEN regression",
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_company_sources.CompanySourceTests.test_distinct_career_portal_does_not_claim_legacy_source_sharing_its_feed",
+      "target": "Different career portal sharing a legacy feed/API endpoint",
+      "result": "RED: the distinct portal reused and overwrote the legacy row. After restricting legacy reuse to missing incoming career URLs plus an exact endpoint match, PASS: distinct portal gets a separate source and the legacy row remains unchanged."
+    },
+    {
+      "action": "Independent focused review",
+      "command": "Read-only review of migration, API, source origin/priority and legacy portal identity diff",
+      "target": "Data integrity and correctness",
+      "result": "Initial review identified legacy row reuse risks for different portals; both different-endpoint and shared-feed cases were fixed and covered by RED/GREEN regressions. Final re-review found no remaining actionable issues."
+    },
+    {
+      "action": "Full Python suite",
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest discover -s tests -p 'test_*.py'",
+      "target": "tests/",
+      "result": "PASS: 224 tests in 54.310 seconds."
+    },
+    {
+      "action": "Catalogue validation",
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.catalogue",
+      "target": "requirement and dependency catalogue",
+      "result": "PASS after PR021 control-plane updates."
+    },
+    {
+      "action": "Progress journal validation",
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.progress validate",
+      "target": "durable implementation checkpoint",
+      "result": "PASS after PR021 checkpoint update."
+    },
+    {
+      "action": "Migration acceptance",
+      "command": "tests.integration.test_company_sources_migration.CompanySourceMigrationTests.test_upgrade_preserves_legacy_source_and_rollback_refuses_tenant_loss",
+      "target": "SQLite upgrade from e14ac893620f, automatic/manual origin backfill, history preservation, watch/pin downgrade refusal",
+      "result": "PASS as part of focused suite."
+    },
+    {
+      "action": "Isolated PostgreSQL migration acceptance",
+      "command": "docker compose -p mjobs-pr021-migration up -d --build migrate; docker compose -p mjobs-pr021-migration exec -T postgres psql -U mjobs -d mjobs -Atc select version_num from alembic_version",
+      "target": "Fresh PostgreSQL 17 schema migration through b71d9a42c0e3",
+      "result": "PASS: migrate container exited 0 and alembic_version was b71d9a42c0e3; isolated containers and volumes then removed."
+    },
+    {
+      "action": "Connected browser acceptance",
+      "command": "Not run",
+      "target": "No frontend changes in this slice",
+      "result": "NOT_APPLICABLE."
+    },
+    {
+      "action": "Live employer and ATS behavior",
+      "command": "Not run",
+      "target": "External discovery and submission boundaries",
+      "result": "NOT_PERFORMED."
+    }
+  ],
+  "external_behavior": {
+    "live_employer_network_access": "NOT_PERFORMED",
+    "live_ATS_access": "NOT_PERFORMED",
+    "external_application_submission": "NOT_PERFORMED",
+    "external_submission_enabled": false
+  },
+  "release_readiness": "NOT_RUN"
+}
