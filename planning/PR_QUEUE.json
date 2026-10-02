@@ -437,16 +437,20 @@
         "MJ-PR-018",
         "MJ-PR-012"
       ],
-      "status": "IN_PROGRESS",
+      "status": "DRAFT_PR",
       "branch": "codex/mj-pr-019-company-ats-discovery",
       "draft_until_verified": true,
-      "notes": "REQ-066..069 locally verified PASS; implementation and evidence committed at 09a9038. Draft PR and exact-head CI are pending.",
+      "notes": "Draft PR #446 is open; initial workflows 36946178657 and 36946199765 are in progress on the initial head. PR-number/state bookkeeping will change the head; verify both required workflows on that final SHA.",
       "worktree": "C:\\Tools\\Dev\\MJobs-pr-019",
       "base": "328b0bb26eb3aa5242fe4e9253a51b0271081ace",
       "local_head": "09a90380792d4cb83dbee25594f703edb059ab3d",
       "validation_result": "PASS",
       "evidence_path": "docs/evidence/2026-10-02-ats-tenant-source-hierarchy.json",
-      "publication_state": "NOT_RUN"
+      "publication_state": "DRAFT_PR",
+      "pr_number": 446,
+      "url": "https://github.com/MulattoTech/MJobs/pull/446",
+      "head": "f21f86b196fdd4a750666a89c9e888924b1e06a9",
+      "initial_head": "f21f86b196fdd4a750666a89c9e888924b1e06a9"
     },
     {
       "id": "MJ-PR-020",

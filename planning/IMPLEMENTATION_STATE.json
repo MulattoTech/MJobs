@@ -223,16 +223,19 @@
     {
       "branch": "codex/mj-pr-019-company-ats-discovery",
       "worktree": "C:\\Tools\\Dev\\MJobs-pr-019",
-      "status": "LOCAL_VERIFIED",
+      "status": "DRAFT_PR",
       "base": "328b0bb26eb3aa5242fe4e9253a51b0271081ace",
-      "head": "09a90380792d4cb83dbee25594f703edb059ab3d",
+      "head": "f21f86b196fdd4a750666a89c9e888924b1e06a9",
       "requirements": [
         "MJ-REQ-066",
         "MJ-REQ-067",
         "MJ-REQ-068",
         "MJ-REQ-069"
       ],
-      "evidence_path": "docs/evidence/2026-10-02-ats-tenant-source-hierarchy.json"
+      "evidence_path": "docs/evidence/2026-10-02-ats-tenant-source-hierarchy.json",
+      "number": 446,
+      "url": "https://github.com/MulattoTech/MJobs/pull/446",
+      "initial_head": "f21f86b196fdd4a750666a89c9e888924b1e06a9"
     }
   ],
   "tests_passed": [
@@ -331,9 +334,9 @@
     "Remaining full-spec integrations and product/release requirements",
     "Production external employer-site fetching and external search-provider/API calls.",
     "HTML-signature and network-observed endpoint ATS detection (MJ-REQ-064 remains PARTIAL).",
-    "MJ-PR-019 exact-head GitHub Actions and review/merge gate; draft PR not yet published.",
     "Original P0-P3 full acceptance and release readiness remain open.",
-    "Live employer/ATS service integration and connected browser behavior; no browser files changed."
+    "Live employer/ATS service integration and connected browser behavior; no browser files changed.",
+    "PR #446 exact final-head GitHub Actions, unresolved review threads, and merge gate; publication bookkeeping will create a new SHA."
   ],
   "known_external_limitations": [
     "Production external career-site/domain acquisition, configured web-search provider and non-mock ATS metadata integration are not verified in MJ-PR-017.",
@@ -351,7 +354,7 @@
     "MJ-PR-016 local Chromium first run used Docker DNS host api, which is not a secure browser origin for crypto.randomUUID; loopback URL rerun passed all five connected UI actions."
   ],
   "last_verified_checkpoint": {
-    "git_commit": "09a90380792d4cb83dbee25594f703edb059ab3d",
+    "git_commit": "f21f86b196fdd4a750666a89c9e888924b1e06a9",
     "evidence_path": "docs/evidence/2026-10-02-ats-tenant-source-hierarchy.json"
   },
   "ci_verification": {
@@ -420,7 +423,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Push codex/mj-pr-019-company-ats-discovery, create a draft PR, commit PR-number bookkeeping, then fetch and verify the latest exact head.",
+  "recommended_resume_step": "Commit and push PR #446 bookkeeping updates, fetch the new exact head, then require both Verification workflows and review/mergeability on that SHA.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -457,12 +460,15 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "09a90380792d4cb83dbee25594f703edb059ab3d",
+  "last_implementation_commit": "f21f86b196fdd4a750666a89c9e888924b1e06a9",
   "publication": {
-    "result": "NOT_RUN",
-    "branch": "codex/mj-pr-019-company-ats-discovery",
-    "worktree": "C:\\Tools\\Dev\\MJobs-pr-019",
-    "local_head": "09a9038",
+    "result": "PASS",
+    "transport": "Authenticated Git push and GitHub draft PR",
+    "local_remote_commit_identical": true,
+    "force": false,
+    "pr_number": 446,
+    "url": "https://github.com/MulattoTech/MJobs/pull/446",
+    "initial_head": "f21f86b196fdd4a750666a89c9e888924b1e06a9",
     "base": "328b0bb26eb3aa5242fe4e9253a51b0271081ace"
   },
   "optional_afk_journal": {
@@ -1577,8 +1583,8 @@
         "Catalogue/progress validators PASS before control-plane edit; rerun required."
       ],
       "tests_remaining": [
-        "Publish PR-019 and verify required Actions on latest exact head.",
-        "Full release acceptance remains open."
+        "Commit/push PR #446 publication bookkeeping, then verify both required GitHub Actions workflows on the final exact head.",
+        "Original P0-P3 full acceptance and release readiness remain open."
       ],
       "migrations_applied": [
         "e14ac893620f"
@@ -1592,14 +1598,14 @@
         "Browser acceptance is not applicable because browser/UI files did not change."
       ],
       "last_safe_checkpoint": {
-        "git_commit": "09a90380792d4cb83dbee25594f703edb059ab3d",
+        "git_commit": "f21f86b196fdd4a750666a89c9e888924b1e06a9",
         "evidence_path": "docs/evidence/2026-10-02-ats-tenant-source-hierarchy.json"
       }
     }
   ],
   "current_phase": "M19_ATS_TENANT_SOURCE_HIERARCHY_LOCAL_VERIFIED",
   "last_safe_checkpoint": {
-    "git_commit": "09a90380792d4cb83dbee25594f703edb059ab3d",
+    "git_commit": "f21f86b196fdd4a750666a89c9e888924b1e06a9",
     "evidence_path": "docs/evidence/2026-10-02-ats-tenant-source-hierarchy.json"
   },
   "live_integrations_tested": [
@@ -1624,6 +1630,16 @@
       "url": "https://github.com/MulattoTech/MJobs/pull/445",
       "final_head": "e24d6e69a40474b4d6cf1fed9b8edf9e44294ebd",
       "merge_commit": "328b0bb26eb3aa5242fe4e9253a51b0271081ace"
+    },
+    {
+      "result": "PASS",
+      "transport": "Authenticated Git push and GitHub draft PR",
+      "local_remote_commit_identical": true,
+      "force": false,
+      "pr_number": 446,
+      "url": "https://github.com/MulattoTech/MJobs/pull/446",
+      "initial_head": "f21f86b196fdd4a750666a89c9e888924b1e06a9",
+      "base": "328b0bb26eb3aa5242fe4e9253a51b0271081ace"
     }
   ]
 }

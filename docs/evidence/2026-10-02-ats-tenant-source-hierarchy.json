@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-02T00:26:58.998180+00:00",
+  "timestamp": "2026-10-02T00:29:15+00:00",
   "scope": "MJ-PR-019 / MJ-REQ-066..069",
   "result": "PASS",
   "base": {
@@ -33,7 +33,7 @@
     }
   },
   "github_reconciliation": {
-    "observed_at": "2026-10-02T00:26:58.998180+00:00",
+    "observed_at": "2026-10-02T00:29:15+00:00",
     "origin_main": "328b0bb26eb3aa5242fe4e9253a51b0271081ace",
     "open_prs_before_publication": [],
     "pr018": {
@@ -55,8 +55,25 @@
       },
       "merged_at": "2026-10-02T00:13:37Z"
     },
-    "pr019_publication": "NOT_RUN; local implementation and evidence are committed; draft PR not yet created.",
-    "pr019_exact_head_ci": "NOT_RUN; no PR exists at this checkpoint."
+    "pr019_publication": "DRAFT_PR",
+    "pr019_exact_head_ci": "NOT_RUN; no PR exists at this checkpoint.",
+    "pr019_number": 446,
+    "pr019_url": "https://github.com/MulattoTech/MJobs/pull/446",
+    "pr019_initial_head": "f21f86b196fdd4a750666a89c9e888924b1e06a9",
+    "pr019_base": "328b0bb26eb3aa5242fe4e9253a51b0271081ace",
+    "pr019_initial_head_actions": {
+      "pull_request_verification": {
+        "run_id": 36946178657,
+        "head_sha": "f21f86b196fdd4a750666a89c9e888924b1e06a9",
+        "result": "IN_PROGRESS"
+      },
+      "push_verification": {
+        "run_id": 36946199765,
+        "head_sha": "f21f86b196fdd4a750666a89c9e888924b1e06a9",
+        "result": "IN_PROGRESS"
+      }
+    },
+    "pr019_current_exact_head": "pending bookkeeping commit; initial-head workflows will not count for final verification."
   },
   "implemented": [
     "Durable ATS tenant rows retain provider, tenant, organization and board identifiers, confidence, evidence and seen timestamps.",
@@ -125,9 +142,15 @@
       "command": "git diff --check",
       "target": "implementation diff",
       "result": "PASS."
+    },
+    {
+      "action": "Draft PR publication",
+      "command": "git push -u origin codex/mj-pr-019-company-ats-discovery; gh pr create --draft",
+      "target": "MulattoTech/MJobs PR #446",
+      "result": "PASS: draft PR opened at https://github.com/MulattoTech/MJobs/pull/446 with initial head f21f86b196fdd4a750666a89c9e888924b1e06a9; base main 328b0bb26eb3aa5242fe4e9253a51b0271081ace."
     }
   ],
-  "remote_exact_head_ci": "NOT_RUN; PR-019 has not been published.",
+  "remote_exact_head_ci": "NOT_RUN on final PR head; initial head workflows 36946178657 and 36946199765 were IN_PROGRESS and will be superseded by the PR-number/state bookkeeping commit.",
   "browser_validation": {
     "result": "NOT_APPLICABLE",
     "detail": "No browser/UI behavior changed."
