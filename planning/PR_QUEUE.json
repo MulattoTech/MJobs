@@ -95,7 +95,7 @@
     },
     {
       "id": "MJ-PR-005",
-      "title": "Core Search Model: Domain Model — Core Concepts; Global Job Sources",
+      "title": "Core Search Model: Domain Model \u2014 Core Concepts; Global Job Sources",
       "domain": "core_search_model",
       "requirements": [
         "MJ-REQ-015",
@@ -274,7 +274,7 @@
     },
     {
       "id": "MJ-PR-013",
-      "title": "Job Identity Dedupe: Deduplication — Strong Signals; Deduplication — Company Identity",
+      "title": "Job Identity Dedupe: Deduplication \u2014 Strong Signals; Deduplication \u2014 Company Identity",
       "domain": "job_identity_dedupe",
       "requirements": [
         "MJ-REQ-044",
@@ -510,7 +510,7 @@
         "MJ-PR-020",
         "MJ-PR-012"
       ],
-      "status": "DRAFT_PR",
+      "status": "MERGED",
       "branch": "codex/mj-pr-021-company-ats-discovery",
       "draft_until_verified": true,
       "notes": "Durable source-level AUTO_DISCOVERED/USER_WATCHED classification, no-silent-demotion refresh and exact portal history preservation are locally tested. REQ-074 remains PARTIAL pending full outcome-based ranking; REQ-075 remains PARTIAL pending company-level UI/read model; REQ-076..077 are NOT_RUN.",
@@ -518,12 +518,13 @@
       "base": "1dc6cd4fc9b9eb2797994ff7321e15dd83e6c2d7",
       "validation_result": "PASS_WITH_PARTIAL_REQUIREMENT_COVERAGE",
       "evidence_path": "docs/evidence/2026-10-02-company-source-watch-and-priority.json",
-      "publication_state": "DRAFT_PR",
+      "publication_state": "MERGED",
       "pr_number": 448,
       "url": "https://github.com/MulattoTech/MJobs/pull/448",
       "initial_head": "9c1b4dc7415ff108ad3a4751a92ce35031453bad",
-      "head": "9c1b4dc7415ff108ad3a4751a92ce35031453bad",
-      "local_head": "9c1b4dc7415ff108ad3a4751a92ce35031453bad"
+      "head": "dd9bb5f73ab75cf3d5e4972d2d8f0ac1cf6dc1ef",
+      "local_head": "dd9bb5f73ab75cf3d5e4972d2d8f0ac1cf6dc1ef",
+      "merge_commit": "c4c7da448cf973970f15701bdfee64de66556190"
     },
     {
       "id": "MJ-PR-022",
@@ -535,15 +536,19 @@
         "MJ-REQ-080",
         "MJ-REQ-081"
       ],
-      "target_area": "services/company_discovery; services/ats_detection",
+      "target_area": "services/company_discovery; apps/api; apps/web",
       "depends_on": [
         "MJ-PR-021",
         "MJ-PR-012"
       ],
-      "status": "QUEUED",
+      "status": "IMPLEMENTED_LOCAL",
       "branch": "codex/mj-pr-022-company-ats-discovery",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "Source-specific projection, strict user controls and bounded evidence are integrated and browser-tested. REQ-078..081 remain PARTIAL; local Docker verification BLOCKED_ENVIRONMENT; remote CI pending publication.",
+      "validation_result": "PASS_WITH_PARTIAL_REQUIREMENT_COVERAGE",
+      "worktree": "C:\\Tools\\Dev\\MJobs-pr-022",
+      "base": "c4c7da448cf973970f15701bdfee64de66556190",
+      "evidence_path": "docs/evidence/2026-10-02-company-source-confidence-and-view.json"
     },
     {
       "id": "MJ-PR-023",
@@ -1015,7 +1020,7 @@
     },
     {
       "id": "MJ-PR-047",
-      "title": "Orchestration Data Security: Security — Pii; Security — Web",
+      "title": "Orchestration Data Security: Security \u2014 Pii; Security \u2014 Web",
       "domain": "orchestration_data_security",
       "requirements": [
         "MJ-REQ-171",
@@ -1035,7 +1040,7 @@
     },
     {
       "id": "MJ-PR-048",
-      "title": "Orchestration Data Security: Security — Secret Management; Audit Log",
+      "title": "Orchestration Data Security: Security \u2014 Secret Management; Audit Log",
       "domain": "orchestration_data_security",
       "requirements": [
         "MJ-REQ-175",
@@ -1250,7 +1255,7 @@
     },
     {
       "id": "MJ-PR-059",
-      "title": "Test Harness: Unit Tests — Company Resolution; Unit Tests — Ats Detection",
+      "title": "Test Harness: Unit Tests \u2014 Company Resolution; Unit Tests \u2014 Ats Detection",
       "domain": "test_harness",
       "requirements": [
         "MJ-REQ-216",
@@ -1270,7 +1275,7 @@
     },
     {
       "id": "MJ-PR-060",
-      "title": "Test Harness: Unit Tests — Application State; Application Idempotency Test",
+      "title": "Test Harness: Unit Tests \u2014 Application State; Application Idempotency Test",
       "domain": "test_harness",
       "requirements": [
         "MJ-REQ-220",

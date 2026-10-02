@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import { api, eligible, terminal, uploadResume } from './api';
+import { CompanySources, type CompanySourceView } from './company-sources';
 import './style.css';
 
 type Fact = { id: string; fact_id?: string; kind: string; text: string; source: string; confidence: number; verified: boolean; user_approved: boolean };
@@ -28,6 +29,8 @@ function App() {
   const [jobs,setJobs] = useState<Job[]>([]);
   const [apps,setApps] = useState<Application[]>([]);
   const [sources,setSources] = useState<Source[]>([]);
+  const [companySources,setCompanySources] = useState<CompanySourceView[]>([]);
+  const companySourcesSequence = useRef(0);
   const [operationMode,setOperationMode] = useState<OperationMode|null>(null);
   const [ops,setOps] = useState<Operation[]>([]);
   const [ready,setReady] = useState<{status:string;checks:Record<string,boolean>}|null>(null);
@@ -47,8 +50,10 @@ function App() {
   const jobsSequence = useRef(0); const detailSequence = useRef(0); const appSequence = useRef(0); const editorSequence = useRef(0);
 
   async function refresh(id=profileId) {
+    const companySequence = ++companySourcesSequence.current;
     const suffix = id ? `?profile_id=${encodeURIComponent(id)}` : '';
-    const [p,a,s,o,sp] = await Promise.all([api<{profiles:Profile[]}>('/profiles'),api<{applications:Application[]}>('/applications'+suffix),api<{sources:Source[]}>('/sources'),api<{operations:Operation[]}>('/operations'+suffix),id?api<{search_profiles:SearchProfile[]}>('/search-profiles'+suffix):Promise.resolve({search_profiles:[]} as {search_profiles:SearchProfile[]})]);
+    const [p,a,s,o,sp,cs] = await Promise.all([api<{profiles:Profile[]}>('/profiles'),api<{applications:Application[]}>('/applications'+suffix),api<{sources:Source[]}>('/sources'),api<{operations:Operation[]}>('/operations'+suffix),id?api<{search_profiles:SearchProfile[]}>('/search-profiles'+suffix):Promise.resolve({search_profiles:[]} as {search_profiles:SearchProfile[]}),api<{company_sources:CompanySourceView[]}>('/company-sources/view'+suffix)]);
+    if(companySequence===companySourcesSequence.current&&id===profileRef.current)setCompanySources(cs.company_sources);
     setProfiles(p.profiles);setSources(s.sources);if(id===profileRef.current){setApps(a.applications);setOps(o.operations);setSearchProfiles(sp.search_profiles);}
   }
   async function loadJobs(id=profileId) {
@@ -62,7 +67,7 @@ function App() {
     try { const response=await fetch('/readiness');setReady(await response.json()); } catch {setReady({status:'unavailable',checks:{api:false}});}
   }
   useEffect(() => {void refresh().catch(e=>setError(String(e)));void api<{operation_mode:OperationMode}>('/settings').then(s=>setOperationMode(s.operation_mode)).catch(e=>setError(String(e)));void readiness();const timer=setInterval(()=>void readiness(),15000);return()=>clearInterval(timer);},[]);
-  useEffect(() => {const sequence=++editorSequence.current;++appSequence.current;localStorage.setItem('mjobs-profile',profileId);setDetail(null);setSelectedApp(null);setDocs([]);setResumes([]);setResumeFile(null);setApps([]);setOps([]);setMockConsent(false);void refresh(profileId).catch(e=>setError(String(e)));if(profileId){void api<Profile>('/profiles/'+encodeURIComponent(profileId)).then(p=>{if(sequence===editorSequence.current&&p.id===profileRef.current)setEditor({...p,facts:p.facts.map(f=>({...f,id:f.fact_id||f.id}))});}).catch(e=>setError(String(e)));void api<{resumes:Resume[]}>('/profiles/'+encodeURIComponent(profileId)+'/resumes').then(r=>{if(sequence===editorSequence.current&&profileId===profileRef.current)setResumes(r.resumes);}).catch(e=>setError(String(e)));}},[profileId]);
+  useEffect(() => {const sequence=++editorSequence.current;++appSequence.current;localStorage.setItem('mjobs-profile',profileId);setDetail(null);setSelectedApp(null);setDocs([]);setResumes([]);setResumeFile(null);setApps([]);setOps([]);setCompanySources([]);setMockConsent(false);void refresh(profileId).catch(e=>setError(String(e)));if(profileId){void api<Profile>('/profiles/'+encodeURIComponent(profileId)).then(p=>{if(sequence===editorSequence.current&&p.id===profileRef.current)setEditor({...p,facts:p.facts.map(f=>({...f,id:f.fact_id||f.id}))});}).catch(e=>setError(String(e)));void api<{resumes:Resume[]}>('/profiles/'+encodeURIComponent(profileId)+'/resumes').then(r=>{if(sequence===editorSequence.current&&profileId===profileRef.current)setResumes(r.resumes);}).catch(e=>setError(String(e)));}},[profileId]);
   useEffect(() => {++jobsSequence.current;++detailSequence.current;setJobs([]);setDetail(null);const timer=setTimeout(()=>void loadJobs().catch(e=>setError(String(e))),250);return()=>clearTimeout(timer);},[q,sort,remote,provider,profileId]);
   async function action(label:string, fn:()=>Promise<void>) {
     if(busy)return;setBusy(label);setError('');setNotice('');
@@ -127,6 +132,13 @@ function App() {
         {operationMode==='FIXTURE'&&<section className="panel"><h2>Try the local demo</h2><p>Creates a separate fictional profile and two fictional jobs. It never overwrites your profile.</p><button type="button" disabled={!!busy} onClick={()=>void action('Loading fictional demo',demo)}>Load fictional demo</button></section>}
       </form>}
       {tab==='Sources'&&<>
+        <CompanySources rows={companySources} busy={!!busy} profileSelected={!!profileId} onSet={async(row,control,value)=>{
+          await action('Updating company source',async()=>{
+            const field=control==='pin'?'pinned':control==='watch'?'watched':'enabled';
+            await api('/company-sources/'+encodeURIComponent(row.id)+'/'+control,{method:'PUT',body:JSON.stringify({[field]:value})});
+            setNotice('Company source preference saved.');
+          });
+        }}/>
         <section className="panel">
           <h2>Public Greenhouse board</h2>
           <p>Reads public job listings from the provider API. Each board keeps its own bounded schedule, timeout, rate limit, and backoff state. No login or application submission is performed.</p>

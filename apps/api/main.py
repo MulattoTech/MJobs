@@ -26,7 +26,8 @@ from services.discovery.search_semantics import filter_jobs
 from services.dedupe.reviews import list_duplicate_reviews, record_review_decision
 from services.dedupe.routes import load_job_routes, list_route_choices, plan_application_routes, source_provenance_inventory
 from services.company_discovery.triggers import queue_company_discovery
-from services.company_discovery.sources import list_company_job_sources, set_company_source_watch
+from services.company_discovery.sources import (list_company_job_sources, set_company_source_watch,
+    list_company_source_view, set_company_source_pin, set_company_source_enabled)
 from services.documents.uploads import MAX_UPLOAD_BYTES, UploadIntegrityError, list_resumes, save_resume, read_resume
 from workers.dispatch import enqueue_operation
 from workers.operations import QUEUES, request_cancel, limit
@@ -87,6 +88,16 @@ class CompanyDiscoveryInput(BaseModel):
                     "USER_PREFERRED_COMPANY", "USER_ADDED_COMPANY", "NEW_ATS_TENANT",
                     "REPEATED_AGGREGATOR_APPEARANCE", "KNOWN_SOURCE_BROKEN"]
     profile_id: str | None = Field(default=None, max_length=128)
+
+
+class CompanySourcePinInput(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+    pinned: bool
+
+
+class CompanySourceEnabledInput(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+    enabled: bool
 
 
 class CompanySourceWatchInput(BaseModel):
@@ -166,7 +177,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         origin = request.headers.get("origin")
         if request.method not in ("GET", "HEAD", "OPTIONS") and origin and origin != str(request.base_url).rstrip("/"):
             return JSONResponse({"detail": "Cross-origin mutation blocked"}, status_code=403)
-        if request.headers.get("sec-fetch-site") == "cross-site" and request.url.path.startswith(("/profiles", "/documents", "/applications", "/operations", "/duplicate-reviews")):
+        if request.headers.get("sec-fetch-site") == "cross-site" and request.url.path.startswith(("/profiles", "/documents", "/applications", "/operations", "/duplicate-reviews", "/company-sources")):
             return JSONResponse({"detail": "Cross-site personal data access blocked"}, status_code=403)
         response = await call_next(request)
         response.headers["Cache-Control"] = "no-store"
@@ -292,6 +303,26 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             store.profile(value.profile_id)
         candidate = value.model_dump(exclude={"reason", "profile_id"})
         return queue_company_discovery(store, candidate, value.reason, value.profile_id)
+
+    @app.get("/company-sources/view")
+    def company_source_view(profile_id: str | None = Query(default=None, min_length=1, max_length=128)):
+        return {"company_sources": list_company_source_view(store, profile_id)}
+
+    def update_source_control(function, source_id, **value):
+        try:
+            return function(store, source_id, **value)
+        except ValueError as exc:
+            if str(exc) == "COMPANY_SOURCE_NOT_FOUND":
+                raise HTTPException(404, "Company source not found") from exc
+            raise
+
+    @app.put("/company-sources/{source_id}/pin")
+    def company_source_pin(source_id: str, value: CompanySourcePinInput):
+        return update_source_control(set_company_source_pin, source_id, pinned=value.pinned)
+
+    @app.put("/company-sources/{source_id}/enabled")
+    def company_source_enabled(source_id: str, value: CompanySourceEnabledInput):
+        return update_source_control(set_company_source_enabled, source_id, enabled=value.enabled)
 
     @app.get("/company-sources")
     def company_sources(company_id: str | None = Query(default=None, min_length=1, max_length=128)):

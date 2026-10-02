@@ -224,6 +224,10 @@ class CompanyDiscoveryTests(unittest.TestCase):
             source = dict(connection.execute(select(m.company_sources)).mappings().one())
         self.assertTrue(source["discovered_automatically"])
         self.assertEqual(next(row for row in jobs if row["requisition"] == "B")["match_score"], 100)
+        with self.store.engine.connect() as connection:
+            event = connection.execute(select(m.audit).where(
+                m.audit.c.action == "COMPANY_SOURCE_DISCOVERED")).mappings().one()
+        self.assertEqual(event["payload"].get("company_source_id"), source["id"])
 
     def test_durable_company_feed_operation_does_not_run_mock_board_discovery(self):
         with fixture_server() as origin:
@@ -397,6 +401,10 @@ class CompanyDiscoveryTests(unittest.TestCase):
         self.assertTrue(source["discovered_automatically"])
         self.assertIsNotNone(company_domain)
         self.assertEqual(company_domain["domain"], "employer.example")
+        with self.store.engine.connect() as connection:
+            event = connection.execute(select(m.audit).where(
+                m.audit.c.action == "COMPANY_SOURCE_DISCOVERED")).mappings().one()
+        self.assertEqual(event["payload"].get("company_source_id"), source["id"])
 
     def test_first_party_feed_jobs_enter_the_canonical_job_and_match_pipeline(self):
         from types import SimpleNamespace
