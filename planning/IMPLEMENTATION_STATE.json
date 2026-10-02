@@ -269,7 +269,7 @@
     {
       "branch": "codex/mj-pr-021-company-ats-discovery",
       "worktree": "C:\\Tools\\Dev\\MJobs-pr-021",
-      "status": "LOCAL_VERIFIED",
+      "status": "DRAFT",
       "base": "1dc6cd4fc9b9eb2797994ff7321e15dd83e6c2d7",
       "requirements": [
         "MJ-REQ-074",
@@ -277,7 +277,11 @@
         "MJ-REQ-076",
         "MJ-REQ-077"
       ],
-      "evidence_path": "docs/evidence/2026-10-02-company-source-watch-and-priority.json"
+      "evidence_path": "docs/evidence/2026-10-02-company-source-watch-and-priority.json",
+      "number": 448,
+      "url": "https://github.com/MulattoTech/MJobs/pull/448",
+      "head": "9c1b4dc7415ff108ad3a4751a92ce35031453bad",
+      "note": "PR-number/state bookkeeping commit will supersede this initial head; these initial-head checks are not final."
     }
   ],
   "tests_passed": [
@@ -413,11 +417,14 @@
     "evidence_path": "docs/evidence/2026-10-02-company-source-watch-and-priority.json"
   },
   "ci_verification": {
-    "result": "NOT_RUN",
-    "scope": "MJ-PR-021 is locally verified and not yet published; CI must be checked against its final PR head after publication.",
-    "verified_head": null,
-    "exact_head_runs": {},
-    "next_action": "Commit implementation and evidence, publish draft PR, then verify both required workflows on the final exact head."
+    "result": "IN_PROGRESS",
+    "scope": "PR #448 initial head; PR-number/state bookkeeping commit changes the head and these runs are not final.",
+    "verified_head": "9c1b4dc7415ff108ad3a4751a92ce35031453bad",
+    "exact_head_runs": {
+      "pull_request_verification": 36951990706,
+      "push_verification": 36951969776
+    },
+    "next_action": "Push PR-number/state bookkeeping commit, then verify both required workflows on its exact new head."
   },
   "mock_spine_ci": {
     "result": "PASS",
@@ -514,11 +521,15 @@
   },
   "last_implementation_commit": "b096b868b4feb6df6afbe1581ff7a6a80a891c16",
   "publication": {
-    "result": "NOT_RUN",
+    "result": "IN_PROGRESS",
     "branch": "codex/mj-pr-021-company-ats-discovery",
     "worktree": "C:\\Tools\\Dev\\MJobs-pr-021",
     "base": "1dc6cd4fc9b9eb2797994ff7321e15dd83e6c2d7",
-    "stacked_on": "codex/mj-pr-019-company-ats-discovery"
+    "stacked_on": "codex/mj-pr-019-company-ats-discovery",
+    "pr_number": 448,
+    "url": "https://github.com/MulattoTech/MJobs/pull/448",
+    "draft": true,
+    "initial_head": "9c1b4dc7415ff108ad3a4751a92ce35031453bad"
   },
   "optional_afk_journal": {
     "result": "BLOCKED_ENVIRONMENT",
@@ -1833,13 +1844,21 @@
       }
     },
     {
-      "result": "NOT_RUN",
-      "transport": "Not published yet",
-      "local_remote_commit_identical": false,
+      "result": "IN_PROGRESS",
+      "transport": "Authenticated Git push and GitHub draft PR",
+      "local_remote_commit_identical": true,
       "force": false,
       "branch": "codex/mj-pr-021-company-ats-discovery",
       "base": "1dc6cd4fc9b9eb2797994ff7321e15dd83e6c2d7",
-      "evidence_path": "docs/evidence/2026-10-02-company-source-watch-and-priority.json"
+      "evidence_path": "docs/evidence/2026-10-02-company-source-watch-and-priority.json",
+      "pr_number": 448,
+      "url": "https://github.com/MulattoTech/MJobs/pull/448",
+      "initial_head": "9c1b4dc7415ff108ad3a4751a92ce35031453bad",
+      "exact_head_checks": {
+        "pull_request_verification": 36951990706,
+        "push_verification": 36951969776,
+        "result": "IN_PROGRESS"
+      }
     }
   ]
 }

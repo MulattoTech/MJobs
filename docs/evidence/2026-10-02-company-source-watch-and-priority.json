@@ -100,5 +100,24 @@
     "external_application_submission": "NOT_PERFORMED",
     "external_submission_enabled": false
   },
-  "release_readiness": "NOT_RUN"
+  "release_readiness": "NOT_RUN",
+  "github_publication": {
+    "pr_number": 448,
+    "url": "https://github.com/MulattoTech/MJobs/pull/448",
+    "state": "OPEN",
+    "is_draft": true,
+    "base_sha": "1dc6cd4fc9b9eb2797994ff7321e15dd83e6c2d7",
+    "initial_head": "9c1b4dc7415ff108ad3a4751a92ce35031453bad",
+    "initial_head_checks": {
+      "pull_request_verification": {
+        "run_id": 36951990706,
+        "status": "IN_PROGRESS"
+      },
+      "push_verification": {
+        "run_id": 36951969776,
+        "status": "IN_PROGRESS"
+      }
+    },
+    "note": "Initial head is superseded by the PR-number/state bookkeeping commit; exact-head verification must be repeated."
+  }
 }
