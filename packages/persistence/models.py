@@ -56,6 +56,7 @@ company_sources = table(
     "company_job_sources", Column("company_id", ForeignKey("companies.id"), nullable=False),
     Column("provider", String(32), nullable=False), Column("tenant", String(128), nullable=False),
     Column("endpoint", String(2000), nullable=False), Column("discovered_automatically", Boolean, nullable=False),
+    Column("origin", String(32), nullable=False, server_default="AUTO_DISCOVERED"),
     Column("ats_tenant_id", ForeignKey("company_ats_tenants.id")),
     Column("career_url", String(2000)), Column("search_url", String(2000)),
     Column("feed_url", String(2000)), Column("public_api_url", String(2000)),

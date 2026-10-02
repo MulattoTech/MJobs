@@ -10,8 +10,8 @@
     "current_verified_local_state": "Initialized from newer origin/main; supplied control pack retained on governance branch",
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
-  "current_milestone": "M20_MACHINE_READABLE_COMPANY_SOURCE_DISCOVERY_DRAFT_PR",
-  "current_objective": "MJ-PR-020 is published as draft PR #447 at initial head 5e470c0592f9360a7122fdf50ba391ee3bf7f756; required workflows are running, and REQ-070..073 remain PARTIAL pending provider breadth and complete aggregator-trigger acceptance.",
+  "current_milestone": "M21_COMPANY_SOURCE_WATCH_AND_PRIORITY_LOCAL",
+  "current_objective": "MJ-PR-021 implements a tested durable company-source watch classification and preserves it during automatic refresh. The source-level slice is locally verified; REQ-074..075 remain PARTIAL and REQ-076..077 remain NOT_RUN.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -57,14 +57,15 @@
     "Local personal first-run, stored-profile relaunch and scoped backup/restore verified; protected configuration, native resume extraction/review and complete startup acceptance remain",
     "Mock-ATS company discovery supports a durable user-added trigger, evidence-based identity, automatic fixture source enrollment, and immediate employer-only job matching; production ATS providers and automatic trigger wiring remain open.",
     "Official-domain source acquisition and career-site discovery currently use fixture acceptance; production provider/search integration and automatic sitemap acquisition remain open (MJ-REQ-060..061 PARTIAL).",
-    "ATS detection uses several deterministic page/URL evidence sources, but HTML-signature and network-observed public endpoint signals remain open (MJ-REQ-064 PARTIAL)."
+    "ATS detection uses several deterministic page/URL evidence sources, but HTML-signature and network-observed public endpoint signals remain open (MJ-REQ-064 PARTIAL).",
+    "Company-source AUTO_DISCOVERED/USER_WATCHED origin, explicit list/watch APIs, and protection of watched priority across automatic refresh are locally verified; outcome-based ranking, company-level UI, and periodic source/ATS migration revalidation remain open (MJ-PR-021)."
   ],
   "blocked_capabilities": [],
   "active_requirements": [
-    "MJ-REQ-070",
-    "MJ-REQ-071",
-    "MJ-REQ-072",
-    "MJ-REQ-073"
+    "MJ-REQ-074",
+    "MJ-REQ-075",
+    "MJ-REQ-076",
+    "MJ-REQ-077"
   ],
   "active_prs": [
     {
@@ -246,9 +247,9 @@
     {
       "branch": "codex/mj-pr-020-company-ats-discovery",
       "worktree": "C:\\Tools\\Dev\\MJobs-pr-020",
-      "status": "DRAFT_PR",
+      "status": "MERGED",
       "base": "b096b868b4feb6df6afbe1581ff7a6a80a891c16",
-      "head": "5e470c0592f9360a7122fdf50ba391ee3bf7f756",
+      "head": "5a2599026f8fb68def60e3deec2aeacd73d80ea3",
       "number": 447,
       "url": "https://github.com/MulattoTech/MJobs/pull/447",
       "stacked_on": "codex/mj-pr-019-company-ats-discovery",
@@ -257,7 +258,30 @@
         "MJ-REQ-071",
         "MJ-REQ-072",
         "MJ-REQ-073"
-      ]
+      ],
+      "merge_commit": "1dc6cd4fc9b9eb2797994ff7321e15dd83e6c2d7",
+      "merged_at": "2026-10-02T01:17:07Z",
+      "exact_head_checks": {
+        "pull_request_verification": 36949709396,
+        "push_verification": 36949702239
+      }
+    },
+    {
+      "branch": "codex/mj-pr-021-company-ats-discovery",
+      "worktree": "C:\\Tools\\Dev\\MJobs-pr-021",
+      "status": "DRAFT",
+      "base": "1dc6cd4fc9b9eb2797994ff7321e15dd83e6c2d7",
+      "requirements": [
+        "MJ-REQ-074",
+        "MJ-REQ-075",
+        "MJ-REQ-076",
+        "MJ-REQ-077"
+      ],
+      "evidence_path": "docs/evidence/2026-10-02-company-source-watch-and-priority.json",
+      "number": 448,
+      "url": "https://github.com/MulattoTech/MJobs/pull/448",
+      "head": "9c1b4dc7415ff108ad3a4751a92ce35031453bad",
+      "note": "PR-number/state bookkeeping commit will supersede this initial head; these initial-head checks are not final."
     }
   ],
   "tests_passed": [
@@ -355,7 +379,13 @@
     "MJ-PR-020: 49 focused company ATS/feed/source/migration tests PASS after correcting durable worker behavior and feed success timestamps.",
     "MJ-PR-020: 218 full Python tests PASS in 52.089 seconds.",
     "MJ-PR-020: repeat feed discovery preserves two canonical jobs/posting snapshots; unsafe javascript application route excluded.",
-    "MJ-PR-020: ATS precedence, feed limits/entity rejection, automatic source row and homepage candidate-domain persistence PASS."
+    "MJ-PR-020: ATS precedence, feed limits/entity rejection, automatic source row and homepage candidate-domain persistence PASS.",
+    "MJ-PR-021 isolated PostgreSQL 17 Compose migration: fresh database upgraded through b71d9a42c0e3; migration service exited 0.",
+    "MJ-PR-021 focused company source, source API, migration and company discovery safety: 35 tests PASS.",
+    "MJ-PR-021 full Python regression suite: 224 tests PASS in 54.310 seconds.",
+    "MJ-PR-021 SQLite migration backfills source origin and refuses destructive watch/pin downgrade: PASS.",
+    "MJ-PR-021 isolated PostgreSQL 17 Compose migration: fresh database upgraded through b71d9a42c0e3; migration service exited 0.",
+    "MJ-PR-021 independent read-only review: legacy source identity collisions fixed and re-reviewed with no remaining actionable findings."
   ],
   "tests_failed": [],
   "tests_not_run": [
@@ -365,7 +395,6 @@
     "Original P0-P3 full acceptance and release readiness remain open.",
     "Live employer/ATS service integration and connected browser behavior; no browser files changed.",
     "Original P0-P3 release acceptance remains open.",
-    "MJ-PR-020 exact-head GitHub Actions and review/merge gate; both required workflows are in progress on initial head 5e470c0592f9360a7122fdf50ba391ee3bf7f756.",
     "Original P0-P3 release acceptance remains open."
   ],
   "known_external_limitations": [
@@ -384,18 +413,18 @@
     "MJ-PR-016 local Chromium first run used Docker DNS host api, which is not a secure browser origin for crypto.randomUUID; loopback URL rerun passed all five connected UI actions."
   ],
   "last_verified_checkpoint": {
-    "git_commit": "5e470c0592f9360a7122fdf50ba391ee3bf7f756",
-    "evidence_path": "docs/evidence/2026-10-02-company-machine-readable-feeds.json"
+    "git_commit": "109557fb40974fa437ec0bf89cbe936a29fe0efb",
+    "evidence_path": "docs/evidence/2026-10-02-company-source-watch-and-priority.json"
   },
   "ci_verification": {
     "result": "IN_PROGRESS",
-    "scope": "PR #447 initial exact head; both required Verification workflows are running.",
-    "verified_head": "5e470c0592f9360a7122fdf50ba391ee3bf7f756",
+    "scope": "PR #448 initial head; PR-number/state bookkeeping commit changes the head and these runs are not final.",
+    "verified_head": "9c1b4dc7415ff108ad3a4751a92ce35031453bad",
     "exact_head_runs": {
-      "pull_request_verification": 36949419070,
-      "push_verification": 36949392467
+      "pull_request_verification": 36951990706,
+      "push_verification": 36951969776
     },
-    "next_action": "Record PR #447 bookkeeping, push the new exact head, and verify required Actions on that final SHA."
+    "next_action": "Push PR-number/state bookkeeping commit, then verify both required workflows on its exact new head."
   },
   "mock_spine_ci": {
     "result": "PASS",
@@ -492,11 +521,15 @@
   },
   "last_implementation_commit": "b096b868b4feb6df6afbe1581ff7a6a80a891c16",
   "publication": {
-    "result": "NOT_RUN",
-    "branch": "codex/mj-pr-020-company-ats-discovery",
-    "worktree": "C:\\Tools\\Dev\\MJobs-pr-020",
-    "base": "b096b868b4feb6df6afbe1581ff7a6a80a891c16",
-    "stacked_on": "codex/mj-pr-019-company-ats-discovery"
+    "result": "IN_PROGRESS",
+    "branch": "codex/mj-pr-021-company-ats-discovery",
+    "worktree": "C:\\Tools\\Dev\\MJobs-pr-021",
+    "base": "1dc6cd4fc9b9eb2797994ff7321e15dd83e6c2d7",
+    "stacked_on": "codex/mj-pr-019-company-ats-discovery",
+    "pr_number": 448,
+    "url": "https://github.com/MulattoTech/MJobs/pull/448",
+    "draft": true,
+    "initial_head": "9c1b4dc7415ff108ad3a4751a92ce35031453bad"
   },
   "optional_afk_journal": {
     "result": "BLOCKED_ENVIRONMENT",
@@ -1700,12 +1733,67 @@
         "git_commit": "5e470c0592f9360a7122fdf50ba391ee3bf7f756",
         "evidence_path": "docs/evidence/2026-10-02-company-machine-readable-feeds.json"
       }
+    },
+    {
+      "milestone_id": "M21-COMPANY-SOURCE-WATCH-LOCAL",
+      "timestamp": "2026-10-02T01:37:46+00:00",
+      "current_phase": "M21_COMPANY_SOURCE_WATCH_AND_PRIORITY_LOCAL_VERIFIED",
+      "completed_steps": [
+        "Added durable AUTO_DISCOVERED and USER_WATCHED source origin with deterministic legacy backfill.",
+        "Added source list and explicit watch APIs; automatic refresh preserves watched origin and priority.",
+        "Restricted legacy row reuse to sources without a career URL and matching endpoints so distinct portals retain independent history.",
+        "Validated SQLite migration preservation and downgrade refusal plus fresh PostgreSQL 17 migration.",
+        "Ran 35 focused tests and the 224-test full Python suite; catalogue and prior journal validation passed."
+      ],
+      "files_added": [
+        "migrations/versions/b71d9a42c0e3_company_source_watch_origin.py",
+        "docs/evidence/2026-10-02-company-source-watch-and-priority.json"
+      ],
+      "files_modified": [
+        "apps/api/main.py",
+        "packages/persistence/models.py",
+        "services/company_discovery/sources.py",
+        "tests/integration/test_company_sources.py",
+        "tests/integration/test_company_sources_migration.py",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "docs/FEATURE_COMPLETENESS.md"
+      ],
+      "tests_completed": [
+        "Focused source, source API, migration and discovery safety suite: 35 PASS.",
+        "Full Python suite: 224 PASS in 54.310 seconds.",
+        "Isolated PostgreSQL 17 migration advanced to b71d9a42c0e3 and exited successfully.",
+        "Catalogue validation PASS; progress journal validation PASS before appending this milestone.",
+        "Independent review completed; legacy source collision cases fixed and no remaining actionable findings."
+      ],
+      "tests_remaining": [
+        "Publish draft PR and verify required workflows on its exact final head.",
+        "REQ-074 remains PARTIAL pending full signal-based company ranking.",
+        "REQ-075 remains PARTIAL pending company-level read model and UI.",
+        "REQ-076 and REQ-077 remain NOT_RUN pending periodic revalidation and ATS migration detection."
+      ],
+      "migrations_applied": [
+        "SQLite legacy-source upgrade/backfill and downgrade-safety acceptance: PASS.",
+        "Fresh isolated PostgreSQL 17 Compose schema migration to b71d9a42c0e3: PASS."
+      ],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "No company-level UI/watch view is part of this slice.",
+        "No application interview/outcome data model exists for full ranking.",
+        "Periodic source revalidation and ATS migration detection/rediscovery are not implemented."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "109557fb40974fa437ec0bf89cbe936a29fe0efb",
+        "evidence_path": "docs/evidence/2026-10-02-company-source-watch-and-priority.json"
+      }
     }
   ],
-  "current_phase": "M20_MACHINE_READABLE_COMPANY_SOURCE_DISCOVERY_DRAFT_PR",
+  "current_phase": "M21_COMPANY_SOURCE_WATCH_AND_PRIORITY_LOCAL_VERIFIED",
   "last_safe_checkpoint": {
-    "git_commit": "5e470c0592f9360a7122fdf50ba391ee3bf7f756",
-    "evidence_path": "docs/evidence/2026-10-02-company-machine-readable-feeds.json"
+    "git_commit": "109557fb40974fa437ec0bf89cbe936a29fe0efb",
+    "evidence_path": "docs/evidence/2026-10-02-company-source-watch-and-priority.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
@@ -1752,6 +1840,23 @@
       "exact_head_checks": {
         "pull_request_verification": 36949419070,
         "push_verification": 36949392467,
+        "result": "IN_PROGRESS"
+      }
+    },
+    {
+      "result": "IN_PROGRESS",
+      "transport": "Authenticated Git push and GitHub draft PR",
+      "local_remote_commit_identical": true,
+      "force": false,
+      "branch": "codex/mj-pr-021-company-ats-discovery",
+      "base": "1dc6cd4fc9b9eb2797994ff7321e15dd83e6c2d7",
+      "evidence_path": "docs/evidence/2026-10-02-company-source-watch-and-priority.json",
+      "pr_number": 448,
+      "url": "https://github.com/MulattoTech/MJobs/pull/448",
+      "initial_head": "9c1b4dc7415ff108ad3a4751a92ce35031453bad",
+      "exact_head_checks": {
+        "pull_request_verification": 36951990706,
+        "push_verification": 36951969776,
         "result": "IN_PROGRESS"
       }
     }

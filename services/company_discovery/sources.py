@@ -155,26 +155,78 @@ def upsert_company_job_source(store, *, company_id, provider, tenant_identifier,
         # A pre-migration source has no portal URL. Reuse one legacy record for
         # its first validation so schema expansion does not duplicate it; later
         # portals receive distinct identities based on their visible URL.
-        legacy = connection.execute(select(m.company_sources.c.id).where(
-            m.company_sources.c.company_id == company_id,
-            m.company_sources.c.provider == provider,
-            m.company_sources.c.tenant == tenant,
-            m.company_sources.c.career_url.is_(None),
-        ).order_by(m.company_sources.c.id).limit(1)).first()
+        legacy = None
+        if career_url is None:
+            # A legacy row has no portal identity. Reuse it only when the new
+            # source also lacks a career URL and its endpoint matches exactly;
+            # otherwise retain it and create a distinct portal record.
+            legacy = connection.execute(select(m.company_sources.c.id).where(
+                m.company_sources.c.company_id == company_id,
+                m.company_sources.c.provider == provider,
+                m.company_sources.c.tenant == tenant,
+                m.company_sources.c.career_url.is_(None),
+                m.company_sources.c.endpoint == endpoint,
+            ).order_by(m.company_sources.c.id).limit(1)).first()
         source_id = legacy.id if legacy else identity(company_id, provider, tenant, career_url or endpoint)
-        if last_success is _UNSET:
-            last_success = connection.execute(select(m.company_sources.c.last_success).where(
-                m.company_sources.c.id == source_id
-            )).scalar_one_or_none()
+        existing = connection.execute(select(m.company_sources).where(
+            m.company_sources.c.id == source_id
+        )).mappings().one_or_none()
+        origin = "AUTO_DISCOVERED" if discovered_automatically else "USER_WATCHED"
+        if existing:
+            if last_success is _UNSET:
+                last_success = existing["last_success"]
+            if discovered_automatically and existing["origin"] == "USER_WATCHED":
+                # Automated rediscovery refreshes source facts but cannot silently
+                # erase a user's watch preference or reprioritize that source.
+                origin = "USER_WATCHED"
+                priority = existing["priority"]
+        elif last_success is _UNSET:
+            last_success = None
         upsert(connection, m.company_sources, {
             "id": source_id, "company_id": company_id, "provider": provider,
             "tenant": tenant, "endpoint": endpoint,
             "discovered_automatically": discovered_automatically,
+            "origin": origin,
             "ats_tenant_id": ats_tenant_id, "career_url": career_url,
             "search_url": search_url, "feed_url": feed_url, "public_api_url": public_api_url,
             "collection_strategy": strategy, "confidence": confidence, "enabled": enabled,
             "priority": priority, "last_validation": last_validation, "last_success": last_success,
         }, replace=True)
+        return dict(connection.execute(select(m.company_sources).where(
+            m.company_sources.c.id == source_id
+        )).mappings().one())
+
+
+def list_company_job_sources(store, company_id=None):
+    """Return durable employer sources, optionally scoped to one company."""
+    context = store.engine.connect() if isinstance(store, Store) else nullcontext(store)
+    with context as connection:
+        query = select(m.company_sources).order_by(m.company_sources.c.company_id,
+                                                    m.company_sources.c.provider,
+                                                    m.company_sources.c.tenant,
+                                                    m.company_sources.c.id)
+        if company_id:
+            query = query.where(m.company_sources.c.company_id == _token(company_id, "COMPANY_ID", 128))
+        return [dict(row) for row in connection.execute(query).mappings()]
+
+
+def set_company_source_watch(store, source_id, *, watched):
+    """Explicitly set source watch state; auto refreshes preserve watched priority."""
+    source_id = _token(source_id, "SOURCE_ID", 128)
+    if type(watched) is not bool:
+        raise ValueError("COMPANY_SOURCE_WATCH_INVALID")
+    context = store.engine.begin() if isinstance(store, Store) else nullcontext(store)
+    with context as connection:
+        current = connection.execute(select(m.company_sources).where(
+            m.company_sources.c.id == source_id
+        )).mappings().one_or_none()
+        if current is None:
+            raise ValueError("COMPANY_SOURCE_NOT_FOUND")
+        origin = ("USER_WATCHED" if watched or not current["discovered_automatically"]
+                  else "AUTO_DISCOVERED")
+        connection.execute(update(m.company_sources).where(
+            m.company_sources.c.id == source_id
+        ).values(origin=origin))
         return dict(connection.execute(select(m.company_sources).where(
             m.company_sources.c.id == source_id
         )).mappings().one())

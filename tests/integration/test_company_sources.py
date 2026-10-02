@@ -3,13 +3,16 @@ from pathlib import Path
 import tempfile
 import unittest
 
+from fastapi.testclient import TestClient
 from sqlalchemy import select
 
+from apps.api.main import create_app
 from packages.persistence import models as m
 from packages.persistence.store import Store, upsert
 from services.company_discovery.sources import (
     link_company_parent,
     register_ats_tenant,
+    set_company_source_watch,
     upsert_company_job_source,
 )
 
@@ -91,6 +94,103 @@ class CompanySourceTests(unittest.TestCase):
 
         self.assertEqual(repeated["id"], first["id"])
         self.assertEqual(repeated["last_success"], "2026-10-01T12:00:00+00:00")
+
+    def test_user_watched_source_is_not_silently_demoted_by_automatic_refresh(self):
+        initial = upsert_company_job_source(
+            self.store, company_id="acme", provider="greenhouse", tenant_identifier="acme",
+            career_url="https://careers.acme.example/jobs", collection_strategy="PUBLIC_API",
+            discovered_automatically=True, priority="HIGH",
+        )
+        watched = set_company_source_watch(self.store, initial["id"], watched=True)
+        refreshed = upsert_company_job_source(
+            self.store, company_id="acme", provider="greenhouse", tenant_identifier="acme",
+            career_url="https://careers.acme.example/jobs", collection_strategy="PUBLIC_API",
+            discovered_automatically=True, priority="LOW",
+        )
+
+        self.assertEqual(watched["origin"], "USER_WATCHED")
+        self.assertEqual(refreshed["origin"], "USER_WATCHED")
+        self.assertEqual(refreshed["priority"], "HIGH")
+        self.assertTrue(refreshed["discovered_automatically"])
+
+    def test_unwatched_automatic_source_returns_to_automatic_classification(self):
+        source = upsert_company_job_source(
+            self.store, company_id="acme", provider="lever", tenant_identifier="acme",
+            career_url="https://careers.acme.example/jobs", discovered_automatically=True,
+        )
+        watched = set_company_source_watch(self.store, source["id"], watched=True)
+        automatic = set_company_source_watch(self.store, watched["id"], watched=False)
+
+        self.assertEqual(automatic["origin"], "AUTO_DISCOVERED")
+
+    def test_unwatch_does_not_relabel_manually_configured_source_as_automatic(self):
+        source = upsert_company_job_source(
+            self.store, company_id="acme", provider="workday", tenant_identifier="acme",
+            career_url="https://careers.acme.example/manual", discovered_automatically=False,
+        )
+        result = set_company_source_watch(self.store, source["id"], watched=False)
+
+        self.assertEqual(result["origin"], "USER_WATCHED")
+        self.assertFalse(result["discovered_automatically"])
+
+    def test_discovering_a_different_portal_preserves_unmatched_legacy_source(self):
+        legacy = upsert_company_job_source(
+            self.store, company_id="acme", provider="greenhouse", tenant_identifier="acme",
+            public_api_url="https://boards-api.acme.example/v1/jobs",
+            discovered_automatically=True,
+        )
+        portal = upsert_company_job_source(
+            self.store, company_id="acme", provider="greenhouse", tenant_identifier="acme",
+            career_url="https://careers.acme.example/engineering",
+            discovered_automatically=True,
+        )
+
+        with self.store.engine.connect() as connection:
+            preserved = connection.execute(select(m.company_sources).where(
+                m.company_sources.c.id == legacy["id"]
+            )).mappings().one()
+
+        self.assertNotEqual(portal["id"], legacy["id"])
+        self.assertEqual(preserved["endpoint"], "https://boards-api.acme.example/v1/jobs")
+        self.assertIsNone(preserved["career_url"])
+
+    def test_distinct_career_portal_does_not_claim_legacy_source_sharing_its_feed(self):
+        legacy = upsert_company_job_source(
+            self.store, company_id="acme", provider="greenhouse", tenant_identifier="acme",
+            public_api_url="https://boards-api.acme.example/v1/jobs",
+            discovered_automatically=True,
+        )
+        portal = upsert_company_job_source(
+            self.store, company_id="acme", provider="greenhouse", tenant_identifier="acme",
+            career_url="https://careers.acme.example/federal",
+            public_api_url="https://boards-api.acme.example/v1/jobs",
+            discovered_automatically=True,
+        )
+
+        with self.store.engine.connect() as connection:
+            preserved = connection.execute(select(m.company_sources).where(
+                m.company_sources.c.id == legacy["id"]
+            )).mappings().one()
+
+        self.assertNotEqual(portal["id"], legacy["id"])
+        self.assertIsNone(preserved["career_url"])
+        self.assertEqual(preserved["endpoint"], "https://boards-api.acme.example/v1/jobs")
+
+    def test_company_source_api_lists_sources_and_requires_explicit_watch_choice(self):
+        source = upsert_company_job_source(
+            self.store, company_id="acme", provider="greenhouse", tenant_identifier="acme",
+            career_url="https://careers.acme.example/jobs", discovered_automatically=True,
+        )
+        with TestClient(create_app(self.store, "http://127.0.0.1:8090", self.root,
+                                   operation_mode="FIXTURE")) as client:
+            listed = client.get("/company-sources?company_id=acme")
+            self.assertEqual(listed.status_code, 200)
+            self.assertEqual(listed.json()["company_sources"][0]["id"], source["id"])
+            watched = client.put(f"/company-sources/{source['id']}/watch", json={"watched": True})
+            self.assertEqual(watched.status_code, 200)
+            self.assertEqual(watched.json()["origin"], "USER_WATCHED")
+            self.assertEqual(client.put("/company-sources/missing/watch", json={"watched": True}).status_code, 404)
+            self.assertEqual(client.put(f"/company-sources/{source['id']}/watch", json={"watched": "yes"}).status_code, 422)
 
     def test_parent_relationship_does_not_merge_company_identity(self):
         relationship = link_company_parent(self.store, "acme", "acme-federal", "SUBSIDIARY")

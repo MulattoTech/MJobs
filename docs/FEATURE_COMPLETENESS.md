@@ -9,8 +9,8 @@ A percentage is a navigation aid, never a release claim. Only evidence-backed PA
 ## Original specification
 - Catalogue items: **366**
 - PASS: **48** (13.11%)
-- PARTIAL: **62** (16.94%)
-- NOT_RUN: **256** (69.95%)
+- PARTIAL: **64** (17.49%)
+- NOT_RUN: **254** (69.40%)
 - Full-spec state: **PARTIAL**
 - Release readiness: **not established**
 PASS counts complete requirement items, not the fraction of source code implemented. Many requirements span multiple product capabilities; the repository does not turn partial evidence into completed requirements.
@@ -71,3 +71,5 @@ before it becomes PASS. Closing a reference issue must never auto-close an origi
 ## Update rule
 Whenever a PR changes requirement evidence, update the relevant matrix and this summary from machine-readable state.
 Do not hand-edit percentages without reconciling evidence.
+
+- Company-source watch origin and API are persisted; automatic refresh preserves USER_WATCHED and priority. This source-level slice is PARTIAL for MJ-REQ-075; outcome-based ranking (074) and periodic source/ATS migration revalidation (076–077) remain open (`docs/evidence/2026-10-02-company-source-watch-and-priority.json`).
