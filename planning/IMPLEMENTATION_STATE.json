@@ -11,7 +11,7 @@
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
   "current_milestone": "M22_COMPANY_SOURCE_VIEW_LOCAL_VERIFIED",
-  "current_objective": "Publish the verified MJ-PR-022 Companies/Sources slice, verify exact-head CI, then continue dependency-eligible work. REQ-078..081 remain PARTIAL.",
+  "current_objective": "MJ-PR-022 draft #449 published. Verify exact current head Actions, then integrate and select the next dependency-eligible slice.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -285,6 +285,15 @@
       "note": "Reconciled with live GitHub PR #448; PR-triggered exact-head Verification run 36952070540 succeeded.",
       "merge_commit": "c4c7da448cf973970f15701bdfee64de66556190",
       "merged_at": "2026-10-02T01:45:50Z"
+    },
+    {
+      "number": 449,
+      "url": "https://github.com/MulattoTech/MJobs/pull/449",
+      "branch": "codex/mj-pr-022-company-ats-discovery",
+      "worktree": "C:\\Tools\\Dev\\MJobs-pr-022",
+      "status": "DRAFT_PR",
+      "initial_head": "d2904868dbe9d5d28b6d6c5965dc2ccb3ca78bd0",
+      "note": "Resolve the current head through GitHub after this bookkeeping commit; prior-head CI is not final."
     }
   ],
   "tests_passed": [
@@ -489,7 +498,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Reconcile current GitHub; finish exact-head MJ-PR-022 verification before selecting MJ-PR-023. Do not repeat already merged PR-016..021.",
+  "recommended_resume_step": "Inspect current PR #449 head/checks and unresolved reviews. Fix demonstrated failures; merge only with required exact-head verification. Continue MJ-PR-023 or another eligible slice after live reconciliation.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],

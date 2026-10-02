@@ -541,14 +541,18 @@
         "MJ-PR-021",
         "MJ-PR-012"
       ],
-      "status": "IMPLEMENTED_LOCAL",
+      "status": "DRAFT_PR",
       "branch": "codex/mj-pr-022-company-ats-discovery",
       "draft_until_verified": true,
       "notes": "Source-specific projection, strict user controls and bounded evidence are integrated and browser-tested. REQ-078..081 remain PARTIAL; local Docker verification BLOCKED_ENVIRONMENT; remote CI pending publication.",
       "validation_result": "PASS_WITH_PARTIAL_REQUIREMENT_COVERAGE",
       "worktree": "C:\\Tools\\Dev\\MJobs-pr-022",
       "base": "c4c7da448cf973970f15701bdfee64de66556190",
-      "evidence_path": "docs/evidence/2026-10-02-company-source-confidence-and-view.json"
+      "evidence_path": "docs/evidence/2026-10-02-company-source-confidence-and-view.json",
+      "publication_state": "DRAFT_PR",
+      "pr_number": 449,
+      "url": "https://github.com/MulattoTech/MJobs/pull/449",
+      "initial_head": "d2904868dbe9d5d28b6d6c5965dc2ccb3ca78bd0"
     },
     {
       "id": "MJ-PR-023",
