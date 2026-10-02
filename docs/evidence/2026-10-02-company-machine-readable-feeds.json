@@ -1,0 +1,147 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-10-02T01:05:24+00:00",
+  "scope": "MJ-PR-020 / MJ-REQ-070..073",
+  "result": "PARTIAL",
+  "base": {
+    "origin_main": "b096b868b4feb6df6afbe1581ff7a6a80a891c16",
+    "branch": "codex/mj-pr-020-company-ats-discovery",
+    "worktree": "C:\\Tools\\Dev\\MJobs-pr-020"
+  },
+  "requirements": {
+    "MJ-REQ-070": "PARTIAL",
+    "MJ-REQ-071": "PARTIAL",
+    "MJ-REQ-072": "PARTIAL",
+    "MJ-REQ-073": "PARTIAL"
+  },
+  "github_reconciliation": {
+    "observed_at": "2026-10-02T00:44:00+00:00",
+    "open_prs_before_publication": [],
+    "pr019_parent": {
+      "number": 446,
+      "state": "MERGED",
+      "final_head": "138992cad642dbb95dfb1b71b6f48a30c65b29ad",
+      "merge_commit": "b096b868b4feb6df6afbe1581ff7a6a80a891c16",
+      "exact_head_actions": {
+        "pull_request_verification": {
+          "run_id": 36946261732,
+          "head_sha": "138992cad642dbb95dfb1b71b6f48a30c65b29ad",
+          "result": "PASS"
+        },
+        "push_verification": {
+          "run_id": 36946266078,
+          "head_sha": "138992cad642dbb95dfb1b71b6f48a30c65b29ad",
+          "result": "PASS"
+        }
+      }
+    },
+    "pr020_publication": {
+      "result": "PASS",
+      "number": 447,
+      "url": "https://github.com/MulattoTech/MJobs/pull/447",
+      "state": "OPEN",
+      "is_draft": true,
+      "base": "main",
+      "base_sha": "b096b868b4feb6df6afbe1581ff7a6a80a891c16",
+      "initial_head": "5e470c0592f9360a7122fdf50ba391ee3bf7f756"
+    },
+    "pr020_exact_head_ci": {
+      "head_sha": "5e470c0592f9360a7122fdf50ba391ee3bf7f756",
+      "pull_request_verification": {"run_id": 36949419070, "status": "IN_PROGRESS"},
+      "push_verification": {"run_id": 36949392467, "status": "IN_PROGRESS"}
+    }
+  },
+  "implemented": [
+    "Discovers same-origin <link rel=alternate> RSS, Atom, JSON Feed and JSON links; orders JSON ahead of feeds and excludes other origins.",
+    "Validates bounded RSS/Atom and JSON Feed payloads, at most 2 MB and 1000 entries; rejects DTD/entity declarations and requires a title plus destination URL for each posting.",
+    "When no ATS match is established, immediately fetches one supported same-origin feed, validates its format and automatically persists a company job source with URL, strategy, confidence, timestamps and discovery origin.",
+    "Detected ATS evidence keeps precedence over generic RSS/JSON fallback; feed discovery preserves candidate homepage domain evidence without marking it verified."
+  ],
+  "limitations": [
+    "Immediate RSS/Atom and JSON Feed rows are normalized and persisted as canonical jobs, application routes, raw posting snapshots, and (when a profile is supplied) explainable skill-mention matches. The fixture acceptance proves two employer feed jobs enter the profile job list without aggregator records; it does not yet exercise a complete aggregator-trigger-to-production-feed flow.",
+    "Vendor-specific public ATS JSON APIs, structured HTML fallback and general source-adapter scheduling are not implemented here.",
+    "Automatic source enrollment is validated only for synthetic same-origin fixtures; no live employer site or ATS endpoint was contacted.",
+    "REQ-070..073 remain PARTIAL because provider-specific public ATS endpoint precedence/scheduling and the full aggregator-trigger-to-feed-only-job acceptance path are not yet proven."
+  ],
+  "validation": [
+    {
+      "action": "TDD RED: endpoint tests before service implementation",
+      "command": "..\\MJobs-pr-016\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_company_job_endpoints -v",
+      "target": "new machine-readable endpoint extractor",
+      "result": "EXPECTED RED: ModuleNotFoundError for services.company_discovery.endpoints."
+    },
+    {
+      "action": "TDD: immediate feed import into canonical job and profile-match pipeline",
+      "command": "..\\MJobs-pr-016\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_company_discovery.CompanyDiscoveryTests.test_first_party_feed_jobs_enter_the_canonical_job_and_match_pipeline -v",
+      "target": "idempotent canonical job, route, raw posting, and profile match persistence for employer-only feed jobs; unsafe javascript route rejected",
+      "result": "RED before implementation: discover_company_source had no profile-aware feed import path; GREEN after implementation. Two valid postings persisted/scored on repeated discovery, while the javascript route was excluded."
+    },
+    {
+      "action": "TDD: durable worker does not contaminate feed-only discovery with mock-board jobs",
+      "command": "..\\MJobs-pr-016\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_company_discovery.CompanyDiscoveryTests.test_durable_company_feed_operation_does_not_run_mock_board_discovery -v",
+      "target": "COMPANY_DISCOVER worker's feed and fixture branches",
+      "result": "RED before implementation: worker called legacy discover() after an RSS result. GREEN after restricting that follow-up to the mock-ATS fixture provider; existing fixture flow remains covered by its integration test."
+    },
+    {
+      "action": "TDD: unsuccessful feed import retains prior source success timestamp",
+      "command": "..\\MJobs-pr-016\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_company_discovery.CompanyDiscoveryTests.test_feed_source_is_not_marked_successful_when_job_import_fails -v",
+      "target": "company source last_success and discovery audit chronology",
+      "result": "RED before implementation: import failure advanced last_success. GREEN after recording last_validation first and advancing last_success only after feed import succeeds; previous success timestamps are retained."
+    },
+    {
+      "action": "TDD: company source upsert preserves last_success when caller has no new success",
+      "command": "..\\MJobs-pr-016\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_company_sources.CompanySourceTests.test_source_upsert_preserves_success_timestamp_when_no_new_success_is_recorded -v",
+      "target": "canonicalized source upsert and last_success history",
+      "result": "RED before implementation: an upsert with a trailing-slash URL variant erased last_success. GREEN after omitted last_success is preserved by deterministic source identity; explicit values remain writable."
+    },
+    {
+      "action": "Focused company source/ATS/feed/migration suite",
+      "command": "..\\MJobs-pr-016\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_company_job_endpoints tests.integration.test_company_discovery tests.integration.test_company_sources tests.integration.test_company_sources_migration tests.integration.test_greenhouse -q",
+      "target": "49 tests",
+      "result": "PASS, 49 tests."
+    },
+    {
+      "action": "Full Python suite",
+      "command": "..\\MJobs-pr-016\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py'",
+      "target": "tests/",
+      "result": "PASS, 218 tests in 52.089 seconds."
+    },
+    {
+      "action": "Reviewer regression RED then fix",
+      "command": "tests.integration.test_company_discovery.CompanyDiscoveryTests.test_first_party_rss_endpoint_is_validated_and_enrolled_automatically",
+      "target": "feed-backed company domain evidence persistence",
+      "result": "EXPECTED RED before fix: source enrolled but company_domains row absent; persisted homepage as CANDIDATE_DOMAIN_UNVERIFIED before returning."
+    },
+    {
+      "action": "Independent read-only review",
+      "command": "Focused security/correctness review of same-origin feed discovery and source writes",
+      "target": "PR-020 feed endpoint boundary",
+      "result": "Independent review identified mock-board fallthrough and premature last_success updates. Both issues were fixed, covered by regressions, and independently re-reviewed with no remaining actionable findings."
+    },
+    {
+      "action": "Catalogue and progress validation",
+      "command": "..\\MJobs-pr-016\\.venv\\Scripts\\python.exe -m tools.verification.catalogue; ..\\MJobs-pr-016\\.venv\\Scripts\\python.exe -m tools.verification.progress validate",
+      "target": "requirement and milestone control plane",
+      "result": "PASS after evidence, matrix, state, queue and feature summary edits."
+    },
+    {
+      "action": "Migration and Compose acceptance",
+      "command": "Not run",
+      "target": "PR-020 has no schema or Compose changes; parent PR-019 PostgreSQL migration reached e14ac893620f.",
+      "result": "NOT_APPLICABLE for new migration; existing isolated parent migration evidence remains in docs/evidence/2026-10-02-ats-tenant-source-hierarchy.json."
+    },
+    {
+      "action": "Browser acceptance",
+      "command": "Not run",
+      "target": "No browser/UI changes.",
+      "result": "NOT_APPLICABLE."
+    }
+  ],
+  "external_behavior": {
+    "live_employer_network_access": "NOT_PERFORMED",
+    "live_ATS_access": "NOT_PERFORMED",
+    "external_application_submission": "NOT_PERFORMED",
+    "external_submission_enabled": false
+  },
+  "release_readiness": "NOT_RUN"
+}

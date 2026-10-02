@@ -66,10 +66,11 @@ def execute_operation(operation_id):
                 params = operation["params"]
                 client = MockClient(origin, check=check)
                 try:
-                    result = discover_company_source(store, params["candidate"], client, check=check)
+                    result = discover_company_source(store, params["candidate"], client, check=check,
+                                                     profile_id=params.get("profile_id"))
                 finally:
                     client.close()
-                if params.get("profile_id"):
+                if params.get("profile_id") and result.get("provider") == "mock-ats":
                     check()
                     discover(store, origin, params["profile_id"], check=check)
             elif operation["kind"] == "PREPARE":

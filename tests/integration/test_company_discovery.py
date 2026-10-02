@@ -225,6 +225,76 @@ class CompanyDiscoveryTests(unittest.TestCase):
         self.assertTrue(source["discovered_automatically"])
         self.assertEqual(next(row for row in jobs if row["requisition"] == "B")["match_score"], 100)
 
+    def test_durable_company_feed_operation_does_not_run_mock_board_discovery(self):
+        with fixture_server() as origin:
+            queued = queue_company_discovery(
+                self.store,
+                {"company_name": "Employer Example", "company_website": origin + "/company"},
+                "PREVIOUSLY_UNSEEN_COMPANY", profile_id="fixture",
+            )
+            environment = {
+                "MJOBS_DATABASE_URL": self.url,
+                "MJOBS_MOCK_ORIGIN": origin,
+                "MJOBS_OUTPUT_DIR": str(self.root),
+                "MJOBS_OPERATION_MODE": "FIXTURE",
+            }
+            with patch.dict(os.environ, environment, clear=False):
+                with patch("workers.tasks.discover_company_source", return_value={
+                    "provider": "rss", "jobs_imported": 2,
+                }) as feed_discovery, patch("workers.tasks.discover") as mock_board_discovery:
+                    result = execute_operation(queued["operation_id"])
+
+        self.assertEqual(result["status"], "COMPLETED")
+        feed_discovery.assert_called_once()
+        mock_board_discovery.assert_not_called()
+
+    def test_feed_source_is_not_marked_successful_when_job_import_fails(self):
+        from types import SimpleNamespace
+        from services.company_discovery.flywheel import discover_company_source
+
+        origin = "https://employer.example"
+        pages = {
+            origin + "/": SimpleNamespace(url=origin + "/", text='<a href="/careers">Careers</a>'),
+            origin + "/careers": SimpleNamespace(
+                url=origin + "/careers",
+                text='<link rel="alternate" type="application/rss+xml" href="/careers/jobs.xml">',
+            ),
+            origin + "/careers/jobs.xml": SimpleNamespace(
+                url=origin + "/careers/jobs.xml",
+                text='<rss><channel><item><guid>job-1</guid><title>Network Admin</title>'
+                     '<link>/jobs/1</link></item></channel></rss>',
+            ),
+        }
+
+        class FixtureTransport:
+            bounded_redirects = True
+            fixture_only = True
+
+            def allowed(self, url):
+                from urllib.parse import urlsplit
+                return (urlsplit(url).scheme, urlsplit(url).netloc) == ("https", "employer.example")
+
+            def get(self, url):
+                return pages[url]
+
+        candidate = {"company_name": "Employer Example", "company_website": origin + "/"}
+        discover_company_source(self.store, candidate, FixtureTransport())
+        with self.store.engine.connect() as connection:
+            initial_success = connection.execute(select(m.company_sources.c.last_success).where(
+                m.company_sources.c.provider == "rss"
+            )).scalar_one()
+
+        with patch("services.discovery.company_feed.import_company_feed_jobs",
+                   side_effect=RuntimeError("storage unavailable")):
+            with self.assertRaisesRegex(RuntimeError, "storage unavailable"):
+                discover_company_source(self.store, candidate, FixtureTransport())
+
+        with self.store.engine.connect() as connection:
+            source = connection.execute(select(m.company_sources).where(
+                m.company_sources.c.provider == "rss"
+            )).mappings().one()
+        self.assertEqual(source["last_success"], initial_success)
+
     def test_career_discovery_finds_navigation_link_without_rel_careers_marker(self):
         from types import SimpleNamespace
         from services.company_discovery.flywheel import discover_company_source
@@ -269,6 +339,120 @@ class CompanyDiscoveryTests(unittest.TestCase):
         self.assertEqual(result["careers_url"], origin + "/careers")
         self.assertEqual(result["provider"], "mock-ats")
         self.assertIn(origin + "/careers", client.urls)
+
+    def test_first_party_rss_endpoint_is_validated_and_enrolled_automatically(self):
+        from types import SimpleNamespace
+        from services.company_discovery.flywheel import discover_company_source
+
+        origin = "https://employer.example"
+        pages = {
+            origin + "/": SimpleNamespace(
+                url=origin + "/",
+                text='<h1>Employer Example</h1><a href="/careers">Careers</a>',
+            ),
+            origin + "/careers": SimpleNamespace(
+                url=origin + "/careers",
+                text='<link rel="alternate" type="application/rss+xml" href="/careers/jobs.xml">',
+            ),
+            origin + "/careers/jobs.xml": SimpleNamespace(
+                url=origin + "/careers/jobs.xml",
+                text='<rss version="2.0"><channel><item><guid>job-1</guid><title>Network Administrator</title><link>/careers/job-1</link></item></channel></rss>',
+            ),
+        }
+
+        class FixtureTransport:
+            bounded_redirects = True
+            fixture_only = True
+
+            def __init__(self):
+                self.urls = []
+
+            def allowed(self, url):
+                from urllib.parse import urlsplit
+                return (urlsplit(url).scheme, urlsplit(url).netloc) == ("https", "employer.example")
+
+            def get(self, url):
+                self.urls.append(url)
+                return pages[url]
+
+        client = FixtureTransport()
+        result = discover_company_source(self.store, {
+            "company_name": "Employer Example", "company_website": origin + "/",
+        }, client)
+        self.assertEqual(result["endpoint"], origin + "/careers/jobs.xml")
+        self.assertEqual(result["jobs_enumerated"], 1)
+        self.assertEqual(result["jobs_imported"], 1)
+        self.assertEqual(client.urls[-1], origin + "/careers/jobs.xml")
+        self.assertEqual({row["requisition"] for row in self.store.jobs()}, {"job-1"})
+        with self.store.engine.connect() as connection:
+            source = connection.execute(select(m.company_sources).where(
+                m.company_sources.c.id == result["company_source_id"]
+            )).mappings().one()
+            company_domain = connection.execute(select(m.company_domains).where(
+                m.company_domains.c.company_id == result["company"]["company_id"]
+            )).mappings().one_or_none()
+        self.assertEqual(source["provider"], "rss")
+        self.assertEqual(source["feed_url"], origin + "/careers/jobs.xml")
+        self.assertEqual(source["collection_strategy"], "RSS")
+        self.assertTrue(source["discovered_automatically"])
+        self.assertIsNotNone(company_domain)
+        self.assertEqual(company_domain["domain"], "employer.example")
+
+    def test_first_party_feed_jobs_enter_the_canonical_job_and_match_pipeline(self):
+        from types import SimpleNamespace
+        from services.company_discovery.flywheel import discover_company_source
+
+        origin = "https://employer.example"
+        pages = {
+            origin + "/": SimpleNamespace(
+                url=origin + "/", text='<h1>Employer Example</h1><a href="/careers">Careers</a>',
+            ),
+            origin + "/careers": SimpleNamespace(
+                url=origin + "/careers",
+                text='<link rel="alternate" type="application/rss+xml" href="/careers/jobs.xml">',
+            ),
+            origin + "/careers/jobs.xml": SimpleNamespace(
+                url=origin + "/careers/jobs.xml",
+                text='<rss version="2.0"><channel>'
+                     '<item><guid>python-role</guid><title>Python Developer</title>'
+                     '<description>Python and SQL engineering</description><link>/jobs/python</link></item>'
+                     '<item><guid>support-role</guid><title>Customer Support Specialist</title>'
+                     '<description>Customer support operations</description><link>/jobs/support</link></item>'
+                     '<item><guid>unsafe-role</guid><title>Unsafe Link Job</title>'
+                     '<description>Should be rejected</description><link>javascript:alert(1)</link></item>'
+                     '</channel></rss>',
+            ),
+        }
+
+        class FixtureTransport:
+            bounded_redirects = True
+            fixture_only = True
+
+            def allowed(self, url):
+                from urllib.parse import urlsplit
+                return (urlsplit(url).scheme, urlsplit(url).netloc) == ("https", "employer.example")
+
+            def get(self, url):
+                return pages[url]
+
+        result = discover_company_source(self.store, {
+            "company_name": "Employer Example", "company_website": origin + "/",
+        }, FixtureTransport(), profile_id="fixture")
+        repeated = discover_company_source(self.store, {
+            "company_name": "Employer Example", "company_website": origin + "/",
+        }, FixtureTransport(), profile_id="fixture")
+
+        jobs = self.store.jobs("fixture")
+        self.assertEqual(result["jobs_enumerated"], 3)
+        self.assertEqual(result["jobs_imported"], 2)
+        self.assertEqual(repeated["jobs_imported"], 2)
+        self.assertEqual({job["requisition"] for job in jobs}, {"python-role", "support-role"})
+        self.assertEqual(self.store.count("canonical_jobs"), 2)
+        self.assertEqual(self.store.count("job_postings"), 2)
+        python_job = next(job for job in jobs if job["requisition"] == "python-role")
+        self.assertEqual(python_job["application_url"], origin + "/jobs/python")
+        self.assertEqual(python_job["match_score"], 100)
+        self.assertEqual(python_job["provider"], "rss")
 
     def test_optional_search_provider_supplies_only_a_bounded_site_candidate(self):
         from types import SimpleNamespace
@@ -328,7 +512,8 @@ class CompanyDiscoveryTests(unittest.TestCase):
             ),
             origin + "/careers": SimpleNamespace(
                 url=origin + "/careers",
-                text='<script src="https://boards.greenhouse.io/embed/job_board/js?for=employer"></script>',
+                text='<script src="https://boards.greenhouse.io/embed/job_board/js?for=employer"></script>'
+                     '<link rel="alternate" type="application/rss+xml" href="/careers/jobs.xml">',
             ),
         }
 

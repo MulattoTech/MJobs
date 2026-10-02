@@ -581,27 +581,35 @@
     },
     {
       "requirement_id": "MJ-REQ-070",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-02-company-machine-readable-feeds.json"
+      ],
+      "note": "Same-origin RSS/Atom and JSON Feed endpoint links are discovered, prioritized among supported feed types, fetched and validated with bounded input; vendor ATS APIs and structured HTML are not yet covered."
     },
     {
       "requirement_id": "MJ-REQ-071",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-02-company-machine-readable-feeds.json"
+      ],
+      "note": "Validated same-origin feed source is automatically persisted with source metadata and homepage domain evidence; broader ATS/provider enrollment and scheduled collection remain open."
     },
     {
       "requirement_id": "MJ-REQ-072",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-02-company-machine-readable-feeds.json"
+      ],
+      "note": "A same-origin supported feed is fetched immediately and its rows enter canonical job, route, posting snapshot, and optional profile-match persistence; broader public ATS providers remain unsupported."
     },
     {
       "requirement_id": "MJ-REQ-073",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-02-company-machine-readable-feeds.json"
+      ],
+      "note": "Synthetic employer feed entries become canonical jobs without aggregator records, but a complete aggregator-trigger-to-feed-only-job acceptance flow and live source behavior remain unproven."
     },
     {
       "requirement_id": "MJ-REQ-074",

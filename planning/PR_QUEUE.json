@@ -437,20 +437,26 @@
         "MJ-PR-018",
         "MJ-PR-012"
       ],
-      "status": "DRAFT_PR",
+      "status": "MERGED",
       "branch": "codex/mj-pr-019-company-ats-discovery",
       "draft_until_verified": true,
-      "notes": "Draft PR #446 is open; initial workflows 36946178657 and 36946199765 are in progress on the initial head. PR-number/state bookkeeping will change the head; verify both required workflows on that final SHA.",
+      "notes": "Merged after both required Verification workflows passed on exact final head 138992cad642dbb95dfb1b71b6f48a30c65b29ad; no unresolved review threads.",
       "worktree": "C:\\Tools\\Dev\\MJobs-pr-019",
       "base": "328b0bb26eb3aa5242fe4e9253a51b0271081ace",
       "local_head": "09a90380792d4cb83dbee25594f703edb059ab3d",
       "validation_result": "PASS",
       "evidence_path": "docs/evidence/2026-10-02-ats-tenant-source-hierarchy.json",
-      "publication_state": "DRAFT_PR",
+      "publication_state": "MERGED",
       "pr_number": 446,
       "url": "https://github.com/MulattoTech/MJobs/pull/446",
-      "head": "f21f86b196fdd4a750666a89c9e888924b1e06a9",
-      "initial_head": "f21f86b196fdd4a750666a89c9e888924b1e06a9"
+      "head": "138992cad642dbb95dfb1b71b6f48a30c65b29ad",
+      "initial_head": "f21f86b196fdd4a750666a89c9e888924b1e06a9",
+      "merge_commit": "b096b868b4feb6df6afbe1581ff7a6a80a891c16",
+      "merged_at": "2026-10-02T00:38:08Z",
+      "exact_head_checks": {
+        "pull_request_verification": 36946261732,
+        "push_verification": 36946266078
+      }
     },
     {
       "id": "MJ-PR-020",
@@ -467,10 +473,21 @@
         "MJ-PR-019",
         "MJ-PR-012"
       ],
-      "status": "QUEUED",
+      "status": "DRAFT_PR",
       "branch": "codex/mj-pr-020-company-ats-discovery",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "Same-origin RSS/Atom/JSON Feed detection, bounded validation, automatic source enrollment and immediate idempotent canonical job/route/posting/match persistence are locally tested. REQ-070..073 remain PARTIAL: provider-specific ATS endpoint precedence/scheduling and the complete aggregator-trigger-to-feed-only-job acceptance path remain open.",
+      "worktree": "C:\\Tools\\Dev\\MJobs-pr-020",
+      "base": "b096b868b4feb6df6afbe1581ff7a6a80a891c16",
+      "stacked_on": "codex/mj-pr-019-company-ats-discovery",
+      "local_head": "5e470c0592f9360a7122fdf50ba391ee3bf7f756",
+      "validation_result": "PASS_WITH_PARTIAL_REQUIREMENT_COVERAGE",
+      "evidence_path": "docs/evidence/2026-10-02-company-machine-readable-feeds.json",
+      "publication_state": "DRAFT_PR",
+      "pr_number": 447,
+      "url": "https://github.com/MulattoTech/MJobs/pull/447",
+      "head": "5e470c0592f9360a7122fdf50ba391ee3bf7f756",
+      "initial_head": "5e470c0592f9360a7122fdf50ba391ee3bf7f756"
     },
     {
       "id": "MJ-PR-021",

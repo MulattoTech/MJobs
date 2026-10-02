@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-02T00:29:15+00:00",
+  "timestamp": "2026-10-02T00:39:10+00:00",
   "scope": "MJ-PR-019 / MJ-REQ-066..069",
   "result": "PASS",
   "base": {
@@ -150,7 +150,7 @@
       "result": "PASS: draft PR opened at https://github.com/MulattoTech/MJobs/pull/446 with initial head f21f86b196fdd4a750666a89c9e888924b1e06a9; base main 328b0bb26eb3aa5242fe4e9253a51b0271081ace."
     }
   ],
-  "remote_exact_head_ci": "NOT_RUN on final PR head; initial head workflows 36946178657 and 36946199765 were IN_PROGRESS and will be superseded by the PR-number/state bookkeeping commit.",
+  "remote_exact_head_ci": "PASS: PR Verification run 36946261732 and push Verification run 36946266078 succeeded on exact final head 138992cad642dbb95dfb1b71b6f48a30c65b29ad.",
   "browser_validation": {
     "result": "NOT_APPLICABLE",
     "detail": "No browser/UI behavior changed."
@@ -160,5 +160,29 @@
     "real_application_submission": "NOT_PERFORMED",
     "external_submission_enabled": false
   },
-  "release_readiness": "NOT_RUN"
+  "release_readiness": "NOT_RUN",
+  "post_merge_reconciliation": {
+    "verified_at": "2026-10-02T00:39:10+00:00",
+    "github_repository": "MulattoTech/MJobs",
+    "pr_number": 446,
+    "pr_state": "MERGED",
+    "exact_head": "138992cad642dbb95dfb1b71b6f48a30c65b29ad",
+    "merge_commit": "b096b868b4feb6df6afbe1581ff7a6a80a891c16",
+    "merged_at": "2026-10-02T00:38:08Z",
+    "exact_head_actions": {
+      "pull_request_verification": {
+        "run_id": 36946261732,
+        "head_sha": "138992cad642dbb95dfb1b71b6f48a30c65b29ad",
+        "result": "PASS"
+      },
+      "push_verification": {
+        "run_id": 36946266078,
+        "head_sha": "138992cad642dbb95dfb1b71b6f48a30c65b29ad",
+        "result": "PASS"
+      }
+    },
+    "unresolved_review_threads": 0,
+    "base_before_merge": "328b0bb26eb3aa5242fe4e9253a51b0271081ace",
+    "source": "Live GitHub PR, workflow, review-thread, merge and origin/main readback. Initial publication runs remain recorded above; these final-head runs supersede them."
+  }
 }

@@ -9,11 +9,11 @@ A percentage is a navigation aid, never a release claim. Only evidence-backed PA
 ## Original specification
 - Catalogue items: **366**
 - PASS: **48** (13.11%)
-- PARTIAL: **58** (15.85%)
-- NOT_RUN: **260** (71.04%)
+- PARTIAL: **62** (16.94%)
+- NOT_RUN: **256** (69.95%)
 - Full-spec state: **PARTIAL**
 - Release readiness: **not established**
-PASS counts complete requirement items, not the fraction of source code implemented. Many requirements span multiple product capabilities, and 60 remain PARTIAL; the repository does not turn partial evidence into completed requirements.
+PASS counts complete requirement items, not the fraction of source code implemented. Many requirements span multiple product capabilities; the repository does not turn partial evidence into completed requirements.
 
 ## Current verified implementation spine
 - Durable PostgreSQL/Redis worker architecture and migrations
@@ -45,7 +45,9 @@ PASS counts complete requirement items, not the fraction of source code implemen
 - GitHub Actions passed the final #367-#370 PR heads and the connected UI, mock application, and restart recovery workflow; see `docs/evidence/2026-09-30-ci-370.json`
 - Optional provider-neutral company search and evidence-based ATS detection now cover all 22 named host families and synthetic custom-domain ATS embeds. MJ-REQ-062, 063 and 065 are PASS; MJ-REQ-064 is PARTIAL because HTML-signature and network-observed public-endpoint detection remain open. Search stays disabled unless a provider is injected; no production search or ATS site was contacted (`docs/evidence/2026-10-01-ats-detection-search.json`).
 
-- MJ-REQ-066..069 are PASS: ATS tenant identifiers/evidence, independently persisted company job sources, canonical distinct multi-portal identity, and explicit parent/subsidiary links with cycle prevention. The 41-test focused slice and 210-test full suite passed; SQLite legacy-row preservation/downgrade refusal and isolated PostgreSQL upgrade from cb72f9041d6a to e14ac893620f passed. Browser acceptance is not applicable; no live employer or application submission was performed (`docs/evidence/2026-10-02-ats-tenant-source-hierarchy.json`).
+- MJ-REQ-066..069 are PASS: ATS tenant identifiers/evidence, independently persisted company job sources, canonical distinct multi-portal identity, and explicit parent/subsidiary links with cycle prevention. The 41-test focused slice and 210-test full suite passed; SQLite legacy-row preservation/downgrade refusal and isolated PostgreSQL upgrade from cb72f9041d6a to e14ac893620f passed. Browser acceptance is not applicable; no live employer or application submission was performed (`docs/evidence/2026-10-02-ats-tenant-source-hierarchy.json`) PR #446 passed both required workflows on its exact final head and merged to main as `b096b868`.
+
+- MJ-REQ-070..073 remain PARTIAL after same-origin RSS/Atom/JSON Feed detection, bounded validation, automatic CompanyJobSource enrollment, and immediate normalization/persistence of feed jobs with routes, raw snapshots, and profile skill-mention matches. The 49-test focused slice and 218-test full Python suite passed. Provider-specific ATS endpoint precedence/scheduling and the complete aggregator-trigger-to-feed-only-job acceptance path remain open (`docs/evidence/2026-10-02-company-machine-readable-feeds.json`).
 
 ## Reference-project gap catalogue
 Canonical issues: **MJ-REF-001 through MJ-REF-042**.
