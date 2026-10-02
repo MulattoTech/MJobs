@@ -541,7 +541,7 @@
         "MJ-PR-021",
         "MJ-PR-012"
       ],
-      "status": "DRAFT_PR",
+      "status": "MERGED",
       "branch": "codex/mj-pr-022-company-ats-discovery",
       "draft_until_verified": true,
       "notes": "Source-specific projection, strict user controls and bounded evidence are integrated and browser-tested. REQ-078..081 remain PARTIAL; local Docker verification BLOCKED_ENVIRONMENT; remote CI pending publication.",
@@ -549,10 +549,13 @@
       "worktree": "C:\\Tools\\Dev\\MJobs-pr-022",
       "base": "c4c7da448cf973970f15701bdfee64de66556190",
       "evidence_path": "docs/evidence/2026-10-02-company-source-confidence-and-view.json",
-      "publication_state": "DRAFT_PR",
+      "publication_state": "MERGED",
       "pr_number": 449,
       "url": "https://github.com/MulattoTech/MJobs/pull/449",
-      "initial_head": "d2904868dbe9d5d28b6d6c5965dc2ccb3ca78bd0"
+      "initial_head": "d2904868dbe9d5d28b6d6c5965dc2ccb3ca78bd0",
+      "head": "9d5a452f74815d2c726c4c911cc3b0df3c467f29",
+      "merge_commit": "566bbf9cdebf882cc80bbb65b803ca3996fa9beb",
+      "ci_evidence": "docs/evidence/2026-10-02-ci-449.json"
     },
     {
       "id": "MJ-PR-023",
@@ -563,15 +566,25 @@
         "MJ-REQ-083",
         "MJ-REQ-084"
       ],
-      "target_area": "services/company_discovery; services/ats_detection",
+      "target_area": "apps/web; services/company_discovery; services/ats_detection",
       "depends_on": [
         "MJ-PR-022",
         "MJ-PR-012"
       ],
-      "status": "QUEUED",
+      "status": "IMPLEMENTED_LOCAL",
       "branch": "codex/mj-pr-023-company-ats-discovery",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "First activity slice only. Source quality scoring and ATS knowledge reuse are not implemented. Do not mark the queue unit complete merely because this incremental PR merges.",
+      "validation_result": "PASS_WITH_PARTIAL_REQUIREMENT_COVERAGE",
+      "worktree": "C:\\Tools\\Dev\\MJobs-pr-023",
+      "base": "566bbf9cdebf882cc80bbb65b803ca3996fa9beb",
+      "evidence_path": "docs/evidence/2026-10-02-company-discovery-activity.json",
+      "completed_slice": "Source-linked plain-language discovery activity",
+      "remaining_requirements": [
+        "MJ-REQ-082",
+        "MJ-REQ-083",
+        "MJ-REQ-084"
+      ]
     },
     {
       "id": "MJ-PR-024",

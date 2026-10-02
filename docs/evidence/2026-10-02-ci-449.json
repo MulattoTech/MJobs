@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-10-02T11:03:00.071536+00:00",
+  "pr_number": 449,
+  "head": "9d5a452f74815d2c726c4c911cc3b0df3c467f29",
+  "merge_commit": "566bbf9cdebf882cc80bbb65b803ca3996fa9beb",
+  "merged_at": "2026-10-02T10:55:21Z",
+  "result": "PASS",
+  "push_run": 36997376318,
+  "pull_request_run": 36997381088,
+  "run_scope": "Exact-head hosted Verification; all returned pull-request job steps succeeded.",
+  "verified_stages": [
+    "frontend tests/build",
+    "Python suite",
+    "catalogue/progress",
+    "fixture/personal Compose and PostgreSQL revision/workspace checks",
+    "mock and connected browser acceptance",
+    "recovery",
+    "bounded public Greenhouse read and browser readback"
+  ],
+  "limitations": "Hosted CI success is separate from local Docker health and full requirement/release completion. Local validation made no live employer requests; hosted public read probe did.",
+  "source": "GitHub connector run/job records and expected-head merge result"
+}

@@ -673,9 +673,11 @@
     },
     {
       "requirement_id": "MJ-REQ-082",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-02-company-discovery-activity.json"
+      ],
+      "note": "Real source-linked enrollment/import events are shown as bounded plain-language history and verified through feed import, API and browser. Broader company-wide trigger/domain/ATS activity remains incomplete."
     },
     {
       "requirement_id": "MJ-REQ-083",

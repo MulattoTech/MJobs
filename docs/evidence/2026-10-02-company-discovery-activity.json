@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-10-02T11:03:00.071536+00:00",
+  "scope": "MJ-PR-023 first activity slice / MJ-REQ-082",
+  "result": "PARTIAL",
+  "local_slice_verification": "PASS",
+  "base_commit": "566bbf9cdebf882cc80bbb65b803ca3996fa9beb",
+  "requirements": {
+    "MJ-REQ-082": "PARTIAL",
+    "MJ-REQ-083": "NOT_RUN",
+    "MJ-REQ-084": "NOT_RUN"
+  },
+  "validation": [
+    {
+      "name": "full-python",
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p test_*.py -v",
+      "started_at": "2026-10-02T10:59:06.143691+00:00",
+      "finished_at": "2026-10-02T11:00:10.566252+00:00",
+      "seconds": 64.422,
+      "exit_code": 0,
+      "log": "outputs/verification/mj-pr-023/full-python.log",
+      "tests": 235,
+      "skipped": []
+    },
+    {
+      "name": "frontend",
+      "command": "cmd /d /c \"npm test --prefix apps/web\"",
+      "started_at": "2026-10-02T11:00:10.567252+00:00",
+      "finished_at": "2026-10-02T11:00:11.251846+00:00",
+      "seconds": 0.688,
+      "exit_code": 0,
+      "log": "outputs/verification/mj-pr-023/frontend.log"
+    },
+    {
+      "name": "build",
+      "command": "cmd /d /c \"npm run build --prefix apps/web\"",
+      "started_at": "2026-10-02T11:00:11.252846+00:00",
+      "finished_at": "2026-10-02T11:00:11.886582+00:00",
+      "seconds": 0.625,
+      "exit_code": 0,
+      "log": "outputs/verification/mj-pr-023/build.log"
+    },
+    {
+      "name": "catalogue",
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.catalogue",
+      "started_at": "2026-10-02T11:00:11.887582+00:00",
+      "finished_at": "2026-10-02T11:00:11.938235+00:00",
+      "seconds": 0.047,
+      "exit_code": 0,
+      "log": "outputs/verification/mj-pr-023/catalogue.log"
+    },
+    {
+      "name": "progress",
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.progress validate",
+      "started_at": "2026-10-02T11:00:11.939236+00:00",
+      "finished_at": "2026-10-02T11:00:11.999262+00:00",
+      "seconds": 0.047,
+      "exit_code": 0,
+      "log": "outputs/verification/mj-pr-023/progress.log"
+    },
+    {
+      "name": "diff-check",
+      "command": "git diff --check",
+      "started_at": "2026-10-02T11:00:12.000262+00:00",
+      "finished_at": "2026-10-02T11:00:12.035266+00:00",
+      "seconds": 0.047,
+      "exit_code": 0,
+      "log": "outputs/verification/mj-pr-023/diff-check.log"
+    }
+  ],
+  "frontend_tests": 11,
+  "browser_proof": {
+    "result": "PASS",
+    "path": "synthetic feed import -> persisted source-linked audit -> Companies/Sources API -> visible plain-language history in a real browser",
+    "observed_message": "Imported 2 jobs from 2 feed records.",
+    "controls_and_reload": "PASS",
+    "mobile_390px_no_horizontal_overflow": "PASS",
+    "external_browser_requests": 0,
+    "raw_debug_log_required_for_normal_history": false
+  },
+  "observed_red_green": "Five activity helper/render tests failed before implementation; all eleven frontend tests passed after implementation.",
+  "presentation_guards": [
+    "unknown counts remain unavailable rather than zero",
+    "inconsistent counts require review",
+    "only explicit source-linked enrollment/import events are rendered",
+    "no claim that imported jobs are active or eligible",
+    "malformed and unrelated events are ignored; at most twenty entries",
+    "unknown timestamps stay unrecorded"
+  ],
+  "remaining_scope": [
+    "company-wide trigger, domain-resolution and ATS-detection activity beyond current source-linked events",
+    "MJ-REQ-083 source quality measurement and authority selection",
+    "MJ-REQ-084 application workflow reuse of ATS knowledge"
+  ],
+  "environment": "Local Docker engine remains a separate deployment blocker; no Docker configuration was changed. Hosted exact-head verification pending this slice publication.",
+  "safety": {
+    "external_submission": "OFF",
+    "local_live_employer_requests": false,
+    "private_feedback_files_committed": false,
+    "production_company_discovery": "unchanged"
+  },
+  "review": "Implementer diff and synthetic screenshot review; no independent reviewer dispatched.",
+  "source_file_sha256": {
+    "apps/web/src/company-activity.ts": "4e89456447069d47eb6576e42ffa74aa9999b27a460a969c23622d43e00b0cc2",
+    "apps/web/src/company-activity.test.ts": "04c1823963bd0423afab6b28b3f6ce8822935aea4d879591c4a6a1bb88e7d7d0",
+    "apps/web/src/company-sources.tsx": "1c80bf4051d74292741d43b281562803fe21fc58336d795128d9379ead005316",
+    "apps/web/src/company-sources.test.tsx": "624a059e0a0f619b0d810490c7a2baa86c317095adbbffd6a8df7baab2f796b2",
+    "apps/web/src/style.css": "0046a7e0b0b3c46ac928f880df278174d4441ce7e319eb69e8cd73826f70ac96",
+    "tests/browser/test_company_source_view.py": "2f263b23fe143f8fb3dfb0e25da0c53f3aa8e8c111422d8d94fea911e32d1fd6"
+  }
+}
