@@ -153,5 +153,27 @@
   "validation_environment": {
     "python": "3.12.10",
     "dependencies": "requirements.lock environment in sibling PR-016 worktree"
+  },
+  "post_merge_reconciliation": {
+    "verified_at": "2026-10-01T23:55:59.049070+00:00",
+    "github_repository": "MulattoTech/MJobs",
+    "pr_number": 444,
+    "pr_state": "MERGED",
+    "exact_head": "d93508f4da500e139c62eedc5171ff975ef70462",
+    "merge_commit": "5e66bfe7029698b590fb57987a7ac657a958b516",
+    "merged_at": "2026-10-01T23:17:15Z",
+    "exact_head_actions": {
+      "pull_request_verification": {
+        "run_id": 36939463587,
+        "head_sha": "d93508f4da500e139c62eedc5171ff975ef70462",
+        "result": "PASS"
+      },
+      "push_verification": {
+        "run_id": 36939459649,
+        "head_sha": "d93508f4da500e139c62eedc5171ff975ef70462",
+        "result": "PASS"
+      }
+    },
+    "source": "Live GitHub PR and workflow readback after merge; this supersedes the earlier local-validation pending note without deleting it."
   }
 }

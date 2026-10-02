@@ -1,0 +1,153 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-10-01T23:55:59.049070+00:00",
+  "scope": "MJ-PR-018 / MJ-REQ-062..065",
+  "result": "PARTIAL",
+  "base": {
+    "origin_main_before_pr018": "5e66bfe7029698b590fb57987a7ac657a958b516",
+    "branch": "codex/mj-pr-018-company-ats-discovery",
+    "worktree": "C:\\Tools\\Dev\\MJobs-pr-018",
+    "implementation_commit": "56448464ef4ab5c045c86884bc54b12353158600"
+  },
+  "requirements": {
+    "MJ-REQ-062": "PASS",
+    "MJ-REQ-063": "PASS",
+    "MJ-REQ-064": "PARTIAL",
+    "MJ-REQ-065": "PASS"
+  },
+  "github_issues": {
+    "MJ-REQ-062": "https://github.com/MulattoTech/MJobs/issues/63",
+    "MJ-REQ-063": "https://github.com/MulattoTech/MJobs/issues/64",
+    "MJ-REQ-064": "https://github.com/MulattoTech/MJobs/issues/65",
+    "MJ-REQ-065": "https://github.com/MulattoTech/MJobs/issues/66"
+  },
+  "github_reconciliation": {
+    "observed_at": "2026-10-01T23:55:59.049070+00:00",
+    "open_prs": [],
+    "pr017": {
+      "number": 444,
+      "state": "MERGED",
+      "head_sha": "d93508f4da500e139c62eedc5171ff975ef70462",
+      "merge_commit": "5e66bfe7029698b590fb57987a7ac657a958b516",
+      "merged_at": "2026-10-01T23:17:15Z",
+      "exact_head_actions": {
+        "pull_request_verification": {
+          "run_id": 36939463587,
+          "head_sha": "d93508f4da500e139c62eedc5171ff975ef70462",
+          "result": "PASS"
+        },
+        "push_verification": {
+          "run_id": 36939459649,
+          "head_sha": "d93508f4da500e139c62eedc5171ff975ef70462",
+          "result": "PASS"
+        }
+      }
+    },
+    "pr018_publication": "DRAFT_PR",
+    "pr018_exact_head_ci": "NOT_RUN; the initial head will be superseded by the required bookkeeping update.",
+    "pr018_number": 445,
+    "pr018_url": "https://github.com/MulattoTech/MJobs/pull/445",
+    "pr018_initial_head": "0f5e6c5946de839e0fcbe335abca2d06a9881990",
+    "pr018_base": "5e66bfe7029698b590fb57987a7ac657a958b516"
+  },
+  "implemented": [
+    "Added provider-neutral WebDiscoveryProvider protocol, opt-in injected provider support, bounded URL candidate validation, and a disabled default that preserves supplied-site discovery.",
+    "Search results remain untrusted; candidate fetches pass through the bounded company discovery transport, and the workflow requires matching employer text plus career or ATS evidence.",
+    "Added deterministic ATS detection across all 22 named hostname families plus redirects, vendor URL patterns, script/public API URLs, form actions, explicit embedded configuration, and JSON-LD metadata.",
+    "Detection records the visible careers URL, provider, confidence, evidence, competing candidates and application_supported=false; unknown, ambiguous and recognized-but-not-enumerable providers remain review/block states.",
+    "Custom-domain Greenhouse script evidence is retained separately from the visible careers URL and audited without claiming application support.",
+    "Generic recruiting/career URL paths and vendor words in visible prose, class names and generic data attributes do not independently identify an ATS; generic form routes remain below the confidence threshold."
+  ],
+  "limitations": [
+    "REQ-062 PASS is limited to the explicitly optional provider abstraction: no external search provider or custom search endpoint is configured in production.",
+    "REQ-064 PARTIAL: HTML-signature detection and network-observed public endpoint detection are not implemented; public endpoint/script and form-action URL patterns are static page evidence only.",
+    "ATS detection is not application support. Non-mock ATS enumeration is intentionally blocked pending provider-specific validated collectors and explicit source policy.",
+    "Synthetic fixture HTML and hostname examples were used; production career sites were not fetched.",
+    "No database schema migration was added. No UI/browser UI acceptance was run because this change adds no UI code."
+  ],
+  "validation": [
+    {
+      "action": "TDD reproduction of generic form-action route false positives",
+      "command": "python -m unittest tests.unit.test_ats_detection.ATSDetectionTests.test_generic_form_action_paths_are_supporting_evidence_only -v",
+      "target": "ATS detector unit tests",
+      "result": "EXPECTED RED before fix: /recruiting/ and /careers/jobs/ each incorrectly returned MATCH."
+    },
+    {
+      "action": "Focused ATS/search/company discovery/Greenhouse suite",
+      "command": "python -m unittest tests.unit.test_ats_detection tests.unit.test_company_search tests.integration.test_company_discovery tests.integration.test_greenhouse -v",
+      "target": "49 tests",
+      "result": "PASS, 49 tests."
+    },
+    {
+      "action": "Full Python suite",
+      "command": "python -m unittest discover -s tests -p 'test_*.py'",
+      "target": "tests/",
+      "result": "PASS, 205 tests in 47.931 seconds."
+    },
+    {
+      "action": "Catalogue validator",
+      "command": "python -m tools.verification.catalogue",
+      "target": "requirement/catalogue consistency",
+      "result": "PASS."
+    },
+    {
+      "action": "Progress validator",
+      "command": "python -m tools.verification.progress validate",
+      "target": "implementation evidence journal",
+      "result": "PASS."
+    },
+    {
+      "action": "Patch whitespace validation",
+      "command": "git diff --check",
+      "target": "PR-018 implementation diff",
+      "result": "PASS."
+    },
+    {
+      "action": "Isolated PostgreSQL/Redis/RQ/fixture Compose acceptance",
+      "command": "docker compose --env-file ..\\MJobs\\.env -p mjobs-pr018-validation-20261001 -f compose.yml -f compose.pr018-validation.yml --profile fixture up -d --build --wait --wait-timeout 180",
+      "target": "isolated Compose project mjobs-pr018-validation-20261001 on 127.0.0.1:18718",
+      "result": "PASS after setting isolated MJOBS_OPERATION_MODE=FIXTURE and MJOBS_COMPOSE_MOCK=1 before first database bind; services became healthy."
+    },
+    {
+      "action": "Durable company discovery API/worker operation",
+      "command": "POST /companies/discovery then GET /operations/{operation_id}",
+      "target": "isolated PostgreSQL/Redis fixture stack",
+      "result": "PASS: COMPANY_DISCOVER operation 6582112bbcd5facae6ea3fe64c194ba3123fd607d6b61dc9582b3bbb2c78686c completed after one attempt."
+    },
+    {
+      "action": "Fixture mock application E2E",
+      "command": "python -m cli.mock_e2e --api http://127.0.0.1:18718",
+      "target": "isolated PostgreSQL/Redis/RQ controlled mock application spine",
+      "result": "PASS: two canonical jobs; fixture application trace reached mock confirmation. external_submission_enabled=false."
+    },
+    {
+      "action": "Migration head readback",
+      "command": "docker compose ... exec -T api python -m alembic current",
+      "target": "isolated PostgreSQL 17 database",
+      "result": "PASS: cb72f9041d6a (head); no PR-018 migration was added."
+    },
+    {
+      "action": "Fixture setting readback",
+      "command": "GET /settings",
+      "target": "isolated FIXTURE API",
+      "result": "PASS: operation_mode=FIXTURE; external_submission_enabled=false."
+    },
+    {
+      "action": "Isolated Compose cleanup and default stack guard",
+      "command": "docker compose ... -p mjobs-pr018-validation-20261001 ... down -v --remove-orphans; docker ps",
+      "target": "isolated validation project and existing mjobs project",
+      "result": "PASS: isolated containers/networks/volumes removed; existing mjobs API, PostgreSQL and Redis remained healthy."
+    }
+  ],
+  "review": {
+    "result": "PASS",
+    "detail": "Independent read-only PR018 review found no remaining actionable issues after generic form-action path evidence was kept below the match threshold."
+  },
+  "external_behavior": {
+    "external_employer_network_access": "NOT_PERFORMED",
+    "external_search_api_requests": "NOT_PERFORMED",
+    "external_application_submission": "NOT_PERFORMED",
+    "local_fixture_mock_application": "PERFORMED; the mock fixture accepted the simulated submission and returned a mock receipt."
+  },
+  "release_readiness": "NOT_RUN"
+}
