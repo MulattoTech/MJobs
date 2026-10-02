@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-01T23:55:59.049070+00:00",
+  "timestamp": "2026-10-02",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -549,31 +549,35 @@
     },
     {
       "requirement_id": "MJ-REQ-066",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
-        "docs/evidence/2026-09-29-mock-spine.md"
+        "docs/evidence/2026-10-02-ats-tenant-source-hierarchy.json"
       ],
-      "note": "Initial scoped behavior only; full requirement remains open"
+      "note": "Provider, tenant, organization and board identifiers are durably stored with evidence/confidence and migration/backfill coverage; SQLite migration and PostgreSQL upgrade passed. No live ATS sites were contacted."
     },
     {
       "requirement_id": "MJ-REQ-067",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
-        "docs/evidence/2026-09-29-mock-spine.md"
+        "docs/evidence/2026-10-02-ats-tenant-source-hierarchy.json"
       ],
-      "note": "Initial scoped behavior only; full requirement remains open"
+      "note": "Independent company job source fields and discovery/collector persistence are verified by focused integration tests and migrations; no live employer behavior was exercised."
     },
     {
       "requirement_id": "MJ-REQ-068",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-02-ats-tenant-source-hierarchy.json"
+      ],
+      "note": "Distinct career portals persist independently; canonical host/default-port/path/fragment variants upsert to one portal. Verified with focused persistence tests."
     },
     {
       "requirement_id": "MJ-REQ-069",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-02-ats-tenant-source-hierarchy.json"
+      ],
+      "note": "Parent and subsidiary IDs remain distinct; direct and indirect cycles are rejected. Verified with focused hierarchy tests."
     },
     {
       "requirement_id": "MJ-REQ-070",

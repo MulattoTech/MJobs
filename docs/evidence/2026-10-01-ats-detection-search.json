@@ -149,5 +149,27 @@
     "external_application_submission": "NOT_PERFORMED",
     "local_fixture_mock_application": "PERFORMED; the mock fixture accepted the simulated submission and returned a mock receipt."
   },
-  "release_readiness": "NOT_RUN"
+  "release_readiness": "NOT_RUN",
+  "post_merge_reconciliation": {
+    "verified_at": "2026-10-02T00:26:58.998180+00:00",
+    "github_repository": "MulattoTech/MJobs",
+    "pr_number": 445,
+    "pr_state": "MERGED",
+    "exact_head": "e24d6e69a40474b4d6cf1fed9b8edf9e44294ebd",
+    "merge_commit": "328b0bb26eb3aa5242fe4e9253a51b0271081ace",
+    "merged_at": "2026-10-02T00:13:37Z",
+    "exact_head_actions": {
+      "pull_request_verification": {
+        "run_id": 36943693601,
+        "head_sha": "e24d6e69a40474b4d6cf1fed9b8edf9e44294ebd",
+        "result": "PASS"
+      },
+      "push_verification": {
+        "run_id": 36943692049,
+        "head_sha": "e24d6e69a40474b4d6cf1fed9b8edf9e44294ebd",
+        "result": "PASS"
+      }
+    },
+    "source": "Live GitHub PR, workflow, merge and origin/main readback; earlier pending publication note retained as chronology."
+  }
 }

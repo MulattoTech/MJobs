@@ -403,18 +403,24 @@
         "MJ-PR-017",
         "MJ-PR-012"
       ],
-      "status": "DRAFT_PR",
+      "status": "MERGED",
       "branch": "codex/mj-pr-018-company-ats-discovery",
       "draft_until_verified": true,
-      "notes": "Draft PR #445 is open on initial head 0f5e6c5946de839e0fcbe335abca2d06a9881990, based on main 5e66bfe7029698b590fb57987a7ac657a958b516. PR-number bookkeeping will create a new head; exact-head CI is NOT_RUN pending that update. REQ-062/063/065 PASS; REQ-064 PARTIAL.",
+      "notes": "Merged after both required Verification workflows passed on exact final head e24d6e69a40474b4d6cf1fed9b8edf9e44294ebd. REQ-062/063/065 PASS; REQ-064 PARTIAL.",
       "worktree": "C:\\Tools\\Dev\\MJobs-pr-018",
       "base": "5e66bfe7029698b590fb57987a7ac657a958b516",
       "local_head": "56448464ef4ab5c045c86884bc54b12353158600",
-      "publication_state": "DRAFT_PR",
+      "publication_state": "MERGED",
       "validation_result": "PASS_WITH_PARTIAL_REQUIREMENT_COVERAGE",
       "pr_number": 445,
       "url": "https://github.com/MulattoTech/MJobs/pull/445",
-      "head": "0f5e6c5946de839e0fcbe335abca2d06a9881990"
+      "head": "e24d6e69a40474b4d6cf1fed9b8edf9e44294ebd",
+      "merge_commit": "328b0bb26eb3aa5242fe4e9253a51b0271081ace",
+      "merged_at": "2026-10-02T00:13:37Z",
+      "exact_head_checks": {
+        "pull_request_verification": 36943693601,
+        "push_verification": 36943692049
+      }
     },
     {
       "id": "MJ-PR-019",
@@ -431,10 +437,16 @@
         "MJ-PR-018",
         "MJ-PR-012"
       ],
-      "status": "QUEUED",
+      "status": "IN_PROGRESS",
       "branch": "codex/mj-pr-019-company-ats-discovery",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "REQ-066..069 locally verified PASS; implementation and evidence committed at 09a9038. Draft PR and exact-head CI are pending.",
+      "worktree": "C:\\Tools\\Dev\\MJobs-pr-019",
+      "base": "328b0bb26eb3aa5242fe4e9253a51b0271081ace",
+      "local_head": "09a90380792d4cb83dbee25594f703edb059ab3d",
+      "validation_result": "PASS",
+      "evidence_path": "docs/evidence/2026-10-02-ats-tenant-source-hierarchy.json",
+      "publication_state": "NOT_RUN"
     },
     {
       "id": "MJ-PR-020",

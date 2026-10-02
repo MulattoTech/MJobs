@@ -1,6 +1,6 @@
 # MJobs Feature Completeness
 
-Updated: 2026-10-01
+Updated: 2026-10-02
 
 ## How to read this
 This report intentionally separates the original MJobs product specification from later reference-project inspiration.
@@ -8,9 +8,9 @@ A percentage is a navigation aid, never a release claim. Only evidence-backed PA
 
 ## Original specification
 - Catalogue items: **366**
-- PASS: **44** (12.02%)
-- PARTIAL: **60** (16.39%)
-- NOT_RUN: **262** (71.58%)
+- PASS: **48** (13.11%)
+- PARTIAL: **58** (15.85%)
+- NOT_RUN: **260** (71.04%)
 - Full-spec state: **PARTIAL**
 - Release readiness: **not established**
 PASS counts complete requirement items, not the fraction of source code implemented. Many requirements span multiple product capabilities, and 60 remain PARTIAL; the repository does not turn partial evidence into completed requirements.
@@ -44,6 +44,8 @@ PASS counts complete requirement items, not the fraction of source code implemen
 - Real external submission remains disabled
 - GitHub Actions passed the final #367-#370 PR heads and the connected UI, mock application, and restart recovery workflow; see `docs/evidence/2026-09-30-ci-370.json`
 - Optional provider-neutral company search and evidence-based ATS detection now cover all 22 named host families and synthetic custom-domain ATS embeds. MJ-REQ-062, 063 and 065 are PASS; MJ-REQ-064 is PARTIAL because HTML-signature and network-observed public-endpoint detection remain open. Search stays disabled unless a provider is injected; no production search or ATS site was contacted (`docs/evidence/2026-10-01-ats-detection-search.json`).
+
+- MJ-REQ-066..069 are PASS: ATS tenant identifiers/evidence, independently persisted company job sources, canonical distinct multi-portal identity, and explicit parent/subsidiary links with cycle prevention. The 41-test focused slice and 210-test full suite passed; SQLite legacy-row preservation/downgrade refusal and isolated PostgreSQL upgrade from cb72f9041d6a to e14ac893620f passed. Browser acceptance is not applicable; no live employer or application submission was performed (`docs/evidence/2026-10-02-ats-tenant-source-hierarchy.json`).
 
 ## Reference-project gap catalogue
 Canonical issues: **MJ-REF-001 through MJ-REF-042**.
