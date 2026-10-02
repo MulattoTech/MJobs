@@ -6,12 +6,13 @@ from urllib.parse import urljoin
 
 from bs4 import BeautifulSoup
 import httpx
-from sqlalchemy import select
+from sqlalchemy import select, update
 
 from packages.persistence import models as m
 from packages.persistence.store import now, upsert
 from services.company_discovery.career_pages import common_career_routes, internal_career_links
 from services.company_discovery.domains import normalize_domain, record_company_domain
+from services.company_discovery.endpoints import machine_readable_job_endpoints, parse_public_job_feed
 from services.company_discovery.fetch_policy import bounded_get
 from services.company_discovery.resolution import resolve_company
 from services.company_discovery.search import search_company_careers
@@ -45,7 +46,8 @@ def _search_provenance(candidate, provider, selected, rejected, attempted=False)
     }
 
 
-def discover_company_source(store, candidate, client, check=None, search_provider=None):
+def discover_company_source(store, candidate, client, check=None, search_provider=None,
+                            profile_id=None, profile_version=None):
     """Resolve one employer, prove its careers/ATS source, enroll, and enumerate immediately."""
     check = check or (lambda: None)
     resolved = resolve_company(store, candidate)
@@ -173,6 +175,67 @@ def discover_company_source(store, candidate, client, check=None, search_provide
                 **_search_provenance(candidate, search_provider, search_context,
                                      rejected_search_candidates, attempted=search_attempted),
             })
+        feeds = (machine_readable_job_endpoints(str(careers.url), careers.text)
+                 if detected.status != "MATCH" or not detected.provider else [])
+        for feed in feeds:
+            check()
+            try:
+                feed_response = bounded_get(client, feed["url"], str(careers.url))
+                feed_jobs = parse_public_job_feed(feed_response.text, feed["strategy"])
+            except (httpx.HTTPError, ValueError):
+                continue
+            company_domain = normalize_domain(str(homepage.url)) or ""
+            with store.engine.begin() as connection:
+                upsert(connection, m.companies, {
+                    "id": resolved["company_id"], "name": resolved["name"], "domain": "",
+                }, replace=True)
+            source_provider = "rss" if feed["strategy"] == "RSS" else "json_feed"
+            source_tenant = resolved["company_id"]
+            timestamp = now()
+            tenant_record = register_ats_tenant(
+                store, resolved["company_id"], provider=source_provider,
+                tenant_identifier=source_tenant, confidence=0.88,
+                evidence=["same-origin alternate machine-readable job feed"],
+            )
+            source_record = upsert_company_job_source(
+                store, company_id=resolved["company_id"], provider=source_provider,
+                tenant_identifier=source_tenant, career_url=str(careers.url),
+                feed_url=feed["url"] if feed["strategy"] == "RSS" else None,
+                public_api_url=feed["url"] if feed["strategy"] == "PUBLIC_JSON" else None,
+                collection_strategy=feed["strategy"], confidence=0.88, enabled=True,
+                priority="NORMAL", discovered_automatically=True,
+                ats_tenant_id=tenant_record["id"], last_validation=timestamp,
+            )
+            if company_domain:
+                record_company_domain(
+                    store, resolved["company_id"], company_domain,
+                    "CANDIDATE_DOMAIN_UNVERIFIED",
+                    ["homepage supplied for bounded career discovery"],
+                )
+            from services.discovery.company_feed import import_company_feed_jobs
+            jobs_imported = import_company_feed_jobs(
+                store, company_id=resolved["company_id"],
+                source_id=source_record["id"], provider=source_provider, tenant=source_tenant,
+                endpoint=feed["url"], strategy=feed["strategy"], items=feed_jobs,
+                profile_id=profile_id, profile_version=profile_version, check=check,
+            )
+            with store.engine.begin() as connection:
+                connection.execute(update(m.company_sources).where(
+                    m.company_sources.c.id == source_record["id"]
+                ).values(last_success=timestamp))
+                store._audit(connection, resolved["company_id"], "COMPANY_SOURCE_DISCOVERED", {
+                    "discovery_method": "SAME_ORIGIN_MACHINE_READABLE_FEED",
+                    "careers_url": str(careers.url), "endpoint": feed["url"],
+                    "collection_strategy": feed["strategy"], "jobs_enumerated": len(feed_jobs),
+                    "jobs_imported": jobs_imported,
+                })
+            return {
+                "company": resolved, "company_source_id": source_record["id"],
+                "provider": source_provider, "tenant": source_tenant,
+                "careers_url": str(careers.url), "endpoint": feed["url"],
+                "jobs": feed_jobs, "jobs_enumerated": len(feed_jobs), "jobs_imported": jobs_imported,
+                "company_domain": company_domain,
+            }
         if detected.status != "MATCH" or not detected.provider:
             raise ValueError("COMPANY_ATS_REVIEW_REQUIRED")
         raise ValueError("COMPANY_ATS_ENUMERATION_UNSUPPORTED")

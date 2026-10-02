@@ -18,6 +18,7 @@ _COLLECTION_STRATEGIES = {
     "UNKNOWN", "API", "FEED", "PUBLIC_JSON", "PUBLIC_HTML", "ASSISTED", "MANUAL", "DISABLED",
     "PUBLIC_API", "RSS", "STRUCTURED_JSON", "SEARCH_PAGE", "HTML", "BROWSER", "FIXTURE",
 }
+_UNSET = object()
 
 
 def _token(value, name, maximum, *, required=True, fold=False):
@@ -113,7 +114,7 @@ def upsert_company_job_source(store, *, company_id, provider, tenant_identifier,
                               career_url=None, search_url=None, feed_url=None, public_api_url=None,
                               collection_strategy="UNKNOWN", confidence=0.45, enabled=True,
                               priority="NORMAL", discovered_automatically=False, ats_tenant_id=None,
-                              last_validation=None, last_success=None):
+                              last_validation=None, last_success=_UNSET):
     """Create or update one source portal without collapsing sibling portals."""
     company_id = _token(company_id, "COMPANY_ID", 128)
     provider = _token(provider, "PROVIDER", 32, fold=True)
@@ -135,7 +136,8 @@ def upsert_company_job_source(store, *, company_id, provider, tenant_identifier,
     if priority not in _PRIORITIES:
         raise ValueError("COMPANY_SOURCE_PRIORITY_INVALID")
     last_validation = _token(last_validation, "LAST_VALIDATION", 64, required=False) or None
-    last_success = _token(last_success, "LAST_SUCCESS", 64, required=False) or None
+    if last_success is not _UNSET:
+        last_success = _token(last_success, "LAST_SUCCESS", 64, required=False) or None
     ats_tenant_id = _token(ats_tenant_id, "ATS_TENANT_ID", 128, required=False) or None
     # The portal URL is part of the deterministic identity, so multiple portals
     # for one company/ATS tenant remain distinct durable sources.
@@ -160,6 +162,10 @@ def upsert_company_job_source(store, *, company_id, provider, tenant_identifier,
             m.company_sources.c.career_url.is_(None),
         ).order_by(m.company_sources.c.id).limit(1)).first()
         source_id = legacy.id if legacy else identity(company_id, provider, tenant, career_url or endpoint)
+        if last_success is _UNSET:
+            last_success = connection.execute(select(m.company_sources.c.last_success).where(
+                m.company_sources.c.id == source_id
+            )).scalar_one_or_none()
         upsert(connection, m.company_sources, {
             "id": source_id, "company_id": company_id, "provider": provider,
             "tenant": tenant, "endpoint": endpoint,

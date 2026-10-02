@@ -75,6 +75,23 @@ class CompanySourceTests(unittest.TestCase):
         self.assertEqual(stored_tenants[0]["board_identifier"], "engineering")
         self.assertEqual(corporate["ats_tenant_id"], tenant["id"])
 
+    def test_source_upsert_preserves_success_timestamp_when_no_new_success_is_recorded(self):
+        first = upsert_company_job_source(
+            self.store, company_id="acme", provider="rss", tenant_identifier="acme",
+            career_url="https://careers.acme.example/feed/",
+            feed_url="https://careers.acme.example/feed/jobs.xml", collection_strategy="RSS",
+            discovered_automatically=True, last_success="2026-10-01T12:00:00+00:00",
+        )
+        repeated = upsert_company_job_source(
+            self.store, company_id="acme", provider="rss", tenant_identifier="acme",
+            career_url="https://careers.acme.example/feed",
+            feed_url="https://careers.acme.example/feed/jobs.xml", collection_strategy="RSS",
+            discovered_automatically=True,
+        )
+
+        self.assertEqual(repeated["id"], first["id"])
+        self.assertEqual(repeated["last_success"], "2026-10-01T12:00:00+00:00")
+
     def test_parent_relationship_does_not_merge_company_identity(self):
         relationship = link_company_parent(self.store, "acme", "acme-federal", "SUBSIDIARY")
 
