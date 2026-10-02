@@ -409,7 +409,7 @@
     "MJ-PR-016 local Chromium first run used Docker DNS host api, which is not a secure browser origin for crypto.randomUUID; loopback URL rerun passed all five connected UI actions."
   ],
   "last_verified_checkpoint": {
-    "git_commit": "1dc6cd4fc9b9eb2797994ff7321e15dd83e6c2d7",
+    "git_commit": "109557fb40974fa437ec0bf89cbe936a29fe0efb",
     "evidence_path": "docs/evidence/2026-10-02-company-source-watch-and-priority.json"
   },
   "ci_verification": {
@@ -1722,12 +1722,67 @@
         "git_commit": "5e470c0592f9360a7122fdf50ba391ee3bf7f756",
         "evidence_path": "docs/evidence/2026-10-02-company-machine-readable-feeds.json"
       }
+    },
+    {
+      "milestone_id": "M21-COMPANY-SOURCE-WATCH-LOCAL",
+      "timestamp": "2026-10-02T01:37:46+00:00",
+      "current_phase": "M21_COMPANY_SOURCE_WATCH_AND_PRIORITY_LOCAL_VERIFIED",
+      "completed_steps": [
+        "Added durable AUTO_DISCOVERED and USER_WATCHED source origin with deterministic legacy backfill.",
+        "Added source list and explicit watch APIs; automatic refresh preserves watched origin and priority.",
+        "Restricted legacy row reuse to sources without a career URL and matching endpoints so distinct portals retain independent history.",
+        "Validated SQLite migration preservation and downgrade refusal plus fresh PostgreSQL 17 migration.",
+        "Ran 35 focused tests and the 224-test full Python suite; catalogue and prior journal validation passed."
+      ],
+      "files_added": [
+        "migrations/versions/b71d9a42c0e3_company_source_watch_origin.py",
+        "docs/evidence/2026-10-02-company-source-watch-and-priority.json"
+      ],
+      "files_modified": [
+        "apps/api/main.py",
+        "packages/persistence/models.py",
+        "services/company_discovery/sources.py",
+        "tests/integration/test_company_sources.py",
+        "tests/integration/test_company_sources_migration.py",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "docs/FEATURE_COMPLETENESS.md"
+      ],
+      "tests_completed": [
+        "Focused source, source API, migration and discovery safety suite: 35 PASS.",
+        "Full Python suite: 224 PASS in 54.310 seconds.",
+        "Isolated PostgreSQL 17 migration advanced to b71d9a42c0e3 and exited successfully.",
+        "Catalogue validation PASS; progress journal validation PASS before appending this milestone.",
+        "Independent review completed; legacy source collision cases fixed and no remaining actionable findings."
+      ],
+      "tests_remaining": [
+        "Publish draft PR and verify required workflows on its exact final head.",
+        "REQ-074 remains PARTIAL pending full signal-based company ranking.",
+        "REQ-075 remains PARTIAL pending company-level read model and UI.",
+        "REQ-076 and REQ-077 remain NOT_RUN pending periodic revalidation and ATS migration detection."
+      ],
+      "migrations_applied": [
+        "SQLite legacy-source upgrade/backfill and downgrade-safety acceptance: PASS.",
+        "Fresh isolated PostgreSQL 17 Compose schema migration to b71d9a42c0e3: PASS."
+      ],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "No company-level UI/watch view is part of this slice.",
+        "No application interview/outcome data model exists for full ranking.",
+        "Periodic source revalidation and ATS migration detection/rediscovery are not implemented."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "109557fb40974fa437ec0bf89cbe936a29fe0efb",
+        "evidence_path": "docs/evidence/2026-10-02-company-source-watch-and-priority.json"
+      }
     }
   ],
-  "current_phase": "M20_MACHINE_READABLE_COMPANY_SOURCE_DISCOVERY_DRAFT_PR",
+  "current_phase": "M21_COMPANY_SOURCE_WATCH_AND_PRIORITY_LOCAL_VERIFIED",
   "last_safe_checkpoint": {
-    "git_commit": "5e470c0592f9360a7122fdf50ba391ee3bf7f756",
-    "evidence_path": "docs/evidence/2026-10-02-company-machine-readable-feeds.json"
+    "git_commit": "109557fb40974fa437ec0bf89cbe936a29fe0efb",
+    "evidence_path": "docs/evidence/2026-10-02-company-source-watch-and-priority.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
