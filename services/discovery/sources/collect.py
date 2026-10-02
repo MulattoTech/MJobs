@@ -7,6 +7,7 @@ from sqlalchemy import select, update
 
 from packages.persistence import models as m
 from packages.persistence.store import identity, now, upsert
+from services.company_discovery.sources import register_ats_tenant, upsert_company_job_source
 from services.discovery.sources.contract import SourceAdapter, SourceCapability
 from services.discovery.sources.greenhouse import SourceError, tenant_identifier
 from services.discovery.sources.registry import source_adapter
@@ -92,9 +93,19 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                 companies[company_id] = company
             for company_id, company in companies.items():
                 upsert(connection, m.companies, {"id": company_id, "name": company.name, "domain": company.domain}, replace=True)
-                upsert(connection, m.company_sources, {"id": identity(company_id, source["provider"], source["tenant"]), "company_id": company_id,
-                    "provider": source["provider"], "tenant": source["tenant"], "endpoint": batch.endpoint,
-                    "discovered_automatically": False})
+                tenant_record = register_ats_tenant(
+                    connection, company_id, provider=source["provider"], tenant_identifier=source["tenant"],
+                    confidence=0.9, evidence=["configured public job source adapter"],
+                )
+                upsert_company_job_source(
+                    connection, company_id=company_id, provider=source["provider"], tenant_identifier=source["tenant"],
+                    public_api_url=batch.endpoint if strategy in {"API", "PUBLIC_JSON"} else None,
+                    feed_url=batch.endpoint if strategy == "FEED" else None,
+                    search_url=batch.endpoint if strategy in {"PUBLIC_HTML", "BROWSER"} else None,
+                    collection_strategy=strategy, confidence=0.9, enabled=True, priority="NORMAL",
+                    discovered_automatically=False, ats_tenant_id=tenant_record["id"],
+                    last_validation=timestamp, last_success=timestamp,
+                )
             for item, job in normalized:
                 company_id = identity(*item.company.identity_parts)
                 job_id = identity(company_id, source["provider"], source["tenant"], job["requisition"])

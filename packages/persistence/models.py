@@ -1,5 +1,5 @@
 """Relational authority for the initial product spine."""
-from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, JSON, MetaData, String, Table, UniqueConstraint, false
+from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, JSON, MetaData, String, Table, UniqueConstraint, false, true
 
 metadata = MetaData()
 
@@ -27,7 +27,9 @@ uploaded_resumes = table("uploaded_resumes", Column("profile_id", ForeignKey("ca
                          Column("sha256", String(64), nullable=False), Column("status", String(32), nullable=False),
                          Column("created_at", String(64), nullable=False),
                          constraints=(UniqueConstraint("profile_id", "sha256"),))
-companies = table("companies", Column("name", String(200), nullable=False), Column("domain", String(1000), nullable=False))
+companies = table("companies", Column("name", String(200), nullable=False), Column("domain", String(1000), nullable=False),
+                  Column("parent_company_id", ForeignKey("companies.id")),
+                  Column("relationship_type", String(32)))
 company_aliases = table("company_aliases", Column("company_id", ForeignKey("companies.id"), nullable=False),
                         Column("alias", String(200), nullable=False), Column("normalized_alias", String(200), nullable=False),
                         Column("alias_type", String(32), nullable=False), Column("confidence", Float, nullable=False),
@@ -40,9 +42,30 @@ company_domains = table("company_domains", Column("company_id", ForeignKey("comp
                         Column("first_seen_at", String(64), nullable=False), Column("last_verified_at", String(64)),
                         Column("evidence", JSON, nullable=False),
                         constraints=(UniqueConstraint("company_id", "domain"),))
-company_sources = table("company_job_sources", Column("company_id", ForeignKey("companies.id"), nullable=False),
-                        Column("provider", String(32), nullable=False), Column("tenant", String(128), nullable=False),
-                        Column("endpoint", String(2000), nullable=False), Column("discovered_automatically", Boolean, nullable=False))
+company_ats_tenants = table(
+    "company_ats_tenants", Column("company_id", ForeignKey("companies.id"), nullable=False),
+    Column("provider", String(32), nullable=False), Column("tenant_identifier", String(128), nullable=False),
+    Column("organization_identifier", String(128), nullable=False),
+    Column("board_identifier", String(128), nullable=False), Column("confidence", Float, nullable=False),
+    Column("evidence", JSON, nullable=False), Column("first_seen_at", String(64), nullable=False),
+    Column("last_seen_at", String(64), nullable=False),
+    constraints=(UniqueConstraint("company_id", "provider", "tenant_identifier",
+                                  "organization_identifier", "board_identifier"),),
+)
+company_sources = table(
+    "company_job_sources", Column("company_id", ForeignKey("companies.id"), nullable=False),
+    Column("provider", String(32), nullable=False), Column("tenant", String(128), nullable=False),
+    Column("endpoint", String(2000), nullable=False), Column("discovered_automatically", Boolean, nullable=False),
+    Column("ats_tenant_id", ForeignKey("company_ats_tenants.id")),
+    Column("career_url", String(2000)), Column("search_url", String(2000)),
+    Column("feed_url", String(2000)), Column("public_api_url", String(2000)),
+    Column("collection_strategy", String(32), nullable=False, server_default="UNKNOWN"),
+    Column("confidence", Float, nullable=False, server_default="0.45"),
+    Column("enabled", Boolean, nullable=False, server_default=true()),
+    Column("priority", String(32), nullable=False, server_default="NORMAL"),
+    Column("last_validation", String(64)), Column("last_success", String(64)),
+    constraints=(UniqueConstraint("company_id", "provider", "tenant", "career_url"),),
+)
 jobs = table("canonical_jobs", Column("company_id", ForeignKey("companies.id"), nullable=False),
              Column("requisition", String(128), nullable=False), Column("title", String(500), nullable=False),
              Column("description", String(50000), nullable=False), Column("skills", JSON, nullable=False),
