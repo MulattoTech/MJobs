@@ -35,8 +35,21 @@
         }
       }
     },
-    "pr020_publication": "NOT_RUN",
-    "pr020_exact_head_ci": "NOT_RUN; no PR has been created."
+    "pr020_publication": {
+      "result": "PASS",
+      "number": 447,
+      "url": "https://github.com/MulattoTech/MJobs/pull/447",
+      "state": "OPEN",
+      "is_draft": true,
+      "base": "main",
+      "base_sha": "b096b868b4feb6df6afbe1581ff7a6a80a891c16",
+      "initial_head": "5e470c0592f9360a7122fdf50ba391ee3bf7f756"
+    },
+    "pr020_exact_head_ci": {
+      "head_sha": "5e470c0592f9360a7122fdf50ba391ee3bf7f756",
+      "pull_request_verification": {"run_id": 36949419070, "status": "IN_PROGRESS"},
+      "push_verification": {"run_id": 36949392467, "status": "IN_PROGRESS"}
+    }
   },
   "implemented": [
     "Discovers same-origin <link rel=alternate> RSS, Atom, JSON Feed and JSON links; orders JSON ahead of feeds and excludes other origins.",

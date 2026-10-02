@@ -10,8 +10,8 @@
     "current_verified_local_state": "Initialized from newer origin/main; supplied control pack retained on governance branch",
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
-  "current_milestone": "M20_MACHINE_READABLE_COMPANY_SOURCE_DISCOVERY_LOCAL_VERIFIED",
-  "current_objective": "MJ-PR-020 bounded first-party RSS/JSON Feed discovery, enrollment, and immediate canonical job/match import are locally verified; retain REQ-070..073 as PARTIAL pending provider breadth and complete aggregator-trigger acceptance.",
+  "current_milestone": "M20_MACHINE_READABLE_COMPANY_SOURCE_DISCOVERY_DRAFT_PR",
+  "current_objective": "MJ-PR-020 is published as draft PR #447 at initial head 5e470c0592f9360a7122fdf50ba391ee3bf7f756; required workflows are running, and REQ-070..073 remain PARTIAL pending provider breadth and complete aggregator-trigger acceptance.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -246,9 +246,11 @@
     {
       "branch": "codex/mj-pr-020-company-ats-discovery",
       "worktree": "C:\\Tools\\Dev\\MJobs-pr-020",
-      "status": "IN_PROGRESS",
+      "status": "DRAFT_PR",
       "base": "b096b868b4feb6df6afbe1581ff7a6a80a891c16",
-      "head": "b096b868b4feb6df6afbe1581ff7a6a80a891c16",
+      "head": "5e470c0592f9360a7122fdf50ba391ee3bf7f756",
+      "number": 447,
+      "url": "https://github.com/MulattoTech/MJobs/pull/447",
       "stacked_on": "codex/mj-pr-019-company-ats-discovery",
       "requirements": [
         "MJ-REQ-070",
@@ -362,11 +364,8 @@
     "HTML-signature and network-observed endpoint ATS detection (MJ-REQ-064 remains PARTIAL).",
     "Original P0-P3 full acceptance and release readiness remain open.",
     "Live employer/ATS service integration and connected browser behavior; no browser files changed.",
-    "Immediate insertion of RSS/JSON items into the regular match/persistence pipeline remains incomplete.",
     "Original P0-P3 release acceptance remains open.",
-    "MJ-PR-020 catalogue and progress revalidation after control-plane update.",
-    "MJ-PR-020 exact-head GitHub Actions and review/merge gate; no PR exists.",
-    "RSS/JSON Feed jobs have not yet been imported through the regular pipeline; REQ-072/073 remain PARTIAL.",
+    "MJ-PR-020 exact-head GitHub Actions and review/merge gate; both required workflows are in progress on initial head 5e470c0592f9360a7122fdf50ba391ee3bf7f756.",
     "Original P0-P3 release acceptance remains open."
   ],
   "known_external_limitations": [
@@ -385,18 +384,18 @@
     "MJ-PR-016 local Chromium first run used Docker DNS host api, which is not a secure browser origin for crypto.randomUUID; loopback URL rerun passed all five connected UI actions."
   ],
   "last_verified_checkpoint": {
-    "git_commit": "b096b868b4feb6df6afbe1581ff7a6a80a891c16",
+    "git_commit": "5e470c0592f9360a7122fdf50ba391ee3bf7f756",
     "evidence_path": "docs/evidence/2026-10-02-company-machine-readable-feeds.json"
   },
   "ci_verification": {
-    "result": "PASS",
-    "scope": "Parent PR #446 final exact head; PR-020 has not been published.",
-    "verified_head": "138992cad642dbb95dfb1b71b6f48a30c65b29ad",
+    "result": "IN_PROGRESS",
+    "scope": "PR #447 initial exact head; both required Verification workflows are running.",
+    "verified_head": "5e470c0592f9360a7122fdf50ba391ee3bf7f756",
     "exact_head_runs": {
-      "pull_request_verification": 36946261732,
-      "push_verification": 36946266078
+      "pull_request_verification": 36949419070,
+      "push_verification": 36949392467
     },
-    "next_action": "Continue PR-020 implementation; do not create a PR until a coherent tested slice is reviewable."
+    "next_action": "Record PR #447 bookkeeping, push the new exact head, and verify required Actions on that final SHA."
   },
   "mock_spine_ci": {
     "result": "PASS",
@@ -1657,7 +1656,7 @@
     {
       "milestone_id": "M20-MACHINE-READABLE-COMPANY-SOURCES-LOCAL",
       "timestamp": "2026-10-02T00:44:00+00:00",
-      "current_phase": "M20_MACHINE_READABLE_COMPANY_SOURCE_DISCOVERY_LOCAL_VERIFIED",
+      "current_phase": "M20_MACHINE_READABLE_COMPANY_SOURCE_DISCOVERY_DRAFT_PR",
       "completed_steps": [
         "Reconciled and fast-forwarded main after exact-head PR #446 success/merge.",
         "Started the single immediate dependent PR-020 worktree stacked on the PR-019 head now included in main.",
@@ -1688,7 +1687,7 @@
       ],
       "tests_remaining": [
         "Provider-specific public ATS endpoints/scheduling and end-to-end aggregator-trigger to feed-only job acceptance remain unimplemented; REQ-070..073 remain PARTIAL.",
-        "Publish PR-020 only after coherent reviewable local slice; exact-head CI is NOT_RUN."
+        "Verify all required workflows on PR #447's final bookkeeping head; current initial-head runs do not count after the state-record commit."
       ],
       "migrations_applied": [],
       "live_integrations_tested": [],
@@ -1698,14 +1697,14 @@
         "Provider-specific public ATS endpoint selection/scheduling is not implemented; the synthetic acceptance does not exercise the complete aggregator-trigger to feed-only-job chain."
       ],
       "last_safe_checkpoint": {
-        "git_commit": "b096b868b4feb6df6afbe1581ff7a6a80a891c16",
+        "git_commit": "5e470c0592f9360a7122fdf50ba391ee3bf7f756",
         "evidence_path": "docs/evidence/2026-10-02-company-machine-readable-feeds.json"
       }
     }
   ],
-  "current_phase": "M20_MACHINE_READABLE_COMPANY_SOURCE_DISCOVERY_LOCAL_VERIFIED",
+  "current_phase": "M20_MACHINE_READABLE_COMPANY_SOURCE_DISCOVERY_DRAFT_PR",
   "last_safe_checkpoint": {
-    "git_commit": "b096b868b4feb6df6afbe1581ff7a6a80a891c16",
+    "git_commit": "5e470c0592f9360a7122fdf50ba391ee3bf7f756",
     "evidence_path": "docs/evidence/2026-10-02-company-machine-readable-feeds.json"
   },
   "live_integrations_tested": [
@@ -1740,6 +1739,21 @@
       "url": "https://github.com/MulattoTech/MJobs/pull/446",
       "initial_head": "f21f86b196fdd4a750666a89c9e888924b1e06a9",
       "base": "328b0bb26eb3aa5242fe4e9253a51b0271081ace"
+    },
+    {
+      "result": "IN_PROGRESS",
+      "transport": "Authenticated Git push and GitHub draft PR",
+      "local_remote_commit_identical": true,
+      "force": false,
+      "pr_number": 447,
+      "url": "https://github.com/MulattoTech/MJobs/pull/447",
+      "initial_head": "5e470c0592f9360a7122fdf50ba391ee3bf7f756",
+      "base": "b096b868b4feb6df6afbe1581ff7a6a80a891c16",
+      "exact_head_checks": {
+        "pull_request_verification": 36949419070,
+        "push_verification": 36949392467,
+        "result": "IN_PROGRESS"
+      }
     }
   ]
 }

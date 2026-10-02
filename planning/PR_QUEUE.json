@@ -473,17 +473,21 @@
         "MJ-PR-019",
         "MJ-PR-012"
       ],
-      "status": "IN_PROGRESS",
+      "status": "DRAFT_PR",
       "branch": "codex/mj-pr-020-company-ats-discovery",
       "draft_until_verified": true,
       "notes": "Same-origin RSS/Atom/JSON Feed detection, bounded validation, automatic source enrollment and immediate idempotent canonical job/route/posting/match persistence are locally tested. REQ-070..073 remain PARTIAL: provider-specific ATS endpoint precedence/scheduling and the complete aggregator-trigger-to-feed-only-job acceptance path remain open.",
       "worktree": "C:\\Tools\\Dev\\MJobs-pr-020",
       "base": "b096b868b4feb6df6afbe1581ff7a6a80a891c16",
       "stacked_on": "codex/mj-pr-019-company-ats-discovery",
-      "local_head": "b096b868b4feb6df6afbe1581ff7a6a80a891c16",
+      "local_head": "5e470c0592f9360a7122fdf50ba391ee3bf7f756",
       "validation_result": "PASS_WITH_PARTIAL_REQUIREMENT_COVERAGE",
       "evidence_path": "docs/evidence/2026-10-02-company-machine-readable-feeds.json",
-      "publication_state": "NOT_RUN"
+      "publication_state": "DRAFT_PR",
+      "pr_number": 447,
+      "url": "https://github.com/MulattoTech/MJobs/pull/447",
+      "head": "5e470c0592f9360a7122fdf50ba391ee3bf7f756",
+      "initial_head": "5e470c0592f9360a7122fdf50ba391ee3bf7f756"
     },
     {
       "id": "MJ-PR-021",
