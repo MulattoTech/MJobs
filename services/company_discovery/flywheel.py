@@ -9,12 +9,13 @@ import httpx
 from sqlalchemy import select
 
 from packages.persistence import models as m
-from packages.persistence.store import identity, upsert
+from packages.persistence.store import now, upsert
 from services.company_discovery.career_pages import common_career_routes, internal_career_links
 from services.company_discovery.domains import normalize_domain, record_company_domain
 from services.company_discovery.fetch_policy import bounded_get
 from services.company_discovery.resolution import resolve_company
 from services.company_discovery.search import search_company_careers
+from services.company_discovery.sources import register_ats_tenant, upsert_company_job_source
 from services.ats_detection.detector import detect_ats
 
 
@@ -180,23 +181,27 @@ def discover_company_source(store, candidate, client, check=None, search_provide
     jobs = payload.get("jobs") if isinstance(payload, dict) else None
     if not isinstance(jobs, list):
         raise ValueError("COMPANY_JOB_ENUMERATION_INVALID")
-    source_id = identity(resolved["company_id"], provider, tenant)
     with store.engine.begin() as connection:
         upsert(connection, m.companies, {
             "id": resolved["company_id"],
             "name": resolved["name"],
-            # Legacy domain storage has no verification semantics. Keep it empty;
-            # all observed domains go through the evidence-aware relation below.
+            # Keep observations out of the legacy field that has no verification semantics.
             "domain": "",
         }, replace=True)
-        upsert(connection, m.company_sources, {
-            "id": source_id,
-            "company_id": resolved["company_id"],
-            "provider": provider,
-            "tenant": tenant,
-            "endpoint": endpoint,
-            "discovered_automatically": True,
-        }, replace=True)
+    timestamp = now()
+    tenant_record = register_ats_tenant(
+        store, resolved["company_id"], provider=provider, tenant_identifier=tenant,
+        confidence=0.95, evidence=["fixture ATS tenant metadata"],
+    )
+    source_record = upsert_company_job_source(
+        store, company_id=resolved["company_id"], provider=provider, tenant_identifier=tenant,
+        career_url=careers_url or str(careers.url), public_api_url=endpoint,
+        collection_strategy="FIXTURE", confidence=0.95, enabled=True, priority="NORMAL",
+        discovered_automatically=True, ats_tenant_id=tenant_record["id"],
+        last_validation=timestamp, last_success=timestamp,
+    )
+    source_id = source_record["id"]
+    with store.engine.begin() as connection:
         store._audit(connection, resolved["company_id"], "COMPANY_SOURCE_DISCOVERED", {
             "trigger_evidence": candidate.get("trigger_evidence", []),
             "resolution_confidence": resolved["confidence"],

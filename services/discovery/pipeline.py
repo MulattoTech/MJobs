@@ -17,6 +17,7 @@ from services.discovery.search_semantics import (
 from services.discovery.skill_taxonomy import extract_skills
 from services.discovery.requirement_parsers import parse_job_requirements
 from services.discovery.negative_filters import parse_negative_conditions
+from services.company_discovery.sources import register_ats_tenant, upsert_company_job_source
 
 
 class MockClient:
@@ -79,22 +80,36 @@ def discover(store, mock_origin, profile_id, check=None, profile_version=None):
             link = BeautifulSoup(homepage.text, "html.parser").find("a", attrs={"rel": "careers"})
             if link is None:
                 raise ValueError("No proven employer careers link")
-            careers = client.get(urljoin(str(homepage.url), link["href"]))
+            careers_url = urljoin(str(homepage.url), link["href"])
+            careers = client.get(careers_url)
             board = BeautifulSoup(careers.text, "html.parser").find("a", attrs={"data-provider": "mock-ats"})
             if board is None:
                 raise ValueError("Unsupported ATS requires review")
             endpoint = urljoin(str(careers.url), board["href"])
             tenant = board["data-tenant"]
             company_id = identity(row["company_website"])
-            sources[company_id] = {"company": row["company"], "domain": row["company_website"], "tenant": tenant, "endpoint": endpoint}
+            sources[company_id] = {
+                "company": row["company"], "domain": row["company_website"],
+                "tenant": tenant, "endpoint": endpoint, "career_url": careers_url,
+            }
             if not any(source == endpoint for source, _ in all_rows):
                 all_rows.extend((endpoint, employer) for employer in client.get(endpoint).json()["jobs"])
         with store.engine.begin() as connection:
             client.check()
             for company_id, source in sources.items():
                 upsert(connection, m.companies, {"id": company_id, "name": source["company"], "domain": source["domain"]})
-                upsert(connection, m.company_sources, {"id": identity(company_id, "mock-ats", source["tenant"]), "company_id": company_id,
-                    "provider": "mock-ats", "tenant": source["tenant"], "endpoint": source["endpoint"], "discovered_automatically": True})
+                tenant_record = register_ats_tenant(
+                    connection, company_id, provider="mock-ats", tenant_identifier=source["tenant"],
+                    confidence=0.95, evidence=["fixture ATS tenant metadata"],
+                )
+                timestamp = now()
+                upsert_company_job_source(
+                    connection, company_id=company_id, provider="mock-ats", tenant_identifier=source["tenant"],
+                    career_url=source["career_url"], public_api_url=source["endpoint"],
+                    collection_strategy="FIXTURE", confidence=0.95, enabled=True, priority="NORMAL",
+                    discovered_automatically=True, ats_tenant_id=tenant_record["id"],
+                    last_validation=timestamp, last_success=timestamp,
+                )
             for source, row in all_rows:
                 company_id = identity(row["company_website"])
                 if not client.allowed(row["application_url"]):

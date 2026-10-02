@@ -1,0 +1,164 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-10-02T00:29:15+00:00",
+  "scope": "MJ-PR-019 / MJ-REQ-066..069",
+  "result": "PASS",
+  "base": {
+    "main_sha": "328b0bb26eb3aa5242fe4e9253a51b0271081ace",
+    "branch": "codex/mj-pr-019-company-ats-discovery",
+    "validated_commit": "09a90380792d4cb83dbee25594f703edb059ab3d"
+  },
+  "requirements": {
+    "MJ-REQ-066": "PASS",
+    "MJ-REQ-067": "PASS",
+    "MJ-REQ-068": "PASS",
+    "MJ-REQ-069": "PASS"
+  },
+  "github_issues": {
+    "MJ-REQ-066": {
+      "number": 67,
+      "state": "OPEN"
+    },
+    "MJ-REQ-067": {
+      "number": 68,
+      "state": "OPEN"
+    },
+    "MJ-REQ-068": {
+      "number": 69,
+      "state": "OPEN"
+    },
+    "MJ-REQ-069": {
+      "number": 70,
+      "state": "OPEN"
+    }
+  },
+  "github_reconciliation": {
+    "observed_at": "2026-10-02T00:29:15+00:00",
+    "origin_main": "328b0bb26eb3aa5242fe4e9253a51b0271081ace",
+    "open_prs_before_publication": [],
+    "pr018": {
+      "number": 445,
+      "state": "MERGED",
+      "head_sha": "e24d6e69a40474b4d6cf1fed9b8edf9e44294ebd",
+      "merge_commit": "328b0bb26eb3aa5242fe4e9253a51b0271081ace",
+      "exact_head_actions": {
+        "pull_request_verification": {
+          "run_id": 36943693601,
+          "head_sha": "e24d6e69a40474b4d6cf1fed9b8edf9e44294ebd",
+          "result": "PASS"
+        },
+        "push_verification": {
+          "run_id": 36943692049,
+          "head_sha": "e24d6e69a40474b4d6cf1fed9b8edf9e44294ebd",
+          "result": "PASS"
+        }
+      },
+      "merged_at": "2026-10-02T00:13:37Z"
+    },
+    "pr019_publication": "DRAFT_PR",
+    "pr019_exact_head_ci": "NOT_RUN; no PR exists at this checkpoint.",
+    "pr019_number": 446,
+    "pr019_url": "https://github.com/MulattoTech/MJobs/pull/446",
+    "pr019_initial_head": "f21f86b196fdd4a750666a89c9e888924b1e06a9",
+    "pr019_base": "328b0bb26eb3aa5242fe4e9253a51b0271081ace",
+    "pr019_initial_head_actions": {
+      "pull_request_verification": {
+        "run_id": 36946178657,
+        "head_sha": "f21f86b196fdd4a750666a89c9e888924b1e06a9",
+        "result": "IN_PROGRESS"
+      },
+      "push_verification": {
+        "run_id": 36946199765,
+        "head_sha": "f21f86b196fdd4a750666a89c9e888924b1e06a9",
+        "result": "IN_PROGRESS"
+      }
+    },
+    "pr019_current_exact_head": "pending bookkeeping commit; initial-head workflows will not count for final verification."
+  },
+  "implemented": [
+    "Durable ATS tenant rows retain provider, tenant, organization and board identifiers, confidence, evidence and seen timestamps.",
+    "Independent company job sources persist career/search/feed/public API URLs, strategy, confidence, enabled state, priority, discovery origin and validation/success timestamps.",
+    "Company source identity includes canonical visible career URL, allowing multiple portals per company/ATS tenant and collapsing URL case/default-port/trailing-slash/fragment variants.",
+    "Source registration is connected to company discovery and first-party collection flows; legacy sources are backfilled at conservative confidence and retained.",
+    "Parent/subsidiary links retain distinct company IDs and relationship type; direct and ancestor cycles are rejected under serialized hierarchy writes."
+  ],
+  "limitations": [
+    "PostgreSQL migration acceptance upgraded an isolated empty database from cb72f9041d6a to e14ac893620f; legacy source row preservation and populated downgrade refusal were verified in the SQLite predecessor-schema migration test.",
+    "Portal, ATS tenant and company hierarchy acceptance used synthetic fixture identities; no real employer sites or ATS services were contacted.",
+    "No browser/UI files changed; connected browser acceptance was not required for this backend/persistence slice.",
+    "No external application submission was performed; external submission remains disabled by default."
+  ],
+  "validation": [
+    {
+      "action": "TDD regression reproduction: indirect parent cycle and canonical URL duplicate",
+      "command": "..\\MJobs-pr-016\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_company_sources -v",
+      "target": "new company source/hierarchy regressions",
+      "result": "EXPECTED RED before fix: indirect cycle was accepted and URL variant created a third source."
+    },
+    {
+      "action": "Focused discovery/source/migration/Greenhouse suite after rebase",
+      "command": "..\\MJobs-pr-016\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_company_discovery tests.integration.test_company_sources tests.integration.test_company_sources_migration tests.integration.test_greenhouse -v",
+      "target": "41 tests",
+      "result": "PASS, 41 tests."
+    },
+    {
+      "action": "Full Python suite",
+      "command": "..\\MJobs-pr-016\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py'",
+      "target": "tests/",
+      "result": "PASS, 210 tests in 49.790 seconds; executed against the same source tree before clean rebase onto merged PR-018 main."
+    },
+    {
+      "action": "Catalogue validator",
+      "command": "..\\MJobs-pr-016\\.venv\\Scripts\\python.exe -m tools.verification.catalogue",
+      "target": "requirement catalogue/dependency consistency",
+      "result": "PASS."
+    },
+    {
+      "action": "Progress validator",
+      "command": "..\\MJobs-pr-016\\.venv\\Scripts\\python.exe -m tools.verification.progress validate",
+      "target": "implementation evidence journal",
+      "result": "PASS after the evidence, matrix, state, queue and summary edits."
+    },
+    {
+      "action": "Alembic SQLite predecessor migration and downgrade safety",
+      "command": "..\\MJobs-pr-016\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_company_sources_migration -v",
+      "target": "existing company source row, tenant backfill and rollback safety",
+      "result": "PASS: legacy source row preserved and linked to conservative tenant; populated downgrade refused."
+    },
+    {
+      "action": "Isolated PostgreSQL Compose migration",
+      "command": "docker compose -p mjobs-pr019-migration --env-file C:\\Tools\\Dev\\MJobs\\.env run --build --rm migrate python -m alembic upgrade cb72f9041d6a; docker compose -p mjobs-pr019-migration --env-file C:\\Tools\\Dev\\MJobs\\.env run --rm migrate python -m alembic upgrade head; docker compose -p mjobs-pr019-migration --env-file C:\\Tools\\Dev\\MJobs\\.env exec -T postgres psql -U mjobs -d mjobs -tAc \"select version_num from alembic_version\"",
+      "target": "isolated PostgreSQL 17 database in project mjobs-pr019-migration",
+      "result": "PASS: upgrade from cb72f9041d6a applied e14ac893620f; revision readback e14ac893620f; isolated project removed with volumes."
+    },
+    {
+      "action": "Independent code review",
+      "command": "Read-only re-review of cycle guard, URL canonicalization and regression tests",
+      "target": "PR-019 source/hierarchy edge cases",
+      "result": "PASS: no remaining actionable findings."
+    },
+    {
+      "action": "Whitespace validation",
+      "command": "git diff --check",
+      "target": "implementation diff",
+      "result": "PASS."
+    },
+    {
+      "action": "Draft PR publication",
+      "command": "git push -u origin codex/mj-pr-019-company-ats-discovery; gh pr create --draft",
+      "target": "MulattoTech/MJobs PR #446",
+      "result": "PASS: draft PR opened at https://github.com/MulattoTech/MJobs/pull/446 with initial head f21f86b196fdd4a750666a89c9e888924b1e06a9; base main 328b0bb26eb3aa5242fe4e9253a51b0271081ace."
+    }
+  ],
+  "remote_exact_head_ci": "NOT_RUN on final PR head; initial head workflows 36946178657 and 36946199765 were IN_PROGRESS and will be superseded by the PR-number/state bookkeeping commit.",
+  "browser_validation": {
+    "result": "NOT_APPLICABLE",
+    "detail": "No browser/UI behavior changed."
+  },
+  "external_behavior": {
+    "employer_network_access": "NOT_PERFORMED",
+    "real_application_submission": "NOT_PERFORMED",
+    "external_submission_enabled": false
+  },
+  "release_readiness": "NOT_RUN"
+}
