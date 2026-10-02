@@ -571,7 +571,7 @@
         "MJ-PR-022",
         "MJ-PR-012"
       ],
-      "status": "IMPLEMENTED_LOCAL",
+      "status": "DRAFT_PR",
       "branch": "codex/mj-pr-023-company-ats-discovery",
       "draft_until_verified": true,
       "notes": "First activity slice only. Source quality scoring and ATS knowledge reuse are not implemented. Do not mark the queue unit complete merely because this incremental PR merges.",
@@ -584,7 +584,12 @@
         "MJ-REQ-082",
         "MJ-REQ-083",
         "MJ-REQ-084"
-      ]
+      ],
+      "publication_state": "DRAFT_PR",
+      "pr_number": 450,
+      "url": "https://github.com/MulattoTech/MJobs/pull/450",
+      "initial_head": "83493c0c884a7719a86fdcb108e02aca648472a9",
+      "scope_complete": false
     },
     {
       "id": "MJ-PR-024",

@@ -163,3 +163,10 @@ verification is opt-in with `python -m cli.public_source_probe --tenant <token>
 
 The full requirement catalogue is preserved. These limits are delivery scope,
 not deleted requirements.
+
+## Companies/Sources controls and activity retest
+Once the normal local runtime is healthy, use the existing VS Code live-feedback task and open **Sources**. Learned company sources and manually configured public boards are separate sections. An empty learned-source section is not evidence that there are no jobs. Source counts reflect explicitly linked postings; Relevant Jobs counts current-version profile match records, not eligibility.
+
+For an existing learned source, toggle Pin/Unpin, Disable/Enable and Watch/Unwatch, then reload and inspect the saved state. Review **Recent discovery** for recorded enrollment/import messages and **View Evidence** for the bounded underlying metadata. Missing history is not inferred. Run Now, Rediscover, Verify, Edit and next-check scheduling remain unavailable in this view.
+
+The regression test `python -m unittest tests.browser.test_company_source_view -v` runs this flow with synthetic data after `npm run build --prefix apps/web`; it does not use a personal browser profile or submit applications. Private `outputs/live-feedback/**` files must remain outside Git history. The workstation Docker Linux engine was unavailable during the October 2 verification; hosted Compose success does not establish local runtime readiness.

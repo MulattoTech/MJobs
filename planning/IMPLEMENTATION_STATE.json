@@ -11,7 +11,7 @@
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
   "current_milestone": "M23_SOURCE_ACTIVITY_LOCAL_VERIFIED",
-  "current_objective": "Publish and verify the first MJ-PR-023 activity slice; retain incomplete company-wide activity, source quality scoring and ATS knowledge reuse in the queue.",
+  "current_objective": "Verify the exact current head of activity PR #450 and integrate when green. Keep MJ-PR-023 remaining activity/quality/ATS reuse scope explicitly incomplete.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -294,6 +294,15 @@
       "head": "9d5a452f74815d2c726c4c911cc3b0df3c467f29",
       "merge_commit": "566bbf9cdebf882cc80bbb65b803ca3996fa9beb",
       "ci_evidence": "docs/evidence/2026-10-02-ci-449.json"
+    },
+    {
+      "number": 450,
+      "url": "https://github.com/MulattoTech/MJobs/pull/450",
+      "branch": "codex/mj-pr-023-company-ats-discovery",
+      "worktree": "C:\\Tools\\Dev\\MJobs-pr-023",
+      "status": "DRAFT_PR",
+      "initial_head": "83493c0c884a7719a86fdcb108e02aca648472a9",
+      "scope": "first source-linked activity slice only"
     }
   ],
   "tests_passed": [
@@ -499,7 +508,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Reconcile current GitHub first. Complete exact-head verification of the MJ-PR-023 activity PR, then continue its explicit remaining scope; a merged partial slice is not full queue completion.",
+  "recommended_resume_step": "Reconcile GitHub PR #450 before acting. After its verified activity slice merges, continue remaining MJ-PR-023 scope rather than treating the entire queue unit as finished. Preserve the live-feedback workflow and local Docker environment limitation.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
