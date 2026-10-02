@@ -1,0 +1,140 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-10-02T10:45:17.027499+00:00",
+  "scope": "MJ-PR-022 / company-source confidence, provenance, controls and UI",
+  "result": "PARTIAL",
+  "local_slice_verification": "PASS",
+  "base_commit": "c4c7da448cf973970f15701bdfee64de66556190",
+  "requirements": {
+    "MJ-REQ-078": "PARTIAL",
+    "MJ-REQ-079": "PARTIAL",
+    "MJ-REQ-080": "PARTIAL",
+    "MJ-REQ-081": "PARTIAL"
+  },
+  "requirement_notes": {
+    "MJ-REQ-078": "PARTIAL: source confidence and <0.75 review status are exposed and tested; full confidence calibration and review resolution remain open.",
+    "MJ-REQ-079": "PARTIAL: new fixture/feed discovery events carry explicit source IDs and the view exposes bounded source-linked evidence; historic unlinked events are not inferred or backfilled.",
+    "MJ-REQ-080": "PARTIAL: deterministic policy tests protect private/multicast/DNS/credential/scheme/port/redirect boundaries and invalid expected origins; no production company discovery transport was enabled or live-verified.",
+    "MJ-REQ-081": "PARTIAL: responsive Companies/Sources view, pin/enable/watch controls and evidence are browser-tested. Run Now, Rediscover, Verify, Edit and next-check scheduling remain explicitly unavailable."
+  },
+  "validation": [
+    {
+      "name": "full-python",
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p test_*.py -v",
+      "started_at": "2026-10-02T10:40:01.795825+00:00",
+      "finished_at": "2026-10-02T10:41:06.198692+00:00",
+      "seconds": 64.39,
+      "exit_code": 0,
+      "log": "outputs/verification/mj-pr-022/full-python.log",
+      "tests": 235,
+      "skipped": []
+    },
+    {
+      "name": "frontend",
+      "command": "cmd /d /c \"npm test --prefix apps/web\"",
+      "started_at": "2026-10-02T10:41:06.199693+00:00",
+      "finished_at": "2026-10-02T10:41:06.883426+00:00",
+      "seconds": 0.688,
+      "exit_code": 0,
+      "log": "outputs/verification/mj-pr-022/frontend.log"
+    },
+    {
+      "name": "build",
+      "command": "cmd /d /c \"npm run build --prefix apps/web\"",
+      "started_at": "2026-10-02T10:43:07.359547+00:00",
+      "finished_at": "2026-10-02T10:43:07.984859+00:00",
+      "seconds": 0.625,
+      "exit_code": 0,
+      "log": "outputs/verification/mj-pr-022/build.log"
+    },
+    {
+      "name": "catalogue",
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.catalogue",
+      "started_at": "2026-10-02T10:43:07.985859+00:00",
+      "finished_at": "2026-10-02T10:43:08.036382+00:00",
+      "seconds": 0.046,
+      "exit_code": 0,
+      "log": "outputs/verification/mj-pr-022/catalogue.log"
+    },
+    {
+      "name": "progress",
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.progress validate",
+      "started_at": "2026-10-02T10:43:08.037381+00:00",
+      "finished_at": "2026-10-02T10:43:08.096456+00:00",
+      "seconds": 0.063,
+      "exit_code": 0,
+      "log": "outputs/verification/mj-pr-022/progress.log"
+    },
+    {
+      "name": "diff-check",
+      "command": "git diff --check",
+      "started_at": "2026-10-02T10:43:08.097457+00:00",
+      "finished_at": "2026-10-02T10:43:08.132968+00:00",
+      "seconds": 0.031,
+      "exit_code": 0,
+      "log": "outputs/verification/mj-pr-022/diff-check.log"
+    }
+  ],
+  "focused_validation": {
+    "command": "python -m unittest tests.unit.test_company_fetch_policy tests.integration.test_company_source_view tests.integration.test_company_sources tests.integration.test_company_discovery -v",
+    "tests": 44,
+    "result": "PASS"
+  },
+  "browser_acceptance": {
+    "command": "python -m unittest tests.browser.test_company_source_view -v",
+    "tests": 1,
+    "result": "PASS",
+    "data": "synthetic isolated PERSONAL SQLite database and ephemeral loopback API",
+    "observed": [
+      "pin, disable and watch persist through reload",
+      "unpin, enable and unwatch reflected in DB",
+      "unsafe links and untrusted markup not executed",
+      "unsupported actions disabled",
+      "390px viewport has no horizontal overflow",
+      "external browser requests zero",
+      "JavaScript page errors zero"
+    ],
+    "screenshots": "local ignored outputs/verification/mj-pr-022/company-sources-*.png"
+  },
+  "observed_red_green": [
+    "6 source projection/control tests failed for absent behavior, then passed",
+    "3 new frontend render tests failed for absent component, then passed",
+    "8 policy/provenance assertions failed before fixing multicast/protocol-port/invalid-expected-origin gaps and omitted source IDs"
+  ],
+  "review": {
+    "mode": "implementer diff and screenshot review",
+    "independent_reviewer": "NOT_RUN; no separate reviewer tool used",
+    "finding": "Transport-damaged display punctuation corrected using literal-safe entities/escapes; tests/build/browser rerun"
+  },
+  "environment_limitations": [
+    {
+      "result": "BLOCKED_ENVIRONMENT",
+      "scope": "local Docker Compose / PostgreSQL deployment",
+      "reason": "dockerDesktopLinuxEngine named pipe unavailable even after starting installed Docker Desktop; no host settings changed",
+      "host_frontend": "Node 25.9.0 ran all six tests and the production build successfully"
+    }
+  ],
+  "migration": "NONE; uses existing schema at b71d9a42c0e3",
+  "runtime_boundaries": {
+    "external_submission": "OFF",
+    "live_employer_ats_requests_performed": false,
+    "private_feedback_artifacts_committed": false,
+    "production_company_discovery": "unchanged; not enabled",
+    "normal_user_compose_stack": "not modified"
+  },
+  "source_file_sha256": {
+    "apps/api/main.py": "932ec16a777e3ff1b3ccf7c6a3a698de8c775402a87e9870436f277779941e92",
+    "apps/web/src/main.tsx": "33a00805ac45b8bd859fb02c6a71c21b5ec5fde9dabc1da2d42eaecd9350fe6e",
+    "apps/web/src/style.css": "25c5f72455656ae72d5f6a6a683a7a0ed98bba4320b300bbd25a90e38331d8c6",
+    "apps/web/src/company-sources.tsx": "7bd6ecfd3105508b570369837df10f19220a055845c68f548593e443854c3354",
+    "services/company_discovery/sources.py": "f84792d7fa95054d3cd8981c0e53156e7116fd41d0b59cdef7b92848439a4ffb",
+    "services/company_discovery/flywheel.py": "d5c4e8cf9977e1709c93c519f2f6a326d475a6e1cdf1d93673aff9db046714a8",
+    "services/company_discovery/fetch_policy.py": "bcc8dca16172cb909fe426588b88cbb95a6523eaf56f71aab1fa4e8ea13c922a",
+    "tests/integration/test_company_source_view.py": "6b00181674454ddd8ebac964f7d582601e0e6e018db3c0977049157ba7f6f266",
+    "tests/integration/test_company_discovery.py": "d091623a1c6fb170b268ee1fbd7bbbb568f63299eb17f627866eddb1663a904d",
+    "tests/unit/test_company_fetch_policy.py": "1984554d4dd33678c04579a613271d90807a5aee806377a2558c8acb230d75af",
+    "tests/browser/test_company_source_view.py": "a6beda2adef86a34c9729a4db119e03299bd091b1a0907ee1cad7cdfca434617",
+    "apps/web/src/company-sources.test.tsx": "9231c4b966deab62f73941acd3179abe090df7bdaa54fc621858f2438296e45a"
+  },
+  "ci": "NOT_RUN for this unpublished head; verify exact current PR head after publication"
+}

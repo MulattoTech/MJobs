@@ -7,7 +7,7 @@ import math
 import re
 from urllib.parse import urlsplit, urlunsplit
 
-from sqlalchemy import select, update
+from sqlalchemy import func, select, update
 
 from packages.persistence import models as m
 from packages.persistence.store import Store, identity, now, upsert
@@ -180,6 +180,10 @@ def upsert_company_job_source(store, *, company_id, provider, tenant_identifier,
                 # erase a user's watch preference or reprioritize that source.
                 origin = "USER_WATCHED"
                 priority = existing["priority"]
+            if discovered_automatically:
+                enabled = existing["enabled"]
+                if existing["priority"] == "USER_PINNED":
+                    priority = "USER_PINNED"
         elif last_success is _UNSET:
             last_success = None
         upsert(connection, m.company_sources, {
@@ -268,3 +272,133 @@ def link_company_parent(store, parent_company_id, child_company_id, relationship
         ))
         return {"parent_company_id": parent_id, "child_company_id": child_id,
                 "relationship_type": relationship}
+
+
+def _set_source_control(store, source_id, column, value, action):
+    """Set an explicit user choice once, preserving unrelated source fields."""
+    source_id = _token(source_id, "SOURCE_ID", 128)
+    with store.engine.begin() as connection:
+        if connection.dialect.name == "sqlite":
+            connection.exec_driver_sql("BEGIN IMMEDIATE")
+        current = connection.execute(select(m.company_sources).where(
+            m.company_sources.c.id == source_id).with_for_update()).mappings().one_or_none()
+        if current is None:
+            raise ValueError("COMPANY_SOURCE_NOT_FOUND")
+        if current[column] != value:
+            connection.execute(update(m.company_sources).where(
+                m.company_sources.c.id == source_id).values(**{column: value}))
+            store._audit(connection, source_id, action, {
+                "company_source_id": source_id, "previous": current[column], "value": value,
+            })
+        return dict(connection.execute(select(m.company_sources).where(
+            m.company_sources.c.id == source_id)).mappings().one())
+
+
+def set_company_source_pin(store, source_id, *, pinned):
+    if type(pinned) is not bool:
+        raise ValueError("COMPANY_SOURCE_PIN_INVALID")
+    return _set_source_control(store, source_id, "priority", "USER_PINNED" if pinned else "NORMAL",
+                               "COMPANY_SOURCE_PIN_CHANGED")
+
+
+def set_company_source_enabled(store, source_id, *, enabled):
+    if type(enabled) is not bool:
+        raise ValueError("COMPANY_SOURCE_ENABLED_INVALID")
+    return _set_source_control(store, source_id, "enabled", enabled, "COMPANY_SOURCE_ENABLED_CHANGED")
+
+
+def _view_url(value):
+    """No network access. Exclude user-info, query strings and fragments from view evidence."""
+    try:
+        parsed = urlsplit(str(value or "")[:2000])
+        if parsed.scheme not in {"http", "https"} or not parsed.hostname or parsed.username is not None or parsed.password is not None:
+            return None
+        parsed.port
+        return urlunsplit((parsed.scheme, parsed.netloc, parsed.path or "/", "", ""))
+    except ValueError:
+        return None
+
+
+def _view_event(row):
+    payload = row["payload"] if isinstance(row["payload"], dict) else {}
+    fields = ("company_source_id", "discovery_method", "provider", "tenant", "collection_strategy",
+              "strategy", "jobs_enumerated", "jobs_imported", "resolution_confidence")
+    details = {}
+    for key in fields:
+        value = payload.get(key)
+        if isinstance(value, str):
+            details[key] = value[:250]
+        elif type(value) in (int, float) and math.isfinite(value):
+            details[key] = value
+    for key in ("endpoint", "careers_url", "homepage_url", "search_result_url"):
+        if value := _view_url(payload.get(key)):
+            details[key] = value
+    return {"id": row["id"], "action": row["action"], "timestamp": row["timestamp"], "details": details}
+
+
+def list_company_source_view(store, profile_id=None):
+    """Project persisted evidence without fabricating official identity or scheduling."""
+    profile = store.profile(profile_id) if profile_id is not None else None
+    with store.engine.connect() as c:
+        rows = list(c.execute(select(m.company_sources, m.companies.c.name.label("company_name"))
+            .join(m.companies, m.company_sources.c.company_id == m.companies.c.id)
+            .order_by(m.companies.c.name, m.company_sources.c.id)).mappings())
+        if not rows:
+            return []
+        ids = [row["id"] for row in rows]
+        company_ids = {row["company_id"] for row in rows}
+        domains = {}
+        for domain in c.execute(select(m.company_domains).where(
+                m.company_domains.c.company_id.in_(company_ids), m.company_domains.c.verified.is_(True))
+                .order_by(m.company_domains.c.confidence.desc(), m.company_domains.c.domain)).mappings():
+            domains.setdefault(domain["company_id"], []).append(dict(domain))
+        linked = m.company_sources.join(m.postings,
+            m.postings.c.source == ("company-feed:" + m.company_sources.c.id)).join(m.jobs,
+            (m.jobs.c.id == m.postings.c.job_id) & (m.jobs.c.company_id == m.company_sources.c.company_id))
+        count_query = select(m.company_sources.c.id, func.count(func.distinct(m.jobs.c.id))).select_from(linked).group_by(m.company_sources.c.id)
+        found = dict(c.execute(count_query).all())
+        relevant = {}
+        if profile:
+            matched = linked.join(m.matches, (m.matches.c.job_id == m.jobs.c.id)
+                & (m.matches.c.profile_id == profile_id) & (m.matches.c.profile_version == profile["version"]))
+            relevant = dict(c.execute(select(m.company_sources.c.id, func.count(func.distinct(m.jobs.c.id)))
+                .select_from(matched).group_by(m.company_sources.c.id)).all())
+        source_key = m.audit.c.payload["company_source_id"].as_string()
+        ranked = select(m.audit, source_key.label("source_id"), func.row_number().over(
+            partition_by=source_key, order_by=(m.audit.c.timestamp.desc(), m.audit.c.id.desc())).label("rank"))
+        ranked = ranked.where(source_key.in_(ids), m.audit.c.action.in_([
+            "COMPANY_SOURCE_DISCOVERED", "COMPANY_FEED_IMPORT_COMPLETE"])).subquery()
+        events = {}
+        for event in c.execute(select(ranked).where(ranked.c.rank <= 20).order_by(
+                ranked.c.source_id, ranked.c.rank)).mappings():
+            events.setdefault(event["source_id"], []).append(_view_event(event))
+        tenants = {row["id"]: dict(row) for row in c.execute(select(m.company_ats_tenants).where(
+            m.company_ats_tenants.c.company_id.in_(company_ids))).mappings()}
+    result = []
+    for row in rows:
+        verified = domains.get(row["company_id"], [])
+        # Equal-confidence distinct verified domains remain visible as ambiguity.
+        domain = verified[0] if verified and (len(verified) == 1 or verified[0]["confidence"] > verified[1]["confidence"]) else None
+        tenant = tenants.get(row["ats_tenant_id"], {})
+        confidence = row["confidence"]
+        valid_confidence = type(confidence) in (int, float) and math.isfinite(confidence) and 0 <= confidence <= 1
+        review = not valid_confidence or confidence < 0.75
+        result.append({
+            "id": row["id"], "company_id": row["company_id"], "company_name": row["company_name"],
+            "official_domain": domain["domain"] if domain else None,
+            "career_url": _view_url(row["career_url"]), "provider": row["provider"], "tenant": row["tenant"],
+            "collection_strategy": row["collection_strategy"], "confidence": confidence if valid_confidence else None,
+            "priority": row["priority"], "enabled": row["enabled"], "origin": row["origin"],
+            "discovered_automatically": row["discovered_automatically"],
+            "status": "COMPANY_SOURCE_REVIEW_REQUIRED" if review else ("ENABLED" if row["enabled"] else "DISABLED"),
+            "jobs_found": found.get(row["id"], 0), "relevant_jobs": relevant.get(row["id"], 0),
+            "last_checked": row["last_validation"], "last_success": row["last_success"], "next_check": None,
+            "provenance": {
+                "domain_method": domain["verification_method"] if domain else None,
+                "domain_candidates_ambiguous": len(verified) > 1 and domain is None,
+                "tenant_evidence": [item[:500] for item in tenant.get("evidence", [])[:20] if isinstance(item, str)],
+                "events": events.get(row["id"], []),
+                "source_linked_history_available": bool(events.get(row["id"])),
+            },
+        })
+    return result

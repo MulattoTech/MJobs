@@ -16,7 +16,7 @@ def _origin(url, fixture_only=False):
         port = parsed.port
         try:
             address = ipaddress.ip_address(host)
-            if not address.is_global and not fixture_only:
+            if (not address.is_global or address.is_multicast) and not fixture_only:
                 return None
         except ValueError:
             if host == "localhost" or host.endswith((".localhost", ".local", ".internal")):
@@ -29,9 +29,9 @@ def _origin(url, fixture_only=False):
                     )}
                 except (OSError, ValueError):
                     return None
-                if not addresses or any(not address.is_global for address in addresses):
+                if not addresses or any(not address.is_global or address.is_multicast for address in addresses):
                     return None
-        if port not in (None, 80, 443) and not fixture_only:
+        if port not in (None, 80 if parsed.scheme == "http" else 443) and not fixture_only:
             return None
         return parsed.scheme.casefold(), host, port
     except (TypeError, ValueError):
@@ -55,6 +55,8 @@ def bounded_get(client, url, expected_origin=None):
     requested_origin = _origin(url, fixture_only)
     if expected_origin is not None and not isinstance(expected_origin, tuple):
         expected_origin = _origin(expected_origin, fixture_only)
+        if expected_origin is None:
+            raise ValueError("COMPANY_DISCOVERY_URL_BLOCKED")
     if (requested_origin is None or not client.allowed(url)
             or (expected_origin is not None and _canonical_origin(requested_origin) != _canonical_origin(expected_origin))):
         raise ValueError("COMPANY_DISCOVERY_URL_BLOCKED")

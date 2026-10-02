@@ -10,8 +10,8 @@
     "current_verified_local_state": "Initialized from newer origin/main; supplied control pack retained on governance branch",
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
-  "current_milestone": "M21_COMPANY_SOURCE_WATCH_AND_PRIORITY_LOCAL",
-  "current_objective": "MJ-PR-021 implements a tested durable company-source watch classification and preserves it during automatic refresh. The source-level slice is locally verified; REQ-074..075 remain PARTIAL and REQ-076..077 remain NOT_RUN.",
+  "current_milestone": "M22_COMPANY_SOURCE_VIEW_LOCAL_VERIFIED",
+  "current_objective": "MJ-PR-022 draft #449 published. Verify exact current head Actions, then integrate and select the next dependency-eligible slice.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -58,14 +58,15 @@
     "Mock-ATS company discovery supports a durable user-added trigger, evidence-based identity, automatic fixture source enrollment, and immediate employer-only job matching; production ATS providers and automatic trigger wiring remain open.",
     "Official-domain source acquisition and career-site discovery currently use fixture acceptance; production provider/search integration and automatic sitemap acquisition remain open (MJ-REQ-060..061 PARTIAL).",
     "ATS detection uses several deterministic page/URL evidence sources, but HTML-signature and network-observed public endpoint signals remain open (MJ-REQ-064 PARTIAL).",
-    "Company-source AUTO_DISCOVERED/USER_WATCHED origin, explicit list/watch APIs, and protection of watched priority across automatic refresh are locally verified; outcome-based ranking, company-level UI, and periodic source/ATS migration revalidation remain open (MJ-PR-021)."
+    "Company-source AUTO_DISCOVERED/USER_WATCHED origin, explicit list/watch APIs, and protection of watched priority across automatic refresh are locally verified; outcome-based ranking, company-level UI, and periodic source/ATS migration revalidation remain open (MJ-PR-021).",
+    "Companies/Sources view and explicit pin/enable/watch preferences verified; advanced discovery actions, historical provenance repair and company-source scheduling remain incomplete."
   ],
   "blocked_capabilities": [],
   "active_requirements": [
-    "MJ-REQ-074",
-    "MJ-REQ-075",
-    "MJ-REQ-076",
-    "MJ-REQ-077"
+    "MJ-REQ-078",
+    "MJ-REQ-079",
+    "MJ-REQ-080",
+    "MJ-REQ-081"
   ],
   "active_prs": [
     {
@@ -269,7 +270,7 @@
     {
       "branch": "codex/mj-pr-021-company-ats-discovery",
       "worktree": "C:\\Tools\\Dev\\MJobs-pr-021",
-      "status": "DRAFT",
+      "status": "MERGED",
       "base": "1dc6cd4fc9b9eb2797994ff7321e15dd83e6c2d7",
       "requirements": [
         "MJ-REQ-074",
@@ -280,8 +281,19 @@
       "evidence_path": "docs/evidence/2026-10-02-company-source-watch-and-priority.json",
       "number": 448,
       "url": "https://github.com/MulattoTech/MJobs/pull/448",
-      "head": "9c1b4dc7415ff108ad3a4751a92ce35031453bad",
-      "note": "PR-number/state bookkeeping commit will supersede this initial head; these initial-head checks are not final."
+      "head": "dd9bb5f73ab75cf3d5e4972d2d8f0ac1cf6dc1ef",
+      "note": "Reconciled with live GitHub PR #448; PR-triggered exact-head Verification run 36952070540 succeeded.",
+      "merge_commit": "c4c7da448cf973970f15701bdfee64de66556190",
+      "merged_at": "2026-10-02T01:45:50Z"
+    },
+    {
+      "number": 449,
+      "url": "https://github.com/MulattoTech/MJobs/pull/449",
+      "branch": "codex/mj-pr-022-company-ats-discovery",
+      "worktree": "C:\\Tools\\Dev\\MJobs-pr-022",
+      "status": "DRAFT_PR",
+      "initial_head": "d2904868dbe9d5d28b6d6c5965dc2ccb3ca78bd0",
+      "note": "Resolve the current head through GitHub after this bookkeeping commit; prior-head CI is not final."
     }
   ],
   "tests_passed": [
@@ -385,7 +397,8 @@
     "MJ-PR-021 full Python regression suite: 224 tests PASS in 54.310 seconds.",
     "MJ-PR-021 SQLite migration backfills source origin and refuses destructive watch/pin downgrade: PASS.",
     "MJ-PR-021 isolated PostgreSQL 17 Compose migration: fresh database upgraded through b71d9a42c0e3; migration service exited 0.",
-    "MJ-PR-021 independent read-only review: legacy source identity collisions fixed and re-reviewed with no remaining actionable findings."
+    "MJ-PR-021 independent read-only review: legacy source identity collisions fixed and re-reviewed with no remaining actionable findings.",
+    "MJ-PR-022: 235 Python tests with zero skips, 6 frontend tests/build, catalogue/progress and actual PERSONAL-mode company-source browser controls PASS; local Docker deployment blocked."
   ],
   "tests_failed": [],
   "tests_not_run": [
@@ -413,8 +426,11 @@
     "MJ-PR-016 local Chromium first run used Docker DNS host api, which is not a secure browser origin for crypto.randomUUID; loopback URL rerun passed all five connected UI actions."
   ],
   "last_verified_checkpoint": {
-    "git_commit": "109557fb40974fa437ec0bf89cbe936a29fe0efb",
-    "evidence_path": "docs/evidence/2026-10-02-company-source-watch-and-priority.json"
+    "timestamp": "2026-10-02T10:45:17.027499+00:00",
+    "base_commit": "c4c7da448cf973970f15701bdfee64de66556190",
+    "result": "PASS",
+    "scope": "235 Python tests, 6 frontend tests, build, validators and isolated browser acceptance",
+    "evidence_path": "docs/evidence/2026-10-02-company-source-confidence-and-view.json"
   },
   "ci_verification": {
     "result": "IN_PROGRESS",
@@ -482,7 +498,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Implement normalized, bounded insertion of validated feed jobs through the regular persistence/matching path, then prove aggregator-missing employer postings become discoverable.",
+  "recommended_resume_step": "Inspect current PR #449 head/checks and unresolved reviews. Fix demonstrated failures; merge only with required exact-head verification. Continue MJ-PR-023 or another eligible slice after live reconciliation.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],

@@ -641,27 +641,35 @@
     },
     {
       "requirement_id": "MJ-REQ-078",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-02-company-source-confidence-and-view.json"
+      ],
+      "note": "PARTIAL: source confidence and <0.75 review status are exposed and tested; full confidence calibration and review resolution remain open."
     },
     {
       "requirement_id": "MJ-REQ-079",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-02-company-source-confidence-and-view.json"
+      ],
+      "note": "PARTIAL: new fixture/feed discovery events carry explicit source IDs and the view exposes bounded source-linked evidence; historic unlinked events are not inferred or backfilled."
     },
     {
       "requirement_id": "MJ-REQ-080",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-02-company-source-confidence-and-view.json"
+      ],
+      "note": "PARTIAL: deterministic policy tests protect private/multicast/DNS/credential/scheme/port/redirect boundaries and invalid expected origins; no production company discovery transport was enabled or live-verified."
     },
     {
       "requirement_id": "MJ-REQ-081",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-02-company-source-confidence-and-view.json"
+      ],
+      "note": "PARTIAL: responsive Companies/Sources view, pin/enable/watch controls and evidence are browser-tested. Run Now, Rediscover, Verify, Edit and next-check scheduling remain explicitly unavailable."
     },
     {
       "requirement_id": "MJ-REQ-082",

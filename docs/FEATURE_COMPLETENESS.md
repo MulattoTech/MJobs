@@ -9,8 +9,8 @@ A percentage is a navigation aid, never a release claim. Only evidence-backed PA
 ## Original specification
 - Catalogue items: **366**
 - PASS: **48** (13.11%)
-- PARTIAL: **64** (17.49%)
-- NOT_RUN: **254** (69.40%)
+- PARTIAL: **68** (18.58%)
+- NOT_RUN: **250** (68.31%)
 - Full-spec state: **PARTIAL**
 - Release readiness: **not established**
 PASS counts complete requirement items, not the fraction of source code implemented. Many requirements span multiple product capabilities; the repository does not turn partial evidence into completed requirements.
@@ -73,3 +73,6 @@ Whenever a PR changes requirement evidence, update the relevant matrix and this 
 Do not hand-edit percentages without reconciling evidence.
 
 - Company-source watch origin and API are persisted; automatic refresh preserves USER_WATCHED and priority. This source-level slice is PARTIAL for MJ-REQ-075; outcome-based ranking (074) and periodic source/ATS migration revalidation (076–077) remain open (`docs/evidence/2026-10-02-company-source-watch-and-priority.json`).
+
+## MJ-PR-022 local checkpoint
+The Companies/Sources view now exposes source-specific counts, confidence/review status, verified-domain-only identity, bounded provenance, and persistent pin/watch/enable controls. Automated refresh preserves pins and disabled state. An isolated real-browser test exercised the controls and reload at desktop/mobile sizes. REQ-078..081 remain PARTIAL: historic unlinked provenance, confidence review resolution, production company discovery, Run Now/Rediscover/Verify/Edit and scheduling are still incomplete. Evidence: `docs/evidence/2026-10-02-company-source-confidence-and-view.json`. Local Docker deployment is BLOCKED_ENVIRONMENT; the Linux engine named pipe is unavailable.

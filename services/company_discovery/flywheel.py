@@ -224,6 +224,7 @@ def discover_company_source(store, candidate, client, check=None, search_provide
                     m.company_sources.c.id == source_record["id"]
                 ).values(last_success=timestamp))
                 store._audit(connection, resolved["company_id"], "COMPANY_SOURCE_DISCOVERED", {
+                    "company_source_id": source_record["id"],
                     "discovery_method": "SAME_ORIGIN_MACHINE_READABLE_FEED",
                     "careers_url": str(careers.url), "endpoint": feed["url"],
                     "collection_strategy": feed["strategy"], "jobs_enumerated": len(feed_jobs),
@@ -266,6 +267,7 @@ def discover_company_source(store, candidate, client, check=None, search_provide
     source_id = source_record["id"]
     with store.engine.begin() as connection:
         store._audit(connection, resolved["company_id"], "COMPANY_SOURCE_DISCOVERED", {
+            "company_source_id": source_id,
             "trigger_evidence": candidate.get("trigger_evidence", []),
             "resolution_confidence": resolved["confidence"],
             "resolution_evidence": resolved["evidence"],
