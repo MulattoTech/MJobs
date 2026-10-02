@@ -1,4 +1,5 @@
 import React from 'react';
+import { discoveryActivity } from './company-activity';
 
 export type CompanySourceView = {
   id: string;
@@ -67,6 +68,7 @@ export function CompanySources({rows, busy, profileSelected, onSet}: Props) {
       const pinned = row.priority === 'USER_PINNED';
       const watched = row.origin === 'USER_WATCHED';
       const careerLink = safeLink(row.career_url);
+      const activity = discoveryActivity(row.provenance.events);
       const confidence = row.confidence !== null && Number.isFinite(row.confidence)
         ? `${Math.round(row.confidence * 100)}%` : 'Unknown';
       return <article className="company-source-card" key={row.id} data-source-id={row.id} aria-label={`${row.company_name} source`}>
@@ -96,6 +98,14 @@ export function CompanySources({rows, busy, profileSelected, onSet}: Props) {
             onClick={() => void onSet(row, 'watch', !watched)}>{watched ? 'Unwatch' : 'Watch'}</button>
         </div>
         {!row.discovered_automatically && <p className="muted">Manually added sources remain watched. Disable the source to turn off its saved enabled preference.</p>}
+        <section className="company-source-history" aria-label={`Recent discovery for ${row.company_name}`}>
+          <h4>Recent discovery</h4>
+          {activity.length === 0 ? <p className="muted">No source-linked activity recorded.</p> :
+            <ol className="company-source-activity">{activity.map(event => <li key={event.id}>
+              <p>{event.message}</p>
+              <small>{event.timestamp ? <time dateTime={event.timestamp}>{timestamp(event.timestamp)}</time> : 'Time not recorded'}</small>
+            </li>)}</ol>}
+        </section>
         <details className="company-source-evidence">
           <summary>View Evidence</summary>
           {!row.provenance.source_linked_history_available && <p>No source-linked discovery history is available for this record. Historical evidence has not been inferred.</p>}

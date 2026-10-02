@@ -10,8 +10,8 @@
     "current_verified_local_state": "Initialized from newer origin/main; supplied control pack retained on governance branch",
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
-  "current_milestone": "M22_COMPANY_SOURCE_VIEW_LOCAL_VERIFIED",
-  "current_objective": "MJ-PR-022 draft #449 published. Verify exact current head Actions, then integrate and select the next dependency-eligible slice.",
+  "current_milestone": "M23_SOURCE_ACTIVITY_LOCAL_VERIFIED",
+  "current_objective": "Verify the exact current head of activity PR #450 and integrate when green. Keep MJ-PR-023 remaining activity/quality/ATS reuse scope explicitly incomplete.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -63,10 +63,7 @@
   ],
   "blocked_capabilities": [],
   "active_requirements": [
-    "MJ-REQ-078",
-    "MJ-REQ-079",
-    "MJ-REQ-080",
-    "MJ-REQ-081"
+    "MJ-REQ-082"
   ],
   "active_prs": [
     {
@@ -291,9 +288,21 @@
       "url": "https://github.com/MulattoTech/MJobs/pull/449",
       "branch": "codex/mj-pr-022-company-ats-discovery",
       "worktree": "C:\\Tools\\Dev\\MJobs-pr-022",
-      "status": "DRAFT_PR",
+      "status": "MERGED",
       "initial_head": "d2904868dbe9d5d28b6d6c5965dc2ccb3ca78bd0",
-      "note": "Resolve the current head through GitHub after this bookkeeping commit; prior-head CI is not final."
+      "note": "Resolve the current head through GitHub after this bookkeeping commit; prior-head CI is not final.",
+      "head": "9d5a452f74815d2c726c4c911cc3b0df3c467f29",
+      "merge_commit": "566bbf9cdebf882cc80bbb65b803ca3996fa9beb",
+      "ci_evidence": "docs/evidence/2026-10-02-ci-449.json"
+    },
+    {
+      "number": 450,
+      "url": "https://github.com/MulattoTech/MJobs/pull/450",
+      "branch": "codex/mj-pr-023-company-ats-discovery",
+      "worktree": "C:\\Tools\\Dev\\MJobs-pr-023",
+      "status": "DRAFT_PR",
+      "initial_head": "83493c0c884a7719a86fdcb108e02aca648472a9",
+      "scope": "first source-linked activity slice only"
     }
   ],
   "tests_passed": [
@@ -398,7 +407,8 @@
     "MJ-PR-021 SQLite migration backfills source origin and refuses destructive watch/pin downgrade: PASS.",
     "MJ-PR-021 isolated PostgreSQL 17 Compose migration: fresh database upgraded through b71d9a42c0e3; migration service exited 0.",
     "MJ-PR-021 independent read-only review: legacy source identity collisions fixed and re-reviewed with no remaining actionable findings.",
-    "MJ-PR-022: 235 Python tests with zero skips, 6 frontend tests/build, catalogue/progress and actual PERSONAL-mode company-source browser controls PASS; local Docker deployment blocked."
+    "MJ-PR-022: 235 Python tests with zero skips, 6 frontend tests/build, catalogue/progress and actual PERSONAL-mode company-source browser controls PASS; local Docker deployment blocked.",
+    "MJ-PR-023 activity slice: 235 Python tests with zero skips, 11 frontend tests/build, validators and actual synthetic feed import -> audit -> API -> browser activity PASS."
   ],
   "tests_failed": [],
   "tests_not_run": [
@@ -426,11 +436,11 @@
     "MJ-PR-016 local Chromium first run used Docker DNS host api, which is not a secure browser origin for crypto.randomUUID; loopback URL rerun passed all five connected UI actions."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-02T10:45:17.027499+00:00",
-    "base_commit": "c4c7da448cf973970f15701bdfee64de66556190",
+    "timestamp": "2026-10-02T11:03:00.071536+00:00",
+    "base_commit": "566bbf9cdebf882cc80bbb65b803ca3996fa9beb",
     "result": "PASS",
-    "scope": "235 Python tests, 6 frontend tests, build, validators and isolated browser acceptance",
-    "evidence_path": "docs/evidence/2026-10-02-company-source-confidence-and-view.json"
+    "scope": "235 Python tests, 11 frontend tests/build, validators, and actual feed-import-to-browser activity acceptance",
+    "evidence_path": "docs/evidence/2026-10-02-company-discovery-activity.json"
   },
   "ci_verification": {
     "result": "IN_PROGRESS",
@@ -498,7 +508,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Inspect current PR #449 head/checks and unresolved reviews. Fix demonstrated failures; merge only with required exact-head verification. Continue MJ-PR-023 or another eligible slice after live reconciliation.",
+  "recommended_resume_step": "Reconcile GitHub PR #450 before acting. After its verified activity slice merges, continue remaining MJ-PR-023 scope rather than treating the entire queue unit as finished. Preserve the live-feedback workflow and local Docker environment limitation.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],

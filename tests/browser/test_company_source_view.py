@@ -17,6 +17,7 @@ from apps.api.main import create_app
 from packages.persistence import models as m
 from packages.persistence.store import Store, upsert
 from services.company_discovery.sources import upsert_company_job_source
+from services.discovery.company_feed import import_company_feed_jobs
 from tests.integration.test_spine import PROFILE
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -37,6 +38,11 @@ class CompanySourceBrowserTests(unittest.TestCase):
                 tenant_identifier='browser-fixture', career_url='https://fixture.example/careers',
                 feed_url='https://fixture.example/jobs.xml', collection_strategy='RSS',
                 confidence=0.65, discovered_automatically=True)
+            imported = import_company_feed_jobs(store, company_id='browser-fixture', source_id=source['id'],
+                provider='rss', tenant='browser-fixture', endpoint=source['feed_url'], strategy='RSS',
+                items=[{'guid':'one','title':'Python Engineer','description':'Python','link':'/careers/one'},
+                       {'guid':'two','title':'SQL Analyst','description':'SQL','link':'/careers/two'}], profile_id='fixture')
+            self.assertEqual(imported, 2)
             app = create_app(store, 'http://127.0.0.1:1', root, 'redis://127.0.0.1:1/0', operation_mode='PERSONAL')
             sock = socket.socket()
             sock.bind(('127.0.0.1', 0))
@@ -71,6 +77,8 @@ class CompanySourceBrowserTests(unittest.TestCase):
                     expect(card).to_be_visible()
                     expect(card).to_contain_text('Not verified')
                     expect(card).to_contain_text('Not scheduled')
+                    expect(card.get_by_text('Imported 2 jobs from 2 feed records.', exact=True)).to_be_visible()
+                    expect(card.locator('.company-source-history')).to_be_visible()
                     expect(card).to_contain_text('COMPANY_SOURCE_REVIEW_REQUIRED')
                     for label in ['Run Now','Rediscover','Verify','Edit']:
                         expect(card.get_by_role('button', name=label+' \u2014 unavailable', exact=True)).to_be_disabled()
@@ -87,7 +95,7 @@ class CompanySourceBrowserTests(unittest.TestCase):
                     expect(card.get_by_role('button', name='Enable Browser Fixture Employer source', exact=True)).to_be_enabled()
                     card.locator('summary').click()
                     expect(card.locator('pre')).to_be_visible()
-                    expect(card).to_contain_text('Historical evidence has not been inferred')
+                    expect(card.locator('pre')).to_contain_text('COMPANY_FEED_IMPORT_COMPLETE')
                     for label in ['Unpin','Enable','Unwatch']:
                         card.get_by_role('button', name=f'{label} Browser Fixture Employer source', exact=True).click()
                         expect(page.get_by_role('status').filter(has_text='Company source preference saved.')).to_be_visible()

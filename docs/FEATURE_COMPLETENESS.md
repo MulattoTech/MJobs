@@ -9,8 +9,8 @@ A percentage is a navigation aid, never a release claim. Only evidence-backed PA
 ## Original specification
 - Catalogue items: **366**
 - PASS: **48** (13.11%)
-- PARTIAL: **68** (18.58%)
-- NOT_RUN: **250** (68.31%)
+- PARTIAL: **69** (18.85%)
+- NOT_RUN: **249** (68.03%)
 - Full-spec state: **PARTIAL**
 - Release readiness: **not established**
 PASS counts complete requirement items, not the fraction of source code implemented. Many requirements span multiple product capabilities; the repository does not turn partial evidence into completed requirements.
@@ -76,3 +76,6 @@ Do not hand-edit percentages without reconciling evidence.
 
 ## MJ-PR-022 local checkpoint
 The Companies/Sources view now exposes source-specific counts, confidence/review status, verified-domain-only identity, bounded provenance, and persistent pin/watch/enable controls. Automated refresh preserves pins and disabled state. An isolated real-browser test exercised the controls and reload at desktop/mobile sizes. REQ-078..081 remain PARTIAL: historic unlinked provenance, confidence review resolution, production company discovery, Run Now/Rediscover/Verify/Edit and scheduling are still incomplete. Evidence: `docs/evidence/2026-10-02-company-source-confidence-and-view.json`. Local Docker deployment is BLOCKED_ENVIRONMENT; the Linux engine named pipe is unavailable.
+
+## MJ-PR-023 activity slice
+Recent source-linked discovery/import activity is now readable without opening raw diagnostics. Missing counts and timestamps remain unknown, inconsistent counts need review, and imported counts are not presented as verified active/eligible openings. The browser proof starts with the real feed import service, persists its audit event, and displays the resulting history through the API. MJ-REQ-082 remains PARTIAL; source quality scoring and ATS knowledge reuse remain NOT_RUN. Evidence: `docs/evidence/2026-10-02-company-discovery-activity.json`. Parent PR #449 exact-head hosted CI is recorded in `docs/evidence/2026-10-02-ci-449.json`; local Docker availability remains separate.

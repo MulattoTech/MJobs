@@ -30,6 +30,13 @@ describe('Companies/Sources view', () => {
     expect(html).not.toContain('href="javascript:');
     expect(html).toContain('&lt;script&gt;');
   });
+  it('shows readable discovery history before the raw evidence details', async () => {
+    const html=await render([{...source, provenance:{...source.provenance, source_linked_history_available:true,
+      events:[{id:'import',action:'COMPANY_FEED_IMPORT_COMPLETE',timestamp:'2026-10-02T10:00:00Z',details:{jobs_imported:3,jobs_enumerated:5}}]}}]);
+    expect(html).toContain('Recent discovery');
+    expect(html).toContain('Imported 3 jobs from 5 feed records.');
+    expect(html.indexOf('Imported 3 jobs')).toBeLessThan(html.indexOf('View Evidence'));
+  });
   it('shows an honest empty state', async () => {
     expect(await render([])).toContain('No company sources enrolled');
   });
