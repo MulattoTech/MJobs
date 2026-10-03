@@ -6,6 +6,7 @@ from sqlalchemy import select
 from packages.persistence import models as m
 from services.company_discovery.flywheel import directly_monitored
 from services.company_discovery.resolution import resolve_company
+from services.company_discovery.public_resolution import resolve_public_company
 from workers.dispatch import enqueue_operation
 
 
@@ -21,12 +22,12 @@ TRIGGERS = {
 }
 
 
-def queue_company_discovery(store, candidate, reason, profile_id=None):
+def queue_company_discovery(store, candidate, reason, profile_id=None, *, public=False, request_id=None):
     reason = str(reason or "").upper()
     if reason not in TRIGGERS:
         raise ValueError("COMPANY_DISCOVERY_TRIGGER_INVALID")
-    resolved = resolve_company(store, candidate)
-    if directly_monitored(store, resolved["company_id"]) and reason not in {"KNOWN_SOURCE_BROKEN", "NEW_ATS_TENANT"}:
+    resolved = resolve_public_company(store, candidate) if public else resolve_company(store, candidate)
+    if directly_monitored(store, resolved["company_id"], public=public) and reason not in {"KNOWN_SOURCE_BROKEN", "NEW_ATS_TENANT"}:
         return {
             "status": "ALREADY_MONITORED",
             "company_id": resolved["company_id"],
@@ -36,6 +37,7 @@ def queue_company_discovery(store, candidate, reason, profile_id=None):
     candidate = {**candidate, "trigger_evidence": [reason]}
     params = {
         "candidate": candidate,
+        "fetch_mode": "PUBLIC_HTTPS" if public else "FIXTURE",
         "trigger_reason": reason,
         "profile_id": profile_id,
         "resolution": {
@@ -44,6 +46,10 @@ def queue_company_discovery(store, candidate, reason, profile_id=None):
             "evidence": resolved["evidence"],
         },
     }
+    if request_id is not None:
+        if not isinstance(request_id, str) or not 1 <= len(request_id) <= 128:
+            raise ValueError("COMPANY_DISCOVERY_REQUEST_ID_INVALID")
+        params["request_id"] = request_id
     operation_id = enqueue_operation(store, "COMPANY_DISCOVER", resolved["company_id"], params)
     return {
         "status": "QUEUED",

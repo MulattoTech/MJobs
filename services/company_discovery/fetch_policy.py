@@ -4,6 +4,7 @@ from __future__ import annotations
 import ipaddress
 import socket
 from urllib.parse import urlsplit
+from services.company_discovery.public_client import PublicCompanyClient
 
 
 def _origin(url, fixture_only=False):
@@ -51,7 +52,9 @@ def bounded_get(client, url, expected_origin=None):
     """Fetch only through a transport that enforces its allowlist on redirects."""
     if not callable(getattr(client, "allowed", None)) or not getattr(client, "bounded_redirects", False):
         raise ValueError("COMPANY_DISCOVERY_CLIENT_UNSAFE")
-    fixture_only = bool(getattr(client, "fixture_only", False))
+    # The production client resolves with a bounded wait and pins vetted addresses.
+    # Avoid an additional unbounded DNS lookup here; generic clients retain checks.
+    fixture_only = bool(getattr(client, "fixture_only", False)) or isinstance(client, PublicCompanyClient)
     requested_origin = _origin(url, fixture_only)
     if expected_origin is not None and not isinstance(expected_origin, tuple):
         expected_origin = _origin(expected_origin, fixture_only)

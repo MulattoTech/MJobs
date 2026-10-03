@@ -494,6 +494,14 @@
       "exact_head_checks": {
         "pull_request_verification": 36949709396,
         "push_verification": 36949702239
+      },
+      "active_slice": {
+        "name": "Bounded PERSONAL company discovery and unverified source review",
+        "branch": "codex/public-company-discovery",
+        "status": "PARTIAL",
+        "publication_state": "NOT_RUN",
+        "evidence_path": "docs/evidence/2026-10-03-public-company-discovery.json",
+        "remaining": "Production provider breadth, automatic intake wiring, scheduled collection and link accuracy."
       }
     },
     {
@@ -575,7 +583,7 @@
       "status": "PARTIAL",
       "branch": "codex/mj-pr-023-company-ats-discovery",
       "draft_until_verified": true,
-      "notes": "PR450 activity and PR473 quality observations merged. Source-value slice locally validated; MJ-REQ-082/083 remain PARTIAL and084 unimplemented.",
+      "notes": "PR450 activity, PR473 quality observations and PR474 authority-first source values merged; application-link accuracy remains incomplete.",
       "validation_result": "PARTIAL",
       "worktree": "C:\\Tools\\Dev\\MJobs-pr-023",
       "base": "566bbf9cdebf882cc80bbb65b803ca3996fa9beb",
@@ -596,11 +604,13 @@
         "name": "Authority-first source values and protected application routes",
         "branch": "codex/source-value-resolution",
         "status": "PARTIAL",
-        "publication_state": "DRAFT",
+        "publication_state": "MERGED",
         "evidence_path": "docs/evidence/2026-10-03-authoritative-source-values.json",
         "remaining": "Bounded application-link accuracy observations; full MJ-REQ-083 acceptance.",
         "pr_number": 474,
-        "url": "https://github.com/MulattoTech/MJobs/pull/474"
+        "url": "https://github.com/MulattoTech/MJobs/pull/474",
+        "head": "ab39d182100335d54a1c06f51b3e1e53eb95e776",
+        "merge_commit": "216f1a4696abc8dcb07fb57b5a67102091343ec5"
       },
       "slice_history": [
         {

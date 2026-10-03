@@ -28,6 +28,7 @@ from services.discovery.search_semantics import filter_jobs
 from services.dedupe.reviews import list_duplicate_reviews, record_review_decision
 from services.dedupe.routes import load_job_routes, list_route_choices, plan_application_routes, source_provenance_inventory
 from services.company_discovery.triggers import queue_company_discovery
+from services.company_discovery.public_client import PublicFetchError
 from services.company_discovery.sources import (list_company_job_sources, set_company_source_watch,
     list_company_source_view, set_company_source_pin, set_company_source_enabled)
 from services.documents.uploads import MAX_UPLOAD_BYTES, UploadIntegrityError, list_resumes, save_resume, read_resume
@@ -93,6 +94,7 @@ class CompanyDiscoveryInput(BaseModel):
                     "REPEATED_AGGREGATOR_APPEARANCE", "KNOWN_SOURCE_BROKEN"]
     profile_id: str | None = Field(default=None, max_length=128)
 
+    request_id: str | None = Field(default=None, min_length=1, max_length=128)
 
 class CompanySourcePinInput(BaseModel):
     model_config = ConfigDict(strict=True, extra="forbid")
@@ -319,8 +321,11 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     def company_discovery(value: CompanyDiscoveryInput):
         if value.profile_id:
             store.profile(value.profile_id)
-        candidate = value.model_dump(exclude={"reason", "profile_id"})
-        return queue_company_discovery(store, candidate, value.reason, value.profile_id)
+        candidate = value.model_dump(exclude={"reason", "profile_id", "request_id"})
+        try:
+            return queue_company_discovery(store, candidate, value.reason, value.profile_id, public=operation_mode == "PERSONAL", request_id=value.request_id)
+        except (ValueError, PublicFetchError) as exc:
+            raise HTTPException(422, str(exc)) from exc
 
     @app.get("/company-sources/view")
     def company_source_view(profile_id: str | None = Query(default=None, min_length=1, max_length=128)):

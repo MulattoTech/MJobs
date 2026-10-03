@@ -16,6 +16,8 @@ from services.company_discovery.endpoints import machine_readable_job_endpoints,
 from services.company_discovery.fetch_policy import bounded_get
 from services.company_discovery.quality import record_known_feed_failure
 from services.company_discovery.resolution import resolve_company
+from services.company_discovery.public_resolution import resolve_public_company
+from services.company_discovery.public_client import PublicFetchError, HTTPStatusError as PublicHTTPStatusError
 from services.company_discovery.search import search_company_careers
 from services.company_discovery.sources import register_ats_tenant, upsert_company_job_source
 from services.ats_detection.detector import detect_ats
@@ -51,7 +53,8 @@ def discover_company_source(store, candidate, client, check=None, search_provide
                             profile_id=None, profile_version=None):
     """Resolve one employer, prove its careers/ATS source, enroll, and enumerate immediately."""
     check = check or (lambda: None)
-    resolved = resolve_company(store, candidate)
+    fixture = bool(getattr(client, "fixture_only", False))
+    resolved = resolve_company(store, candidate) if fixture else resolve_public_company(store, candidate)
     website = str(candidate.get("company_website") or candidate.get("website_url") or "").strip()
     search_context = None
     rejected_search_candidates = []
@@ -73,7 +76,9 @@ def discover_company_source(store, candidate, client, check=None, search_provide
             check()
             try:
                 candidate_page = bounded_get(client, search_candidate.url)
-            except httpx.HTTPStatusError:
+            except (httpx.HTTPStatusError, PublicHTTPStatusError) as error:
+                if isinstance(error, PublicHTTPStatusError) and error.status_code in {401, 403, 429}:
+                    raise
                 rejected_search_candidates.append({"url": search_candidate.url, "reason": "HTTP_STATUS"})
                 continue
             except ValueError as error:
@@ -89,7 +94,7 @@ def discover_company_source(store, candidate, client, check=None, search_provide
                 redirect_chain=[str(response.url) for response in getattr(candidate_page, "history", ())],
             )
             if not (internal_career_links(str(candidate_page.url), candidate_page.text)
-                    or fixture_ats is not None or candidate_detection.status == "MATCH"):
+                    or (fixture and fixture_ats is not None) or candidate_detection.status == "MATCH"):
                 rejected_search_candidates.append({"url": search_candidate.url,
                                                    "reason": "CAREER_OR_ATS_EVIDENCE_MISSING"})
                 continue
@@ -128,8 +133,9 @@ def discover_company_source(store, candidate, client, check=None, search_provide
             check()
             try:
                 guessed_page = bounded_get(client, guessed_url, str(homepage.url))
-            except httpx.HTTPStatusError as error:
-                if error.response.status_code == 404:
+            except (httpx.HTTPStatusError, PublicHTTPStatusError) as error:
+                status = error.status_code if isinstance(error, PublicHTTPStatusError) else error.response.status_code
+                if status == 404:
                     continue
                 raise
             guessed_ats = BeautifulSoup(guessed_page.text, "html.parser").find(
@@ -139,7 +145,7 @@ def discover_company_source(store, candidate, client, check=None, search_provide
                 str(guessed_page.url), guessed_page.text,
                 redirect_chain=[str(response.url) for response in getattr(guessed_page, "history", ())],
             )
-            if guessed_ats is not None or guessed_detection.status == "MATCH":
+            if (fixture and guessed_ats is not None) or guessed_detection.status == "MATCH" or machine_readable_job_endpoints(str(guessed_page.url), guessed_page.text):
                 careers_url, careers = str(guessed_page.url), guessed_page
                 break
     if careers is None:
@@ -151,10 +157,12 @@ def discover_company_source(store, candidate, client, check=None, search_provide
                 "homepage_url": str(homepage.url),
                 **provenance,
             })
-        raise ValueError("COMPANY_CAREERS_LINK_UNPROVEN")
+        raise (ValueError if fixture else PublicFetchError)("COMPANY_CAREERS_LINK_UNPROVEN")
     check()
     ats_link = BeautifulSoup(careers.text, "html.parser").find("a", attrs={"data-provider": True, "data-tenant": True})
-    if ats_link is not None and ats_link.get("href") and str(ats_link.get("data-provider", "")).strip().casefold() == "mock-ats":
+    if not fixture and ats_link is not None and str(ats_link.get("data-provider", "")).strip().casefold() == "mock-ats":
+        raise PublicFetchError("FIXTURE_SOURCE_BLOCKED")
+    if fixture and ats_link is not None and ats_link.get("href") and str(ats_link.get("data-provider", "")).strip().casefold() == "mock-ats":
         provider = "mock-ats"
         tenant = str(ats_link["data-tenant"]).strip().casefold()
         endpoint = urljoin(str(careers.url), ats_link["href"])
@@ -185,11 +193,14 @@ def discover_company_source(store, candidate, client, check=None, search_provide
                 feed_response = bounded_get(client, feed["url"], str(careers.url))
                 feed_available = True
                 feed_jobs = parse_public_job_feed(feed_response.text, feed["strategy"])
-            except (httpx.HTTPError, ValueError) as failure:
+            except (httpx.HTTPError, ValueError, PublicFetchError) as failure:
                 record_known_feed_failure(store, company_id=resolved['company_id'],
                     career_url=str(careers.url), endpoint=feed['url'], strategy=feed['strategy'],
-                    available=False if isinstance(failure, httpx.HTTPError) else feed_available,
+                    available=False if isinstance(failure, (httpx.HTTPError, PublicHTTPStatusError)) else feed_available,
                     error_code=type(failure).__name__)
+                if isinstance(failure, PublicFetchError) and not (
+                        isinstance(failure, PublicHTTPStatusError) and failure.status_code in {404, 410}):
+                    raise
                 continue
             company_domain = normalize_domain(str(homepage.url)) or ""
             with store.engine.begin() as connection:
@@ -203,15 +214,17 @@ def discover_company_source(store, candidate, client, check=None, search_provide
                 store, resolved["company_id"], provider=source_provider,
                 tenant_identifier=source_tenant, confidence=0.88,
                 evidence=["same-origin alternate machine-readable job feed"],
-            )
+            ) if fixture else None
+            verified_origin = "VERIFIED_DOMAIN_MATCH" in resolved["evidence"]
+            source_confidence = 0.88 if fixture or verified_origin else 0.45
             source_record = upsert_company_job_source(
                 store, company_id=resolved["company_id"], provider=source_provider,
                 tenant_identifier=source_tenant, career_url=str(careers.url),
                 feed_url=feed["url"] if feed["strategy"] == "RSS" else None,
                 public_api_url=feed["url"] if feed["strategy"] == "PUBLIC_JSON" else None,
-                collection_strategy=feed["strategy"], confidence=0.88, enabled=True,
+                collection_strategy=feed["strategy"], confidence=source_confidence, enabled=fixture or verified_origin,
                 priority="NORMAL", discovered_automatically=True,
-                ats_tenant_id=tenant_record["id"], last_validation=timestamp,
+                ats_tenant_id=tenant_record["id"] if tenant_record else None, last_validation=timestamp,
             )
             if company_domain:
                 record_company_domain(
@@ -246,8 +259,8 @@ def discover_company_source(store, candidate, client, check=None, search_provide
                 "company_domain": company_domain,
             }
         if detected.status != "MATCH" or not detected.provider:
-            raise ValueError("COMPANY_ATS_REVIEW_REQUIRED")
-        raise ValueError("COMPANY_ATS_ENUMERATION_UNSUPPORTED")
+            raise (ValueError if fixture else PublicFetchError)("COMPANY_ATS_REVIEW_REQUIRED")
+        raise (ValueError if fixture else PublicFetchError)("COMPANY_ATS_ENUMERATION_UNSUPPORTED")
     check()
     payload = bounded_get(client, endpoint, str(careers.url)).json()
     jobs = payload.get("jobs") if isinstance(payload, dict) else None
@@ -304,8 +317,12 @@ def discover_company_source(store, candidate, client, check=None, search_provide
     }
 
 
-def directly_monitored(store, company_id):
+def directly_monitored(store, company_id, *, public=False):
     with store.engine.connect() as connection:
-        return connection.execute(select(m.company_sources.c.id).where(
-            m.company_sources.c.company_id == company_id
-        ).limit(1)).first() is not None
+        query = select(m.company_sources.c.id).where(m.company_sources.c.company_id == company_id)
+        if public:
+            query = query.where(m.company_sources.c.enabled.is_(True),
+                                m.company_sources.c.confidence >= 0.75,
+                                m.company_sources.c.collection_strategy != "FIXTURE",
+                                m.company_sources.c.last_success.is_not(None))
+        return connection.execute(query.limit(1)).first() is not None

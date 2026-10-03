@@ -10,11 +10,12 @@ from packages.persistence.store import Store, now
 from services.applications.mock_adapter import apply_mock
 from services.discovery.pipeline import discover, MockClient
 from services.company_discovery.flywheel import discover_company_source
+from services.company_discovery.public_client import PublicCompanyClient, PublicFetchError
 from services.discovery.sources.collect import collect_source
 from services.discovery.sources.greenhouse import SourceError
 from services.discovery.matching import recalculate
 from services.documents.generate import prepare, PreparationError
-from workers.operations import claim, check_cancelled, OperationCancelled
+from workers.operations import claim, check_cancelled, OperationCancelled, timeout
 
 
 class FixtureOperationDisabled(Exception):
@@ -30,12 +31,13 @@ def execute_operation(operation_id):
         if operation is None:
             return {"status": "ALREADY_CLAIMED_OR_CAPACITY"}
         try:
-            origin = os.environ["MJOBS_MOCK_ORIGIN"]
+            origin = os.environ.get("MJOBS_MOCK_ORIGIN", "")
             check = lambda: check_cancelled(store, operation_id)
             check()
             state, error = "COMPLETED", None
             if operation_mode == "PERSONAL":
-                if operation["kind"] in {"APPLY_MOCK", "COMPANY_DISCOVER"} or (operation["kind"] == "DISCOVER"
+                if operation["kind"] == "APPLY_MOCK" or (operation["kind"] == "COMPANY_DISCOVER"
+                        and operation["params"].get("fetch_mode") != "PUBLIC_HTTPS") or (operation["kind"] == "DISCOVER"
                         and not operation["params"].get("source_id")
                         and not operation["params"].get("rescore_only")):
                     raise FixtureOperationDisabled()
@@ -64,7 +66,12 @@ def execute_operation(operation_id):
                     discover(store, origin, operation["entity_id"], check=check, profile_version=params.get("profile_version"))
             elif operation["kind"] == "COMPANY_DISCOVER":
                 params = operation["params"]
-                client = MockClient(origin, check=check)
+                if operation_mode == "PERSONAL":
+                    client = PublicCompanyClient(params["candidate"].get("company_website"), check=check, total_timeout=min(90, timeout()-5))
+                else:
+                    if params.get("fetch_mode") == "PUBLIC_HTTPS":
+                        raise FixtureOperationDisabled()
+                    client = MockClient(origin, check=check)
                 try:
                     result = discover_company_source(store, params["candidate"], client, check=check,
                                                      profile_id=params.get("profile_id"))
@@ -86,6 +93,8 @@ def execute_operation(operation_id):
                 raise ValueError("Unsupported operation")
         except OperationCancelled:
             state, error = "CANCELLED", "CANCEL_REQUESTED"
+        except PublicFetchError as failure:
+            state, error = "BLOCKED", failure.code
         except FixtureOperationDisabled:
             state, error = "BLOCKED", "FIXTURE_OPERATION_DISABLED"
         except Exception as failure:

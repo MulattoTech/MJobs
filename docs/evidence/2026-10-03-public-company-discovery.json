@@ -1,0 +1,93 @@
+{
+  "timestamp": "2026-10-03T22:02:40.951389+00:00",
+  "result": "PARTIAL",
+  "requirements": [
+    "MJ-REQ-054",
+    "MJ-REQ-060",
+    "MJ-REQ-070",
+    "MJ-REQ-071",
+    "MJ-REQ-072",
+    "MJ-REQ-073"
+  ],
+  "branch": "codex/public-company-discovery",
+  "base_commit": "216f1a4696abc8dcb07fb57b5a67102091343ec5",
+  "scope": "User-requested PERSONAL-mode company discovery via bounded public HTTPS; conservative source identity; supported same-origin feed import and browser/API/worker status.",
+  "checks": [
+    {
+      "action": "python -m unittest tests.integration.test_public_company_discovery -v before implementation",
+      "result": "FAIL",
+      "evidence_path": "Git common directory afk-dev/reconcile-20261003/public-company-red.log",
+      "note": "Missing production-safe identity resolver; no implemented PUBLIC_HTTPS worker path."
+    },
+    {
+      "action": "Two transport regressions before final integrity guard",
+      "result": "FAIL",
+      "count": 2,
+      "evidence_path": "Git common directory afk-dev/reconcile-20261003/public-company-integrity-red.log",
+      "note": "Truncated response accepted and expired total client lifetime allowed a network attempt."
+    },
+    {
+      "action": "python -m unittest discover -s tests -p 'test_*.py' -v",
+      "result": "PASS",
+      "count": 350,
+      "skipped": 0,
+      "seconds": 104.631,
+      "evidence_path": "Git common directory afk-dev/reconcile-20261003/public-company-regression-final.log",
+      "note": "Final full regression after transport, identity, explicit retry and browser changes."
+    },
+    {
+      "action": "python -m unittest tests.unit.test_public_company_client tests.integration.test_public_company_discovery tests.browser.test_public_company_discovery -v",
+      "result": "PASS",
+      "count": 28,
+      "evidence_path": "Git common directory afk-dev/reconcile-20261003/public-company-final-focused.log",
+      "note": "Actual browser, local API and durable worker; only outbound HTTPS responses controlled. No mocked operation completion."
+    },
+    {
+      "action": "npm test -- --run; npm run build in apps/web",
+      "result": "PASS",
+      "count": 23,
+      "note": "TypeScript and Vite build; final PERSONAL form retains inputs and explicit fresh request IDs."
+    },
+    {
+      "action": "PublicCompanyClient.get on https://docs.python.org/3.12/library/ssl.html",
+      "result": "PASS",
+      "evidence_path": "Git common directory afk-dev/reconcile-20261003/public-company-live-https-final.json",
+      "note": "Final transport after integrity guards; two unmocked requests including robots, TLS certificate validation enabled. Transport proof only."
+    },
+    {
+      "action": "Independent read-only security, source-identity and final integrity-delta review",
+      "result": "PASS",
+      "note": "No remaining material findings; independent27 focused and33 affected integration tests passed."
+    },
+    {
+      "action": "python -m tools.verification.catalogue; python -m tools.verification.progress validate; git diff --check",
+      "result": "PASS"
+    },
+    {
+      "action": "Audit all worktree status and compare root user-template filenames, sizes and SHA-256 with original snapshot",
+      "result": "PASS",
+      "worktrees": 30,
+      "preserved_untracked_files": 24,
+      "evidence_path": "Git common directory afk-dev/reconcile-20261003/public-company-preservation.json"
+    }
+  ],
+  "limitations": [
+    "Original requirements remain PARTIAL; no new complete requirement promotion.",
+    "Full automatic useful-job triggers, production ATS enumeration breadth and periodic scheduling remain incomplete.",
+    "User-supplied sites are candidates, not verified employer domains. Names, claimed tenant strings and mock-ATS markup cannot bind or promote production identity.",
+    "New unverified feeds start disabled and need review; explicit enablement is preserved without becoming identity proof.",
+    "Only exact initial HTTPS origin on default443 is supported. Cross-origin employer/ATS redirect needs separately verified authority; it is blocked.",
+    "Robots denial, unknown robots availability,403/429, unsupported encodings, address policy and limits fail closed. No automatic retry or alternate-address retry.",
+    "No application-link accuracy measurement implemented here. This production transport is a prerequisite, not MJ-REQ-083 completion.",
+    "Public live check is a documentation page; employer-feed workflow evidence uses controlled HTTPS responses.",
+    "Reference59 NOT_RUN and release readiness NOT_RUN. External submission remains OFF."
+  ],
+  "hosted_ci": {
+    "result": "NOT_RUN",
+    "note": "Verify exact latest head after publication."
+  },
+  "design_sources": [
+    "https://docs.python.org/3/library/ssl.html",
+    "https://docs.python.org/3/library/http.client.html"
+  ]
+}
