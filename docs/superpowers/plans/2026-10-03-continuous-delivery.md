@@ -53,4 +53,4 @@
 
 ## Execution checkpoint
 
-PR453, catalogue PR471 and upload-integrity PR472 are merged after exact-head checks. Combined feedback integration has287 passing tests and awaits final PR452 CI. Source-quality MJ-REQ-083 is the next original foundation under investigation; full backlog and release readiness remain PARTIAL.
+PR453, catalogue PR471 and upload-integrity PR472 are merged after exact-head checks. Combined feedback integration has287 passing tests and awaits final PR452 CI. Source-quality MJ-REQ-083 is the next original foundation under investigation; full backlog remains PARTIAL and release readiness remains NOT_RUN.

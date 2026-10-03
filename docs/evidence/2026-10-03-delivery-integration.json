@@ -57,7 +57,7 @@
   },
   "limitations": [
     "User manual browser retest NOT_RUN.",
-    "Original:48 PASS,72 PARTIAL,246 NOT_RUN. Reference:59 NOT_RUN. Release readiness PARTIAL.",
+    "Original:48 PASS,72 PARTIAL,246 NOT_RUN. Reference:59 NOT_RUN. Release readiness NOT_RUN.",
     "General crash/rollback artifact-orphan recovery and full original P0-P3 acceptance remain open."
   ],
   "next_action": "Implement remaining original source-quality requirement MJ-REQ-083 using persisted evidence without replacing verified first-party authority."

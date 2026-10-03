@@ -6,9 +6,10 @@
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
-    "baseline_must_be_reverified": false,
-    "current_verified_local_state": "Initialized from newer origin/main; supplied control pack retained on governance branch",
-    "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
+    "baseline_must_be_reverified": true,
+    "current_verified_local_state": "27 worktrees; all25 pre-existing worktrees preserved. Root resume-driven-profile HEAD260540c retains24 untracked user template files, checksum-verified unchanged.",
+    "current_verified_github_state": "388 open issues; PR453/471/472 merged with exact-head CI; PR452 final integration open awaiting new-head CI.",
+    "current_verified_at": "2026-10-03T20:12:32.612186+00:00"
   },
   "current_milestone": "FEEDBACK_RESUME_CATALOGUE_UPLOAD_INTEGRATION",
   "current_objective": "Verify and merge final PR452 head, reconcile live truth, then continue original source-quality and safety foundations.",
@@ -341,7 +342,7 @@
       "url": "https://github.com/MulattoTech/MJobs/pull/452",
       "branch": "codex/feedback-gui",
       "status": "DRAFT",
-      "note": "Combined287-test regression PASS; current final-head hosted checks required. Manual retest NOT_RUN."
+      "note": "Combined287-test regression PASS; final bookkeeping changes the head, requiring fresh GitHub verification. User manual retest NOT_RUN."
     },
     {
       "number": 472,
@@ -489,11 +490,11 @@
     "MJ-PR-016 local Chromium first run used Docker DNS host api, which is not a secure browser origin for crypto.randomUUID; loopback URL rerun passed all five connected UI actions."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-02T11:03:00.071536+00:00",
-    "base_commit": "566bbf9cdebf882cc80bbb65b803ca3996fa9beb",
+    "timestamp": "2026-10-03T20:12:32.612186+00:00",
+    "base_commit": "8860d7ea2818359341eee90bd2a48a68351b365d",
     "result": "PASS",
-    "scope": "235 Python tests, 11 frontend tests/build, validators, and actual feed-import-to-browser activity acceptance",
-    "evidence_path": "docs/evidence/2026-10-02-company-discovery-activity.json"
+    "scope": "Combined287 Python tests,17 frontend tests/build, catalogue/progress validators, synthetic SQLite/PostgreSQL and browser recovery; final-head hosted CI pending.",
+    "evidence_path": "docs/evidence/2026-10-03-delivery-integration.json"
   },
   "ci_verification": {
     "result": "IN_PROGRESS",
@@ -598,17 +599,18 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "b096b868b4feb6df6afbe1581ff7a6a80a891c16",
+  "last_implementation_commit": "8860d7ea2818359341eee90bd2a48a68351b365d",
   "publication": {
-    "result": "IN_PROGRESS",
-    "branch": "codex/mj-pr-021-company-ats-discovery",
-    "worktree": "C:\\Tools\\Dev\\MJobs-pr-021",
-    "base": "1dc6cd4fc9b9eb2797994ff7321e15dd83e6c2d7",
-    "stacked_on": "codex/mj-pr-019-company-ats-discovery",
-    "pr_number": 448,
-    "url": "https://github.com/MulattoTech/MJobs/pull/448",
+    "result": "PARTIAL",
+    "branch": "codex/feedback-gui",
+    "worktree": "C:/Tools/Dev/MJobs/.worktrees/feedback-gui",
+    "base": "5b459ac22412d57cd86f8abf0e669ae657bc0562",
+    "pr_number": 452,
+    "url": "https://github.com/MulattoTech/MJobs/pull/452",
     "draft": true,
-    "initial_head": "9c1b4dc7415ff108ad3a4751a92ce35031453bad"
+    "observed_head_before_bookkeeping": "8860d7ea2818359341eee90bd2a48a68351b365d",
+    "observed_at": "2026-10-03T20:12:32.612186+00:00",
+    "note": "This bookkeeping commit changes the head. Resolve the exact current head/checks from GitHub before merge; prior-head checks cannot promote it."
   },
   "optional_afk_journal": {
     "result": "BLOCKED_ENVIRONMENT",
@@ -2275,5 +2277,33 @@
     "pr_number": 452,
     "pr_url": "https://github.com/MulattoTech/MJobs/pull/452",
     "evidence_path": "docs/evidence/2026-10-03-feedback-gui.json"
+  },
+  "historical_control_snapshots": [
+    {
+      "archived_at": "2026-10-03T20:12:32.612186+00:00",
+      "publication": {
+        "result": "IN_PROGRESS",
+        "branch": "codex/mj-pr-021-company-ats-discovery",
+        "worktree": "C:\\Tools\\Dev\\MJobs-pr-021",
+        "base": "1dc6cd4fc9b9eb2797994ff7321e15dd83e6c2d7",
+        "stacked_on": "codex/mj-pr-019-company-ats-discovery",
+        "pr_number": 448,
+        "url": "https://github.com/MulattoTech/MJobs/pull/448",
+        "draft": true,
+        "initial_head": "9c1b4dc7415ff108ad3a4751a92ce35031453bad"
+      },
+      "last_implementation_commit": "b096b868b4feb6df6afbe1581ff7a6a80a891c16",
+      "last_verified_checkpoint": {
+        "timestamp": "2026-10-02T11:03:00.071536+00:00",
+        "base_commit": "566bbf9cdebf882cc80bbb65b803ca3996fa9beb",
+        "result": "PASS",
+        "scope": "235 Python tests, 11 frontend tests/build, validators, and actual feed-import-to-browser activity acceptance",
+        "evidence_path": "docs/evidence/2026-10-02-company-discovery-activity.json"
+      }
+    }
+  ],
+  "current_user_browser_acceptance": {
+    "result": "NOT_RUN",
+    "scope": "Manual owner retest of current feedback/resume UI. Historical user_testing evidence is retained separately."
   }
 }
