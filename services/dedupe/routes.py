@@ -95,7 +95,9 @@ def plan_application_routes(routes, mode="DEFAULT", route_id=None):
     if mode == "THIS_ROUTE":
         if not route_id or str(route_id) not in by_id:
             raise ValueError("APPLICATION_ROUTE_SELECTION_INVALID")
-        selected = [by_id[str(route_id)]]
+        option = by_id[str(route_id)]
+        requested = next(route for route in option['aliases'] if str(route['id']) == str(route_id))
+        selected = [{**option, 'preferred_route': requested}]
     elif mode == "EMPLOYER_SITE":
         candidates = [
             option for option in options

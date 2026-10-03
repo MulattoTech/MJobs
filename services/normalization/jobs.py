@@ -54,6 +54,10 @@ def canonical_job_view(row):
     }
     # Existing clients still consume id/description/location/attributes and match fields.
     data.update(canonical)
+    resolution = attrs.get('source_resolution') or {}
+    if 'selected_application_url' in resolution:
+        data['application_url'] = resolution['selected_application_url']
+        data['provider'] = attrs['provider']
     return data
 
 

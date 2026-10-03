@@ -7,6 +7,7 @@ from unittest.mock import patch
 from packages.persistence import models as m
 from packages.persistence.store import Store, upsert
 from services.company_discovery.sources import upsert_company_job_source
+from services.company_discovery.quality import record_observation
 from services.discovery.company_feed import import_company_feed_jobs
 from tests.integration.test_spine import PROFILE
 
@@ -41,7 +42,7 @@ class CompanyFeedQualityTests(unittest.TestCase):
         }
 
     def test_source_identity_mismatch_writes_nothing(self):
-        with patch("services.discovery.company_feed.record_observation") as observe:
+        with patch("services.discovery.company_feed.record_observation", wraps=record_observation) as observe:
             with self.assertRaisesRegex(ValueError, "COMPANY_FEED_SOURCE_MISMATCH"):
                 import_company_feed_jobs(
                     self.store, company_id="other-company", source_id=self.source["id"],
@@ -53,7 +54,7 @@ class CompanyFeedQualityTests(unittest.TestCase):
         self.assertEqual(self.store.count("audit_events"), 1)
 
     def test_canonical_equivalent_endpoint_preserves_relative_url_resolution(self):
-        with patch("services.discovery.company_feed.record_observation"):
+        with patch("services.discovery.company_feed.record_observation", wraps=record_observation):
             imported = import_company_feed_jobs(
                 self.store, company_id="company", source_id=self.source["id"],
                 provider="RSS", tenant="tenant", endpoint="HTTPS://EMPLOYER.EXAMPLE:443/jobs.json/",
@@ -66,7 +67,7 @@ class CompanyFeedQualityTests(unittest.TestCase):
 
     def test_different_endpoint_path_or_query_is_rejected(self):
         for endpoint in ("https://employer.example/other.json", "https://employer.example/jobs.json?other=1"):
-            with self.subTest(endpoint=endpoint), patch("services.discovery.company_feed.record_observation") as observe:
+            with self.subTest(endpoint=endpoint), patch("services.discovery.company_feed.record_observation", wraps=record_observation) as observe:
                 with self.assertRaisesRegex(ValueError, "COMPANY_FEED_SOURCE_MISMATCH"):
                     import_company_feed_jobs(
                         self.store, company_id="company", source_id=self.source["id"],
@@ -78,7 +79,7 @@ class CompanyFeedQualityTests(unittest.TestCase):
     def test_partial_rows_record_enumerated_and_accepted_metrics(self):
         items = [self._item(), "malformed-row", self._item(link="", title="Other Role"),
                  self._item(link="/jobs/2", title="")]
-        with patch("services.discovery.company_feed.record_observation") as observe:
+        with patch("services.discovery.company_feed.record_observation", wraps=record_observation) as observe:
             imported = import_company_feed_jobs(
                 self.store, company_id="company", source_id=self.source["id"],
                 provider="rss", tenant="tenant", endpoint=self.endpoint,
@@ -94,7 +95,7 @@ class CompanyFeedQualityTests(unittest.TestCase):
         self.assertEqual(kwargs["salary_known"], 0)
 
     def test_empty_feed_is_a_success_with_zero_denominator_metrics(self):
-        with patch("services.discovery.company_feed.record_observation") as observe:
+        with patch("services.discovery.company_feed.record_observation", wraps=record_observation) as observe:
             self.assertEqual(import_company_feed_jobs(
                 self.store, company_id="company", source_id=self.source["id"],
                 provider="rss", tenant="tenant", endpoint=self.endpoint,
@@ -109,7 +110,7 @@ class CompanyFeedQualityTests(unittest.TestCase):
         def fail_once():
             raise RuntimeError("synthetic failure")
 
-        with patch("services.discovery.company_feed.record_observation") as observe:
+        with patch("services.discovery.company_feed.record_observation", wraps=record_observation) as observe:
             with self.assertRaisesRegex(RuntimeError, "synthetic failure"):
                 import_company_feed_jobs(
                     self.store, company_id="company", source_id=self.source["id"],

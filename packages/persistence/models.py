@@ -92,6 +92,18 @@ postings = table("job_postings", Column("job_id", ForeignKey("canonical_jobs.id"
 posting_snapshots = table("posting_snapshots", Column("posting_id", ForeignKey("job_postings.id"), nullable=False),
                           Column("raw", JSON, nullable=False), Column("sha256", String(64), nullable=False),
                           Column("retrieved_at", String(64), nullable=False))
+posting_value_candidates = table(
+    "posting_value_candidates",
+    Column("posting_id", ForeignKey("job_postings.id"), nullable=False),
+    Column("posting_snapshot_id", ForeignKey("posting_snapshots.id"), nullable=False),
+    Column("company_source_id", ForeignKey("company_job_sources.id"), nullable=False),
+    Column("quality_observation_id", ForeignKey("source_quality_observations.id"), nullable=False),
+    Column("observed_at", String(64), nullable=False),
+    Column("normalized", JSON, nullable=False),
+    Column("application_url", String(2000), nullable=False),
+)
+Index("ix_posting_value_candidates_posting_time", posting_value_candidates.c.posting_id,
+      posting_value_candidates.c.observed_at)
 dedupe_reviews = table("dedupe_reviews", Column("left_job_id", ForeignKey("canonical_jobs.id"), nullable=False),
                        Column("right_job_id", ForeignKey("canonical_jobs.id"), nullable=False),
                        Column("confidence", Float, nullable=False), Column("state", String(64), nullable=False),
@@ -116,6 +128,7 @@ search_profiles = table("search_profiles", Column("profile_id", ForeignKey("care
 source_quality_observations = table("source_quality_observations",
     Column("configured_source_id", ForeignKey("job_sources.id")),
     Column("company_source_id", ForeignKey("company_job_sources.id")),
+    Column("source_endpoint", String(2000)),
     Column("observed_at", String(64), nullable=False),
     Column("succeeded", Boolean, nullable=False), Column("available", Boolean),
     Column("enumerated", Integer), Column("accepted", Integer),

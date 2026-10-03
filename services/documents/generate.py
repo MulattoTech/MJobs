@@ -14,6 +14,7 @@ from packages.domain.safety import Fact, select_verified_facts
 from packages.persistence import models as m
 from packages.persistence.store import identity, now, upsert
 from services.dedupe.routes import persist_route_choices, plan_application_routes
+from services.dedupe.source_values import require_route_review
 
 
 class PreparationError(ValueError):
@@ -45,7 +46,11 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
             raise PreparationError("DOCUMENT_PROFILE_CHANGED", "Profile changed; prepare documents using its current version")
         profile = store.profile(profile_id, profile_version)
         check()
-        job = dict(connection.execute(select(m.jobs).where(m.jobs.c.id == job_id)).mappings().one())
+        job = dict(connection.execute(select(m.jobs).where(m.jobs.c.id == job_id).with_for_update()).mappings().one())
+        try:
+            require_route_review(connection, job_id, route_mode, route_id)
+        except ValueError as error:
+            raise PreparationError(str(error), 'The selected source link differs from a preserved application route; review and select the route explicitly') from error
         routes = [dict(row) for row in connection.execute(select(m.routes).where(m.routes.c.job_id == job_id).order_by(m.routes.c.id)).mappings()]
         route_plan = plan_application_routes(routes, route_mode, route_id)
         route = route_plan["selected"][0]["preferred_route"]

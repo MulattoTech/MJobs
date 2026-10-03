@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from urllib.parse import urljoin, urlsplit
+import json
 
 from sqlalchemy import select
 
@@ -18,6 +19,7 @@ from services.discovery.negative_filters import parse_negative_conditions
 from services.discovery.sources.collect import persist_posting
 from services.discovery.sources.greenhouse import plain_text
 from services.company_discovery.quality import posting_metrics, record_observation
+from services.dedupe.source_values import lock_candidate_job, record_candidate, resolve_job_values
 
 
 def _application_url(item, strategy, endpoint):
@@ -78,10 +80,20 @@ def import_company_feed_jobs(store, *, company_id, source_id, provider, tenant,
     imported = 0
     completeness_sum = 0.0
     salary_known = 0
+    pending_candidates = []
+    batch_postings = {}
     try:
         with store.engine.begin() as connection:
+            if connection.dialect.name == 'sqlite':
+                connection.exec_driver_sql('BEGIN IMMEDIATE')
+            current_source = connection.execute(select(m.company_sources).where(
+                m.company_sources.c.id == source_id).with_for_update()).mappings().one()
+            if any(current_source[key] != source[key] for key in ('company_id', 'provider', 'tenant', 'endpoint')):
+                raise ValueError('COMPANY_FEED_SOURCE_CHANGED')
             check()
-            for item in items:
+            # Lock jobs in stable source-key order across overlapping feed refreshes.
+            for item in sorted(items, key=lambda row: str(row.get('id') or row.get('guid') or
+                    _application_url(row, strategy, endpoint) or '') if isinstance(row, dict) else ''):
                 check()
                 if not isinstance(item, dict):
                     continue
@@ -110,7 +122,7 @@ def import_company_feed_jobs(store, *, company_id, source_id, provider, tenant,
                 attributes = {
                 "provider": provider, "tenant": tenant, "source_id": source_id,
                 "source_endpoint": endpoint, "collection_strategy": strategy,
-                "reported_posted_at": published.isoformat() if published else previous.get("reported_posted_at"),
+                    "reported_posted_at": published.isoformat() if published else None,
                 "first_seen_at": previous.get("first_seen_at") or timestamp,
                 "last_seen_at": timestamp, "last_collected_at": timestamp,
                 "employment_type": normalize_employment_type(title + " " + description),
@@ -135,44 +147,48 @@ def import_company_feed_jobs(store, *, company_id, source_id, provider, tenant,
                        "title": title, "description": description, "skills": skill_data["labels"],
                        "location": location, "remote_type": location_facts["remote_type"],
                        "attributes": attributes}
-                upsert(connection, m.jobs, job, replace=True)
+                lock_candidate_job(connection, job)
                 upsert(connection, m.routes, {"id": job_id, "job_id": job_id, "company_id": company_id,
                     "provider": provider, "tenant": tenant, "requisition": requisition,
-                    "url": application_url}, replace=True)
+                    "url": application_url})
                 source = "company-feed:" + str(source_id)
                 source_job_id = identity(source, external_key)
                 posting_id = identity(source, source_job_id)
+                raw_key = json.dumps(item, sort_keys=True, ensure_ascii=False)
+                if posting_id in batch_postings and batch_postings[posting_id] != raw_key:
+                    raise ValueError('SOURCE_DUPLICATE_JOB_ID')
+                batch_postings[posting_id] = raw_key
                 persist_posting(connection, {"id": posting_id, "job_id": job_id,
                     "source": source, "source_job_id": source_job_id, "source_url": endpoint,
                     "application_url": application_url, "raw": item, "fetched_at": timestamp})
+                pending_candidates.append((posting_id, job_id, {key: value for key, value in job.items()
+                                                                if key not in {'id', 'company_id'}}))
                 completeness, has_salary = posting_metrics(job, application_url)
                 completeness_sum += completeness
                 salary_known += int(has_salary)
-                if profile:
-                    mentions = {skill.casefold() for skill in job["skills"]}
-                    score = round(100 * len(mentions & usable) / len(mentions), 2) if mentions else 0
-                    upsert(connection, m.matches, {"id": identity(job_id, profile_id, profile["version"]),
-                        "job_id": job_id, "profile_id": profile_id, "profile_version": profile["version"],
-                        "score": score, "missing": sorted(mentions - usable),
-                        "components": {"method": "description_skill_mentions", "matched": sorted(mentions & usable),
-                            "detected": sorted(mentions),
-                            "limitation": "Skill mentions are not verified mandatory requirements or a full qualification assessment."}},
-                        replace=True)
                 imported += 1
             store._audit(connection, company_id, "COMPANY_FEED_IMPORT_COMPLETE", {
                 "company_source_id": source_id, "provider": provider, "strategy": strategy,
                 "jobs_enumerated": len(items), "jobs_imported": imported, "profile_id": profile_id,
             })
-            record_observation(
-                connection, company_source_id=source_id, observed_at=timestamp,
+            observation_at = now()
+            observation_id = record_observation(
+                connection, company_source_id=source_id, observed_at=observation_at,
+                source_endpoint=endpoint,
                 succeeded=True, available=fetch_available, enumerated=len(items), accepted=imported,
                 completeness_sum=completeness_sum, salary_known=salary_known,
                 links_checked=None, links_accurate=None,
             )
+            for posting_id, _, values in pending_candidates:
+                record_candidate(connection, posting_id=posting_id, company_source_id=source_id,
+                                 observation_id=observation_id, normalized=values)
+            for job_id in sorted({entry[1] for entry in pending_candidates}):
+                resolve_job_values(connection, job_id, at=observation_at, seen_at=timestamp, profile=profile)
     except Exception as failure:
         with store.engine.begin() as connection:
             record_observation(
                 connection, company_source_id=source_id, observed_at=now(),
+                source_endpoint=endpoint,
                 succeeded=False, available=fetch_available, enumerated=len(items), accepted=None,
                 completeness_sum=None, salary_known=None, links_checked=None,
                 links_accurate=None, error_code=type(failure).__name__,

@@ -91,3 +91,9 @@ PR #453 merged as `de9b058031d6db3aace9c56eebf7e5fd4aff695d` after exact-head CI
 ## Resume upload integrity continuation
 
 Identical bytes uploaded under different valid PDF/TXT names now retain one authoritative original and version, including concurrent calls. API metadata and download checksums agree. SQLite/API regression and isolated PostgreSQL concurrency/reopen proof passed; MJ-REQ-090/094 remain PARTIAL. Historical orphan files are preserved, and general crash/rollback reconciliation remains open. Evidence: `docs/evidence/2026-10-03-resume-upload-integrity.json`.
+
+## Authoritative source values — 2026-10-03
+
+PR473 source-quality observations merged after exact-head CI. Duplicate postings now retain immutable normalized candidates and their observed origins; verified authority precedes measured quality when choosing the canonical job details. Matching uses the selected coherent bundle. The UI explains source disagreements and requires explicit preserved-route review when a changed source URL conflicts with an existing application target. Actual browser,322-test regression and PostgreSQL concurrency/restart evidence passed. MJ-REQ-083 remains PARTIAL because application-link accuracy still lacks a bounded verification workflow. Evidence: `docs/evidence/2026-10-03-authoritative-source-values.json`.
+
+Current original accounting:48 PASS,73 PARTIAL,245 NOT_RUN (366 total). Reference accounting:59 NOT_RUN. Release readiness:NOT_RUN. PR452/453/471/472/473 are integrated; earlier active-PR and Docker-unavailable statements are historical snapshots.
