@@ -10,8 +10,8 @@
     "current_verified_local_state": "Initialized from newer origin/main; supplied control pack retained on governance branch",
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
-  "current_milestone": "RECONCILED_COMMERCIAL_CATALOGUE",
-  "current_objective": "Validate and integrate MJ-REF-043..059 catalogue, complete feedback integration, then implement dependency-eligible original requirements.",
+  "current_milestone": "RESUME_UPLOAD_INTEGRITY_VERIFIED",
+  "current_objective": "Publish and verify resume upload integrity fix; complete feedback integration; continue dependency-eligible original backlog.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -322,6 +322,18 @@
       "head": "260540cc35dd1a51c37c61f1ed638eb94106bafe",
       "merge_commit": "de9b058031d6db3aace9c56eebf7e5fd4aff695d",
       "merged_at": "2026-10-03T19:40:15Z"
+    },
+    {
+      "number": 471,
+      "url": "https://github.com/MulattoTech/MJobs/pull/471",
+      "branch": "codex/delivery-catalogue",
+      "status": "MERGED",
+      "head": "12394c753957d43311983174b0d982cb5dbabf87",
+      "merge_commit": "c4b2e9109675fa490a545210ba6475f66ba14641",
+      "exact_head_checks": {
+        "pull_request_verification": 37149698715,
+        "push_verification": 37149673238
+      }
     }
   ],
   "tests_passed": [
@@ -1928,12 +1940,54 @@
         "git_commit": "de9b058031d6db3aace9c56eebf7e5fd4aff695d",
         "evidence_path": "docs/evidence/2026-10-03-commercial-catalogue.json"
       }
+    },
+    {
+      "milestone_id": "RESUME-UPLOAD-INTEGRITY-20261003",
+      "timestamp": "2026-10-03T20:02:48.702650+00:00",
+      "current_phase": "RESUME_UPLOAD_INTEGRITY_VERIFIED",
+      "completed_steps": [
+        "Reproduced alternate-format orphan file on identical-byte upload.",
+        "Serialized authoritative file/metadata selection with revision allocation; preserved originals and fact gates.",
+        "Verified concurrent mixed-format uploads on SQLite and isolated PostgreSQL17."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-03-resume-upload-integrity.json"
+      ],
+      "files_modified": [
+        "services/documents/uploads.py",
+        "services/documents/AREA.md",
+        "tests/integration/test_resume_upload.py"
+      ],
+      "tests_completed": [
+        "26 focused tests and258 full Python tests PASS, zero skips.",
+        "Isolated PostgreSQL17 Alembic/concurrency/reopened-store readback PASS.",
+        "Independent review completed; broader crash-orphan recovery remains an explicit limitation."
+      ],
+      "tests_remaining": [
+        "Published exact-head CI and integration verification."
+      ],
+      "migrations_applied": [
+        "Existing Alembic head d21b76ce903a in isolated PostgreSQL17 only."
+      ],
+      "live_integrations_tested": [
+        "Isolated synthetic PostgreSQL; no real user data or external submission."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "General crash/rollback orphan reconciliation is not solved.",
+        "Historical alternate files are retained.",
+        "MJ-REQ-090/094 remain PARTIAL."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "d838b334b21bdc1b5a9cf0f7d65c76a337323cf5",
+        "evidence_path": "docs/evidence/2026-10-03-resume-upload-integrity.json"
+      }
     }
   ],
-  "current_phase": "CATALOGUE_VALIDATION_AND_CONTINUOUS_DELIVERY",
+  "current_phase": "RESUME_UPLOAD_INTEGRITY_VERIFIED",
   "last_safe_checkpoint": {
-    "git_commit": "de9b058031d6db3aace9c56eebf7e5fd4aff695d",
-    "evidence_path": "docs/evidence/2026-10-03-commercial-catalogue.json"
+    "git_commit": "d838b334b21bdc1b5a9cf0f7d65c76a337323cf5",
+    "evidence_path": "docs/evidence/2026-10-03-resume-upload-integrity.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
@@ -2009,8 +2063,8 @@
     }
   ],
   "live_reconciliation": {
-    "timestamp": "2026-10-03T19:49:02.483221+00:00",
-    "origin_main": "de9b058031d6db3aace9c56eebf7e5fd4aff695d",
+    "timestamp": "2026-10-03T20:02:48.702650+00:00",
+    "origin_main": "c4b2e9109675fa490a545210ba6475f66ba14641",
     "open_issue_count_before_catalogue": 371,
     "commercial_issue_mapping": {
       "MJ-REF-043": 454,
@@ -2038,6 +2092,8 @@
       "result": "PASS",
       "server_version": "29.8.1"
     },
-    "remaining_scope": "Original requirements and release readiness remain incomplete; no commercial feature behavior has been implemented by catalogue creation."
+    "remaining_scope": "Original requirements and release readiness remain incomplete; no commercial feature behavior has been implemented by catalogue creation.",
+    "catalogue_pr": 471,
+    "catalogue_publication": "MERGED"
   }
 }

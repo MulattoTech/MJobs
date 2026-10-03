@@ -731,9 +731,10 @@
       "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-09-30-pr004-upload-restore-local.json",
-        "docs/evidence/2026-10-03-resume-driven-profile.json"
+        "docs/evidence/2026-10-03-resume-driven-profile.json",
+        "docs/evidence/2026-10-03-resume-upload-integrity.json"
       ],
-      "note": "Reviewed native resume import, structured optional contact/preferences and named base-resume versions verified; full structured career model, OCR, advanced extraction and broader document library remain incomplete."
+      "note": "Reviewed native resume import, structured optional contact/preferences and named base-resume versions verified; full structured career model, OCR, advanced extraction and broader document library remain incomplete. Identical-byte mixed-extension uploads now preserve one authoritative file/version, verified with concurrent SQLite/PostgreSQL requests; broader scope remains partial."
     },
     {
       "requirement_id": "MJ-REQ-091",
@@ -766,9 +767,10 @@
       "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-09-29-mock-spine.md",
-        "docs/evidence/2026-10-03-resume-driven-profile.json"
+        "docs/evidence/2026-10-03-resume-driven-profile.json",
+        "docs/evidence/2026-10-03-resume-upload-integrity.json"
       ],
-      "note": "Reviewed native resume import, structured optional contact/preferences and named base-resume versions verified; full structured career model, OCR, advanced extraction and broader document library remain incomplete."
+      "note": "Reviewed native resume import, structured optional contact/preferences and named base-resume versions verified; full structured career model, OCR, advanced extraction and broader document library remain incomplete. Identical-byte mixed-extension uploads now preserve one authoritative file/version, verified with concurrent SQLite/PostgreSQL requests; broader scope remains partial."
     },
     {
       "requirement_id": "MJ-REQ-095",
