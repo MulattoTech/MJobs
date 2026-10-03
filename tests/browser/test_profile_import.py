@@ -77,6 +77,9 @@ class ProfileImportBrowserTests(unittest.TestCase):
                     page.get_by_label('Desired roles (one per line)').fill('Engineer\nConsultant')
                     page.get_by_role('button', name='Save profile', exact=True).click()
                     expect(page.get_by_role('status').filter(has_text='Profile saved')).to_be_visible()
+                    # Saving persists first; the dropdown options arrive via the
+                    # subsequent profile-list readback. Wait on that actual state.
+                    expect(page.locator('#active-profile')).not_to_have_value('')
                     profile_id = page.locator('#active-profile').input_value()
                     self.assertEqual(store.profile(profile_id)['facts'], [])
                     self.assertEqual(store.profile(profile_id)['preferences']['desired_roles'], ['Engineer','Consultant'])

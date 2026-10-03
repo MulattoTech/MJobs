@@ -106,5 +106,18 @@
     "pr_number": 453,
     "url": "https://github.com/MulattoTech/MJobs/pull/453",
     "recorded_at": "2026-10-03T19:09:46.272286+00:00"
-  }
+  },
+  "remote_ci_attempts": [
+    {
+      "head": "8106d28627323c24b74019c6886b88b5dd16d689",
+      "runs": [
+        37146897235,
+        37146894514
+      ],
+      "result": "FAIL",
+      "cause": "Browser acceptance read the selected profile before asynchronous dropdown options had refreshed.",
+      "correction": "Wait for nonempty selected profile value after successful save. Targeted real-browser rerun PASS.",
+      "recorded_at": "2026-10-03T19:12:32.860020+00:00"
+    }
+  ]
 }
