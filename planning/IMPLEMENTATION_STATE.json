@@ -354,6 +354,13 @@
         "pull_request_verification": 37150172508,
         "push_verification": 37150125082
       }
+    },
+    {
+      "number": 473,
+      "url": "https://github.com/MulattoTech/MJobs/pull/473",
+      "branch": "codex/source-quality",
+      "status": "PARTIAL",
+      "observed_head_before_bookkeeping": "230cb9844f776e4ee1b49d0bcacec23c26f58a5f"
     }
   ],
   "tests_passed": [
@@ -592,14 +599,18 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "55fdc29264a672eea6655f025f55b87f596eb415",
+  "last_implementation_commit": "230cb9844f776e4ee1b49d0bcacec23c26f58a5f",
   "publication": {
-    "result": "NOT_RUN",
+    "result": "PARTIAL",
     "branch": "codex/source-quality",
     "worktree": "C:\\Tools\\Dev\\MJobs\\.worktrees\\source-quality",
     "base": "0ab211153f3f9da7669b1832b554aa996cef8942",
-    "observed_at": "2026-10-03T20:42:26.854175+00:00",
-    "note": "Local implementation validated; draft publication pending. Resolve live head after each commit."
+    "observed_at": "2026-10-03T20:45:15.968815+00:00",
+    "note": "This state commit changes the PR head. Verify exact latest SHA and hosted CI before merge.",
+    "pr_number": 473,
+    "url": "https://github.com/MulattoTech/MJobs/pull/473",
+    "draft": true,
+    "observed_head_before_bookkeeping": "230cb9844f776e4ee1b49d0bcacec23c26f58a5f"
   },
   "optional_afk_journal": {
     "result": "BLOCKED_ENVIRONMENT",
@@ -2255,7 +2266,7 @@
     }
   ],
   "live_reconciliation": {
-    "timestamp": "2026-10-03T20:42:26.854175+00:00",
+    "timestamp": "2026-10-03T20:45:15.968815+00:00",
     "origin_main": "0ab211153f3f9da7669b1832b554aa996cef8942",
     "open_issue_count_before_catalogue": 371,
     "commercial_issue_mapping": {
@@ -2287,7 +2298,9 @@
     "remaining_scope": "Original requirements and release readiness remain incomplete; no commercial feature behavior has been implemented by catalogue creation.",
     "catalogue_pr": 471,
     "catalogue_publication": "MERGED",
-    "open_prs_at_checkpoint": [],
+    "open_prs_at_checkpoint": [
+      473
+    ],
     "integration_order": [],
     "note": "Prior feedback/resume/catalogue/upload integration merged; current quality slice isolated from all prior worktrees.",
     "next_action": "Implement remaining original source-quality requirement MJ-REQ-083 using persisted evidence without replacing verified first-party authority.",
@@ -2301,7 +2314,9 @@
     "related_requirements": [
       "MJ-REQ-083"
     ],
-    "evidence_path": "docs/evidence/2026-10-03-source-quality-observations.json"
+    "evidence_path": "docs/evidence/2026-10-03-source-quality-observations.json",
+    "pr_number": 473,
+    "pr_url": "https://github.com/MulattoTech/MJobs/pull/473"
   },
   "historical_control_snapshots": [
     {

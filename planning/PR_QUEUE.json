@@ -596,9 +596,11 @@
         "name": "Durable source-quality observations",
         "branch": "codex/source-quality",
         "status": "PARTIAL",
-        "publication_state": "NOT_RUN",
+        "publication_state": "DRAFT",
         "evidence_path": "docs/evidence/2026-10-03-source-quality-observations.json",
-        "remaining": "Verified application-link checks and authority-first duplicate value selection."
+        "remaining": "Verified application-link checks and authority-first duplicate value selection.",
+        "pr_number": 473,
+        "url": "https://github.com/MulattoTech/MJobs/pull/473"
       }
     },
     {
