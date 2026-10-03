@@ -12,6 +12,7 @@ from sqlalchemy.dialects.postgresql import insert as postgres_insert
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 
 from packages.domain.safety import Fact
+from packages.domain.profile import ContactDetails, JobPreferences
 from packages.domain.operation_mode import WorkspaceModeError, parse_operation_mode
 from packages.persistence import models as m
 from services.normalization.jobs import canonical_job_view, raw_posting_view
@@ -144,8 +145,15 @@ class Store:
     def save_profile(self, profile):
         if not all(isinstance(profile.get(field), str) and profile[field].strip() for field in ("id", "name", "email")):
             raise ValueError("Profile identity/contact fields are required")
-        if not profile.get("facts") or len(profile["facts"]) > 200:
-            raise ValueError("Provide 1 to 200 explicit career facts")
+        if not isinstance(profile.get("facts"), list) or len(profile["facts"]) > 200:
+            raise ValueError("Provide up to 200 explicit career facts")
+        profile = dict(profile)
+        # Older clients omit these fields. Preserve existing values on their updates.
+        with self.engine.connect() as connection:
+            current = connection.execute(select(m.profiles.c.version).where(m.profiles.c.id == profile['id'])).scalar_one_or_none()
+        previous = self.profile(profile['id']) if current else {}
+        profile['contact'] = ContactDetails.model_validate(profile.get('contact', previous.get('contact', {}))).model_dump()
+        profile['preferences'] = JobPreferences.model_validate(profile.get('preferences', previous.get('preferences', {}))).model_dump()
         verified = [Fact(**{key: row[key] for key in ("id", "text", "source", "verified", "user_approved", "confidence")}) for row in profile["facts"]]
         if len({fact.id for fact in verified}) != len(verified):
             raise ValueError("Duplicate fact identity")
@@ -158,7 +166,8 @@ class Store:
             for answer in answers:
                 Fact(**answer)
             upsert(connection, m.profile_versions, {"id": identity(profile["id"], version), "profile_id": profile["id"], "version": version,
-                   "contact": {"name": profile["name"], "email": profile["email"]}, "answers": answers})
+                   "contact": {"name": profile["name"], "email": profile["email"],
+                               "contact": profile['contact'], "preferences": profile['preferences']}, "answers": answers})
             for row, fact in zip(profile["facts"], verified):
                 data = asdict(fact)
                 data.update(id=identity(profile["id"], version, fact.id), fact_id=fact.id,
@@ -174,6 +183,8 @@ class Store:
             data["version"] = version or data["version"]
             snapshot = connection.execute(select(m.profile_versions).where(m.profile_versions.c.id == identity(profile_id, data["version"]))).mappings().one()
             data.update(snapshot["contact"])
+            data.setdefault('contact', ContactDetails().model_dump())
+            data.setdefault('preferences', JobPreferences().model_dump())
             data["answers"] = snapshot["answers"]
             data["facts"] = [dict(fact) for fact in connection.execute(select(m.facts).where(m.facts.c.profile_id == profile_id, m.facts.c.version == data["version"])).mappings()]
             return data
