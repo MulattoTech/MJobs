@@ -95,7 +95,7 @@
     },
     {
       "id": "MJ-PR-005",
-      "title": "Core Search Model: Domain Model \u2014 Core Concepts; Global Job Sources",
+      "title": "Core Search Model: Domain Model — Core Concepts; Global Job Sources",
       "domain": "core_search_model",
       "requirements": [
         "MJ-REQ-015",
@@ -274,7 +274,7 @@
     },
     {
       "id": "MJ-PR-013",
-      "title": "Job Identity Dedupe: Deduplication \u2014 Strong Signals; Deduplication \u2014 Company Identity",
+      "title": "Job Identity Dedupe: Deduplication — Strong Signals; Deduplication — Company Identity",
       "domain": "job_identity_dedupe",
       "requirements": [
         "MJ-REQ-044",
@@ -1042,7 +1042,7 @@
     },
     {
       "id": "MJ-PR-047",
-      "title": "Orchestration Data Security: Security \u2014 Pii; Security \u2014 Web",
+      "title": "Orchestration Data Security: Security — Pii; Security — Web",
       "domain": "orchestration_data_security",
       "requirements": [
         "MJ-REQ-171",
@@ -1062,7 +1062,7 @@
     },
     {
       "id": "MJ-PR-048",
-      "title": "Orchestration Data Security: Security \u2014 Secret Management; Audit Log",
+      "title": "Orchestration Data Security: Security — Secret Management; Audit Log",
       "domain": "orchestration_data_security",
       "requirements": [
         "MJ-REQ-175",
@@ -1277,7 +1277,7 @@
     },
     {
       "id": "MJ-PR-059",
-      "title": "Test Harness: Unit Tests \u2014 Company Resolution; Unit Tests \u2014 Ats Detection",
+      "title": "Test Harness: Unit Tests — Company Resolution; Unit Tests — Ats Detection",
       "domain": "test_harness",
       "requirements": [
         "MJ-REQ-216",
@@ -1297,7 +1297,7 @@
     },
     {
       "id": "MJ-PR-060",
-      "title": "Test Harness: Unit Tests \u2014 Application State; Application Idempotency Test",
+      "title": "Test Harness: Unit Tests — Application State; Application Idempotency Test",
       "domain": "test_harness",
       "requirements": [
         "MJ-REQ-220",
@@ -2867,6 +2867,22 @@
       "pr_number": 370,
       "merge_commit": "8ee6b0a7578ab4c8a46f1bac2c707a88048473ab",
       "merged_at": "2026-09-30T19:59:03Z"
+    },
+    {
+      "id": "MJ-PR-150",
+      "title": "Guided development feedback GUI and durable private drafts",
+      "domain": "operations_ux_ci",
+      "requirements": [
+        "MJ-REQ-184"
+      ],
+      "issue_number": 451,
+      "target_area": "cli/feedback_gui.py; cli/feedback_ui; local launchers",
+      "depends_on": [],
+      "status": "LOCAL_VERIFIED",
+      "branch": "codex/feedback-gui",
+      "draft_until_verified": true,
+      "scope_complete": false,
+      "notes": "User-requested 19-task GUI; local suite and browser recovery verified. User retest and hosted CI pending; does not complete broader runtime diagnostics."
     }
   ]
 }

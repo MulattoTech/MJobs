@@ -1,5 +1,46 @@
 # Live VS Code Feedback Development
 
+## Start with the Development & Feedback page
+
+Double-click **Start-Feedback.cmd**, or run the VS Code task
+**MJobs: Development & Feedback**. The launcher opens
+http://127.0.0.1:18702 and reuses the matching local server when already running.
+It needs Python, but does not need Docker, the MJobs API, or a frontend build.
+
+Choose any of the 19 tasks on the page. Each has its own questions; additional
+details are optional. Drafts save as you type, and **Saved work** restores them.
+Closing the browser or restarting the server does not discard saved drafts.
+The status distinguishes browser-only recovery from a confirmed computer save.
+Only one editing tab per browser workspace is allowed, preventing competing
+tabs from overwriting browser recovery data. Separate browsers receive a
+conflict warning and can preserve both versions as separate drafts.
+
+Click **Ready for Codex** when the form is complete. This creates the local
+`feedback.md`, `session.json`, and `events.jsonl` files and updates `LATEST.txt`.
+Tell Codex **process my latest feedback**; no template editing or prompt copying
+is required. The page saves the request; it does not start an agent, execute
+commands, publish to GitHub, or grant automatic approval. Editing a ready report
+creates a new draft and preserves the previous report in history.
+
+Saved reports without a separate recorder session explicitly have
+`capture_status: NOT_RUN` and zero recorded browser events. Existing recorded
+sessions are suggested in applicable evidence fields; they are referenced, not
+copied or overwritten. Use the optional recording workflow below when click or
+error diagnostics would help.
+
+All reports, browser recovery data, and the SQLite draft database are private
+local data. The disk files live under ignored `outputs/live-feedback/`; the
+launcher supports `-OutputRoot` for an explicit alternative. Keep the same
+output directory and browser origin when relaunching. Browser-only recovery
+depends on retaining that browser's site storage. The MJobs PostgreSQL/document
+backup does not currently include this separate feedback directory.
+
+If the page closes, double-click **Start-Feedback.cmd** again. If the computer
+save fails, keep the page open and use **Save now** after recovery. Port conflicts
+with another workspace are reported rather than silently connecting to it.
+
+## Optional browser diagnostic recording
+
 This workflow is for iterative, user-driven MJobs development: run the real local app, exercise a workflow in a headed browser, record safe diagnostics, write what felt wrong or missing, then let Codex in VS Code turn that evidence into a test and patch.
 
 ## What the recorder captures
@@ -35,8 +76,8 @@ In VS Code use **Terminal → Run Task → MJobs: Install Playwright Chromium** 
 5. Perform the workflow you want to test naturally.
 6. When finished, return to the VS Code task terminal and press **ENTER**.
 7. The recorder writes a session under `outputs/live-feedback/<timestamp>/`.
-8. Open that session's `feedback.md` and describe what you tried, expected, observed, and want changed.
-9. In Codex for VS Code say: **Read prompts/VS_CODE_LIVE_FEEDBACK.md and process the latest live-feedback session.**
+8. Open the Development & Feedback page, choose the appropriate task, and describe what you tried, expected, observed, and want changed. Select the recorded session in an applicable evidence field, then choose **Ready for Codex**.
+9. In Codex for VS Code say: **Process my latest feedback.** The page has prepared the local files. `prompts/VS_CODE_LIVE_FEEDBACK.md` remains the repository processing contract.
 10. Codex should reproduce the observation with a regression test when practical, implement the smallest coherent change, validate it, and leave an exact retest instruction.
 11. Run the feedback task again and repeat.
 

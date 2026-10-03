@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MJobs · Development & Feedback</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar" aria-label="Saved work">
+      <a class="brand" href="/" aria-label="MJobs feedback home"><span class="brand-mark">M</span><span>MJobs<small>YOUR DEVELOPMENT WORKSPACE</small></span></a>
+      <button id="new-task" class="primary wide" type="button">+ New task</button>
+      <div class="sidebar-heading"><h2>Saved work</h2><span id="report-count">0</span></div>
+      <p id="history-empty" class="muted">Your drafts will appear here automatically.</p>
+      <nav id="history" aria-label="Reports and drafts"></nav>
+      <div class="sidebar-footer"><span class="private-dot"></span> Private on this computer<p>No Docker needed. No reports posted online.</p><a href="http://127.0.0.1:18701" target="_blank" rel="noreferrer">Open MJobs personal app ↗</a></div>
+    </aside>
+    <main>
+      <header class="page-header"><div><p class="eyebrow">BUILD A BETTER MJOBS</p><h1>Development &amp; Feedback</h1><p class="subtitle">Choose what you need. Describe it in your own words. Pick up where you left off.</p></div><span class="local-badge">LOCAL WORKSPACE</span></header>
+      <div id="global-error" class="notice error" role="alert" hidden></div>
+      <section id="catalogue" aria-label="Choose a task">
+        <div class="section-heading"><div><h2>What would you like to do?</h2><p>All 19 workflows, in one place. No templates to copy or files to edit.</p></div></div>
+        <label class="search-label" for="task-search">Find a task</label>
+        <input id="task-search" type="search" placeholder="Search bugs, features, retest, startup…" autocomplete="off">
+        <div id="task-groups"></div>
+        <p id="no-tasks" class="notice" hidden>No tasks match. Try a shorter search.</p>
+      </section>
+      <section id="editor" hidden aria-label="Task details">
+        <div class="editor-top"><button id="back" type="button" class="text-button">← Choose another task</button><span id="save-status" role="status" aria-live="polite"></span></div>
+        <div class="editor-heading"><p id="task-group" class="eyebrow"></p><h2 id="task-title"></h2><p id="task-description"></p></div>
+        <div id="conflict" class="notice error" role="alert" hidden><p>Another window saved a newer version. Your words are still in this browser. Save a separate copy to keep both versions.</p><button id="keep-copy" type="button">Keep my version as a new draft</button></div>
+        <form id="report-form">
+          <fieldset id="form-fields">
+            <div class="form-row"><label for="report-title">Short title <span class="required">Required</span><input id="report-title" name="title" maxlength="240" required placeholder="A few words to find this again" autocomplete="off"></label><label for="report-mode">Workspace mode<select id="report-mode" name="mode"><option value="PERSONAL">Personal — my real job search</option><option value="FIXTURE">Fixture — fictional test data</option></select></label></div>
+            <div id="task-fields"></div>
+          </fieldset>
+          <div class="action-bar"><div><strong>Drafts save as you type.</strong><p>When you're ready, save the complete report for Codex.</p></div><div class="actions"><button id="retry-save" type="button">Save now</button><button id="ready" class="primary" type="submit">Ready for Codex</button></div></div>
+        </form>
+        <div id="handoff-result" class="notice success" role="status" hidden></div>
+        <details class="report-preview"><summary>Review what will be saved</summary><pre id="preview"></pre></details>
+        <p class="privacy-note">Notes stay in this workspace. Don't enter passwords or access tokens. This page saves requests; it does not run commands, approve unseen work, record your screen, or submit job applications.</p>
+      </section>
+      <footer class="workspace-footer"><span id="workspace-location">Connecting to your local workspace…</span></footer>
+    </main>
+  </div>
+</body>
+</html>

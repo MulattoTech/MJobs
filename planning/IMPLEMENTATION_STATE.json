@@ -11,7 +11,7 @@
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
   "current_milestone": "M23_SOURCE_ACTIVITY_LOCAL_VERIFIED",
-  "current_objective": "Verify the exact current head of activity PR #450 and integrate when green. Keep MJ-PR-023 remaining activity/quality/ATS reuse scope explicitly incomplete.",
+  "current_objective": "User-directed development feedback GUI for issue #451: preserve drafts, remove manual template editing, and prepare for browser retest. Autonomous roadmap is not advanced by this slice.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -1886,5 +1886,15 @@
         "result": "IN_PROGRESS"
       }
     }
-  ]
+  ],
+  "active_development_issue": {
+    "number": 451,
+    "url": "https://github.com/MulattoTech/MJobs/issues/451",
+    "branch": "codex/feedback-gui",
+    "status": "PARTIAL",
+    "related_requirements": [
+      "MJ-REQ-184"
+    ],
+    "note": "Additive development feedback workflow. Runtime error-management requirement remains incomplete."
+  }
 }

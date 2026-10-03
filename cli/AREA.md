@@ -16,3 +16,15 @@ Do not print database secrets or personal archive contents, back up live writers
 copy browser cookies into a portable archive, bypass bound workspace mode, or
 automatically retry an uncertain application submission. New storage surfaces
 must join the backup/restore proof before being described as protected.
+
+The standalone development-feedback page is `python -m cli.feedback_gui`,
+launched by `Start-Feedback.cmd` / `Start-Feedback.ps1`. Issue #451 adds guided
+task forms and private SQLite drafts beneath `outputs/live-feedback`, with
+browser recovery storage, revision conflicts, and atomic local handoff files.
+It is related to MJ-REQ-184, but does not complete runtime error management.
+Static assets live in `cli/feedback_ui`; `cli/feedback_tasks.json` owns the
+19-task catalogue. Tests are `tests/unit/test_feedback_gui.py`,
+`tests/unit/test_feedback_tasks.py`, and `tests/browser/test_feedback_gui.py`.
+The server binds only to loopback and never executes submitted content, launches
+agents, publishes reports, or changes application submission policy. Feedback
+storage is separate from the product database and its backup coverage.
