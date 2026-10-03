@@ -1,6 +1,6 @@
 # MJobs Feature Completeness
 
-Updated: 2026-10-02
+Updated: 2026-10-03
 
 ## How to read this
 This report intentionally separates the original MJobs product specification from later reference-project inspiration.
@@ -9,13 +9,14 @@ A percentage is a navigation aid, never a release claim. Only evidence-backed PA
 ## Original specification
 - Catalogue items: **366**
 - PASS: **48** (13.11%)
-- PARTIAL: **69** (18.85%)
-- NOT_RUN: **249** (68.03%)
+- PARTIAL: **72** (19.67%)
+- NOT_RUN: **246** (67.21%)
 - Full-spec state: **PARTIAL**
 - Release readiness: **not established**
 PASS counts complete requirement items, not the fraction of source code implemented. Many requirements span multiple product capabilities; the repository does not turn partial evidence into completed requirements.
 
 ## Current verified implementation spine
+- Reviewed PDF/DOCX/TXT resume suggestions, grouped contact/preferences and named base-resume history passed local browser/API and PostgreSQL fixture acceptance. Imported facts remain pending; OCR, LinkedIn import, automatic preference filtering and full structured career chronology remain incomplete (docs/evidence/2026-10-03-resume-driven-profile.json).
 - Durable PostgreSQL/Redis worker architecture and migrations
 - Local mock discovery -> company/ATS -> job -> match -> factual document -> application -> confirmation path
 - Connected local UI and persistent tracker

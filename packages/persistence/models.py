@@ -27,6 +27,12 @@ uploaded_resumes = table("uploaded_resumes", Column("profile_id", ForeignKey("ca
                          Column("sha256", String(64), nullable=False), Column("status", String(32), nullable=False),
                          Column("created_at", String(64), nullable=False),
                          constraints=(UniqueConstraint("profile_id", "sha256"),))
+resume_revisions = table("resume_revisions", Column("profile_id", ForeignKey("career_profiles.id"), nullable=False),
+                         Column("upload_id", ForeignKey("uploaded_resumes.id"), nullable=False),
+                         Column("series_id", String(128), nullable=False), Column("label", String(200), nullable=False),
+                         Column("version", Integer, nullable=False), Column("created_at", String(64), nullable=False),
+                         constraints=(UniqueConstraint("profile_id", "series_id", "version"),
+                                      UniqueConstraint("profile_id", "series_id", "upload_id")))
 companies = table("companies", Column("name", String(200), nullable=False), Column("domain", String(1000), nullable=False),
                   Column("parent_company_id", ForeignKey("companies.id")),
                   Column("relationship_type", String(32)))

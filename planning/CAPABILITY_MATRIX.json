@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-02",
+  "timestamp": "2026-10-03",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -713,52 +713,62 @@
       "requirement_id": "MJ-REQ-088",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-09-30-user-testing.md"
+        "docs/evidence/2026-09-30-user-testing.md",
+        "docs/evidence/2026-10-03-resume-driven-profile.json"
       ],
-      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open"
+      "note": "Reviewed native resume import, structured optional contact/preferences and named base-resume versions verified; full structured career model, OCR, advanced extraction and broader document library remain incomplete."
     },
     {
       "requirement_id": "MJ-REQ-089",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-03-resume-driven-profile.json"
+      ],
+      "note": "Reviewed native resume import, structured optional contact/preferences and named base-resume versions verified; full structured career model, OCR, advanced extraction and broader document library remain incomplete."
     },
     {
       "requirement_id": "MJ-REQ-090",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-09-30-pr004-upload-restore-local.json"
+        "docs/evidence/2026-09-30-pr004-upload-restore-local.json",
+        "docs/evidence/2026-10-03-resume-driven-profile.json"
       ],
-      "note": "Profile-scoped PDF/DOCX/UTF-8 TXT originals are accepted, stored unreviewed and checksum downloaded. Native text extraction, OCR for scanned documents and review-to-fact workflow remain open."
+      "note": "Reviewed native resume import, structured optional contact/preferences and named base-resume versions verified; full structured career model, OCR, advanced extraction and broader document library remain incomplete."
     },
     {
       "requirement_id": "MJ-REQ-091",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-03-resume-driven-profile.json"
+      ],
+      "note": "Reviewed native resume import, structured optional contact/preferences and named base-resume versions verified; full structured career model, OCR, advanced extraction and broader document library remain incomplete."
     },
     {
       "requirement_id": "MJ-REQ-092",
       "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-09-29-mock-spine.md",
-        "docs/evidence/2026-09-30-user-testing.md"
+        "docs/evidence/2026-09-30-user-testing.md",
+        "docs/evidence/2026-10-03-resume-driven-profile.json"
       ],
-      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open"
+      "note": "Reviewed native resume import, structured optional contact/preferences and named base-resume versions verified; full structured career model, OCR, advanced extraction and broader document library remain incomplete."
     },
     {
       "requirement_id": "MJ-REQ-093",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-03-resume-driven-profile.json"
+      ],
+      "note": "Reviewed native resume import, structured optional contact/preferences and named base-resume versions verified; full structured career model, OCR, advanced extraction and broader document library remain incomplete."
     },
     {
       "requirement_id": "MJ-REQ-094",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-09-29-mock-spine.md"
+        "docs/evidence/2026-09-29-mock-spine.md",
+        "docs/evidence/2026-10-03-resume-driven-profile.json"
       ],
-      "note": "Initial scoped behavior only; full requirement remains open"
+      "note": "Reviewed native resume import, structured optional contact/preferences and named base-resume versions verified; full structured career model, OCR, advanced extraction and broader document library remain incomplete."
     },
     {
       "requirement_id": "MJ-REQ-095",

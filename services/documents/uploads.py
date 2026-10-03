@@ -86,14 +86,23 @@ def _uploads_root(output_dir: str | Path, *, create: bool) -> Path:
 def list_resumes(store, profile_id: str) -> list[dict]:
     store.profile(profile_id)
     with store.engine.connect() as connection:
-        return [dict(row) for row in connection.execute(select(m.uploaded_resumes).where(
-            m.uploaded_resumes.c.profile_id == profile_id).order_by(m.uploaded_resumes.c.created_at.desc())).mappings()]
+        return [dict(row) for row in connection.execute(select(m.uploaded_resumes,
+            m.resume_revisions.c.series_id, m.resume_revisions.c.label, m.resume_revisions.c.version).join(
+            m.resume_revisions, m.resume_revisions.c.upload_id == m.uploaded_resumes.c.id).where(
+            m.uploaded_resumes.c.profile_id == profile_id, m.resume_revisions.c.profile_id == profile_id).order_by(
+            m.resume_revisions.c.created_at.desc(), m.resume_revisions.c.version.desc())).mappings()]
 
 
 def save_resume(store, output_dir: str | Path, profile_id: str, filename: str,
-                media_type: str, data: bytes) -> dict:
+                media_type: str, data: bytes, *, series_id: str | None = None, label: str | None = None) -> dict:
     store.profile(profile_id)
     extension = validate_resume(filename, media_type, data)
+    if label is not None and (not label.strip() or len(label) > 200 or any(unicodedata.category(c).startswith('C') for c in label)):
+        raise ValueError('Resume name must be 1 to 200 visible characters')
+    if series_id is not None:
+        with store.engine.connect() as connection:
+            connection.execute(select(m.resume_revisions.c.id).where(
+                m.resume_revisions.c.profile_id == profile_id, m.resume_revisions.c.series_id == series_id).limit(1)).one()
     digest = hashlib.sha256(data).hexdigest()
     identifier = identity("uploaded-resume", profile_id, digest)
     uploads = _uploads_root(output_dir, create=True)
@@ -117,9 +126,25 @@ def save_resume(store, output_dir: str | Path, profile_id: str, filename: str,
               "media_type": media_type, "size_bytes": len(data), "sha256": digest,
               "status": "STORED_UNREVIEWED", "created_at": now()}
     with store.engine.begin() as connection:
+        # Serialize version allocation across workers without replacing originals.
+        if connection.dialect.name == 'sqlite':
+            connection.exec_driver_sql('BEGIN IMMEDIATE')
+        connection.execute(select(m.profiles.c.id).where(m.profiles.c.id == profile_id).with_for_update()).one()
         upsert(connection, m.uploaded_resumes, record)
-        return dict(connection.execute(select(m.uploaded_resumes).where(
+        record = dict(connection.execute(select(m.uploaded_resumes).where(
             m.uploaded_resumes.c.id == identifier, m.uploaded_resumes.c.profile_id == profile_id)).mappings().one())
+        series_id = series_id or identifier
+        revision_id = identity('resume-revision', profile_id, series_id, identifier)
+        revision = connection.execute(select(m.resume_revisions).where(m.resume_revisions.c.id == revision_id)).mappings().one_or_none()
+        if revision is None:
+            last = connection.execute(select(m.resume_revisions).where(
+                m.resume_revisions.c.profile_id == profile_id, m.resume_revisions.c.series_id == series_id).order_by(
+                m.resume_revisions.c.version.desc()).limit(1)).mappings().one_or_none()
+            revision = {'id':revision_id, 'profile_id':profile_id, 'upload_id':identifier, 'series_id':series_id,
+                        'label':last['label'] if last else (label or filename).strip(),
+                        'version':last['version'] + 1 if last else 1, 'created_at':now()}
+            upsert(connection, m.resume_revisions, revision)
+        return {**record, **{key:revision[key] for key in ('series_id','label','version')}}
 
 
 def read_resume(store, output_dir: str | Path, profile_id: str, identifier: str) -> tuple[dict, bytes]:

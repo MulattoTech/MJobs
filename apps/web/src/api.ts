@@ -14,11 +14,16 @@ export function resumeMediaType(filename: string): string {
   if (!extension || !media[extension]) throw new Error('Choose a PDF, DOCX, or UTF-8 TXT resume.');
   return media[extension];
 }
-export async function uploadResume<T>(profileId: string, file: File): Promise<T> {
+export async function uploadResume<T>(profileId: string, file: File, options: { label?: string; seriesId?: string } = {}): Promise<T> {
   if (!file.size || file.size > 10 * 1024 * 1024) throw new Error('Resume must be nonempty and no larger than 10 MiB.');
   const response = await fetch('/profiles/'+encodeURIComponent(profileId)+'/resumes', {
     method: 'POST', body: file,
-    headers: {'Content-Type': resumeMediaType(file.name), 'X-Filename': encodeURIComponent(file.name)},
+    headers: {
+      'Content-Type': resumeMediaType(file.name),
+      'X-Filename': encodeURIComponent(file.name),
+      ...(options.label ? {'X-Resume-Label': encodeURIComponent(options.label)} : {}),
+      ...(options.seriesId ? {'X-Resume-Series': encodeURIComponent(options.seriesId)} : {}),
+    },
   });
   const data = await response.json();
   if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : `Resume upload rejected (${response.status}).`);
