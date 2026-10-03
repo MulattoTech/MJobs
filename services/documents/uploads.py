@@ -106,45 +106,53 @@ def save_resume(store, output_dir: str | Path, profile_id: str, filename: str,
     digest = hashlib.sha256(data).hexdigest()
     identifier = identity("uploaded-resume", profile_id, digest)
     uploads = _uploads_root(output_dir, create=True)
-    destination = uploads / f"{identifier}.{extension}"
     with tempfile.NamedTemporaryFile(dir=uploads, prefix=".upload-", delete=False) as staged:
         staged_path = Path(staged.name)
         staged.write(data)
         staged.flush()
         os.fsync(staged.fileno())
     try:
-        try:
-            os.link(staged_path, destination)
-            os.chmod(destination, 0o600)
-        except FileExistsError:
-            if destination.is_symlink() or destination.stat().st_size != len(data) or hashlib.sha256(
-                    destination.read_bytes()).hexdigest() != digest:
-                raise UploadIntegrityError("Existing uploaded resume does not match its checksum")
+        with store.engine.begin() as connection:
+            # Serialize metadata lookup, authoritative format selection, and file
+            # creation so mixed-extension repeats cannot create alternate paths.
+            if connection.dialect.name == 'sqlite':
+                connection.exec_driver_sql('BEGIN IMMEDIATE')
+            connection.execute(select(m.profiles.c.id).where(m.profiles.c.id == profile_id).with_for_update()).one()
+            existing = connection.execute(select(m.uploaded_resumes).where(
+                m.uploaded_resumes.c.id == identifier, m.uploaded_resumes.c.profile_id == profile_id
+            )).mappings().one_or_none()
+            authoritative_extension = existing["format"] if existing else extension
+            if authoritative_extension not in MEDIA_TYPES:
+                raise UploadIntegrityError("Uploaded resume format metadata is unsafe")
+            destination = uploads / f"{identifier}.{authoritative_extension}"
+            try:
+                os.link(staged_path, destination)
+                os.chmod(destination, 0o600)
+            except FileExistsError:
+                if destination.is_symlink() or destination.stat().st_size != len(data) or hashlib.sha256(
+                        destination.read_bytes()).hexdigest() != digest:
+                    raise UploadIntegrityError("Existing uploaded resume does not match its checksum")
+            record = dict(existing) if existing else {"id": identifier, "profile_id": profile_id,
+                "filename": filename, "format": extension, "media_type": media_type,
+                "size_bytes": len(data), "sha256": digest, "status": "STORED_UNREVIEWED", "created_at": now()}
+            if existing is None:
+                upsert(connection, m.uploaded_resumes, record)
+            record = dict(connection.execute(select(m.uploaded_resumes).where(
+                m.uploaded_resumes.c.id == identifier, m.uploaded_resumes.c.profile_id == profile_id)).mappings().one())
+            series_id = series_id or identifier
+            revision_id = identity('resume-revision', profile_id, series_id, identifier)
+            revision = connection.execute(select(m.resume_revisions).where(m.resume_revisions.c.id == revision_id)).mappings().one_or_none()
+            if revision is None:
+                last = connection.execute(select(m.resume_revisions).where(
+                    m.resume_revisions.c.profile_id == profile_id, m.resume_revisions.c.series_id == series_id).order_by(
+                    m.resume_revisions.c.version.desc()).limit(1)).mappings().one_or_none()
+                revision = {'id':revision_id, 'profile_id':profile_id, 'upload_id':identifier, 'series_id':series_id,
+                            'label':last['label'] if last else (label or filename).strip(),
+                            'version':last['version'] + 1 if last else 1, 'created_at':now()}
+                upsert(connection, m.resume_revisions, revision)
+            return {**record, **{key:revision[key] for key in ('series_id','label','version')}}
     finally:
         staged_path.unlink(missing_ok=True)
-    record = {"id": identifier, "profile_id": profile_id, "filename": filename, "format": extension,
-              "media_type": media_type, "size_bytes": len(data), "sha256": digest,
-              "status": "STORED_UNREVIEWED", "created_at": now()}
-    with store.engine.begin() as connection:
-        # Serialize version allocation across workers without replacing originals.
-        if connection.dialect.name == 'sqlite':
-            connection.exec_driver_sql('BEGIN IMMEDIATE')
-        connection.execute(select(m.profiles.c.id).where(m.profiles.c.id == profile_id).with_for_update()).one()
-        upsert(connection, m.uploaded_resumes, record)
-        record = dict(connection.execute(select(m.uploaded_resumes).where(
-            m.uploaded_resumes.c.id == identifier, m.uploaded_resumes.c.profile_id == profile_id)).mappings().one())
-        series_id = series_id or identifier
-        revision_id = identity('resume-revision', profile_id, series_id, identifier)
-        revision = connection.execute(select(m.resume_revisions).where(m.resume_revisions.c.id == revision_id)).mappings().one_or_none()
-        if revision is None:
-            last = connection.execute(select(m.resume_revisions).where(
-                m.resume_revisions.c.profile_id == profile_id, m.resume_revisions.c.series_id == series_id).order_by(
-                m.resume_revisions.c.version.desc()).limit(1)).mappings().one_or_none()
-            revision = {'id':revision_id, 'profile_id':profile_id, 'upload_id':identifier, 'series_id':series_id,
-                        'label':last['label'] if last else (label or filename).strip(),
-                        'version':last['version'] + 1 if last else 1, 'created_at':now()}
-            upsert(connection, m.resume_revisions, revision)
-        return {**record, **{key:revision[key] for key in ('series_id','label','version')}}
 
 
 def read_resume(store, output_dir: str | Path, profile_id: str, identifier: str) -> tuple[dict, bytes]:

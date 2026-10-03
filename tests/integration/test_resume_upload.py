@@ -70,6 +70,53 @@ class ResumeUploadTests(unittest.TestCase):
                 self.assertEqual(response.status_code, 201, response.text)
                 self.assertEqual(self.client.get("/profiles/fixture/resumes/" + response.json()["id"]).content, content)
 
+    def test_duplicate_bytes_keep_first_authoritative_extension_and_metadata(self):
+        for first_name, first_media, second_name, second_media in (
+            ("original.pdf", "application/pdf", "same-bytes.txt", "text/plain"),
+            ("original.txt", "text/plain", "same-bytes.pdf", "application/pdf"),
+        ):
+            with self.subTest(first=first_name):
+                data = b"%PDF-1.4\nSynthetic ASCII resume " + first_name.encode() + b"\n%%EOF\n"
+                before_count = len(self.client.get("/profiles/fixture/resumes").json()["resumes"])
+                first = self.upload(data, first_name, first_media)
+                self.assertEqual(first.status_code, 201, first.text)
+                original = first.json()
+                second = self.upload(data, second_name, second_media)
+                self.assertEqual(second.status_code, 201, second.text)
+                self.assertEqual(second.json()["id"], original["id"])
+                self.assertEqual(second.json()["filename"], original["filename"])
+                self.assertEqual(second.json()["format"], original["format"])
+                self.assertEqual(second.json()["media_type"], original["media_type"])
+                self.assertEqual(len(self.client.get("/profiles/fixture/resumes").json()["resumes"]), before_count + 1)
+                stored = list((self.root / "uploads").glob(original["id"] + ".*"))
+                self.assertEqual([path.name for path in stored], [original["id"] + "." + original["format"]])
+                self.assertEqual(self.client.get("/profiles/fixture/resumes/" + original["id"]).content, data)
+                stored[0].write_bytes(b"corrupted original")
+                self.assertEqual(self.upload(data, second_name, second_media).status_code, 409)
+                self.assertEqual(len(list((self.root / "uploads").glob(original["id"] + ".*"))), 1)
+
+    def test_concurrent_mixed_extension_uploads_have_one_original(self):
+        from concurrent.futures import ThreadPoolExecutor
+        from threading import Barrier
+        from services.documents.uploads import save_resume
+
+        barrier = Barrier(2)
+        data = b"%PDF-1.4\nConcurrent synthetic resume\n%%EOF\n"
+
+        def upload(extension, media):
+            barrier.wait(timeout=5)
+            return save_resume(self.store, self.root, 'fixture', 'original.' + extension, media, data)
+
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            pending = [pool.submit(upload, 'pdf', 'application/pdf'),
+                       pool.submit(upload, 'txt', 'text/plain')]
+            first, second = [future.result(timeout=10) for future in pending]
+        self.assertEqual(first, second)
+        self.assertEqual(first['version'], 1)
+        self.assertEqual([p.name for p in (self.root / 'uploads').iterdir()],
+                         [first['id'] + '.' + first['format']])
+        self.assertEqual(len(self.client.get('/profiles/fixture/resumes').json()['resumes']), 1)
+
     def test_unsafe_or_mismatched_uploads_are_rejected_without_storage(self):
         valid = b"%PDF-1.4\n%%EOF"
         for name, media, data in (
