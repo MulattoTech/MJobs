@@ -1,5 +1,6 @@
 import React from 'react';
 import { discoveryActivity } from './company-activity';
+import { SourceLinkEvidence, type LinkVerification } from './source-link-evidence';
 
 export type CompanySourceView = {
   id: string;
@@ -21,6 +22,7 @@ export type CompanySourceView = {
   last_checked: string | null;
   last_success?: string | null;
   next_check: string | null;
+  quality?: {link_verification?: LinkVerification | null};
   provenance: {
     domain_method?: string | null;
     domain_candidates_ambiguous?: boolean;
@@ -88,6 +90,7 @@ export function CompanySources({rows, busy, profileSelected, onSet}: Props) {
           <div><dt>Last Checked</dt><dd>{timestamp(row.last_checked)}</dd></div>
           <div><dt>Next Check</dt><dd>{row.next_check ? timestamp(row.next_check) : 'Not scheduled'}</dd></div>
         </dl>
+        <SourceLinkEvidence evidence={row.quality?.link_verification} />
         <div className="company-source-controls">
           <button type="button" disabled={busy} aria-label={`${pinned ? 'Unpin' : 'Pin'} ${row.company_name} source`}
             onClick={() => void onSet(row, 'pin', !pinned)}>{pinned ? 'Unpin' : 'Pin'}</button>

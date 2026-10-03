@@ -7,12 +7,12 @@
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "30 preserved worktrees; root resume-driven-profile HEAD260540c retains24 untracked user templates. Active isolated public-company-discovery based on main216f1a4.",
-    "current_verified_github_state": "387 open issues; PR474 and predecessors merged. No open PR before this slice publication.",
-    "current_verified_at": "2026-10-03T22:02:40.951389+00:00"
+    "current_verified_local_state": "31 preserved worktrees; root resume-driven-profile HEAD260540c retains24 unchanged untracked templates; isolated application-link-evidence based on main5a082f2.",
+    "current_verified_github_state": "387 open issues; PR475 merged after exact-head CI; no open PR before current publication.",
+    "current_verified_at": "2026-10-03T22:38:15.833182+00:00"
   },
-  "current_milestone": "PUBLIC_COMPANY_DISCOVERY",
-  "current_objective": "Verify and publish bounded public company discovery prerequisite, then continue application-link observations and automatic source discovery wiring.",
+  "current_milestone": "APPLICATION_LINK_EVIDENCE",
+  "current_objective": "Publish and verify bounded source link observations, then continue original source-discovery foundations.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -67,12 +67,7 @@
   ],
   "blocked_capabilities": [],
   "active_requirements": [
-    "MJ-REQ-054",
-    "MJ-REQ-060",
-    "MJ-REQ-070",
-    "MJ-REQ-071",
-    "MJ-REQ-072",
-    "MJ-REQ-073"
+    "MJ-REQ-083"
   ],
   "active_prs": [
     {
@@ -393,8 +388,23 @@
       "number": 475,
       "url": "https://github.com/MulattoTech/MJobs/pull/475",
       "branch": "codex/public-company-discovery",
+      "status": "MERGED",
+      "observed_head_before_bookkeeping": "db9fae035b7ae0a4fa2beb84628c057ee73d000d",
+      "head": "74256a359913444cc99ecba553b9caaf9b1cf4be",
+      "merge_commit": "5a082f26a34765be32cd6c0c726c957b242b72a7",
+      "merged_at": "2026-10-03T22:11:28Z",
+      "ci_result": "PASS",
+      "exact_head_runs": {
+        "pull_request_verification": 37157224650,
+        "push_verification": 37157222316
+      }
+    },
+    {
+      "number": 476,
+      "url": "https://github.com/MulattoTech/MJobs/pull/476",
+      "branch": "codex/application-link-evidence",
       "status": "PARTIAL",
-      "observed_head_before_bookkeeping": "db9fae035b7ae0a4fa2beb84628c057ee73d000d"
+      "observed_head_before_bookkeeping": "cd487dea9772d58df5a2b811fb0f6de932f438d6"
     }
   ],
   "tests_passed": [
@@ -503,7 +513,9 @@
     "MJ-PR-023 activity slice: 235 Python tests with zero skips, 11 frontend tests/build, validators and actual synthetic feed import -> audit -> API -> browser activity PASS.",
     "Source quality observations:309 Python tests with zero skips,17 frontend tests/build, catalogue/progress validators and isolated PostgreSQL17 migration/preserved rows/restart PASS; hosted CI pending.",
     "Source value selection:322 Python tests zero skips,21 frontend tests/build, actual Chromium protected-route workflow, isolated PostgreSQL17 concurrent import/identity conflict/upgrade/downgrade guard/restart PASS. Hosted CI pending.",
-    "Public company discovery:350 Python tests zero skips,23 frontend tests/build, browser/API/worker feed flow, safe real HTTPS GET, independent boundary review and validators PASS."
+    "Public company discovery:350 Python tests zero skips,23 frontend tests/build, browser/API/worker feed flow, safe real HTTPS GET, independent boundary review and validators PASS.",
+    "Application-link evidence:369 Python tests zero skips,26 frontend tests/build; isolated PostgreSQL17 migration/restart and browser/API/worker persisted readback PASS.",
+    "Final parser duplicate-attribute ambiguity: observed RED then27 affected sampler/integration/browser tests PASS; exact new-head hosted full regression required."
   ],
   "tests_failed": [],
   "tests_not_run": [
@@ -531,16 +543,16 @@
     "MJ-PR-016 local Chromium first run used Docker DNS host api, which is not a secure browser origin for crypto.randomUUID; loopback URL rerun passed all five connected UI actions."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-03T22:02:40.951389+00:00",
-    "base_commit": "216f1a4696abc8dcb07fb57b5a67102091343ec5",
+    "timestamp": "2026-10-03T22:38:15.833182+00:00",
+    "base_commit": "5a082f26a34765be32cd6c0c726c957b242b72a7",
     "result": "PASS",
-    "scope": "350 Python tests zero skips;23 frontend tests/build; catalogue/progress; actual browser/local worker flow and unmocked bounded HTTPS GET. Exact-head hosted CI pending.",
-    "evidence_path": "docs/evidence/2026-10-03-public-company-discovery.json"
+    "scope": "369 Python tests zero skips,26 frontend tests/build, isolated PostgreSQL17 upgrade/downgrade guard/restart; exact-head hosted CI pending. Final parser ambiguity guard:27 affected tests PASS after observed RED.",
+    "evidence_path": "docs/evidence/2026-10-03-application-link-evidence.json"
   },
   "ci_verification": {
     "result": "NOT_RUN",
-    "scope": "Current public-company-discovery branch",
-    "note": "Merged PR474 exact-head runs retained in active_prs; prior CI does not certify this head."
+    "scope": "Current application-link-evidence branch",
+    "note": "PR475 exact-head merge reconciled separately; exact new head CI pending."
   },
   "mock_spine_ci": {
     "result": "PASS",
@@ -598,7 +610,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Reconcile exact-head CI and merge current slice; continue MJ-REQ-083 link evidence with explicit source/requisition binding through the bounded production fetch path.",
+  "recommended_resume_step": "Verify exact latest PR head and merge; then audit/wire useful-job company-discovery triggers through conservative identity and explicit public egress policy (MJ-REQ-054/056/060), preserving source/requisition safety.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -635,18 +647,18 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "db9fae035b7ae0a4fa2beb84628c057ee73d000d",
+  "last_implementation_commit": "cd487dea9772d58df5a2b811fb0f6de932f438d6",
   "publication": {
     "result": "PARTIAL",
-    "branch": "codex/public-company-discovery",
-    "worktree": "C:\\Tools\\Dev\\MJobs\\.worktrees\\public-company-discovery",
-    "base": "216f1a4696abc8dcb07fb57b5a67102091343ec5",
-    "observed_at": "2026-10-03T22:05:02.314398+00:00",
-    "note": "This state commit changes the PR head. Verify latest exact SHA and required CI before merge.",
-    "pr_number": 475,
-    "url": "https://github.com/MulattoTech/MJobs/pull/475",
+    "branch": "codex/application-link-evidence",
+    "worktree": "C:\\Tools\\Dev\\MJobs\\.worktrees\\application-link-evidence",
+    "base": "5a082f26a34765be32cd6c0c726c957b242b72a7",
+    "observed_at": "2026-10-03T22:39:37.340715+00:00",
+    "note": "Final parser ambiguity fix changes the head again. Verify latest exact SHA and required CI before merge.",
+    "pr_number": 476,
+    "url": "https://github.com/MulattoTech/MJobs/pull/476",
     "draft": true,
-    "observed_head_before_bookkeeping": "db9fae035b7ae0a4fa2beb84628c057ee73d000d"
+    "observed_head_before_bookkeeping": "cd487dea9772d58df5a2b811fb0f6de932f438d6"
   },
   "optional_afk_journal": {
     "result": "BLOCKED_ENVIRONMENT",
@@ -2313,12 +2325,62 @@
         "git_commit": "216f1a4696abc8dcb07fb57b5a67102091343ec5",
         "evidence_path": "docs/evidence/2026-10-03-public-company-discovery.json"
       }
+    },
+    {
+      "milestone_id": "APPLICATION-LINK-EVIDENCE-20261003",
+      "timestamp": "2026-10-03T22:38:15.833182+00:00",
+      "current_phase": "APPLICATION_LINK_EVIDENCE",
+      "completed_steps": [
+        "Sampled bounded public-feed application pages through existing production client.",
+        "Bound observations to immutable candidate/raw snapshot and atomic quality/source success.",
+        "Exposed conclusive/unknown and accepted-row scope in local Companies/Sources UI.",
+        "Reconciled PR475 merge; preserved all user work."
+      ],
+      "files_added": [
+        "services/company_discovery/application_links.py",
+        "services/company_discovery/link_evidence.py",
+        "services/discovery/feed_items.py",
+        "apps/web/src/source-link-evidence.tsx",
+        "docs/evidence/2026-10-03-application-link-evidence.json"
+      ],
+      "files_modified": [
+        "services/discovery/company_feed.py",
+        "services/company_discovery/flywheel.py",
+        "services/company_discovery/quality.py"
+      ],
+      "tests_completed": [
+        "369 Python tests with zero skips;26 frontend tests/build PASS.",
+        "PostgreSQL17 upgrade/downgrade guard/restart and controlled browser/API/worker PASS."
+      ],
+      "tests_remaining": [
+        "Exact latest PR head hosted CI.",
+        "Live provider breadth and automatic discovery triggers."
+      ],
+      "migrations_applied": [
+        "b2d6f0a19c44 in isolated test databases only"
+      ],
+      "live_integrations_tested": [
+        "Local Chromium/API/worker and isolated PostgreSQL17; controlled outbound employer responses."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "MJ-REQ-083 remains PARTIAL: declared JSON-LD identity is not full application usability, employer identity or whole-feed coverage.",
+        "Only enrolled same-origin public feeds are sampled; other ATS origins, production provider breadth and periodic source scheduling remain incomplete.",
+        "UNKNOWN and unsampled rows are excluded from the conclusive rate and are displayed separately; accepted feed rows can repeat posting identities.",
+        "Browser/API/worker employer responses are controlled. No fresh live employer-page proof is claimed.",
+        "No user database migration or external application submission; isolated PostgreSQL container was removed.",
+        "Original counts 48 PASS,73 PARTIAL,245 NOT_RUN; reference59 NOT_RUN; release NOT_RUN."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "5a082f26a34765be32cd6c0c726c957b242b72a7",
+        "evidence_path": "docs/evidence/2026-10-03-application-link-evidence.json"
+      }
     }
   ],
-  "current_phase": "PUBLIC_COMPANY_DISCOVERY",
+  "current_phase": "APPLICATION_LINK_EVIDENCE",
   "last_safe_checkpoint": {
-    "git_commit": "216f1a4696abc8dcb07fb57b5a67102091343ec5",
-    "evidence_path": "docs/evidence/2026-10-03-public-company-discovery.json"
+    "git_commit": "5a082f26a34765be32cd6c0c726c957b242b72a7",
+    "evidence_path": "docs/evidence/2026-10-03-application-link-evidence.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
@@ -2394,8 +2456,8 @@
     }
   ],
   "live_reconciliation": {
-    "timestamp": "2026-10-03T22:05:02.314398+00:00",
-    "origin_main": "216f1a4696abc8dcb07fb57b5a67102091343ec5",
+    "timestamp": "2026-10-03T22:39:37.340715+00:00",
+    "origin_main": "5a082f26a34765be32cd6c0c726c957b242b72a7",
     "open_issue_count_before_catalogue": 371,
     "commercial_issue_mapping": {
       "MJ-REF-043": 454,
@@ -2416,7 +2478,7 @@
       "MJ-REF-058": 469,
       "MJ-REF-059": 470
     },
-    "preserved_worktrees": 30,
+    "preserved_worktrees": 31,
     "preserved_untracked_files": 24,
     "private_snapshot_location": "Git common directory: afk-dev/reconcile-20261003",
     "docker_probe": {
@@ -2427,29 +2489,24 @@
     "catalogue_pr": 471,
     "catalogue_publication": "MERGED",
     "open_prs_at_checkpoint": [
-      475
+      476
     ],
     "integration_order": [],
-    "note": "PR474 exact-head merge reconciled; public discovery work isolated.",
-    "next_action": "Reconcile exact-head CI and merge current slice; continue MJ-REQ-083 link evidence with explicit source/requisition binding through the bounded production fetch path.",
+    "note": "PR475 merged after exact-head CI; current isolated link-evidence slice verified locally.",
+    "next_action": "Verify exact latest PR head and merge; then audit/wire useful-job company-discovery triggers through conservative identity and explicit public egress policy (MJ-REQ-054/056/060), preserving source/requisition safety.",
     "open_issue_count": 387
   },
   "active_development_issue": {
-    "number": 55,
-    "url": "https://github.com/MulattoTech/MJobs/issues/55",
-    "branch": "codex/public-company-discovery",
+    "number": 84,
+    "url": "https://github.com/MulattoTech/MJobs/issues/84",
+    "branch": "codex/application-link-evidence",
     "status": "PARTIAL",
     "related_requirements": [
-      "MJ-REQ-054",
-      "MJ-REQ-060",
-      "MJ-REQ-070",
-      "MJ-REQ-071",
-      "MJ-REQ-072",
-      "MJ-REQ-073"
+      "MJ-REQ-083"
     ],
-    "evidence_path": "docs/evidence/2026-10-03-public-company-discovery.json",
-    "pr_number": 475,
-    "pr_url": "https://github.com/MulattoTech/MJobs/pull/475"
+    "evidence_path": "docs/evidence/2026-10-03-application-link-evidence.json",
+    "pr_number": 476,
+    "pr_url": "https://github.com/MulattoTech/MJobs/pull/476"
   },
   "historical_control_snapshots": [
     {
@@ -2599,6 +2656,51 @@
         "pr_number": 474,
         "pr_url": "https://github.com/MulattoTech/MJobs/pull/474"
       }
+    },
+    {
+      "archived_at": "2026-10-03T22:38:15.833182+00:00",
+      "publication": {
+        "result": "PARTIAL",
+        "branch": "codex/public-company-discovery",
+        "worktree": "C:\\Tools\\Dev\\MJobs\\.worktrees\\public-company-discovery",
+        "base": "216f1a4696abc8dcb07fb57b5a67102091343ec5",
+        "observed_at": "2026-10-03T22:05:02.314398+00:00",
+        "note": "This state commit changes the PR head. Verify latest exact SHA and required CI before merge.",
+        "pr_number": 475,
+        "url": "https://github.com/MulattoTech/MJobs/pull/475",
+        "draft": true,
+        "observed_head_before_bookkeeping": "db9fae035b7ae0a4fa2beb84628c057ee73d000d"
+      },
+      "ci_verification": {
+        "result": "NOT_RUN",
+        "scope": "Current public-company-discovery branch",
+        "note": "Merged PR474 exact-head runs retained in active_prs; prior CI does not certify this head."
+      },
+      "last_implementation_commit": "db9fae035b7ae0a4fa2beb84628c057ee73d000d",
+      "last_verified_checkpoint": {
+        "timestamp": "2026-10-03T22:02:40.951389+00:00",
+        "base_commit": "216f1a4696abc8dcb07fb57b5a67102091343ec5",
+        "result": "PASS",
+        "scope": "350 Python tests zero skips;23 frontend tests/build; catalogue/progress; actual browser/local worker flow and unmocked bounded HTTPS GET. Exact-head hosted CI pending.",
+        "evidence_path": "docs/evidence/2026-10-03-public-company-discovery.json"
+      },
+      "active_development_issue": {
+        "number": 55,
+        "url": "https://github.com/MulattoTech/MJobs/issues/55",
+        "branch": "codex/public-company-discovery",
+        "status": "PARTIAL",
+        "related_requirements": [
+          "MJ-REQ-054",
+          "MJ-REQ-060",
+          "MJ-REQ-070",
+          "MJ-REQ-071",
+          "MJ-REQ-072",
+          "MJ-REQ-073"
+        ],
+        "evidence_path": "docs/evidence/2026-10-03-public-company-discovery.json",
+        "pr_number": 475,
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/475"
+      }
     }
   ],
   "current_user_browser_acceptance": {
@@ -2623,6 +2725,15 @@
       ],
       "result": "PASS",
       "note": "No user live database migration claimed; no history backfill; populated downgrade refuses evidence loss."
+    },
+    {
+      "revision": "b2d6f0a19c44",
+      "targets": [
+        "isolated SQLite legacy fixture",
+        "isolated PostgreSQL17"
+      ],
+      "result": "PASS",
+      "note": "No live user database migration, history fabrication or populated evidence downgrade."
     }
   ]
 }

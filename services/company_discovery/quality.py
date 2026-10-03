@@ -77,8 +77,26 @@ def source_quality(connection, *, configured_source_id=None, company_source_id=N
         from services.company_discovery.sources import _url
         query = query.where(m.source_quality_observations.c.source_endpoint == _url(endpoint, 'ENDPOINT'))
     observations = [dict(row) for row in connection.execute(query).mappings()]
+    # At most 200 collection batches x 5 sampled rows; legacy batches have none.
+    links = [dict(row) for row in connection.execute(select(m.source_application_link_observations,
+        m.posting_value_candidates.c.posting_id).join(m.posting_value_candidates).where(
+        m.posting_value_candidates.c.quality_observation_id.in_([row['id'] for row in observations]))
+        .order_by(m.source_application_link_observations.c.observed_at.desc(),
+                  m.source_application_link_observations.c.id.desc()).limit(1000)).mappings()]
+    link_verification = {
+        'sampled_count': len(links),
+        'accepted_posting_count': sum(row['accepted'] or 0 for row in observations),
+        'conclusive_sample_count': sum(row['result'] != 'UNKNOWN' for row in links),
+        'accurate_sample_count': sum(row['result'] == 'ACCURATE' for row in links),
+        'unknown_sample_count': sum(row['result'] == 'UNKNOWN' for row in links),
+        'scope': 'Daily rotating samples per collection; accepted feed rows may repeat identities; declared posting identity only',
+        'latest': [{key: row[key] for key in ('posting_id', 'requested_url', 'final_url', 'result',
+                    'reason', 'observed_at', 'response_status', 'response_sha256', 'identity_evidence')}
+                   for row in links[:5]],
+    }
     return {**quality_score(observations, at=reference), 'source_id': source_id,
             'source_endpoint': endpoint,
+            'link_verification': link_verification,
             'scope': 'CONFIGURED_SOURCE' if configured_source_id else 'COMPANY_SOURCE'}
 
 

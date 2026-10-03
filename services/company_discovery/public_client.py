@@ -6,6 +6,7 @@ validated once and the resulting numeric address can be used for the connection.
 from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeout
+import hashlib
 import http.client
 import ipaddress
 import socket
@@ -44,7 +45,9 @@ class PublicFetchError(RuntimeError):
 class HTTPStatusError(PublicFetchError):
     """A bounded remote HTTP status with no response-body disclosure."""
 
-    def __init__(self, status_code: int):
+    def __init__(self, status_code: int, *, final_url=None, response_sha256=None):
+        self.final_url = final_url
+        self.response_sha256 = response_sha256
         self.status_code = int(status_code)
         code = "HTTP_STATUS_BLOCKED" if self.status_code in {401, 403, 429} else "HTTP_STATUS_ERROR"
         super().__init__(code)
@@ -337,11 +340,13 @@ class PublicCompanyClient:
                 raise PublicFetchError("ROBOTS_DENIED")
             response = self._request_once(current, deadline)
             if 300 <= response.status_code < 400 and response.status_code not in {301, 302, 303, 307, 308}:
-                raise HTTPStatusError(response.status_code)
+                raise HTTPStatusError(response.status_code, final_url=str(response.url),
+                                      response_sha256=hashlib.sha256(response.content).hexdigest())
             if response.status_code not in {301, 302, 303, 307, 308}:
                 response.history = history
                 if response.status_code >= 400:
-                    raise HTTPStatusError(response.status_code)
+                    raise HTTPStatusError(response.status_code, final_url=str(response.url),
+                                      response_sha256=hashlib.sha256(response.content).hexdigest())
                 return response
             location = response.headers.get("location")
             if not location:
