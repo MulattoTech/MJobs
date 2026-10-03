@@ -632,7 +632,8 @@
         "result": "PARTIAL",
         "implementation_commit": "6b35bde8aaac1a9ea62e6070d29d9caaa4dcc280",
         "evidence_path": "docs/evidence/2026-10-03-resume-driven-profile.json",
-        "note": "Explicit feedback iteration advanced only the import/profile/base-resume portion; original dependencies and broader scope remain open."
+        "note": "Explicit feedback iteration advanced only the import/profile/base-resume portion; original dependencies and broader scope remain open.",
+        "pr_number": 453
       }
     },
     {
@@ -659,7 +660,8 @@
         "result": "PARTIAL",
         "implementation_commit": "6b35bde8aaac1a9ea62e6070d29d9caaa4dcc280",
         "evidence_path": "docs/evidence/2026-10-03-resume-driven-profile.json",
-        "note": "Explicit feedback iteration advanced only the import/profile/base-resume portion; original dependencies and broader scope remain open."
+        "note": "Explicit feedback iteration advanced only the import/profile/base-resume portion; original dependencies and broader scope remain open.",
+        "pr_number": 453
       }
     },
     {

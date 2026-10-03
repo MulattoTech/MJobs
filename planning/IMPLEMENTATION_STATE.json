@@ -11,7 +11,7 @@
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
   "current_milestone": "RESUME_PROFILE_FEEDBACK_LOCAL_VERIFIED",
-  "current_objective": "Publish and retest reviewed resume import, organized profile details, and named resume versions; retain full career-profile requirements as PARTIAL.",
+  "current_objective": "Review draft PR #453 and manually retest the verified resume/profile slice. Full career-profile requirements remain PARTIAL.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -311,6 +311,14 @@
       "initial_head": "83493c0c884a7719a86fdcb108e02aca648472a9",
       "scope": "first source-linked activity slice only",
       "merge_commit": "7241958efcae25925149a566020c50a8f61416e5"
+    },
+    {
+      "number": 453,
+      "url": "https://github.com/MulattoTech/MJobs/pull/453",
+      "branch": "codex/resume-driven-profile",
+      "status": "DRAFT",
+      "local_validation": "PASS",
+      "remote_ci": "NOT_RUN"
     }
   ],
   "tests_passed": [
@@ -1945,6 +1953,13 @@
         "push_verification": 36951969776,
         "result": "IN_PROGRESS"
       }
+    },
+    {
+      "result": "PASS",
+      "transport": "Git push and GitHub draft PR",
+      "pr_number": 453,
+      "url": "https://github.com/MulattoTech/MJobs/pull/453",
+      "force": false
     }
   ]
 }

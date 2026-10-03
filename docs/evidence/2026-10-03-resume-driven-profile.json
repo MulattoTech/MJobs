@@ -100,5 +100,11 @@
     "Port 18702 was occupied; isolated acceptance moved to 18703 without stopping its owner. Existing mjobs stack was not rebuilt."
   ],
   "verification_scope": "Compose acceptance preceded the final New profile selection guard; final Chromium acceptance exercises that guard on the final compiled local UI.",
-  "retest": "docs/runbooks/RESUME_PROFILE_RETEST.md"
+  "retest": "docs/runbooks/RESUME_PROFILE_RETEST.md",
+  "publication": {
+    "result": "PASS",
+    "pr_number": 453,
+    "url": "https://github.com/MulattoTech/MJobs/pull/453",
+    "recorded_at": "2026-10-03T19:09:46.272286+00:00"
+  }
 }
