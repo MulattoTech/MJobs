@@ -361,7 +361,17 @@
       "pr_number": 443,
       "url": "https://github.com/MulattoTech/MJobs/pull/443",
       "merge_commit": "12e7ef6c9eb5ff1c7a8fd775361a9ee7e1b28aea",
-      "merged_at": "2026-10-01T22:31:45Z"
+      "merged_at": "2026-10-01T22:31:45Z",
+      "active_slice": {
+        "name": "Useful-job discovery requests and reviewed employer origins",
+        "branch": "codex/company-discovery-triggers",
+        "status": "PARTIAL",
+        "publication_state": "DRAFT",
+        "evidence_path": "docs/evidence/2026-10-03-company-discovery-requests.json",
+        "remaining": "Other triggers, automatic domain evidence acquisition, ATS breadth and periodic source revalidation/monitoring.",
+        "pr_number": 477,
+        "url": "https://github.com/MulattoTech/MJobs/pull/477"
+      }
     },
     {
       "id": "MJ-PR-017",
@@ -608,11 +618,13 @@
         "name": "Sampled public-feed application-link observations",
         "branch": "codex/application-link-evidence",
         "status": "PARTIAL",
-        "publication_state": "DRAFT",
+        "publication_state": "MERGED",
         "evidence_path": "docs/evidence/2026-10-03-application-link-evidence.json",
         "remaining": "Other ATS origins and full link usability acceptance; original source-discovery triggers and scheduling.",
         "pr_number": 476,
-        "url": "https://github.com/MulattoTech/MJobs/pull/476"
+        "url": "https://github.com/MulattoTech/MJobs/pull/476",
+        "head": "f7217cac16b6d3cfc3b1b1f2d8e6f6dcf684de4f",
+        "merge_commit": "8240e471260ebeb60bde9932368651da410f3148"
       },
       "slice_history": [
         {

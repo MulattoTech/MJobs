@@ -122,6 +122,31 @@ source_application_link_observations = table(
     ),
 )
 Index("ix_source_application_link_observed_at", source_application_link_observations.c.observed_at)
+company_discovery_requests = table(
+    "company_discovery_requests",
+    Column("company_id", ForeignKey("companies.id"), nullable=False),
+    Column("company_source_id", ForeignKey("company_job_sources.id"), nullable=False),
+    Column("candidate_id", ForeignKey("posting_value_candidates.id"), nullable=False),
+    Column("trigger_job_id", ForeignKey("canonical_jobs.id"), nullable=False),
+    Column("profile_id", ForeignKey("career_profiles.id")),
+    Column("profile_version", String(64)),
+    Column("reasons", JSON, nullable=False),
+    Column("highest_match_score", Float),
+    Column("created_at", String(64), nullable=False),
+    Column("last_seen_at", String(64), nullable=False),
+    Column("state", String(32), nullable=False),
+    Column("revision", Integer, nullable=False, server_default="1"),
+    Column("selected_website", String(2000)),
+    Column("authorization", String(32)),
+    Column("domain_evidence", JSON, nullable=False),
+    Column("source_snapshot", JSON, nullable=False),
+    Column("operation_id", ForeignKey("worker_operations.id")),
+    constraints=(
+        UniqueConstraint("company_id", "company_source_id"),
+        CheckConstraint("state IN ('NEEDS_ORIGIN_REVIEW', 'QUEUED', 'DISMISSED')", name="discovery_request_state_valid"),
+    ),
+)
+Index("ix_company_discovery_requests_last_seen", company_discovery_requests.c.last_seen_at)
 dedupe_reviews = table("dedupe_reviews", Column("left_job_id", ForeignKey("canonical_jobs.id"), nullable=False),
                        Column("right_job_id", ForeignKey("canonical_jobs.id"), nullable=False),
                        Column("confidence", Float, nullable=False), Column("state", String(64), nullable=False),

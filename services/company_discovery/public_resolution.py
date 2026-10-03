@@ -1,5 +1,6 @@
 """Bind public-site discovery only to corroborated domains, never claimed names."""
 from urllib.parse import urlsplit
+from contextlib import nullcontext
 from sqlalchemy import select
 from packages.persistence import models as m
 from packages.persistence.store import identity
@@ -7,7 +8,7 @@ from services.company_discovery.domains import normalize_domain, is_aggregator_d
 from services.company_discovery.public_client import PublicCompanyClient, PublicFetchError
 
 
-def resolve_public_company(store, candidate):
+def resolve_public_company(store, candidate, *, connection=None, lock_verified=False):
     name=str(candidate.get('company_name') or '').strip()
     website=str(candidate.get('company_website') or '').strip()
     if not name:
@@ -20,9 +21,12 @@ def resolve_public_company(store, candidate):
     domain=normalize_domain(origin)
     if not domain or is_aggregator_domain(domain):
         raise PublicFetchError('COMPANY_DOMAIN_REVIEW_REQUIRED')
-    with store.engine.connect() as connection:
-        matches=list(connection.execute(select(m.company_domains).where(
-            m.company_domains.c.domain==domain,m.company_domains.c.verified.is_(True))).mappings())
+    with (nullcontext(connection) if connection is not None else store.engine.connect()) as connection:
+        query=select(m.company_domains).where(
+            m.company_domains.c.domain==domain,m.company_domains.c.verified.is_(True))
+        if lock_verified:
+            query=query.order_by(m.company_domains.c.id).with_for_update()
+        matches=list(connection.execute(query).mappings())
         matches=[row for row in matches if row['verification_method'] in VERIFIED_METHODS and row['evidence']]
         owners={row['company_id'] for row in matches}
         if len(owners)>1:

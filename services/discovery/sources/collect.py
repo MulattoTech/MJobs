@@ -12,6 +12,7 @@ from packages.persistence import models as m
 from packages.persistence.store import identity, now, upsert
 from services.company_discovery.sources import register_ats_tenant, upsert_company_job_source
 from services.company_discovery.quality import posting_metrics, record_observation
+from services.company_discovery.requests import record_discovery_requests
 from services.dedupe.source_values import lock_candidate_job, record_candidate, resolve_job_values
 from services.discovery.sources.contract import SourceAdapter, SourceCapability
 from services.discovery.sources.greenhouse import SourceError, tenant_identifier
@@ -115,6 +116,7 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                 connection.exec_driver_sql('BEGIN IMMEDIATE')
             check()
             companies = {}
+            new_companies = set()
             company_sources = {}
             pending_candidates = []
             batch_postings = {}
@@ -122,6 +124,8 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                 company_id = identity(*company.identity_parts)
                 companies[company_id] = company
             for company_id, company in sorted(companies.items()):
+                if connection.execute(select(m.companies.c.id).where(m.companies.c.id == company_id)).first() is None:
+                    new_companies.add(company_id)
                 upsert(connection, m.companies, {"id": company_id, "name": company.name, "domain": company.domain}, replace=True)
                 tenant_record = register_ats_tenant(
                     connection, company_id, provider=source["provider"], tenant_identifier=source["tenant"],
@@ -181,6 +185,8 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                                  observation_id=observation_id, normalized=values)
             for job_id in sorted({entry[2] for entry in pending_candidates}):
                 resolve_job_values(connection, job_id, at=observation_at, seen_at=timestamp, profile=profile)
+            record_discovery_requests(connection, {entry[2] for entry in pending_candidates}, profile,
+                                      new_company_ids=new_companies)
         return {"source_id": source_id, "jobs_seen": len(normalized), "rejected": rejected,
                 "strategy": strategy, "direct_application": direct_application}
     except Exception as failure:

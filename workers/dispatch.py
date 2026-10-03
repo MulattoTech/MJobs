@@ -11,13 +11,17 @@ from packages.persistence.store import identity, now, upsert
 from workers.operations import QUEUES, recover_expired, timeout
 
 
-def enqueue_operation(store, kind, entity_id, params):
+def enqueue_operation(store, kind, entity_id, params, *, connection=None):
     if kind not in QUEUES:
         raise ValueError("Unsupported operation kind")
     operation_id = identity(kind, entity_id, params)
-    with store.engine.begin() as connection:
-        upsert(connection, m.operations, {"id": operation_id, "kind": kind, "entity_id": entity_id,
-            "params": params, "state": "QUEUED", "error": None, "updated_at": now()})
+    values = {"id": operation_id, "kind": kind, "entity_id": entity_id,
+        "params": params, "state": "QUEUED", "error": None, "updated_at": now()}
+    if connection is None:
+        with store.engine.begin() as owned_connection:
+            upsert(owned_connection, m.operations, values)
+    else:
+        upsert(connection, m.operations, values)
     return operation_id
 
 

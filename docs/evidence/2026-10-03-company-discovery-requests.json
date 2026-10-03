@@ -1,0 +1,73 @@
+{
+  "timestamp": "2026-10-03T23:28:15.874617+00:00",
+  "result": "PARTIAL",
+  "requirements": [
+    "MJ-REQ-054",
+    "MJ-REQ-056",
+    "MJ-REQ-060"
+  ],
+  "branch": "codex/company-discovery-triggers",
+  "base_commit": "8240e471260ebeb60bde9932368651da410f3148",
+  "scope": "Transactional coalesced discovery requests from real intake/rescoring, employer-origin review, fresh worker authorization and source enrollment",
+  "checks": [
+    {
+      "action": "Automatic verified-origin worker followed by rescoring before recursion guard",
+      "result": "FAIL",
+      "count": 1,
+      "evidence_path": "Git common directory afk-dev/reconcile-20261003/discovery-requests-recursion-red.log",
+      "note": "Observed redundant same-employer discovery; fixed with verified successful direct-origin guard."
+    },
+    {
+      "action": "Initial full regression",
+      "result": "FAIL",
+      "count": 392,
+      "evidence_path": "Git common directory afk-dev/reconcile-20261003/discovery-requests-regression.log",
+      "note": "ENVIRONMENT: Windows Proactor connection reset left isolated source-value browser test API alive at teardown. Product assertions passed. Two focused browser tests passed on rerun; final full run recorded separately."
+    },
+    {
+      "action": "python -m unittest discover -s tests -p 'test_*.py' -v",
+      "result": "PASS",
+      "count": 393,
+      "seconds": 119.043,
+      "skipped": 0,
+      "evidence_path": "Git common directory afk-dev/reconcile-20261003/discovery-requests-regression-final.log"
+    },
+    {
+      "action": "npm test --prefix apps/web -- --run; npm run build --prefix apps/web",
+      "result": "PASS",
+      "count": 29,
+      "evidence_path": "Git common directory afk-dev/reconcile-20261003/discovery-requests-web-final.log"
+    },
+    {
+      "action": "Isolated PostgreSQL17 upgrade, two-company concurrent recalculation, one automatic operation, restart and populated downgrade refusal",
+      "result": "PASS",
+      "evidence_path": "Git common directory afk-dev/reconcile-20261003/discovery-requests-postgres-rerun-receipt.json",
+      "note": "No deadlock observed in two concurrent recalculations. No general concurrency proof claimed. Approval CAS tested on SQLite, not PostgreSQL."
+    },
+    {
+      "action": "Independent identity, transaction, authorization and lock-order review",
+      "result": "PASS",
+      "note": "Fixed cross-company approval, source renewal, stable lock selection, redundant rediscovery, and fresh verified-domain enrollment. Domain revocation regression observed RED then GREEN; final10 focused request tests passed."
+    },
+    {
+      "action": "All-worktree audit and root template SHA-256 comparison",
+      "result": "PASS",
+      "worktrees": 32,
+      "preserved_untracked_files": 24,
+      "evidence_path": "Git common directory afk-dev/reconcile-20261003/discovery-requests-preservation.json"
+    }
+  ],
+  "limitations": [
+    "MJ-REQ-054/056/060 remain PARTIAL. Configured-source intake and rescoring are wired; saved/preferred companies, repeated aggregator appearances and broken-source triggers remain open.",
+    "Official-domain acquisition is not implemented. Unknown employer origins need user review; review does not verify or merge identity.",
+    "Company-feed scheduling and broader ATS providers remain open. Future automatic source refresh must revalidate employer proof before egress; historical enabled/monitoring flags are not current authority.",
+    "Browser/API/worker employer responses are controlled; no fresh live employer discovery breadth is claimed.",
+    "Only isolated databases were migrated. No user database or private feedback data was changed; real external application submission remains OFF.",
+    "Original accounting remains 48 PASS,73 PARTIAL,245 NOT_RUN; reference59 NOT_RUN; release NOT_RUN."
+  ],
+  "external_submission_enabled": false,
+  "remote_ci": {
+    "result": "NOT_RUN",
+    "note": "Only latest exact published head can certify this slice."
+  }
+}

@@ -101,6 +101,15 @@ class CompanySourcePinInput(BaseModel):
     pinned: bool
 
 
+class DiscoveryRequestRevisionInput(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+    revision: int = Field(ge=1)
+
+
+class DiscoveryRequestReviewInput(DiscoveryRequestRevisionInput):
+    website: str = Field(min_length=1, max_length=2000)
+
+
 class CompanySourceEnabledInput(BaseModel):
     model_config = ConfigDict(strict=True, extra="forbid")
     enabled: bool
@@ -330,6 +339,30 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     @app.get("/company-sources/view")
     def company_source_view(profile_id: str | None = Query(default=None, min_length=1, max_length=128)):
         return {"company_sources": list_company_source_view(store, profile_id)}
+
+    @app.get('/company-discovery/requests')
+    def discovery_requests():
+        from services.company_discovery.requests import list_discovery_requests
+        return {'requests': list_discovery_requests(store), 'limit': 100}
+
+    def review_request_action(function, request_id, **values):
+        if operation_mode != 'PERSONAL':
+            raise HTTPException(409, 'Company website review requires a personal workspace')
+        try:
+            return function(store, request_id, **values)
+        except (ValueError, PublicFetchError) as exc:
+            code = str(exc)
+            raise HTTPException(404 if code == 'DISCOVERY_REQUEST_NOT_FOUND' else 409, code) from exc
+
+    @app.post('/company-discovery/requests/{request_id}/review', status_code=202)
+    def review_discovery_request(request_id: str, value: DiscoveryRequestReviewInput):
+        from services.company_discovery.requests import approve_discovery_request
+        return review_request_action(approve_discovery_request, request_id, **value.model_dump())
+
+    @app.post('/company-discovery/requests/{request_id}/dismiss')
+    def dismiss_discovery_request(request_id: str, value: DiscoveryRequestRevisionInput):
+        from services.company_discovery.requests import dismiss_discovery_request
+        return review_request_action(dismiss_discovery_request, request_id, **value.model_dump())
 
     def update_source_control(function, source_id, **value):
         try:
