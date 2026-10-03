@@ -455,9 +455,10 @@
       "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-09-29-mock-spine.md",
-        "docs/evidence/2026-10-01-company-discovery-core.json"
+        "docs/evidence/2026-10-01-company-discovery-core.json",
+        "docs/evidence/2026-10-03-public-company-discovery.json"
       ],
-      "note": "Durable company discovery and explicit user-added discovery are locally verified against the mock ATS fixture. Automatic discovery from general useful-job intake and production career-site/ATS support remain unverified."
+      "note": "Durable company discovery and explicit user-added discovery are locally verified against the mock ATS fixture. Automatic discovery from general useful-job intake and production career-site/ATS support remain unverified. PERSONAL-mode bounded public HTTPS and explicit company discovery are now connected; controlled employer-feed acceptance and live transport proof are separate. Full provider breadth and automatic intake wiring remain incomplete."
     },
     {
       "requirement_id": "MJ-REQ-055",
@@ -503,9 +504,10 @@
       "requirement_id": "MJ-REQ-060",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-01-company-alias-domain-career-discovery.json"
+        "docs/evidence/2026-10-01-company-alias-domain-career-discovery.json",
+        "docs/evidence/2026-10-03-public-company-discovery.json"
       ],
-      "note": "Allowlisted domain evidence is ranked; aggregator/directory/staffing sources are rejected and equal-rank domains remain ambiguous. Production first-party/job/ATS/search-provider evidence acquisition is not integrated."
+      "note": "Allowlisted domain evidence is ranked; aggregator/directory/staffing sources are rejected and equal-rank domains remain ambiguous. Production first-party/job/ATS/search-provider evidence acquisition is not integrated. PERSONAL-mode bounded public HTTPS and explicit company discovery are now connected; controlled employer-feed acceptance and live transport proof are separate. Full provider breadth and automatic intake wiring remain incomplete."
     },
     {
       "requirement_id": "MJ-REQ-061",
@@ -583,33 +585,37 @@
       "requirement_id": "MJ-REQ-070",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-02-company-machine-readable-feeds.json"
+        "docs/evidence/2026-10-02-company-machine-readable-feeds.json",
+        "docs/evidence/2026-10-03-public-company-discovery.json"
       ],
-      "note": "Same-origin RSS/Atom and JSON Feed endpoint links are discovered, prioritized among supported feed types, fetched and validated with bounded input; vendor ATS APIs and structured HTML are not yet covered."
+      "note": "Same-origin RSS/Atom and JSON Feed endpoint links are discovered, prioritized among supported feed types, fetched and validated with bounded input; vendor ATS APIs and structured HTML are not yet covered. PERSONAL-mode bounded public HTTPS and explicit company discovery are now connected; controlled employer-feed acceptance and live transport proof are separate. Full provider breadth and automatic intake wiring remain incomplete."
     },
     {
       "requirement_id": "MJ-REQ-071",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-02-company-machine-readable-feeds.json"
+        "docs/evidence/2026-10-02-company-machine-readable-feeds.json",
+        "docs/evidence/2026-10-03-public-company-discovery.json"
       ],
-      "note": "Validated same-origin feed source is automatically persisted with source metadata and homepage domain evidence; broader ATS/provider enrollment and scheduled collection remain open."
+      "note": "Validated same-origin feed source is automatically persisted with source metadata and homepage domain evidence; broader ATS/provider enrollment and scheduled collection remain open. PERSONAL-mode bounded public HTTPS and explicit company discovery are now connected; controlled employer-feed acceptance and live transport proof are separate. Full provider breadth and automatic intake wiring remain incomplete."
     },
     {
       "requirement_id": "MJ-REQ-072",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-02-company-machine-readable-feeds.json"
+        "docs/evidence/2026-10-02-company-machine-readable-feeds.json",
+        "docs/evidence/2026-10-03-public-company-discovery.json"
       ],
-      "note": "A same-origin supported feed is fetched immediately and its rows enter canonical job, route, posting snapshot, and optional profile-match persistence; broader public ATS providers remain unsupported."
+      "note": "A same-origin supported feed is fetched immediately and its rows enter canonical job, route, posting snapshot, and optional profile-match persistence; broader public ATS providers remain unsupported. PERSONAL-mode bounded public HTTPS and explicit company discovery are now connected; controlled employer-feed acceptance and live transport proof are separate. Full provider breadth and automatic intake wiring remain incomplete."
     },
     {
       "requirement_id": "MJ-REQ-073",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-02-company-machine-readable-feeds.json"
+        "docs/evidence/2026-10-02-company-machine-readable-feeds.json",
+        "docs/evidence/2026-10-03-public-company-discovery.json"
       ],
-      "note": "Synthetic employer feed entries become canonical jobs without aggregator records, but a complete aggregator-trigger-to-feed-only-job acceptance flow and live source behavior remain unproven."
+      "note": "Synthetic employer feed entries become canonical jobs without aggregator records, but a complete aggregator-trigger-to-feed-only-job acceptance flow and live source behavior remain unproven. PERSONAL-mode bounded public HTTPS and explicit company discovery are now connected; controlled employer-feed acceptance and live transport proof are separate. Full provider breadth and automatic intake wiring remain incomplete."
     },
     {
       "requirement_id": "MJ-REQ-074",

@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import { api, eligible, terminal } from './api';
 import { CompanySources, type CompanySourceView } from './company-sources';
+import { CompanyDiscovery } from './company-discovery';
 import { addSelectedExtraction, cleanLines } from './profile-import';
 import { ResumeLibrary, type Resume, type Extraction } from './resume-library';
 import { SourceValueEvidence, type SourceValueResolution } from './source-value-evidence';
@@ -91,6 +92,30 @@ function App() {
     }
     throw new Error('This operation is still pending. Check Activity; it can recover when services return.');
   }
+  async function discoverCompany(companyName:string, companyWebsite:string) {
+    const result = await api<{status:string;operation_id:string|null}>('/companies/discovery', {
+      method:'POST', body:JSON.stringify({company_name:companyName,company_website:companyWebsite,
+        reason:'USER_ADDED_COMPANY',request_id:crypto.randomUUID(),...(profileId?{profile_id:profileId}:{})})
+    });
+    if (result.status === 'ALREADY_MONITORED') {
+      setNotice('This company is already being monitored. Its saved source information is unchanged.');
+      return;
+    }
+    if (!result.operation_id) throw new Error('Discovery could not be queued. Check Activity for details.');
+    setActiveOp(result.operation_id);
+    const deadline=Date.now()+210000;
+    while(Date.now()<deadline) {
+      const operation=await api<Operation>('/operations/'+result.operation_id);
+      setOps(current=>[operation,...current.filter(item=>item.id!==operation.id)]);
+      if(terminal.has(operation.state)) {
+        if(operation.state!=='COMPLETED') throw new Error(`${operation.state}: ${operation.error||'Review Activity for details'}`);
+        setNotice('Completed. Public company jobs and source information have been updated.');
+        return;
+      }
+      await new Promise(resolve=>setTimeout(resolve,800));
+    }
+    throw new Error('This discovery is still pending. Check Activity; it can recover when services return.');
+  }
   const request = () => ({profile_id:profileId,request_id:crypto.randomUUID()});
   async function showJob(id:string) {
     const sequence=++detailSequence.current;const selected=profileRef.current;
@@ -155,6 +180,7 @@ function App() {
             setNotice('Company source preference saved.');
           });
         }}/>
+        {operationMode==='PERSONAL'&&<CompanyDiscovery busy={!!busy} onDiscover={(companyName,companyWebsite)=>action('Discovering company jobs',()=>discoverCompany(companyName,companyWebsite))}/>}
         <section className="panel">
           <h2>Public Greenhouse board</h2>
           <p>Reads public job listings from the provider API. Each board keeps its own bounded schedule, timeout, rate limit, and backoff state. No login or application submission is performed.</p>

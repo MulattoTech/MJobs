@@ -7,12 +7,12 @@
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "29 preserved worktrees; root resume-driven-profile HEAD260540c and24 untracked user templates retained. Active isolated source-value-resolution worktree based on main96e4832.",
-    "current_verified_github_state": "387 open issues; PR473 and prior feedback/resume/catalogue/upload slices merged. No open PRs before source-value publication.",
-    "current_verified_at": "2026-10-03T21:28:33.949813+00:00"
+    "current_verified_local_state": "30 preserved worktrees; root resume-driven-profile HEAD260540c retains24 untracked user templates. Active isolated public-company-discovery based on main216f1a4.",
+    "current_verified_github_state": "387 open issues; PR474 and predecessors merged. No open PR before this slice publication.",
+    "current_verified_at": "2026-10-03T22:02:40.951389+00:00"
   },
-  "current_milestone": "AUTHORITATIVE_SOURCE_VALUES",
-  "current_objective": "Publish and verify source-value selection, then implement bounded application-link evidence for original MJ-REQ-083.",
+  "current_milestone": "PUBLIC_COMPANY_DISCOVERY",
+  "current_objective": "Verify and publish bounded public company discovery prerequisite, then continue application-link observations and automatic source discovery wiring.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -62,11 +62,17 @@
     "Company-source AUTO_DISCOVERED/USER_WATCHED origin, explicit list/watch APIs, and protection of watched priority across automatic refresh are locally verified; outcome-based ranking, company-level UI, and periodic source/ATS migration revalidation remain open (MJ-PR-021).",
     "Companies/Sources view and explicit pin/enable/watch preferences verified; advanced discovery actions, historical provenance repair and company-source scheduling remain incomplete.",
     "Reviewed native resume import, structured profile contact/preferences, and named immutable base-resume history. See docs/evidence/2026-10-03-resume-driven-profile.json.",
-    "MJ-REQ-083 source quality: durable observations, endpoint-scoped scores, authority-first duplicate value selection and protected application-route review; application-link accuracy remains unknown."
+    "MJ-REQ-083 source quality: durable observations, endpoint-scoped scores, authority-first duplicate value selection and protected application-route review; application-link accuracy remains unknown.",
+    "User-requested PERSONAL company discovery uses bounded DNS-pinned HTTPS and public feed import; candidate identity remains unverified, fixture metadata is blocked, provider breadth and automatic intake wiring remain incomplete."
   ],
   "blocked_capabilities": [],
   "active_requirements": [
-    "MJ-REQ-083"
+    "MJ-REQ-054",
+    "MJ-REQ-060",
+    "MJ-REQ-070",
+    "MJ-REQ-071",
+    "MJ-REQ-072",
+    "MJ-REQ-073"
   ],
   "active_prs": [
     {
@@ -373,8 +379,22 @@
       "number": 474,
       "url": "https://github.com/MulattoTech/MJobs/pull/474",
       "branch": "codex/source-value-resolution",
+      "status": "MERGED",
+      "head": "ab39d182100335d54a1c06f51b3e1e53eb95e776",
+      "merge_commit": "216f1a4696abc8dcb07fb57b5a67102091343ec5",
+      "merged_at": "2026-10-03T21:38:02Z",
+      "ci_result": "PASS",
+      "exact_head_runs": {
+        "pull_request_verification": 37155422904,
+        "push_verification": 37155420738
+      }
+    },
+    {
+      "number": 475,
+      "url": "https://github.com/MulattoTech/MJobs/pull/475",
+      "branch": "codex/public-company-discovery",
       "status": "PARTIAL",
-      "observed_head_before_bookkeeping": "b40e7580660a1f6c611c102c65e65c52ff648986"
+      "observed_head_before_bookkeeping": "db9fae035b7ae0a4fa2beb84628c057ee73d000d"
     }
   ],
   "tests_passed": [
@@ -482,7 +502,8 @@
     "MJ-PR-022: 235 Python tests with zero skips, 6 frontend tests/build, catalogue/progress and actual PERSONAL-mode company-source browser controls PASS; local Docker deployment blocked.",
     "MJ-PR-023 activity slice: 235 Python tests with zero skips, 11 frontend tests/build, validators and actual synthetic feed import -> audit -> API -> browser activity PASS.",
     "Source quality observations:309 Python tests with zero skips,17 frontend tests/build, catalogue/progress validators and isolated PostgreSQL17 migration/preserved rows/restart PASS; hosted CI pending.",
-    "Source value selection:322 Python tests zero skips,21 frontend tests/build, actual Chromium protected-route workflow, isolated PostgreSQL17 concurrent import/identity conflict/upgrade/downgrade guard/restart PASS. Hosted CI pending."
+    "Source value selection:322 Python tests zero skips,21 frontend tests/build, actual Chromium protected-route workflow, isolated PostgreSQL17 concurrent import/identity conflict/upgrade/downgrade guard/restart PASS. Hosted CI pending.",
+    "Public company discovery:350 Python tests zero skips,23 frontend tests/build, browser/API/worker feed flow, safe real HTTPS GET, independent boundary review and validators PASS."
   ],
   "tests_failed": [],
   "tests_not_run": [
@@ -510,16 +531,16 @@
     "MJ-PR-016 local Chromium first run used Docker DNS host api, which is not a secure browser origin for crypto.randomUUID; loopback URL rerun passed all five connected UI actions."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-03T21:28:33.949813+00:00",
-    "base_commit": "96e48325793c29f74c96063abf36ea86c9180a2f",
+    "timestamp": "2026-10-03T22:02:40.951389+00:00",
+    "base_commit": "216f1a4696abc8dcb07fb57b5a67102091343ec5",
     "result": "PASS",
-    "scope": "322 Python tests zero skips;21 frontend tests/build; isolated PostgreSQL17 concurrency, migration guards and restart. Hosted CI pending.",
-    "evidence_path": "docs/evidence/2026-10-03-authoritative-source-values.json"
+    "scope": "350 Python tests zero skips;23 frontend tests/build; catalogue/progress; actual browser/local worker flow and unmocked bounded HTTPS GET. Exact-head hosted CI pending.",
+    "evidence_path": "docs/evidence/2026-10-03-public-company-discovery.json"
   },
   "ci_verification": {
     "result": "NOT_RUN",
-    "scope": "Current source-value-resolution branch",
-    "note": "Merged PR473 exact-head proof is retained in active_prs and does not certify this branch."
+    "scope": "Current public-company-discovery branch",
+    "note": "Merged PR474 exact-head runs retained in active_prs; prior CI does not certify this head."
   },
   "mock_spine_ci": {
     "result": "PASS",
@@ -577,7 +598,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Reconcile exact-head CI and merge this slice; next implement bounded application-link verification using the existing safe egress boundary with unknowns preserved.",
+  "recommended_resume_step": "Reconcile exact-head CI and merge current slice; continue MJ-REQ-083 link evidence with explicit source/requisition binding through the bounded production fetch path.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -614,18 +635,18 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "b40e7580660a1f6c611c102c65e65c52ff648986",
+  "last_implementation_commit": "db9fae035b7ae0a4fa2beb84628c057ee73d000d",
   "publication": {
     "result": "PARTIAL",
-    "branch": "codex/source-value-resolution",
-    "worktree": "C:\\Tools\\Dev\\MJobs\\.worktrees\\source-value-resolution",
-    "base": "96e48325793c29f74c96063abf36ea86c9180a2f",
-    "observed_at": "2026-10-03T21:31:44.309470+00:00",
-    "note": "This bookkeeping commit changes the PR head. Verify exact latest SHA and hosted CI before merge.",
-    "pr_number": 474,
-    "url": "https://github.com/MulattoTech/MJobs/pull/474",
+    "branch": "codex/public-company-discovery",
+    "worktree": "C:\\Tools\\Dev\\MJobs\\.worktrees\\public-company-discovery",
+    "base": "216f1a4696abc8dcb07fb57b5a67102091343ec5",
+    "observed_at": "2026-10-03T22:05:02.314398+00:00",
+    "note": "This state commit changes the PR head. Verify latest exact SHA and required CI before merge.",
+    "pr_number": 475,
+    "url": "https://github.com/MulattoTech/MJobs/pull/475",
     "draft": true,
-    "observed_head_before_bookkeeping": "b40e7580660a1f6c611c102c65e65c52ff648986"
+    "observed_head_before_bookkeeping": "db9fae035b7ae0a4fa2beb84628c057ee73d000d"
   },
   "optional_afk_journal": {
     "result": "BLOCKED_ENVIRONMENT",
@@ -2248,12 +2269,56 @@
         "git_commit": "96e48325793c29f74c96063abf36ea86c9180a2f",
         "evidence_path": "docs/evidence/2026-10-03-authoritative-source-values.json"
       }
+    },
+    {
+      "milestone_id": "PUBLIC-COMPANY-DISCOVERY-20261003",
+      "timestamp": "2026-10-03T22:02:40.951389+00:00",
+      "current_phase": "PUBLIC_COMPANY_DISCOVERY",
+      "completed_steps": [
+        "Added real bounded HTTPS transport and conservative public company identity binding.",
+        "Connected PERSONAL company form to durable worker and unverified feed/job evidence.",
+        "Reconciled PR474 merge and preserved prior work."
+      ],
+      "files_added": [
+        "services/company_discovery/public_client.py",
+        "services/company_discovery/public_resolution.py",
+        "apps/web/src/company-discovery.tsx",
+        "docs/evidence/2026-10-03-public-company-discovery.json"
+      ],
+      "files_modified": [
+        "workers/tasks.py",
+        "services/company_discovery/flywheel.py",
+        "services/company_discovery/triggers.py",
+        "apps/api/main.py"
+      ],
+      "tests_completed": [
+        "350 Python tests zero skips,23 frontend tests/build PASS.",
+        "Independent boundary review PASS; unmocked public HTTPS GET PASS for transport only."
+      ],
+      "tests_remaining": [
+        "Exact latest PR head hosted CI.",
+        "Live employer-feed breadth and automatic source triggers."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Two safe HTTPS GETs including robots to docs.python.org; no external submission."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "All six original requirements remain PARTIAL.",
+        "MJ-REQ-083 application-link accuracy still unimplemented.",
+        "Reference59 NOT_RUN; release NOT_RUN."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "216f1a4696abc8dcb07fb57b5a67102091343ec5",
+        "evidence_path": "docs/evidence/2026-10-03-public-company-discovery.json"
+      }
     }
   ],
-  "current_phase": "AUTHORITATIVE_SOURCE_VALUES",
+  "current_phase": "PUBLIC_COMPANY_DISCOVERY",
   "last_safe_checkpoint": {
-    "git_commit": "96e48325793c29f74c96063abf36ea86c9180a2f",
-    "evidence_path": "docs/evidence/2026-10-03-authoritative-source-values.json"
+    "git_commit": "216f1a4696abc8dcb07fb57b5a67102091343ec5",
+    "evidence_path": "docs/evidence/2026-10-03-public-company-discovery.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
@@ -2329,8 +2394,8 @@
     }
   ],
   "live_reconciliation": {
-    "timestamp": "2026-10-03T21:31:44.309470+00:00",
-    "origin_main": "96e48325793c29f74c96063abf36ea86c9180a2f",
+    "timestamp": "2026-10-03T22:05:02.314398+00:00",
+    "origin_main": "216f1a4696abc8dcb07fb57b5a67102091343ec5",
     "open_issue_count_before_catalogue": 371,
     "commercial_issue_mapping": {
       "MJ-REF-043": 454,
@@ -2351,7 +2416,7 @@
       "MJ-REF-058": 469,
       "MJ-REF-059": 470
     },
-    "preserved_worktrees": 29,
+    "preserved_worktrees": 30,
     "preserved_untracked_files": 24,
     "private_snapshot_location": "Git common directory: afk-dev/reconcile-20261003",
     "docker_probe": {
@@ -2362,24 +2427,29 @@
     "catalogue_pr": 471,
     "catalogue_publication": "MERGED",
     "open_prs_at_checkpoint": [
-      474
+      475
     ],
     "integration_order": [],
-    "note": "PR473 merged after exact-head CI; current source-value work isolated. Prior user work remains preserved.",
-    "next_action": "Reconcile exact-head CI and merge this slice; next implement bounded application-link verification using the existing safe egress boundary with unknowns preserved.",
+    "note": "PR474 exact-head merge reconciled; public discovery work isolated.",
+    "next_action": "Reconcile exact-head CI and merge current slice; continue MJ-REQ-083 link evidence with explicit source/requisition binding through the bounded production fetch path.",
     "open_issue_count": 387
   },
   "active_development_issue": {
-    "number": 84,
-    "url": "https://github.com/MulattoTech/MJobs/issues/84",
-    "branch": "codex/source-value-resolution",
+    "number": 55,
+    "url": "https://github.com/MulattoTech/MJobs/issues/55",
+    "branch": "codex/public-company-discovery",
     "status": "PARTIAL",
     "related_requirements": [
-      "MJ-REQ-083"
+      "MJ-REQ-054",
+      "MJ-REQ-060",
+      "MJ-REQ-070",
+      "MJ-REQ-071",
+      "MJ-REQ-072",
+      "MJ-REQ-073"
     ],
-    "evidence_path": "docs/evidence/2026-10-03-authoritative-source-values.json",
-    "pr_number": 474,
-    "pr_url": "https://github.com/MulattoTech/MJobs/pull/474"
+    "evidence_path": "docs/evidence/2026-10-03-public-company-discovery.json",
+    "pr_number": 475,
+    "pr_url": "https://github.com/MulattoTech/MJobs/pull/475"
   },
   "historical_control_snapshots": [
     {
@@ -2488,6 +2558,46 @@
         "evidence_path": "docs/evidence/2026-10-03-source-quality-observations.json",
         "pr_number": 473,
         "pr_url": "https://github.com/MulattoTech/MJobs/pull/473"
+      }
+    },
+    {
+      "archived_at": "2026-10-03T22:02:40.951389+00:00",
+      "publication": {
+        "result": "PARTIAL",
+        "branch": "codex/source-value-resolution",
+        "worktree": "C:\\Tools\\Dev\\MJobs\\.worktrees\\source-value-resolution",
+        "base": "96e48325793c29f74c96063abf36ea86c9180a2f",
+        "observed_at": "2026-10-03T21:31:44.309470+00:00",
+        "note": "This bookkeeping commit changes the PR head. Verify exact latest SHA and hosted CI before merge.",
+        "pr_number": 474,
+        "url": "https://github.com/MulattoTech/MJobs/pull/474",
+        "draft": true,
+        "observed_head_before_bookkeeping": "b40e7580660a1f6c611c102c65e65c52ff648986"
+      },
+      "ci_verification": {
+        "result": "NOT_RUN",
+        "scope": "Current source-value-resolution branch",
+        "note": "Merged PR473 exact-head proof is retained in active_prs and does not certify this branch."
+      },
+      "last_implementation_commit": "b40e7580660a1f6c611c102c65e65c52ff648986",
+      "last_verified_checkpoint": {
+        "timestamp": "2026-10-03T21:28:33.949813+00:00",
+        "base_commit": "96e48325793c29f74c96063abf36ea86c9180a2f",
+        "result": "PASS",
+        "scope": "322 Python tests zero skips;21 frontend tests/build; isolated PostgreSQL17 concurrency, migration guards and restart. Hosted CI pending.",
+        "evidence_path": "docs/evidence/2026-10-03-authoritative-source-values.json"
+      },
+      "active_development_issue": {
+        "number": 84,
+        "url": "https://github.com/MulattoTech/MJobs/issues/84",
+        "branch": "codex/source-value-resolution",
+        "status": "PARTIAL",
+        "related_requirements": [
+          "MJ-REQ-083"
+        ],
+        "evidence_path": "docs/evidence/2026-10-03-authoritative-source-values.json",
+        "pr_number": 474,
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/474"
       }
     }
   ],
