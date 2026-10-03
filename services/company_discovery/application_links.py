@@ -36,6 +36,7 @@ class _Scripts(HTMLParser):
     def __init__(self):
         super().__init__(convert_charrefs=True)
         self.scripts = []
+        self.ambiguous_attributes = False
         self._active = False
         self._is_jsonld = False
         self._parts = []
@@ -44,6 +45,9 @@ class _Scripts(HTMLParser):
         if tag.casefold() != "script" or self._active:
             return
         self._active = True
+        names = [str(key).casefold() for key, _ in attrs]
+        if len(names) != len(set(names)):
+            self.ambiguous_attributes = True
         values = {str(key).casefold(): str(value or "") for key, value in attrs}
         self._is_jsonld = values.get("type", "").split(";", 1)[0].strip().casefold() == "application/ld+json"
         self._parts = []
@@ -84,7 +88,7 @@ def _origin(value):
 def _jsonld_postings(body):
     parser = _Scripts()
     parser.feed(body)
-    if len(parser.scripts) > MAX_JSONLD_SCRIPTS:
+    if parser.ambiguous_attributes or len(parser.scripts) > MAX_JSONLD_SCRIPTS:
         return None
     nodes = []
     count = 0

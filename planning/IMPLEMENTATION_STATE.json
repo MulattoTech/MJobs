@@ -514,7 +514,8 @@
     "Source quality observations:309 Python tests with zero skips,17 frontend tests/build, catalogue/progress validators and isolated PostgreSQL17 migration/preserved rows/restart PASS; hosted CI pending.",
     "Source value selection:322 Python tests zero skips,21 frontend tests/build, actual Chromium protected-route workflow, isolated PostgreSQL17 concurrent import/identity conflict/upgrade/downgrade guard/restart PASS. Hosted CI pending.",
     "Public company discovery:350 Python tests zero skips,23 frontend tests/build, browser/API/worker feed flow, safe real HTTPS GET, independent boundary review and validators PASS.",
-    "Application-link evidence:369 Python tests zero skips,26 frontend tests/build; isolated PostgreSQL17 migration/restart and browser/API/worker persisted readback PASS."
+    "Application-link evidence:369 Python tests zero skips,26 frontend tests/build; isolated PostgreSQL17 migration/restart and browser/API/worker persisted readback PASS.",
+    "Final parser duplicate-attribute ambiguity: observed RED then27 affected sampler/integration/browser tests PASS; exact new-head hosted full regression required."
   ],
   "tests_failed": [],
   "tests_not_run": [
@@ -545,7 +546,7 @@
     "timestamp": "2026-10-03T22:38:15.833182+00:00",
     "base_commit": "5a082f26a34765be32cd6c0c726c957b242b72a7",
     "result": "PASS",
-    "scope": "369 Python tests zero skips,26 frontend tests/build, isolated PostgreSQL17 upgrade/downgrade guard/restart; exact-head hosted CI pending.",
+    "scope": "369 Python tests zero skips,26 frontend tests/build, isolated PostgreSQL17 upgrade/downgrade guard/restart; exact-head hosted CI pending. Final parser ambiguity guard:27 affected tests PASS after observed RED.",
     "evidence_path": "docs/evidence/2026-10-03-application-link-evidence.json"
   },
   "ci_verification": {
@@ -653,7 +654,7 @@
     "worktree": "C:\\Tools\\Dev\\MJobs\\.worktrees\\application-link-evidence",
     "base": "5a082f26a34765be32cd6c0c726c957b242b72a7",
     "observed_at": "2026-10-03T22:39:37.340715+00:00",
-    "note": "This bookkeeping commit changes the head; verify exact latest SHA and required CI before merge.",
+    "note": "Final parser ambiguity fix changes the head again. Verify latest exact SHA and required CI before merge.",
     "pr_number": 476,
     "url": "https://github.com/MulattoTech/MJobs/pull/476",
     "draft": true,

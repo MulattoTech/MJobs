@@ -21,7 +21,8 @@
       "count": 369,
       "seconds": 109.462,
       "skipped": 0,
-      "evidence_path": "Git common directory afk-dev/reconcile-20261003/application-link-regression-final.log"
+      "evidence_path": "Git common directory afk-dev/reconcile-20261003/application-link-regression-final.log",
+      "note": "Full regression before final duplicate-script-attribute guard; final affected27 tests passed after the guard, and exact-head hosted full suite is required."
     },
     {
       "action": "npm test --prefix apps/web -- --run; npm run build --prefix apps/web",
@@ -50,6 +51,20 @@
     {
       "action": "python -m tools.verification.catalogue; python -m tools.verification.progress validate; git diff --check",
       "result": "PASS"
+    },
+    {
+      "action": "Duplicate script-type attribute regression before guard",
+      "result": "FAIL",
+      "count": 1,
+      "evidence_path": "Git common directory afk-dev/reconcile-20261003/application-link-script-ambiguity-red.log"
+    },
+    {
+      "action": "python -m unittest tests.unit.test_application_links tests.integration.test_application_link_evidence tests.integration.test_public_company_discovery tests.browser.test_public_company_discovery -v",
+      "result": "PASS",
+      "count": 27,
+      "seconds": 5.897,
+      "evidence_path": "Git common directory afk-dev/reconcile-20261003/application-link-ambiguity-focused.log",
+      "note": "Final parser delta rejects duplicate script attributes rather than hiding contradictory JobPosting evidence."
     }
   ],
   "limitations": [

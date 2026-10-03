@@ -37,6 +37,14 @@ class Client:
 
 
 class ApplicationLinkTests(unittest.TestCase):
+    def test_duplicate_script_type_cannot_hide_a_conflicting_posting(self):
+        row = item('one')
+        response = page('one')
+        response.content += page('two').content.replace(b'type="application/ld+json"',
+            b'type="application/ld+json" type="text/plain"')
+        report = sample_feed_links([row], 'RSS', ENDPOINT, Client({row['link']: response}))[0]
+        self.assertEqual(report.result, 'UNKNOWN')
+
     def test_second_posting_after_two_million_characters_cannot_be_hidden(self):
         row = item('long')
         response = page('long')
