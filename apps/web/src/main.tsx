@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { api, eligible, terminal } from './api';
 import { CompanySources, type CompanySourceView } from './company-sources';
 import { CompanyDiscovery } from './company-discovery';
+import { CompanyDiscoveryRequests, type DiscoveryRequest } from './company-discovery-requests';
 import { addSelectedExtraction, cleanLines } from './profile-import';
 import { ResumeLibrary, type Resume, type Extraction } from './resume-library';
 import { SourceValueEvidence, type SourceValueResolution } from './source-value-evidence';
@@ -35,6 +36,7 @@ function App() {
   const [apps,setApps] = useState<Application[]>([]);
   const [sources,setSources] = useState<Source[]>([]);
   const [companySources,setCompanySources] = useState<CompanySourceView[]>([]);
+  const [discoveryRequests,setDiscoveryRequests] = useState<DiscoveryRequest[]>([]);
   const companySourcesSequence = useRef(0);
   const [operationMode,setOperationMode] = useState<OperationMode|null>(null);
   const [ops,setOps] = useState<Operation[]>([]);
@@ -56,8 +58,8 @@ function App() {
   async function refresh(id=profileId) {
     const companySequence = ++companySourcesSequence.current;
     const suffix = id ? `?profile_id=${encodeURIComponent(id)}` : '';
-    const [p,a,s,o,sp,cs] = await Promise.all([api<{profiles:Profile[]}>('/profiles'),api<{applications:Application[]}>('/applications'+suffix),api<{sources:Source[]}>('/sources'),api<{operations:Operation[]}>('/operations'+suffix),id?api<{search_profiles:SearchProfile[]}>('/search-profiles'+suffix):Promise.resolve({search_profiles:[]} as {search_profiles:SearchProfile[]}),api<{company_sources:CompanySourceView[]}>('/company-sources/view'+suffix)]);
-    if(companySequence===companySourcesSequence.current&&id===profileRef.current)setCompanySources(cs.company_sources);
+    const [p,a,s,o,sp,cs,dr] = await Promise.all([api<{profiles:Profile[]}>('/profiles'),api<{applications:Application[]}>('/applications'+suffix),api<{sources:Source[]}>('/sources'),api<{operations:Operation[]}>('/operations'+suffix),id?api<{search_profiles:SearchProfile[]}>('/search-profiles'+suffix):Promise.resolve({search_profiles:[]} as {search_profiles:SearchProfile[]}),api<{company_sources:CompanySourceView[]}>('/company-sources/view'+suffix),api<{requests:DiscoveryRequest[]}>('/company-discovery/requests')]);
+    if(companySequence===companySourcesSequence.current&&id===profileRef.current){setCompanySources(cs.company_sources);setDiscoveryRequests(dr.requests);}
     setProfiles(p.profiles);setSources(s.sources);if(id===profileRef.current){setApps(a.applications);setOps(o.operations);setSearchProfiles(sp.search_profiles);}
   }
   async function loadJobs(id=profileId) {
@@ -180,6 +182,15 @@ function App() {
             setNotice('Company source preference saved.');
           });
         }}/>
+        {operationMode==='PERSONAL'&&<CompanyDiscoveryRequests rows={discoveryRequests} busy={!!busy}
+          onReview={(row,website)=>action('Reviewing company website',async()=>{
+            try {await queue('/company-discovery/requests/'+encodeURIComponent(row.id)+'/review',{website:website.trim(),revision:row.revision});}
+            finally {await refresh(profileRef.current);}
+          })}
+          onDismiss={row=>action('Dismissing company request',async()=>{
+            await api('/company-discovery/requests/'+encodeURIComponent(row.id)+'/dismiss',{method:'POST',body:JSON.stringify({revision:row.revision})});
+            setNotice('Company discovery request dismissed.');
+          })}/>}
         {operationMode==='PERSONAL'&&<CompanyDiscovery busy={!!busy} onDiscover={(companyName,companyWebsite)=>action('Discovering company jobs',()=>discoverCompany(companyName,companyWebsite))}/>}
         <section className="panel">
           <h2>Public Greenhouse board</h2>

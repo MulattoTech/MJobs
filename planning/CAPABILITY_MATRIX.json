@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-03T22:38:15.833182+00:00",
+  "timestamp": "2026-10-03T23:28:15.874617+00:00",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -456,9 +456,10 @@
       "evidence": [
         "docs/evidence/2026-09-29-mock-spine.md",
         "docs/evidence/2026-10-01-company-discovery-core.json",
-        "docs/evidence/2026-10-03-public-company-discovery.json"
+        "docs/evidence/2026-10-03-public-company-discovery.json",
+        "docs/evidence/2026-10-03-company-discovery-requests.json"
       ],
-      "note": "Durable company discovery and explicit user-added discovery are locally verified against the mock ATS fixture. Automatic discovery from general useful-job intake and production career-site/ATS support remain unverified. PERSONAL-mode bounded public HTTPS and explicit company discovery are now connected; controlled employer-feed acceptance and live transport proof are separate. Full provider breadth and automatic intake wiring remain incomplete."
+      "note": "Configured-source unseen/high-match intake and rescoring now persist coalesced requests with jobs/matches. Verified domain proof queues bounded public discovery; unknown origins need explicit review. Broader ATS collection, domain acquisition and ongoing monitoring remain incomplete."
     },
     {
       "requirement_id": "MJ-REQ-055",
@@ -472,9 +473,10 @@
       "requirement_id": "MJ-REQ-056",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-01-company-discovery-core.json"
+        "docs/evidence/2026-10-01-company-discovery-core.json",
+        "docs/evidence/2026-10-03-company-discovery-requests.json"
       ],
-      "note": "The durable queue/API accepts the enumerated trigger reasons and user-added discovery is verified. Automatic wiring from high-match jobs, saved/preferred companies, ATS redirects, repeated aggregator appearances, and source failures is not implemented."
+      "note": "Unseen-company and high-match triggers now connect to configured intake/rescoring with durable request/outbox and review UI. Saved/preferred companies, new ATS tenant signals, repeated aggregator appearances and broken-source triggers remain unimplemented."
     },
     {
       "requirement_id": "MJ-REQ-057",
@@ -505,9 +507,10 @@
       "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-10-01-company-alias-domain-career-discovery.json",
-        "docs/evidence/2026-10-03-public-company-discovery.json"
+        "docs/evidence/2026-10-03-public-company-discovery.json",
+        "docs/evidence/2026-10-03-company-discovery-requests.json"
       ],
-      "note": "Allowlisted domain evidence is ranked; aggregator/directory/staffing sources are rejected and equal-rank domains remain ambiguous. Production first-party/job/ATS/search-provider evidence acquisition is not integrated. PERSONAL-mode bounded public HTTPS and explicit company discovery are now connected; controlled employer-feed acceptance and live transport proof are separate. Full provider breadth and automatic intake wiring remain incomplete."
+      "note": "Qualified stored domain proof authorizes automatic requests and is revalidated before worker reads and under the source enrollment transaction. Unknown/user-selected sites remain candidate identities. Automatic first-party/job/ATS/search-provider domain acquisition remains incomplete."
     },
     {
       "requirement_id": "MJ-REQ-061",

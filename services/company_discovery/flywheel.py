@@ -203,29 +203,43 @@ def discover_company_source(store, candidate, client, check=None, search_provide
                     raise
                 continue
             company_domain = normalize_domain(str(homepage.url)) or ""
-            with store.engine.begin() as connection:
-                upsert(connection, m.companies, {
-                    "id": resolved["company_id"], "name": resolved["name"], "domain": "",
-                }, replace=True)
             source_provider = "rss" if feed["strategy"] == "RSS" else "json_feed"
             source_tenant = resolved["company_id"]
             timestamp = now()
-            tenant_record = register_ats_tenant(
-                store, resolved["company_id"], provider=source_provider,
-                tenant_identifier=source_tenant, confidence=0.88,
-                evidence=["same-origin alternate machine-readable job feed"],
-            ) if fixture else None
-            verified_origin = "VERIFIED_DOMAIN_MATCH" in resolved["evidence"]
-            source_confidence = 0.88 if fixture or verified_origin else 0.45
-            source_record = upsert_company_job_source(
-                store, company_id=resolved["company_id"], provider=source_provider,
-                tenant_identifier=source_tenant, career_url=str(careers.url),
-                feed_url=feed["url"] if feed["strategy"] == "RSS" else None,
-                public_api_url=feed["url"] if feed["strategy"] == "PUBLIC_JSON" else None,
-                collection_strategy=feed["strategy"], confidence=source_confidence, enabled=fixture or verified_origin,
-                priority="NORMAL", discovered_automatically=True,
-                ats_tenant_id=tenant_record["id"] if tenant_record else None, last_validation=timestamp,
-            )
+            tenant_record = None
+            if fixture:
+                with store.engine.begin() as connection:
+                    upsert(connection, m.companies, {
+                        "id": resolved["company_id"], "name": resolved["name"], "domain": "",
+                    }, replace=True)
+                tenant_record = register_ats_tenant(
+                    store, resolved["company_id"], provider=source_provider,
+                    tenant_identifier=source_tenant, confidence=0.88,
+                    evidence=["same-origin alternate machine-readable job feed"],
+                )
+            check()
+            with store.engine.begin() as connection:
+                if not fixture:
+                    if connection.dialect.name == "sqlite":
+                        connection.exec_driver_sql("BEGIN IMMEDIATE")
+                    fresh = resolve_public_company(store, candidate, connection=connection, lock_verified=True)
+                    if fresh["company_id"] != resolved["company_id"]:
+                        raise PublicFetchError("COMPANY_IDENTITY_CHANGED")
+                    resolved = fresh
+                    upsert(connection, m.companies, {
+                        "id": resolved["company_id"], "name": resolved["name"], "domain": "",
+                    }, replace=True)
+                verified_origin = "VERIFIED_DOMAIN_MATCH" in resolved["evidence"]
+                source_confidence = 0.88 if fixture or verified_origin else 0.45
+                source_record = upsert_company_job_source(
+                    connection, company_id=resolved["company_id"], provider=source_provider,
+                    tenant_identifier=source_tenant, career_url=str(careers.url),
+                    feed_url=feed["url"] if feed["strategy"] == "RSS" else None,
+                    public_api_url=feed["url"] if feed["strategy"] == "PUBLIC_JSON" else None,
+                    collection_strategy=feed["strategy"], confidence=source_confidence, enabled=fixture or verified_origin,
+                    priority="NORMAL", discovered_automatically=True,
+                    ats_tenant_id=tenant_record["id"] if tenant_record else None, last_validation=timestamp,
+                )
             if company_domain:
                 record_company_domain(
                     store, resolved["company_id"], company_domain,
