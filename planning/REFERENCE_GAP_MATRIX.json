@@ -1,15 +1,17 @@
 {
-  "schema_version": 2,
-  "generated_at": "2026-09-30",
+  "schema_version": 3,
+  "generated_at": "2026-10-03",
   "canonical_namespace": "MJ-REF",
   "original_catalogue_count": 366,
-  "reference_gap_count": 42,
+  "reference_gap_count": 59,
   "completion_policy": {
     "original_spec_and_reference_gaps_reported_separately": true,
     "pass_only_counts_complete": true,
-    "release_readiness_is_separate": true
+    "release_readiness_is_separate": true,
+    "prerequisite_pass_required": true,
+    "merged_slice_does_not_imply_requirement_pass": true
   },
-  "canonical_issue_range": "#371-#408 plus #415, #416, #424, #426",
+  "canonical_issue_range": "Original 42 mappings preserved; commercial additions: #454, #455, #456, #457, #458, #459, #460, #461, #462, #463, #464, #465, #466, #467, #468, #469, #470",
   "canonical_ids": [
     "MJ-REF-001",
     "MJ-REF-002",
@@ -52,7 +54,24 @@
     "MJ-REF-039",
     "MJ-REF-040",
     "MJ-REF-041",
-    "MJ-REF-042"
+    "MJ-REF-042",
+    "MJ-REF-043",
+    "MJ-REF-044",
+    "MJ-REF-045",
+    "MJ-REF-046",
+    "MJ-REF-047",
+    "MJ-REF-048",
+    "MJ-REF-049",
+    "MJ-REF-050",
+    "MJ-REF-051",
+    "MJ-REF-052",
+    "MJ-REF-053",
+    "MJ-REF-054",
+    "MJ-REF-055",
+    "MJ-REF-056",
+    "MJ-REF-057",
+    "MJ-REF-058",
+    "MJ-REF-059"
   ],
   "result_by_id": {
     "MJ-REF-001": {
@@ -222,6 +241,828 @@
     "MJ-REF-042": {
       "result": "NOT_RUN",
       "evidence": []
+    },
+    "MJ-REF-043": {
+      "result": "NOT_RUN",
+      "evidence": []
+    },
+    "MJ-REF-044": {
+      "result": "NOT_RUN",
+      "evidence": []
+    },
+    "MJ-REF-045": {
+      "result": "NOT_RUN",
+      "evidence": []
+    },
+    "MJ-REF-046": {
+      "result": "NOT_RUN",
+      "evidence": []
+    },
+    "MJ-REF-047": {
+      "result": "NOT_RUN",
+      "evidence": []
+    },
+    "MJ-REF-048": {
+      "result": "NOT_RUN",
+      "evidence": []
+    },
+    "MJ-REF-049": {
+      "result": "NOT_RUN",
+      "evidence": []
+    },
+    "MJ-REF-050": {
+      "result": "NOT_RUN",
+      "evidence": []
+    },
+    "MJ-REF-051": {
+      "result": "NOT_RUN",
+      "evidence": []
+    },
+    "MJ-REF-052": {
+      "result": "NOT_RUN",
+      "evidence": []
+    },
+    "MJ-REF-053": {
+      "result": "NOT_RUN",
+      "evidence": []
+    },
+    "MJ-REF-054": {
+      "result": "NOT_RUN",
+      "evidence": []
+    },
+    "MJ-REF-055": {
+      "result": "NOT_RUN",
+      "evidence": []
+    },
+    "MJ-REF-056": {
+      "result": "NOT_RUN",
+      "evidence": []
+    },
+    "MJ-REF-057": {
+      "result": "NOT_RUN",
+      "evidence": []
+    },
+    "MJ-REF-058": {
+      "result": "NOT_RUN",
+      "evidence": []
+    },
+    "MJ-REF-059": {
+      "result": "NOT_RUN",
+      "evidence": []
+    }
+  },
+  "commercial_features": {
+    "MJ-REF-043": {
+      "title": "LinkedIn profile import into CareerFact staging",
+      "problem": "Reuse an authorized profile export without retyping career history.",
+      "scope_distinction": "Native resume imports and saved LinkedIn URLs do not ingest LinkedIn export sections with source lineage.",
+      "owner_area": "career_profile_documents",
+      "priority": "P3",
+      "original_overlaps": [
+        "MJ-REQ-090",
+        "MJ-REQ-091",
+        "MJ-REQ-092",
+        "MJ-REQ-094",
+        "MJ-REQ-096"
+      ],
+      "reference_overlaps": [
+        "MJ-REF-010"
+      ],
+      "prerequisites": [
+        "MJ-REQ-092",
+        "MJ-REQ-094",
+        "MJ-REQ-096"
+      ],
+      "queue_prerequisites": [
+        "MJ-PR-026",
+        "MJ-PR-027",
+        "MJ-PR-148",
+        "MJ-PR-149"
+      ],
+      "acceptance_criteria": [
+        "Import supported user-supplied profile exports without authenticated scraping or remote publication.",
+        "Retain original bytes/hash and section/field provenance; reimport is idempotent and profile-scoped.",
+        "Stage every extracted claim as unverified; explicit approve/reject/edit is required and pending claims cannot generate trusted documents."
+      ],
+      "test_strategy": [
+        "Synthetic valid, malformed and oversized exports; repeated imports and cross-profile isolation.",
+        "API/browser review and restart persistence; pending-fact document rejection."
+      ],
+      "issue_action": "CREATE_NEW",
+      "equivalence_note": "No fully equivalent issue found in the all-state GitHub issue audit on 2026-10-03.",
+      "inspiration": [
+        "User-approved commercial inspiration: Jobscan / LoopCV / Huntr / Simplify / Careerflow / Teal / Rezi / AIApply / Sonara; no product-specific implementation claims or copied material."
+      ]
+    },
+    "MJ-REF-044": {
+      "title": "LinkedIn profile optimizer with section-level recommendations",
+      "problem": "Identify concrete improvements to individual professional-profile sections.",
+      "scope_distinction": "Generic document tailoring lacks headline/about/experience/skills recommendations with section-specific evidence.",
+      "owner_area": "career_profile_documents",
+      "priority": "P4",
+      "original_overlaps": [
+        "MJ-REQ-092",
+        "MJ-REQ-095",
+        "MJ-REQ-096"
+      ],
+      "reference_overlaps": [
+        "MJ-REF-001",
+        "MJ-REF-010",
+        "MJ-REF-041"
+      ],
+      "prerequisites": [
+        "MJ-REQ-092",
+        "MJ-REQ-095",
+        "MJ-REQ-096"
+      ],
+      "queue_prerequisites": [
+        "MJ-PR-026",
+        "MJ-PR-027",
+        "MJ-PR-148",
+        "MJ-PR-149"
+      ],
+      "acceptance_criteria": [
+        "Produce section-level recommendations against selected career goals and verified facts.",
+        "Show before/after text and supporting fact identifiers; mark missing evidence and never invent experience.",
+        "Persist recommendation revisions and user decisions; suggestions do not update any external profile."
+      ],
+      "test_strategy": [
+        "Grounded and unsupported claims, missing sections, and deterministic unavailable-provider behavior.",
+        "Browser review/diff and durable revision readback."
+      ],
+      "issue_action": "CREATE_NEW",
+      "equivalence_note": "No fully equivalent issue found in the all-state GitHub issue audit on 2026-10-03.",
+      "inspiration": [
+        "User-approved commercial inspiration: Jobscan / LoopCV / Huntr / Simplify / Careerflow / Teal / Rezi / AIApply / Sonara; no product-specific implementation claims or copied material."
+      ]
+    },
+    "MJ-REF-045": {
+      "title": "Networking/contact CRM linked to companies jobs and applications",
+      "problem": "Keep professional relationships and follow-up context attached to the relevant opportunity.",
+      "scope_distinction": "Company intelligence and draft outreach do not own durable contact identities or relationship histories.",
+      "owner_area": "web_api_analytics",
+      "priority": "P4",
+      "original_overlaps": [
+        "MJ-REQ-015",
+        "MJ-REQ-054",
+        "MJ-REQ-121",
+        "MJ-REQ-170",
+        "MJ-REQ-239"
+      ],
+      "reference_overlaps": [
+        "MJ-REF-021",
+        "MJ-REF-025"
+      ],
+      "prerequisites": [
+        "MJ-REQ-054",
+        "MJ-REQ-121",
+        "MJ-REQ-170",
+        "MJ-REQ-239"
+      ],
+      "queue_prerequisites": [
+        "MJ-PR-016",
+        "MJ-PR-034",
+        "MJ-PR-046",
+        "MJ-PR-065",
+        "MJ-PR-148"
+      ],
+      "acceptance_criteria": [
+        "Create/edit contacts with user-entered or cited source identity and links to companies, jobs and applications.",
+        "Retain notes, interaction history and follow-up state with conservative duplicate review.",
+        "Support local privacy/export/deletion controls; saving a contact never sends outreach."
+      ],
+      "test_strategy": [
+        "Identity collisions, multiple-company links, profile isolation and durable histories.",
+        "Browser CRUD/link/history and privacy/export/delete acceptance."
+      ],
+      "issue_action": "CREATE_NEW",
+      "equivalence_note": "No fully equivalent issue found in the all-state GitHub issue audit on 2026-10-03.",
+      "inspiration": [
+        "User-approved commercial inspiration: Jobscan / LoopCV / Huntr / Simplify / Careerflow / Teal / Rezi / AIApply / Sonara; no product-specific implementation claims or copied material."
+      ]
+    },
+    "MJ-REF-046": {
+      "title": "Recruiter and hiring-manager discovery workflow",
+      "problem": "Find evidenced professional contacts relevant to an employer or role.",
+      "scope_distinction": "Outreach drafting deliberately avoids named-contact discovery; company discovery identifies employers rather than people.",
+      "owner_area": "company_ats_discovery",
+      "priority": "P4",
+      "original_overlaps": [
+        "MJ-REQ-054",
+        "MJ-REQ-062",
+        "MJ-REQ-080"
+      ],
+      "reference_overlaps": [
+        "MJ-REF-021",
+        "MJ-REF-025"
+      ],
+      "prerequisites": [
+        "MJ-REQ-054",
+        "MJ-REQ-062",
+        "MJ-REQ-080",
+        "MJ-REF-045"
+      ],
+      "queue_prerequisites": [
+        "MJ-PR-016",
+        "MJ-PR-018",
+        "MJ-PR-022",
+        "MJ-PR-148"
+      ],
+      "acceptance_criteria": [
+        "Use explicitly enabled bounded public sources or user-provided evidence to propose relevant contacts.",
+        "Record source URL, observation time, role evidence and uncertainty; conflicting identities require review.",
+        "Never fabricate names/contact details, bypass restrictions or automatically send messages; reviewed candidates can enter the CRM."
+      ],
+      "test_strategy": [
+        "Public-source fixtures with conflicting/missing identities, blocked sources and request limits.",
+        "Proposal-to-reviewed-contact workflow with no outbound messaging."
+      ],
+      "issue_action": "CREATE_NEW",
+      "equivalence_note": "No fully equivalent issue found in the all-state GitHub issue audit on 2026-10-03.",
+      "inspiration": [
+        "User-approved commercial inspiration: Jobscan / LoopCV / Huntr / Simplify / Careerflow / Teal / Rezi / AIApply / Sonara; no product-specific implementation claims or copied material."
+      ]
+    },
+    "MJ-REF-047": {
+      "title": "Per-job tasks reminders and due dates",
+      "problem": "Remember application deadlines, follow-ups and interview preparation work.",
+      "scope_distinction": "Notifications and status tracking lack a user-owned task lifecycle and completion history.",
+      "owner_area": "web_api_analytics",
+      "priority": "P4",
+      "original_overlaps": [
+        "MJ-REQ-121",
+        "MJ-REQ-153",
+        "MJ-REQ-154",
+        "MJ-REQ-204",
+        "MJ-REQ-268"
+      ],
+      "reference_overlaps": [
+        "MJ-REF-024"
+      ],
+      "prerequisites": [
+        "MJ-REQ-121",
+        "MJ-REQ-153",
+        "MJ-REQ-154",
+        "MJ-REQ-204",
+        "MJ-REQ-268"
+      ],
+      "queue_prerequisites": [
+        "MJ-PR-034",
+        "MJ-PR-042",
+        "MJ-PR-055",
+        "MJ-PR-073",
+        "MJ-PR-148"
+      ],
+      "acceptance_criteria": [
+        "Create/edit/complete/snooze tasks linked to jobs or applications; preserve completion history.",
+        "Store explicit due dates/time zones and schedule reminders durably across restart.",
+        "Deduplicate reminders, respect quiet hours and cancellation; a task never authorizes submission."
+      ],
+      "test_strategy": [
+        "DST/timezone boundaries, overdue/snoozed/completed tasks, restart and duplicate-delivery tests.",
+        "Browser task/history workflow and in-app reminder readback."
+      ],
+      "issue_action": "CREATE_NEW",
+      "equivalence_note": "No fully equivalent issue found in the all-state GitHub issue audit on 2026-10-03.",
+      "inspiration": [
+        "User-approved commercial inspiration: Jobscan / LoopCV / Huntr / Simplify / Careerflow / Teal / Rezi / AIApply / Sonara; no product-specific implementation claims or copied material."
+      ]
+    },
+    "MJ-REF-048": {
+      "title": "First-class job-search Campaign or Loop object",
+      "problem": "Operate a named recurring search with one inspectable policy configuration.",
+      "scope_distinction": "Saved searches and global automation rules do not provide a versioned campaign combining document and automation policy.",
+      "owner_area": "orchestration_data_security",
+      "priority": "P4",
+      "original_overlaps": [
+        "MJ-REQ-021",
+        "MJ-REQ-022",
+        "MJ-REQ-124",
+        "MJ-REQ-149",
+        "MJ-REQ-150",
+        "MJ-REQ-151",
+        "MJ-REQ-155",
+        "MJ-REQ-156",
+        "MJ-REQ-276"
+      ],
+      "reference_overlaps": [
+        "MJ-REF-033"
+      ],
+      "prerequisites": [
+        "MJ-REQ-021",
+        "MJ-REQ-022",
+        "MJ-REQ-124",
+        "MJ-REQ-149",
+        "MJ-REQ-150",
+        "MJ-REQ-151",
+        "MJ-REQ-155",
+        "MJ-REQ-156",
+        "MJ-REQ-276"
+      ],
+      "queue_prerequisites": [
+        "MJ-PR-006",
+        "MJ-PR-034",
+        "MJ-PR-041",
+        "MJ-PR-043",
+        "MJ-PR-075",
+        "MJ-PR-148"
+      ],
+      "acceptance_criteria": [
+        "Persist named campaigns with criteria, sources, schedule, limits, document policy and automation policy.",
+        "Version effective configuration and attach durable runs to the exact campaign/profile snapshot.",
+        "Pause/resume without duplicate work; restrictive global safety/limits always prevail and real submission stays OFF by default."
+      ],
+      "test_strategy": [
+        "Policy precedence, concurrent scheduling, idempotent recovery and version lineage.",
+        "Campaign create/edit/pause/run browser workflow in isolated fixture mode."
+      ],
+      "issue_action": "CREATE_NEW",
+      "equivalence_note": "No fully equivalent issue found in the all-state GitHub issue audit on 2026-10-03.",
+      "inspiration": [
+        "User-approved commercial inspiration: Jobscan / LoopCV / Huntr / Simplify / Careerflow / Teal / Rezi / AIApply / Sonara; no product-specific implementation claims or copied material."
+      ]
+    },
+    "MJ-REF-049": {
+      "title": "Campaign performance analytics",
+      "problem": "Understand which recurring searches yield useful outcomes.",
+      "scope_distinction": "Global/source analytics lack campaign lineage and per-campaign funnel attribution.",
+      "owner_area": "web_api_analytics",
+      "priority": "P5",
+      "original_overlaps": [
+        "MJ-REQ-201",
+        "MJ-REQ-202",
+        "MJ-REQ-268"
+      ],
+      "reference_overlaps": [],
+      "prerequisites": [
+        "MJ-REQ-201",
+        "MJ-REQ-202",
+        "MJ-REQ-268",
+        "MJ-REF-048"
+      ],
+      "queue_prerequisites": [
+        "MJ-PR-055",
+        "MJ-PR-073"
+      ],
+      "acceptance_criteria": [
+        "Report discovered jobs, qualified matches, applications, responses, interviews and outcomes by campaign/source/profile/time.",
+        "Use durable deduplicated event attribution with explicit denominators, sample sizes and unknown/missing outcomes.",
+        "Explain observational limits and preserve historical campaign configuration; never infer causal effectiveness."
+      ],
+      "test_strategy": [
+        "Synthetic known funnels, duplicate events, missing outcomes, time-window and profile isolation tests.",
+        "API/chart drill-through reconciles exactly with underlying application/event records."
+      ],
+      "issue_action": "CREATE_NEW",
+      "equivalence_note": "No fully equivalent issue found in the all-state GitHub issue audit on 2026-10-03.",
+      "inspiration": [
+        "User-approved commercial inspiration: Jobscan / LoopCV / Huntr / Simplify / Careerflow / Teal / Rezi / AIApply / Sonara; no product-specific implementation claims or copied material."
+      ]
+    },
+    "MJ-REF-050": {
+      "title": "Daily matched-jobs review inbox and digest",
+      "problem": "Review a manageable daily set of useful opportunities and changes.",
+      "scope_distinction": "Job lists and event notifications lack a bounded persistent daily review batch.",
+      "owner_area": "web_api_analytics",
+      "priority": "P4",
+      "original_overlaps": [
+        "MJ-REQ-112",
+        "MJ-REQ-118",
+        "MJ-REQ-186",
+        "MJ-REQ-196",
+        "MJ-REQ-204"
+      ],
+      "reference_overlaps": [],
+      "prerequisites": [
+        "MJ-REQ-112",
+        "MJ-REQ-118",
+        "MJ-REQ-186",
+        "MJ-REQ-196",
+        "MJ-REQ-204"
+      ],
+      "queue_prerequisites": [
+        "MJ-PR-031",
+        "MJ-PR-032",
+        "MJ-PR-051",
+        "MJ-PR-053",
+        "MJ-PR-055",
+        "MJ-PR-148",
+        "MJ-PR-149"
+      ],
+      "acceptance_criteria": [
+        "Build a bounded daily batch of newly matched jobs, material changes and attention items with an explicit cutoff/timezone.",
+        "Deduplicate canonical jobs and retain reviewed/snoozed decisions across retries and restart.",
+        "Show match rationale, source/date evidence and unknowns; reviewing a digest never submits an application."
+      ],
+      "test_strategy": [
+        "Daily cutoff/DST, reruns, duplicate postings, changed jobs and bounded batch selection.",
+        "Browser inbox review/snooze/reload and deterministic no-new-items behavior."
+      ],
+      "issue_action": "CREATE_NEW",
+      "equivalence_note": "No fully equivalent issue found in the all-state GitHub issue audit on 2026-10-03.",
+      "inspiration": [
+        "User-approved commercial inspiration: Jobscan / LoopCV / Huntr / Simplify / Careerflow / Teal / Rezi / AIApply / Sonara; no product-specific implementation claims or copied material."
+      ]
+    },
+    "MJ-REF-051": {
+      "title": "ATS-specific resume compatibility profiles and scoring",
+      "problem": "See relevant resume compatibility signals for the detected ATS.",
+      "scope_distinction": "Generic ATS-friendly layout does not establish provider-specific compatibility knowledge or explainable scoring.",
+      "owner_area": "career_profile_documents",
+      "priority": "P4",
+      "original_overlaps": [
+        "MJ-REQ-063",
+        "MJ-REQ-064",
+        "MJ-REQ-065",
+        "MJ-REQ-097",
+        "MJ-REQ-112"
+      ],
+      "reference_overlaps": [
+        "MJ-REF-007"
+      ],
+      "prerequisites": [
+        "MJ-REQ-063",
+        "MJ-REQ-097",
+        "MJ-REQ-112"
+      ],
+      "queue_prerequisites": [
+        "MJ-PR-018",
+        "MJ-PR-027",
+        "MJ-PR-031",
+        "MJ-PR-148",
+        "MJ-PR-149"
+      ],
+      "acceptance_criteria": [
+        "Version ATS compatibility profiles with source evidence, applicability and confidence.",
+        "Explain individual format/parse signals for a selected document and ATS; unknown providers/rules remain unknown.",
+        "Do not present compatibility as an employer hiring score or mutate factual content; show evidence and limitations."
+      ],
+      "test_strategy": [
+        "Synthetic documents across supported profile rules, unknown ATS, stale/unsupported knowledge.",
+        "Score explanation/provenance readback and unchanged original document hashes."
+      ],
+      "issue_action": "CREATE_NEW",
+      "equivalence_note": "No fully equivalent issue found in the all-state GitHub issue audit on 2026-10-03.",
+      "inspiration": [
+        "User-approved commercial inspiration: Jobscan / LoopCV / Huntr / Simplify / Careerflow / Teal / Rezi / AIApply / Sonara; no product-specific implementation claims or copied material."
+      ]
+    },
+    "MJ-REF-052": {
+      "title": "Resume impact and metrics analyzer",
+      "problem": "Improve vague accomplishment bullets while retaining factual support.",
+      "scope_distinction": "Factual validation and JD alignment do not assess measurable impact, specificity and readability.",
+      "owner_area": "career_profile_documents",
+      "priority": "P4",
+      "original_overlaps": [
+        "MJ-REQ-092",
+        "MJ-REQ-095",
+        "MJ-REQ-096"
+      ],
+      "reference_overlaps": [
+        "MJ-REF-002",
+        "MJ-REF-010",
+        "MJ-REF-041"
+      ],
+      "prerequisites": [
+        "MJ-REQ-092",
+        "MJ-REQ-095",
+        "MJ-REQ-096"
+      ],
+      "queue_prerequisites": [
+        "MJ-PR-026",
+        "MJ-PR-027",
+        "MJ-PR-148",
+        "MJ-PR-149"
+      ],
+      "acceptance_criteria": [
+        "Flag weak/general bullets and assess evidence-backed specificity, impact and readability.",
+        "Link every existing metric to its verified evidence; ask for missing evidence instead of inventing numbers.",
+        "Present reviewable suggestions with source facts and preserve original text and decision history."
+      ],
+      "test_strategy": [
+        "Supported/unsupported metrics, vague bullets, missing facts and mutation-guard regression tests.",
+        "Browser evidence review and rejection leave original facts/documents unchanged."
+      ],
+      "issue_action": "CREATE_NEW",
+      "equivalence_note": "No fully equivalent issue found in the all-state GitHub issue audit on 2026-10-03.",
+      "inspiration": [
+        "User-approved commercial inspiration: Jobscan / LoopCV / Huntr / Simplify / Careerflow / Teal / Rezi / AIApply / Sonara; no product-specific implementation claims or copied material."
+      ]
+    },
+    "MJ-REF-053": {
+      "title": "Job-description summarizer and decision brief",
+      "problem": "Quickly assess whether to pursue a job with the important evidence visible.",
+      "scope_distinction": "Match scores and multi-JD comparison do not produce a versioned per-job decision brief.",
+      "owner_area": "matching_ai",
+      "priority": "P4",
+      "original_overlaps": [
+        "MJ-REQ-040",
+        "MJ-REQ-087",
+        "MJ-REQ-112",
+        "MJ-REQ-118"
+      ],
+      "reference_overlaps": [
+        "MJ-REF-039",
+        "MJ-REF-041"
+      ],
+      "prerequisites": [
+        "MJ-REQ-040",
+        "MJ-REQ-087",
+        "MJ-REQ-112",
+        "MJ-REQ-118"
+      ],
+      "queue_prerequisites": [
+        "MJ-PR-012",
+        "MJ-PR-024",
+        "MJ-PR-031",
+        "MJ-PR-032",
+        "MJ-PR-148",
+        "MJ-PR-149"
+      ],
+      "acceptance_criteria": [
+        "Produce a concise brief of responsibilities, requirements, known compensation, risks, unknowns and match rationale.",
+        "Separate quoted/source facts from inferences and cite job/profile snapshot evidence for pursue/skip reasons.",
+        "Retain brief versions when source descriptions or profile facts change; no unsupported salary or qualification claims."
+      ],
+      "test_strategy": [
+        "Missing compensation, conflicting sources, prompt-injection content and unsupported inference tests.",
+        "Brief API/browser readback tied to immutable source/profile revisions."
+      ],
+      "issue_action": "CREATE_NEW",
+      "equivalence_note": "No fully equivalent issue found in the all-state GitHub issue audit on 2026-10-03.",
+      "inspiration": [
+        "User-approved commercial inspiration: Jobscan / LoopCV / Huntr / Simplify / Careerflow / Teal / Rezi / AIApply / Sonara; no product-specific implementation claims or copied material."
+      ]
+    },
+    "MJ-REF-054": {
+      "title": "One-click reviewable Application Kit",
+      "problem": "Prepare all materials for one application as a coherent reviewable package.",
+      "scope_distinction": "Individual document generation, answers and tracking lack an immutable kit manifest with cross-artifact lineage.",
+      "owner_area": "application_automation",
+      "priority": "P4",
+      "original_overlaps": [
+        "MJ-REQ-094",
+        "MJ-REQ-095",
+        "MJ-REQ-096",
+        "MJ-REQ-100",
+        "MJ-REQ-121",
+        "MJ-REQ-136",
+        "MJ-REQ-137",
+        "MJ-REQ-197"
+      ],
+      "reference_overlaps": [
+        "MJ-REF-024"
+      ],
+      "prerequisites": [
+        "MJ-REQ-094",
+        "MJ-REQ-095",
+        "MJ-REQ-096",
+        "MJ-REQ-100",
+        "MJ-REQ-121",
+        "MJ-REQ-136",
+        "MJ-REQ-137",
+        "MJ-REQ-197",
+        "MJ-REF-024"
+      ],
+      "queue_prerequisites": [
+        "MJ-PR-026",
+        "MJ-PR-027",
+        "MJ-PR-028",
+        "MJ-PR-034",
+        "MJ-PR-037",
+        "MJ-PR-038",
+        "MJ-PR-054",
+        "MJ-PR-148",
+        "MJ-PR-149"
+      ],
+      "acceptance_criteria": [
+        "Prepare selected tailored resume, cover letter, draft answers and follow-up draft in a job-linked package.",
+        "Persist an idempotent versioned manifest linking every artifact to source facts, job/profile inputs and selected versions.",
+        "Expose missing/unsupported artifacts and sensitive answers for review; one click prepares the kit and never authorizes submission."
+      ],
+      "test_strategy": [
+        "Partial generation failure/retry, concurrent requests, stale inputs and exact-version provenance tests.",
+        "Browser prepare/review/download workflow with pending-fact and submission gates exercised."
+      ],
+      "issue_action": "CREATE_NEW",
+      "equivalence_note": "No fully equivalent issue found in the all-state GitHub issue audit on 2026-10-03.",
+      "inspiration": [
+        "User-approved commercial inspiration: Jobscan / LoopCV / Huntr / Simplify / Careerflow / Teal / Rezi / AIApply / Sonara; no product-specific implementation claims or copied material."
+      ]
+    },
+    "MJ-REF-055": {
+      "title": "Resume-version outcome analytics",
+      "problem": "Compare observed outcomes associated with truthful document variants.",
+      "scope_distinction": "Document versions and aggregate application analytics lack exact submitted-version outcome attribution.",
+      "owner_area": "web_api_analytics",
+      "priority": "P5",
+      "original_overlaps": [
+        "MJ-REQ-094",
+        "MJ-REQ-121",
+        "MJ-REQ-201",
+        "MJ-REQ-268"
+      ],
+      "reference_overlaps": [],
+      "prerequisites": [
+        "MJ-REQ-094",
+        "MJ-REQ-121",
+        "MJ-REQ-201",
+        "MJ-REQ-268"
+      ],
+      "queue_prerequisites": [
+        "MJ-PR-026",
+        "MJ-PR-034",
+        "MJ-PR-055",
+        "MJ-PR-073",
+        "MJ-PR-148"
+      ],
+      "acceptance_criteria": [
+        "Link applications to immutable resume/document versions and timestamped observed outcomes.",
+        "Report counts/rates for responses, screens, interviews and outcomes with time windows, sample sizes and unknowns.",
+        "Label all comparisons observational; selection bias or sparse data must not become causal claims."
+      ],
+      "test_strategy": [
+        "Exact-version lineage, retrospective edits, duplicate outcomes and small/missing samples.",
+        "Analytics totals reconcile with underlying version/application history after restart."
+      ],
+      "issue_action": "CREATE_NEW",
+      "equivalence_note": "No fully equivalent issue found in the all-state GitHub issue audit on 2026-10-03.",
+      "inspiration": [
+        "User-approved commercial inspiration: Jobscan / LoopCV / Huntr / Simplify / Careerflow / Teal / Rezi / AIApply / Sonara; no product-specific implementation claims or copied material."
+      ]
+    },
+    "MJ-REF-056": {
+      "title": "Job freshness and urgency ranking",
+      "problem": "Prioritize current actionable opportunities without guessing publication dates.",
+      "scope_distinction": "Date-window filters and generic sorting do not combine route state, source recency and employer evidence.",
+      "owner_area": "core_search_model",
+      "priority": "P3",
+      "original_overlaps": [
+        "MJ-REQ-032",
+        "MJ-REQ-083",
+        "MJ-REQ-085",
+        "MJ-REQ-086",
+        "MJ-REQ-190"
+      ],
+      "reference_overlaps": [],
+      "prerequisites": [
+        "MJ-REQ-032",
+        "MJ-REQ-083",
+        "MJ-REQ-085",
+        "MJ-REQ-086",
+        "MJ-REQ-190"
+      ],
+      "queue_prerequisites": [
+        "MJ-PR-009",
+        "MJ-PR-023",
+        "MJ-PR-024",
+        "MJ-PR-052"
+      ],
+      "acceptance_criteria": [
+        "Rank using observed posting/update age, collection recency, application-route state and employer evidence.",
+        "Expose component reasons and distinguish posted, updated and first-seen dates; unknown dates remain unknown.",
+        "First-party closed evidence overrides aggregator activity; no invented deadlines or unsupported urgency labels."
+      ],
+      "test_strategy": [
+        "Missing/future/timezone dates, stale aggregator vs closed employer and deterministic tie tests.",
+        "Ranked API/browser output explains evidence and preserves raw timestamps."
+      ],
+      "issue_action": "CREATE_NEW",
+      "equivalence_note": "No fully equivalent issue found in the all-state GitHub issue audit on 2026-10-03.",
+      "inspiration": [
+        "User-approved commercial inspiration: Jobscan / LoopCV / Huntr / Simplify / Careerflow / Teal / Rezi / AIApply / Sonara; no product-specific implementation claims or copied material."
+      ]
+    },
+    "MJ-REF-057": {
+      "title": "In-page resume and cover-letter tailoring from browser companion",
+      "problem": "Review job-specific materials while working on a supported job page.",
+      "scope_distinction": "The companion captures jobs and assists fields; it does not own in-page document editing and tailoring.",
+      "owner_area": "career_profile_documents",
+      "priority": "P4",
+      "original_overlaps": [
+        "MJ-REQ-095",
+        "MJ-REQ-096",
+        "MJ-REQ-100",
+        "MJ-REQ-170",
+        "MJ-REQ-205",
+        "MJ-REQ-259"
+      ],
+      "reference_overlaps": [
+        "MJ-REF-018",
+        "MJ-REF-019"
+      ],
+      "prerequisites": [
+        "MJ-REQ-095",
+        "MJ-REQ-096",
+        "MJ-REQ-100",
+        "MJ-REQ-170",
+        "MJ-REQ-205",
+        "MJ-REF-018",
+        "MJ-REF-019"
+      ],
+      "queue_prerequisites": [
+        "MJ-PR-026",
+        "MJ-PR-027",
+        "MJ-PR-028",
+        "MJ-PR-046",
+        "MJ-PR-056",
+        "MJ-PR-148",
+        "MJ-PR-149"
+      ],
+      "acceptance_criteria": [
+        "Explicitly capture a supported current page and resolve its canonical job through the secure local API.",
+        "Prepare/edit resume and cover drafts in the companion with before/after diff and verified-fact provenance.",
+        "Treat page content as untrusted; preserve permissions/privacy and stop at review without submitting or bypassing barriers."
+      ],
+      "test_strategy": [
+        "Browser extension tests for unsupported/malicious pages, local API isolation and permission denial.",
+        "In-page draft/edit/review/save journey preserves job and document version identity."
+      ],
+      "issue_action": "CREATE_NEW",
+      "equivalence_note": "No fully equivalent issue found in the all-state GitHub issue audit on 2026-10-03.",
+      "inspiration": [
+        "User-approved commercial inspiration: Jobscan / LoopCV / Huntr / Simplify / Careerflow / Teal / Rezi / AIApply / Sonara; no product-specific implementation claims or copied material."
+      ]
+    },
+    "MJ-REF-058": {
+      "title": "Recorded mock-interview sessions",
+      "problem": "Practice interviews and revisit a private record of the session.",
+      "scope_distinction": "Interview prep packs contain questions but no timed response/session history or recording consent lifecycle.",
+      "owner_area": "operations_ux_ci",
+      "priority": "P5",
+      "original_overlaps": [
+        "MJ-REQ-167",
+        "MJ-REQ-168",
+        "MJ-REQ-170"
+      ],
+      "reference_overlaps": [
+        "MJ-REF-008",
+        "MJ-REF-042"
+      ],
+      "prerequisites": [
+        "MJ-REQ-167",
+        "MJ-REQ-168",
+        "MJ-REQ-170",
+        "MJ-REF-008",
+        "MJ-REF-042"
+      ],
+      "queue_prerequisites": [
+        "MJ-PR-046"
+      ],
+      "acceptance_criteria": [
+        "Run sessions with selected questions, response history and timestamps; recording is optional and explicitly authorized.",
+        "Provide visible start/stop and durable local/private storage with retention/export/deletion controls.",
+        "Permission refusal, interruption or unavailable media must not lose text responses or imply a recording exists."
+      ],
+      "test_strategy": [
+        "Recording permission denial, interruption/restart, retention/deletion and private-export tests.",
+        "Browser mock session with optional recording and persisted response chronology."
+      ],
+      "issue_action": "CREATE_NEW",
+      "equivalence_note": "No fully equivalent issue found in the all-state GitHub issue audit on 2026-10-03.",
+      "inspiration": [
+        "User-approved commercial inspiration: Jobscan / LoopCV / Huntr / Simplify / Careerflow / Teal / Rezi / AIApply / Sonara; no product-specific implementation claims or copied material."
+      ]
+    },
+    "MJ-REF-059": {
+      "title": "Interview delivery and content feedback history",
+      "problem": "Track specific practice improvements across interview sessions.",
+      "scope_distinction": "Question preparation and skill-gap analysis do not evaluate recorded response delivery or longitudinal feedback.",
+      "owner_area": "operations_ux_ci",
+      "priority": "P5",
+      "original_overlaps": [
+        "MJ-REQ-092",
+        "MJ-REQ-170"
+      ],
+      "reference_overlaps": [
+        "MJ-REF-008",
+        "MJ-REF-026"
+      ],
+      "prerequisites": [
+        "MJ-REQ-092",
+        "MJ-REQ-170",
+        "MJ-REF-058"
+      ],
+      "queue_prerequisites": [
+        "MJ-PR-026",
+        "MJ-PR-046",
+        "MJ-PR-148",
+        "MJ-PR-149"
+      ],
+      "acceptance_criteria": [
+        "Provide pace/filler-word evidence where reliable and rubric-based answer structure/relevance feedback.",
+        "Link feedback to session segments, transcript/recording evidence, rubric/version and uncertainty.",
+        "Retain longitudinal history under the same local privacy controls; never infer personality or hiring outcomes from unsupported signals."
+      ],
+      "test_strategy": [
+        "Known transcripts/timing, low-quality audio, missing timestamps and repeatable rubric tests.",
+        "Session-to-feedback-to-history browser workflow with evidence links and deletion propagation."
+      ],
+      "issue_action": "CREATE_NEW",
+      "equivalence_note": "No fully equivalent issue found in the all-state GitHub issue audit on 2026-10-03.",
+      "inspiration": [
+        "User-approved commercial inspiration: Jobscan / LoopCV / Huntr / Simplify / Careerflow / Teal / Rezi / AIApply / Sonara; no product-specific implementation claims or copied material."
+      ]
     }
   }
 }

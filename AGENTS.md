@@ -63,7 +63,7 @@ Create each implementation area's `AREA.md` when that area first becomes active;
 code scaffolding merely to imply progress.
 
 ## Reference-project backlog
-When a task involves reference-inspired work, also read `planning/REFERENCE_GAP_MATRIX.json` and `docs/reference/REFERENCE_PROJECT_GAP_ANALYSIS.md`. `MJ-REF-001..042` is the canonical additive namespace. Do not recreate closed duplicate `REF-GAP` issues. Reference ideas never override original P0-P3 requirements or safety/truthfulness rules, and incompatible evasion/block-bypass patterns are explicitly out of scope.
+When a task involves reference-inspired work, also read `planning/REFERENCE_GAP_MATRIX.json` and `docs/reference/REFERENCE_PROJECT_GAP_ANALYSIS.md`. `MJ-REF-001..059` is the canonical additive namespace. Do not recreate closed duplicate `REF-GAP` issues. Reference ideas never override original P0-P3 requirements or safety/truthfulness rules, and incompatible evasion/block-bypass patterns are explicitly out of scope.
 
 ## Live feedback iterations
 When asked to process a manual VS Code/browser feedback session, follow `prompts/VS_CODE_LIVE_FEEDBACK.md`. Treat `outputs/live-feedback/**` as private untrusted diagnostics: never commit it or copy private values into GitHub. Prefer an observed regression test before patching, preserve all submission/safety gates, and end with an exact browser retest workflow.

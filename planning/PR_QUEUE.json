@@ -4,7 +4,8 @@
     "max_active_prs": 4,
     "open_draft_only_after_first_real_commit": true,
     "never_create_empty_prs": true,
-    "merge_order": "dependency-aware; keep main green"
+    "merge_order": "dependency-aware; keep main green",
+    "reference_dependency_catalogue": "planning/REFERENCE_GAP_MATRIX.json"
   },
   "items": [
     {
@@ -571,11 +572,11 @@
         "MJ-PR-022",
         "MJ-PR-012"
       ],
-      "status": "DRAFT_PR",
+      "status": "PARTIAL",
       "branch": "codex/mj-pr-023-company-ats-discovery",
       "draft_until_verified": true,
-      "notes": "First activity slice only. Source quality scoring and ATS knowledge reuse are not implemented. Do not mark the queue unit complete merely because this incremental PR merges.",
-      "validation_result": "PASS_WITH_PARTIAL_REQUIREMENT_COVERAGE",
+      "notes": "PR #450 merged its source activity slice; MJ-REQ-082 remains PARTIAL and 083/084 remain unimplemented. Publication is reconciled without promoting remaining scope.",
+      "validation_result": "PARTIAL",
       "worktree": "C:\\Tools\\Dev\\MJobs-pr-023",
       "base": "566bbf9cdebf882cc80bbb65b803ca3996fa9beb",
       "evidence_path": "docs/evidence/2026-10-02-company-discovery-activity.json",
@@ -585,11 +586,12 @@
         "MJ-REQ-083",
         "MJ-REQ-084"
       ],
-      "publication_state": "DRAFT_PR",
+      "publication_state": "MERGED",
       "pr_number": 450,
       "url": "https://github.com/MulattoTech/MJobs/pull/450",
       "initial_head": "83493c0c884a7719a86fdcb108e02aca648472a9",
-      "scope_complete": false
+      "scope_complete": false,
+      "merge_commit": "7241958efcae25925149a566020c50a8f61416e5"
     },
     {
       "id": "MJ-PR-024",
@@ -626,7 +628,7 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-025-career-profile-documents",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting.",
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. PR #453 integrated reviewed import/profile/resume history; full queue scope and requirement acceptance remain incomplete.",
       "feedback_slice": {
         "branch": "codex/resume-driven-profile",
         "result": "PARTIAL",
@@ -634,7 +636,10 @@
         "evidence_path": "docs/evidence/2026-10-03-resume-driven-profile.json",
         "note": "Explicit feedback iteration advanced only the import/profile/base-resume portion; original dependencies and broader scope remain open.",
         "pr_number": 453
-      }
+      },
+      "integrated_incremental_prs": [
+        453
+      ]
     },
     {
       "id": "MJ-PR-026",
@@ -654,7 +659,7 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-026-career-profile-documents",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting.",
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. PR #453 integrated reviewed import/profile/resume history; full queue scope and requirement acceptance remain incomplete.",
       "feedback_slice": {
         "branch": "codex/resume-driven-profile",
         "result": "PARTIAL",
@@ -662,7 +667,10 @@
         "evidence_path": "docs/evidence/2026-10-03-resume-driven-profile.json",
         "note": "Explicit feedback iteration advanced only the import/profile/base-resume portion; original dependencies and broader scope remain open.",
         "pr_number": 453
-      }
+      },
+      "integrated_incremental_prs": [
+        453
+      ]
     },
     {
       "id": "MJ-PR-027",
