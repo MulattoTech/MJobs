@@ -2,12 +2,14 @@
 from datetime import datetime, timedelta, timezone
 import hashlib
 import json
+import httpx
 
 from sqlalchemy import select, update
 
 from packages.persistence import models as m
 from packages.persistence.store import identity, now, upsert
 from services.company_discovery.sources import register_ats_tenant, upsert_company_job_source
+from services.company_discovery.quality import posting_metrics, record_observation
 from services.discovery.sources.contract import SourceAdapter, SourceCapability
 from services.discovery.sources.greenhouse import SourceError, tenant_identifier
 from services.discovery.sources.registry import source_adapter
@@ -68,8 +70,12 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
             raise SourceError("SOURCE_COOLDOWN")
         adapter: SourceAdapter = source_adapter(source, transport=transport, check=check)
         connection.execute(update(m.job_sources).where(m.job_sources.c.id == source_id).values(last_attempt=timestamp, health_status="COLLECTING"))
+    available = None
+    enumerated = accepted = completeness_sum = salary_known = None
     try:
         batch = adapter.search()
+        available = True
+        enumerated = len(batch.items)
         normalized = []
         rejected = 0
         for item in batch.items:
@@ -78,6 +84,10 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                 normalized.append((item, adapter.normalize(item.raw)))
             except SourceError:
                 rejected += 1
+        accepted = len(normalized)
+        metrics = [posting_metrics(job, job.get('application_url')) for _, job in normalized]
+        completeness_sum = sum(metric[0] for metric in metrics)
+        salary_known = sum(int(metric[1]) for metric in metrics)
         if batch.items and not normalized:
             raise SourceError("SOURCE_NO_VALID_JOBS")
         capabilities = adapter.capabilities()
@@ -97,7 +107,7 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                     connection, company_id, provider=source["provider"], tenant_identifier=source["tenant"],
                     confidence=0.9, evidence=["configured public job source adapter"],
                 )
-                upsert_company_job_source(
+                company_source = upsert_company_job_source(
                     connection, company_id=company_id, provider=source["provider"], tenant_identifier=source["tenant"],
                     public_api_url=batch.endpoint if strategy in {"API", "PUBLIC_JSON"} else None,
                     feed_url=batch.endpoint if strategy == "FEED" else None,
@@ -106,6 +116,8 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                     discovered_automatically=False, ats_tenant_id=tenant_record["id"],
                     last_validation=timestamp, last_success=timestamp,
                 )
+                connection.execute(update(m.company_sources).where(m.company_sources.c.id == company_source['id'])
+                                   .values(collector_source_id=source_id))
             for item, job in normalized:
                 company_id = identity(*item.company.identity_parts)
                 job_id = identity(company_id, source["provider"], source["tenant"], job["requisition"])
@@ -139,9 +151,18 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                 last_success=timestamp, consecutive_failures=0, last_error=None, backoff_until=None,
                 health_status="PARTIAL" if rejected else "HEALTHY", jobs_seen=len(normalized)))
             store._audit(connection, source_id, "SOURCE_COLLECTION_COMPLETE", {"jobs_seen": len(normalized), "rejected": rejected, "provider": source["provider"]})
+            record_observation(connection, configured_source_id=source_id, observed_at=now(),
+                succeeded=True, available=available, enumerated=enumerated, accepted=accepted,
+                completeness_sum=completeness_sum, salary_known=salary_known)
         return {"source_id": source_id, "jobs_seen": len(normalized), "rejected": rejected,
                 "strategy": strategy, "direct_application": direct_application}
     except Exception as failure:
+        # Only external fetch failures count against availability. Cancellation,
+        # DB failures and local programming errors are not evidence of an outage.
+        if available is None and (isinstance(failure, httpx.HTTPError) or isinstance(failure, SourceError)
+                                 and (failure.code.startswith('SOURCE_HTTP_') or failure.code in {
+                                     'SOURCE_RATE_LIMITED', 'SOURCE_REDIRECT_BLOCKED', 'SOURCE_TIME_LIMIT'})):
+            available = False
         seconds = failure.retry_seconds if isinstance(failure, SourceError) else 60
         disabled = seconds > 31536000
         try:
@@ -149,6 +170,10 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
         except OverflowError:
             backoff = datetime.max.replace(tzinfo=timezone.utc)
         with store.engine.begin() as connection:
+            record_observation(connection, configured_source_id=source_id, observed_at=now(),
+                succeeded=False, available=available, enumerated=enumerated, accepted=accepted,
+                completeness_sum=completeness_sum, salary_known=salary_known,
+                error_code=failure.code if isinstance(failure, SourceError) else type(failure).__name__)
             connection.execute(update(m.job_sources).where(m.job_sources.c.id == source_id).values(
                 consecutive_failures=m.job_sources.c.consecutive_failures + 1,
                 health_status="RATE_LIMITED" if isinstance(failure, SourceError) and failure.code == "SOURCE_RATE_LIMITED" else "FAILED",

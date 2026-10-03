@@ -338,6 +338,7 @@ def _view_event(row):
 
 def list_company_source_view(store, profile_id=None):
     """Project persisted evidence without fabricating official identity or scheduling."""
+    from services.company_discovery.quality import company_source_quality
     profile = store.profile(profile_id) if profile_id is not None else None
     with store.engine.connect() as c:
         rows = list(c.execute(select(m.company_sources, m.companies.c.name.label("company_name"))
@@ -374,6 +375,7 @@ def list_company_source_view(store, profile_id=None):
             events.setdefault(event["source_id"], []).append(_view_event(event))
         tenants = {row["id"]: dict(row) for row in c.execute(select(m.company_ats_tenants).where(
             m.company_ats_tenants.c.company_id.in_(company_ids))).mappings()}
+        qualities = {row['id']: company_source_quality(c, row) for row in rows}
     result = []
     for row in rows:
         verified = domains.get(row["company_id"], [])
@@ -393,6 +395,7 @@ def list_company_source_view(store, profile_id=None):
             "status": "COMPANY_SOURCE_REVIEW_REQUIRED" if review else ("ENABLED" if row["enabled"] else "DISABLED"),
             "jobs_found": found.get(row["id"], 0), "relevant_jobs": relevant.get(row["id"], 0),
             "last_checked": row["last_validation"], "last_success": row["last_success"], "next_check": None,
+            "quality": qualities[row['id']],
             "provenance": {
                 "domain_method": domain["verification_method"] if domain else None,
                 "domain_candidates_ambiguous": len(verified) > 1 and domain is None,

@@ -7,12 +7,12 @@
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "27 worktrees; all25 pre-existing worktrees preserved. Root resume-driven-profile HEAD260540c retains24 untracked user template files, checksum-verified unchanged.",
-    "current_verified_github_state": "388 open issues; PR453/471/472 merged with exact-head CI; PR452 final integration open awaiting new-head CI.",
-    "current_verified_at": "2026-10-03T20:12:32.612186+00:00"
+    "current_verified_local_state": "28 preserved worktrees; root resume-driven-profile HEAD260540c retains untracked user templates. Active isolated source-quality worktree based on main0ab2111.",
+    "current_verified_github_state": "387 open issues; PR452/453/471/472 merged; no open PRs before source-quality publication.",
+    "current_verified_at": "2026-10-03T20:42:26.854175+00:00"
   },
-  "current_milestone": "FEEDBACK_RESUME_CATALOGUE_UPLOAD_INTEGRATION",
-  "current_objective": "Verify and merge final PR452 head, reconcile live truth, then continue original source-quality and safety foundations.",
+  "current_milestone": "SOURCE_QUALITY_OBSERVATIONS",
+  "current_objective": "Publish and verify source-quality observation slice, then complete authority-first duplicate selection and safe application-link evidence.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -61,18 +61,12 @@
     "ATS detection uses several deterministic page/URL evidence sources, but HTML-signature and network-observed public endpoint signals remain open (MJ-REQ-064 PARTIAL).",
     "Company-source AUTO_DISCOVERED/USER_WATCHED origin, explicit list/watch APIs, and protection of watched priority across automatic refresh are locally verified; outcome-based ranking, company-level UI, and periodic source/ATS migration revalidation remain open (MJ-PR-021).",
     "Companies/Sources view and explicit pin/enable/watch preferences verified; advanced discovery actions, historical provenance repair and company-source scheduling remain incomplete.",
-    "Reviewed native resume import, structured profile contact/preferences, and named immutable base-resume history. See docs/evidence/2026-10-03-resume-driven-profile.json."
+    "Reviewed native resume import, structured profile contact/preferences, and named immutable base-resume history. See docs/evidence/2026-10-03-resume-driven-profile.json.",
+    "MJ-REQ-083 source quality: durable collector/feed observations, exact source attribution, bounded score/coverage and API readback; link verification and duplicate authority integration remain open."
   ],
   "blocked_capabilities": [],
   "active_requirements": [
-    "MJ-REQ-088",
-    "MJ-REQ-089",
-    "MJ-REQ-090",
-    "MJ-REQ-091",
-    "MJ-REQ-092",
-    "MJ-REQ-093",
-    "MJ-REQ-094",
-    "MJ-REQ-082"
+    "MJ-REQ-083"
   ],
   "active_prs": [
     {
@@ -341,8 +335,11 @@
       "number": 452,
       "url": "https://github.com/MulattoTech/MJobs/pull/452",
       "branch": "codex/feedback-gui",
-      "status": "DRAFT",
-      "note": "Combined287-test regression PASS; final bookkeeping changes the head, requiring fresh GitHub verification. User manual retest NOT_RUN."
+      "status": "MERGED",
+      "note": "Combined287-test regression PASS; final bookkeeping changes the head, requiring fresh GitHub verification. User manual retest NOT_RUN.",
+      "merge_commit": "0ab211153f3f9da7669b1832b554aa996cef8942",
+      "head": "55fdc29264a672eea6655f025f55b87f596eb415",
+      "merged_at": "2026-10-03T20:18:18Z"
     },
     {
       "number": 472,
@@ -462,7 +459,8 @@
     "MJ-PR-021 isolated PostgreSQL 17 Compose migration: fresh database upgraded through b71d9a42c0e3; migration service exited 0.",
     "MJ-PR-021 independent read-only review: legacy source identity collisions fixed and re-reviewed with no remaining actionable findings.",
     "MJ-PR-022: 235 Python tests with zero skips, 6 frontend tests/build, catalogue/progress and actual PERSONAL-mode company-source browser controls PASS; local Docker deployment blocked.",
-    "MJ-PR-023 activity slice: 235 Python tests with zero skips, 11 frontend tests/build, validators and actual synthetic feed import -> audit -> API -> browser activity PASS."
+    "MJ-PR-023 activity slice: 235 Python tests with zero skips, 11 frontend tests/build, validators and actual synthetic feed import -> audit -> API -> browser activity PASS.",
+    "Source quality observations:309 Python tests with zero skips,17 frontend tests/build, catalogue/progress validators and isolated PostgreSQL17 migration/preserved rows/restart PASS; hosted CI pending."
   ],
   "tests_failed": [],
   "tests_not_run": [
@@ -490,21 +488,16 @@
     "MJ-PR-016 local Chromium first run used Docker DNS host api, which is not a secure browser origin for crypto.randomUUID; loopback URL rerun passed all five connected UI actions."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-03T20:12:32.612186+00:00",
-    "base_commit": "8860d7ea2818359341eee90bd2a48a68351b365d",
+    "timestamp": "2026-10-03T20:42:26.854175+00:00",
+    "base_commit": "0ab211153f3f9da7669b1832b554aa996cef8942",
     "result": "PASS",
-    "scope": "Combined287 Python tests,17 frontend tests/build, catalogue/progress validators, synthetic SQLite/PostgreSQL and browser recovery; final-head hosted CI pending.",
-    "evidence_path": "docs/evidence/2026-10-03-delivery-integration.json"
+    "scope": "309 Python tests zero skips,17 frontend tests/build, validators, isolated PostgreSQL17 upgrade/rollback guard/restart; hosted CI not yet run.",
+    "evidence_path": "docs/evidence/2026-10-03-source-quality-observations.json"
   },
   "ci_verification": {
-    "result": "IN_PROGRESS",
-    "scope": "PR #448 initial head; PR-number/state bookkeeping commit changes the head and these runs are not final.",
-    "verified_head": "9c1b4dc7415ff108ad3a4751a92ce35031453bad",
-    "exact_head_runs": {
-      "pull_request_verification": 36951990706,
-      "push_verification": 36951969776
-    },
-    "next_action": "Push PR-number/state bookkeeping commit, then verify both required workflows on its exact new head."
+    "result": "NOT_RUN",
+    "scope": "Current source-quality branch",
+    "note": "PR452 exact-head37150718013 and37150715274 passed at55fdc292 before merge0ab2111; historical evidence does not certify this new slice."
   },
   "mock_spine_ci": {
     "result": "PASS",
@@ -562,7 +555,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Implement remaining original source-quality requirement MJ-REQ-083 using persisted evidence without replacing verified first-party authority.",
+  "recommended_resume_step": "Reconcile exact GitHub head; finish MJ-REQ-083 quality-backed duplicate-value selection without weakening verified authority or merging uncertain identities.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -599,18 +592,14 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "8860d7ea2818359341eee90bd2a48a68351b365d",
+  "last_implementation_commit": "55fdc29264a672eea6655f025f55b87f596eb415",
   "publication": {
-    "result": "PARTIAL",
-    "branch": "codex/feedback-gui",
-    "worktree": "C:/Tools/Dev/MJobs/.worktrees/feedback-gui",
-    "base": "5b459ac22412d57cd86f8abf0e669ae657bc0562",
-    "pr_number": 452,
-    "url": "https://github.com/MulattoTech/MJobs/pull/452",
-    "draft": true,
-    "observed_head_before_bookkeeping": "8860d7ea2818359341eee90bd2a48a68351b365d",
-    "observed_at": "2026-10-03T20:12:32.612186+00:00",
-    "note": "This bookkeeping commit changes the head. Resolve the exact current head/checks from GitHub before merge; prior-head checks cannot promote it."
+    "result": "NOT_RUN",
+    "branch": "codex/source-quality",
+    "worktree": "C:\\Tools\\Dev\\MJobs\\.worktrees\\source-quality",
+    "base": "0ab211153f3f9da7669b1832b554aa996cef8942",
+    "observed_at": "2026-10-03T20:42:26.854175+00:00",
+    "note": "Local implementation validated; draft publication pending. Resolve live head after each commit."
   },
   "optional_afk_journal": {
     "result": "BLOCKED_ENVIRONMENT",
@@ -2143,12 +2132,54 @@
         "git_commit": "f505e9dbcda3cc5e5a8852b8454095e5b04e0c7c",
         "evidence_path": "docs/evidence/2026-10-03-delivery-integration.json"
       }
+    },
+    {
+      "completed_steps": [
+        "Persisted exact-source collection success/failure and parser metrics; bounded unknown-aware API scores.",
+        "Reconciled merged PR452 and approved59-reference catalogue; preserved every prior worktree."
+      ],
+      "files_added": [
+        "services/company_discovery/quality.py",
+        "services/company_discovery/quality_score.py",
+        "migrations/versions/f083a019c241_source_quality_observations.py"
+      ],
+      "files_modified": [
+        "services/discovery/sources/collect.py",
+        "services/discovery/company_feed.py",
+        "services/company_discovery/flywheel.py",
+        "planning/CAPABILITY_MATRIX.json"
+      ],
+      "tests_completed": [
+        "309 Python tests PASS with zero skips;17 frontend tests/build PASS.",
+        "SQLite/PostgreSQL17 legacy migration, history preservation, downgrade refusal and PostgreSQL restart PASS.",
+        "Independent review resolved UTC-window and canonical-source comparison issues."
+      ],
+      "tests_remaining": [
+        "Exact latest PR head GitHub CI.",
+        "Complete MJ-REQ-083 link verification and quality-backed authoritative duplicate selection."
+      ],
+      "migrations_applied": [
+        "f083a019c241 on isolated SQLite/PostgreSQL fixtures only"
+      ],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "MJ-REQ-083 PARTIAL; full requirement acceptance not established.",
+        "Reference59 NOT_RUN; release readiness NOT_RUN."
+      ],
+      "milestone_id": "SOURCE-QUALITY-OBSERVATIONS-20261003",
+      "timestamp": "2026-10-03T20:43:55.435569+00:00",
+      "current_phase": "SOURCE_QUALITY_OBSERVATIONS",
+      "last_safe_checkpoint": {
+        "git_commit": "0ab211153f3f9da7669b1832b554aa996cef8942",
+        "evidence_path": "docs/evidence/2026-10-03-source-quality-observations.json"
+      }
     }
   ],
-  "current_phase": "FEEDBACK_RESUME_CATALOGUE_UPLOAD_INTEGRATION",
+  "current_phase": "SOURCE_QUALITY_OBSERVATIONS",
   "last_safe_checkpoint": {
-    "git_commit": "f505e9dbcda3cc5e5a8852b8454095e5b04e0c7c",
-    "evidence_path": "docs/evidence/2026-10-03-delivery-integration.json"
+    "git_commit": "0ab211153f3f9da7669b1832b554aa996cef8942",
+    "evidence_path": "docs/evidence/2026-10-03-source-quality-observations.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
@@ -2224,8 +2255,8 @@
     }
   ],
   "live_reconciliation": {
-    "timestamp": "2026-10-03T20:09:49.399240+00:00",
-    "origin_main": "5b459ac22412d57cd86f8abf0e669ae657bc0562",
+    "timestamp": "2026-10-03T20:42:26.854175+00:00",
+    "origin_main": "0ab211153f3f9da7669b1832b554aa996cef8942",
     "open_issue_count_before_catalogue": 371,
     "commercial_issue_mapping": {
       "MJ-REF-043": 454,
@@ -2256,27 +2287,21 @@
     "remaining_scope": "Original requirements and release readiness remain incomplete; no commercial feature behavior has been implemented by catalogue creation.",
     "catalogue_pr": 471,
     "catalogue_publication": "MERGED",
-    "open_prs_at_checkpoint": [
-      452
-    ],
-    "integration_order": [
-      452
-    ],
-    "note": "Feedback branch includes the reviewed upload fix to validate their combined behavior before merging both PRs.",
-    "next_action": "Implement remaining original source-quality requirement MJ-REQ-083 using persisted evidence without replacing verified first-party authority."
+    "open_prs_at_checkpoint": [],
+    "integration_order": [],
+    "note": "Prior feedback/resume/catalogue/upload integration merged; current quality slice isolated from all prior worktrees.",
+    "next_action": "Implement remaining original source-quality requirement MJ-REQ-083 using persisted evidence without replacing verified first-party authority.",
+    "open_issue_count": 387
   },
   "active_development_issue": {
-    "number": 451,
-    "url": "https://github.com/MulattoTech/MJobs/issues/451",
-    "branch": "codex/feedback-gui",
+    "number": 84,
+    "url": "https://github.com/MulattoTech/MJobs/issues/84",
+    "branch": "codex/source-quality",
     "status": "PARTIAL",
     "related_requirements": [
-      "MJ-REQ-184"
+      "MJ-REQ-083"
     ],
-    "note": "Additive development feedback workflow. Runtime error-management requirement remains incomplete.",
-    "pr_number": 452,
-    "pr_url": "https://github.com/MulattoTech/MJobs/pull/452",
-    "evidence_path": "docs/evidence/2026-10-03-feedback-gui.json"
+    "evidence_path": "docs/evidence/2026-10-03-source-quality-observations.json"
   },
   "historical_control_snapshots": [
     {
@@ -2300,10 +2325,67 @@
         "scope": "235 Python tests, 11 frontend tests/build, validators, and actual feed-import-to-browser activity acceptance",
         "evidence_path": "docs/evidence/2026-10-02-company-discovery-activity.json"
       }
+    },
+    {
+      "archived_at": "2026-10-03T20:42:26.854175+00:00",
+      "publication": {
+        "result": "PARTIAL",
+        "branch": "codex/feedback-gui",
+        "worktree": "C:/Tools/Dev/MJobs/.worktrees/feedback-gui",
+        "base": "5b459ac22412d57cd86f8abf0e669ae657bc0562",
+        "pr_number": 452,
+        "url": "https://github.com/MulattoTech/MJobs/pull/452",
+        "draft": true,
+        "observed_head_before_bookkeeping": "8860d7ea2818359341eee90bd2a48a68351b365d",
+        "observed_at": "2026-10-03T20:12:32.612186+00:00",
+        "note": "This bookkeeping commit changes the head. Resolve the exact current head/checks from GitHub before merge; prior-head checks cannot promote it."
+      },
+      "ci_verification": {
+        "result": "IN_PROGRESS",
+        "scope": "PR #448 initial head; PR-number/state bookkeeping commit changes the head and these runs are not final.",
+        "verified_head": "9c1b4dc7415ff108ad3a4751a92ce35031453bad",
+        "exact_head_runs": {
+          "pull_request_verification": 36951990706,
+          "push_verification": 36951969776
+        },
+        "next_action": "Push PR-number/state bookkeeping commit, then verify both required workflows on its exact new head."
+      },
+      "last_implementation_commit": "8860d7ea2818359341eee90bd2a48a68351b365d",
+      "last_verified_checkpoint": {
+        "timestamp": "2026-10-03T20:12:32.612186+00:00",
+        "base_commit": "8860d7ea2818359341eee90bd2a48a68351b365d",
+        "result": "PASS",
+        "scope": "Combined287 Python tests,17 frontend tests/build, catalogue/progress validators, synthetic SQLite/PostgreSQL and browser recovery; final-head hosted CI pending.",
+        "evidence_path": "docs/evidence/2026-10-03-delivery-integration.json"
+      },
+      "active_development_issue": {
+        "number": 451,
+        "url": "https://github.com/MulattoTech/MJobs/issues/451",
+        "branch": "codex/feedback-gui",
+        "status": "PARTIAL",
+        "related_requirements": [
+          "MJ-REQ-184"
+        ],
+        "note": "Additive development feedback workflow. Runtime error-management requirement remains incomplete.",
+        "pr_number": 452,
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/452",
+        "evidence_path": "docs/evidence/2026-10-03-feedback-gui.json"
+      }
     }
   ],
   "current_user_browser_acceptance": {
     "result": "NOT_RUN",
     "scope": "Manual owner retest of current feedback/resume UI. Historical user_testing evidence is retained separately."
-  }
+  },
+  "migration_validation": [
+    {
+      "revision": "f083a019c241",
+      "targets": [
+        "isolated SQLite legacy fixture",
+        "isolated PostgreSQL17"
+      ],
+      "result": "PASS",
+      "note": "Does not claim migration of the user live database."
+    }
+  ]
 }

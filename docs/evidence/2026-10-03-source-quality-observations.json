@@ -1,0 +1,70 @@
+{
+  "timestamp": "2026-10-03T20:42:26.854175+00:00",
+  "result": "PARTIAL",
+  "requirements": [
+    "MJ-REQ-083"
+  ],
+  "base_commit": "0ab211153f3f9da7669b1832b554aa996cef8942",
+  "branch": "codex/source-quality",
+  "scope": "Durable collection observations, source linkage, seven-component score with explicit unknowns and API projections.",
+  "checks": [
+    {
+      "action": "python -m unittest tests.integration.test_source_quality -v (before implementation)",
+      "result": "FAIL",
+      "count": 8,
+      "reason": "Expected RED: missing quality API field and observation model; harness workspace binding corrected before this recorded RED.",
+      "evidence_path": "Git common directory afk-dev/reconcile-20261003/source-quality-red.log"
+    },
+    {
+      "action": "python -m unittest discover -s tests -p test_*.py -v",
+      "result": "PASS",
+      "count": 309,
+      "skipped": 0,
+      "seconds": 90.168,
+      "evidence_path": "Git common directory afk-dev/reconcile-20261003/source-quality-regression-final.log"
+    },
+    {
+      "action": "npm ci; npm test; npm run build (apps/web)",
+      "result": "PASS",
+      "count": 17,
+      "note": "Node25 emitted existing Vitest engine-range warning; tests and build completed successfully."
+    },
+    {
+      "action": "Isolated postgres:17, Alembic upgrade prior head->f083a019c241; collect mixed valid/invalid batch; failed refresh; populated downgrade refusal; docker restart; reopen exact observations",
+      "result": "PASS",
+      "evidence_path": "Git common directory afk-dev/reconcile-20261003/source-quality-postgres-receipt.json",
+      "commands_path": "Git common directory afk-dev/reconcile-20261003/verify-source-quality-postgres.py"
+    },
+    {
+      "action": "python -m tools.verification.catalogue; python -m tools.verification.progress validate",
+      "result": "PASS"
+    },
+    {
+      "action": "Independent read-only review; address timestamp normalization and canonical source comparison; rerun focused tests",
+      "result": "PASS",
+      "note": "No remaining material findings in reviewed scope."
+    }
+  ],
+  "observed_limitations": [
+    "MJ-REQ-083 remains PARTIAL: quality does not yet select authoritative duplicate values and application-link accuracy remains unknown without verification.",
+    "No production arbitrary-URL probes added; no external submissions.",
+    "Collection freshness is not posting age; historical uptime is observed attempt availability, not continuous uptime.",
+    "Feed acquisition failures are recorded only for already enrolled exact portals; earlier failures cannot be reconstructed.",
+    "API projection is available; dedicated quality UI remains unimplemented.",
+    "Release readiness and manual user retest remain NOT_RUN."
+  ],
+  "harness_corrections": [
+    {
+      "classification": "HARNESS_DEFECT",
+      "detail": "Docker assigned a different ephemeral host port after restart. First reopen targeted old16660 and timed out; re-inspected docker port39044 and exact-row reopen passed. No database or product correction required."
+    },
+    {
+      "classification": "HARNESS_DEFECT",
+      "detail": "Initial new worktree lacked built web assets:306-test run skipped2 browser cases. After npm build final309-test run had zero skips."
+    }
+  ],
+  "hosted_ci": {
+    "result": "NOT_RUN",
+    "note": "Publish draft then verify exact current head. Local tests do not establish hosted CI or release PASS."
+  }
+}

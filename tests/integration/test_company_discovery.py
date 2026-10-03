@@ -299,6 +299,22 @@ class CompanyDiscoveryTests(unittest.TestCase):
             )).mappings().one()
         self.assertEqual(source["last_success"], initial_success)
 
+        # A failed refresh of the enrolled feed must not disappear from history.
+        original_get = FixtureTransport.get
+        def failing_feed(client, url):
+            if url.endswith('/jobs.xml'):
+                import httpx
+                raise httpx.ReadTimeout('Synthetic feed outage')
+            return original_get(client, url)
+        with patch.object(FixtureTransport, 'get', failing_feed):
+            with self.assertRaises(ValueError):
+                discover_company_source(self.store, candidate, FixtureTransport())
+        with self.store.engine.connect() as connection:
+            from services.company_discovery.quality import company_source_quality
+            quality = company_source_quality(connection, source)
+        self.assertEqual(quality['components']['availability'], 0)
+        self.assertEqual(quality['components']['historical_uptime'], 50)
+
     def test_career_discovery_finds_navigation_link_without_rel_careers_marker(self):
         from types import SimpleNamespace
         from services.company_discovery.flywheel import discover_company_source

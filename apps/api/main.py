@@ -357,8 +357,10 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
 
     @app.get("/sources")
     def sources():
+        from services.company_discovery.quality import source_quality
         with store.engine.connect() as connection:
-            return {"sources": [dict(row) for row in connection.execute(select(m.job_sources).order_by(m.job_sources.c.name)).mappings()]}
+            return {"sources": [{**dict(row), "quality": source_quality(connection, configured_source_id=row['id'])}
+                for row in connection.execute(select(m.job_sources).order_by(m.job_sources.c.name)).mappings()]}
 
     @app.get("/search-profiles")
     def search_profiles(profile_id: str | None = None):

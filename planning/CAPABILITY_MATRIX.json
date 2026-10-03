@@ -681,9 +681,11 @@
     },
     {
       "requirement_id": "MJ-REQ-083",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-03-source-quality-observations.json"
+      ],
+      "note": "Durable observed collection quality and API evidence implemented. Link accuracy checks and authority-first duplicate-value selection remain incomplete."
     },
     {
       "requirement_id": "MJ-REQ-084",

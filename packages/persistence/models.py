@@ -1,5 +1,5 @@
 """Relational authority for the initial product spine."""
-from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, JSON, MetaData, String, Table, UniqueConstraint, false, true
+from sqlalchemy import Boolean, CheckConstraint, Column, Float, ForeignKey, Index, Integer, JSON, MetaData, String, Table, UniqueConstraint, false, true
 
 metadata = MetaData()
 
@@ -71,6 +71,7 @@ company_sources = table(
     Column("enabled", Boolean, nullable=False, server_default=true()),
     Column("priority", String(32), nullable=False, server_default="NORMAL"),
     Column("last_validation", String(64)), Column("last_success", String(64)),
+    Column("collector_source_id", ForeignKey("job_sources.id")),
     constraints=(UniqueConstraint("company_id", "provider", "tenant", "career_url"),),
 )
 jobs = table("canonical_jobs", Column("company_id", ForeignKey("companies.id"), nullable=False),
@@ -112,6 +113,27 @@ search_profiles = table("search_profiles", Column("profile_id", ForeignKey("care
                         Column("criteria", JSON, nullable=False), Column("source_ids", JSON, nullable=False),
                         Column("created_at", String(64), nullable=False), Column("updated_at", String(64), nullable=False),
                         constraints=(UniqueConstraint("profile_id", "name"),))
+source_quality_observations = table("source_quality_observations",
+    Column("configured_source_id", ForeignKey("job_sources.id")),
+    Column("company_source_id", ForeignKey("company_job_sources.id")),
+    Column("observed_at", String(64), nullable=False),
+    Column("succeeded", Boolean, nullable=False), Column("available", Boolean),
+    Column("enumerated", Integer), Column("accepted", Integer),
+    Column("completeness_sum", Float), Column("salary_known", Integer),
+    Column("links_checked", Integer), Column("links_accurate", Integer),
+    Column("error_code", String(100)),
+    constraints=(
+        CheckConstraint("(configured_source_id IS NOT NULL AND company_source_id IS NULL) OR "
+                        "(configured_source_id IS NULL AND company_source_id IS NOT NULL)", name="quality_one_source"),
+        CheckConstraint("enumerated IS NULL OR enumerated >= 0", name="quality_enumerated_nonnegative"),
+        CheckConstraint("accepted IS NULL OR (enumerated IS NOT NULL AND accepted >= 0 AND accepted <= enumerated)", name="quality_accepted_bounds"),
+        CheckConstraint("completeness_sum IS NULL OR (accepted IS NOT NULL AND completeness_sum >= 0 AND completeness_sum <= accepted)", name="quality_completeness_bounds"),
+        CheckConstraint("salary_known IS NULL OR (accepted IS NOT NULL AND salary_known >= 0 AND salary_known <= accepted)", name="quality_salary_bounds"),
+        CheckConstraint("links_checked IS NULL OR (accepted IS NOT NULL AND links_checked >= 0 AND links_checked <= accepted)", name="quality_links_bounds"),
+        CheckConstraint("links_accurate IS NULL OR (links_checked IS NOT NULL AND links_accurate >= 0 AND links_accurate <= links_checked)", name="quality_accuracy_bounds"),
+    ))
+Index("ix_quality_configured_time", source_quality_observations.c.configured_source_id, source_quality_observations.c.observed_at)
+Index("ix_quality_company_time", source_quality_observations.c.company_source_id, source_quality_observations.c.observed_at)
 matches = table("job_matches", Column("job_id", ForeignKey("canonical_jobs.id"), nullable=False),
                 Column("profile_id", ForeignKey("career_profiles.id"), nullable=False), Column("profile_version", String(64), nullable=False),
                 Column("score", Float, nullable=False), Column("missing", JSON, nullable=False), Column("components", JSON, nullable=False))

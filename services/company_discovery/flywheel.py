@@ -14,6 +14,7 @@ from services.company_discovery.career_pages import common_career_routes, intern
 from services.company_discovery.domains import normalize_domain, record_company_domain
 from services.company_discovery.endpoints import machine_readable_job_endpoints, parse_public_job_feed
 from services.company_discovery.fetch_policy import bounded_get
+from services.company_discovery.quality import record_known_feed_failure
 from services.company_discovery.resolution import resolve_company
 from services.company_discovery.search import search_company_careers
 from services.company_discovery.sources import register_ats_tenant, upsert_company_job_source
@@ -179,10 +180,16 @@ def discover_company_source(store, candidate, client, check=None, search_provide
                  if detected.status != "MATCH" or not detected.provider else [])
         for feed in feeds:
             check()
+            feed_available = None
             try:
                 feed_response = bounded_get(client, feed["url"], str(careers.url))
+                feed_available = True
                 feed_jobs = parse_public_job_feed(feed_response.text, feed["strategy"])
-            except (httpx.HTTPError, ValueError):
+            except (httpx.HTTPError, ValueError) as failure:
+                record_known_feed_failure(store, company_id=resolved['company_id'],
+                    career_url=str(careers.url), endpoint=feed['url'], strategy=feed['strategy'],
+                    available=False if isinstance(failure, httpx.HTTPError) else feed_available,
+                    error_code=type(failure).__name__)
                 continue
             company_domain = normalize_domain(str(homepage.url)) or ""
             with store.engine.begin() as connection:
@@ -218,6 +225,7 @@ def discover_company_source(store, candidate, client, check=None, search_provide
                 source_id=source_record["id"], provider=source_provider, tenant=source_tenant,
                 endpoint=feed["url"], strategy=feed["strategy"], items=feed_jobs,
                 profile_id=profile_id, profile_version=profile_version, check=check,
+                fetch_available=True,
             )
             with store.engine.begin() as connection:
                 connection.execute(update(m.company_sources).where(
