@@ -683,9 +683,10 @@
       "requirement_id": "MJ-REQ-083",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-03-source-quality-observations.json"
+        "docs/evidence/2026-10-03-source-quality-observations.json",
+        "docs/evidence/2026-10-03-authoritative-source-values.json"
       ],
-      "note": "Durable observed collection quality and API evidence implemented. Link accuracy checks and authority-first duplicate-value selection remain incomplete."
+      "note": "Durable endpoint-scoped quality, authority-first canonical value selection and explicit protected-route review implemented. Application-link accuracy verification remains incomplete."
     },
     {
       "requirement_id": "MJ-REQ-084",

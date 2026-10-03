@@ -1,0 +1,100 @@
+{
+  "timestamp": "2026-10-03T21:28:33.949813+00:00",
+  "result": "PARTIAL",
+  "requirements": [
+    "MJ-REQ-083"
+  ],
+  "base_commit": "96e48325793c29f74c96063abf36ea86c9180a2f",
+  "branch": "codex/source-value-resolution",
+  "scope": "Authority-first selection of a coherent normalized bundle among source postings already attached to one canonical job; immutable candidate evidence and protected application routes.",
+  "checks": [
+    {
+      "action": "python -m unittest tests.integration.test_source_value_resolution -v (before implementation)",
+      "result": "FAIL",
+      "count": 4,
+      "reason": "Expected RED: later sparse feed overwrote canonical values; posting candidate persistence absent.",
+      "evidence_path": "Git common directory afk-dev/reconcile-20261003/source-values-red.log"
+    },
+    {
+      "action": "python -m unittest discover -s tests -p 'test_*.py' -v",
+      "result": "PASS",
+      "count": 322,
+      "skipped": 0,
+      "seconds": 97.735,
+      "evidence_path": "Git common directory afk-dev/reconcile-20261003/source-values-regression.log",
+      "note": "Full regression before the final UI wording change; affected frontend and actual browser flow rerun afterward."
+    },
+    {
+      "action": "npm test; npm run build (apps/web)",
+      "result": "PASS",
+      "count": 21,
+      "note": "Final plain-language source authority labels, /100 comparison score, coverage %, TypeScript and Vite build PASS."
+    },
+    {
+      "action": "python -m unittest tests.browser.test_source_value_resolution -v",
+      "result": "PASS",
+      "count": 1,
+      "note": "Final rerun after UI wording change: actual Chromium -> local API -> durable outbox route choice, without mocked completion. Worker preparation is covered separately by integration tests. Controlled synthetic feeds; no external submission.",
+      "evidence_path": "Git common directory afk-dev/reconcile-20261003/source-values-browser-final-fixed.log"
+    },
+    {
+      "action": "Isolated postgres:17 upgrade f083a019c241 -> a7c4e1b92d30; concurrent feed imports; conflicting posting identity race; populated downgrade refusal; restart and exact candidate readback",
+      "result": "PASS",
+      "evidence_path": "Git common directory afk-dev/reconcile-20261003/source-values-postgres-receipt.json",
+      "commands_path": "Git common directory afk-dev/reconcile-20261003/verify-source-values-postgres.py",
+      "logs": [
+        "source-values-postgres-fixed.log",
+        "source-values-postgres-restart.log"
+      ],
+      "note": "Owned ephemeral container stopped after proof; user runtime unchanged."
+    },
+    {
+      "action": "Independent read-only cross-source identity and application-route review",
+      "result": "PASS",
+      "note": "No remaining material findings after immutable observed origins, constrained authority and exact preserved-route checks. Review did not independently run tests."
+    },
+    {
+      "action": "python -m tools.verification.catalogue; python -m tools.verification.progress validate",
+      "result": "PASS"
+    },
+    {
+      "action": "Audit every worktree and compare user-template filenames, sizes and SHA-256 with original snapshot",
+      "result": "PASS",
+      "worktrees": 29,
+      "preserved_untracked_files": 24,
+      "evidence_path": "Git common directory afk-dev/reconcile-20261003/source-values-preservation.json"
+    }
+  ],
+  "observed_limitations": [
+    "MJ-REQ-083 remains PARTIAL: application-link accuracy is unknown until a separately bounded verification workflow supplies real observations.",
+    "No automatic merge of uncertain cross-company identities or speculative reassignment of postings.",
+    "Quality is an observed comparison measure, not a probability. Verified fixed-origin ATS collection does not establish employer domain ownership.",
+    "Historical observations without an observed endpoint remain excluded from endpoint-specific quality. No normalized candidates are backfilled from historical raw data.",
+    "Selection is recomputed on successful import, not continuously as quality ages.",
+    "Existing application and chosen-route targets are preserved; preparing against a changed selected URL requires explicit review of the preserved route.",
+    "Synthetic browser and PostgreSQL evidence does not certify a user database migration or release readiness. External real submission remains OFF."
+  ],
+  "fixed_failures": [
+    {
+      "classification": "PRODUCT_DEFECT",
+      "detail": "Real PostgreSQL simultaneous posting inserts could violate source/native unique constraint before identity check when ON CONFLICT targeted only the primary key. Insert now handles every uniqueness conflict before locking and checking immutable identity; conflicting writer is rejected without reparenting or replacing raw evidence.",
+      "evidence_path": "Git common directory afk-dev/reconcile-20261003/source-values-postgres.log"
+    },
+    {
+      "classification": "PRODUCT_DEFECT",
+      "detail": "First browser acceptance found source resolution read from the wrong response nesting. UI now reads job.attributes.source_resolution; actual protected-route browser flow passes."
+    },
+    {
+      "classification": "TEST_DEFECT",
+      "detail": "Existing observation spy returned a mock identifier invalid for a real candidate foreign key; changed to wrap the production recorder while retaining call assertions."
+    },
+    {
+      "classification": "STALE_ASSERTION",
+      "detail": "Final plain-language UI replaced UNKNOWN enum text. Browser assertion now verifies Source authority not established; unchanged route-control behavior passed. Browser assertions moved out of cleanup to preserve the original failure."
+    }
+  ],
+  "hosted_ci": {
+    "result": "NOT_RUN",
+    "note": "Verify exact latest published head. Local proof does not establish hosted CI or full requirement PASS."
+  }
+}

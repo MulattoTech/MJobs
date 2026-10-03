@@ -575,7 +575,7 @@
       "status": "PARTIAL",
       "branch": "codex/mj-pr-023-company-ats-discovery",
       "draft_until_verified": true,
-      "notes": "PR450 merged activity slice. New source-quality observation slice is locally validated; MJ-REQ-082/083 remain PARTIAL and084 unimplemented. No complete requirement promotion.",
+      "notes": "PR450 activity and PR473 quality observations merged. Source-value slice locally validated; MJ-REQ-082/083 remain PARTIAL and084 unimplemented.",
       "validation_result": "PARTIAL",
       "worktree": "C:\\Tools\\Dev\\MJobs-pr-023",
       "base": "566bbf9cdebf882cc80bbb65b803ca3996fa9beb",
@@ -593,15 +593,27 @@
       "scope_complete": false,
       "merge_commit": "7241958efcae25925149a566020c50a8f61416e5",
       "active_slice": {
-        "name": "Durable source-quality observations",
-        "branch": "codex/source-quality",
+        "name": "Authority-first source values and protected application routes",
+        "branch": "codex/source-value-resolution",
         "status": "PARTIAL",
-        "publication_state": "DRAFT",
-        "evidence_path": "docs/evidence/2026-10-03-source-quality-observations.json",
-        "remaining": "Verified application-link checks and authority-first duplicate value selection.",
-        "pr_number": 473,
-        "url": "https://github.com/MulattoTech/MJobs/pull/473"
-      }
+        "publication_state": "NOT_RUN",
+        "evidence_path": "docs/evidence/2026-10-03-authoritative-source-values.json",
+        "remaining": "Bounded application-link accuracy observations; full MJ-REQ-083 acceptance."
+      },
+      "slice_history": [
+        {
+          "name": "Durable source-quality observations",
+          "branch": "codex/source-quality",
+          "status": "PARTIAL",
+          "publication_state": "MERGED",
+          "evidence_path": "docs/evidence/2026-10-03-source-quality-observations.json",
+          "remaining": "Verified application-link checks and authority-first duplicate value selection.",
+          "pr_number": 473,
+          "url": "https://github.com/MulattoTech/MJobs/pull/473",
+          "head": "fbf403b93334914a043884871944288db3e8e851",
+          "merge_commit": "96e48325793c29f74c96063abf36ea86c9180a2f"
+        }
+      ]
     },
     {
       "id": "MJ-PR-024",

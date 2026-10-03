@@ -231,6 +231,10 @@ class Store:
             data["routes"] = routes
             data["provider"] = routes[0]["provider"]
             data["application_url"] = routes[0]["url"]
+            resolution = (data.get('attributes') or {}).get('source_resolution') or {}
+            if 'selected_application_url' in resolution:
+                data['application_url'] = resolution['selected_application_url']
+                data['provider'] = data['attributes']['provider']
             match = connection.execute(select(m.matches).where(m.matches.c.job_id == job_id, m.matches.c.profile_id == profile_id,
                 m.matches.c.profile_version == (profile["version"] if profile else ""))).mappings().one_or_none()
             data["match"] = dict(match) if match else None

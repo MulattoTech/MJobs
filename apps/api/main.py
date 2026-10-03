@@ -425,9 +425,14 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
 
     @app.post("/applications", status_code=202)
     def application(value: ApplicationInput):
+        from services.dedupe.source_values import require_route_review
         profile = store.profile(value.profile_id)
         with store.engine.connect() as connection:
             connection.execute(select(m.jobs.c.id).where(m.jobs.c.id == value.job_id)).one()
+            try:
+                require_route_review(connection, value.job_id, value.route_mode, value.route_id)
+            except ValueError as error:
+                raise HTTPException(409, str(error)) from error
         routes = load_job_routes(store, value.job_id)
         route_plan = plan_application_routes(routes, value.route_mode, value.route_id)
         selected_routes = [option["preferred_route"] for option in route_plan["selected"]]
