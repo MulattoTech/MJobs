@@ -10,8 +10,8 @@
     "current_verified_local_state": "Initialized from newer origin/main; supplied control pack retained on governance branch",
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
-  "current_milestone": "FEEDBACK_RESUME_INTEGRATION",
-  "current_objective": "Verify final feedback GUI integration head in hosted CI; integrate upload integrity PR472 and continue original backlog.",
+  "current_milestone": "FEEDBACK_RESUME_CATALOGUE_UPLOAD_INTEGRATION",
+  "current_objective": "Verify and merge final PR452 head, reconcile live truth, then continue original source-quality and safety foundations.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -325,14 +325,8 @@
       "merged_at": "2026-10-03T19:40:15Z"
     },
     {
-      "number": 452,
-      "url": "https://github.com/MulattoTech/MJobs/pull/452",
-      "branch": "codex/feedback-gui",
-      "status": "DRAFT",
-      "note": "Merged current main without discarding either feature; new exact-head CI required. User manual retest remains NOT_RUN, not a claimed validation."
-    },
-    {
       "number": 471,
+      "url": "https://github.com/MulattoTech/MJobs/pull/471",
       "branch": "codex/delivery-catalogue",
       "status": "MERGED",
       "head": "12394c753957d43311983174b0d982cb5dbabf87",
@@ -340,6 +334,27 @@
       "exact_head_checks": {
         "pull_request_verification": 37149698715,
         "push_verification": 37149673238
+      }
+    },
+    {
+      "number": 452,
+      "url": "https://github.com/MulattoTech/MJobs/pull/452",
+      "branch": "codex/feedback-gui",
+      "status": "DRAFT",
+      "note": "Combined287-test regression PASS; current final-head hosted checks required. Manual retest NOT_RUN."
+    },
+    {
+      "number": 472,
+      "url": "https://github.com/MulattoTech/MJobs/pull/472",
+      "branch": "codex/resume-upload-integrity",
+      "status": "MERGED",
+      "head": "cfb4ca5b015475c364f719c2e0735fb00157013d",
+      "local_validation": "PASS",
+      "remote_ci": "PASS",
+      "merge_commit": "5b459ac22412d57cd86f8abf0e669ae657bc0562",
+      "exact_head_checks": {
+        "pull_request_verification": 37150172508,
+        "push_verification": 37150125082
       }
     }
   ],
@@ -546,7 +561,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Read current Git/GitHub and this reconciliation; complete active exact-head CI and proceed to eligible original work.",
+  "recommended_resume_step": "Implement remaining original source-quality requirement MJ-REQ-083 using persisted evidence without replacing verified first-party authority.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -2045,12 +2060,93 @@
         "git_commit": "acf932b6ac2c35025637bf5468c8c97dc548a16f",
         "evidence_path": "docs/evidence/2026-10-03-feedback-resume-integration.json"
       }
+    },
+    {
+      "milestone_id": "RESUME-UPLOAD-INTEGRITY-20261003",
+      "timestamp": "2026-10-03T20:02:48.702650+00:00",
+      "current_phase": "RESUME_UPLOAD_INTEGRITY_VERIFIED",
+      "completed_steps": [
+        "Reproduced alternate-format orphan file on identical-byte upload.",
+        "Serialized authoritative file/metadata selection with revision allocation; preserved originals and fact gates.",
+        "Verified concurrent mixed-format uploads on SQLite and isolated PostgreSQL17."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-03-resume-upload-integrity.json"
+      ],
+      "files_modified": [
+        "services/documents/uploads.py",
+        "services/documents/AREA.md",
+        "tests/integration/test_resume_upload.py"
+      ],
+      "tests_completed": [
+        "26 focused tests and258 full Python tests PASS, zero skips.",
+        "Isolated PostgreSQL17 Alembic/concurrency/reopened-store readback PASS.",
+        "Independent review completed; broader crash-orphan recovery remains an explicit limitation."
+      ],
+      "tests_remaining": [
+        "Published exact-head CI and integration verification."
+      ],
+      "migrations_applied": [
+        "Existing Alembic head d21b76ce903a in isolated PostgreSQL17 only."
+      ],
+      "live_integrations_tested": [
+        "Isolated synthetic PostgreSQL; no real user data or external submission."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "General crash/rollback orphan reconciliation is not solved.",
+        "Historical alternate files are retained.",
+        "MJ-REQ-090/094 remain PARTIAL."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "d838b334b21bdc1b5a9cf0f7d65c76a337323cf5",
+        "evidence_path": "docs/evidence/2026-10-03-resume-upload-integrity.json"
+      }
+    },
+    {
+      "milestone_id": "FULL-DELIVERY-INTEGRATION-20261003",
+      "timestamp": "2026-10-03T20:09:49.399240+00:00",
+      "current_phase": "FEEDBACK_RESUME_CATALOGUE_UPLOAD_INTEGRATION",
+      "completed_steps": [
+        "Integrated preserved feedback GUI, resume/profile work,59-reference catalogue and upload integrity fix.",
+        "Retained complete milestone history and original requirement accounting.",
+        "Verified combined287-test suite and exact-head merges for453/471/472."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-03-delivery-integration.json"
+      ],
+      "files_modified": [
+        "planning/IMPLEMENTATION_STATE.json",
+        "tests/browser/test_feedback_gui.py"
+      ],
+      "tests_completed": [
+        "287 Python tests PASS, zero skips;17 frontend tests/build PASS.",
+        "Final crash harness requires actual renderer crash immediately after the last edit."
+      ],
+      "tests_remaining": [
+        "Final PR452 exact-head CI.",
+        "User manual browser retest NOT_RUN."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "GitHub exact-head workflows and merge receipts; local synthetic browser/SQLite/PostgreSQL only."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "User manual browser retest NOT_RUN.",
+        "Original:48 PASS,72 PARTIAL,246 NOT_RUN. Reference:59 NOT_RUN. Release readiness PARTIAL.",
+        "General crash/rollback artifact-orphan recovery and full original P0-P3 acceptance remain open."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "f505e9dbcda3cc5e5a8852b8454095e5b04e0c7c",
+        "evidence_path": "docs/evidence/2026-10-03-delivery-integration.json"
+      }
     }
   ],
-  "current_phase": "FEEDBACK_RESUME_INTEGRATION",
+  "current_phase": "FEEDBACK_RESUME_CATALOGUE_UPLOAD_INTEGRATION",
   "last_safe_checkpoint": {
-    "git_commit": "acf932b6ac2c35025637bf5468c8c97dc548a16f",
-    "evidence_path": "docs/evidence/2026-10-03-feedback-resume-integration.json"
+    "git_commit": "f505e9dbcda3cc5e5a8852b8454095e5b04e0c7c",
+    "evidence_path": "docs/evidence/2026-10-03-delivery-integration.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
@@ -2126,8 +2222,8 @@
     }
   ],
   "live_reconciliation": {
-    "timestamp": "2026-10-03T19:49:02.483221+00:00",
-    "origin_main": "c4b2e9109675fa490a545210ba6475f66ba14641",
+    "timestamp": "2026-10-03T20:09:49.399240+00:00",
+    "origin_main": "5b459ac22412d57cd86f8abf0e669ae657bc0562",
     "open_issue_count_before_catalogue": 371,
     "commercial_issue_mapping": {
       "MJ-REF-043": 454,
@@ -2156,11 +2252,16 @@
       "server_version": "29.8.1"
     },
     "remaining_scope": "Original requirements and release readiness remain incomplete; no commercial feature behavior has been implemented by catalogue creation.",
+    "catalogue_pr": 471,
     "catalogue_publication": "MERGED",
     "open_prs_at_checkpoint": [
-      452,
-      472
-    ]
+      452
+    ],
+    "integration_order": [
+      452
+    ],
+    "note": "Feedback branch includes the reviewed upload fix to validate their combined behavior before merging both PRs.",
+    "next_action": "Implement remaining original source-quality requirement MJ-REQ-083 using persisted evidence without replacing verified first-party authority."
   },
   "active_development_issue": {
     "number": 451,

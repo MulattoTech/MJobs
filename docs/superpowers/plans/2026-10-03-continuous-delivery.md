@@ -37,11 +37,11 @@
 
 **Files:** planning/REFERENCE_GAP_MATRIX.json, planning/REFERENCE_GAP_ISSUE_MAP.json, planning/REFERENCE_GAP_QUEUE.md, docs/reference/REFERENCE_PROJECT_GAP_ANALYSIS.md, docs/FEATURE_COMPLETENESS.md, tools/verification/catalogue.py, tests/unit/test_catalogue.py.
 
-- [ ] Audit all issue bodies once; show canonical mapping, overlap, prerequisites and priorities.
-- [ ] Add failing tests for 59 IDs, explicit equivalent issue mapping, missing feature scope and invalid/cyclic dependencies.
-- [ ] Create only missing issues, preserving stable markers for retries; save exact issue mapping.
-- [ ] Add feature records with acceptance criteria, owner, priority, overlap, prerequisites and test strategy; update validator and documentation.
-- [ ] Execute catalogue/progress tests, full regression, independent review, publication and exact-head CI; merge and reconcile.
+- [x] Audit all issue bodies once; show canonical mapping, overlap, prerequisites and priorities.
+- [x] Add failing tests for 59 IDs, explicit equivalent issue mapping, missing feature scope and invalid/cyclic dependencies.
+- [x] Create only missing issues, preserving stable markers for retries; save exact issue mapping.
+- [x] Add feature records with acceptance criteria, owner, priority, overlap, prerequisites and test strategy; update validator and documentation.
+- [x] Execute catalogue/progress tests, full regression, independent review, publication and exact-head CI; merge and reconcile.
 
 ## Task 3: Continue production vertical slices
 
@@ -50,3 +50,7 @@
 - [ ] Implement, run focused/integration/browser tests as applicable, and record timestamped evidence and limitations.
 - [ ] Update capability and queue state, commit/push normally, verify the exact latest head, review, merge and reconcile.
 - [ ] Repeat while safe work remains. Preserve a durable next action at any genuine boundary.
+
+## Execution checkpoint
+
+PR453, catalogue PR471 and upload-integrity PR472 are merged after exact-head checks. Combined feedback integration has287 passing tests and awaits final PR452 CI. Source-quality MJ-REQ-083 is the next original foundation under investigation; full backlog and release readiness remain PARTIAL.

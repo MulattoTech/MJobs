@@ -1,0 +1,64 @@
+{
+  "timestamp": "2026-10-03T19:59:57.651998+00:00",
+  "result": "PASS",
+  "scope": "Prevent alternate-format orphan files for identical resume bytes; original requirement scope remains PARTIAL",
+  "requirements": [
+    "MJ-REQ-090",
+    "MJ-REQ-094"
+  ],
+  "base": "de9b058031d6db3aace9c56eebf7e5fd4aff695d",
+  "checks": [
+    {
+      "command": "python -m unittest tests.integration.test_resume_upload.ResumeUploadTests.test_duplicate_bytes_keep_first_authoritative_extension_and_metadata",
+      "result": "FAIL",
+      "stage": "RED",
+      "reason": "Identical bytes uploaded with PDF and TXT names created two physical files."
+    },
+    {
+      "command": "python -m unittest tests.integration.test_resume_upload tests.integration.test_profile_import tests.integration.test_resume_version_migration tests.unit.test_resume_extraction",
+      "result": "PASS",
+      "tests": 26,
+      "timestamp": "2026-10-03T19:59:57.651998+00:00"
+    },
+    {
+      "command": "python -m unittest discover -s tests -p test_*.py",
+      "result": "PASS",
+      "tests": 258,
+      "skips": 0,
+      "duration_seconds": 68.626,
+      "timestamp": "2026-10-03T19:59:57.651998+00:00"
+    },
+    {
+      "command": "npm ci --prefix apps/web; npm run build --prefix apps/web",
+      "result": "PASS",
+      "timestamp": "2026-10-03T19:59:57.651998+00:00"
+    },
+    {
+      "command": "Isolated postgres:17 container; Alembic upgrade head; simultaneous PDF/TXT save_resume calls through ThreadPoolExecutor+Barrier; reopened Store checksum readback",
+      "result": "PASS",
+      "timestamp": "2026-10-03T19:59:57.651998+00:00",
+      "assertions": [
+        "Both requests returned identical original metadata and version1.",
+        "Exactly one uploaded resume, revision and physical file.",
+        "Original bytes matched after reopening Store."
+      ],
+      "cleanup": "Exact container ID and test label verified before removal; no existing services or volumes touched."
+    },
+    {
+      "command": "Independent read-only integrity/concurrency review",
+      "result": "PASS",
+      "timestamp": "2026-10-03T19:59:57.651998+00:00"
+    }
+  ],
+  "limitations": [
+    "No cleanup or deletion of historical alternate-format files.",
+    "A process crash or database rollback after linking a new file can still leave an orphan; general filesystem/database reconciliation remains open.",
+    "Full document-versioning and import requirements remain PARTIAL.",
+    "Final-head hosted CI not yet run."
+  ],
+  "safety": [
+    "No fact approval, application submission or real user data changed.",
+    "Tests use temporary synthetic resumes and isolated databases."
+  ],
+  "local_logs": "Git common directory afk-dev/reconcile-20261003/upload-full-tests.log and upload-web-build.log"
+}

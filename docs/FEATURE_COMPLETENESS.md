@@ -86,3 +86,7 @@ Recent source-linked discovery/import activity is now readable without opening r
 Original requirements: 48 PASS, 72 PARTIAL, 246 NOT_RUN (366 total). Reference requirements: 0 PASS, 0 PARTIAL, 59 NOT_RUN. Release readiness remains PARTIAL. The 17 approved commercial additions are issues #454–#470 and do not change original requirement completion.
 
 PR #453 merged as `de9b058031d6db3aace9c56eebf7e5fd4aff695d` after exact-head CI and a fresh 256-test regression run. Its career-profile scope remains PARTIAL. PR #452 is being integrated with that mainline. Docker availability was rechecked successfully (29.8.1); older unavailable-pipe notes above are historical observations, not the current environment state.
+
+## Resume upload integrity continuation
+
+Identical bytes uploaded under different valid PDF/TXT names now retain one authoritative original and version, including concurrent calls. API metadata and download checksums agree. SQLite/API regression and isolated PostgreSQL concurrency/reopen proof passed; MJ-REQ-090/094 remain PARTIAL. Historical orphan files are preserved, and general crash/rollback reconciliation remains open. Evidence: `docs/evidence/2026-10-03-resume-upload-integrity.json`.

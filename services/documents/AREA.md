@@ -14,5 +14,7 @@ volume, scoped to application and immutable profile version. Test:
 python -m unittest tests.integration.test_spine tests.integration.test_resume_upload.
 Named base resumes retain immutable version entries in resume_revisions; repeated
 uploads within a series are idempotent and version allocation locks the profile.
+Repeated content keeps the first authoritative filename, media type, format, and
+stored path even when a later request uses a different matching extension.
 Native extraction and review belong to services/career_profile. Broader tailoring,
 OCR, advanced structured chronology and document regeneration remain incomplete.

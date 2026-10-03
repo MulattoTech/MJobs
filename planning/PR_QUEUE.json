@@ -628,7 +628,7 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-025-career-profile-documents",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. PR #453 integrated reviewed import/profile/resume history; full queue scope and requirement acceptance remain incomplete.",
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. PR #453 integrated reviewed import/profile/resume history; full queue scope and requirement acceptance remain incomplete. Upload integrity continuation verified locally; exact-head CI pending. See docs/evidence/2026-10-03-resume-upload-integrity.json.",
       "feedback_slice": {
         "branch": "codex/resume-driven-profile",
         "result": "PARTIAL",
@@ -659,7 +659,7 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-026-career-profile-documents",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. PR #453 integrated reviewed import/profile/resume history; full queue scope and requirement acceptance remain incomplete.",
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. PR #453 integrated reviewed import/profile/resume history; full queue scope and requirement acceptance remain incomplete. Upload integrity continuation verified locally; exact-head CI pending. See docs/evidence/2026-10-03-resume-upload-integrity.json.",
       "feedback_slice": {
         "branch": "codex/resume-driven-profile",
         "result": "PARTIAL",
