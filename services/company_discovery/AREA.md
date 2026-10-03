@@ -16,3 +16,8 @@ MJ-PR-016 establishes the durable trigger/resolver/flywheel contract and proves 
 
 ## Companies/Sources read model and controls
 `list_company_source_view` projects persisted source-specific feed postings and current-profile match records without treating candidate domains as official or inferring missing scheduling. Explicit pin/enabled/watch choices remain independent. New discovery events carry `company_source_id`; unlinked historical events remain unavailable. `apps/web/src/company-sources.tsx` renders this contract with unsupported actions clearly disabled.
+
+
+## Source-quality observations
+
+MJ-REQ-083 remains PARTIAL. `quality.py` stores source-attributed observations and exposes bounded API scores from `quality_score.py`. Configured collectors explicitly link company-source rows; their statistics retain board-wide scope. Feed refresh failures are attributed only to enrolled exact portals. Seven equal-weight components retain unknown values and coverage; collection freshness is not job age and historical uptime means observed attempt availability. Neither quality nor collection success verifies employer identity or authorizes submission. No history is fabricated on migration. Populated downgrade refuses evidence loss. Application-link accuracy and authority-first duplicate selection remain follow-up work.

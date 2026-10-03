@@ -96,7 +96,7 @@
     },
     {
       "id": "MJ-PR-005",
-      "title": "Core Search Model: Domain Model — Core Concepts; Global Job Sources",
+      "title": "Core Search Model: Domain Model \u00e2\u20ac\u201d Core Concepts; Global Job Sources",
       "domain": "core_search_model",
       "requirements": [
         "MJ-REQ-015",
@@ -275,7 +275,7 @@
     },
     {
       "id": "MJ-PR-013",
-      "title": "Job Identity Dedupe: Deduplication — Strong Signals; Deduplication — Company Identity",
+      "title": "Job Identity Dedupe: Deduplication \u00e2\u20ac\u201d Strong Signals; Deduplication \u00e2\u20ac\u201d Company Identity",
       "domain": "job_identity_dedupe",
       "requirements": [
         "MJ-REQ-044",
@@ -575,7 +575,7 @@
       "status": "PARTIAL",
       "branch": "codex/mj-pr-023-company-ats-discovery",
       "draft_until_verified": true,
-      "notes": "PR #450 merged its source activity slice; MJ-REQ-082 remains PARTIAL and 083/084 remain unimplemented. Publication is reconciled without promoting remaining scope.",
+      "notes": "PR450 merged activity slice. New source-quality observation slice is locally validated; MJ-REQ-082/083 remain PARTIAL and084 unimplemented. No complete requirement promotion.",
       "validation_result": "PARTIAL",
       "worktree": "C:\\Tools\\Dev\\MJobs-pr-023",
       "base": "566bbf9cdebf882cc80bbb65b803ca3996fa9beb",
@@ -591,7 +591,17 @@
       "url": "https://github.com/MulattoTech/MJobs/pull/450",
       "initial_head": "83493c0c884a7719a86fdcb108e02aca648472a9",
       "scope_complete": false,
-      "merge_commit": "7241958efcae25925149a566020c50a8f61416e5"
+      "merge_commit": "7241958efcae25925149a566020c50a8f61416e5",
+      "active_slice": {
+        "name": "Durable source-quality observations",
+        "branch": "codex/source-quality",
+        "status": "PARTIAL",
+        "publication_state": "DRAFT",
+        "evidence_path": "docs/evidence/2026-10-03-source-quality-observations.json",
+        "remaining": "Verified application-link checks and authority-first duplicate value selection.",
+        "pr_number": 473,
+        "url": "https://github.com/MulattoTech/MJobs/pull/473"
+      }
     },
     {
       "id": "MJ-PR-024",
@@ -1066,7 +1076,7 @@
     },
     {
       "id": "MJ-PR-047",
-      "title": "Orchestration Data Security: Security — Pii; Security — Web",
+      "title": "Orchestration Data Security: Security \u00e2\u20ac\u201d Pii; Security \u00e2\u20ac\u201d Web",
       "domain": "orchestration_data_security",
       "requirements": [
         "MJ-REQ-171",
@@ -1086,7 +1096,7 @@
     },
     {
       "id": "MJ-PR-048",
-      "title": "Orchestration Data Security: Security — Secret Management; Audit Log",
+      "title": "Orchestration Data Security: Security \u00e2\u20ac\u201d Secret Management; Audit Log",
       "domain": "orchestration_data_security",
       "requirements": [
         "MJ-REQ-175",
@@ -1301,7 +1311,7 @@
     },
     {
       "id": "MJ-PR-059",
-      "title": "Test Harness: Unit Tests — Company Resolution; Unit Tests — Ats Detection",
+      "title": "Test Harness: Unit Tests \u00e2\u20ac\u201d Company Resolution; Unit Tests \u00e2\u20ac\u201d Ats Detection",
       "domain": "test_harness",
       "requirements": [
         "MJ-REQ-216",
@@ -1321,7 +1331,7 @@
     },
     {
       "id": "MJ-PR-060",
-      "title": "Test Harness: Unit Tests — Application State; Application Idempotency Test",
+      "title": "Test Harness: Unit Tests \u00e2\u20ac\u201d Application State; Application Idempotency Test",
       "domain": "test_harness",
       "requirements": [
         "MJ-REQ-220",

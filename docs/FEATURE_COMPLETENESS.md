@@ -9,13 +9,14 @@ A percentage is a navigation aid, never a release claim. Only evidence-backed PA
 ## Original specification
 - Catalogue items: **366**
 - PASS: **48** (13.11%)
-- PARTIAL: **72** (19.67%)
-- NOT_RUN: **246** (67.21%)
+- PARTIAL: **73** (19.95%)
+- NOT_RUN: **245** (66.94%)
 - Full-spec state: **PARTIAL**
 - Release readiness: **not established**
 PASS counts complete requirement items, not the fraction of source code implemented. Many requirements span multiple product capabilities; the repository does not turn partial evidence into completed requirements.
 
 ## Current verified implementation spine
+- MJ-REQ-083 is PARTIAL: durable source-quality observations and bounded, explainable API scores pass309 Python tests,17 frontend tests/build and isolated PostgreSQL17 migration/restart proof. Application-link accuracy and quality-backed duplicate selection remain incomplete (`docs/evidence/2026-10-03-source-quality-observations.json`).
 - Reviewed PDF/DOCX/TXT resume suggestions, grouped contact/preferences and named base-resume history passed local browser/API and PostgreSQL fixture acceptance. Imported facts remain pending; OCR, LinkedIn import, automatic preference filtering and full structured career chronology remain incomplete (docs/evidence/2026-10-03-resume-driven-profile.json).
 - Durable PostgreSQL/Redis worker architecture and migrations
 - Local mock discovery -> company/ATS -> job -> match -> factual document -> application -> confirmation path
