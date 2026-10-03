@@ -2878,11 +2878,13 @@
       "issue_number": 451,
       "target_area": "cli/feedback_gui.py; cli/feedback_ui; local launchers",
       "depends_on": [],
-      "status": "LOCAL_VERIFIED",
+      "status": "DRAFT",
       "branch": "codex/feedback-gui",
       "draft_until_verified": true,
       "scope_complete": false,
-      "notes": "User-requested 19-task GUI; local suite and browser recovery verified. User retest and hosted CI pending; does not complete broader runtime diagnostics."
+      "notes": "User-requested 19-task GUI; local suite and browser recovery verified. User retest and hosted CI pending; does not complete broader runtime diagnostics.",
+      "pr_number": 452,
+      "evidence_path": "docs/evidence/2026-10-03-feedback-gui.json"
     }
   ]
 }

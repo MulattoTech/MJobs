@@ -10,8 +10,8 @@
     "current_verified_local_state": "Initialized from newer origin/main; supplied control pack retained on governance branch",
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
-  "current_milestone": "M23_SOURCE_ACTIVITY_LOCAL_VERIFIED",
-  "current_objective": "User-directed development feedback GUI for issue #451: preserve drafts, remove manual template editing, and prepare for browser retest. Autonomous roadmap is not advanced by this slice.",
+  "current_milestone": "M24_FEEDBACK_GUI_LOCAL_VERIFIED",
+  "current_objective": "Retest the user-requested Development & Feedback GUI (#451 / draft PR #452). Local recovery and lifecycle help verified; hosted final-head CI and user acceptance remain pending. Do not advance the autonomous roadmap during the feedback session.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -303,6 +303,13 @@
       "status": "DRAFT_PR",
       "initial_head": "83493c0c884a7719a86fdcb108e02aca648472a9",
       "scope": "first source-linked activity slice only"
+    },
+    {
+      "number": 452,
+      "url": "https://github.com/MulattoTech/MJobs/pull/452",
+      "branch": "codex/feedback-gui",
+      "status": "DRAFT",
+      "note": "Local validation PASS; user retest and hosted exact-head CI pending."
     }
   ],
   "tests_passed": [
@@ -1814,12 +1821,74 @@
         "git_commit": "109557fb40974fa437ec0bf89cbe936a29fe0efb",
         "evidence_path": "docs/evidence/2026-10-02-company-source-watch-and-priority.json"
       }
+    },
+    {
+      "milestone_id": "M24-DEVELOPMENT-FEEDBACK-GUI",
+      "timestamp": "2026-10-03T05:12:45.248619+00:00",
+      "current_phase": "M24_FEEDBACK_GUI_LOCAL_VERIFIED",
+      "completed_steps": [
+        "Delivered user-approved standalone 19-task feedback GUI with tailored forms, saved history and autosave.",
+        "Verified crash/restart/offline/conflict recovery and durable private handoff files.",
+        "Added main-page how-to and lifecycle diagram at user request.",
+        "Created draft PR #452 linked to additive issue #451; preserved unrelated template folder and original requirement accounting."
+      ],
+      "files_added": [
+        "cli/feedback_gui.py",
+        "cli/feedback_tasks.json",
+        "cli/feedback_ui/index.html",
+        "cli/feedback_ui/app.js",
+        "cli/feedback_ui/style.css",
+        "Start-Feedback.cmd",
+        "Start-Feedback.ps1",
+        "tests/unit/test_feedback_gui.py",
+        "tests/unit/test_feedback_tasks.py",
+        "tests/browser/test_feedback_gui.py",
+        "docs/evidence/2026-10-03-feedback-gui.json"
+      ],
+      "files_modified": [
+        ".vscode/tasks.json",
+        "README.md",
+        "cli/AREA.md",
+        "docs/LIVE_FEEDBACK_DEVELOPMENT.md",
+        "prompts/VS_CODE_LIVE_FEEDBACK.md",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json"
+      ],
+      "tests_completed": [
+        "Full Python suite: 253 tests PASS, zero skips, prior to explanatory HTML/CSS addition.",
+        "Final affected GUI/unit/browser tests: 18 PASS after lifecycle help addition.",
+        "Existing frontend: 11 tests PASS; TypeScript/Vite build PASS.",
+        "Catalogue/progress/diff validators PASS before this evidence update; final validation follows.",
+        "Local launcher/startup and desktop/mobile visual inspection PASS.",
+        "Independent review findings fixed; re-review has no material findings."
+      ],
+      "tests_remaining": [
+        "User browser retest: NOT_RUN.",
+        "Final-head hosted CI: NOT_RUN.",
+        "Broader original P0-P3 acceptance and release readiness remain incomplete."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Loopback development-feedback service and Chromium against synthetic temporary data; local personal feedback runtime started with no synthetic reports written."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "User retest and hosted exact-head CI remain pending.",
+        "GUI saves local handoffs; an explicit chat request starts Codex processing.",
+        "GUI alone does not record browser diagnostics; uncaptured sessions are NOT_RUN.",
+        "Browser-only recovery requires retaining site storage; feedback files are outside product backup coverage.",
+        "No runtime error-management completion or real application automation is claimed."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "e840c6fe4ba1629b2a79722176f8ab53f7e54497",
+        "evidence_path": "docs/evidence/2026-10-03-feedback-gui.json"
+      }
     }
   ],
-  "current_phase": "M21_COMPANY_SOURCE_WATCH_AND_PRIORITY_LOCAL_VERIFIED",
+  "current_phase": "M24_FEEDBACK_GUI_LOCAL_VERIFIED",
   "last_safe_checkpoint": {
-    "git_commit": "109557fb40974fa437ec0bf89cbe936a29fe0efb",
-    "evidence_path": "docs/evidence/2026-10-02-company-source-watch-and-priority.json"
+    "git_commit": "e840c6fe4ba1629b2a79722176f8ab53f7e54497",
+    "evidence_path": "docs/evidence/2026-10-03-feedback-gui.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
@@ -1895,6 +1964,9 @@
     "related_requirements": [
       "MJ-REQ-184"
     ],
-    "note": "Additive development feedback workflow. Runtime error-management requirement remains incomplete."
+    "note": "Additive development feedback workflow. Runtime error-management requirement remains incomplete.",
+    "pr_number": 452,
+    "pr_url": "https://github.com/MulattoTech/MJobs/pull/452",
+    "evidence_path": "docs/evidence/2026-10-03-feedback-gui.json"
   }
 }

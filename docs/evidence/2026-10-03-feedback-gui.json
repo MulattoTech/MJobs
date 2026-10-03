@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-10-03T05:12:45.248619+00:00",
+  "issue": 451,
+  "pr": 452,
+  "branch": "codex/feedback-gui",
+  "implementation_commit": "e840c6fe4ba1629b2a79722176f8ab53f7e54497",
+  "status": "PARTIAL",
+  "local_validation": "PASS",
+  "user_browser_acceptance": "NOT_RUN",
+  "hosted_exact_head_ci": "NOT_RUN",
+  "release_eligible": false,
+  "checks": [
+    {
+      "command": "python -m unittest discover -s tests -p test_*.py -v",
+      "target": "Full repository Python suite",
+      "result": "PASS",
+      "summary": "253 tests, zero skips; before final explanatory HTML/CSS addition",
+      "evidence_path": "outputs/verification/feedback-full-suite.log",
+      "timestamp": "2026-10-03T05:07:35.185198+00:00"
+    },
+    {
+      "command": "python -m unittest tests.browser.test_feedback_gui tests.unit.test_feedback_tasks tests.unit.test_feedback_gui -v",
+      "target": "Final feedback GUI source including how-to",
+      "result": "PASS",
+      "summary": "18 tests including 3 real Chromium acceptance flows",
+      "evidence_path": "outputs/verification/feedback-focused-final.log",
+      "timestamp": "2026-10-03T05:09:47.013472+00:00"
+    },
+    {
+      "command": "npm test --prefix apps/web; npm run build --prefix apps/web",
+      "target": "Unchanged product React frontend",
+      "result": "PASS",
+      "summary": "11 tests, TypeScript check and Vite build",
+      "evidence_path": "docs/evidence/2026-10-03-feedback-gui.json",
+      "timestamp": "2026-10-03T05:12:45.248619+00:00"
+    },
+    {
+      "command": "Start-Feedback.ps1 -NoOpen; GET /api/state; GET /api/tasks",
+      "target": "Local standalone runtime at 127.0.0.1:18702",
+      "result": "PASS",
+      "summary": "Matching workspace and shared ignored output directory, 19 task choices; Docker not required",
+      "evidence_path": "docs/evidence/2026-10-03-feedback-gui.json",
+      "timestamp": "2026-10-03T05:12:45.248619+00:00"
+    },
+    {
+      "command": "Playwright desktop/390px screenshots and document scrollWidth assertion",
+      "target": "Main how-to/lifecycle and form responsive layouts",
+      "result": "PASS",
+      "summary": "Desktop and form/mobile visual inspection; 390px viewport has no horizontal overflow",
+      "evidence_path": "outputs/verification/feedback-howto-desktop.png",
+      "timestamp": "2026-10-03T05:10:25.121243+00:00"
+    },
+    {
+      "command": "Independent read-only review and follow-up review",
+      "target": "UI, storage/server, launcher and recovery boundaries",
+      "result": "PASS",
+      "summary": "Material findings repaired; no remaining material findings on re-review",
+      "evidence_path": "docs/evidence/2026-10-03-feedback-gui.json",
+      "timestamp": "2026-10-03T05:12:45.248619+00:00"
+    }
+  ],
+  "coverage": [
+    "All 19 task types and task-specific required fields",
+    "Synchronous browser recovery plus SQLite persistence",
+    "Intentional browser renderer crash and browser/server restart",
+    "Offline save failure and state-read outage recovery",
+    "Exclusive editing per browser workspace and explicit cross-browser conflict copies",
+    "Ready response retry idempotency and database-failure nonpromotion",
+    "Original ready report preserved when editing a new draft",
+    "Main-page how-to and lifecycle diagram",
+    "No HTML interpretation of report text; loopback Host/Origin/CSRF boundaries"
+  ],
+  "limitations": [
+    "User retest and hosted exact-head CI remain pending.",
+    "GUI saves local handoffs; an explicit chat request starts Codex processing.",
+    "GUI alone does not record browser diagnostics; uncaptured sessions are NOT_RUN.",
+    "Browser-only recovery requires retaining site storage; feedback files are outside product backup coverage.",
+    "No runtime error-management completion or real application automation is claimed."
+  ],
+  "private_artifacts_committed": false,
+  "source_sha256": {
+    "cli/feedback_gui.py": "7e2d23e3d33df7f0062e932cc4bbb7760af274ce6cfdff47a2a51f4782c2dc2d",
+    "cli/feedback_tasks.json": "58cb6b9f97e3ca09bee58065620efa1d4dbab2a95f380cef9db8a91e0aaab539",
+    "cli/feedback_ui/app.js": "264e3fe4921d858769587ca0fb2111a3ff5482b6da81edc8d6f0318d9fb004e0",
+    "cli/feedback_ui/index.html": "946d834ae7aaefe7a4c7697d5eff4d71288369bd25a08e8c45c9ad96b6b8b85d",
+    "cli/feedback_ui/style.css": "7cfdcbc33397abeb9ebfd8ee262256de5019904cfc88e8de86cf2985b6927087"
+  }
+}
