@@ -398,6 +398,13 @@
         "pull_request_verification": 37157224650,
         "push_verification": 37157222316
       }
+    },
+    {
+      "number": 476,
+      "url": "https://github.com/MulattoTech/MJobs/pull/476",
+      "branch": "codex/application-link-evidence",
+      "status": "PARTIAL",
+      "observed_head_before_bookkeeping": "cd487dea9772d58df5a2b811fb0f6de932f438d6"
     }
   ],
   "tests_passed": [
@@ -639,14 +646,18 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "db9fae035b7ae0a4fa2beb84628c057ee73d000d",
+  "last_implementation_commit": "cd487dea9772d58df5a2b811fb0f6de932f438d6",
   "publication": {
-    "result": "NOT_RUN",
+    "result": "PARTIAL",
     "branch": "codex/application-link-evidence",
     "worktree": "C:\\Tools\\Dev\\MJobs\\.worktrees\\application-link-evidence",
     "base": "5a082f26a34765be32cd6c0c726c957b242b72a7",
-    "observed_at": "2026-10-03T22:38:15.833182+00:00",
-    "note": "Real implementation ready for draft publication after local verification; no remote CI claimed."
+    "observed_at": "2026-10-03T22:39:37.340715+00:00",
+    "note": "This bookkeeping commit changes the head; verify exact latest SHA and required CI before merge.",
+    "pr_number": 476,
+    "url": "https://github.com/MulattoTech/MJobs/pull/476",
+    "draft": true,
+    "observed_head_before_bookkeeping": "cd487dea9772d58df5a2b811fb0f6de932f438d6"
   },
   "optional_afk_journal": {
     "result": "BLOCKED_ENVIRONMENT",
@@ -2444,7 +2455,7 @@
     }
   ],
   "live_reconciliation": {
-    "timestamp": "2026-10-03T22:38:15.833182+00:00",
+    "timestamp": "2026-10-03T22:39:37.340715+00:00",
     "origin_main": "5a082f26a34765be32cd6c0c726c957b242b72a7",
     "open_issue_count_before_catalogue": 371,
     "commercial_issue_mapping": {
@@ -2476,7 +2487,9 @@
     "remaining_scope": "Original requirements and release readiness remain incomplete; no commercial feature behavior has been implemented by catalogue creation.",
     "catalogue_pr": 471,
     "catalogue_publication": "MERGED",
-    "open_prs_at_checkpoint": [],
+    "open_prs_at_checkpoint": [
+      476
+    ],
     "integration_order": [],
     "note": "PR475 merged after exact-head CI; current isolated link-evidence slice verified locally.",
     "next_action": "Verify exact latest PR head and merge; then audit/wire useful-job company-discovery triggers through conservative identity and explicit public egress policy (MJ-REQ-054/056/060), preserving source/requisition safety.",
@@ -2490,7 +2503,9 @@
     "related_requirements": [
       "MJ-REQ-083"
     ],
-    "evidence_path": "docs/evidence/2026-10-03-application-link-evidence.json"
+    "evidence_path": "docs/evidence/2026-10-03-application-link-evidence.json",
+    "pr_number": 476,
+    "pr_url": "https://github.com/MulattoTech/MJobs/pull/476"
   },
   "historical_control_snapshots": [
     {

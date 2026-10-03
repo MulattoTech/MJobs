@@ -608,9 +608,11 @@
         "name": "Sampled public-feed application-link observations",
         "branch": "codex/application-link-evidence",
         "status": "PARTIAL",
-        "publication_state": "NOT_RUN",
+        "publication_state": "DRAFT",
         "evidence_path": "docs/evidence/2026-10-03-application-link-evidence.json",
-        "remaining": "Other ATS origins and full link usability acceptance; original source-discovery triggers and scheduling."
+        "remaining": "Other ATS origins and full link usability acceptance; original source-discovery triggers and scheduling.",
+        "pr_number": 476,
+        "url": "https://github.com/MulattoTech/MJobs/pull/476"
       },
       "slice_history": [
         {
