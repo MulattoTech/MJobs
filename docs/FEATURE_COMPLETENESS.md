@@ -51,20 +51,20 @@ PASS counts complete requirement items, not the fraction of source code implemen
 - MJ-REQ-070..073 remain PARTIAL after same-origin RSS/Atom/JSON Feed detection, bounded validation, automatic CompanyJobSource enrollment, and immediate normalization/persistence of feed jobs with routes, raw snapshots, and profile skill-mention matches. The 49-test focused slice and 218-test full Python suite passed. Provider-specific ATS endpoint precedence/scheduling and the complete aggregator-trigger-to-feed-only-job acceptance path remain open (`docs/evidence/2026-10-02-company-machine-readable-feeds.json`).
 
 ## Reference-project gap catalogue
-Canonical issues: **MJ-REF-001 through MJ-REF-042**.
+Canonical issues: **MJ-REF-001 through MJ-REF-059**.
 These are additive ideas discovered by comparing JobSpy, CareerWeaver, Resume Matcher, AutoApply,
 Personal JobPilot, ResuMorph and AIHawk.
 
 Reference gaps must be reported separately from the original 366 requirements:
 - PASS: 0
 - PARTIAL: 0
-- NOT_RUN: 42
+- NOT_RUN: 59
 
 When implementation overlaps existing MJobs behavior, the reference issue still requires its own acceptance evidence
 before it becomes PASS. Closing a reference issue must never auto-close an original MJ-REQ issue or vice versa.
 ## Completion surfaces that should appear in the repository/UI
 1. **Original Spec** — PASS / PARTIAL / NOT_RUN / blockers across 366 MJ-REQ items.
-2. **Reference Gaps** — PASS / PARTIAL / NOT_RUN across 42 MJ-REF items.
+2. **Reference Gaps** — PASS / PARTIAL / NOT_RUN across 59 MJ-REF items.
 3. **Current Milestone** — evidence-backed vertical slice currently usable.
 4. **Release Readiness** — independent acceptance gate, never inferred from a percentage.
 5. **External/Environment Blockers** — visible separately so a blocked integration cannot masquerade as product failure.
@@ -80,3 +80,9 @@ The Companies/Sources view now exposes source-specific counts, confidence/review
 
 ## MJ-PR-023 activity slice
 Recent source-linked discovery/import activity is now readable without opening raw diagnostics. Missing counts and timestamps remain unknown, inconsistent counts need review, and imported counts are not presented as verified active/eligible openings. The browser proof starts with the real feed import service, persists its audit event, and displays the resulting history through the API. MJ-REQ-082 remains PARTIAL; source quality scoring and ATS knowledge reuse remain NOT_RUN. Evidence: `docs/evidence/2026-10-02-company-discovery-activity.json`. Parent PR #449 exact-head hosted CI is recorded in `docs/evidence/2026-10-02-ci-449.json`; local Docker availability remains separate.
+
+## Live delivery reconciliation — 2026-10-03
+
+Original requirements: 48 PASS, 72 PARTIAL, 246 NOT_RUN (366 total). Reference requirements: 0 PASS, 0 PARTIAL, 59 NOT_RUN. Release readiness remains PARTIAL. The 17 approved commercial additions are issues #454–#470 and do not change original requirement completion.
+
+PR #453 merged as `de9b058031d6db3aace9c56eebf7e5fd4aff695d` after exact-head CI and a fresh 256-test regression run. Its career-profile scope remains PARTIAL. PR #452 is being integrated with that mainline. Docker availability was rechecked successfully (29.8.1); older unavailable-pipe notes above are historical observations, not the current environment state.

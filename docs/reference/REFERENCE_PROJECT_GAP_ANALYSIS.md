@@ -219,3 +219,31 @@ The canonical namespace is `MJ-REF`. Concurrent audit work produced a richer cat
 - #406 MJ-REF-036 — Extensible source-specific metadata with canonical-field provenance
 
 This gives MJobs 366 original requirements plus 42 additive reference-driven gaps. The catalogues are intentionally reported separately so expanding the inspiration set cannot make original-spec completion appear to regress.
+
+## Commercial-gap extension audit — 2026-10-03
+
+The user approved these 17 MJobs workflows. All-state GitHub issues were checked against original and reference scope; none fully owned the added workflow, so issues #454–#470 were created with stable markers. Existing canonical IDs 001–042 and closed duplicate history are unchanged. No product behavior is marked PASS by this audit.
+
+Commercial inspiration supplied by the user: Jobscan / LoopCV / Huntr / Simplify / Careerflow / Teal / Rezi / AIApply / Sonara. These names express inspiration, not verified claims about current product implementations. No commercial code, wording, assets or algorithms were copied.
+
+| ID | Issue | Feature | Priority | Owner | Acceptance prerequisites |
+|---|---|---|---|---|---|
+| MJ-REF-043 | #454 | LinkedIn profile import into CareerFact staging | P3 | career_profile_documents | MJ-REQ-092, MJ-REQ-094, MJ-REQ-096 |
+| MJ-REF-044 | #455 | LinkedIn profile optimizer with section-level recommendations | P4 | career_profile_documents | MJ-REQ-092, MJ-REQ-095, MJ-REQ-096 |
+| MJ-REF-045 | #456 | Networking/contact CRM linked to companies jobs and applications | P4 | web_api_analytics | MJ-REQ-054, MJ-REQ-121, MJ-REQ-170, MJ-REQ-239 |
+| MJ-REF-046 | #457 | Recruiter and hiring-manager discovery workflow | P4 | company_ats_discovery | MJ-REQ-054, MJ-REQ-062, MJ-REQ-080, MJ-REF-045 |
+| MJ-REF-047 | #458 | Per-job tasks reminders and due dates | P4 | web_api_analytics | MJ-REQ-121, MJ-REQ-153, MJ-REQ-154, MJ-REQ-204, MJ-REQ-268 |
+| MJ-REF-048 | #459 | First-class job-search Campaign or Loop object | P4 | orchestration_data_security | MJ-REQ-021, MJ-REQ-022, MJ-REQ-124, MJ-REQ-149, MJ-REQ-150, MJ-REQ-151, MJ-REQ-155, MJ-REQ-156, MJ-REQ-276 |
+| MJ-REF-049 | #460 | Campaign performance analytics | P5 | web_api_analytics | MJ-REQ-201, MJ-REQ-202, MJ-REQ-268, MJ-REF-048 |
+| MJ-REF-050 | #461 | Daily matched-jobs review inbox and digest | P4 | web_api_analytics | MJ-REQ-112, MJ-REQ-118, MJ-REQ-186, MJ-REQ-196, MJ-REQ-204 |
+| MJ-REF-051 | #462 | ATS-specific resume compatibility profiles and scoring | P4 | career_profile_documents | MJ-REQ-063, MJ-REQ-097, MJ-REQ-112 |
+| MJ-REF-052 | #463 | Resume impact and metrics analyzer | P4 | career_profile_documents | MJ-REQ-092, MJ-REQ-095, MJ-REQ-096 |
+| MJ-REF-053 | #464 | Job-description summarizer and decision brief | P4 | matching_ai | MJ-REQ-040, MJ-REQ-087, MJ-REQ-112, MJ-REQ-118 |
+| MJ-REF-054 | #465 | One-click reviewable Application Kit | P4 | application_automation | MJ-REQ-094, MJ-REQ-095, MJ-REQ-096, MJ-REQ-100, MJ-REQ-121, MJ-REQ-136, MJ-REQ-137, MJ-REQ-197, MJ-REF-024 |
+| MJ-REF-055 | #466 | Resume-version outcome analytics | P5 | web_api_analytics | MJ-REQ-094, MJ-REQ-121, MJ-REQ-201, MJ-REQ-268 |
+| MJ-REF-056 | #467 | Job freshness and urgency ranking | P3 | core_search_model | MJ-REQ-032, MJ-REQ-083, MJ-REQ-085, MJ-REQ-086, MJ-REQ-190 |
+| MJ-REF-057 | #468 | In-page resume and cover-letter tailoring from browser companion | P4 | career_profile_documents | MJ-REQ-095, MJ-REQ-096, MJ-REQ-100, MJ-REQ-170, MJ-REQ-205, MJ-REF-018, MJ-REF-019 |
+| MJ-REF-058 | #469 | Recorded mock-interview sessions | P5 | operations_ux_ci | MJ-REQ-167, MJ-REQ-168, MJ-REQ-170, MJ-REF-008, MJ-REF-042 |
+| MJ-REF-059 | #470 | Interview delivery and content feedback history | P5 | operations_ux_ci | MJ-REQ-092, MJ-REQ-170, MJ-REF-058 |
+
+Each record in `planning/REFERENCE_GAP_MATRIX.json` explains the user problem and why existing overlap does not cover it, plus acceptance criteria and test strategy. Generic tailoring, autofill, tracking, provider support, outreach and question generation remain owned by existing requirements.
