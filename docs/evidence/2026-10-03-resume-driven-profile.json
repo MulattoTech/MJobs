@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-10-03T19:07:22.805950+00:00",
+  "result": "PARTIAL",
+  "scope_result": "PASS",
+  "implementation_commit": "6b35bde8aaac1a9ea62e6070d29d9caaa4dcc280",
+  "requirements": [
+    "MJ-REQ-088",
+    "MJ-REQ-089",
+    "MJ-REQ-090",
+    "MJ-REQ-091",
+    "MJ-REQ-092",
+    "MJ-REQ-093",
+    "MJ-REQ-094"
+  ],
+  "summary": "Reviewed native resume import, structured profile contact/preferences, and named immutable base-resume history.",
+  "regression_evidence": {
+    "result": "PASS",
+    "observed_red": [
+      "Initial profile/facts, structured fields, extraction endpoint and resume versions: four failures before implementation.",
+      "Browser typing lost multiline phone input before correction.",
+      "Extraction confusion and bounded DOCX XML cases failed before correction."
+    ],
+    "post_fix": "Targeted regressions and browser workflow passed."
+  },
+  "checks": [
+    {
+      "command": ".venv/Scripts/python.exe -m unittest discover -s tests -p test_*.py -q",
+      "target": "Local Python suite",
+      "result": "PASS",
+      "count": 256,
+      "evidence_path": "outputs/profile-import-final-tests.log",
+      "recorded_at": "2026-10-03T19:07:22.805950+00:00"
+    },
+    {
+      "command": "npm test --prefix apps/web",
+      "target": "Frontend suite",
+      "result": "PASS",
+      "count": 17,
+      "recorded_at": "2026-10-03T19:07:22.805950+00:00"
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "target": "TypeScript and Vite production build",
+      "result": "PASS",
+      "recorded_at": "2026-10-03T19:07:22.805950+00:00"
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m unittest tests.browser.test_profile_import tests.browser.test_company_source_view -q",
+      "target": "Final UI change: real Chromium and API, synthetic PERSONAL database, local-only requests",
+      "result": "PASS",
+      "count": 2,
+      "recorded_at": "2026-10-03T19:07:22.805950+00:00"
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m cli.mock_e2e --api http://127.0.0.1:18703 --evidence outputs/profile-import-mock-e2e.json",
+      "target": "Isolated PostgreSQL/Redis/RQ fixture application",
+      "result": "PASS",
+      "evidence_path": "outputs/profile-import-mock-e2e.json",
+      "recorded_at": "2026-10-03T19:07:22.805950+00:00"
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m cli.ui_e2e --base-url http://127.0.0.1:18703 --evidence outputs/profile-import-ui-e2e.json",
+      "target": "Connected React/Chromium and PostgreSQL fixture workflow",
+      "result": "PASS",
+      "evidence_path": "outputs/profile-import-ui-e2e.json",
+      "recorded_at": "2026-10-03T19:07:22.805950+00:00"
+    },
+    {
+      "action": "API empty-profile save, structured contacts/preferences readback, PDF extraction, pending-fact save, version upload/retry and original-byte downloads",
+      "target": "Isolated PostgreSQL API on 127.0.0.1:18703",
+      "result": "PASS",
+      "evidence_path": "outputs/profile-import-postgres.json",
+      "recorded_at": "2026-10-03T19:07:22.805950+00:00"
+    },
+    {
+      "command": "docker compose -p mjobs-resume-review exec -T postgres psql -U mjobs -d mjobs -Atc \"SELECT version_num FROM alembic_version; SELECT operation_mode FROM workspace_identity;\"",
+      "target": "Migration d21b76ce903a and FIXTURE database identity",
+      "result": "PASS",
+      "recorded_at": "2026-10-03T19:07:22.805950+00:00"
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m unittest tests.integration.test_resume_version_migration -v",
+      "target": "Legacy SQLite upload backfill and refusal to discard populated version history",
+      "result": "PASS",
+      "recorded_at": "2026-10-03T19:07:22.805950+00:00"
+    }
+  ],
+  "limitations": [
+    "Native text extraction is heuristic and requires review; structured employment chronology and complete automatic field population remain partial.",
+    "Scanned PDF OCR is not implemented; image-only PDFs show NEEDS_OCR.",
+    "LinkedIn is an explicit saved URL only; remote profile import is not implemented.",
+    "Name and email are required before saving the initial profile and uploading a resume.",
+    "Job preferences are persisted but are not yet automatic search filters.",
+    "Broader document types, tailoring and the full original requirements remain incomplete."
+  ],
+  "external_submission_enabled": false,
+  "privacy": "No private feedback artifacts or personal source values are included. All test content is synthetic.",
+  "environment_notes": [
+    "Port 18702 was occupied; isolated acceptance moved to 18703 without stopping its owner. Existing mjobs stack was not rebuilt."
+  ],
+  "verification_scope": "Compose acceptance preceded the final New profile selection guard; final Chromium acceptance exercises that guard on the final compiled local UI.",
+  "retest": "docs/runbooks/RESUME_PROFILE_RETEST.md"
+}

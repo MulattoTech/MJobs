@@ -10,8 +10,8 @@
     "current_verified_local_state": "Initialized from newer origin/main; supplied control pack retained on governance branch",
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
-  "current_milestone": "M23_SOURCE_ACTIVITY_LOCAL_VERIFIED",
-  "current_objective": "Verify the exact current head of activity PR #450 and integrate when green. Keep MJ-PR-023 remaining activity/quality/ATS reuse scope explicitly incomplete.",
+  "current_milestone": "RESUME_PROFILE_FEEDBACK_LOCAL_VERIFIED",
+  "current_objective": "Publish and retest reviewed resume import, organized profile details, and named resume versions; retain full career-profile requirements as PARTIAL.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -59,11 +59,18 @@
     "Official-domain source acquisition and career-site discovery currently use fixture acceptance; production provider/search integration and automatic sitemap acquisition remain open (MJ-REQ-060..061 PARTIAL).",
     "ATS detection uses several deterministic page/URL evidence sources, but HTML-signature and network-observed public endpoint signals remain open (MJ-REQ-064 PARTIAL).",
     "Company-source AUTO_DISCOVERED/USER_WATCHED origin, explicit list/watch APIs, and protection of watched priority across automatic refresh are locally verified; outcome-based ranking, company-level UI, and periodic source/ATS migration revalidation remain open (MJ-PR-021).",
-    "Companies/Sources view and explicit pin/enable/watch preferences verified; advanced discovery actions, historical provenance repair and company-source scheduling remain incomplete."
+    "Companies/Sources view and explicit pin/enable/watch preferences verified; advanced discovery actions, historical provenance repair and company-source scheduling remain incomplete.",
+    "Reviewed native resume import, structured profile contact/preferences, and named immutable base-resume history. See docs/evidence/2026-10-03-resume-driven-profile.json."
   ],
   "blocked_capabilities": [],
   "active_requirements": [
-    "MJ-REQ-082"
+    "MJ-REQ-088",
+    "MJ-REQ-089",
+    "MJ-REQ-090",
+    "MJ-REQ-091",
+    "MJ-REQ-092",
+    "MJ-REQ-093",
+    "MJ-REQ-094"
   ],
   "active_prs": [
     {
@@ -300,9 +307,10 @@
       "url": "https://github.com/MulattoTech/MJobs/pull/450",
       "branch": "codex/mj-pr-023-company-ats-discovery",
       "worktree": "C:\\Tools\\Dev\\MJobs-pr-023",
-      "status": "DRAFT_PR",
+      "status": "MERGED",
       "initial_head": "83493c0c884a7719a86fdcb108e02aca648472a9",
-      "scope": "first source-linked activity slice only"
+      "scope": "first source-linked activity slice only",
+      "merge_commit": "7241958efcae25925149a566020c50a8f61416e5"
     }
   ],
   "tests_passed": [
@@ -1814,12 +1822,64 @@
         "git_commit": "109557fb40974fa437ec0bf89cbe936a29fe0efb",
         "evidence_path": "docs/evidence/2026-10-02-company-source-watch-and-priority.json"
       }
+    },
+    {
+      "milestone_id": "RESUME-PROFILE-FEEDBACK-20261003",
+      "timestamp": "2026-10-03T19:07:22.805950+00:00",
+      "current_phase": "RESUME_PROFILE_FEEDBACK_LOCAL_VERIFIED",
+      "completed_steps": [
+        "Reproduced the missing import/profile/history behavior.",
+        "Implemented reviewed native extraction, optional profile fields, immutable snapshots and named resume versions.",
+        "Preserved pending-fact document gates, original downloads and idempotent upload history."
+      ],
+      "files_added": [
+        "services/career_profile/extraction.py",
+        "packages/domain/profile.py",
+        "apps/web/src/resume-library.tsx",
+        "migrations/versions/d21b76ce903a_resume_library_versions.py",
+        "docs/evidence/2026-10-03-resume-driven-profile.json"
+      ],
+      "files_modified": [
+        "apps/api/main.py",
+        "apps/web/src/main.tsx",
+        "packages/persistence/store.py",
+        "services/documents/uploads.py"
+      ],
+      "tests_completed": [
+        "256 Python tests PASS.",
+        "17 frontend tests and production build PASS.",
+        "Final two-browser acceptance PASS.",
+        "PostgreSQL API import/versioning, mock E2E and connected UI E2E PASS."
+      ],
+      "tests_remaining": [
+        "Exact published PR-head CI verification.",
+        "User manual browser retest."
+      ],
+      "migrations_applied": [
+        "d21b76ce903a on isolated PostgreSQL and legacy SQLite test databases."
+      ],
+      "live_integrations_tested": [
+        "Isolated local PostgreSQL, Redis, RQ and Chromium with synthetic data."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "Native text extraction is heuristic and requires review; structured employment chronology and complete automatic field population remain partial.",
+        "Scanned PDF OCR is not implemented; image-only PDFs show NEEDS_OCR.",
+        "LinkedIn is an explicit saved URL only; remote profile import is not implemented.",
+        "Name and email are required before saving the initial profile and uploading a resume.",
+        "Job preferences are persisted but are not yet automatic search filters.",
+        "Broader document types, tailoring and the full original requirements remain incomplete."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "6b35bde8aaac1a9ea62e6070d29d9caaa4dcc280",
+        "evidence_path": "docs/evidence/2026-10-03-resume-driven-profile.json"
+      }
     }
   ],
-  "current_phase": "M21_COMPANY_SOURCE_WATCH_AND_PRIORITY_LOCAL_VERIFIED",
+  "current_phase": "RESUME_PROFILE_FEEDBACK_LOCAL_VERIFIED",
   "last_safe_checkpoint": {
-    "git_commit": "109557fb40974fa437ec0bf89cbe936a29fe0efb",
-    "evidence_path": "docs/evidence/2026-10-02-company-source-watch-and-priority.json"
+    "git_commit": "6b35bde8aaac1a9ea62e6070d29d9caaa4dcc280",
+    "evidence_path": "docs/evidence/2026-10-03-resume-driven-profile.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
