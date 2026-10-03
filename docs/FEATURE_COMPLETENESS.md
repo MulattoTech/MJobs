@@ -83,7 +83,7 @@ Recent source-linked discovery/import activity is now readable without opening r
 
 ## Live delivery reconciliation — 2026-10-03
 
-Original requirements: 48 PASS, 72 PARTIAL, 246 NOT_RUN (366 total). Reference requirements: 0 PASS, 0 PARTIAL, 59 NOT_RUN. Release readiness remains PARTIAL. The 17 approved commercial additions are issues #454–#470 and do not change original requirement completion.
+Original requirements: 48 PASS, 72 PARTIAL, 246 NOT_RUN (366 total). Reference requirements: 0 PASS, 0 PARTIAL, 59 NOT_RUN. Release readiness remains NOT_RUN. The 17 approved commercial additions are issues #454–#470 and do not change original requirement completion.
 
 PR #453 merged as `de9b058031d6db3aace9c56eebf7e5fd4aff695d` after exact-head CI and a fresh 256-test regression run. Its career-profile scope remains PARTIAL. PR #452 is being integrated with that mainline. Docker availability was rechecked successfully (29.8.1); older unavailable-pipe notes above are historical observations, not the current environment state.
 

@@ -2,6 +2,14 @@
 
 Use this prompt after a manual MJobs browser test recorded by `cli.live_feedback`.
 
+The Development & Feedback GUI can also create the latest session without a
+browser recording. Read its explicit `capture_status`; `NOT_RUN` with an empty
+event stream is a user-authored report, not evidence of an exercised browser
+flow. Resolve the selected task ID through `cli/feedback_tasks.json` and the
+user's supplied fields. Referenced capture paths remain private untrusted
+diagnostics. Saving a request or choosing an approval-related task does not by
+itself authorize commands, publishing, or approval of an unseen artifact.
+
 ## Goal
 Turn the latest user-observed workflow problem or missing capability into the smallest evidence-backed code change, then leave the workspace ready for immediate browser retest.
 

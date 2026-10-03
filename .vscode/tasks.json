@@ -2,6 +2,14 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "MJobs: Development & Feedback",
+      "type": "shell",
+      "command": "powershell",
+      "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}\\Start-Feedback.ps1"],
+      "problemMatcher": [],
+      "presentation": {"reveal": "silent", "panel": "dedicated"}
+    },
+    {
       "label": "MJobs: Start Personal (No Browser)",
       "type": "shell",
       "command": "powershell",

@@ -1,0 +1,1057 @@
+[
+  {
+    "id": "02-quick-feedback",
+    "title": "Quick feedback",
+    "group": "Report a problem",
+    "description": "Record one everyday observation with a clear expected result and acceptance check.",
+    "fields": [
+      {
+        "id": "trying_to",
+        "label": "I was trying to",
+        "kind": "text",
+        "required": true,
+        "placeholder": "One outcome"
+      },
+      {
+        "id": "expected",
+        "label": "Expected",
+        "kind": "textarea",
+        "required": true,
+        "placeholder": "Observable result"
+      },
+      {
+        "id": "actual",
+        "label": "Actually happened",
+        "kind": "textarea",
+        "required": true,
+        "placeholder": "What you saw"
+      },
+      {
+        "id": "actions",
+        "label": "Actions taken",
+        "kind": "textarea",
+        "required": false,
+        "placeholder": "Short sequence"
+      },
+      {
+        "id": "change_requested",
+        "label": "Change requested",
+        "kind": "textarea",
+        "required": false,
+        "placeholder": "Desired change"
+      },
+      {
+        "id": "acceptance",
+        "label": "Retest acceptance",
+        "kind": "textarea",
+        "required": false,
+        "placeholder": "Specific result to verify"
+      },
+      {
+        "id": "impact",
+        "label": "Impact",
+        "kind": "select",
+        "required": false,
+        "placeholder": "Choose impact",
+        "options": [
+          "blocks task",
+          "repeated friction",
+          "occasional",
+          "cosmetic"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "03-bug-report",
+    "title": "Something is broken",
+    "group": "Report a problem",
+    "description": "Describe a reproducible broken behavior while separating visible evidence from suspected cause.",
+    "fields": [
+      {
+        "id": "symptom",
+        "label": "Visible symptom",
+        "kind": "text",
+        "required": true,
+        "placeholder": "Short symptom"
+      },
+      {
+        "id": "steps",
+        "label": "Steps to reproduce",
+        "kind": "textarea",
+        "required": true,
+        "placeholder": "One action per line"
+      },
+      {
+        "id": "expected",
+        "label": "Expected behavior",
+        "kind": "textarea",
+        "required": true,
+        "placeholder": "What should happen"
+      },
+      {
+        "id": "actual",
+        "label": "Actual behavior",
+        "kind": "textarea",
+        "required": false,
+        "placeholder": "Visible result or sanitized error"
+      },
+      {
+        "id": "preconditions",
+        "label": "Preconditions",
+        "kind": "textarea",
+        "required": false,
+        "placeholder": "Profile, filters, and data state without secrets"
+      },
+      {
+        "id": "frequency",
+        "label": "Frequency",
+        "kind": "select",
+        "required": false,
+        "placeholder": "Choose frequency",
+        "options": [
+          "every time",
+          "sometimes",
+          "once",
+          "not retested"
+        ]
+      },
+      {
+        "id": "evidence",
+        "label": "Private evidence path",
+        "kind": "text",
+        "required": false,
+        "placeholder": "Local session, screenshot, or log path"
+      },
+      {
+        "id": "acceptance",
+        "label": "Acceptance checks",
+        "kind": "textarea",
+        "required": false,
+        "placeholder": "Original and neighboring workflow checks"
+      }
+    ]
+  },
+  {
+    "id": "08-data-quality",
+    "title": "A result, count, or classification looks wrong",
+    "group": "Report a problem",
+    "description": "Trace a mismatch from sanitized input through normalization, storage, API, and presentation without inventing facts.",
+    "fields": [
+      {
+        "id": "input_example",
+        "label": "Synthetic or sanitized input",
+        "kind": "textarea",
+        "required": true,
+        "placeholder": "Example or private local reference"
+      },
+      {
+        "id": "observed_output",
+        "label": "Observed output",
+        "kind": "textarea",
+        "required": true,
+        "placeholder": "What MJobs showed"
+      },
+      {
+        "id": "expected_rule",
+        "label": "Expected rule and basis",
+        "kind": "textarea",
+        "required": true,
+        "placeholder": "Source, requirement, or preference"
+      },
+      {
+        "id": "uncertainty",
+        "label": "Uncertainty",
+        "kind": "textarea",
+        "required": false,
+        "placeholder": "What cannot be established"
+      },
+      {
+        "id": "conflicting_sources",
+        "label": "Conflicting sources",
+        "kind": "textarea",
+        "required": false,
+        "placeholder": "Preserve each source"
+      },
+      {
+        "id": "profile_context",
+        "label": "Profile/version/filter context",
+        "kind": "textarea",
+        "required": false,
+        "placeholder": "Relevant context"
+      },
+      {
+        "id": "acceptance",
+        "label": "Acceptance",
+        "kind": "textarea",
+        "required": false,
+        "placeholder": "Case, counterexample, and provenance checks"
+      }
+    ]
+  },
+  {
+    "id": "09-safety-concern",
+    "title": "Possible privacy, data-loss, or submission risk",
+    "group": "Report a problem",
+    "description": "Pause the affected workflow, preserve uncertainty, and inspect read-only; retain SUBMISSION_UNCONFIRMED when the outcome is unclear.",
+    "fields": [
+      {
+        "id": "potential_risk",
+        "label": "Potential risk",
+        "kind": "select",
+        "required": true,
+        "placeholder": "Choose risk",
+        "options": [
+          "private data exposure",
+          "data loss",
+          "unsafe submission"
+        ]
+      },
+      {
+        "id": "last_safe_action",
+        "label": "Last safe action",
+        "kind": "textarea",
+        "required": true,
+        "placeholder": "Immediately before the concern"
+      },
+      {
+        "id": "observed_behavior",
+        "label": "Observed behavior",
+        "kind": "textarea",
+        "required": true,
+        "placeholder": "Sanitized facts only"
+      },
+      {
+        "id": "local_evidence",
+        "label": "Private evidence path",
+        "kind": "text",
+        "required": false,
+        "placeholder": "Exact local path"
+      },
+      {
+        "id": "known_outcome",
+        "label": "What may already have happened",
+        "kind": "select",
+        "required": false,
+        "placeholder": "Choose certainty",
+        "options": [
+          "known",
+          "unknown"
+        ]
+      },
+      {
+        "id": "containment",
+        "label": "Containment or recovery question",
+        "kind": "textarea",
+        "required": false,
+        "placeholder": "Smallest safe next step"
+      }
+    ]
+  },
+  {
+    "id": "10-visual-accessibility",
+    "title": "A layout or interaction is hard to use",
+    "group": "Report a problem",
+    "description": "Describe a concrete visual or input barrier and acceptance at the observed size, input method, and content length.",
+    "fields": [
+      {
+        "id": "element",
+        "label": "Element",
+        "kind": "text",
+        "required": true,
+        "placeholder": "Label or location"
+      },
+      {
+        "id": "difficulty",
+        "label": "Difficulty",
+        "kind": "textarea",
+        "required": true,
+        "placeholder": "Clipping, focus loss, target size, or order"
+      },
+      {
+        "id": "acceptance",
+        "label": "Acceptance",
+        "kind": "textarea",
+        "required": true,
+        "placeholder": "Original size plus keyboard and narrow-window checks"
+      },
+      {
+        "id": "window_zoom",
+        "label": "Window size and zoom",
+        "kind": "text",
+        "required": false,
+        "placeholder": "Observed dimensions or unknown"
+      },
+      {
+        "id": "input_method",
+        "label": "Input method",
+        "kind": "select",
+        "required": false,
+        "placeholder": "Choose method",
+        "options": [
+          "mouse",
+          "keyboard",
+          "touch",
+          "other"
+        ]
+      },
+      {
+        "id": "desired_experience",
+        "label": "Desired experience",
+        "kind": "textarea",
+        "required": false,
+        "placeholder": "Readable, reachable, or clearer result"
+      }
+    ]
+  },
+  {
+    "id": "11-performance",
+    "title": "A workflow is slow or unreliable",
+    "group": "Report a problem",
+    "description": "Record comparable measurements and separate startup, network, queue, backend, and rendering causes.",
+    "fields": [
+      {
+        "id": "workflow",
+        "label": "Workflow",
+        "kind": "text",
+        "required": true,
+        "placeholder": "Measured path"
+      },
+      {
+        "id": "action_data_scale",
+        "label": "Action and data scale",
+        "kind": "textarea",
+        "required": true,
+        "placeholder": "Action and approximate record count"
+      },
+      {
+        "id": "observed_wait",
+        "label": "Observed wait",
+        "kind": "text",
+        "required": true,
+        "placeholder": "Measured duration or rough estimate"
+      },
+      {
+        "id": "visible_progress",
+        "label": "Visible progress",
+        "kind": "select",
+        "required": false,
+        "placeholder": "Choose progress",
+        "options": [
+          "none",
+          "spinner",
+          "status",
+          "other"
+        ]
+      },
+      {
+        "id": "first_vs_repeat",
+        "label": "First versus repeat",
+        "kind": "textarea",
+        "required": false,
+        "placeholder": "Observed difference"
+      },
+      {
+        "id": "restart_outcome",
+        "label": "Refresh or restart outcome",
+        "kind": "textarea",
+        "required": false,
+        "placeholder": "What persisted"
+      },
+      {
+        "id": "acceptance",
+        "label": "Acceptance",
+        "kind": "textarea",
+        "required": false,
+        "placeholder": "Observable target and no-regression checks"
+      }
+    ]
+  },
+  {
+    "id": "04-missing-feature",
+    "title": "A feature or step is missing",
+    "group": "Improve MJobs",
+    "description": "Define the smallest useful end-to-end capability and its empty or error behavior.",
+    "fields": [
+      {
+        "id": "goal",
+        "label": "Goal",
+        "kind": "textarea",
+        "required": true,
+        "placeholder": "What cannot currently be accomplished"
+      },
+      {
+        "id": "smallest_useful_behavior",
+        "label": "Smallest useful behavior",
+        "kind": "textarea",
+        "required": true,
+        "placeholder": "First end-to-end slice"
+      },
+      {
+        "id": "acceptance",
+        "label": "Acceptance",
+        "kind": "textarea",
+        "required": true,
+        "placeholder": "Given, when, then result"
+      },
+      {
+        "id": "where_expected",
+        "label": "Where expected",
+        "kind": "text",
+        "required": false,
+        "placeholder": "Screen and workflow point"
+      },
+      {
+        "id": "current_workaround",
+        "label": "Current workaround",
+        "kind": "textarea",
+        "required": false,
+        "placeholder": "Manual steps or none"
+      },
+      {
+        "id": "output_destination",
+        "label": "Output or destination",
+        "kind": "text",
+        "required": false,
+        "placeholder": "What appears or is saved"
+      },
+      {
+        "id": "empty_error_behavior",
+        "label": "Empty or error behavior",
+        "kind": "textarea",
+        "required": false,
+        "placeholder": "Expected missing-data or failure result"
+      }
+    ]
+  },
+  {
+    "id": "05-workflow-improvement",
+    "title": "Make an existing workflow easier",
+    "group": "Improve MJobs",
+    "description": "Explain the user goal, current friction, and a clearer sequence without prescribing implementation.",
+    "fields": [
+      {
+        "id": "user_goal",
+        "label": "User goal",
+        "kind": "textarea",
+        "required": true,
+        "placeholder": "Outcome, not technical implementation"
+      },
+      {
+        "id": "current_sequence",
+        "label": "Current sequence",
+        "kind": "textarea",
+        "required": true,
+        "placeholder": "A -> B -> C"
+      },
+      {
+        "id": "acceptance",
+        "label": "Acceptance",
+        "kind": "textarea",
+        "required": true,
+        "placeholder": "Fewer ambiguities plus error case"
+      },
+      {
+        "id": "friction",
+        "label": "Where work is lost",
+        "kind": "textarea",
+        "required": false,
+        "placeholder": "Hesitation, repetition, or lost context"
+      },
+      {
+        "id": "preferred_sequence",
+        "label": "Preferred sequence",
+        "kind": "textarea",
+        "required": false,
+        "placeholder": "Shorter or clearer path"
+      },
+      {
+        "id": "state_to_preserve",
+        "label": "State to preserve",
+        "kind": "textarea",
+        "required": false,
+        "placeholder": "Filters, selection, profile, or draft"
+      },
+      {
+        "id": "useful_default",
+        "label": "Useful default",
+        "kind": "text",
+        "required": false,
+        "placeholder": "A safe, non-consequential default"
+      }
+    ]
+  },
+  {
+    "id": "06-redesign",
+    "title": "Replace a screen or workflow deliberately",
+    "group": "Improve MJobs",
+    "description": "Bound a redesign to one area and require design, state, accessibility, test, and rollback review before implementation.",
+    "fields": [
+      {
+        "id": "area",
+        "label": "Area to replace",
+        "kind": "text",
+        "required": true,
+        "placeholder": "One screen or bounded workflow"
+      },
+      {
+        "id": "user_outcome",
+        "label": "User outcome",
+        "kind": "textarea",
+        "required": true,
+        "placeholder": "What this area must make easy"
+      },
+      {
+        "id": "desired_flow",
+        "label": "Desired flow",
+        "kind": "textarea",
+        "required": true,
+        "placeholder": "Start -> actions -> completed outcome"
+      },
+      {
+        "id": "observed_problems",
+        "label": "Observed problems",
+        "kind": "textarea",
+        "required": false,
+        "placeholder": "Problems supported by sessions"
+      },
+      {
+        "id": "keep",
+        "label": "Keep",
+        "kind": "textarea",
+        "required": false,
+        "placeholder": "Data, URLs, integrations, controls, accessibility"
+      },
+      {
+        "id": "remove_reorganize",
+        "label": "Remove or reorganize",
+        "kind": "textarea",
+        "required": false,
+        "placeholder": "Elements and reason"
+      },
+      {
+        "id": "compatibility",
+        "label": "Existing-data compatibility",
+        "kind": "textarea",
+        "required": false,
+        "placeholder": "What must survive"
+      }
+    ]
+  },
+  {
+    "id": "07-remove-or-simplify",
+    "title": "Remove clutter without losing useful behavior",
+    "group": "Improve MJobs",
+    "description": "Reduce clutter while preserving capability, evidence, safety disclosures, accessibility, and stored records.",
+    "fields": [
+      {
+        "id": "target",
+        "label": "Control, panel, or step",
+        "kind": "text",
+        "required": true,
+        "placeholder": "What should be simplified"
+      },
+      {
+        "id": "reason",
+        "label": "Why it is harmful",
+        "kind": "textarea",
+        "required": true,
+        "placeholder": "Duplicate, confusing, or interrupting"
+      },
+      {
+        "id": "acceptance",
+        "label": "Acceptance",
+        "kind": "textarea",
+        "required": true,
+        "placeholder": "Less clutter with a clear task path"
+      },
+      {
+        "id": "preferred_treatment",
+        "label": "Preferred treatment",
+        "kind": "select",
+        "required": false,
+        "placeholder": "Choose treatment",
+        "options": [
+          "remove",
+          "hide by default",
+          "move",
+          "merge",
+          "rename"
+        ]
+      },
+      {
+        "id": "replacement_path",
+        "label": "Replacement path",
+        "kind": "textarea",
+        "required": false,
+        "placeholder": "How the underlying task remains possible"
+      },
+      {
+        "id": "dependencies",
+        "label": "Dependencies and requirement",
+        "kind": "textarea",
+        "required": false,
+        "placeholder": "Known callers, records, or requirement"
+      }
+    ]
+  },
+  {
+    "id": "19-usability-checkpoint",
+    "title": "Decide what makes MJobs usable for me",
+    "group": "Improve MJobs",
+    "description": "Assess personally required workflows against evidence and distinguish verified, partial, blocked, and not-tested states.",
+    "fields": [
+      {
+        "id": "must_work_workflows",
+        "label": "Must-work workflows",
+        "kind": "textarea",
+        "required": true,
+        "placeholder": "Workflow plus visible completion"
+      },
+      {
+        "id": "current_blockers",
+        "label": "Current blockers",
+        "kind": "textarea",
+        "required": true,
+        "placeholder": "Tasks that cannot be finished"
+      },
+      {
+        "id": "next_improvement",
+        "label": "Next smallest usable improvement",
+        "kind": "textarea",
+        "required": true,
+        "placeholder": "Evidence-backed next step"
+      },
+      {
+        "id": "acceptable_manual_steps",
+        "label": "Acceptable manual steps",
+        "kind": "textarea",
+        "required": false,
+        "placeholder": "What you are willing to do"
+      },
+      {
+        "id": "deferrable_work",
+        "label": "Important but deferrable",
+        "kind": "textarea",
+        "required": false,
+        "placeholder": "Later improvements"
+      },
+      {
+        "id": "data_safety_requirements",
+        "label": "Data and safety requirements",
+        "kind": "textarea",
+        "required": false,
+        "placeholder": "What must never be lost or invented"
+      },
+      {
+        "id": "evidence",
+        "label": "Evidence",
+        "kind": "textarea",
+        "required": false,
+        "placeholder": "Accepted findings and current implementation"
+      }
+    ]
+  },
+  {
+    "id": "01-session-start",
+    "title": "Start a hands-on development session",
+    "group": "Test and troubleshoot",
+    "description": "Capture the preflight identity and readiness details before observing a local MJobs workflow.",
+    "fields": [
+      {
+        "id": "workspace",
+        "label": "Workspace",
+        "kind": "text",
+        "required": true,
+        "placeholder": "Exact repository path"
+      },
+      {
+        "id": "branch",
+        "label": "Branch",
+        "kind": "text",
+        "required": true,
+        "placeholder": "Current feedback branch"
+      },
+      {
+        "id": "service_url",
+        "label": "Service URL",
+        "kind": "text",
+        "required": true,
+        "placeholder": "Local Fixture or Personal URL"
+      },
+      {
+        "id": "compose_project",
+        "label": "Compose project",
+        "kind": "text",
+        "required": false,
+        "placeholder": "Project name if known"
+      },
+      {
+        "id": "build_provenance",
+        "label": "Build provenance",
+        "kind": "textarea",
+        "required": false,
+        "placeholder": "Commit, image, or launch evidence"
+      }
+    ]
+  },
+  {
+    "id": "14-retest",
+    "title": "Accept, reject, or partially accept a change",
+    "group": "Test and troubleshoot",
+    "description": "Record a new-session retest decision without treating user-flow acceptance as full product release readiness.",
+    "fields": [
+      {
+        "id": "original_session",
+        "label": "Original session",
+        "kind": "text",
+        "required": true,
+        "placeholder": "Prior session folder"
+      },
+      {
+        "id": "retest_session",
+        "label": "Retest session",
+        "kind": "text",
+        "required": true,
+        "placeholder": "New session folder"
+      },
+      {
+        "id": "decision",
+        "label": "Decision",
+        "kind": "select",
+        "required": true,
+        "placeholder": "Choose decision",
+        "options": [
+          "ACCEPT",
+          "PARTIAL",
+          "REJECT",
+          "NOT_TESTED"
+        ]
+      },
+      {
+        "id": "build_branch_mode",
+        "label": "Build, branch, and mode",
+        "kind": "text",
+        "required": false,
+        "placeholder": "Exact tested identity"
+      },
+      {
+        "id": "same_steps",
+        "label": "Same reproduction steps",
+        "kind": "select",
+        "required": false,
+        "placeholder": "Choose result",
+        "options": [
+          "yes",
+          "differences"
+        ]
+      },
+      {
+        "id": "checks",
+        "label": "Acceptance checks",
+        "kind": "textarea",
+        "required": false,
+        "placeholder": "Check and observed outcome"
+      },
+      {
+        "id": "remaining_change",
+        "label": "Remaining change",
+        "kind": "textarea",
+        "required": false,
+        "placeholder": "One next correction or none"
+      }
+    ]
+  },
+  {
+    "id": "17-launch-diagnosis",
+    "title": "Diagnose why MJobs will not start",
+    "group": "Test and troubleshoot",
+    "description": "Diagnose startup in order while preserving databases, uploads, volumes, credentials, and host configuration.",
+    "fields": [
+      {
+        "id": "workspace",
+        "label": "Workspace",
+        "kind": "text",
+        "required": true,
+        "placeholder": "Exact repository path"
+      },
+      {
+        "id": "mode_url",
+        "label": "Mode and URL",
+        "kind": "text",
+        "required": true,
+        "placeholder": "Fixture 18700 or Personal 18701"
+      },
+      {
+        "id": "last_command_error",
+        "label": "Last command and sanitized error",
+        "kind": "textarea",
+        "required": true,
+        "placeholder": "Do not include secrets"
+      },
+      {
+        "id": "startup_observations",
+        "label": "Startup observations",
+        "kind": "textarea",
+        "required": false,
+        "placeholder": "Branch, engine, port, Compose, migrations, API, worker"
+      },
+      {
+        "id": "remaining_blocker",
+        "label": "Remaining environment blocker",
+        "kind": "textarea",
+        "required": false,
+        "placeholder": "If readiness is not proven"
+      }
+    ]
+  },
+  {
+    "id": "18-capture-diagnosis",
+    "title": "The browser opens but useful evidence is missing",
+    "group": "Test and troubleshoot",
+    "description": "Diagnose recorder-launched sessions and event delivery using synthetic data before changing application behavior.",
+    "fields": [
+      {
+        "id": "session_dir",
+        "label": "Session directory",
+        "kind": "text",
+        "required": true,
+        "placeholder": "Exact synthetic session folder"
+      },
+      {
+        "id": "known_actions",
+        "label": "Known actions",
+        "kind": "textarea",
+        "required": true,
+        "placeholder": "Clicks, field changes, and navigation"
+      },
+      {
+        "id": "missing_evidence",
+        "label": "Missing or incorrect evidence",
+        "kind": "textarea",
+        "required": true,
+        "placeholder": "What is absent or unknown"
+      },
+      {
+        "id": "expected_records",
+        "label": "Expected records",
+        "kind": "textarea",
+        "required": false,
+        "placeholder": "Events that should be represented"
+      },
+      {
+        "id": "recorder_conditions",
+        "label": "Recorder conditions",
+        "kind": "textarea",
+        "required": false,
+        "placeholder": "Recorder browser, terminal, and finalization behavior"
+      }
+    ]
+  },
+  {
+    "id": "12-triage",
+    "title": "Organize several observations before coding",
+    "group": "Coordinate development",
+    "description": "Classify findings, map them to requirements, separate evidence from hypotheses, and choose dependency-aware order.",
+    "fields": [
+      {
+        "id": "sessions",
+        "label": "Session folders",
+        "kind": "textarea",
+        "required": true,
+        "placeholder": "Exact local folders"
+      },
+      {
+        "id": "findings",
+        "label": "Findings and user impact",
+        "kind": "textarea",
+        "required": true,
+        "placeholder": "A, B, C with impact"
+      },
+      {
+        "id": "proposed_order",
+        "label": "Proposed order",
+        "kind": "textarea",
+        "required": true,
+        "placeholder": "Safety/data, blocked work, friction, polish"
+      },
+      {
+        "id": "issue_mapping",
+        "label": "Issue or requirement mapping",
+        "kind": "textarea",
+        "required": false,
+        "placeholder": "Existing issue for each finding"
+      },
+      {
+        "id": "evidence_gaps",
+        "label": "Evidence gaps",
+        "kind": "textarea",
+        "required": false,
+        "placeholder": "Missing evidence or suspected causes"
+      },
+      {
+        "id": "selected_slice",
+        "label": "Selected small slice",
+        "kind": "textarea",
+        "required": false,
+        "placeholder": "One integrated slice to implement"
+      }
+    ]
+  },
+  {
+    "id": "13-process-feedback",
+    "title": "Turn one captured finding into a verified improvement",
+    "group": "Coordinate development",
+    "description": "Point Codex at one local report, reproduce it, and process only the explicitly selected finding through validation.",
+    "fields": [
+      {
+        "id": "session_dir",
+        "label": "Local session directory",
+        "kind": "text",
+        "required": true,
+        "placeholder": "Exact outputs/live-feedback path"
+      },
+      {
+        "id": "selected_finding",
+        "label": "Selected finding",
+        "kind": "text",
+        "required": true,
+        "placeholder": "Title or issue ID"
+      },
+      {
+        "id": "requested_change",
+        "label": "Explicit requested change",
+        "kind": "textarea",
+        "required": true,
+        "placeholder": "Intended behavior from feedback.md"
+      },
+      {
+        "id": "relevant_issue",
+        "label": "Relevant issue",
+        "kind": "text",
+        "required": false,
+        "placeholder": "Existing issue if known"
+      },
+      {
+        "id": "approval_stage",
+        "label": "Approval stage",
+        "kind": "select",
+        "required": false,
+        "placeholder": "Choose stage",
+        "options": [
+          "reproduce",
+          "bounded design",
+          "written plan",
+          "browser retest"
+        ]
+      },
+      {
+        "id": "retest_steps",
+        "label": "Retest steps",
+        "kind": "textarea",
+        "required": false,
+        "placeholder": "Exact browser workflow after rebuild"
+      }
+    ]
+  },
+  {
+    "id": "15-session-handoff",
+    "title": "Pause safely and resume without repeating work",
+    "group": "Coordinate development",
+    "description": "Leave a durable local checkpoint with exact workspace state, evidence, approval status, and one next action.",
+    "fields": [
+      {
+        "id": "workspace_state",
+        "label": "Workspace, branch, HEAD, and dirty state",
+        "kind": "textarea",
+        "required": true,
+        "placeholder": "Exact current state"
+      },
+      {
+        "id": "accepted_scope",
+        "label": "Finding and accepted scope",
+        "kind": "textarea",
+        "required": true,
+        "placeholder": "Original finding and completed changes"
+      },
+      {
+        "id": "next_action",
+        "label": "One exact next action",
+        "kind": "textarea",
+        "required": true,
+        "placeholder": "Next safe step"
+      },
+      {
+        "id": "tests_results",
+        "label": "Tests and results",
+        "kind": "textarea",
+        "required": false,
+        "placeholder": "Run, blocked, or not run"
+      },
+      {
+        "id": "runtime_identity",
+        "label": "Runtime identity",
+        "kind": "textarea",
+        "required": false,
+        "placeholder": "Mode, Compose project, URL, build provenance"
+      },
+      {
+        "id": "approval_needed",
+        "label": "Approval still needed",
+        "kind": "textarea",
+        "required": false,
+        "placeholder": "Specific unanswered decision"
+      }
+    ]
+  },
+  {
+    "id": "16-approval-and-reconcile",
+    "title": "Approval replies and stale-session recovery",
+    "group": "Coordinate development",
+    "description": "Select one approval stage for one exact artifact/version; this catalogue never grants blanket approval or triggers automatic action.",
+    "fields": [
+      {
+        "id": "approval_stage",
+        "label": "Approval stage",
+        "kind": "select",
+        "required": true,
+        "placeholder": "Choose one stage",
+        "options": [
+          "bounded design",
+          "written spec",
+          "written plan",
+          "stale or repeated request",
+          "merge after retest"
+        ]
+      },
+      {
+        "id": "artifact_version",
+        "label": "Exact artifact or version",
+        "kind": "text",
+        "required": true,
+        "placeholder": "Path, commit, build, or PR head"
+      },
+      {
+        "id": "approval_scope",
+        "label": "Approved scope",
+        "kind": "textarea",
+        "required": false,
+        "placeholder": "Finding or bounded scope only"
+      },
+      {
+        "id": "finding",
+        "label": "Finding",
+        "kind": "text",
+        "required": false,
+        "placeholder": "Finding title or ID"
+      },
+      {
+        "id": "outstanding_decision",
+        "label": "Outstanding decision",
+        "kind": "textarea",
+        "required": false,
+        "placeholder": "For stale-session recovery"
+      }
+    ]
+  }
+]

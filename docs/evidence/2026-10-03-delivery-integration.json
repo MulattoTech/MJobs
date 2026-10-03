@@ -1,0 +1,64 @@
+{
+  "timestamp": "2026-10-03T20:09:49.399240+00:00",
+  "result": "PASS",
+  "scope": "Local combined regression; release and full backlog remain PARTIAL",
+  "checks": [
+    {
+      "command": "python -m unittest discover -s tests -p test_*.py",
+      "result": "PASS",
+      "tests": 287,
+      "skips": 0,
+      "duration_seconds": 82.389,
+      "timestamp": "2026-10-03T20:09:49.399240+00:00"
+    },
+    {
+      "command": "npm test --prefix apps/web; npm run build --prefix apps/web",
+      "result": "PASS",
+      "tests": 17,
+      "note": "Frontend unchanged since earlier successful integration build."
+    }
+  ],
+  "integrated_prs": [
+    {
+      "number": 453,
+      "head": "260540cc35dd1a51c37c61f1ed638eb94106bafe",
+      "merge_commit": "de9b058031d6db3aace9c56eebf7e5fd4aff695d",
+      "ci_runs": [
+        37147064224,
+        37147066872
+      ],
+      "result": "PASS"
+    },
+    {
+      "number": 471,
+      "head": "12394c753957d43311983174b0d982cb5dbabf87",
+      "merge_commit": "c4b2e9109675fa490a545210ba6475f66ba14641",
+      "ci_runs": [
+        37149673238,
+        37149698715
+      ],
+      "result": "PASS"
+    },
+    {
+      "number": 472,
+      "head": "cfb4ca5b015475c364f719c2e0735fb00157013d",
+      "merge_commit": "5b459ac22412d57cd86f8abf0e669ae657bc0562",
+      "ci_runs": [
+        37150125082,
+        37150172508
+      ],
+      "result": "PASS"
+    }
+  ],
+  "pending_ci": {
+    "pr": 452,
+    "result": "NOT_RUN",
+    "note": "This integration commit needs its own exact-head checks; previous heads do not count."
+  },
+  "limitations": [
+    "User manual browser retest NOT_RUN.",
+    "Original:48 PASS,72 PARTIAL,246 NOT_RUN. Reference:59 NOT_RUN. Release readiness NOT_RUN.",
+    "General crash/rollback artifact-orphan recovery and full original P0-P3 acceptance remain open."
+  ],
+  "next_action": "Implement remaining original source-quality requirement MJ-REQ-083 using persisted evidence without replacing verified first-party authority."
+}

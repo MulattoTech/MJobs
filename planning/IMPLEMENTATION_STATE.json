@@ -6,12 +6,13 @@
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
-    "baseline_must_be_reverified": false,
-    "current_verified_local_state": "Initialized from newer origin/main; supplied control pack retained on governance branch",
-    "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
+    "baseline_must_be_reverified": true,
+    "current_verified_local_state": "27 worktrees; all25 pre-existing worktrees preserved. Root resume-driven-profile HEAD260540c retains24 untracked user template files, checksum-verified unchanged.",
+    "current_verified_github_state": "388 open issues; PR453/471/472 merged with exact-head CI; PR452 final integration open awaiting new-head CI.",
+    "current_verified_at": "2026-10-03T20:12:32.612186+00:00"
   },
-  "current_milestone": "RESUME_UPLOAD_INTEGRITY_VERIFIED",
-  "current_objective": "Publish and verify resume upload integrity fix; complete feedback integration; continue dependency-eligible original backlog.",
+  "current_milestone": "FEEDBACK_RESUME_CATALOGUE_UPLOAD_INTEGRATION",
+  "current_objective": "Verify and merge final PR452 head, reconcile live truth, then continue original source-quality and safety foundations.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -70,7 +71,8 @@
     "MJ-REQ-091",
     "MJ-REQ-092",
     "MJ-REQ-093",
-    "MJ-REQ-094"
+    "MJ-REQ-094",
+    "MJ-REQ-082"
   ],
   "active_prs": [
     {
@@ -334,6 +336,27 @@
         "pull_request_verification": 37149698715,
         "push_verification": 37149673238
       }
+    },
+    {
+      "number": 452,
+      "url": "https://github.com/MulattoTech/MJobs/pull/452",
+      "branch": "codex/feedback-gui",
+      "status": "DRAFT",
+      "note": "Combined287-test regression PASS; final bookkeeping changes the head, requiring fresh GitHub verification. User manual retest NOT_RUN."
+    },
+    {
+      "number": 472,
+      "url": "https://github.com/MulattoTech/MJobs/pull/472",
+      "branch": "codex/resume-upload-integrity",
+      "status": "MERGED",
+      "head": "cfb4ca5b015475c364f719c2e0735fb00157013d",
+      "local_validation": "PASS",
+      "remote_ci": "PASS",
+      "merge_commit": "5b459ac22412d57cd86f8abf0e669ae657bc0562",
+      "exact_head_checks": {
+        "pull_request_verification": 37150172508,
+        "push_verification": 37150125082
+      }
     }
   ],
   "tests_passed": [
@@ -467,11 +490,11 @@
     "MJ-PR-016 local Chromium first run used Docker DNS host api, which is not a secure browser origin for crypto.randomUUID; loopback URL rerun passed all five connected UI actions."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-02T11:03:00.071536+00:00",
-    "base_commit": "566bbf9cdebf882cc80bbb65b803ca3996fa9beb",
+    "timestamp": "2026-10-03T20:12:32.612186+00:00",
+    "base_commit": "8860d7ea2818359341eee90bd2a48a68351b365d",
     "result": "PASS",
-    "scope": "235 Python tests, 11 frontend tests/build, validators, and actual feed-import-to-browser activity acceptance",
-    "evidence_path": "docs/evidence/2026-10-02-company-discovery-activity.json"
+    "scope": "Combined287 Python tests,17 frontend tests/build, catalogue/progress validators, synthetic SQLite/PostgreSQL and browser recovery; final-head hosted CI pending.",
+    "evidence_path": "docs/evidence/2026-10-03-delivery-integration.json"
   },
   "ci_verification": {
     "result": "IN_PROGRESS",
@@ -539,7 +562,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Read current Git/GitHub and this reconciliation; complete active exact-head CI and proceed to eligible original work.",
+  "recommended_resume_step": "Implement remaining original source-quality requirement MJ-REQ-083 using persisted evidence without replacing verified first-party authority.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -576,17 +599,18 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "b096b868b4feb6df6afbe1581ff7a6a80a891c16",
+  "last_implementation_commit": "8860d7ea2818359341eee90bd2a48a68351b365d",
   "publication": {
-    "result": "IN_PROGRESS",
-    "branch": "codex/mj-pr-021-company-ats-discovery",
-    "worktree": "C:\\Tools\\Dev\\MJobs-pr-021",
-    "base": "1dc6cd4fc9b9eb2797994ff7321e15dd83e6c2d7",
-    "stacked_on": "codex/mj-pr-019-company-ats-discovery",
-    "pr_number": 448,
-    "url": "https://github.com/MulattoTech/MJobs/pull/448",
+    "result": "PARTIAL",
+    "branch": "codex/feedback-gui",
+    "worktree": "C:/Tools/Dev/MJobs/.worktrees/feedback-gui",
+    "base": "5b459ac22412d57cd86f8abf0e669ae657bc0562",
+    "pr_number": 452,
+    "url": "https://github.com/MulattoTech/MJobs/pull/452",
     "draft": true,
-    "initial_head": "9c1b4dc7415ff108ad3a4751a92ce35031453bad"
+    "observed_head_before_bookkeeping": "8860d7ea2818359341eee90bd2a48a68351b365d",
+    "observed_at": "2026-10-03T20:12:32.612186+00:00",
+    "note": "This bookkeeping commit changes the head. Resolve the exact current head/checks from GitHub before merge; prior-head checks cannot promote it."
   },
   "optional_afk_journal": {
     "result": "BLOCKED_ENVIRONMENT",
@@ -1847,6 +1871,68 @@
       }
     },
     {
+      "milestone_id": "M24-DEVELOPMENT-FEEDBACK-GUI",
+      "timestamp": "2026-10-03T05:12:45.248619+00:00",
+      "current_phase": "M24_FEEDBACK_GUI_LOCAL_VERIFIED",
+      "completed_steps": [
+        "Delivered user-approved standalone 19-task feedback GUI with tailored forms, saved history and autosave.",
+        "Verified crash/restart/offline/conflict recovery and durable private handoff files.",
+        "Added main-page how-to and lifecycle diagram at user request.",
+        "Created draft PR #452 linked to additive issue #451; preserved unrelated template folder and original requirement accounting."
+      ],
+      "files_added": [
+        "cli/feedback_gui.py",
+        "cli/feedback_tasks.json",
+        "cli/feedback_ui/index.html",
+        "cli/feedback_ui/app.js",
+        "cli/feedback_ui/style.css",
+        "Start-Feedback.cmd",
+        "Start-Feedback.ps1",
+        "tests/unit/test_feedback_gui.py",
+        "tests/unit/test_feedback_tasks.py",
+        "tests/browser/test_feedback_gui.py",
+        "docs/evidence/2026-10-03-feedback-gui.json"
+      ],
+      "files_modified": [
+        ".vscode/tasks.json",
+        "README.md",
+        "cli/AREA.md",
+        "docs/LIVE_FEEDBACK_DEVELOPMENT.md",
+        "prompts/VS_CODE_LIVE_FEEDBACK.md",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json"
+      ],
+      "tests_completed": [
+        "Full Python suite: 253 tests PASS, zero skips, prior to explanatory HTML/CSS addition.",
+        "Final affected GUI/unit/browser tests: 18 PASS after lifecycle help addition.",
+        "Existing frontend: 11 tests PASS; TypeScript/Vite build PASS.",
+        "Catalogue/progress/diff validators PASS before this evidence update; final validation follows.",
+        "Local launcher/startup and desktop/mobile visual inspection PASS.",
+        "Independent review findings fixed; re-review has no material findings."
+      ],
+      "tests_remaining": [
+        "User browser retest: NOT_RUN.",
+        "Final-head hosted CI: NOT_RUN.",
+        "Broader original P0-P3 acceptance and release readiness remain incomplete."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Loopback development-feedback service and Chromium against synthetic temporary data; local personal feedback runtime started with no synthetic reports written."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "User retest and hosted exact-head CI remain pending.",
+        "GUI saves local handoffs; an explicit chat request starts Codex processing.",
+        "GUI alone does not record browser diagnostics; uncaptured sessions are NOT_RUN.",
+        "Browser-only recovery requires retaining site storage; feedback files are outside product backup coverage.",
+        "No runtime error-management completion or real application automation is claimed."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "e840c6fe4ba1629b2a79722176f8ab53f7e54497",
+        "evidence_path": "docs/evidence/2026-10-03-feedback-gui.json"
+      }
+    },
+    {
       "milestone_id": "RESUME-PROFILE-FEEDBACK-20261003",
       "timestamp": "2026-10-03T19:07:22.805950+00:00",
       "current_phase": "RESUME_PROFILE_FEEDBACK_LOCAL_VERIFIED",
@@ -1942,6 +2028,42 @@
       }
     },
     {
+      "milestone_id": "FEEDBACK-RESUME-INTEGRATION-20261003",
+      "timestamp": "2026-10-03T19:51:32.962304+00:00",
+      "current_phase": "FEEDBACK_RESUME_INTEGRATION",
+      "completed_steps": [
+        "Resolved mainline merge conflict while retaining both feature histories and requirements.",
+        "Rebuilt stale ignored frontend assets and verified profile browser acceptance."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-03-feedback-resume-integration.json"
+      ],
+      "files_modified": [
+        "planning/IMPLEMENTATION_STATE.json"
+      ],
+      "tests_completed": [
+        "17 frontend tests and production build PASS; profile import browser1 PASS.",
+        "274 full Python tests PASS, zero skips, after deterministic async crash harness correction."
+      ],
+      "tests_remaining": [
+        "Final published exact-head CI; manual user acceptance NOT_RUN."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Isolated synthetic loopback browser/API only."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "New final-head CI required after integration.",
+        "User manual browser acceptance is NOT_RUN.",
+        "Real external submission remains disabled."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "acf932b6ac2c35025637bf5468c8c97dc548a16f",
+        "evidence_path": "docs/evidence/2026-10-03-feedback-resume-integration.json"
+      }
+    },
+    {
       "milestone_id": "RESUME-UPLOAD-INTEGRITY-20261003",
       "timestamp": "2026-10-03T20:02:48.702650+00:00",
       "current_phase": "RESUME_UPLOAD_INTEGRITY_VERIFIED",
@@ -1982,12 +2104,51 @@
         "git_commit": "d838b334b21bdc1b5a9cf0f7d65c76a337323cf5",
         "evidence_path": "docs/evidence/2026-10-03-resume-upload-integrity.json"
       }
+    },
+    {
+      "milestone_id": "FULL-DELIVERY-INTEGRATION-20261003",
+      "timestamp": "2026-10-03T20:09:49.399240+00:00",
+      "current_phase": "FEEDBACK_RESUME_CATALOGUE_UPLOAD_INTEGRATION",
+      "completed_steps": [
+        "Integrated preserved feedback GUI, resume/profile work,59-reference catalogue and upload integrity fix.",
+        "Retained complete milestone history and original requirement accounting.",
+        "Verified combined287-test suite and exact-head merges for453/471/472."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-03-delivery-integration.json"
+      ],
+      "files_modified": [
+        "planning/IMPLEMENTATION_STATE.json",
+        "tests/browser/test_feedback_gui.py"
+      ],
+      "tests_completed": [
+        "287 Python tests PASS, zero skips;17 frontend tests/build PASS.",
+        "Final crash harness requires actual renderer crash immediately after the last edit."
+      ],
+      "tests_remaining": [
+        "Final PR452 exact-head CI.",
+        "User manual browser retest NOT_RUN."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "GitHub exact-head workflows and merge receipts; local synthetic browser/SQLite/PostgreSQL only."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "User manual browser retest NOT_RUN.",
+        "Original:48 PASS,72 PARTIAL,246 NOT_RUN. Reference:59 NOT_RUN. Release readiness PARTIAL.",
+        "General crash/rollback artifact-orphan recovery and full original P0-P3 acceptance remain open."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "f505e9dbcda3cc5e5a8852b8454095e5b04e0c7c",
+        "evidence_path": "docs/evidence/2026-10-03-delivery-integration.json"
+      }
     }
   ],
-  "current_phase": "RESUME_UPLOAD_INTEGRITY_VERIFIED",
+  "current_phase": "FEEDBACK_RESUME_CATALOGUE_UPLOAD_INTEGRATION",
   "last_safe_checkpoint": {
-    "git_commit": "d838b334b21bdc1b5a9cf0f7d65c76a337323cf5",
-    "evidence_path": "docs/evidence/2026-10-03-resume-upload-integrity.json"
+    "git_commit": "f505e9dbcda3cc5e5a8852b8454095e5b04e0c7c",
+    "evidence_path": "docs/evidence/2026-10-03-delivery-integration.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
@@ -2063,8 +2224,8 @@
     }
   ],
   "live_reconciliation": {
-    "timestamp": "2026-10-03T20:02:48.702650+00:00",
-    "origin_main": "c4b2e9109675fa490a545210ba6475f66ba14641",
+    "timestamp": "2026-10-03T20:09:49.399240+00:00",
+    "origin_main": "5b459ac22412d57cd86f8abf0e669ae657bc0562",
     "open_issue_count_before_catalogue": 371,
     "commercial_issue_mapping": {
       "MJ-REF-043": 454,
@@ -2094,6 +2255,55 @@
     },
     "remaining_scope": "Original requirements and release readiness remain incomplete; no commercial feature behavior has been implemented by catalogue creation.",
     "catalogue_pr": 471,
-    "catalogue_publication": "MERGED"
+    "catalogue_publication": "MERGED",
+    "open_prs_at_checkpoint": [
+      452
+    ],
+    "integration_order": [
+      452
+    ],
+    "note": "Feedback branch includes the reviewed upload fix to validate their combined behavior before merging both PRs.",
+    "next_action": "Implement remaining original source-quality requirement MJ-REQ-083 using persisted evidence without replacing verified first-party authority."
+  },
+  "active_development_issue": {
+    "number": 451,
+    "url": "https://github.com/MulattoTech/MJobs/issues/451",
+    "branch": "codex/feedback-gui",
+    "status": "PARTIAL",
+    "related_requirements": [
+      "MJ-REQ-184"
+    ],
+    "note": "Additive development feedback workflow. Runtime error-management requirement remains incomplete.",
+    "pr_number": 452,
+    "pr_url": "https://github.com/MulattoTech/MJobs/pull/452",
+    "evidence_path": "docs/evidence/2026-10-03-feedback-gui.json"
+  },
+  "historical_control_snapshots": [
+    {
+      "archived_at": "2026-10-03T20:12:32.612186+00:00",
+      "publication": {
+        "result": "IN_PROGRESS",
+        "branch": "codex/mj-pr-021-company-ats-discovery",
+        "worktree": "C:\\Tools\\Dev\\MJobs-pr-021",
+        "base": "1dc6cd4fc9b9eb2797994ff7321e15dd83e6c2d7",
+        "stacked_on": "codex/mj-pr-019-company-ats-discovery",
+        "pr_number": 448,
+        "url": "https://github.com/MulattoTech/MJobs/pull/448",
+        "draft": true,
+        "initial_head": "9c1b4dc7415ff108ad3a4751a92ce35031453bad"
+      },
+      "last_implementation_commit": "b096b868b4feb6df6afbe1581ff7a6a80a891c16",
+      "last_verified_checkpoint": {
+        "timestamp": "2026-10-02T11:03:00.071536+00:00",
+        "base_commit": "566bbf9cdebf882cc80bbb65b803ca3996fa9beb",
+        "result": "PASS",
+        "scope": "235 Python tests, 11 frontend tests/build, validators, and actual feed-import-to-browser activity acceptance",
+        "evidence_path": "docs/evidence/2026-10-02-company-discovery-activity.json"
+      }
+    }
+  ],
+  "current_user_browser_acceptance": {
+    "result": "NOT_RUN",
+    "scope": "Manual owner retest of current feedback/resume UI. Historical user_testing evidence is retained separately."
   }
 }
