@@ -416,6 +416,14 @@
         "pull_request": 37159383575,
         "push": 37159381073
       }
+    },
+    {
+      "number": 477,
+      "url": "https://github.com/MulattoTech/MJobs/pull/477",
+      "branch": "codex/company-discovery-triggers",
+      "status": "DRAFT",
+      "head_before_bookkeeping": "c12effd2c0d1126f60194842dd4e7af2ca19eda0",
+      "ci_result": "NOT_RUN"
     }
   ],
   "tests_passed": [
@@ -659,14 +667,18 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "cd487dea9772d58df5a2b811fb0f6de932f438d6",
+  "last_implementation_commit": "c12effd2c0d1126f60194842dd4e7af2ca19eda0",
   "publication": {
-    "result": "NOT_RUN",
+    "result": "PARTIAL",
     "branch": "codex/company-discovery-triggers",
     "worktree": "C:\\Tools\\Dev\\MJobs\\.worktrees\\company-discovery-triggers",
     "base": "8240e471260ebeb60bde9932368651da410f3148",
-    "observed_at": "2026-10-03T23:28:15.874617+00:00",
-    "note": "Local implementation verified; latest exact head CI required before merge."
+    "observed_at": "2026-10-03T23:29:36.552072+00:00",
+    "note": "This bookkeeping commit changes the head; verify latest exact SHA and CI before merge.",
+    "pr_number": 477,
+    "url": "https://github.com/MulattoTech/MJobs/pull/477",
+    "draft": true,
+    "observed_head_before_bookkeeping": "c12effd2c0d1126f60194842dd4e7af2ca19eda0"
   },
   "optional_afk_journal": {
     "result": "BLOCKED_ENVIRONMENT",
@@ -2516,7 +2528,7 @@
     }
   ],
   "live_reconciliation": {
-    "timestamp": "2026-10-03T23:28:15.874617+00:00",
+    "timestamp": "2026-10-03T23:29:36.552072+00:00",
     "origin_main": "8240e471260ebeb60bde9932368651da410f3148",
     "open_issue_count_before_catalogue": 371,
     "commercial_issue_mapping": {
@@ -2548,7 +2560,9 @@
     "remaining_scope": "Original requirements and release readiness remain incomplete; no commercial feature behavior has been implemented by catalogue creation.",
     "catalogue_pr": 471,
     "catalogue_publication": "MERGED",
-    "open_prs_at_checkpoint": [],
+    "open_prs_at_checkpoint": [
+      477
+    ],
     "integration_order": [],
     "note": "PR476 merged; new company discovery request slice verified locally.",
     "next_action": "Verify latest exact PR head and merge; then implement explicit source monitoring/revalidation and remaining company triggers without treating historical source enablement as current identity authority.",
@@ -2564,7 +2578,9 @@
       "MJ-REQ-056",
       "MJ-REQ-060"
     ],
-    "evidence_path": "docs/evidence/2026-10-03-company-discovery-requests.json"
+    "evidence_path": "docs/evidence/2026-10-03-company-discovery-requests.json",
+    "pr_number": 477,
+    "pr_url": "https://github.com/MulattoTech/MJobs/pull/477"
   },
   "historical_control_snapshots": [
     {

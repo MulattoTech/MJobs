@@ -366,9 +366,11 @@
         "name": "Useful-job discovery requests and reviewed employer origins",
         "branch": "codex/company-discovery-triggers",
         "status": "PARTIAL",
-        "publication_state": "NOT_RUN",
+        "publication_state": "DRAFT",
         "evidence_path": "docs/evidence/2026-10-03-company-discovery-requests.json",
-        "remaining": "Other triggers, automatic domain evidence acquisition, ATS breadth and periodic source revalidation/monitoring."
+        "remaining": "Other triggers, automatic domain evidence acquisition, ATS breadth and periodic source revalidation/monitoring.",
+        "pr_number": 477,
+        "url": "https://github.com/MulattoTech/MJobs/pull/477"
       }
     },
     {
