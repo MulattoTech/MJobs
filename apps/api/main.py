@@ -19,6 +19,8 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 from packages.persistence import models as m
 from packages.persistence.store import Store, identity
 from packages.domain.operation_mode import parse_operation_mode, operation_mode_from_env
+from packages.domain.profile import ContactDetails, JobPreferences
+from services.career_profile.extraction import extract_resume
 from services.discovery.pipeline import MockClient
 from services.discovery.sources.collect import configure_source
 from services.discovery.search_profiles import get_search_profile, list_search_profiles, save_search_profile
@@ -44,7 +46,7 @@ class FactInput(BaseModel):
 
 
 class CareerFactInput(FactInput):
-    kind: Literal["skill", "experience", "education", "certification", "project", "accomplishment"] = "skill"
+    kind: Literal["skill", "experience", "education", "certification", "project", "accomplishment", "summary"] = "skill"
 
 
 class ProfileInput(BaseModel):
@@ -52,8 +54,10 @@ class ProfileInput(BaseModel):
     id: str = Field(min_length=1, max_length=128)
     name: str = Field(min_length=1, max_length=200)
     email: str = Field(min_length=3, max_length=320, pattern=r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
-    facts: list[CareerFactInput] = Field(min_length=1, max_length=200)
+    facts: list[CareerFactInput] = Field(default_factory=list, max_length=200)
     answers: list[FactInput] = Field(default_factory=list, max_length=200)
+    contact: ContactDetails = Field(default_factory=ContactDetails)
+    preferences: JobPreferences = Field(default_factory=JobPreferences)
 
 
 class DiscoveryInput(BaseModel):
@@ -252,7 +256,11 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
 
     @app.put("/profiles")
     def profile(value: ProfileInput):
-        return {"id": value.id, "version": store.save_profile(value.model_dump())}
+        payload = value.model_dump()
+        for optional in ('contact', 'preferences'):
+            if optional not in value.model_fields_set:
+                payload.pop(optional)
+        return {"id": value.id, "version": store.save_profile(payload)}
 
     @app.get("/profiles/{profile_id}/resumes")
     def profile_resumes(profile_id: str):
@@ -272,7 +280,9 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                 raise HTTPException(413, "Resume upload exceeds the 10 MiB limit")
             content.extend(chunk)
         try:
-            return save_resume(store, output_dir, profile_id, filename, media_type, bytes(content))
+            return save_resume(store, output_dir, profile_id, filename, media_type, bytes(content),
+                               series_id=request.headers.get('x-resume-series') or None,
+                               label=unquote(request.headers.get('x-resume-label', '')) or None)
         except UploadIntegrityError as exc:
             raise HTTPException(409, str(exc)) from exc
 
@@ -284,6 +294,14 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             raise HTTPException(409, str(exc)) from exc
         return Response(data, media_type="application/octet-stream", headers={
             "Content-Disposition": f'attachment; filename="base-resume-{record["id"][:12]}.{record["format"]}"'})
+
+    @app.post('/profiles/{profile_id}/resumes/{resume_id}/extract')
+    def profile_resume_extract(profile_id: str, resume_id: str):
+        try:
+            record, data = read_resume(store, output_dir, profile_id, resume_id)
+        except UploadIntegrityError as exc:
+            raise HTTPException(409, str(exc)) from exc
+        return extract_resume(data, record['format'], f"uploaded-resume:{record['id']}:sha256:{record['sha256']}")
 
     @app.post("/discovery", status_code=202)
     def discovery(value: DiscoveryInput):

@@ -10,8 +10,8 @@
     "current_verified_local_state": "Initialized from newer origin/main; supplied control pack retained on governance branch",
     "current_verified_github_state": "Existing main README preserved; 366 issues, no PRs before bootstrap publication"
   },
-  "current_milestone": "M24_FEEDBACK_GUI_LOCAL_VERIFIED",
-  "current_objective": "Retest the user-requested Development & Feedback GUI (#451 / draft PR #452). Local recovery and lifecycle help verified; hosted final-head CI and user acceptance remain pending. Do not advance the autonomous roadmap during the feedback session.",
+  "current_milestone": "FEEDBACK_RESUME_INTEGRATION",
+  "current_objective": "Integrate feedback GUI with merged resume/profile work, verify combined behavior and exact-head CI, then continue the authorized backlog.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -59,10 +59,18 @@
     "Official-domain source acquisition and career-site discovery currently use fixture acceptance; production provider/search integration and automatic sitemap acquisition remain open (MJ-REQ-060..061 PARTIAL).",
     "ATS detection uses several deterministic page/URL evidence sources, but HTML-signature and network-observed public endpoint signals remain open (MJ-REQ-064 PARTIAL).",
     "Company-source AUTO_DISCOVERED/USER_WATCHED origin, explicit list/watch APIs, and protection of watched priority across automatic refresh are locally verified; outcome-based ranking, company-level UI, and periodic source/ATS migration revalidation remain open (MJ-PR-021).",
-    "Companies/Sources view and explicit pin/enable/watch preferences verified; advanced discovery actions, historical provenance repair and company-source scheduling remain incomplete."
+    "Companies/Sources view and explicit pin/enable/watch preferences verified; advanced discovery actions, historical provenance repair and company-source scheduling remain incomplete.",
+    "Reviewed native resume import, structured profile contact/preferences, and named immutable base-resume history. See docs/evidence/2026-10-03-resume-driven-profile.json."
   ],
   "blocked_capabilities": [],
   "active_requirements": [
+    "MJ-REQ-088",
+    "MJ-REQ-089",
+    "MJ-REQ-090",
+    "MJ-REQ-091",
+    "MJ-REQ-092",
+    "MJ-REQ-093",
+    "MJ-REQ-094",
     "MJ-REQ-082"
   ],
   "active_prs": [
@@ -300,16 +308,27 @@
       "url": "https://github.com/MulattoTech/MJobs/pull/450",
       "branch": "codex/mj-pr-023-company-ats-discovery",
       "worktree": "C:\\Tools\\Dev\\MJobs-pr-023",
-      "status": "DRAFT_PR",
+      "status": "MERGED",
       "initial_head": "83493c0c884a7719a86fdcb108e02aca648472a9",
-      "scope": "first source-linked activity slice only"
+      "scope": "first source-linked activity slice only",
+      "merge_commit": "7241958efcae25925149a566020c50a8f61416e5"
+    },
+    {
+      "number": 453,
+      "url": "https://github.com/MulattoTech/MJobs/pull/453",
+      "branch": "codex/resume-driven-profile",
+      "status": "MERGED",
+      "local_validation": "PASS",
+      "remote_ci": "PASS",
+      "head": "260540cc35dd1a51c37c61f1ed638eb94106bafe",
+      "merge_commit": "de9b058031d6db3aace9c56eebf7e5fd4aff695d"
     },
     {
       "number": 452,
       "url": "https://github.com/MulattoTech/MJobs/pull/452",
       "branch": "codex/feedback-gui",
       "status": "DRAFT",
-      "note": "Local validation PASS; user retest and hosted exact-head CI pending."
+      "note": "Merged current main without discarding either feature; new exact-head CI required. User manual retest remains NOT_RUN, not a claimed validation."
     }
   ],
   "tests_passed": [
@@ -1883,12 +1902,100 @@
         "git_commit": "e840c6fe4ba1629b2a79722176f8ab53f7e54497",
         "evidence_path": "docs/evidence/2026-10-03-feedback-gui.json"
       }
+    },
+    {
+      "milestone_id": "RESUME-PROFILE-FEEDBACK-20261003",
+      "timestamp": "2026-10-03T19:07:22.805950+00:00",
+      "current_phase": "RESUME_PROFILE_FEEDBACK_LOCAL_VERIFIED",
+      "completed_steps": [
+        "Reproduced the missing import/profile/history behavior.",
+        "Implemented reviewed native extraction, optional profile fields, immutable snapshots and named resume versions.",
+        "Preserved pending-fact document gates, original downloads and idempotent upload history."
+      ],
+      "files_added": [
+        "services/career_profile/extraction.py",
+        "packages/domain/profile.py",
+        "apps/web/src/resume-library.tsx",
+        "migrations/versions/d21b76ce903a_resume_library_versions.py",
+        "docs/evidence/2026-10-03-resume-driven-profile.json"
+      ],
+      "files_modified": [
+        "apps/api/main.py",
+        "apps/web/src/main.tsx",
+        "packages/persistence/store.py",
+        "services/documents/uploads.py"
+      ],
+      "tests_completed": [
+        "256 Python tests PASS.",
+        "17 frontend tests and production build PASS.",
+        "Final two-browser acceptance PASS.",
+        "PostgreSQL API import/versioning, mock E2E and connected UI E2E PASS."
+      ],
+      "tests_remaining": [
+        "Exact published PR-head CI verification.",
+        "User manual browser retest."
+      ],
+      "migrations_applied": [
+        "d21b76ce903a on isolated PostgreSQL and legacy SQLite test databases."
+      ],
+      "live_integrations_tested": [
+        "Isolated local PostgreSQL, Redis, RQ and Chromium with synthetic data."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "Native text extraction is heuristic and requires review; structured employment chronology and complete automatic field population remain partial.",
+        "Scanned PDF OCR is not implemented; image-only PDFs show NEEDS_OCR.",
+        "LinkedIn is an explicit saved URL only; remote profile import is not implemented.",
+        "Name and email are required before saving the initial profile and uploading a resume.",
+        "Job preferences are persisted but are not yet automatic search filters.",
+        "Broader document types, tailoring and the full original requirements remain incomplete."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "6b35bde8aaac1a9ea62e6070d29d9caaa4dcc280",
+        "evidence_path": "docs/evidence/2026-10-03-resume-driven-profile.json"
+      }
+    },
+    {
+      "milestone_id": "FEEDBACK-RESUME-INTEGRATION-20261003",
+      "timestamp": "2026-10-03T19:51:32.962304+00:00",
+      "current_phase": "FEEDBACK_RESUME_INTEGRATION",
+      "completed_steps": [
+        "Resolved mainline merge conflict while retaining both feature histories and requirements.",
+        "Rebuilt stale ignored frontend assets and verified profile browser acceptance."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-03-feedback-resume-integration.json"
+      ],
+      "files_modified": [
+        "planning/IMPLEMENTATION_STATE.json"
+      ],
+      "tests_completed": [
+        "17 frontend tests and production build PASS; profile import browser1 PASS.",
+        "274 full Python tests PASS, zero skips, after deterministic async crash harness correction."
+      ],
+      "tests_remaining": [
+        "Final published exact-head CI; manual user acceptance NOT_RUN."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Isolated synthetic loopback browser/API only."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "New final-head CI required after integration.",
+        "User manual browser acceptance is NOT_RUN.",
+        "Real external submission remains disabled."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "acf932b6ac2c35025637bf5468c8c97dc548a16f",
+        "evidence_path": "docs/evidence/2026-10-03-feedback-resume-integration.json"
+      }
     }
   ],
-  "current_phase": "M24_FEEDBACK_GUI_LOCAL_VERIFIED",
+  "current_phase": "FEEDBACK_RESUME_INTEGRATION",
   "last_safe_checkpoint": {
-    "git_commit": "e840c6fe4ba1629b2a79722176f8ab53f7e54497",
-    "evidence_path": "docs/evidence/2026-10-03-feedback-gui.json"
+    "git_commit": "acf932b6ac2c35025637bf5468c8c97dc548a16f",
+    "evidence_path": "docs/evidence/2026-10-03-feedback-resume-integration.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
@@ -1954,6 +2061,13 @@
         "push_verification": 36951969776,
         "result": "IN_PROGRESS"
       }
+    },
+    {
+      "result": "PASS",
+      "transport": "Git push and GitHub draft PR",
+      "pr_number": 453,
+      "url": "https://github.com/MulattoTech/MJobs/pull/453",
+      "force": false
     }
   ],
   "active_development_issue": {

@@ -1,10 +1,13 @@
 """Real browser acceptance for the private development-feedback workstation."""
+import asyncio
+import contextlib
 import json
 from pathlib import Path
 import tempfile
 import threading
 import unittest
 
+from playwright.async_api import async_playwright, expect as async_expect
 from playwright.sync_api import sync_playwright, expect, Error
 
 
@@ -97,6 +100,9 @@ class FeedbackGUIBrowserTests(unittest.TestCase):
                 server.shutdown(); server.server_close(); thread.join()
 
     def test_guided_report_survives_browser_and_server_restart(self):
+        asyncio.run(self._guided_report_survives_browser_and_server_restart())
+
+    async def _guided_report_survives_browser_and_server_restart(self):
         from cli.feedback_gui import create_server
 
         with tempfile.TemporaryDirectory() as directory:
@@ -109,24 +115,40 @@ class FeedbackGUIBrowserTests(unittest.TestCase):
             origin = f"http://127.0.0.1:{port}"
             errors = []
             try:
-                with sync_playwright() as pw:
-                    context = pw.chromium.launch_persistent_context(str(root / 'browser'), headless=True)
-                    page = context.new_page()
+                async with async_playwright() as pw:
+                    context = await pw.chromium.launch_persistent_context(str(root / 'browser'), headless=True)
+                    page = await context.new_page()
                     page.on('pageerror', lambda error: errors.append(str(error)))
-                    page.goto(origin)
-                    expect(page.get_by_role('heading', name='Development & Feedback', exact=True)).to_be_visible()
-                    expect(page.locator('[data-task-id]')).to_have_count(19)
-                    page.locator('[data-task-id="03-bug-report"]').click()
-                    page.get_by_label('Short title').fill('Synthetic regression: lost form')
+                    await page.goto(origin)
+                    await page.get_by_role('heading', name='Development & Feedback', exact=True).wait_for()
+                    await async_expect(page.locator('[data-task-id]')).to_have_count(19)
+                    await page.locator('[data-task-id="03-bug-report"]').click()
+                    await page.get_by_label('Short title').fill('Synthetic regression: lost form')
+                    await async_expect(page.locator('#save-status')).to_contain_text('Saved on this computer')
+                    self.assertEqual(server.app.store.rows()[0]['title'], 'Synthetic regression: lost form')
+                    session = await context.new_cdp_session(page)
                     # Immediate synchronous local recovery must not depend on a debounce completing.
-                    page.locator('#task-fields textarea').first.fill('Typed immediately before closing the browser.')
-                    # Crash the renderer, not just an orderly navigation/close.
-                    with page.expect_event('crash', timeout=5000):
-                        try:
-                            page.goto('chrome://crash', timeout=5000)
-                        except Error:
-                            pass
-                    context.close()
+                    await page.locator('#task-fields textarea').first.fill('Typed immediately before closing the browser.')
+                    # Run Page.crash concurrently: the CDP command remains pending
+                    # after killing its target, while the page crash event is the
+                    # bounded proof that the renderer actually died.
+                    crash_event = asyncio.create_task(page.wait_for_event('crash', timeout=5000))
+                    # Give Playwright one turn to install the event listener before
+                    # issuing the command; otherwise a fast crash can be missed.
+                    await asyncio.sleep(0)
+                    crash_task = asyncio.create_task(session.send('Page.crash'))
+                    try:
+                        await crash_event
+                    finally:
+                        if not crash_event.done():
+                            crash_event.cancel()
+                        if not crash_task.done():
+                            crash_task.cancel()
+                        with contextlib.suppress(asyncio.CancelledError, Error):
+                            await crash_event
+                        with contextlib.suppress(asyncio.CancelledError, Error):
+                            await crash_task
+                    await context.close()
 
                     server.shutdown()
                     server.server_close()
@@ -134,39 +156,39 @@ class FeedbackGUIBrowserTests(unittest.TestCase):
                     server = create_server(port=port, output_root=output)
                     thread = threading.Thread(target=server.serve_forever, daemon=True)
                     thread.start()
-                    context = pw.chromium.launch_persistent_context(str(root / 'browser'), headless=True)
-                    page = context.new_page()
+                    context = await pw.chromium.launch_persistent_context(str(root / 'browser'), headless=True)
+                    page = await context.new_page()
                     page.on('pageerror', lambda error: errors.append(str(error)))
-                    page.goto(origin)
-                    expect(page.get_by_label('Short title')).to_have_value('Synthetic regression: lost form')
-                    expect(page.locator('#task-fields textarea').first).to_have_value('Typed immediately before closing the browser.')
-                    expect(page.locator('#save-status')).to_contain_text('Saved on this computer')
-                    page.get_by_role('button', name='Choose another task').click()
-                    page.locator('[data-task-id="02-quick-feedback"]').click()
-                    page.get_by_label('Short title').fill('Another independent draft')
-                    expect(page.locator('#save-status')).to_contain_text('Saved on this computer')
-                    page.get_by_role('button', name='Synthetic regression: lost form', exact=True).click()
-                    expect(page.locator('#task-fields textarea').first).to_have_value('Typed immediately before closing the browser.')
+                    await page.goto(origin)
+                    await async_expect(page.get_by_label('Short title')).to_have_value('Synthetic regression: lost form')
+                    await async_expect(page.locator('#task-fields textarea').first).to_have_value('Typed immediately before closing the browser.')
+                    await async_expect(page.locator('#save-status')).to_contain_text('Saved on this computer')
+                    await page.get_by_role('button', name='Choose another task').click()
+                    await page.locator('[data-task-id="02-quick-feedback"]').click()
+                    await page.get_by_label('Short title').fill('Another independent draft')
+                    await async_expect(page.locator('#save-status')).to_contain_text('Saved on this computer')
+                    await page.get_by_role('button', name='Synthetic regression: lost form', exact=True).click()
+                    await async_expect(page.locator('#task-fields textarea').first).to_have_value('Typed immediately before closing the browser.')
                     # Complete the task-specific required fields from visible controls.
-                    for control in page.locator('#task-fields [required]').all():
-                        if control.evaluate('(e) => e.tagName') == 'SELECT':
-                            options = control.locator('option').evaluate_all('(els) => els.map(e => e.value).filter(Boolean)')
-                            control.select_option(options[0])
-                        elif not control.input_value():
-                            control.fill('Synthetic browser acceptance detail')
-                    page.get_by_role('button', name='Ready for Codex', exact=True).click()
-                    expect(page.locator('#handoff-result')).to_contain_text('Saved for Codex')
+                    for control in await page.locator('#task-fields [required]').all():
+                        if await control.evaluate('(e) => e.tagName') == 'SELECT':
+                            options = await control.locator('option').evaluate_all('(els) => els.map(e => e.value).filter(Boolean)')
+                            await control.select_option(options[0])
+                        elif not await control.input_value():
+                            await control.fill('Synthetic browser acceptance detail')
+                    await page.get_by_role('button', name='Ready for Codex', exact=True).click()
+                    await async_expect(page.locator('#handoff-result')).to_contain_text('Saved for Codex')
                     folders = list(output.glob('report-*'))
                     self.assertEqual(len(folders), 1)
                     self.assertIn('Synthetic regression: lost form', (folders[0] / 'feedback.md').read_text(encoding='utf-8'))
                     self.assertEqual(json.loads((folders[0] / 'session.json').read_text(encoding='utf-8'))['capture_status'], 'NOT_RUN')
-                    page.reload()
-                    expect(page.get_by_label('Short title')).to_have_value('Synthetic regression: lost form')
-                    page.set_viewport_size({'width':390,'height':844})
-                    self.assertLessEqual(page.evaluate('document.documentElement.scrollWidth'), 390)
-                    expect(page.get_by_role('button', name='Ready for Codex', exact=True)).to_be_visible()
+                    await page.reload()
+                    await async_expect(page.get_by_label('Short title')).to_have_value('Synthetic regression: lost form')
+                    await page.set_viewport_size({'width':390,'height':844})
+                    self.assertLessEqual(await page.evaluate('document.documentElement.scrollWidth'), 390)
+                    await page.get_by_role('button', name='Ready for Codex', exact=True).wait_for()
                     self.assertEqual(errors, [])
-                    context.close()
+                    await context.close()
             finally:
                 server.shutdown()
                 server.server_close()

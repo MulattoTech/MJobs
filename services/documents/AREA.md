@@ -12,5 +12,7 @@ Depend on domain safety/persistence, python-docx/reportlab. No AI or invented
 qualifications. Private files reside under ignored outputs or the document
 volume, scoped to application and immutable profile version. Test:
 python -m unittest tests.integration.test_spine tests.integration.test_resume_upload.
-Native resume extraction, reviewed fact import, broader tailoring, document
-review UX and regeneration/recovery remain later queue acceptance.
+Named base resumes retain immutable version entries in resume_revisions; repeated
+uploads within a series are idempotent and version allocation locks the profile.
+Native extraction and review belong to services/career_profile. Broader tailoring,
+OCR, advanced structured chronology and document regeneration remain incomplete.

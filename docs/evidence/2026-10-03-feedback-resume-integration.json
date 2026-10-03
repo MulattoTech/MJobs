@@ -1,0 +1,44 @@
+{
+  "timestamp": "2026-10-03T19:51:32.962304+00:00",
+  "result": "PASS",
+  "scope": "Combine preserved feedback GUI and reviewed resume/profile features",
+  "checks": [
+    {
+      "command": "python -m unittest discover -s tests -p test_*.py",
+      "result": "FAIL",
+      "tests": 274,
+      "errors": 2,
+      "reason": "Browser crash-event timeout and stale ignored frontend assets."
+    },
+    {
+      "command": "npm ci --prefix apps/web; npm test --prefix apps/web; npm run build --prefix apps/web",
+      "result": "PASS",
+      "tests": 17
+    },
+    {
+      "command": "python -m unittest tests.browser.test_profile_import",
+      "result": "PASS",
+      "tests": 1
+    },
+    {
+      "command": "python -m unittest tests.browser.test_feedback_gui",
+      "timestamp": "2026-10-03T20:03:49.160354+00:00",
+      "result": "PASS",
+      "tests": 3,
+      "note": "Async CDP crash event is mandatory; final textarea edit is not awaited for server autosave."
+    },
+    {
+      "command": "python -m unittest discover -s tests -p test_*.py",
+      "timestamp": "2026-10-03T20:03:49.160354+00:00",
+      "result": "PASS",
+      "tests": 274,
+      "skips": 0,
+      "duration_seconds": 81.416
+    }
+  ],
+  "limitations": [
+    "New final-head CI required after integration.",
+    "User manual browser acceptance is NOT_RUN.",
+    "Real external submission remains disabled."
+  ]
+}
