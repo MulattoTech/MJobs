@@ -368,6 +368,13 @@
         "push_verification": 37152672783
       },
       "ci_result": "PASS"
+    },
+    {
+      "number": 474,
+      "url": "https://github.com/MulattoTech/MJobs/pull/474",
+      "branch": "codex/source-value-resolution",
+      "status": "PARTIAL",
+      "observed_head_before_bookkeeping": "b40e7580660a1f6c611c102c65e65c52ff648986"
     }
   ],
   "tests_passed": [
@@ -607,14 +614,18 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "230cb9844f776e4ee1b49d0bcacec23c26f58a5f",
+  "last_implementation_commit": "b40e7580660a1f6c611c102c65e65c52ff648986",
   "publication": {
-    "result": "NOT_RUN",
+    "result": "PARTIAL",
     "branch": "codex/source-value-resolution",
     "worktree": "C:\\Tools\\Dev\\MJobs\\.worktrees\\source-value-resolution",
     "base": "96e48325793c29f74c96063abf36ea86c9180a2f",
-    "observed_at": "2026-10-03T21:28:33.949813+00:00",
-    "note": "Local implementation awaiting publication and exact-head hosted verification."
+    "observed_at": "2026-10-03T21:31:44.309470+00:00",
+    "note": "This bookkeeping commit changes the PR head. Verify exact latest SHA and hosted CI before merge.",
+    "pr_number": 474,
+    "url": "https://github.com/MulattoTech/MJobs/pull/474",
+    "draft": true,
+    "observed_head_before_bookkeeping": "b40e7580660a1f6c611c102c65e65c52ff648986"
   },
   "optional_afk_journal": {
     "result": "BLOCKED_ENVIRONMENT",
@@ -2318,7 +2329,7 @@
     }
   ],
   "live_reconciliation": {
-    "timestamp": "2026-10-03T21:28:33.949813+00:00",
+    "timestamp": "2026-10-03T21:31:44.309470+00:00",
     "origin_main": "96e48325793c29f74c96063abf36ea86c9180a2f",
     "open_issue_count_before_catalogue": 371,
     "commercial_issue_mapping": {
@@ -2350,7 +2361,9 @@
     "remaining_scope": "Original requirements and release readiness remain incomplete; no commercial feature behavior has been implemented by catalogue creation.",
     "catalogue_pr": 471,
     "catalogue_publication": "MERGED",
-    "open_prs_at_checkpoint": [],
+    "open_prs_at_checkpoint": [
+      474
+    ],
     "integration_order": [],
     "note": "PR473 merged after exact-head CI; current source-value work isolated. Prior user work remains preserved.",
     "next_action": "Reconcile exact-head CI and merge this slice; next implement bounded application-link verification using the existing safe egress boundary with unknowns preserved.",
@@ -2364,7 +2377,9 @@
     "related_requirements": [
       "MJ-REQ-083"
     ],
-    "evidence_path": "docs/evidence/2026-10-03-authoritative-source-values.json"
+    "evidence_path": "docs/evidence/2026-10-03-authoritative-source-values.json",
+    "pr_number": 474,
+    "pr_url": "https://github.com/MulattoTech/MJobs/pull/474"
   },
   "historical_control_snapshots": [
     {

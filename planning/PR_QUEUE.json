@@ -596,9 +596,11 @@
         "name": "Authority-first source values and protected application routes",
         "branch": "codex/source-value-resolution",
         "status": "PARTIAL",
-        "publication_state": "NOT_RUN",
+        "publication_state": "DRAFT",
         "evidence_path": "docs/evidence/2026-10-03-authoritative-source-values.json",
-        "remaining": "Bounded application-link accuracy observations; full MJ-REQ-083 acceptance."
+        "remaining": "Bounded application-link accuracy observations; full MJ-REQ-083 acceptance.",
+        "pr_number": 474,
+        "url": "https://github.com/MulattoTech/MJobs/pull/474"
       },
       "slice_history": [
         {
