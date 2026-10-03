@@ -388,6 +388,13 @@
         "pull_request_verification": 37155422904,
         "push_verification": 37155420738
       }
+    },
+    {
+      "number": 475,
+      "url": "https://github.com/MulattoTech/MJobs/pull/475",
+      "branch": "codex/public-company-discovery",
+      "status": "PARTIAL",
+      "observed_head_before_bookkeeping": "db9fae035b7ae0a4fa2beb84628c057ee73d000d"
     }
   ],
   "tests_passed": [
@@ -628,14 +635,18 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "b40e7580660a1f6c611c102c65e65c52ff648986",
+  "last_implementation_commit": "db9fae035b7ae0a4fa2beb84628c057ee73d000d",
   "publication": {
-    "result": "NOT_RUN",
+    "result": "PARTIAL",
     "branch": "codex/public-company-discovery",
     "worktree": "C:\\Tools\\Dev\\MJobs\\.worktrees\\public-company-discovery",
     "base": "216f1a4696abc8dcb07fb57b5a67102091343ec5",
-    "observed_at": "2026-10-03T22:02:40.951389+00:00",
-    "note": "Local implementation awaits exact-head hosted CI and publication."
+    "observed_at": "2026-10-03T22:05:02.314398+00:00",
+    "note": "This state commit changes the PR head. Verify latest exact SHA and required CI before merge.",
+    "pr_number": 475,
+    "url": "https://github.com/MulattoTech/MJobs/pull/475",
+    "draft": true,
+    "observed_head_before_bookkeeping": "db9fae035b7ae0a4fa2beb84628c057ee73d000d"
   },
   "optional_afk_journal": {
     "result": "BLOCKED_ENVIRONMENT",
@@ -2383,7 +2394,7 @@
     }
   ],
   "live_reconciliation": {
-    "timestamp": "2026-10-03T22:02:40.951389+00:00",
+    "timestamp": "2026-10-03T22:05:02.314398+00:00",
     "origin_main": "216f1a4696abc8dcb07fb57b5a67102091343ec5",
     "open_issue_count_before_catalogue": 371,
     "commercial_issue_mapping": {
@@ -2415,7 +2426,9 @@
     "remaining_scope": "Original requirements and release readiness remain incomplete; no commercial feature behavior has been implemented by catalogue creation.",
     "catalogue_pr": 471,
     "catalogue_publication": "MERGED",
-    "open_prs_at_checkpoint": [],
+    "open_prs_at_checkpoint": [
+      475
+    ],
     "integration_order": [],
     "note": "PR474 exact-head merge reconciled; public discovery work isolated.",
     "next_action": "Reconcile exact-head CI and merge current slice; continue MJ-REQ-083 link evidence with explicit source/requisition binding through the bounded production fetch path.",
@@ -2434,7 +2447,9 @@
       "MJ-REQ-072",
       "MJ-REQ-073"
     ],
-    "evidence_path": "docs/evidence/2026-10-03-public-company-discovery.json"
+    "evidence_path": "docs/evidence/2026-10-03-public-company-discovery.json",
+    "pr_number": 475,
+    "pr_url": "https://github.com/MulattoTech/MJobs/pull/475"
   },
   "historical_control_snapshots": [
     {

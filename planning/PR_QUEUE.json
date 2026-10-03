@@ -499,9 +499,11 @@
         "name": "Bounded PERSONAL company discovery and unverified source review",
         "branch": "codex/public-company-discovery",
         "status": "PARTIAL",
-        "publication_state": "NOT_RUN",
+        "publication_state": "DRAFT",
         "evidence_path": "docs/evidence/2026-10-03-public-company-discovery.json",
-        "remaining": "Production provider breadth, automatic intake wiring, scheduled collection and link accuracy."
+        "remaining": "Production provider breadth, automatic intake wiring, scheduled collection and link accuracy.",
+        "pr_number": 475,
+        "url": "https://github.com/MulattoTech/MJobs/pull/475"
       }
     },
     {
