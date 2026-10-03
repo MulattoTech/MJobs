@@ -104,6 +104,24 @@ posting_value_candidates = table(
 )
 Index("ix_posting_value_candidates_posting_time", posting_value_candidates.c.posting_id,
       posting_value_candidates.c.observed_at)
+Index("ix_posting_value_candidates_quality", posting_value_candidates.c.quality_observation_id)
+source_application_link_observations = table(
+    "source_application_link_observations",
+    Column("candidate_id", ForeignKey("posting_value_candidates.id"), nullable=False),
+    Column("observed_at", String(64), nullable=False),
+    Column("requested_url", String(2000), nullable=False),
+    Column("final_url", String(2000)),
+    Column("result", String(24), nullable=False),
+    Column("reason", String(100), nullable=False),
+    Column("response_status", Integer),
+    Column("response_sha256", String(64)),
+    Column("identity_evidence", JSON, nullable=False),
+    constraints=(
+        UniqueConstraint("candidate_id"),
+        CheckConstraint("result IN ('ACCURATE', 'INACCURATE', 'UNKNOWN')", name="application_link_result_valid"),
+    ),
+)
+Index("ix_source_application_link_observed_at", source_application_link_observations.c.observed_at)
 dedupe_reviews = table("dedupe_reviews", Column("left_job_id", ForeignKey("canonical_jobs.id"), nullable=False),
                        Column("right_job_id", ForeignKey("canonical_jobs.id"), nullable=False),
                        Column("confidence", Float, nullable=False), Column("state", String(64), nullable=False),

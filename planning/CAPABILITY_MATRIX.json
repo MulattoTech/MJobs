@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-03",
+  "timestamp": "2026-10-03T22:38:15.833182+00:00",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -690,9 +690,10 @@
       "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-10-03-source-quality-observations.json",
-        "docs/evidence/2026-10-03-authoritative-source-values.json"
+        "docs/evidence/2026-10-03-authoritative-source-values.json",
+        "docs/evidence/2026-10-03-application-link-evidence.json"
       ],
-      "note": "Durable endpoint-scoped quality, authority-first canonical value selection and explicit protected-route review implemented. Application-link accuracy verification remains incomplete."
+      "note": "Durable source quality, authority-first canonical selection and candidate-bound public-feed link samples implemented; other ATS origin scope and full application-link usability acceptance remain incomplete."
     },
     {
       "requirement_id": "MJ-REQ-084",

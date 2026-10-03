@@ -233,17 +233,27 @@ def discover_company_source(store, candidate, client, check=None, search_provide
                     ["homepage supplied for bounded career discovery"],
                 )
             from services.discovery.company_feed import import_company_feed_jobs
+            from services.company_discovery.application_links import sample_feed_links
+            try:
+                link_reports = None if fixture else sample_feed_links(
+                    feed_jobs, feed["strategy"], feed["url"], client, check=check)
+            except (ValueError, TypeError) as failure:
+                # A malformed fetched feed is a failed import, not missing history.
+                # Operational cancellation is deliberately not caught here.
+                from services.company_discovery.quality import record_observation
+                with store.engine.begin() as connection:
+                    record_observation(connection, company_source_id=source_record['id'],
+                        source_endpoint=feed['url'], succeeded=False, available=True,
+                        enumerated=len(feed_jobs), error_code=type(failure).__name__)
+                raise
             jobs_imported = import_company_feed_jobs(
                 store, company_id=resolved["company_id"],
                 source_id=source_record["id"], provider=source_provider, tenant=source_tenant,
                 endpoint=feed["url"], strategy=feed["strategy"], items=feed_jobs,
                 profile_id=profile_id, profile_version=profile_version, check=check,
-                fetch_available=True,
+                fetch_available=True, link_reports=link_reports,
             )
             with store.engine.begin() as connection:
-                connection.execute(update(m.company_sources).where(
-                    m.company_sources.c.id == source_record["id"]
-                ).values(last_success=timestamp))
                 store._audit(connection, resolved["company_id"], "COMPANY_SOURCE_DISCOVERED", {
                     "company_source_id": source_record["id"],
                     "discovery_method": "SAME_ORIGIN_MACHINE_READABLE_FEED",

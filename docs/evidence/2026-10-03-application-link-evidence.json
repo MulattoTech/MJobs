@@ -1,0 +1,68 @@
+{
+  "timestamp": "2026-10-03T22:38:15.833182+00:00",
+  "result": "PARTIAL",
+  "requirements": [
+    "MJ-REQ-083"
+  ],
+  "branch": "codex/application-link-evidence",
+  "base_commit": "5a082f26a34765be32cd6c0c726c957b242b72a7",
+  "scope": "Bounded daily-rotating public-feed link samples, exact immutable candidate binding, source-quality aggregation and local UI readback",
+  "checks": [
+    {
+      "action": "Two parser identity regressions before guards",
+      "result": "FAIL",
+      "count": 2,
+      "evidence_path": "Git common directory afk-dev/reconcile-20261003/application-link-parser-red.log",
+      "note": "Blank identity and ignored response tail produced false matches; both fixed before final regression."
+    },
+    {
+      "action": "python -m unittest discover -s tests -p 'test_*.py' -v",
+      "result": "PASS",
+      "count": 369,
+      "seconds": 109.462,
+      "skipped": 0,
+      "evidence_path": "Git common directory afk-dev/reconcile-20261003/application-link-regression-final.log"
+    },
+    {
+      "action": "npm test --prefix apps/web -- --run; npm run build --prefix apps/web",
+      "result": "PASS",
+      "count": 26,
+      "note": "TypeScript and Vite build; source controls and live-feedback regression preserved."
+    },
+    {
+      "action": "Isolated PostgreSQL17 populated upgrade, real sampler/import with controlled responses, downgrade guard and restart/reopen",
+      "result": "PASS",
+      "evidence_path": "Git common directory afk-dev/reconcile-20261003/application-link-postgres-receipt.json",
+      "note": "Two link observations: one conclusive match, one unknown. No concurrency claim for this slice."
+    },
+    {
+      "action": "Independent source identity, transaction and bounded sampler review",
+      "result": "PASS",
+      "note": "Material findings fixed; independent18 focused tests passed, plus primary final full regression."
+    },
+    {
+      "action": "Root templates checksum and every worktree status audit",
+      "result": "PASS",
+      "worktrees": 31,
+      "preserved_untracked_files": 24,
+      "evidence_path": "Git common directory afk-dev/reconcile-20261003/application-link-preservation.json"
+    },
+    {
+      "action": "python -m tools.verification.catalogue; python -m tools.verification.progress validate; git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "limitations": [
+    "MJ-REQ-083 remains PARTIAL: declared JSON-LD identity is not full application usability, employer identity or whole-feed coverage.",
+    "Only enrolled same-origin public feeds are sampled; other ATS origins, production provider breadth and periodic source scheduling remain incomplete.",
+    "UNKNOWN and unsampled rows are excluded from the conclusive rate and are displayed separately; accepted feed rows can repeat posting identities.",
+    "Browser/API/worker employer responses are controlled. No fresh live employer-page proof is claimed.",
+    "No user database migration or external application submission; isolated PostgreSQL container was removed.",
+    "Original counts 48 PASS,73 PARTIAL,245 NOT_RUN; reference59 NOT_RUN; release NOT_RUN."
+  ],
+  "external_submission_enabled": false,
+  "remote_ci": {
+    "result": "NOT_RUN",
+    "note": "Exact final published head must be verified; predecessor runs do not certify this slice."
+  }
+}

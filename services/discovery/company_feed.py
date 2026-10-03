@@ -1,10 +1,9 @@
 """Normalize and persist discovered employer feed rows through canonical jobs."""
 from __future__ import annotations
 
-from urllib.parse import urljoin, urlsplit
 import json
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 
 from packages.persistence import models as m
 from packages.persistence.store import identity, now, upsert
@@ -19,24 +18,9 @@ from services.discovery.negative_filters import parse_negative_conditions
 from services.discovery.sources.collect import persist_posting
 from services.discovery.sources.greenhouse import plain_text
 from services.company_discovery.quality import posting_metrics, record_observation
+from services.discovery.feed_items import _application_url, describe_feed_item
+from services.company_discovery.link_evidence import validate_reports, record_link_evidence
 from services.dedupe.source_values import lock_candidate_job, record_candidate, resolve_job_values
-
-
-def _application_url(item, strategy, endpoint):
-    value = item.get("url") or item.get("external_url") if strategy == "PUBLIC_JSON" else item.get("link")
-    value = str(value or "").strip()
-    if not value:
-        return None
-    target = urljoin(endpoint, value)
-    try:
-        parsed = urlsplit(target)
-        if (parsed.scheme.casefold() not in {"http", "https"} or not parsed.hostname
-                or parsed.username is not None or parsed.password is not None):
-            return None
-        parsed.port
-    except ValueError:
-        return None
-    return target[:2000] if len(target) <= 2000 else None
 
 
 def _validate_source_identity(store, *, source_id, company_id, provider, tenant, endpoint):
@@ -59,7 +43,7 @@ def _validate_source_identity(store, *, source_id, company_id, provider, tenant,
 
 def import_company_feed_jobs(store, *, company_id, source_id, provider, tenant,
                              endpoint, strategy, items, profile_id=None, profile_version=None,
-                             check=None, fetch_available=None):
+                             check=None, fetch_available=None, link_reports=None):
     """Persist bounded public feed rows and optional profile matches idempotently."""
     if fetch_available is not None and type(fetch_available) is not bool:
         raise ValueError("COMPANY_FEED_FETCH_AVAILABILITY_INVALID")
@@ -83,6 +67,7 @@ def import_company_feed_jobs(store, *, company_id, source_id, provider, tenant,
     pending_candidates = []
     batch_postings = {}
     try:
+        reports = validate_reports(items, strategy, endpoint, link_reports, timestamp)
         with store.engine.begin() as connection:
             if connection.dialect.name == 'sqlite':
                 connection.exec_driver_sql('BEGIN IMMEDIATE')
@@ -95,12 +80,10 @@ def import_company_feed_jobs(store, *, company_id, source_id, provider, tenant,
             for item in sorted(items, key=lambda row: str(row.get('id') or row.get('guid') or
                     _application_url(row, strategy, endpoint) or '') if isinstance(row, dict) else ''):
                 check()
-                if not isinstance(item, dict):
+                entry = describe_feed_item(item, strategy, endpoint)
+                if entry is None:
                     continue
-                title = plain_text(item.get("title"))[:500]
-                application_url = _application_url(item, strategy, endpoint)
-                if not title or application_url is None:
-                    continue
+                title, application_url = entry.title, entry.application_url
                 description_value = (item.get("content_text") or item.get("content_html") or item.get("description")
                                      or item.get("summary") or "")
                 description = plain_text(description_value)[:50_000]
@@ -114,7 +97,7 @@ def import_company_feed_jobs(store, *, company_id, source_id, provider, tenant,
                 negative = parse_negative_conditions(description, requirements["clearance"])
                 salary = parse_salary(description, "EMPLOYER_PROVIDED")
                 published = parse_timestamp(item.get("date_published") or item.get("published") or item.get("pubdate"))
-                external_key = str(item.get("id") or item.get("guid") or application_url).strip()
+                external_key = entry.external_key
                 requisition = external_key if len(external_key) <= 128 else identity(external_key)
                 job_id = identity(company_id, provider, tenant, requisition)
                 previous = connection.execute(select(m.jobs.c.attributes).where(m.jobs.c.id == job_id)).scalar_one_or_none()
@@ -161,7 +144,7 @@ def import_company_feed_jobs(store, *, company_id, source_id, provider, tenant,
                 persist_posting(connection, {"id": posting_id, "job_id": job_id,
                     "source": source, "source_job_id": source_job_id, "source_url": endpoint,
                     "application_url": application_url, "raw": item, "fetched_at": timestamp})
-                pending_candidates.append((posting_id, job_id, {key: value for key, value in job.items()
+                pending_candidates.append((posting_id, job_id, external_key, {key: value for key, value in job.items()
                                                                 if key not in {'id', 'company_id'}}))
                 completeness, has_salary = posting_metrics(job, application_url)
                 completeness_sum += completeness
@@ -177,13 +160,25 @@ def import_company_feed_jobs(store, *, company_id, source_id, provider, tenant,
                 source_endpoint=endpoint,
                 succeeded=True, available=fetch_available, enumerated=len(items), accepted=imported,
                 completeness_sum=completeness_sum, salary_known=salary_known,
-                links_checked=None, links_accurate=None,
+                links_checked=sum(r.result != 'UNKNOWN' for r in reports.values()) if link_reports is not None else None,
+                links_accurate=sum(r.result == 'ACCURATE' for r in reports.values()) if link_reports is not None else None,
             )
-            for posting_id, _, values in pending_candidates:
-                record_candidate(connection, posting_id=posting_id, company_source_id=source_id,
+            linked = set()
+            for posting_id, _, external_key, values in pending_candidates:
+                candidate_id = record_candidate(connection, posting_id=posting_id, company_source_id=source_id,
                                  observation_id=observation_id, normalized=values)
+                if external_key in reports and candidate_id not in linked:
+                    record_link_evidence(connection, candidate_id, reports[external_key])
+                    linked.add(candidate_id)
             for job_id in sorted({entry[1] for entry in pending_candidates}):
                 resolve_job_values(connection, job_id, at=observation_at, seen_at=timestamp, profile=profile)
+            # The locked source and its successful collection commit together.
+            # Compare parsed instants so an older in-flight refresh cannot rewind it.
+            from datetime import datetime
+            previous_success = current_source['last_success']
+            if not previous_success or datetime.fromisoformat(previous_success.replace('Z', '+00:00')) < datetime.fromisoformat(observation_at):
+                connection.execute(update(m.company_sources).where(m.company_sources.c.id == source_id)
+                                   .values(last_success=observation_at))
     except Exception as failure:
         with store.engine.begin() as connection:
             record_observation(

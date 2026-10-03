@@ -128,7 +128,8 @@ def quality_score(observations, *, at):
         "Freshness is collection age since the last succeeded collection, not job-posted age.",
         "Completeness measures observed field presence only where accepted counts and completeness sums exist.",
         "Historical uptime is observed attempt availability, not continuous uptime.",
-        "Application-link accuracy is unknown when no links were explicitly sampled.",
+        "Application-link accuracy is unknown when no conclusive link samples exist.",
+        "Application-link accuracy describes conclusive sampled declared-identity checks only; unknowns and unsampled postings are excluded. It does not establish employer identity or current application usability.",
         "equal-weight score and coverage describe measurement coverage, not authority or probability.",
     ]
     if not window:

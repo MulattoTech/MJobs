@@ -46,6 +46,7 @@ class PublicCompanyDiscoveryBrowserTests(unittest.TestCase):
                 "/": '<html>Example Systems<a rel="careers" href="/careers">Careers</a></html>',
                 "/careers": '<html>Example Systems<link rel="alternate" type="application/feed+json" href="/jobs.json"></html>',
                 "/jobs.json": '{"version":"https://jsonfeed.org/version/1.1","items":[{"id":"role-1","url":"https://employer.example/jobs/1","title":"Python Engineer","content_text":"Python work. $90,000 per year.","location":"Remote - United States"}]}',
+                "/jobs/1": '<script type="application/ld+json">{"@context":"https://schema.org","@type":"JobPosting","identifier":{"@type":"PropertyValue","value":"role-1"},"title":"Python Engineer","url":"https://employer.example/jobs/1"}</script>',
             }
             seen = []
 
@@ -55,7 +56,8 @@ class PublicCompanyDiscoveryBrowserTests(unittest.TestCase):
                 if parsed.path not in pages:
                     raise AssertionError(f"Unexpected synthetic fetch: {url}")
                 request = httpx.Request("GET", url)
-                return httpx.Response(200, text=pages[parsed.path], request=request)
+                content_type = "application/json" if parsed.path.endswith(".json") else "text/html; charset=utf-8"
+                return httpx.Response(200, text=pages[parsed.path], headers={"content-type": content_type}, request=request)
 
             app = create_app(store, "http://127.0.0.1:1", root / "outputs",
                              redis_url="redis://127.0.0.1:1/0", operation_mode="PERSONAL")
@@ -113,6 +115,11 @@ class PublicCompanyDiscoveryBrowserTests(unittest.TestCase):
                         expect(card).to_be_visible()
                         expect(card).to_contain_text("Python Engineer")
                         expect(page.get_by_role("button", name="Sources", exact=True)).to_be_visible()
+                        page.get_by_role("button", name="Sources", exact=True).click()
+                        source_card = page.locator(".company-source-card").filter(has_text="Example Systems").first
+                        expect(source_card).to_contain_text("Job link observations")
+                        expect(source_card).to_contain_text("1 sampled posting observations across 1 accepted feed row")
+                        expect(source_card).to_contain_text("Conclusive checks: 1/1 matched")
                         self.assertEqual(errors, [])
                         self.assertEqual(external, [])
                         context.close()

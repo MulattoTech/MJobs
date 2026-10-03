@@ -499,11 +499,13 @@
         "name": "Bounded PERSONAL company discovery and unverified source review",
         "branch": "codex/public-company-discovery",
         "status": "PARTIAL",
-        "publication_state": "DRAFT",
+        "publication_state": "MERGED",
         "evidence_path": "docs/evidence/2026-10-03-public-company-discovery.json",
         "remaining": "Production provider breadth, automatic intake wiring, scheduled collection and link accuracy.",
         "pr_number": 475,
-        "url": "https://github.com/MulattoTech/MJobs/pull/475"
+        "url": "https://github.com/MulattoTech/MJobs/pull/475",
+        "head": "74256a359913444cc99ecba553b9caaf9b1cf4be",
+        "merge_commit": "5a082f26a34765be32cd6c0c726c957b242b72a7"
       }
     },
     {
@@ -585,7 +587,7 @@
       "status": "PARTIAL",
       "branch": "codex/mj-pr-023-company-ats-discovery",
       "draft_until_verified": true,
-      "notes": "PR450 activity, PR473 quality observations and PR474 authority-first source values merged; application-link accuracy remains incomplete.",
+      "notes": "Prior activity, quality and source-value slices merged. Current slice adds bounded public-feed declared-identity observations; requirement remains PARTIAL.",
       "validation_result": "PARTIAL",
       "worktree": "C:\\Tools\\Dev\\MJobs-pr-023",
       "base": "566bbf9cdebf882cc80bbb65b803ca3996fa9beb",
@@ -603,16 +605,12 @@
       "scope_complete": false,
       "merge_commit": "7241958efcae25925149a566020c50a8f61416e5",
       "active_slice": {
-        "name": "Authority-first source values and protected application routes",
-        "branch": "codex/source-value-resolution",
+        "name": "Sampled public-feed application-link observations",
+        "branch": "codex/application-link-evidence",
         "status": "PARTIAL",
-        "publication_state": "MERGED",
-        "evidence_path": "docs/evidence/2026-10-03-authoritative-source-values.json",
-        "remaining": "Bounded application-link accuracy observations; full MJ-REQ-083 acceptance.",
-        "pr_number": 474,
-        "url": "https://github.com/MulattoTech/MJobs/pull/474",
-        "head": "ab39d182100335d54a1c06f51b3e1e53eb95e776",
-        "merge_commit": "216f1a4696abc8dcb07fb57b5a67102091343ec5"
+        "publication_state": "NOT_RUN",
+        "evidence_path": "docs/evidence/2026-10-03-application-link-evidence.json",
+        "remaining": "Other ATS origins and full link usability acceptance; original source-discovery triggers and scheduling."
       },
       "slice_history": [
         {
@@ -626,6 +624,18 @@
           "url": "https://github.com/MulattoTech/MJobs/pull/473",
           "head": "fbf403b93334914a043884871944288db3e8e851",
           "merge_commit": "96e48325793c29f74c96063abf36ea86c9180a2f"
+        },
+        {
+          "name": "Authority-first source values and protected application routes",
+          "branch": "codex/source-value-resolution",
+          "status": "PARTIAL",
+          "publication_state": "MERGED",
+          "evidence_path": "docs/evidence/2026-10-03-authoritative-source-values.json",
+          "remaining": "Bounded application-link accuracy observations; full MJ-REQ-083 acceptance.",
+          "pr_number": 474,
+          "url": "https://github.com/MulattoTech/MJobs/pull/474",
+          "head": "ab39d182100335d54a1c06f51b3e1e53eb95e776",
+          "merge_commit": "216f1a4696abc8dcb07fb57b5a67102091343ec5"
         }
       ]
     },

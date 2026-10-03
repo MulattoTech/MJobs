@@ -1,5 +1,6 @@
 """Public company discovery identity and worker boundaries, with controlled responses."""
 import os
+import json
 from pathlib import Path
 import tempfile
 import unittest
@@ -39,6 +40,30 @@ class PublicCompanyDiscoveryTests(unittest.TestCase):
         self.store.engine.dispose()
         self.temp.cleanup()
 
+    def test_conflicting_feed_id_preflight_records_failure_without_partial_jobs(self):
+        first = {'id': 'repeated', 'title': 'First title', 'url': 'https://employer.example/jobs/1'}
+        pages = {
+            '/robots.txt': 'User-agent: *\nAllow: /',
+            '/': '<a rel="careers" href="/careers">Careers</a>',
+            '/careers': '<link rel="alternate" type="application/feed+json" href="/jobs.json">',
+            '/jobs.json': json.dumps({'version': 'https://jsonfeed.org/version/1.1', 'items': [first, dict(first, title='Conflicting title')]}),
+        }
+        def fetch(client, url, deadline):
+            request = httpx.Request('GET', url)
+            return httpx.Response(200, text=pages[request.url.path], request=request)
+        with patch.dict(os.environ, self.env), patch.object(PublicCompanyClient, '_request_once', fetch):
+            queued = queue_company_discovery(self.store, self.candidate, 'USER_ADDED_COMPANY', 'fixture', public=True)
+            result = execute_operation(queued['operation_id'])
+        self.assertEqual(result['status'], 'FAILED', result)
+        self.assertEqual(self.store.count('canonical_jobs'), 0)
+        self.assertEqual(self.store.count('source_application_link_observations'), 0)
+        with self.store.engine.connect() as connection:
+            observation = connection.execute(select(m.source_quality_observations)).mappings().one()
+        self.assertFalse(observation['succeeded'])
+        self.assertTrue(observation['available'])
+        self.assertEqual(observation['enumerated'], 2)
+        self.assertIsNone(observation['accepted'])
+
     def test_claimed_name_and_tenant_cannot_bind_public_site_to_an_existing_company(self):
         with self.store.engine.begin() as connection:
             upsert(connection,m.companies,{'id':'existing','name':'Example Systems','domain':''})
@@ -56,11 +81,13 @@ class PublicCompanyDiscoveryTests(unittest.TestCase):
             '/':'<html>Example Systems<a rel="careers" href="/careers">Careers</a></html>',
             '/careers':'<html>Example Systems<link rel="alternate" type="application/feed+json" href="/jobs.json"></html>',
             '/jobs.json':'{"version":"https://jsonfeed.org/version/1.1","items":[{"id":"role-1","url":"https://employer.example/jobs/1","title":"Python Engineer","content_text":"Python work. $90,000 per year.","location":"Remote - United States"}]}',
+            '/jobs/1':'<script type="application/ld+json">{"@context":"https://schema.org","@type":"JobPosting","identifier":{"@type":"PropertyValue","value":"role-1"},"title":"Python Engineer","url":"https://employer.example/jobs/1"}</script>',
         }
         def fetch(client,url,deadline):
             seen.append(url)
             req=httpx.Request('GET',url)
-            return httpx.Response(200,text=pages[req.url.path],request=req)
+            content_type='application/json' if req.url.path.endswith('.json') else 'text/html; charset=utf-8'
+            return httpx.Response(200,text=pages[req.url.path],headers={'content-type':content_type},request=req)
         with patch.dict(os.environ,self.env), patch.object(PublicCompanyClient,'_request_once',fetch):
             app=create_app(self.store,'http://127.0.0.1:18799',self.root/'outputs',redis_url='redis://127.0.0.1:1/0',operation_mode='PERSONAL')
             with TestClient(app) as client:
@@ -72,6 +99,12 @@ class PublicCompanyDiscoveryTests(unittest.TestCase):
                 view=client.get('/company-sources/view',params={'profile_id':'fixture'}).json()['company_sources']
                 self.assertEqual(len(view),1)
                 self.assertEqual(view[0]['status'],'COMPANY_SOURCE_REVIEW_REQUIRED')
+                link_verification=view[0]['quality']['link_verification']
+                self.assertEqual(link_verification['sampled_count'],1)
+                self.assertEqual(link_verification['accepted_posting_count'],1)
+                self.assertEqual(link_verification['conclusive_sample_count'],1)
+                self.assertEqual(link_verification['accurate_sample_count'],1)
+                self.assertEqual(link_verification['unknown_sample_count'],0)
                 with self.store.engine.connect() as connection:
                     initial=connection.execute(select(m.company_sources)).mappings().one()
                     self.assertFalse(initial['enabled'])
@@ -88,6 +121,7 @@ class PublicCompanyDiscoveryTests(unittest.TestCase):
             self.assertEqual(source['confidence'],0.45)
             self.assertTrue(all(not row['verified'] for row in connection.execute(select(m.company_domains)).mappings()))
         self.assertEqual(set(seen),{'https://employer.example'+p for p in pages})
+        self.assertGreaterEqual(seen.count('https://employer.example/jobs/1'),1)
 
     def test_stale_fixture_operation_remains_blocked_in_personal_mode(self):
         with patch.dict(os.environ,self.env):
