@@ -36,4 +36,7 @@ jobs:
           push: never
           runCmd: |
             bash .devcontainer/setup.sh
+            bash .devcontainer/bootstrap-codex.sh
+            codex --version
+            test -f "$HOME/.codex/skills/afk-dev/SKILL.md"
             bash .devcontainer/verify.sh quick
