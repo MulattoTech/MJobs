@@ -1,0 +1,143 @@
+{
+  "timestamp": "2026-10-04T22:25:36.958607+00:00",
+  "result": "PASS",
+  "scope": "15 implementation PRs merged during this delivery session; branch pointers retired, commits retained in main",
+  "implementation_baseline": "a0bf00690d6f9aa834e4e0001a3ae19efb35f055",
+  "prs": [
+    {
+      "pr": 485,
+      "url": "https://github.com/MulattoTech/MJobs/pull/485",
+      "head": "4c3a5f78d0eab8a889d74b24916d6dc223f1dc01",
+      "merge_commit": "f7875f44b5d6c5c8f8dcce0c94a5c80e38dbbdb5",
+      "receipt_paths": [
+        "docs/evidence/2026-10-04-profile-exact-head-ci.json"
+      ]
+    },
+    {
+      "pr": 486,
+      "url": "https://github.com/MulattoTech/MJobs/pull/486",
+      "head": "996f7d7a3577d80c159daa88a023da5bdd45fbcd",
+      "merge_commit": "476fc221654b8366073bd7efe4955fea91e5683d",
+      "receipt_paths": [
+        "docs/evidence/2026-10-04-extraction-exact-head-ci.json"
+      ]
+    },
+    {
+      "pr": 488,
+      "url": "https://github.com/MulattoTech/MJobs/pull/488",
+      "head": "14a56622f4dc0835bef017ceaeacc27f0e5c8518",
+      "merge_commit": "e8f8ba6c46e83b976c9b565549c0f6f0367415d0",
+      "receipt_paths": [
+        "docs/evidence/2026-10-04-lifecycle-exact-head-ci.json"
+      ]
+    },
+    {
+      "pr": 489,
+      "url": "https://github.com/MulattoTech/MJobs/pull/489",
+      "head": "8fd0b46910101799ec506542f17698f04cc1ca6d",
+      "merge_commit": "831fd5a91be9b9843b529bd6593978c4586750f8",
+      "receipt_paths": [
+        "docs/evidence/2026-10-04-date-review-exact-head-ci.json"
+      ]
+    },
+    {
+      "pr": 490,
+      "url": "https://github.com/MulattoTech/MJobs/pull/490",
+      "head": "c7b6b37f9e200e367247540ab9a6b7ae57e77ce0",
+      "merge_commit": "2120534c1d169c125412cf63321c2916d2a28984",
+      "receipt_paths": [
+        "docs/evidence/2026-10-04-ocr-exact-head-ci.json"
+      ]
+    },
+    {
+      "pr": 491,
+      "url": "https://github.com/MulattoTech/MJobs/pull/491",
+      "head": "878cbc0b7e48de54b8eb76f30d12d7821cadd8bd",
+      "merge_commit": "36d28ba62f81ae1acc1a5d6a4f0e7950d6fd9550",
+      "receipt_paths": [
+        "docs/evidence/2026-10-04-document-provenance-exact-head-ci.json"
+      ]
+    },
+    {
+      "pr": 492,
+      "url": "https://github.com/MulattoTech/MJobs/pull/492",
+      "head": "618878db34e8369247069a648e71f259f852d13d",
+      "merge_commit": "49d71a9c99b045e8bb76b2d2ae136c4f52a49454",
+      "receipt_paths": [
+        "docs/evidence/2026-10-04-document-library-exact-head-ci.json"
+      ]
+    },
+    {
+      "pr": 493,
+      "url": "https://github.com/MulattoTech/MJobs/pull/493",
+      "head": "bf82030665ce7f87ee5b3eed00a8d25d79294647",
+      "merge_commit": "fdba1e8e40fdaa21ad1c63a54399559fa3b3ce45",
+      "receipt_paths": [
+        "docs/evidence/2026-10-04-skill-order-exact-head-ci.json"
+      ]
+    },
+    {
+      "pr": 494,
+      "url": "https://github.com/MulattoTech/MJobs/pull/494",
+      "head": "a0a336b7c6d1d155e400b4e6fd853f5a771ce15f",
+      "merge_commit": "2a8e95a5023b26f3576b71c2fa46489dc9512094",
+      "receipt_paths": [
+        "docs/evidence/2026-10-04-document-validation-exact-head-ci.json"
+      ]
+    },
+    {
+      "pr": 495,
+      "url": "https://github.com/MulattoTech/MJobs/pull/495",
+      "head": "00603322eb5b76e228ff8077b950ef90aecae8e3",
+      "merge_commit": "5c5bb565b949746117c3cacb017bdb98f7de171a",
+      "receipt_paths": [
+        "docs/evidence/2026-10-04-resume-comparison-exact-head-ci.json"
+      ]
+    },
+    {
+      "pr": 497,
+      "url": "https://github.com/MulattoTech/MJobs/pull/497",
+      "head": "fa13af727743859d9923c894647554f03f9d34f5",
+      "merge_commit": "5a2f77c2a622433c9bf3dbcad22294a3de99c595",
+      "receipt_paths": [
+        "docs/evidence/2026-10-04-uploaded-comparison-exact-head-ci.json"
+      ]
+    },
+    {
+      "pr": 498,
+      "url": "https://github.com/MulattoTech/MJobs/pull/498",
+      "head": "61ca75cccd1a675f7bb8538a5c8b25253b60cd71",
+      "merge_commit": "b0c650b98d8c357202b4bdfc7fd2d1103ff3ea28",
+      "receipt_paths": [
+        "docs/evidence/2026-10-04-ats-headings-exact-head-ci.json"
+      ]
+    },
+    {
+      "pr": 499,
+      "url": "https://github.com/MulattoTech/MJobs/pull/499",
+      "head": "fac1d9fecbbd74b995f4af79b4033d44ef237ace",
+      "merge_commit": "4016a732bffde4707b3e0bba07ea2c2a33b69c17",
+      "receipt_paths": [
+        "docs/evidence/2026-10-04-approved-selection-exact-head-ci.json"
+      ]
+    },
+    {
+      "pr": 500,
+      "url": "https://github.com/MulattoTech/MJobs/pull/500",
+      "head": "9d499e59ec1a7dd096bacdacf8cf5cf17d259d58",
+      "merge_commit": "f28b2b2e8b678143dc0827eca306cd2c94803391",
+      "receipt_paths": [
+        "docs/evidence/2026-10-04-technology-emphasis-exact-head-ci.json"
+      ]
+    },
+    {
+      "pr": 501,
+      "url": "https://github.com/MulattoTech/MJobs/pull/501",
+      "head": "737d77732934fc903a416d71764eecc684ff5a25",
+      "merge_commit": "a0bf00690d6f9aa834e4e0001a3ae19efb35f055",
+      "receipt_paths": [
+        "docs/evidence/2026-10-04-contact-header-exact-head-ci.json"
+      ]
+    }
+  ]
+}

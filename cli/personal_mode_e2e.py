@@ -68,7 +68,8 @@ def run(api_url: str, evidence_path: Path | None = None) -> dict:
             page.get_by_label("Choose a resume (up to 10 MiB)").set_input_files({
                 "name": "Synthetic Resume.pdf", "mimeType": "application/pdf", "buffer": sample})
             page.get_by_role("button", name="Store resume").click()
-            page.get_by_text("STORED UNREVIEWED").wait_for(timeout=15000)
+            page.locator('[data-resume-version="1"]').filter(
+                has_text="Synthetic Resume.pdf").get_by_text("STORED UNREVIEWED").wait_for(timeout=15000)
         finally:
             browser.close()
     with httpx.Client(base_url=api_url, timeout=15, trust_env=False) as client:

@@ -7,12 +7,12 @@
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Sole writer codex/resume-contact-header-20261004 from PR500 merge f28b2b2e8b678143dc0827eca306cd2c94803391",
-    "current_verified_github_state": "PR500 exact-head push/PR and all16 runtime artifacts PASS; merged tested tree; MJ095 remains PARTIAL.",
-    "current_verified_at": "2026-10-04T22:03:04.426498+00:00"
+    "current_verified_local_state": "User-requested closeout from clean tested implementation main a0bf00690d6f9aa834e4e0001a3ae19efb35f055; documentation-only handoff branch",
+    "current_verified_github_state": "PR501 merged; exact-head push37239204735 and PR37239207108 attempt1, all16 runtime artifacts PASS. All15 session implementation PRs merged.",
+    "current_verified_at": "2026-10-04T22:25:36.958607+00:00"
   },
-  "current_milestone": "MJ-PR-026-RESUME-CONTACT-HEADER",
-  "current_objective": "Explicit versioned resume contact disclosure using already saved profile values.",
+  "current_milestone": "USER-REQUESTED-CHATGPT-HANDOFF",
+  "current_objective": "Close local delivery session and hand off for user-directed ChatGPT iteration; no new implementation.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -68,9 +68,7 @@
     "Durable reviewed public-feed monitoring: bounded scheduled/manual reads, atomic multi-profile matching and receipt, fresh authorization, failure backoff, changed-feed rediscovery and Sources status. Vendor ATS migration and broader providers remain open."
   ],
   "blocked_capabilities": [],
-  "active_requirements": [
-    "MJ-REQ-095"
-  ],
+  "active_requirements": [],
   "active_prs": [
     {
       "number": 367,
@@ -556,7 +554,9 @@
       "number": 501,
       "url": "https://github.com/MulattoTech/MJobs/pull/501",
       "branch": "codex/resume-contact-header-20261004",
-      "status": "DRAFT"
+      "status": "MERGED",
+      "merge_commit": "a0bf00690d6f9aa834e4e0001a3ae19efb35f055",
+      "merged_at": "2026-10-04T22:21:45Z"
     }
   ],
   "tests_passed": [
@@ -699,10 +699,10 @@
     "MJ-PR-016 local Chromium first run used Docker DNS host api, which is not a secure browser origin for crypto.randomUUID; loopback URL rerun passed all five connected UI actions."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-04T22:12:43.584434+00:00",
+    "timestamp": "2026-10-04T22:25:36.958607+00:00",
     "result": "PASS",
-    "scope": "Contact header local evidence; exact-head hosted pending",
-    "evidence_path": "docs/evidence/2026-10-04-resume-contact-header.json"
+    "scope": "PR501 exact-head CI and local shutdown/cleanup",
+    "evidence_path": "docs/evidence/2026-10-04-session-closeout.json"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -764,7 +764,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Complete contact-header checks/review, exact-head hosted artifacts, safe merge and baseline reconciliation; continue useful dependency-ready work.",
+  "recommended_resume_step": "Read prompts/CHATGPT_WEB_HANDOFF.md and planning/SESSION_HANDOFF.md; reverify live main/ownership and choose one user-directed iteration. Fact edit review reset is a documented unimplemented follow-up; MJ095 remains PARTIAL.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -3031,7 +3031,7 @@
     {
       "milestone_id": "resume-contact-header-20261004",
       "timestamp": "2026-10-04T22:03:04.426498+00:00",
-      "current_phase": "HOSTED_VALIDATING",
+      "current_phase": "MERGED",
       "completed_steps": [
         "Versioned opt-in contact header through API/worker/UI/history/comparison",
         "Long URL fidelity regression reproduced and corrected with negative assertion tests",
@@ -3045,9 +3045,7 @@
         "45 web tests/build",
         "Browser acceptance and18 final Linux app-image tests"
       ],
-      "tests_remaining": [
-        "Exact final-head hosted workflows/artifacts"
-      ],
+      "tests_remaining": [],
       "migrations_applied": [],
       "live_integrations_tested": [],
       "known_errors": [],
@@ -3055,15 +3053,45 @@
         "Optional header excludes street address and postal code; broader factual rephrasing remains incomplete"
       ],
       "last_safe_checkpoint": {
-        "git_commit": "f28b2b2e8b678143dc0827eca306cd2c94803391",
-        "evidence_path": "docs/evidence/2026-10-04-technology-emphasis-exact-head-ci.json"
+        "git_commit": "a0bf00690d6f9aa834e4e0001a3ae19efb35f055",
+        "evidence_path": "docs/evidence/2026-10-04-contact-header-exact-head-ci.json"
+      }
+    },
+    {
+      "milestone_id": "user-requested-chatgpt-handoff-20261004",
+      "timestamp": "2026-10-04T22:28:44.373673+00:00",
+      "current_phase": "HANDOFF",
+      "completed_steps": [
+        "All15 implementation PRs merged with exact-head evidence",
+        "Local MJobs runtime stopped with volumes preserved",
+        "Verified merged feature branches and task-only caches cleaned",
+        "User-directed ChatGPT prompt and compact handoff prepared; no next feature started"
+      ],
+      "files_added": [],
+      "files_modified": [],
+      "tests_completed": [
+        "PR501 exact-head push/PR and all16 artifacts PASS",
+        "Project skills/catalogue validation PASS"
+      ],
+      "tests_remaining": [
+        "Final documentation PR exact-head workflows/artifacts and publication receipt"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "MJ095 remains PARTIAL; fact-edit review reset is not implemented"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "a0bf00690d6f9aa834e4e0001a3ae19efb35f055",
+        "evidence_path": "docs/evidence/2026-10-04-contact-header-exact-head-ci.json"
       }
     }
   ],
-  "current_phase": "HOSTED_VALIDATING",
+  "current_phase": "HANDOFF",
   "last_safe_checkpoint": {
-    "git_commit": "f28b2b2e8b678143dc0827eca306cd2c94803391",
-    "evidence_path": "docs/evidence/2026-10-04-technology-emphasis-exact-head-ci.json"
+    "git_commit": "a0bf00690d6f9aa834e4e0001a3ae19efb35f055",
+    "evidence_path": "docs/evidence/2026-10-04-contact-header-exact-head-ci.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
@@ -3553,10 +3581,10 @@
   },
   "session_control": {
     "owner": "01a107cd-4e66-77d3-b046-fc2c01f4ffb1",
-    "branch": "codex/resume-contact-header-20261004",
+    "branch": "codex/chatgpt-handoff-20261004",
     "write_lanes": 1,
-    "requested_action": "DELIVER_LIFECYCLE_PROFILE_IMPORT",
-    "note": "Current user authorizes implementation, tests, review, push, exact-head-verified merge and continuation. No production deployment or external submissions."
+    "requested_action": "USER_REQUESTED_CLOSEOUT",
+    "note": "User explicitly requested shutdown/cleanup and handoff to ChatGPT sessions. Only closeout publication remains; no new implementation. This record is historical context, never present mutation authorization."
   },
   "pr023_completion": {
     "timestamp": "2026-10-04T01:33:37.729938+00:00",

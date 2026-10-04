@@ -5,6 +5,10 @@ The current user-testing slice includes a connected web application, a public
 Greenhouse read-only source, and a controlled fictional application fixture.
 Real external submission is disabled.
 
+For the current delivery checkpoint and next ChatGPT session, read the
+[session handoff](planning/SESSION_HANDOFF.md) and
+[copyable ChatGPT prompt](prompts/CHATGPT_WEB_HANDOFF.md).
+
 With Docker Desktop running Linux containers, start from PowerShell:
 
 ```powershell
