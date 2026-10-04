@@ -131,8 +131,11 @@ class Greenhouse:
             raise SourceError("SOURCE_JOB_LIMIT")
         company = SourceCompany(("greenhouse", self.tenant), plain_text(board.get("name") or self.tenant)[:200],
                                 "https://job-boards.greenhouse.io/" + self.tenant)
+        meta = payload.get('meta')
+        total = meta.get('total') if isinstance(meta, dict) else None
+        complete = 'meta' not in payload or (type(total) is int and total == len(payload['jobs']))
         return SearchBatch(HOST + "/v1/boards/" + self.tenant + "/jobs",
-                           tuple(SourceItem(raw, company) for raw in payload["jobs"]), company)
+                           tuple(SourceItem(raw, company) for raw in payload["jobs"]), company, complete_inventory=complete)
 
     def collect(self):
         """Compatibility for callers of the original bounded board collection API."""
@@ -191,6 +194,7 @@ class Greenhouse:
         return {"requisition": str(raw["id"]), "title": title, "description": description,
                 "skills": skill_data["labels"], "location": location, "remote_type": location_facts["remote_type"], "application_url": url,
                 "attributes": {"provider": "greenhouse", "tenant": self.tenant, "native_job_id": raw.get("internal_job_id"),
+                    "lifecycle_claim": "ACTIVE",
                     "native_posting_id": raw["id"], "updated_at": raw.get("updated_at"), "salary": ranges or None,
                     "employment_type": employment_type, "experience_level": experience["level"],
                     "experience_level_raw": experience["raw"], "normalized_title": title_info["normalized_title"],

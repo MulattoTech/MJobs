@@ -50,7 +50,8 @@ def canonical_job_view(row):
         "first_seen_at": attrs.get("first_seen_at"),
         "last_seen_at": attrs.get("last_seen_at"),
         "expires_at": attrs.get("expires_at"),
-        "status": attrs.get("status", "ACTIVE"),
+        "status": attrs.get("status", "UNKNOWN"),
+        "lifecycle": attrs.get("lifecycle"),
     }
     # Existing clients still consume id/description/location/attributes and match fields.
     data.update(canonical)

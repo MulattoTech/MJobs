@@ -63,6 +63,7 @@ class SearchBatch:
     endpoint: str
     items: tuple[SourceItem, ...]
     source_company: SourceCompany | None = None
+    complete_inventory: bool = False
 
 
 class SourceAdapter(Protocol):
