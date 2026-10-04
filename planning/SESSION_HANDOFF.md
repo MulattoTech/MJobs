@@ -3,7 +3,7 @@
 Root sole writer session 01a107cd-4e66-77d3-b046-fc2c01f4ffb1;
 branch `codex/uploaded-resume-comparison-20261004`.
 Implementation baseline PR495 `5c5bb565b949746117c3cacb017bdb98f7de171a`;
-integrate separate dashboard PR496 `8d6bf1ce08211efd17cdae36155f5b8977b4605f` before publication.
+integrated separate dashboard PR496 `8d6bf1ce08211efd17cdae36155f5b8977b4605f` without conflicts.
 
 MJ-PR024/025 accepted. PR485/486/488/489/490/491/492/493/494/495 merged
 with exact-head workflows and runtime receipts. Latest tracked receipt:

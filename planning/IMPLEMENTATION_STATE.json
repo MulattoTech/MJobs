@@ -7,9 +7,9 @@
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Sole writer codex/uploaded-resume-comparison-20261004 based on 5c5bb565b949746117c3cacb017bdb98f7de171a.",
-    "current_verified_github_state": "PR495 merged with exact-head push/PR workflows and all14 artifacts including new comparison UI action PASS; issue100 remains open.",
-    "current_verified_at": "2026-10-04T20:21:19.219179+00:00"
+    "current_verified_local_state": "Uploaded comparison implemented; main dashboard PR496 integrated without conflict.",
+    "current_verified_github_state": "PR496 merged at 8d6bf1ce08211efd17cdae36155f5b8977b4605f; uploaded comparison awaiting exact-head hosted checks.",
+    "current_verified_at": "2026-10-04T20:39:25.030826+00:00"
   },
   "current_milestone": "MJ-PR-027-UPLOADED-RESUME-COMPARISON",
   "current_objective": "Finish uploaded-original comparison with source provenance and honest extraction uncertainty.",
@@ -776,7 +776,7 @@
   "publication": {
     "result": "NOT_RUN",
     "branch": "codex/uploaded-resume-comparison-20261004",
-    "base": "5c5bb565b949746117c3cacb017bdb98f7de171a"
+    "base": "8d6bf1ce08211efd17cdae36155f5b8977b4605f"
   },
   "optional_afk_journal": {
     "result": "PASS",
