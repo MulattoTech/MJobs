@@ -1,0 +1,171 @@
+{
+    "schema_version":  1,
+    "timestamp":  "2026-10-04T01:36:43.902634+00:00",
+    "slice":  "MJ-PR-024",
+    "issues":  [
+                   86,
+                   87,
+                   88
+               ],
+    "result":  "PARTIAL",
+    "base_commit":  "78be4e615d2cb6848e8e1762964a7de695be4924",
+    "branch":  "codex/pr024-job-lifecycle-rebased-20261003",
+    "worktree":  "C:\\Tools\\Dev\\MJobs\\.worktrees\\pr024-job-lifecycle",
+    "requirements":  {
+                         "MJ-REQ-085":  {
+                                            "status":  "PARTIAL",
+                                            "local_contract_validation":  "PASS",
+                                            "behavior":  "Durable ACTIVE/POSSIBLY_ACTIVE/REMOVED/EXPIRED/FILLED/UNKNOWN/CLOSED; complete-inventory removal without deletion; explicit reopen; conservative ambiguous evidence; API and restart persistence.",
+                                            "remaining":  "PostgreSQL runtime and exact-head CI not established; commit blocked by environment."
+                                        },
+                         "MJ-REQ-086":  {
+                                            "status":  "PARTIAL",
+                                            "local_contract_validation":  "PASS",
+                                            "behavior":  "Independent source authority resolves employer closure ahead of a later aggregator ACTIVE claim; raw source snapshots and observation chronology survive; raw authority spoofing does not promote origin.",
+                                            "remaining":  "PostgreSQL runtime and exact-head CI not established; commit blocked by environment."
+                                        },
+                         "MJ-REQ-087":  {
+                                            "status":  "PARTIAL",
+                                            "local_contract_validation":  "PASS",
+                                            "behavior":  "Append-only ordered material revisions containing description SHA-256, original description, salary, nullable location, remote policy and observation/recording timestamps; unchanged refresh is a no-op, reversion is retained.",
+                                            "remaining":  "PostgreSQL runtime and exact-head CI not established; commit blocked by environment."
+                                        }
+                     },
+    "checks":  [
+                   {
+                       "command":  "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_job_lifecycle tests.integration.test_job_lifecycle_migration tests.integration.test_spine tests.integration.test_greenhouse tests.integration.test_source_value_resolution tests.integration.test_source_value_integrity tests.integration.test_company_source_monitoring -q",
+                       "timestamp":  "2026-10-04T01:32:55.415660+00:00",
+                       "target":  "C:\\Tools\\Dev\\MJobs\\.worktrees\\pr024-job-lifecycle",
+                       "result":  "PASS",
+                       "evidence_path":  "outputs/pr024/final-targeted.log",
+                       "sha256":  "d61d22274046876fee2c76a10983e9d9723386fbdb1d92cf4d4a4f9c29bb9bcf",
+                       "tests":  55,
+                       "seconds":  27.802,
+                       "skipped":  0
+                   },
+                   {
+                       "command":  "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest discover -s tests -p \u0027test_*.py\u0027 -v",
+                       "timestamp":  "2026-10-04T01:35:43.871346+00:00",
+                       "target":  "C:\\Tools\\Dev\\MJobs\\.worktrees\\pr024-job-lifecycle",
+                       "result":  "PASS",
+                       "evidence_path":  "outputs/pr024/final-regression.log",
+                       "sha256":  "3ce630df6d0504233b8e1c5b14aa998ce74990094c5722e48e5b3f7bb884f633",
+                       "tests":  437,
+                       "seconds":  195.718,
+                       "skipped":  6
+                   },
+                   {
+                       "command":  "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.browser.test_company_discovery_requests tests.browser.test_company_source_monitoring tests.browser.test_company_source_view tests.browser.test_profile_import tests.browser.test_public_company_discovery tests.browser.test_source_value_resolution -v",
+                       "timestamp":  "2026-10-04T01:34:33.510776+00:00",
+                       "target":  "C:\\Tools\\Dev\\MJobs\\.worktrees\\pr024-job-lifecycle",
+                       "result":  "PASS",
+                       "evidence_path":  "outputs/pr024/browser-acceptance.log",
+                       "sha256":  "45d8f3d1a406a0a4e8bfe5150e895fc7880afa5081ad64f07adf3de713e84882",
+                       "tests":  6,
+                       "seconds":  24.322,
+                       "skipped":  0
+                   },
+                   {
+                       "command":  "npm test --prefix apps/web",
+                       "timestamp":  "2026-10-04T01:33:59.815897+00:00",
+                       "target":  "C:\\Tools\\Dev\\MJobs\\.worktrees\\pr024-job-lifecycle",
+                       "result":  "PASS",
+                       "evidence_path":  "outputs/pr024/web-tests.log",
+                       "sha256":  "dfeac558cee860f41e7bbd7378a7539477ce7e2b65afa98516af44ad19bd7494",
+                       "tests":  33,
+                       "test_files":  9
+                   },
+                   {
+                       "command":  "npm run build --prefix apps/web",
+                       "timestamp":  "2026-10-04T01:34:00.057511+00:00",
+                       "target":  "C:\\Tools\\Dev\\MJobs\\.worktrees\\pr024-job-lifecycle",
+                       "result":  "PASS",
+                       "evidence_path":  "outputs/pr024/web-build.log",
+                       "sha256":  "55f1f06bf308286a9302dc0449060403a610694af6bd4dd17bea2b15d3de283c"
+                   },
+                   {
+                       "command":  "MJOBS_DATABASE_URL=postgresql+psycopg://unused/unused C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m alembic upgrade d8f0c1b2a3e4:e9024a1b7c30 --sql",
+                       "timestamp":  "2026-10-04T01:33:38.212362+00:00",
+                       "target":  "C:\\Tools\\Dev\\MJobs\\.worktrees\\pr024-job-lifecycle",
+                       "result":  "PASS",
+                       "evidence_path":  "outputs/pr024/postgresql-ddl.log",
+                       "sha256":  "547b1b3c2b5323fdb3a8d3d7b7e0e3c9c918a9e90e283e4ab93cbb201d3cd527"
+                   },
+                   {
+                       "command":  "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.catalogue",
+                       "timestamp":  "2026-10-04T01:36:43.902634+00:00",
+                       "target":  "C:\\Tools\\Dev\\MJobs\\.worktrees\\pr024-job-lifecycle",
+                       "result":  "PASS"
+                   },
+                   {
+                       "command":  "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.progress validate",
+                       "timestamp":  "2026-10-04T01:36:43.902634+00:00",
+                       "target":  "C:\\Tools\\Dev\\MJobs\\.worktrees\\pr024-job-lifecycle",
+                       "result":  "PASS"
+                   }
+               ],
+    "browser_skip_resolution":  "Full discovery ran 437 tests: 431 passed and 6 web-build-dependent tests skipped. After building apps/web, all 6 skipped browser tests ran and passed.",
+    "tdd":  {
+                "initial":  "Six tests failed before implementation: three status failures and three missing-history errors.",
+                "later_regressions":  "Ambiguous closure erasure, truncated inventory removal and missing fixture revision/lifecycle evidence were observed failing then repaired."
+            },
+    "independent_review":  {
+                               "result":  "PASS",
+                               "scope":  "Static review of implementation and final fixes by independent agent; parent owns execution evidence.",
+                               "resolved_findings":  [
+                                                         "Fixture lifecycle history gap",
+                                                         "Overlapping complete-inventory lock inversion"
+                                                     ],
+                               "remaining_findings":  [
+
+                                                      ]
+                           },
+    "migration":  {
+                      "revision":  "e9024a1b7c30",
+                      "parent":  "d8f0c1b2a3e4",
+                      "tables":  [
+                                     "job_lifecycle_observations",
+                                     "job_description_revisions"
+                                 ],
+                      "strategy":  "Additive; no legacy status/time backfill. Refuses downgrade if either history table has rows.",
+                      "sqlite":  "PASS",
+                      "postgresql_offline_ddl":  "PASS",
+                      "postgresql_runtime":  "BLOCKED_ENVIRONMENT"
+                  },
+    "publication":  {
+                        "result":  "PENDING_EXACT_HEAD_CI",
+                        "commit_shas":  [
+                                            "739e09a"
+                                        ],
+                        "pushed":  false,
+                        "pr_url":  null,
+                        "command":  "Rebased cleanly onto merged PR479 and prepared a fresh branch without force-pushing the superseded branch.",
+                        "error":  null
+                    },
+    "limitations":  [
+                        "Fresh exact-head hosted CI and PostgreSQL runtime verification are pending on the rebased branch.",
+                        "Closure interpretation accepts exact structured source states; arbitrary page text and HTTP errors do not prove filled/expired closure.",
+                        "Absence reconciliation is limited to successfully parsed complete native Greenhouse inventories; rolling RSS/JSON absence remains ambiguous.",
+                        "First-party precedence applies to postings already attached to the same canonical job; this slice does not expand cross-provider duplicate identity matching.",
+                        "Historical material revisions before this feature are not fabricated; current legacy content is captured at next resolution."
+                    ],
+    "environment_notes":  [
+                              "No main merge or real application submission.",
+                              "Lockfile-installed frontend tests/build passed on Node v25.9.0, though vitest declares Node 22/24/26 support; no host Node change made."
+                          ],
+    "code_sha256":  {
+                        "packages/persistence/models.py":  "05e77dfd794279ec7f8140a558f7b56a5206abb8601451c464f30ac84deae2d1",
+                        "packages/persistence/store.py":  "e3f4b63d38bdfd2d7866b0d02d14548dc8918852646e481657ee76b0a960908c",
+                        "services/dedupe/source_values.py":  "669cbce3fdcf05cc8bb02f65b444870b46d642218e9e40002fe501b4cc96aef8",
+                        "services/discovery/lifecycle.py":  "a971a79d29dad7df2655e4112742601295cd13609f07702cc829f058c013cbc7",
+                        "services/discovery/company_feed.py":  "c0af12565790d8bd96cbda2cf9487dfc24e3e16b0bea6f802650256120ec7c44",
+                        "services/discovery/pipeline.py":  "da56c1d6216f27342b1582bbf0d60d83e70e621c2b93236110ff76d3ec05b6f3",
+                        "services/discovery/sources/collect.py":  "b363ff03698ec5557e37a65b8ad3becc47c69f21ced29f00470d609e0cd5e99c",
+                        "services/discovery/sources/contract.py":  "e3fa8444cabb26ba0db329e6e63312dc67e68d5d70b842d462a73a30d359ddf1",
+                        "services/discovery/sources/greenhouse.py":  "0e5e7010acbfb4147a92eadeb86b3555bc9001006be12d1349b13e92940d66b2",
+                        "services/normalization/jobs.py":  "e72e9c13f548159acfbba68cdc5227d20d1898700f63c691a54a7db739703a9c",
+                        "migrations/versions/e9024a1b7c30_job_lifecycle_history.py":  "9d915bc6357723d69a3ae5f9e47dfe8b7ae5377f38ea72af34f175c060e84bb3",
+                        "tests/integration/test_job_lifecycle.py":  "d32f056cc28f13170e129f3ec593d40bd893f5640ba9b19da68170c68d67ee6b",
+                        "tests/integration/test_job_lifecycle_migration.py":  "873829d4628c7db2740f855156a10c0c8235a143eb9e2cf96bc070eb8f441ead"
+                    }
+}

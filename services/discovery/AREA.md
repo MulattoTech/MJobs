@@ -26,3 +26,35 @@ Tests:
 
 External pages/HTML remain untrusted data. No CAPTCHA, authentication, access
 control, anti-bot, proxy-identity or rate-limit circumvention belongs here.
+
+## Canonical job lifecycle (MJ-REQ-085, 086, 087)
+
+`lifecycle.py` records append-only source observations, resolves canonical status
+using independently verified origin authority, and appends material description
+revisions. `record_candidate` captures lifecycle evidence; `resolve_job_values`
+updates canonical values, revisions and status in the same transaction. The
+fictional fixture pipeline also captures material revisions. Both job list and
+detail expose status; detail additionally exposes ordered evidence and revisions.
+
+States are ACTIVE, POSSIBLY_ACTIVE, REMOVED, EXPIRED, FILLED, UNKNOWN and CLOSED.
+Generic closure never invents a filled/expired reason. Exact structured feed
+status claims are retained as source claims; feed presence alone is only
+POSSIBLY_ACTIVE. A later ambiguous claim cannot clear a closure; explicit ACTIVE
+from that source can reopen it. Authority is frozen with evidence at observation,
+never taken from a feed field. Only already attached postings compete for one job;
+this module does not infer cross-provider duplicate identity.
+
+Only a successfully parsed complete native inventory establishes source removal.
+Greenhouse metadata reporting a different total, parser rejections, failed reads,
+and rolling RSS/JSON feed omissions never do. No job, raw snapshot, application,
+source candidate, revision or lifecycle observation is deleted on disappearance.
+
+Material revisions compare whitespace-normalized description/location, salary
+bounds/currency/period and remote type/regions. They preserve original description
+text and its SHA-256, nullable unknown location and salary, observation time (when
+known), local recording time, and ordered sequence. Reversion creates a new
+revision; refresh timestamps and status-only changes do not. Legacy canonical
+content is captured on the next resolution; historical revisions before this
+feature are not reconstructed or fabricated. Downgrade refuses populated history.
+
+Tests: `python -m unittest tests.integration.test_job_lifecycle tests.integration.test_job_lifecycle_migration`.

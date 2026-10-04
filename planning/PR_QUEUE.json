@@ -689,10 +689,14 @@
       "depends_on": [
         "MJ-PR-016"
       ],
-      "status": "QUEUED",
-      "branch": "codex/mj-pr-024-job-lifecycle",
+      "status": "PARTIAL",
+      "branch": "codex/pr024-job-lifecycle-rebased-20261003",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "Implemented 085/086/087; local targeted/broad/browser/frontend/migration checks passed before rebase. Rebased after PR479 merged; fresh exact-head CI/runtime verification required before merge.",
+      "evidence_path": "docs/evidence/2026-10-03-job-lifecycle.json",
+      "scope_complete": false,
+      "local_validation": "PASS",
+      "publication_status": "PENDING_EXACT_HEAD_CI"
     },
     {
       "id": "MJ-PR-025",
