@@ -1,0 +1,141 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-10-04T18:28:56.431417+00:00",
+  "result": "PARTIAL",
+  "requirements": [
+    "MJ-REQ-090"
+  ],
+  "issue": 91,
+  "branch": "codex/local-resume-ocr-20261004",
+  "base_commit": "831fd5a91be9b9843b529bd6593978c4586750f8",
+  "behavior": [
+    "Native PDF/DOCX/TXT remains first; only scanned PDF pages without native text enter local OCR",
+    "Linux app image bundles Poppler and English Tesseract; no remote OCR provider",
+    "Original uploads preserved; mixed-page order/native text survives tool and unexpected helper failures",
+    "OCR text remains uncorrected and unverified/unapproved at confidence70; explicit browser save is separate from extraction"
+  ],
+  "bounds": {
+    "input_bytes": 10485760,
+    "pdf_pages": 100,
+    "ocr_pages": 10,
+    "raster_dimension": 1800,
+    "total_seconds": 45,
+    "tool_seconds": 10,
+    "tool_address_space_mib": 768,
+    "tool_cpu_seconds": 12,
+    "tool_file_size_mib": 16,
+    "tool_threads": 1,
+    "concurrent_ocr_per_process": 1
+  },
+  "checks": [
+    {
+      "timestamp": "2026-10-04T18:28:56.431417+00:00",
+      "command": ".venv/Scripts/python.exe -m unittest tests.unit.test_resume_ocr tests.unit.test_resume_extraction tests.integration.test_profile_import tests.browser.test_profile_import -q",
+      "result": "PASS",
+      "tests": 39,
+      "scope": "Independent reviewer final failure-preservation check"
+    },
+    {
+      "timestamp": "2026-10-04T18:28:56.431417+00:00",
+      "command": ".venv/Scripts/python.exe -m unittest tests.browser.test_feedback_gui tests.browser.test_profile_import -q",
+      "result": "PASS",
+      "tests": 4,
+      "scope": "Previously failing browser fixtures after safe loopback-port allocation"
+    },
+    {
+      "timestamp": "2026-10-04T18:28:56.431417+00:00",
+      "command": "docker run --rm --network none --read-only --tmpfs /tmp:rw,noexec,nosuid,size=128m --memory 1g --cpus 1 --pids-limit 128 mjobs-ocr-acceptance:20261004 python -m cli.profile_ocr_e2e",
+      "result": "PASS",
+      "image_id": "sha256:55bdf132743e303c105d408e5a3e259130acc2f9aba655108841095f11c01234",
+      "evidence_path": ".git/afk-dev/ocr-runtime-20261004.log",
+      "runtime": {
+        "result": "PASS",
+        "timestamp": "2026-10-04T18:26:48.514320+00:00",
+        "command": "python -m cli.profile_ocr_e2e",
+        "target": "Isolated Linux app image, real Poppler/Tesseract, SQLite API and Chromium UI",
+        "checks": [
+          {
+            "document": "scanned",
+            "result": "PASS",
+            "pending_fact_count": 3,
+            "synthetic_recognized_text": [
+              "Python",
+              "SOL",
+              "Engineer 2020 - 2024"
+            ]
+          },
+          {
+            "document": "mixed native/scanned",
+            "result": "PASS",
+            "pending_fact_count": 3,
+            "synthetic_recognized_text": [
+              "Python",
+              "SOL",
+              "Engineer 2020 - 2024"
+            ]
+          },
+          {
+            "document": "scanned resume browser review, explicit save and reload",
+            "result": "PASS"
+          }
+        ],
+        "profile_mutated_by_extraction": false,
+        "external_submission_enabled": false
+      }
+    },
+    {
+      "timestamp": "2026-10-04T18:32:09.753826+00:00",
+      "command": ".venv/Scripts/python.exe -m unittest discover -s tests -p test_*.py -q",
+      "result": "PASS",
+      "tests": 487,
+      "skips": 0,
+      "scope": "Final implementation and repaired browser fixtures",
+      "evidence_path": ".git/afk-dev/ocr-final-regression-20261004.log"
+    },
+    {
+      "timestamp": "2026-10-04T18:32:09.753826+00:00",
+      "command": "npm test --prefix apps/web -- --run; npm run build --prefix apps/web",
+      "result": "PASS",
+      "tests": 38
+    },
+    {
+      "timestamp": "2026-10-04T18:32:09.753826+00:00",
+      "command": ".venv/Scripts/python.exe -m tools.verification.agent_skills; .venv/Scripts/python.exe -m tools.verification.catalogue; .venv/Scripts/python.exe -m tools.verification.progress validate; git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "review": {
+    "result": "PASS",
+    "reviewer": "Independent read-only chore lifecycle_audit",
+    "resolved": [
+      "Unexpected OCR exceptions previously erased native text; reproduced and fixed",
+      "Browser fixture port1723 was rejected by Chromium; bind and retain high loopback ports without changing host/browser policy",
+      "Populated textarea label selector replaced with observed textbox role"
+    ],
+    "final_result": "Product failure-preservation and browser-port/locator deltas independently re-reviewed; no remaining actionable findings."
+  },
+  "observed_failures": [
+    {
+      "result": "FAIL",
+      "evidence_path": ".git/afk-dev/ocr-regression-20261004.log",
+      "tests": 486,
+      "errors": 2,
+      "cause": "Two browser fixtures allocated Chrome-blocked port1723; fixed, full rerun pending",
+      "resolution": "High bound loopback fixture ports; final487-test regression PASS."
+    },
+    {
+      "result": "FAIL",
+      "cause": "Initial OCR oracle expected perfect SQL recognition; engine read SOL. Actual output remains uncorrected and pending; proof now records recognized text and validates stable Python/date recognition and review gates."
+    }
+  ],
+  "limitations": [
+    "Linux Docker English OCR; unavailable host engines remain NEEDS_OCR",
+    "Bounded scanned XObject pages only; inline-only images or image text on a page with native text may not be recovered",
+    "OCR is uncertain; SQL was observed as SOL in the synthetic fixture and retained for human correction",
+    "No structured chronology inference, external submission or production deployment"
+  ],
+  "hosted_ci": {
+    "result": "NOT_RUN",
+    "note": "Final exact-head push/PR CI must include new mandatory ci-profile-ocr.json runtime evidence before merge."
+  }
+}

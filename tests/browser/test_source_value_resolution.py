@@ -3,7 +3,7 @@ import asyncio
 import copy
 import json
 from pathlib import Path
-import socket
+from fixtures.browser_ports import bound_browser_socket
 import tempfile
 import threading
 import time
@@ -82,8 +82,7 @@ class SourceValueResolutionBrowserTests(unittest.TestCase):
             self.assertTrue(refreshed["attributes"]["source_resolution"]["route_review_required"])
 
             app = create_app(store, "http://127.0.0.1:1", root, "redis://127.0.0.1:1/0", operation_mode="PERSONAL")
-            sock = socket.socket()
-            sock.bind(("127.0.0.1", 0))
+            sock = bound_browser_socket()
             origin = f"http://127.0.0.1:{sock.getsockname()[1]}"
             server = uvicorn.Server(uvicorn.Config(app, log_level="error", timeout_graceful_shutdown=2))
 

@@ -7,12 +7,12 @@
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Sole writer branch codex/resume-date-review-20261004 based on e8f8ba6c46e83b976c9b565549c0f6f0367415d0.",
-    "current_verified_github_state": "PR488 merged after exact-head push/PR CI and all twelve artifacts PASS; issue87 closed. MJ-PR024 acceptance complete.",
-    "current_verified_at": "2026-10-04T17:56:39.051192+00:00"
+    "current_verified_local_state": "Sole writer branch codex/local-resume-ocr-20261004 based on831fd5a91be9b9843b529bd6593978c4586750f8.",
+    "current_verified_github_state": "PR489 merged with exact-head push/PR CI and all twelve runtime artifacts PASS; issue92 closed. OCR issue91 remains open.",
+    "current_verified_at": "2026-10-04T18:20:58.798924+00:00"
   },
-  "current_milestone": "MJ-PR-025-DATE-REVIEW",
-  "current_objective": "Expose conservative native date ranges and responsibility classification through the existing explicit resume review and profile controls.",
+  "current_milestone": "MJ-PR-025-LOCAL-OCR",
+  "current_objective": "Complete bounded native-first scanned PDF OCR in the supported local Docker runtime with explicit review and real API/browser evidence.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -69,7 +69,7 @@
   ],
   "blocked_capabilities": [],
   "active_requirements": [
-    "MJ-REQ-091"
+    "MJ-REQ-090"
   ],
   "active_prs": [
     {
@@ -475,6 +475,13 @@
       "head": "14a56622f4dc0835bef017ceaeacc27f0e5c8518",
       "merge_commit": "e8f8ba6c46e83b976c9b565549c0f6f0367415d0",
       "ci_evidence": "docs/evidence/2026-10-04-lifecycle-exact-head-ci.json"
+    },
+    {
+      "number": 489,
+      "status": "MERGED",
+      "head": "8fd0b46910101799ec506542f17698f04cc1ca6d",
+      "merge_commit": "831fd5a91be9b9843b529bd6593978c4586750f8",
+      "ci_evidence": "docs/evidence/2026-10-04-date-review-exact-head-ci.json"
     }
   ],
   "tests_passed": [
@@ -588,7 +595,8 @@
     "Final parser duplicate-attribute ambiguity: observed RED then27 affected sampler/integration/browser tests PASS; exact new-head hosted full regression required.",
     "Company discovery requests: 393 Python tests zero skips,29 frontend tests/build; PostgreSQL17 concurrency/migration/restart, browser/API/worker and feedback compatibility PASS.",
     "Canonical route lifecycle: 476 local tests and22 PostgreSQL tests PASS; docs/evidence/2026-10-04-canonical-route-lifecycle.json",
-    "Resume date review:479 full tests then31 final affected tests PASS; docs/evidence/2026-10-04-resume-date-review.json"
+    "Resume date review:479 full tests then31 final affected tests PASS; docs/evidence/2026-10-04-resume-date-review.json",
+    "Bounded local OCR:487 final tests,38 frontend tests/build and real isolated API/browser runtime PASS; docs/evidence/2026-10-04-local-resume-ocr.json"
   ],
   "tests_failed": [],
   "tests_not_run": [
@@ -682,7 +690,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Finish date review exact-head CI and merge, then implement bounded local OCR fallback for scanned resumes (MJ-REQ090) before advancing dependent slices.",
+  "recommended_resume_step": "Finish real OCR app-image API/browser proof, independent review, full regression and exact final-head CI. Then close remaining MJ-PR025 acceptance and advance dependency-ready document preparation.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -2643,12 +2651,45 @@
         "git_commit": "e8f8ba6c46e83b976c9b565549c0f6f0367415d0",
         "evidence_path": "docs/evidence/2026-10-04-lifecycle-exact-head-ci.json"
       }
+    },
+    {
+      "completed_steps": [
+        "MJ-REQ091 merged and closed with exact receipts",
+        "Added bounded local subprocess OCR and synthetic scanned/mixed fixtures"
+      ],
+      "files_added": [],
+      "files_modified": [],
+      "tests_completed": [
+        "37 focused OCR/native/profile tests PASS",
+        "Generated scanned fixture rendered and visually checked",
+        "487 final local tests PASS with zero skips",
+        "38 frontend tests and production build PASS",
+        "Real Poppler/Tesseract API/browser in network-disabled1GiB read-only app image PASS",
+        "Independent product and harness re-reviews PASS"
+      ],
+      "tests_remaining": [
+        "Exact final-head push/PR CI including mandatory OCR artifact"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "Bounded English OCR in Linux Docker; inline-only images and same-page mixed native/image text not promised complete coverage",
+        "OCR remains imperfect and all recognized facts require user review; SQL observed as SOL and preserved unchanged"
+      ],
+      "milestone_id": "local-resume-ocr-20261004",
+      "timestamp": "2026-10-04T18:20:58.798924+00:00",
+      "current_phase": "IMPLEMENTING_OCR",
+      "last_safe_checkpoint": {
+        "git_commit": "831fd5a91be9b9843b529bd6593978c4586750f8",
+        "evidence_path": "docs/evidence/2026-10-04-date-review-exact-head-ci.json"
+      }
     }
   ],
-  "current_phase": "IMPLEMENTED_VALIDATING",
+  "current_phase": "IMPLEMENTING_OCR",
   "last_safe_checkpoint": {
-    "git_commit": "e8f8ba6c46e83b976c9b565549c0f6f0367415d0",
-    "evidence_path": "docs/evidence/2026-10-04-lifecycle-exact-head-ci.json"
+    "git_commit": "831fd5a91be9b9843b529bd6593978c4586750f8",
+    "evidence_path": "docs/evidence/2026-10-04-date-review-exact-head-ci.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
@@ -2737,9 +2778,9 @@
     }
   },
   "active_development_issue": {
-    "number": 92,
+    "number": 91,
     "status": "PARTIAL",
-    "branch": "codex/resume-date-review-20261004"
+    "branch": "codex/local-resume-ocr-20261004"
   },
   "historical_control_snapshots": [
     {
@@ -3143,7 +3184,7 @@
   },
   "session_control": {
     "owner": "01a107cd-4e66-77d3-b046-fc2c01f4ffb1",
-    "branch": "codex/resume-date-review-20261004",
+    "branch": "codex/local-resume-ocr-20261004",
     "write_lanes": 1,
     "requested_action": "DELIVER_LIFECYCLE_PROFILE_IMPORT",
     "note": "Current user authorizes implementation, tests, review, push, exact-head-verified merge and continuation. No production deployment or external submissions."

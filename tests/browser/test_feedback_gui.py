@@ -6,6 +6,7 @@ from pathlib import Path
 import tempfile
 import threading
 import unittest
+from fixtures.browser_ports import create_browser_server
 
 from playwright.async_api import async_playwright, expect as async_expect
 from playwright.sync_api import sync_playwright, expect, Error
@@ -16,7 +17,7 @@ class FeedbackGUIBrowserTests(unittest.TestCase):
         from cli.feedback_gui import create_server
 
         with tempfile.TemporaryDirectory() as directory:
-            server = create_server(port=0, output_root=Path(directory) / 'feedback')
+            server = create_browser_server(create_server, output_root=Path(directory) / 'feedback')
             thread = threading.Thread(target=server.serve_forever, daemon=True); thread.start()
             origin = f'http://127.0.0.1:{server.server_address[1]}'
             try:
@@ -51,7 +52,7 @@ class FeedbackGUIBrowserTests(unittest.TestCase):
         from cli.feedback_gui import create_server
 
         with tempfile.TemporaryDirectory() as directory:
-            server = create_server(port=0, output_root=Path(directory) / 'feedback')
+            server = create_browser_server(create_server, output_root=Path(directory) / 'feedback')
             thread = threading.Thread(target=server.serve_forever, daemon=True)
             thread.start()
             origin = f'http://127.0.0.1:{server.server_address[1]}'
@@ -108,7 +109,7 @@ class FeedbackGUIBrowserTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             output = root / "feedback"
-            server = create_server(port=0, output_root=output)
+            server = create_browser_server(create_server, output_root=output)
             port = server.server_address[1]
             thread = threading.Thread(target=server.serve_forever, daemon=True)
             thread.start()

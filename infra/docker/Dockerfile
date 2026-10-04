@@ -8,6 +8,7 @@ RUN npm test && npm run build
 FROM python:3.12-slim
 ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1
 WORKDIR /app
+RUN apt-get update && apt-get install -y --no-install-recommends poppler-utils tesseract-ocr tesseract-ocr-eng && rm -rf /var/lib/apt/lists/*
 COPY requirements.lock ./requirements.lock
 RUN pip install --no-cache-dir -r requirements.lock && python -m playwright install --with-deps chromium
 COPY . .

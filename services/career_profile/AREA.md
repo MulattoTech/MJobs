@@ -3,7 +3,9 @@
 This area implements the native, local-first base-resume import boundary for MJ-REQ-090,
 MJ-REQ-091, and MJ-REQ-092. PDF, DOCX, and UTF-8 TXT input is parsed without network or
 AI calls. Results remain `READY_FOR_REVIEW` until a user approves individual facts; empty
-image-only PDFs report `NEEDS_OCR` and ordinary parse failures report `UNREADABLE`.
+image-only PDFs use bounded local OCR in the Linux Docker runtime. If OCR is
+unavailable or unsuccessful they report `NEEDS_OCR`; blank/unreadable documents
+report `UNREADABLE`. Native text remains reviewable even when OCR fails.
 
 Public interface: `extract_resume(data, format, source)` returns bounded contact
 suggestions, pending facts, and extraction warnings. It never writes profile data,
@@ -13,7 +15,19 @@ explicit profile saves use immutable versions owned by persistence. Extraction
 must not depend on application automation or matching workers.
 
 Native PDF parsing uses pypdf; DOCX parses only the bounded document XML part;
-UTF-8 TXT stays local. OCR and rich structured chronology remain incomplete.
+UTF-8 TXT stays local. Scanned pages without native text use Poppler and English
+Tesseract locally; no file or extracted text goes to a remote OCR service.
+The fallback processes at most 10 scanned pages, scales each raster to at most
+1800 pixels per dimension, and has a 45-second total deadline with 10-second
+tool deadlines. Linux child processes have 768 MiB address-space, 12-second CPU,
+16 MiB file-size limits and one OCR thread. A per-process slot prevents parallel
+OCR work. Private temporary files are removed on every outcome. Hosts without
+the supported tools/resource limits retain the explicit unavailable state.
+Mixed PDFs retain page order and native text. OCR results carry a warning and
+confidence 70, remain unverified/unapproved, and need deliberate review before
+document use. OCR can misread even clear text; never silently correct guesses.
+Inline-image-only pages and pages mixing native text with scanned image content
+are not promised complete OCR coverage. Rich structured chronology remains open.
 Native extraction recognizes work/employment history, responsibilities and
 technology-experience headings and preserves dated lines verbatim. Only whole
 contact tokens in the opening header, or explicit labelled contact lines, become
@@ -29,6 +43,8 @@ Without headings, prose ends the inferred header. No links are fetched and no
 imported fact is automatically verified or approved.
 Tests: `python -m unittest tests.unit.test_resume_extraction
 tests.integration.test_profile_import tests.browser.test_profile_import`.
+OCR bounds/failure tests: `python -m unittest tests.unit.test_resume_ocr`.
+Real tool/API/browser acceptance in the app image: `python -m cli.profile_ocr_e2e`.
 
 MJ-REQ-088/089 use the existing immutable profile snapshots for optional contact
 and job preferences. Work authorization is user-supplied text; sponsorship is

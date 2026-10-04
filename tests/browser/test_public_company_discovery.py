@@ -2,7 +2,7 @@
 import copy
 import os
 from pathlib import Path
-import socket
+from fixtures.browser_ports import bound_browser_socket
 import tempfile
 import threading
 import time
@@ -61,8 +61,7 @@ class PublicCompanyDiscoveryBrowserTests(unittest.TestCase):
 
             app = create_app(store, "http://127.0.0.1:1", root / "outputs",
                              redis_url="redis://127.0.0.1:1/0", operation_mode="PERSONAL")
-            sock = socket.socket()
-            sock.bind(("127.0.0.1", 0))
+            sock = bound_browser_socket()
             origin = f"http://127.0.0.1:{sock.getsockname()[1]}"
             server = uvicorn.Server(uvicorn.Config(app, log_level="error"))
             thread = threading.Thread(target=server.run, kwargs={"sockets": [sock]}, daemon=True)

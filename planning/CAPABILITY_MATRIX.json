@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-04T17:56:39.051192+00:00",
+  "timestamp": "2026-10-04T18:20:58.798924+00:00",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -781,13 +781,15 @@
     },
     {
       "requirement_id": "MJ-REQ-091",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
         "docs/evidence/2026-10-03-resume-driven-profile.json",
         "docs/evidence/2026-10-04-lifecycle-profile-acceptance.json",
-        "docs/evidence/2026-10-04-resume-extraction-preservation.json"
+        "docs/evidence/2026-10-04-resume-extraction-preservation.json",
+        "docs/evidence/2026-10-04-date-review-exact-head-ci.json",
+        "docs/evidence/2026-10-04-resume-date-review.json"
       ],
-      "note": "Native PDF/DOCX/TXT extraction preserves employment dates and responsibility prose, safely suggests profile links and requires review. Remains PARTIAL for scanned OCR and normalized chronology/layout acceptance."
+      "note": "PR489 native extraction/date/responsibility review acceptance with original text and stable identities, explicit pending gates, exact-head push/PR CI. No inferred tenure or structured role associations."
     },
     {
       "requirement_id": "MJ-REQ-092",
