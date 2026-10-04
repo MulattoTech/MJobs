@@ -756,9 +756,9 @@
         "MJ-PR-024"
       ],
       "status": "PARTIAL",
-      "branch": "codex/document-library-20261004",
+      "branch": "codex/approved-skill-order-20261004",
       "draft_until_verified": true,
-      "notes": "MJ-REQ092/094 accepted in PR491; active seven-type library slice; tailoring095 remains open.",
+      "notes": "MJ-REQ092/093/094 accepted via PR491/492. Active opt-in skill-ordering increment; broader tailoring095 remains PARTIAL.",
       "feedback_slice": {
         "branch": "codex/resume-driven-profile",
         "result": "PARTIAL",
@@ -769,7 +769,8 @@
       },
       "integrated_incremental_prs": [
         453,
-        491
+        491,
+        492
       ]
     },
     {

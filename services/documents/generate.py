@@ -16,6 +16,7 @@ from packages.persistence.store import identity, now, upsert
 from services.dedupe.routes import persist_route_choices, plan_application_routes
 from services.dedupe.source_values import require_route_review
 from services.applications.knowledge import application_adapter_knowledge
+from services.documents import tailor
 
 
 class PreparationError(ValueError):
@@ -35,7 +36,9 @@ def uncommitted_files():
         raise
 
 
-def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=None, route_mode="DEFAULT", route_id=None):
+def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=None, route_mode="DEFAULT", route_id=None, tailor_resume=False):
+    if type(tailor_resume) is not bool:
+        raise ValueError('tailor_resume must be a boolean')
     check = check or (lambda: None)
     with uncommitted_files() as staged, store.engine.begin() as connection:
         # A profile row serializes preparation and submission reservations.
@@ -57,7 +60,12 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
         route = route_plan["selected"][0]["preferred_route"]
         prior = connection.execute(select(m.applications).where(m.applications.c.job_id == job_id, m.applications.c.profile_id == profile_id).with_for_update()).mappings().one_or_none()
         if prior:
-            if prior["profile_version"] == profile["version"]:
+            prior_resume=connection.execute(select(m.documents).where(m.documents.c.application_id==prior['id'],
+                m.documents.c.version==prior['document_version'],m.documents.c.kind=='resume')).mappings().one_or_none()
+            expected_template=tailor.TEMPLATE if tailor_resume else 'verified-facts-v1'
+            same_mode=prior_resume and prior_resume['template']==expected_template
+            same_target=not tailor_resume or (prior_resume and (prior_resume['generation_context'] or {}).get('target_fingerprint')==tailor.target_fingerprint(job))
+            if prior["profile_version"] == profile["version"] and same_mode and same_target:
                 persist_route_choices(connection, prior["id"], route_plan)
                 return prior["id"]
             if prior["state"] not in ("PREPARED", "DRY_RUN_COMPLETE", "REVIEW_REQUIRED"):
@@ -74,7 +82,9 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
         root.mkdir(parents=True, exist_ok=True)
         fact_ids = [fact.id for fact in selected]
         texts = [fact.text for fact in selected]
-        kinds = {"resume": [profile["name"], profile["email"], *texts],
+        ordered_rows,context=tailor.order_skills(eligible,job) if tailor_resume else (eligible,None)
+        resume_ids=[row['fact_id'] for row in ordered_rows]
+        kinds = {"resume": [profile["name"], profile["email"], *[row['text'] for row in ordered_rows]],
                  "cover-letter": [profile["name"], f"Application for {job['title']}", *texts]}
         records = []
         generated_at = now()
@@ -97,9 +107,10 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
             records.append({"id": identity(application_id, kind, revision), "application_id": application_id,
                 "kind": kind, "version": revision, "profile_version": profile["version"],
                 "files": {path.suffix[1:]: relative + '/' + path.name for path in (docx_path, pdf_path, txt_path)},
-                "fact_ids": fact_ids, "sha256": {path.suffix[1:]: hashlib.sha256(path.read_bytes()).hexdigest() for path in (docx_path, pdf_path, txt_path)},
-                "template": "verified-facts-v1", "created_at": generated_at,
-                "generation_model": "deterministic-fact-copy-v1"})
+                "fact_ids": resume_ids if kind=='resume' else fact_ids, "sha256": {path.suffix[1:]: hashlib.sha256(path.read_bytes()).hexdigest() for path in (docx_path, pdf_path, txt_path)},
+                "template": tailor.TEMPLATE if kind=='resume' and tailor_resume else "verified-facts-v1", "created_at": generated_at,
+                "generation_model": tailor.MODEL if kind=='resume' and tailor_resume else "deterministic-fact-copy-v1",
+                "generation_context": context if kind=='resume' else None})
         check()
         upsert(connection, m.applications, {"id": application_id, "job_id": job_id, "route_id": route["id"], "profile_id": profile_id,
             "profile_version": profile["version"], "document_version": revision, "state": "PREPARED", "target": "MOCK" if route["provider"] == "mock-ats" else "REAL", "fact_ids": fact_ids,

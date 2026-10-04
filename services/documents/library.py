@@ -3,6 +3,7 @@ from sqlalchemy import select
 from packages.persistence import models as m
 from services.documents.uploads import list_resumes, read_resume
 from services.documents.history import application_documents
+from services.documents import tailor
 
 
 def document_library(store, profile_id):
@@ -16,6 +17,8 @@ def document_library(store, profile_id):
     for application in applications:
         for row in application_documents(store, application['id']):
             row['document_kind'] = 'GENERATED_RESUME' if row['kind'] == 'resume' else 'COVER_LETTER'
+            if row['kind']=='resume' and row['template']==tailor.TEMPLATE and row['generation_model']==tailor.MODEL and (row['generation_context'] or {}).get('mode')=='APPROVED_SKILL_ORDER':
+                row['document_kind']='TAILORED_RESUME'
             row['job_title'] = application['title']
             row['company'] = application['company']
             generated.append(row)

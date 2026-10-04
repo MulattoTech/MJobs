@@ -29,7 +29,7 @@ The UI exposes this provenance and only links formats present in that revision.
 Legacy timestamps/methods remain unknown (NULL); migration af2049e17b63 refuses
 downgrade that would discard populated provenance. Existing bytes are unchanged.
 Tests: tests.integration.test_document_provenance and tests.browser.test_document_history.
-Seven-type unified library and job-specific tailoring remain separate gaps.
+The unified library supports seven uploaded types; broader tailoring remains incomplete.
 
 Document library collections (MJ-REQ-093) classify uploaded originals as base,
 master or tailored resume, cover letter, application answer export, supporting
@@ -47,3 +47,18 @@ never create or approve facts. Private backup continues to preserve relational
 metadata and the same uploads directory. Tests: test_document_library and the
 real browser library flow in test_document_history; hosted cli.ui_e2e covers a
 PostgreSQL-backed certification upload/download with no import/fact mutation.
+
+Explicit tailor_resume=true orders only approved kind=skill facts within existing
+skill slots using normalized target skill overlap and stable ties. It preserves
+all text and every non-skill position, including role/date/responsibility lines;
+cover letters remain generic. The API requires a strict boolean and the durable
+worker defaults absent flags to false. Model/template/context distinguish this
+bounded tailored output from generic generation. Context stores original/ordered
+fact IDs, matched job skills and the original target job snapshot/fingerprint.
+Mode/target/profile changes create new revisions only in safe preparation states;
+identical requests are idempotent and confirmed/active history stays locked.
+Migration cf4216a93b85 preserves legacy unknown context and refuses to discard
+recorded tailoring context. Matching is a relevance heuristic, not proof of a
+qualification. MJ-REQ095 remains PARTIAL: summary adjustment, rephrasing, and
+bullet selection/removal are not implemented. Tests: unit/integration/browser
+.test_skill_order, plus hosted cli.ui_e2e explicit opt-in through the worker.
