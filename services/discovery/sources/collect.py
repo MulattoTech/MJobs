@@ -14,6 +14,7 @@ from services.company_discovery.sources import register_ats_tenant, upsert_compa
 from services.company_discovery.quality import posting_metrics, record_observation
 from services.company_discovery.requests import record_discovery_requests
 from services.dedupe.source_values import lock_candidate_job, record_candidate, resolve_job_values
+from services.dedupe.ingestion_identity import canonical_ingestion_job, lock_company_ingestion
 from services.discovery.sources.contract import SourceAdapter, SourceCapability
 from services.discovery.sources.greenhouse import SourceError, tenant_identifier
 from services.discovery.sources.registry import source_adapter
@@ -124,9 +125,11 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
             company_sources = {}
             pending_candidates = []
             batch_postings = {}
+            batch_identities = {}
             for company in ([batch.source_company] if batch.source_company else []) + [item.company for item, _ in normalized]:
                 company_id = identity(*company.identity_parts)
                 companies[company_id] = company
+            lock_company_ingestion(connection, companies)
             for company_id, company in sorted(companies.items()):
                 if connection.execute(select(m.companies.c.id).where(m.companies.c.id == company_id)).first() is None:
                     new_companies.add(company_id)
@@ -149,8 +152,16 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                 company_sources[company_id] = company_source['id']
             for item, job in sorted(normalized, key=lambda pair: (identity(*pair[0].company.identity_parts), pair[1]['requisition'])):
                 company_id = identity(*item.company.identity_parts)
-                job_id = identity(company_id, source["provider"], source["tenant"], job["requisition"])
+                native_job_id = identity(company_id, source["provider"], source["tenant"], job["requisition"])
                 url = job.pop("application_url")
+                source_job_id = (job["requisition"] if batch.source_company == item.company else identity(company_id, job["requisition"]))
+                posting_id = identity(source_id, source_job_id)
+                canonical = canonical_ingestion_job(connection, company_id=company_id,
+                    proposed_id=native_job_id, posting_id=posting_id, application_url=url,
+                    provider=source['provider'], tenant=source['tenant'], requisition=job['requisition'],
+                    batch_identities=batch_identities)
+                job_id = canonical['id'] if canonical else native_job_id
+                batch_identities.setdefault(job_id, []).append((source['provider'], source['tenant'], job['requisition']))
                 existing_attributes = connection.execute(select(m.jobs.c.attributes).where(m.jobs.c.id == job_id)).scalar_one_or_none()
                 existing_attributes = dict(existing_attributes or {})
                 job["attributes"].update(
@@ -161,11 +172,11 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                     last_seen_at=timestamp,
                     last_collected_at=timestamp,
                 )
-                lock_candidate_job(connection, {"id": job_id, "company_id": company_id, **job})
-                upsert(connection, m.routes, {"id": job_id, "job_id": job_id, "company_id": company_id, "provider": source["provider"],
-                    "tenant": source["tenant"], "requisition": job["requisition"], "url": url})
-                source_job_id = (job["requisition"] if batch.source_company == item.company else identity(company_id, job["requisition"]))
-                posting_id = identity(source_id, source_job_id)
+                lock_candidate_job(connection, {"id": job_id, "company_id": company_id, **job,
+                    'requisition': canonical['requisition'] if canonical else job['requisition']})
+                if job_id == native_job_id:
+                    upsert(connection, m.routes, {"id": job_id, "job_id": job_id, "company_id": company_id, "provider": source["provider"],
+                        "tenant": source["tenant"], "requisition": job["requisition"], "url": url})
                 raw_key = json.dumps(item.raw, sort_keys=True, ensure_ascii=False)
                 if posting_id in batch_postings and batch_postings[posting_id] != raw_key:
                     raise SourceError('SOURCE_DUPLICATE_JOB_ID')

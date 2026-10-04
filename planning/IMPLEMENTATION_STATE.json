@@ -7,12 +7,12 @@
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "main fast-forwarded to f7875f44b5d6c5c8f8dcce0c94a5c80e38dbbdb5; new extraction branch has sole primary writer.",
-    "current_verified_github_state": "PR485 merged after both exact-head Verification workflows passed; issues86/88/89/90 closed by criterion evidence.",
-    "current_verified_at": "2026-10-04T17:13:24.058136+00:00"
+    "current_verified_local_state": "Sole writer branch based on current main 77b98129384f440d3769f4ca21ca6073c517f577; unrelated Codespaces PR487 integrated.",
+    "current_verified_github_state": "PR485/486 merged with exact-head push and PR CI. PR487 merged independently. Current slice unpublished.",
+    "current_verified_at": "2026-10-04T17:44:03.089367+00:00"
   },
-  "current_milestone": "MJ-PR-025-EXTRACTION-PRESERVATION",
-  "current_objective": "Preserve resume employment dates and responsibility text, avoid body-contact misattribution, and extract reviewed profile links.",
+  "current_milestone": "MJ-PR-024-CANONICAL-ATTACHMENT",
+  "current_objective": "Attach new cross-provider postings through unambiguous same-company application URLs; preserve existing identities, applications and source history.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -69,8 +69,7 @@
   ],
   "blocked_capabilities": [],
   "active_requirements": [
-    "MJ-REQ-090",
-    "MJ-REQ-091"
+    "MJ-REQ-086"
   ],
   "active_prs": [
     {
@@ -460,6 +459,14 @@
       "head": "4c3a5f78d0eab8a889d74b24916d6dc223f1dc01",
       "merge_commit": "f7875f44b5d6c5c8f8dcce0c94a5c80e38dbbdb5",
       "ci_evidence": "docs/evidence/2026-10-04-profile-exact-head-ci.json"
+    },
+    {
+      "number": 486,
+      "url": "https://github.com/MulattoTech/MJobs/pull/486",
+      "status": "MERGED",
+      "head": "996f7d7a3577d80c159daa88a023da5bdd45fbcd",
+      "merge_commit": "476fc221654b8366073bd7efe4955fea91e5683d",
+      "ci_evidence": "docs/evidence/2026-10-04-extraction-exact-head-ci.json"
     }
   ],
   "tests_passed": [
@@ -571,7 +578,8 @@
     "Public company discovery:350 Python tests zero skips,23 frontend tests/build, browser/API/worker feed flow, safe real HTTPS GET, independent boundary review and validators PASS.",
     "Application-link evidence:369 Python tests zero skips,26 frontend tests/build; isolated PostgreSQL17 migration/restart and browser/API/worker persisted readback PASS.",
     "Final parser duplicate-attribute ambiguity: observed RED then27 affected sampler/integration/browser tests PASS; exact new-head hosted full regression required.",
-    "Company discovery requests: 393 Python tests zero skips,29 frontend tests/build; PostgreSQL17 concurrency/migration/restart, browser/API/worker and feedback compatibility PASS."
+    "Company discovery requests: 393 Python tests zero skips,29 frontend tests/build; PostgreSQL17 concurrency/migration/restart, browser/API/worker and feedback compatibility PASS.",
+    "Canonical route lifecycle: 476 local tests and22 PostgreSQL tests PASS; docs/evidence/2026-10-04-canonical-route-lifecycle.json"
   ],
   "tests_failed": [],
   "tests_not_run": [
@@ -665,7 +673,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Finish extraction regression/review/exact-head CI. Remaining: scanned OCR and richer chronology; cross-provider canonical lifecycle attachment remains PARTIAL.",
+  "recommended_resume_step": "Finish canonical attachment exact-head CI and merge; then complete MJ-PR-025 native chronology/import and OCR gaps.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -2559,12 +2567,47 @@
         "git_commit": "b122b0ea9ffb6d6527e4b46ce04899d03021e361",
         "evidence_path": "docs/evidence/2026-10-04-clean-baseline.json"
       }
+    },
+    {
+      "completed_steps": [
+        "Integrated main including independent Codespaces PR487",
+        "Reproduced separate canonical identities through real ingestion",
+        "Implemented conservative same-company URL attachment preserving all existing records"
+      ],
+      "files_added": [],
+      "files_modified": [],
+      "tests_completed": [
+        "41 affected lifecycle/source tests PASS",
+        "9 new attachment tests PASS",
+        "22 PostgreSQL 17 lifecycle/attachment tests PASS including concurrent ingestion",
+        "38 frontend tests and production build PASS",
+        "Independent read-only defect review: no actionable findings",
+        "476 full local tests PASS, zero skips"
+      ],
+      "tests_remaining": [
+        "Exact final-head push and PR CI before merge"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "Existing separate canonical jobs are never automatically merged/reparented",
+        "Uncertain or generic URLs remain separate",
+        "No external submission or production-release acceptance"
+      ],
+      "milestone_id": "canonical-route-attachment-20261004",
+      "timestamp": "2026-10-04T17:44:54.484958+00:00",
+      "current_phase": "IMPLEMENTED_VALIDATING",
+      "last_safe_checkpoint": {
+        "git_commit": "77b98129384f440d3769f4ca21ca6073c517f577",
+        "evidence_path": "docs/evidence/2026-10-04-extraction-exact-head-ci.json"
+      }
     }
   ],
-  "current_phase": "CLEAN_BASELINE_VALIDATING",
+  "current_phase": "IMPLEMENTED_VALIDATING",
   "last_safe_checkpoint": {
-    "git_commit": "b122b0ea9ffb6d6527e4b46ce04899d03021e361",
-    "evidence_path": "docs/evidence/2026-10-04-clean-baseline.json"
+    "git_commit": "77b98129384f440d3769f4ca21ca6073c517f577",
+    "evidence_path": "docs/evidence/2026-10-04-extraction-exact-head-ci.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
@@ -2653,9 +2696,9 @@
     }
   },
   "active_development_issue": {
-    "number": 483,
+    "number": 87,
     "status": "PARTIAL",
-    "branch": "codex/reconcile-clean-slate-20261004"
+    "branch": "codex/canonical-route-lifecycle-20261004"
   },
   "historical_control_snapshots": [
     {
@@ -3059,7 +3102,7 @@
   },
   "session_control": {
     "owner": "01a107cd-4e66-77d3-b046-fc2c01f4ffb1",
-    "branch": "codex/resume-extraction-preservation-20261004",
+    "branch": "codex/canonical-route-lifecycle-20261004",
     "write_lanes": 1,
     "requested_action": "DELIVER_LIFECYCLE_PROFILE_IMPORT",
     "note": "Current user authorizes implementation, tests, review, push, exact-head-verified merge and continuation. No production deployment or external submissions."

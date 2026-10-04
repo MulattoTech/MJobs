@@ -22,6 +22,7 @@ from services.discovery.feed_items import _application_url, describe_feed_item
 from services.company_discovery.link_evidence import validate_reports, record_link_evidence
 from services.dedupe.source_values import lock_candidate_job, record_candidate, resolve_job_values
 from services.discovery.lifecycle import status_claim
+from services.dedupe.ingestion_identity import canonical_ingestion_job, lock_company_ingestion
 
 
 def _validate_source_identity(store, *, source_id, company_id, provider, tenant, endpoint):
@@ -69,12 +70,14 @@ def import_company_feed_jobs(store, *, company_id, source_id, provider, tenant,
     salary_known = 0
     pending_candidates = []
     batch_postings = {}
+    batch_identities = {}
     guard_rejected = False
     try:
         reports = validate_reports(items, strategy, endpoint, link_reports, timestamp)
         with store.engine.begin() as connection:
             if connection.dialect.name == 'sqlite':
                 connection.exec_driver_sql('BEGIN IMMEDIATE')
+            lock_company_ingestion(connection, [company_id])
             if import_guard:
                 try:
                     import_guard(connection)
@@ -110,7 +113,15 @@ def import_company_feed_jobs(store, *, company_id, source_id, provider, tenant,
                 published = parse_timestamp(item.get("date_published") or item.get("published") or item.get("pubdate"))
                 external_key = entry.external_key
                 requisition = external_key if len(external_key) <= 128 else identity(external_key)
-                job_id = identity(company_id, provider, tenant, requisition)
+                native_job_id = identity(company_id, provider, tenant, requisition)
+                posting_source = 'company-feed:' + str(source_id)
+                source_job_id = identity(posting_source, external_key)
+                posting_id = identity(posting_source, source_job_id)
+                canonical = canonical_ingestion_job(connection, company_id=company_id,
+                    proposed_id=native_job_id, posting_id=posting_id, application_url=application_url,
+                    provider=provider, tenant=tenant, requisition=requisition, batch_identities=batch_identities)
+                job_id = canonical['id'] if canonical else native_job_id
+                batch_identities.setdefault(job_id, []).append((provider, tenant, requisition))
                 previous = connection.execute(select(m.jobs.c.attributes).where(m.jobs.c.id == job_id)).scalar_one_or_none()
                 previous = dict(previous or {})
                 attributes = {
@@ -142,19 +153,18 @@ def import_company_feed_jobs(store, *, company_id, source_id, provider, tenant,
                        "title": title, "description": description, "skills": skill_data["labels"],
                        "location": location, "remote_type": location_facts["remote_type"],
                        "attributes": attributes}
-                lock_candidate_job(connection, job)
-                upsert(connection, m.routes, {"id": job_id, "job_id": job_id, "company_id": company_id,
-                    "provider": provider, "tenant": tenant, "requisition": requisition,
-                    "url": application_url})
-                source = "company-feed:" + str(source_id)
-                source_job_id = identity(source, external_key)
-                posting_id = identity(source, source_job_id)
+                lock_candidate_job(connection, {**job,
+                    'requisition': canonical['requisition'] if canonical else requisition})
+                if job_id == native_job_id:
+                    upsert(connection, m.routes, {"id": job_id, "job_id": job_id, "company_id": company_id,
+                        "provider": provider, "tenant": tenant, "requisition": requisition,
+                        "url": application_url})
                 raw_key = json.dumps(item, sort_keys=True, ensure_ascii=False)
                 if posting_id in batch_postings and batch_postings[posting_id] != raw_key:
                     raise ValueError('SOURCE_DUPLICATE_JOB_ID')
                 batch_postings[posting_id] = raw_key
                 persist_posting(connection, {"id": posting_id, "job_id": job_id,
-                    "source": source, "source_job_id": source_job_id, "source_url": endpoint,
+                    "source": posting_source, "source_job_id": source_job_id, "source_url": endpoint,
                     "application_url": application_url, "raw": item, "fetched_at": timestamp})
                 pending_candidates.append((posting_id, job_id, external_key, {key: value for key, value in job.items()
                                                                 if key not in {'id', 'company_id'}}))

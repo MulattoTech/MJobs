@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-10-04T17:45:46.503862+00:00",
+  "result": "PARTIAL",
+  "requirements": [
+    "MJ-REQ-086"
+  ],
+  "issues": [
+    87
+  ],
+  "branch": "codex/canonical-route-lifecycle-20261004",
+  "base_commit": "77b98129384f440d3769f4ca21ca6073c517f577",
+  "acceptance": {
+    "local_result": "PASS",
+    "oracle": "Employer CLOSED outranks aggregator ACTIVE after distinct native source identities attach to one canonical job through the same company and specific application URL.",
+    "preserved": [
+      "Posting native identifiers and raw snapshots",
+      "Source candidate and lifecycle observations",
+      "Existing job, route and application identities",
+      "Description revision history"
+    ],
+    "gates": [
+      "Exact company ID; no name-only company merging",
+      "Specific canonical application URL, one unambiguous existing job",
+      "Conflicting requisitions within a provider/tenant remain separate",
+      "Existing posting/native canonical job identity remains sticky",
+      "Per-company transaction serialization on PostgreSQL; SQLite immediate transaction"
+    ]
+  },
+  "checks": [
+    {
+      "timestamp": "2026-10-04T17:45:46.503862+00:00",
+      "command": ".venv/Scripts/python.exe -m unittest discover -s tests -p test_*.py -q",
+      "result": "PASS",
+      "tests": 476,
+      "scope": "Full local suite, zero skips; SQLite and real browser/API",
+      "evidence_path": ".git/afk-dev/identity-regression-20261004.log"
+    },
+    {
+      "timestamp": "2026-10-04T17:45:46.503862+00:00",
+      "command": ".venv/Scripts/python.exe .git/afk-dev/identity-postgres-20261004.py",
+      "result": "PASS",
+      "tests": 22,
+      "scope": "Isolated PostgreSQL17, full Alembic upgrade, lifecycle and new attachment cases including concurrent imports",
+      "evidence_path": ".git/afk-dev/identity-postgres-20261004.log"
+    },
+    {
+      "timestamp": "2026-10-04T17:45:46.503862+00:00",
+      "command": "npm test --prefix apps/web -- --run; npm run build --prefix apps/web",
+      "result": "PASS",
+      "tests": 38,
+      "scope": "Frontend regression and production build",
+      "evidence_path": null
+    },
+    {
+      "timestamp": "2026-10-04T17:45:46.503862+00:00",
+      "command": ".venv/Scripts/python.exe -m tools.verification.agent_skills; .venv/Scripts/python.exe -m tools.verification.catalogue; .venv/Scripts/python.exe -m tools.verification.progress validate; git diff --check",
+      "result": "PASS",
+      "scope": "Planning journal mismatch corrected before final validation"
+    }
+  ],
+  "review": {
+    "result": "PASS",
+    "reviewer": "Independent read-only chore lifecycle_audit",
+    "finding": "No actionable defects after native-ID contradiction guard and batch tracking."
+  },
+  "limitations": [
+    "Existing distinct canonical jobs are not automatically merged or reparented; reviewed legacy merge remains separate dedupe work.",
+    "Generic/ambiguous/nonmatching application URLs do not infer identity.",
+    "Local adapter tests use synthetic HTTP fixtures, not live employer status changes.",
+    "No real external application submission or production deployment."
+  ],
+  "hosted_ci": {
+    "result": "NOT_RUN",
+    "note": "Pending final content commit. Exact head/run/attempt/job and merge receipt will be attached to PR and preserved in the next slice."
+  }
+}
