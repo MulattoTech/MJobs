@@ -835,9 +835,10 @@
         "docs/evidence/2026-10-04-approved-selection-exact-head-ci.json",
         "docs/evidence/2026-10-04-technology-emphasis.json",
         "docs/evidence/2026-10-04-technology-emphasis-exact-head-ci.json",
-        "docs/evidence/2026-10-04-resume-contact-header.json"
+        "docs/evidence/2026-10-04-resume-contact-header.json",
+        "docs/evidence/2026-10-04-contact-header-exact-head-ci.json"
       ],
-      "note": "Ordering/selection/emphasis accepted through PR500. Explicit saved-contact header locally validated; hosted pending. Broader factual rephrasing remains incomplete."
+      "note": "Ordering, explicit fact selection/omission, technology emphasis and optional contact header accepted through PR501 exact-head CI. Broader factual summary/bullet rephrasing remains incomplete. User requested handoff; no active implementation."
     },
     {
       "requirement_id": "MJ-REQ-096",

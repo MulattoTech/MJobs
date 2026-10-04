@@ -1,0 +1,42 @@
+{
+  "timestamp": "2026-10-04T22:33:31.460304+00:00",
+  "result": "PASS",
+  "scope": "User-requested local shutdown/cleanup and verified implementation checkpoint; final documentation publication uses its own exact-head CI receipt",
+  "implementation_baseline": "a0bf00690d6f9aa834e4e0001a3ae19efb35f055",
+  "last_implementation_pr": 501,
+  "implementation_head": "737d77732934fc903a416d71764eecc684ff5a25",
+  "functional_receipt": "docs/evidence/2026-10-04-contact-header-exact-head-ci.json",
+  "retired_merged_feature_branches": 15,
+  "local_runtime": {
+    "result": "PASS",
+    "stopped_project": "mjobs",
+    "containers_stopped": 8,
+    "retained_volumes": [
+      "mjobs_database",
+      "mjobs_documents",
+      "mjobs_mock-receipts",
+      "mjobs_queue"
+    ],
+    "unrelated_apps_preserved": true,
+    "feedback_gui": {
+      "result": "PASS",
+      "module": "cli.feedback_gui",
+      "action": "Stopped verified checkout-scoped process; private feedback data preserved",
+      "ports_18700_to_18703": "No listeners after shutdown"
+    }
+  },
+  "temporary_artifacts": {
+    "unused_test_image_tags_removed": 7,
+    "isolated_model_cache_bytes_removed": 1881946856.0,
+    "private_diagnostics_and_owner_receipts_retained": true
+  },
+  "preserved": [
+    "Ignored .env, local documents/resumes/feedback and outputs",
+    "Local dependency environments and Git commit history",
+    "Independent clean MJobs-codespaces checkout on its own branch",
+    "Docker daemon, unrelated applications and unrelated images/cache"
+  ],
+  "next_feature_started": false,
+  "deferred_follow_up": "Fact-editor text/source/kind changes retain review flags; reset requires a new authorized slice and observed browser regression",
+  "final_publication": "Exact final documentation head must pass push/PR Verification and all runtime artifacts; final merge receipt will be posted to that PR"
+}
