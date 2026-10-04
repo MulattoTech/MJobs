@@ -39,5 +39,23 @@
   "next_feature_started": false,
   "deferred_follow_up": "Fact-editor text/source/kind changes retain review flags; reset requires a new authorized slice and observed browser regression",
   "final_publication": "Exact final documentation head must pass push/PR Verification and all runtime artifacts; final merge receipt will be posted to that PR",
-  "closeout_pr": "https://github.com/MulattoTech/MJobs/pull/502"
+  "closeout_pr": "https://github.com/MulattoTech/MJobs/pull/502",
+  "ci_locator_repair": {
+    "observed_failure": {
+      "run": 37240605390,
+      "attempt": 1,
+      "head": "99c4c5274fb648e8a6b003b1a73ddb11231ebfc9",
+      "step": "cli.personal_mode_e2e",
+      "result": "FAIL",
+      "cause": "Unscoped case-insensitive status locator matched resume history and document library concurrently"
+    },
+    "change": "Scope stored-unreviewed assertion to uploaded Synthetic Resume.pdf version 1; preserve API status, checksum and unapproved-fact assertions",
+    "local_validation": {
+      "result": "PASS",
+      "command": "Playwright Chromium DOM reproduction using both observed status elements",
+      "scope": "Locator-only RED/GREEN reproduction, not full product E2E",
+      "timestamp": "2026-10-04T22:44:43.154027+00:00"
+    },
+    "final_product_e2e": "Required on final exact-head push and PR runs; see closing PR receipt"
+  }
 }

@@ -20,7 +20,8 @@ Start with [the copyable handoff prompt](../prompts/CHATGPT_WEB_HANDOFF.md).
   [all 15 session merges](../docs/evidence/2026-10-04-delivery-merge-index.json).
 
 Final handoff publication [PR #502](https://github.com/MulattoTech/MJobs/pull/502)
-contains documentation/planning/evidence only. Its own
+contains documentation/planning/evidence plus a scoped personal-mode browser
+locator repair discovered during final CI. Its own
 final-head CI and merge receipt are recorded in that PR's closing comment. The
 implementation checkpoint above is not a fixed future main SHA.
 
