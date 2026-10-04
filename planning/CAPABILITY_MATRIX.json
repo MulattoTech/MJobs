@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-04T18:20:58.798924+00:00",
+  "timestamp": "2026-10-04T18:53:14.753590+00:00",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -769,15 +769,16 @@
     },
     {
       "requirement_id": "MJ-REQ-090",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
         "docs/evidence/2026-09-30-pr004-upload-restore-local.json",
         "docs/evidence/2026-10-03-resume-driven-profile.json",
         "docs/evidence/2026-10-03-resume-upload-integrity.json",
         "docs/evidence/2026-10-04-lifecycle-profile-acceptance.json",
-        "docs/evidence/2026-10-04-resume-extraction-preservation.json"
+        "docs/evidence/2026-10-04-resume-extraction-preservation.json",
+        "docs/evidence/2026-10-04-ocr-exact-head-ci.json"
       ],
-      "note": "Native PDF/DOCX/TXT extraction preserves employment dates and responsibility prose, safely suggests profile links and requires review. Remains PARTIAL for scanned OCR and normalized chronology/layout acceptance."
+      "note": "Native PDF/DOCX/TXT and bounded local scanned OCR accepted via PR490 exact-head workflows and real-engine review/save proof. Documented coverage limits retained."
     },
     {
       "requirement_id": "MJ-REQ-091",
@@ -797,9 +798,10 @@
       "evidence": [
         "docs/evidence/2026-09-29-mock-spine.md",
         "docs/evidence/2026-09-30-user-testing.md",
-        "docs/evidence/2026-10-03-resume-driven-profile.json"
+        "docs/evidence/2026-10-03-resume-driven-profile.json",
+        "docs/evidence/2026-10-04-document-provenance.json"
       ],
-      "note": "Reviewed native resume import, structured optional contact/preferences and named base-resume versions verified; full structured career model, OCR, advanced extraction and broader document library remain incomplete."
+      "note": "Current generated-fact/provenance/output acceptance passed locally and in isolated PostgreSQL; final-head CI/merge pending."
     },
     {
       "requirement_id": "MJ-REQ-093",
@@ -815,9 +817,10 @@
       "evidence": [
         "docs/evidence/2026-09-29-mock-spine.md",
         "docs/evidence/2026-10-03-resume-driven-profile.json",
-        "docs/evidence/2026-10-03-resume-upload-integrity.json"
+        "docs/evidence/2026-10-03-resume-upload-integrity.json",
+        "docs/evidence/2026-10-04-document-provenance.json"
       ],
-      "note": "Reviewed native resume import, structured optional contact/preferences and named base-resume versions verified; full structured career model, OCR, advanced extraction and broader document library remain incomplete. Identical-byte mixed-extension uploads now preserve one authoritative file/version, verified with concurrent SQLite/PostgreSQL requests; broader scope remains partial."
+      "note": "Current generated-fact/provenance/output acceptance passed locally and in isolated PostgreSQL; final-head CI/merge pending."
     },
     {
       "requirement_id": "MJ-REQ-095",
@@ -844,9 +847,10 @@
       "requirement_id": "MJ-REQ-098",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-09-30-user-testing.md"
+        "docs/evidence/2026-09-30-user-testing.md",
+        "docs/evidence/2026-10-04-document-provenance.json"
       ],
-      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open"
+      "note": "Current generated-fact/provenance/output acceptance passed locally and in isolated PostgreSQL; final-head CI/merge pending."
     },
     {
       "requirement_id": "MJ-REQ-099",

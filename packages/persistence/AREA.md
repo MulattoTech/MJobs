@@ -9,3 +9,6 @@ live in migrations/versions and must retain immutable schema history. UI and
 provider services cannot become durable state authority. Test: .venv/Scripts/python
 -m unittest discover -s tests. Credentials and personal artifacts are never logged
 or committed. Counters and submission reservations serialize by profile row.
+
+Document generation metadata is additive and nullable only for legacy unknowns.
+Never backfill a generation timestamp from application creation time.

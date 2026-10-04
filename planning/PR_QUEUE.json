@@ -96,7 +96,7 @@
     },
     {
       "id": "MJ-PR-005",
-      "title": "Core Search Model: Domain Model â€” Core Concepts; Global Job Sources",
+      "title": "Core Search Model: Domain Model \u00e2\u20ac\u201d Core Concepts; Global Job Sources",
       "domain": "core_search_model",
       "requirements": [
         "MJ-REQ-015",
@@ -275,7 +275,7 @@
     },
     {
       "id": "MJ-PR-013",
-      "title": "Job Identity Dedupe: Deduplication â€” Strong Signals; Deduplication â€” Company Identity",
+      "title": "Job Identity Dedupe: Deduplication \u00e2\u20ac\u201d Strong Signals; Deduplication \u00e2\u20ac\u201d Company Identity",
       "domain": "job_identity_dedupe",
       "requirements": [
         "MJ-REQ-044",
@@ -719,10 +719,10 @@
       "depends_on": [
         "MJ-PR-024"
       ],
-      "status": "PARTIAL",
+      "status": "PASS",
       "branch": "codex/local-resume-ocr-20261004",
       "draft_until_verified": true,
-      "notes": "MJ-REQ088/089 PASS in PR485 and MJ-REQ091 PASS in PR489. MJ-REQ090 native formats work; bounded local scanned OCR implementation under real runtime validation.",
+      "notes": "All four requirements evidenced across PR485/486/489/490; bounded scanned OCR proof and exact-head receipts retained.",
       "feedback_slice": {
         "branch": "codex/resume-driven-profile",
         "result": "PARTIAL",
@@ -735,9 +735,10 @@
         453,
         485,
         486,
-        489
+        489,
+        490
       ],
-      "evidence_path": "docs/evidence/2026-10-04-resume-extraction-preservation.json"
+      "evidence_path": "docs/evidence/2026-10-04-ocr-exact-head-ci.json"
     },
     {
       "id": "MJ-PR-026",
@@ -754,10 +755,10 @@
         "MJ-PR-025",
         "MJ-PR-024"
       ],
-      "status": "QUEUED",
-      "branch": "codex/mj-pr-026-career-profile-documents",
+      "status": "PARTIAL",
+      "branch": "codex/document-provenance-20261004",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. PR #453 integrated reviewed import/profile/resume history; full queue scope and requirement acceptance remain incomplete. Upload integrity continuation verified locally; exact-head CI pending. See docs/evidence/2026-10-03-resume-upload-integrity.json.",
+      "notes": "Active approved-fact provenance and generation metadata slice. Full seven-type library and tailoring remain open; no inference from merged prerequisites.",
       "feedback_slice": {
         "branch": "codex/resume-driven-profile",
         "result": "PARTIAL",
@@ -1164,7 +1165,7 @@
     },
     {
       "id": "MJ-PR-047",
-      "title": "Orchestration Data Security: Security â€” Pii; Security â€” Web",
+      "title": "Orchestration Data Security: Security \u00e2\u20ac\u201d Pii; Security \u00e2\u20ac\u201d Web",
       "domain": "orchestration_data_security",
       "requirements": [
         "MJ-REQ-171",
@@ -1184,7 +1185,7 @@
     },
     {
       "id": "MJ-PR-048",
-      "title": "Orchestration Data Security: Security â€” Secret Management; Audit Log",
+      "title": "Orchestration Data Security: Security \u00e2\u20ac\u201d Secret Management; Audit Log",
       "domain": "orchestration_data_security",
       "requirements": [
         "MJ-REQ-175",
@@ -1399,7 +1400,7 @@
     },
     {
       "id": "MJ-PR-059",
-      "title": "Test Harness: Unit Tests â€” Company Resolution; Unit Tests â€” Ats Detection",
+      "title": "Test Harness: Unit Tests \u00e2\u20ac\u201d Company Resolution; Unit Tests \u00e2\u20ac\u201d Ats Detection",
       "domain": "test_harness",
       "requirements": [
         "MJ-REQ-216",
@@ -1419,7 +1420,7 @@
     },
     {
       "id": "MJ-PR-060",
-      "title": "Test Harness: Unit Tests â€” Application State; Application Idempotency Test",
+      "title": "Test Harness: Unit Tests \u00e2\u20ac\u201d Application State; Application Idempotency Test",
       "domain": "test_harness",
       "requirements": [
         "MJ-REQ-220",

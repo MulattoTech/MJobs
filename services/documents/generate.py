@@ -77,6 +77,7 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
         kinds = {"resume": [profile["name"], profile["email"], *texts],
                  "cover-letter": [profile["name"], f"Application for {job['title']}", *texts]}
         records = []
+        generated_at = now()
         for kind, paragraphs in kinds.items():
             check()
             document = Document()
@@ -84,17 +85,21 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
                 document.add_paragraph(text)
             docx_path = root / f"{kind}.docx"
             pdf_path = root / f"{kind}.pdf"
-            staged.extend((docx_path, pdf_path))
+            txt_path = root / f"{kind}.txt"
+            staged.extend((docx_path, pdf_path, txt_path))
             document.save(docx_path)
+            txt_path.write_text('\n'.join(paragraphs) + '\n', encoding='utf-8', newline='\n')
             styles = getSampleStyleSheet()
             flowables = []
             for text in paragraphs:
                 flowables.extend([Paragraph(escape(text), styles["Normal"]), Spacer(1, 8)])
             SimpleDocTemplate(str(pdf_path)).build(flowables)
             records.append({"id": identity(application_id, kind, revision), "application_id": application_id,
-                "kind": kind, "version": revision, "profile_version": profile["version"], "files": {"docx": relative + "/" + docx_path.name, "pdf": relative + "/" + pdf_path.name},
-                "fact_ids": fact_ids, "sha256": {path.suffix[1:]: hashlib.sha256(path.read_bytes()).hexdigest() for path in (docx_path, pdf_path)},
-                "template": "verified-facts-v1"})
+                "kind": kind, "version": revision, "profile_version": profile["version"],
+                "files": {path.suffix[1:]: relative + '/' + path.name for path in (docx_path, pdf_path, txt_path)},
+                "fact_ids": fact_ids, "sha256": {path.suffix[1:]: hashlib.sha256(path.read_bytes()).hexdigest() for path in (docx_path, pdf_path, txt_path)},
+                "template": "verified-facts-v1", "created_at": generated_at,
+                "generation_model": "deterministic-fact-copy-v1"})
         check()
         upsert(connection, m.applications, {"id": application_id, "job_id": job_id, "route_id": route["id"], "profile_id": profile_id,
             "profile_version": profile["version"], "document_version": revision, "state": "PREPARED", "target": "MOCK" if route["provider"] == "mock-ats" else "REAL", "fact_ids": fact_ids,

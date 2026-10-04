@@ -70,9 +70,20 @@ def run(base_url, evidence_path):
             assert application["fact_ids"] == ["python"]
             first_documents = request("/applications/" + identifier + "/documents")["documents"]
             first_resume = next(row for row in first_documents if row["kind"] == "resume")
+            assert first_resume['created_at'] and first_resume['generation_model'] == 'deterministic-fact-copy-v1'
+            assert [fact['text'] for fact in first_resume['facts_used']] == ['Python']
+            provenance = page.get_by_role('region', name='resume version 1', exact=True)
+            provenance.get_by_text('Generation details and facts', exact=True).click()
+            expect(provenance.get_by_text('Generation method: deterministic-fact-copy-v1', exact=True)).to_be_visible()
+            with page.expect_download() as text_download:
+                provenance.get_by_role('link', name='Download TXT', exact=True).click()
+            text_bytes = Path(text_download.value.path()).read_bytes()
+            assert hashlib.sha256(text_bytes).hexdigest() == first_resume['sha256']['txt']
             original = context.request.get(base_url + "/documents/" + first_resume["id"] + "/docx").body()
             text = "\n".join(row.text for row in Document(io.BytesIO(original)).paragraphs)
             assert "Python" in text and "SQL" not in text
+            assert text_bytes.decode('utf-8').strip() == text
+            actions.append({'action':'Original approved facts, generation metadata and checksum-verified TXT download visible through the browser', 'result':'PASS'})
             actions.append({"action": "Pending fact excluded from matching and downloaded factual DOCX", "result": "PASS"})
 
             navigation("Profile")

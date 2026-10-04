@@ -1,36 +1,28 @@
 # Current delivery handoff — 2026-10-04
 
-Sole writer: root session `01a107cd-4e66-77d3-b046-fc2c01f4ffb1`, branch
-`codex/local-resume-ocr-20261004`, based on main
-`831fd5a91be9b9843b529bd6593978c4586750f8`.
+Sole writer root session `01a107cd-4e66-77d3-b046-fc2c01f4ffb1`, branch
+`codex/document-provenance-20261004`, baseline main
+`2120534c1d169c125412cf63321c2916d2a28984`.
 
-PR485/486/488/489 merged with exact-head push/PR CI and runtime artifact receipts.
-The latest receipt is `docs/evidence/2026-10-04-date-review-exact-head-ci.json`;
-prior receipts are the profile, extraction and lifecycle exact-head evidence
-files in the same directory. MJ-PR024 and MJ-REQ088/089/091 acceptance are evidenced;
-issues86/87/88/89/90/92 are closed. Native extracted dates and responsibility
-facts keep original text, stable IDs and explicit verification controls.
+PR485/486/488/489/490 merged with exact-head push/PR CI and runtime receipts.
+MJ-PR024 and025 acceptance is evidenced; issues86–92 are closed. The latest
+receipt is `docs/evidence/2026-10-04-ocr-exact-head-ci.json`: candidate
+c7b6b37f9e200e367247540ab9a6b7ae57e77ce0, push37225046048 and PR37225050413,
+attempt1, all seven artifacts PASS in each. OCR remains bounded Linux/English,
+image-only pages with XObjects; uncertain text requires explicit user review.
 
-Current MJ-REQ090 slice adds native-first local scanned-PDF OCR in the supported
-Linux Docker image using Poppler/Tesseract, bounded pages/pixels/memory/CPU/files/
-time and private temporary files. No cloud OCR or silent correction. OCR can
-misread SQL as SOL; the proof records that exact text, keeps confidence70 and
-unverified/unapproved state, and verifies original bytes plus browser save/reload.
-Missing engines remain NEEDS_OCR; blank documents are UNREADABLE. Native text is
-preserved after unexpected OCR failures. Inline-only scans and same-page mixed
-native/image text do not have complete coverage promised.
+Current MJ-PR026 slice adds actual document timestamps/method, original fact
+provenance, PDF/DOCX/TXT consistency and browser checksum-backed downloads.
+Migration af2049e17b63 (parent e9024a1b7c30) preserves legacy unknowns and refuses
+populated provenance loss. 490 Python tests zero skips,40 web/build,11 isolated
+PostgreSQL tests, real browser and independent review PASS. See
+`docs/evidence/2026-10-04-document-provenance.json`. Exact final-head hosted
+workflows and seven artifacts each remain the merge gate. Issues93/95/99 remain
+open until that gate; library issue94 and tailoring issue96 remain incomplete.
 
-Final487 local tests (zero skips),38 frontend tests/build, real offline read-only
-1GiB app-image API/Chromium proof and independent reviews passed. Browser fixtures
-now retain high loopback sockets after an observed Chrome-blocked port1723 failure.
-See `docs/evidence/2026-10-04-local-resume-ocr.json`.
-Final-head push/PR workflows must both pass, including new mandatory
-`ci-profile-ocr.json`, before merge and issue91 closeout. Exact receipts go in the
-PR closeout and `.git/afk-dev/pr-<number>-exact-head.json` until the next tracked
-slice. The session-owned image `mjobs-ocr-acceptance:20261004` is retained for
-reproducibility; its short-lived containers used --rm and are gone.
-
-After this gate, reconcile MJ-PR025 and inspect MJ-PR026/030 by acceptance evidence
-before advancing dependent document functionality. Existing user Compose services,
-private feedback and resumes are preserved. No external application submission,
-remote resume transfer or production deployment is authorized.
+After merge, reconcile receipts and complete useful document library/tailoring
+work by acceptance, reusing current immutable storage and generation. Retain
+private data and the independently owned Codespaces worktree. Test PostgreSQL
+container removed after identity check; user services untouched. Session-owned
+OCR image remains available. External application submission is OFF; no production
+deployment or private resume transfer is authorized.

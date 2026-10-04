@@ -1,6 +1,6 @@
 # Factual documents
 
-Own verified-fact DOCX/PDF preparation and version/provenance/hash records.
+Own verified-fact DOCX/PDF/TXT preparation and version/provenance/hash records.
 Also own profile-scoped base-resume storage. PDF, DOCX and UTF-8 TXT uploads
 are bounded to 10 MiB, validated before storage, marked STORED_UNREVIEWED,
 and checksum-checked on download. Uploads never create or approve CareerFacts.
@@ -19,3 +19,14 @@ stored path even when a later request uses a different matching extension.
 Native extraction and review belong to services/career_profile. Broader tailoring,
 advanced structured chronology and document regeneration remain incomplete.
 Bounded local scanned-PDF OCR and its review gates are owned by career_profile.
+
+Generated revisions record their actual creation timestamp and deterministic
+copy method, template, immutable profile version, approved fact IDs and SHA-256
+for each available format. All three formats use the same paragraph sequence.
+Application history resolves fact text/source against the original profile
+snapshot and reports missing IDs rather than substituting current profile facts.
+The UI exposes this provenance and only links formats present in that revision.
+Legacy timestamps/methods remain unknown (NULL); migration af2049e17b63 refuses
+downgrade that would discard populated provenance. Existing bytes are unchanged.
+Tests: tests.integration.test_document_provenance and tests.browser.test_document_history.
+Seven-type unified library and job-specific tailoring remain separate gaps.
