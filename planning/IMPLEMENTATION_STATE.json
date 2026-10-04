@@ -544,6 +544,12 @@
       "head": "61ca75cccd1a675f7bb8538a5c8b25253b60cd71",
       "merge_commit": "b0c650b98d8c357202b4bdfc7fd2d1103ff3ea28",
       "ci_evidence": "docs/evidence/2026-10-04-ats-headings-exact-head-ci.json"
+    },
+    {
+      "number": 500,
+      "url": "https://github.com/MulattoTech/MJobs/pull/500",
+      "branch": "codex/resume-technology-emphasis-20261004",
+      "status": "DRAFT"
     }
   ],
   "tests_passed": [
@@ -2988,7 +2994,7 @@
     {
       "milestone_id": "technology-emphasis-20261004",
       "timestamp": "2026-10-04T21:42:28.675566+00:00",
-      "current_phase": "LOCAL_VALIDATED",
+      "current_phase": "HOSTED_VALIDATING",
       "completed_steps": [
         "Versioned approved technology emphasis implemented",
         "Comparison review defect reproduced and fixed in both paths",
@@ -3018,7 +3024,7 @@
       }
     }
   ],
-  "current_phase": "LOCAL_VALIDATED",
+  "current_phase": "HOSTED_VALIDATING",
   "last_safe_checkpoint": {
     "git_commit": "4016a732bffde4707b3e0bba07ea2c2a33b69c17",
     "evidence_path": "docs/evidence/2026-10-04-approved-selection-exact-head-ci.json"

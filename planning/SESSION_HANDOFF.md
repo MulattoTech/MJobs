@@ -13,7 +13,7 @@ Private plan: `.git/afk-dev/technology-emphasis-plan.txt`. No migration.
 Local verification:529 broad Python,17 final affected,44 web/build,13 actual Linux,
 final browser, visual PDF and independent review PASS. Comparison review defect fixed.
 Evidence: docs/evidence/2026-10-04-technology-emphasis.json.
-Next: publish, exact final-head workflows/artifacts, safe merge and baseline update. Do not close issue96.
+Draft PR500 is open. Next: exact final-head workflows/artifacts, safe merge and baseline update. Do not close issue96.
 
 AI feasibility: both small local models failed the same relevance oracle;
 `docs/evidence/2026-10-04-local-ai-feasibility.json`. No AI product changes.
