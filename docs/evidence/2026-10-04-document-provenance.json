@@ -1,0 +1,68 @@
+{
+  "timestamp": "2026-10-04T18:53:14.753590+00:00",
+  "result": "PARTIAL",
+  "scope": "MJ-REQ-092/094/098 generated document provenance and PDF/DOCX/TXT outputs",
+  "base": "2120534c1d169c125412cf63321c2916d2a28984",
+  "branch": "codex/document-provenance-20261004",
+  "checks": [
+    {
+      "command": ".venv/Scripts/python.exe -m unittest discover -s tests -p 'test_*.py' -q",
+      "result": "PASS",
+      "target": "Local Windows Python; 490 tests, zero skips, 173.350 seconds",
+      "evidence_path": ".git/afk-dev/document-regression-20261004.log"
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run; npm run build --prefix apps/web",
+      "result": "PASS",
+      "target": "40 web tests and TypeScript/Vite production build"
+    },
+    {
+      "command": ".venv/Scripts/python.exe .git/afk-dev/document-postgres-20261004.py",
+      "result": "PASS",
+      "target": "11 tests on isolated PostgreSQL17: full Alembic upgrade, guarded downgrade, legacy roundtrip, original hashes/facts, idempotency and concurrent preparation",
+      "evidence_path": ".git/afk-dev/document-postgres-20261004.log"
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m unittest tests.browser.test_document_history -q (included in full regression)",
+      "result": "PASS",
+      "target": "Real Chromium: original fact source after profile change, all three checksum-backed downloads, reload, local requests only"
+    },
+    {
+      "command": "Independent read-only chore review",
+      "result": "PASS",
+      "target": "Migration, generation, original profile-version lookup, integrity API, historical unknown UI, tests; no actionable defects"
+    },
+    {
+      "command": "agent_skills, catalogue, progress validate, git diff --check",
+      "result": "PASS",
+      "target": "Repository delivery gates"
+    }
+  ],
+  "migration": {
+    "revision": "af2049e17b63",
+    "parent": "e9024a1b7c30",
+    "fields": [
+      "documents.created_at nullable String64",
+      "documents.generation_model nullable String128"
+    ],
+    "legacy": "NULL remains unknown, no synthetic timestamp or model",
+    "downgrade": "Refuses populated provenance loss; legacy NULL roundtrip verified on SQLite/PostgreSQL"
+  },
+  "behavior": [
+    "Original fact/source lookup is scoped to document profile_id/version/fact_id; missing original IDs reported without current-fact substitution",
+    "PDF/DOCX/TXT rendered from identical paragraph sequence with independent SHA256; pending facts excluded",
+    "Profile changes create a new revision; old files/rows/facts/timestamps unchanged",
+    "UI only links formats available in each revision and reports unknown historical metadata"
+  ],
+  "observed_failures_resolved": [
+    "RED missing generation_model; added actual generation metadata",
+    "Windows text writer emitted CRLF; explicit LF makes TXT paragraph sequence consistent",
+    "Initial migration test used test-only create_all with no Alembic history; corrected fixture to execute true full migrations"
+  ],
+  "external_submission_enabled": false,
+  "remaining": [
+    "Exact final-head push and pull-request workflows, all seven artifacts per run",
+    "Seven-type unified library MJ-REQ093 and tailoring MJ-REQ095 remain separate open gaps"
+  ],
+  "resource_cleanup": "Owned ephemeral PostgreSQL container removed after exact ID/owner verification; user services unchanged"
+}

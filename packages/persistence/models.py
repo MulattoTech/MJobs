@@ -268,7 +268,8 @@ documents = table("documents", Column("application_id", ForeignKey("applications
                   Column("kind", String(32), nullable=False), Column("version", Integer, nullable=False),
                   Column("profile_version", String(64), nullable=False),
                   Column("files", JSON, nullable=False), Column("fact_ids", JSON, nullable=False),
-                  Column("sha256", JSON, nullable=False), Column("template", String(128), nullable=False))
+                  Column("sha256", JSON, nullable=False), Column("template", String(128), nullable=False),
+                  Column("created_at", String(64)), Column("generation_model", String(128)))
 attempts = table("application_attempts", Column("application_id", ForeignKey("applications.id"), nullable=False),
                  Column("state", String(64), nullable=False), Column("steps", JSON, nullable=False), Column("started_at", String(64), nullable=False))
 operations = table("worker_operations", Column("kind", String(64), nullable=False), Column("entity_id", String(128), nullable=False),

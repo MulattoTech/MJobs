@@ -7,12 +7,12 @@
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Sole writer branch codex/local-resume-ocr-20261004 based on831fd5a91be9b9843b529bd6593978c4586750f8.",
-    "current_verified_github_state": "PR489 merged with exact-head push/PR CI and all twelve runtime artifacts PASS; issue92 closed. OCR issue91 remains open.",
-    "current_verified_at": "2026-10-04T18:20:58.798924+00:00"
+    "current_verified_local_state": "Sole writer codex/document-provenance-20261004 based on 2120534c1d169c125412cf63321c2916d2a28984.",
+    "current_verified_github_state": "PR490 merged; both workflows and all fourteen artifacts PASS; issue91 closed; MJ-PR025 accepted.",
+    "current_verified_at": "2026-10-04T18:44:29.625269+00:00"
   },
-  "current_milestone": "MJ-PR-025-LOCAL-OCR",
-  "current_objective": "Complete bounded native-first scanned PDF OCR in the supported local Docker runtime with explicit review and real API/browser evidence.",
+  "current_milestone": "MJ-PR-026-DOCUMENT-PROVENANCE",
+  "current_objective": "Expose immutable generated-document provenance and consistent PDF/DOCX/TXT downloads, reusing approved career facts and revision history.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -69,7 +69,9 @@
   ],
   "blocked_capabilities": [],
   "active_requirements": [
-    "MJ-REQ-090"
+    "MJ-REQ-092",
+    "MJ-REQ-094",
+    "MJ-REQ-098"
   ],
   "active_prs": [
     {
@@ -482,6 +484,14 @@
       "head": "8fd0b46910101799ec506542f17698f04cc1ca6d",
       "merge_commit": "831fd5a91be9b9843b529bd6593978c4586750f8",
       "ci_evidence": "docs/evidence/2026-10-04-date-review-exact-head-ci.json"
+    },
+    {
+      "number": 490,
+      "url": "https://github.com/MulattoTech/MJobs/pull/490",
+      "branch": "codex/local-resume-ocr-20261004",
+      "status": "MERGED",
+      "merge_commit": "2120534c1d169c125412cf63321c2916d2a28984",
+      "merged_at": "2026-10-04T18:42:11Z"
     }
   ],
   "tests_passed": [
@@ -624,11 +634,11 @@
     "MJ-PR-016 local Chromium first run used Docker DNS host api, which is not a secure browser origin for crypto.randomUUID; loopback URL rerun passed all five connected UI actions."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-04T17:19:51.849453+00:00",
-    "base_commit": "f7875f44b5d6c5c8f8dcce0c94a5c80e38dbbdb5",
+    "timestamp": "2026-10-04T18:53:14.753590+00:00",
+    "base_commit": "2120534c1d169c125412cf63321c2916d2a28984",
     "result": "PASS",
-    "scope": "467 Python tests zero skips;38 web tests/build; independent review resolved; final-head hosted CI pending",
-    "evidence_path": "docs/evidence/2026-10-04-resume-extraction-preservation.json"
+    "scope": "490 local tests zero skips;40 web/build;11 isolated PostgreSQL;browser;review. Hosted exact-head gate pending.",
+    "evidence_path": "docs/evidence/2026-10-04-document-provenance.json"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -690,7 +700,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Finish real OCR app-image API/browser proof, independent review, full regression and exact final-head CI. Then close remaining MJ-PR025 acceptance and advance dependency-ready document preparation.",
+  "recommended_resume_step": "Finish document provenance/output acceptance, exact-head CI and merge; then complete library and tailoring gaps.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -2667,9 +2677,7 @@
         "Real Poppler/Tesseract API/browser in network-disabled1GiB read-only app image PASS",
         "Independent product and harness re-reviews PASS"
       ],
-      "tests_remaining": [
-        "Exact final-head push/PR CI including mandatory OCR artifact"
-      ],
+      "tests_remaining": [],
       "migrations_applied": [],
       "live_integrations_tested": [],
       "known_errors": [],
@@ -2679,17 +2687,50 @@
       ],
       "milestone_id": "local-resume-ocr-20261004",
       "timestamp": "2026-10-04T18:20:58.798924+00:00",
-      "current_phase": "IMPLEMENTING_OCR",
+      "current_phase": "MERGED",
       "last_safe_checkpoint": {
         "git_commit": "831fd5a91be9b9843b529bd6593978c4586750f8",
         "evidence_path": "docs/evidence/2026-10-04-date-review-exact-head-ci.json"
       }
+    },
+    {
+      "milestone_id": "document-provenance-20261004",
+      "timestamp": "2026-10-04T18:53:14.753590+00:00",
+      "current_phase": "IMPLEMENTED_VALIDATING",
+      "last_safe_checkpoint": {
+        "git_commit": "2120534c1d169c125412cf63321c2916d2a28984",
+        "evidence_path": "docs/evidence/2026-10-04-ocr-exact-head-ci.json"
+      },
+      "completed_steps": [
+        "Implemented generation timestamp/method and original fact provenance API/UI",
+        "Added checksum-backed TXT outputs",
+        "Independent review found no actionable defects"
+      ],
+      "files_added": [],
+      "files_modified": [],
+      "tests_completed": [
+        "490 Python zero skips PASS",
+        "40 web/build PASS",
+        "11 isolated PostgreSQL migration/concurrency tests PASS",
+        "Real Chromium provenance/download/reload PASS"
+      ],
+      "tests_remaining": [
+        "Exact final-head push/PR CI and all seven artifacts each"
+      ],
+      "migrations_applied": [
+        "af2049e17b63: isolated SQLite and PostgreSQL17 upgrade/downgrade/readback PASS"
+      ],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "Seven-type document library and tailoring remain separate open requirements"
+      ]
     }
   ],
-  "current_phase": "IMPLEMENTING_OCR",
+  "current_phase": "IMPLEMENTED_VALIDATING",
   "last_safe_checkpoint": {
-    "git_commit": "831fd5a91be9b9843b529bd6593978c4586750f8",
-    "evidence_path": "docs/evidence/2026-10-04-date-review-exact-head-ci.json"
+    "git_commit": "2120534c1d169c125412cf63321c2916d2a28984",
+    "evidence_path": "docs/evidence/2026-10-04-ocr-exact-head-ci.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
@@ -2778,9 +2819,9 @@
     }
   },
   "active_development_issue": {
-    "number": 91,
+    "number": 95,
     "status": "PARTIAL",
-    "branch": "codex/local-resume-ocr-20261004"
+    "branch": "codex/document-provenance-20261004"
   },
   "historical_control_snapshots": [
     {
@@ -3184,7 +3225,7 @@
   },
   "session_control": {
     "owner": "01a107cd-4e66-77d3-b046-fc2c01f4ffb1",
-    "branch": "codex/local-resume-ocr-20261004",
+    "branch": "codex/document-provenance-20261004",
     "write_lanes": 1,
     "requested_action": "DELIVER_LIFECYCLE_PROFILE_IMPORT",
     "note": "Current user authorizes implementation, tests, review, push, exact-head-verified merge and continuation. No production deployment or external submissions."

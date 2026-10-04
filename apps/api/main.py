@@ -521,12 +521,11 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
 
     @app.get("/applications/{application_id}/documents")
     def documents(application_id: str):
-        store.application(application_id)
-        with store.engine.connect() as connection:
-            return {"documents": [dict(row) for row in connection.execute(select(m.documents).where(m.documents.c.application_id == application_id).order_by(m.documents.c.version.desc(), m.documents.c.kind)).mappings()]}
+        from services.documents.history import application_documents
+        return {"documents": application_documents(store, application_id)}
 
     @app.get("/documents/{document_id}/{format}")
-    def download(document_id: str, format: Literal["pdf", "docx"]):
+    def download(document_id: str, format: Literal["pdf", "docx", "txt"]):
         with store.engine.connect() as connection:
             document = connection.execute(select(m.documents).where(m.documents.c.id == document_id)).mappings().one()
         root = Path(output_dir).resolve()
@@ -537,7 +536,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             raise HTTPException(409, "Document unavailable or path invalid; regenerate for review")
         if hashlib.sha256(path.read_bytes()).hexdigest() != document["sha256"].get(format):
             raise HTTPException(409, "Document integrity check failed; regenerate for review")
-        media = "application/pdf" if format == "pdf" else "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        media = {"pdf": "application/pdf", "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "txt": "text/plain"}[format]
         return FileResponse(path, media_type=media, filename=f"{document['kind']}-v{document['version']}.{format}")
 
     @app.post("/applications/{application_id}/mock-run", status_code=202)
