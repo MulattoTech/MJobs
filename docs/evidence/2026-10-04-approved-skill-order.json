@@ -1,0 +1,61 @@
+{
+  "timestamp": "2026-10-04T19:32:05.465854+00:00",
+  "result": "PARTIAL",
+  "scope": "MJ-REQ-095 explicit approved-skill ordering increment, not full tailoring",
+  "base": "49d71a9c99b045e8bb76b2d2ae136c4f52a49454",
+  "branch": "codex/approved-skill-order-20261004",
+  "checks": [
+    {
+      "command": ".venv/Scripts/python.exe -m unittest discover -s tests -p 'test_*.py' -q",
+      "result": "PASS",
+      "target": "500 local Python tests, zero skips,188.619 seconds",
+      "evidence_path": ".git/afk-dev/skill-order-regression-20261004.log"
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run; npm run build --prefix apps/web",
+      "result": "PASS",
+      "target": "40 web tests, TypeScript/Vite build"
+    },
+    {
+      "command": ".venv/Scripts/python.exe .git/afk-dev/skill-postgres-20261004.py",
+      "result": "PASS",
+      "target": "13 isolated PostgreSQL17 tests, actual Alembic migration/guarded downgrade, durable worker option, mode/target revisions, original history, generic regression/concurrency",
+      "evidence_path": ".git/afk-dev/skill-postgres-20261004.log"
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m unittest tests.browser.test_skill_order -q",
+      "result": "PASS",
+      "target": "Real Chromium opt-in/API/worker, expected TXT skill order, matched-skill evidence, local-only requests"
+    },
+    {
+      "command": "Independent read-only chore review",
+      "result": "PASS",
+      "target": "Only skill slots move, strict boolean/default, eligible facts only, mode/target idempotency, history lock, preserved context; no actionable defects"
+    },
+    {
+      "command": "agent_skills, catalogue, progress validate, git diff --check",
+      "result": "PASS",
+      "target": "Repository delivery gates"
+    }
+  ],
+  "migration": {
+    "revision": "cf4216a93b85",
+    "parent": "be3105f82a74",
+    "field": "documents.generation_context nullable JSON",
+    "legacy": "Unknown remains NULL; generic context is absent",
+    "downgrade": "Refuses recorded target/ordering context loss; legacy migrations remain reversible"
+  },
+  "behavior": [
+    "Explicit tailor_resume=true; generic preparation and legacy queued requests default false",
+    "Only approved kind=skill facts reordered in existing skill slots by normalized target skill overlap; every non-skill position and all text unchanged",
+    "Records original/ordered IDs, original job title/skills, target fingerprint and matched skills; cover-letter content remains generic",
+    "Mode/target/profile changes create distinct safe-state revisions; identical requests are idempotent; confirmed/active histories locked",
+    "Tailored label requires explicit template/model/context markers; skill matches guide relevance and do not certify qualifications"
+  ],
+  "remaining": [
+    "Exact final-head hosted push/PR gate and all7 artifacts each",
+    "MJ-REQ095 stays PARTIAL: summary adjustment, rephrasing, bullet selection/removal and broader keyword alignment remain unimplemented"
+  ],
+  "external_submission_enabled": false,
+  "resource_cleanup": "Owned PostgreSQL test container removed after exact ID/owner check; user services unchanged"
+}

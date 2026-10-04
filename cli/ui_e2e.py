@@ -106,6 +106,16 @@ def run(base_url, evidence_path):
             assert hashlib.sha256(pdf_path.read_bytes()).hexdigest() in {doc["sha256"]["pdf"] for doc in documents}
             actions.append({"action": "Approved profile revision generates new documents, preserves original bytes, and PDF downloads through UI", "result": "PASS"})
 
+            select_data_job()
+            page.get_by_label('Order approved skills for this job',exact=True).check()
+            prepare()
+            tailored=next(row for row in request('/applications/'+identifier+'/documents')['documents'] if row['version']==3 and row['kind']=='resume')
+            assert tailored['generation_model']=='deterministic-skill-order-v1'
+            assert tailored['generation_context']['mode']=='APPROVED_SKILL_ORDER'
+            assert set(tailored['fact_ids'])=={'python','sql'}
+            expect(page.get_by_role('region',name='resume version 3',exact=True).get_by_text('Tailored resume: skill order',exact=False)).to_be_visible()
+            actions.append({'action':'Explicit skill-order opt-in reaches the document worker and preserves approved facts with target snapshot and separate revision','result':'PASS'})
+
             page.get_by_role("button", name="Run dry-run", exact=True).click()
             expect(page.locator(".job-detail > .tag")).to_have_text("DRY_RUN_COMPLETE")
             dry = request("/applications/" + identifier)

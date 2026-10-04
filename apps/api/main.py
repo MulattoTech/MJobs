@@ -72,6 +72,7 @@ class ApplicationInput(DiscoveryInput):
     job_id: str = Field(min_length=64, max_length=64)
     route_mode: Literal["DEFAULT", "THIS_ROUTE", "EMPLOYER_SITE", "ALL_DISTINCT"] = "DEFAULT"
     route_id: str | None = Field(default=None, min_length=1, max_length=128)
+    tailor_resume: bool = Field(default=False, strict=True)
 
 
 class MockRunInput(BaseModel):
@@ -531,6 +532,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         operation = queued("PREPARE", value.profile_id, {
             "job_id": value.job_id, "profile_version": profile["version"], "request_id": value.request_id,
             "route_mode": value.route_mode, "route_id": value.route_id,
+            "tailor_resume": value.tailor_resume,
         })
         return {**operation, "application_id": identity(value.job_id, value.profile_id),
                 "route_mode": route_plan["mode"], "route_ids": [route["id"] for route in selected_routes]}

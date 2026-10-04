@@ -7,12 +7,12 @@
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Sole writer codex/document-library-20261004 based on 36d28ba62f81ae1acc1a5d6a4f0e7950d6fd9550.",
-    "current_verified_github_state": "PR491 merged with exact-head workflows and all14 artifacts PASS; issues93/95/99 closed.",
-    "current_verified_at": "2026-10-04T19:01:08.687071+00:00"
+    "current_verified_local_state": "Sole writer codex/approved-skill-order-20261004 based on 49d71a9c99b045e8bb76b2d2ae136c4f52a49454.",
+    "current_verified_github_state": "PR492 merged with exact-head workflows and all14 artifacts PASS; issue94 closed.",
+    "current_verified_at": "2026-10-04T19:21:51.199744+00:00"
   },
-  "current_milestone": "MJ-PR-026-DOCUMENT-LIBRARY",
-  "current_objective": "Store all seven explicit document types in profile-scoped immutable versioned collections while preserving base import behavior and generated provenance.",
+  "current_milestone": "MJ-PR-026-SKILL-ORDER",
+  "current_objective": "Add explicit opt-in target-job ordering of approved skill facts while preserving all wording and non-skill history; broader tailoring remains PARTIAL.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -69,7 +69,7 @@
   ],
   "blocked_capabilities": [],
   "active_requirements": [
-    "MJ-REQ-093"
+    "MJ-REQ-095"
   ],
   "active_prs": [
     {
@@ -497,6 +497,13 @@
       "branch": "codex/document-provenance-20261004",
       "status": "MERGED",
       "merge_commit": "36d28ba62f81ae1acc1a5d6a4f0e7950d6fd9550"
+    },
+    {
+      "number": 492,
+      "url": "https://github.com/MulattoTech/MJobs/pull/492",
+      "branch": "codex/document-library-20261004",
+      "status": "MERGED",
+      "merge_commit": "49d71a9c99b045e8bb76b2d2ae136c4f52a49454"
     }
   ],
   "tests_passed": [
@@ -639,11 +646,11 @@
     "MJ-PR-016 local Chromium first run used Docker DNS host api, which is not a secure browser origin for crypto.randomUUID; loopback URL rerun passed all five connected UI actions."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-04T19:14:25.469554+00:00",
-    "base_commit": "36d28ba62f81ae1acc1a5d6a4f0e7950d6fd9550",
+    "timestamp": "2026-10-04T19:32:05.465854+00:00",
+    "base_commit": "49d71a9c99b045e8bb76b2d2ae136c4f52a49454",
     "result": "PASS",
-    "scope": "495 Python zero skips;40 web/build;11 PostgreSQL;browser/review. Exact-head CI pending.",
-    "evidence_path": "docs/evidence/2026-10-04-document-library.json"
+    "scope": "500 Python zero skips;40 web/build;13 isolated PG;real browser/review. Hosted gate pending.",
+    "evidence_path": "docs/evidence/2026-10-04-approved-skill-order.json"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -705,7 +712,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Finish seven-type library acceptance and exact-head merge, then inspect deterministic tailoring.",
+  "recommended_resume_step": "Verify opt-in skill ordering through durable worker/UI, review and exact-head merge; preserve broader tailoring gaps.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -2732,7 +2739,7 @@
     {
       "milestone_id": "document-library-20261004",
       "timestamp": "2026-10-04T19:14:25.469554+00:00",
-      "current_phase": "IMPLEMENTED_VALIDATING",
+      "current_phase": "MERGED",
       "last_safe_checkpoint": {
         "git_commit": "36d28ba62f81ae1acc1a5d6a4f0e7950d6fd9550",
         "evidence_path": "docs/evidence/2026-10-04-document-provenance-exact-head-ci.json"
@@ -2750,9 +2757,7 @@
         "11 PostgreSQL migration/concurrency/readback PASS",
         "Real browser seven types/version/reload/download PASS"
       ],
-      "tests_remaining": [
-        "Exact final-head push/PR workflows and all7 artifacts each"
-      ],
+      "tests_remaining": [],
       "migrations_applied": [
         "be3105f82a74: isolated SQLite and PostgreSQL17 upgrade/downgrade/readback PASS"
       ],
@@ -2761,12 +2766,45 @@
       "known_limitations": [
         "Tailoring remains separate open requirement"
       ]
+    },
+    {
+      "milestone_id": "approved-skill-order-20261004",
+      "timestamp": "2026-10-04T19:32:05.465854+00:00",
+      "current_phase": "IMPLEMENTED_VALIDATING",
+      "last_safe_checkpoint": {
+        "git_commit": "49d71a9c99b045e8bb76b2d2ae136c4f52a49454",
+        "evidence_path": "docs/evidence/2026-10-04-document-library-exact-head-ci.json"
+      },
+      "completed_steps": [
+        "Implemented explicit skill-only ordering and original target context",
+        "Verified generic/mode-change/target-change revision behavior and locked history",
+        "Independent review found no actionable defects"
+      ],
+      "files_added": [],
+      "files_modified": [],
+      "tests_completed": [
+        "500 Python zero skips PASS",
+        "40 web/build PASS",
+        "13 PostgreSQL migration/worker/revision tests PASS",
+        "Real browser opt-in/worker/order/download PASS"
+      ],
+      "tests_remaining": [
+        "Exact final-head push/PR workflows and all7 artifacts each"
+      ],
+      "migrations_applied": [
+        "cf4216a93b85: isolated SQLite/PostgreSQL17 migration and context-loss guard PASS"
+      ],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "Summary adjustment, rephrasing and bullet selection/removal remain unimplemented; MJ-REQ095 stays PARTIAL"
+      ]
     }
   ],
   "current_phase": "IMPLEMENTED_VALIDATING",
   "last_safe_checkpoint": {
-    "git_commit": "36d28ba62f81ae1acc1a5d6a4f0e7950d6fd9550",
-    "evidence_path": "docs/evidence/2026-10-04-document-provenance-exact-head-ci.json"
+    "git_commit": "49d71a9c99b045e8bb76b2d2ae136c4f52a49454",
+    "evidence_path": "docs/evidence/2026-10-04-document-library-exact-head-ci.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
@@ -2855,9 +2893,9 @@
     }
   },
   "active_development_issue": {
-    "number": 94,
+    "number": 96,
     "status": "PARTIAL",
-    "branch": "codex/document-library-20261004"
+    "branch": "codex/approved-skill-order-20261004"
   },
   "historical_control_snapshots": [
     {
@@ -3261,7 +3299,7 @@
   },
   "session_control": {
     "owner": "01a107cd-4e66-77d3-b046-fc2c01f4ffb1",
-    "branch": "codex/document-library-20261004",
+    "branch": "codex/approved-skill-order-20261004",
     "write_lanes": 1,
     "requested_action": "DELIVER_LIFECYCLE_PROFILE_IMPORT",
     "note": "Current user authorizes implementation, tests, review, push, exact-head-verified merge and continuation. No production deployment or external submissions."

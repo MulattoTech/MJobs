@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-04T19:14:25.469554+00:00",
+  "timestamp": "2026-10-04T19:32:05.465854+00:00",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -806,12 +806,13 @@
     },
     {
       "requirement_id": "MJ-REQ-093",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
         "docs/evidence/2026-10-03-resume-driven-profile.json",
-        "docs/evidence/2026-10-04-document-library.json"
+        "docs/evidence/2026-10-04-document-library.json",
+        "docs/evidence/2026-10-04-document-library-exact-head-ci.json"
       ],
-      "note": "All seven types, profile/kind boundaries, version history and UI verified locally/PostgreSQL; exact-head hosted merge gate pending."
+      "note": "Seven-type library accepted in PR492 with exact-head workflows and all14 runtime artifacts. User-declared types do not claim generated tailoring."
     },
     {
       "requirement_id": "MJ-REQ-094",
@@ -827,9 +828,11 @@
     },
     {
       "requirement_id": "MJ-REQ-095",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-04-approved-skill-order.json"
+      ],
+      "note": "Explicit skill-only ordering verified locally/PG/browser; final-head gate pending. Summary/rephrasing/bullet selection/removal remain open."
     },
     {
       "requirement_id": "MJ-REQ-096",

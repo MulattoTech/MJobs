@@ -1,31 +1,33 @@
 # Current delivery handoff — 2026-10-04
 
 Sole writer root session `01a107cd-4e66-77d3-b046-fc2c01f4ffb1`, branch
-`codex/document-library-20261004`, baseline main
-`36d28ba62f81ae1acc1a5d6a4f0e7950d6fd9550`.
+`codex/approved-skill-order-20261004`, baseline main
+`49d71a9c99b045e8bb76b2d2ae136c4f52a49454`.
 
-PR485/486/488/489/490/491 merged with exact-head push/PR CI and runtime receipts.
-MJ-PR024/025 and MJ-REQ092/094/098 accepted; issues86–93,95,99 closed. Latest receipt:
-`docs/evidence/2026-10-04-document-provenance-exact-head-ci.json`, candidate
-878cbc0b7e48de54b8eb76f30d12d7821cadd8bd, push37226186860 and PR37226189890,
-attempt1; all seven artifacts PASS each, including connected provenance/TXT UI.
+PR485/486/488/489/490/491/492 merged with exact-head push/PR CI and runtime receipts.
+MJ-PR024/025 plus MJ-REQ092/093/094/098 accepted; issues86–95 and99 closed.
+Latest receipt: `docs/evidence/2026-10-04-document-library-exact-head-ci.json`,
+candidate618878db34e8369247069a648e71f259f852d13d, push37227534862 and
+PR37227539003,attempt1,all seven artifacts each PASS. The library stores all
+seven types without approving facts or mislabeling generic generation.
 
-Current MJ-REQ093 slice stores all seven document types in immutable versioned
-collections backed by shared original blobs. Base IDs/history preserved; base
-import requires BASE_RESUME membership; library downloads require profile-owned
-revision membership and checksum. Generated generic resumes remain honest
-GENERATED_RESUME records with job/company context. Uploads never approve facts.
-Migration be3105f82a74 (parent af2049e17b63) refuses loss of non-base collection kinds.
+Current slice implements explicit opt-in skill ordering through API/worker/UI.
+Only approved skill facts move within their existing slots; all wording and
+non-skill history stay exact. Generic output remains available. Original target
+snapshot, matching and ordered IDs are recorded with distinct method/template.
+Mode/target/profile changes create allowed-state revisions; identical requests
+are idempotent; confirmed/active history stays locked. Migration cf4216a93b85
+(parent be3105f82a74) refuses loss of recorded context and preserves legacy unknowns.
 
-495 Python tests zero skips,40 web/build,11 isolated PostgreSQL, real Chromium
-seven-kind store/version/reload/download and independent review PASS. See
-`docs/evidence/2026-10-04-document-library.json`. Exact final-head hosted workflows
-and seven artifacts each remain required before merge/issue94 closeout. New hosted
-UI check stores/downloads certification on PostgreSQL without importing career facts.
+500 Python tests zero skips,40 web/build,13 isolated PostgreSQL, real Chromium and
+independent review PASS. `docs/evidence/2026-10-04-approved-skill-order.json`.
+Exact final-head hosted push/PR workflows and seven artifacts each remain the
+merge gate. Hosted UI proof now includes the explicit option through the worker.
+MJ-REQ095/issue96 remains PARTIAL even after merge: summary adjustment, rephrasing,
+bullet selection/removal and broader keyword alignment are not implemented.
 
-Next: reconcile merge receipts, then deliver opt-in deterministic tailoring using
-approved facts only, preserving original wording and generic preparation. Issue96
-remains open. No automatic rewrite or unsupported claims. User services/private
-files and independently owned Codespaces checkout preserved. Owned temporary PG
-container removed. External submission OFF; no production deployment or private
-resume transfer is authorized.
+After merge, reconcile exact receipts and choose the next coherent document
+safety/quality gap by acceptance (MJ-REQ096/097 are candidates). Preserve all
+private data, independently owned Codespaces checkout and user services. Owned
+PostgreSQL test container removed. External submission OFF; no production
+deployment or private resume transfer is authorized.
