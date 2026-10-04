@@ -38,5 +38,6 @@
   ],
   "next_feature_started": false,
   "deferred_follow_up": "Fact-editor text/source/kind changes retain review flags; reset requires a new authorized slice and observed browser regression",
-  "final_publication": "Exact final documentation head must pass push/PR Verification and all runtime artifacts; final merge receipt will be posted to that PR"
+  "final_publication": "Exact final documentation head must pass push/PR Verification and all runtime artifacts; final merge receipt will be posted to that PR",
+  "closeout_pr": "https://github.com/MulattoTech/MJobs/pull/502"
 }
