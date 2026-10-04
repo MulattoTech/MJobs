@@ -1,0 +1,133 @@
+{
+  "timestamp": "2026-10-04T19:41:01.474865+00:00",
+  "result": "PASS",
+  "pr": {
+    "baseRefName": "main",
+    "baseRefOid": "49d71a9c99b045e8bb76b2d2ae136c4f52a49454",
+    "headRefOid": "bf82030665ce7f87ee5b3eed00a8d25d79294647",
+    "isDraft": true,
+    "mergeStateStatus": "CLEAN",
+    "mergeable": "MERGEABLE",
+    "number": 493,
+    "reviewDecision": "",
+    "state": "OPEN",
+    "url": "https://github.com/MulattoTech/MJobs/pull/493"
+  },
+  "head": "bf82030665ce7f87ee5b3eed00a8d25d79294647",
+  "base": "49d71a9c99b045e8bb76b2d2ae136c4f52a49454",
+  "runs": [
+    {
+      "id": 37228674891,
+      "event": "push",
+      "attempt": 1,
+      "head_sha": "bf82030665ce7f87ee5b3eed00a8d25d79294647",
+      "conclusion": "success",
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/37228674891",
+      "jobs": [
+        {
+          "id": 111513540572,
+          "name": "product-suite-and-connected-ui",
+          "conclusion": "success",
+          "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/37228674891/job/111513540572"
+        }
+      ]
+    },
+    {
+      "id": 37228677688,
+      "event": "pull_request",
+      "attempt": 1,
+      "head_sha": "bf82030665ce7f87ee5b3eed00a8d25d79294647",
+      "conclusion": "success",
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/37228677688",
+      "jobs": [
+        {
+          "id": 111513549094,
+          "name": "product-suite-and-connected-ui",
+          "conclusion": "success",
+          "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/37228677688/job/111513549094"
+        }
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "id": 111513549094,
+      "name": "product-suite-and-connected-ui",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/37228677688/job/111513549094"
+    },
+    {
+      "id": 111513540572,
+      "name": "product-suite-and-connected-ui",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/37228674891/job/111513540572"
+    }
+  ],
+  "artifacts": {
+    "push": [
+      {
+        "file": ".git\\afk-dev\\pr493-push-artifacts\\ci-mock-e2e.json",
+        "result": "PASS"
+      },
+      {
+        "file": ".git\\afk-dev\\pr493-push-artifacts\\ci-personal-mode.json",
+        "result": "PASS"
+      },
+      {
+        "file": ".git\\afk-dev\\pr493-push-artifacts\\ci-personal-public-source.json",
+        "result": "PASS"
+      },
+      {
+        "file": ".git\\afk-dev\\pr493-push-artifacts\\ci-personal-public-ui.json",
+        "result": "PASS"
+      },
+      {
+        "file": ".git\\afk-dev\\pr493-push-artifacts\\ci-profile-ocr.json",
+        "result": "PASS"
+      },
+      {
+        "file": ".git\\afk-dev\\pr493-push-artifacts\\ci-recovery.json",
+        "result": "PASS"
+      },
+      {
+        "file": ".git\\afk-dev\\pr493-push-artifacts\\ci-ui.json",
+        "result": "PASS"
+      }
+    ],
+    "pr": [
+      {
+        "file": ".git\\afk-dev\\pr493-pr-artifacts\\ci-mock-e2e.json",
+        "result": "PASS"
+      },
+      {
+        "file": ".git\\afk-dev\\pr493-pr-artifacts\\ci-personal-mode.json",
+        "result": "PASS"
+      },
+      {
+        "file": ".git\\afk-dev\\pr493-pr-artifacts\\ci-personal-public-source.json",
+        "result": "PASS"
+      },
+      {
+        "file": ".git\\afk-dev\\pr493-pr-artifacts\\ci-personal-public-ui.json",
+        "result": "PASS"
+      },
+      {
+        "file": ".git\\afk-dev\\pr493-pr-artifacts\\ci-profile-ocr.json",
+        "result": "PASS"
+      },
+      {
+        "file": ".git\\afk-dev\\pr493-pr-artifacts\\ci-recovery.json",
+        "result": "PASS"
+      },
+      {
+        "file": ".git\\afk-dev\\pr493-pr-artifacts\\ci-ui.json",
+        "result": "PASS"
+      }
+    ]
+  },
+  "codespaces": "NOT_APPLICABLE: no matching paths",
+  "merge_commit": "fdba1e8e40fdaa21ad1c63a54399559fa3b3ce45",
+  "baseline_verified": true
+}

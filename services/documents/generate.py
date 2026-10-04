@@ -2,12 +2,9 @@
 from dataclasses import asdict
 from contextlib import contextmanager
 import hashlib
-from html import escape
 from pathlib import Path
 
 from docx import Document
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer
 from sqlalchemy import select
 
 from packages.domain.safety import Fact, select_verified_facts
@@ -17,12 +14,14 @@ from services.dedupe.routes import persist_route_choices, plan_application_route
 from services.dedupe.source_values import require_route_review
 from services.applications.knowledge import application_adapter_knowledge
 from services.documents import tailor
+from services.documents.errors import PreparationError
+from services.documents.render import render_pdf
+from services.documents.validation import VALIDATOR, validate_assertions, validate_formats
 
 
-class PreparationError(ValueError):
-    def __init__(self, code, message):
-        super().__init__(message)
-        self.code = code
+def compose_paragraphs(profile, job, resume_rows, texts):
+    return {'resume': [profile['name'], profile['email'], *[row['text'] for row in resume_rows]],
+            'cover-letter': [profile['name'], f"Application for {job['title']}", *texts]}
 
 
 @contextmanager
@@ -65,7 +64,7 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
             expected_template=tailor.TEMPLATE if tailor_resume else 'verified-facts-v1'
             same_mode=prior_resume and prior_resume['template']==expected_template
             same_target=not tailor_resume or (prior_resume and (prior_resume['generation_context'] or {}).get('target_fingerprint')==tailor.target_fingerprint(job))
-            if prior["profile_version"] == profile["version"] and same_mode and same_target:
+            if prior["profile_version"] == profile["version"] and same_mode and same_target and prior['state'] != 'REVIEW_REQUIRED':
                 persist_route_choices(connection, prior["id"], route_plan)
                 return prior["id"]
             if prior["state"] not in ("PREPARED", "DRY_RUN_COMPLETE", "REVIEW_REQUIRED"):
@@ -84,12 +83,14 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
         texts = [fact.text for fact in selected]
         ordered_rows,context=tailor.order_skills(eligible,job) if tailor_resume else (eligible,None)
         resume_ids=[row['fact_id'] for row in ordered_rows]
-        kinds = {"resume": [profile["name"], profile["email"], *[row['text'] for row in ordered_rows]],
-                 "cover-letter": [profile["name"], f"Application for {job['title']}", *texts]}
+        kinds = compose_paragraphs(profile, job, ordered_rows, texts)
+        if set(kinds) != {'resume', 'cover-letter'}:
+            raise PreparationError('UNSUPPORTED_CLAIM', 'The generated document set has no complete validation contract')
         records = []
         generated_at = now()
         for kind, paragraphs in kinds.items():
             check()
+            validate_assertions(kind, paragraphs, profile, resume_ids if kind=='resume' else fact_ids, job['title'])
             document = Document()
             for text in paragraphs:
                 document.add_paragraph(text)
@@ -99,11 +100,8 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
             staged.extend((docx_path, pdf_path, txt_path))
             document.save(docx_path)
             txt_path.write_text('\n'.join(paragraphs) + '\n', encoding='utf-8', newline='\n')
-            styles = getSampleStyleSheet()
-            flowables = []
-            for text in paragraphs:
-                flowables.extend([Paragraph(escape(text), styles["Normal"]), Spacer(1, 8)])
-            SimpleDocTemplate(str(pdf_path)).build(flowables)
+            render_pdf(pdf_path, paragraphs)
+            validate_formats({'docx': docx_path, 'pdf': pdf_path, 'txt': txt_path}, paragraphs)
             records.append({"id": identity(application_id, kind, revision), "application_id": application_id,
                 "kind": kind, "version": revision, "profile_version": profile["version"],
                 "files": {path.suffix[1:]: relative + '/' + path.name for path in (docx_path, pdf_path, txt_path)},
@@ -118,6 +116,9 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
         selected_route_ids = persist_route_choices(connection, application_id, route_plan)
         for record in records:
             upsert(connection, m.documents, record)
+        store._audit(connection, application_id, 'DOCUMENTS_VALIDATED', {'validator': VALIDATOR,
+            'profile_version': profile['version'], 'documents': [
+                {'id': r['id'], 'fact_ids': r['fact_ids'], 'sha256': r['sha256']} for r in records]})
         store._audit(connection, application_id, "DOCUMENTS_PREPARED", {"fact_ids": fact_ids, "profile_version": profile["version"], "route_ids": selected_route_ids, "route_mode": route_plan["mode"],
             "adapter_knowledge": application_adapter_knowledge(connection, route["id"])})
         return application_id
