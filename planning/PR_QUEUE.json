@@ -693,10 +693,10 @@
         "MJ-PR-016"
       ],
       "status": "PARTIAL",
-      "branch": "codex/pr024-job-lifecycle-rebased-20261003",
+      "branch": "codex/canonical-route-lifecycle-20261004",
       "draft_until_verified": true,
-      "notes": "MJ-REQ-085/087 acceptance PASS in PR485 with exact-head push/PR CI; issues86/88 closed. MJ-REQ-086 remains PARTIAL: authority resolution supports attached postings; separate cross-provider canonical merge remains missing.",
-      "evidence_path": "docs/evidence/2026-10-03-job-lifecycle.json",
+      "notes": "MJ-REQ085/087 PASS in PR485. MJ-REQ086 new ingestion attachment implemented and under verification; no legacy reparent/merge. Exact final-head CI pending.",
+      "evidence_path": "docs/evidence/2026-10-04-canonical-route-lifecycle.json",
       "scope_complete": false,
       "local_validation": "PASS",
       "publication_status": "MERGED",
@@ -722,7 +722,7 @@
       "status": "PARTIAL",
       "branch": "codex/resume-extraction-preservation-20261004",
       "draft_until_verified": true,
-      "notes": "MJ-REQ-088/089 PASS in merged PR485; issues89/90 closed. Native extraction preservation/contact-boundary continuation active. Scanned OCR and richer chronology remain partial.",
+      "notes": "MJ-REQ088/089 PASS in PR485. PR486 native extraction preservation merged with exact-head push/PR CI. OCR and richer chronology remain PARTIAL.",
       "feedback_slice": {
         "branch": "codex/resume-driven-profile",
         "result": "PARTIAL",
@@ -733,7 +733,8 @@
       },
       "integrated_incremental_prs": [
         453,
-        485
+        485,
+        486
       ],
       "evidence_path": "docs/evidence/2026-10-04-resume-extraction-preservation.json"
     },
