@@ -831,9 +831,11 @@
       "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-10-04-approved-skill-order.json",
-        "docs/evidence/2026-10-04-approved-resume-selection.json"
+        "docs/evidence/2026-10-04-approved-resume-selection.json",
+        "docs/evidence/2026-10-04-approved-selection-exact-head-ci.json",
+        "docs/evidence/2026-10-04-technology-emphasis.json"
       ],
-      "note": "Skill ordering accepted; explicit approved resume selection locally validated with immutable omissions and unchanged profile/cover letter. Hosted selection acceptance pending. Broader rephrasing remains open."
+      "note": "Skill ordering and explicit selection accepted through PR499. Matched technology emphasis locally validated; exact-head hosted pending. Broader factual rephrasing remains incomplete."
     },
     {
       "requirement_id": "MJ-REQ-096",

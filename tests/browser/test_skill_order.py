@@ -64,6 +64,7 @@ class SkillOrderBrowserTests(unittest.TestCase):
                         self.assertEqual(execute_operation(operation['operation_id'])['status'],'COMPLETED')
                     document=page.get_by_role('region',name='resume version 2',exact=True)
                     expect(document.get_by_text('Tailored resume: skill order',exact=False)).to_be_visible()
+                    expect(document.get_by_text('Job-matched skill and technology facts in bold: 1.',exact=False)).to_be_visible()
                     document.get_by_text('Generation details and facts',exact=True).click()
                     expect(document.get_by_text('Matched job skills: Python',exact=True)).to_be_visible()
                     with page.expect_download() as downloaded:

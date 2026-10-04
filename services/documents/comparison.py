@@ -6,7 +6,7 @@ from sqlalchemy.exc import NoResultFound
 from services.documents.history import application_documents
 from services.documents.validation import validate_assertions
 from services.documents.errors import PreparationError
-from services.documents.templates import contract_role, resume_layout, SELECTION_TEMPLATE
+from services.documents.templates import contract_role, resume_layout, SELECTION_TEMPLATES, EMPHASIS_TEMPLATES
 from services.documents import tailor
 
 
@@ -33,7 +33,7 @@ def compare_facts(base, target, matches):
                       'before_position':list(old).index(identifier)+1,'after_position':list(new).index(identifier)+1}
                      for identifier in new_common if old_common.index(identifier)!=new_common.index(identifier)],
         'emphasized_skills':[dict(row,job_skills=list(matches[row['fact_id']])) for row in target
-                             if row['kind']=='skill' and matches.get(row['fact_id'])],
+                             if row['kind'] in ('skill','technology_experience') and matches.get(row['fact_id'])],
         'omitted':[row for row in base if row['fact_id'] not in new],
         'added':[row for row in target if row['fact_id'] not in old]}
 
@@ -54,7 +54,7 @@ def read_generated_snapshot(store, output_dir, row):
             raise ComparisonUnavailable('Original document integrity check failed')
         text=content.decode('utf-8')
         profile=store.profile(row['profile_id'],row['profile_version'])
-        if row['template']==SELECTION_TEMPLATE and (row['generation_context'] or {}).get('available_fact_ids')!=[fact['fact_id'] for fact in tailor.eligible_rows(profile)]:
+        if row['template'] in SELECTION_TEMPLATES and (row['generation_context'] or {}).get('available_fact_ids')!=[fact['fact_id'] for fact in tailor.eligible_rows(profile)]:
             raise ComparisonUnavailable('Original selection context differs from its approved fact history')
         if not contract_role(row['template'],row['generation_model'],allow_legacy_unrecorded=True):
             raise ComparisonUnavailable('Original document generation contract is unavailable')
@@ -79,7 +79,13 @@ def tailored_context(target):
     if (context.get('ordered_fact_ids')!=target['fact_ids'] or not isinstance(matches,dict) or
         any(not isinstance(labels,list) or any(not isinstance(label,str) for label in labels) for labels in matches.values())):
         raise ComparisonUnavailable('Original tailoring context is unavailable')
-    if target['template']==SELECTION_TEMPLATE:
+    if target['template'] in EMPHASIS_TEMPLATES:
+        skills=context.get('job_skills')
+        if (not isinstance(skills,list) or any(not isinstance(value,str) for value in skills) or
+            context.get('emphasized_fact_ids')!=tailor.emphasis(target['facts_used'],{'skills':skills}) or
+            matches!=tailor.matched_labels([row for row in target['facts_used'] if row['kind'] in ('skill','technology_experience')],{'skills':skills})):
+            raise ComparisonUnavailable('Original technology emphasis context is unavailable')
+    if target['template'] in SELECTION_TEMPLATES:
         selected=context.get('selected_fact_ids');available=context.get('available_fact_ids')
         if (context.get('selection_mode')!='EXPLICIT_APPROVED_FACTS' or
             not isinstance(selected,list) or not selected or not isinstance(available,list) or

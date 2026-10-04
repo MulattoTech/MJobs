@@ -113,8 +113,13 @@ def run(base_url, evidence_path):
             page.get_by_label('Order approved skills for this job',exact=True).check()
             prepare()
             tailored=next(row for row in request('/applications/'+identifier+'/documents')['documents'] if row['version']==3 and row['kind']=='resume')
-            assert tailored['generation_model']=='deterministic-skill-order-v2'
-            assert tailored['template']=='approved-skill-order-headings-v1'
+            assert tailored['generation_model']=='deterministic-skill-order-v3'
+            assert tailored['template']=='approved-skill-emphasis-v1'
+            assert tailored['generation_context']['emphasized_fact_ids']
+            expect(page.get_by_role('region',name='resume version 3',exact=True).get_by_text('Job-matched skill and technology facts in bold:',exact=False)).to_be_visible()
+            emphasized_doc=Document(io.BytesIO(context.request.get(base_url+'/documents/'+tailored['id']+'/docx').body()))
+            assert any(p.text=='Python' and all(r.bold for r in p.runs) for p in emphasized_doc.paragraphs)
+            actions.append({'action':'Job-matched technology emphasis reaches worker, DOCX download and visible provenance','result':'PASS'})
             assert tailored['generation_context']['mode']=='APPROVED_SKILL_ORDER'
             assert set(tailored['fact_ids'])=={'python','sql'}
             expect(page.get_by_role('region',name='resume version 3',exact=True).get_by_text('Tailored resume: skill order',exact=False)).to_be_visible()
@@ -158,7 +163,7 @@ def run(base_url, evidence_path):
             selected_documents=request('/applications/'+identifier+'/documents')['documents']
             selected_resume=next(row for row in selected_documents if row['version']==4 and row['kind']=='resume')
             selected_cover=next(row for row in selected_documents if row['version']==4 and row['kind']=='cover-letter')
-            assert selected_resume['generation_model']=='deterministic-fact-selection-v1'
+            assert selected_resume['generation_model']=='deterministic-fact-selection-v2'
             assert selected_resume['fact_ids']==['python'] and set(selected_cover['fact_ids'])=={'python','sql'}
             assert selected_resume['generation_context']['omitted_fact_ids']==['sql']
             selected_history=page.get_by_role('region',name='resume version 4',exact=True)

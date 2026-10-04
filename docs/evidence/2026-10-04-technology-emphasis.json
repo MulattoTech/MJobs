@@ -1,0 +1,82 @@
+{
+  "result": "PARTIAL",
+  "timestamp": "2026-10-04T21:46:15.647212+00:00",
+  "branch": "codex/resume-technology-emphasis-20261004",
+  "base": "4016a732bffde4707b3e0bba07ea2c2a33b69c17",
+  "requirements": [
+    "MJ-REQ-095"
+  ],
+  "behavior": [
+    "Only job-matched approved skill/technology_experience paragraphs become bold in tailored DOCX/PDF",
+    "All original wording, selected IDs, fact ordering, TXT assertions and profile preserved",
+    "Separate template/model contracts upgrade once on explicit preparation; immutable historical selection contracts remain valid",
+    "Generated and uploaded comparisons include technology matches and validate recorded emphasis against snapshot facts/skills",
+    "UI opt-in explains output emphasis and history identifies emphasized facts"
+  ],
+  "checks": [
+    {
+      "result": "PASS",
+      "timestamp": "2026-10-04T21:46:15.647212+00:00",
+      "target": "Broad Python/browser regression begun before final comparison review correction",
+      "tests": 529,
+      "command": "python -m unittest discover -s tests -p test_*.py -v",
+      "evidence_path": ".git\\afk-dev\\technology-emphasis-full.log"
+    },
+    {
+      "result": "PASS",
+      "timestamp": "2026-10-04T21:46:15.647212+00:00",
+      "target": "Final affected comparison/selection/emphasis regressions",
+      "tests": 17,
+      "command": "python -m unittest tests.integration.test_technology_emphasis tests.unit.test_skill_order tests.integration.test_resume_comparison tests.integration.test_uploaded_resume_comparison tests.integration.test_resume_selection -v",
+      "evidence_path": ".git\\afk-dev\\technology-emphasis-final-focused.log"
+    },
+    {
+      "result": "PASS",
+      "timestamp": "2026-10-04T21:46:15.647212+00:00",
+      "target": "Final browser opt-in, visible emphasis provenance, selection and downloads",
+      "tests": 1,
+      "command": "python -m unittest tests.browser.test_skill_order -v",
+      "evidence_path": ".git\\afk-dev\\technology-emphasis-browser-final.log"
+    },
+    {
+      "result": "PASS",
+      "timestamp": "2026-10-04T21:46:15.647212+00:00",
+      "target": "Final web tests",
+      "tests": 44,
+      "command": "npm test --prefix apps/web -- --run",
+      "evidence_path": ".git\\afk-dev\\technology-emphasis-web-final.log"
+    },
+    {
+      "result": "PASS",
+      "timestamp": "2026-10-04T21:46:15.647212+00:00",
+      "target": "Final Linux actual embedded regular/bold fonts, ATS/Unicode/selection",
+      "tests": 13,
+      "command": "docker run --rm --network none --read-only --tmpfs /tmp:rw,exec,size=256m --memory 1g --cpus 2 mjobs-technology-emphasis:20261004 python -m unittest tests.integration.test_technology_emphasis tests.integration.test_document_validation tests.integration.test_ats_templates tests.integration.test_resume_selection -v",
+      "evidence_path": ".git\\afk-dev\\technology-emphasis-linux-final.log"
+    }
+  ],
+  "runtime_image": "sha256:511d66b8888bd99d0e4bd89d7c2e4a6582ecdd242f29e02b69ecc6b07fb1fca4",
+  "visual_check": {
+    "result": "PASS",
+    "evidence_path": ".git/afk-dev/technology-emphasis-sample.png",
+    "note": "Rendered PDF single column, regular contact/headings, clearly bold approved skill and technology paragraphs, literal ampersand/angle brackets preserved"
+  },
+  "review": {
+    "result": "PASS",
+    "reviewer": "read-only chore lifecycle_audit",
+    "initial_finding": "Technology facts absent from comparison emphasis projection",
+    "regression_failure": ".git/afk-dev/technology-emphasis-review-red.log",
+    "disposition": "Fixed generated and uploaded comparison projections, revalidated final focused tests and reviewer no remaining actionable defects"
+  },
+  "initial_red": ".git/afk-dev/technology-emphasis-red.log",
+  "remaining_checks": [
+    "Exact final-head push and PR Verification and all16 runtime artifacts, including emphasis UI/app-image"
+  ],
+  "limitations": [
+    "Whole matched paragraphs are bold; no claim of semantic qualifications",
+    "No rewriting or new factual assertions; broader MJ095 factual rephrasing remains incomplete",
+    "No migration or DB contract change; PostgreSQL real worker/runtime acceptance is required in hosted CI",
+    "No AI product integration; separate feasibility evidence records both failed local model probes",
+    "No production deployment or external submission"
+  ]
+}

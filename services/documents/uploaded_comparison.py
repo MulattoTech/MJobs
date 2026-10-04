@@ -98,7 +98,7 @@ def compare_uploaded_resume(store,output_dir,application_id,base_revision_id,tai
         aligned.append({**row,'fact_id':identifiers.popleft() if identifiers else row['fact_id']})
     diff=compare_facts(aligned,destination,{})
     diff['emphasized_skills']=[dict(row,job_skills=context['matched_skills'][row['fact_id']]) for row in after['facts']
-        if row['kind']=='skill' and context['matched_skills'].get(row['fact_id'])]
+        if row['kind'] in ('skill','technology_experience') and context['matched_skills'].get(row['fact_id'])]
     summary_available='summary' in headings and 'summary' not in uncertain
     bullets_available=bool(headings&BULLET_KINDS) and not bool(uncertain&BULLET_KINDS)
     diff['summary_changes']=_section_change(source,destination,{'summary'},'summary-section',summary_available)

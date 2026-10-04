@@ -756,9 +756,9 @@
         "MJ-PR-024"
       ],
       "status": "PARTIAL",
-      "branch": "codex/approved-resume-selection-20261004",
+      "branch": "codex/resume-technology-emphasis-20261004",
       "draft_until_verified": true,
-      "notes": "MJ092/093/094 accepted. MJ095 skill ordering accepted; active explicit approved resume selection. Broader rephrasing remains PARTIAL. Historical branch pointers are not authorization.",
+      "notes": "MJ092/093/094 accepted. MJ095 ordering and explicit selection accepted through PR499; technology emphasis active. Broader factual rephrasing remains PARTIAL.",
       "feedback_slice": {
         "branch": "codex/resume-driven-profile",
         "result": "PARTIAL",
@@ -771,7 +771,8 @@
         453,
         491,
         492,
-        493
+        493,
+        499
       ]
     },
     {

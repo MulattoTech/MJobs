@@ -34,7 +34,7 @@ export function ComparisonResult({result}:{result:Comparison}) {
     <Changes title="Summary changes" rows={result.summary_changes} available={result.section_availability?.summary_changes}/>
     <Changes title="Bullet and fact changes" rows={result.bullet_changes} available={result.section_availability?.bullet_changes}/>
     <section aria-label="Reordering"><h4>Reordering</h4>{result.reordered.length?<ul>{result.reordered.map(row=><li key={row.fact_id}>{row.text}: {uploaded?'text item':'fact'} position {row.before_position} → {row.after_position}</li>)}</ul>:<p>No matched content reordered.</p>}</section>
-    <section aria-label="Skills emphasized"><h4>Skills emphasized</h4><p>Target matches used for ordering; no wording or qualifications inferred.</p>{result.emphasized_skills.length?<ul>{result.emphasized_skills.map(row=><li key={row.fact_id}>{row.text} — matched {row.job_skills.join(', ')}</li>)}</ul>:<p>No matched skills recorded.</p>}</section>
+    <section aria-label="Skills emphasized"><h4>Skills emphasized</h4><p>Skill and technology matches used for ordering or visual emphasis; no wording or qualifications inferred.</p>{result.emphasized_skills.length?<ul>{result.emphasized_skills.map(row=><li key={row.fact_id}>{row.text} — matched {row.job_skills.join(', ')}</li>)}</ul>:<p>No matched skills recorded.</p>}</section>
     <section aria-label="Content omitted"><h4>Content omitted</h4>{uploaded&&<p>Extracted items with no exact match in the output; changes in wording or layout may explain them.</p>}{result.omitted.length?<ul>{result.omitted.map(row=><li key={row.fact_id}>{row.kind}: {row.text}</li>)}</ul>:<p>{uploaded?'No unmatched extracted items.':'No content omitted.'}</p>}</section>
     <section aria-label="Content added"><h4>Content added</h4>{result.added.length?<ul>{result.added.map(row=><li key={row.fact_id}>{row.kind}: {row.text}</li>)}</ul>:<p>No content added.</p>}</section>
     <p>{result.contact_changed===null?'Review contact details in both original and generated text below.':result.contact_changed?'Contact details changed; review both recorded versions below.':'Contact details unchanged.'}</p>
@@ -52,7 +52,9 @@ export function ResumeComparison({documents}:{documents:GeneratedDocument[]}) {
   const targets=documents.filter(row=>row.kind==='resume'&&row.generation_context?.mode==='APPROVED_SKILL_ORDER'&&(
     (row.template==='approved-skill-order-v1'&&row.generation_model==='deterministic-skill-order-v1')||
     (row.template==='approved-skill-order-headings-v1'&&row.generation_model==='deterministic-skill-order-v2')||
-    (row.template==='approved-fact-selection-headings-v1'&&row.generation_model==='deterministic-fact-selection-v1')));
+    (row.template==='approved-fact-selection-headings-v1'&&row.generation_model==='deterministic-fact-selection-v1')||
+    (row.template==='approved-skill-emphasis-v1'&&row.generation_model==='deterministic-skill-order-v3')||
+    (row.template==='approved-selection-emphasis-v1'&&row.generation_model==='deterministic-fact-selection-v2')));
   const [base,setBase]=useState(bases[0]?'g:'+bases[0].id:'');const [target,setTarget]=useState(targets[0]?.id||'');
   const [result,setResult]=useState<Comparison|null>(null);const [error,setError]=useState('');const [busy,setBusy]=useState(false);
   const [uploaded,setUploaded]=useState<UploadedBase[]>([]);const [loading,setLoading]=useState(false);const [loadError,setLoadError]=useState('');

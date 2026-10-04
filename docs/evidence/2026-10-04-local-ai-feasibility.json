@@ -1,0 +1,51 @@
+{
+  "result": "FAIL",
+  "timestamp": "2026-10-04T21:42:28.675566+00:00",
+  "target": "Synthetic local fact-ID relevance probe only",
+  "production_acceptance": false,
+  "external_inference": false,
+  "model_runs": [
+    {
+      "model": "qwen3:0.6b",
+      "result": "FAIL",
+      "expected": {
+        "selected_fact_ids": [
+          "python"
+        ]
+      },
+      "actual": {
+        "selected_fact_ids": [
+          "python",
+          "sql"
+        ]
+      },
+      "evidence_path": ".git/afk-dev/local-ai-qwen06-failure.log",
+      "process_stopped": true,
+      "memory_limit_gib": 2,
+      "cpu_cores": 2,
+      "gpu_layers": 0
+    },
+    {
+      "model": "qwen3:1.7b",
+      "result": "FAIL",
+      "expected": {
+        "selected_fact_ids": [
+          "python"
+        ]
+      },
+      "actual": {
+        "selected_fact_ids": [
+          "python",
+          "sql"
+        ]
+      },
+      "evidence_path": ".git/afk-dev/local-ai-qwen17-probe.log",
+      "process_stopped": true,
+      "memory_limit_gib": 3,
+      "cpu_cores": 2,
+      "gpu_layers": 0
+    }
+  ],
+  "command": "Owned hidden Ollama server with Windows JobObject memory/CPU limits, private model cache, strict JSON schema and unchanged relevance oracle",
+  "disposition": "No product AI implementation or acceptance claimed. Both owned processes stopped; existing host models and services untouched. Future AI work requires a changed evaluated approach."
+}
