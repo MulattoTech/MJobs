@@ -110,3 +110,8 @@ PR475 is merged at `5a082f26a34765be32cd6c0c726c957b242b72a7`; its exact-head PR
 ## Durable company-discovery requests
 
 PR476 is merged at `8240e471260ebeb60bde9932368651da410f3148` after exact-head PR and push CI. Configured-source intake and rescoring now persist coalesced unseen-company/high-match requests atomically with jobs, matches and the outbox. Qualified employer-domain evidence permits automatic bounded discovery; other origins require website review in Sources and do not establish identity. Request revisions, source enablement and domain proof are rechecked before worker reads. Fresh source changes preserve previous operations; verified direct feeds do not recursively rediscover themselves. MJ-REQ-054/056/060 remain PARTIAL pending remaining triggers, domain acquisition, provider breadth and monitoring. Original counts remain 48 PASS,73 PARTIAL,245 NOT_RUN; reference59 NOT_RUN; release NOT_RUN. Evidence: `docs/evidence/2026-10-03-company-discovery-requests.json`.
+
+
+## Project-scoped agent skills - 2026-10-04
+
+MJ-REF-029 is PASS locally: MJobs now versions a project-scoped `mjobs-delivery` router with six lazily loaded playbooks covering database migrations, source adapters, application adapters, privacy/security, LLM prompt/provider work, and release verification. `tools.verification.agent_skills` fails when required playbooks, repository paths, or referenced Python command modules disappear. Reference accounting is now 1 PASS, 0 PARTIAL, 58 NOT_RUN. Evidence: `docs/evidence/2026-10-04-project-agent-skills.json`.

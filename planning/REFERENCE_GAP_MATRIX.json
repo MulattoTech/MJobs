@@ -187,8 +187,10 @@
       "evidence": []
     },
     "MJ-REF-029": {
-      "result": "NOT_RUN",
-      "evidence": []
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-04-project-agent-skills.json"
+      ]
     },
     "MJ-REF-030": {
       "result": "NOT_RUN",

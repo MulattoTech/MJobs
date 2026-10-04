@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-10-04T02:00:00Z",
+  "reference_gap": "MJ-REF-029",
+  "issue": 399,
+  "result": "PASS",
+  "branch": "codex/mj-ref-029-agent-skills",
+  "base_commit": "eff87832515e54a4a8eabc595b00e2957977ef93",
+  "implementation": {
+    "skill": ".agents/skills/mjobs-delivery/SKILL.md",
+    "strategy": "One project-scoped router with six lazily loaded high-risk playbooks to avoid global skill duplication and discovery-token bloat.",
+    "playbooks": [
+      "db-migration",
+      "source-adapter",
+      "application-adapter",
+      "privacy-security",
+      "llm-provider",
+      "release-verification"
+    ],
+    "validator": "tools.verification.agent_skills"
+  },
+  "checks": [
+    {"command": "python -m tools.verification.agent_skills", "result": "PASS"},
+    {"command": "python -m unittest tests.unit.test_agent_skills -v", "result": "PASS", "tests": 3},
+    {"command": "python -m tools.verification.catalogue", "result": "PASS"},
+    {"command": "python -m tools.verification.progress validate", "result": "PASS"},
+    {"command": "git diff --check", "result": "PASS"},
+    {"command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest discover -s tests -p 'test_*.py' -q", "result": "PASS", "tests": 422, "skipped": 6, "seconds": 111.551}
+  ],
+  "acceptance": {
+    "versioned_project_scoped_playbooks": "PASS",
+    "boundaries_tests_evidence_failure_modes": "PASS",
+    "defers_to_AGENTS_and_authority": "PASS",
+    "six_required_change_types": "PASS",
+    "validator_referenced_commands_and_files": "PASS"
+  },
+  "notes": [
+    "A diagnostic run with system Python failed on missing repo dependencies and was discarded; the accepted full regression used the repository virtual environment.",
+    "The project skill intentionally does not create another MJobs memory store; planning and evidence files remain authoritative."
+  ]
+}

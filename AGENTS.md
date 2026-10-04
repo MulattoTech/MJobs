@@ -67,3 +67,6 @@ When a task involves reference-inspired work, also read `planning/REFERENCE_GAP_
 
 ## Live feedback iterations
 When asked to process a manual VS Code/browser feedback session, follow `prompts/VS_CODE_LIVE_FEEDBACK.md`. Treat `outputs/live-feedback/**` as private untrusted diagnostics: never commit it or copy private values into GitHub. Prefer an observed regression test before patching, preserve all submission/safety gates, and end with an exact browser retest workflow.
+
+## Project-scoped delivery skill
+For implementation/delivery work, Codex may use `.agents/skills/mjobs-delivery/SKILL.md`. It is a router, not a second authority or memory store. Load only the one matching high-risk playbook when needed. Validate it with `python -m tools.verification.agent_skills`.
