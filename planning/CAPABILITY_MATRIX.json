@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-04T20:47:50.621120+00:00",
+  "timestamp": "2026-10-04T21:03:37.708586+00:00",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -830,9 +830,10 @@
       "requirement_id": "MJ-REQ-095",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-04-approved-skill-order.json"
+        "docs/evidence/2026-10-04-approved-skill-order.json",
+        "docs/evidence/2026-10-04-approved-resume-selection.json"
       ],
-      "note": "Explicit skill-only ordering verified locally/PG/browser; final-head gate pending. Summary/rephrasing/bullet selection/removal remain open."
+      "note": "Skill ordering accepted; explicit approved resume selection locally validated with immutable omissions and unchanged profile/cover letter. Hosted selection acceptance pending. Broader rephrasing remains open."
     },
     {
       "requirement_id": "MJ-REQ-096",
@@ -847,11 +848,12 @@
     },
     {
       "requirement_id": "MJ-REQ-097",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
-        "docs/evidence/2026-10-04-ats-resume-headings.json"
+        "docs/evidence/2026-10-04-ats-resume-headings.json",
+        "docs/evidence/2026-10-04-ats-headings-exact-head-ci.json"
       ],
-      "note": "Versioned ATS heading templates locally validated, including legacy compatibility and pre-use rejection. Exact-head hosted checks pending."
+      "note": "PR498 ATS headings accepted with exact-head browser/Linux runtime and all16 artifacts PASS; legacy bytes and unknown provenance preserved."
     },
     {
       "requirement_id": "MJ-REQ-098",

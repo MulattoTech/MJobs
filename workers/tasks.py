@@ -104,7 +104,8 @@ def execute_operation(operation_id):
                 prepare(store, operation["params"]["job_id"], operation["entity_id"], Path(os.environ["MJOBS_OUTPUT_DIR"]),
                         check=check, profile_version=operation["params"].get("profile_version"),
                         route_mode=operation["params"].get("route_mode", "DEFAULT"), route_id=operation["params"].get("route_id"),
-                        tailor_resume=operation["params"].get("tailor_resume", False))
+                        tailor_resume=operation["params"].get("tailor_resume", False),
+                        tailor_fact_ids=operation['params'].get('tailor_fact_ids'))
             elif operation["kind"] == "APPLY_MOCK":
                 application = apply_mock(store, operation["entity_id"], origin, Path(os.environ["MJOBS_OUTPUT_DIR"]),
                            submit=operation["params"].get("submit", False), check=check)

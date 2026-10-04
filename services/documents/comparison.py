@@ -6,7 +6,8 @@ from sqlalchemy.exc import NoResultFound
 from services.documents.history import application_documents
 from services.documents.validation import validate_assertions
 from services.documents.errors import PreparationError
-from services.documents.templates import contract_role, resume_layout
+from services.documents.templates import contract_role, resume_layout, SELECTION_TEMPLATE
+from services.documents import tailor
 
 
 class ComparisonUnavailable(ValueError):
@@ -53,6 +54,8 @@ def read_generated_snapshot(store, output_dir, row):
             raise ComparisonUnavailable('Original document integrity check failed')
         text=content.decode('utf-8')
         profile=store.profile(row['profile_id'],row['profile_version'])
+        if row['template']==SELECTION_TEMPLATE and (row['generation_context'] or {}).get('available_fact_ids')!=[fact['fact_id'] for fact in tailor.eligible_rows(profile)]:
+            raise ComparisonUnavailable('Original selection context differs from its approved fact history')
         if not contract_role(row['template'],row['generation_model'],allow_legacy_unrecorded=True):
             raise ComparisonUnavailable('Original document generation contract is unavailable')
         paragraphs,_=resume_layout(profile,row['facts_used'],row['template'])
@@ -76,6 +79,17 @@ def tailored_context(target):
     if (context.get('ordered_fact_ids')!=target['fact_ids'] or not isinstance(matches,dict) or
         any(not isinstance(labels,list) or any(not isinstance(label,str) for label in labels) for labels in matches.values())):
         raise ComparisonUnavailable('Original tailoring context is unavailable')
+    if target['template']==SELECTION_TEMPLATE:
+        selected=context.get('selected_fact_ids');available=context.get('available_fact_ids')
+        if (context.get('selection_mode')!='EXPLICIT_APPROVED_FACTS' or
+            not isinstance(selected,list) or not selected or not isinstance(available,list) or
+            any(not isinstance(value,str) for value in [*selected,*available]) or
+            len(set(selected))!=len(selected) or len(set(available))!=len(available) or
+            selected!=context.get('original_fact_ids') or set(selected)!=set(target['fact_ids']) or
+            not set(selected).issubset(available) or
+            context.get('omitted_fact_ids')!=[value for value in available if value not in selected] or
+            context.get('selection_fingerprint')!=tailor.selection_fingerprint(selected)):
+            raise ComparisonUnavailable('Original approved selection context is unavailable')
     return context
 
 

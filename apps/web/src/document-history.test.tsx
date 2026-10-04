@@ -6,6 +6,10 @@ const historical:GeneratedDocument={id:'old',kind:'resume',version:1,profile_ver
   files:{pdf:'resume.pdf'},sha256:{pdf:'abc'},template:'verified-facts-v1',created_at:null,generation_model:null,
   facts_used:[],missing_fact_ids:['python']};
 describe('document provenance',()=>{
+  it('describes explicit omissions without claiming all work history was retained',()=>{
+    const html=renderToStaticMarkup(<DocumentHistory documents={[{...historical,template:'approved-fact-selection-headings-v1',generation_model:'deterministic-fact-selection-v1',generation_context:{mode:'APPROVED_SKILL_ORDER',job_title:'Example role',job_skills:[],matched_skills:{},original_fact_ids:['python'],ordered_fact_ids:['python'],selection_mode:'EXPLICIT_APPROVED_FACTS',selected_fact_ids:['python'],omitted_fact_ids:['sql']}}]}/>);
+    expect(html).toContain('Tailored resume: selected facts');expect(html).toContain('Approved facts included: 1. Omitted from this resume: 1.');expect(html).not.toContain('work history preserved');
+  });
   it('shows missing historical evidence without invented timestamps or dead format links',()=>{
     const html=renderToStaticMarkup(<DocumentHistory documents={[historical]}/>);
     expect(html).toContain('Not recorded for this historical document');

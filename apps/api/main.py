@@ -3,13 +3,13 @@ from contextlib import asynccontextmanager
 import hashlib
 import os
 from pathlib import Path
-from typing import Literal
+from typing import Literal, Annotated
 from urllib.parse import unquote
 
 from fastapi import FastAPI, HTTPException, Request, Query
 from fastapi.responses import JSONResponse, FileResponse, Response
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 from redis import Redis
 from rq import Worker
 from sqlalchemy import select, text
@@ -73,6 +73,14 @@ class ApplicationInput(DiscoveryInput):
     route_mode: Literal["DEFAULT", "THIS_ROUTE", "EMPLOYER_SITE", "ALL_DISTINCT"] = "DEFAULT"
     route_id: str | None = Field(default=None, min_length=1, max_length=128)
     tailor_resume: bool = Field(default=False, strict=True)
+    tailor_fact_ids: list[Annotated[str,Field(strict=True,min_length=1,max_length=128)]] | None = Field(default=None,min_length=1,max_length=1000)
+    expected_profile_version: str | None = Field(default=None,min_length=64,max_length=64)
+
+    @model_validator(mode='after')
+    def selected_facts_require_tailoring_and_snapshot(self):
+        if self.tailor_fact_ids is not None and (not self.tailor_resume or not self.expected_profile_version):
+            raise ValueError('Explicit resume facts require tailoring and the observed profile version')
+        return self
 
 
 class MockRunInput(BaseModel):
@@ -517,7 +525,15 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     @app.post("/applications", status_code=202)
     def application(value: ApplicationInput):
         from services.dedupe.source_values import require_route_review
+        from services.documents.tailor import eligible_rows, select_resume_rows
+        from services.documents.errors import PreparationError
         profile = store.profile(value.profile_id)
+        if value.expected_profile_version and value.expected_profile_version != profile['version']:
+            raise HTTPException(409,'Profile changed; reload the approved facts before preparing')
+        try:
+            select_resume_rows(eligible_rows(profile),value.tailor_resume,value.tailor_fact_ids)
+        except PreparationError as error:
+            raise HTTPException(409,str(error)) from error
         with store.engine.connect() as connection:
             connection.execute(select(m.jobs.c.id).where(m.jobs.c.id == value.job_id)).one()
             try:
@@ -533,6 +549,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             "job_id": value.job_id, "profile_version": profile["version"], "request_id": value.request_id,
             "route_mode": value.route_mode, "route_id": value.route_id,
             "tailor_resume": value.tailor_resume,
+            **({'tailor_fact_ids':value.tailor_fact_ids} if value.tailor_fact_ids is not None else {}),
         })
         return {**operation, "application_id": identity(value.job_id, value.profile_id),
                 "route_mode": route_plan["mode"], "route_ids": [route["id"] for route in selected_routes]}
