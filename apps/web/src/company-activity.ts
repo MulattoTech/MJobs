@@ -13,6 +13,13 @@ function eventTime(value: unknown): string | null {
   const milliseconds=Date.parse(value);
   return Number.isFinite(milliseconds) ? new Date(milliseconds).toISOString() : null;
 }
+function providerLabel(value: unknown): string | null {
+  if (typeof value !== 'string' || !/^[a-z0-9_-]{1,50}$/i.test(value)) return null;
+  return value.split(/[_-]/).map(part => part.toUpperCase() === 'RSS' ? 'RSS' : part.slice(0, 1).toUpperCase() + part.slice(1).toLowerCase()).join(' ');
+}
+function discoveryMethodLabel(value: unknown): string | null {
+  return value === 'SAME_ORIGIN_MACHINE_READABLE_FEED' ? 'Found a feed on the careers site.' : null;
+}
 export function discoveryActivity(events: unknown): DiscoveryActivity[] {
   if (!Array.isArray(events)) return [];
   const output: DiscoveryActivity[]=[];
@@ -24,12 +31,17 @@ export function discoveryActivity(events: unknown): DiscoveryActivity[] {
     if (row.action === 'COMPANY_SOURCE_DISCOVERED') {
       const provider=typeof details.provider === 'string' && /^[a-z0-9_-]{1,50}$/i.test(details.provider)
         ? ` (${details.provider})` : '';
-      message=`Added a careers source${provider}.`;
+      const detected=providerLabel(details.provider);
+      const imported=count(details.jobs_imported);
+      message=`Added a careers source${provider}.${detected ? ` Recorded source provider ${detected}.` : ''}${imported !== null ? ` Imported ${imported} jobs.` : ''}`;
     } else if (row.action === 'COMPANY_FEED_IMPORT_COMPLETE') {
       const imported=count(details.jobs_imported), enumerated=count(details.jobs_enumerated);
       if (imported === null) message='Feed import recorded; job count unavailable.';
       else if (enumerated !== null && imported > enumerated) message='Feed import recorded; inconsistent counts need review.';
-      else message=`Imported ${imported} jobs${enumerated === null ? '' : ` from ${enumerated} feed records`}.`;
+      else {
+        const matched=count(details.matched_jobs);
+        message=`Imported ${imported} jobs${enumerated === null ? '' : ` from ${enumerated} feed records`}.${matched !== null && matched <= imported ? ` ${matched} imported jobs had skill matches at import.` : ''}`;
+      }
     } else if (row.action === 'COMPANY_SOURCE_REFRESHED') {
       message='Refreshed the reviewed employer feed.';
     } else if (row.action === 'COMPANY_SOURCE_REFRESH_FAILED') {
@@ -39,6 +51,8 @@ export function discoveryActivity(events: unknown): DiscoveryActivity[] {
     } else if (row.action === 'COMPANY_SOURCE_MONITORING_REVIEWED') {
       message='Saved the reviewed source monitoring policy.';
     } else continue;
+    const method=discoveryMethodLabel(details.discovery_method);
+    if (method && row.action === 'COMPANY_SOURCE_DISCOVERED') message += ` ${method}`;
     output.push({id:row.id.slice(0,128), message, timestamp:eventTime(row.timestamp)});
   }
   return output;

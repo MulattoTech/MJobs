@@ -15,6 +15,7 @@ from packages.persistence import models as m
 from packages.persistence.store import identity, now, upsert
 from services.dedupe.routes import persist_route_choices, plan_application_routes
 from services.dedupe.source_values import require_route_review
+from services.applications.knowledge import application_adapter_knowledge
 
 
 class PreparationError(ValueError):
@@ -101,5 +102,6 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
         selected_route_ids = persist_route_choices(connection, application_id, route_plan)
         for record in records:
             upsert(connection, m.documents, record)
-        store._audit(connection, application_id, "DOCUMENTS_PREPARED", {"fact_ids": fact_ids, "profile_version": profile["version"], "route_ids": selected_route_ids, "route_mode": route_plan["mode"]})
+        store._audit(connection, application_id, "DOCUMENTS_PREPARED", {"fact_ids": fact_ids, "profile_version": profile["version"], "route_ids": selected_route_ids, "route_mode": route_plan["mode"],
+            "adapter_knowledge": application_adapter_knowledge(connection, route["id"])})
         return application_id

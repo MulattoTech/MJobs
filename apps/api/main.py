@@ -28,6 +28,7 @@ from services.discovery.search_semantics import filter_jobs
 from services.dedupe.reviews import list_duplicate_reviews, record_review_decision
 from services.dedupe.routes import load_job_routes, list_route_choices, plan_application_routes, source_provenance_inventory
 from services.company_discovery.triggers import queue_company_discovery
+from services.applications.knowledge import application_adapter_knowledge
 from services.company_discovery.public_client import PublicFetchError
 from services.company_discovery.sources import (list_company_job_sources, set_company_source_watch,
     list_company_source_view, set_company_source_pin, set_company_source_enabled)
@@ -463,6 +464,9 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     @app.get("/jobs/{job_id}/routes")
     def job_routes(job_id: str):
         routes = load_job_routes(store, job_id)
+        with store.engine.connect() as connection:
+            for route in routes:
+                route["adapter_knowledge"] = application_adapter_knowledge(connection, route["id"], operation_mode=operation_mode)
         plan = plan_application_routes(routes, "ALL_DISTINCT")
         with store.engine.connect() as connection:
             postings = [dict(row) for row in connection.execute(select(m.postings).where(m.postings.c.job_id == job_id).order_by(m.postings.c.id)).mappings()]
@@ -510,6 +514,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     def application_read(application_id: str):
         data = store.application(application_id)
         with store.engine.connect() as connection:
+            data["adapter_knowledge"] = application_adapter_knowledge(connection, data["route_id"], operation_mode=operation_mode)
             data["attempts"] = [dict(row) for row in connection.execute(select(m.attempts).where(m.attempts.c.application_id == application_id).order_by(m.attempts.c.started_at)).mappings()]
         data["route_choices"] = list_route_choices(store, application_id)
         return data

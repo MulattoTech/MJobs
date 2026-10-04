@@ -10,3 +10,16 @@ submission is implemented or enabled. Persist SUBMITTING before click; failed
 receipt lookup yields SUBMISSION_UNCONFIRMED and never a blind retry. Persistent
 browser sessions reside only in private output storage. Test:
 python -m unittest tests.browser.test_mock_application.
+
+## Shared ATS knowledge (MJ-REQ-084)
+
+`knowledge.application_adapter_knowledge(connection, route_id, operation_mode=None)`
+reads existing route/company ATS identities without network requests or detection.
+Exact provider/tenant matches take precedence over company-only hints; ambiguous
+or weak discovery evidence requires review. Same-name companies are never joined.
+Application detail and route APIs expose current metadata; document preparation
+records the selected route's knowledge in its existing immutable audit event.
+Hints neither rewrite application URLs nor authorize execution. Only explicit
+mock routes in a bound FIXTURE workspace advertise the installed mock adapter;
+real providers report UNSUPPORTED and external submission stays disabled.
+Tests: `python -m unittest tests.integration.test_application_knowledge -v`.

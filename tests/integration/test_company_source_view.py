@@ -12,6 +12,7 @@ from packages.persistence import models as m
 from packages.persistence.store import Store, upsert
 from services.company_discovery import sources
 from services.company_discovery.domains import record_company_domain
+from services.discovery.company_feed import import_company_feed_jobs
 from tests.integration.test_spine import PROFILE
 
 
@@ -84,6 +85,64 @@ class CompanySourceViewTests(unittest.TestCase):
         self.assertEqual((rows[a['id']]['jobs_found'], rows[a['id']]['relevant_jobs']), (2,1))
         self.assertEqual((rows[b['id']]['jobs_found'], rows[b['id']]['relevant_jobs']), (1,1))
         self.assertEqual({r['relevant_jobs'] for r in self.view()}, {0})
+
+    def test_import_activity_records_distinct_matches_for_current_profile(self):
+        source = self.source()
+        profile_two = copy.deepcopy(PROFILE)
+        profile_two['id'] = 'fixture-two'
+        self.store.save_profile(profile_two)
+        imported = import_company_feed_jobs(self.store, company_id='acme', source_id=source['id'],
+            provider='rss', tenant='acme', endpoint=source['feed_url'], strategy='RSS',
+            items=[{'guid':'one','title':'Python Engineer','description':'Python','link':'/careers/one'},
+                   {'guid':'two','title':'Python Engineer','description':'Python','link':'/careers/two'},
+                   {'guid':'three','title':'Other Role','description':'Other','link':'/careers/three'}],
+            profile_id='fixture', extra_profile_ids=['fixture-two'])
+        self.assertEqual(imported, 3)
+        with self.store.engine.connect() as c:
+            event = c.execute(select(m.audit).where(
+                m.audit.c.action == 'COMPANY_FEED_IMPORT_COMPLETE',
+                m.audit.c.entity_id == 'acme').order_by(m.audit.c.timestamp.desc())).mappings().first()
+        self.assertEqual(event['payload']['matched_jobs'], 2)
+        self.assertEqual(event['payload']['evaluated_profile_count'], 2)
+        activity = self.view()[0]['provenance']['events']
+        self.assertEqual(next(item for item in activity if item['action'] == 'COMPANY_FEED_IMPORT_COMPLETE')['details']['matched_jobs'], 2)
+        import_company_feed_jobs(self.store, company_id='acme', source_id=source['id'],
+            provider='rss', tenant='acme', endpoint=source['feed_url'], strategy='RSS',
+            items=[{'guid':'one','title':'Python Engineer','description':'Python','link':'/careers/one'},
+                   {'guid':'two','title':'Python Engineer','description':'Python','link':'/careers/two'}],
+            profile_id='fixture', extra_profile_ids=['fixture-two'])
+        latest = next(item for item in self.view()[0]['provenance']['events']
+                      if item['action'] == 'COMPANY_FEED_IMPORT_COMPLETE')
+        self.assertEqual(latest['details']['matched_jobs'], 2)
+        import_company_feed_jobs(self.store, company_id='acme', source_id=source['id'],
+            provider='rss', tenant='acme', endpoint=source['feed_url'], strategy='RSS',
+            items=[{'guid':'three','title':'Other Role','description':'Other','link':'/careers/three'}])
+        latest = next(item for item in self.view()[0]['provenance']['events']
+                      if item['action'] == 'COMPANY_FEED_IMPORT_COMPLETE')
+        self.assertNotIn('matched_jobs', latest['details'])
+
+        old_version = self.store.profile('fixture')['version']
+        changed = copy.deepcopy(PROFILE)
+        changed['facts'] = [*changed['facts'], {'id':'stale-check','text':'Windows', 'kind':'skill',
+            'source':'fictional-test-profile', 'verified':True, 'user_approved':True, 'confidence':100}]
+        self.store.save_profile(changed)
+        self.assertNotEqual(old_version, self.store.profile('fixture')['version'])
+        import_company_feed_jobs(self.store, company_id='acme', source_id=source['id'],
+            provider='rss', tenant='acme', endpoint=source['feed_url'], strategy='RSS',
+            items=[{'guid':'stale','title':'Python Engineer','description':'Python','link':'/careers/stale'}],
+            profile_id='fixture', profile_version=old_version)
+        latest = next(item for item in self.view()[0]['provenance']['events']
+                      if item['action'] == 'COMPANY_FEED_IMPORT_COMPLETE')
+        self.assertNotIn('matched_jobs', latest['details'])
+
+        duplicate = {'guid':'same-guid','title':'Python Engineer','description':'Python','link':'/careers/same'}
+        import_company_feed_jobs(self.store, company_id='acme', source_id=source['id'],
+            provider='rss', tenant='acme', endpoint=source['feed_url'], strategy='RSS',
+            items=[duplicate, duplicate], profile_id='fixture')
+        latest = next(item for item in self.view()[0]['provenance']['events']
+                      if item['action'] == 'COMPANY_FEED_IMPORT_COMPLETE')
+        self.assertEqual(latest['details']['matched_jobs'], 1)
+        self.assertEqual(latest['details']['jobs_imported'], 2)
 
     def test_provenance_requires_explicit_source_id_and_bounds_payload(self):
         a, b = self.source(), self.source('federal')

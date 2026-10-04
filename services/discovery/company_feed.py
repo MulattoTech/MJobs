@@ -160,10 +160,6 @@ def import_company_feed_jobs(store, *, company_id, source_id, provider, tenant,
                 completeness_sum += completeness
                 salary_known += int(has_salary)
                 imported += 1
-            store._audit(connection, company_id, "COMPANY_FEED_IMPORT_COMPLETE", {
-                "company_source_id": source_id, "provider": provider, "strategy": strategy,
-                "jobs_enumerated": len(items), "jobs_imported": imported, "profile_id": profile_id,
-            })
             observation_at = now()
             observation_id = record_observation(
                 connection, company_source_id=source_id, observed_at=observation_at,
@@ -184,6 +180,25 @@ def import_company_feed_jobs(store, *, company_id, source_id, provider, tenant,
                 resolve_job_values(connection, job_id, at=observation_at, seen_at=timestamp, profile=profile)
                 for extra_profile in extra_profiles:
                     resolve_job_values(connection, job_id, at=observation_at, seen_at=timestamp, profile=extra_profile)
+            imported_job_ids = {entry[1] for entry in pending_candidates}
+            current_profiles = ([profile] if profile else []) + extra_profiles
+            evaluated_profiles = [current_profile for current_profile in current_profiles
+                if connection.execute(select(m.profiles.c.version).where(
+                    m.profiles.c.id == current_profile['id'])).scalar_one_or_none() == current_profile['version']]
+            matched_job_ids = set()
+            for current_profile in evaluated_profiles:
+                matched_job_ids.update(connection.execute(select(m.matches.c.job_id).where(
+                    m.matches.c.job_id.in_(imported_job_ids),
+                    m.matches.c.profile_id == current_profile['id'],
+                    m.matches.c.profile_version == current_profile['version'],
+                    m.matches.c.score > 0)).scalars())
+            audit_details = {
+                "company_source_id": source_id, "provider": provider, "strategy": strategy,
+                "jobs_enumerated": len(items), "jobs_imported": imported, "profile_id": profile_id,
+                "evaluated_profile_count": len({(item['id'], item['version']) for item in evaluated_profiles})}
+            if evaluated_profiles:
+                audit_details["matched_jobs"] = len(matched_job_ids)
+            store._audit(connection, company_id, "COMPANY_FEED_IMPORT_COMPLETE", audit_details)
             # The locked source and its successful collection commit together.
             # Compare parsed instants so an older in-flight refresh cannot rewind it.
             from datetime import datetime
