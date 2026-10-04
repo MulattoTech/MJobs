@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-10-04T17:57:52.977689+00:00",
+  "result": "PARTIAL",
+  "requirements": [
+    "MJ-REQ-091"
+  ],
+  "issue": 92,
+  "branch": "codex/resume-date-review-20261004",
+  "base_commit": "e8f8ba6c46e83b976c9b565549c0f6f0367415d0",
+  "behavior": [
+    "Single explicit year/month range projected for review beside its original career fact; original text and IDs preserved",
+    "Dates may use years, English month names, MM/YYYY or YYYY-MM, with an explicit Present/Current endpoint",
+    "Reversed, multiple, malformed and ambiguous date ranges remain original text without guessed chronology",
+    "Responsibility facts use the existing immutable profile storage and approval controls",
+    "Extraction never writes a profile or approves facts; selected original dated lines and responsibilities persist through save/reload"
+  ],
+  "checks": [
+    {
+      "timestamp": "2026-10-04T17:57:52.977689+00:00",
+      "command": ".venv/Scripts/python.exe -m unittest tests.unit.test_resume_extraction tests.integration.test_profile_import -q",
+      "result": "PASS",
+      "tests": 30,
+      "scope": "Native TXT/PDF/DOCX parsing, immutable profile/API and unchanged review gates"
+    },
+    {
+      "timestamp": "2026-10-04T17:57:52.977689+00:00",
+      "command": "npm test --prefix apps/web -- --run; npm run build --prefix apps/web",
+      "result": "PASS",
+      "tests": 38
+    },
+    {
+      "timestamp": "2026-10-04T17:57:52.977689+00:00",
+      "command": ".venv/Scripts/python.exe -m unittest tests.browser.test_profile_import -q",
+      "result": "PASS",
+      "tests": 1,
+      "scope": "Built browser upload, visible date/responsibility review, pending save/reload, no remote requests"
+    },
+    {
+      "timestamp": "2026-10-04T17:59:56.708377+00:00",
+      "command": ".venv/Scripts/python.exe -m unittest discover -s tests -p test_*.py -q",
+      "result": "PASS",
+      "tests": 479,
+      "skips": 0,
+      "scope": "Full local regression before final date-boundary hardening; affected tests repeated after that fix",
+      "evidence_path": ".git/afk-dev/date-review-regression-20261004.log"
+    },
+    {
+      "timestamp": "2026-10-04T17:59:56.708377+00:00",
+      "command": ".venv/Scripts/python.exe -m unittest tests.unit.test_resume_extraction tests.integration.test_profile_import tests.browser.test_profile_import -q",
+      "result": "PASS",
+      "tests": 31,
+      "scope": "Final parser boundary changes; built browser/API and extraction regression"
+    },
+    {
+      "timestamp": "2026-10-04T17:59:56.708377+00:00",
+      "command": ".venv/Scripts/python.exe -m tools.verification.agent_skills; .venv/Scripts/python.exe -m tools.verification.catalogue; .venv/Scripts/python.exe -m tools.verification.progress validate; git diff --check",
+      "result": "PASS"
+    },
+    {
+      "timestamp": "2026-10-04T18:01:35.565745+00:00",
+      "command": ".venv/Scripts/python.exe -m unittest tests.unit.test_resume_extraction tests.integration.test_profile_import tests.browser.test_profile_import -q",
+      "result": "PASS",
+      "tests": 31,
+      "scope": "Final reviewer fixes and stable responsibility ID preservation"
+    }
+  ],
+  "review": {
+    "result": "PASS",
+    "reviewer": "Independent read-only chore lifecycle_audit",
+    "finding": "No actionable correctness or privacy defects",
+    "primary_fix": "Reject spaced date chains and numeric dotted suffixes after observed negative-test failures.",
+    "resolved_findings": [
+      "Reject dotted word suffixes and adjacent extra dates after independent negative-case review",
+      "Keep legacy experience-derived responsibility IDs to prevent duplicate re-imports"
+    ],
+    "final_delta": "Independent reviewer re-ran31 focused/API/browser tests; no remaining actionable correctness or privacy defects."
+  },
+  "limitations": [
+    "Native parser is conservative and does not infer missing dates, duration or employment associations",
+    "Date projection is review-only; original dated text is persisted, not structured chronology metadata",
+    "Scanned/image-only OCR remains unimplemented under MJ-REQ090",
+    "No live personal resume, remote OCR, real external submission or deployment used"
+  ],
+  "hosted_ci": {
+    "result": "NOT_RUN",
+    "note": "Final content-head push/PR workflows remain required. Exact run/attempt/job/merge receipt belongs to PR closeout and subsequent tracked slice."
+  }
+}

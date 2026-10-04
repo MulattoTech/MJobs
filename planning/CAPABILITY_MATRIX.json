@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-04T17:13:24.058136+00:00",
+  "timestamp": "2026-10-04T17:56:39.051192+00:00",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -723,14 +723,16 @@
     },
     {
       "requirement_id": "MJ-REQ-086",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
         "docs/evidence/2026-10-03-job-lifecycle.json",
         "docs/evidence/2026-10-04-clean-baseline.json",
         "docs/evidence/2026-10-04-merged-ci-receipts.json",
-        "docs/evidence/2026-10-04-lifecycle-profile-acceptance.json"
+        "docs/evidence/2026-10-04-lifecycle-profile-acceptance.json",
+        "docs/evidence/2026-10-04-lifecycle-exact-head-ci.json",
+        "docs/evidence/2026-10-04-canonical-route-lifecycle.json"
       ],
-      "note": "Verified employer CLOSED outranks live aggregator for attached postings; ambiguous refresh cannot reopen. Separate cross-provider canonical jobs cannot be combined. MERGE_APPROVED is a review decision only. Issue87 stays open. Hosted final-head verification pending; issue remains open until receipt."
+      "note": "PR488 real feed/native adapter canonical attachment and authority acceptance; exact-head push/PR CI PASS. Existing separate canonical jobs are preserved and remain outside automatic attachment scope."
     },
     {
       "requirement_id": "MJ-REQ-087",

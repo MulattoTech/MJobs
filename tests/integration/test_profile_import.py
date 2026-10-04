@@ -72,7 +72,7 @@ class ProfileImportTests(unittest.TestCase):
                            work_authorization='Authorized to work in the United States',
                            sponsorship_needs='NOT_REQUIRED', travel_preference='Up to 10%',
                            career_goals='Develop senior administration skills')
-        kinds = ['experience', 'education', 'certification', 'skill', 'project',
+        kinds = ['experience', 'responsibility', 'education', 'certification', 'skill', 'project',
                  'accomplishment', 'technology_experience']
         facts = [dict(id=kind, kind=kind, text='User supplied ' + kind, source='Manual entry',
                       confidence=100, verified=False, user_approved=False) for kind in kinds]
@@ -152,6 +152,9 @@ class ProfileImportTests(unittest.TestCase):
         self.assertEqual(extracted['status'], 'READY_FOR_REVIEW')
         self.assertEqual(extracted['contact']['email'], 'example@example.invalid')
         self.assertIn('Python', [fact['text'] for fact in extracted['facts']])
+        dated = next(fact for fact in extracted['facts'] if '2020-2024' in fact['text'])
+        self.assertEqual(extracted['date_ranges'], [{'fact_id': dated['id'], 'raw': '2020-2024',
+                                                    'start': '2020', 'end': '2024'}])
         self.assertTrue(all(not f['verified'] and not f['user_approved'] for f in extracted['facts']))
         self.assertTrue(all(uploaded['id'] in f['source'] for f in extracted['facts']))
         self.assertEqual(self.store.profile('fixture'), before)
