@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-04T20:06:52.668978+00:00",
+  "timestamp": "2026-10-04T20:21:19.219179+00:00",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -867,9 +867,11 @@
       "requirement_id": "MJ-REQ-099",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-04-resume-comparison.json"
+        "docs/evidence/2026-10-04-resume-comparison.json",
+        "docs/evidence/2026-10-04-resume-comparison-exact-head-ci.json",
+        "docs/evidence/2026-10-04-uploaded-resume-comparison.json"
       ],
-      "note": "Generated base/tailored immutable comparison implemented and locally verified; uploaded-original comparison missing. Full/hosted gates pending."
+      "note": "Generated and uploaded comparisons implemented and locally validated including native/OCR, browser, PostgreSQL and independent review. Exact-head hosted acceptance pending."
     },
     {
       "requirement_id": "MJ-REQ-100",

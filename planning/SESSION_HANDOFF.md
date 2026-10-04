@@ -1,35 +1,32 @@
 # Current delivery handoff - 2026-10-04
 
-Root is sole writer, branch `codex/resume-comparison-20261004`, baseline
-`2a8e95a5023b26f3576b71c2fa46489dc9512094` (PR494 merged).
-Owner session: `01a107cd-4e66-77d3-b046-fc2c01f4ffb1`.
+Root sole writer session 01a107cd-4e66-77d3-b046-fc2c01f4ffb1;
+branch `codex/uploaded-resume-comparison-20261004`.
+Implementation baseline PR495 `5c5bb565b949746117c3cacb017bdb98f7de171a`;
+integrated separate dashboard PR496 `8d6bf1ce08211efd17cdae36155f5b8977b4605f` without conflicts.
 
-PR485/486/488/489/490/491/492/493/494 merged with exact-head hosted receipts.
-MJ-PR024/025 accepted; MJ092/093/094/096/098 accepted. Broader MJ095 tailoring
-remains PARTIAL. PR494 fixed the proven Unicode output defect; issue99 was
-reclosed with new evidence, preserving its original failure/reopen chronology.
+MJ-PR024/025 accepted. PR485/486/488/489/490/491/492/493/494/495 merged
+with exact-head workflows and runtime receipts. Latest tracked receipt:
+`docs/evidence/2026-10-04-resume-comparison-exact-head-ci.json`.
+MJ095 broader tailoring remains PARTIAL. MJ096/098 accepted through PR494.
+MJ099 uploaded-original comparison is locally validated, hosted checks pending.
+MJ097 conventional ATS headings remains the next ready gap.
 
-Latest receipt: `docs/evidence/2026-10-04-document-validation-exact-head-ci.json`.
-Candidate a0a336b7c6d1d155e400b4e6fd853f5a771ce15f; push37229962109/job111517380621
-and PR37229978568/job111517428904,attempt1,all7 artifacts each PASS. Both new
-app-image assertion/Unicode test steps PASS. Merge2a8e95a equals tested tree.
+Current slice adds exact uploaded revision selection, native/OCR extraction reuse,
+source hash/download/provenance, summary/bullet changes, occurrence-preserving
+reordering and unmatched content, and stored skill emphasis. Unknown/ambiguous
+headings are explicitly unavailable; OCR remains uncertain. No facts are approved
+or edited by comparison. Prior generated comparison remains supported.
 
-Current comparison slice reads selected generated base/tailored revisions from
-checksum-verified TXT and immutable profile facts. It shows summary and bullet
-changes, reordering, skill emphasis, omissions/additions and contact changes.
-Wrong/missing/corrupt history is unavailable, never reported unchanged. All
-existing records/downloads remain intact; live profile edits do not affect diff.
+Validation: 517 Python tests zero skips (including Chromium), 42 web tests/build,
+11 PostgreSQL tests at actual migration head, real offline OCR image scanned/mixed
+PDFs, independent read-only review PASS. Evidence:
+`docs/evidence/2026-10-04-uploaded-resume-comparison.json`.
 
-5 focused backend/Chromium tests,3 final boundary tests,41 web/build,6 isolated
-PostgreSQL tests and independent review PASS. 509 full Python tests zero skips and Chromium visual inspection PASS. Exact
-final-head hosted workflows/runtime artifacts remain pending. Owned test
-PostgreSQL container removed after identity/owner verification. Evidence:
-`docs/evidence/2026-10-04-resume-comparison.json`.
+Next: publish real implementation, exact-head push and pull-request CI with all
+eight runtime JSON artifacts per run and the hosted uploaded-comparison UI action;
+merge safely, synchronize baseline, record receipt and only then close issue100.
+Continue with MJ097, preserving legacy template history and assertion validation.
 
-MJ099/issue100 stays PARTIAL: uploaded-original base versus tailored comparison
-is still missing. MJ097 conventional headings and broader MJ095 remain open.
-After exact-head merge, reconcile receipts and continue a coherent remaining gap.
-
-No external submission or production deployment. Preserve private data and the
-independently owned Codespaces checkout. Root owns cleanup only of its temporary
-test containers after identity verification; user services are unchanged.
+No live deployment or external submission. Owned ephemeral PostgreSQL removed;
+user services and independent Codespaces checkout preserved. No current PR yet.

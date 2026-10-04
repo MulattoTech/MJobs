@@ -1,0 +1,103 @@
+{
+  "timestamp": "2026-10-04T20:39:16.235741+00:00",
+  "result": "PARTIAL",
+  "branch": "codex/uploaded-resume-comparison-20261004",
+  "base": "5c5bb565b949746117c3cacb017bdb98f7de171a",
+  "requirements": [
+    "MJ-REQ-099"
+  ],
+  "behavior": [
+    "Read-only exact BASE_RESUME revision comparison with profile-owned generated tailored snapshot",
+    "Reuses upload integrity and bounded native/OCR extraction without saving or approving facts",
+    "Exact occurrence matching preserves duplicate source text; only recognized headings support summary/bullet classification"
+  ],
+  "checks": [
+    {
+      "timestamp": "2026-10-04T20:21:19.219179+00:00",
+      "command": ".venv/Scripts/python.exe -m unittest tests.integration.test_uploaded_resume_comparison tests.integration.test_resume_comparison tests.unit.test_resume_extraction tests.unit.test_resume_ocr -q",
+      "target": "SQLite native TXT/DOCX/PDF and extraction/OCR regressions",
+      "result": "PASS",
+      "tests": 34,
+      "evidence_path": ".git/afk-dev/uploaded-comparison-focused.log"
+    },
+    {
+      "timestamp": "2026-10-04T20:39:16.235741+00:00",
+      "command": "python -m unittest discover -s tests -p test_*.py -v",
+      "target": "Full Python regression including real Chromium uploaded/generated comparison",
+      "result": "PASS",
+      "tests": 517,
+      "evidence_path": ".git/afk-dev/uploaded-comparison-full.log"
+    },
+    {
+      "timestamp": "2026-10-04T20:39:16.235741+00:00",
+      "command": "npm test --prefix apps/web; npm run build --prefix apps/web",
+      "target": "Web unit tests and production build",
+      "result": "PASS",
+      "tests": 42,
+      "evidence_path": ".git/afk-dev/uploaded-comparison-web-final.log"
+    },
+    {
+      "timestamp": "2026-10-04T20:39:16.235741+00:00",
+      "command": "python .git/afk-dev/uploaded-comparison-pg.py",
+      "target": "PostgreSQL 17 actual Alembic head, uploaded/generated comparison and assertion validation",
+      "result": "PASS",
+      "tests": 11,
+      "evidence_path": ".git/afk-dev/uploaded-comparison-pg.log"
+    },
+    {
+      "timestamp": "2026-10-04T20:39:16.235741+00:00",
+      "command": "docker run --network none --read-only --tmpfs /tmp:rw,exec,size=256m --memory 1g --cpus 2 mjobs-uploaded-comparison:20261004 python -m cli.uploaded_resume_comparison_e2e",
+      "target": "Actual offline Linux OCR comparison",
+      "result": "PASS",
+      "image": "sha256:523d9f757687b6c7cbf4c15467a4a565ce0ed81c6cf1cb8e13c855a738472bd6",
+      "evidence_path": ".git/afk-dev/uploaded-comparison-runtime.json",
+      "runtime": {
+        "result": "PASS",
+        "timestamp": "2026-10-04T20:37:46.472623+00:00",
+        "command": "python -m cli.uploaded_resume_comparison_e2e",
+        "target": "Isolated Linux app image, real Poppler/Tesseract and SQLite API",
+        "checks": [
+          {
+            "document": "scanned",
+            "result": "PASS",
+            "original_revision": "cf62ea59684d47227b1a1ee3c82933f289a288925720abb9bee424b9d029b1eb",
+            "original_sha256": "48a83ef4acb0a29591af489ec8a576cb07eddcfa5fa0eb16f77e3f2aff3f5b58",
+            "ocr_uncertainty_visible": true,
+            "profile_and_application_unchanged": true
+          },
+          {
+            "document": "mixed native/scanned",
+            "result": "PASS",
+            "original_revision": "bc3b72519efdac8c77835f4541233fcd76a514fff188e68f43f9824df258d341",
+            "original_sha256": "80a0a3ffdd46124f400f976c6bae1e4fce08a8074b3120a1033587a91bba7ff5",
+            "ocr_uncertainty_visible": true,
+            "profile_and_application_unchanged": true
+          }
+        ],
+        "external_submission_enabled": false
+      }
+    }
+  ],
+  "initial_failure": {
+    "result": "FAIL",
+    "evidence_path": ".git/afk-dev/uploaded-comparison-red.log",
+    "note": "Uploaded comparison endpoint absent (404)"
+  },
+  "remaining_checks": [
+    "Exact final-head push and pull-request CI, all eight runtime JSON artifacts each, and hosted uploaded-comparison UI assertion"
+  ],
+  "limitations": [
+    "Unknown source structure is unclassified; no semantic correspondence is invented",
+    "OCR and reformatting can explain unmatched text; source is unreviewed",
+    "No external submission or live deployment"
+  ],
+  "review": {
+    "result": "PASS",
+    "reviewer": "read-only chore lifecycle_audit",
+    "findings_fixed": [
+      "Unknown section headings could inherit an unrelated section; now unclassified/ambiguous with regression coverage",
+      "Runtime oracle now verifies exact paired revision and skill comparison, not extraction alone"
+    ],
+    "final_disposition": "No remaining actionable findings"
+  }
+}

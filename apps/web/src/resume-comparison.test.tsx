@@ -16,4 +16,12 @@ describe('resume comparison',()=>{
     expect(html).toContain('Original certificate');expect(html).toContain('Original summary');
     expect(html).toContain('fact position 2 → 1');expect(html).not.toContain('<script>');
   });
+  it('shows OCR uncertainty and unknown sections instead of invented unchanged results',()=>{
+    const result:Comparison={base:{id:'upload',version:2,text:'Uncertain original',source_kind:'UPLOADED',filename:'scan.pdf',format:'pdf',sha256:'abc',profile_id:'fixture',extraction:{status:'READY_FOR_REVIEW',warnings:['OCR text may contain mistakes.'],used_ocr:true}},tailored:{id:'target',version:3,text:'Approved output'},
+      summary_changes:[],bullet_changes:[],reordered:[],emphasized_skills:[],omitted:[],added:[],contact_changed:null,scope:'Extracted text only',section_availability:{summary_changes:false,bullet_changes:false}};
+    const html=renderToStaticMarkup(<ComparisonResult result={result}/>);
+    expect(html).toContain('OCR text is uncertain');expect(html).toContain('OCR text may contain mistakes.');
+    expect(html).toContain('Source section unavailable or ambiguous');expect(html).not.toContain('No changes.');
+    expect(html).toContain('Download compared original');expect(html).toContain('Uploaded base · v2');
+  });
 });

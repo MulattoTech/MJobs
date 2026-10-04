@@ -17,6 +17,7 @@ from packages.persistence import models as m
 from packages.persistence.store import Store
 from services.discovery.pipeline import discover
 from services.documents.generate import prepare
+from services.documents.uploads import save_resume
 from tests.integration.test_spine import PROFILE
 from workers.tasks import execute_operation
 
@@ -31,6 +32,8 @@ class SkillOrderBrowserTests(unittest.TestCase):
             job=store.jobs()[0]
             with store.engine.begin() as c:c.execute(update(m.jobs).where(m.jobs.c.id==job['id']).values(skills=['Python']))
             prepare(store,job['id'],'fixture',root)
+            original=b'Alex Fixture\nalex@example.test\nSkills\nSQL; Python\nResponsibilities\nMaintained servers\n'
+            uploaded=save_resume(store,root,'fixture','original.txt','text/plain',original)
             sock=bound_browser_socket();origin=f'http://127.0.0.1:{sock.getsockname()[1]}'
             app=create_app(store,'http://127.0.0.1:1',root,'redis://127.0.0.1:1/0',operation_mode='FIXTURE')
             server=uvicorn.Server(uvicorn.Config(app,log_level='error'))
@@ -78,6 +81,18 @@ class SkillOrderBrowserTests(unittest.TestCase):
                         expect(result.get_by_role('region',name='Bullet and fact changes',exact=True)).to_contain_text('No changes.')
                         page.reload();page.get_by_role('button',name='Applications',exact=False).first.click()
                         page.locator('.job-card').first.click()
+                    comparison=page.get_by_role('region',name='Compare base and tailored resumes',exact=True)
+                    comparison.get_by_label('Base resume',exact=True).select_option('u:'+uploaded['revision_id'])
+                    comparison.get_by_role('button',name='Compare selected resumes',exact=True).click()
+                    result=comparison.get_by_role('region',name='Resume comparison result',exact=True)
+                    expect(result.get_by_role('heading',name='Uploaded base · v1',exact=True)).to_be_visible()
+                    expect(result.get_by_role('region',name='Content omitted',exact=True)).to_contain_text('Maintained servers')
+                    expect(result.get_by_role('region',name='Summary changes',exact=True)).to_contain_text('Source section unavailable or ambiguous')
+                    provenance=result.get_by_role('region',name='Original extraction provenance',exact=True)
+                    expect(provenance).to_contain_text('Native extracted text')
+                    with page.expect_download() as original_download:
+                        provenance.get_by_role('link',name='Download compared original',exact=True).click()
+                    self.assertEqual(Path(original_download.value.path()).read_bytes(),original)
                     self.assertFalse(external)
                     context.close();browser.close()
             finally:

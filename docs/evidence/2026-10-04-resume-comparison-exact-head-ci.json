@@ -1,0 +1,134 @@
+{
+  "timestamp": "2026-10-04T20:15:12.238850+00:00",
+  "result": "PASS",
+  "pr": {
+    "baseRefName": "main",
+    "baseRefOid": "2a8e95a5023b26f3576b71c2fa46489dc9512094",
+    "headRefOid": "00603322eb5b76e228ff8077b950ef90aecae8e3",
+    "isDraft": true,
+    "mergeStateStatus": "CLEAN",
+    "mergeable": "MERGEABLE",
+    "number": 495,
+    "reviewDecision": "",
+    "state": "OPEN",
+    "url": "https://github.com/MulattoTech/MJobs/pull/495"
+  },
+  "head": "00603322eb5b76e228ff8077b950ef90aecae8e3",
+  "base": "2a8e95a5023b26f3576b71c2fa46489dc9512094",
+  "runs": [
+    {
+      "id": 37230988701,
+      "event": "push",
+      "attempt": 1,
+      "head_sha": "00603322eb5b76e228ff8077b950ef90aecae8e3",
+      "conclusion": "success",
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/37230988701",
+      "jobs": [
+        {
+          "id": 111520373255,
+          "name": "product-suite-and-connected-ui",
+          "conclusion": "success",
+          "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/37230988701/job/111520373255"
+        }
+      ]
+    },
+    {
+      "id": 37230991799,
+      "event": "pull_request",
+      "attempt": 1,
+      "head_sha": "00603322eb5b76e228ff8077b950ef90aecae8e3",
+      "conclusion": "success",
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/37230991799",
+      "jobs": [
+        {
+          "id": 111520381721,
+          "name": "product-suite-and-connected-ui",
+          "conclusion": "success",
+          "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/37230991799/job/111520381721"
+        }
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "id": 111520381721,
+      "name": "product-suite-and-connected-ui",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/37230991799/job/111520381721"
+    },
+    {
+      "id": 111520373255,
+      "name": "product-suite-and-connected-ui",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/37230988701/job/111520373255"
+    }
+  ],
+  "artifacts": {
+    "push": [
+      {
+        "file": ".git\\afk-dev\\pr495-push-artifacts\\ci-mock-e2e.json",
+        "result": "PASS"
+      },
+      {
+        "file": ".git\\afk-dev\\pr495-push-artifacts\\ci-personal-mode.json",
+        "result": "PASS"
+      },
+      {
+        "file": ".git\\afk-dev\\pr495-push-artifacts\\ci-personal-public-source.json",
+        "result": "PASS"
+      },
+      {
+        "file": ".git\\afk-dev\\pr495-push-artifacts\\ci-personal-public-ui.json",
+        "result": "PASS"
+      },
+      {
+        "file": ".git\\afk-dev\\pr495-push-artifacts\\ci-profile-ocr.json",
+        "result": "PASS"
+      },
+      {
+        "file": ".git\\afk-dev\\pr495-push-artifacts\\ci-recovery.json",
+        "result": "PASS"
+      },
+      {
+        "file": ".git\\afk-dev\\pr495-push-artifacts\\ci-ui.json",
+        "result": "PASS"
+      }
+    ],
+    "pr": [
+      {
+        "file": ".git\\afk-dev\\pr495-pr-artifacts\\ci-mock-e2e.json",
+        "result": "PASS"
+      },
+      {
+        "file": ".git\\afk-dev\\pr495-pr-artifacts\\ci-personal-mode.json",
+        "result": "PASS"
+      },
+      {
+        "file": ".git\\afk-dev\\pr495-pr-artifacts\\ci-personal-public-source.json",
+        "result": "PASS"
+      },
+      {
+        "file": ".git\\afk-dev\\pr495-pr-artifacts\\ci-personal-public-ui.json",
+        "result": "PASS"
+      },
+      {
+        "file": ".git\\afk-dev\\pr495-pr-artifacts\\ci-profile-ocr.json",
+        "result": "PASS"
+      },
+      {
+        "file": ".git\\afk-dev\\pr495-pr-artifacts\\ci-recovery.json",
+        "result": "PASS"
+      },
+      {
+        "file": ".git\\afk-dev\\pr495-pr-artifacts\\ci-ui.json",
+        "result": "PASS"
+      }
+    ]
+  },
+  "comparison_ui": "PASS in both ci-ui.json artifacts",
+  "codespaces": "NOT_APPLICABLE: no matching paths",
+  "merge_commit": "5c5bb565b949746117c3cacb017bdb98f7de171a",
+  "baseline_verified": true
+}

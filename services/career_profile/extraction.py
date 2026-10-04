@@ -195,6 +195,11 @@ def _native_docx(data: bytes) -> tuple[str, list[str]]:
         return "", ["DOCX could not be read"]
 
 
+def resume_heading_kind(line: str) -> str | None:
+    """Recognize an explicit heading; never infer a section from prose."""
+    return _HEADINGS.get(re.sub(r"[:\s]+$", "", line.strip()).lower())
+
+
 def _section_facts(text: str, contact_lines: set[int]) -> list[tuple[str, str]]:
     current = "summary"
     facts: list[tuple[str, str]] = []
@@ -290,10 +295,8 @@ def _extract_contact(text: str) -> tuple[dict, set[int]]:
     return contact, used
 
 
-def extract_resume(data: bytes, format: str, source: str) -> dict:
-    """Extract reviewable facts from PDF, DOCX, or UTF-8 TXT bytes."""
-    if not isinstance(source, str) or len(source) > 1000:
-        raise ValueError("Resume source is too long")
+def extract_resume_text(data: bytes, format: str) -> dict:
+    """Read bounded local text once, retaining extraction/OCR uncertainty."""
     if not isinstance(data, (bytes, bytearray)) or len(data) > MAX_INPUT_BYTES:
         raise ValueError("Resume exceeds the supported size limit")
     kind = str(format).lower().lstrip(".")
@@ -307,13 +310,25 @@ def extract_resume(data: bytes, format: str, source: str) -> dict:
         elif kind == "docx":
             text, warnings = _native_docx(bytes(data))
         else:
-            return {"status": "UNREADABLE", "warnings": ["Unsupported resume format"], "contact": _empty_contact(), "facts": []}
+            return {"status": "UNREADABLE", "warnings": ["Unsupported resume format"], "text": "", "used_ocr": False}
     except UnicodeDecodeError:
-        return {"status": "UNREADABLE", "warnings": ["Resume text encoding could not be read"], "contact": _empty_contact(), "facts": []}
+        return {"status": "UNREADABLE", "warnings": ["Resume text encoding could not be read"], "text": "", "used_ocr": False}
     except ValueError:
         raise
     if len(text) > MAX_TEXT_CHARS:
         raise ValueError("Resume text exceeds the supported size limit")
+    status = "READY_FOR_REVIEW" if text.strip() else ("NEEDS_OCR" if needs_ocr else "UNREADABLE")
+    if not text.strip() and not warnings:
+        warnings = ["Resume contains no readable text"]
+    return {"status":status,"warnings":warnings,"text":text,"used_ocr":used_ocr}
+
+
+def extract_resume(data: bytes, format: str, source: str) -> dict:
+    """Extract reviewable facts from PDF, DOCX, or UTF-8 TXT bytes."""
+    if not isinstance(source, str) or len(source) > 1000:
+        raise ValueError("Resume source is too long")
+    extraction = extract_resume_text(data, format)
+    text, warnings, used_ocr = extraction['text'], list(extraction['warnings']), extraction['used_ocr']
     contact, contact_lines = _extract_contact(text)
     pairs = _section_facts(text, contact_lines)
     facts = []
@@ -336,7 +351,7 @@ def extract_resume(data: bytes, format: str, source: str) -> dict:
         facts.append({"id": identifier, "kind": fact_kind, "text": fact_text, "source": source,
                       "confidence": 70.0 if used_ocr else (90.0 if fact_kind == "skill" else 85.0),
                       "verified": False, "user_approved": False})
-    status = "READY_FOR_REVIEW" if text.strip() else ("NEEDS_OCR" if needs_ocr else "UNREADABLE")
+    status = extraction['status']
     if not text.strip() and not warnings:
         warnings = ["Resume contains no readable text"]
     if overflow:

@@ -7,12 +7,12 @@
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Sole writer codex/resume-comparison-20261004 based on 2a8e95a5023b26f3576b71c2fa46489dc9512094.",
-    "current_verified_github_state": "PR494 merged after both exact-head workflows, all14 runtime artifacts and both app-image validation steps passed; issues97/99 closed with receipts.",
-    "current_verified_at": "2026-10-04T20:06:52.668978+00:00"
+    "current_verified_local_state": "Uploaded comparison implemented; main dashboard PR496 integrated without conflict.",
+    "current_verified_github_state": "PR496 merged at 8d6bf1ce08211efd17cdae36155f5b8977b4605f; uploaded comparison awaiting exact-head hosted checks.",
+    "current_verified_at": "2026-10-04T20:39:25.030826+00:00"
   },
-  "current_milestone": "MJ-PR-027-RESUME-COMPARISON",
-  "current_objective": "Expose immutable generated base-versus-tailored comparison; keep uploaded-original comparison acceptance explicit.",
+  "current_milestone": "MJ-PR-027-UPLOADED-RESUME-COMPARISON",
+  "current_objective": "Finish uploaded-original comparison with source provenance and honest extraction uncertainty.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -520,6 +520,14 @@
       "head": "a0a336b7c6d1d155e400b4e6fd853f5a771ce15f",
       "merge_commit": "2a8e95a5023b26f3576b71c2fa46489dc9512094",
       "ci_evidence": "docs/evidence/2026-10-04-document-validation-exact-head-ci.json"
+    },
+    {
+      "number": 495,
+      "url": "https://github.com/MulattoTech/MJobs/pull/495",
+      "status": "MERGED",
+      "head": "00603322eb5b76e228ff8077b950ef90aecae8e3",
+      "merge_commit": "5c5bb565b949746117c3cacb017bdb98f7de171a",
+      "ci_evidence": "docs/evidence/2026-10-04-resume-comparison-exact-head-ci.json"
     }
   ],
   "tests_passed": [
@@ -662,15 +670,14 @@
     "MJ-PR-016 local Chromium first run used Docker DNS host api, which is not a secure browser origin for crypto.randomUUID; loopback URL rerun passed all five connected UI actions."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-04T20:06:52.668978+00:00",
-    "base_commit": "2a8e95a5023b26f3576b71c2fa46489dc9512094",
+    "timestamp": "2026-10-04T20:39:16.235741+00:00",
     "result": "PASS",
-    "scope": "509 Python zero skips;41 web/build;6 isolated PostgreSQL;real Chromium and independent review PASS. Hosted pending.",
-    "evidence_path": "docs/evidence/2026-10-04-resume-comparison.json"
+    "scope": "Local uploaded comparison regression, browser, PostgreSQL, OCR image and independent review; hosted pending",
+    "evidence_path": "docs/evidence/2026-10-04-uploaded-resume-comparison.json"
   },
   "ci_verification": {
     "result": "NOT_RUN",
-    "scope": "Current resume-comparison candidate exact-head workflows pending."
+    "scope": "Current uploaded-comparison candidate not yet published."
   },
   "mock_spine_ci": {
     "result": "PASS",
@@ -728,7 +735,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Finish comparison regression and exact-head CI, merge safely, then finish uploaded-base comparison or ATS headings without treating broader tailoring as accepted.",
+  "recommended_resume_step": "Integrate current main, publish uploaded-original comparison, verify exact-head push/PR workflows and all runtime artifacts; merge then advance ATS headings.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -768,9 +775,8 @@
   "last_implementation_commit": "b4fa3a11762b0c26bfbb09e105f3c47681763e20",
   "publication": {
     "result": "NOT_RUN",
-    "branch": "codex/resume-comparison-20261004",
-    "base": "2a8e95a5023b26f3576b71c2fa46489dc9512094",
-    "note": "Final PR/head receipt belongs to hosted CI and closeout. Prior PR494 receipt tracked."
+    "branch": "codex/uploaded-resume-comparison-20261004",
+    "base": "8d6bf1ce08211efd17cdae36155f5b8977b4605f"
   },
   "optional_afk_journal": {
     "result": "PASS",
@@ -2862,9 +2868,7 @@
         "509 full Python tests zero skips PASS,203.905s",
         "Real Chromium visual inspection PASS"
       ],
-      "tests_remaining": [
-        "Exact final-head push/PR workflows"
-      ],
+      "tests_remaining": [],
       "migrations_applied": [],
       "live_integrations_tested": [],
       "known_errors": [],
@@ -2874,17 +2878,48 @@
       ],
       "milestone_id": "resume-comparison-20261004",
       "timestamp": "2026-10-04T20:06:52.668978+00:00",
-      "current_phase": "IMPLEMENTED_VALIDATING",
+      "current_phase": "MERGED",
       "last_safe_checkpoint": {
         "git_commit": "2a8e95a5023b26f3576b71c2fa46489dc9512094",
         "evidence_path": "docs/evidence/2026-10-04-document-validation-exact-head-ci.json"
       }
+    },
+    {
+      "completed_steps": [
+        "Uploaded original native/OCR comparison and UI implemented",
+        "Occurrence-aware comparison and ambiguous-section review correction",
+        "Independent review complete without residual actionable findings"
+      ],
+      "files_added": [],
+      "files_modified": [],
+      "tests_completed": [
+        "517 Python tests zero skips",
+        "42 web tests and production build",
+        "11 PostgreSQL 17 tests at actual Alembic head",
+        "Real offline OCR app image scanned and mixed PDFs PASS"
+      ],
+      "tests_remaining": [
+        "Exact final-head push and pull-request CI, all eight runtime JSON artifacts each, and hosted uploaded-comparison UI assertion"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "Unknown sections are explicitly unclassified; OCR-derived text remains uncertain"
+      ],
+      "milestone_id": "uploaded-resume-comparison-20261004",
+      "timestamp": "2026-10-04T20:21:19.219179+00:00",
+      "current_phase": "LOCAL_VALIDATED",
+      "last_safe_checkpoint": {
+        "git_commit": "5c5bb565b949746117c3cacb017bdb98f7de171a",
+        "evidence_path": "docs/evidence/2026-10-04-resume-comparison-exact-head-ci.json"
+      }
     }
   ],
-  "current_phase": "IMPLEMENTED_VALIDATING",
+  "current_phase": "LOCAL_VALIDATED",
   "last_safe_checkpoint": {
-    "git_commit": "2a8e95a5023b26f3576b71c2fa46489dc9512094",
-    "evidence_path": "docs/evidence/2026-10-04-document-validation-exact-head-ci.json"
+    "git_commit": "5c5bb565b949746117c3cacb017bdb98f7de171a",
+    "evidence_path": "docs/evidence/2026-10-04-resume-comparison-exact-head-ci.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
@@ -2970,7 +3005,7 @@
   "active_development_issue": {
     "number": 100,
     "status": "PARTIAL",
-    "branch": "codex/resume-comparison-20261004"
+    "branch": "codex/uploaded-resume-comparison-20261004"
   },
   "historical_control_snapshots": [
     {
@@ -3374,7 +3409,7 @@
   },
   "session_control": {
     "owner": "01a107cd-4e66-77d3-b046-fc2c01f4ffb1",
-    "branch": "codex/resume-comparison-20261004",
+    "branch": "codex/uploaded-resume-comparison-20261004",
     "write_lanes": 1,
     "requested_action": "DELIVER_LIFECYCLE_PROFILE_IMPORT",
     "note": "Current user authorizes implementation, tests, review, push, exact-head-verified merge and continuation. No production deployment or external submissions."
