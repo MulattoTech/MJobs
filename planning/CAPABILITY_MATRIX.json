@@ -711,21 +711,33 @@
     },
     {
       "requirement_id": "MJ-REQ-085",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-03-job-lifecycle.json",
+        "docs/evidence/2026-10-04-clean-baseline.json",
+        "docs/evidence/2026-10-04-merged-ci-receipts.json"
+      ],
+      "note": "Merged PR481 and its named SHA-bound PostgreSQL/runtime gates supersede NOT_RUN. Remaining whole-contract acceptance has not been independently certified; retain PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-086",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-03-job-lifecycle.json",
+        "docs/evidence/2026-10-04-clean-baseline.json",
+        "docs/evidence/2026-10-04-merged-ci-receipts.json"
+      ],
+      "note": "Merged PR481 and its named SHA-bound PostgreSQL/runtime gates supersede NOT_RUN. Remaining whole-contract acceptance has not been independently certified; retain PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-087",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-03-job-lifecycle.json",
+        "docs/evidence/2026-10-04-clean-baseline.json",
+        "docs/evidence/2026-10-04-merged-ci-receipts.json"
+      ],
+      "note": "Merged PR481 and its named SHA-bound PostgreSQL/runtime gates supersede NOT_RUN. Remaining whole-contract acceptance has not been independently certified; retain PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-088",

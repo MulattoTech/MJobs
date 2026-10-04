@@ -1,0 +1,102 @@
+{
+  "timestamp": "2026-10-04T14:11:09.711525+00:00",
+  "pr": 481,
+  "result": "PASS",
+  "scope": "Historical named workflow/runtime gates only; not a new whole-requirement certification",
+  "runs": [
+    {
+      "run_id": 37169760484,
+      "head_sha": "1500891ac75d4eb36c531baf7c94efd035ba16cf",
+      "event": "pull_request",
+      "conclusion": "success",
+      "updated_at": "2026-10-04T02:06:44Z",
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/37169760484",
+      "jobs": [
+        {
+          "job_id": 111340119439,
+          "name": "product-suite-and-connected-ui",
+          "conclusion": "success",
+          "runtime_steps": [
+            {
+              "name": "Assert fixture PostgreSQL revision and workspace identity",
+              "conclusion": "success",
+              "number": 16
+            },
+            {
+              "name": "Run python -m cli.mock_e2e --evidence outputs/ci-mock-e2e.json",
+              "conclusion": "success",
+              "number": 17
+            },
+            {
+              "name": "Run python -m cli.ui_e2e --evidence outputs/ci-ui.json",
+              "conclusion": "success",
+              "number": 18
+            },
+            {
+              "name": "Run python -m cli.compose_recovery --baseline outputs/ci-mock-e2e.json --evidence outputs/ci-recovery.json",
+              "conclusion": "success",
+              "number": 19
+            },
+            {
+              "name": "Assert personal PostgreSQL revision and workspace identity",
+              "conclusion": "success",
+              "number": 23
+            },
+            {
+              "name": "Run python -m cli.personal_mode_e2e --api http://127.0.0.1:18701 --evidence outputs/ci-personal-mode.json",
+              "conclusion": "success",
+              "number": 24
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "run_id": 37169744956,
+      "head_sha": "1500891ac75d4eb36c531baf7c94efd035ba16cf",
+      "event": "push",
+      "conclusion": "success",
+      "updated_at": "2026-10-04T02:07:04Z",
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/37169744956",
+      "jobs": [
+        {
+          "job_id": 111340074818,
+          "name": "product-suite-and-connected-ui",
+          "conclusion": "success",
+          "runtime_steps": [
+            {
+              "name": "Assert fixture PostgreSQL revision and workspace identity",
+              "conclusion": "success",
+              "number": 16
+            },
+            {
+              "name": "Run python -m cli.mock_e2e --evidence outputs/ci-mock-e2e.json",
+              "conclusion": "success",
+              "number": 17
+            },
+            {
+              "name": "Run python -m cli.ui_e2e --evidence outputs/ci-ui.json",
+              "conclusion": "success",
+              "number": 18
+            },
+            {
+              "name": "Run python -m cli.compose_recovery --baseline outputs/ci-mock-e2e.json --evidence outputs/ci-recovery.json",
+              "conclusion": "success",
+              "number": 19
+            },
+            {
+              "name": "Assert personal PostgreSQL revision and workspace identity",
+              "conclusion": "success",
+              "number": 23
+            },
+            {
+              "name": "Run python -m cli.personal_mode_e2e --api http://127.0.0.1:18701 --evidence outputs/ci-personal-mode.json",
+              "conclusion": "success",
+              "number": 24
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

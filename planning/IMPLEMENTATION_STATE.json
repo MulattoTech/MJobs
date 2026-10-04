@@ -7,12 +7,12 @@
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "33 preserved worktrees; root resume-driven-profile HEAD260540c retains24 unchanged untracked templates; isolated company-source-refresh based on mainb4fa3a1.",
-    "current_verified_github_state": "387 open issues; PR477 merged after both exact-head workflows; no open PR before this publication.",
-    "current_verified_at": "2026-10-04T00:22:19.621350+00:00"
+    "current_verified_local_state": "main b122b0e synchronized;27 old worktrees archived and unregistered;41 old local and41 remote branches retired;one isolated cleanup candidate in progress;root status clean",
+    "current_verified_github_state": "PR479/481/482 merged;PR480 superseded;issue399 closed;no open PR at audit start",
+    "current_verified_at": "2026-10-04T14:03:47.184867+00:00"
   },
-  "current_milestone": "MJ-PR-023-COMPLETION",
-  "current_objective": "Audit and extend discovery activity, visible source quality and safe application ATS knowledge on isolated synchronized main; preserve remaining acceptance gaps.",
+  "current_milestone": "CLEAN_BASELINE_RECONCILIATION",
+  "current_objective": "Recover unpublished closeout work, harden skill contracts, retire already-integrated and superseded branches without data loss, and publish lean effort-specific continuation prompts.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -68,11 +68,7 @@
     "Durable reviewed public-feed monitoring: bounded scheduled/manual reads, atomic multi-profile matching and receipt, fresh authorization, failure backoff, changed-feed rediscovery and Sources status. Vendor ATS migration and broader providers remain open."
   ],
   "blocked_capabilities": [],
-  "active_requirements": [
-    "MJ-REQ-082",
-    "MJ-REQ-083",
-    "MJ-REQ-084"
-  ],
+  "active_requirements": [],
   "active_prs": [
     {
       "number": 367,
@@ -432,6 +428,27 @@
         "pr": 37161948331,
         "push": 37161945869
       }
+    },
+    {
+      "number": 479,
+      "status": "MERGED",
+      "head": "c2ea4a764af53ac2c1dba16fe77a891669581593",
+      "merge_commit": "78be4e615d2cb6848e8e1762964a7de695be4924",
+      "merged_at": "2026-10-04T01:55:41Z"
+    },
+    {
+      "number": 481,
+      "status": "MERGED",
+      "head": "1500891ac75d4eb36c531baf7c94efd035ba16cf",
+      "merge_commit": "0433a07a09a37e4e86221c547e8d21aae60de9f4",
+      "merged_at": "2026-10-04T02:06:59Z"
+    },
+    {
+      "number": 482,
+      "status": "MERGED",
+      "head": "6ccb193436f90dd71a3ba67dfc3ba1f072b11749",
+      "merge_commit": "b122b0ea9ffb6d6527e4b46ce04899d03021e361",
+      "merged_at": "2026-10-04T02:11:56Z"
     }
   ],
   "tests_passed": [
@@ -579,8 +596,7 @@
   },
   "ci_verification": {
     "result": "NOT_RUN",
-    "scope": "codex/company-source-refresh",
-    "note": "Pre-publication state; previous exact-head CI does not certify this branch."
+    "scope": "Current cleanup branch; historical PR482 and main CI are not this candidate."
   },
   "mock_spine_ci": {
     "result": "PASS",
@@ -638,7 +654,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Verify latest exact PR head and merge; then implement explicit source monitoring/revalidation and remaining company triggers without treating historical source enablement as current identity authority.",
+  "recommended_resume_step": "Audit remaining MJ-PR-024 acceptance and then finish MJ-PR-025 gaps; reuse reviewed resume/profile behavior. Only parallelize MJ-PR-026 and030 after actual prerequisite contracts pass.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -678,11 +694,9 @@
   "last_implementation_commit": "b4fa3a11762b0c26bfbb09e105f3c47681763e20",
   "publication": {
     "result": "NOT_RUN",
-    "branch": "codex/company-source-refresh",
-    "worktree": "C:\\Tools\\Dev\\MJobs\\.worktrees\\company-source-refresh",
-    "base": "b4fa3a11762b0c26bfbb09e105f3c47681763e20",
-    "observed_at": "2026-10-04T00:22:19.621350+00:00",
-    "note": "Prepared for one publication head. Live PR/CI receipt is in GitHub and private integration checkpoint; next reconciliation records merged truth without a post-publication bookkeeping commit."
+    "branch": "codex/reconcile-clean-slate-20261004",
+    "base": "b122b0ea9ffb6d6527e4b46ce04899d03021e361",
+    "note": "Final PR/head/merge receipt belongs to live GitHub and closeout comment; do not create a self-referential bookkeeping commit loop."
   },
   "optional_afk_journal": {
     "result": "PASS",
@@ -2499,12 +2513,47 @@
         "git_commit": "b4fa3a11762b0c26bfbb09e105f3c47681763e20",
         "evidence_path": "docs/evidence/2026-10-04-company-source-monitoring.json"
       }
+    },
+    {
+      "completed_steps": [
+        "Verified current main and prior merged PRs",
+        "Preserved28 worktrees and all dirty/untracked files",
+        "Recovered disclosure selector and hardened validator after observed failing tests"
+      ],
+      "files_added": [],
+      "files_modified": [],
+      "tests_completed": [
+        "459 Python tests PASS with zero skips",
+        "38 frontend tests PASS",
+        "Frontend production build PASS",
+        "Skill/catalogue/progress validators and git diff --check PASS",
+        "Read-only release monitor snapshot rendered successfully"
+      ],
+      "tests_remaining": [
+        "Current exact-head hosted CI"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "Node25.9.0 emits a Vitest engine warning; CI runs Node24.",
+        "Two locked legacy directories remain on disk, outside active Git worktree registration.",
+        "Clean integration is not full product release PASS.",
+        "Exact candidate-head hosted CI remains the merge gate; final run/merge receipt belongs to the PR closeout comment."
+      ],
+      "milestone_id": "clean-baseline-reconciliation-20261004",
+      "timestamp": "2026-10-04T14:03:47.184867+00:00",
+      "current_phase": "CLEAN_BASELINE_VALIDATING",
+      "last_safe_checkpoint": {
+        "git_commit": "b122b0ea9ffb6d6527e4b46ce04899d03021e361",
+        "evidence_path": "docs/evidence/2026-10-04-clean-baseline.json"
+      }
     }
   ],
-  "current_phase": "COMPANY_SOURCE_MONITORING_LOCAL_VERIFIED",
+  "current_phase": "CLEAN_BASELINE_VALIDATING",
   "last_safe_checkpoint": {
-    "git_commit": "b4fa3a11762b0c26bfbb09e105f3c47681763e20",
-    "evidence_path": "docs/evidence/2026-10-04-company-source-monitoring.json"
+    "git_commit": "b122b0ea9ffb6d6527e4b46ce04899d03021e361",
+    "evidence_path": "docs/evidence/2026-10-04-clean-baseline.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
@@ -2580,56 +2629,22 @@
     }
   ],
   "live_reconciliation": {
-    "timestamp": "2026-10-04T00:22:19.621350+00:00",
-    "origin_main": "b4fa3a11762b0c26bfbb09e105f3c47681763e20",
-    "open_issue_count_before_catalogue": 371,
-    "commercial_issue_mapping": {
-      "MJ-REF-043": 454,
-      "MJ-REF-044": 455,
-      "MJ-REF-045": 456,
-      "MJ-REF-046": 457,
-      "MJ-REF-047": 458,
-      "MJ-REF-048": 459,
-      "MJ-REF-049": 460,
-      "MJ-REF-050": 461,
-      "MJ-REF-051": 462,
-      "MJ-REF-052": 463,
-      "MJ-REF-053": 464,
-      "MJ-REF-054": 465,
-      "MJ-REF-055": 466,
-      "MJ-REF-056": 467,
-      "MJ-REF-057": 468,
-      "MJ-REF-058": 469,
-      "MJ-REF-059": 470
-    },
-    "preserved_worktrees": 33,
-    "preserved_untracked_files": 24,
-    "private_snapshot_location": "Git common directory: afk-dev/reconcile-20261003",
-    "docker_probe": {
-      "result": "PASS",
-      "server_version": "29.8.1"
-    },
-    "remaining_scope": "Original requirements and release readiness remain incomplete; no commercial feature behavior has been implemented by catalogue creation.",
-    "catalogue_pr": 471,
-    "catalogue_publication": "MERGED",
-    "open_prs_at_checkpoint": [],
-    "integration_order": [],
-    "note": "PR477 merged; supported company-source monitoring verified locally.",
-    "next_action": "Publish monitoring branch, verify exact head, merge, then select remaining dependency-eligible original source foundations.",
-    "open_issue_count": 387
+    "timestamp": "2026-10-04T14:03:47.184867+00:00",
+    "base_commit": "b122b0ea9ffb6d6527e4b46ce04899d03021e361",
+    "evidence_path": "docs/evidence/2026-10-04-clean-baseline.json",
+    "current_slice_validation": "PASS",
+    "product_status": "PARTIAL",
+    "local_checks": {
+      "python_tests": 459,
+      "python_skips": 0,
+      "frontend_tests": 38,
+      "frontend_build": "PASS"
+    }
   },
   "active_development_issue": {
-    "number": 77,
-    "url": "https://github.com/MulattoTech/MJobs/issues/77",
-    "branch": "codex/company-source-refresh",
+    "number": 483,
     "status": "PARTIAL",
-    "related_requirements": [
-      "MJ-REQ-055",
-      "MJ-REQ-056",
-      "MJ-REQ-071",
-      "MJ-REQ-076"
-    ],
-    "evidence_path": "docs/evidence/2026-10-04-company-source-monitoring.json"
+    "branch": "codex/reconcile-clean-slate-20261004"
   },
   "historical_control_snapshots": [
     {
@@ -2906,6 +2921,40 @@
         "pr_number": 477,
         "pr_url": "https://github.com/MulattoTech/MJobs/pull/477"
       }
+    },
+    {
+      "archived_at": "2026-10-04T14:03:47.184867+00:00",
+      "reason": "Superseded pre-publication fields retained during clean-baseline reconciliation",
+      "session_control": {
+        "requested_action": "MJ_PR_023_COMPLETION",
+        "note": "Current user authorizes isolated implementation, tests, commits and optional branch push; no main merge or external application submission."
+      },
+      "publication": {
+        "result": "NOT_RUN",
+        "branch": "codex/company-source-refresh",
+        "worktree": "C:\\Tools\\Dev\\MJobs\\.worktrees\\company-source-refresh",
+        "base": "b4fa3a11762b0c26bfbb09e105f3c47681763e20",
+        "observed_at": "2026-10-04T00:22:19.621350+00:00",
+        "note": "Prepared for one publication head. Live PR/CI receipt is in GitHub and private integration checkpoint; next reconciliation records merged truth without a post-publication bookkeeping commit."
+      },
+      "ci_verification": {
+        "result": "NOT_RUN",
+        "scope": "codex/company-source-refresh",
+        "note": "Pre-publication state; previous exact-head CI does not certify this branch."
+      },
+      "active_development_issue": {
+        "number": 77,
+        "url": "https://github.com/MulattoTech/MJobs/issues/77",
+        "branch": "codex/company-source-refresh",
+        "status": "PARTIAL",
+        "related_requirements": [
+          "MJ-REQ-055",
+          "MJ-REQ-056",
+          "MJ-REQ-071",
+          "MJ-REQ-076"
+        ],
+        "evidence_path": "docs/evidence/2026-10-04-company-source-monitoring.json"
+      }
     }
   ],
   "current_user_browser_acceptance": {
@@ -2998,20 +3047,24 @@
     }
   },
   "session_control": {
-    "requested_action": "MJ_PR_023_COMPLETION",
-    "note": "Current user authorizes isolated implementation, tests, commits and optional branch push; no main merge or external application submission."
+    "requested_action": "RECONCILE_AND_CLEAN_BASELINE",
+    "note": "Current user authorized cleanup, implementation, exact-head-verified merges and continuation prompts; no production submission or unrelated project changes."
   },
   "pr023_completion": {
     "timestamp": "2026-10-04T01:33:37.729938+00:00",
     "base_commit": "eff87832515e54a4a8eabc595b00e2957977ef93",
     "branch": "codex/pr023-completion-20261003",
     "status": "PARTIAL",
-    "phase": "IMPLEMENTATION_AND_VALIDATION",
+    "phase": "MERGED_WITH_REMAINING_ACCEPTANCE",
     "requirements": {
       "MJ-REQ-082": "PARTIAL",
       "MJ-REQ-083": "PARTIAL",
       "MJ-REQ-084": "PARTIAL"
     },
-    "external_submission_enabled": false
+    "external_submission_enabled": false,
+    "publication_state": "MERGED",
+    "pr_number": 479,
+    "head": "c2ea4a764af53ac2c1dba16fe77a891669581593",
+    "merge_commit": "78be4e615d2cb6848e8e1762964a7de695be4924"
   }
 }

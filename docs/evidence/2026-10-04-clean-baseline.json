@@ -1,0 +1,568 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-10-04T14:03:47.184867+00:00",
+  "result": "PARTIAL",
+  "scope": "User-authorized recovery, validator hardening and clean-baseline integration; not full product certification",
+  "issue": 483,
+  "base_commit": "b122b0ea9ffb6d6527e4b46ce04899d03021e361",
+  "branch": "codex/reconcile-clean-slate-20261004",
+  "previous_merges": [
+    {
+      "number": 479,
+      "state": "closed",
+      "merged": true,
+      "merged_at": "2026-10-04T01:55:41Z",
+      "merge_commit_sha": "78be4e615d2cb6848e8e1762964a7de695be4924",
+      "head": "c2ea4a764af53ac2c1dba16fe77a891669581593"
+    },
+    {
+      "number": 481,
+      "state": "closed",
+      "merged": true,
+      "merged_at": "2026-10-04T02:06:59Z",
+      "merge_commit_sha": "0433a07a09a37e4e86221c547e8d21aae60de9f4",
+      "head": "1500891ac75d4eb36c531baf7c94efd035ba16cf"
+    },
+    {
+      "number": 482,
+      "state": "closed",
+      "merged": true,
+      "merged_at": "2026-10-04T02:11:56Z",
+      "merge_commit_sha": "b122b0ea9ffb6d6527e4b46ce04899d03021e361",
+      "head": "6ccb193436f90dd71a3ba67dfc3ba1f072b11749"
+    }
+  ],
+  "previous_main_push_ci": {
+    "run_id": 37170312437,
+    "head": "b122b0ea9ffb6d6527e4b46ce04899d03021e361",
+    "result": "PASS"
+  },
+  "preservation": {
+    "archive": "C:/Tools/Dev/MJobs-Archives/20261004-0849",
+    "bundle_verified": true,
+    "original_worktrees": 28,
+    "dirty_worktrees": 2,
+    "policy": "Archive intact worktree directories and byte-verified uncommitted files; no git clean -fdx; preserve private runtime data.",
+    "retired_local_branches": 41,
+    "retired_remote_branches": 41,
+    "original_worktrees_archived": 27,
+    "locked_directory_copies_verified": 2,
+    "local_inert_directories": [
+      ".worktrees/feedback-gui",
+      ".worktrees/pr023-completion"
+    ],
+    "note": "Two directories held by Windows remain inert with their .git marker renamed; complete copies were hash-verified in the archive. Runtime services were not stopped."
+  },
+  "superseded_refs": [
+    {
+      "ref": "codex/local-governance-with-ci",
+      "sha": "b937b00274f4f67ba93103c1f0ec255c91f3213c",
+      "resolution": "Merged bootstrap2a41b1e differs only by relocating the same workflow bytes; current CI supersedes both."
+    },
+    {
+      "ref": "origin/codex/pr024-job-lifecycle-20261003",
+      "sha": "084dee46b69a2f58060f3c849f591c1670f21be5",
+      "resolution": "Closed PR480 superseded by merged481; lifecycle code retained; no replay of stale planning."
+    }
+  ],
+  "recovered_changes": [
+    "source-quality disclosure class and scoped browser selector, normalized to UTF-8 without BOM/mojibake",
+    "Historical PR023 final evidence retained separately; stale publication instructions do not override current PR state"
+  ],
+  "validator_tdd": {
+    "baseline": "13 tests:9 failures,3 errors including subtests",
+    "after": "13 tests PASS"
+  },
+  "current_slice_validation": "PASS",
+  "current_hosted_ci": "NOT_RUN",
+  "limitations": [
+    "Node25.9.0 emits a Vitest engine warning; CI runs Node24.",
+    "Two locked legacy directories remain on disk, outside active Git worktree registration.",
+    "Clean integration is not full product release PASS.",
+    "Exact candidate-head hosted CI remains the merge gate; final run/merge receipt belongs to the PR closeout comment."
+  ],
+  "original_requirement_counts": {
+    "PARTIAL": 77,
+    "NOT_RUN": 241,
+    "PASS": 48
+  },
+  "reference_requirement_counts": {
+    "PASS": 1,
+    "NOT_RUN": 58
+  },
+  "verified_at": "2026-10-04T14:09:48.819692+00:00",
+  "checks": [
+    {
+      "command": [
+        "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_*.py",
+        "-q"
+      ],
+      "timestamp": "2026-10-04T14:03:47.318077+00:00",
+      "end": "2026-10-04T14:06:31.107383+00:00",
+      "exit_code": 0,
+      "log": "C:\\Tools\\Dev\\MJobs-Archives\\20261004-0849\\full-0.log",
+      "sha256": "2c6b0e5a483ae3063916c6ec9ac64cee9e1d0ca09124ab726c42eaad670ea9de",
+      "target": "C:\\Tools\\Dev\\MJobs-integration-20261004"
+    },
+    {
+      "command": [
+        "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe",
+        "-m",
+        "tools.verification.agent_skills"
+      ],
+      "timestamp": "2026-10-04T14:06:31.108427+00:00",
+      "end": "2026-10-04T14:06:31.223646+00:00",
+      "exit_code": 0,
+      "log": "C:\\Tools\\Dev\\MJobs-Archives\\20261004-0849\\full-1.log",
+      "sha256": "434341d0426ff552a940bd914f1b78230ab3ac111057923f2f2c5b8de586b362",
+      "target": "C:\\Tools\\Dev\\MJobs-integration-20261004"
+    },
+    {
+      "command": [
+        "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe",
+        "-m",
+        "tools.verification.catalogue"
+      ],
+      "timestamp": "2026-10-04T14:06:31.224645+00:00",
+      "end": "2026-10-04T14:06:31.349637+00:00",
+      "exit_code": 0,
+      "log": "C:\\Tools\\Dev\\MJobs-Archives\\20261004-0849\\full-2.log",
+      "sha256": "afc44cd304f45ba649562cbea23ab034dec7f06e61af43b7b17ec2e10d5706ff",
+      "target": "C:\\Tools\\Dev\\MJobs-integration-20261004"
+    },
+    {
+      "command": [
+        "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe",
+        "-m",
+        "tools.verification.progress",
+        "validate"
+      ],
+      "timestamp": "2026-10-04T14:06:31.350637+00:00",
+      "end": "2026-10-04T14:06:31.501507+00:00",
+      "exit_code": 0,
+      "log": "C:\\Tools\\Dev\\MJobs-Archives\\20261004-0849\\full-3.log",
+      "sha256": "901467b93720a98dd3fd6f8d3527c6294ec52e61cb3ebe6674f3ddccfe7c5e03",
+      "target": "C:\\Tools\\Dev\\MJobs-integration-20261004"
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "timestamp": "2026-10-04T14:06:31.502554+00:00",
+      "end": "2026-10-04T14:06:31.683598+00:00",
+      "exit_code": 0,
+      "log": "C:\\Tools\\Dev\\MJobs-Archives\\20261004-0849\\full-4.log",
+      "sha256": "ffc1d1b2eb3eb7092d68a9c2eab8a528dbae9deb73846e1fa4ce8ef58edb7cb1",
+      "target": "C:\\Tools\\Dev\\MJobs-integration-20261004"
+    },
+    {
+      "command": [
+        "npm.cmd",
+        "ci",
+        "--prefix",
+        "apps/web"
+      ],
+      "timestamp": "2026-10-04T13:56:31.379351+00:00",
+      "end": "2026-10-04T13:56:33.094977+00:00",
+      "exit_code": 0,
+      "log": "C:\\Tools\\Dev\\MJobs-Archives\\20261004-0849\\frontend-0.log",
+      "sha256": "7bc3f64806ed6d78b60b00f81ab7b28414bfdb30fd6f4b146680ad06546c99e5",
+      "target": "C:\\Tools\\Dev\\MJobs-integration-20261004"
+    },
+    {
+      "command": [
+        "npm.cmd",
+        "test",
+        "--prefix",
+        "apps/web",
+        "--",
+        "--run"
+      ],
+      "timestamp": "2026-10-04T13:56:33.096742+00:00",
+      "end": "2026-10-04T13:56:34.358847+00:00",
+      "exit_code": 0,
+      "log": "C:\\Tools\\Dev\\MJobs-Archives\\20261004-0849\\frontend-1.log",
+      "sha256": "ca34a3e6424497de752f1c05e52a36c03e1c1f98630d07b49e29bd6460ffcb09",
+      "target": "C:\\Tools\\Dev\\MJobs-integration-20261004"
+    },
+    {
+      "command": [
+        "npm.cmd",
+        "run",
+        "build",
+        "--prefix",
+        "apps/web"
+      ],
+      "exit_code": 0,
+      "log": "C:\\Tools\\Dev\\MJobs-Archives\\20261004-0849\\frontend-2.log",
+      "sha256": "b57a2e42f4a5d95aa2109ceae077a4f53085d4bbe2f2317988f3d92444985986",
+      "note": "Build executed separately after fixing console-only Unicode output in the log wrapper.",
+      "target": "C:\\Tools\\Dev\\MJobs-integration-20261004"
+    },
+    {
+      "command": [
+        "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe",
+        "-m",
+        "unittest",
+        "tests.unit.test_agent_skills",
+        "-q"
+      ],
+      "timestamp": "2026-10-04T14:11:09.714531+00:00",
+      "finished_at": "2026-10-04T14:11:10.172917+00:00",
+      "target": "C:\\Tools\\Dev\\MJobs-integration-20261004",
+      "exit_code": 0,
+      "log": "C:\\Tools\\Dev\\MJobs-Archives\\20261004-0849\\review-fix-0.log",
+      "sha256": "1bbd1f891b2078afd5feb7393c4c197add234a54c6dca567a9cea02f3209ebff"
+    },
+    {
+      "command": [
+        "npm.cmd",
+        "test",
+        "--prefix",
+        "apps/web",
+        "--",
+        "--run"
+      ],
+      "timestamp": "2026-10-04T14:11:10.172917+00:00",
+      "finished_at": "2026-10-04T14:11:11.428920+00:00",
+      "target": "C:\\Tools\\Dev\\MJobs-integration-20261004",
+      "exit_code": 0,
+      "log": "C:\\Tools\\Dev\\MJobs-Archives\\20261004-0849\\review-fix-1.log",
+      "sha256": "2d10f4fe0cc430a371f7e5234ec1565e5dff7e1cc2c7aa5b5e256863a8d6cea2"
+    },
+    {
+      "command": [
+        "npm.cmd",
+        "run",
+        "build",
+        "--prefix",
+        "apps/web"
+      ],
+      "timestamp": "2026-10-04T14:11:11.428920+00:00",
+      "finished_at": "2026-10-04T14:11:12.555123+00:00",
+      "target": "C:\\Tools\\Dev\\MJobs-integration-20261004",
+      "exit_code": 0,
+      "log": "C:\\Tools\\Dev\\MJobs-Archives\\20261004-0849\\review-fix-2.log",
+      "sha256": "9243002e9330d73e389bd6e21e8090454f18190770c481ee588f1b53caa99352"
+    },
+    {
+      "command": [
+        "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe",
+        "-m",
+        "tools.verification.agent_skills"
+      ],
+      "timestamp": "2026-10-04T14:11:12.555123+00:00",
+      "finished_at": "2026-10-04T14:11:12.653685+00:00",
+      "target": "C:\\Tools\\Dev\\MJobs-integration-20261004",
+      "exit_code": 0,
+      "log": "C:\\Tools\\Dev\\MJobs-Archives\\20261004-0849\\review-fix-3.log",
+      "sha256": "434341d0426ff552a940bd914f1b78230ab3ac111057923f2f2c5b8de586b362"
+    },
+    {
+      "command": [
+        "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe",
+        "-m",
+        "tools.verification.catalogue"
+      ],
+      "timestamp": "2026-10-04T14:11:12.653685+00:00",
+      "finished_at": "2026-10-04T14:11:12.752429+00:00",
+      "target": "C:\\Tools\\Dev\\MJobs-integration-20261004",
+      "exit_code": 0,
+      "log": "C:\\Tools\\Dev\\MJobs-Archives\\20261004-0849\\review-fix-4.log",
+      "sha256": "afc44cd304f45ba649562cbea23ab034dec7f06e61af43b7b17ec2e10d5706ff"
+    },
+    {
+      "command": [
+        "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe",
+        "-m",
+        "tools.verification.progress",
+        "validate"
+      ],
+      "timestamp": "2026-10-04T14:11:12.752429+00:00",
+      "finished_at": "2026-10-04T14:11:12.878504+00:00",
+      "target": "C:\\Tools\\Dev\\MJobs-integration-20261004",
+      "exit_code": 0,
+      "log": "C:\\Tools\\Dev\\MJobs-Archives\\20261004-0849\\review-fix-5.log",
+      "sha256": "901467b93720a98dd3fd6f8d3527c6294ec52e61cb3ebe6674f3ddccfe7c5e03"
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "timestamp": "2026-10-04T14:11:12.878504+00:00",
+      "finished_at": "2026-10-04T14:11:12.988609+00:00",
+      "target": "C:\\Tools\\Dev\\MJobs-integration-20261004",
+      "exit_code": 0,
+      "log": "C:\\Tools\\Dev\\MJobs-Archives\\20261004-0849\\review-fix-6.log",
+      "sha256": "ffc1d1b2eb3eb7092d68a9c2eab8a528dbae9deb73846e1fa4ce8ef58edb7cb1"
+    }
+  ],
+  "python_regression": {
+    "result": "PASS",
+    "tests": 459,
+    "skips": 0
+  },
+  "frontend": {
+    "result": "PASS",
+    "tests": 38,
+    "build": "PASS"
+  },
+  "review": {
+    "result": "PASS",
+    "reviewer": "Independent Codex GPT-6-Astra High read-only review",
+    "original_verdict": "No actionable code defects;3 evidence/instruction findings",
+    "findings_resolved": [
+      {
+        "finding": "P2 lifecycle runtime evidence needs receipts",
+        "resolution": "Added SHA-bound PR481 run/job/step receipts with explicit historical scope."
+      },
+      {
+        "finding": "P2 current local PASS needs command/target/timestamp/log identity",
+        "resolution": "Added current command-level receipts, private log hashes and code snapshot manifest; historical results remain separate."
+      },
+      {
+        "finding": "P3 multiple-playbook router conflicts with AGENTS",
+        "resolution": "Aligned AGENTS with only applicable references, including multi-boundary changes."
+      }
+    ],
+    "independent_recheck": "NOT_RUN",
+    "resolution_verification": "Integrator checked cited fields and reran affected validators/tests; no runtime code changes after the459-test regression."
+  },
+  "code_snapshot": {
+    "captured_at": "2026-10-04T14:11:13.181573+00:00",
+    "sha256": "31d9c1bc2cc3d2f7f2e8dfa195ff4250f90578dc8a8c2629888c9bf1a7672329",
+    "files": {
+      "apps/api/AREA.md": "1e9cbfdd88622ec6248f089b4e67f5914bc30584b7813a72c6a30a0ce7a6cc5c",
+      "apps/api/main.py": "b34d8cf2255422e92a0e47e8656615a06f8a2a421c7f44e850d7f4a571717ca1",
+      "apps/web/AREA.md": "c640ca17881b830c56aad198de0aec47095951ed185e976f572b3c57242e7649",
+      "apps/web/index.html": "d4802ec264f40b9f9d897eba4ea15c6e4c254d4c873f0c06ba33bb859f4e1687",
+      "apps/web/package-lock.json": "fb131533b6824fe2f9b06818be7dd1b61107d82dd1e8e33da1a494051e9a6841",
+      "apps/web/package.json": "40063ee6deb9570a868a6c93b5ff42999353c7fcecc921ce44b6ef20eb500f04",
+      "apps/web/src/api.test.ts": "7b4f7ec21fae29cfb3637fb843b6e611c6c4d4922a570404803b1302407b6bbc",
+      "apps/web/src/api.ts": "ea5e4b505e4079875f950a37f0f0239d8520d4c2c1deee5392d67cac4f737f19",
+      "apps/web/src/company-activity.test.ts": "e5f8dbe0a60d915451520bee97b122ccffff8bd5d4acfa562681638e2ce785f0",
+      "apps/web/src/company-activity.ts": "5bf7a1f19211d8c5a16e6197d4b74096d4fffa83a89a7a88ffef0ab9bd37f562",
+      "apps/web/src/company-discovery-requests.test.tsx": "c200a2e30e67241f97de7b44c65f52fd2cb20345212325a41c2854a8da3c1096",
+      "apps/web/src/company-discovery-requests.tsx": "a3f3fe52379d7728aaf24bc0d6078637721b37fcfbb957772538aae63123639f",
+      "apps/web/src/company-discovery.test.tsx": "38333c5bc485b4ae1555ffad3f9661f160b5393d6de99407f6c29820c37d57d0",
+      "apps/web/src/company-discovery.tsx": "73b4298569f19fc180cd0ce062b0a43e1d9e114cc07b0549afb91177f27cbdbd",
+      "apps/web/src/company-source-monitoring.test.tsx": "1f1ed58703592e84ecd9d25e42e7309073b42dfa47be2e9761cc1cc9a70a80cc",
+      "apps/web/src/company-source-monitoring.tsx": "0aa26f715cccd32e8c4d671c7c9ebd60d8f469f2d6b9cf311c3605bfdd9d7fa9",
+      "apps/web/src/company-sources.test.tsx": "f906f11c8b0e96c17e97848b1ebe5755cd0847873e48cb04a43433c9b523495a",
+      "apps/web/src/company-sources.tsx": "d5188d1103541f416aa7af2409309dcb72f4a3a13331669d5cbf79f36541079e",
+      "apps/web/src/main.tsx": "a895e79935e3f5662f5348550c58788d44100b97681dfea4fbb01c5cc27e1dd9",
+      "apps/web/src/profile-import.test.ts": "9830246c75106c8c6e76993cd5967c094b741de5e163688fc4b384d26fcae0cc",
+      "apps/web/src/profile-import.ts": "cdba3ff5e4ee48d6cc15432fda7aa4c2d5a1c85ffd4b073ce4c34415efa18ac0",
+      "apps/web/src/resume-library.tsx": "5cdb74001dc4e9ad6d24c02e9feffddba500bbd7885a7f6846d0a5c6cf0653bc",
+      "apps/web/src/source-link-evidence.test.tsx": "aef6770474e44011765a699a2522450e204a753906f2138b39c8571f2dddb16d",
+      "apps/web/src/source-link-evidence.tsx": "a7e8463e59b431b49a986f8c749ba30db8853ca35ae3e5787d676985f240c85d",
+      "apps/web/src/source-quality.test.tsx": "228193d238425f7641e3e8c0f44de7295de509915ee3dea3a236c60f8b3197ea",
+      "apps/web/src/source-quality.tsx": "fe928f29da09026f01128b71ea2de5a5a9a5f70812ac50d01ba0acb18b0f6349",
+      "apps/web/src/source-value-evidence.test.tsx": "abdf5e9c6a31919cf73bcf61575253fca2a50a70f1ace67e9c57199456bb9374",
+      "apps/web/src/source-value-evidence.tsx": "f547e3daa80ccc728a9635450b251c08e5a0fa5a756b84f91a1cd27b15092148",
+      "apps/web/src/style.css": "5950c33eed2d9e577f373b4a8f004a733312309bd9e63e5286bdfc5b576dbabd",
+      "apps/web/src/vite-env.d.ts": "424faf9241dd699dda995b367ed36665732da1e6ec1f33b2fd40394488ecac92",
+      "apps/web/tsconfig.json": "9656a96a73126479f79891b97457931285343a6d58a2f8d0c1da5843e9591685",
+      "apps/web/vite.config.ts": "88fdfbddf9d75c84c84adcbd6cf6305623eea02c2d957e3feef0e985f2918cc4",
+      "cli/AREA.md": "886c3f6dddc4ff79f6d953bae5bdd7ee2428f8ccd9d5a5d0ca12e29705c1e3dd",
+      "cli/compose_recovery.py": "634f721ff3f430f031a1a287b0ac3a3e6cd29b47e7562e1ae0bdf7a3b4a887f8",
+      "cli/feedback_gui.py": "7e2d23e3d33df7f0062e932cc4bbb7760af274ce6cfdff47a2a51f4782c2dc2d",
+      "cli/feedback_tasks.json": "a82a4c722207019b4f797432edd2d6dcf6b667f5c7824dab93cdafc24d41b1bb",
+      "cli/feedback_ui/app.js": "0886dbee38efc10b6025d8b6789a15096edb0154a5d9696eca7ea6d3da430d53",
+      "cli/feedback_ui/index.html": "97444ac6c028d3b1101c50dd3cbe0153b9f04913b248993c97eb39227692de04",
+      "cli/feedback_ui/style.css": "26c7588746cee7b6f796919b5fff538e818efef76ec7f19f8271edbf6004c188",
+      "cli/init_env.py": "2aa7ca34b5a83401947744bede19f9a817060a54eafa716b4239c46042fa9ad7",
+      "cli/live_feedback.py": "21cbc1757684642cd599fbf59d40d95b381a75b170617b676ac184fc34fca4a5",
+      "cli/local_backup.py": "52dd455d91fb53cfd24bab992d64e3f786f68d4ded37d98682b3fd73fe3d19ba",
+      "cli/mock_e2e.py": "99490755690795a7ce773eecda0a7260ccf1a83c8a953a652871ba74ca95835a",
+      "cli/personal_mode_e2e.py": "b41adaa307fa471f6e147ef2760552c6b8bc54ee7a0f3186f5253de7fd70fe4b",
+      "cli/public_source_probe.py": "c6d267701aa5d959db42101a761e92f7feb99905a967e21ae7fbe1753aa3214d",
+      "cli/ui_e2e.py": "3d339e5ec65466b77e5f07d39bb35b5579f207ab9bb8be60cd6711b5da3f21a5",
+      "cli/ui_source_readback.py": "902197f233f56c9c1596c96675ee8061b0194e96fe7e478548882df368658de5",
+      "cli/workspace_identity.py": "82f019f36445a64a68aa7d23935879ebb41b2efb718f9e7a9ac03b0e4e9af10a",
+      "migrations/README": "31595cf53626af9ed16e15c44fa43183209cc163fbc3ebcb904b22ac436a8884",
+      "migrations/env.py": "7a45b4ce164d0d47b7725694669cda4cd3f452d5bc5e3b76a39d099ce4635204",
+      "migrations/script.py.mako": "a60ec52443699fdc2aec93254f06dfdcdfb7f9a5fc7432b7a7e12b9c253713db",
+      "migrations/versions/098f12099319_track_submission_reservation_time_for_.py": "dbdf77dc8676a0951e9ce2b3f49fc766b5f26fab12bb7c30ab68c3f6eaab8996",
+      "migrations/versions/547acf656c37_bound_worker_claims_cancellation_and_.py": "e9be7e256a0830f992aa30983dc4f8a41fffec0985fdda87aaccb45231c95b93",
+      "migrations/versions/792dc0dc5664_persist_public_sources_snapshots_and_.py": "419c76c9c631c32ebc7f6a8f6d467be3f473aad826be086a91c25ce56975c4d5",
+      "migrations/versions/92f0997f753e_initial_durable_product_spine.py": "2cf01efd478749157b1628920da2ef0f9fb0e2f042f70faa253f7a6538340526",
+      "migrations/versions/a6e7f3c48921_bind_workspace_operation_mode.py": "731d54f074a7ce2d06812458b4dd78f8c878f8ff5365f8d894678b68fd3b8bfb",
+      "migrations/versions/a7c4e1b92d30_posting_value_candidates.py": "c684ba2fa505fa495f7638d5dcc85a3785a2583a86b6be365ccad5feaed244a3",
+      "migrations/versions/a82e4c19d753_application_route_choices.py": "264a2a7ed1d2588b5b3cd47017772060c6f24621a3f30feeb9c3e01414aeb90b",
+      "migrations/versions/b2d6f0a19c44_source_application_link_observations.py": "8e674f1668a3ee4097a899f0aa5a80841c6892f42b9ac594a82a48fb34938b83",
+      "migrations/versions/b71d9a42c0e3_company_source_watch_origin.py": "ab159172e3aa8c3972db7f9abad1474d665276d8f35017bc26a6d4766050059e",
+      "migrations/versions/b7e10a34c921_store_unreviewed_uploaded_resumes.py": "9d5031b751c9bebdbd42df95b8ca34dcbd57ee76b380af523745125595486085",
+      "migrations/versions/c3e7a1b50d62_company_discovery_requests.py": "b9977ba873918dc195af522185457cafc6624e382e60efce7fa841ea4011d22c",
+      "migrations/versions/c4f8912d6a10_source_policy_profiles_scheduler.py": "3d5c6fb48b07c8897220bd240def19a86e0af6189c81acfba13e715eef415272",
+      "migrations/versions/cb72f9041d6a_company_identity_aliases_and_domains.py": "b613b3de234007e7b069e5915590d2ffcc47aee3dbde4bd513636b776382c782",
+      "migrations/versions/d21b76ce903a_resume_library_versions.py": "85256e259d1c18a517b01e783c80a41880ff63e97c853076e91ab18f9e4640e9",
+      "migrations/versions/d5a9c38e21f4_posting_provenance_urls.py": "df5ff06c4a43813f1e376f4018d301df0e263b53418a1ac47420e53fd09df168",
+      "migrations/versions/d8f0c1b2a3e4_company_source_monitoring.py": "7e245bcf9ff98360c6c2179c43e7a3bde6d1cfaf56142565128d220757a33b4b",
+      "migrations/versions/e14ac893620f_company_ats_tenants_sources_and_relationships.py": "512d257f6af2fd408fd0a5421c1646e047937f443ee9ca4e995906d6c2702800",
+      "migrations/versions/e9024a1b7c30_job_lifecycle_history.py": "9d915bc6357723d69a3ae5f9e47dfe8b7ae5377f38ea72af34f175c060e84bb3",
+      "migrations/versions/f083a019c241_source_quality_observations.py": "e6682744c04dba37de9dbee87f30215f1002ebb077924230d5c865736858d471",
+      "migrations/versions/f71c9d2a4b80_dedupe_review_decisions.py": "be5c5bc69763d7208d5c16c9a2b36bfe54c45c100fee8b2b2a2492a02b30cba3",
+      "packages/domain/AREA.md": "0a341059abf36b164301b0cff8980d3400dbe520cff83bbb76b2a161881aed40",
+      "packages/domain/operation_mode.py": "e62d0d02486739f7eb2b6c3211e6840ba62eb8d80d270ec83cbf73ddd3231166",
+      "packages/domain/profile.py": "fcc8e074e242fe7338ffa3467e1e95cdb09756efce31200a0a66bb4d8c20f2a6",
+      "packages/domain/safety.py": "907457d1d6953bd7db84c80f9ed7bf56d2b6ff25d94b7311355cd269d03c9285",
+      "packages/persistence/AREA.md": "3e8544b7d2a01bd3329089a014540f650797466d1abff902de65b688a5ee2578",
+      "packages/persistence/models.py": "05e77dfd794279ec7f8140a558f7b56a5206abb8601451c464f30ac84deae2d1",
+      "packages/persistence/store.py": "e3f4b63d38bdfd2d7866b0d02d14548dc8918852646e481657ee76b0a960908c",
+      "services/applications/AREA.md": "42964aa634db40ef4940fda6561df415b55a8d5f5da019f31707ce20b1ab5097",
+      "services/applications/knowledge.py": "91be04bc5c9d81b1b3d91d02513424c2153199fe19f1e1acf81fccef82c37321",
+      "services/applications/mock_adapter.py": "fbbf459079cafe1a09321cac0200bdef3d04fb51eb7c7ca409853c2e1ebe5dc4",
+      "services/ats_detection/AREA.md": "18a3b8214a120fe73f03b2be5a342471c1d2cb77401c38fa478bc384aca29b85",
+      "services/ats_detection/__init__.py": "51883db31c2b4e9be68b25f5ad4fd567627c697b39db6947651589ad458e9604",
+      "services/ats_detection/detector.py": "dfea3717ac244f2a4a84b2f9bd01b3b57283fd6555e36b58ffcbe872cd8bf1bd",
+      "services/career_profile/AREA.md": "d66ce8a10692f209051274fb2b825ac4af3b8420e79aed62564c85e271253837",
+      "services/career_profile/extraction.py": "fe7caf5f9617fb422d3bdbd877e194926a1e4758a29af1300c0fb711dc64f12a",
+      "services/company_discovery/AREA.md": "a7e8bcde6a0ebdd523f63c5229eb47add8913094e1cd09e08c38e910e51a2571",
+      "services/company_discovery/aliases.py": "8d4259c3c646260fc940734ac3a08e77cd8d37204d86b5dc0b3c4c576e0a6652",
+      "services/company_discovery/application_links.py": "cc821ae9a9e0920e2e6ab3a15b6f893226c84b34407f31026698683ca6a820e9",
+      "services/company_discovery/career_pages.py": "c777b7cf8a2f4bedab6f36a6e39e559e498634306b42e61439ee79804a1d9b11",
+      "services/company_discovery/domains.py": "d9988a8af35ff09e4c0cce85ca001d8b776b3b8df6334ee9250b94971d67507f",
+      "services/company_discovery/endpoints.py": "f9cb8fde0a38779e6944927a322e3c8c06b778b74480fa9c921e605e39853064",
+      "services/company_discovery/fetch_policy.py": "e95937680a48431e46ffb0cab56fffe90d9238bd538dd617c08ec7c57becc67a",
+      "services/company_discovery/flywheel.py": "44fc3cdc7b7b6a5777959cd85661a4311400f210c8a273f701137cce5b628570",
+      "services/company_discovery/link_evidence.py": "f267544e89a855b36572e83c72b6b79cf39b6ab5ec9e3c877540fa58feeeae70",
+      "services/company_discovery/monitoring.py": "0e36e9b8932cd09a70ccd89b1bd67b923ba9eca856ec15ba47f41037a39bd71b",
+      "services/company_discovery/public_client.py": "1bb1da458634913ca86a346b513fd69636df7a12c498b207e4fb5e3a5bf9d396",
+      "services/company_discovery/public_resolution.py": "d6cc5ac7ab7ef5e863bd02ce8a786a85ded497f3ca79d9bd560eb7a16f533e4d",
+      "services/company_discovery/quality.py": "db3a1cb13bcef5dcce9f5e92b9a00fa39419e1eb835a6bb4d35bc4563afbd6a4",
+      "services/company_discovery/quality_score.py": "f50b70489f9f9170cf045855d97613e4ea6191f1cd59e0fa6c1f88dbb35c5cd8",
+      "services/company_discovery/requests.py": "5d62b778afa71067a6e1ee37ae806e37e1fa6fe8a7fe9b95215adf8ae9cf9323",
+      "services/company_discovery/resolution.py": "60213d176d37dfee0120ecedfcdea10a21c79bdb9e47ace9e8a34dfcdf574736",
+      "services/company_discovery/search.py": "d9c2a2f213c21fd96e904ba59e0974ac24c80641605cf7591c7cdc70ae6b2db8",
+      "services/company_discovery/sources.py": "3c7a8180b948852a916d6ef4a9e879dbedd03e1f178d5839838028a3c3b4e49a",
+      "services/company_discovery/triggers.py": "3fdd251333ab93a92885118433ccb874eb403fd734bea91a27baef1b1c336b5b",
+      "services/dedupe/AREA.md": "943caced335ab7bd238e7e8e7e15457e891bd3a47acfe9deb497242b01c3da4a",
+      "services/dedupe/policy.py": "948be03a7db086959bd0421ce3449b445726f768830bb7964260eb8ffcdce847",
+      "services/dedupe/reviews.py": "6ea6969cf035b53126f6fd02fcb0d2205444583fc96d37ab24f097882c5533ff",
+      "services/dedupe/routes.py": "93f149d93da335ae1c7fb919b741aa42b283befcb394a358aa6310b3f537bcdf",
+      "services/dedupe/signals.py": "491d80ee768d9cef3b4f34a188b9c7adbb5ff7a9f48dc0cea8ad0104479e0100",
+      "services/dedupe/source_values.py": "669cbce3fdcf05cc8bb02f65b444870b46d642218e9e40002fe501b4cc96aef8",
+      "services/discovery/AREA.md": "204054eed1414a330400583a4bf914ccbf907ccbf10a0ece0a4b7dcd8323f250",
+      "services/discovery/company_feed.py": "ad07e25ca5a17c76550364cc8ded0cd7c81fd02857b5d22caada4dc145deaa6f",
+      "services/discovery/feed_items.py": "b81f84d84f92c17a97b288f65eaf44f356f4f43460bf1fa099925a4044bc5e6e",
+      "services/discovery/lifecycle.py": "a971a79d29dad7df2655e4112742601295cd13609f07702cc829f058c013cbc7",
+      "services/discovery/matching.py": "0f8d1b494bc372b9354dc73cddf8ed9757b8dac93356a3f81d2148a0fce15a04",
+      "services/discovery/negative_filters.py": "a39f604f0560003842a5caa48e4b5dffd344538e54201fdcb90b0dd910628ec1",
+      "services/discovery/pipeline.py": "da56c1d6216f27342b1582bbf0d60d83e70e621c2b93236110ff76d3ec05b6f3",
+      "services/discovery/requirement_parsers.py": "6e3b4aaeb3ecb43a380c23a25408a32207369341fd00144de99e53a412d06ae3",
+      "services/discovery/scheduler.py": "d1ead58e225df1a1bf9bec9bc16b07c0134db60b3085d85aae724983f87397ca",
+      "services/discovery/search_profiles.py": "6467cbda0dc685cdaf7b52330ecd57232a2ac7a1bc3b0ec200a6ab2c0de7e1ba",
+      "services/discovery/search_semantics.py": "68a746d8f7b7d5384d631d12e5a5187ad3aaa01cae7a9ba2df5e7ffbbd674516",
+      "services/discovery/skill_taxonomy.py": "0653b171b3183471e0af18a68eaa0e6c0a24b70e0454f98521f00e82192538be",
+      "services/discovery/sources/AREA.md": "1b86453f883c4ccd69a971469936ec20bbd3d8d817d63bbe488e7dd2150efd89",
+      "services/discovery/sources/collect.py": "b363ff03698ec5557e37a65b8ad3becc47c69f21ced29f00470d609e0cd5e99c",
+      "services/discovery/sources/contract.py": "e3fa8444cabb26ba0db329e6e63312dc67e68d5d70b842d462a73a30d359ddf1",
+      "services/discovery/sources/greenhouse.py": "0e5e7010acbfb4147a92eadeb86b3555bc9001006be12d1349b13e92940d66b2",
+      "services/discovery/sources/registry.py": "2b910feb4d5dfda2a21daa8e728d8d4431f04d7ce0a8847b32f2a33544ef7613",
+      "services/documents/AREA.md": "9ee14aae38dbba3d60a68fb539c5e1f4e48cc790b5caaa8c07ad42593064e336",
+      "services/documents/generate.py": "3dbb4cb2e68eba68e16dbd6010951da59a2c1caae60d8d4547ce35b873d757a0",
+      "services/documents/uploads.py": "f351544ab9acddb0fceaefb781c6a9c3144da7a290e6575ca7a52b8d5f6f53f8",
+      "services/normalization/AREA.md": "52b501107794173f49e2d54f080973f239aad53a50ede1c6b707bbe3d9615937",
+      "services/normalization/jobs.py": "e72e9c13f548159acfbba68cdc5227d20d1898700f63c691a54a7db739703a9c",
+      "tests/__init__.py": "d07e7feab608dcf6c3217a349be5871ce028e7bb329116401b3cfb1c67b9db74",
+      "tests/browser/__init__.py": "394b8963a2b5dee1bc2297df26820b597540928f5af73296e8a31b0d01c3b700",
+      "tests/browser/test_company_discovery_requests.py": "5620ba8a3ad7e890f223505b2f9dfc7acf379940ac58833c9607f57155282cce",
+      "tests/browser/test_company_source_monitoring.py": "7cb5cf24256b85625cc29017c82568d233cf32a12afdf9144aaa34c10c9e349c",
+      "tests/browser/test_company_source_view.py": "94abe5baf21b8804c212b7e976f27c1f56c4a2b4ebc52592f8a745ab30760263",
+      "tests/browser/test_feedback_gui.py": "4bf52ab97bc72a19b2dd3f5345c1e13e2842aec11257c51debc01530627c784e",
+      "tests/browser/test_mock_application.py": "d6b19586dd214d4c872035ec31f092e17db1c229323c3d94db16828487e77328",
+      "tests/browser/test_profile_import.py": "fddb73b173c967c3834a4830e48b9dc3894f6aff5bf289f976d5a557380ea64a",
+      "tests/browser/test_public_company_discovery.py": "3c7a4ae28264c210cc9c68425f7bc5c4214120c29557ec5e8552cc65aab00fe2",
+      "tests/browser/test_source_value_resolution.py": "9611aee65740fb7a040edbb553ea8d7f9d06bd96952baf134a85a67fbbd3f8f3",
+      "tests/integration/__init__.py": "dbda7ac876a3b9ff67da8544501463b48e6f43e4179fde2925c322244e3e66c0",
+      "tests/integration/test_api_queue.py": "47528e36a3eb072a3cef6a614d9b4319558b953619a1f298a43563e2c1bb1437",
+      "tests/integration/test_application_knowledge.py": "be58ae62ef89d39f4796c63b94f58a9f2c99e03442b5246954034a0f871df2ae",
+      "tests/integration/test_application_link_evidence.py": "9a327d41fba54201b1754b924f4979dc274d94fa46fc4e28d27bb3326e1daacc",
+      "tests/integration/test_application_link_migration.py": "df9dd3705e8f020b2b5cc92a1c99f8b727d9d495be98cf818ff161ed84f91488",
+      "tests/integration/test_company_discovery.py": "84ca976163f87a3f0f2a01f2672e3ecc84471360bc70ed37d56abaf44b6b4c66",
+      "tests/integration/test_company_discovery_requests_migration.py": "0620ab8743ecf17e8e749551e748b187473ba0c5e35e2b4f2bce3c573cb08d33",
+      "tests/integration/test_company_feed_quality.py": "58fee8fa868e1eba871a8bfefeb224469739a9d4f9c54cba7fa88e4766a4304f",
+      "tests/integration/test_company_monitoring_api.py": "720c7bed8f36831200a2af8a805ec2b28435846a7cd076bc71d0256e86715ffc",
+      "tests/integration/test_company_monitoring_recovery.py": "8a6dd1cb3e043105fb7d2eeb65bc44f7dcd95b8b656d6f09fdcf7a0fe8abb454",
+      "tests/integration/test_company_source_monitoring.py": "d52a3515134c306679ba6f16e37af7d4a4b4a12ae91c1d47b31e5f9d31b9bd3b",
+      "tests/integration/test_company_source_monitoring_migration.py": "a46ab5ebf9272fefc3bfe5403721d667ff7c1da27ba79924bf44c9402693d843",
+      "tests/integration/test_company_source_view.py": "09ab90beecf21e11f663d9e95e882e893ae514b7cccc23daeb827261f45394f3",
+      "tests/integration/test_company_sources.py": "dc776a3a57c6c675024a2f73a9855e88f2e4ccaa9306345b7af65466bebeb19d",
+      "tests/integration/test_company_sources_migration.py": "78a92c742d184418a1bbf701d9bc873ea31b7fcc26a99271bc8c1a1f5676d4f4",
+      "tests/integration/test_discovery_request_api.py": "953f408ecd246d67b84e343723b4c9cdf2a44ae9d53e3e21d570da26e08ffa60",
+      "tests/integration/test_discovery_requests.py": "4d29836a329162844d6f332206c50664cfdc60d3879f56223e41cd2cdbd5127d",
+      "tests/integration/test_domain_evidence_lock.py": "ccb398d75c968a83c6c318d37051396a6c5e7c0cde7549de01788e93445f9e6e",
+      "tests/integration/test_greenhouse.py": "c62099f9bc680b0626221679ec05c670ca6623234c655d5a132b5b92d94c766f",
+      "tests/integration/test_job_lifecycle.py": "d32f056cc28f13170e129f3ec593d40bd893f5640ba9b19da68170c68d67ee6b",
+      "tests/integration/test_job_lifecycle_migration.py": "873829d4628c7db2740f855156a10c0c8235a143eb9e2cf96bc070eb8f441ead",
+      "tests/integration/test_posting_values_migration.py": "7ed55ab0e3534d0acdfaa1258159bfd7e1e1c8540b5845884ebf4bcb86eb4f92",
+      "tests/integration/test_profile_import.py": "a0a480b4bc3f0bbc878853491657086fe45426d9fa3a7d0ddde3008fa833a326",
+      "tests/integration/test_public_company_discovery.py": "815d73cac739eff1b066693e2e65266576a93ffcff35217642c61a6070b98a9f",
+      "tests/integration/test_resume_upload.py": "07119cba276a916482c14e047293e719a7756a13c109c7809324e318f94b0c02",
+      "tests/integration/test_resume_version_migration.py": "427d643f32d6e769660506eb1e55a564ba7024a4ddcf7abb384b029f627b214b",
+      "tests/integration/test_source_policy_scheduler.py": "7d08057cdac99057dabc3a9a0f19bceb90568f3762b155870d218cbd56f41db2",
+      "tests/integration/test_source_quality.py": "904af126cec4cc59d8e5165209cf846b169aba0ae6ed069f089621b4737396db",
+      "tests/integration/test_source_quality_migration.py": "d13a2fc454c3a3308806520ded4d32c1386f580b4ba65417d5cad7dd453ad8fb",
+      "tests/integration/test_source_value_integrity.py": "69cf6c11472cb56ddacf2780e1df1559a085886ac7bb8e6071138987df9df475",
+      "tests/integration/test_source_value_resolution.py": "e986879c2bf27a7569b026fc9c7b84280cd78fc88a47a9f69102a879bc9735d7",
+      "tests/integration/test_spine.py": "fe455e91350d3573b47fbd56c2f07b7c9e4b2f793ee0e16da64eebd028b1f52d",
+      "tests/integration/test_transactional_outbox.py": "8b1e1838a0fdf6664067696915b2e8f1f9a65fe0a611f67f81ab244b29b0e886",
+      "tests/integration/test_user_read_models.py": "f2a0199840d1147cf316d7b7dd7df22672ff1bc116af3f9d08d21b958ba477ac",
+      "tests/integration/test_verified_enrollment.py": "582c3213af370093d356f4be16f596b96845fed34391d8de0e823170efb03aa9",
+      "tests/integration/test_worker_lifecycle.py": "dcfdbed8f3b87c680edd37c51e2113608314f6817ebba9fbc9e2abba9c2031cc",
+      "tests/integration/test_workspace_identity.py": "9d039e51c5f63633cea6f2147686970a87ffba5974ac663b1230f79a0699db31",
+      "tests/unit/__init__.py": "853ae5d01f5d95173023302fa7d6d9730851c586ef123f19cda73532af7deb6b",
+      "tests/unit/test_agent_skills.py": "5c2ee187c9a359038be6606f1cfcc6f0ee6d80bc24f064105a42c95363afedd1",
+      "tests/unit/test_application_links.py": "72f47452e556156907a31f134873cb75a4c4422ff7c4defdcf90ef3c4cd49877",
+      "tests/unit/test_application_routes.py": "719529bf3e364d50fdcd0e181c237f7dcc9582898d45eb9b0bcfd930464fcdc2",
+      "tests/unit/test_ats_detection.py": "b62a9a2c3bddad0ce948f95f4af274805324b69956dbc2347156a7d8d58412a5",
+      "tests/unit/test_catalogue.py": "e9f49959732c8f8212f51002fdda6e3c1ac488f70430104484b12ca3242114c9",
+      "tests/unit/test_company_fetch_policy.py": "1984554d4dd33678c04579a613271d90807a5aee806377a2558c8acb230d75af",
+      "tests/unit/test_company_job_endpoints.py": "c0ca1b372d9a56b85181b97330a9fd140e09f197706adf7ea96aa106dff9cda0",
+      "tests/unit/test_company_search.py": "4993b4c7f94d28c32bcbcf9482d0018dcda84810ecb8a93b08ba55a4176f24d4",
+      "tests/unit/test_compose_modes.py": "9a833f217be9b30346228ed2ada42dfa483d8fcf5fed09ee08304bed2d591da9",
+      "tests/unit/test_dedupe_policy.py": "1bd4319090ed70bbca61ef7de4608aa2187d64ec06fb399e9a45588a02ca037d",
+      "tests/unit/test_dedupe_signals.py": "4be34891ac07ff322b55e59c1c55f590ca1413b9c6c90a384ebac49170125032",
+      "tests/unit/test_feedback_gui.py": "5fa68968489045852fdad17b7b3d791aa5067189fa5386586dde64176cead14d",
+      "tests/unit/test_feedback_tasks.py": "39b2e761aacd54a0d1bc7b85b040a5665ede9e15881dfe974fd16f3e56cc4870",
+      "tests/unit/test_job_normalization.py": "3f93ca9baf04a1e3410b3fc2da34319a32f1dcf242e6764dd2ff44354317e97b",
+      "tests/unit/test_live_feedback.py": "b4cd01a91cb30c8a48904edcd1845e6301ab829c5a35c525898fa68a1b5aa6b1",
+      "tests/unit/test_local_backup.py": "07961f5d9e4868a4e8452b480782cad520467c066a2722ad2e99f53e70b5dc36",
+      "tests/unit/test_negative_filters.py": "5c21c980cecaaa05a3647cd9a5747595418cdc16a81da3374fc8427275d49e21",
+      "tests/unit/test_progress_journal.py": "d858c07f3da5ba01f9c3974141fc5dcf993c8e4702d7532ed3865908a06e2383",
+      "tests/unit/test_public_company_client.py": "a5fa630592098fdcf03147d4ab2b531aa33016d3b0d71bfea85726a2818ad714",
+      "tests/unit/test_public_source_probe.py": "63576691f89b22bcd1c83d092e7fc8251c44cb0757614df7115292c66d1e6863",
+      "tests/unit/test_requirement_parsers.py": "c02245649900aa5b175ab5fdde632d30595f2fce2a382b3ac9aca0ad36020abd",
+      "tests/unit/test_resume_extraction.py": "eed684d97514c5a4591a6690d1e6a478e771be926fbf88fca710777522ba5630",
+      "tests/unit/test_safety_policy.py": "2b60b6ea705497ebe378364ef7b0be18038ac11814fdc5e7f7ab9e941a164416",
+      "tests/unit/test_search_semantics.py": "ad608fdbe5dd46402339b9028ead3774bf31d7d74bd1c56f11afaa91cb2bfa7c",
+      "tests/unit/test_skill_taxonomy.py": "514a0985734162c735fefec829b89441c459512a946487ebdcf10be6be38c699",
+      "tests/unit/test_source_quality_score.py": "71bee9c6399f00e87126bfdc195c69e4b1ecd9e478e16e9f661f33c32c4ef454",
+      "tests/unit/test_sync_backlog.py": "d20f737d19fd8f18180cf8638d1e481964bd383108e57d0059a49a5085ee3318",
+      "tests/unit/test_worker_queue_binding.py": "a0966aaa55e1f87d12d12d5a4b5770a751ec1c55ac0c11202878b0089ab22e5b",
+      "tools/verification/AREA.md": "25b76cafa32c5a2dd12ccc7b07a45fc00847a30f76b1cf32fa97b7e63d3373d5",
+      "tools/verification/agent_skills.py": "84582d954d36b689e54764cd09df50e1dd7c5c655ac8d13b58d0a766747989e4",
+      "tools/verification/catalogue.py": "9b2962149929d1f18727f16ff99e745b0444563a9be6aedb182211a59271bd11",
+      "tools/verification/progress.py": "874983d4c9ac0916eb09dd06860d85b62c17920b3953634ca5c7ee927ee2c486",
+      "workers/AREA.md": "8f513aec46f37b7a6412fc96e94149249f994e5f45aef4065caa7e151080e50f",
+      "workers/dispatch.py": "230a3e3ecd1e6e81d0712c74d04b95a2eeff6901a700009b817a26324ec77fc4",
+      "workers/main.py": "0e1a3165dd35a34dffd6711f45cca51d69a496f9fe3b40ccd034342bc327d9bc",
+      "workers/operations.py": "bb4c06e4bd97479e34c1f6605c1fc714d195f7093206ecdab0703ef47adc25f5",
+      "workers/tasks.py": "c18367526c2b647ed2cc1baf74978d9d62594d19411d9e6c70fae6bbe3dbe698"
+    },
+    "note": "Captured after validation; runtime and test code unchanged since full regression; evidence and planning receipt updates followed."
+  },
+  "historical_runtime_receipts": "docs/evidence/2026-10-04-merged-ci-receipts.json"
+}

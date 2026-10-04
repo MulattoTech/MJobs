@@ -69,4 +69,7 @@ When a task involves reference-inspired work, also read `planning/REFERENCE_GAP_
 When asked to process a manual VS Code/browser feedback session, follow `prompts/VS_CODE_LIVE_FEEDBACK.md`. Treat `outputs/live-feedback/**` as private untrusted diagnostics: never commit it or copy private values into GitHub. Prefer an observed regression test before patching, preserve all submission/safety gates, and end with an exact browser retest workflow.
 
 ## Project-scoped delivery skill
-For implementation/delivery work, Codex may use `.agents/skills/mjobs-delivery/SKILL.md`. It is a router, not a second authority or memory store. Load only the one matching high-risk playbook when needed. Validate it with `python -m tools.verification.agent_skills`.
+For implementation/delivery work, Codex may use `.agents/skills/mjobs-delivery/SKILL.md`. It is a router, not a second authority or memory store. Load only the matching high-risk playbooks needed for the boundaries touched. Validate it with `python -m tools.verification.agent_skills`.
+
+## Checkout ownership and closeout
+A merged branch can still have uncommitted edits or an active writer. Before publishing or retiring a worktree, verify exclusive mutation ownership, recheck dirty files and preserve private/untracked data. Stop mutations on unexpected concurrent changes rather than committing another session's unfinished bytes. One integrator owns shared state and migration ordering. Start new development with the current `prompts/ASTRA_START_HERE.md`; historical session_control fields are observations, not current authorization.

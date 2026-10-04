@@ -1,7 +1,7 @@
 ---
 name: mjobs-delivery
 description: Use in MulattoTech/MJobs for repository delivery work: reconcile live Git/GitHub state, select dependency-ready slices, route recurring high-risk changes to the matching playbook, verify evidence, and publish only exact-head-backed PRs. Skip unrelated repositories and read-only questions.
-version: 0.2.0
+version: 0.3.0
 compatibility: Codex Agent Skills SKILL.md
 ---
 
@@ -38,7 +38,7 @@ Do not create another project-memory database. MJobs already has durable plannin
 
 ## Route recurring work
 
-Load exactly one matching reference when its boundary applies:
+Load only the references matching the boundaries touched; a change may require more than one:
 
 - database migration: `references/db-migration.md`
 - source adapter: `references/source-adapter.md`
@@ -71,11 +71,11 @@ Use only when relevant:
 - `test-driven-development` for new behavior/regression repair;
 - `systematic-debugging` for observed failures;
 - `using-git-worktrees` for isolation;
-- `subagent-driven-development` for bounded independent tasks;
+- native delegation for bounded independent tasks; respect disabled skills, including the standalone `subagent-driven-development` setting;
 - `requesting-code-review` for substantive review;
 - `verification-before-completion` before completion claims.
 
-Normally skip PMM in MJobs because repository state is already durable.
+Normally skip PMM in MJobs because repository state is already durable. If `afk-dev` is enabled, use its existing retry/recovery journal only as subordinate operational state. `release-live-monitor` is read-only; `.release-monitor.json` maps current repository evidence. See `prompts/ASTRA_START_HERE.md` for focused XHigh/Max/Ultra profiles. If `afk-dev` is enabled, use its existing retry/recovery journal only as subordinate operational state. `release-live-monitor` is read-only; `.release-monitor.json` maps current repository evidence. See `prompts/ASTRA_START_HERE.md` for focused XHigh/Max/Ultra profiles.
 
 ## Safety invariants
 

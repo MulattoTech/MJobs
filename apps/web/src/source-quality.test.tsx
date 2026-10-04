@@ -10,6 +10,8 @@ describe('source quality', () => {
     expect(html).toContain('Freshness');
     expect(html).toContain('Unknown');
     expect(html).toContain('Application-link accuracy is unknown.');
+    expect(html).toContain('class="source-quality-limitations"');
+    expect(html).not.toContain('\u00c2\u00b7');
   });
   it('renders malformed nonfinite scores as unknown', () => {
     const html=renderToStaticMarkup(<SourceQuality quality={{score:Number.NaN,coverage:Number.NaN,components:{}}}/>);
