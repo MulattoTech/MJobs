@@ -31,8 +31,10 @@ resume_revisions = table("resume_revisions", Column("profile_id", ForeignKey("ca
                          Column("upload_id", ForeignKey("uploaded_resumes.id"), nullable=False),
                          Column("series_id", String(128), nullable=False), Column("label", String(200), nullable=False),
                          Column("version", Integer, nullable=False), Column("created_at", String(64), nullable=False),
+                         Column("document_kind", String(32), nullable=False, server_default="BASE_RESUME"),
                          constraints=(UniqueConstraint("profile_id", "series_id", "version"),
-                                      UniqueConstraint("profile_id", "series_id", "upload_id")))
+                                      UniqueConstraint("profile_id", "series_id", "upload_id"),
+                                      CheckConstraint("document_kind IN ('BASE_RESUME','MASTER_RESUME','TAILORED_RESUME','COVER_LETTER','APPLICATION_ANSWER_EXPORT','SUPPORTING_DOCUMENT','CERTIFICATION')", name="ck_resume_revision_kind")))
 companies = table("companies", Column("name", String(200), nullable=False), Column("domain", String(1000), nullable=False),
                   Column("parent_company_id", ForeignKey("companies.id")),
                   Column("relationship_type", String(32)))

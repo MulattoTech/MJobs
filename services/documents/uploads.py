@@ -16,6 +16,8 @@ from packages.persistence.store import identity, now, upsert
 
 
 MAX_UPLOAD_BYTES = 10 * 1024 * 1024
+DOCUMENT_KINDS = ('BASE_RESUME', 'MASTER_RESUME', 'TAILORED_RESUME', 'COVER_LETTER',
+                  'APPLICATION_ANSWER_EXPORT', 'SUPPORTING_DOCUMENT', 'CERTIFICATION')
 MEDIA_TYPES = {
     "pdf": "application/pdf",
     "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -83,28 +85,34 @@ def _uploads_root(output_dir: str | Path, *, create: bool) -> Path:
     return uploads
 
 
-def list_resumes(store, profile_id: str) -> list[dict]:
+def list_resumes(store, profile_id: str, *, document_kind: str | None = 'BASE_RESUME') -> list[dict]:
     store.profile(profile_id)
     with store.engine.connect() as connection:
-        return [dict(row) for row in connection.execute(select(m.uploaded_resumes,
-            m.resume_revisions.c.series_id, m.resume_revisions.c.label, m.resume_revisions.c.version).join(
+        statement = select(m.uploaded_resumes,
+            m.resume_revisions.c.series_id, m.resume_revisions.c.label, m.resume_revisions.c.version,
+            m.resume_revisions.c.id.label('revision_id'), m.resume_revisions.c.document_kind,
+            m.resume_revisions.c.created_at.label('version_created_at')).join(
             m.resume_revisions, m.resume_revisions.c.upload_id == m.uploaded_resumes.c.id).where(
-            m.uploaded_resumes.c.profile_id == profile_id, m.resume_revisions.c.profile_id == profile_id).order_by(
+            m.uploaded_resumes.c.profile_id == profile_id, m.resume_revisions.c.profile_id == profile_id)
+        if document_kind is not None:
+            statement = statement.where(m.resume_revisions.c.document_kind == document_kind)
+        return [dict(row) for row in connection.execute(statement.order_by(
             m.resume_revisions.c.created_at.desc(), m.resume_revisions.c.version.desc())).mappings()]
 
 
 def save_resume(store, output_dir: str | Path, profile_id: str, filename: str,
-                media_type: str, data: bytes, *, series_id: str | None = None, label: str | None = None) -> dict:
+                media_type: str, data: bytes, *, series_id: str | None = None, label: str | None = None,
+                document_kind: str = 'BASE_RESUME') -> dict:
     store.profile(profile_id)
+    if document_kind not in DOCUMENT_KINDS:
+        raise ValueError('Unsupported document type')
     extension = validate_resume(filename, media_type, data)
     if label is not None and (not label.strip() or len(label) > 200 or any(unicodedata.category(c).startswith('C') for c in label)):
         raise ValueError('Resume name must be 1 to 200 visible characters')
-    if series_id is not None:
-        with store.engine.connect() as connection:
-            connection.execute(select(m.resume_revisions.c.id).where(
-                m.resume_revisions.c.profile_id == profile_id, m.resume_revisions.c.series_id == series_id).limit(1)).one()
     digest = hashlib.sha256(data).hexdigest()
     identifier = identity("uploaded-resume", profile_id, digest)
+    requested_series = series_id
+    series_id = series_id or (identifier if document_kind == 'BASE_RESUME' else identity('document-series', document_kind, identifier))
     uploads = _uploads_root(output_dir, create=True)
     with tempfile.NamedTemporaryFile(dir=uploads, prefix=".upload-", delete=False) as staged:
         staged_path = Path(staged.name)
@@ -118,6 +126,12 @@ def save_resume(store, output_dir: str | Path, profile_id: str, filename: str,
             if connection.dialect.name == 'sqlite':
                 connection.exec_driver_sql('BEGIN IMMEDIATE')
             connection.execute(select(m.profiles.c.id).where(m.profiles.c.id == profile_id).with_for_update()).one()
+            last_query = connection.execute(select(m.resume_revisions).where(
+                m.resume_revisions.c.profile_id == profile_id, m.resume_revisions.c.series_id == series_id).order_by(
+                m.resume_revisions.c.version.desc()).limit(1)).mappings()
+            last = last_query.one() if requested_series else last_query.one_or_none()
+            if last and last['document_kind'] != document_kind:
+                raise ValueError('Document type does not match the existing collection')
             existing = connection.execute(select(m.uploaded_resumes).where(
                 m.uploaded_resumes.c.id == identifier, m.uploaded_resumes.c.profile_id == profile_id
             )).mappings().one_or_none()
@@ -139,24 +153,24 @@ def save_resume(store, output_dir: str | Path, profile_id: str, filename: str,
                 upsert(connection, m.uploaded_resumes, record)
             record = dict(connection.execute(select(m.uploaded_resumes).where(
                 m.uploaded_resumes.c.id == identifier, m.uploaded_resumes.c.profile_id == profile_id)).mappings().one())
-            series_id = series_id or identifier
             revision_id = identity('resume-revision', profile_id, series_id, identifier)
             revision = connection.execute(select(m.resume_revisions).where(m.resume_revisions.c.id == revision_id)).mappings().one_or_none()
             if revision is None:
-                last = connection.execute(select(m.resume_revisions).where(
-                    m.resume_revisions.c.profile_id == profile_id, m.resume_revisions.c.series_id == series_id).order_by(
-                    m.resume_revisions.c.version.desc()).limit(1)).mappings().one_or_none()
                 revision = {'id':revision_id, 'profile_id':profile_id, 'upload_id':identifier, 'series_id':series_id,
                             'label':last['label'] if last else (label or filename).strip(),
-                            'version':last['version'] + 1 if last else 1, 'created_at':now()}
+                            'version':last['version'] + 1 if last else 1, 'created_at':now(), 'document_kind':document_kind}
                 upsert(connection, m.resume_revisions, revision)
-            return {**record, **{key:revision[key] for key in ('series_id','label','version')}}
+            return {**record, **{key:revision[key] for key in ('series_id','label','version','document_kind')},
+                    'revision_id':revision['id'], 'version_created_at':revision['created_at']}
     finally:
         staged_path.unlink(missing_ok=True)
 
 
-def read_resume(store, output_dir: str | Path, profile_id: str, identifier: str) -> tuple[dict, bytes]:
+def read_resume(store, output_dir: str | Path, profile_id: str, identifier: str, *, document_kind: str = 'BASE_RESUME') -> tuple[dict, bytes]:
     with store.engine.connect() as connection:
+        connection.execute(select(m.resume_revisions.c.id).where(
+            m.resume_revisions.c.profile_id == profile_id, m.resume_revisions.c.upload_id == identifier,
+            m.resume_revisions.c.document_kind == document_kind).limit(1)).one()
         record = dict(connection.execute(select(m.uploaded_resumes).where(
             m.uploaded_resumes.c.id == identifier, m.uploaded_resumes.c.profile_id == profile_id)).mappings().one())
     if record["format"] not in MEDIA_TYPES:

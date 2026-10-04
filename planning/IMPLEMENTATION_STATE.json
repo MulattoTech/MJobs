@@ -7,12 +7,12 @@
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Sole writer codex/document-provenance-20261004 based on 2120534c1d169c125412cf63321c2916d2a28984.",
-    "current_verified_github_state": "PR490 merged; both workflows and all fourteen artifacts PASS; issue91 closed; MJ-PR025 accepted.",
-    "current_verified_at": "2026-10-04T18:44:29.625269+00:00"
+    "current_verified_local_state": "Sole writer codex/document-library-20261004 based on 36d28ba62f81ae1acc1a5d6a4f0e7950d6fd9550.",
+    "current_verified_github_state": "PR491 merged with exact-head workflows and all14 artifacts PASS; issues93/95/99 closed.",
+    "current_verified_at": "2026-10-04T19:01:08.687071+00:00"
   },
-  "current_milestone": "MJ-PR-026-DOCUMENT-PROVENANCE",
-  "current_objective": "Expose immutable generated-document provenance and consistent PDF/DOCX/TXT downloads, reusing approved career facts and revision history.",
+  "current_milestone": "MJ-PR-026-DOCUMENT-LIBRARY",
+  "current_objective": "Store all seven explicit document types in profile-scoped immutable versioned collections while preserving base import behavior and generated provenance.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -69,9 +69,7 @@
   ],
   "blocked_capabilities": [],
   "active_requirements": [
-    "MJ-REQ-092",
-    "MJ-REQ-094",
-    "MJ-REQ-098"
+    "MJ-REQ-093"
   ],
   "active_prs": [
     {
@@ -492,6 +490,13 @@
       "status": "MERGED",
       "merge_commit": "2120534c1d169c125412cf63321c2916d2a28984",
       "merged_at": "2026-10-04T18:42:11Z"
+    },
+    {
+      "number": 491,
+      "url": "https://github.com/MulattoTech/MJobs/pull/491",
+      "branch": "codex/document-provenance-20261004",
+      "status": "MERGED",
+      "merge_commit": "36d28ba62f81ae1acc1a5d6a4f0e7950d6fd9550"
     }
   ],
   "tests_passed": [
@@ -634,11 +639,11 @@
     "MJ-PR-016 local Chromium first run used Docker DNS host api, which is not a secure browser origin for crypto.randomUUID; loopback URL rerun passed all five connected UI actions."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-04T18:53:14.753590+00:00",
-    "base_commit": "2120534c1d169c125412cf63321c2916d2a28984",
+    "timestamp": "2026-10-04T19:14:25.469554+00:00",
+    "base_commit": "36d28ba62f81ae1acc1a5d6a4f0e7950d6fd9550",
     "result": "PASS",
-    "scope": "490 local tests zero skips;40 web/build;11 isolated PostgreSQL;browser;review. Hosted exact-head gate pending.",
-    "evidence_path": "docs/evidence/2026-10-04-document-provenance.json"
+    "scope": "495 Python zero skips;40 web/build;11 PostgreSQL;browser/review. Exact-head CI pending.",
+    "evidence_path": "docs/evidence/2026-10-04-document-library.json"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -700,7 +705,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Finish document provenance/output acceptance, exact-head CI and merge; then complete library and tailoring gaps.",
+  "recommended_resume_step": "Finish seven-type library acceptance and exact-head merge, then inspect deterministic tailoring.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -2696,7 +2701,7 @@
     {
       "milestone_id": "document-provenance-20261004",
       "timestamp": "2026-10-04T18:53:14.753590+00:00",
-      "current_phase": "IMPLEMENTED_VALIDATING",
+      "current_phase": "MERGED",
       "last_safe_checkpoint": {
         "git_commit": "2120534c1d169c125412cf63321c2916d2a28984",
         "evidence_path": "docs/evidence/2026-10-04-ocr-exact-head-ci.json"
@@ -2714,9 +2719,7 @@
         "11 isolated PostgreSQL migration/concurrency tests PASS",
         "Real Chromium provenance/download/reload PASS"
       ],
-      "tests_remaining": [
-        "Exact final-head push/PR CI and all seven artifacts each"
-      ],
+      "tests_remaining": [],
       "migrations_applied": [
         "af2049e17b63: isolated SQLite and PostgreSQL17 upgrade/downgrade/readback PASS"
       ],
@@ -2725,12 +2728,45 @@
       "known_limitations": [
         "Seven-type document library and tailoring remain separate open requirements"
       ]
+    },
+    {
+      "milestone_id": "document-library-20261004",
+      "timestamp": "2026-10-04T19:14:25.469554+00:00",
+      "current_phase": "IMPLEMENTED_VALIDATING",
+      "last_safe_checkpoint": {
+        "git_commit": "36d28ba62f81ae1acc1a5d6a4f0e7950d6fd9550",
+        "evidence_path": "docs/evidence/2026-10-04-document-provenance-exact-head-ci.json"
+      },
+      "completed_steps": [
+        "Implemented all seven explicit collection types reusing immutable blobs",
+        "Preserved base import membership and profile-scoped revision downloads",
+        "Independent review found no actionable defects"
+      ],
+      "files_added": [],
+      "files_modified": [],
+      "tests_completed": [
+        "495 Python zero skips PASS",
+        "40 web/build PASS",
+        "11 PostgreSQL migration/concurrency/readback PASS",
+        "Real browser seven types/version/reload/download PASS"
+      ],
+      "tests_remaining": [
+        "Exact final-head push/PR workflows and all7 artifacts each"
+      ],
+      "migrations_applied": [
+        "be3105f82a74: isolated SQLite and PostgreSQL17 upgrade/downgrade/readback PASS"
+      ],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "Tailoring remains separate open requirement"
+      ]
     }
   ],
   "current_phase": "IMPLEMENTED_VALIDATING",
   "last_safe_checkpoint": {
-    "git_commit": "2120534c1d169c125412cf63321c2916d2a28984",
-    "evidence_path": "docs/evidence/2026-10-04-ocr-exact-head-ci.json"
+    "git_commit": "36d28ba62f81ae1acc1a5d6a4f0e7950d6fd9550",
+    "evidence_path": "docs/evidence/2026-10-04-document-provenance-exact-head-ci.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
@@ -2819,9 +2855,9 @@
     }
   },
   "active_development_issue": {
-    "number": 95,
+    "number": 94,
     "status": "PARTIAL",
-    "branch": "codex/document-provenance-20261004"
+    "branch": "codex/document-library-20261004"
   },
   "historical_control_snapshots": [
     {
@@ -3225,7 +3261,7 @@
   },
   "session_control": {
     "owner": "01a107cd-4e66-77d3-b046-fc2c01f4ffb1",
-    "branch": "codex/document-provenance-20261004",
+    "branch": "codex/document-library-20261004",
     "write_lanes": 1,
     "requested_action": "DELIVER_LIFECYCLE_PROFILE_IMPORT",
     "note": "Current user authorizes implementation, tests, review, push, exact-head-verified merge and continuation. No production deployment or external submissions."

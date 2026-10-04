@@ -756,9 +756,9 @@
         "MJ-PR-024"
       ],
       "status": "PARTIAL",
-      "branch": "codex/document-provenance-20261004",
+      "branch": "codex/document-library-20261004",
       "draft_until_verified": true,
-      "notes": "Active approved-fact provenance and generation metadata slice. Full seven-type library and tailoring remain open; no inference from merged prerequisites.",
+      "notes": "MJ-REQ092/094 accepted in PR491; active seven-type library slice; tailoring095 remains open.",
       "feedback_slice": {
         "branch": "codex/resume-driven-profile",
         "result": "PARTIAL",
@@ -768,7 +768,8 @@
         "pr_number": 453
       },
       "integrated_incremental_prs": [
-        453
+        453,
+        491
       ]
     },
     {

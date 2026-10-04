@@ -1,0 +1,68 @@
+{
+  "timestamp": "2026-10-04T19:14:25.469554+00:00",
+  "result": "PARTIAL",
+  "scope": "MJ-REQ-093 seven-type document library",
+  "base": "36d28ba62f81ae1acc1a5d6a4f0e7950d6fd9550",
+  "branch": "codex/document-library-20261004",
+  "checks": [
+    {
+      "command": ".venv/Scripts/python.exe -m unittest discover -s tests -p 'test_*.py' -q",
+      "result": "PASS",
+      "target": "495 local Python tests, zero skips, 178.249 seconds",
+      "evidence_path": ".git/afk-dev/library-regression-20261004.log"
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run; npm run build --prefix apps/web",
+      "result": "PASS",
+      "target": "40 web tests, TypeScript and production build"
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m unittest tests.browser.test_document_history tests.browser.test_profile_import -q",
+      "result": "PASS",
+      "target": "Real Chromium all seven types, second certification version, unchanged originals after reload/download, untouched career facts and base import behavior",
+      "evidence_path": ".git/afk-dev/library-browser-20261004.log"
+    },
+    {
+      "command": ".venv/Scripts/python.exe .git/afk-dev/library-postgres-20261004.py",
+      "result": "PASS",
+      "target": "11 isolated PostgreSQL17 tests: upgrade/guarded downgrade, all kinds, concurrent same-blob distinct collections, legacy uploads/restart/checksums",
+      "evidence_path": ".git/afk-dev/library-postgres-final-20261004.log"
+    },
+    {
+      "command": "Independent read-only chore design and defect review",
+      "result": "PASS",
+      "target": "Kind/profile boundaries, immutable shared blobs, version counters, migrations, API compatibility and UI; no actionable defects"
+    },
+    {
+      "command": "agent_skills, catalogue, progress validate, git diff --check",
+      "result": "PASS",
+      "target": "Repository delivery gates"
+    }
+  ],
+  "migration": {
+    "revision": "be3105f82a74",
+    "parent": "af2049e17b63",
+    "field": "resume_revisions.document_kind non-null finite enum with legacy BASE_RESUME default",
+    "legacy": "Base IDs, blobs, filenames, labels, versions and checksums unchanged",
+    "downgrade": "Refuses any non-base collection; legacy upgrade/downgrade roundtrip verified"
+  },
+  "behavior": [
+    "Seven user-declared types share immutable per-profile content blobs while retaining distinct collections and versions",
+    "Kind validation and profile row lock prevent cross-kind series mutation and version-counter races",
+    "Base list/read/extract require BASE_RESUME membership; library download requires profile-owned revision membership",
+    "Library includes profile-scoped generated application history with job/company context; generic generated resume stays GENERATED_RESUME",
+    "No upload verifies facts or changes profile data"
+  ],
+  "observed_failures_resolved": [
+    "RED new API/kind support absent",
+    "Browser exact nested-select labels were not resolved: added explicit accessible names",
+    "Browser version text selector matched both heading and download: selected exact download link",
+    "Initial PostgreSQL restart harness reopened a hardcoded SQLite path: routed only the private harness restart factory to the owned PostgreSQL database"
+  ],
+  "external_submission_enabled": false,
+  "remaining": [
+    "Exact final-head hosted workflows and seven artifacts per run",
+    "MJ-REQ095 opt-in tailoring is a separate open requirement"
+  ],
+  "resource_cleanup": "Owned PostgreSQL container removed after exact ID/owner check; user services unchanged"
+}

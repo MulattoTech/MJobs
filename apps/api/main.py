@@ -290,8 +290,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     def profile_resumes(profile_id: str):
         return {"resumes": list_resumes(store, profile_id)}
 
-    @app.post("/profiles/{profile_id}/resumes", status_code=201)
-    async def profile_resume_upload(profile_id: str, request: Request):
+    async def store_profile_document(profile_id: str, request: Request, document_kind: str,
+                                     series_header: str, label_header: str):
         store.profile(profile_id)
         filename = unquote(request.headers.get("x-filename", ""))
         media_type = request.headers.get("content-type", "").split(";", 1)[0].strip().lower()
@@ -305,10 +305,35 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             content.extend(chunk)
         try:
             return save_resume(store, output_dir, profile_id, filename, media_type, bytes(content),
-                               series_id=request.headers.get('x-resume-series') or None,
-                               label=unquote(request.headers.get('x-resume-label', '')) or None)
+                               series_id=request.headers.get(series_header) or None,
+                               label=unquote(request.headers.get(label_header, '')) or None,
+                               document_kind=document_kind)
         except UploadIntegrityError as exc:
             raise HTTPException(409, str(exc)) from exc
+
+    @app.post("/profiles/{profile_id}/resumes", status_code=201)
+    async def profile_resume_upload(profile_id: str, request: Request):
+        return await store_profile_document(profile_id, request, 'BASE_RESUME', 'x-resume-series', 'x-resume-label')
+
+    @app.get('/profiles/{profile_id}/document-library')
+    def profile_document_library(profile_id: str):
+        from services.documents.library import document_library
+        return document_library(store, profile_id)
+
+    @app.post('/profiles/{profile_id}/document-library', status_code=201)
+    async def profile_document_upload(profile_id: str, request: Request):
+        return await store_profile_document(profile_id, request, request.headers.get('x-document-kind', ''),
+                                            'x-document-series', 'x-document-label')
+
+    @app.get('/profiles/{profile_id}/document-library/{revision_id}')
+    def profile_document_download(profile_id: str, revision_id: str):
+        from services.documents.library import read_library_document
+        try:
+            record, data = read_library_document(store, output_dir, profile_id, revision_id)
+        except UploadIntegrityError as exc:
+            raise HTTPException(409, str(exc)) from exc
+        return Response(data, media_type='application/octet-stream', headers={
+            'Content-Disposition':f'attachment; filename="document-{revision_id[:12]}.{record["format"]}"'})
 
     @app.get("/profiles/{profile_id}/resumes/{resume_id}")
     def profile_resume_download(profile_id: str, resume_id: str):

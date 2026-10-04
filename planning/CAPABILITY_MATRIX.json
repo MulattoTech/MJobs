@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-04T18:53:14.753590+00:00",
+  "timestamp": "2026-10-04T19:14:25.469554+00:00",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -794,33 +794,36 @@
     },
     {
       "requirement_id": "MJ-REQ-092",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
         "docs/evidence/2026-09-29-mock-spine.md",
         "docs/evidence/2026-09-30-user-testing.md",
         "docs/evidence/2026-10-03-resume-driven-profile.json",
-        "docs/evidence/2026-10-04-document-provenance.json"
+        "docs/evidence/2026-10-04-document-provenance.json",
+        "docs/evidence/2026-10-04-document-provenance-exact-head-ci.json"
       ],
-      "note": "Current generated-fact/provenance/output acceptance passed locally and in isolated PostgreSQL; final-head CI/merge pending."
+      "note": "Accepted in PR491 with exact-head workflows and all14 runtime artifacts; original facts/provenance, immutable revisions and PDF/DOCX/TXT verified."
     },
     {
       "requirement_id": "MJ-REQ-093",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-03-resume-driven-profile.json"
+        "docs/evidence/2026-10-03-resume-driven-profile.json",
+        "docs/evidence/2026-10-04-document-library.json"
       ],
-      "note": "Reviewed native resume import, structured optional contact/preferences and named base-resume versions verified; full structured career model, OCR, advanced extraction and broader document library remain incomplete."
+      "note": "All seven types, profile/kind boundaries, version history and UI verified locally/PostgreSQL; exact-head hosted merge gate pending."
     },
     {
       "requirement_id": "MJ-REQ-094",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
         "docs/evidence/2026-09-29-mock-spine.md",
         "docs/evidence/2026-10-03-resume-driven-profile.json",
         "docs/evidence/2026-10-03-resume-upload-integrity.json",
-        "docs/evidence/2026-10-04-document-provenance.json"
+        "docs/evidence/2026-10-04-document-provenance.json",
+        "docs/evidence/2026-10-04-document-provenance-exact-head-ci.json"
       ],
-      "note": "Current generated-fact/provenance/output acceptance passed locally and in isolated PostgreSQL; final-head CI/merge pending."
+      "note": "Accepted in PR491 with exact-head workflows and all14 runtime artifacts; original facts/provenance, immutable revisions and PDF/DOCX/TXT verified."
     },
     {
       "requirement_id": "MJ-REQ-095",
@@ -845,12 +848,13 @@
     },
     {
       "requirement_id": "MJ-REQ-098",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
         "docs/evidence/2026-09-30-user-testing.md",
-        "docs/evidence/2026-10-04-document-provenance.json"
+        "docs/evidence/2026-10-04-document-provenance.json",
+        "docs/evidence/2026-10-04-document-provenance-exact-head-ci.json"
       ],
-      "note": "Current generated-fact/provenance/output acceptance passed locally and in isolated PostgreSQL; final-head CI/merge pending."
+      "note": "Accepted in PR491 with exact-head workflows and all14 runtime artifacts; original facts/provenance, immutable revisions and PDF/DOCX/TXT verified."
     },
     {
       "requirement_id": "MJ-REQ-099",
