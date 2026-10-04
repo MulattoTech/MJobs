@@ -3,9 +3,18 @@
 
 ## Current reconciliation: 2026-10-04
 
-This section supersedes earlier current-state snapshots below. Original requirements: **48 PASS, 77 PARTIAL, 241 NOT_RUN**. Reference requirements: **1 PASS,58 NOT_RUN**. PR479/481/482 are merged; PR480 is superseded. Lifecycle085-087 move from stale NOT_RUN to PARTIAL, not to unevidenced full-contract PASS. Source quality and ATS knowledge still have documented acceptance gaps. A clean branch list does not imply product release certification. Current recovery evidence: `docs/evidence/2026-10-04-clean-baseline.json`; original state remains the capability matrix.
+The current merged source of truth is `planning/CAPABILITY_MATRIX.json` on `main` at `5c5bb565b949746117c3cacb017bdb98f7de171a`.
 
-Historical observations follow; their pending-publication fields are not present-day blockers.
+- Original requirements: **60 PASS / 67 PARTIAL / 239 NOT_RUN** (366 total).
+- Reference requirements: **1 PASS / 0 PARTIAL / 58 NOT_RUN** (59 total).
+- PR queue: **26 integrated/accepted / 4 partial-or-draft / 120 queued** (150 total).
+- Full-spec release readiness: **NOT_RUN**.
+- Open GitHub PRs at reconciliation time: **0**.
+- Local/uncommitted Codex work is tracked separately and is **not counted as merged progress**.
+
+For the colored domain-by-domain and priority-by-priority view, PR-queue progress, active local work, and known defects/limitations, see [PROGRESS_DASHBOARD.md](PROGRESS_DASHBOARD.md).
+
+Historical observations below retain their original counts and pending-publication statements as evidence snapshots; they are not present-day status.
 
 Updated: 2026-10-04
 
@@ -15,11 +24,11 @@ A percentage is a navigation aid, never a release claim. Only evidence-backed PA
 
 ## Original specification
 - Catalogue items: **366**
-- PASS: **48** (13.11%)
-- PARTIAL: **74** (20.22%)
-- NOT_RUN: **244** (66.67%)
+- PASS: **60** (16.39%)
+- PARTIAL: **67** (18.31%)
+- NOT_RUN: **239** (65.30%)
 - Full-spec state: **PARTIAL**
-- Release readiness: **not established**
+- Release readiness: **NOT_RUN**
 PASS counts complete requirement items, not the fraction of source code implemented. Many requirements span multiple product capabilities; the repository does not turn partial evidence into completed requirements.
 
 ## Current verified implementation spine
