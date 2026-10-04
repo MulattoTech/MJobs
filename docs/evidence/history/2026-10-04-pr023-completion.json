@@ -1,0 +1,217 @@
+{
+  "timestamp": "2026-10-04T01:43:44.347035+00:00",
+  "result": "PARTIAL",
+  "base_commit": "eff87832515e54a4a8eabc595b00e2957977ef93",
+  "branch": "codex/pr023-completion-20261003",
+  "requirements": {
+    "MJ-REQ-082": {
+      "result": "PARTIAL",
+      "implemented": "Recorded feed-discovery context, positive distinct job skill matches at import, evaluated-profile count, readable activity and browser verification.",
+      "remaining": "Full discovery-origin and independently verified-domain milestone chronology across provider/trigger paths."
+    },
+    "MJ-REQ-083": {
+      "result": "PARTIAL",
+      "implemented": "Existing seven-factor score, observed coverage and explicit unknowns are visible; existing evidence-based duplicate authority and protected routes regression-tested.",
+      "remaining": "Sampled declared link identity does not prove usable application forms, whole-feed link accuracy or broad ATS-origin coverage. Historical uptime measures observed attempts."
+    },
+    "MJ-REQ-084": {
+      "result": "PARTIAL",
+      "implemented": "Existing route/company/provider/tenant knowledge reused by application and route APIs plus preparation audit; ambiguity/weak confidence preserved; fixture discovery-to-preparation proved after server shutdown and DB reopen.",
+      "remaining": "Only mock application adapter installed; known real providers explicitly UNSUPPORTED. Broad production discovery-to-real-adapter acceptance not proven."
+    }
+  },
+  "files_changed": [
+    "apps/web/src/source-quality.tsx",
+    "docs/evidence/2026-10-04-pr023-completion.json",
+    "tests/browser/test_company_source_view.py"
+  ],
+  "checks": [
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_application_knowledge -v",
+      "result": "FAIL",
+      "target": "isolated pr023-completion worktree",
+      "timestamp": "2026-10-04T01:27:30.273036+00:00",
+      "evidence_path": "outputs/pr023/knowledge-red.log",
+      "log_sha256": "82e7dd0292b8e2012ebdca39c431f02a42747ae683aeaa8c1ac3bca122c0cdd7",
+      "count": 6,
+      "note": "Expected missing resolver and preparation metadata before implementation."
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_application_knowledge -v",
+      "result": "FAIL",
+      "target": "isolated pr023-completion worktree",
+      "timestamp": "2026-10-04T01:31:24.645465+00:00",
+      "evidence_path": "outputs/pr023/knowledge-second-red.log",
+      "log_sha256": "7f6d217cd51e48c5fba2d6da00a95da30ab83a33a9e474afad3d25857a704164",
+      "count": 8,
+      "failures": 1,
+      "note": "Weak-confidence regression before review gate."
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_application_knowledge -v",
+      "result": "PASS",
+      "target": "isolated pr023-completion worktree",
+      "timestamp": "2026-10-04T01:31:58.525270+00:00",
+      "evidence_path": "outputs/pr023/knowledge-final.log",
+      "log_sha256": "d4e6494d7f87d8324f8640ce4581504a170066fc05f86d21bf5b4edca9d5c85c",
+      "count": 8
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_application_knowledge tests.unit.test_application_routes tests.integration.test_api_queue tests.integration.test_company_discovery tests.integration.test_company_sources tests.unit.test_source_quality_score tests.integration.test_source_quality tests.integration.test_source_value_resolution tests.integration.test_application_link_evidence -v",
+      "result": "PASS",
+      "target": "isolated pr023-completion worktree",
+      "timestamp": "2026-10-04T01:30:28.248782+00:00",
+      "evidence_path": "outputs/pr023/targeted.log",
+      "log_sha256": "5e5018a60337fcd7057263446876bf1cf3cecb9380edce96d7b3f4bece20c8c1",
+      "count": 80,
+      "note": "Initial focused integration run; superseded by final whole suite after review corrections."
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_application_knowledge tests.integration.test_company_source_view tests.integration.test_company_feed_quality tests.integration.test_company_source_monitoring tests.integration.test_company_monitoring_recovery -v",
+      "result": "PASS",
+      "target": "isolated pr023-completion worktree",
+      "timestamp": "2026-10-04T01:35:06.530983+00:00",
+      "evidence_path": "outputs/pr023/affected.log",
+      "log_sha256": "522e9923b9e8f62d66dd81590055f70ba51116a17c62b986d5ef2ce15723a7b6",
+      "count": 39,
+      "note": "Affected integration run before final review corrections; final whole suite covers final code."
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest discover -s tests -p 'test_*.py' -v",
+      "result": "FAIL",
+      "target": "isolated pr023-completion worktree",
+      "timestamp": "2026-10-04T01:38:57.990316+00:00",
+      "evidence_path": "outputs/pr023/regression-before-selector-fix.log",
+      "log_sha256": "dd6699fe2371559d9d484a0a416c0c02ffb3d86e0d8b5ff9a6a76a921ca7efa8",
+      "count": 428,
+      "errors": 1,
+      "note": "New quality disclosure made the old generic browser summary selector ambiguous. Corrected to named Quality limitations and View Evidence selectors."
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.browser.test_company_source_view tests.integration.test_company_source_view -v",
+      "result": "PASS",
+      "target": "isolated pr023-completion worktree",
+      "timestamp": "2026-10-04T01:38:29.781366+00:00",
+      "evidence_path": "outputs/pr023/activity-browser-final.log",
+      "log_sha256": "0e4ecb1654efeb867685297d6169ddb1ef18f482ea75bf7b0c68558df4ebfb93",
+      "count": 8
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest discover -s tests -p 'test_*.py' -v",
+      "result": "PASS",
+      "target": "isolated pr023-completion worktree",
+      "timestamp": "2026-10-04T01:41:55.106266+00:00",
+      "evidence_path": "outputs/pr023/regression-final.log",
+      "log_sha256": "d9ef0418df9e1f2cb714685f740235f39be379cd7a2269e96b64cae03912e21a",
+      "count": 428,
+      "skipped": 0,
+      "failures": 0,
+      "errors": 0,
+      "seconds": 157.962
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run",
+      "result": "PASS",
+      "target": "isolated pr023-completion worktree",
+      "timestamp": "2026-10-04T01:38:01.477071+00:00",
+      "evidence_path": "outputs/pr023/frontend-final.log",
+      "log_sha256": "9c77491c568282dddb543ec4350c53b153771d8e1e36c813e818a6a41423ede5",
+      "count": 38,
+      "test_files": 10
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "target": "isolated pr023-completion worktree",
+      "timestamp": "2026-10-04T01:38:02.805654+00:00",
+      "evidence_path": "outputs/pr023/build-final.log",
+      "log_sha256": "0d9e1222c9da3d20c898479eed969bfc0abff4cb22b4b6c97e08059dfcc90bdc",
+      "note": "TypeScript checking and production Vite build."
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.catalogue",
+      "result": "PASS",
+      "target": "isolated pr023-completion worktree",
+      "timestamp": "2026-10-04T01:40:29.658996+00:00",
+      "evidence_path": "outputs/pr023/catalogue-final.log",
+      "log_sha256": "afc44cd304f45ba649562cbea23ab034dec7f06e61af43b7b17ec2e10d5706ff"
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.progress validate",
+      "result": "PASS",
+      "target": "isolated pr023-completion worktree",
+      "timestamp": "2026-10-04T01:40:29.806313+00:00",
+      "evidence_path": "outputs/pr023/progress-final.log",
+      "log_sha256": "901467b93720a98dd3fd6f8d3527c6294ec52e61cb3ebe6674f3ddccfe7c5e03"
+    },
+    {
+      "command": "git -c safe.directory=C:/Tools/Dev/MJobs/.worktrees/pr023-completion diff --check",
+      "result": "PASS",
+      "target": "isolated pr023-completion worktree",
+      "timestamp": "2026-10-04T01:40:29.944529+00:00",
+      "evidence_path": "outputs/pr023/diff-check-final.log",
+      "log_sha256": "e4c7e7b6e00a2c2264adb0a087708cf72c9e97fabec783023573d616314ef8e7"
+    },
+    {
+      "command": "Independent read-only whole-branch code review and review-fix recheck",
+      "timestamp": "2026-10-04T01:43:44.347035+00:00",
+      "target": "changes against eff87832515e54a4a8eabc595b00e2957977ef93",
+      "result": "PASS",
+      "evidence_path": "docs/evidence/2026-10-04-pr023-completion.json#review"
+    },
+    {
+      "command": "git -c safe.directory=C:/Tools/Dev/MJobs/.worktrees/pr023-completion add -- <explicit implementation file list>",
+      "timestamp": "2026-10-04T01:43:44.347035+00:00",
+      "target": "current branch index",
+      "result": "BLOCKED_ENVIRONMENT",
+      "evidence_path": "docs/evidence/2026-10-04-pr023-gap-audit.md#commitpush-handoff",
+      "error": "fatal: Unable to create 'C:/Tools/Dev/MJobs/.git/worktrees/pr023-completion/index.lock': Permission denied"
+    }
+  ],
+  "review": {
+    "result": "PASS",
+    "important_findings_remaining": 0,
+    "fixed": [
+      "Weak ATS confidence cannot become selected discovery knowledge.",
+      "Recorded source provider wording does not claim ATS detection.",
+      "Audit records number of current profile versions evaluated.",
+      "Browser selectors distinguish quality limitations from source evidence."
+    ],
+    "minor_limitations": [
+      "Imported count retains accepted feed-row semantics; repeated identities can exceed distinct jobs. Matched count deduplicates job IDs.",
+      "Quality UI relies on backend range validation and additionally handles absent/nonfinite values."
+    ]
+  },
+  "publication": {
+    "result": "PARTIAL",
+    "commits": [
+      "c2ea4a764af53ac2c1dba16fe77a891669581593"
+    ],
+    "head_unchanged": false,
+    "pushed": true,
+    "pr_url": null,
+    "remote_ci": "NOT_RUN",
+    "reason": "This agent was denied shared Git index writes. A concurrent external process then committed/pushed the implementation. Two later product/test edits and final evidence/state updates remain uncommitted; ownership clarification pending.",
+    "next_commands_path": "docs/evidence/2026-10-04-pr023-gap-audit.md#commitpush-handoff",
+    "observed_head": "c2ea4a764af53ac2c1dba16fe77a891669581593",
+    "remote_ci_status": "IN_PROGRESS",
+    "remote_ci_url": "https://github.com/MulattoTech/MJobs/actions/runs/37168873360",
+    "observed_at": "2026-10-04T01:46:56.170348+00:00"
+  },
+  "external_submission_enabled": false,
+  "limitations": [
+    "Local synthetic SQLite/HTTP and actual headless Chromium evidence; no fresh live employer, PostgreSQL/Redis Compose or production application-submission proof claimed.",
+    "Exact-head hosted CI remains NOT_RUN.",
+    "npm reported Node 25.9 outside Vitest declared supported majors; all local frontend tests and build nevertheless passed.",
+    "Raw validation logs remain local under ignored outputs/pr023; tracked evidence retains exact counts, commands, timestamps and hashes.",
+    "Concurrent external writer changed HEAD and two product/test files during closeout. User was asked to clarify ownership; no additional product edits made by this agent afterward."
+  ],
+  "post_validation_changes": {
+    "result": "NOT_RUN",
+    "files": [
+      "apps/web/src/source-quality.tsx",
+      "tests/browser/test_company_source_view.py"
+    ],
+    "note": "Concurrent edits after the passing regression add a disclosure CSS class/scoped selector and introduce UTF-8 BOM/mojibake in the source-quality separator. Preserved without overwriting; earlier local PASS does not certify these bytes."
+  }
+}

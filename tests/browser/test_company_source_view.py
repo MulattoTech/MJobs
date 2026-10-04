@@ -97,7 +97,7 @@ class CompanySourceBrowserTests(unittest.TestCase):
                     expect(card).to_contain_text('USER_PINNED')
                     expect(card).to_contain_text('USER_WATCHED')
                     expect(card.get_by_role('button', name='Enable Browser Fixture Employer source', exact=True)).to_be_enabled()
-                    card.get_by_text('Quality limitations', exact=True).click()
+                    card.locator('details.source-quality-limitations > summary').click()
                     expect(card).to_contain_text('Historical uptime is observed attempt availability')
                     card.get_by_text('View Evidence', exact=True).click()
                     expect(card.locator('pre')).to_be_visible()

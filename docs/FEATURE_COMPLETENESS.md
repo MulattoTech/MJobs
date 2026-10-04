@@ -1,5 +1,12 @@
 # MJobs Feature Completeness
 
+
+## Current reconciliation: 2026-10-04
+
+This section supersedes earlier current-state snapshots below. Original requirements: **48 PASS, 77 PARTIAL, 241 NOT_RUN**. Reference requirements: **1 PASS,58 NOT_RUN**. PR479/481/482 are merged; PR480 is superseded. Lifecycle085-087 move from stale NOT_RUN to PARTIAL, not to unevidenced full-contract PASS. Source quality and ATS knowledge still have documented acceptance gaps. A clean branch list does not imply product release certification. Current recovery evidence: `docs/evidence/2026-10-04-clean-baseline.json`; original state remains the capability matrix.
+
+Historical observations follow; their pending-publication fields are not present-day blockers.
+
 Updated: 2026-10-04
 
 ## How to read this
@@ -58,9 +65,9 @@ These are additive ideas discovered by comparing JobSpy, CareerWeaver, Resume Ma
 Personal JobPilot, ResuMorph and AIHawk.
 
 Reference gaps must be reported separately from the original 366 requirements:
-- PASS: 0
+- PASS: 1
 - PARTIAL: 0
-- NOT_RUN: 59
+- NOT_RUN: 58
 
 When implementation overlaps existing MJobs behavior, the reference issue still requires its own acceptance evidence
 before it becomes PASS. Closing a reference issue must never auto-close an original MJ-REQ issue or vice versa.

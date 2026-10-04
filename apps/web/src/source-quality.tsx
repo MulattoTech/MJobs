@@ -24,6 +24,6 @@ export function SourceQuality({quality}: {quality?: SourceQualityValue | null}) 
     <h4>Source quality</h4>
     <p>{score} · {percent(quality.coverage)} measurement coverage</p>
     <dl>{Object.keys(LABELS).map(key => <div key={key}><dt>{LABELS[key]}</dt><dd>{percent(quality.components?.[key])}</dd></div>)}</dl>
-    {!!quality.limitations?.length && <details><summary>Quality limitations</summary><ul>{quality.limitations.map((item, index) => <li key={index}>{item}</li>)}</ul></details>}
+    {!!quality.limitations?.length && <details className="source-quality-limitations"><summary>Quality limitations</summary><ul>{quality.limitations.map((item, index) => <li key={index}>{item}</li>)}</ul></details>}
   </section>;
 }

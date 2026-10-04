@@ -1,0 +1,34 @@
+{
+  "title": "MJobs delivery evidence",
+  "sources": {
+    "state": "planning/IMPLEMENTATION_STATE.json"
+  },
+  "headline": {
+    "label": "Product",
+    "source": "state",
+    "path": "status",
+    "kind": "status"
+  },
+  "rows": [
+    {
+      "label": "Phase",
+      "source": "state",
+      "path": "current_phase",
+      "kind": "phase"
+    },
+    {
+      "label": "Current slice",
+      "source": "state",
+      "path": "current_milestone",
+      "kind": "text"
+    },
+    {
+      "label": "Slice verification",
+      "source": "state",
+      "path": "live_reconciliation.current_slice_validation",
+      "kind": "status"
+    }
+  ],
+  "staleAfterSeconds": 3600,
+  "maxWidth": 96
+}

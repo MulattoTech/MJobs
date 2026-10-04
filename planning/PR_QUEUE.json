@@ -634,8 +634,11 @@
         "branch": "codex/pr023-completion-20261003",
         "base_commit": "eff87832515e54a4a8eabc595b00e2957977ef93",
         "status": "PARTIAL",
-        "publication_state": "LOCAL_IMPLEMENTATION",
-        "remaining": "Validation and exact-head CI; broader provider/link usability and full activity acceptance remain unproven."
+        "publication_state": "MERGED",
+        "remaining": "Full discovery chronology, broader provider/link usability and real application adapter acceptance remain PARTIAL. Unpublished closeout deltas are handled by issue483.",
+        "pr_number": 479,
+        "head": "c2ea4a764af53ac2c1dba16fe77a891669581593",
+        "merge_commit": "78be4e615d2cb6848e8e1762964a7de695be4924"
       },
       "slice_history": [
         {
@@ -692,11 +695,15 @@
       "status": "PARTIAL",
       "branch": "codex/pr024-job-lifecycle-rebased-20261003",
       "draft_until_verified": true,
-      "notes": "Implemented 085/086/087; local targeted/broad/browser/frontend/migration checks passed before rebase. Rebased after PR479 merged; fresh exact-head CI/runtime verification required before merge.",
+      "notes": "PR481 merged after exact-head verification. Durable lifecycle/history implemented; maintain PARTIAL pending a requirement-level acceptance audit, not because Git publication is pending.",
       "evidence_path": "docs/evidence/2026-10-03-job-lifecycle.json",
       "scope_complete": false,
       "local_validation": "PASS",
-      "publication_status": "PENDING_EXACT_HEAD_CI"
+      "publication_status": "MERGED",
+      "publication_state": "MERGED",
+      "pr_number": 481,
+      "head": "1500891ac75d4eb36c531baf7c94efd035ba16cf",
+      "merge_commit": "0433a07a09a37e4e86221c547e8d21aae60de9f4"
     },
     {
       "id": "MJ-PR-025",
