@@ -117,7 +117,7 @@ def run(base_url, evidence_path):
             actions.append({'action':'Explicit skill-order opt-in reaches the document worker and preserves approved facts with target snapshot and separate revision','result':'PASS'})
 
             comparison=page.get_by_role('region',name='Compare base and tailored resumes',exact=True)
-            comparison.get_by_label('Generated base version',exact=True).select_option(label='v2')
+            comparison.get_by_label('Base resume',exact=True).select_option(label='v2')
             comparison.get_by_role('button',name='Compare selected resumes',exact=True).click()
             result=comparison.get_by_role('region',name='Resume comparison result',exact=True)
             expect(result.get_by_role('region',name='Content omitted',exact=True)).to_contain_text('No content omitted.')
@@ -125,6 +125,25 @@ def run(base_url, evidence_path):
             expect(result.get_by_role('heading',name='Generated base · v2',exact=True)).to_be_visible()
             expect(result.get_by_role('heading',name='Tailored resume · v3',exact=True)).to_be_visible()
             actions.append({'action':'Immutable generated base and tailored resume comparison shows recorded versions and unchanged facts through the UI','result':'PASS'})
+
+            profile_before_comparison=request('/profiles/'+profile_id)
+            uploaded_original_text=b'Summary\nOriginal synthetic summary\nSkills\nSQL; Python\nResponsibilities\nMaintained synthetic servers\n'
+            uploaded_response=context.request.post(base_url+'/profiles/'+profile_id+'/resumes', data=uploaded_original_text,
+                headers={'X-Filename':'comparison-base.txt','Content-Type':'text/plain'})
+            assert uploaded_response.status==201, uploaded_response.text()
+            uploaded_original=uploaded_response.json()
+            comparison.get_by_role('button',name='Refresh base resumes',exact=True).click()
+            comparison.get_by_label('Base resume',exact=True).select_option('u:'+uploaded_original['revision_id'])
+            comparison.get_by_role('button',name='Compare selected resumes',exact=True).click()
+            expect(result.get_by_role('heading',name='Uploaded base · v1',exact=True)).to_be_visible()
+            expect(result.get_by_role('region',name='Summary changes',exact=True)).to_contain_text('Original synthetic summary')
+            expect(result.get_by_role('region',name='Content omitted',exact=True)).to_contain_text('Maintained synthetic servers')
+            expect(result.get_by_role('region',name='Original extraction provenance',exact=True)).to_contain_text('Native extracted text')
+            with page.expect_download() as original_download:
+                result.get_by_role('link',name='Download compared original',exact=True).click()
+            assert Path(original_download.value.path()).read_bytes()==uploaded_original_text
+            assert request('/profiles/'+profile_id)==profile_before_comparison
+            actions.append({'action':'Uploaded original comparison preserves revision/hash and profile facts, displays changed summary and omitted content, and downloads exact source bytes','result':'PASS'})
 
             page.get_by_role("button", name="Run dry-run", exact=True).click()
             expect(page.locator(".job-detail > .tag")).to_have_text("DRY_RUN_COMPLETE")
@@ -148,6 +167,7 @@ def run(base_url, evidence_path):
             page.get_by_role("button").filter(has=page.get_by_role("heading", name="Data Engineer", exact=True)).click()
             expect(page.locator(".job-detail > .tag")).to_have_text("CONFIRMED")
             navigation('Profile')
+            base_resumes_before_library=request('/profiles/'+profile_id+'/resumes')['resumes']
             library=page.get_by_role('region', name='Document library', exact=True)
             library.get_by_label('Document type', exact=True).select_option('CERTIFICATION')
             library.get_by_label('Document label', exact=True).fill('Synthetic certificate')
@@ -161,7 +181,7 @@ def run(base_url, evidence_path):
             with page.expect_download() as download:
                 collection.get_by_role('link',name='Download original version 1',exact=True).click()
             assert hashlib.sha256(Path(download.value.path()).read_bytes()).hexdigest()==certificate['sha256']
-            assert request('/profiles/'+profile_id+'/resumes')['resumes']==[]
+            assert request('/profiles/'+profile_id+'/resumes')['resumes']==base_resumes_before_library
             assert {row['fact_id'] for row in request('/profiles/'+profile_id)['facts']}=={'python','sql'}
             actions.append({'action':'Typed document library stores/downloads checksum-backed certification without adding resume-import entries or career facts','result':'PASS'})
             navigation("Activity")

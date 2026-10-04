@@ -37,7 +37,7 @@ def compare_facts(base, target, matches):
         'added':[row for row in target if row['fact_id'] not in old]}
 
 
-def _snapshot(store, output_dir, row):
+def read_generated_snapshot(store, output_dir, row):
     if row['missing_fact_ids'] or len(row['facts_used'])!=len(row['fact_ids']):
         raise ComparisonUnavailable('Original fact history is unavailable for this revision')
     root=Path(output_dir).resolve();app_root=(root/row['application_id']).resolve()
@@ -64,21 +64,28 @@ def _snapshot(store, output_dir, row):
             'text':text,'sha256':row['sha256']['txt'],'facts':facts,'contact':paragraphs[:2]}
 
 
-def compare_resumes(store, output_dir, application_id, base_document_id, tailored_document_id):
-    rows={row['id']:row for row in application_documents(store,application_id)}
-    base=rows.get(base_document_id);target=rows.get(tailored_document_id)
-    if (not base or not target or base['kind']!='resume' or target['kind']!='resume' or
-        base['template']!='verified-facts-v1' or base['generation_model']!='deterministic-fact-copy-v1' or
+def tailored_context(target):
+    if (not target or target['kind']!='resume' or
         target['template']!=tailor.TEMPLATE or target['generation_model']!=tailor.MODEL or
         (target['generation_context'] or {}).get('mode')!='APPROVED_SKILL_ORDER'):
-        raise ComparisonUnavailable('Choose a recorded generated base and tailored resume from this application')
+        raise ComparisonUnavailable('Choose a recorded tailored resume from this application')
     context=target['generation_context']
     matches=context.get('matched_skills')
     if (context.get('ordered_fact_ids')!=target['fact_ids'] or not isinstance(matches,dict) or
         any(not isinstance(labels,list) or any(not isinstance(label,str) for label in labels) for labels in matches.values())):
         raise ComparisonUnavailable('Original tailoring context is unavailable')
-    before=_snapshot(store,output_dir,base);after=_snapshot(store,output_dir,target)
+    return context
+
+
+def compare_resumes(store, output_dir, application_id, base_document_id, tailored_document_id):
+    rows={row['id']:row for row in application_documents(store,application_id)}
+    base=rows.get(base_document_id);target=rows.get(tailored_document_id)
+    if (not base or base['kind']!='resume' or base['template']!='verified-facts-v1' or
+        base['generation_model']!='deterministic-fact-copy-v1'):
+        raise ComparisonUnavailable('Choose a recorded generated base and tailored resume from this application')
+    context=tailored_context(target)
+    before=read_generated_snapshot(store,output_dir,base);after=read_generated_snapshot(store,output_dir,target)
     return {'base':before,'tailored':after,
-            **compare_facts(before['facts'],after['facts'],matches),
+            **compare_facts(before['facts'],after['facts'],context['matched_skills']),
             'contact_changed':before['contact']!=after['contact'],
             'scope':'Selected generated revisions; uploaded original resumes are not compared. Skill matches explain ordering, not qualifications.'}

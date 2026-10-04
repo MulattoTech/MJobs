@@ -2,7 +2,7 @@ import React from 'react';
 import {ResumeComparison} from './resume-comparison';
 
 export type GeneratedDocument = {
-  id:string;application_id?:string;kind:string;version:number;profile_version:string;fact_ids:string[];
+  id:string;application_id?:string;profile_id?:string;kind:string;version:number;profile_version:string;fact_ids:string[];
   files:Record<string,string>;sha256:Record<string,string>;template:string;
   created_at:string|null;generation_model:string|null;
   facts_used:{fact_id:string;kind:string;text:string;source:string;confidence:number;verified:boolean;user_approved:boolean}[];

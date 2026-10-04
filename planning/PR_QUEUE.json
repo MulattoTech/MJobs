@@ -790,11 +790,12 @@
         "MJ-PR-024"
       ],
       "status": "PARTIAL",
-      "branch": "codex/resume-comparison-20261004",
+      "branch": "codex/uploaded-resume-comparison-20261004",
       "draft_until_verified": true,
-      "notes": "MJ096/098 accepted via PR494. Active generated base/tailored comparison; MJ099 uploaded-original comparison and MJ097 conventional headings remain open. Broader MJ026 tailoring remains PARTIAL.",
+      "notes": "MJ096/098 accepted. PR495 generated comparison merged; active uploaded-original completion for MJ099. MJ097 headings and broader MJ095 remain open.",
       "integrated_incremental_prs": [
-        494
+        494,
+        495
       ]
     },
     {
