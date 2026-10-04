@@ -695,7 +695,7 @@
       "status": "PARTIAL",
       "branch": "codex/pr024-job-lifecycle-rebased-20261003",
       "draft_until_verified": true,
-      "notes": "PR481 merged after exact-head verification. Durable lifecycle/history implemented; maintain PARTIAL pending a requirement-level acceptance audit, not because Git publication is pending.",
+      "notes": "2026-10-04 audit: status retention and material history pass local SQLite/PostgreSQL acceptance. Closure authority passes for attached postings; cross-provider canonical attachment remains incomplete. See docs/evidence/2026-10-04-lifecycle-profile-acceptance.json.",
       "evidence_path": "docs/evidence/2026-10-03-job-lifecycle.json",
       "scope_complete": false,
       "local_validation": "PASS",
@@ -719,10 +719,10 @@
       "depends_on": [
         "MJ-PR-024"
       ],
-      "status": "QUEUED",
-      "branch": "codex/mj-pr-025-career-profile-documents",
+      "status": "PARTIAL",
+      "branch": "codex/lifecycle-profile-acceptance-20261004",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. PR #453 integrated reviewed import/profile/resume history; full queue scope and requirement acceptance remain incomplete. Upload integrity continuation verified locally; exact-head CI pending. See docs/evidence/2026-10-03-resume-upload-integrity.json.",
+      "notes": "Normalized contact/profile fields completed with optional work authorization, sponsorship and technology experience. Native PDF/DOCX/TXT import reused. Scanned OCR and richer extraction remain. Hosted exact-head verification pending.",
       "feedback_slice": {
         "branch": "codex/resume-driven-profile",
         "result": "PARTIAL",
@@ -733,7 +733,8 @@
       },
       "integrated_incremental_prs": [
         453
-      ]
+      ],
+      "evidence_path": "docs/evidence/2026-10-04-lifecycle-profile-acceptance.json"
     },
     {
       "id": "MJ-PR-026",

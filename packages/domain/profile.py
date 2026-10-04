@@ -45,4 +45,6 @@ class JobPreferences(BaseModel):
     max_commute_minutes: int | None = Field(default=None, ge=0, le=1440)
     travel_preference: ShortText = ''
     salary_expectations: ShortText = ''
+    work_authorization: ShortText = ''
+    sponsorship_needs: Literal['NOT_SPECIFIED', 'REQUIRED', 'NOT_REQUIRED'] = 'NOT_SPECIFIED'
     career_goals: str = Field(default='', max_length=3000)

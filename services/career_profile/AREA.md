@@ -16,3 +16,9 @@ Native PDF parsing uses pypdf; DOCX parses only the bounded document XML part;
 UTF-8 TXT stays local. OCR and rich structured chronology remain incomplete.
 Tests: `python -m unittest tests.unit.test_resume_extraction
 tests.integration.test_profile_import tests.browser.test_profile_import`.
+
+MJ-REQ-088/089 use the existing immutable profile snapshots for optional contact
+and job preferences. Work authorization is user-supplied text; sponsorship is
+NOT_SPECIFIED, REQUIRED or NOT_REQUIRED. Neither becomes an approved application
+answer. Technology experience is a sourced career-fact kind with the same explicit
+verification/approval gate as other facts. No new tables or migration are needed.

@@ -7,12 +7,12 @@
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "main b122b0e synchronized;27 old worktrees archived and unregistered;41 old local and41 remote branches retired;one isolated cleanup candidate in progress;root status clean",
-    "current_verified_github_state": "PR479/481/482 merged;PR480 superseded;issue399 closed;no open PR at audit start",
-    "current_verified_at": "2026-10-04T14:03:47.184867+00:00"
+    "current_verified_local_state": "Clean main fcfa104c600dde35d35558baa84180613bc312e4 at entry; sole primary writer on new delivery branch.",
+    "current_verified_github_state": "PR484 merged; no open PRs at entry.",
+    "current_verified_at": "2026-10-04T16:59:45.938988+00:00"
   },
-  "current_milestone": "CLEAN_BASELINE_RECONCILIATION",
-  "current_objective": "Recover unpublished closeout work, harden skill contracts, retire already-integrated and superseded branches without data loss, and publish lean effort-specific continuation prompts.",
+  "current_milestone": "MJ-PR-025-PROFILE-COMPLETENESS",
+  "current_objective": "Verify lifecycle acceptance and finish normalized profile/import gaps using existing reviewed flows.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -68,7 +68,13 @@
     "Durable reviewed public-feed monitoring: bounded scheduled/manual reads, atomic multi-profile matching and receipt, fresh authorization, failure backoff, changed-feed rediscovery and Sources status. Vendor ATS migration and broader providers remain open."
   ],
   "blocked_capabilities": [],
-  "active_requirements": [],
+  "active_requirements": [
+    "MJ-REQ-085",
+    "MJ-REQ-086",
+    "MJ-REQ-087",
+    "MJ-REQ-088",
+    "MJ-REQ-089"
+  ],
   "active_prs": [
     {
       "number": 367,
@@ -588,11 +594,11 @@
     "MJ-PR-016 local Chromium first run used Docker DNS host api, which is not a secure browser origin for crypto.randomUUID; loopback URL rerun passed all five connected UI actions."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-04T00:22:19.621350+00:00",
-    "base_commit": "b4fa3a11762b0c26bfbb09e105f3c47681763e20",
+    "timestamp": "2026-10-04T17:01:16.444423+00:00",
+    "base_commit": "fcfa104c600dde35d35558baa84180613bc312e4",
     "result": "PASS",
-    "scope": "419 Python tests zero skips;33 frontend tests/build; isolated PostgreSQL17 concurrency, authorization locks, restart and migration guard; hosted CI pending.",
-    "evidence_path": "docs/evidence/2026-10-04-company-source-monitoring.json"
+    "scope": "461 Python tests zero skips;38 web tests/build;13 lifecycle and9 profile tests on isolated PostgreSQL17; hosted final-head pending",
+    "evidence_path": "docs/evidence/2026-10-04-lifecycle-profile-acceptance.json"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -654,7 +660,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Audit remaining MJ-PR-024 acceptance and then finish MJ-PR-025 gaps; reuse reviewed resume/profile behavior. Only parallelize MJ-PR-026 and030 after actual prerequisite contracts pass.",
+  "recommended_resume_step": "Finish profile exact-head CI and merge, then advance native import/extraction gaps. Keep cross-provider lifecycle and scanned OCR limitations explicit.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -3047,8 +3053,11 @@
     }
   },
   "session_control": {
-    "requested_action": "RECONCILE_AND_CLEAN_BASELINE",
-    "note": "Current user authorized cleanup, implementation, exact-head-verified merges and continuation prompts; no production submission or unrelated project changes."
+    "owner": "01a107cd-4e66-77d3-b046-fc2c01f4ffb1",
+    "branch": "codex/lifecycle-profile-acceptance-20261004",
+    "write_lanes": 1,
+    "requested_action": "DELIVER_LIFECYCLE_PROFILE_IMPORT",
+    "note": "Current user authorizes implementation, tests, review, push, exact-head-verified merge and continuation. No production deployment or external submissions."
   },
   "pr023_completion": {
     "timestamp": "2026-10-04T01:33:37.729938+00:00",
