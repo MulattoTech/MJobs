@@ -1,39 +1,35 @@
 # Current delivery handoff - 2026-10-04
 
-Sole writer root session `01a107cd-4e66-77d3-b046-fc2c01f4ffb1`, branch
-`codex/document-validation-20261004`, baseline main
-`fdba1e8e40fdaa21ad1c63a54399559fa3b3ce45`.
+Root is sole writer, branch `codex/resume-comparison-20261004`, baseline
+`2a8e95a5023b26f3576b71c2fa46489dc9512094` (PR494 merged).
+Owner session: `01a107cd-4e66-77d3-b046-fc2c01f4ffb1`.
 
-PR485/486/488/489/490/491/492/493 merged with exact-head push/PR CI and runtime
-receipts. MJ-PR024/025 and MJ-REQ092/093/094 accepted. Issue99/MJ098 was reopened
-after a synthetic Unicode probe demonstrated PDF substitution; original closure
-evidence is retained. MJ095 remains PARTIAL despite merged skill-ordering.
+PR485/486/488/489/490/491/492/493/494 merged with exact-head hosted receipts.
+MJ-PR024/025 accepted; MJ092/093/094/096/098 accepted. Broader MJ095 tailoring
+remains PARTIAL. PR494 fixed the proven Unicode output defect; issue99 was
+reclosed with new evidence, preserving its original failure/reopen chronology.
 
-Latest merged receipt: `docs/evidence/2026-10-04-skill-order-exact-head-ci.json`:
-candidate bf82030665ce7f87ee5b3eed00a8d25d79294647, push37228674891/job111513540572
-and PR37228677688/job111513549094, attempt1, all seven artifacts each PASS.
+Latest receipt: `docs/evidence/2026-10-04-document-validation-exact-head-ci.json`.
+Candidate a0a336b7c6d1d155e400b4e6fd853f5a771ce15f; push37229962109/job111517380621
+and PR37229978568/job111517428904,attempt1,all7 artifacts each PASS. Both new
+app-image assertion/Unicode test steps PASS. Merge2a8e95a equals tested tree.
 
-Current slice adds exact assertion checks against immutable approved facts,
-serialized DOCX/PDF/TXT fidelity validation, embedded fonts and explicit glyph
-failure, and durable hash-bound validation receipts. The local mock adapter
-validates historical/current resume content before browser use; unsupported
-claims become REVIEW_REQUIRED. Explicit preparation repairs with a new revision.
-Failed generation preserves prior rows/bytes and removes staged outputs.
+Current comparison slice reads selected generated base/tailored revisions from
+checksum-verified TXT and immutable profile facts. It shows summary and bullet
+changes, reordering, skill emphasis, omissions/additions and contact changes.
+Wrong/missing/corrupt history is unavailable, never reported unchanged. All
+existing records/downloads remain intact; live profile edits do not affect diff.
 
-505 Python tests zero skips,40 web/build,7 isolated PostgreSQL tests,5 actual
-Linux app-image tests in a read-only network-disabled1GiB container, synthetic
-PDF visual inspection and independent final review PASS. Evidence:
-`docs/evidence/2026-10-04-document-validation.json`.
-Required exact final-head push/PR workflows, all seven artifacts per run and the
-new app-image assertion/Unicode test step remain the merge gate. No new schema.
+5 focused backend/Chromium tests,3 final boundary tests,41 web/build,6 isolated
+PostgreSQL tests and independent review PASS. 509 full Python tests zero skips and Chromium visual inspection PASS. Exact
+final-head hosted workflows/runtime artifacts remain pending. Owned test
+PostgreSQL container removed after identity/owner verification. Evidence:
+`docs/evidence/2026-10-04-resume-comparison.json`.
 
-MJ096/MJ098 remain PARTIAL pending hosted gates. Other open document gaps include
-broader tailoring (MJ095), conventional ATS headings (MJ097), and document diff
-(MJ099). This safety repair reuses proven generation/provenance prerequisites;
-it does not declare all MJ-PR026 accepted. Arbitrary prose validation and universal
-Unicode/shaping are not promised; unsupported output fails explicitly.
+MJ099/issue100 stays PARTIAL: uploaded-original base versus tailored comparison
+is still missing. MJ097 conventional headings and broader MJ095 remain open.
+After exact-head merge, reconcile receipts and continue a coherent remaining gap.
 
-After merge, reconcile exact receipts and continue the highest-value coherent
-acceptance gap. Preserve private data and independently owned Codespaces checkout.
-Owned PostgreSQL test container removed; owned runtime containers used --rm.
-User services unchanged; external submission OFF; no production deployment.
+No external submission or production deployment. Preserve private data and the
+independently owned Codespaces checkout. Root owns cleanup only of its temporary
+test containers after identity verification; user services are unchanged.

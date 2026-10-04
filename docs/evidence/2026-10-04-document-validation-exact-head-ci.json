@@ -1,0 +1,151 @@
+{
+  "timestamp": "2026-10-04T19:59:32.537774+00:00",
+  "result": "PASS",
+  "pr": {
+    "baseRefName": "main",
+    "baseRefOid": "fdba1e8e40fdaa21ad1c63a54399559fa3b3ce45",
+    "headRefOid": "a0a336b7c6d1d155e400b4e6fd853f5a771ce15f",
+    "isDraft": true,
+    "mergeStateStatus": "CLEAN",
+    "mergeable": "MERGEABLE",
+    "number": 494,
+    "reviewDecision": "",
+    "state": "OPEN",
+    "url": "https://github.com/MulattoTech/MJobs/pull/494"
+  },
+  "head": "a0a336b7c6d1d155e400b4e6fd853f5a771ce15f",
+  "base": "fdba1e8e40fdaa21ad1c63a54399559fa3b3ce45",
+  "runs": [
+    {
+      "id": 37229962109,
+      "event": "push",
+      "attempt": 1,
+      "head_sha": "a0a336b7c6d1d155e400b4e6fd853f5a771ce15f",
+      "conclusion": "success",
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/37229962109",
+      "jobs": [
+        {
+          "id": 111517380621,
+          "name": "product-suite-and-connected-ui",
+          "conclusion": "success",
+          "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/37229962109/job/111517380621"
+        }
+      ]
+    },
+    {
+      "id": 37229978568,
+      "event": "pull_request",
+      "attempt": 1,
+      "head_sha": "a0a336b7c6d1d155e400b4e6fd853f5a771ce15f",
+      "conclusion": "success",
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/37229978568",
+      "jobs": [
+        {
+          "id": 111517428904,
+          "name": "product-suite-and-connected-ui",
+          "conclusion": "success",
+          "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/37229978568/job/111517428904"
+        }
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "id": 111517428904,
+      "name": "product-suite-and-connected-ui",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/37229978568/job/111517428904"
+    },
+    {
+      "id": 111517380621,
+      "name": "product-suite-and-connected-ui",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/37229962109/job/111517380621"
+    }
+  ],
+  "artifacts": {
+    "push": [
+      {
+        "file": ".git\\afk-dev\\pr494-push-artifacts\\ci-mock-e2e.json",
+        "result": "PASS"
+      },
+      {
+        "file": ".git\\afk-dev\\pr494-push-artifacts\\ci-personal-mode.json",
+        "result": "PASS"
+      },
+      {
+        "file": ".git\\afk-dev\\pr494-push-artifacts\\ci-personal-public-source.json",
+        "result": "PASS"
+      },
+      {
+        "file": ".git\\afk-dev\\pr494-push-artifacts\\ci-personal-public-ui.json",
+        "result": "PASS"
+      },
+      {
+        "file": ".git\\afk-dev\\pr494-push-artifacts\\ci-profile-ocr.json",
+        "result": "PASS"
+      },
+      {
+        "file": ".git\\afk-dev\\pr494-push-artifacts\\ci-recovery.json",
+        "result": "PASS"
+      },
+      {
+        "file": ".git\\afk-dev\\pr494-push-artifacts\\ci-ui.json",
+        "result": "PASS"
+      }
+    ],
+    "pr": [
+      {
+        "file": ".git\\afk-dev\\pr494-pr-artifacts\\ci-mock-e2e.json",
+        "result": "PASS"
+      },
+      {
+        "file": ".git\\afk-dev\\pr494-pr-artifacts\\ci-personal-mode.json",
+        "result": "PASS"
+      },
+      {
+        "file": ".git\\afk-dev\\pr494-pr-artifacts\\ci-personal-public-source.json",
+        "result": "PASS"
+      },
+      {
+        "file": ".git\\afk-dev\\pr494-pr-artifacts\\ci-personal-public-ui.json",
+        "result": "PASS"
+      },
+      {
+        "file": ".git\\afk-dev\\pr494-pr-artifacts\\ci-profile-ocr.json",
+        "result": "PASS"
+      },
+      {
+        "file": ".git\\afk-dev\\pr494-pr-artifacts\\ci-recovery.json",
+        "result": "PASS"
+      },
+      {
+        "file": ".git\\afk-dev\\pr494-pr-artifacts\\ci-ui.json",
+        "result": "PASS"
+      }
+    ]
+  },
+  "codespaces": "NOT_APPLICABLE: no matching paths",
+  "app_image_validation_steps": [
+    {
+      "completedAt": "2026-10-04T19:58:26Z",
+      "conclusion": "success",
+      "name": "Verify Unicode fidelity and assertion rejection in the app image",
+      "number": 22,
+      "startedAt": "2026-10-04T19:58:21Z",
+      "status": "completed"
+    },
+    {
+      "completedAt": "2026-10-04T19:58:31Z",
+      "conclusion": "success",
+      "name": "Verify Unicode fidelity and assertion rejection in the app image",
+      "number": 22,
+      "startedAt": "2026-10-04T19:58:26Z",
+      "status": "completed"
+    }
+  ],
+  "merge_commit": "2a8e95a5023b26f3576b71c2fa46489dc9512094",
+  "baseline_verified": true
+}

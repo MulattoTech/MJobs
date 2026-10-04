@@ -551,6 +551,14 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         from services.documents.history import application_documents
         return {"documents": application_documents(store, application_id)}
 
+    @app.get('/applications/{application_id}/document-comparison')
+    def document_comparison(application_id: str, base_document_id: str, tailored_document_id: str):
+        from services.documents.comparison import compare_resumes, ComparisonUnavailable
+        try:
+            return compare_resumes(store, output_dir, application_id, base_document_id, tailored_document_id)
+        except ComparisonUnavailable as error:
+            raise HTTPException(409, str(error)) from error
+
     @app.get("/documents/{document_id}/{format}")
     def download(document_id: str, format: Literal["pdf", "docx", "txt"]):
         with store.engine.connect() as connection:

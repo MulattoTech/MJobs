@@ -1,7 +1,8 @@
 import React from 'react';
+import {ResumeComparison} from './resume-comparison';
 
 export type GeneratedDocument = {
-  id:string;kind:string;version:number;profile_version:string;fact_ids:string[];
+  id:string;application_id?:string;kind:string;version:number;profile_version:string;fact_ids:string[];
   files:Record<string,string>;sha256:Record<string,string>;template:string;
   created_at:string|null;generation_model:string|null;
   facts_used:{fact_id:string;kind:string;text:string;source:string;confidence:number;verified:boolean;user_approved:boolean}[];
@@ -10,7 +11,7 @@ export type GeneratedDocument = {
 };
 
 export function DocumentHistory({documents}:{documents:GeneratedDocument[]}) {
-  return <>{documents.map(document=><section className="document" key={document.id} aria-label={`${document.kind} version ${document.version}`}>
+  return <><ResumeComparison key={documents.map(row=>row.id).join('|')} documents={documents}/>{documents.map(document=><section className="document" key={document.id} aria-label={`${document.kind} version ${document.version}`}>
     <strong>{document.kind} · v{document.version}</strong>
     {document.generation_context?.mode==='APPROVED_SKILL_ORDER'&&<p>Tailored resume: skill order for {document.generation_context.job_title}. Wording and work history preserved.</p>}
     <p>{document.fact_ids.length} factual sources · profile snapshot {document.profile_version.slice(0,10)}</p>

@@ -1,0 +1,88 @@
+{
+  "timestamp": "2026-10-04T20:06:52.668978+00:00",
+  "result": "PARTIAL",
+  "requirements": [
+    "MJ-REQ-099"
+  ],
+  "base": "2a8e95a5023b26f3576b71c2fa46489dc9512094",
+  "branch": "codex/resume-comparison-20261004",
+  "behavior": [
+    "Explicit same-application generated base/tailored revision selection uses checksum-verified stored TXT and original immutable profile/facts.",
+    "Shows summary changes, bullet/fact changes, relative reordering, matched skills used for emphasis, omissions/additions and contact changes.",
+    "Fact IDs anchor duplicate text; live profile changes never rewrite historical comparisons. Missing evidence, invalid roles, wrong application and invalid paths fail explicitly.",
+    "UI labels both recorded versions, renders text safely and retains existing download links; hosted UI gains real PostgreSQL-backed comparison assertion."
+  ],
+  "checks": [
+    {
+      "command": ".venv/Scripts/python.exe -m unittest tests.browser.test_skill_order tests.integration.test_resume_comparison tests.unit.test_resume_comparison -v",
+      "target": "SQLite immutable history and real Chromium comparison/reload/download",
+      "result": "PASS",
+      "tests": 5,
+      "evidence_path": ".git/afk-dev/resume-comparison-browser.log",
+      "timestamp": "2026-10-04T20:06:52.668978+00:00"
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m unittest tests.integration.test_resume_comparison -q",
+      "target": "final boundary regression including path escape and unavailable historical facts",
+      "result": "PASS",
+      "tests": 3,
+      "evidence_path": ".git/afk-dev/resume-comparison-final-boundaries.log",
+      "timestamp": "2026-10-04T20:06:52.668978+00:00"
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run; npm run build --prefix apps/web",
+      "target": "web",
+      "result": "PASS",
+      "tests": 41,
+      "evidence_path": ".git/afk-dev/resume-comparison-web.log",
+      "timestamp": "2026-10-04T20:06:52.668978+00:00"
+    },
+    {
+      "command": ".venv/Scripts/python.exe .git/afk-dev/resume-comparison-pg.py",
+      "target": "isolated PostgreSQL17 comparison/validation fixtures",
+      "result": "PASS",
+      "tests": 6,
+      "evidence_path": ".git/afk-dev/resume-comparison-pg.log",
+      "timestamp": "2026-10-04T20:06:52.668978+00:00"
+    },
+    {
+      "command": "independent read-only defect review",
+      "target": "comparison API, immutable evidence, classification, privacy boundaries and UI state",
+      "result": "PASS",
+      "note": "No actionable defects; reviewer independently reran four backend tests. Full MJ099 remains PARTIAL without uploaded-original comparison.",
+      "timestamp": "2026-10-04T20:06:52.668978+00:00"
+    },
+    {
+      "timestamp": "2026-10-04T20:08:52.338078+00:00",
+      "command": ".venv/Scripts/python.exe -m unittest discover -s tests -p test_*.py -v",
+      "target": "full local Windows regression",
+      "result": "PASS",
+      "tests": 509,
+      "skipped": 0,
+      "seconds": 203.905,
+      "evidence_path": ".git/afk-dev/resume-comparison-regression.log"
+    },
+    {
+      "timestamp": "2026-10-04T20:08:52.338078+00:00",
+      "command": "Real Chromium screenshot and visual inspection",
+      "target": "generated resume comparison UI",
+      "result": "PASS",
+      "evidence_path": ".git/afk-dev/resume-comparison-preview.png"
+    }
+  ],
+  "initial_failure": {
+    "result": "FAIL",
+    "evidence_path": ".git/afk-dev/resume-comparison-red.log",
+    "note": "Required comparison route absent (404)"
+  },
+  "remaining_checks": [
+    "Exact final-head push/PR CI plus seven artifacts each and new comparison UI assertion"
+  ],
+  "remaining_acceptance": [
+    "Uploaded original base resume versus tailored output is not implemented. Keep MJ099/issue100 PARTIAL; do not infer full acceptance from generated baseline comparison."
+  ],
+  "limitations": [
+    "No semantic inference or automatic fact changes. Original uploaded documents remain in their existing library; this view does not compare them.",
+    "No schema, external submission or live deployment changes."
+  ]
+}
