@@ -1,0 +1,151 @@
+{
+  "timestamp": "2026-10-04T21:23:35.030619+00:00",
+  "result": "PASS",
+  "pr": {
+    "baseRefName": "main",
+    "baseRefOid": "b0c650b98d8c357202b4bdfc7fd2d1103ff3ea28",
+    "headRefOid": "fac1d9fecbbd74b995f4af79b4033d44ef237ace",
+    "isDraft": true,
+    "mergeStateStatus": "CLEAN",
+    "mergeable": "MERGEABLE",
+    "number": 499,
+    "reviewDecision": "",
+    "state": "OPEN",
+    "url": "https://github.com/MulattoTech/MJobs/pull/499"
+  },
+  "head": "fac1d9fecbbd74b995f4af79b4033d44ef237ace",
+  "base": "b0c650b98d8c357202b4bdfc7fd2d1103ff3ea28",
+  "runs": [
+    {
+      "id": 37235354631,
+      "event": "push",
+      "attempt": 1,
+      "head_sha": "fac1d9fecbbd74b995f4af79b4033d44ef237ace",
+      "conclusion": "success",
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/37235354631",
+      "jobs": [
+        {
+          "id": 111533238296,
+          "name": "product-suite-and-connected-ui",
+          "conclusion": "success",
+          "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/37235354631/job/111533238296"
+        }
+      ],
+      "approved_selection_ui": "PASS",
+      "runtime_artifacts": [
+        {
+          "file": "ci-mock-e2e.json",
+          "result": "PASS"
+        },
+        {
+          "file": "ci-personal-mode.json",
+          "result": "PASS"
+        },
+        {
+          "file": "ci-personal-public-source.json",
+          "result": "PASS"
+        },
+        {
+          "file": "ci-personal-public-ui.json",
+          "result": "PASS"
+        },
+        {
+          "file": "ci-profile-ocr.json",
+          "result": "PASS"
+        },
+        {
+          "file": "ci-recovery.json",
+          "result": "PASS"
+        },
+        {
+          "file": "ci-ui.json",
+          "result": "PASS"
+        },
+        {
+          "file": "ci-uploaded-resume-comparison.json",
+          "result": "PASS"
+        }
+      ],
+      "uploaded_comparison_ui": "PASS",
+      "real_ocr_comparison": "PASS",
+      "ats_browser_and_app_image": "PASS"
+    },
+    {
+      "id": 37235378660,
+      "event": "pull_request",
+      "attempt": 1,
+      "head_sha": "fac1d9fecbbd74b995f4af79b4033d44ef237ace",
+      "conclusion": "success",
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/37235378660",
+      "jobs": [
+        {
+          "id": 111533304434,
+          "name": "product-suite-and-connected-ui",
+          "conclusion": "success",
+          "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/37235378660/job/111533304434"
+        }
+      ],
+      "approved_selection_ui": "PASS",
+      "runtime_artifacts": [
+        {
+          "file": "ci-mock-e2e.json",
+          "result": "PASS"
+        },
+        {
+          "file": "ci-personal-mode.json",
+          "result": "PASS"
+        },
+        {
+          "file": "ci-personal-public-source.json",
+          "result": "PASS"
+        },
+        {
+          "file": "ci-personal-public-ui.json",
+          "result": "PASS"
+        },
+        {
+          "file": "ci-profile-ocr.json",
+          "result": "PASS"
+        },
+        {
+          "file": "ci-recovery.json",
+          "result": "PASS"
+        },
+        {
+          "file": "ci-ui.json",
+          "result": "PASS"
+        },
+        {
+          "file": "ci-uploaded-resume-comparison.json",
+          "result": "PASS"
+        }
+      ],
+      "uploaded_comparison_ui": "PASS",
+      "real_ocr_comparison": "PASS",
+      "ats_browser_and_app_image": "PASS"
+    }
+  ],
+  "checks": [
+    {
+      "id": 111533304434,
+      "name": "product-suite-and-connected-ui",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/37235378660/job/111533304434"
+    },
+    {
+      "id": 111533238296,
+      "name": "product-suite-and-connected-ui",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/37235354631/job/111533238296"
+    }
+  ],
+  "applicable_workflows": {
+    "Verification": "PASS for exact-head push and pull_request including all16 runtime artifacts",
+    "Codespaces": "NOT_APPLICABLE: no matching workflow paths changed"
+  },
+  "merge_commit": "4016a732bffde4707b3e0bba07ea2c2a33b69c17",
+  "merged_at": "2026-10-04T21:24:32.695599+00:00",
+  "baseline_tree_matches_candidate": true
+}

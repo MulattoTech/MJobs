@@ -88,6 +88,9 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
         fact_ids = [fact.id for fact in selected]
         texts = [fact.text for fact in selected]
         ordered_rows,context=tailor.order_skills(resume_rows,job) if tailor_resume else (resume_rows,None)
+        emphasized=tailor.emphasis(ordered_rows,job) if tailor_resume else []
+        if context is not None:
+            context['emphasized_fact_ids']=emphasized
         if selection_ids is not None:
             context.update(selection_mode='EXPLICIT_APPROVED_FACTS',selected_fact_ids=selection_ids,
                 available_fact_ids=fact_ids,omitted_fact_ids=[value for value in fact_ids if value not in set(selection_ids)],
@@ -103,6 +106,8 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
             template = (SELECTION_TEMPLATE if selection_ids is not None else (tailor.TEMPLATE if tailor_resume else BASE_TEMPLATE)) if kind=='resume' else 'verified-facts-v1'
             validate_assertions(kind, paragraphs, profile, resume_ids if kind=='resume' else fact_ids, job['title'], template)
             headings = resume_layout(profile, ordered_rows, template)[1] if kind=='resume' else set()
+            fact_indices=[index for index in range(2,len(paragraphs)) if index not in headings] if kind=='resume' else []
+            bold_indices={index for index,row in zip(fact_indices,ordered_rows) if row['fact_id'] in emphasized}
             document = Document()
             document.styles['Normal'].font.name = 'Arial'
             document.styles['Normal'].font.size = Pt(11)
@@ -110,14 +115,16 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
             document.styles['Heading 1'].font.size = Pt(13)
             document.styles['Heading 1'].font.color.rgb = RGBColor(0,0,0)
             for index,text in enumerate(paragraphs):
-                document.add_paragraph(text, style='Heading 1' if index in headings else 'Normal')
+                paragraph=document.add_paragraph(style='Heading 1' if index in headings else 'Normal')
+                run=paragraph.add_run(text)
+                if index in bold_indices:run.bold=True
             docx_path = root / f"{kind}.docx"
             pdf_path = root / f"{kind}.pdf"
             txt_path = root / f"{kind}.txt"
             staged.extend((docx_path, pdf_path, txt_path))
             document.save(docx_path)
             txt_path.write_text('\n'.join(paragraphs) + '\n', encoding='utf-8', newline='\n')
-            render_pdf(pdf_path, paragraphs, heading_indices=headings)
+            render_pdf(pdf_path, paragraphs, heading_indices=headings, bold_indices=bold_indices)
             validate_formats({'docx': docx_path, 'pdf': pdf_path, 'txt': txt_path}, paragraphs)
             records.append({"id": identity(application_id, kind, revision), "application_id": application_id,
                 "kind": kind, "version": revision, "profile_version": profile["version"],

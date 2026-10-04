@@ -3,13 +3,17 @@ from services.documents.errors import PreparationError
 
 BASE_TEMPLATE = 'verified-headings-v1'
 BASE_MODEL = 'deterministic-fact-copy-v2'
-TAILORED_TEMPLATE = 'approved-skill-order-headings-v1'
-TAILORED_MODEL = 'deterministic-skill-order-v2'
-SELECTION_TEMPLATE = 'approved-fact-selection-headings-v1'
-SELECTION_MODEL = 'deterministic-fact-selection-v1'
+TAILORED_TEMPLATE = 'approved-skill-emphasis-v1'
+TAILORED_MODEL = 'deterministic-skill-order-v3'
+SELECTION_TEMPLATE = 'approved-selection-emphasis-v1'
+SELECTION_MODEL = 'deterministic-fact-selection-v2'
+SELECTION_TEMPLATES = {SELECTION_TEMPLATE, 'approved-fact-selection-headings-v1'}
+EMPHASIS_TEMPLATES = {TAILORED_TEMPLATE, SELECTION_TEMPLATE}
 CONTRACTS = {
     'verified-facts-v1': ('deterministic-fact-copy-v1', 'BASE', False),
     'approved-skill-order-v1': ('deterministic-skill-order-v1', 'TAILORED', False),
+    'approved-skill-order-headings-v1': ('deterministic-skill-order-v2', 'TAILORED', True),
+    'approved-fact-selection-headings-v1': ('deterministic-fact-selection-v1', 'TAILORED', True),
     BASE_TEMPLATE: (BASE_MODEL, 'BASE', True),
     TAILORED_TEMPLATE: (TAILORED_MODEL, 'TAILORED', True),
     SELECTION_TEMPLATE: (SELECTION_MODEL, 'TAILORED', True),

@@ -35,7 +35,7 @@ def target_fingerprint(job):
         ensure_ascii=False, sort_keys=True).encode('utf-8')).hexdigest()
 
 
-def order_skills(facts, job):
+def matched_labels(facts, job):
     targets=[]
     seen=set()
     for label in job['skills']:
@@ -44,15 +44,25 @@ def order_skills(facts, job):
         key=canonical or label.casefold()
         if label and key not in seen:
             seen.add(key);targets.append((label,canonical))
-    skills=[row for row in facts if row['kind']=='skill']
     matches={}
-    for row in skills:
+    for row in facts:
         mentions={mention['id'] for mention in extract_skill_mentions(row['text'])}
         exact=canonical_skill_id(row['text'])
         if exact:mentions.add(exact)
         matches[row['fact_id']]=[label for label,canonical in targets if
             (canonical in mentions if canonical else bool(re.search(
                 r'(?<![\w+#.])'+re.escape(label)+r'(?![\w+#.])',row['text'],re.I)))]
+    return matches
+
+
+def emphasis(facts, job):
+    matches=matched_labels([row for row in facts if row['kind'] in ('skill','technology_experience')],job)
+    return [row['fact_id'] for row in facts if matches.get(row['fact_id'])]
+
+
+def order_skills(facts, job):
+    skills=[row for row in facts if row['kind']=='skill']
+    matches=matched_labels([row for row in facts if row['kind'] in ('skill','technology_experience')],job)
     # Python's stable sort retains original order for equally relevant skills.
     ranked=iter(sorted(skills,key=lambda row:-len(matches[row['fact_id']])))
     ordered=[next(ranked) if row['kind']=='skill' else row for row in facts]

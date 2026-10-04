@@ -12,7 +12,7 @@ class SkillOrderTests(unittest.TestCase):
         ordered,context=order_skills(rows,{'id':'job','title':'Administrator','skills':['PowerShell','Windows Server']})
         self.assertEqual([r['fact_id'] for r in ordered],['3','1','2','5','4','0'])
         self.assertEqual({r['fact_id']:r['text'] for r in ordered},{r['fact_id']:r['text'] for r in rows})
-        self.assertEqual(context['matched_skills'],{'0':[],'3':['PowerShell'],'5':['Windows Server']})
+        self.assertEqual(context['matched_skills'],{'0':[],'3':['PowerShell'],'4':['Windows Server'],'5':['Windows Server']})
         self.assertEqual(context['original_fact_ids'],['0','1','2','3','4','5'])
         self.assertEqual(context['ordered_fact_ids'],['3','1','2','5','4','0'])
 
