@@ -7,12 +7,12 @@
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Uploaded comparison implemented; main dashboard PR496 integrated without conflict.",
-    "current_verified_github_state": "PR496 merged at 8d6bf1ce08211efd17cdae36155f5b8977b4605f; uploaded comparison awaiting exact-head hosted checks.",
-    "current_verified_at": "2026-10-04T20:39:25.030826+00:00"
+    "current_verified_local_state": "Sole writer codex/ats-resume-headings-20261004 at 5a2f77c2a622433c9bf3dbcad22294a3de99c595",
+    "current_verified_github_state": "PR497 merged, all16 exact-head runtime artifacts PASS; issue100 closed.",
+    "current_verified_at": "2026-10-04T20:47:50.621120+00:00"
   },
-  "current_milestone": "MJ-PR-027-UPLOADED-RESUME-COMPARISON",
-  "current_objective": "Finish uploaded-original comparison with source provenance and honest extraction uncertainty.",
+  "current_milestone": "MJ-PR-027-ATS-HEADINGS",
+  "current_objective": "Versioned ATS-friendly resume headings preserving approved text and legacy history.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -528,6 +528,14 @@
       "head": "00603322eb5b76e228ff8077b950ef90aecae8e3",
       "merge_commit": "5c5bb565b949746117c3cacb017bdb98f7de171a",
       "ci_evidence": "docs/evidence/2026-10-04-resume-comparison-exact-head-ci.json"
+    },
+    {
+      "number": 497,
+      "url": "https://github.com/MulattoTech/MJobs/pull/497",
+      "status": "MERGED",
+      "head": "fa13af727743859d9923c894647554f03f9d34f5",
+      "merge_commit": "5a2f77c2a622433c9bf3dbcad22294a3de99c595",
+      "ci_evidence": "docs/evidence/2026-10-04-uploaded-comparison-exact-head-ci.json"
     }
   ],
   "tests_passed": [
@@ -670,14 +678,14 @@
     "MJ-PR-016 local Chromium first run used Docker DNS host api, which is not a secure browser origin for crypto.randomUUID; loopback URL rerun passed all five connected UI actions."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-04T20:39:16.235741+00:00",
+    "timestamp": "2026-10-04T20:55:02.669890+00:00",
     "result": "PASS",
-    "scope": "Local uploaded comparison regression, browser, PostgreSQL, OCR image and independent review; hosted pending",
-    "evidence_path": "docs/evidence/2026-10-04-uploaded-resume-comparison.json"
+    "scope": "Local ATS template checks; exact-head hosted pending",
+    "evidence_path": "docs/evidence/2026-10-04-ats-resume-headings.json"
   },
   "ci_verification": {
     "result": "NOT_RUN",
-    "scope": "Current uploaded-comparison candidate not yet published."
+    "scope": "Current ATS template candidate not yet published"
   },
   "mock_spine_ci": {
     "result": "PASS",
@@ -735,7 +743,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Integrate current main, publish uploaded-original comparison, verify exact-head push/PR workflows and all runtime artifacts; merge then advance ATS headings.",
+  "recommended_resume_step": "Publish ATS heading slice, verify final-head push/PR and all runtime artifacts, merge and close issue98 only with complete receipts; then advance remaining MJ095.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -775,8 +783,8 @@
   "last_implementation_commit": "b4fa3a11762b0c26bfbb09e105f3c47681763e20",
   "publication": {
     "result": "NOT_RUN",
-    "branch": "codex/uploaded-resume-comparison-20261004",
-    "base": "8d6bf1ce08211efd17cdae36155f5b8977b4605f"
+    "branch": "codex/ats-resume-headings-20261004",
+    "base": "5a2f77c2a622433c9bf3dbcad22294a3de99c595"
   },
   "optional_afk_journal": {
     "result": "PASS",
@@ -2898,9 +2906,7 @@
         "11 PostgreSQL 17 tests at actual Alembic head",
         "Real offline OCR app image scanned and mixed PDFs PASS"
       ],
-      "tests_remaining": [
-        "Exact final-head push and pull-request CI, all eight runtime JSON artifacts each, and hosted uploaded-comparison UI assertion"
-      ],
+      "tests_remaining": [],
       "migrations_applied": [],
       "live_integrations_tested": [],
       "known_errors": [],
@@ -2909,17 +2915,47 @@
       ],
       "milestone_id": "uploaded-resume-comparison-20261004",
       "timestamp": "2026-10-04T20:21:19.219179+00:00",
-      "current_phase": "LOCAL_VALIDATED",
+      "current_phase": "MERGED",
       "last_safe_checkpoint": {
         "git_commit": "5c5bb565b949746117c3cacb017bdb98f7de171a",
         "evidence_path": "docs/evidence/2026-10-04-resume-comparison-exact-head-ci.json"
+      }
+    },
+    {
+      "completed_steps": [
+        "Versioned generic/tailored heading contracts implemented",
+        "Generation, assertion validation, pre-use, comparison, library and UI dispatch integrated",
+        "Legacy NULL-model compatibility review finding fixed"
+      ],
+      "files_added": [],
+      "files_modified": [],
+      "tests_completed": [
+        "522 full Python regressions before final compatibility correction;13 final focused regressions",
+        "43 final web tests and build",
+        "14 final PostgreSQL tests",
+        "8 actual Linux runtime tests and PDF visual inspection",
+        "Independent defect review PASS"
+      ],
+      "tests_remaining": [
+        "Exact final-head hosted workflows and runtime artifacts"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [],
+      "milestone_id": "ats-headings-20261004",
+      "timestamp": "2026-10-04T20:47:50.621120+00:00",
+      "current_phase": "LOCAL_VALIDATED",
+      "last_safe_checkpoint": {
+        "git_commit": "5a2f77c2a622433c9bf3dbcad22294a3de99c595",
+        "evidence_path": "docs/evidence/2026-10-04-uploaded-comparison-exact-head-ci.json"
       }
     }
   ],
   "current_phase": "LOCAL_VALIDATED",
   "last_safe_checkpoint": {
-    "git_commit": "5c5bb565b949746117c3cacb017bdb98f7de171a",
-    "evidence_path": "docs/evidence/2026-10-04-resume-comparison-exact-head-ci.json"
+    "git_commit": "5a2f77c2a622433c9bf3dbcad22294a3de99c595",
+    "evidence_path": "docs/evidence/2026-10-04-uploaded-comparison-exact-head-ci.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
@@ -3003,9 +3039,9 @@
     "ownership": "Root sole writer; independently owned Codespaces worktree preserved; no open PR at slice start."
   },
   "active_development_issue": {
-    "number": 100,
+    "number": 98,
     "status": "PARTIAL",
-    "branch": "codex/uploaded-resume-comparison-20261004"
+    "branch": "codex/ats-resume-headings-20261004"
   },
   "historical_control_snapshots": [
     {
@@ -3409,7 +3445,7 @@
   },
   "session_control": {
     "owner": "01a107cd-4e66-77d3-b046-fc2c01f4ffb1",
-    "branch": "codex/uploaded-resume-comparison-20261004",
+    "branch": "codex/ats-resume-headings-20261004",
     "write_lanes": 1,
     "requested_action": "DELIVER_LIFECYCLE_PROFILE_IMPORT",
     "note": "Current user authorizes implementation, tests, review, push, exact-head-verified merge and continuation. No production deployment or external submissions."

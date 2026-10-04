@@ -27,7 +27,7 @@ def _font_path():
     raise PreparationError('DOCUMENT_FONT_UNAVAILABLE', 'Install the supported local font before generating PDF documents')
 
 
-def render_pdf(path, paragraphs):
+def render_pdf(path, paragraphs, heading_indices=()):
     with _FONT_LOCK:
         if _FONT_NAME not in pdfmetrics.getRegisteredFontNames():
             pdfmetrics.registerFont(TTFont(_FONT_NAME, str(_font_path())))
@@ -39,7 +39,10 @@ def render_pdf(path, paragraphs):
             raise PreparationError('DOCUMENT_UNSUPPORTED_GLYPH', 'The local PDF renderer cannot faithfully render this text; retain the original and review its characters')
         styles = getSampleStyleSheet()
         styles['Normal'].fontName = _FONT_NAME
+        styles['Heading2'].fontName = _FONT_NAME
+        styles['Heading2'].fontSize = 13
+        styles['Heading2'].leading = 16
         flowables = []
-        for text in paragraphs:
-            flowables.extend([Paragraph(escape(text), styles['Normal']), Spacer(1, 8)])
+        for index,text in enumerate(paragraphs):
+            flowables.extend([Paragraph(escape(text), styles['Heading2' if index in heading_indices else 'Normal']), Spacer(1, 8)])
         SimpleDocTemplate(str(path)).build(flowables)

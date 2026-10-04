@@ -4,8 +4,7 @@ import json
 import re
 from services.discovery.skill_taxonomy import canonical_skill_id, extract_skill_mentions
 
-TEMPLATE = 'approved-skill-order-v1'
-MODEL = 'deterministic-skill-order-v1'
+from services.documents.templates import TAILORED_TEMPLATE as TEMPLATE, TAILORED_MODEL as MODEL
 
 
 def target_fingerprint(job):

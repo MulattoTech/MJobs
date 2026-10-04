@@ -1,8 +1,15 @@
 import {describe,expect,it} from 'vitest';
 import {renderToStaticMarkup} from 'react-dom/server';
-import {ComparisonResult,type Comparison} from './resume-comparison';
+import {ComparisonResult,ResumeComparison,type Comparison} from './resume-comparison';
+import type {GeneratedDocument} from './document-history';
 
 describe('resume comparison',()=>{
+  it('offers legacy unknown-model and new exact-contract baselines without accepting mismatched models',()=>{
+    const base:GeneratedDocument={id:'legacy',kind:'resume',version:1,profile_version:'snapshot',fact_ids:[],files:{},sha256:{},template:'verified-facts-v1',created_at:null,generation_model:null,facts_used:[],missing_fact_ids:[]};
+    const target:GeneratedDocument={...base,id:'target',version:3,template:'approved-skill-order-headings-v1',generation_model:'deterministic-skill-order-v2',generation_context:{mode:'APPROVED_SKILL_ORDER',job_title:'Example',job_skills:[],matched_skills:{},original_fact_ids:[],ordered_fact_ids:[]}};
+    const html=renderToStaticMarkup(<ResumeComparison documents={[base,{...base,id:'new',version:2,template:'verified-headings-v1',generation_model:'deterministic-fact-copy-v2'},target,{...base,id:'invalid',template:'verified-headings-v1'}]}/>);
+    expect(html).toContain('value="g:legacy"');expect(html).toContain('value="g:new"');expect(html).toContain('value="target"');expect(html).not.toContain('g:invalid');
+  });
   it('renders every change category, actual revision labels and escaped historical text',()=>{
     const before={fact_id:'summary',kind:'summary',text:'Original summary'};
     const after={...before,text:'<script>reviewed text</script>'};

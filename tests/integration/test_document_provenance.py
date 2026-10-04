@@ -49,7 +49,7 @@ class DocumentProvenanceTests(unittest.TestCase):
             first = client.get(f'/applications/{app_id}/documents').json()['documents']
             before = {}
             for row in first:
-                self.assertEqual(row['generation_model'], 'deterministic-fact-copy-v1')
+                self.assertEqual(row['generation_model'], 'deterministic-fact-copy-v2' if row['kind']=='resume' else 'deterministic-fact-copy-v1')
                 self.assertEqual(row['created_at'], '2026-10-04T12:00:00+00:00')
                 datetime.fromisoformat(row['created_at'])
                 self.assertEqual(row['job_id'], job['id'])

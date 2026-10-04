@@ -4,8 +4,9 @@ from docx import Document
 from pypdf import PdfReader
 
 from services.documents.errors import PreparationError
+from services.documents.templates import CONTRACTS, contract_role, resume_layout
 
-VALIDATOR = 'exact-approved-facts-v1'
+VALIDATOR = 'exact-approved-facts-v2'
 
 
 def _read(path, reader):
@@ -19,12 +20,20 @@ def _paragraphs(path):
     return _read(path, lambda p: [paragraph.text for paragraph in Document(p).paragraphs])
 
 
-def validate_assertions(kind, paragraphs, profile, fact_ids, job_title=None):
+def validate_assertions(kind, paragraphs, profile, fact_ids, job_title=None, template='verified-facts-v1'):
     eligible = {row['fact_id']: row['text'] for row in profile['facts']
                 if row['verified'] and row['user_approved'] and row['confidence'] >= 80 and row['source'].strip()}
     if len(set(fact_ids)) != len(fact_ids) or any(identifier not in eligible for identifier in fact_ids):
         raise PreparationError('UNSUPPORTED_CLAIM', 'Document references unapproved or missing career facts')
     if kind == 'resume':
+        if template not in CONTRACTS:
+            raise PreparationError('UNSUPPORTED_CLAIM', 'Document template has no assertion validation contract')
+        if CONTRACTS[template][2]:
+            by_id = {row['fact_id']:row for row in profile['facts']}
+            expected, _ = resume_layout(profile, [by_id[i] for i in fact_ids], template)
+            if paragraphs != expected:
+                raise PreparationError('UNSUPPORTED_CLAIM', 'Document assertions differ from the approved factual inputs and template structure')
+            return
         header = [profile['name'], profile['email']]
     elif kind == 'cover-letter' and job_title is not None:
         header = [profile['name'], f'Application for {job_title}']
@@ -49,9 +58,11 @@ def validate_formats(paths, paragraphs):
         raise PreparationError('DOCUMENT_CONTENT_MISMATCH', 'PDF content differs from validated assertions')
 
 
-def validate_stored_resume(paths, profile, fact_ids):
+def validate_stored_resume(paths, profile, fact_ids, template='verified-facts-v1', model=None):
+    if not contract_role(template, model, allow_legacy_unrecorded=True):
+        raise PreparationError('UNSUPPORTED_CLAIM', 'Document template and generation model have no validation contract')
     if 'docx' not in paths:
         raise PreparationError('DOCUMENT_CONTENT_MISMATCH', 'DOCX is required for assertion validation')
     paragraphs = _paragraphs(paths['docx'])
-    validate_assertions('resume', paragraphs, profile, fact_ids)
+    validate_assertions('resume', paragraphs, profile, fact_ids, template=template)
     validate_formats(paths, paragraphs)

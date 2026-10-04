@@ -790,12 +790,13 @@
         "MJ-PR-024"
       ],
       "status": "PARTIAL",
-      "branch": "codex/uploaded-resume-comparison-20261004",
+      "branch": "codex/ats-resume-headings-20261004",
       "draft_until_verified": true,
-      "notes": "MJ096/098 accepted. PR495 generated comparison merged; active uploaded-original completion for MJ099. MJ097 headings and broader MJ095 remain open.",
+      "notes": "MJ096/098/099 accepted. Active MJ097 ATS headings. MJ095 broader tailoring remains PARTIAL.",
       "integrated_incremental_prs": [
         494,
-        495
+        495,
+        497
       ]
     },
     {

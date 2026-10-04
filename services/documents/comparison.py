@@ -3,10 +3,10 @@ import hashlib
 from pathlib import Path
 from sqlalchemy.exc import NoResultFound
 
-from services.documents import tailor
 from services.documents.history import application_documents
 from services.documents.validation import validate_assertions
 from services.documents.errors import PreparationError
+from services.documents.templates import contract_role, resume_layout
 
 
 class ComparisonUnavailable(ValueError):
@@ -53,8 +53,10 @@ def read_generated_snapshot(store, output_dir, row):
             raise ComparisonUnavailable('Original document integrity check failed')
         text=content.decode('utf-8')
         profile=store.profile(row['profile_id'],row['profile_version'])
-        paragraphs=[profile['name'],profile['email'],*[fact['text'] for fact in row['facts_used']]]
-        validate_assertions('resume',paragraphs,profile,row['fact_ids'])
+        if not contract_role(row['template'],row['generation_model'],allow_legacy_unrecorded=True):
+            raise ComparisonUnavailable('Original document generation contract is unavailable')
+        paragraphs,_=resume_layout(profile,row['facts_used'],row['template'])
+        validate_assertions('resume',paragraphs,profile,row['fact_ids'],template=row['template'])
         if text!='\n'.join(paragraphs)+'\n':
             raise ComparisonUnavailable('Stored text differs from its original fact history')
     except (OSError,UnicodeError,PreparationError,NoResultFound) as error:
@@ -66,7 +68,7 @@ def read_generated_snapshot(store, output_dir, row):
 
 def tailored_context(target):
     if (not target or target['kind']!='resume' or
-        target['template']!=tailor.TEMPLATE or target['generation_model']!=tailor.MODEL or
+        contract_role(target['template'],target['generation_model'])!='TAILORED' or
         (target['generation_context'] or {}).get('mode')!='APPROVED_SKILL_ORDER'):
         raise ComparisonUnavailable('Choose a recorded tailored resume from this application')
     context=target['generation_context']
@@ -80,8 +82,7 @@ def tailored_context(target):
 def compare_resumes(store, output_dir, application_id, base_document_id, tailored_document_id):
     rows={row['id']:row for row in application_documents(store,application_id)}
     base=rows.get(base_document_id);target=rows.get(tailored_document_id)
-    if (not base or base['kind']!='resume' or base['template']!='verified-facts-v1' or
-        base['generation_model']!='deterministic-fact-copy-v1'):
+    if (not base or base['kind']!='resume' or contract_role(base['template'],base['generation_model'],allow_legacy_unrecorded=True)!='BASE'):
         raise ComparisonUnavailable('Choose a recorded generated base and tailored resume from this application')
     context=tailored_context(target)
     before=read_generated_snapshot(store,output_dir,base);after=read_generated_snapshot(store,output_dir,target)

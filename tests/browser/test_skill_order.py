@@ -69,7 +69,7 @@ class SkillOrderBrowserTests(unittest.TestCase):
                     with page.expect_download() as downloaded:
                         document.get_by_role('link',name='Download TXT',exact=True).click()
                     self.assertEqual(Path(downloaded.value.path()).read_text(encoding='utf-8').splitlines(),
-                        ['Alex Fixture','alex@example.test','Python','SQL'])
+                        ['Alex Fixture','alex@example.test','Skills','Python','SQL'])
                     for _ in range(2):
                         comparison=page.get_by_role('region',name='Compare base and tailored resumes',exact=True)
                         comparison.get_by_role('button',name='Compare selected resumes',exact=True).click()
