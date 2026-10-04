@@ -326,7 +326,7 @@ def _view_url(value):
 def _view_event(row):
     payload = row["payload"] if isinstance(row["payload"], dict) else {}
     fields = ("company_source_id", "discovery_method", "provider", "tenant", "collection_strategy",
-              "strategy", "jobs_enumerated", "jobs_imported", "resolution_confidence", "status", "error_code")
+              "strategy", "jobs_enumerated", "jobs_imported", "matched_jobs", "evaluated_profile_count", "resolution_confidence", "status", "error_code")
     details = {}
     for key in fields:
         value = payload.get(key)

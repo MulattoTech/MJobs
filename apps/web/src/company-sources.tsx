@@ -2,6 +2,7 @@ import React from 'react';
 import { discoveryActivity } from './company-activity';
 import { SourceLinkEvidence, type LinkVerification } from './source-link-evidence';
 import { CompanySourceMonitoring, type Monitoring } from './company-source-monitoring';
+import { SourceQuality, type SourceQualityValue } from './source-quality';
 
 export type CompanySourceView = {
   id: string;
@@ -26,7 +27,7 @@ export type CompanySourceView = {
   source_version?: string;
   monitoring_supported?: boolean;
   monitoring?: Monitoring | null;
-  quality?: {link_verification?: LinkVerification | null};
+  quality?: SourceQualityValue & {link_verification?: LinkVerification | null};
   provenance: {
     domain_method?: string | null;
     domain_candidates_ambiguous?: boolean;
@@ -97,6 +98,7 @@ export function CompanySources({rows, busy, profileSelected, onSet, onMonitor, o
           <div><dt>Next Check</dt><dd>{row.next_check ? timestamp(row.next_check) : 'Not scheduled'}</dd></div>
         </dl>
         <SourceLinkEvidence evidence={row.quality?.link_verification} />
+        <SourceQuality quality={row.quality} />
         {onMonitor && onRun && <CompanySourceMonitoring sourceId={row.id} sourceVersion={row.source_version || ''}
           sourceEnabled={row.enabled} supported={!!row.monitoring_supported} monitoring={row.monitoring || null}
           busy={busy} profileSelected={profileSelected} onMonitor={interval=>onMonitor(row,interval)} onRun={()=>onRun(row)}/>}
