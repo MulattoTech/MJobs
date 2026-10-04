@@ -1,33 +1,39 @@
-# Current delivery handoff — 2026-10-04
+# Current delivery handoff - 2026-10-04
 
 Sole writer root session `01a107cd-4e66-77d3-b046-fc2c01f4ffb1`, branch
-`codex/approved-skill-order-20261004`, baseline main
-`49d71a9c99b045e8bb76b2d2ae136c4f52a49454`.
+`codex/document-validation-20261004`, baseline main
+`fdba1e8e40fdaa21ad1c63a54399559fa3b3ce45`.
 
-PR485/486/488/489/490/491/492 merged with exact-head push/PR CI and runtime receipts.
-MJ-PR024/025 plus MJ-REQ092/093/094/098 accepted; issues86–95 and99 closed.
-Latest receipt: `docs/evidence/2026-10-04-document-library-exact-head-ci.json`,
-candidate618878db34e8369247069a648e71f259f852d13d, push37227534862 and
-PR37227539003,attempt1,all seven artifacts each PASS. The library stores all
-seven types without approving facts or mislabeling generic generation.
+PR485/486/488/489/490/491/492/493 merged with exact-head push/PR CI and runtime
+receipts. MJ-PR024/025 and MJ-REQ092/093/094 accepted. Issue99/MJ098 was reopened
+after a synthetic Unicode probe demonstrated PDF substitution; original closure
+evidence is retained. MJ095 remains PARTIAL despite merged skill-ordering.
 
-Current slice implements explicit opt-in skill ordering through API/worker/UI.
-Only approved skill facts move within their existing slots; all wording and
-non-skill history stay exact. Generic output remains available. Original target
-snapshot, matching and ordered IDs are recorded with distinct method/template.
-Mode/target/profile changes create allowed-state revisions; identical requests
-are idempotent; confirmed/active history stays locked. Migration cf4216a93b85
-(parent be3105f82a74) refuses loss of recorded context and preserves legacy unknowns.
+Latest merged receipt: `docs/evidence/2026-10-04-skill-order-exact-head-ci.json`:
+candidate bf82030665ce7f87ee5b3eed00a8d25d79294647, push37228674891/job111513540572
+and PR37228677688/job111513549094, attempt1, all seven artifacts each PASS.
 
-500 Python tests zero skips,40 web/build,13 isolated PostgreSQL, real Chromium and
-independent review PASS. `docs/evidence/2026-10-04-approved-skill-order.json`.
-Exact final-head hosted push/PR workflows and seven artifacts each remain the
-merge gate. Hosted UI proof now includes the explicit option through the worker.
-MJ-REQ095/issue96 remains PARTIAL even after merge: summary adjustment, rephrasing,
-bullet selection/removal and broader keyword alignment are not implemented.
+Current slice adds exact assertion checks against immutable approved facts,
+serialized DOCX/PDF/TXT fidelity validation, embedded fonts and explicit glyph
+failure, and durable hash-bound validation receipts. The local mock adapter
+validates historical/current resume content before browser use; unsupported
+claims become REVIEW_REQUIRED. Explicit preparation repairs with a new revision.
+Failed generation preserves prior rows/bytes and removes staged outputs.
 
-After merge, reconcile exact receipts and choose the next coherent document
-safety/quality gap by acceptance (MJ-REQ096/097 are candidates). Preserve all
-private data, independently owned Codespaces checkout and user services. Owned
-PostgreSQL test container removed. External submission OFF; no production
-deployment or private resume transfer is authorized.
+505 Python tests zero skips,40 web/build,7 isolated PostgreSQL tests,5 actual
+Linux app-image tests in a read-only network-disabled1GiB container, synthetic
+PDF visual inspection and independent final review PASS. Evidence:
+`docs/evidence/2026-10-04-document-validation.json`.
+Required exact final-head push/PR workflows, all seven artifacts per run and the
+new app-image assertion/Unicode test step remain the merge gate. No new schema.
+
+MJ096/MJ098 remain PARTIAL pending hosted gates. Other open document gaps include
+broader tailoring (MJ095), conventional ATS headings (MJ097), and document diff
+(MJ099). This safety repair reuses proven generation/provenance prerequisites;
+it does not declare all MJ-PR026 accepted. Arbitrary prose validation and universal
+Unicode/shaping are not promised; unsupported output fails explicitly.
+
+After merge, reconcile exact receipts and continue the highest-value coherent
+acceptance gap. Preserve private data and independently owned Codespaces checkout.
+Owned PostgreSQL test container removed; owned runtime containers used --rm.
+User services unchanged; external submission OFF; no production deployment.

@@ -22,6 +22,7 @@ jobs:
       - run: npm run build --prefix apps/web
       - run: python -m pip install -r requirements.lock
       - run: python -m playwright install --with-deps chromium
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends fonts-dejavu-core
       - run: python -m unittest discover -s tests -p 'test_*.py' -v
       - run: python -m tools.verification.agent_skills
       - run: python -m tools.verification.catalogue
@@ -39,6 +40,8 @@ jobs:
       - run: python -m cli.ui_e2e --evidence outputs/ci-ui.json
       - name: Verify real offline scanned-resume OCR in the app image
         run: docker compose exec -T api python -m cli.profile_ocr_e2e > outputs/ci-profile-ocr.json
+      - name: Verify Unicode fidelity and assertion rejection in the app image
+        run: docker compose exec -T api python -m unittest tests.integration.test_document_validation -v
       - run: python -m cli.compose_recovery --baseline outputs/ci-mock-e2e.json --evidence outputs/ci-recovery.json
       - run: docker compose --profile fixture down
       - run: MJOBS_PORT=18701 MJOBS_OPERATION_MODE=PERSONAL MJOBS_COMPOSE_MOCK=0 COMPOSE_PROFILES='' docker compose -p mjobs-personal up -d --no-build --wait --wait-timeout 120

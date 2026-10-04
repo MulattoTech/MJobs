@@ -12,6 +12,8 @@ from packages.domain.safety import Fact, Policy, SubmissionContext, evaluate_sub
 from packages.persistence import models as m
 from packages.persistence.store import now
 from services.discovery.pipeline import MockClient
+from services.documents.errors import PreparationError
+from services.documents.validation import validate_stored_resume, VALIDATOR
 
 
 def _receipt(client, application, requisition):
@@ -95,6 +97,15 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
                 files[(document["kind"], extension)] = path
         if {document["kind"] for document in documents} != {"resume", "cover-letter"}:
             raise ValueError("Prepared document set incomplete")
+        resume = next(document for document in documents if document['kind']=='resume')
+        try:
+            validate_stored_resume({ext:path for (kind,ext),path in files.items() if kind=='resume'}, profile, resume['fact_ids'])
+        except PreparationError as error:
+            store.transition(application_id, [application['state']], 'REVIEW_REQUIRED', error.code)
+            raise
+        with store.engine.begin() as connection:
+            store._audit(connection, application_id, 'RESUME_VALIDATED_BEFORE_USE',
+                         {'validator': VALIDATOR, 'document_id': resume['id'], 'sha256': resume['sha256']})
         store.transition(application_id, [application["state"]], "FILLING", "NAVIGATE")
         attempt_id = uuid4().hex
         with store.engine.begin() as connection:

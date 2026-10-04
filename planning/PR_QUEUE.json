@@ -758,7 +758,7 @@
       "status": "PARTIAL",
       "branch": "codex/approved-skill-order-20261004",
       "draft_until_verified": true,
-      "notes": "MJ-REQ092/093/094 accepted via PR491/492. Active opt-in skill-ordering increment; broader tailoring095 remains PARTIAL.",
+      "notes": "MJ092/093/094 accepted. PR493 skill-only ordering merged; broader MJ095 tailoring remains PARTIAL. No retired branch revival.",
       "feedback_slice": {
         "branch": "codex/resume-driven-profile",
         "result": "PARTIAL",
@@ -770,7 +770,8 @@
       "integrated_incremental_prs": [
         453,
         491,
-        492
+        492,
+        493
       ]
     },
     {
@@ -788,10 +789,10 @@
         "MJ-PR-026",
         "MJ-PR-024"
       ],
-      "status": "QUEUED",
-      "branch": "codex/mj-pr-027-career-profile-documents",
+      "status": "PARTIAL",
+      "branch": "codex/document-validation-20261004",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "Active factual validation and proven output-fidelity repair. Existing generation/provenance contracts suffice for this safety increment; broader MJ026 tailoring remains PARTIAL. MJ097/099 remain open."
     },
     {
       "id": "MJ-PR-028",

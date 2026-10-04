@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-04T19:32:05.465854+00:00",
+  "timestamp": "2026-10-04T19:51:47.651939+00:00",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -839,9 +839,10 @@
       "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-09-29-mock-spine.md",
-        "docs/evidence/2026-09-30-user-testing.md"
+        "docs/evidence/2026-09-30-user-testing.md",
+        "docs/evidence/2026-10-04-document-validation.json"
       ],
-      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open"
+      "note": "Local assertion/fidelity and runtime tests PASS; full local and exact-head hosted gates pending. MJ098 issue99 reopened after reproduced Unicode substitution; prior evidence retained."
     },
     {
       "requirement_id": "MJ-REQ-097",
@@ -851,13 +852,14 @@
     },
     {
       "requirement_id": "MJ-REQ-098",
-      "result": "PASS",
+      "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-09-30-user-testing.md",
         "docs/evidence/2026-10-04-document-provenance.json",
-        "docs/evidence/2026-10-04-document-provenance-exact-head-ci.json"
+        "docs/evidence/2026-10-04-document-provenance-exact-head-ci.json",
+        "docs/evidence/2026-10-04-document-validation.json"
       ],
-      "note": "Accepted in PR491 with exact-head workflows and all14 runtime artifacts; original facts/provenance, immutable revisions and PDF/DOCX/TXT verified."
+      "note": "Local assertion/fidelity and runtime tests PASS; full local and exact-head hosted gates pending. MJ098 issue99 reopened after reproduced Unicode substitution; prior evidence retained."
     },
     {
       "requirement_id": "MJ-REQ-099",

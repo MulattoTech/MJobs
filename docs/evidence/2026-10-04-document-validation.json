@@ -1,0 +1,89 @@
+{
+  "timestamp": "2026-10-04T19:51:47.651939+00:00",
+  "result": "PARTIAL",
+  "requirements": [
+    "MJ-REQ-096",
+    "MJ-REQ-098"
+  ],
+  "baseline": "fdba1e8e40fdaa21ad1c63a54399559fa3b3ce45",
+  "branch": "codex/document-validation-20261004",
+  "behavior": [
+    "Exact generated assertions compared against sourced verified user-approved confidence>=80 facts and explicit identity/template fields; unsupported claims cannot be promoted.",
+    "DOCX/TXT/PDF serialized readback checked before transaction commit; durable audit receipts bind original fact IDs/profile version and file hashes.",
+    "Embedded Arial/DejaVu with glyph coverage and bidi rejection; global font use serialized; unsupported glyphs fail with no silent substitution.",
+    "Current resume is independently revalidated against its original immutable profile before mock browser use; rejection becomes REVIEW_REQUIRED and explicit preparation creates a new revision.",
+    "Prior revisions, application state and bytes survive failed new generation; legacy files are never rewritten."
+  ],
+  "initial_failure": {
+    "result": "FAIL",
+    "evidence_path": ".git/afk-dev/document-validation-red.log",
+    "note": "Greek/Cyrillic substitution and hash-valid unsupported resume accepted by old code; issue99 reopened https://github.com/MulattoTech/MJobs/issues/99#issuecomment-5983636110"
+  },
+  "checks": [
+    {
+      "command": ".venv/Scripts/python.exe -m unittest tests.unit.test_document_validation tests.integration.test_document_validation -v",
+      "target": "isolated SQLite and Windows Arial",
+      "result": "PASS",
+      "tests": 5,
+      "evidence_path": ".git/afk-dev/document-validation-focused-final.log",
+      "timestamp": "2026-10-04T19:51:47.651939+00:00"
+    },
+    {
+      "command": ".venv/Scripts/python.exe .git/afk-dev/document-validation-pg.py",
+      "target": "isolated PostgreSQL17, owned container13c9da4e8ac2 (removed after exact identity/owner verification)",
+      "result": "PASS",
+      "tests": 7,
+      "evidence_path": ".git/afk-dev/document-validation-pg.log",
+      "timestamp": "2026-10-04T19:51:47.651939+00:00"
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run; npm run build --prefix apps/web",
+      "target": "local web",
+      "result": "PASS",
+      "tests": 40,
+      "evidence_path": ".git/afk-dev/document-validation-web.log",
+      "timestamp": "2026-10-04T19:51:47.651939+00:00"
+    },
+    {
+      "command": "docker run --rm --network none --read-only --tmpfs /tmp:rw,exec,size=256m --memory 1g --cpus 2 mjobs-document-validation:20261004 python -m unittest tests.integration.test_document_validation tests.unit.test_document_validation -v",
+      "target": "actual Linux app image sha256:097ad8aaaef3a2f1637d1699f693abdc6d980c439bf308bb7f6dd9e7271da302; DejaVu Sans",
+      "result": "PASS",
+      "tests": 5,
+      "evidence_path": ".git/afk-dev/document-validation-runtime.log",
+      "timestamp": "2026-10-04T19:51:47.651939+00:00"
+    },
+    {
+      "command": "pdftoppm -png -scale-to 1200 -singlefile synthetic sample.pdf; visual inspection",
+      "target": "synthetic Windows Arial Unicode PDF",
+      "result": "PASS",
+      "evidence_path": ".git/afk-dev/document-validation-preview/sample.png",
+      "timestamp": "2026-10-04T19:51:47.651939+00:00"
+    },
+    {
+      "command": "independent read-only review and final delta re-review",
+      "target": "production diff, rollback, before-use boundary, font concurrency, CI wiring",
+      "result": "PASS",
+      "note": "No actionable findings. Reviewer reran all3 integration tests.",
+      "timestamp": "2026-10-04T19:51:47.651939+00:00"
+    },
+    {
+      "timestamp": "2026-10-04T19:52:51.213670+00:00",
+      "command": ".venv/Scripts/python.exe -m unittest discover -s tests -p test_*.py -v",
+      "target": "full local Windows regression",
+      "result": "PASS",
+      "tests": 505,
+      "skipped": 0,
+      "seconds": 199.312,
+      "evidence_path": ".git/afk-dev/document-validation-regression.log"
+    }
+  ],
+  "remaining_checks": [
+    "Exact final-head push and PR workflows; seven runtime artifacts each; new app-image validation step"
+  ],
+  "limitations": [
+    "Exact deterministic copy validator does not accept arbitrary paraphrases; future templates must define a factual validation contract.",
+    "Not universal Unicode/script support: unavailable font, unsupported glyphs, bidi/shaping-sensitive direction and readback mismatches fail closed.",
+    "Legacy outputs are not retroactively repaired or given synthetic validation receipts; actual automatic resume use is revalidated.",
+    "No live user database migration or deployment. No external submission. MJ095 broader tailoring and MJ097/099 remain open."
+  ]
+}

@@ -62,3 +62,21 @@ recorded tailoring context. Matching is a relevance heuristic, not proof of a
 qualification. MJ-REQ095 remains PARTIAL: summary adjustment, rephrasing, and
 bullet selection/removal are not implemented. Tests: unit/integration/browser
 .test_skill_order, plus hosted cli.ui_e2e explicit opt-in through the worker.
+
+Factual validation (MJ-REQ096) compares generated paragraphs with the exact
+approved fact IDs/text from the immutable profile, plus fixed identity/template
+fields. Unknown/changed assertions fail as UNSUPPORTED_CLAIM. Serialized DOCX,
+TXT and PDF are read back before any new revision is committed; PDF comparison
+normalizes layout whitespace only. DOCUMENTS_VALIDATED audit receipts bind the
+validator, profile version, fact IDs and all file hashes. The local mock adapter
+revalidates the current resume against its original profile before browser use,
+including historical rows without a receipt. Rejection becomes REVIEW_REQUIRED;
+explicit preparation repairs it with a new revision, retaining prior bytes.
+
+PDF output embeds Windows Arial or Linux DejaVu Sans (installed in the app
+image). Font registration and rendering are serialized because ReportLab font
+objects cannot be shared by simultaneous documents. Missing fonts, unsupported
+glyphs/bidi direction and readback mismatches fail explicitly; this is not a
+universal Unicode/shaping promise. No output silently substitutes characters.
+Tests: unit/integration.test_document_validation; the integration cases also run
+inside the actual app image in required hosted Verification. No new migration.
