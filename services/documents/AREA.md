@@ -80,3 +80,16 @@ glyphs/bidi direction and readback mismatches fail explicitly; this is not a
 universal Unicode/shaping promise. No output silently substitutes characters.
 Tests: unit/integration.test_document_validation; the integration cases also run
 inside the actual app image in required hosted Verification. No new migration.
+
+Generated revision comparison reads two explicit resume IDs under one application:
+a known generic base and a known skill-tailored output. It checks TXT path bounds,
+size, hash and exact immutable approved-fact/profile content before projecting
+summary changes, bullet/fact changes, shared-fact reordering, recorded skill
+matches, omissions/additions and contact changes. Fact identity, not text matching,
+anchors the diff; duplicate/Unicode text and live-profile edits do not change it.
+Missing snapshots/context or corrupt/unknown outputs produce an unavailable
+response. The Applications and library history UI lets users choose revisions and
+see the actual stored text while keeping downloads. No records or files mutate.
+MJ099 remains PARTIAL: uploaded original base comparison is not implemented.
+Tests: unit/integration.test_resume_comparison, browser.test_skill_order and the
+PostgreSQL-backed hosted cli.ui_e2e comparison flow. No migration.

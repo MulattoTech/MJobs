@@ -5,3 +5,6 @@
 .company-source-history h4{margin:22px 0 10px}.company-source-activity{padding-left:22px;margin:10px 0}.company-source-activity li{padding:4px 0}.company-source-activity p{margin:2px 0}.company-source-activity small{color:#6b8085;font-size:11px}
 
 .resume-group{border-top:1px solid #dce2de;margin-top:20px;overflow-wrap:anywhere}.extraction-review{margin-top:24px;padding:18px;background:#edf3ef;border-radius:8px;overflow-wrap:anywhere}.fact-suggestion{display:flex;align-items:flex-start;gap:10px;margin:14px 0}.fact-suggestion input[type=checkbox]{width:auto;flex-shrink:0;margin-top:3px}.fact-suggestion small{display:block;margin-top:4px;color:#637b75}.extraction-review button{margin:6px 8px 0 0}
+
+.resume-comparison-texts { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,18rem),1fr)); gap:1rem; }
+.resume-comparison-texts pre { white-space:pre-wrap; overflow-wrap:anywhere; font-family:inherit; font-size:.9rem; }

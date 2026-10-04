@@ -16,6 +16,7 @@ from fixtures.mock_server import fixture_server
 from packages.persistence import models as m
 from packages.persistence.store import Store
 from services.discovery.pipeline import discover
+from services.documents.generate import prepare
 from tests.integration.test_spine import PROFILE
 from workers.tasks import execute_operation
 
@@ -29,6 +30,7 @@ class SkillOrderBrowserTests(unittest.TestCase):
             with fixture_server() as fixture:discover(store,fixture,'fixture')
             job=store.jobs()[0]
             with store.engine.begin() as c:c.execute(update(m.jobs).where(m.jobs.c.id==job['id']).values(skills=['Python']))
+            prepare(store,job['id'],'fixture',root)
             sock=bound_browser_socket();origin=f'http://127.0.0.1:{sock.getsockname()[1]}'
             app=create_app(store,'http://127.0.0.1:1',root,'redis://127.0.0.1:1/0',operation_mode='FIXTURE')
             server=uvicorn.Server(uvicorn.Config(app,log_level='error'))
@@ -57,7 +59,7 @@ class SkillOrderBrowserTests(unittest.TestCase):
                     with patch.dict('os.environ',MJOBS_DATABASE_URL=store.url,MJOBS_MOCK_ORIGIN='http://127.0.0.1:1',
                                     MJOBS_OUTPUT_DIR=str(root),MJOBS_OPERATION_MODE='FIXTURE'):
                         self.assertEqual(execute_operation(operation['operation_id'])['status'],'COMPLETED')
-                    document=page.get_by_role('region',name='resume version 1',exact=True)
+                    document=page.get_by_role('region',name='resume version 2',exact=True)
                     expect(document.get_by_text('Tailored resume: skill order',exact=False)).to_be_visible()
                     document.get_by_text('Generation details and facts',exact=True).click()
                     expect(document.get_by_text('Matched job skills: Python',exact=True)).to_be_visible()
@@ -65,6 +67,17 @@ class SkillOrderBrowserTests(unittest.TestCase):
                         document.get_by_role('link',name='Download TXT',exact=True).click()
                     self.assertEqual(Path(downloaded.value.path()).read_text(encoding='utf-8').splitlines(),
                         ['Alex Fixture','alex@example.test','Python','SQL'])
+                    for _ in range(2):
+                        comparison=page.get_by_role('region',name='Compare base and tailored resumes',exact=True)
+                        comparison.get_by_role('button',name='Compare selected resumes',exact=True).click()
+                        result=comparison.get_by_role('region',name='Resume comparison result',exact=True)
+                        expect(result.get_by_role('region',name='Reordering',exact=True)).to_contain_text('Python: fact position 2 → 1')
+                        expect(result.get_by_role('region',name='Skills emphasized',exact=True)).to_contain_text('Python — matched Python')
+                        expect(result.get_by_role('region',name='Content omitted',exact=True)).to_contain_text('No content omitted.')
+                        expect(result.get_by_role('region',name='Summary changes',exact=True)).to_contain_text('No changes.')
+                        expect(result.get_by_role('region',name='Bullet and fact changes',exact=True)).to_contain_text('No changes.')
+                        page.reload();page.get_by_role('button',name='Applications',exact=False).first.click()
+                        page.locator('.job-card').first.click()
                     self.assertFalse(external)
                     context.close();browser.close()
             finally:

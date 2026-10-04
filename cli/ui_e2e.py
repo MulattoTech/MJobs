@@ -116,6 +116,16 @@ def run(base_url, evidence_path):
             expect(page.get_by_role('region',name='resume version 3',exact=True).get_by_text('Tailored resume: skill order',exact=False)).to_be_visible()
             actions.append({'action':'Explicit skill-order opt-in reaches the document worker and preserves approved facts with target snapshot and separate revision','result':'PASS'})
 
+            comparison=page.get_by_role('region',name='Compare base and tailored resumes',exact=True)
+            comparison.get_by_label('Generated base version',exact=True).select_option(label='v2')
+            comparison.get_by_role('button',name='Compare selected resumes',exact=True).click()
+            result=comparison.get_by_role('region',name='Resume comparison result',exact=True)
+            expect(result.get_by_role('region',name='Content omitted',exact=True)).to_contain_text('No content omitted.')
+            expect(result.get_by_role('region',name='Summary changes',exact=True)).to_contain_text('No changes.')
+            expect(result.get_by_role('heading',name='Generated base · v2',exact=True)).to_be_visible()
+            expect(result.get_by_role('heading',name='Tailored resume · v3',exact=True)).to_be_visible()
+            actions.append({'action':'Immutable generated base and tailored resume comparison shows recorded versions and unchanged facts through the UI','result':'PASS'})
+
             page.get_by_role("button", name="Run dry-run", exact=True).click()
             expect(page.locator(".job-detail > .tag")).to_have_text("DRY_RUN_COMPLETE")
             dry = request("/applications/" + identifier)

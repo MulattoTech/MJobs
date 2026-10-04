@@ -7,12 +7,12 @@
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Sole writer codex/document-validation-20261004 based on fdba1e8e40fdaa21ad1c63a54399559fa3b3ce45.",
-    "current_verified_github_state": "PR493 merged with exact-head push/PR workflows and all14 artifacts PASS; issue96 remains PARTIAL; issue99 reopened for reproduced Unicode defect.",
-    "current_verified_at": "2026-10-04T19:51:47.651939+00:00"
+    "current_verified_local_state": "Sole writer codex/resume-comparison-20261004 based on 2a8e95a5023b26f3576b71c2fa46489dc9512094.",
+    "current_verified_github_state": "PR494 merged after both exact-head workflows, all14 runtime artifacts and both app-image validation steps passed; issues97/99 closed with receipts.",
+    "current_verified_at": "2026-10-04T20:06:52.668978+00:00"
   },
-  "current_milestone": "MJ-PR-027-DOCUMENT-VALIDATION",
-  "current_objective": "Validate generated resume assertions and preserve Unicode output fidelity before promotion/use; repair proven MJ098 defect.",
+  "current_milestone": "MJ-PR-027-RESUME-COMPARISON",
+  "current_objective": "Expose immutable generated base-versus-tailored comparison; keep uploaded-original comparison acceptance explicit.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -69,8 +69,7 @@
   ],
   "blocked_capabilities": [],
   "active_requirements": [
-    "MJ-REQ-096",
-    "MJ-REQ-098"
+    "MJ-REQ-099"
   ],
   "active_prs": [
     {
@@ -513,6 +512,14 @@
       "head": "bf82030665ce7f87ee5b3eed00a8d25d79294647",
       "merge_commit": "fdba1e8e40fdaa21ad1c63a54399559fa3b3ce45",
       "ci_evidence": "docs/evidence/2026-10-04-skill-order-exact-head-ci.json"
+    },
+    {
+      "number": 494,
+      "url": "https://github.com/MulattoTech/MJobs/pull/494",
+      "status": "MERGED",
+      "head": "a0a336b7c6d1d155e400b4e6fd853f5a771ce15f",
+      "merge_commit": "2a8e95a5023b26f3576b71c2fa46489dc9512094",
+      "ci_evidence": "docs/evidence/2026-10-04-document-validation-exact-head-ci.json"
     }
   ],
   "tests_passed": [
@@ -655,15 +662,15 @@
     "MJ-PR-016 local Chromium first run used Docker DNS host api, which is not a secure browser origin for crypto.randomUUID; loopback URL rerun passed all five connected UI actions."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-04T19:51:47.651939+00:00",
-    "base_commit": "fdba1e8e40fdaa21ad1c63a54399559fa3b3ce45",
+    "timestamp": "2026-10-04T20:06:52.668978+00:00",
+    "base_commit": "2a8e95a5023b26f3576b71c2fa46489dc9512094",
     "result": "PASS",
-    "scope": "505 Python zero skips;40 web/build;7 isolated PostgreSQL;5 actual Linux app-image;visual PDF and independent review PASS. Hosted pending.",
-    "evidence_path": "docs/evidence/2026-10-04-document-validation.json"
+    "scope": "509 Python zero skips;41 web/build;6 isolated PostgreSQL;real Chromium and independent review PASS. Hosted pending.",
+    "evidence_path": "docs/evidence/2026-10-04-resume-comparison.json"
   },
   "ci_verification": {
     "result": "NOT_RUN",
-    "scope": "Current document-validation candidate exact-head workflows pending."
+    "scope": "Current resume-comparison candidate exact-head workflows pending."
   },
   "mock_spine_ci": {
     "result": "PASS",
@@ -721,7 +728,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Finish current document validation regression and exact-head CI, merge safely, then choose next dependency-ready document acceptance gap. MJ095 remains PARTIAL; do not infer full MJ026 acceptance.",
+  "recommended_resume_step": "Finish comparison regression and exact-head CI, merge safely, then finish uploaded-base comparison or ATS headings without treating broader tailoring as accepted.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -761,9 +768,9 @@
   "last_implementation_commit": "b4fa3a11762b0c26bfbb09e105f3c47681763e20",
   "publication": {
     "result": "NOT_RUN",
-    "branch": "codex/document-validation-20261004",
-    "base": "fdba1e8e40fdaa21ad1c63a54399559fa3b3ce45",
-    "note": "Final current-head receipt comes from hosted CI and merge closeout; prior PR493 receipt tracked separately."
+    "branch": "codex/resume-comparison-20261004",
+    "base": "2a8e95a5023b26f3576b71c2fa46489dc9512094",
+    "note": "Final PR/head receipt belongs to hosted CI and closeout. Prior PR494 receipt tracked."
   },
   "optional_afk_journal": {
     "result": "PASS",
@@ -2823,9 +2830,7 @@
         "Synthetic Unicode PDF visually inspected PASS",
         "505 full Python tests zero skips PASS,199.312s"
       ],
-      "tests_remaining": [
-        "Exact final-head push/PR CI"
-      ],
+      "tests_remaining": [],
       "migrations_applied": [],
       "live_integrations_tested": [],
       "known_errors": [],
@@ -2835,17 +2840,51 @@
       ],
       "milestone_id": "document-validation-20261004",
       "timestamp": "2026-10-04T19:51:47.651939+00:00",
-      "current_phase": "IMPLEMENTED_VALIDATING",
+      "current_phase": "MERGED",
       "last_safe_checkpoint": {
         "git_commit": "fdba1e8e40fdaa21ad1c63a54399559fa3b3ce45",
         "evidence_path": "docs/evidence/2026-10-04-skill-order-exact-head-ci.json"
+      }
+    },
+    {
+      "completed_steps": [
+        "Implemented immutable generated revision comparison with all five categories and explicit unavailable states",
+        "Connected Applications/library history UI, real browser and hosted UI path",
+        "Independent review found no actionable defects"
+      ],
+      "files_added": [],
+      "files_modified": [],
+      "tests_completed": [
+        "5 focused backend/real-browser tests PASS",
+        "3 final boundary tests PASS",
+        "41 web tests/build PASS",
+        "6 isolated PostgreSQL tests PASS",
+        "509 full Python tests zero skips PASS,203.905s",
+        "Real Chromium visual inspection PASS"
+      ],
+      "tests_remaining": [
+        "Exact final-head push/PR workflows"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "MJ099 remains PARTIAL: uploaded original base comparison missing",
+        "MJ095 broader tailoring and MJ097 ATS headings remain open"
+      ],
+      "milestone_id": "resume-comparison-20261004",
+      "timestamp": "2026-10-04T20:06:52.668978+00:00",
+      "current_phase": "IMPLEMENTED_VALIDATING",
+      "last_safe_checkpoint": {
+        "git_commit": "2a8e95a5023b26f3576b71c2fa46489dc9512094",
+        "evidence_path": "docs/evidence/2026-10-04-document-validation-exact-head-ci.json"
       }
     }
   ],
   "current_phase": "IMPLEMENTED_VALIDATING",
   "last_safe_checkpoint": {
-    "git_commit": "fdba1e8e40fdaa21ad1c63a54399559fa3b3ce45",
-    "evidence_path": "docs/evidence/2026-10-04-skill-order-exact-head-ci.json"
+    "git_commit": "2a8e95a5023b26f3576b71c2fa46489dc9512094",
+    "evidence_path": "docs/evidence/2026-10-04-document-validation-exact-head-ci.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
@@ -2921,20 +2960,17 @@
     }
   ],
   "live_reconciliation": {
-    "timestamp": "2026-10-04T19:51:47.651939+00:00",
-    "base_commit": "fdba1e8e40fdaa21ad1c63a54399559fa3b3ce45",
-    "evidence_path": "docs/evidence/2026-10-04-skill-order-exact-head-ci.json",
+    "timestamp": "2026-10-04T20:06:52.668978+00:00",
+    "base_commit": "2a8e95a5023b26f3576b71c2fa46489dc9512094",
+    "evidence_path": "docs/evidence/2026-10-04-document-validation-exact-head-ci.json",
     "current_slice_validation": "PARTIAL",
     "product_status": "PARTIAL",
     "ownership": "Root sole writer; independently owned Codespaces worktree preserved; no open PR at slice start."
   },
   "active_development_issue": {
-    "number": 97,
-    "related_issues": [
-      99
-    ],
+    "number": 100,
     "status": "PARTIAL",
-    "branch": "codex/document-validation-20261004"
+    "branch": "codex/resume-comparison-20261004"
   },
   "historical_control_snapshots": [
     {
@@ -3338,7 +3374,7 @@
   },
   "session_control": {
     "owner": "01a107cd-4e66-77d3-b046-fc2c01f4ffb1",
-    "branch": "codex/document-validation-20261004",
+    "branch": "codex/resume-comparison-20261004",
     "write_lanes": 1,
     "requested_action": "DELIVER_LIFECYCLE_PROFILE_IMPORT",
     "note": "Current user authorizes implementation, tests, review, push, exact-head-verified merge and continuation. No production deployment or external submissions."

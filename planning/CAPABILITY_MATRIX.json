@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-04T19:51:47.651939+00:00",
+  "timestamp": "2026-10-04T20:06:52.668978+00:00",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -836,13 +836,14 @@
     },
     {
       "requirement_id": "MJ-REQ-096",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
         "docs/evidence/2026-09-29-mock-spine.md",
         "docs/evidence/2026-09-30-user-testing.md",
-        "docs/evidence/2026-10-04-document-validation.json"
+        "docs/evidence/2026-10-04-document-validation.json",
+        "docs/evidence/2026-10-04-document-validation-exact-head-ci.json"
       ],
-      "note": "Local assertion/fidelity and runtime tests PASS; full local and exact-head hosted gates pending. MJ098 issue99 reopened after reproduced Unicode substitution; prior evidence retained."
+      "note": "PR494 exact-head push/PR workflows,14 artifacts and both app-image assertion/Unicode steps PASS. Unsupported scripts fail explicitly; historical bytes preserved. Issues97/99 closed with receipts."
     },
     {
       "requirement_id": "MJ-REQ-097",
@@ -852,20 +853,23 @@
     },
     {
       "requirement_id": "MJ-REQ-098",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
         "docs/evidence/2026-09-30-user-testing.md",
         "docs/evidence/2026-10-04-document-provenance.json",
         "docs/evidence/2026-10-04-document-provenance-exact-head-ci.json",
-        "docs/evidence/2026-10-04-document-validation.json"
+        "docs/evidence/2026-10-04-document-validation.json",
+        "docs/evidence/2026-10-04-document-validation-exact-head-ci.json"
       ],
-      "note": "Local assertion/fidelity and runtime tests PASS; full local and exact-head hosted gates pending. MJ098 issue99 reopened after reproduced Unicode substitution; prior evidence retained."
+      "note": "PR494 exact-head push/PR workflows,14 artifacts and both app-image assertion/Unicode steps PASS. Unsupported scripts fail explicitly; historical bytes preserved. Issues97/99 closed with receipts."
     },
     {
       "requirement_id": "MJ-REQ-099",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-04-resume-comparison.json"
+      ],
+      "note": "Generated base/tailored immutable comparison implemented and locally verified; uploaded-original comparison missing. Full/hosted gates pending."
     },
     {
       "requirement_id": "MJ-REQ-100",
