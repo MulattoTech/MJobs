@@ -18,11 +18,11 @@ from services.documents import tailor
 from services.documents.errors import PreparationError
 from services.documents.render import render_pdf
 from services.documents.validation import VALIDATOR, validate_assertions, validate_formats
-from services.documents.templates import BASE_TEMPLATE, BASE_MODEL, SELECTION_TEMPLATE, SELECTION_MODEL, resume_layout
+from services.documents.templates import BASE_TEMPLATE, resume_layout, template_pair, contact_header
 
 
-def compose_paragraphs(profile, job, resume_rows, texts):
-    return {'resume': resume_layout(profile, resume_rows, BASE_TEMPLATE)[0],
+def compose_paragraphs(profile, job, resume_rows, texts, template=BASE_TEMPLATE):
+    return {'resume': resume_layout(profile, resume_rows, template)[0],
             'cover-letter': [profile['name'], f"Application for {job['title']}", *texts]}
 
 
@@ -37,9 +37,12 @@ def uncommitted_files():
         raise
 
 
-def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=None, route_mode="DEFAULT", route_id=None, tailor_resume=False, tailor_fact_ids=None):
+def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=None, route_mode="DEFAULT", route_id=None, tailor_resume=False, tailor_fact_ids=None, include_resume_contact=False):
     if type(tailor_resume) is not bool:
         raise ValueError('tailor_resume must be a boolean')
+    if type(include_resume_contact) is not bool:
+        raise ValueError('include_resume_contact must be a boolean')
+    resume_template,resume_model=template_pair(tailor_resume,tailor_fact_ids is not None,include_resume_contact)
     check = check or (lambda: None)
     with uncommitted_files() as staged, store.engine.begin() as connection:
         # A profile row serializes preparation and submission reservations.
@@ -67,7 +70,7 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
         if prior:
             prior_resume=connection.execute(select(m.documents).where(m.documents.c.application_id==prior['id'],
                 m.documents.c.version==prior['document_version'],m.documents.c.kind=='resume')).mappings().one_or_none()
-            expected_template=SELECTION_TEMPLATE if selection_ids is not None else (tailor.TEMPLATE if tailor_resume else BASE_TEMPLATE)
+            expected_template=resume_template
             same_mode=prior_resume and prior_resume['template']==expected_template
             same_target=not tailor_resume or (prior_resume and (prior_resume['generation_context'] or {}).get('target_fingerprint')==tailor.target_fingerprint(job))
             same_selection=selection_ids is None or (prior_resume and (prior_resume['generation_context'] or {}).get('selection_fingerprint')==selection_hash)
@@ -96,17 +99,20 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
                 available_fact_ids=fact_ids,omitted_fact_ids=[value for value in fact_ids if value not in set(selection_ids)],
                 selection_fingerprint=selection_hash)
         resume_ids=[row['fact_id'] for row in ordered_rows]
-        kinds = compose_paragraphs(profile, job, ordered_rows, texts)
+        if include_resume_contact:
+            context=context or {'mode':'APPROVED_CONTACT_HEADER'}
+            context['contact_header']=contact_header(profile,resume_template)
+        kinds = compose_paragraphs(profile, job, ordered_rows, texts, resume_template)
         if set(kinds) != {'resume', 'cover-letter'}:
             raise PreparationError('UNSUPPORTED_CLAIM', 'The generated document set has no complete validation contract')
         records = []
         generated_at = now()
         for kind, paragraphs in kinds.items():
             check()
-            template = (SELECTION_TEMPLATE if selection_ids is not None else (tailor.TEMPLATE if tailor_resume else BASE_TEMPLATE)) if kind=='resume' else 'verified-facts-v1'
+            template = resume_template if kind=='resume' else 'verified-facts-v1'
             validate_assertions(kind, paragraphs, profile, resume_ids if kind=='resume' else fact_ids, job['title'], template)
             headings = resume_layout(profile, ordered_rows, template)[1] if kind=='resume' else set()
-            fact_indices=[index for index in range(2,len(paragraphs)) if index not in headings] if kind=='resume' else []
+            fact_indices=[index for index in range(len(contact_header(profile,template)),len(paragraphs)) if index not in headings] if kind=='resume' else []
             bold_indices={index for index,row in zip(fact_indices,ordered_rows) if row['fact_id'] in emphasized}
             document = Document()
             document.styles['Normal'].font.name = 'Arial'
@@ -131,7 +137,7 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
                 "files": {path.suffix[1:]: relative + '/' + path.name for path in (docx_path, pdf_path, txt_path)},
                 "fact_ids": resume_ids if kind=='resume' else fact_ids, "sha256": {path.suffix[1:]: hashlib.sha256(path.read_bytes()).hexdigest() for path in (docx_path, pdf_path, txt_path)},
                 "template": template, "created_at": generated_at,
-                "generation_model": (SELECTION_MODEL if selection_ids is not None else (tailor.MODEL if tailor_resume else BASE_MODEL)) if kind=='resume' else "deterministic-fact-copy-v1",
+                "generation_model": resume_model if kind=='resume' else "deterministic-fact-copy-v1",
                 "generation_context": context if kind=='resume' else None})
         check()
         upsert(connection, m.applications, {"id": application_id, "job_id": job_id, "route_id": route["id"], "profile_id": profile_id,

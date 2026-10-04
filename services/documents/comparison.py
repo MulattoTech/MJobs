@@ -6,7 +6,7 @@ from sqlalchemy.exc import NoResultFound
 from services.documents.history import application_documents
 from services.documents.validation import validate_assertions
 from services.documents.errors import PreparationError
-from services.documents.templates import contract_role, resume_layout, SELECTION_TEMPLATES, EMPHASIS_TEMPLATES
+from services.documents.templates import contract_role, resume_layout, SELECTION_TEMPLATES, EMPHASIS_TEMPLATES, CONTACT_TEMPLATES, contact_header
 from services.documents import tailor
 
 
@@ -59,6 +59,9 @@ def read_generated_snapshot(store, output_dir, row):
         if not contract_role(row['template'],row['generation_model'],allow_legacy_unrecorded=True):
             raise ComparisonUnavailable('Original document generation contract is unavailable')
         paragraphs,_=resume_layout(profile,row['facts_used'],row['template'])
+        header=contact_header(profile,row['template'])
+        if row['template'] in CONTACT_TEMPLATES and (row['generation_context'] or {}).get('contact_header')!=header:
+            raise ComparisonUnavailable('Original contact header differs from its saved profile snapshot')
         validate_assertions('resume',paragraphs,profile,row['fact_ids'],template=row['template'])
         if text!='\n'.join(paragraphs)+'\n':
             raise ComparisonUnavailable('Stored text differs from its original fact history')
@@ -66,7 +69,7 @@ def read_generated_snapshot(store, output_dir, row):
         raise ComparisonUnavailable('Original document or approved fact history is unavailable') from error
     facts=[{key:fact[key] for key in ('fact_id','kind','text')} for fact in row['facts_used']]
     return {'id':row['id'],'version':row['version'],'profile_version':row['profile_version'],
-            'text':text,'sha256':row['sha256']['txt'],'facts':facts,'contact':paragraphs[:2]}
+            'text':text,'sha256':row['sha256']['txt'],'facts':facts,'contact':header}
 
 
 def tailored_context(target):

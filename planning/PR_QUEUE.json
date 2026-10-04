@@ -756,9 +756,9 @@
         "MJ-PR-024"
       ],
       "status": "PARTIAL",
-      "branch": "codex/resume-technology-emphasis-20261004",
+      "branch": "codex/resume-contact-header-20261004",
       "draft_until_verified": true,
-      "notes": "MJ092/093/094 accepted. MJ095 ordering and explicit selection accepted through PR499; technology emphasis active. Broader factual rephrasing remains PARTIAL.",
+      "notes": "MJ092/093/094 accepted. MJ095 ordering, explicit selection and technology emphasis accepted through PR500. Optional contact header active; broader factual rephrasing remains PARTIAL.",
       "feedback_slice": {
         "branch": "codex/resume-driven-profile",
         "result": "PARTIAL",
@@ -772,9 +772,9 @@
         491,
         492,
         493,
-        499
-      ],
-      "active_incremental_pr": 500
+        499,
+        500
+      ]
     },
     {
       "id": "MJ-PR-027",

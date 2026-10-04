@@ -48,13 +48,16 @@ export function ComparisonResult({result}:{result:Comparison}) {
 export function ResumeComparison({documents}:{documents:GeneratedDocument[]}) {
   const bases=documents.filter(row=>row.kind==='resume'&&(
     (row.template==='verified-facts-v1'&&(row.generation_model==='deterministic-fact-copy-v1'||row.generation_model===null))||
-    (row.template==='verified-headings-v1'&&row.generation_model==='deterministic-fact-copy-v2')));
+    (row.template==='verified-headings-v1'&&row.generation_model==='deterministic-fact-copy-v2')||
+    (row.template==='approved-contact-base-v1'&&row.generation_model==='deterministic-contact-copy-v1')));
   const targets=documents.filter(row=>row.kind==='resume'&&row.generation_context?.mode==='APPROVED_SKILL_ORDER'&&(
     (row.template==='approved-skill-order-v1'&&row.generation_model==='deterministic-skill-order-v1')||
     (row.template==='approved-skill-order-headings-v1'&&row.generation_model==='deterministic-skill-order-v2')||
     (row.template==='approved-fact-selection-headings-v1'&&row.generation_model==='deterministic-fact-selection-v1')||
     (row.template==='approved-skill-emphasis-v1'&&row.generation_model==='deterministic-skill-order-v3')||
-    (row.template==='approved-selection-emphasis-v1'&&row.generation_model==='deterministic-fact-selection-v2')));
+    (row.template==='approved-selection-emphasis-v1'&&row.generation_model==='deterministic-fact-selection-v2')||
+    (row.template==='approved-contact-emphasis-v1'&&row.generation_model==='deterministic-contact-order-v1')||
+    (row.template==='approved-contact-selection-v1'&&row.generation_model==='deterministic-contact-selection-v1')));
   const [base,setBase]=useState(bases[0]?'g:'+bases[0].id:'');const [target,setTarget]=useState(targets[0]?.id||'');
   const [result,setResult]=useState<Comparison|null>(null);const [error,setError]=useState('');const [busy,setBusy]=useState(false);
   const [uploaded,setUploaded]=useState<UploadedBase[]>([]);const [loading,setLoading]=useState(false);const [loadError,setLoadError]=useState('');

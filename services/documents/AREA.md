@@ -7,7 +7,7 @@ and checksum-checked on download. Uploads never create or approve CareerFacts.
 Private originals live in the document volume's uploads directory, so the
 offline database/document backup must preserve metadata and bytes together.
 Interface: prepare(store, job_id, profile_id, output_dir) -> application_id.
-Requirements: MJ-REQ-092 through 097 (initial deterministic slice only).
+Requirements: MJ-REQ-092 through 099; MJ095 remains partial.
 Depend on domain safety/persistence, python-docx/reportlab. No AI or invented
 qualifications. Private files reside under ignored outputs or the document
 volume, scoped to application and immutable profile version. Test:
@@ -59,15 +59,17 @@ Mode/target/profile changes create new revisions only in safe preparation states
 identical requests are idempotent and confirmed/active history stays locked.
 Migration cf4216a93b85 preserves legacy unknown context and refuses to discard
 recorded tailoring context. Matching is a relevance heuristic, not proof of a
-qualification. MJ-REQ095 remains PARTIAL: summary adjustment, rephrasing, and
-bullet selection/removal are not implemented. Tests: unit/integration/browser
+qualification. Explicit approved fact selection/omission and matched skill/technology
+emphasis are supported. MJ-REQ095 remains PARTIAL: broader summary adjustment and
+factual rephrasing are not implemented. Tests: unit/integration/browser
 .test_skill_order, plus hosted cli.ui_e2e explicit opt-in through the worker.
 
 Factual validation (MJ-REQ096) compares generated paragraphs with the exact
 approved fact IDs/text from the immutable profile, plus fixed identity/template
 fields. Unknown/changed assertions fail as UNSUPPORTED_CLAIM. Serialized DOCX,
 TXT and PDF are read back before any new revision is committed; PDF comparison
-normalizes layout whitespace only. DOCUMENTS_VALIDATED audit receipts bind the
+preserves factual word boundaries and allows physical wraps only inside exact
+expected HTTP(S) URL tokens; every URL character must remain unchanged. DOCUMENTS_VALIDATED audit receipts bind the
 validator, profile version, fact IDs and all file hashes. The local mock adapter
 revalidates the current resume against its original profile before browser use,
 including historical rows without a receipt. Rejection becomes REVIEW_REQUIRED;
@@ -90,6 +92,18 @@ anchors the diff; duplicate/Unicode text and live-profile edits do not change it
 Missing snapshots/context or corrupt/unknown outputs produce an unavailable
 response. The Applications and library history UI lets users choose revisions and
 see the actual stored text while keeping downloads. No records or files mutate.
-MJ099 remains PARTIAL: uploaded original base comparison is not implemented.
+Uploaded original bases are also compared using bounded native extraction/offline
+OCR, exact occurrence alignment, preserved original hashes and explicit uncertainty.
+See uploaded_comparison.py and its real OCR runtime acceptance. MJ099 is accepted.
 Tests: unit/integration.test_resume_comparison, browser.test_skill_order and the
 PostgreSQL-backed hosted cli.ui_e2e comparison flow. No migration.
+
+Explicit include_resume_contact=true adds saved phones, city/state/country and
+LinkedIn/GitHub/portfolio links to the resume only. It defaults false and is carried
+through the API and durable worker with the captured profile version. Full street
+addresses and postal codes are excluded. Contact base/tailored/selected template
+pairs preserve historical bytes and opt-out behavior. Rendering, assertion checks,
+comparison and emphasis indexing share the same versioned header helper; no contact
+line is classified as a career fact. History lists the included snapshot values.
+Tests: integration.test_resume_contact_header, unit.test_pdf_url_fidelity and the
+connected browser/hosted cli.ui_e2e contact opt-in and prior-revision checks.

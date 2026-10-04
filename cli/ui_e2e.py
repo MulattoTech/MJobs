@@ -180,6 +180,28 @@ def run(base_url, evidence_path):
             assert request('/profiles/'+profile_id)==profile_before_comparison
             actions.append({'action':'Explicit approved resume selection reaches the real document worker, omits SQL only from the resume, preserves profile and cover letter, and shows immutable omissions','result':'PASS'})
 
+            navigation('Profile')
+            page.get_by_label('city',exact=True).fill('Tulsa')
+            save_profile()
+            saved_contact_profile=request('/profiles/'+profile_id)
+            select_data_job()
+            page.get_by_label('Order approved skills for this job',exact=True).uncheck()
+            contact_option=page.get_by_label('Include saved resume contact details',exact=True)
+            expect(contact_option).not_to_be_checked();contact_option.check()
+            prepare()
+            contact_resume=next(row for row in request('/applications/'+identifier+'/documents')['documents'] if row['version']==5 and row['kind']=='resume')
+            assert contact_resume['template']=='approved-contact-base-v1'
+            assert 'Location: Tulsa' in contact_resume['generation_context']['contact_header']
+            contact_history=page.get_by_role('region',name='resume version 5',exact=True)
+            contact_history.get_by_text('Generation details and facts',exact=True).click()
+            expect(contact_history.get_by_role('region',name='Saved resume contact header')).to_contain_text('Location: Tulsa')
+            with page.expect_download() as contact_download:
+                contact_history.get_by_role('link',name='Download TXT',exact=True).click()
+            assert 'Location: Tulsa' in Path(contact_download.value.path()).read_text(encoding='utf-8')
+            assert 'Location: Tulsa' not in context.request.get(base_url+'/documents/'+selected_resume['id']+'/txt').text()
+            assert request('/profiles/'+profile_id)==saved_contact_profile
+            actions.append({'action':'Explicit saved contact header reaches real document worker, history and download while prior revision and profile remain unchanged','result':'PASS'})
+
             page.get_by_role("button", name="Run dry-run", exact=True).click()
             expect(page.locator(".job-detail > .tag")).to_have_text("DRY_RUN_COMPLETE")
             dry = request("/applications/" + identifier)
