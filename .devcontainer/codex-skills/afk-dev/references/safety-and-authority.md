@@ -1,0 +1,9 @@
+# Safety and authority
+
+AFK means continue useful authorized engineering work with minimal routine questions. It does not grant credentials, MFA/CAPTCHA bypass, legal consent, purchase authority, security-policy changes, production deletion, deploy/push authority, or project release allowances. Use only supported Codex sandbox and approval mechanisms; never add the dangerous approval/sandbox bypass switch.
+
+For a missing high-impact permission or a real human-only condition, persist `BLOCKED` with the precise action or state change needed to resume. Do not mask the blocker by changing acceptance criteria, suppressing tests, manufacturing evidence, weakening security checks, or repeating a failed credential attempt. Distinguish UNKNOWN from FAIL and from PASS.
+
+Interpret a request to switch terminals or conversations in context. When the user intends continuation, record a transient handoff and keep bounded safe work running; do not convert the wording alone into a stop request. Before the new session mutates a shared checkout or exact lab, establish its token, authority, and sole mutation ownership. An explicit request to stop all work still stops promptly. A real external blocker still stops at its boundary.
+
+Runtime learning may update local lessons, guardrails, queue, and browser playbooks after evidence. Skill evolution is a separate maintenance transaction: reproduce a systemic failure, stage a candidate, run unit and fresh behavioral regressions plus `quick_validate.py`, compare safety invariants, back up the installed version, install atomically, and roll back on post-install regression. `scripts/afk_maintain.py` provides the transaction and requires an explicit behavioral regression command. No automatic patch may weaken redaction, project precedence, authorization, or truthful completion.

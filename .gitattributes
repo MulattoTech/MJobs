@@ -3,5 +3,6 @@
 *.json text eol=lf
 *.jsonl text eol=lf
 *.yml text eol=lf
+*.sh text eol=lf
 *.lock text eol=lf
 docs/spec/source/MJobs_Startup_Prompt.original.md -text
