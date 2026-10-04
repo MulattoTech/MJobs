@@ -65,7 +65,7 @@ Do not relabel those probes as production AI acceptance.
   and mock-receipt volumes retained. Other applications and Docker daemon kept
   running. No production deployment occurred.
 - Local feedback GUI stopped after verifying its module and checkout path; saved
-  feedback/drafts preserved. Ports 18700–18703 have no listeners.
+  feedback/drafts preserved. Ports 18700â€“18703 have no listeners.
 - Fifteen merged implementation branches retired locally/remotely after exact
   PR-head/ancestry checks; all commits remain in main.
 - Seven unused test-image tags and isolated 1.88 GB model cache removed. No global
