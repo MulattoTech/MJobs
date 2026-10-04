@@ -64,7 +64,7 @@ class DocumentHistoryBrowserTests(unittest.TestCase):
                         page.locator('.job-card').first.click()
                         document=page.get_by_role('region',name='resume version 1',exact=True)
                         document.get_by_text('Generation details and facts',exact=True).click()
-                        expect(document.get_by_text('Generation method: deterministic-fact-copy-v1',exact=True)).to_be_visible()
+                        expect(document.get_by_text('Generation method: deterministic-fact-copy-v2',exact=True)).to_be_visible()
                         expect(document.get_by_text('Source: fictional-test-profile',exact=False)).to_be_visible()
                         expect(document).not_to_contain_text('Changed Python fact')
                         for fmt in ('pdf','docx','txt'):

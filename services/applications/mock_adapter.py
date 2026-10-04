@@ -99,7 +99,7 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
             raise ValueError("Prepared document set incomplete")
         resume = next(document for document in documents if document['kind']=='resume')
         try:
-            validate_stored_resume({ext:path for (kind,ext),path in files.items() if kind=='resume'}, profile, resume['fact_ids'])
+            validate_stored_resume({ext:path for (kind,ext),path in files.items() if kind=='resume'}, profile, resume['fact_ids'], resume['template'], resume['generation_model'])
         except PreparationError as error:
             store.transition(application_id, [application['state']], 'REVIEW_REQUIRED', error.code)
             raise

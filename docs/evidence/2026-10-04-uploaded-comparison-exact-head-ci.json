@@ -1,0 +1,153 @@
+{
+  "timestamp": "2026-10-04T20:46:45.685311+00:00",
+  "result": "PASS",
+  "pr": {
+    "baseRefName": "main",
+    "baseRefOid": "8d6bf1ce08211efd17cdae36155f5b8977b4605f",
+    "headRefOid": "fa13af727743859d9923c894647554f03f9d34f5",
+    "isDraft": true,
+    "mergeStateStatus": "CLEAN",
+    "mergeable": "MERGEABLE",
+    "number": 497,
+    "reviewDecision": "",
+    "state": "OPEN",
+    "url": "https://github.com/MulattoTech/MJobs/pull/497"
+  },
+  "head": "fa13af727743859d9923c894647554f03f9d34f5",
+  "base": "8d6bf1ce08211efd17cdae36155f5b8977b4605f",
+  "runs": [
+    {
+      "id": 37232934791,
+      "event": "push",
+      "attempt": 1,
+      "head_sha": "fa13af727743859d9923c894647554f03f9d34f5",
+      "conclusion": "success",
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/37232934791",
+      "jobs": [
+        {
+          "id": 111526273201,
+          "name": "product-suite-and-connected-ui",
+          "conclusion": "success",
+          "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/37232934791/job/111526273201"
+        }
+      ],
+      "runtime_artifacts": [
+        {
+          "file": "ci-mock-e2e.json",
+          "result": "PASS"
+        },
+        {
+          "file": "ci-personal-mode.json",
+          "result": "PASS"
+        },
+        {
+          "file": "ci-personal-public-source.json",
+          "result": "PASS"
+        },
+        {
+          "file": "ci-personal-public-ui.json",
+          "result": "PASS"
+        },
+        {
+          "file": "ci-profile-ocr.json",
+          "result": "PASS"
+        },
+        {
+          "file": "ci-recovery.json",
+          "result": "PASS"
+        },
+        {
+          "file": "ci-ui.json",
+          "result": "PASS"
+        },
+        {
+          "file": "ci-uploaded-resume-comparison.json",
+          "result": "PASS"
+        }
+      ],
+      "uploaded_comparison_ui": "PASS",
+      "real_ocr_comparison": "PASS"
+    },
+    {
+      "id": 37232948212,
+      "event": "pull_request",
+      "attempt": 1,
+      "head_sha": "fa13af727743859d9923c894647554f03f9d34f5",
+      "conclusion": "success",
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/37232948212",
+      "jobs": [
+        {
+          "id": 111526311442,
+          "name": "product-suite-and-connected-ui",
+          "conclusion": "success",
+          "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/37232948212/job/111526311442"
+        }
+      ],
+      "runtime_artifacts": [
+        {
+          "file": "ci-mock-e2e.json",
+          "result": "PASS"
+        },
+        {
+          "file": "ci-personal-mode.json",
+          "result": "PASS"
+        },
+        {
+          "file": "ci-personal-public-source.json",
+          "result": "PASS"
+        },
+        {
+          "file": "ci-personal-public-ui.json",
+          "result": "PASS"
+        },
+        {
+          "file": "ci-profile-ocr.json",
+          "result": "PASS"
+        },
+        {
+          "file": "ci-recovery.json",
+          "result": "PASS"
+        },
+        {
+          "file": "ci-ui.json",
+          "result": "PASS"
+        },
+        {
+          "file": "ci-uploaded-resume-comparison.json",
+          "result": "PASS"
+        }
+      ],
+      "uploaded_comparison_ui": "PASS",
+      "real_ocr_comparison": "PASS"
+    }
+  ],
+  "checks": [
+    {
+      "id": 111526311442,
+      "name": "product-suite-and-connected-ui",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/37232948212/job/111526311442"
+    },
+    {
+      "id": 111526273201,
+      "name": "product-suite-and-connected-ui",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/37232934791/job/111526273201"
+    }
+  ],
+  "applicable_workflows": {
+    "Verification": "PASS for exact-head push and pull_request including all16 runtime artifacts",
+    "Codespaces": "NOT_APPLICABLE: no matching workflow paths changed"
+  },
+  "additional_local_browser": {
+    "result": "PASS",
+    "evidence_path": ".git/afk-dev/uploaded-comparison-visual.log",
+    "visual_path": ".git/afk-dev/uploaded-comparison-browser-visible.png",
+    "note": "Mobile screenshot inspected, all comparison sections and original text accessible, no horizontal overflow"
+  },
+  "merge_commit": "5a2f77c2a622433c9bf3dbcad22294a3de99c595",
+  "merged_at": "2026-10-04T20:47:09.272346+00:00",
+  "baseline_tree_matches_candidate": true
+}

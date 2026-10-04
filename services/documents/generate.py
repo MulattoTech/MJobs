@@ -5,6 +5,7 @@ import hashlib
 from pathlib import Path
 
 from docx import Document
+from docx.shared import Pt, RGBColor
 from sqlalchemy import select
 
 from packages.domain.safety import Fact, select_verified_facts
@@ -17,10 +18,11 @@ from services.documents import tailor
 from services.documents.errors import PreparationError
 from services.documents.render import render_pdf
 from services.documents.validation import VALIDATOR, validate_assertions, validate_formats
+from services.documents.templates import BASE_TEMPLATE, BASE_MODEL, resume_layout
 
 
 def compose_paragraphs(profile, job, resume_rows, texts):
-    return {'resume': [profile['name'], profile['email'], *[row['text'] for row in resume_rows]],
+    return {'resume': resume_layout(profile, resume_rows, BASE_TEMPLATE)[0],
             'cover-letter': [profile['name'], f"Application for {job['title']}", *texts]}
 
 
@@ -61,7 +63,7 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
         if prior:
             prior_resume=connection.execute(select(m.documents).where(m.documents.c.application_id==prior['id'],
                 m.documents.c.version==prior['document_version'],m.documents.c.kind=='resume')).mappings().one_or_none()
-            expected_template=tailor.TEMPLATE if tailor_resume else 'verified-facts-v1'
+            expected_template=tailor.TEMPLATE if tailor_resume else BASE_TEMPLATE
             same_mode=prior_resume and prior_resume['template']==expected_template
             same_target=not tailor_resume or (prior_resume and (prior_resume['generation_context'] or {}).get('target_fingerprint')==tailor.target_fingerprint(job))
             if prior["profile_version"] == profile["version"] and same_mode and same_target and prior['state'] != 'REVIEW_REQUIRED':
@@ -90,24 +92,31 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
         generated_at = now()
         for kind, paragraphs in kinds.items():
             check()
-            validate_assertions(kind, paragraphs, profile, resume_ids if kind=='resume' else fact_ids, job['title'])
+            template = (tailor.TEMPLATE if tailor_resume else BASE_TEMPLATE) if kind=='resume' else 'verified-facts-v1'
+            validate_assertions(kind, paragraphs, profile, resume_ids if kind=='resume' else fact_ids, job['title'], template)
+            headings = resume_layout(profile, ordered_rows, template)[1] if kind=='resume' else set()
             document = Document()
-            for text in paragraphs:
-                document.add_paragraph(text)
+            document.styles['Normal'].font.name = 'Arial'
+            document.styles['Normal'].font.size = Pt(11)
+            document.styles['Heading 1'].font.name = 'Arial'
+            document.styles['Heading 1'].font.size = Pt(13)
+            document.styles['Heading 1'].font.color.rgb = RGBColor(0,0,0)
+            for index,text in enumerate(paragraphs):
+                document.add_paragraph(text, style='Heading 1' if index in headings else 'Normal')
             docx_path = root / f"{kind}.docx"
             pdf_path = root / f"{kind}.pdf"
             txt_path = root / f"{kind}.txt"
             staged.extend((docx_path, pdf_path, txt_path))
             document.save(docx_path)
             txt_path.write_text('\n'.join(paragraphs) + '\n', encoding='utf-8', newline='\n')
-            render_pdf(pdf_path, paragraphs)
+            render_pdf(pdf_path, paragraphs, heading_indices=headings)
             validate_formats({'docx': docx_path, 'pdf': pdf_path, 'txt': txt_path}, paragraphs)
             records.append({"id": identity(application_id, kind, revision), "application_id": application_id,
                 "kind": kind, "version": revision, "profile_version": profile["version"],
                 "files": {path.suffix[1:]: relative + '/' + path.name for path in (docx_path, pdf_path, txt_path)},
                 "fact_ids": resume_ids if kind=='resume' else fact_ids, "sha256": {path.suffix[1:]: hashlib.sha256(path.read_bytes()).hexdigest() for path in (docx_path, pdf_path, txt_path)},
-                "template": tailor.TEMPLATE if kind=='resume' and tailor_resume else "verified-facts-v1", "created_at": generated_at,
-                "generation_model": tailor.MODEL if kind=='resume' and tailor_resume else "deterministic-fact-copy-v1",
+                "template": template, "created_at": generated_at,
+                "generation_model": (tailor.MODEL if tailor_resume else BASE_MODEL) if kind=='resume' else "deterministic-fact-copy-v1",
                 "generation_context": context if kind=='resume' else None})
         check()
         upsert(connection, m.applications, {"id": application_id, "job_id": job_id, "route_id": route["id"], "profile_id": profile_id,

@@ -1,0 +1,95 @@
+{
+  "timestamp": "2026-10-04T20:55:02.669890+00:00",
+  "result": "PARTIAL",
+  "branch": "codex/ats-resume-headings-20261004",
+  "base": "5a2f77c2a622433c9bf3dbcad22294a3de99c595",
+  "requirements": [
+    "MJ-REQ-097"
+  ],
+  "behavior": [
+    "Explicit new generic and tailored heading template/model pairs; fixed conventional headings preserve approved wording and fact order",
+    "Single-column DOCX/PDF/TXT with semantic DOCX headings, no tables/images/charts; unknown kind goes under Additional Information",
+    "Legacy model/template contracts preserve original bytes and remain validated/comparable; NULL legacy model remains visibly unrecorded",
+    "Explicit prepare upgrades once; historical/submitted application locks remain; no migration"
+  ],
+  "checks": [
+    {
+      "timestamp": "2026-10-04T20:55:02.669890+00:00",
+      "command": "python -m unittest discover -s tests -p test_*.py -v",
+      "target": "Full regression including Chromium before final legacy NULL-model correction",
+      "result": "PASS",
+      "tests": 522,
+      "evidence_path": ".git/afk-dev/ats-headings-full.log"
+    },
+    {
+      "timestamp": "2026-10-04T20:55:02.669890+00:00",
+      "command": "python -m unittest tests.integration.test_ats_templates tests.integration.test_resume_comparison tests.integration.test_uploaded_resume_comparison tests.unit.test_resume_templates -v",
+      "target": "Final corrected legacy/template/comparison regression",
+      "result": "PASS",
+      "tests": 13,
+      "evidence_path": ".git/afk-dev/ats-headings-review-fix.log"
+    },
+    {
+      "timestamp": "2026-10-04T20:55:02.669890+00:00",
+      "command": "npm test --prefix apps/web; npm run build --prefix apps/web",
+      "target": "Final web selector tests and production build",
+      "result": "PASS",
+      "tests": 43,
+      "evidence_path": ".git/afk-dev/ats-headings-web-final.log"
+    },
+    {
+      "timestamp": "2026-10-04T20:55:02.669890+00:00",
+      "command": "python .git/afk-dev/ats-headings-pg.py",
+      "target": "PostgreSQL 17 actual Alembic head, final ATS/validation/uploaded and generated comparison",
+      "result": "PASS",
+      "tests": 14,
+      "evidence_path": ".git/afk-dev/ats-headings-pg.log"
+    },
+    {
+      "timestamp": "2026-10-04T20:55:02.669890+00:00",
+      "command": "docker run --network none --read-only --tmpfs /tmp:rw,exec,size=256m --memory 1g --cpus 2 mjobs-ats-headings:20261004 python -m unittest tests.integration.test_document_validation tests.integration.test_ats_templates tests.unit.test_resume_templates -v",
+      "target": "Actual Linux app image final Unicode/ATS/legacy/assertion contracts",
+      "result": "PASS",
+      "tests": 8,
+      "evidence_path": ".git/afk-dev/ats-headings-runtime-final.log"
+    }
+  ],
+  "runtime_image": "sha256:6ae6f815fcd0c274b93be6e84d33026d816e4abd60e62164b28ba43d3486b3e3",
+  "visual": {
+    "result": "PASS",
+    "command": "python .git/afk-dev/ats-visual.py; pdftoppm -png -scale-to 1200 -singlefile .git/afk-dev/ats-heading-sample.pdf .git/afk-dev/ats-heading-sample",
+    "target": "Synthetic multi-section PDF",
+    "evidence_path": ".git/afk-dev/ats-heading-sample.png",
+    "observation": "Readable conventional headings, one column, plain text, no clipping or decorative graphics"
+  },
+  "review": {
+    "result": "PASS",
+    "reviewer": "read-only chore lifecycle_audit",
+    "findings_fixed": [
+      "Legacy NULL model baseline now accepted only under explicit legacy contract; new model pairs remain exact"
+    ],
+    "regression_evidence": ".git/afk-dev/ats-headings-legacy-red.log",
+    "final_disposition": "No residual actionable findings"
+  },
+  "initial_failure": {
+    "result": "FAIL",
+    "evidence_path": ".git/afk-dev/ats-headings-red.log",
+    "note": "Missing heading contract and version-aware stored validation"
+  },
+  "remaining_checks": [
+    "Exact final-head push and pull-request Verification and all8 runtime artifacts each",
+    "Hosted ATS heading browser assertion and actual app-image ATS/Unicode step"
+  ],
+  "limitations": [
+    "Headings repeat if noncontiguous fact kinds require it; approved fact order is never silently regrouped",
+    "Unknown kinds remain Additional Information; no career facts inferred",
+    "No production deployment or external submission"
+  ],
+  "ocr_comparison_regression": {
+    "result": "PASS",
+    "command": "docker run --network none --read-only mjobs-ats-headings:20261004 python -m cli.uploaded_resume_comparison_e2e",
+    "target": "Final new heading templates against real scanned and mixed uploaded originals",
+    "evidence_path": ".git/afk-dev/ats-headings-ocr-comparison.json",
+    "timestamp": "2026-10-04T20:54:58.036198+00:00"
+  }
+}
