@@ -48,7 +48,7 @@ class FactInput(BaseModel):
 
 
 class CareerFactInput(FactInput):
-    kind: Literal["skill", "experience", "education", "certification", "project", "accomplishment", "summary"] = "skill"
+    kind: Literal["skill", "experience", "education", "certification", "project", "accomplishment", "summary", "technology_experience"] = "skill"
 
 
 class ProfileInput(BaseModel):

@@ -62,6 +62,48 @@ class ProfileImportTests(unittest.TestCase):
                        {'preferences':{'work_arrangements':['UNKNOWN']}}):
             self.assertEqual(self.client.put('/profiles', json=dict(PROFILE, **change)).status_code, 422)
 
+    def test_complete_career_profile_survives_restart_without_approving_answers(self):
+        contact = dict(first_name='Alex', middle_name='Q', last_name='Example', preferred_name='Al',
+                       phones=['+1 202 555 0142'], city='Tulsa', state='OK', postal_code='74101',
+                       country='US', linkedin='https://linkedin.com/in/example',
+                       github='https://github.com/example', portfolio='https://example.invalid')
+        preferences = dict(desired_roles=['Systems Administrator'], work_arrangements=['REMOTE'],
+                           employment_types=['FULL_TIME'], salary_expectations='USD 65000 annually',
+                           work_authorization='Authorized to work in the United States',
+                           sponsorship_needs='NOT_REQUIRED', travel_preference='Up to 10%',
+                           career_goals='Develop senior administration skills')
+        kinds = ['experience', 'education', 'certification', 'skill', 'project',
+                 'accomplishment', 'technology_experience']
+        facts = [dict(id=kind, kind=kind, text='User supplied ' + kind, source='Manual entry',
+                      confidence=100, verified=False, user_approved=False) for kind in kinds]
+        response = self.client.put('/profiles', json=dict(PROFILE, contact=contact,
+                                  preferences=preferences, facts=facts, answers=[]))
+        self.assertEqual(response.status_code, 200, response.text)
+        version = response.json()['version']
+        # A changed preference must not rewrite the immutable earlier profile.
+        preferences['sponsorship_needs'] = 'REQUIRED'
+        self.assertEqual(self.client.put('/profiles', json=dict(PROFILE, contact=contact,
+                         preferences=preferences, facts=facts, answers=[])).status_code, 200)
+        restarted = Store(self.store.url)
+        try:
+            saved = restarted.profile('fixture')
+            self.assertEqual({k:saved['contact'][k] for k in contact}, contact)
+            self.assertEqual({k:saved['preferences'][k] for k in preferences}, preferences)
+            self.assertEqual(saved['answers'], [])
+            self.assertEqual({f['kind'] for f in saved['facts']}, set(kinds))
+            self.assertTrue(all(not f['verified'] and not f['user_approved'] for f in saved['facts']))
+            self.assertEqual(restarted.profile('fixture', version)['preferences']['sponsorship_needs'], 'NOT_REQUIRED')
+        finally:
+            restarted.engine.dispose()
+
+    def test_authorization_is_optional_and_rejects_invented_sponsorship_states(self):
+        self.assertEqual(self.client.put('/profiles', json=dict(PROFILE, facts=[])).status_code, 200)
+        preferences = self.client.get('/profiles/fixture').json()['preferences']
+        self.assertEqual(preferences['work_authorization'], '')
+        self.assertEqual(preferences['sponsorship_needs'], 'NOT_SPECIFIED')
+        for preferences in ({'sponsorship_needs': 'probably'}, {'work_authorization': True}):
+            self.assertEqual(self.client.put('/profiles', json=dict(PROFILE, preferences=preferences)).status_code, 422)
+
     def test_empty_and_imported_pending_profiles_cannot_generate_documents(self):
         self.store.save_profile(dict(PROFILE, facts=[]))
         with fixture_server() as origin:

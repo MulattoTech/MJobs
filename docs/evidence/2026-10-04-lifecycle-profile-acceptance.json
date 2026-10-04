@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-10-04T17:01:16.444423+00:00",
+  "result": "PARTIAL",
+  "base_commit": "fcfa104c600dde35d35558baa84180613bc312e4",
+  "branch": "codex/lifecycle-profile-acceptance-20261004",
+  "requirements": {
+    "MJ-REQ-085": {
+      "local_acceptance": "PASS",
+      "criteria": "All seven stored statuses; successful complete-inventory disappearance retains canonical job/posting/history; rolling, failed, partial, invalid or truncated inventories never imply removal; explicit reactivation and API/restart readback."
+    },
+    "MJ-REQ-086": {
+      "local_acceptance": "PARTIAL",
+      "criteria": "Verified employer CLOSED outranks live aggregator for attached postings; ambiguous refresh cannot reopen.",
+      "remaining": "Separate cross-provider canonical jobs cannot be combined. MERGE_APPROVED is a review decision only. Issue87 stays open."
+    },
+    "MJ-REQ-087": {
+      "local_acceptance": "PASS",
+      "criteria": "Material history stores original description/SHA256, salary, location, remote policy and timestamps; whitespace refresh no-op, salary/location changes and A-B-A reversion preserve immutable history; API/restart readback and downgrade guards."
+    },
+    "MJ-REQ-088": {
+      "local_acceptance": "PASS",
+      "criteria": "Existing immutable profile distinct from resumes stores contact, desired roles, location, remote/employment/salary preferences, optional work authorization/sponsorship/travel, career goals and sourced work history/education/certification/skill/project/accomplishment/technology-experience facts. Authorization preferences never create approved answers."
+    },
+    "MJ-REQ-089": {
+      "local_acceptance": "PASS",
+      "criteria": "All specified optional contact fields plus required name/email round-trip through browser/API and immutable profile snapshots; unsafe URLs rejected."
+    },
+    "MJ-REQ-090": {
+      "local_acceptance": "PARTIAL",
+      "remaining": "Native PDF/DOCX/TXT supported; scanned PDFs return NEEDS_OCR. No OCR engine yet."
+    },
+    "MJ-REQ-091": {
+      "local_acceptance": "PARTIAL",
+      "remaining": "Reviewable section facts exist; richer contact extraction, mixed-contact line preservation, and structured chronology remain."
+    }
+  },
+  "checks": [
+    {
+      "command": ".venv/Scripts/python.exe -m unittest discover -s tests -p test_*.py -q",
+      "target": "local SQLite and built-web browser suite",
+      "result": "PASS",
+      "tests": 461,
+      "skips": 0,
+      "timestamp": "2026-10-04T17:01:16.444423+00:00",
+      "evidence_path": ".git/afk-dev/profile-regression-20261004.log",
+      "sha256": "157bc1929cb5039b1ce51d45156f799fadcbc9c77a6d4eef3bf78a4ded600990"
+    },
+    {
+      "command": ".venv/Scripts/python.exe .git/afk-dev/lifecycle-postgres-20261004.py",
+      "target": "isolated PostgreSQL17, alembic head e9024a1b7c30",
+      "result": "PASS",
+      "tests": 13,
+      "timestamp": "2026-10-04T17:01:16.444423+00:00",
+      "evidence_path": ".git/afk-dev/lifecycle-postgres-20261004.log",
+      "sha256": "05f2a5a7cc83696510fc92ffcfe71502aa61a1e13841f8c479d0b57779310664"
+    },
+    {
+      "command": ".venv/Scripts/python.exe .git/afk-dev/profile-postgres-20261004.py",
+      "target": "isolated PostgreSQL17; profile restart/versioning and empty/populated lifecycle downgrade guards",
+      "result": "PASS",
+      "tests": 9,
+      "timestamp": "2026-10-04T17:01:16.444423+00:00",
+      "evidence_path": ".git/afk-dev/profile-postgres-20261004.log",
+      "sha256": "d07457be15a5293894446b3db314f86871c55dfe44f7420c65f45f3afc93074c"
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run; npm run build --prefix apps/web",
+      "target": "web tests and production assets",
+      "result": "PASS",
+      "tests": 38,
+      "timestamp": "2026-10-04T17:01:16.444423+00:00"
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m unittest tests.browser.test_profile_import -q",
+      "timestamp": "2026-10-04T17:02:05.575484+00:00",
+      "target": "built-web Chromium/local API; all contact fields, authorization/sponsorship and technology fact persist with no approval",
+      "result": "PASS",
+      "tests": 1,
+      "evidence_path": ".git/afk-dev/profile-browser-final-20261004.log"
+    }
+  ],
+  "review": {
+    "result": "PASS",
+    "reviewer": "read-only chore lifecycle_audit",
+    "note": "Independent defect review; no actionable defects. NOT_SPECIFIED is a design choice; requirement prescribes no enum token."
+  },
+  "hosted_ci": {
+    "result": "NOT_RUN",
+    "note": "Verify push and pull_request workflows for final PR head after publication; preserve run/attempt/job/merge receipts in Git common AFK directory and next tracked evidence."
+  },
+  "privacy": {
+    "data": "Synthetic fixtures only; no personal resumes or user database accessed.",
+    "external_submission": "OFF",
+    "schema_changes": "None; existing JSON snapshots reused."
+  },
+  "runtime_harness_note": "Private PostgreSQL harness reuses real lifecycle/profile test cases with PostgreSQL setup and alembic upgrade head per test. First harness attempt correctly failed because Store.migrate is SQLite-only; corrected harness uses Alembic. Employer response transport controlled; database behavior real.",
+  "resolved_test_diagnosis": "Extended browser test initially used exact label Type, whose nested select options affect the label match; scoped combobox locator exercises the actual control and passes. No product workaround."
+}

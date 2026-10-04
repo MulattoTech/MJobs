@@ -715,9 +715,10 @@
       "evidence": [
         "docs/evidence/2026-10-03-job-lifecycle.json",
         "docs/evidence/2026-10-04-clean-baseline.json",
-        "docs/evidence/2026-10-04-merged-ci-receipts.json"
+        "docs/evidence/2026-10-04-merged-ci-receipts.json",
+        "docs/evidence/2026-10-04-lifecycle-profile-acceptance.json"
       ],
-      "note": "Merged PR481 and its named SHA-bound PostgreSQL/runtime gates supersede NOT_RUN. Remaining whole-contract acceptance has not been independently certified; retain PARTIAL."
+      "note": "All seven stored statuses; successful complete-inventory disappearance retains canonical job/posting/history; rolling, failed, partial, invalid or truncated inventories never imply removal; explicit reactivation and API/restart readback.  Hosted final-head verification pending; issue remains open until receipt."
     },
     {
       "requirement_id": "MJ-REQ-086",
@@ -725,9 +726,10 @@
       "evidence": [
         "docs/evidence/2026-10-03-job-lifecycle.json",
         "docs/evidence/2026-10-04-clean-baseline.json",
-        "docs/evidence/2026-10-04-merged-ci-receipts.json"
+        "docs/evidence/2026-10-04-merged-ci-receipts.json",
+        "docs/evidence/2026-10-04-lifecycle-profile-acceptance.json"
       ],
-      "note": "Merged PR481 and its named SHA-bound PostgreSQL/runtime gates supersede NOT_RUN. Remaining whole-contract acceptance has not been independently certified; retain PARTIAL."
+      "note": "Verified employer CLOSED outranks live aggregator for attached postings; ambiguous refresh cannot reopen. Separate cross-provider canonical jobs cannot be combined. MERGE_APPROVED is a review decision only. Issue87 stays open. Hosted final-head verification pending; issue remains open until receipt."
     },
     {
       "requirement_id": "MJ-REQ-087",
@@ -735,26 +737,29 @@
       "evidence": [
         "docs/evidence/2026-10-03-job-lifecycle.json",
         "docs/evidence/2026-10-04-clean-baseline.json",
-        "docs/evidence/2026-10-04-merged-ci-receipts.json"
+        "docs/evidence/2026-10-04-merged-ci-receipts.json",
+        "docs/evidence/2026-10-04-lifecycle-profile-acceptance.json"
       ],
-      "note": "Merged PR481 and its named SHA-bound PostgreSQL/runtime gates supersede NOT_RUN. Remaining whole-contract acceptance has not been independently certified; retain PARTIAL."
+      "note": "Material history stores original description/SHA256, salary, location, remote policy and timestamps; whitespace refresh no-op, salary/location changes and A-B-A reversion preserve immutable history; API/restart readback and downgrade guards.  Hosted final-head verification pending; issue remains open until receipt."
     },
     {
       "requirement_id": "MJ-REQ-088",
       "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-09-30-user-testing.md",
-        "docs/evidence/2026-10-03-resume-driven-profile.json"
+        "docs/evidence/2026-10-03-resume-driven-profile.json",
+        "docs/evidence/2026-10-04-lifecycle-profile-acceptance.json"
       ],
-      "note": "Reviewed native resume import, structured optional contact/preferences and named base-resume versions verified; full structured career model, OCR, advanced extraction and broader document library remain incomplete."
+      "note": "Existing immutable profile distinct from resumes stores contact, desired roles, location, remote/employment/salary preferences, optional work authorization/sponsorship/travel, career goals and sourced work history/education/certification/skill/project/accomplishment/technology-experience facts. Authorization preferences never create approved answers.  Hosted final-head verification pending; issue remains open until receipt."
     },
     {
       "requirement_id": "MJ-REQ-089",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-03-resume-driven-profile.json"
+        "docs/evidence/2026-10-03-resume-driven-profile.json",
+        "docs/evidence/2026-10-04-lifecycle-profile-acceptance.json"
       ],
-      "note": "Reviewed native resume import, structured optional contact/preferences and named base-resume versions verified; full structured career model, OCR, advanced extraction and broader document library remain incomplete."
+      "note": "All specified optional contact fields plus required name/email round-trip through browser/API and immutable profile snapshots; unsafe URLs rejected.  Hosted final-head verification pending; issue remains open until receipt."
     },
     {
       "requirement_id": "MJ-REQ-090",
@@ -762,17 +767,19 @@
       "evidence": [
         "docs/evidence/2026-09-30-pr004-upload-restore-local.json",
         "docs/evidence/2026-10-03-resume-driven-profile.json",
-        "docs/evidence/2026-10-03-resume-upload-integrity.json"
+        "docs/evidence/2026-10-03-resume-upload-integrity.json",
+        "docs/evidence/2026-10-04-lifecycle-profile-acceptance.json"
       ],
-      "note": "Reviewed native resume import, structured optional contact/preferences and named base-resume versions verified; full structured career model, OCR, advanced extraction and broader document library remain incomplete. Identical-byte mixed-extension uploads now preserve one authoritative file/version, verified with concurrent SQLite/PostgreSQL requests; broader scope remains partial."
+      "note": " Native PDF/DOCX/TXT supported; scanned PDFs return NEEDS_OCR. No OCR engine yet. Hosted final-head verification pending; issue remains open until receipt."
     },
     {
       "requirement_id": "MJ-REQ-091",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-03-resume-driven-profile.json"
+        "docs/evidence/2026-10-03-resume-driven-profile.json",
+        "docs/evidence/2026-10-04-lifecycle-profile-acceptance.json"
       ],
-      "note": "Reviewed native resume import, structured optional contact/preferences and named base-resume versions verified; full structured career model, OCR, advanced extraction and broader document library remain incomplete."
+      "note": " Reviewable section facts exist; richer contact extraction, mixed-contact line preservation, and structured chronology remain. Hosted final-head verification pending; issue remains open until receipt."
     },
     {
       "requirement_id": "MJ-REQ-092",
