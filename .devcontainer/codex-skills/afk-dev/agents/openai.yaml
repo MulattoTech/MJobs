@@ -1,0 +1,4 @@
+interface:
+  display_name: "AFK-DEV"
+  short_description: "Autonomous development loop with persistent learning"
+  default_prompt: "Use $afk-dev to drive this development objective to verified completion with minimal user intervention."

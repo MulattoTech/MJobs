@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["status", "progressMade", "workItem", "summary", "evidence", "failureFingerprint", "changedCondition", "nextAction", "externalBlocker", "lessonCandidates"],
+  "properties": {
+    "status": {"enum": ["continue", "complete", "blocked", "paused", "handoff"]},
+    "progressMade": {"type": "boolean"},
+    "workItem": {"type": ["string", "null"]},
+    "summary": {"type": "string"},
+    "evidence": {"type": "array", "items": {"type": "string"}},
+    "failureFingerprint": {"type": ["string", "null"]},
+    "changedCondition": {"type": ["string", "null"]},
+    "nextAction": {"type": ["string", "null"]},
+    "externalBlocker": {"type": ["string", "null"]},
+    "lessonCandidates": {"type": "array", "items": {"type": "string"}}
+  }
+}

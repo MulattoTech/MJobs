@@ -32,6 +32,15 @@ separate empty Compose project, use the
 [local backup runbook](docs/runbooks/LOCAL_BACKUP.md). Keep backup archives
 outside this repository and protect them as personal data.
 
+## GitHub Codespaces
+
+MJobs includes a Codespaces/dev-container environment that mirrors the project
+runtime with Python 3.12, Node 24, Docker Compose, Playwright and Codex tooling.
+Use it when you want builds, tests, containers and AI development to run on the
+Codespace VM rather than the local workstation. See
+[docs/CODESPACES.md](docs/CODESPACES.md) for the one-command creation flow,
+cloud startup commands, port forwarding, verification and shutdown.
+
 Repository operating instructions live in [AGENTS.md](AGENTS.md). The complete
 requirements remain in the GitHub backlog and scoped [area specifications](docs/spec/areas).
 This milestone does not represent completion of the full specification.

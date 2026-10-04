@@ -4,29 +4,44 @@
     {
       "label": "MJobs: Development & Feedback",
       "type": "shell",
-      "command": "powershell",
-      "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}\\Start-Feedback.ps1"],
+      "command": "bash",
+      "args": ["${workspaceFolder}/.devcontainer/feedback.sh"],
+      "windows": {
+        "command": "powershell",
+        "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}\\Start-Feedback.ps1"]
+      },
       "problemMatcher": [],
       "presentation": {"reveal": "silent", "panel": "dedicated"}
     },
     {
       "label": "MJobs: Start Personal (No Browser)",
       "type": "shell",
-      "command": "powershell",
-      "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}\\Start-MJobs.ps1", "-Personal", "-NoOpen"],
+      "command": "bash",
+      "args": ["${workspaceFolder}/.devcontainer/mjobs.sh", "personal"],
+      "windows": {
+        "command": "powershell",
+        "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}\\Start-MJobs.ps1", "-Personal", "-NoOpen"]
+      },
       "problemMatcher": []
     },
     {
       "label": "MJobs: Start Fixture (No Browser)",
       "type": "shell",
-      "command": "powershell",
-      "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}\\Start-MJobs.ps1", "-NoOpen"],
+      "command": "bash",
+      "args": ["${workspaceFolder}/.devcontainer/mjobs.sh", "fixture"],
+      "windows": {
+        "command": "powershell",
+        "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}\\Start-MJobs.ps1", "-NoOpen"]
+      },
       "problemMatcher": []
     },
     {
       "label": "MJobs: Live Feedback - Personal",
       "type": "shell",
-      "command": "${workspaceFolder}\\.venv\\Scripts\\python.exe",
+      "command": "${workspaceFolder}/.venv/bin/python",
+      "windows": {
+        "command": "${workspaceFolder}\\.venv\\Scripts\\python.exe"
+      },
       "args": ["-m", "cli.live_feedback", "run", "--base-url", "http://127.0.0.1:18701"],
       "dependsOn": ["MJobs: Start Personal (No Browser)"],
       "dependsOrder": "sequence",
@@ -36,7 +51,10 @@
     {
       "label": "MJobs: Live Feedback - Fixture",
       "type": "shell",
-      "command": "${workspaceFolder}\\.venv\\Scripts\\python.exe",
+      "command": "${workspaceFolder}/.venv/bin/python",
+      "windows": {
+        "command": "${workspaceFolder}\\.venv\\Scripts\\python.exe"
+      },
       "args": ["-m", "cli.live_feedback", "run", "--base-url", "http://127.0.0.1:18700"],
       "dependsOn": ["MJobs: Start Fixture (No Browser)"],
       "dependsOrder": "sequence",
@@ -46,15 +64,37 @@
     {
       "label": "MJobs: Summarize Latest Feedback",
       "type": "shell",
-      "command": "${workspaceFolder}\\.venv\\Scripts\\python.exe",
+      "command": "${workspaceFolder}/.venv/bin/python",
+      "windows": {
+        "command": "${workspaceFolder}\\.venv\\Scripts\\python.exe"
+      },
       "args": ["-m", "cli.live_feedback", "summarize"],
       "problemMatcher": []
     },
     {
       "label": "MJobs: Install Playwright Chromium",
       "type": "shell",
-      "command": "${workspaceFolder}\\.venv\\Scripts\\python.exe",
+      "command": "${workspaceFolder}/.venv/bin/python",
+      "windows": {
+        "command": "${workspaceFolder}\\.venv\\Scripts\\python.exe"
+      },
       "args": ["-m", "playwright", "install", "chromium"],
+      "problemMatcher": []
+    },
+    {
+      "label": "MJobs: Codespace Verify (Quick)",
+      "type": "shell",
+      "command": "bash",
+      "args": ["${workspaceFolder}/.devcontainer/verify.sh", "quick"],
+      "linux": {},
+      "problemMatcher": []
+    },
+    {
+      "label": "MJobs: Codespace Verify (Full)",
+      "type": "shell",
+      "command": "bash",
+      "args": ["${workspaceFolder}/.devcontainer/verify.sh", "full"],
+      "linux": {},
       "problemMatcher": []
     }
   ]

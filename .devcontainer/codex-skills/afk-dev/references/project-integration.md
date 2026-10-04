@@ -1,0 +1,7 @@
+# Project integration
+
+Read root and applicable nested `AGENTS.md`, repository instructions, and project-specific skills before any real-repository integration action. AFK-DEV supplies persistence and orchestration; it never becomes the project's release, security, credential, deployment, or ownership authority. Preserve existing history, counters, provenance, and unrelated changes.
+
+For DevFleet or any similarly controlled release project, discover the current local release-control and audit skills, native machine-readable authority, active owner, exact target identity, and safety state. A read-only compatibility pass may report the earliest native prerequisite and what would be done next. Do not start VM, proof, FullRelease, signing, candidate rebuild, release-evidence edits, reservation, or retry for a skill test. Diagnostics and local fixture success are not release certification. A project-owned terminal/blocker state outranks generic AFK continuation. Never promote project-specific candidate IDs, RunIds, or allowances to portable lessons.
+
+The action classes in goal state interpret existing authorization: workspace edits and tests may be routine; push, external writes, deployment, production mutation, credential changes, and security-policy changes require their own user/project authority. If the project forbids push, finish permitted local work and identify the exact remote-CI prerequisite without pushing.
