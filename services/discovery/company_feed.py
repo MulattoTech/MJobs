@@ -21,6 +21,7 @@ from services.company_discovery.quality import posting_metrics, record_observati
 from services.discovery.feed_items import _application_url, describe_feed_item
 from services.company_discovery.link_evidence import validate_reports, record_link_evidence
 from services.dedupe.source_values import lock_candidate_job, record_candidate, resolve_job_values
+from services.discovery.lifecycle import status_claim
 
 
 def _validate_source_identity(store, *, source_id, company_id, provider, tenant, endpoint):
@@ -113,6 +114,7 @@ def import_company_feed_jobs(store, *, company_id, source_id, provider, tenant,
                 previous = connection.execute(select(m.jobs.c.attributes).where(m.jobs.c.id == job_id)).scalar_one_or_none()
                 previous = dict(previous or {})
                 attributes = {
+                "lifecycle_claim": status_claim(item.get('status')),
                 "provider": provider, "tenant": tenant, "source_id": source_id,
                 "source_endpoint": endpoint, "collection_strategy": strategy,
                     "reported_posted_at": published.isoformat() if published else None,

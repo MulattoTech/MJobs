@@ -239,6 +239,12 @@ class Store:
                 m.matches.c.profile_version == (profile["version"] if profile else ""))).mappings().one_or_none()
             data["match"] = dict(match) if match else None
             data["postings"] = []
+            data['description_revisions'] = [dict(row) for row in connection.execute(
+                select(m.job_description_revisions).where(m.job_description_revisions.c.job_id == job_id)
+                .order_by(m.job_description_revisions.c.sequence)).mappings()]
+            data['lifecycle_history'] = [dict(row) for row in connection.execute(
+                select(m.job_lifecycle_observations).where(m.job_lifecycle_observations.c.job_id == job_id)
+                .order_by(m.job_lifecycle_observations.c.observed_at, m.job_lifecycle_observations.c.id)).mappings()]
             for row in connection.execute(select(m.postings).where(m.postings.c.job_id == job_id)).mappings():
                 posting = raw_posting_view(dict(row))
                 posting["snapshots"] = [dict(snapshot) for snapshot in connection.execute(select(m.posting_snapshots.c.id, m.posting_snapshots.c.sha256,

@@ -105,6 +105,34 @@ posting_value_candidates = table(
 Index("ix_posting_value_candidates_posting_time", posting_value_candidates.c.posting_id,
       posting_value_candidates.c.observed_at)
 Index("ix_posting_value_candidates_quality", posting_value_candidates.c.quality_observation_id)
+job_lifecycle_observations = table(
+    "job_lifecycle_observations",
+    Column("job_id", ForeignKey("canonical_jobs.id"), nullable=False),
+    Column("posting_id", ForeignKey("job_postings.id"), nullable=False),
+    Column("candidate_id", ForeignKey("posting_value_candidates.id")),
+    Column("quality_observation_id", ForeignKey("source_quality_observations.id")),
+    Column("observed_at", String(64), nullable=False),
+    Column("status", String(32), nullable=False),
+    Column("authority", String(32), nullable=False),
+    Column("evidence", JSON, nullable=False),
+    constraints=(CheckConstraint("status IN ('ACTIVE','POSSIBLY_ACTIVE','REMOVED','EXPIRED','FILLED','UNKNOWN','CLOSED')", name="job_lifecycle_status_valid"),),
+)
+Index("ix_lifecycle_job_time", job_lifecycle_observations.c.job_id, job_lifecycle_observations.c.observed_at)
+job_description_revisions = table(
+    "job_description_revisions",
+    Column("job_id", ForeignKey("canonical_jobs.id"), nullable=False),
+    Column("sequence", Integer, nullable=False),
+    Column("candidate_id", ForeignKey("posting_value_candidates.id")),
+    Column("description_hash", String(64), nullable=False),
+    Column("material_hash", String(64), nullable=False),
+    Column("description", String(50000), nullable=False),
+    Column("salary", JSON, nullable=False),
+    Column("location", String(1000)),
+    Column("remote_policy", JSON, nullable=False),
+    Column("observed_at", String(64)),
+    Column("recorded_at", String(64), nullable=False),
+    constraints=(UniqueConstraint("job_id", "sequence"),),
+)
 source_application_link_observations = table(
     "source_application_link_observations",
     Column("candidate_id", ForeignKey("posting_value_candidates.id"), nullable=False),

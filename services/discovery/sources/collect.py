@@ -114,6 +114,10 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
         with store.engine.begin() as connection:
             if connection.dialect.name == 'sqlite':
                 connection.exec_driver_sql('BEGIN IMMEDIATE')
+            # Serialize present and absent job updates from overlapping refreshes
+            # of this inventory before acquiring any company/job locks.
+            connection.execute(select(m.job_sources.c.id).where(
+                m.job_sources.c.id == source_id).with_for_update()).one()
             check()
             companies = {}
             new_companies = set()
@@ -185,6 +189,10 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                                  observation_id=observation_id, normalized=values)
             for job_id in sorted({entry[2] for entry in pending_candidates}):
                 resolve_job_values(connection, job_id, at=observation_at, seen_at=timestamp, profile=profile)
+            if batch.complete_inventory and not rejected:
+                from services.discovery.lifecycle import reconcile_inventory
+                reconcile_inventory(connection, endpoint=batch.endpoint, posting_ids=set(batch_postings),
+                                    observation_id=observation_id)
             record_discovery_requests(connection, {entry[2] for entry in pending_candidates}, profile,
                                       new_company_ids=new_companies)
         return {"source_id": source_id, "jobs_seen": len(normalized), "rejected": rejected,
