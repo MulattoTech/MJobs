@@ -19,6 +19,12 @@ technology-experience headings and preserves dated lines verbatim. Only whole
 contact tokens in the opening header, or explicit labelled contact lines, become
 contact suggestions; email addresses and links in career prose remain facts.
 GitHub and explicit portfolio/website links use the existing opt-in contact review.
+Responsibilities have their own pending career-fact type. An optional `date_ranges`
+review projection links a single unambiguous year/month range to its original
+fact ID. Original text and fact IDs are unchanged; missing days, tenure and
+role/duty associations are never inferred. Reversed or ambiguous dates remain
+plain text. Date projections are shown during review; the original dated fact,
+not a separate structured chronology record, is saved in the profile.
 Without headings, prose ends the inferred header. No links are fetched and no
 imported fact is automatically verified or approved.
 Tests: `python -m unittest tests.unit.test_resume_extraction

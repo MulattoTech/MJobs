@@ -3,7 +3,8 @@ import { api, uploadResume } from './api';
 import type { ImportedFact, ImportedContact } from './profile-import';
 
 export type Resume = {id:string;profile_id:string;filename:string;format:string;size_bytes:number;sha256:string;status:string;created_at:string;series_id:string;label:string;version:number};
-export type Extraction = {status:string;warnings:string[];contact:ImportedContact;facts:ImportedFact[]};
+export type Extraction = {status:string;warnings:string[];contact:ImportedContact;facts:ImportedFact[];
+  date_ranges?:{fact_id:string;raw:string;start:string;end:string}[]};
 
 export function ResumeLibrary({profileId, saved, resumes, busy, action, onStored, onApply}: {
   profileId:string; saved:boolean; resumes:Resume[]; busy:boolean;
@@ -67,7 +68,11 @@ export function ResumeLibrary({profileId, saved, resumes, busy, action, onStored
       </label>)}
       {extraction.facts.map(fact=><label className="fact-suggestion" key={fact.id}>
         <input type="checkbox" checked={selectedFacts.has(fact.id!)} onChange={e=>toggle(setSelectedFacts,fact.id!,e.target.checked)}/>
-        <span><strong>{fact.kind}</strong> {fact.text}<small>Unverified suggestion · confidence {fact.confidence}%</small></span>
+        <span><strong>{fact.kind}</strong> {fact.text}<small>Unverified suggestion · confidence {fact.confidence}%</small>
+          {extraction.date_ranges?.filter(period=>period.fact_id===fact.id).map(period=><small key={period.fact_id}>
+            Dates to review: {period.start} to {period.end==='PRESENT'?'Present':period.end}. Original: {period.raw}
+          </small>)}
+        </span>
       </label>)}
       {extraction.status==='READY_FOR_REVIEW'&&<button type="button" className="primary" disabled={busy} onClick={()=>{onApply(extraction,selectedFacts,selectedContact);setExtraction(null);}}>Add selected to profile editor</button>}
       <button type="button" className="quiet" onClick={()=>setExtraction(null)}>Dismiss</button>

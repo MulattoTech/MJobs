@@ -24,12 +24,57 @@ _HEADINGS = {
     "summary": "summary", "professional summary": "summary", "profile": "summary",
     "experience": "experience", "work experience": "experience", "employment": "experience",
     "work history": "experience", "employment history": "experience",
-    "professional experience": "experience", "responsibilities": "experience",
+    "professional experience": "experience", "responsibilities": "responsibility",
     "technology experience": "technology_experience",
     "skills": "skill", "technical skills": "skill", "core skills": "skill",
     "education": "education", "certifications": "certification", "certification": "certification",
     "projects": "project", "accomplishments": "accomplishment", "achievements": "accomplishment",
 }
+
+_MONTHS = ('january', 'february', 'march', 'april', 'may', 'june', 'july',
+           'august', 'september', 'october', 'november', 'december')
+_MONTH_TOKEN = '(?:' + '|'.join(month[:3] + '(?:' + month[3:] + ')?' if len(month) > 3 else month
+                              for month in _MONTHS) + r')\.?'
+_YEAR_TOKEN = r'(?:19|20)\d{2}'
+_DATE_TOKEN = (rf'(?:{_YEAR_TOKEN}-(?:0[1-9]|1[0-2])|(?:0?[1-9]|1[0-2])/{_YEAR_TOKEN}|'
+               rf'{_MONTH_TOKEN}\s+{_YEAR_TOKEN}|{_YEAR_TOKEN})')
+_DATE_RANGE = re.compile(rf'(?<![\w/.–—-])(?P<start>{_DATE_TOKEN})\s*(?:[-–—]|\bto\b)\s*'
+                         rf'(?P<end>{_DATE_TOKEN}|present|current)(?![\w/–—-]|\.\w)', re.IGNORECASE)
+
+
+def _review_date_range(text: str) -> dict | None:
+    """Project one unambiguous literal range; never infer tenure or missing dates."""
+    matches = list(_DATE_RANGE.finditer(text))
+    if len(matches) != 1:
+        return None
+    match = matches[0]
+    # A spaced chain can otherwise look like one valid pair plus a stray date.
+    if re.match(rf'\s*(?:[-–—,;]|\bto\b)\s*(?:{_DATE_TOKEN}|present|current)',
+                text[match.end():], re.IGNORECASE):
+        return None
+    if re.search(rf'{_DATE_TOKEN}\s*[,;]\s*$', text[:match.start()], re.IGNORECASE):
+        return None
+
+    def normalize(value):
+        value = value.lower().rstrip('.')
+        if value in {'present', 'current'}:
+            return 'PRESENT'
+        if re.fullmatch(_YEAR_TOKEN, value):
+            return value
+        if re.fullmatch(r'\d{4}-\d{2}', value):
+            return value
+        if '/' in value:
+            month, year = value.split('/')
+        else:
+            month_name, year = value.split()
+            month = next(index for index, name in enumerate(_MONTHS, 1) if name.startswith(month_name.rstrip('.')))
+        return f'{year}-{int(month):02d}'
+
+    start, end = normalize(match['start']), normalize(match['end'])
+    if end != 'PRESENT' and (start[:4] > end[:4] or
+                            len(start) == len(end) == 7 and start > end):
+        return None
+    return {'raw': match[0], 'start': start, 'end': end}
 
 
 def _empty_contact() -> dict:
@@ -125,7 +170,7 @@ def _section_facts(text: str, contact_lines: set[int]) -> list[tuple[str, str]]:
             # Split only conventional delimiters; preserve each user supplied token.
             parts = re.split(r"\s*(?:[,;|•])\s*", line)
             facts.extend(("skill", part.strip(" -\t")) for part in parts if part.strip(" -\t"))
-        elif current in {"summary", "experience", "education", "certification", "project", "accomplishment", "technology_experience"}:
+        elif current in {"summary", "experience", "responsibility", "education", "certification", "project", "accomplishment", "technology_experience"}:
             facts.append((current, line))
     return facts
 
@@ -238,7 +283,10 @@ def extract_resume(data: bytes, format: str, source: str) -> dict:
         if len(fact_text) > 10000:
             overflow = True
             continue
-        identifier = "fact_" + sha256((source + "\0" + fact_kind + "\0" + fact_text).encode("utf-8")).hexdigest()[:24]
+        # Responsibilities used to be classified as experience. Retain their
+        # established IDs so re-extraction cannot duplicate already-saved facts.
+        identity_kind = 'experience' if fact_kind == 'responsibility' else fact_kind
+        identifier = "fact_" + sha256((source + "\0" + identity_kind + "\0" + fact_text).encode("utf-8")).hexdigest()[:24]
         if identifier in seen_ids:
             continue
         seen_ids.add(identifier)
@@ -252,4 +300,11 @@ def extract_resume(data: bytes, format: str, source: str) -> dict:
         warnings = ["Resume contains no readable text"]
     if overflow:
         warnings = list(warnings) + ["Some extracted facts exceeded review limits and were omitted"]
-    return {"status": status, "warnings": warnings, "contact": contact, "facts": facts}
+    date_ranges = []
+    for fact in facts:
+        if fact['kind'] in {'experience', 'education', 'project', 'technology_experience'}:
+            period = _review_date_range(fact['text'])
+            if period:
+                date_ranges.append({'fact_id': fact['id'], **period})
+    return {"status": status, "warnings": warnings, "contact": contact, "facts": facts,
+            "date_ranges": date_ranges}

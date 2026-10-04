@@ -692,18 +692,18 @@
       "depends_on": [
         "MJ-PR-016"
       ],
-      "status": "PARTIAL",
+      "status": "PASS",
       "branch": "codex/canonical-route-lifecycle-20261004",
       "draft_until_verified": true,
-      "notes": "MJ-REQ085/087 PASS in PR485. MJ-REQ086 new ingestion attachment implemented and under verification; no legacy reparent/merge. Exact final-head CI pending.",
-      "evidence_path": "docs/evidence/2026-10-04-canonical-route-lifecycle.json",
-      "scope_complete": false,
+      "notes": "MJ-REQ085/087 evidenced in PR485; MJ-REQ086 evidenced in PR488 with real cross-provider ingestion, source authority and exact-head push/PR CI. Generic/ambiguous identity and legacy merge remain separate dedupe scope.",
+      "evidence_path": "docs/evidence/2026-10-04-lifecycle-exact-head-ci.json",
+      "scope_complete": true,
       "local_validation": "PASS",
       "publication_status": "MERGED",
       "publication_state": "MERGED",
-      "pr_number": 481,
-      "head": "1500891ac75d4eb36c531baf7c94efd035ba16cf",
-      "merge_commit": "0433a07a09a37e4e86221c547e8d21aae60de9f4"
+      "pr_number": 488,
+      "head": "14a56622f4dc0835bef017ceaeacc27f0e5c8518",
+      "merge_commit": "e8f8ba6c46e83b976c9b565549c0f6f0367415d0"
     },
     {
       "id": "MJ-PR-025",
@@ -720,9 +720,9 @@
         "MJ-PR-024"
       ],
       "status": "PARTIAL",
-      "branch": "codex/resume-extraction-preservation-20261004",
+      "branch": "codex/resume-date-review-20261004",
       "draft_until_verified": true,
-      "notes": "MJ-REQ088/089 PASS in PR485. PR486 native extraction preservation merged with exact-head push/PR CI. OCR and richer chronology remain PARTIAL.",
+      "notes": "MJ-REQ088/089 PASS in PR485. PR486 extraction preservation merged. MJ-REQ091 date/responsibility review active; MJ-REQ090 scanned OCR remains partial.",
       "feedback_slice": {
         "branch": "codex/resume-driven-profile",
         "result": "PARTIAL",

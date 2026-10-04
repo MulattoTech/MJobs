@@ -25,7 +25,8 @@ def resume_pdf(extra=''):
     for line in ['Example Applicant', 'imported@example.invalid', '+1 202 555 0142',
                  'GitHub: github.com/imported-example', 'Portfolio: https://portfolio.example.invalid',
                  'Skills', 'Python, SQL', 'Work History', 'Example Company | Engineer | 2020-2024',
-                 'Maintained support@example.invalid routing.', 'Technology Experience', 'Linux services', extra]:
+                 'Responsibilities', 'Maintained support@example.invalid routing.',
+                 'Technology Experience', 'Linux services', extra]:
         text.textLine(line)
     pdf.drawText(text)
     pdf.save()
@@ -104,6 +105,8 @@ class ProfileImportBrowserTests(unittest.TestCase):
                     expect(review.get_by_label('Add contact email', exact=False)).not_to_be_checked()
                     expect(review.get_by_label('Add contact github', exact=False)).not_to_be_checked()
                     expect(review.get_by_text('Maintained support@example.invalid routing.', exact=False)).to_be_visible()
+                    expect(review.get_by_text('Dates to review: 2020 to 2024.', exact=False)).to_be_visible()
+                    expect(review.get_by_text('responsibility', exact=True)).to_be_visible()
                     review.get_by_label('Add contact email', exact=False).check()
                     review.get_by_label('Add contact phones', exact=False).check()
                     review.get_by_label('Add contact github', exact=False).check()
@@ -127,6 +130,9 @@ class ProfileImportBrowserTests(unittest.TestCase):
                     for label, value in contacts.items():
                         self.assertEqual(saved['contact'][label.replace(' ', '_')], value)
                     self.assertTrue(all(not f['verified'] and not f['user_approved'] for f in saved['facts']))
+                    self.assertEqual(next(f for f in saved['facts'] if f['kind']=='responsibility')['text'],
+                                     'Maintained support@example.invalid routing.')
+                    self.assertIn('Example Company | Engineer | 2020-2024', [f['text'] for f in saved['facts']])
                     page.reload(wait_until='domcontentloaded')
                     page.get_by_role('button', name='Profile', exact=True).click()
                     expect(page.get_by_label('Email', exact=True)).to_have_value('imported@example.invalid')

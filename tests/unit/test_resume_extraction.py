@@ -6,6 +6,39 @@ from services.career_profile.extraction import extract_resume
 
 
 class ResumeExtractionTests(unittest.TestCase):
+    def test_dated_career_facts_have_review_ranges_without_changed_text_or_approval(self):
+        lines = ['Example Co | Engineer | Jan 2020 - December 2023',
+                 'Other Co | Administrator | 2024 - Present',
+                 'Earlier role | 03/2018 - 2019-12']
+        result = extract_resume(('Experience\n'+'\n'.join(lines)).encode(), 'txt', 'resume')
+        self.assertEqual([f['text'] for f in result['facts']], lines)
+        self.assertEqual([(r['start'], r['end']) for r in result['date_ranges']],
+                         [('2020-01', '2023-12'), ('2024', 'PRESENT'), ('2018-03', '2019-12')])
+        self.assertEqual([r['fact_id'] for r in result['date_ranges']], [f['id'] for f in result['facts']])
+        self.assertTrue(all(not f['verified'] and not f['user_approved'] for f in result['facts']))
+
+    def test_uncertain_dates_remain_original_text_without_inferred_chronology(self):
+        lines = ['Engineer 2024 - 2020', 'Engineer 2020 - 2022 and 2023 - Present',
+                 'Engineer 03/04/2020 - 05/06/2024', 'Engineer 2020-2021-2022',
+                 'Engineer approximately 2020 through the pandemic', 'Engineer 2020-13 - 2024-14',
+                 'Identifier 12020-20240', 'Engineer 2024-12 - 2024-01', 'Engineer 2020–2021–2022',
+                 'Engineer 2020 - 2021 - 2022', 'Engineer 2019 - 2020.05',
+                 'Engineer 2020 - 2021.foo', 'Engineer 2020 - 2021, 2022',
+                 'Engineer 2019; 2020 - 2021']
+        result = extract_resume(('Experience\n'+'\n'.join(lines)).encode(), 'txt', 'resume')
+        self.assertEqual([f['text'] for f in result['facts']], lines)
+        self.assertEqual(result['date_ranges'], [])
+
+    def test_responsibilities_have_their_own_pending_fact_type(self):
+        result = extract_resume(b'Responsibilities\nMaintain Linux servers.\nAchievements\nReduced incidents.',
+                                'txt', 'resume')
+        self.assertEqual([(f['kind'], f['text']) for f in result['facts']],
+                         [('responsibility', 'Maintain Linux servers.'), ('accomplishment', 'Reduced incidents.')])
+        # The previous extractor classified this duty as experience. A saved
+        # fact must retain its ID when the same upload is extracted again.
+        legacy = extract_resume(b'Experience\nMaintain Linux servers.', 'txt', 'resume')['facts'][0]
+        self.assertEqual(result['facts'][0]['id'], legacy['id'])
+
     def test_txt_extracts_contact_sections_and_split_skills(self):
         data = b"""Jane Q. Example\njane@example.com | +1 (312) 555-0199\nLinkedIn: https://www.linkedin.com/in/jane-example\nChicago, IL 60601\n\nSUMMARY\nPlatform engineer with 10 years of experience.\n\nSKILLS\nPython, PostgreSQL; Docker | Kubernetes\n\nEXPERIENCE\n2020 - Present -- Senior Engineer\nBuilt durable systems and reduced incidents by 30%.\n\nEDUCATION\nB.S. Computer Science, State University, 2014\n"""
         result = extract_resume(data, "txt", "base-resume")
@@ -183,11 +216,13 @@ class ResumeExtractionTests(unittest.TestCase):
                 self.assertEqual(result['contact']['github'], 'https://github.com/example')
                 self.assertEqual([(f['kind'],f['text']) for f in result['facts']], [
                     ('experience', 'Example Co | Engineer | 2020-2024'),
-                    ('experience', 'Maintained support@example.invalid routing.'),
+                    ('responsibility', 'Maintained support@example.invalid routing.'),
                     ('accomplishment', 'Reduced incidents by 30%.'),
                     ('technology_experience', 'Linux administration')])
                 self.assertTrue(all(f['source'] == 'uploaded-resume:two' and not f['verified']
                                     and not f['user_approved'] for f in result['facts']))
+                self.assertEqual(result['date_ranges'], [{'fact_id': result['facts'][0]['id'],
+                    'raw': '2020-2024', 'start': '2020', 'end': '2024'}])
 
 
 if __name__ == "__main__":
