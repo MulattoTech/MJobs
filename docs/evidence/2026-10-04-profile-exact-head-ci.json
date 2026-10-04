@@ -1,0 +1,94 @@
+{
+  "timestamp": "2026-10-04T17:08:20.109723+00:00",
+  "result": "PASS",
+  "pr": {
+    "baseRefName": "main",
+    "baseRefOid": "fcfa104c600dde35d35558baa84180613bc312e4",
+    "headRefOid": "4c3a5f78d0eab8a889d74b24916d6dc223f1dc01",
+    "isDraft": true,
+    "mergeStateStatus": "CLEAN",
+    "mergeable": "MERGEABLE",
+    "number": 485,
+    "reviewDecision": "",
+    "state": "OPEN",
+    "url": "https://github.com/MulattoTech/MJobs/pull/485"
+  },
+  "head": "4c3a5f78d0eab8a889d74b24916d6dc223f1dc01",
+  "base": "fcfa104c600dde35d35558baa84180613bc312e4",
+  "runs": [
+    {
+      "id": 37218980330,
+      "event": "push",
+      "attempt": 1,
+      "head_sha": "4c3a5f78d0eab8a889d74b24916d6dc223f1dc01",
+      "conclusion": "success",
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/37218980330",
+      "jobs": [
+        {
+          "id": 111485250484,
+          "name": "product-suite-and-connected-ui",
+          "conclusion": "success",
+          "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/37218980330/job/111485250484"
+        }
+      ]
+    },
+    {
+      "id": 37219004362,
+      "event": "pull_request",
+      "attempt": 1,
+      "head_sha": "4c3a5f78d0eab8a889d74b24916d6dc223f1dc01",
+      "conclusion": "success",
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/37219004362",
+      "jobs": [
+        {
+          "id": 111485320389,
+          "name": "product-suite-and-connected-ui",
+          "conclusion": "success",
+          "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/37219004362/job/111485320389"
+        }
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "id": 111485320389,
+      "name": "product-suite-and-connected-ui",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/37219004362/job/111485320389"
+    },
+    {
+      "id": 111485250484,
+      "name": "product-suite-and-connected-ui",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/37218980330/job/111485250484"
+    }
+  ],
+  "merge": {
+    "headRefOid": "4c3a5f78d0eab8a889d74b24916d6dc223f1dc01",
+    "mergeCommit": {
+      "oid": "f7875f44b5d6c5c8f8dcce0c94a5c80e38dbbdb5"
+    },
+    "mergedAt": "2026-10-04T17:08:38Z",
+    "state": "MERGED"
+  },
+  "artifacts": {
+    "push": {
+      "ci-mock-e2e.json": "PASS",
+      "ci-personal-mode.json": "PASS",
+      "ci-personal-public-source.json": "PASS",
+      "ci-personal-public-ui.json": "PASS",
+      "ci-recovery.json": "PASS",
+      "ci-ui.json": "PASS"
+    },
+    "pull_request": {
+      "ci-mock-e2e.json": "PASS",
+      "ci-personal-mode.json": "PASS",
+      "ci-personal-public-source.json": "PASS",
+      "ci-personal-public-ui.json": "PASS",
+      "ci-recovery.json": "PASS",
+      "ci-ui.json": "PASS"
+    }
+  }
+}

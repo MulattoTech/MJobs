@@ -1,38 +1,70 @@
-# MJobs session handoff — 2026-10-04 UTC
+# MJobs delivery handoff — 2026-10-04
 
-The user requested a pause for skill installation outside this session. Finish the current publication/merge and checkout cleanup, then do not start another backlog slice until the user resumes development.
+Current user authorized lifecycle/profile/import implementation, tests, independent
+review, publication, exact-head verification and safe merges. Historical pause and
+cleanup instructions are observations, not current authority. External submission
+and production deployment remain unauthorized.
 
-## Authority and preservation
+## Current ownership and baseline
 
-- Repository: `C:\Tools\Dev\MJobs`; GitHub: `MulattoTech/MJobs`.
-- Fetch and inspect Git/GitHub before acting. A captured planning state is not live merge authority.
-- Preserve the original `codex/resume-driven-profile` branch at `260540cc35dd1a51c37c61f1ed638eb94106bafe`, all 24 untracked `MJobs_Development_Templates` files, private live-feedback data, and unrelated historical worktrees.
-- Keep real external application submission OFF. Do not reset, force-push, or commit private diagnostics.
+Primary session `01a107cd-4e66-77d3-b046-fc2c01f4ffb1` owns the sole write lane at
+`C:/Tools/Dev/MJobs`. At this commit the extraction continuation is on
+`codex/resume-extraction-preservation-20261004`, based on merged main
+`f7875f44b5d6c5c8f8dcce0c94a5c80e38dbbdb5`. Read live Git/GitHub before resuming.
+The private current-owner and final merge receipts are under `.git/afk-dev/`;
+this file does not authorize takeover of an active checkout.
 
-## Work delivered during this goal
+## Delivered acceptance
 
-PRs #452, #453 and #471–477 were merged. This includes integrating the existing feedback/resume work, the commercial reference catalogue, original resume-upload preservation, source-quality evidence, canonical source values and protected application routes, bounded public company discovery, candidate-bound application links, and durable useful-job discovery requests.
+PR [#485](https://github.com/MulattoTech/MJobs/pull/485) merged as
+`f7875f44b5d6c5c8f8dcce0c94a5c80e38dbbdb5`. Exact candidate
+`4c3a5f78d0eab8a889d74b24916d6dc223f1dc01` passed push run `37218980330`
+and pull-request run `37219004362`, both attempt 1, including fixture, recovery,
+personal isolation and public readback artifacts. See
+`docs/evidence/2026-10-04-profile-exact-head-ci.json` for job IDs and receipts.
 
-MJ-REF-043..059 map to issues #454..470, respectively. All 59 reference records remain NOT_RUN; catalogue creation is not feature implementation. The original requirements remain primary.
+MJ-REQ-085/087/088/089 are PASS and issues #86/#88/#89/#90 are closed:
+all lifecycle statuses and retained history, material description versions,
+complete optional profile fields, all contact fields, and immutable/restart
+persistence. Work authorization/sponsorship do not create approved answers.
+Local validation included 461 Python tests, 38 web tests/build, real browser
+acceptance, 13 lifecycle and 9 profile tests on isolated PostgreSQL17.
 
-## Current closeout slice
+## Extraction continuation
 
-Branch `codex/company-source-refresh` adds reviewed recurring same-origin RSS/Atom/JSON feed monitoring, Sources controls, periodic revalidation, broken-feed rediscovery, atomic multi-profile matching and completion receipts. Source/domain/profile authorization, cancellation, operation ownership and lease checks protect reads and writes. Changed infrastructure retains existing source history and requires review; full replacement ATS migration is not implemented.
+Work history and responsibilities retain dated lines, email addresses and links.
+GitHub and portfolio contact suggestions use the existing opt-in review flow.
+Unlabelled body/reference contacts no longer become applicant contact fields;
+without headings, prose ends the inferred contact block. Technology-experience
+facts remain sourced, pending, unverified and unapproved. PDF/DOCX/TXT use native
+local parsing. No personal resumes or live user database were used.
 
-Evidence: `docs/evidence/2026-10-04-company-source-monitoring.json`.
+Evidence: `docs/evidence/2026-10-04-resume-extraction-preservation.json`.
+Hosted checks for this slice are pending at the evidence commit; resolve final
+head, both Verification runs and merge via live GitHub and the private
+`.git/afk-dev/pr-<number>-exact-head.json` receipt. Do not interpret local PASS as
+hosted PASS. The post-merge `.git/afk-dev/delivery-closeout-20261004.json` records
+final main, publication, owner release, remaining work and the next action.
 
-- 419 Python tests, zero skips: PASS.
-- 33 frontend tests and production build: PASS.
-- Isolated PostgreSQL17 migration, concurrent scheduler/worker imports, cancellation/profile-edit serialization, restart and populated downgrade refusal: PASS.
-- Windows source-value browser test now uses a thread-local selector loop; product and shutdown assertions remain intact.
-- Employer responses were controlled; the live user database and private feedback data were untouched.
+## Remaining work
 
-At this file's commit, hosted checks are pending publication. Resolve the final outcome from the GitHub PR for `codex/company-source-refresh` and the private Git-common-directory `afk-dev/reconcile-20261003/session-closeout.json`. That receipt is written after exact-head verification and merge without changing the verified head solely for bookkeeping.
+- MJ-REQ-086 / #87: first-party closure wins for already attached postings.
+  Cross-provider canonical jobs remain separate; MERGE_APPROVED records a review
+  decision and does not merge/reparent durable jobs, history or applications.
+- MJ-REQ-090 / #91: native PDF/DOCX/TXT import works. Scanned/image PDFs return
+  NEEDS_OCR; local OCR execution is not implemented and Tesseract is not installed.
+- MJ-REQ-091 / #92: supported section content and dates are preserved for review.
+  Structured role/date/duty associations and broader layout coverage remain
+  incomplete. Keep PARTIAL rather than inferring arbitrary resume understanding.
+- MJ-PR-025 remains PARTIAL for the import/extraction items above. Required profile
+  fields are demonstrated, but that does not certify all MJ-PR-026/030 acceptance.
 
-Original accounting: 48 PASS, 74 PARTIAL, 244 NOT_RUN (366 total). MJ-REQ-055/056/071/076 are PARTIAL; MJ-REQ-077 remains NOT_RUN. Reference accounting: 59 NOT_RUN. Release readiness: NOT_RUN.
+Next useful slice: finish bounded native extraction chronology/review, or design
+and test a local OCR path with page/time/resource bounds and the same explicit
+approval gate. Canonical cross-provider merging needs a separate coherent slice
+covering applications, routes, postings, source candidates and immutable history.
+Use one write-heavy lane and preserve the existing planning/evidence system.
 
-## Next session
-
-Read `AGENTS.md`, this handoff and `planning/IMPLEMENTATION_STATE.json`, then reconcile live GitHub and every dirty worktree. Resume only when requested. The next product slice should complete the supported employer-feed flywheel acceptance from configured intake through employer-only jobs and recurring refresh, then address the remaining original discovery triggers/provider gaps.
-
-Development-speed recommendations were advisory: remove duplicate branch-push/PR CI runs while retaining exact-head required checks; package repeatable reconciliation, test selection, PostgreSQL/browser harnesses and CI receipts into one MJobs delivery skill; consider Fast mode and benchmark Sol for bounded implementation while retaining stronger integration review. No model configuration or plugin installation was changed.
+The session-owned PostgreSQL acceptance container was removed after verification.
+Existing user Compose services and private feedback/resumes were preserved.
+No full-spec production-release acceptance is claimed.

@@ -14,6 +14,13 @@ must not depend on application automation or matching workers.
 
 Native PDF parsing uses pypdf; DOCX parses only the bounded document XML part;
 UTF-8 TXT stays local. OCR and rich structured chronology remain incomplete.
+Native extraction recognizes work/employment history, responsibilities and
+technology-experience headings and preserves dated lines verbatim. Only whole
+contact tokens in the opening header, or explicit labelled contact lines, become
+contact suggestions; email addresses and links in career prose remain facts.
+GitHub and explicit portfolio/website links use the existing opt-in contact review.
+Without headings, prose ends the inferred header. No links are fetched and no
+imported fact is automatically verified or approved.
 Tests: `python -m unittest tests.unit.test_resume_extraction
 tests.integration.test_profile_import tests.browser.test_profile_import`.
 

@@ -105,6 +105,90 @@ class ResumeExtractionTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'XML part'):
             extract_resume(stream.getvalue(), 'docx', 'resume')
 
+    def test_work_history_dates_and_email_responsibility_are_preserved(self):
+        result = extract_resume(
+            b'Example Applicant\nWork History\nExample Co | Engineer | 2020-2024\n'
+            b'Maintained support@example.invalid routing and reduced incidents.\n'
+            b'Technology Experience\nLinux administration\n', 'txt', 'uploaded-resume:one')
+        self.assertIsNone(result['contact']['email'])
+        self.assertIn(('experience', 'Example Co | Engineer | 2020-2024'),
+                      [(f['kind'], f['text']) for f in result['facts']])
+        self.assertIn(('experience', 'Maintained support@example.invalid routing and reduced incidents.'),
+                      [(f['kind'], f['text']) for f in result['facts']])
+        self.assertIn(('technology_experience', 'Linux administration'),
+                      [(f['kind'], f['text']) for f in result['facts']])
+        self.assertTrue(all(not f['verified'] and not f['user_approved'] for f in result['facts']))
+
+    def test_contact_links_are_reviewable_and_body_links_remain_facts(self):
+        result = extract_resume(
+            b'Example Applicant\napplicant@example.invalid | +1 202 555 0142\n'
+            b'GitHub: github.com/example\nPortfolio: https://example.invalid/work\n'
+            b'Projects\nBuilt https://github.com/employer/product for support@example.invalid\n',
+            'txt', 'uploaded-resume:one')
+        self.assertEqual(result['contact']['github'], 'https://github.com/example')
+        self.assertEqual(result['contact']['portfolio'], 'https://example.invalid/work')
+        self.assertEqual(result['contact']['email'], 'applicant@example.invalid')
+        self.assertEqual(result['contact']['phones'], ['+1 202 555 0142'])
+        self.assertEqual([(f['kind'], f['text']) for f in result['facts']],
+                         [('project', 'Built https://github.com/employer/product for support@example.invalid')])
+
+    def test_unlabelled_body_contact_is_not_attributed_to_applicant(self):
+        result = extract_resume(b'Example Applicant\nExperience\nreference@example.invalid\n'
+                                b'https://linkedin.com/in/supervisor\n', 'txt', 'resume')
+        self.assertIsNone(result['contact']['email'])
+        self.assertIsNone(result['contact']['linkedin'])
+        self.assertEqual(len(result['facts']), 2)
+
+    def test_unheaded_prose_ends_inferred_contact_header(self):
+        result = extract_resume(b'Example Applicant\nManaged client systems.\n'
+                                b'supervisor@example.invalid\nhttps://github.com/supervisor\n',
+                                'txt', 'resume')
+        self.assertIsNone(result['contact']['email'])
+        self.assertIsNone(result['contact']['github'])
+        self.assertEqual([f['text'] for f in result['facts']],
+                         ['Managed client systems.', 'supervisor@example.invalid', 'https://github.com/supervisor'])
+
+    def test_unsafe_contact_links_are_never_suggested(self):
+        for link in ('javascript:alert(1)', 'https://user:password@example.invalid',
+                     'https://example.invalid/with space'):
+            result = extract_resume(('Example Applicant\nPortfolio: '+link+'\nSkills\nPython').encode(), 'txt', 'resume')
+            self.assertIsNone(result['contact']['portfolio'])
+
+    def test_native_pdf_and_docx_preserve_reviewable_chronology_and_links(self):
+        from reportlab.pdfgen.canvas import Canvas
+        from xml.sax.saxutils import escape
+        lines = ['Example Applicant', 'GitHub: github.com/example',
+                 'Work History', 'Example Co | Engineer | 2020-2024',
+                 'Responsibilities', 'Maintained support@example.invalid routing.',
+                 'Achievements', 'Reduced incidents by 30%.',
+                 'Technology Experience', 'Linux administration']
+        pdf = io.BytesIO()
+        canvas = Canvas(pdf)
+        text = canvas.beginText(40, 780)
+        for line in lines:
+            text.textLine(line)
+        canvas.drawText(text)
+        canvas.save()
+        docx = io.BytesIO()
+        with ZipFile(docx, 'w') as archive:
+            archive.writestr('[Content_Types].xml', '<Types/>')
+            archive.writestr('word/document.xml',
+                '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>' +
+                ''.join('<w:p><w:r><w:t>'+escape(line)+'</w:t></w:r></w:p>' for line in lines) +
+                '</w:body></w:document>')
+        for format, data in [('pdf', pdf.getvalue()), ('docx', docx.getvalue())]:
+            with self.subTest(format=format):
+                result = extract_resume(data, format, 'uploaded-resume:two')
+                self.assertIsNone(result['contact']['email'])
+                self.assertEqual(result['contact']['github'], 'https://github.com/example')
+                self.assertEqual([(f['kind'],f['text']) for f in result['facts']], [
+                    ('experience', 'Example Co | Engineer | 2020-2024'),
+                    ('experience', 'Maintained support@example.invalid routing.'),
+                    ('accomplishment', 'Reduced incidents by 30%.'),
+                    ('technology_experience', 'Linux administration')])
+                self.assertTrue(all(f['source'] == 'uploaded-resume:two' and not f['verified']
+                                    and not f['user_approved'] for f in result['facts']))
+
 
 if __name__ == "__main__":
     unittest.main()

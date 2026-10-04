@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-10-04T17:19:29.775347+00:00",
+  "result": "PARTIAL",
+  "branch": "codex/resume-extraction-preservation-20261004",
+  "base_commit": "f7875f44b5d6c5c8f8dcce0c94a5c80e38dbbdb5",
+  "requirements": [
+    "MJ-REQ-090",
+    "MJ-REQ-091"
+  ],
+  "issues": [
+    91,
+    92
+  ],
+  "behavior": [
+    "Native PDF/DOCX/TXT preserves dated employment and responsibility prose containing email/links.",
+    "Recognizes work/employment history, professional experience, responsibilities and technology experience headings.",
+    "Whole-token GitHub and explicit portfolio/website suggestions use existing opt-in contact review; links are not fetched.",
+    "Unlabelled body emails/links cannot become applicant contacts; unheaded prose ends inferred contact header.",
+    "Individual facts keep source, stable identity, confidence, verified=false and user_approved=false."
+  ],
+  "checks": [
+    {
+      "timestamp": "2026-10-04T17:19:29.775347+00:00",
+      "command": ".venv/Scripts/python.exe -m unittest tests.unit.test_resume_extraction tests.integration.test_profile_import tests.browser.test_profile_import -q",
+      "result": "PASS",
+      "tests": 27,
+      "scope": "Before additional unheaded-header review fix; real native PDF/DOCX parsing and built-web browser/API",
+      "evidence_path": ".git/afk-dev/extraction-focused-20261004.log"
+    },
+    {
+      "timestamp": "2026-10-04T17:19:29.775347+00:00",
+      "command": ".venv/Scripts/python.exe -m unittest tests.unit.test_resume_extraction tests.integration.test_profile_import -q",
+      "result": "PASS",
+      "tests": 27,
+      "scope": "After review fix; browser included in final regression."
+    },
+    {
+      "timestamp": "2026-10-04T17:19:29.775347+00:00",
+      "command": "npm test --prefix apps/web -- --run; npm run build --prefix apps/web",
+      "result": "PASS",
+      "tests": 38
+    },
+    {
+      "timestamp": "2026-10-04T17:19:29.775347+00:00",
+      "command": ".venv/Scripts/python.exe -m tools.verification.agent_skills; .venv/Scripts/python.exe -m tools.verification.catalogue; .venv/Scripts/python.exe -m tools.verification.progress validate; git diff --check",
+      "result": "PASS"
+    },
+    {
+      "timestamp": "2026-10-04T17:19:51.849453+00:00",
+      "command": ".venv/Scripts/python.exe -m unittest discover -s tests -p test_*.py -q",
+      "target": "final implementation, full local SQLite and real browser/API regression",
+      "result": "PASS",
+      "tests": 467,
+      "skips": 0,
+      "evidence_path": ".git/afk-dev/extraction-final-regression-20261004.log",
+      "sha256": "1e0dcfbb8b7e554f5678c44d737833dd37209769cd4fc1addc00ea31900cbb3e"
+    }
+  ],
+  "review": {
+    "result": "PASS",
+    "reviewer": "read-only chore lifecycle_audit",
+    "resolved": "Confirmed standalone body email without headings was misattributed. Added failing regression, bounded inferred contact block, reviewer reran 18 native extraction tests and found no remaining defects."
+  },
+  "hosted_ci": {
+    "result": "NOT_RUN",
+    "note": "Final-head push and pull_request Verification required before merge. Post-merge exact receipt in Git common AFK directory."
+  },
+  "remaining": {
+    "MJ-REQ-090": "PARTIAL: scanned/image PDFs need OCR; no OCR implementation or local Tesseract.",
+    "MJ-REQ-091": "PARTIAL: dates/duties retained in sourced section facts; normalized role/date/duty relationships and broader layout acceptance remain incomplete.",
+    "MJ-REQ-086": "PARTIAL: cross-provider canonical merge not implemented; unrelated to this extraction slice."
+  },
+  "privacy": "Only synthetic resume fixtures. No external calls, user database, secrets or personal feedback in tests/evidence. External submission OFF. No persistence schema changes."
+}

@@ -7,12 +7,12 @@
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Clean main fcfa104c600dde35d35558baa84180613bc312e4 at entry; sole primary writer on new delivery branch.",
-    "current_verified_github_state": "PR484 merged; no open PRs at entry.",
-    "current_verified_at": "2026-10-04T16:59:45.938988+00:00"
+    "current_verified_local_state": "main fast-forwarded to f7875f44b5d6c5c8f8dcce0c94a5c80e38dbbdb5; new extraction branch has sole primary writer.",
+    "current_verified_github_state": "PR485 merged after both exact-head Verification workflows passed; issues86/88/89/90 closed by criterion evidence.",
+    "current_verified_at": "2026-10-04T17:13:24.058136+00:00"
   },
-  "current_milestone": "MJ-PR-025-PROFILE-COMPLETENESS",
-  "current_objective": "Verify lifecycle acceptance and finish normalized profile/import gaps using existing reviewed flows.",
+  "current_milestone": "MJ-PR-025-EXTRACTION-PRESERVATION",
+  "current_objective": "Preserve resume employment dates and responsibility text, avoid body-contact misattribution, and extract reviewed profile links.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -69,11 +69,8 @@
   ],
   "blocked_capabilities": [],
   "active_requirements": [
-    "MJ-REQ-085",
-    "MJ-REQ-086",
-    "MJ-REQ-087",
-    "MJ-REQ-088",
-    "MJ-REQ-089"
+    "MJ-REQ-090",
+    "MJ-REQ-091"
   ],
   "active_prs": [
     {
@@ -455,6 +452,14 @@
       "head": "6ccb193436f90dd71a3ba67dfc3ba1f072b11749",
       "merge_commit": "b122b0ea9ffb6d6527e4b46ce04899d03021e361",
       "merged_at": "2026-10-04T02:11:56Z"
+    },
+    {
+      "number": 485,
+      "url": "https://github.com/MulattoTech/MJobs/pull/485",
+      "status": "MERGED",
+      "head": "4c3a5f78d0eab8a889d74b24916d6dc223f1dc01",
+      "merge_commit": "f7875f44b5d6c5c8f8dcce0c94a5c80e38dbbdb5",
+      "ci_evidence": "docs/evidence/2026-10-04-profile-exact-head-ci.json"
     }
   ],
   "tests_passed": [
@@ -594,11 +599,11 @@
     "MJ-PR-016 local Chromium first run used Docker DNS host api, which is not a secure browser origin for crypto.randomUUID; loopback URL rerun passed all five connected UI actions."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-04T17:01:16.444423+00:00",
-    "base_commit": "fcfa104c600dde35d35558baa84180613bc312e4",
+    "timestamp": "2026-10-04T17:19:51.849453+00:00",
+    "base_commit": "f7875f44b5d6c5c8f8dcce0c94a5c80e38dbbdb5",
     "result": "PASS",
-    "scope": "461 Python tests zero skips;38 web tests/build;13 lifecycle and9 profile tests on isolated PostgreSQL17; hosted final-head pending",
-    "evidence_path": "docs/evidence/2026-10-04-lifecycle-profile-acceptance.json"
+    "scope": "467 Python tests zero skips;38 web tests/build; independent review resolved; final-head hosted CI pending",
+    "evidence_path": "docs/evidence/2026-10-04-resume-extraction-preservation.json"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -660,7 +665,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Finish profile exact-head CI and merge, then advance native import/extraction gaps. Keep cross-provider lifecycle and scanned OCR limitations explicit.",
+  "recommended_resume_step": "Finish extraction regression/review/exact-head CI. Remaining: scanned OCR and richer chronology; cross-provider canonical lifecycle attachment remains PARTIAL.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -3054,7 +3059,7 @@
   },
   "session_control": {
     "owner": "01a107cd-4e66-77d3-b046-fc2c01f4ffb1",
-    "branch": "codex/lifecycle-profile-acceptance-20261004",
+    "branch": "codex/resume-extraction-preservation-20261004",
     "write_lanes": 1,
     "requested_action": "DELIVER_LIFECYCLE_PROFILE_IMPORT",
     "note": "Current user authorizes implementation, tests, review, push, exact-head-verified merge and continuation. No production deployment or external submissions."
