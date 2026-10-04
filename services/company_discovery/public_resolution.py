@@ -4,7 +4,8 @@ from contextlib import nullcontext
 from sqlalchemy import select
 from packages.persistence import models as m
 from packages.persistence.store import identity
-from services.company_discovery.domains import normalize_domain, is_aggregator_domain, VERIFIED_METHODS
+from services.company_discovery.domains import (normalize_domain, is_aggregator_domain,
+    lock_domain_evidence, VERIFIED_METHODS)
 from services.company_discovery.public_client import PublicCompanyClient, PublicFetchError
 
 
@@ -22,10 +23,10 @@ def resolve_public_company(store, candidate, *, connection=None, lock_verified=F
     if not domain or is_aggregator_domain(domain):
         raise PublicFetchError('COMPANY_DOMAIN_REVIEW_REQUIRED')
     with (nullcontext(connection) if connection is not None else store.engine.connect()) as connection:
+        if lock_verified:
+            lock_domain_evidence(connection, domain)
         query=select(m.company_domains).where(
             m.company_domains.c.domain==domain,m.company_domains.c.verified.is_(True))
-        if lock_verified:
-            query=query.order_by(m.company_domains.c.id).with_for_update()
         matches=list(connection.execute(query).mappings())
         matches=[row for row in matches if row['verification_method'] in VERIFIED_METHODS and row['evidence']]
         owners={row['company_id'] for row in matches}

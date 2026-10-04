@@ -147,6 +147,33 @@ company_discovery_requests = table(
     ),
 )
 Index("ix_company_discovery_requests_last_seen", company_discovery_requests.c.last_seen_at)
+company_source_monitoring = table(
+    "company_source_monitoring",
+    Column("source_id", ForeignKey("company_job_sources.id"), nullable=False),
+    Column("source_snapshot", JSON, nullable=False),
+    Column("authorization", String(32), nullable=False),
+    Column("domain_evidence", JSON, nullable=False),
+    Column("revision", Integer, nullable=False, server_default="1"),
+    Column("enabled", Boolean, nullable=False, server_default=true()),
+    Column("poll_interval", Integer, nullable=False, server_default="3600"),
+    Column("status", String(32), nullable=False, server_default="IDLE"),
+    Column("last_attempt", String(64)),
+    Column("next_due", String(64)),
+    Column("last_error", String(128)),
+    Column("failure_count", Integer, nullable=False, server_default="0"),
+    Column("operation_id", ForeignKey("worker_operations.id")),
+    Column("rediscovery_operation_id", ForeignKey("worker_operations.id")),
+    Column("completed_operation_id", ForeignKey("worker_operations.id")),
+    Column("created_at", String(64), nullable=False),
+    Column("updated_at", String(64), nullable=False),
+    constraints=(
+        UniqueConstraint("source_id"),
+        CheckConstraint('"authorization" IN (\'VERIFIED_DOMAIN\', \'USER_REVIEWED\')', name="company_source_monitoring_authorization_valid"),
+        CheckConstraint("poll_interval BETWEEN 300 AND 604800", name="company_source_monitoring_poll_interval_valid"),
+        CheckConstraint("status IN ('IDLE', 'SCHEDULED', 'HEALTHY', 'FAILED', 'BLOCKED', 'REDISCOVERY_REQUIRED')", name="company_source_monitoring_status_valid"),
+    ),
+)
+Index("ix_company_source_monitoring_next_due", company_source_monitoring.c.next_due)
 dedupe_reviews = table("dedupe_reviews", Column("left_job_id", ForeignKey("canonical_jobs.id"), nullable=False),
                        Column("right_job_id", ForeignKey("canonical_jobs.id"), nullable=False),
                        Column("confidence", Float, nullable=False), Column("state", String(64), nullable=False),

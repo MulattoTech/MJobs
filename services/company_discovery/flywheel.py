@@ -50,7 +50,7 @@ def _search_provenance(candidate, provider, selected, rejected, attempted=False)
 
 
 def discover_company_source(store, candidate, client, check=None, search_provider=None,
-                            profile_id=None, profile_version=None):
+                            profile_id=None, profile_version=None, preserve_source_id=None, enrollment_guard=None):
     """Resolve one employer, prove its careers/ATS source, enroll, and enumerate immediately."""
     check = check or (lambda: None)
     fixture = bool(getattr(client, "fixture_only", False))
@@ -205,6 +205,20 @@ def discover_company_source(store, candidate, client, check=None, search_provide
             company_domain = normalize_domain(str(homepage.url)) or ""
             source_provider = "rss" if feed["strategy"] == "RSS" else "json_feed"
             source_tenant = resolved["company_id"]
+            if preserve_source_id:
+                from services.company_discovery.sources import _url
+                with store.engine.begin() as connection:
+                    previous = connection.execute(select(m.company_sources).where(
+                        m.company_sources.c.id == preserve_source_id)).mappings().one()
+                    changed = (previous['company_id'] != resolved['company_id'] or previous['provider'] != source_provider
+                        or previous['tenant'] != source_tenant or previous['endpoint'] != _url(feed['url'], 'ENDPOINT')
+                        or previous['career_url'] != _url(str(careers.url), 'CAREER_URL'))
+                    if changed:
+                        store._audit(connection, previous['id'], 'COMPANY_SOURCE_MIGRATION_REVIEW',
+                            dict(company_source_id=previous['id'], provider=source_provider, tenant=source_tenant,
+                                 endpoint=feed['url'], careers_url=str(careers.url)))
+                if changed:
+                    raise PublicFetchError('COMPANY_SOURCE_MIGRATION_REVIEW_REQUIRED')
             timestamp = now()
             tenant_record = None
             if fixture:
@@ -222,6 +236,8 @@ def discover_company_source(store, candidate, client, check=None, search_provide
                 if not fixture:
                     if connection.dialect.name == "sqlite":
                         connection.exec_driver_sql("BEGIN IMMEDIATE")
+                    if enrollment_guard:
+                        enrollment_guard(connection)
                     fresh = resolve_public_company(store, candidate, connection=connection, lock_verified=True)
                     if fresh["company_id"] != resolved["company_id"]:
                         raise PublicFetchError("COMPANY_IDENTITY_CHANGED")
@@ -240,6 +256,8 @@ def discover_company_source(store, candidate, client, check=None, search_provide
                     priority="NORMAL", discovered_automatically=True,
                     ats_tenant_id=tenant_record["id"] if tenant_record else None, last_validation=timestamp,
                 )
+                if preserve_source_id and source_record['id'] != preserve_source_id:
+                    raise PublicFetchError('COMPANY_SOURCE_MIGRATION_REVIEW_REQUIRED')
             if company_domain:
                 record_company_domain(
                     store, resolved["company_id"], company_domain,
@@ -266,6 +284,7 @@ def discover_company_source(store, candidate, client, check=None, search_provide
                 endpoint=feed["url"], strategy=feed["strategy"], items=feed_jobs,
                 profile_id=profile_id, profile_version=profile_version, check=check,
                 fetch_available=True, link_reports=link_reports,
+                import_guard=enrollment_guard,
             )
             with store.engine.begin() as connection:
                 store._audit(connection, resolved["company_id"], "COMPANY_SOURCE_DISCOVERED", {
@@ -343,10 +362,26 @@ def discover_company_source(store, candidate, client, check=None, search_provide
 
 def directly_monitored(store, company_id, *, public=False):
     with store.engine.connect() as connection:
-        query = select(m.company_sources.c.id).where(m.company_sources.c.company_id == company_id)
+        query = select(m.company_sources).where(m.company_sources.c.company_id == company_id)
         if public:
             query = query.where(m.company_sources.c.enabled.is_(True),
-                                m.company_sources.c.confidence >= 0.75,
                                 m.company_sources.c.collection_strategy != "FIXTURE",
                                 m.company_sources.c.last_success.is_not(None))
+            from services.company_discovery.monitoring import _monitor, _validate, _profiles
+            profiles = list(connection.execute(select(m.search_profiles).where(m.search_profiles.c.enabled.is_(True))).mappings())
+            for source in connection.execute(query).mappings():
+                if source['collector_source_id']:
+                    collector = connection.execute(select(m.job_sources).where(m.job_sources.c.id == source['collector_source_id'])).mappings().one()
+                    if collector['enabled'] and any(not row['source_ids'] or collector['id'] in row['source_ids'] for row in profiles):
+                        return True
+                    continue
+                monitor = _monitor(connection, source['id'])
+                if not monitor or monitor['status'] in {'BLOCKED','REDISCOVERY_REQUIRED'} or not _profiles(connection):
+                    continue
+                try:
+                    _validate(connection, source, monitor)
+                    return True
+                except (ValueError, PublicFetchError):
+                    continue
+            return False
         return connection.execute(query.limit(1)).first() is not None

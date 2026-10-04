@@ -1,6 +1,7 @@
 import React from 'react';
 import { discoveryActivity } from './company-activity';
 import { SourceLinkEvidence, type LinkVerification } from './source-link-evidence';
+import { CompanySourceMonitoring, type Monitoring } from './company-source-monitoring';
 
 export type CompanySourceView = {
   id: string;
@@ -22,6 +23,9 @@ export type CompanySourceView = {
   last_checked: string | null;
   last_success?: string | null;
   next_check: string | null;
+  source_version?: string;
+  monitoring_supported?: boolean;
+  monitoring?: Monitoring | null;
   quality?: {link_verification?: LinkVerification | null};
   provenance: {
     domain_method?: string | null;
@@ -37,6 +41,8 @@ type Props = {
   busy: boolean;
   profileSelected: boolean;
   onSet: (row: CompanySourceView, control: SourceControl, value: boolean) => Promise<void>;
+  onMonitor?: (row: CompanySourceView, interval: number) => Promise<void>;
+  onRun?: (row: CompanySourceView) => Promise<void>;
 };
 
 function safeLink(value: string | null): string | null {
@@ -53,7 +59,7 @@ function timestamp(value: string | null): string {
   return Number.isNaN(parsed.getTime()) ? 'Unknown' : parsed.toLocaleString();
 }
 
-export function CompanySources({rows, busy, profileSelected, onSet}: Props) {
+export function CompanySources({rows, busy, profileSelected, onSet, onMonitor, onRun}: Props) {
   return <section className="panel company-sources" aria-labelledby="company-sources-heading">
     <div className="toolbar">
       <div><h2 id="company-sources-heading">Companies / Sources</h2>
@@ -63,8 +69,8 @@ export function CompanySources({rows, busy, profileSelected, onSet}: Props) {
     <p className="muted">Jobs Found counts distinct jobs with postings linked to this exact source.
       Relevant Jobs counts match records for the selected profile's current version, not confirmed eligibility.
       {!profileSelected && ' Select a profile to see its match counts.'}</p>
-    <p className="safety">These controls save preferences. Automatic company-source scheduling and the actions
-      marked unavailable are not implemented here. External application submission remains OFF.</p>
+    <p className="safety">Reviewed public feeds can be monitored below. Automatic checks require an enabled search profile covering all sources.
+      Other source types and actions marked unavailable remain unsupported. External application submission remains OFF.</p>
     {rows.length === 0 && <p className="empty">No company sources enrolled. Configured public boards below remain separate from learned employer sources.</p>}
     {rows.map(row => {
       const pinned = row.priority === 'USER_PINNED';
@@ -91,6 +97,9 @@ export function CompanySources({rows, busy, profileSelected, onSet}: Props) {
           <div><dt>Next Check</dt><dd>{row.next_check ? timestamp(row.next_check) : 'Not scheduled'}</dd></div>
         </dl>
         <SourceLinkEvidence evidence={row.quality?.link_verification} />
+        {onMonitor && onRun && <CompanySourceMonitoring sourceId={row.id} sourceVersion={row.source_version || ''}
+          sourceEnabled={row.enabled} supported={!!row.monitoring_supported} monitoring={row.monitoring || null}
+          busy={busy} profileSelected={profileSelected} onMonitor={interval=>onMonitor(row,interval)} onRun={()=>onRun(row)}/>}
         <div className="company-source-controls">
           <button type="button" disabled={busy} aria-label={`${pinned ? 'Unpin' : 'Pin'} ${row.company_name} source`}
             onClick={() => void onSet(row, 'pin', !pinned)}>{pinned ? 'Unpin' : 'Pin'}</button>
@@ -115,7 +124,7 @@ export function CompanySources({rows, busy, profileSelected, onSet}: Props) {
           <pre>{JSON.stringify(row.provenance, null, 2)}</pre>
         </details>
         <div className="company-source-controls" aria-label="Unavailable company source actions">
-          {['Run Now', 'Rediscover', 'Verify', 'Edit'].map(label =>
+          {(row.monitoring_supported && onRun ? ['Rediscover', 'Verify', 'Edit'] : ['Run Now', 'Rediscover', 'Verify', 'Edit']).map(label =>
             <button key={label} type="button" disabled title="Not implemented for this company-source view">{label} &#8212; unavailable</button>)}
         </div>
       </article>;

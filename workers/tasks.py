@@ -48,6 +48,8 @@ def execute_operation(operation_id):
                                 m.routes.c.job_id == operation["params"]["job_id"],
                                 m.routes.c.provider == "mock-ats")).first():
                             raise FixtureOperationDisabled()
+            elif operation["kind"] == "COMPANY_SOURCE_REFRESH":
+                raise FixtureOperationDisabled()
             if operation["kind"] == "DISCOVER":
                 params = operation["params"]
                 if params.get("source_id"):
@@ -67,11 +69,15 @@ def execute_operation(operation_id):
                     discover(store, origin, operation["entity_id"], check=check, profile_version=params.get("profile_version"))
             elif operation["kind"] == "COMPANY_DISCOVER":
                 params = operation["params"]
-                if params.get("discovery_request_id"):
+                if params.get("monitoring_source_id") or params.get("discovery_request_id"):
                     cancellation_check = check
                     def check():
                         cancellation_check()
-                        authorize_discovery_request(store, operation)
+                        if params.get("monitoring_source_id"):
+                            from services.company_discovery.monitoring import authorize_rediscovery
+                            authorize_rediscovery(store, operation)
+                        if params.get("discovery_request_id"):
+                            authorize_discovery_request(store, operation)
                     check()
                 if operation_mode == "PERSONAL":
                     client = PublicCompanyClient(params["candidate"].get("company_website"), check=check, total_timeout=min(90, timeout()-5))
@@ -80,13 +86,20 @@ def execute_operation(operation_id):
                         raise FixtureOperationDisabled()
                     client = MockClient(origin, check=check)
                 try:
-                    result = discover_company_source(store, params["candidate"], client, check=check,
-                                                     profile_id=params.get("profile_id"), profile_version=params.get("profile_version"))
+                    discovery_kwargs = dict(check=check, profile_id=params.get("profile_id"),
+                                            profile_version=params.get("profile_version"))
+                    if params.get("monitoring_source_id"):
+                        discovery_kwargs["preserve_source_id"] = params.get("monitoring_source_id")
+                        discovery_kwargs["enrollment_guard"] = lambda connection: authorize_rediscovery(store, operation, connection=connection)
+                    result = discover_company_source(store, params["candidate"], client, **discovery_kwargs)
                 finally:
                     client.close()
                 if params.get("profile_id") and result.get("provider") == "mock-ats":
                     check()
                     discover(store, origin, params["profile_id"], check=check)
+            elif operation["kind"] == "COMPANY_SOURCE_REFRESH":
+                from services.company_discovery.monitoring import refresh_company_source
+                result = refresh_company_source(store, operation, check=check)
             elif operation["kind"] == "PREPARE":
                 prepare(store, operation["params"]["job_id"], operation["entity_id"], Path(os.environ["MJOBS_OUTPUT_DIR"]),
                         check=check, profile_version=operation["params"].get("profile_version"),

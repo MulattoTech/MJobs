@@ -43,7 +43,8 @@ def _validate_source_identity(store, *, source_id, company_id, provider, tenant,
 
 def import_company_feed_jobs(store, *, company_id, source_id, provider, tenant,
                              endpoint, strategy, items, profile_id=None, profile_version=None,
-                             check=None, fetch_available=None, link_reports=None):
+                             check=None, fetch_available=None, link_reports=None,
+                             import_guard=None, import_receipt=None, extra_profile_ids=()):
     """Persist bounded public feed rows and optional profile matches idempotently."""
     if fetch_available is not None and type(fetch_available) is not bool:
         raise ValueError("COMPANY_FEED_FETCH_AVAILABILITY_INVALID")
@@ -55,6 +56,7 @@ def import_company_feed_jobs(store, *, company_id, source_id, provider, tenant,
     company_id, provider, tenant = source["company_id"], source["provider"], source["tenant"]
     items = list(items or [])
     profile = store.profile(profile_id, profile_version) if profile_id else None
+    extra_profiles = [store.profile(identifier) for identifier in sorted(set(extra_profile_ids)) if identifier != profile_id]
     usable = set()
     if profile:
         usable = {fact["text"].strip().casefold() for fact in profile["facts"]
@@ -66,11 +68,19 @@ def import_company_feed_jobs(store, *, company_id, source_id, provider, tenant,
     salary_known = 0
     pending_candidates = []
     batch_postings = {}
+    guard_rejected = False
     try:
         reports = validate_reports(items, strategy, endpoint, link_reports, timestamp)
         with store.engine.begin() as connection:
             if connection.dialect.name == 'sqlite':
                 connection.exec_driver_sql('BEGIN IMMEDIATE')
+            if import_guard:
+                try:
+                    import_guard(connection)
+                except Exception:
+                    # A revoked local authorization is not a failed employer feed.
+                    guard_rejected = True
+                    raise
             current_source = connection.execute(select(m.company_sources).where(
                 m.company_sources.c.id == source_id).with_for_update()).mappings().one()
             if any(current_source[key] != source[key] for key in ('company_id', 'provider', 'tenant', 'endpoint')):
@@ -172,6 +182,8 @@ def import_company_feed_jobs(store, *, company_id, source_id, provider, tenant,
                     linked.add(candidate_id)
             for job_id in sorted({entry[1] for entry in pending_candidates}):
                 resolve_job_values(connection, job_id, at=observation_at, seen_at=timestamp, profile=profile)
+                for extra_profile in extra_profiles:
+                    resolve_job_values(connection, job_id, at=observation_at, seen_at=timestamp, profile=extra_profile)
             # The locked source and its successful collection commit together.
             # Compare parsed instants so an older in-flight refresh cannot rewind it.
             from datetime import datetime
@@ -179,7 +191,12 @@ def import_company_feed_jobs(store, *, company_id, source_id, provider, tenant,
             if not previous_success or datetime.fromisoformat(previous_success.replace('Z', '+00:00')) < datetime.fromisoformat(observation_at):
                 connection.execute(update(m.company_sources).where(m.company_sources.c.id == source_id)
                                    .values(last_success=observation_at))
+            if import_receipt:
+                import_receipt(connection)
     except Exception as failure:
+        from workers.operations import OperationCancelled
+        if guard_rejected or isinstance(failure, OperationCancelled) or import_guard and str(failure).startswith('MONITOR_'):
+            raise
         with store.engine.begin() as connection:
             record_observation(
                 connection, company_source_id=source_id, observed_at=now(),

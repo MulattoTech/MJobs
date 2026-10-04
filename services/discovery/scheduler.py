@@ -85,7 +85,9 @@ def schedule_due_sources(store, at=None):
             "source_id": source["id"], "operation_id": operation_id,
             "profile_ids": profile_ids, "scheduled_for": schedule_key,
         })
-    return {"scheduled": scheduled, "skipped": skipped, "checked_at": at.isoformat()}
+    from services.company_discovery.monitoring import schedule_company_sources
+    return {"scheduled": scheduled, "skipped": skipped, "checked_at": at.isoformat(),
+            "company_sources": schedule_company_sources(store, at)}
 
 
 def run_forever():

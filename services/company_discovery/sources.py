@@ -290,6 +290,10 @@ def _set_source_control(store, source_id, column, value, action):
             store._audit(connection, source_id, action, {
                 "company_source_id": source_id, "previous": current[column], "value": value,
             })
+            if column == 'enabled':
+                connection.execute(update(m.company_source_monitoring).where(m.company_source_monitoring.c.source_id == source_id)
+                    .values(revision=m.company_source_monitoring.c.revision+1, status='IDLE' if value else 'BLOCKED',
+                            next_due=now(), last_error=None if value else 'MONITOR_SOURCE_DISABLED', updated_at=now()))
         return dict(connection.execute(select(m.company_sources).where(
             m.company_sources.c.id == source_id)).mappings().one())
 
@@ -322,7 +326,7 @@ def _view_url(value):
 def _view_event(row):
     payload = row["payload"] if isinstance(row["payload"], dict) else {}
     fields = ("company_source_id", "discovery_method", "provider", "tenant", "collection_strategy",
-              "strategy", "jobs_enumerated", "jobs_imported", "resolution_confidence")
+              "strategy", "jobs_enumerated", "jobs_imported", "resolution_confidence", "status", "error_code")
     details = {}
     for key in fields:
         value = payload.get(key)
@@ -368,7 +372,8 @@ def list_company_source_view(store, profile_id=None):
         ranked = select(m.audit, source_key.label("source_id"), func.row_number().over(
             partition_by=source_key, order_by=(m.audit.c.timestamp.desc(), m.audit.c.id.desc())).label("rank"))
         ranked = ranked.where(source_key.in_(ids), m.audit.c.action.in_([
-            "COMPANY_SOURCE_DISCOVERED", "COMPANY_FEED_IMPORT_COMPLETE"])).subquery()
+            "COMPANY_SOURCE_DISCOVERED", "COMPANY_FEED_IMPORT_COMPLETE", "COMPANY_SOURCE_REFRESHED",
+            "COMPANY_SOURCE_REFRESH_FAILED", "COMPANY_SOURCE_MIGRATION_REVIEW", "COMPANY_SOURCE_MONITORING_REVIEWED"])).subquery()
         events = {}
         for event in c.execute(select(ranked).where(ranked.c.rank <= 20).order_by(
                 ranked.c.source_id, ranked.c.rank)).mappings():
@@ -376,6 +381,23 @@ def list_company_source_view(store, profile_id=None):
         tenants = {row["id"]: dict(row) for row in c.execute(select(m.company_ats_tenants).where(
             m.company_ats_tenants.c.company_id.in_(company_ids))).mappings()}
         qualities = {row['id']: company_source_quality(c, row) for row in rows}
+        from services.company_discovery.monitoring import _validate, _profiles, source_version, supported_source
+        from services.company_discovery.public_client import PublicFetchError
+        monitors = {row['source_id']: dict(row) for row in c.execute(select(m.company_source_monitoring).where(
+            m.company_source_monitoring.c.source_id.in_(ids))).mappings()}
+        scheduled_profiles = bool(_profiles(c))
+        for source in rows:
+            monitor = monitors.get(source['id'])
+            if monitor:
+                try:
+                    _validate(c, source, monitor)
+                except (ValueError, PublicFetchError) as failure:
+                    monitor.update(status='BLOCKED', last_error=str(failure), next_due=None)
+                if monitor['status'] == 'SCHEDULED' and monitor['operation_id']:
+                    monitor['status'] = c.execute(select(m.operations.c.state).where(
+                        m.operations.c.id == monitor['operation_id'])).scalar_one()
+                if not scheduled_profiles or monitor['status'] in {'BLOCKED','REDISCOVERY_REQUIRED','QUEUED','RUNNING'}:
+                    monitor['next_due'] = None
     result = []
     for row in rows:
         verified = domains.get(row["company_id"], [])
@@ -394,7 +416,12 @@ def list_company_source_view(store, profile_id=None):
             "discovered_automatically": row["discovered_automatically"],
             "status": "COMPANY_SOURCE_REVIEW_REQUIRED" if review else ("ENABLED" if row["enabled"] else "DISABLED"),
             "jobs_found": found.get(row["id"], 0), "relevant_jobs": relevant.get(row["id"], 0),
-            "last_checked": row["last_validation"], "last_success": row["last_success"], "next_check": None,
+            "last_checked": row["last_validation"], "last_success": row["last_success"],
+            "next_check": monitors.get(row['id'], {}).get('next_due'),
+            "source_version": source_version(row), "monitoring_supported": supported_source(row),
+            "monitoring": {key: value for key, value in monitors.get(row['id'], {}).items()
+                if key in {'revision','enabled','poll_interval','status','last_attempt','next_due','last_error',
+                           'operation_id','rediscovery_operation_id','authorization'}} or None,
             "quality": qualities[row['id']],
             "provenance": {
                 "domain_method": domain["verification_method"] if domain else None,

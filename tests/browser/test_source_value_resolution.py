@@ -1,4 +1,5 @@
 """Browser proof for source-value selection and preserved-route preparation."""
+import asyncio
 import copy
 import json
 from pathlib import Path
@@ -84,8 +85,16 @@ class SourceValueResolutionBrowserTests(unittest.TestCase):
             sock = socket.socket()
             sock.bind(("127.0.0.1", 0))
             origin = f"http://127.0.0.1:{sock.getsockname()[1]}"
-            server = uvicorn.Server(uvicorn.Config(app, log_level="error"))
-            thread = threading.Thread(target=server.run, kwargs={"sockets": [sock]}, daemon=True)
+            server = uvicorn.Server(uvicorn.Config(app, log_level="error", timeout_graceful_shutdown=2))
+
+            def serve_isolated_api():
+                # Keep this test's server on a selector loop: Windows' default
+                # Proactor teardown can surface client disconnects as an
+                # unhandled socket shutdown while the test is already done.
+                with asyncio.Runner(loop_factory=asyncio.SelectorEventLoop) as runner:
+                    runner.run(server.serve(sockets=[sock]))
+
+            thread = threading.Thread(target=serve_isolated_api, daemon=True)
             thread.start()
             deadline = time.monotonic() + 10
             try:

@@ -110,6 +110,18 @@ class DiscoveryRequestReviewInput(DiscoveryRequestRevisionInput):
     website: str = Field(min_length=1, max_length=2000)
 
 
+class CompanyMonitoringInput(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+    source_version: str = Field(pattern=r"^[0-9a-f]{64}$")
+    revision: int = Field(ge=0)
+    poll_interval: int = Field(ge=300, le=604800)
+
+
+class CompanyRefreshInput(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+    profile_id: str = Field(min_length=1, max_length=128)
+
+
 class CompanySourceEnabledInput(BaseModel):
     model_config = ConfigDict(strict=True, extra="forbid")
     enabled: bool
@@ -383,6 +395,17 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     @app.get("/company-sources")
     def company_sources(company_id: str | None = Query(default=None, min_length=1, max_length=128)):
         return {"company_sources": list_company_job_sources(store, company_id)}
+
+    @app.put('/company-sources/{source_id}/monitoring')
+    def company_source_monitoring(source_id: str, value: CompanyMonitoringInput):
+        from services.company_discovery.monitoring import configure_monitoring
+        return review_request_action(configure_monitoring, source_id,
+            expected_source_version=value.source_version, revision=value.revision, poll_interval=value.poll_interval)
+
+    @app.post('/company-sources/{source_id}/refresh', status_code=202)
+    def company_source_refresh(source_id: str, value: CompanyRefreshInput):
+        from services.company_discovery.monitoring import queue_refresh
+        return review_request_action(queue_refresh, source_id, profile_id=value.profile_id)
 
     @app.put("/company-sources/{source_id}/watch")
     def company_source_watch(source_id: str, value: CompanySourceWatchInput):

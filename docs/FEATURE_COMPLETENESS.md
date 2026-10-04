@@ -1,6 +1,6 @@
 # MJobs Feature Completeness
 
-Updated: 2026-10-03
+Updated: 2026-10-04
 
 ## How to read this
 This report intentionally separates the original MJobs product specification from later reference-project inspiration.
@@ -9,13 +9,14 @@ A percentage is a navigation aid, never a release claim. Only evidence-backed PA
 ## Original specification
 - Catalogue items: **366**
 - PASS: **48** (13.11%)
-- PARTIAL: **73** (19.95%)
-- NOT_RUN: **245** (66.94%)
+- PARTIAL: **74** (20.22%)
+- NOT_RUN: **244** (66.67%)
 - Full-spec state: **PARTIAL**
 - Release readiness: **not established**
 PASS counts complete requirement items, not the fraction of source code implemented. Many requirements span multiple product capabilities; the repository does not turn partial evidence into completed requirements.
 
 ## Current verified implementation spine
+- MJ-REQ-055/056/071/076 remain PARTIAL after reviewed periodic employer-feed monitoring, atomic multi-profile matches/receipts, authorization and cancellation guards, broken-feed rediscovery, and Sources controls. 419 Python tests,33 frontend tests/build and isolated PostgreSQL17 validation pass. MJ-REQ-077 remains NOT_RUN; provider migration is not implemented. Exact-head hosted CI is pending publication (`docs/evidence/2026-10-04-company-source-monitoring.json`).
 - MJ-REQ-083 is PARTIAL: durable source-quality observations and bounded, explainable API scores pass309 Python tests,17 frontend tests/build and isolated PostgreSQL17 migration/restart proof. Application-link accuracy and quality-backed duplicate selection remain incomplete (`docs/evidence/2026-10-03-source-quality-observations.json`).
 - Reviewed PDF/DOCX/TXT resume suggestions, grouped contact/preferences and named base-resume history passed local browser/API and PostgreSQL fixture acceptance. Imported facts remain pending; OCR, LinkedIn import, automatic preference filtering and full structured career chronology remain incomplete (docs/evidence/2026-10-03-resume-driven-profile.json).
 - Durable PostgreSQL/Redis worker architecture and migrations
@@ -92,13 +93,13 @@ PR #453 merged as `de9b058031d6db3aace9c56eebf7e5fd4aff695d` after exact-head CI
 
 Identical bytes uploaded under different valid PDF/TXT names now retain one authoritative original and version, including concurrent calls. API metadata and download checksums agree. SQLite/API regression and isolated PostgreSQL concurrency/reopen proof passed; MJ-REQ-090/094 remain PARTIAL. Historical orphan files are preserved, and general crash/rollback reconciliation remains open. Evidence: `docs/evidence/2026-10-03-resume-upload-integrity.json`.
 
-## Authoritative source values — 2026-10-03
+## Authoritative source values â€” 2026-10-03
 
 PR473 source-quality observations merged after exact-head CI. Duplicate postings now retain immutable normalized candidates and their observed origins; verified authority precedes measured quality when choosing the canonical job details. Matching uses the selected coherent bundle. The UI explains source disagreements and requires explicit preserved-route review when a changed source URL conflicts with an existing application target. Actual browser,322-test regression and PostgreSQL concurrency/restart evidence passed. MJ-REQ-083 remains PARTIAL because application-link accuracy still lacks a bounded verification workflow. Evidence: `docs/evidence/2026-10-03-authoritative-source-values.json`.
 
 Current original accounting:48 PASS,73 PARTIAL,245 NOT_RUN (366 total). Reference accounting:59 NOT_RUN. Release readiness:NOT_RUN. PR452/453/471/472/473 are integrated; earlier active-PR and Docker-unavailable statements are historical snapshots.
 
-## Public company discovery prerequisite — 2026-10-03
+## Public company discovery prerequisite â€” 2026-10-03
 
 The PERSONAL Companies/Sources screen now accepts a company and HTTPS website, queues a durable worker, and imports supported same-site feeds with source identity visibly unverified unless qualifying domain evidence already exists. The production client uses bounded public HTTPS; unsupported redirects, robots denial, unsafe destinations and response limits fail closed. Browser/API/worker feed proof uses controlled responses; a separate unmocked documentation-page GET proves real transport only. MJ-REQ-054/060/070..073 remain PARTIAL; no completion counts change. Application-link accuracy, automatic useful-job discovery triggers, broader ATS enumeration and scheduling remain required. Evidence: `docs/evidence/2026-10-03-public-company-discovery.json`.
 

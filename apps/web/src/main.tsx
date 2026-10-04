@@ -175,7 +175,16 @@ function App() {
         {operationMode==='FIXTURE'&&<section className="panel"><h2>Try the local demo</h2><p>Creates a separate fictional profile and two fictional jobs. It never overwrites your profile.</p><button type="button" disabled={!!busy} onClick={()=>void action('Loading fictional demo',demo)}>Load fictional demo</button></section>}
       </form>}
       {tab==='Sources'&&<>
-        <CompanySources rows={companySources} busy={!!busy} profileSelected={!!profileId} onSet={async(row,control,value)=>{
+        <CompanySources rows={companySources} busy={!!busy} profileSelected={!!profileId}
+          onMonitor={(row,interval)=>action('Saving source monitoring',async()=>{
+            await api('/company-sources/'+encodeURIComponent(row.id)+'/monitoring',{method:'PUT',body:JSON.stringify({source_version:row.source_version,revision:row.monitoring?.revision||0,poll_interval:interval})});
+            setNotice('Monitoring saved. Automatic checks use enabled search profiles covering all sources.');
+          })}
+          onRun={row=>action('Refreshing employer source',async()=>{
+            try {await queue('/company-sources/'+encodeURIComponent(row.id)+'/refresh',{profile_id:profileRef.current});}
+            finally {await refresh(profileRef.current);}
+          })}
+          onSet={async(row,control,value)=>{
           await action('Updating company source',async()=>{
             const field=control==='pin'?'pinned':control==='watch'?'watched':'enabled';
             await api('/company-sources/'+encodeURIComponent(row.id)+'/'+control,{method:'PUT',body:JSON.stringify({[field]:value})});
