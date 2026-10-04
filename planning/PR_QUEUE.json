@@ -695,7 +695,7 @@
       "status": "PARTIAL",
       "branch": "codex/pr024-job-lifecycle-rebased-20261003",
       "draft_until_verified": true,
-      "notes": "2026-10-04 audit: status retention and material history pass local SQLite/PostgreSQL acceptance. Closure authority passes for attached postings; cross-provider canonical attachment remains incomplete. See docs/evidence/2026-10-04-lifecycle-profile-acceptance.json.",
+      "notes": "MJ-REQ-085/087 acceptance PASS in PR485 with exact-head push/PR CI; issues86/88 closed. MJ-REQ-086 remains PARTIAL: authority resolution supports attached postings; separate cross-provider canonical merge remains missing.",
       "evidence_path": "docs/evidence/2026-10-03-job-lifecycle.json",
       "scope_complete": false,
       "local_validation": "PASS",
@@ -720,9 +720,9 @@
         "MJ-PR-024"
       ],
       "status": "PARTIAL",
-      "branch": "codex/lifecycle-profile-acceptance-20261004",
+      "branch": "codex/resume-extraction-preservation-20261004",
       "draft_until_verified": true,
-      "notes": "Normalized contact/profile fields completed with optional work authorization, sponsorship and technology experience. Native PDF/DOCX/TXT import reused. Scanned OCR and richer extraction remain. Hosted exact-head verification pending.",
+      "notes": "MJ-REQ-088/089 PASS in merged PR485; issues89/90 closed. Native extraction preservation/contact-boundary continuation active. Scanned OCR and richer chronology remain partial.",
       "feedback_slice": {
         "branch": "codex/resume-driven-profile",
         "result": "PARTIAL",
@@ -732,9 +732,10 @@
         "pr_number": 453
       },
       "integrated_incremental_prs": [
-        453
+        453,
+        485
       ],
-      "evidence_path": "docs/evidence/2026-10-04-lifecycle-profile-acceptance.json"
+      "evidence_path": "docs/evidence/2026-10-04-resume-extraction-preservation.json"
     },
     {
       "id": "MJ-PR-026",

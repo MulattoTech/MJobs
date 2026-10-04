@@ -23,7 +23,9 @@ def resume_pdf(extra=''):
     pdf = canvas.Canvas(stream)
     text = pdf.beginText(40, 780)
     for line in ['Example Applicant', 'imported@example.invalid', '+1 202 555 0142',
-                 'Skills', 'Python, SQL', 'Experience', 'Example Company | Engineer | 2020-2024', extra]:
+                 'GitHub: github.com/imported-example', 'Portfolio: https://portfolio.example.invalid',
+                 'Skills', 'Python, SQL', 'Work History', 'Example Company | Engineer | 2020-2024',
+                 'Maintained support@example.invalid routing.', 'Technology Experience', 'Linux services', extra]:
         text.textLine(line)
     pdf.drawText(text)
     pdf.save()
@@ -100,14 +102,20 @@ class ProfileImportBrowserTests(unittest.TestCase):
                     review = page.get_by_role('region', name='Resume extraction review')
                     expect(review).to_be_visible()
                     expect(review.get_by_label('Add contact email', exact=False)).not_to_be_checked()
+                    expect(review.get_by_label('Add contact github', exact=False)).not_to_be_checked()
+                    expect(review.get_by_text('Maintained support@example.invalid routing.', exact=False)).to_be_visible()
                     review.get_by_label('Add contact email', exact=False).check()
                     review.get_by_label('Add contact phones', exact=False).check()
+                    review.get_by_label('Add contact github', exact=False).check()
                     page.get_by_role('button', name='Add selected to profile editor', exact=True).click()
                     expect(page.get_by_label('Full name', exact=True)).to_have_value('Original Applicant')
                     expect(page.get_by_label('Email', exact=True)).to_have_value('imported@example.invalid')
                     expect(page.get_by_label('Sponsorship needs')).to_have_value('NOT_REQUIRED')
                     expect(page.get_by_label('Work authorization details')).to_have_value('Authorized in the United States')
                     expect(phones).to_have_value('+1 202 555 0142')
+                    contacts['github'] = 'https://github.com/imported-example'
+                    expect(page.get_by_label('github', exact=True)).to_have_value(contacts['github'])
+                    expect(page.get_by_label('portfolio', exact=True)).to_have_value(contacts['portfolio'])
                     page.get_by_role('button', name='Save profile', exact=True).click()
                     expect(page.get_by_role('status').filter(has_text='Profile saved')).to_be_visible()
                     saved = store.profile(profile_id)
@@ -154,7 +162,8 @@ class ProfileImportBrowserTests(unittest.TestCase):
                     expect(page.get_by_role('status').filter(has_text='Profile saved')).to_be_visible()
                     page.reload(wait_until='domcontentloaded')
                     page.get_by_role('button', name='Profile', exact=True).click()
-                    fact = next(f for f in store.profile(profile_id)['facts'] if f['kind'] == 'technology_experience')
+                    fact = next(f for f in store.profile(profile_id)['facts'] if f['text'] == 'Maintained Linux services for two years')
+                    self.assertEqual(fact['kind'], 'technology_experience')
                     self.assertEqual(fact['text'], 'Maintained Linux services for two years')
                     self.assertFalse(fact['verified'])
                     self.assertFalse(fact['user_approved'])

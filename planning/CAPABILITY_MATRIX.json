@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-04T00:22:19.621350+00:00",
+  "timestamp": "2026-10-04T17:13:24.058136+00:00",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -711,14 +711,15 @@
     },
     {
       "requirement_id": "MJ-REQ-085",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
         "docs/evidence/2026-10-03-job-lifecycle.json",
         "docs/evidence/2026-10-04-clean-baseline.json",
         "docs/evidence/2026-10-04-merged-ci-receipts.json",
-        "docs/evidence/2026-10-04-lifecycle-profile-acceptance.json"
+        "docs/evidence/2026-10-04-lifecycle-profile-acceptance.json",
+        "docs/evidence/2026-10-04-profile-exact-head-ci.json"
       ],
-      "note": "All seven stored statuses; successful complete-inventory disappearance retains canonical job/posting/history; rolling, failed, partial, invalid or truncated inventories never imply removal; explicit reactivation and API/restart readback.  Hosted final-head verification pending; issue remains open until receipt."
+      "note": "All lifecycle statuses, conservative complete-inventory removal without deletion, reopen and restart/API readback verified. PR485 exact-head push and pull_request Verification PASS; issue closed."
     },
     {
       "requirement_id": "MJ-REQ-086",
@@ -733,33 +734,36 @@
     },
     {
       "requirement_id": "MJ-REQ-087",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
         "docs/evidence/2026-10-03-job-lifecycle.json",
         "docs/evidence/2026-10-04-clean-baseline.json",
         "docs/evidence/2026-10-04-merged-ci-receipts.json",
-        "docs/evidence/2026-10-04-lifecycle-profile-acceptance.json"
+        "docs/evidence/2026-10-04-lifecycle-profile-acceptance.json",
+        "docs/evidence/2026-10-04-profile-exact-head-ci.json"
       ],
-      "note": "Material history stores original description/SHA256, salary, location, remote policy and timestamps; whitespace refresh no-op, salary/location changes and A-B-A reversion preserve immutable history; API/restart readback and downgrade guards.  Hosted final-head verification pending; issue remains open until receipt."
+      "note": "All material revision fields, no-op/reversion, durable history and downgrade protection verified. PR485 exact-head push and pull_request Verification PASS; issue closed."
     },
     {
       "requirement_id": "MJ-REQ-088",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
         "docs/evidence/2026-09-30-user-testing.md",
         "docs/evidence/2026-10-03-resume-driven-profile.json",
-        "docs/evidence/2026-10-04-lifecycle-profile-acceptance.json"
+        "docs/evidence/2026-10-04-lifecycle-profile-acceptance.json",
+        "docs/evidence/2026-10-04-profile-exact-head-ci.json"
       ],
-      "note": "Existing immutable profile distinct from resumes stores contact, desired roles, location, remote/employment/salary preferences, optional work authorization/sponsorship/travel, career goals and sourced work history/education/certification/skill/project/accomplishment/technology-experience facts. Authorization preferences never create approved answers.  Hosted final-head verification pending; issue remains open until receipt."
+      "note": "All normalized profile fields/categories persist independently of resumes; work authorization/sponsorship never imply approved answers. PR485 exact-head push and pull_request Verification PASS; issue closed."
     },
     {
       "requirement_id": "MJ-REQ-089",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
         "docs/evidence/2026-10-03-resume-driven-profile.json",
-        "docs/evidence/2026-10-04-lifecycle-profile-acceptance.json"
+        "docs/evidence/2026-10-04-lifecycle-profile-acceptance.json",
+        "docs/evidence/2026-10-04-profile-exact-head-ci.json"
       ],
-      "note": "All specified optional contact fields plus required name/email round-trip through browser/API and immutable profile snapshots; unsafe URLs rejected.  Hosted final-head verification pending; issue remains open until receipt."
+      "note": "Every specified contact field verified through browser/API/immutable snapshots; optional fields remain optional. PR485 exact-head push and pull_request Verification PASS; issue closed."
     },
     {
       "requirement_id": "MJ-REQ-090",
@@ -768,18 +772,20 @@
         "docs/evidence/2026-09-30-pr004-upload-restore-local.json",
         "docs/evidence/2026-10-03-resume-driven-profile.json",
         "docs/evidence/2026-10-03-resume-upload-integrity.json",
-        "docs/evidence/2026-10-04-lifecycle-profile-acceptance.json"
+        "docs/evidence/2026-10-04-lifecycle-profile-acceptance.json",
+        "docs/evidence/2026-10-04-resume-extraction-preservation.json"
       ],
-      "note": " Native PDF/DOCX/TXT supported; scanned PDFs return NEEDS_OCR. No OCR engine yet. Hosted final-head verification pending; issue remains open until receipt."
+      "note": "Native PDF/DOCX/TXT extraction preserves employment dates and responsibility prose, safely suggests profile links and requires review. Remains PARTIAL for scanned OCR and normalized chronology/layout acceptance."
     },
     {
       "requirement_id": "MJ-REQ-091",
       "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-10-03-resume-driven-profile.json",
-        "docs/evidence/2026-10-04-lifecycle-profile-acceptance.json"
+        "docs/evidence/2026-10-04-lifecycle-profile-acceptance.json",
+        "docs/evidence/2026-10-04-resume-extraction-preservation.json"
       ],
-      "note": " Reviewable section facts exist; richer contact extraction, mixed-contact line preservation, and structured chronology remain. Hosted final-head verification pending; issue remains open until receipt."
+      "note": "Native PDF/DOCX/TXT extraction preserves employment dates and responsibility prose, safely suggests profile links and requires review. Remains PARTIAL for scanned OCR and normalized chronology/layout acceptance."
     },
     {
       "requirement_id": "MJ-REQ-092",

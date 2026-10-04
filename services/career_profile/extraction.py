@@ -4,7 +4,7 @@ from __future__ import annotations
 from hashlib import sha256
 from io import BytesIO
 import re
-from typing import Iterable
+from urllib.parse import urlsplit
 from zipfile import BadZipFile, ZipFile
 import xml.etree.ElementTree as ET
 
@@ -19,10 +19,13 @@ MAX_DOCX_XML_BYTES = 2 * 1024 * 1024
 _EMAIL = re.compile(r"(?i)(?<![\w.+-])[\w.+-]+@[\w-]+(?:\.[\w-]+)+(?![\w.-])")
 _PHONE = re.compile(r"(?<!\w)\+?[\d(). -]{10,24}(?!\w)")
 _LINKEDIN = re.compile(r"(?i)(?:https?://)?(?:www\.)?linkedin\.com/in/[A-Za-z0-9][A-Za-z0-9_-]*")
-_POSTAL = re.compile(r"(?<!\d)\d{5}(?:-\d{4})?(?!\d)")
+_GITHUB = re.compile(r"(?i)(?:https?://)?(?:www\.)?github\.com/[A-Za-z0-9][A-Za-z0-9-]{0,38}")
 _HEADINGS = {
     "summary": "summary", "professional summary": "summary", "profile": "summary",
     "experience": "experience", "work experience": "experience", "employment": "experience",
+    "work history": "experience", "employment history": "experience",
+    "professional experience": "experience", "responsibilities": "experience",
+    "technology experience": "technology_experience",
     "skills": "skill", "technical skills": "skill", "core skills": "skill",
     "education": "education", "certifications": "certification", "certification": "certification",
     "projects": "project", "accomplishments": "accomplishment", "achievements": "accomplishment",
@@ -31,7 +34,8 @@ _HEADINGS = {
 
 def _empty_contact() -> dict:
     return {"name": None, "email": None, "phones": [], "linkedin": None, "city": None,
-            "state": None, "postal_code": None, "country": None, "address_line1": None}
+            "state": None, "postal_code": None, "country": None, "address_line1": None,
+            "github": None, "portfolio": None}
 
 
 def _native_pdf(data: bytes) -> tuple[str, list[str]]:
@@ -104,10 +108,9 @@ def _native_docx(data: bytes) -> tuple[str, list[str]]:
         return "", ["DOCX could not be read"]
 
 
-def _section_facts(text: str, source: str) -> list[tuple[str, str]]:
+def _section_facts(text: str, contact_lines: set[int]) -> list[tuple[str, str]]:
     current = "summary"
     facts: list[tuple[str, str]] = []
-    in_header = True
     for index, raw in enumerate(line for line in text.splitlines() if line.strip()):
         line = raw.strip()
         if not line:
@@ -115,23 +118,41 @@ def _section_facts(text: str, source: str) -> list[tuple[str, str]]:
         heading = re.sub(r"[:\s]+$", "", line).lower()
         if heading in _HEADINGS:
             current = _HEADINGS[heading]
-            in_header = False
             continue
-        if _EMAIL.search(line) or _LINKEDIN.search(line) or re.match(r"(?i)^(?:email|phone|linkedin)\s*:", line):
-            continue
-        if in_header and (_EMAIL.search(line) or _LINKEDIN.search(line) or _POSTAL.search(line) or
-                          (len(re.findall(r"\d", line)) >= 7 and len(line) <= 40)):
-            continue
-        if in_header and index == 0 and 2 <= len(line.split()) <= 5 and re.fullmatch(r"[A-Za-z][A-Za-z .'-]+", line):
-            # A conventional contact name is represented in contact, not as a summary fact.
+        if index in contact_lines:
             continue
         if current == "skill":
             # Split only conventional delimiters; preserve each user supplied token.
             parts = re.split(r"\s*(?:[,;|•])\s*", line)
             facts.extend(("skill", part.strip(" -\t")) for part in parts if part.strip(" -\t"))
-        elif current in {"summary", "experience", "education", "certification", "project", "accomplishment"}:
+        elif current in {"summary", "experience", "education", "certification", "project", "accomplishment", "technology_experience"}:
             facts.append((current, line))
     return facts
+
+
+def _contact_token(token: str, *, in_header: bool) -> tuple[str, str] | None:
+    """Recognize whole contact tokens, never an address/link inside career prose."""
+    label = re.fullmatch(r"(?i)(email|e-mail|phone|tel|telephone|mobile|cell|linkedin|github|portfolio|website)\s*:\s*(.+)", token)
+    key, value = (label[1].lower(), label[2].strip()) if label else (None, token)
+    if not in_header and not label:
+        return None
+    if key in (None, 'email', 'e-mail') and _EMAIL.fullmatch(value):
+        return 'email', value
+    if key in (None, 'phone', 'tel', 'telephone', 'mobile', 'cell') and _PHONE.fullmatch(value):
+        if 10 <= len(re.sub(r'\D', '', value)) <= 15:
+            return 'phones', value
+    for field, pattern in (('linkedin', _LINKEDIN), ('github', _GITHUB)):
+        if key in (None, field) and pattern.fullmatch(value.rstrip('/')):
+            return field, value if value.lower().startswith('http') else 'https://' + value
+    if key in ('portfolio', 'website') and len(value) <= 1000:
+        try:
+            parsed = urlsplit(value)
+            if (parsed.scheme in ('http', 'https') and parsed.hostname and not parsed.username
+                    and not parsed.password and not any(c.isspace() for c in value)):
+                return 'portfolio', value
+        except ValueError:
+            pass
+    return None
 
 
 def _extract_contact(text: str) -> tuple[dict, set[int]]:
@@ -143,30 +164,9 @@ def _extract_contact(text: str) -> tuple[dict, set[int]]:
             r"[A-Za-z][A-Za-z .'-]+", lines[0]) and 2 <= len(lines[0].split()) <= 5 and len(lines[0]) <= 100:
         contact["name"] = lines[0]
         used.add(0)
-    email = _EMAIL.search(text)
-    if email:
-        contact["email"] = email.group(0)
-    header = text
-    heading_positions = [match.start() for match in re.finditer(
-        r"(?im)^\s*(?:" + "|".join(re.escape(item) for item in _HEADINGS) + r")\s*:?[ \t]*$", text)]
-    if heading_positions:
-        header = text[:min(heading_positions)]
-    phones = []
-    for line in header.splitlines():
-        for match in _PHONE.finditer(line):
-            prefix = line[:match.start()].strip()
-            if prefix and not prefix.endswith('|') and not re.fullmatch(r'(?i)(?:phone|tel(?:ephone)?|mobile|cell)\s*[:.]?', prefix):
-                continue
-            digits = re.sub(r"\D", "", match.group(0))
-            if 10 <= len(digits) <= 15 and not re.fullmatch(r"(?:19|20)\d{2}(?:\D?\d{2,4})?", digits):
-                phones.append(match.group(0).strip())
-    contact["phones"] = list(dict.fromkeys(phones))[:5]
-    linkedin = _LINKEDIN.search(text)
-    if linkedin:
-        contact["linkedin"] = linkedin.group(0)
-        if not contact["linkedin"].lower().startswith("http"):
-            contact["linkedin"] = "https://" + contact["linkedin"]
-    for index, line in enumerate(header.splitlines()):
+    heading_positions = [i for i, line in enumerate(lines) if line.lower().rstrip(':').strip() in headings]
+    header_end = min(heading_positions) if heading_positions else len(lines)
+    for index, line in enumerate(lines[:header_end]):
         line = line.strip()
         explicit_location = re.match(r'(?i)^(?:location|address)\s*:\s*', line)
         if explicit_location:
@@ -180,6 +180,26 @@ def _extract_contact(text: str) -> tuple[dict, set[int]]:
             contact["city"], contact["state"], contact["postal_code"] = location.groups()
             used.add(index)
             break
+    phones = []
+    for index, line in enumerate(lines):
+        tokens = [part.strip() for part in re.split(r'[|•]', line) if part.strip()]
+        candidates = [_contact_token(token, in_header=index < header_end) for token in tokens]
+        if not heading_positions and index not in used and not all(candidates):
+            # Without section markers, only the opening contact block supports
+            # unlabelled suggestions. Career prose ends that inferred header.
+            header_end = min(header_end, index)
+            candidates = [_contact_token(token, in_header=False) for token in tokens]
+        for candidate in candidates:
+            if candidate is None:
+                continue
+            key, value = candidate
+            if key == 'phones':
+                phones.append(value)
+            elif contact[key] is None:
+                contact[key] = value
+        if candidates and all(candidates):
+            used.add(index)
+    contact["phones"] = list(dict.fromkeys(phones))[:5]
     return contact, used
 
 
@@ -206,8 +226,8 @@ def extract_resume(data: bytes, format: str, source: str) -> dict:
         raise
     if len(text) > MAX_TEXT_CHARS:
         raise ValueError("Resume text exceeds the supported size limit")
-    contact, _ = _extract_contact(text)
-    pairs = _section_facts(text, source)
+    contact, contact_lines = _extract_contact(text)
+    pairs = _section_facts(text, contact_lines)
     facts = []
     seen_ids = set()
     overflow = False
