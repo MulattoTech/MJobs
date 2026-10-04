@@ -70,6 +70,8 @@ def record_candidate(connection, *, posting_id, company_source_id, observation_i
         posting_snapshot_id=snapshot_id, company_source_id=company_source_id,
         quality_observation_id=observation_id, observed_at=observation['observed_at'],
         normalized=values, application_url=application_url))
+    from services.discovery.lifecycle import observe_candidate
+    observe_candidate(connection, candidate_id)
     return candidate_id
 
 
@@ -118,6 +120,7 @@ def _refresh_match(connection, job, profile):
 def resolve_job_values(connection, job_id, *, at, seen_at=None, profile=None):
     """Apply one whole candidate bundle, with source authority outranking quality."""
     job = dict(connection.execute(select(m.jobs).where(m.jobs.c.id == job_id).with_for_update()).mappings().one())
+    from services.discovery.lifecycle import capture_revision, resolve_lifecycle
     ranked = select(m.posting_value_candidates, func.row_number().over(
         partition_by=m.posting_value_candidates.c.posting_id,
         order_by=(m.posting_value_candidates.c.observed_at.desc(), m.posting_value_candidates.c.id.desc())).label('rank'))
@@ -125,6 +128,8 @@ def resolve_job_values(connection, job_id, *, at, seen_at=None, profile=None):
     candidates = [dict(row) for row in connection.execute(select(ranked).where(ranked.c.rank == 1)).mappings()]
     if not candidates:
         return job
+    capture_revision(connection, job, recorded_at=at,
+                     observed_at=job['attributes'].get('last_seen_at'))
     for candidate in candidates:
         source = connection.execute(select(m.company_sources).where(
             m.company_sources.c.id == candidate['company_source_id'])).mappings().one()
@@ -182,6 +187,8 @@ def resolve_job_values(connection, job_id, *, at, seen_at=None, profile=None):
     connection.execute(update(m.jobs).where(m.jobs.c.id == job_id).values(**values))
     job.update(values)
     _refresh_match(connection, job, profile)
+    capture_revision(connection, job, recorded_at=at, candidate_id=winner['id'], observed_at=winner['observed_at'])
+    resolve_lifecycle(connection, job_id)
     return job
 
 

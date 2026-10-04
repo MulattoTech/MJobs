@@ -11,8 +11,8 @@
     "current_verified_github_state": "387 open issues; PR477 merged after both exact-head workflows; no open PR before this publication.",
     "current_verified_at": "2026-10-04T00:22:19.621350+00:00"
   },
-  "current_milestone": "COMPANY_SOURCE_MONITORING",
-  "current_objective": "Finish current monitoring slice publication and exact-head merge; pause backlog execution at user request and prepare clean main checkout/handoff.",
+  "current_milestone": "JOB_LIFECYCLE",
+  "current_objective": "MJ-PR-024 implemented and locally verified. Preserve worktree; commit and PostgreSQL/runtime CI remain blocked by environment. Do not merge main.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -69,10 +69,9 @@
   ],
   "blocked_capabilities": [],
   "active_requirements": [
-    "MJ-REQ-055",
-    "MJ-REQ-056",
-    "MJ-REQ-071",
-    "MJ-REQ-076"
+    "MJ-REQ-085",
+    "MJ-REQ-086",
+    "MJ-REQ-087"
   ],
   "active_prs": [
     {
@@ -639,7 +638,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Verify latest exact PR head and merge; then implement explicit source monitoring/revalidation and remaining company triggers without treating historical source enablement as current identity authority.",
+  "recommended_resume_step": "Reopen this same worktree with write access to its shared Git metadata, inspect the preserved diff/evidence, commit the reviewed implementation, then publish a draft PR and run PostgreSQL/hosted CI. Do not merge main.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -678,12 +677,16 @@
   },
   "last_implementation_commit": "b4fa3a11762b0c26bfbb09e105f3c47681763e20",
   "publication": {
-    "result": "NOT_RUN",
-    "branch": "codex/company-source-refresh",
-    "worktree": "C:\\Tools\\Dev\\MJobs\\.worktrees\\company-source-refresh",
-    "base": "b4fa3a11762b0c26bfbb09e105f3c47681763e20",
-    "observed_at": "2026-10-04T00:22:19.621350+00:00",
-    "note": "Prepared for one publication head. Live PR/CI receipt is in GitHub and private integration checkpoint; next reconciliation records merged truth without a post-publication bookkeeping commit."
+    "result": "BLOCKED_ENVIRONMENT",
+    "commit_shas": [],
+    "pushed": false,
+    "pr_url": null,
+    "command": "git -c safe.directory=C:/Tools/Dev/MJobs/.worktrees/pr024-job-lifecycle add --dry-run services/discovery/lifecycle.py",
+    "error": "fatal: Unable to create 'C:/Tools/Dev/MJobs/.git/worktrees/pr024-job-lifecycle/index.lock': Permission denied",
+    "branch": "codex/pr024-job-lifecycle-20261003",
+    "worktree": "C:\\Tools\\Dev\\MJobs\\.worktrees\\pr024-job-lifecycle",
+    "base": "eff87832515e54a4a8eabc595b00e2957977ef93",
+    "observed_at": "2026-10-04T01:36:43.902634+00:00"
   },
   "optional_afk_journal": {
     "result": "PASS",
@@ -2500,12 +2503,69 @@
         "git_commit": "b4fa3a11762b0c26bfbb09e105f3c47681763e20",
         "evidence_path": "docs/evidence/2026-10-04-company-source-monitoring.json"
       }
+    },
+    {
+      "milestone_id": "MJ-PR-024-LOCAL-VERIFIED-20261004",
+      "timestamp": "2026-10-04T01:36:43.902634+00:00",
+      "current_phase": "JOB_LIFECYCLE_COMMIT_BLOCKED",
+      "completed_steps": [
+        "Implemented job lifecycle, independent first-party closure precedence and material revisions.",
+        "Independent review findings repaired and re-reviewed.",
+        "Local targeted, broad, browser, frontend, migration and validator checks passed."
+      ],
+      "files_added": [
+        "services/discovery/lifecycle.py",
+        "migrations/versions/e9024a1b7c30_job_lifecycle_history.py",
+        "tests/integration/test_job_lifecycle.py",
+        "tests/integration/test_job_lifecycle_migration.py"
+      ],
+      "files_modified": [
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "services/discovery/AREA.md",
+        "packages/persistence/models.py",
+        "packages/persistence/store.py",
+        "services/dedupe/source_values.py"
+      ],
+      "tests_completed": [
+        "55 targeted tests PASS",
+        "437 broad tests: 431 PASS, 6 skipped; all six subsequently PASS after web build",
+        "33 frontend tests and production web build PASS",
+        "SQLite migration tests and PostgreSQL offline DDL PASS",
+        "Catalogue/progress validators PASS"
+      ],
+      "tests_remaining": [
+        "PostgreSQL runtime/Compose acceptance",
+        "Exact-head hosted CI"
+      ],
+      "migrations_applied": [
+        "e9024a1b7c30 in temporary SQLite migration-test databases only"
+      ],
+      "live_integrations_tested": [],
+      "known_errors": [
+        "fatal: Unable to create 'C:/Tools/Dev/MJobs/.git/worktrees/pr024-job-lifecycle/index.lock': Permission denied",
+        "Docker daemon permission denied"
+      ],
+      "known_limitations": [
+        "PostgreSQL runtime/Compose acceptance blocked by Docker daemon permission denial; offline PostgreSQL DDL is not runtime proof.",
+        "Commit/push/PR and exact-head hosted CI blocked: shared Git metadata is outside writable workspace.",
+        "Closure interpretation accepts exact structured source states; arbitrary page text and HTTP errors do not prove filled/expired closure.",
+        "Absence reconciliation is limited to successfully parsed complete native Greenhouse inventories; rolling RSS/JSON absence remains ambiguous.",
+        "First-party precedence applies to postings already attached to the same canonical job; this slice does not expand cross-provider duplicate identity matching.",
+        "Historical material revisions before this feature are not fabricated; current legacy content is captured at next resolution."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "eff87832515e54a4a8eabc595b00e2957977ef93",
+        "evidence_path": "docs/evidence/2026-10-03-job-lifecycle.json",
+        "note": "Verified working-tree changes remain uncommitted because shared Git metadata writes are denied."
+      }
     }
   ],
-  "current_phase": "COMPANY_SOURCE_MONITORING_LOCAL_VERIFIED",
+  "current_phase": "JOB_LIFECYCLE_COMMIT_BLOCKED",
   "last_safe_checkpoint": {
-    "git_commit": "b4fa3a11762b0c26bfbb09e105f3c47681763e20",
-    "evidence_path": "docs/evidence/2026-10-04-company-source-monitoring.json"
+    "git_commit": "eff87832515e54a4a8eabc595b00e2957977ef93",
+    "evidence_path": "docs/evidence/2026-10-03-job-lifecycle.json",
+    "note": "Verified working-tree changes remain uncommitted because shared Git metadata writes are denied."
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
@@ -2620,17 +2680,20 @@
     "open_issue_count": 387
   },
   "active_development_issue": {
-    "number": 77,
-    "url": "https://github.com/MulattoTech/MJobs/issues/77",
-    "branch": "codex/company-source-refresh",
+    "number": 86,
+    "related_issues": [
+      87,
+      88
+    ],
+    "url": "https://github.com/MulattoTech/MJobs/issues/86",
+    "branch": "codex/pr024-job-lifecycle-20261003",
     "status": "PARTIAL",
     "related_requirements": [
-      "MJ-REQ-055",
-      "MJ-REQ-056",
-      "MJ-REQ-071",
-      "MJ-REQ-076"
+      "MJ-REQ-085",
+      "MJ-REQ-086",
+      "MJ-REQ-087"
     ],
-    "evidence_path": "docs/evidence/2026-10-04-company-source-monitoring.json"
+    "evidence_path": "docs/evidence/2026-10-03-job-lifecycle.json"
   },
   "historical_control_snapshots": [
     {
@@ -2999,7 +3062,72 @@
     }
   },
   "session_control": {
-    "requested_action": "PAUSE_AFTER_CURRENT_SLICE_CLOSEOUT",
-    "note": "User requested pause for external skill installation, committing current implementation to main and preparing next development session. No new backlog slice authorized during closeout."
+    "requested_action": "IMPLEMENT_MJ_PR_024",
+    "note": "Current user explicitly authorized this slice, commit and optional publication; no main merge. Git metadata writes are blocked by workspace permissions."
+  },
+  "job_lifecycle": {
+    "status": "PARTIAL",
+    "base_commit": "eff87832515e54a4a8eabc595b00e2957977ef93",
+    "branch": "codex/pr024-job-lifecycle-20261003",
+    "started_at": "2026-10-04T01:27:50.343769+00:00",
+    "plan": "docs/superpowers/plans/2026-10-03-job-lifecycle.md",
+    "issues": [
+      86,
+      87,
+      88
+    ],
+    "verified_at": "2026-10-04T01:36:43.902634+00:00",
+    "evidence_path": "docs/evidence/2026-10-03-job-lifecycle.json",
+    "requirements": {
+      "MJ-REQ-085": {
+        "status": "PARTIAL",
+        "local_contract_validation": "PASS",
+        "behavior": "Durable ACTIVE/POSSIBLY_ACTIVE/REMOVED/EXPIRED/FILLED/UNKNOWN/CLOSED; complete-inventory removal without deletion; explicit reopen; conservative ambiguous evidence; API and restart persistence.",
+        "remaining": "PostgreSQL runtime and exact-head CI not established; commit blocked by environment."
+      },
+      "MJ-REQ-086": {
+        "status": "PARTIAL",
+        "local_contract_validation": "PASS",
+        "behavior": "Independent source authority resolves employer closure ahead of a later aggregator ACTIVE claim; raw source snapshots and observation chronology survive; raw authority spoofing does not promote origin.",
+        "remaining": "PostgreSQL runtime and exact-head CI not established; commit blocked by environment."
+      },
+      "MJ-REQ-087": {
+        "status": "PARTIAL",
+        "local_contract_validation": "PASS",
+        "behavior": "Append-only ordered material revisions containing description SHA-256, original description, salary, nullable location, remote policy and observation/recording timestamps; unchanged refresh is a no-op, reversion is retained.",
+        "remaining": "PostgreSQL runtime and exact-head CI not established; commit blocked by environment."
+      }
+    },
+    "local_validation": "PASS",
+    "publication": "BLOCKED_ENVIRONMENT",
+    "postgresql_runtime": "BLOCKED_ENVIRONMENT"
+  },
+  "job_lifecycle_predecessor_control": {
+    "session_control": {
+      "requested_action": "PAUSE_AFTER_CURRENT_SLICE_CLOSEOUT",
+      "note": "User requested pause for external skill installation, committing current implementation to main and preparing next development session. No new backlog slice authorized during closeout."
+    },
+    "active_development_issue": {
+      "number": 77,
+      "url": "https://github.com/MulattoTech/MJobs/issues/77",
+      "branch": "codex/company-source-refresh",
+      "status": "PARTIAL",
+      "related_requirements": [
+        "MJ-REQ-055",
+        "MJ-REQ-056",
+        "MJ-REQ-071",
+        "MJ-REQ-076"
+      ],
+      "evidence_path": "docs/evidence/2026-10-04-company-source-monitoring.json"
+    },
+    "publication": {
+      "result": "NOT_RUN",
+      "branch": "codex/company-source-refresh",
+      "worktree": "C:\\Tools\\Dev\\MJobs\\.worktrees\\company-source-refresh",
+      "base": "b4fa3a11762b0c26bfbb09e105f3c47681763e20",
+      "observed_at": "2026-10-04T00:22:19.621350+00:00",
+      "note": "Prepared for one publication head. Live PR/CI receipt is in GitHub and private integration checkpoint; next reconciliation records merged truth without a post-publication bookkeeping commit."
+    },
+    "recommended_resume_step": "Verify latest exact PR head and merge; then implement explicit source monitoring/revalidation and remaining company triggers without treating historical source enablement as current identity authority."
   }
 }

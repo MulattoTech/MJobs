@@ -681,10 +681,14 @@
       "depends_on": [
         "MJ-PR-016"
       ],
-      "status": "QUEUED",
-      "branch": "codex/mj-pr-024-job-lifecycle",
+      "status": "PARTIAL",
+      "branch": "codex/pr024-job-lifecycle-20261003",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "Implemented 085/086/087; 55 targeted tests, 437 broad tests with all six browser skips subsequently passed, 33 frontend tests/build, SQLite migration and independent review verified. Commit/push blocked by shared Git metadata permissions. PostgreSQL runtime/hosted CI remain unverified. No main merge.",
+      "evidence_path": "docs/evidence/2026-10-03-job-lifecycle.json",
+      "scope_complete": false,
+      "local_validation": "PASS",
+      "publication_status": "BLOCKED_ENVIRONMENT"
     },
     {
       "id": "MJ-PR-025",

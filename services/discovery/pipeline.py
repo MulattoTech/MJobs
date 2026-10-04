@@ -18,6 +18,7 @@ from services.discovery.skill_taxonomy import extract_skills
 from services.discovery.requirement_parsers import parse_job_requirements
 from services.discovery.negative_filters import parse_negative_conditions
 from services.company_discovery.sources import register_ats_tenant, upsert_company_job_source
+from services.discovery.lifecycle import capture_revision, observe_fixture_posting, resolve_lifecycle
 
 
 class MockClient:
@@ -155,12 +156,20 @@ def discover(store, mock_origin, profile_id, check=None, profile_version=None):
                            "first_seen_at": existing_attributes.get("first_seen_at") or now(), "last_seen_at": now(),
                            "remote_regions": location_facts["remote_regions"], "remote_indicated": location_facts["remote_indicated"],
                            "country": location_facts["country"], "state": location_facts["state"], "city": location_facts["city"]}}
+                previous_job = connection.execute(select(m.jobs).where(m.jobs.c.id == job_id).with_for_update()).mappings().one_or_none()
+                if previous_job:
+                    capture_revision(connection, previous_job, recorded_at=now(),
+                                     observed_at=previous_job['attributes'].get('last_seen_at'))
                 upsert(connection, m.jobs, job, replace=source != "mock-board")
+                persisted = connection.execute(select(m.jobs).where(m.jobs.c.id == job_id)).mappings().one()
+                capture_revision(connection, persisted, recorded_at=now(), observed_at=persisted['attributes'].get('last_seen_at'))
                 upsert(connection, m.routes, {"id": job_id, "job_id": job_id, "company_id": company_id, "provider": "mock-ats",
                     "tenant": row["tenant"], "requisition": row["requisition"], "url": row["application_url"]}, replace=source != "mock-board")
                 persist_posting(connection, {"id": identity(source, row["source_job_id"]), "job_id": job_id,
                     "source": source, "source_job_id": row["source_job_id"], "source_url": source,
                     "application_url": row["application_url"], "raw": row, "fetched_at": now()})
+                observe_fixture_posting(connection, identity(source, row['source_job_id']))
+                resolve_lifecycle(connection, job_id)
                 required = {skill.casefold() for skill in job["skills"]}
                 missing = sorted(required - set(usable))
                 score = round(100 * len(required & set(usable)) / len(required), 2) if required else 0
