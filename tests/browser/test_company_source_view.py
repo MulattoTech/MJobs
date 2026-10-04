@@ -80,7 +80,9 @@ class CompanySourceBrowserTests(unittest.TestCase):
                     expect(card.get_by_text('Imported 2 jobs from 2 feed records.', exact=True)).to_be_visible()
                     expect(card.locator('.company-source-history')).to_be_visible()
                     expect(card).to_contain_text('COMPANY_SOURCE_REVIEW_REQUIRED')
-                    for label in ['Run Now','Rediscover','Verify','Edit']:
+                    expect(card).to_contain_text('Monitor this reviewed source')
+                    self.assertEqual(card.get_by_role('button', name='Run now', exact=True).count(), 0)
+                    for label in ['Rediscover','Verify','Edit']:
                         expect(card.get_by_role('button', name=label+' \u2014 unavailable', exact=True)).to_be_disabled()
                     card.get_by_role('button', name='Pin Browser Fixture Employer source', exact=True).click()
                     expect(card).to_contain_text('USER_PINNED')

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-03T23:28:15.874617+00:00",
+  "timestamp": "2026-10-04T00:22:19.621350+00:00",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -465,18 +465,20 @@
       "requirement_id": "MJ-REQ-055",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-01-company-discovery-core.json"
+        "docs/evidence/2026-10-01-company-discovery-core.json",
+        "docs/evidence/2026-10-04-company-source-monitoring.json"
       ],
-      "note": "The mock fixture enrolls an employer source and imports an employer-only job through the normal profile matching path. Production ATS breadth and continuous first-party monitoring remain unverified."
+      "note": "Reviewed/verified same-origin public feeds now refresh continuously into profile matching. Broader ATS/domain acquisition and complete discovery flywheel remain open."
     },
     {
       "requirement_id": "MJ-REQ-056",
       "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-10-01-company-discovery-core.json",
-        "docs/evidence/2026-10-03-company-discovery-requests.json"
+        "docs/evidence/2026-10-03-company-discovery-requests.json",
+        "docs/evidence/2026-10-04-company-source-monitoring.json"
       ],
-      "note": "Unseen-company and high-match triggers now connect to configured intake/rescoring with durable request/outbox and review UI. Saved/preferred companies, new ATS tenant signals, repeated aggregator appearances and broken-source triggers remain unimplemented."
+      "note": "Configured unseen/high-match intake, rescoring and broken public-feed rediscovery are wired. Saved/preferred companies, new ATS tenant signals and repeated aggregator appearances remain open."
     },
     {
       "requirement_id": "MJ-REQ-057",
@@ -598,9 +600,10 @@
       "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-10-02-company-machine-readable-feeds.json",
-        "docs/evidence/2026-10-03-public-company-discovery.json"
+        "docs/evidence/2026-10-03-public-company-discovery.json",
+        "docs/evidence/2026-10-04-company-source-monitoring.json"
       ],
-      "note": "Validated same-origin feed source is automatically persisted with source metadata and homepage domain evidence; broader ATS/provider enrollment and scheduled collection remain open. PERSONAL-mode bounded public HTTPS and explicit company discovery are now connected; controlled employer-feed acceptance and live transport proof are separate. Full provider breadth and automatic intake wiring remain incomplete."
+      "note": "Supported verified-domain public feeds gain durable scheduling automatically; candidate origins need explicit monitoring review. Provider-specific ATS enrollment breadth remains open."
     },
     {
       "requirement_id": "MJ-REQ-072",
@@ -638,9 +641,11 @@
     },
     {
       "requirement_id": "MJ-REQ-076",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Periodic source validation and ATS migration detection/rediscovery chain are not implemented in this milestone."
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-04-company-source-monitoring.json"
+      ],
+      "note": "Periodic supported-feed domain authorization, exact career/feed/provider/tenant binding and parser checks are durable. Structural change queues bounded rediscovery without source history loss; broader ATS revalidation remains open."
     },
     {
       "requirement_id": "MJ-REQ-077",

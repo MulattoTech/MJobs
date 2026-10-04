@@ -1,18 +1,18 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-03",
+  "generated_at": "2026-10-04",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "32 preserved worktrees; root resume-driven-profile HEAD260540c retains24 unchanged untracked templates; isolated company-discovery-triggers based on main8240e47.",
-    "current_verified_github_state": "387 open issues; PR476 merged after exact-head CI; no open PR before this publication.",
-    "current_verified_at": "2026-10-03T23:28:15.874617+00:00"
+    "current_verified_local_state": "33 preserved worktrees; root resume-driven-profile HEAD260540c retains24 unchanged untracked templates; isolated company-source-refresh based on mainb4fa3a1.",
+    "current_verified_github_state": "387 open issues; PR477 merged after both exact-head workflows; no open PR before this publication.",
+    "current_verified_at": "2026-10-04T00:22:19.621350+00:00"
   },
-  "current_milestone": "COMPANY_DISCOVERY_REQUESTS",
-  "current_objective": "Publish durable useful-job discovery requests through exact-head CI, then continue original employer-source foundations.",
+  "current_milestone": "COMPANY_SOURCE_MONITORING",
+  "current_objective": "Finish current monitoring slice publication and exact-head merge; pause backlog execution at user request and prepare clean main checkout/handoff.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -64,13 +64,15 @@
     "Reviewed native resume import, structured profile contact/preferences, and named immutable base-resume history. See docs/evidence/2026-10-03-resume-driven-profile.json.",
     "MJ-REQ-083 source quality: durable observations, endpoint-scoped scores, authority-first duplicate value selection and protected application-route review; application-link accuracy remains unknown.",
     "User-requested PERSONAL company discovery uses bounded DNS-pinned HTTPS and public feed import; candidate identity remains unverified, fixture metadata is blocked, provider breadth and automatic intake wiring remain incomplete.",
-    "Configured-source unseen/high-match jobs and rescoring create durable coalesced company discovery requests. Verified employer origins can queue automatically; other origins require explicit review. Remaining triggers/domain acquisition/provider breadth/scheduling remain open."
+    "Configured-source unseen/high-match jobs and rescoring create durable coalesced company discovery requests. Verified employer origins can queue automatically; other origins require explicit review. Remaining triggers/domain acquisition/provider breadth/scheduling remain open.",
+    "Durable reviewed public-feed monitoring: bounded scheduled/manual reads, atomic multi-profile matching and receipt, fresh authorization, failure backoff, changed-feed rediscovery and Sources status. Vendor ATS migration and broader providers remain open."
   ],
   "blocked_capabilities": [],
   "active_requirements": [
-    "MJ-REQ-054",
+    "MJ-REQ-055",
     "MJ-REQ-056",
-    "MJ-REQ-060"
+    "MJ-REQ-071",
+    "MJ-REQ-076"
   ],
   "active_prs": [
     {
@@ -421,9 +423,16 @@
       "number": 477,
       "url": "https://github.com/MulattoTech/MJobs/pull/477",
       "branch": "codex/company-discovery-triggers",
-      "status": "DRAFT",
+      "status": "MERGED",
       "head_before_bookkeeping": "c12effd2c0d1126f60194842dd4e7af2ca19eda0",
-      "ci_result": "NOT_RUN"
+      "ci_result": "NOT_RUN",
+      "head": "ef847659af10c7907f99fd8d38371ee732cf30e9",
+      "merge_commit": "b4fa3a11762b0c26bfbb09e105f3c47681763e20",
+      "merged_at": "2026-10-03T23:35:53Z",
+      "exact_head_ci": {
+        "pr": 37161948331,
+        "push": 37161945869
+      }
     }
   ],
   "tests_passed": [
@@ -563,16 +572,16 @@
     "MJ-PR-016 local Chromium first run used Docker DNS host api, which is not a secure browser origin for crypto.randomUUID; loopback URL rerun passed all five connected UI actions."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-03T23:28:15.874617+00:00",
-    "base_commit": "8240e471260ebeb60bde9932368651da410f3148",
+    "timestamp": "2026-10-04T00:22:19.621350+00:00",
+    "base_commit": "b4fa3a11762b0c26bfbb09e105f3c47681763e20",
     "result": "PASS",
-    "scope": "393 Python tests zero skips;29 frontend tests/build; isolated PostgreSQL17 concurrency, migration guard and restart; exact-head hosted CI pending.",
-    "evidence_path": "docs/evidence/2026-10-03-company-discovery-requests.json"
+    "scope": "419 Python tests zero skips;33 frontend tests/build; isolated PostgreSQL17 concurrency, authorization locks, restart and migration guard; hosted CI pending.",
+    "evidence_path": "docs/evidence/2026-10-04-company-source-monitoring.json"
   },
   "ci_verification": {
     "result": "NOT_RUN",
-    "scope": "Current company-discovery-triggers branch",
-    "note": "Merged PR476 exact-head CI retained separately; does not certify this slice."
+    "scope": "codex/company-source-refresh",
+    "note": "Pre-publication state; previous exact-head CI does not certify this branch."
   },
   "mock_spine_ci": {
     "result": "PASS",
@@ -667,22 +676,18 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "c12effd2c0d1126f60194842dd4e7af2ca19eda0",
+  "last_implementation_commit": "b4fa3a11762b0c26bfbb09e105f3c47681763e20",
   "publication": {
-    "result": "PARTIAL",
-    "branch": "codex/company-discovery-triggers",
-    "worktree": "C:\\Tools\\Dev\\MJobs\\.worktrees\\company-discovery-triggers",
-    "base": "8240e471260ebeb60bde9932368651da410f3148",
-    "observed_at": "2026-10-03T23:29:36.552072+00:00",
-    "note": "This bookkeeping commit changes the head; verify latest exact SHA and CI before merge.",
-    "pr_number": 477,
-    "url": "https://github.com/MulattoTech/MJobs/pull/477",
-    "draft": true,
-    "observed_head_before_bookkeeping": "c12effd2c0d1126f60194842dd4e7af2ca19eda0"
+    "result": "NOT_RUN",
+    "branch": "codex/company-source-refresh",
+    "worktree": "C:\\Tools\\Dev\\MJobs\\.worktrees\\company-source-refresh",
+    "base": "b4fa3a11762b0c26bfbb09e105f3c47681763e20",
+    "observed_at": "2026-10-04T00:22:19.621350+00:00",
+    "note": "Prepared for one publication head. Live PR/CI receipt is in GitHub and private integration checkpoint; next reconciliation records merged truth without a post-publication bookkeeping commit."
   },
   "optional_afk_journal": {
-    "result": "BLOCKED_ENVIRONMENT",
-    "reason": "Managed filesystem rejected direct Python write-lock under .git/afk-dev; repository planning/evidence remains the durable handoff. Original full-spec AFK goal remains IN_PROGRESS."
+    "result": "PASS",
+    "note": "Private checkpoint and evidence writes under the Git common directory succeed in this session; prior write-lock blocker retained in Git history."
   },
   "milestone_journal": [
     {
@@ -2447,12 +2452,60 @@
         "git_commit": "8240e471260ebeb60bde9932368651da410f3148",
         "evidence_path": "docs/evidence/2026-10-03-company-discovery-requests.json"
       }
+    },
+    {
+      "milestone_id": "company-source-monitoring-20261004",
+      "timestamp": "2026-10-04T00:22:19.621350+00:00",
+      "current_phase": "COMPANY_SOURCE_MONITORING_LOCAL_VERIFIED",
+      "completed_steps": [
+        "Reconciled PR477 exact-head merge",
+        "Implemented reviewed periodic public-feed refresh and broken-source rediscovery",
+        "Closed authorization/cancellation/receipt/profile scope review findings"
+      ],
+      "files_added": [
+        "services/company_discovery/monitoring.py",
+        "migrations/versions/d8f0c1b2a3e4_company_source_monitoring.py"
+      ],
+      "files_modified": [
+        "services/discovery/company_feed.py",
+        "services/discovery/scheduler.py",
+        "services/company_discovery/sources.py",
+        "apps/api/main.py",
+        "apps/web/src/company-sources.tsx"
+      ],
+      "tests_completed": [
+        "419 Python tests PASS",
+        "33 frontend tests and build PASS",
+        "PostgreSQL17 isolation/restart/locks/downgrade PASS"
+      ],
+      "tests_remaining": [
+        "Latest exact-head hosted CI"
+      ],
+      "migrations_applied": [
+        "d8f0c1b2a3e4 isolated test databases only"
+      ],
+      "live_integrations_tested": [
+        "Isolated PostgreSQL17"
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "MJ-REQ-055/056/071/076 remain PARTIAL. Supported same-origin RSS/Atom and JSON feeds are monitored; vendor ATS breadth, domain acquisition and remaining triggers are incomplete.",
+        "MJ-REQ-077 remains NOT_RUN: changed career/feed routes queue bounded rediscovery and preserve old source history, but reviewed replacement ATS migration is not implemented.",
+        "Automatic reads require fresh qualified domain evidence or exact user-reviewed origin policy plus an enabled unrestricted search profile. Review does not verify employer identity.",
+        "Browser/API/workers used controlled public responses and isolated databases. No fresh live-employer breadth or user database migration is claimed.",
+        "Private feedback and root user templates preserved; real external application submission remains OFF.",
+        "Original counts48 PASS74 PARTIAL244 NOT_RUN; reference59 NOT_RUN; release readiness NOT_RUN."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "b4fa3a11762b0c26bfbb09e105f3c47681763e20",
+        "evidence_path": "docs/evidence/2026-10-04-company-source-monitoring.json"
+      }
     }
   ],
-  "current_phase": "COMPANY_DISCOVERY_REQUESTS",
+  "current_phase": "COMPANY_SOURCE_MONITORING_LOCAL_VERIFIED",
   "last_safe_checkpoint": {
-    "git_commit": "8240e471260ebeb60bde9932368651da410f3148",
-    "evidence_path": "docs/evidence/2026-10-03-company-discovery-requests.json"
+    "git_commit": "b4fa3a11762b0c26bfbb09e105f3c47681763e20",
+    "evidence_path": "docs/evidence/2026-10-04-company-source-monitoring.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
@@ -2528,8 +2581,8 @@
     }
   ],
   "live_reconciliation": {
-    "timestamp": "2026-10-03T23:29:36.552072+00:00",
-    "origin_main": "8240e471260ebeb60bde9932368651da410f3148",
+    "timestamp": "2026-10-04T00:22:19.621350+00:00",
+    "origin_main": "b4fa3a11762b0c26bfbb09e105f3c47681763e20",
     "open_issue_count_before_catalogue": 371,
     "commercial_issue_mapping": {
       "MJ-REF-043": 454,
@@ -2550,7 +2603,7 @@
       "MJ-REF-058": 469,
       "MJ-REF-059": 470
     },
-    "preserved_worktrees": 32,
+    "preserved_worktrees": 33,
     "preserved_untracked_files": 24,
     "private_snapshot_location": "Git common directory: afk-dev/reconcile-20261003",
     "docker_probe": {
@@ -2560,27 +2613,24 @@
     "remaining_scope": "Original requirements and release readiness remain incomplete; no commercial feature behavior has been implemented by catalogue creation.",
     "catalogue_pr": 471,
     "catalogue_publication": "MERGED",
-    "open_prs_at_checkpoint": [
-      477
-    ],
+    "open_prs_at_checkpoint": [],
     "integration_order": [],
-    "note": "PR476 merged; new company discovery request slice verified locally.",
-    "next_action": "Verify latest exact PR head and merge; then implement explicit source monitoring/revalidation and remaining company triggers without treating historical source enablement as current identity authority.",
+    "note": "PR477 merged; supported company-source monitoring verified locally.",
+    "next_action": "Publish monitoring branch, verify exact head, merge, then select remaining dependency-eligible original source foundations.",
     "open_issue_count": 387
   },
   "active_development_issue": {
-    "number": 55,
-    "url": "https://github.com/MulattoTech/MJobs/issues/55",
-    "branch": "codex/company-discovery-triggers",
+    "number": 77,
+    "url": "https://github.com/MulattoTech/MJobs/issues/77",
+    "branch": "codex/company-source-refresh",
     "status": "PARTIAL",
     "related_requirements": [
-      "MJ-REQ-054",
+      "MJ-REQ-055",
       "MJ-REQ-056",
-      "MJ-REQ-060"
+      "MJ-REQ-071",
+      "MJ-REQ-076"
     ],
-    "evidence_path": "docs/evidence/2026-10-03-company-discovery-requests.json",
-    "pr_number": 477,
-    "pr_url": "https://github.com/MulattoTech/MJobs/pull/477"
+    "evidence_path": "docs/evidence/2026-10-04-company-source-monitoring.json"
   },
   "historical_control_snapshots": [
     {
@@ -2815,6 +2865,48 @@
         "pr_number": 476,
         "pr_url": "https://github.com/MulattoTech/MJobs/pull/476"
       }
+    },
+    {
+      "archived_at": "2026-10-04T00:22:19.621350+00:00",
+      "publication": {
+        "result": "PARTIAL",
+        "branch": "codex/company-discovery-triggers",
+        "worktree": "C:\\Tools\\Dev\\MJobs\\.worktrees\\company-discovery-triggers",
+        "base": "8240e471260ebeb60bde9932368651da410f3148",
+        "observed_at": "2026-10-03T23:29:36.552072+00:00",
+        "note": "This bookkeeping commit changes the head; verify latest exact SHA and CI before merge.",
+        "pr_number": 477,
+        "url": "https://github.com/MulattoTech/MJobs/pull/477",
+        "draft": true,
+        "observed_head_before_bookkeeping": "c12effd2c0d1126f60194842dd4e7af2ca19eda0"
+      },
+      "ci_verification": {
+        "result": "NOT_RUN",
+        "scope": "Current company-discovery-triggers branch",
+        "note": "Merged PR476 exact-head CI retained separately; does not certify this slice."
+      },
+      "last_implementation_commit": "c12effd2c0d1126f60194842dd4e7af2ca19eda0",
+      "last_verified_checkpoint": {
+        "timestamp": "2026-10-03T23:28:15.874617+00:00",
+        "base_commit": "8240e471260ebeb60bde9932368651da410f3148",
+        "result": "PASS",
+        "scope": "393 Python tests zero skips;29 frontend tests/build; isolated PostgreSQL17 concurrency, migration guard and restart; exact-head hosted CI pending.",
+        "evidence_path": "docs/evidence/2026-10-03-company-discovery-requests.json"
+      },
+      "active_development_issue": {
+        "number": 55,
+        "url": "https://github.com/MulattoTech/MJobs/issues/55",
+        "branch": "codex/company-discovery-triggers",
+        "status": "PARTIAL",
+        "related_requirements": [
+          "MJ-REQ-054",
+          "MJ-REQ-056",
+          "MJ-REQ-060"
+        ],
+        "evidence_path": "docs/evidence/2026-10-03-company-discovery-requests.json",
+        "pr_number": 477,
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/477"
+      }
     }
   ],
   "current_user_browser_acceptance": {
@@ -2857,6 +2949,57 @@
       ],
       "result": "PASS",
       "note": "No fabricated history; populated downgrade refuses evidence loss; user database untouched."
+    },
+    {
+      "revision": "d8f0c1b2a3e4",
+      "targets": [
+        "isolated SQLite legacy fixture",
+        "isolated PostgreSQL17"
+      ],
+      "result": "PASS",
+      "note": "No fabricated monitoring history; populated downgrade refuses evidence loss; user database untouched."
     }
-  ]
+  ],
+  "company_discovery_requests_ci": {
+    "timestamp": "2026-10-03T23:35:27.080059+00:00",
+    "result": "PASS",
+    "head": "ef847659af10c7907f99fd8d38371ee732cf30e9",
+    "base": "8240e471260ebeb60bde9932368651da410f3148",
+    "runs": {
+      "pr": 37161948331,
+      "push": 37161945869
+    },
+    "artifacts": {
+      "pr": {
+        "ci-mock-e2e.json": "PASS",
+        "ci-personal-mode.json": "PASS",
+        "ci-personal-public-source.json": "PASS",
+        "ci-personal-public-ui.json": "PASS",
+        "ci-recovery.json": "PASS",
+        "ci-ui.json": "PASS"
+      },
+      "push": {
+        "ci-mock-e2e.json": "PASS",
+        "ci-personal-mode.json": "PASS",
+        "ci-personal-public-source.json": "PASS",
+        "ci-personal-public-ui.json": "PASS",
+        "ci-recovery.json": "PASS",
+        "ci-ui.json": "PASS"
+      }
+    },
+    "review_threads": 0,
+    "review_blockers": 0,
+    "local_regression": {
+      "result": "PASS",
+      "python_tests": 393,
+      "seconds": 119.043,
+      "skipped": 0,
+      "frontend_tests": 29,
+      "evidence_path": "discovery-requests-regression-final.log"
+    }
+  },
+  "session_control": {
+    "requested_action": "PAUSE_AFTER_CURRENT_SLICE_CLOSEOUT",
+    "note": "User requested pause for external skill installation, committing current implementation to main and preparing next development session. No new backlog slice authorized during closeout."
+  }
 }

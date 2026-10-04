@@ -30,6 +30,14 @@ export function discoveryActivity(events: unknown): DiscoveryActivity[] {
       if (imported === null) message='Feed import recorded; job count unavailable.';
       else if (enumerated !== null && imported > enumerated) message='Feed import recorded; inconsistent counts need review.';
       else message=`Imported ${imported} jobs${enumerated === null ? '' : ` from ${enumerated} feed records`}.`;
+    } else if (row.action === 'COMPANY_SOURCE_REFRESHED') {
+      message='Refreshed the reviewed employer feed.';
+    } else if (row.action === 'COMPANY_SOURCE_REFRESH_FAILED') {
+      message='The source refresh did not complete; review monitoring status.';
+    } else if (row.action === 'COMPANY_SOURCE_MIGRATION_REVIEW') {
+      message='Detected changed career infrastructure; the previous source was preserved for review.';
+    } else if (row.action === 'COMPANY_SOURCE_MONITORING_REVIEWED') {
+      message='Saved the reviewed source monitoring policy.';
     } else continue;
     output.push({id:row.id.slice(0,128), message, timestamp:eventTime(row.timestamp)});
   }

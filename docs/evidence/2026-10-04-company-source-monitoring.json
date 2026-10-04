@@ -1,0 +1,134 @@
+{
+  "timestamp": "2026-10-04T00:22:19.621350+00:00",
+  "result": "PARTIAL",
+  "requirements": [
+    "MJ-REQ-055",
+    "MJ-REQ-056",
+    "MJ-REQ-071",
+    "MJ-REQ-076"
+  ],
+  "branch": "codex/company-source-refresh",
+  "base_commit": "b4fa3a11762b0c26bfbb09e105f3c47681763e20",
+  "scope": "Reviewed durable public employer-feed monitoring, atomic matching/receipts, recovery, revalidation and Sources controls",
+  "checks": [
+    {
+      "action": "Full regression after authority guard fixes",
+      "result": "FAIL",
+      "count": 419,
+      "seconds": 143.616,
+      "classification": "HARNESS_DEFECT",
+      "evidence_path": "Git common directory afk-dev/reconcile-20261003/company-source-refresh-regression-authority-final.log",
+      "note": "All product assertions passed; Windows Proactor socket reset left the isolated source-value browser API thread alive. Test server uses a thread-local selector loop; shutdown assertion retained."
+    },
+    {
+      "action": "Domain ownership becomes ambiguous after first public response",
+      "result": "FAIL",
+      "classification": "PRODUCT_DEFECT",
+      "note": "Observed false failed quality row before fix. Public-read authorization callback failures now retain block state without manufacturing feed-quality evidence; 17 affected tests PASS."
+    },
+    {
+      "action": "Automatic two-profile refresh with second profile paused just before import",
+      "result": "FAIL",
+      "classification": "PRODUCT_DEFECT",
+      "note": "Observed COMPLETED before fix. Import now locks and validates every selected automatic profile before jobs/matches."
+    },
+    {
+      "action": "Initial PostgreSQL migration",
+      "result": "FAIL",
+      "classification": "PRODUCT_DEFECT",
+      "evidence_path": "Git common directory afk-dev/reconcile-20261003/company-source-refresh-postgres-blocker-receipt.json",
+      "note": "Reserved authorization identifier was unquoted in raw CHECK DDL. Model and migration quoted it. Initial receipt incorrectly classified environment; this record preserves the actual schema portability cause."
+    },
+    {
+      "action": "Initial full regression",
+      "result": "FAIL",
+      "count": 416,
+      "seconds": 144.346,
+      "classification": "STALE_ASSERTION",
+      "evidence_path": "Git common directory afk-dev/reconcile-20261003/company-source-refresh-regression.log",
+      "note": "415 passed; old browser assertion expected Run Now unavailable. Updated unreviewed monitoring and remaining unsupported-control assertions."
+    },
+    {
+      "action": "python -m unittest discover -s tests -p 'test_*.py' -v",
+      "result": "PASS",
+      "count": 419,
+      "seconds": 134.599,
+      "skipped": 0,
+      "evidence_path": "Git common directory afk-dev/reconcile-20261003/company-source-refresh-regression-release.log"
+    },
+    {
+      "action": "npm test --prefix apps/web -- --run; npm run build --prefix apps/web",
+      "result": "PASS",
+      "count": 33,
+      "evidence_path": "Git common directory afk-dev/reconcile-20261003/company-source-refresh-web-final.log"
+    },
+    {
+      "action": "Isolated PostgreSQL17 migration, concurrent scheduler/worker imports, cancellation/profile-edit serialization, restart and populated downgrade refusal",
+      "result": "PASS",
+      "evidence_path": "Git common directory afk-dev/reconcile-20261003/company-source-refresh-postgres-final-receipt.json",
+      "details": {
+        "result": "PASS",
+        "revision": "d8f0c1b2a3e4",
+        "legacy_monitoring_rows": 0,
+        "sources": 2,
+        "profiles": 1,
+        "unrestricted_search_profiles": 1,
+        "review_policies": 2,
+        "schedule_execute": {
+          "scheduled": 2,
+          "executed": 2,
+          "healthy_monitors": 2,
+          "completed_operations": 2,
+          "matches": 2
+        },
+        "lock_serialization": {
+          "operation_id": "518427c922b3ba07006cb076de27b1722a9737dd019df2d2fc3e992ca63772ea",
+          "blocked_until_commit": true,
+          "cancel_state": "RUNNING"
+        },
+        "profile_lock_refresh": {
+          "operation_id": "49e55408405a72d723be078b7cfd2b76ed0f66a3985c1fe76e25559a4ff32680",
+          "refresh_status": "COMPLETED",
+          "blocked_before_commit": true,
+          "pause_committed": true,
+          "next_tick_skipped": "NO_UNRESTRICTED_SEARCH_PROFILE"
+        },
+        "restart_reopen": "PASS",
+        "downgrade_refused": true,
+        "external_requests": 0,
+        "recorded_at_utc": "2026-10-04T00:12:22.417797+00:00",
+        "container": "mjobs-company-source-refresh-profile-lock-pg17-20261003b",
+        "loopback_port": 41158,
+        "container_removed": true,
+        "cleanup_at_utc": "2026-10-04T00:12:51.3947399Z",
+        "predecessor_receipt": "company-source-refresh-postgres-rerun-receipt.json",
+        "first_failure_receipt": "company-source-refresh-postgres-blocker-receipt.json"
+      }
+    },
+    {
+      "action": "Independent domain/source/operation/profile lock-order and quality-truthfulness review",
+      "result": "PASS",
+      "note": "Closed stale operation, cancellation, lease, source retarget, domain ambiguity, per-profile scope race and authorization-quality findings. Recovery/API focused suite17 PASS. Original ambiguity fixture corrected to establish two verified owners; that initial fixture mismatch is not production RED."
+    },
+    {
+      "action": "All-worktree status and preserved template SHA256 audit",
+      "result": "PASS",
+      "worktrees": 33,
+      "preserved_untracked_files": 24,
+      "evidence_path": "Git common directory afk-dev/reconcile-20261003/company-source-refresh-preservation.json"
+    }
+  ],
+  "limitations": [
+    "MJ-REQ-055/056/071/076 remain PARTIAL. Supported same-origin RSS/Atom and JSON feeds are monitored; vendor ATS breadth, domain acquisition and remaining triggers are incomplete.",
+    "MJ-REQ-077 remains NOT_RUN: changed career/feed routes queue bounded rediscovery and preserve old source history, but reviewed replacement ATS migration is not implemented.",
+    "Automatic reads require fresh qualified domain evidence or exact user-reviewed origin policy plus an enabled unrestricted search profile. Review does not verify employer identity.",
+    "Browser/API/workers used controlled public responses and isolated databases. No fresh live-employer breadth or user database migration is claimed.",
+    "Private feedback and root user templates preserved; real external application submission remains OFF.",
+    "Original counts48 PASS74 PARTIAL244 NOT_RUN; reference59 NOT_RUN; release readiness NOT_RUN."
+  ],
+  "external_submission_enabled": false,
+  "remote_ci": {
+    "result": "NOT_RUN",
+    "note": "Latest exact published head must pass required CI; publication/CI receipt recorded externally without changing tested head."
+  }
+}

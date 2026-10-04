@@ -2,10 +2,11 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+import hashlib
 import ipaddress
 from urllib.parse import urlsplit
 
-from sqlalchemy import select
+from sqlalchemy import select, text
 
 from packages.persistence import models as m
 from packages.persistence.store import identity, upsert
@@ -61,6 +62,21 @@ def is_aggregator_domain(host):
     return any(host == domain or host.endswith("." + domain) for domain in AGGREGATOR_HOSTS)
 
 
+def lock_domain_evidence(connection, host):
+    """Serialize all evidence for one host, including a not-yet-present owner."""
+    domain = normalize_domain(host)
+    if not domain:
+        raise ValueError("COMPANY_DOMAIN_INVALID")
+    if connection.dialect.name == "postgresql":
+        digest = hashlib.sha256(b"mjobs-domain-evidence-v1\0" + domain.encode("utf-8")).digest()
+        key = int.from_bytes(digest[:8], "big", signed=True)
+        connection.execute(text("SELECT pg_advisory_xact_lock(:domain_key)"), {"domain_key": key})
+    query = select(m.company_domains).where(m.company_domains.c.domain == domain).order_by(m.company_domains.c.id)
+    if connection.dialect.name == "postgresql":
+        query = query.with_for_update()
+    return [dict(row) for row in connection.execute(query).mappings()]
+
+
 def resolve_official_domain(candidates):
     """Rank sourced domain candidates and preserve ties as ambiguous."""
     blocked_sources = {"AGGREGATOR", "DIRECTORY", "STAFFING_AGENCY", "LINKEDIN", "INDEED", "CRUNCHBASE"}
@@ -103,10 +119,10 @@ def record_company_domain(store, company_id, value, method="CANDIDATE_DOMAIN_UNV
     now = datetime.now(timezone.utc).isoformat()
     record_id = identity(company_id, host)
     with store.engine.begin() as connection:
-        current = connection.execute(select(m.company_domains).where(
-            m.company_domains.c.company_id == company_id,
-            m.company_domains.c.domain == host,
-        )).mappings().one_or_none()
+        if connection.dialect.name == "sqlite":
+            connection.exec_driver_sql("BEGIN IMMEDIATE")
+        current = next((row for row in lock_domain_evidence(connection, host)
+                        if row["company_id"] == company_id), None)
         if current:
             if current["verified"] and not verified:
                 return dict(current)
