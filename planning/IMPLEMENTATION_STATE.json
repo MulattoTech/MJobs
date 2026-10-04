@@ -551,6 +551,12 @@
       "branch": "codex/resume-technology-emphasis-20261004",
       "status": "MERGED",
       "merge_commit": "f28b2b2e8b678143dc0827eca306cd2c94803391"
+    },
+    {
+      "number": 501,
+      "url": "https://github.com/MulattoTech/MJobs/pull/501",
+      "branch": "codex/resume-contact-header-20261004",
+      "status": "DRAFT"
     }
   ],
   "tests_passed": [
@@ -3025,7 +3031,7 @@
     {
       "milestone_id": "resume-contact-header-20261004",
       "timestamp": "2026-10-04T22:03:04.426498+00:00",
-      "current_phase": "LOCAL_VALIDATED",
+      "current_phase": "HOSTED_VALIDATING",
       "completed_steps": [
         "Versioned opt-in contact header through API/worker/UI/history/comparison",
         "Long URL fidelity regression reproduced and corrected with negative assertion tests",
@@ -3054,7 +3060,7 @@
       }
     }
   ],
-  "current_phase": "LOCAL_VALIDATED",
+  "current_phase": "HOSTED_VALIDATING",
   "last_safe_checkpoint": {
     "git_commit": "f28b2b2e8b678143dc0827eca306cd2c94803391",
     "evidence_path": "docs/evidence/2026-10-04-technology-emphasis-exact-head-ci.json"

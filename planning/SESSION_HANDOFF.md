@@ -13,7 +13,7 @@ base/tailored/selected contracts preserve old bytes and exact assertions.
 No migration or external service. Private plan `.git/afk-dev/contact-header-plan.txt`.
 Local checks PASS:534 Python,8 final focused,45 web/build, browser,18 final Linux,
 visual PDF and independent review. Long URL wrapping regression fixed. Evidence:
-`docs/evidence/2026-10-04-resume-contact-header.json`. Next: publish, exact final-head
+`docs/evidence/2026-10-04-resume-contact-header.json`. Draft PR501 is open. Next: exact final-head
 workflows/artifacts, merge safely and reconcile. No issue closure for broader factual rephrasing.
 
 Two small local AI model probes failed relevance; evidence retained in
