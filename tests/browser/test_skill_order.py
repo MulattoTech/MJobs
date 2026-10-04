@@ -27,7 +27,7 @@ class SkillOrderBrowserTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root=Path(directory);store=Store(f"sqlite:///{(root/'test.db').as_posix()}")
             store.migrate();store.bind_workspace_mode('FIXTURE')
-            store.save_profile(dict(PROFILE,facts=[PROFILE['facts'][1],PROFILE['facts'][0]]))
+            store.save_profile(dict(PROFILE,facts=[PROFILE['facts'][1],PROFILE['facts'][0]],contact={'phones':['555 0100'],'city':'Tulsa'}))
             with fixture_server() as fixture:discover(store,fixture,'fixture')
             job=store.jobs()[0]
             with store.engine.begin() as c:c.execute(update(m.jobs).where(m.jobs.c.id==job['id']).values(skills=['Python']))
@@ -121,6 +121,22 @@ class SkillOrderBrowserTests(unittest.TestCase):
                     comparison=page.get_by_role('region',name='Compare base and tailored resumes',exact=True)
                     comparison.get_by_role('button',name='Compare selected resumes',exact=True).click()
                     expect(comparison.get_by_role('region',name='Content omitted',exact=True)).to_contain_text('skill: SQL')
+                    self.assertEqual(store.profile('fixture'),before)
+                    page.get_by_role('navigation').get_by_role('button',name='Jobs',exact=False).click()
+                    page.get_by_role('button').filter(has=page.get_by_role('heading',name=job['title'],exact=True)).click()
+                    contact_option=page.get_by_label('Include saved resume contact details',exact=True)
+                    expect(contact_option).not_to_be_checked();contact_option.check()
+                    with page.expect_response(lambda response:response.url==origin+'/applications' and response.request.method=='POST') as event:
+                        page.get_by_role('button',name='Prepare documents',exact=True).click()
+                    operation=event.value.json()
+                    with patch.dict('os.environ',MJOBS_DATABASE_URL=store.url,MJOBS_MOCK_ORIGIN='http://127.0.0.1:1',MJOBS_OUTPUT_DIR=str(root),MJOBS_OPERATION_MODE='FIXTURE'):
+                        self.assertEqual(execute_operation(operation['operation_id'])['status'],'COMPLETED')
+                    contact_document=page.get_by_role('region',name='resume version 4',exact=True)
+                    contact_document.get_by_text('Generation details and facts',exact=True).click()
+                    expect(contact_document.get_by_role('region',name='Saved resume contact header')).to_contain_text('Phone: 555 0100')
+                    with page.expect_download() as contact_download:
+                        contact_document.get_by_role('link',name='Download TXT',exact=True).click()
+                    self.assertIn('Phone: 555 0100',Path(contact_download.value.path()).read_text(encoding='utf-8'))
                     self.assertEqual(store.profile('fixture'),before)
                     self.assertFalse(external)
                     context.close();browser.close()

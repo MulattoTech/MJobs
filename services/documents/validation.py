@@ -6,7 +6,7 @@ from pypdf import PdfReader
 from services.documents.errors import PreparationError
 from services.documents.templates import CONTRACTS, contract_role, resume_layout
 
-VALIDATOR = 'exact-approved-facts-v2'
+VALIDATOR = 'exact-approved-facts-v3'
 
 
 def _read(path, reader):
@@ -18,6 +18,19 @@ def _read(path, reader):
 
 def _paragraphs(path):
     return _read(path, lambda p: [paragraph.text for paragraph in Document(p).paragraphs])
+
+
+def pdf_tokens_match(actual, expected):
+    """Permit physical wraps within an exact URL, never within factual words."""
+    tokens=actual.split();cursor=0
+    for wanted in expected.split():
+        if cursor>=len(tokens):return False
+        observed=tokens[cursor];cursor+=1
+        if wanted.casefold().startswith(('http://','https://')):
+            while observed!=wanted and wanted.startswith(observed) and cursor<len(tokens):
+                observed+=tokens[cursor];cursor+=1
+        if observed!=wanted:return False
+    return cursor==len(tokens)
 
 
 def validate_assertions(kind, paragraphs, profile, fact_ids, job_title=None, template='verified-facts-v1'):
@@ -52,9 +65,9 @@ def validate_formats(paths, paragraphs):
     if 'txt' in paths and _read(paths['txt'], lambda p:p.read_text(encoding='utf-8')) != '\n'.join(paragraphs)+'\n':
         raise PreparationError('DOCUMENT_CONTENT_MISMATCH', 'Plain text differs from validated assertions')
     pdf_text = _read(paths['pdf'], lambda p:' '.join(page.extract_text() for page in PdfReader(p).pages))
-    # PDF layout adds line wraps and spaces; every non-whitespace token must
-    # still match in order, including case, punctuation and Unicode codepoints.
-    if pdf_text.split() != ' '.join(paragraphs).split():
+    # Long URLs can wrap mid-token. Their characters must still match exactly;
+    # ordinary factual tokens retain strict word boundaries and ordering.
+    if not pdf_tokens_match(pdf_text,' '.join(paragraphs)):
         raise PreparationError('DOCUMENT_CONTENT_MISMATCH', 'PDF content differs from validated assertions')
 
 

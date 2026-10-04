@@ -7,12 +7,12 @@
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Sole writer codex/resume-technology-emphasis-20261004 from merged PR499 4016a732bffde4707b3e0bba07ea2c2a33b69c17",
-    "current_verified_github_state": "PR499 merged after exact-head push/PR workflows and all16 runtime artifacts PASS; issue96 remains PARTIAL.",
-    "current_verified_at": "2026-10-04T21:42:28.675566+00:00"
+    "current_verified_local_state": "Sole writer codex/resume-contact-header-20261004 from PR500 merge f28b2b2e8b678143dc0827eca306cd2c94803391",
+    "current_verified_github_state": "PR500 exact-head push/PR and all16 runtime artifacts PASS; merged tested tree; MJ095 remains PARTIAL.",
+    "current_verified_at": "2026-10-04T22:03:04.426498+00:00"
   },
-  "current_milestone": "MJ-PR-026-TECHNOLOGY-EMPHASIS",
-  "current_objective": "Emphasize job-matched approved technology facts without changing assertions or historical revisions.",
+  "current_milestone": "MJ-PR-026-RESUME-CONTACT-HEADER",
+  "current_objective": "Explicit versioned resume contact disclosure using already saved profile values.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -549,6 +549,13 @@
       "number": 500,
       "url": "https://github.com/MulattoTech/MJobs/pull/500",
       "branch": "codex/resume-technology-emphasis-20261004",
+      "status": "MERGED",
+      "merge_commit": "f28b2b2e8b678143dc0827eca306cd2c94803391"
+    },
+    {
+      "number": 501,
+      "url": "https://github.com/MulattoTech/MJobs/pull/501",
+      "branch": "codex/resume-contact-header-20261004",
       "status": "DRAFT"
     }
   ],
@@ -692,10 +699,10 @@
     "MJ-PR-016 local Chromium first run used Docker DNS host api, which is not a secure browser origin for crypto.randomUUID; loopback URL rerun passed all five connected UI actions."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-04T21:46:15.647212+00:00",
+    "timestamp": "2026-10-04T22:12:43.584434+00:00",
     "result": "PASS",
-    "scope": "Local emphasis validation; hosted pending",
-    "evidence_path": "docs/evidence/2026-10-04-technology-emphasis.json"
+    "scope": "Contact header local evidence; exact-head hosted pending",
+    "evidence_path": "docs/evidence/2026-10-04-resume-contact-header.json"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -757,7 +764,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Complete technology emphasis validation/review, exact-head push+PR artifacts, merge and reconcile; issue96 remains open for broader factual rephrasing.",
+  "recommended_resume_step": "Complete contact-header checks/review, exact-head hosted artifacts, safe merge and baseline reconciliation; continue useful dependency-ready work.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -2994,7 +3001,7 @@
     {
       "milestone_id": "technology-emphasis-20261004",
       "timestamp": "2026-10-04T21:42:28.675566+00:00",
-      "current_phase": "HOSTED_VALIDATING",
+      "current_phase": "MERGED",
       "completed_steps": [
         "Versioned approved technology emphasis implemented",
         "Comparison review defect reproduced and fixed in both paths",
@@ -3009,9 +3016,7 @@
         "Final browser and13 actual Linux tests",
         "Rendered PDF visually inspected"
       ],
-      "tests_remaining": [
-        "Exact final-head hosted workflows/artifacts"
-      ],
+      "tests_remaining": [],
       "migrations_applied": [],
       "live_integrations_tested": [],
       "known_errors": [],
@@ -3019,15 +3024,46 @@
         "Whole approved skill/technology paragraphs emphasized; no wording changes or qualification inference"
       ],
       "last_safe_checkpoint": {
-        "git_commit": "4016a732bffde4707b3e0bba07ea2c2a33b69c17",
-        "evidence_path": "docs/evidence/2026-10-04-approved-selection-exact-head-ci.json"
+        "git_commit": "f28b2b2e8b678143dc0827eca306cd2c94803391",
+        "evidence_path": "docs/evidence/2026-10-04-technology-emphasis-exact-head-ci.json"
+      }
+    },
+    {
+      "milestone_id": "resume-contact-header-20261004",
+      "timestamp": "2026-10-04T22:03:04.426498+00:00",
+      "current_phase": "HOSTED_VALIDATING",
+      "completed_steps": [
+        "Versioned opt-in contact header through API/worker/UI/history/comparison",
+        "Long URL fidelity regression reproduced and corrected with negative assertion tests",
+        "Independent review and visual acceptance complete"
+      ],
+      "files_added": [],
+      "files_modified": [],
+      "tests_completed": [
+        "534 full Python regressions zero skips",
+        "8 final focused checks",
+        "45 web tests/build",
+        "Browser acceptance and18 final Linux app-image tests"
+      ],
+      "tests_remaining": [
+        "Exact final-head hosted workflows/artifacts"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "Optional header excludes street address and postal code; broader factual rephrasing remains incomplete"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "f28b2b2e8b678143dc0827eca306cd2c94803391",
+        "evidence_path": "docs/evidence/2026-10-04-technology-emphasis-exact-head-ci.json"
       }
     }
   ],
   "current_phase": "HOSTED_VALIDATING",
   "last_safe_checkpoint": {
-    "git_commit": "4016a732bffde4707b3e0bba07ea2c2a33b69c17",
-    "evidence_path": "docs/evidence/2026-10-04-approved-selection-exact-head-ci.json"
+    "git_commit": "f28b2b2e8b678143dc0827eca306cd2c94803391",
+    "evidence_path": "docs/evidence/2026-10-04-technology-emphasis-exact-head-ci.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
@@ -3517,7 +3553,7 @@
   },
   "session_control": {
     "owner": "01a107cd-4e66-77d3-b046-fc2c01f4ffb1",
-    "branch": "codex/resume-technology-emphasis-20261004",
+    "branch": "codex/resume-contact-header-20261004",
     "write_lanes": 1,
     "requested_action": "DELIVER_LIFECYCLE_PROFILE_IMPORT",
     "note": "Current user authorizes implementation, tests, review, push, exact-head-verified merge and continuation. No production deployment or external submissions."

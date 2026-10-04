@@ -73,6 +73,7 @@ class ApplicationInput(DiscoveryInput):
     route_mode: Literal["DEFAULT", "THIS_ROUTE", "EMPLOYER_SITE", "ALL_DISTINCT"] = "DEFAULT"
     route_id: str | None = Field(default=None, min_length=1, max_length=128)
     tailor_resume: bool = Field(default=False, strict=True)
+    include_resume_contact: bool = Field(default=False, strict=True)
     tailor_fact_ids: list[Annotated[str,Field(strict=True,min_length=1,max_length=128)]] | None = Field(default=None,min_length=1,max_length=1000)
     expected_profile_version: str | None = Field(default=None,min_length=64,max_length=64)
 
@@ -549,6 +550,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             "job_id": value.job_id, "profile_version": profile["version"], "request_id": value.request_id,
             "route_mode": value.route_mode, "route_id": value.route_id,
             "tailor_resume": value.tailor_resume,
+            "include_resume_contact": value.include_resume_contact,
             **({'tailor_fact_ids':value.tailor_fact_ids} if value.tailor_fact_ids is not None else {}),
         })
         return {**operation, "application_id": identity(value.job_id, value.profile_id),

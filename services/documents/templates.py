@@ -9,6 +9,14 @@ SELECTION_TEMPLATE = 'approved-selection-emphasis-v1'
 SELECTION_MODEL = 'deterministic-fact-selection-v2'
 SELECTION_TEMPLATES = {SELECTION_TEMPLATE, 'approved-fact-selection-headings-v1'}
 EMPHASIS_TEMPLATES = {TAILORED_TEMPLATE, SELECTION_TEMPLATE}
+CONTACT_PAIRS = {
+    BASE_TEMPLATE: ('approved-contact-base-v1', 'deterministic-contact-copy-v1'),
+    TAILORED_TEMPLATE: ('approved-contact-emphasis-v1', 'deterministic-contact-order-v1'),
+    SELECTION_TEMPLATE: ('approved-contact-selection-v1', 'deterministic-contact-selection-v1'),
+}
+CONTACT_TEMPLATES = {pair[0] for pair in CONTACT_PAIRS.values()}
+SELECTION_TEMPLATES.add(CONTACT_PAIRS[SELECTION_TEMPLATE][0])
+EMPHASIS_TEMPLATES.update(CONTACT_PAIRS[key][0] for key in (TAILORED_TEMPLATE,SELECTION_TEMPLATE))
 CONTRACTS = {
     'verified-facts-v1': ('deterministic-fact-copy-v1', 'BASE', False),
     'approved-skill-order-v1': ('deterministic-skill-order-v1', 'TAILORED', False),
@@ -18,6 +26,7 @@ CONTRACTS = {
     TAILORED_TEMPLATE: (TAILORED_MODEL, 'TAILORED', True),
     SELECTION_TEMPLATE: (SELECTION_MODEL, 'TAILORED', True),
 }
+CONTRACTS.update({pair[0]:(pair[1],CONTRACTS[source][1],True) for source,pair in CONTACT_PAIRS.items()})
 HEADINGS = {'summary':'Summary', 'experience':'Experience', 'responsibility':'Experience',
     'skill':'Skills', 'technology_experience':'Technology Experience', 'education':'Education',
     'certification':'Certifications', 'project':'Projects', 'accomplishment':'Accomplishments',
@@ -33,11 +42,29 @@ def contract_role(template, model, allow_legacy_unrecorded=False):
     return None
 
 
+def template_pair(tailored, selected, contact):
+    template=SELECTION_TEMPLATE if selected else TAILORED_TEMPLATE if tailored else BASE_TEMPLATE
+    return CONTACT_PAIRS[template] if contact else (template,CONTRACTS[template][0])
+
+
+def contact_header(profile, template):
+    lines=[profile['name'],profile['email']]
+    if template not in CONTACT_TEMPLATES:return lines
+    contact=profile.get('contact') or {}
+    phones=[value.strip() for value in contact.get('phones',[]) if value.strip()]
+    if phones:lines.append('Phone: '+' | '.join(phones))
+    location=[contact.get(key,'').strip() for key in ('city','state','country') if contact.get(key,'').strip()]
+    if location:lines.append('Location: '+', '.join(location))
+    for key,label in (('linkedin','LinkedIn'),('github','GitHub'),('portfolio','Portfolio')):
+        if contact.get(key):lines.append(label+': '+contact[key])
+    return lines
+
+
 def resume_layout(profile, facts, template):
     contract = CONTRACTS.get(template)
     if not contract:
         raise PreparationError('UNSUPPORTED_CLAIM', 'Document template has no assertion validation contract')
-    paragraphs = [profile['name'], profile['email']]
+    paragraphs = contact_header(profile,template)
     headings = set()
     previous = None
     for row in facts:

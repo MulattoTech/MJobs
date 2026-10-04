@@ -1,0 +1,93 @@
+{
+  "result": "PARTIAL",
+  "timestamp": "2026-10-04T22:12:43.584434+00:00",
+  "branch": "codex/resume-contact-header-20261004",
+  "base": "f28b2b2e8b678143dc0827eca306cd2c94803391",
+  "requirements": [
+    "MJ-REQ-095"
+  ],
+  "related_requirements": [
+    "MJ-REQ-089",
+    "MJ-REQ-094",
+    "MJ-REQ-098"
+  ],
+  "behavior": [
+    "Strict explicit include_resume_contact defaults false and resets on profile/job change; API captures version, worker rejects stale profile",
+    "Phones, city/state/country and LinkedIn/GitHub/portfolio from immutable saved profile snapshot; street address/postal code excluded",
+    "Versioned base/tailored/selected contracts and idempotent opt-in/out; original bytes, profile and cover letter preserved",
+    "Header helper shared by layout, validation, comparison and emphasis indexing; header never becomes a career fact",
+    "History displays included saved values; generated comparison validates metadata against original profile",
+    "Exact approved facts validator v3 permits physical URL wraps with identical characters, preserving strict factual word boundaries"
+  ],
+  "checks": [
+    {
+      "result": "PASS",
+      "timestamp": "2026-10-04T22:12:43.584434+00:00",
+      "tests": 534,
+      "target": "Broad full regression, zero skips",
+      "command": "python -m unittest discover -s tests -p test_*.py -v",
+      "evidence_path": ".git\\afk-dev\\contact-header-full-final.log"
+    },
+    {
+      "result": "PASS",
+      "timestamp": "2026-10-04T22:12:43.584434+00:00",
+      "tests": 8,
+      "target": "Final URL fidelity/contact/assertion checks",
+      "command": "python -m unittest tests.unit.test_pdf_url_fidelity tests.integration.test_resume_contact_header tests.integration.test_document_validation -v",
+      "evidence_path": ".git\\afk-dev\\contact-header-final-delta.log"
+    },
+    {
+      "result": "PASS",
+      "timestamp": "2026-10-04T22:12:43.584434+00:00",
+      "tests": 1,
+      "target": "Actual browser opt-in/history/download/profile immutability",
+      "command": "python -m unittest tests.browser.test_skill_order -v",
+      "evidence_path": ".git\\afk-dev\\contact-header-browser.log"
+    },
+    {
+      "result": "PASS",
+      "timestamp": "2026-10-04T22:12:43.584434+00:00",
+      "tests": 18,
+      "target": "Final Linux app image fonts/URL fidelity/contact/ATS/selection/emphasis",
+      "command": "docker run --rm --network none --read-only --tmpfs /tmp:rw,exec,size=256m --memory 1g --cpus 2 mjobs-contact-header:20261004 python -m unittest tests.unit.test_pdf_url_fidelity tests.integration.test_resume_contact_header tests.integration.test_technology_emphasis tests.integration.test_document_validation tests.integration.test_ats_templates tests.integration.test_resume_selection -v",
+      "evidence_path": ".git\\afk-dev\\contact-header-linux-final3.log"
+    },
+    {
+      "result": "PASS",
+      "timestamp": "2026-10-04T22:12:43.584434+00:00",
+      "tests": 45,
+      "target": "Web tests and production build",
+      "command": "npm test --prefix apps/web -- --run; npm run build --prefix apps/web",
+      "evidence_path": ".git/afk-dev/contact-header-web-final.log"
+    }
+  ],
+  "runtime_image": "sha256:f695fa5f3b7cf426ece851c3ca594bfc3652ccbb71c71c70938d3fc6faeabf3a",
+  "initial_red": ".git/afk-dev/contact-header-red.log",
+  "observed_fix": {
+    "failure": ".git/afk-dev/contact-header-long-url-red.log",
+    "cause": "Valid long URL wrapped mid-token in PDF and strict token comparator rejected it",
+    "fix": "Expected HTTP(S) URL tokens may consume physically wrapped fragments only when all characters match exactly; changed domains/characters/factual words remain rejected",
+    "evidence": ".git/afk-dev/contact-header-final-delta.log"
+  },
+  "review": {
+    "result": "PASS",
+    "reviewer": "read-only chore lifecycle_audit",
+    "note": "Initial feature and URL correction separately reviewed, no actionable defects"
+  },
+  "visual": {
+    "result": "PASS",
+    "evidence_paths": [
+      ".git/afk-dev/contact-header-sample.png",
+      ".git/afk-dev/contact-header-long-url.png"
+    ],
+    "note": "Readable single-column normal contact header, appropriate fact emphasis, long URL wraps within page without clipping"
+  },
+  "remaining_checks": [
+    "Exact final-head push/PR Verification, all16 runtime artifacts and contact browser/app-image gates"
+  ],
+  "limitations": [
+    "No migration; PostgreSQL connected runtime gate remains required in hosted CI",
+    "No AI, automatic rephrasing, external submission or production deployment",
+    "MJ095 remains PARTIAL; contact disclosure is a user option, not additional career verification"
+  ]
+}

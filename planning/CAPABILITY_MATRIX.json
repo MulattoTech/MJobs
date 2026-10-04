@@ -833,9 +833,11 @@
         "docs/evidence/2026-10-04-approved-skill-order.json",
         "docs/evidence/2026-10-04-approved-resume-selection.json",
         "docs/evidence/2026-10-04-approved-selection-exact-head-ci.json",
-        "docs/evidence/2026-10-04-technology-emphasis.json"
+        "docs/evidence/2026-10-04-technology-emphasis.json",
+        "docs/evidence/2026-10-04-technology-emphasis-exact-head-ci.json",
+        "docs/evidence/2026-10-04-resume-contact-header.json"
       ],
-      "note": "Skill ordering and explicit selection accepted through PR499. Matched technology emphasis locally validated; exact-head hosted pending. Broader factual rephrasing remains incomplete."
+      "note": "Ordering/selection/emphasis accepted through PR500. Explicit saved-contact header locally validated; hosted pending. Broader factual rephrasing remains incomplete."
     },
     {
       "requirement_id": "MJ-REQ-096",
