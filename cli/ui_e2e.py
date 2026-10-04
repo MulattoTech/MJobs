@@ -127,6 +127,23 @@ def run(base_url, evidence_path):
             navigation("Applications")
             page.get_by_role("button").filter(has=page.get_by_role("heading", name="Data Engineer", exact=True)).click()
             expect(page.locator(".job-detail > .tag")).to_have_text("CONFIRMED")
+            navigation('Profile')
+            library=page.get_by_role('region', name='Document library', exact=True)
+            library.get_by_label('Document type', exact=True).select_option('CERTIFICATION')
+            library.get_by_label('Document label', exact=True).fill('Synthetic certificate')
+            library.get_by_label('Choose a document', exact=False).set_input_files(
+                {'name':'synthetic-certificate.txt','mimeType':'text/plain','buffer':b'Synthetic library proof, not a career credential.'})
+            library.get_by_role('button', name='Store document', exact=True).click()
+            collection=library.get_by_role('region',name='Synthetic certificate collection',exact=True)
+            expect(collection.get_by_role('link',name='Download original version 1',exact=True)).to_be_visible()
+            stored=request('/profiles/'+profile_id+'/document-library')['uploaded']
+            certificate=next(row for row in stored if row['document_kind']=='CERTIFICATION')
+            with page.expect_download() as download:
+                collection.get_by_role('link',name='Download original version 1',exact=True).click()
+            assert hashlib.sha256(Path(download.value.path()).read_bytes()).hexdigest()==certificate['sha256']
+            assert request('/profiles/'+profile_id+'/resumes')['resumes']==[]
+            assert {row['fact_id'] for row in request('/profiles/'+profile_id)['facts']}=={'python','sql'}
+            actions.append({'action':'Typed document library stores/downloads checksum-backed certification without adding resume-import entries or career facts','result':'PASS'})
             navigation("Activity")
             expect(page.get_by_role("heading", name="Service health", exact=True)).to_be_visible()
             page.set_viewport_size({"width": 390, "height": 844})

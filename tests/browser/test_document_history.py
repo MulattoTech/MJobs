@@ -73,6 +73,39 @@ class DocumentHistoryBrowserTests(unittest.TestCase):
                             data=Path(event.value.path()).read_bytes()
                             self.assertEqual(hashlib.sha256(data).hexdigest(),row['sha256'][fmt])
                     self.assertFalse(external)
+                    profile_before=store.profile('fixture')
+                    page.get_by_role('button',name='Profile',exact=True).click()
+                    library=page.get_by_role('region',name='Document library',exact=True)
+                    expect(library.get_by_text('Generated application documents',exact=True)).to_be_visible()
+                    expect(library.get_by_role('region',name='resume version 1',exact=True)).to_be_visible()
+                    kinds=('BASE_RESUME','MASTER_RESUME','TAILORED_RESUME','COVER_LETTER',
+                           'APPLICATION_ANSWER_EXPORT','SUPPORTING_DOCUMENT','CERTIFICATION')
+                    for kind in kinds:
+                        library.get_by_label('Document type',exact=True).select_option(kind)
+                        library.get_by_label('Document label',exact=True).fill(kind+' example')
+                        library.get_by_label('Choose a document',exact=False).set_input_files(
+                            {'name':'synthetic.txt','mimeType':'text/plain','buffer':b'Original synthetic library file'})
+                        library.get_by_role('button',name='Store document',exact=True).click()
+                        group=library.get_by_role('region',name=kind+' example collection',exact=True)
+                        expect(group.get_by_role('link',name='Download original version 1',exact=True)).to_be_visible()
+                        expect(library.get_by_role('button',name='Refresh library',exact=True)).to_be_enabled()
+                    library.get_by_label('Document collection',exact=True).select_option(label='CERTIFICATION example')
+                    library.get_by_label('Choose a document',exact=False).set_input_files(
+                        {'name':'revised.txt','mimeType':'text/plain','buffer':b'Revised synthetic library file'})
+                    library.get_by_role('button',name='Store document',exact=True).click()
+                    group=library.get_by_role('region',name='CERTIFICATION example collection',exact=True)
+                    expect(group.get_by_role('link',name='Download original version 2',exact=True)).to_be_visible()
+                    expect(library.get_by_role('button',name='Refresh library',exact=True)).to_be_enabled()
+                    page.reload()
+                    page.get_by_role('button',name='Profile',exact=True).click()
+                    group=page.get_by_role('region',name='CERTIFICATION example collection',exact=True)
+                    for version,data in [(1,b'Original synthetic library file'),(2,b'Revised synthetic library file')]:
+                        with page.expect_download() as event:
+                            group.get_by_role('link',name=f'Download original version {version}',exact=True).click()
+                        self.assertEqual(Path(event.value.path()).read_bytes(),data)
+                    self.assertEqual(store.profile('fixture'),profile_before)
+                    self.assertEqual(len(context.request.get(origin+'/profiles/fixture/resumes').json()['resumes']),1)
+                    self.assertFalse(external)
                     context.close();browser.close()
             finally:
                 server.should_exit=True;thread.join(timeout=10);sock.close()

@@ -30,3 +30,20 @@ Legacy timestamps/methods remain unknown (NULL); migration af2049e17b63 refuses
 downgrade that would discard populated provenance. Existing bytes are unchanged.
 Tests: tests.integration.test_document_provenance and tests.browser.test_document_history.
 Seven-type unified library and job-specific tailoring remain separate gaps.
+
+Document library collections (MJ-REQ-093) classify uploaded originals as base,
+master or tailored resume, cover letter, application answer export, supporting
+document or certification. These labels are user declarations, not validation.
+All accept bounded PDF/DOCX/UTF-8 TXT through the existing validated blob store.
+Kinds live on immutable resume_revisions; identical bytes share the original
+profile/content-addressed blob while non-base kinds use distinct series IDs.
+A collection cannot change kind. Profile row locks serialize version allocation.
+Legacy IDs/labels/versions remain BASE_RESUME via migration be3105f82a74; downgrade
+refuses to discard non-base kinds. Resume list/download/extract require base
+membership. Library downloads require a profile-owned revision ID plus checksum.
+The profile library includes uploaded versions and generated application history;
+generic generated resumes remain GENERATED_RESUME, not TAILORED_RESUME. Uploads
+never create or approve facts. Private backup continues to preserve relational
+metadata and the same uploads directory. Tests: test_document_library and the
+real browser library flow in test_document_history; hosted cli.ui_e2e covers a
+PostgreSQL-backed certification upload/download with no import/fact mutation.
