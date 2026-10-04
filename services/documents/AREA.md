@@ -17,4 +17,5 @@ uploads within a series are idempotent and version allocation locks the profile.
 Repeated content keeps the first authoritative filename, media type, format, and
 stored path even when a later request uses a different matching extension.
 Native extraction and review belong to services/career_profile. Broader tailoring,
-OCR, advanced structured chronology and document regeneration remain incomplete.
+advanced structured chronology and document regeneration remain incomplete.
+Bounded local scanned-PDF OCR and its review gates are owned by career_profile.

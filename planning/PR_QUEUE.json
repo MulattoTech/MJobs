@@ -720,9 +720,9 @@
         "MJ-PR-024"
       ],
       "status": "PARTIAL",
-      "branch": "codex/resume-date-review-20261004",
+      "branch": "codex/local-resume-ocr-20261004",
       "draft_until_verified": true,
-      "notes": "MJ-REQ088/089 PASS in PR485. PR486 extraction preservation merged. MJ-REQ091 date/responsibility review active; MJ-REQ090 scanned OCR remains partial.",
+      "notes": "MJ-REQ088/089 PASS in PR485 and MJ-REQ091 PASS in PR489. MJ-REQ090 native formats work; bounded local scanned OCR implementation under real runtime validation.",
       "feedback_slice": {
         "branch": "codex/resume-driven-profile",
         "result": "PARTIAL",
@@ -734,7 +734,8 @@
       "integrated_incremental_prs": [
         453,
         485,
-        486
+        486,
+        489
       ],
       "evidence_path": "docs/evidence/2026-10-04-resume-extraction-preservation.json"
     },

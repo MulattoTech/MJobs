@@ -54,7 +54,7 @@ class ResumeExtractionTests(unittest.TestCase):
         self.assertTrue(any(f["kind"] == "experience" and "30%" in f["text"] for f in result["facts"]))
         self.assertTrue(all(f["verified"] is False and f["user_approved"] is False for f in result["facts"]))
 
-    def test_pdf_native_text_is_extracted_and_empty_pdf_needs_ocr(self):
+    def test_pdf_native_text_is_extracted_and_empty_pdf_is_unreadable(self):
         from reportlab.pdfgen.canvas import Canvas
         from pypdf import PdfWriter
 
@@ -72,7 +72,7 @@ class ResumeExtractionTests(unittest.TestCase):
         writer.add_blank_page(width=200, height=200)
         writer.write(blank)
         ocr_result = extract_resume(blank.getvalue(), "pdf", "scan.pdf")
-        self.assertEqual(ocr_result["status"], "NEEDS_OCR")
+        self.assertEqual(ocr_result["status"], "UNREADABLE")
 
     def test_docx_native_text_is_extracted(self):
         document_xml = b'''<?xml version="1.0" encoding="UTF-8"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body><w:p><w:r><w:t>Sam Example</w:t></w:r></w:p><w:p><w:r><w:t>sam@example.com</w:t></w:r></w:p><w:p><w:r><w:t>SKILLS</w:t></w:r></w:p><w:p><w:r><w:t>Rust, SQL</w:t></w:r></w:p></w:body></w:document>'''

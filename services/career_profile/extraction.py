@@ -83,7 +83,29 @@ def _empty_contact() -> dict:
             "github": None, "portfolio": None}
 
 
-def _native_pdf(data: bytes) -> tuple[str, list[str]]:
+def _page_has_images(page):
+    """Inspect bounded resource metadata without decoding embedded image pixels."""
+    pending, visited = [(page, 0)], set()
+    while pending and len(visited) < 200:
+        obj, depth = pending.pop()
+        resources = obj.get('/Resources', {}).get_object() if hasattr(obj.get('/Resources', {}), 'get_object') else obj.get('/Resources', {})
+        xobjects = resources.get('/XObject', {})
+        xobjects = xobjects.get_object() if hasattr(xobjects, 'get_object') else xobjects
+        for reference in list(xobjects.values())[:200]:
+            if len(visited) >= 200:
+                break
+            value = reference.get_object()
+            if id(value) in visited:
+                continue
+            visited.add(id(value))
+            if value.get('/Subtype') == '/Image':
+                return True
+            if value.get('/Subtype') == '/Form' and depth < 4:
+                pending.append((value, depth+1))
+    return False
+
+
+def _native_pdf(data: bytes) -> tuple[str, list[str], bool, bool]:
     from pypdf import PdfReader
 
     try:
@@ -91,15 +113,16 @@ def _native_pdf(data: bytes) -> tuple[str, list[str]]:
         if reader.is_encrypted:
             try:
                 if reader.decrypt("") == 0:
-                    return "", ["PDF is encrypted and requires a password"]
+                    return "", ["PDF is encrypted and requires a password"], False, False
             except Exception:
-                return "", ["PDF is encrypted and requires a password"]
+                return "", ["PDF is encrypted and requires a password"], False, False
         if len(reader.pages) > MAX_PDF_PAGES:
             raise ValueError("Resume exceeds the supported page limit")
         chunks = []
         total = 0
         warnings = []
-        for page in reader.pages:
+        scanned = []
+        for number, page in enumerate(reader.pages, 1):
             try:
                 page_text = page.extract_text() or ""
                 remaining = MAX_TEXT_CHARS - total
@@ -109,16 +132,35 @@ def _native_pdf(data: bytes) -> tuple[str, list[str]]:
                 if len(page_text) > remaining:
                     page_text = page_text[:remaining]
                     warnings.append("PDF text exceeded the supported extraction limit")
+                is_scanned = not page_text.strip() and _page_has_images(page)
                 chunks.append(page_text)
                 total += len(page_text)
+                if is_scanned:
+                    scanned.append(number)
             except Exception:
                 chunks.append("")
                 warnings.append("Some PDF page text could not be extracted")
-        return "\n".join(chunks), warnings
+        from services.career_profile.ocr import ocr_pdf_pages
+        try:
+            recognized, ocr_warnings = ocr_pdf_pages(data, scanned)
+        except Exception:
+            # OCR is optional enrichment. A helper failure must never erase
+            # native text already recovered from the same document.
+            recognized, ocr_warnings = {}, ['Local OCR failed. Native text remains available for review.']
+        warnings.extend(ocr_warnings)
+        for number, value in recognized.items():
+            chunks[number-1] = value
+        if recognized:
+            warnings.append('OCR text may contain mistakes. Verify all extracted facts and contact details before use.')
+        combined = '\n'.join(chunks)
+        if len(combined) > MAX_TEXT_CHARS:
+            combined = combined[:MAX_TEXT_CHARS]
+            warnings.append('PDF text exceeded the supported extraction limit')
+        return combined, warnings, bool(scanned), bool(recognized)
     except ValueError:
         raise
     except Exception:
-        return "", ["PDF could not be read"]
+        return "", ["PDF could not be read"], False, False
 
 
 def _native_docx(data: bytes) -> tuple[str, list[str]]:
@@ -255,12 +297,13 @@ def extract_resume(data: bytes, format: str, source: str) -> dict:
     if not isinstance(data, (bytes, bytearray)) or len(data) > MAX_INPUT_BYTES:
         raise ValueError("Resume exceeds the supported size limit")
     kind = str(format).lower().lstrip(".")
+    needs_ocr = used_ocr = False
     try:
         if kind == "txt":
             text = bytes(data).decode("utf-8")
             warnings: list[str] = []
         elif kind == "pdf":
-            text, warnings = _native_pdf(bytes(data))
+            text, warnings, needs_ocr, used_ocr = _native_pdf(bytes(data))
         elif kind == "docx":
             text, warnings = _native_docx(bytes(data))
         else:
@@ -291,12 +334,10 @@ def extract_resume(data: bytes, format: str, source: str) -> dict:
             continue
         seen_ids.add(identifier)
         facts.append({"id": identifier, "kind": fact_kind, "text": fact_text, "source": source,
-                      "confidence": 90.0 if fact_kind == "skill" else 85.0,
+                      "confidence": 70.0 if used_ocr else (90.0 if fact_kind == "skill" else 85.0),
                       "verified": False, "user_approved": False})
-    status = "READY_FOR_REVIEW" if text.strip() else ("NEEDS_OCR" if kind == "pdf" and not warnings else "UNREADABLE")
-    if not text.strip() and kind == "pdf" and not warnings:
-        warnings = ["PDF contains no extractable text; OCR is required"]
-    elif not text.strip() and kind != "pdf" and not warnings:
+    status = "READY_FOR_REVIEW" if text.strip() else ("NEEDS_OCR" if needs_ocr else "UNREADABLE")
+    if not text.strip() and not warnings:
         warnings = ["Resume contains no readable text"]
     if overflow:
         warnings = list(warnings) + ["Some extracted facts exceeded review limits and were omitted"]
