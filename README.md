@@ -45,9 +45,13 @@ Repository operating instructions live in [AGENTS.md](AGENTS.md). The complete
 requirements remain in the GitHub backlog and scoped [area specifications](docs/spec/areas).
 This milestone does not represent completion of the full specification.
 
+## Project progress
+
+See the [colored progress dashboard](docs/PROGRESS_DASHBOARD.md) for the current evidence-backed original-requirement, reference-gap, PR-queue, active-work, and known-issue status. The dashboard deliberately separates merged GitHub state from local/uncommitted Codex work.
+
 ## Reference-project gap tracking
 
-MJobs also maintains an additive reference-project audit covering JobSpy, CareerWeaver, Resume Matcher, AutoApply, Personal JobPilot, ResuMorph, and AIHawk. See [docs/reference/REFERENCE_PROJECT_GAP_ANALYSIS.md](docs/reference/REFERENCE_PROJECT_GAP_ANALYSIS.md) and [docs/FEATURE_COMPLETENESS.md](docs/FEATURE_COMPLETENESS.md). The canonical additive backlog is `MJ-REF-001..042`; original `MJ-REQ` completion and reference-gap completion are reported separately.
+MJobs also maintains an additive reference-project audit covering JobSpy, CareerWeaver, Resume Matcher, AutoApply, Personal JobPilot, ResuMorph, and AIHawk. See [docs/reference/REFERENCE_PROJECT_GAP_ANALYSIS.md](docs/reference/REFERENCE_PROJECT_GAP_ANALYSIS.md) and [docs/FEATURE_COMPLETENESS.md](docs/FEATURE_COMPLETENESS.md). The canonical additive backlog is `MJ-REF-001..059`; original `MJ-REQ` completion and reference-gap completion are reported separately.
 
 ## Live feedback development
 
