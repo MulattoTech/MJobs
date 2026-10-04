@@ -105,6 +105,8 @@ _SIGNATURES = (
     )),
 )
 
+KNOWN_ATS_PROVIDERS = frozenset(signature.provider for signature in _SIGNATURES)
+
 _WEIGHTS = {
     "HOSTNAME": 0.94, "REDIRECT_HOSTNAME": 0.94, "SCRIPT_URL": 0.88,
     "FORM_ACTION": 0.88, "PUBLIC_API": 0.88, "URL_STRUCTURE": 0.60,

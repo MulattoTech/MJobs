@@ -612,7 +612,7 @@
       "status": "PARTIAL",
       "branch": "codex/mj-pr-023-company-ats-discovery",
       "draft_until_verified": true,
-      "notes": "Prior activity, quality and source-value slices merged. Current slice adds bounded public-feed declared-identity observations; requirement remains PARTIAL.",
+      "notes": "Merged activity, scoring, source-value and link-evidence slices reused. Current isolated slice exposes quality factors and reuses ATS knowledge as internal metadata; no submission authorization.",
       "validation_result": "PARTIAL",
       "worktree": "C:\\Tools\\Dev\\MJobs-pr-023",
       "base": "566bbf9cdebf882cc80bbb65b803ca3996fa9beb",
@@ -630,16 +630,12 @@
       "scope_complete": false,
       "merge_commit": "7241958efcae25925149a566020c50a8f61416e5",
       "active_slice": {
-        "name": "Sampled public-feed application-link observations",
-        "branch": "codex/application-link-evidence",
+        "name": "Useful activity, quality visibility and shared application ATS metadata",
+        "branch": "codex/pr023-completion-20261003",
+        "base_commit": "eff87832515e54a4a8eabc595b00e2957977ef93",
         "status": "PARTIAL",
-        "publication_state": "MERGED",
-        "evidence_path": "docs/evidence/2026-10-03-application-link-evidence.json",
-        "remaining": "Other ATS origins and full link usability acceptance; original source-discovery triggers and scheduling.",
-        "pr_number": 476,
-        "url": "https://github.com/MulattoTech/MJobs/pull/476",
-        "head": "f7217cac16b6d3cfc3b1b1f2d8e6f6dcf684de4f",
-        "merge_commit": "8240e471260ebeb60bde9932368651da410f3148"
+        "publication_state": "LOCAL_IMPLEMENTATION",
+        "remaining": "Validation and exact-head CI; broader provider/link usability and full activity acceptance remain unproven."
       },
       "slice_history": [
         {
@@ -665,6 +661,18 @@
           "url": "https://github.com/MulattoTech/MJobs/pull/474",
           "head": "ab39d182100335d54a1c06f51b3e1e53eb95e776",
           "merge_commit": "216f1a4696abc8dcb07fb57b5a67102091343ec5"
+        },
+        {
+          "name": "Sampled public-feed application-link observations",
+          "branch": "codex/application-link-evidence",
+          "status": "PARTIAL",
+          "publication_state": "MERGED",
+          "evidence_path": "docs/evidence/2026-10-03-application-link-evidence.json",
+          "remaining": "Other ATS origins and full link usability acceptance; original source-discovery triggers and scheduling.",
+          "pr_number": 476,
+          "url": "https://github.com/MulattoTech/MJobs/pull/476",
+          "head": "f7217cac16b6d3cfc3b1b1f2d8e6f6dcf684de4f",
+          "merge_commit": "8240e471260ebeb60bde9932368651da410f3148"
         }
       ]
     },
