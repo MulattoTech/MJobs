@@ -7,13 +7,15 @@ export type GeneratedDocument = {
   created_at:string|null;generation_model:string|null;
   facts_used:{fact_id:string;kind:string;text:string;source:string;confidence:number;verified:boolean;user_approved:boolean}[];
   missing_fact_ids:string[];
-  generation_context?:{mode:string;job_title:string;job_skills:string[];matched_skills:Record<string,string[]>;original_fact_ids:string[];ordered_fact_ids:string[]}|null;
+  generation_context?:{mode:string;job_title:string;job_skills:string[];matched_skills:Record<string,string[]>;original_fact_ids:string[];ordered_fact_ids:string[];selection_mode?:string;selected_fact_ids?:string[];omitted_fact_ids?:string[]}|null;
 };
 
 export function DocumentHistory({documents}:{documents:GeneratedDocument[]}) {
   return <><ResumeComparison key={documents.map(row=>row.id).join('|')} documents={documents}/>{documents.map(document=><section className="document" key={document.id} aria-label={`${document.kind} version ${document.version}`}>
     <strong>{document.kind} · v{document.version}</strong>
-    {document.generation_context?.mode==='APPROVED_SKILL_ORDER'&&<p>Tailored resume: skill order for {document.generation_context.job_title}. Wording and work history preserved.</p>}
+    {document.generation_context?.mode==='APPROVED_SKILL_ORDER'&&(document.generation_context.selection_mode==='EXPLICIT_APPROVED_FACTS'
+      ?<p>Tailored resume: selected facts for {document.generation_context.job_title}. Approved facts included: {document.generation_context.selected_fact_ids?.length}. Omitted from this resume: {document.generation_context.omitted_fact_ids?.length}. Approved wording preserved.</p>
+      :<p>Tailored resume: skill order for {document.generation_context.job_title}. Wording and work history preserved.</p>)}
     <p>{document.fact_ids.length} factual sources · profile snapshot {document.profile_version.slice(0,10)}</p>
     {(['pdf','docx','txt'] as const).filter(format=>document.files[format]).map(format=><a key={format} className="button-link" href={'/documents/'+encodeURIComponent(document.id)+'/'+format}>Download {format.toUpperCase()}</a>)}
     <details><summary>Generation details and facts</summary>

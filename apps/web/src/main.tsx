@@ -9,6 +9,7 @@ import { ResumeLibrary, type Resume, type Extraction } from './resume-library';
 import { SourceValueEvidence, type SourceValueResolution } from './source-value-evidence';
 import { DocumentHistory, type GeneratedDocument } from './document-history';
 import { DocumentLibrary } from './document-library';
+import { ResumeFactSelection,type ResumeFactChoice } from './resume-fact-selection';
 import './style.css';
 
 type Fact = { id: string; fact_id?: string; kind: string; text: string; source: string; confidence: number; verified: boolean; user_approved: boolean };
@@ -46,7 +47,8 @@ function App() {
   const [q,setQ] = useState(''); const [remote,setRemote]=useState(''); const [provider,setProvider]=useState(''); const [sort,setSort]=useState('score');
   const [detail,setDetail]=useState<Job|null>(null);
   const [tailorResume,setTailorResume]=useState(false);
-  useEffect(()=>setTailorResume(false),[detail?.id,profileId]);
+  const [resumeSelection,setResumeSelection]=useState<ResumeFactChoice|null>(null);
+  useEffect(()=>{setTailorResume(false);setResumeSelection(null);},[detail?.id,profileId]);
   const [selectedApp,setSelectedApp]=useState<Application|null>(null);
   const [docs,setDocs]=useState<Doc[]>([]);
   const [resumes,setResumes]=useState<Resume[]>([]);
@@ -135,7 +137,9 @@ function App() {
     setSelectedApp(application);setDocs(documents.documents);setMockConsent(false);setTab('Applications');
   }
   async function prepareJobRoute(job:Job, routeMode:'DEFAULT'|'THIS_ROUTE'='DEFAULT', routeId?:string) {
-    const op=await queue('/applications',{profile_id:profileId,job_id:job.id,request_id:crypto.randomUUID(),route_mode:routeMode,tailor_resume:tailorResume,...(routeId?{route_id:routeId}:{})});
+    if(tailorResume&&resumeSelection&&(!resumeSelection.version||!resumeSelection.ids.length||resumeSelection.profileId!==profileId||resumeSelection.jobId!==job.id))throw new Error('Reload approved facts and select at least one fact for this resume.');
+    const op=await queue('/applications',{profile_id:profileId,job_id:job.id,request_id:crypto.randomUUID(),route_mode:routeMode,tailor_resume:tailorResume,
+      ...(tailorResume&&resumeSelection?{tailor_fact_ids:resumeSelection.ids,expected_profile_version:resumeSelection.version}:{}),...(routeId?{route_id:routeId}:{})});
     if(op.application_id)await showApp(op.application_id);
   }
   async function demo() {
@@ -166,7 +170,8 @@ function App() {
         <div className="job-grid"><div className="job-list">{jobs.map(job=><button className={'job-card '+(detail?.id===job.id?'selected':'')} key={job.id} onClick={()=>void showJob(job.id).catch(e=>setError(String(e)))}><div className="card-top"><span className="eyebrow">{job.company}</span><span className="score">{job.match_score===null?'Unscored':job.match_score+'%'}</span></div><h2>{job.title}</h2><p>{job.location} · {job.remote_type}</p><div className="card-foot"><span className={'tag '+(job.attributes.fictional?'fictional':'')}>{job.attributes.fictional?'Fictional demo':job.provider+' · read only'}</span><span>{job.posting_count} posting{job.posting_count===1?'':'s'}</span></div></button>)}{jobs.length===0&&<section className="empty"><h2>No matching jobs yet.</h2><p>{operationMode==='FIXTURE'?'Clear your filters, load a fictional demo, or configure a public job board in Sources.':'Clear your filters or configure a public job board in Sources.'}</p><button onClick={()=>setTab('Sources')}>Manage sources</button></section>}</div>
         <section className="job-detail">{detail?<><span className="eyebrow">{detail.company}</span><h2>{detail.title}</h2><p>{detail.location} · {detail.remote_type}</p><div className="divider"/><h3>Why this match?</h3>{detail.match?<><strong className="big-score">{detail.match.score}%</strong><p>{detail.match.components.method==='description_skill_mentions'?'Coverage of detected skill mentions in the description.':'Coverage of structured required skills in the fictional posting.'}</p><p><strong>Matched:</strong> {detail.match.components.matched?.join(', ')||'None'}</p><p><strong>Missing:</strong> {detail.match.missing.join(', ')||'None detected'}</p>{detail.match.components.limitation&&<p className="muted">{detail.match.components.limitation}</p>}</>:<p>Select a profile and refresh matches.</p>}
           {detail.attributes.salary&&<p>Published range: {detail.attributes.salary.map(s=>`${s.currency} ${s.min}–${s.max} (period ${s.period.toLowerCase()})`).join('; ')}</p>}
-          <label className="consent"><input type="checkbox" checked={tailorResume} disabled={!!busy||!profileId} onChange={e=>setTailorResume(e.target.checked)}/> Order approved skills for this job</label><p className="muted">Optional skill ordering keeps all wording and work history unchanged. Review the generated document before use.</p>
+          <label className="consent"><input type="checkbox" checked={tailorResume} disabled={!!busy||!profileId} onChange={e=>{setTailorResume(e.target.checked);setResumeSelection(null);}}/> Order approved skills for this job</label><p className="muted">Skills are ordered within the chosen resume facts. Approved wording is preserved. Review the generated document before use.</p>
+          {tailorResume&&<ResumeFactSelection key={profileId+':'+detail.id} profileId={profileId} jobId={detail.id} disabled={!!busy} onChange={setResumeSelection}/>}
           <SourceValueEvidence resolution={detail.attributes.source_resolution} onPreparePreserved={!busy&&!!profileId&&detail.attributes.source_resolution?.route_review_required&&detail.attributes.source_resolution.preserved_route_id?()=>void action('Preparing with preserved route',()=>prepareJobRoute(detail,'THIS_ROUTE',detail.attributes.source_resolution?.preserved_route_id||undefined)):undefined}/>
           <button className="primary" disabled={!!busy||!profileId||!!detail.attributes.source_resolution?.route_review_required} onClick={()=>void action('Preparing factual documents',()=>prepareJobRoute(detail))}>Prepare documents</button>
           {!detail.attributes.fictional&&detail.application_url&&<a className="button-link" href={detail.application_url} target="_blank" rel="noreferrer">Open employer application ↗</a>}

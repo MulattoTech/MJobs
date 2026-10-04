@@ -18,7 +18,7 @@ from services.documents import tailor
 from services.documents.errors import PreparationError
 from services.documents.render import render_pdf
 from services.documents.validation import VALIDATOR, validate_assertions, validate_formats
-from services.documents.templates import BASE_TEMPLATE, BASE_MODEL, resume_layout
+from services.documents.templates import BASE_TEMPLATE, BASE_MODEL, SELECTION_TEMPLATE, SELECTION_MODEL, resume_layout
 
 
 def compose_paragraphs(profile, job, resume_rows, texts):
@@ -37,7 +37,7 @@ def uncommitted_files():
         raise
 
 
-def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=None, route_mode="DEFAULT", route_id=None, tailor_resume=False):
+def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=None, route_mode="DEFAULT", route_id=None, tailor_resume=False, tailor_fact_ids=None):
     if type(tailor_resume) is not bool:
         raise ValueError('tailor_resume must be a boolean')
     check = check or (lambda: None)
@@ -50,6 +50,10 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
         if profile_version and profile_version != current["version"]:
             raise PreparationError("DOCUMENT_PROFILE_CHANGED", "Profile changed; prepare documents using its current version")
         profile = store.profile(profile_id, profile_version)
+        eligible = tailor.eligible_rows(profile)
+        resume_rows = tailor.select_resume_rows(eligible, tailor_resume, tailor_fact_ids)
+        selection_ids = [row['fact_id'] for row in resume_rows] if tailor_fact_ids is not None else None
+        selection_hash = tailor.selection_fingerprint(selection_ids) if selection_ids is not None else None
         check()
         job = dict(connection.execute(select(m.jobs).where(m.jobs.c.id == job_id).with_for_update()).mappings().one())
         try:
@@ -63,15 +67,15 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
         if prior:
             prior_resume=connection.execute(select(m.documents).where(m.documents.c.application_id==prior['id'],
                 m.documents.c.version==prior['document_version'],m.documents.c.kind=='resume')).mappings().one_or_none()
-            expected_template=tailor.TEMPLATE if tailor_resume else BASE_TEMPLATE
+            expected_template=SELECTION_TEMPLATE if selection_ids is not None else (tailor.TEMPLATE if tailor_resume else BASE_TEMPLATE)
             same_mode=prior_resume and prior_resume['template']==expected_template
             same_target=not tailor_resume or (prior_resume and (prior_resume['generation_context'] or {}).get('target_fingerprint')==tailor.target_fingerprint(job))
-            if prior["profile_version"] == profile["version"] and same_mode and same_target and prior['state'] != 'REVIEW_REQUIRED':
+            same_selection=selection_ids is None or (prior_resume and (prior_resume['generation_context'] or {}).get('selection_fingerprint')==selection_hash)
+            if prior["profile_version"] == profile["version"] and same_mode and same_target and same_selection and prior['state'] != 'REVIEW_REQUIRED':
                 persist_route_choices(connection, prior["id"], route_plan)
                 return prior["id"]
             if prior["state"] not in ("PREPARED", "DRY_RUN_COMPLETE", "REVIEW_REQUIRED"):
                 raise PreparationError("DOCUMENT_HISTORY_LOCKED", "Historical or active application cannot be regenerated")
-        eligible = [row for row in profile["facts"] if row["verified"] and row["user_approved"] and row["confidence"] >= 80 and row["source"].strip()]
         if not eligible:
             raise PreparationError("DOCUMENT_NO_APPROVED_FACTS", "Approve and verify at least one sourced career fact before generating documents")
         selected = select_verified_facts([Fact(id=row["fact_id"], **{key: row[key] for key in ("text", "source", "verified", "user_approved", "confidence")})
@@ -83,7 +87,11 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
         root.mkdir(parents=True, exist_ok=True)
         fact_ids = [fact.id for fact in selected]
         texts = [fact.text for fact in selected]
-        ordered_rows,context=tailor.order_skills(eligible,job) if tailor_resume else (eligible,None)
+        ordered_rows,context=tailor.order_skills(resume_rows,job) if tailor_resume else (resume_rows,None)
+        if selection_ids is not None:
+            context.update(selection_mode='EXPLICIT_APPROVED_FACTS',selected_fact_ids=selection_ids,
+                available_fact_ids=fact_ids,omitted_fact_ids=[value for value in fact_ids if value not in set(selection_ids)],
+                selection_fingerprint=selection_hash)
         resume_ids=[row['fact_id'] for row in ordered_rows]
         kinds = compose_paragraphs(profile, job, ordered_rows, texts)
         if set(kinds) != {'resume', 'cover-letter'}:
@@ -92,7 +100,7 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
         generated_at = now()
         for kind, paragraphs in kinds.items():
             check()
-            template = (tailor.TEMPLATE if tailor_resume else BASE_TEMPLATE) if kind=='resume' else 'verified-facts-v1'
+            template = (SELECTION_TEMPLATE if selection_ids is not None else (tailor.TEMPLATE if tailor_resume else BASE_TEMPLATE)) if kind=='resume' else 'verified-facts-v1'
             validate_assertions(kind, paragraphs, profile, resume_ids if kind=='resume' else fact_ids, job['title'], template)
             headings = resume_layout(profile, ordered_rows, template)[1] if kind=='resume' else set()
             document = Document()
@@ -116,7 +124,7 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
                 "files": {path.suffix[1:]: relative + '/' + path.name for path in (docx_path, pdf_path, txt_path)},
                 "fact_ids": resume_ids if kind=='resume' else fact_ids, "sha256": {path.suffix[1:]: hashlib.sha256(path.read_bytes()).hexdigest() for path in (docx_path, pdf_path, txt_path)},
                 "template": template, "created_at": generated_at,
-                "generation_model": (tailor.MODEL if tailor_resume else BASE_MODEL) if kind=='resume' else "deterministic-fact-copy-v1",
+                "generation_model": (SELECTION_MODEL if selection_ids is not None else (tailor.MODEL if tailor_resume else BASE_MODEL)) if kind=='resume' else "deterministic-fact-copy-v1",
                 "generation_context": context if kind=='resume' else None})
         check()
         upsert(connection, m.applications, {"id": application_id, "job_id": job_id, "route_id": route["id"], "profile_id": profile_id,

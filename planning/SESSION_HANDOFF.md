@@ -1,19 +1,22 @@
 # Current delivery handoff - 2026-10-04
 
-Root sole writer, branch `codex/ats-resume-headings-20261004`, baseline `5a2f77c2a622433c9bf3dbcad22294a3de99c595`.
-PR497 merged at exact tested tree; candidate fa13af727743859d9923c894647554f03f9d34f5.
-Push37232934791/job111526273201 and PR37232948212/job111526311442 attempt1
-all16 runtime artifacts PASS. Receipt: `docs/evidence/2026-10-04-uploaded-comparison-exact-head-ci.json`. MJ099/issue100 closed.
-MJ-PR024/025 accepted; MJ096/098/099 accepted; MJ095 broader tailoring PARTIAL.
+Root sole writer, branch `codex/approved-resume-selection-20261004`, baseline `b0c650b98d8c357202b4bdfc7fd2d1103ff3ea28`.
+PR498 merged at exact tested tree; candidate61ca75cccd1a675f7bb8538a5c8b25253b60cd71.
+Push37233961955/job111529281527 and PR37233976944/job111529323043 attempt1,
+all16 artifacts and ATS browser/Linux assertions PASS. Receipt: `docs/evidence/2026-10-04-ats-headings-exact-head-ci.json`.
+MJ097/issue98 closed. MJ-PR024/025 and MJ096/097/098/099 accepted.
 
-Active MJ097/issue98: versioned conventional-heading templates. Preserve exact
-approved wording/order, legacy bytes and dispatch; wire generation, validation,
-comparison, library and UI together. Private design: `.git/afk-dev/next-ats-headings-plan.txt`.
-No migration intended. Local implementation/review complete:522 Python regressions,13 final compatibility
-checks,43 web tests/build,14 PostgreSQL,8 real Linux tests and PDF inspection PASS.
-Evidence: docs/evidence/2026-10-04-ats-resume-headings.json. Next: publish and
-verify final-head push+PR workflows, all8 artifacts each and ATS browser/runtime
-assertions; merge safely, record receipt and close issue98 only after gates.
+Active MJ095/issue96 explicit approved resume fact selection. Private design:
+`.git/afk-dev/next-approved-selection-plan.txt`. Preserve global profile, cover-letter
+facts, legacy history, submission gates and exact template contracts. Bind UI
+selection to observed profile version; strict API and locked worker validation.
+None means all eligible; explicit empty/invalid selections must fail closed.
+No new migration intended. Broader rephrasing remains PARTIAL.
 
-No deployment/external submission. Independent Codespaces checkout and user services
-preserved. No current PR or owned test containers. Existing planning is authoritative.
+Local implementation/review complete:526 Python tests zero skips,44 web/build,
+18 PostgreSQL,10 actual Linux tests PASS. Empty UI selection creates no operation.
+Evidence: docs/evidence/2026-10-04-approved-resume-selection.json. Next: publish,
+verify final-head push+PR workflows/all8 artifacts each plus selection UI/runtime
+assertions, merge safely and record partial MJ095 acceptance; do not close issue96.
+No deployment or external submission. No owned test containers. Independent
+Codespaces checkout and user services preserved. No current PR.

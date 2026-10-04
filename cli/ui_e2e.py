@@ -149,6 +149,32 @@ def run(base_url, evidence_path):
             assert request('/profiles/'+profile_id)==profile_before_comparison
             actions.append({'action':'Uploaded original comparison preserves revision/hash and profile facts, displays changed summary and omitted content, and downloads exact source bytes','result':'PASS'})
 
+            select_data_job()
+            page.get_by_label('Order approved skills for this job',exact=True).check()
+            page.get_by_label('Choose resume facts',exact=True).check()
+            expect(page.get_by_label('Include SQL',exact=True)).to_be_checked()
+            page.get_by_label('Include SQL',exact=True).uncheck()
+            prepare()
+            selected_documents=request('/applications/'+identifier+'/documents')['documents']
+            selected_resume=next(row for row in selected_documents if row['version']==4 and row['kind']=='resume')
+            selected_cover=next(row for row in selected_documents if row['version']==4 and row['kind']=='cover-letter')
+            assert selected_resume['generation_model']=='deterministic-fact-selection-v1'
+            assert selected_resume['fact_ids']==['python'] and set(selected_cover['fact_ids'])=={'python','sql'}
+            assert selected_resume['generation_context']['omitted_fact_ids']==['sql']
+            selected_history=page.get_by_role('region',name='resume version 4',exact=True)
+            expect(selected_history.get_by_text('Tailored resume: selected facts',exact=False)).to_be_visible()
+            with page.expect_download() as selected_download:
+                selected_history.get_by_role('link',name='Download TXT',exact=True).click()
+            selected_text=Path(selected_download.value.path()).read_text(encoding='utf-8')
+            assert 'Python' in selected_text and 'SQL' not in selected_text
+            assert 'SQL' in context.request.get(base_url+'/documents/'+selected_cover['id']+'/txt').text()
+            comparison=page.get_by_role('region',name='Compare base and tailored resumes',exact=True)
+            comparison.get_by_label('Base resume',exact=True).select_option(label='v2')
+            comparison.get_by_role('button',name='Compare selected resumes',exact=True).click()
+            expect(comparison.get_by_role('region',name='Content omitted',exact=True)).to_contain_text('skill: SQL')
+            assert request('/profiles/'+profile_id)==profile_before_comparison
+            actions.append({'action':'Explicit approved resume selection reaches the real document worker, omits SQL only from the resume, preserves profile and cover letter, and shows immutable omissions','result':'PASS'})
+
             page.get_by_role("button", name="Run dry-run", exact=True).click()
             expect(page.locator(".job-detail > .tag")).to_have_text("DRY_RUN_COMPLETE")
             dry = request("/applications/" + identifier)

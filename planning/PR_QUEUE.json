@@ -756,9 +756,9 @@
         "MJ-PR-024"
       ],
       "status": "PARTIAL",
-      "branch": "codex/approved-skill-order-20261004",
+      "branch": "codex/approved-resume-selection-20261004",
       "draft_until_verified": true,
-      "notes": "MJ092/093/094 accepted. PR493 skill-only ordering merged; broader MJ095 tailoring remains PARTIAL. No retired branch revival.",
+      "notes": "MJ092/093/094 accepted. MJ095 skill ordering accepted; active explicit approved resume selection. Broader rephrasing remains PARTIAL. Historical branch pointers are not authorization.",
       "feedback_slice": {
         "branch": "codex/resume-driven-profile",
         "result": "PARTIAL",
@@ -792,11 +792,12 @@
       "status": "PARTIAL",
       "branch": "codex/ats-resume-headings-20261004",
       "draft_until_verified": true,
-      "notes": "MJ096/098/099 accepted. Active MJ097 ATS headings. MJ095 broader tailoring remains PARTIAL.",
+      "notes": "Own requirements MJ096/097/098/099 accepted through PR494/495/497/498. Queue remains PARTIAL because prerequisite MJ-PR026 broader MJ095 tailoring is incomplete; current selection work belongs to MJ-PR026.",
       "integrated_incremental_prs": [
         494,
         495,
-        497
+        497,
+        498
       ]
     },
     {

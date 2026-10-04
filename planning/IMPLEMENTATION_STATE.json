@@ -7,12 +7,12 @@
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Sole writer codex/ats-resume-headings-20261004 at 5a2f77c2a622433c9bf3dbcad22294a3de99c595",
-    "current_verified_github_state": "PR497 merged, all16 exact-head runtime artifacts PASS; issue100 closed.",
-    "current_verified_at": "2026-10-04T20:47:50.621120+00:00"
+    "current_verified_local_state": "Sole writer codex/approved-resume-selection-20261004 at b0c650b98d8c357202b4bdfc7fd2d1103ff3ea28",
+    "current_verified_github_state": "PR498 merged, all16 exact-head runtime artifacts and ATS assertions PASS; issue98 closed.",
+    "current_verified_at": "2026-10-04T21:03:37.708586+00:00"
   },
-  "current_milestone": "MJ-PR-027-ATS-HEADINGS",
-  "current_objective": "Versioned ATS-friendly resume headings preserving approved text and legacy history.",
+  "current_milestone": "MJ-PR-026-APPROVED-RESUME-SELECTION",
+  "current_objective": "Explicit approved fact selection for target resume, preserving global profile and cover letter.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -536,6 +536,14 @@
       "head": "fa13af727743859d9923c894647554f03f9d34f5",
       "merge_commit": "5a2f77c2a622433c9bf3dbcad22294a3de99c595",
       "ci_evidence": "docs/evidence/2026-10-04-uploaded-comparison-exact-head-ci.json"
+    },
+    {
+      "number": 498,
+      "url": "https://github.com/MulattoTech/MJobs/pull/498",
+      "status": "MERGED",
+      "head": "61ca75cccd1a675f7bb8538a5c8b25253b60cd71",
+      "merge_commit": "b0c650b98d8c357202b4bdfc7fd2d1103ff3ea28",
+      "ci_evidence": "docs/evidence/2026-10-04-ats-headings-exact-head-ci.json"
     }
   ],
   "tests_passed": [
@@ -678,14 +686,14 @@
     "MJ-PR-016 local Chromium first run used Docker DNS host api, which is not a secure browser origin for crypto.randomUUID; loopback URL rerun passed all five connected UI actions."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-04T20:55:02.669890+00:00",
+    "timestamp": "2026-10-04T21:15:08.900102+00:00",
     "result": "PASS",
-    "scope": "Local ATS template checks; exact-head hosted pending",
-    "evidence_path": "docs/evidence/2026-10-04-ats-resume-headings.json"
+    "scope": "Local approved selection checks; exact-head hosted pending",
+    "evidence_path": "docs/evidence/2026-10-04-approved-resume-selection.json"
   },
   "ci_verification": {
     "result": "NOT_RUN",
-    "scope": "Current ATS template candidate not yet published"
+    "scope": "Approved resume selection not yet published"
   },
   "mock_spine_ci": {
     "result": "PASS",
@@ -743,7 +751,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Publish ATS heading slice, verify final-head push/PR and all runtime artifacts, merge and close issue98 only with complete receipts; then advance remaining MJ095.",
+  "recommended_resume_step": "Publish selection slice and verify exact-head workflows/artifacts; merge, record acceptance segment and keep issue96 open for broader rephrasing; continue useful dependency-ready work.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -783,8 +791,8 @@
   "last_implementation_commit": "b4fa3a11762b0c26bfbb09e105f3c47681763e20",
   "publication": {
     "result": "NOT_RUN",
-    "branch": "codex/ats-resume-headings-20261004",
-    "base": "5a2f77c2a622433c9bf3dbcad22294a3de99c595"
+    "branch": "codex/approved-resume-selection-20261004",
+    "base": "b0c650b98d8c357202b4bdfc7fd2d1103ff3ea28"
   },
   "optional_afk_journal": {
     "result": "PASS",
@@ -2936,6 +2944,34 @@
         "8 actual Linux runtime tests and PDF visual inspection",
         "Independent defect review PASS"
       ],
+      "tests_remaining": [],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [],
+      "milestone_id": "ats-headings-20261004",
+      "timestamp": "2026-10-04T20:47:50.621120+00:00",
+      "current_phase": "MERGED",
+      "last_safe_checkpoint": {
+        "git_commit": "5a2f77c2a622433c9bf3dbcad22294a3de99c595",
+        "evidence_path": "docs/evidence/2026-10-04-uploaded-comparison-exact-head-ci.json"
+      }
+    },
+    {
+      "completed_steps": [
+        "Version-bound resume selection implemented through API, durable worker, UI and immutable document context",
+        "Selection-specific template/model, idempotency and comparison integrated",
+        "Independent read-only review accepted"
+      ],
+      "files_added": [],
+      "files_modified": [],
+      "tests_completed": [
+        "526 full Python tests zero skips",
+        "44 web tests/build",
+        "18 PostgreSQL tests",
+        "10 actual Linux image tests",
+        "Empty UI selection creates no worker operation"
+      ],
       "tests_remaining": [
         "Exact final-head hosted workflows and runtime artifacts"
       ],
@@ -2943,19 +2979,19 @@
       "live_integrations_tested": [],
       "known_errors": [],
       "known_limitations": [],
-      "milestone_id": "ats-headings-20261004",
-      "timestamp": "2026-10-04T20:47:50.621120+00:00",
+      "milestone_id": "approved-resume-selection-20261004",
+      "timestamp": "2026-10-04T21:03:37.708586+00:00",
       "current_phase": "LOCAL_VALIDATED",
       "last_safe_checkpoint": {
-        "git_commit": "5a2f77c2a622433c9bf3dbcad22294a3de99c595",
-        "evidence_path": "docs/evidence/2026-10-04-uploaded-comparison-exact-head-ci.json"
+        "git_commit": "b0c650b98d8c357202b4bdfc7fd2d1103ff3ea28",
+        "evidence_path": "docs/evidence/2026-10-04-ats-headings-exact-head-ci.json"
       }
     }
   ],
   "current_phase": "LOCAL_VALIDATED",
   "last_safe_checkpoint": {
-    "git_commit": "5a2f77c2a622433c9bf3dbcad22294a3de99c595",
-    "evidence_path": "docs/evidence/2026-10-04-uploaded-comparison-exact-head-ci.json"
+    "git_commit": "b0c650b98d8c357202b4bdfc7fd2d1103ff3ea28",
+    "evidence_path": "docs/evidence/2026-10-04-ats-headings-exact-head-ci.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
@@ -3039,9 +3075,9 @@
     "ownership": "Root sole writer; independently owned Codespaces worktree preserved; no open PR at slice start."
   },
   "active_development_issue": {
-    "number": 98,
+    "number": 96,
     "status": "PARTIAL",
-    "branch": "codex/ats-resume-headings-20261004"
+    "branch": "codex/approved-resume-selection-20261004"
   },
   "historical_control_snapshots": [
     {
@@ -3445,7 +3481,7 @@
   },
   "session_control": {
     "owner": "01a107cd-4e66-77d3-b046-fc2c01f4ffb1",
-    "branch": "codex/ats-resume-headings-20261004",
+    "branch": "codex/approved-resume-selection-20261004",
     "write_lanes": 1,
     "requested_action": "DELIVER_LIFECYCLE_PROFILE_IMPORT",
     "note": "Current user authorizes implementation, tests, review, push, exact-head-verified merge and continuation. No production deployment or external submissions."

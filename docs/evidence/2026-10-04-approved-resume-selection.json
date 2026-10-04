@@ -1,0 +1,88 @@
+{
+  "timestamp": "2026-10-04T21:15:08.900102+00:00",
+  "result": "PARTIAL",
+  "branch": "codex/approved-resume-selection-20261004",
+  "base": "b0c650b98d8c357202b4bdfc7fd2d1103ff3ea28",
+  "requirements": [
+    "MJ-REQ-095"
+  ],
+  "behavior": [
+    "Explicit approved resume-fact selection preserves profile and all-fact cover letter/application facts",
+    "Fresh saved-profile selection UI and observed-version API binding; worker rechecks captured version under profile lock",
+    "Reject empty/duplicate/malformed/foreign/unapproved/unverified/low-confidence/unsourced IDs before files; no silent all-facts fallback",
+    "Canonical profile-order selection, immutable selected/available/omitted IDs and fingerprint; distinct template/model contract and idempotent revisioning",
+    "Exact historical comparison displays omissions and fails closed on modified selection context"
+  ],
+  "checks": [
+    {
+      "timestamp": "2026-10-04T21:15:08.900102+00:00",
+      "command": "python -m unittest discover -s tests -p test_*.py -v",
+      "target": "Final full Python regression including Chromium",
+      "result": "PASS",
+      "tests": 526,
+      "evidence_path": ".git/afk-dev/resume-selection-full-final.log"
+    },
+    {
+      "timestamp": "2026-10-04T21:15:08.900102+00:00",
+      "command": "python -m unittest tests.browser.test_skill_order tests.integration.test_resume_selection -v",
+      "target": "Explicit selection, empty-selection browser gate, stale and modified history",
+      "result": "PASS",
+      "tests": 5,
+      "evidence_path": ".git/afk-dev/resume-selection-browser-fixed.log"
+    },
+    {
+      "timestamp": "2026-10-04T21:15:08.900102+00:00",
+      "command": "npm test --prefix apps/web; npm run build --prefix apps/web",
+      "target": "Web tests and production build",
+      "result": "PASS",
+      "tests": 44,
+      "evidence_path": ".git/afk-dev/resume-selection-web.log"
+    },
+    {
+      "timestamp": "2026-10-04T21:15:08.900102+00:00",
+      "command": "python .git/afk-dev/resume-selection-pg.py",
+      "target": "PostgreSQL 17 actual Alembic head: selection/ATS/validation/comparison",
+      "result": "PASS",
+      "tests": 18,
+      "evidence_path": ".git/afk-dev/resume-selection-pg.log"
+    },
+    {
+      "timestamp": "2026-10-04T21:15:08.900102+00:00",
+      "command": "docker run --network none --read-only --tmpfs /tmp:rw,exec,size=256m --memory 1g --cpus 2 mjobs-resume-selection:20261004 python -m unittest tests.integration.test_resume_selection tests.integration.test_document_validation tests.integration.test_ats_templates -v",
+      "target": "Actual final Linux app image selection/Unicode/ATS/validation",
+      "result": "PASS",
+      "tests": 10,
+      "evidence_path": ".git/afk-dev/resume-selection-runtime-final.log"
+    }
+  ],
+  "runtime_image": "sha256:ad4e462dbe259fbba9a383966557c846b0d490b9dea67fb45fcc98de66e0ae7d",
+  "initial_failure": {
+    "result": "FAIL",
+    "evidence_path": ".git/afk-dev/resume-selection-red.log",
+    "note": "Subset argument and version-bound API absent"
+  },
+  "test_harness_correction": {
+    "result": "PASS",
+    "failure_evidence": ".git/afk-dev/resume-selection-browser-final.log",
+    "fixed_evidence": ".git/afk-dev/resume-selection-browser-fixed.log",
+    "note": "Empty-selection oracle now queries m.operations.name (worker_operations); prior full run interrupted after known harness failure, complete final run retained separately"
+  },
+  "review": {
+    "result": "PASS",
+    "reviewer": "read-only chore lifecycle_audit",
+    "scope": "Backend/API/worker/UI/history and final hosted oracle delta",
+    "final_disposition": "No actionable findings"
+  },
+  "remaining_checks": [
+    "Exact final-head push and pull-request Verification, all8 runtime artifacts each",
+    "Hosted real-worker explicit-selection UI assertion and app-image selection tests"
+  ],
+  "remaining_requirement_gaps": [
+    "Factual rephrasing and broader automatic summary/keyword rewriting are not implemented; issue96 remains open"
+  ],
+  "limitations": [
+    "Selection is an explicit user choice from already approved facts; no new qualifications inferred",
+    "Omissions apply to resume only; profile and cover letter remain unchanged",
+    "No migration, production deployment or external submission"
+  ]
+}

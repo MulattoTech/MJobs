@@ -5,6 +5,29 @@ import re
 from services.discovery.skill_taxonomy import canonical_skill_id, extract_skill_mentions
 
 from services.documents.templates import TAILORED_TEMPLATE as TEMPLATE, TAILORED_MODEL as MODEL
+from services.documents.errors import PreparationError
+
+
+def eligible_rows(profile):
+    return [row for row in profile['facts'] if row['verified'] and row['user_approved'] and
+            row['confidence'] >= 80 and row['source'].strip()]
+
+
+def select_resume_rows(eligible, tailor_resume, requested):
+    if requested is None:
+        return eligible
+    if (not tailor_resume or type(requested) is not list or not 1 <= len(requested) <= 1000 or
+        any(type(value) is not str or not value.strip() or len(value)>128 for value in requested) or
+        len(set(requested)) != len(requested)):
+        raise PreparationError('DOCUMENT_SELECTION_INVALID', 'Choose a nonempty unique set of approved resume facts with tailoring enabled')
+    chosen=set(requested)
+    if not chosen.issubset({row['fact_id'] for row in eligible}):
+        raise PreparationError('DOCUMENT_SELECTION_INVALID', 'A selected resume fact is missing or no longer approved for use')
+    return [row for row in eligible if row['fact_id'] in chosen]
+
+
+def selection_fingerprint(identifiers):
+    return hashlib.sha256(json.dumps(identifiers,ensure_ascii=False,separators=(',',':')).encode('utf-8')).hexdigest()
 
 
 def target_fingerprint(job):

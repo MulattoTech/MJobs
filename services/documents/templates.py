@@ -5,11 +5,14 @@ BASE_TEMPLATE = 'verified-headings-v1'
 BASE_MODEL = 'deterministic-fact-copy-v2'
 TAILORED_TEMPLATE = 'approved-skill-order-headings-v1'
 TAILORED_MODEL = 'deterministic-skill-order-v2'
+SELECTION_TEMPLATE = 'approved-fact-selection-headings-v1'
+SELECTION_MODEL = 'deterministic-fact-selection-v1'
 CONTRACTS = {
     'verified-facts-v1': ('deterministic-fact-copy-v1', 'BASE', False),
     'approved-skill-order-v1': ('deterministic-skill-order-v1', 'TAILORED', False),
     BASE_TEMPLATE: (BASE_MODEL, 'BASE', True),
     TAILORED_TEMPLATE: (TAILORED_MODEL, 'TAILORED', True),
+    SELECTION_TEMPLATE: (SELECTION_MODEL, 'TAILORED', True),
 }
 HEADINGS = {'summary':'Summary', 'experience':'Experience', 'responsibility':'Experience',
     'skill':'Skills', 'technology_experience':'Technology Experience', 'education':'Education',
