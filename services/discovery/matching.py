@@ -4,26 +4,96 @@ from sqlalchemy import select
 from packages.persistence import models as m
 from packages.persistence.store import identity, upsert
 from services.company_discovery.requests import record_discovery_requests
+from services.discovery.skill_taxonomy import canonical_skill_id, extract_skills, skill_label
+
+
+_STRENGTH_WEIGHT = {"REQUIRED": 1.0, "PREFERRED": 0.5, "NICE_TO_HAVE": 0.25, "UNKNOWN": 0.25}
+
+
+def _canonical_set(values):
+    result = set()
+    rows = values if isinstance(values, (list, tuple, set)) else [values] if values else []
+    for value in rows:
+        identifier = canonical_skill_id(value)
+        label = skill_label(identifier) if identifier else None
+        result.add((label or str(value)).strip().casefold())
+    return result
+
+
+def build_explanation(job, profile):
+    """Score evidence coverage without turning unclassified mentions into requirements."""
+    attributes = job.get("attributes") or {}
+    evidence_type = attributes.get("skill_evidence")
+    required = _canonical_set(attributes.get("required_skills"))
+    preferred = _canonical_set(attributes.get("preferred_skills"))
+    nice_to_have = _canonical_set(attributes.get("nice_to_have_skills"))
+    all_are_required = evidence_type == "structured_required_skills"
+    approved = set()
+    for row in profile.get("facts", []):
+        if (row["kind"] != "skill" or not row["verified"] or not row["user_approved"]
+                or row["confidence"] < 80 or not (row.get("source") or "").strip()):
+            continue
+        approved.add(row["text"].strip().casefold())
+        approved.update(skill.casefold() for skill in extract_skills(row["text"])["labels"])
+    rows = []
+    weighted_total = 0.0
+    weighted_covered = 0.0
+    for skill in job.get("skills", []):
+        folded = skill.strip().casefold()
+        strength = "REQUIRED" if all_are_required else "UNKNOWN"
+        if folded in required:
+            strength = "REQUIRED"
+        elif folded in preferred:
+            strength = "PREFERRED"
+        elif folded in nice_to_have:
+            strength = "NICE_TO_HAVE"
+        weight = _STRENGTH_WEIGHT[strength]
+        has_evidence = folded in approved
+        weighted_total += weight
+        if has_evidence:
+            weighted_covered += weight
+        rows.append({
+            "skill": skill,
+            "strength": strength,
+            "weight": weight,
+            "profile_evidence": "APPROVED" if has_evidence else "NO_APPROVED_EVIDENCE",
+            "explanation": ("Supported by an approved career fact." if has_evidence else
+                            "No approved career fact supports this skill.") + (
+                " The posting does not state whether this mention is required or preferred."
+                if strength == "UNKNOWN" else ""),
+        })
+    matched = sorted(row["skill"] for row in rows if row["profile_evidence"] == "APPROVED")
+    missing = sorted(row["skill"] for row in rows if row["profile_evidence"] != "APPROVED")
+    score = round(100 * weighted_covered / weighted_total, 2) if weighted_total else 0
+    structured_full = all_are_required and not preferred and not nice_to_have
+    method = ("structured_required_skills" if structured_full else
+              "description_skill_mentions" if evidence_type in {None, "description_mentions"} else
+              "weighted_skill_evidence_coverage")
+    return {
+        "score": score,
+        "missing": missing,
+        "components": {
+            "method": method,
+            "matched": matched,
+            "detected": list(job.get("skills", [])),
+            "requirements": rows,
+            "limitation": "This score measures evidence coverage, not qualification. Description mentions remain UNKNOWN unless the source explicitly classifies them; no approved profile evidence does not prove the person lacks a skill.",
+        },
+    }
 
 
 def recalculate(store, profile_id, profile_version=None, check=None):
     check = check or (lambda: None)
     profile = store.profile(profile_id, profile_version)
-    usable = {row["text"].strip().casefold() for row in profile["facts"] if row["kind"] == "skill"
-              and row["verified"] and row["user_approved"] and row["confidence"] >= 80 and row["source"].strip()}
     with store.engine.begin() as connection:
         if connection.dialect.name == 'sqlite':
             connection.exec_driver_sql('BEGIN IMMEDIATE')
         job_ids = []
         for job in connection.execute(select(m.jobs).order_by(m.jobs.c.id)).mappings():
             check()
-            detected = {skill.casefold() for skill in job["skills"]}
-            score = round(100 * len(detected & usable) / len(detected), 2) if detected else 0
-            method = "structured_required_skills" if job["attributes"].get("fictional") else "description_skill_mentions"
+            explanation = build_explanation(job, profile)
             upsert(connection, m.matches, {"id": identity(job["id"], profile_id, profile["version"]), "job_id": job["id"],
-                "profile_id": profile_id, "profile_version": profile["version"], "score": score, "missing": sorted(detected - usable),
-                "components": {"method": method, "matched": sorted(detected & usable), "detected": sorted(detected),
-                    "limitation": "Description mentions are heuristic evidence, not verified mandatory requirements or a full qualification assessment." if method == "description_skill_mentions" else None}}, replace=True)
+                "profile_id": profile_id, "profile_version": profile["version"], **explanation}, replace=True)
             job_ids.append(job['id'])
         record_discovery_requests(connection, job_ids, profile)
         store._audit(connection, profile_id, "MATCHES_RECALCULATED", {"profile_version": profile["version"]})

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-04T21:03:37.708586+00:00",
+  "timestamp": "2026-10-05T06:01:23+00:00",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -962,30 +962,36 @@
       "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-09-29-mock-spine.md",
-        "docs/evidence/2026-09-30-user-testing.md"
+        "docs/evidence/2026-09-30-user-testing.md",
+        "docs/evidence/2026-10-05-explainable-matching.json"
       ],
-      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open"
+      "note": "Deterministic approved-fact skill evidence and persisted explanation verified in a bounded local browser/integration slice; remaining dimensions and complete requirement acceptance are open."
     },
     {
       "requirement_id": "MJ-REQ-113",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-05-explainable-matching.json"
+      ],
+      "note": "Deterministic approved-fact skill evidence and persisted explanation verified in a bounded local browser/integration slice; remaining dimensions and complete requirement acceptance are open."
     },
     {
       "requirement_id": "MJ-REQ-114",
       "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-09-29-mock-spine.md",
-        "docs/evidence/2026-09-30-user-testing.md"
+        "docs/evidence/2026-09-30-user-testing.md",
+        "docs/evidence/2026-10-05-explainable-matching.json"
       ],
-      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open"
+      "note": "Deterministic approved-fact skill evidence and persisted explanation verified in a bounded local browser/integration slice; remaining dimensions and complete requirement acceptance are open."
     },
     {
       "requirement_id": "MJ-REQ-115",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-05-explainable-matching.json"
+      ],
+      "note": "Deterministic approved-fact skill evidence and persisted explanation verified in a bounded local browser/integration slice; remaining dimensions and complete requirement acceptance are open."
     },
     {
       "requirement_id": "MJ-REQ-116",

@@ -70,6 +70,18 @@ class ManualJobCaptureBrowserTests(unittest.TestCase):
                             route.continue_()
 
                     context.route("**/*", local_only)
+                    def execute_rescore(route):
+                        response = route.fetch()
+                        operation_id = response.json()["operation_id"]
+                        with patch.dict("os.environ", MJOBS_DATABASE_URL=store.url,
+                                        MJOBS_OPERATION_MODE="FIXTURE",
+                                        MJOBS_OUTPUT_DIR=str(root)):
+                            from workers.tasks import execute_operation
+                            result = execute_operation(operation_id)
+                        self.assertEqual(result["status"], "COMPLETED", result)
+                        route.fulfill(response=response)
+
+                    context.route("**/matches", execute_rescore)
                     page = context.new_page()
                     page.set_default_timeout(8000)
                     page.goto(origin, wait_until="domcontentloaded")
@@ -99,7 +111,7 @@ class ManualJobCaptureBrowserTests(unittest.TestCase):
                     first = first_response.json()
                     first_id = first["job"]["id"]
                     request_payload = first_response.request.post_data_json
-                    expect(page.get_by_role("status").filter(has_text="Job captured")).to_be_visible()
+                    expect(page.get_by_role("status").filter(has_text="Job captured and evaluated")).to_be_visible()
 
                     card = page.locator(".job-card").filter(has_text="Systems Administrator")
                     expect(card).to_be_visible()
@@ -107,10 +119,18 @@ class ManualJobCaptureBrowserTests(unittest.TestCase):
                     detail = page.locator(".job-detail")
                     expect(detail).to_contain_text("Maintain Windows Server and Active Directory.")
                     expect(detail).to_contain_text("manual")
+                    expect(detail).to_contain_text("Weighted coverage of detected skill evidence")
+                    expect(detail.get_by_role("list", name="Skill match explanation")).to_contain_text("UNKNOWN")
+                    expect(detail.get_by_role("list", name="Skill match explanation")).to_contain_text("Active Directory")
+                    expect(detail.get_by_role("list", name="Skill match explanation")).to_contain_text("Windows Server")
+                    self.assertEqual(first["job"]["skills"], ["Windows Server", "Active Directory"])
                     expect(detail.get_by_role("link", name="Open employer application", exact=False)).to_have_attribute(
                         "href", "https://apply.example.invalid/role/42")
                     self.assertEqual(store.job(first_id)["description"],
                                      "Maintain Windows Server and Active Directory.\nUnknown field: preserve verbatim.")
+                    persisted_match = store.job(first_id, profile_id="fixture")["match"]
+                    self.assertEqual([row["strength"] for row in persisted_match["components"]["requirements"]],
+                                     ["UNKNOWN", "UNKNOWN"])
                     raw = store.job(first_id)["postings"][0]["raw"]
                     self.assertEqual(raw["submitted_fields"]["source_details"],
                                      {"original_level": "unspecified", "custom": {"keep": True}})
@@ -166,6 +186,10 @@ class ManualJobCaptureBrowserTests(unittest.TestCase):
                     self.assertEqual(application_only.status, 201)
 
                     page.reload(wait_until="domcontentloaded")
+                    card = page.locator(".job-card").filter(has_text="Systems Administrator").first
+                    expect(card).to_be_visible()
+                    card.click()
+                    expect(page.locator(".job-detail").get_by_role("list", name="Skill match explanation")).to_contain_text("no approved profile evidence")
                     card = page.locator(".job-card").filter(
                         has_text="Reference only operator role").first
                     expect(card).to_be_visible()

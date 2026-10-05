@@ -105,15 +105,10 @@ def _authority(connection, source):
 def _refresh_match(connection, job, profile):
     if profile is None:
         return
-    usable = {fact['text'].strip().casefold() for fact in profile['facts'] if fact['kind'] == 'skill'
-              and fact['verified'] and fact['user_approved'] and fact['source'].strip() and fact['confidence'] >= 80}
-    mentions = {skill.casefold() for skill in job['skills']}
-    score = round(100 * len(mentions & usable) / len(mentions), 2) if mentions else 0
+    from services.discovery.matching import build_explanation
+    explanation = build_explanation(job, profile)
     upsert(connection, m.matches, dict(id=identity(job['id'], profile['id'], profile['version']),
-        job_id=job['id'], profile_id=profile['id'], profile_version=profile['version'], score=score,
-        missing=sorted(mentions - usable), components=dict(method='description_skill_mentions',
-            matched=sorted(mentions & usable), detected=sorted(mentions),
-            limitation='Skill mentions are not verified mandatory requirements or a full qualification assessment.')),
+        job_id=job['id'], profile_id=profile['id'], profile_version=profile['version'], **explanation),
         replace=True)
 
 

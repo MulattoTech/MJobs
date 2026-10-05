@@ -6,7 +6,6 @@ from bs4 import BeautifulSoup
 import httpx
 from sqlalchemy import select
 
-from packages.domain.safety import Fact, select_verified_facts
 from packages.persistence import models as m
 from packages.persistence.store import identity, now, upsert
 from services.discovery.sources.collect import persist_posting
@@ -19,6 +18,7 @@ from services.discovery.requirement_parsers import parse_job_requirements
 from services.discovery.negative_filters import parse_negative_conditions
 from services.company_discovery.sources import register_ats_tenant, upsert_company_job_source
 from services.discovery.lifecycle import capture_revision, observe_fixture_posting, resolve_lifecycle
+from services.discovery.matching import build_explanation
 
 
 class MockClient:
@@ -62,15 +62,6 @@ class MockClient:
 
 def discover(store, mock_origin, profile_id, check=None, profile_version=None):
     profile = store.profile(profile_id, profile_version)
-    usable = []
-    for row in profile["facts"]:
-        fact = Fact(id=row["fact_id"], **{key: row[key] for key in ("text", "source", "verified", "user_approved", "confidence")})
-        try:
-            select_verified_facts([fact], [fact.id])
-        except ValueError:
-            continue
-        if row["kind"] == "skill":
-            usable.append(fact.text.casefold())
     client = MockClient(mock_origin, check=check)
     try:
         aggregator = client.get(mock_origin + "/board/jobs").json()["jobs"]
@@ -170,13 +161,9 @@ def discover(store, mock_origin, profile_id, check=None, profile_version=None):
                     "application_url": row["application_url"], "raw": row, "fetched_at": now()})
                 observe_fixture_posting(connection, identity(source, row['source_job_id']))
                 resolve_lifecycle(connection, job_id)
-                required = {skill.casefold() for skill in job["skills"]}
-                missing = sorted(required - set(usable))
-                score = round(100 * len(required & set(usable)) / len(required), 2) if required else 0
+                explanation = build_explanation(job, profile)
                 upsert(connection, m.matches, {"id": identity(job_id, profile_id, profile["version"]), "job_id": job_id,
-                    "profile_id": profile_id, "profile_version": profile["version"], "score": score, "missing": missing,
-                    "components": {"method": "structured_required_skills", "required_skill_coverage": score,
-                        "matched": sorted(required & set(usable)), "detected": sorted(required)}}, replace=True)
+                    "profile_id": profile_id, "profile_version": profile["version"], **explanation}, replace=True)
             store._audit(connection, profile_id, "MOCK_DISCOVERY_COMPLETE", {"sources": len(sources), "raw_postings": len(all_rows)})
         return store.jobs(profile_id)
     finally:
