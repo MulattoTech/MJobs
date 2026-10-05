@@ -1,6 +1,6 @@
 {
   "evidence_id": "CORE-WORKFLOW-TRIAL-F1-JOB-DISPOSITIONS-NOTES",
-  "recorded_at": "2026-10-05T13:35:42Z",
+  "recorded_at": "2026-10-05T13:46:12Z",
   "result": "PARTIAL",
   "scope": "Profile-scoped job save, hide, not-interested status and append-only job notes/history",
   "authority": {
@@ -39,13 +39,13 @@
       "action": "Run affected API and browser regressions",
       "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_job_tracking tests.browser.test_job_tracking -v",
       "target": "Synthetic fixtures and temporary databases",
-      "result": "PASS: 5 tracking API/browser tests cover two-profile privacy/isolation, legacy pre-sequence history read and append, request replay/conflict handling, concurrent sequence ordering, lost-response note retry without duplicate history, and store reload."
+      "result": "PASS: 5 tracking API/browser tests cover two-profile privacy/isolation across the profile editor, legacy pre-sequence history read and append, request replay/conflict handling, concurrent sequence ordering, lost-response note retry without duplicate history, and store reload."
     },
     {
       "action": "Run complete repository Python suite",
       "command": ".venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py' -v",
       "target": "Repository-supported Python 3.12 test environment, temporary databases, controlled fixtures and isolated Chromium",
-      "result": "PASS: 577 tests in 302.299 seconds on the current repaired source and test set; no test failures."
+      "result": "PASS: 577 tests in 301.797 seconds on the current source and test set; no test failures."
     },
     {
       "action": "Run web tests and strict production build",
@@ -69,11 +69,17 @@
       "action": "Verify tracking upgrade-read and profile-switch isolation repairs",
       "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_job_tracking tests.browser.test_job_tracking -v",
       "target": "Synthetic FIXTURE profiles, pre-sequence audit events and temporary SQLite store; loopback Chromium",
-      "result": "PASS: 5 tests. Legacy JOB_DISPOSITION/JOB_NOTE rows with no sequence remain readable and ordered before new events; switching profiles clears prior job detail, draft note and retry keys before the new profile loads. No external requests or application records were created."
+      "result": "PASS: 5 tests. Legacy JOB_DISPOSITION/JOB_NOTE rows with no sequence remain readable and ordered before new events. Switching profiles while the new profile read is deliberately held clears old profile facts/answers, applications, documents, resumes, operations, source views, job detail, draft note and retry IDs before load completion. No external requests or application records were created."
+    },
+    {
+      "action": "Resolve independent profile-switch data leakage review finding",
+      "command": "Exact-candidate repair; independent final review pending",
+      "target": "All profile-scoped in-memory data and pending browser reads",
+      "result": "Profile switching now synchronously blanks the editor and clears profile-scoped applications, documents, resumes, operations, answer drafts, company sources, search profiles, selected application, job detail/list, and note/retry state; outstanding profile reads are invalidated. A browser test stalls the destination profile response and confirms the old fact/answer fields are already absent."
     }
   ],
   "remaining_gates": [
-    "Commit and publish the legacy-history/profile-switch repairs; verify exact remote SHA",
+    "Commit and publish the full profile-switch clearing fix; verify exact remote SHA",
     "Fresh independent defect review of that exact final PR head",
     "Both exact-head push and pull_request Verification events, including all required runtime artifacts and reports",
     "Merge-result tree equality, closing receipt, main synchronization and combined workflow proof"

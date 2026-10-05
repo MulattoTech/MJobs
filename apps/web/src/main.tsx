@@ -201,8 +201,15 @@ function App() {
   }
   function switchProfile(id:string) {
     if(id===profileId)return;
+    profileRef.current=id;
+    ++companySourcesSequence.current;++jobsSequence.current;++detailSequence.current;
+    ++appSequence.current;++editorSequence.current;
+    profileBaselineRef.current=null;
     setDetail(null);setJobs([]);setJobNoteDraft('');setJobNoteRequestId(crypto.randomUUID());
-    jobDispositionRequestIds.current.clear();setSelectedApp(null);setProfileId(id);
+    jobDispositionRequestIds.current.clear();setSelectedApp(null);setAnswerDrafts([]);
+    setApps([]);setDocs([]);setResumes([]);setOps([]);setCompanySources([]);
+    setDiscoveryRequests([]);setSearchProfiles([]);setMockConsent(false);setActiveOp('');
+    setEditor(newProfile());setError('');setNotice('');setProfileId(id);
   }
   async function prepareJobRoute(job:Job, routeMode:'DEFAULT'|'THIS_ROUTE'='DEFAULT', routeId?:string) {
     if(tailorResume&&resumeSelection&&(!resumeSelection.version||!resumeSelection.ids.length||resumeSelection.profileId!==profileId||resumeSelection.jobId!==job.id))throw new Error('Reload approved facts and select at least one fact for this resume.');

@@ -25,7 +25,11 @@ class JobTrackingBrowserTests(unittest.TestCase):
             store.bind_workspace_mode("FIXTURE")
             store.save_profile(dict(PROFILE))
             store.save_profile({**PROFILE, "id": "other", "name": "Other Synthetic Applicant",
-                                "email": "other@example.invalid"})
+                                "email": "other@example.invalid", "answers": [], "facts": [
+                                    {"id": "other-private-fact", "kind": "experience",
+                                     "text": "Other profile confidential fact", "source": "synthetic",
+                                     "confidence": 100, "verified": True, "user_approved": True}
+                                ]})
             captured = capture_manual_job(store, {
                 "request_id": "synthetic-tracking-role",
                 "title": "Systems Administrator",
@@ -138,6 +142,19 @@ class JobTrackingBrowserTests(unittest.TestCase):
                     expect(page.get_by_label("Job note", exact=True)).to_have_value("")
                     expect(detail.get_by_role("list", name="Job tracking history").get_by_text(
                         "Ask about the on-call rotation.", exact=True)).to_have_count(0)
+
+                    page.get_by_role("button", name="Profile", exact=True).click()
+                    expect(page.get_by_label("Fact text").first).to_have_value(
+                        "Other profile confidential fact")
+                    stalled_profile_reads = []
+                    page.route(f"{origin}/profiles/fixture",
+                               lambda route: stalled_profile_reads.append(route))
+                    page.get_by_label("Active profile", exact=True).select_option("fixture")
+                    expect(page.get_by_label("Fact text", exact=True)).to_have_count(0)
+                    expect(page.get_by_label("Answer text", exact=True)).to_have_count(0)
+                    self.assertEqual(len(stalled_profile_reads), 1)
+                    stalled_profile_reads.pop().continue_()
+                    expect(page.get_by_label("Fact text").first).to_have_value("Python")
                     self.assertEqual(external, [])
                     self.assertEqual(store.count("applications"), 0)
                     context.close()

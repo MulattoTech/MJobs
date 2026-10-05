@@ -1515,7 +1515,7 @@
       "evidence": [
         "docs/evidence/2026-10-05-job-dispositions-notes.json"
       ],
-      "note": "Local connected browser/API/storage evidence covers profile-scoped Save, Hide, Not Interested, job notes and append-only history; retry idempotency, concurrent ordering, legacy-history compatibility and profile-switch isolation repairs pass local tests. Fresh exact-head independent review and hosted push/pull_request checks are pending; company blacklist, remaining job actions and complete requirement acceptance remain open."
+      "note": "Local connected browser/API/storage evidence covers profile-scoped Save, Hide, Not Interested, job notes and append-only history; retry idempotency, concurrent ordering, legacy-history compatibility and profile-switch isolation repairs, including synchronous clearing of profile-scoped views, pass local tests. Fresh exact-head independent review and hosted push/pull_request checks are pending; company blacklist, remaining job actions and complete requirement acceptance remain open."
     },
     {
       "requirement_id": "MJ-REQ-193",
@@ -1824,7 +1824,7 @@
       "evidence": [
         "docs/evidence/2026-10-05-job-dispositions-notes.json"
       ],
-      "note": "Local connected browser/API/storage evidence covers job notes only; retry idempotency, concurrent ordering, legacy-history compatibility and profile-switch isolation repairs pass local tests. Company and application notes, exact-head independent review and hosted push/pull_request checks remain open."
+      "note": "Local connected browser/API/storage evidence covers job notes only; retry idempotency, concurrent ordering, legacy-history compatibility and profile-switch isolation repairs, including synchronous clearing of profile-scoped views, pass local tests. Company and application notes, exact-head independent review and hosted push/pull_request checks remain open."
     },
     {
       "requirement_id": "MJ-REQ-240",
