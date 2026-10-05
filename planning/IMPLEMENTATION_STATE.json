@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-05T07:40:30.394902+00:00",
+  "generated_at": "2026-10-05T09:06:25Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -71,9 +71,13 @@
   ],
   "blocked_capabilities": [],
   "active_requirements": [
-    "MJ-REQ-100",
-    "MJ-REQ-101",
-    "MJ-REQ-102"
+    "MJ-REQ-103",
+    "MJ-REQ-104",
+    "MJ-REQ-105",
+    "MJ-REQ-106",
+    "MJ-REQ-107",
+    "MJ-REQ-192",
+    "MJ-REQ-195"
   ],
   "active_prs": [
     {
@@ -584,7 +588,7 @@
       "number": 509,
       "url": "https://github.com/MulattoTech/MJobs/pull/509",
       "branch": "codex/core-workflow-trial-matching-20261005",
-      "status": "DRAFT",
+      "status": "MERGED",
       "base": "77cf0825e51f34874f49cc7753e721b60a944ef0",
       "requirements": [
         "MJ-REQ-112",
@@ -599,7 +603,34 @@
         116
       ],
       "evidence_path": "docs/evidence/2026-10-05-explainable-matching.json",
-      "note": "Source commit db5f83ed077ed8478a7bfe0ec6e36b82c973718f updates cli.ui_source_readback to current match copy after candidate 4328's public-source UI assertion failed under continue-on-error in both event runs. The prior 281 integration, focused browser, and 4328 independent review results are preserved; 4328 is ineligible. PR #509 remains draft; fresh review and exact push/pull_request Verification plus all reports are required on the live head."
+      "note": "Source commit db5f83ed077ed8478a7bfe0ec6e36b82c973718f updates cli.ui_source_readback to current match copy after candidate 4328's public-source UI assertion failed under continue-on-error in both event runs. The prior 281 integration, focused browser, and 4328 independent review results are preserved; 4328 is ineligible. PR #509 remains draft; fresh review and exact push/pull_request Verification plus all reports are required on the live head.",
+      "head": "6d4fb28be03f6e6dd9985f1a887113b956bbb9a2",
+      "merge_commit": "959f9a36cd32a4c326459a0ba472a24a4abd7d3f",
+      "merged_at": "2026-10-05T07:14:23Z",
+      "exact_head_checks": {
+        "push_verification": 37275627438,
+        "pull_request_verification": 37275632400
+      }
+    },
+    {
+      "number": 510,
+      "url": "https://github.com/MulattoTech/MJobs/pull/510",
+      "branch": "codex/core-workflow-trial-cover-letter-20261005",
+      "status": "MERGED",
+      "base": "959f9a36cd32a4c326459a0ba472a24a4abd7d3f",
+      "head": "a63c79867923cb50b58c4cfde73d9ebb4c901413",
+      "merge_commit": "fb93ad48a3987c375350388ba8bf677db58575d2",
+      "merged_at": "2026-10-05T08:50:54Z",
+      "exact_head_checks": {
+        "push_verification": 37285052782,
+        "pull_request_verification": 37285059099
+      },
+      "artifact_digests": {
+        "push": "9b8b00240f86b4b837265fdd8fce1e65926db35a0ea1052319aa5c16f18aa290",
+        "pull_request": "9787bb6a54d164333d78899d5db04bb164c93a54ac6673e319e8ce15ebba4d10"
+      },
+      "evidence_path": "docs/evidence/2026-10-05-job-specific-cover-letter.json",
+      "scope_result": "PARTIAL"
     }
   ],
   "tests_passed": [
@@ -724,7 +755,8 @@
     "CORE-WORKFLOW-TRIAL D second review: full 550-test Python step PASS on both push run 37281969867 and pull_request run 37281975664 at 74863e8; both workflow runs were canceled later in isolated runtime checks, so neither event is accepted as PASS.",
     "CORE-WORKFLOW-TRIAL D final-working-tree historical-title repair: 7 API/history integration tests, 2 Chromium browser tests, 61 frontend tests and strict TypeScript/Vite build PASS; validators PASS.",
     "CORE-WORKFLOW-TRIAL D exact-head runs 37282827647 (push) and 37282832612 (pull_request) at 4fe28b9 each passed 550 Python tests and public-source read, but both had a failed continue-on-error UI readback and uploaded only 8/9 reports; neither Verification event is accepted as PASS.",
-    "Public-source UI oracle classifier: 3 unit tests distinguish manual-only preparation, exact missing-responsibility block/no application, and unexpected failures; 5 focused Python cases PASS."
+    "Public-source UI oracle classifier: 3 unit tests distinguish manual-only preparation, exact missing-responsibility block/no application, and unexpected failures; 5 focused Python cases PASS.",
+    "PR #510 exact candidate a63c798: independent review clean; push 37285052782 and pull_request 37285059099 attempt 1 passed all steps; 554 Python tests in each; all nine runtime reports PASS in both digest-verified artifacts; public Greenhouse returned 18 jobs and made zero external application requests."
   ],
   "tests_failed": [],
   "tests_not_run": [
@@ -737,7 +769,7 @@
     "Original P0-P3 release acceptance remains open.",
     "Combined CORE-WORKFLOW-TRIAL A-F browser journey pending",
     "Combined CORE-WORKFLOW-TRIAL A-F browser journey",
-    "D final candidate: independent re-review and full exact-head push/pull_request Verification; require successful public-source UI readback and all 9 runtime reports"
+    "Combined CORE-WORKFLOW-TRIAL A-F browser journey with durable restart/history checks"
   ],
   "known_external_limitations": [
     "Production external career-site/domain acquisition, configured web-search provider and non-mock ATS metadata integration are not verified in MJ-PR-017.",
@@ -755,9 +787,9 @@
     "MJ-PR-016 local Chromium first run used Docker DNS host api, which is not a secure browser origin for crypto.randomUUID; loopback URL rerun passed all five connected UI actions."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-05T08:30:00+00:00",
-    "result": "PARTIAL",
-    "scope": "Exact candidate 4fe28b9 passed 550 Python tests and independent review, but both Verification runs contain a hidden failing continue-on-error public UI readback and lack the ninth report; this is a fail-closed missing-responsibilities case and the oracle is being corrected. Final current-tree unit/API/browser/web/build and validators pass; rerun both exact-head events before merge.",
+    "timestamp": "2026-10-05T08:50:54Z",
+    "result": "PASS",
+    "scope": "Bounded D cover-letter slice merged: exact candidate a63c798 passed independent review, push and pull_request Verification, all nine runtime reports in both artifacts, and PR merge-tree equality. Public Greenhouse returned 18 jobs; UI safely blocked missing context and created no application/document. Overall CORE-WORKFLOW-TRIAL remains PARTIAL pending combined A-F journey.",
     "evidence_path": "docs/evidence/2026-10-05-job-specific-cover-letter.json"
   },
   "ci_verification": {
@@ -778,9 +810,11 @@
   },
   "connected_ui_ci": {
     "result": "PASS",
-    "head": "d80785150e5a651b96be56c39310956d49f7b26d",
-    "pull_request_run_id": 36768260666,
-    "evidence_path": "docs/evidence/2026-09-30-ci-370.json"
+    "head": "a63c79867923cb50b58c4cfde73d9ebb4c901413",
+    "push_run_id": 37285052782,
+    "pull_request_run_id": 37285059099,
+    "evidence_path": "docs/evidence/2026-10-05-job-specific-cover-letter.json",
+    "note": "Both exact-head workflows passed web tests/build, isolated Chromium fact-review, connected fixture/PERSONAL runtime, and public-source UI readback."
   },
   "progress_journal_ci": {
     "result": "PASS",
@@ -797,14 +831,17 @@
     "evidence_path": "docs/evidence/2026-09-30-ci-428-personal.json"
   },
   "personal_live_read_ci": {
-    "result": "PARTIAL",
-    "head": "fb55d44da1b9634fdfd7f1240ab3e57aba2df60d",
-    "push_run_id": 36779321690,
-    "push_live_stage": "PASS",
-    "pull_request_run_id": 36779328463,
-    "pull_request_live_stage": "FAIL",
-    "failure_category": "ReadTimeout",
-    "evidence_path": "docs/evidence/2026-09-30-ci-428-personal-live-read.json"
+    "result": "PASS",
+    "head": "a63c79867923cb50b58c4cfde73d9ebb4c901413",
+    "push_run_id": 37285052782,
+    "pull_request_run_id": 37285059099,
+    "push_artifact_id": 11334625429,
+    "pull_request_artifact_id": 11334179232,
+    "public_jobs_returned": 18,
+    "external_application_requests": 0,
+    "external_submission_enabled": false,
+    "ui_preparation_result": "BLOCKED_MISSING_JOB_CONTEXT",
+    "evidence_path": "docs/evidence/2026-10-05-job-specific-cover-letter.json"
   },
   "personal_compose_isolation_ci": {
     "result": "PASS",
@@ -820,7 +857,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Publish the legacy-download compatibility repair to PR #510; obtain independent review and run both exact-head Verification events, then inspect every required runtime report before considering merge. Continue with the answer workflow and manual application tracking; preserve full requirements as PARTIAL where acceptance is incomplete.",
+  "recommended_resume_step": "E design approval is pending for a bounded answer-bank and per-job reviewed-export flow. After approval, implement the smallest full UI/API/durable-history path with exact-normalized suggestions and explicit selection/review; then proceed to F manual tracking. Preserve broader requirements as PARTIAL where acceptance is incomplete.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -857,12 +894,14 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "5f535d90f8f3b91e1a16bf1c5eb9a667b430d753",
+  "last_implementation_commit": "fb93ad48a3987c375350388ba8bf677db58575d2",
   "publication": {
     "result": "PARTIAL",
-    "branch": "codex/core-workflow-trial-cover-letter-20261005",
+    "branch": "main",
     "base": "959f9a36cd32a4c326459a0ba472a24a4abd7d3f",
-    "note": "Draft PR #510. Exact-head 4fe28b9 had successful push/pull_request workflow conclusions and 550 Python tests, but the continue-on-error public UI readback failed with expected COVER_LETTER_JOB_CONTEXT_MISSING and its ci-personal-public-ui.json artifact is absent in both 8/9 bundles. The readback oracle is updated to accept only safe preparation or this explicit no-document/no-application block; publish, review, and rerun both complete events before merge."
+    "candidate": "a63c79867923cb50b58c4cfde73d9ebb4c901413",
+    "merge_commit": "fb93ad48a3987c375350388ba8bf677db58575d2",
+    "note": "PR #510 merged after exact-head independent review and push/pull_request Verification. Tree equality verified. All nine reports passed in both digest-verified artifacts. D is a bounded completed slice; combined A-F trial remains outstanding."
   },
   "optional_afk_journal": {
     "result": "PASS",
@@ -3772,15 +3811,65 @@
         "planning/CAPABILITY_MATRIX.json",
         "planning/SESSION_HANDOFF.md"
       ]
+    },
+    {
+      "milestone_id": "CORE-WORKFLOW-TRIAL-D-COVER-LETTER-MERGED",
+      "timestamp": "2026-10-05T09:06:25Z",
+      "current_phase": "E_ANSWER_FLOW_DESIGN_APPROVAL_PENDING",
+      "completed_steps": [
+        "Merged PR #510 candidate a63c798 to main as fb93ad48 after exact-head independent review, push and pull_request Verification, all runtime reports, and candidate-tree equality",
+        "Verified merge tree equals candidate tree 4b46b05d33e2b46c471a4bbe5ae0e62dcd549306",
+        "Parsed all nine PASS reports in both digest-verified artifacts; public Greenhouse returned 18 jobs, zero external application requests; browser safely recorded missing context with no application/document",
+        "Fast-forwarded clean local main to the verified merge; preserved separate Codespaces worktree",
+        "Presented bounded E answer-bank design and requested approval; no answer-flow implementation started",
+        "Closed narrow requirement issues #102 (cover-letter length) and #103 (cover-letter style) after exact-head acceptance evidence; left engine issue #101 and broader MJ-REQ-096 open"
+      ],
+      "files_added": [],
+      "tests_completed": [
+        "Exact candidate push Verification 37285052782 attempt 1: PASS, including 554 Python tests and connected runtime",
+        "Exact candidate pull_request Verification 37285059099 attempt 1: PASS, including 554 Python tests, connected runtime, and candidate/merge tree equality",
+        "Nine runtime JSON reports per event parsed as PASS; uploaded artifacts matched GitHub SHA-256 digests",
+        "Independent read-only review on candidate a63c798: no actionable findings"
+      ],
+      "tests_remaining": [
+        "Combined A-F browser journey with durable restart/history checks",
+        "E answer workflow pending design approval",
+        "F manual application tracking"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Bounded read-only Greenhouse GET in hosted isolated CI; no application requests"
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "MJ-REQ-100 remains PARTIAL; broader verified company-context and combined-trial acceptance is not claimed",
+        "MJ-REQ-095 resume summary/bullet rephrasing remains incomplete",
+        "Product AI is not implemented; external submission remains OFF",
+        "Combined A-F workflow has not been tested as one journey"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "fb93ad48a3987c375350388ba8bf677db58575d2",
+        "branch": "main",
+        "evidence_path": "docs/evidence/2026-10-05-job-specific-cover-letter.json",
+        "working_tree_changes_present": false,
+        "remote_push": "SYNCED"
+      },
+      "files_modified": [
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/SESSION_HANDOFF.md",
+        "docs/evidence/2026-10-05-job-specific-cover-letter.json"
+      ]
     }
   ],
-  "current_phase": "D_COVER_LETTER_LOCAL_BROWSER_AND_DURABLE_VALIDATION_PASS_HOSTED_GATES_PENDING",
+  "current_phase": "E_ANSWER_FLOW_DESIGN_APPROVAL_PENDING",
   "last_safe_checkpoint": {
-    "git_commit": "959f9a36cd32a4c326459a0ba472a24a4abd7d3f",
-    "branch": "codex/core-workflow-trial-cover-letter-20261005",
+    "git_commit": "fb93ad48a3987c375350388ba8bf677db58575d2",
+    "branch": "main",
     "evidence_path": "docs/evidence/2026-10-05-job-specific-cover-letter.json",
-    "working_tree_changes_present": true,
-    "remote_push": "NOT_YET_PUBLISHED"
+    "working_tree_changes_present": false,
+    "remote_push": "SYNCED"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
@@ -3898,14 +3987,16 @@
     "ownership": "Root checkout is the task branch; local synthetic tests only; external-submission OFF; retained private runtime not started or updated."
   },
   "active_development_issue": {
-    "number": 101,
-    "title": "[MJ-REQ-100] Cover Letter Engine",
+    "number": 104,
+    "title": "[MJ-REQ-103] Answer Bank",
     "state": "OPEN",
     "related_issues": [
-      102,
-      103
+      105,
+      106,
+      107,
+      108
     ],
-    "scope": "Deterministic source-bound job-specific cover-letter preparation with user-selected style/length, immutable revision context, validated preview and download; broader requirement completion remains pending."
+    "scope": "Awaiting approval of the bounded design for question-aware reusable answers and a manually reviewed, immutable per-job answer export; no implementation started."
   },
   "historical_control_snapshots": [
     {
