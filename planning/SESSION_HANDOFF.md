@@ -1,3 +1,11 @@
+# Active CORE-WORKFLOW-TRIAL checkpoint — 2026-10-05
+
+Current integration main is 959f9a36cd32a4c326459a0ba472a24a4abd7d3f after PR #509 merged with candidate-tree equality. PR #508 (#507 manual capture) is also merged. Exact PR #509 evidence and merge receipt are in [PR #509](https://github.com/MulattoTech/MJobs/pull/509).
+
+The active branch is `codex/core-workflow-trial-cover-letter-20261005` from main `959f9a36cd32a4c326459a0ba472a24a4abd7d3f`. Independent review found no document/history defects on exact head `4fe28b92f1da346934aa771558db95f5884f8aee`. Both push run `37282827647` and pull_request run `37282832612` passed 550 Python tests and other runtime checks, but each hid a failed `continue-on-error` public-source UI assertion and uploaded only 8/9 required reports. A real Greenhouse job lacked a clear responsibility excerpt; generation correctly stopped with `COVER_LETTER_JOB_CONTEXT_MISSING`, while the existing smoke oracle incorrectly demanded successful preparation. The CLI readback now accepts only the safe manual-only prepared case or that explicit block with no application created. Three oracle unit tests and five focused cases pass locally. These harness changes are unpushed; get fresh independent review and both complete exact-head event reports with all nine JSON reports before considering merge. See [evidence](../docs/evidence/2026-10-05-job-specific-cover-letter.json).
+
+---
+
 # ChatGPT iteration handoff — 2026-10-04
 
 ## Current authorized milestone — 2026-10-05

@@ -21,7 +21,7 @@ class ResumeSelectionTests(unittest.TestCase):
     tearDown=fixtures.DocumentProvenanceTests.tearDown
 
     def setup_job(self):
-        facts=[*PROFILE['facts'],dict(PROFILE['facts'][0],id='duty',kind='responsibility',text='Maintained fictional servers'),
+        facts=[*PROFILE['facts'],dict(PROFILE['facts'][0],id='duty',kind='responsibility',text='Build Python systems'),
             dict(PROFILE['facts'][0],id='pending',text='Unapproved claim',user_approved=False),
             dict(PROFILE['facts'][0],id='unverified',verified=False),
             dict(PROFILE['facts'][0],id='uncertain',confidence=70),

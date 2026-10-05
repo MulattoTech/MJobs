@@ -25,12 +25,15 @@ class ApplicationRouteTests(unittest.TestCase):
         self.store = Store(f"sqlite:///{(self.root / 'test.db').as_posix()}")
         self.store.migrate()
         self.store.bind_workspace_mode("PERSONAL")
-        self.store.save_profile(PROFILE)
+        route_profile = dict(PROFILE, facts=[*PROFILE["facts"],
+            {"id": "windows", "kind": "skill", "text": "Windows", "source": "route test profile",
+             "verified": True, "user_approved": True, "confidence": 100}])
+        self.store.save_profile(route_profile)
         with self.store.engine.begin() as connection:
             upsert(connection, m.companies, {"id": "company", "name": "Example", "domain": "example.test"})
             upsert(connection, m.jobs, {
                 "id": "job", "company_id": "company", "requisition": "CANON",
-                "title": "Systems Administrator", "description": "Manage systems",
+                "title": "Systems Administrator", "description": "Responsibilities: Maintain Windows systems.",
                 "skills": ["Windows"], "location": "Dallas, TX", "remote_type": "HYBRID",
                 "attributes": {},
             })

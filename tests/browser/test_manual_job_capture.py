@@ -98,7 +98,7 @@ class ManualJobCaptureBrowserTests(unittest.TestCase):
                     page.get_by_label("Job title", exact=True).fill("Systems Administrator")
                     page.get_by_label("Company", exact=True).fill("Example Infrastructure")
                     page.get_by_label("Job description", exact=True).fill(
-                        "Maintain Windows Server and Active Directory.\nUnknown field: preserve verbatim.")
+                        "Responsibilities:\nMaintain Windows Server and Active Directory with Python automation.\nSupport Windows Server deployments.\nTroubleshoot Active Directory access.\nMonitor Windows Server tools.\nUnknown field: preserve verbatim.")
                     page.get_by_label("Location", exact=True).fill("Tulsa, OK")
                     page.get_by_label("Job reference URL", exact=True).fill(
                         private_reference_url)
@@ -122,20 +122,20 @@ class ManualJobCaptureBrowserTests(unittest.TestCase):
                     expect(card).to_be_visible()
                     card.click()
                     detail = page.locator(".job-detail")
-                    expect(detail).to_contain_text("Maintain Windows Server and Active Directory.")
+                    expect(detail).to_contain_text("Maintain Windows Server and Active Directory with Python automation.")
                     expect(detail).to_contain_text("manual")
                     expect(detail).to_contain_text("Weighted coverage of detected skill evidence")
                     expect(detail.get_by_role("list", name="Skill match explanation")).to_contain_text("UNKNOWN")
                     expect(detail.get_by_role("list", name="Skill match explanation")).to_contain_text("Active Directory")
                     expect(detail.get_by_role("list", name="Skill match explanation")).to_contain_text("Windows Server")
-                    self.assertEqual(first["job"]["skills"], ["Windows Server", "Active Directory"])
+                    self.assertEqual(first["job"]["skills"], ["Windows Server", "Active Directory", "Python"])
                     expect(detail.get_by_role("link", name="Open employer application", exact=False)).to_have_attribute(
                         "href", "https://apply.example.invalid/role/42")
                     self.assertEqual(store.job(first_id)["description"],
-                                     "Maintain Windows Server and Active Directory.\nUnknown field: preserve verbatim.")
+                                     "Responsibilities:\nMaintain Windows Server and Active Directory with Python automation.\nSupport Windows Server deployments.\nTroubleshoot Active Directory access.\nMonitor Windows Server tools.\nUnknown field: preserve verbatim.")
                     persisted_match = store.job(first_id, profile_id="fixture")["match"]
                     self.assertEqual([row["strength"] for row in persisted_match["components"]["requirements"]],
-                                     ["UNKNOWN", "UNKNOWN"])
+                                     ["UNKNOWN", "UNKNOWN", "UNKNOWN"])
                     raw = store.job(first_id)["postings"][0]["raw"]
                     self.assertEqual(raw["submitted_fields"]["source_details"],
                                      {"original_level": "unspecified", "custom": {"keep": True}})
@@ -221,18 +221,32 @@ class ManualJobCaptureBrowserTests(unittest.TestCase):
                         "href", "https://apply.example.invalid/role/44")
                     card = page.locator(".job-card").filter(has_text="Systems Administrator").first
                     card.click()
+                    page.get_by_label("Cover letter length", exact=True).select_option("DETAILED")
+                    page.get_by_label("Cover letter style", exact=True).select_option("warm")
+                    expect(page.get_by_label("Cover letter length", exact=True)).to_have_value("DETAILED")
+                    expect(page.get_by_label("Cover letter style", exact=True)).to_have_value("warm")
                     with page.expect_response(
                         lambda response: response.url == origin + "/applications"
                         and response.request.method == "POST"
                     ) as queued:
                         page.get_by_role("button", name="Prepare documents", exact=True).click()
                     operation = queued.value.json()
+                    self.assertEqual(queued.value.request.post_data_json["cover_letter_length"], "DETAILED")
+                    self.assertEqual(queued.value.request.post_data_json["cover_letter_style"], "warm")
                     with patch.dict("os.environ", MJOBS_DATABASE_URL=store.url,
                                     MJOBS_MOCK_ORIGIN="http://127.0.0.1:1",
                                     MJOBS_OUTPUT_DIR=str(root), MJOBS_OPERATION_MODE="FIXTURE"):
                         from workers.tasks import execute_operation
                         self.assertEqual(execute_operation(operation["operation_id"])["status"], "COMPLETED")
                     expect(page.get_by_role("status").filter(has_text="Preparing factual documents")).not_to_be_visible()
+                    preview = page.get_by_text("Preview validated cover letter", exact=True)
+                    expect(preview).to_be_visible()
+                    preview.click()
+                    expect(page.locator(".document").filter(has_text="Job-specific deterministic draft")).to_contain_text("warm")
+                    expect(page.locator(".document").filter(has_text="Job-specific deterministic draft")).to_contain_text("Maintain Windows Server and Active Directory with Python automation.")
+                    expect(page.locator(".document").filter(has_text="Job-specific deterministic draft")).not_to_contain_text("Unknown field: preserve verbatim.")
+                    expect(page.locator(".document").filter(has_text="Job-specific deterministic draft")).to_contain_text("Employer identity: entered manually; verify against the source.")
+                    expect(page.locator(".document").filter(has_text="Job-specific deterministic draft").get_by_role("link", name="Download TXT", exact=True)).to_be_visible()
                     self.assertEqual(len(store.applications("fixture")), 1)
                     application = store.applications("fixture")[0]
                     self.assertEqual(application["target"], "REAL")

@@ -3072,14 +3072,38 @@
       "depends_on": [
         "MJ-PR-025"
       ],
-      "status": "DRAFT",
+      "status": "PARTIAL",
       "branch": "codex/core-workflow-trial-matching-20261005",
       "draft_until_verified": true,
       "scope_complete": false,
-      "notes": "Additive deterministic/manual-review slice for career-fact-supported skill evidence, explicit REQUIRED/PREFERRED/NICE_TO_HAVE/UNKNOWN explanation, and persisted manual-job match readback. The original MJ-PR-031 optional-AI dependency is preserved; broader requirement acceptance remains open. Draft PR #509 is open. Candidate 4328c95 passed independent code review but is ineligible: both workflow events hid the failed personal public-source UI readback under continue-on-error because cli/ui_source_readback.py asserted obsolete text; its expected report was absent. Source commit db5f83ed077ed8478a7bfe0ec6e36b82c973718f fixes the oracle. Local py_compile and manual-capture Chromium test pass after the repair; the 281-test integration suite remains valid for the preceding matching source. Fresh review and exact-head push/PR Verification with complete reports are required on the next final candidate.",
+      "notes": "Narrow deterministic skill-explanation/manual-capture readback slice merged after exact-head push+PR checks and all 9 runtime reports. Candidate 6d4fb28be03f6e6dd9985f1a887113b956bbb9a2; base 77cf0825e51f34874f49cc7753e721b60a944ef0; merge 959f9a36cd32a4c326459a0ba472a24a4abd7d3f, tree df4d97b53df296aca5276a5e63cdd5df0b315d10. Broader MJ-REQ-112..115 remain partial.",
       "evidence_path": "docs/evidence/2026-10-05-explainable-matching.json",
       "pr_number": 509,
-      "pr_url": "https://github.com/MulattoTech/MJobs/pull/509"
+      "pr_url": "https://github.com/MulattoTech/MJobs/pull/509",
+      "merge_commit": "959f9a36cd32a4c326459a0ba472a24a4abd7d3f"
+    },
+    {
+      "id": "MJ-PR-153",
+      "title": "Core trial deterministic job-specific cover-letter preparation, preview and immutable revisions",
+      "domain": "career_profile_documents",
+      "requirements": [
+        "MJ-REQ-100",
+        "MJ-REQ-101",
+        "MJ-REQ-102"
+      ],
+      "issues": [
+        101,
+        102,
+        103
+      ],
+      "target_area": "services/documents; apps/api; apps/web; workers; tests/browser; tests/integration",
+      "depends_on": [],
+      "status": "PARTIAL",
+      "branch": "codex/core-workflow-trial-cover-letter-20261005",
+      "draft_until_verified": true,
+      "scope_complete": false,
+      "notes": "Additive re-slicing from existing MJ-PR-028; original queue item/dependency remains unchanged. Current-main approved-fact validation and immutable history support this deterministic slice; full MJ-PR-027 and broader MJ-REQ-095 are not PASS. Draft PR #510 candidate 4fe28b9 passed independent review, 550 Python tests on both events, and all other runtime checks. However its public Greenhouse browser tried to prepare a real posting without a clear responsibilities excerpt; the product correctly returned COVER_LETTER_JOB_CONTEXT_MISSING, but the continue-on-error oracle expected preparation success and failed, leaving ci-personal-public-ui.json absent (8/9 reports) in both events. The CLI oracle now distinguishes a valid manual-only preparation from this explicit no-document/no-application block; unit cases pass. Publish and independently review this harness correction, then require full exact-head push/pull_request success and all 9 parsed reports. Combined A-F journey remains outstanding; no product AI or external submission.",
+      "evidence_path": "docs/evidence/2026-10-05-job-specific-cover-letter.json"
     }
   ]
 }
