@@ -1,0 +1,70 @@
+{
+  "evidence_id": "CORE-WORKFLOW-TRIAL-F1-JOB-DISPOSITIONS-NOTES",
+  "recorded_at": "2026-10-05T13:02:24Z",
+  "result": "PARTIAL",
+  "scope": "Profile-scoped job save, hide, not-interested status and append-only job notes/history",
+  "authority": {
+    "repository": "MulattoTech/MJobs",
+    "base_main": "fb8ab73de6f666ed2644f9d1cc271eee25aef7f7",
+    "task_branch": "codex/core-workflow-trial-job-tracking-20261005",
+    "requirements": ["MJ-REQ-192", "MJ-REQ-239"],
+    "live_issues": [193, 240]
+  },
+  "observations": [
+    {
+      "action": "Reproduce missing profile-scoped job tracking API before implementation",
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_job_tracking -v",
+      "target": "Synthetic FIXTURE profile/job and temporary SQLite database",
+      "result": "FAIL as expected: read endpoint returned 404 and mutation endpoint returned 405; no source behavior was present"
+    },
+    {
+      "action": "Verify disposition, notes, history, profile isolation, input rejection and dismissed-job filtering",
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_job_tracking -v",
+      "target": "Two synthetic profiles, canonical manual job and temporary SQLite database",
+      "result": "PASS: 2 integration tests; four status/note events append to audit history, reads remain profile-scoped across two profiles and a reopened store, hidden jobs are absent by default and recover with include_dismissed, and invalid writes create no events"
+    },
+    {
+      "action": "Exercise Save, add a private note, Hide, reload, inspect prior history and Restore in Chromium",
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.browser.test_job_tracking -v",
+      "target": "Synthetic FIXTURE profile and manual job, isolated loopback API and Chromium, temporary SQLite database",
+      "result": "PASS: connected UI/API/storage/readback after page reload; Save, Hide, Not Interested, restore, and note history are usable; browser observed no external requests and no application/submission record"
+    },
+    {
+      "action": "Run affected API and browser regressions",
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_job_tracking tests.browser.test_job_tracking tests.integration.test_user_read_models tests.browser.test_manual_job_capture -v",
+      "target": "Synthetic fixtures and temporary databases",
+      "result": "PASS: 8 tests"
+    },
+    {
+      "action": "Run complete repository Python suite",
+      "command": ".venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py' -v",
+      "target": "Repository-supported Python 3.12 test environment, temporary databases, controlled fixtures and isolated Chromium",
+      "result": "PASS: 575 tests in 312.209 seconds on the final implementation and test set; the tracking integration case includes store-reopen readback; no test failures"
+    },
+    {
+      "action": "Run web tests and strict production build",
+      "command": "npm test --prefix apps/web; npm run build --prefix apps/web",
+      "target": "React/TypeScript web client",
+      "result": "PASS: 62 web tests; TypeScript check and Vite build succeeded"
+    },
+    {
+      "action": "Run whitespace validation",
+      "command": "git diff --check",
+      "target": "Task branch working tree",
+      "result": "PASS"
+    }
+  ],
+  "remaining_gates": [
+    "Fresh independent defect review of the exact final PR head",
+    "Both exact-head push and pull_request Verification events, including all required runtime artifacts and reports",
+    "Merge-result tree equality, closing receipt, main synchronization and combined workflow proof"
+  ],
+  "boundaries": {
+    "external_submission_enabled": false,
+    "private_applicant_data_used": false,
+    "retained_private_runtime_touched": false,
+    "product_ai_provider_enabled": false,
+    "requirement_scope_complete": false,
+    "note": "This slice covers job disposition and job notes only. Company preferences/blacklist, company/application notes, application pipeline status/history, and remaining MJ-REQ-192 behavior remain open."
+  }
+}

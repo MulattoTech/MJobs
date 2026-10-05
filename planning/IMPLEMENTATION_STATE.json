@@ -1,17 +1,17 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-05T11:10:55Z",
+  "generated_at": "2026-10-05T13:02:39Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Verified at 2026-10-05T11:10:55Z: root task checkout is on codex/core-workflow-trial-answers-20261005 with answer-privacy, immutable-file-recovery and saved-profile-load repairs; 564 Python tests, 62 web tests, focused Chromium, strict build and repository validators pass. Separate Codespaces checkout is preserved; synthetic test data only.",
-    "current_verified_github_state": "Verified at 2026-10-05T11:10:55Z: origin main is fb93ad48a3987c375350388ba8bf677db58575d2; PR #511 remains draft on codex/core-workflow-trial-answers-20261005. Superseded c65a85d push Verification passed, its pull_request run failed on an editor-load browser race; repaired candidate exact-head review and both event runs with runtime reports are pending.",
-    "current_verified_at": "2026-10-05T11:10:55Z"
+    "current_verified_local_state": "Verified at 2026-10-05T13:02:39Z: clean main fb8ab73 was refreshed; task branch codex/core-workflow-trial-job-tracking-20261005 contains profile-scoped Save/Hide/Not Interested and job notes/history using canonical jobs and append-only audit history. Final local suite passed 575 Python tests in 312.209 seconds; 62 web tests, strict build, focused API/Chromium checks and repository validators pass. F1 is PARTIAL pending independent exact-head review and hosted checks; separate Codespaces checkout preserved; synthetic data only.",
+    "current_verified_github_state": "Verified at 2026-10-05T13:02:39Z: origin/main remains fb8ab73de6f666ed2644f9d1cc271eee25aef7f7. PR #511 merged; F1 source/evidence is task-local and its draft PR has not yet been opened. External submission OFF.",
+    "current_verified_at": "2026-10-05T13:02:39Z"
   },
-  "current_milestone": "CORE-WORKFLOW-TRIAL-E-REVIEWED-APPLICATION-ANSWERS",
+  "current_milestone": "CORE-WORKFLOW-TRIAL-F1-JOB-DISPOSITIONS-NOTES",
   "current_objective": "Deliver bounded user-visible career-fact, job intake/evaluation, document preparation, reviewed-answer, and manual application-tracking workflows by 2026-10-05 15:00 America/Chicago; feature cutoff 13:00; preserve external submission OFF; report PARTIAL for unfinished criteria.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -78,7 +78,8 @@
     "MJ-REQ-106",
     "MJ-REQ-107",
     "MJ-REQ-192",
-    "MJ-REQ-195"
+    "MJ-REQ-195",
+    "MJ-REQ-239"
   ],
   "active_prs": [
     {
@@ -865,7 +866,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Publish the require-version contract repair on PR #511, obtain fresh independent exact-head review and both exact Verification events with all runtime artifacts, then merge only if all gates pass; continue to F after a green merge.",
+  "recommended_resume_step": "Publish the F1 implementation/evidence as a draft PR after the source commit, then obtain independent review and both exact-head Verification events with all required runtime reports. Merge only the reviewed, exact-head-tested candidate; then proceed to the separate MJ-REQ-195 application pipeline/history slice before the 13:00 America/Chicago feature cutoff.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -4089,27 +4090,24 @@
     }
   ],
   "live_reconciliation": {
-    "timestamp": "2026-10-05T11:47:32Z",
-    "base_commit": "fb93ad48a3987c375350388ba8bf677db58575d2",
-    "evidence_path": "docs/evidence/2026-10-05-reviewed-application-answers.json",
+    "timestamp": "2026-10-05T13:02:39Z",
+    "base_commit": "fb8ab73de6f666ed2644f9d1cc271eee25aef7f7",
+    "evidence_path": "docs/evidence/2026-10-05-job-dispositions-notes.json",
     "current_slice_validation": "PARTIAL",
     "product_status": "PARTIAL",
-    "ownership": "Authorized task branch codex/core-workflow-trial-answers-20261005; old client release confirmed by user; PR #511 stays draft; new required-version source/evidence checkpoint pending commit/push; synthetic-only data; external submission OFF; retained private runtime untouched."
+    "ownership": "User confirmed Luna High and released the older client. Task-owned F1 branch; independent review and exact-head push/pull_request gates pending. Synthetic-only data, external submission OFF, separate Codespaces checkout preserved, retained private runtime untouched."
   },
   "active_development_issue": {
-    "number": 104,
-    "title": "[MJ-REQ-103] Answer Bank",
+    "number": 193,
+    "title": "[MJ-REQ-192] Job Actions",
     "state": "OPEN",
     "related_issues": [
-      105,
-      106,
-      107,
-      108
+      240,
+      196
     ],
-    "branch": "codex/core-workflow-trial-answers-20261005",
-    "pr_number": 511,
-    "scope": "Question-aware bank, approval reset, exact-match suggestion with explicit review, profile-scoped immutable answer export, and mandatory expected-version protection on updates. Requirements 103-107 remain PARTIAL beyond this narrow slice; fresh exact-head review and push/pull_request checks pending.",
-    "evidence_path": "docs/evidence/2026-10-05-reviewed-application-answers.json"
+    "branch": "codex/core-workflow-trial-job-tracking-20261005",
+    "scope": "Additive local vertical slice for profile-scoped Save, Hide, Not Interested and notes/history on canonical jobs. MJ-REQ-192 remains PARTIAL because its complete action list is broader; MJ-REQ-239 remains PARTIAL because company/application notes are not implemented.",
+    "evidence_path": "docs/evidence/2026-10-05-job-dispositions-notes.json"
   },
   "historical_control_snapshots": [
     {

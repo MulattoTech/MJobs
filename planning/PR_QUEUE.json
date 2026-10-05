@@ -3160,6 +3160,28 @@
       "pr_number": 511,
       "pr_url": "https://github.com/MulattoTech/MJobs/pull/511",
       "base": "fb93ad48a3987c375350388ba8bf677db58575d2"
+    },
+    {
+      "id": "MJ-PR-155",
+      "title": "Core trial: profile-scoped job dispositions and notes",
+      "domain": "web_api_analytics; performance_learning_history",
+      "requirements": [
+        "MJ-REQ-192",
+        "MJ-REQ-239"
+      ],
+      "issues": [
+        193,
+        240
+      ],
+      "target_area": "apps/web; apps/api; services/tracking; tests/browser; tests/integration",
+      "depends_on": [],
+      "status": "DRAFT",
+      "branch": "codex/core-workflow-trial-job-tracking-20261005",
+      "draft_until_verified": true,
+      "scope_complete": false,
+      "notes": "Additive re-slice: canonical Jobs list/detail UI, profile snapshots, existing append-only audit_events, and API are already present on main, so job save/hide/not-interested and job-note behavior does not require the older filter/sidebar queue slice or application pipeline work. Original MJ-PR-052/MJ-PR-053 requirements and dependencies remain intact. This covers only job disposition and job notes; company preference/blacklist, company/application notes, the complete MJ-REQ-192 action list and MJ-REQ-195 application pipeline remain open.",
+      "evidence_path": "docs/evidence/2026-10-05-job-dispositions-notes.json",
+      "base": "fb8ab73de6f666ed2644f9d1cc271eee25aef7f7"
     }
   ]
 }

@@ -1511,9 +1511,11 @@
     },
     {
       "requirement_id": "MJ-REQ-192",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-05-job-dispositions-notes.json"
+      ],
+      "note": "Local connected browser/API/storage evidence covers profile-scoped Save, Hide, Not Interested, job notes and append-only job history. Exact-head independent review and hosted push/pull_request checks are pending; company blacklist, remaining job actions and complete requirement acceptance remain open."
     },
     {
       "requirement_id": "MJ-REQ-193",
@@ -1818,9 +1820,11 @@
     },
     {
       "requirement_id": "MJ-REQ-239",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-05-job-dispositions-notes.json"
+      ],
+      "note": "Local connected browser/API/storage evidence covers notes on jobs only. Company and application notes, exact-head independent review and hosted push/pull_request checks remain open."
     },
     {
       "requirement_id": "MJ-REQ-240",
