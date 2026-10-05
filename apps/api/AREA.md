@@ -8,6 +8,10 @@ Personal operation rejects fictional discovery, preparation and mock-run before
 queueing; `/settings` reports the active mode. Public source collection remains
 available. Queued fixture work is also blocked by workers after a mode switch.
 Production startup refuses PERSONAL mode if the database contains mock routes.
+`POST /jobs/manual` persists explicitly entered job text and links through the
+canonical job, posting snapshot, application route and audit records. It never
+fetches the supplied URLs; retries require the same request key and content,
+while a new key creates a distinct record.
 Depends on domain/services/persistence; browser work belongs in workers. Contact
 and facts are bounded and strict; cross-origin mutations are rejected; default
 deployment publishes only localhost. Test: python -m unittest

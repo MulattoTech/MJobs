@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-10-05T05:32:12.160284+00:00",
+  "result": "PARTIAL",
+  "scope": "Issue #507 manual job capture to canonical job record; local synthetic acceptance only",
+  "base_sha": "44b98897fb1ced728ff206af2576b47c7cb240b1",
+  "branch": "codex/core-workflow-trial-20261005",
+  "red": {
+    "result": "PASS",
+    "mode": "BASELINE_EXPECTED_FAILURE",
+    "target": "Isolated Chromium browser acceptance against current main before implementation",
+    "assertion": "Jobs view did not expose the required Capture a job user action"
+  },
+  "green": {
+    "result": "PASS",
+    "mode": "LOCAL_BROWSER_ACCEPTANCE",
+    "target": "Isolated Chromium + local FastAPI + temporary migrated SQLite + real existing preparation worker",
+    "tests_run": 7,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "checks": [
+      {
+        "command": ".venv\\Scripts\\python.exe -m unittest tests.browser.test_manual_job_capture tests.browser.test_profile_import tests.browser.test_fact_review -v",
+        "result": "PASS",
+        "target": "7 isolated Chromium tests: reference-only and application-only link semantics, reference-only prepare rejection, manual persistence/retry/duplicate/no-fetch/preparation, profile import/review and fact-edit approval reset"
+      },
+      {
+        "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_api_queue -v",
+        "result": "PASS",
+        "target": "9 API/queue/security-mode integration tests"
+      },
+      {
+        "command": "npm test --prefix apps/web -- --run; npm run build --prefix apps/web",
+        "result": "PASS",
+        "target": "59 frontend tests; TypeScript/Vite production build"
+      },
+      {
+        "command": ".venv\\Scripts\\python.exe -m tools.verification.agent_skills; .venv\\Scripts\\python.exe -m tools.verification.catalogue; git diff --check",
+        "result": "PASS",
+        "target": "Repository delivery-skill, catalogue and whitespace validators"
+      }
+    ]
+  },
+  "implementation_sha256": {
+    "apps/api/main.py": "aa8a37898776aa8d3aaad0000a8a9ac06c008004ba2bdd46479e621562ad4236",
+    "apps/api/AREA.md": "3f65b78dd0ac103b574cf0787c59b55375115ea09abccfd1950742b409305db7",
+    "apps/web/src/main.tsx": "ed4b032e1d3865817a2248eb13bb0bcde2cd2b6a63f72bddf4df40717be605ec",
+    "apps/web/AREA.md": "ef3948f3a6a0a63d867fbd0479b627502d0bc8aa8c5cd08a4659b86b78de6a69",
+    "services/discovery/manual_capture.py": "f9241bece546a9c7c303f5cb89dc770bf20b715a1ff87d3eddf36d43f28ddcdb",
+    "services/discovery/AREA.md": "94200509e16fa81302a0a5f6513b08a15533b7ee8fcab76ba6221ee462d94bdb",
+    "tests/browser/test_manual_job_capture.py": "45d44bd5123498105fb7ac1b3b7d057811236852d9599f1a0e04ed14261f52f5"
+  },
+  "privacy": {
+    "data_scope": "Synthetic profile/job content, temporary database and documents only",
+    "pasted_private_url_fetch_attempts": 0,
+    "browser_external_requests": 0,
+    "external_submission_enabled": false,
+    "application_attempts_created": 0
+  },
+  "accepted_slice": "Manual UI capture persists exact text and unknown source fields through canonical job/posting/snapshot/audit models, with distinct reference and application URL meaning. A reference-only capture cannot prepare documents via UI or API; an application-only link remains distinct. Reload/detail, explicit route-based preparation, idempotent retries, deliberate distinct captures and no-fetch behavior pass in isolated browser/API tests.",
+  "not_claimed": [
+    "Public-source UI status/provenance acceptance or actual live provider read in this checkpoint",
+    "Matching/filter/saved-filter acceptance",
+    "Tailored resume or job-specific cover-letter acceptance",
+    "Reusable answer review/export acceptance",
+    "Manual application status/history acceptance",
+    "Full MJ-REQ-186/188/192 acceptance",
+    "Full 366-requirement release readiness"
+  ],
+  "remaining": [
+    "Fresh independent read-only review on final exact candidate",
+    "Fresh push and pull_request Verification on final exact candidate/base; inspect every required runtime artifact",
+    "Final PR closing receipt and merge/main readback",
+    "Separate live Greenhouse read is evidenced only if the hosted bounded public-source step passes"
+  ],
+  "external_public_read_tested_in_this_checkpoint": false,
+  "review_checkpoint": {
+    "reviewed_candidate": "d9248e0a2905b4bc94536b11c180ebe36021080c",
+    "result": "REVIEW_FINDINGS_REPAIRED_PENDING_FRESH_FINAL_REVIEW",
+    "findings": [
+      "Reference-only preparation is rejected in both UI and API.",
+      "Application-only links are not labelled as references.",
+      "Surrounding whitespace in idempotency request identifiers is rejected.",
+      "Progress-journal mismatch and ambiguous evidence hash basis are being corrected."
+    ],
+    "reviewer": "Fresh read-only reviewer; exact new candidate review pending"
+  },
+  "source_commit": "01f0074cc0d0412d65a24f3022ea5af002d7b890",
+  "implementation_hash_basis": "SHA-256 of raw Git blob bytes read as git show <source_commit>:<path>; these identify committed source independent of Windows checkout newline conversion.",
+  "implementation_worktree_sha256": {
+    "apps/api/main.py": "aa8a37898776aa8d3aaad0000a8a9ac06c008004ba2bdd46479e621562ad4236",
+    "apps/api/AREA.md": "3f65b78dd0ac103b574cf0787c59b55375115ea09abccfd1950742b409305db7",
+    "apps/web/src/main.tsx": "b88692a57533c4d6febbdbbaf88ef42028fed96375684c0aca28e37b0fe79e83",
+    "apps/web/AREA.md": "ef3948f3a6a0a63d867fbd0479b627502d0bc8aa8c5cd08a4659b86b78de6a69",
+    "services/discovery/manual_capture.py": "f9241bece546a9c7c303f5cb89dc770bf20b715a1ff87d3eddf36d43f28ddcdb",
+    "services/discovery/AREA.md": "94200509e16fa81302a0a5f6513b08a15533b7ee8fcab76ba6221ee462d94bdb",
+    "tests/browser/test_manual_job_capture.py": "45d44bd5123498105fb7ac1b3b7d057811236852d9599f1a0e04ed14261f52f5"
+  }
+}

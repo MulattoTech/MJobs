@@ -7,12 +7,12 @@
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "User-requested closeout from clean tested implementation main a0bf00690d6f9aa834e4e0001a3ae19efb35f055; documentation-only handoff branch",
-    "current_verified_github_state": "PR501 merged; exact-head push37239204735 and PR37239207108 attempt1, all16 runtime artifacts PASS. All15 session implementation PRs merged.",
-    "current_verified_at": "2026-10-04T22:25:36.958607+00:00"
+    "current_verified_local_state": "Verified at 2026-10-05T05:16:18Z: C:/Tools/Dev/MJobs was clean at origin/main 44b98897fb1ced728ff206af2576b47c7cb240b1 before creating codex/core-workflow-trial-20261005. User confirmed the older client released; this task now owns its branch. Current source edits are tracked WIP; separate Codespaces checkout remains preserved.",
+    "current_verified_github_state": "Verified at 2026-10-05T05:16:18Z: authenticated origin MulattoTech/MJobs; main at 44b98897fb1ced728ff206af2576b47c7cb240b1; PRs #504 and #506 merged; task branch based on that head.",
+    "current_verified_at": "2026-10-05T05:16:18Z"
   },
-  "current_milestone": "CODESPACES-BOUNDED-ITERATION-505",
-  "current_objective": "Finish explicitly requested Codespaces/Codex CLI onboarding; no additional product feature or deployment.",
+  "current_milestone": "CORE-WORKFLOW-TRIAL",
+  "current_objective": "Deliver bounded user-visible career-fact, job intake/evaluation, document preparation, reviewed-answer, and manual application-tracking workflows by 2026-10-05 15:00 America/Chicago; feature cutoff 13:00; preserve external submission OFF; report PARTIAL for unfinished criteria.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -764,7 +764,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Verify issue505 exact final candidate and applicable CI. Issue503 is merged/closed; issue96 remains PARTIAL. Stop after this user-requested tooling iteration.",
+  "recommended_resume_step": "Complete independent review and exact-final-head checks for the narrow #507 manual-capture slice; then verify a bounded live public-source read separately and continue to the next missing connected browser workflow. Do not claim full Jobs requirements from this slice.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -3207,12 +3207,108 @@
         "git_commit": "b1691622a61ee368f058461ff002728325d275a9",
         "evidence_path": "docs/evidence/2026-10-04-fact-review-exact-head-ci.json"
       }
+    },
+    {
+      "milestone_id": "CORE-WORKFLOW-TRIAL-B-MANUAL-CAPTURE",
+      "timestamp": "2026-10-05T05:28:10.640890+00:00",
+      "current_phase": "B_MANUAL_CAPTURE_REVIEW_REPAIR",
+      "completed_steps": [
+        "Implemented manual job capture on the existing Jobs screen and canonical persistence model",
+        "Passed synthetic browser/API, profile import/fact review, and web tests",
+        "Fresh reviewer identified reference/application route semantics and journal consistency issues; local corrections are under validation"
+      ],
+      "files_added": [
+        "services/discovery/manual_capture.py",
+        "tests/browser/test_manual_job_capture.py",
+        "docs/evidence/2026-10-05-manual-job-capture.json"
+      ],
+      "files_modified": [
+        "apps/api/main.py",
+        "apps/web/src/main.tsx",
+        "apps/api/AREA.md",
+        "apps/web/AREA.md",
+        "services/discovery/AREA.md",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Manual capture browser acceptance with synthetic profile/temp database: PASS",
+        "Career fact import/review and approval-reset browser tests: PASS",
+        "API queue integration tests: PASS",
+        "Web tests/build and delivery/catalogue validators: PASS"
+      ],
+      "tests_remaining": [
+        "Re-run progress validator after this journal append",
+        "Fresh exact-head independent review after corrections are pushed",
+        "Both exact-head GitHub Verification events and all runtime reports",
+        "Merge and main readback"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [
+        "Superseded candidate 447c4a9 failed progress validation in both push and pull_request CI; stale state and journal fields are being reconciled before a new candidate."
+      ],
+      "known_limitations": [
+        "No actual public-source read is claimed for this checkpoint",
+        "Manual capture does not complete matching, tailored documents, reusable answers, application tracking, or broad Jobs requirement acceptance"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "447c4a9fb3f74b0360d20ba48b439524d5f11e37",
+        "evidence_path": "docs/evidence/2026-10-05-manual-job-capture.json"
+      }
+    },
+    {
+      "milestone_id": "CORE-WORKFLOW-TRIAL-B-MANUAL-CAPTURE-REPAIRED",
+      "timestamp": "2026-10-05T05:32:12.160784+00:00",
+      "current_phase": "B_MANUAL_CAPTURE_FINAL_LOCAL_VERIFIED_PENDING_REVIEW",
+      "completed_steps": [
+        "Blocked reference-only manual jobs from preparation in both browser UI and API",
+        "Kept reference and application links semantically distinct in the UI",
+        "Rejected padded request keys to keep idempotency identity unambiguous",
+        "Passed the manual capture browser flow, career-fact browser regressions, API queue suite, web tests/build and repository validators",
+        "Bound source hashes to committed Git blob bytes and repaired progress journal continuity"
+      ],
+      "files_added": [],
+      "files_modified": [
+        "apps/api/main.py",
+        "apps/web/src/main.tsx",
+        "tests/browser/test_manual_job_capture.py",
+        "docs/evidence/2026-10-05-manual-job-capture.json",
+        "planning/IMPLEMENTATION_STATE.json"
+      ],
+      "tests_completed": [
+        "7 isolated Chromium tests including the final manual capture assertions: PASS",
+        "9 API/queue integration tests: PASS",
+        "59 web tests and TypeScript/Vite build: PASS",
+        "Delivery skill, catalogue and progress journal validators: PASS"
+      ],
+      "tests_remaining": [
+        "Fresh exact-head independent review after final metadata push",
+        "Both exact-final-head GitHub Verification events and every required runtime report",
+        "Final merge receipt and main readback"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [
+        "Superseded candidate 447c4a9 failed exact-head CI progress validation; journal continuity is repaired and local validation passes.",
+        "Superseded candidate 01f0074 produced an evidence hash/report ambiguity; source hashes now explicitly identify raw Git blob bytes."
+      ],
+      "known_limitations": [
+        "No actual public-source read is claimed until an exact-head hosted live-read artifact passes.",
+        "Matching, tailored cover letters/resume rephrasing, reusable answers, and application status/history remain open."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "01f0074cc0d0412d65a24f3022ea5af002d7b890",
+        "evidence_path": "docs/evidence/2026-10-05-manual-job-capture.json"
+      }
     }
   ],
-  "current_phase": "IMPLEMENTED_VALIDATING",
+  "current_phase": "B_MANUAL_CAPTURE_FINAL_LOCAL_VERIFIED_PENDING_REVIEW",
   "last_safe_checkpoint": {
-    "git_commit": "b1691622a61ee368f058461ff002728325d275a9",
-    "evidence_path": "docs/evidence/2026-10-04-fact-review-exact-head-ci.json"
+    "git_commit": "01f0074cc0d0412d65a24f3022ea5af002d7b890",
+    "evidence_path": "docs/evidence/2026-10-05-manual-job-capture.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
@@ -3285,20 +3381,35 @@
       "pr_number": 453,
       "url": "https://github.com/MulattoTech/MJobs/pull/453",
       "force": false
+    },
+    {
+      "result": "PARTIAL",
+      "transport": "Authenticated Git push and draft GitHub PR",
+      "local_remote_commit_identical": true,
+      "force": false,
+      "branch": "codex/core-workflow-trial-20261005",
+      "base": "44b98897fb1ced728ff206af2576b47c7cb240b1",
+      "pr_number": 508,
+      "url": "https://github.com/MulattoTech/MJobs/pull/508",
+      "initial_head": "c09b0da1cfbb1abdd91d377c8be2be4cf79b97b0",
+      "evidence_path": "docs/evidence/2026-10-05-manual-job-capture.json",
+      "scope_complete": false
     }
   ],
   "live_reconciliation": {
-    "timestamp": "2026-10-04T20:06:52.668978+00:00",
-    "base_commit": "2a8e95a5023b26f3576b71c2fa46489dc9512094",
-    "evidence_path": "docs/evidence/2026-10-04-document-validation-exact-head-ci.json",
+    "timestamp": "2026-10-05T05:13:23Z",
+    "base_commit": "44b98897fb1ced728ff206af2576b47c7cb240b1",
+    "evidence_path": "docs/evidence/2026-10-05-manual-job-capture.json",
     "current_slice_validation": "PARTIAL",
     "product_status": "PARTIAL",
-    "ownership": "Root sole writer; independently owned Codespaces worktree preserved; no open PR at slice start."
+    "ownership": "Root checkout is the task branch; local synthetic tests only; external-submission OFF; retained private runtime not started or updated."
   },
   "active_development_issue": {
-    "number": 505,
+    "number": 507,
     "status": "PARTIAL",
-    "branch": "chatgpt/codespaces-bounded-iteration-20261004"
+    "branch": "codex/core-workflow-trial-20261005",
+    "pull_request": 508,
+    "milestone": "CORE-WORKFLOW-TRIAL"
   },
   "historical_control_snapshots": [
     {

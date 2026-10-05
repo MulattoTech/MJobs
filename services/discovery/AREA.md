@@ -15,6 +15,11 @@ Matching can rescore multiple career profiles from one collected batch without
 re-fetching the provider. Manual collection remains available for an immediate
 bounded run and obeys the same source policy.
 
+The manual job-entry service stores user-entered posting text, provenance and
+application/reference links through the canonical job, posting snapshot,
+application-route and audit records. It performs no network access and makes
+no claim that user-entered employer/source identity is verified.
+
 Requirements: MJ-REQ-016, 018, 019, 020, 021, 022 plus the existing mock
 flywheel/dedupe acceptance requirements MJ-REQ-040, 041, 044, 052, 054, 063,
 066, 067, 112, 114, 212.

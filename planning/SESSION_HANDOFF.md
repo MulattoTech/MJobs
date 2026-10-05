@@ -1,5 +1,42 @@
 # ChatGPT iteration handoff — 2026-10-04
 
+## Current authorized milestone — 2026-10-05
+
+The user superseded the prior stop-after-one-iteration instruction and
+authorized the time-bounded **CORE-WORKFLOW-TRIAL** from current GitHub `main`.
+Current task branch: `codex/core-workflow-trial-20261005`, based on
+`44b98897fb1ced728ff206af2576b47c7cb240b1`. The root checkout was clean and
+exclusive ownership was confirmed before branch creation; the separate
+Codespaces checkout remains preserved. Model selection was user-confirmed as
+GPT-6 Luna High; this interface cannot independently inspect billing metadata.
+No provider API, private profile, retained Windows runtime or personal database
+has been used.
+
+PRs #504 (fact-review reset) and #506 (developer tooling) were verified merged
+and were not redone. Existing profile/import/review and document-history
+journeys passed focused browser regression checks. The first missing behavior,
+issue #507, adds manual job capture to canonical job/posting/route/audit storage.
+Its local synthetic browser/API/web acceptance is recorded in
+`docs/evidence/2026-10-05-manual-job-capture.json`; it proves no pasted URL is
+fetched, differentiates a reference from an application URL, verifies durable
+readback/preparation handoff, and keeps external submission OFF. This is a
+narrow `PARTIAL` slice, not completion of MJ-REQ-186/188/192 or of workflow B.
+Independent review and exact-final-head push/PR CI with all runtime artifacts
+are still required before merge. Queue entry MJ-PR-151 records the scope.
+
+Continue the authorized sequence only after the exact-head gates pass. Next,
+verify the existing supported public-source UI and perform a bounded actual
+public Greenhouse GET separately from controlled fixtures, without starting or
+updating the retained private runtime. Then prioritize missing user actions in
+matching, preparation, reusable answers and manual tracking. At 13:00 America/
+Chicago on 2026-10-05, stop new feature families and stabilize through 15:00.
+Any unmet acceptance remains `PARTIAL`; the full 366-requirement release is not
+the target. External submission remains OFF throughout.
+
+The older handoff below is historical context; GitHub current `main` and this
+active user instruction supersede its prior iteration stop and stale checkout
+observations.
+
 The user requested that local delivery finish, publish its work, stop the local
 runtime, and hand off for ChatGPT Web Pro iteration. No next feature was started.
 Use latest GitHub `main`; old branch/session records are evidence, not ownership.
