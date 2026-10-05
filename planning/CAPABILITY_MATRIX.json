@@ -800,9 +800,10 @@
         "docs/evidence/2026-09-30-user-testing.md",
         "docs/evidence/2026-10-03-resume-driven-profile.json",
         "docs/evidence/2026-10-04-document-provenance.json",
-        "docs/evidence/2026-10-04-document-provenance-exact-head-ci.json"
+        "docs/evidence/2026-10-04-document-provenance-exact-head-ci.json",
+        "docs/evidence/2026-10-04-fact-review-reset.json"
       ],
-      "note": "Accepted in PR491 with exact-head workflows and all14 runtime artifacts; original facts/provenance, immutable revisions and PDF/DOCX/TXT verified."
+      "note": "Accepted in PR491 with exact-head workflows and all14 runtime artifacts; original facts/provenance, immutable revisions and PDF/DOCX/TXT verified. Review-reset regression #503 has local browser proof; final integration is separately gated."
     },
     {
       "requirement_id": "MJ-REQ-093",

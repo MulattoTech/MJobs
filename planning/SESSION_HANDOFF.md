@@ -43,15 +43,11 @@ and optional saved-contact headers. Broader summary/bullet rephrasing and
 automatic keyword rewriting remain incomplete. MJ-PR-027's own requirements are
 accepted, but its queue status remains PARTIAL because MJ-PR-026 is incomplete.
 
-## Next small iteration — not implemented
+## Fact-editor regression #503 — final verification pending
 
-`apps/web/src/main.tsx:editFact()` retains review flags when an approved fact's
-text, source or kind changes. Read-only review confirmed the UI review-boundary
-gap. A future slice should reset verified/user_approved on actual changes to those
-fields, preserve confidence-only/checkbox-only edits, and retain fact IDs/history.
-First add real browser proof: Pending after edit, excluded after save, verification
-alone still excluded, deliberate second approval restores eligibility. Explicit
-API-supplied flags remain valid. No fix or passing regression is claimed here.
+The user explicitly authorized a bounded follow-up. Actual text/source/kind changes now reset both review flags. Confidence-only, checkbox-only and no-op changes preserve their meaning; IDs and history remain unchanged. Three real Chromium/API/worker journeys passed persisted exclusion, verification-only exclusion and explicit reapproval, plus checksums of old downloads. [Evidence](../docs/evidence/2026-10-04-fact-review-reset.json).
+
+Independent read-only review and exact-final-head push/PR Verification with required runtime artifacts are still required before merge. The original Windows checkout is clean and untouched; an old client is still present, so all mutation and synthetic testing occur in a separately owned clone. Original MJobs services remain stopped and private data/volumes are unchanged. No next feature, deployment or autonomous continuation is authorized.
 
 AI provider/task/cost-control work remains unimplemented. Two isolated small
 local-model probes produced schema-valid but irrelevant selections and failed
