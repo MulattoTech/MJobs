@@ -3211,10 +3211,11 @@
   ],
   "current_phase": "B_MANUAL_CAPTURE_LOCAL_VERIFIED_PENDING_REVIEW",
   "last_safe_checkpoint": {
-    "git_commit": "44b98897fb1ced728ff206af2576b47c7cb240b1",
+    "git_commit": "c09b0da1cfbb1abdd91d377c8be2be4cf79b97b0",
     "evidence_path": "docs/evidence/2026-10-05-manual-job-capture.json",
     "working_branch": "codex/core-workflow-trial-20261005",
-    "working_tree_result": "Local synthetic browser/API/web checks PASS; exact-head hosted review and CI pending"
+    "pull_request": 508,
+    "working_tree_result": "Local synthetic browser/API/web checks PASS; independent review and exact-head hosted verification pending"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
@@ -3287,6 +3288,19 @@
       "pr_number": 453,
       "url": "https://github.com/MulattoTech/MJobs/pull/453",
       "force": false
+    },
+    {
+      "result": "PARTIAL",
+      "transport": "Authenticated Git push and draft GitHub PR",
+      "local_remote_commit_identical": true,
+      "force": false,
+      "branch": "codex/core-workflow-trial-20261005",
+      "base": "44b98897fb1ced728ff206af2576b47c7cb240b1",
+      "pr_number": 508,
+      "url": "https://github.com/MulattoTech/MJobs/pull/508",
+      "initial_head": "c09b0da1cfbb1abdd91d377c8be2be4cf79b97b0",
+      "evidence_path": "docs/evidence/2026-10-05-manual-job-capture.json",
+      "scope_complete": false
     }
   ],
   "live_reconciliation": {
@@ -3301,6 +3315,7 @@
     "number": 507,
     "status": "PARTIAL",
     "branch": "codex/core-workflow-trial-20261005",
+    "pull_request": 508,
     "milestone": "CORE-WORKFLOW-TRIAL"
   },
   "historical_control_snapshots": [

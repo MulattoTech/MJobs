@@ -3043,12 +3043,14 @@
       "issue_number": 507,
       "target_area": "apps/web; apps/api; services/discovery; tests/browser",
       "depends_on": [],
-      "status": "PARTIAL",
+      "status": "DRAFT",
       "branch": "codex/core-workflow-trial-20261005",
       "draft_until_verified": true,
       "scope_complete": false,
-      "notes": "Narrow core-trial fallback only: explicit capture, persistence, reload/detail/preparation, no-fetch, idempotency and deliberate distinct duplicate. Broad requirement acceptance remains open; public source UI/live read and other core workflows are separate. Local evidence only; independent review and exact-head push/PR checks pending.",
-      "evidence_path": "docs/evidence/2026-10-05-manual-job-capture.json"
+      "notes": "Narrow core-trial fallback only: explicit capture, persistence, reload/detail/preparation, no-fetch, idempotency and deliberate distinct duplicate. Broad requirement acceptance remains open; public source UI/live read and other core workflows are separate. Local evidence only; independent review and exact-head push/PR checks pending. Draft PR #508 created from the implementation commit; current follow-up adds its planning checkpoint. Exact-final-head review, push/PR CI and runtime artifacts remain pending.",
+      "evidence_path": "docs/evidence/2026-10-05-manual-job-capture.json",
+      "pr_number": 508,
+      "pr_url": "https://github.com/MulattoTech/MJobs/pull/508"
     }
   ]
 }
