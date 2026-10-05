@@ -1,6 +1,6 @@
 {
   "evidence_id": "CORE-WORKFLOW-TRIAL-F2-APPLICATION-PIPELINE",
-  "recorded_at": "2026-10-05T14:50:00Z",
+  "recorded_at": "2026-10-05T15:16:00Z",
   "result": "PARTIAL",
   "scope": "Profile-scoped user-reported application stages, application notes and durable chronological history",
   "authority": {
@@ -18,9 +18,11 @@
     "draft_pr": {
       "number": 513,
       "url": "https://github.com/MulattoTech/MJobs/pull/513",
-      "source_head": "fb1d0743a8da4ba1d5ebb6c57deac05747d1d66e",
+      "source_head": "PENDING_FINAL_REPAIR_COMMIT_AND_PUSH",
       "base": "2de5863da7418bf20087822d052b2beeb77ca64b"
-    }
+    },
+    "reviewed_predecessor_head": "01007ab1a04223f50d15e42232cc4a356d9832fd",
+    "final_candidate_head": "PENDING_REPAIR_COMMIT_AND_PUSH"
   },
   "observations": [
     {
@@ -45,7 +47,7 @@
       "action": "Run affected API, browser and immutable document-history regression tests",
       "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_application_pipeline tests.integration.test_job_tracking tests.integration.test_application_answer_export -v; .venv\\Scripts\\python.exe -m unittest tests.browser.test_application_pipeline tests.browser.test_application_answer_export tests.browser.test_document_history tests.browser.test_job_tracking -v",
       "target": "Synthetic fixtures and temporary databases with isolated Chromium",
-      "result": "PASS: 20 integration tests and 4 browser tests; existing job history, reviewed answer exports and document downloads continue to work"
+      "result": "PASS: 20 integration tests and 6 browser tests; existing job history, reviewed answer exports and document downloads continue to work"
     },
     {
       "action": "Build production web bundle",
@@ -55,9 +57,14 @@
     },
     {
       "action": "Run the complete repository Python suite on the F2 production-code candidate, then rerun strengthened application-pipeline API and browser acceptance",
-      "command": ".venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py' -v; .venv\\Scripts\\python.exe -m unittest tests.integration.test_application_pipeline tests.browser.test_application_pipeline -v; .venv\\Scripts\\python.exe -m unittest tests.browser.test_application_pipeline -v",
+      "command": ".venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py' -v; .venv\\Scripts\\python.exe -m unittest tests.integration.test_application_pipeline tests.integration.test_job_tracking tests.integration.test_application_answer_export tests.browser.test_application_pipeline tests.browser.test_application_answer_export tests.browser.test_document_history tests.browser.test_job_tracking -v",
       "target": "Repository-supported Python 3.12 environment; isolated synthetic databases and Chromium",
-      "result": "PASS: 582 repository tests in 313.781 seconds on unchanged production code; subsequent strengthened focused API/browser rerun passed (4 API tests, 1 browser test), including cross-profile mutation denial, concurrent sequence ordering, and every Kanban lane accessible by exact name."
+      "result": "PASS: 584 repository tests in 322.922 seconds on repaired production code; subsequent affected suite passed 20 integration and 6 browser tests in 59.136 seconds, including delayed status/note response isolation across applications, lost-response retries after edits, profile ownership, ordered history and persisted document links."
+    },
+    {
+      "action": "Independent exact-head defect review and repair checkpoint",
+      "target": "Read-only review of draft PR #513 head 01007ab1a04223f50d15e42232cc4a356d9832fd against base 2de5863da7418bf20087822d052b2beeb77ca64b",
+      "result": "Reviewer identified and source owner repaired three UI defects: late status responses could cross application selection, edited note retries reused idempotency IDs, and switching status after an ambiguous success retained stale stage IDs. Added controlled Chromium tests for cross-application response races and lost status/note responses; repaired full repository suite (584 tests), affected suite (20 integration and 6 browser tests), 62 frontend tests, and strict build pass. Fresh exact-head review and hosted checks remain pending."
     }
   ],
   "boundaries": [
@@ -67,9 +74,10 @@
     "Independent exact-candidate review and push/pull_request Verification with required runtime artifacts are not yet complete; no merge or full MJ-REQ-195/MJ-REQ-239 PASS is claimed."
   ],
   "remaining_gates": [
-    "Read back the final PR #513 head after this PR-link checkpoint commit and verify the pushed ref.",
-    "Both exact-head push and pull_request Verification events, required runtime reports/artifacts and merge-result tree equality.",
-    "Combined A-F browser journey remains unrun; full application-tracker requirement remains PARTIAL.",
-    "Combined A-F browser journey and exact-head hosted checks remain pending."
+    "Commit and publish repaired source, then verify the final remote head.",
+    "Inspect/commit explicit intended files, update branch, read back final PR #513 head, and verify remote SHA.",
+    "Fresh independent defect review of the repaired exact candidate.",
+    "Both exact-head push and pull_request Verification events, all runtime reports/artifacts, and merge-result tree equality.",
+    "Combined A-F browser journey remains pending."
   ]
 }

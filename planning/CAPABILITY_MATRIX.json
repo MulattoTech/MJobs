@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-05T14:52:00Z",
+  "timestamp": "2026-10-05T15:02:00Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -1536,7 +1536,7 @@
         "docs/evidence/2026-09-30-user-testing.md",
         "docs/evidence/2026-10-05-application-pipeline.json"
       ],
-      "note": "Connected Applications board exposes all ten canonical manual stages, explicit user-reported attribution, durable profile-scoped history and linked prepared documents in isolated Chromium; API stages, idempotency, ownership and SQLite reopen tests pass. Full Python suite (582 tests) and exact-lane Chromium acceptance pass; exact-head independent review and hosted push/pull_request checks are pending; full requirement and combined A-F journey remain open."
+      "note": "Connected Applications board exposes all ten canonical manual stages, explicit user-reported attribution, durable profile-scoped history and linked prepared documents in isolated Chromium; API stages, idempotency, ownership and SQLite reopen tests pass. Repaired full Python suite (584 tests) and 20 affected integration/6 browser tests pass; repaired exact-head review and hosted push/pull_request checks are pending; full requirement and combined A-F journey remain open."
     },
     {
       "requirement_id": "MJ-REQ-196",
@@ -1826,7 +1826,7 @@
         "docs/evidence/2026-10-05-job-dispositions-notes.json",
         "docs/evidence/2026-10-05-application-pipeline.json"
       ],
-      "note": "Existing job notes plus this slice’s profile-scoped application notes and chronological history pass connected Chromium reload and API/database reopen checks. Company notes and broad requirement acceptance remain open; 582-test repository suite and exact-head review and hosted push/pull_request checks pending."
+      "note": "Existing job notes plus this slice’s profile-scoped application notes and chronological history pass connected Chromium reload and API/database reopen checks. Company notes and broad requirement acceptance remain open; repaired 584-test repository suite passes while exact-head review and hosted push/pull_request checks remain pending."
     },
     {
       "requirement_id": "MJ-REQ-240",

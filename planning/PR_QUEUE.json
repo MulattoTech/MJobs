@@ -3199,15 +3199,14 @@
       ],
       "target_area": "apps/web; apps/api; services/tracking; tests/browser; tests/integration",
       "depends_on": [],
-      "status": "DRAFT",
+      "status": "IN_PROGRESS",
       "branch": "codex/core-workflow-trial-application-pipeline-20261005",
       "draft_until_verified": true,
       "scope_complete": false,
-      "notes": "Existing canonical prepared applications and append-only audit history; all ten pipeline stages, profile-scoped user-reported attribution, notes and chronological reload are connected. Local API/Chromium/build evidence passes; exact candidate review and hosted exact-head gates pending. Does not infer external application confirmation. Full parent requirements remain PARTIAL. Published as draft PR #513 at fb1d0743a8da4ba1d5ebb6c57deac05747d1d66e; remote SHA confirmed. Independent review and exact-head checks pending.",
+      "notes": "Draft PR #513 predecessor 01007ab1a04223f50d15e42232cc4a356d9832fd was superseded after independent review. Repaired source passes the full 584-test Python suite, 20 affected integration and 6 browser tests, frontend tests/build, and validators. Local repair awaits explicit-path commit/push, fresh exact-head review and both hosted event checks. No requirement closure claimed.",
       "evidence_path": "docs/evidence/2026-10-05-application-pipeline.json",
       "pr_number": 513,
       "pr_url": "https://github.com/MulattoTech/MJobs/pull/513",
-      "head": "fb1d0743a8da4ba1d5ebb6c57deac05747d1d66e",
       "base": "2de5863da7418bf20087822d052b2beeb77ca64b"
     }
   ]

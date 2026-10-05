@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-05T14:52:00Z",
+  "generated_at": "2026-10-05T15:02:00Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -657,8 +657,7 @@
       "url": "https://github.com/MulattoTech/MJobs/pull/513",
       "branch": "codex/core-workflow-trial-application-pipeline-20261005",
       "status": "DRAFT",
-      "base": "2de5863da7418bf20087822d052b2beeb77ca64b",
-      "head": "fb1d0743a8da4ba1d5ebb6c57deac05747d1d66e"
+      "base": "2de5863da7418bf20087822d052b2beeb77ca64b"
     }
   ],
   "tests_passed": [
@@ -791,7 +790,7 @@
     "F2 applications browser: Chromium manual-stage/note/history reload and preserved document-download journey passed with zero external requests.",
     "F2 affected regressions: 20 integration and 4 browser tests passed across application pipeline, job tracking, reviewed answers, and document history.",
     "F2 npm run build --prefix apps/web: strict TypeScript and Vite production build passed.",
-    "Complete Python suite on F2 production-code candidate: 582 tests in 313.781 seconds; four strengthened pipeline API tests and one exact-lane Chromium test passed in a post-suite rerun."
+    "Complete repository Python suite on repaired F2 production code: 584 tests in 322.922 seconds; affected integration/browser regressions also pass."
   ],
   "tests_failed": [],
   "tests_not_run": [
@@ -805,7 +804,7 @@
     "Combined CORE-WORKFLOW-TRIAL A-F browser journey",
     "Combined CORE-WORKFLOW-TRIAL A-F browser journey with durable restart/history checks",
     "F2 independent exact-head review, both hosted push/pull_request Verification events and runtime artifact inspection remain pending.",
-    "Combined A-F browser journey; exact-head independent review and hosted push/pull_request Verification for F2."
+    "Combined A-F browser journey."
   ],
   "known_external_limitations": [
     "Production external career-site/domain acquisition, configured web-search provider and non-mock ATS metadata integration are not verified in MJ-PR-017.",
@@ -4160,51 +4159,60 @@
     },
     {
       "milestone_id": "CORE-WORKFLOW-TRIAL-F2-PUBLISHED-PR513",
-      "timestamp": "2026-10-05T14:52:00Z",
-      "current_phase": "DRAFT_PUBLISHED_PENDING_EXACT_HEAD_REVIEW_CI",
+      "timestamp": "2026-10-05T15:16:00Z",
+      "current_phase": "REPAIRED_FULL_SUITE_PASS_PENDING_FINAL_COMMIT_AND_PUSH",
       "completed_steps": [
-        "Committed the F2 application pipeline implementation and sanitized evidence as fb1d0743a8da4ba1d5ebb6c57deac05747d1d66e.",
-        "Pushed the task branch and verified the remote ref equals the local source SHA.",
-        "Opened draft PR #513; independent exact-head review and hosted checks remain pending."
+        "Independent exact review of predecessor 01007ab1a04223f50d15e42232cc4a356d9832fd found a stale application-selection response race and stale idempotency IDs after ambiguous status/note writes.",
+        "Added application-selection guards, regenerated note request IDs when note content changes, and clear old status request IDs after an intervening successful status.",
+        "Controlled Chromium tests pass for held response/profile selection and lost-response status/note editing retries."
       ],
-      "files_added": [],
+      "files_added": [
+        "tests/browser/test_application_pipeline.py"
+      ],
       "files_modified": [
+        "apps/web/src/main.tsx",
+        "tests/browser/test_application_pipeline.py",
         "planning/IMPLEMENTATION_STATE.json",
         "planning/PR_QUEUE.json",
-        "docs/evidence/2026-10-05-application-pipeline.json",
-        "planning/SESSION_HANDOFF.md"
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/SESSION_HANDOFF.md",
+        "docs/evidence/2026-10-05-application-pipeline.json"
       ],
       "tests_completed": [
-        "The prior F2 source candidate passed 582 repository tests, strengthened API/browser reruns, 62 frontend tests, strict web build, and planning validators."
+        "Complete repository Python suite on repaired production code: 584 tests in 322.922 seconds passed.",
+        "Affected regression set: 20 integration and 6 Chromium browser tests passed, including cross-application delayed response isolation and lost status/note response retries after edits.",
+        "62 frontend tests and strict TypeScript/Vite production build passed.",
+        "Catalogue, progress journal and agent skill validators passed; git diff --check passed."
       ],
       "tests_remaining": [
-        "Commit/push this PR-link and ownership checkpoint, then read back exact final head.",
-        "Independent read-only review and both exact-head Verification events with runtime artifacts and merge-tree equality.",
+        "Inspect and commit explicit sanitized paths; publish branch and verify remote SHA.",
+        "Fresh independent read-only defect review of exact candidate.",
+        "Exact-head push and pull_request Verification; parse every required runtime report and confirm merge-tree equality.",
         "Combined A-F browser journey."
       ],
       "migrations_applied": [],
       "live_integrations_tested": [],
       "known_errors": [],
       "known_limitations": [
-        "F2 is draft and unmerged; PR-link checkpoint changes the head and requires fresh exact-head review/checks.",
-        "Full MJ-REQ-195/MJ-REQ-239 and combined A-F trial remain PARTIAL."
+        "PR #513 predecessor is superseded by local repair; do not merge predecessor checks/review.",
+        "Full MJ-REQ-195/MJ-REQ-239 and combined A-F journey remain PARTIAL."
       ],
       "last_safe_checkpoint": {
-        "git_commit": "fb1d0743a8da4ba1d5ebb6c57deac05747d1d66e",
+        "git_commit": "01007ab1a04223f50d15e42232cc4a356d9832fd",
         "branch": "codex/core-workflow-trial-application-pipeline-20261005",
         "evidence_path": "docs/evidence/2026-10-05-application-pipeline.json",
         "working_tree_changes_present": true,
-        "remote_push": "PASS_REMOTE_SHA_MATCHES_LOCAL"
+        "remote_push": "PENDING_LOCAL_REPAIRS"
       }
     }
   ],
-  "current_phase": "DRAFT_PUBLISHED_PENDING_EXACT_HEAD_REVIEW_CI",
+  "current_phase": "REPAIRED_FULL_SUITE_PASS_PENDING_FINAL_COMMIT_AND_PUSH",
   "last_safe_checkpoint": {
-    "git_commit": "fb1d0743a8da4ba1d5ebb6c57deac05747d1d66e",
+    "git_commit": "01007ab1a04223f50d15e42232cc4a356d9832fd",
     "branch": "codex/core-workflow-trial-application-pipeline-20261005",
     "evidence_path": "docs/evidence/2026-10-05-application-pipeline.json",
     "working_tree_changes_present": true,
-    "remote_push": "PASS_REMOTE_SHA_MATCHES_LOCAL"
+    "remote_push": "PENDING_LOCAL_REPAIRS"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
@@ -4800,7 +4808,8 @@
     "Remote branch SHA matches d7c8a855358714a484a76dcc95de5438ed2878c3. Independent exact-head review and fresh exact-head push/pull_request Verification plus runtime artifact inspection remain pending.",
     "F2 local candidate on 2de5863da7418bf20087822d052b2beeb77ca64b: 3 application-pipeline API integration tests, 19 affected integration regressions, 4 affected Chromium browser tests, and strict TypeScript/Vite build pass; sanitized evidence in docs/evidence/2026-10-05-application-pipeline.json.",
     "F1 PR #512 is merged; F2 exact-head independent review and hosted checks/artifacts are pending.",
-    "F2 full repository suite passed 582 tests in 313.781s on unchanged production code; final strengthened API/browser acceptance passed afterward, including all ten exact-name Kanban lanes and profile-scoped write denial."
+    "F2 full repository suite passed 584 tests in 322.922s on repaired production code; 20 affected integration and 6 browser tests, including controlled race and lost-response retries, pass.",
+    "Focused affected tests and repaired full suite (584 tests) pass; fresh exact-head review and hosted evidence pending."
   ],
-  "ownership": "PR #513 is draft; exact review/checks pending. Primary write lane: codex/core-workflow-trial-application-pipeline-20261005 based on verified main 2de5863da7418bf20087822d052b2beeb77ca64b. F1 PR #512 merged. F2 synthetic application pipeline and notes are locally verified; 582-test repository suite and strengthened final API/browser rerun passed; publish and obtain independent exact-head review plus push/pull_request artifacts before any merge. Codespaces worktree remains separate; private runtime untouched; external submission OFF."
+  "ownership": "PR #513 draft; predecessor 01007ab1a04223f50d15e42232cc4a356d9832fd has been superseded due independent review findings now repaired locally. Current work branch codex/core-workflow-trial-application-pipeline-20261005 based on 2de5863da7418bf20087822d052b2beeb77ca64b. Full repaired suite and re-publication with new review/checks pending; external submission OFF and private runtime untouched."
 }
