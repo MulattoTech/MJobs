@@ -599,7 +599,7 @@
         116
       ],
       "evidence_path": "docs/evidence/2026-10-05-explainable-matching.json",
-      "note": "Reviewed candidate 5792dc5d77269c6dc1bbb86b8348cba51211022b had actionable defects; repairs committed at 1ccc24cbef023b56ec252ed7cfc2bcfb4189c3b2. A fresh planning checkpoint will establish the final candidate; independent review and exact-head checks remain pending."
+      "note": "Source checkpoint 3d33353116cbaa0b4486d54e2faf1294241062e8 repairs the controlled fixture contract by retaining fixture `skills` as REQUIRED and extra description mentions as UNKNOWN; 281 integration tests and the capture browser test pass on the source. PR #509 remains draft. Read its live head/base after the planning checkpoint for fresh review and exact push/pull_request Verification; final review and runtime report IDs belong in the closing receipt."
     }
   ],
   "tests_passed": [
@@ -3506,11 +3506,108 @@
         "git_commit": "1ccc24cbef023b56ec252ed7cfc2bcfb4189c3b2",
         "evidence_path": "docs/evidence/2026-10-05-explainable-matching.json"
       }
+    },
+    {
+      "milestone_id": "CORE-WORKFLOW-TRIAL-C-MATCHING-RACE-AND-CLASSIFICATION-REPAIRS",
+      "timestamp": "2026-10-05T06:36:21Z",
+      "current_phase": "C_MATCHING_REPAIRS_PUSHED_AWAITING_FINAL_REVIEW_AND_EXACT_HEAD_CI",
+      "completed_steps": [
+        "Repaired all six independent-review findings across two exact candidates, including serialized profile reads and honest mock requirement classification",
+        "Ran all 281 integration tests on the repaired source checkpoint",
+        "Ran the connected Chromium manual-capture persistence and no-fetch browser test",
+        "Pushed source checkpoint 6850cacafcee86b98d32954d795ad9cdea6ca366 and verified the remote task branch SHA",
+        "Updated matching evidence, queue, capability rows, and handoff without closing broad requirements"
+      ],
+      "files_added": [],
+      "files_modified": [
+        "packages/persistence/store.py",
+        "services/discovery/matching.py",
+        "services/discovery/pipeline.py",
+        "tests/integration/test_explainable_matching.py",
+        "docs/evidence/2026-10-05-explainable-matching.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "281 integration tests: PASS",
+        "Manual job capture Chromium browser test: PASS",
+        "Agent skill validator: PASS",
+        "Catalogue and progress journal validators: PASS before appending this checkpoint",
+        "git diff --check: PASS"
+      ],
+      "tests_remaining": [
+        "Fresh independent review on the exact final published candidate",
+        "Exact-final-head push and pull_request Verification runs and required runtime artifact inspection",
+        "Merge the expected reviewed head, verify merge tree, and safely refresh local main"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [
+        "Verification runs for superseded candidates 5792dc5, 5937030, and 6850cac do not authorize merge"
+      ],
+      "known_limitations": [
+        "This slice remains partial matching coverage; saved filters, salary, location, type, broader rankings, and complete MJ-REQ-112..119 remain open",
+        "Exact final head/base and CI artifact IDs will be recorded in the GitHub PR closing receipt to avoid a self-referential source commit"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "6850cacafcee86b98d32954d795ad9cdea6ca366",
+        "evidence_path": "docs/evidence/2026-10-05-explainable-matching.json"
+      }
+    },
+    {
+      "milestone_id": "CORE-WORKFLOW-TRIAL-C-MOCK-CONTRACT-REPAIR",
+      "timestamp": "2026-10-05T06:44:00Z",
+      "current_phase": "C_MATCHING_SOURCE_REPAIRS_PUSHED_AWAITING_FINAL_HEAD_REVIEW_AND_CI",
+      "completed_steps": [
+        "Repaired seven independent-review findings, including preserving structured fixture skills as REQUIRED and extra description mentions as UNKNOWN",
+        "Added direct mock skill classification and full flywheel explanation assertions",
+        "Passed 11 focused matching and spine integration tests",
+        "Passed the full 281-test integration suite and connected manual-capture Chromium test",
+        "Pushed source commit 3d33353116cbaa0b4486d54e2faf1294241062e8 and verified its remote SHA",
+        "Updated matching evidence, queue, capability notes, and current handoff"
+      ],
+      "files_added": [],
+      "files_modified": [
+        "services/discovery/pipeline.py",
+        "tests/integration/test_explainable_matching.py",
+        "tests/integration/test_spine.py",
+        "docs/evidence/2026-10-05-explainable-matching.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "11 focused matching and fixture flywheel integration tests: PASS",
+        "281 integration tests: PASS",
+        "Manual job capture Chromium test: PASS",
+        "Progress journal, catalogue, agent skill, and git diff checks: PASS"
+      ],
+      "tests_remaining": [
+        "Fresh independent review on the exact final PR candidate after the planning checkpoint",
+        "Exact-final-head push and pull_request Verification with all required runtime reports and artifact inspection",
+        "Merge expected reviewed head, confirm merge result and main tree, and safely refresh local main"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [
+        "Verification runs on superseded heads do not authorize merge"
+      ],
+      "known_limitations": [
+        "Matching remains partial: broader criteria, saved filters, non-skill requirements, and full MJ-REQ-112..119 are incomplete",
+        "The exact final PR head changes with this planning checkpoint; its final SHA, base, review, and CI artifact IDs are recorded in the GitHub closing receipt"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "3d33353116cbaa0b4486d54e2faf1294241062e8",
+        "evidence_path": "docs/evidence/2026-10-05-explainable-matching.json"
+      }
     }
   ],
-  "current_phase": "C_MATCHING_REPAIRS_COMMITTED_AWAITING_FINAL_CANDIDATE",
+  "current_phase": "C_MATCHING_SOURCE_REPAIRS_PUSHED_AWAITING_FINAL_HEAD_REVIEW_AND_CI",
   "last_safe_checkpoint": {
-    "git_commit": "1ccc24cbef023b56ec252ed7cfc2bcfb4189c3b2",
+    "git_commit": "3d33353116cbaa0b4486d54e2faf1294241062e8",
     "evidence_path": "docs/evidence/2026-10-05-explainable-matching.json"
   },
   "live_integrations_tested": [

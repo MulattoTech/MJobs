@@ -1,6 +1,6 @@
 {
   "evidence_id": "CORE-WORKFLOW-TRIAL-C-DETERMINISTIC-MATCHING",
-  "recorded_at": "2026-10-05T06:02:12Z",
+  "recorded_at": "2026-10-05T06:36:21Z",
   "result": "PARTIAL",
   "scope": "Manual job skill evidence, deterministic approved-fact matching, explanation persistence/readback, and existing public/fixture match paths",
   "authority": {
@@ -30,6 +30,12 @@
       "result": "PASS: 59 tests; TypeScript and Vite build succeeded"
     },
     {
+      "action": "Run all integration tests after profile-transaction and mock-classification repairs",
+      "command": ".venv\\Scripts\\python.exe -m unittest discover -s tests/integration -q",
+      "target": "temporary SQLite databases and controlled integration fixtures",
+      "result": "PASS: 281 tests on source code later committed as 3d33353116cbaa0b4486d54e2faf1294241062e8, including profile edit interleaved before recalculation transaction and fixture structured skills remaining REQUIRED while extra description mentions stay UNKNOWN"
+    },
+    {
       "action": "Run delivery, catalogue, journal, and whitespace validators",
       "command": "python -m tools.verification.catalogue; python -m tools.verification.progress validate; python -m tools.verification.agent_skills; git diff --check",
       "target": "repository metadata and patch",
@@ -45,17 +51,26 @@
     "Preferred skill evidence has half the score weight of required skill evidence; nice-to-have and unknown mentions use lower weights.",
     "Match explanations persist with canonical jobs and reload through the existing profile-scoped job read model.",
     "The browser submits a durable rescore request after manual capture when a profile is selected; a failed or unavailable rescore does not misreport or hide the already-saved job.",
-    "Queued rescore work uses the current profile version at execution so an approval revocation before the worker starts cannot publish a match based on stale approvals."
+    "Queued rescore work uses the current profile version at execution so an approval revocation before the worker starts cannot publish a match based on stale approvals.",
+    "Profile snapshot loading now occurs inside the match write transaction; SQLite serializes with BEGIN IMMEDIATE and PostgreSQL locks the profile row before reading facts, so a profile edit between an earlier read and match persistence cannot stale the score.",
+    "The controlled mock contract defines its `skills` list as structured required skills; those are classified as REQUIRED, while additional title/description-only mentions remain UNKNOWN. Explicit preferred and nice-to-have fields retain their declared strength."
   ],
   "independent_review": {
-    "reviewed_candidate": "5792dc5d77269c6dc1bbb86b8348cba51211022b",
+    "reviewed_candidates": [
+      "5792dc5d77269c6dc1bbb86b8348cba51211022b",
+      "5937030a8de1caa8fdf021911ad6a94126390eef",
+      "6850cacafcee86b98d32954d795ad9cdea6ca366",
+      "3d33353116cbaa0b4486d54e2faf1294241062e8"
+    ],
     "base": "77cf0825e51f34874f49cc7753e721b60a944ef0",
-    "result": "ACTIONABLE_FINDINGS_REPAIRED_LOCALLY_FRESH_FINAL_HEAD_REVIEW_PENDING",
+    "result": "SEVEN_ACTIONABLE_FINDINGS_REPAIRED_IN_SOURCE; FRESH_REVIEW_ON_PUBLISHED_FINAL_HEAD_PENDING",
     "findings": [
       "Queue failure after durable capture could look like total failure; browser now reports capture saved and permits rescore retry.",
       "Queued rescore pinned an older profile version; worker now recalculates against current approved facts.",
       "Detected skill aliases could miss an approved canonical fact; scoring now normalizes and deduplicates aliases.",
-      "Planning head pointer described a superseded candidate; exact pending candidate fields will be omitted until final receipt can be recorded without a self-referential commit."
+      "Planning head pointer described a superseded candidate; stale candidate pointer removed.",
+      "Recalculation read profile before opening the match transaction; profile snapshot now loads inside serialized transaction with backend-appropriate locking.",
+      "Mock pipeline classification was inconsistent with the controlled fixture contract; commit 3d33353116cbaa0b4486d54e2faf1294241062e8 preserves its structured `skills` field as REQUIRED while extra description-only mentions remain UNKNOWN, with helper and flywheel regression assertions."
     ]
   },
   "limitations": [
@@ -63,7 +78,8 @@
     "Salary, location, experience, education, certifications, employment type, saved-filter controls, and broader search ranking are not implemented by this slice.",
     "No new public-source adapter or live network read is claimed by this evidence; bounded public Greenhouse reads have separate hosted evidence in PR #508.",
     "Product AI remains optional and unavailable in this slice; no provider call or private data transmission occurred.",
-    "The fixes have local targeted tests; fresh independent review and exact-head GitHub push/pull_request checks with runtime artifacts remain pending."
+    "Source checkpoint 3d33353116cbaa0b4486d54e2faf1294241062e8 was validated by 281 integration tests and the manual-capture Chromium test. Fresh independent review on the final published PR head and exact-head GitHub push/pull_request Verification runs with required runtime artifacts remain pending; earlier green runs belong to superseded heads.",
+    "The final exact head/base and CI run/artifact IDs belong in the GitHub PR #509 closing receipt, avoiding a repository commit that claims to contain its own hash or test results."
   ],
   "safety": {
     "personal_data_used": false,
