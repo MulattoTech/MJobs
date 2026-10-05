@@ -4,27 +4,32 @@
 
 The `Verification / product-suite-and-connected-ui` check runs the complete suite
 for pull requests (opened, reopened, synchronized with new commits, and marked
-ready for review), pushes to `main`, and manual `workflow_dispatch` runs. Pushes
-to feature branches do not start a second full suite; an open PR's `synchronize`
-event is the verification for each new feature-branch head.
+ready for review), pushes to `main`, pushes to `codex/core-workflow-trial-*`
+branches, and manual `workflow_dispatch` runs. Ordinary feature-branch pushes do
+not start a second full suite; an open PR's `synchronize` event verifies each
+new head. Core-workflow trial branches are a deliberate exception because that
+milestone requires both push-event candidate evidence and PR merge-tree evidence.
 
 The pull-request run checks that its tested merge tree equals the exact PR head
 tree. That exact-head PR check remains the merge gate, and every full Verification
 run still has to produce and pass all nine runtime reports. A `main` or manual run
-does not replace the PR check. This keeps the full validation and required check
-name while avoiding the duplicate push-triggered suite for the same PR commit.
+does not replace the PR check. For core-workflow trial branches, require both the
+exact-head push run and the exact-head PR run before merge. Other feature PRs keep
+the deduplicated policy.
 
 | Event | Full Verification |
 | --- | --- |
-| Push to feature branch | No; verify when its PR is opened or synchronized |
+| Push to ordinary feature branch | No; verify when its PR is opened or synchronized |
+| Push to `codex/core-workflow-trial-*` | Yes; exact candidate source tree |
 | PR opened, reopened, ready, or updated | Yes; exact-head tree guard applies |
 | Push/merge to `main` | Yes; post-merge integration check |
 | Manual `workflow_dispatch` | Yes; supplemental run on the selected ref |
 
-For PR acceptance, record the exact PR head SHA, the PR-triggered run/check
-identity, the tree-equality result, and all nine passing runtime reports/artifacts.
-Earlier push-plus-PR receipts remain historical evidence; they are no longer a
-requirement for a new PR.
+For core-workflow trial acceptance, record the exact PR head SHA, both
+push-triggered and PR-triggered run/check identities, the PR tree-equality
+result, and all nine passing runtime reports/artifacts for each required run.
+For other PRs, record the PR-triggered run/check identity, tree-equality result,
+and nine passing runtime reports/artifacts.
 
 `planning/ISSUE_SEED.jsonl` is the machine-readable source for backlog creation.
 Every issue has `<!-- mj-requirement:ID -->`; sync by marker, never mutable title.
