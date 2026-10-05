@@ -17,6 +17,12 @@ class PublicSourceReadbackTests(unittest.TestCase):
         self.assertIsNone(result["application"])
         self.assertIn("no document or application was created", result["reason"])
 
+    def test_known_browser_alert_wrapper_preserves_exact_missing_context_block(self):
+        result = classify_public_preparation(
+            [], "Action needs attention\nFAILED: COVER_LETTER_JOB_CONTEXT_MISSING"
+        )
+        self.assertEqual(result["status"], "BLOCKED_MISSING_JOB_CONTEXT")
+
     def test_unexpected_failure_or_application_state_does_not_pass_the_oracle(self):
         with self.assertRaises(AssertionError):
             classify_public_preparation([], "FAILED: DOCUMENT_RENDER_ERROR")
@@ -24,6 +30,11 @@ class PublicSourceReadbackTests(unittest.TestCase):
             classify_public_preparation(
                 [],
                 "FAILED: COVER_LETTER_JOB_CONTEXT_MISSING; FAILED: DOCUMENT_RENDER_ERROR",
+            )
+        with self.assertRaises(AssertionError):
+            classify_public_preparation(
+                [],
+                "Action needs attention\nFAILED: COVER_LETTER_JOB_CONTEXT_MISSING\nFAILED: DOCUMENT_RENDER_ERROR",
             )
         with self.assertRaises(AssertionError):
             classify_public_preparation([{"id": "x", "target": "REAL", "state": "REVIEW_REQUIRED"}], "")

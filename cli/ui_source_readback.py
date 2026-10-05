@@ -13,7 +13,11 @@ def classify_public_preparation(applications, alert_text):
         if len(applications) != 1 or applications[0].get("target") != "REAL" or applications[0].get("state") != "PREPARED":
             raise AssertionError("Public-job preparation created an unexpected application state")
         return {"status": "PREPARED", "application": applications[0], "reason": None}
-    if str(alert_text).strip() == "FAILED: COVER_LETTER_JOB_CONTEXT_MISSING":
+    alert_lines = [line.strip() for line in str(alert_text).splitlines() if line.strip()]
+    if alert_lines in (
+        ["FAILED: COVER_LETTER_JOB_CONTEXT_MISSING"],
+        ["Action needs attention", "FAILED: COVER_LETTER_JOB_CONTEXT_MISSING"],
+    ):
         return {
             "status": "BLOCKED_MISSING_JOB_CONTEXT",
             "application": None,
