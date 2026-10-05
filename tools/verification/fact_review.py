@@ -10,10 +10,17 @@ import unittest
 
 
 EXPECTED_TESTS = 4
+EXPECTED_RED_TESTS = frozenset({
+    'test_text_edit_requires_fresh_review',
+    'test_source_edit_requires_fresh_review',
+    'test_kind_edit_requires_fresh_review',
+})
 
 
 def acceptable_result(result, expect_red=False):
-    red_confirmed = (result.testsRun == EXPECTED_TESTS and len(result.failures) == 3 and not result.errors
+    failed_names = {getattr(test, '_testMethodName', '') for test, _ in result.failures}
+    red_confirmed = (result.testsRun == EXPECTED_TESTS and len(result.failures) == len(EXPECTED_RED_TESTS)
+                     and failed_names == EXPECTED_RED_TESTS and not result.errors
                      and not result.skipped and all('REVIEW_RESET_REQUIRED' in text for _, text in result.failures))
     return red_confirmed if expect_red else result.wasSuccessful() and result.testsRun == EXPECTED_TESTS and not result.skipped
 
