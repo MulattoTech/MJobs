@@ -1,6 +1,6 @@
 {
   "evidence_id": "CORE-WORKFLOW-TRIAL-C-DETERMINISTIC-MATCHING",
-  "recorded_at": "2026-10-05T06:36:21Z",
+  "recorded_at": "2026-10-05T07:02:13Z",
   "result": "PARTIAL",
   "scope": "Manual job skill evidence, deterministic approved-fact matching, explanation persistence/readback, and existing public/fixture match paths",
   "authority": {
@@ -36,6 +36,12 @@
       "result": "PASS: 281 tests on source code later committed as 3d33353116cbaa0b4486d54e2faf1294241062e8, including profile edit interleaved before recalculation transaction and fixture structured skills remaining REQUIRED while extra description mentions stay UNKNOWN"
     },
     {
+      "action": "Inspect exact-head hosted Verification runs and parse their runtime artifacts",
+      "command": "gh run view 37274207327; gh run view 37274211627; gh run download <run-id>",
+      "target": "PR candidate 4328c95e04587773b129ec56b210433ef299148c against base 77cf0825e51f34874f49cc7753e721b60a944ef0",
+      "result": "NOT_ELIGIBLE: both workflow jobs concluded success, but conditional cli.ui_source_readback failed in each event under continue-on-error because it expected removed copy; ci-personal-public-source.json reported PASS with external_application_requests=0, but ci-personal-public-ui.json was absent. Push artifact 11329214990 digest sha256:33296dfdb769089cd89fc97e89a19d08c3ab3a2bceeef1fc8a03f55ff13c1a60; pull_request artifact digest sha256:15f6c67a4da9266f31e96ee325db4d885aad7fb86f536aa0ca875bd55bfb974f."
+    },
+    {
       "action": "Run delivery, catalogue, journal, and whitespace validators",
       "command": "python -m tools.verification.catalogue; python -m tools.verification.progress validate; python -m tools.verification.agent_skills; git diff --check",
       "target": "repository metadata and patch",
@@ -60,10 +66,11 @@
       "5792dc5d77269c6dc1bbb86b8348cba51211022b",
       "5937030a8de1caa8fdf021911ad6a94126390eef",
       "6850cacafcee86b98d32954d795ad9cdea6ca366",
-      "3d33353116cbaa0b4486d54e2faf1294241062e8"
+      "3d33353116cbaa0b4486d54e2faf1294241062e8",
+      "4328c95e04587773b129ec56b210433ef299148c"
     ],
     "base": "77cf0825e51f34874f49cc7753e721b60a944ef0",
-    "result": "SEVEN_ACTIONABLE_FINDINGS_REPAIRED_IN_SOURCE; FRESH_REVIEW_ON_PUBLISHED_FINAL_HEAD_PENDING",
+    "result": "SEVEN_INDEPENDENT_REVIEW_FINDINGS_REPAIRED; NO_FINDINGS_ON_4328; STALE_RUNTIME_ORACLE_REPAIRED_IN_DB5; FRESH_REVIEW_AND_CI_PENDING",
     "findings": [
       "Queue failure after durable capture could look like total failure; browser now reports capture saved and permits rescore retry.",
       "Queued rescore pinned an older profile version; worker now recalculates against current approved facts.",
@@ -71,6 +78,9 @@
       "Planning head pointer described a superseded candidate; stale candidate pointer removed.",
       "Recalculation read profile before opening the match transaction; profile snapshot now loads inside serialized transaction with backend-appropriate locking.",
       "Mock pipeline classification was inconsistent with the controlled fixture contract; commit 3d33353116cbaa0b4486d54e2faf1294241062e8 preserves its structured `skills` field as REQUIRED while extra description-only mentions remain UNKNOWN, with helper and flywheel regression assertions."
+    ],
+    "runtime_findings": [
+      "Candidate 4328c95 had a continue-on-error personal public-source UI readback failure because cli/ui_source_readback.py asserted obsolete exact wording; the readback report was absent. Source commit db5f83ed077ed8478a7bfe0ec6e36b82c973718f updates the oracle."
     ]
   },
   "limitations": [
@@ -78,7 +88,7 @@
     "Salary, location, experience, education, certifications, employment type, saved-filter controls, and broader search ranking are not implemented by this slice.",
     "No new public-source adapter or live network read is claimed by this evidence; bounded public Greenhouse reads have separate hosted evidence in PR #508.",
     "Product AI remains optional and unavailable in this slice; no provider call or private data transmission occurred.",
-    "Source checkpoint 3d33353116cbaa0b4486d54e2faf1294241062e8 was validated by 281 integration tests and the manual-capture Chromium test. Fresh independent review on the final published PR head and exact-head GitHub push/pull_request Verification runs with required runtime artifacts remain pending; earlier green runs belong to superseded heads.",
+    "Candidate 4328c95e04587773b129ec56b210433ef299148c received a no-findings independent review, but its hosted push and pull_request runs are not eligible because the continue-on-error personal public-source UI readback failed and its artifact was absent. The stale assertion is repaired in source checkpoint db5f83ed077ed8478a7bfe0ec6e36b82c973718f; fresh review and exact-head push/pull_request Verification with all runtime artifacts remain pending.",
     "The final exact head/base and CI run/artifact IDs belong in the GitHub PR #509 closing receipt, avoiding a repository commit that claims to contain its own hash or test results."
   ],
   "safety": {

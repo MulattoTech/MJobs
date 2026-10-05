@@ -599,7 +599,7 @@
         116
       ],
       "evidence_path": "docs/evidence/2026-10-05-explainable-matching.json",
-      "note": "Source checkpoint 3d33353116cbaa0b4486d54e2faf1294241062e8 repairs the controlled fixture contract by retaining fixture `skills` as REQUIRED and extra description mentions as UNKNOWN; 281 integration tests and the capture browser test pass on the source. PR #509 remains draft. Read its live head/base after the planning checkpoint for fresh review and exact push/pull_request Verification; final review and runtime report IDs belong in the closing receipt."
+      "note": "Source commit db5f83ed077ed8478a7bfe0ec6e36b82c973718f updates cli.ui_source_readback to current match copy after candidate 4328's public-source UI assertion failed under continue-on-error in both event runs. The prior 281 integration, focused browser, and 4328 independent review results are preserved; 4328 is ineligible. PR #509 remains draft; fresh review and exact push/pull_request Verification plus all reports are required on the live head."
     }
   ],
   "tests_passed": [
@@ -715,7 +715,7 @@
     "Canonical route lifecycle: 476 local tests and22 PostgreSQL tests PASS; docs/evidence/2026-10-04-canonical-route-lifecycle.json",
     "Resume date review:479 full tests then31 final affected tests PASS; docs/evidence/2026-10-04-resume-date-review.json",
     "Bounded local OCR:487 final tests,38 frontend tests/build and real isolated API/browser runtime PASS; docs/evidence/2026-10-04-local-resume-ocr.json",
-    "CORE-WORKFLOW-TRIAL C local focused validation: 39 deterministic matching/source/profile integrations, 5 capture/import/fact-review browser tests, 59 web tests/build, and catalogue/journal/skill validators passed; independent review and exact-head CI pending."
+    "CORE-WORKFLOW-TRIAL C: 281 integration tests, local Chromium capture, web tests/build and validators pass. Candidate 4328c95 had a no-findings code review but is ineligible: both hosted Verification events hid failed public-source UI readback under continue-on-error and lacked its artifact. Oracle repaired in db5f83e; fresh exact-head review and checks pending."
   ],
   "tests_failed": [],
   "tests_not_run": [
@@ -809,7 +809,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Push the committed matching repairs plus current planning checkpoint, verify the resulting PR #509 head/base, obtain fresh independent review and both exact-head Verification runs, inspect all runtime artifacts, then merge only that reviewed head. Continue the milestone after merge and do not claim full requirements from this skill-matching slice.",
+  "recommended_resume_step": "Publish the updated matching checkpoint, verify the live PR #509 head/base, obtain fresh independent review and both exact-head Verification runs, inspect every runtime report including successful public-source UI readback artifacts, then merge only that reviewed head. Continue the milestone after merge and do not claim full requirements from this skill-matching slice.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -3603,11 +3603,109 @@
         "git_commit": "3d33353116cbaa0b4486d54e2faf1294241062e8",
         "evidence_path": "docs/evidence/2026-10-05-explainable-matching.json"
       }
+    },
+    {
+      "milestone_id": "CORE-WORKFLOW-TRIAL-C-REPAIR-STALE-CI-UI-ORACLE",
+      "timestamp": "2026-10-05T07:00:40Z",
+      "current_phase": "C_MATCHING_STALE_CI_UI_ASSERTION_REPAIRED_NEW_EXACT_REVIEW_AND_CI_PENDING",
+      "completed_steps": [
+        "Inspected both exact-head Verification reports and recovered all hosted artifacts for candidate 4328c95",
+        "Confirmed the independent reviewer reported no product defects on 4328c95",
+        "Found both continue-on-error personal public-source UI readbacks failed because a CLI browser assertion required obsolete copy; missing readback artifacts make the candidate ineligible",
+        "Confirmed bounded public Greenhouse collection passed in hosted synthetic PERSONAL mode with 18 jobs and zero external application requests",
+        "Updated cli.ui_source_readback to assert the current weighted-coverage explanation; compiled it and reran the connected manual-capture Chromium test",
+        "Pushed source commit db5f83ed077ed8478a7bfe0ec6e36b82c973718f and verified the remote branch SHA",
+        "Updated current evidence, queue, state, and handoff to record the failure honestly"
+      ],
+      "files_added": [],
+      "files_modified": [
+        "cli/ui_source_readback.py",
+        "docs/evidence/2026-10-05-explainable-matching.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "281 integration tests on matching source checkpoint 3d33353116cbaa0b4486d54e2faf1294241062e8: PASS",
+        "Manual job capture Chromium test after UI oracle edit: PASS",
+        "Python bytecode compilation for cli.ui_source_readback.py: PASS",
+        "Exact-head public-source GET report on 4328c95: PASS, 18 jobs, zero external application requests"
+      ],
+      "tests_remaining": [
+        "Fresh independent review on the published final candidate",
+        "Exact-head push and pull_request Verification on the final candidate",
+        "Parse all final hosted JSON reports; require successful personal public UI readback and its report in both events",
+        "Merge only the expected verified head and confirm tree equality/main readback"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Hosted bounded Greenhouse public GET against isolated synthetic PERSONAL-mode runtime: 18 jobs, external_application_requests=0; the matching UI readback on candidate 4328c95 failed its obsolete copy assertion and is not accepted"
+      ],
+      "known_errors": [
+        "Candidate 4328c95 push run 37274207327 and pull_request run 37274211627 concluded success but each hid a failed continue-on-error UI source readback; neither is eligible for merge"
+      ],
+      "known_limitations": [
+        "Fresh independent review and exact-head hosted runs must be repeated after source commit db5f83e and the updated planning checkpoint",
+        "Matching behavior remains a bounded skill-evidence slice; broad matching and A/B/D/E/F acceptance remain incomplete"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "db5f83ed077ed8478a7bfe0ec6e36b82c973718f",
+        "evidence_path": "docs/evidence/2026-10-05-explainable-matching.json"
+      }
+    },
+    {
+      "milestone_id": "CORE-WORKFLOW-TRIAL-C-CI-READBACK-REPAIR-PUBLISHED",
+      "timestamp": "2026-10-05T07:02:13Z",
+      "current_phase": "C_MATCHING_CI_ORACLE_REPAIR_PUBLISHED_AWAITING_FINAL_REVIEW_AND_BOTH_EVENTS",
+      "completed_steps": [
+        "Inspected every push and pull_request artifact and the continue-on-error UI readback logs on candidate 4328c95",
+        "Confirmed public Greenhouse read passed on the isolated hosted runtime but matching UI readback assertion failed and artifact was missing",
+        "Updated the existing connected UI readback oracle to current weighted-coverage wording",
+        "Passed py_compile and the manual-capture Chromium test after the oracle edit",
+        "Pushed source checkpoint db5f83ed077ed8478a7bfe0ec6e36b82c973718f and verified the remote SHA",
+        "Recorded candidate 4328 runtime failure and repair in the evidence and PR history"
+      ],
+      "files_added": [],
+      "files_modified": [
+        "cli/ui_source_readback.py",
+        "docs/evidence/2026-10-05-explainable-matching.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "py_compile cli/ui_source_readback.py: PASS",
+        "Manual job capture Chromium test: PASS",
+        "281 integration tests on preceding matching source 3d33353116cbaa0b4486d54e2faf1294241062e8: PASS",
+        "Progress journal, catalogue, agent skill, and whitespace validators: PASS before checkpoint commit"
+      ],
+      "tests_remaining": [
+        "Fresh independent review of the exact final candidate after planning checkpoint",
+        "Exact-head push and pull_request Verification rerun, including successful conditional public-source UI readback",
+        "Inspect all runtime reports and verify complete artifacts in both events",
+        "Merge expected candidate only after gates pass, then verify merge result and main"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "On candidate 4328c95 hosted synthetic PERSONAL-mode runtime, public Greenhouse GET completed for 18 jobs with zero external application requests; UI readback failed obsolete exact-copy assertion and is not accepted"
+      ],
+      "known_errors": [
+        "Both candidate 4328c95 Verification event runs concluded success but failed the conditional UI source-readback under continue-on-error and omitted its artifact; neither authorizes merge"
+      ],
+      "known_limitations": [
+        "Matching slice remains PARTIAL; saved filters, other match criteria, and complete MJ-REQ-112..119 acceptance remain open",
+        "Final current PR candidate requires a new independent review and both exact-head Verification runs after this planning checkpoint"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "db5f83ed077ed8478a7bfe0ec6e36b82c973718f",
+        "evidence_path": "docs/evidence/2026-10-05-explainable-matching.json"
+      }
     }
   ],
-  "current_phase": "C_MATCHING_SOURCE_REPAIRS_PUSHED_AWAITING_FINAL_HEAD_REVIEW_AND_CI",
+  "current_phase": "C_MATCHING_CI_ORACLE_REPAIR_PUBLISHED_AWAITING_FINAL_REVIEW_AND_BOTH_EVENTS",
   "last_safe_checkpoint": {
-    "git_commit": "3d33353116cbaa0b4486d54e2faf1294241062e8",
+    "git_commit": "db5f83ed077ed8478a7bfe0ec6e36b82c973718f",
     "evidence_path": "docs/evidence/2026-10-05-explainable-matching.json"
   },
   "live_integrations_tested": [
