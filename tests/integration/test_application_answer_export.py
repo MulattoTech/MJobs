@@ -2,6 +2,8 @@
 import hashlib
 from pathlib import Path
 import tempfile
+from concurrent.futures import ThreadPoolExecutor
+from threading import Barrier
 import unittest
 
 from fastapi.testclient import TestClient
@@ -59,6 +61,36 @@ class ApplicationAnswerExportTests(unittest.TestCase):
         self.assertEqual(stable.status_code, 200, stable.text)
         self.assertEqual(stable.json()['version'], second.json()['version'])
 
+    def test_answer_and_contact_edits_rebind_unchanged_match_snapshot(self):
+        previous = self.client.get('/profiles/fixture').json()
+        old_version = previous['version']
+        with self.store.engine.connect() as connection:
+            prior = connection.execute(select(m.matches).where(
+                m.matches.c.profile_id == 'fixture',
+                m.matches.c.profile_version == old_version).order_by(m.matches.c.job_id)).mappings().all()
+        self.assertTrue(prior, 'fixture discovery must create a match snapshot')
+
+        profile = dict(PROFILE, contact=dict(previous['contact']), answers=[{
+            'id': 'new-question', 'question': 'How do you approach teamwork?',
+            'text': 'I work collaboratively.', 'source': 'Synthetic test',
+            'verified': False, 'user_approved': False, 'confidence': 100,
+        }])
+        profile['contact']['city'] = 'Synthetic City'
+        saved = self.client.put('/profiles', json=profile)
+        self.assertEqual(saved.status_code, 200, saved.text)
+        new_version = saved.json()['version']
+        self.assertNotEqual(old_version, new_version)
+
+        with self.store.engine.connect() as connection:
+            rebound = connection.execute(select(m.matches).where(
+                m.matches.c.profile_id == 'fixture',
+                m.matches.c.profile_version == new_version).order_by(m.matches.c.job_id)).mappings().all()
+        self.assertEqual([
+            (row['job_id'], row['score'], row['missing'], row['components']) for row in rebound
+        ], [
+            (row['job_id'], row['score'], row['missing'], row['components']) for row in prior
+        ])
+
     def test_export_requires_explicit_review_and_exact_approved_answer(self):
         profile = dict(PROFILE, answers=[{
             'id': 'years-experience', 'question': 'How many years of experience?',
@@ -113,6 +145,62 @@ class ApplicationAnswerExportTests(unittest.TestCase):
             'text':'Five years', 'reviewed':True,
         }]})
         self.assertEqual(response.status_code, 422)
+
+    def test_sensitive_answer_variants_cannot_reuse_the_approved_bank(self):
+        questions = [
+            'What is your ethnic origin?',
+            'What is your religious affiliation?',
+            'Do you have disabilities?',
+            'Have you ever been convicted of a crime?',
+            'Are you authorized to work in the United States?',
+            'Are you eligible to work in the United States?',
+            'What is your salary expectation?',
+        ]
+        profile = dict(PROFILE, answers=[{
+            'id': f'sensitive-{index}', 'question': question,
+            'text': 'Fictional approved response', 'source': 'Synthetic test',
+            'verified': True, 'user_approved': True, 'confidence': 100,
+        } for index, question in enumerate(questions)])
+        self.assertEqual(self.client.put('/profiles', json=profile).status_code, 200)
+
+        for index, question in enumerate(questions):
+            with self.subTest(question=question):
+                response = self.client.post(self.export_url, json={
+                    'profile_id': 'fixture', 'items': [{
+                        'question': question, 'text': 'Fictional approved response',
+                        'answer_id': f'sensitive-{index}', 'reviewed': True,
+                    }],
+                })
+                self.assertEqual(response.status_code, 422, response.text)
+
+    def test_concurrent_answer_exports_receive_distinct_immutable_versions(self):
+        count = 4
+        ready = Barrier(count)
+        payload = {'profile_id': 'fixture', 'items': [{
+            'question': 'What would you like us to know?',
+            'text': 'I would like to discuss my systems experience.',
+            'reviewed': True,
+        }]}
+
+        def export_once():
+            client = TestClient(create_app(self.store, 'http://127.0.0.1:1', self.root))
+            try:
+                ready.wait(timeout=10)
+                return client.post(self.export_url, json=payload)
+            finally:
+                client.close()
+
+        with ThreadPoolExecutor(max_workers=count) as pool:
+            responses = list(pool.map(lambda _: export_once(), range(count)))
+
+        self.assertTrue(all(response.status_code == 201 for response in responses),
+                        [response.text for response in responses])
+        self.assertEqual(len({response.json()['document_id'] for response in responses}), count)
+        with self.store.engine.connect() as connection:
+            rows = connection.execute(select(m.documents).where(
+                m.documents.c.application_id == self.application_id,
+                m.documents.c.kind == 'application-answer-export').order_by(m.documents.c.version)).mappings().all()
+        self.assertEqual([row['version'] for row in rows], list(range(1, count + 1)))
 
     def test_manual_answer_export_is_versioned_and_restart_readable(self):
         payload = {'items': [{'question': 'What would you like us to know?',

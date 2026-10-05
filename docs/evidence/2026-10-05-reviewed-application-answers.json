@@ -1,6 +1,6 @@
 {
   "evidence_id": "CORE-WORKFLOW-TRIAL-E-REVIEWED-APPLICATION-ANSWERS",
-  "recorded_at": "2026-10-05T09:51:00Z",
+  "recorded_at": "2026-10-05T10:33:12Z",
   "result": "PARTIAL",
   "scope": "Question-aware reusable answer review and immutable application-linked TXT exports",
   "authority": {
@@ -15,13 +15,25 @@
       "action": "Exercise profile approval reset, answer matching gates, profile scope, versions, hashes, and restart readback",
       "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_application_answer_export -v",
       "target": "Temporary SQLite profile/application, synthetic approved answers, local API",
-      "result": "PASS: 4 tests; substantive edits reset verification and approval; unapproved, question-mismatched, missing-text, sensitive/legal reuse, duplicate profile scope, and missing review are rejected; exact normalized reuse and versioned TXT bytes read back after restart"
+      "result": "PASS: 7 integration tests; substantive edits reset verification and approval; unapproved, question-mismatched, missing-text, sensitive/legal/authorization variants, duplicate profile scope, missing review, and concurrent immutable version allocation are covered; exact normalized reuse and versioned TXT bytes read back after restart"
     },
     {
       "action": "Run connected browser review and historical download flow after profile-scoping answer reads",
       "command": ".venv\\Scripts\\python.exe -m unittest tests.browser.test_application_answer_export -v",
       "target": "Synthetic FIXTURE profile and job, isolated Chromium, loopback-only requests",
-      "result": "PASS: 1 browser test; profile editor saves a reviewed bank answer without triggering an unrelated match refresh; exact saved answer is not preselected; deliberate choice and per-job review are required; export remains manual-only; same hash-verified TXT bytes download after reload; no external browser request"
+      "result": "PASS: 1 browser test; profile editor saves reviewed answers and keeps matching evidence current without unrelated worker refresh; sensitive ethnic-origin answers are not suggested; ordinary exact answers still require deliberate selection and separate per-job review; same hash-verified TXT bytes download after reload; no external browser request"
+    },
+    {
+      "action": "Run the complete connected UI workflow with the isolated Compose fixture",
+      "command": "python -m cli.ui_e2e --base-url http://127.0.0.1:18723 --evidence %TEMP%\\mjobs-core-trial-ui-repro-20261005\\ui-e2e-fixed.json",
+      "target": "Separately named synthetic FIXTURE PostgreSQL/Redis stack and Chromium",
+      "result": "PASS: 14 connected UI actions including profile edits, matching, document history, mock dry-run, one explicit local mock receipt, reload, and external submission OFF"
+    },
+    {
+      "action": "Exercise concurrent answer export versioning through the PostgreSQL API",
+      "command": "Eight simultaneous synthetic POST requests to the reviewed answer export route",
+      "target": "The isolated synthetic FIXTURE Compose project",
+      "result": "PASS: eight HTTP 201 responses, distinct documents at versions 1 through 8, every response external_submission OFF"
     },
     {
       "action": "Run existing profile, approval-reset, and fixture answer regressions",
@@ -33,7 +45,7 @@
       "action": "Run the complete repository Python test suite",
       "command": ".venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py' -v",
       "target": "Temporary databases, controlled fixtures, isolated Chromium",
-      "result": "PASS: 559 tests in 267.347 seconds before the final profile-scoped answer-bank GET, normalized approval-reset version identity, and answer-only match-refresh refinements; focused answer API/browser, profile-import/fact-review, and fixture adapter checks were rerun and passed after them"
+      "result": "PASS: 562 tests in 268.827 seconds after the answer-bank, concurrency, and match-snapshot regression fixes; the final authorization phrasing additions were then rerun in the focused integration test and exact browser flow"
     },
     {
       "action": "Run web tests and strict production build",
@@ -51,15 +63,16 @@
   "verified_behavior": [
     "Question-aware reusable answers remain in immutable profile-version snapshots alongside backward-compatible legacy fixture answers.",
     "Changing a question, answer, source, or confidence clears both verification and user approval; the prior profile version remains unchanged.",
+    "Answer/contact-only profile revisions retain the exact existing match scores under the new version when matching facts and preferences are unchanged; approved fact or preference edits do not take that shortcut.",
     "The application screen uses the active profile bank through a profile-scoped read endpoint. Normalized exact question matches are suggestions only, show provenance and confidence, and require explicit selection and a separate per-job review.",
-    "Unknown questions accept only manually entered, deliberately reviewed text. Sensitive and legal question patterns cannot reuse saved answers; work authorization, demographics, salary, compensation, non-compete, criminal-history, conflicts, and attestation questions require application-specific user text.",
+    "Unknown questions accept only manually entered, deliberately reviewed text. Sensitive, legal, demographic, criminal-history, salary/compensation, and common work-authorization question variants cannot reuse saved answers; these require application-specific user text.",
     "Reviewed answers create immutable, application-linked TXT document revisions with profile snapshot, question, answer-bank ID, provenance, confidence, and SHA-256. Prior export bytes survive later exports and application reload.",
     "The local export does not fill or submit an employer form. Test mode used synthetic data and local-only browser traffic; external submission remains OFF."
   ],
   "limitations": [
     "Matching supports normalized exact questions only. Fuzzy and semantic variants in MJ-REQ-104 remain unimplemented.",
     "The minimum reusable confidence is currently a fixed 80 rather than a configurable threshold; scoring bands and confidence provenance acceptance in MJ-REQ-105 remain incomplete.",
-    "The full user-configurable sensitive-answer policy and legally significant profile-policy controls in MJ-REQ-106/107 are not implemented; this slice fail-safes to per-application manual text and deliberate review.",
+    "Sensitive-answer detection is a conservative lexical rule set, not the full user-configurable sensitive-answer policy or legally significant profile-policy controls in MJ-REQ-106/107; manual per-application text and deliberate review remain required for detected questions.",
     "Unexported draft questions remain in the browser form; durable history starts when the reviewed TXT export is saved."
   ],
   "external_submission": "OFF",

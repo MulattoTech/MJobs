@@ -180,6 +180,7 @@ class Store:
         answers = normalized_answers
         profile["answers"] = answers
         version = identity(profile)
+        same_match_inputs = bool(current) and self._match_input_projection(previous) == self._match_input_projection(profile)
         with self.engine.begin() as connection:
             upsert(connection, m.profiles, {"id": profile["id"], "name": profile["name"], "email": profile["email"], "version": version}, replace=True)
             if len({answer["id"] for answer in answers}) != len(answers):
@@ -192,8 +193,34 @@ class Store:
                 data.update(id=identity(profile["id"], version, fact.id), fact_id=fact.id,
                             kind=row.get("kind", "skill"), profile_id=profile["id"], version=version)
                 upsert(connection, m.facts, data)
+            if same_match_inputs and previous["version"] != version:
+                prior_matches = connection.execute(select(m.matches).where(
+                    m.matches.c.profile_id == profile["id"],
+                    m.matches.c.profile_version == previous["version"])).mappings().all()
+                for row in prior_matches:
+                    data = dict(row)
+                    data.update(id=identity(row["job_id"], profile["id"], version), profile_version=version)
+                    upsert(connection, m.matches, data)
+                if prior_matches:
+                    self._audit(connection, profile["id"], "MATCHES_SNAPSHOT_REBOUND",
+                                {"from_profile_version": previous["version"], "to_profile_version": version,
+                                 "count": len(prior_matches)})
             self._audit(connection, profile["id"], "PROFILE_SAVED", {"version": version})
         return version
+
+    @staticmethod
+    def _match_input_projection(profile):
+        facts = [{
+            "id": row.get("fact_id", row.get("id")),
+            "kind": row.get("kind", "skill"),
+            "text": row["text"],
+            "source": row["source"],
+            "verified": row["verified"],
+            "user_approved": row["user_approved"],
+            "confidence": row["confidence"],
+        } for row in profile.get("facts", [])]
+        facts.sort(key=lambda row: row["id"])
+        return {"facts": facts, "preferences": profile.get("preferences", {})}
 
     def profile(self, profile_id, version=None, connection=None):
         if connection is not None:
