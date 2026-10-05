@@ -1536,7 +1536,7 @@
         "docs/evidence/2026-09-30-user-testing.md",
         "docs/evidence/2026-10-05-application-pipeline.json"
       ],
-      "note": "Connected Applications board exposes ten user-reported stages, profile-scoped append-only history and linked prepared documents. Comparison, application detail/history, downloads and fixture mock actions enforce profile ownership. Source head 8756881 passes 585 Python tests, 42 focused integrations, 5 Chromium tests, 62 web tests/build and validators; independent review found no actionable defect. Final metadata-head hosted CI/artifacts and combined A-F proof remain pending; full requirement stays PARTIAL."
+      "note": "Connected Applications board exposes ten user-reported stages, profile-scoped append-only history and linked prepared documents. Comparison, application detail/history, downloads and fixture mock actions enforce profile ownership. Source head 8756881 passes 585 Python tests, 42 focused integrations, 5 Chromium tests, 62 web tests/build and validators; independent review found no actionable defect. Final corrected-metadata-head hosted CI/artifacts and combined A-F proof remain pending; full requirement stays PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-196",
@@ -1826,7 +1826,7 @@
         "docs/evidence/2026-10-05-job-dispositions-notes.json",
         "docs/evidence/2026-10-05-application-pipeline.json"
       ],
-      "note": "Profile-scoped job/application notes and chronological histories pass API/database reopen and connected Chromium reload checks. Company notes and broad requirement acceptance remain open. Application read/history privacy repairs are reviewed on source head 8756881; final metadata-head exact CI/artifact gates remain pending."
+      "note": "Profile-scoped job/application notes and chronological histories pass API/database reopen and connected Chromium reload checks. Company notes and broad requirement acceptance remain open. Application read/history privacy repairs are reviewed on source head 8756881; final corrected-metadata-head exact CI/artifact gates remain pending."
     },
     {
       "requirement_id": "MJ-REQ-240",

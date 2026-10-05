@@ -22,7 +22,7 @@
       "base": "2de5863da7418bf20087822d052b2beeb77ca64b"
     },
     "reviewed_predecessor_head": "01007ab1a04223f50d15e42232cc4a356d9832fd",
-    "final_candidate_head": "To be read back from the metadata-inclusive PR #513 head and recorded in its closing receipt",
+    "reviewed_metadata_checkpoint_head": "2fd6b1f5ffd7ca9986dabc6446eabe2817edd1d3",
     "independent_review": {
       "head": "8756881027674346bd022716068b4532cbc91ca7",
       "base": "2de5863da7418bf20087822d052b2beeb77ca64b",
@@ -95,7 +95,7 @@
       "result": "PASS: 42 focused integration tests, 5 connected browser tests, 62 frontend tests, strict TypeScript/Vite build, agent skill/catalogue/progress validators, CLI py_compile and git diff --check."
     },
     {
-      "action": "Exact-source-head Verification events and runtime artifacts before metadata-only checkpoint",
+      "action": "Exact-source-head Verification events and runtime artifacts before metadata-only checkpoints",
       "target": "PR #513 source head 8756881027674346bd022716068b4532cbc91ca7; base 2de5863da7418bf20087822d052b2beeb77ca64b",
       "result": "PASS on source head: push run 37340200494 attempt 1 and pull_request run 37340208479 attempt 1 both completed successfully. Both ran 585 repository tests, frontend tests/build, validators, connected fixture UI, real offline OCR/comparison, recovery, and isolated PERSONAL public-source/browser readback. PR merge-tree equality step passed. All 9 reports in each artifact reported PASS; external_submission_enabled=false. Artifact SHA-256 matched GitHub metadata: push 08ed36aeabc3897b26feb16fd10db3fefe22c9a20e235a12330def7b5b885dc2; PR 0e2fa6a35bb8aaddeddd4400aaf927995ab43966e06824200a6f38a95fc9bfd2. These runs do not qualify the metadata-inclusive head that follows."
     }
@@ -110,12 +110,11 @@
     "Pipeline stages and notes are explicitly user-reported and remain separate from operational application state and submission receipts.",
     "Tracking events use existing append-only audit history; no table or migration was added.",
     "Synthetic data only; retained private runtime/database untouched; external submission OFF.",
-    "The final metadata-inclusive PR head still requires independent review and exact-head push/pull_request Verification with runtime artifacts; no merge or full MJ-REQ-195/MJ-REQ-239 PASS is claimed."
+    "The latest metadata-inclusive PR head still requires independent review and exact-head push/pull_request Verification with runtime artifacts; no merge or full MJ-REQ-195/MJ-REQ-239 PASS is claimed."
   ],
   "remaining_gates": [
-    "Commit/push the metadata checkpoint and verify the resulting PR #513 head/base and remote SHA.",
-    "Fresh independent defect review of the metadata-inclusive exact candidate.",
-    "Both exact-head push and pull_request Verification events, all runtime reports/artifacts, and merge-result tree equality.",
+    "Fresh independent defect review of the current exact candidate after the latest metadata correction.",
+    "Both exact-head push and pull_request Verification events for the latest candidate, all runtime reports/artifacts, and merge-result tree equality.",
     "Combined A-F browser journey remains pending."
   ]
 }
