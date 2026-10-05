@@ -3199,15 +3199,52 @@
       ],
       "target_area": "apps/web; apps/api; services/tracking; tests/browser; tests/integration",
       "depends_on": [],
-      "status": "IN_PROGRESS",
+      "status": "MERGED",
       "branch": "codex/core-workflow-trial-application-pipeline-20261005",
       "draft_until_verified": true,
       "scope_complete": false,
-      "notes": "PR #513 source head 8756881027674346bd022716068b4532cbc91ca7 is remotely synchronized and independently reviewed with no actionable code defects. Local 585 Python tests, 42 focused integration tests, 5 browser tests, 62 web tests/build and validators pass. Exact source-head push 37340200494 and pull_request 37340208479 both passed 585 tests, all connected CI steps and 9 digest-verified PASS reports; these precede the metadata checkpoint and do not qualify its head. Profile-scoped privacy repairs are included. Rerun exact final-head checks/artifacts; combined A-F and broader requirements remain open.",
+      "notes": "F2 user-reported application stages, notes and profile-scoped append-only history merged in PR #513 at 9b16dd2. Exact-source checks were refreshed during PR #515 combined acceptance; broader MJ-REQ-195/MJ-REQ-239 remain PARTIAL.",
       "evidence_path": "docs/evidence/2026-10-05-application-pipeline.json",
       "pr_number": 513,
       "pr_url": "https://github.com/MulattoTech/MJobs/pull/513",
-      "base": "2de5863da7418bf20087822d052b2beeb77ca64b"
+      "base": "2de5863da7418bf20087822d052b2beeb77ca64b",
+      "merge_commit": "9b16dd2f5c19fa33444675e45204a4eb9f546445",
+      "merged_at": "2026-10-05T17:13:48Z"
+    },
+    {
+      "id": "MJ-PR-157",
+      "title": "CORE-WORKFLOW-TRIAL connected synthetic A-F browser journey and exact-head acceptance",
+      "domain": "web_api_analytics; career_profile_documents; performance_learning_history; operations_ux_ci",
+      "requirements": [
+        "MJ-REQ-015",
+        "MJ-REQ-100",
+        "MJ-REQ-103",
+        "MJ-REQ-112",
+        "MJ-REQ-114",
+        "MJ-REQ-186",
+        "MJ-REQ-188",
+        "MJ-REQ-192",
+        "MJ-REQ-195",
+        "MJ-REQ-239"
+      ],
+      "target_area": "tests/browser; .github/workflows/ci.yml; docs/GITHUB_WORKFLOW.md",
+      "depends_on": [
+        "MJ-PR-153",
+        "MJ-PR-154",
+        "MJ-PR-155",
+        "MJ-PR-156"
+      ],
+      "status": "DRAFT_PR",
+      "branch": "codex/core-workflow-trial-combined-journey-20261005",
+      "pr_number": 515,
+      "pr_url": "https://github.com/MulattoTech/MJobs/pull/515",
+      "base": "3ec8702ed0f42842e1bac772997760d8db5c9caf",
+      "head": "c06979890777c1d36b0e49cc9c684591af16adc1",
+      "evidence_path": "docs/evidence/2026-10-05-core-workflow-trial-combined.json",
+      "draft_until_verified": true,
+      "scope_complete": false,
+      "scope_result": "PARTIAL",
+      "notes": "Connected synthetic browser acceptance and CI evidence only; all referenced parent requirements remain PARTIAL where wider acceptance exceeds this journey. Exact final-head push and pull_request reports/artifacts remain required."
     }
   ]
 }

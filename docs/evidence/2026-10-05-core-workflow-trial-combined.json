@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-10-05T18:29:25Z",
+  "result": "PARTIAL",
+  "scope": "Connected synthetic browser journey across the bounded CORE-WORKFLOW-TRIAL A-F user actions",
+  "source_commit": "806b9e3d8dc3aafbade0b723c89de19ab1764df9",
+  "current_pr_candidate_at_checkpoint": "c06979890777c1d36b0e49cc9c684591af16adc1",
+  "base_commit": "3ec8702ed0f42842e1bac772997760d8db5c9caf",
+  "operation_mode": "FIXTURE",
+  "data_scope": "Synthetic applicant, synthetic resume/job/answers, temporary SQLite database and temporary documents only",
+  "external_submission_enabled": false,
+  "external_application_requests": 0,
+  "local_browser_acceptance": {
+    "command": ".venv\\Scripts\\python.exe -m unittest tests.browser.test_core_workflow_trial -v",
+    "result": "PASS",
+    "consecutive_runs": 4,
+    "browser": "isolated Chromium",
+    "assertions": [
+      "PDF import suggestions remain pending until deliberate fact approval; unapproved uncertain skill is excluded.",
+      "Saved title/location criteria filter a nonmatching job and persist through reload.",
+      "Manual capture retains the pasted reference and source description while a server-side egress guard denies outbound/private URL access.",
+      "Match explanation distinguishes approved evidence from missing evidence.",
+      "Job-specific resume and cover letter preview/download; revision 1 bytes remain unchanged after revision 2.",
+      "Exact saved answer is loaded after browser reload, reviewed for the job, and exported as a durable document.",
+      "User-reported application status and note appear in append-only history without confirmation or operational-state mutation.",
+      "Closing and reopening the temporary Store/API/browser preserves status/history and prior document download hashes."
+    ],
+    "page_errors": [],
+    "external_requests": []
+  },
+  "public_source_live_read": {
+    "result": "PASS",
+    "run_id": 37352733344,
+    "source_commit": "b62185e8ff94059c50c2976e2daf7218fbb38d18",
+    "source": "Greenhouse public API",
+    "jobs_returned": 19,
+    "external_application_requests": 0,
+    "browser_policy_readback": "PASS: unsupported/missing job context safely blocked preparation without creating an application or document",
+    "evidence_artifact_id": 11362759827,
+    "artifact_sha256": "a02f0cb5d28397d13c6971cfb4dfbb5946762c59ab2313e3d9b4325834f204c7"
+  },
+  "independent_review": {
+    "result": "PASS",
+    "candidate": "c06979890777c1d36b0e49cc9c684591af16adc1",
+    "base": "3ec8702ed0f42842e1bac772997760d8db5c9caf",
+    "reviewer": "independent read-only code reviewer",
+    "findings": []
+  },
+  "exact_head_gates": {
+    "push_verification": "PENDING",
+    "pull_request_verification": "PENDING",
+    "pr_merge_tree_equality": "PENDING_FINAL_HEAD",
+    "required_runtime_reports": "PENDING_FINAL_HEAD",
+    "note": "Current c069798 runs were canceled to include this metadata. Fresh runs must cover the final committed tree; exact run IDs and artifact digests are recorded in the PR closing receipt after checks finish."
+  },
+  "known_limitations": [
+    "A-F evidence covers bounded synthetic browser paths; referenced full requirements stay PARTIAL until every acceptance boundary is met.",
+    "Product AI/provider path is not implemented or available and was not used.",
+    "Manual owner acceptance against personal data/runtime is NOT_RUN by instruction."
+  ]
+}

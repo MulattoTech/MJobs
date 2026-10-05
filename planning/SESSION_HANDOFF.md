@@ -1,3 +1,15 @@
+# Active CORE-WORKFLOW-TRIAL checkpoint — 2026-10-05, after feature cutoff
+
+Current main before final integration: `3ec8702ed0f42842e1bac772997760d8db5c9caf`. PR [#515](https://github.com/MulattoTech/MJobs/pull/515) is a draft on `codex/core-workflow-trial-combined-journey-20261005` at candidate `c06979890777c1d36b0e49cc9c684591af16adc1`; remote branch matches local. Current base includes merged PR #514 CI deduplication, so this branch merges current main and adds a narrow push-trigger exception for `codex/core-workflow-trial-*` to meet the user's explicit both-event gate. Ordinary feature pushes stay deduplicated.
+
+The combined synthetic Chromium journey passes four consecutive local runs. It covers deliberate resume-fact review, persisted filtering, safe manual job capture, explainable approved/missing skill evidence, job-specific documents with immutable earlier bytes, exact reviewed answer export, manual reported application status/notes, and database/API/browser reopen. Synthetic only; external submission OFF. A separate exact push run on earlier product-equivalent source `b62185e8ff94059c50c2976e2daf7218fbb38d18` passed all nine runtime reports, including a bounded actual Greenhouse read (19 jobs, zero external application requests) and UI policy readback; artifact `11362759827` digest `a02f0cb5d28397d13c6971cfb4dfbb5946762c59ab2313e3d9b4325834f204c7`. The PR #515 reviewer found no actionable findings at `c06979890777c1d36b0e49cc9c684591af16adc1` against `3ec8702ed0f42842e1bac772997760d8db5c9caf`.
+
+Final metadata/evidence checkpoint is in progress. Current exact-head push and pull_request runs must both pass on the final commit; inspect every required report/artifact and merge-tree equality, then merge only that expected head. If a gate fails, keep #515 draft and report PARTIAL. Product AI is unavailable/not implemented. Full requirement acceptance remains separate and PARTIAL. Do not start/update the retained private runtime or database. The user confirmed GPT-6 Luna High and released the old client; this interface cannot independently inspect billing metadata.
+
+See `docs/evidence/2026-10-05-core-workflow-trial-combined.json` for local synthetic evidence and limitations. The closing PR receipt is the final location for exact run IDs, artifact digests, candidate/base/merge SHAs, avoiding a commit that claims to verify itself.
+
+---
+
 # Active CORE-WORKFLOW-TRIAL checkpoint — 2026-10-05, 11:58 America/Chicago
 
 GitHub `main` is still `2de5863da7418bf20087822d052b2beeb77ca64b`, including answer-bank PR #511 and job-tracking PR #512. PR #513 is open as a draft on `codex/core-workflow-trial-application-pipeline-20261005`, with source head `8756881027674346bd022716068b4532cbc91ca7` and base `2de5863da7418bf20087822d052b2beeb77ca64b`. The exact source head is remotely synchronized and independently reviewed with no actionable code defects.

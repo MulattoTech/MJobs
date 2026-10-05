@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-05T16:30:06Z",
+  "timestamp": "2026-10-05T18:29:25Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -137,9 +137,10 @@
       "requirement_id": "MJ-REQ-015",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-09-29-mock-spine.md"
+        "docs/evidence/2026-09-29-mock-spine.md",
+        "docs/evidence/2026-10-05-core-workflow-trial-combined.json"
       ],
-      "note": "Initial scoped behavior only; full requirement remains open"
+      "note": "Connected synthetic resume import/review, deliberate approval and persisted workflow journey pass locally; exact final-head hosted reports remain pending. Broader acceptance remains PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-016",
@@ -889,9 +890,10 @@
       "requirement_id": "MJ-REQ-100",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-05-job-specific-cover-letter.json"
+        "docs/evidence/2026-10-05-job-specific-cover-letter.json",
+        "docs/evidence/2026-10-05-core-workflow-trial-combined.json"
       ],
-      "note": "Deterministic job-specific preparation from approved career facts and evidenced posting context, with blocking validation and immutable preview/download, passed exact-head PR #510 review and CI. Keep PARTIAL because broader verified company-context and combined-trial acceptance is not claimed."
+      "note": "Combined journey prepares a job-specific cover letter from approved facts and evidence; broader context/content acceptance remains PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-101",
@@ -913,9 +915,10 @@
       "requirement_id": "MJ-REQ-103",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-05-reviewed-application-answers.json"
+        "docs/evidence/2026-10-05-reviewed-application-answers.json",
+        "docs/evidence/2026-10-05-core-workflow-trial-combined.json"
       ],
-      "note": "Question-aware, versioned answer review and application-linked export merged in PR #511 at fb8ab73. Exact candidate 22d9a36 had passing independent review, push 37307763776 and pull_request 37307771220 Verification, nine PASS reports per artifact, and matching GitHub artifact digests. These requirements remain PARTIAL for fuzzy/semantic matching, configurable confidence, full sensitive/legal controls, and durable unexported drafts."
+      "note": "Combined journey reuses an exact approved answer only after explicit per-job review and exports an immutable artifact; broader sensitive/legal acceptance remains PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-104",
@@ -979,9 +982,10 @@
       "evidence": [
         "docs/evidence/2026-09-29-mock-spine.md",
         "docs/evidence/2026-09-30-user-testing.md",
-        "docs/evidence/2026-10-05-explainable-matching.json"
+        "docs/evidence/2026-10-05-explainable-matching.json",
+        "docs/evidence/2026-10-05-core-workflow-trial-combined.json"
       ],
-      "note": "Bounded deterministic approved-fact skill explanations and persisted rescore passed exact-head PR #509 independent review, push run 37275627438 and pull_request run 37275632400 with all nine reports and PR tree-equality gate. Full MJ-REQ-112..119 remains open."
+      "note": "Combined journey shows approved-fact match evidence and unknown/missing evidence; broad matching requirements remain PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-113",
@@ -997,9 +1001,10 @@
       "evidence": [
         "docs/evidence/2026-09-29-mock-spine.md",
         "docs/evidence/2026-09-30-user-testing.md",
-        "docs/evidence/2026-10-05-explainable-matching.json"
+        "docs/evidence/2026-10-05-explainable-matching.json",
+        "docs/evidence/2026-10-05-core-workflow-trial-combined.json"
       ],
-      "note": "Bounded deterministic approved-fact skill explanations and persisted rescore passed exact-head PR #509 independent review, push run 37275627438 and pull_request run 37275632400 with all nine reports and PR tree-equality gate. Full MJ-REQ-112..119 remains open."
+      "note": "Persisted title/location filtering and match explanations are included in the connected synthetic journey; full acceptance remains PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-115",
@@ -1470,9 +1475,10 @@
       "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-09-30-user-testing.md",
-        "docs/evidence/2026-10-05-manual-job-capture.json"
+        "docs/evidence/2026-10-05-manual-job-capture.json",
+        "docs/evidence/2026-10-05-core-workflow-trial-combined.json"
       ],
-      "note": "Bounded manual-capture fallback passed exact-head PR #508 verification and a separate Greenhouse public read; it preserves description/source values, avoids fetching pasted URLs, and supports capture/readback/preparation handoff. Full requirement remains PARTIAL."
+      "note": "Combined journey captures a manually pasted job without fetching its reference URL and reads it back after restart; broader job-intake acceptance remains PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-187",
@@ -1487,9 +1493,10 @@
       "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-09-30-user-testing.md",
-        "docs/evidence/2026-10-05-manual-job-capture.json"
+        "docs/evidence/2026-10-05-manual-job-capture.json",
+        "docs/evidence/2026-10-05-core-workflow-trial-combined.json"
       ],
-      "note": "Bounded manual-capture fallback passed exact-head PR #508 verification and a separate Greenhouse public read; it preserves description/source values, avoids fetching pasted URLs, and supports capture/readback/preparation handoff. Full requirement remains PARTIAL."
+      "note": "Manual-capture readback and preparation handoff pass in the combined synthetic journey; broader acceptance remains PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-189",
@@ -1513,9 +1520,10 @@
       "requirement_id": "MJ-REQ-192",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-05-job-dispositions-notes.json"
+        "docs/evidence/2026-10-05-job-dispositions-notes.json",
+        "docs/evidence/2026-10-05-core-workflow-trial-combined.json"
       ],
-      "note": "Local connected browser/API/storage evidence covers profile-scoped Save, Hide, Not Interested, job notes and append-only history; retry idempotency, concurrent ordering, legacy-history compatibility and profile-switch isolation repairs, held-read browser assertions verify scheduled-search resets and empty fact/answer editors before the destination response completes; other profile-scoped view resets are implemented but not individually seeded in that browser case. Fresh exact-head independent review and hosted push/pull_request checks are pending; company blacklist, remaining job actions and complete requirement acceptance remain open."
+      "note": "Existing save/hide/not-interested and note paths plus combined job/application history journey are connected; company blacklist and full requirement remain PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-193",
@@ -1534,9 +1542,10 @@
       "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-09-30-user-testing.md",
-        "docs/evidence/2026-10-05-application-pipeline.json"
+        "docs/evidence/2026-10-05-application-pipeline.json",
+        "docs/evidence/2026-10-05-core-workflow-trial-combined.json"
       ],
-      "note": "Connected Applications board exposes ten user-reported stages, profile-scoped append-only history and linked prepared documents. Comparison, application detail/history, downloads and fixture mock actions enforce profile ownership. Source head 8756881 passes 585 Python tests, 42 focused integrations, 5 Chromium tests, 62 web tests/build and validators; independent review found no actionable defect. Final corrected-metadata-head hosted CI/artifacts and combined A-F proof remain pending; full requirement stays PARTIAL."
+      "note": "User-reported APPLIED status and notes survive API/database/browser reopen without changing operational state or creating a submission receipt; full tracker acceptance remains PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-196",
@@ -1824,9 +1833,10 @@
       "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-10-05-job-dispositions-notes.json",
-        "docs/evidence/2026-10-05-application-pipeline.json"
+        "docs/evidence/2026-10-05-application-pipeline.json",
+        "docs/evidence/2026-10-05-core-workflow-trial-combined.json"
       ],
-      "note": "Profile-scoped job/application notes and chronological histories pass API/database reopen and connected Chromium reload checks. Company notes and broad requirement acceptance remain open. Application read/history privacy repairs are reviewed on source head 8756881; final corrected-metadata-head exact CI/artifact gates remain pending."
+      "note": "Connected application notes/history persist through reopen; company notes and broad history requirements remain PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-240",
