@@ -11,6 +11,7 @@ from services.documents.validation import validate_assertions, validate_formats
 def validated_letter_preview(store, document, output_dir):
     application = store.application(document["application_id"])
     document.setdefault("profile_id", application["profile_id"])
+    document.setdefault("job_title", store.job(application["job_id"])["title"])
     root = Path(output_dir).resolve()
     application_root = (root / document["application_id"]).resolve()
     if not application_root.is_relative_to(root):

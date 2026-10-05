@@ -5,7 +5,9 @@ from pathlib import Path
 import tempfile
 import unittest
 
+from docx import Document as Docx
 from fastapi.testclient import TestClient
+from sqlalchemy import update
 
 from apps.api.main import create_app
 from fixtures.mock_server import fixture_server
@@ -13,6 +15,8 @@ from packages.persistence.store import Store
 from services.discovery.pipeline import discover
 from services.documents.generate import prepare
 from services.documents.history import application_documents
+from services.documents.render import render_pdf
+from packages.persistence import models as m
 from tests.integration.test_spine import PROFILE
 
 
@@ -72,6 +76,45 @@ class CoverLetterWorkflowTests(unittest.TestCase):
                 response = client.get(f"/documents/{current['id']}/txt")
             self.assertEqual(response.status_code, 409)
             self.assertEqual(self.store.application(application_id)["document_version"], 2)
+
+    def test_legacy_generic_cover_letter_remains_previewable_and_downloadable(self):
+        with fixture_server() as origin:
+            discover(self.store, origin, "fixture")
+            job = next(row for row in self.store.jobs() if row["requisition"] == "B")
+            application_id = prepare(self.store, job["id"], "fixture", self.root)
+            row = next(row for row in application_documents(self.store, application_id, self.root)
+                       if row["kind"] == "cover-letter")
+
+            # Recreate the stored shape/content contract from before job-specific letters.
+            profile = self.store.profile("fixture", row["profile_version"])
+            fact_ids = row["fact_ids"]
+            fact_text = {fact["fact_id"]: fact["text"] for fact in profile["facts"]}
+            paragraphs = [profile["name"], f"Application for {job['title']}",
+                          *(fact_text[identifier] for identifier in fact_ids)]
+            files = {fmt: self.root / application_id / relative
+                     for fmt, relative in row["files"].items()}
+            word = Docx()
+            for paragraph in paragraphs:
+                word.add_paragraph(paragraph)
+            word.save(files["docx"])
+            render_pdf(files["pdf"], paragraphs)
+            files["txt"].write_text("\n".join(paragraphs) + "\n", encoding="utf-8")
+            hashes = {fmt: hashlib.sha256(path.read_bytes()).hexdigest()
+                      for fmt, path in files.items()}
+            with self.store.engine.begin() as connection:
+                connection.execute(update(m.documents).where(m.documents.c.id == row["id"]).values(
+                    template="verified-facts-v1", generation_model="deterministic-fact-copy-v1",
+                    generation_context=None, sha256=hashes))
+
+            app = create_app(self.store, origin, self.root, operation_mode="FIXTURE")
+            with TestClient(app) as client:
+                history = client.get(f"/applications/{application_id}/documents")
+                response = client.get(f"/documents/{row['id']}/txt")
+            self.assertEqual(history.status_code, 200)
+            legacy = next(item for item in history.json()["documents"] if item["id"] == row["id"])
+            self.assertEqual(legacy["preview_text"], "\n".join(paragraphs))
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.content, files["txt"].read_bytes())
 
 
 if __name__ == "__main__":

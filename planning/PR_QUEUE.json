@@ -3102,7 +3102,7 @@
       "branch": "codex/core-workflow-trial-cover-letter-20261005",
       "draft_until_verified": true,
       "scope_complete": false,
-      "notes": "Additive re-slicing from existing MJ-PR-028; the original queue item/dependency remains unchanged. Current main already supplies the approved-fact validation and immutable document/history interfaces needed for this deterministic slice, so full MJ-PR-027 acceptance is not claimed as PASS; broader MJ-REQ-095 remains partial. Local synthetic builder, persistence, validation, Chromium preview/download, and web checks pass. Exact-head independent review, both hosted event reports, and combined trial journey remain pending. No AI provider or external submission.",
+      "notes": "Additive re-slicing from existing MJ-PR-028; original queue item/dependency remains unchanged. Current-main approved-fact validation and immutable document/history interfaces support this deterministic slice; no claim that full MJ-PR-027 or broader MJ-REQ-095 passes. Draft PR #510 was published at e77ea5d, then superseded after independent review found legacy generic cover-letter direct downloads returned 409. The local compatibility repair and persisted regression test pass; publish the fix, obtain fresh exact-head independent review and both Verification events, and parse required runtime reports before merge. Combined A-F journey remains outstanding; no product AI or external submission.",
       "evidence_path": "docs/evidence/2026-10-05-job-specific-cover-letter.json"
     }
   ]

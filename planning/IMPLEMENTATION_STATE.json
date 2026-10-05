@@ -718,8 +718,9 @@
     "CORE-WORKFLOW-TRIAL C: 281 integration tests, local Chromium capture, web tests/build and validators pass. Candidate 4328c95 had a no-findings code review but is ineligible: both hosted Verification events hid failed public-source UI readback under continue-on-error and lacked its artifact. Oracle repaired in db5f83e; fresh exact-head review and checks pending.",
     "Cover letter builder: 4 deterministic unit cases; 6 persistence/validation/provenance integrations; Chromium manual-capture-to-preview/download journey",
     "Web suite: 60 tests and strict TypeScript/Vite production build",
-    "CORE-WORKFLOW-TRIAL D cover-letter: full Python suite 549 tests PASS (256.139s); evidence docs/evidence/2026-10-05-job-specific-cover-letter.json",
-    "CORE-WORKFLOW-TRIAL D: web suite 60 tests PASS, strict TypeScript/Vite production build PASS, agent-skills/progress/catalogue validators and git diff --check PASS"
+    "CORE-WORKFLOW-TRIAL D pre-compatibility-review candidate e77ea5d: full Python suite 549 tests PASS (256.139s); evidence docs/evidence/2026-10-05-job-specific-cover-letter.json",
+    "CORE-WORKFLOW-TRIAL D: web suite 60 tests PASS, strict TypeScript/Vite production build PASS, agent-skills/progress/catalogue validators and git diff --check PASS",
+    "CORE-WORKFLOW-TRIAL D compatibility repair: 9 affected integration/Chromium tests PASS; legacy generic preview/download and tampered-new-output rejection both exercised."
   ],
   "tests_failed": [],
   "tests_not_run": [
@@ -731,8 +732,8 @@
     "Original P0-P3 release acceptance remains open.",
     "Original P0-P3 release acceptance remains open.",
     "Combined CORE-WORKFLOW-TRIAL A-F browser journey pending",
-    "D cover-letter independent review and exact-head push/pull_request Verification reports and runtime-artifact parsing",
-    "Combined CORE-WORKFLOW-TRIAL A-F browser journey"
+    "Combined CORE-WORKFLOW-TRIAL A-F browser journey",
+    "D repaired candidate independent re-review and exact-head push/pull_request Verification reports/runtime-artifact parsing"
   ],
   "known_external_limitations": [
     "Production external career-site/domain acquisition, configured web-search provider and non-mock ATS metadata integration are not verified in MJ-PR-017.",
@@ -750,9 +751,9 @@
     "MJ-PR-016 local Chromium first run used Docker DNS host api, which is not a secure browser origin for crypto.randomUUID; loopback URL rerun passed all five connected UI actions."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-05T07:58:15.000000+00:00",
+    "timestamp": "2026-10-05T08:09:16+00:00",
     "result": "PARTIAL",
-    "scope": "Synthetic local cover-letter workflow; 549 Python tests, 60 web tests, production build and repository validators PASS; independent review and exact-head hosted checks pending",
+    "scope": "Cover-letter workflow and legacy compatibility repair: full pre-fix-candidate suite 549 Python tests, web 60 tests/build, plus 9 affected final-working-tree tests PASS; repaired-candidate independent review and exact-head hosted checks pending",
     "evidence_path": "docs/evidence/2026-10-05-job-specific-cover-letter.json"
   },
   "ci_verification": {
@@ -815,7 +816,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Obtain fresh independent review and exact-head push/pull_request Verification for the published cover-letter candidate; parse all required runtime reports before merging. Continue CORE-WORKFLOW-TRIAL with reviewed reusable answers, then manual application tracking, and preserve unfinished requirements as PARTIAL.",
+  "recommended_resume_step": "Publish the legacy-download compatibility repair to PR #510; obtain independent review and run both exact-head Verification events, then inspect every required runtime report before considering merge. Continue with the answer workflow and manual application tracking; preserve full requirements as PARTIAL where acceptance is incomplete.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -855,9 +856,9 @@
   "last_implementation_commit": "5f535d90f8f3b91e1a16bf1c5eb9a667b430d753",
   "publication": {
     "result": "PARTIAL",
-    "branch": "chatgpt/codespaces-bounded-iteration-20261004",
-    "base": "b1691622a61ee368f058461ff002728325d275a9",
-    "note": "Bootstrap contract passed; actual devcontainer, exact-head Verification and independent review pending."
+    "branch": "codex/core-workflow-trial-cover-letter-20261005",
+    "base": "959f9a36cd32a4c326459a0ba472a24a4abd7d3f",
+    "note": "Draft PR #510 published. Initial candidate e77ea5d was superseded after independent review exposed a legacy cover-letter download regression; repair is in the working tree and must be pushed/re-reviewed with fresh push and pull_request checks."
   },
   "optional_afk_journal": {
     "result": "PASS",

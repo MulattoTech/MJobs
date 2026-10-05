@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-10-05T07:58:15+00:00",
+  "timestamp": "2026-10-05T08:09:16+00:00",
   "result": "PARTIAL",
   "scope": "MJ-REQ-100..102 deterministic, reviewable job-specific cover-letter draft",
   "base_commit": "959f9a36cd32a4c326459a0ba472a24a4abd7d3f",
@@ -63,6 +63,17 @@
     {
       "command": "git diff --check",
       "result": "PASS"
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_cover_letter_workflow tests.integration.test_document_validation tests.integration.test_document_provenance tests.browser.test_manual_job_capture tests.browser.test_document_history -v",
+      "result": "PASS",
+      "tests": 9,
+      "duration_seconds": 22.292,
+      "browser": "Chromium",
+      "assertions": [
+        "legacy generic preview and download remain available",
+        "tampered job-specific output remains blocked"
+      ]
     }
   ],
   "assertions": [
@@ -76,10 +87,18 @@
   "external_application_requests": 0,
   "product_ai_used": false,
   "limitations": [
-    "Hosted exact-final-head push and pull_request checks, runtime-artifact parsing, and independent review remain pending.",
+    "Repaired candidate has not yet completed independent re-review, exact-head push/pull_request checks, and runtime-artifact parsing.",
     "Manual employer identity remains USER_ENTERED_UNVERIFIED and is labeled for user verification.",
     "This is deterministic template tailoring, not AI rephrasing or arbitrary user-edited prose.",
     "No live employer submission or company-context inference was performed.",
     "The complete A-F combined trial journey remains outstanding."
+  ],
+  "superseded_candidate_commit": "e77ea5d7bde74c265e02da7ae4d914c5fdd0e54d",
+  "review_findings": [
+    {
+      "candidate": "e77ea5d7bde74c265e02da7ae4d914c5fdd0e54d",
+      "finding": "Legacy generic cover-letter direct downloads lacked job_title in the validation context and returned 409.",
+      "disposition": "Added a persisted legacy-revision regression test and derive its job title from the saved application before legacy validation; focused test now passes. Exact-head independent re-review and both hosted event runs are pending for the repaired candidate."
+    }
   ]
 }
