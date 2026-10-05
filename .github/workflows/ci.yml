@@ -1,7 +1,13 @@
 name: Verification
 on:
+  # Feature branch commits are verified by the full PR workflow once a PR is
+  # open. Keep full CI on main for post-merge integration and recovery.
   push:
+    branches:
+      - main
   pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:
