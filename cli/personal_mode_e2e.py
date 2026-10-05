@@ -40,7 +40,7 @@ def run(api_url: str, evidence_path: Path | None = None) -> dict:
             raise RuntimeError("Personal project inherited fixture or other prior data")
         rejected = {
             "fictional_discovery": client.post("/discovery", json={"profile_id": "isolated-probe"}).status_code,
-            "fictional_submission": client.post("/applications/isolated-probe/mock-run", json={"submit": True}).status_code,
+            "fictional_submission": client.post("/profiles/isolated-probe/applications/isolated-probe/mock-run", json={"submit": True}).status_code,
         }
         if any(status != 409 for status in rejected.values()):
             raise RuntimeError("A fictional action was available in personal mode: " + repr(rejected))

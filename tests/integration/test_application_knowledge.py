@@ -123,7 +123,7 @@ class ApplicationKnowledgeTests(unittest.TestCase):
             routes = client.get("/jobs/job/routes").json()
             self.assertEqual(application["adapter_knowledge"]["provider"], "greenhouse")
             self.assertEqual(routes["all_options"][0]["preferred_route"]["adapter_knowledge"]["provider"], "greenhouse")
-            self.assertEqual(client.post(f"/applications/{application_id}/mock-run", json={"submit": True}).status_code, 409)
+            self.assertEqual(client.post(f"/profiles/fixture/applications/{application_id}/mock-run", json={"submit": True}).status_code, 409)
         self.assertEqual(application["route_id"], "route")
         self.assertEqual(application["target"], "REAL")
         self.assertEqual(application["state"], "PREPARED")

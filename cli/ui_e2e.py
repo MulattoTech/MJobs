@@ -218,7 +218,7 @@ def run(base_url, evidence_path):
             confirmed = request("/profiles/" + profile_id + "/applications/" + identifier)
             assert confirmed["target"] == "MOCK" and confirmed["confirmation"]["submission_count"] == 1
             assert request("/health")["external_submission_enabled"] is False
-            repeated = context.request.post(base_url + "/applications/" + identifier + "/mock-run", data={"submit": True}).json()
+            repeated = context.request.post(base_url + "/profiles/" + profile_id + "/applications/" + identifier + "/mock-run", data={"submit": True}).json()
             assert repeated["state"] == "COMPLETED"
             assert request("/profiles/" + profile_id + "/applications/" + identifier)["confirmation"] == confirmed["confirmation"]
             page.screenshot(path=str(artifacts / "application-confirmed.png"), full_page=True)

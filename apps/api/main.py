@@ -834,11 +834,14 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             raise NoResultFound("Document is not owned by this profile")
         return serve_document(document, format)
 
-    @app.post("/applications/{application_id}/mock-run", status_code=202)
-    def mock_run(application_id: str, value: MockRunInput):
+    @app.post("/profiles/{profile_id}/applications/{application_id}/mock-run", status_code=202)
+    def mock_run(profile_id: str, application_id: str, value: MockRunInput):
         if operation_mode != "FIXTURE":
             raise HTTPException(409, "Fictional application actions are available only in verification mode")
-        if store.application(application_id)["target"] != "MOCK":
+        application = store.application(application_id)
+        if application["profile_id"] != profile_id:
+            raise NoResultFound("Application is not owned by this profile")
+        if application["target"] != "MOCK":
             raise HTTPException(409, "External submission is disabled; this application supports manual preparation only")
         return queued("APPLY_MOCK", application_id, {"submit": value.submit})
 

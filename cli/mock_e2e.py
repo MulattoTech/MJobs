@@ -40,13 +40,13 @@ def run(api_url, evidence_path=None):
         preparation = call("POST", "/applications", json={"job_id": job_b["id"], "profile_id": profile["id"]})
         wait(preparation["operation_id"])
         application = call("GET", "/profiles/" + profile["id"] + "/applications/" + preparation["application_id"])
-        request = call("POST", "/applications/" + application["id"] + "/mock-run", json={"submit": True})
+        request = call("POST", "/profiles/" + profile["id"] + "/applications/" + application["id"] + "/mock-run", json={"submit": True})
         wait(request["operation_id"])
         confirmed = call("GET", "/profiles/" + profile["id"] + "/applications/" + application["id"])
         if confirmed["state"] != "CONFIRMED" or not confirmed["confirmation"]:
             raise RuntimeError("No verified fictional mock submission confirmation")
         # Repeat the exact operation and assert no new operation/application.
-        again = call("POST", "/applications/" + application["id"] + "/mock-run", json={"submit": True})
+        again = call("POST", "/profiles/" + profile["id"] + "/applications/" + application["id"] + "/mock-run", json={"submit": True})
         if again["operation_id"] != request["operation_id"]:
             raise RuntimeError("Operation identity changed on retry")
         wait(again["operation_id"])

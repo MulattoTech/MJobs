@@ -144,6 +144,17 @@ class ApplicationPipelineTests(unittest.TestCase):
         self.assertEqual(final.json()["status"], "WITHDRAWN")
         self.assertEqual([row["text"] for row in final.json()["notes"]], ["First note"])
 
+    def test_mock_actions_are_profile_scoped(self):
+        url = f"/profiles/fixture/applications/{self.application_id}/mock-run"
+        foreign = self.client.post(
+            f"/profiles/other/applications/{self.application_id}/mock-run",
+            json={"submit": False})
+        self.assertEqual(foreign.status_code, 404)
+        self.assertEqual(self.store.count("worker_operations"), 0)
+        own = self.client.post(url, json={"submit": False})
+        self.assertEqual(own.status_code, 202, own.text)
+        self.assertEqual(self.store.count("worker_operations"), 1)
+
     def test_concurrent_updates_allocate_a_single_ordered_history(self):
         barrier = Barrier(3)
 

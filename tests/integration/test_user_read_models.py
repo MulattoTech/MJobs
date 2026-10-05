@@ -102,7 +102,7 @@ class UserReadModelTests(unittest.TestCase):
         application = prepare(self.store, job["id"], "fixture", self.root)
         self.assertEqual(self.store.application(application)["target"], "REAL")
         with fixture_server() as origin, TestClient(create_app(self.store, origin, self.root, operation_mode="FIXTURE")) as client:
-            self.assertEqual(client.post("/applications/" + application + "/mock-run", json={"submit": True}).status_code, 409)
+            self.assertEqual(client.post("/profiles/fixture/applications/" + application + "/mock-run", json={"submit": True}).status_code, 409)
             self.assertEqual(client.get("/profiles/fixture", headers={"Sec-Fetch-Site": "cross-site"}).status_code, 403)
         self.store.save_profile(dict(PROFILE, facts=[dict(row, user_approved=False) for row in PROFILE["facts"]]))
         recalculate(self.store, "fixture")
