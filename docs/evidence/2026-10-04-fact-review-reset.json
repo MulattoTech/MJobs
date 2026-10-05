@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-10-05T00:42:13.989737+00:00",
+  "timestamp": "2026-10-05T00:46:22.832898+00:00",
   "result": "PARTIAL",
   "scope": "Issue503 / MJ-REQ-092 UI fact review-reset regression",
   "base": "c89a09cfe7b7aa458b0f7dc4b0a53c24e4937ec0",
@@ -25,12 +25,12 @@
     "external_application_submission_performed": false
   },
   "green": {
-    "timestamp": "2026-10-05T00:39:44.406761+00:00",
+    "timestamp": "2026-10-05T00:44:35.438345+00:00",
     "result": "PASS",
     "mode": "BROWSER_ACCEPTANCE",
     "command": "python -m tools.verification.fact_review",
     "target": "Isolated synthetic Chromium, local API, temporary migrated SQLite, existing operation worker and actual document downloads",
-    "source_commit": "c89a09cfe7b7aa458b0f7dc4b0a53c24e4937ec0",
+    "source_commit": "8de7edb98d7fbc46f3fae887d2388bb53c0be2fd",
     "tests_run": 3,
     "failures": 0,
     "errors": 0,
@@ -49,9 +49,9 @@
     "apps/web/src/main.tsx": "6b3adb9bb1fb324bc39352c77769d1a09163610a53cca3802fac8f46649d91b0",
     "apps/web/src/fact-review.ts": "0e2d037397a836ca10dbbb6544035ac258d039b0244440d522580662c31b7b22",
     "apps/web/src/fact-review.test.ts": "209a27ac0092a6ae24a99f7d8e77b4efe23033a53cd3604ce600729dc16b6d42",
-    "tests/browser/test_fact_review.py": "a9c33ec525a420df233179200ed083a50143ef28f9f026ac7e8b86a2ca132800",
+    "tests/browser/test_fact_review.py": "29b488a86082d08d452c50ba23cfaf8243e45a2ef976fc3de2f41e87030cfe0d",
     "tools/verification/fact_review.py": "177dc131d7935d4358c443eae586f989d0d2b53bf6cbad1472d62c9309dcc444",
-    ".github/workflows/ci.yml": "3424df9f7afb66155982724018190bbf27b6800bb659ff30bb4e00ea3b01ff30"
+    ".github/workflows/ci.yml": "1c90e2a040c40f96d8eed70593e4dbba55a66fe2a8a1c0aa76a6a849f0b5e14a"
   },
   "checks": [
     {
@@ -90,5 +90,15 @@
   },
   "external_submission_enabled": false,
   "deployment_performed": false,
-  "requirement_095": "PARTIAL; broader factual rephrasing and AI are not implemented by this change"
+  "requirement_095": "PARTIAL; broader factual rephrasing and AI are not implemented by this change",
+  "independent_review": {
+    "initial_result": "PARTIAL",
+    "finding": "P2: PR head checkout alone removed merge-result validation.",
+    "resolution": "Restore default synthetic-merge checkout and require its tree to equal the exact PR candidate tree before tests.",
+    "reviewer": "Fresh Codex CLI read-only ephemeral review, no repository mutations",
+    "initial_review_sha256": "a1700d86c70297bf107464ede9134efb794db49de1f8d762344f81728bf211f6",
+    "follow_up": "NOT_RUN; final review result will be recorded on PR504 before merging"
+  },
+  "strengthened_acceptance": "Each browser journey parses and verifies current TXT/DOCX/PDF content, excludes both old and edited fact text while pending, and verifies all historical resume/cover-letter downloads by checksum.",
+  "ci_contract": "Both push and PR Verification required; PR tests the synthetic merge result and refuses a tree differing from the exact candidate. Nine expected runtime JSON results per run include ci-fact-review.json."
 }

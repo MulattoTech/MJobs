@@ -1,6 +1,7 @@
 """Synthetic Chromium/API/worker proof that content edits require fresh review."""
 import copy
 import hashlib
+from io import BytesIO
 import re
 from pathlib import Path
 import tempfile
@@ -11,6 +12,8 @@ from unittest.mock import patch
 from urllib.parse import urlsplit
 
 from playwright.sync_api import sync_playwright, expect
+from docx import Document
+from pypdf import PdfReader
 import uvicorn
 
 from apps.api.main import create_app
@@ -50,7 +53,6 @@ class FactReviewBrowserTests(unittest.TestCase):
             job = store.jobs()[0]
             application_id = prepare(store, job['id'], 'fixture', root)
             historical = copy.deepcopy(application_documents(store, application_id))
-            original_resume = next(row for row in historical if row['kind'] == 'resume')
             sock = bound_browser_socket()
             origin = f'http://127.0.0.1:{sock.getsockname()[1]}'
             app = create_app(store, 'http://127.0.0.1:1', root, 'redis://127.0.0.1:1/0', operation_mode='FIXTURE')
@@ -117,13 +119,22 @@ class FactReviewBrowserTests(unittest.TestCase):
                         latest = max((r for r in rows if r['kind'] == 'resume'), key=lambda r: r['version'])
                         self.assertEqual(target_id in latest['fact_ids'], expected_eligible)
                         document = page.get_by_role('region', name=f"resume version {latest['version']}", exact=True)
-                        with page.expect_download() as event:
-                            document.get_by_role('link', name='Download TXT', exact=True).click()
-                        downloaded = Path(event.value.path()).read_bytes()
-                        self.assertEqual(hashlib.sha256(downloaded).hexdigest(), latest['sha256']['txt'])
                         target_text = value if field == 'text' else profile['facts'][0]['text']
-                        self.assertEqual(target_text in downloaded.decode('utf-8').splitlines(), expected_eligible)
-                        self.assertIn(profile['facts'][1]['text'], downloaded.decode('utf-8').splitlines())
+                        for fmt in ('txt', 'docx', 'pdf'):
+                            with page.expect_download() as event:
+                                document.get_by_role('link', name='Download '+fmt.upper(), exact=True).click()
+                            downloaded = Path(event.value.path()).read_bytes()
+                            self.assertEqual(hashlib.sha256(downloaded).hexdigest(), latest['sha256'][fmt])
+                            if fmt == 'txt':
+                                text = downloaded.decode('utf-8')
+                            elif fmt == 'docx':
+                                text = '\n'.join(p.text for p in Document(BytesIO(downloaded)).paragraphs)
+                            else:
+                                text = '\n'.join(p.extract_text() for p in PdfReader(BytesIO(downloaded)).pages)
+                            self.assertEqual(target_text in text, expected_eligible, fmt)
+                            if not expected_eligible:
+                                self.assertNotIn(profile['facts'][0]['text'], text, fmt)
+                            self.assertIn(profile['facts'][1]['text'], text, fmt)
 
                     row = open_profile()
                     expect(row).to_have_accessible_name('Fact 1 Eligible')
@@ -172,11 +183,12 @@ class FactReviewBrowserTests(unittest.TestCase):
                     current_rows = {r['id']: r for r in application_documents(store, application_id)}
                     for old_row in historical:
                         self.assertEqual(current_rows[old_row['id']], old_row)
-                    original = page.get_by_role('region', name=f"resume version {original_resume['version']}", exact=True)
-                    for fmt in ('pdf', 'docx', 'txt'):
-                        with page.expect_download() as event:
-                            original.get_by_role('link', name='Download '+fmt.upper(), exact=True).click()
-                        self.assertEqual(hashlib.sha256(Path(event.value.path()).read_bytes()).hexdigest(), original_resume['sha256'][fmt])
+                    for old_row in historical:
+                        original = page.get_by_role('region', name=f"{old_row['kind']} version {old_row['version']}", exact=True)
+                        for fmt in ('pdf', 'docx', 'txt'):
+                            with page.expect_download() as event:
+                                original.get_by_role('link', name='Download '+fmt.upper(), exact=True).click()
+                            self.assertEqual(hashlib.sha256(Path(event.value.path()).read_bytes()).hexdigest(), old_row['sha256'][fmt])
                     self.assertFalse(external)
                     context.close()
                     browser.close()

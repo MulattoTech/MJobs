@@ -9,8 +9,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Require the tested PR merge tree to equal the exact candidate tree
+        if: github.event_name == 'pull_request'
+        env:
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          git fetch --no-tags --depth=1 origin "$PR_HEAD"
+          test "$(git rev-parse HEAD^{tree})" = "$(git rev-parse "${PR_HEAD}^{tree}")"
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
