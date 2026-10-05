@@ -65,6 +65,7 @@ class ApplicationAnswerExportBrowserTests(unittest.TestCase):
                     question = 'How many years of experience?'
                     answer = 'Five years of user-confirmed experience.'
                     page.get_by_role('button', name='Profile', exact=True).click()
+                    expect(page.get_by_role('button', name='Add answer', exact=True)).to_be_enabled(timeout=10000)
                     page.get_by_role('button', name='Add answer', exact=True).click()
                     answer_card = page.locator('.fact').last
                     answer_card.get_by_label('Question this answer addresses').fill(question)

@@ -915,7 +915,7 @@
       "evidence": [
         "docs/evidence/2026-10-05-reviewed-application-answers.json"
       ],
-      "note": "Narrow exact-match/manual-review export path is locally evidenced; requirement-wide matching, confidence policy, and sensitive/legal policy remain incomplete. PR #511 exact-head checks and independent review are pending."
+      "note": "Narrow exact-match/manual-review export path now includes profile-scoped answer history/download, atomic content-addressed export recovery, and a saved-profile load gate. Local 564-test Python suite, 62 web tests, focused Chromium, build and validators pass; requirement-wide matching, confidence policy and sensitive/legal policy remain incomplete. Fresh PR #511 exact-head review and both event checks are pending."
     },
     {
       "requirement_id": "MJ-REQ-104",
@@ -923,7 +923,7 @@
       "evidence": [
         "docs/evidence/2026-10-05-reviewed-application-answers.json"
       ],
-      "note": "Narrow exact-match/manual-review export path is locally evidenced; requirement-wide matching, confidence policy, and sensitive/legal policy remain incomplete. PR #511 exact-head checks and independent review are pending."
+      "note": "Narrow exact-match/manual-review export path now includes profile-scoped answer history/download, atomic content-addressed export recovery, and a saved-profile load gate. Local 564-test Python suite, 62 web tests, focused Chromium, build and validators pass; requirement-wide matching, confidence policy and sensitive/legal policy remain incomplete. Fresh PR #511 exact-head review and both event checks are pending."
     },
     {
       "requirement_id": "MJ-REQ-105",
@@ -931,7 +931,7 @@
       "evidence": [
         "docs/evidence/2026-10-05-reviewed-application-answers.json"
       ],
-      "note": "Narrow exact-match/manual-review export path is locally evidenced; requirement-wide matching, confidence policy, and sensitive/legal policy remain incomplete. PR #511 exact-head checks and independent review are pending."
+      "note": "Narrow exact-match/manual-review export path now includes profile-scoped answer history/download, atomic content-addressed export recovery, and a saved-profile load gate. Local 564-test Python suite, 62 web tests, focused Chromium, build and validators pass; requirement-wide matching, confidence policy and sensitive/legal policy remain incomplete. Fresh PR #511 exact-head review and both event checks are pending."
     },
     {
       "requirement_id": "MJ-REQ-106",
@@ -939,7 +939,7 @@
       "evidence": [
         "docs/evidence/2026-10-05-reviewed-application-answers.json"
       ],
-      "note": "Narrow exact-match/manual-review export path is locally evidenced; requirement-wide matching, confidence policy, and sensitive/legal policy remain incomplete. PR #511 exact-head checks and independent review are pending."
+      "note": "Narrow exact-match/manual-review export path now includes profile-scoped answer history/download, atomic content-addressed export recovery, and a saved-profile load gate. Local 564-test Python suite, 62 web tests, focused Chromium, build and validators pass; requirement-wide matching, confidence policy and sensitive/legal policy remain incomplete. Fresh PR #511 exact-head review and both event checks are pending."
     },
     {
       "requirement_id": "MJ-REQ-107",
@@ -947,7 +947,7 @@
       "evidence": [
         "docs/evidence/2026-10-05-reviewed-application-answers.json"
       ],
-      "note": "Narrow exact-match/manual-review export path is locally evidenced; requirement-wide matching, confidence policy, and sensitive/legal policy remain incomplete. PR #511 exact-head checks and independent review are pending."
+      "note": "Narrow exact-match/manual-review export path now includes profile-scoped answer history/download, atomic content-addressed export recovery, and a saved-profile load gate. Local 564-test Python suite, 62 web tests, focused Chromium, build and validators pass; requirement-wide matching, confidence policy and sensitive/legal policy remain incomplete. Fresh PR #511 exact-head review and both event checks are pending."
     },
     {
       "requirement_id": "MJ-REQ-108",

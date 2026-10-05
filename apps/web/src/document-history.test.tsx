@@ -29,6 +29,13 @@ describe('document provenance',()=>{
     expect(html).toContain('Download TXT');expect(html).toContain('SHA-256');
     expect(html).not.toContain('<script>');expect(html).not.toContain('Not recorded');
   });
+  it('uses a profile-scoped download route for reviewed answer exports',()=>{
+    const html=renderToStaticMarkup(<DocumentHistory documents={[{...historical,id:'answer-export',profile_id:'profile-1',
+      kind:'application-answer-export',files:{txt:'answers.txt'},sha256:{txt:'abc'},template:'reviewed-application-answers-v1',missing_fact_ids:[],
+      generation_context:{mode:'REVIEWED_APPLICATION_ANSWERS',items:[{question:'Work authorization?',source:'Manual',confidence:null,answer_mode:'USER_ENTERED'}]}}]}/>);
+    expect(html).toContain('/profiles/profile-1/documents/answer-export/txt');
+    expect(html).not.toContain('href="/documents/answer-export/txt"');
+  });
   it('shows an integrity-validated job-specific cover-letter preview and blocks downloads after failed readback',()=>{
     const letter:GeneratedDocument={...historical,kind:'cover-letter',files:{pdf:'letter.pdf',docx:'letter.docx',txt:'letter.txt'},missing_fact_ids:[],
       generation_model:'deterministic-job-evidence-v1',template:'job-specific-approved-facts-v1',

@@ -1,15 +1,15 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-05T10:01:41Z",
+  "generated_at": "2026-10-05T11:10:55Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Verified at 2026-10-05T10:01:41Z: root task checkout is synchronized on codex/core-workflow-trial-answers-20261005; local source and sanitized evidence are pushed; the latest candidate must be read from live PR #511. Separate Codespaces checkout is preserved; only synthetic data was used.",
-    "current_verified_github_state": "Verified at 2026-10-05T10:01:41Z: origin main is fb93ad48a3987c375350388ba8bf677db58575d2; PR #511 is a draft on codex/core-workflow-trial-answers-20261005; PRs #504/#506/#508/#509/#510 remain merged. Exact-head review and event checks for #511 are pending.",
-    "current_verified_at": "2026-10-05T10:01:41Z"
+    "current_verified_local_state": "Verified at 2026-10-05T11:10:55Z: root task checkout is on codex/core-workflow-trial-answers-20261005 with answer-privacy, immutable-file-recovery and saved-profile-load repairs; 564 Python tests, 62 web tests, focused Chromium, strict build and repository validators pass. Separate Codespaces checkout is preserved; synthetic test data only.",
+    "current_verified_github_state": "Verified at 2026-10-05T11:10:55Z: origin main is fb93ad48a3987c375350388ba8bf677db58575d2; PR #511 remains draft on codex/core-workflow-trial-answers-20261005. Superseded c65a85d push Verification passed, its pull_request run failed on an editor-load browser race; repaired candidate exact-head review and both event runs with runtime reports are pending.",
+    "current_verified_at": "2026-10-05T11:10:55Z"
   },
   "current_milestone": "CORE-WORKFLOW-TRIAL",
   "current_objective": "Deliver bounded user-visible career-fact, job intake/evaluation, document preparation, reviewed-answer, and manual application-tracking workflows by 2026-10-05 15:00 America/Chicago; feature cutoff 13:00; preserve external submission OFF; report PARTIAL for unfinished criteria.",
@@ -68,7 +68,7 @@
     "Durable reviewed public-feed monitoring: bounded scheduled/manual reads, atomic multi-profile matching and receipt, fresh authorization, failure backoff, changed-feed rediscovery and Sources status. Vendor ATS migration and broader providers remain open.",
     "Manual postings receive persisted deterministic skill-evidence explanations from approved profile facts; description-only mentions remain UNKNOWN and full matching/search dimensions remain open (CORE-WORKFLOW-TRIAL C local evidence).",
     "CORE-WORKFLOW-TRIAL D deterministic job-specific cover letter: local synthetic path and full suite pass; independent review and exact-head CI pending",
-    "CORE-WORKFLOW-TRIAL E has a usable profile answer bank and per-job manual review/export path; broader MJ-REQ-103..107 remain PARTIAL (docs/evidence/2026-10-05-reviewed-application-answers.json)."
+    "CORE-WORKFLOW-TRIAL E has a usable profile answer bank and per-job manual review/export path with profile-scoped history/download, atomic content-addressed export recovery, and a saved-profile load gate; 564 local Python tests, 62 web tests, focused Chromium, build, and validators pass. MJ-REQ-103..107 remain PARTIAL pending fresh exact-head independent review and CI (docs/evidence/2026-10-05-reviewed-application-answers.json)."
   ],
   "blocked_capabilities": [],
   "active_requirements": [

@@ -1,9 +1,11 @@
 """Deterministic, explicitly reviewed application answer exports."""
 from datetime import datetime, timezone
 import hashlib
+import os
 from pathlib import Path
 import re
 from threading import Lock
+from uuid import uuid4
 
 from sqlalchemy import func, select, text
 
@@ -106,15 +108,32 @@ def export_answers(store, application_id, output_dir, items):
                 m.documents.c.kind == "application-answer-export")).scalar_one_or_none()
             version = (latest or 0) + 1
             document_id = identity(application_id, "application-answer-export", version)
-            relative = f"answers/{version}/{document_id}.txt"
+            digest = hashlib.sha256(content).hexdigest()
+            relative = f"answers/{version}/{document_id}-{digest}.txt"
             path = (application_root / relative).resolve()
             if not path.is_relative_to(application_root):
                 raise ValueError("Answer export storage path is invalid")
             path.parent.mkdir(parents=True, exist_ok=True)
-            # IDs are version-derived and immutable; refuse to overwrite a prior file.
-            with path.open("xb") as output:
-                output.write(content)
-            digest = hashlib.sha256(content).hexdigest()
+            # Content-address the immutable path so a crash after file creation
+            # but before the DB commit cannot poison a later attempt at this
+            # version. Reuse only byte-identical output at the same digest path.
+            if path.exists():
+                existing = path.read_bytes()
+                if existing != content or hashlib.sha256(existing).hexdigest() != digest:
+                    raise ValueError("Answer export path contains different immutable bytes")
+            else:
+                # Write to a unique same-directory temporary file and atomically
+                # promote it only after all bytes are present. A crash during the
+                # write leaves no partial file at the immutable revision path.
+                temporary = path.with_name(f".{path.name}.{uuid4().hex}.tmp")
+                try:
+                    with temporary.open("xb") as output:
+                        output.write(content)
+                        output.flush()
+                        os.fsync(output.fileno())
+                    os.replace(temporary, path)
+                finally:
+                    temporary.unlink(missing_ok=True)
             record = {"id": document_id, "application_id": application_id,
                       "kind": "application-answer-export", "version": version,
                       "profile_version": profile["version"], "files": {"txt": relative},

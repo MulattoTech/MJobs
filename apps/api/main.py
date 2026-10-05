@@ -646,6 +646,17 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     @app.get("/applications/{application_id}/documents")
     def documents(application_id: str):
         from services.documents.history import application_documents
+        rows = application_documents(store, application_id, output_dir)
+        # Reviewed answer exports contain explicit personal answers. Require the
+        # profile-scoped read path below for their metadata and provenance too.
+        return {"documents": [row for row in rows if row["kind"] != "application-answer-export"]}
+
+    @app.get("/profiles/{profile_id}/applications/{application_id}/documents")
+    def profile_documents(profile_id: str, application_id: str):
+        from services.documents.history import application_documents
+        application = store.application(application_id)
+        if application["profile_id"] != profile_id:
+            raise NoResultFound("Application is not owned by this profile")
         return {"documents": application_documents(store, application_id, output_dir)}
 
     @app.get("/profiles/{profile_id}/applications/{application_id}/answers")
@@ -683,16 +694,14 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         except ComparisonUnavailable as error:
             raise HTTPException(409,str(error)) from error
 
-    @app.get("/documents/{document_id}/{format}")
-    def download(document_id: str, format: Literal["pdf", "docx", "txt"]):
-        with store.engine.connect() as connection:
-            document = connection.execute(select(m.documents).where(m.documents.c.id == document_id)).mappings().one()
+    def serve_document(document, format):
+        document = dict(document)
         root = Path(output_dir).resolve()
         if document["kind"] == "cover-letter":
             from services.documents.history import validated_letter_preview
             from services.documents.errors import PreparationError
             try:
-                validated_letter_preview(store, dict(document), output_dir)
+                validated_letter_preview(store, document, output_dir)
             except (OSError, ValueError, KeyError, TypeError, PreparationError) as error:
                 raise HTTPException(409, "Cover-letter validation failed; revise and prepare a new version") from error
         app_root = (root / document["application_id"]).resolve()
@@ -704,6 +713,27 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             raise HTTPException(409, "Document integrity check failed; regenerate for review")
         media = {"pdf": "application/pdf", "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "txt": "text/plain"}[format]
         return FileResponse(path, media_type=media, filename=f"{document['kind']}-v{document['version']}.{format}")
+
+    @app.get("/profiles/{profile_id}/documents/{document_id}/{format}")
+    def profile_download(profile_id: str, document_id: str, format: Literal["pdf", "docx", "txt"]):
+        with store.engine.connect() as connection:
+            document = connection.execute(select(m.documents).where(
+                m.documents.c.id == document_id)).mappings().one_or_none()
+        if document is None:
+            raise NoResultFound("Document is unavailable")
+        application = store.application(document["application_id"])
+        if application["profile_id"] != profile_id:
+            raise NoResultFound("Document is not owned by this profile")
+        return serve_document(document, format)
+
+    @app.get("/documents/{document_id}/{format}")
+    def download(document_id: str, format: Literal["pdf", "docx", "txt"]):
+        with store.engine.connect() as connection:
+            document = connection.execute(select(m.documents).where(
+                m.documents.c.id == document_id)).mappings().one_or_none()
+        if document is None or document["kind"] == "application-answer-export":
+            raise NoResultFound("Document is unavailable")
+        return serve_document(document, format)
 
     @app.post("/applications/{application_id}/mock-run", status_code=202)
     def mock_run(application_id: str, value: MockRunInput):

@@ -1,6 +1,6 @@
 {
   "evidence_id": "CORE-WORKFLOW-TRIAL-E-REVIEWED-APPLICATION-ANSWERS",
-  "recorded_at": "2026-10-05T10:49:21Z",
+  "recorded_at": "2026-10-05T11:10:55Z",
   "result": "PARTIAL",
   "scope": "Question-aware reusable answer review and immutable application-linked TXT exports",
   "authority": {
@@ -15,19 +15,19 @@
       "action": "Exercise profile approval reset, answer matching gates, profile scope, versions, hashes, and restart readback",
       "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_application_answer_export -v",
       "target": "Temporary SQLite profile/application, synthetic approved answers, local API",
-      "result": "PASS: 8 integration tests on the current working tree; substantive edits reset verification and approval; unapproved, question-mismatched, missing-text, sensitive/legal/authorization variants including plural conflicts of interest, duplicate profile scope, missing review, concurrent immutable version allocation, and export/profile-edit serialization are covered; exact normalized reuse and versioned TXT bytes read back after restart"
+      "result": "PASS: 9 integration tests on the current working tree; substantive edits reset verification and approval; sensitive/legal/authorization variants, profile-scoped history and downloads, denial of unscoped answer export metadata/bytes, content-addressed orphan recovery, concurrent immutable version allocation, and export/profile-edit serialization are covered; exact normalized reuse and versioned TXT bytes read back after restart"
     },
     {
-      "action": "Run connected browser review and historical download flow after profile-scoping answer reads",
-      "command": ".venv\\Scripts\\python.exe -m unittest tests.browser.test_application_answer_export -v",
+      "action": "Run focused connected answer-export and application document-history browser flows",
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.browser.test_application_answer_export tests.browser.test_document_history -v",
       "target": "Synthetic FIXTURE profile and job, isolated Chromium, loopback-only requests",
-      "result": "PASS: 1 browser test on the current working tree; profile editor saves reviewed answers and keeps matching evidence current without unrelated worker refresh; ethnic-origin and plural conflict-of-interest answers are not suggested; ordinary exact answers still require deliberate selection and separate per-job review; same hash-verified TXT bytes download after reload; no external browser request"
+      "result": "PASS: 2 browser tests on the current working tree; saved profile editing is gated until the selected profile has loaded; profile editor saves reviewed answers without unrelated worker refresh; ethnic-origin and plural conflict-of-interest answers are not suggested; ordinary exact answers require deliberate selection and per-job review; answer history/download uses profile-scoped API and same hash-verified TXT bytes survive reload; no external browser request"
     },
     {
       "action": "Run the complete connected UI workflow with the isolated Compose fixture",
       "command": "python -m cli.ui_e2e --base-url http://127.0.0.1:18723 --evidence %TEMP%\\mjobs-core-trial-ui-repro-20261005\\ui-e2e-fixed.json",
       "target": "Separately named synthetic FIXTURE PostgreSQL/Redis stack and Chromium",
-      "result": "PASS: 14 connected UI actions including profile edits, matching, document history, mock dry-run, one explicit local mock receipt, reload, and external submission OFF"
+      "result": "DIAGNOSTIC ONLY: 14 connected UI actions including profile edits, matching, document history, mock dry-run, one explicit local mock receipt, reload, and external submission OFF; predates the current profile-scope and file-recovery repairs and is not current-candidate acceptance"
     },
     {
       "action": "Earlier exploratory concurrent answer export smoke through the PostgreSQL API (not source-bound to the current candidate)",
@@ -45,13 +45,25 @@
       "action": "Run the complete repository Python test suite",
       "command": ".venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py' -v",
       "target": "Temporary databases, controlled fixtures, isolated Chromium",
-      "result": "PASS: 563 tests in 270.191 seconds on this working tree, including the plural sensitive-question and profile-edit/export serialization regressions"
+      "result": "PASS: 564 tests in 282.013 seconds on this working tree, including profile-load race prevention, profile-scoped answer export history/download, orphan recovery, plural sensitive-question, and profile-edit/export serialization regressions"
     },
     {
       "action": "Run web tests and strict production build",
       "command": "npm test --prefix apps/web -- --run; npm run build --prefix apps/web",
       "target": "React/TypeScript web client",
-      "result": "PASS: 61 web tests; strict TypeScript and Vite build succeeded"
+      "result": "PASS: 62 web tests; strict TypeScript and Vite build succeeded"
+    },
+    {
+      "action": "Read exact-head push and pull_request Verification for the superseded c65a85d candidate",
+      "command": "gh run view 37299100732; gh run view 37299108141",
+      "target": "Candidate c65a85ddbe918dd48bdab6dec4571bb20e59e9a4 against fb93ad48a3987c375350388ba8bf677db58575d2",
+      "result": "FAIL for merge eligibility: push run 37299100732 passed; pull_request run 37299108141 failed the full unittest step with one Chromium editor-load race. The selected profile editor could accept input before its saved profile snapshot replaced blank state. A loading gate and browser wait were added; fresh exact-head checks remain pending."
+    },
+    {
+      "action": "Independent exact-SHA defect review of superseded c65a85d",
+      "command": "Read-only review bound to c65a85ddbe918dd48bdab6dec4571bb20e59e9a4 and base fb93ad48a3987c375350388ba8bf677db58575d2",
+      "target": "PR #511 answer privacy, immutable file recovery, approval race and sensitive-answer guards",
+      "result": "Two findings were repaired on the current working tree: unscoped application document history/download no longer exposes answer exports, and content-addressed atomic output recovers from an interrupted export. Fresh independent review of the final candidate is pending."
     },
     {
       "action": "Run repository policy and whitespace checks",
@@ -65,8 +77,10 @@
     "Changing a question, answer, source, or confidence clears both verification and user approval; the prior profile version remains unchanged.",
     "Answer/contact-only profile revisions retain the exact existing match scores under the new version when matching facts and preferences are unchanged; approved fact or preference edits do not take that shortcut.",
     "The application screen uses the active profile bank through a profile-scoped read endpoint. Normalized exact question matches are suggestions only, show provenance and confidence, and require explicit selection and a separate per-job review.",
+    "Profile editor controls remain disabled until the selected saved profile version has loaded, preventing an early answer or fact edit from being overwritten by the asynchronous read.",
     "Unknown questions accept only manually entered, deliberately reviewed text. Sensitive, legal, demographic, criminal-history, salary/compensation, and common work-authorization question variants cannot reuse saved answers; these require application-specific user text.",
     "Reviewed answers create immutable, application-linked TXT document revisions with profile snapshot, question, answer-bank ID, provenance, confidence, and SHA-256. Prior export bytes survive later exports and application reload.",
+    "Answer-export metadata and byte downloads are available through profile-scoped application history/download routes; unscoped history omits these records and unscoped byte download returns not-found. Content-addressed output is atomically promoted so a partial/interrupted write cannot occupy the next revision path.",
     "The local export does not fill or submit an employer form. Test mode used synthetic data and local-only browser traffic; external submission remains OFF."
   ],
   "limitations": [

@@ -11,7 +11,7 @@ from fastapi.testclient import TestClient
 from apps.api.main import create_app
 from fixtures.mock_server import fixture_server
 from packages.persistence import models as m
-from packages.persistence.store import Store
+from packages.persistence.store import Store, identity
 from services.discovery.pipeline import discover
 from services.documents.generate import prepare
 from sqlalchemy import select
@@ -123,10 +123,19 @@ class ApplicationAnswerExportTests(unittest.TestCase):
                                      json={'profile_id':'fixture','items': [dict(base, question='HOW MANY YEARS OF EXPERIENCE?', reviewed=True)]})
         self.assertEqual(response.status_code, 201, response.text)
         document_id = response.json()['document_id']
-        exported = self.client.get(f'/documents/{document_id}/txt')
+        exported = self.client.get(f'/profiles/fixture/documents/{document_id}/txt')
         self.assertEqual(exported.status_code, 200)
         self.assertIn('Five years', exported.text)
-        documents = self.client.get(f'/applications/{self.application_id}/documents').json()['documents']
+        self.assertEqual(self.client.get(f'/profiles/other/documents/{document_id}/txt').status_code, 404)
+        self.assertEqual(self.client.get(f'/documents/{document_id}/txt').status_code, 404)
+        self.assertEqual(self.client.get(
+            f'/profiles/other/applications/{self.application_id}/documents').status_code, 404)
+        unscoped_documents = self.client.get(
+            f'/applications/{self.application_id}/documents').json()['documents']
+        self.assertNotIn(document_id, {row['id'] for row in unscoped_documents})
+        self.assertNotIn('application-answer-export', {row['kind'] for row in unscoped_documents})
+        documents = self.client.get(
+            f'/profiles/fixture/applications/{self.application_id}/documents').json()['documents']
         row = next(item for item in documents if item['id'] == document_id)
         self.assertEqual(row['kind'], 'application-answer-export')
         self.assertEqual(row['sha256']['txt'], hashlib.sha256(exported.content).hexdigest())
@@ -243,7 +252,8 @@ class ApplicationAnswerExportTests(unittest.TestCase):
         self.assertFalse(current['answers'][0]['verified'])
         self.assertFalse(current['answers'][0]['user_approved'])
         document_id = results['export'].json()['document_id']
-        exported = self.client.get(f'/applications/{self.application_id}/documents').json()['documents']
+        exported = self.client.get(
+            f'/profiles/fixture/applications/{self.application_id}/documents').json()['documents']
         row = next(document for document in exported if document['id'] == document_id)
         self.assertEqual(row['profile_version'], prior_version)
 
@@ -296,3 +306,32 @@ class ApplicationAnswerExportTests(unittest.TestCase):
             self.assertNotEqual(rows[0]['sha256'], {})
         finally:
             restarted.engine.dispose()
+
+    def test_interrupted_export_file_does_not_block_a_safe_retry(self):
+        question = 'What would you like us to know?'
+        answer = 'I would like to discuss my systems experience.'
+        content = f'Question: {question}\nAnswer: {answer}\n'.encode('utf-8')
+        document_id = identity(self.application_id, 'application-answer-export', 1)
+        stale_path = self.root / self.application_id / 'answers' / '1' / f'{document_id}.txt'
+        digest = hashlib.sha256(content).hexdigest()
+        interrupted_after_promote = self.root / self.application_id / 'answers' / '1' / f'{document_id}-{digest}.txt'
+        stale_path.parent.mkdir(parents=True, exist_ok=True)
+        stale_path.write_bytes(b'partial file left by an interrupted uncommitted export')
+        # Simulate a process exit after atomic promotion but before the DB commit.
+        interrupted_after_promote.write_bytes(content)
+
+        response = self.client.post(self.export_url, json={
+            'profile_id': 'fixture', 'items': [{
+                'question': question, 'text': answer, 'reviewed': True,
+            }],
+        })
+        self.assertEqual(response.status_code, 201, response.text)
+        document = next(row for row in self.client.get(
+            f'/profiles/fixture/applications/{self.application_id}/documents').json()['documents']
+            if row['id'] == document_id)
+        exported = self.client.get(f'/profiles/fixture/documents/{document_id}/txt')
+        self.assertEqual(exported.status_code, 200)
+        self.assertEqual(exported.content, content)
+        self.assertEqual(document['sha256']['txt'], hashlib.sha256(content).hexdigest())
+        self.assertEqual(Path(self.root / self.application_id / document['files']['txt']), interrupted_after_promote)
+        self.assertEqual(stale_path.read_bytes(), b'partial file left by an interrupted uncommitted export')
