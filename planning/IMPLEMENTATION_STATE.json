@@ -676,7 +676,7 @@
       "status": "DRAFT_PR",
       "base": "3ec8702ed0f42842e1bac772997760d8db5c9caf",
       "scope": "Connected synthetic A-F browser acceptance and exact-head verification only; broader requirements remain PARTIAL.",
-      "note": "Resolve current candidate from live GitHub PR head; after-reload browser oracle and status-summary corrections are published. Fresh exact-head review and both Verification events/runtime artifacts remain pending."
+      "note": "Current recorded checkpoint 7151348 passed independent review, but push and pull_request Verification jobs did not start because GitHub reported account payment/spending-limit restriction; no artifacts exist. Keep draft until billing access is restored and both exact-head gates pass."
     }
   ],
   "tests_passed": [
@@ -842,9 +842,9 @@
     "MJ-PR-016 local Chromium first run used Docker DNS host api, which is not a secure browser origin for crypto.randomUUID; loopback URL rerun passed all five connected UI actions."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-05T18:57:00Z",
+    "timestamp": "2026-10-05T18:57:31Z",
     "result": "PARTIAL",
-    "scope": "Independent review confirmed the active PR note is correct, but found three adjacent current-state summaries still describing its correction as pending. Those summaries are corrected in this checkpoint; exact-head review and hosted gates remain pending.",
+    "scope": "Exact-head independent state review passes on 7151348; both required Verification event jobs failed before starting due GitHub account payment/spending-limit restriction. No test steps or runtime artifacts were produced; PR #515 remains draft.",
     "evidence_path": "docs/evidence/2026-10-05-core-workflow-trial-combined.json"
   },
   "ci_verification": {
@@ -4228,8 +4228,8 @@
     },
     {
       "milestone_id": "CORE-WORKFLOW-TRIAL-COMBINED-AF-PR515",
-      "timestamp": "2026-10-05T18:57:00Z",
-      "current_phase": "CURRENT_STATE_SUMMARY_REPAIR_AND_FRESH_EXACT_HEAD_GATES_PENDING",
+      "timestamp": "2026-10-05T18:57:31Z",
+      "current_phase": "BLOCKED_EXTERNAL_GITHUB_ACTIONS_BILLING",
       "completed_steps": [
         "Reconciled live main at 3ec8702, including merged PR #514 CI trigger deduplication; merged current main into the isolated task branch.",
         "Connected synthetic Chromium journey passed four consecutive local runs; no profile, resume, or real application data used.",
@@ -4237,7 +4237,8 @@
         "Independent review of exact candidate 4548eab found one browser readback ordering gap and two stale progress claims; those repairs are now underway.",
         "Independent review of published checkpoint c5799d6 confirmed after-reload capture oracle and corrected filtering language; it found one stale awaiting-publication phrase; the correction is committed at checkpoint 03d39ee.",
         "Independent review of 34e93fc confirmed corrected handoff/evidence wording and found one stale active PR metadata note, now being corrected.",
-        "Independent review of 95ec9d6 confirmed the active PR note and found adjacent milestone/ownership summaries still described its fix as pending; this checkpoint corrects them."
+        "Independent review of 95ec9d6 confirmed the active PR note and found adjacent milestone/ownership summaries still described its fix as pending; this checkpoint corrects them.",
+        "Independent exact-head review of checkpoint 7151348 passed for corrected current-state metadata; GitHub push and pull_request Verification attempts 37359494332 and 37359772249 both failed before starting due account billing/spending limit."
       ],
       "files_added": [
         "docs/evidence/2026-10-05-core-workflow-trial-combined.json"
@@ -4255,12 +4256,13 @@
         "Independent read-only review of exact candidate c069798 against base 3ec8702: no actionable findings.",
         "Bounded actual public Greenhouse read and source UI readback previously passed in push run 37352733344 at source b62185e; 19 public jobs returned, 0 external application requests, and missing job context blocked preparation without creating an application/document.",
         "Connected synthetic Chromium workflow passed five consecutive runs with manual job detail readback after reload and precise saved/transient filter assertions; source base 79630ea plus local test update.",
-        "Four consecutive connected synthetic Chromium runs passed with profile-scoped manual capture description/reference readback after UI reload; test source sha256 c4e0383f109f0c9396c51a0523cac92dd874c9be0170d7898c7ee4293e1dd054."
+        "Four consecutive connected synthetic Chromium runs passed with profile-scoped manual capture description/reference readback after UI reload; test source sha256 c4e0383f109f0c9396c51a0523cac92dd874c9be0170d7898c7ee4293e1dd054.",
+        "Final local connected Chromium oracle: four consecutive runs pass on test source SHA-256 c4e0383f109f0c9396c51a0523cac92dd874c9be0170d7898c7ee4293e1dd054; progress, catalogue, and agent-skill validators pass."
       ],
       "tests_remaining": [
-        "Obtain fresh read-only review on the exact current candidate.",
-        "Run push and pull_request Verification on exact head; inspect all required runtime reports/artifacts, PR merge-tree equality, and artifact integrity.",
-        "Merge only the expected reviewed/verified head, verify merge tree, and safely reconcile local main."
+        "After the repository owner restores GitHub Actions billing/spending-limit access, run both push and pull_request Verification on the current live PR head.",
+        "Inspect every required runtime JSON report, job step, artifact digest/integrity, and PR merge-tree equality; rerun independent review if the candidate/base changes.",
+        "Merge only the expected fully verified head, then verify merge result/tree and safely fast-forward local main."
       ],
       "known_limitations": [
         "Overall CORE-WORKFLOW-TRIAL remains PARTIAL until final remote gates, integrated restart proof, and final handoff are complete.",
@@ -4276,15 +4278,14 @@
       },
       "migrations_applied": [],
       "live_integrations_tested": [
-        "Greenhouse public read returned 19 jobs on earlier exact push run 37352733344; zero external application requests; safe UI readback blocked preparation without creating an application/document."
+        "Earlier bounded Greenhouse public GET on run 37352733344 returned 19 jobs with zero external application requests; this is not final-head CI."
       ],
       "known_errors": [
-        "A review of 95ec9d6 found remaining active-state prose describing the PR-note correction as pending; corrected in the current checkpoint.",
-        "Exact final-head push/pull_request Verification and required artifact inspection remain pending."
+        "GitHub blocked both exact-head Verification jobs before execution because recent account payments failed or the spending limit needs increase; neither produced logs, runtime reports, or artifacts."
       ]
     }
   ],
-  "current_phase": "CURRENT_STATE_SUMMARY_REPAIR_AND_FRESH_EXACT_HEAD_GATES_PENDING",
+  "current_phase": "BLOCKED_EXTERNAL_GITHUB_ACTIONS_BILLING",
   "last_safe_checkpoint": {
     "git_commit": "c06979890777c1d36b0e49cc9c684591af16adc1",
     "branch": "codex/core-workflow-trial-combined-journey-20261005",
@@ -4888,7 +4889,8 @@
     "Profile-scoped generated-document download repair passes 584 tests in 324.939 seconds, 31 affected integration/browser tests, and 62 frontend tests/build; final metadata-inclusive PR-head review and hosted checks pending.",
     "Focused affected tests and repaired full suite (584 tests) pass; fresh exact-head review and hosted evidence pending.",
     "CORE-WORKFLOW-TRIAL combined browser journey: four consecutive local Chromium runs passed for test source SHA-256 c4e0383f109f0c9396c51a0523cac92dd874c9be0170d7898c7ee4293e1dd054 on top of code base 4548eab; candidate SHA is resolved from live PR #515. It covers synthetic import/review, saved scheduled-search title/employment criteria readback, transient Jobs filtering, manual capture readback after reload, explainable match, job-specific documents and immutable prior bytes, reviewed reusable-answer export, user-reported tracking/history, and SQLite/API/browser reopen.",
-    "Historical PR #515 review of c069798 against base 3ec8702 had no findings at that checkpoint, but later reviews found and repaired test/evidence issues. Fresh review and exact-head hosted events/artifacts are pending."
+    "Historical PR #515 review of c069798 against base 3ec8702 had no findings at that checkpoint, but later reviews found and repaired test/evidence issues. Fresh review and exact-head hosted events/artifacts are pending.",
+    "CORE-WORKFLOW-TRIAL PR #515 checkpoint 7151348d0b92cd9cb23784785190e0d17ab892b1: exact-head read-only review PASS; push Verification 37359494332 and pull_request Verification 37359772249 both BLOCKED_EXTERNAL before job startup by GitHub account billing/spending limit. No hosted runtime reports/artifacts or PR merge-tree result exist; #515 stays draft."
   ],
-  "ownership": "PR #515 is the sole active implementation PR on codex/core-workflow-trial-combined-journey-20261005. The after-reload oracle and status-summary corrections, including the active PR note, are published. Adjacent progress summaries saying that note correction is pending are corrected in the current checkpoint. Resolve current candidate from live PR head; require fresh exact-head review and push/PR Verification plus all reports/artifacts. External submission OFF; retained private runtime/database untouched."
+  "ownership": "PR #515 is the sole active implementation PR on codex/core-workflow-trial-combined-journey-20261005. Current recorded exact checkpoint 7151348 is published and independently reviewed. Both required GitHub Verification event jobs failed before startup due repository account payment/spending-limit restrictions, so no runtime artifacts or merge-tree check exist. Keep PR draft; no merge until billing access is restored and fresh exact-head gates pass. External submission OFF; retained private runtime/database untouched."
 }
