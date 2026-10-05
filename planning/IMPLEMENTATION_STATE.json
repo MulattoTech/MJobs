@@ -7,12 +7,12 @@
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "User-requested closeout from clean tested implementation main a0bf00690d6f9aa834e4e0001a3ae19efb35f055; documentation-only handoff branch",
-    "current_verified_github_state": "PR501 merged; exact-head push37239204735 and PR37239207108 attempt1, all16 runtime artifacts PASS. All15 session implementation PRs merged.",
-    "current_verified_at": "2026-10-04T22:25:36.958607+00:00"
+    "current_verified_local_state": "Verified at 2026-10-05T05:16:18Z: C:/Tools/Dev/MJobs was clean at origin/main 44b98897fb1ced728ff206af2576b47c7cb240b1 before creating codex/core-workflow-trial-20261005. User confirmed the older client released; this task now owns its branch. Current source edits are tracked WIP; separate Codespaces checkout remains preserved.",
+    "current_verified_github_state": "Verified at 2026-10-05T05:16:18Z: authenticated origin MulattoTech/MJobs; main at 44b98897fb1ced728ff206af2576b47c7cb240b1; PRs #504 and #506 merged; task branch based on that head.",
+    "current_verified_at": "2026-10-05T05:16:18Z"
   },
-  "current_milestone": "CODESPACES-BOUNDED-ITERATION-505",
-  "current_objective": "Finish explicitly requested Codespaces/Codex CLI onboarding; no additional product feature or deployment.",
+  "current_milestone": "CORE-WORKFLOW-TRIAL",
+  "current_objective": "Deliver bounded user-visible career-fact, job intake/evaluation, document preparation, reviewed-answer, and manual application-tracking workflows by 2026-10-05 15:00 America/Chicago; feature cutoff 13:00; preserve external submission OFF; report PARTIAL for unfinished criteria.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -764,7 +764,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Verify issue505 exact final candidate and applicable CI. Issue503 is merged/closed; issue96 remains PARTIAL. Stop after this user-requested tooling iteration.",
+  "recommended_resume_step": "Complete independent review and exact-final-head checks for the narrow #507 manual-capture slice; then verify a bounded live public-source read separately and continue to the next missing connected browser workflow. Do not claim full Jobs requirements from this slice.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -3209,10 +3209,12 @@
       }
     }
   ],
-  "current_phase": "IMPLEMENTED_VALIDATING",
+  "current_phase": "B_MANUAL_CAPTURE_LOCAL_VERIFIED_PENDING_REVIEW",
   "last_safe_checkpoint": {
-    "git_commit": "b1691622a61ee368f058461ff002728325d275a9",
-    "evidence_path": "docs/evidence/2026-10-04-fact-review-exact-head-ci.json"
+    "git_commit": "44b98897fb1ced728ff206af2576b47c7cb240b1",
+    "evidence_path": "docs/evidence/2026-10-05-manual-job-capture.json",
+    "working_branch": "codex/core-workflow-trial-20261005",
+    "working_tree_result": "Local synthetic browser/API/web checks PASS; exact-head hosted review and CI pending"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
@@ -3288,17 +3290,18 @@
     }
   ],
   "live_reconciliation": {
-    "timestamp": "2026-10-04T20:06:52.668978+00:00",
-    "base_commit": "2a8e95a5023b26f3576b71c2fa46489dc9512094",
-    "evidence_path": "docs/evidence/2026-10-04-document-validation-exact-head-ci.json",
+    "timestamp": "2026-10-05T05:13:23Z",
+    "base_commit": "44b98897fb1ced728ff206af2576b47c7cb240b1",
+    "evidence_path": "docs/evidence/2026-10-05-manual-job-capture.json",
     "current_slice_validation": "PARTIAL",
     "product_status": "PARTIAL",
-    "ownership": "Root sole writer; independently owned Codespaces worktree preserved; no open PR at slice start."
+    "ownership": "Root checkout is the task branch; local synthetic tests only; external-submission OFF; retained private runtime not started or updated."
   },
   "active_development_issue": {
-    "number": 505,
+    "number": 507,
     "status": "PARTIAL",
-    "branch": "chatgpt/codespaces-bounded-iteration-20261004"
+    "branch": "codex/core-workflow-trial-20261005",
+    "milestone": "CORE-WORKFLOW-TRIAL"
   },
   "historical_control_snapshots": [
     {

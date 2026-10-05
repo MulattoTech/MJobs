@@ -1,6 +1,7 @@
 """Local-first product API; mock submission is explicit and external is off."""
 from contextlib import asynccontextmanager
 import hashlib
+import json
 import os
 from pathlib import Path
 from typing import Literal, Annotated
@@ -81,6 +82,34 @@ class ApplicationInput(DiscoveryInput):
     def selected_facts_require_tailoring_and_snapshot(self):
         if self.tailor_fact_ids is not None and (not self.tailor_resume or not self.expected_profile_version):
             raise ValueError('Explicit resume facts require tailoring and the observed profile version')
+        return self
+
+
+class ManualJobCaptureInput(BaseModel):
+    model_config = ConfigDict(strict=True, extra="allow", allow_inf_nan=False)
+    request_id: str = Field(min_length=1, max_length=64)
+    title: str = Field(min_length=1, max_length=500)
+    company: str = Field(min_length=1, max_length=200)
+    description: str = Field(min_length=1, max_length=50000)
+    location: str = Field(default="Unknown", min_length=1, max_length=1000)
+    remote_type: Literal["UNKNOWN", "REMOTE_WORLDWIDE", "REMOTE_US", "REMOTE_COUNTRY",
+                         "REMOTE_SPECIFIC_STATES", "HYBRID", "ONSITE"] = "UNKNOWN"
+    reference_url: str | None = Field(default=None, max_length=2000)
+    application_url: str | None = Field(default=None, max_length=2000)
+    source_details: dict[str, object] = Field(default_factory=dict)
+
+    @model_validator(mode="after")
+    def bounded_manual_capture(self):
+        if not self.request_id.strip() or not self.title.strip() or not self.company.strip() or not self.description.strip():
+            raise ValueError("Job title, company, description, and request identifier are required")
+        if not self.reference_url and not self.application_url:
+            raise ValueError("Enter a job reference URL or an application URL")
+        if len(self.__pydantic_extra__ or {}) > 20:
+            raise ValueError("Manual job capture accepts at most 20 additional source fields")
+        size = len(json.dumps(self.model_dump(mode="json"), ensure_ascii=False,
+                              separators=(",", ":")).encode("utf-8"))
+        if size > 100_000:
+            raise ValueError("Manual job source data exceeds the 100 KiB limit")
         return self
 
 
@@ -481,6 +510,18 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         with store.engine.connect() as connection:
             connection.execute(select(m.job_sources.c.id).where(m.job_sources.c.id == source_id)).one()
         return queued("DISCOVER", value.profile_id, {"source_id": source_id, "profile_version": profile["version"], "request_id": value.request_id})
+
+    @app.post("/jobs/manual")
+    def manual_job_capture(value: ManualJobCaptureInput, response: Response):
+        from services.discovery.manual_capture import ManualCaptureConflict, capture_manual_job
+        try:
+            result = capture_manual_job(store, value.model_dump(mode="json"))
+        except ManualCaptureConflict as error:
+            raise HTTPException(409, str(error)) from error
+        except ValueError as error:
+            raise HTTPException(422, str(error)) from error
+        response.status_code = 201 if result["created"] else 200
+        return result
 
     @app.get("/jobs")
     def jobs(profile_id: str | None = None, q: str = Query(default="", max_length=200),

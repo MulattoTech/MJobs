@@ -1447,9 +1447,10 @@
       "requirement_id": "MJ-REQ-186",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-09-30-user-testing.md"
+        "docs/evidence/2026-09-30-user-testing.md",
+        "docs/evidence/2026-10-05-manual-job-capture.json"
       ],
-      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open"
+      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open Scoped #507 local browser proof covers manual capture and detail/reload/preparation handoff only; full requirement remains PARTIAL and exact-head hosted evidence is pending."
     },
     {
       "requirement_id": "MJ-REQ-187",
@@ -1463,9 +1464,10 @@
       "requirement_id": "MJ-REQ-188",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-09-30-user-testing.md"
+        "docs/evidence/2026-09-30-user-testing.md",
+        "docs/evidence/2026-10-05-manual-job-capture.json"
       ],
-      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open"
+      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open Scoped #507 local browser proof covers manual capture and detail/reload/preparation handoff only; full requirement remains PARTIAL and exact-head hosted evidence is pending."
     },
     {
       "requirement_id": "MJ-REQ-189",

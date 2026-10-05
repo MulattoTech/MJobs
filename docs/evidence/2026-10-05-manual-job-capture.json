@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-10-05T05:13:23Z",
+  "result": "PARTIAL",
+  "scope": "Issue #507 manual job capture to canonical job record; local synthetic acceptance only",
+  "base_sha": "44b98897fb1ced728ff206af2576b47c7cb240b1",
+  "branch": "codex/core-workflow-trial-20261005",
+  "red": {
+    "result": "PASS",
+    "mode": "BASELINE_EXPECTED_FAILURE",
+    "target": "Isolated Chromium browser acceptance against current main before implementation",
+    "assertion": "Jobs view did not expose the required Capture a job user action"
+  },
+  "green": {
+    "result": "PASS",
+    "mode": "LOCAL_BROWSER_ACCEPTANCE",
+    "target": "Isolated Chromium + local FastAPI + temporary migrated SQLite + real existing preparation worker",
+    "tests_run": 7,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "checks": [
+      {
+        "command": ".venv\\Scripts\\python.exe -m unittest tests.browser.test_manual_job_capture tests.browser.test_profile_import tests.browser.test_fact_review -v",
+        "result": "PASS",
+        "target": "7 isolated Chromium journeys: manual job capture/preparation, profile import/review, and substantive fact-edit approval reset; temporary synthetic SQLite only"
+      },
+      {
+        "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_api_queue -v",
+        "result": "PASS",
+        "target": "9 API/queue/security-mode integration tests"
+      },
+      {
+        "command": "npm test --prefix apps/web -- --run; npm run build --prefix apps/web",
+        "result": "PASS",
+        "target": "59 frontend tests; TypeScript/Vite production build"
+      },
+      {
+        "command": ".venv\\Scripts\\python.exe -m tools.verification.agent_skills; git diff --check",
+        "result": "PASS",
+        "target": "Repository delivery-skill validator and whitespace validation"
+      }
+    ]
+  },
+  "implementation_sha256": {
+    "apps/api/main.py": "a13e5d6f164fbda3cd0249159f157dcb6481afccf73878a28df1f0f23fb61754",
+    "apps/api/AREA.md": "3f65b78dd0ac103b574cf0787c59b55375115ea09abccfd1950742b409305db7",
+    "apps/web/src/main.tsx": "a05dc1ed0d73d9c9dace272a003d0bc8292f2d5b64413e5d753ec78033ab940a",
+    "apps/web/AREA.md": "ef3948f3a6a0a63d867fbd0479b627502d0bc8aa8c5cd08a4659b86b78de6a69",
+    "services/discovery/manual_capture.py": "f9241bece546a9c7c303f5cb89dc770bf20b715a1ff87d3eddf36d43f28ddcdb",
+    "services/discovery/AREA.md": "94200509e16fa81302a0a5f6513b08a15533b7ee8fcab76ba6221ee462d94bdb",
+    "tests/browser/test_manual_job_capture.py": "37d09ea5f050c6889691c24a4f42ed09a8f38e88233c7c4b18c161257e42f699"
+  },
+  "privacy": {
+    "data_scope": "Synthetic profile/job content, temporary database and documents only",
+    "pasted_private_url_fetch_attempts": 0,
+    "browser_external_requests": 0,
+    "external_submission_enabled": false,
+    "application_attempts_created": 0
+  },
+  "accepted_slice": "Manual UI capture persists exact text, reference/application link distinctions, unknown source fields, manual provenance, timestamp and route through canonical job/posting/snapshot/audit models; reload/detail/preparation work; stable request retries are idempotent and a new request key is a distinct capture.",
+  "not_claimed": [
+    "Public-source UI status/provenance acceptance or actual live provider read in this checkpoint",
+    "Matching/filter/saved-filter acceptance",
+    "Tailored resume or job-specific cover-letter acceptance",
+    "Reusable answer review/export acceptance",
+    "Manual application status/history acceptance",
+    "Full MJ-REQ-186/188/192 acceptance",
+    "Full 366-requirement release readiness"
+  ],
+  "remaining": [
+    "Independent read-only review on exact candidate",
+    "Push and draft PR",
+    "Both push and pull_request Verification at exact final candidate/base; inspect every required runtime artifact",
+    "Merge receipt and main readback",
+    "Separate actual supported public Greenhouse read smoke; no private runtime is authorized"
+  ],
+  "external_public_read_tested_in_this_checkpoint": false
+}
