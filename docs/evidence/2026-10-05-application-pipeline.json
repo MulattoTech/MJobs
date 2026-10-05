@@ -14,7 +14,13 @@
     "live_issues": [
       196,
       240
-    ]
+    ],
+    "draft_pr": {
+      "number": 513,
+      "url": "https://github.com/MulattoTech/MJobs/pull/513",
+      "source_head": "fb1d0743a8da4ba1d5ebb6c57deac05747d1d66e",
+      "base": "2de5863da7418bf20087822d052b2beeb77ca64b"
+    }
   },
   "observations": [
     {
@@ -61,8 +67,7 @@
     "Independent exact-candidate review and push/pull_request Verification with required runtime artifacts are not yet complete; no merge or full MJ-REQ-195/MJ-REQ-239 PASS is claimed."
   ],
   "remaining_gates": [
-    "Inspect final diff and secret/privacy boundaries, commit and push the exact branch head, verify remote SHA.",
-    "Independent defect review of exact pushed candidate and repairs if needed.",
+    "Read back the final PR #513 head after this PR-link checkpoint commit and verify the pushed ref.",
     "Both exact-head push and pull_request Verification events, required runtime reports/artifacts and merge-result tree equality.",
     "Combined A-F browser journey remains unrun; full application-tracker requirement remains PARTIAL.",
     "Combined A-F browser journey and exact-head hosted checks remain pending."
