@@ -842,9 +842,9 @@
     "MJ-PR-016 local Chromium first run used Docker DNS host api, which is not a secure browser origin for crypto.randomUUID; loopback URL rerun passed all five connected UI actions."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-05T18:54:00Z",
+    "timestamp": "2026-10-05T18:57:00Z",
     "result": "PARTIAL",
-    "scope": "The independent reviewer confirmed current handoff/evidence status wording, but found the active PR metadata note still said the browser repair was unpublished. That note is being corrected; exact-head review and both hosted event gates remain pending.",
+    "scope": "Independent review confirmed the active PR note is correct, but found three adjacent current-state summaries still describing its correction as pending. Those summaries are corrected in this checkpoint; exact-head review and hosted gates remain pending.",
     "evidence_path": "docs/evidence/2026-10-05-core-workflow-trial-combined.json"
   },
   "ci_verification": {
@@ -4228,15 +4228,16 @@
     },
     {
       "milestone_id": "CORE-WORKFLOW-TRIAL-COMBINED-AF-PR515",
-      "timestamp": "2026-10-05T18:54:00Z",
-      "current_phase": "ACTIVE_PR_METADATA_CORRECTION_AND_FRESH_EXACT_HEAD_GATES_PENDING",
+      "timestamp": "2026-10-05T18:57:00Z",
+      "current_phase": "CURRENT_STATE_SUMMARY_REPAIR_AND_FRESH_EXACT_HEAD_GATES_PENDING",
       "completed_steps": [
         "Reconciled live main at 3ec8702, including merged PR #514 CI trigger deduplication; merged current main into the isolated task branch.",
         "Connected synthetic Chromium journey passed four consecutive local runs; no profile, resume, or real application data used.",
         "PR #515's scoped core-trial push trigger restores the explicit both-event acceptance requirement while leaving ordinary feature branches deduplicated.",
         "Independent review of exact candidate 4548eab found one browser readback ordering gap and two stale progress claims; those repairs are now underway.",
         "Independent review of published checkpoint c5799d6 confirmed after-reload capture oracle and corrected filtering language; it found one stale awaiting-publication phrase; the correction is committed at checkpoint 03d39ee.",
-        "Independent review of 34e93fc confirmed corrected handoff/evidence wording and found one stale active PR metadata note, now being corrected."
+        "Independent review of 34e93fc confirmed corrected handoff/evidence wording and found one stale active PR metadata note, now being corrected.",
+        "Independent review of 95ec9d6 confirmed the active PR note and found adjacent milestone/ownership summaries still described its fix as pending; this checkpoint corrects them."
       ],
       "files_added": [
         "docs/evidence/2026-10-05-core-workflow-trial-combined.json"
@@ -4257,9 +4258,9 @@
         "Four consecutive connected synthetic Chromium runs passed with profile-scoped manual capture description/reference readback after UI reload; test source sha256 c4e0383f109f0c9396c51a0523cac92dd874c9be0170d7898c7ee4293e1dd054."
       ],
       "tests_remaining": [
-        "Correct active PR #515 note; obtain independent read-only review on the exact resulting head.",
-        "Run both exact-head Verification events and inspect every required runtime report/artifact, PR merge-tree equality, and artifact integrity.",
-        "Merge only the expected reviewed/verified head; verify merge result/tree and safely reconcile local main."
+        "Obtain fresh read-only review on the exact current candidate.",
+        "Run push and pull_request Verification on exact head; inspect all required runtime reports/artifacts, PR merge-tree equality, and artifact integrity.",
+        "Merge only the expected reviewed/verified head, verify merge tree, and safely reconcile local main."
       ],
       "known_limitations": [
         "Overall CORE-WORKFLOW-TRIAL remains PARTIAL until final remote gates, integrated restart proof, and final handoff are complete.",
@@ -4278,12 +4279,12 @@
         "Greenhouse public read returned 19 jobs on earlier exact push run 37352733344; zero external application requests; safe UI readback blocked preparation without creating an application/document."
       ],
       "known_errors": [
-        "Active PR #515 metadata still claimed the published browser repair was unpublished; correction requires a new exact candidate.",
+        "A review of 95ec9d6 found remaining active-state prose describing the PR-note correction as pending; corrected in the current checkpoint.",
         "Exact final-head push/pull_request Verification and required artifact inspection remain pending."
       ]
     }
   ],
-  "current_phase": "ACTIVE_PR_METADATA_CORRECTION_AND_FRESH_EXACT_HEAD_GATES_PENDING",
+  "current_phase": "CURRENT_STATE_SUMMARY_REPAIR_AND_FRESH_EXACT_HEAD_GATES_PENDING",
   "last_safe_checkpoint": {
     "git_commit": "c06979890777c1d36b0e49cc9c684591af16adc1",
     "branch": "codex/core-workflow-trial-combined-journey-20261005",
@@ -4889,5 +4890,5 @@
     "CORE-WORKFLOW-TRIAL combined browser journey: four consecutive local Chromium runs passed for test source SHA-256 c4e0383f109f0c9396c51a0523cac92dd874c9be0170d7898c7ee4293e1dd054 on top of code base 4548eab; candidate SHA is resolved from live PR #515. It covers synthetic import/review, saved scheduled-search title/employment criteria readback, transient Jobs filtering, manual capture readback after reload, explainable match, job-specific documents and immutable prior bytes, reviewed reusable-answer export, user-reported tracking/history, and SQLite/API/browser reopen.",
     "Historical PR #515 review of c069798 against base 3ec8702 had no findings at that checkpoint, but later reviews found and repaired test/evidence issues. Fresh review and exact-head hosted events/artifacts are pending."
   ],
-  "ownership": "PR #515 is the sole active implementation PR on codex/core-workflow-trial-combined-journey-20261005. After-reload oracle and current status wording are published. A stale active_prs note saying the browser repair was unpublished is being corrected. Resolve the current candidate from live PR head; exact-head independent review, push/PR Verification, and all required reports/artifacts must pass. External submission OFF; retained private runtime/database untouched."
+  "ownership": "PR #515 is the sole active implementation PR on codex/core-workflow-trial-combined-journey-20261005. The after-reload oracle and status-summary corrections, including the active PR note, are published. Adjacent progress summaries saying that note correction is pending are corrected in the current checkpoint. Resolve current candidate from live PR head; require fresh exact-head review and push/PR Verification plus all reports/artifacts. External submission OFF; retained private runtime/database untouched."
 }

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-05T18:54:00Z",
+  "timestamp": "2026-10-05T18:57:00Z",
   "result": "PARTIAL",
   "scope": "Connected synthetic browser journey across the bounded CORE-WORKFLOW-TRIAL A-F user actions",
   "source_commit": "4548eab46bf7c58427b1c57ac9de0840ad03a6d9",
@@ -41,20 +41,20 @@
   },
   "independent_review": {
     "result": "PARTIAL",
-    "candidate": "34e93fc4e1b3cee49655af0fa60d2dcd1e383fb1",
+    "candidate": "95ec9d62089cba20eba5991d606a1509d2087d3a",
     "base": "3ec8702ed0f42842e1bac772997760d8db5c9caf",
     "reviewer": "independent read-only code reviewer",
     "findings": [
-      "Active PR #515 note in IMPLEMENTATION_STATE still said the published browser-oracle repair was not yet published."
+      "Three adjacent milestone/ownership summaries still described the active PR note correction as pending although the note was corrected in the candidate."
     ],
-    "repair_status": "Active note corrected locally; fresh exact-head review pending."
+    "repair_status": "Adjacent current-state wording corrected locally; fresh exact-head review pending."
   },
   "exact_head_gates": {
-    "push_verification": "SUPERSEDED_34E93FC",
-    "pull_request_verification": "SUPERSEDED_34E93FC",
+    "push_verification": "SUPERSEDED_95EC9D6",
+    "pull_request_verification": "SUPERSEDED_95EC9D6",
     "pr_merge_tree_equality": "PENDING_FINAL_HEAD",
     "required_runtime_reports": "PENDING_FINAL_HEAD",
-    "note": "Runs for checkpoint 34e93fc are superseded by correction of its stale active PR note. Resolve the candidate from live PR #515 and require fresh review and both event runs on that exact head."
+    "note": "Runs for 95ec9d6 are superseded by correction of adjacent state summaries. Resolve the current candidate from live PR #515 and require fresh review and both event runs on that exact head."
   },
   "known_limitations": [
     "A-F evidence covers bounded synthetic browser paths; referenced full requirements stay PARTIAL until every acceptance boundary is met.",
