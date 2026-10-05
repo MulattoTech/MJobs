@@ -11,8 +11,8 @@
     "current_verified_github_state": "PR501 merged; exact-head push37239204735 and PR37239207108 attempt1, all16 runtime artifacts PASS. All15 session implementation PRs merged.",
     "current_verified_at": "2026-10-04T22:25:36.958607+00:00"
   },
-  "current_milestone": "USER-REQUESTED-CHATGPT-HANDOFF",
-  "current_objective": "Close local delivery session and hand off for user-directed ChatGPT iteration; no new implementation.",
+  "current_milestone": "FACT-REVIEW-RESET-503",
+  "current_objective": "One user-directed fact-editor review reset with independent review and exact-head CI before merge; no deployment.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -68,7 +68,9 @@
     "Durable reviewed public-feed monitoring: bounded scheduled/manual reads, atomic multi-profile matching and receipt, fresh authorization, failure backoff, changed-feed rediscovery and Sources status. Vendor ATS migration and broader providers remain open."
   ],
   "blocked_capabilities": [],
-  "active_requirements": [],
+  "active_requirements": [
+    "MJ-REQ-092"
+  ],
   "active_prs": [
     {
       "number": 367,
@@ -764,7 +766,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Read prompts/CHATGPT_WEB_HANDOFF.md and planning/SESSION_HANDOFF.md; reverify live main/ownership and choose one user-directed iteration. Fact edit review reset is a documented unimplemented follow-up; MJ095 remains PARTIAL.",
+  "recommended_resume_step": "Finish issue503 independent review and exact-final-head hosted Verification/artifact checks. Handle requested Codespaces setup separately; do not continue the feature backlog.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -803,9 +805,10 @@
   },
   "last_implementation_commit": "b4fa3a11762b0c26bfbb09e105f3c47681763e20",
   "publication": {
-    "result": "NOT_RUN",
-    "branch": "codex/approved-resume-selection-20261004",
-    "base": "b0c650b98d8c357202b4bdfc7fd2d1103ff3ea28"
+    "result": "PARTIAL",
+    "branch": "chatgpt/fact-review-reset-503",
+    "base": "c89a09cfe7b7aa458b0f7dc4b0a53c24e4937ec0",
+    "note": "Local browser RED/GREEN and focused regressions passed; exact final-head CI and independent review required."
   },
   "optional_afk_journal": {
     "result": "PASS",
@@ -3086,12 +3089,58 @@
         "git_commit": "a0bf00690d6f9aa834e4e0001a3ae19efb35f055",
         "evidence_path": "docs/evidence/2026-10-04-contact-header-exact-head-ci.json"
       }
+    },
+    {
+      "milestone_id": "FACT-REVIEW-RESET-503-LOCAL",
+      "timestamp": "2026-10-05T00:42:13.989737+00:00",
+      "current_phase": "IMPLEMENTED_VALIDATING",
+      "completed_steps": [
+        "Reproduced three stale-approval failures in actual Chromium on unchanged UI",
+        "Implemented UI-only text/source/kind invalidation",
+        "Passed persisted exclusion, verify-only rejection, reapproval and unchanged historical downloads in three isolated browser journeys"
+      ],
+      "files_added": [
+        "apps/web/src/fact-review.ts",
+        "apps/web/src/fact-review.test.ts",
+        "tests/browser/test_fact_review.py",
+        "tools/verification/fact_review.py",
+        "docs/evidence/2026-10-04-fact-review-reset.json"
+      ],
+      "files_modified": [
+        "apps/web/src/main.tsx",
+        ".github/workflows/ci.yml",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "59 frontend tests and production build",
+        "Three actual Chromium/API/worker/history regression tests",
+        "19 neighboring safety/history/skill-order tests"
+      ],
+      "tests_remaining": [
+        "Independent read-only defect review",
+        "Exact-final-head push and pull_request Verification with all required runtime evidence"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "Full-spec release readiness remains NOT_RUN",
+        "MJ-REQ095 remains PARTIAL;AI remains unimplemented",
+        "Original Windows workspace/runtime and Codespaces checkout preserved"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "c89a09cfe7b7aa458b0f7dc4b0a53c24e4937ec0",
+        "evidence_path": "docs/evidence/2026-10-04-fact-review-reset.json"
+      }
     }
   ],
-  "current_phase": "HANDOFF",
+  "current_phase": "IMPLEMENTED_VALIDATING",
   "last_safe_checkpoint": {
-    "git_commit": "a0bf00690d6f9aa834e4e0001a3ae19efb35f055",
-    "evidence_path": "docs/evidence/2026-10-04-contact-header-exact-head-ci.json"
+    "git_commit": "c89a09cfe7b7aa458b0f7dc4b0a53c24e4937ec0",
+    "evidence_path": "docs/evidence/2026-10-04-fact-review-reset.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
@@ -3175,9 +3224,9 @@
     "ownership": "Root sole writer; independently owned Codespaces worktree preserved; no open PR at slice start."
   },
   "active_development_issue": {
-    "number": 96,
+    "number": 503,
     "status": "PARTIAL",
-    "branch": "codex/approved-resume-selection-20261004"
+    "branch": "chatgpt/fact-review-reset-503"
   },
   "historical_control_snapshots": [
     {
@@ -3488,6 +3537,27 @@
         ],
         "evidence_path": "docs/evidence/2026-10-04-company-source-monitoring.json"
       }
+    },
+    {
+      "archived_at": "2026-10-05T00:42:13.989737+00:00",
+      "scope": "Before user-authorized issue503",
+      "publication": {
+        "result": "NOT_RUN",
+        "branch": "codex/approved-resume-selection-20261004",
+        "base": "b0c650b98d8c357202b4bdfc7fd2d1103ff3ea28"
+      },
+      "active_development_issue": {
+        "number": 96,
+        "status": "PARTIAL",
+        "branch": "codex/approved-resume-selection-20261004"
+      },
+      "session_control": {
+        "owner": "01a107cd-4e66-77d3-b046-fc2c01f4ffb1",
+        "branch": "codex/chatgpt-handoff-20261004",
+        "write_lanes": 1,
+        "requested_action": "USER_REQUESTED_CLOSEOUT",
+        "note": "User explicitly requested shutdown/cleanup and handoff to ChatGPT sessions. Only closeout publication remains; no new implementation. This record is historical context, never present mutation authorization."
+      }
     }
   ],
   "current_user_browser_acceptance": {
@@ -3580,11 +3650,11 @@
     }
   },
   "session_control": {
-    "owner": "01a107cd-4e66-77d3-b046-fc2c01f4ffb1",
-    "branch": "codex/chatgpt-handoff-20261004",
+    "owner": "ChatGPT user-directed issue503",
+    "branch": "chatgpt/fact-review-reset-503",
     "write_lanes": 1,
-    "requested_action": "USER_REQUESTED_CLOSEOUT",
-    "note": "User explicitly requested shutdown/cleanup and handoff to ChatGPT sessions. Only closeout publication remains; no new implementation. This record is historical context, never present mutation authorization."
+    "requested_action": "BOUNDED_FACT_REVIEW_RESET",
+    "note": "Only current user request authorizes this isolated lane. No autonomous continuation or deployment."
   },
   "pr023_completion": {
     "timestamp": "2026-10-04T01:33:37.729938+00:00",
