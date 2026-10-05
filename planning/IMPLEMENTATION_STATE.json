@@ -11,7 +11,7 @@
     "current_verified_github_state": "Verified at 2026-10-05T11:10:55Z: origin main is fb93ad48a3987c375350388ba8bf677db58575d2; PR #511 remains draft on codex/core-workflow-trial-answers-20261005. Superseded c65a85d push Verification passed, its pull_request run failed on an editor-load browser race; repaired candidate exact-head review and both event runs with runtime reports are pending.",
     "current_verified_at": "2026-10-05T11:10:55Z"
   },
-  "current_milestone": "CORE-WORKFLOW-TRIAL",
+  "current_milestone": "CORE-WORKFLOW-TRIAL-E-REVIEWED-APPLICATION-ANSWERS",
   "current_objective": "Deliver bounded user-visible career-fact, job intake/evaluation, document preparation, reviewed-answer, and manual application-tracking workflows by 2026-10-05 15:00 America/Chicago; feature cutoff 13:00; preserve external submission OFF; report PARTIAL for unfinished criteria.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -865,7 +865,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "E design approval is pending for a bounded answer-bank and per-job reviewed-export flow. After approval, implement the smallest full UI/API/durable-history path with exact-normalized suggestions and explicit selection/review; then proceed to F manual tracking. Preserve broader requirements as PARTIAL where acceptance is incomplete.",
+  "recommended_resume_step": "Publish the stale-profile-save CAS repair on PR #511, obtain fresh independent exact-head review and both exact Verification events with all runtime artifacts, then merge only if every gate passes; continue to F after a green merge.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -3869,15 +3869,67 @@
         "planning/SESSION_HANDOFF.md",
         "docs/evidence/2026-10-05-job-specific-cover-letter.json"
       ]
+    },
+    {
+      "milestone_id": "CORE-WORKFLOW-TRIAL-E-STALE-PROFILE-SAVE-REPAIR",
+      "timestamp": "2026-10-05T11:29:00Z",
+      "current_phase": "E_STALE_PROFILE_SAVE_GUARD_REPAIRED_LOCAL_VERIFICATION_PASS_EXACT_REVIEW_AND_CI_PENDING",
+      "completed_steps": [
+        "Independent review found that overlapping full-profile saves could commit an older approved answer snapshot after a newer edit reset approval.",
+        "Added profile expected-version API checks and transactional compare-and-swap so stale UI versions and overlapping saves cannot replace the current profile snapshot.",
+        "Added browser-editor expected-version submission and two API/persistence regression cases; stale updates return 409 and preserve the current pending answer.",
+        "Reconciled d98 push Verification failure: its connected UI dry-run remained PREPARED beyond the default five-second oracle while the paired pull_request event passed; increased only that existing runtime oracle wait to 15 seconds while retaining the state and trace assertions."
+      ],
+      "files_added": [],
+      "tests_completed": [
+        "Full repository Python suite: 565 tests passed in 335.539 seconds; included the stale overlapping-save regression.",
+        "Focused profile stale-version and overlapping-save API tests: 2 passed after adding the explicit expected-version case.",
+        "Browser fact-review: 3 passed; answer-export and document-history browser workflows: 2 passed.",
+        "Web tests: 62 passed; production TypeScript/Vite build passed.",
+        "Agent-skills, catalogue, progress validators, ui_e2e.py syntax check, and git diff --check passed."
+      ],
+      "tests_remaining": [
+        "Fresh independent review of the published exact candidate.",
+        "Both exact-head push and pull_request Verification events, required runtime reports, and artifact integrity.",
+        "Final candidate combined A-F browser journey; manual tracker F remains open."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [
+        "Superseded d98 candidate push Verification run 37301337462 failed its connected UI state oracle after five seconds; paired pull_request run 37301342042 passed. The oracle timeout repair is in the next candidate; fresh both-event evidence is required."
+      ],
+      "known_limitations": [
+        "MJ-REQ-103..107 remain PARTIAL: exact-only matching, fixed confidence floor, full sensitive/legal policy and durable unexported drafts remain incomplete.",
+        "Concurrency regression is covered locally on temporary SQLite; hosted exact-head verification remains pending."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "d98f250e9760b7b3e4b7089df3f993e2b8c09241",
+        "branch": "codex/core-workflow-trial-answers-20261005",
+        "evidence_path": "docs/evidence/2026-10-05-reviewed-application-answers.json",
+        "working_tree_changes_present": true,
+        "remote_push": "PENDING_REPAIR_COMMIT"
+      },
+      "files_modified": [
+        "apps/api/main.py",
+        "apps/web/src/main.tsx",
+        "cli/ui_e2e.py",
+        "packages/persistence/store.py",
+        "tests/integration/test_application_answer_export.py",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/SESSION_HANDOFF.md",
+        "docs/evidence/2026-10-05-reviewed-application-answers.json"
+      ]
     }
   ],
-  "current_phase": "E_ANSWER_FLOW_DESIGN_APPROVAL_PENDING",
+  "current_phase": "E_STALE_PROFILE_SAVE_GUARD_REPAIRED_LOCAL_VERIFICATION_PASS_EXACT_REVIEW_AND_CI_PENDING",
   "last_safe_checkpoint": {
-    "git_commit": "fb93ad48a3987c375350388ba8bf677db58575d2",
-    "branch": "main",
-    "evidence_path": "docs/evidence/2026-10-05-job-specific-cover-letter.json",
-    "working_tree_changes_present": false,
-    "remote_push": "SYNCED"
+    "git_commit": "d98f250e9760b7b3e4b7089df3f993e2b8c09241",
+    "branch": "codex/core-workflow-trial-answers-20261005",
+    "evidence_path": "docs/evidence/2026-10-05-reviewed-application-answers.json",
+    "working_tree_changes_present": true,
+    "remote_push": "PENDING_REPAIR_COMMIT"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
@@ -3987,12 +4039,12 @@
     }
   ],
   "live_reconciliation": {
-    "timestamp": "2026-10-05T10:01:41Z",
+    "timestamp": "2026-10-05T11:29:00Z",
     "base_commit": "fb93ad48a3987c375350388ba8bf677db58575d2",
     "evidence_path": "docs/evidence/2026-10-05-reviewed-application-answers.json",
     "current_slice_validation": "PARTIAL",
     "product_status": "PARTIAL",
-    "ownership": "Root checkout is task branch codex/core-workflow-trial-answers-20261005; live PR #511 is the source of the current candidate SHA; synthetic local tests only; external submission OFF; retained private runtime not started or updated."
+    "ownership": "Authorized task branch codex/core-workflow-trial-answers-20261005; old client release confirmed by user; PR #511 remains draft; source/evidence checkpoint pending commit and push; synthetic-only tests; external submission OFF; retained private runtime untouched."
   },
   "active_development_issue": {
     "number": 104,
@@ -4006,7 +4058,7 @@
     ],
     "branch": "codex/core-workflow-trial-answers-20261005",
     "pr_number": 511,
-    "scope": "Question-aware bank, approval reset, exact-match suggestion with explicit review, profile-scoped immutable answer export. Requirements 103-107 remain PARTIAL beyond this narrow slice; exact-head checks and independent review pending.",
+    "scope": "Question-aware bank, approval reset, exact-match suggestion with explicit review, profile-scoped immutable answer export, and stale-profile-save approval protection. Requirements 103-107 remain PARTIAL beyond this narrow slice; fresh exact-head review and push/pull_request checks pending.",
     "evidence_path": "docs/evidence/2026-10-05-reviewed-application-answers.json"
   },
   "historical_control_snapshots": [

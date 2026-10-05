@@ -18,6 +18,10 @@ from packages.persistence import models as m
 from services.normalization.jobs import canonical_job_view, raw_posting_view
 
 
+class ProfileVersionConflict(Exception):
+    """A profile changed after the caller's snapshot was loaded."""
+
+
 def now():
     return datetime.now(timezone.utc).isoformat()
 
@@ -142,7 +146,7 @@ class Store:
             raise WorkspaceModeError("WORKSPACE_MODE_MISMATCH",
                 f"Database is bound to {row}; requested {mode}. Use a separate Compose project")
 
-    def save_profile(self, profile):
+    def save_profile(self, profile, expected_version=None):
         if not all(isinstance(profile.get(field), str) and profile[field].strip() for field in ("id", "name", "email")):
             raise ValueError("Profile identity/contact fields are required")
         if not isinstance(profile.get("facts"), list) or len(profile["facts"]) > 200:
@@ -151,6 +155,8 @@ class Store:
         # Older clients omit these fields. Preserve existing values on their updates.
         with self.engine.connect() as connection:
             current = connection.execute(select(m.profiles.c.version).where(m.profiles.c.id == profile['id'])).scalar_one_or_none()
+        if expected_version is not None and expected_version != current:
+            raise ProfileVersionConflict("Profile changed since this editor was loaded; reload before saving")
         previous = self.profile(profile['id']) if current else {}
         profile['contact'] = ContactDetails.model_validate(profile.get('contact', previous.get('contact', {}))).model_dump()
         profile['preferences'] = JobPreferences.model_validate(profile.get('preferences', previous.get('preferences', {}))).model_dump()
@@ -182,6 +188,14 @@ class Store:
         version = identity(profile)
         same_match_inputs = bool(current) and self._match_input_projection(previous) == self._match_input_projection(profile)
         with self.engine.begin() as connection:
+            if current is not None:
+                # Atomic compare-and-lock prevents an overlapping full-profile
+                # save from committing a snapshot based on an older approval.
+                claimed = connection.execute(update(m.profiles).where(
+                    m.profiles.c.id == profile['id'], m.profiles.c.version == current,
+                ).values(version=current))
+                if claimed.rowcount != 1:
+                    raise ProfileVersionConflict("Profile changed while this save was being prepared; reload before saving")
             upsert(connection, m.profiles, {"id": profile["id"], "name": profile["name"], "email": profile["email"], "version": version}, replace=True)
             if len({answer["id"] for answer in answers}) != len(answers):
                 raise ValueError("Duplicate approved answer identity")

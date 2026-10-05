@@ -18,7 +18,7 @@ from sqlalchemy.exc import NoResultFound
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from packages.persistence import models as m
-from packages.persistence.store import Store, identity
+from packages.persistence.store import ProfileVersionConflict, Store, identity
 from packages.domain.operation_mode import parse_operation_mode, operation_mode_from_env
 from packages.domain.profile import ContactDetails, JobPreferences
 from services.career_profile.extraction import extract_resume
@@ -63,6 +63,7 @@ class ProfileInput(BaseModel):
     email: str = Field(min_length=3, max_length=320, pattern=r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
     facts: list[CareerFactInput] = Field(default_factory=list, max_length=200)
     answers: list[AnswerInput] = Field(default_factory=list, max_length=200)
+    expected_version: str | None = Field(default=None, min_length=64, max_length=64)
     contact: ContactDetails = Field(default_factory=ContactDetails)
     preferences: JobPreferences = Field(default_factory=JobPreferences)
 
@@ -348,10 +349,15 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     @app.put("/profiles")
     def profile(value: ProfileInput):
         payload = value.model_dump()
+        payload.pop('expected_version', None)
         for optional in ('contact', 'preferences'):
             if optional not in value.model_fields_set:
                 payload.pop(optional)
-        return {"id": value.id, "version": store.save_profile(payload)}
+        try:
+            version = store.save_profile(payload, expected_version=value.expected_version)
+        except ProfileVersionConflict as exc:
+            raise HTTPException(409, str(exc)) from exc
+        return {"id": value.id, "version": version}
 
     @app.get("/profiles/{profile_id}/resumes")
     def profile_resumes(profile_id: str):

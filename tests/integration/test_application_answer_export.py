@@ -257,6 +257,61 @@ class ApplicationAnswerExportTests(unittest.TestCase):
         row = next(document for document in exported if document['id'] == document_id)
         self.assertEqual(row['profile_version'], prior_version)
 
+    def test_stale_profile_save_cannot_restore_previously_approved_answer(self):
+        approved = dict(PROFILE, answers=[{
+            'id': 'years-experience', 'question': 'How many years of experience?',
+            'text': 'Five years', 'source': 'Synthetic test',
+            'verified': True, 'user_approved': True, 'confidence': 95,
+        }])
+        self.assertEqual(self.client.put('/profiles', json=approved).status_code, 200)
+        stale_payload = dict(approved)
+        changed = dict(approved, answers=[dict(approved['answers'][0], text='About six years')])
+
+        original_profile = self.store.profile
+        stale_snapshot_read, continue_stale_save = Event(), Event()
+
+        def pause_after_stale_snapshot(profile_id, version=None, connection=None):
+            result = original_profile(profile_id, version, connection)
+            if profile_id == 'fixture' and not stale_snapshot_read.is_set():
+                stale_snapshot_read.set()
+                if not continue_stale_save.wait(10):
+                    raise TimeoutError('Test did not release paused stale profile save')
+            return result
+
+        self.store.profile = pause_after_stale_snapshot
+        stale_client = TestClient(create_app(self.store, 'http://127.0.0.1:1', self.root))
+        fresh_client = TestClient(create_app(self.store, 'http://127.0.0.1:1', self.root))
+        results = {}
+        stale_executor = ThreadPoolExecutor(max_workers=1)
+        try:
+            stale = stale_executor.submit(lambda: stale_client.put('/profiles', json=stale_payload))
+            self.assertTrue(stale_snapshot_read.wait(5), 'Stale save did not read its original approved snapshot')
+            fresh = fresh_client.put('/profiles', json=changed)
+            self.assertEqual(fresh.status_code, 200, fresh.text)
+            continue_stale_save.set()
+            results['stale'] = stale.result(timeout=10)
+        finally:
+            continue_stale_save.set()
+            stale_executor.shutdown(wait=True)
+            stale_client.close()
+            fresh_client.close()
+            self.store.profile = original_profile
+
+        self.assertEqual(results['stale'].status_code, 409, results['stale'].text)
+        current = self.store.profile('fixture')
+        self.assertEqual(current['answers'][0]['text'], 'About six years')
+        self.assertFalse(current['answers'][0]['verified'])
+        self.assertFalse(current['answers'][0]['user_approved'])
+
+    def test_api_rejects_profile_save_with_stale_expected_version(self):
+        expected = self.store.profile('fixture')['version']
+        newer = dict(PROFILE, name='Freshly edited fixture', expected_version=expected)
+        self.assertEqual(self.client.put('/profiles', json=newer).status_code, 200)
+        stale = dict(PROFILE, name='Old editor copy', expected_version=expected)
+        response = self.client.put('/profiles', json=stale)
+        self.assertEqual(response.status_code, 409, response.text)
+        self.assertEqual(self.client.get('/profiles/fixture').json()['name'], 'Freshly edited fixture')
+
     def test_concurrent_answer_exports_receive_distinct_immutable_versions(self):
         count = 4
         ready = Barrier(count)

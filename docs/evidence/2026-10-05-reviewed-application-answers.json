@@ -1,14 +1,26 @@
 {
   "evidence_id": "CORE-WORKFLOW-TRIAL-E-REVIEWED-APPLICATION-ANSWERS",
-  "recorded_at": "2026-10-05T11:10:55Z",
+  "recorded_at": "2026-10-05T11:29:00Z",
   "result": "PARTIAL",
   "scope": "Question-aware reusable answer review and immutable application-linked TXT exports",
   "authority": {
     "repository": "MulattoTech/MJobs",
     "base_main": "fb93ad48a3987c375350388ba8bf677db58575d2",
     "task_branch": "codex/core-workflow-trial-answers-20261005",
-    "requirements": ["MJ-REQ-103", "MJ-REQ-104", "MJ-REQ-105", "MJ-REQ-106", "MJ-REQ-107"],
-    "live_issues": [104, 105, 106, 107, 108]
+    "requirements": [
+      "MJ-REQ-103",
+      "MJ-REQ-104",
+      "MJ-REQ-105",
+      "MJ-REQ-106",
+      "MJ-REQ-107"
+    ],
+    "live_issues": [
+      104,
+      105,
+      106,
+      107,
+      108
+    ]
   },
   "observations": [
     {
@@ -70,6 +82,30 @@
       "command": ".venv\\Scripts\\python.exe -m tools.verification.agent_skills; .venv\\Scripts\\python.exe -m tools.verification.catalogue; .venv\\Scripts\\python.exe -m tools.verification.progress validate; git diff --check",
       "target": "Repository skill manifest, requirements metadata, delivery journal, working diff",
       "result": "PASS"
+    },
+    {
+      "action": "Reproduce and repair the independently reviewed stale-profile-save approval race",
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_application_answer_export.ApplicationAnswerExportTests.test_stale_profile_save_cannot_restore_previously_approved_answer tests.integration.test_application_answer_export.ApplicationAnswerExportTests.test_api_rejects_profile_save_with_stale_expected_version -v",
+      "target": "Temporary SQLite, two independent API clients and synchronized overlapping profile saves",
+      "result": "PASS: both regressions passed; an overlapping stale full-profile save is rejected with HTTP 409 after another edit resets approval, and a UI-supplied stale expected version cannot overwrite the newer saved profile. Current answer remains pending."
+    },
+    {
+      "action": "Re-run full repository Python suite after the overlapping-save fix",
+      "command": ".venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py' -v",
+      "target": "Temporary databases, controlled fixtures and isolated Chromium; synthetic data only",
+      "result": "PASS: 565 tests in 335.539 seconds, including the stale overlapping-save regression. A second explicit API expected-version regression was added after this full run and passed separately in the focused two-test command; therefore this full run does not include that final added test or the later 15-second UI-oracle timeout adjustment."
+    },
+    {
+      "action": "Validate current answer and document-history UI in Chromium",
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.browser.test_application_answer_export tests.browser.test_document_history -v",
+      "target": "Synthetic FIXTURE profile and job; isolated Chromium and loopback-only requests",
+      "result": "PASS: 2 browser tests; exact approved answer suggestion requires explicit review and export, scoped history/download survives reload, and prior document bytes/hash remain available."
+    },
+    {
+      "action": "Inspect exact d98f250 GitHub Verification events and failed-step output",
+      "command": "gh run view 37301337462 --log-failed; gh run view 37301342042",
+      "target": "Superseded PR #511 candidate d98f250 against fb93ad48",
+      "result": "Push event failed its connected UI dry-run state assertion: UI still showed PREPARED after the default five seconds. Paired pull_request event passed. cli/ui_e2e.py now allows 15 seconds for this same DRY_RUN_COMPLETE state and retains the STOP_BEFORE_SUBMIT trace check; current candidate events remain pending."
     }
   ],
   "verified_behavior": [
@@ -81,15 +117,24 @@
     "Unknown questions accept only manually entered, deliberately reviewed text. Sensitive, legal, demographic, criminal-history, salary/compensation, and common work-authorization question variants cannot reuse saved answers; these require application-specific user text.",
     "Reviewed answers create immutable, application-linked TXT document revisions with profile snapshot, question, answer-bank ID, provenance, confidence, and SHA-256. Prior export bytes survive later exports and application reload.",
     "Answer-export metadata and byte downloads are available through profile-scoped application history/download routes; unscoped history omits these records and unscoped byte download returns not-found. Content-addressed output is atomically promoted so a partial/interrupted write cannot occupy the next revision path.",
-    "The local export does not fill or submit an employer form. Test mode used synthetic data and local-only browser traffic; external submission remains OFF."
+    "The local export does not fill or submit an employer form. Test mode used synthetic data and local-only browser traffic; external submission remains OFF.",
+    "Profile editor sends the version it loaded; API rejects stale versions with HTTP 409; Store uses an atomic version compare-and-swap inside the save transaction so an older overlapping full-profile snapshot cannot restore an answer approval after a newer substantive edit."
   ],
   "limitations": [
     "Matching supports normalized exact questions only. Fuzzy and semantic variants in MJ-REQ-104 remain unimplemented.",
     "The minimum reusable confidence is currently a fixed 80 rather than a configurable threshold; scoring bands and confidence provenance acceptance in MJ-REQ-105 remain incomplete.",
     "Sensitive-answer detection is a conservative lexical rule set, not the full user-configurable sensitive-answer policy or legally significant profile-policy controls in MJ-REQ-106/107; manual per-application text and deliberate review remain required for detected questions.",
-    "Unexported draft questions remain in the browser form; durable history starts when the reviewed TXT export is saved."
+    "Unexported draft questions remain in the browser form; durable history starts when the reviewed TXT export is saved.",
+    "SQLite stale-save and expected-version regressions passed locally; fresh exact-head hosted verification, including repository CI runtime reports, is still pending. Full product requirement MJ-REQ-103..107 acceptance remains incomplete."
   ],
   "external_submission": "OFF",
   "ai_provider": "NOT_USED",
-  "hosted_exact_head_checks": "PENDING"
+  "hosted_exact_head_checks": "PENDING for the next committed and pushed candidate; superseded d98 push failed and paired PR event passed.",
+  "previous_candidate": {
+    "head": "d98f250e9760b7b3e4b7089df3f993e2b8c09241",
+    "base": "fb93ad48a3987c375350388ba8bf677db58575d2",
+    "push_verification": 37301337462,
+    "pull_request_verification": 37301342042,
+    "eligibility": "NOT_ELIGIBLE: push event failed the connected dry-run state oracle after five seconds; paired pull_request event passed. This candidate is superseded."
+  }
 }
