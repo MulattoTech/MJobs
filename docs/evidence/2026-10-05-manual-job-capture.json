@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-05T05:27:21.491970+00:00",
+  "timestamp": "2026-10-05T05:32:12.160284+00:00",
   "result": "PARTIAL",
   "scope": "Issue #507 manual job capture to canonical job record; local synthetic acceptance only",
   "base_sha": "44b98897fb1ced728ff206af2576b47c7cb240b1",
@@ -69,22 +69,32 @@
     "Full 366-requirement release readiness"
   ],
   "remaining": [
-    "Fresh independent read-only review on final candidate",
-    "Fresh push and pull_request Verification on exact candidate/base; inspect all required runtime artifacts",
-    "Merge receipt and main readback",
-    "Separate actual supported public Greenhouse read smoke evidence; do not use retained private runtime"
+    "Fresh independent read-only review on final exact candidate",
+    "Fresh push and pull_request Verification on final exact candidate/base; inspect every required runtime artifact",
+    "Final PR closing receipt and merge/main readback",
+    "Separate live Greenhouse read is evidenced only if the hosted bounded public-source step passes"
   ],
   "external_public_read_tested_in_this_checkpoint": false,
   "review_checkpoint": {
-    "candidate": "447c4a9fb3f74b0360d20ba48b439524d5f11e37",
-    "result": "PRELIMINARY_FINDINGS_REPAIRED_PENDING_FINAL_REVIEW",
+    "reviewed_candidate": "d9248e0a2905b4bc94536b11c180ebe36021080c",
+    "result": "REVIEW_FINDINGS_REPAIRED_PENDING_FRESH_FINAL_REVIEW",
     "findings": [
-      "Reference-only jobs could be prepared through a fallback route; UI and API now reject this path.",
-      "Application-only links could be labelled as job references; rendering now checks the original submitted reference field.",
-      "Padded idempotency request identifiers shared identity but conflicted on raw payload; surrounding whitespace is now rejected.",
-      "Push and pull_request workflows on that superseded candidate failed the progress-journal consistency check; this is being repaired with a new milestone entry."
+      "Reference-only preparation is rejected in both UI and API.",
+      "Application-only links are not labelled as references.",
+      "Surrounding whitespace in idempotency request identifiers is rejected.",
+      "Progress-journal mismatch and ambiguous evidence hash basis are being corrected."
     ],
-    "reviewer": "Fresh read-only reviewer; final candidate review still required"
+    "reviewer": "Fresh read-only reviewer; exact new candidate review pending"
   },
-  "source_commit": "01f0074cc0d0412d65a24f3022ea5af002d7b890"
+  "source_commit": "01f0074cc0d0412d65a24f3022ea5af002d7b890",
+  "implementation_hash_basis": "SHA-256 of raw Git blob bytes read as git show <source_commit>:<path>; these identify committed source independent of Windows checkout newline conversion.",
+  "implementation_worktree_sha256": {
+    "apps/api/main.py": "aa8a37898776aa8d3aaad0000a8a9ac06c008004ba2bdd46479e621562ad4236",
+    "apps/api/AREA.md": "3f65b78dd0ac103b574cf0787c59b55375115ea09abccfd1950742b409305db7",
+    "apps/web/src/main.tsx": "b88692a57533c4d6febbdbbaf88ef42028fed96375684c0aca28e37b0fe79e83",
+    "apps/web/AREA.md": "ef3948f3a6a0a63d867fbd0479b627502d0bc8aa8c5cd08a4659b86b78de6a69",
+    "services/discovery/manual_capture.py": "f9241bece546a9c7c303f5cb89dc770bf20b715a1ff87d3eddf36d43f28ddcdb",
+    "services/discovery/AREA.md": "94200509e16fa81302a0a5f6513b08a15533b7ee8fcab76ba6221ee462d94bdb",
+    "tests/browser/test_manual_job_capture.py": "45d44bd5123498105fb7ac1b3b7d057811236852d9599f1a0e04ed14261f52f5"
+  }
 }
