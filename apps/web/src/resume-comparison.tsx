@@ -76,9 +76,10 @@ export function ResumeComparison({documents}:{documents:GeneratedDocument[]}) {
     try{
       const row=targets.find(row=>row.id===target);
       if(!row?.application_id)throw new Error('Original application history is unavailable.');
+      if(!profileId||row.profile_id!==profileId)throw new Error('Selected resume does not belong to the active profile.');
       const fromUpload=base.startsWith('u:');
       const params:Record<string,string>=fromUpload?{base_revision_id:base.slice(2),tailored_document_id:target}:{base_document_id:base.slice(2),tailored_document_id:target};
-      setResult(await api<Comparison>('/applications/'+encodeURIComponent(row.application_id)+(fromUpload?'/uploaded-resume-comparison?':'/document-comparison?')+new URLSearchParams(params)));
+      setResult(await api<Comparison>('/profiles/'+encodeURIComponent(profileId)+'/applications/'+encodeURIComponent(row.application_id)+(fromUpload?'/uploaded-resume-comparison?':'/document-comparison?')+new URLSearchParams(params)));
     }catch(e){setError(String(e));}finally{setBusy(false);}
   }
   return <section aria-label="Compare base and tailored resumes">

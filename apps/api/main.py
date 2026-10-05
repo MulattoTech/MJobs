@@ -787,18 +787,22 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         return {"document_id": record["id"], "version": record["version"],
                 "sha256": record["sha256"]["txt"], "external_submission": "OFF"}
 
-    @app.get('/applications/{application_id}/document-comparison')
-    def document_comparison(application_id: str, base_document_id: str, tailored_document_id: str):
+    @app.get('/profiles/{profile_id}/applications/{application_id}/document-comparison')
+    def document_comparison(profile_id: str, application_id: str, base_document_id: str, tailored_document_id: str):
         from services.documents.comparison import compare_resumes, ComparisonUnavailable
+        if store.application(application_id)["profile_id"] != profile_id:
+            raise NoResultFound("Application is not owned by this profile")
         try:
             return compare_resumes(store, output_dir, application_id, base_document_id, tailored_document_id)
         except ComparisonUnavailable as error:
             raise HTTPException(409, str(error)) from error
 
-    @app.get('/applications/{application_id}/uploaded-resume-comparison')
-    def uploaded_resume_comparison(application_id: str, base_revision_id: str, tailored_document_id: str):
+    @app.get('/profiles/{profile_id}/applications/{application_id}/uploaded-resume-comparison')
+    def uploaded_resume_comparison(profile_id: str, application_id: str, base_revision_id: str, tailored_document_id: str):
         from services.documents.uploaded_comparison import compare_uploaded_resume
         from services.documents.comparison import ComparisonUnavailable
+        if store.application(application_id)["profile_id"] != profile_id:
+            raise NoResultFound("Application is not owned by this profile")
         try:
             return compare_uploaded_resume(store,output_dir,application_id,base_revision_id,tailored_document_id)
         except ComparisonUnavailable as error:
