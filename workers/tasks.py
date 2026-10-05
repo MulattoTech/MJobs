@@ -64,7 +64,9 @@ def execute_operation(operation_id):
                         check()
                         recalculate(store, profile_id, check=check)
                 elif params.get("rescore_only"):
-                    recalculate(store, operation["entity_id"], check=check, profile_version=params.get("profile_version"))
+                    # A queued rescore must use approvals current when the worker runs,
+                    # so an intervening edit/revocation cannot publish a stale match.
+                    recalculate(store, operation["entity_id"], check=check)
                 else:
                     discover(store, origin, operation["entity_id"], check=check, profile_version=params.get("profile_version"))
             elif operation["kind"] == "COMPANY_DISCOVER":

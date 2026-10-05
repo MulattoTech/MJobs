@@ -15,13 +15,13 @@
       "action": "Run deterministic matching and public Greenhouse normalization regressions",
       "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_explainable_matching tests.integration.test_greenhouse tests.integration.test_source_value_resolution tests.integration.test_discovery_requests tests.integration.test_user_read_models -v",
       "target": "temporary SQLite databases and controlled source fixtures",
-      "result": "PASS: 39 tests"
+      "result": "PASS: 41 tests, including approved-alias normalization and stale queued rescore after a review-state change"
     },
     {
       "action": "Run connected manual-capture, resume-import, and fact-review browser flows",
       "command": ".venv\\Scripts\\python.exe -m unittest tests.browser.test_manual_job_capture tests.browser.test_profile_import tests.browser.test_fact_review -v",
       "target": "temporary SQLite workspace, synthetic profile, Chromium, loopback URL probe",
-      "result": "PASS: 5 tests; capture queues matching, explanation reloads, submitted URL is not fetched, pending facts are excluded, external submission remains OFF"
+      "result": "PASS: 5 tests; capture queues matching, explanation reloads, queue failure still reports the durable capture as saved, submitted URL is not fetched, pending facts are excluded, external submission remains OFF"
     },
     {
       "action": "Run web tests and production TypeScript/Vite build",
@@ -40,17 +40,30 @@
     "Manual captures preserve the submitted description and source fields while storing detected skill taxonomy as description mentions.",
     "Only verified, approved, sourced skill facts with confidence at least 80 support a match; pending facts do not count.",
     "A multiword approved fact can support its detected taxonomy skill without changing the original career fact.",
+    "Supported skill aliases normalize before comparison and produce a canonical explanation label.",
     "Description-only job skill mentions are labeled UNKNOWN; explicit structured required and preferred lists retain their declared strength.",
     "Preferred skill evidence has half the score weight of required skill evidence; nice-to-have and unknown mentions use lower weights.",
     "Match explanations persist with canonical jobs and reload through the existing profile-scoped job read model.",
-    "The browser submits a durable rescore request after manual capture when a profile is selected."
+    "The browser submits a durable rescore request after manual capture when a profile is selected; a failed or unavailable rescore does not misreport or hide the already-saved job.",
+    "Queued rescore work uses the current profile version at execution so an approval revocation before the worker starts cannot publish a match based on stale approvals."
   ],
+  "independent_review": {
+    "reviewed_candidate": "5792dc5d77269c6dc1bbb86b8348cba51211022b",
+    "base": "77cf0825e51f34874f49cc7753e721b60a944ef0",
+    "result": "ACTIONABLE_FINDINGS_REPAIRED_LOCALLY_FRESH_FINAL_HEAD_REVIEW_PENDING",
+    "findings": [
+      "Queue failure after durable capture could look like total failure; browser now reports capture saved and permits rescore retry.",
+      "Queued rescore pinned an older profile version; worker now recalculates against current approved facts.",
+      "Detected skill aliases could miss an approved canonical fact; scoring now normalizes and deduplicates aliases.",
+      "Planning head pointer described a superseded candidate; exact pending candidate fields will be omitted until final receipt can be recorded without a self-referential commit."
+    ]
+  },
   "limitations": [
     "This is evidence-coverage ranking, not a qualification assessment or the full MJ-REQ-112..119 acceptance.",
     "Salary, location, experience, education, certifications, employment type, saved-filter controls, and broader search ranking are not implemented by this slice.",
     "No new public-source adapter or live network read is claimed by this evidence; bounded public Greenhouse reads have separate hosted evidence in PR #508.",
     "Product AI remains optional and unavailable in this slice; no provider call or private data transmission occurred.",
-    "Independent candidate review and exact-head GitHub push/pull_request checks with runtime artifacts remain pending."
+    "The fixes have local targeted tests; fresh independent review and exact-head GitHub push/pull_request checks with runtime artifacts remain pending."
   ],
   "safety": {
     "personal_data_used": false,

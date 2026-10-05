@@ -148,7 +148,10 @@ function App() {
       })});
       setManualCaptureOpen(false);setManualCapture(emptyManualCapture());setManualCaptureRequestId(crypto.randomUUID());
       setQ('');setRemote('');setProvider('');setSort('title');setDetail(result.job);
-      if(profileId){await queue('/matches',request());await showJob(result.job.id);}
+      if(profileId){
+        try{await queue('/matches',request());await showJob(result.job.id);}
+        catch{setNotice('Job saved; match refresh failed. The capture remains in your Jobs list. Use Refresh matches to retry.');return;}
+      }
       setNotice(result.created?'Job captured and evaluated from approved profile facts. No job page was fetched.':'This capture was already saved and evaluated.');
     });
   }

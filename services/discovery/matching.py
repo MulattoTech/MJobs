@@ -35,10 +35,19 @@ def build_explanation(job, profile):
             continue
         approved.add(row["text"].strip().casefold())
         approved.update(skill.casefold() for skill in extract_skills(row["text"])["labels"])
+    skills = []
+    seen = set()
+    for value in job.get("skills", []):
+        identifier = canonical_skill_id(value)
+        skill = skill_label(identifier) if identifier else str(value).strip()
+        folded = skill.casefold()
+        if skill and folded not in seen:
+            seen.add(folded)
+            skills.append(skill)
     rows = []
     weighted_total = 0.0
     weighted_covered = 0.0
-    for skill in job.get("skills", []):
+    for skill in skills:
         folded = skill.strip().casefold()
         strength = "REQUIRED" if all_are_required else "UNKNOWN"
         if folded in required:
@@ -75,7 +84,7 @@ def build_explanation(job, profile):
         "components": {
             "method": method,
             "matched": matched,
-            "detected": list(job.get("skills", [])),
+            "detected": skills,
             "requirements": rows,
             "limitation": "This score measures evidence coverage, not qualification. Description mentions remain UNKNOWN unless the source explicitly classifies them; no approved profile evidence does not prove the person lacks a skill.",
         },

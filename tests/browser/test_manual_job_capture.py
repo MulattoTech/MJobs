@@ -61,6 +61,7 @@ class ManualJobCaptureBrowserTests(unittest.TestCase):
                     browser = pw.chromium.launch(headless=True)
                     context = browser.new_context()
                     external = []
+                    fail_next_rescore = [False]
 
                     def local_only(route):
                         if urlsplit(route.request.url).netloc != urlsplit(origin).netloc:
@@ -73,6 +74,10 @@ class ManualJobCaptureBrowserTests(unittest.TestCase):
                     def execute_rescore(route):
                         response = route.fetch()
                         operation_id = response.json()["operation_id"]
+                        if fail_next_rescore[0]:
+                            fail_next_rescore[0] = False
+                            route.abort("failed")
+                            return
                         with patch.dict("os.environ", MJOBS_DATABASE_URL=store.url,
                                         MJOBS_OPERATION_MODE="FIXTURE",
                                         MJOBS_OUTPUT_DIR=str(root)):
@@ -233,6 +238,27 @@ class ManualJobCaptureBrowserTests(unittest.TestCase):
                     self.assertEqual(application["target"], "REAL")
                     self.assertEqual(application["state"], "PREPARED")
                     self.assertIsNone(application["confirmation"])
+
+                    fail_next_rescore[0] = True
+                    page.get_by_role("navigation", name="Main navigation").get_by_role("button").first.click()
+                    page.get_by_role("button", name="Capture a job", exact=True).click()
+                    page.get_by_label("Job title", exact=True).fill("Second systems role")
+                    page.get_by_label("Company", exact=True).fill("Other Infrastructure")
+                    page.get_by_label("Job description", exact=True).fill("Maintain Active Directory.")
+                    page.get_by_label("Job reference URL", exact=True).fill("https://jobs.example.invalid/role/99")
+                    page.get_by_label("Application URL", exact=True).fill("https://apply.example.invalid/role/99")
+                    with page.expect_response(
+                        lambda response: response.url == origin + "/jobs/manual"
+                        and response.request.method == "POST"
+                    ) as failed_rescore_capture:
+                        page.get_by_role("button", name="Save captured job", exact=True).click()
+                    saved_capture = failed_rescore_capture.value.json()
+                    self.assertEqual(failed_rescore_capture.value.status, 201)
+                    expect(page.locator(".notice").filter(
+                        has_text="Job saved; match refresh failed.")).to_contain_text(
+                        "Job saved; match refresh failed. The capture remains in your Jobs list.")
+                    expect(page.locator(".job-card").filter(has_text="Second systems role")).to_be_visible()
+                    self.assertEqual(store.job(saved_capture["job"]["id"])["title"], "Second systems role")
                     self.assertEqual(external, [])
                     self.assertEqual(PrivateUrlProbe.requests, [])
                     self.assertEqual(store.count("application_attempts"), 0)
