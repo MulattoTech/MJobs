@@ -1,0 +1,221 @@
+{
+  "timestamp": "2026-10-05T00:56:18.954359+00:00",
+  "result": "PASS",
+  "scope": "PR504 / issue503 fact-editor regression acceptance",
+  "head": "5f535d90f8f3b91e1a16bf1c5eb9a667b430d753",
+  "base": "c89a09cfe7b7aa458b0f7dc4b0a53c24e4937ec0",
+  "candidate_tree": "04c014c45b299d9a47d4348307073ef000ca7ec9",
+  "runs": [
+    {
+      "id": 37248808226,
+      "event": "push",
+      "attempt": 1,
+      "head_sha": "5f535d90f8f3b91e1a16bf1c5eb9a667b430d753",
+      "conclusion": "success",
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/37248808226",
+      "jobs": [
+        {
+          "id": 111571997190,
+          "name": "product-suite-and-connected-ui",
+          "conclusion": "success"
+        }
+      ],
+      "tested_commit": "5f535d90f8f3b91e1a16bf1c5eb9a667b430d753",
+      "tested_tree": "04c014c45b299d9a47d4348307073ef000ca7ec9",
+      "tree_equals_exact_candidate": true,
+      "runtime_reports": [
+        {
+          "file": "ci-fact-review.json",
+          "result": "PASS",
+          "sha256": "ef36e18f2931052d6db6c3a5ba5e3b9348c9ba2b964b5a229309708272f7fa50"
+        },
+        {
+          "file": "ci-mock-e2e.json",
+          "result": "PASS",
+          "sha256": "f967987ab6f610f68b4d655de47a45aeccd64166f337b959f0359dc3f13b3d3f"
+        },
+        {
+          "file": "ci-personal-mode.json",
+          "result": "PASS",
+          "sha256": "d085dc47f9b8092227f2c68c2efbeb8f29dd5060ccfd7509856405fc10a28d3b"
+        },
+        {
+          "file": "ci-personal-public-source.json",
+          "result": "PASS",
+          "sha256": "c3991f1410bf3475c5cd0aab26c7712845f9a802cd0c35367c21c33a6ddb6920"
+        },
+        {
+          "file": "ci-personal-public-ui.json",
+          "result": "PASS",
+          "sha256": "933ef5989201f69843616c4d714b1ee2bf7fd5d49d311c496cc9995a623d86e7"
+        },
+        {
+          "file": "ci-profile-ocr.json",
+          "result": "PASS",
+          "sha256": "1c6dee78491156f30751732801f7ac43c57327e0725d984f7495936f318bf133"
+        },
+        {
+          "file": "ci-recovery.json",
+          "result": "PASS",
+          "sha256": "9cf6ceefeb06c98bb4567430dcc8bbd239365e585b26bd5fd94bc3add6edcf61"
+        },
+        {
+          "file": "ci-ui.json",
+          "result": "PASS",
+          "sha256": "7d009cebdada09e3ee48477ed24e7efa67f8fc3f0ae13e37c93d7945b85fd8cb"
+        },
+        {
+          "file": "ci-uploaded-resume-comparison.json",
+          "result": "PASS",
+          "sha256": "2edac133ed57227afbd8e8db7dcff6892cae3883cc9c54e5e3dc2022fd91723c"
+        }
+      ],
+      "reported_test_summaries": [
+        [
+          "3",
+          "39.232"
+        ],
+        [
+          "537",
+          "175.869"
+        ],
+        [
+          "17",
+          "16.900"
+        ]
+      ],
+      "artifact_archives": [
+        {
+          "id": 11320625476,
+          "name": "fictional-mock-evidence",
+          "digest": "sha256:04f6cbe88ae2190c60e330732567aa084930f180406bfb274bce095d51c34275"
+        }
+      ]
+    },
+    {
+      "id": 37248811213,
+      "event": "pull_request",
+      "attempt": 1,
+      "head_sha": "5f535d90f8f3b91e1a16bf1c5eb9a667b430d753",
+      "conclusion": "success",
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/37248811213",
+      "jobs": [
+        {
+          "id": 111572005903,
+          "name": "product-suite-and-connected-ui",
+          "conclusion": "success"
+        }
+      ],
+      "tested_commit": "a315c13722934e89e1aa92993cc7391ccfb4379c",
+      "tested_tree": "04c014c45b299d9a47d4348307073ef000ca7ec9",
+      "tree_equals_exact_candidate": true,
+      "runtime_reports": [
+        {
+          "file": "ci-fact-review.json",
+          "result": "PASS",
+          "sha256": "3d477c2ae8da3e3e5211aa94c5f1d45227049e682df9d92ecd8b73f8eb93aad7"
+        },
+        {
+          "file": "ci-mock-e2e.json",
+          "result": "PASS",
+          "sha256": "4230ae0655132031dcd41b0ac44c9964669a1ef24df26d8aa0e793b46c0d68e2"
+        },
+        {
+          "file": "ci-personal-mode.json",
+          "result": "PASS",
+          "sha256": "3a57b192bc84661a8f251398c4ac69b7a6f412615a68ba8de5a7728c814f5918"
+        },
+        {
+          "file": "ci-personal-public-source.json",
+          "result": "PASS",
+          "sha256": "d24df986aa6bfb5bccafc7c528e4af7eb0b500a94b3938191d3209ca1e178a27"
+        },
+        {
+          "file": "ci-personal-public-ui.json",
+          "result": "PASS",
+          "sha256": "9716af65e99735fea5f3c63c1e154c822812c48d355aca7296237388d1a47c76"
+        },
+        {
+          "file": "ci-profile-ocr.json",
+          "result": "PASS",
+          "sha256": "54064e4c48f3a4e946d0d89bbef17c4e78e735cfdae2e91e31e12536b7c4abec"
+        },
+        {
+          "file": "ci-recovery.json",
+          "result": "PASS",
+          "sha256": "c00eba19ce78ed385f73c4447878227694c383d7a6187635bbf0f4879cfa620a"
+        },
+        {
+          "file": "ci-ui.json",
+          "result": "PASS",
+          "sha256": "9bf08fe184d026980ea6dbcc7beeb1a3d13fbf5c9736677da39e33d87c25f749"
+        },
+        {
+          "file": "ci-uploaded-resume-comparison.json",
+          "result": "PASS",
+          "sha256": "ac9591e4126f5fc46541b484e130277f0736334a5f7996a61dd1e237c5a36186"
+        }
+      ],
+      "reported_test_summaries": [
+        [
+          "3",
+          "40.364"
+        ],
+        [
+          "537",
+          "160.814"
+        ],
+        [
+          "17",
+          "13.917"
+        ]
+      ],
+      "artifact_archives": [
+        {
+          "id": 11319814667,
+          "name": "fictional-mock-evidence",
+          "digest": "sha256:0df0aa954fbf4bce2fd3ac3230e65b32db52a0ffb7c784303ed38b05a0c58ec6"
+        }
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "name": "product-suite-and-connected-ui",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "name": "product-suite-and-connected-ui",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "independent_review": {
+    "head": "5f535d90f8f3b91e1a16bf1c5eb9a667b430d753",
+    "result": "PASS",
+    "method": "Fresh independent read-only Codex static review of SHA256-indexed git-show packet; no independent fetch/runtime execution",
+    "summary": "No actionable findings in the supplied candidate source at `5f535d90f8f3b91e1a16bf1c5eb9a667b430d753`.\n\n- Actual text, source, or kind changes clear both review flags, including when a patch also supplies approval flags. No-op edits preserve flags; confidence edits retain the existing eligibility threshold. Checkbox changes remain explicit, and reverting content does not restore approval.\n- Editor updates preserve IDs. The browser oracle checks persisted identities, explicit API approval flags, historical document metadata and download hashes, and exclusion/inclusion of the edited fact across TXT, DOCX, and PDF.\n- The CI correction restores default synthetic merge checkout. Its tree-equality gate ensures subsequent tests exercise a merge result whose tracked source matches the exact candidate head. A differing merge tree fails before testing; this deliberately requires an updated candidate when integration changes the tree.\n- No actionable browser-oracle false positive is apparent. Expected-red mode requires all three tests to fail with the review-reset marker and rejects errors or skips.\n\nLimitations: static review of the supplied packet only; no independent fetching, tests, or runtime execution. Imported implementation and fixture contents absent from the packet were not independently assessed.",
+    "packet_manifest": {
+      "head": "5f535d90f8f3b91e1a16bf1c5eb9a667b430d753",
+      "sha256": {
+        "apps/web/src/fact-review.ts": "0e2d037397a836ca10dbbb6544035ac258d039b0244440d522580662c31b7b22",
+        "apps/web/src/fact-review.test.ts": "209a27ac0092a6ae24a99f7d8e77b4efe23033a53cd3604ce600729dc16b6d42",
+        "tests/browser/test_fact_review.py": "29b488a86082d08d452c50ba23cfaf8243e45a2ef976fc3de2f41e87030cfe0d",
+        "tools/verification/fact_review.py": "177dc131d7935d4358c443eae586f989d0d2b53bf6cbad1472d62c9309dcc444",
+        ".github/workflows/ci.yml": "1c90e2a040c40f96d8eed70593e4dbba55a66fe2a8a1c0aa76a6a849f0b5e14a",
+        "apps/web/src/api.ts": "b00927d2b53dc9e990b7c2c13f1cbfdad484a949a1c97972453cf478f05f1dce",
+        "services/documents/history.py": "765e273c639212cbd82250e79210863b50d283305e5a4d7185950f3f7b3a968c"
+      }
+    }
+  },
+  "applicable_workflows": {
+    "Verification": "PASS for exact-head push and pull_request; PR merge tree equals candidate",
+    "Codespaces": "NOT_APPLICABLE: no matching devcontainer paths changed in PR504"
+  },
+  "external_submission_enabled": false,
+  "deployment_performed": false,
+  "merge_commit": "b1691622a61ee368f058461ff002728325d275a9",
+  "merged_at": "2026-10-05T00:58:06.733920+00:00",
+  "merged_tree_matches_candidate": true
+}

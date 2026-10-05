@@ -3,42 +3,29 @@ set -Eeuo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
+version="${MJOBS_CODEX_VERSION:-latest}"
+if [[ ! "$version" =~ ^(latest|[0-9]+\.[0-9]+\.[0-9]+([-+][0-9A-Za-z.-]+)?)$ ]]; then
+  echo "MJOBS_CODEX_VERSION must be latest or an explicit semantic version." >&2
+  exit 2
+fi
 
+test -f .agents/skills/mjobs-delivery/SKILL.md
 retry() {
-  local attempts="$1"
-  shift
+  local attempts="$1"; shift
   local n=1
   until "$@"; do
-    if (( n >= attempts )); then
-      return 1
-    fi
-    echo "Attempt $n failed; retrying in $((n * 2))s: $*" >&2
+    if (( n >= attempts )); then return 1; fi
     sleep "$((n * 2))"
     n=$((n + 1))
   done
 }
 
-echo "==> Installing/updating Codex CLI"
-retry 3 npm install -g @openai/codex@latest
+echo "Installing Codex CLI ($version); no agent or MJobs service is started."
+retry 3 npm install --global "@openai/codex@$version"
 codex --version
-
-echo "==> Installing lean global coding skills for Codex"
-retry 3 npx --yes skills add obra/superpowers   --global --agent codex --yes --copy   --skill brainstorming   --skill requesting-code-review   --skill systematic-debugging   --skill test-driven-development   --skill using-git-worktrees   --skill verification-before-completion   --skill writing-plans
-
-retry 3 npx --yes skills add Jericho-Y/project-memory-manager   --global --agent codex --yes --copy --skill pmm
-
-# AFK-DEV is a user-authored skill used by the MJobs delivery contract. The
-# Codespace copy is vendored only as bootstrap material; it is not auto-discovered
-# from .devcontainer. Copy it into Codex's normal user skill directory.
-if [[ -d .devcontainer/codex-skills/afk-dev ]]; then
-  mkdir -p "$HOME/.codex/skills"
-  rm -rf "$HOME/.codex/skills/afk-dev"
-  cp -a .devcontainer/codex-skills/afk-dev "$HOME/.codex/skills/afk-dev"
-fi
-
-echo
-echo "==> Global skill inventory"
-npx --yes skills list --global --agent codex || true
-echo "==> Project MJobs skill"
-test -f .agents/skills/mjobs-delivery/SKILL.md
-echo "Codex developer tooling bootstrap complete."
+cat <<'MSG'
+MJobs reuses its checked-in .agents/skills/mjobs-delivery skill.
+No global skill, PMM, AFK, credential or user-config files are installed or replaced.
+For headless sign-in: codex login --device-auth
+Then run codex and read prompts/CODESPACES_ITERATION.md with your explicit task.
+MSG

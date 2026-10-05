@@ -73,3 +73,6 @@ For implementation/delivery work, Codex may use `.agents/skills/mjobs-delivery/S
 
 ## Checkout ownership and closeout
 A merged branch can still have uncommitted edits or an active writer. Before publishing or retiring a worktree, verify exclusive mutation ownership, recheck dirty files and preserve private/untracked data. Stop mutations on unexpected concurrent changes rather than committing another session's unfinished bytes. One integrator owns shared state and migration ordering. Start new development with the current `prompts/ASTRA_START_HERE.md`; historical session_control fields are observations, not current authorization.
+
+## Codespaces entrypoint
+For user-directed cloud development, start with `prompts/CODESPACES_ITERATION.md` and `docs/CODESPACES.md`. Setup installs CLI/dependencies, not an active agent or app runtime. Reuse the checked-in delivery skill; old global PMM/AFK skills and historical session records do not authorize continuation. Keep ports private and use synthetic fixtures unless explicitly approved otherwise.

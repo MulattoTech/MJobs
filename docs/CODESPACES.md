@@ -1,144 +1,165 @@
 # Developing MJobs in GitHub Codespaces
 
-Use a Codespace when you want Python, Node, Docker, PostgreSQL, Redis, Playwright,
-and Codex to consume GitHub's VM resources instead of the Windows gaming PC.
+Use a Codespace for a separate Linux development/test environment. Python,
+Node, Docker, PostgreSQL, Redis, Playwright and Codex commands run on GitHub's
+VM rather than the Windows PC. This does not move your Windows MJobs database
+or private files into the cloud, and it is not a production deployment.
 
-## Machine
+## Machine and creation
 
-As of 2026-10-04, the GitHub account exposes these MJobs machine types:
+Choose **4 cores / 16 GB RAM** or larger. MJobs declares a minimum of 4 cores,
+16 GB RAM and 32 GB storage. Select from the sizes GitHub actually offers your
+account rather than relying on a historical machine-name snapshot. Linux parity
+with CI and separation from personal data are the main benefits; a Codespace
+is not inherently faster than a powerful local PC.
 
-- `basicLinux32gb` — 2 cores / 8 GB RAM / 32 GB storage
-- `standardLinux32gb` — 4 cores / 16 GB RAM / 32 GB storage
-
-MJobs declares 4 cores / 16 GB / 32 GB as its minimum dev-container host
-requirement. Use `standardLinux32gb`.
-
-## Create the Codespace
-
-Run this from a local PowerShell terminal with GitHub CLI authenticated:
-
-```powershell
-gh codespace create -R MulattoTech/MJobs -b main -m standardLinux32gb -d "MJobs Cloud" --idle-timeout 30m --retention-period 72h
-```
-
-The creation process runs `.devcontainer/setup.sh`. It:
-
-1. creates the Linux `.venv`;
-2. installs `requirements.lock`;
-3. installs frontend packages;
-4. installs Chromium and Playwright dependencies;
-5. creates an ignored Codespace-local `.env` without replacing an existing one;
-6. installs the current Codex CLI;
-7. installs the lean Codex coding-skill set and PMM;
-8. installs the vendored AFK-DEV skill;
-9. validates project skills, catalogue, progress journal and the Git diff.
-
-Open the Codespace in browser VS Code:
+On repository **main**, choose **Code > Codespaces > New with options**, select
+the machine size, and create. Check for an appropriate existing Codespace first.
+Alternatively, from authenticated local PowerShell:
 
 ```powershell
+gh codespace create -R MulattoTech/MJobs -b main --idle-timeout 30m
 gh codespace code -R MulattoTech/MJobs --web
 ```
 
-If more than one Codespace exists, GitHub CLI will ask which one to open.
+The CLI offers available choices and asks which Codespace to open when several
+exist. No machine ID or shortened retention period is hard-coded. Review your
+account's billing and retention settings before creating cloud resources.
 
-## First Codex login
+Post-create setup installs locked Python dependencies, frontend packages,
+Chromium/Playwright dependencies and Codex CLI. It creates an ignored local .env
+only when absent and runs existing repository validators. It does **not** start
+MJobs, launch an agent, sign you in, copy Windows files, or install global third-
+party/PMM/AFK skills. It reuses `.agents/skills/mjobs-delivery` from this repo.
 
-Git/GitHub authentication is normally provisioned by Codespaces. Open a terminal
-inside the Codespace and run:
+## First Codex login and task
+
+In the Codespace terminal at the repository root:
 
 ```bash
+codex --version
+codex login --device-auth
+codex login status
 codex
 ```
 
-Complete the OpenAI login flow if Codex asks. This is the only authentication
-step the repository cannot perform for you.
+Enable device-code login in your ChatGPT security settings when required. Open
+the official link printed by Codex and enter its one-time code in your browser.
+GitHub and Codex authentication are separate. ChatGPT sign-in uses subscription
+access; API-key access has separate usage billing. Never commit or share auth
+caches, tokens or login diagnostics, or copy your Windows .codex folder into Git.
 
-For normal MJobs development:
-
-```bash
-codex -m gpt-6-astra -c 'model_reasoning_effort="xhigh"'
-```
-
-Then instruct Codex:
+Inside Codex, start with:
 
 ```text
-Read prompts/ASTRA_XHIGH.md and prompts/ASTRA_DELIVERY_CONTRACT.md, then begin authorized implementation.
+Read prompts/CODESPACES_ITERATION.md. Reconcile current main and propose the
+next smallest useful change. Do not implement until I approve that scope.
 ```
 
-Use Max for a difficult correctness blocker. Use Ultra only when the repository
-has genuinely independent dependency-ready work; on the available 4-core
-Codespace, keep write-heavy parallelism conservative.
+Then give the concrete issue or goal you want implemented. The same bounded
+entrypoint can be passed directly into an interactive CLI session:
 
-## Run MJobs
+```bash
+codex "$(cat prompts/CODESPACES_ITERATION.md)"
+```
 
-Fixture/test stack:
+Use `/model` to select a model your account actually offers and `/permissions`
+to review session permissions. No forced model, AFK mode, unrestricted approval
+policy or autonomous backlog run is required. Installing Codex as a development
+tool does not implement AI inside MJobs.
+
+## Rerun setup or select a CLI version
+
+```bash
+bash .devcontainer/setup.sh
+bash .devcontainer/bootstrap-codex.sh
+# Optional example of an explicit version rather than the default latest:
+MJOBS_CODEX_VERSION=0.160.0 bash .devcontainer/bootstrap-codex.sh
+```
+
+The version above is an example, not a required downgrade. Bootstrap attempts
+the official npm package at most three times and prints the installed version.
+It does not modify existing global skills, credentials or user configuration.
+Older Codespaces may already contain previously installed PMM/AFK skills: the
+new bootstrap does not delete user files. Use a fresh Codespace for new defaults
+or review those older installations yourself.
+
+## Start and stop MJobs explicitly
+
+Prefer fictional fixtures for development. These are manual commands, not
+automatic setup or prompt actions:
 
 ```bash
 bash .devcontainer/mjobs.sh fixture
+bash .devcontainer/mjobs.sh status
 ```
 
-Personal stack:
+An optional separate personal stack is available, but real personal data should
+not be introduced into cloud development by default:
 
 ```bash
 bash .devcontainer/mjobs.sh personal
 ```
 
-Status:
+Ports are 18700 (FIXTURE), 18701 (PERSONAL) and 18702 (feedback). Open the app
+through the Codespace **Ports** panel/forwarded URL, not your PC's localhost.
+Verify each port remains **Private**. Do not publish app or database ports.
+The Codespace does not access or start the stopped Windows runtime.
 
-```bash
-bash .devcontainer/mjobs.sh status
-```
-
-Stop all Compose stacks:
+Stop the MJobs Compose stacks using the existing helper:
 
 ```bash
 bash .devcontainer/mjobs.sh down-all
 ```
 
-Codespaces automatically forwards ports:
-
-- 18700 — FIXTURE MJobs
-- 18701 — PERSONAL MJobs
-- 18702 — Development & Feedback
-
-Keep forwarded ports private unless there is a deliberate reason to change
-visibility.
-
-## Verification
-
-Fast environment/product checks:
+## Verification and ownership
 
 ```bash
+bash .devcontainer/test-bootstrap.sh  # Offline synthetic bootstrap contract
 bash .devcontainer/verify.sh quick
-```
-
-Full local regression:
-
-```bash
 bash .devcontainer/verify.sh full
 ```
 
-The normal GitHub Verification workflow remains the merge authority for hosted
-CI. The separate Codespaces workflow verifies that the dev container itself can
-build and run its smoke checks.
+`quick` checks environment, frontend/build and repository validators; `full`
+also runs Python regressions. Hosted **Verification** remains product acceptance
+authority. Devcontainer changes additionally require **Codespaces** smoke.
+Inspect applicable checks and runtime artifacts on the exact final PR head.
+Both workflows preserve PR merge-result testing and refuse a merge tree that
+differs from the candidate; update the branch normally when main advances.
+Never force-push or waive a failed gate.
 
-## Development ownership
+Keep one writer per checkout and one integrator for overlapping work. Use a new
+branch/coherent PR for each requested iteration. Before switching between
+Windows and Codespaces, finish/checkpoint the current writer, commit and push
+reviewed source, then fetch current GitHub state in the next environment.
+Git push does not transfer ignored resumes, credentials, databases or outputs.
 
-Treat the Codespace as the only writable MJobs checkout while it owns a delivery
-session. Do not simultaneously let another Codex session edit the local Windows
-checkout. GitHub `main` remains integration authority; use normal branches,
-PRs, exact-head CI and review.
+## Costs, stopping and preservation
 
-A stopped Codespace keeps its disk until its retention period expires. Push
-valuable work before stopping or deleting it.
+Published personal quotas are 120 core-hours / 15 GB-month on GitHub Free and
+180 core-hours / 20 GB-month on GitHub Pro. At four cores that is up to 30 or 45
+active clock-hours when otherwise unused. Beyond included usage, four-core
+compute is $0.36/hour and storage $0.07/GB-month. These rates were checked on
+October 4, 2026; they are not a reading of your plan, remaining quota or bill.
+ChatGPT/Codex usage is separate.
 
-## Stop compute when finished
-
-From the local PC:
+Closing a browser tab does not reliably stop compute; terminal output can count
+as activity. Stop explicitly when finished:
 
 ```powershell
 gh codespace list -R MulattoTech/MJobs
 gh codespace stop -c <CODESPACE_NAME>
 ```
 
-The configured idle timeout also stops an inactive Codespace automatically.
+Stopping retains the disk until the applicable retention period expires, but
+storage still consumes quota/can be billed. Automatic deletion can discard
+unpushed changes. Push valuable reviewed source and privately back up needed
+non-source data before deletion. Do not use a Codespace as the only copy of
+private documents or production data.
+
+Official references (recheck current account availability/pricing):
+- [GitHub CLI creation](https://cli.github.com/manual/gh_codespace_create)
+- [GitHub Codespaces billing](https://docs.github.com/en/billing/concepts/product-billing/github-codespaces)
+- [Codespace lifecycle](https://docs.github.com/en/codespaces/about-codespaces/understanding-the-codespace-lifecycle)
+- [Codex authentication](https://developers.openai.com/codex/auth/)
+- [Codex CLI](https://developers.openai.com/codex/cli/)
