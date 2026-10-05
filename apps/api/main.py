@@ -52,13 +52,17 @@ class CareerFactInput(FactInput):
     kind: Literal["skill", "experience", "responsibility", "education", "certification", "project", "accomplishment", "summary", "technology_experience"] = "skill"
 
 
+class AnswerInput(FactInput):
+    question: str | None = Field(default=None, min_length=1, max_length=2000)
+
+
 class ProfileInput(BaseModel):
     model_config = ConfigDict(strict=True, extra="forbid")
     id: str = Field(min_length=1, max_length=128)
     name: str = Field(min_length=1, max_length=200)
     email: str = Field(min_length=3, max_length=320, pattern=r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
     facts: list[CareerFactInput] = Field(default_factory=list, max_length=200)
-    answers: list[FactInput] = Field(default_factory=list, max_length=200)
+    answers: list[AnswerInput] = Field(default_factory=list, max_length=200)
     contact: ContactDetails = Field(default_factory=ContactDetails)
     preferences: JobPreferences = Field(default_factory=JobPreferences)
 
@@ -85,6 +89,26 @@ class ApplicationInput(DiscoveryInput):
         if self.tailor_fact_ids is not None and (not self.tailor_resume or not self.expected_profile_version):
             raise ValueError('Explicit resume facts require tailoring and the observed profile version')
         return self
+
+
+class ApplicationAnswerItem(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+    question: str = Field(min_length=1, max_length=2000)
+    text: str = Field(min_length=1, max_length=10000)
+    answer_id: str | None = Field(default=None, min_length=1, max_length=128)
+    reviewed: bool
+
+    @model_validator(mode='after')
+    def explicit_review_and_text(self):
+        if not self.reviewed or not self.question.strip() or not self.text.strip():
+            raise ValueError('Every answer must contain user text and deliberate review')
+        return self
+
+
+class ApplicationAnswerExportInput(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+    profile_id: str = Field(min_length=1, max_length=128)
+    items: list[ApplicationAnswerItem] = Field(min_length=1, max_length=100)
 
 
 class ManualJobCaptureInput(BaseModel):
@@ -623,6 +647,24 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     def documents(application_id: str):
         from services.documents.history import application_documents
         return {"documents": application_documents(store, application_id, output_dir)}
+
+    @app.get("/profiles/{profile_id}/applications/{application_id}/answers")
+    def application_answer_bank(profile_id: str, application_id: str):
+        application = store.application(application_id)
+        if application["profile_id"] != profile_id:
+            raise NoResultFound("Application is not owned by this profile")
+        # Expose only the active profile bank inside its profile-scoped route.
+        return {"answers": store.profile(profile_id).get("answers", [])}
+
+    @app.post("/profiles/{profile_id}/applications/{application_id}/answers/export", status_code=201)
+    def export_application_answers(profile_id: str, application_id: str, value: ApplicationAnswerExportInput):
+        from services.documents.answers import export_answers
+        application = store.application(application_id)
+        if application["profile_id"] != profile_id or value.profile_id != profile_id:
+            raise NoResultFound("Application is not owned by this profile")
+        record = export_answers(store, application_id, output_dir, value.items)
+        return {"document_id": record["id"], "version": record["version"],
+                "sha256": record["sha256"]["txt"], "external_submission": "OFF"}
 
     @app.get('/applications/{application_id}/document-comparison')
     def document_comparison(application_id: str, base_document_id: str, tailored_document_id: str):

@@ -157,14 +157,33 @@ class Store:
         verified = [Fact(**{key: row[key] for key in ("id", "text", "source", "verified", "user_approved", "confidence")}) for row in profile["facts"]]
         if len({fact.id for fact in verified}) != len(verified):
             raise ValueError("Duplicate fact identity")
+        answers = profile.get("answers", previous.get("answers", []))
+        if not isinstance(answers, list) or len(answers) > 200:
+            raise ValueError("Provide up to 200 reusable answers")
+        old_answers = {row["id"]: row for row in previous.get("answers", [])}
+        normalized_answers = []
+        for answer in answers:
+            if not isinstance(answer, dict):
+                raise ValueError("Reusable answers must be objects")
+            validated = {key: answer[key] for key in ("id", "text", "source", "verified", "user_approved", "confidence")}
+            Fact(**validated)
+            if answer.get("question") is not None:
+                if not isinstance(answer["question"], str) or not answer["question"].strip() or len(answer["question"]) > 2000:
+                    raise ValueError("Reusable answer questions must be nonempty and at most 2000 characters")
+                validated["question"] = answer["question"]
+            old = old_answers.get(validated["id"])
+            substantive = ("question", "text", "source", "confidence")
+            if old and any(old.get(key) != validated.get(key) for key in substantive):
+                validated["verified"] = False
+                validated["user_approved"] = False
+            normalized_answers.append(validated)
+        answers = normalized_answers
+        profile["answers"] = answers
         version = identity(profile)
         with self.engine.begin() as connection:
             upsert(connection, m.profiles, {"id": profile["id"], "name": profile["name"], "email": profile["email"], "version": version}, replace=True)
-            answers = profile.get("answers", [])
             if len({answer["id"] for answer in answers}) != len(answers):
                 raise ValueError("Duplicate approved answer identity")
-            for answer in answers:
-                Fact(**answer)
             upsert(connection, m.profile_versions, {"id": identity(profile["id"], version), "profile_id": profile["id"], "version": version,
                    "contact": {"name": profile["name"], "email": profile["email"],
                                "contact": profile['contact'], "preferences": profile['preferences']}, "answers": answers})
