@@ -1,10 +1,9 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-05T18:29:25Z",
+  "timestamp": "2026-10-05T18:38:18Z",
   "result": "PARTIAL",
   "scope": "Connected synthetic browser journey across the bounded CORE-WORKFLOW-TRIAL A-F user actions",
-  "source_commit": "806b9e3d8dc3aafbade0b723c89de19ab1764df9",
-  "current_pr_candidate_at_checkpoint": "c06979890777c1d36b0e49cc9c684591af16adc1",
+  "source_commit": "79630eae594cf16cb5b18fb32730415c4e1ad726",
   "base_commit": "3ec8702ed0f42842e1bac772997760d8db5c9caf",
   "operation_mode": "FIXTURE",
   "data_scope": "Synthetic applicant, synthetic resume/job/answers, temporary SQLite database and temporary documents only",
@@ -13,12 +12,12 @@
   "local_browser_acceptance": {
     "command": ".venv\\Scripts\\python.exe -m unittest tests.browser.test_core_workflow_trial -v",
     "result": "PASS",
-    "consecutive_runs": 4,
+    "consecutive_runs": 5,
     "browser": "isolated Chromium",
     "assertions": [
       "PDF import suggestions remain pending until deliberate fact approval; unapproved uncertain skill is excluded.",
-      "Saved title/location criteria filter a nonmatching job and persist through reload.",
-      "Manual capture retains the pasted reference and source description while a server-side egress guard denies outbound/private URL access.",
+      "Saved scheduled-search title and employment criteria read back; separate transient Jobs title/location controls exclude a nonmatching job.",
+      "Manual capture preserves the pasted reference and source description, verified through the profile-scoped job detail API after browser reload; a server-side egress guard denies outbound/private URL access.",
       "Match explanation distinguishes approved evidence from missing evidence.",
       "Job-specific resume and cover letter preview/download; revision 1 bytes remain unchanged after revision 2.",
       "Exact saved answer is loaded after browser reload, reviewed for the job, and exported as a durable document.",
@@ -26,7 +25,8 @@
       "Closing and reopening the temporary Store/API/browser preserves status/history and prior document download hashes."
     ],
     "page_errors": [],
-    "external_requests": []
+    "external_requests": [],
+    "test_source_sha256": "0380979626641f7e72256c1e951c1f8d166a1b065817da4f699d492d5caa9af9"
   },
   "public_source_live_read": {
     "result": "PASS",
@@ -40,18 +40,22 @@
     "artifact_sha256": "a02f0cb5d28397d13c6971cfb4dfbb5946762c59ab2313e3d9b4325834f204c7"
   },
   "independent_review": {
-    "result": "PASS",
-    "candidate": "c06979890777c1d36b0e49cc9c684591af16adc1",
+    "result": "PARTIAL",
+    "candidate": "79630eae594cf16cb5b18fb32730415c4e1ad726",
     "base": "3ec8702ed0f42842e1bac772997760d8db5c9caf",
     "reviewer": "independent read-only code reviewer",
-    "findings": []
+    "findings": [
+      "Active planning metadata pointed to a stale candidate SHA; remove SHA from active fields and resolve current head from GitHub PR.",
+      "Evidence conflated saved criteria with transient Jobs filters and did not assert manual capture reference/source readback; both claims have been corrected and the browser oracle expanded."
+    ],
+    "repair_status": "Local repairs verified; fresh exact-candidate review pending."
   },
   "exact_head_gates": {
     "push_verification": "PENDING",
     "pull_request_verification": "PENDING",
     "pr_merge_tree_equality": "PENDING_FINAL_HEAD",
     "required_runtime_reports": "PENDING_FINAL_HEAD",
-    "note": "Current c069798 runs were canceled to include this metadata. Fresh runs must cover the final committed tree; exact run IDs and artifact digests are recorded in the PR closing receipt after checks finish."
+    "note": "Fresh review and both Verification event runs must cover the final pushed candidate. Record exact run IDs and artifact digests in the PR closing receipt after checks finish."
   },
   "known_limitations": [
     "A-F evidence covers bounded synthetic browser paths; referenced full requirements stay PARTIAL until every acceptance boundary is met.",

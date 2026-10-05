@@ -1,3 +1,11 @@
+## Latest stabilization checkpoint — 2026-10-05
+
+PR [#515](https://github.com/MulattoTech/MJobs/pull/515) remains draft on `codex/core-workflow-trial-combined-journey-20261005`; resolve its current head from GitHub rather than stale hashes in this file. Local repairs after review candidate `79630eae` are verified but not yet published: the connected synthetic Chromium test now reads back pasted job reference/source text through the profile-scoped detail API after browser reload, and the evidence distinguishes persisted scheduled-search title/employment criteria from separate transient Jobs title/location filters. Five consecutive local runs pass on the updated test.
+
+Independent review of `79630eae` found those two metadata/evidence issues; both have been corrected locally, and fresh review is pending. No exact-final-head hosted gate is claimed. After publishing, require independent review plus both push and pull_request Verification events, inspect every required runtime report/artifact and PR merge-tree equality, then merge only the verified head. Keep PR #515 draft if any gate is missing or fails.
+
+Earlier bounded live Greenhouse read: push run `37352733344` on source `b62185e8` returned 19 public jobs, zero external application requests, and safe UI readback; this is not final-head CI evidence. Overall A-F remains PARTIAL, product AI is unavailable/not implemented, external submission remains OFF, and the retained private runtime/database remains untouched.
+
 # Active CORE-WORKFLOW-TRIAL checkpoint — 2026-10-05, after feature cutoff
 
 Current main before final integration: `3ec8702ed0f42842e1bac772997760d8db5c9caf`. PR [#515](https://github.com/MulattoTech/MJobs/pull/515) is a draft on `codex/core-workflow-trial-combined-journey-20261005` at candidate `c06979890777c1d36b0e49cc9c684591af16adc1`; remote branch matches local. Current base includes merged PR #514 CI deduplication, so this branch merges current main and adds a narrow push-trigger exception for `codex/core-workflow-trial-*` to meet the user's explicit both-event gate. Ordinary feature pushes stay deduplicated.

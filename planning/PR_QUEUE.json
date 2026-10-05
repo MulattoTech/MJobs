@@ -3239,12 +3239,11 @@
       "pr_number": 515,
       "pr_url": "https://github.com/MulattoTech/MJobs/pull/515",
       "base": "3ec8702ed0f42842e1bac772997760d8db5c9caf",
-      "head": "c06979890777c1d36b0e49cc9c684591af16adc1",
       "evidence_path": "docs/evidence/2026-10-05-core-workflow-trial-combined.json",
       "draft_until_verified": true,
       "scope_complete": false,
       "scope_result": "PARTIAL",
-      "notes": "Connected synthetic browser acceptance and CI evidence only; all referenced parent requirements remain PARTIAL where wider acceptance exceeds this journey. Exact final-head push and pull_request reports/artifacts remain required."
+      "notes": "Connected synthetic browser acceptance and CI evidence only; all referenced parent requirements remain PARTIAL. Resolve current candidate from live PR #515 head; fresh review and both exact-head push/pull_request reports/artifacts remain required."
     }
   ]
 }

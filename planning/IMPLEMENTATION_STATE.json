@@ -675,8 +675,8 @@
       "branch": "codex/core-workflow-trial-combined-journey-20261005",
       "status": "DRAFT_PR",
       "base": "3ec8702ed0f42842e1bac772997760d8db5c9caf",
-      "head": "c06979890777c1d36b0e49cc9c684591af16adc1",
-      "scope": "Connected synthetic A-F browser acceptance and exact-head verification only; broader requirements remain PARTIAL."
+      "scope": "Connected synthetic A-F browser acceptance and exact-head verification only; broader requirements remain PARTIAL.",
+      "note": "Resolve current candidate from live GitHub PR head; latest local browser-oracle repair is not yet published."
     }
   ],
   "tests_passed": [
@@ -842,9 +842,9 @@
     "MJ-PR-016 local Chromium first run used Docker DNS host api, which is not a secure browser origin for crypto.randomUUID; loopback URL rerun passed all five connected UI actions."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-05T18:29:25Z",
+    "timestamp": "2026-10-05T18:38:18Z",
     "result": "PARTIAL",
-    "scope": "Combined synthetic A-F browser journey passes locally; exact-head hosted push/PR gates and final runtime artifacts are pending.",
+    "scope": "Five repeated synthetic Chromium runs pass with corrected manual-capture readback and accurate saved-versus-transient filter oracle; fresh exact-head review and hosted gates pending.",
     "evidence_path": "docs/evidence/2026-10-05-core-workflow-trial-combined.json"
   },
   "ci_verification": {
@@ -954,7 +954,6 @@
     "result": "PARTIAL",
     "branch": "codex/core-workflow-trial-combined-journey-20261005",
     "base": "3ec8702ed0f42842e1bac772997760d8db5c9caf",
-    "candidate": "c06979890777c1d36b0e49cc9c684591af16adc1",
     "merge_commit": null,
     "note": "PR #515 contains the connected synthetic workflow acceptance journey and a narrowly scoped exact-head push-event CI exception; no broad requirement is closed by this test-only slice."
   },
@@ -4229,13 +4228,13 @@
     },
     {
       "milestone_id": "CORE-WORKFLOW-TRIAL-COMBINED-AF-PR515",
-      "timestamp": "2026-10-05T18:29:25Z",
-      "current_phase": "FINAL_CANDIDATE_EXACT_HEAD_PUSH_AND_PR_VERIFICATION_PENDING",
+      "timestamp": "2026-10-05T18:38:18Z",
+      "current_phase": "FINAL_CANDIDATE_REVIEW_AND_EXACT_HEAD_PUSH_PR_VERIFICATION_PENDING",
       "completed_steps": [
         "Reconciled live main at 3ec8702, including merged PR #514 CI trigger deduplication; merged current main into the isolated task branch.",
-        "Independent review of exact candidate c069798 against base 3ec8702 found no actionable findings.",
         "Connected synthetic Chromium journey passed four consecutive local runs; no profile, resume, or real application data used.",
-        "PR #515's scoped core-trial push trigger restores the explicit both-event acceptance requirement while leaving ordinary feature branches deduplicated."
+        "PR #515's scoped core-trial push trigger restores the explicit both-event acceptance requirement while leaving ordinary feature branches deduplicated.",
+        "Independent review of candidate 79630ea found two evidence/metadata findings; test and evidence corrections are locally verified, fresh review pending."
       ],
       "files_added": [
         "docs/evidence/2026-10-05-core-workflow-trial-combined.json"
@@ -4246,16 +4245,18 @@
         "planning/IMPLEMENTATION_STATE.json",
         "planning/PR_QUEUE.json",
         "planning/CAPABILITY_MATRIX.json",
-        "planning/SESSION_HANDOFF.md"
+        "planning/SESSION_HANDOFF.md",
+        "tests/browser/test_core_workflow_trial.py"
       ],
       "tests_completed": [
-        "Connected synthetic Chromium workflow: four consecutive focused runs pass at code-equivalent source commit 806b9e3.",
         "Independent read-only review of exact candidate c069798 against base 3ec8702: no actionable findings.",
-        "Bounded actual public Greenhouse read and source UI readback previously passed in push run 37352733344 at source b62185e; 19 public jobs returned, 0 external application requests, and missing job context blocked preparation without creating an application/document."
+        "Bounded actual public Greenhouse read and source UI readback previously passed in push run 37352733344 at source b62185e; 19 public jobs returned, 0 external application requests, and missing job context blocked preparation without creating an application/document.",
+        "Connected synthetic Chromium workflow passed five consecutive runs with manual job detail readback after reload and precise saved/transient filter assertions; source base 79630ea plus local test update."
       ],
       "tests_remaining": [
-        "Both exact-head Verification event runs and all required runtime reports/artifacts for the final metadata-inclusive candidate.",
-        "Merge PR #515 only if both events, independent review, artifacts, and PR merge-tree equality pass; then fast-forward local main safely."
+        "Publish the corrected browser oracle and active metadata/evidence checkpoint; obtain independent review on exact published head.",
+        "Run both exact-head Verification events and inspect every required report/artifact.",
+        "Merge only if both events, review, artifacts, and PR merge-tree equality pass; then safely fast-forward local main."
       ],
       "known_limitations": [
         "Overall CORE-WORKFLOW-TRIAL remains PARTIAL until final remote gates, integrated restart proof, and final handoff are complete.",
@@ -4267,23 +4268,25 @@
         "evidence_path": "docs/evidence/2026-10-05-core-workflow-trial-combined.json",
         "working_tree_changes_present": false,
         "remote_push": "PASS_REMOTE_SHA_MATCHES_LOCAL",
-        "note": "Last published source checkpoint before compact state/evidence refresh; current draft remains isolated on PR #515."
+        "note": "Last synchronized checkpoint before latest local browser-oracle and metadata repairs; prior hash is historical, not current candidate."
       },
       "migrations_applied": [],
       "live_integrations_tested": [
         "Greenhouse public read returned 19 jobs on earlier exact push run 37352733344; zero external application requests; safe UI readback blocked preparation without creating an application/document."
       ],
-      "known_errors": []
+      "known_errors": [
+        "Candidate 79630ea review identified stale active candidate metadata and overbroad filter/manual-capture evidence claims; local repairs are in progress and need fresh independent review."
+      ]
     }
   ],
-  "current_phase": "FINAL_CANDIDATE_EXACT_HEAD_PUSH_AND_PR_VERIFICATION_PENDING",
+  "current_phase": "FINAL_CANDIDATE_REVIEW_AND_EXACT_HEAD_PUSH_PR_VERIFICATION_PENDING",
   "last_safe_checkpoint": {
     "git_commit": "c06979890777c1d36b0e49cc9c684591af16adc1",
     "branch": "codex/core-workflow-trial-combined-journey-20261005",
     "evidence_path": "docs/evidence/2026-10-05-core-workflow-trial-combined.json",
     "working_tree_changes_present": false,
     "remote_push": "PASS_REMOTE_SHA_MATCHES_LOCAL",
-    "note": "Last published source checkpoint before compact state/evidence refresh; current draft remains isolated on PR #515."
+    "note": "Last synchronized checkpoint before latest local browser-oracle and metadata repairs; prior hash is historical, not current candidate."
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
@@ -4882,5 +4885,5 @@
     "CORE-WORKFLOW-TRIAL combined browser journey: four consecutive local Chromium runs passed at source commit 806b9e3; test source is unchanged at c069798. It covers synthetic import/review, persisted filtering, manual capture without URL fetch, explainable match, job-specific documents and immutable prior bytes, reviewed reusable-answer export, user-reported tracking/history, and SQLite/API/browser reopen.",
     "PR #515 independent exact-head review of c069798 against base 3ec8702 found no actionable findings; review covers tracker race repair and the scoped push trigger preserving ordinary-feature deduplication. Final exact-head hosted events/artifacts are pending."
   ],
-  "ownership": "PR #515 is the sole active implementation PR on codex/core-workflow-trial-combined-journey-20261005; candidate c06979890777c1d36b0e49cc9c684591af16adc1 is synchronized to GitHub and independently reviewed. Final exact-head push/pull_request Verification and artifact inspection remain pending. No retained runtime, personal data, or product AI provider was used; external submission is OFF."
+  "ownership": "PR #515 is the sole active implementation PR on codex/core-workflow-trial-combined-journey-20261005. Resolve its candidate from the live GitHub PR head. Local browser-oracle and evidence repairs are verified but not yet published/reviewed. Final exact-head push/pull_request Verification and artifact inspection remain pending. No retained runtime, personal data, or product AI provider was used; external submission is OFF."
 }
