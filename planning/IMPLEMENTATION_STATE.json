@@ -657,7 +657,15 @@
       "url": "https://github.com/MulattoTech/MJobs/pull/513",
       "branch": "codex/core-workflow-trial-application-pipeline-20261005",
       "status": "DRAFT",
-      "base": "2de5863da7418bf20087822d052b2beeb77ca64b"
+      "base": "2de5863da7418bf20087822d052b2beeb77ca64b",
+      "review": "PASS_NO_ACTIONABLE_CODE_DEFECTS_ON_SOURCE_HEAD",
+      "exact_head_checks": "PENDING_METADATA_CHECKPOINT_HEAD",
+      "reviewed_source_head": "8756881027674346bd022716068b4532cbc91ca7",
+      "source_head_checks": {
+        "push_run_id": 37340200494,
+        "pull_request_run_id": 37340208479,
+        "result": "PASS_SOURCE_HEAD_ONLY_FINAL_METADATA_HEAD_PENDING"
+      }
     }
   ],
   "tests_passed": [
@@ -790,7 +798,11 @@
     "F2 applications browser: Chromium manual-stage/note/history reload and preserved document-download journey passed with zero external requests.",
     "F2 affected regressions: 20 integration and 4 browser tests passed across application pipeline, job tracking, reviewed answers, and document history.",
     "F2 npm run build --prefix apps/web: strict TypeScript and Vite production build passed.",
-    "Profile-scoped generated-document download repair passes 584 repository tests in 324.939 seconds, 31 affected integration/browser tests, 62 frontend tests, and strict build."
+    "Profile-scoped generated-document download repair passes 584 repository tests in 324.939 seconds, 31 affected integration/browser tests, 62 frontend tests, and strict build.",
+    "CORE-WORKFLOW-TRIAL F2 source head 8756881: 585 Python tests passed in 323.820s; prior superseded 7c07db2 teardown timeout did not recur.",
+    "CORE-WORKFLOW-TRIAL F2 source head 8756881: 42 focused integrations, 5 connected Chromium browser tests, 62 frontend tests, strict TypeScript/Vite build, agent-skills/catalogue/progress validators and CLI compilation passed.",
+    "Fresh independent review of PR #513 exact source head 8756881 against base 2de5863 found no actionable defects after profile-scoping comparison reads, application detail/history, downloads and fixture mock actions.",
+    "PR #513 source head 8756881 push run 37340200494 and pull_request run 37340208479 both passed 585 tests and all connected CI steps; all 9 reports per event passed and artifact SHA-256 digests matched GitHub. These runs precede the metadata commit and are not final-head evidence."
   ],
   "tests_failed": [],
   "tests_not_run": [
@@ -803,7 +815,6 @@
     "Combined CORE-WORKFLOW-TRIAL A-F browser journey pending",
     "Combined CORE-WORKFLOW-TRIAL A-F browser journey",
     "Combined CORE-WORKFLOW-TRIAL A-F browser journey with durable restart/history checks",
-    "F2 independent exact-head review, both hosted push/pull_request Verification events and runtime artifact inspection remain pending.",
     "Combined A-F browser journey."
   ],
   "known_external_limitations": [
@@ -892,7 +903,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Commit the corrected held-read browser oracle and evidence/control-plane checkpoint; read back the resulting exact PR #512 head, then obtain independent review and both exact-head push/pull_request Verification artifacts.",
+  "recommended_resume_step": "Commit and push the evidence/state metadata checkpoint; read back the exact PR #513 head, obtain fresh review and both event-specific Verification runs, and inspect every required runtime artifact before merge.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -4159,13 +4170,14 @@
     },
     {
       "milestone_id": "CORE-WORKFLOW-TRIAL-F2-PUBLISHED-PR513",
-      "timestamp": "2026-10-05T15:50:00Z",
-      "current_phase": "PROFILE_SCOPED_DOWNLOAD_REPAIR_PUBLISHED_PENDING_FINAL_HEAD_REVIEW_CI",
+      "timestamp": "2026-10-05T16:30:06Z",
+      "current_phase": "PROFILE_SCOPED_APPLICATION_READS_AND_FIXTURE_ACTIONS_REPAIRED_PENDING_FINAL_METADATA_HEAD_CI",
       "completed_steps": [
         "Independent exact review of predecessor 01007ab1a04223f50d15e42232cc4a356d9832fd found a stale application-selection response race and stale idempotency IDs after ambiguous status/note writes.",
         "Added application-selection guards, regenerated note request IDs when note content changes, and clear old status request IDs after an intervening successful status.",
         "Controlled Chromium tests pass for held response/profile selection and lost-response status/note editing retries.",
-        "Fresh independent review of 31b6053 confirmed profile document downloads were unscoped; all generated-document links now use the existing profile-scoped route, and cross-profile download requests are rejected."
+        "Fresh independent review of 31b6053 confirmed profile document downloads were unscoped; all generated-document links now use the existing profile-scoped route, and cross-profile download requests are rejected.",
+        "Fresh exact-head review of 8756881 found no actionable defects after scoping comparison responses, application detail/history, and fixture mock actions to the owning profile."
       ],
       "files_added": [
         "tests/browser/test_application_pipeline.py"
@@ -4180,26 +4192,26 @@
         "docs/evidence/2026-10-05-application-pipeline.json"
       ],
       "tests_completed": [
-        "Full repository Python suite on the profile-scoped generated-download repair: 584 tests in 324.939 seconds passed.",
-        "31 focused integration and Chromium tests passed across tracking, answer export, document history/download, resume selection, provenance and cover-letter validation.",
-        "62 frontend tests and strict TypeScript/Vite production build passed.",
-        "Catalogue, progress journal and agent skill validators passed; git diff --check passed."
+        "Full Python suite: 585 tests in 323.820 seconds on source head 8756881; isolated browser retry case passed after one teardown timeout on a superseded candidate.",
+        "Affected application/detail/history regressions: 42 integration tests and 5 connected Chromium browser tests passed.",
+        "Web suite: 62 tests; strict TypeScript/Vite production build; agent-skill, catalogue and progress validators; CLI compilation and git diff --check passed.",
+        "Independent source-head review of 8756881 against base 2de5863 found no actionable code defects.",
+        "Pre-metadata source-head Verification: push 37340200494 and pull_request 37340208479 passed; 585 tests and all 9 runtime reports per event passed, digests matched. Metadata commit will create a new exact head requiring fresh runs."
       ],
       "tests_remaining": [
-        "Commit/push the final metadata checkpoint and verify the PR head/base.",
-        "Fresh independent review of exact final PR head.",
-        "Both exact-head push and pull_request Verification events; inspect required reports/artifacts and merge-tree equality.",
+        "Commit/push the metadata checkpoint, then obtain fresh independent review and both exact-head push and pull_request Verification events.",
+        "Inspect required runtime reports/artifacts and candidate/base/merge-tree equality before merge.",
         "Combined A-F browser journey."
       ],
       "migrations_applied": [],
       "live_integrations_tested": [],
       "known_errors": [],
       "known_limitations": [
-        "PR #513 predecessor is superseded by local repair; do not merge predecessor checks/review.",
+        "PR #513 remains draft pending exact metadata-head review, hosted checks and artifact integrity.",
         "Full MJ-REQ-195/MJ-REQ-239 and combined A-F journey remain PARTIAL."
       ],
       "last_safe_checkpoint": {
-        "git_commit": "655691921e49c176faf48b6b94066ca9aef8401c",
+        "git_commit": "8756881027674346bd022716068b4532cbc91ca7",
         "branch": "codex/core-workflow-trial-application-pipeline-20261005",
         "evidence_path": "docs/evidence/2026-10-05-application-pipeline.json",
         "working_tree_changes_present": false,
@@ -4207,9 +4219,9 @@
       }
     }
   ],
-  "current_phase": "PROFILE_SCOPED_DOWNLOAD_REPAIR_PUBLISHED_PENDING_FINAL_HEAD_REVIEW_CI",
+  "current_phase": "PROFILE_SCOPED_APPLICATION_READS_AND_FIXTURE_ACTIONS_REPAIRED_PENDING_FINAL_METADATA_HEAD_CI",
   "last_safe_checkpoint": {
-    "git_commit": "655691921e49c176faf48b6b94066ca9aef8401c",
+    "git_commit": "8756881027674346bd022716068b4532cbc91ca7",
     "branch": "codex/core-workflow-trial-application-pipeline-20261005",
     "evidence_path": "docs/evidence/2026-10-05-application-pipeline.json",
     "working_tree_changes_present": false,
@@ -4812,5 +4824,5 @@
     "Profile-scoped generated-document download repair passes 584 tests in 324.939 seconds, 31 affected integration/browser tests, and 62 frontend tests/build; final metadata-inclusive PR-head review and hosted checks pending.",
     "Focused affected tests and repaired full suite (584 tests) pass; fresh exact-head review and hosted evidence pending."
   ],
-  "ownership": "PR #513 source repair 655691921e49c176faf48b6b94066ca9aef8401c is published and passes full local validation. The final metadata checkpoint and resulting exact PR head await fresh independent review and hosted checks. External submission OFF; retained private runtime untouched."
+  "ownership": "PR #513 source head 8756881027674346bd022716068b4532cbc91ca7 is published and independently reviewed with no actionable code defects. Local 585-test suite, 37 focused integration tests, 5 connected browser tests, 62 frontend tests/build and repository validators pass on that code head. Metadata checkpoint and its exact-head hosted checks/artifacts remain pending. External submission OFF; retained private runtime/database untouched."
 }

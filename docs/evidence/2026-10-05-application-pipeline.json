@@ -1,6 +1,6 @@
 {
   "evidence_id": "CORE-WORKFLOW-TRIAL-F2-APPLICATION-PIPELINE",
-  "recorded_at": "2026-10-05T15:50:00Z",
+  "recorded_at": "2026-10-05T16:30:06Z",
   "result": "PARTIAL",
   "scope": "Profile-scoped user-reported application stages, application notes and durable chronological history",
   "authority": {
@@ -18,11 +18,17 @@
     "draft_pr": {
       "number": 513,
       "url": "https://github.com/MulattoTech/MJobs/pull/513",
-      "source_head": "655691921e49c176faf48b6b94066ca9aef8401c",
+      "source_head": "8756881027674346bd022716068b4532cbc91ca7",
       "base": "2de5863da7418bf20087822d052b2beeb77ca64b"
     },
     "reviewed_predecessor_head": "01007ab1a04223f50d15e42232cc4a356d9832fd",
-    "final_candidate_head": "PENDING_FINAL_METADATA_CHECKPOINT_COMMIT_AND_EXACT_HEAD_REVIEW"
+    "final_candidate_head": "To be read back from the metadata-inclusive PR #513 head and recorded in its closing receipt",
+    "independent_review": {
+      "head": "8756881027674346bd022716068b4532cbc91ca7",
+      "base": "2de5863da7418bf20087822d052b2beeb77ca64b",
+      "result": "PASS_NO_ACTIONABLE_CODE_DEFECTS",
+      "reviewer": "review_manual_capture_447c4a9"
+    }
   },
   "observations": [
     {
@@ -70,6 +76,28 @@
       "action": "Fresh exact-head privacy and concurrency review of the published repair",
       "target": "Read-only review of PR #513 head 31b605350528b2f728ce4ede4e182191bdf80454 against base 2de5863da7418bf20087822d052b2beeb77ca64b",
       "result": "P1 confirmed: regular resume/cover-letter download links used the unscoped route, allowing a known document ID to bypass selected-profile ownership. Fixed by using the existing profile-scoped route for every generated download, removing the unscoped endpoint, and adding foreign-profile 404 and browser-link/download checks. Reviewer withdrew the same-view P2 after confirming the UI serializes mutations and guards application changes; cross-tab freshness remains a limitation. Repaired full suite passes 584 tests in 324.939 seconds; the affected set passes 31 integration/browser tests and the 62-test frontend suite plus strict build. Source repair 655691921e49c176faf48b6b94066ca9aef8401c is published; exact-head review/checks remain pending. Earlier push run 37331731919 and PR run 37331736836 passed on superseded head 31b6053 and are not final-candidate evidence."
+    },
+    {
+      "action": "Profile-scope resume comparison, application detail/history, and fixture mock actions after independent privacy reviews",
+      "target": "PR #513 source heads 7c07db2e8dc59519c87b64b5a56a43ecd7ec82be, 85b465157b743bbeaa91d0dd08b7dc474dfb9383, and 8756881027674346bd022716068b4532cbc91ca7 against base 2de5863da7418bf20087822d052b2beeb77ca64b",
+      "result": "PASS: scoped routes and consumers cover comparison JSON, application detail, document history, generated-document downloads, and fixture mock actions; foreign-profile and retired-route denials are tested. Fresh read-only review of exact head 8756881 found no actionable code defects."
+    },
+    {
+      "action": "Run full Python repository suite on source head 8756881027674346bd022716068b4532cbc91ca7",
+      "command": ".venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py' -v",
+      "target": "Synthetic fixtures, temporary databases and isolated Chromium on the repository-supported Python 3.12 environment",
+      "result": "PASS: 585 tests in 323.820 seconds. An earlier completed 584-test run on superseded 7c07db2 had one browser server-thread teardown timeout; the case passed alone and in the clean 585-test run on 8756881."
+    },
+    {
+      "action": "Run focused application/detail/document history regressions, frontend suite/build and repository validators on source head 8756881027674346bd022716068b4532cbc91ca7",
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_user_read_models tests.integration.test_application_answer_export tests.integration.test_cover_letter_workflow tests.integration.test_document_provenance tests.integration.test_application_knowledge tests.integration.test_api_queue -v; .venv\\Scripts\\python.exe -m unittest tests.browser.test_application_pipeline tests.browser.test_application_answer_export tests.browser.test_document_history -v; npm test --prefix apps/web; npm run build --prefix apps/web; .venv\\Scripts\\python.exe -m tools.verification.agent_skills; .venv\\Scripts\\python.exe -m tools.verification.catalogue; .venv\\Scripts\\python.exe -m tools.verification.progress validate",
+      "target": "Synthetic test fixtures and temporary databases; browser requests stay on loopback",
+      "result": "PASS: 42 focused integration tests, 5 connected browser tests, 62 frontend tests, strict TypeScript/Vite build, agent skill/catalogue/progress validators, CLI py_compile and git diff --check."
+    },
+    {
+      "action": "Exact-source-head Verification events and runtime artifacts before metadata-only checkpoint",
+      "target": "PR #513 source head 8756881027674346bd022716068b4532cbc91ca7; base 2de5863da7418bf20087822d052b2beeb77ca64b",
+      "result": "PASS on source head: push run 37340200494 attempt 1 and pull_request run 37340208479 attempt 1 both completed successfully. Both ran 585 repository tests, frontend tests/build, validators, connected fixture UI, real offline OCR/comparison, recovery, and isolated PERSONAL public-source/browser readback. PR merge-tree equality step passed. All 9 reports in each artifact reported PASS; external_submission_enabled=false. Artifact SHA-256 matched GitHub metadata: push 08ed36aeabc3897b26feb16fd10db3fefe22c9a20e235a12330def7b5b885dc2; PR 0e2fa6a35bb8aaddeddd4400aaf927995ab43966e06824200a6f38a95fc9bfd2. These runs do not qualify the metadata-inclusive head that follows."
     }
     ,{
       "action": "Run the full Python suite after profile-scoped generated-document downloads",
@@ -82,12 +110,11 @@
     "Pipeline stages and notes are explicitly user-reported and remain separate from operational application state and submission receipts.",
     "Tracking events use existing append-only audit history; no table or migration was added.",
     "Synthetic data only; retained private runtime/database untouched; external submission OFF.",
-    "Independent exact-candidate review and push/pull_request Verification with required runtime artifacts are not yet complete; no merge or full MJ-REQ-195/MJ-REQ-239 PASS is claimed."
+    "The final metadata-inclusive PR head still requires independent review and exact-head push/pull_request Verification with runtime artifacts; no merge or full MJ-REQ-195/MJ-REQ-239 PASS is claimed."
   ],
   "remaining_gates": [
-    "Verify the final PR head and obtain fresh independent review plus both hosted Verification events.",
-    "Inspect/commit explicit intended files, update branch, read back final PR #513 head, and verify remote SHA.",
-    "Fresh independent defect review of the repaired exact candidate.",
+    "Commit/push the metadata checkpoint and verify the resulting PR #513 head/base and remote SHA.",
+    "Fresh independent defect review of the metadata-inclusive exact candidate.",
     "Both exact-head push and pull_request Verification events, all runtime reports/artifacts, and merge-result tree equality.",
     "Combined A-F browser journey remains pending."
   ]

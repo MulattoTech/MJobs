@@ -3203,7 +3203,7 @@
       "branch": "codex/core-workflow-trial-application-pipeline-20261005",
       "draft_until_verified": true,
       "scope_complete": false,
-      "notes": "PR #513 source repair 655691921e49c176faf48b6b94066ca9aef8401c is published after fresh review found and fixed an unscoped generated-document download route. The profile-scoped repair passes the full 584-test Python suite, 31 affected integration/browser tests, 62 frontend tests and strict build locally. Fresh review of the final PR head and both hosted event checks remain pending. No requirement closure claimed.",
+      "notes": "PR #513 source head 8756881027674346bd022716068b4532cbc91ca7 is remotely synchronized and independently reviewed with no actionable code defects. Local 585 Python tests, 42 focused integration tests, 5 browser tests, 62 web tests/build and validators pass. Exact source-head push 37340200494 and pull_request 37340208479 both passed 585 tests, all connected CI steps and 9 digest-verified PASS reports; these precede the metadata checkpoint and do not qualify its head. Profile-scoped privacy repairs are included. Rerun exact final-head checks/artifacts; combined A-F and broader requirements remain open.",
       "evidence_path": "docs/evidence/2026-10-05-application-pipeline.json",
       "pr_number": 513,
       "pr_url": "https://github.com/MulattoTech/MJobs/pull/513",
