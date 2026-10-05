@@ -369,20 +369,41 @@ class CoreWorkflowTrialBrowserTests(unittest.TestCase):
                     answer_bytes = Path(downloaded_answer.value.path()).read_bytes()
                     self.assertIn(b"Five years of user-confirmed experience.", answer_bytes)
                     answer_digest = hashlib.sha256(answer_bytes).hexdigest()
+                    expect(page.get_by_role("status")).to_contain_text(
+                        "Reviewed answer export saved as document")
 
                     # Manual status is an audit event, not a submission receipt.
                     pipeline = page.get_by_role("region", name="Application pipeline")
                     not_tracked = pipeline.get_by_role("region", name="Not tracked", exact=True)
                     card = not_tracked.get_by_role("button", name="Systems Administrator", exact=False)
                     expect(card).to_be_visible()
-                    card.click()
+                    # The app is already selected through answer review/export.
+                    # Re-clicking this same card would start a redundant async
+                    # detail read while leaving the current panel mounted.
                     tracking = page.get_by_role("region", name="Application tracking")
+                    expect(tracking).to_be_visible()
+                    initial_tracking = context.request.get(
+                        origin + f"/profiles/{profile_id}/applications/{application_id}/tracking"
+                    ).json()
+                    self.assertIsNone(initial_tracking["status"], initial_tracking)
+                    self.assertEqual(initial_tracking["history"], [], initial_tracking)
                     status_select = tracking.get_by_label("Manual application status", exact=True)
                     status_select.select_option("APPLIED")
                     expect(status_select).to_have_value("APPLIED")
-                    expect(tracking.get_by_role("button", name="Update status", exact=True)).to_be_enabled()
-                    tracking.get_by_role("button", name="Update status", exact=True).evaluate(
-                        "button => button.click()")
+                    update_status = tracking.get_by_role("button", name="Update status", exact=True)
+                    expect(update_status).to_be_enabled()
+                    with page.expect_response(
+                        lambda response: response.url == origin
+                        + f"/profiles/{profile_id}/applications/{application_id}/tracking/status"
+                        and response.request.method == "PUT"
+                    ) as status_update:
+                        update_status.click()
+                    status_result = status_update.value.json()
+                    self.assertTrue(status_update.value.ok)
+                    self.assertTrue(any(
+                        event.get("type") == "status" and event.get("status") == "APPLIED"
+                        for event in status_result.get("history", [])
+                    ), status_result)
                     expect(tracking.get_by_role("list", name="Application history")).to_contain_text(
                         "Applied — reported by you")
                     note = "Synthetic note: application sent manually; await recruiter reply."
