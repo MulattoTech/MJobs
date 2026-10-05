@@ -176,18 +176,24 @@ class Store:
             self._audit(connection, profile["id"], "PROFILE_SAVED", {"version": version})
         return version
 
-    def profile(self, profile_id, version=None):
-        with self.engine.connect() as connection:
-            row = connection.execute(select(m.profiles).where(m.profiles.c.id == profile_id)).mappings().one()
-            data = dict(row)
-            data["version"] = version or data["version"]
-            snapshot = connection.execute(select(m.profile_versions).where(m.profile_versions.c.id == identity(profile_id, data["version"]))).mappings().one()
-            data.update(snapshot["contact"])
-            data.setdefault('contact', ContactDetails().model_dump())
-            data.setdefault('preferences', JobPreferences().model_dump())
-            data["answers"] = snapshot["answers"]
-            data["facts"] = [dict(fact) for fact in connection.execute(select(m.facts).where(m.facts.c.profile_id == profile_id, m.facts.c.version == data["version"])).mappings()]
-            return data
+    def profile(self, profile_id, version=None, connection=None):
+        if connection is not None:
+            return self._profile_on(connection, profile_id, version)
+        with self.engine.connect() as owned_connection:
+            return self._profile_on(owned_connection, profile_id, version)
+
+    @staticmethod
+    def _profile_on(connection, profile_id, version=None):
+        row = connection.execute(select(m.profiles).where(m.profiles.c.id == profile_id)).mappings().one()
+        data = dict(row)
+        data["version"] = version or data["version"]
+        snapshot = connection.execute(select(m.profile_versions).where(m.profile_versions.c.id == identity(profile_id, data["version"]))).mappings().one()
+        data.update(snapshot["contact"])
+        data.setdefault('contact', ContactDetails().model_dump())
+        data.setdefault('preferences', JobPreferences().model_dump())
+        data["answers"] = snapshot["answers"]
+        data["facts"] = [dict(fact) for fact in connection.execute(select(m.facts).where(m.facts.c.profile_id == profile_id, m.facts.c.version == data["version"])).mappings()]
+        return data
 
     def profiles(self):
         with self.engine.connect() as connection:

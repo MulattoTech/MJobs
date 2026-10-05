@@ -1,15 +1,15 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-04",
+  "generated_at": "2026-10-05",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Verified at 2026-10-05T05:16:18Z: C:/Tools/Dev/MJobs was clean at origin/main 44b98897fb1ced728ff206af2576b47c7cb240b1 before creating codex/core-workflow-trial-20261005. User confirmed the older client released; this task now owns its branch. Current source edits are tracked WIP; separate Codespaces checkout remains preserved.",
-    "current_verified_github_state": "Verified at 2026-10-05T05:16:18Z: authenticated origin MulattoTech/MJobs; main at 44b98897fb1ced728ff206af2576b47c7cb240b1; PRs #504 and #506 merged; task branch based on that head.",
-    "current_verified_at": "2026-10-05T05:16:18Z"
+    "current_verified_local_state": "Verified at 2026-10-05T06:01:23+00:00: primary checkout is on codex/core-workflow-trial-matching-20261005 from clean synchronized origin/main 77cf0825e51f34874f49cc7753e721b60a944ef0 before the matching slice. The user confirmed the older client released; this checkout is task-owned. Matching source/tests/evidence are current work in progress. Separate Codespaces checkout remains preserved.",
+    "current_verified_github_state": "Verified at 2026-10-05T06:01:23+00:00: authenticated origin MulattoTech/MJobs; main is 77cf0825e51f34874f49cc7753e721b60a944ef0; PR #508 merged after exact-head push and pull_request Verification; PRs #504 and #506 remain merged.",
+    "current_verified_at": "2026-10-05T06:01:23+00:00"
   },
   "current_milestone": "CORE-WORKFLOW-TRIAL",
   "current_objective": "Deliver bounded user-visible career-fact, job intake/evaluation, document preparation, reviewed-answer, and manual application-tracking workflows by 2026-10-05 15:00 America/Chicago; feature cutoff 13:00; preserve external submission OFF; report PARTIAL for unfinished criteria.",
@@ -65,10 +65,16 @@
     "MJ-REQ-083 source quality: durable observations, endpoint-scoped scores, authority-first duplicate value selection and protected application-route review; application-link accuracy remains unknown.",
     "User-requested PERSONAL company discovery uses bounded DNS-pinned HTTPS and public feed import; candidate identity remains unverified, fixture metadata is blocked, provider breadth and automatic intake wiring remain incomplete.",
     "Configured-source unseen/high-match jobs and rescoring create durable coalesced company discovery requests. Verified employer origins can queue automatically; other origins require explicit review. Remaining triggers/domain acquisition/provider breadth/scheduling remain open.",
-    "Durable reviewed public-feed monitoring: bounded scheduled/manual reads, atomic multi-profile matching and receipt, fresh authorization, failure backoff, changed-feed rediscovery and Sources status. Vendor ATS migration and broader providers remain open."
+    "Durable reviewed public-feed monitoring: bounded scheduled/manual reads, atomic multi-profile matching and receipt, fresh authorization, failure backoff, changed-feed rediscovery and Sources status. Vendor ATS migration and broader providers remain open.",
+    "Manual postings receive persisted deterministic skill-evidence explanations from approved profile facts; description-only mentions remain UNKNOWN and full matching/search dimensions remain open (CORE-WORKFLOW-TRIAL C local evidence)."
   ],
   "blocked_capabilities": [],
-  "active_requirements": [],
+  "active_requirements": [
+    "MJ-REQ-112",
+    "MJ-REQ-113",
+    "MJ-REQ-114",
+    "MJ-REQ-115"
+  ],
   "active_prs": [
     {
       "number": 367,
@@ -557,6 +563,43 @@
       "status": "MERGED",
       "merge_commit": "a0bf00690d6f9aa834e4e0001a3ae19efb35f055",
       "merged_at": "2026-10-04T22:21:45Z"
+    },
+    {
+      "number": 508,
+      "url": "https://github.com/MulattoTech/MJobs/pull/508",
+      "branch": "codex/core-workflow-trial-20261005",
+      "status": "MERGED",
+      "base": "44b98897fb1ced728ff206af2576b47c7cb240b1",
+      "head": "a05294cc1792b81924f01270852b1354b5d67505",
+      "merge_commit": "77cf0825e51f34874f49cc7753e721b60a944ef0",
+      "merged_at": "2026-10-05T05:42:14Z",
+      "exact_head_checks": {
+        "push_verification": 37268232466,
+        "pull_request_verification": 37268236341
+      },
+      "evidence_path": "docs/evidence/2026-10-05-manual-job-capture.json",
+      "scope_result": "PARTIAL"
+    },
+    {
+      "number": 509,
+      "url": "https://github.com/MulattoTech/MJobs/pull/509",
+      "branch": "codex/core-workflow-trial-matching-20261005",
+      "status": "DRAFT",
+      "base": "77cf0825e51f34874f49cc7753e721b60a944ef0",
+      "requirements": [
+        "MJ-REQ-112",
+        "MJ-REQ-113",
+        "MJ-REQ-114",
+        "MJ-REQ-115"
+      ],
+      "issues": [
+        113,
+        114,
+        115,
+        116
+      ],
+      "evidence_path": "docs/evidence/2026-10-05-explainable-matching.json",
+      "note": "Source commit db5f83ed077ed8478a7bfe0ec6e36b82c973718f updates cli.ui_source_readback to current match copy after candidate 4328's public-source UI assertion failed under continue-on-error in both event runs. The prior 281 integration, focused browser, and 4328 independent review results are preserved; 4328 is ineligible. PR #509 remains draft; fresh review and exact push/pull_request Verification plus all reports are required on the live head."
     }
   ],
   "tests_passed": [
@@ -671,7 +714,8 @@
     "Company discovery requests: 393 Python tests zero skips,29 frontend tests/build; PostgreSQL17 concurrency/migration/restart, browser/API/worker and feedback compatibility PASS.",
     "Canonical route lifecycle: 476 local tests and22 PostgreSQL tests PASS; docs/evidence/2026-10-04-canonical-route-lifecycle.json",
     "Resume date review:479 full tests then31 final affected tests PASS; docs/evidence/2026-10-04-resume-date-review.json",
-    "Bounded local OCR:487 final tests,38 frontend tests/build and real isolated API/browser runtime PASS; docs/evidence/2026-10-04-local-resume-ocr.json"
+    "Bounded local OCR:487 final tests,38 frontend tests/build and real isolated API/browser runtime PASS; docs/evidence/2026-10-04-local-resume-ocr.json",
+    "CORE-WORKFLOW-TRIAL C: 281 integration tests, local Chromium capture, web tests/build and validators pass. Candidate 4328c95 had a no-findings code review but is ineligible: both hosted Verification events hid failed public-source UI readback under continue-on-error and lacked its artifact. Oracle repaired in db5f83e; fresh exact-head review and checks pending."
   ],
   "tests_failed": [],
   "tests_not_run": [
@@ -681,7 +725,8 @@
     "Original P0-P3 full acceptance and release readiness remain open.",
     "Live employer/ATS service integration and connected browser behavior; no browser files changed.",
     "Original P0-P3 release acceptance remains open.",
-    "Original P0-P3 release acceptance remains open."
+    "Original P0-P3 release acceptance remains open.",
+    "CORE-WORKFLOW-TRIAL C independent candidate review, exact-head push and pull_request Verification artifacts, and combined full milestone browser journey remain NOT_RUN."
   ],
   "known_external_limitations": [
     "Production external career-site/domain acquisition, configured web-search provider and non-mock ATS metadata integration are not verified in MJ-PR-017.",
@@ -764,7 +809,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Complete independent review and exact-final-head checks for the narrow #507 manual-capture slice; then verify a bounded live public-source read separately and continue to the next missing connected browser workflow. Do not claim full Jobs requirements from this slice.",
+  "recommended_resume_step": "Publish the updated matching checkpoint, verify the live PR #509 head/base, obtain fresh independent review and both exact-head Verification runs, inspect every runtime report including successful public-source UI readback artifacts, then merge only that reviewed head. Continue the milestone after merge and do not claim full requirements from this skill-matching slice.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -3303,12 +3348,365 @@
         "git_commit": "01f0074cc0d0412d65a24f3022ea5af002d7b890",
         "evidence_path": "docs/evidence/2026-10-05-manual-job-capture.json"
       }
+    },
+    {
+      "milestone_id": "CORE-WORKFLOW-TRIAL-B-MANUAL-CAPTURE-MERGED",
+      "timestamp": "2026-10-05T05:42:14+00:00",
+      "current_phase": "B_MANUAL_CAPTURE_MERGED_CONTINUE",
+      "completed_steps": [
+        "Reconciled PR #508 closing receipt and exact-head CI",
+        "Merged narrow manual capture workflow; issue #507 was closed only for its bounded fallback scope",
+        "Verified merged main and matching base SHA"
+      ],
+      "files_added": [],
+      "files_modified": [
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "PR #508 push Verification 37268232466 and pull_request Verification 37268236341 passed all required runtime artifacts on exact candidate a05294cc1792b81924f01270852b1354b5d67505"
+      ],
+      "tests_remaining": [],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Bounded public Greenhouse live GET was executed in exact-head CI; see PR #508 closing receipt."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "Manual capture completes only a narrow fallback path; broader Jobs requirements remain open."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "77cf0825e51f34874f49cc7753e721b60a944ef0",
+        "evidence_path": "docs/evidence/2026-10-05-manual-job-capture.json"
+      }
+    },
+    {
+      "milestone_id": "CORE-WORKFLOW-TRIAL-C-DETERMINISTIC-MATCHING",
+      "timestamp": "2026-10-05T06:01:23+00:00",
+      "current_phase": "C_MATCHING_LOCAL_VERIFIED_PENDING_REVIEW",
+      "completed_steps": [
+        "Mapped deterministic user-visible matching to live requirements #113, #115, and #116 without changing the optional-AI dependency in MJ-PR-031",
+        "Added taxonomy evidence to manual capture and shared deterministic explanation across rescore, source-value refresh, and fixture discovery",
+        "Connected manual capture UI to durable match recalculation and profile-scoped explanation readback",
+        "Passed targeted integration, Chromium, web build/test, and repository validators"
+      ],
+      "files_added": [
+        "tests/integration/test_explainable_matching.py",
+        "docs/evidence/2026-10-05-explainable-matching.json"
+      ],
+      "files_modified": [
+        "services/discovery/matching.py",
+        "services/discovery/manual_capture.py",
+        "services/dedupe/source_values.py",
+        "services/discovery/pipeline.py",
+        "apps/web/src/main.tsx",
+        "tests/browser/test_manual_job_capture.py"
+      ],
+      "tests_completed": [
+        "39 targeted matching/source/profile integration tests",
+        "5 capture/import/fact-review Chromium browser tests",
+        "59 web tests and TypeScript/Vite production build",
+        "Catalogue, progress journal, agent skill, and git diff whitespace validation"
+      ],
+      "tests_remaining": [
+        "Full repository regression set after final code changes",
+        "Independent read-only defect review of the exact final candidate",
+        "Exact-head push and pull_request Verification runtime reports",
+        "Merge and main readback"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "This is a deterministic skill-evidence slice, not full matching, saved-filter acceptance, public-source UI validation, AI, or full milestone completion.",
+        "Source changes are local WIP and not yet published."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "77cf0825e51f34874f49cc7753e721b60a944ef0",
+        "evidence_path": "docs/evidence/2026-10-05-explainable-matching.json"
+      }
+    },
+    {
+      "milestone_id": "CORE-WORKFLOW-TRIAL-C-MATCHING-PUBLISHED-DRAFT",
+      "timestamp": "2026-10-05T06:04:29+00:00",
+      "current_phase": "C_MATCHING_DRAFT_509_PENDING_INDEPENDENT_REVIEW_AND_EXACT_HEAD_CI",
+      "completed_steps": [
+        "Committed deterministic match explanation slice and sanitized local evidence",
+        "Pushed task branch and opened draft PR #509 referencing issues #113, #114, #115, and #116 without closing their broader requirements",
+        "Recorded code head 7289bedd4b0f53b4c43a5ac48d5f0c2259ad95b1 and current base 77cf0825e51f34874f49cc7753e721b60a944ef0; a subsequent metadata commit will create the final candidate"
+      ],
+      "files_added": [],
+      "files_modified": [
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "39 targeted integrations; 5 Chromium browser tests; 59 web tests and production build; repository validators passed on implementation commit 7289bedd4b0f53b4c43a5ac48d5f0c2259ad95b1"
+      ],
+      "tests_remaining": [
+        "Push and pull_request Verification on the exact final PR head and artifact inspection",
+        "Independent read-only review on the exact final PR head",
+        "Merge and main readback"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "PR #509 remains a draft; no merge or full matching acceptance is claimed."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "7289bedd4b0f53b4c43a5ac48d5f0c2259ad95b1",
+        "evidence_path": "docs/evidence/2026-10-05-explainable-matching.json"
+      }
+    },
+    {
+      "milestone_id": "CORE-WORKFLOW-TRIAL-C-MATCHING-REVIEW-REPAIRS",
+      "timestamp": "2026-10-05T06:20:39+00:00",
+      "current_phase": "C_MATCHING_REPAIRS_COMMITTED_AWAITING_FINAL_CANDIDATE",
+      "completed_steps": [
+        "Bound independent review findings to candidate 5792dc5d77269c6dc1bbb86b8348cba51211022b against base 77cf0825e51f34874f49cc7753e721b60a944ef0",
+        "Reproduced approved-alias false negative and stale queued-rescore approval race with failing integration tests",
+        "Added isolated browser proof that a queue failure still reports the durable capture as saved",
+        "Fixed queue failure messaging, rescore execution against current profile version, and alias normalization/deduplication",
+        "Passed focused integration/browser/web checks after repairs"
+      ],
+      "files_added": [],
+      "files_modified": [
+        "apps/web/src/main.tsx",
+        "services/discovery/matching.py",
+        "workers/tasks.py",
+        "tests/browser/test_manual_job_capture.py",
+        "tests/integration/test_explainable_matching.py",
+        "docs/evidence/2026-10-05-explainable-matching.json"
+      ],
+      "tests_completed": [
+        "41 targeted matching/source/profile integration tests",
+        "5 Chromium capture/import/fact-review tests",
+        "59 web tests and TypeScript/Vite production build",
+        "Catalogue, progress journal, agent-skill, and whitespace validators"
+      ],
+      "tests_remaining": [
+        "Push repaired implementation and planning checkpoint; resolve exact final PR head/base",
+        "Fresh independent read-only review on the final candidate",
+        "Both exact-final-head push/pull_request Verification runs and all runtime artifacts",
+        "Merge and main readback"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [
+        "The earlier exact-CI-pass candidate 5792dc5d77269c6dc1bbb86b8348cba51211022b is ineligible for merge after independent review identified defects; it will be superseded by a repaired candidate."
+      ],
+      "known_limitations": [
+        "No final-candidate review or CI result is claimed yet; broader Jobs and matching acceptance remain partial."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "1ccc24cbef023b56ec252ed7cfc2bcfb4189c3b2",
+        "evidence_path": "docs/evidence/2026-10-05-explainable-matching.json"
+      }
+    },
+    {
+      "milestone_id": "CORE-WORKFLOW-TRIAL-C-MATCHING-RACE-AND-CLASSIFICATION-REPAIRS",
+      "timestamp": "2026-10-05T06:36:21Z",
+      "current_phase": "C_MATCHING_REPAIRS_PUSHED_AWAITING_FINAL_REVIEW_AND_EXACT_HEAD_CI",
+      "completed_steps": [
+        "Repaired all six independent-review findings across two exact candidates, including serialized profile reads and honest mock requirement classification",
+        "Ran all 281 integration tests on the repaired source checkpoint",
+        "Ran the connected Chromium manual-capture persistence and no-fetch browser test",
+        "Pushed source checkpoint 6850cacafcee86b98d32954d795ad9cdea6ca366 and verified the remote task branch SHA",
+        "Updated matching evidence, queue, capability rows, and handoff without closing broad requirements"
+      ],
+      "files_added": [],
+      "files_modified": [
+        "packages/persistence/store.py",
+        "services/discovery/matching.py",
+        "services/discovery/pipeline.py",
+        "tests/integration/test_explainable_matching.py",
+        "docs/evidence/2026-10-05-explainable-matching.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "281 integration tests: PASS",
+        "Manual job capture Chromium browser test: PASS",
+        "Agent skill validator: PASS",
+        "Catalogue and progress journal validators: PASS before appending this checkpoint",
+        "git diff --check: PASS"
+      ],
+      "tests_remaining": [
+        "Fresh independent review on the exact final published candidate",
+        "Exact-final-head push and pull_request Verification runs and required runtime artifact inspection",
+        "Merge the expected reviewed head, verify merge tree, and safely refresh local main"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [
+        "Verification runs for superseded candidates 5792dc5, 5937030, and 6850cac do not authorize merge"
+      ],
+      "known_limitations": [
+        "This slice remains partial matching coverage; saved filters, salary, location, type, broader rankings, and complete MJ-REQ-112..119 remain open",
+        "Exact final head/base and CI artifact IDs will be recorded in the GitHub PR closing receipt to avoid a self-referential source commit"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "6850cacafcee86b98d32954d795ad9cdea6ca366",
+        "evidence_path": "docs/evidence/2026-10-05-explainable-matching.json"
+      }
+    },
+    {
+      "milestone_id": "CORE-WORKFLOW-TRIAL-C-MOCK-CONTRACT-REPAIR",
+      "timestamp": "2026-10-05T06:44:00Z",
+      "current_phase": "C_MATCHING_SOURCE_REPAIRS_PUSHED_AWAITING_FINAL_HEAD_REVIEW_AND_CI",
+      "completed_steps": [
+        "Repaired seven independent-review findings, including preserving structured fixture skills as REQUIRED and extra description mentions as UNKNOWN",
+        "Added direct mock skill classification and full flywheel explanation assertions",
+        "Passed 11 focused matching and spine integration tests",
+        "Passed the full 281-test integration suite and connected manual-capture Chromium test",
+        "Pushed source commit 3d33353116cbaa0b4486d54e2faf1294241062e8 and verified its remote SHA",
+        "Updated matching evidence, queue, capability notes, and current handoff"
+      ],
+      "files_added": [],
+      "files_modified": [
+        "services/discovery/pipeline.py",
+        "tests/integration/test_explainable_matching.py",
+        "tests/integration/test_spine.py",
+        "docs/evidence/2026-10-05-explainable-matching.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "11 focused matching and fixture flywheel integration tests: PASS",
+        "281 integration tests: PASS",
+        "Manual job capture Chromium test: PASS",
+        "Progress journal, catalogue, agent skill, and git diff checks: PASS"
+      ],
+      "tests_remaining": [
+        "Fresh independent review on the exact final PR candidate after the planning checkpoint",
+        "Exact-final-head push and pull_request Verification with all required runtime reports and artifact inspection",
+        "Merge expected reviewed head, confirm merge result and main tree, and safely refresh local main"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [
+        "Verification runs on superseded heads do not authorize merge"
+      ],
+      "known_limitations": [
+        "Matching remains partial: broader criteria, saved filters, non-skill requirements, and full MJ-REQ-112..119 are incomplete",
+        "The exact final PR head changes with this planning checkpoint; its final SHA, base, review, and CI artifact IDs are recorded in the GitHub closing receipt"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "3d33353116cbaa0b4486d54e2faf1294241062e8",
+        "evidence_path": "docs/evidence/2026-10-05-explainable-matching.json"
+      }
+    },
+    {
+      "milestone_id": "CORE-WORKFLOW-TRIAL-C-REPAIR-STALE-CI-UI-ORACLE",
+      "timestamp": "2026-10-05T07:00:40Z",
+      "current_phase": "C_MATCHING_STALE_CI_UI_ASSERTION_REPAIRED_NEW_EXACT_REVIEW_AND_CI_PENDING",
+      "completed_steps": [
+        "Inspected both exact-head Verification reports and recovered all hosted artifacts for candidate 4328c95",
+        "Confirmed the independent reviewer reported no product defects on 4328c95",
+        "Found both continue-on-error personal public-source UI readbacks failed because a CLI browser assertion required obsolete copy; missing readback artifacts make the candidate ineligible",
+        "Confirmed bounded public Greenhouse collection passed in hosted synthetic PERSONAL mode with 18 jobs and zero external application requests",
+        "Updated cli.ui_source_readback to assert the current weighted-coverage explanation; compiled it and reran the connected manual-capture Chromium test",
+        "Pushed source commit db5f83ed077ed8478a7bfe0ec6e36b82c973718f and verified the remote branch SHA",
+        "Updated current evidence, queue, state, and handoff to record the failure honestly"
+      ],
+      "files_added": [],
+      "files_modified": [
+        "cli/ui_source_readback.py",
+        "docs/evidence/2026-10-05-explainable-matching.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "281 integration tests on matching source checkpoint 3d33353116cbaa0b4486d54e2faf1294241062e8: PASS",
+        "Manual job capture Chromium test after UI oracle edit: PASS",
+        "Python bytecode compilation for cli.ui_source_readback.py: PASS",
+        "Exact-head public-source GET report on 4328c95: PASS, 18 jobs, zero external application requests"
+      ],
+      "tests_remaining": [
+        "Fresh independent review on the published final candidate",
+        "Exact-head push and pull_request Verification on the final candidate",
+        "Parse all final hosted JSON reports; require successful personal public UI readback and its report in both events",
+        "Merge only the expected verified head and confirm tree equality/main readback"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Hosted bounded Greenhouse public GET against isolated synthetic PERSONAL-mode runtime: 18 jobs, external_application_requests=0; the matching UI readback on candidate 4328c95 failed its obsolete copy assertion and is not accepted"
+      ],
+      "known_errors": [
+        "Candidate 4328c95 push run 37274207327 and pull_request run 37274211627 concluded success but each hid a failed continue-on-error UI source readback; neither is eligible for merge"
+      ],
+      "known_limitations": [
+        "Fresh independent review and exact-head hosted runs must be repeated after source commit db5f83e and the updated planning checkpoint",
+        "Matching behavior remains a bounded skill-evidence slice; broad matching and A/B/D/E/F acceptance remain incomplete"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "db5f83ed077ed8478a7bfe0ec6e36b82c973718f",
+        "evidence_path": "docs/evidence/2026-10-05-explainable-matching.json"
+      }
+    },
+    {
+      "milestone_id": "CORE-WORKFLOW-TRIAL-C-CI-READBACK-REPAIR-PUBLISHED",
+      "timestamp": "2026-10-05T07:02:13Z",
+      "current_phase": "C_MATCHING_CI_ORACLE_REPAIR_PUBLISHED_AWAITING_FINAL_REVIEW_AND_BOTH_EVENTS",
+      "completed_steps": [
+        "Inspected every push and pull_request artifact and the continue-on-error UI readback logs on candidate 4328c95",
+        "Confirmed public Greenhouse read passed on the isolated hosted runtime but matching UI readback assertion failed and artifact was missing",
+        "Updated the existing connected UI readback oracle to current weighted-coverage wording",
+        "Passed py_compile and the manual-capture Chromium test after the oracle edit",
+        "Pushed source checkpoint db5f83ed077ed8478a7bfe0ec6e36b82c973718f and verified the remote SHA",
+        "Recorded candidate 4328 runtime failure and repair in the evidence and PR history"
+      ],
+      "files_added": [],
+      "files_modified": [
+        "cli/ui_source_readback.py",
+        "docs/evidence/2026-10-05-explainable-matching.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "py_compile cli/ui_source_readback.py: PASS",
+        "Manual job capture Chromium test: PASS",
+        "281 integration tests on preceding matching source 3d33353116cbaa0b4486d54e2faf1294241062e8: PASS",
+        "Progress journal, catalogue, agent skill, and whitespace validators: PASS before checkpoint commit"
+      ],
+      "tests_remaining": [
+        "Fresh independent review of the exact final candidate after planning checkpoint",
+        "Exact-head push and pull_request Verification rerun, including successful conditional public-source UI readback",
+        "Inspect all runtime reports and verify complete artifacts in both events",
+        "Merge expected candidate only after gates pass, then verify merge result and main"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "On candidate 4328c95 hosted synthetic PERSONAL-mode runtime, public Greenhouse GET completed for 18 jobs with zero external application requests; UI readback failed obsolete exact-copy assertion and is not accepted"
+      ],
+      "known_errors": [
+        "Both candidate 4328c95 Verification event runs concluded success but failed the conditional UI source-readback under continue-on-error and omitted its artifact; neither authorizes merge"
+      ],
+      "known_limitations": [
+        "Matching slice remains PARTIAL; saved filters, other match criteria, and complete MJ-REQ-112..119 acceptance remain open",
+        "Final current PR candidate requires a new independent review and both exact-head Verification runs after this planning checkpoint"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "db5f83ed077ed8478a7bfe0ec6e36b82c973718f",
+        "evidence_path": "docs/evidence/2026-10-05-explainable-matching.json"
+      }
     }
   ],
-  "current_phase": "B_MANUAL_CAPTURE_FINAL_LOCAL_VERIFIED_PENDING_REVIEW",
+  "current_phase": "C_MATCHING_CI_ORACLE_REPAIR_PUBLISHED_AWAITING_FINAL_REVIEW_AND_BOTH_EVENTS",
   "last_safe_checkpoint": {
-    "git_commit": "01f0074cc0d0412d65a24f3022ea5af002d7b890",
-    "evidence_path": "docs/evidence/2026-10-05-manual-job-capture.json"
+    "git_commit": "db5f83ed077ed8478a7bfe0ec6e36b82c973718f",
+    "evidence_path": "docs/evidence/2026-10-05-explainable-matching.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
@@ -3394,6 +3792,27 @@
       "initial_head": "c09b0da1cfbb1abdd91d377c8be2be4cf79b97b0",
       "evidence_path": "docs/evidence/2026-10-05-manual-job-capture.json",
       "scope_complete": false
+    },
+    {
+      "result": "PASS",
+      "transport": "GitHub PR merge readback",
+      "pr_number": 508,
+      "url": "https://github.com/MulattoTech/MJobs/pull/508",
+      "base": "44b98897fb1ced728ff206af2576b47c7cb240b1",
+      "final_head": "a05294cc1792b81924f01270852b1354b5d67505",
+      "merge_commit": "77cf0825e51f34874f49cc7753e721b60a944ef0",
+      "push_verification": 37268232466,
+      "pull_request_verification": 37268236341
+    },
+    {
+      "result": "PARTIAL",
+      "transport": "Authenticated Git push and GitHub draft PR",
+      "local_remote_commit_identical": true,
+      "force": false,
+      "pr_number": 509,
+      "url": "https://github.com/MulattoTech/MJobs/pull/509",
+      "initial_head": "7289bedd4b0f53b4c43a5ac48d5f0c2259ad95b1",
+      "base": "77cf0825e51f34874f49cc7753e721b60a944ef0"
     }
   ],
   "live_reconciliation": {
@@ -3405,11 +3824,15 @@
     "ownership": "Root checkout is the task branch; local synthetic tests only; external-submission OFF; retained private runtime not started or updated."
   },
   "active_development_issue": {
-    "number": 507,
-    "status": "PARTIAL",
-    "branch": "codex/core-workflow-trial-20261005",
-    "pull_request": 508,
-    "milestone": "CORE-WORKFLOW-TRIAL"
+    "number": 113,
+    "title": "[MJ-REQ-112] Job Matching Engine",
+    "state": "OPEN",
+    "related_issues": [
+      114,
+      115,
+      116
+    ],
+    "scope": "Deterministic approved-fact evidence coverage and explicit requirement strength for skill matches; broader match dimensions remain open."
   },
   "historical_control_snapshots": [
     {

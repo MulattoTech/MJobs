@@ -9,6 +9,7 @@ from sqlalchemy import select
 from packages.persistence import models as m
 from packages.persistence.store import identity, now, upsert
 from services.discovery.sources.collect import persist_posting
+from services.discovery.skill_taxonomy import extract_skills
 
 
 class ManualCaptureConflict(ValueError):
@@ -57,6 +58,7 @@ def capture_manual_job(store, submitted: dict) -> dict:
     timestamp = now()
     raw = {"source": "MANUAL_USER_ENTRY", "captured_at": timestamp,
            "submitted_fields": data}
+    skill_data = extract_skills(title + " " + description)
 
     created = True
     with store.engine.begin() as connection:
@@ -84,6 +86,9 @@ def capture_manual_job(store, submitted: dict) -> dict:
                 "remote_regions": [],
                 "status": "UNKNOWN",
                 "company_identity": "USER_ENTERED_UNVERIFIED",
+                "skill_evidence": "description_mentions",
+                "skill_ids": skill_data["ids"],
+                "skill_mentions": skill_data["mentions"],
             }
             upsert(connection, m.jobs, {
                 "id": job_id,
@@ -91,7 +96,7 @@ def capture_manual_job(store, submitted: dict) -> dict:
                 "requisition": request_id,
                 "title": title,
                 "description": description,
-                "skills": [],
+                "skills": skill_data["labels"],
                 "location": data.get("location") or "Unknown",
                 "remote_type": data.get("remote_type") or "UNKNOWN",
                 "attributes": attributes,

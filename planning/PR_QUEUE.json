@@ -96,7 +96,7 @@
     },
     {
       "id": "MJ-PR-005",
-      "title": "Core Search Model: Domain Model \u00e2\u20ac\u201d Core Concepts; Global Job Sources",
+      "title": "Core Search Model: Domain Model â€” Core Concepts; Global Job Sources",
       "domain": "core_search_model",
       "requirements": [
         "MJ-REQ-015",
@@ -275,7 +275,7 @@
     },
     {
       "id": "MJ-PR-013",
-      "title": "Job Identity Dedupe: Deduplication \u00e2\u20ac\u201d Strong Signals; Deduplication \u00e2\u20ac\u201d Company Identity",
+      "title": "Job Identity Dedupe: Deduplication â€” Strong Signals; Deduplication â€” Company Identity",
       "domain": "job_identity_dedupe",
       "requirements": [
         "MJ-REQ-044",
@@ -1186,7 +1186,7 @@
     },
     {
       "id": "MJ-PR-047",
-      "title": "Orchestration Data Security: Security \u00e2\u20ac\u201d Pii; Security \u00e2\u20ac\u201d Web",
+      "title": "Orchestration Data Security: Security â€” Pii; Security â€” Web",
       "domain": "orchestration_data_security",
       "requirements": [
         "MJ-REQ-171",
@@ -1206,7 +1206,7 @@
     },
     {
       "id": "MJ-PR-048",
-      "title": "Orchestration Data Security: Security \u00e2\u20ac\u201d Secret Management; Audit Log",
+      "title": "Orchestration Data Security: Security â€” Secret Management; Audit Log",
       "domain": "orchestration_data_security",
       "requirements": [
         "MJ-REQ-175",
@@ -1421,7 +1421,7 @@
     },
     {
       "id": "MJ-PR-059",
-      "title": "Test Harness: Unit Tests \u00e2\u20ac\u201d Company Resolution; Unit Tests \u00e2\u20ac\u201d Ats Detection",
+      "title": "Test Harness: Unit Tests â€” Company Resolution; Unit Tests â€” Ats Detection",
       "domain": "test_harness",
       "requirements": [
         "MJ-REQ-216",
@@ -1441,7 +1441,7 @@
     },
     {
       "id": "MJ-PR-060",
-      "title": "Test Harness: Unit Tests \u00e2\u20ac\u201d Application State; Application Idempotency Test",
+      "title": "Test Harness: Unit Tests â€” Application State; Application Idempotency Test",
       "domain": "test_harness",
       "requirements": [
         "MJ-REQ-220",
@@ -3043,14 +3043,43 @@
       "issue_number": 507,
       "target_area": "apps/web; apps/api; services/discovery; tests/browser",
       "depends_on": [],
-      "status": "DRAFT",
+      "status": "PARTIAL",
       "branch": "codex/core-workflow-trial-20261005",
       "draft_until_verified": true,
       "scope_complete": false,
-      "notes": "Narrow core-trial fallback only: explicit capture, persistence, reload/detail/preparation, no-fetch, idempotency and deliberate distinct duplicate. Broad requirement acceptance remains open; public source UI/live read and other core workflows are separate. Local evidence only; independent review and exact-head push/PR checks pending. Draft PR #508 created from the implementation commit; current follow-up adds its planning checkpoint. Exact-final-head review, push/PR CI and runtime artifacts remain pending.",
+      "notes": "Narrow fallback scope merged in PR #508 from exact candidate a05294cc1792b81924f01270852b1354b5d67505 onto base 44b98897fb1ced728ff206af2576b47c7cb240b1; merge 77cf0825e51f34874f49cc7753e721b60a944ef0. Push Verification 37268232466 and pull_request Verification 37268236341 passed with required runtime artifacts and bounded Greenhouse live GET. Issue #507 closed for manual capture only; public-source UI and broader MJ-REQ-186/188/192 remain open.",
       "evidence_path": "docs/evidence/2026-10-05-manual-job-capture.json",
       "pr_number": 508,
       "pr_url": "https://github.com/MulattoTech/MJobs/pull/508"
+    },
+    {
+      "id": "MJ-PR-152",
+      "title": "Core trial deterministic job match explanations from approved facts",
+      "domain": "matching_ai",
+      "requirements": [
+        "MJ-REQ-112",
+        "MJ-REQ-113",
+        "MJ-REQ-114",
+        "MJ-REQ-115"
+      ],
+      "issues": [
+        113,
+        114,
+        115,
+        116
+      ],
+      "target_area": "apps/web; services/discovery; services/dedupe; tests/browser; tests/integration",
+      "depends_on": [
+        "MJ-PR-025"
+      ],
+      "status": "DRAFT",
+      "branch": "codex/core-workflow-trial-matching-20261005",
+      "draft_until_verified": true,
+      "scope_complete": false,
+      "notes": "Additive deterministic/manual-review slice for career-fact-supported skill evidence, explicit REQUIRED/PREFERRED/NICE_TO_HAVE/UNKNOWN explanation, and persisted manual-job match readback. The original MJ-PR-031 optional-AI dependency is preserved; broader requirement acceptance remains open. Draft PR #509 is open. Candidate 4328c95 passed independent code review but is ineligible: both workflow events hid the failed personal public-source UI readback under continue-on-error because cli/ui_source_readback.py asserted obsolete text; its expected report was absent. Source commit db5f83ed077ed8478a7bfe0ec6e36b82c973718f fixes the oracle. Local py_compile and manual-capture Chromium test pass after the repair; the 281-test integration suite remains valid for the preceding matching source. Fresh review and exact-head push/PR Verification with complete reports are required on the next final candidate.",
+      "evidence_path": "docs/evidence/2026-10-05-explainable-matching.json",
+      "pr_number": 509,
+      "pr_url": "https://github.com/MulattoTech/MJobs/pull/509"
     }
   ]
 }

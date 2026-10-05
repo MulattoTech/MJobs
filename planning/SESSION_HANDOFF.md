@@ -33,9 +33,18 @@ Chicago on 2026-10-05, stop new feature families and stabilize through 15:00.
 Any unmet acceptance remains `PARTIAL`; the full 366-requirement release is not
 the target. External submission remains OFF throughout.
 
-The older handoff below is historical context; GitHub current `main` and this
-active user instruction supersede its prior iteration stop and stale checkout
-observations.
+The older handoff below is historical context; GitHub current `main` and the active user instruction supersede its prior stop and stale checkout observations.
+
+## Current authorized milestone — 2026-10-05
+
+The user authorized sequential implementation of **CORE-WORKFLOW-TRIAL** from current GitHub main, with new features stopping at 13:00 America/Chicago and stabilization through 15:00. Luna High was user-confirmed; this interface cannot inspect billing metadata. The root checkout is task-owned after the user confirmed the older client released. The separate Codespaces worktree remains preserved. No retained private runtime, private resume/profile, paid product AI, or external application submission has been used; external submission stays OFF.
+
+PRs #504 and #506 remain merged and were not redone. PR #508 delivered the narrow manual capture fallback and merged as `77cf0825e51f34874f49cc7753e721b60a944ef0` from candidate `a05294cc1792b81924f01270852b1354b5d67505`. Its exact-head push Verification was run 37268232466; pull_request Verification was run 37268236341. Both passed required runtime reports. The PR #508 closing receipt also records a bounded public Greenhouse live read. Issue #507 was closed only for the narrow manual-capture gap; public-source UI proof and broader jobs requirements remain open.
+
+Current branch `codex/core-workflow-trial-matching-20261005` starts from merged main `77cf0825e51f34874f49cc7753e721b60a944ef0`. PR #509 contains deterministic skill explanations from approved facts, profile-serialized rescoring, manual capture readback, and controlled mock classification. Reviews of candidates 5792dc5, 5937030, 6850cac, and 4328c95 found/repaired the prior issues; the independent review on 4328c95 itself reported no product defects. However, both 4328c95 hosted events had a hidden continue-on-error failure in `cli.ui_source_readback`: its exact text oracle still expected copy replaced by the matching UI. The separate public Greenhouse probe passed, but the browser readback report was missing, so neither event qualifies the head for merge. Source commit `db5f83ed077ed8478a7bfe0ec6e36b82c973718f` updates the runtime oracle to current copy. Local 281 integration tests, focused matching/flywheel tests, Chromium manual-capture, web tests/build, and repository validators passed on the prior matching source; the final candidate must repeat hosted checks. Evidence is `docs/evidence/2026-10-05-explainable-matching.json`; matching remains PARTIAL. Keep PR #509 draft until a fresh exact review and both exact-head events pass with all runtime reports, especially the conditional public-source UI readback. The optional AI dependency remains preserved; MJ-PR-152 is the deterministic slice. Record final candidate/base/run/artifact/merge IDs in the PR closing receipt, avoiding a self-referential commit.
+
+After matching, finish the existing supported-source Jobs UI and confirm its bounded live-read behavior, then prioritize job-specific documents, reusable answers, and manual application history by the next user action they unblock. At 13:00 stop starting feature families and stabilize. Any missing acceptance remains PARTIAL; this milestone does not claim all 366 requirements or full release readiness.
+
 
 The user requested that local delivery finish, publish its work, stop the local
 runtime, and hand off for ChatGPT Web Pro iteration. No next feature was started.
