@@ -1,0 +1,30 @@
+"""The live-source UI oracle accepts only safe preparation or explicit missing evidence."""
+import unittest
+
+from cli.ui_source_readback import classify_public_preparation
+
+
+class PublicSourceReadbackTests(unittest.TestCase):
+    def test_prepared_public_job_must_remain_manual_only(self):
+        application = {"id": "synthetic-app", "target": "REAL", "state": "PREPARED"}
+        result = classify_public_preparation([application], "")
+        self.assertEqual(result["status"], "PREPARED")
+        self.assertEqual(result["application"], application)
+
+    def test_missing_responsibility_evidence_must_block_without_application(self):
+        result = classify_public_preparation([], "FAILED: COVER_LETTER_JOB_CONTEXT_MISSING")
+        self.assertEqual(result["status"], "BLOCKED_MISSING_JOB_CONTEXT")
+        self.assertIsNone(result["application"])
+        self.assertIn("no document or application was created", result["reason"])
+
+    def test_unexpected_failure_or_application_state_does_not_pass_the_oracle(self):
+        with self.assertRaises(AssertionError):
+            classify_public_preparation([], "FAILED: DOCUMENT_RENDER_ERROR")
+        with self.assertRaises(AssertionError):
+            classify_public_preparation([{"id": "x", "target": "REAL", "state": "REVIEW_REQUIRED"}], "")
+        with self.assertRaises(AssertionError):
+            classify_public_preparation([{"id": "x", "target": "MOCK", "state": "PREPARED"}], "")
+
+
+if __name__ == "__main__":
+    unittest.main()

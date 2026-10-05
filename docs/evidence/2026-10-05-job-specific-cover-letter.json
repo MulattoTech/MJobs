@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-10-05T08:17:30+00:00",
+  "timestamp": "2026-10-05T08:30:00+00:00",
   "result": "PARTIAL",
   "scope": "MJ-REQ-100..102 deterministic, reviewable job-specific cover-letter draft",
   "base_commit": "959f9a36cd32a4c326459a0ba472a24a4abd7d3f",
@@ -109,6 +109,16 @@
       "command": "npm run build --prefix apps/web",
       "result": "PASS",
       "typescript": "strict build"
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.unit.test_ui_source_readback tests.integration.test_cover_letter_workflow -v",
+      "result": "PASS",
+      "tests": 5,
+      "assertions": [
+        "safe real-target preparation passes",
+        "missing responsibility context blocks without creating documents/applications",
+        "unexpected failures and mock/unsafe application states fail the oracle"
+      ]
     }
   ],
   "assertions": [
@@ -122,7 +132,7 @@
   "external_application_requests": 0,
   "product_ai_used": false,
   "limitations": [
-    "Current working-tree title-immutability repair must be committed/pushed; independent review and both complete exact-final-head Verification runs, with runtime-artifact parsing, remain pending.",
+    "Candidate 4fe28b9 exact push/pull_request jobs ended green only because a continue-on-error live public-source UI assertion failed: the fetched posting had no clear responsibility excerpt and produced the expected fail-closed COVER_LETTER_JOB_CONTEXT_MISSING block. Both artifacts omit ci-personal-public-ui.json (8/9 reports). The readback oracle now distinguishes this exact safe block from unexpected errors; final exact-head runs and artifact parsing are pending.",
     "Manual employer identity remains USER_ENTERED_UNVERIFIED and is labeled for user verification.",
     "This is deterministic template tailoring, not AI rephrasing or arbitrary user-edited prose.",
     "No live employer submission or company-context inference was performed.",
@@ -139,6 +149,34 @@
       "candidate": "74863e8231a236217a0514fb1136921cb2f42f39",
       "finding": "Legacy generic cover-letter revisions failed validation if the mutable job title changed since generation; no job snapshot was stored.",
       "disposition": "Final-working-tree regression test changes the job title after saving the historical letter. The validator now binds that legacy heading to the hash-checked saved artifact while rechecking the original approved facts and every format; UI labels the missing legacy context. Focused API/history, Chromium, web, and build checks pass. Fresh final-head review and Verification remain pending."
+    }
+  ],
+  "ci_acceptance_observations": [
+    {
+      "run_id": 37282827647,
+      "event": "push",
+      "head": "4fe28b92f1da346934aa771558db95f5884f8aee",
+      "workflow_conclusion": "success",
+      "full_python_tests": 550,
+      "public_source_probe_result": "PASS",
+      "ui_source_readback_step": "FAIL (continue-on-error; expected ci-personal-public-ui.json missing)",
+      "artifact_name": "fictional-mock-evidence",
+      "artifact_expected_reports": 9,
+      "artifact_reports_present": 8,
+      "artifact_sha256": "85032c4e7218121238b23ace2aa438ff45929e7767eb06ad279bd9519fadd0fb"
+    },
+    {
+      "run_id": 37282832612,
+      "event": "pull_request",
+      "head": "4fe28b92f1da346934aa771558db95f5884f8aee",
+      "workflow_conclusion": "success",
+      "full_python_tests": 550,
+      "public_source_probe_result": "PASS",
+      "ui_source_readback_step": "FAIL (continue-on-error; expected ci-personal-public-ui.json missing)",
+      "artifact_name": "fictional-mock-evidence",
+      "artifact_expected_reports": 9,
+      "artifact_reports_present": 8,
+      "artifact_sha256": "09e38dfb09312e28ce8b8aef58cc58cdb3d633b41cb32e01bf985e0148d4ada4"
     }
   ]
 }
