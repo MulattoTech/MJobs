@@ -1,6 +1,7 @@
 """One synthetic browser journey through the core MJobs workflow."""
 import hashlib
 from pathlib import Path
+import socket
 import tempfile
 import threading
 import time
@@ -123,6 +124,11 @@ class CoreWorkflowTrialBrowserTests(unittest.TestCase):
                     expect(review).to_be_visible()
                     expect(review.get_by_text("Maintained support@example.invalid routing.",
                                               exact=False)).to_be_visible()
+                    selected = review.locator(
+                        'label.fact-suggestion:has(strong) input[type="checkbox"]')
+                    self.assertGreater(selected.count(), 0)
+                    self.assertTrue(all(selected.nth(index).is_checked()
+                                        for index in range(selected.count())))
                     review.get_by_role("button", name="Add selected to profile editor",
                                        exact=True).click()
 
@@ -164,6 +170,10 @@ class CoreWorkflowTrialBrowserTests(unittest.TestCase):
                     self.assertEqual({row["text"] for row in reviewed}, {"Python", "SQL"})
                     self.assertTrue(all(row["verified"] and row["user_approved"]
                                         for row in reviewed), reviewed)
+                    imported = next(row for row in profile["facts"]
+                                    if row["text"] == "Maintained support@example.invalid routing.")
+                    self.assertFalse(imported["verified"])
+                    self.assertFalse(imported["user_approved"])
                     self.assertFalse(next(row for row in profile["facts"]
                                           if row["text"] == "Kubernetes")["user_approved"])
                     self.assertTrue(profile["answers"][0]["user_approved"])
@@ -220,16 +230,52 @@ class CoreWorkflowTrialBrowserTests(unittest.TestCase):
                         lambda response: response.url == origin + "/jobs/manual"
                         and response.request.method == "POST"
                     ) as captured:
-                        capture_form.get_by_role("button", name="Save captured job", exact=True).click()
+                        real_connect = socket.socket.connect
+                        real_getaddrinfo = socket.getaddrinfo
+
+                        def local_host(host):
+                            if host not in {"127.0.0.1", "localhost", "::1"}:
+                                raise AssertionError(f"Manual capture attempted external DNS for {host}")
+
+                        def local_connect(connection, address):
+                            if isinstance(address, tuple):
+                                local_host(address[0])
+                            return real_connect(connection, address)
+
+                        def local_getaddrinfo(host, *args, **kwargs):
+                            local_host(host)
+                            return real_getaddrinfo(host, *args, **kwargs)
+
+                        with patch.object(socket.socket, "connect", local_connect), \
+                                patch("socket.getaddrinfo", local_getaddrinfo):
+                            capture_form.get_by_role("button", name="Save captured job",
+                                                     exact=True).click()
                     response = captured.value
                     self.assertEqual(response.status, 201)
                     job_id = response.json()["job"]["id"]
+                    expect(page.get_by_role("status").filter(
+                        has_text="Job captured and evaluated")).to_be_visible()
+                    page.get_by_role("button", name="Capture a job", exact=True).first.click()
+                    second_capture = page.get_by_role("form", name="Manual job capture")
+                    second_capture.get_by_label("Job title", exact=True).fill("Help Desk Analyst")
+                    second_capture.get_by_label("Company", exact=True).fill("Synthetic Service Desk")
+                    second_capture.get_by_label("Job description", exact=True).fill(
+                        "Support users and troubleshoot desktop incidents.")
+                    second_capture.get_by_label("Location", exact=True).fill("Tulsa, OK")
+                    second_capture.get_by_role("combobox").nth(0).select_option("ONSITE")
+                    second_capture.get_by_label("Job reference URL", exact=True).fill(
+                        "http://127.0.0.1:9/private/help-desk")
+                    second_capture.get_by_label("Application URL", exact=True).fill(
+                        "https://apply.example.invalid/synthetic-help-desk")
+                    second_capture.get_by_role("button", name="Save captured job",
+                                               exact=True).click()
                     expect(page.get_by_role("status").filter(
                         has_text="Job captured and evaluated")).to_be_visible()
                     page.get_by_label("Search jobs", exact=True).fill("Systems Administrator")
                     page.get_by_label("Work location", exact=True).select_option("ONSITE")
                     card = page.locator(".job-card").filter(has_text="Systems Administrator")
                     expect(card).to_be_visible()
+                    expect(page.locator(".job-card").filter(has_text="Help Desk Analyst")).to_have_count(0)
                     card.click()
                     detail = page.locator(".job-detail")
                     explanation = detail.get_by_role("list", name="Skill match explanation")
