@@ -579,6 +579,28 @@
       },
       "evidence_path": "docs/evidence/2026-10-05-manual-job-capture.json",
       "scope_result": "PARTIAL"
+    },
+    {
+      "number": 509,
+      "url": "https://github.com/MulattoTech/MJobs/pull/509",
+      "branch": "codex/core-workflow-trial-matching-20261005",
+      "status": "DRAFT",
+      "base": "77cf0825e51f34874f49cc7753e721b60a944ef0",
+      "head": "7289bedd4b0f53b4c43a5ac48d5f0c2259ad95b1",
+      "requirements": [
+        "MJ-REQ-112",
+        "MJ-REQ-113",
+        "MJ-REQ-114",
+        "MJ-REQ-115"
+      ],
+      "issues": [
+        113,
+        114,
+        115,
+        116
+      ],
+      "evidence_path": "docs/evidence/2026-10-05-explainable-matching.json",
+      "note": "Deterministic/manual-review slice only; exact final-head review and push/PR Verification pending."
     }
   ],
   "tests_passed": [
@@ -3406,11 +3428,45 @@
         "git_commit": "77cf0825e51f34874f49cc7753e721b60a944ef0",
         "evidence_path": "docs/evidence/2026-10-05-explainable-matching.json"
       }
+    },
+    {
+      "milestone_id": "CORE-WORKFLOW-TRIAL-C-MATCHING-PUBLISHED-DRAFT",
+      "timestamp": "2026-10-05T06:04:29+00:00",
+      "current_phase": "C_MATCHING_DRAFT_509_PENDING_INDEPENDENT_REVIEW_AND_EXACT_HEAD_CI",
+      "completed_steps": [
+        "Committed deterministic match explanation slice and sanitized local evidence",
+        "Pushed task branch and opened draft PR #509 referencing issues #113, #114, #115, and #116 without closing their broader requirements",
+        "Recorded code head 7289bedd4b0f53b4c43a5ac48d5f0c2259ad95b1 and current base 77cf0825e51f34874f49cc7753e721b60a944ef0; a subsequent metadata commit will create the final candidate"
+      ],
+      "files_added": [],
+      "files_modified": [
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "39 targeted integrations; 5 Chromium browser tests; 59 web tests and production build; repository validators passed on implementation commit 7289bedd4b0f53b4c43a5ac48d5f0c2259ad95b1"
+      ],
+      "tests_remaining": [
+        "Push and pull_request Verification on the exact final PR head and artifact inspection",
+        "Independent read-only review on the exact final PR head",
+        "Merge and main readback"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "PR #509 remains a draft; no merge or full matching acceptance is claimed."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "7289bedd4b0f53b4c43a5ac48d5f0c2259ad95b1",
+        "evidence_path": "docs/evidence/2026-10-05-explainable-matching.json"
+      }
     }
   ],
-  "current_phase": "C_MATCHING_LOCAL_VERIFIED_PENDING_REVIEW",
+  "current_phase": "C_MATCHING_DRAFT_509_PENDING_INDEPENDENT_REVIEW_AND_EXACT_HEAD_CI",
   "last_safe_checkpoint": {
-    "git_commit": "77cf0825e51f34874f49cc7753e721b60a944ef0",
+    "git_commit": "7289bedd4b0f53b4c43a5ac48d5f0c2259ad95b1",
     "evidence_path": "docs/evidence/2026-10-05-explainable-matching.json"
   },
   "live_integrations_tested": [
@@ -3508,6 +3564,16 @@
       "merge_commit": "77cf0825e51f34874f49cc7753e721b60a944ef0",
       "push_verification": 37268232466,
       "pull_request_verification": 37268236341
+    },
+    {
+      "result": "PARTIAL",
+      "transport": "Authenticated Git push and GitHub draft PR",
+      "local_remote_commit_identical": true,
+      "force": false,
+      "pr_number": 509,
+      "url": "https://github.com/MulattoTech/MJobs/pull/509",
+      "initial_head": "7289bedd4b0f53b4c43a5ac48d5f0c2259ad95b1",
+      "base": "77cf0825e51f34874f49cc7753e721b60a944ef0"
     }
   ],
   "live_reconciliation": {
