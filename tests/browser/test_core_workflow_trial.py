@@ -336,10 +336,22 @@ class CoreWorkflowTrialBrowserTests(unittest.TestCase):
 
                     # Explicitly select the saved answer, review it for this
                     # job, and preserve its immutable export beside the docs.
+                    answer_bank = context.request.get(
+                        origin + f"/profiles/{profile_id}/applications/{application_id}/answers"
+                    ).json()["answers"]
+                    reusable = next(row for row in answer_bank
+                                    if row.get("question") == "How many years of experience?")
+                    self.assertTrue(reusable["verified"] and reusable["user_approved"], reusable)
+                    # Clear any preparation-time application selection. The
+                    # answer controls must come from the reloaded persisted read.
+                    page.reload(wait_until="domcontentloaded")
+                    expect(page.get_by_label("Active profile")).to_have_value(profile_id)
                     navigate("Applications")
                     page.locator(".job-card").filter(has_text="Systems Administrator").click()
                     page.get_by_role("button", name="Add question", exact=True).click()
                     page.get_by_label("Employer question").fill("HOW MANY YEARS OF EXPERIENCE?")
+                    expect(page.get_by_role("button", name="Use saved answer (review required)",
+                                            exact=True)).to_be_visible()
                     page.get_by_role("button", name="Use saved answer (review required)",
                                      exact=True).evaluate("button => button.click()")
                     expect(page.get_by_role("textbox", name="Answer", exact=True)).to_have_value(
