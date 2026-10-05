@@ -13,7 +13,7 @@ from services.discovery.search_semantics import (
     classify_location, normalize_employment_type, normalize_experience_level, normalize_title,
     parse_education_requirement,
 )
-from services.discovery.skill_taxonomy import extract_skills
+from services.discovery.skill_taxonomy import canonical_skill_id, extract_skills, skill_label
 from services.discovery.requirement_parsers import parse_job_requirements
 from services.discovery.negative_filters import parse_negative_conditions
 from services.company_discovery.sources import register_ats_tenant, upsert_company_job_source
@@ -58,6 +58,32 @@ class MockClient:
 
     def close(self):
         self.client.close()
+
+
+def mock_skill_evidence(row, title, description):
+    """Separate explicit requirement fields from unclassified posting mentions."""
+    mentions = extract_skills(title + " " + description + " " + " ".join(row.get("skills") or []))
+    classified = {}
+    for field in ("required_skills", "preferred_skills", "nice_to_have_skills"):
+        values = row.get(field) or []
+        values = values if isinstance(values, (list, tuple, set)) else [values]
+        labels = []
+        for value in values:
+            identifier = canonical_skill_id(value)
+            found = [skill_label(identifier)] if identifier else extract_skills(str(value))["labels"]
+            labels.extend(label for label in found if label not in labels)
+        classified[field] = labels
+    has_structured_requirements = any(classified.values())
+    for field in ("required_skills", "preferred_skills", "nice_to_have_skills"):
+        for label in classified[field]:
+            identifier = canonical_skill_id(label)
+            if label not in mentions["labels"]:
+                mentions["labels"].append(label)
+                mentions["ids"].append(identifier)
+    return mentions, {
+        "skill_evidence": "structured_requirements" if has_structured_requirements else "description_mentions",
+        **classified,
+    }
 
 
 def discover(store, mock_origin, profile_id, check=None, profile_version=None):
@@ -121,14 +147,14 @@ def discover(store, mock_origin, profile_id, check=None, profile_version=None):
                 education = parse_education_requirement(description)
                 requirements = parse_job_requirements(description)
                 negative_conditions = parse_negative_conditions(description, requirements["clearance"])
-                skill_data = extract_skills(row["title"] + " " + description + " " + " ".join(row.get("skills") or []))
+                skill_data, skill_requirements = mock_skill_evidence(row, row["title"], description)
                 salary_period = str(row.get("salary_period") or "UNKNOWN").upper()
                 if salary_period not in {"HOUR", "YEAR"}:
                     salary_period = "UNKNOWN"
                 job = {"id": job_id, "company_id": company_id, "requisition": row["requisition"], "title": row["title"].strip(),
                        "description": description, "skills": skill_data["labels"], "location": row["location"],
                        "remote_type": location_facts["remote_type"],
-                       "attributes": {"fictional": True, "skill_evidence": "structured_required_skills", "provider": "mock-ats",
+                       "attributes": {"fictional": True, **skill_requirements, "provider": "mock-ats",
                            "employment_type": normalize_employment_type(row["title"] + " " + description),
                            "experience_level": experience["level"], "experience_level_raw": experience["raw"],
                            "normalized_title": title_info["normalized_title"], "title_family": title_info["title_family"],

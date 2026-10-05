@@ -93,10 +93,14 @@ def build_explanation(job, profile):
 
 def recalculate(store, profile_id, profile_version=None, check=None):
     check = check or (lambda: None)
-    profile = store.profile(profile_id, profile_version)
     with store.engine.begin() as connection:
         if connection.dialect.name == 'sqlite':
             connection.exec_driver_sql('BEGIN IMMEDIATE')
+        else:
+            connection.execute(select(m.profiles.c.id).where(
+                m.profiles.c.id == profile_id
+            ).with_for_update()).scalar_one()
+        profile = store.profile(profile_id, profile_version, connection=connection)
         job_ids = []
         for job in connection.execute(select(m.jobs).order_by(m.jobs.c.id)).mappings():
             check()

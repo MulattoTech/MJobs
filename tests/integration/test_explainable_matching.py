@@ -129,6 +129,55 @@ class ExplainableMatchingTests(unittest.TestCase):
         self.assertEqual(match["profile_version"], current_version)
         self.assertEqual(match["score"], 0)
 
+    def test_recalculate_reads_profile_after_entering_serialized_write(self):
+        job = capture_manual_job(self.store, {
+            "request_id": "profile-race-test", "title": "Systems Administrator",
+            "company": "Example Infrastructure", "description": "Active Directory",
+            "reference_url": "https://jobs.example.invalid/role/race",
+            "application_url": "https://apply.example.invalid/role/race",
+        })["job"]
+        current = copy.deepcopy(self.profile)
+        current["facts"] = [{
+            **fact,
+            "verified": False if fact["id"] == "approved-ad" else fact["verified"],
+            "user_approved": False if fact["id"] == "approved-ad" else fact["user_approved"],
+        } for fact in current["facts"]]
+        original_begin = self.store.engine.begin
+        changed_between_read_and_write = False
+
+        def interleaved_begin(*args, **kwargs):
+            nonlocal changed_between_read_and_write
+            if not changed_between_read_and_write:
+                changed_between_read_and_write = True
+                self.store.save_profile(current)
+            return original_begin(*args, **kwargs)
+
+        with patch.object(self.store.engine, "begin", side_effect=interleaved_begin):
+            recalculate(self.store, "fixture")
+
+        match = self.store.job(job["id"], profile_id="fixture")["match"]
+        self.assertEqual(match["profile_version"], self.store.profile("fixture")["version"])
+        self.assertEqual(match["score"], 0)
+
+    def test_generic_fixture_skills_do_not_become_required(self):
+        from services.discovery.pipeline import mock_skill_evidence
+        from services.discovery.matching import build_explanation
+
+        skill_data, evidence = mock_skill_evidence({"skills": ["Python"]}, "Engineer", "Uses Azure")
+        self.assertEqual(set(skill_data["labels"]), {"Python", "Azure"})
+        self.assertEqual(evidence["skill_evidence"], "description_mentions")
+        self.assertEqual(evidence["required_skills"], [])
+        explanation = build_explanation({
+            "skills": skill_data["labels"], "attributes": evidence,
+        }, {"facts": []})
+        strengths = {row["skill"]: row["strength"] for row in explanation["components"]["requirements"]}
+        self.assertEqual(strengths, {"Python": "UNKNOWN", "Azure": "UNKNOWN"})
+
+        skill_data, evidence = mock_skill_evidence({"required_skills": ["Python"]}, "Engineer", "Uses Azure")
+        explanation = build_explanation({"skills": skill_data["labels"], "attributes": evidence}, {"facts": []})
+        strengths = {row["skill"]: row["strength"] for row in explanation["components"]["requirements"]}
+        self.assertEqual(strengths, {"Python": "REQUIRED", "Azure": "UNKNOWN"})
+
 
 if __name__ == "__main__":
     unittest.main()
