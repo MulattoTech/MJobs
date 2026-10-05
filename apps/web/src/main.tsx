@@ -184,7 +184,7 @@ function App() {
   async function demo() {
     const id='demo-'+crypto.randomUUID();
     const profile:Profile={id,name:'Fictional Test Applicant',email:'fixture@example.invalid',facts:[{id:'python',kind:'skill',text:'Python',source:'Fictional test fixture',verified:true,user_approved:true,confidence:100},{id:'sql',kind:'skill',text:'SQL',source:'Fictional test fixture',verified:true,user_approved:true,confidence:100}],answers:[{id:'country',text:'United States',source:'Fictional test fixture',verified:true,user_approved:true,confidence:100},{id:'remote',text:'yes',source:'Fictional test fixture',verified:true,user_approved:true,confidence:100},{id:'fixture_question',text:'Controlled fictional test application.',source:'Fictional test fixture',verified:true,user_approved:true,confidence:100}]};
-    await api('/profiles',{method:'PUT',body:JSON.stringify(profile)});setProfileId(id);setEditor(profile);
+    await api('/profiles',{method:'PUT',body:JSON.stringify(profile)});setProfileId(id);setEditor({...profile,id:''});
     await queue('/discovery',{profile_id:id,request_id:crypto.randomUUID()});await refresh(id);await loadJobs(id);setTab('Jobs');setNotice('Fictional demo loaded. Mock applications stay inside this local test system.');
   }
   function editFact(index:number,change:Partial<Fact>) {setEditor(current=>({...current,facts:current.facts.map((fact,i)=>i===index?updateReviewedFact(fact,change):fact)}));}
