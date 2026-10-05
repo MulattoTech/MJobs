@@ -40,10 +40,16 @@ class CoreWorkflowTrialBrowserTests(unittest.TestCase):
                                           kwargs={"sockets": [sock]}, daemon=True)
                 thread.start()
                 deadline = time.monotonic() + 10
-                while not server.started:
-                    if not thread.is_alive() or time.monotonic() > deadline:
-                        self.fail("Isolated core-trial API did not start")
-                    time.sleep(0.02)
+                try:
+                    while not server.started:
+                        if not thread.is_alive() or time.monotonic() > deadline:
+                            self.fail("Isolated core-trial API did not start")
+                        time.sleep(0.02)
+                except BaseException:
+                    server.should_exit = True
+                    thread.join(timeout=10)
+                    sock.close()
+                    raise
                 return origin, sock, server, thread
 
             def stop_api(store, sock, server, thread):
@@ -240,6 +246,9 @@ class CoreWorkflowTrialBrowserTests(unittest.TestCase):
                         def local_connect(connection, address):
                             if isinstance(address, tuple):
                                 local_host(address[0])
+                                if len(address) > 1 and address[1] != 1:
+                                    raise AssertionError(
+                                        f"Manual capture attempted outbound connection to {address}")
                             return real_connect(connection, address)
 
                         def local_getaddrinfo(host, *args, **kwargs):
@@ -267,8 +276,10 @@ class CoreWorkflowTrialBrowserTests(unittest.TestCase):
                         "http://127.0.0.1:9/private/help-desk")
                     second_capture.get_by_label("Application URL", exact=True).fill(
                         "https://apply.example.invalid/synthetic-help-desk")
-                    second_capture.get_by_role("button", name="Save captured job",
-                                               exact=True).click()
+                    with patch.object(socket.socket, "connect", local_connect), \
+                            patch("socket.getaddrinfo", local_getaddrinfo):
+                        second_capture.get_by_role("button", name="Save captured job",
+                                                   exact=True).click()
                     expect(page.get_by_role("status").filter(
                         has_text="Job captured and evaluated")).to_be_visible()
                     page.get_by_label("Search jobs", exact=True).fill("Systems Administrator")
@@ -372,6 +383,38 @@ class CoreWorkflowTrialBrowserTests(unittest.TestCase):
                     self.assertFalse(external)
                     self.assertEqual(context.request.get(origin + "/health").json()[
                         "external_submission_enabled"], False)
+
+                    # Update synthetic profile metadata, then prepare a second
+                    # revision and prove version one's bytes remain intact.
+                    navigate("Profile")
+                    page.get_by_label("preferred name", exact=True).fill("Synthetic Applicant v2")
+                    page.get_by_role("button", name="Save profile", exact=True).click()
+                    expect(page.get_by_role("status").filter(has_text="Profile saved")).to_be_visible()
+                    navigate("Jobs")
+                    page.locator(".job-card").filter(has_text="Systems Administrator").click()
+                    with page.expect_response(
+                        lambda item: item.url == origin + "/applications"
+                        and item.request.method == "POST"
+                    ) as revised:
+                        page.get_by_role("button", name="Prepare documents", exact=True).click()
+                    with patch.dict("os.environ", MJOBS_DATABASE_URL=database_url,
+                                    MJOBS_MOCK_ORIGIN="http://127.0.0.1:1",
+                                    MJOBS_OUTPUT_DIR=str(root), MJOBS_OPERATION_MODE="FIXTURE"):
+                        outcome = execute_operation(revised.value.json()["operation_id"])
+                    self.assertEqual(outcome["status"], "COMPLETED", outcome)
+                    revised_docs = context.request.get(
+                        origin + f"/profiles/{profile_id}/applications/{application_id}/documents"
+                    ).json()["documents"]
+                    self.assertEqual({row["version"] for row in revised_docs}, {1, 2})
+                    old_rows = {row["id"]: row for row in revised_docs}
+                    self.assertEqual(old_rows[old_resume["id"]]["sha256"]["txt"], old_resume_digest)
+                    self.assertEqual(old_rows[cover["id"]]["sha256"]["txt"], cover_digest)
+                    for document_id, expected_digest in ((old_resume["id"], old_resume_digest),
+                                                         (cover["id"], cover_digest)):
+                        reread = context.request.get(
+                            origin + f"/profiles/{profile_id}/documents/{document_id}/txt")
+                        self.assertTrue(reread.ok)
+                        self.assertEqual(hashlib.sha256(reread.body()).hexdigest(), expected_digest)
 
                     context.close()
                     browser.close()
