@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-05T05:13:23Z",
+  "timestamp": "2026-10-05T05:27:21.491970+00:00",
   "result": "PARTIAL",
   "scope": "Issue #507 manual job capture to canonical job record; local synthetic acceptance only",
   "base_sha": "44b98897fb1ced728ff206af2576b47c7cb240b1",
@@ -23,7 +23,7 @@
       {
         "command": ".venv\\Scripts\\python.exe -m unittest tests.browser.test_manual_job_capture tests.browser.test_profile_import tests.browser.test_fact_review -v",
         "result": "PASS",
-        "target": "7 isolated Chromium journeys: manual job capture/preparation, profile import/review, and substantive fact-edit approval reset; temporary synthetic SQLite only"
+        "target": "7 isolated Chromium tests: reference-only and application-only link semantics, reference-only prepare rejection, manual persistence/retry/duplicate/no-fetch/preparation, profile import/review and fact-edit approval reset"
       },
       {
         "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_api_queue -v",
@@ -36,20 +36,20 @@
         "target": "59 frontend tests; TypeScript/Vite production build"
       },
       {
-        "command": ".venv\\Scripts\\python.exe -m tools.verification.agent_skills; git diff --check",
+        "command": ".venv\\Scripts\\python.exe -m tools.verification.agent_skills; .venv\\Scripts\\python.exe -m tools.verification.catalogue; git diff --check",
         "result": "PASS",
-        "target": "Repository delivery-skill validator and whitespace validation"
+        "target": "Repository delivery-skill, catalogue and whitespace validators"
       }
     ]
   },
   "implementation_sha256": {
-    "apps/api/main.py": "a13e5d6f164fbda3cd0249159f157dcb6481afccf73878a28df1f0f23fb61754",
+    "apps/api/main.py": "aa8a37898776aa8d3aaad0000a8a9ac06c008004ba2bdd46479e621562ad4236",
     "apps/api/AREA.md": "3f65b78dd0ac103b574cf0787c59b55375115ea09abccfd1950742b409305db7",
-    "apps/web/src/main.tsx": "a05dc1ed0d73d9c9dace272a003d0bc8292f2d5b64413e5d753ec78033ab940a",
+    "apps/web/src/main.tsx": "b88692a57533c4d6febbdbbaf88ef42028fed96375684c0aca28e37b0fe79e83",
     "apps/web/AREA.md": "ef3948f3a6a0a63d867fbd0479b627502d0bc8aa8c5cd08a4659b86b78de6a69",
     "services/discovery/manual_capture.py": "f9241bece546a9c7c303f5cb89dc770bf20b715a1ff87d3eddf36d43f28ddcdb",
     "services/discovery/AREA.md": "94200509e16fa81302a0a5f6513b08a15533b7ee8fcab76ba6221ee462d94bdb",
-    "tests/browser/test_manual_job_capture.py": "37d09ea5f050c6889691c24a4f42ed09a8f38e88233c7c4b18c161257e42f699"
+    "tests/browser/test_manual_job_capture.py": "45d44bd5123498105fb7ac1b3b7d057811236852d9599f1a0e04ed14261f52f5"
   },
   "privacy": {
     "data_scope": "Synthetic profile/job content, temporary database and documents only",
@@ -58,7 +58,7 @@
     "external_submission_enabled": false,
     "application_attempts_created": 0
   },
-  "accepted_slice": "Manual UI capture persists exact text, reference/application link distinctions, unknown source fields, manual provenance, timestamp and route through canonical job/posting/snapshot/audit models; reload/detail/preparation work; stable request retries are idempotent and a new request key is a distinct capture.",
+  "accepted_slice": "Manual UI capture persists exact text and unknown source fields through canonical job/posting/snapshot/audit models, with distinct reference and application URL meaning. A reference-only capture cannot prepare documents via UI or API; an application-only link remains distinct. Reload/detail, explicit route-based preparation, idempotent retries, deliberate distinct captures and no-fetch behavior pass in isolated browser/API tests.",
   "not_claimed": [
     "Public-source UI status/provenance acceptance or actual live provider read in this checkpoint",
     "Matching/filter/saved-filter acceptance",
@@ -69,11 +69,21 @@
     "Full 366-requirement release readiness"
   ],
   "remaining": [
-    "Independent read-only review on exact candidate",
-    "Push and draft PR",
-    "Both push and pull_request Verification at exact final candidate/base; inspect every required runtime artifact",
+    "Fresh independent read-only review on final candidate",
+    "Fresh push and pull_request Verification on exact candidate/base; inspect all required runtime artifacts",
     "Merge receipt and main readback",
-    "Separate actual supported public Greenhouse read smoke; no private runtime is authorized"
+    "Separate actual supported public Greenhouse read smoke evidence; do not use retained private runtime"
   ],
-  "external_public_read_tested_in_this_checkpoint": false
+  "external_public_read_tested_in_this_checkpoint": false,
+  "review_checkpoint": {
+    "candidate": "447c4a9fb3f74b0360d20ba48b439524d5f11e37",
+    "result": "PRELIMINARY_FINDINGS_REPAIRED_PENDING_FINAL_REVIEW",
+    "findings": [
+      "Reference-only jobs could be prepared through a fallback route; UI and API now reject this path.",
+      "Application-only links could be labelled as job references; rendering now checks the original submitted reference field.",
+      "Padded idempotency request identifiers shared identity but conflicted on raw payload; surrounding whitespace is now rejected.",
+      "Push and pull_request workflows on that superseded candidate failed the progress-journal consistency check; this is being repaired with a new milestone entry."
+    ],
+    "reviewer": "Fresh read-only reviewer; final candidate review still required"
+  }
 }

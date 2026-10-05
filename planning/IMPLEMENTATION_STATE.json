@@ -3207,15 +3207,63 @@
         "git_commit": "b1691622a61ee368f058461ff002728325d275a9",
         "evidence_path": "docs/evidence/2026-10-04-fact-review-exact-head-ci.json"
       }
+    },
+    {
+      "milestone_id": "CORE-WORKFLOW-TRIAL-B-MANUAL-CAPTURE",
+      "timestamp": "2026-10-05T05:28:10.640890+00:00",
+      "current_phase": "B_MANUAL_CAPTURE_REVIEW_REPAIR",
+      "completed_steps": [
+        "Implemented manual job capture on the existing Jobs screen and canonical persistence model",
+        "Passed synthetic browser/API, profile import/fact review, and web tests",
+        "Fresh reviewer identified reference/application route semantics and journal consistency issues; local corrections are under validation"
+      ],
+      "files_added": [
+        "services/discovery/manual_capture.py",
+        "tests/browser/test_manual_job_capture.py",
+        "docs/evidence/2026-10-05-manual-job-capture.json"
+      ],
+      "files_modified": [
+        "apps/api/main.py",
+        "apps/web/src/main.tsx",
+        "apps/api/AREA.md",
+        "apps/web/AREA.md",
+        "services/discovery/AREA.md",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Manual capture browser acceptance with synthetic profile/temp database: PASS",
+        "Career fact import/review and approval-reset browser tests: PASS",
+        "API queue integration tests: PASS",
+        "Web tests/build and delivery/catalogue validators: PASS"
+      ],
+      "tests_remaining": [
+        "Re-run progress validator after this journal append",
+        "Fresh exact-head independent review after corrections are pushed",
+        "Both exact-head GitHub Verification events and all runtime reports",
+        "Merge and main readback"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [
+        "Superseded candidate 447c4a9 failed progress validation in both push and pull_request CI; stale state and journal fields are being reconciled before a new candidate."
+      ],
+      "known_limitations": [
+        "No actual public-source read is claimed for this checkpoint",
+        "Manual capture does not complete matching, tailored documents, reusable answers, application tracking, or broad Jobs requirement acceptance"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "447c4a9fb3f74b0360d20ba48b439524d5f11e37",
+        "evidence_path": "docs/evidence/2026-10-05-manual-job-capture.json"
+      }
     }
   ],
-  "current_phase": "B_MANUAL_CAPTURE_LOCAL_VERIFIED_PENDING_REVIEW",
+  "current_phase": "B_MANUAL_CAPTURE_REVIEW_REPAIR",
   "last_safe_checkpoint": {
-    "git_commit": "c09b0da1cfbb1abdd91d377c8be2be4cf79b97b0",
-    "evidence_path": "docs/evidence/2026-10-05-manual-job-capture.json",
-    "working_branch": "codex/core-workflow-trial-20261005",
-    "pull_request": 508,
-    "working_tree_result": "Local synthetic browser/API/web checks PASS; independent review and exact-head hosted verification pending"
+    "git_commit": "447c4a9fb3f74b0360d20ba48b439524d5f11e37",
+    "evidence_path": "docs/evidence/2026-10-05-manual-job-capture.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"

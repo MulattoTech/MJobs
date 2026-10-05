@@ -102,6 +102,8 @@ class ManualJobCaptureInput(BaseModel):
     def bounded_manual_capture(self):
         if not self.request_id.strip() or not self.title.strip() or not self.company.strip() or not self.description.strip():
             raise ValueError("Job title, company, description, and request identifier are required")
+        if self.request_id != self.request_id.strip():
+            raise ValueError("Request identifier cannot have surrounding whitespace")
         if not self.reference_url and not self.application_url:
             raise ValueError("Enter a job reference URL or an application URL")
         if len(self.__pydantic_extra__ or {}) > 20:
@@ -572,6 +574,13 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         profile = store.profile(value.profile_id)
         if value.expected_profile_version and value.expected_profile_version != profile['version']:
             raise HTTPException(409,'Profile changed; reload the approved facts before preparing')
+        job = store.job(value.job_id)
+        manual_postings = [posting for posting in job.get("postings", [])
+                           if posting.get("source") == "manual"]
+        if manual_postings and not any(
+                (posting.get("raw") or {}).get("submitted_fields", {}).get("application_url")
+                for posting in manual_postings):
+            raise HTTPException(422, "Add an application URL before preparing this manually captured job")
         try:
             select_resume_rows(eligible_rows(profile),value.tailor_resume,value.tailor_fact_ids)
         except PreparationError as error:

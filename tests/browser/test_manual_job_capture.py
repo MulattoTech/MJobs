@@ -138,6 +138,10 @@ class ManualJobCaptureBrowserTests(unittest.TestCase):
                         "reference_url": "javascript:alert(1)",
                     })
                     self.assertEqual(unsafe_scheme.status, 422)
+                    padded_request_id = context.request.post(origin + "/jobs/manual", data={
+                        **request_payload, "request_id": " padded-key ",
+                    })
+                    self.assertEqual(padded_request_id.status, 422)
                     reference_only_payload = {
                         **request_payload,
                         "request_id": "reference-without-application-route",
@@ -149,6 +153,17 @@ class ManualJobCaptureBrowserTests(unittest.TestCase):
                     reference_only = context.request.post(
                         origin + "/jobs/manual", data=reference_only_payload)
                     self.assertEqual(reference_only.status, 201)
+                    application_only_payload = {
+                        **request_payload,
+                        "request_id": "application-link-without-reference",
+                        "title": "Application link only operator role",
+                        "company": "Application link only employer",
+                        "reference_url": None,
+                        "application_url": "https://apply.example.invalid/role/44",
+                    }
+                    application_only = context.request.post(
+                        origin + "/jobs/manual", data=application_only_payload)
+                    self.assertEqual(application_only.status, 201)
 
                     page.reload(wait_until="domcontentloaded")
                     card = page.locator(".job-card").filter(
@@ -160,6 +175,21 @@ class ManualJobCaptureBrowserTests(unittest.TestCase):
                         "href", "https://jobs.example.invalid/role/43")
                     expect(detail.get_by_role("link", name="Open employer application", exact=False)).to_have_count(0)
                     expect(detail.get_by_role("link", name="Open saved application link", exact=False)).to_have_count(0)
+                    expect(page.get_by_role("button", name="Prepare documents", exact=True)).to_be_disabled()
+                    expect(detail).to_contain_text("A job reference alone is not an application route")
+                    rejected_prepare = context.request.post(origin + "/applications", data={
+                        "profile_id": "fixture", "request_id": "reference-only-preparation-rejected",
+                        "job_id": reference_only.json()["job"]["id"],
+                    })
+                    self.assertEqual(rejected_prepare.status, 422)
+                    card = page.locator(".job-card").filter(
+                        has_text="Application link only operator role").first
+                    card.click()
+                    detail = page.locator(".job-detail")
+                    expect(detail).to_contain_text("Application link only operator role")
+                    expect(detail.get_by_role("link", name="Open saved reference", exact=False)).to_have_count(0)
+                    expect(detail.get_by_role("link", name="Open employer application", exact=False)).to_have_attribute(
+                        "href", "https://apply.example.invalid/role/44")
                     card = page.locator(".job-card").filter(has_text="Systems Administrator").first
                     card.click()
                     with page.expect_response(
