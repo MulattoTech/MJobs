@@ -1,15 +1,15 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-05T10:00:09Z",
+  "generated_at": "2026-10-05T10:01:41Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Verified at 2026-10-05T10:00:09Z: primary task checkout is on codex/core-workflow-trial-answers-20261005 at 5f20df1d4e53fd8bc9288628712fc2ef684d9d47, pushed to origin; local ownership is task-authorized and separate Codespaces checkout remains preserved. Synthetic answer-bank/export evidence is in docs/evidence/2026-10-05-reviewed-application-answers.json; no personal applicant data or retained runtime was used.",
-    "current_verified_github_state": "Verified at 2026-10-05T10:00:09Z: origin main is fb93ad48a3987c375350388ba8bf677db58575d2; PR #511 is a draft at 5f20df1d4e53fd8bc9288628712fc2ef684d9d47; PRs #504/#506, #508/#509/#510 remain merged. Exact-head checks for #511 are pending.",
-    "current_verified_at": "2026-10-05T10:00:09Z"
+    "current_verified_local_state": "Verified at 2026-10-05T10:01:41Z: root task checkout is synchronized on codex/core-workflow-trial-answers-20261005; local source and sanitized evidence are pushed; the latest candidate must be read from live PR #511. Separate Codespaces checkout is preserved; only synthetic data was used.",
+    "current_verified_github_state": "Verified at 2026-10-05T10:01:41Z: origin main is fb93ad48a3987c375350388ba8bf677db58575d2; PR #511 is a draft on codex/core-workflow-trial-answers-20261005; PRs #504/#506/#508/#509/#510 remain merged. Exact-head review and event checks for #511 are pending.",
+    "current_verified_at": "2026-10-05T10:01:41Z"
   },
   "current_milestone": "CORE-WORKFLOW-TRIAL",
   "current_objective": "Deliver bounded user-visible career-fact, job intake/evaluation, document preparation, reviewed-answer, and manual application-tracking workflows by 2026-10-05 15:00 America/Chicago; feature cutoff 13:00; preserve external submission OFF; report PARTIAL for unfinished criteria.",
@@ -638,8 +638,7 @@
       "url": "https://github.com/MulattoTech/MJobs/pull/511",
       "branch": "codex/core-workflow-trial-answers-20261005",
       "status": "DRAFT",
-      "base": "fb93ad48a3987c375350388ba8bf677db58575d2",
-      "head": "5f20df1d4e53fd8bc9288628712fc2ef684d9d47"
+      "base": "fb93ad48a3987c375350388ba8bf677db58575d2"
     }
   ],
   "tests_passed": [
@@ -3988,12 +3987,12 @@
     }
   ],
   "live_reconciliation": {
-    "timestamp": "2026-10-05T10:00:09Z",
+    "timestamp": "2026-10-05T10:01:41Z",
     "base_commit": "fb93ad48a3987c375350388ba8bf677db58575d2",
     "evidence_path": "docs/evidence/2026-10-05-reviewed-application-answers.json",
     "current_slice_validation": "PARTIAL",
     "product_status": "PARTIAL",
-    "ownership": "Root checkout is task branch codex/core-workflow-trial-answers-20261005; PR #511 draft at 5f20df1d4e53fd8bc9288628712fc2ef684d9d47; synthetic local tests only; external submission OFF; retained private runtime not started or updated."
+    "ownership": "Root checkout is task branch codex/core-workflow-trial-answers-20261005; live PR #511 is the source of the current candidate SHA; synthetic local tests only; external submission OFF; retained private runtime not started or updated."
   },
   "active_development_issue": {
     "number": 104,

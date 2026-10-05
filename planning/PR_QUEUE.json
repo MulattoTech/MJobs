@@ -3155,12 +3155,11 @@
       "branch": "codex/core-workflow-trial-answers-20261005",
       "draft_until_verified": true,
       "scope_complete": false,
-      "notes": "PR #511 is a bounded deterministic/manual-review slice. It adds question-aware profile snapshots, approval reset, exact-normalized suggestions that require explicit selection, manual reviewed TXT export, provenance and immutable hash-checked history. Sensitive/legal answers require per-application text. Fuzzy/semantic matching, configurable thresholds, full user-configured sensitive/legal policies, and broader issue acceptance remain PARTIAL. Original MJ-PR-028/029 entries and dependencies are preserved; independent review and exact-head push/pull_request checks with runtime artifacts are pending.",
+      "notes": "PR #511 is an open draft at its live GitHub head and is a bounded deterministic/manual-review slice. It adds question-aware profile snapshots, approval reset, exact-normalized suggestions that require explicit selection, manual reviewed TXT export, provenance and immutable hash-checked history. Sensitive/legal answers require per-application text. Fuzzy/semantic matching, configurable thresholds, full user-configured sensitive/legal policies, and broader issue acceptance remain PARTIAL. Original MJ-PR-028/029 entries and dependencies are preserved; independent review and exact-head push/pull_request checks with runtime artifacts are pending.",
       "evidence_path": "docs/evidence/2026-10-05-reviewed-application-answers.json",
       "pr_number": 511,
       "pr_url": "https://github.com/MulattoTech/MJobs/pull/511",
-      "base": "fb93ad48a3987c375350388ba8bf677db58575d2",
-      "head": "5f20df1d4e53fd8bc9288628712fc2ef684d9d47"
+      "base": "fb93ad48a3987c375350388ba8bf677db58575d2"
     }
   ]
 }
