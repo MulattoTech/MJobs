@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-05T18:38:18Z",
+  "timestamp": "2026-10-05T18:47:00Z",
   "result": "PARTIAL",
   "scope": "Connected synthetic browser journey across the bounded CORE-WORKFLOW-TRIAL A-F user actions",
-  "source_commit": "79630eae594cf16cb5b18fb32730415c4e1ad726",
+  "source_commit": "4548eab46bf7c58427b1c57ac9de0840ad03a6d9",
   "base_commit": "3ec8702ed0f42842e1bac772997760d8db5c9caf",
   "operation_mode": "FIXTURE",
   "data_scope": "Synthetic applicant, synthetic resume/job/answers, temporary SQLite database and temporary documents only",
@@ -12,7 +12,7 @@
   "local_browser_acceptance": {
     "command": ".venv\\Scripts\\python.exe -m unittest tests.browser.test_core_workflow_trial -v",
     "result": "PASS",
-    "consecutive_runs": 5,
+    "consecutive_runs": 4,
     "browser": "isolated Chromium",
     "assertions": [
       "PDF import suggestions remain pending until deliberate fact approval; unapproved uncertain skill is excluded.",
@@ -26,7 +26,7 @@
     ],
     "page_errors": [],
     "external_requests": [],
-    "test_source_sha256": "0380979626641f7e72256c1e951c1f8d166a1b065817da4f699d492d5caa9af9"
+    "test_source_sha256": "c4e0383f109f0c9396c51a0523cac92dd874c9be0170d7898c7ee4293e1dd054"
   },
   "public_source_live_read": {
     "result": "PASS",
@@ -41,21 +41,21 @@
   },
   "independent_review": {
     "result": "PARTIAL",
-    "candidate": "79630eae594cf16cb5b18fb32730415c4e1ad726",
+    "candidate": "4548eab46bf7c58427b1c57ac9de0840ad03a6d9",
     "base": "3ec8702ed0f42842e1bac772997760d8db5c9caf",
     "reviewer": "independent read-only code reviewer",
     "findings": [
-      "Active planning metadata pointed to a stale candidate SHA; remove SHA from active fields and resolve current head from GitHub PR.",
-      "Evidence conflated saved criteria with transient Jobs filters and did not assert manual capture reference/source readback; both claims have been corrected and the browser oracle expanded."
+      "Job description/reference API readback occurred before browser reload although evidence claimed post-reload readback.",
+      "Capability and handoff summaries retained stale filtering/candidate claims."
     ],
-    "repair_status": "Local repairs verified; fresh exact-candidate review pending."
+    "repair_status": "Readback moved after reload, stale summaries corrected, and four local browser runs pass; fresh exact-head review pending."
   },
   "exact_head_gates": {
-    "push_verification": "PENDING",
-    "pull_request_verification": "PENDING",
+    "push_verification": "SUPERSEDED_4548EAB",
+    "pull_request_verification": "SUPERSEDED_4548EAB",
     "pr_merge_tree_equality": "PENDING_FINAL_HEAD",
     "required_runtime_reports": "PENDING_FINAL_HEAD",
-    "note": "Fresh review and both Verification event runs must cover the final pushed candidate. Record exact run IDs and artifact digests in the PR closing receipt after checks finish."
+    "note": "Runs 37357784353 and 37357791015 target superseded head 4548eab and cannot qualify a repaired candidate. Fresh review and both events must cover the next final pushed head."
   },
   "known_limitations": [
     "A-F evidence covers bounded synthetic browser paths; referenced full requirements stay PARTIAL until every acceptance boundary is met.",

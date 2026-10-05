@@ -282,6 +282,11 @@ class CoreWorkflowTrialBrowserTests(unittest.TestCase):
                                                    exact=True).click()
                     expect(page.get_by_role("status").filter(
                         has_text="Job captured and evaluated")).to_be_visible()
+                    # Reopen the Jobs UI so detail and preparation use the
+                    # persisted captured record, not only the create response.
+                    page.reload(wait_until="domcontentloaded")
+                    expect(page.get_by_label("Active profile")).to_have_value(profile_id)
+                    navigate("Jobs")
                     captured_detail = context.request.get(
                         origin + f"/jobs/{job_id}?profile_id={profile_id}"
                     ).json()
@@ -290,11 +295,6 @@ class CoreWorkflowTrialBrowserTests(unittest.TestCase):
                         captured_detail["postings"][0]["raw"]["submitted_fields"]["reference_url"],
                         "http://127.0.0.1:9/private/reference",
                     )
-                    # Reopen the Jobs UI so detail and preparation use the
-                    # persisted captured record, not only the create response.
-                    page.reload(wait_until="domcontentloaded")
-                    expect(page.get_by_label("Active profile")).to_have_value(profile_id)
-                    navigate("Jobs")
                     page.get_by_label("Search jobs", exact=True).fill("Systems Administrator")
                     page.get_by_label("Work location", exact=True).select_option("ONSITE")
                     card = page.locator(".job-card").filter(has_text="Systems Administrator")

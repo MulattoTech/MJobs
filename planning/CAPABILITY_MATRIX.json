@@ -1004,7 +1004,7 @@
         "docs/evidence/2026-10-05-explainable-matching.json",
         "docs/evidence/2026-10-05-core-workflow-trial-combined.json"
       ],
-      "note": "Persisted title/location filtering and match explanations are included in the connected synthetic journey; full acceptance remains PARTIAL."
+      "note": "Persisted scheduled-search title/employment criteria are read back; separate transient Jobs title/location controls and match explanations are included in the connected synthetic journey; full acceptance remains PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-115",
