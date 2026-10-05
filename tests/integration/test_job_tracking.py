@@ -163,11 +163,12 @@ class JobTrackingApiTests(unittest.TestCase):
             futures = [pool.submit(update, "SAVED", "concurrent-save"),
                        pool.submit(update, "HIDDEN", "concurrent-hide")]
             results = [future.result(timeout=10) for future in futures]
-        self.assertEqual({result["disposition"] for result in results},
-                         {"SAVED", "HIDDEN"})
+        self.assertTrue(all(result["disposition"] in {"SAVED", "HIDDEN"}
+                            for result in results))
         final = self.client.get(f"/profiles/fixture/jobs/{self.job_id}/tracking").json()
         statuses = [row for row in final["history"] if row["type"] == "disposition"]
         self.assertEqual([row["sequence"] for row in statuses], [1, 2])
+        self.assertEqual({row["disposition"] for row in statuses}, {"SAVED", "HIDDEN"})
         self.assertEqual(final["disposition"], statuses[-1]["disposition"])
 
 

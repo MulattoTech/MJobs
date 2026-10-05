@@ -146,15 +146,30 @@ class JobTrackingBrowserTests(unittest.TestCase):
                     page.get_by_role("button", name="Profile", exact=True).click()
                     expect(page.get_by_label("Fact text").first).to_have_value(
                         "Other profile confidential fact")
+                    page.get_by_role("button", name="Sources", exact=True).click()
+                    page.get_by_label("Search name", exact=True).fill("Other profile private search")
+                    page.get_by_label("Include titles", exact=True).fill("OtherProfilePrivateTitle")
+                    remote_preference = page.locator("label").filter(
+                        has_text="Remote preference").locator("select")
+                    employment_type = page.locator("label").filter(
+                        has_text="Employment type").locator("select")
+                    remote_preference.select_option("REQUIRED")
+                    employment_type.select_option("CONTRACT")
                     stalled_profile_reads = []
                     page.route(f"{origin}/profiles/fixture",
                                lambda route: stalled_profile_reads.append(route))
                     page.get_by_label("Active profile", exact=True).select_option("fixture")
-                    expect(page.get_by_label("Fact text", exact=True)).to_have_count(0)
-                    expect(page.get_by_label("Answer text", exact=True)).to_have_count(0)
+                    expect(page.get_by_label("Search name", exact=True)).to_have_value("")
+                    expect(page.get_by_label("Include titles", exact=True)).to_have_value("")
+                    expect(remote_preference).to_have_value("ANY")
+                    expect(employment_type).to_have_value("FULL_TIME")
                     self.assertEqual(len(stalled_profile_reads), 1)
                     stalled_profile_reads.pop().continue_()
+                    page.get_by_role("button", name="Profile", exact=True).click()
                     expect(page.get_by_label("Fact text").first).to_have_value("Python")
+                    first_answer = page.locator("fieldset.fact").filter(
+                        has_text="Answer 1").get_by_label("Answer text")
+                    expect(first_answer).to_have_value("United States")
                     self.assertEqual(external, [])
                     self.assertEqual(store.count("applications"), 0)
                     context.close()
