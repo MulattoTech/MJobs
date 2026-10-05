@@ -1,15 +1,15 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-05T15:50:00Z",
+  "generated_at": "2026-10-05T16:58:48Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Verified at 2026-10-05T14:12:00Z: task branch codex/core-workflow-trial-job-tracking-20261005 contains source repair c6a8b5f634111e88ec47ef7a9cbf93c99c94d5d0; profile-scoped save/hide/not-interested, notes/history, retry/concurrency ordering, legacy rows, and synchronous profile-switch reset. Full Python suite passed 577 tests in 303.442 seconds; 20 repeated concurrency tests, 62 web tests, strict build, and focused browser/API checks pass. F1 remains PARTIAL pending final candidate review, hosted checks/artifact inspection, and merge. Synthetic data only; external submission OFF; separate Codespaces checkout preserved.",
-    "current_verified_github_state": "Verified at 2026-10-05T14:12:00Z: origin/main is fb8ab73de6f666ed2644f9d1cc271eee25aef7f7; pushed source repair c6a8b5f634111e88ec47ef7a9cbf93c99c94d5d0 matches remote. PR #512 remains draft on codex/core-workflow-trial-job-tracking-20261005; the evidence/control-plane checkpoint commit follows and its final PR head must be read back before exact-head review/CI.",
-    "current_verified_at": "2026-10-05T14:12:00Z"
+    "current_verified_local_state": "At 2026-10-05T16:58:48Z before the final evidence correction commit, task branch codex/core-workflow-trial-application-pipeline-20261005 was based on main 2de5863da7418bf20087822d052b2beeb77ca64b. Source head 8756881027674346bd022716068b4532cbc91ca7 passed local full/focused/browser/web checks and independent review; metadata predecessor c245b9b2002259a998838619284ffaade1ca7207 passed fresh review and both Verification events. The following sanitized evidence correction changes no product code and requires fresh final-head gates. Synthetic only; external submission OFF; retained private runtime untouched; separate Codespaces checkout preserved.",
+    "current_verified_github_state": "At 2026-10-05T16:58:48Z, origin/main was 2de5863da7418bf20087822d052b2beeb77ca64b after merged PRs #511 and #512; PR #513 was draft on codex/core-workflow-trial-application-pipeline-20261005 at metadata predecessor c245b9b. The final sanitized evidence correction then requires remote SHA readback, fresh independent review and both event-specific Verification runs/artifact inspection.",
+    "current_verified_at": "2026-10-05T16:58:48Z"
   },
   "current_milestone": "CORE-WORKFLOW-TRIAL-F2-APPLICATION-PIPELINE",
   "current_objective": "Deliver the bounded core workflows by 2026-10-05 15:00 America/Chicago; stop feature work at 13:00; preserve external submission OFF; report PARTIAL for unfinished criteria.",
@@ -67,8 +67,8 @@
     "Configured-source unseen/high-match jobs and rescoring create durable coalesced company discovery requests. Verified employer origins can queue automatically; other origins require explicit review. Remaining triggers/domain acquisition/provider breadth/scheduling remain open.",
     "Durable reviewed public-feed monitoring: bounded scheduled/manual reads, atomic multi-profile matching and receipt, fresh authorization, failure backoff, changed-feed rediscovery and Sources status. Vendor ATS migration and broader providers remain open.",
     "Manual postings receive persisted deterministic skill-evidence explanations from approved profile facts; description-only mentions remain UNKNOWN and full matching/search dimensions remain open (CORE-WORKFLOW-TRIAL C local evidence).",
-    "CORE-WORKFLOW-TRIAL D deterministic job-specific cover letter: local synthetic path and full suite pass; independent review and exact-head CI pending",
-    "CORE-WORKFLOW-TRIAL E has a usable profile answer bank and per-job manual review/export path with profile-scoped history/download, atomic content-addressed export recovery, and a saved-profile load gate; 564 local Python tests, 62 web tests, focused Chromium, build, and validators pass. MJ-REQ-103..107 remain PARTIAL pending fresh exact-head independent review and CI (docs/evidence/2026-10-05-reviewed-application-answers.json)."
+    "CORE-WORKFLOW-TRIAL D deterministic job-specific cover letter merged in PR #510 at a63c798; exact-head review, both Verification events, runtime reports and merge-tree equality passed. Combined A-F journey remains pending (docs/evidence/2026-10-05-job-specific-cover-letter.json).",
+    "CORE-WORKFLOW-TRIAL E has a usable profile answer bank and per-job manual review/export path with profile-scoped history/download, atomic content-addressed export recovery, and a saved-profile load gate. PR #511 merged at fb8ab73 after exact-head review and passing push/pull_request Verification with nine passing reports and digest-matched artifacts. MJ-REQ-103..107 remain PARTIAL for incomplete matching, confidence, sensitive/legal policy and durable unexported drafts (docs/evidence/2026-10-05-reviewed-application-answers.json)."
   ],
   "blocked_capabilities": [],
   "active_requirements": [
@@ -658,7 +658,7 @@
       "branch": "codex/core-workflow-trial-application-pipeline-20261005",
       "status": "DRAFT",
       "base": "2de5863da7418bf20087822d052b2beeb77ca64b",
-      "review": "PASS_NO_ACTIONABLE_CODE_DEFECTS_ON_SOURCE_HEAD",
+      "review": "PREDECESSOR_METADATA_REVIEW_PASS; CURRENT_CANDIDATE_REVIEW_PENDING",
       "exact_head_checks": "PENDING_CURRENT_CANDIDATE_PUSH_AND_PR_VERIFICATION",
       "reviewed_source_head": "8756881027674346bd022716068b4532cbc91ca7",
       "source_head_checks": {
@@ -4335,25 +4335,24 @@
     }
   ],
   "live_reconciliation": {
-    "timestamp": "2026-10-05T13:46:12Z",
-    "base_commit": "fb8ab73de6f666ed2644f9d1cc271eee25aef7f7",
-    "evidence_path": "docs/evidence/2026-10-05-job-dispositions-notes.json",
+    "timestamp": "2026-10-05T16:58:48Z",
+    "base_commit": "2de5863da7418bf20087822d052b2beeb77ca64b",
+    "evidence_path": "docs/evidence/2026-10-05-application-pipeline.json",
     "current_slice_validation": "PARTIAL",
     "product_status": "PARTIAL",
-    "ownership": "PR #512 remains draft on the task-owned branch. Independent review findings on retry idempotency, concurrent ordering, legacy history compatibility, and profile-switch privacy were repaired; 577 Python tests, 62 web tests/build and validators pass locally. Full profile-switch clearing fix is uncommitted; publish and obtain fresh exact-head review plus push/pull_request gates. Synthetic-only data; external submission OFF; separate Codespaces checkout preserved; retained private runtime untouched."
+    "ownership": "PR #513 is the sole active implementation PR on the task-owned branch. Source head 8756881 passed local validation and independent review; privacy repairs scope comparison, application detail/history, downloads and fixture mock actions. Latest metadata candidate review passed; exact-head push and pull_request Verification and artifact inspection remain required after the current evidence correction. PR #511 answer-bank and #512 job-tracking work are merged. Synthetic only; external submission OFF; Codespaces checkout preserved; retained private runtime/database untouched."
   },
   "active_development_issue": {
-    "number": 193,
-    "title": "[MJ-REQ-192] Job Actions",
+    "number": 196,
+    "title": "[MJ-REQ-195] Application Tracker",
     "state": "OPEN",
     "related_issues": [
-      240,
-      196
+      240
     ],
-    "branch": "codex/core-workflow-trial-job-tracking-20261005",
-    "pr_number": 512,
-    "scope": "Additive local vertical slice for profile-scoped Save, Hide, Not Interested and notes/history on canonical jobs. MJ-REQ-192 remains PARTIAL because its complete action list is broader; MJ-REQ-239 remains PARTIAL because company/application notes are not implemented.",
-    "evidence_path": "docs/evidence/2026-10-05-job-dispositions-notes.json"
+    "branch": "codex/core-workflow-trial-application-pipeline-20261005",
+    "pr_number": 513,
+    "scope": "Profile-scoped user-reported application stages, notes and chronological history, separate from operational status and submission receipts. MJ-REQ-195 and MJ-REQ-239 remain PARTIAL pending combined A-F proof and broader acceptance.",
+    "evidence_path": "docs/evidence/2026-10-05-application-pipeline.json"
   },
   "historical_control_snapshots": [
     {
@@ -4824,5 +4823,5 @@
     "Profile-scoped generated-document download repair passes 584 tests in 324.939 seconds, 31 affected integration/browser tests, and 62 frontend tests/build; final metadata-inclusive PR-head review and hosted checks pending.",
     "Focused affected tests and repaired full suite (584 tests) pass; fresh exact-head review and hosted evidence pending."
   ],
-  "ownership": "PR #513 source head 8756881027674346bd022716068b4532cbc91ca7 is published and independently reviewed with no actionable code defects. Local 585-test suite, 42 focused integration tests, 5 connected browser tests, 62 frontend tests/build and repository validators pass on that code head. Metadata checkpoint and its exact-head hosted checks/artifacts remain pending. External submission OFF; retained private runtime/database untouched."
+  "ownership": "PR #513 source head 8756881027674346bd022716068b4532cbc91ca7 is published and independently reviewed with no actionable code defects. Local 585-test suite, 42 focused integration tests, 5 connected browser tests, 62 frontend tests/build and repository validators pass on that code head. Metadata predecessor c245b9b2002259a998838619284ffaade1ca7207 passed fresh review and both Verification events; the final evidence correction is a new candidate requiring fresh exact-head review and both-event checks/artifacts. External submission OFF; retained private runtime/database untouched."
 }

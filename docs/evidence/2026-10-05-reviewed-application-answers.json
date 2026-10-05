@@ -132,16 +132,31 @@
     "The local export does not fill or submit an employer form. Test mode used synthetic data and local-only browser traffic; external submission remains OFF.",
     "Profile editor sends the version it loaded; API now requires that token on every update to an existing profile and rejects missing or stale tokens with HTTP 409. Store atomically compares the observed version inside the transaction, preventing both delayed stale submissions and overlapping saves from restoring a revoked answer approval."
   ],
+  "merged_exact_head_receipt": {
+    "pr_number": 511,
+    "candidate_head": "22d9a3692e1d3aa538b6cd908daae764694ab7e2",
+    "base": "fb93ad48a3987c375350388ba8bf677db58575d2",
+    "merge_commit": "fb8ab73de6f666ed2644f9d1cc271eee25aef7f7",
+    "merged_at": "2026-10-05T12:24:06Z",
+    "push_verification": 37307763776,
+    "pull_request_verification": 37307771220,
+    "runtime_reports": "Both exact-head events completed successfully; all nine reports per artifact parsed as PASS, and external_submission_enabled was false in applicable reports.",
+    "artifact_sha256": {
+      "push": "f05390fb16e7d37af86efdd621199e2a3693a22a4639e5cce81aa71bd1ec5d4",
+      "pull_request": "fb5f8a64e2240c312989e2158a3da993edccbe94cd0d42f3cd1869c80fc18759"
+    },
+    "artifact_digest_check": "PASS"
+  },
   "limitations": [
     "Matching supports normalized exact questions only. Fuzzy and semantic variants in MJ-REQ-104 remain unimplemented.",
     "The minimum reusable confidence is currently a fixed 80 rather than a configurable threshold; scoring bands and confidence provenance acceptance in MJ-REQ-105 remain incomplete.",
     "Sensitive-answer detection is a conservative lexical rule set, not the full user-configurable sensitive-answer policy or legally significant profile-policy controls in MJ-REQ-106/107; manual per-application text and deliberate review remain required for detected questions.",
     "Unexported draft questions remain in the browser form; durable history starts when the reviewed TXT export is saved.",
-    "Current strict expected-version candidate has local full-suite evidence; fresh exact-head independent review and both-event hosted checks/artifact parsing are pending."
+    "PR #511 merged with exact-head independent review and both Verification events. Broader answer matching, configurable confidence, complete sensitive/legal policy and durable unexported drafts remain incomplete."
   ],
   "external_submission": "OFF",
   "ai_provider": "NOT_USED",
-  "hosted_exact_head_checks": "PENDING for the next source candidate. Candidate 315c2e1 push and pull_request events both passed but are superseded by its independent-review P1 finding.",
+  "hosted_exact_head_checks": "PASS for merged candidate 22d9a3692e1d3aa538b6cd908daae764694ab7e2: push 37307763776 and pull_request 37307771220; all runtime reports passed and artifact digests matched. Earlier candidates remain recorded as superseded below.",
   "superseded_candidates": [
     {
       "head": "d98f250e9760b7b3e4b7089df3f993e2b8c09241",
