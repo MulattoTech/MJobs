@@ -20,7 +20,7 @@ def create_mock_app(receipt_file=None):
         return [{"source_job_id": f"employer-{key}", "requisition": key, "tenant": "example",
                  "company": "Example Systems Inc.", "company_website": origin + "/company",
                  "title": "Python Developer" if key == "A" else "Data Engineer",
-                 "description": "<p>Required: Python and SQL</p>", "skills": ["Python", "SQL"],
+                 "description": "<p>Required: Python and SQL. Responsibilities: Build and support Python and SQL systems.</p>", "skills": ["Python", "SQL"],
                  "location": "United States", "remote_type": "REMOTE", "salary_min": 80000,
                  "salary_max": 110000, "salary_currency": "USD", "salary_period": "YEAR",
                  "application_url": origin + "/ats/apply/" + key} for key in ("A", "B")]

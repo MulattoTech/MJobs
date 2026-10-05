@@ -42,7 +42,7 @@ class SourceValueResolutionTests(unittest.TestCase):
     def collect(self, source, rich, *, title=None, link='/jobs/one'):
         row = {'guid': 'same-role', 'title': title or ('Python Engineer' if rich else 'Sparse role'), 'link': link}
         if rich:
-            row.update(description='Python engineering. Salary $90,000 - $110,000 per year.', location='Remote - United States')
+            row.update(description='Python engineering. Salary $90,000 - $110,000 per year. Responsibilities: Build Python engineering systems.', location='Remote - United States')
         return import_company_feed_jobs(self.store, company_id='company', source_id=source['id'],
             provider='rss', tenant='company', endpoint=source['endpoint'], strategy='RSS',
             items=[row], profile_id='fixture', fetch_available=True)

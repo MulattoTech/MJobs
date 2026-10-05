@@ -1,3 +1,13 @@
+# Active CORE-WORKFLOW-TRIAL checkpoint — 2026-10-05
+
+Current integration main is 959f9a36cd32a4c326459a0ba472a24a4abd7d3f after PR #509 merged with candidate-tree equality. PR #508 (#507 manual capture) is also merged. Exact PR #509 evidence and merge receipt are in [PR #509](https://github.com/MulattoTech/MJobs/pull/509).
+
+The active owned branch is codex/core-workflow-trial-cover-letter-20261005 from 959f9a36cd32a4c326459a0ba472a24a4abd7d3f. It contains local, unpushed WIP for MJ-REQ-100..102. Local synthetic evidence: [docs/evidence/2026-10-05-job-specific-cover-letter.json](../docs/evidence/2026-10-05-job-specific-cover-letter.json). The deterministic builder, approved-fact gate, immutable style/length revisions, checksum+assertion-validated preview/download, 60 web tests/build, and manual-capture Chromium workflow pass locally. The employer name for manual jobs remains explicitly unverified and visible as such. No AI provider or external submission was used.
+
+Next: finish API/job-context edge coverage; run all affected Python/browser and repository validators; publish a meaningful commit on the task branch; obtain a fresh independent defect review and exact-head push plus pull_request Verification including every runtime report; merge only that exact candidate; continue with reviewed reusable answers and manual pipeline history while preserving unfinished queue items. Full A–F browser journey and exact hosted gates remain incomplete. Main launch/runtime state was not started or changed.
+
+---
+
 # ChatGPT iteration handoff — 2026-10-04
 
 ## Current authorized milestone — 2026-10-05

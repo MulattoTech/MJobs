@@ -5,8 +5,9 @@ from pypdf import PdfReader
 
 from services.documents.errors import PreparationError
 from services.documents.templates import CONTRACTS, contract_role, resume_layout
+from services.documents.cover_letter import COVER_LETTER_TEMPLATE, build_cover_letter
 
-VALIDATOR = 'exact-approved-facts-v3'
+VALIDATOR = 'exact-approved-facts-v4-job-specific-cover-letter'
 
 
 def _read(path, reader):
@@ -33,7 +34,7 @@ def pdf_tokens_match(actual, expected):
     return cursor==len(tokens)
 
 
-def validate_assertions(kind, paragraphs, profile, fact_ids, job_title=None, template='verified-facts-v1'):
+def validate_assertions(kind, paragraphs, profile, fact_ids, job_title=None, template='verified-facts-v1', generation_context=None):
     eligible = {row['fact_id']: row['text'] for row in profile['facts']
                 if row['verified'] and row['user_approved'] and row['confidence'] >= 80 and row['source'].strip()}
     if len(set(fact_ids)) != len(fact_ids) or any(identifier not in eligible for identifier in fact_ids):
@@ -48,6 +49,20 @@ def validate_assertions(kind, paragraphs, profile, fact_ids, job_title=None, tem
                 raise PreparationError('UNSUPPORTED_CLAIM', 'Document assertions differ from the approved factual inputs and template structure')
             return
         header = [profile['name'], profile['email']]
+    elif kind == 'cover-letter' and template == COVER_LETTER_TEMPLATE:
+        context = generation_context if isinstance(generation_context, dict) else {}
+        snapshot = context.get('job_snapshot')
+        if context.get('mode') != 'JOB_SPECIFIC_APPROVED_FACTS' or not isinstance(snapshot, dict):
+            raise PreparationError('UNSUPPORTED_CLAIM', 'Cover letter has no validated job-evidence snapshot')
+        try:
+            expected, expected_context = build_cover_letter(profile, snapshot, profile['facts'],
+                context.get('style'), context.get('length'))
+        except PreparationError as error:
+            raise PreparationError('UNSUPPORTED_CLAIM', 'Cover letter evidence is no longer valid') from error
+        if (paragraphs != expected or fact_ids != expected_context['fact_ids']
+                or context.get('fact_ids') != expected_context['fact_ids']):
+            raise PreparationError('UNSUPPORTED_CLAIM', 'Cover letter differs from the approved facts or saved job evidence')
+        return
     elif kind == 'cover-letter' and job_title is not None:
         header = [profile['name'], f'Application for {job_title}']
     else:

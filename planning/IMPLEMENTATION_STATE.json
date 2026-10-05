@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-05",
+  "generated_at": "2026-10-05T07:40:30.394902+00:00",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -66,14 +66,14 @@
     "User-requested PERSONAL company discovery uses bounded DNS-pinned HTTPS and public feed import; candidate identity remains unverified, fixture metadata is blocked, provider breadth and automatic intake wiring remain incomplete.",
     "Configured-source unseen/high-match jobs and rescoring create durable coalesced company discovery requests. Verified employer origins can queue automatically; other origins require explicit review. Remaining triggers/domain acquisition/provider breadth/scheduling remain open.",
     "Durable reviewed public-feed monitoring: bounded scheduled/manual reads, atomic multi-profile matching and receipt, fresh authorization, failure backoff, changed-feed rediscovery and Sources status. Vendor ATS migration and broader providers remain open.",
-    "Manual postings receive persisted deterministic skill-evidence explanations from approved profile facts; description-only mentions remain UNKNOWN and full matching/search dimensions remain open (CORE-WORKFLOW-TRIAL C local evidence)."
+    "Manual postings receive persisted deterministic skill-evidence explanations from approved profile facts; description-only mentions remain UNKNOWN and full matching/search dimensions remain open (CORE-WORKFLOW-TRIAL C local evidence).",
+    "CORE-WORKFLOW-TRIAL D deterministic job-specific cover letter: local synthetic path and full suite pass; independent review and exact-head CI pending"
   ],
   "blocked_capabilities": [],
   "active_requirements": [
-    "MJ-REQ-112",
-    "MJ-REQ-113",
-    "MJ-REQ-114",
-    "MJ-REQ-115"
+    "MJ-REQ-100",
+    "MJ-REQ-101",
+    "MJ-REQ-102"
   ],
   "active_prs": [
     {
@@ -715,7 +715,11 @@
     "Canonical route lifecycle: 476 local tests and22 PostgreSQL tests PASS; docs/evidence/2026-10-04-canonical-route-lifecycle.json",
     "Resume date review:479 full tests then31 final affected tests PASS; docs/evidence/2026-10-04-resume-date-review.json",
     "Bounded local OCR:487 final tests,38 frontend tests/build and real isolated API/browser runtime PASS; docs/evidence/2026-10-04-local-resume-ocr.json",
-    "CORE-WORKFLOW-TRIAL C: 281 integration tests, local Chromium capture, web tests/build and validators pass. Candidate 4328c95 had a no-findings code review but is ineligible: both hosted Verification events hid failed public-source UI readback under continue-on-error and lacked its artifact. Oracle repaired in db5f83e; fresh exact-head review and checks pending."
+    "CORE-WORKFLOW-TRIAL C: 281 integration tests, local Chromium capture, web tests/build and validators pass. Candidate 4328c95 had a no-findings code review but is ineligible: both hosted Verification events hid failed public-source UI readback under continue-on-error and lacked its artifact. Oracle repaired in db5f83e; fresh exact-head review and checks pending.",
+    "Cover letter builder: 4 deterministic unit cases; 6 persistence/validation/provenance integrations; Chromium manual-capture-to-preview/download journey",
+    "Web suite: 60 tests and strict TypeScript/Vite production build",
+    "CORE-WORKFLOW-TRIAL D cover-letter: full Python suite 549 tests PASS (256.139s); evidence docs/evidence/2026-10-05-job-specific-cover-letter.json",
+    "CORE-WORKFLOW-TRIAL D: web suite 60 tests PASS, strict TypeScript/Vite production build PASS, agent-skills/progress/catalogue validators and git diff --check PASS"
   ],
   "tests_failed": [],
   "tests_not_run": [
@@ -726,7 +730,9 @@
     "Live employer/ATS service integration and connected browser behavior; no browser files changed.",
     "Original P0-P3 release acceptance remains open.",
     "Original P0-P3 release acceptance remains open.",
-    "CORE-WORKFLOW-TRIAL C independent candidate review, exact-head push and pull_request Verification artifacts, and combined full milestone browser journey remain NOT_RUN."
+    "Combined CORE-WORKFLOW-TRIAL A-F browser journey pending",
+    "D cover-letter independent review and exact-head push/pull_request Verification reports and runtime-artifact parsing",
+    "Combined CORE-WORKFLOW-TRIAL A-F browser journey"
   ],
   "known_external_limitations": [
     "Production external career-site/domain acquisition, configured web-search provider and non-mock ATS metadata integration are not verified in MJ-PR-017.",
@@ -744,10 +750,10 @@
     "MJ-PR-016 local Chromium first run used Docker DNS host api, which is not a secure browser origin for crypto.randomUUID; loopback URL rerun passed all five connected UI actions."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-04T22:25:36.958607+00:00",
-    "result": "PASS",
-    "scope": "PR501 exact-head CI and local shutdown/cleanup",
-    "evidence_path": "docs/evidence/2026-10-04-session-closeout.json"
+    "timestamp": "2026-10-05T07:58:15.000000+00:00",
+    "result": "PARTIAL",
+    "scope": "Synthetic local cover-letter workflow; 549 Python tests, 60 web tests, production build and repository validators PASS; independent review and exact-head hosted checks pending",
+    "evidence_path": "docs/evidence/2026-10-05-job-specific-cover-letter.json"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -809,7 +815,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Publish the updated matching checkpoint, verify the live PR #509 head/base, obtain fresh independent review and both exact-head Verification runs, inspect every runtime report including successful public-source UI readback artifacts, then merge only that reviewed head. Continue the milestone after merge and do not claim full requirements from this skill-matching slice.",
+  "recommended_resume_step": "Obtain fresh independent review and exact-head push/pull_request Verification for the published cover-letter candidate; parse all required runtime reports before merging. Continue CORE-WORKFLOW-TRIAL with reviewed reusable answers, then manual application tracking, and preserve unfinished requirements as PARTIAL.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -3701,12 +3707,75 @@
         "git_commit": "db5f83ed077ed8478a7bfe0ec6e36b82c973718f",
         "evidence_path": "docs/evidence/2026-10-05-explainable-matching.json"
       }
+    },
+    {
+      "milestone_id": "CORE-WORKFLOW-TRIAL-D-COVER-LETTER-WIP",
+      "timestamp": "2026-10-05T07:40:30.394902+00:00",
+      "current_phase": "D_COVER_LETTER_LOCAL_BROWSER_AND_DURABLE_VALIDATION_PASS_HOSTED_GATES_PENDING",
+      "completed_steps": [
+        "PR #509 merged as 959f9a36cd32a4c326459a0ba472a24a4abd7d3f with candidate/base/merge tree equality and verified push+PR artifacts",
+        "Started additive deterministic cover-letter slice from merged current main; no migration or external provider",
+        "Verified focused synthetic builder, immutable revisions, source validation, preview and download browser flow"
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-05-job-specific-cover-letter.json",
+        "services/documents/cover_letter.py",
+        "tests/unit/test_cover_letter.py",
+        "tests/integration/test_cover_letter_workflow.py"
+      ],
+      "tests_completed": [
+        "11 focused Python unit/integration/Chromium cases pass",
+        "60 web tests and strict TypeScript/Vite build pass"
+      ],
+      "tests_remaining": [
+        "Full affected Python suite",
+        "Independent exact-candidate review",
+        "Exact-final-head push and pull_request Verification runtime artifacts",
+        "Combined A-F browser journey"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "Style choices change deterministic template language only; no AI provider or arbitrary prose editor",
+        "Manual employer identity is explicitly unverified until user confirms from source",
+        "Broader MJ-REQ-100..102 acceptance remains partial until hosted gates and combined trial"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "959f9a36cd32a4c326459a0ba472a24a4abd7d3f",
+        "branch": "codex/core-workflow-trial-cover-letter-20261005",
+        "evidence_path": "docs/evidence/2026-10-05-job-specific-cover-letter.json",
+        "working_tree_changes_present": true,
+        "remote_push": "NOT_YET_PUBLISHED"
+      },
+      "files_modified": [
+        "apps/api/main.py",
+        "apps/web/src/document-history.test.tsx",
+        "apps/web/src/document-history.tsx",
+        "apps/web/src/main.tsx",
+        "fixtures/mock_server.py",
+        "migrations/versions/cf4216a93b85_skill_order_context.py",
+        "services/documents/generate.py",
+        "services/documents/history.py",
+        "services/documents/validation.py",
+        "tests/browser/test_manual_job_capture.py",
+        "tests/integration/test_document_provenance.py",
+        "tests/integration/test_document_validation.py",
+        "workers/tasks.py",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/SESSION_HANDOFF.md"
+      ]
     }
   ],
-  "current_phase": "C_MATCHING_CI_ORACLE_REPAIR_PUBLISHED_AWAITING_FINAL_REVIEW_AND_BOTH_EVENTS",
+  "current_phase": "D_COVER_LETTER_LOCAL_BROWSER_AND_DURABLE_VALIDATION_PASS_HOSTED_GATES_PENDING",
   "last_safe_checkpoint": {
-    "git_commit": "db5f83ed077ed8478a7bfe0ec6e36b82c973718f",
-    "evidence_path": "docs/evidence/2026-10-05-explainable-matching.json"
+    "git_commit": "959f9a36cd32a4c326459a0ba472a24a4abd7d3f",
+    "branch": "codex/core-workflow-trial-cover-letter-20261005",
+    "evidence_path": "docs/evidence/2026-10-05-job-specific-cover-letter.json",
+    "working_tree_changes_present": true,
+    "remote_push": "NOT_YET_PUBLISHED"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
@@ -3824,15 +3893,14 @@
     "ownership": "Root checkout is the task branch; local synthetic tests only; external-submission OFF; retained private runtime not started or updated."
   },
   "active_development_issue": {
-    "number": 113,
-    "title": "[MJ-REQ-112] Job Matching Engine",
+    "number": 101,
+    "title": "[MJ-REQ-100] Cover Letter Engine",
     "state": "OPEN",
     "related_issues": [
-      114,
-      115,
-      116
+      102,
+      103
     ],
-    "scope": "Deterministic approved-fact evidence coverage and explicit requirement strength for skill matches; broader match dimensions remain open."
+    "scope": "Deterministic source-bound job-specific cover-letter preparation with user-selected style/length, immutable revision context, validated preview and download; broader requirement completion remains pending."
   },
   "historical_control_snapshots": [
     {

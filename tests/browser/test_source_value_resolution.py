@@ -49,7 +49,7 @@ class SourceValueResolutionBrowserTests(unittest.TestCase):
             )
             rich_item = {
                 "guid": "same-role", "title": "Python Engineer",
-                "description": "Python engineering. Salary $90,000 - $110,000 per year.",
+                "description": "Python engineering. Salary $90,000 - $110,000 per year. Responsibilities: Build Python engineering systems.",
                 "location": "Remote - United States", "link": "/jobs/one",
             }
             poor_item = {"guid": "same-role", "title": "Sparse role", "link": "/jobs/one"}

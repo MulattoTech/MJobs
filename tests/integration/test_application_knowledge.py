@@ -28,7 +28,7 @@ class ApplicationKnowledgeTests(unittest.TestCase):
             for company in ("company", "other"):
                 upsert(c, m.companies, dict(id=company, name="Same Name", domain=""))
             upsert(c, m.jobs, dict(id="job", company_id="company", requisition="1",
-                title="Systems Administrator", description="Manage systems", skills=[],
+                title="Systems Administrator", description="Responsibilities: Manage Python systems.", skills=["Python"],
                 location="Remote", remote_type="REMOTE"))
             upsert(c, m.routes, dict(id="route", job_id="job", company_id="company",
                 provider="rss", tenant="company", requisition="1", url="https://example.test/jobs/1"))

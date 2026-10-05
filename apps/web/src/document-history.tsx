@@ -4,21 +4,25 @@ import {ResumeComparison} from './resume-comparison';
 export type GeneratedDocument = {
   id:string;application_id?:string;profile_id?:string;kind:string;version:number;profile_version:string;fact_ids:string[];
   files:Record<string,string>;sha256:Record<string,string>;template:string;
+  preview_text?:string|null;preview_error?:string|null;
   created_at:string|null;generation_model:string|null;
   facts_used:{fact_id:string;kind:string;text:string;source:string;confidence:number;verified:boolean;user_approved:boolean}[];
   missing_fact_ids:string[];
-  generation_context?:{mode:string;job_title?:string;job_skills?:string[];matched_skills?:Record<string,string[]>;original_fact_ids?:string[];ordered_fact_ids?:string[];selection_mode?:string;selected_fact_ids?:string[];omitted_fact_ids?:string[];emphasized_fact_ids?:string[];contact_header?:string[]}|null;
+  generation_context?:{mode:string;job_title?:string;job_skills?:string[];matched_skills?:Record<string,string[]>;original_fact_ids?:string[];ordered_fact_ids?:string[];selection_mode?:string;selected_fact_ids?:string[];omitted_fact_ids?:string[];emphasized_fact_ids?:string[];contact_header?:string[];style?:string;length?:string;skills?:string[];skill_strengths?:Record<string,string>;responsibilities?:string[];company_identity?:string}|null;
 };
 
 export function DocumentHistory({documents}:{documents:GeneratedDocument[]}) {
   return <><ResumeComparison key={documents.map(row=>row.id).join('|')} documents={documents}/>{documents.map(document=><section className="document" key={document.id} aria-label={`${document.kind} version ${document.version}`}>
     <strong>{document.kind} · v{document.version}</strong>
+    {document.kind==='cover-letter'&&document.generation_context?.mode==='JOB_SPECIFIC_APPROVED_FACTS'&&<p>Job-specific deterministic draft · {document.generation_context.length} · {document.generation_context.style}. Posting skill evidence: {document.generation_context.skills?.map(skill=>`${skill} (${document.generation_context?.skill_strengths?.[skill]?.replaceAll('_',' ').toLowerCase()||'unknown'})`).join(', ')||'none recorded'}. Employer identity: {document.generation_context.company_identity==='USER_ENTERED_UNVERIFIED'?'entered manually; verify against the source':'source listed'}.</p>}
     {document.generation_context?.mode==='APPROVED_SKILL_ORDER'&&(document.generation_context.selection_mode==='EXPLICIT_APPROVED_FACTS'
       ?<p>Tailored resume: selected facts for {document.generation_context.job_title}. Approved facts included: {document.generation_context.selected_fact_ids?.length}. Omitted from this resume: {document.generation_context.omitted_fact_ids?.length}. Approved wording preserved.</p>
       :<p>Tailored resume: skill order for {document.generation_context.job_title}. Wording and work history preserved.</p>)}
     <p>{document.fact_ids.length} factual sources · profile snapshot {document.profile_version.slice(0,10)}</p>
     {document.generation_context?.emphasized_fact_ids&&<p>Job-matched skill and technology facts in bold: {document.generation_context.emphasized_fact_ids.length}. DOCX and PDF preserve the same approved text as TXT.</p>}
-    {(['pdf','docx','txt'] as const).filter(format=>document.files[format]).map(format=><a key={format} className="button-link" href={'/documents/'+encodeURIComponent(document.id)+'/'+format}>Download {format.toUpperCase()}</a>)}
+    {document.kind==='cover-letter'&&document.preview_error&&<p role="alert" className="safety">{document.preview_error} Downloads are disabled until a valid version is prepared.</p>}
+    {document.kind==='cover-letter'&&document.preview_text&&<details><summary>Preview validated cover letter</summary><pre className="description" style={{whiteSpace:'pre-wrap',fontFamily:'inherit'}}>{document.preview_text}</pre></details>}
+    {(['pdf','docx','txt'] as const).filter(format=>document.files[format]&&!(document.kind==='cover-letter'&&document.preview_error)).map(format=><a key={format} className="button-link" href={'/documents/'+encodeURIComponent(document.id)+'/'+format}>Download {format.toUpperCase()}</a>)}
     <details><summary>Generation details and facts</summary>
       <p>Generated: {document.created_at ? new Date(document.created_at).toLocaleString() : 'Not recorded for this historical document'}</p>
       <p>Generation method: {document.generation_model || 'Not recorded for this historical document'}</p>

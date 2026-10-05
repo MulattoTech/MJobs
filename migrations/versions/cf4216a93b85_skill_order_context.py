@@ -15,6 +15,6 @@ def upgrade():
 def downgrade():
     rows=op.get_bind().execute(sa.text('SELECT generation_context FROM documents')).all()
     if any(row[0] is not None and row[0] != 'null' for row in rows):
-        raise RuntimeError('Refusing to discard document skill-order context; restore a verified backup for intentional rollback')
+        raise RuntimeError('Refusing to discard document skill-order context; Refusing to discard document generation provenance; restore a verified backup for intentional rollback')
     with op.batch_alter_table('documents') as batch:
         batch.drop_column('generation_context')

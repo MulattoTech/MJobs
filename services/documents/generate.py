@@ -15,6 +15,7 @@ from services.dedupe.routes import persist_route_choices, plan_application_route
 from services.dedupe.source_values import require_route_review
 from services.applications.knowledge import application_adapter_knowledge
 from services.documents import tailor
+from services.documents.cover_letter import COVER_LETTER_TEMPLATE, build_cover_letter
 from services.documents.errors import PreparationError
 from services.documents.render import render_pdf
 from services.documents.validation import VALIDATOR, validate_assertions, validate_formats
@@ -37,7 +38,7 @@ def uncommitted_files():
         raise
 
 
-def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=None, route_mode="DEFAULT", route_id=None, tailor_resume=False, tailor_fact_ids=None, include_resume_contact=False):
+def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=None, route_mode="DEFAULT", route_id=None, tailor_resume=False, tailor_fact_ids=None, include_resume_contact=False, cover_letter_style="professional", cover_letter_length="normal"):
     if type(tailor_resume) is not bool:
         raise ValueError('tailor_resume must be a boolean')
     if type(include_resume_contact) is not bool:
@@ -54,11 +55,15 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
             raise PreparationError("DOCUMENT_PROFILE_CHANGED", "Profile changed; prepare documents using its current version")
         profile = store.profile(profile_id, profile_version)
         eligible = tailor.eligible_rows(profile)
+        if not eligible:
+            raise PreparationError("DOCUMENT_NO_APPROVED_FACTS", "Approve and verify at least one sourced career fact before generating documents")
         resume_rows = tailor.select_resume_rows(eligible, tailor_resume, tailor_fact_ids)
         selection_ids = [row['fact_id'] for row in resume_rows] if tailor_fact_ids is not None else None
         selection_hash = tailor.selection_fingerprint(selection_ids) if selection_ids is not None else None
         check()
-        job = dict(connection.execute(select(m.jobs).where(m.jobs.c.id == job_id).with_for_update()).mappings().one())
+        job = dict(connection.execute(select(m.jobs, m.companies.c.name.label("company")).join(
+            m.companies, m.companies.c.id == m.jobs.c.company_id).where(m.jobs.c.id == job_id)
+            .with_for_update(of=m.jobs)).mappings().one())
         try:
             require_route_review(connection, job_id, route_mode, route_id)
         except ValueError as error:
@@ -66,6 +71,8 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
         routes = [dict(row) for row in connection.execute(select(m.routes).where(m.routes.c.job_id == job_id).order_by(m.routes.c.id)).mappings()]
         route_plan = plan_application_routes(routes, route_mode, route_id)
         route = route_plan["selected"][0]["preferred_route"]
+        cover_letter_paragraphs, cover_letter_context = build_cover_letter(
+            profile, job, profile["facts"], cover_letter_style, cover_letter_length)
         prior = connection.execute(select(m.applications).where(m.applications.c.job_id == job_id, m.applications.c.profile_id == profile_id).with_for_update()).mappings().one_or_none()
         if prior:
             prior_resume=connection.execute(select(m.documents).where(m.documents.c.application_id==prior['id'],
@@ -74,13 +81,15 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
             same_mode=prior_resume and prior_resume['template']==expected_template
             same_target=not tailor_resume or (prior_resume and (prior_resume['generation_context'] or {}).get('target_fingerprint')==tailor.target_fingerprint(job))
             same_selection=selection_ids is None or (prior_resume and (prior_resume['generation_context'] or {}).get('selection_fingerprint')==selection_hash)
-            if prior["profile_version"] == profile["version"] and same_mode and same_target and same_selection and prior['state'] != 'REVIEW_REQUIRED':
+            prior_letter=connection.execute(select(m.documents).where(m.documents.c.application_id==prior['id'],
+                m.documents.c.version==prior['document_version'],m.documents.c.kind=='cover-letter')).mappings().one_or_none()
+            same_letter=bool(prior_letter and prior_letter['template']==COVER_LETTER_TEMPLATE
+                and prior_letter['generation_context']==cover_letter_context)
+            if prior["profile_version"] == profile["version"] and same_mode and same_target and same_selection and same_letter and prior['state'] != 'REVIEW_REQUIRED':
                 persist_route_choices(connection, prior["id"], route_plan)
                 return prior["id"]
             if prior["state"] not in ("PREPARED", "DRY_RUN_COMPLETE", "REVIEW_REQUIRED"):
                 raise PreparationError("DOCUMENT_HISTORY_LOCKED", "Historical or active application cannot be regenerated")
-        if not eligible:
-            raise PreparationError("DOCUMENT_NO_APPROVED_FACTS", "Approve and verify at least one sourced career fact before generating documents")
         selected = select_verified_facts([Fact(id=row["fact_id"], **{key: row[key] for key in ("text", "source", "verified", "user_approved", "confidence")})
                                           for row in eligible], [row["fact_id"] for row in eligible])
         application_id = identity(job_id, profile_id)
@@ -103,14 +112,18 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
             context=context or {'mode':'APPROVED_CONTACT_HEADER'}
             context['contact_header']=contact_header(profile,resume_template)
         kinds = compose_paragraphs(profile, job, ordered_rows, texts, resume_template)
+        kinds['cover-letter'] = cover_letter_paragraphs
         if set(kinds) != {'resume', 'cover-letter'}:
             raise PreparationError('UNSUPPORTED_CLAIM', 'The generated document set has no complete validation contract')
         records = []
         generated_at = now()
         for kind, paragraphs in kinds.items():
             check()
-            template = resume_template if kind=='resume' else 'verified-facts-v1'
-            validate_assertions(kind, paragraphs, profile, resume_ids if kind=='resume' else fact_ids, job['title'], template)
+            template = resume_template if kind=='resume' else COVER_LETTER_TEMPLATE
+            current_fact_ids = resume_ids if kind=='resume' else cover_letter_context['fact_ids']
+            generation_context = context if kind=='resume' else cover_letter_context
+            validate_assertions(kind, paragraphs, profile, current_fact_ids, job['title'], template,
+                                generation_context=generation_context)
             headings = resume_layout(profile, ordered_rows, template)[1] if kind=='resume' else set()
             fact_indices=[index for index in range(len(contact_header(profile,template)),len(paragraphs)) if index not in headings] if kind=='resume' else []
             bold_indices={index for index,row in zip(fact_indices,ordered_rows) if row['fact_id'] in emphasized}
@@ -135,10 +148,10 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
             records.append({"id": identity(application_id, kind, revision), "application_id": application_id,
                 "kind": kind, "version": revision, "profile_version": profile["version"],
                 "files": {path.suffix[1:]: relative + '/' + path.name for path in (docx_path, pdf_path, txt_path)},
-                "fact_ids": resume_ids if kind=='resume' else fact_ids, "sha256": {path.suffix[1:]: hashlib.sha256(path.read_bytes()).hexdigest() for path in (docx_path, pdf_path, txt_path)},
+                "fact_ids": current_fact_ids, "sha256": {path.suffix[1:]: hashlib.sha256(path.read_bytes()).hexdigest() for path in (docx_path, pdf_path, txt_path)},
                 "template": template, "created_at": generated_at,
-                "generation_model": resume_model if kind=='resume' else "deterministic-fact-copy-v1",
-                "generation_context": context if kind=='resume' else None})
+                "generation_model": resume_model if kind=='resume' else "deterministic-job-evidence-v1",
+                "generation_context": generation_context})
         check()
         upsert(connection, m.applications, {"id": application_id, "job_id": job_id, "route_id": route["id"], "profile_id": profile_id,
             "profile_version": profile["version"], "document_version": revision, "state": "PREPARED", "target": "MOCK" if route["provider"] == "mock-ats" else "REAL", "fact_ids": fact_ids,

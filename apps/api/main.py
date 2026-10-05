@@ -75,6 +75,8 @@ class ApplicationInput(DiscoveryInput):
     route_id: str | None = Field(default=None, min_length=1, max_length=128)
     tailor_resume: bool = Field(default=False, strict=True)
     include_resume_contact: bool = Field(default=False, strict=True)
+    cover_letter_length: Literal["VERY_SHORT", "CONCISE", "NORMAL", "DETAILED"] = "NORMAL"
+    cover_letter_style: Literal["professional", "warm", "technical", "direct", "conversational", "formal"] = "professional"
     tailor_fact_ids: list[Annotated[str,Field(strict=True,min_length=1,max_length=128)]] | None = Field(default=None,min_length=1,max_length=1000)
     expected_profile_version: str | None = Field(default=None,min_length=64,max_length=64)
 
@@ -601,6 +603,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             "route_mode": value.route_mode, "route_id": value.route_id,
             "tailor_resume": value.tailor_resume,
             "include_resume_contact": value.include_resume_contact,
+            "cover_letter_length": value.cover_letter_length,
+            "cover_letter_style": value.cover_letter_style,
             **({'tailor_fact_ids':value.tailor_fact_ids} if value.tailor_fact_ids is not None else {}),
         })
         return {**operation, "application_id": identity(value.job_id, value.profile_id),
@@ -618,7 +622,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     @app.get("/applications/{application_id}/documents")
     def documents(application_id: str):
         from services.documents.history import application_documents
-        return {"documents": application_documents(store, application_id)}
+        return {"documents": application_documents(store, application_id, output_dir)}
 
     @app.get('/applications/{application_id}/document-comparison')
     def document_comparison(application_id: str, base_document_id: str, tailored_document_id: str):
@@ -642,6 +646,13 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         with store.engine.connect() as connection:
             document = connection.execute(select(m.documents).where(m.documents.c.id == document_id)).mappings().one()
         root = Path(output_dir).resolve()
+        if document["kind"] == "cover-letter":
+            from services.documents.history import validated_letter_preview
+            from services.documents.errors import PreparationError
+            try:
+                validated_letter_preview(store, dict(document), output_dir)
+            except (OSError, ValueError, KeyError, TypeError, PreparationError) as error:
+                raise HTTPException(409, "Cover-letter validation failed; revise and prepare a new version") from error
         app_root = (root / document["application_id"]).resolve()
         relative = document["files"].get(format)
         path = (app_root / relative).resolve() if isinstance(relative, str) else root

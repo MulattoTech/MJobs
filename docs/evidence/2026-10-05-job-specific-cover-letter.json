@@ -1,0 +1,85 @@
+{
+  "timestamp": "2026-10-05T07:58:15+00:00",
+  "result": "PARTIAL",
+  "scope": "MJ-REQ-100..102 deterministic, reviewable job-specific cover-letter draft",
+  "base_commit": "959f9a36cd32a4c326459a0ba472a24a4abd7d3f",
+  "branch": "codex/core-workflow-trial-cover-letter-20261005",
+  "target": "Temporary SQLite database, synthetic employer/job/facts and isolated Chromium browser",
+  "checks": [
+    {
+      "command": ".venv/Scripts/python.exe -m unittest tests.unit.test_cover_letter -v",
+      "result": "PASS",
+      "tests": 4
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m unittest tests.integration.test_cover_letter_workflow tests.integration.test_document_validation tests.integration.test_document_provenance -q",
+      "result": "PASS",
+      "tests": 6
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m unittest tests.browser.test_manual_job_capture -v",
+      "result": "PASS",
+      "browser": "Chromium",
+      "journey": "manual capture, source-preserving job details, selected style/length, durable preparation, validated preview and downloads"
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run",
+      "result": "PASS",
+      "tests": 60
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "typescript": "strict build"
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py' -v",
+      "result": "PASS",
+      "tests": 549,
+      "duration_seconds": 256.139
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run",
+      "result": "PASS",
+      "tests": 60
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "typescript": "strict build"
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m tools.verification.agent_skills",
+      "result": "PASS"
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m tools.verification.progress validate",
+      "result": "PASS"
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m tools.verification.catalogue",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "assertions": [
+    "Only approved sourced career facts are included; description-only skill mentions remain UNKNOWN.",
+    "Missing responsibilities, posting skills, or relevant approved facts block generation.",
+    "Style/length selection is deterministic and stored in immutable generation_context.",
+    "DOCX/PDF/TXT readback must match the recomputed letter and its original profile/job snapshot; integrity failure blocks preview and download.",
+    "Changed options create a new revision and preserve previous bytes."
+  ],
+  "external_submission_performed": false,
+  "external_application_requests": 0,
+  "product_ai_used": false,
+  "limitations": [
+    "Hosted exact-final-head push and pull_request checks, runtime-artifact parsing, and independent review remain pending.",
+    "Manual employer identity remains USER_ENTERED_UNVERIFIED and is labeled for user verification.",
+    "This is deterministic template tailoring, not AI rephrasing or arbitrary user-edited prose.",
+    "No live employer submission or company-context inference was performed.",
+    "The complete A-F combined trial journey remains outstanding."
+  ]
+}

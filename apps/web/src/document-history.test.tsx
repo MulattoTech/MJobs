@@ -29,4 +29,19 @@ describe('document provenance',()=>{
     expect(html).toContain('Download TXT');expect(html).toContain('SHA-256');
     expect(html).not.toContain('<script>');expect(html).not.toContain('Not recorded');
   });
+  it('shows an integrity-validated job-specific cover-letter preview and blocks downloads after failed readback',()=>{
+    const letter:GeneratedDocument={...historical,kind:'cover-letter',files:{pdf:'letter.pdf',docx:'letter.docx',txt:'letter.txt'},missing_fact_ids:[],
+      generation_model:'deterministic-job-evidence-v1',template:'job-specific-approved-facts-v1',
+      generation_context:{mode:'JOB_SPECIFIC_APPROVED_FACTS',style:'warm',length:'detailed',skills:['Python'],skill_strengths:{Python:'UNKNOWN'},responsibilities:['Build Python services.'],company_identity:'USER_ENTERED_UNVERIFIED'},
+      preview_text:'Application for Platform Engineer at Example.\nBuild Python services.\nApproved facts: Python.',preview_error:null};
+    const html=renderToStaticMarkup(<DocumentHistory documents={[letter]}/>);
+    expect(html).toContain('Job-specific deterministic draft');expect(html).toContain('warm');
+    expect(html).toContain('Employer identity: entered manually; verify against the source');
+    expect(html).toContain('Preview validated cover letter');expect(html).toContain('Build Python services.');
+    expect(html).toContain('Download PDF');expect(html).toContain('Download TXT');
+
+    const blocked=renderToStaticMarkup(<DocumentHistory documents={[{...letter,preview_text:null,preview_error:'Cover-letter validation failed.'}]}/>);
+    expect(blocked).toContain('Downloads are disabled until a valid version is prepared');
+    expect(blocked).not.toContain('Download PDF');expect(blocked).not.toContain('Download TXT');
+  });
 });

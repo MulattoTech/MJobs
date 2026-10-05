@@ -49,7 +49,7 @@ class DocumentProvenanceTests(unittest.TestCase):
             first = client.get(f'/applications/{app_id}/documents').json()['documents']
             before = {}
             for row in first:
-                self.assertEqual(row['generation_model'], 'deterministic-fact-copy-v2' if row['kind']=='resume' else 'deterministic-fact-copy-v1')
+                self.assertEqual(row['generation_model'], 'deterministic-fact-copy-v2' if row['kind']=='resume' else 'deterministic-job-evidence-v1')
                 self.assertEqual(row['created_at'], '2026-10-04T12:00:00+00:00')
                 datetime.fromisoformat(row['created_at'])
                 self.assertEqual(row['job_id'], job['id'])
@@ -71,7 +71,12 @@ class DocumentProvenanceTests(unittest.TestCase):
                 pdf = '\n'.join(p.extract_text() for p in PdfReader(BytesIO(outputs['pdf'])).pages).strip()
                 self.assertEqual(txt, docx)
                 self.assertEqual(txt.split(), pdf.split())
-                self.assertNotIn('SQL', txt)
+                if row['kind'] == 'resume':
+                    self.assertNotIn('SQL', txt)
+                else:
+                    self.assertIn('The posting explicitly requires: Python; SQL.', txt)
+                    self.assertIn('Approved career facts relevant to these details: Python.', txt)
+                    self.assertNotIn('Approved career facts relevant to these details: Python; SQL.', txt)
             changed = dict(PROFILE, facts=[dict(PROFILE['facts'][0], text='Python systems'), PROFILE['facts'][1]])
             self.store.save_profile(changed)
             with patch('services.documents.generate.now', return_value='2026-10-04T13:00:00+00:00'):
@@ -103,7 +108,7 @@ class DocumentProvenanceTests(unittest.TestCase):
             # Simulate genuine pre-feature rows by removing only this fixture's
             # new metadata, then downgrade to the actual predecessor schema.
             with self.store.engine.begin() as c:
-                c.execute(text('UPDATE documents SET created_at=NULL, generation_model=NULL'))
+                c.execute(text('UPDATE documents SET created_at=NULL, generation_model=NULL, generation_context=NULL'))
             command.downgrade(config, 'e9024a1b7c30')
             self.assertNotIn('created_at', {c['name'] for c in inspect(self.store.engine).get_columns('documents')})
             command.upgrade(config, 'head')

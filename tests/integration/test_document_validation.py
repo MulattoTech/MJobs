@@ -35,7 +35,7 @@ class DocumentValidationTests(unittest.TestCase):
         with self.store.engine.connect() as c:
             receipts = c.execute(select(m.audit).where(m.audit.c.entity_id==app,m.audit.c.action=='DOCUMENTS_VALIDATED')).mappings().all()
         self.assertEqual(len(receipts), 1)
-        self.assertEqual(receipts[0]['payload']['validator'], 'exact-approved-facts-v3')
+        self.assertEqual(receipts[0]['payload']['validator'], 'exact-approved-facts-v4-job-specific-cover-letter')
         self.assertEqual(len(receipts[0]['payload']['documents']), 2)
 
     def test_unsupported_claim_or_glyph_preserves_prior_documents(self):
@@ -49,7 +49,7 @@ class DocumentValidationTests(unittest.TestCase):
                 with self.assertRaises(generate.PreparationError) as error:
                     generate.prepare(self.store,job['id'],'fixture',self.root)
             self.assertEqual(error.exception.code,'UNSUPPORTED_CLAIM')
-            self.store.save_profile(dict(PROFILE, facts=[dict(PROFILE['facts'][0],text='中文 systems')]))
+            self.store.save_profile(dict(PROFILE, facts=[dict(PROFILE['facts'][0],text='Python 中文 systems')]))
             with self.assertRaises(generate.PreparationError) as error:
                 generate.prepare(self.store,job['id'],'fixture',self.root)
             self.assertEqual(error.exception.code,'DOCUMENT_UNSUPPORTED_GLYPH')

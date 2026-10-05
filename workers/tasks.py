@@ -108,7 +108,9 @@ def execute_operation(operation_id):
                         route_mode=operation["params"].get("route_mode", "DEFAULT"), route_id=operation["params"].get("route_id"),
                         tailor_resume=operation["params"].get("tailor_resume", False),
                         tailor_fact_ids=operation['params'].get('tailor_fact_ids'),
-                        include_resume_contact=operation['params'].get('include_resume_contact',False))
+                        include_resume_contact=operation['params'].get('include_resume_contact',False),
+                        cover_letter_style=operation['params'].get('cover_letter_style','professional'),
+                        cover_letter_length=operation['params'].get('cover_letter_length','normal'))
             elif operation["kind"] == "APPLY_MOCK":
                 application = apply_mock(store, operation["entity_id"], origin, Path(os.environ["MJOBS_OUTPUT_DIR"]),
                            submit=operation["params"].get("submit", False), check=check)

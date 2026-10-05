@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-05T06:01:23+00:00",
+  "timestamp": "2026-10-05T07:40:30.394902+00:00",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -887,21 +887,27 @@
     },
     {
       "requirement_id": "MJ-REQ-100",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-05-job-specific-cover-letter.json"
+      ],
+      "note": "Synthetic local implementation and browser preview/download pass; exact-final-head independent review and both hosted Verification events are pending. Full requirement acceptance not claimed."
     },
     {
       "requirement_id": "MJ-REQ-101",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-05-job-specific-cover-letter.json"
+      ],
+      "note": "Synthetic local implementation and browser preview/download pass; exact-final-head independent review and both hosted Verification events are pending. Full requirement acceptance not claimed."
     },
     {
       "requirement_id": "MJ-REQ-102",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-05-job-specific-cover-letter.json"
+      ],
+      "note": "Synthetic local implementation and browser preview/download pass; exact-final-head independent review and both hosted Verification events are pending. Full requirement acceptance not claimed."
     },
     {
       "requirement_id": "MJ-REQ-103",
