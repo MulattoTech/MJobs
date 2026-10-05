@@ -164,8 +164,10 @@ class JobTrackingBrowserTests(unittest.TestCase):
                     expect(remote_preference).to_have_value("ANY")
                     expect(employment_type).to_have_value("FULL_TIME")
                     self.assertEqual(len(stalled_profile_reads), 1)
-                    stalled_profile_reads.pop().continue_()
                     page.get_by_role("button", name="Profile", exact=True).click()
+                    expect(page.get_by_label("Fact text", exact=True)).to_have_count(0)
+                    expect(page.get_by_label("Answer text", exact=True)).to_have_count(0)
+                    stalled_profile_reads.pop().continue_()
                     expect(page.get_by_label("Fact text").first).to_have_value("Python")
                     first_answer = page.locator("fieldset.fact").filter(
                         has_text="Answer 1").get_by_label("Answer text")
