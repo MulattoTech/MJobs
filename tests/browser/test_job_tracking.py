@@ -64,6 +64,17 @@ class JobTrackingBrowserTests(unittest.TestCase):
                     context.route("**/*", local_only)
                     page = context.new_page()
                     page.set_default_timeout(8000)
+                    lost_note_response = {"pending": True}
+
+                    def drop_first_note_response(route):
+                        response = route.fetch()
+                        if lost_note_response["pending"]:
+                            lost_note_response["pending"] = False
+                            route.abort()
+                        else:
+                            route.fulfill(response=response)
+
+                    page.route("**/tracking/notes", drop_first_note_response)
                     page.goto(origin, wait_until="domcontentloaded")
                     page.evaluate("localStorage.setItem('mjobs-profile', 'fixture')")
                     page.reload(wait_until="domcontentloaded")
@@ -77,7 +88,12 @@ class JobTrackingBrowserTests(unittest.TestCase):
                     expect(detail.get_by_text("Current status:")).to_contain_text("SAVED")
                     page.get_by_label("Job note", exact=True).fill("Ask about the on-call rotation.")
                     page.get_by_role("button", name="Add note", exact=True).click()
+                    expect(detail.get_by_role("list", name="Job tracking history").get_by_text(
+                        "Ask about the on-call rotation.", exact=True)).to_have_count(0)
+                    page.get_by_role("button", name="Add note", exact=True).click()
                     expect(detail).to_contain_text("Ask about the on-call rotation.")
+                    expect(detail.get_by_role("list", name="Job tracking history").get_by_text(
+                        "Ask about the on-call rotation.", exact=True)).to_have_count(1)
                     detail.get_by_role("button", name="Hide job", exact=True).click()
                     expect(detail.get_by_text("Current status:")).to_contain_text("HIDDEN")
                     expect(page.locator(".job-card").filter(has_text="Systems Administrator")).to_have_count(0)

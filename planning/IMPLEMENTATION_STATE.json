@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-05T13:05:36Z",
+  "generated_at": "2026-10-05T13:22:36Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -772,7 +772,8 @@
     "CORE-WORKFLOW-TRIAL D final-working-tree historical-title repair: 7 API/history integration tests, 2 Chromium browser tests, 61 frontend tests and strict TypeScript/Vite build PASS; validators PASS.",
     "CORE-WORKFLOW-TRIAL D exact-head runs 37282827647 (push) and 37282832612 (pull_request) at 4fe28b9 each passed 550 Python tests and public-source read, but both had a failed continue-on-error UI readback and uploaded only 8/9 reports; neither Verification event is accepted as PASS.",
     "Public-source UI oracle classifier: 3 unit tests distinguish manual-only preparation, exact missing-responsibility block/no application, and unexpected failures; 5 focused Python cases PASS.",
-    "PR #510 exact candidate a63c798: independent review clean; push 37285052782 and pull_request 37285059099 attempt 1 passed all steps; 554 Python tests in each; all nine runtime reports PASS in both digest-verified artifacts; public Greenhouse returned 18 jobs and made zero external application requests."
+    "PR #510 exact candidate a63c798: independent review clean; push 37285052782 and pull_request 37285059099 attempt 1 passed all steps; 554 Python tests in each; all nine runtime reports PASS in both digest-verified artifacts; public Greenhouse returned 18 jobs and made zero external application requests.",
+    "F1 tracking repair: 576 Python tests in 299.184s; 4 focused API/browser tests include lost-response idempotency and concurrent sequence ordering; 62 web tests and strict build pass"
   ],
   "tests_failed": [],
   "tests_not_run": [
@@ -873,7 +874,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Obtain fresh independent review of the exact final PR #512 head and both exact-head push/pull_request Verification events with all required runtime reports. Merge only if all gates pass; then proceed to the separate MJ-REQ-195 application pipeline/history slice before the 13:00 America/Chicago feature cutoff.",
+  "recommended_resume_step": "Commit and push the repaired PR #512 candidate, obtain independent exact-head review, run both push and pull_request Verification and inspect all runtime artifacts before merge.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -4028,11 +4029,58 @@
         "git_commit": "4b5f5e20f273edd8971f05e5880acfe24667f211",
         "evidence_path": "docs/evidence/2026-10-05-job-dispositions-notes.json"
       }
+    },
+    {
+      "milestone_id": "CORE-WORKFLOW-TRIAL-F1-TRACKING-REVIEW-REPAIRS",
+      "timestamp": "2026-10-05T13:22:36Z",
+      "current_phase": "LOCAL_VERIFICATION_PASS_PENDING_REPAIRED_CANDIDATE_PUBLICATION_REVIEW_CI",
+      "completed_steps": [
+        "Reproduced independent-review retry duplication and concurrent ordering findings on candidate 123d9da",
+        "Added deterministic request-keyed event identity and serialized per-job sequence allocation using existing audit storage",
+        "Added API idempotency/conflict and concurrent ordering tests plus browser lost-response retry test",
+        "Ran full Python suite, web tests/build and repository validators successfully"
+      ],
+      "files_added": [],
+      "files_modified": [
+        "apps/api/main.py",
+        "apps/web/src/main.tsx",
+        "services/tracking/jobs.py",
+        "tests/browser/test_job_tracking.py",
+        "tests/integration/test_job_tracking.py",
+        "docs/evidence/2026-10-05-job-dispositions-notes.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "576 Python tests in 299.184 seconds",
+        "4 focused tracking API/browser tests",
+        "62 web tests",
+        "TypeScript check and Vite build",
+        "catalogue, progress journal, agent skill and git diff validators"
+      ],
+      "tests_remaining": [
+        "Publish repaired source checkpoint and verify exact remote SHA",
+        "Independent review of repaired final PR head",
+        "Both exact-head push and pull_request Verification events with required reports/artifacts",
+        "Merge and combined A-F browser trial"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "Full core workflow and requirement parents remain PARTIAL; no application pipeline implementation yet."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "123d9da954fd31851e8e7475095f2862ae4f557b",
+        "evidence_path": "docs/evidence/2026-10-05-job-dispositions-notes.json"
+      }
     }
   ],
-  "current_phase": "F1_DRAFT_PUBLISHED_LOCAL_VERIFICATION_PASS_PENDING_EXACT_REVIEW_CI",
+  "current_phase": "LOCAL_VERIFICATION_PASS_PENDING_REPAIRED_CANDIDATE_PUBLICATION_REVIEW_CI",
   "last_safe_checkpoint": {
-    "git_commit": "4b5f5e20f273edd8971f05e5880acfe24667f211",
+    "git_commit": "123d9da954fd31851e8e7475095f2862ae4f557b",
     "evidence_path": "docs/evidence/2026-10-05-job-dispositions-notes.json"
   },
   "live_integrations_tested": [
@@ -4143,12 +4191,12 @@
     }
   ],
   "live_reconciliation": {
-    "timestamp": "2026-10-05T13:05:36Z",
+    "timestamp": "2026-10-05T13:22:36Z",
     "base_commit": "fb8ab73de6f666ed2644f9d1cc271eee25aef7f7",
     "evidence_path": "docs/evidence/2026-10-05-job-dispositions-notes.json",
     "current_slice_validation": "PARTIAL",
     "product_status": "PARTIAL",
-    "ownership": "Task branch pushed at 4b5f5e20f273edd8971f05e5880acfe24667f211; draft PR #512 open. Fresh independent review and exact-head push/pull_request gates pending. Synthetic-only data, external submission OFF, separate Codespaces checkout preserved, retained private runtime untouched."
+    "ownership": "PR #512 remains draft on the task-owned branch. Independent review P2 findings on retry idempotency and concurrent ordering were repaired; 576 Python tests, 62 web tests/build and validators pass locally. Repaired source is currently uncommitted; publish after diff/secrets review, then obtain fresh exact-head review and push/pull_request gates. Synthetic-only data; external submission OFF; separate Codespaces checkout preserved; retained private runtime untouched."
   },
   "active_development_issue": {
     "number": 193,

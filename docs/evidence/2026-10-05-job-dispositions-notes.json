@@ -1,14 +1,20 @@
 {
   "evidence_id": "CORE-WORKFLOW-TRIAL-F1-JOB-DISPOSITIONS-NOTES",
-  "recorded_at": "2026-10-05T13:02:24Z",
+  "recorded_at": "2026-10-05T13:22:36Z",
   "result": "PARTIAL",
   "scope": "Profile-scoped job save, hide, not-interested status and append-only job notes/history",
   "authority": {
     "repository": "MulattoTech/MJobs",
     "base_main": "fb8ab73de6f666ed2644f9d1cc271eee25aef7f7",
     "task_branch": "codex/core-workflow-trial-job-tracking-20261005",
-    "requirements": ["MJ-REQ-192", "MJ-REQ-239"],
-    "live_issues": [193, 240]
+    "requirements": [
+      "MJ-REQ-192",
+      "MJ-REQ-239"
+    ],
+    "live_issues": [
+      193,
+      240
+    ]
   },
   "observations": [
     {
@@ -31,30 +37,37 @@
     },
     {
       "action": "Run affected API and browser regressions",
-      "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_job_tracking tests.browser.test_job_tracking tests.integration.test_user_read_models tests.browser.test_manual_job_capture -v",
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_job_tracking tests.browser.test_job_tracking -v",
       "target": "Synthetic fixtures and temporary databases",
-      "result": "PASS: 8 tests"
+      "result": "PASS: 4 tests, including two-profile isolation and store reopen; repeat request IDs create no duplicate status/note events; conflicting request-ID reuse is rejected; concurrent status writes receive monotonic sequence numbers; Chromium drops the first committed note response and retries the same request without duplicate history."
     },
     {
       "action": "Run complete repository Python suite",
       "command": ".venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py' -v",
       "target": "Repository-supported Python 3.12 test environment, temporary databases, controlled fixtures and isolated Chromium",
-      "result": "PASS: 575 tests in 312.209 seconds on the final implementation and test set; the tracking integration case includes store-reopen readback; no test failures"
+      "result": "PASS: 576 tests in 299.184 seconds on the repaired source and test set; no test failures."
     },
     {
       "action": "Run web tests and strict production build",
       "command": "npm test --prefix apps/web; npm run build --prefix apps/web",
       "target": "React/TypeScript web client",
-      "result": "PASS: 62 web tests; TypeScript check and Vite build succeeded"
+      "result": "PASS: 62 web tests; TypeScript check and Vite production build succeeded after the retry-safe UI changes."
     },
     {
       "action": "Run whitespace validation",
       "command": "git diff --check",
       "target": "Task branch working tree",
       "result": "PASS"
+    },
+    {
+      "action": "Resolve independent review findings on retry safety and concurrent history ordering",
+      "command": "Exact-candidate repair; independent final review pending",
+      "target": "Tracking mutations through API/UI and existing append-only audit storage",
+      "result": "Both reported P2 issues are addressed with stable request IDs, deterministic event IDs, serialized per-job sequence allocation, retry/conflict/concurrency tests, and a browser lost-response retry. These repairs still require fresh independent review of the pushed final SHA."
     }
   ],
   "remaining_gates": [
+    "Commit and publish the repaired candidate; verify remote SHA equality",
     "Fresh independent defect review of the exact final PR head",
     "Both exact-head push and pull_request Verification events, including all required runtime artifacts and reports",
     "Merge-result tree equality, closing receipt, main synchronization and combined workflow proof"

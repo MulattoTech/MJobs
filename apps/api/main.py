@@ -145,11 +145,25 @@ class ManualJobCaptureInput(BaseModel):
 class JobDispositionInput(BaseModel):
     model_config = ConfigDict(strict=True, extra="forbid")
     disposition: Literal["ACTIVE", "SAVED", "HIDDEN", "NOT_INTERESTED"]
+    request_id: str = Field(min_length=1, max_length=64)
+
+    @model_validator(mode="after")
+    def bounded_request_id(self):
+        if self.request_id != self.request_id.strip():
+            raise ValueError("Tracking request identifier cannot have surrounding whitespace")
+        return self
 
 
 class JobNoteInput(BaseModel):
     model_config = ConfigDict(strict=True, extra="forbid")
     text: str = Field(min_length=1, max_length=4000)
+    request_id: str = Field(min_length=1, max_length=64)
+
+    @model_validator(mode="after")
+    def bounded_request_id(self):
+        if self.request_id != self.request_id.strip():
+            raise ValueError("Tracking request identifier cannot have surrounding whitespace")
+        return self
 
 
 class MockRunInput(BaseModel):
@@ -617,12 +631,12 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     @app.put("/profiles/{profile_id}/jobs/{job_id}/tracking/disposition")
     def job_disposition_update(profile_id: str, job_id: str, value: JobDispositionInput):
         from services.tracking.jobs import set_job_disposition
-        return set_job_disposition(store, profile_id, job_id, value.disposition)
+        return set_job_disposition(store, profile_id, job_id, value.disposition, value.request_id)
 
     @app.post("/profiles/{profile_id}/jobs/{job_id}/tracking/notes", status_code=201)
     def job_note_create(profile_id: str, job_id: str, value: JobNoteInput):
         from services.tracking.jobs import add_job_note
-        return add_job_note(store, profile_id, job_id, value.text)
+        return add_job_note(store, profile_id, job_id, value.text, value.request_id)
 
     @app.get("/duplicate-reviews")
     def duplicate_reviews(state: str | None = Query(default=None, max_length=64)):

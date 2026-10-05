@@ -1,5 +1,7 @@
 """Profile-scoped job disposition and notes use append-only audit history."""
 from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor
+from threading import Barrier
 import tempfile
 import unittest
 
@@ -11,6 +13,7 @@ from fixtures.mock_server import fixture_server
 from packages.persistence import models as m
 from packages.persistence.store import Store
 from services.discovery.pipeline import discover
+from services.tracking.jobs import set_job_disposition
 from tests.integration.test_spine import PROFILE
 
 
@@ -42,17 +45,34 @@ class JobTrackingApiTests(unittest.TestCase):
         self.assertEqual(initial.status_code, 200, initial.text)
         self.assertEqual(initial.json(), {"disposition": "ACTIVE", "notes": [], "history": []})
 
-        saved = self.client.put(url + "/disposition", json={"disposition": "SAVED"})
+        saved_payload = {"disposition": "SAVED", "request_id": "save-first"}
+        saved = self.client.put(url + "/disposition", json=saved_payload)
         self.assertEqual(saved.status_code, 200, saved.text)
         self.assertEqual(saved.json()["disposition"], "SAVED")
-        note = self.client.post(url + "/notes", json={"text": "Ask about weekend on-call rotation."})
+        self.assertEqual(self.client.put(url + "/disposition", json=saved_payload).json(),
+                         saved.json())
+        note_payload = {"text": "Ask about weekend on-call rotation.",
+                        "request_id": "note-first"}
+        note = self.client.post(url + "/notes", json=note_payload)
         self.assertEqual(note.status_code, 201, note.text)
         self.assertEqual(note.json()["notes"][0]["text"], "Ask about weekend on-call rotation.")
+        replay = self.client.post(url + "/notes", json=note_payload)
+        self.assertEqual(replay.status_code, 201, replay.text)
+        self.assertEqual(replay.json(), note.json())
+        self.assertEqual(len(replay.json()["notes"]), 1)
+        self.assertEqual(self.client.put(url + "/disposition", json={
+            "disposition": "HIDDEN", "request_id": "save-first"
+        }).status_code, 422)
+        self.assertEqual(self.client.post(url + "/notes", json={
+            "text": "Different text", "request_id": "note-first"
+        }).status_code, 422)
         not_interested = self.client.put(url + "/disposition", json={
-            "disposition": "NOT_INTERESTED"
+            "disposition": "NOT_INTERESTED", "request_id": "not-interested"
         })
         self.assertEqual(not_interested.json()["disposition"], "NOT_INTERESTED")
-        hidden = self.client.put(url + "/disposition", json={"disposition": "HIDDEN"})
+        hidden = self.client.put(url + "/disposition", json={
+            "disposition": "HIDDEN", "request_id": "hidden"
+        })
         self.assertEqual(hidden.json()["disposition"], "HIDDEN")
 
         jobs = self.client.get("/jobs", params={"profile_id": "fixture"}).json()["jobs"]
@@ -87,18 +107,42 @@ class JobTrackingApiTests(unittest.TestCase):
         reopened = self.client.get(url).json()
         self.assertEqual(reopened["disposition"], "HIDDEN")
         self.assertEqual(reopened["notes"][0]["text"], "Ask about weekend on-call rotation.")
-        self.assertEqual([event.get("disposition") for event in reopened["history"]
-                          if event["type"] == "disposition"], ["SAVED", "NOT_INTERESTED", "HIDDEN"])
+        disposition_history = [event for event in reopened["history"]
+                               if event["type"] == "disposition"]
+        self.assertEqual([event["disposition"] for event in disposition_history],
+                         ["SAVED", "NOT_INTERESTED", "HIDDEN"])
+        self.assertEqual([event["sequence"] for event in reopened["history"]], [1, 2, 3, 4])
 
     def test_invalid_disposition_and_empty_note_are_rejected_without_audit_writes(self):
         url = f"/profiles/fixture/jobs/{self.job_id}/tracking"
         self.assertEqual(self.client.put(url + "/disposition", json={
-            "disposition": "SUBMITTED"
+            "disposition": "SUBMITTED", "request_id": "invalid-disposition"
         }).status_code, 422)
-        self.assertEqual(self.client.post(url + "/notes", json={"text": "  "}).status_code, 422)
+        self.assertEqual(self.client.post(url + "/notes", json={
+            "text": "  ", "request_id": "empty-note"
+        }).status_code, 422)
         with self.store.engine.connect() as connection:
             self.assertEqual(connection.execute(select(m.audit.c.id).where(
                 m.audit.c.action.in_(("JOB_DISPOSITION", "JOB_NOTE")))).all(), [])
+
+    def test_concurrent_disposition_updates_get_serial_history(self):
+        barrier = Barrier(2)
+
+        def update(disposition, request_id):
+            barrier.wait(timeout=5)
+            return set_job_disposition(self.store, "fixture", self.job_id,
+                                       disposition, request_id)
+
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            futures = [pool.submit(update, "SAVED", "concurrent-save"),
+                       pool.submit(update, "HIDDEN", "concurrent-hide")]
+            results = [future.result(timeout=10) for future in futures]
+        self.assertEqual({result["disposition"] for result in results},
+                         {"SAVED", "HIDDEN"})
+        final = self.client.get(f"/profiles/fixture/jobs/{self.job_id}/tracking").json()
+        statuses = [row for row in final["history"] if row["type"] == "disposition"]
+        self.assertEqual([row["sequence"] for row in statuses], [1, 2])
+        self.assertEqual(final["disposition"], statuses[-1]["disposition"])
 
 
 if __name__ == "__main__":
