@@ -47,14 +47,14 @@
     "findings": [
       "The handoff and evidence still described the already-published after-reload repair as waiting to publish."
     ],
-    "repair_status": "Corrected oracle and capability wording confirmed; current-status wording being corrected. Fresh exact-head review pending."
+    "repair_status": "The status wording finding from checkpoint c5799d6 was corrected in published checkpoint 03d39ee; fresh exact-head review pending."
   },
   "exact_head_gates": {
     "push_verification": "SUPERSEDED_C5799D6",
     "pull_request_verification": "SUPERSEDED_C5799D6",
     "pr_merge_tree_equality": "PENDING_FINAL_HEAD",
     "required_runtime_reports": "PENDING_FINAL_HEAD",
-    "note": "Runs 37358595883 (push) and 37358602537 (pull_request) target checkpoint c5799d6 and are superseded by a current-status wording correction. Fresh review and both event runs must cover the resulting exact head."
+    "note": "Runs 37358595883 (push) and 37358602537 (pull_request) target checkpoint c5799d6 and are superseded. Resolve the current candidate from live PR #515 and require fresh review and both event runs on that exact head."
   },
   "known_limitations": [
     "A-F evidence covers bounded synthetic browser paths; referenced full requirements stay PARTIAL until every acceptance boundary is met.",
