@@ -165,13 +165,13 @@ class ExplainableMatchingTests(unittest.TestCase):
 
         skill_data, evidence = mock_skill_evidence({"skills": ["Python"]}, "Engineer", "Uses Azure")
         self.assertEqual(set(skill_data["labels"]), {"Python", "Azure"})
-        self.assertEqual(evidence["skill_evidence"], "description_mentions")
-        self.assertEqual(evidence["required_skills"], [])
+        self.assertEqual(evidence["skill_evidence"], "structured_requirements")
+        self.assertEqual(evidence["required_skills"], ["Python"])
         explanation = build_explanation({
             "skills": skill_data["labels"], "attributes": evidence,
         }, {"facts": []})
         strengths = {row["skill"]: row["strength"] for row in explanation["components"]["requirements"]}
-        self.assertEqual(strengths, {"Python": "UNKNOWN", "Azure": "UNKNOWN"})
+        self.assertEqual(strengths, {"Python": "REQUIRED", "Azure": "UNKNOWN"})
 
         skill_data, evidence = mock_skill_evidence({"required_skills": ["Python"]}, "Engineer", "Uses Azure")
         explanation = build_explanation({"skills": skill_data["labels"], "attributes": evidence}, {"facts": []})

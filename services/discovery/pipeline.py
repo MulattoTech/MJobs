@@ -66,6 +66,13 @@ def mock_skill_evidence(row, title, description):
     classified = {}
     for field in ("required_skills", "preferred_skills", "nice_to_have_skills"):
         values = row.get(field) or []
+        if field == "required_skills":
+            # In this controlled mock contract, `skills` is explicitly the
+            # structured required-skills field, unlike real-source mentions.
+            structured_skills = row.get("skills") or []
+            structured_skills = (structured_skills if isinstance(structured_skills, (list, tuple, set))
+                                 else [structured_skills])
+            values = [*(values if isinstance(values, (list, tuple, set)) else [values]), *structured_skills]
         values = values if isinstance(values, (list, tuple, set)) else [values]
         labels = []
         for value in values:

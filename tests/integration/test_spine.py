@@ -42,7 +42,11 @@ class SpineTests(unittest.TestCase):
         self.assertEqual({job["requisition"] for job in jobs}, {"A", "B"})
         self.assertEqual(self.store.count("job_postings"), 4)
         self.assertEqual(self.store.count("company_job_sources"), 1)
-        self.assertEqual(next(job for job in jobs if job["requisition"] == "B")["match_score"], 100)
+        employer_job = next(job for job in jobs if job["requisition"] == "B")
+        self.assertEqual(employer_job["match_score"], 100)
+        explanation = self.store.job(employer_job["id"], profile_id="fixture")["match"]["components"]
+        strengths = {row["skill"]: row["strength"] for row in explanation["requirements"]}
+        self.assertEqual(strengths, {"Python": "REQUIRED", "SQL": "REQUIRED"})
         self.assertEqual(next(job for job in jobs if job["requisition"] == "A")["posting_count"], 3)
 
     def test_preparation_provenance_and_idempotency_survive_restart(self):
