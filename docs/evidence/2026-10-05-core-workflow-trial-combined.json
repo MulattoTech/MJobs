@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-05T18:47:00Z",
+  "timestamp": "2026-10-05T18:48:55Z",
   "result": "PARTIAL",
   "scope": "Connected synthetic browser journey across the bounded CORE-WORKFLOW-TRIAL A-F user actions",
   "source_commit": "4548eab46bf7c58427b1c57ac9de0840ad03a6d9",
@@ -41,21 +41,20 @@
   },
   "independent_review": {
     "result": "PARTIAL",
-    "candidate": "4548eab46bf7c58427b1c57ac9de0840ad03a6d9",
+    "candidate": "c5799d68fef31714bde7b2a26e28c5dc3814976e",
     "base": "3ec8702ed0f42842e1bac772997760d8db5c9caf",
     "reviewer": "independent read-only code reviewer",
     "findings": [
-      "Job description/reference API readback occurred before browser reload although evidence claimed post-reload readback.",
-      "Capability and handoff summaries retained stale filtering/candidate claims."
+      "The handoff and evidence still described the already-published after-reload repair as waiting to publish."
     ],
-    "repair_status": "Readback moved after reload, stale summaries corrected, and four local browser runs pass; fresh exact-head review pending."
+    "repair_status": "Corrected oracle and capability wording confirmed; current-status wording being corrected. Fresh exact-head review pending."
   },
   "exact_head_gates": {
-    "push_verification": "SUPERSEDED_4548EAB",
-    "pull_request_verification": "SUPERSEDED_4548EAB",
+    "push_verification": "SUPERSEDED_C5799D6",
+    "pull_request_verification": "SUPERSEDED_C5799D6",
     "pr_merge_tree_equality": "PENDING_FINAL_HEAD",
     "required_runtime_reports": "PENDING_FINAL_HEAD",
-    "note": "Runs 37357784353 and 37357791015 target superseded head 4548eab and cannot qualify a repaired candidate. Fresh review and both events must cover the next final pushed head."
+    "note": "Runs 37358595883 (push) and 37358602537 (pull_request) target checkpoint c5799d6 and are superseded by a current-status wording correction. Fresh review and both event runs must cover the resulting exact head."
   },
   "known_limitations": [
     "A-F evidence covers bounded synthetic browser paths; referenced full requirements stay PARTIAL until every acceptance boundary is met.",
