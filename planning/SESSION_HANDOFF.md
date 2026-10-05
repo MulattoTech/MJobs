@@ -11,8 +11,10 @@ Main at reconciliation start was 3ec8702ed0f42842e1bac772997760d8db5c9caf.
 This session freshly passed 62 frontend tests, the production build, and the combined
 Chromium/API/temporary-SQLite journey using synthetic data. No new hosted run or
 independent reviewer was requested. Docker Linux is unavailable; full release and
-private-owner testing remain NOT_RUN. Final integration SHA/status is in the PR515
-closing receipt; do not mistake the older failed hosted run for a new local failure.
+private-owner testing remain NOT_RUN. The source was integrated by an ordinary non-force fast-forward at
+`ae7e27a6202272ab5a65408df91a3ccaff151dfd`. PR515 is closed and GitHub
+reports its head integrated. Its closing receipt records the exact final metadata
+SHA and local checkout synchronization; do not retry the old billing-blocked runs.
 
 Already implemented: manual capture, approved-fact matching explanations,
 deterministic job-specific cover letters, reviewed reusable answers/exports,
@@ -25,7 +27,8 @@ All 366 original requirement results remain unchanged: 64 PASS, 76 PARTIAL,
 Matrix-versus-issue disagreements are listed in the reconciliation evidence;
 no issue was closed just to make the totals agree.
 
-Next invocation: prompts/LOCAL_ONLY_LUNA_ITERATION.md with GPT-6 Luna High.
+No implementation PR remains active for this handoff. Next invocation:
+`prompts/LOCAL_ONLY_LUNA_ITERATION.md` with GPT-6 Luna High.
 Use one local writer, ordinary explicit local validation and frequent safe Git
 checkpoints. No extra model sessions, hosted automation or private-data uploads.
 The user's raw docs/CLI_Output transcript is preserved locally and newly ignored.

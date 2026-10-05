@@ -3236,7 +3236,7 @@
         "MJ-PR-155",
         "MJ-PR-156"
       ],
-      "status": "READY",
+      "status": "MERGED",
       "branch": "codex/core-workflow-trial-combined-journey-20261005",
       "pr_number": 515,
       "pr_url": "https://github.com/MulattoTech/MJobs/pull/515",
@@ -3245,7 +3245,11 @@
       "draft_until_verified": true,
       "scope_complete": false,
       "scope_result": "PARTIAL",
-      "notes": "Local combined workflow acceptance PASS. Current user disabled hosted Actions/reviews; do not retry billing gates. Integrate after exact-source local-only verification; all broader requirements remain PARTIAL."
+      "notes": "PR515 source integrated at ae7e27a6202272ab5a65408df91a3ccaff151dfd under explicit user local-only budget policy. Combined synthetic journey passes locally. Hosted Actions/reviews are disabled, not pending retries. Broader original requirements remain PARTIAL.",
+      "integration_commit": "ae7e27a6202272ab5a65408df91a3ccaff151dfd",
+      "integration_method": "NON_FORCE_FAST_FORWARD",
+      "pr_state": "CLOSED",
+      "github_reports_merged": true
     }
   ]
 }

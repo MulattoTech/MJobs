@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "timestamp": "2026-10-05T21:32:10.763994+00:00",
-  "result": "PARTIAL",
-  "scope": "Local-only cutover and integration of existing PR515 combined trial; no product source modification",
+  "result": "PASS",
+  "scope": "Completed local-only budget cutover and source integration; bounded local workflow acceptance only, not full product/release acceptance",
   "source_commit": "bbc340221677041d0c2e4e21dc15862e155cfb6b",
   "base_commit": "3ec8702ed0f42842e1bac772997760d8db5c9caf",
   "local_verification": {
@@ -154,5 +154,50 @@
     "count": 287,
     "normalization": "CRLF to LF before comparison",
     "manifest_sha256": "a6b4d42563252f5fd748aa776926291b8065f9afa4b7d998325807286726ea1f"
-  }
+  },
+  "integration": {
+    "timestamp": "2026-10-05T21:38:38.779285+00:00",
+    "integrated_main": "ae7e27a6202272ab5a65408df91a3ccaff151dfd",
+    "source_head": "bbc340221677041d0c2e4e21dc15862e155cfb6b",
+    "pr_number": 515,
+    "pr_state": "closed",
+    "pr_merged": true,
+    "integration_method": "NON_FORCE_FAST_FORWARD",
+    "comment_url": "https://github.com/MulattoTech/MJobs/pull/515#issuecomment-6003506349"
+  },
+  "exact_head_local_verification": {
+    "timestamp": "2026-10-05T21:35:27.615054+00:00",
+    "head": "ae7e27a6202272ab5a65408df91a3ccaff151dfd",
+    "result": "PASS",
+    "scope": "Exact local candidate, repository validators and one combined synthetic browser journey; frontend62/build verified on unchanged runtime inputs",
+    "checks": [
+      {
+        "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.agent_skills",
+        "result": "PASS",
+        "seconds": 0.078,
+        "log_sha256": "434341d0426ff552a940bd914f1b78230ab3ac111057923f2f2c5b8de586b362"
+      },
+      {
+        "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.catalogue",
+        "result": "PASS",
+        "seconds": 0.063,
+        "log_sha256": "afc44cd304f45ba649562cbea23ab034dec7f06e61af43b7b17ec2e10d5706ff"
+      },
+      {
+        "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.progress validate",
+        "result": "PASS",
+        "seconds": 0.094,
+        "log_sha256": "901467b93720a98dd3fd6f8d3527c6294ec52e61cb3ebe6674f3ddccfe7c5e03"
+      },
+      {
+        "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_core_workflow_trial -v",
+        "result": "PASS",
+        "seconds": 15.562,
+        "log_sha256": "1febfe7786ee1c838c27a0e6f10a13bf1b5ab5e845c99aa5d165b7bbfc256730"
+      }
+    ],
+    "hosted": "NOT_RUN_BY_USER_POLICY",
+    "independent_review": "NOT_RUN_BY_USER_POLICY"
+  },
+  "metadata_closeout_note": "This later metadata-only commit records the known integrated candidate. Its own metadata validation, final SHA and primary-workspace preservation/synchronization are reported on PR515, avoiding a self-referential receipt."
 }

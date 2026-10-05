@@ -7,12 +7,12 @@
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "At 2026-10-05T16:58:48Z before the final evidence correction commit, task branch codex/core-workflow-trial-application-pipeline-20261005 was based on main 2de5863da7418bf20087822d052b2beeb77ca64b. Source head 8756881027674346bd022716068b4532cbc91ca7 passed local full/focused/browser/web checks and independent review; metadata predecessor c245b9b2002259a998838619284ffaade1ca7207 passed fresh review and both Verification events. The following sanitized evidence correction changes no product code and requires fresh final-head gates. Synthetic only; external submission OFF; retained private runtime untouched; separate Codespaces checkout preserved.",
-    "current_verified_github_state": "At 2026-10-05T16:58:48Z, origin/main was 2de5863da7418bf20087822d052b2beeb77ca64b after merged PRs #511 and #512; PR #513 was draft on codex/core-workflow-trial-application-pipeline-20261005 at metadata predecessor c245b9b. The final sanitized evidence correction then requires remote SHA readback, fresh independent review and both event-specific Verification runs/artifact inspection.",
-    "current_verified_at": "2026-10-05T16:58:48Z"
+    "current_verified_local_state": "Original root tracked bytes stable at bbc3402 during isolated validation. Final primary checkout synchronization/preservation is separately verified and recorded on PR515.",
+    "current_verified_github_state": "PR515 source integrated at ae7e27a6202272ab5a65408df91a3ccaff151dfd by normal fast-forward; Actions and all known workflows disabled. Metadata closeout follows under local-only policy.",
+    "current_verified_at": "2026-10-05T21:39:52.641468+00:00"
   },
-  "current_milestone": "LOCAL-ONLY-DELIVERY-RECONCILIATION",
-  "current_objective": "Complete user-authorized budget cutover and locally accepted PR515 integration; next product iteration awaits the supplied local-only prompt.",
+  "current_milestone": "LOCAL-ONLY-DELIVERY-READY",
+  "current_objective": "Budget cutover and previously published core-trial source integration complete. Continue only through the next user-invoked local-only Luna prompt; no autonomous runner or hosted assistance.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -72,604 +72,7 @@
   ],
   "blocked_capabilities": [],
   "active_requirements": [],
-  "active_prs": [
-    {
-      "number": 367,
-      "url": "https://github.com/MulattoTech/MJobs/pull/367",
-      "branch": "codex/mj-pr-001-governance-safety",
-      "status": "MERGED",
-      "merge_commit": "b7bdd711bc7f4984e59620e585557aeb4fc06fa6",
-      "merged_at": "2026-09-30T19:38:24Z"
-    },
-    {
-      "number": 368,
-      "url": "https://github.com/MulattoTech/MJobs/pull/368",
-      "branch": "codex/mj-pr-148-mock-product-spine",
-      "status": "MERGED",
-      "merge_commit": "681ee0f825d4a2a19544f4fa80b1994f99092567",
-      "merged_at": "2026-09-30T19:39:12Z"
-    },
-    {
-      "number": 369,
-      "url": "https://github.com/MulattoTech/MJobs/pull/369",
-      "branch": "codex/mj-pr-002-governance-safety",
-      "status": "MERGED",
-      "merge_commit": "f30a2e5b82ff61204fa4f94c69280f8097da9b90",
-      "merged_at": "2026-09-30T19:45:13Z"
-    },
-    {
-      "number": 370,
-      "url": "https://github.com/MulattoTech/MJobs/pull/370",
-      "branch": "codex/mj-pr-149-user-testing-mvp",
-      "status": "MERGED",
-      "merge_commit": "8ee6b0a7578ab4c8a46f1bac2c707a88048473ab",
-      "merged_at": "2026-09-30T19:59:03Z"
-    },
-    {
-      "number": 428,
-      "url": "https://github.com/MulattoTech/MJobs/pull/428",
-      "branch": "codex/mj-pr-003-governance-safety",
-      "status": "MERGED",
-      "merge_commit": "65efa0d6dd0c77e6f7a8b9f8a0108a08fc714939",
-      "merged_at": "2026-10-01T00:48:51Z"
-    },
-    {
-      "number": 429,
-      "url": "https://github.com/MulattoTech/MJobs/pull/429",
-      "branch": "codex/mj-pr-005-core-search-model",
-      "status": "MERGED",
-      "merge_commit": "602fc26e411953d5adec48fc8642ec1a406ec147",
-      "merged_at": "2026-10-01T00:49:46Z"
-    },
-    {
-      "number": 430,
-      "url": "https://github.com/MulattoTech/MJobs/pull/430",
-      "branch": "codex/mj-pr-004-governance-safety",
-      "status": "MERGED",
-      "merge_commit": "b747089274e0b45531c637c7f6b1991da75081b8",
-      "merged_at": "2026-10-01T01:15:31Z"
-    },
-    {
-      "number": 436,
-      "url": "https://github.com/MulattoTech/MJobs/pull/436",
-      "branch": "codex/mj-pr-009-core-search-model",
-      "status": "MERGED",
-      "merge_commit": "6cd1fe6d069f18857eab1c64014af779d3d01f2b",
-      "merged_at": "2026-10-01T18:32:39Z"
-    },
-    {
-      "number": 437,
-      "url": "https://github.com/MulattoTech/MJobs/pull/437",
-      "branch": "codex/mj-pr-010-core-search-model",
-      "status": "MERGED",
-      "merge_commit": "1d80a61a4faf9c5e1d8704c11cf929dff448651d",
-      "merged_at": "2026-10-01T19:12:08Z"
-    },
-    {
-      "number": 438,
-      "url": "https://github.com/MulattoTech/MJobs/pull/438",
-      "branch": "codex/mj-pr-011-core-search-model",
-      "status": "MERGED",
-      "merge_commit": "9645601bb19d41a9946c3114fe92e1d4af72e535",
-      "merged_at": "2026-10-01T19:21:17Z"
-    },
-    {
-      "number": 439,
-      "url": "https://github.com/MulattoTech/MJobs/pull/439",
-      "branch": "codex/mj-pr-012-job-identity-dedupe",
-      "status": "MERGED",
-      "merge_commit": "333d9a41d29ff12805ee15ff80cfe17a3fa4b426",
-      "merged_at": "2026-10-01T19:43:59Z"
-    },
-    {
-      "number": 440,
-      "url": "https://github.com/MulattoTech/MJobs/pull/440",
-      "branch": "codex/mj-pr-013-job-identity-dedupe",
-      "status": "MERGED",
-      "merge_commit": "f6867a4cf13a44b69921710634fa1e2b809b2b5d",
-      "merged_at": "2026-10-01T19:56:09Z"
-    },
-    {
-      "number": 441,
-      "url": "https://github.com/MulattoTech/MJobs/pull/441",
-      "branch": "codex/mj-pr-014-job-identity-dedupe",
-      "status": "MERGED",
-      "merge_commit": "098f3d77ae3b41dc7ec666be47e767e040fd57d7",
-      "merged_at": "2026-10-01T20:08:38Z"
-    },
-    {
-      "number": 442,
-      "url": "https://github.com/MulattoTech/MJobs/pull/442",
-      "branch": "codex/mj-pr-015-job-identity-dedupe",
-      "status": "MERGED",
-      "merge_commit": "6267044c2e93a058eab61011164b828a542f7bdc",
-      "merged_at": "2026-10-01T20:17:53Z"
-    },
-    {
-      "number": 443,
-      "url": "https://github.com/MulattoTech/MJobs/pull/443",
-      "branch": "codex/mj-pr-016-company-ats-discovery",
-      "status": "MERGED",
-      "head": "ac74d84bf74c42a25cefffd6c06b207aedaa865b",
-      "merge_commit": "12e7ef6c9eb5ff1c7a8fd775361a9ee7e1b28aea",
-      "merged_at": "2026-10-01T22:31:45Z"
-    },
-    {
-      "number": 444,
-      "branch": "codex/mj-pr-017-company-ats-discovery",
-      "worktree": "C:\\Tools\\Dev\\MJobs-pr-017",
-      "status": "MERGED",
-      "base": "12e7ef6c9eb5ff1c7a8fd775361a9ee7e1b28aea",
-      "url": "https://github.com/MulattoTech/MJobs/pull/444",
-      "head": "d93508f4da500e139c62eedc5171ff975ef70462",
-      "note": "Live GitHub reconciliation: exact head passed both required Verification workflows and PR #444 merged to main.",
-      "merge_commit": "5e66bfe7029698b590fb57987a7ac657a958b516",
-      "merged_at": "2026-10-01T23:17:15Z",
-      "exact_head_checks": {
-        "pull_request_verification": 36939463587,
-        "push_verification": 36939459649
-      }
-    },
-    {
-      "number": 445,
-      "url": "https://github.com/MulattoTech/MJobs/pull/445",
-      "branch": "codex/mj-pr-018-company-ats-discovery",
-      "worktree": "C:\\Tools\\Dev\\MJobs-pr-018",
-      "status": "MERGED",
-      "base": "5e66bfe7029698b590fb57987a7ac657a958b516",
-      "head": "e24d6e69a40474b4d6cf1fed9b8edf9e44294ebd",
-      "note": "Initial head will be superseded by the PR-number/state bookkeeping commit; exact-head CI is not yet verified.",
-      "merge_commit": "328b0bb26eb3aa5242fe4e9253a51b0271081ace",
-      "merged_at": "2026-10-02T00:13:37Z",
-      "exact_head_checks": {
-        "pull_request_verification": 36943693601,
-        "push_verification": 36943692049
-      }
-    },
-    {
-      "branch": "codex/mj-pr-019-company-ats-discovery",
-      "worktree": "C:\\Tools\\Dev\\MJobs-pr-019",
-      "status": "MERGED",
-      "base": "328b0bb26eb3aa5242fe4e9253a51b0271081ace",
-      "head": "138992cad642dbb95dfb1b71b6f48a30c65b29ad",
-      "requirements": [
-        "MJ-REQ-066",
-        "MJ-REQ-067",
-        "MJ-REQ-068",
-        "MJ-REQ-069"
-      ],
-      "evidence_path": "docs/evidence/2026-10-02-ats-tenant-source-hierarchy.json",
-      "number": 446,
-      "url": "https://github.com/MulattoTech/MJobs/pull/446",
-      "initial_head": "f21f86b196fdd4a750666a89c9e888924b1e06a9",
-      "merge_commit": "b096b868b4feb6df6afbe1581ff7a6a80a891c16",
-      "merged_at": "2026-10-02T00:38:08Z",
-      "exact_head_checks": {
-        "pull_request_verification": 36946261732,
-        "push_verification": 36946266078
-      }
-    },
-    {
-      "branch": "codex/mj-pr-020-company-ats-discovery",
-      "worktree": "C:\\Tools\\Dev\\MJobs-pr-020",
-      "status": "MERGED",
-      "base": "b096b868b4feb6df6afbe1581ff7a6a80a891c16",
-      "head": "5a2599026f8fb68def60e3deec2aeacd73d80ea3",
-      "number": 447,
-      "url": "https://github.com/MulattoTech/MJobs/pull/447",
-      "stacked_on": "codex/mj-pr-019-company-ats-discovery",
-      "requirements": [
-        "MJ-REQ-070",
-        "MJ-REQ-071",
-        "MJ-REQ-072",
-        "MJ-REQ-073"
-      ],
-      "merge_commit": "1dc6cd4fc9b9eb2797994ff7321e15dd83e6c2d7",
-      "merged_at": "2026-10-02T01:17:07Z",
-      "exact_head_checks": {
-        "pull_request_verification": 36949709396,
-        "push_verification": 36949702239
-      }
-    },
-    {
-      "branch": "codex/mj-pr-021-company-ats-discovery",
-      "worktree": "C:\\Tools\\Dev\\MJobs-pr-021",
-      "status": "MERGED",
-      "base": "1dc6cd4fc9b9eb2797994ff7321e15dd83e6c2d7",
-      "requirements": [
-        "MJ-REQ-074",
-        "MJ-REQ-075",
-        "MJ-REQ-076",
-        "MJ-REQ-077"
-      ],
-      "evidence_path": "docs/evidence/2026-10-02-company-source-watch-and-priority.json",
-      "number": 448,
-      "url": "https://github.com/MulattoTech/MJobs/pull/448",
-      "head": "dd9bb5f73ab75cf3d5e4972d2d8f0ac1cf6dc1ef",
-      "note": "Reconciled with live GitHub PR #448; PR-triggered exact-head Verification run 36952070540 succeeded.",
-      "merge_commit": "c4c7da448cf973970f15701bdfee64de66556190",
-      "merged_at": "2026-10-02T01:45:50Z"
-    },
-    {
-      "number": 449,
-      "url": "https://github.com/MulattoTech/MJobs/pull/449",
-      "branch": "codex/mj-pr-022-company-ats-discovery",
-      "worktree": "C:\\Tools\\Dev\\MJobs-pr-022",
-      "status": "MERGED",
-      "initial_head": "d2904868dbe9d5d28b6d6c5965dc2ccb3ca78bd0",
-      "note": "Resolve the current head through GitHub after this bookkeeping commit; prior-head CI is not final.",
-      "head": "9d5a452f74815d2c726c4c911cc3b0df3c467f29",
-      "merge_commit": "566bbf9cdebf882cc80bbb65b803ca3996fa9beb",
-      "ci_evidence": "docs/evidence/2026-10-02-ci-449.json"
-    },
-    {
-      "number": 450,
-      "url": "https://github.com/MulattoTech/MJobs/pull/450",
-      "branch": "codex/mj-pr-023-company-ats-discovery",
-      "worktree": "C:\\Tools\\Dev\\MJobs-pr-023",
-      "status": "MERGED",
-      "initial_head": "83493c0c884a7719a86fdcb108e02aca648472a9",
-      "scope": "first source-linked activity slice only",
-      "merge_commit": "7241958efcae25925149a566020c50a8f61416e5"
-    },
-    {
-      "number": 453,
-      "url": "https://github.com/MulattoTech/MJobs/pull/453",
-      "branch": "codex/resume-driven-profile",
-      "status": "MERGED",
-      "local_validation": "PASS",
-      "remote_ci": "PASS",
-      "head": "260540cc35dd1a51c37c61f1ed638eb94106bafe",
-      "merge_commit": "de9b058031d6db3aace9c56eebf7e5fd4aff695d",
-      "merged_at": "2026-10-03T19:40:15Z"
-    },
-    {
-      "number": 471,
-      "url": "https://github.com/MulattoTech/MJobs/pull/471",
-      "branch": "codex/delivery-catalogue",
-      "status": "MERGED",
-      "head": "12394c753957d43311983174b0d982cb5dbabf87",
-      "merge_commit": "c4b2e9109675fa490a545210ba6475f66ba14641",
-      "exact_head_checks": {
-        "pull_request_verification": 37149698715,
-        "push_verification": 37149673238
-      }
-    },
-    {
-      "number": 452,
-      "url": "https://github.com/MulattoTech/MJobs/pull/452",
-      "branch": "codex/feedback-gui",
-      "status": "MERGED",
-      "note": "Combined287-test regression PASS; final bookkeeping changes the head, requiring fresh GitHub verification. User manual retest NOT_RUN.",
-      "merge_commit": "0ab211153f3f9da7669b1832b554aa996cef8942",
-      "head": "55fdc29264a672eea6655f025f55b87f596eb415",
-      "merged_at": "2026-10-03T20:18:18Z"
-    },
-    {
-      "number": 472,
-      "url": "https://github.com/MulattoTech/MJobs/pull/472",
-      "branch": "codex/resume-upload-integrity",
-      "status": "MERGED",
-      "head": "cfb4ca5b015475c364f719c2e0735fb00157013d",
-      "local_validation": "PASS",
-      "remote_ci": "PASS",
-      "merge_commit": "5b459ac22412d57cd86f8abf0e669ae657bc0562",
-      "exact_head_checks": {
-        "pull_request_verification": 37150172508,
-        "push_verification": 37150125082
-      }
-    },
-    {
-      "number": 473,
-      "url": "https://github.com/MulattoTech/MJobs/pull/473",
-      "branch": "codex/source-quality",
-      "status": "MERGED",
-      "head": "fbf403b93334914a043884871944288db3e8e851",
-      "merge_commit": "96e48325793c29f74c96063abf36ea86c9180a2f",
-      "merged_at": "2026-10-03T20:51:24Z",
-      "exact_head_runs": {
-        "pull_request_verification": 37152676103,
-        "push_verification": 37152672783
-      },
-      "ci_result": "PASS"
-    },
-    {
-      "number": 474,
-      "url": "https://github.com/MulattoTech/MJobs/pull/474",
-      "branch": "codex/source-value-resolution",
-      "status": "MERGED",
-      "head": "ab39d182100335d54a1c06f51b3e1e53eb95e776",
-      "merge_commit": "216f1a4696abc8dcb07fb57b5a67102091343ec5",
-      "merged_at": "2026-10-03T21:38:02Z",
-      "ci_result": "PASS",
-      "exact_head_runs": {
-        "pull_request_verification": 37155422904,
-        "push_verification": 37155420738
-      }
-    },
-    {
-      "number": 475,
-      "url": "https://github.com/MulattoTech/MJobs/pull/475",
-      "branch": "codex/public-company-discovery",
-      "status": "MERGED",
-      "observed_head_before_bookkeeping": "db9fae035b7ae0a4fa2beb84628c057ee73d000d",
-      "head": "74256a359913444cc99ecba553b9caaf9b1cf4be",
-      "merge_commit": "5a082f26a34765be32cd6c0c726c957b242b72a7",
-      "merged_at": "2026-10-03T22:11:28Z",
-      "ci_result": "PASS",
-      "exact_head_runs": {
-        "pull_request_verification": 37157224650,
-        "push_verification": 37157222316
-      }
-    },
-    {
-      "number": 476,
-      "url": "https://github.com/MulattoTech/MJobs/pull/476",
-      "branch": "codex/application-link-evidence",
-      "status": "MERGED",
-      "observed_head_before_bookkeeping": "cd487dea9772d58df5a2b811fb0f6de932f438d6",
-      "head": "f7217cac16b6d3cfc3b1b1f2d8e6f6dcf684de4f",
-      "merge_commit": "8240e471260ebeb60bde9932368651da410f3148",
-      "merged_at": "2026-10-03T22:50:15Z",
-      "ci_result": "PASS",
-      "exact_head_runs": {
-        "pull_request": 37159383575,
-        "push": 37159381073
-      }
-    },
-    {
-      "number": 477,
-      "url": "https://github.com/MulattoTech/MJobs/pull/477",
-      "branch": "codex/company-discovery-triggers",
-      "status": "MERGED",
-      "head_before_bookkeeping": "c12effd2c0d1126f60194842dd4e7af2ca19eda0",
-      "ci_result": "NOT_RUN",
-      "head": "ef847659af10c7907f99fd8d38371ee732cf30e9",
-      "merge_commit": "b4fa3a11762b0c26bfbb09e105f3c47681763e20",
-      "merged_at": "2026-10-03T23:35:53Z",
-      "exact_head_ci": {
-        "pr": 37161948331,
-        "push": 37161945869
-      }
-    },
-    {
-      "number": 479,
-      "status": "MERGED",
-      "head": "c2ea4a764af53ac2c1dba16fe77a891669581593",
-      "merge_commit": "78be4e615d2cb6848e8e1762964a7de695be4924",
-      "merged_at": "2026-10-04T01:55:41Z"
-    },
-    {
-      "number": 481,
-      "status": "MERGED",
-      "head": "1500891ac75d4eb36c531baf7c94efd035ba16cf",
-      "merge_commit": "0433a07a09a37e4e86221c547e8d21aae60de9f4",
-      "merged_at": "2026-10-04T02:06:59Z"
-    },
-    {
-      "number": 482,
-      "status": "MERGED",
-      "head": "6ccb193436f90dd71a3ba67dfc3ba1f072b11749",
-      "merge_commit": "b122b0ea9ffb6d6527e4b46ce04899d03021e361",
-      "merged_at": "2026-10-04T02:11:56Z"
-    },
-    {
-      "number": 485,
-      "url": "https://github.com/MulattoTech/MJobs/pull/485",
-      "status": "MERGED",
-      "head": "4c3a5f78d0eab8a889d74b24916d6dc223f1dc01",
-      "merge_commit": "f7875f44b5d6c5c8f8dcce0c94a5c80e38dbbdb5",
-      "ci_evidence": "docs/evidence/2026-10-04-profile-exact-head-ci.json"
-    },
-    {
-      "number": 486,
-      "url": "https://github.com/MulattoTech/MJobs/pull/486",
-      "status": "MERGED",
-      "head": "996f7d7a3577d80c159daa88a023da5bdd45fbcd",
-      "merge_commit": "476fc221654b8366073bd7efe4955fea91e5683d",
-      "ci_evidence": "docs/evidence/2026-10-04-extraction-exact-head-ci.json"
-    },
-    {
-      "number": 488,
-      "url": "https://github.com/MulattoTech/MJobs/pull/488",
-      "status": "MERGED",
-      "head": "14a56622f4dc0835bef017ceaeacc27f0e5c8518",
-      "merge_commit": "e8f8ba6c46e83b976c9b565549c0f6f0367415d0",
-      "ci_evidence": "docs/evidence/2026-10-04-lifecycle-exact-head-ci.json"
-    },
-    {
-      "number": 489,
-      "status": "MERGED",
-      "head": "8fd0b46910101799ec506542f17698f04cc1ca6d",
-      "merge_commit": "831fd5a91be9b9843b529bd6593978c4586750f8",
-      "ci_evidence": "docs/evidence/2026-10-04-date-review-exact-head-ci.json"
-    },
-    {
-      "number": 490,
-      "url": "https://github.com/MulattoTech/MJobs/pull/490",
-      "branch": "codex/local-resume-ocr-20261004",
-      "status": "MERGED",
-      "merge_commit": "2120534c1d169c125412cf63321c2916d2a28984",
-      "merged_at": "2026-10-04T18:42:11Z"
-    },
-    {
-      "number": 491,
-      "url": "https://github.com/MulattoTech/MJobs/pull/491",
-      "branch": "codex/document-provenance-20261004",
-      "status": "MERGED",
-      "merge_commit": "36d28ba62f81ae1acc1a5d6a4f0e7950d6fd9550"
-    },
-    {
-      "number": 492,
-      "url": "https://github.com/MulattoTech/MJobs/pull/492",
-      "branch": "codex/document-library-20261004",
-      "status": "MERGED",
-      "merge_commit": "49d71a9c99b045e8bb76b2d2ae136c4f52a49454"
-    },
-    {
-      "number": 493,
-      "url": "https://github.com/MulattoTech/MJobs/pull/493",
-      "status": "MERGED",
-      "head": "bf82030665ce7f87ee5b3eed00a8d25d79294647",
-      "merge_commit": "fdba1e8e40fdaa21ad1c63a54399559fa3b3ce45",
-      "ci_evidence": "docs/evidence/2026-10-04-skill-order-exact-head-ci.json"
-    },
-    {
-      "number": 494,
-      "url": "https://github.com/MulattoTech/MJobs/pull/494",
-      "status": "MERGED",
-      "head": "a0a336b7c6d1d155e400b4e6fd853f5a771ce15f",
-      "merge_commit": "2a8e95a5023b26f3576b71c2fa46489dc9512094",
-      "ci_evidence": "docs/evidence/2026-10-04-document-validation-exact-head-ci.json"
-    },
-    {
-      "number": 495,
-      "url": "https://github.com/MulattoTech/MJobs/pull/495",
-      "status": "MERGED",
-      "head": "00603322eb5b76e228ff8077b950ef90aecae8e3",
-      "merge_commit": "5c5bb565b949746117c3cacb017bdb98f7de171a",
-      "ci_evidence": "docs/evidence/2026-10-04-resume-comparison-exact-head-ci.json"
-    },
-    {
-      "number": 497,
-      "url": "https://github.com/MulattoTech/MJobs/pull/497",
-      "status": "MERGED",
-      "head": "fa13af727743859d9923c894647554f03f9d34f5",
-      "merge_commit": "5a2f77c2a622433c9bf3dbcad22294a3de99c595",
-      "ci_evidence": "docs/evidence/2026-10-04-uploaded-comparison-exact-head-ci.json"
-    },
-    {
-      "number": 498,
-      "url": "https://github.com/MulattoTech/MJobs/pull/498",
-      "status": "MERGED",
-      "head": "61ca75cccd1a675f7bb8538a5c8b25253b60cd71",
-      "merge_commit": "b0c650b98d8c357202b4bdfc7fd2d1103ff3ea28",
-      "ci_evidence": "docs/evidence/2026-10-04-ats-headings-exact-head-ci.json"
-    },
-    {
-      "number": 500,
-      "url": "https://github.com/MulattoTech/MJobs/pull/500",
-      "branch": "codex/resume-technology-emphasis-20261004",
-      "status": "MERGED",
-      "merge_commit": "f28b2b2e8b678143dc0827eca306cd2c94803391"
-    },
-    {
-      "number": 501,
-      "url": "https://github.com/MulattoTech/MJobs/pull/501",
-      "branch": "codex/resume-contact-header-20261004",
-      "status": "MERGED",
-      "merge_commit": "a0bf00690d6f9aa834e4e0001a3ae19efb35f055",
-      "merged_at": "2026-10-04T22:21:45Z"
-    },
-    {
-      "number": 508,
-      "url": "https://github.com/MulattoTech/MJobs/pull/508",
-      "branch": "codex/core-workflow-trial-20261005",
-      "status": "MERGED",
-      "base": "44b98897fb1ced728ff206af2576b47c7cb240b1",
-      "head": "a05294cc1792b81924f01270852b1354b5d67505",
-      "merge_commit": "77cf0825e51f34874f49cc7753e721b60a944ef0",
-      "merged_at": "2026-10-05T05:42:14Z",
-      "exact_head_checks": {
-        "push_verification": 37268232466,
-        "pull_request_verification": 37268236341
-      },
-      "evidence_path": "docs/evidence/2026-10-05-manual-job-capture.json",
-      "scope_result": "PARTIAL"
-    },
-    {
-      "number": 509,
-      "url": "https://github.com/MulattoTech/MJobs/pull/509",
-      "branch": "codex/core-workflow-trial-matching-20261005",
-      "status": "MERGED",
-      "base": "77cf0825e51f34874f49cc7753e721b60a944ef0",
-      "requirements": [
-        "MJ-REQ-112",
-        "MJ-REQ-113",
-        "MJ-REQ-114",
-        "MJ-REQ-115"
-      ],
-      "issues": [
-        113,
-        114,
-        115,
-        116
-      ],
-      "evidence_path": "docs/evidence/2026-10-05-explainable-matching.json",
-      "note": "Source commit db5f83ed077ed8478a7bfe0ec6e36b82c973718f updates cli.ui_source_readback to current match copy after candidate 4328's public-source UI assertion failed under continue-on-error in both event runs. The prior 281 integration, focused browser, and 4328 independent review results are preserved; 4328 is ineligible. PR #509 remains draft; fresh review and exact push/pull_request Verification plus all reports are required on the live head.",
-      "head": "6d4fb28be03f6e6dd9985f1a887113b956bbb9a2",
-      "merge_commit": "959f9a36cd32a4c326459a0ba472a24a4abd7d3f",
-      "merged_at": "2026-10-05T07:14:23Z",
-      "exact_head_checks": {
-        "push_verification": 37275627438,
-        "pull_request_verification": 37275632400
-      }
-    },
-    {
-      "number": 510,
-      "url": "https://github.com/MulattoTech/MJobs/pull/510",
-      "branch": "codex/core-workflow-trial-cover-letter-20261005",
-      "status": "MERGED",
-      "base": "959f9a36cd32a4c326459a0ba472a24a4abd7d3f",
-      "head": "a63c79867923cb50b58c4cfde73d9ebb4c901413",
-      "merge_commit": "fb93ad48a3987c375350388ba8bf677db58575d2",
-      "merged_at": "2026-10-05T08:50:54Z",
-      "exact_head_checks": {
-        "push_verification": 37285052782,
-        "pull_request_verification": 37285059099
-      },
-      "artifact_digests": {
-        "push": "9b8b00240f86b4b837265fdd8fce1e65926db35a0ea1052319aa5c16f18aa290",
-        "pull_request": "9787bb6a54d164333d78899d5db04bb164c93a54ac6673e319e8ce15ebba4d10"
-      },
-      "evidence_path": "docs/evidence/2026-10-05-job-specific-cover-letter.json",
-      "scope_result": "PARTIAL"
-    },
-    {
-      "number": 511,
-      "url": "https://github.com/MulattoTech/MJobs/pull/511",
-      "branch": "codex/core-workflow-trial-answers-20261005",
-      "status": "MERGED",
-      "base": "fb93ad48a3987c375350388ba8bf677db58575d2",
-      "merge_commit": "fb8ab73de6f666ed2644f9d1cc271eee25aef7f7",
-      "merged_at": "2026-10-05T12:24:06Z"
-    },
-    {
-      "number": 512,
-      "url": "https://github.com/MulattoTech/MJobs/pull/512",
-      "branch": "codex/core-workflow-trial-job-tracking-20261005",
-      "status": "MERGED",
-      "base": "fb8ab73de6f666ed2644f9d1cc271eee25aef7f7",
-      "merge_commit": "2de5863da7418bf20087822d052b2beeb77ca64b",
-      "merged_at": "2026-10-05T14:26:01Z"
-    },
-    {
-      "number": 513,
-      "url": "https://github.com/MulattoTech/MJobs/pull/513",
-      "branch": "codex/core-workflow-trial-application-pipeline-20261005",
-      "status": "MERGED",
-      "base": "2de5863da7418bf20087822d052b2beeb77ca64b",
-      "review": "PREDECESSOR_METADATA_REVIEW_PASS; CURRENT_CANDIDATE_REVIEW_PENDING",
-      "exact_head_checks": "PENDING_CURRENT_CANDIDATE_PUSH_AND_PR_VERIFICATION",
-      "reviewed_source_head": "8756881027674346bd022716068b4532cbc91ca7",
-      "source_head_checks": {
-        "push_run_id": 37340200494,
-        "pull_request_run_id": 37340208479,
-        "result": "PASS_SOURCE_HEAD_ONLY_FINAL_METADATA_HEAD_PENDING"
-      },
-      "merge_commit": "9b16dd2f5c19fa33444675e45204a4eb9f546445",
-      "merged_at": "2026-10-05T17:13:48Z"
-    },
-    {
-      "number": 515,
-      "url": "https://github.com/MulattoTech/MJobs/pull/515",
-      "branch": "codex/core-workflow-trial-combined-journey-20261005",
-      "status": "DRAFT_PR",
-      "base": "3ec8702ed0f42842e1bac772997760d8db5c9caf",
-      "scope": "Connected synthetic A-F browser acceptance and exact-head verification only; broader requirements remain PARTIAL.",
-      "note": "Current recorded checkpoint 7151348 passed independent review, but push and pull_request Verification jobs did not start because GitHub reported account payment/spending-limit restriction; no artifacts exist. Keep draft until billing access is restored and both exact-head gates pass."
-    }
-  ],
+  "active_prs": [],
   "tests_passed": [
     "28 domain/control-plane unit tests",
     "Live backlog synchronization: 366 mapped; rerun 0 created",
@@ -833,11 +236,11 @@
     "MJ-PR-016 local Chromium first run used Docker DNS host api, which is not a secure browser origin for crypto.randomUUID; loopback URL rerun passed all five connected UI actions."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-05T21:32:10.763994+00:00",
+    "timestamp": "2026-10-05T21:39:52.641468+00:00",
     "result": "PASS",
-    "scope": "Explicit local frontend/build and connected synthetic browser only",
-    "evidence_path": "docs/evidence/2026-10-05-local-only-reconciliation.json",
-    "source_commit": "bbc340221677041d0c2e4e21dc15862e155cfb6b"
+    "source_commit": "ae7e27a6202272ab5a65408df91a3ccaff151dfd",
+    "scope": "Exact local candidate, combined synthetic browser and repository validators; no hosted/full-release acceptance",
+    "evidence_path": "docs/evidence/2026-10-05-local-only-reconciliation.json"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -943,10 +346,14 @@
   },
   "last_implementation_commit": "fb93ad48a3987c375350388ba8bf677db58575d2",
   "publication": {
-    "result": "PARTIAL",
-    "branch": "codex/core-workflow-trial-combined-journey-20261005",
-    "base": "3ec8702ed0f42842e1bac772997760d8db5c9caf",
-    "note": "Locally accepted source and policy checkpoint; final fast-forward/PR receipt required. Do not restart billing-blocked Actions."
+    "result": "PASS",
+    "integration_method": "NON_FORCE_FAST_FORWARD",
+    "integration_commit": "ae7e27a6202272ab5a65408df91a3ccaff151dfd",
+    "prior_main": "3ec8702ed0f42842e1bac772997760d8db5c9caf",
+    "pr_number": 515,
+    "pr_state": "CLOSED",
+    "github_reports_merged": true,
+    "note": "PR515 source is contained in main. This is local-only integration; hosted tests and additional AI review were not run. Final metadata SHA/local sync is in the closing receipt."
   },
   "optional_afk_journal": {
     "result": "PASS",
@@ -4317,11 +3724,49 @@
         "git_commit": "bbc340221677041d0c2e4e21dc15862e155cfb6b",
         "evidence_path": "docs/evidence/2026-10-05-local-only-reconciliation.json"
       }
+    },
+    {
+      "milestone_id": "LOCAL-ONLY-INTEGRATION-CLOSEOUT-20261005",
+      "timestamp": "2026-10-05T21:39:52.641468+00:00",
+      "current_phase": "LOCAL_ONLY_HANDOFF",
+      "completed_steps": [
+        "Published accepted candidate to main with a non-force fast-forward",
+        "Closed PR515 after verifying its source was contained in main",
+        "Recorded exact local candidate evidence and released implementation lane"
+      ],
+      "files_added": [],
+      "files_modified": [
+        "docs/evidence/2026-10-05-local-only-reconciliation.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Exact candidate combined synthetic browser journey PASS: one executed case, no skips",
+        "Exact candidate agent-skill, catalogue and progress validators PASS",
+        "62 frontend tests/build on unchanged product inputs PASS"
+      ],
+      "tests_remaining": [
+        "Final metadata-only schema checks",
+        "Full requirements and release acceptance remain separate; Docker-dependent verification not run"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "GitHub-hosted tests/reviews intentionally NOT_RUN",
+        "Docker unavailable; SQLite journey is not PostgreSQL deployment acceptance",
+        "No product AI or new source-provider support claimed"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "ae7e27a6202272ab5a65408df91a3ccaff151dfd",
+        "evidence_path": "docs/evidence/2026-10-05-local-only-reconciliation.json"
+      }
     }
   ],
-  "current_phase": "LOCAL_ONLY_INTEGRATION_READY",
+  "current_phase": "LOCAL_ONLY_HANDOFF",
   "last_safe_checkpoint": {
-    "git_commit": "bbc340221677041d0c2e4e21dc15862e155cfb6b",
+    "git_commit": "ae7e27a6202272ab5a65408df91a3ccaff151dfd",
     "evidence_path": "docs/evidence/2026-10-05-local-only-reconciliation.json"
   },
   "live_integrations_tested": [
@@ -4438,12 +3883,7 @@
     "product_status": "PARTIAL",
     "ownership": "PR #515 is the sole active implementation PR on the task-owned branch. PRs #504, #506, #508-#514 are merged. Current candidate is independently reviewed; final exact-head push/PR runs and runtime artifacts are pending. External submission OFF; retained private runtime/database untouched; Codespaces checkout preserved."
   },
-  "active_development_issue": {
-    "number": 515,
-    "type": "pull_request",
-    "status": "PARTIAL",
-    "scope": "Combined trial and local-only budget cutover; final integration receipt supersedes this pre-merge snapshot"
-  },
+  "active_development_issue": null,
   "historical_control_snapshots": [
     {
       "archived_at": "2026-10-03T20:12:32.612186+00:00",
@@ -4819,6 +4259,608 @@
         "requested_action": "BOUNDED_CODESPACES_SETUP",
         "note": "Sequential lane after issue503. No autonomous continuation, deployment or billable Codespace creation."
       }
+    },
+    {
+      "archived_at": "2026-10-05T21:39:52.641468+00:00",
+      "reason": "Active PR list contained historical integrated work; use live PR state",
+      "active_prs": [
+        {
+          "number": 367,
+          "url": "https://github.com/MulattoTech/MJobs/pull/367",
+          "branch": "codex/mj-pr-001-governance-safety",
+          "status": "MERGED",
+          "merge_commit": "b7bdd711bc7f4984e59620e585557aeb4fc06fa6",
+          "merged_at": "2026-09-30T19:38:24Z"
+        },
+        {
+          "number": 368,
+          "url": "https://github.com/MulattoTech/MJobs/pull/368",
+          "branch": "codex/mj-pr-148-mock-product-spine",
+          "status": "MERGED",
+          "merge_commit": "681ee0f825d4a2a19544f4fa80b1994f99092567",
+          "merged_at": "2026-09-30T19:39:12Z"
+        },
+        {
+          "number": 369,
+          "url": "https://github.com/MulattoTech/MJobs/pull/369",
+          "branch": "codex/mj-pr-002-governance-safety",
+          "status": "MERGED",
+          "merge_commit": "f30a2e5b82ff61204fa4f94c69280f8097da9b90",
+          "merged_at": "2026-09-30T19:45:13Z"
+        },
+        {
+          "number": 370,
+          "url": "https://github.com/MulattoTech/MJobs/pull/370",
+          "branch": "codex/mj-pr-149-user-testing-mvp",
+          "status": "MERGED",
+          "merge_commit": "8ee6b0a7578ab4c8a46f1bac2c707a88048473ab",
+          "merged_at": "2026-09-30T19:59:03Z"
+        },
+        {
+          "number": 428,
+          "url": "https://github.com/MulattoTech/MJobs/pull/428",
+          "branch": "codex/mj-pr-003-governance-safety",
+          "status": "MERGED",
+          "merge_commit": "65efa0d6dd0c77e6f7a8b9f8a0108a08fc714939",
+          "merged_at": "2026-10-01T00:48:51Z"
+        },
+        {
+          "number": 429,
+          "url": "https://github.com/MulattoTech/MJobs/pull/429",
+          "branch": "codex/mj-pr-005-core-search-model",
+          "status": "MERGED",
+          "merge_commit": "602fc26e411953d5adec48fc8642ec1a406ec147",
+          "merged_at": "2026-10-01T00:49:46Z"
+        },
+        {
+          "number": 430,
+          "url": "https://github.com/MulattoTech/MJobs/pull/430",
+          "branch": "codex/mj-pr-004-governance-safety",
+          "status": "MERGED",
+          "merge_commit": "b747089274e0b45531c637c7f6b1991da75081b8",
+          "merged_at": "2026-10-01T01:15:31Z"
+        },
+        {
+          "number": 436,
+          "url": "https://github.com/MulattoTech/MJobs/pull/436",
+          "branch": "codex/mj-pr-009-core-search-model",
+          "status": "MERGED",
+          "merge_commit": "6cd1fe6d069f18857eab1c64014af779d3d01f2b",
+          "merged_at": "2026-10-01T18:32:39Z"
+        },
+        {
+          "number": 437,
+          "url": "https://github.com/MulattoTech/MJobs/pull/437",
+          "branch": "codex/mj-pr-010-core-search-model",
+          "status": "MERGED",
+          "merge_commit": "1d80a61a4faf9c5e1d8704c11cf929dff448651d",
+          "merged_at": "2026-10-01T19:12:08Z"
+        },
+        {
+          "number": 438,
+          "url": "https://github.com/MulattoTech/MJobs/pull/438",
+          "branch": "codex/mj-pr-011-core-search-model",
+          "status": "MERGED",
+          "merge_commit": "9645601bb19d41a9946c3114fe92e1d4af72e535",
+          "merged_at": "2026-10-01T19:21:17Z"
+        },
+        {
+          "number": 439,
+          "url": "https://github.com/MulattoTech/MJobs/pull/439",
+          "branch": "codex/mj-pr-012-job-identity-dedupe",
+          "status": "MERGED",
+          "merge_commit": "333d9a41d29ff12805ee15ff80cfe17a3fa4b426",
+          "merged_at": "2026-10-01T19:43:59Z"
+        },
+        {
+          "number": 440,
+          "url": "https://github.com/MulattoTech/MJobs/pull/440",
+          "branch": "codex/mj-pr-013-job-identity-dedupe",
+          "status": "MERGED",
+          "merge_commit": "f6867a4cf13a44b69921710634fa1e2b809b2b5d",
+          "merged_at": "2026-10-01T19:56:09Z"
+        },
+        {
+          "number": 441,
+          "url": "https://github.com/MulattoTech/MJobs/pull/441",
+          "branch": "codex/mj-pr-014-job-identity-dedupe",
+          "status": "MERGED",
+          "merge_commit": "098f3d77ae3b41dc7ec666be47e767e040fd57d7",
+          "merged_at": "2026-10-01T20:08:38Z"
+        },
+        {
+          "number": 442,
+          "url": "https://github.com/MulattoTech/MJobs/pull/442",
+          "branch": "codex/mj-pr-015-job-identity-dedupe",
+          "status": "MERGED",
+          "merge_commit": "6267044c2e93a058eab61011164b828a542f7bdc",
+          "merged_at": "2026-10-01T20:17:53Z"
+        },
+        {
+          "number": 443,
+          "url": "https://github.com/MulattoTech/MJobs/pull/443",
+          "branch": "codex/mj-pr-016-company-ats-discovery",
+          "status": "MERGED",
+          "head": "ac74d84bf74c42a25cefffd6c06b207aedaa865b",
+          "merge_commit": "12e7ef6c9eb5ff1c7a8fd775361a9ee7e1b28aea",
+          "merged_at": "2026-10-01T22:31:45Z"
+        },
+        {
+          "number": 444,
+          "branch": "codex/mj-pr-017-company-ats-discovery",
+          "worktree": "C:\\Tools\\Dev\\MJobs-pr-017",
+          "status": "MERGED",
+          "base": "12e7ef6c9eb5ff1c7a8fd775361a9ee7e1b28aea",
+          "url": "https://github.com/MulattoTech/MJobs/pull/444",
+          "head": "d93508f4da500e139c62eedc5171ff975ef70462",
+          "note": "Live GitHub reconciliation: exact head passed both required Verification workflows and PR #444 merged to main.",
+          "merge_commit": "5e66bfe7029698b590fb57987a7ac657a958b516",
+          "merged_at": "2026-10-01T23:17:15Z",
+          "exact_head_checks": {
+            "pull_request_verification": 36939463587,
+            "push_verification": 36939459649
+          }
+        },
+        {
+          "number": 445,
+          "url": "https://github.com/MulattoTech/MJobs/pull/445",
+          "branch": "codex/mj-pr-018-company-ats-discovery",
+          "worktree": "C:\\Tools\\Dev\\MJobs-pr-018",
+          "status": "MERGED",
+          "base": "5e66bfe7029698b590fb57987a7ac657a958b516",
+          "head": "e24d6e69a40474b4d6cf1fed9b8edf9e44294ebd",
+          "note": "Initial head will be superseded by the PR-number/state bookkeeping commit; exact-head CI is not yet verified.",
+          "merge_commit": "328b0bb26eb3aa5242fe4e9253a51b0271081ace",
+          "merged_at": "2026-10-02T00:13:37Z",
+          "exact_head_checks": {
+            "pull_request_verification": 36943693601,
+            "push_verification": 36943692049
+          }
+        },
+        {
+          "branch": "codex/mj-pr-019-company-ats-discovery",
+          "worktree": "C:\\Tools\\Dev\\MJobs-pr-019",
+          "status": "MERGED",
+          "base": "328b0bb26eb3aa5242fe4e9253a51b0271081ace",
+          "head": "138992cad642dbb95dfb1b71b6f48a30c65b29ad",
+          "requirements": [
+            "MJ-REQ-066",
+            "MJ-REQ-067",
+            "MJ-REQ-068",
+            "MJ-REQ-069"
+          ],
+          "evidence_path": "docs/evidence/2026-10-02-ats-tenant-source-hierarchy.json",
+          "number": 446,
+          "url": "https://github.com/MulattoTech/MJobs/pull/446",
+          "initial_head": "f21f86b196fdd4a750666a89c9e888924b1e06a9",
+          "merge_commit": "b096b868b4feb6df6afbe1581ff7a6a80a891c16",
+          "merged_at": "2026-10-02T00:38:08Z",
+          "exact_head_checks": {
+            "pull_request_verification": 36946261732,
+            "push_verification": 36946266078
+          }
+        },
+        {
+          "branch": "codex/mj-pr-020-company-ats-discovery",
+          "worktree": "C:\\Tools\\Dev\\MJobs-pr-020",
+          "status": "MERGED",
+          "base": "b096b868b4feb6df6afbe1581ff7a6a80a891c16",
+          "head": "5a2599026f8fb68def60e3deec2aeacd73d80ea3",
+          "number": 447,
+          "url": "https://github.com/MulattoTech/MJobs/pull/447",
+          "stacked_on": "codex/mj-pr-019-company-ats-discovery",
+          "requirements": [
+            "MJ-REQ-070",
+            "MJ-REQ-071",
+            "MJ-REQ-072",
+            "MJ-REQ-073"
+          ],
+          "merge_commit": "1dc6cd4fc9b9eb2797994ff7321e15dd83e6c2d7",
+          "merged_at": "2026-10-02T01:17:07Z",
+          "exact_head_checks": {
+            "pull_request_verification": 36949709396,
+            "push_verification": 36949702239
+          }
+        },
+        {
+          "branch": "codex/mj-pr-021-company-ats-discovery",
+          "worktree": "C:\\Tools\\Dev\\MJobs-pr-021",
+          "status": "MERGED",
+          "base": "1dc6cd4fc9b9eb2797994ff7321e15dd83e6c2d7",
+          "requirements": [
+            "MJ-REQ-074",
+            "MJ-REQ-075",
+            "MJ-REQ-076",
+            "MJ-REQ-077"
+          ],
+          "evidence_path": "docs/evidence/2026-10-02-company-source-watch-and-priority.json",
+          "number": 448,
+          "url": "https://github.com/MulattoTech/MJobs/pull/448",
+          "head": "dd9bb5f73ab75cf3d5e4972d2d8f0ac1cf6dc1ef",
+          "note": "Reconciled with live GitHub PR #448; PR-triggered exact-head Verification run 36952070540 succeeded.",
+          "merge_commit": "c4c7da448cf973970f15701bdfee64de66556190",
+          "merged_at": "2026-10-02T01:45:50Z"
+        },
+        {
+          "number": 449,
+          "url": "https://github.com/MulattoTech/MJobs/pull/449",
+          "branch": "codex/mj-pr-022-company-ats-discovery",
+          "worktree": "C:\\Tools\\Dev\\MJobs-pr-022",
+          "status": "MERGED",
+          "initial_head": "d2904868dbe9d5d28b6d6c5965dc2ccb3ca78bd0",
+          "note": "Resolve the current head through GitHub after this bookkeeping commit; prior-head CI is not final.",
+          "head": "9d5a452f74815d2c726c4c911cc3b0df3c467f29",
+          "merge_commit": "566bbf9cdebf882cc80bbb65b803ca3996fa9beb",
+          "ci_evidence": "docs/evidence/2026-10-02-ci-449.json"
+        },
+        {
+          "number": 450,
+          "url": "https://github.com/MulattoTech/MJobs/pull/450",
+          "branch": "codex/mj-pr-023-company-ats-discovery",
+          "worktree": "C:\\Tools\\Dev\\MJobs-pr-023",
+          "status": "MERGED",
+          "initial_head": "83493c0c884a7719a86fdcb108e02aca648472a9",
+          "scope": "first source-linked activity slice only",
+          "merge_commit": "7241958efcae25925149a566020c50a8f61416e5"
+        },
+        {
+          "number": 453,
+          "url": "https://github.com/MulattoTech/MJobs/pull/453",
+          "branch": "codex/resume-driven-profile",
+          "status": "MERGED",
+          "local_validation": "PASS",
+          "remote_ci": "PASS",
+          "head": "260540cc35dd1a51c37c61f1ed638eb94106bafe",
+          "merge_commit": "de9b058031d6db3aace9c56eebf7e5fd4aff695d",
+          "merged_at": "2026-10-03T19:40:15Z"
+        },
+        {
+          "number": 471,
+          "url": "https://github.com/MulattoTech/MJobs/pull/471",
+          "branch": "codex/delivery-catalogue",
+          "status": "MERGED",
+          "head": "12394c753957d43311983174b0d982cb5dbabf87",
+          "merge_commit": "c4b2e9109675fa490a545210ba6475f66ba14641",
+          "exact_head_checks": {
+            "pull_request_verification": 37149698715,
+            "push_verification": 37149673238
+          }
+        },
+        {
+          "number": 452,
+          "url": "https://github.com/MulattoTech/MJobs/pull/452",
+          "branch": "codex/feedback-gui",
+          "status": "MERGED",
+          "note": "Combined287-test regression PASS; final bookkeeping changes the head, requiring fresh GitHub verification. User manual retest NOT_RUN.",
+          "merge_commit": "0ab211153f3f9da7669b1832b554aa996cef8942",
+          "head": "55fdc29264a672eea6655f025f55b87f596eb415",
+          "merged_at": "2026-10-03T20:18:18Z"
+        },
+        {
+          "number": 472,
+          "url": "https://github.com/MulattoTech/MJobs/pull/472",
+          "branch": "codex/resume-upload-integrity",
+          "status": "MERGED",
+          "head": "cfb4ca5b015475c364f719c2e0735fb00157013d",
+          "local_validation": "PASS",
+          "remote_ci": "PASS",
+          "merge_commit": "5b459ac22412d57cd86f8abf0e669ae657bc0562",
+          "exact_head_checks": {
+            "pull_request_verification": 37150172508,
+            "push_verification": 37150125082
+          }
+        },
+        {
+          "number": 473,
+          "url": "https://github.com/MulattoTech/MJobs/pull/473",
+          "branch": "codex/source-quality",
+          "status": "MERGED",
+          "head": "fbf403b93334914a043884871944288db3e8e851",
+          "merge_commit": "96e48325793c29f74c96063abf36ea86c9180a2f",
+          "merged_at": "2026-10-03T20:51:24Z",
+          "exact_head_runs": {
+            "pull_request_verification": 37152676103,
+            "push_verification": 37152672783
+          },
+          "ci_result": "PASS"
+        },
+        {
+          "number": 474,
+          "url": "https://github.com/MulattoTech/MJobs/pull/474",
+          "branch": "codex/source-value-resolution",
+          "status": "MERGED",
+          "head": "ab39d182100335d54a1c06f51b3e1e53eb95e776",
+          "merge_commit": "216f1a4696abc8dcb07fb57b5a67102091343ec5",
+          "merged_at": "2026-10-03T21:38:02Z",
+          "ci_result": "PASS",
+          "exact_head_runs": {
+            "pull_request_verification": 37155422904,
+            "push_verification": 37155420738
+          }
+        },
+        {
+          "number": 475,
+          "url": "https://github.com/MulattoTech/MJobs/pull/475",
+          "branch": "codex/public-company-discovery",
+          "status": "MERGED",
+          "observed_head_before_bookkeeping": "db9fae035b7ae0a4fa2beb84628c057ee73d000d",
+          "head": "74256a359913444cc99ecba553b9caaf9b1cf4be",
+          "merge_commit": "5a082f26a34765be32cd6c0c726c957b242b72a7",
+          "merged_at": "2026-10-03T22:11:28Z",
+          "ci_result": "PASS",
+          "exact_head_runs": {
+            "pull_request_verification": 37157224650,
+            "push_verification": 37157222316
+          }
+        },
+        {
+          "number": 476,
+          "url": "https://github.com/MulattoTech/MJobs/pull/476",
+          "branch": "codex/application-link-evidence",
+          "status": "MERGED",
+          "observed_head_before_bookkeeping": "cd487dea9772d58df5a2b811fb0f6de932f438d6",
+          "head": "f7217cac16b6d3cfc3b1b1f2d8e6f6dcf684de4f",
+          "merge_commit": "8240e471260ebeb60bde9932368651da410f3148",
+          "merged_at": "2026-10-03T22:50:15Z",
+          "ci_result": "PASS",
+          "exact_head_runs": {
+            "pull_request": 37159383575,
+            "push": 37159381073
+          }
+        },
+        {
+          "number": 477,
+          "url": "https://github.com/MulattoTech/MJobs/pull/477",
+          "branch": "codex/company-discovery-triggers",
+          "status": "MERGED",
+          "head_before_bookkeeping": "c12effd2c0d1126f60194842dd4e7af2ca19eda0",
+          "ci_result": "NOT_RUN",
+          "head": "ef847659af10c7907f99fd8d38371ee732cf30e9",
+          "merge_commit": "b4fa3a11762b0c26bfbb09e105f3c47681763e20",
+          "merged_at": "2026-10-03T23:35:53Z",
+          "exact_head_ci": {
+            "pr": 37161948331,
+            "push": 37161945869
+          }
+        },
+        {
+          "number": 479,
+          "status": "MERGED",
+          "head": "c2ea4a764af53ac2c1dba16fe77a891669581593",
+          "merge_commit": "78be4e615d2cb6848e8e1762964a7de695be4924",
+          "merged_at": "2026-10-04T01:55:41Z"
+        },
+        {
+          "number": 481,
+          "status": "MERGED",
+          "head": "1500891ac75d4eb36c531baf7c94efd035ba16cf",
+          "merge_commit": "0433a07a09a37e4e86221c547e8d21aae60de9f4",
+          "merged_at": "2026-10-04T02:06:59Z"
+        },
+        {
+          "number": 482,
+          "status": "MERGED",
+          "head": "6ccb193436f90dd71a3ba67dfc3ba1f072b11749",
+          "merge_commit": "b122b0ea9ffb6d6527e4b46ce04899d03021e361",
+          "merged_at": "2026-10-04T02:11:56Z"
+        },
+        {
+          "number": 485,
+          "url": "https://github.com/MulattoTech/MJobs/pull/485",
+          "status": "MERGED",
+          "head": "4c3a5f78d0eab8a889d74b24916d6dc223f1dc01",
+          "merge_commit": "f7875f44b5d6c5c8f8dcce0c94a5c80e38dbbdb5",
+          "ci_evidence": "docs/evidence/2026-10-04-profile-exact-head-ci.json"
+        },
+        {
+          "number": 486,
+          "url": "https://github.com/MulattoTech/MJobs/pull/486",
+          "status": "MERGED",
+          "head": "996f7d7a3577d80c159daa88a023da5bdd45fbcd",
+          "merge_commit": "476fc221654b8366073bd7efe4955fea91e5683d",
+          "ci_evidence": "docs/evidence/2026-10-04-extraction-exact-head-ci.json"
+        },
+        {
+          "number": 488,
+          "url": "https://github.com/MulattoTech/MJobs/pull/488",
+          "status": "MERGED",
+          "head": "14a56622f4dc0835bef017ceaeacc27f0e5c8518",
+          "merge_commit": "e8f8ba6c46e83b976c9b565549c0f6f0367415d0",
+          "ci_evidence": "docs/evidence/2026-10-04-lifecycle-exact-head-ci.json"
+        },
+        {
+          "number": 489,
+          "status": "MERGED",
+          "head": "8fd0b46910101799ec506542f17698f04cc1ca6d",
+          "merge_commit": "831fd5a91be9b9843b529bd6593978c4586750f8",
+          "ci_evidence": "docs/evidence/2026-10-04-date-review-exact-head-ci.json"
+        },
+        {
+          "number": 490,
+          "url": "https://github.com/MulattoTech/MJobs/pull/490",
+          "branch": "codex/local-resume-ocr-20261004",
+          "status": "MERGED",
+          "merge_commit": "2120534c1d169c125412cf63321c2916d2a28984",
+          "merged_at": "2026-10-04T18:42:11Z"
+        },
+        {
+          "number": 491,
+          "url": "https://github.com/MulattoTech/MJobs/pull/491",
+          "branch": "codex/document-provenance-20261004",
+          "status": "MERGED",
+          "merge_commit": "36d28ba62f81ae1acc1a5d6a4f0e7950d6fd9550"
+        },
+        {
+          "number": 492,
+          "url": "https://github.com/MulattoTech/MJobs/pull/492",
+          "branch": "codex/document-library-20261004",
+          "status": "MERGED",
+          "merge_commit": "49d71a9c99b045e8bb76b2d2ae136c4f52a49454"
+        },
+        {
+          "number": 493,
+          "url": "https://github.com/MulattoTech/MJobs/pull/493",
+          "status": "MERGED",
+          "head": "bf82030665ce7f87ee5b3eed00a8d25d79294647",
+          "merge_commit": "fdba1e8e40fdaa21ad1c63a54399559fa3b3ce45",
+          "ci_evidence": "docs/evidence/2026-10-04-skill-order-exact-head-ci.json"
+        },
+        {
+          "number": 494,
+          "url": "https://github.com/MulattoTech/MJobs/pull/494",
+          "status": "MERGED",
+          "head": "a0a336b7c6d1d155e400b4e6fd853f5a771ce15f",
+          "merge_commit": "2a8e95a5023b26f3576b71c2fa46489dc9512094",
+          "ci_evidence": "docs/evidence/2026-10-04-document-validation-exact-head-ci.json"
+        },
+        {
+          "number": 495,
+          "url": "https://github.com/MulattoTech/MJobs/pull/495",
+          "status": "MERGED",
+          "head": "00603322eb5b76e228ff8077b950ef90aecae8e3",
+          "merge_commit": "5c5bb565b949746117c3cacb017bdb98f7de171a",
+          "ci_evidence": "docs/evidence/2026-10-04-resume-comparison-exact-head-ci.json"
+        },
+        {
+          "number": 497,
+          "url": "https://github.com/MulattoTech/MJobs/pull/497",
+          "status": "MERGED",
+          "head": "fa13af727743859d9923c894647554f03f9d34f5",
+          "merge_commit": "5a2f77c2a622433c9bf3dbcad22294a3de99c595",
+          "ci_evidence": "docs/evidence/2026-10-04-uploaded-comparison-exact-head-ci.json"
+        },
+        {
+          "number": 498,
+          "url": "https://github.com/MulattoTech/MJobs/pull/498",
+          "status": "MERGED",
+          "head": "61ca75cccd1a675f7bb8538a5c8b25253b60cd71",
+          "merge_commit": "b0c650b98d8c357202b4bdfc7fd2d1103ff3ea28",
+          "ci_evidence": "docs/evidence/2026-10-04-ats-headings-exact-head-ci.json"
+        },
+        {
+          "number": 500,
+          "url": "https://github.com/MulattoTech/MJobs/pull/500",
+          "branch": "codex/resume-technology-emphasis-20261004",
+          "status": "MERGED",
+          "merge_commit": "f28b2b2e8b678143dc0827eca306cd2c94803391"
+        },
+        {
+          "number": 501,
+          "url": "https://github.com/MulattoTech/MJobs/pull/501",
+          "branch": "codex/resume-contact-header-20261004",
+          "status": "MERGED",
+          "merge_commit": "a0bf00690d6f9aa834e4e0001a3ae19efb35f055",
+          "merged_at": "2026-10-04T22:21:45Z"
+        },
+        {
+          "number": 508,
+          "url": "https://github.com/MulattoTech/MJobs/pull/508",
+          "branch": "codex/core-workflow-trial-20261005",
+          "status": "MERGED",
+          "base": "44b98897fb1ced728ff206af2576b47c7cb240b1",
+          "head": "a05294cc1792b81924f01270852b1354b5d67505",
+          "merge_commit": "77cf0825e51f34874f49cc7753e721b60a944ef0",
+          "merged_at": "2026-10-05T05:42:14Z",
+          "exact_head_checks": {
+            "push_verification": 37268232466,
+            "pull_request_verification": 37268236341
+          },
+          "evidence_path": "docs/evidence/2026-10-05-manual-job-capture.json",
+          "scope_result": "PARTIAL"
+        },
+        {
+          "number": 509,
+          "url": "https://github.com/MulattoTech/MJobs/pull/509",
+          "branch": "codex/core-workflow-trial-matching-20261005",
+          "status": "MERGED",
+          "base": "77cf0825e51f34874f49cc7753e721b60a944ef0",
+          "requirements": [
+            "MJ-REQ-112",
+            "MJ-REQ-113",
+            "MJ-REQ-114",
+            "MJ-REQ-115"
+          ],
+          "issues": [
+            113,
+            114,
+            115,
+            116
+          ],
+          "evidence_path": "docs/evidence/2026-10-05-explainable-matching.json",
+          "note": "Source commit db5f83ed077ed8478a7bfe0ec6e36b82c973718f updates cli.ui_source_readback to current match copy after candidate 4328's public-source UI assertion failed under continue-on-error in both event runs. The prior 281 integration, focused browser, and 4328 independent review results are preserved; 4328 is ineligible. PR #509 remains draft; fresh review and exact push/pull_request Verification plus all reports are required on the live head.",
+          "head": "6d4fb28be03f6e6dd9985f1a887113b956bbb9a2",
+          "merge_commit": "959f9a36cd32a4c326459a0ba472a24a4abd7d3f",
+          "merged_at": "2026-10-05T07:14:23Z",
+          "exact_head_checks": {
+            "push_verification": 37275627438,
+            "pull_request_verification": 37275632400
+          }
+        },
+        {
+          "number": 510,
+          "url": "https://github.com/MulattoTech/MJobs/pull/510",
+          "branch": "codex/core-workflow-trial-cover-letter-20261005",
+          "status": "MERGED",
+          "base": "959f9a36cd32a4c326459a0ba472a24a4abd7d3f",
+          "head": "a63c79867923cb50b58c4cfde73d9ebb4c901413",
+          "merge_commit": "fb93ad48a3987c375350388ba8bf677db58575d2",
+          "merged_at": "2026-10-05T08:50:54Z",
+          "exact_head_checks": {
+            "push_verification": 37285052782,
+            "pull_request_verification": 37285059099
+          },
+          "artifact_digests": {
+            "push": "9b8b00240f86b4b837265fdd8fce1e65926db35a0ea1052319aa5c16f18aa290",
+            "pull_request": "9787bb6a54d164333d78899d5db04bb164c93a54ac6673e319e8ce15ebba4d10"
+          },
+          "evidence_path": "docs/evidence/2026-10-05-job-specific-cover-letter.json",
+          "scope_result": "PARTIAL"
+        },
+        {
+          "number": 511,
+          "url": "https://github.com/MulattoTech/MJobs/pull/511",
+          "branch": "codex/core-workflow-trial-answers-20261005",
+          "status": "MERGED",
+          "base": "fb93ad48a3987c375350388ba8bf677db58575d2",
+          "merge_commit": "fb8ab73de6f666ed2644f9d1cc271eee25aef7f7",
+          "merged_at": "2026-10-05T12:24:06Z"
+        },
+        {
+          "number": 512,
+          "url": "https://github.com/MulattoTech/MJobs/pull/512",
+          "branch": "codex/core-workflow-trial-job-tracking-20261005",
+          "status": "MERGED",
+          "base": "fb8ab73de6f666ed2644f9d1cc271eee25aef7f7",
+          "merge_commit": "2de5863da7418bf20087822d052b2beeb77ca64b",
+          "merged_at": "2026-10-05T14:26:01Z"
+        },
+        {
+          "number": 513,
+          "url": "https://github.com/MulattoTech/MJobs/pull/513",
+          "branch": "codex/core-workflow-trial-application-pipeline-20261005",
+          "status": "MERGED",
+          "base": "2de5863da7418bf20087822d052b2beeb77ca64b",
+          "review": "PREDECESSOR_METADATA_REVIEW_PASS; CURRENT_CANDIDATE_REVIEW_PENDING",
+          "exact_head_checks": "PENDING_CURRENT_CANDIDATE_PUSH_AND_PR_VERIFICATION",
+          "reviewed_source_head": "8756881027674346bd022716068b4532cbc91ca7",
+          "source_head_checks": {
+            "push_run_id": 37340200494,
+            "pull_request_run_id": 37340208479,
+            "result": "PASS_SOURCE_HEAD_ONLY_FINAL_METADATA_HEAD_PENDING"
+          },
+          "merge_commit": "9b16dd2f5c19fa33444675e45204a4eb9f546445",
+          "merged_at": "2026-10-05T17:13:48Z"
+        },
+        {
+          "number": 515,
+          "url": "https://github.com/MulattoTech/MJobs/pull/515",
+          "branch": "codex/core-workflow-trial-combined-journey-20261005",
+          "status": "DRAFT_PR",
+          "base": "3ec8702ed0f42842e1bac772997760d8db5c9caf",
+          "scope": "Connected synthetic A-F browser acceptance and exact-head verification only; broader requirements remain PARTIAL.",
+          "note": "Current recorded checkpoint 7151348 passed independent review, but push and pull_request Verification jobs did not start because GitHub reported account payment/spending-limit restriction; no artifacts exist. Keep draft until billing access is restored and both exact-head gates pass."
+        }
+      ]
     }
   ],
   "current_user_browser_acceptance": {
@@ -4912,9 +4954,10 @@
   },
   "session_control": {
     "owner": "ChatGPT current user-directed budget reconciliation",
-    "write_lanes": 1,
-    "requested_action": "LOCAL_ONLY_BUDGET_CUTOVER",
-    "note": "No reviewer/model delegation; no hosted actions; not autonomous continuation."
+    "write_lanes": 0,
+    "status": "RELEASED",
+    "requested_action": "LOCAL_ONLY_HANDOFF",
+    "note": "No further implementation authorized by this historical session receipt. Current user can invoke the checked-in local-only prompt."
   },
   "pr023_completion": {
     "timestamp": "2026-10-04T01:33:37.729938+00:00",
