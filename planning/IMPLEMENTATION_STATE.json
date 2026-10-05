@@ -586,7 +586,6 @@
       "branch": "codex/core-workflow-trial-matching-20261005",
       "status": "DRAFT",
       "base": "77cf0825e51f34874f49cc7753e721b60a944ef0",
-      "head": "7289bedd4b0f53b4c43a5ac48d5f0c2259ad95b1",
       "requirements": [
         "MJ-REQ-112",
         "MJ-REQ-113",
@@ -600,7 +599,7 @@
         116
       ],
       "evidence_path": "docs/evidence/2026-10-05-explainable-matching.json",
-      "note": "Deterministic/manual-review slice only; exact final-head review and push/PR Verification pending."
+      "note": "Reviewed candidate 5792dc5d77269c6dc1bbb86b8348cba51211022b had actionable defects; repairs committed at 1ccc24cbef023b56ec252ed7cfc2bcfb4189c3b2. A fresh planning checkpoint will establish the final candidate; independent review and exact-head checks remain pending."
     }
   ],
   "tests_passed": [
@@ -810,7 +809,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Continue the deterministic matching slice from codex/core-workflow-trial-matching-20261005. Current focused local tests pass; finish full regressions, obtain independent exact-candidate review, push/open draft PR and require both exact-head Verification events plus all runtime reports. Then complete the supported public-source UI/live-read proof before moving to the next user workflow. Keep all broad requirements PARTIAL.",
+  "recommended_resume_step": "Push the committed matching repairs plus current planning checkpoint, verify the resulting PR #509 head/base, obtain fresh independent review and both exact-head Verification runs, inspect all runtime artifacts, then merge only that reviewed head. Continue the milestone after merge and do not claim full requirements from this skill-matching slice.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -3462,11 +3461,56 @@
         "git_commit": "7289bedd4b0f53b4c43a5ac48d5f0c2259ad95b1",
         "evidence_path": "docs/evidence/2026-10-05-explainable-matching.json"
       }
+    },
+    {
+      "milestone_id": "CORE-WORKFLOW-TRIAL-C-MATCHING-REVIEW-REPAIRS",
+      "timestamp": "2026-10-05T06:20:39+00:00",
+      "current_phase": "C_MATCHING_REPAIRS_COMMITTED_AWAITING_FINAL_CANDIDATE",
+      "completed_steps": [
+        "Bound independent review findings to candidate 5792dc5d77269c6dc1bbb86b8348cba51211022b against base 77cf0825e51f34874f49cc7753e721b60a944ef0",
+        "Reproduced approved-alias false negative and stale queued-rescore approval race with failing integration tests",
+        "Added isolated browser proof that a queue failure still reports the durable capture as saved",
+        "Fixed queue failure messaging, rescore execution against current profile version, and alias normalization/deduplication",
+        "Passed focused integration/browser/web checks after repairs"
+      ],
+      "files_added": [],
+      "files_modified": [
+        "apps/web/src/main.tsx",
+        "services/discovery/matching.py",
+        "workers/tasks.py",
+        "tests/browser/test_manual_job_capture.py",
+        "tests/integration/test_explainable_matching.py",
+        "docs/evidence/2026-10-05-explainable-matching.json"
+      ],
+      "tests_completed": [
+        "41 targeted matching/source/profile integration tests",
+        "5 Chromium capture/import/fact-review tests",
+        "59 web tests and TypeScript/Vite production build",
+        "Catalogue, progress journal, agent-skill, and whitespace validators"
+      ],
+      "tests_remaining": [
+        "Push repaired implementation and planning checkpoint; resolve exact final PR head/base",
+        "Fresh independent read-only review on the final candidate",
+        "Both exact-final-head push/pull_request Verification runs and all runtime artifacts",
+        "Merge and main readback"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [
+        "The earlier exact-CI-pass candidate 5792dc5d77269c6dc1bbb86b8348cba51211022b is ineligible for merge after independent review identified defects; it will be superseded by a repaired candidate."
+      ],
+      "known_limitations": [
+        "No final-candidate review or CI result is claimed yet; broader Jobs and matching acceptance remain partial."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "1ccc24cbef023b56ec252ed7cfc2bcfb4189c3b2",
+        "evidence_path": "docs/evidence/2026-10-05-explainable-matching.json"
+      }
     }
   ],
-  "current_phase": "C_MATCHING_DRAFT_509_PENDING_INDEPENDENT_REVIEW_AND_EXACT_HEAD_CI",
+  "current_phase": "C_MATCHING_REPAIRS_COMMITTED_AWAITING_FINAL_CANDIDATE",
   "last_safe_checkpoint": {
-    "git_commit": "7289bedd4b0f53b4c43a5ac48d5f0c2259ad95b1",
+    "git_commit": "1ccc24cbef023b56ec252ed7cfc2bcfb4189c3b2",
     "evidence_path": "docs/evidence/2026-10-05-explainable-matching.json"
   },
   "live_integrations_tested": [

@@ -3076,7 +3076,7 @@
       "branch": "codex/core-workflow-trial-matching-20261005",
       "draft_until_verified": true,
       "scope_complete": false,
-      "notes": "Additive deterministic/manual-review slice for career-fact-supported skill evidence, explicit REQUIRED/PREFERRED/NICE_TO_HAVE/UNKNOWN explanation, and persisted manual-job match readback. The original MJ-PR-031 and its optional AI-provider dependency are preserved unchanged; broader requirement acceptance remains open. Draft PR #509 is open; initial implementation head 7289bedd4b0f53b4c43a5ac48d5f0c2259ad95b1 is superseded by the required metadata checkpoint before exact-head review/CI.",
+      "notes": "Additive deterministic/manual-review slice for career-fact-supported skill evidence, explicit REQUIRED/PREFERRED/NICE_TO_HAVE/UNKNOWN explanation, and persisted manual-job match readback. The original MJ-PR-031 optional-AI dependency is preserved; broader requirement acceptance remains open. Draft PR #509 is open. Independent review of candidate 5792dc5d77269c6dc1bbb86b8348cba51211022b identified four actionable issues; all four are repaired in source commit 1ccc24cbef023b56ec252ed7cfc2bcfb4189c3b2. That candidate requires a new planning checkpoint, fresh exact-head review and both push/PR Verification runs before any merge.",
       "evidence_path": "docs/evidence/2026-10-05-explainable-matching.json",
       "pr_number": 509,
       "pr_url": "https://github.com/MulattoTech/MJobs/pull/509"
