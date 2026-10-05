@@ -63,6 +63,14 @@ def validate_assertions(kind, paragraphs, profile, fact_ids, job_title=None, tem
                 or context.get('fact_ids') != expected_context['fact_ids']):
             raise PreparationError('UNSUPPORTED_CLAIM', 'Cover letter differs from the approved facts or saved job evidence')
         return
+    elif kind == 'cover-letter' and template == 'verified-facts-v1':
+        prefix = 'Application for '
+        if (len(paragraphs) < 2 or paragraphs[0] != profile['name']
+                or not paragraphs[1].startswith(prefix) or not paragraphs[1][len(prefix):].strip()):
+            raise PreparationError('UNSUPPORTED_CLAIM', 'Legacy cover-letter identity header is invalid')
+        # Legacy rows have no immutable job snapshot. Validate the title embedded
+        # in the hash-checked artifact, not today's mutable canonical job title.
+        header = paragraphs[:2]
     elif kind == 'cover-letter' and job_title is not None:
         header = [profile['name'], f'Application for {job_title}']
     else:

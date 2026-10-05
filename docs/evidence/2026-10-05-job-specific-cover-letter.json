@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-10-05T08:09:16+00:00",
+  "timestamp": "2026-10-05T08:17:30+00:00",
   "result": "PARTIAL",
   "scope": "MJ-REQ-100..102 deterministic, reviewable job-specific cover-letter draft",
   "base_commit": "959f9a36cd32a4c326459a0ba472a24a4abd7d3f",
@@ -74,6 +74,41 @@
         "legacy generic preview and download remain available",
         "tampered job-specific output remains blocked"
       ]
+    },
+    {
+      "command": "GitHub Verification full Python step, push run 37281969867, head 74863e8231a236217a0514fb1136921cb2f42f39",
+      "result": "PASS",
+      "tests": 550,
+      "duration_seconds": 187.709,
+      "event_workflow_result": "CANCELLED later during isolated runtime checks; not a Verification PASS"
+    },
+    {
+      "command": "GitHub Verification full Python step, pull_request run 37281975664, head 74863e8231a236217a0514fb1136921cb2f42f39",
+      "result": "PASS",
+      "tests": 550,
+      "duration_seconds": 165.722,
+      "event_workflow_result": "CANCELLED later during isolated runtime checks; not a Verification PASS"
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_cover_letter_workflow tests.integration.test_document_validation tests.integration.test_document_provenance -v",
+      "result": "PASS",
+      "tests": 7
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.browser.test_manual_job_capture tests.browser.test_document_history -v",
+      "result": "PASS",
+      "tests": 2,
+      "browser": "Chromium"
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run",
+      "result": "PASS",
+      "tests": 61
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "typescript": "strict build"
     }
   ],
   "assertions": [
@@ -87,7 +122,7 @@
   "external_application_requests": 0,
   "product_ai_used": false,
   "limitations": [
-    "Repaired candidate has not yet completed independent re-review, exact-head push/pull_request checks, and runtime-artifact parsing.",
+    "Current working-tree title-immutability repair must be committed/pushed; independent review and both complete exact-final-head Verification runs, with runtime-artifact parsing, remain pending.",
     "Manual employer identity remains USER_ENTERED_UNVERIFIED and is labeled for user verification.",
     "This is deterministic template tailoring, not AI rephrasing or arbitrary user-edited prose.",
     "No live employer submission or company-context inference was performed.",
@@ -99,6 +134,11 @@
       "candidate": "e77ea5d7bde74c265e02da7ae4d914c5fdd0e54d",
       "finding": "Legacy generic cover-letter direct downloads lacked job_title in the validation context and returned 409.",
       "disposition": "Added a persisted legacy-revision regression test and derive its job title from the saved application before legacy validation; focused test now passes. Exact-head independent re-review and both hosted event runs are pending for the repaired candidate."
+    },
+    {
+      "candidate": "74863e8231a236217a0514fb1136921cb2f42f39",
+      "finding": "Legacy generic cover-letter revisions failed validation if the mutable job title changed since generation; no job snapshot was stored.",
+      "disposition": "Final-working-tree regression test changes the job title after saving the historical letter. The validator now binds that legacy heading to the hash-checked saved artifact while rechecking the original approved facts and every format; UI labels the missing legacy context. Focused API/history, Chromium, web, and build checks pass. Fresh final-head review and Verification remain pending."
     }
   ]
 }

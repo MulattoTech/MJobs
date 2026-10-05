@@ -44,4 +44,10 @@ describe('document provenance',()=>{
     expect(blocked).toContain('Downloads are disabled until a valid version is prepared');
     expect(blocked).not.toContain('Download PDF');expect(blocked).not.toContain('Download TXT');
   });
+  it('labels a legacy cover letter whose original job snapshot was not recorded',()=>{
+    const html=renderToStaticMarkup(<DocumentHistory documents={[{...historical,kind:'cover-letter',legacy_job_context_missing:true,
+      preview_text:'Application for Earlier Title',preview_error:null,files:{txt:'letter.txt'},missing_fact_ids:[]}]}/>);
+    expect(html).toContain('Legacy letter: its original title is preserved from the saved document; the current job title may differ.');
+    expect(html).toContain('Application for Earlier Title');
+  });
 });

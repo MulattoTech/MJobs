@@ -105,6 +105,8 @@ class CoverLetterWorkflowTests(unittest.TestCase):
                 connection.execute(update(m.documents).where(m.documents.c.id == row["id"]).values(
                     template="verified-facts-v1", generation_model="deterministic-fact-copy-v1",
                     generation_context=None, sha256=hashes))
+                connection.execute(update(m.jobs).where(m.jobs.c.id == job["id"]).values(
+                    title="Normalized current title"))
 
             app = create_app(self.store, origin, self.root, operation_mode="FIXTURE")
             with TestClient(app) as client:
@@ -112,8 +114,10 @@ class CoverLetterWorkflowTests(unittest.TestCase):
                 response = client.get(f"/documents/{row['id']}/txt")
             self.assertEqual(history.status_code, 200)
             legacy = next(item for item in history.json()["documents"] if item["id"] == row["id"])
-            self.assertEqual(legacy["preview_text"], "\n".join(paragraphs))
             self.assertEqual(response.status_code, 200)
+            self.assertTrue(legacy["legacy_job_context_missing"])
+            self.assertEqual(legacy["preview_text"], "\n".join(paragraphs))
+            self.assertIn("Application for " + job["title"], legacy["preview_text"])
             self.assertEqual(response.content, files["txt"].read_bytes())
 
 

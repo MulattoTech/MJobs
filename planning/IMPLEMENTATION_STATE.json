@@ -720,7 +720,9 @@
     "Web suite: 60 tests and strict TypeScript/Vite production build",
     "CORE-WORKFLOW-TRIAL D pre-compatibility-review candidate e77ea5d: full Python suite 549 tests PASS (256.139s); evidence docs/evidence/2026-10-05-job-specific-cover-letter.json",
     "CORE-WORKFLOW-TRIAL D: web suite 60 tests PASS, strict TypeScript/Vite production build PASS, agent-skills/progress/catalogue validators and git diff --check PASS",
-    "CORE-WORKFLOW-TRIAL D compatibility repair: 9 affected integration/Chromium tests PASS; legacy generic preview/download and tampered-new-output rejection both exercised."
+    "CORE-WORKFLOW-TRIAL D compatibility repair: 9 affected integration/Chromium tests PASS; legacy generic preview/download and tampered-new-output rejection both exercised.",
+    "CORE-WORKFLOW-TRIAL D second review: full 550-test Python step PASS on both push run 37281969867 and pull_request run 37281975664 at 74863e8; both workflow runs were canceled later in isolated runtime checks, so neither event is accepted as PASS.",
+    "CORE-WORKFLOW-TRIAL D final-working-tree historical-title repair: 7 API/history integration tests, 2 Chromium browser tests, 61 frontend tests and strict TypeScript/Vite build PASS; validators PASS."
   ],
   "tests_failed": [],
   "tests_not_run": [
@@ -733,7 +735,7 @@
     "Original P0-P3 release acceptance remains open.",
     "Combined CORE-WORKFLOW-TRIAL A-F browser journey pending",
     "Combined CORE-WORKFLOW-TRIAL A-F browser journey",
-    "D repaired candidate independent re-review and exact-head push/pull_request Verification reports/runtime-artifact parsing"
+    "D latest title-immutability repair: fresh exact-head independent review and complete push/pull_request Verification including runtime artifacts"
   ],
   "known_external_limitations": [
     "Production external career-site/domain acquisition, configured web-search provider and non-mock ATS metadata integration are not verified in MJ-PR-017.",
@@ -751,9 +753,9 @@
     "MJ-PR-016 local Chromium first run used Docker DNS host api, which is not a secure browser origin for crypto.randomUUID; loopback URL rerun passed all five connected UI actions."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-05T08:09:16+00:00",
+    "timestamp": "2026-10-05T08:17:30+00:00",
     "result": "PARTIAL",
-    "scope": "Cover-letter workflow and legacy compatibility repair: full pre-fix-candidate suite 549 Python tests, web 60 tests/build, plus 9 affected final-working-tree tests PASS; repaired-candidate independent review and exact-head hosted checks pending",
+    "scope": "Synthetic cover-letter workflow; latest working-tree legacy-title repair passes 7 API/history tests, 2 Chromium tests, 61 frontend tests/build and validators. Prior candidate 74863e8 passed its 550-test Python step on both events, but full workflows were canceled before runtime completion. Current repair needs fresh exact-head review and full event evidence.",
     "evidence_path": "docs/evidence/2026-10-05-job-specific-cover-letter.json"
   },
   "ci_verification": {
@@ -858,7 +860,7 @@
     "result": "PARTIAL",
     "branch": "codex/core-workflow-trial-cover-letter-20261005",
     "base": "959f9a36cd32a4c326459a0ba472a24a4abd7d3f",
-    "note": "Draft PR #510 published. Initial candidate e77ea5d was superseded after independent review exposed a legacy cover-letter download regression; repair is in the working tree and must be pushed/re-reviewed with fresh push and pull_request checks."
+    "note": "Draft PR #510. Candidate 74863e8 passed both full Python suite steps (550 each) but exact Verification workflows were canceled during later runtime checks after review identified legacy-title mutation behavior. A second focused repair is in the working tree; publish and obtain fresh review and complete push/pull_request checks plus reports."
   },
   "optional_afk_journal": {
     "result": "PASS",

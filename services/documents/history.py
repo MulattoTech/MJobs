@@ -11,7 +11,6 @@ from services.documents.validation import validate_assertions, validate_formats
 def validated_letter_preview(store, document, output_dir):
     application = store.application(document["application_id"])
     document.setdefault("profile_id", application["profile_id"])
-    document.setdefault("job_title", store.job(application["job_id"])["title"])
     root = Path(output_dir).resolve()
     application_root = (root / document["application_id"]).resolve()
     if not application_root.is_relative_to(root):
@@ -51,12 +50,13 @@ def application_documents(store, application_id, output_dir=None):
         for row in rows:
             row['job_id'] = application['job_id']
             row['profile_id'] = application['profile_id']
+            row['legacy_job_context_missing'] = bool(row['kind'] == 'cover-letter'
+                and row['template'] == 'verified-facts-v1' and not row.get('generation_context'))
             row['facts_used'] = [facts[(row['profile_version'], identifier)] for identifier in row['fact_ids']
                                  if (row['profile_version'], identifier) in facts]
             row['missing_fact_ids'] = [identifier for identifier in row['fact_ids']
                                        if (row['profile_version'], identifier) not in facts]
             if row['kind'] == 'cover-letter' and output_dir is not None:
-                row['job_title'] = store.job(application['job_id'])['title']
                 try:
                     row['preview_text'] = validated_letter_preview(store, row, output_dir)
                     row['preview_error'] = None
