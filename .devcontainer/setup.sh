@@ -28,12 +28,12 @@ python -m playwright install chromium
 # This is intentionally idempotent and never overwrites an existing private secret.
 python -m cli.init_env
 
-# Codex and user-level coding skills are developer tooling, not application dependencies.
+# Codex CLI is developer tooling; the project-scoped skill already lives in this repo.
 # Keep CI focused on the app; prepare them automatically only in a real Codespace.
 if [[ "${CODESPACES:-false}" == "true" ]]; then
   bash .devcontainer/bootstrap-codex.sh
 else
-  echo "==> Not a live Codespace; skipping Codex/skill bootstrap."
+  echo "==> Not a live Codespace; skipping Codex CLI bootstrap."
 fi
 
 python -m tools.verification.agent_skills
@@ -46,4 +46,4 @@ echo "MJobs environment bootstrap complete."
 echo "Fixture:  bash .devcontainer/mjobs.sh fixture"
 echo "Personal: bash .devcontainer/mjobs.sh personal"
 echo "Verify:   bash .devcontainer/verify.sh full"
-echo "Codex:    codex -m gpt-6-astra -c 'model_reasoning_effort=\"xhigh\"'"
+echo "Codex:    codex  # Read prompts/CODESPACES_ITERATION.md and supply one explicit task"

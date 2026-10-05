@@ -1,0 +1,57 @@
+{
+  "timestamp": "2026-10-05T01:10:37.226673+00:00",
+  "result": "PARTIAL",
+  "scope": "Issue505 developer tooling: bounded Codespaces/Codex CLI onboarding",
+  "base": "b1691622a61ee368f058461ff002728325d275a9",
+  "branch": "chatgpt/codespaces-bounded-iteration-20261004",
+  "changes": [
+    "Reuse existing Python3.12/Node24/Docker/Playwright devcontainer",
+    "Install only official Codex CLI with three-attempt retry and validated optional version",
+    "No automatic PMM/AFK/third-party global skills, forced model, agent launch or application startup",
+    "Add bounded user-directed prompt and creation/login/privacy/cost/stop instructions",
+    "Preserve merge-result validation and require the exact candidate tree in devcontainer CI",
+    "Explicit fail-fast shell wraps all devcontainer smoke commands so an earlier failure cannot be masked"
+  ],
+  "checks": [
+    {
+      "command": "Git Bash: bash .devcontainer/test-bootstrap.sh",
+      "result": "PASS",
+      "target": "Offline synthetic npm/codex/HOME; default and pinned versions, invalid version, persistent failure limited to three attempts, untouched synthetic auth/config/skills"
+    },
+    {
+      "command": "bash -n .devcontainer/bootstrap-codex.sh .devcontainer/test-bootstrap.sh .devcontainer/setup.sh",
+      "result": "PASS",
+      "target": "Shell syntax checked for each file"
+    }
+  ],
+  "bootstrap_log_sha256": "8fa8fdb3dcd51322d522fbd047a1dd750543f83dfce15f2f6d0f05799d419ec4",
+  "source_sha256": {
+    ".devcontainer/bootstrap-codex.sh": "b5b154ad83b05afd76657cafb99945d0944c5b7ca920611d2dfc29dd09b780c9",
+    ".devcontainer/test-bootstrap.sh": "78d395ff4e780cc50e057fa3653bb7cf4706bdee0e8e79cc9eaa03e47c976681",
+    ".devcontainer/setup.sh": "369da7be8c1dbc51314b9d8e1ada8359f2bd31e40013cde20922afa026ac8819",
+    ".github/workflows/codespaces.yml": "1edcdb80ac889805ad6e6c8ece23d2a49c180b42784e5ecea2da42573481749d",
+    "prompts/CODESPACES_ITERATION.md": "9d734f56df97e62b35c51f881285fef3138288231739206e104cfb036e98c177",
+    "docs/CODESPACES.md": "75176e952232159771da66af160b7f9d8d4f933139b47f8f3572d011b4a8f7f4",
+    "AGENTS.md": "9bb8b2d9029228c0523bbe9c82c86cee9ec5f15f5588c38dcf2c7bdaf7634f3b",
+    "README.md": "9791e42fe4b116d4179eeaebe5df88296c3d95fa553df08a132523158053c312"
+  },
+  "remaining": [
+    "Actual Codespaces devcontainer CI smoke including real CLI installation",
+    "Exact-final-head push/PR Verification and runtime reports",
+    "Independent defect review before merge"
+  ],
+  "user_codespace_created": false,
+  "credentials_transferred": false,
+  "private_data_uploaded": false,
+  "deployment_performed": false,
+  "external_submission_enabled": false,
+  "product_ai_implemented": false,
+  "independent_review": {
+    "initial_head": "25ce0cdc1fd9754022db51845e4d676d0f4c1fd6",
+    "finding": "P3: version filter rejected valid combined prerelease and build metadata",
+    "resolution": "Validate independently optional SemVer prerelease and build components; preserve no-leading-zero rules and add four accepted/six rejected offline cases.",
+    "review_method": "Fresh read-only Codex static review of exact committed source packet",
+    "final_head_review": "Pending; final receipt will be posted on PR506 before merge"
+  },
+  "final_receipt_location": "PR506 closing comment is authoritative for final candidate checks, runtime artifacts and merge; this checked-in file is a pre-merge local-evidence snapshot."
+}

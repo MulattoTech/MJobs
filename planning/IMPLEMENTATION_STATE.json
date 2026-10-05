@@ -11,8 +11,8 @@
     "current_verified_github_state": "PR501 merged; exact-head push37239204735 and PR37239207108 attempt1, all16 runtime artifacts PASS. All15 session implementation PRs merged.",
     "current_verified_at": "2026-10-04T22:25:36.958607+00:00"
   },
-  "current_milestone": "FACT-REVIEW-RESET-503",
-  "current_objective": "One user-directed fact-editor review reset with independent review and exact-head CI before merge; no deployment.",
+  "current_milestone": "CODESPACES-BOUNDED-ITERATION-505",
+  "current_objective": "Finish explicitly requested Codespaces/Codex CLI onboarding; no additional product feature or deployment.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -68,9 +68,7 @@
     "Durable reviewed public-feed monitoring: bounded scheduled/manual reads, atomic multi-profile matching and receipt, fresh authorization, failure backoff, changed-feed rediscovery and Sources status. Vendor ATS migration and broader providers remain open."
   ],
   "blocked_capabilities": [],
-  "active_requirements": [
-    "MJ-REQ-092"
-  ],
+  "active_requirements": [],
   "active_prs": [
     {
       "number": 367,
@@ -766,7 +764,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Finish issue503 independent review and exact-final-head hosted Verification/artifact checks. Handle requested Codespaces setup separately; do not continue the feature backlog.",
+  "recommended_resume_step": "Verify issue505 exact final candidate and applicable CI. Issue503 is merged/closed; issue96 remains PARTIAL. Stop after this user-requested tooling iteration.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -803,12 +801,12 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "b4fa3a11762b0c26bfbb09e105f3c47681763e20",
+  "last_implementation_commit": "5f535d90f8f3b91e1a16bf1c5eb9a667b430d753",
   "publication": {
     "result": "PARTIAL",
-    "branch": "chatgpt/fact-review-reset-503",
-    "base": "c89a09cfe7b7aa458b0f7dc4b0a53c24e4937ec0",
-    "note": "Local browser RED/GREEN and focused regressions passed; exact final-head CI and independent review required."
+    "branch": "chatgpt/codespaces-bounded-iteration-20261004",
+    "base": "b1691622a61ee368f058461ff002728325d275a9",
+    "note": "Bootstrap contract passed; actual devcontainer, exact-head Verification and independent review pending."
   },
   "optional_afk_journal": {
     "result": "PASS",
@@ -3135,12 +3133,86 @@
         "git_commit": "c89a09cfe7b7aa458b0f7dc4b0a53c24e4937ec0",
         "evidence_path": "docs/evidence/2026-10-04-fact-review-reset.json"
       }
+    },
+    {
+      "milestone_id": "FACT-REVIEW-RESET-503-MERGED",
+      "timestamp": "2026-10-05T01:00:52.123884+00:00",
+      "current_phase": "MERGED_VERIFIED",
+      "completed_steps": [
+        "Merged PR504 and closed issue503 after exact-final-head acceptance",
+        "Preserved original Windows checkout/runtime and private data"
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-04-fact-review-exact-head-ci.json"
+      ],
+      "files_modified": [],
+      "tests_completed": [
+        "Exact candidate push and PR Verification:537 Python tests each",
+        "18 runtime reports individually inspected; tested trees match candidate",
+        "Independent source-packet defect review: no actionable findings, static limitations explicit"
+      ],
+      "tests_remaining": [
+        "Full-spec release acceptance remains NOT_RUN"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "Broader tailoring and product AI remain incomplete"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "b1691622a61ee368f058461ff002728325d275a9",
+        "evidence_path": "docs/evidence/2026-10-04-fact-review-exact-head-ci.json"
+      }
+    },
+    {
+      "milestone_id": "CODESPACES-505-LOCAL",
+      "timestamp": "2026-10-05T01:00:52.123884+00:00",
+      "current_phase": "IMPLEMENTED_VALIDATING",
+      "completed_steps": [
+        "Replaced automatic global skills/AFK setup with CLI-only bootstrap",
+        "Added bounded prompt and cloud privacy/cost/onboarding guide",
+        "Passed offline bootstrap contract and shell syntax tests"
+      ],
+      "files_added": [
+        ".devcontainer/test-bootstrap.sh",
+        "prompts/CODESPACES_ITERATION.md",
+        "docs/evidence/2026-10-04-codespaces-bounded-iteration.json"
+      ],
+      "files_modified": [
+        ".devcontainer/bootstrap-codex.sh",
+        ".devcontainer/setup.sh",
+        ".github/workflows/codespaces.yml",
+        "docs/CODESPACES.md",
+        "AGENTS.md",
+        "README.md"
+      ],
+      "tests_completed": [
+        "Offline bootstrap default/pinned/retry/invalid-version/preservation cases",
+        "Shell syntax checks"
+      ],
+      "tests_remaining": [
+        "Actual Codespaces devcontainer CI smoke including real CLI installation",
+        "Exact-final-head push/PR Verification and runtime reports",
+        "Independent defect review before merge"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "No actual user Codespace created or authenticated",
+        "No deployment or application AI implementation"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "b1691622a61ee368f058461ff002728325d275a9",
+        "evidence_path": "docs/evidence/2026-10-04-fact-review-exact-head-ci.json"
+      }
     }
   ],
   "current_phase": "IMPLEMENTED_VALIDATING",
   "last_safe_checkpoint": {
-    "git_commit": "c89a09cfe7b7aa458b0f7dc4b0a53c24e4937ec0",
-    "evidence_path": "docs/evidence/2026-10-04-fact-review-reset.json"
+    "git_commit": "b1691622a61ee368f058461ff002728325d275a9",
+    "evidence_path": "docs/evidence/2026-10-04-fact-review-exact-head-ci.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
@@ -3224,9 +3296,9 @@
     "ownership": "Root sole writer; independently owned Codespaces worktree preserved; no open PR at slice start."
   },
   "active_development_issue": {
-    "number": 503,
+    "number": 505,
     "status": "PARTIAL",
-    "branch": "chatgpt/fact-review-reset-503"
+    "branch": "chatgpt/codespaces-bounded-iteration-20261004"
   },
   "historical_control_snapshots": [
     {
@@ -3558,6 +3630,21 @@
         "requested_action": "USER_REQUESTED_CLOSEOUT",
         "note": "User explicitly requested shutdown/cleanup and handoff to ChatGPT sessions. Only closeout publication remains; no new implementation. This record is historical context, never present mutation authorization."
       }
+    },
+    {
+      "archived_at": "2026-10-05T01:00:52.123884+00:00",
+      "scope": "Issue503 merged with exact-head acceptance",
+      "publication": {
+        "result": "PARTIAL",
+        "branch": "chatgpt/fact-review-reset-503",
+        "base": "c89a09cfe7b7aa458b0f7dc4b0a53c24e4937ec0",
+        "note": "Local browser RED/GREEN and focused regressions passed; exact final-head CI and independent review required."
+      },
+      "active_development_issue": {
+        "number": 503,
+        "status": "PARTIAL",
+        "branch": "chatgpt/fact-review-reset-503"
+      }
     }
   ],
   "current_user_browser_acceptance": {
@@ -3650,11 +3737,11 @@
     }
   },
   "session_control": {
-    "owner": "ChatGPT user-directed issue503",
-    "branch": "chatgpt/fact-review-reset-503",
+    "owner": "ChatGPT user-directed issue505",
+    "branch": "chatgpt/codespaces-bounded-iteration-20261004",
     "write_lanes": 1,
-    "requested_action": "BOUNDED_FACT_REVIEW_RESET",
-    "note": "Only current user request authorizes this isolated lane. No autonomous continuation or deployment."
+    "requested_action": "BOUNDED_CODESPACES_SETUP",
+    "note": "Sequential lane after issue503. No autonomous continuation, deployment or billable Codespace creation."
   },
   "pr023_completion": {
     "timestamp": "2026-10-04T01:33:37.729938+00:00",

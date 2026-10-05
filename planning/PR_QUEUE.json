@@ -756,9 +756,9 @@
         "MJ-PR-024"
       ],
       "status": "PARTIAL",
-      "branch": "chatgpt/fact-review-reset-503",
+      "branch": null,
       "draft_until_verified": true,
-      "notes": "MJ092/093/094 accepted. MJ095 ordering, explicit approved selection, technology emphasis and optional contact header accepted through PR501. Broader factual rephrasing remains PARTIAL. User authorized bounded fact-editor regression #503; no broader tailoring implementation in this lane.",
+      "notes": "MJ092/093/094 accepted. MJ095 ordering, explicit approved selection, technology emphasis and optional contact header accepted through PR501. Broader factual rephrasing remains PARTIAL. Fact-editor regression #503 is accepted in PR504; no active tailoring implementation lane.",
       "feedback_slice": {
         "branch": "codex/resume-driven-profile",
         "result": "PARTIAL",
@@ -778,9 +778,12 @@
       ],
       "review_reset_follow_up": {
         "issue": 503,
-        "result": "PARTIAL",
-        "evidence_path": "docs/evidence/2026-10-04-fact-review-reset.json",
-        "note": "Local review-reset browser proof passed; exact final CI and independent review required. Broader tailoring remains incomplete."
+        "pr_number": 504,
+        "result": "PASS",
+        "head": "5f535d90f8f3b91e1a16bf1c5eb9a667b430d753",
+        "merge_commit": "b1691622a61ee368f058461ff002728325d275a9",
+        "evidence_path": "docs/evidence/2026-10-04-fact-review-exact-head-ci.json",
+        "note": "Review-reset regression accepted; broader tailoring remains PARTIAL."
       }
     },
     {

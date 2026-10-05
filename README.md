@@ -44,6 +44,9 @@ Use it when you want builds, tests, containers and AI development to run on the
 Codespace VM rather than the local workstation. See
 [docs/CODESPACES.md](docs/CODESPACES.md) for the one-command creation flow,
 cloud startup commands, port forwarding, verification and shutdown.
+Codex CLI is installed automatically in a new Codespace; sign in explicitly and
+use [the bounded iteration entrypoint](prompts/CODESPACES_ITERATION.md). Setup
+does not launch agents, start MJobs or install global AFK/PMM skills.
 
 Repository operating instructions live in [AGENTS.md](AGENTS.md). The complete
 requirements remain in the GitHub backlog and scoped [area specifications](docs/spec/areas).

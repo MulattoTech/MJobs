@@ -43,11 +43,29 @@ and optional saved-contact headers. Broader summary/bullet rephrasing and
 automatic keyword rewriting remain incomplete. MJ-PR-027's own requirements are
 accepted, but its queue status remains PARTIAL because MJ-PR-026 is incomplete.
 
-## Fact-editor regression #503 — final verification pending
+## Fact-editor regression #503 — accepted in PR504
 
-The user explicitly authorized a bounded follow-up. Actual text/source/kind changes now reset both review flags. Confidence-only, checkbox-only and no-op changes preserve their meaning; IDs and history remain unchanged. Three real Chromium/API/worker journeys passed persisted exclusion, verification-only exclusion and explicit reapproval, plus checksums of old downloads. [Evidence](../docs/evidence/2026-10-04-fact-review-reset.json).
+PR504 merged as `b1691622a61ee368f058461ff002728325d275a9` from exact candidate `5f535d90f8f3b91e1a16bf1c5eb9a667b430d753`.
+Text/source/kind edits reset both review flags. Three real browser journeys
+cover persisted exclusion, verification-only exclusion, explicit reapproval,
+stable identity, current TXT/DOCX/PDF and all historical document hashes.
+Push and PR Verification each passed537 Python tests and all9 runtime reports;
+independent static review found no actionable defects after its CI finding was
+fixed. [Exact receipt](../docs/evidence/2026-10-04-fact-review-exact-head-ci.json).
 
-Independent read-only review and exact-final-head push/PR Verification with required runtime artifacts are still required before merge. The original Windows checkout is clean and untouched; an old client is still present, so all mutation and synthetic testing occur in a separately owned clone. Original MJobs services remain stopped and private data/volumes are unchanged. No next feature, deployment or autonomous continuation is authorized.
+The explicitly requested developer-tooling continuation is issue505: bounded
+Codespaces/Codex CLI setup. Its offline bootstrap contract and shell checks
+passed; actual devcontainer smoke, final-head Verification and independent
+review remain required. The final exact-head and merge receipt belongs to the
+[PR506 closing comment](https://github.com/MulattoTech/MJobs/pull/506), which supersedes this pre-merge snapshot. No automatic next iteration is authorized.
+[Scoped evidence](../docs/evidence/2026-10-04-codespaces-bounded-iteration.json);
+[new entrypoint](../prompts/CODESPACES_ITERATION.md).
+
+The original Windows checkout is still clean at c89a09c and was not mutated or
+deployed; an old client remained present, so this iteration used a new owned
+clone at C:/Tools/Dev/MJobs-fact-review-503. Private files, retained volumes and
+the separate prior Codespaces checkout were preserved. No billable Codespace
+was created. No new product feature or autonomous continuation is authorized.
 
 AI provider/task/cost-control work remains unimplemented. Two isolated small
 local-model probes produced schema-valid but irrelevant selections and failed
