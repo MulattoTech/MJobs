@@ -45,7 +45,7 @@
   "implementation_sha256": {
     "apps/api/main.py": "aa8a37898776aa8d3aaad0000a8a9ac06c008004ba2bdd46479e621562ad4236",
     "apps/api/AREA.md": "3f65b78dd0ac103b574cf0787c59b55375115ea09abccfd1950742b409305db7",
-    "apps/web/src/main.tsx": "b88692a57533c4d6febbdbbaf88ef42028fed96375684c0aca28e37b0fe79e83",
+    "apps/web/src/main.tsx": "ed4b032e1d3865817a2248eb13bb0bcde2cd2b6a63f72bddf4df40717be605ec",
     "apps/web/AREA.md": "ef3948f3a6a0a63d867fbd0479b627502d0bc8aa8c5cd08a4659b86b78de6a69",
     "services/discovery/manual_capture.py": "f9241bece546a9c7c303f5cb89dc770bf20b715a1ff87d3eddf36d43f28ddcdb",
     "services/discovery/AREA.md": "94200509e16fa81302a0a5f6513b08a15533b7ee8fcab76ba6221ee462d94bdb",
@@ -85,5 +85,6 @@
       "Push and pull_request workflows on that superseded candidate failed the progress-journal consistency check; this is being repaired with a new milestone entry."
     ],
     "reviewer": "Fresh read-only reviewer; final candidate review still required"
-  }
+  },
+  "source_commit": "01f0074cc0d0412d65a24f3022ea5af002d7b890"
 }
