@@ -21,6 +21,11 @@ class PublicSourceReadbackTests(unittest.TestCase):
         with self.assertRaises(AssertionError):
             classify_public_preparation([], "FAILED: DOCUMENT_RENDER_ERROR")
         with self.assertRaises(AssertionError):
+            classify_public_preparation(
+                [],
+                "FAILED: COVER_LETTER_JOB_CONTEXT_MISSING; FAILED: DOCUMENT_RENDER_ERROR",
+            )
+        with self.assertRaises(AssertionError):
             classify_public_preparation([{"id": "x", "target": "REAL", "state": "REVIEW_REQUIRED"}], "")
         with self.assertRaises(AssertionError):
             classify_public_preparation([{"id": "x", "target": "MOCK", "state": "PREPARED"}], "")
