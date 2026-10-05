@@ -68,8 +68,10 @@ class DocumentHistoryBrowserTests(unittest.TestCase):
                         expect(document.get_by_text('Source: fictional-test-profile',exact=False)).to_be_visible()
                         expect(document).not_to_contain_text('Changed Python fact')
                         for fmt in ('pdf','docx','txt'):
+                            link=document.get_by_role('link',name='Download '+fmt.upper(),exact=True)
+                            self.assertIn('/profiles/fixture/documents/',link.get_attribute('href'))
                             with page.expect_download() as event:
-                                document.get_by_role('link',name='Download '+fmt.upper(),exact=True).click()
+                                link.click()
                             data=Path(event.value.path()).read_bytes()
                             self.assertEqual(hashlib.sha256(data).hexdigest(),row['sha256'][fmt])
                     self.assertFalse(external)

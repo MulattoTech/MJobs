@@ -1,6 +1,6 @@
 {
   "evidence_id": "CORE-WORKFLOW-TRIAL-F2-APPLICATION-PIPELINE",
-  "recorded_at": "2026-10-05T15:16:00Z",
+  "recorded_at": "2026-10-05T15:50:00Z",
   "result": "PARTIAL",
   "scope": "Profile-scoped user-reported application stages, application notes and durable chronological history",
   "authority": {
@@ -18,11 +18,11 @@
     "draft_pr": {
       "number": 513,
       "url": "https://github.com/MulattoTech/MJobs/pull/513",
-      "source_head": "PENDING_FINAL_REPAIR_COMMIT_AND_PUSH",
+      "source_head": "31b605350528b2f728ce4ede4e182191bdf80454",
       "base": "2de5863da7418bf20087822d052b2beeb77ca64b"
     },
     "reviewed_predecessor_head": "01007ab1a04223f50d15e42232cc4a356d9832fd",
-    "final_candidate_head": "PENDING_REPAIR_COMMIT_AND_PUSH"
+    "final_candidate_head": "PENDING_PRIVATE_DOCUMENT_SCOPE_REPAIR_COMMIT_AND_PUSH"
   },
   "observations": [
     {
@@ -65,6 +65,17 @@
       "action": "Independent exact-head defect review and repair checkpoint",
       "target": "Read-only review of draft PR #513 head 01007ab1a04223f50d15e42232cc4a356d9832fd against base 2de5863da7418bf20087822d052b2beeb77ca64b",
       "result": "Reviewer identified and source owner repaired three UI defects: late status responses could cross application selection, edited note retries reused idempotency IDs, and switching status after an ambiguous success retained stale stage IDs. Added controlled Chromium tests for cross-application response races and lost status/note responses; repaired full repository suite (584 tests), affected suite (20 integration and 6 browser tests), 62 frontend tests, and strict build pass. Fresh exact-head review and hosted checks remain pending."
+    },
+    {
+      "action": "Fresh exact-head privacy and concurrency review of the published repair",
+      "target": "Read-only review of PR #513 head 31b605350528b2f728ce4ede4e182191bdf80454 against base 2de5863da7418bf20087822d052b2beeb77ca64b",
+      "result": "P1 confirmed: regular resume/cover-letter download links still used the unscoped route, allowing a known document ID to bypass selected-profile ownership. Fixed by using the existing profile-scoped route for every generated download, removing the unscoped endpoint, and adding foreign-profile 404 and browser-link/download checks. Reviewer withdrew the same-view P2 after confirming the UI serializes mutations and guards application changes; cross-tab freshness remains a limitation. Repaired full suite passes 584 tests in 324.939 seconds; the affected set passes 31 integration/browser tests and the 62-test frontend suite plus strict build. Push run 37331731919 and PR run 37331736836 passed on 31b6053 before the privacy finding was repaired; they are superseded and are not final-candidate evidence. Fresh final-head review/checks remain pending."
+    }
+    ,{
+      "action": "Run the full Python suite after profile-scoped generated-document downloads",
+      "command": ".venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py' -v",
+      "target": "Repository-supported Python 3.12 environment, synthetic fixtures, temporary databases and Chromium",
+      "result": "PASS: 584 tests in 324.939 seconds on the local profile-scoped download repair, including UI download paths, foreign-profile denial, pipeline history, answers and document validation."
     }
   ],
   "boundaries": [
@@ -74,7 +85,7 @@
     "Independent exact-candidate review and push/pull_request Verification with required runtime artifacts are not yet complete; no merge or full MJ-REQ-195/MJ-REQ-239 PASS is claimed."
   ],
   "remaining_gates": [
-    "Commit and publish repaired source, then verify the final remote head.",
+    "Commit and publish the privacy repair, then verify the final remote head.",
     "Inspect/commit explicit intended files, update branch, read back final PR #513 head, and verify remote SHA.",
     "Fresh independent defect review of the repaired exact candidate.",
     "Both exact-head push and pull_request Verification events, all runtime reports/artifacts, and merge-result tree equality.",

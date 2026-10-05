@@ -836,15 +836,6 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             raise NoResultFound("Document is not owned by this profile")
         return serve_document(document, format)
 
-    @app.get("/documents/{document_id}/{format}")
-    def download(document_id: str, format: Literal["pdf", "docx", "txt"]):
-        with store.engine.connect() as connection:
-            document = connection.execute(select(m.documents).where(
-                m.documents.c.id == document_id)).mappings().one_or_none()
-        if document is None or document["kind"] == "application-answer-export":
-            raise NoResultFound("Document is unavailable")
-        return serve_document(document, format)
-
     @app.post("/applications/{application_id}/mock-run", status_code=202)
     def mock_run(application_id: str, value: MockRunInput):
         if operation_mode != "FIXTURE":

@@ -61,7 +61,7 @@ class DocumentProvenanceTests(unittest.TestCase):
                 self.assertEqual(set(row['files']), {'pdf','docx','txt'})
                 outputs = {}
                 for fmt in row['files']:
-                    response = client.get(f"/documents/{row['id']}/{fmt}")
+                    response = client.get(f"/profiles/fixture/documents/{row['id']}/{fmt}")
                     self.assertEqual(response.status_code, 200)
                     self.assertEqual(hashlib.sha256(response.content).hexdigest(), row['sha256'][fmt])
                     outputs[fmt] = response.content
@@ -86,7 +86,7 @@ class DocumentProvenanceTests(unittest.TestCase):
             self.assertEqual([r for r in rows if r['version']==1], first)
             self.assertEqual({r['created_at'] for r in rows}, {'2026-10-04T12:00:00+00:00','2026-10-04T13:00:00+00:00'})
             for (identifier,fmt), data in before.items():
-                self.assertEqual(client.get(f'/documents/{identifier}/{fmt}').content, data)
+                self.assertEqual(client.get(f'/profiles/fixture/documents/{identifier}/{fmt}').content, data)
             for row in rows:
                 if row['version']==2:
                     self.assertEqual([f['text'] for f in row['facts_used']], ['Python systems','SQL'])

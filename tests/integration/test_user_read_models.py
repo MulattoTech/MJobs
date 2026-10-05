@@ -55,13 +55,16 @@ class UserReadModelTests(unittest.TestCase):
             documents = client.get("/applications/" + application + "/documents").json()["documents"]
             self.assertEqual(len(documents), 2)
             identifier = next(row["id"] for row in documents if row["kind"] == "resume")
-            pdf = client.get("/documents/" + identifier + "/pdf")
+            pdf = client.get("/profiles/fixture/documents/" + identifier + "/pdf")
             self.assertEqual(pdf.status_code, 200)
             self.assertTrue(pdf.content.startswith(b"%PDF"))
-            self.assertEqual(client.get("/documents/" + identifier + "/exe").status_code, 422)
+            self.store.save_profile(dict(PROFILE, id="other-profile"))
+            self.assertEqual(client.get("/profiles/other-profile/documents/" + identifier + "/pdf").status_code, 404)
+            self.assertEqual(client.get("/documents/" + identifier + "/pdf").status_code, 404)
+            self.assertEqual(client.get("/profiles/fixture/documents/" + identifier + "/exe").status_code, 422)
             with self.store.engine.begin() as connection:
                 connection.execute(update(m.documents).where(m.documents.c.id == identifier).values(files={"pdf": "../../outside.pdf"}))
-            self.assertEqual(client.get("/documents/" + identifier + "/pdf").status_code, 409)
+            self.assertEqual(client.get("/profiles/fixture/documents/" + identifier + "/pdf").status_code, 409)
 
     def test_mixed_pending_facts_are_excluded_and_revision_does_not_rewrite_history(self):
         profile = dict(PROFILE, facts=[PROFILE["facts"][0], dict(PROFILE["facts"][1], user_approved=False)])

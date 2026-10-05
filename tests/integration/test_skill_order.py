@@ -47,8 +47,8 @@ class SkillOrderIntegrationTests(unittest.TestCase):
             self.assertEqual(resume['generation_model'],'deterministic-skill-order-v3')
             self.assertEqual([r for r in rows if r['version']==1],original)
             for fmt in ('txt','docx','pdf'):
-                self.assertEqual(client.get(f"/documents/{resume['id']}/{fmt}").status_code,200)
-            text=client.get(f"/documents/{resume['id']}/txt").text
+                self.assertEqual(client.get(f"/profiles/fixture/documents/{resume['id']}/{fmt}").status_code,200)
+            text=client.get(f"/profiles/fixture/documents/{resume['id']}/txt").text
             self.assertEqual(text.splitlines(),['Alex Fixture','alex@example.test','Skills','Python','Experience','Example Engineer 2020-2024','Maintained services.','Skills','SQL'])
             generated=client.get('/profiles/fixture/document-library').json()['generated']
             self.assertEqual(next(r for r in generated if r['id']==resume['id'])['document_kind'],'TAILORED_RESUME')
