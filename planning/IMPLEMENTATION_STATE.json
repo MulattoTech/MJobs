@@ -1,15 +1,15 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-05T13:46:12Z",
+  "generated_at": "2026-10-05T14:06:00Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Verified at 2026-10-05T13:05:36Z: task branch codex/core-workflow-trial-job-tracking-20261005 contains commit 4b5f5e20f273edd8971f05e5880acfe24667f211, profile-scoped Save/Hide/Not Interested and job notes/history using canonical jobs and append-only audit history. Final local suite passed 575 Python tests in 312.209 seconds; 62 web tests, strict build, focused API/Chromium checks and repository validators pass. F1 remains PARTIAL pending independent exact-head review and hosted checks; separate Codespaces checkout preserved; synthetic data only.",
-    "current_verified_github_state": "Verified at 2026-10-05T13:05:36Z: origin/main is fb8ab73de6f666ed2644f9d1cc271eee25aef7f7; pushed branch codex/core-workflow-trial-job-tracking-20261005 resolves to 4b5f5e20f273edd8971f05e5880acfe24667f211; draft PR #512 is open. External submission OFF.",
-    "current_verified_at": "2026-10-05T13:05:36Z"
+    "current_verified_local_state": "Verified at 2026-10-05T14:04:02Z: task branch codex/core-workflow-trial-job-tracking-20261005 contains d7c8a855358714a484a76dcc95de5438ed2878c3; profile-scoped Save/Hide/Not Interested and append-only job notes/history plus retry-safe concurrent ordering, legacy history reads, and synchronous profile-switch reset. Full Python suite passed 577 tests in 303.442 seconds; 62 web tests, strict build, focused tracking API/Chromium checks, and 20 repeated concurrency cases pass. F1 remains PARTIAL pending fresh independent exact-head review, hosted checks/artifacts, and merge; separate Codespaces checkout preserved; synthetic data only; external submission OFF.",
+    "current_verified_github_state": "Verified at 2026-10-05T14:04:02Z: origin/main is fb8ab73de6f666ed2644f9d1cc271eee25aef7f7; pushed branch codex/core-workflow-trial-job-tracking-20261005 resolves to d7c8a855358714a484a76dcc95de5438ed2878c3; draft PR #512 is open. External submission OFF.",
+    "current_verified_at": "2026-10-05T14:04:02Z"
   },
   "current_milestone": "CORE-WORKFLOW-TRIAL-F1-JOB-DISPOSITIONS-NOTES",
   "current_objective": "Deliver bounded user-visible career-fact, job intake/evaluation, document preparation, reviewed-answer, and manual application-tracking workflows by 2026-10-05 15:00 America/Chicago; feature cutoff 13:00; preserve external submission OFF; report PARTIAL for unfinished criteria.",
@@ -775,7 +775,7 @@
     "PR #510 exact candidate a63c798: independent review clean; push 37285052782 and pull_request 37285059099 attempt 1 passed all steps; 554 Python tests in each; all nine runtime reports PASS in both digest-verified artifacts; public Greenhouse returned 18 jobs and made zero external application requests.",
     "F1 tracking repair: 576 Python tests in 299.184s; 4 focused API/browser tests include lost-response idempotency and concurrent sequence ordering; 62 web tests and strict build pass",
     "Latest F1 repair: 577 Python tests in 302.299s; 5 focused API/browser tests cover legacy history upgrade reads, profile-switch isolation, request retry idempotency, concurrent ordering and lost-response retry; 62 web tests/build and validators pass",
-    "Latest F1 privacy repair: 577 Python tests in 301.797s; 5 tracking browser/API tests verify all profile-scoped views clear before a deliberately stalled profile read returns; 62 web tests/build and validators pass"
+    "Published F1 candidate d7c8a855358714a484a76dcc95de5438ed2878c3: 577 Python tests in 303.442s; 5 focused tracking API/browser tests and 20 repeated concurrency cases pass; profile-switch browser explicitly verifies fact/answer and saved-search draft reset while the destination profile read is held; 62 web tests/build pass."
   ],
   "tests_failed": [],
   "tests_not_run": [
@@ -876,7 +876,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Commit and push the full profile-switch clearing fix, then obtain independent exact-head review, run both push and pull_request Verification and inspect all runtime artifacts before merge.",
+  "recommended_resume_step": "Obtain independent review of exact PR #512 head d7c8a855358714a484a76dcc95de5438ed2878c3, then run and inspect both push and pull_request Verification events and every required runtime report/artifact.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -4034,17 +4034,14 @@
     },
     {
       "milestone_id": "CORE-WORKFLOW-TRIAL-F1-TRACKING-REVIEW-REPAIRS",
-      "timestamp": "2026-10-05T13:46:12Z",
-      "current_phase": "LOCAL_VERIFICATION_PASS_PENDING_REPAIRED_CANDIDATE_PUBLICATION_REVIEW_CI",
+      "timestamp": "2026-10-05T14:04:02Z",
+      "current_phase": "FINAL_CANDIDATE_PUBLISHED_PENDING_INDEPENDENT_REVIEW_AND_EXACT_HEAD_CI",
       "completed_steps": [
-        "Reproduced independent-review retry duplication and concurrent ordering findings on candidate 123d9da",
-        "Added deterministic request-keyed event identity and serialized per-job sequence allocation using existing audit storage",
-        "Added API idempotency/conflict and concurrent ordering tests plus browser lost-response retry test",
-        "Ran full Python suite, web tests/build and repository validators successfully",
-        "Repaired additional independent-review findings: default missing legacy sequence to zero and clear prior-profile job/note state synchronously",
-        "Added legacy audit compatibility integration coverage and two-profile browser switch/privacy coverage",
-        "Expanded profile switch to synchronously clear all profile-scoped views and invalidate pending requests",
-        "Added held-destination-response browser coverage for stale profile fact/answer visibility"
+        "Repaired independent-review findings for retry idempotency, concurrent order, legacy sequence reads, and profile-switch stale state.",
+        "Added held-read browser assertions for old facts/answers and scheduled-search name, titles, remote, and employment draft reset.",
+        "Corrected concurrency test oracle to validate persisted ordered history rather than racing post-commit read snapshots.",
+        "Full Python suite passed 577 tests in 303.442 seconds; 20 repeated concurrency cases, 62 web tests, and strict build passed.",
+        "Committed and pushed source/test repair; origin branch SHA verified as d7c8a855358714a484a76dcc95de5438ed2878c3; PR #512 remains draft."
       ],
       "files_added": [],
       "files_modified": [
@@ -4064,34 +4061,42 @@
         "tests/browser/test_job_tracking.py"
       ],
       "tests_completed": [
-        "577 Python tests in 301.797 seconds",
-        "5 focused tracking API/browser tests including held-read profile privacy, retry loss, concurrency and legacy event read",
-        "62 web tests",
-        "TypeScript check and Vite build",
-        "catalogue, progress journal, agent skill and git diff validators"
+        ".venv\\Scripts\\python.exe -m unittest discover -s tests -p test_*.py -v: 577 passed in 303.442 seconds",
+        "Focused tracking API/Chromium tests: 5 passed",
+        "Concurrent disposition ordering test repeated 20 times: passed",
+        "npm test --prefix apps/web: 62 passed",
+        "npm run build --prefix apps/web: TypeScript and Vite build passed",
+        "git diff --check passed before source commit"
       ],
       "tests_remaining": [
-        "Publish full profile-switch clearing fix and verify exact remote SHA",
-        "Independent review of repaired final PR head",
-        "Both exact-head push and pull_request Verification events with required reports/artifacts",
-        "Merge and combined A-F browser trial"
+        "Independent defect review of exact published PR head",
+        "Exact-head push and pull_request Verification events with all required runtime reports/artifacts parsed",
+        "Merge-result tree equality and post-merge synchronization",
+        "Combined A-F browser trial and application pipeline work"
       ],
       "migrations_applied": [],
       "live_integrations_tested": [],
       "known_errors": [],
       "known_limitations": [
+        "The held-read browser case explicitly asserts prior facts/answers and scheduled-search draft reset; other profile-scoped views are reset by switchProfile code but are not individually seeded in that browser test.",
         "Full core workflow and requirement parents remain PARTIAL; no application pipeline implementation yet."
       ],
       "last_safe_checkpoint": {
-        "git_commit": "e8af3de1495b401e1e522f24708abd341ff9849e",
-        "evidence_path": "docs/evidence/2026-10-05-job-dispositions-notes.json"
+        "git_commit": "d7c8a855358714a484a76dcc95de5438ed2878c3",
+        "branch": "codex/core-workflow-trial-job-tracking-20261005",
+        "evidence_path": "docs/evidence/2026-10-05-job-dispositions-notes.json",
+        "working_tree_changes_present": true,
+        "remote_push": "PASS_REMOTE_SHA_MATCHES_LOCAL"
       }
     }
   ],
-  "current_phase": "LOCAL_VERIFICATION_PASS_PENDING_REPAIRED_CANDIDATE_PUBLICATION_REVIEW_CI",
+  "current_phase": "FINAL_CANDIDATE_PUBLISHED_PENDING_INDEPENDENT_REVIEW_AND_EXACT_HEAD_CI",
   "last_safe_checkpoint": {
-    "git_commit": "e8af3de1495b401e1e522f24708abd341ff9849e",
-    "evidence_path": "docs/evidence/2026-10-05-job-dispositions-notes.json"
+    "git_commit": "d7c8a855358714a484a76dcc95de5438ed2878c3",
+    "branch": "codex/core-workflow-trial-job-tracking-20261005",
+    "evidence_path": "docs/evidence/2026-10-05-job-dispositions-notes.json",
+    "working_tree_changes_present": true,
+    "remote_push": "PASS_REMOTE_SHA_MATCHES_LOCAL"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
@@ -4680,5 +4685,11 @@
     "pr_number": 479,
     "head": "c2ea4a764af53ac2c1dba16fe77a891669581593",
     "merge_commit": "78be4e615d2cb6848e8e1762964a7de695be4924"
-  }
+  },
+  "verification_summary": [
+    "Latest F1 verification on d7c8a855358714a484a76dcc95de5438ed2878c3: 577 Python tests in 303.442s; 5 focused tracking API/browser tests; 20 repeated concurrency tests; 62 web tests; TypeScript/Vite build pass.",
+    "Profile-switch browser coverage asserts facts, answer, and scheduled-search draft reset while the destination-profile read is held; other profile views are cleared by code but not individually seeded in that browser test.",
+    "Remote branch SHA matches d7c8a855358714a484a76dcc95de5438ed2878c3. Independent exact-head review and fresh exact-head push/pull_request Verification plus runtime artifact inspection remain pending."
+  ],
+  "ownership": "PR #512 remains draft on task-owned branch codex/core-workflow-trial-job-tracking-20261005 at published head d7c8a855358714a484a76dcc95de5438ed2878c3. Retry/idempotency, concurrent ordering, legacy history compatibility, and profile-switch reset repairs have local independent review findings addressed; latest Python suite 577 tests, 62 web tests/build pass. Browser coverage is explicit for facts/answers and scheduled-search drafts during a held profile read; other view resets are not individually seeded. Fresh exact-head independent review and push/pull_request gates pending. Synthetic-only data; external submission OFF; separate Codespaces checkout preserved; retained private runtime untouched."
 }

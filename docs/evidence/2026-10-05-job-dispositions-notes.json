@@ -1,6 +1,6 @@
 {
   "evidence_id": "CORE-WORKFLOW-TRIAL-F1-JOB-DISPOSITIONS-NOTES",
-  "recorded_at": "2026-10-05T13:46:12Z",
+  "recorded_at": "2026-10-05T14:04:02Z",
   "result": "PARTIAL",
   "scope": "Profile-scoped job save, hide, not-interested status and append-only job notes/history",
   "authority": {
@@ -39,13 +39,13 @@
       "action": "Run affected API and browser regressions",
       "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_job_tracking tests.browser.test_job_tracking -v",
       "target": "Synthetic fixtures and temporary databases",
-      "result": "PASS: 5 tracking API/browser tests cover two-profile privacy/isolation across the profile editor, legacy pre-sequence history read and append, request replay/conflict handling, concurrent sequence ordering, lost-response note retry without duplicate history, and store reload."
+      "result": "PASS: 5 tracking API/browser tests cover legacy pre-sequence history, request replay/conflict, concurrent sequence ordering, lost-response note retry without duplicate history, and reload. The browser holds a destination-profile read while checking that old fact/answer and scheduled-search draft values are cleared; it does not individually seed every other profile-scoped view."
     },
     {
       "action": "Run complete repository Python suite",
       "command": ".venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py' -v",
       "target": "Repository-supported Python 3.12 test environment, temporary databases, controlled fixtures and isolated Chromium",
-      "result": "PASS: 577 tests in 301.797 seconds on the current source and test set; no test failures."
+      "result": "PASS: 577 tests in 303.442 seconds on the current source and test set; no test failures."
     },
     {
       "action": "Run web tests and strict production build",
@@ -69,18 +69,17 @@
       "action": "Verify tracking upgrade-read and profile-switch isolation repairs",
       "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_job_tracking tests.browser.test_job_tracking -v",
       "target": "Synthetic FIXTURE profiles, pre-sequence audit events and temporary SQLite store; loopback Chromium",
-      "result": "PASS: 5 tests. Legacy JOB_DISPOSITION/JOB_NOTE rows with no sequence remain readable and ordered before new events. Switching profiles while the new profile read is deliberately held clears old profile facts/answers, applications, documents, resumes, operations, source views, job detail, draft note and retry IDs before load completion. No external requests or application records were created."
+      "result": "PASS: 5 tests. Legacy JOB_DISPOSITION/JOB_NOTE rows without sequence remain readable and ordered before new events. During a deliberately stalled destination-profile read, Chromium confirms the prior profile facts/answers and scheduled-search name, titles, remote, and employment draft values are cleared. Other profile-scoped application/document/resume/operation/source state is synchronously cleared in switchProfile code but is not individually seeded by this browser case. No external requests or application records were created."
     },
     {
       "action": "Resolve independent profile-switch data leakage review finding",
       "command": "Exact-candidate repair; independent final review pending",
       "target": "All profile-scoped in-memory data and pending browser reads",
-      "result": "Profile switching now synchronously blanks the editor and clears profile-scoped applications, documents, resumes, operations, answer drafts, company sources, search profiles, selected application, job detail/list, and note/retry state; outstanding profile reads are invalidated. A browser test stalls the destination profile response and confirms the old fact/answer fields are already absent."
+      "result": "Published as d7c8a855358714a484a76dcc95de5438ed2878c3; remote branch SHA matches. Profile switching synchronously clears editor, application/document/resume/operation/answer, company-source, scheduled-search, job-detail/list, and note/retry in-memory state and invalidates pending reads. Chromium specifically asserts facts/answers and scheduled-search name/titles/remote/employment reset while the profile read is held. Fresh independent review of the exact candidate and exact-head CI are pending."
     }
   ],
   "remaining_gates": [
-    "Commit and publish the full profile-switch clearing fix; verify exact remote SHA",
-    "Fresh independent defect review of that exact final PR head",
+    "Fresh independent defect review of the published final PR head d7c8a855358714a484a76dcc95de5438ed2878c3",
     "Both exact-head push and pull_request Verification events, including all required runtime artifacts and reports",
     "Merge-result tree equality, closing receipt, main synchronization and combined workflow proof"
   ],
