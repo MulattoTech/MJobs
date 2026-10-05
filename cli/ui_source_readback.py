@@ -21,7 +21,7 @@ def run(base_url, evidence_path):
         expect(page.locator(".job-list .job-card").first).to_be_visible()
         expect(page.locator(".job-list .job-card").first).to_contain_text("greenhouse · read only")
         page.locator(".job-list .job-card").first.click()
-        expect(page.get_by_text("Skill mentions are not verified mandatory requirements or a full qualification assessment.", exact=True)).to_be_visible()
+        expect(page.get_by_text("Weighted coverage of detected skill evidence; this is not a qualification assessment.", exact=True)).to_be_visible()
         expect(page.get_by_role("link", name="Open employer application")).to_be_visible()
         page.get_by_role("button", name="Prepare documents", exact=True).click()
         expect(page.get_by_role("heading", name="Application details")).to_be_visible()
