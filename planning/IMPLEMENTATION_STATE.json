@@ -865,7 +865,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Publish the stale-profile-save CAS repair on PR #511, obtain fresh independent exact-head review and both exact Verification events with all runtime artifacts, then merge only if every gate passes; continue to F after a green merge.",
+  "recommended_resume_step": "Publish the require-version contract repair on PR #511, obtain fresh independent exact-head review and both exact Verification events with all runtime artifacts, then merge only if all gates pass; continue to F after a green merge.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -3921,15 +3921,65 @@
         "planning/SESSION_HANDOFF.md",
         "docs/evidence/2026-10-05-reviewed-application-answers.json"
       ]
+    },
+    {
+      "milestone_id": "CORE-WORKFLOW-TRIAL-E-REQUIRE-VERSION-REPAIR",
+      "timestamp": "2026-10-05T11:47:32Z",
+      "current_phase": "E_REQUIRE_VERSION_FOR_PROFILE_UPDATES_LOCALLY_VERIFIED_EXACT_REVIEW_AND_CI_PENDING",
+      "completed_steps": [
+        "Independent review of candidate 315c2e1 found a delayed API client could omit expected_version and overwrite a committed approval revocation; earlier exact-head CI passing does not qualify that candidate.",
+        "Made expected_version mandatory for every API update to an existing profile while permitting initial profile creation; stale/missing versions receive HTTP 409 before persistence.",
+        "Updated synthetic API clients and direct browser API regression to send the version they loaded.",
+        "Added regression proving a delayed unversioned stale client cannot restore revoked verified/user_approved flags."
+      ],
+      "files_added": [],
+      "tests_completed": [
+        "Full repository suite on current working tree: 567 tests passed in 339.768 seconds.",
+        "Focused answer-export, profile-import, and API-queue suites: 30 tests passed; includes stale overlapping save, stale expected-version, and missing-version rejection.",
+        "Fact-review Chromium browser tests: 3 passed; answer-export and document-history Chromium tests: 2 passed on preceding compatible UI build.",
+        "Web tests: 62 passed; strict TypeScript/Vite build passed.",
+        "Prior current-checkpoint repository validators, Python syntax check, and whitespace checks passed; rerun after final evidence updates."
+      ],
+      "tests_remaining": [
+        "Fresh independent exact-candidate review of the mandatory expected-version behavior.",
+        "Both exact-head push and pull_request Verification events, PR candidate/merge-tree equality, all required runtime reports and artifact integrity.",
+        "Combined final A-F browser journey; manual tracker F remains open."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "MJ-REQ-103..107 remain PARTIAL: exact-only matching, fixed confidence floor, full sensitive/legal policy and durable unexported drafts are incomplete.",
+        "PR #511 has not passed fresh exact-head review/CI for this newest source candidate."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "315c2e1b469893181d476c4ccc5423bb05dce9e2",
+        "branch": "codex/core-workflow-trial-answers-20261005",
+        "evidence_path": "docs/evidence/2026-10-05-reviewed-application-answers.json",
+        "working_tree_changes_present": true,
+        "remote_push": "PENDING_REQUIRED_VERSION_COMMIT"
+      },
+      "files_modified": [
+        "apps/api/main.py",
+        "packages/persistence/store.py",
+        "tests/integration/test_application_answer_export.py",
+        "tests/integration/test_profile_import.py",
+        "tests/browser/test_fact_review.py",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/SESSION_HANDOFF.md",
+        "docs/evidence/2026-10-05-reviewed-application-answers.json"
+      ]
     }
   ],
-  "current_phase": "E_STALE_PROFILE_SAVE_GUARD_REPAIRED_LOCAL_VERIFICATION_PASS_EXACT_REVIEW_AND_CI_PENDING",
+  "current_phase": "E_REQUIRE_VERSION_FOR_PROFILE_UPDATES_LOCALLY_VERIFIED_EXACT_REVIEW_AND_CI_PENDING",
   "last_safe_checkpoint": {
-    "git_commit": "d98f250e9760b7b3e4b7089df3f993e2b8c09241",
+    "git_commit": "315c2e1b469893181d476c4ccc5423bb05dce9e2",
     "branch": "codex/core-workflow-trial-answers-20261005",
     "evidence_path": "docs/evidence/2026-10-05-reviewed-application-answers.json",
     "working_tree_changes_present": true,
-    "remote_push": "PENDING_REPAIR_COMMIT"
+    "remote_push": "PENDING_REQUIRED_VERSION_COMMIT"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
@@ -4039,12 +4089,12 @@
     }
   ],
   "live_reconciliation": {
-    "timestamp": "2026-10-05T11:29:00Z",
+    "timestamp": "2026-10-05T11:47:32Z",
     "base_commit": "fb93ad48a3987c375350388ba8bf677db58575d2",
     "evidence_path": "docs/evidence/2026-10-05-reviewed-application-answers.json",
     "current_slice_validation": "PARTIAL",
     "product_status": "PARTIAL",
-    "ownership": "Authorized task branch codex/core-workflow-trial-answers-20261005; old client release confirmed by user; PR #511 remains draft; source/evidence checkpoint pending commit and push; synthetic-only tests; external submission OFF; retained private runtime untouched."
+    "ownership": "Authorized task branch codex/core-workflow-trial-answers-20261005; old client release confirmed by user; PR #511 stays draft; new required-version source/evidence checkpoint pending commit/push; synthetic-only data; external submission OFF; retained private runtime untouched."
   },
   "active_development_issue": {
     "number": 104,
@@ -4058,7 +4108,7 @@
     ],
     "branch": "codex/core-workflow-trial-answers-20261005",
     "pr_number": 511,
-    "scope": "Question-aware bank, approval reset, exact-match suggestion with explicit review, profile-scoped immutable answer export, and stale-profile-save approval protection. Requirements 103-107 remain PARTIAL beyond this narrow slice; fresh exact-head review and push/pull_request checks pending.",
+    "scope": "Question-aware bank, approval reset, exact-match suggestion with explicit review, profile-scoped immutable answer export, and mandatory expected-version protection on updates. Requirements 103-107 remain PARTIAL beyond this narrow slice; fresh exact-head review and push/pull_request checks pending.",
     "evidence_path": "docs/evidence/2026-10-05-reviewed-application-answers.json"
   },
   "historical_control_snapshots": [

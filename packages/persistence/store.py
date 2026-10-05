@@ -146,7 +146,7 @@ class Store:
             raise WorkspaceModeError("WORKSPACE_MODE_MISMATCH",
                 f"Database is bound to {row}; requested {mode}. Use a separate Compose project")
 
-    def save_profile(self, profile, expected_version=None):
+    def save_profile(self, profile, expected_version=None, require_expected_version=False):
         if not all(isinstance(profile.get(field), str) and profile[field].strip() for field in ("id", "name", "email")):
             raise ValueError("Profile identity/contact fields are required")
         if not isinstance(profile.get("facts"), list) or len(profile["facts"]) > 200:
@@ -155,6 +155,8 @@ class Store:
         # Older clients omit these fields. Preserve existing values on their updates.
         with self.engine.connect() as connection:
             current = connection.execute(select(m.profiles.c.version).where(m.profiles.c.id == profile['id'])).scalar_one_or_none()
+        if current is not None and require_expected_version and expected_version is None:
+            raise ProfileVersionConflict("Profile version is required for updates; reload before saving")
         if expected_version is not None and expected_version != current:
             raise ProfileVersionConflict("Profile changed since this editor was loaded; reload before saving")
         previous = self.profile(profile['id']) if current else {}

@@ -1,6 +1,6 @@
 {
   "evidence_id": "CORE-WORKFLOW-TRIAL-E-REVIEWED-APPLICATION-ANSWERS",
-  "recorded_at": "2026-10-05T11:29:00Z",
+  "recorded_at": "2026-10-05T11:47:53Z",
   "result": "PARTIAL",
   "scope": "Question-aware reusable answer review and immutable application-linked TXT exports",
   "authority": {
@@ -106,6 +106,18 @@
       "command": "gh run view 37301337462 --log-failed; gh run view 37301342042",
       "target": "Superseded PR #511 candidate d98f250 against fb93ad48",
       "result": "Push event failed its connected UI dry-run state assertion: UI still showed PREPARED after the default five seconds. Paired pull_request event passed. cli/ui_e2e.py now allows 15 seconds for this same DRY_RUN_COMPLETE state and retains the STOP_BEFORE_SUBMIT trace check; current candidate events remain pending."
+    },
+    {
+      "action": "Independent exact-head review of candidate 315c2e1 and repair of its remaining approval-resurrection path",
+      "command": "Read-only exact-SHA review of PR #511 candidate 315c2e1 against fb93ad48a3987c375350388ba8bf677db58575d2",
+      "target": "Profile API expected-version contract and answer approval revocation",
+      "result": "P1 reproduced: a delayed old API client that omitted expected_version could overwrite a newer revoked approval after that newer save had committed. Repaired locally by requiring expected_version for every existing-profile API update and adding a missing-token 409 regression. Candidate 315c2e1 is superseded despite green exact-head CI."
+    },
+    {
+      "action": "Run the full repository suite after requiring expected_version on existing profile updates",
+      "command": ".venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py' -v",
+      "target": "Temporary databases, controlled fixtures, isolated Chromium; synthetic data only",
+      "result": "PASS: 567 tests in 339.768 seconds. Includes browser fact-review, answer export/history, profile import and API queue coverage plus stale overlapping-save, stale-token and missing-token regressions."
     }
   ],
   "verified_behavior": [
@@ -118,23 +130,34 @@
     "Reviewed answers create immutable, application-linked TXT document revisions with profile snapshot, question, answer-bank ID, provenance, confidence, and SHA-256. Prior export bytes survive later exports and application reload.",
     "Answer-export metadata and byte downloads are available through profile-scoped application history/download routes; unscoped history omits these records and unscoped byte download returns not-found. Content-addressed output is atomically promoted so a partial/interrupted write cannot occupy the next revision path.",
     "The local export does not fill or submit an employer form. Test mode used synthetic data and local-only browser traffic; external submission remains OFF.",
-    "Profile editor sends the version it loaded; API rejects stale versions with HTTP 409; Store uses an atomic version compare-and-swap inside the save transaction so an older overlapping full-profile snapshot cannot restore an answer approval after a newer substantive edit."
+    "Profile editor sends the version it loaded; API now requires that token on every update to an existing profile and rejects missing or stale tokens with HTTP 409. Store atomically compares the observed version inside the transaction, preventing both delayed stale submissions and overlapping saves from restoring a revoked answer approval."
   ],
   "limitations": [
     "Matching supports normalized exact questions only. Fuzzy and semantic variants in MJ-REQ-104 remain unimplemented.",
     "The minimum reusable confidence is currently a fixed 80 rather than a configurable threshold; scoring bands and confidence provenance acceptance in MJ-REQ-105 remain incomplete.",
     "Sensitive-answer detection is a conservative lexical rule set, not the full user-configurable sensitive-answer policy or legally significant profile-policy controls in MJ-REQ-106/107; manual per-application text and deliberate review remain required for detected questions.",
     "Unexported draft questions remain in the browser form; durable history starts when the reviewed TXT export is saved.",
-    "SQLite stale-save and expected-version regressions passed locally; fresh exact-head hosted verification, including repository CI runtime reports, is still pending. Full product requirement MJ-REQ-103..107 acceptance remains incomplete."
+    "Current strict expected-version candidate has local full-suite evidence; fresh exact-head independent review and both-event hosted checks/artifact parsing are pending."
   ],
   "external_submission": "OFF",
   "ai_provider": "NOT_USED",
-  "hosted_exact_head_checks": "PENDING for the next committed and pushed candidate; superseded d98 push failed and paired PR event passed.",
-  "previous_candidate": {
-    "head": "d98f250e9760b7b3e4b7089df3f993e2b8c09241",
-    "base": "fb93ad48a3987c375350388ba8bf677db58575d2",
-    "push_verification": 37301337462,
-    "pull_request_verification": 37301342042,
-    "eligibility": "NOT_ELIGIBLE: push event failed the connected dry-run state oracle after five seconds; paired pull_request event passed. This candidate is superseded."
-  }
+  "hosted_exact_head_checks": "PENDING for the next source candidate. Candidate 315c2e1 push and pull_request events both passed but are superseded by its independent-review P1 finding.",
+  "superseded_candidates": [
+    {
+      "head": "d98f250e9760b7b3e4b7089df3f993e2b8c09241",
+      "base": "fb93ad48a3987c375350388ba8bf677db58575d2",
+      "push_verification": 37301337462,
+      "pull_request_verification": 37301342042,
+      "eligibility": "NOT_ELIGIBLE: push event failed the connected dry-run state oracle after five seconds; paired pull_request event passed. This candidate is superseded."
+    },
+    {
+      "head": "315c2e1b469893181d476c4ccc5423bb05dce9e2",
+      "base": "fb93ad48a3987c375350388ba8bf677db58575d2",
+      "push_verification": 37303429620,
+      "pull_request_verification": 37303434314,
+      "workflow_results": "Both passed the complete workflow on exact head, including the nine connected runtime reports and PR candidate-tree check.",
+      "independent_review": "P1 found unversioned existing-profile API saves could overwrite a newer answer approval revocation.",
+      "eligibility": "NOT_ELIGIBLE: review defect repaired in the next working candidate; these green runs do not certify changed source."
+    }
+  ]
 }

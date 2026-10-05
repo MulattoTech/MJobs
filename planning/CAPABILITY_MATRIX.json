@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-05T11:29:00Z",
+  "timestamp": "2026-10-05T11:47:32Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -915,7 +915,7 @@
       "evidence": [
         "docs/evidence/2026-10-05-reviewed-application-answers.json"
       ],
-      "note": "Narrow exact-match/manual-review export path now includes profile-scoped answer history/download, atomic content-addressed export recovery, and a saved-profile load gate. Local 564-test Python suite, 62 web tests, focused Chromium, build and validators pass; requirement-wide matching, confidence policy and sensitive/legal policy remain incomplete. Fresh PR #511 exact-head review and both event checks are pending. Narrow E slice; approval-race repair is locally tested, while fresh exact-head review/CI and full requirement acceptance remain pending."
+      "note": "Narrow exact-match/manual-review export path now includes profile-scoped answer history/download, atomic content-addressed export recovery, and a saved-profile load gate. Local 564-test Python suite, 62 web tests, focused Chromium, build and validators pass; requirement-wide matching, confidence policy and sensitive/legal policy remain incomplete. Fresh PR #511 exact-head review and both event checks are pending. Narrow E slice; approval-race repair is locally tested, while fresh exact-head review/CI and full requirement acceptance remain pending. A current narrow slice requires matching profile versions on every update; full requirement acceptance and fresh exact-head hosted gates remain pending."
     },
     {
       "requirement_id": "MJ-REQ-104",
@@ -923,7 +923,7 @@
       "evidence": [
         "docs/evidence/2026-10-05-reviewed-application-answers.json"
       ],
-      "note": "Narrow exact-match/manual-review export path now includes profile-scoped answer history/download, atomic content-addressed export recovery, and a saved-profile load gate. Local 564-test Python suite, 62 web tests, focused Chromium, build and validators pass; requirement-wide matching, confidence policy and sensitive/legal policy remain incomplete. Fresh PR #511 exact-head review and both event checks are pending. Narrow E slice; approval-race repair is locally tested, while fresh exact-head review/CI and full requirement acceptance remain pending."
+      "note": "Narrow exact-match/manual-review export path now includes profile-scoped answer history/download, atomic content-addressed export recovery, and a saved-profile load gate. Local 564-test Python suite, 62 web tests, focused Chromium, build and validators pass; requirement-wide matching, confidence policy and sensitive/legal policy remain incomplete. Fresh PR #511 exact-head review and both event checks are pending. Narrow E slice; approval-race repair is locally tested, while fresh exact-head review/CI and full requirement acceptance remain pending. A current narrow slice requires matching profile versions on every update; full requirement acceptance and fresh exact-head hosted gates remain pending."
     },
     {
       "requirement_id": "MJ-REQ-105",
@@ -931,7 +931,7 @@
       "evidence": [
         "docs/evidence/2026-10-05-reviewed-application-answers.json"
       ],
-      "note": "Narrow exact-match/manual-review export path now includes profile-scoped answer history/download, atomic content-addressed export recovery, and a saved-profile load gate. Local 564-test Python suite, 62 web tests, focused Chromium, build and validators pass; requirement-wide matching, confidence policy and sensitive/legal policy remain incomplete. Fresh PR #511 exact-head review and both event checks are pending. Narrow E slice; approval-race repair is locally tested, while fresh exact-head review/CI and full requirement acceptance remain pending."
+      "note": "Narrow exact-match/manual-review export path now includes profile-scoped answer history/download, atomic content-addressed export recovery, and a saved-profile load gate. Local 564-test Python suite, 62 web tests, focused Chromium, build and validators pass; requirement-wide matching, confidence policy and sensitive/legal policy remain incomplete. Fresh PR #511 exact-head review and both event checks are pending. Narrow E slice; approval-race repair is locally tested, while fresh exact-head review/CI and full requirement acceptance remain pending. A current narrow slice requires matching profile versions on every update; full requirement acceptance and fresh exact-head hosted gates remain pending."
     },
     {
       "requirement_id": "MJ-REQ-106",
@@ -939,7 +939,7 @@
       "evidence": [
         "docs/evidence/2026-10-05-reviewed-application-answers.json"
       ],
-      "note": "Narrow exact-match/manual-review export path now includes profile-scoped answer history/download, atomic content-addressed export recovery, and a saved-profile load gate. Local 564-test Python suite, 62 web tests, focused Chromium, build and validators pass; requirement-wide matching, confidence policy and sensitive/legal policy remain incomplete. Fresh PR #511 exact-head review and both event checks are pending. Narrow E slice; approval-race repair is locally tested, while fresh exact-head review/CI and full requirement acceptance remain pending."
+      "note": "Narrow exact-match/manual-review export path now includes profile-scoped answer history/download, atomic content-addressed export recovery, and a saved-profile load gate. Local 564-test Python suite, 62 web tests, focused Chromium, build and validators pass; requirement-wide matching, confidence policy and sensitive/legal policy remain incomplete. Fresh PR #511 exact-head review and both event checks are pending. Narrow E slice; approval-race repair is locally tested, while fresh exact-head review/CI and full requirement acceptance remain pending. A current narrow slice requires matching profile versions on every update; full requirement acceptance and fresh exact-head hosted gates remain pending."
     },
     {
       "requirement_id": "MJ-REQ-107",
@@ -947,7 +947,7 @@
       "evidence": [
         "docs/evidence/2026-10-05-reviewed-application-answers.json"
       ],
-      "note": "Narrow exact-match/manual-review export path now includes profile-scoped answer history/download, atomic content-addressed export recovery, and a saved-profile load gate. Local 564-test Python suite, 62 web tests, focused Chromium, build and validators pass; requirement-wide matching, confidence policy and sensitive/legal policy remain incomplete. Fresh PR #511 exact-head review and both event checks are pending. Narrow E slice; approval-race repair is locally tested, while fresh exact-head review/CI and full requirement acceptance remain pending."
+      "note": "Narrow exact-match/manual-review export path now includes profile-scoped answer history/download, atomic content-addressed export recovery, and a saved-profile load gate. Local 564-test Python suite, 62 web tests, focused Chromium, build and validators pass; requirement-wide matching, confidence policy and sensitive/legal policy remain incomplete. Fresh PR #511 exact-head review and both event checks are pending. Narrow E slice; approval-race repair is locally tested, while fresh exact-head review/CI and full requirement acceptance remain pending. A current narrow slice requires matching profile versions on every update; full requirement acceptance and fresh exact-head hosted gates remain pending."
     },
     {
       "requirement_id": "MJ-REQ-108",

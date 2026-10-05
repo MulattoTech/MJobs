@@ -175,6 +175,7 @@ class FactReviewBrowserTests(unittest.TestCase):
                     # Explicit API flags remain meaningful; this is not a server-wide policy change.
                     api_profile = copy.deepcopy(profile)
                     api_profile['facts'][0]['text'] = 'Explicitly API-approved synthetic fact'
+                    api_profile['expected_version'] = store.profile('fixture')['version']
                     response = context.request.put(origin+'/profiles', data=api_profile)
                     self.assertEqual(response.status, 200)
                     self.assertTrue(saved_fact()['verified'])

@@ -35,8 +35,15 @@ class ProfileImportTests(unittest.TestCase):
         return self.client.post(f'/profiles/{profile}/resumes', content=content,
                                 headers={'X-Filename': 'base.txt', 'Content-Type': 'text/plain', **headers})
 
+    def put_profile(self, profile):
+        payload = dict(profile)
+        current = next((row for row in self.store.profiles() if row['id'] == payload['id']), None)
+        if current and 'expected_version' not in payload:
+            payload['expected_version'] = current['version']
+        return self.client.put('/profiles', json=payload)
+
     def test_initial_profile_can_be_saved_without_inventing_a_fact(self):
-        response = self.client.put('/profiles', json=dict(PROFILE, facts=[]))
+        response = self.put_profile(dict(PROFILE, facts=[]))
         self.assertEqual(response.status_code, 200, response.text)
         self.assertEqual(self.store.profile('fixture')['facts'], [])
         self.assertEqual(self.upload().status_code, 201)
@@ -46,11 +53,11 @@ class ProfileImportTests(unittest.TestCase):
                                         'linkedin':'https://www.linkedin.com/in/example'},
                        preferences={'employment_types':['PART_TIME','PER_DIEM'], 'work_arrangements':['HYBRID'],
                                     'max_commute_miles':25, 'max_commute_minutes':40, 'shifts':['DAY']})
-        first = self.client.put('/profiles', json=profile)
+        first = self.put_profile(profile)
         self.assertEqual(first.status_code, 200, first.text)
         previous = first.json()['version']
         profile['contact']['phones'] = ['+1 202 555 0199']
-        self.assertEqual(self.client.put('/profiles', json=profile).status_code, 200)
+        self.assertEqual(self.put_profile(profile).status_code, 200)
         old = self.store.profile('fixture', previous)
         self.assertEqual(old['contact']['phones'], ['+1 202 555 0142'])
         self.assertEqual(old['preferences']['max_commute_miles'], 25)
@@ -60,7 +67,7 @@ class ProfileImportTests(unittest.TestCase):
         for change in ({'contact':{'linkedin':'javascript:alert(1)'}},
                        {'preferences':{'max_commute_miles':-1}},
                        {'preferences':{'work_arrangements':['UNKNOWN']}}):
-            self.assertEqual(self.client.put('/profiles', json=dict(PROFILE, **change)).status_code, 422)
+            self.assertEqual(self.put_profile(dict(PROFILE, **change)).status_code, 422)
 
     def test_complete_career_profile_survives_restart_without_approving_answers(self):
         contact = dict(first_name='Alex', middle_name='Q', last_name='Example', preferred_name='Al',
@@ -76,13 +83,13 @@ class ProfileImportTests(unittest.TestCase):
                  'accomplishment', 'technology_experience']
         facts = [dict(id=kind, kind=kind, text='User supplied ' + kind, source='Manual entry',
                       confidence=100, verified=False, user_approved=False) for kind in kinds]
-        response = self.client.put('/profiles', json=dict(PROFILE, contact=contact,
+        response = self.put_profile(dict(PROFILE, contact=contact,
                                   preferences=preferences, facts=facts, answers=[]))
         self.assertEqual(response.status_code, 200, response.text)
         version = response.json()['version']
         # A changed preference must not rewrite the immutable earlier profile.
         preferences['sponsorship_needs'] = 'REQUIRED'
-        self.assertEqual(self.client.put('/profiles', json=dict(PROFILE, contact=contact,
+        self.assertEqual(self.put_profile(dict(PROFILE, contact=contact,
                          preferences=preferences, facts=facts, answers=[])).status_code, 200)
         restarted = Store(self.store.url)
         try:
@@ -97,12 +104,12 @@ class ProfileImportTests(unittest.TestCase):
             restarted.engine.dispose()
 
     def test_authorization_is_optional_and_rejects_invented_sponsorship_states(self):
-        self.assertEqual(self.client.put('/profiles', json=dict(PROFILE, facts=[])).status_code, 200)
+        self.assertEqual(self.put_profile(dict(PROFILE, facts=[])).status_code, 200)
         preferences = self.client.get('/profiles/fixture').json()['preferences']
         self.assertEqual(preferences['work_authorization'], '')
         self.assertEqual(preferences['sponsorship_needs'], 'NOT_SPECIFIED')
         for preferences in ({'sponsorship_needs': 'probably'}, {'work_authorization': True}):
-            self.assertEqual(self.client.put('/profiles', json=dict(PROFILE, preferences=preferences)).status_code, 422)
+            self.assertEqual(self.put_profile(dict(PROFILE, preferences=preferences)).status_code, 422)
 
     def test_empty_and_imported_pending_profiles_cannot_generate_documents(self):
         self.store.save_profile(dict(PROFILE, facts=[]))
@@ -114,11 +121,11 @@ class ProfileImportTests(unittest.TestCase):
         uploaded = self.upload().json()
         facts = self.client.post(f"/profiles/fixture/resumes/{uploaded['id']}/extract").json()['facts']
         self.assertTrue(facts)
-        self.assertEqual(self.client.put('/profiles', json=dict(PROFILE, facts=facts)).status_code, 200)
+        self.assertEqual(self.put_profile(dict(PROFILE, facts=facts)).status_code, 200)
         with self.assertRaisesRegex(PreparationError, 'Approve and verify'):
             prepare(self.store, job['id'], 'fixture', self.root)
         facts[0].update(verified=True, user_approved=True)
-        self.client.put('/profiles', json=dict(PROFILE, facts=facts))
+        self.put_profile(dict(PROFILE, facts=facts))
         application = self.store.application(prepare(self.store, job['id'], 'fixture', self.root))
         self.assertEqual(application['fact_ids'], [facts[0]['id']])
 

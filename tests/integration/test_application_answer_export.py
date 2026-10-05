@@ -33,6 +33,13 @@ class ApplicationAnswerExportTests(unittest.TestCase):
         self.export_url = f'/profiles/fixture/applications/{self.application_id}/answers/export'
         self.client = TestClient(create_app(self.store, 'http://127.0.0.1:1', self.root))
 
+    def put_profile(self, profile):
+        payload = dict(profile)
+        current = next((row for row in self.store.profiles() if row['id'] == payload['id']), None)
+        if current and 'expected_version' not in payload:
+            payload['expected_version'] = current['version']
+        return self.client.put('/profiles', json=payload)
+
     def tearDown(self):
         self.client.close()
         self.store.engine.dispose()
@@ -44,12 +51,12 @@ class ApplicationAnswerExportTests(unittest.TestCase):
             'text': 'Five years', 'source': 'User review', 'verified': True,
             'user_approved': True, 'confidence': 95,
         }])
-        first = self.client.put('/profiles', json=profile)
+        first = self.put_profile(profile)
         self.assertEqual(first.status_code, 200, first.text)
         old_version = first.json()['version']
 
         profile['answers'][0]['text'] = 'About six years'
-        second = self.client.put('/profiles', json=profile)
+        second = self.put_profile(profile)
         self.assertEqual(second.status_code, 200, second.text)
         saved = self.client.get('/profiles/fixture').json()['answers'][0]
         self.assertEqual(saved['text'], 'About six years')
@@ -57,7 +64,7 @@ class ApplicationAnswerExportTests(unittest.TestCase):
         self.assertFalse(saved['user_approved'])
         self.assertEqual(self.store.profile('fixture', old_version)['answers'][0]['text'], 'Five years')
         profile['answers'][0].update(verified=False, user_approved=False)
-        stable = self.client.put('/profiles', json=profile)
+        stable = self.put_profile(profile)
         self.assertEqual(stable.status_code, 200, stable.text)
         self.assertEqual(stable.json()['version'], second.json()['version'])
 
@@ -76,7 +83,7 @@ class ApplicationAnswerExportTests(unittest.TestCase):
             'verified': False, 'user_approved': False, 'confidence': 100,
         }])
         profile['contact']['city'] = 'Synthetic City'
-        saved = self.client.put('/profiles', json=profile)
+        saved = self.put_profile(profile)
         self.assertEqual(saved.status_code, 200, saved.text)
         new_version = saved.json()['version']
         self.assertNotEqual(old_version, new_version)
@@ -97,7 +104,7 @@ class ApplicationAnswerExportTests(unittest.TestCase):
             'text': 'Five years', 'source': 'User review', 'verified': True,
             'user_approved': True, 'confidence': 95,
         }])
-        self.assertEqual(self.client.put('/profiles', json=profile).status_code, 200)
+        self.assertEqual(self.put_profile(profile).status_code, 200)
 
         bank = self.client.get(f'/profiles/fixture/applications/{self.application_id}/answers')
         self.assertEqual(bank.status_code, 200)
@@ -148,7 +155,7 @@ class ApplicationAnswerExportTests(unittest.TestCase):
             'text': 'Five years', 'source': 'Manual entry', 'verified': False,
             'user_approved': False, 'confidence': 95,
         }])
-        self.assertEqual(self.client.put('/profiles', json=profile).status_code, 200)
+        self.assertEqual(self.put_profile(profile).status_code, 200)
         response = self.client.post(self.export_url, json={'profile_id':'fixture','items':[{
             'question':'How many years of experience?', 'answer_id':'years-experience',
             'text':'Five years', 'reviewed':True,
@@ -171,7 +178,7 @@ class ApplicationAnswerExportTests(unittest.TestCase):
             'text': 'Fictional approved response', 'source': 'Synthetic test',
             'verified': True, 'user_approved': True, 'confidence': 100,
         } for index, question in enumerate(questions)])
-        self.assertEqual(self.client.put('/profiles', json=profile).status_code, 200)
+        self.assertEqual(self.put_profile(profile).status_code, 200)
 
         for index, question in enumerate(questions):
             with self.subTest(question=question):
@@ -190,13 +197,17 @@ class ApplicationAnswerExportTests(unittest.TestCase):
             'text': 'Five years', 'source': 'Synthetic test',
             'verified': True, 'user_approved': True, 'confidence': 95,
         }])
-        self.assertEqual(self.client.put('/profiles', json=profile).status_code, 200)
-        prior_version = self.store.profile('fixture')['version']
+        expected = self.store.profile('fixture')['version']
+        profile['expected_version'] = expected
+        saved = self.put_profile(profile)
+        self.assertEqual(saved.status_code, 200)
+        prior_version = saved.json()['version']
         export_payload = {'profile_id': 'fixture', 'items': [{
             'question': question, 'answer_id': 'years-experience',
             'text': 'Five years', 'reviewed': True,
         }]}
-        edited = dict(PROFILE, answers=[dict(profile['answers'][0], text='About six years')])
+        edited = dict(PROFILE, expected_version=prior_version,
+                      answers=[dict(profile['answers'][0], text='About six years')])
 
         original_profile = self.store.profile
         snapshot_loaded, continue_export = Event(), Event()
@@ -263,9 +274,12 @@ class ApplicationAnswerExportTests(unittest.TestCase):
             'text': 'Five years', 'source': 'Synthetic test',
             'verified': True, 'user_approved': True, 'confidence': 95,
         }])
-        self.assertEqual(self.client.put('/profiles', json=approved).status_code, 200)
-        stale_payload = dict(approved)
-        changed = dict(approved, answers=[dict(approved['answers'][0], text='About six years')])
+        approved['expected_version'] = self.store.profile('fixture')['version']
+        saved = self.put_profile(approved)
+        self.assertEqual(saved.status_code, 200)
+        stale_payload = dict(approved, expected_version=saved.json()['version'])
+        changed = dict(approved, expected_version=saved.json()['version'],
+                       answers=[dict(approved['answers'][0], text='About six years')])
 
         original_profile = self.store.profile
         stale_snapshot_read, continue_stale_save = Event(), Event()
@@ -306,11 +320,31 @@ class ApplicationAnswerExportTests(unittest.TestCase):
     def test_api_rejects_profile_save_with_stale_expected_version(self):
         expected = self.store.profile('fixture')['version']
         newer = dict(PROFILE, name='Freshly edited fixture', expected_version=expected)
-        self.assertEqual(self.client.put('/profiles', json=newer).status_code, 200)
+        self.assertEqual(self.put_profile(newer).status_code, 200)
         stale = dict(PROFILE, name='Old editor copy', expected_version=expected)
         response = self.client.put('/profiles', json=stale)
         self.assertEqual(response.status_code, 409, response.text)
         self.assertEqual(self.client.get('/profiles/fixture').json()['name'], 'Freshly edited fixture')
+
+    def test_existing_profile_update_requires_a_version_to_preserve_revoked_approval(self):
+        approved = dict(PROFILE, expected_version=self.store.profile('fixture')['version'], answers=[{
+            'id': 'years-experience', 'question': 'How many years of experience?',
+            'text': 'Five years', 'source': 'Synthetic test',
+            'verified': True, 'user_approved': True, 'confidence': 95,
+        }])
+        self.assertEqual(self.put_profile(approved).status_code, 200)
+        revoked = dict(approved, expected_version=self.store.profile('fixture')['version'], answers=[
+            dict(approved['answers'][0], verified=False, user_approved=False),
+        ])
+        self.assertEqual(self.put_profile(revoked).status_code, 200)
+
+        stale_without_version = dict(approved)
+        stale_without_version.pop('expected_version')
+        response = self.client.put('/profiles', json=stale_without_version)
+        self.assertEqual(response.status_code, 409, response.text)
+        current = self.client.get('/profiles/fixture').json()['answers'][0]
+        self.assertFalse(current['verified'])
+        self.assertFalse(current['user_approved'])
 
     def test_concurrent_answer_exports_receive_distinct_immutable_versions(self):
         count = 4

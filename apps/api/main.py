@@ -354,7 +354,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             if optional not in value.model_fields_set:
                 payload.pop(optional)
         try:
-            version = store.save_profile(payload, expected_version=value.expected_version)
+            version = store.save_profile(payload, expected_version=value.expected_version,
+                                         require_expected_version=True)
         except ProfileVersionConflict as exc:
             raise HTTPException(409, str(exc)) from exc
         return {"id": value.id, "version": version}
