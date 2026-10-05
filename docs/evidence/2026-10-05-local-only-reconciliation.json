@@ -1,0 +1,158 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-10-05T21:32:10.763994+00:00",
+  "result": "PARTIAL",
+  "scope": "Local-only cutover and integration of existing PR515 combined trial; no product source modification",
+  "source_commit": "bbc340221677041d0c2e4e21dc15862e155cfb6b",
+  "base_commit": "3ec8702ed0f42842e1bac772997760d8db5c9caf",
+  "local_verification": {
+    "timestamp": "2026-10-05T21:27:48.840937+00:00",
+    "source_commit": "bbc340221677041d0c2e4e21dc15862e155cfb6b",
+    "scope": "Local synthetic combined workflow and frontend only; not hosted or full-release acceptance",
+    "github_actions_used": false,
+    "additional_ai_agents_used": false,
+    "private_data_used": false,
+    "steps": [
+      {
+        "step": "node",
+        "command": "npx.cmd --yes --package node@24 --package npm@11 -- node --version",
+        "exit_code": 0,
+        "seconds": 8.234,
+        "log_sha256": "44ce64f1806e1aa8fa0bdd85b10e0413acd78557c88a8d52e94a0eb70f40b7ee",
+        "result": "PASS"
+      },
+      {
+        "step": "frontend-install",
+        "command": "npx.cmd --yes --package node@24 --package npm@11 -- npm ci --prefix apps/web",
+        "exit_code": 0,
+        "seconds": 8.172,
+        "log_sha256": "a3ab53199e0edf6898a0ce6de293a979670e5c452b8e06517b8f85417e07f6ad",
+        "result": "PASS"
+      },
+      {
+        "step": "frontend-tests",
+        "command": "npx.cmd --yes --package node@24 --package npm@11 -- npm test --prefix apps/web -- --run",
+        "exit_code": 0,
+        "seconds": 2.141,
+        "log_sha256": "1827941105e14e5b81adf5fd4b26752150f3cb8b0fd6492da9caba69f5b8597f",
+        "result": "PASS"
+      },
+      {
+        "step": "frontend-build",
+        "command": "npx.cmd --yes --package node@24 --package npm@11 -- npm run build --prefix apps/web",
+        "exit_code": 0,
+        "seconds": 1.968,
+        "log_sha256": "27facfc2ba035df1d3e64004d1afe9d325ca4322a79be88dbfefe046ac79461f",
+        "result": "PASS"
+      },
+      {
+        "step": "combined-browser",
+        "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_core_workflow_trial -v",
+        "exit_code": 0,
+        "seconds": 15.328,
+        "log_sha256": "714323fdacf56cb3434d2d90c84f20b7e282697aa628da2f59b2020a89d7aee3",
+        "result": "PASS"
+      }
+    ],
+    "result": "PASS",
+    "browser_test_sha256": "c4e0383f109f0c9396c51a0523cac92dd874c9be0170d7898c7ee4293e1dd054"
+  },
+  "github_automation": {
+    "enabled_before": true,
+    "enabled_after": false,
+    "manually_disabled_workflows": [
+      371504422,
+      374750098,
+      374964294
+    ],
+    "cancelled_runs": [],
+    "rulesets": [],
+    "webhooks": [],
+    "external_app_settings": "NOT_VERIFIED"
+  },
+  "new_hosted_tests": "NOT_RUN: prohibited by current user",
+  "new_independent_ai_review": "NOT_RUN: prohibited by current user",
+  "full_python_suite": "NOT_RUN in this reconciliation; focused browser/frontend proof only",
+  "docker_runtime": "BLOCKED_ENVIRONMENT: Docker Linux engine unavailable; no retained runtime started",
+  "full_spec_release": "NOT_RUN",
+  "private_data_uploaded": false,
+  "external_submission_enabled": false,
+  "backlog_state_disagreements": [
+    {
+      "requirement": "MJ-REQ-011",
+      "matrix": "PASS",
+      "issue": 12,
+      "issue_state": "OPEN"
+    },
+    {
+      "requirement": "MJ-REQ-012",
+      "matrix": "PASS",
+      "issue": 13,
+      "issue_state": "OPEN"
+    },
+    {
+      "requirement": "MJ-REQ-016",
+      "matrix": "PASS",
+      "issue": 17,
+      "issue_state": "OPEN"
+    },
+    {
+      "requirement": "MJ-REQ-057",
+      "matrix": "PASS",
+      "issue": 58,
+      "issue_state": "OPEN"
+    },
+    {
+      "requirement": "MJ-REQ-058",
+      "matrix": "PASS",
+      "issue": 59,
+      "issue_state": "OPEN"
+    },
+    {
+      "requirement": "MJ-REQ-059",
+      "matrix": "PASS",
+      "issue": 60,
+      "issue_state": "OPEN"
+    },
+    {
+      "requirement": "MJ-REQ-062",
+      "matrix": "PASS",
+      "issue": 63,
+      "issue_state": "OPEN"
+    },
+    {
+      "requirement": "MJ-REQ-063",
+      "matrix": "PASS",
+      "issue": 64,
+      "issue_state": "OPEN"
+    },
+    {
+      "requirement": "MJ-REQ-065",
+      "matrix": "PASS",
+      "issue": 66,
+      "issue_state": "OPEN"
+    },
+    {
+      "requirement": "MJ-REQ-212",
+      "matrix": "PASS",
+      "issue": 213,
+      "issue_state": "OPEN"
+    }
+  ],
+  "disagreement_policy": "Do not auto-close/reopen or promote; inspect existing issue evidence in a subsequent scoped iteration.",
+  "final_receipt_location": "PR515 closing comment and latest main; exact final commit is recorded after publication, not self-referentially inside its own tree",
+  "queue_metadata_repairs": [
+    {
+      "id": "MJ-PR-150",
+      "pr": 452,
+      "old_status": "DRAFT"
+    }
+  ],
+  "unchanged_executable_inputs": {
+    "result": "PASS",
+    "source_commit": "bbc340221677041d0c2e4e21dc15862e155cfb6b",
+    "count": 287,
+    "normalization": "CRLF to LF before comparison",
+    "manifest_sha256": "a6b4d42563252f5fd748aa776926291b8065f9afa4b7d998325807286726ea1f"
+  }
+}

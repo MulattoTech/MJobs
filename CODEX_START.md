@@ -1,3 +1,9 @@
+> **Current budget policy:** GitHub Actions, hosted tests, bot/cloud-agent reviews
+> and extra AI reviewer sessions are disabled by the user. Older hosted-review/CI
+> gates and expired deadlines below are historical where they conflict with
+> AGENTS.md's active local-only policy. Use explicit local verification; missing
+> hosted checks are NOT_RUN, never PASS. Do not restore billing or automation.
+
 Read CODEX_START.md and execute it completely. Treat AGENTS.md as the durable repository instruction contract. Re-verify local and GitHub state first; preserve any newer work. Do not perform real external job application submission without my explicit enablement.
 
 

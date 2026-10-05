@@ -1,5 +1,7 @@
 # MJobs
 
+> **Local-only development:** GitHub Actions and agent reviews are disabled by the user. Start with [the local Luna iteration prompt](prompts/LOCAL_ONLY_LUNA_ITERATION.md) and [current handoff](planning/SESSION_HANDOFF.md). Local verification, requirement completion and release acceptance are distinct.
+
 Local-first job discovery, factual document preparation, and application tracking.
 The current user-testing slice includes a connected web application, a public
 Greenhouse read-only source, and a controlled fictional application fixture.

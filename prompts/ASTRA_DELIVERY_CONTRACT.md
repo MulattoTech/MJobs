@@ -1,3 +1,9 @@
+> **Current budget policy:** GitHub Actions, hosted tests, bot/cloud-agent reviews
+> and extra AI reviewer sessions are disabled by the user. Older hosted-review/CI
+> gates and expired deadlines below are historical where they conflict with
+> AGENTS.md's active local-only policy. Use explicit local verification; missing
+> hosted checks are NOT_RUN, never PASS. Do not restore billing or automation.
+
 # MJobs: evidence-backed issue delivery
 
 Build the largest useful, verified increment of MulattoTech/MJobs that this authorized session can responsibly integrate. Optimize accepted behavior and low regression/rework, not raw issue/commit counts. You may edit, test, commit, push, open PRs, and merge reviewed exact-head-green changes. Production deployment, real job submission, security-policy changes, credentials, purchases and unrelated repositories are outside this authorization.

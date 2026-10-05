@@ -2616,5 +2616,6 @@
     "startup_command": ".\\Start-MJobs.ps1",
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
-  }
+  },
+  "delivery_policy_note": "No requirement result promoted by local-only budget cutover. Hosted verification is disabled by current user; exact local scope/evidence remains distinct."
 }

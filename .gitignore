@@ -17,3 +17,6 @@ outputs/
 playwright-report/
 test-results/
 planning/GITHUB_ISSUE_MAP.lock
+
+# Private raw Codex CLI transcripts; never publish.
+/docs/CLI_Output/

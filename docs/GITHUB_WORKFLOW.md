@@ -1,35 +1,46 @@
-# GitHub Issue and Pull Request Workflow
+# GitHub issue and pull-request workflow — local-only
 
-## Verification triggers and merge gate
+GitHub Actions is disabled at repository level and each known workflow is manually
+disabled. Checked-in workflow jobs also have a literal false guard and no push/PR
+triggers. Keep them for reference, not execution. No new hosted run/review is allowed.
+No repository rulesets or webhooks were found at cutover; account-level external-app
+review settings are not exposed by that read and must not be assumed disabled.
 
-The `Verification / product-suite-and-connected-ui` check runs the complete suite
-for pull requests (opened, reopened, synchronized with new commits, and marked
-ready for review), pushes to `main`, pushes to `codex/core-workflow-trial-*`
-branches, and manual `workflow_dispatch` runs. Ordinary feature-branch pushes do
-not start a second full suite; an open PR's `synchronize` event verifies each
-new head. Core-workflow trial branches are a deliberate exception because that
-milestone requires both push-event candidate evidence and PR merge-tree evidence.
+## Local acceptance replaces hosted merge gates
 
-The pull-request run checks that its tested merge tree equals the exact PR head
-tree. That exact-head PR check remains the merge gate, and every full Verification
-run still has to produce and pass all nine runtime reports. A `main` or manual run
-does not replace the PR check. For core-workflow trial branches, require both the
-exact-head push run and the exact-head PR run before merge. Other feature PRs keep
-the deduplicated policy.
+The user's 2026-10-05 instruction supersedes earlier requirements for independent AI
+review and exact-head push/PR Actions. Do not retry a billing-blocked job. Read old
+logs only as historical evidence. Do not invoke reviewer agents anywhere.
 
-| Event | Full Verification |
-| --- | --- |
-| Push to ordinary feature branch | No; verify when its PR is opened or synchronized |
-| Push to `codex/core-workflow-trial-*` | Yes; exact candidate source tree |
-| PR opened, reopened, ready, or updated | Yes; exact-head tree guard applies |
-| Push/merge to `main` | Yes; post-merge integration check |
-| Manual `workflow_dispatch` | Yes; supplemental run on the selected ref |
+Use one local writer, explicit focused commands, and synthetic temporary data. Build
+before browser checks. Require actual non-skipped acceptance and negative controls.
+Preserve immutable history, profile boundaries and external-submission OFF. Never
+relabel unavailable Docker/PostgreSQL tests as SQLite coverage or broad release PASS.
 
-For core-workflow trial acceptance, record the exact PR head SHA, both
-push-triggered and PR-triggered run/check identities, the PR tree-equality
-result, and all nine passing runtime reports/artifacts for each required run.
-For other PRs, record the PR-triggered run/check identity, tree-equality result,
-and nine passing runtime reports/artifacts.
+Record exact source SHA/tree or input hashes, base, command, UTC time, platform,
+counts, result and limitations under docs/evidence. Raw CLI transcripts are private.
+Run existing catalogue/progress/skill checks when their inputs change. Documentation
+edits after a product test require unchanged executable-input proof and metadata
+checks; changes to executable inputs need new affected local evidence.
+
+## Publication
+
+Commit only intended owned files. Push each coherent checkpoint to the working
+branch and verify the remote SHA. WIP may remain on a published draft branch, never
+unverified main. Do not force-push, bypass protection, or create fake green checks.
+
+After local acceptance, use a PR only when it will not request external agents.
+When that cannot be established, an ordinary non-force fast-forward push to main
+is authorized if current main is an ancestor of the exact candidate. Recheck current
+remote main immediately before pushing; reject divergence. Verify remote main after
+integration and reconcile the primary checkout only with confirmed idle ownership.
+Document the commit and any existing PR's integrated state without claiming hosted
+or independent-review acceptance. Close no broader requirement by implication.
+
+No new budget authorization is implied. No Actions, automatic review, cloud test,
+self-hosted GitHub runner, provider spend, private-data transfer or deployment.
+
+## Issue and queue conventions
 
 `planning/ISSUE_SEED.jsonl` is the machine-readable source for backlog creation.
 Every issue has `<!-- mj-requirement:ID -->`; sync by marker, never mutable title.
@@ -47,7 +58,7 @@ Rules:
 - link requirement IDs and GitHub issues;
 - include implementation + required tests/migrations/docs;
 - report commands actually run and results;
-- main stays green;
+- main stays locally verified; hosted checks remain disabled;
 - dependency order beats raw parallelism.
 
 Branch: `codex/mj-pr-###-short-slug`.

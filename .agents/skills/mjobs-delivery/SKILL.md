@@ -5,6 +5,12 @@ version: 0.3.0
 compatibility: Codex Agent Skills SKILL.md
 ---
 
+> **Current budget policy:** GitHub Actions, hosted tests, bot/cloud-agent reviews
+> and extra AI reviewer sessions are disabled by the user. Older hosted-review/CI
+> gates and expired deadlines below are historical where they conflict with
+> AGENTS.md's active local-only policy. Use explicit local verification; missing
+> hosted checks are NOT_RUN, never PASS. Do not restore billing or automation.
+
 # MJobs Delivery
 
 This project-scoped skill is the MJobs delivery router. It complements `AGENTS.md`; it never overrides policy, requirements, or live Git/GitHub state.
@@ -60,7 +66,7 @@ For ordinary feature work, use the repository contract plus the smallest applica
 7. Review the diff for truthfulness, safety, stale assumptions, and scope creep.
 8. Record concise evidence under `docs/evidence/`.
 9. Run the project skill validator and repository release gates.
-10. Commit, push, open/update the PR, then verify CI for the exact current head.
+10. Commit, push, open/update the PR, then verify the exact current head using the active local-only policy.
 11. Merge only when allowed, reconcile `main`, and continue with the next dependency-ready slice.
 
 ## Skill composition
@@ -71,8 +77,8 @@ Use only when relevant:
 - `test-driven-development` for new behavior/regression repair;
 - `systematic-debugging` for observed failures;
 - `using-git-worktrees` for isolation;
-- native delegation for bounded independent tasks; respect disabled skills, including the standalone `subagent-driven-development` setting;
-- `requesting-code-review` for substantive review;
+- no delegated/reviewer agents while the active budget policy prohibits them;
+- primary-session diff inspection; do not invoke `requesting-code-review` while budget policy is active;
 - `verification-before-completion` before completion claims.
 
 Normally skip PMM in MJobs because repository state is already durable. If `afk-dev` is enabled, use its existing retry/recovery journal only as subordinate operational state. `release-live-monitor` is read-only; `.release-monitor.json` maps current repository evidence. See `prompts/ASTRA_START_HERE.md` for focused XHigh/Max/Ultra profiles. If `afk-dev` is enabled, use its existing retry/recovery journal only as subordinate operational state. `release-live-monitor` is read-only; `.release-monitor.json` maps current repository evidence. See `prompts/ASTRA_START_HERE.md` for focused XHigh/Max/Ultra profiles.

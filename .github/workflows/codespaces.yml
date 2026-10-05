@@ -1,31 +1,15 @@
 name: Codespaces Environment
-
+# Archived for reference; no automatic events or executable jobs.
+# Re-enablement requires an explicit new user instruction.
 on:
-  pull_request:
-    paths:
-      - '.devcontainer/**'
-      - '.vscode/tasks.json'
-      - 'docs/CODESPACES.md'
-      - 'requirements.lock'
-      - 'apps/web/package.json'
-      - 'apps/web/package-lock.json'
-      - '.github/workflows/codespaces.yml'
-  push:
-    branches: [main]
-    paths:
-      - '.devcontainer/**'
-      - '.vscode/tasks.json'
-      - 'docs/CODESPACES.md'
-      - 'requirements.lock'
-      - 'apps/web/package.json'
-      - 'apps/web/package-lock.json'
-      - '.github/workflows/codespaces.yml'
-
+  workflow_dispatch:
 permissions:
   contents: read
 
 jobs:
   devcontainer-smoke:
+    # User budget policy: repository Actions is also disabled.
+    if: ${{ false }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:

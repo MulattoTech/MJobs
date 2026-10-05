@@ -1,5 +1,39 @@
 # AGENTS.md — MJobs Durable Codex Operating Contract
 
+
+## Active budget policy — local-only delivery (2026-10-05)
+
+The current user explicitly stopped GitHub-hosted agentic assistance, code reviews,
+automated tests and Actions because the available budget is exhausted. This section
+supersedes older hosted-CI, independent-agent-review, retry-after-billing and expired
+October 5 trial-deadline instructions. GitHub remains source/issue/PR storage.
+
+- Keep repository Actions and all workflows disabled. Do not dispatch/rerun them,
+  enable a self-hosted runner, move jobs to another cloud service, request bot reviews,
+  assign cloud agents, or raise billing limits. Do not launch extra local AI reviewers
+  or subagents as a substitute; use the one user-selected CLI session.
+- Ordinary explicitly invoked deterministic local tests/builds and isolated synthetic
+  browser/database checks remain the validation route. No automatic watchers/hooks.
+  Local PASS is not hosted PASS. No missing evidence is converted into success.
+- Before integration, verify the exact candidate and base, inspect your own diff,
+  run affected local checks and validate preservation. Record source/tree or input
+  hashes, commands, UTC times, failures/skips and environment limitations. If a
+  needed local check cannot run, retain PARTIAL/BLOCKED rather than claim release PASS.
+- Hosted verification and independent AI review are NOT_RUN by user policy, not
+  required waits for funding recovery. Existing records remain historical evidence.
+  No fake approving review, status check or workflow result may replace them.
+- A non-force fast-forward of locally accepted, owned work into main is allowed when
+  main is its ancestor, no protection rule is bypassed, and PR opening/ready events
+  could trigger external automation. Otherwise use an ordinary PR without requesting
+  agents. Verify remote/local hashes and record the integration receipt.
+- Never publish private data, credentials, raw CLI output, databases or private logs.
+  Preserve docs/CLI_Output locally. Keep external application submission OFF.
+- Scope-only acceptance never closes broader incomplete requirements. Original,
+  reference and release progress remain separate. New product work requires the
+  current user's scope; no historical session record starts an autonomous runner.
+
+See docs/GITHUB_WORKFLOW.md and prompts/LOCAL_ONLY_LUNA_ITERATION.md.
+
 ## Mission
 Build MJobs into the production-quality local-first job discovery, matching, document-generation,
 application-preparation/automation, and tracking platform defined by the repository specs.

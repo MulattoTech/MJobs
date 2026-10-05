@@ -1,3 +1,9 @@
+> **Current budget policy:** GitHub Actions, hosted tests, bot/cloud-agent reviews
+> and extra AI reviewer sessions are disabled by the user. Older hosted-review/CI
+> gates and expired deadlines below are historical where they conflict with
+> AGENTS.md's active local-only policy. Use explicit local verification; missing
+> hosted checks are NOT_RUN, never PASS. Do not restore billing or automation.
+
 # Release verification playbook
 
 Use before merge, release-readiness claims, or when repairing CI/release gates.

@@ -1,3 +1,9 @@
+> **Current budget policy:** GitHub Actions, hosted tests, bot/cloud-agent reviews
+> and extra AI reviewer sessions are disabled by the user. Older hosted-review/CI
+> gates and expired deadlines below are historical where they conflict with
+> AGENTS.md's active local-only policy. Use explicit local verification; missing
+> hosted checks are NOT_RUN, never PASS. Do not restore billing or automation.
+
 # Next Codex Goal — Reference-Aware MJobs Completion
 
 `/goal Reconcile the current MJobs stacked PR chain, original 366-item requirement catalogue, and canonical MJ-REF-001..042 reference-gap backlog. Preserve main and all newer work. Resolve the current CI/workflow authorization blocker when the environment permits, then continue implementation in dependency order using the smallest coherent vertical slices. Original P0-P3 correctness, truthfulness, persistence, identity/deduplication, recovery, company-discovery and safe application requirements outrank optional reference features. Never open empty PRs, never exceed the repository active-PR policy without proving file ownership is non-overlapping, and never claim PASS without executed evidence. For each selected slice: read AGENTS.md, planning/IMPLEMENTATION_STATE.json, planning/PR_QUEUE.json, planning/REFERENCE_GAP_MATRIX.json, docs/FEATURE_COMPLETENESS.md, the active GitHub issue(s), and only the relevant area spec/code. Implement, test narrowly, run affected integration/E2E, record evidence, update both original/reference status surfaces, commit, push, and create/update the draft PR. Continue until no dependency-eligible work remains or a genuine external/environment blocker requires user action. Do not perform real external job submission without explicit user enablement and normal product gates.`

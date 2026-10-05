@@ -1,3 +1,42 @@
+# Current local-only reconciliation — 2026-10-05
+
+The current user stopped GitHub-hosted agents, reviews, automated tests and Actions.
+Repository Actions and all three known workflows are disabled. Current AGENTS.md
+and docs/GITHUB_WORKFLOW.md supersede older hosted gates and the expired afternoon
+trial deadline. Do not attempt billing recovery or restart an old agent session.
+
+PR515 at source bbc340221677041d0c2e4e21dc15862e155cfb6b contains the existing
+connected synthetic A-F test, planning and workflow changes, not new product code.
+Main at reconciliation start was 3ec8702ed0f42842e1bac772997760d8db5c9caf.
+This session freshly passed 62 frontend tests, the production build, and the combined
+Chromium/API/temporary-SQLite journey using synthetic data. No new hosted run or
+independent reviewer was requested. Docker Linux is unavailable; full release and
+private-owner testing remain NOT_RUN. Final integration SHA/status is in the PR515
+closing receipt; do not mistake the older failed hosted run for a new local failure.
+
+Already implemented: manual capture, approved-fact matching explanations,
+deterministic job-specific cover letters, reviewed reusable answers/exports,
+job dispositions/notes and user-reported application pipeline/history. Preserve the
+profile ownership, strict save-version and review-reset fixes. Source/provider/AI,
+broader tailoring, answer policy and other full contracts still have open gaps.
+
+All 366 original requirement results remain unchanged: 64 PASS, 76 PARTIAL,
+226 NOT_RUN. Additive references and full release readiness remain separate.
+Matrix-versus-issue disagreements are listed in the reconciliation evidence;
+no issue was closed just to make the totals agree.
+
+Next invocation: prompts/LOCAL_ONLY_LUNA_ITERATION.md with GPT-6 Luna High.
+Use one local writer, ordinary explicit local validation and frequent safe Git
+checkpoints. No extra model sessions, hosted automation or private-data uploads.
+The user's raw docs/CLI_Output transcript is preserved locally and newly ignored.
+The separate Codespaces checkout and all retained private runtime data are preserved.
+No application deployment, live migration or real submission was performed.
+
+Evidence: docs/evidence/2026-10-05-local-only-reconciliation.json.
+
+---
+## Historical handoff snapshots (not current execution authority)
+
 ## Final stabilization checkpoint — 2026-10-05T18:57:31Z
 
 PR [#515](https://github.com/MulattoTech/MJobs/pull/515) remains draft at recorded checkpoint `7151348d0b92cd9cb23784785190e0d17ab892b1` against `3ec8702ed0f42842e1bac772997760d8db5c9caf`. The current-state metadata review passed. Exact push Verification run [37359494332](https://github.com/MulattoTech/MJobs/actions/runs/37359494332) and pull_request Verification run [37359772249](https://github.com/MulattoTech/MJobs/actions/runs/37359772249) both failed before starting because GitHub reported recent account payments failed or the spending limit needs to increase. No workflow steps, runtime reports, artifacts, or merge-tree result were produced. Do not merge; keep the source synchronized on the draft branch until GitHub Actions access is restored, then rerun both event types and inspect all required artifacts.

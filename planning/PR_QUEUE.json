@@ -96,7 +96,7 @@
     },
     {
       "id": "MJ-PR-005",
-      "title": "Core Search Model: Domain Model \u00e2\u20ac\u201d Core Concepts; Global Job Sources",
+      "title": "Core Search Model: Domain Model â€” Core Concepts; Global Job Sources",
       "domain": "core_search_model",
       "requirements": [
         "MJ-REQ-015",
@@ -275,7 +275,7 @@
     },
     {
       "id": "MJ-PR-013",
-      "title": "Job Identity Dedupe: Deduplication \u00e2\u20ac\u201d Strong Signals; Deduplication \u00e2\u20ac\u201d Company Identity",
+      "title": "Job Identity Dedupe: Deduplication â€” Strong Signals; Deduplication â€” Company Identity",
       "domain": "job_identity_dedupe",
       "requirements": [
         "MJ-REQ-044",
@@ -1186,7 +1186,7 @@
     },
     {
       "id": "MJ-PR-047",
-      "title": "Orchestration Data Security: Security \u00e2\u20ac\u201d Pii; Security \u00e2\u20ac\u201d Web",
+      "title": "Orchestration Data Security: Security â€” Pii; Security â€” Web",
       "domain": "orchestration_data_security",
       "requirements": [
         "MJ-REQ-171",
@@ -1206,7 +1206,7 @@
     },
     {
       "id": "MJ-PR-048",
-      "title": "Orchestration Data Security: Security \u00e2\u20ac\u201d Secret Management; Audit Log",
+      "title": "Orchestration Data Security: Security â€” Secret Management; Audit Log",
       "domain": "orchestration_data_security",
       "requirements": [
         "MJ-REQ-175",
@@ -1421,7 +1421,7 @@
     },
     {
       "id": "MJ-PR-059",
-      "title": "Test Harness: Unit Tests \u00e2\u20ac\u201d Company Resolution; Unit Tests \u00e2\u20ac\u201d Ats Detection",
+      "title": "Test Harness: Unit Tests â€” Company Resolution; Unit Tests â€” Ats Detection",
       "domain": "test_harness",
       "requirements": [
         "MJ-REQ-216",
@@ -1441,7 +1441,7 @@
     },
     {
       "id": "MJ-PR-060",
-      "title": "Test Harness: Unit Tests \u00e2\u20ac\u201d Application State; Application Idempotency Test",
+      "title": "Test Harness: Unit Tests â€” Application State; Application Idempotency Test",
       "domain": "test_harness",
       "requirements": [
         "MJ-REQ-220",
@@ -3022,13 +3022,15 @@
       "issue_number": 451,
       "target_area": "cli/feedback_gui.py; cli/feedback_ui; local launchers",
       "depends_on": [],
-      "status": "DRAFT",
+      "status": "MERGED",
       "branch": "codex/feedback-gui",
       "draft_until_verified": true,
       "scope_complete": false,
-      "notes": "User-requested 19-task GUI; local suite and browser recovery verified. User retest and hosted CI pending; does not complete broader runtime diagnostics.",
+      "notes": "User-requested 19-task GUI; local suite and browser recovery verified. User retest and hosted CI pending; does not complete broader runtime diagnostics. Live metadata reconciliation: this PR is already merged; earlier pending-publication wording is historical, not an active blocker. Parent requirements retain their own acceptance state.",
       "pr_number": 452,
-      "evidence_path": "docs/evidence/2026-10-03-feedback-gui.json"
+      "evidence_path": "docs/evidence/2026-10-03-feedback-gui.json",
+      "merge_commit": "0ab211153f3f9da7669b1832b554aa996cef8942",
+      "merged_at": "2026-10-03T20:18:18Z"
     },
     {
       "id": "MJ-PR-151",
@@ -3234,16 +3236,16 @@
         "MJ-PR-155",
         "MJ-PR-156"
       ],
-      "status": "DRAFT_PR",
+      "status": "READY",
       "branch": "codex/core-workflow-trial-combined-journey-20261005",
       "pr_number": 515,
       "pr_url": "https://github.com/MulattoTech/MJobs/pull/515",
       "base": "3ec8702ed0f42842e1bac772997760d8db5c9caf",
-      "evidence_path": "docs/evidence/2026-10-05-core-workflow-trial-combined.json",
+      "evidence_path": "docs/evidence/2026-10-05-local-only-reconciliation.json",
       "draft_until_verified": true,
       "scope_complete": false,
       "scope_result": "PARTIAL",
-      "notes": "Connected synthetic browser acceptance and CI evidence only; all parent requirements remain PARTIAL. Checkpoint 7151348 has an independent review PASS, but push run 37359494332 and pull_request run 37359772249 were blocked before startup by GitHub billing/spending-limit restrictions; no runtime artifacts exist. Keep draft until billing access is restored and both exact-head gates pass."
+      "notes": "Local combined workflow acceptance PASS. Current user disabled hosted Actions/reviews; do not retry billing gates. Integrate after exact-source local-only verification; all broader requirements remain PARTIAL."
     }
   ]
 }

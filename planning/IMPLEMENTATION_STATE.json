@@ -11,8 +11,8 @@
     "current_verified_github_state": "At 2026-10-05T16:58:48Z, origin/main was 2de5863da7418bf20087822d052b2beeb77ca64b after merged PRs #511 and #512; PR #513 was draft on codex/core-workflow-trial-application-pipeline-20261005 at metadata predecessor c245b9b. The final sanitized evidence correction then requires remote SHA readback, fresh independent review and both event-specific Verification runs/artifact inspection.",
     "current_verified_at": "2026-10-05T16:58:48Z"
   },
-  "current_milestone": "CORE-WORKFLOW-TRIAL-COMBINED-AF-ACCEPTANCE",
-  "current_objective": "Deliver the bounded core workflows by 2026-10-05 15:00 America/Chicago; stop feature work at 13:00; preserve external submission OFF; report PARTIAL for unfinished criteria.",
+  "current_milestone": "LOCAL-ONLY-DELIVERY-RECONCILIATION",
+  "current_objective": "Complete user-authorized budget cutover and locally accepted PR515 integration; next product iteration awaits the supplied local-only prompt.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -71,16 +71,7 @@
     "CORE-WORKFLOW-TRIAL E has a usable profile answer bank and per-job manual review/export path with profile-scoped history/download, atomic content-addressed export recovery, and a saved-profile load gate. PR #511 merged at fb8ab73 after exact-head review and passing push/pull_request Verification with nine passing reports and digest-matched artifacts. MJ-REQ-103..107 remain PARTIAL for incomplete matching, confidence, sensitive/legal policy and durable unexported drafts (docs/evidence/2026-10-05-reviewed-application-answers.json)."
   ],
   "blocked_capabilities": [],
-  "active_requirements": [
-    "MJ-REQ-103",
-    "MJ-REQ-104",
-    "MJ-REQ-105",
-    "MJ-REQ-106",
-    "MJ-REQ-107",
-    "MJ-REQ-192",
-    "MJ-REQ-195",
-    "MJ-REQ-239"
-  ],
+  "active_requirements": [],
   "active_prs": [
     {
       "number": 367,
@@ -842,10 +833,11 @@
     "MJ-PR-016 local Chromium first run used Docker DNS host api, which is not a secure browser origin for crypto.randomUUID; loopback URL rerun passed all five connected UI actions."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-05T18:57:31Z",
-    "result": "PARTIAL",
-    "scope": "Exact-head independent state review passes on 7151348; both required Verification event jobs failed before starting due GitHub account payment/spending-limit restriction. No test steps or runtime artifacts were produced; PR #515 remains draft.",
-    "evidence_path": "docs/evidence/2026-10-05-core-workflow-trial-combined.json"
+    "timestamp": "2026-10-05T21:32:10.763994+00:00",
+    "result": "PASS",
+    "scope": "Explicit local frontend/build and connected synthetic browser only",
+    "evidence_path": "docs/evidence/2026-10-05-local-only-reconciliation.json",
+    "source_commit": "bbc340221677041d0c2e4e21dc15862e155cfb6b"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -912,7 +904,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Verify exact-head push and pull_request Verification, parse all runtime reports and artifact digests, then merge only PR #515 at the reviewed candidate if every gate passes. Preserve broader requirement PARTIAL statuses.",
+  "recommended_resume_step": "Read prompts/LOCAL_ONLY_LUNA_ITERATION.md. Reconcile latest main and remaining issue #96/matching/answer-policy/tracker contracts; one writer and no hosted automation.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -954,8 +946,7 @@
     "result": "PARTIAL",
     "branch": "codex/core-workflow-trial-combined-journey-20261005",
     "base": "3ec8702ed0f42842e1bac772997760d8db5c9caf",
-    "merge_commit": null,
-    "note": "PR #515 contains the connected synthetic workflow acceptance journey and a narrowly scoped exact-head push-event CI exception; no broad requirement is closed by this test-only slice."
+    "note": "Locally accepted source and policy checkpoint; final fast-forward/PR receipt required. Do not restart billing-blocked Actions."
   },
   "optional_afk_journal": {
     "result": "PASS",
@@ -4283,16 +4274,55 @@
       "known_errors": [
         "GitHub blocked both exact-head Verification jobs before execution because recent account payments failed or the spending limit needs increase; neither produced logs, runtime reports, or artifacts."
       ]
+    },
+    {
+      "milestone_id": "LOCAL-ONLY-BUDGET-CUTOVER-20261005",
+      "timestamp": "2026-10-05T21:32:10.763994+00:00",
+      "current_phase": "LOCAL_ONLY_INTEGRATION_READY",
+      "completed_steps": [
+        "Disabled repository Actions and all three known workflows",
+        "Reconciled active source with PR515",
+        "Ran explicit local frontend and combined synthetic browser acceptance; no new product code"
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-05-local-only-reconciliation.json",
+        "prompts/LOCAL_ONLY_LUNA_ITERATION.md"
+      ],
+      "files_modified": [
+        "AGENTS.md",
+        "docs/GITHUB_WORKFLOW.md",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/SESSION_HANDOFF.md",
+        ".github/workflows/ci.yml",
+        ".github/workflows/codespaces.yml",
+        ".gitignore"
+      ],
+      "tests_completed": [
+        "62 frontend tests and production build PASS",
+        "Connected synthetic A-F browser journey PASS without skips"
+      ],
+      "tests_remaining": [
+        "Exact-final checkpoint metadata validation",
+        "Full release and provider/runtime acceptance not covered by this local slice"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "Hosted tests/reviews disabled by user, not PASS",
+        "Docker Linux engine unavailable; no PostgreSQL runtime proof in this reconciliation",
+        "Raw CLI transcript remains private"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "bbc340221677041d0c2e4e21dc15862e155cfb6b",
+        "evidence_path": "docs/evidence/2026-10-05-local-only-reconciliation.json"
+      }
     }
   ],
-  "current_phase": "BLOCKED_EXTERNAL_GITHUB_ACTIONS_BILLING",
+  "current_phase": "LOCAL_ONLY_INTEGRATION_READY",
   "last_safe_checkpoint": {
-    "git_commit": "c06979890777c1d36b0e49cc9c684591af16adc1",
-    "branch": "codex/core-workflow-trial-combined-journey-20261005",
-    "evidence_path": "docs/evidence/2026-10-05-core-workflow-trial-combined.json",
-    "working_tree_changes_present": false,
-    "remote_push": "PASS_REMOTE_SHA_MATCHES_LOCAL",
-    "note": "Last synchronized checkpoint before current local after-reload oracle repair; prior hash is historical, not current candidate."
+    "git_commit": "bbc340221677041d0c2e4e21dc15862e155cfb6b",
+    "evidence_path": "docs/evidence/2026-10-05-local-only-reconciliation.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
@@ -4409,16 +4439,10 @@
     "ownership": "PR #515 is the sole active implementation PR on the task-owned branch. PRs #504, #506, #508-#514 are merged. Current candidate is independently reviewed; final exact-head push/PR runs and runtime artifacts are pending. External submission OFF; retained private runtime/database untouched; Codespaces checkout preserved."
   },
   "active_development_issue": {
-    "number": 196,
-    "title": "[MJ-REQ-195] Application Tracker",
-    "state": "OPEN",
-    "related_issues": [
-      240
-    ],
-    "branch": "codex/core-workflow-trial-application-pipeline-20261005",
-    "pr_number": 513,
-    "scope": "Profile-scoped user-reported application stages, notes and chronological history, separate from operational status and submission receipts. MJ-REQ-195 and MJ-REQ-239 remain PARTIAL pending combined A-F proof and broader acceptance.",
-    "evidence_path": "docs/evidence/2026-10-05-application-pipeline.json"
+    "number": 515,
+    "type": "pull_request",
+    "status": "PARTIAL",
+    "scope": "Combined trial and local-only budget cutover; final integration receipt supersedes this pre-merge snapshot"
   },
   "historical_control_snapshots": [
     {
@@ -4765,6 +4789,36 @@
         "status": "PARTIAL",
         "branch": "chatgpt/fact-review-reset-503"
       }
+    },
+    {
+      "archived_at": "2026-10-05T21:32:10.763994+00:00",
+      "current_objective": "Deliver the bounded core workflows by 2026-10-05 15:00 America/Chicago; stop feature work at 13:00; preserve external submission OFF; report PARTIAL for unfinished criteria.",
+      "active_development_issue": {
+        "number": 196,
+        "title": "[MJ-REQ-195] Application Tracker",
+        "state": "OPEN",
+        "related_issues": [
+          240
+        ],
+        "branch": "codex/core-workflow-trial-application-pipeline-20261005",
+        "pr_number": 513,
+        "scope": "Profile-scoped user-reported application stages, notes and chronological history, separate from operational status and submission receipts. MJ-REQ-195 and MJ-REQ-239 remain PARTIAL pending combined A-F proof and broader acceptance.",
+        "evidence_path": "docs/evidence/2026-10-05-application-pipeline.json"
+      },
+      "publication": {
+        "result": "PARTIAL",
+        "branch": "codex/core-workflow-trial-combined-journey-20261005",
+        "base": "3ec8702ed0f42842e1bac772997760d8db5c9caf",
+        "merge_commit": null,
+        "note": "PR #515 contains the connected synthetic workflow acceptance journey and a narrowly scoped exact-head push-event CI exception; no broad requirement is closed by this test-only slice."
+      },
+      "session_control": {
+        "owner": "ChatGPT user-directed issue505",
+        "branch": "chatgpt/codespaces-bounded-iteration-20261004",
+        "write_lanes": 1,
+        "requested_action": "BOUNDED_CODESPACES_SETUP",
+        "note": "Sequential lane after issue503. No autonomous continuation, deployment or billable Codespace creation."
+      }
     }
   ],
   "current_user_browser_acceptance": {
@@ -4857,11 +4911,10 @@
     }
   },
   "session_control": {
-    "owner": "ChatGPT user-directed issue505",
-    "branch": "chatgpt/codespaces-bounded-iteration-20261004",
+    "owner": "ChatGPT current user-directed budget reconciliation",
     "write_lanes": 1,
-    "requested_action": "BOUNDED_CODESPACES_SETUP",
-    "note": "Sequential lane after issue503. No autonomous continuation, deployment or billable Codespace creation."
+    "requested_action": "LOCAL_ONLY_BUDGET_CUTOVER",
+    "note": "No reviewer/model delegation; no hosted actions; not autonomous continuation."
   },
   "pr023_completion": {
     "timestamp": "2026-10-04T01:33:37.729938+00:00",
@@ -4892,5 +4945,17 @@
     "Historical PR #515 review of c069798 against base 3ec8702 had no findings at that checkpoint, but later reviews found and repaired test/evidence issues. Fresh review and exact-head hosted events/artifacts are pending.",
     "CORE-WORKFLOW-TRIAL PR #515 checkpoint 7151348d0b92cd9cb23784785190e0d17ab892b1: exact-head read-only review PASS; push Verification 37359494332 and pull_request Verification 37359772249 both BLOCKED_EXTERNAL before job startup by GitHub account billing/spending limit. No hosted runtime reports/artifacts or PR merge-tree result exist; #515 stays draft."
   ],
-  "ownership": "PR #515 is the sole active implementation PR on codex/core-workflow-trial-combined-journey-20261005. Current recorded exact checkpoint 7151348 is published and independently reviewed. Both required GitHub Verification event jobs failed before startup due repository account payment/spending-limit restrictions, so no runtime artifacts or merge-tree check exist. Keep PR draft; no merge until billing access is restored and fresh exact-head gates pass. External submission OFF; retained private runtime/database untouched."
+  "ownership": "PR #515 is the sole active implementation PR on codex/core-workflow-trial-combined-journey-20261005. Current recorded exact checkpoint 7151348 is published and independently reviewed. Both required GitHub Verification event jobs failed before startup due repository account payment/spending-limit restrictions, so no runtime artifacts or merge-tree check exist. Keep PR draft; no merge until billing access is restored and fresh exact-head gates pass. External submission OFF; retained private runtime/database untouched.",
+  "delivery_policy": {
+    "mode": "LOCAL_ONLY",
+    "effective_at": "2026-10-05T21:32:10.763994+00:00",
+    "github_actions_enabled": false,
+    "hosted_tests_allowed": false,
+    "github_agent_reviews_allowed": false,
+    "additional_ai_reviewers_allowed": false,
+    "local_deterministic_verification": "Required for changed behavior; explicitly invoked locally, never hosted",
+    "hosted_gates": "NOT_RUN_BY_USER_POLICY",
+    "full_pass_requires_all_acceptance": true,
+    "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
+  }
 }

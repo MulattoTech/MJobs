@@ -1,3 +1,9 @@
+# Current feature accounting — 2026-10-05
+
+64 PASS / 76 PARTIAL / 226 NOT_RUN across 366 original requirements; no promotion from the budget-policy change. The bounded combined synthetic journey passes locally; full release remains NOT_RUN. See [the current dashboard](PROGRESS_DASHBOARD.md) and [local-only delivery policy](GITHUB_WORKFLOW.md).
+
+## Historical implementation snapshots
+
 # MJobs Feature Completeness
 
 

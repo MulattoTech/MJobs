@@ -1,19 +1,14 @@
 name: Verification
+# Archived for reference; no automatic events or executable jobs.
+# Re-enablement requires an explicit new user instruction.
 on:
-  # Ordinary feature branch commits are verified by the full PR workflow once
-  # a PR is open. Core-workflow trial branches also need an exact push-event
-  # receipt alongside the PR merge-tree receipt for their milestone gates.
-  push:
-    branches:
-      - main
-      - codex/core-workflow-trial-*
-  pull_request:
-    types: [opened, reopened, synchronize, ready_for_review]
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
   product-suite-and-connected-ui:
+    # User budget policy: repository Actions is also disabled.
+    if: ${{ false }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
