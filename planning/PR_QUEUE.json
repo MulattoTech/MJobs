@@ -3160,6 +3160,30 @@
       "pr_number": 511,
       "pr_url": "https://github.com/MulattoTech/MJobs/pull/511",
       "base": "fb93ad48a3987c375350388ba8bf677db58575d2"
+    },
+    {
+      "id": "MJ-PR-155",
+      "title": "Core trial: profile-scoped job dispositions and notes",
+      "domain": "web_api_analytics; performance_learning_history",
+      "requirements": [
+        "MJ-REQ-192",
+        "MJ-REQ-239"
+      ],
+      "issues": [
+        193,
+        240
+      ],
+      "target_area": "apps/web; apps/api; services/tracking; tests/browser; tests/integration",
+      "depends_on": [],
+      "status": "DRAFT",
+      "branch": "codex/core-workflow-trial-job-tracking-20261005",
+      "draft_until_verified": true,
+      "scope_complete": false,
+      "notes": "F1 source repair c6a8b5f634111e88ec47ef7a9cbf93c99c94d5d0 is published. The connected browser now holds the destination-profile GET and verifies scheduled-search fields plus fact/answer editor absence before releasing it; destination content then reloads. Other in-memory views are cleared by code but not individually seeded. Full Python suite 577 tests/303.442s, 20 concurrency repetitions, 62 web tests, strict build and final focused Chromium pass. An evidence/control-plane checkpoint commit will follow; read back exact resulting PR #512 head before fresh independent review and both exact-head push/pull_request checks with all artifacts. Company/application notes, complete MJ-REQ-192 and MJ-REQ-195 remain open.",
+      "evidence_path": "docs/evidence/2026-10-05-job-dispositions-notes.json",
+      "base": "fb8ab73de6f666ed2644f9d1cc271eee25aef7f7",
+      "pr_number": 512,
+      "pr_url": "https://github.com/MulattoTech/MJobs/pull/512"
     }
   ]
 }

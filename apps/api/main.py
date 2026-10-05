@@ -142,6 +142,30 @@ class ManualJobCaptureInput(BaseModel):
         return self
 
 
+class JobDispositionInput(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+    disposition: Literal["ACTIVE", "SAVED", "HIDDEN", "NOT_INTERESTED"]
+    request_id: str = Field(min_length=1, max_length=64)
+
+    @model_validator(mode="after")
+    def bounded_request_id(self):
+        if self.request_id != self.request_id.strip():
+            raise ValueError("Tracking request identifier cannot have surrounding whitespace")
+        return self
+
+
+class JobNoteInput(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+    text: str = Field(min_length=1, max_length=4000)
+    request_id: str = Field(min_length=1, max_length=64)
+
+    @model_validator(mode="after")
+    def bounded_request_id(self):
+        if self.request_id != self.request_id.strip():
+            raise ValueError("Tracking request identifier cannot have surrounding whitespace")
+        return self
+
+
 class MockRunInput(BaseModel):
     model_config = ConfigDict(strict=True, extra="forbid")
     submit: bool = False
@@ -563,6 +587,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
              remote_type: str | None = Query(default=None, max_length=32),
              provider: Literal["mock-ats", "greenhouse"] | None = None, sort: Literal["score", "title"] = "score",
              search_profile_id: str | None = Query(default=None, max_length=128),
+             include_dismissed: bool = False,
              limit: int = Query(default=200, ge=1, le=500)):
         rows = store.jobs(profile_id, q, remote_type, provider, sort, limit)
         if search_profile_id:
@@ -570,6 +595,13 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             if profile_id and search_profile["profile_id"] != profile_id:
                 raise HTTPException(409, "Search profile belongs to a different career profile")
             rows = filter_jobs(rows, search_profile["criteria"])
+        if profile_id:
+            from services.tracking.jobs import list_job_tracking
+            tracking = list_job_tracking(store, profile_id, [row["id"] for row in rows])
+            for row in rows:
+                row["tracking"] = tracking[row["id"]]
+            if not include_dismissed:
+                rows = [row for row in rows if row["tracking"]["disposition"] not in ("HIDDEN", "NOT_INTERESTED")]
         return {"jobs": rows}
 
     @app.get("/jobs/{job_id}/routes")
@@ -585,7 +617,26 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
 
     @app.get("/jobs/{job_id}")
     def job(job_id: str, profile_id: str | None = None):
-        return store.job(job_id, profile_id)
+        result = store.job(job_id, profile_id)
+        if profile_id:
+            from services.tracking.jobs import read_job_tracking
+            result["tracking"] = read_job_tracking(store, profile_id, job_id)
+        return result
+
+    @app.get("/profiles/{profile_id}/jobs/{job_id}/tracking")
+    def job_tracking_read(profile_id: str, job_id: str):
+        from services.tracking.jobs import read_job_tracking
+        return read_job_tracking(store, profile_id, job_id)
+
+    @app.put("/profiles/{profile_id}/jobs/{job_id}/tracking/disposition")
+    def job_disposition_update(profile_id: str, job_id: str, value: JobDispositionInput):
+        from services.tracking.jobs import set_job_disposition
+        return set_job_disposition(store, profile_id, job_id, value.disposition, value.request_id)
+
+    @app.post("/profiles/{profile_id}/jobs/{job_id}/tracking/notes", status_code=201)
+    def job_note_create(profile_id: str, job_id: str, value: JobNoteInput):
+        from services.tracking.jobs import add_job_note
+        return add_job_note(store, profile_id, job_id, value.text, value.request_id)
 
     @app.get("/duplicate-reviews")
     def duplicate_reviews(state: str | None = Query(default=None, max_length=64)):

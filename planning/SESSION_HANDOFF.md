@@ -1,4 +1,14 @@
-# Active CORE-WORKFLOW-TRIAL checkpoint — 2026-10-05, 06:50 America/Chicago
+# Active CORE-WORKFLOW-TRIAL checkpoint — 2026-10-05, 09:12 America/Chicago
+
+GitHub `main` is `fb8ab73de6f666ed2644f9d1cc271eee25aef7f7`; PR #511 is merged. User confirmed GPT-6 Luna High and release of the older client. F1 is on `codex/core-workflow-trial-job-tracking-20261005`; draft PR #512 has the pushed source repair `c6a8b5f634111e88ec47ef7a9cbf93c99c94d5d0`, matching the remote branch at the last source checkpoint. A corrected evidence/control-plane commit is being prepared; read back its resulting PR head before review and CI.
+
+Source repair `c6a8b5f` passed the full Python suite (577 tests in 303.442 seconds), 20 repeated concurrency tests, 62 web tests, and strict TypeScript/Vite build. After strengthening the held-read Chromium oracle, the affected tracking API/browser suite passed again: search drafts reset and fact/answer editors are empty before the destination response is released; destination profile facts/answers then load. Other in-memory views are cleared by code but were not individually seeded in that browser case. Fresh independent review and exact-head push/pull_request CI with runtime report/artifact inspection are pending. External submission remains OFF; synthetic FIXTURE data only; no private runtime touched.
+
+After PR #512 passes exact-head gates and merges, continue to the separate application pipeline/status/history slice without asking the user to re-authorize the milestone. Keep any unfinished source on a clearly marked draft. At 13:00 America/Chicago, stop new features and stabilize. Do not touch the retained private Windows runtime or database.
+
+---
+
+## Previous answer-bank checkpoint — 2026-10-05, 06:50 America/Chicago
 
 GitHub main is `fb93ad48a3987c375350388ba8bf677db58575d2`. PR #511 is a draft on `codex/core-workflow-trial-answers-20261005`. The bounded E slice has question-aware answer snapshots and approval resets, exact-normalized suggestions with deliberate per-job review, scoped history/downloads, and immutable SHA-256 TXT exports. Independent review of candidate `315c2e1` found a delayed old API client without `expected_version` could restore an answer approval after a newer revocation. The current uncommitted repair requires that token for every existing-profile API update, returns 409 on missing/stale versions, and retains the transactional compare-and-swap for overlapping saves. The current full local suite passes 567 tests in 339.768 seconds; fresh focused browser/API flows, 62 web tests and build pass. Candidate `315c2e1` push and pull_request events (`37303429620`, `37303434314`) both passed, including required reports, but are superseded because of the independent review finding. The earlier d98 push failure (`37301337462`) was fixed by allowing 15 seconds for the same DRY_RUN_COMPLETE state while retaining STOP_BEFORE_SUBMIT assertions.
 
