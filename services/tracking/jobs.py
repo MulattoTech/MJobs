@@ -42,14 +42,15 @@ def _tracking_from_rows(rows):
         row["payload"].get("sequence", 0), row["timestamp"], row["id"]))
     for row in rows:
         payload = row["payload"]
+        sequence = payload.get("sequence", 0)
         if row["action"] == "JOB_DISPOSITION":
             disposition = payload["disposition"]
             history.append({"type": "disposition", "disposition": disposition,
-                            "sequence": payload["sequence"],
+                            "sequence": sequence,
                             "timestamp": row["timestamp"]})
         else:
             note = {"id": payload["note_id"], "text": payload["text"],
-                    "sequence": payload["sequence"],
+                    "sequence": sequence,
                     "timestamp": row["timestamp"]}
             notes.append(note)
             history.append({"type": "note", **note})

@@ -1,8 +1,8 @@
-# Active CORE-WORKFLOW-TRIAL checkpoint — 2026-10-05, 08:22 America/Chicago
+# Active CORE-WORKFLOW-TRIAL checkpoint — 2026-10-05, 08:35 America/Chicago
 
-GitHub `main` is `fb8ab73de6f666ed2644f9d1cc271eee25aef7f7`; PR #511 is merged. User confirmed GPT-6 Luna High and release of the older client. F1 is on `codex/core-workflow-trial-job-tracking-20261005`; PR #512 is a draft. Independent review of head `123d9da` found retry/idempotency and concurrent event-ordering defects. Both are repaired locally with request-keyed audit events, per-job serialized sequence allocation, API conflict/replay/concurrency tests, and a Chromium lost-response retry check.
+GitHub `main` is `fb8ab73de6f666ed2644f9d1cc271eee25aef7f7`; PR #511 is merged. User confirmed GPT-6 Luna High and release of the older client. F1 is on `codex/core-workflow-trial-job-tracking-20261005`; PR #512 is a draft. Independent review of `99a8e1a` confirmed fixes for retry/idempotency and concurrent event ordering, then found two more issues: legacy tracking rows without sequence and profile-switch leakage of visible job/note state. Both are repaired locally with regression tests.
 
-The repaired branch passes 576 Python tests in 299.184 seconds, 62 web tests, strict TypeScript/Vite build, focused browser/API regressions, and catalogue/progress/skill validators. The repair is not yet committed or pushed; fresh final-head review and push/pull_request CI with artifact inspection are still required. External submission remains OFF; synthetic FIXTURE data only, no private runtime touched.
+The latest repaired branch passes 577 Python tests in 302.299 seconds, 62 web tests, strict TypeScript/Vite build, five focused tracking API/browser tests, and repository validators. Latest repairs are not yet committed or pushed; request a fresh independent review and exact-head push/pull_request CI with artifact inspection after publishing. External submission remains OFF; synthetic FIXTURE data only; no private runtime touched.
 
 After PR #512 passes exact-head gates and merges, continue to the separate application pipeline/status/history slice without asking the user to re-authorize the milestone. Keep any unfinished source on a clearly marked draft. At 13:00 America/Chicago, stop new features and stabilize. Do not touch the retained private Windows runtime or database.
 

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-05T13:22:36Z",
+  "generated_at": "2026-10-05T13:35:42Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -773,7 +773,8 @@
     "CORE-WORKFLOW-TRIAL D exact-head runs 37282827647 (push) and 37282832612 (pull_request) at 4fe28b9 each passed 550 Python tests and public-source read, but both had a failed continue-on-error UI readback and uploaded only 8/9 reports; neither Verification event is accepted as PASS.",
     "Public-source UI oracle classifier: 3 unit tests distinguish manual-only preparation, exact missing-responsibility block/no application, and unexpected failures; 5 focused Python cases PASS.",
     "PR #510 exact candidate a63c798: independent review clean; push 37285052782 and pull_request 37285059099 attempt 1 passed all steps; 554 Python tests in each; all nine runtime reports PASS in both digest-verified artifacts; public Greenhouse returned 18 jobs and made zero external application requests.",
-    "F1 tracking repair: 576 Python tests in 299.184s; 4 focused API/browser tests include lost-response idempotency and concurrent sequence ordering; 62 web tests and strict build pass"
+    "F1 tracking repair: 576 Python tests in 299.184s; 4 focused API/browser tests include lost-response idempotency and concurrent sequence ordering; 62 web tests and strict build pass",
+    "Latest F1 repair: 577 Python tests in 302.299s; 5 focused API/browser tests cover legacy history upgrade reads, profile-switch isolation, request retry idempotency, concurrent ordering and lost-response retry; 62 web tests/build and validators pass"
   ],
   "tests_failed": [],
   "tests_not_run": [
@@ -4032,13 +4033,15 @@
     },
     {
       "milestone_id": "CORE-WORKFLOW-TRIAL-F1-TRACKING-REVIEW-REPAIRS",
-      "timestamp": "2026-10-05T13:22:36Z",
+      "timestamp": "2026-10-05T13:35:42Z",
       "current_phase": "LOCAL_VERIFICATION_PASS_PENDING_REPAIRED_CANDIDATE_PUBLICATION_REVIEW_CI",
       "completed_steps": [
         "Reproduced independent-review retry duplication and concurrent ordering findings on candidate 123d9da",
         "Added deterministic request-keyed event identity and serialized per-job sequence allocation using existing audit storage",
         "Added API idempotency/conflict and concurrent ordering tests plus browser lost-response retry test",
-        "Ran full Python suite, web tests/build and repository validators successfully"
+        "Ran full Python suite, web tests/build and repository validators successfully",
+        "Repaired additional independent-review findings: default missing legacy sequence to zero and clear prior-profile job/note state synchronously",
+        "Added legacy audit compatibility integration coverage and two-profile browser switch/privacy coverage"
       ],
       "files_added": [],
       "files_modified": [
@@ -4051,17 +4054,21 @@
         "planning/IMPLEMENTATION_STATE.json",
         "planning/PR_QUEUE.json",
         "planning/CAPABILITY_MATRIX.json",
-        "planning/SESSION_HANDOFF.md"
+        "planning/SESSION_HANDOFF.md",
+        "services/tracking/jobs.py",
+        "tests/integration/test_job_tracking.py",
+        "apps/web/src/main.tsx",
+        "tests/browser/test_job_tracking.py"
       ],
       "tests_completed": [
-        "576 Python tests in 299.184 seconds",
-        "4 focused tracking API/browser tests",
+        "577 Python tests in 302.299 seconds",
+        "5 focused tracking API/browser tests",
         "62 web tests",
         "TypeScript check and Vite build",
         "catalogue, progress journal, agent skill and git diff validators"
       ],
       "tests_remaining": [
-        "Publish repaired source checkpoint and verify exact remote SHA",
+        "Publish latest legacy-history/profile-switch repairs and verify exact remote SHA",
         "Independent review of repaired final PR head",
         "Both exact-head push and pull_request Verification events with required reports/artifacts",
         "Merge and combined A-F browser trial"
@@ -4073,14 +4080,14 @@
         "Full core workflow and requirement parents remain PARTIAL; no application pipeline implementation yet."
       ],
       "last_safe_checkpoint": {
-        "git_commit": "123d9da954fd31851e8e7475095f2862ae4f557b",
+        "git_commit": "99a8e1af86868ea3b7780028cf1275a6fda7b7f6",
         "evidence_path": "docs/evidence/2026-10-05-job-dispositions-notes.json"
       }
     }
   ],
   "current_phase": "LOCAL_VERIFICATION_PASS_PENDING_REPAIRED_CANDIDATE_PUBLICATION_REVIEW_CI",
   "last_safe_checkpoint": {
-    "git_commit": "123d9da954fd31851e8e7475095f2862ae4f557b",
+    "git_commit": "99a8e1af86868ea3b7780028cf1275a6fda7b7f6",
     "evidence_path": "docs/evidence/2026-10-05-job-dispositions-notes.json"
   },
   "live_integrations_tested": [
@@ -4191,12 +4198,12 @@
     }
   ],
   "live_reconciliation": {
-    "timestamp": "2026-10-05T13:22:36Z",
+    "timestamp": "2026-10-05T13:35:42Z",
     "base_commit": "fb8ab73de6f666ed2644f9d1cc271eee25aef7f7",
     "evidence_path": "docs/evidence/2026-10-05-job-dispositions-notes.json",
     "current_slice_validation": "PARTIAL",
     "product_status": "PARTIAL",
-    "ownership": "PR #512 remains draft on the task-owned branch. Independent review P2 findings on retry idempotency and concurrent ordering were repaired; 576 Python tests, 62 web tests/build and validators pass locally. Repaired source is currently uncommitted; publish after diff/secrets review, then obtain fresh exact-head review and push/pull_request gates. Synthetic-only data; external submission OFF; separate Codespaces checkout preserved; retained private runtime untouched."
+    "ownership": "PR #512 remains draft on the task-owned branch. Independent review P2 findings on retry idempotency, concurrent ordering, legacy history compatibility and profile-switch privacy were repaired; 577 Python tests, 62 web tests/build and validators pass locally. Latest repairs are uncommitted; publish after diff review, then obtain fresh exact-head review and push/pull_request gates. Synthetic-only data; external submission OFF; separate Codespaces checkout preserved; retained private runtime untouched."
   },
   "active_development_issue": {
     "number": 193,

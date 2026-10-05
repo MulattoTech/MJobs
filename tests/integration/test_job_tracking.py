@@ -11,7 +11,7 @@ from sqlalchemy import select
 from apps.api.main import create_app
 from fixtures.mock_server import fixture_server
 from packages.persistence import models as m
-from packages.persistence.store import Store
+from packages.persistence.store import Store, identity, now
 from services.discovery.pipeline import discover
 from services.tracking.jobs import set_job_disposition
 from tests.integration.test_spine import PROFILE
@@ -124,6 +124,32 @@ class JobTrackingApiTests(unittest.TestCase):
         with self.store.engine.connect() as connection:
             self.assertEqual(connection.execute(select(m.audit.c.id).where(
                 m.audit.c.action.in_(("JOB_DISPOSITION", "JOB_NOTE")))).all(), [])
+
+    def test_reads_pre_sequence_tracking_history_and_appends_new_events(self):
+        entity_id = identity("job-tracking", "fixture", self.job_id)
+        with self.store.engine.begin() as connection:
+            connection.execute(m.audit.insert(), [
+                {"id": "legacy-disposition", "entity_id": entity_id,
+                 "action": "JOB_DISPOSITION", "payload": {"disposition": "SAVED"},
+                 "timestamp": now()},
+                {"id": "legacy-note", "entity_id": entity_id,
+                 "action": "JOB_NOTE", "payload": {"note_id": "legacy-note-id",
+                 "text": "Saved before the sequence upgrade."}, "timestamp": now()},
+            ])
+        url = f"/profiles/fixture/jobs/{self.job_id}/tracking"
+        legacy = self.client.get(url)
+        self.assertEqual(legacy.status_code, 200, legacy.text)
+        self.assertEqual(legacy.json()["disposition"], "SAVED")
+        self.assertEqual(legacy.json()["notes"][0]["text"],
+                         "Saved before the sequence upgrade.")
+        self.assertEqual([row["sequence"] for row in legacy.json()["history"]], [0, 0])
+
+        updated = self.client.put(url + "/disposition", json={
+            "disposition": "HIDDEN", "request_id": "post-upgrade-hide"
+        })
+        self.assertEqual(updated.status_code, 200, updated.text)
+        self.assertEqual(updated.json()["disposition"], "HIDDEN")
+        self.assertEqual([row["sequence"] for row in updated.json()["history"]], [0, 0, 1])
 
     def test_concurrent_disposition_updates_get_serial_history(self):
         barrier = Barrier(2)

@@ -24,6 +24,8 @@ class JobTrackingBrowserTests(unittest.TestCase):
             store.migrate()
             store.bind_workspace_mode("FIXTURE")
             store.save_profile(dict(PROFILE))
+            store.save_profile({**PROFILE, "id": "other", "name": "Other Synthetic Applicant",
+                                "email": "other@example.invalid"})
             captured = capture_manual_job(store, {
                 "request_id": "synthetic-tracking-role",
                 "title": "Systems Administrator",
@@ -124,6 +126,18 @@ class JobTrackingBrowserTests(unittest.TestCase):
                     expect(detail.get_by_text("Current status:")).to_contain_text("NOT_INTERESTED")
                     detail.get_by_role("button", name="Clear not interested", exact=True).click()
                     expect(detail.get_by_text("Current status:")).to_contain_text("ACTIVE")
+                    page.get_by_label("Job note", exact=True).fill("Unsaved private draft on first profile.")
+                    page.get_by_label("Active profile", exact=True).select_option("other")
+                    expect(page.locator(".job-detail")).not_to_contain_text(
+                        "Unsaved private draft on first profile.")
+                    card = page.locator(".job-card").filter(has_text="Systems Administrator")
+                    expect(card).to_be_visible()
+                    card.click()
+                    detail = page.locator(".job-detail")
+                    expect(detail.get_by_text("Current status:")).to_contain_text("ACTIVE")
+                    expect(page.get_by_label("Job note", exact=True)).to_have_value("")
+                    expect(detail.get_by_role("list", name="Job tracking history").get_by_text(
+                        "Ask about the on-call rotation.", exact=True)).to_have_count(0)
                     self.assertEqual(external, [])
                     self.assertEqual(store.count("applications"), 0)
                     context.close()
