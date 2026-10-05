@@ -55,7 +55,7 @@ def run(base_url, evidence_path):
             expect(page.get_by_role("heading", name="Application details")).to_be_visible()
             expect(page.get_by_text("Manual preparation only. Review the documents and use the employer’s own application page.", exact=True)).to_be_visible()
             expect(page.get_by_role("button", name="Submit to local mock", exact=True)).to_have_count(0)
-            rejected = context.request.post(base_url + "/applications/" + app["id"] + "/mock-run", data={"submit": True})
+            rejected = context.request.post(base_url + "/profiles/" + app["profile_id"] + "/applications/" + app["id"] + "/mock-run", data={"submit": True})
             assert rejected.status == 409
             actions = [{"action": "Public job prepared only as a manual-only real application; server rejects mock submission", "result": "PASS"}]
         else:

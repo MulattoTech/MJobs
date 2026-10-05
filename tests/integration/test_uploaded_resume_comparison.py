@@ -54,7 +54,7 @@ class UploadedResumeComparisonTests(unittest.TestCase):
             for fmt in ('txt','docx','pdf'):
                 with self.subTest(format=fmt):
                     upload=self.upload(fmt)
-                    url=f'/applications/{app}/uploaded-resume-comparison'
+                    url=f'/profiles/fixture/applications/{app}/uploaded-resume-comparison'
                     params={'base_revision_id':upload['revision_id'],'tailored_document_id':target['id']}
                     response=client.get(url,params=params);self.assertEqual(response.status_code,200,response.text)
                     result=response.json()
@@ -74,7 +74,7 @@ class UploadedResumeComparisonTests(unittest.TestCase):
         app,target=self.target()
         self.store.save_profile(dict(PROFILE,id='other'))
         with TestClient(create_app(self.store,'http://127.0.0.1:1',self.root,operation_mode='FIXTURE')) as client:
-            url=f'/applications/{app}/uploaded-resume-comparison'
+            url=f'/profiles/fixture/applications/{app}/uploaded-resume-comparison'
             for upload in (self.upload(kind='CERTIFICATION'),self.upload(profile='other')):
                 response=client.get(url,params={'base_revision_id':upload['revision_id'],'tailored_document_id':target['id']})
                 self.assertEqual(response.status_code,409)
@@ -92,7 +92,7 @@ class UploadedResumeComparisonTests(unittest.TestCase):
         prepare(self.store,self.store.application(app)['job_id'],'fixture',self.root,tailor_resume=True)
         target=next(row for row in application_documents(self.store,app) if row['kind']=='resume' and row['version']==2)
         with TestClient(create_app(self.store,'http://127.0.0.1:1',self.root,operation_mode='FIXTURE')) as client:
-            response=client.get(f'/applications/{app}/uploaded-resume-comparison',params={'base_revision_id':upload['revision_id'],'tailored_document_id':target['id']})
+            response=client.get(f'/profiles/fixture/applications/{app}/uploaded-resume-comparison',params={'base_revision_id':upload['revision_id'],'tailored_document_id':target['id']})
             self.assertEqual(response.status_code,200,response.text)
             result=response.json()
             self.assertFalse({'Python','SQL','Original responsibility'}&{row['text'] for row in result['omitted']})
@@ -102,7 +102,7 @@ class UploadedResumeComparisonTests(unittest.TestCase):
         app,target=self.target();before=self.store.profile('fixture')
         upload=save_resume(self.store,self.root,'fixture','scan.pdf','application/pdf',scanned_resume())
         with TestClient(create_app(self.store,'http://127.0.0.1:1',self.root,operation_mode='FIXTURE')) as client:
-            url=f'/applications/{app}/uploaded-resume-comparison'
+            url=f'/profiles/fixture/applications/{app}/uploaded-resume-comparison'
             params={'base_revision_id':upload['revision_id'],'tailored_document_id':target['id']}
             with patch('services.career_profile.ocr.ocr_pdf_pages',return_value=({},['Local OCR unavailable'])):
                 response=client.get(url,params=params)
@@ -122,7 +122,10 @@ class UploadedResumeComparisonTests(unittest.TestCase):
         other=prepare(self.store,other_job['id'],'fixture',self.root,tailor_resume=True)
         foreign=next(row for row in application_documents(self.store,other) if row['kind']=='resume')
         with TestClient(create_app(self.store,'http://127.0.0.1:1',self.root,operation_mode='FIXTURE')) as client:
-            url=f'/applications/{app}/uploaded-resume-comparison'
+            url=f'/profiles/fixture/applications/{app}/uploaded-resume-comparison'
             self.assertEqual(client.get(url,params={'base_revision_id':upload['revision_id'],'tailored_document_id':foreign['id']}).status_code,409)
+            self.store.save_profile(dict(PROFILE,id='other'))
+            self.assertEqual(client.get(url.replace('/profiles/fixture/', '/profiles/other/'),params={'base_revision_id':upload['revision_id'],'tailored_document_id':target['id']}).status_code,404)
+            self.assertEqual(client.get(url.replace('/profiles/fixture', ''),params={'base_revision_id':upload['revision_id'],'tailored_document_id':target['id']}).status_code,404)
             (self.root/'uploads'/f"{upload['id']}.txt").unlink()
             self.assertEqual(client.get(url,params={'base_revision_id':upload['revision_id'],'tailored_document_id':target['id']}).status_code,409)

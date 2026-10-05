@@ -1,0 +1,120 @@
+{
+  "evidence_id": "CORE-WORKFLOW-TRIAL-F2-APPLICATION-PIPELINE",
+  "recorded_at": "2026-10-05T16:30:06Z",
+  "result": "PARTIAL",
+  "scope": "Profile-scoped user-reported application stages, application notes and durable chronological history",
+  "authority": {
+    "repository": "MulattoTech/MJobs",
+    "base_main": "2de5863da7418bf20087822d052b2beeb77ca64b",
+    "task_branch": "codex/core-workflow-trial-application-pipeline-20261005",
+    "requirements": [
+      "MJ-REQ-195",
+      "MJ-REQ-239"
+    ],
+    "live_issues": [
+      196,
+      240
+    ],
+    "draft_pr": {
+      "number": 513,
+      "url": "https://github.com/MulattoTech/MJobs/pull/513",
+      "source_head": "8756881027674346bd022716068b4532cbc91ca7",
+      "base": "2de5863da7418bf20087822d052b2beeb77ca64b"
+    },
+    "reviewed_predecessor_head": "01007ab1a04223f50d15e42232cc4a356d9832fd",
+    "reviewed_metadata_checkpoint_head": "c245b9b2002259a998838619284ffaade1ca7207",
+    "independent_review": {
+      "head": "8756881027674346bd022716068b4532cbc91ca7",
+      "base": "2de5863da7418bf20087822d052b2beeb77ca64b",
+      "result": "PASS_NO_ACTIONABLE_CODE_DEFECTS",
+      "reviewer": "review_manual_capture_447c4a9"
+    }
+  },
+  "observations": [
+    {
+      "action": "Reproduce missing manual application tracking browser behavior",
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.browser.test_application_pipeline -v",
+      "target": "Synthetic FIXTURE applicant/application, isolated loopback API, temporary SQLite database and Chromium",
+      "result": "FAIL as expected before UI/API implementation: no Application pipeline region was rendered"
+    },
+    {
+      "action": "Verify profile-scoped status/note writes, request idempotency, conflicts, valid stages, ownership and restart readback",
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_application_pipeline -v",
+      "target": "Synthetic profiles and prepared application in a temporary SQLite database",
+      "result": "PASS: 4 integration tests; all ten declared manual stages accepted; retry does not duplicate history; reused request identifiers with changed content and invalid input are rejected; cross-profile reads return 404; three concurrent status updates allocate unique ordered sequences; user-reported APPLIED and notes survive store reopen; operational application state and confirmation stay unchanged"
+    },
+    {
+      "action": "Exercise the Applications pipeline and linked documents in Chromium",
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.browser.test_application_pipeline -v",
+      "target": "Synthetic FIXTURE application, isolated loopback API, temporary SQLite database and Chromium",
+      "result": "PASS: manual status moves the application card to Applied — reported by you; note and chronological history are visible after reload; prior PDF download stays linked; no external browser requests; no submission confirmation is created"
+    },
+    {
+      "action": "Run affected API, browser and immutable document-history regression tests",
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_application_pipeline tests.integration.test_job_tracking tests.integration.test_application_answer_export -v; .venv\\Scripts\\python.exe -m unittest tests.browser.test_application_pipeline tests.browser.test_application_answer_export tests.browser.test_document_history tests.browser.test_job_tracking -v",
+      "target": "Synthetic fixtures and temporary databases with isolated Chromium",
+      "result": "PASS: 20 integration tests and 6 browser tests; existing job history, reviewed answer exports and document downloads continue to work"
+    },
+    {
+      "action": "Build production web bundle",
+      "command": "npm run build --prefix apps/web",
+      "target": "Supported lockfile-matched Node dependencies",
+      "result": "PASS: strict TypeScript check and Vite production build"
+    },
+    {
+      "action": "Run the complete repository Python suite on the F2 production-code candidate, then rerun strengthened application-pipeline API and browser acceptance",
+      "command": ".venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py' -v; .venv\\Scripts\\python.exe -m unittest tests.integration.test_application_pipeline tests.integration.test_job_tracking tests.integration.test_application_answer_export tests.browser.test_application_pipeline tests.browser.test_application_answer_export tests.browser.test_document_history tests.browser.test_job_tracking -v",
+      "target": "Repository-supported Python 3.12 environment; isolated synthetic databases and Chromium",
+      "result": "PASS: 584 repository tests in 322.922 seconds on repaired production code; subsequent affected suite passed 20 integration and 6 browser tests in 59.136 seconds, including delayed status/note response isolation across applications, lost-response retries after edits, profile ownership, ordered history and persisted document links."
+    },
+    {
+      "action": "Independent exact-head defect review and repair checkpoint",
+      "target": "Read-only review of draft PR #513 head 01007ab1a04223f50d15e42232cc4a356d9832fd against base 2de5863da7418bf20087822d052b2beeb77ca64b",
+      "result": "Reviewer identified and source owner repaired three UI defects: late status responses could cross application selection, edited note retries reused idempotency IDs, and switching status after an ambiguous success retained stale stage IDs. Added controlled Chromium tests for cross-application response races and lost status/note responses; repaired full repository suite (584 tests), affected suite (20 integration and 6 browser tests), 62 frontend tests, and strict build pass. Fresh exact-head review and hosted checks remain pending."
+    },
+    {
+      "action": "Fresh exact-head privacy and concurrency review of the published repair",
+      "target": "Read-only review of PR #513 head 31b605350528b2f728ce4ede4e182191bdf80454 against base 2de5863da7418bf20087822d052b2beeb77ca64b",
+      "result": "P1 confirmed: regular resume/cover-letter download links used the unscoped route, allowing a known document ID to bypass selected-profile ownership. Fixed by using the existing profile-scoped route for every generated download, removing the unscoped endpoint, and adding foreign-profile 404 and browser-link/download checks. Reviewer withdrew the same-view P2 after confirming the UI serializes mutations and guards application changes; cross-tab freshness remains a limitation. Repaired full suite passes 584 tests in 324.939 seconds; the affected set passes 31 integration/browser tests and the 62-test frontend suite plus strict build. Source repair 655691921e49c176faf48b6b94066ca9aef8401c is published; exact-head review/checks remain pending. Earlier push run 37331731919 and PR run 37331736836 passed on superseded head 31b6053 and are not final-candidate evidence."
+    },
+    {
+      "action": "Profile-scope resume comparison, application detail/history, and fixture mock actions after independent privacy reviews",
+      "target": "PR #513 source heads 7c07db2e8dc59519c87b64b5a56a43ecd7ec82be, 85b465157b743bbeaa91d0dd08b7dc474dfb9383, and 8756881027674346bd022716068b4532cbc91ca7 against base 2de5863da7418bf20087822d052b2beeb77ca64b",
+      "result": "PASS: scoped routes and consumers cover comparison JSON, application detail, document history, generated-document downloads, and fixture mock actions; foreign-profile and retired-route denials are tested. Fresh read-only review of exact head 8756881 found no actionable code defects."
+    },
+    {
+      "action": "Run full Python repository suite on source head 8756881027674346bd022716068b4532cbc91ca7",
+      "command": ".venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py' -v",
+      "target": "Synthetic fixtures, temporary databases and isolated Chromium on the repository-supported Python 3.12 environment",
+      "result": "PASS: 585 tests in 323.820 seconds. An earlier completed 584-test run on superseded 7c07db2 had one browser server-thread teardown timeout; the case passed alone and in the clean 585-test run on 8756881."
+    },
+    {
+      "action": "Run focused application/detail/document history regressions, frontend suite/build and repository validators on source head 8756881027674346bd022716068b4532cbc91ca7",
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_user_read_models tests.integration.test_application_answer_export tests.integration.test_cover_letter_workflow tests.integration.test_document_provenance tests.integration.test_application_knowledge tests.integration.test_api_queue -v; .venv\\Scripts\\python.exe -m unittest tests.browser.test_application_pipeline tests.browser.test_application_answer_export tests.browser.test_document_history -v; npm test --prefix apps/web; npm run build --prefix apps/web; .venv\\Scripts\\python.exe -m tools.verification.agent_skills; .venv\\Scripts\\python.exe -m tools.verification.catalogue; .venv\\Scripts\\python.exe -m tools.verification.progress validate",
+      "target": "Synthetic test fixtures and temporary databases; browser requests stay on loopback",
+      "result": "PASS: 42 focused integration tests, 5 connected browser tests, 62 frontend tests, strict TypeScript/Vite build, agent skill/catalogue/progress validators, CLI py_compile and git diff --check."
+    },
+    {
+      "action": "Exact-source-head Verification events and runtime artifacts before metadata-only checkpoints",
+      "target": "PR #513 source head 8756881027674346bd022716068b4532cbc91ca7; base 2de5863da7418bf20087822d052b2beeb77ca64b",
+      "result": "PASS on source head: push run 37340200494 attempt 1 and pull_request run 37340208479 attempt 1 both completed successfully. Both ran 585 repository tests, frontend tests/build, validators, connected fixture UI, real offline OCR/comparison, recovery, and isolated PERSONAL public-source/browser readback. PR merge-tree equality step passed. All 9 reports in each artifact reported PASS; external_submission_enabled=false. Artifact SHA-256 matched GitHub metadata: push 08ed36aeabc3897b26feb16fd10db3fefe22c9a20e235a12330def7b5b885dc2; PR 0e2fa6a35bb8aaddeddd4400aaf927995ab43966e06824200a6f38a95fc9bfd2. These runs do not qualify the metadata-inclusive head that follows."
+    }
+    ,{
+      "action": "Run the full Python suite after profile-scoped generated-document downloads",
+      "command": ".venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py' -v",
+      "target": "Repository-supported Python 3.12 environment, synthetic fixtures, temporary databases and Chromium",
+      "result": "PASS: 584 tests in 324.939 seconds on the local profile-scoped download repair, including UI download paths, foreign-profile denial, pipeline history, answers and document validation."
+    }
+  ],
+  "boundaries": [
+    "Pipeline stages and notes are explicitly user-reported and remain separate from operational application state and submission receipts.",
+    "Tracking events use existing append-only audit history; no table or migration was added.",
+    "Synthetic data only; retained private runtime/database untouched; external submission OFF.",
+    "The latest metadata-inclusive PR head still requires independent review and exact-head push/pull_request Verification with runtime artifacts; no merge or full MJ-REQ-195/MJ-REQ-239 PASS is claimed."
+  ],
+  "remaining_gates": [
+    "Fresh independent defect review of the current exact candidate after the latest metadata correction.",
+    "Both exact-head push and pull_request Verification events for the latest candidate, all runtime reports/artifacts, and merge-result tree equality.",
+    "Combined A-F browser journey remains pending."
+  ]
+}

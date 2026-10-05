@@ -68,12 +68,12 @@ def run(baseline_path, evidence_path):
             actions.append({"action": "Worker supervision and durable outbox recovered after Redis returned", "result": "PASS"})
             compose("restart", "postgres", "redis", "mock", "api", "worker", "source-worker", "document-worker")
             until(lambda: client.get("/readiness").status_code == 200)
-            application = request("GET", "/applications/" + baseline["application_id"])
+            application = request("GET", "/profiles/" + baseline["profile_id"] + "/applications/" + baseline["application_id"])
             assert application["state"] == "CONFIRMED"
             assert application["confirmation"] == baseline["confirmation"]
             operation = request("GET", "/operations/" + baseline["operation_id"])
             assert operation["state"] == "COMPLETED"
-            again = request("POST", "/applications/" + baseline["application_id"] + "/mock-run", json={"submit": True})
+            again = request("POST", "/profiles/" + baseline["profile_id"] + "/applications/" + baseline["application_id"] + "/mock-run", json={"submit": True})
             assert again["operation_id"] == baseline["operation_id"] and again["state"] == "COMPLETED"
             # Verify the restarted mock server's independently persisted receipt.
             program = "import json,sys,urllib.request; print(json.dumps(json.load(urllib.request.urlopen('http://mock:8090/ats/receipts/'+sys.argv[1],timeout=5))))"

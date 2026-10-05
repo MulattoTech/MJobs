@@ -166,6 +166,31 @@ class JobNoteInput(BaseModel):
         return self
 
 
+class ApplicationPipelineStatusInput(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+    status: Literal["SAVED", "READY", "APPLIED", "RECRUITER_CONTACT", "INTERVIEW",
+                    "TECHNICAL_INTERVIEW", "FINAL_INTERVIEW", "OFFER", "REJECTED", "WITHDRAWN"]
+    request_id: str = Field(min_length=1, max_length=64)
+
+    @model_validator(mode="after")
+    def bounded_request_id(self):
+        if self.request_id != self.request_id.strip():
+            raise ValueError("Tracking request identifier cannot have surrounding whitespace")
+        return self
+
+
+class ApplicationNoteInput(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+    text: str = Field(min_length=1, max_length=4000)
+    request_id: str = Field(min_length=1, max_length=64)
+
+    @model_validator(mode="after")
+    def bounded_request_id(self):
+        if self.request_id != self.request_id.strip():
+            raise ValueError("Tracking request identifier cannot have surrounding whitespace")
+        return self
+
+
 class MockRunInput(BaseModel):
     model_config = ConfigDict(strict=True, extra="forbid")
     submit: bool = False
@@ -648,7 +673,34 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
 
     @app.get("/applications")
     def applications(profile_id: str | None = None):
-        return {"applications": store.applications(profile_id)}
+        rows = store.applications(profile_id)
+        if profile_id:
+            from services.tracking.applications import list_application_tracking
+            tracking = list_application_tracking(store, profile_id, [row["id"] for row in rows])
+            for row in rows:
+                value = tracking[row["id"]]
+                row["pipeline_status"] = value["status"]
+                row["pipeline_attribution"] = value["attribution"]
+        return {"applications": rows}
+
+    @app.get("/profiles/{profile_id}/applications/{application_id}/tracking")
+    def application_tracking_read(profile_id: str, application_id: str):
+        from services.tracking.applications import read_application_tracking
+        return read_application_tracking(store, profile_id, application_id)
+
+    @app.put("/profiles/{profile_id}/applications/{application_id}/tracking/status")
+    def application_pipeline_status_update(profile_id: str, application_id: str,
+                                           value: ApplicationPipelineStatusInput):
+        from services.tracking.applications import set_application_pipeline_status
+        return set_application_pipeline_status(store, profile_id, application_id,
+                                               value.status, value.request_id)
+
+    @app.post("/profiles/{profile_id}/applications/{application_id}/tracking/notes", status_code=201)
+    def application_note_create(profile_id: str, application_id: str,
+                                value: ApplicationNoteInput):
+        from services.tracking.applications import add_application_note
+        return add_application_note(store, profile_id, application_id,
+                                    value.text, value.request_id)
 
     @app.post("/applications", status_code=202)
     def application(value: ApplicationInput):
@@ -692,22 +744,16 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         return {**operation, "application_id": identity(value.job_id, value.profile_id),
                 "route_mode": route_plan["mode"], "route_ids": [route["id"] for route in selected_routes]}
 
-    @app.get("/applications/{application_id}")
-    def application_read(application_id: str):
+    @app.get("/profiles/{profile_id}/applications/{application_id}")
+    def application_read(profile_id: str, application_id: str):
         data = store.application(application_id)
+        if data["profile_id"] != profile_id:
+            raise NoResultFound("Application is not owned by this profile")
         with store.engine.connect() as connection:
             data["adapter_knowledge"] = application_adapter_knowledge(connection, data["route_id"], operation_mode=operation_mode)
             data["attempts"] = [dict(row) for row in connection.execute(select(m.attempts).where(m.attempts.c.application_id == application_id).order_by(m.attempts.c.started_at)).mappings()]
         data["route_choices"] = list_route_choices(store, application_id)
         return data
-
-    @app.get("/applications/{application_id}/documents")
-    def documents(application_id: str):
-        from services.documents.history import application_documents
-        rows = application_documents(store, application_id, output_dir)
-        # Reviewed answer exports contain explicit personal answers. Require the
-        # profile-scoped read path below for their metadata and provenance too.
-        return {"documents": [row for row in rows if row["kind"] != "application-answer-export"]}
 
     @app.get("/profiles/{profile_id}/applications/{application_id}/documents")
     def profile_documents(profile_id: str, application_id: str):
@@ -735,18 +781,22 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         return {"document_id": record["id"], "version": record["version"],
                 "sha256": record["sha256"]["txt"], "external_submission": "OFF"}
 
-    @app.get('/applications/{application_id}/document-comparison')
-    def document_comparison(application_id: str, base_document_id: str, tailored_document_id: str):
+    @app.get('/profiles/{profile_id}/applications/{application_id}/document-comparison')
+    def document_comparison(profile_id: str, application_id: str, base_document_id: str, tailored_document_id: str):
         from services.documents.comparison import compare_resumes, ComparisonUnavailable
+        if store.application(application_id)["profile_id"] != profile_id:
+            raise NoResultFound("Application is not owned by this profile")
         try:
             return compare_resumes(store, output_dir, application_id, base_document_id, tailored_document_id)
         except ComparisonUnavailable as error:
             raise HTTPException(409, str(error)) from error
 
-    @app.get('/applications/{application_id}/uploaded-resume-comparison')
-    def uploaded_resume_comparison(application_id: str, base_revision_id: str, tailored_document_id: str):
+    @app.get('/profiles/{profile_id}/applications/{application_id}/uploaded-resume-comparison')
+    def uploaded_resume_comparison(profile_id: str, application_id: str, base_revision_id: str, tailored_document_id: str):
         from services.documents.uploaded_comparison import compare_uploaded_resume
         from services.documents.comparison import ComparisonUnavailable
+        if store.application(application_id)["profile_id"] != profile_id:
+            raise NoResultFound("Application is not owned by this profile")
         try:
             return compare_uploaded_resume(store,output_dir,application_id,base_revision_id,tailored_document_id)
         except ComparisonUnavailable as error:
@@ -784,20 +834,14 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             raise NoResultFound("Document is not owned by this profile")
         return serve_document(document, format)
 
-    @app.get("/documents/{document_id}/{format}")
-    def download(document_id: str, format: Literal["pdf", "docx", "txt"]):
-        with store.engine.connect() as connection:
-            document = connection.execute(select(m.documents).where(
-                m.documents.c.id == document_id)).mappings().one_or_none()
-        if document is None or document["kind"] == "application-answer-export":
-            raise NoResultFound("Document is unavailable")
-        return serve_document(document, format)
-
-    @app.post("/applications/{application_id}/mock-run", status_code=202)
-    def mock_run(application_id: str, value: MockRunInput):
+    @app.post("/profiles/{profile_id}/applications/{application_id}/mock-run", status_code=202)
+    def mock_run(profile_id: str, application_id: str, value: MockRunInput):
         if operation_mode != "FIXTURE":
             raise HTTPException(409, "Fictional application actions are available only in verification mode")
-        if store.application(application_id)["target"] != "MOCK":
+        application = store.application(application_id)
+        if application["profile_id"] != profile_id:
+            raise NoResultFound("Application is not owned by this profile")
+        if application["target"] != "MOCK":
             raise HTTPException(409, "External submission is disabled; this application supports manual preparation only")
         return queued("APPLY_MOCK", application_id, {"submit": value.submit})
 

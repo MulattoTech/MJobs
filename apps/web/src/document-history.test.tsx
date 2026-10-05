@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { DocumentHistory, type GeneratedDocument } from './document-history';
 
-const historical:GeneratedDocument={id:'old',kind:'resume',version:1,profile_version:'snapshot-1',fact_ids:['python'],
+const historical:GeneratedDocument={id:'old',profile_id:'fixture',kind:'resume',version:1,profile_version:'snapshot-1',fact_ids:['python'],
   files:{pdf:'resume.pdf'},sha256:{pdf:'abc'},template:'verified-facts-v1',created_at:null,generation_model:null,
   facts_used:[],missing_fact_ids:['python']};
 describe('document provenance',()=>{
@@ -19,6 +19,8 @@ describe('document provenance',()=>{
     expect(html).toContain('Not recorded for this historical document');
     expect(html).toContain('Some original facts are unavailable: python');
     expect(html).toContain('Download PDF');
+    expect(html).toContain('href="/profiles/fixture/documents/old/pdf"');
+    expect(html).not.toContain('href="/documents/old/pdf"');
     expect(html).not.toContain('Download TXT');
     expect(html).not.toContain('Download DOCX');
   });

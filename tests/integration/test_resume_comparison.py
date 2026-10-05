@@ -38,7 +38,7 @@ class ResumeComparisonTests(unittest.TestCase):
     def test_comparison_uses_immutable_inputs_after_live_profile_changes(self):
         app,base,target=self.pair()
         with TestClient(create_app(self.store,'http://127.0.0.1:1',self.root,operation_mode='FIXTURE')) as client:
-            url=f"/applications/{app}/document-comparison?base_document_id={base['id']}&tailored_document_id={target['id']}"
+            url=f"/profiles/fixture/applications/{app}/document-comparison?base_document_id={base['id']}&tailored_document_id={target['id']}"
             response=client.get(url);self.assertEqual(response.status_code,200,response.text)
             result=response.json()
             self.assertEqual(result['summary_changes'],[]);self.assertEqual(result['bullet_changes'],[])
@@ -49,11 +49,15 @@ class ResumeComparisonTests(unittest.TestCase):
             self.store.save_profile(dict(PROFILE,name='Changed live identity',facts=[dict(PROFILE['facts'][0],text='Changed live text')]))
             self.assertEqual(client.get(url).json(),result)
             self.assertNotIn('Changed live',str(result))
+            self.store.save_profile(dict(PROFILE,id='other'))
+            foreign_url=url.replace('/profiles/fixture/', '/profiles/other/')
+            self.assertEqual(client.get(foreign_url).status_code,404)
+            self.assertEqual(client.get(url.replace('/profiles/fixture', '')).status_code,404)
 
     def test_explicit_revision_changes_are_classified_without_semantic_inference(self):
         app,base,target=self.pair(changed=True)
         with TestClient(create_app(self.store,'http://127.0.0.1:1',self.root,operation_mode='FIXTURE')) as client:
-            result=client.get(f'/applications/{app}/document-comparison',params={'base_document_id':base['id'],'tailored_document_id':target['id']}).json()
+            result=client.get(f'/profiles/fixture/applications/{app}/document-comparison',params={'base_document_id':base['id'],'tailored_document_id':target['id']}).json()
         self.assertEqual(result['summary_changes'][0]['after']['text'],'Revised Systems engineer')
         self.assertEqual(result['bullet_changes'][0]['before']['text'],'Maintained backups 2020-2024')
         self.assertEqual([r['fact_id'] for r in result['omitted']],['omit'])
@@ -62,7 +66,7 @@ class ResumeComparisonTests(unittest.TestCase):
     def test_unavailable_or_wrong_history_is_not_reported_as_unchanged(self):
         app,base,target=self.pair()
         with TestClient(create_app(self.store,'http://127.0.0.1:1',self.root,operation_mode='FIXTURE')) as client:
-            url=f'/applications/{app}/document-comparison'
+            url=f'/profiles/fixture/applications/{app}/document-comparison'
             params={'base_document_id':base['id'],'tailored_document_id':target['id']}
             self.assertEqual(client.get(url,params={**params,'base_document_id':target['id']}).status_code,409)
             other_job=next(j for j in self.store.jobs() if j['id']!=self.store.application(app)['job_id'])

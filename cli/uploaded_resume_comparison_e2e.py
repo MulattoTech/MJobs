@@ -42,7 +42,7 @@ def run():
                         headers={'X-Filename':'synthetic-scan.pdf', 'Content-Type':'application/pdf'})
                     assert response.status_code == 201, response.text
                     upload = response.json()
-                    response = client.get(f'/applications/{application_id}/uploaded-resume-comparison',
+                    response = client.get(f'/profiles/{profile_id}/applications/{application_id}/uploaded-resume-comparison',
                         params={'base_revision_id':upload['revision_id'], 'tailored_document_id':target['id']})
                     assert response.status_code == 200, response.text
                     result = response.json()

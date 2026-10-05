@@ -69,7 +69,7 @@ class ApiQueueTests(unittest.TestCase):
             self.assertEqual(client.get("/settings").json()["operation_mode"], "PERSONAL")
             self.assertNotIn("mock", client.get("/readiness").json()["checks"])
             self.assertEqual(client.post("/discovery", json={"profile_id": "fixture"}).status_code, 409)
-            self.assertEqual(client.post("/applications/nonexistent/mock-run",
+            self.assertEqual(client.post("/profiles/fixture/applications/nonexistent/mock-run",
                                          json={"submit": True}).status_code, 409)
             source = client.put("/sources", json={"tenant": "example"})
             self.assertEqual(source.status_code, 200)
@@ -124,7 +124,7 @@ class ApiQueueTests(unittest.TestCase):
             self.assertEqual(self.store.count("applications"), 0)
             with patch.dict("os.environ", MJOBS_DATABASE_URL=self.store.url, MJOBS_MOCK_ORIGIN=origin, MJOBS_OUTPUT_DIR=str(self.root), MJOBS_OPERATION_MODE="FIXTURE"):
                 self.assertEqual(execute_operation(queued["operation_id"])["status"], "COMPLETED")
-            self.assertEqual(client.get("/applications/" + queued["application_id"]).json()["state"], "PREPARED")
+            self.assertEqual(client.get("/profiles/fixture/applications/" + queued["application_id"]).json()["state"], "PREPARED")
             discovery = client.post("/discovery", json={"profile_id": "fixture"}).json()
             cancelled = client.post("/operations/" + discovery["operation_id"] + "/cancel")
             self.assertEqual(cancelled.status_code, 202)

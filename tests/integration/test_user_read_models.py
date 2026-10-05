@@ -47,21 +47,33 @@ class UserReadModelTests(unittest.TestCase):
             history = client.get("/applications", params={"profile_id": "fixture"}).json()["applications"]
             self.assertEqual(history[0]["id"], application)
             self.assertEqual(history[0]["target"], "MOCK")
+            scoped = f"/profiles/fixture/applications/{application}"
+            self.assertEqual(client.get(scoped).json()["profile_id"], "fixture")
+            self.store.save_profile(dict(PROFILE, id="other"))
+            self.assertEqual(client.get(f"/profiles/other/applications/{application}").status_code, 404)
+            self.assertEqual(client.get(f"/applications/{application}").status_code, 404)
 
     def test_integrity_checked_downloads_and_traversal_rejection(self):
         with fixture_server() as origin, TestClient(create_app(self.store, origin, self.root, operation_mode="FIXTURE")) as client:
             discover(self.store, origin, "fixture")
             application = prepare(self.store, self.store.jobs()[0]["id"], "fixture", self.root)
-            documents = client.get("/applications/" + application + "/documents").json()["documents"]
+            scoped = "/profiles/fixture/applications/" + application
+            documents = client.get(scoped + "/documents").json()["documents"]
             self.assertEqual(len(documents), 2)
+            self.store.save_profile(dict(PROFILE, id="other"))
+            self.assertEqual(client.get("/profiles/other/applications/" + application + "/documents").status_code, 404)
+            self.assertEqual(client.get("/applications/" + application + "/documents").status_code, 404)
             identifier = next(row["id"] for row in documents if row["kind"] == "resume")
-            pdf = client.get("/documents/" + identifier + "/pdf")
+            pdf = client.get("/profiles/fixture/documents/" + identifier + "/pdf")
             self.assertEqual(pdf.status_code, 200)
             self.assertTrue(pdf.content.startswith(b"%PDF"))
-            self.assertEqual(client.get("/documents/" + identifier + "/exe").status_code, 422)
+            self.store.save_profile(dict(PROFILE, id="other-profile"))
+            self.assertEqual(client.get("/profiles/other-profile/documents/" + identifier + "/pdf").status_code, 404)
+            self.assertEqual(client.get("/documents/" + identifier + "/pdf").status_code, 404)
+            self.assertEqual(client.get("/profiles/fixture/documents/" + identifier + "/exe").status_code, 422)
             with self.store.engine.begin() as connection:
                 connection.execute(update(m.documents).where(m.documents.c.id == identifier).values(files={"pdf": "../../outside.pdf"}))
-            self.assertEqual(client.get("/documents/" + identifier + "/pdf").status_code, 409)
+            self.assertEqual(client.get("/profiles/fixture/documents/" + identifier + "/pdf").status_code, 409)
 
     def test_mixed_pending_facts_are_excluded_and_revision_does_not_rewrite_history(self):
         profile = dict(PROFILE, facts=[PROFILE["facts"][0], dict(PROFILE["facts"][1], user_approved=False)])
@@ -90,7 +102,7 @@ class UserReadModelTests(unittest.TestCase):
         application = prepare(self.store, job["id"], "fixture", self.root)
         self.assertEqual(self.store.application(application)["target"], "REAL")
         with fixture_server() as origin, TestClient(create_app(self.store, origin, self.root, operation_mode="FIXTURE")) as client:
-            self.assertEqual(client.post("/applications/" + application + "/mock-run", json={"submit": True}).status_code, 409)
+            self.assertEqual(client.post("/profiles/fixture/applications/" + application + "/mock-run", json={"submit": True}).status_code, 409)
             self.assertEqual(client.get("/profiles/fixture", headers={"Sec-Fetch-Site": "cross-site"}).status_code, 403)
         self.store.save_profile(dict(PROFILE, facts=[dict(row, user_approved=False) for row in PROFILE["facts"]]))
         recalculate(self.store, "fixture")

@@ -137,10 +137,8 @@ class ApplicationAnswerExportTests(unittest.TestCase):
         self.assertEqual(self.client.get(f'/documents/{document_id}/txt').status_code, 404)
         self.assertEqual(self.client.get(
             f'/profiles/other/applications/{self.application_id}/documents').status_code, 404)
-        unscoped_documents = self.client.get(
-            f'/applications/{self.application_id}/documents').json()['documents']
-        self.assertNotIn(document_id, {row['id'] for row in unscoped_documents})
-        self.assertNotIn('application-answer-export', {row['kind'] for row in unscoped_documents})
+        self.assertEqual(self.client.get(
+            f'/applications/{self.application_id}/documents').status_code, 404)
         documents = self.client.get(
             f'/profiles/fixture/applications/{self.application_id}/documents').json()['documents']
         row = next(item for item in documents if item['id'] == document_id)

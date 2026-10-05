@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-05T11:47:32Z",
+  "timestamp": "2026-10-05T16:30:06Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -915,7 +915,7 @@
       "evidence": [
         "docs/evidence/2026-10-05-reviewed-application-answers.json"
       ],
-      "note": "Narrow exact-match/manual-review export path now includes profile-scoped answer history/download, atomic content-addressed export recovery, and a saved-profile load gate. Local 564-test Python suite, 62 web tests, focused Chromium, build and validators pass; requirement-wide matching, confidence policy and sensitive/legal policy remain incomplete. Fresh PR #511 exact-head review and both event checks are pending. Narrow E slice; approval-race repair is locally tested, while fresh exact-head review/CI and full requirement acceptance remain pending. A current narrow slice requires matching profile versions on every update; full requirement acceptance and fresh exact-head hosted gates remain pending."
+      "note": "Question-aware, versioned answer review and application-linked export merged in PR #511 at fb8ab73. Exact candidate 22d9a36 had passing independent review, push 37307763776 and pull_request 37307771220 Verification, nine PASS reports per artifact, and matching GitHub artifact digests. These requirements remain PARTIAL for fuzzy/semantic matching, configurable confidence, full sensitive/legal controls, and durable unexported drafts."
     },
     {
       "requirement_id": "MJ-REQ-104",
@@ -923,7 +923,7 @@
       "evidence": [
         "docs/evidence/2026-10-05-reviewed-application-answers.json"
       ],
-      "note": "Narrow exact-match/manual-review export path now includes profile-scoped answer history/download, atomic content-addressed export recovery, and a saved-profile load gate. Local 564-test Python suite, 62 web tests, focused Chromium, build and validators pass; requirement-wide matching, confidence policy and sensitive/legal policy remain incomplete. Fresh PR #511 exact-head review and both event checks are pending. Narrow E slice; approval-race repair is locally tested, while fresh exact-head review/CI and full requirement acceptance remain pending. A current narrow slice requires matching profile versions on every update; full requirement acceptance and fresh exact-head hosted gates remain pending."
+      "note": "Question-aware, versioned answer review and application-linked export merged in PR #511 at fb8ab73. Exact candidate 22d9a36 had passing independent review, push 37307763776 and pull_request 37307771220 Verification, nine PASS reports per artifact, and matching GitHub artifact digests. These requirements remain PARTIAL for fuzzy/semantic matching, configurable confidence, full sensitive/legal controls, and durable unexported drafts."
     },
     {
       "requirement_id": "MJ-REQ-105",
@@ -931,7 +931,7 @@
       "evidence": [
         "docs/evidence/2026-10-05-reviewed-application-answers.json"
       ],
-      "note": "Narrow exact-match/manual-review export path now includes profile-scoped answer history/download, atomic content-addressed export recovery, and a saved-profile load gate. Local 564-test Python suite, 62 web tests, focused Chromium, build and validators pass; requirement-wide matching, confidence policy and sensitive/legal policy remain incomplete. Fresh PR #511 exact-head review and both event checks are pending. Narrow E slice; approval-race repair is locally tested, while fresh exact-head review/CI and full requirement acceptance remain pending. A current narrow slice requires matching profile versions on every update; full requirement acceptance and fresh exact-head hosted gates remain pending."
+      "note": "Question-aware, versioned answer review and application-linked export merged in PR #511 at fb8ab73. Exact candidate 22d9a36 had passing independent review, push 37307763776 and pull_request 37307771220 Verification, nine PASS reports per artifact, and matching GitHub artifact digests. These requirements remain PARTIAL for fuzzy/semantic matching, configurable confidence, full sensitive/legal controls, and durable unexported drafts."
     },
     {
       "requirement_id": "MJ-REQ-106",
@@ -939,7 +939,7 @@
       "evidence": [
         "docs/evidence/2026-10-05-reviewed-application-answers.json"
       ],
-      "note": "Narrow exact-match/manual-review export path now includes profile-scoped answer history/download, atomic content-addressed export recovery, and a saved-profile load gate. Local 564-test Python suite, 62 web tests, focused Chromium, build and validators pass; requirement-wide matching, confidence policy and sensitive/legal policy remain incomplete. Fresh PR #511 exact-head review and both event checks are pending. Narrow E slice; approval-race repair is locally tested, while fresh exact-head review/CI and full requirement acceptance remain pending. A current narrow slice requires matching profile versions on every update; full requirement acceptance and fresh exact-head hosted gates remain pending."
+      "note": "Question-aware, versioned answer review and application-linked export merged in PR #511 at fb8ab73. Exact candidate 22d9a36 had passing independent review, push 37307763776 and pull_request 37307771220 Verification, nine PASS reports per artifact, and matching GitHub artifact digests. These requirements remain PARTIAL for fuzzy/semantic matching, configurable confidence, full sensitive/legal controls, and durable unexported drafts."
     },
     {
       "requirement_id": "MJ-REQ-107",
@@ -947,7 +947,7 @@
       "evidence": [
         "docs/evidence/2026-10-05-reviewed-application-answers.json"
       ],
-      "note": "Narrow exact-match/manual-review export path now includes profile-scoped answer history/download, atomic content-addressed export recovery, and a saved-profile load gate. Local 564-test Python suite, 62 web tests, focused Chromium, build and validators pass; requirement-wide matching, confidence policy and sensitive/legal policy remain incomplete. Fresh PR #511 exact-head review and both event checks are pending. Narrow E slice; approval-race repair is locally tested, while fresh exact-head review/CI and full requirement acceptance remain pending. A current narrow slice requires matching profile versions on every update; full requirement acceptance and fresh exact-head hosted gates remain pending."
+      "note": "Question-aware, versioned answer review and application-linked export merged in PR #511 at fb8ab73. Exact candidate 22d9a36 had passing independent review, push 37307763776 and pull_request 37307771220 Verification, nine PASS reports per artifact, and matching GitHub artifact digests. These requirements remain PARTIAL for fuzzy/semantic matching, configurable confidence, full sensitive/legal controls, and durable unexported drafts."
     },
     {
       "requirement_id": "MJ-REQ-108",
@@ -1533,9 +1533,10 @@
       "requirement_id": "MJ-REQ-195",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-09-30-user-testing.md"
+        "docs/evidence/2026-09-30-user-testing.md",
+        "docs/evidence/2026-10-05-application-pipeline.json"
       ],
-      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open"
+      "note": "Connected Applications board exposes ten user-reported stages, profile-scoped append-only history and linked prepared documents. Comparison, application detail/history, downloads and fixture mock actions enforce profile ownership. Source head 8756881 passes 585 Python tests, 42 focused integrations, 5 Chromium tests, 62 web tests/build and validators; independent review found no actionable defect. Final corrected-metadata-head hosted CI/artifacts and combined A-F proof remain pending; full requirement stays PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-196",
@@ -1822,9 +1823,10 @@
       "requirement_id": "MJ-REQ-239",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-05-job-dispositions-notes.json"
+        "docs/evidence/2026-10-05-job-dispositions-notes.json",
+        "docs/evidence/2026-10-05-application-pipeline.json"
       ],
-      "note": "Local connected browser/API/storage evidence covers job notes only; retry idempotency, concurrent ordering, legacy-history compatibility and profile-switch isolation repairs, held-read browser assertions verify scheduled-search resets and empty fact/answer editors before the destination response completes; other profile-scoped view resets are implemented but not individually seeded in that browser case. Company and application notes, exact-head independent review and hosted push/pull_request checks remain open."
+      "note": "Profile-scoped job/application notes and chronological histories pass API/database reopen and connected Chromium reload checks. Company notes and broad requirement acceptance remain open. Application read/history privacy repairs are reviewed on source head 8756881; final corrected-metadata-head exact CI/artifact gates remain pending."
     },
     {
       "requirement_id": "MJ-REQ-240",

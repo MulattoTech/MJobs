@@ -46,7 +46,7 @@ class DocumentProvenanceTests(unittest.TestCase):
             job = self.store.jobs()[0]
             with patch('services.documents.generate.now', return_value='2026-10-04T12:00:00+00:00'):
                 app_id = prepare(self.store, job['id'], 'fixture', self.root)
-            first = client.get(f'/applications/{app_id}/documents').json()['documents']
+            first = client.get(f'/profiles/fixture/applications/{app_id}/documents').json()['documents']
             before = {}
             for row in first:
                 self.assertEqual(row['generation_model'], 'deterministic-fact-copy-v2' if row['kind']=='resume' else 'deterministic-job-evidence-v1')
@@ -61,7 +61,7 @@ class DocumentProvenanceTests(unittest.TestCase):
                 self.assertEqual(set(row['files']), {'pdf','docx','txt'})
                 outputs = {}
                 for fmt in row['files']:
-                    response = client.get(f"/documents/{row['id']}/{fmt}")
+                    response = client.get(f"/profiles/fixture/documents/{row['id']}/{fmt}")
                     self.assertEqual(response.status_code, 200)
                     self.assertEqual(hashlib.sha256(response.content).hexdigest(), row['sha256'][fmt])
                     outputs[fmt] = response.content
@@ -81,12 +81,12 @@ class DocumentProvenanceTests(unittest.TestCase):
             self.store.save_profile(changed)
             with patch('services.documents.generate.now', return_value='2026-10-04T13:00:00+00:00'):
                 prepare(self.store, job['id'], 'fixture', self.root)
-            rows = client.get(f'/applications/{app_id}/documents').json()['documents']
+            rows = client.get(f'/profiles/fixture/applications/{app_id}/documents').json()['documents']
             self.assertEqual(len(rows), 4)
             self.assertEqual([r for r in rows if r['version']==1], first)
             self.assertEqual({r['created_at'] for r in rows}, {'2026-10-04T12:00:00+00:00','2026-10-04T13:00:00+00:00'})
             for (identifier,fmt), data in before.items():
-                self.assertEqual(client.get(f'/documents/{identifier}/{fmt}').content, data)
+                self.assertEqual(client.get(f'/profiles/fixture/documents/{identifier}/{fmt}').content, data)
             for row in rows:
                 if row['version']==2:
                     self.assertEqual([f['text'] for f in row['facts_used']], ['Python systems','SQL'])

@@ -31,6 +31,12 @@ def run(base_url, evidence_path):
             assert response.ok, (path, response.status)
             return response.json()
 
+        def download_document(document_id, format):
+            path = f"/profiles/{profile_id}/documents/{document_id}/{format}"
+            response = context.request.get(base_url + path)
+            assert response.ok, (path, response.status)
+            return response.body()
+
         def save_profile():
             page.get_by_role("button", name="Save profile", exact=True).click()
             expect(page.get_by_role("status").filter(has_text="Profile saved")).to_be_visible()
@@ -68,7 +74,7 @@ def run(base_url, evidence_path):
             application = request("/applications?profile_id=" + profile_id)["applications"][0]
             identifier = application["id"]
             assert application["fact_ids"] == ["python"]
-            first_documents = request("/applications/" + identifier + "/documents")["documents"]
+            first_documents = request("/profiles/" + profile_id + "/applications/" + identifier + "/documents")["documents"]
             first_resume = next(row for row in first_documents if row["kind"] == "resume")
             assert first_resume['created_at'] and first_resume['generation_model'] == 'deterministic-fact-copy-v2'
             assert [fact['text'] for fact in first_resume['facts_used']] == ['Python']
@@ -79,7 +85,7 @@ def run(base_url, evidence_path):
                 provenance.get_by_role('link', name='Download TXT', exact=True).click()
             text_bytes = Path(text_download.value.path()).read_bytes()
             assert hashlib.sha256(text_bytes).hexdigest() == first_resume['sha256']['txt']
-            original = context.request.get(base_url + "/documents/" + first_resume["id"] + "/docx").body()
+            original = download_document(first_resume["id"], "docx")
             text = "\n".join(row.text for row in Document(io.BytesIO(original)).paragraphs)
             assert "Python" in text and "SQL" not in text
             assert first_resume['template']=='verified-headings-v1'
@@ -95,11 +101,11 @@ def run(base_url, evidence_path):
             select_data_job()
             expect(page.locator(".big-score")).to_have_text("100%")
             prepare()
-            revised = request("/applications/" + identifier)
+            revised = request("/profiles/" + profile_id + "/applications/" + identifier)
             assert revised["document_version"] == 2 and set(revised["fact_ids"]) == {"python", "sql"}
-            documents = request("/applications/" + identifier + "/documents")["documents"]
+            documents = request("/profiles/" + profile_id + "/applications/" + identifier + "/documents")["documents"]
             assert len(documents) == 4
-            old = context.request.get(base_url + "/documents/" + first_resume["id"] + "/docx").body()
+            old = download_document(first_resume["id"], "docx")
             assert old == original
             with page.expect_download() as download:
                 page.get_by_role("link", name="Download PDF", exact=True).first.click()
@@ -112,12 +118,12 @@ def run(base_url, evidence_path):
             select_data_job()
             page.get_by_label('Order approved skills for this job',exact=True).check()
             prepare()
-            tailored=next(row for row in request('/applications/'+identifier+'/documents')['documents'] if row['version']==3 and row['kind']=='resume')
+            tailored=next(row for row in request('/profiles/'+profile_id+'/applications/'+identifier+'/documents')['documents'] if row['version']==3 and row['kind']=='resume')
             assert tailored['generation_model']=='deterministic-skill-order-v3'
             assert tailored['template']=='approved-skill-emphasis-v1'
             assert tailored['generation_context']['emphasized_fact_ids']
             expect(page.get_by_role('region',name='resume version 3',exact=True).get_by_text('Job-matched skill and technology facts in bold:',exact=False)).to_be_visible()
-            emphasized_doc=Document(io.BytesIO(context.request.get(base_url+'/documents/'+tailored['id']+'/docx').body()))
+            emphasized_doc=Document(io.BytesIO(download_document(tailored['id'],'docx')))
             assert any(p.text=='Python' and all(r.bold for r in p.runs) for p in emphasized_doc.paragraphs)
             actions.append({'action':'Job-matched technology emphasis reaches worker, DOCX download and visible provenance','result':'PASS'})
             assert tailored['generation_context']['mode']=='APPROVED_SKILL_ORDER'
@@ -160,7 +166,7 @@ def run(base_url, evidence_path):
             expect(page.get_by_label('Include SQL',exact=True)).to_be_checked()
             page.get_by_label('Include SQL',exact=True).uncheck()
             prepare()
-            selected_documents=request('/applications/'+identifier+'/documents')['documents']
+            selected_documents=request('/profiles/'+profile_id+'/applications/'+identifier+'/documents')['documents']
             selected_resume=next(row for row in selected_documents if row['version']==4 and row['kind']=='resume')
             selected_cover=next(row for row in selected_documents if row['version']==4 and row['kind']=='cover-letter')
             assert selected_resume['generation_model']=='deterministic-fact-selection-v2'
@@ -172,7 +178,7 @@ def run(base_url, evidence_path):
                 selected_history.get_by_role('link',name='Download TXT',exact=True).click()
             selected_text=Path(selected_download.value.path()).read_text(encoding='utf-8')
             assert 'Python' in selected_text and 'SQL' not in selected_text
-            assert 'SQL' in context.request.get(base_url+'/documents/'+selected_cover['id']+'/txt').text()
+            assert 'SQL' in download_document(selected_cover['id'],'txt').decode('utf-8')
             comparison=page.get_by_role('region',name='Compare base and tailored resumes',exact=True)
             comparison.get_by_label('Base resume',exact=True).select_option(label='v2')
             comparison.get_by_role('button',name='Compare selected resumes',exact=True).click()
@@ -189,7 +195,7 @@ def run(base_url, evidence_path):
             contact_option=page.get_by_label('Include saved resume contact details',exact=True)
             expect(contact_option).not_to_be_checked();contact_option.check()
             prepare()
-            contact_resume=next(row for row in request('/applications/'+identifier+'/documents')['documents'] if row['version']==5 and row['kind']=='resume')
+            contact_resume=next(row for row in request('/profiles/'+profile_id+'/applications/'+identifier+'/documents')['documents'] if row['version']==5 and row['kind']=='resume')
             assert contact_resume['template']=='approved-contact-base-v1'
             assert 'Location: Tulsa' in contact_resume['generation_context']['contact_header']
             contact_history=page.get_by_role('region',name='resume version 5',exact=True)
@@ -198,23 +204,23 @@ def run(base_url, evidence_path):
             with page.expect_download() as contact_download:
                 contact_history.get_by_role('link',name='Download TXT',exact=True).click()
             assert 'Location: Tulsa' in Path(contact_download.value.path()).read_text(encoding='utf-8')
-            assert 'Location: Tulsa' not in context.request.get(base_url+'/documents/'+selected_resume['id']+'/txt').text()
+            assert 'Location: Tulsa' not in download_document(selected_resume['id'],'txt').decode('utf-8')
             assert request('/profiles/'+profile_id)==saved_contact_profile
             actions.append({'action':'Explicit saved contact header reaches real document worker, history and download while prior revision and profile remain unchanged','result':'PASS'})
 
             page.get_by_role("button", name="Run dry-run", exact=True).click()
             expect(page.locator(".job-detail > .tag")).to_have_text("DRY_RUN_COMPLETE", timeout=15000)
-            dry = request("/applications/" + identifier)
+            dry = request("/profiles/" + profile_id + "/applications/" + identifier)
             assert "STOP_BEFORE_SUBMIT" in dry["trace"] and "SUBMIT" not in dry["trace"]
             page.get_by_label("I approve one fictional mock submission").check()
             page.get_by_role("button", name="Submit to local mock", exact=True).click()
             expect(page.locator(".job-detail > .tag")).to_have_text("CONFIRMED")
-            confirmed = request("/applications/" + identifier)
+            confirmed = request("/profiles/" + profile_id + "/applications/" + identifier)
             assert confirmed["target"] == "MOCK" and confirmed["confirmation"]["submission_count"] == 1
             assert request("/health")["external_submission_enabled"] is False
-            repeated = context.request.post(base_url + "/applications/" + identifier + "/mock-run", data={"submit": True}).json()
+            repeated = context.request.post(base_url + "/profiles/" + profile_id + "/applications/" + identifier + "/mock-run", data={"submit": True}).json()
             assert repeated["state"] == "COMPLETED"
-            assert request("/applications/" + identifier)["confirmation"] == confirmed["confirmation"]
+            assert request("/profiles/" + profile_id + "/applications/" + identifier)["confirmation"] == confirmed["confirmation"]
             page.screenshot(path=str(artifacts / "application-confirmed.png"), full_page=True)
             actions.append({"action": "Browser dry-run stops before submission; explicit local mock receipt count remains one on repeat", "result": "PASS"})
 
