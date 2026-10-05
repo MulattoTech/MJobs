@@ -18,7 +18,7 @@ from sqlalchemy.exc import NoResultFound
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from packages.persistence import models as m
-from packages.persistence.store import Store, identity
+from packages.persistence.store import ProfileVersionConflict, Store, identity
 from packages.domain.operation_mode import parse_operation_mode, operation_mode_from_env
 from packages.domain.profile import ContactDetails, JobPreferences
 from services.career_profile.extraction import extract_resume
@@ -52,13 +52,18 @@ class CareerFactInput(FactInput):
     kind: Literal["skill", "experience", "responsibility", "education", "certification", "project", "accomplishment", "summary", "technology_experience"] = "skill"
 
 
+class AnswerInput(FactInput):
+    question: str | None = Field(default=None, min_length=1, max_length=2000)
+
+
 class ProfileInput(BaseModel):
     model_config = ConfigDict(strict=True, extra="forbid")
     id: str = Field(min_length=1, max_length=128)
     name: str = Field(min_length=1, max_length=200)
     email: str = Field(min_length=3, max_length=320, pattern=r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
     facts: list[CareerFactInput] = Field(default_factory=list, max_length=200)
-    answers: list[FactInput] = Field(default_factory=list, max_length=200)
+    answers: list[AnswerInput] = Field(default_factory=list, max_length=200)
+    expected_version: str | None = Field(default=None, min_length=64, max_length=64)
     contact: ContactDetails = Field(default_factory=ContactDetails)
     preferences: JobPreferences = Field(default_factory=JobPreferences)
 
@@ -85,6 +90,26 @@ class ApplicationInput(DiscoveryInput):
         if self.tailor_fact_ids is not None and (not self.tailor_resume or not self.expected_profile_version):
             raise ValueError('Explicit resume facts require tailoring and the observed profile version')
         return self
+
+
+class ApplicationAnswerItem(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+    question: str = Field(min_length=1, max_length=2000)
+    text: str = Field(min_length=1, max_length=10000)
+    answer_id: str | None = Field(default=None, min_length=1, max_length=128)
+    reviewed: bool
+
+    @model_validator(mode='after')
+    def explicit_review_and_text(self):
+        if not self.reviewed or not self.question.strip() or not self.text.strip():
+            raise ValueError('Every answer must contain user text and deliberate review')
+        return self
+
+
+class ApplicationAnswerExportInput(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+    profile_id: str = Field(min_length=1, max_length=128)
+    items: list[ApplicationAnswerItem] = Field(min_length=1, max_length=100)
 
 
 class ManualJobCaptureInput(BaseModel):
@@ -324,10 +349,16 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     @app.put("/profiles")
     def profile(value: ProfileInput):
         payload = value.model_dump()
+        payload.pop('expected_version', None)
         for optional in ('contact', 'preferences'):
             if optional not in value.model_fields_set:
                 payload.pop(optional)
-        return {"id": value.id, "version": store.save_profile(payload)}
+        try:
+            version = store.save_profile(payload, expected_version=value.expected_version,
+                                         require_expected_version=True)
+        except ProfileVersionConflict as exc:
+            raise HTTPException(409, str(exc)) from exc
+        return {"id": value.id, "version": version}
 
     @app.get("/profiles/{profile_id}/resumes")
     def profile_resumes(profile_id: str):
@@ -622,7 +653,36 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     @app.get("/applications/{application_id}/documents")
     def documents(application_id: str):
         from services.documents.history import application_documents
+        rows = application_documents(store, application_id, output_dir)
+        # Reviewed answer exports contain explicit personal answers. Require the
+        # profile-scoped read path below for their metadata and provenance too.
+        return {"documents": [row for row in rows if row["kind"] != "application-answer-export"]}
+
+    @app.get("/profiles/{profile_id}/applications/{application_id}/documents")
+    def profile_documents(profile_id: str, application_id: str):
+        from services.documents.history import application_documents
+        application = store.application(application_id)
+        if application["profile_id"] != profile_id:
+            raise NoResultFound("Application is not owned by this profile")
         return {"documents": application_documents(store, application_id, output_dir)}
+
+    @app.get("/profiles/{profile_id}/applications/{application_id}/answers")
+    def application_answer_bank(profile_id: str, application_id: str):
+        application = store.application(application_id)
+        if application["profile_id"] != profile_id:
+            raise NoResultFound("Application is not owned by this profile")
+        # Expose only the active profile bank inside its profile-scoped route.
+        return {"answers": store.profile(profile_id).get("answers", [])}
+
+    @app.post("/profiles/{profile_id}/applications/{application_id}/answers/export", status_code=201)
+    def export_application_answers(profile_id: str, application_id: str, value: ApplicationAnswerExportInput):
+        from services.documents.answers import export_answers
+        application = store.application(application_id)
+        if application["profile_id"] != profile_id or value.profile_id != profile_id:
+            raise NoResultFound("Application is not owned by this profile")
+        record = export_answers(store, application_id, output_dir, value.items)
+        return {"document_id": record["id"], "version": record["version"],
+                "sha256": record["sha256"]["txt"], "external_submission": "OFF"}
 
     @app.get('/applications/{application_id}/document-comparison')
     def document_comparison(application_id: str, base_document_id: str, tailored_document_id: str):
@@ -641,16 +701,14 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         except ComparisonUnavailable as error:
             raise HTTPException(409,str(error)) from error
 
-    @app.get("/documents/{document_id}/{format}")
-    def download(document_id: str, format: Literal["pdf", "docx", "txt"]):
-        with store.engine.connect() as connection:
-            document = connection.execute(select(m.documents).where(m.documents.c.id == document_id)).mappings().one()
+    def serve_document(document, format):
+        document = dict(document)
         root = Path(output_dir).resolve()
         if document["kind"] == "cover-letter":
             from services.documents.history import validated_letter_preview
             from services.documents.errors import PreparationError
             try:
-                validated_letter_preview(store, dict(document), output_dir)
+                validated_letter_preview(store, document, output_dir)
             except (OSError, ValueError, KeyError, TypeError, PreparationError) as error:
                 raise HTTPException(409, "Cover-letter validation failed; revise and prepare a new version") from error
         app_root = (root / document["application_id"]).resolve()
@@ -662,6 +720,27 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             raise HTTPException(409, "Document integrity check failed; regenerate for review")
         media = {"pdf": "application/pdf", "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "txt": "text/plain"}[format]
         return FileResponse(path, media_type=media, filename=f"{document['kind']}-v{document['version']}.{format}")
+
+    @app.get("/profiles/{profile_id}/documents/{document_id}/{format}")
+    def profile_download(profile_id: str, document_id: str, format: Literal["pdf", "docx", "txt"]):
+        with store.engine.connect() as connection:
+            document = connection.execute(select(m.documents).where(
+                m.documents.c.id == document_id)).mappings().one_or_none()
+        if document is None:
+            raise NoResultFound("Document is unavailable")
+        application = store.application(document["application_id"])
+        if application["profile_id"] != profile_id:
+            raise NoResultFound("Document is not owned by this profile")
+        return serve_document(document, format)
+
+    @app.get("/documents/{document_id}/{format}")
+    def download(document_id: str, format: Literal["pdf", "docx", "txt"]):
+        with store.engine.connect() as connection:
+            document = connection.execute(select(m.documents).where(
+                m.documents.c.id == document_id)).mappings().one_or_none()
+        if document is None or document["kind"] == "application-answer-export":
+            raise NoResultFound("Document is unavailable")
+        return serve_document(document, format)
 
     @app.post("/applications/{application_id}/mock-run", status_code=202)
     def mock_run(application_id: str, value: MockRunInput):

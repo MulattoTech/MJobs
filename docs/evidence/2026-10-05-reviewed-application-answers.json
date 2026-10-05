@@ -1,0 +1,163 @@
+{
+  "evidence_id": "CORE-WORKFLOW-TRIAL-E-REVIEWED-APPLICATION-ANSWERS",
+  "recorded_at": "2026-10-05T11:47:53Z",
+  "result": "PARTIAL",
+  "scope": "Question-aware reusable answer review and immutable application-linked TXT exports",
+  "authority": {
+    "repository": "MulattoTech/MJobs",
+    "base_main": "fb93ad48a3987c375350388ba8bf677db58575d2",
+    "task_branch": "codex/core-workflow-trial-answers-20261005",
+    "requirements": [
+      "MJ-REQ-103",
+      "MJ-REQ-104",
+      "MJ-REQ-105",
+      "MJ-REQ-106",
+      "MJ-REQ-107"
+    ],
+    "live_issues": [
+      104,
+      105,
+      106,
+      107,
+      108
+    ]
+  },
+  "observations": [
+    {
+      "action": "Exercise profile approval reset, answer matching gates, profile scope, versions, hashes, and restart readback",
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_application_answer_export -v",
+      "target": "Temporary SQLite profile/application, synthetic approved answers, local API",
+      "result": "PASS: 9 integration tests on the current working tree; substantive edits reset verification and approval; sensitive/legal/authorization variants, profile-scoped history and downloads, denial of unscoped answer export metadata/bytes, content-addressed orphan recovery, concurrent immutable version allocation, and export/profile-edit serialization are covered; exact normalized reuse and versioned TXT bytes read back after restart"
+    },
+    {
+      "action": "Run focused connected answer-export and application document-history browser flows",
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.browser.test_application_answer_export tests.browser.test_document_history -v",
+      "target": "Synthetic FIXTURE profile and job, isolated Chromium, loopback-only requests",
+      "result": "PASS: 2 browser tests on the current working tree; saved profile editing is gated until the selected profile has loaded; profile editor saves reviewed answers without unrelated worker refresh; ethnic-origin and plural conflict-of-interest answers are not suggested; ordinary exact answers require deliberate selection and per-job review; answer history/download uses profile-scoped API and same hash-verified TXT bytes survive reload; no external browser request"
+    },
+    {
+      "action": "Run the complete connected UI workflow with the isolated Compose fixture",
+      "command": "python -m cli.ui_e2e --base-url http://127.0.0.1:18723 --evidence %TEMP%\\mjobs-core-trial-ui-repro-20261005\\ui-e2e-fixed.json",
+      "target": "Separately named synthetic FIXTURE PostgreSQL/Redis stack and Chromium",
+      "result": "DIAGNOSTIC ONLY: 14 connected UI actions including profile edits, matching, document history, mock dry-run, one explicit local mock receipt, reload, and external submission OFF; predates the current profile-scope and file-recovery repairs and is not current-candidate acceptance"
+    },
+    {
+      "action": "Earlier exploratory concurrent answer export smoke through the PostgreSQL API (not source-bound to the current candidate)",
+      "command": "Eight simultaneous synthetic POST requests to the reviewed answer export route",
+      "target": "The isolated synthetic FIXTURE Compose project",
+      "result": "DIAGNOSTIC ONLY: eight HTTP 201 responses, distinct documents at versions 1 through 8, every response external_submission OFF; run preceded the current profile-lock change and does not establish its PostgreSQL concurrency behavior"
+    },
+    {
+      "action": "Run existing profile, approval-reset, and fixture answer regressions",
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_profile_import tests.browser.test_fact_review tests.browser.test_profile_import tests.browser.test_mock_application -v",
+      "target": "Synthetic profile imports and controlled fictional mock adapter",
+      "result": "PASS: 21 focused profile/fact/mock tests before the scoped bank-read refinement; legacy fixture answers retain their original contract"
+    },
+    {
+      "action": "Run the complete repository Python test suite",
+      "command": ".venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py' -v",
+      "target": "Temporary databases, controlled fixtures, isolated Chromium",
+      "result": "PASS: 564 tests in 282.013 seconds on this working tree, including profile-load race prevention, profile-scoped answer export history/download, orphan recovery, plural sensitive-question, and profile-edit/export serialization regressions"
+    },
+    {
+      "action": "Run web tests and strict production build",
+      "command": "npm test --prefix apps/web -- --run; npm run build --prefix apps/web",
+      "target": "React/TypeScript web client",
+      "result": "PASS: 62 web tests; strict TypeScript and Vite build succeeded"
+    },
+    {
+      "action": "Read exact-head push and pull_request Verification for the superseded c65a85d candidate",
+      "command": "gh run view 37299100732; gh run view 37299108141",
+      "target": "Candidate c65a85ddbe918dd48bdab6dec4571bb20e59e9a4 against fb93ad48a3987c375350388ba8bf677db58575d2",
+      "result": "FAIL for merge eligibility: push run 37299100732 passed; pull_request run 37299108141 failed the full unittest step with one Chromium editor-load race. The selected profile editor could accept input before its saved profile snapshot replaced blank state. A loading gate and browser wait were added; fresh exact-head checks remain pending."
+    },
+    {
+      "action": "Independent exact-SHA defect review of superseded c65a85d",
+      "command": "Read-only review bound to c65a85ddbe918dd48bdab6dec4571bb20e59e9a4 and base fb93ad48a3987c375350388ba8bf677db58575d2",
+      "target": "PR #511 answer privacy, immutable file recovery, approval race and sensitive-answer guards",
+      "result": "Two findings were repaired on the current working tree: unscoped application document history/download no longer exposes answer exports, and content-addressed atomic output recovers from an interrupted export. Fresh independent review of the final candidate is pending."
+    },
+    {
+      "action": "Run repository policy and whitespace checks",
+      "command": ".venv\\Scripts\\python.exe -m tools.verification.agent_skills; .venv\\Scripts\\python.exe -m tools.verification.catalogue; .venv\\Scripts\\python.exe -m tools.verification.progress validate; git diff --check",
+      "target": "Repository skill manifest, requirements metadata, delivery journal, working diff",
+      "result": "PASS"
+    },
+    {
+      "action": "Reproduce and repair the independently reviewed stale-profile-save approval race",
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_application_answer_export.ApplicationAnswerExportTests.test_stale_profile_save_cannot_restore_previously_approved_answer tests.integration.test_application_answer_export.ApplicationAnswerExportTests.test_api_rejects_profile_save_with_stale_expected_version -v",
+      "target": "Temporary SQLite, two independent API clients and synchronized overlapping profile saves",
+      "result": "PASS: both regressions passed; an overlapping stale full-profile save is rejected with HTTP 409 after another edit resets approval, and a UI-supplied stale expected version cannot overwrite the newer saved profile. Current answer remains pending."
+    },
+    {
+      "action": "Re-run full repository Python suite after the overlapping-save fix",
+      "command": ".venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py' -v",
+      "target": "Temporary databases, controlled fixtures and isolated Chromium; synthetic data only",
+      "result": "PASS: 565 tests in 335.539 seconds, including the stale overlapping-save regression. A second explicit API expected-version regression was added after this full run and passed separately in the focused two-test command; therefore this full run does not include that final added test or the later 15-second UI-oracle timeout adjustment."
+    },
+    {
+      "action": "Validate current answer and document-history UI in Chromium",
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.browser.test_application_answer_export tests.browser.test_document_history -v",
+      "target": "Synthetic FIXTURE profile and job; isolated Chromium and loopback-only requests",
+      "result": "PASS: 2 browser tests; exact approved answer suggestion requires explicit review and export, scoped history/download survives reload, and prior document bytes/hash remain available."
+    },
+    {
+      "action": "Inspect exact d98f250 GitHub Verification events and failed-step output",
+      "command": "gh run view 37301337462 --log-failed; gh run view 37301342042",
+      "target": "Superseded PR #511 candidate d98f250 against fb93ad48",
+      "result": "Push event failed its connected UI dry-run state assertion: UI still showed PREPARED after the default five seconds. Paired pull_request event passed. cli/ui_e2e.py now allows 15 seconds for this same DRY_RUN_COMPLETE state and retains the STOP_BEFORE_SUBMIT trace check; current candidate events remain pending."
+    },
+    {
+      "action": "Independent exact-head review of candidate 315c2e1 and repair of its remaining approval-resurrection path",
+      "command": "Read-only exact-SHA review of PR #511 candidate 315c2e1 against fb93ad48a3987c375350388ba8bf677db58575d2",
+      "target": "Profile API expected-version contract and answer approval revocation",
+      "result": "P1 reproduced: a delayed old API client that omitted expected_version could overwrite a newer revoked approval after that newer save had committed. Repaired locally by requiring expected_version for every existing-profile API update and adding a missing-token 409 regression. Candidate 315c2e1 is superseded despite green exact-head CI."
+    },
+    {
+      "action": "Run the full repository suite after requiring expected_version on existing profile updates",
+      "command": ".venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py' -v",
+      "target": "Temporary databases, controlled fixtures, isolated Chromium; synthetic data only",
+      "result": "PASS: 567 tests in 339.768 seconds. Includes browser fact-review, answer export/history, profile import and API queue coverage plus stale overlapping-save, stale-token and missing-token regressions."
+    }
+  ],
+  "verified_behavior": [
+    "Question-aware reusable answers remain in immutable profile-version snapshots alongside backward-compatible legacy fixture answers.",
+    "Changing a question, answer, source, or confidence clears both verification and user approval; the prior profile version remains unchanged.",
+    "Answer/contact-only profile revisions retain the exact existing match scores under the new version when matching facts and preferences are unchanged; approved fact or preference edits do not take that shortcut.",
+    "The application screen uses the active profile bank through a profile-scoped read endpoint. Normalized exact question matches are suggestions only, show provenance and confidence, and require explicit selection and a separate per-job review.",
+    "Profile editor controls remain disabled until the selected saved profile version has loaded, preventing an early answer or fact edit from being overwritten by the asynchronous read.",
+    "Unknown questions accept only manually entered, deliberately reviewed text. Sensitive, legal, demographic, criminal-history, salary/compensation, and common work-authorization question variants cannot reuse saved answers; these require application-specific user text.",
+    "Reviewed answers create immutable, application-linked TXT document revisions with profile snapshot, question, answer-bank ID, provenance, confidence, and SHA-256. Prior export bytes survive later exports and application reload.",
+    "Answer-export metadata and byte downloads are available through profile-scoped application history/download routes; unscoped history omits these records and unscoped byte download returns not-found. Content-addressed output is atomically promoted so a partial/interrupted write cannot occupy the next revision path.",
+    "The local export does not fill or submit an employer form. Test mode used synthetic data and local-only browser traffic; external submission remains OFF.",
+    "Profile editor sends the version it loaded; API now requires that token on every update to an existing profile and rejects missing or stale tokens with HTTP 409. Store atomically compares the observed version inside the transaction, preventing both delayed stale submissions and overlapping saves from restoring a revoked answer approval."
+  ],
+  "limitations": [
+    "Matching supports normalized exact questions only. Fuzzy and semantic variants in MJ-REQ-104 remain unimplemented.",
+    "The minimum reusable confidence is currently a fixed 80 rather than a configurable threshold; scoring bands and confidence provenance acceptance in MJ-REQ-105 remain incomplete.",
+    "Sensitive-answer detection is a conservative lexical rule set, not the full user-configurable sensitive-answer policy or legally significant profile-policy controls in MJ-REQ-106/107; manual per-application text and deliberate review remain required for detected questions.",
+    "Unexported draft questions remain in the browser form; durable history starts when the reviewed TXT export is saved.",
+    "Current strict expected-version candidate has local full-suite evidence; fresh exact-head independent review and both-event hosted checks/artifact parsing are pending."
+  ],
+  "external_submission": "OFF",
+  "ai_provider": "NOT_USED",
+  "hosted_exact_head_checks": "PENDING for the next source candidate. Candidate 315c2e1 push and pull_request events both passed but are superseded by its independent-review P1 finding.",
+  "superseded_candidates": [
+    {
+      "head": "d98f250e9760b7b3e4b7089df3f993e2b8c09241",
+      "base": "fb93ad48a3987c375350388ba8bf677db58575d2",
+      "push_verification": 37301337462,
+      "pull_request_verification": 37301342042,
+      "eligibility": "NOT_ELIGIBLE: push event failed the connected dry-run state oracle after five seconds; paired pull_request event passed. This candidate is superseded."
+    },
+    {
+      "head": "315c2e1b469893181d476c4ccc5423bb05dce9e2",
+      "base": "fb93ad48a3987c375350388ba8bf677db58575d2",
+      "push_verification": 37303429620,
+      "pull_request_verification": 37303434314,
+      "workflow_results": "Both passed the complete workflow on exact head, including the nine connected runtime reports and PR candidate-tree check.",
+      "independent_review": "P1 found unversioned existing-profile API saves could overwrite a newer answer approval revocation.",
+      "eligibility": "NOT_ELIGIBLE: review defect repaired in the next working candidate; these green runs do not certify changed source."
+    }
+  ]
+}

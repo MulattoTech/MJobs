@@ -8,3 +8,4 @@
 
 .resume-comparison-texts { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,18rem),1fr)); gap:1rem; }
 .resume-comparison-texts pre { white-space:pre-wrap; overflow-wrap:anywhere; font-family:inherit; font-size:.9rem; }
+.profile-editor-gate { border:0; padding:0; margin:0; min-width:0; }

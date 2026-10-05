@@ -18,6 +18,10 @@ from packages.persistence import models as m
 from services.normalization.jobs import canonical_job_view, raw_posting_view
 
 
+class ProfileVersionConflict(Exception):
+    """A profile changed after the caller's snapshot was loaded."""
+
+
 def now():
     return datetime.now(timezone.utc).isoformat()
 
@@ -142,7 +146,7 @@ class Store:
             raise WorkspaceModeError("WORKSPACE_MODE_MISMATCH",
                 f"Database is bound to {row}; requested {mode}. Use a separate Compose project")
 
-    def save_profile(self, profile):
+    def save_profile(self, profile, expected_version=None, require_expected_version=False):
         if not all(isinstance(profile.get(field), str) and profile[field].strip() for field in ("id", "name", "email")):
             raise ValueError("Profile identity/contact fields are required")
         if not isinstance(profile.get("facts"), list) or len(profile["facts"]) > 200:
@@ -151,20 +155,52 @@ class Store:
         # Older clients omit these fields. Preserve existing values on their updates.
         with self.engine.connect() as connection:
             current = connection.execute(select(m.profiles.c.version).where(m.profiles.c.id == profile['id'])).scalar_one_or_none()
+        if current is not None and require_expected_version and expected_version is None:
+            raise ProfileVersionConflict("Profile version is required for updates; reload before saving")
+        if expected_version is not None and expected_version != current:
+            raise ProfileVersionConflict("Profile changed since this editor was loaded; reload before saving")
         previous = self.profile(profile['id']) if current else {}
         profile['contact'] = ContactDetails.model_validate(profile.get('contact', previous.get('contact', {}))).model_dump()
         profile['preferences'] = JobPreferences.model_validate(profile.get('preferences', previous.get('preferences', {}))).model_dump()
         verified = [Fact(**{key: row[key] for key in ("id", "text", "source", "verified", "user_approved", "confidence")}) for row in profile["facts"]]
         if len({fact.id for fact in verified}) != len(verified):
             raise ValueError("Duplicate fact identity")
+        answers = profile.get("answers", previous.get("answers", []))
+        if not isinstance(answers, list) or len(answers) > 200:
+            raise ValueError("Provide up to 200 reusable answers")
+        old_answers = {row["id"]: row for row in previous.get("answers", [])}
+        normalized_answers = []
+        for answer in answers:
+            if not isinstance(answer, dict):
+                raise ValueError("Reusable answers must be objects")
+            validated = {key: answer[key] for key in ("id", "text", "source", "verified", "user_approved", "confidence")}
+            Fact(**validated)
+            if answer.get("question") is not None:
+                if not isinstance(answer["question"], str) or not answer["question"].strip() or len(answer["question"]) > 2000:
+                    raise ValueError("Reusable answer questions must be nonempty and at most 2000 characters")
+                validated["question"] = answer["question"]
+            old = old_answers.get(validated["id"])
+            substantive = ("question", "text", "source", "confidence")
+            if old and any(old.get(key) != validated.get(key) for key in substantive):
+                validated["verified"] = False
+                validated["user_approved"] = False
+            normalized_answers.append(validated)
+        answers = normalized_answers
+        profile["answers"] = answers
         version = identity(profile)
+        same_match_inputs = bool(current) and self._match_input_projection(previous) == self._match_input_projection(profile)
         with self.engine.begin() as connection:
+            if current is not None:
+                # Atomic compare-and-lock prevents an overlapping full-profile
+                # save from committing a snapshot based on an older approval.
+                claimed = connection.execute(update(m.profiles).where(
+                    m.profiles.c.id == profile['id'], m.profiles.c.version == current,
+                ).values(version=current))
+                if claimed.rowcount != 1:
+                    raise ProfileVersionConflict("Profile changed while this save was being prepared; reload before saving")
             upsert(connection, m.profiles, {"id": profile["id"], "name": profile["name"], "email": profile["email"], "version": version}, replace=True)
-            answers = profile.get("answers", [])
             if len({answer["id"] for answer in answers}) != len(answers):
                 raise ValueError("Duplicate approved answer identity")
-            for answer in answers:
-                Fact(**answer)
             upsert(connection, m.profile_versions, {"id": identity(profile["id"], version), "profile_id": profile["id"], "version": version,
                    "contact": {"name": profile["name"], "email": profile["email"],
                                "contact": profile['contact'], "preferences": profile['preferences']}, "answers": answers})
@@ -173,8 +209,34 @@ class Store:
                 data.update(id=identity(profile["id"], version, fact.id), fact_id=fact.id,
                             kind=row.get("kind", "skill"), profile_id=profile["id"], version=version)
                 upsert(connection, m.facts, data)
+            if same_match_inputs and previous["version"] != version:
+                prior_matches = connection.execute(select(m.matches).where(
+                    m.matches.c.profile_id == profile["id"],
+                    m.matches.c.profile_version == previous["version"])).mappings().all()
+                for row in prior_matches:
+                    data = dict(row)
+                    data.update(id=identity(row["job_id"], profile["id"], version), profile_version=version)
+                    upsert(connection, m.matches, data)
+                if prior_matches:
+                    self._audit(connection, profile["id"], "MATCHES_SNAPSHOT_REBOUND",
+                                {"from_profile_version": previous["version"], "to_profile_version": version,
+                                 "count": len(prior_matches)})
             self._audit(connection, profile["id"], "PROFILE_SAVED", {"version": version})
         return version
+
+    @staticmethod
+    def _match_input_projection(profile):
+        facts = [{
+            "id": row.get("fact_id", row.get("id")),
+            "kind": row.get("kind", "skill"),
+            "text": row["text"],
+            "source": row["source"],
+            "verified": row["verified"],
+            "user_approved": row["user_approved"],
+            "confidence": row["confidence"],
+        } for row in profile.get("facts", [])]
+        facts.sort(key=lambda row: row["id"])
+        return {"facts": facts, "preferences": profile.get("preferences", {})}
 
     def profile(self, profile_id, version=None, connection=None):
         if connection is not None:

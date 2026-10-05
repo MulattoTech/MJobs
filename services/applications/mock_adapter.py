@@ -83,7 +83,11 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
             return application
         check()
         profile = store.profile(application["profile_id"], application["profile_version"])
-        answers = select_verified_facts([Fact(**row) for row in profile["answers"]], ["country", "remote", "fixture_question"])
+        # Question-aware reusable-answer metadata is outside the legacy mock
+        # form's Fact contract; only its original safety fields reach policy.
+        answers = select_verified_facts([Fact(**{key: row[key] for key in
+            ("id", "text", "source", "verified", "user_approved", "confidence")})
+            for row in profile["answers"]], ["country", "remote", "fixture_question"])
         answer = {fact.id: fact.text for fact in answers}
         facts = select_verified_facts([Fact(id=row["fact_id"], **{key: row[key] for key in ("text", "source", "verified", "user_approved", "confidence")})
                                       for row in profile["facts"]], application["fact_ids"])

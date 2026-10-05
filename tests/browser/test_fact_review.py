@@ -1,4 +1,5 @@
 """Synthetic Chromium/API/worker proof that content edits require fresh review."""
+import asyncio
 import copy
 import hashlib
 from io import BytesIO
@@ -36,6 +37,81 @@ class FactReviewBrowserTests(unittest.TestCase):
 
     def test_kind_edit_requires_fresh_review(self):
         self.exercise('kind', 'technology_experience')
+
+    def test_demo_profile_stays_read_only_until_saved_version_loads(self):
+        with tempfile.TemporaryDirectory(prefix='mjobs-demo-profile-load-') as directory:
+            root = Path(directory)
+            store = Store(f"sqlite:///{(root/'test.db').as_posix()}")
+            store.migrate()
+            store.bind_workspace_mode('FIXTURE')
+            sock = bound_browser_socket()
+            origin = f'http://127.0.0.1:{sock.getsockname()[1]}'
+            app = create_app(store, 'http://127.0.0.1:1', root, 'redis://127.0.0.1:1/0', operation_mode='FIXTURE')
+            profile_read_started = threading.Event()
+            release_profile_read = threading.Event()
+
+            async def delay_demo_profile_read(request, call_next):
+                if request.method == 'GET' and request.url.path.startswith('/profiles/demo-'):
+                    profile_read_started.set()
+                    while not release_profile_read.is_set():
+                        await asyncio.sleep(.01)
+                return await call_next(request)
+
+            app.middleware('http')(delay_demo_profile_read)
+            server = uvicorn.Server(uvicorn.Config(app, log_level='error'))
+            thread = threading.Thread(target=server.run, kwargs={'sockets': [sock]}, daemon=True)
+            thread.start()
+            try:
+                deadline = time.monotonic() + 10
+                while not server.started:
+                    if not thread.is_alive() or time.monotonic() > deadline:
+                        self.fail('Demo-profile isolated API did not start')
+                    time.sleep(.02)
+                with sync_playwright() as pw:
+                    browser = pw.chromium.launch(headless=True)
+                    context = browser.new_context()
+
+                    def local_only(route):
+                        if urlsplit(route.request.url).netloc != urlsplit(origin).netloc:
+                            route.abort()
+                        else:
+                            route.continue_()
+
+                    context.route('**/*', local_only)
+
+                    context.route('**/discovery', lambda route: route.fulfill(
+                        status=202, content_type='application/json', body='{"operation_id":"demo-op"}'))
+                    context.route('**/operations/demo-op', lambda route: route.fulfill(
+                        status=200, content_type='application/json',
+                        body='{"id":"demo-op","kind":"DISCOVERY","state":"COMPLETED","error":null}'))
+                    page = context.new_page()
+                    page.goto(origin)
+                    page.get_by_role('button', name='Load fictional demo', exact=True).first.click()
+                    deadline = time.monotonic() + 5
+                    while not profile_read_started.is_set() and time.monotonic() < deadline:
+                        page.wait_for_timeout(25)
+                    self.assertTrue(profile_read_started.is_set(), 'selected profile read did not start')
+                    expect(page.get_by_role('status').filter(has_text='Fictional demo loaded.')).to_be_visible()
+                    page.get_by_role('button', name='Profile', exact=True).click()
+                    save = page.get_by_role('button', name='Save profile and answers', exact=True)
+                    expect(page.get_by_role('status').filter(
+                        has_text='Loading the selected profile before edits can be made.')).to_be_visible(timeout=1000)
+                    expect(save).to_be_disabled()
+                    expect(page.get_by_role('textbox', name='Full name', exact=True)).to_be_disabled()
+                    release_profile_read.set()
+                    expect(save).to_be_enabled(timeout=5000)
+                    expect(page.get_by_role('textbox', name='Full name', exact=True)).to_have_value('Fictional Test Applicant')
+                    demo_id = next(p['id'] for p in store.profiles() if p['name'] == 'Fictional Test Applicant')
+                    self.assertTrue(store.profile(demo_id)['version'])
+                    context.close()
+                    browser.close()
+            finally:
+                release_profile_read.set()
+                server.should_exit = True
+                thread.join(timeout=10)
+                sock.close()
+                store.engine.dispose()
+                self.assertFalse(thread.is_alive())
 
     def exercise(self, field, value):
         with tempfile.TemporaryDirectory(prefix='mjobs-fact-review-') as directory:
@@ -175,6 +251,7 @@ class FactReviewBrowserTests(unittest.TestCase):
                     # Explicit API flags remain meaningful; this is not a server-wide policy change.
                     api_profile = copy.deepcopy(profile)
                     api_profile['facts'][0]['text'] = 'Explicitly API-approved synthetic fact'
+                    api_profile['expected_version'] = store.profile('fixture')['version']
                     response = context.request.put(origin+'/profiles', data=api_profile)
                     self.assertEqual(response.status, 200)
                     self.assertTrue(saved_fact()['verified'])

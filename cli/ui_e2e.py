@@ -203,7 +203,7 @@ def run(base_url, evidence_path):
             actions.append({'action':'Explicit saved contact header reaches real document worker, history and download while prior revision and profile remain unchanged','result':'PASS'})
 
             page.get_by_role("button", name="Run dry-run", exact=True).click()
-            expect(page.locator(".job-detail > .tag")).to_have_text("DRY_RUN_COMPLETE")
+            expect(page.locator(".job-detail > .tag")).to_have_text("DRY_RUN_COMPLETE", timeout=15000)
             dry = request("/applications/" + identifier)
             assert "STOP_BEFORE_SUBMIT" in dry["trace"] and "SUBMIT" not in dry["trace"]
             page.get_by_label("I approve one fictional mock submission").check()

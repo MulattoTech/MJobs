@@ -830,7 +830,7 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-028-career-profile-documents",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "Preserve the original aggregate and its dependencies. Additive PR #511 re-slices the question-aware answer bank/export path into MJ-PR-154 because immutable profile answer JSON and the existing application document/history contract are sufficient; no prerequisite or requirement is deleted or marked PASS. Cover-letter remainder stays queued."
     },
     {
       "id": "MJ-PR-029",
@@ -3043,14 +3043,15 @@
       "issue_number": 507,
       "target_area": "apps/web; apps/api; services/discovery; tests/browser",
       "depends_on": [],
-      "status": "PARTIAL",
+      "status": "MERGED",
       "branch": "codex/core-workflow-trial-20261005",
       "draft_until_verified": true,
       "scope_complete": false,
       "notes": "Narrow fallback scope merged in PR #508 from exact candidate a05294cc1792b81924f01270852b1354b5d67505 onto base 44b98897fb1ced728ff206af2576b47c7cb240b1; merge 77cf0825e51f34874f49cc7753e721b60a944ef0. Push Verification 37268232466 and pull_request Verification 37268236341 passed with required runtime artifacts and bounded Greenhouse live GET. Issue #507 closed for manual capture only; public-source UI and broader MJ-REQ-186/188/192 remain open.",
       "evidence_path": "docs/evidence/2026-10-05-manual-job-capture.json",
       "pr_number": 508,
-      "pr_url": "https://github.com/MulattoTech/MJobs/pull/508"
+      "pr_url": "https://github.com/MulattoTech/MJobs/pull/508",
+      "scope_result": "PARTIAL"
     },
     {
       "id": "MJ-PR-152",
@@ -3072,15 +3073,20 @@
       "depends_on": [
         "MJ-PR-025"
       ],
-      "status": "PARTIAL",
+      "status": "MERGED",
       "branch": "codex/core-workflow-trial-matching-20261005",
       "draft_until_verified": true,
       "scope_complete": false,
-      "notes": "Narrow deterministic skill-explanation/manual-capture readback slice merged after exact-head push+PR checks and all 9 runtime reports. Candidate 6d4fb28be03f6e6dd9985f1a887113b956bbb9a2; base 77cf0825e51f34874f49cc7753e721b60a944ef0; merge 959f9a36cd32a4c326459a0ba472a24a4abd7d3f, tree df4d97b53df296aca5276a5e63cdd5df0b315d10. Broader MJ-REQ-112..115 remain partial.",
+      "notes": "PR #509 merged on exact candidate 6d4fb28; independent review clean; both exact-head Verification events passed all nine reports and PR tree equality. Deterministic skill explanations and persisted rescore form a bounded PARTIAL slice; full MJ-REQ-112..119 and combined trial remain open.",
       "evidence_path": "docs/evidence/2026-10-05-explainable-matching.json",
       "pr_number": 509,
       "pr_url": "https://github.com/MulattoTech/MJobs/pull/509",
-      "merge_commit": "959f9a36cd32a4c326459a0ba472a24a4abd7d3f"
+      "merge_commit": "959f9a36cd32a4c326459a0ba472a24a4abd7d3f",
+      "head": "6d4fb28be03f6e6dd9985f1a887113b956bbb9a2",
+      "exact_head_checks": {
+        "push_verification": 37275627438,
+        "pull_request_verification": 37275632400
+      }
     },
     {
       "id": "MJ-PR-153",
@@ -3098,12 +3104,62 @@
       ],
       "target_area": "services/documents; apps/api; apps/web; workers; tests/browser; tests/integration",
       "depends_on": [],
-      "status": "PARTIAL",
+      "status": "MERGED",
       "branch": "codex/core-workflow-trial-cover-letter-20261005",
       "draft_until_verified": true,
       "scope_complete": false,
-      "notes": "Additive re-slicing from existing MJ-PR-028; original queue item/dependency remains unchanged. Current-main approved-fact validation and immutable history support this deterministic slice; full MJ-PR-027 and broader MJ-REQ-095 are not PASS. Draft PR #510 candidate 4fe28b9 passed independent review, 550 Python tests on both events, and all other runtime checks. However its public Greenhouse browser tried to prepare a real posting without a clear responsibilities excerpt; the product correctly returned COVER_LETTER_JOB_CONTEXT_MISSING, but the continue-on-error oracle expected preparation success and failed, leaving ci-personal-public-ui.json absent (8/9 reports) in both events. The CLI oracle now distinguishes a valid manual-only preparation from this explicit no-document/no-application block; unit cases pass. Publish and independently review this harness correction, then require full exact-head push/pull_request success and all 9 parsed reports. Combined A-F journey remains outstanding; no product AI or external submission.",
-      "evidence_path": "docs/evidence/2026-10-05-job-specific-cover-letter.json"
+      "notes": "PR #510 merged after clean independent review and both exact-head Verification events; each passed 554 Python tests and all nine runtime reports. Public Greenhouse returned 18 jobs; UI safely blocked missing responsibilities with no application/document; external application requests were zero. MJ-REQ-100 remains partial for verified company-context and combined-workflow acceptance. Issues #102/#103 were closed on exact acceptance evidence; issue #101 remains open/PARTIAL.",
+      "evidence_path": "docs/evidence/2026-10-05-job-specific-cover-letter.json",
+      "pr_number": 510,
+      "base": "959f9a36cd32a4c326459a0ba472a24a4abd7d3f",
+      "head": "a63c79867923cb50b58c4cfde73d9ebb4c901413",
+      "merge_commit": "fb93ad48a3987c375350388ba8bf677db58575d2",
+      "merged_at": "2026-10-05T08:50:54Z",
+      "exact_head_checks": {
+        "push_verification": 37285052782,
+        "pull_request_verification": 37285059099
+      },
+      "artifacts": {
+        "push": {
+          "id": 11334625429,
+          "sha256": "9b8b00240f86b4b837265fdd8fce1e65926db35a0ea1052319aa5c16f18aa290"
+        },
+        "pull_request": {
+          "id": 11334179232,
+          "sha256": "9787bb6a54d164333d78899d5db04bb164c93a54ac6673e319e8ce15ebba4d10"
+        }
+      },
+      "scope_result": "PARTIAL"
+    },
+    {
+      "id": "MJ-PR-154",
+      "title": "Core trial question-aware reusable answers and reviewed application export",
+      "domain": "career_profile_documents",
+      "requirements": [
+        "MJ-REQ-103",
+        "MJ-REQ-104",
+        "MJ-REQ-105",
+        "MJ-REQ-106",
+        "MJ-REQ-107"
+      ],
+      "issues": [
+        104,
+        105,
+        106,
+        107,
+        108
+      ],
+      "target_area": "apps/web; apps/api; packages/persistence; services/documents; tests/browser; tests/integration",
+      "depends_on": [],
+      "status": "DRAFT",
+      "branch": "codex/core-workflow-trial-answers-20261005",
+      "draft_until_verified": true,
+      "scope_complete": false,
+      "notes": "PR #511 remains a draft deterministic/manual-review slice: question-aware profile snapshots and approval reset, exact-normalized suggestions with explicit per-job review, profile-scoped answer history/download, content-addressed atomic TXT recovery, saved-profile load gate, and mandatory expected-version plus transactional CAS protection for existing profile updates. Local full Python suite on the current working tree passed 567 tests; focused profile/API regressions, Chromium browser workflows, 62 web tests/build, and validators passed. Candidate 315c2e1 push 37303429620 and pull_request 37303434314 both passed, including all workflow steps, but independent exact-head review found that an unversioned delayed API save could still restore revoked approval; those runs are diagnostic only and the candidate is superseded. Fresh independent review and both exact-head events with all nine reports/artifacts are pending on the next candidate. Requirements 103-107 remain PARTIAL; fuzzy/semantic matching, configurable threshold and full sensitive/legal policy remain incomplete. Original MJ-PR-028/029 entries/dependencies remain preserved.",
+      "evidence_path": "docs/evidence/2026-10-05-reviewed-application-answers.json",
+      "pr_number": 511,
+      "pr_url": "https://github.com/MulattoTech/MJobs/pull/511",
+      "base": "fb93ad48a3987c375350388ba8bf677db58575d2"
     }
   ]
 }

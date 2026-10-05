@@ -1,0 +1,135 @@
+"""Browser acceptance for a reviewed answer export and durable download history."""
+import hashlib
+from pathlib import Path
+import tempfile
+import threading
+import time
+import unittest
+from urllib.parse import urlsplit
+
+from playwright.sync_api import sync_playwright, expect
+import uvicorn
+
+from apps.api.main import create_app
+from fixtures.browser_ports import bound_browser_socket
+from fixtures.mock_server import fixture_server
+from packages.persistence.store import Store
+from services.discovery.pipeline import discover
+from services.documents.generate import prepare
+from tests.integration.test_spine import PROFILE
+
+
+ROOT = Path(__file__).resolve().parents[2]
+
+
+@unittest.skipUnless((ROOT / 'apps/web/dist/index.html').is_file(), 'Build apps/web before browser acceptance')
+class ApplicationAnswerExportBrowserTests(unittest.TestCase):
+    def test_exact_suggestion_requires_review_and_export_survives_reload(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            store = Store(f"sqlite:///{(root/'browser.db').as_posix()}")
+            store.migrate()
+            store.bind_workspace_mode('FIXTURE')
+            store.save_profile(dict(PROFILE, answers=[]))
+            with fixture_server() as fixture:
+                discover(store, fixture, 'fixture')
+            prepare(store, store.jobs()[0]['id'], 'fixture', root)
+            app = create_app(store, 'http://127.0.0.1:1', root, 'redis://127.0.0.1:1/0', operation_mode='FIXTURE')
+            sock = bound_browser_socket()
+            origin = f'http://127.0.0.1:{sock.getsockname()[1]}'
+            server = uvicorn.Server(uvicorn.Config(app, log_level='error'))
+            thread = threading.Thread(target=server.run, kwargs={'sockets':[sock]}, daemon=True)
+            thread.start()
+            try:
+                deadline = time.monotonic() + 10
+                while not server.started:
+                    if not thread.is_alive() or time.monotonic() > deadline:
+                        self.fail('Isolated answer export API did not start')
+                    time.sleep(.02)
+                with sync_playwright() as pw:
+                    browser = pw.chromium.launch(headless=True)
+                    context = browser.new_context(accept_downloads=True)
+                    external, errors, requests = [], [], []
+                    def local_only(route):
+                        if urlsplit(route.request.url).netloc != urlsplit(origin).netloc:
+                            external.append(route.request.url); route.abort()
+                        else:
+                            route.continue_()
+                    context.route('**/*', local_only)
+                    page = context.new_page()
+                    page.on('request', lambda request: requests.append((request.method, urlsplit(request.url).path)))
+                    page.on('pageerror', lambda error: errors.append(str(error)))
+                    page.goto(origin)
+                    page.evaluate("localStorage.setItem('mjobs-profile','fixture')")
+                    page.reload()
+                    question = 'How many years of experience?'
+                    answer = 'Five years of user-confirmed experience.'
+                    page.get_by_role('button', name='Profile', exact=True).click()
+                    expect(page.get_by_role('button', name='Add answer', exact=True)).to_be_enabled(timeout=10000)
+                    page.get_by_role('button', name='Add answer', exact=True).click()
+                    answer_card = page.locator('.fact').last
+                    answer_card.get_by_label('Question this answer addresses').fill(question)
+                    answer_card.get_by_label('Answer text', exact=True).fill(answer)
+                    answer_card.get_by_label('Provenance').fill('Reviewed synthetic profile')
+                    answer_card.get_by_label('I reviewed and verified this answer').check()
+                    answer_card.get_by_label('I approve exact reuse for this question').check()
+                    page.get_by_role('button', name='Add answer', exact=True).click()
+                    sensitive_card = page.locator('.fact').last
+                    sensitive_card.get_by_label('Question this answer addresses').fill('What is your ethnic origin?')
+                    sensitive_card.get_by_label('Answer text', exact=True).fill('Synthetic sensitive answer')
+                    sensitive_card.get_by_label('Provenance').fill('Reviewed synthetic profile')
+                    sensitive_card.get_by_label('I reviewed and verified this answer').check()
+                    sensitive_card.get_by_label('I approve exact reuse for this question').check()
+                    page.get_by_role('button', name='Add answer', exact=True).click()
+                    conflict_card = page.locator('.fact').last
+                    conflict_card.get_by_label('Question this answer addresses').fill('What are your conflicts of interest?')
+                    conflict_card.get_by_label('Answer text', exact=True).fill('Synthetic conflict response')
+                    conflict_card.get_by_label('Provenance').fill('Reviewed synthetic profile')
+                    conflict_card.get_by_label('I reviewed and verified this answer').check()
+                    conflict_card.get_by_label('I approve exact reuse for this question').check()
+                    page.get_by_role('button', name='Save profile and answers', exact=True).click()
+                    expect(page.get_by_role('status').filter(has_text='Reusable answers saved')).to_be_visible()
+                    self.assertTrue(store.profile('fixture')['answers'][0]['user_approved'])
+                    self.assertNotIn(('POST', '/matches'), requests)
+                    page.get_by_role('button', name='Applications', exact=False).click()
+                    page.locator('.job-card').first.click()
+                    page.get_by_role('button', name='Add question', exact=True).click()
+                    page.get_by_label('Employer question').fill('What is your ethnic origin?')
+                    self.assertEqual(page.get_by_role('button', name='Use saved answer (review required)', exact=True).count(), 0)
+                    page.get_by_role('button', name='Remove question', exact=True).click()
+                    page.get_by_role('button', name='Add question', exact=True).click()
+                    page.get_by_label('Employer question').fill('What are your conflicts of interest?')
+                    self.assertEqual(page.get_by_role('button', name='Use saved answer (review required)', exact=True).count(), 0)
+                    page.get_by_role('button', name='Remove question', exact=True).click()
+                    page.get_by_role('button', name='Add question', exact=True).click()
+                    page.get_by_label('Employer question').fill('HOW MANY YEARS OF EXPERIENCE?')
+                    page.get_by_role('button', name='Use saved answer (review required)', exact=True).click()
+                    expect(page.get_by_role('textbox', name='Answer', exact=True)).to_have_value(answer)
+                    export = page.get_by_role('button', name='Save reviewed answers and export TXT', exact=True)
+                    expect(export).to_be_disabled()
+                    page.get_by_label('I reviewed this exact answer for this job').check()
+                    expect(export).to_be_enabled()
+                    export.click()
+                    document = page.get_by_role('region', name='application-answer-export version 1', exact=True)
+                    expect(document.get_by_text('Manually reviewed application answers', exact=False)).to_be_visible()
+                    with page.expect_download() as downloaded:
+                        document.get_by_role('link', name='Download TXT', exact=True).click()
+                    first_bytes = Path(downloaded.value.path()).read_bytes()
+                    self.assertIn(answer.encode(), first_bytes)
+                    digest = hashlib.sha256(first_bytes).hexdigest()
+                    self.assertEqual(store.count('documents'), 3)
+
+                    page.reload()
+                    page.get_by_role('button', name='Applications', exact=False).click()
+                    page.locator('.job-card').first.click()
+                    document = page.get_by_role('region', name='application-answer-export version 1', exact=True)
+                    with page.expect_download() as downloaded_again:
+                        document.get_by_role('link', name='Download TXT', exact=True).click()
+                    self.assertEqual(hashlib.sha256(Path(downloaded_again.value.path()).read_bytes()).hexdigest(), digest)
+                    self.assertFalse(external)
+                    self.assertFalse(errors, errors)
+                    context.close(); browser.close()
+            finally:
+                server.should_exit = True; thread.join(timeout=10); sock.close()
+                store.engine.dispose()
+                self.assertFalse(thread.is_alive())

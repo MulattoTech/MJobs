@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-10-05T08:30:00+00:00",
+  "timestamp": "2026-10-05T08:50:54Z",
   "result": "PARTIAL",
   "scope": "MJ-REQ-100..102 deterministic, reviewable job-specific cover-letter draft",
   "base_commit": "959f9a36cd32a4c326459a0ba472a24a4abd7d3f",
@@ -132,9 +132,10 @@
   "external_application_requests": 0,
   "product_ai_used": false,
   "limitations": [
-    "Candidate 4fe28b9 exact push/pull_request jobs ended green only because a continue-on-error live public-source UI assertion failed: the fetched posting had no clear responsibility excerpt and produced the expected fail-closed COVER_LETTER_JOB_CONTEXT_MISSING block. Both artifacts omit ci-personal-public-ui.json (8/9 reports). The readback oracle now distinguishes this exact safe block from unexpected errors; final exact-head runs and artifact parsing are pending.",
-    "Manual employer identity remains USER_ENTERED_UNVERIFIED and is labeled for user verification.",
-    "This is deterministic template tailoring, not AI rephrasing or arbitrary user-edited prose.",
+    "Earlier candidate 4fe28b9 had a continue-on-error browser readback failure and missing ninth report. It is preserved in ci_acceptance_observations; final candidate a63c798 passed both full exact-head events with all nine reports.",
+    "MJ-REQ-100 remains PARTIAL because broader verified company-context and combined-workflow acceptance are not claimed.",
+    "Manual employer identity remains USER_ENTERED_UNVERIFIED and labeled for verification.",
+    "Deterministic template tailoring is not AI rephrasing or arbitrary user-edited prose.",
     "No live employer submission or company-context inference was performed.",
     "The complete A-F combined trial journey remains outstanding."
   ],
@@ -177,6 +178,79 @@
       "artifact_expected_reports": 9,
       "artifact_reports_present": 8,
       "artifact_sha256": "09e38dfb09312e28ce8b8aef58cc58cdb3d633b41cb32e01bf985e0148d4ada4"
+    },
+    {
+      "run_id": 37285052782,
+      "attempt": 1,
+      "event": "push",
+      "head": "a63c79867923cb50b58c4cfde73d9ebb4c901413",
+      "workflow_conclusion": "success",
+      "full_python_tests": 554,
+      "ui_source_readback_step": "PASS",
+      "artifact_name": "fictional-mock-evidence",
+      "artifact_expected_reports": 9,
+      "artifact_reports_present": 9,
+      "artifact_id": 11334625429,
+      "artifact_sha256": "9b8b00240f86b4b837265fdd8fce1e65926db35a0ea1052319aa5c16f18aa290",
+      "all_reports_result": "PASS"
+    },
+    {
+      "run_id": 37285059099,
+      "attempt": 1,
+      "event": "pull_request",
+      "head": "a63c79867923cb50b58c4cfde73d9ebb4c901413",
+      "base": "959f9a36cd32a4c326459a0ba472a24a4abd7d3f",
+      "workflow_conclusion": "success",
+      "full_python_tests": 554,
+      "candidate_tree_equality": "PASS",
+      "ui_source_readback_step": "PASS",
+      "artifact_name": "fictional-mock-evidence",
+      "artifact_expected_reports": 9,
+      "artifact_reports_present": 9,
+      "artifact_id": 11334179232,
+      "artifact_sha256": "9787bb6a54d164333d78899d5db04bb164c93a54ac6673e319e8ce15ebba4d10",
+      "all_reports_result": "PASS"
     }
-  ]
+  ],
+  "candidate_commit": "a63c79867923cb50b58c4cfde73d9ebb4c901413",
+  "merge_commit": "fb93ad48a3987c375350388ba8bf677db58575d2",
+  "candidate_tree": "4b46b05d33e2b46c471a4bbe5ae0e62dcd549306",
+  "merge_tree": "4b46b05d33e2b46c471a4bbe5ae0e62dcd549306",
+  "exact_head_ci": {
+    "push": {
+      "run_id": 37285052782,
+      "attempt": 1,
+      "head": "a63c79867923cb50b58c4cfde73d9ebb4c901413",
+      "result": "PASS",
+      "artifact_id": 11334625429,
+      "artifact_sha256": "9b8b00240f86b4b837265fdd8fce1e65926db35a0ea1052319aa5c16f18aa290",
+      "reports_expected": 9,
+      "reports_passed": 9
+    },
+    "pull_request": {
+      "run_id": 37285059099,
+      "attempt": 1,
+      "head": "a63c79867923cb50b58c4cfde73d9ebb4c901413",
+      "base": "959f9a36cd32a4c326459a0ba472a24a4abd7d3f",
+      "result": "PASS",
+      "candidate_tree_equality": "PASS",
+      "artifact_id": 11334179232,
+      "artifact_sha256": "9787bb6a54d164333d78899d5db04bb164c93a54ac6673e319e8ce15ebba4d10",
+      "reports_expected": 9,
+      "reports_passed": 9
+    },
+    "full_python_tests_each_event": 554,
+    "public_greenhouse_jobs_returned": 18,
+    "external_application_requests": 0,
+    "external_submission_enabled": false,
+    "public_ui_preparation_status": "BLOCKED_MISSING_JOB_CONTEXT",
+    "public_ui_created_application_or_document": false
+  },
+  "independent_review": {
+    "candidate": "a63c79867923cb50b58c4cfde73d9ebb4c901413",
+    "base": "959f9a36cd32a4c326459a0ba472a24a4abd7d3f",
+    "result": "PASS",
+    "actionable_findings": 0,
+    "review": "Final review accepts only the exact safe missing-context error, with or without the fixed UI heading; mixed and extra errors are rejected."
+  }
 }
