@@ -110,7 +110,7 @@ class CoverLetterWorkflowTests(unittest.TestCase):
 
             app = create_app(self.store, origin, self.root, operation_mode="FIXTURE")
             with TestClient(app) as client:
-                history = client.get(f"/applications/{application_id}/documents")
+                history = client.get(f"/profiles/fixture/applications/{application_id}/documents")
                 response = client.get(f"/profiles/fixture/documents/{row['id']}/txt")
             self.assertEqual(history.status_code, 200)
             legacy = next(item for item in history.json()["documents"] if item["id"] == row["id"])

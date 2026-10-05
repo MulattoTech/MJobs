@@ -39,10 +39,10 @@ def run(api_url, evidence_path=None):
         job_b = next(job for job in jobs if job["requisition"] == "B")
         preparation = call("POST", "/applications", json={"job_id": job_b["id"], "profile_id": profile["id"]})
         wait(preparation["operation_id"])
-        application = call("GET", "/applications/" + preparation["application_id"])
+        application = call("GET", "/profiles/" + profile["id"] + "/applications/" + preparation["application_id"])
         request = call("POST", "/applications/" + application["id"] + "/mock-run", json={"submit": True})
         wait(request["operation_id"])
-        confirmed = call("GET", "/applications/" + application["id"])
+        confirmed = call("GET", "/profiles/" + profile["id"] + "/applications/" + application["id"])
         if confirmed["state"] != "CONFIRMED" or not confirmed["confirmation"]:
             raise RuntimeError("No verified fictional mock submission confirmation")
         # Repeat the exact operation and assert no new operation/application.
@@ -50,7 +50,7 @@ def run(api_url, evidence_path=None):
         if again["operation_id"] != request["operation_id"]:
             raise RuntimeError("Operation identity changed on retry")
         wait(again["operation_id"])
-        if call("GET", "/applications/" + application["id"])["confirmation"]["submission_count"] != 1:
+        if call("GET", "/profiles/" + profile["id"] + "/applications/" + application["id"])["confirmation"]["submission_count"] != 1:
             raise RuntimeError("Duplicate fictional submission detected")
         evidence = {"result": "PASS", "target": "PostgreSQL/Redis/RQ controlled mock application spine",
             "timestamp": __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat(),

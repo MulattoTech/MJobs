@@ -47,13 +47,22 @@ class UserReadModelTests(unittest.TestCase):
             history = client.get("/applications", params={"profile_id": "fixture"}).json()["applications"]
             self.assertEqual(history[0]["id"], application)
             self.assertEqual(history[0]["target"], "MOCK")
+            scoped = f"/profiles/fixture/applications/{application}"
+            self.assertEqual(client.get(scoped).json()["profile_id"], "fixture")
+            self.store.save_profile(dict(PROFILE, id="other"))
+            self.assertEqual(client.get(f"/profiles/other/applications/{application}").status_code, 404)
+            self.assertEqual(client.get(f"/applications/{application}").status_code, 404)
 
     def test_integrity_checked_downloads_and_traversal_rejection(self):
         with fixture_server() as origin, TestClient(create_app(self.store, origin, self.root, operation_mode="FIXTURE")) as client:
             discover(self.store, origin, "fixture")
             application = prepare(self.store, self.store.jobs()[0]["id"], "fixture", self.root)
-            documents = client.get("/applications/" + application + "/documents").json()["documents"]
+            scoped = "/profiles/fixture/applications/" + application
+            documents = client.get(scoped + "/documents").json()["documents"]
             self.assertEqual(len(documents), 2)
+            self.store.save_profile(dict(PROFILE, id="other"))
+            self.assertEqual(client.get("/profiles/other/applications/" + application + "/documents").status_code, 404)
+            self.assertEqual(client.get("/applications/" + application + "/documents").status_code, 404)
             identifier = next(row["id"] for row in documents if row["kind"] == "resume")
             pdf = client.get("/profiles/fixture/documents/" + identifier + "/pdf")
             self.assertEqual(pdf.status_code, 200)

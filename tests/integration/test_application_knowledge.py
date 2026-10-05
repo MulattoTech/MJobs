@@ -119,7 +119,7 @@ class ApplicationKnowledgeTests(unittest.TestCase):
             event = c.execute(select(m.audit).where(m.audit.c.action == "DOCUMENTS_PREPARED")).mappings().one()
         self.assertEqual(event["payload"]["adapter_knowledge"]["ats_tenant_id"], tenant["id"])
         with TestClient(create_app(self.store, "http://127.0.0.1:8090", self.root)) as client:
-            application = client.get(f"/applications/{application_id}").json()
+            application = client.get(f"/profiles/fixture/applications/{application_id}").json()
             routes = client.get("/jobs/job/routes").json()
             self.assertEqual(application["adapter_knowledge"]["provider"], "greenhouse")
             self.assertEqual(routes["all_options"][0]["preferred_route"]["adapter_knowledge"]["provider"], "greenhouse")
@@ -153,7 +153,7 @@ class ApplicationKnowledgeTests(unittest.TestCase):
             # The fixture server is gone: only persisted knowledge can answer now.
             store.engine.dispose()
             with TestClient(create_app(store, origin, self.root, operation_mode="FIXTURE")) as client:
-                result = client.get(f"/applications/{application_id}").json()
+                result = client.get(f"/profiles/fixture/applications/{application_id}").json()
                 self.assertEqual(result["adapter_knowledge"]["basis"], "ROUTE_AND_DISCOVERY")
                 self.assertEqual(result["adapter_knowledge"]["adapter_key"], "mock-ats")
                 self.assertEqual(result["state"], "PREPARED")

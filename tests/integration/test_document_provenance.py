@@ -46,7 +46,7 @@ class DocumentProvenanceTests(unittest.TestCase):
             job = self.store.jobs()[0]
             with patch('services.documents.generate.now', return_value='2026-10-04T12:00:00+00:00'):
                 app_id = prepare(self.store, job['id'], 'fixture', self.root)
-            first = client.get(f'/applications/{app_id}/documents').json()['documents']
+            first = client.get(f'/profiles/fixture/applications/{app_id}/documents').json()['documents']
             before = {}
             for row in first:
                 self.assertEqual(row['generation_model'], 'deterministic-fact-copy-v2' if row['kind']=='resume' else 'deterministic-job-evidence-v1')
@@ -81,7 +81,7 @@ class DocumentProvenanceTests(unittest.TestCase):
             self.store.save_profile(changed)
             with patch('services.documents.generate.now', return_value='2026-10-04T13:00:00+00:00'):
                 prepare(self.store, job['id'], 'fixture', self.root)
-            rows = client.get(f'/applications/{app_id}/documents').json()['documents']
+            rows = client.get(f'/profiles/fixture/applications/{app_id}/documents').json()['documents']
             self.assertEqual(len(rows), 4)
             self.assertEqual([r for r in rows if r['version']==1], first)
             self.assertEqual({r['created_at'] for r in rows}, {'2026-10-04T12:00:00+00:00','2026-10-04T13:00:00+00:00'})

@@ -124,7 +124,7 @@ class ApiQueueTests(unittest.TestCase):
             self.assertEqual(self.store.count("applications"), 0)
             with patch.dict("os.environ", MJOBS_DATABASE_URL=self.store.url, MJOBS_MOCK_ORIGIN=origin, MJOBS_OUTPUT_DIR=str(self.root), MJOBS_OPERATION_MODE="FIXTURE"):
                 self.assertEqual(execute_operation(queued["operation_id"])["status"], "COMPLETED")
-            self.assertEqual(client.get("/applications/" + queued["application_id"]).json()["state"], "PREPARED")
+            self.assertEqual(client.get("/profiles/fixture/applications/" + queued["application_id"]).json()["state"], "PREPARED")
             discovery = client.post("/discovery", json={"profile_id": "fixture"}).json()
             cancelled = client.post("/operations/" + discovery["operation_id"] + "/cancel")
             self.assertEqual(cancelled.status_code, 202)

@@ -203,7 +203,7 @@ function App() {
   async function showApp(id:string) {
     const sequence=++appSequence.current;const selected=profileRef.current;
     if(!selected)return;
-    const [application,documents,answerBank,tracking]=await Promise.all([api<Application>('/applications/'+id),api<{documents:Doc[]}>('/profiles/'+encodeURIComponent(selected)+'/applications/'+encodeURIComponent(id)+'/documents'),api<{answers:Answer[]}>('/profiles/'+encodeURIComponent(selected)+'/applications/'+encodeURIComponent(id)+'/answers'),api<ApplicationTracking>('/profiles/'+encodeURIComponent(selected)+'/applications/'+encodeURIComponent(id)+'/tracking')]);
+    const [application,documents,answerBank,tracking]=await Promise.all([api<Application>('/profiles/'+encodeURIComponent(selected)+'/applications/'+encodeURIComponent(id)),api<{documents:Doc[]}>('/profiles/'+encodeURIComponent(selected)+'/applications/'+encodeURIComponent(id)+'/documents'),api<{answers:Answer[]}>('/profiles/'+encodeURIComponent(selected)+'/applications/'+encodeURIComponent(id)+'/answers'),api<ApplicationTracking>('/profiles/'+encodeURIComponent(selected)+'/applications/'+encodeURIComponent(id)+'/tracking')]);
     if(sequence!==appSequence.current||selected!==profileRef.current||(selected&&application.profile_id!==selected))return;
     setSelectedApp({...application,answer_bank:answerBank.answers});setApplicationTracking(tracking);setApplicationStatusDraft(tracking.status||'');setApplicationNoteDraft('');setApplicationNoteRequestId(crypto.randomUUID());setDocs(documents.documents);setAnswerDrafts([]);setMockConsent(false);setTab('Applications');
   }

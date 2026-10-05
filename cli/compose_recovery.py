@@ -68,7 +68,7 @@ def run(baseline_path, evidence_path):
             actions.append({"action": "Worker supervision and durable outbox recovered after Redis returned", "result": "PASS"})
             compose("restart", "postgres", "redis", "mock", "api", "worker", "source-worker", "document-worker")
             until(lambda: client.get("/readiness").status_code == 200)
-            application = request("GET", "/applications/" + baseline["application_id"])
+            application = request("GET", "/profiles/" + baseline["profile_id"] + "/applications/" + baseline["application_id"])
             assert application["state"] == "CONFIRMED"
             assert application["confirmation"] == baseline["confirmation"]
             operation = request("GET", "/operations/" + baseline["operation_id"])

@@ -744,22 +744,16 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         return {**operation, "application_id": identity(value.job_id, value.profile_id),
                 "route_mode": route_plan["mode"], "route_ids": [route["id"] for route in selected_routes]}
 
-    @app.get("/applications/{application_id}")
-    def application_read(application_id: str):
+    @app.get("/profiles/{profile_id}/applications/{application_id}")
+    def application_read(profile_id: str, application_id: str):
         data = store.application(application_id)
+        if data["profile_id"] != profile_id:
+            raise NoResultFound("Application is not owned by this profile")
         with store.engine.connect() as connection:
             data["adapter_knowledge"] = application_adapter_knowledge(connection, data["route_id"], operation_mode=operation_mode)
             data["attempts"] = [dict(row) for row in connection.execute(select(m.attempts).where(m.attempts.c.application_id == application_id).order_by(m.attempts.c.started_at)).mappings()]
         data["route_choices"] = list_route_choices(store, application_id)
         return data
-
-    @app.get("/applications/{application_id}/documents")
-    def documents(application_id: str):
-        from services.documents.history import application_documents
-        rows = application_documents(store, application_id, output_dir)
-        # Reviewed answer exports contain explicit personal answers. Require the
-        # profile-scoped read path below for their metadata and provenance too.
-        return {"documents": [row for row in rows if row["kind"] != "application-answer-export"]}
 
     @app.get("/profiles/{profile_id}/applications/{application_id}/documents")
     def profile_documents(profile_id: str, application_id: str):
