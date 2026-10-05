@@ -1,6 +1,6 @@
 {
   "evidence_id": "CORE-WORKFLOW-TRIAL-E-REVIEWED-APPLICATION-ANSWERS",
-  "recorded_at": "2026-10-05T10:33:12Z",
+  "recorded_at": "2026-10-05T10:49:21Z",
   "result": "PARTIAL",
   "scope": "Question-aware reusable answer review and immutable application-linked TXT exports",
   "authority": {
@@ -15,13 +15,13 @@
       "action": "Exercise profile approval reset, answer matching gates, profile scope, versions, hashes, and restart readback",
       "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_application_answer_export -v",
       "target": "Temporary SQLite profile/application, synthetic approved answers, local API",
-      "result": "PASS: 7 integration tests; substantive edits reset verification and approval; unapproved, question-mismatched, missing-text, sensitive/legal/authorization variants, duplicate profile scope, missing review, and concurrent immutable version allocation are covered; exact normalized reuse and versioned TXT bytes read back after restart"
+      "result": "PASS: 8 integration tests on the current working tree; substantive edits reset verification and approval; unapproved, question-mismatched, missing-text, sensitive/legal/authorization variants including plural conflicts of interest, duplicate profile scope, missing review, concurrent immutable version allocation, and export/profile-edit serialization are covered; exact normalized reuse and versioned TXT bytes read back after restart"
     },
     {
       "action": "Run connected browser review and historical download flow after profile-scoping answer reads",
       "command": ".venv\\Scripts\\python.exe -m unittest tests.browser.test_application_answer_export -v",
       "target": "Synthetic FIXTURE profile and job, isolated Chromium, loopback-only requests",
-      "result": "PASS: 1 browser test; profile editor saves reviewed answers and keeps matching evidence current without unrelated worker refresh; sensitive ethnic-origin answers are not suggested; ordinary exact answers still require deliberate selection and separate per-job review; same hash-verified TXT bytes download after reload; no external browser request"
+      "result": "PASS: 1 browser test on the current working tree; profile editor saves reviewed answers and keeps matching evidence current without unrelated worker refresh; ethnic-origin and plural conflict-of-interest answers are not suggested; ordinary exact answers still require deliberate selection and separate per-job review; same hash-verified TXT bytes download after reload; no external browser request"
     },
     {
       "action": "Run the complete connected UI workflow with the isolated Compose fixture",
@@ -30,10 +30,10 @@
       "result": "PASS: 14 connected UI actions including profile edits, matching, document history, mock dry-run, one explicit local mock receipt, reload, and external submission OFF"
     },
     {
-      "action": "Exercise concurrent answer export versioning through the PostgreSQL API",
+      "action": "Earlier exploratory concurrent answer export smoke through the PostgreSQL API (not source-bound to the current candidate)",
       "command": "Eight simultaneous synthetic POST requests to the reviewed answer export route",
       "target": "The isolated synthetic FIXTURE Compose project",
-      "result": "PASS: eight HTTP 201 responses, distinct documents at versions 1 through 8, every response external_submission OFF"
+      "result": "DIAGNOSTIC ONLY: eight HTTP 201 responses, distinct documents at versions 1 through 8, every response external_submission OFF; run preceded the current profile-lock change and does not establish its PostgreSQL concurrency behavior"
     },
     {
       "action": "Run existing profile, approval-reset, and fixture answer regressions",
@@ -45,7 +45,7 @@
       "action": "Run the complete repository Python test suite",
       "command": ".venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py' -v",
       "target": "Temporary databases, controlled fixtures, isolated Chromium",
-      "result": "PASS: 562 tests in 268.827 seconds after the answer-bank, concurrency, and match-snapshot regression fixes; the final authorization phrasing additions were then rerun in the focused integration test and exact browser flow"
+      "result": "PASS: 563 tests in 270.191 seconds on this working tree, including the plural sensitive-question and profile-edit/export serialization regressions"
     },
     {
       "action": "Run web tests and strict production build",

@@ -3,7 +3,7 @@ import hashlib
 from pathlib import Path
 import tempfile
 from concurrent.futures import ThreadPoolExecutor
-from threading import Barrier
+from threading import Barrier, Event
 import unittest
 
 from fastapi.testclient import TestClient
@@ -152,6 +152,7 @@ class ApplicationAnswerExportTests(unittest.TestCase):
             'What is your religious affiliation?',
             'Do you have disabilities?',
             'Have you ever been convicted of a crime?',
+            'What are your conflicts of interest?',
             'Are you authorized to work in the United States?',
             'Are you eligible to work in the United States?',
             'What is your salary expectation?',
@@ -172,6 +173,79 @@ class ApplicationAnswerExportTests(unittest.TestCase):
                     }],
                 })
                 self.assertEqual(response.status_code, 422, response.text)
+
+    def test_profile_edit_cannot_overtake_an_answer_export_snapshot(self):
+        question = 'How many years of experience?'
+        profile = dict(PROFILE, answers=[{
+            'id': 'years-experience', 'question': question,
+            'text': 'Five years', 'source': 'Synthetic test',
+            'verified': True, 'user_approved': True, 'confidence': 95,
+        }])
+        self.assertEqual(self.client.put('/profiles', json=profile).status_code, 200)
+        prior_version = self.store.profile('fixture')['version']
+        export_payload = {'profile_id': 'fixture', 'items': [{
+            'question': question, 'answer_id': 'years-experience',
+            'text': 'Five years', 'reviewed': True,
+        }]}
+        edited = dict(PROFILE, answers=[dict(profile['answers'][0], text='About six years')])
+
+        original_profile = self.store.profile
+        snapshot_loaded, continue_export = Event(), Event()
+
+        def pause_after_snapshot(profile_id, version=None, connection=None):
+            result = original_profile(profile_id, version, connection)
+            if profile_id == 'fixture' and not snapshot_loaded.is_set():
+                snapshot_loaded.set()
+                if not continue_export.wait(10):
+                    raise TimeoutError('Test did not release paused answer export')
+            return result
+
+        self.store.profile = pause_after_snapshot
+        export_client = TestClient(create_app(self.store, 'http://127.0.0.1:1', self.root))
+        update_client = TestClient(create_app(self.store, 'http://127.0.0.1:1', self.root))
+        update_started, update_finished = Event(), Event()
+        results = {}
+
+        def export_once():
+            results['export'] = export_client.post(self.export_url, json=export_payload)
+
+        def update_once():
+            update_started.set()
+            try:
+                results['update'] = update_client.put('/profiles', json=edited)
+            finally:
+                update_finished.set()
+
+        export_thread = ThreadPoolExecutor(max_workers=1)
+        update_thread = ThreadPoolExecutor(max_workers=1)
+        try:
+            exporting = export_thread.submit(export_once)
+            self.assertTrue(snapshot_loaded.wait(5), 'Export did not read the approved answer')
+            updating = update_thread.submit(update_once)
+            self.assertTrue(update_started.wait(5), 'Profile update did not start')
+            # With a profile-row lock held until the document commit, this update
+            # cannot commit between the approval read and the export version write.
+            self.assertFalse(update_finished.wait(0.5), 'Profile edit overtook the locked export snapshot')
+            continue_export.set()
+            exporting.result(timeout=10)
+            updating.result(timeout=10)
+        finally:
+            continue_export.set()
+            export_thread.shutdown(wait=True)
+            update_thread.shutdown(wait=True)
+            export_client.close()
+            update_client.close()
+            self.store.profile = original_profile
+
+        self.assertEqual(results['export'].status_code, 201, results['export'].text)
+        self.assertEqual(results['update'].status_code, 200, results['update'].text)
+        current = self.store.profile('fixture')
+        self.assertFalse(current['answers'][0]['verified'])
+        self.assertFalse(current['answers'][0]['user_approved'])
+        document_id = results['export'].json()['document_id']
+        exported = self.client.get(f'/applications/{self.application_id}/documents').json()['documents']
+        row = next(document for document in exported if document['id'] == document_id)
+        self.assertEqual(row['profile_version'], prior_version)
 
     def test_concurrent_answer_exports_receive_distinct_immutable_versions(self):
         count = 4

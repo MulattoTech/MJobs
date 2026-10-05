@@ -34,7 +34,7 @@ type ManualCaptureDraft = {title:string;company:string;description:string;locati
 const emptyManualCapture = ():ManualCaptureDraft => ({title:'',company:'',description:'',location:'',remote_type:'UNKNOWN',reference_url:'',application_url:'',source_details_json:'{}'});
 const stamp = (value:string|null|undefined) => value ? new Date(value).toLocaleString() : 'Not yet';
 const normalizedQuestion = (value:string) => value.toLocaleLowerCase().match(/[a-z0-9]+/g)?.join(' ')||'';
-const sensitiveAnswerQuestion = (value:string) => /\b(race|ethnic\w*|gender|sex|sexual orientation|disabilit\w*|veteran\w*|relig\w*|date of birth|birth date|age|marital|citizenship|citizen|authoriz\w*|work authorization|eligible to work|work eligibility|right to work|visa|sponsorship|criminal|convict\w*|felon\w*|background check|salary expectation\w*|salary range|desired compensation|compensation expectation\w*|non[ -]?compete|conflict of interest|minimum age|attest\w*|certif\w* under penalty)\b/i.test(value);
+const sensitiveAnswerQuestion = (value:string) => /\b(race|ethnic\w*|gender|sex|sexual orientation|disabilit\w*|veteran\w*|relig\w*|date of birth|birth date|age|marital|citizenship|citizen|authoriz\w*|work authorization|eligible to work|work eligibility|right to work|visa|sponsorship|criminal|convict\w*|felon\w*|background check|salary expectation\w*|salary range|desired compensation|compensation expectation\w*|non[ -]?compete|conflict\w* of interest|minimum age|attest\w*|certif\w* under penalty)\b/i.test(value);
 
 function App() {
   const [tab,setTab] = useState<Tab>('Jobs');
