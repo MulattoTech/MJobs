@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-05T11:47:32Z",
+  "timestamp": "2026-10-05T14:50:00Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -1533,9 +1533,10 @@
       "requirement_id": "MJ-REQ-195",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-09-30-user-testing.md"
+        "docs/evidence/2026-09-30-user-testing.md",
+        "docs/evidence/2026-10-05-application-pipeline.json"
       ],
-      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open"
+      "note": "Connected Applications board exposes all ten canonical manual stages, explicit user-reported attribution, durable profile-scoped history and linked prepared documents in isolated Chromium; API stages, idempotency, ownership and SQLite reopen tests pass. Full Python suite (582 tests) and exact-lane Chromium acceptance pass; exact-head independent review and hosted push/pull_request checks are pending; full requirement and combined A-F journey remain open."
     },
     {
       "requirement_id": "MJ-REQ-196",
@@ -1822,9 +1823,10 @@
       "requirement_id": "MJ-REQ-239",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-05-job-dispositions-notes.json"
+        "docs/evidence/2026-10-05-job-dispositions-notes.json",
+        "docs/evidence/2026-10-05-application-pipeline.json"
       ],
-      "note": "Local connected browser/API/storage evidence covers job notes only; retry idempotency, concurrent ordering, legacy-history compatibility and profile-switch isolation repairs, held-read browser assertions verify scheduled-search resets and empty fact/answer editors before the destination response completes; other profile-scoped view resets are implemented but not individually seeded in that browser case. Company and application notes, exact-head independent review and hosted push/pull_request checks remain open."
+      "note": "Existing job notes plus this slice’s profile-scoped application notes and chronological history pass connected Chromium reload and API/database reopen checks. Company notes and broad requirement acceptance remain open; 582-test repository suite and exact-head review and hosted push/pull_request checks pending."
     },
     {
       "requirement_id": "MJ-REQ-240",

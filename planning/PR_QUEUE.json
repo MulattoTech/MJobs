@@ -3151,11 +3151,11 @@
       ],
       "target_area": "apps/web; apps/api; packages/persistence; services/documents; tests/browser; tests/integration",
       "depends_on": [],
-      "status": "DRAFT",
+      "status": "MERGED",
       "branch": "codex/core-workflow-trial-answers-20261005",
       "draft_until_verified": true,
       "scope_complete": false,
-      "notes": "PR #511 remains a draft deterministic/manual-review slice: question-aware profile snapshots and approval reset, exact-normalized suggestions with explicit per-job review, profile-scoped answer history/download, content-addressed atomic TXT recovery, saved-profile load gate, and mandatory expected-version plus transactional CAS protection for existing profile updates. Local full Python suite on the current working tree passed 567 tests; focused profile/API regressions, Chromium browser workflows, 62 web tests/build, and validators passed. Candidate 315c2e1 push 37303429620 and pull_request 37303434314 both passed, including all workflow steps, but independent exact-head review found that an unversioned delayed API save could still restore revoked approval; those runs are diagnostic only and the candidate is superseded. Fresh independent review and both exact-head events with all nine reports/artifacts are pending on the next candidate. Requirements 103-107 remain PARTIAL; fuzzy/semantic matching, configurable threshold and full sensitive/legal policy remain incomplete. Original MJ-PR-028/029 entries/dependencies remain preserved.",
+      "notes": "Question-aware reusable answer snapshots, explicit per-job review/export, immutable answer document history and strict versioned saves merged in PR #511 at fb8ab73de6f666ed2644f9d1cc271eee25aef7f7. Requirements MJ-REQ-103..107 remain PARTIAL for broader answer matching/sensitive policy and combined workflow acceptance.",
       "evidence_path": "docs/evidence/2026-10-05-reviewed-application-answers.json",
       "pr_number": 511,
       "pr_url": "https://github.com/MulattoTech/MJobs/pull/511",
@@ -3175,15 +3175,36 @@
       ],
       "target_area": "apps/web; apps/api; services/tracking; tests/browser; tests/integration",
       "depends_on": [],
-      "status": "DRAFT",
+      "status": "MERGED",
       "branch": "codex/core-workflow-trial-job-tracking-20261005",
       "draft_until_verified": true,
       "scope_complete": false,
-      "notes": "F1 source repair c6a8b5f634111e88ec47ef7a9cbf93c99c94d5d0 is published. The connected browser now holds the destination-profile GET and verifies scheduled-search fields plus fact/answer editor absence before releasing it; destination content then reloads. Other in-memory views are cleared by code but not individually seeded. Full Python suite 577 tests/303.442s, 20 concurrency repetitions, 62 web tests, strict build and final focused Chromium pass. An evidence/control-plane checkpoint commit will follow; read back exact resulting PR #512 head before fresh independent review and both exact-head push/pull_request checks with all artifacts. Company/application notes, complete MJ-REQ-192 and MJ-REQ-195 remain open.",
+      "notes": "F1 merged in PR #512 at 2de5863da7418bf20087822d052b2beeb77ca64b. Narrow profile-scoped job save/hide/not-interested/notes slice passed exact review, exact-head push/pull_request verification, runtime artifact inspection and merge-tree equality. Broader MJ-REQ-192 and company/application tracking remained open.",
       "evidence_path": "docs/evidence/2026-10-05-job-dispositions-notes.json",
       "base": "fb8ab73de6f666ed2644f9d1cc271eee25aef7f7",
       "pr_number": 512,
       "pr_url": "https://github.com/MulattoTech/MJobs/pull/512"
+    },
+    {
+      "id": "MJ-PR-156",
+      "title": "Core trial: user-reported application pipeline stages, notes and history",
+      "domain": "web_api_analytics; performance_learning_history",
+      "requirements": [
+        "MJ-REQ-195",
+        "MJ-REQ-239"
+      ],
+      "issues": [
+        196,
+        240
+      ],
+      "target_area": "apps/web; apps/api; services/tracking; tests/browser; tests/integration",
+      "depends_on": [],
+      "status": "IN_PROGRESS",
+      "branch": "codex/core-workflow-trial-application-pipeline-20261005",
+      "draft_until_verified": true,
+      "scope_complete": false,
+      "notes": "Existing canonical prepared applications and append-only audit history; all ten pipeline stages, profile-scoped user-reported attribution, notes and chronological reload are connected. Local API/Chromium/build evidence passes; exact candidate review and hosted exact-head gates pending. Does not infer external application confirmation. Full parent requirements remain PARTIAL.",
+      "evidence_path": "docs/evidence/2026-10-05-application-pipeline.json"
     }
   ]
 }

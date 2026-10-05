@@ -166,6 +166,31 @@ class JobNoteInput(BaseModel):
         return self
 
 
+class ApplicationPipelineStatusInput(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+    status: Literal["SAVED", "READY", "APPLIED", "RECRUITER_CONTACT", "INTERVIEW",
+                    "TECHNICAL_INTERVIEW", "FINAL_INTERVIEW", "OFFER", "REJECTED", "WITHDRAWN"]
+    request_id: str = Field(min_length=1, max_length=64)
+
+    @model_validator(mode="after")
+    def bounded_request_id(self):
+        if self.request_id != self.request_id.strip():
+            raise ValueError("Tracking request identifier cannot have surrounding whitespace")
+        return self
+
+
+class ApplicationNoteInput(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+    text: str = Field(min_length=1, max_length=4000)
+    request_id: str = Field(min_length=1, max_length=64)
+
+    @model_validator(mode="after")
+    def bounded_request_id(self):
+        if self.request_id != self.request_id.strip():
+            raise ValueError("Tracking request identifier cannot have surrounding whitespace")
+        return self
+
+
 class MockRunInput(BaseModel):
     model_config = ConfigDict(strict=True, extra="forbid")
     submit: bool = False
@@ -648,7 +673,34 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
 
     @app.get("/applications")
     def applications(profile_id: str | None = None):
-        return {"applications": store.applications(profile_id)}
+        rows = store.applications(profile_id)
+        if profile_id:
+            from services.tracking.applications import list_application_tracking
+            tracking = list_application_tracking(store, profile_id, [row["id"] for row in rows])
+            for row in rows:
+                value = tracking[row["id"]]
+                row["pipeline_status"] = value["status"]
+                row["pipeline_attribution"] = value["attribution"]
+        return {"applications": rows}
+
+    @app.get("/profiles/{profile_id}/applications/{application_id}/tracking")
+    def application_tracking_read(profile_id: str, application_id: str):
+        from services.tracking.applications import read_application_tracking
+        return read_application_tracking(store, profile_id, application_id)
+
+    @app.put("/profiles/{profile_id}/applications/{application_id}/tracking/status")
+    def application_pipeline_status_update(profile_id: str, application_id: str,
+                                           value: ApplicationPipelineStatusInput):
+        from services.tracking.applications import set_application_pipeline_status
+        return set_application_pipeline_status(store, profile_id, application_id,
+                                               value.status, value.request_id)
+
+    @app.post("/profiles/{profile_id}/applications/{application_id}/tracking/notes", status_code=201)
+    def application_note_create(profile_id: str, application_id: str,
+                                value: ApplicationNoteInput):
+        from services.tracking.applications import add_application_note
+        return add_application_note(store, profile_id, application_id,
+                                    value.text, value.request_id)
 
     @app.post("/applications", status_code=202)
     def application(value: ApplicationInput):
