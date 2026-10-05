@@ -1,15 +1,15 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-05T09:06:25Z",
+  "generated_at": "2026-10-05T10:00:09Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Verified at 2026-10-05T06:01:23+00:00: primary checkout is on codex/core-workflow-trial-matching-20261005 from clean synchronized origin/main 77cf0825e51f34874f49cc7753e721b60a944ef0 before the matching slice. The user confirmed the older client released; this checkout is task-owned. Matching source/tests/evidence are current work in progress. Separate Codespaces checkout remains preserved.",
-    "current_verified_github_state": "Verified at 2026-10-05T06:01:23+00:00: authenticated origin MulattoTech/MJobs; main is 77cf0825e51f34874f49cc7753e721b60a944ef0; PR #508 merged after exact-head push and pull_request Verification; PRs #504 and #506 remain merged.",
-    "current_verified_at": "2026-10-05T06:01:23+00:00"
+    "current_verified_local_state": "Verified at 2026-10-05T10:00:09Z: primary task checkout is on codex/core-workflow-trial-answers-20261005 at 5f20df1d4e53fd8bc9288628712fc2ef684d9d47, pushed to origin; local ownership is task-authorized and separate Codespaces checkout remains preserved. Synthetic answer-bank/export evidence is in docs/evidence/2026-10-05-reviewed-application-answers.json; no personal applicant data or retained runtime was used.",
+    "current_verified_github_state": "Verified at 2026-10-05T10:00:09Z: origin main is fb93ad48a3987c375350388ba8bf677db58575d2; PR #511 is a draft at 5f20df1d4e53fd8bc9288628712fc2ef684d9d47; PRs #504/#506, #508/#509/#510 remain merged. Exact-head checks for #511 are pending.",
+    "current_verified_at": "2026-10-05T10:00:09Z"
   },
   "current_milestone": "CORE-WORKFLOW-TRIAL",
   "current_objective": "Deliver bounded user-visible career-fact, job intake/evaluation, document preparation, reviewed-answer, and manual application-tracking workflows by 2026-10-05 15:00 America/Chicago; feature cutoff 13:00; preserve external submission OFF; report PARTIAL for unfinished criteria.",
@@ -67,7 +67,8 @@
     "Configured-source unseen/high-match jobs and rescoring create durable coalesced company discovery requests. Verified employer origins can queue automatically; other origins require explicit review. Remaining triggers/domain acquisition/provider breadth/scheduling remain open.",
     "Durable reviewed public-feed monitoring: bounded scheduled/manual reads, atomic multi-profile matching and receipt, fresh authorization, failure backoff, changed-feed rediscovery and Sources status. Vendor ATS migration and broader providers remain open.",
     "Manual postings receive persisted deterministic skill-evidence explanations from approved profile facts; description-only mentions remain UNKNOWN and full matching/search dimensions remain open (CORE-WORKFLOW-TRIAL C local evidence).",
-    "CORE-WORKFLOW-TRIAL D deterministic job-specific cover letter: local synthetic path and full suite pass; independent review and exact-head CI pending"
+    "CORE-WORKFLOW-TRIAL D deterministic job-specific cover letter: local synthetic path and full suite pass; independent review and exact-head CI pending",
+    "CORE-WORKFLOW-TRIAL E has a usable profile answer bank and per-job manual review/export path; broader MJ-REQ-103..107 remain PARTIAL (docs/evidence/2026-10-05-reviewed-application-answers.json)."
   ],
   "blocked_capabilities": [],
   "active_requirements": [
@@ -631,6 +632,14 @@
       },
       "evidence_path": "docs/evidence/2026-10-05-job-specific-cover-letter.json",
       "scope_result": "PARTIAL"
+    },
+    {
+      "number": 511,
+      "url": "https://github.com/MulattoTech/MJobs/pull/511",
+      "branch": "codex/core-workflow-trial-answers-20261005",
+      "status": "DRAFT",
+      "base": "fb93ad48a3987c375350388ba8bf677db58575d2",
+      "head": "5f20df1d4e53fd8bc9288628712fc2ef684d9d47"
     }
   ],
   "tests_passed": [
@@ -3979,12 +3988,12 @@
     }
   ],
   "live_reconciliation": {
-    "timestamp": "2026-10-05T05:13:23Z",
-    "base_commit": "44b98897fb1ced728ff206af2576b47c7cb240b1",
-    "evidence_path": "docs/evidence/2026-10-05-manual-job-capture.json",
+    "timestamp": "2026-10-05T10:00:09Z",
+    "base_commit": "fb93ad48a3987c375350388ba8bf677db58575d2",
+    "evidence_path": "docs/evidence/2026-10-05-reviewed-application-answers.json",
     "current_slice_validation": "PARTIAL",
     "product_status": "PARTIAL",
-    "ownership": "Root checkout is the task branch; local synthetic tests only; external-submission OFF; retained private runtime not started or updated."
+    "ownership": "Root checkout is task branch codex/core-workflow-trial-answers-20261005; PR #511 draft at 5f20df1d4e53fd8bc9288628712fc2ef684d9d47; synthetic local tests only; external submission OFF; retained private runtime not started or updated."
   },
   "active_development_issue": {
     "number": 104,
@@ -3996,7 +4005,10 @@
       107,
       108
     ],
-    "scope": "Awaiting approval of the bounded design for question-aware reusable answers and a manually reviewed, immutable per-job answer export; no implementation started."
+    "branch": "codex/core-workflow-trial-answers-20261005",
+    "pr_number": 511,
+    "scope": "Question-aware bank, approval reset, exact-match suggestion with explicit review, profile-scoped immutable answer export. Requirements 103-107 remain PARTIAL beyond this narrow slice; exact-head checks and independent review pending.",
+    "evidence_path": "docs/evidence/2026-10-05-reviewed-application-answers.json"
   },
   "historical_control_snapshots": [
     {

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-05T04:06:25-05:00",
+  "timestamp": "2026-10-05T10:00:09Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -911,33 +911,43 @@
     },
     {
       "requirement_id": "MJ-REQ-103",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-05-reviewed-application-answers.json"
+      ],
+      "note": "Narrow exact-match/manual-review export path is locally evidenced; requirement-wide matching, confidence policy, and sensitive/legal policy remain incomplete. PR #511 exact-head checks and independent review are pending."
     },
     {
       "requirement_id": "MJ-REQ-104",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-05-reviewed-application-answers.json"
+      ],
+      "note": "Narrow exact-match/manual-review export path is locally evidenced; requirement-wide matching, confidence policy, and sensitive/legal policy remain incomplete. PR #511 exact-head checks and independent review are pending."
     },
     {
       "requirement_id": "MJ-REQ-105",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-05-reviewed-application-answers.json"
+      ],
+      "note": "Narrow exact-match/manual-review export path is locally evidenced; requirement-wide matching, confidence policy, and sensitive/legal policy remain incomplete. PR #511 exact-head checks and independent review are pending."
     },
     {
       "requirement_id": "MJ-REQ-106",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-05-reviewed-application-answers.json"
+      ],
+      "note": "Narrow exact-match/manual-review export path is locally evidenced; requirement-wide matching, confidence policy, and sensitive/legal policy remain incomplete. PR #511 exact-head checks and independent review are pending."
     },
     {
       "requirement_id": "MJ-REQ-107",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-05-reviewed-application-answers.json"
+      ],
+      "note": "Narrow exact-match/manual-review export path is locally evidenced; requirement-wide matching, confidence policy, and sensitive/legal policy remain incomplete. PR #511 exact-head checks and independent review are pending."
     },
     {
       "requirement_id": "MJ-REQ-108",
