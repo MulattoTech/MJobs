@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-10-05T01:00:52.123884+00:00",
+  "timestamp": "2026-10-05T01:10:37.226673+00:00",
   "result": "PARTIAL",
   "scope": "Issue505 developer tooling: bounded Codespaces/Codex CLI onboarding",
   "base": "b1691622a61ee368f058461ff002728325d275a9",
@@ -24,10 +24,10 @@
       "target": "Shell syntax checked for each file"
     }
   ],
-  "bootstrap_log_sha256": "e1243147702fccac7deb4ba34dcadd6d817a14853170d13da230b625ed85da16",
+  "bootstrap_log_sha256": "8fa8fdb3dcd51322d522fbd047a1dd750543f83dfce15f2f6d0f05799d419ec4",
   "source_sha256": {
-    ".devcontainer/bootstrap-codex.sh": "410300ecfb25b6f445e5d4608d41b857fff98a301ed8dcbad51de7c7a80a4172",
-    ".devcontainer/test-bootstrap.sh": "19f22cf3d5644ab6bfbcaca7cd183255f260deda89169e42acb19d990ba15f45",
+    ".devcontainer/bootstrap-codex.sh": "b5b154ad83b05afd76657cafb99945d0944c5b7ca920611d2dfc29dd09b780c9",
+    ".devcontainer/test-bootstrap.sh": "78d395ff4e780cc50e057fa3653bb7cf4706bdee0e8e79cc9eaa03e47c976681",
     ".devcontainer/setup.sh": "369da7be8c1dbc51314b9d8e1ada8359f2bd31e40013cde20922afa026ac8819",
     ".github/workflows/codespaces.yml": "1edcdb80ac889805ad6e6c8ece23d2a49c180b42784e5ecea2da42573481749d",
     "prompts/CODESPACES_ITERATION.md": "9d734f56df97e62b35c51f881285fef3138288231739206e104cfb036e98c177",
@@ -45,5 +45,13 @@
   "private_data_uploaded": false,
   "deployment_performed": false,
   "external_submission_enabled": false,
-  "product_ai_implemented": false
+  "product_ai_implemented": false,
+  "independent_review": {
+    "initial_head": "25ce0cdc1fd9754022db51845e4d676d0f4c1fd6",
+    "finding": "P3: version filter rejected valid combined prerelease and build metadata",
+    "resolution": "Validate independently optional SemVer prerelease and build components; preserve no-leading-zero rules and add four accepted/six rejected offline cases.",
+    "review_method": "Fresh read-only Codex static review of exact committed source packet",
+    "final_head_review": "Pending; final receipt will be posted on PR506 before merge"
+  },
+  "final_receipt_location": "PR506 closing comment is authoritative for final candidate checks, runtime artifacts and merge; this checked-in file is a pre-merge local-evidence snapshot."
 }

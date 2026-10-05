@@ -40,6 +40,20 @@ test "$(cat "$TEST_CODEX_LOG")" = '--version'
 : > "$TEST_NPM_LOG"
 MJOBS_CODEX_VERSION=0.160.0 bash "$script"
 test "$(cat "$TEST_NPM_LOG")" = 'install --global @openai/codex@0.160.0'
+for version in '1.2.3-beta.1+build.7' '0.0.0-0+00' '1.2.3+sha.1' '1.2.3-01abc'; do
+  : > "$TEST_NPM_LOG"
+  MJOBS_CODEX_VERSION="$version" bash "$script"
+  test "$(cat "$TEST_NPM_LOG")" = "install --global @openai/codex@$version"
+done
+for version in '1.2.3-01' '1.02.3' '1.2.3-rc..1' '1.2.3+' '1.2.3 ' 'https://invalid.example/package'; do
+  : > "$TEST_NPM_LOG"
+  if MJOBS_CODEX_VERSION="$version" bash "$script"; then
+    echo "Invalid semantic version accepted: $version" >&2; exit 1
+  else
+    test "$?" = 2
+  fi
+  test ! -s "$TEST_NPM_LOG"
+done
 : > "$TEST_NPM_LOG"
 if MJOBS_CODEX_VERSION='--invalid-package' bash "$script"; then
   echo 'Invalid version unexpectedly accepted' >&2; exit 1

@@ -56,7 +56,9 @@ fixed. [Exact receipt](../docs/evidence/2026-10-04-fact-review-exact-head-ci.jso
 The explicitly requested developer-tooling continuation is issue505: bounded
 Codespaces/Codex CLI setup. Its offline bootstrap contract and shell checks
 passed; actual devcontainer smoke, final-head Verification and independent
-review remain required. [Scoped evidence](../docs/evidence/2026-10-04-codespaces-bounded-iteration.json);
+review remain required. The final exact-head and merge receipt belongs to the
+[PR506 closing comment](https://github.com/MulattoTech/MJobs/pull/506), which supersedes this pre-merge snapshot. No automatic next iteration is authorized.
+[Scoped evidence](../docs/evidence/2026-10-04-codespaces-bounded-iteration.json);
 [new entrypoint](../prompts/CODESPACES_ITERATION.md).
 
 The original Windows checkout is still clean at c89a09c and was not mutated or

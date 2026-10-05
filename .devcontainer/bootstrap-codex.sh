@@ -4,7 +4,13 @@ set -Eeuo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 version="${MJOBS_CODEX_VERSION:-latest}"
-if [[ ! "$version" =~ ^(latest|[0-9]+\.[0-9]+\.[0-9]+([-+][0-9A-Za-z.-]+)?)$ ]]; then
+# SemVer permits prerelease AND build metadata; numeric prerelease identifiers
+# have no leading zeroes, while build identifiers may contain them.
+numeric='(0|[1-9][0-9]*)'
+prerelease='(0|[1-9][0-9]*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*)'
+build='[0-9A-Za-z-]+'
+pattern="^${numeric}\.${numeric}\.${numeric}(-${prerelease}(\.${prerelease})*)?(\+${build}(\.${build})*)?$"
+if [[ "$version" != latest && ! "$version" =~ $pattern ]]; then
   echo "MJOBS_CODEX_VERSION must be latest or an explicit semantic version." >&2
   exit 2
 fi
