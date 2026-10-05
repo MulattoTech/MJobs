@@ -659,7 +659,7 @@
       "status": "DRAFT",
       "base": "2de5863da7418bf20087822d052b2beeb77ca64b",
       "review": "PASS_NO_ACTIONABLE_CODE_DEFECTS_ON_SOURCE_HEAD",
-      "exact_head_checks": "PENDING_METADATA_CHECKPOINT_HEAD",
+      "exact_head_checks": "PENDING_CURRENT_CANDIDATE_PUSH_AND_PR_VERIFICATION",
       "reviewed_source_head": "8756881027674346bd022716068b4532cbc91ca7",
       "source_head_checks": {
         "push_run_id": 37340200494,
