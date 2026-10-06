@@ -1,15 +1,15 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-06T07:11:01Z",
+  "generated_at": "2026-10-06T07:13:24Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "MJ-REQ-004 mock ATS deadline source commit e86e8d0ff2ada3b357961c925a33584ae50d0412 is integrated by non-force fast-forward; local and GitHub main are synchronized. Planning/evidence receipt is being recorded.",
-    "current_verified_github_state": "GitHub main and local main synchronized at e86e8d0ff2ada3b357961c925a33584ae50d0412. Issue #5 remains OPEN/PARTIAL; Actions/reviews remain NOT_RUN by policy.",
-    "current_verified_at": "2026-10-06T07:11:01Z"
+    "current_verified_local_state": "MJ-REQ-004 mock ATS deadline source commit e86e8d0ff2ada3b357961c925a33584ae50d0412 and planning receipt commit a2febdf6f68b25fefe09dfc99e526f6b621c0b79 are integrated by non-force fast-forward; local and GitHub main are synchronized.",
+    "current_verified_github_state": "GitHub main and local main synchronized at a2febdf6f68b25fefe09dfc99e526f6b621c0b79, including mock ATS deadline evidence. Issue #5 remains OPEN/PARTIAL; Actions/reviews remain NOT_RUN by policy.",
+    "current_verified_at": "2026-10-06T07:13:24Z"
   },
   "current_milestone": "MJ-REQ-004-MOCK-ATS-DEADLINE-SLICE-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under the local-only delivery policy; one writer and one integration lane.",
@@ -6018,5 +6018,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-06T07:11:01Z"
+  "updated_at": "2026-10-06T07:13:24Z"
 }

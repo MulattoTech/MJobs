@@ -5,7 +5,7 @@
   "result": "PARTIAL",
   "scope_result": "PASS",
   "scope": "The local Playwright ATS adapter now checks the operation deadline after navigation, after upload preparation, and after the durable SUBMITTING reservation immediately before the irreversible Submit click. A deadline in that reservation gap prevents the click; absent receipt, application history remains SUBMISSION_UNCONFIRMED and is never blindly retried. The broad MJ-REQ-004 requirement remains PARTIAL.",
-  "observed_at_utc": "2026-10-06T07:11:01Z",
+  "observed_at_utc": "2026-10-06T07:13:24Z",
   "candidate": {
     "repository": "MulattoTech/MJobs",
     "branch": "codex/req004-bound-ops-20261006",
@@ -98,7 +98,7 @@
     "remote_main_after_source_integration": "e86e8d0ff2ada3b357961c925a33584ae50d0412",
     "issue_state": "OPEN; broader acceptance remains incomplete and issue was not closed",
     "requirement_state": "PARTIAL; denominator preserved",
-    "planning_receipt_commit": null,
-    "remote_main_after_planning_receipt": null
+    "planning_receipt_commit": "a2febdf6f68b25fefe09dfc99e526f6b621c0b79",
+    "remote_main_after_planning_receipt": "a2febdf6f68b25fefe09dfc99e526f6b621c0b79"
   }
 }
