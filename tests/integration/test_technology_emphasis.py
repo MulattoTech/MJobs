@@ -17,7 +17,9 @@ class TechnologyEmphasisTests(unittest.TestCase):
 
     def test_matched_approved_technologies_are_bold_in_both_formats_only(self):
         tech=dict(PROFILE['facts'][0],id='tech',kind='technology_experience',text='Built Python services & <tools>.')
-        self.store.save_profile(dict(PROFILE,facts=[*PROFILE['facts'],tech]))
+        duty=dict(PROFILE['facts'][0],id='python-duty',kind='responsibility',text='Built Python APIs for internal teams.')
+        unrelated=dict(PROFILE['facts'][0],id='unrelated-duty',kind='responsibility',text='Scheduled COBOL batch jobs.')
+        self.store.save_profile(dict(PROFILE,facts=[*PROFILE['facts'],tech,duty,unrelated]))
         with fixture_server() as origin:discover(self.store,origin,'fixture')
         job=next(j for j in self.store.jobs() if 'Python' in j['skills'])
         app=prepare(self.store,job['id'],'fixture',self.root)
@@ -27,6 +29,8 @@ class TechnologyEmphasisTests(unittest.TestCase):
         prepare(self.store,job['id'],'fixture',self.root,tailor_resume=True)
         row=next(r for r in application_documents(self.store,app) if r['kind']=='resume' and r['version']==2)
         self.assertIn('tech',row['generation_context']['emphasized_fact_ids'])
+        self.assertIn('python-duty',row['generation_context']['emphasized_fact_ids'])
+        self.assertNotIn('unrelated-duty',row['generation_context']['emphasized_fact_ids'])
         doc=Document(self.root/app/row['files']['docx'])
         bold=[p.text for p in doc.paragraphs if p.runs and all(r.bold for r in p.runs)]
         self.assertIn(tech['text'],bold);self.assertIn('Python',bold)
@@ -35,12 +39,14 @@ class TechnologyEmphasisTests(unittest.TestCase):
         for page in reader.pages:
             page.extract_text(visitor_text=lambda text,cm,tm,font,size:fragments.append((text,str((font or {}).get('/BaseFont','')))))
         self.assertTrue(any(tech['text'] in text and 'Bold' in font for text,font in fragments),fragments)
+        self.assertTrue(any(duty['text'] in text and 'Bold' in font for text,font in fragments),fragments)
         self.assertTrue(any('Python' in text and 'Bold' in font for text,font in fragments))
         self.assertEqual([p.text for p in doc.paragraphs],(self.root/app/row['files']['txt']).read_text(encoding='utf-8').splitlines())
         self.assertEqual(self.store.profile('fixture'),before)
         compared=compare_resumes(self.store,self.root,app,base['id'],row['id'])
         self.assertEqual(compared['omitted'],[])
         self.assertIn('tech',[fact['fact_id'] for fact in compared['emphasized_skills']])
+        self.assertIn('python-duty',[fact['fact_id'] for fact in compared['emphasized_skills']])
         from services.documents.uploads import save_resume
         from services.documents.uploaded_comparison import compare_uploaded_resume
         uploaded=save_resume(self.store,self.root,'fixture','base.txt','text/plain',original['txt'])

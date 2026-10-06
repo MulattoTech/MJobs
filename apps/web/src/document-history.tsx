@@ -22,7 +22,7 @@ export function DocumentHistory({documents}:{documents:GeneratedDocument[]}) {
       ?<p>Tailored resume: selected facts for {document.generation_context.job_title}. Approved facts included: {document.generation_context.selected_fact_ids?.length}. Omitted from this resume: {document.generation_context.omitted_fact_ids?.length}. Approved wording preserved.</p>
       :<p>Tailored resume: skill order for {document.generation_context.job_title}. Wording and work history preserved.</p>)}
     <p>{document.fact_ids.length} factual sources · profile snapshot {document.profile_version.slice(0,10)}</p>
-    {document.generation_context?.emphasized_fact_ids&&<p>Job-matched skill and technology facts in bold: {document.generation_context.emphasized_fact_ids.length}. DOCX and PDF preserve the same approved text as TXT.</p>}
+    {document.generation_context?.emphasized_fact_ids&&<p>Job-matched approved facts in bold: {document.generation_context.emphasized_fact_ids.length}. DOCX and PDF preserve the same approved text as TXT.</p>}
     {document.kind==='cover-letter'&&document.preview_error&&<p role="alert" className="safety">{document.preview_error} Downloads are disabled until a valid version is prepared.</p>}
     {document.avoid_list_error&&<p role="alert" className="safety">{document.avoid_list_error}. Downloads are disabled until you prepare content that follows the current avoid list.</p>}
     {document.kind==='cover-letter'&&document.preview_text&&<details><summary>Preview validated cover letter</summary><pre className="description" style={{whiteSpace:'pre-wrap',fontFamily:'inherit'}}>{document.preview_text}</pre></details>}
@@ -33,7 +33,7 @@ export function DocumentHistory({documents}:{documents:GeneratedDocument[]}) {
       <p>Template: {document.template}</p>
       <p>Profile snapshot: <code>{document.profile_version}</code></p>
       {document.generation_context?.contact_header&&<section aria-label="Saved resume contact header" style={{overflowWrap:'anywhere'}}><h4>Saved contact details included</h4>{document.generation_context.contact_header.map((line,index)=><p key={index}>{line}</p>)}</section>}
-      {document.generation_context?.mode==='APPROVED_SKILL_ORDER'&&<p>Target skill snapshot: {document.generation_context.job_skills?.join(', ')||'No skills detected'}. Matches guide ordering; they are not a qualification assessment.</p>}
+      {document.generation_context?.mode==='APPROVED_SKILL_ORDER'&&<p>Target skill snapshot: {document.generation_context.job_skills?.join(', ')||'No skills detected'}. Exact matches guide skill ordering and fact emphasis; they are not a qualification assessment.</p>}
       {document.missing_fact_ids.length>0&&<p className="alert">Some original facts are unavailable: {document.missing_fact_ids.join(', ')}</p>}
       <ul>{document.facts_used.map(fact=><li key={fact.fact_id}><strong>{fact.kind}</strong>: {fact.text}<br/>Source: {fact.source}<br/>
         At generation: {fact.verified?'verified':'unverified'}, {fact.user_approved?'approved':'not approved'}, confidence {fact.confidence}%

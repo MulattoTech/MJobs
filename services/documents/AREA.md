@@ -16,8 +16,13 @@ Named base resumes retain immutable version entries in resume_revisions; repeate
 uploads within a series are idempotent and version allocation locks the profile.
 Repeated content keeps the first authoritative filename, media type, format, and
 stored path even when a later request uses a different matching extension.
-Native extraction and review belong to services/career_profile. Broader tailoring,
-advanced structured chronology and document regeneration remain incomplete.
+Native extraction and review belong to services/career_profile. Tailored resume
+generation now also emphasizes a responsibility bullet only when that approved
+fact contains an exact matched target-job skill. New tailored and selected-fact
+revisions use distinct immutable template/model identifiers; older revisions
+retain their prior skill-only meaning. Exact wording remains unchanged and the
+match is validated in history/comparison. Broader summary adjustment, factual
+rephrasing, advanced chronology and document regeneration remain incomplete.
 Bounded local scanned-PDF OCR and its review gates are owned by career_profile.
 
 Generated revisions record their actual creation timestamp and deterministic

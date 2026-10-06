@@ -6,7 +6,7 @@ from sqlalchemy.exc import NoResultFound
 from services.documents.history import application_documents
 from services.documents.validation import validate_assertions
 from services.documents.errors import PreparationError
-from services.documents.templates import contract_role, resume_layout, SELECTION_TEMPLATES, EMPHASIS_TEMPLATES, CONTACT_TEMPLATES, contact_header
+from services.documents.templates import contract_role, resume_layout, SELECTION_TEMPLATES, EMPHASIS_TEMPLATES, CONTACT_TEMPLATES, RESPONSIBILITY_EMPHASIS_TEMPLATES, contact_header
 from services.documents import tailor
 
 
@@ -33,7 +33,7 @@ def compare_facts(base, target, matches):
                       'before_position':list(old).index(identifier)+1,'after_position':list(new).index(identifier)+1}
                      for identifier in new_common if old_common.index(identifier)!=new_common.index(identifier)],
         'emphasized_skills':[dict(row,job_skills=list(matches[row['fact_id']])) for row in target
-                             if row['kind'] in ('skill','technology_experience') and matches.get(row['fact_id'])],
+                             if row['kind'] in ('skill','technology_experience','responsibility') and matches.get(row['fact_id'])],
         'omitted':[row for row in base if row['fact_id'] not in new],
         'added':[row for row in target if row['fact_id'] not in old]}
 
@@ -85,8 +85,11 @@ def tailored_context(target):
     if target['template'] in EMPHASIS_TEMPLATES:
         skills=context.get('job_skills')
         if (not isinstance(skills,list) or any(not isinstance(value,str) for value in skills) or
-            context.get('emphasized_fact_ids')!=tailor.emphasis(target['facts_used'],{'skills':skills}) or
-            matches!=tailor.matched_labels([row for row in target['facts_used'] if row['kind'] in ('skill','technology_experience')],{'skills':skills})):
+            context.get('emphasized_fact_ids')!=tailor.emphasis(target['facts_used'],{'skills':skills},
+                include_responsibilities=target['template'] in RESPONSIBILITY_EMPHASIS_TEMPLATES) or
+            matches!=tailor.matched_labels([row for row in target['facts_used'] if row['kind'] in (
+                ('skill','technology_experience','responsibility') if target['template'] in RESPONSIBILITY_EMPHASIS_TEMPLATES
+                else ('skill','technology_experience'))],{'skills':skills})):
             raise ComparisonUnavailable('Original technology emphasis context is unavailable')
     if target['template'] in SELECTION_TEMPLATES:
         selected=context.get('selected_fact_ids');available=context.get('available_fact_ids')
@@ -112,4 +115,4 @@ def compare_resumes(store, output_dir, application_id, base_document_id, tailore
     return {'base':before,'tailored':after,
             **compare_facts(before['facts'],after['facts'],context['matched_skills']),
             'contact_changed':before['contact']!=after['contact'],
-            'scope':'Selected generated revisions; uploaded original resumes are not compared. Skill matches explain ordering, not qualifications.'}
+            'scope':'Selected generated revisions; uploaded original resumes are not compared. Exact job-skill mentions explain ordering and emphasis, not qualifications.'}

@@ -23,7 +23,7 @@ from services.documents.cover_letter import COVER_LETTER_TEMPLATE, build_cover_l
 from services.documents.errors import PreparationError
 from services.documents.render import render_pdf
 from services.documents.validation import VALIDATOR, validate_assertions, validate_formats
-from services.documents.templates import BASE_TEMPLATE, resume_layout, template_pair, contact_header
+from services.documents.templates import BASE_TEMPLATE, resume_layout, template_pair, contact_header, RESPONSIBILITY_EMPHASIS_TEMPLATES
 
 
 def compose_paragraphs(profile, job, resume_rows, texts, template=BASE_TEMPLATE):
@@ -110,8 +110,11 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
         staged.append(staging)
         fact_ids = [fact.id for fact in selected]
         texts = [fact.text for fact in selected]
-        ordered_rows,context=tailor.order_skills(resume_rows,job) if tailor_resume else (resume_rows,None)
-        emphasized=tailor.emphasis(ordered_rows,job) if tailor_resume else []
+        include_bullet_emphasis=resume_template in RESPONSIBILITY_EMPHASIS_TEMPLATES
+        ordered_rows,context=tailor.order_skills(resume_rows,job,
+            include_responsibilities=include_bullet_emphasis) if tailor_resume else (resume_rows,None)
+        emphasized=tailor.emphasis(ordered_rows,job,
+            include_responsibilities=include_bullet_emphasis) if tailor_resume else []
         if context is not None:
             context['emphasized_fact_ids']=emphasized
         if selection_ids is not None:

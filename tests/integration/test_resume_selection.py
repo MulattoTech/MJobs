@@ -40,7 +40,7 @@ class ResumeSelectionTests(unittest.TestCase):
         self.assertEqual(resume['fact_ids'],['python','duty'])
         self.assertEqual(cover['fact_ids'],['python','sql','duty'])
         self.assertEqual(self.store.application(app)['fact_ids'],cover['fact_ids'])
-        self.assertEqual(resume['generation_model'],'deterministic-fact-selection-v2')
+        self.assertEqual(resume['generation_model'],'deterministic-fact-selection-and-bullet-emphasis-v1')
         self.assertEqual(resume['generation_context']['selected_fact_ids'],['python','duty'])
         self.assertEqual(resume['generation_context']['omitted_fact_ids'],['sql'])
         self.assertEqual([r['fact_id'] for r in compare_resumes(self.store,self.root,app,base['id'],resume['id'])['omitted']],['sql'])

@@ -1,6 +1,6 @@
 """Skill relevance must never move responsibilities between roles."""
 import unittest
-from services.documents.tailor import order_skills
+from services.documents.tailor import order_skills, emphasis
 
 
 class SkillOrderTests(unittest.TestCase):
@@ -23,3 +23,15 @@ class SkillOrderTests(unittest.TestCase):
         self.assertEqual(context['matched_skills']['0'],[])
         unchanged,_=order_skills(rows,{'id':'job','title':'Engineer','skills':[]})
         self.assertEqual(unchanged,rows)
+
+    def test_bullet_emphasis_uses_only_exactly_matched_approved_responsibility_facts(self):
+        rows=[
+            {'fact_id':'python-bullet','kind':'responsibility','text':'Built Python services.'},
+            {'fact_id':'unmatched-bullet','kind':'responsibility','text':'Maintained COBOL batch jobs.'},
+            {'fact_id':'python-skill','kind':'skill','text':'Python'},
+            {'fact_id':'python-tech','kind':'technology_experience','text':'Python at work'},
+        ]
+        job={'id':'job','title':'Engineer','skills':['Python']}
+        self.assertEqual(emphasis(rows,job),['python-skill','python-tech'])
+        self.assertEqual(emphasis(rows,job,include_responsibilities=True),
+                         ['python-bullet','python-skill','python-tech'])

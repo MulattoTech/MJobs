@@ -27,7 +27,8 @@ class SkillOrderBrowserTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root=Path(directory);store=Store(f"sqlite:///{(root/'test.db').as_posix()}")
             store.migrate();store.bind_workspace_mode('FIXTURE')
-            store.save_profile(dict(PROFILE,facts=[PROFILE['facts'][1],PROFILE['facts'][0]],contact={'phones':['555 0100'],'city':'Tulsa'}))
+            duty=dict(PROFILE['facts'][0],id='python-duty',kind='responsibility',text='Built Python APIs for internal teams.')
+            store.save_profile(dict(PROFILE,facts=[PROFILE['facts'][1],PROFILE['facts'][0],duty],contact={'phones':['555 0100'],'city':'Tulsa'}))
             with fixture_server() as fixture:discover(store,fixture,'fixture')
             job=store.jobs()[0]
             with store.engine.begin() as c:c.execute(update(m.jobs).where(m.jobs.c.id==job['id']).values(skills=['Python']))
@@ -64,19 +65,21 @@ class SkillOrderBrowserTests(unittest.TestCase):
                         self.assertEqual(execute_operation(operation['operation_id'])['status'],'COMPLETED')
                     document=page.get_by_role('region',name='resume version 2',exact=True)
                     expect(document.get_by_text('Tailored resume: skill order',exact=False)).to_be_visible()
-                    expect(document.get_by_text('Job-matched skill and technology facts in bold: 1.',exact=False)).to_be_visible()
+                    expect(document.get_by_text('Job-matched approved facts in bold: 2.',exact=False)).to_be_visible()
                     document.get_by_text('Generation details and facts',exact=True).click()
-                    expect(document.get_by_text('Matched job skills: Python',exact=True)).to_be_visible()
+                    expect(document.get_by_text('Matched job skills: Python',exact=True)).to_have_count(2)
                     with page.expect_download() as downloaded:
                         document.get_by_role('link',name='Download TXT',exact=True).click()
                     self.assertEqual(Path(downloaded.value.path()).read_text(encoding='utf-8').splitlines(),
-                        ['Alex Fixture','alex@example.test','Skills','Python','SQL'])
+                        ['Alex Fixture','alex@example.test','Skills','Python','SQL','Experience','Built Python APIs for internal teams.'])
                     for _ in range(2):
                         comparison=page.get_by_role('region',name='Compare base and tailored resumes',exact=True)
-                        comparison.get_by_role('button',name='Compare selected resumes',exact=True).click()
+                        compare_button=comparison.get_by_role('button',name='Compare selected resumes',exact=True)
+                        expect(compare_button).to_be_enabled();compare_button.click()
                         result=comparison.get_by_role('region',name='Resume comparison result',exact=True)
                         expect(result.get_by_role('region',name='Reordering',exact=True)).to_contain_text('Python: fact position 2 → 1')
-                        expect(result.get_by_role('region',name='Skills emphasized',exact=True)).to_contain_text('Python — matched Python')
+                        expect(result.get_by_role('region',name='Skills and bullets emphasized',exact=True)).to_contain_text('Python — matched Python')
+                        expect(result.get_by_role('region',name='Skills and bullets emphasized',exact=True)).to_contain_text('Built Python APIs for internal teams. — matched Python')
                         expect(result.get_by_role('region',name='Content omitted',exact=True)).to_contain_text('No content omitted.')
                         expect(result.get_by_role('region',name='Summary changes',exact=True)).to_contain_text('No changes.')
                         expect(result.get_by_role('region',name='Bullet and fact changes',exact=True)).to_contain_text('No changes.')
@@ -102,6 +105,7 @@ class SkillOrderBrowserTests(unittest.TestCase):
                     expect(page.get_by_label('Include SQL',exact=True)).to_be_checked()
                     page.get_by_label('Include SQL',exact=True).uncheck()
                     page.get_by_label('Include Python',exact=True).uncheck()
+                    page.get_by_label('Include Built Python APIs for internal teams.',exact=True).uncheck()
                     operation_count=store.count(m.operations.name)
                     page.get_by_role('button',name='Prepare documents',exact=True).click()
                     expect(page.get_by_text('Reload approved facts and select at least one fact for this resume.',exact=True)).to_be_visible()
@@ -114,7 +118,7 @@ class SkillOrderBrowserTests(unittest.TestCase):
                         self.assertEqual(execute_operation(operation['operation_id'])['status'],'COMPLETED')
                     selected=page.get_by_role('region',name='resume version 3',exact=True)
                     expect(selected.get_by_text('Tailored resume: selected facts',exact=False)).to_be_visible()
-                    expect(selected.get_by_text('Approved facts included: 1. Omitted from this resume: 1.',exact=False)).to_be_visible()
+                    expect(selected.get_by_text('Approved facts included: 1. Omitted from this resume: 2.',exact=False)).to_be_visible()
                     with page.expect_download() as subset_download:
                         selected.get_by_role('link',name='Download TXT',exact=True).click()
                     self.assertEqual(Path(subset_download.value.path()).read_text(encoding='utf-8').splitlines(),['Alex Fixture','alex@example.test','Skills','Python'])

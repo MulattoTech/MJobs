@@ -55,14 +55,16 @@ def matched_labels(facts, job):
     return matches
 
 
-def emphasis(facts, job):
-    matches=matched_labels([row for row in facts if row['kind'] in ('skill','technology_experience')],job)
+def emphasis(facts, job, include_responsibilities=False):
+    kinds=('skill','technology_experience','responsibility') if include_responsibilities else ('skill','technology_experience')
+    matches=matched_labels([row for row in facts if row['kind'] in kinds],job)
     return [row['fact_id'] for row in facts if matches.get(row['fact_id'])]
 
 
-def order_skills(facts, job):
+def order_skills(facts, job, include_responsibilities=False):
     skills=[row for row in facts if row['kind']=='skill']
-    matches=matched_labels([row for row in facts if row['kind'] in ('skill','technology_experience')],job)
+    kinds=('skill','technology_experience','responsibility') if include_responsibilities else ('skill','technology_experience')
+    matches=matched_labels([row for row in facts if row['kind'] in kinds],job)
     # Python's stable sort retains original order for equally relevant skills.
     ranked=iter(sorted(skills,key=lambda row:-len(matches[row['fact_id']])))
     ordered=[next(ranked) if row['kind']=='skill' else row for row in facts]
