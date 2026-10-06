@@ -1,3 +1,9 @@
+# Active local-only implementation checkpoint — 2026-10-06
+
+Issue #96 / MJ-REQ-095 extractive target-job summary tailoring candidate `d5309972c04062c721ee72986008b04a1f572e03` on branch `codex/req095-summary-adjustment-20261006`, based on `fd2f43b0c04f73edd5ace1f0b4e1fd426c1874ec`. Tailored resumes now select whole approved summary facts that match target skills exactly, preserve the entire summary when no facts match, version template/model contracts, and report omitted summary facts in comparison provenance. Evidence `docs/evidence/2026-10-06-target-summary-tailoring.json`. 16 focused Python tests, 316 unit tests, 370 integration tests (1 optional PostgreSQL skip), 2 connected browser tests, 62 frontend tests/build, and all repository validators pass. Broader factual bullet and summary rephrasing remain incomplete; issue #96 stays OPEN/PARTIAL. External submission OFF; hosted Actions/reviews NOT_RUN.
+
+---
+
 # Integration receipt — 2026-10-06
 
 Mock ATS HTTP cancellation source `f4cf42c34682be815b0306e693fb57f0ee911dca` and evidence/planning were integrated by non-force fast-forward at synchronized local/GitHub main `bb0f4b2384580fa31e1e054e04923d6bc2665107`. Issue #5 remains OPEN/PARTIAL after readback: https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6021535660. Evidence `docs/evidence/2026-10-06-mock-ats-http-cancellation.json`. The full 719-test Python run was PARTIAL due one unrelated Uvicorn teardown assertion that passed alone; 13 mock ATS tests and all 37 browser tests passed. Continue to the next local-only P0 safety slice; hosted verification NOT_RUN, external submission OFF.

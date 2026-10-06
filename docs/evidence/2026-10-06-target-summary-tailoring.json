@@ -1,0 +1,107 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REQ-095-TARGET-SUMMARY-TAILORING-20261006",
+  "recorded_at": "2026-10-06T18:02:00Z",
+  "requirement_id": "MJ-REQ-095",
+  "issue": 96,
+  "result": "PASS",
+  "acceptance_scope": "A tailored resume extracts and includes only existing approved summary facts that mention exact target-job skills when one or more match; if no summary facts match, the entire existing summary is preserved. Fact wording is byte-for-byte unchanged. Unmatched summary facts are omitted from the tailored resume and reported in comparison provenance. Historical revisions, profile facts, and explicit fact selections remain intact.",
+  "source": {
+    "repository": "MulattoTech/MJobs",
+    "base_commit": "fd2f43b0c04f73edd5ace1f0b4e1fd426c1874ec",
+    "candidate_commit": "d5309972c04062c721ee72986008b04a1f572e03",
+    "verified_code_test_diff_sha256": "a56efaf5df69a113549089bba1272042d546f99a",
+    "branch": "codex/req095-summary-adjustment-20261006",
+    "worktree": ".worktrees/req095-summary-adjustment-20261006"
+  },
+  "acceptance_behavior": [
+    "A verified, user-approved, sourced summary fact with confidence >= 80 is selected when it contains an exact target-job skill match.",
+    "When at least one summary fact matches, unmatched summary facts are omitted from the tailored resume.",
+    "When no summary fact matches any target skill, all existing approved summary facts are preserved (adjusted: false fallback).",
+    "All summary fact wording is byte-for-byte identical to the approved profile facts; no qualifications are invented or rephrased.",
+    "The profile facts themselves remain completely unchanged across tailoring and preparation.",
+    "Generated document comparison verifies the summary adjustment context, surfaces omitted summary facts, and fails closed with ComparisonUnavailable if adjustment metadata is missing or corrupted.",
+    "New versioned templates ('approved-summary-skill-and-bullet-emphasis-v3' and 'deterministic-summary-skill-and-bullet-emphasis-v2') preserve historical document and comparison interpretation.",
+    "The web comparison picker recognizes the new versioned template contracts."
+  ],
+  "local_checks": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_skill_order tests.integration.test_skill_order tests.integration.test_resume_comparison tests.integration.test_resume_selection -v",
+      "result": "PASS",
+      "summary": "16 tests passed across unit and integration suites covering summary extraction, no-match fallback, comparison provenance, and explicit fact selection."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_skill_order -v",
+      "result": "PASS",
+      "summary": "1 connected Playwright/Chromium browser test passed in 8.6s, verifying end-to-end ordering, comparison and download."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_document_history -v",
+      "result": "PASS",
+      "summary": "1 connected Playwright browser test passed in 8.6s, verifying document persistence across reloads."
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run",
+      "result": "PASS",
+      "summary": "13 test files, 62 frontend tests passed (including resume-comparison unit tests)."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "summary": "TypeScript check and production Vite build passed."
+    },
+    {
+      "command": "python -m tools.verification.catalogue",
+      "result": "PASS",
+      "summary": "Catalogue validation passed."
+    },
+    {
+      "command": "python -m tools.verification.agent_skills",
+      "result": "PASS",
+      "summary": "Agent skill validation passed."
+    },
+    {
+      "command": "python -m tools.verification.reference_provenance",
+      "result": "PASS",
+      "summary": "Reference provenance validation passed."
+    },
+    {
+      "command": "python -m tools.verification.gpu_independence",
+      "result": "PASS",
+      "summary": "GPU independence validation passed."
+    },
+    {
+      "command": "python -m tools.verification.host_safety",
+      "result": "PASS",
+      "summary": "Host safety validation passed."
+    },
+    {
+      "command": "python -m unittest discover -s tests/unit -p \"test_*.py\"",
+      "result": "PASS",
+      "summary": "316 unit tests passed in 19.2s."
+    },
+    {
+      "command": "python -m unittest discover -s tests/integration -p \"test_*.py\"",
+      "result": "PASS",
+      "summary": "370 integration tests passed in 238.0s (1 optional PostgreSQL skip)."
+    }
+  ],
+  "environment": {
+    "python": "Python 3.12.10",
+    "node": "25.9.0",
+    "npm": "11.12.1",
+    "os": "Windows 11",
+    "notes": [
+      "Tests and builds executed in isolated worktree C:\\Tools\\Dev\\MJobs\\.worktrees\\req095-summary-adjustment-20261006.",
+      "Local-only policy strictly followed; hosted CI and Actions disabled."
+    ]
+  },
+  "limitations": [
+    "MJ-REQ-095 remains PARTIAL: broader factual bullet and summary rephrasing and AI rewriting are not implemented.",
+    "Issue #96 remains OPEN/PARTIAL; do not close the issue from this slice.",
+    "External application submission remains OFF."
+  ],
+  "external_submission": "OFF",
+  "hosted_verification": "NOT_RUN_BY_USER_POLICY",
+  "hosted_review": "NOT_RUN_BY_USER_POLICY"
+}
