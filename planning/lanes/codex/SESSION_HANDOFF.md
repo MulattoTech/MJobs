@@ -30,3 +30,5 @@ During implementation write only Codex lane files plus owned feature/evidence pa
 Canonical planning and root main require the integration lock.
 
 Current-main reconciliation commit: `600156158227997bedbe8dcc9e03d40d625e4557`.
+
+Local implementation checkpoint: `f7c7b82c85f5aa2211a9c5fd13ef78a876c3cc40`.
