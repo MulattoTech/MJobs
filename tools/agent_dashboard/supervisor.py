@@ -191,15 +191,40 @@ class AgentSupervisor:
             self.save()
             return self.lane_config(lane)
 
+    def _live_claim(self, lane: str) -> dict[str, Any]:
+        path = self.bus / "claims.json"
+        if not path.exists():
+            return {}
+        try:
+            return json.loads(path.read_text(encoding="utf-8")).get("claims", {}).get(lane, {})
+        except Exception:
+            return {}
+
     def _prompt(self, lane: str) -> str:
         cfg = self.config["lanes"][lane]
         path = self.root / cfg["prompt_file"]
         base = path.read_text(encoding="utf-8") if path.exists() else ""
         override = (cfg.get("prompt_override") or "").strip()
         suffix = f"\n\nDASHBOARD PROMPT OVERRIDE:\n{override}\n" if override else ""
+        claim = self._live_claim(lane)
+        if claim:
+            focus = (
+                f"LANE={lane}. ACTIVE CLAIM: issue #{claim.get('issue')} / "
+                f"{claim.get('requirement_id')}; branch={claim.get('branch')}; "
+                f"worktree={claim.get('worktree')}. Work this claim only until it is "
+                "completed, safely checkpointed, or explicitly released. Do NOT switch "
+                "to the repository's global active issue or another lane's work. "
+            )
+        else:
+            focus = (
+                f"LANE={lane}. No live claim is recorded. Select work only from this "
+                "lane's own queue after checking other lane claims; do not blindly use "
+                "the repository's global active issue. "
+            )
         return (
-            "EXECUTE NOW. This is an implementation turn, not a request to explain "
-            "the lane configuration. Use repository tools immediately.\n\n"
+            "EXECUTE NOW. " + focus
+            + "This is an implementation turn, not a request to explain the lane "
+            "configuration. Use repository tools immediately.\n\n"
             + UNATTENDED_AUTHORITY
             + "\n\nLANE CONTRACT:\n"
             + base

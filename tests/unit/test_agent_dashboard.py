@@ -53,6 +53,28 @@ class AgentDashboardSupervisorTests(unittest.TestCase):
         self.assertTrue(prefix)
         self.assertTrue(any("codex" in part.casefold() for part in prefix))
 
+
+    def test_prompt_frontloads_live_lane_claim(self):
+        supervisor = AgentSupervisor(self.root)
+        supervisor.bus.mkdir(parents=True, exist_ok=True)
+        (supervisor.bus / "claims.json").write_text(
+            json.dumps({
+                "schema_version": 1,
+                "claims": {
+                    "ollama": {
+                        "issue": 318,
+                        "requirement_id": "MJ-REQ-063.D01",
+                        "branch": "ollama/greenhouse",
+                        "worktree": "C:/worktrees/greenhouse",
+                    }
+                },
+            }),
+            encoding="utf-8",
+        )
+        prompt = supervisor._prompt("ollama")
+        self.assertIn("ACTIVE CLAIM: issue #318 / MJ-REQ-063.D01", prompt[:500])
+        self.assertIn("Do NOT switch to the repository's global active issue", prompt[:700])
+
     def test_dashboard_config_persists_in_git_common_coordination_dir(self):
         supervisor = AgentSupervisor(self.root)
         supervisor.update_config("ollama", {"model": "ollama/gemma4:26b", "auto_continue": False})
