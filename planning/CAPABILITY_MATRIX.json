@@ -86,10 +86,10 @@
       "requirement_id": "MJ-REQ-008",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-09-30-progress-journal.json",
-        "docs/evidence/2026-09-30-ci-428.json"
+        "docs/evidence/2026-10-06-progress-resume-cli.json",
+        "docs/evidence/2026-09-30-progress-journal.json"
       ],
-      "note": "Atomic evidence-linked progress journal, reload, failed-write preservation and remote CI verified; physical host restart and future milestone adoption remain"
+      "note": "Atomic evidence-linked append, reload, failed-write preservation and new-process resume/adoption are locally verified. Read-only resume CLI exposes the exact safe checkpoint. Physical host/container restart and live interruption recovery remain untested; hosted checks are NOT_RUN by policy."
     },
     {
       "requirement_id": "MJ-REQ-009",

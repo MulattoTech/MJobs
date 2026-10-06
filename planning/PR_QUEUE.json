@@ -68,7 +68,7 @@
       "status": "MERGED",
       "branch": "codex/mj-pr-003-governance-safety",
       "draft_until_verified": true,
-      "notes": "Merged as 65efa0d6dd0c77e6f7a8b9f8a0108a08fc714939 after exact-head required checks. P0 MJ-REQ-008/009/010 remain PARTIAL; MJ-REQ-011 PASS. Legacy owner-data adoption, physical host restart and complete staged operation remain open. Live GitHub reconciliation: PR #428 merged at 65efa0d6dd0c77e6f7a8b9f8a0108a08fc714939.",
+      "notes": "Merged as 65efa0d6dd0c77e6f7a8b9f8a0108a08fc714939 after exact-head required checks. P0 MJ-REQ-008/009/010 remain PARTIAL; MJ-REQ-011 PASS. Legacy owner-data adoption, physical host restart and complete staged operation remain open. Live GitHub reconciliation: PR #428 merged at 65efa0d6dd0c77e6f7a8b9f8a0108a08fc714939. MJ-REQ-008 local-only continuation on base 36b4dbdcefd3a30bbe53f1a523f33bd340c8c76f: added validated read-only `python -m tools.verification.progress resume` and subprocess checkpoint adoption coverage. Seven focused tests plus progress/catalogue/agent-skill validators pass; evidence docs/evidence/2026-10-06-progress-resume-cli.json. Issue #9 remains OPEN/PARTIAL because physical host/container restart has not been tested; hosted checks NOT_RUN by policy.",
       "pr_number": 428,
       "merge_commit": "65efa0d6dd0c77e6f7a8b9f8a0108a08fc714939",
       "merged_at": "2026-10-01T00:48:51Z"

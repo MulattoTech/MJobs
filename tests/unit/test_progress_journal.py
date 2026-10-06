@@ -1,11 +1,13 @@
 """Checkpoint writes must preserve the last resumable implementation state."""
 import json
 from pathlib import Path
+import subprocess
+import sys
 import tempfile
 import unittest
 from unittest.mock import patch
 
-from tools.verification.progress import append_milestone, validate_journal
+from tools.verification.progress import append_milestone, resume_snapshot, validate_journal
 
 
 class ProgressJournalTests(unittest.TestCase):
@@ -44,6 +46,65 @@ class ProgressJournalTests(unittest.TestCase):
         self.assertEqual(restored["current_phase"], "M3_VERIFIED")
         self.assertEqual(restored["milestone_journal"], [self.entry])
         self.assertEqual(validate_journal(self.root), [])
+
+    def test_journal_survives_writer_exit_and_accepts_a_future_process_milestone(self):
+        writer = """
+import json, sys
+from pathlib import Path
+from tools.verification.progress import append_milestone
+append_milestone(Path(sys.argv[1]), json.loads(sys.argv[2]))
+"""
+        resume = """
+import json, sys
+from pathlib import Path
+from tools.verification.progress import append_milestone, validate_journal
+state_path = Path(sys.argv[1])
+entry = json.loads(sys.argv[2])
+state = json.loads(state_path.read_text(encoding='utf-8'))
+assert state['current_phase'] == 'M3_VERIFIED'
+assert state['milestone_journal'][-1]['milestone_id'] == 'M3-TEST'
+assert not validate_journal(state_path.parent.parent)
+entry['milestone_id'] = 'M4-RESUMED'
+entry['timestamp'] = '2026-09-30T20:01:00Z'
+entry['current_phase'] = 'M4_RESUMED'
+entry['completed_steps'] = ['Resumed from the persisted checkpoint in a new process']
+append_milestone(state_path, entry)
+"""
+        for script in (writer, resume):
+            completed = subprocess.run(
+                [sys.executable, "-c", script, str(self.state_path), json.dumps(self.entry)],
+                cwd=Path(__file__).resolve().parents[2],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(completed.returncode, 0, completed.stderr)
+
+        resumed = json.loads(self.state_path.read_text(encoding="utf-8"))
+        self.assertEqual(resumed["current_phase"], "M4_RESUMED")
+        self.assertEqual([item["milestone_id"] for item in resumed["milestone_journal"]],
+                         ["M3-TEST", "M4-RESUMED"])
+        self.assertEqual(validate_journal(self.root), [])
+
+    def test_resume_snapshot_exposes_latest_checkpoint_and_refuses_corrupt_journal(self):
+        append_milestone(self.state_path, self.entry)
+        state = json.loads(self.state_path.read_text(encoding="utf-8"))
+        state["active_development_issue"] = {
+            "issue": 9,
+            "requirement_id": "MJ-REQ-008",
+            "next_action": "Run the resumed-work acceptance check",
+        }
+        self.state_path.write_text(json.dumps(state), encoding="utf-8")
+
+        snapshot = resume_snapshot(self.root)
+        self.assertEqual(snapshot["current_phase"], "M3_VERIFIED")
+        self.assertEqual(snapshot["active_development_issue"]["issue"], 9)
+        self.assertEqual(snapshot["latest_milestone"]["milestone_id"], "M3-TEST")
+        self.assertEqual(snapshot["last_safe_checkpoint"], self.entry["last_safe_checkpoint"])
+
+        (self.root / "docs/evidence/checkpoint.json").unlink()
+        with self.assertRaisesRegex(ValueError, "Checkpoint evidence is missing"):
+            resume_snapshot(self.root)
 
     def test_duplicate_and_missing_evidence_leave_prior_state_intact(self):
         append_milestone(self.state_path, self.entry)

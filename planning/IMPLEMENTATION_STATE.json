@@ -7,9 +7,9 @@
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Local main and origin/main synchronized at 0082a651ae7a5aa5a7be4c5dfe593b3bca61815e; P0 source-control/recovery acceptance slice is locally evidenced with protected-configuration recovery still partial.",
-    "current_verified_github_state": "GitHub main and local main synchronized at 0082a651ae7a5aa5a7be4c5dfe593b3bca61815e before this evidence checkpoint; Actions disabled, main unprotected, no open PR. Issue #8 remains OPEN/PARTIAL pending issue readback.",
-    "current_verified_at": "2026-10-06T14:38:39Z"
+    "current_verified_local_state": "Local main/origin main at 36b4dbdcefd3a30bbe53f1a523f33bd340c8c76f; issue #9 read-only progress resume CLI and subprocess test are implemented on the single worktree, pending checkpoint integration.",
+    "current_verified_github_state": "GitHub/local main at 36b4dbdcefd3a30bbe53f1a523f33bd340c8c76f; issue #8 OPEN/PARTIAL after evidence readback. Actions disabled, no open PR; issue #9 evidence commit pending.",
+    "current_verified_at": "2026-10-06T14:43:21Z"
   },
   "current_milestone": "MJ-REQ-004-MOCK-DISCOVERY-HTTP-BOUNDS-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under the local-only delivery policy; one writer and one integration lane.",
@@ -312,12 +312,12 @@
     "MJ-REQ-004 candidate 3d604b27b1a4c25e2ff0ee6fa68a07e9ff8f74a0: full suite initially saw stale ignored apps/web/dist; rebuilding restored current Sources UI and isolated browser acceptance. A first rebuilt full run later hit the known intermittent CompanyDiscoveryRequestsBrowserTests server-thread shutdown assertion; isolated case and all 35 browser tests passed, followed by a same-head 680-test full suite pass. Do not weaken shutdown timeout; evidence docs/evidence/2026-10-06-bounded-ocr-diagnostics.json."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-06T14:38:39Z",
+    "timestamp": "2026-10-06T14:43:21Z",
     "result": "PARTIAL",
-    "source_commit": "0082a651ae7a5aa5a7be4c5dfe593b3bca61815e",
-    "scope": "MJ-REQ-007 normal Git and database migration recovery checks pass; protected local configuration migration recovery remains unverified.",
-    "evidence_path": "docs/evidence/2026-10-06-source-change-safety.json",
-    "integration_commit": "0082a651ae7a5aa5a7be4c5dfe593b3bca61815e"
+    "source_commit": "36b4dbdcefd3a30bbe53f1a523f33bd340c8c76f",
+    "scope": "MJ-REQ-008 read-only validated resume snapshot and cross-process checkpoint adoption pass locally; physical host/container restart remains untested.",
+    "evidence_path": "docs/evidence/2026-10-06-progress-resume-cli.json",
+    "integration_commit": "36b4dbdcefd3a30bbe53f1a523f33bd340c8c76f"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -5294,12 +5294,91 @@
         "git_commit": "0082a651ae7a5aa5a7be4c5dfe593b3bca61815e",
         "evidence_path": "docs/evidence/2026-10-06-source-change-safety.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-008-CROSS-PROCESS-RESUME-20261006-START",
+      "timestamp": "2026-10-06T14:41:11Z",
+      "current_phase": "MJ-REQ-008_CROSS_PROCESS_RESUME_ACCEPTANCE_IN_PROGRESS",
+      "completed_steps": [
+        "Integrated and read back issue #8 scoped evidence on main 36b4dbdcefd3a30bbe53f1a523f33bd340c8c76f.",
+        "Inspected the progress-journal requirement, control-plane documentation and five existing atomicity/validation tests.",
+        "Added a subprocess restart/adoption test and observed all six focused journal tests pass."
+      ],
+      "files_added": [],
+      "files_modified": [
+        "tests/unit/test_progress_journal.py"
+      ],
+      "tests_completed": [
+        "python -m unittest tests.unit.test_progress_journal -v: 6 tests PASS."
+      ],
+      "tests_remaining": [
+        "Inspect/validate progress record CLI behavior, issue #9 cross-process evidence, capability/state/queue receipt and exact-head validations.",
+        "Do not claim physical host/container restart or browser/worker crash injection from a process-boundary test."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "No live provider or employer; only local subprocess checkpoint read/write."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "Cross-process persistence is not a physical host/container restart test."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "36b4dbdcefd3a30bbe53f1a523f33bd340c8c76f",
+        "evidence_path": "docs/evidence/2026-10-06-source-change-safety.json"
+      }
+    },
+    {
+      "milestone_id": "MJ-REQ-008-RESUME-SNAPSHOT-LOCAL-PARTIAL-20261006",
+      "timestamp": "2026-10-06T14:43:21Z",
+      "current_phase": "MJ-REQ-008_RESUME_SNAPSHOT_LOCAL_PARTIAL",
+      "completed_steps": [
+        "Implemented read-only resume_snapshot and CLI command; it validates the evidence-linked journal before exposing active issue, latest milestone and last safe checkpoint.",
+        "Added future-process adoption coverage: a writer process exits, a new process validates/reloads and appends the next milestone.",
+        "Corrupt evidence fails closed; duplicate IDs, chronology errors and atomic replacement failure preserve the prior state.",
+        "Seven progress-journal tests, CLI JSON oracle, progress validator, catalogue validator, agent-skill validator and diff check pass."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-06-progress-resume-cli.json"
+      ],
+      "files_modified": [
+        "tools/verification/progress.py",
+        "tools/verification/AREA.md",
+        "tests/unit/test_progress_journal.py",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "7 progress journal unit tests PASS in 0.173 seconds.",
+        "Fresh-process resume CLI snapshot parsed; active issue, phase and checkpoint assertions PASS.",
+        "Progress journal, catalogue and agent-skill validators PASS; git diff --check PASS."
+      ],
+      "tests_remaining": [
+        "No physical host/container restart or browser/worker process crash was induced.",
+        "Hosted verification/review NOT_RUN under user policy."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Synthetic local subprocess persistence only; no live provider/employer or external application action."
+      ],
+      "known_errors": [
+        "Initial acceptance probe correctly exposed missing resume API (expected RED); first post-implementation suite found a case-sensitive test-message expectation mismatch, corrected; final suite passes."
+      ],
+      "known_limitations": [
+        "The new subprocess test proves writer-process exit and future-process adoption, not host/container restart."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "36b4dbdcefd3a30bbe53f1a523f33bd340c8c76f",
+        "evidence_path": "docs/evidence/2026-10-06-progress-resume-cli.json"
+      }
     }
   ],
-  "current_phase": "MJ-REQ-007_LOCAL_ACCEPTANCE_PARTIAL_OPEN",
+  "current_phase": "MJ-REQ-008_RESUME_SNAPSHOT_LOCAL_PARTIAL",
   "last_safe_checkpoint": {
-    "git_commit": "0082a651ae7a5aa5a7be4c5dfe593b3bca61815e",
-    "evidence_path": "docs/evidence/2026-10-06-source-change-safety.json"
+    "git_commit": "36b4dbdcefd3a30bbe53f1a523f33bd340c8c76f",
+    "evidence_path": "docs/evidence/2026-10-06-progress-resume-cli.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -5438,16 +5517,16 @@
     "next_issue": 8
   },
   "active_development_issue": {
-    "issue": 8,
-    "requirement_id": "MJ-REQ-007",
-    "title": "Source Control / Change Safety",
-    "state": "LOCAL_ACCEPTANCE_PARTIAL_OPEN",
-    "selection_reason": "P0 safety boundary reconciled; healthy-Git operation and recoverable database migrations are evidenced, but protected-configuration migration recovery remains unverified.",
-    "base": "0082a651ae7a5aa5a7be4c5dfe593b3bca61815e",
+    "issue": 9,
+    "requirement_id": "MJ-REQ-008",
+    "title": "Save Implementation Progress",
+    "state": "LOCAL_RESUME_SNAPSHOT_SLICE_PASS_REQUIREMENT_PARTIAL",
+    "selection_reason": "P0 resumability; a read-only resume command and cross-process milestone-adoption test now provide a deterministic fresh-session path. Physical host/container restart acceptance remains untested.",
+    "base": "36b4dbdcefd3a30bbe53f1a523f33bd340c8c76f",
     "branch": "codex/req004-ops-audit-20261006",
-    "candidate": "0082a651ae7a5aa5a7be4c5dfe593b3bca61815e",
-    "evidence": "docs/evidence/2026-10-06-source-change-safety.json",
-    "next_action": "Leave issue #8 OPEN/PARTIAL. Select P0 issue #9 / MJ-REQ-008 progress journal; check crash-resume acceptance and scope local evidence without claiming host-restart proof."
+    "candidate": "36b4dbdcefd3a30bbe53f1a523f33bd340c8c76f",
+    "evidence": "docs/evidence/2026-10-06-progress-resume-cli.json",
+    "next_action": "Commit/push and fast-forward this tested slice; keep issue #9 PARTIAL/OPEN for host/container restart boundaries and then select the next dependency-ready P0 safety issue."
   },
   "historical_control_snapshots": [
     {
@@ -6574,5 +6653,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-06T14:40:00Z"
+  "updated_at": "2026-10-06T14:43:21Z"
 }

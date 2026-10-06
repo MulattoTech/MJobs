@@ -1,0 +1,62 @@
+{
+  "timestamp": "2026-10-06T14:43:21Z",
+  "target": "MJ-REQ-008 / GitHub issue #9 — Save Implementation Progress",
+  "result": "PARTIAL",
+  "source_revision": "36b4dbdcefd3a30bbe53f1a523f33bd340c8c76f",
+  "source_tree": "7228a8b97f0a678300857c11c77d9d23009d3b64",
+  "changed_input_sha256": {
+    "tools/verification/progress.py": "3769c38ddabbd37c65bbb29eb573e830e25668412c4f17378595dcd589b235bd",
+    "tools/verification/AREA.md": "075c72b0d92781102afd9f3c94ecd9346cb3ab52cf264e49c373b73cddca38da",
+    "tests/unit/test_progress_journal.py": "af1c74fac035fe1789b85841c0540fe1d998671fb786a4819d543b560122e969"
+  },
+  "implemented_slice": "Read-only `python -m tools.verification.progress resume` validates the durable journal and emits active issue, latest phase/steps, remaining tests, limitations and safe checkpoint as JSON. Unit test crosses writer and resume process boundaries; subsequent milestone adoption succeeds. Corrupt evidence fails closed.",
+  "checks": [
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.unit.test_progress_journal -v",
+      "result": "PASS",
+      "observed": "7 tests passed in 0.173 seconds, covering append/reload, future-process resume/adoption, duplicate/missing evidence refusal, failed atomic replacement preservation, corrupt prior evidence and chronology."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m tools.verification.progress resume",
+      "result": "PASS",
+      "observed": "JSON parsed in a fresh subprocess; active issue #9, current phase and last safe checkpoint 36b4dbdcefd3a30bbe53f1a523f33bd340c8c76f verified."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m tools.verification.progress validate",
+      "result": "PASS",
+      "observed": "Current machine-readable milestone journal validates."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m tools.verification.catalogue",
+      "result": "PASS",
+      "observed": "Requirement catalogue and dependency consistency valid."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m tools.verification.agent_skills",
+      "result": "PASS",
+      "observed": "Project delivery-skill routing and paths valid."
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS",
+      "observed": "No whitespace errors."
+    }
+  ],
+  "test_failures_and_repairs": [
+    {
+      "result": "EXPECTED_RED",
+      "observed": "The new resume-snapshot acceptance test first failed to import because the resume API did not yet exist; implementation added it."
+    },
+    {
+      "result": "TEST_ASSERTION_REPAIRED",
+      "observed": "First green run exposed case-sensitive test expectation mismatch for the existing capitalized validation message; corrected the test regex and reran all seven tests successfully."
+    }
+  ],
+  "tests_skipped": [
+    "No physical host/container restart, browser crash or worker crash was induced; subprocess termination/restart is synthetic process-boundary coverage only."
+  ],
+  "external_limitations": [
+    "Hosted verification and review remain NOT_RUN under user policy."
+  ],
+  "privacy_and_operations": "Read-only resume output contains implementation checkpoint metadata only. No personal application data, credentials, external provider or employer site accessed. No external submission or host/runtime mutation."
+}

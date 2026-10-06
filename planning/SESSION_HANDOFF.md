@@ -1,5 +1,13 @@
 # Active local-only implementation checkpoint — 2026-10-06
 
+Current main before this evidence/code checkpoint: `36b4dbdcefd3a30bbe53f1a523f33bd340c8c76f`; Actions remain disabled, there are no open PRs, and main is unprotected. Issue #8 / MJ-REQ-007 is OPEN/PARTIAL after evidence readback; protected local configuration migration recovery remains unverified.
+
+Current slice: P0 issue #9 / MJ-REQ-008. Added read-only `python -m tools.verification.progress resume`, which validates and emits the active issue, latest milestone, remaining checks and safe checkpoint. A synthetic second process now reloads and adopts a future milestone. Seven focused tests plus progress/catalogue/agent-skill validators pass. Physical host/container/browser/worker interruption was not induced, so #9 remains OPEN/PARTIAL. Evidence: `docs/evidence/2026-10-06-progress-resume-cli.json`. External submission remains OFF; hosted checks/reviews remain NOT_RUN under local-only policy.
+
+---
+
+# Active local-only implementation checkpoint — 2026-10-06
+
 Current main before this planning/evidence checkpoint: `0082a651ae7a5aa5a7be4c5dfe593b3bca61815e`; Actions are disabled, there are no open PRs, and `main` is unprotected. Issue #5 / MJ-REQ-004 remains OPEN/PARTIAL after several bounded public/fixture transport slices.
 
 Current slice: P0 issue #8 / MJ-REQ-007 source control and change safety. Exact-main local backup/integrity and SQLite migration checks passed (22 tests); conditional no-Git manifest is NOT_APPLICABLE because the checkout is healthy Git. Database/document archive restore has prior isolated FIXTURE/PERSONAL receipts. Protected local configuration migration recovery remains unverified, so #8 stays OPEN/PARTIAL. Evidence: `docs/evidence/2026-10-06-source-change-safety.json`. The next lane should reconcile the open P0 progress-journal requirement #9 before other P0 and core workflow slices. Hosted checks/reviews remain NOT_RUN by user policy; external submission remains OFF.

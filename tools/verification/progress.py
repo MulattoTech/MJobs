@@ -94,6 +94,36 @@ def validate_journal(root: Path) -> list[str]:
     return errors
 
 
+def resume_snapshot(root: Path = ROOT) -> dict:
+    """Return a validated, read-only summary for a fresh implementation session."""
+    root = root.resolve()
+    state = json.loads((root / "planning/IMPLEMENTATION_STATE.json").read_text(encoding="utf-8"))
+    errors = validate_journal(root)
+    if errors:
+        raise ValueError("Implementation journal cannot resume: " + "; ".join(errors))
+    entries = state["milestone_journal"]
+    latest = entries[-1]
+    return {
+        "schema_version": state.get("schema_version"),
+        "current_milestone": state.get("current_milestone"),
+        "current_objective": state.get("current_objective"),
+        "status": state.get("status"),
+        "active_development_issue": state.get("active_development_issue"),
+        "current_phase": latest["current_phase"],
+        "completed_steps": latest["completed_steps"],
+        "files_added": latest["files_added"],
+        "files_modified": latest["files_modified"],
+        "tests_completed": latest["tests_completed"],
+        "tests_remaining": latest["tests_remaining"],
+        "migrations_applied": latest["migrations_applied"],
+        "live_integrations_tested": latest["live_integrations_tested"],
+        "known_errors": latest["known_errors"],
+        "known_limitations": latest["known_limitations"],
+        "last_safe_checkpoint": latest["last_safe_checkpoint"],
+        "latest_milestone": latest,
+    }
+
+
 def append_milestone(state_path: Path, entry: dict) -> None:
     """Atomically replace one state file after validating the new checkpoint."""
     root = state_path.parent.parent
@@ -137,9 +167,13 @@ def main() -> int:
     record = command.add_parser("record", help="Append one verified milestone to implementation state")
     record.add_argument("--entry", required=True, type=Path, help="JSON milestone with evidence path")
     command.add_parser("validate", help="Validate the durable milestone journal")
+    command.add_parser("resume", help="Print a validated read-only checkpoint for a fresh session")
     args = parser.parse_args()
     if args.command == "record":
         append_milestone(STATE_PATH, json.loads(args.entry.read_text(encoding="utf-8")))
+    elif args.command == "resume":
+        print(json.dumps(resume_snapshot(ROOT), indent=2, ensure_ascii=False))
+        return 0
     errors = validate_journal(ROOT)
     for error in errors:
         print(error)

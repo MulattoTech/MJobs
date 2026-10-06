@@ -21,6 +21,11 @@ Implementation progress is recorded in `planning/IMPLEMENTATION_STATE.json` with
 contains the original progress-journal fields and a last safe Git/evidence checkpoint.
 The CLI validates evidence paths and replaces the state file atomically; `validate`
 checks the journal during CI. This control journal contains no personal application data.
+After a terminal, Codex, browser or worker interruption, start with
+`python -m tools.verification.progress resume`; it validates the journal and prints
+the active issue, latest completed steps, remaining checks and last safe checkpoint as
+JSON without changing state. Cross-process resume is covered locally; do not claim a
+physical host or container restart from that synthetic boundary test.
 
 Project-scoped Codex/agent workflows live under `.agents/skills/`. The `mjobs-delivery` skill is a small router with six on-demand playbooks for migrations, source adapters, application adapters, privacy/security, LLM providers/prompts, and release verification. Validate the contract with `python -m tools.verification.agent_skills`; the validator checks that routed playbooks, repository paths, and referenced Python command modules exist.
 
