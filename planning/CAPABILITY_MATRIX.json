@@ -78,9 +78,10 @@
       "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-10-06-source-change-safety.json",
-        "docs/evidence/2026-09-30-pr004-backup-restore-local.json"
+        "docs/evidence/2026-09-30-pr004-backup-restore-local.json",
+        "docs/evidence/2026-10-06-atomic-env-initialization.json"
       ],
-      "note": "Healthy Git path and worktree preservation are verified at synchronized main; conditional no-Git manifest is NOT_APPLICABLE in this checkout. Synthetic migration and archive-integrity tests pass; database/document restore has prior isolated receipts. Protected configuration migration recovery remains unverified, so MJ-REQ-007 stays PARTIAL/OPEN."
+      "note": "Healthy Git path/worktree preservation and conditional no-Git NOT_APPLICABLE remain evidenced. Database/document restore and archive integrity have prior receipts. Current .env initialization now stages, fsyncs and atomically publishes create-if-absent with synthetic failure/concurrency/redaction tests. Requirement remains PARTIAL: no actual protected-configuration schema migration recovery was exercised."
     },
     {
       "requirement_id": "MJ-REQ-008",

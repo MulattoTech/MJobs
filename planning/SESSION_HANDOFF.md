@@ -1,5 +1,13 @@
 # Active local-only implementation checkpoint — 2026-10-06
 
+Issue #96 / MJ-REQ-095 responsibility-bullet emphasis integrated at `a363ebd686c9237c81bb8c60dc51cb2ba34f77a1`; issue remains OPEN/PARTIAL after GitHub readback https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6019614794. The slice has 26 focused Python tests, 62 frontend tests, production build and synthetic Chromium acceptance; evidence `docs/evidence/2026-10-06-resume-bullet-emphasis.json`.
+
+Active writer: P0 issue #8 / MJ-REQ-007, branch `codex/req007-config-recovery-20261006`, candidate `c7306774884ad08e5172bfec7ab365dc261f77b3` based on synchronized main `a363ebd686c9237c81bb8c60dc51cb2ba34f77a1`. The private `.env` initializer now stages and flushes before atomic create-if-absent publication; 13 local unit/backup tests and repository validators pass. Evidence `docs/evidence/2026-10-06-atomic-env-initialization.json`. The slice does not prove recovery for a protected-configuration schema migration, so #8 stays OPEN/PARTIAL. Next after safe integration: P0 issue #9. External submission OFF; hosted checks/reviews NOT_RUN.
+
+---
+
+# Active local-only implementation checkpoint — 2026-10-06
+
 At this checkpoint, GitHub/local `main` are synchronized at `41abcfb127ed68b7cec656ee92e29643ffc4a877`. Actions remain disabled, no PRs are open, and `main` is unprotected. Issue #10 / MJ-REQ-009 is CLOSED after full local staged-operation evidence/readback at https://github.com/MulattoTech/MJobs/issues/10#issuecomment-6018916813. Issue #8 / MJ-REQ-007 and #9 / MJ-REQ-008 remain OPEN/PARTIAL; P0 external/host recovery blockers remain explicit.
 
 Active writer: issue #96 / MJ-REQ-095, branch `codex/req095-extractive-summary-20261006`, worktree `.worktrees/req095-extractive-summary-20261006`, based on `41abcfb127ed68b7cec656ee92e29643ffc4a877`. Added versioned deterministic emphasis for approved responsibility facts containing exact target-job skill matches; exact fact wording, profile snapshots and older template/model semantics remain preserved. Local unit/integration/history/browser tests, 62 frontend tests and build pass. Evidence: `docs/evidence/2026-10-06-resume-bullet-emphasis.json`. Issue #96 remains OPEN/PARTIAL: summary adjustment and factual rephrasing remain incomplete. Continue the same tailoring requirement with a safety-preserving slice, then resume the dependency-ready queue. External submission remains OFF; hosted checks/reviews NOT_RUN.

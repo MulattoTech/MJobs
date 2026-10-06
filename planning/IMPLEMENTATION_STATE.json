@@ -11,7 +11,7 @@
     "current_verified_github_state": "GitHub/local main synchronized at d953bc55a80b9f0c3ed5986b1f42fbc3fe439a87; issue #10 CLOSED after https://github.com/MulattoTech/MJobs/issues/10#issuecomment-6018916813; Actions disabled, no open PR, main unprotected.",
     "current_verified_at": "2026-10-06T14:52:24Z"
   },
-  "current_milestone": "MJ-REQ-009-STAGED-LOCAL-OPERATION-CLOSED-20261006",
+  "current_milestone": "MJ-REQ-007-ATOMIC-ENV-INITIALIZATION-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -385,7 +385,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Continue P0 issue #5 / MJ-REQ-004 from synchronized main after resume parser/OCR cancellation integration at f9649d9ae374a31203d6cc2774d7ac47f4e4376b. Audit remaining process, HTTP and browser operation boundaries and select the next highest-value locally implementable timeout/output/cancellation/retry slice. Issue #5 remains OPEN/PARTIAL; hosted evidence NOT_RUN; external submission OFF; denominators remain 366 and 59.",
+  "recommended_resume_step": "Synchronize main at c7306774884ad08e5172bfec7ab365dc261f77b3 after fast-forward, verify issue #8 comment/readback, then start P0 issue #9 local restart/recovery proof.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -403,7 +403,7 @@
     "cb72f9041d6a",
     "e14ac893620f"
   ],
-  "unfinished_work_evidence": "docs/evidence/2026-10-06-mock-ats-action-budget.json\nMJ-REQ-095 issue #96 responsibility-bullet emphasis locally verified on e6c47515aa20596ed6ec3263c809af26b4cf3910; broader summary adjustment and factual rephrasing remain PARTIAL. Evidence: docs/evidence/2026-10-06-resume-bullet-emphasis.json",
+  "unfinished_work_evidence": "docs/evidence/2026-10-06-mock-ats-action-budget.json\nMJ-REQ-095 issue #96 responsibility-bullet emphasis locally verified on e6c47515aa20596ed6ec3263c809af26b4cf3910; broader summary adjustment and factual rephrasing remain PARTIAL. Evidence: docs/evidence/2026-10-06-resume-bullet-emphasis.json\nMJ-REQ-007 issue #8 local config initialization slice c7306774884ad08e5172bfec7ab365dc261f77b3; issue remains PARTIAL pending actual protected-configuration migration recovery. Evidence: docs/evidence/2026-10-06-atomic-env-initialization.json",
   "authorization": "User explicitly provided 100% Git and GitHub authorization on 2026-09-30; still verify native permissions and required checks",
   "user_testing": {
     "result": "PASS",
@@ -422,7 +422,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "e57c1759cd75dd453bbe0284325aee3d3174eb1d",
+  "last_implementation_commit": "c7306774884ad08e5172bfec7ab365dc261f77b3",
   "publication": {
     "result": "PASS",
     "integration_method": "NON_FORCE_FAST_FORWARD",
@@ -5544,12 +5544,60 @@
         "git_commit": "e6c47515aa20596ed6ec3263c809af26b4cf3910",
         "evidence_path": "docs/evidence/2026-10-06-resume-bullet-emphasis.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-007-ATOMIC-ENV-INITIALIZATION-20261006",
+      "timestamp": "2026-10-06T15:36:00Z",
+      "current_phase": "MJ-REQ-007 atomic protected-config initialization locally verified",
+      "completed_steps": [
+        "Refactored cli.init_env to have no import-time filesystem side effect",
+        "Stage and flush a private same-directory configuration file before atomic create-if-absent publication",
+        "Added synthetic existing-config, concurrent-winner, sync-failure, publication-failure and stdout-redaction cases",
+        "Updated CLI area and local backup/user-testing documentation",
+        "Recorded scoped evidence; #8 remains PARTIAL"
+      ],
+      "files_added": [
+        "tests/unit/test_init_env.py",
+        "docs/evidence/2026-10-06-atomic-env-initialization.json"
+      ],
+      "files_modified": [
+        "cli/init_env.py",
+        "cli/AREA.md",
+        "docs/runbooks/LOCAL_BACKUP.md",
+        "docs/USER_TESTING.md",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "13 unit tests across init_env and local_backup PASS",
+        "Agent skills, catalogue and progress validators PASS",
+        "git diff --check PASS"
+      ],
+      "tests_remaining": [
+        "Actual protected-configuration schema migration recovery remains unverified",
+        "Post-integration exact-head local test repeat"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Synthetic temporary-filesystem configuration initialization on local Windows only"
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "MJ-REQ-007 remains PARTIAL until protected-configuration migration recovery is evidenced",
+        "No real .env or PERSONAL configuration was read or modified",
+        "Hosted Actions/reviews NOT_RUN by user policy"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "c7306774884ad08e5172bfec7ab365dc261f77b3",
+        "evidence_path": "docs/evidence/2026-10-06-atomic-env-initialization.json"
+      }
     }
   ],
-  "current_phase": "MJ-REQ-095 approved responsibility bullet emphasis locally verified",
+  "current_phase": "MJ-REQ-007 atomic protected-config initialization locally verified",
   "last_safe_checkpoint": {
-    "git_commit": "e6c47515aa20596ed6ec3263c809af26b4cf3910",
-    "evidence_path": "docs/evidence/2026-10-06-resume-bullet-emphasis.json"
+    "git_commit": "c7306774884ad08e5172bfec7ab365dc261f77b3",
+    "evidence_path": "docs/evidence/2026-10-06-atomic-env-initialization.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -5688,16 +5736,16 @@
     "next_issue": 8
   },
   "active_development_issue": {
-    "issue": 96,
-    "requirement_id": "MJ-REQ-095",
-    "title": "Resume Tailoring Engine",
-    "state": "DESIGN_REVIEW_PENDING",
-    "selection_reason": "First open core-document gap after local P0 rows were completed or classified as externally/host blocked: approved-fact summary adjustment and factual bullet tailoring are incomplete.",
-    "base": "d953bc55a80b9f0c3ed5986b1f42fbc3fe439a87",
-    "branch": "codex/req004-ops-audit-20261006",
-    "candidate": "d953bc55a80b9f0c3ed5986b1f42fbc3fe439a87",
-    "evidence": "docs/evidence/2026-10-06-staged-local-operation.json",
-    "next_action": "Await choice on deterministic approved-fact summary and bullet-emphasis design; do not write feature code before the design decision."
+    "issue": 8,
+    "requirement_id": "MJ-REQ-007",
+    "title": "Source Control / Change Safety",
+    "state": "PARTIAL_SLICE_VERIFIED_PENDING_MAIN",
+    "selection_reason": "P0 safety follow-up: the real project-local configuration initializer could leave a partial published .env if interrupted during write.",
+    "base": "a363ebd686c9237c81bb8c60dc51cb2ba34f77a1",
+    "branch": "codex/req007-config-recovery-20261006",
+    "candidate": "c7306774884ad08e5172bfec7ab365dc261f77b3",
+    "evidence": "docs/evidence/2026-10-06-atomic-env-initialization.json",
+    "next_action": "Integrate the verified atomic-initialization slice, leave #8 OPEN/PARTIAL, then continue with dependency-ready P0 issue #9 physical restart/recovery proof."
   },
   "historical_control_snapshots": [
     {
@@ -6824,5 +6872,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-06T15:06:41Z"
+  "updated_at": "2026-10-06T15:36:00Z"
 }
