@@ -31,9 +31,9 @@
       "requirement_id": "MJ-REQ-003",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-09-29-mock-spine.md"
+        "docs/evidence/2026-10-06-headless-browser-acceptance.json"
       ],
-      "note": "Initial scoped behavior only; full requirement remains open"
+      "note": "36 existing browser tests and 62 frontend tests pass for local/mock headless Chromium flows covering navigation, DOM/source review, uploads, multi-step application, validation, simulated submission/receipt, and intervention. Requirement remains PARTIAL/OPEN because no real ATS provider or account exists to verify authenticated-session persistence; external submission is OFF. One full test discovery run had a pre-existing Uvicorn cleanup assertion that passed alone and within the full browser suite."
     },
     {
       "requirement_id": "MJ-REQ-004",
