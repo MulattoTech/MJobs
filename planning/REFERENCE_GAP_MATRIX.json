@@ -1,6 +1,6 @@
 {
   "schema_version": 3,
-  "generated_at": "2026-10-03",
+  "generated_at": "2026-10-06",
   "canonical_namespace": "MJ-REF",
   "original_catalogue_count": 366,
   "reference_gap_count": 59,
@@ -139,8 +139,10 @@
       "evidence": []
     },
     "MJ-REF-017": {
-      "result": "NOT_RUN",
-      "evidence": []
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-06-artifact-recovery.json"
+      ]
     },
     "MJ-REF-018": {
       "result": "NOT_RUN",

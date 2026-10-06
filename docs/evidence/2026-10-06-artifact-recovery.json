@@ -1,0 +1,84 @@
+{
+  "evidence_id": "MJ-REF-017-LOCAL-ARTIFACT-RECOVERY",
+  "recorded_at": "2026-10-06T02:10:15Z",
+  "result": "PASS",
+  "scope": "Atomic generated document publication and explicit local artifact inventory, quarantine, restore, and retention purge",
+  "authority": {
+    "repository": "MulattoTech/MJobs",
+    "issue": 387,
+    "reference_gap_id": "MJ-REF-017",
+    "base_main": "7b21e47e50b976ba50cd483e67fed4af79e8e194",
+    "base_tree": "ebd675c8746b6dbf02903fa0e7870b4a52f7f73d",
+    "source_branch": "codex/mjobs-ref-017-artifact-recovery-20261005",
+    "source_candidate": "4bb1931f9dc62a312c8f703de24704a3f8550f9e",
+    "source_tree": "1bdc5696554502f5416a310c62bd6a61c9cd7cd4"
+  },
+  "source_sha256": {
+    "services/documents/artifacts.py": "d5b59c52f93484b0aebc7ade099b24a90df02819cacdbd7b4e197e0dedf8c863",
+    "services/documents/generate.py": "68298c31bf27e7d2e8a4a9ff9107040b2afd50b31511f9df8ae514eb25500566",
+    "cli/document_artifacts.py": "c42f5962c5c4a9c7c170444525f287b049c82e7f78463d90186f07e74c352a8e",
+    "tests/unit/test_document_artifacts.py": "e1b6d225d30e0df70dfe8f5e76f761c7e738360a73d2d74c1c9ec64df5deb613",
+    "tests/integration/test_document_artifact_recovery.py": "e8673caad709aec96cf4e1f9bbccf28a1a096b82598aa19503a9884471ffc24f",
+    "docs/runbooks/GENERATED_ARTIFACT_RECOVERY.md": "f9c5e62f499cd532e931b363d669363c99dc52715ad9a4cc5ed32af4c1049f18"
+  },
+  "observations": [
+    {
+      "timestamp_utc": "2026-10-06T02:10:15Z",
+      "action": "Run the final crash, inventory, restore, purge, integrity, spine, provenance, document, answer, and document-history regression set",
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_document_artifact_recovery tests.unit.test_document_artifacts tests.integration.test_spine tests.integration.test_document_provenance tests.integration.test_cover_letter_workflow tests.integration.test_document_library tests.integration.test_application_answer_export tests.browser.test_document_history -v",
+      "target": "Isolated worktree, temporary SQLite databases and fixture job server, Chromium loopback-only browser",
+      "result": "PASS: 34 tests in 35.970 seconds. Historical bytes and DB history survived an abrupt generation exit; existing document history/downloads survived browser reload."
+    },
+    {
+      "timestamp_utc": "2026-10-06T02:10:15Z",
+      "action": "Re-run the final artifact-specific inventory and recovery suite after adding stale staging and temporary-file classification cases",
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_document_artifact_recovery tests.unit.test_document_artifacts -v",
+      "target": "Temporary SQLite fixture workspace and synthetic generated files only",
+      "result": "PASS: 7 tests in 3.721 seconds, including referenced and uploaded-file protection, debug/unknown-file protection, mixed-content directory preservation, stale generation-stage and temporary-file classification, restore collision, retention purge, tamper rejection, and process-death write behavior."
+    },
+    {
+      "timestamp_utc": "2026-10-06T02:10:15Z",
+      "action": "Build the locked local web client and run the document-history browser check",
+      "command": "npm ci --prefix apps/web; npm run build --prefix apps/web; C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_document_history -v",
+      "target": "Isolated worktree web client, local Chromium, loopback-only requests",
+      "result": "PASS: strict TypeScript and Vite production build succeeded; browser test passed. npm warned that local Node v25.9.0 is outside Vitest's declared v22/v24/v26 engine range and reported one high-severity dependency advisory. No dependency manifest or lockfile changed."
+    },
+    {
+      "timestamp_utc": "2026-10-06T02:10:15Z",
+      "action": "Run repository delivery validators and whitespace check",
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.agent_skills; C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.catalogue; C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.progress validate; git diff --check",
+      "target": "Repository metadata, reference/requirement catalogue and candidate diff",
+      "result": "PASS: all three validators and git diff --check."
+    },
+    {
+      "timestamp_utc": "2026-10-06T02:10:15Z",
+      "action": "Record the initial browser setup failure and recovery",
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_document_history -v",
+      "target": "Isolated worktree before building ignored apps/web/dist",
+      "result": "ENVIRONMENT SETUP FAILURE: test could not find the Applications navigation button because the worktree had no generated web bundle. After npm ci and the production build, the same test passed in 7.726 seconds. No source defect was inferred from the first attempt."
+    },
+    {
+      "timestamp_utc": "2026-10-06T02:10:15Z",
+      "action": "Check broad release/provider scope",
+      "command": "Hosted checks and production PostgreSQL/Docker runs not invoked",
+      "target": "Local-only budget policy",
+      "result": "NOT_RUN by policy. The reference issue's file/persistence behavior was exercised with isolated SQLite; this does not establish PostgreSQL, production runtime, complete MJ-REQ-170 automatic cleanup, or release acceptance."
+    }
+  ],
+  "verified_behavior": [
+    "Resume and cover-letter DOCX/PDF/TXT outputs are individually written to same-directory temporary files, fsynced, and renamed; a whole revision is published from hidden staging only after format validation.",
+    "An abrupt worker exit during a new revision leaves prior bytes and document-history rows intact and does not expose a partial next revision at its final path.",
+    "The explicit local CLI inventories recognized orphan revisions, answer exports, failed staging directories, and stale temporary files; referenced records, uploads, debug captures, unknown files, symlinks, and mixed-content revision directories remain protected.",
+    "Quarantine records digest/size/path metadata, moves rather than deletes eligible data, and records audit events. Restore validates digest and managed destination layout, refuses collisions, and retains history. Purge honors the 30-day default, requires at least one day via CLI, validates integrity, and records request/completion separately.",
+    "The workflow uses no browser automation against employers, AI provider, real application submission, or automatic cleanup worker. External submission remained OFF."
+  ],
+  "limitations": [
+    "No PostgreSQL/Docker or hosted test was run for this slice; hosted evidence is NOT_RUN under current policy.",
+    "Retention is an explicit maintenance command. Automatic background cleanup and the wider original MJ-REQ-170 retention contract remain incomplete.",
+    "Full original requirement and release acceptance remain PARTIAL; this PASS is scoped to MJ-REF-017 issue acceptance only.",
+    "Local npm reported one high-severity dependency advisory and a Node engine mismatch; dependency triage/build under the project-declared Node major remains outstanding."
+  ],
+  "external_submission": "OFF",
+  "ai_provider": "NOT_USED",
+  "hosted_checks": "NOT_RUN_BY_USER_POLICY"
+}

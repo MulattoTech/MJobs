@@ -1,3 +1,13 @@
+# Active local-only implementation checkpoint — 2026-10-06
+
+The current user authorized continuous issue implementation from current `main`, one writer/integration lane, local validation, GitHub issue updates, commits, pushes, and safe local fast-forwards. Keep Actions, hosted tests/reviews, cloud agents, extra AI sessions, Codespaces, billing changes, and external application submission OFF.
+
+Issue #387 / MJ-REF-017 has a local PASS on candidate `4bb1931f9dc62a312c8f703de24704a3f8550f9e`, based on main `7b21e47e50b976ba50cd483e67fed4af79e8e194`; source is pushed to `codex/mjobs-ref-017-artifact-recovery-20261005`. Evidence: `docs/evidence/2026-10-06-artifact-recovery.json`. It covers crash-safe generated revisions, protected inventory, staging/temp classification, quarantine, restore, purge, and browser history preservation. PostgreSQL/Docker/hosted and release acceptance remain NOT_RUN; automatic retention remains PARTIAL.
+
+Next: recheck current GitHub `main`, branch protection/rulesets, Actions disabled, exact source/base ancestry, and worktree ownership. Fast-forward only if current policy conditions hold, verify local/remote hashes, close #387 only after integration readback, then immediately continue with the highest-value dependency-ready safety/privacy issue. Do not modify the separate Codespaces checkout or private runtime/data. Keep broader requirements and full release status separate.
+
+---
+
 # Guided hands-on review tooling ? 2026-10-05
 
 The next user-directed product phase is a manual VS Code/Luna walkthrough, not an autonomous implementation run. docs/GUIDED_PRODUCT_REVIEW.md, Start-GuidedReview.ps1, and the two Guided Product Review VS Code tasks launch PERSONAL or FIXTURE review with the existing private feedback workstation. The new 20-core-workflow-review task records one finding at a time.

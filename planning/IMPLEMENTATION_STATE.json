@@ -1,18 +1,18 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-05T18:29:25Z",
+  "generated_at": "2026-10-06T02:10:15Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Original root tracked bytes stable at bbc3402 during isolated validation. Final primary checkout synchronization/preservation is separately verified and recorded on PR515.",
-    "current_verified_github_state": "PR515 source integrated at ae7e27a6202272ab5a65408df91a3ccaff151dfd by normal fast-forward; Actions and all known workflows disabled. Metadata closeout follows under local-only policy.",
-    "current_verified_at": "2026-10-05T21:39:52.641468+00:00"
+    "current_verified_local_state": "Primary checkout main is clean at 7b21e47e50b976ba50cd483e67fed4af79e8e194; the sole implementation writer is isolated in the MJ-REF-017 worktree with candidate 4bb1931f9dc62a312c8f703de24704a3f8550f9e pushed. Separate Codespaces checkout remains preserved.",
+    "current_verified_github_state": "GitHub main is 7b21e47e50b976ba50cd483e67fed4af79e8e194; issue #387 is open; task branch codex/mjobs-ref-017-artifact-recovery-20261005 is synchronized at 4bb1931f9dc62a312c8f703de24704a3f8550f9e. Repository Actions are disabled. No PR was opened.",
+    "current_verified_at": "2026-10-06T02:10:15Z"
   },
-  "current_milestone": "LOCAL-ONLY-DELIVERY-READY",
-  "current_objective": "Budget cutover and previously published core-trial source integration complete. Continue only through the next user-invoked local-only Luna prompt; no autonomous runner or hosted assistance.",
+  "current_milestone": "MJ-REF-017-LOCAL-PASS",
+  "current_objective": "Continuously implement dependency-ready MJobs issues from current main under the local-only delivery policy; one writer and one integration lane.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -46,7 +46,8 @@
     "Persisted candidate and verified company domains and aliases with evidence, safe legacy candidate backfill, verified-only identity matching, and deterministic ambiguity handling (MJ-PR-017 local evidence).",
     "Provider-neutral optional WebDiscoveryProvider contract with disabled default and bounded injected candidates (MJ-REQ-062).",
     "ATS detector recognizes all 22 listed provider hostname families and records evidence/confidence without claiming application support (MJ-REQ-063).",
-    "Custom-domain ATS detection audited with visible careers URL preserved (MJ-REQ-065)."
+    "Custom-domain ATS detection audited with visible careers URL preserved (MJ-REQ-065).",
+    "MJ-REF-017: crash-safe atomic generated document revisions, conservative orphan/staging/temp inventory, audited quarantine, integrity-checked restore, and configured-retention purge (docs/evidence/2026-10-06-artifact-recovery.json)."
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
@@ -68,7 +69,8 @@
     "Durable reviewed public-feed monitoring: bounded scheduled/manual reads, atomic multi-profile matching and receipt, fresh authorization, failure backoff, changed-feed rediscovery and Sources status. Vendor ATS migration and broader providers remain open.",
     "Manual postings receive persisted deterministic skill-evidence explanations from approved profile facts; description-only mentions remain UNKNOWN and full matching/search dimensions remain open (CORE-WORKFLOW-TRIAL C local evidence).",
     "CORE-WORKFLOW-TRIAL D deterministic job-specific cover letter merged in PR #510 at a63c798; exact-head review, both Verification events, runtime reports and merge-tree equality passed. Combined A-F journey remains pending (docs/evidence/2026-10-05-job-specific-cover-letter.json).",
-    "CORE-WORKFLOW-TRIAL E has a usable profile answer bank and per-job manual review/export path with profile-scoped history/download, atomic content-addressed export recovery, and a saved-profile load gate. PR #511 merged at fb8ab73 after exact-head review and passing push/pull_request Verification with nine passing reports and digest-matched artifacts. MJ-REQ-103..107 remain PARTIAL for incomplete matching, confidence, sensitive/legal policy and durable unexported drafts (docs/evidence/2026-10-05-reviewed-application-answers.json)."
+    "CORE-WORKFLOW-TRIAL E has a usable profile answer bank and per-job manual review/export path with profile-scoped history/download, atomic content-addressed export recovery, and a saved-profile load gate. PR #511 merged at fb8ab73 after exact-head review and passing push/pull_request Verification with nine passing reports and digest-matched artifacts. MJ-REQ-103..107 remain PARTIAL for incomplete matching, confidence, sensitive/legal policy and durable unexported drafts (docs/evidence/2026-10-05-reviewed-application-answers.json).",
+    "MJ-REQ-170 transient-artifact retention now has explicit local inventory/quarantine/restore/purge with a 30-day default; automatic background cleanup and broader transient/log retention remain incomplete."
   ],
   "blocked_capabilities": [],
   "active_requirements": [],
@@ -207,7 +209,8 @@
     "CORE-WORKFLOW-TRIAL F2 source head 8756881: 585 Python tests passed in 323.820s; prior superseded 7c07db2 teardown timeout did not recur.",
     "CORE-WORKFLOW-TRIAL F2 source head 8756881: 42 focused integrations, 5 connected Chromium browser tests, 62 frontend tests, strict TypeScript/Vite build, agent-skills/catalogue/progress validators and CLI compilation passed.",
     "Fresh independent review of PR #513 exact source head 8756881 against base 2de5863 found no actionable defects after profile-scoping comparison reads, application detail/history, downloads and fixture mock actions.",
-    "PR #513 source head 8756881 push run 37340200494 and pull_request run 37340208479 both passed 585 tests and all connected CI steps; all 9 reports per event passed and artifact SHA-256 digests matched GitHub. These runs precede the metadata commit and are not final-head evidence."
+    "PR #513 source head 8756881 push run 37340200494 and pull_request run 37340208479 both passed 585 tests and all connected CI steps; all 9 reports per event passed and artifact SHA-256 digests matched GitHub. These runs precede the metadata commit and are not final-head evidence.",
+    "MJ-REF-017: 34 targeted spine/provenance/document/answer/browser tests PASS; final artifact recovery suite 7 tests PASS; browser history/download reload PASS; local frontend build and repository validators PASS (docs/evidence/2026-10-06-artifact-recovery.json)."
   ],
   "tests_failed": [],
   "tests_not_run": [
@@ -226,7 +229,7 @@
   ],
   "known_product_defects": [
     "Manual application status is user-reported only; company/application notes beyond this slice, independently verified submission receipts, and full canonical tracker acceptance remain unverified.",
-    "Abrupt process kill during document generation can leave unreferenced local files; retention/garbage collection pending"
+    "Transient artifact cleanup is an explicit local maintenance action; automatic background cleanup and broader log/debug retention remain incomplete (MJ-REQ-170)."
   ],
   "known_test_harness_defects": [
     "Historical recovery run used Compose dependency startup; corrected to --no-deps and final isolated run is canonical",
@@ -236,11 +239,11 @@
     "MJ-PR-016 local Chromium first run used Docker DNS host api, which is not a secure browser origin for crypto.randomUUID; loopback URL rerun passed all five connected UI actions."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-05T21:39:52.641468+00:00",
+    "timestamp": "2026-10-06T02:10:15Z",
     "result": "PASS",
-    "source_commit": "ae7e27a6202272ab5a65408df91a3ccaff151dfd",
-    "scope": "Exact local candidate, combined synthetic browser and repository validators; no hosted/full-release acceptance",
-    "evidence_path": "docs/evidence/2026-10-05-local-only-reconciliation.json"
+    "source_commit": "4bb1931f9dc62a312c8f703de24704a3f8550f9e",
+    "scope": "MJ-REF-017 issue acceptance only; targeted local integration and browser history, no hosted or full-release acceptance",
+    "evidence_path": "docs/evidence/2026-10-06-artifact-recovery.json"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -307,7 +310,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Read prompts/LOCAL_ONLY_LUNA_ITERATION.md. Reconcile latest main and remaining issue #96/matching/answer-policy/tracker contracts; one writer and no hosted automation.",
+  "recommended_resume_step": "Safely integrate the locally passing MJ-REF-017 candidate under current local-only policy, then immediately reconcile current main and continue with the highest-value dependency-ready safety/privacy issue. Keep full original requirement denominator and release readiness PARTIAL.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -344,7 +347,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "fb93ad48a3987c375350388ba8bf677db58575d2",
+  "last_implementation_commit": "4bb1931f9dc62a312c8f703de24704a3f8550f9e",
   "publication": {
     "result": "PASS",
     "integration_method": "NON_FORCE_FAST_FORWARD",
@@ -3762,12 +3765,60 @@
         "git_commit": "ae7e27a6202272ab5a65408df91a3ccaff151dfd",
         "evidence_path": "docs/evidence/2026-10-05-local-only-reconciliation.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REF-017-LOCAL-ARTIFACT-RECOVERY-20261006",
+      "timestamp": "2026-10-06T02:10:15Z",
+      "current_phase": "MJ-REF-017_LOCALLY_VERIFIED_PENDING_SAFE_FAST_FORWARD",
+      "completed_steps": [
+        "Implemented atomic generated revision publication and explicit artifact recovery CLI",
+        "Ran focused recovery, spine, provenance, document, answer, browser and repository validator checks",
+        "Pushed exact source candidate 4bb1931f9dc62a312c8f703de24704a3f8550f9e to its task branch"
+      ],
+      "files_added": [
+        "services/documents/artifacts.py",
+        "cli/document_artifacts.py",
+        "tests/unit/test_document_artifacts.py",
+        "tests/integration/test_document_artifact_recovery.py",
+        "docs/runbooks/GENERATED_ARTIFACT_RECOVERY.md",
+        "docs/evidence/2026-10-06-artifact-recovery.json"
+      ],
+      "files_modified": [
+        "services/documents/generate.py",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/REFERENCE_GAP_MATRIX.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "34 local spine/provenance/document/answer/browser tests PASS",
+        "Final artifact recovery suite: 7 tests PASS",
+        "Document history Chromium reload/download PASS after isolated web build",
+        "Agent-skill, catalogue, progress and whitespace validators PASS"
+      ],
+      "tests_remaining": [
+        "Reconcile latest main and verify no protection/ruleset blocks the authorized non-force fast-forward",
+        "Verify integrated local/remote hashes and close issue #387 only after readback",
+        "PostgreSQL/Docker and hosted checks remain NOT_RUN under current policy",
+        "Full original requirements and release acceptance remain PARTIAL"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "Hosted tests/reviews and production PostgreSQL/Docker acceptance NOT_RUN",
+        "Retention is explicit; automatic background cleanup and broader MJ-REQ-170 remain incomplete",
+        "Local npm reported a Node engine mismatch and one high-severity dependency advisory; no dependency files changed"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "4bb1931f9dc62a312c8f703de24704a3f8550f9e",
+        "evidence_path": "docs/evidence/2026-10-06-artifact-recovery.json"
+      }
     }
   ],
-  "current_phase": "LOCAL_ONLY_HANDOFF",
+  "current_phase": "MJ-REF-017_LOCALLY_VERIFIED_PENDING_SAFE_FAST_FORWARD",
   "last_safe_checkpoint": {
-    "git_commit": "ae7e27a6202272ab5a65408df91a3ccaff151dfd",
-    "evidence_path": "docs/evidence/2026-10-05-local-only-reconciliation.json"
+    "git_commit": "4bb1931f9dc62a312c8f703de24704a3f8550f9e",
+    "evidence_path": "docs/evidence/2026-10-06-artifact-recovery.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
@@ -3883,7 +3934,17 @@
     "product_status": "PARTIAL",
     "ownership": "PR #515 is the sole active implementation PR on the task-owned branch. PRs #504, #506, #508-#514 are merged. Current candidate is independently reviewed; final exact-head push/PR runs and runtime artifacts are pending. External submission OFF; retained private runtime/database untouched; Codespaces checkout preserved."
   },
-  "active_development_issue": null,
+  "active_development_issue": {
+    "issue": 387,
+    "requirement_id": "MJ-REF-017",
+    "title": "Artifact quarantine, restore, purge, and atomic-write discipline",
+    "branch": "codex/mjobs-ref-017-artifact-recovery-20261005",
+    "base": "7b21e47e50b976ba50cd483e67fed4af79e8e194",
+    "candidate": "4bb1931f9dc62a312c8f703de24704a3f8550f9e",
+    "local_result": "PASS",
+    "evidence_path": "docs/evidence/2026-10-06-artifact-recovery.json",
+    "next_action": "Reconcile live main/protection, fast-forward only if permitted, synchronize, close only issue 387, then continue to the next dependency-ready issue."
+  },
   "historical_control_snapshots": [
     {
       "archived_at": "2026-10-03T20:12:32.612186+00:00",
@@ -4988,7 +5049,7 @@
     "Historical PR #515 review of c069798 against base 3ec8702 had no findings at that checkpoint, but later reviews found and repaired test/evidence issues. Fresh review and exact-head hosted events/artifacts are pending.",
     "CORE-WORKFLOW-TRIAL PR #515 checkpoint 7151348d0b92cd9cb23784785190e0d17ab892b1: exact-head read-only review PASS; push Verification 37359494332 and pull_request Verification 37359772249 both BLOCKED_EXTERNAL before job startup by GitHub account billing/spending limit. No hosted runtime reports/artifacts or PR merge-tree result exist; #515 stays draft."
   ],
-  "ownership": "PR #515 is the sole active implementation PR on codex/core-workflow-trial-combined-journey-20261005. Current recorded exact checkpoint 7151348 is published and independently reviewed. Both required GitHub Verification event jobs failed before startup due repository account payment/spending-limit restrictions, so no runtime artifacts or merge-tree check exist. Keep PR draft; no merge until billing access is restored and fresh exact-head gates pass. External submission OFF; retained private runtime/database untouched.",
+  "ownership": "No active PR. One implementation writer owns codex/mjobs-ref-017-artifact-recovery-20261005 in C:\\Tools\\Dev\\MJobs\\.worktrees\\mjobs-ref-017-artifact-recovery-20261005. Candidate 4bb1931 is pushed and locally verified; main remains at its base pending protection/ancestry reconciliation. External submission OFF; Codespaces and private runtime/data preserved.",
   "delivery_policy": {
     "mode": "LOCAL_ONLY",
     "effective_at": "2026-10-05T21:32:10.763994+00:00",
