@@ -197,7 +197,14 @@ class AgentSupervisor:
         base = path.read_text(encoding="utf-8") if path.exists() else ""
         override = (cfg.get("prompt_override") or "").strip()
         suffix = f"\n\nDASHBOARD PROMPT OVERRIDE:\n{override}\n" if override else ""
-        return base + "\n\n" + UNATTENDED_AUTHORITY + suffix
+        return (
+            "EXECUTE NOW. This is an implementation turn, not a request to explain "
+            "the lane configuration. Use repository tools immediately.\n\n"
+            + UNATTENDED_AUTHORITY
+            + "\n\nLANE CONTRACT:\n"
+            + base
+            + suffix
+        )
 
     def _command(self, lane: str) -> list[str]:
         cfg = self.config["lanes"][lane]
@@ -206,7 +213,7 @@ class AgentSupervisor:
             return [
                 "codex", "exec", "-C", str(self.root), "-m", str(cfg["model"]),
                 "-c", f'model_reasoning_effort="{cfg.get("reasoning", "high")}"',
-                "--approve-for-me", prompt,
+                "-s", "danger-full-access", prompt,
             ]
         if lane == "antigravity":
             return [

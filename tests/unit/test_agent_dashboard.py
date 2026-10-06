@@ -40,8 +40,12 @@ class AgentDashboardSupervisorTests(unittest.TestCase):
     def test_codex_prompt_contains_unattended_existing_issue_authority(self):
         supervisor = AgentSupervisor(self.root)
         prompt = supervisor._prompt("codex")
+        self.assertTrue(prompt.startswith("EXECUTE NOW."))
         self.assertIn("UNATTENDED EXISTING-ISSUE AUTHORITY", prompt)
         self.assertIn("do not stop for routine design/spec/plan approval", prompt)
+        command = supervisor._command("codex")
+        self.assertIn("danger-full-access", command)
+        self.assertNotIn("--approve-for-me", command)
 
     def test_installed_codex_runner_resolves_to_launchable_prefix(self):
         supervisor = AgentSupervisor(self.root)
