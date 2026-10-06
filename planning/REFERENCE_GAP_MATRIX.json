@@ -89,8 +89,10 @@
       ]
     },
     "MJ-REF-004": {
-      "result": "NOT_RUN",
-      "evidence": []
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-06-ats-question-preflight.json"
+      ]
     },
     "MJ-REF-005": {
       "result": "NOT_RUN",

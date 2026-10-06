@@ -1,0 +1,86 @@
+{
+  "evidence_id": "MJ-REF-004-ATS-QUESTION-PREFLIGHT",
+  "recorded_at": "2026-10-06T03:56:58Z",
+  "result": "PASS",
+  "scope": "Required-question preflight over structured local mock ATS metadata, bound to immutable profile and document versions, persisted with timestamps, surfaced in application detail, and enforced before browser launch",
+  "authority": {
+    "repository": "MulattoTech/MJobs",
+    "issue": 374,
+    "reference_gap_id": "MJ-REF-004",
+    "base_main": "9ffe7439655f8121a84ee3dbe38ebd1e0763b5ce",
+    "candidate_branch": "codex/mj-ref-004-question-preflight-20261006",
+    "source_candidate": "8ebd732fb0b6efa83be96d08c00d1c3492fabe28",
+    "source_tree": "59dc67cd0d51dc9a662a5b0b015c2eb999290679"
+  },
+  "source_sha256": {
+    "apps/api/main.py": "3432d7a8f40f783f89e3c7975c88162ae6957cb62a3fd7ac2b3e0405ddf84e80",
+    "apps/web/src/main.tsx": "6fe87bb8b6b0a6ac297836be4ee39a4848f68c142699d88fabe814cf98a50dc5",
+    "fixtures/mock_server.py": "49fbe641ca7c6691e215f78e4cfc13d6b203bf4cbab35dc645d48491a36a7124",
+    "services/applications/mock_adapter.py": "cc07926aa7f83fc21f3888381326cf96da6fe04d39b79fb3e2021ac7142d40cd",
+    "services/applications/preflight.py": "8bb0d69bb27b47c2e9ba57051bef3c253005b365ebcd9b56407f2a3bdb3d8331",
+    "tests/browser/test_application_pipeline.py": "133e0565e9e418305cbaa29bde6b6a1fa08cd2a65912eb3833e0235e3d02ba2c",
+    "tests/browser/test_mock_application.py": "19b9e6438b896717656fcfce87bb3733fe65f18f174721a76abe07cc2a417556",
+    "tests/integration/test_application_preflight.py": "6b02187e9cbb57dab5e0da279cf27857b75e916f6e55f47b82c1eddb2a91547e"
+  },
+  "observations": [
+    {
+      "timestamp_utc": "2026-10-06T03:56:58Z",
+      "action": "Install lockfile-matched web dependencies and build the production client",
+      "command": "npm ci --prefix apps/web; npm run build --prefix apps/web",
+      "target": "Issue worktree web client",
+      "result": "PASS: TypeScript check and Vite production build. Node v25.9.0 is outside the declared Vitest engine range; npm reported one high-severity advisory. No package manifest or lockfile changes."
+    },
+    {
+      "timestamp_utc": "2026-10-06T03:56:58Z",
+      "action": "Run complete local Python unit, integration, and browser discovery",
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p test_*.py -v",
+      "target": "Synthetic local fixtures, temporary SQLite stores, and loopback browser/API cases",
+      "result": "PASS: 628 tests in 373.243 seconds. No hosted checks were used."
+    },
+    {
+      "timestamp_utc": "2026-10-06T03:56:58Z",
+      "action": "Run focused application preflight, mock application, and application detail browser regressions on the exact source candidate",
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_mock_application tests.integration.test_application_preflight tests.browser.test_application_pipeline.ApplicationPipelineBrowserTests.test_user_reported_stage_and_note_survive_reload_with_documents_linked -v",
+      "target": "Issue source candidate 8ebd732fb0b6efa83be96d08c00d1c3492fabe28",
+      "result": "PASS: 18 tests in 24.049 seconds, including no-browser-on-missing-answer, stale-metadata refusal, unsupported-provider UNKNOWN, profile isolation, audit persistence, and visible missing-question detail."
+    },
+    {
+      "timestamp_utc": "2026-10-06T03:56:58Z",
+      "action": "Run repository skill, requirement-catalogue, progress-journal, and whitespace validators",
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.agent_skills; C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.catalogue; C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.progress validate; git diff --check",
+      "target": "Issue candidate and repository planning contracts",
+      "result": "PASS: all three validators and git diff --check."
+    },
+    {
+      "timestamp_utc": "2026-10-06T03:56:58Z",
+      "action": "Reconcile local integration authority",
+      "command": "git worktree list --porcelain; git status --short; gh api repos/MulattoTech/MJobs/actions/permissions; gh api repos/MulattoTech/MJobs/branches/main/protection",
+      "target": "Main, candidate worktree, and repository Actions/protection state",
+      "result": "PASS: main and origin/main both 9ffe7439655f8121a84ee3dbe38ebd1e0763b5ce; other worktrees clean; Actions enabled=false; main has no required checks/reviews and repository rulesets count was previously observed as zero."
+    }
+  ],
+  "verified_behavior": [
+    "Preflight uses allowlisted local mock ATS structured metadata only; each required question maps to approved fact/answer identifiers, minimal name/email profile paths, prepared document kinds, or the deterministic application ID.",
+    "Verified, user-approved, sufficiently confident, sourced facts and answers satisfy a mapping. Missing required values produce FAIL with exact question and missing identifiers; optional questions do not fail; unmapped or unsupported metadata produces UNKNOWN.",
+    "Metadata is hashed and re-read before the browser starts. Changed or unavailable second-read metadata produces UNKNOWN/STALE_PREFLIGHT and leaves the browser unopened.",
+    "FAIL and UNKNOWN persist value-free audit evidence and transition the application to REVIEW_REQUIRED before Playwright starts. Only a stable PASS reaches browser automation.",
+    "The application detail API and browser view show result, timestamp, reason, and precise unresolved question mappings. Application ownership is checked before this profile-scoped evidence is returned.",
+    "The existing dry-run still stops before submission; fictional submit requires its existing explicit consent. External submission remained OFF."
+  ],
+  "limitations": [
+    "The only application automation provider supported by this repository is the local fictional mock ATS. Real Greenhouse, Workday, and other providers remain unsupported and manual-only; unsupported ATS preflight is UNKNOWN. Generic HTML is not treated as structured capability evidence.",
+    "Docker/PostgreSQL and hosted Actions/review evidence were NOT_RUN under the active local-only policy. No real employer or ATS was contacted and no external application was submitted.",
+    "Original MJ-REQ accounting and denominator remain unchanged; full product/release acceptance remains NOT_RUN."
+  ],
+  "integration_receipt": {
+    "status": "CANDIDATE_VERIFIED_AWAITING_FAST_FORWARD",
+    "method": "NON_FORCE_FAST_FORWARD",
+    "candidate_branch": "codex/mj-ref-004-question-preflight-20261006",
+    "candidate_source_commit": "8ebd732fb0b6efa83be96d08c00d1c3492fabe28",
+    "integrated_main": null,
+    "actions_enabled": false,
+    "main_protection": "UNPROTECTED",
+    "repository_rulesets_count": 0,
+    "issue_374": "OPEN_PENDING_INTEGRATION"
+  }
+}

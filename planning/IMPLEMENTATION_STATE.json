@@ -1,17 +1,17 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-06T02:18:22Z",
+  "generated_at": "2026-10-06T03:56:58Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Primary checkout main and origin/main are synchronized at 4e131918f71560171eac75a7776f45e18a7f8dea; issue #384 remains open with a scoped partial implementation integrated safely.",
-    "current_verified_github_state": "GitHub and local main are synchronized at 4e131918f71560171eac75a7776f45e18a7f8dea. Issues #373 is CLOSED; #384 / MJ-REF-014 remains OPEN with four of five criteria checked and prompt integration blocked by the absent AI task/provider path. Actions remain disabled, main unprotected and repository rulesets count zero.",
-    "current_verified_at": "2026-10-06T03:32:30Z"
+    "current_verified_local_state": "Primary checkout main and origin/main are synchronized at 9ffe7439655f8121a84ee3dbe38ebd1e0763b5ce; issue #374 local candidate passes its full acceptance on the supported mock ATS and is ready for safe integration.",
+    "current_verified_github_state": "GitHub and local main are synchronized at 9ffe7439655f8121a84ee3dbe38ebd1e0763b5ce. Issue #373 is CLOSED; #384 / MJ-REF-014 remains OPEN/PARTIAL because prompt/provider execution is absent; #374 / MJ-REF-004 remains OPEN pending integration. Actions remain disabled and main has no protection checks.",
+    "current_verified_at": "2026-10-06T03:56:58Z"
   },
-  "current_milestone": "MJ-REF-004-SELECTED-20261006",
+  "current_milestone": "MJ-REF-004-LOCAL-PASS-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under the local-only delivery policy; one writer and one integration lane.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -239,11 +239,11 @@
     "MJ-PR-016 local Chromium first run used Docker DNS host api, which is not a secure browser origin for crypto.randomUUID; loopback URL rerun passed all five connected UI actions."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-06T02:18:22Z",
+    "timestamp": "2026-10-06T03:56:58Z",
     "result": "PASS",
-    "source_commit": "6f61044e158336385e3ac481a21740f444db8cde",
-    "scope": "MJ-REF-017 issue acceptance integrated and #387 closed; local scope only, no hosted or full-release acceptance",
-    "evidence_path": "docs/evidence/2026-10-06-artifact-recovery.json"
+    "source_commit": "8ebd732fb0b6efa83be96d08c00d1c3492fabe28",
+    "scope": "MJ-REF-004 complete local issue acceptance on the supported fictional mock ATS; full local suite plus exact-candidate focused recheck; hosted/provider checks remain NOT_RUN",
+    "evidence_path": "docs/evidence/2026-10-06-ats-question-preflight.json"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -310,7 +310,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Begin issue #374 / MJ-REF-004 as the sole writer: inspect application automation/preparation contracts and exact area spec; make a required-question preflight that binds to the immutable profile version, distinguishes missing/optional/unknown/unsupported questions, and blocks unattended browser start unless an explicit review/assisted route applies. Test stale snapshots and no-browser-on-block behavior using local ATS fixtures only.",
+  "recommended_resume_step": "Safely integrate issue #374 / MJ-REF-004 by non-force fast-forward into current main, record the integration receipt, update/close the issue only after readback, then immediately reconcile open dependency-ready issues and continue the single local implementation lane.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -4180,12 +4180,65 @@
         "git_commit": "4e131918f71560171eac75a7776f45e18a7f8dea",
         "evidence_path": "docs/evidence/2026-10-06-least-data-profile-access.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REF-004-LOCAL-PASS-20261006",
+      "timestamp": "2026-10-06T03:56:58Z",
+      "current_phase": "MJ-REF-004_LOCAL_ACCEPTANCE_PASS_AWAITING_INTEGRATION",
+      "completed_steps": [
+        "Added bounded structured mock ATS question metadata and deterministic requirement mappings for facts, answers, minimal identity, documents, and generated application ID",
+        "Persisted PASS/FAIL/UNKNOWN preflight evidence with profile/document versions, metadata fingerprint, exact missing identifiers, and timestamp",
+        "Re-read metadata before Playwright launch and blocked missing, unsupported, unmapped, or stale cases into REVIEW_REQUIRED",
+        "Exposed authorized preflight evidence and unresolved questions in application detail API and browser UI",
+        "Committed implementation as 8ebd732fb0b6efa83be96d08c00d1c3492fabe28 and pushed the owned candidate branch"
+      ],
+      "files_added": [
+        "services/applications/preflight.py",
+        "tests/integration/test_application_preflight.py",
+        "docs/evidence/2026-10-06-ats-question-preflight.json"
+      ],
+      "files_modified": [
+        "apps/api/main.py",
+        "apps/web/src/main.tsx",
+        "fixtures/mock_server.py",
+        "services/applications/mock_adapter.py",
+        "tests/browser/test_application_pipeline.py",
+        "tests/browser/test_mock_application.py",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/REFERENCE_GAP_MATRIX.json",
+        "docs/FEATURE_COMPLETENESS.md",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "npm ci --prefix apps/web; npm run build --prefix apps/web: PASS",
+        "python -m unittest discover -s tests -p test_*.py -v: 628 tests PASS in 373.243 seconds",
+        "Exact-candidate focused mock application, preflight, and visible application-detail browser suite: 18 tests PASS in 24.049 seconds",
+        "tools.verification.agent_skills, tools.verification.catalogue, tools.verification.progress validate, and git diff --check: PASS"
+      ],
+      "tests_remaining": [
+        "Hosted Actions and hosted reviews: NOT_RUN by explicit local-only policy",
+        "Production ATS metadata and provider-backed automation: NOT_RUN; no real ATS provider is supported in this repository"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Synthetic read-only local mock ATS fixture and loopback browser/API only"
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "Real ATS providers remain unsupported/manual-only and resolve to UNKNOWN; no generic HTML question inference is enabled.",
+        "PostgreSQL/Docker and hosted validation were not run; external submission remains OFF.",
+        "Original 366-requirement denominator and requirement statuses remain unchanged; full release acceptance remains NOT_RUN."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "8ebd732fb0b6efa83be96d08c00d1c3492fabe28",
+        "evidence_path": "docs/evidence/2026-10-06-ats-question-preflight.json"
+      }
     }
   ],
-  "current_phase": "MJ-REF-004_SELECTED_20261006",
+  "current_phase": "MJ-REF-004_LOCAL_ACCEPTANCE_PASS_AWAITING_INTEGRATION",
   "last_safe_checkpoint": {
-    "git_commit": "4e131918f71560171eac75a7776f45e18a7f8dea",
-    "evidence_path": "docs/evidence/2026-10-06-least-data-profile-access.json"
+    "git_commit": "8ebd732fb0b6efa83be96d08c00d1c3492fabe28",
+    "evidence_path": "docs/evidence/2026-10-06-ats-question-preflight.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
@@ -4295,25 +4348,25 @@
     }
   ],
   "live_reconciliation": {
-    "observed_at": "2026-10-06T03:32:30Z",
-    "github_main": "4e131918f71560171eac75a7776f45e18a7f8dea",
+    "observed_at": "2026-10-06T03:56:58Z",
+    "github_main": "9ffe7439655f8121a84ee3dbe38ebd1e0763b5ce",
     "issue_384_state": "OPEN_PARTIAL",
-    "issue_374_state": "OPEN",
+    "issue_374_state": "OPEN_LOCAL_PASS_PENDING_INTEGRATION",
     "actions_enabled": false,
     "main_branch_protected": false,
     "repository_rulesets_count": 0,
-    "integration": "MJ-REF-014_NON_FORCE_FF_PARTIAL",
+    "integration": "MJ-REF-004_CANDIDATE_PUSHED_AWAITING_NON_FORCE_FF",
     "next_issue": 374
   },
   "active_development_issue": {
     "issue": 374,
     "requirement_id": "MJ-REF-004",
     "title": "ATS question preflight before browser launch",
-    "state": "OPEN_SELECTED_DEPENDENCY_READY",
+    "state": "LOCAL_PASS_CANDIDATE_PUSHED_AWAITING_INTEGRATION",
     "selection_reason": "P1 workflow and truthfulness gate before browser work; avoids launching application sessions when mandatory questions cannot be answered from the approved profile and supports explicit review/assisted routing.",
-    "base": "4e131918f71560171eac75a7776f45e18a7f8dea",
+    "base": "9ffe7439655f8121a84ee3dbe38ebd1e0763b5ce",
     "branch": "codex/mj-ref-004-question-preflight-20261006",
-    "next_action": "Read application_automation area spec and current answer/application/browser-start paths; establish an acceptance oracle for required facts and stale preflight before code."
+    "next_action": "Verify the exact pushed candidate and unchanged main, non-force fast-forward it into main under local-only policy, push and read back hashes, then update the complete issue and select the next dependency-ready target."
   },
   "historical_control_snapshots": [
     {
