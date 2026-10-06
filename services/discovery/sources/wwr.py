@@ -357,7 +357,7 @@ class WeWorkRemotely:
         # Employment type from <type>
         raw_type = (raw.get("type") or "").strip().casefold()
         wwr_type = _JOB_TYPE_MAP.get(raw_type)
-        employment_type = normalize_employment_type(wwr_type or raw_type or combined)
+        employment_type = wwr_type or normalize_employment_type(raw_type or combined)
         experience = normalize_experience_level(title)
         title_info = normalize_title(title)
         education = parse_education_requirement(description)
