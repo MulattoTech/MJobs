@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-110",
+  "github_issue": 111,
+  "result": "PARTIAL",
+  "scope": "Configurable deterministic pre-AI funnel and per-batch candidate ceilings; no provider calls or document generation.",
+  "observed_at_utc": "2026-10-06T19:11:17Z",
+  "candidate": {
+    "repository": "MulattoTech/MJobs",
+    "branch": "codex/mj-req110-cost-controls-20261006",
+    "base": "1bedb952e24a73a4f253c95181dd281295ae406b",
+    "commit": "e32ed99c4e80bade20fcf0a6251a1d55253844ba",
+    "tree": "b078cfbabf947cb73abc57ddccd540be97b02a62",
+    "status": "Source commit locally validated; integration/readback pending."
+  },
+  "source_sha256": {
+    "services/ai/AREA.md": "8cd4dd51208672f8b0aa84ea15b96cbab6c2a000dff793b95b3391c38ff647cb",
+    "services/ai/cost_controls.py": "e6c7eb6b8d3763671dde512514726b4ba90f0951f27a2740b49eeee2b81eba8d",
+    "tests/unit/test_ai_cost_controls.py": "0a53a7b9c69092fbd5ae2eb4a650644de5162ec5f3ba8530b6024f50be8eaca8"
+  },
+  "acceptance": {
+    "deduplicates_candidate_identity_before_admission": "PASS - identical duplicate rows collapse; conflicting rows for one identity fail closed.",
+    "applies_configurable_deterministic_score_threshold": "PASS - configurable minimum score is applied before the AI work ceiling.",
+    "bounds_discovery_input_ai_candidates_and_documents": "PASS - defaults cap input at 5000, AI candidates at 75, and documents at 20; policy values are configurable within validated bounds.",
+    "selects_repeatably_and_requires_review_for_document_candidates": "PASS - score/identity ordering is deterministic; only explicitly reviewed selected candidates enter the document budget.",
+    "rejects_invalid_candidate_policy_and_oversized_lazy_input": "PASS - stable non-sensitive errors, strict type/range validation, and bounded iteration.",
+    "production_matching_consumer_and_persisted_user_configuration": "PARTIAL - no production matching pipeline consumes the planner; settings persistence and runtime wiring remain unimplemented.",
+    "live_model_or_document_generation": "NOT_RUN - no external or paid provider call is authorized; no remote provider implementation is available."
+  },
+  "local_validation": {
+    "environment": "Windows local worktree; Python 3.12.10; isolated branch based on synchronized main.",
+    "commands": [
+      {
+        "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_ai_cost_controls -v",
+        "result": "PASS",
+        "tests": 5
+      },
+      {
+        "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest discover -s tests\\unit -v",
+        "result": "PASS",
+        "tests": 329
+      },
+      {
+        "command": "..\\..\\.venv\\Scripts\\python.exe -m compileall -q services\\ai tests\\unit\\test_ai_cost_controls.py",
+        "result": "PASS"
+      },
+      {
+        "command": "..\\..\\.venv\\Scripts\\python.exe -m tools.verification.progress validate",
+        "result": "PASS"
+      },
+      {
+        "command": "..\\..\\.venv\\Scripts\\python.exe -m tools.verification.agent_skills",
+        "result": "PASS"
+      },
+      {
+        "command": "..\\..\\.venv\\Scripts\\python.exe -m tools.verification.catalogue",
+        "result": "PASS"
+      },
+      {
+        "command": "git diff --check",
+        "result": "PASS"
+      },
+      {
+        "command": "git status --short --branch after source commit",
+        "result": "PASS - clean candidate worktree"
+      }
+    ],
+    "test_authoring_correction": "The first green-run attempt found invalid test candidates were constructed outside the assertion context; the test was corrected and the focused and full suites then passed.",
+    "not_run": [
+      "Browser acceptance: NOT_APPLICABLE; no UI or connected workflow changed.",
+      "External/paid AI calls: NOT_RUN by policy and unavailable provider infrastructure.",
+      "GitHub Actions and hosted reviews: NOT_RUN under active local-only policy."
+    ],
+    "planning_checkpoint_correction": "An initial progress record attempt correctly rejected a premature top-level current_phase change; the prior phase was restored, the milestone was appended through tools.verification.progress record, and final journal validation passed."
+  },
+  "limitations": [
+    "The planner has no production matching consumer yet, so runtime cost reduction is not established; MJ-REQ-110 and issue #111 remain OPEN/PARTIAL.",
+    "No persisted user-facing configuration or remote provider implementation exists.",
+    "No connected browser workflow applies to this service-only slice.",
+    "External application submission remains OFF; hosted evidence remains NOT_RUN."
+  ],
+  "reconciled_main_commit": "1bedb952e24a73a4f253c95181dd281295ae406b",
+  "integration_candidate_commit": "e32ed99c4e80bade20fcf0a6251a1d55253844ba",
+  "integrated_main_commit": null,
+  "github_issue_comment": null
+}

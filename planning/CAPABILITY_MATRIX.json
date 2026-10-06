@@ -997,9 +997,11 @@
     },
     {
       "requirement_id": "MJ-REQ-110",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-06-ai-cost-controls.json"
+      ],
+      "note": "Deterministic candidate funnel and per-batch ceilings pass local validation; no production matching consumer or persisted user configuration, so end-to-end runtime cost control remains incomplete."
     },
     {
       "requirement_id": "MJ-REQ-111",

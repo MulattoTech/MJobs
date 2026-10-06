@@ -869,7 +869,7 @@
       "status": "ACTIVE",
       "branch": "codex/mj-req110-cost-controls-20261006",
       "draft_until_verified": true,
-      "notes": "MJ-REQ-108.A06 disabled provider is PASS; issue #110 / MJ-REQ-109 task router is integrated PARTIAL at main 117a27c; active next slice is issue #111 / MJ-REQ-110 cost controls. Settings persistence, production task wiring, remote providers, and full PR requirements remain incomplete."
+      "notes": "MJ-REQ-108.A06 disabled provider is PASS; issue #110 / MJ-REQ-109 task router integrated PARTIAL. Issue #111 / MJ-REQ-110 now has locally verified deterministic dedupe, score threshold and AI/document ceilings, but remains PARTIAL until persisted configuration and a production matching consumer exist. Remote providers and the full PR requirements remain incomplete."
     },
     {
       "id": "MJ-PR-031",

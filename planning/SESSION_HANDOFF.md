@@ -1,3 +1,9 @@
+# Active local-only implementation checkpoint — 2026-10-06
+
+Issue #111 / MJ-REQ-110 candidate `e32ed99c4e80bade20fcf0a6251a1d55253844ba` on `codex/mj-req110-cost-controls-20261006`, based on synchronized main `1bedb952e24a73a4f253c95181dd281295ae406b`. Added a configurable deterministic funnel that deduplicates stable job identities, rejects conflicting duplicates, bounds input iteration, thresholds deterministic scores, caps AI candidates at 75 and reviewed document candidates at 20 by default, and selects candidates in deterministic order. Focused tests (5), full unit suite (329), compileall, progress/catalogue/agent-skill validators, and diff check pass. Evidence: `docs/evidence/2026-10-06-ai-cost-controls.json`. The planner has no production matching consumer or persisted user settings, so #111 remains OPEN/PARTIAL; no provider/browser test applies, live AI and hosted verification are NOT_RUN, and external submission remains OFF. Next: recheck exact main and local-only policy, push the candidate, safely fast-forward only if current main remains its ancestor, read back issue #111 OPEN, then continue the next dependency-ready issue.
+
+---
+
 # Integration receipt — 2026-10-06
 
 Remotive global job-source adapter source `8b489a05ec5da67184ff5f0c4bbce517f63116df` and evidence/planning were integrated by non-force fast-forward at synchronized local/GitHub main. Issue #309 (MJ-REQ-017.S08) PASS; parent MJ-REQ-017 remains PARTIAL/OPEN. Evidence `docs/evidence/2026-10-06-remotive-job-source-adapter.json`. Seven focused Remotive integration tests, 36 discovery source tests, 316 unit tests, 62 frontend tests, Vite build, and all repository validators passed. Continue to next dependency-ready slice; hosted verification NOT_RUN, external submission OFF.

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-06T12:35:52Z",
+  "generated_at": "2026-10-06T19:11:17Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -11,7 +11,7 @@
     "current_verified_github_state": "GitHub/local main synchronized at 117a27ccfdf472fb67135d17f14ebd44c8fa9462; issue #110 OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/110#issuecomment-6023459996; issue #345 CLOSED; Actions disabled, no PR, main unprotected.",
     "current_verified_at": "2026-10-06T19:05:40Z"
   },
-  "current_milestone": "MJ-REQ-109-TASK-CONFIG-INTEGRATED-PARTIAL-20261006",
+  "current_milestone": "MJ-REQ-110-COST-CONTROLS-LOCALLY-VERIFIED-PARTIAL-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -90,7 +90,8 @@
     "MJ-REQ-004 native PDF/DOCX parsing now propagates extraction-request disconnects into the parser child, terminates/reaps it, and caps streamed stdout at 2 MiB; OCR already in progress, real provider/AI/ATS calls and complete operation-category policies remain incomplete (docs/evidence/2026-10-06-native-parser-disconnect-cancellation.json).",
     "MJ-REQ-004 now cancels native parser and OCR subprocesses from an explicit profile/resume-scoped UI action and from observed transport disconnects; all-category external-operation policy and unavailable real ATS/AI provider paths remain PARTIAL (docs/evidence/2026-10-06-resume-extraction-cancellation.json).",
     "MJ-REQ-108 provider-neutral contract and disabled/no-AI provider locally verified; real provider implementations and matching consumer wiring remain incomplete.",
-    "MJ-REQ-109: immutable per-task provider/model router across seven task types; user-facing persistence and production consumer wiring remain incomplete."
+    "MJ-REQ-109: immutable per-task provider/model router across seven task types; user-facing persistence and production consumer wiring remain incomplete.",
+    "MJ-REQ-110: deterministic dedupe, score threshold, bounded AI/document candidate planning and reviewed-document gating verified locally; production matching consumer and persisted settings remain incomplete (docs/evidence/2026-10-06-ai-cost-controls.json)."
   ],
   "blocked_capabilities": [],
   "active_requirements": [
@@ -269,7 +270,8 @@
     "Integrated main 9e340924878484ba257097a5088d83ab10000b3a: focused MJ-REQ-108.A06 contract tests 2 PASS; complete candidate unit suite 318 PASS; progress/catalogue/agent-skill validators PASS.",
     "MJ-REQ-109 candidate 49f4769: 8 focused AI contract tests and 324 full unit tests PASS; compile, catalogue, progress and agent-skill validation PASS (docs/evidence/2026-10-06-ai-task-configuration.json).",
     "After merging current main b662979: Remotive integration and AI task routing focused tests 15 PASS; complete unit suite 324 PASS; progress/catalogue validation PASS (docs/evidence/2026-10-06-ai-task-configuration.json).",
-    "Integrated main 117a27c: 8 focused AI tests PASS; prior exact reconciled candidate: 324 unit tests and 7 Remotive integration tests PASS; progress/catalogue/agent-skill validation PASS."
+    "Integrated main 117a27c: 8 focused AI tests PASS; prior exact reconciled candidate: 324 unit tests and 7 Remotive integration tests PASS; progress/catalogue/agent-skill validation PASS.",
+    "MJ-REQ-110 issue #111 funnel: five focused tests and 329 unit tests pass; planner remains PARTIAL without production consumer or persisted configuration (docs/evidence/2026-10-06-ai-cost-controls.json)."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -410,7 +412,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Implement issue #111 / MJ-REQ-110 AI cost controls under active MJ-PR-030 using deterministic synthetic candidates only; do not make paid/external provider calls.",
+  "recommended_resume_step": "Integrate the locally verified MJ-REQ-110 planner with safe fast-forward after exact-base recheck; keep issue #111 OPEN/PARTIAL, then select the next dependency-ready issue from PR_QUEUE.json without shrinking the requirement denominator.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -6360,12 +6362,57 @@
         "git_commit": "117a27ccfdf472fb67135d17f14ebd44c8fa9462",
         "evidence_path": "docs/evidence/2026-10-06-ai-task-configuration.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-110-COST-CONTROLS-LOCALLY-VERIFIED-PARTIAL-20261006",
+      "timestamp": "2026-10-06T19:11:17Z",
+      "current_phase": "Issue #111 / MJ-REQ-110 deterministic cost funnel is locally verified PARTIAL on codex/mj-req110-cost-controls-20261006; production matching consumer and persisted settings remain missing.",
+      "completed_steps": [
+        "Implemented bounded deterministic candidate planning with configurable threshold and AI/document ceilings",
+        "Verified stable deduplication, tie ordering, reviewed-document gate, invalid-input rejection, and bounded lazy iteration",
+        "Recorded scoped evidence and preserved issue/requirement PARTIAL state due missing production consumer and persistence"
+      ],
+      "files_added": [
+        "services/ai/cost_controls.py",
+        "tests/unit/test_ai_cost_controls.py",
+        "docs/evidence/2026-10-06-ai-cost-controls.json"
+      ],
+      "files_modified": [
+        "services/ai/AREA.md",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Focused cost-control unit tests: 5 PASS",
+        "Full local unit suite: 329 PASS",
+        "compileall, progress journal, agent-skills and catalogue validation, git diff --check: PASS"
+      ],
+      "tests_remaining": [
+        "Production matching consumer and persisted user configuration are not implemented; retain MJ-REQ-110 PARTIAL.",
+        "Recheck and complete safe integration/readback, then select next dependency-ready item."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [
+        "An initial progress record attempt correctly rejected a premature top-level current_phase change; corrected before final validation."
+      ],
+      "known_limitations": [
+        "No production matching pipeline consumes the planner.",
+        "No persisted user-facing policy configuration or remote AI provider is available.",
+        "External AI/provider and hosted tests are NOT_RUN; external application submission remains OFF."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "e32ed99c4e80bade20fcf0a6251a1d55253844ba",
+        "evidence_path": "docs/evidence/2026-10-06-ai-cost-controls.json"
+      }
     }
   ],
-  "current_phase": "MJ-REQ-109 is locally integrated at main 117a27c and issue #110 remains OPEN/PARTIAL; next active slice is MJ-REQ-110 cost controls",
+  "current_phase": "Issue #111 / MJ-REQ-110 deterministic cost funnel is locally verified PARTIAL on codex/mj-req110-cost-controls-20261006; production matching consumer and persisted settings remain missing.",
   "last_safe_checkpoint": {
-    "git_commit": "117a27ccfdf472fb67135d17f14ebd44c8fa9462",
-    "evidence_path": "docs/evidence/2026-10-06-ai-task-configuration.json"
+    "git_commit": "e32ed99c4e80bade20fcf0a6251a1d55253844ba",
+    "evidence_path": "docs/evidence/2026-10-06-ai-cost-controls.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -6508,11 +6555,11 @@
     "title": "AI Cost Controls",
     "state": "ACTIVE",
     "selection_reason": "Dependency-ready continuation of MJ-PR-030; configurable deterministic funnels and ceilings can reduce unnecessary future AI work without invoking any provider.",
-    "base": "117a27ccfdf472fb67135d17f14ebd44c8fa9462",
+    "base": "1bedb952e24a73a4f253c95181dd281295ae406b",
     "branch": "codex/mj-req110-cost-controls-20261006",
-    "candidate": null,
-    "evidence": null,
-    "next_action": "In an isolated worktree, implement configurable deterministic funnel thresholds and bounded AI evaluation/document-generation ceilings with disabled/no-provider defaults; prove ordering, budget limits, and fail-closed behavior without external AI calls."
+    "candidate": "e32ed99c4e80bade20fcf0a6251a1d55253844ba",
+    "evidence": "docs/evidence/2026-10-06-ai-cost-controls.json",
+    "next_action": "Recheck main ancestry, GitHub Actions disabled state and branch protection; push verified source/evidence/planning checkpoint; fast-forward only if main remains the exact ancestor, read back issue #111 OPEN, then continue to the next dependency-ready issue."
   },
   "historical_control_snapshots": [
     {
