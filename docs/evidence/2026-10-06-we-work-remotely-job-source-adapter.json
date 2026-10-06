@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REQ-017-S02-WE-WORK-REMOTELY-ADAPTER-20261006",
+  "recorded_at": "2026-10-06T22:32:00Z",
+  "requirement_id": "MJ-REQ-017.S02",
+  "issue": 303,
+  "result": "PASS",
+  "acceptance_scope": "We Work Remotely implemented and verified as an independently traceable global job-source adapter under MJ-REQ-017. Declares exact capabilities (CollectionStrategy.FEED: DISCOVERY, JOB_DETAIL, REMOTE_METADATA, APPLICATION_REDIRECT) and disallows unsupported features (DIRECT_APPLICATION, APPLICATION_STATUS, SALARY). Normalizes multi-company job postings, location/remote metadata, skills, employment type, and title/description into canonical search semantics. Integrated into source registry and collection engine with deterministic contract fixtures and bounded live read-only verification.",
+  "source": {
+    "repository": "MulattoTech/MJobs",
+    "base_commit": "8066f781678b099dcfeba5d9cdaa26d1b2dbc97a",
+    "branch": "antigravity/mj-req017-s02-wwr-20261006",
+    "worktree": "C:/Tools/Dev/MJobs/.worktrees/antigravity-mj-req017-s02-wwr-20261006"
+  },
+  "acceptance_behavior": [
+    "We Work Remotely adapter declares CollectionStrategy.FEED and supported capabilities: DISCOVERY, JOB_DETAIL, REMOTE_METADATA, APPLICATION_REDIRECT.",
+    "Unsupported features including DIRECT_APPLICATION, APPLICATION_STATUS, and direct SALARY return False in accordance with capability contract.",
+    "Public RSS feed at https://weworkremotely.com/remote-jobs.rss is parsed with rate limiting, monotonic clock intervals, timeout budgets, and status tracking (HEALTHY, SOURCE_TIMEOUT, SOURCE_NETWORK_ERROR, SOURCE_RATE_LIMITED, SOURCE_SERVER_ERROR, SOURCE_PAYLOAD_INVALID).",
+    "Per-job multi-company attribution is preserved using SourceCompany with identity parts ('wwr', company_slug) and URL domain.",
+    "Company and title extraction splits 'Company: Job Title' format and safely handles listings without colon delimiter.",
+    "Skills, location regions/countries, remote status, employment type, and descriptions are sanitized (HTML and script tags stripped) and normalized to canonical search semantics.",
+    "Single job fetch retrieves and normalizes specific job postings by posting slug.",
+    "Client-side category and search term filtering operate over the full feed inventory.",
+    "Registry source_adapter recognizes provider 'wwr' and configure_source supports 'wwr' with persistent job source configuration.",
+    "Operation cancellation callbacks are polled during rate-limit sleep and request execution.",
+    "Bounded live read-only validation successfully verified against the live public RSS feed without bypasses or circumventions."
+  ],
+  "local_checks": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_wwr -v",
+      "result": "PASS",
+      "summary": "21 tests passed in 9.9s covering WWR adapter capabilities, search contract, multi-company attribution, normalization, single-job fetch, error handling/health, cancellation, client-side filtering, and live bounded verification."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_greenhouse tests.integration.test_remotive tests.integration.test_wwr -v",
+      "result": "PASS",
+      "summary": "57 integration tests passed in 24.4s across Greenhouse, Remotive, and We Work Remotely discovery sources."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest discover -s tests/unit -p \"test_*.py\"",
+      "result": "PASS",
+      "summary": "358 unit tests passed in 18.0s."
+    },
+    {
+      "command": "npm test --prefix C:\\Tools\\Dev\\MJobs\\apps\\web -- --run",
+      "result": "PASS",
+      "summary": "13 test files, 62 frontend tests passed in 367ms."
+    },
+    {
+      "command": "npm run build --prefix C:\\Tools\\Dev\\MJobs\\apps\\web",
+      "result": "PASS",
+      "summary": "Production Vite build passed."
+    },
+    {
+      "command": "python -m tools.verification.catalogue",
+      "result": "PASS",
+      "summary": "Catalogue validation passed."
+    },
+    {
+      "command": "python -m tools.verification.agent_skills",
+      "result": "PASS",
+      "summary": "Agent skill validation passed."
+    },
+    {
+      "command": "python -m tools.verification.reference_provenance",
+      "result": "PASS",
+      "summary": "Reference provenance validation passed."
+    },
+    {
+      "command": "python -m tools.verification.gpu_independence",
+      "result": "PASS",
+      "summary": "GPU independence validation passed."
+    },
+    {
+      "command": "python -m tools.verification.host_safety",
+      "result": "PASS",
+      "summary": "Host safety validation passed."
+    },
+    {
+      "command": "python -m tools.verification.progress validate",
+      "result": "PASS",
+      "summary": "Progress journal validation passed."
+    },
+    {
+      "command": "python -m tools.coordination.lane_coordination validate",
+      "result": "PASS",
+      "summary": "Lane coordination validation passed."
+    }
+  ],
+  "environment": {
+    "python": "Python 3.12.10",
+    "node": "25.9.0",
+    "npm": "11.12.1",
+    "os": "Windows 11",
+    "notes": [
+      "Tests and builds executed in isolated worktree C:\\Tools\\Dev\\MJobs\\.worktrees\\antigravity-mj-req017-s02-wwr-20261006.",
+      "Local-only policy strictly followed; hosted CI and Actions disabled."
+    ]
+  },
+  "limitations": [
+    "We Work Remotely public RSS feed does not support direct resume/application submission; application redirect URL is provided.",
+    "WWR RSS does not support server-side query filtering; category and search term filters are evaluated client-side.",
+    "Parent MJ-REQ-017 remains open until other job source adapters are completed."
+  ]
+}

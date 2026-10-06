@@ -1,4 +1,10 @@
-﻿# Parallel three-agent coordination cutover — 2026-10-06
+# Integration receipt — 2026-10-06
+
+We Work Remotely global job-source adapter source `9cb6bffc330fba0814984f47055ee1ff7ffc6e4e` and evidence/planning were integrated by non-force fast-forward at synchronized local/GitHub main. Issue #303 (MJ-REQ-017.S02) PASS; parent MJ-REQ-017 remains PARTIAL/OPEN. Evidence `docs/evidence/2026-10-06-we-work-remotely-job-source-adapter.json`. 21 focused We Work Remotely integration tests, 57 discovery source tests, 358 unit tests, 62 frontend tests, Vite build, and all repository validators passed. Continue to next dependency-ready slice; hosted verification NOT_RUN, external submission OFF.
+
+---
+
+# Parallel three-agent coordination cutover — 2026-10-06
 
 Repository-native lane coordination is integrated. Codex, Antigravity and the local Ollama/OpenCode worker use separate planning/lanes/<lane>/ continuation, implementation-state, queue, claims and handoff files. Canonical planning and root main require the atomic local integration lock. Machine-local claims plus sanitized GitHub issue comments are the active ownership signal; stale worktrees alone do not claim work.
 

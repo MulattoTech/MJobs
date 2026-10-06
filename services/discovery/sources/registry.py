@@ -19,4 +19,12 @@ def source_adapter(source: dict, *, transport=None, check=None) -> SourceAdapter
             rate_limit=source.get("rate_limit", 60),
             concurrency=source.get("concurrency", 1),
         )
+    if source["provider"] == "wwr":
+        from services.discovery.sources.wwr import WeWorkRemotely
+        return WeWorkRemotely(
+            tenant=source.get("tenant", "default"), transport=transport, check=check,
+            request_timeout=source.get("request_timeout", 10),
+            rate_limit=source.get("rate_limit", 60),
+            concurrency=source.get("concurrency", 1),
+        )
     raise SourceError("SOURCE_UNSUPPORTED")
