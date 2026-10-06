@@ -8,6 +8,7 @@
   "result": "PARTIAL",
   "base_main": "54568c7de5edc3594f39f9d139f449bb0eed8cae",
   "candidate_head_before_checkpoint": "4f5de18c93929adbf595ea6d9670c5dd68f02bf0",
+  "checkpoint_commit": "b21d4829f81967104f08fa6c2c0e4841d8681b59",
   "recorded_at": "2026-10-06T23:01:14Z",
   "scope": [
     "AI Settings offers an explicit action after preview to invoke the bounded profile-scoped job-scoring consumer.",

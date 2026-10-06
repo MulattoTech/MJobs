@@ -6,7 +6,7 @@
   "current_issue": 111,
   "requirement_id": "MJ-REQ-110",
   "branch": "codex/mj-req110-review-consumer-20261006",
-  "head": "4f5de18c93929adbf595ea6d9670c5dd68f02bf0",
+  "head": "b21d4829f81967104f08fa6c2c0e4841d8681b59",
   "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req110-review-consumer-20261006",
   "result": "PARTIAL",
   "evidence_path": "docs/evidence/2026-10-06-ai-cost-consumer-review-ui.json",
