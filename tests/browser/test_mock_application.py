@@ -56,6 +56,24 @@ class MockApplicationTests(unittest.TestCase):
             finally:
                 reopened.engine.dispose()
 
+    def test_timeout_after_submission_reservation_prevents_submit_click(self):
+        from workers.operations import OperationTimedOut
+        with fixture_server() as origin:
+            app_id = self.prepared(origin)
+
+            def expire_at_reserved_submit_boundary():
+                if self.store.application(app_id)['state'] == 'SUBMITTING':
+                    raise OperationTimedOut('OPERATION_TIMEOUT')
+
+            with self.assertRaises(OperationTimedOut):
+                apply_mock(self.store, app_id, origin, self.root, submit=True,
+                           check=expire_at_reserved_submit_boundary)
+
+            result = self.store.application(app_id)
+            self.assertEqual(result['state'], 'SUBMISSION_UNCONFIRMED')
+            self.assertEqual(httpx.get(origin + '/ats/receipts/' + app_id).json(),
+                             {'status': 'not_found'})
+
     def test_uncertain_submission_without_receipt_does_not_retry(self):
         with fixture_server() as origin:
             app_id = self.prepared(origin)

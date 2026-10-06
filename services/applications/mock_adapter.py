@@ -186,6 +186,7 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
                     check()
                     page.set_default_timeout(10000)
                     page.goto(route["url"], wait_until="domcontentloaded", timeout=15000)
+                    check()
                     if page.locator("[data-intervention]").count():
                         store.transition(application_id, ["FILLING"], "USER_INTERVENTION_REQUIRED", "CHALLENGE_DETECTED")
                         return store.application(application_id)
@@ -196,6 +197,7 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
                     page.get_by_label("Resume", exact=True).set_input_files(files[("resume", "pdf")])
                     page.get_by_label("Cover letter", exact=True).set_input_files(files[("cover-letter", "pdf")])
                     store.transition(application_id, ["FILLING"], "FILLING", "UPLOAD_RESUME")
+                    check()
                     page.get_by_role("combobox", name="Country", exact=True).select_option(label=answer["country"])
                     if answer["remote"] != "yes":
                         raise ValueError("Unresolved mandatory remote answer")
@@ -219,6 +221,10 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
                     if not decision.allowed:
                         store.transition(application_id, ["READY_TO_SUBMIT"], "REVIEW_REQUIRED", "POLICY_GATE")
                         return store.application(application_id)
+                    # The operation deadline may expire after the durable
+                    # reservation commits but before the irreversible submit
+                    # click. Reconcile conservatively without clicking.
+                    check()
                     page.get_by_role("button", name="Submit mock application", exact=True).click()
                     page.locator("[data-confirmation]").wait_for(timeout=10000)
                     receipt = _receipt(client, application, route["requisition"])

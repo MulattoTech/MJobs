@@ -11,6 +11,14 @@ receipt lookup yields SUBMISSION_UNCONFIRMED and never a blind retry. Persistent
 browser sessions reside only in private output storage. Test:
 python -m unittest tests.browser.test_mock_application.
 
+The mock Playwright flow rechecks the durable operation's monotonic deadline and
+cancellation after navigation and upload stages, and checks the deadline again
+after the SUBMITTING reservation but before the irreversible submit click. The
+cancel API rejects cancellation after that reservation and requests reconciliation.
+If the deadline expires in the reserved gap, a missing receipt remains
+SUBMISSION_UNCONFIRMED; the browser does not click Submit and must not blindly
+retry. Existing navigation and locator calls retain explicit Playwright timeouts.
+
 ## Shared ATS knowledge (MJ-REQ-084)
 
 `knowledge.application_adapter_knowledge(connection, route_id, operation_mode=None)`
