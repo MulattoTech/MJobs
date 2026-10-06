@@ -56,3 +56,19 @@ Profile job preferences also own an optional bounded `avoid_terms` list. Terms a
 user-configured, case-folded and deduplicated, and versioned with the immutable
 profile snapshot. The web editor exposes one term per line. They are not career
 facts or reusable answers and are not copied into generated document metadata.
+
+`build_profile_context` in `profile_access.py` is the least-data boundary for
+future AI task integrations. It accepts only registered task names and dotted
+paths within each task's fixed allowlist; optional deny paths can only narrow
+that grant. Only verified, user-approved facts and answers can be returned.
+Container requests produce bounded metadata previews, never all child values.
+Accepted operations are appended to `audit_events` with the task, operation ID,
+profile version, paths and accessed fact/answer IDs, never values. Denials record
+the fixed task scope, operation ID, profile version and reason, with no requested
+path or value.
+Fact/answer values are capped at 4,000 characters each and the entire projected
+context at 32,000 characters; oversize inputs fail closed without truncation.
+There is no AI provider or prompt execution path in the current repository, so
+all future task prompt builders must consume this projection instead of a raw
+profile. The interface itself is exercised locally with SQLite and synthetic
+profiles; it makes no provider calls.
