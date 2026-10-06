@@ -43,6 +43,12 @@ class AgentDashboardSupervisorTests(unittest.TestCase):
         self.assertIn("UNATTENDED EXISTING-ISSUE AUTHORITY", prompt)
         self.assertIn("do not stop for routine design/spec/plan approval", prompt)
 
+    def test_installed_codex_runner_resolves_to_launchable_prefix(self):
+        supervisor = AgentSupervisor(self.root)
+        prefix = supervisor._runner_prefix("codex")
+        self.assertTrue(prefix)
+        self.assertTrue(any("codex" in part.casefold() for part in prefix))
+
     def test_dashboard_config_persists_in_git_common_coordination_dir(self):
         supervisor = AgentSupervisor(self.root)
         supervisor.update_config("ollama", {"model": "ollama/gemma4:26b", "auto_continue": False})

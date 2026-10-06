@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import signal
+import shutil
 import subprocess
 import sys
 import threading
@@ -224,6 +225,43 @@ class AgentSupervisor:
             command[-1] = "<prompt>"
         return command
 
+    def _runner_prefix(self, name: str) -> list[str]:
+        direct = shutil.which(name)
+        candidates: list[Path] = []
+        if direct:
+            candidates.append(Path(direct))
+        if os.name == "nt":
+            appdata = os.environ.get("APPDATA")
+            if appdata:
+                candidates.extend([
+                    Path(appdata) / "npm" / f"{name}.cmd",
+                    Path(appdata) / "npm" / f"{name}.exe",
+                ])
+            local = os.environ.get("LOCALAPPDATA")
+            if local and name == "agy":
+                packages = Path(local) / "Microsoft" / "WinGet" / "Packages"
+                if packages.exists():
+                    candidates.extend(packages.glob("*AntigravityCLI*\\agy.exe"))
+        for candidate in candidates:
+            if not candidate.exists():
+                continue
+            suffix = candidate.suffix.casefold()
+            if suffix in {".cmd", ".bat"}:
+                return ["cmd.exe", "/d", "/s", "/c", str(candidate)]
+            if suffix == ".ps1":
+                return [
+                    "powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass",
+                    "-File", str(candidate),
+                ]
+            return [str(candidate)]
+        raise FileNotFoundError(
+            f"Unable to resolve runner {name!r}. Install it or add it to PATH."
+        )
+
+    def _launch_command(self, lane: str) -> list[str]:
+        command = self._command(lane)
+        return self._runner_prefix(command[0]) + command[1:]
+
     def log_path(self, lane: str) -> Path:
         return self.log_dir / f"{lane}.log"
 
@@ -251,7 +289,7 @@ class AgentSupervisor:
             env["MJOBS_LANE"] = lane
             flags = subprocess.CREATE_NEW_PROCESS_GROUP if os.name == "nt" else 0
             process = subprocess.Popen(
-                self._command(lane), cwd=str(self.root), env=env,
+                self._launch_command(lane), cwd=str(self.root), env=env,
                 stdin=subprocess.DEVNULL, stdout=handle, stderr=subprocess.STDOUT,
                 text=True, creationflags=flags,
             )
