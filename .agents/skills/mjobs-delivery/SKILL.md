@@ -1,7 +1,7 @@
 ---
 name: mjobs-delivery
 description: Use in MulattoTech/MJobs for repository delivery work: reconcile live Git/GitHub state, select dependency-ready slices, route recurring high-risk changes to the matching playbook, verify evidence, and publish only exact-head-backed PRs. Skip unrelated repositories and read-only questions.
-version: 0.3.0
+version: 0.4.0
 compatibility: Codex Agent Skills SKILL.md
 ---
 
@@ -52,6 +52,9 @@ Load only the references matching the boundaries touched; a change may require m
 - privacy/security: `references/privacy-security.md`
 - LLM prompt/provider: `references/llm-provider.md`
 - release verification: `references/release-verification.md`
+- reference-derived work: `docs/reference/REFERENCE_IMPLEMENTATION_POLICY.md`,
+  `docs/reference/REFERENCE_PROJECTS.json`, and
+  `python -m tools.verification.reference_provenance`
 
 For ordinary feature work, use the repository contract plus the smallest applicable specialized coding skill. Do not load every playbook.
 
@@ -64,6 +67,8 @@ For ordinary feature work, use the repository contract plus the smallest applica
 5. Run focused tests immediately.
 6. Run affected integration/browser/migration checks.
 7. Review the diff for truthfulness, safety, stale assumptions, and scope creep.
+   For reference-derived work, complete the clean-room/no-evasion provenance checklist
+   in the policy and record each material source in the inspiration log.
 8. Record concise evidence under `docs/evidence/`.
 9. Run the project skill validator and repository release gates.
 10. Commit, push, open/update the PR, then verify the exact current head using the active local-only policy.

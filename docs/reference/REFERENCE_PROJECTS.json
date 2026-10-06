@@ -1,0 +1,175 @@
+{
+  "schema_version": 1,
+  "inspected_at": "2026-10-06",
+  "inspection_method": "GitHub repository, commit, and license-at-ref API metadata; license file is pinned by its Git blob SHA.",
+  "default_posture": "Clean-room concept and behavior inspiration only. Direct source, asset, or license-text incorporation requires intentional license compatibility, attribution, and notice review before any MJobs edit.",
+  "projects": [
+    {
+      "id": "JOBSPY",
+      "name": "JobSpy",
+      "repository_url": "https://github.com/speedyapply/JobSpy",
+      "inspected_ref": "main",
+      "inspected_commit": "83efd3d2ee7fce72d2b4cc4adb670f7e2b0e0e6b",
+      "commit_date": "2026-10-02T05:19:20Z",
+      "license": {
+        "spdx_id": "MIT",
+        "name": "MIT License",
+        "path": "LICENSE",
+        "source_url": "https://github.com/speedyapply/JobSpy/blob/83efd3d2ee7fce72d2b4cc4adb670f7e2b0e0e6b/LICENSE",
+        "git_blob_sha": "364d8a0fd8a8039966d469eda847e750d4be7267"
+      },
+      "allowed_use_posture": "Concept and adapter-pattern inspiration. Source incorporation is not approved by this registry; any proposal requires a separate compatibility and attribution review. Never adopt proxy, block-bypass, or access-control evasion patterns."
+    },
+    {
+      "id": "CAREERWEAVER",
+      "name": "CareerWeaver",
+      "repository_url": "https://github.com/idea-torx/CareerWeaver",
+      "inspected_ref": "main",
+      "inspected_commit": "34068a1efe8eb8fcf33c51b5e9fa42d1205cd72d",
+      "commit_date": "2026-08-28T03:29:09Z",
+      "license": {
+        "spdx_id": "MIT",
+        "name": "MIT License",
+        "path": "LICENSE",
+        "source_url": "https://github.com/idea-torx/CareerWeaver/blob/34068a1efe8eb8fcf33c51b5e9fa42d1205cd72d/LICENSE",
+        "git_blob_sha": "ea72a23d29d99411c14aa69a441e49b444d0b9ef"
+      },
+      "allowed_use_posture": "Concept and behavior inspiration. Current issue records cite preflight and guardrail ideas. MJobs defaults to independent implementation; code, wording, tests, and assets are not approved for copying without a separate review."
+    },
+    {
+      "id": "RESUME_MATCHER",
+      "name": "Resume Matcher",
+      "repository_url": "https://github.com/srbhr/Resume-Matcher",
+      "inspected_ref": "main",
+      "inspected_commit": "63fc344a9a59a79db6fa9d96aff188dc9faf545b",
+      "commit_date": "2026-10-04T20:56:27Z",
+      "license": {
+        "spdx_id": "Apache-2.0",
+        "name": "Apache License 2.0",
+        "path": "LICENSE",
+        "source_url": "https://github.com/srbhr/Resume-Matcher/blob/63fc344a9a59a79db6fa9d96aff188dc9faf545b/LICENSE",
+        "git_blob_sha": "261eeb9e9f8b2b4b0d119366dda99c6fd7d35c64"
+      },
+      "allowed_use_posture": "Concept inspiration only by default. Apache-2.0 code is not incorporated; any intentional use must review license conditions, NOTICE and patent terms, attribution, modifications, and compatibility first."
+    },
+    {
+      "id": "AUTOAPPLY",
+      "name": "AutoApply",
+      "repository_url": "https://github.com/Liam-Frost/AutoApply",
+      "inspected_ref": "master",
+      "inspected_commit": "47d9e8b04d8d213bda6a9422b08edf3a75279e5a",
+      "commit_date": "2026-05-22T08:04:37Z",
+      "license": {
+        "spdx_id": "NOASSERTION",
+        "name": "PolyForm Noncommercial License 1.0.0",
+        "path": "LICENSE",
+        "source_url": "https://github.com/Liam-Frost/AutoApply/blob/47d9e8b04d8d213bda6a9422b08edf3a75279e5a/LICENSE",
+        "git_blob_sha": "8e3735a4497ac78d12323e1ebfa75b14fcc8e462"
+      },
+      "allowed_use_posture": "Inspiration only. Do not copy, modify, derive from, vendor, or distribute AutoApply code or assets in MJobs. The inspected license does not grant commercial use. Any proposed incorporation requires explicit separate permission and compatibility review before implementation."
+    },
+    {
+      "id": "PERSONAL_JOBPILOT",
+      "name": "Personal JobPilot",
+      "repository_url": "https://github.com/TheCromazone/Personal-JobPilot",
+      "inspected_ref": "main",
+      "inspected_commit": "a582c29d0f1aed97b93b13d843671487ab8c25d3",
+      "commit_date": "2026-09-07T23:58:10Z",
+      "license": {
+        "spdx_id": "MIT",
+        "name": "MIT License",
+        "path": "LICENSE",
+        "source_url": "https://github.com/TheCromazone/Personal-JobPilot/blob/a582c29d0f1aed97b93b13d843671487ab8c25d3/LICENSE",
+        "git_blob_sha": "fce5a049011e15a640dce470af899cb29bb665a2"
+      },
+      "allowed_use_posture": "Concept inspiration only by default. Source code is not incorporated; a direct-use proposal must first review license conditions, attribution, modifications, and compatibility."
+    },
+    {
+      "id": "RESUMORPH",
+      "name": "ResuMorph",
+      "repository_url": "https://github.com/hannibalevit/resumorph",
+      "inspected_ref": "main",
+      "inspected_commit": "7ac37b3769a2550f730bb00cf8441826fdb706e0",
+      "commit_date": "2026-08-30T15:06:09Z",
+      "license": {
+        "spdx_id": "Apache-2.0",
+        "name": "Apache License 2.0",
+        "path": "LICENSE",
+        "source_url": "https://github.com/hannibalevit/resumorph/blob/7ac37b3769a2550f730bb00cf8441826fdb706e0/LICENSE",
+        "git_blob_sha": "15356d0d4958bb71f774f22dd99e0b458e2080d1"
+      },
+      "allowed_use_posture": "Concept inspiration only by default. Apache-2.0 code is not incorporated; any intentional use must review license conditions, NOTICE and patent terms, attribution, modifications, and compatibility first."
+    },
+    {
+      "id": "AIHAWK_INVISIBLE_PLAYWRIGHT",
+      "name": "AIHawk / invisible_playwright_mcp lineage",
+      "repository_url": "https://github.com/feder-cr/invisible_playwright_mcp",
+      "repository_aliases": ["https://github.com/feder-cr/aihawk_mcp_server"],
+      "inspected_ref": "main",
+      "inspected_commit": "c64ba668842d111e37c1b88f960c0c7ecd756444",
+      "commit_date": "2026-10-05T17:07:01Z",
+      "license": {
+        "spdx_id": "MIT",
+        "name": "MIT License",
+        "path": "LICENSE",
+        "source_url": "https://github.com/feder-cr/invisible_playwright_mcp/blob/c64ba668842d111e37c1b88f960c0c7ecd756444/LICENSE",
+        "git_blob_sha": "9036d5efbfaf66e50d1a318d07d08a404aa64250"
+      },
+      "license_history": [
+        {
+          "ref": "2513bde26046d5ce44988451ea1a89cbcd812daa",
+          "commit_date": "2024-12-05T00:01:47Z",
+          "spdx_id": "AGPL-3.0",
+          "path": "LICENSE",
+          "source_url": "https://github.com/feder-cr/invisible_playwright_mcp/blob/2513bde26046d5ce44988451ea1a89cbcd812daa/LICENSE",
+          "git_blob_sha": "9aa17f0b664d4a9bdaa7a3a7dbdbe98928857109",
+          "allowed_use_posture": "Concept inspiration only. Treat copies and forks received under this historical ref as AGPL-3.0; do not assume a later relicense changes the terms of already distributed copies."
+        },
+        {
+          "ref": "7ee98e2ded0fead0b1676c563a00309b57ba1180",
+          "commit_date": "2026-09-02T20:28:37Z",
+          "spdx_id": "MIT",
+          "path": "LICENSE",
+          "source_url": "https://github.com/feder-cr/invisible_playwright_mcp/blob/7ee98e2ded0fead0b1676c563a00309b57ba1180/LICENSE",
+          "git_blob_sha": "9036d5efbfaf66e50d1a318d07d08a404aa64250",
+          "allowed_use_posture": "Concept inspiration only. Any source use must bind to this or another exact ref and receive license, attribution, and compatibility review; this status does not approve older copies."
+        }
+      ],
+      "allowed_use_posture": "Concept inspiration only; no stealth browser, anti-bot evasion, fingerprint spoofing, CAPTCHA/MFA/access-control bypass, or rate-limit circumvention behavior may be imported, regardless of license. MJobs has not incorporated source code or assets from this project."
+    }
+  ],
+  "inspiration_records": [
+    {
+      "mjobs_issue": "#373 / MJ-REF-003",
+      "project_ids": ["CAREERWEAVER"],
+      "source_commits": ["34068a1efe8eb8fcf33c51b5e9fa42d1205cd72d"],
+      "material_concept": "Post-generation avoid-list enforcement for truthful career documents and answers.",
+      "mjobs_record": "docs/evidence/2026-10-06-avoid-list.json",
+      "third_party_code_or_assets_incorporated": false
+    },
+    {
+      "mjobs_issue": "#374 / MJ-REF-004",
+      "project_ids": ["CAREERWEAVER"],
+      "source_commits": ["34068a1efe8eb8fcf33c51b5e9fa42d1205cd72d"],
+      "material_concept": "Required-question and profile-coverage preflight before browser work.",
+      "mjobs_record": "docs/evidence/2026-10-06-ats-question-preflight.json",
+      "third_party_code_or_assets_incorporated": false
+    },
+    {
+      "mjobs_issue": "#384 / MJ-REF-014",
+      "project_ids": ["AUTOAPPLY", "RESUMORPH"],
+      "source_commits": ["47d9e8b04d8d213bda6a9422b08edf3a75279e5a", "7ac37b3769a2550f730bb00cf8441826fdb706e0"],
+      "material_concept": "Task-scoped minimum profile access with value-free access auditing.",
+      "mjobs_record": "docs/evidence/2026-10-06-least-data-profile-access.json",
+      "third_party_code_or_assets_incorporated": false
+    },
+    {
+      "mjobs_issue": "#387 / MJ-REF-017",
+      "project_ids": ["AUTOAPPLY", "PERSONAL_JOBPILOT"],
+      "source_commits": ["47d9e8b04d8d213bda6a9422b08edf3a75279e5a", "a582c29d0f1aed97b93b13d843671487ab8c25d3"],
+      "material_concept": "Atomic artifact publication and reversible quarantine/restore workflows.",
+      "mjobs_record": "docs/evidence/2026-10-06-artifact-recovery.json",
+      "third_party_code_or_assets_incorporated": false
+    }
+  ]
+}

@@ -163,6 +163,13 @@ This audit is based on public project documentation/code structure observed on 2
 Reference projects have different licenses. Use behavior and architecture as inspiration, then implement independently.
 Never vendor or copy code without a compatible license review and attribution decision.
 
+For current pinned upstream commits, commit dates, license-at-ref blob IDs, relicense history,
+and the enforced clean-room/no-evasion review, see
+[`REFERENCE_PROJECTS.json`](REFERENCE_PROJECTS.json) and
+[`REFERENCE_IMPLEMENTATION_POLICY.md`](REFERENCE_IMPLEMENTATION_POLICY.md). The dated registry
+supersedes this section only for current provenance and licensing metadata; the 2026-09-30
+capability observations above remain a historical snapshot.
+
 
 ## Canonical GitHub reference-gap backlog
 

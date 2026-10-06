@@ -1,10 +1,10 @@
 # MJobs Progress Dashboard
 
-Current reconciliation: 2026-10-05. Source matrices are authoritative; old percentages are historical.
+Current reconciliation: 2026-10-06. Source matrices are authoritative; old percentages are historical.
 
 GitHub automation: **DISABLED**. Local acceptance is separate from hosted checks and full release.
 Original: **64 PASS / 76 PARTIAL / 226 NOT_RUN**, 366 total. Fully accepted: **17.49%**.
-Reference: **1 PASS / 0 PARTIAL / 58 NOT_RUN**, 59 total.
+Reference: **6 PASS / 1 PARTIAL / 52 NOT_RUN**, 59 total.
 Full release: **NOT_RUN**. Combined synthetic core journey: **local PASS for bounded paths**, not full requirements.
 
 Legend: 🟩 PASS; 🟨 PARTIAL; ⬜ NOT_RUN. Bars are rounded navigation aids, not code or effort percentages.

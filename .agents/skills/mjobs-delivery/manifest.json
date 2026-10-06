@@ -15,11 +15,15 @@
     "planning/PR_QUEUE.json",
     "docs/evidence",
     "tools/verification/catalogue.py",
-    "tools/verification/progress.py"
+    "tools/verification/progress.py",
+    "docs/reference/REFERENCE_PROJECTS.json",
+    "docs/reference/REFERENCE_IMPLEMENTATION_POLICY.md",
+    "THIRD_PARTY_NOTICES.md"
   ],
   "command_modules": [
     "tools.verification.agent_skills",
     "tools.verification.catalogue",
-    "tools.verification.progress"
+    "tools.verification.progress",
+    "tools.verification.reference_provenance"
   ]
 }

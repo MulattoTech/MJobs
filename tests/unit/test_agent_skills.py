@@ -19,6 +19,7 @@ references/application-adapter.md
 references/privacy-security.md
 references/llm-provider.md
 references/release-verification.md
+python -m tools.verification.reference_provenance
 """
 
 PLAYBOOKS = [
@@ -44,6 +45,11 @@ class AgentSkillValidatorTests(unittest.TestCase):
         (root / "planning" / "PR_QUEUE.json").write_text("{}", encoding="utf-8")
         for name in ("catalogue.py", "progress.py", "agent_skills.py"):
             (root / "tools" / "verification" / name).write_text("# test", encoding="utf-8")
+        (root / "tools" / "verification" / "reference_provenance.py").write_text("# test", encoding="utf-8")
+        (root / "docs" / "reference").mkdir()
+        for name in ("REFERENCE_PROJECTS.json", "REFERENCE_IMPLEMENTATION_POLICY.md"):
+            (root / "docs" / "reference" / name).write_text("# test", encoding="utf-8")
+        (root / "THIRD_PARTY_NOTICES.md").write_text("# notices", encoding="utf-8")
         (skill / "SKILL.md").write_text(SKILL, encoding="utf-8")
         for relative in PLAYBOOKS:
             (skill / relative).write_text("# playbook", encoding="utf-8")
@@ -58,11 +64,15 @@ class AgentSkillValidatorTests(unittest.TestCase):
                 "docs/evidence",
                 "tools/verification/catalogue.py",
                 "tools/verification/progress.py",
+                "docs/reference/REFERENCE_PROJECTS.json",
+                "docs/reference/REFERENCE_IMPLEMENTATION_POLICY.md",
+                "THIRD_PARTY_NOTICES.md",
             ],
             "command_modules": [
                 "tools.verification.agent_skills",
                 "tools.verification.catalogue",
                 "tools.verification.progress",
+                "tools.verification.reference_provenance",
             ],
         }
         (skill / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")

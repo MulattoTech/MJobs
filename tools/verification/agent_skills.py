@@ -14,10 +14,12 @@ EXPECTED_PLAYBOOKS = {
 CORE_PATHS = {
     "AGENTS.md", "planning/IMPLEMENTATION_STATE.json", "planning/PR_QUEUE.json",
     "docs/evidence", "tools/verification/catalogue.py", "tools/verification/progress.py",
+    "docs/reference/REFERENCE_PROJECTS.json",
+    "docs/reference/REFERENCE_IMPLEMENTATION_POLICY.md", "THIRD_PARTY_NOTICES.md",
 }
 CORE_MODULES = {
     "tools.verification.agent_skills", "tools.verification.catalogue",
-    "tools.verification.progress",
+    "tools.verification.progress", "tools.verification.reference_provenance",
 }
 MODULE = re.compile(r"[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*")
 

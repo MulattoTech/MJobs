@@ -40,6 +40,23 @@ or independent-review acceptance. Close no broader requirement by implication.
 No new budget authorization is implied. No Actions, automatic review, cloud test,
 self-hosted GitHub runner, provider spend, private-data transfer or deployment.
 
+## Reference-derived local pre-merge checklist
+
+For every material reference-derived change, identify its MJobs issue and pinned
+source in the PR template or local integration evidence. Use the clean-room default
+and prohibit stealth, CAPTCHA, anti-bot, fingerprint, MFA, credential, access-control,
+proxy/block, and rate-limit circumvention regardless of the source license. Before
+any intentional source or asset incorporation, review the exact file/ref, license
+compatibility, attribution, notices, modifications, patent obligations, and
+distribution scope. Update `THIRD_PARTY_NOTICES.md` before integration. Run:
+
+```powershell
+python -m tools.verification.reference_provenance
+```
+
+The registry validator checks the pinned provenance records and notices. It does not
+replace candidate-diff review or establish legal approval.
+
 ## Issue and queue conventions
 
 `planning/ISSUE_SEED.jsonl` is the machine-readable source for backlog creation.
