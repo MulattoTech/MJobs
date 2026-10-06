@@ -1,3 +1,9 @@
+# Active local-only implementation checkpoint — 2026-10-06
+
+Issue #5 / MJ-REQ-004 mock ATS HTTP cancellation candidate `f4cf42c34682be815b0306e693fb57f0ee911dca` on `codex/req004-mock-ats-http-cancellation-20261006`, based on `7f728d4d046dda7f3a53fe914125a21f068b7b74`. Worker cancellation/deadline now reaches questionnaire and receipt GETs; a cutoff after the SUBMITTING reservation preserves `SUBMISSION_UNCONFIRMED` without blind retry. Evidence `docs/evidence/2026-10-06-mock-ats-http-cancellation.json`. Thirteen mock ATS tests, two mock client cancellation/bounds tests, all 37 browser tests, and build pass. Full Python suite ran 719 with one unrelated application-pipeline server-thread teardown failure and one optional PostgreSQL skip; the failing browser test passed alone. Repository validators remain to run before integration. External submission OFF; hosted Actions/reviews NOT_RUN.
+
+---
+
 # Integration receipt — 2026-10-06
 
 Cancellation acknowledgement truthfulness source `6abd58aec2562fddaff1367fa8c60417d98b5ebb` and evidence/planning integrated by non-force fast-forward at synchronized local/GitHub main `19ce41de0c9c380e1dbd3b6278870477c484bd19`. Issue #5 remains OPEN/PARTIAL after readback: https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6021034562. Evidence `docs/evidence/2026-10-06-comparison-cancel-acknowledgement.json`. Continue the next highest-value local-only operation-boundary slice; hosted checks/reviews remain NOT_RUN and external submission OFF.

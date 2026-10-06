@@ -1,0 +1,107 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-004",
+  "github_issue": 5,
+  "slice_result": "PASS",
+  "requirement_result": "PARTIAL",
+  "base_commit": "7f728d4d046dda7f3a53fe914125a21f068b7b74",
+  "source_commit": "f4cf42c34682be815b0306e693fb57f0ee911dca",
+  "candidate_commit": "f4cf42c34682be815b0306e693fb57f0ee911dca",
+  "candidate_tree": "49cf8967ffa07668e4f4c27f150aa9e5fd688a3c",
+  "recorded_at_utc": "2026-10-06T17:14:16Z",
+  "scope": "Pass the durable worker cancellation/deadline check into the local mock ATS HTTP client. Questionnaire preflight and receipt GETs then honor the operation check during active reads; a failed receipt check after submission reservation still transitions conservatively to SUBMISSION_UNCONFIRMED.",
+  "acceptance": {
+    "worker_check_invoked_during_both_questionnaire_gets": "PASS",
+    "stalled_mock_ats_get_closes_on_operation_cancellation": "PASS",
+    "late_receipt_check_preserves_submission_uncertainty_transition": "PASS",
+    "no_blind_submission_retry": "PASS",
+    "mock_ats_browser_suite": "PASS",
+    "full_local_python_suite": "PARTIAL",
+    "complete_MJ_REQ_004_acceptance": "PARTIAL"
+  },
+  "validation": [
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.browser.test_mock_application.MockApplicationTests.test_preflight_http_requests_use_the_worker_operation_check tests.browser.test_mock_application.MockApplicationTests.test_dry_run_fills_two_pages_uploads_and_stops_before_submit tests.browser.test_mock_application.MockApplicationTests.test_playwright_actions_never_exceed_remaining_worker_budget tests.unit.test_mock_discovery_client -v",
+      "timestamp_utc": "2026-10-06T16:59:00Z",
+      "target": "Worker cancellation/deadline propagation through mock ATS HTTP and existing transport controls",
+      "result": "PASS",
+      "summary": "5 focused tests passed, including two questionnaire GET checks, two stalled/response-size cancellation tests, local mock browser dry-run and Playwright remaining-budget controls."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.browser.test_mock_application -v",
+      "timestamp_utc": "2026-10-06T17:03:00Z",
+      "target": "Complete controlled mock ATS application behavior and conservative submission reconciliation",
+      "result": "PASS",
+      "summary": "13 tests passed, including timeout after SUBMITTING reservation, SUBMISSION_UNCONFIRMED reconciliation, no blind retry, dry run, intervention, and the new worker-check wiring regression."
+    },
+    {
+      "command": "npm ci --prefix apps/web; npm run build --prefix apps/web",
+      "timestamp_utc": "2026-10-06T17:01:00Z",
+      "target": "Restore isolated worktree web bundle required by existing connected browser tests",
+      "result": "PASS",
+      "summary": "Lockfile install and TypeScript/Vite production build passed; Node 25.9.0 emitted the known Vitest engine-range warning."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest discover -s tests -p \"test_*.py\"",
+      "timestamp_utc": "2026-10-06T17:09:00Z",
+      "target": "Full local Python unit/integration/browser suite after code fix and isolated worktree web build",
+      "result": "PARTIAL",
+      "summary": "719 tests ran; 717 passed, one optional PostgreSQL test skipped, and one unrelated ApplicationPipelineBrowserTests.test_lost_status_and_note_responses_can_be_retried_after_edits teardown assertion failed because its Uvicorn thread remained alive. That test passed in isolation; all 37 browser tests passed in a standalone run."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.browser.test_application_pipeline.ApplicationPipelineBrowserTests.test_lost_status_and_note_responses_can_be_retried_after_edits -v",
+      "timestamp_utc": "2026-10-06T17:10:00Z",
+      "target": "Isolate full-suite teardown failure",
+      "result": "PASS",
+      "summary": "The unrelated application-pipeline test passed alone in 6.305 seconds."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest discover -s tests/browser -p \"test_*.py\"",
+      "timestamp_utc": "2026-10-06T17:12:00Z",
+      "target": "Connected Chromium user-visible browser suite",
+      "result": "PASS",
+      "summary": "37 browser tests passed in 183.343 seconds."
+    },
+    {
+      "command": "git diff --check",
+      "timestamp_utc": "2026-10-06T17:14:16Z",
+      "target": "Patch whitespace integrity",
+      "result": "PASS",
+      "summary": "No whitespace errors."
+    }
+  ],
+  "observed_first_full_run": {
+    "command": ".venv\\Scripts\\python.exe -m unittest discover -s tests -p \"test_*.py\"",
+    "result": "FAIL_EXPECTED_DIAGNOSTIC_RERUN",
+    "summary": "The first clean-worktree full run showed browser Not Found failures because apps/web/dist is ignored and absent in a new worktree; it also exposed that passing the operation check made a receipt lookup propagate OperationTimedOut after the submit reservation, leaving state SUBMITTING. After building the web bundle and correcting receipt reconciliation, the affected 13-test mock ATS suite passed and the subsequent full run had only the unrelated teardown flake."
+  },
+  "observed_baseline_flake": {
+    "test": "MockApplicationTests.test_playwright_actions_never_exceed_remaining_worker_budget",
+    "summary": "Its 250 ms synthetic remaining budget made Chromium launch fail once in a clean worktree; unchanged immediate rerun passed. No production timeout was weakened."
+  },
+  "environment_limitations": {
+    "optional_postgresql": "NOT_RUN; MJOBS_TEST_POSTGRES_URL unset",
+    "hosted_actions_and_reviews": "NOT_RUN_BY_USER_POLICY",
+    "ai_provider_and_real_ats": "NOT_RUN_OR_UNAVAILABLE",
+    "external_submission": "OFF",
+    "multi_api_replica_cancellation": "NOT_IMPLEMENTED"
+  },
+  "requirement_limitations": [
+    "This slice covers the controlled local mock ATS questionnaire and receipt HTTP reads only. Other operation categories and unavailable AI-provider/real ATS paths remain unverified.",
+    "Operation cancellation before definitive receipt lookup after a submit reservation preserves SUBMISSION_UNCONFIRMED; no automatic application retry is introduced.",
+    "The full suite had one unrelated server-thread teardown flake that passed alone; full-suite result remains PARTIAL for this checkpoint."
+  ],
+  "denominators": {
+    "requirements": 366,
+    "reference_gaps": 59
+  },
+  "integration": {
+    "status": "PENDING_LOCAL_ONLY_FAST_FORWARD",
+    "method": "NON_FORCE_FAST_FORWARD",
+    "base_commit": "7f728d4d046dda7f3a53fe914125a21f068b7b74",
+    "source_commit": "f4cf42c34682be815b0306e693fb57f0ee911dca",
+    "candidate_branch": "codex/req004-mock-ats-http-cancellation-20261006",
+    "hosted_verification": "NOT_RUN_BY_USER_POLICY",
+    "issue_state": "OPEN_PARTIAL"
+  }
+}
