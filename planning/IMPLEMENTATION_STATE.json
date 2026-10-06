@@ -7,9 +7,9 @@
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Issue #5 / MJ-REQ-004 candidate source e830589b32f268427404aee8bcac4f55b3a1b4e1 on codex/req004-ops-audit-20261006, based on main 82567b2615c68eb226a3501e4b777e792b405a71. DNS cancellation, 21 focused unit tests, 23 discovery integration tests, two headless browser tests and full 703-test suite pass (one optional PostgreSQL skip). Evidence commit/integration pending; broad requirement remains PARTIAL due unavailable AI/real ATS and other operation classes.",
-    "current_verified_github_state": "GitHub main last synchronized at 82567b2615c68eb226a3501e4b777e792b405a71; Actions disabled, main unprotected, no open implementation PR. Issue #5 remains OPEN/PARTIAL.",
-    "current_verified_at": "2026-10-06T13:34:53Z"
+    "current_verified_local_state": "Local main and origin/main synchronized at 31373810078177ece8eb4aa56957ce44b40956fa. Issue #5 / MJ-REQ-004 public-DNS cancellation slice is integrated and evidenced; issue remains OPEN/PARTIAL for remaining operation classes.",
+    "current_verified_github_state": "GitHub and local main matched 31373810078177ece8eb4aa56957ce44b40956fa at integration. Actions disabled, main unprotected, no candidate PR; issue #5 OPEN/PARTIAL after comment/readback.",
+    "current_verified_at": "2026-10-06T13:36:08Z"
   },
   "current_milestone": "MJ-REQ-004-BOUNDED-EXTERNAL-OPERATIONS-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under the local-only delivery policy; one writer and one integration lane.",
