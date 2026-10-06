@@ -75,10 +75,16 @@
     "Original MJ-REQ-171, MJ-REQ-175 and MJ-REQ-180 results and the original denominator remain unchanged. Full release acceptance remains PARTIAL."
   ],
   "integration_receipt": {
-    "status": "PENDING_PARTIAL_SAFE_FAST_FORWARD",
-    "method": "NON_FORCE_FAST_FORWARD_IF_MAIN_IS_ANCESTOR_AND_RULES_PERMIT",
+    "status": "INTEGRATED_PARTIAL_ISSUE_OPEN",
+    "method": "NON_FORCE_FAST_FORWARD",
     "candidate_branch": "codex/mj-ref-014-least-data-20261006",
     "candidate_source_commit": "c5949074cd42df2de16b7310602abce2eb9750de",
-    "issue_384": "OPEN; ACCEPTANCE_CRITERION_4_UNCHECKED"
+    "evidence_checkpoint_commit": "901cbc09b910e8432745bd8c433f5895c0331b48",
+    "integrated_main": "901cbc09b910e8432745bd8c433f5895c0331b48",
+    "integrated_at": "2026-10-06T03:31:45Z",
+    "actions_enabled": false,
+    "main_protection": "UNPROTECTED",
+    "repository_rulesets_count": 0,
+    "issue_384": "OPEN; CRITERION_4_UNCHECKED"
   }
 }

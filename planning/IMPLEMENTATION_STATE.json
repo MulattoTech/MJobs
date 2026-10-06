@@ -7,11 +7,11 @@
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Primary checkout main and origin/main are synchronized at 92595adfc54f87ad8f2004e07c74dd45d1c9246e; issue #384 candidate is isolated in its dedicated worktree.",
-    "current_verified_github_state": "GitHub and local main are synchronized at 92595adfc54f87ad8f2004e07c74dd45d1c9246e; Actions remain disabled, main unprotected and repository rulesets count zero. Issue #384 / MJ-REF-014 has locally verified partial candidate c5949074cd42df2de16b7310602abce2eb9750de; it remains OPEN because no AI prompt/provider path exists to prove prompt wiring.",
-    "current_verified_at": "2026-10-06T03:30:40Z"
+    "current_verified_local_state": "Primary checkout main and origin/main are synchronized at 901cbc09b910e8432745bd8c433f5895c0331b48; issue #384 remains open with a scoped partial implementation integrated safely.",
+    "current_verified_github_state": "GitHub and local main are synchronized at 901cbc09b910e8432745bd8c433f5895c0331b48. Issues #373 is CLOSED; #384 / MJ-REF-014 remains OPEN with four of five criteria checked and prompt integration blocked by the absent AI task/provider path. Actions remain disabled, main unprotected and repository rulesets count zero.",
+    "current_verified_at": "2026-10-06T03:31:45Z"
   },
-  "current_milestone": "MJ-REF-014-LOCAL-PARTIAL-PASS-PENDING-SAFE-FF",
+  "current_milestone": "MJ-REF-004-SELECTED-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under the local-only delivery policy; one writer and one integration lane.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -310,7 +310,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Safely fast-forward #384 partial candidate and evidence from current main. Keep issue #384 open with the task-prompt integration criterion unchecked because the repository currently has no AI prompt/provider execution path. Then immediately select the next dependency-ready workflow or safety issue; preserve original requirement statuses and denominator.",
+  "recommended_resume_step": "Begin issue #374 / MJ-REF-004 as the sole writer: inspect application automation/preparation contracts and exact area spec; make a required-question preflight that binds to the immutable profile version, distinguishes missing/optional/unknown/unsupported questions, and blocks unattended browser start unless an explicit review/assisted route applies. Test stale snapshots and no-browser-on-block behavior using local ATS fixtures only.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -4118,11 +4118,73 @@
         "git_commit": "c5949074cd42df2de16b7310602abce2eb9750de",
         "evidence_path": "docs/evidence/2026-10-06-least-data-profile-access.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REF-014-INTEGRATED-PARTIAL-20261006",
+      "timestamp": "2026-10-06T03:31:45Z",
+      "current_phase": "MJ-REF-014_INTEGRATED_PARTIAL_ISSUE_OPEN",
+      "completed_steps": [
+        "Pushed scoped partial evidence and planning checkpoint for issue #384",
+        "Safely fast-forwarded issue branch to local/GitHub main with Actions disabled and no branch protection/rulesets",
+        "Read back issue #384 OPEN with criteria 1,2,3,5 checked and criterion 4 unchecked because no AI prompt/provider execution path exists",
+        "Updated the reference-gap and capability matrices without changing original requirement states"
+      ],
+      "files_added": [],
+      "files_modified": [
+        "docs/evidence/2026-10-06-least-data-profile-access.json",
+        "planning/IMPLEMENTATION_STATE.json"
+      ],
+      "tests_completed": [
+        "Local main and GitHub main synchronized at 901cbc09b910e8432745bd8c433f5895c0331b48",
+        "Issue #384 body/comment read back with the documented partial acceptance state"
+      ],
+      "tests_remaining": [
+        "Push integration receipt and issue #374 selection checkpoint"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "Issue #384 remains OPEN until a real AI task prompt path consumes the scoped context interface; no external provider or paid AI call was used."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "901cbc09b910e8432745bd8c433f5895c0331b48",
+        "evidence_path": "docs/evidence/2026-10-06-least-data-profile-access.json"
+      }
+    },
+    {
+      "milestone_id": "MJ-REF-004-SELECTED-20261006",
+      "timestamp": "2026-10-06T03:31:45Z",
+      "current_phase": "MJ-REF-004_SELECTED_20261006",
+      "completed_steps": [
+        "Reconciled issue #374 OPEN and selected the ATS question-preflight safety/workflow slice"
+      ],
+      "files_added": [],
+      "files_modified": [
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Read back issue #374 acceptance contract and verified Actions-off local-only delivery policy"
+      ],
+      "tests_remaining": [
+        "Inspect the exact application automation spec and relevant preflight/answer/application/browser-start code paths"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "External submission remains OFF; acceptance uses synthetic local ATS fixtures."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "901cbc09b910e8432745bd8c433f5895c0331b48",
+        "evidence_path": "docs/evidence/2026-10-06-least-data-profile-access.json"
+      }
     }
   ],
-  "current_phase": "MJ-REF-014_LOCAL_PARTIAL_PASS_PENDING_SAFE_FAST_FORWARD",
+  "current_phase": "MJ-REF-004_SELECTED_20261006",
   "last_safe_checkpoint": {
-    "git_commit": "c5949074cd42df2de16b7310602abce2eb9750de",
+    "git_commit": "901cbc09b910e8432745bd8c433f5895c0331b48",
     "evidence_path": "docs/evidence/2026-10-06-least-data-profile-access.json"
   },
   "live_integrations_tested": [
@@ -4233,30 +4295,25 @@
     }
   ],
   "live_reconciliation": {
-    "observed_at": "2026-10-06T03:30:40Z",
-    "github_main": "92595adfc54f87ad8f2004e07c74dd45d1c9246e",
-    "candidate": "c5949074cd42df2de16b7310602abce2eb9750de",
-    "candidate_base": "92595adfc54f87ad8f2004e07c74dd45d1c9246e",
-    "candidate_is_fast_forward": "YES",
+    "observed_at": "2026-10-06T03:31:45Z",
+    "github_main": "901cbc09b910e8432745bd8c433f5895c0331b48",
+    "issue_384_state": "OPEN_PARTIAL",
+    "issue_374_state": "OPEN",
     "actions_enabled": false,
     "main_branch_protected": false,
     "repository_rulesets_count": 0,
-    "issue_384_state": "OPEN",
-    "integration": "PENDING_PARTIAL_EVIDENCE_CHECKPOINT_PUSH",
+    "integration": "MJ-REF-014_NON_FORCE_FF_PARTIAL",
     "next_issue": 374
   },
   "active_development_issue": {
-    "issue": 384,
-    "requirement_id": "MJ-REF-014",
-    "title": "Least-data profile lookup interface for AI tasks",
-    "state": "OPEN_LOCALLY_VERIFIED_PARTIAL_PENDING_INTEGRATION",
-    "selection_reason": "P1 privacy boundary with reusable least-privilege value across AI workflows; local deterministic service is implemented, but the repository has no actual AI task prompt/provider path to wire or verify.",
-    "base": "92595adfc54f87ad8f2004e07c74dd45d1c9246e",
-    "branch": "codex/mj-ref-014-least-data-20261006",
-    "source_candidate": "c5949074cd42df2de16b7310602abce2eb9750de",
-    "source_tree": "6681753f4380f36f9b22a2aabef7b8b5310d8234",
-    "evidence": "docs/evidence/2026-10-06-least-data-profile-access.json",
-    "next_action": "Push exact local evidence, non-force fast-forward only if main remains an ancestor and policy permits, record the scoped PARTIAL receipt, and leave issue #384 open with criterion 4 unchecked."
+    "issue": 374,
+    "requirement_id": "MJ-REF-004",
+    "title": "ATS question preflight before browser launch",
+    "state": "OPEN_SELECTED_DEPENDENCY_READY",
+    "selection_reason": "P1 workflow and truthfulness gate before browser work; avoids launching application sessions when mandatory questions cannot be answered from the approved profile and supports explicit review/assisted routing.",
+    "base": "901cbc09b910e8432745bd8c433f5895c0331b48",
+    "branch": "codex/mj-ref-004-question-preflight-20261006",
+    "next_action": "Read application_automation area spec and current answer/application/browser-start paths; establish an acceptance oracle for required facts and stale preflight before code."
   },
   "historical_control_snapshots": [
     {
