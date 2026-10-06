@@ -46,7 +46,7 @@
       "status": "MERGED",
       "branch": "codex/mj-pr-002-governance-safety",
       "draft_until_verified": true,
-      "notes": "Bounded durable worker lifecycle slice, stacked on actual mock spine; preserve broader independent-limit requirements Live GitHub reconciliation: PR #369 merged at f30a2e5b82ff61204fa4f94c69280f8097da9b90.. MJ-REQ-004 clarification: PR #369 merged only a narrow worker lifecycle slice. Issue #5 remains OPEN/PARTIAL; scoped operation deadline and Greenhouse cancellation evidence is at docs/evidence/2026-10-06-bound-external-operation-deadlines.json. Do not infer whole-requirement PASS from this or the historical merge. Current issue #5 local-only continuations: worker/source evidence is docs/evidence/2026-10-06-bound-external-operation-deadlines.json; bounded native PDF/DOCX parser evidence is docs/evidence/2026-10-06-bounded-native-resume-parsing.json, integrated at 492eb8f9d83d4e2e0f1e8af9e6b18b0ab31b922a. Both are partial slices; MJ-REQ-004 remains PARTIAL and issue #5 remains OPEN. Mock ATS submit-deadline boundary evidence is docs/evidence/2026-10-06-mock-ats-submit-deadline.json, integrated at e86e8d0ff2ada3b357961c925a33584ae50d0412. This is another scoped partial slice; issue #5 remains OPEN and MJ-REQ-004 remains PARTIAL. Fact-review evidence Git lookup is now shell-free, five-second bounded and safely classified; evidence: docs/evidence/2026-10-06-bounded-fact-review-git.json, integrated at 839c9f0b164a2bef9d93dd1ec64f580a59f7c98f. This remains a scoped partial slice; issue #5 stays OPEN.",
+      "notes": "Bounded durable worker lifecycle slice, stacked on actual mock spine; preserve broader independent-limit requirements Live GitHub reconciliation: PR #369 merged at f30a2e5b82ff61204fa4f94c69280f8097da9b90.. MJ-REQ-004 clarification: PR #369 merged only a narrow worker lifecycle slice. Issue #5 remains OPEN/PARTIAL; scoped operation deadline and Greenhouse cancellation evidence is at docs/evidence/2026-10-06-bound-external-operation-deadlines.json. Do not infer whole-requirement PASS from this or the historical merge. Current issue #5 local-only continuations: worker/source evidence is docs/evidence/2026-10-06-bound-external-operation-deadlines.json; bounded native PDF/DOCX parser evidence is docs/evidence/2026-10-06-bounded-native-resume-parsing.json, integrated at 492eb8f9d83d4e2e0f1e8af9e6b18b0ab31b922a. Both are partial slices; MJ-REQ-004 remains PARTIAL and issue #5 remains OPEN. Mock ATS submit-deadline boundary evidence is docs/evidence/2026-10-06-mock-ats-submit-deadline.json, integrated at e86e8d0ff2ada3b357961c925a33584ae50d0412. This is another scoped partial slice; issue #5 remains OPEN and MJ-REQ-004 remains PARTIAL. Fact-review evidence Git lookup is now shell-free, five-second bounded and safely classified; evidence: docs/evidence/2026-10-06-bounded-fact-review-git.json, integrated at 839c9f0b164a2bef9d93dd1ec64f580a59f7c98f. This remains a scoped partial slice; issue #5 stays OPEN. Clean-worktree truthfulness follow-up: docs/evidence/2026-10-06-fact-review-clean-tree.json records safe refusal on dirty worktrees and exact clean-main Chromium source identity at 895b418e84d47a00ca6b7f22f032b401a84460a9. Full suite had one unrelated thread-shutdown flake (isolated rerun passed); broad issue #5 remains OPEN/PARTIAL.",
       "pr_number": 369,
       "merge_commit": "f30a2e5b82ff61204fa4f94c69280f8097da9b90",
       "merged_at": "2026-09-30T19:45:13Z"
@@ -96,7 +96,7 @@
     },
     {
       "id": "MJ-PR-005",
-      "title": "Core Search Model: Domain Model â€” Core Concepts; Global Job Sources",
+      "title": "Core Search Model: Domain Model \u00e2\u20ac\u201d Core Concepts; Global Job Sources",
       "domain": "core_search_model",
       "requirements": [
         "MJ-REQ-015",
@@ -275,7 +275,7 @@
     },
     {
       "id": "MJ-PR-013",
-      "title": "Job Identity Dedupe: Deduplication â€” Strong Signals; Deduplication â€” Company Identity",
+      "title": "Job Identity Dedupe: Deduplication \u00e2\u20ac\u201d Strong Signals; Deduplication \u00e2\u20ac\u201d Company Identity",
       "domain": "job_identity_dedupe",
       "requirements": [
         "MJ-REQ-044",
@@ -1186,7 +1186,7 @@
     },
     {
       "id": "MJ-PR-047",
-      "title": "Orchestration Data Security: Security â€” Pii; Security â€” Web",
+      "title": "Orchestration Data Security: Security \u00e2\u20ac\u201d Pii; Security \u00e2\u20ac\u201d Web",
       "domain": "orchestration_data_security",
       "requirements": [
         "MJ-REQ-171",
@@ -1206,7 +1206,7 @@
     },
     {
       "id": "MJ-PR-048",
-      "title": "Orchestration Data Security: Security â€” Secret Management; Audit Log",
+      "title": "Orchestration Data Security: Security \u00e2\u20ac\u201d Secret Management; Audit Log",
       "domain": "orchestration_data_security",
       "requirements": [
         "MJ-REQ-175",
@@ -1421,7 +1421,7 @@
     },
     {
       "id": "MJ-PR-059",
-      "title": "Test Harness: Unit Tests â€” Company Resolution; Unit Tests â€” Ats Detection",
+      "title": "Test Harness: Unit Tests \u00e2\u20ac\u201d Company Resolution; Unit Tests \u00e2\u20ac\u201d Ats Detection",
       "domain": "test_harness",
       "requirements": [
         "MJ-REQ-216",
@@ -1441,7 +1441,7 @@
     },
     {
       "id": "MJ-PR-060",
-      "title": "Test Harness: Unit Tests â€” Application State; Application Idempotency Test",
+      "title": "Test Harness: Unit Tests \u00e2\u20ac\u201d Application State; Application Idempotency Test",
       "domain": "test_harness",
       "requirements": [
         "MJ-REQ-220",

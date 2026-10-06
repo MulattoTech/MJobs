@@ -101,5 +101,10 @@
     "requirement_state": "PARTIAL; existing requirement/reference denominators preserved",
     "planning_receipt_commit": "a9b2331b8396b8f5b2b0bc91e53750e28e281dc4",
     "remote_main_after_planning_receipt": "a9b2331b8396b8f5b2b0bc91e53750e28e281dc4"
+  },
+  "followup_clean_tree_guard": {
+    "evidence": "docs/evidence/2026-10-06-fact-review-clean-tree.json",
+    "source_commit": "895b418e84d47a00ca6b7f22f032b401a84460a9",
+    "result": "PASS scoped guard; broad MJ-REQ-004 remains PARTIAL"
   }
 }

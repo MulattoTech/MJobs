@@ -1,0 +1,122 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-004",
+  "github_issue": 5,
+  "result": "PARTIAL",
+  "scope_result": "PASS",
+  "scope": "The fact-review evidence verifier now refuses to attach the prior HEAD to tests when tracked or untracked worktree changes exist. Git revision and porcelain status checks are shell-free, each bounded to five seconds, stderr is discarded, and stable error categories are emitted without paths/raw output. This is a scoped truthfulness slice only; the original requirement remains PARTIAL.",
+  "observed_at_utc": "2026-10-06T07:43:09Z",
+  "candidate": {
+    "repository": "MulattoTech/MJobs",
+    "branch": "codex/req004-bound-ops-20261006",
+    "base": "d80ba1b0cd615b9b11d8b6584a2101d5d07ccce6",
+    "commit": "895b418e84d47a00ca6b7f22f032b401a84460a9",
+    "tree": "c6241544464be6ce84b5380060dc4067b0ef59f6",
+    "integration_commit": "895b418e84d47a00ca6b7f22f032b401a84460a9",
+    "integration_method": "NON_FORCE_FAST_FORWARD",
+    "main_before": "d80ba1b0cd615b9b11d8b6584a2101d5d07ccce6",
+    "main_after": "895b418e84d47a00ca6b7f22f032b401a84460a9",
+    "remote_main_after": "895b418e84d47a00ca6b7f22f032b401a84460a9",
+    "candidate_is_ancestor_of_main": true,
+    "main_remote_sha_verified": true
+  },
+  "acceptance": {
+    "dirty_worktree_returns_null_source_sha_and_fixed_category": "PASS; actual four-case browser run returned FAIL as required with source_commit=null and GIT_WORKTREE_DIRTY; no paths/raw Git output in receipt.",
+    "clean_tree_source_identity_is_exact_and_validated": "PASS; actual clean-main browser run recorded 895b418e84d47a00ca6b7f22f032b401a84460a9.",
+    "revision_and_status_commands_have_bounded_shell_free_execution": "PASS; focused tests verify both commands use five-second timeout, shell=False, stdout capture and suppressed stderr.",
+    "status_timeout_launch_exit_and_revision_failures_are_safe": "PASS; focused tests cover status timeout, OSError, nonzero exit, revision timeout/launch/exit and invalid SHA.",
+    "original_requirement_all_hanging_operations_complete": "PARTIAL",
+    "external_application_submission_enabled": false,
+    "original_requirement_denominator_changed": false
+  },
+  "validation": {
+    "unit_tests": {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.unit.test_verification_fact_review -v",
+      "result": "PASS",
+      "tests": 9,
+      "failures": 0,
+      "skips": 0
+    },
+    "dirty_tree_browser_gate": {
+      "command": "..\\..\\.venv\\Scripts\\python.exe -m tools.verification.fact_review --evidence %TEMP%\\mjobs-fact-review-dirty-guard.json",
+      "result": "PASS_EXPECTED_REFUSAL",
+      "exit_code": 1,
+      "browser_tests": 4,
+      "browser_failures": 0,
+      "browser_errors": 0,
+      "source_commit": null,
+      "source_commit_error_category": "GIT_WORKTREE_DIRTY",
+      "started_at_utc": "2026-10-06T07:33:29.8836607Z",
+      "ended_at_utc": "2026-10-06T07:34:11.2813017Z"
+    },
+    "clean_tree_browser_gate": {
+      "command": ".venv\\Scripts\\python.exe -m tools.verification.fact_review --evidence %TEMP%\\mjobs-fact-review-clean-895b418.json",
+      "result": "PASS",
+      "exit_code": 0,
+      "browser_tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "source_commit": "895b418e84d47a00ca6b7f22f032b401a84460a9",
+      "started_at_utc": "2026-10-06T07:41:31.9951884Z",
+      "ended_at_utc": "2026-10-06T07:42:13.2928711Z"
+    },
+    "full_suite": {
+      "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest discover -s tests -v",
+      "result": "PARTIAL",
+      "tests": 661,
+      "failures": 1,
+      "skips": 0,
+      "started_at_utc": "2026-10-06T07:34:18.8870570Z",
+      "ended_at_utc": "2026-10-06T07:40:45.5909195Z",
+      "log": "%TEMP%\\mjobs-req004-clean-tree-full-suite.log",
+      "failure": "tests.browser.test_application_pipeline.ApplicationPipelineBrowserTests.test_lost_status_and_note_responses_can_be_retried_after_edits; assertion that server thread stopped within timeout failed; all other tests passed."
+    },
+    "isolated_flaky_test_rerun": {
+      "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_application_pipeline.ApplicationPipelineBrowserTests.test_lost_status_and_note_responses_can_be_retried_after_edits -v",
+      "result": "PASS",
+      "tests": 1,
+      "failures": 0,
+      "skips": 0
+    },
+    "validators": {
+      "catalogue": "PASS",
+      "progress": "PASS",
+      "agent_skills": "PASS",
+      "git_diff_check": "PASS"
+    },
+    "initial_wrong_interpreter_attempt": {
+      "command": "python -m tools.verification.fact_review",
+      "result": "BLOCKED_ENVIRONMENT",
+      "detail": "System Python lacks Playwright. Re-run with repository .venv passed all four cases and recorded the exact candidate SHA."
+    }
+  },
+  "red_green_history": [
+    {
+      "result": "RED",
+      "detail": "New dirty-worktree unit oracle failed before implementation: it returned the valid prior HEAD despite dirty status."
+    },
+    {
+      "result": "GREEN",
+      "detail": "Unit oracle now returns null SHA and GIT_WORKTREE_DIRTY; actual dirty browser gate refuses certification."
+    }
+  ],
+  "not_run": [
+    "GitHub Actions and hosted verification: NOT_RUN by local-only policy; workflows remain disabled.",
+    "Hosted/independent reviews: NOT_RUN by user policy.",
+    "AI-provider calls: NOT_RUN; no provider implementation exists.",
+    "External application submission: OFF."
+  ],
+  "integration_receipt": {
+    "branch_protection": "NONE",
+    "actions_workflows": "DISABLED_BY_USER_POLICY",
+    "candidate_pushed": "PASS",
+    "non_force_fast_forward": "PASS",
+    "main_after_source_integration": "895b418e84d47a00ca6b7f22f032b401a84460a9",
+    "remote_main_after_source_integration": "895b418e84d47a00ca6b7f22f032b401a84460a9",
+    "issue_state": "OPEN; broad original acceptance remains incomplete and issue was not closed",
+    "requirement_state": "PARTIAL; existing requirement/reference denominators preserved",
+    "planning_receipt_commit": "PENDING",
+    "remote_main_after_planning_receipt": "PENDING"
+  }
+}
