@@ -23,7 +23,7 @@
       "status": "MERGED",
       "branch": "codex/mj-pr-001-governance-safety",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Live GitHub reconciliation: PR #367 merged at b7bdd711bc7f4984e59620e585557aeb4fc06fa6. Follow-up issue #3 / MJ-REQ-002 candidate 9eece43b520a7d4650feac5656c321bac462d7e0 passed the GPU independence guard, full local suite and headless browser/build checks; evidence docs/evidence/2026-10-06-gpu-independence.json. Candidate integration and GitHub issue closeout readback pending; hosted checks NOT_RUN by policy.",
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Live GitHub reconciliation: PR #367 merged at b7bdd711bc7f4984e59620e585557aeb4fc06fa6. Follow-up issue #3 / MJ-REQ-002 passed the GPU independence guard, full local suite and headless browser/build checks; evidence docs/evidence/2026-10-06-gpu-independence.json. Candidate was integrated by non-force fast-forward at 4fd47c1a6c53f2caf29409f4b7fba3bcc9982fe4; issue comment/closeout readback pending. Hosted checks NOT_RUN by policy.",
       "pr_number": 367,
       "merge_commit": "b7bdd711bc7f4984e59620e585557aeb4fc06fa6",
       "merged_at": "2026-09-30T19:38:24Z"

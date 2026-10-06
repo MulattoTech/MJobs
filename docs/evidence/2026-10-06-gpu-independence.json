@@ -88,10 +88,17 @@
     "reference_gaps": 59
   },
   "integration": {
-    "status": "PENDING",
-    "method": "NON_FORCE_FAST_FORWARD_IF_CURRENT_MAIN_IS_ANCESTOR",
+    "status": "NON_FORCE_FAST_FORWARD_INTEGRATED",
+    "method": "NON_FORCE_FAST_FORWARD",
     "base_commit": "593569477dbcf035478940c3275380fd732a7127",
     "candidate_branch": "codex/req002-no-gpu-20261006",
-    "hosted_verification": "NOT_RUN_BY_USER_POLICY"
+    "candidate_integration_commit": "4fd47c1a6c53f2caf29409f4b7fba3bcc9982fe4",
+    "local_main_after_integration": "4fd47c1a6c53f2caf29409f4b7fba3bcc9982fe4",
+    "origin_main_after_integration": "4fd47c1a6c53f2caf29409f4b7fba3bcc9982fe4",
+    "main_protection": "NOT_CONFIGURED",
+    "actions_enabled": false,
+    "open_pr_for_candidate": false,
+    "hosted_verification": "NOT_RUN_BY_USER_POLICY",
+    "integrated_at_utc": "2026-10-06T12:44:31Z"
   }
 }
