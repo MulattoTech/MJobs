@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-06T17:14:16Z",
+  "timestamp": "2026-10-06T18:51:40Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -979,9 +979,11 @@
     },
     {
       "requirement_id": "MJ-REQ-108",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-06-disabled-ai-provider.json"
+      ],
+      "note": "Provider-neutral contract and disabled provider are locally verified. OpenAI-compatible/OpenAI/Azure/Ollama/local endpoint implementations and end-to-end consumer wiring remain incomplete."
     },
     {
       "requirement_id": "MJ-REQ-109",
@@ -2502,9 +2504,11 @@
     },
     {
       "requirement_id": "MJ-REQ-108.A06",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-06-disabled-ai-provider.json"
+      ],
+      "note": "Disabled/no-AI provider declares zero supported capabilities, fails generation without echoing prompt/task, and is proven not to open a socket; external live validation is not applicable because this provider performs no external integration."
     },
     {
       "requirement_id": "MJ-REQ-122.A01",

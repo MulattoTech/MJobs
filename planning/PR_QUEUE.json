@@ -866,10 +866,10 @@
       "depends_on": [
         "MJ-PR-025"
       ],
-      "status": "QUEUED",
-      "branch": "codex/mj-pr-030-matching-ai",
+      "status": "ACTIVE",
+      "branch": "codex/mj-req108-a06-disabled-provider-20261006",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "Active child slice: MJ-REQ-108.A06 disabled/no-AI provider only. The parent requirements MJ-REQ-108..111 remain incomplete until their full acceptance is implemented and evidenced."
     },
     {
       "id": "MJ-PR-031",

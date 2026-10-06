@@ -546,3 +546,10 @@ Verification: 31 focused unit/integration/browser tests PASS; full local suite 7
 
 
 Integration receipt (2026-10-06T14:32:22Z): issue #5 source 9b95debda403cbf38b4b147be549ece4bc515b4e and evidence/planning are integrated by non-force fast-forward on synchronized local and GitHub `main` at 96e2c92fcae184e79b7d397f4cc1ced275afa051. Actions remain disabled, `main` is unprotected, and no PR was opened. GitHub issue #5 remains OPEN/PARTIAL after comment/readback: https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6018530633. Next reconcile dependency-ready P0 issue #8 / MJ-REQ-007.
+
+
+## 2026-10-06 local-only continuation — MJ-REQ-108.A06 disabled provider
+
+The existing dependency-ready `MJ-PR-030` queue item is active for child issue #345 only. Commit `678aee64243e587608c6580cfaf59064fe42d56e`, based on main `e2b199944a9b3c5080480ea3194b82bd6884053f`, adds a provider-neutral contract and a disabled/no-AI implementation that declares zero capabilities, refuses generation without echoing prompts/tasks, and makes no network call. Evidence: [docs/evidence/2026-10-06-disabled-ai-provider.json](../docs/evidence/2026-10-06-disabled-ai-provider.json).
+
+Verification on the committed source: focused contract tests 2 PASS; complete unit suite 318 PASS; agent-skill, catalogue, progress journal and diff validators PASS. There is no browser workflow or safe external call for a provider that is intentionally disabled. Hosted checks/reviews remain NOT_RUN. The broader parent requirement MJ-REQ-108 remains PARTIAL until real provider implementations and consumer wiring are completed. Candidate branch push and safe integration are pending; issue #345 remains OPEN until evidence is posted and read back.

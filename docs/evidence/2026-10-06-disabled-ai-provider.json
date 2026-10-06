@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-108.A06",
+  "github_issue": 345,
+  "parent_requirement_id": "MJ-REQ-108",
+  "result": "PASS",
+  "scope": "Provider-neutral contract and deterministic disabled/no-AI provider behavior.",
+  "observed_at_utc": "2026-10-06T18:51:40Z",
+  "candidate": {
+    "repository": "MulattoTech/MJobs",
+    "branch": "codex/mj-req108-a06-disabled-provider-20261006",
+    "base": "e2b199944a9b3c5080480ea3194b82bd6884053f",
+    "commit": "678aee64243e587608c6580cfaf59064fe42d56e",
+    "status": "Committed and locally validated; branch push and safe integration pending"
+  },
+  "source_sha256": {
+    "services/ai/AREA.md": "fe008c12f5ff644c4b5ad150414520a7e6e7237b74368d279f0bee9f0693262f",
+    "services/ai/__init__.py": "7377c3ed705188d32c04f6ad010c003460db2a4571f94dbc58582ac188887619",
+    "services/ai/providers/__init__.py": "1a3894a1cb9d176c3fda0aef158184eeecd981ba1ae4321a4ab819998e3abe83",
+    "tests/unit/test_disabled_ai_provider.py": "825784ed4263382d33a480a41adb902d4e8c8530adc45131268234e9a2813efa"
+  },
+  "acceptance": {
+    "provider_declares_only_supported_capabilities": "PASS - disabled provider declares text generation, structured output, and streaming unsupported",
+    "generation_fails_closed_without_prompt_echo": "PASS - stable AI_PROVIDER_DISABLED error omits task and prompt",
+    "disabled_provider_performs_no_network_call": "PASS - deterministic socket connection tripwire remains untouched",
+    "unknown_provider_fails_closed_without_input_echo": "PASS - factory raises stable AI_PROVIDER_UNSUPPORTED error",
+    "bounded_live_read_only_validation": "NOT_APPLICABLE - no external provider, credential, endpoint, or network behavior is implemented; a live call would contradict the disabled-provider contract",
+    "parent_requirement_status": "PARTIAL - this child adds only the no-AI provider and does not implement remote provider integrations"
+  },
+  "local_validation": {
+    "environment": "Windows local checkout; Python 3.12.10",
+    "commands": [
+      {
+        "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_disabled_ai_provider -v",
+        "result": "PASS",
+        "tests": 2
+      },
+      {
+        "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest discover -s tests\\unit -v",
+        "result": "PASS",
+        "tests": 318
+      },
+      {
+        "command": "..\\..\\.venv\\Scripts\\python.exe -m tools.verification.agent_skills",
+        "result": "PASS"
+      },
+      {
+        "command": "..\\..\\.venv\\Scripts\\python.exe -m tools.verification.catalogue",
+        "result": "PASS"
+      },
+      {
+        "command": "git diff --check",
+        "result": "PASS"
+      }
+    ],
+    "expected_red": "Before implementation, the focused contract test failed its explicit assertion that services.ai was absent.",
+    "not_run": [
+      "Connected browser acceptance: NOT_APPLICABLE; this internal provider contract is not exposed by a browser workflow.",
+      "External model/provider calls: NOT_RUN; no paid or credentialed provider call is authorized or needed.",
+      "Full integration suite: NOT_RUN; changed code is a provider-neutral unit-level contract not yet wired into an application workflow.",
+      "GitHub Actions and hosted reviews: NOT_RUN under current local-only policy."
+    ]
+  },
+  "limitations": [
+    "Only the disabled/no-AI implementation exists; OpenAI-compatible, OpenAI, Azure OpenAI, Ollama, and other local endpoints remain unimplemented.",
+    "GitHub issue #345 is OPEN at evidence capture; issue #109 remains OPEN/PARTIAL because parent provider integrations are not implemented.",
+    "Full release acceptance remains PARTIAL; external application submission remains OFF."
+  ]
+}
