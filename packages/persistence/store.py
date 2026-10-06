@@ -236,7 +236,11 @@ class Store:
             "confidence": row["confidence"],
         } for row in profile.get("facts", [])]
         facts.sort(key=lambda row: row["id"])
-        return {"facts": facts, "preferences": profile.get("preferences", {})}
+        # Exclusions govern generated career text, not job relevance. Editing
+        # them must preserve the existing matching snapshot without rescoring.
+        preferences = {key: value for key, value in profile.get("preferences", {}).items()
+                      if key != "avoid_terms"}
+        return {"facts": facts, "preferences": preferences}
 
     def profile(self, profile_id, version=None, connection=None):
         if connection is not None:

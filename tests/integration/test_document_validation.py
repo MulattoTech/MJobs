@@ -102,6 +102,60 @@ class DocumentValidationTests(unittest.TestCase):
         self.assertIn('Northstar Systems', first_text)
         self.assertIn('Southstar Systems', other_text)
 
+    def test_avoid_list_blocks_generated_resume_before_new_revision_and_keeps_history(self):
+        with fixture_server() as origin:
+            discover(self.store, origin, 'fixture')
+            job = self.store.jobs()[0]
+            app = generate.prepare(self.store, job['id'], 'fixture', self.root)
+            before = application_documents(self.store, app)
+            files = {str(path): path.read_bytes() for path in (self.root / app).rglob('*') if path.is_file()}
+            self.store.save_profile(dict(PROFILE, preferences={'avoid_terms': ['python']}))
+            with self.assertRaises(generate.PreparationError) as error:
+                generate.prepare(self.store, job['id'], 'fixture', self.root)
+            with patch('services.applications.mock_adapter.sync_playwright') as browser:
+                with self.assertRaises(generate.PreparationError) as apply_error:
+                    apply_mock(self.store, app, origin, self.root)
+                browser.assert_not_called()
+            self.assertEqual(apply_error.exception.code, 'AVOID_LIST_BLOCKED')
+            self.assertEqual(self.store.application(app)['state'], 'REVIEW_REQUIRED')
+        self.assertEqual(error.exception.code, 'AVOID_LIST_BLOCKED')
+        self.assertIn('resume', str(error.exception))
+        self.assertIn('python', str(error.exception).casefold())
+        self.assertNotIn('Northstar Systems', str(error.exception))
+        after = application_documents(self.store, app, self.root)
+        self.assertEqual([(row['id'], row['version']) for row in after],
+                         [(row['id'], row['version']) for row in before])
+        self.assertTrue(all('python' in row['avoid_list_error'].casefold()
+                            for row in after if row['kind'] in {'resume', 'cover-letter'}))
+        self.assertEqual(files, {str(path): path.read_bytes() for path in (self.root / app).rglob('*') if path.is_file()})
+
+    def test_avoid_terms_are_profile_scoped_and_not_copied_into_document_context(self):
+        with fixture_server() as origin:
+            discover(self.store, origin, 'fixture')
+            job = self.store.jobs()[0]
+            self.store.save_profile(dict(PROFILE, preferences={'avoid_terms': ['Python']}))
+            other_facts = [dict(fact, id=f"other-{fact['id']}") for fact in PROFILE['facts']]
+            self.store.save_profile(dict(PROFILE, id='other', name='Other Fixture',
+                                         facts=other_facts, preferences={'avoid_terms': []}))
+            with self.assertRaises(generate.PreparationError) as error:
+                generate.prepare(self.store, job['id'], 'fixture', self.root)
+            self.assertEqual(error.exception.code, 'AVOID_LIST_BLOCKED')
+            app = generate.prepare(self.store, job['id'], 'other', self.root)
+            rows = application_documents(self.store, app)
+            for row in rows:
+                self.assertNotIn('avoid_terms', row['generation_context'])
+
+    def test_avoid_list_blocks_cover_letter_before_any_revision_is_activated(self):
+        self.store.save_profile(dict(PROFILE, preferences={'avoid_terms': ['Application for']}))
+        with fixture_server() as origin:
+            discover(self.store, origin, 'fixture')
+            with self.assertRaises(generate.PreparationError) as error:
+                generate.prepare(self.store, self.store.jobs()[0]['id'], 'fixture', self.root)
+        self.assertEqual(error.exception.code, 'AVOID_LIST_BLOCKED')
+        self.assertIn('cover letter', str(error.exception))
+        self.assertIn('Application for', str(error.exception))
+        self.assertEqual(self.store.count('documents'), 0)
+
     def test_unsupported_claim_or_glyph_preserves_prior_documents(self):
         with fixture_server() as origin:
             discover(self.store, origin, 'fixture'); job=self.store.jobs()[0]

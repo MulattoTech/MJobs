@@ -5,6 +5,7 @@ from urllib.parse import urlsplit
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 ShortText = Annotated[str, Field(max_length=300)]
+AvoidTerm = Annotated[str, Field(min_length=1, max_length=120)]
 
 
 class ContactDetails(BaseModel):
@@ -48,3 +49,19 @@ class JobPreferences(BaseModel):
     work_authorization: ShortText = ''
     sponsorship_needs: Literal['NOT_SPECIFIED', 'REQUIRED', 'NOT_REQUIRED'] = 'NOT_SPECIFIED'
     career_goals: str = Field(default='', max_length=3000)
+    avoid_terms: list[AvoidTerm] = Field(default_factory=list, max_length=50)
+
+    @field_validator('avoid_terms')
+    @classmethod
+    def normalize_avoid_terms(cls, values):
+        normalized = []
+        seen = set()
+        for value in values:
+            term = value.strip()
+            if not term:
+                raise ValueError('Avoid terms cannot be blank')
+            key = term.casefold()
+            if key not in seen:
+                normalized.append(term)
+                seen.add(key)
+        return normalized

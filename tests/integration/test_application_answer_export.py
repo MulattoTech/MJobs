@@ -147,6 +147,70 @@ class ApplicationAnswerExportTests(unittest.TestCase):
         self.assertEqual(row['generation_context']['items'][0]['answer_id'], 'years-experience')
         self.assertEqual(row['profile_version'], self.client.get('/profiles/fixture').json()['version'])
 
+    def test_avoid_list_blocks_reviewed_answer_before_export_and_does_not_leak_other_answers(self):
+        profile = dict(PROFILE, preferences={'avoid_terms': ['North Star']}, answers=[{
+            'id': 'years-experience', 'question': 'How many years of experience?',
+            'text': 'Five years supporting North Star systems.', 'source': 'Synthetic review',
+            'verified': True, 'user_approved': True, 'confidence': 95,
+        }])
+        saved = self.put_profile(profile)
+        self.assertEqual(saved.status_code, 200, saved.text)
+        response = self.client.post(self.export_url, json={'profile_id': 'fixture', 'items': [{
+            'question': 'How many years of experience?',
+            'answer_id': 'years-experience',
+            'text': profile['answers'][0]['text'], 'reviewed': True,
+        }]})
+        self.assertEqual(response.status_code, 422, response.text)
+        self.assertEqual(response.json()['detail']['code'], 'AVOID_LIST_BLOCKED')
+        self.assertIn('application answer 1', response.json()['detail']['message'])
+        self.assertIn('North Star', response.json()['detail']['message'])
+        self.assertNotIn('Five years supporting', response.json()['detail']['message'])
+        self.assertEqual(self.store.count('documents'), 2)
+
+    def test_current_avoid_list_disables_download_of_an_older_answer_export(self):
+        profile = dict(PROFILE, answers=[{
+            'id': 'years-experience', 'question': 'How many years of experience?',
+            'text': 'Five years of user-confirmed experience.', 'source': 'Synthetic review',
+            'verified': True, 'user_approved': True, 'confidence': 95,
+        }])
+        self.assertEqual(self.put_profile(profile).status_code, 200)
+        payload = {'profile_id': 'fixture', 'items': [{
+            'question': 'How many years of experience?', 'answer_id': 'years-experience',
+            'text': profile['answers'][0]['text'], 'reviewed': True,
+        }]}
+        exported = self.client.post(self.export_url, json=payload)
+        self.assertEqual(exported.status_code, 201, exported.text)
+        document_id = exported.json()['document_id']
+        profile['preferences'] = {'avoid_terms': ['user-confirmed']}
+        self.assertEqual(self.put_profile(profile).status_code, 200)
+        blocked = self.client.get(f'/profiles/fixture/documents/{document_id}/txt')
+        self.assertEqual(blocked.status_code, 409, blocked.text)
+        self.assertEqual(blocked.json()['detail']['code'], 'AVOID_LIST_BLOCKED')
+        history = self.client.get(
+            f'/profiles/fixture/applications/{self.application_id}/documents').json()['documents']
+        row = next(item for item in history if item['id'] == document_id)
+        self.assertIn('user-confirmed', row['avoid_list_error'])
+
+    def test_avoid_list_edits_rebind_existing_matches_without_rescoring(self):
+        old_profile = self.client.get('/profiles/fixture').json()
+        with self.store.engine.connect() as connection:
+            old_matches = connection.execute(select(m.matches).where(
+                m.matches.c.profile_id == 'fixture',
+                m.matches.c.profile_version == old_profile['version']).order_by(m.matches.c.job_id)
+            ).mappings().all()
+        self.assertTrue(old_matches)
+        profile = dict(PROFILE, preferences={'avoid_terms': ['Python']})
+        saved = self.put_profile(profile)
+        self.assertEqual(saved.status_code, 200, saved.text)
+        new_version = saved.json()['version']
+        with self.store.engine.connect() as connection:
+            new_matches = connection.execute(select(m.matches).where(
+                m.matches.c.profile_id == 'fixture',
+                m.matches.c.profile_version == new_version).order_by(m.matches.c.job_id)
+            ).mappings().all()
+        self.assertEqual([(row['job_id'], row['score']) for row in new_matches],
+                         [(row['job_id'], row['score']) for row in old_matches])
+
     def test_unapproved_answer_cannot_be_reused(self):
         profile = dict(PROFILE, answers=[{
             'id': 'years-experience', 'question': 'How many years of experience?',

@@ -89,6 +89,18 @@ Entity tokenization beyond dates/numbers is not inferred: preserving the complet
 typed fact sentence is the lossless boundary. Tests: unit/integration.test_document_validation,
 tests.integration.test_spine, and tests.browser.test_document_history.
 
+MJ-REF-003 adds deterministic Unicode-normalized whole-term avoidance to profile
+preferences. Resume, cover-letter and reviewed answer generation blocks matching
+content before publishing a revision or export; the safe error names only the
+configured term and output path, never surrounding content. Current preferences
+also gate downloads, document history and local mock-adapter use of older
+revisions, so adding a term cannot leave prior conflicting output usable. The
+avoid list is consumed only by local post-generation validation and is not copied
+into prompt/document contexts or audit payloads (the local path uses no AI prompt).
+Tests cover possessives,
+partial-word false positives, Unicode, profile isolation, history preservation,
+answer exports and browser-visible block reasons. No new database migration.
+
 PDF output embeds Windows Arial or Linux DejaVu Sans (installed in the app
 image). Font registration and rendering are serialized because ReportLab font
 objects cannot be shared by simultaneous documents. Missing fonts, unsupported

@@ -14,6 +14,7 @@ from packages.persistence.store import now
 from services.discovery.pipeline import MockClient
 from services.documents.errors import PreparationError
 from services.documents.validation import validate_stored_resume, VALIDATOR
+from services.documents.avoid_list import validate_content as validate_avoid_list
 
 
 def _receipt(client, application, requisition):
@@ -83,6 +84,7 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
             return application
         check()
         profile = store.profile(application["profile_id"], application["profile_version"])
+        current_profile = store.profile(application["profile_id"])
         # Question-aware reusable-answer metadata is outside the legacy mock
         # form's Fact contract; only its original safety fields reach policy.
         answers = select_verified_facts([Fact(**{key: row[key] for key in
@@ -101,6 +103,16 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
                 files[(document["kind"], extension)] = path
         if {document["kind"] for document in documents} != {"resume", "cover-letter"}:
             raise ValueError("Prepared document set incomplete")
+        try:
+            for document in documents:
+                text_path = files.get((document['kind'], 'txt'))
+                if text_path is not None:
+                    validate_avoid_list(text_path.read_text(encoding='utf-8'),
+                        current_profile.get('preferences'),
+                        'resume' if document['kind'] == 'resume' else 'cover letter')
+        except PreparationError as error:
+            store.transition(application_id, [application['state']], 'REVIEW_REQUIRED', error.code)
+            raise
         resume = next(document for document in documents if document['kind']=='resume')
         try:
             validate_stored_resume({ext:path for (kind,ext),path in files.items() if kind=='resume'}, profile, resume['fact_ids'], resume['template'], resume['generation_model'])

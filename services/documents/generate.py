@@ -17,6 +17,7 @@ from services.dedupe.routes import persist_route_choices, plan_application_route
 from services.dedupe.source_values import require_route_review
 from services.applications.knowledge import application_adapter_knowledge
 from services.documents import tailor
+from services.documents.avoid_list import validate_content as validate_avoid_list
 from services.documents.artifacts import atomic_generate, publish_directory
 from services.documents.cover_letter import COVER_LETTER_TEMPLATE, build_cover_letter
 from services.documents.errors import PreparationError
@@ -125,6 +126,9 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
         kinds['cover-letter'] = cover_letter_paragraphs
         if set(kinds) != {'resume', 'cover-letter'}:
             raise PreparationError('UNSUPPORTED_CLAIM', 'The generated document set has no complete validation contract')
+        for kind, paragraphs in kinds.items():
+            output_path = 'resume' if kind == 'resume' else 'cover letter'
+            validate_avoid_list('\n'.join(paragraphs), profile.get('preferences'), output_path)
         records = []
         generated_at = now()
         for kind, paragraphs in kinds.items():

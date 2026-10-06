@@ -1,7 +1,7 @@
 export async function api<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(path, { ...init, headers: { 'Content-Type': 'application/json', ...init?.headers } });
   const data = await response.json();
-  if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : `Request rejected (${response.status}). Check the fields and try again.`);
+  if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : typeof data.detail?.message === 'string' ? data.detail.message : `Request rejected (${response.status}). Check the fields and try again.`);
   return data as T;
 }
 export function resumeMediaType(filename: string): string {

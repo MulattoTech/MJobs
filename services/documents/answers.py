@@ -11,6 +11,7 @@ from sqlalchemy import func, select, text
 
 from packages.persistence import models as m
 from packages.persistence.store import identity, upsert
+from services.documents.avoid_list import validate_content as validate_avoid_list
 
 
 _SENSITIVE_TERMS = re.compile(
@@ -97,6 +98,8 @@ def export_answers(store, application_id, output_dir, items):
                 else:
                     source = "Entered and reviewed for this application"
                     confidence = None
+                validate_avoid_list(answer, profile.get('preferences'),
+                                    f'application answer {len(manifest) + 1}')
                 exported.extend((f"Question: {question}", f"Answer: {answer}", ""))
                 manifest.append({"question": question, "answer_id": answer_id,
                                  "source": source, "confidence": confidence,

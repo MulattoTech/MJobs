@@ -4,7 +4,7 @@ import {ResumeComparison} from './resume-comparison';
 export type GeneratedDocument = {
   id:string;application_id?:string;profile_id:string;kind:string;version:number;profile_version:string;fact_ids:string[];
   files:Record<string,string>;sha256:Record<string,string>;template:string;
-  preview_text?:string|null;preview_error?:string|null;
+  preview_text?:string|null;preview_error?:string|null;avoid_list_error?:string|null;
   legacy_job_context_missing?:boolean;
   created_at:string|null;generation_model:string|null;
   facts_used:{fact_id:string;kind:string;text:string;source:string;confidence:number;verified:boolean;user_approved:boolean}[];
@@ -24,8 +24,9 @@ export function DocumentHistory({documents}:{documents:GeneratedDocument[]}) {
     <p>{document.fact_ids.length} factual sources · profile snapshot {document.profile_version.slice(0,10)}</p>
     {document.generation_context?.emphasized_fact_ids&&<p>Job-matched skill and technology facts in bold: {document.generation_context.emphasized_fact_ids.length}. DOCX and PDF preserve the same approved text as TXT.</p>}
     {document.kind==='cover-letter'&&document.preview_error&&<p role="alert" className="safety">{document.preview_error} Downloads are disabled until a valid version is prepared.</p>}
+    {document.avoid_list_error&&<p role="alert" className="safety">{document.avoid_list_error}. Downloads are disabled until you prepare content that follows the current avoid list.</p>}
     {document.kind==='cover-letter'&&document.preview_text&&<details><summary>Preview validated cover letter</summary><pre className="description" style={{whiteSpace:'pre-wrap',fontFamily:'inherit'}}>{document.preview_text}</pre></details>}
-    {(['pdf','docx','txt'] as const).filter(format=>document.files[format]&&!(document.kind==='cover-letter'&&document.preview_error)).map(format=><a key={format} className="button-link" href={'/profiles/'+encodeURIComponent(document.profile_id)+'/documents/'+encodeURIComponent(document.id)+'/'+format}>Download {format.toUpperCase()}</a>)}
+    {(['pdf','docx','txt'] as const).filter(format=>document.files[format]&&!(document.kind==='cover-letter'&&document.preview_error)&&!document.avoid_list_error).map(format=><a key={format} className="button-link" href={'/profiles/'+encodeURIComponent(document.profile_id)+'/documents/'+encodeURIComponent(document.id)+'/'+format}>Download {format.toUpperCase()}</a>)}
     <details><summary>Generation details and facts</summary>
       <p>Generated: {document.created_at ? new Date(document.created_at).toLocaleString() : 'Not recorded for this historical document'}</p>
       <p>Generation method: {document.generation_model || 'Not recorded for this historical document'}</p>

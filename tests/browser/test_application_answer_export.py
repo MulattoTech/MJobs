@@ -24,6 +24,70 @@ ROOT = Path(__file__).resolve().parents[2]
 
 @unittest.skipUnless((ROOT / 'apps/web/dist/index.html').is_file(), 'Build apps/web before browser acceptance')
 class ApplicationAnswerExportBrowserTests(unittest.TestCase):
+    def test_avoid_terms_save_and_block_reviewed_answer_with_safe_reason(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            store = Store(f"sqlite:///{(root/'browser.db').as_posix()}")
+            store.migrate()
+            store.bind_workspace_mode('FIXTURE')
+            store.save_profile(dict(PROFILE, answers=[]))
+            with fixture_server() as fixture:
+                discover(store, fixture, 'fixture')
+            prepare(store, store.jobs()[0]['id'], 'fixture', root)
+            app = create_app(store, 'http://127.0.0.1:1', root, 'redis://127.0.0.1:1/0', operation_mode='FIXTURE')
+            sock = bound_browser_socket()
+            origin = f'http://127.0.0.1:{sock.getsockname()[1]}'
+            server = uvicorn.Server(uvicorn.Config(app, log_level='error'))
+            thread = threading.Thread(target=server.run, kwargs={'sockets':[sock]}, daemon=True)
+            thread.start()
+            try:
+                deadline = time.monotonic() + 10
+                while not server.started:
+                    if not thread.is_alive() or time.monotonic() > deadline:
+                        self.fail('Isolated avoid-list API did not start')
+                    time.sleep(.02)
+                with sync_playwright() as pw:
+                    browser = pw.chromium.launch(headless=True)
+                    context = browser.new_context()
+                    outside, errors = [], []
+                    def local_only(route):
+                        if urlsplit(route.request.url).netloc != urlsplit(origin).netloc:
+                            outside.append(route.request.url); route.abort()
+                        else:
+                            route.continue_()
+                    context.route('**/*', local_only)
+                    page = context.new_page()
+                    page.on('pageerror', lambda error: errors.append(str(error)))
+                    page.goto(origin)
+                    page.evaluate("localStorage.setItem('mjobs-profile','fixture')")
+                    page.reload()
+                    page.get_by_role('button', name='Profile', exact=True).click()
+                    terms = page.get_by_label('Avoid terms in generated career content (one per line)')
+                    terms.fill('North Star')
+                    save = page.get_by_role('button', name='Save profile and answers', exact=True)
+                    expect(save).to_be_enabled(timeout=10000)
+                    save.click()
+                    expect(page.get_by_role('status').filter(has_text='Reusable answers saved')).to_be_visible()
+                    self.assertEqual(store.profile('fixture')['preferences']['avoid_terms'], ['North Star'])
+                    page.get_by_role('button', name='Applications', exact=False).click()
+                    page.locator('.job-card').first.click()
+                    page.get_by_role('button', name='Add question', exact=True).click()
+                    page.get_by_label('Employer question').fill('What did you learn?')
+                    page.get_by_label('Answer', exact=True).fill('I supported North Star deployments.')
+                    page.get_by_label('I reviewed this exact answer for this job').check()
+                    page.get_by_role('button', name='Save reviewed answers and export TXT', exact=True).click()
+                    alert = page.get_by_role('alert')
+                    expect(alert).to_contain_text('North Star')
+                    expect(alert).to_contain_text('application answer 1')
+                    self.assertEqual(store.count('documents'), 2)
+                    self.assertFalse(outside)
+                    self.assertFalse(errors, errors)
+                    context.close(); browser.close()
+            finally:
+                server.should_exit = True; thread.join(timeout=10); sock.close()
+                store.engine.dispose()
+                self.assertFalse(thread.is_alive())
+
     def test_exact_suggestion_requires_review_and_export_survives_reload(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

@@ -51,3 +51,8 @@ and job preferences. Work authorization is user-supplied text; sponsorship is
 NOT_SPECIFIED, REQUIRED or NOT_REQUIRED. Neither becomes an approved application
 answer. Technology experience is a sourced career-fact kind with the same explicit
 verification/approval gate as other facts. No new tables or migration are needed.
+
+Profile job preferences also own an optional bounded `avoid_terms` list. Terms are
+user-configured, case-folded and deduplicated, and versioned with the immutable
+profile snapshot. The web editor exposes one term per line. They are not career
+facts or reusable answers and are not copied into generated document metadata.

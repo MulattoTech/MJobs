@@ -333,6 +333,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
 
     @app.exception_handler(ValueError)
     async def invalid(_, error):
+        if getattr(error, 'code', None) == 'AVOID_LIST_BLOCKED':
+            return JSONResponse({"detail": {"code": error.code, "message": str(error)}}, status_code=422)
         return JSONResponse({"detail": str(error)}, status_code=422)
 
     @app.exception_handler(NoResultFound)
@@ -811,6 +813,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             try:
                 validated_letter_preview(store, document, output_dir)
             except (OSError, ValueError, KeyError, TypeError, PreparationError) as error:
+                if getattr(error, 'code', None) == 'AVOID_LIST_BLOCKED':
+                    raise HTTPException(409, {"code": error.code, "message": str(error)}) from error
                 raise HTTPException(409, "Cover-letter validation failed; revise and prepare a new version") from error
         app_root = (root / document["application_id"]).resolve()
         relative = document["files"].get(format)
@@ -819,6 +823,22 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             raise HTTPException(409, "Document unavailable or path invalid; regenerate for review")
         if hashlib.sha256(path.read_bytes()).hexdigest() != document["sha256"].get(format):
             raise HTTPException(409, "Document integrity check failed; regenerate for review")
+        from services.documents.avoid_list import validate_content as validate_avoid_list
+        application = store.application(document['application_id'])
+        current_profile = store.profile(application['profile_id'])
+        text_relative = document['files'].get('txt')
+        text_path = (app_root / text_relative).resolve() if isinstance(text_relative, str) else root
+        if text_path.is_relative_to(app_root) and text_path.is_file() and hashlib.sha256(
+                text_path.read_bytes()).hexdigest() == document['sha256'].get('txt'):
+            try:
+                validate_avoid_list(text_path.read_text(encoding='utf-8'),
+                    current_profile.get('preferences'),
+                    'application answer' if document['kind'] == 'application-answer-export'
+                    else 'resume' if document['kind'] == 'resume' else 'cover letter')
+            except ValueError as error:
+                if getattr(error, 'code', None) == 'AVOID_LIST_BLOCKED':
+                    raise HTTPException(409, {"code": error.code, "message": str(error)}) from error
+                raise
         media = {"pdf": "application/pdf", "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "txt": "text/plain"}[format]
         return FileResponse(path, media_type=media, filename=f"{document['kind']}-v{document['version']}.{format}")
 
