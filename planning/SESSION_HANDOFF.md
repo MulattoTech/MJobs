@@ -1,5 +1,13 @@
 # Active local-only implementation checkpoint — 2026-10-06
 
+Integration receipt: P0 issue #8 / MJ-REQ-007 code, evidence and planning are integrated at synchronized local/GitHub `main` `494e15f46a93b70530755811888ece6046dc98aa`. Thirteen initializer/local-backup tests and repository validators pass; issue #8 remains OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6019785804 because actual protected-configuration schema migration recovery remains unverified. Evidence: `docs/evidence/2026-10-06-atomic-env-initialization.json`.
+
+Next sole writer: P0 issue #9 / MJ-REQ-008, branch `codex/req008-crash-resume-20261006`, based on `494e15f46a93b70530755811888ece6046dc98aa`. Existing resume CLI and separate-process adoption pass. Reconcile local Docker and exercise a task-owned synthetic container restart; host reboot is not authorized. Preserve any unsupported host-restart class as PARTIAL. External submission OFF; hosted Actions/reviews NOT_RUN.
+
+---
+
+# Active local-only implementation checkpoint — 2026-10-06
+
 Issue #96 / MJ-REQ-095 responsibility-bullet emphasis integrated at `a363ebd686c9237c81bb8c60dc51cb2ba34f77a1`; issue remains OPEN/PARTIAL after GitHub readback https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6019614794. The slice has 26 focused Python tests, 62 frontend tests, production build and synthetic Chromium acceptance; evidence `docs/evidence/2026-10-06-resume-bullet-emphasis.json`.
 
 Active writer: P0 issue #8 / MJ-REQ-007, branch `codex/req007-config-recovery-20261006`, candidate `c7306774884ad08e5172bfec7ab365dc261f77b3` based on synchronized main `a363ebd686c9237c81bb8c60dc51cb2ba34f77a1`. The private `.env` initializer now stages and flushes before atomic create-if-absent publication; 13 local unit/backup tests and repository validators pass. Evidence `docs/evidence/2026-10-06-atomic-env-initialization.json`. The slice does not prove recovery for a protected-configuration schema migration, so #8 stays OPEN/PARTIAL. Next after safe integration: P0 issue #9. External submission OFF; hosted checks/reviews NOT_RUN.

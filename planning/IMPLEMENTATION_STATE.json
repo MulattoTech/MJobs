@@ -7,11 +7,11 @@
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Local main, origin/main and implementation worktree synchronized at d953bc55a80b9f0c3ed5986b1f42fbc3fe439a87; issue #10 / MJ-REQ-009 locally PASS and GitHub CLOSED after exact evidence readback.",
-    "current_verified_github_state": "GitHub/local main synchronized at d953bc55a80b9f0c3ed5986b1f42fbc3fe439a87; issue #10 CLOSED after https://github.com/MulattoTech/MJobs/issues/10#issuecomment-6018916813; Actions disabled, no open PR, main unprotected.",
-    "current_verified_at": "2026-10-06T14:52:24Z"
+    "current_verified_local_state": "Local main, origin/main and issue worktree integration are synchronized at 494e15f46a93b70530755811888ece6046dc98aa. Issue #8 remains OPEN/PARTIAL after atomic .env initialization evidence/readback.",
+    "current_verified_github_state": "GitHub/local main synchronized at 494e15f46a93b70530755811888ece6046dc98aa; issue #8 OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6019785804; Actions disabled, no open PR, main unprotected.",
+    "current_verified_at": "2026-10-06T15:37:11Z"
   },
-  "current_milestone": "MJ-REQ-007-ATOMIC-ENV-INITIALIZATION-20261006",
+  "current_milestone": "MJ-REQ-007-ATOMIC-ENV-INITIALIZATION-INTEGRATED-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -385,7 +385,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Synchronize main at c7306774884ad08e5172bfec7ab365dc261f77b3 after fast-forward, verify issue #8 comment/readback, then start P0 issue #9 local restart/recovery proof.",
+  "recommended_resume_step": "Continue P0 issue #9 / MJ-REQ-008 from synchronized main 494e15f46a93b70530755811888ece6046dc98aa; locally exercise synthetic container/process recovery without touching PERSONAL data or rebooting the host.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -403,7 +403,7 @@
     "cb72f9041d6a",
     "e14ac893620f"
   ],
-  "unfinished_work_evidence": "docs/evidence/2026-10-06-mock-ats-action-budget.json\nMJ-REQ-095 issue #96 responsibility-bullet emphasis locally verified on e6c47515aa20596ed6ec3263c809af26b4cf3910; broader summary adjustment and factual rephrasing remain PARTIAL. Evidence: docs/evidence/2026-10-06-resume-bullet-emphasis.json\nMJ-REQ-007 issue #8 local config initialization slice c7306774884ad08e5172bfec7ab365dc261f77b3; issue remains PARTIAL pending actual protected-configuration migration recovery. Evidence: docs/evidence/2026-10-06-atomic-env-initialization.json",
+  "unfinished_work_evidence": "docs/evidence/2026-10-06-mock-ats-action-budget.json\nMJ-REQ-095 issue #96 responsibility-bullet emphasis locally verified on e6c47515aa20596ed6ec3263c809af26b4cf3910; broader summary adjustment and factual rephrasing remain PARTIAL. Evidence: docs/evidence/2026-10-06-resume-bullet-emphasis.json\nMJ-REQ-007 issue #8 local config initialization slice c7306774884ad08e5172bfec7ab365dc261f77b3; issue remains PARTIAL pending actual protected-configuration migration recovery. Evidence: docs/evidence/2026-10-06-atomic-env-initialization.json\nMJ-REQ-007 scoped atomic .env initialization integrated at 494e15f46a93b70530755811888ece6046dc98aa; GitHub issue #8 remains OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6019785804. Evidence: docs/evidence/2026-10-06-atomic-env-initialization.json",
   "authorization": "User explicitly provided 100% Git and GitHub authorization on 2026-09-30; still verify native permissions and required checks",
   "user_testing": {
     "result": "PASS",
@@ -5592,11 +5592,52 @@
         "git_commit": "c7306774884ad08e5172bfec7ab365dc261f77b3",
         "evidence_path": "docs/evidence/2026-10-06-atomic-env-initialization.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-007-ATOMIC-ENV-INITIALIZATION-INTEGRATED-20261006",
+      "timestamp": "2026-10-06T15:37:11Z",
+      "current_phase": "MJ-REQ-007 scoped configuration-safety slice integrated; P0 issue #9 selected",
+      "completed_steps": [
+        "Fast-forwarded verified issue #8 code/evidence/planning to synchronized local and GitHub main",
+        "Re-ran 13 initializer/local-backup tests on the exact integrated main head",
+        "Validated agent skills, catalogue and progress journal",
+        "Commented on issue #8 and read back OPEN/PARTIAL status",
+        "Selected issue #9 as the next dependency-ready P0 target"
+      ],
+      "files_added": [],
+      "files_modified": [
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "13 local initializer/local-backup tests PASS on main 494e15f46a93b70530755811888ece6046dc98aa",
+        "Agent skills, catalogue and progress validators PASS",
+        "git diff --check PASS"
+      ],
+      "tests_remaining": [
+        "MJ-REQ-008 host-restart behavior is not directly proved; proceed with synthetic container/process restart where available"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Local synthetic filesystem configuration initialization only"
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "MJ-REQ-007 remains PARTIAL because actual protected-configuration schema migration recovery is unverified",
+        "Do not reboot host without explicit authorization",
+        "Hosted Actions/reviews remain NOT_RUN by user policy"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "494e15f46a93b70530755811888ece6046dc98aa",
+        "evidence_path": "docs/evidence/2026-10-06-atomic-env-initialization.json"
+      }
     }
   ],
-  "current_phase": "MJ-REQ-007 atomic protected-config initialization locally verified",
+  "current_phase": "MJ-REQ-007 scoped configuration-safety slice integrated; P0 issue #9 selected",
   "last_safe_checkpoint": {
-    "git_commit": "c7306774884ad08e5172bfec7ab365dc261f77b3",
+    "git_commit": "494e15f46a93b70530755811888ece6046dc98aa",
     "evidence_path": "docs/evidence/2026-10-06-atomic-env-initialization.json"
   },
   "live_integrations_tested": [
@@ -5736,16 +5777,16 @@
     "next_issue": 8
   },
   "active_development_issue": {
-    "issue": 8,
-    "requirement_id": "MJ-REQ-007",
-    "title": "Source Control / Change Safety",
-    "state": "PARTIAL_SLICE_VERIFIED_PENDING_MAIN",
-    "selection_reason": "P0 safety follow-up: the real project-local configuration initializer could leave a partial published .env if interrupted during write.",
-    "base": "a363ebd686c9237c81bb8c60dc51cb2ba34f77a1",
-    "branch": "codex/req007-config-recovery-20261006",
-    "candidate": "c7306774884ad08e5172bfec7ab365dc261f77b3",
-    "evidence": "docs/evidence/2026-10-06-atomic-env-initialization.json",
-    "next_action": "Integrate the verified atomic-initialization slice, leave #8 OPEN/PARTIAL, then continue with dependency-ready P0 issue #9 physical restart/recovery proof."
+    "issue": 9,
+    "requirement_id": "MJ-REQ-008",
+    "title": "Save Implementation Progress",
+    "state": "SELECTED_READY",
+    "selection_reason": "Next dependency-ready P0 after the local configuration safety slice; continue proving safe resume through crash/restart classes with isolated synthetic state.",
+    "base": "494e15f46a93b70530755811888ece6046dc98aa",
+    "branch": "codex/req008-crash-resume-20261006",
+    "candidate": "494e15f46a93b70530755811888ece6046dc98aa",
+    "evidence": "docs/evidence/2026-10-06-progress-resume-cli.json",
+    "next_action": "Reconcile local Docker availability and issue #9 remaining crash classes; exercise an isolated synthetic container restart and resume. Do not reboot the host; no reboot permission was granted. Retain host-restart acceptance PARTIAL if not directly proven."
   },
   "historical_control_snapshots": [
     {
@@ -6872,5 +6913,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-06T15:36:00Z"
+  "updated_at": "2026-10-06T15:37:11Z"
 }
