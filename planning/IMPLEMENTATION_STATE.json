@@ -11,7 +11,7 @@
     "current_verified_github_state": "GitHub/local main synchronized at bff2acf6ffb446c12653b5e9e6c696d6dac6e3bb; issue #96 OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6022405440; Actions disabled, no open PR, main unprotected.",
     "current_verified_at": "2026-10-06T18:06:00Z"
   },
-  "current_milestone": "MJ-REQ-108-A06-DISABLED-PROVIDER-VERIFIED-20261006",
+  "current_milestone": "MJ-REQ-109-TASK-CONFIGURATION-SELECTED-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -93,7 +93,7 @@
   "blocked_capabilities": [],
   "active_requirements": [
     "MJ-REQ-108",
-    "MJ-REQ-108.A06"
+    "MJ-REQ-109"
   ],
   "active_prs": [],
   "tests_passed": [
@@ -264,7 +264,8 @@
     "MJ-REQ-004 uploaded-original comparison cancellation candidate 8a469b03bb7c57448118be9e1b761d8608d179ab: focused integration 6 PASS, connected browser 1 PASS, full Python 718 PASS (one optional PostgreSQL skip), frontend 62 PASS/build PASS, repository validators PASS. Evidence docs/evidence/2026-10-06-uploaded-comparison-cancellation.json",
     "MJ-REQ-004 cancellation acknowledgement candidate 6abd58aec2562fddaff1367fa8c60417d98b5ebb: browser regression PASS for cancelled=false continuation and confirmed cancel; full Python 718 PASS/1 optional PostgreSQL skip; frontend 62 PASS/build PASS. Evidence docs/evidence/2026-10-06-comparison-cancel-acknowledgement.json.",
     "MJ-REQ-004 mock ATS HTTP check propagation candidate f4cf42c34682be815b0306e693fb57f0ee911dca: focused mock ATS suite 13 PASS, stalled/bounded client tests 2 PASS, browser directory 37 PASS, build PASS; evidence docs/evidence/2026-10-06-mock-ats-http-cancellation.json.",
-    "MJ-REQ-108.A06: 2 focused provider contract tests PASS; full unit suite 318 PASS; agent_skills, catalogue and git diff checks PASS (docs/evidence/2026-10-06-disabled-ai-provider.json)."
+    "MJ-REQ-108.A06: 2 focused provider contract tests PASS; full unit suite 318 PASS; agent_skills, catalogue and git diff checks PASS (docs/evidence/2026-10-06-disabled-ai-provider.json).",
+    "Integrated main 9e340924878484ba257097a5088d83ab10000b3a: focused MJ-REQ-108.A06 contract tests 2 PASS; complete candidate unit suite 318 PASS; progress/catalogue/agent-skill validators PASS."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -331,13 +332,13 @@
     "MJ-REQ-004 candidate 3d604b27b1a4c25e2ff0ee6fa68a07e9ff8f74a0: full suite initially saw stale ignored apps/web/dist; rebuilding restored current Sources UI and isolated browser acceptance. A first rebuilt full run later hit the known intermittent CompanyDiscoveryRequestsBrowserTests server-thread shutdown assertion; isolated case and all 35 browser tests passed, followed by a same-head 680-test full suite pass. Do not weaken shutdown timeout; evidence docs/evidence/2026-10-06-bounded-ocr-diagnostics.json."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-06T18:51:40Z",
+    "timestamp": "2026-10-06T18:54:23Z",
     "result": "PARTIAL",
     "source_commit": "678aee64243e587608c6580cfaf59064fe42d56e",
-    "source_tree": "c3fdd1603ee5885c20e941c39be27ca84dfab74e",
-    "scope": "MJ-REQ-108.A06 is locally PASS at the exact tested source commit; overall MJobs acceptance remains PARTIAL.",
+    "source_tree": "9da47147d270cf08dd2dd407072791f6bd4fe3a",
+    "scope": "MJ-REQ-108.A06 locally PASS and integrated; broader MJobs acceptance remains PARTIAL.",
     "evidence_path": "docs/evidence/2026-10-06-disabled-ai-provider.json",
-    "integration_commit": null
+    "integration_commit": "9e340924878484ba257097a5088d83ab10000b3a"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -404,7 +405,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Verify exact branch candidate and current main, safely integrate this child slice, update issue #345 with scoped evidence, then continue the next highest-value dependency-ready queue item while MJ-REQ-108 remains PARTIAL.",
+  "recommended_resume_step": "Implement issue #110 / MJ-REQ-109 task-specific model configuration under existing active MJ-PR-030. Keep unsupported providers disabled/fail-closed and preserve parent #108 PARTIAL; avoid Antigravity source adapter files.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -6145,11 +6146,86 @@
         "evidence_path": "docs/evidence/2026-10-06-disabled-ai-provider.json"
       },
       "last_safe_checkpoint_note": "Committed source/test candidate; evidence and planning updates remain in the working tree."
+    },
+    {
+      "milestone_id": "MJ-REQ-108-A06-DISABLED-PROVIDER-INTEGRATED-20261006",
+      "timestamp": "2026-10-06T18:54:23Z",
+      "current_phase": "MJ-REQ-108.A06 disabled/no-AI provider integrated; child issue #345 closed; parent #109 remains OPEN/PARTIAL",
+      "completed_steps": [
+        "Pushed owned branch with source and evidence checkpoints",
+        "Confirmed current remote main was the exact candidate base and branch was unprotected",
+        "Fast-forwarded candidate without opening a PR or triggering hosted automation",
+        "Reran focused provider tests on integrated main and verified full unit, progress, catalogue, and agent-skill results",
+        "Posted scoped evidence to issue #345, read back the comment, and confirmed issue CLOSED while parent #109 remains OPEN"
+      ],
+      "files_added": [],
+      "files_modified": [
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Integrated main focused provider tests: 2 PASS",
+        "Candidate full unit suite: 318 PASS",
+        "Progress journal validation: PASS",
+        "Catalogue validation: PASS",
+        "Agent skill validation: PASS"
+      ],
+      "tests_remaining": [
+        "Select and implement the next highest-value dependency-ready queue item",
+        "Hosted checks/reviews remain NOT_RUN by current policy"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "Parent MJ-REQ-108 remains PARTIAL; other AI provider integrations and application consumer wiring remain unimplemented."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "9e340924878484ba257097a5088d83ab10000b3a",
+        "evidence_path": "docs/evidence/2026-10-06-disabled-ai-provider.json"
+      }
+    },
+    {
+      "milestone_id": "MJ-REQ-109-TASK-CONFIGURATION-SELECTED-20261006",
+      "timestamp": "2026-10-06T18:56:03Z",
+      "current_phase": "MJ-REQ-109 / issue #110 selected as next locally actionable slice under dependency-ready MJ-PR-030",
+      "completed_steps": [
+        "Closed child issue #345 after scoped evidence comment and GitHub readback; parent #109 remains OPEN",
+        "Reconciled local and remote main at 9e340924878484ba257097a5088d83ab10000b3a",
+        "Reviewed ready PR queue items and selected MJ-REQ-109 task-specific model configuration as shared AI routing prerequisite",
+        "Confirmed Antigravity is changing the Remotive source adapter in a separate worktree; the next AI task-configuration slice has separate file ownership"
+      ],
+      "files_added": [],
+      "files_modified": [
+        "planning/PR_QUEUE.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Integrated main provider tests: 2 PASS",
+        "Progress journal validation: PASS",
+        "Catalogue validation: PASS"
+      ],
+      "tests_remaining": [
+        "Implement/test per-task provider/model configuration with disabled defaults and fail-closed unsupported selections",
+        "Run affected and full local unit checks plus planning validators",
+        "Keep MJ-REQ-109 PARTIAL until complete configuration and consumer acceptance are evidenced"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "Antigravity Remotive source files are active in a separate worktree; avoid shared source adapter modules."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "9e340924878484ba257097a5088d83ab10000b3a",
+        "evidence_path": "docs/evidence/2026-10-06-disabled-ai-provider.json"
+      }
     }
   ],
-  "current_phase": "MJ-REQ-108.A06 disabled/no-AI provider locally verified; safe integration pending",
+  "current_phase": "MJ-REQ-109 / issue #110 selected as next locally actionable slice under dependency-ready MJ-PR-030",
   "last_safe_checkpoint": {
-    "git_commit": "678aee64243e587608c6580cfaf59064fe42d56e",
+    "git_commit": "9e340924878484ba257097a5088d83ab10000b3a",
     "evidence_path": "docs/evidence/2026-10-06-disabled-ai-provider.json"
   },
   "live_integrations_tested": [
@@ -6288,16 +6364,16 @@
     "next_issue": 5
   },
   "active_development_issue": {
-    "issue": 345,
-    "requirement_id": "MJ-REQ-108.A06",
-    "title": "AI provider implementation: Disabled/no-AI provider",
-    "state": "PARTIAL_SLICE_VERIFIED_PENDING_MAIN",
-    "selection_reason": "Dependency-ready child of existing MJ-PR-030; establishes exact no-AI behavior without paid calls or credentials.",
-    "base": "e2b199944a9b3c5080480ea3194b82bd6884053f",
-    "branch": "codex/mj-req108-a06-disabled-provider-20261006",
-    "candidate": "678aee64243e587608c6580cfaf59064fe42d56e",
-    "evidence": "docs/evidence/2026-10-06-disabled-ai-provider.json",
-    "next_action": "Push the validated candidate branch, recheck the exact remote main and Antigravity worktree, integrate only if main is still the candidate ancestor, then update issue #345 and continue with MJ-REQ-108 still PARTIAL."
+    "issue": 110,
+    "requirement_id": "MJ-REQ-109",
+    "title": "AI Task Configuration",
+    "state": "ACTIVE",
+    "selection_reason": "Dependency-ready continuation of MJ-PR-030. Distinct per-task model selection is a shared prerequisite for scoring, parsing, tailoring, answer and company-summary workflows; no provider calls are needed to define and validate configuration.",
+    "base": "9e340924878484ba257097a5088d83ab10000b3a",
+    "branch": "codex/mj-req109-task-config-20261006",
+    "candidate": null,
+    "evidence": null,
+    "next_action": "In an isolated worktree, implement validated per-task provider/model configuration with disabled defaults, deterministic independent task selection, and fail-closed unsupported providers. Do not call paid/external AI providers."
   },
   "historical_control_snapshots": [
     {
@@ -7430,5 +7506,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-06T18:51:40Z"
+  "updated_at": "2026-10-06T18:56:03Z"
 }
