@@ -28,7 +28,23 @@ type Operation = {id:string; kind:string; state:string; error:string|null;attemp
 type Source = {id:string;provider:string;tenant:string;name:string;enabled:boolean;health_status:string;jobs_seen:number;last_error:string|null;last_success:string|null;backoff_until:string|null;poll_interval:number;concurrency:number;request_timeout:number;rate_limit:number;jitter_seconds:number;strategy:string;capabilities:{capabilities:string[]}};
 type SearchProfile = {id:string;profile_id:string;name:string;enabled:boolean;criteria:{include_titles:string[];remote:string;employment_types:string[]};source_ids:string[];created_at:string;updated_at:string};
 type OperationMode = 'FIXTURE'|'PERSONAL';
-type Tab = 'Jobs'|'Profile'|'Sources'|'Applications'|'Activity';
+type Tab = 'Jobs'|'Profile'|'Sources'|'Applications'|'AI Settings'|'Activity';
+type AITaskKey = 'job_parsing'|'job_scoring'|'requirement_extraction'|'resume_tailoring'|'cover_letters'|'free_form_answers'|'company_summarization';
+type AIProviderChoice = 'disabled'|'ollama';
+type AITaskSelection = {provider:AIProviderChoice;model:string|null};
+type AITaskSettings = Record<AITaskKey,AITaskSelection>;
+const aiTaskRows: {key:AITaskKey;label:string}[] = [
+  {key:'job_parsing',label:'Job parsing'},
+  {key:'job_scoring',label:'Job scoring'},
+  {key:'requirement_extraction',label:'Requirement extraction'},
+  {key:'resume_tailoring',label:'Resume tailoring'},
+  {key:'cover_letters',label:'Cover letters'},
+  {key:'free_form_answers',label:'Free-form answers'},
+  {key:'company_summarization',label:'Company summarization'},
+];
+const defaultAITaskSettings = ():AITaskSettings => Object.fromEntries(
+  aiTaskRows.map(({key})=>[key,{provider:'disabled',model:null}])
+) as AITaskSettings;
 const newFact = ():Fact => ({id:crypto.randomUUID(),kind:'skill',text:'',source:'',confidence:100,verified:false,user_approved:false});
 const newAnswer = ():Answer => ({id:crypto.randomUUID(),question:'',text:'',source:'Manual entry',confidence:100,verified:false,user_approved:false});
 const newProfile = ():Profile => ({id:crypto.randomUUID(),name:'',email:'',facts:[],answers:[],contact:{},preferences:{}});
@@ -55,6 +71,8 @@ function App() {
   const [manualCaptureRequestId,setManualCaptureRequestId] = useState(()=>crypto.randomUUID());
   const [apps,setApps] = useState<Application[]>([]);
   const [sources,setSources] = useState<Source[]>([]);
+  const [aiTaskSettings,setAITaskSettings] = useState<AITaskSettings>(defaultAITaskSettings);
+  const [aiSettingsLoading,setAISettingsLoading] = useState(false);
   const [companySources,setCompanySources] = useState<CompanySourceView[]>([]);
   const [discoveryRequests,setDiscoveryRequests] = useState<DiscoveryRequest[]>([]);
   const companySourcesSequence = useRef(0);
@@ -107,7 +125,7 @@ function App() {
     try { const response=await fetch('/readiness');setReady(await response.json()); } catch {setReady({status:'unavailable',checks:{api:false}});}
   }
   useEffect(() => {void refresh().catch(e=>setError(String(e)));void api<{operation_mode:OperationMode}>('/settings').then(s=>setOperationMode(s.operation_mode)).catch(e=>setError(String(e)));void readiness();const timer=setInterval(()=>void readiness(),15000);return()=>clearInterval(timer);},[]);
-  useEffect(() => {const sequence=++editorSequence.current;++appSequence.current;profileBaselineRef.current=null;localStorage.setItem('mjobs-profile',profileId);setDetail(null);setSelectedApp(null);setApplicationTracking(null);setApplicationStatusDraft('');setApplicationNoteDraft('');setApplicationNoteRequestId(crypto.randomUUID());setDocs([]);setResumes([]);setApps([]);setOps([]);setCompanySources([]);setMockConsent(false);void refresh(profileId).catch(e=>setError(String(e)));if(profileId){void api<Profile>('/profiles/'+encodeURIComponent(profileId)).then(p=>{if(sequence===editorSequence.current&&p.id===profileRef.current){const loaded={...p,contact:p.contact||{},preferences:p.preferences||{},facts:(p.facts||[]).map(f=>({...f,id:f.fact_id||f.id}))};setEditor(loaded);profileBaselineRef.current=loaded;}}).catch(e=>setError(String(e)));void api<{resumes:Resume[]}>('/profiles/'+encodeURIComponent(profileId)+'/resumes').then(r=>{if(sequence===editorSequence.current&&profileId===profileRef.current)setResumes(r.resumes);}).catch(e=>setError(String(e)));}},[profileId]);
+  useEffect(() => {const sequence=++editorSequence.current;++appSequence.current;profileBaselineRef.current=null;localStorage.setItem('mjobs-profile',profileId);setDetail(null);setSelectedApp(null);setApplicationTracking(null);setApplicationStatusDraft('');setApplicationNoteDraft('');setApplicationNoteRequestId(crypto.randomUUID());setDocs([]);setResumes([]);setApps([]);setOps([]);setCompanySources([]);setMockConsent(false);setAITaskSettings(defaultAITaskSettings());setAISettingsLoading(!!profileId);void refresh(profileId).catch(e=>setError(String(e)));if(profileId){void api<Profile>('/profiles/'+encodeURIComponent(profileId)).then(p=>{if(sequence===editorSequence.current&&p.id===profileRef.current){const loaded={...p,contact:p.contact||{},preferences:p.preferences||{},facts:(p.facts||[]).map(f=>({...f,id:f.fact_id||f.id}))};setEditor(loaded);profileBaselineRef.current=loaded;}}).catch(e=>setError(String(e)));void api<{resumes:Resume[]}>('/profiles/'+encodeURIComponent(profileId)+'/resumes').then(r=>{if(sequence===editorSequence.current&&profileId===profileRef.current)setResumes(r.resumes);}).catch(e=>setError(String(e)));void api<{tasks:AITaskSettings}>('/profiles/'+encodeURIComponent(profileId)+'/ai-task-settings').then(r=>{if(sequence===editorSequence.current&&profileId===profileRef.current)setAITaskSettings(r.tasks);}).catch(e=>setError(String(e))).finally(()=>{if(sequence===editorSequence.current)setAISettingsLoading(false);});}else setAISettingsLoading(false);},[profileId]);
   useEffect(() => {++jobsSequence.current;++detailSequence.current;setJobs([]);setDetail(null);const timer=setTimeout(()=>void loadJobs().catch(e=>setError(String(e))),250);return()=>clearTimeout(timer);},[q,sort,remote,provider,profileId,showDismissed]);
   async function action(label:string, fn:()=>Promise<void>) {
     if(busy)return;setBusy(label);setError('');setNotice('');
@@ -273,18 +291,35 @@ function App() {
   }
   function setContact(key:keyof Contact,value:string) { setEditor(current=>({...current,contact:{...current.contact,[key]:value}})); }
   function setPreference(key:keyof Preferences,value:unknown) { setEditor(current=>({...current,preferences:{...current.preferences,[key]:value}})); }
+  function setAITaskProvider(task:AITaskKey,value:AIProviderChoice) {
+    setAITaskSettings(current=>({...current,[task]:{
+      provider:value,model:value==='disabled'?null:current[task].model,
+    }}));
+  }
+  function setAITaskModel(task:AITaskKey,value:string) {
+    setAITaskSettings(current=>({...current,[task]:{...current[task],model:value||null}}));
+  }
+  async function saveAITaskSettings() {
+    if(!profileId)throw new Error('Select an active profile before saving AI task settings.');
+    const result=await api<{tasks:AITaskSettings}>(`/profiles/${encodeURIComponent(profileId)}/ai-task-settings`,{
+      method:'PUT',body:JSON.stringify({tasks:aiTaskSettings}),
+    });
+    setAITaskSettings(result.tasks);
+    setNotice('AI task settings saved for this profile.');
+  }
   function addExtraction(extraction:Extraction, selectedFacts:Set<string>, selectedContact:Set<string>) {
     const result = addSelectedExtraction({name:editor.name,email:editor.email,contact:editor.contact as Record<string,unknown>,facts:editor.facts.filter(f=>f.text.trim())}, extraction, selectedFacts, selectedContact);
     setEditor(current=>({...current,name:result.profile.name,email:result.profile.email,contact:result.profile.contact as Partial<Contact>,facts:result.profile.facts as Fact[]}));
     setNotice(result.truncated?'Profile has reached 200 facts. Some suggestions were not added. Review existing facts before importing more.':`${result.added} pending facts added; ${result.skipped} existing suggestions skipped. Review, verify and approve before saving.`);
   }
   return <div className="layout" data-operation-mode={operationMode||'LOADING'}>
-    <aside className="sidebar"><a className="brand" href="/">M<span>Jobs</span><small>YOUR LOCAL WORKSPACE</small></a><nav aria-label="Main navigation">{(['Jobs','Profile','Sources','Applications','Activity'] as Tab[]).map(item=><button key={item} aria-current={tab===item?'page':undefined} onClick={()=>setTab(item)}>{item}<span>{item==='Jobs'?jobs.length:item==='Applications'?apps.length:''}</span></button>)}</nav><div className="side-note"><strong>Built around your facts.</strong><p>Discover opportunities, prepare truthful documents, and keep a clear record.</p><span className="status">External submission OFF</span></div></aside>
-    <main><header><div className="eyebrow">LOCAL FIRST · USER TESTING</div><div className="header-row"><h1>{tab==='Jobs'?'Find your next opportunity.':tab==='Profile'?'Your experience, in your words.':tab==='Sources'?'Choose where to look.':tab==='Applications'?'Every application, accounted for.':'See what is happening.'}</h1><span className={'status '+(ready?.status==='ready'?'good':'warn')}>{ready?.status==='ready'?'Services ready':'Services '+(ready?.status||'checking')}</span></div><div className="profile-switch"><label htmlFor="active-profile">Active profile</label><select id="active-profile" disabled={!!busy} value={profileId} onChange={e=>switchProfile(e.target.value)}><option value="">Select a profile</option>{profiles.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select><button className="quiet" disabled={!!busy} onClick={()=>{++editorSequence.current;switchProfile('');profileBaselineRef.current=null;setEditor(newProfile());setTab('Profile');}}>New profile</button></div></header>
+    <aside className="sidebar"><a className="brand" href="/">M<span>Jobs</span><small>YOUR LOCAL WORKSPACE</small></a><nav aria-label="Main navigation">{(['Jobs','Profile','Sources','Applications','AI Settings','Activity'] as Tab[]).map(item=><button key={item} aria-current={tab===item?'page':undefined} onClick={()=>setTab(item)}>{item}<span>{item==='Jobs'?jobs.length:item==='Applications'?apps.length:''}</span></button>)}</nav><div className="side-note"><strong>Built around your facts.</strong><p>Discover opportunities, prepare truthful documents, and keep a clear record.</p><span className="status">External submission OFF</span></div></aside>
+    <main><header><div className="eyebrow">LOCAL FIRST · USER TESTING</div><div className="header-row"><h1>{tab==='Jobs'?'Find your next opportunity.':tab==='Profile'?'Your experience, in your words.':tab==='Sources'?'Choose where to look.':tab==='Applications'?'Every application, accounted for.':tab==='AI Settings'?'Choose models by task.':'See what is happening.'}</h1><span className={'status '+(ready?.status==='ready'?'good':'warn')}>{ready?.status==='ready'?'Services ready':'Services '+(ready?.status||'checking')}</span></div><div className="profile-switch"><label htmlFor="active-profile">Active profile</label><select id="active-profile" disabled={!!busy} value={profileId} onChange={e=>switchProfile(e.target.value)}><option value="">Select a profile</option>{profiles.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select><button className="quiet" disabled={!!busy} onClick={()=>{++editorSequence.current;switchProfile('');profileBaselineRef.current=null;setEditor(newProfile());setTab('Profile');}}>New profile</button></div></header>
       <div className="safety">Real applications require your own manual review and submission. This workspace cannot submit to an external employer.</div>
       {error&&<div role="alert" className="alert"><strong>Action needs attention</strong><p>{error}</p></div>}
       {notice&&<div role="status" className="notice">{notice}</div>}
       {busy&&<div role="status" className="notice">{busy}… {activeOp&&<button className="quiet" onClick={()=>void api('/operations/'+activeOp+'/cancel',{method:'POST'}).then(()=>setNotice('Cancellation requested.')).catch(e=>setError(String(e)))}>Cancel operation</button>}</div>}
+      {tab==='AI Settings'&&<section className="panel" aria-label="AI task settings"><div className="toolbar"><div><h2>AI task configuration</h2><p>Choose a provider and model independently for each task and profile.</p></div></div><p className="muted">All tasks start disabled. Ollama uses the configured loopback-only local service. Saving a selection does not make a model call. Credentials are not accepted or stored.</p>{!profileId&&<p className="muted">Select a profile to view and save its AI settings.</p>}{aiSettingsLoading&&<p role="status">Loading AI task settings…</p>}<div className="ai-task-settings">{aiTaskRows.map(({key,label})=><fieldset className="fact" key={key}><legend>{label}</legend><div className="two-col"><label>{label} provider<select aria-label={`${label} provider`} disabled={!!busy||!profileId||aiSettingsLoading} value={aiTaskSettings[key].provider} onChange={event=>setAITaskProvider(key,event.target.value as AIProviderChoice)}><option value="disabled">Disabled</option><option value="ollama">Ollama (local)</option></select></label><label>{label} model<input aria-label={`${label} model`} maxLength={128} disabled={!!busy||!profileId||aiSettingsLoading||aiTaskSettings[key].provider==='disabled'} value={aiTaskSettings[key].model||''} onChange={event=>setAITaskModel(key,event.target.value)} placeholder="For example, llama3.2:3b"/></label></div></fieldset>)}</div><button className="primary" type="button" disabled={!!busy||!profileId||aiSettingsLoading} onClick={()=>void action('Saving AI task settings',saveAITaskSettings)}>Save AI task settings</button></section>}
       {tab==='Jobs'&&<>
         <div className="toolbar"><p>{jobs.length} stored opportunities <span className="muted">· matching uses approved facts</span></p><div><button disabled={!!busy} onClick={()=>setManualCaptureOpen(value=>!value)}>{manualCaptureOpen?'Close capture':'Capture a job'}</button>{' '}<button disabled={!!busy||!profileId} onClick={()=>void action('Refreshing matches',async()=>{await queue('/matches',request());})}>Refresh matches</button></div></div>
         {!profileId&&<section className="welcome"><h2>Start with a profile.</h2><p>{operationMode==='FIXTURE'?'Add your own sourced career facts, or explore the flow with fictional demo data.':'Add your own sourced career facts to begin.'}</p><button className="primary" onClick={()=>setTab('Profile')}>Set up my profile</button> {operationMode==='FIXTURE'&&<button disabled={!!busy} onClick={()=>void action('Loading fictional demo',demo)}>Load fictional demo</button>}</section>}

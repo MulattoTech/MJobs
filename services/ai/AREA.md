@@ -19,10 +19,13 @@ Owns provider-neutral AI contracts and explicitly configured model integrations 
 
 - Public provider contract/factory: `services/ai/providers`.
 - Task configuration/router: `services/ai/tasks.py`.
+- Profile-scoped persisted task selections: `packages/persistence/store.py`, exposed by `/profiles/{profile_id}/ai-task-settings`.
 - Contract tests: `tests/unit/test_disabled_ai_provider.py`, `tests/unit/test_ai_task_configuration.py`.
 - Higher-level matching behavior belongs in `services/matching`; provider-specific transport belongs in a provider implementation.
 
 `AITaskConfiguration.from_mapping` accepts a task-keyed mapping of non-secret `provider` and `model` identifiers. Omitted task entries default to `disabled`; `AITaskRouter` passes the selected model only to the selected provider. The default factory rejects providers that do not yet exist, so configuration cannot imply that an unavailable remote model works.
+
+Users can read and save a complete seven-task selection for the active profile in AI Settings. Missing selections resolve to disabled; currently registered choices are disabled and loopback-only Ollama. The durable table stores only provider and model identifiers, never endpoint credentials or prompts. The API validates all settings before the atomic save, and the UI reloads settings when the active profile changes.
 
 `AICostPolicy` applies a configurable minimum deterministic score and per-batch ceilings after stable identity deduplication. It bounds input iteration, rejects conflicting duplicate identities, selects at most the configured AI candidates, and permits document candidates only when they carry an explicit review flag. The planner performs no provider calls or document generation. No production matching pipeline currently consumes it; configuration persistence and caller wiring remain open under `MJ-REQ-110`.
 

@@ -12,6 +12,9 @@ Production startup refuses PERSONAL mode if the database contains mock routes.
 canonical job, posting snapshot, application route and audit records. It never
 fetches the supplied URLs; retries require the same request key and content,
 while a new key creates a distinct record.
+`GET/PUT /profiles/{profile_id}/ai-task-settings` reads and persists non-secret
+provider/model choices per profile. Invalid selections fail closed without
+echoing submitted credentials or malformed values.
 Depends on domain/services/persistence; browser work belongs in workers. Contact
 and facts are bounded and strict; cross-origin mutations are rejected; default
 deployment publishes only localhost. Test: python -m unittest

@@ -8,3 +8,6 @@ The Jobs view exposes explicit manual capture with an exact description, saved
 reference/application links, preserved extra source fields and a visible
 no-fetch explanation. Captured jobs use the existing canonical detail and
 document-preparation path; their user-entered source identity is unverified.
+AI Settings exposes independent provider/model selections for each AI task,
+loads and saves them through the profile-scoped API, and keeps all tasks
+disabled until the user explicitly saves a local provider choice.

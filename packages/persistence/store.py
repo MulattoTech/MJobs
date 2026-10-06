@@ -265,6 +265,40 @@ class Store:
         with self.engine.connect() as connection:
             return [dict(row) for row in connection.execute(select(m.profiles).order_by(m.profiles.c.name)).mappings()]
 
+    def ai_task_settings(self, profile_id):
+        """Return explicitly stored non-secret selections for one existing profile."""
+        self.profile(profile_id)
+        with self.engine.connect() as connection:
+            rows = connection.execute(
+                select(m.ai_task_settings.c.task, m.ai_task_settings.c.provider,
+                       m.ai_task_settings.c.model)
+                .where(m.ai_task_settings.c.profile_id == profile_id)
+                .order_by(m.ai_task_settings.c.task)
+            ).mappings()
+            return {row["task"]: {"provider": row["provider"], "model": row["model"]}
+                    for row in rows}
+
+    def save_ai_task_settings(self, profile_id, selections):
+        """Persist a validated task-keyed mapping atomically for one profile."""
+        self.profile(profile_id)
+        if not isinstance(selections, dict):
+            raise ValueError("AI_TASK_CONFIG_INVALID")
+        timestamp = now()
+        with self.engine.begin() as connection:
+            for task, selection in selections.items():
+                if (not isinstance(task, str) or not isinstance(selection, dict)
+                        or set(selection) != {"provider", "model"}):
+                    raise ValueError("AI_TASK_CONFIG_INVALID")
+                upsert(connection, m.ai_task_settings, {
+                    "id": identity(profile_id, task),
+                    "profile_id": profile_id,
+                    "task": task,
+                    "provider": selection["provider"],
+                    "model": selection["model"],
+                    "updated_at": timestamp,
+                }, replace=True)
+        return self.ai_task_settings(profile_id)
+
     def jobs(self, profile_id=None, q="", remote_type=None, provider=None, sort="score", limit=200):
         profile = self.profile(profile_id) if profile_id else None
         with self.engine.connect() as connection:

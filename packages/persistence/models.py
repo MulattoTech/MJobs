@@ -16,6 +16,19 @@ profiles = table("career_profiles", Column("name", String(200), nullable=False),
                  Column("email", String(320), nullable=False), Column("version", String(64), nullable=False))
 profile_versions = table("profile_versions", Column("profile_id", ForeignKey("career_profiles.id"), nullable=False),
                          Column("version", String(64), nullable=False), Column("contact", JSON, nullable=False), Column("answers", JSON, nullable=False))
+ai_task_settings = table(
+    "profile_ai_task_settings",
+    Column("profile_id", ForeignKey("career_profiles.id", ondelete="CASCADE"), nullable=False),
+    Column("task", String(64), nullable=False),
+    Column("provider", String(32), nullable=False),
+    Column("model", String(128)),
+    Column("updated_at", String(64), nullable=False),
+    constraints=(UniqueConstraint("profile_id", "task",
+                                  name="uq_profile_ai_task_settings_profile_task"),
+                 CheckConstraint("(provider = 'disabled' AND model IS NULL) OR "
+                                 "(provider <> 'disabled' AND model IS NOT NULL)",
+                                 name="ck_profile_ai_task_provider_model")),
+)
 facts = table("career_facts", Column("profile_id", ForeignKey("career_profiles.id"), nullable=False),
               Column("version", String(64), nullable=False), Column("fact_id", String(128), nullable=False),
               Column("kind", String(32), nullable=False), Column("text", String(10000), nullable=False),

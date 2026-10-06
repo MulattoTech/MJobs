@@ -10,6 +10,8 @@ from typing import Literal, Annotated
 from urllib.parse import unquote
 
 from fastapi import FastAPI, HTTPException, Request, Query
+from fastapi.exception_handlers import request_validation_exception_handler
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -32,6 +34,8 @@ from services.dedupe.reviews import list_duplicate_reviews, record_review_decisi
 from services.dedupe.routes import load_job_routes, list_route_choices, plan_application_routes, source_provenance_inventory
 from services.company_discovery.triggers import queue_company_discovery
 from services.applications.knowledge import application_adapter_knowledge
+from services.ai.providers import AIProviderError, create_provider
+from services.ai.tasks import AI_TASKS, AITaskConfiguration
 from services.company_discovery.public_client import PublicFetchError
 from services.company_discovery.sources import (list_company_job_sources, set_company_source_watch,
     list_company_source_view, set_company_source_pin, set_company_source_enabled)
@@ -68,6 +72,13 @@ class ProfileInput(BaseModel):
     expected_version: str | None = Field(default=None, min_length=64, max_length=64)
     contact: ContactDetails = Field(default_factory=ContactDetails)
     preferences: JobPreferences = Field(default_factory=JobPreferences)
+
+
+class AITaskSettingsInput(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+    # Validate nested keys/values through AITaskConfiguration so FastAPI's
+    # default validation response cannot echo a rejected credential value.
+    tasks: dict[str, dict[str, object]] = Field(max_length=16)
 
 
 class DiscoveryInput(BaseModel):
@@ -343,6 +354,12 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             return JSONResponse({"detail": {"code": error.code, "message": str(error)}}, status_code=422)
         return JSONResponse({"detail": str(error)}, status_code=422)
 
+    @app.exception_handler(RequestValidationError)
+    async def validation_error(request: Request, error: RequestValidationError):
+        if request.url.path.startswith("/profiles/") and request.url.path.endswith("/ai-task-settings"):
+            return JSONResponse({"detail": {"code": "AI_TASK_CONFIG_INVALID"}}, status_code=422)
+        return await request_validation_exception_handler(request, error)
+
     @app.exception_handler(NoResultFound)
     async def missing(_, error):
         return JSONResponse({"detail": "Entity not found"}, status_code=404)
@@ -402,6 +419,42 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     @app.get("/profiles/{profile_id}")
     def profile_read(profile_id: str):
         return store.profile(profile_id)
+
+    @app.get("/profiles/{profile_id}/ai-task-settings")
+    def ai_task_settings(profile_id: str):
+        configured = store.ai_task_settings(profile_id)
+        configuration = AITaskConfiguration.from_mapping(configured)
+        return {"profile_id": profile_id, "tasks": {
+            task: {"provider": configuration.for_task(task).provider,
+                   "model": configuration.for_task(task).model}
+            for task in AI_TASKS
+        }}
+
+    @app.put("/profiles/{profile_id}/ai-task-settings")
+    def save_ai_task_settings(profile_id: str, value: AITaskSettingsInput):
+        try:
+            configuration = AITaskConfiguration.from_mapping({
+                task: selection for task, selection in value.tasks.items()
+            })
+        except ValueError as error:
+            raise HTTPException(422, {"code": str(error)}) from None
+        for task in AI_TASKS:
+            selection = configuration.for_task(task)
+            if selection.provider == "disabled":
+                continue
+            try:
+                create_provider(selection.provider)
+            except AIProviderError as error:
+                raise HTTPException(422, {"code": error.code}) from None
+            except ValueError as error:
+                raise HTTPException(422, {"code": str(error)}) from None
+        selections = {
+            task: {"provider": configuration.for_task(task).provider,
+                   "model": configuration.for_task(task).model}
+            for task in AI_TASKS
+        }
+        saved = store.save_ai_task_settings(profile_id, selections)
+        return {"profile_id": profile_id, "tasks": saved}
 
     @app.put("/profiles")
     def profile(value: ProfileInput):
