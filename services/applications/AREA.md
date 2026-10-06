@@ -17,6 +17,10 @@ after the SUBMITTING reservation but before the irreversible submit click. The
 worker exposes remaining seconds from that same monotonic deadline; browser
 launch, navigation, every waiting locator action, Submit, and confirmation wait
 are capped by the smaller of the remaining budget and their existing action cap.
+Questionnaire preflight and receipt HTTP reads use the same operation check, so
+an active GET can close on cancellation or deadline. If receipt verification is
+cut short after a SUBMITTING reservation, persist SUBMISSION_UNCONFIRMED and
+never retry submission.
 The cancel API rejects cancellation after the reservation and requests
 reconciliation. A missing post-click receipt remains SUBMISSION_UNCONFIRMED;
 the browser does not blindly retry.

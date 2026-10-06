@@ -44,6 +44,12 @@ def _receipt(client, application, requisition):
         receipt = client.get(client.origin + "/ats/receipts/" + application["id"]).json()
     except (httpx.HTTPError, ValueError):
         return None
+    except Exception:
+        try:
+            client.check()
+        except Exception:
+            return None
+        raise
     if (isinstance(receipt, dict) and receipt.get("application_id") == application["id"] and receipt.get("requisition") == requisition
             and isinstance(receipt.get("receipt"), str) and receipt["receipt"].startswith("MOCK-")):
         return receipt
@@ -125,7 +131,7 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
     check = check or (lambda: None)
     if type(submit) is not bool:
         raise ValueError("Mock submission selection must be explicit boolean")
-    client = MockClient(mock_origin)
+    client = MockClient(mock_origin, check=check)
     try:
         application = store.application(application_id)
         with store.engine.connect() as connection:

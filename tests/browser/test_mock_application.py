@@ -115,6 +115,35 @@ class MockApplicationTests(unittest.TestCase):
             self.assertTrue(all(0 < timeout <= 250 for timeout in launch_timeouts))
             self.assertEqual(httpx.get(origin + '/ats/receipts/' + app_id).json()['submission_count'], 1)
 
+    def test_preflight_http_requests_use_the_worker_operation_check(self):
+        from unittest.mock import patch
+
+        with fixture_server() as origin:
+            app_id = self.prepared(origin)
+            check_calls = 0
+
+            def check():
+                nonlocal check_calls
+                check_calls += 1
+
+            check.remaining_seconds = lambda: 30
+            request_check_counts = []
+            original_get = MockClient.get
+
+            def record_request_checks(client, url):
+                before = check_calls
+                response = original_get(client, url)
+                if "/ats/questions/" in url:
+                    request_check_counts.append(check_calls - before)
+                return response
+
+            with patch.object(MockClient, "get", record_request_checks):
+                result = apply_mock(self.store, app_id, origin, self.root, check=check)
+
+            self.assertEqual(result["state"], "DRY_RUN_COMPLETE")
+            self.assertEqual(len(request_check_counts), 2)
+            self.assertTrue(all(count >= 1 for count in request_check_counts), request_check_counts)
+
     def test_uncertain_submission_without_receipt_does_not_retry(self):
         with fixture_server() as origin:
             app_id = self.prepared(origin)
