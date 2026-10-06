@@ -80,6 +80,22 @@ class GreenhouseTests(unittest.TestCase):
             self.assertLessEqual(timeout.connect, 0.125)
             self.assertLessEqual(timeout.read, 0.125)
 
+    def test_response_body_deadline_is_capped_by_remaining_worker_budget(self):
+        class SlowBody(httpx.SyncByteStream):
+            def __iter__(self):
+                time.sleep(0.05)
+                yield b"{}"
+
+        budgets = iter((10, 0.01))
+        check = lambda: None
+        check.remaining_seconds = lambda: next(budgets)
+        transport = httpx.MockTransport(lambda _: httpx.Response(
+            200, headers={"content-type": "application/json"}, stream=SlowBody()))
+        adapter = Greenhouse("example", transport=transport, check=check, request_timeout=10)
+
+        with self.assertRaisesRegex(ValueError, "SOURCE_TIME_LIMIT"):
+            adapter._get("/jobs")
+
     def test_per_source_concurrency_bounds_parallel_read_requests(self):
         def maximum_in_flight(concurrency):
             active = 0
