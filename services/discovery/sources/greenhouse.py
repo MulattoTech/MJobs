@@ -60,7 +60,7 @@ class Greenhouse:
         self.request_timeout = request_timeout
         self.rate_limit = rate_limit
         self.concurrency = concurrency
-        self._last_request = 0.0
+        self._last_request = None
         self.status = "NOT_CHECKED"
 
     def capabilities(self):
@@ -85,10 +85,8 @@ class Greenhouse:
 
     def _request(self, suffix, params=None):
         self.check()
-        if self.transport is None and self._last_request:
-            wait = (60 / self.rate_limit) - (time.monotonic() - self._last_request)
-            if wait > 0:
-                time.sleep(wait)
+        if self.transport is None:
+            self._wait_for_rate_limit()
         self._last_request = time.monotonic()
         path = "/v1/boards/" + self.tenant + suffix
         with httpx.Client(timeout=self.request_timeout, follow_redirects=False, trust_env=False, transport=self.transport,
@@ -121,6 +119,17 @@ class Greenhouse:
                     raise SourceError("SOURCE_INVALID_JSON") from error
                 self.status = "HEALTHY"
                 return payload
+
+    def _wait_for_rate_limit(self):
+        if self._last_request is None:
+            return
+        interval = 60 / self.rate_limit
+        wait = interval - (time.monotonic() - self._last_request)
+        while wait > 0:
+            self.check()
+            time.sleep(min(wait, 0.25))
+            wait = interval - (time.monotonic() - self._last_request)
+        self.check()
 
     def search(self):
         board = self._get("")

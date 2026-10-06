@@ -18,6 +18,7 @@ from services.discovery.sources.greenhouse import Greenhouse
 from services.discovery.sources.collect import configure_source, collect_source, persist_posting
 from services.discovery.sources.registry import source_adapter
 from tests.integration.test_spine import PROFILE
+from workers.operations import OperationCancelled, OperationTimedOut
 
 RAW = {"id": 1234, "internal_job_id": 5678, "title": "Python Engineer", "location": {"name": "Remote - United States"},
        "content": "&lt;p&gt;Build services with Python and SQL. &lt;script&gt;attack()&lt;/script&gt;&lt;/p&gt;",
@@ -270,3 +271,62 @@ class GreenhouseTests(unittest.TestCase):
         configure_source(self.store, "example", enabled=True)
         with self.assertRaisesRegex(ValueError, "SOURCE_BACKOFF"):
             collect_source(self.store, source, "fixture", transport=httpx.MockTransport(lambda _: self.fail("No request during provider backoff")))
+
+    def test_cancellation_during_rate_wait_prevents_the_next_request(self):
+        network_requests = []
+        check_count = [0]
+        clock = [0.0]
+
+        def check():
+            check_count[0] += 1
+            if check_count[0] >= 2:
+                raise RuntimeError("CANCEL_REQUESTED")
+
+        adapter = Greenhouse("example", check=check, request_timeout=2, rate_limit=1)
+        adapter._last_request = 0.0
+
+        def sleep(seconds):
+            clock[0] += seconds
+
+        with patch("services.discovery.sources.greenhouse.time.monotonic", side_effect=lambda: clock[0]), \
+                patch("services.discovery.sources.greenhouse.time.sleep", side_effect=sleep), \
+                patch("services.discovery.sources.greenhouse.httpx.Client",
+                      side_effect=lambda *args, **kwargs: network_requests.append((args, kwargs))), \
+                self.assertRaisesRegex(RuntimeError, "CANCEL_REQUESTED"):
+            adapter._request("/jobs")
+
+        self.assertEqual(network_requests, [])
+
+    def _assert_local_stop_preserves_provider_health_and_failure_history(self, stop_type):
+        source_id = configure_source(self.store, "example", rate_limit=1, jitter_seconds=0)
+        checks = [0]
+
+        def check():
+            checks[0] += 1
+            if checks[0] >= 3:
+                raise stop_type("local operation stopped")
+
+        adapter = Greenhouse("example", check=check, rate_limit=1)
+        adapter._last_request = 0.0
+        with patch("services.discovery.sources.collect.source_adapter", return_value=adapter), \
+                patch("services.discovery.sources.greenhouse.time.monotonic", return_value=0.0), \
+                patch("services.discovery.sources.greenhouse.time.sleep") as sleep, \
+                self.assertRaises(stop_type):
+            collect_source(self.store, source_id, "fixture", check=check)
+
+        sleep.assert_not_called()
+        with self.store.engine.connect() as connection:
+            source = dict(connection.execute(select(m.job_sources).where(m.job_sources.c.id == source_id)).mappings().one())
+            observations = list(connection.execute(select(m.source_quality_observations).where(
+                m.source_quality_observations.c.configured_source_id == source_id)))
+        self.assertEqual(source["health_status"], "NOT_CHECKED")
+        self.assertEqual(source["consecutive_failures"], 0)
+        self.assertIsNone(source["last_error"])
+        self.assertIsNone(source["backoff_until"])
+        self.assertEqual(observations, [])
+
+    def test_cancelled_collection_preserves_provider_health_and_failure_history(self):
+        self._assert_local_stop_preserves_provider_health_and_failure_history(OperationCancelled)
+
+    def test_timed_out_collection_preserves_provider_health_and_failure_history(self):
+        self._assert_local_stop_preserves_provider_health_and_failure_history(OperationTimedOut)

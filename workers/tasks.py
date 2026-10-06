@@ -1,6 +1,7 @@
 """One durable operation claim per job, with sanitized failure persistence."""
 import os
 from pathlib import Path
+import time
 
 from sqlalchemy import select, update
 
@@ -16,7 +17,7 @@ from services.discovery.sources.collect import collect_source
 from services.discovery.sources.greenhouse import SourceError
 from services.discovery.matching import recalculate
 from services.documents.generate import prepare, PreparationError
-from workers.operations import claim, check_cancelled, OperationCancelled, timeout
+from workers.operations import claim, check_cancelled, OperationCancelled, OperationTimedOut, timeout
 
 
 class FixtureOperationDisabled(Exception):
@@ -32,8 +33,14 @@ def execute_operation(operation_id):
         if operation is None:
             return {"status": "ALREADY_CLAIMED_OR_CAPACITY"}
         try:
+            deadline = time.monotonic() + timeout()
+
+            def check():
+                check_cancelled(store, operation_id)
+                if time.monotonic() >= deadline:
+                    raise OperationTimedOut("OPERATION_TIMEOUT")
+
             origin = os.environ.get("MJOBS_MOCK_ORIGIN", "")
-            check = lambda: check_cancelled(store, operation_id)
             check()
             state, error = "COMPLETED", None
             if operation_mode == "PERSONAL":
@@ -118,6 +125,14 @@ def execute_operation(operation_id):
                     state, error = "BLOCKED", application["state"]
             else:
                 raise ValueError("Unsupported operation")
+            # A completed synchronous stage may omit an internal checkpoint. Do
+            # not report success after the operation budget expires. Application
+            # confirmation is already authoritative and must remain visible.
+            if (operation["kind"] != "APPLY_MOCK"
+                    or application["state"] not in ("CONFIRMED", "SUBMISSION_UNCONFIRMED")):
+                check()
+        except OperationTimedOut:
+            state, error = "FAILED", "OPERATION_TIMEOUT"
         except OperationCancelled:
             state, error = "CANCELLED", "CANCEL_REQUESTED"
         except PublicFetchError as failure:

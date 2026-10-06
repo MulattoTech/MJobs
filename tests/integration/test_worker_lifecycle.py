@@ -2,6 +2,7 @@
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 import tempfile
+import time
 import unittest
 from unittest.mock import patch
 
@@ -66,6 +67,25 @@ class WorkerLifecycleTests(unittest.TestCase):
         self.assertTrue(request_cancel(self.store, other)["cancel_requested"])
         with self.assertRaises(OperationCancelled):
             check_cancelled(self.store, other)
+
+    def test_over_budget_worker_is_not_recorded_completed(self):
+        operation = enqueue_operation(self.store, "DISCOVER", "fixture", {"rescore_only": True})
+        def slow_recalculate(*_args, **_kwargs):
+            time.sleep(0.02)
+
+        with patch.dict("os.environ", MJOBS_DATABASE_URL=self.store.url,
+                        MJOBS_MOCK_ORIGIN="http://127.0.0.1:8090", MJOBS_OUTPUT_DIR=str(self.root),
+                        MJOBS_OPERATION_MODE="FIXTURE"), \
+                patch("workers.tasks.recalculate", side_effect=slow_recalculate), \
+                patch("workers.tasks.timeout", return_value=0.01), \
+                patch("workers.tasks.check_cancelled"):
+            result = execute_operation(operation)
+
+        self.assertEqual(result["status"], "FAILED")
+        self.assertEqual(result["error_category"], "OPERATION_TIMEOUT")
+        saved = self.read(operation)
+        self.assertEqual(saved["state"], "FAILED")
+        self.assertEqual(saved["error"], "OPERATION_TIMEOUT")
 
     def application_operation(self):
         with fixture_server() as origin:

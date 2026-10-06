@@ -17,6 +17,10 @@ class OperationCancelled(Exception):
     """Cooperative stop before an irreversible submission reservation."""
 
 
+class OperationTimedOut(TimeoutError):
+    """The worker operation exceeded its configured monotonic time budget."""
+
+
 def timeout():
     seconds = int(os.environ.get("MJOBS_OPERATION_TIMEOUT", "180"))
     if not 30 <= seconds <= 600:

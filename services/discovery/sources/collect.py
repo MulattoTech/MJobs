@@ -209,6 +209,19 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
         return {"source_id": source_id, "jobs_seen": len(normalized), "rejected": rejected,
                 "strategy": strategy, "direct_application": direct_application}
     except Exception as failure:
+        from workers.operations import OperationCancelled, OperationTimedOut
+        if isinstance(failure, (OperationCancelled, OperationTimedOut)):
+            # A local budget stop is not evidence that the provider failed.
+            # Restore the last observed health and failure metadata instead of
+            # poisoning source availability or imposing provider backoff.
+            with store.engine.begin() as connection:
+                connection.execute(update(m.job_sources).where(m.job_sources.c.id == source_id).values(
+                    health_status=source["health_status"],
+                    consecutive_failures=source["consecutive_failures"],
+                    last_error=source["last_error"],
+                    backoff_until=source["backoff_until"],
+                ))
+            raise
         # Only external fetch failures count against availability. Cancellation,
         # DB failures and local programming errors are not evidence of an outage.
         if available is None and (isinstance(failure, httpx.HTTPError) or isinstance(failure, SourceError)
