@@ -1,5 +1,6 @@
 """Bounded public-company HTTPS transport policy tests."""
 import socket
+import threading
 import time
 import unittest
 from unittest.mock import patch
@@ -75,6 +76,66 @@ class PublicCompanyClientTests(unittest.TestCase):
                 (socket.AF_INET, socket.SOCK_STREAM, 6, "", ("10.0.0.2", 443))]):
                 with self.assertRaisesRegex(PublicFetchError, "DNS_PRIVATE"):
                     client._resolve("example.test", 443)
+        finally:
+            client.close()
+
+    def test_dns_resolution_observes_operation_cancellation_while_lookup_is_pending(self):
+        client = PublicCompanyClient("https://example.test/jobs")
+        lookup_started = threading.Event()
+        finish_lookup = threading.Event()
+        cancelled = threading.Event()
+        errors = []
+
+        def blocked_lookup(*_args, **_kwargs):
+            lookup_started.set()
+            finish_lookup.wait(timeout=2)
+            return [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("8.8.8.8", 443))]
+
+        def check_cancelled():
+            if cancelled.is_set():
+                raise RuntimeError("operation cancelled")
+
+        client.check = check_cancelled
+
+        def resolve():
+            try:
+                client._resolve("example.test", 443, timeout=2)
+            except Exception as error:
+                errors.append(error)
+
+        thread = threading.Thread(target=resolve)
+        try:
+            with patch("services.company_discovery.public_client.socket.getaddrinfo", side_effect=blocked_lookup):
+                thread.start()
+                self.assertTrue(lookup_started.wait(timeout=1), "DNS lookup did not start")
+                cancelled.set()
+                thread.join(timeout=0.3)
+                self.assertFalse(thread.is_alive(), "DNS wait ignored operation cancellation")
+            self.assertEqual(len(errors), 1)
+            self.assertIsInstance(errors[0], RuntimeError)
+            self.assertEqual(str(errors[0]), "operation cancelled")
+        finally:
+            finish_lookup.set()
+            thread.join(timeout=1)
+            client.close()
+
+    def test_dns_resolution_preserves_worker_deadline_exception(self):
+        deadline_error = TimeoutError("operation deadline reached")
+        checks = 0
+
+        def check_deadline():
+            nonlocal checks
+            checks += 1
+            if checks == 2:
+                raise deadline_error
+
+        client = PublicCompanyClient("https://example.test/jobs", check=check_deadline)
+        answer = [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("8.8.8.8", 443))]
+        try:
+            with patch("services.company_discovery.public_client.socket.getaddrinfo", return_value=answer):
+                with self.assertRaises(TimeoutError) as caught:
+                    client._resolve("example.test", 443)
+            self.assertIs(caught.exception, deadline_error)
         finally:
             client.close()
 

@@ -26,6 +26,7 @@ MAX_REDIRECTS = 3
 MAX_REQUESTS = 20
 REQUEST_TIMEOUT = 10.0
 DEADLINE = 30.0
+DNS_POLL_INTERVAL = 0.05
 MIN_REQUEST_INTERVAL = 1.0
 USER_AGENT = "MJobs/1.0 (+public-company-discovery)"
 _DNS_EXECUTOR = ThreadPoolExecutor(max_workers=4, thread_name_prefix="mjobs-public-dns")
@@ -142,13 +143,26 @@ class PublicCompanyClient:
             _DNS_SLOTS.release()
             raise PublicFetchError("DNS_FAILED")
         future.add_done_callback(lambda _: _DNS_SLOTS.release())
+        deadline = time.monotonic() + timeout
         try:
-            answers = future.result(timeout=timeout)
-        except FutureTimeout:
+            while True:
+                self._check()
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    future.cancel()
+                    raise PublicFetchError("DNS_TIMEOUT")
+                try:
+                    answers = future.result(timeout=min(DNS_POLL_INTERVAL, remaining))
+                    break
+                except FutureTimeout:
+                    if future.done():
+                        raise PublicFetchError("DNS_TIMEOUT")
+                except OSError as error:
+                    raise PublicFetchError("DNS_FAILED") from error
+            self._check()
+        except Exception:
             future.cancel()
-            raise PublicFetchError("DNS_TIMEOUT")
-        except OSError:
-            raise PublicFetchError("DNS_FAILED")
+            raise
         addresses = []
         seen = set()
         for answer in answers:
