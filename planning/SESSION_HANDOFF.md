@@ -1,12 +1,12 @@
-# Active local-only implementation checkpoint — 2026-10-06T11:48Z
+# Active local-only implementation checkpoint — 2026-10-06T11:51Z
 
 The current authorization remains sustained local-only issue implementation from synchronized `main`, one writer/integration lane, local deterministic tests/browser/database checks, Git operations and issue updates. GitHub Actions/hosted review remain disabled; external application submission stays OFF.
 
-Current base and `origin/main`: `53e2239af5fba1428b91dfdc6feef148a7c84ce4`. Active issue #5 / MJ-REQ-004 candidate `e57c1759cd75dd453bbe0284325aee3d3174eb1d` is pushed on `codex/req004-bound-ops-20261006`, locally verified and pending safe non-force fast-forward integration. Evidence: `docs/evidence/2026-10-06-resume-extraction-cancellation.json`. The slice adds profile/resume-scoped **Cancel extraction**, propagates cancellation through native PDF/DOCX and active OCR child processes, and kills/reaps children while keeping operation deadlines and private diagnostics bounded.
+Current issue #5 cancellation slice is integrated: source `e57c1759cd75dd453bbe0284325aee3d3174eb1d` and evidence/planning receipt `f9649d9ae374a31203d6cc2774d7ac47f4e4376b`; local and origin main matched at integration. GitHub issue #5 comment/readback remains OPEN (https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6015630443). Evidence: `docs/evidence/2026-10-06-resume-extraction-cancellation.json`. The slice adds profile/resume-scoped **Cancel extraction**, propagates cancellation through native PDF/DOCX and active OCR child processes, and kills/reaps children while keeping operation deadlines and private diagnostics bounded.
 
 Verification: 56 focused extraction/API/browser tests; 36 browser tests; 688 full Python tests PASS with one optional PostgreSQL skip; 62 frontend tests/build; local skill/catalogue/progress/diff validators; isolated no-network Poppler/Tesseract API/Chromium acceptance and actual OCR child cancellation PASS. One initial full-suite `CompanyDiscoveryRequestsBrowserTests` shutdown assertion passed alone, in all browser tests and same-source full rerun.
 
-Broad MJ-REQ-004 and issue #5 remain PARTIAL/OPEN; real ATS/AI provider paths and complete all-category timeout/output/retry/error policy remain open. Requirement/reference denominators remain 366/59. After integration, verify GitHub issue #5 stays OPEN and continue with the next highest-value local operation boundary.
+Broad MJ-REQ-004 and issue #5 remain PARTIAL/OPEN; real ATS/AI provider paths and complete all-category timeout/output/retry/error policy remain open. Requirement/reference denominators remain 366/59. Continue auditing the next highest-value locally implementable operation boundary.
 
 Historical entries below are preserved and never override live Git/GitHub state.
 
