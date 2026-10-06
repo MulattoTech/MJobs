@@ -4,7 +4,7 @@
   "github_issue": 111,
   "result": "PARTIAL",
   "scope": "Profile-scoped persisted deterministic AI-work thresholds and caps, connected settings UI, and a no-call preview over stored match scores. Does not claim a production model consumer.",
-  "observed_at_utc": "2026-10-06T20:41:56Z",
+  "observed_at_utc": "2026-10-06T20:44:57Z",
   "candidate": {
     "repository": "MulattoTech/MJobs",
     "branch": "codex/mj-req110-cost-settings-20261006",
@@ -138,6 +138,6 @@
   ],
   "reconciled_main_commit": "b9e689513251577fe5a369e90f23761f1f421acc",
   "integration_candidate_commit": "93e152dbff89c74b5075ce4df703c82cb4da8883",
-  "integrated_main_commit": null,
-  "github_issue_comment": null
+  "integrated_main_commit": "a6e6625651aebd8ee3d07cbb31a496195f29de65",
+  "github_issue_comment": "https://github.com/MulattoTech/MJobs/issues/111#issuecomment-6025101467"
 }

@@ -1,10 +1,10 @@
 # Active local-only implementation checkpoint — 2026-10-06
 
-Issue #111 / MJ-REQ-110 candidate `93e152dbff89c74b5075ce4df703c82cb4da8883` (tree `63235bb61bd1f4eba8c1257998f28d18a13e3ae1`) on `codex/mj-req110-cost-settings-20261006`, based on synchronized main `b9e689513251577fe5a369e90f23761f1f421acc`. Added durable profile-scoped AI-work thresholds, an AI Settings UI and a read-only preview over deterministic match scores. Caps default to score 75, 5,000 jobs scanned, 75 AI candidates and 20 reviewed-document candidates; users may lower but not raise the 75/20 ceilings. Unscored jobs remain unknown; preview makes no provider calls or documents.
+Issue #111 / MJ-REQ-110 integrated at synchronized main `a6e6625651aebd8ee3d07cbb31a496195f29de65` from candidate `93e152dbff89c74b5075ce4df703c82cb4da8883` (tree `63235bb61bd1f4eba8c1257998f28d18a13e3ae1`), based on `b9e689513251577fe5a369e90f23761f1f421acc`. Added durable profile-scoped AI-work thresholds, an AI Settings UI and a read-only preview over deterministic match scores. Caps default to score 75, 5,000 jobs scanned, 75 AI candidates and 20 reviewed-document candidates; users may lower but not raise the 75/20 ceilings. Unscored jobs remain unknown; preview makes no provider calls or documents.
 
-Validation on candidate: 346 unit, 384 integration (one optional PG skip), 38 browser, 62 frontend tests; frontend build; SQLite and disposable PostgreSQL 17 migration/API/reopen/downgrade-preservation checks; progress/catalogue/agent-skills/compile/diff PASS. Evidence: `docs/evidence/2026-10-06-ai-cost-controls-ui.json`. Issue remains OPEN/PARTIAL because no production task consumer, inference or document execution is claimed. Hosted checks NOT_RUN; external submission OFF.
+Validation on candidate: 346 unit, 384 integration (one optional PG skip), 38 browser, 62 frontend tests; frontend build; SQLite and disposable PostgreSQL 17 migration/API/reopen/downgrade-preservation checks; progress/catalogue/agent-skills/compile/diff PASS. Evidence: `docs/evidence/2026-10-06-ai-cost-controls-ui.json`. Issue remains OPEN/PARTIAL because no production task consumer, inference or document execution is claimed. GitHub readback: https://github.com/MulattoTech/MJobs/issues/111#issuecomment-6025101467. Hosted checks NOT_RUN; external submission OFF.
 
-Next: recheck live main/worktrees and safely fast-forward this exact candidate, comment/read back issue #111 OPEN/PARTIAL, then continue the active `MJ-PR-030` with a real review-gated task consumer.
+Next: continue active `MJ-PR-030` with a real review-gated task consumer. Preserve profile isolation, cost caps, truthfulness and external-submission-off gates; record missing provider inference as NOT_RUN.
 
 ---
 

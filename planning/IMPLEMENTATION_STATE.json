@@ -1,15 +1,15 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-06T20:41:56Z",
+  "generated_at": "2026-10-06T20:45:30Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Local main/origin main synchronized at b9e689513251577fe5a369e90f23761f1f421acc; issue #110 / MJ-REQ-109 settings integrated PARTIAL; issue #111 / MJ-REQ-110 cost-settings candidate 93e152dbff89c74b5075ce4df703c82cb4da8883 verified in isolated worktree, integration pending.",
-    "current_verified_github_state": "GitHub main remains b9e689513251577fe5a369e90f23761f1f421acc; issue #111 OPEN; Actions disabled, hosted checks NOT_RUN; cost-settings candidate pushed on codex/mj-req110-cost-settings-20261006.",
-    "current_verified_at": "2026-10-06T20:41:56Z"
+    "current_verified_local_state": "Local main/origin main synchronized at a6e6625651aebd8ee3d07cbb31a496195f29de65; issue #111 / MJ-REQ-110 profile-scoped bounded cost controls integrated with deterministic local evidence; requirement remains PARTIAL.",
+    "current_verified_github_state": "GitHub/local main synchronized at a6e6625651aebd8ee3d07cbb31a496195f29de65; issue #111 remains OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/111#issuecomment-6025101467; Actions disabled, hosted checks NOT_RUN.",
+    "current_verified_at": "2026-10-06T20:45:30Z"
   },
   "current_milestone": "MJ-REQ-110-PROFILE-COST-CONTROLS-LOCALLY-VERIFIED-PARTIAL-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
@@ -6797,12 +6797,14 @@
     },
     {
       "milestone_id": "MJ-REQ-110-PROFILE-COST-CONTROLS-LOCALLY-VERIFIED-PARTIAL-20261006",
-      "timestamp": "2026-10-06T20:41:56Z",
-      "current_phase": "Issue #111 / MJ-REQ-110 profile-scoped deterministic AI funnel policy and no-call preview locally verified at candidate 93e152dbff89c74b5075ce4df703c82cb4da8883; integration pending. No production AI consumer or inference is claimed.",
+      "timestamp": "2026-10-06T20:45:30Z",
+      "current_phase": "Issue #111 / MJ-REQ-110 profile-scoped cost controls and deterministic no-call preview integrated at synchronized main a6e6625651aebd8ee3d07cbb31a496195f29de65; issue remains OPEN/PARTIAL. Continue active MJ-PR-030 with a production review-gated task consumer; no live inference is claimed.",
       "completed_steps": [
         "Persisted profile-scoped deterministic AI threshold and caps with database constraints and safe defaults.",
         "Added connected settings UI and read-only funnel preview over stored match scores; missing scores remain unknown.",
-        "Verified cap/threshold failures do not echo submitted values and settings fail closed in the browser when reads fail."
+        "Verified cap/threshold failures do not echo submitted values and settings fail closed in the browser when reads fail.",
+        "Integrated source and evidence/planning by non-force fast-forward at synchronized local/GitHub main a6e6625651aebd8ee3d07cbb31a496195f29de65.",
+        "Read back GitHub issue #111 OPEN/PARTIAL after posting local evidence: https://github.com/MulattoTech/MJobs/issues/111#issuecomment-6025101467."
       ],
       "tests_completed": [
         "Full unit suite 346 PASS.",
@@ -6820,19 +6822,20 @@
         "tests/integration/test_ai_cost_policy_api.py"
       ],
       "files_modified": [
+        "apps/api/AREA.md",
         "apps/api/main.py",
+        "apps/web/AREA.md",
         "apps/web/src/main.tsx",
+        "docs/evidence/2026-10-06-ai-cost-controls-ui.json",
+        "packages/persistence/AREA.md",
         "packages/persistence/models.py",
         "packages/persistence/store.py",
-        "apps/api/AREA.md",
-        "apps/web/AREA.md",
-        "packages/persistence/AREA.md",
-        "services/ai/AREA.md",
-        "tests/browser/test_ai_task_settings.py",
+        "planning/CAPABILITY_MATRIX.json",
         "planning/IMPLEMENTATION_STATE.json",
         "planning/PR_QUEUE.json",
-        "planning/CAPABILITY_MATRIX.json",
-        "planning/SESSION_HANDOFF.md"
+        "planning/SESSION_HANDOFF.md",
+        "services/ai/AREA.md",
+        "tests/browser/test_ai_task_settings.py"
       ],
       "migrations_applied": [
         "8f3a1c6d92b4 from 7c6e1d3a9b20 on disposable SQLite and PostgreSQL 17 databases; empty downgrade succeeded, populated downgrade refused without losing the row."
@@ -6847,14 +6850,20 @@
         "No production AI consumer or inference is wired; no model call or document creation occurred. Optional PG suite case skipped because its URL was unset; separate disposable PostgreSQL 17 checks passed. Hosted verification NOT_RUN; external submission OFF."
       ],
       "last_safe_checkpoint": {
-        "git_commit": "93e152dbff89c74b5075ce4df703c82cb4da8883",
+        "git_commit": "a6e6625651aebd8ee3d07cbb31a496195f29de65",
         "evidence_path": "docs/evidence/2026-10-06-ai-cost-controls-ui.json"
+      },
+      "integration": {
+        "method": "NON_FORCE_FAST_FORWARD",
+        "base": "b9e689513251577fe5a36951d4d09d2a130e3aa7",
+        "main": "a6e6625651aebd8ee3d07cbb31a496195f29de65",
+        "issue_comment": "https://github.com/MulattoTech/MJobs/issues/111#issuecomment-6025101467"
       }
     }
   ],
-  "current_phase": "Issue #111 / MJ-REQ-110 profile-scoped deterministic AI funnel policy and no-call preview locally verified at candidate 93e152dbff89c74b5075ce4df703c82cb4da8883; integration pending. No production AI consumer or inference is claimed.",
+  "current_phase": "Issue #111 / MJ-REQ-110 profile-scoped cost controls and deterministic no-call preview integrated at synchronized main a6e6625651aebd8ee3d07cbb31a496195f29de65; issue remains OPEN/PARTIAL. Continue active MJ-PR-030 with a production review-gated task consumer; no live inference is claimed.",
   "last_safe_checkpoint": {
-    "git_commit": "93e152dbff89c74b5075ce4df703c82cb4da8883",
+    "git_commit": "a6e6625651aebd8ee3d07cbb31a496195f29de65",
     "evidence_path": "docs/evidence/2026-10-06-ai-cost-controls-ui.json"
   },
   "live_integrations_tested": [
