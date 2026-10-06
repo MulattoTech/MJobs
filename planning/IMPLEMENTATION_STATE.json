@@ -1,17 +1,17 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-06T05:55:50Z",
+  "generated_at": "2026-10-06T05:58:46Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "MJ-REF-014 / issue #384 source implementation integrated by non-force fast-forward at 5e9d630564a2327838af6d73bebbfd08f3d16a83; local and GitHub main synchronized. Planning/evidence receipt is being recorded.",
-    "current_verified_github_state": "GitHub main and local main include MJ-REF-014 task prompt integration at 5e9d630564a2327838af6d73bebbfd08f3d16a83. Issue #384 evidence-backed closure/readback pending. GitHub Actions and hosted reviews remain NOT_RUN under local-only policy.",
-    "current_verified_at": "2026-10-06T05:55:50Z"
+    "current_verified_local_state": "MJ-REF-014 / issue #384 integrated and evidence/planning receipt synchronized on main at 861f5c4f81da80c1f5400b4e22446fb6e16cec71. GitHub issue #384 is CLOSED with all five acceptance boxes checked and read back.",
+    "current_verified_github_state": "GitHub main and local main synchronized at 861f5c4f81da80c1f5400b4e22446fb6e16cec71. Issue #384 is CLOSED with all five acceptance boxes checked. Actions and hosted reviews remain NOT_RUN under local-only policy.",
+    "current_verified_at": "2026-10-06T05:58:46Z"
   },
-  "current_milestone": "MJ-REF-014-SELECTED-20261006",
+  "current_milestone": "MJ-REQ-004-SELECTED-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under the local-only delivery policy; one writer and one integration lane.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -316,7 +316,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Continue issue #384 / MJ-REF-014, the remaining P1 least-data privacy criterion, from current main. Verify task prompt inputs contain only explicitly requested task-approved facts; use local deterministic tests and keep provider/hosted execution NOT_RUN. One writer; do not shrink original requirements.",
+  "recommended_resume_step": "Continue issue #5 / MJ-REQ-004 as the next dependency-ready P0 safety target; inventory existing per-call timeouts/cancellation/retries across external operation categories and implement/verify one coherent shared boundary before broadening. Do not close #5 until every applicable category is evidenced.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -4502,11 +4502,46 @@
         "git_commit": "5e9d630564a2327838af6d73bebbfd08f3d16a83",
         "evidence_path": "docs/evidence/2026-10-06-least-data-task-prompts.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REF-014-CLOSED-REQ004-SELECTED-20261006",
+      "timestamp": "2026-10-06T05:58:46Z",
+      "current_phase": "MJ-REF-014_CLOSED_MJ-REQ-004_SELECTED",
+      "completed_steps": [
+        "Read back issue #384 CLOSED with five checked acceptance criteria and zero unchecked criteria.",
+        "Updated the exact closure comment/time in the local task prompt evidence receipt.",
+        "Selected open P0 issue #5 / MJ-REQ-004 based on its safety priority and the current NOT_RUN capability state.",
+        "Confirmed the original 366 requirement and 59 reference-gap denominators are unchanged."
+      ],
+      "files_added": [],
+      "files_modified": [
+        "docs/evidence/2026-10-06-least-data-task-prompts.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "GitHub issue #384 readback: CLOSED, checked_acceptance=5, unchecked_acceptance=0."
+      ],
+      "tests_remaining": [
+        "Push final closeout/next-target planning receipt; then map issue #5 operation coverage before implementation."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "GitHub issue state/body/closure timestamp/comment URL readback."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "Issue #5 broad acceptance is not yet verified; no hosted checks were invoked."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "861f5c4f81da80c1f5400b4e22446fb6e16cec71",
+        "evidence_path": "docs/evidence/2026-10-06-least-data-task-prompts.json"
+      }
     }
   ],
-  "current_phase": "MJ-REF-014_LOCAL_PASS_INTEGRATED_ISSUE_READBACK_PENDING",
+  "current_phase": "MJ-REF-014_CLOSED_MJ-REQ-004_SELECTED",
   "last_safe_checkpoint": {
-    "git_commit": "5e9d630564a2327838af6d73bebbfd08f3d16a83",
+    "git_commit": "861f5c4f81da80c1f5400b4e22446fb6e16cec71",
     "evidence_path": "docs/evidence/2026-10-06-least-data-task-prompts.json"
   },
   "live_integrations_tested": [
@@ -4646,14 +4681,14 @@
     "next_issue": 383
   },
   "active_development_issue": {
-    "issue": 384,
-    "requirement_id": "MJ-REF-014",
-    "title": "Least-data profile lookup interface for AI tasks",
-    "state": "INTEGRATED_LOCAL_PASS_PENDING_GITHUB_ISSUE_READBACK",
-    "selection_reason": "P1 privacy requirement; all five acceptance criteria are locally evidenced on synchronized main.",
-    "base": "5e1f98852a7844a98448c3247c33d137ba3ffe9b",
-    "branch": "codex/mj-ref-014-least-data-20261006",
-    "next_action": "Update the final issue checkbox with exact local evidence and close only after readback confirms all five checks."
+    "issue": 5,
+    "requirement_id": "MJ-REQ-004",
+    "title": "Bound External Operations",
+    "state": "OPEN_SELECTED_P0_DEPENDENCY_READY",
+    "selection_reason": "Open P0 safety/reliability requirement: any potentially hanging operation must have timeout, captured output, controlled cancellation, retry policy, and error classification. Current capability matrix remains NOT_RUN despite merged narrow worker lifecycle slices; do not infer broad completion from those merges.",
+    "base": "861f5c4f81da80c1f5400b4e22446fb6e16cec71",
+    "branch": "not yet created",
+    "next_action": "Map potentially hanging HTTP, browser, AI, parsing/OCR, process and source/ATS paths against the exact governance_safety contract. Choose the smallest reusable vertical boundary with concrete uncovered behavior; preserve requirement 004 as PARTIAL/NOT_RUN until all applicable acceptance is evidenced."
   },
   "historical_control_snapshots": [
     {
@@ -5772,5 +5807,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-06T05:55:50Z"
+  "updated_at": "2026-10-06T05:58:46Z"
 }

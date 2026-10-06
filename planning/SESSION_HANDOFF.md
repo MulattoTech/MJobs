@@ -278,3 +278,8 @@ Next selected dependency-ready slice: issue #384 / MJ-REF-014. Its remaining acc
 ## 2026-10-06 local-only continuation — MJ-REF-014
 
 Issue #384 / MJ-REF-014 is locally PASS and source commit `5e9d630564a2327838af6d73bebbfd08f3d16a83` is integrated to synchronized `main` by non-force fast-forward. The provider-neutral task prompt builder supplies no profile context by default; explicitly requested facts flow through approval, task scope, denylist, cross-profile checks, and value-free audit. Focused tests (39), full local Python/browser suite (648), frontend build, and repository validators passed. See [task prompt privacy receipt](../docs/evidence/2026-10-06-least-data-task-prompts.json). GitHub issue checkbox/closure readback and final planning receipt remain to be recorded. Hosted Actions/reviews and AI provider calls remain NOT_RUN by policy; external submission stays OFF. The original requirement denominator is unchanged.
+
+
+Issue #384 closeout: GitHub readback at `2026-10-06T05:57:44Z` confirms CLOSED with all five acceptance boxes checked; closure comment is https://github.com/MulattoTech/MJobs/issues/384#issuecomment-6010322555. Exact evidence includes source integration, 648-test local suite, focused tests, build and validator results.
+
+Next selected target is open P0 issue #5 / MJ-REQ-004 Bound External Operations. The matrix still says NOT_RUN and merged narrow worker lifecycle work is not broad acceptance. Inventory and address timeouts, captured output, controlled cancellation, retries and error classification across hanging HTTP, browser, AI, parsing/OCR, process, source and ATS paths; preserve the denominator and keep acceptance PARTIAL until fully evidenced. Local-only policy and external-submission OFF remain active.

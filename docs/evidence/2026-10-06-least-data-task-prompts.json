@@ -4,7 +4,7 @@
   "github_issue": 384,
   "result": "PASS",
   "scope": "Task prompt construction receives an empty profile context by default. Explicitly requested fields are projected through approved task scope, denylist, profile isolation, and value-free access audit before entering a provider-neutral prompt. No provider is called.",
-  "observed_at_utc": "2026-10-06T05:55:50Z",
+  "observed_at_utc": "2026-10-06T05:58:46Z",
   "candidate": {
     "repository": "MulattoTech/MJobs",
     "branch": "codex/mj-ref-014-least-data-20261006",
@@ -93,6 +93,13 @@
     "issue_state_at_initial_receipt": "OPEN; final missing acceptance checkbox is ready for evidence-backed update",
     "issue_acceptance_checked_before_update": 4,
     "issue_acceptance_unchecked_before_update": 1,
-    "external_submission": "OFF"
+    "external_submission": "OFF",
+    "issue_state": "CLOSED",
+    "issue_closed_at_utc": "2026-10-06T05:57:44Z",
+    "issue_checked_acceptance_count": 5,
+    "issue_unchecked_acceptance_count": 0,
+    "issue_comment_url": "https://github.com/MulattoTech/MJobs/issues/384#issuecomment-6010322555",
+    "planning_receipt_commit": "861f5c4f81da80c1f5400b4e22446fb6e16cec71",
+    "remote_main_after_planning_receipt": "861f5c4f81da80c1f5400b4e22446fb6e16cec71"
   }
 }
