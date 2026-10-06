@@ -1,9 +1,9 @@
 # Local agent tool boundary
 
-Owns the typed tool catalog, proposal-only side-effect gate, and value-free
-durable run traces for MJ-REF-013. It does not own model/provider calls,
-browser sessions, database connections exposed to a model, or external
-application submission.
+Owns the typed tool catalog, proposal-only side-effect gate, value-free
+durable run traces, and least-data prompt projection for MJ-REF-013/014. It
+does not own model/provider calls, browser sessions, database connections
+exposed to a model, or external application submission.
 
 ## Public interfaces
 
@@ -15,13 +15,17 @@ application submission.
   side-effect handler at most once.
 - `build_default_registry(store)` registers task-scoped verified-profile reads
   and a local job-disposition proposal. It exposes no provider or browser tool.
+- `build_task_prompt(...)` creates bounded provider-neutral system/user messages;
+  its default profile projection is empty and explicit requests use the existing
+  task allowlist, approved-fact filter, denylist and value-free audit.
 
 ## Requirements and dependencies
 
-- Requirements: MJ-REF-013; preserves MJ-REQ-000, MJ-REQ-008, MJ-REQ-121,
-  MJ-REQ-140; reuses the task allowlist from `services/career_profile`.
+- Requirements: MJ-REF-013 and MJ-REF-014; preserves MJ-REQ-000,
+  MJ-REQ-008, MJ-REQ-121, MJ-REQ-140; reuses the task allowlist from
+  `services/career_profile`.
 - Persistence: append-only `audit_events`; no new table or migration.
-- Tests: `python -m unittest tests.integration.test_agent_tools -v`.
+- Tests: `python -m unittest tests.integration.test_agent_tools tests.integration.test_agent_task_prompts -v`.
 
 ## Security constraints
 

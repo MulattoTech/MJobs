@@ -68,7 +68,9 @@ the fixed task scope, operation ID, profile version and reason, with no requeste
 path or value.
 Fact/answer values are capped at 4,000 characters each and the entire projected
 context at 32,000 characters; oversize inputs fail closed without truncation.
-There is no AI provider or prompt execution path in the current repository, so
-all future task prompt builders must consume this projection instead of a raw
-profile. The interface itself is exercised locally with SQLite and synthetic
-profiles; it makes no provider calls.
+There is no AI provider or provider-execution path in the current repository.
+The provider-neutral `services.agents.task_prompts.build_task_prompt` builder
+consumes this projection rather than a raw profile; future task prompt
+construction must use the same boundary. The projection and prompt contract are
+exercised locally with SQLite and synthetic profiles; they make no provider
+calls.
