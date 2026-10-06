@@ -102,8 +102,12 @@ class Greenhouse:
         self.check()
         if self.transport is None:
             self._wait_for_rate_limit()
+        remaining_budget = getattr(self.check, "remaining_seconds", None)
+        request_timeout = self.request_timeout
+        if callable(remaining_budget):
+            request_timeout = min(request_timeout, remaining_budget())
         path = "/v1/boards/" + self.tenant + suffix
-        with httpx.Client(timeout=self.request_timeout, follow_redirects=False, trust_env=False, transport=self.transport,
+        with httpx.Client(timeout=request_timeout, follow_redirects=False, trust_env=False, transport=self.transport,
                           headers={"User-Agent": "MJobs/0.1 public-read-only", "Accept": "application/json"}) as client:
             with client.stream("GET", HOST + path, params=params) as response:
                 if response.is_redirect:
@@ -119,7 +123,10 @@ class Greenhouse:
                 if "application/json" not in response.headers.get("content-type", "").lower():
                     raise SourceError("SOURCE_INVALID_CONTENT_TYPE")
                 content = bytearray()
-                deadline = time.monotonic() + max(5, min(120, self.request_timeout * 2))
+                body_budget = max(5, min(120, self.request_timeout * 2))
+                if callable(remaining_budget):
+                    body_budget = min(body_budget, remaining_budget())
+                deadline = time.monotonic() + body_budget
                 for chunk in response.iter_bytes(chunk_size=65536):
                     self.check()
                     content.extend(chunk)

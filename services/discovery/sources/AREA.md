@@ -26,9 +26,11 @@ Greenhouse's production request-rate wait polls the operation cancellation
 callback in bounded 250 ms intervals before issuing the next request. A local
 operation cancellation or deadline restores the source's previous health and
 failure/backoff metadata; it is not recorded as evidence that the provider is
-unavailable. This is scoped coverage for MJ-REQ-004; provider timeouts, worker
-deadlines, and the other external operation categories still require their own
-acceptance evidence.
+unavailable. For Greenhouse, the worker's remaining monotonic budget now caps both
+the HTTP client's connect/read timeout and the response-body deadline; the persisted
+per-source request timeout remains the upper bound. This is scoped coverage for
+MJ-REQ-004; other provider paths and external operation categories still require
+their own acceptance evidence.
 
 The Greenhouse adapter issues its independent board-metadata and job-inventory
 GETs under a bounded per-source worker cap. Parallel requests reserve starts on

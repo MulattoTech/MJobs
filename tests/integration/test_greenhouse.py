@@ -61,6 +61,25 @@ class GreenhouseTests(unittest.TestCase):
         self.assertEqual(adapter.capabilities().strategy, CollectionStrategy.API)
         self.assertFalse(adapter.capabilities().supports(SourceCapability.DIRECT_APPLICATION))
 
+    def test_http_request_timeout_is_capped_by_remaining_worker_budget(self):
+        observed_timeouts = []
+        check = lambda: None
+        check.remaining_seconds = lambda: 0.125
+        real_client = httpx.Client
+
+        def capture_client(*args, **kwargs):
+            observed_timeouts.append(httpx.Timeout(kwargs["timeout"]))
+            return real_client(*args, **kwargs)
+
+        with patch("services.discovery.sources.greenhouse.httpx.Client", side_effect=capture_client):
+            Greenhouse("example", transport=httpx.MockTransport(self.transport), check=check,
+                       request_timeout=10, concurrency=2).search()
+
+        self.assertEqual(len(observed_timeouts), 2)
+        for timeout in observed_timeouts:
+            self.assertLessEqual(timeout.connect, 0.125)
+            self.assertLessEqual(timeout.read, 0.125)
+
     def test_per_source_concurrency_bounds_parallel_read_requests(self):
         def maximum_in_flight(concurrency):
             active = 0
