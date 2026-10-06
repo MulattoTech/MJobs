@@ -3,7 +3,12 @@ from __future__ import annotations
 
 from hashlib import sha256
 from io import BytesIO
+import json
+import os
+from pathlib import Path
 import re
+import subprocess
+import sys
 from urllib.parse import urlsplit
 from zipfile import BadZipFile, ZipFile
 import xml.etree.ElementTree as ET
@@ -15,6 +20,8 @@ MAX_PDF_PAGES = 100
 MAX_DOCX_MEMBERS = 1_000
 MAX_DOCX_UNCOMPRESSED = 30 * 10 * 1024 * 1024
 MAX_DOCX_XML_BYTES = 2 * 1024 * 1024
+NATIVE_PARSER_TIMEOUT = 15
+MAX_PARSER_OUTPUT_BYTES = 2 * 1024 * 1024
 
 _EMAIL = re.compile(r"(?i)(?<![\w.+-])[\w.+-]+@[\w-]+(?:\.[\w-]+)+(?![\w.-])")
 _PHONE = re.compile(r"(?<!\w)\+?[\d(). -]{10,24}(?!\w)")
@@ -105,7 +112,8 @@ def _page_has_images(page):
     return False
 
 
-def _native_pdf(data: bytes) -> tuple[str, list[str], bool, bool]:
+def _native_pdf_pages(data: bytes) -> tuple[list[str], list[str], list[int]]:
+    """Extract native PDF text and scanned page numbers in the bounded child."""
     from pypdf import PdfReader
 
     try:
@@ -113,9 +121,9 @@ def _native_pdf(data: bytes) -> tuple[str, list[str], bool, bool]:
         if reader.is_encrypted:
             try:
                 if reader.decrypt("") == 0:
-                    return "", ["PDF is encrypted and requires a password"], False, False
+                    return [], ["PDF is encrypted and requires a password"], []
             except Exception:
-                return "", ["PDF is encrypted and requires a password"], False, False
+                return [], ["PDF is encrypted and requires a password"], []
         if len(reader.pages) > MAX_PDF_PAGES:
             raise ValueError("Resume exceeds the supported page limit")
         chunks = []
@@ -140,6 +148,28 @@ def _native_pdf(data: bytes) -> tuple[str, list[str], bool, bool]:
             except Exception:
                 chunks.append("")
                 warnings.append("Some PDF page text could not be extracted")
+        bounded = []
+        for chunk in chunks:
+            remaining = MAX_TEXT_CHARS - sum(map(len, bounded))
+            if remaining <= 0:
+                warnings.append('PDF text exceeded the supported extraction limit')
+                break
+            bounded.append(chunk[:remaining])
+            if len(chunk) > remaining:
+                warnings.append('PDF text exceeded the supported extraction limit')
+                break
+        chunks = bounded
+        return chunks, warnings, scanned
+    except ValueError:
+        raise
+    except Exception:
+        return [], ["PDF could not be read"], []
+
+
+def _native_pdf(data: bytes) -> tuple[str, list[str], bool, bool]:
+    pages, warnings, scanned = _run_native_parser(data, 'pdf')
+    recognized = {}
+    if scanned:
         from services.career_profile.ocr import ocr_pdf_pages
         try:
             recognized, ocr_warnings = ocr_pdf_pages(data, scanned)
@@ -148,19 +178,61 @@ def _native_pdf(data: bytes) -> tuple[str, list[str], bool, bool]:
             # native text already recovered from the same document.
             recognized, ocr_warnings = {}, ['Local OCR failed. Native text remains available for review.']
         warnings.extend(ocr_warnings)
+        # The native parser returns one chunk per source page. Empty pages are
+        # represented by empty strings and therefore retain positional indices.
         for number, value in recognized.items():
-            chunks[number-1] = value
+            if 1 <= number <= len(pages):
+                pages[number-1] = value
         if recognized:
             warnings.append('OCR text may contain mistakes. Verify all extracted facts and contact details before use.')
-        combined = '\n'.join(chunks)
-        if len(combined) > MAX_TEXT_CHARS:
-            combined = combined[:MAX_TEXT_CHARS]
-            warnings.append('PDF text exceeded the supported extraction limit')
-        return combined, warnings, bool(scanned), bool(recognized)
-    except ValueError:
-        raise
-    except Exception:
-        return "", ["PDF could not be read"], False, False
+    text = '\n'.join(pages)
+    return text, warnings, bool(scanned), bool(recognized)
+
+
+def _parser_environment() -> dict[str, str]:
+    """Keep credentials and application-specific environment out of parser children."""
+    allowed = ('PATH', 'SystemRoot', 'WINDIR', 'TEMP', 'TMP', 'TMPDIR', 'LANG', 'LC_ALL')
+    return {key: os.environ[key] for key in allowed if key in os.environ}
+
+
+def _run_native_parser(data: bytes, kind: str) -> tuple[list[str], list[str], list[int]]:
+    root = Path(__file__).resolve().parents[2]
+    try:
+        result = subprocess.run(
+            [sys.executable, '-m', 'services.career_profile.parser_worker', kind],
+            input=data, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+            cwd=root, env=_parser_environment(), timeout=NATIVE_PARSER_TIMEOUT,
+            shell=False, check=False)
+    except subprocess.TimeoutExpired:
+        return [], ['Resume parser exceeded its time limit'], []
+    except OSError:
+        return [], ['Resume parser could not start'], []
+    if result.returncode != 0 or len(result.stdout) > MAX_PARSER_OUTPUT_BYTES:
+        return [], ['Resume parser could not read the document'], []
+    try:
+        response = json.loads(result.stdout.decode('utf-8'))
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        return [], ['Resume parser could not read the document'], []
+    if not isinstance(response, dict):
+        return [], ['Resume parser could not read the document'], []
+    if response.get('error') in {'page_limit', 'archive_limit', 'xml_limit'}:
+        message = {'page_limit': 'Resume exceeds the supported page limit',
+                   'archive_limit': 'Resume archive exceeds the supported resource limit',
+                   'xml_limit': 'Resume XML part exceeds the supported resource limit'}[response['error']]
+        raise ValueError(message)
+    try:
+        pages, warnings, scanned = response['pages'], response['warnings'], response['scanned']
+        if (not isinstance(pages, list) or len(pages) > MAX_PDF_PAGES or
+                any(not isinstance(page, str) for page in pages) or
+                sum(map(len, pages)) > MAX_TEXT_CHARS or
+                not isinstance(warnings, list) or len(warnings) > 100 or
+                any(not isinstance(item, str) or len(item) > 200 for item in warnings) or
+                not isinstance(scanned, list) or len(scanned) > MAX_PDF_PAGES or
+                any(type(page) is not int or not 1 <= page <= MAX_PDF_PAGES for page in scanned)):
+            raise ValueError('invalid parser response')
+        return pages, warnings, scanned
+    except (KeyError, TypeError, ValueError):
+        return [], ['Resume parser could not read the document'], []
 
 
 def _native_docx(data: bytes) -> tuple[str, list[str]]:
@@ -308,7 +380,8 @@ def extract_resume_text(data: bytes, format: str) -> dict:
         elif kind == "pdf":
             text, warnings, needs_ocr, used_ocr = _native_pdf(bytes(data))
         elif kind == "docx":
-            text, warnings = _native_docx(bytes(data))
+            pages, warnings, _ = _run_native_parser(bytes(data), 'docx')
+            text = pages[0] if pages else ''
         else:
             return {"status": "UNREADABLE", "warnings": ["Unsupported resume format"], "text": "", "used_ocr": False}
     except UnicodeDecodeError:

@@ -15,7 +15,11 @@ explicit profile saves use immutable versions owned by persistence. Extraction
 must not depend on application automation or matching workers.
 
 Native PDF parsing uses pypdf; DOCX parses only the bounded document XML part;
-UTF-8 TXT stays local. Scanned pages without native text use Poppler and English
+both run in a shell-free child process with a 15-second parent wall deadline,
+captured bounded JSON output, discarded stderr, and a small environment allowlist
+that excludes application credentials. Linux parser children also receive address
+space, CPU, file-size and core-dump limits; Windows relies on the wall deadline.
+UTF-8 TXT stays local in the API process. Scanned pages without native text use Poppler and English
 Tesseract locally; no file or extracted text goes to a remote OCR service.
 The fallback processes at most 10 scanned pages, scales each raster to at most
 1800 pixels per dimension, and has a 45-second total deadline with 10-second
