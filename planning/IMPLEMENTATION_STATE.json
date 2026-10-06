@@ -1,17 +1,17 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-06T02:10:15Z",
+  "generated_at": "2026-10-06T02:18:22Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Primary checkout main is clean at 7b21e47e50b976ba50cd483e67fed4af79e8e194; the sole implementation writer is isolated in the MJ-REF-017 worktree with candidate 4bb1931f9dc62a312c8f703de24704a3f8550f9e pushed. Separate Codespaces checkout remains preserved.",
-    "current_verified_github_state": "GitHub main is 7b21e47e50b976ba50cd483e67fed4af79e8e194; issue #387 is open; task branch codex/mjobs-ref-017-artifact-recovery-20261005 is synchronized at 4bb1931f9dc62a312c8f703de24704a3f8550f9e. Repository Actions are disabled. No PR was opened.",
-    "current_verified_at": "2026-10-06T02:10:15Z"
+    "current_verified_local_state": "Primary checkout main and origin/main are synchronized at 6f61044e158336385e3ac481a21740f444db8cde after safe non-force fast-forward. The prior #387 worktree is clean at the integration commit; Codespaces checkout remains preserved.",
+    "current_verified_github_state": "GitHub main is 6f61044e158336385e3ac481a21740f444db8cde; #387 is closed with five checked acceptance criteria. Repository Actions disabled; next selected open issue #380 is dependency-ready for local implementation.",
+    "current_verified_at": "2026-10-06T02:18:22Z"
   },
-  "current_milestone": "MJ-REF-017-LOCAL-PASS",
+  "current_milestone": "MJ-REF-017-INTEGRATED",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under the local-only delivery policy; one writer and one integration lane.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -239,10 +239,10 @@
     "MJ-PR-016 local Chromium first run used Docker DNS host api, which is not a secure browser origin for crypto.randomUUID; loopback URL rerun passed all five connected UI actions."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-06T02:10:15Z",
+    "timestamp": "2026-10-06T02:18:22Z",
     "result": "PASS",
-    "source_commit": "4bb1931f9dc62a312c8f703de24704a3f8550f9e",
-    "scope": "MJ-REF-017 issue acceptance only; targeted local integration and browser history, no hosted or full-release acceptance",
+    "source_commit": "6f61044e158336385e3ac481a21740f444db8cde",
+    "scope": "MJ-REF-017 issue acceptance integrated and #387 closed; local scope only, no hosted or full-release acceptance",
     "evidence_path": "docs/evidence/2026-10-06-artifact-recovery.json"
   },
   "ci_verification": {
@@ -310,7 +310,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Safely integrate the locally passing MJ-REF-017 candidate under current local-only policy, then immediately reconcile current main and continue with the highest-value dependency-ready safety/privacy issue. Keep full original requirement denominator and release readiness PARTIAL.",
+  "recommended_resume_step": "Implement open issue #380 (MJ-REF-010), the highest-value dependency-ready P1 claim-truthfulness guard, from current main. Continue afterward to #373 avoid-list and other privacy/safety prerequisites without asking for continuation. Keep broader requirements and release status separate.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -347,7 +347,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "4bb1931f9dc62a312c8f703de24704a3f8550f9e",
+  "last_implementation_commit": "6f61044e158336385e3ac481a21740f444db8cde",
   "publication": {
     "result": "PASS",
     "integration_method": "NON_FORCE_FAST_FORWARD",
@@ -3813,11 +3813,46 @@
         "git_commit": "4bb1931f9dc62a312c8f703de24704a3f8550f9e",
         "evidence_path": "docs/evidence/2026-10-06-artifact-recovery.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REF-017-INTEGRATED-ISSUE-CLOSED-20261006",
+      "timestamp": "2026-10-06T02:18:22Z",
+      "current_phase": "MJ-REF-017_INTEGRATED_ISSUE_CLOSED_MJ-REF-010_SELECTED",
+      "completed_steps": [
+        "Fast-forwarded the exact source and evidence candidate into GitHub main without force",
+        "Fast-forwarded and hash-synchronized the local main checkout",
+        "Read back all five checked GitHub issue acceptance criteria and closed issue #387",
+        "Selected open P1 issue #380 as the next dependency-ready truthfulness guard"
+      ],
+      "files_added": [],
+      "files_modified": [
+        "docs/evidence/2026-10-06-artifact-recovery.json",
+        "planning/IMPLEMENTATION_STATE.json"
+      ],
+      "tests_completed": [
+        "Integrated commit equals local and GitHub main at 6f61044e158336385e3ac481a21740f444db8cde",
+        "Issue #387 closed only after all five acceptance criteria and local evidence were read back"
+      ],
+      "tests_remaining": [
+        "Full original MJobs requirement acceptance and release readiness remain PARTIAL",
+        "Hosted CI/review and PostgreSQL/Docker validation remain NOT_RUN by policy"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "MJ-REQ-170 automatic cleanup remains incomplete; quarantine and retention are explicit",
+        "No hosted or production PostgreSQL/Docker claim"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "6f61044e158336385e3ac481a21740f444db8cde",
+        "evidence_path": "docs/evidence/2026-10-06-artifact-recovery.json"
+      }
     }
   ],
-  "current_phase": "MJ-REF-017_LOCALLY_VERIFIED_PENDING_SAFE_FAST_FORWARD",
+  "current_phase": "MJ-REF-017_INTEGRATED_ISSUE_CLOSED_MJ-REF-010_SELECTED",
   "last_safe_checkpoint": {
-    "git_commit": "4bb1931f9dc62a312c8f703de24704a3f8550f9e",
+    "git_commit": "6f61044e158336385e3ac481a21740f444db8cde",
     "evidence_path": "docs/evidence/2026-10-06-artifact-recovery.json"
   },
   "live_integrations_tested": [
@@ -3935,15 +3970,14 @@
     "ownership": "PR #515 is the sole active implementation PR on the task-owned branch. PRs #504, #506, #508-#514 are merged. Current candidate is independently reviewed; final exact-head push/PR runs and runtime artifacts are pending. External submission OFF; retained private runtime/database untouched; Codespaces checkout preserved."
   },
   "active_development_issue": {
-    "issue": 387,
-    "requirement_id": "MJ-REF-017",
-    "title": "Artifact quarantine, restore, purge, and atomic-write discipline",
-    "branch": "codex/mjobs-ref-017-artifact-recovery-20261005",
-    "base": "7b21e47e50b976ba50cd483e67fed4af79e8e194",
-    "candidate": "4bb1931f9dc62a312c8f703de24704a3f8550f9e",
-    "local_result": "PASS",
-    "evidence_path": "docs/evidence/2026-10-06-artifact-recovery.json",
-    "next_action": "Reconcile live main/protection, fast-forward only if permitted, synchronize, close only issue 387, then continue to the next dependency-ready issue."
+    "issue": 380,
+    "requirement_id": "MJ-REF-010",
+    "title": "Deterministic resume preservation and claim-level mutation guard",
+    "state": "OPEN",
+    "selection_reason": "P1 truthfulness/safety guard on the shared factual document validation seam; unlocks safe richer tailoring and complements the completed atomic artifact boundary.",
+    "base": "6f61044e158336385e3ac481a21740f444db8cde",
+    "branch": "pending isolated worktree creation",
+    "next_action": "Read exact issue/spec and current validator, reproduce a deterministic adversarial oracle, then implement one complete local vertical slice."
   },
   "historical_control_snapshots": [
     {
@@ -5049,7 +5083,7 @@
     "Historical PR #515 review of c069798 against base 3ec8702 had no findings at that checkpoint, but later reviews found and repaired test/evidence issues. Fresh review and exact-head hosted events/artifacts are pending.",
     "CORE-WORKFLOW-TRIAL PR #515 checkpoint 7151348d0b92cd9cb23784785190e0d17ab892b1: exact-head read-only review PASS; push Verification 37359494332 and pull_request Verification 37359772249 both BLOCKED_EXTERNAL before job startup by GitHub account billing/spending limit. No hosted runtime reports/artifacts or PR merge-tree result exist; #515 stays draft."
   ],
-  "ownership": "No active PR. One implementation writer owns codex/mjobs-ref-017-artifact-recovery-20261005 in C:\\Tools\\Dev\\MJobs\\.worktrees\\mjobs-ref-017-artifact-recovery-20261005. Candidate 4bb1931 is pushed and locally verified; main remains at its base pending protection/ancestry reconciliation. External submission OFF; Codespaces and private runtime/data preserved.",
+  "ownership": "No active PR. #387 source/evidence integrated into main at 6f61044. The next single writer is starting #380 from current main in an isolated worktree. External submission OFF; Codespaces and private runtime/data preserved.",
   "delivery_policy": {
     "mode": "LOCAL_ONLY",
     "effective_at": "2026-10-05T21:32:10.763994+00:00",

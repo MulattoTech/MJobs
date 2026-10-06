@@ -80,5 +80,18 @@
   ],
   "external_submission": "OFF",
   "ai_provider": "NOT_USED",
-  "hosted_checks": "NOT_RUN_BY_USER_POLICY"
+  "hosted_checks": "NOT_RUN_BY_USER_POLICY",
+  "integration_receipt": {
+    "integration_method": "NON_FORCE_FAST_FORWARD",
+    "previous_main": "7b21e47e50b976ba50cd483e67fed4af79e8e194",
+    "github_main": "6f61044e158336385e3ac481a21740f444db8cde",
+    "local_main": "6f61044e158336385e3ac481a21740f444db8cde",
+    "candidate_branch": "codex/mjobs-ref-017-artifact-recovery-20261005",
+    "candidate_source_commit": "4bb1931f9dc62a312c8f703de24704a3f8550f9e",
+    "integration_checkpoint_commit": "6f61044e158336385e3ac481a21740f444db8cde",
+    "protection_readback": "main not protected; repository rulesets count 0",
+    "actions_enabled": false,
+    "issue_387": "CLOSED after all five acceptance criteria checked and evidence read back",
+    "integrated_at": "2026-10-06T02:18:22Z"
+  }
 }
