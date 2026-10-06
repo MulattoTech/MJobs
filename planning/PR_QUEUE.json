@@ -867,9 +867,9 @@
         "MJ-PR-025"
       ],
       "status": "ACTIVE",
-      "branch": "codex/mj-req109-task-config-20261006",
+      "branch": "codex/mj-req110-cost-controls-20261006",
       "draft_until_verified": true,
-      "notes": "Issue #110 / MJ-REQ-109 has a locally verified seven-task in-process router. Candidate reconciled with current main b662979; 324 unit tests and 7 Remotive adapter tests pass. Persisted settings/consumer wiring and remote provider implementations remain incomplete."
+      "notes": "MJ-REQ-108.A06 disabled provider is PASS; issue #110 / MJ-REQ-109 task router is integrated PARTIAL at main 117a27c; active next slice is issue #111 / MJ-REQ-110 cost controls. Settings persistence, production task wiring, remote providers, and full PR requirements remain incomplete."
     },
     {
       "id": "MJ-PR-031",

@@ -581,3 +581,6 @@ Issue #110 / `MJ-REQ-109` now has an in-process seven-task provider/model router
 
 
 Reconciliation receipt (2026-10-06T19:03:46Z): main advanced to b66297964ab6cc8e36cff4c8c5e46e61ab573715 when the parallel Remotive slice integrated. The task-config branch merged that current main with no services/ai overlap; after merge, 15 focused AI/Remotive tests, all 324 unit tests, progress validation and catalogue validation passed.
+
+
+Integration receipt (2026-10-06T19:05:40Z): task-config source `49f4769df3b06e413c25b3ab9a2282db74369e5b`, reconciled against current main `b66297964ab6cc8e36cff4c8c5e46e61ab573715`, is integrated at synchronized local/GitHub main `117a27ccfdf472fb67135d17f14ebd44c8fa9462`. Issue #110 remains OPEN/PARTIAL after readback (https://github.com/MulattoTech/MJobs/issues/110#issuecomment-6023459996); evidence docs/evidence/2026-10-06-ai-task-configuration.json. Next target: issue #111 / MJ-REQ-110 cost controls, using deterministic local fixtures only.

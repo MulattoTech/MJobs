@@ -4,14 +4,14 @@
   "github_issue": 110,
   "result": "PARTIAL",
   "scope": "Typed in-process provider/model configuration and routing for the seven defined AI tasks.",
-  "observed_at_utc": "2026-10-06T19:03:46Z",
+  "observed_at_utc": "2026-10-06T19:05:40Z",
   "candidate": {
     "repository": "MulattoTech/MJobs",
     "branch": "codex/mj-req109-task-config-20261006",
     "base": "c7656bbecec61e2d037bc57869fad4e1ee8f43d4",
     "commit": "49f4769df3b06e413c25b3ab9a2282db74369e5b",
     "tree": "3ea9fcd55130585c12e00cf13fe74f9e6f69359b",
-    "status": "Source commit 49f4769 verified after merging current main b662979; combined candidate push and integration pending"
+    "status": "Integrated at synchronized main 117a27c; issue #110 remains OPEN/PARTIAL after evidence comment/readback"
   },
   "source_sha256": {
     "services/ai/AREA.md": "0f4422de7b97eb9ced3d7de84a90142e056e1ae777cb4cffd86477efb22fa0eb",
@@ -70,6 +70,23 @@
         "command": "python -m unittest discover -s tests/unit -v (after merging current main)",
         "result": "PASS",
         "tests": 324
+      },
+      {
+        "command": "integrated main: python -m unittest tests.unit.test_ai_task_configuration tests.unit.test_disabled_ai_provider -v",
+        "result": "PASS",
+        "tests": 8
+      },
+      {
+        "command": "integrated main: python -m tools.verification.progress validate",
+        "result": "PASS"
+      },
+      {
+        "command": "integrated main: python -m tools.verification.catalogue",
+        "result": "PASS"
+      },
+      {
+        "command": "integrated main: python -m tools.verification.agent_skills",
+        "result": "PASS"
       }
     ],
     "expected_red": "Before implementation, the five focused tests failed because services.ai.tasks did not exist.",
@@ -86,5 +103,7 @@
     "External application submission remains OFF; full release acceptance remains PARTIAL."
   ],
   "reconciled_main_commit": "b66297964ab6cc8e36cff4c8c5e46e61ab573715",
-  "integration_candidate_commit": "03a224ce86708f55135dabf9a1c0aaa89a735897"
+  "integration_candidate_commit": "03a224ce86708f55135dabf9a1c0aaa89a735897",
+  "integrated_main_commit": "117a27ccfdf472fb67135d17f14ebd44c8fa9462",
+  "github_issue_comment": "https://github.com/MulattoTech/MJobs/issues/110#issuecomment-6023459996"
 }

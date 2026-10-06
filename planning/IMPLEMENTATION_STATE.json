@@ -7,11 +7,11 @@
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Local main and origin/main synchronized at 8b489a05ec5da67184ff5f0c4bbce517f63116df; Remotive global job-source adapter (MJ-REQ-017.S08) integrated; parent MJ-REQ-017 remains PARTIAL/OPEN.",
-    "current_verified_github_state": "GitHub/local main synchronized at 8b489a05ec5da67184ff5f0c4bbce517f63116df; issue #309 PASS, parent MJ-REQ-017 OPEN/PARTIAL; Actions disabled, no open PR, main unprotected.",
-    "current_verified_at": "2026-10-06T19:00:00Z"
+    "current_verified_local_state": "Local main and origin/main synchronized at 117a27ccfdf472fb67135d17f14ebd44c8fa9462; MJ-REQ-109 task config slice integrated PARTIAL; Remotive MJ-REQ-017.S08 PASS; issue #110 OPEN/PARTIAL.",
+    "current_verified_github_state": "GitHub/local main synchronized at 117a27ccfdf472fb67135d17f14ebd44c8fa9462; issue #110 OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/110#issuecomment-6023459996; issue #345 CLOSED; Actions disabled, no PR, main unprotected.",
+    "current_verified_at": "2026-10-06T19:05:40Z"
   },
-  "current_milestone": "MJ-REQ-109-TASK-CONFIG-RECONCILED-MAIN-20261006",
+  "current_milestone": "MJ-REQ-109-TASK-CONFIG-INTEGRATED-PARTIAL-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -94,8 +94,7 @@
   ],
   "blocked_capabilities": [],
   "active_requirements": [
-    "MJ-REQ-108",
-    "MJ-REQ-109"
+    "MJ-REQ-110"
   ],
   "active_prs": [],
   "tests_passed": [
@@ -269,7 +268,8 @@
     "MJ-REQ-108.A06: 2 focused provider contract tests PASS; full unit suite 318 PASS; agent_skills, catalogue and git diff checks PASS (docs/evidence/2026-10-06-disabled-ai-provider.json).",
     "Integrated main 9e340924878484ba257097a5088d83ab10000b3a: focused MJ-REQ-108.A06 contract tests 2 PASS; complete candidate unit suite 318 PASS; progress/catalogue/agent-skill validators PASS.",
     "MJ-REQ-109 candidate 49f4769: 8 focused AI contract tests and 324 full unit tests PASS; compile, catalogue, progress and agent-skill validation PASS (docs/evidence/2026-10-06-ai-task-configuration.json).",
-    "After merging current main b662979: Remotive integration and AI task routing focused tests 15 PASS; complete unit suite 324 PASS; progress/catalogue validation PASS (docs/evidence/2026-10-06-ai-task-configuration.json)."
+    "After merging current main b662979: Remotive integration and AI task routing focused tests 15 PASS; complete unit suite 324 PASS; progress/catalogue validation PASS (docs/evidence/2026-10-06-ai-task-configuration.json).",
+    "Integrated main 117a27c: 8 focused AI tests PASS; prior exact reconciled candidate: 324 unit tests and 7 Remotive integration tests PASS; progress/catalogue/agent-skill validation PASS."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -337,13 +337,13 @@
     "MJ-REQ-004 candidate 3d604b27b1a4c25e2ff0ee6fa68a07e9ff8f74a0: full suite initially saw stale ignored apps/web/dist; rebuilding restored current Sources UI and isolated browser acceptance. A first rebuilt full run later hit the known intermittent CompanyDiscoveryRequestsBrowserTests server-thread shutdown assertion; isolated case and all 35 browser tests passed, followed by a same-head 680-test full suite pass. Do not weaken shutdown timeout; evidence docs/evidence/2026-10-06-bounded-ocr-diagnostics.json."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-06T19:03:46Z",
+    "timestamp": "2026-10-06T19:05:40Z",
     "result": "PARTIAL",
     "source_commit": "49f4769df3b06e413c25b3ab9a2282db74369e5b",
     "source_tree": "3ea9fcd55130585c12e00cf13fe74f9e6f69359b",
-    "scope": "MJ-REQ-109 task/model routing is locally verified; persisted settings and production consumer wiring remain incomplete.",
+    "scope": "MJ-REQ-109 task/model routing locally implemented; issue remains PARTIAL for persistence/consumer wiring.",
     "evidence_path": "docs/evidence/2026-10-06-ai-task-configuration.json",
-    "integration_commit": null
+    "integration_commit": "117a27ccfdf472fb67135d17f14ebd44c8fa9462"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -410,7 +410,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Push and integrate the locally verified MJ-REQ-109 task-config candidate only after exact current-main checks, update issue #110 as OPEN/PARTIAL, then choose the next dependency-ready slice without colliding with another active writer.",
+  "recommended_resume_step": "Implement issue #111 / MJ-REQ-110 AI cost controls under active MJ-PR-030 using deterministic synthetic candidates only; do not make paid/external provider calls.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -6320,11 +6320,51 @@
         "git_commit": "03a224ce86708f55135dabf9a1c0aaa89a735897",
         "evidence_path": "docs/evidence/2026-10-06-ai-task-configuration.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-109-TASK-CONFIG-INTEGRATED-PARTIAL-20261006",
+      "timestamp": "2026-10-06T19:05:40Z",
+      "current_phase": "MJ-REQ-109 is locally integrated at main 117a27c and issue #110 remains OPEN/PARTIAL; next active slice is MJ-REQ-110 cost controls",
+      "completed_steps": [
+        "Fast-forwarded the reconciled candidate onto synchronized local/GitHub main 117a27c",
+        "Reran eight focused AI tests and progress/catalogue/agent-skill validators on integrated main",
+        "Posted scoped evidence to issue #110 and read back the comment; confirmed the issue remains OPEN",
+        "Preserved MJ-REQ-109 as PARTIAL because configuration persistence and production task consumers are missing",
+        "Selected issue #111 / MJ-REQ-110 as the next locally actionable cost-control slice under active MJ-PR-030"
+      ],
+      "files_added": [],
+      "files_modified": [
+        "docs/evidence/2026-10-06-ai-task-configuration.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Integrated main task-config/disabled-provider tests: 8 PASS",
+        "Reconciled candidate full unit suite: 324 PASS",
+        "Reconciled Remotive integration and AI focused tests: 15 PASS",
+        "Progress, catalogue and agent-skill validators: PASS"
+      ],
+      "tests_remaining": [
+        "Implement configurable deterministic AI funnel/threshold controls without paid provider calls",
+        "Run focused and full local suites; preserve missing live model evidence as NOT_RUN",
+        "Continue with the next dependency-ready item after integration"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "Issue #110 remains OPEN/PARTIAL: no persistence or production consumer wiring; remote model providers remain unavailable."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "117a27ccfdf472fb67135d17f14ebd44c8fa9462",
+        "evidence_path": "docs/evidence/2026-10-06-ai-task-configuration.json"
+      }
     }
   ],
-  "current_phase": "MJ-REQ-109 candidate reconciled with current main b662979; merged-source regression checks pass; integration push pending",
+  "current_phase": "MJ-REQ-109 is locally integrated at main 117a27c and issue #110 remains OPEN/PARTIAL; next active slice is MJ-REQ-110 cost controls",
   "last_safe_checkpoint": {
-    "git_commit": "03a224ce86708f55135dabf9a1c0aaa89a735897",
+    "git_commit": "117a27ccfdf472fb67135d17f14ebd44c8fa9462",
     "evidence_path": "docs/evidence/2026-10-06-ai-task-configuration.json"
   },
   "live_integrations_tested": [
@@ -6463,17 +6503,16 @@
     "next_issue": 5
   },
   "active_development_issue": {
-    "issue": 110,
-    "requirement_id": "MJ-REQ-109",
-    "title": "AI Task Configuration",
-    "state": "PARTIAL_SLICE_VERIFIED_PENDING_MAIN",
-    "selection_reason": "Shared task-to-model routing prerequisite under dependency-ready MJ-PR-030; no provider calls are required for deterministic configuration validation.",
-    "base": "b66297964ab6cc8e36cff4c8c5e46e61ab573715",
-    "branch": "codex/mj-req109-task-config-20261006",
-    "candidate": "03a224ce86708f55135dabf9a1c0aaa89a735897",
-    "source_commit": "49f4769df3b06e413c25b3ab9a2282db74369e5b",
-    "evidence": "docs/evidence/2026-10-06-ai-task-configuration.json",
-    "next_action": "Verify exact current main remains an ancestor, push reconciled branch, integrate safely, and post OPEN/PARTIAL evidence to issue #110. Continue to the next dependency-ready issue afterward."
+    "issue": 111,
+    "requirement_id": "MJ-REQ-110",
+    "title": "AI Cost Controls",
+    "state": "ACTIVE",
+    "selection_reason": "Dependency-ready continuation of MJ-PR-030; configurable deterministic funnels and ceilings can reduce unnecessary future AI work without invoking any provider.",
+    "base": "117a27ccfdf472fb67135d17f14ebd44c8fa9462",
+    "branch": "codex/mj-req110-cost-controls-20261006",
+    "candidate": null,
+    "evidence": null,
+    "next_action": "In an isolated worktree, implement configurable deterministic funnel thresholds and bounded AI evaluation/document-generation ceilings with disabled/no-provider defaults; prove ordering, budget limits, and fail-closed behavior without external AI calls."
   },
   "historical_control_snapshots": [
     {
@@ -7607,5 +7646,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-06T19:03:46Z"
+  "updated_at": "2026-10-06T19:05:40Z"
 }
