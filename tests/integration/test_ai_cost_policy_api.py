@@ -5,7 +5,7 @@ import tempfile
 import unittest
 
 from fastapi.testclient import TestClient
-from sqlalchemy import delete, update
+from sqlalchemy import delete, select, update
 
 from apps.api.main import create_app
 from packages.persistence import models as m
@@ -145,6 +145,97 @@ class AICostPolicyApiTests(unittest.TestCase):
         self.assertEqual(boundary.status_code, 200, boundary.text)
         self.assertEqual(boundary.json()["plan"]["eligible_count"], 1,
                          f"policy={boundary.json().get('policy')} scores={[(row['id'], row['match_score']) for row in self.store.jobs(profile_id='fixture')]}")
+
+    def test_explicit_evaluate_endpoint_consumes_only_profile_policy_candidates(self):
+        from unittest.mock import patch
+        from services.ai.consumer import AIJobEvaluation
+        from services.ai.tasks import AI_TASKS
+
+        for index in range(3):
+            response = self.client.post("/jobs/manual", json={
+                "request_id": f"cost-consume-{index}",
+                "title": f"Infrastructure role {index}",
+                "company": "Synthetic Company",
+                "description": f"Windows Server role {index}.",
+                "reference_url": f"https://jobs.example.test/consume-{index}",
+                "application_url": f"https://apply.example.test/consume-{index}",
+                "source_details": {},
+            })
+            self.assertEqual(response.status_code, 201, response.text)
+        recalculate(self.store, "fixture")
+        with self.store.engine.begin() as connection:
+            rows = list(connection.execute(select(m.matches.c.job_id)).mappings())
+            for score, row in zip((98.0, 92.0, 40.0), rows):
+                connection.execute(update(m.matches).where(
+                    m.matches.c.profile_id == "fixture",
+                    m.matches.c.job_id == row["job_id"],
+                ).values(score=score))
+        self.store.save_ai_cost_policy("fixture", {
+            "minimum_score": 75, "max_input_candidates": 20,
+            "max_ai_candidates": 1, "max_document_candidates": 1,
+        })
+        self.store.save_ai_task_settings("fixture", {
+            task: {"provider": "ollama", "model": "llama3.2:3b"}
+            if task == "job_scoring" else {"provider": "disabled", "model": None}
+            for task in AI_TASKS
+        })
+        class Router:
+            def __init__(self, configuration):
+                self.configuration = configuration
+                self.calls = []
+
+            def generate_structured(self, **kwargs):
+                self.calls.append(kwargs)
+                return AIJobEvaluation(category="STRONG", rationale="Relevant infrastructure role.")
+
+        with patch("apps.api.main.AITaskRouter", Router):
+            response = self.client.post("/profiles/fixture/ai-cost-plan/evaluate")
+
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual(response.json()["evaluated_candidate_count"], 1)
+        self.assertEqual(response.json()["document_candidate_ids"], [])
+        self.assertEqual(response.json()["evaluations"][0]["category"], "STRONG")
+
+    def test_structured_provider_failures_are_reported_as_upstream_errors(self):
+        from unittest.mock import patch
+        from services.ai.structured_output import StructuredOutputError
+        from services.ai.tasks import AI_TASKS
+
+        response = self.client.post("/jobs/manual", json={
+            "request_id": "cost-consumer-provider-error",
+            "title": "Infrastructure Administrator",
+            "company": "Synthetic Company",
+            "description": "Windows Server operations.",
+            "reference_url": "https://jobs.example.test/provider-error",
+            "application_url": "https://apply.example.test/provider-error",
+            "source_details": {},
+        })
+        self.assertEqual(response.status_code, 201, response.text)
+        recalculate(self.store, "fixture")
+        job = self.store.jobs(profile_id="fixture")[0]
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.matches).where(
+                m.matches.c.profile_id == "fixture",
+                m.matches.c.job_id == job["id"],
+            ).values(score=95.0))
+        self.store.save_ai_task_settings("fixture", {
+            task: {"provider": "ollama", "model": "llama3.2:3b"}
+            if task == "job_scoring" else {"provider": "disabled", "model": None}
+            for task in AI_TASKS
+        })
+
+        class FailingRouter:
+            def __init__(self, configuration):
+                self.configuration = configuration
+
+            def generate_structured(self, **kwargs):
+                raise StructuredOutputError("AI_STRUCTURED_PROVIDER_FAILED")
+
+        with patch("apps.api.main.AITaskRouter", FailingRouter):
+            response = self.client.post("/profiles/fixture/ai-cost-plan/evaluate")
+
+        self.assertEqual(response.status_code, 502, response.text)
+        self.assertEqual(response.json()["detail"]["code"], "AI_STRUCTURED_PROVIDER_FAILED")
 
 
 if __name__ == "__main__":

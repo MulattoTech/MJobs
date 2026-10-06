@@ -1,5 +1,22 @@
 {
   "schema_version": 1,
   "lane": "codex",
-  "claims": []
+  "claims": [
+    {
+      "lane": "codex",
+      "status": "ACTIVE",
+      "issue": 111,
+      "requirement_id": "MJ-REQ-110",
+      "branch": "codex/mj-req110-review-consumer-20261006",
+      "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req110-review-consumer-20261006",
+      "paths": [
+        "services/ai/**",
+        "services/matching/**",
+        "apps/api/**",
+        "apps/web/**"
+      ],
+      "head": "8066f781678b099dcfeba5d9cdaa26d1b2dbc97a",
+      "pid": null
+    }
+  ]
 }

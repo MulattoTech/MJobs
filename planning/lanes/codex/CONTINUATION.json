@@ -1,17 +1,17 @@
 {
   "schema_version": 1,
   "lane": "codex",
-  "status": "IDLE_READY",
+  "status": "ACTIVE",
   "preferred_model": "gpt-6-luna",
   "preferred_reasoning": "high",
   "session_id": "01a10ed8-5445-7b61-8293-43be1895ecc5",
-  "canonical_main_at_pause": "ca53eb29dd0081d7b1151dc4dd2d304226e16ea5",
+  "canonical_main_at_pause": "8066f781678b099dcfeba5d9cdaa26d1b2dbc97a",
   "last_completed_issue": 111,
   "last_completed_requirement": "MJ-REQ-110",
   "last_integrated_head": "ca53eb29dd0081d7b1151dc4dd2d304226e16ea5",
   "next_issue": 111,
   "next_requirement": "MJ-REQ-110",
-  "resume_instruction": "Start a fresh parallel-lane session from current main. Continue issue #111 only for the remaining review-gated production task-consumer acceptance inside MJ-PR-030; do not redo integrated cost controls. Reconcile Antigravity/Ollama claims before creating a dedicated Codex worktree.",
+  "resume_instruction": "Issue #111 / MJ-REQ-110 is safely checkpointed PARTIAL on codex/mj-req110-review-consumer-20261006, based on origin/main 8066f781678b099dcfeba5d9cdaa26d1b2dbc97a. The profile-scoped bounded scoring consumer and API route pass focused local tests. Real provider inference and reviewed-document generation remain NOT_RUN; full Python suite has unrelated browser failures and frontend dependencies are missing. Continue only this claim if resumed. Antigravity owns #303 source-adapter paths; Ollama owns #318 ATS-detection paths. Canonical planning/main require the local integration lock.",
   "external_submission_enabled": false,
   "github_actions_enabled": false
 }

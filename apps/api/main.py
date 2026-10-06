@@ -36,7 +36,10 @@ from services.dedupe.routes import load_job_routes, list_route_choices, plan_app
 from services.company_discovery.triggers import queue_company_discovery
 from services.applications.knowledge import application_adapter_knowledge
 from services.ai.providers import AIProviderError, create_provider
-from services.ai.tasks import AI_TASKS, AITaskConfiguration
+from services.ai.tasks import AI_TASKS, AITaskConfiguration, AITaskRouter
+from services.ai.consumer import consume_ai_candidates, AIJobInput
+from services.ai.providers import AIProviderDisabled, AIProviderError
+from services.ai.structured_output import StructuredOutputError
 from services.ai.cost_controls import AICostPolicy, CandidateScore
 from services.company_discovery.public_client import PublicFetchError
 from services.company_discovery.sources import (list_company_job_sources, set_company_source_watch,
@@ -520,6 +523,41 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             "no_model_calls": True,
         }
 
+    @app.post("/profiles/{profile_id}/ai-cost-plan/evaluate")
+    def evaluate_ai_cost_plan(profile_id: str):
+        configured_policy = store.ai_cost_policy(profile_id)
+        policy = AICostPolicy(**configured_policy) if configured_policy else AICostPolicy()
+        configuration = AITaskConfiguration.from_mapping(store.ai_task_settings(profile_id))
+        if configuration.for_task("job_scoring").provider == "disabled":
+            raise HTTPException(409, {"code": "AI_PROVIDER_DISABLED"})
+        rows = store.jobs(profile_id=profile_id, limit=policy.max_input_candidates + 1)
+        if len(rows) > policy.max_input_candidates:
+            raise HTTPException(422, {"code": "AI_FUNNEL_INPUT_LIMIT"})
+        candidates = [AIJobInput(
+            job_id=row["id"], deterministic_score=int(float(row["match_score"])),
+            title=row["title"], company=row["company"], description=row["description"],
+        ) for row in rows if row.get("match_score") is not None]
+        try:
+            result = consume_ai_candidates(candidates, policy, AITaskRouter(configuration))
+        except StructuredOutputError as error:
+            raise HTTPException(502, {"code": error.code}) from None
+        except ValueError as error:
+            raise HTTPException(422, {"code": str(error)}) from None
+        except AIProviderDisabled:
+            raise HTTPException(409, {"code": "AI_PROVIDER_DISABLED"}) from None
+        except AIProviderError as error:
+            raise HTTPException(502, {"code": error.code}) from None
+        return {
+            "profile_id": profile_id,
+            "evaluated_candidate_count": len(result.evaluations),
+            "evaluations": [{
+                "job_id": job_id, "category": evaluation.category,
+                "rationale": evaluation.rationale,
+            } for job_id, evaluation in result.evaluations],
+            "document_candidate_ids": list(result.document_candidate_ids),
+            "documents_created": 0,
+            "deterministic_matches_unchanged": True,
+        }
     @app.put("/profiles")
     def profile(value: ProfileInput):
         payload = value.model_dump()
