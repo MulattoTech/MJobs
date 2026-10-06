@@ -102,6 +102,25 @@ class SkillOrderBrowserTests(unittest.TestCase):
                     profile_before_cancel=store.profile('fixture');history_before_cancel=application_documents(store,application_id)
                     comparison_started=threading.Event();comparison_cancelled=threading.Event()
 
+                    def unconfirmed_cancel(route):
+                        route.fulfill(status=200,content_type='application/json',body='{"cancelled":false}')
+
+                    def finish_comparison(data,format,cancellation_event):
+                        comparison_started.set();time.sleep(.5)
+                        from services.career_profile.extraction import extract_resume_text
+                        return extract_resume_text(data,format,cancellation_event)
+
+                    page.route('**/uploaded-resume-comparison/cancel**',unconfirmed_cancel)
+                    with patch('services.documents.uploaded_comparison.extract_resume_text',side_effect=finish_comparison):
+                        comparison.get_by_role('button',name='Compare selected resumes',exact=True).click()
+                        self.assertTrue(comparison_started.wait(5),'uploaded comparison did not start extraction')
+                        comparison.get_by_role('button',name='Cancel comparison',exact=True).click()
+                        expect(comparison.get_by_role('status')).to_contain_text('Cancellation was not confirmed.')
+                        expect(comparison.get_by_role('region',name='Resume comparison result',exact=True)).to_be_visible()
+                    page.unroute('**/uploaded-resume-comparison/cancel**',unconfirmed_cancel)
+                    self.assertEqual(store.profile('fixture'),profile_before_cancel)
+                    self.assertEqual(application_documents(store,application_id),history_before_cancel)
+
                     def wait_for_comparison_cancel(data,format,cancellation_event):
                         comparison_started.set();deadline=time.monotonic()+5
                         while not cancellation_event.is_set() and time.monotonic()<deadline:time.sleep(.005)
@@ -115,7 +134,7 @@ class SkillOrderBrowserTests(unittest.TestCase):
                         comparison.get_by_role('button',name='Compare selected resumes',exact=True).click()
                         self.assertTrue(comparison_started.wait(5),'uploaded comparison did not start extraction')
                         comparison.get_by_role('button',name='Cancel comparison',exact=True).click()
-                        expect(comparison.get_by_role('alert')).to_contain_text('Comparison cancelled.')
+                        expect(comparison.get_by_role('status')).to_contain_text('Comparison cancelled.')
                     self.assertTrue(comparison_cancelled.wait(5),'browser cancellation did not stop extraction work')
                     self.assertEqual(store.profile('fixture'),profile_before_cancel)
                     self.assertEqual(application_documents(store,application_id),history_before_cancel)

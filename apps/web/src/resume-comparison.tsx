@@ -63,7 +63,7 @@ export function ResumeComparison({documents}:{documents:GeneratedDocument[]}) {
     (row.template==='approved-contact-skill-and-bullet-emphasis-v2'&&row.generation_model==='deterministic-contact-skill-and-bullet-emphasis-v1')||
     (row.template==='approved-contact-selection-and-bullet-emphasis-v2'&&row.generation_model==='deterministic-contact-selection-and-bullet-emphasis-v1')));
   const [base,setBase]=useState(bases[0]?'g:'+bases[0].id:'');const [target,setTarget]=useState(targets[0]?.id||'');
-  const [result,setResult]=useState<Comparison|null>(null);const [error,setError]=useState('');const [busy,setBusy]=useState(false);
+  const [result,setResult]=useState<Comparison|null>(null);const [error,setError]=useState('');const [notice,setNotice]=useState('');const [busy,setBusy]=useState(false);
   const comparisonController=useRef<AbortController|null>(null);
   const [uploaded,setUploaded]=useState<UploadedBase[]>([]);const [loading,setLoading]=useState(false);const [loadError,setLoadError]=useState('');
   const [refresh,setRefresh]=useState(0);const profileId=documents[0]?.profile_id;
@@ -79,7 +79,7 @@ export function ResumeComparison({documents}:{documents:GeneratedDocument[]}) {
   if(!targets.length)return <p>Base ↔ tailored comparison needs a generated tailored resume for this application.</p>;
   async function compare(){
     const controller=new AbortController();comparisonController.current=controller;
-    setBusy(true);setError('');setResult(null);
+    setBusy(true);setError('');setNotice('');setResult(null);
     try{
       const row=targets.find(row=>row.id===target);
       if(!row?.application_id)throw new Error('Original application history is unavailable.');
@@ -87,7 +87,7 @@ export function ResumeComparison({documents}:{documents:GeneratedDocument[]}) {
       const fromUpload=base.startsWith('u:');
       const params:Record<string,string>=fromUpload?{base_revision_id:base.slice(2),tailored_document_id:target}:{base_document_id:base.slice(2),tailored_document_id:target};
       setResult(await api<Comparison>('/profiles/'+encodeURIComponent(profileId)+'/applications/'+encodeURIComponent(row.application_id)+(fromUpload?'/uploaded-resume-comparison?':'/document-comparison?')+new URLSearchParams(params),{signal:controller.signal}));
-    }catch(e){const message=String(e);setError(controller.signal.aborted||message.toLowerCase().includes('comparison cancelled')?'Comparison cancelled.':message);}finally{if(comparisonController.current===controller)comparisonController.current=null;setBusy(false);}
+    }catch(e){const message=String(e);if(controller.signal.aborted||message.toLowerCase().includes('comparison cancelled'))setNotice('Comparison cancelled.');else setError(message);}finally{if(comparisonController.current===controller)comparisonController.current=null;setBusy(false);}
   }
   async function cancelComparison(){
     const controller=comparisonController.current;
@@ -95,7 +95,8 @@ export function ResumeComparison({documents}:{documents:GeneratedDocument[]}) {
     const row=targets.find(row=>row.id===target);
     if(base.startsWith('u:')&&profileId&&row?.application_id){
       const params=new URLSearchParams({base_revision_id:base.slice(2),tailored_document_id:target});
-      try{await api('/profiles/'+encodeURIComponent(profileId)+'/applications/'+encodeURIComponent(row.application_id)+'/uploaded-resume-comparison/cancel?'+params,{method:'POST'});}
+      try{const outcome=await api<{cancelled:boolean}>('/profiles/'+encodeURIComponent(profileId)+'/applications/'+encodeURIComponent(row.application_id)+'/uploaded-resume-comparison/cancel?'+params,{method:'POST'});
+        if(!outcome.cancelled){setNotice('Cancellation was not confirmed. The comparison may still finish.');return;}}
       catch(e){setError('Cancellation request failed: '+String(e));return;}
     }
     controller.abort();
@@ -113,6 +114,7 @@ export function ResumeComparison({documents}:{documents:GeneratedDocument[]}) {
     <label>Tailored version<select aria-label="Tailored version" value={target} disabled={busy} onChange={e=>{setTarget(e.target.value);setResult(null);setError('');}}>{targets.map(row=><option key={row.id} value={row.id}>v{row.version}</option>)}</select></label>
     <button disabled={busy||!base} onClick={()=>void compare()}>{busy?'Comparing…':'Compare selected resumes'}</button>
     {busy&&base.startsWith('u:')&&<button type="button" onClick={()=>void cancelComparison()}>Cancel comparison</button>}
+    {notice&&<p role="status">{notice}</p>}
     {error&&<p role="alert">Comparison unavailable: {error}</p>}
     {result&&<ComparisonResult result={result}/>}
   </section>;
