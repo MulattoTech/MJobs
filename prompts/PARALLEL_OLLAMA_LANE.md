@@ -3,8 +3,8 @@
 Set/assume `MJOBS_LANE=ollama`.
 
 Runner: OpenCode with local Ollama.
-Preferred model: `ollama/gpt-oss:20b`.
-Fallback for harder bounded work: `ollama/gemma4:26b`.
+Preferred model: `ollama/gemma4:26b`.
+Fallback for lighter/faster bounded work: `ollama/gpt-oss:20b`.
 
 Read `AGENTS.md`, `planning/lanes/README.md`, your own lane continuation/state/
 queue/claims/handoff, and BOTH Codex and Antigravity claims/state read-only. Then

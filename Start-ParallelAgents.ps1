@@ -1,6 +1,6 @@
 param(
   [switch]$IncludeOllama,
-  [ValidateSet('ollama/gpt-oss:20b','ollama/gemma4:26b')][string]$OllamaModel='ollama/gpt-oss:20b',
+  [ValidateSet('ollama/gpt-oss:20b','ollama/gemma4:26b')][string]$OllamaModel='ollama/gemma4:26b',
   [int]$Port=18704,
   [switch]$NoOpen
 )

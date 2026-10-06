@@ -31,7 +31,7 @@
   "defaults": {
     "codex": "gpt-6-luna / high",
     "antigravity": "gemini-3.8-flash-medium / medium",
-    "ollama": "ollama/gpt-oss:20b / high"
+    "ollama": "ollama/gemma4:26b / high (gpt-oss:20b remains selectable)"
   },
   "validation": [
     "python -m py_compile tools/agent_dashboard/supervisor.py tools/agent_dashboard/server.py: PASS",

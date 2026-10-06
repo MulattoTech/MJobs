@@ -10,7 +10,7 @@
   "worktree": null,
   "result": "NOT_RUN",
   "runner": "OpenCode with Ollama local provider",
-  "model": "ollama/gpt-oss:20b",
+  "model": "ollama/gemma4:26b",
   "strengths": [
     "deterministic bounded implementation",
     "tests",

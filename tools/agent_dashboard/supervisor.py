@@ -31,7 +31,7 @@ DEFAULTS: dict[str, dict[str, Any]] = {
         "runner": "agy",
     },
     "ollama": {
-        "model": "ollama/gpt-oss:20b",
+        "model": "ollama/gemma4:26b",
         "reasoning": "high",
         "auto_continue": True,
         "prompt_file": "prompts/PARALLEL_OLLAMA_LANE.md",
@@ -200,6 +200,33 @@ class AgentSupervisor:
         except Exception:
             return {}
 
+    def _issue_brief(self, claim: dict[str, Any]) -> str:
+        issue = claim.get("issue")
+        if not issue:
+            return ""
+        result = _run(
+            ["gh", "issue", "view", str(issue), "--repo", "MulattoTech/MJobs",
+             "--json", "number,title,state,body"],
+            self.root,
+            timeout=12,
+        )
+        if result.returncode:
+            return (
+                f"Issue #{issue} acceptance could not be injected. If needed, run "
+                f"'gh issue view {issue} --repo MulattoTech/MJobs' before coding."
+            )
+        try:
+            payload = json.loads(result.stdout)
+            body = str(payload.get("body") or "")
+            if len(body) > 7000:
+                body = body[:7000] + "\n[truncated by supervisor]"
+            return (
+                f"GitHub issue #{payload.get('number')}: {payload.get('title')} "
+                f"[{payload.get('state')}]\n{body}"
+            )
+        except Exception:
+            return result.stdout[:7000]
+
     def _prompt(self, lane: str) -> str:
         cfg = self.config["lanes"][lane]
         path = self.root / cfg["prompt_file"]
@@ -208,12 +235,17 @@ class AgentSupervisor:
         suffix = f"\n\nDASHBOARD PROMPT OVERRIDE:\n{override}\n" if override else ""
         claim = self._live_claim(lane)
         if claim:
+            issue_brief = self._issue_brief(claim)
             focus = (
                 f"LANE={lane}. ACTIVE CLAIM: issue #{claim.get('issue')} / "
                 f"{claim.get('requirement_id')}; branch={claim.get('branch')}; "
                 f"worktree={claim.get('worktree')}. Work this claim only until it is "
                 "completed, safely checkpointed, or explicitly released. Do NOT switch "
                 "to the repository's global active issue or another lane's work. "
+                "FIRST: fetch origin/main; ensure the exact claimed worktree/branch exists "
+                "and reconcile it with current main without discarding lane work; then do "
+                "all source mutation inside that worktree. "
+                f"\n\nAUTHORITATIVE ISSUE CONTRACT:\n{issue_brief}\n"
             )
         else:
             focus = (

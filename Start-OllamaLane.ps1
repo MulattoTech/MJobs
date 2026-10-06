@@ -1,5 +1,5 @@
 param(
-  [ValidateSet('ollama/gpt-oss:20b','ollama/gemma4:26b')][string]$Model='ollama/gpt-oss:20b',
+  [ValidateSet('ollama/gpt-oss:20b','ollama/gemma4:26b')][string]$Model='ollama/gemma4:26b',
   [switch]$NoFollow,
   [switch]$NoOpen,
   [int]$Port=18704
