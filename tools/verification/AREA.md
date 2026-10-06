@@ -23,3 +23,10 @@ The CLI validates evidence paths and replaces the state file atomically; `valida
 checks the journal during CI. This control journal contains no personal application data.
 
 Project-scoped Codex/agent workflows live under `.agents/skills/`. The `mjobs-delivery` skill is a small router with six on-demand playbooks for migrations, source adapters, application adapters, privacy/security, LLM providers/prompts, and release verification. Validate the contract with `python -m tools.verification.agent_skills`; the validator checks that routed playbooks, repository paths, and referenced Python command modules exist.
+
+`gpu_independence` guards MJ-REQ-002 by checking required Python/JavaScript
+dependencies, Docker/Compose runtime configuration, and frontend GPU APIs. It
+does not inspect or modify host hardware. Its fixture tests cover valid CPU-only
+inputs plus representative Python, JavaScript, Compose, Dockerfile, and frontend
+GPU regressions. Run `python -m unittest tests.unit.test_gpu_independence` and
+`python -m tools.verification.gpu_independence`.

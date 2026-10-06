@@ -23,7 +23,7 @@
       "status": "MERGED",
       "branch": "codex/mj-pr-001-governance-safety",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Live GitHub reconciliation: PR #367 merged at b7bdd711bc7f4984e59620e585557aeb4fc06fa6.",
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Live GitHub reconciliation: PR #367 merged at b7bdd711bc7f4984e59620e585557aeb4fc06fa6. Active issue #3 / MJ-REQ-002 follow-up on main 593569477dbcf035478940c3275380fd732a7127: add a deterministic validator/test protecting the CPU-only dependency, Compose and frontend runtime boundary; no GPU benchmarks or host configuration changes. Issue #3 remains OPEN/PARTIAL until the full contract is evidenced.",
       "pr_number": 367,
       "merge_commit": "b7bdd711bc7f4984e59620e585557aeb4fc06fa6",
       "merged_at": "2026-09-30T19:38:24Z"
