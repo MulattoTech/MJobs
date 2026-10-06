@@ -9,6 +9,8 @@ from pathlib import Path
 import re
 import subprocess
 import sys
+import threading
+import time
 from urllib.parse import urlsplit
 from zipfile import BadZipFile, ZipFile
 import xml.etree.ElementTree as ET
@@ -22,6 +24,75 @@ MAX_DOCX_UNCOMPRESSED = 30 * 10 * 1024 * 1024
 MAX_DOCX_XML_BYTES = 2 * 1024 * 1024
 NATIVE_PARSER_TIMEOUT = 15
 MAX_PARSER_OUTPUT_BYTES = 2 * 1024 * 1024
+
+
+class ResumeExtractionCancelled(Exception):
+    """The client disconnected while a bounded native parser child was running."""
+
+
+def _run_parser_process(command, data, cancelled=None, timeout=NATIVE_PARSER_TIMEOUT,
+                        env=None, output_limit=MAX_PARSER_OUTPUT_BYTES):
+    """Run a parser child with a wall deadline, cancellation, and bounded output."""
+    if cancelled is not None and cancelled.is_set():
+        raise ResumeExtractionCancelled()
+    deadline = time.monotonic() + timeout
+    process = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                               stderr=subprocess.DEVNULL, cwd=Path(__file__).resolve().parents[2],
+                               env=env, shell=False)
+    output = bytearray()
+    output_exceeded = threading.Event()
+
+    def read_output():
+        while True:
+            chunk = process.stdout.read(min(64 * 1024, output_limit + 1 - len(output)))
+            if not chunk:
+                return
+            output.extend(chunk)
+            if len(output) > output_limit:
+                output_exceeded.set()
+                if process.poll() is None:
+                    process.kill()
+                return
+
+    def write_input():
+        try:
+            process.stdin.write(data)
+            process.stdin.close()
+        except (BrokenPipeError, OSError, ValueError):
+            pass
+
+    output_reader = threading.Thread(target=read_output, daemon=True)
+    input_writer = threading.Thread(target=write_input, daemon=True)
+    output_reader.start()
+    input_writer.start()
+    try:
+        while process.poll() is None:
+            if cancelled is not None and cancelled.is_set():
+                raise ResumeExtractionCancelled()
+            if output_exceeded.is_set():
+                raise ValueError('Resume parser exceeded its output limit')
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise subprocess.TimeoutExpired(command, timeout)
+            time.sleep(min(0.01, remaining))
+        process.wait()
+        output_reader.join(timeout=1)
+        input_writer.join(timeout=1)
+        if output_exceeded.is_set() or len(output) > output_limit:
+            raise ValueError('Resume parser exceeded its output limit')
+        if cancelled is not None and cancelled.is_set():
+            raise ResumeExtractionCancelled()
+        return subprocess.CompletedProcess(command, process.returncode, bytes(output))
+    except (ResumeExtractionCancelled, subprocess.TimeoutExpired, ValueError):
+        if process.poll() is None:
+            process.kill()
+        process.wait()
+        output_reader.join(timeout=1)
+        input_writer.join(timeout=1)
+        raise
+    finally:
+        process.stdout.close()
+        process.stdin.close()
 
 _EMAIL = re.compile(r"(?i)(?<![\w.+-])[\w.+-]+@[\w-]+(?:\.[\w-]+)+(?![\w.-])")
 _PHONE = re.compile(r"(?<!\w)\+?[\d(). -]{10,24}(?!\w)")
@@ -166,8 +237,8 @@ def _native_pdf_pages(data: bytes) -> tuple[list[str], list[str], list[int]]:
         return [], ["PDF could not be read"], []
 
 
-def _native_pdf(data: bytes) -> tuple[str, list[str], bool, bool]:
-    pages, warnings, scanned = _run_native_parser(data, 'pdf')
+def _native_pdf(data: bytes, cancelled=None) -> tuple[str, list[str], bool, bool]:
+    pages, warnings, scanned = _run_native_parser(data, 'pdf', cancelled=cancelled)
     recognized = {}
     if scanned:
         from services.career_profile.ocr import ocr_pdf_pages
@@ -195,14 +266,14 @@ def _parser_environment() -> dict[str, str]:
     return {key: os.environ[key] for key in allowed if key in os.environ}
 
 
-def _run_native_parser(data: bytes, kind: str) -> tuple[list[str], list[str], list[int]]:
-    root = Path(__file__).resolve().parents[2]
+def _run_native_parser(data: bytes, kind: str, cancelled=None) -> tuple[list[str], list[str], list[int]]:
     try:
-        result = subprocess.run(
+        result = _run_parser_process(
             [sys.executable, '-m', 'services.career_profile.parser_worker', kind],
-            input=data, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
-            cwd=root, env=_parser_environment(), timeout=NATIVE_PARSER_TIMEOUT,
-            shell=False, check=False)
+            data, cancelled=cancelled, timeout=NATIVE_PARSER_TIMEOUT,
+            env=_parser_environment())
+    except ResumeExtractionCancelled:
+        raise
     except subprocess.TimeoutExpired:
         return [], ['Resume parser exceeded its time limit'], []
     except OSError:
@@ -367,8 +438,10 @@ def _extract_contact(text: str) -> tuple[dict, set[int]]:
     return contact, used
 
 
-def extract_resume_text(data: bytes, format: str) -> dict:
+def extract_resume_text(data: bytes, format: str, cancellation_event=None) -> dict:
     """Read bounded local text once, retaining extraction/OCR uncertainty."""
+    if cancellation_event is not None and cancellation_event.is_set():
+        raise ResumeExtractionCancelled()
     if not isinstance(data, (bytes, bytearray)) or len(data) > MAX_INPUT_BYTES:
         raise ValueError("Resume exceeds the supported size limit")
     kind = str(format).lower().lstrip(".")
@@ -378,9 +451,9 @@ def extract_resume_text(data: bytes, format: str) -> dict:
             text = bytes(data).decode("utf-8")
             warnings: list[str] = []
         elif kind == "pdf":
-            text, warnings, needs_ocr, used_ocr = _native_pdf(bytes(data))
+            text, warnings, needs_ocr, used_ocr = _native_pdf(bytes(data), cancellation_event)
         elif kind == "docx":
-            pages, warnings, _ = _run_native_parser(bytes(data), 'docx')
+            pages, warnings, _ = _run_native_parser(bytes(data), 'docx', cancelled=cancellation_event)
             text = pages[0] if pages else ''
         else:
             return {"status": "UNREADABLE", "warnings": ["Unsupported resume format"], "text": "", "used_ocr": False}
@@ -396,11 +469,11 @@ def extract_resume_text(data: bytes, format: str) -> dict:
     return {"status":status,"warnings":warnings,"text":text,"used_ocr":used_ocr}
 
 
-def extract_resume(data: bytes, format: str, source: str) -> dict:
+def extract_resume(data: bytes, format: str, source: str, cancellation_event=None) -> dict:
     """Extract reviewable facts from PDF, DOCX, or UTF-8 TXT bytes."""
     if not isinstance(source, str) or len(source) > 1000:
         raise ValueError("Resume source is too long")
-    extraction = extract_resume_text(data, format)
+    extraction = extract_resume_text(data, format, cancellation_event)
     text, warnings, used_ocr = extraction['text'], list(extraction['warnings']), extraction['used_ocr']
     contact, contact_lines = _extract_contact(text)
     pairs = _section_facts(text, contact_lines)

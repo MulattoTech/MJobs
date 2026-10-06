@@ -1,9 +1,11 @@
 """Local-first product API; mock submission is explicit and external is off."""
 from contextlib import asynccontextmanager
+import asyncio
 import hashlib
 import json
 import os
 from pathlib import Path
+import threading
 from typing import Literal, Annotated
 from urllib.parse import unquote
 
@@ -21,7 +23,7 @@ from packages.persistence import models as m
 from packages.persistence.store import ProfileVersionConflict, Store, identity
 from packages.domain.operation_mode import parse_operation_mode, operation_mode_from_env
 from packages.domain.profile import ContactDetails, JobPreferences
-from services.career_profile.extraction import extract_resume
+from services.career_profile.extraction import ResumeExtractionCancelled, extract_resume
 from services.discovery.pipeline import MockClient
 from services.discovery.sources.collect import configure_source
 from services.discovery.search_profiles import get_search_profile, list_search_profiles, save_search_profile
@@ -470,12 +472,33 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             "Content-Disposition": f'attachment; filename="base-resume-{record["id"][:12]}.{record["format"]}"'})
 
     @app.post('/profiles/{profile_id}/resumes/{resume_id}/extract')
-    def profile_resume_extract(profile_id: str, resume_id: str):
+    async def profile_resume_extract(profile_id: str, resume_id: str, request: Request):
         try:
             record, data = read_resume(store, output_dir, profile_id, resume_id)
         except UploadIntegrityError as exc:
             raise HTTPException(409, str(exc)) from exc
-        return extract_resume(data, record['format'], f"uploaded-resume:{record['id']}:sha256:{record['sha256']}")
+        cancelled = threading.Event()
+        work = asyncio.create_task(asyncio.to_thread(
+            extract_resume, data, record['format'],
+            f"uploaded-resume:{record['id']}:sha256:{record['sha256']}", cancelled))
+        try:
+            while not work.done():
+                if await request.is_disconnected():
+                    cancelled.set()
+                    try:
+                        await work
+                    except ResumeExtractionCancelled:
+                        pass
+                    return Response(status_code=499)
+                await asyncio.sleep(0.05)
+            return await work
+        except asyncio.CancelledError:
+            cancelled.set()
+            try:
+                await asyncio.shield(work)
+            except BaseException:
+                pass
+            raise
 
     @app.post("/discovery", status_code=202)
     def discovery(value: DiscoveryInput):

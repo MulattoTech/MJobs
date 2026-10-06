@@ -1,15 +1,21 @@
 """Resume-led profiles retain review boundaries and immutable source versions."""
 from concurrent.futures import ThreadPoolExecutor
 from io import BytesIO
+import asyncio
+import inspect
 from pathlib import Path
 import tempfile
+import threading
+import time
 import unittest
+from unittest.mock import AsyncMock, patch
 
 from fastapi.testclient import TestClient
 from reportlab.pdfgen import canvas
 
 from apps.api.main import create_app
 from packages.persistence.store import Store
+from services.career_profile.extraction import ResumeExtractionCancelled
 from services.documents.generate import prepare, PreparationError
 from services.documents.uploads import save_resume
 from fixtures.mock_server import fixture_server
@@ -171,6 +177,30 @@ class ProfileImportTests(unittest.TestCase):
         path = self.root / 'uploads' / (uploaded['id'] + '.pdf')
         path.write_bytes(b'corrupt')
         self.assertEqual(self.client.post(endpoint).status_code, 409)
+
+    def test_disconnected_resume_extract_cancels_child_work_before_returning(self):
+        self.store.save_profile(PROFILE)
+        uploaded = self.upload().json()
+        route = next(route for route in self.client.app.routes
+                     if getattr(route, 'path', None) == '/profiles/{profile_id}/resumes/{resume_id}/extract')
+        self.assertTrue(inspect.iscoroutinefunction(route.endpoint))
+        request = type('RequestProbe', (), {})()
+        request.is_disconnected = AsyncMock(side_effect=[False, True])
+        observed = threading.Event()
+
+        def wait_for_cancel(data, format, source, cancellation_event):
+            deadline = time.monotonic() + 2
+            while not cancellation_event.is_set() and time.monotonic() < deadline:
+                time.sleep(0.005)
+            if cancellation_event.is_set():
+                observed.set()
+                raise ResumeExtractionCancelled()
+            raise AssertionError('client disconnect was not propagated to extraction')
+
+        with patch('apps.api.main.extract_resume', side_effect=wait_for_cancel):
+            response = asyncio.run(route.endpoint('fixture', uploaded['id'], request))
+        self.assertEqual(response.status_code, 499)
+        self.assertTrue(observed.is_set())
 
     def test_named_resume_versions_are_idempotent_scoped_and_downloadable(self):
         self.store.save_profile(PROFILE)

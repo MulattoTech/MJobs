@@ -1,15 +1,39 @@
 import io
 import unittest
 import subprocess
+import sys
+import threading
+import time
 from unittest.mock import patch
 from zipfile import ZipFile
 
+from services.career_profile import extraction
 from services.career_profile.extraction import extract_resume
 
 
 class ResumeExtractionTests(unittest.TestCase):
+    def test_parser_child_is_killed_promptly_when_cancellation_is_requested(self):
+        self.assertTrue(hasattr(extraction, '_run_parser_process'), 'parser process runner must expose cancellation')
+        cancelled = threading.Event()
+        timer = threading.Timer(0.15, cancelled.set)
+        started = time.monotonic()
+        timer.start()
+        try:
+            with self.assertRaises(extraction.ResumeExtractionCancelled):
+                extraction._run_parser_process([sys.executable, '-c', 'import time; time.sleep(30)'], b'', cancelled)
+        finally:
+            timer.cancel()
+        self.assertLess(time.monotonic() - started, 2)
+
+    def test_parser_child_output_limit_terminates_writer(self):
+        self.assertTrue(hasattr(extraction, '_run_parser_process'), 'parser process runner must expose output bounds')
+        with self.assertRaisesRegex(ValueError, 'output limit'):
+            extraction._run_parser_process(
+                [sys.executable, '-c', "import sys; sys.stdout.write('x' * 3000000)"],
+                b'', threading.Event(), timeout=5)
+
     def test_native_parser_timeout_fails_closed_without_facts_or_raw_diagnostics(self):
-        with patch('services.career_profile.extraction.subprocess.run',
+        with patch.object(extraction, '_run_parser_process',
                    side_effect=subprocess.TimeoutExpired('parser', 15, output=b'private resume text')) as run:
             result = extract_resume(b'%PDF- synthetic', 'pdf', 'uploaded.pdf')
 
@@ -19,12 +43,11 @@ class ResumeExtractionTests(unittest.TestCase):
         self.assertTrue(any('time limit' in warning.lower() for warning in result['warnings']))
         self.assertNotIn('private resume text', str(result))
         self.assertEqual(run.call_args.kwargs['timeout'], 15)
-        self.assertFalse(run.call_args.kwargs['shell'])
 
     def test_native_parser_child_receives_document_on_stdin_without_application_secrets(self):
         completed = subprocess.CompletedProcess([], 0,
             b'{"pages":["Applicant\\nSkills\\nPython"],"warnings":[],"scanned":[]}')
-        with patch('services.career_profile.extraction.subprocess.run', return_value=completed) as run, \
+        with patch.object(extraction, '_run_parser_process', return_value=completed) as run, \
              patch.dict('os.environ', {'DATABASE_URL': 'private-database', 'OPENAI_API_KEY': 'private-key'}):
             result = extract_resume(b'%PDF- private contents', 'pdf', 'uploaded.pdf')
 
@@ -33,11 +56,9 @@ class ResumeExtractionTests(unittest.TestCase):
         self.assertIn('services.career_profile.parser_worker', args[0])
         self.assertEqual(args[0][-1], 'pdf')
         self.assertNotIn(b'private contents', b' '.join(arg.encode() for arg in args[0]))
-        self.assertEqual(kwargs['input'], b'%PDF- private contents')
+        self.assertEqual(args[1], b'%PDF- private contents')
         self.assertNotIn('DATABASE_URL', kwargs['env'])
         self.assertNotIn('OPENAI_API_KEY', kwargs['env'])
-        self.assertIs(kwargs['stderr'], subprocess.DEVNULL)
-        self.assertIs(kwargs['stdout'], subprocess.PIPE)
 
     def test_native_parser_launch_and_protocol_failures_are_safe_unreadable_results(self):
         outcomes = [OSError('private executable path'),
@@ -47,7 +68,7 @@ class ResumeExtractionTests(unittest.TestCase):
             mock_options = ({'side_effect': outcome} if isinstance(outcome, BaseException)
                             else {'return_value': outcome})
             with self.subTest(outcome=type(outcome).__name__), \
-                 patch('services.career_profile.extraction.subprocess.run', **mock_options):
+                 patch.object(extraction, '_run_parser_process', **mock_options):
                 result = extract_resume(b'%PDF- synthetic', 'pdf', 'uploaded.pdf')
             self.assertEqual(result['status'], 'UNREADABLE')
             self.assertEqual(result['facts'], [])

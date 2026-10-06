@@ -16,9 +16,13 @@ must not depend on application automation or matching workers.
 
 Native PDF parsing uses pypdf; DOCX parses only the bounded document XML part;
 both run in a shell-free child process with a 15-second parent wall deadline,
-captured bounded JSON output, discarded stderr, and a small environment allowlist
+streamed JSON output capped at 2 MiB, client-disconnect cancellation, discarded stderr,
+and a small environment allowlist
 that excludes application credentials. Linux parser children also receive address
-space, CPU, file-size and core-dump limits; Windows relies on the wall deadline.
+space, CPU, file-size and core-dump limits; Windows relies on the parent wall deadline
+and streaming output cap. Cancellation currently stops native parser children; an
+already-running OCR subprocess retains its own 45-second bounded deadline and is not
+yet interrupted immediately when the client disconnects.
 UTF-8 TXT stays local in the API process. Scanned pages without native text use Poppler and English
 Tesseract locally; no file or extracted text goes to a remote OCR service.
 The fallback processes at most 10 scanned pages, scales each raster to at most
