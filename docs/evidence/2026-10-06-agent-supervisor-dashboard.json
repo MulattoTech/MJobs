@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "evidence_id": "AGENT-SUPERVISOR-DASHBOARD-20261006",
+  "timestamp_utc": "2026-10-06T22:05:00Z",
+  "issue": 516,
+  "result": "PASS",
+  "scope": "Loopback-only non-Electron supervisor/dashboard for Codex, Antigravity, and local Ollama/OpenCode MJobs implementation lanes.",
+  "root_cause_fixed": {
+    "observed": "Codex did not crash. Its one-shot codex exec turn loaded the generic brainstorming skill, classified the remaining issue #111 consumer as architectural, requested human design approval, and returned to PowerShell.",
+    "mitigation": [
+      "Parallel lane prompts and repository delivery rules now classify already-catalogued issue/spec work as continuous implementation rather than fresh ideation.",
+      "A truly unresolved new architecture choice is checkpointed as BLOCKED_DESIGN and the lane selects another safe issue instead of ending the entire burn-down.",
+      "The supervisor classifies approval-gate, quota, environment, error, clean completion, and crash-loop conditions.",
+      "Clean completions auto-continue when enabled."
+    ]
+  },
+  "dashboard": {
+    "implementation": "FastAPI plus plain HTML/CSS/JavaScript; no Electron or frontend bundler.",
+    "bind": "127.0.0.1:18704",
+    "features": [
+      "lane PID/status/restart count/issue claim/log tail",
+      "start/stop/restart",
+      "model/reasoning/prompt override editing",
+      "auto-continue toggle",
+      "repository dirty/head/origin state",
+      "claims/worktrees/integration-lock visibility",
+      "persistent machine-local settings in shared Git common directory",
+      "crash-loop guard"
+    ]
+  },
+  "defaults": {
+    "codex": "gpt-6-luna / high",
+    "antigravity": "gemini-3.8-flash-medium / medium",
+    "ollama": "ollama/gpt-oss:20b / high"
+  },
+  "validation": [
+    "python -m py_compile tools/agent_dashboard/supervisor.py tools/agent_dashboard/server.py: PASS",
+    "python -m unittest tests.unit.test_agent_dashboard tests.unit.test_agent_dashboard_api -v: 6 PASS",
+    "PowerShell parse: Start-AgentDashboard.ps1, Start-AgentLane.ps1, Start-CodexLane.ps1, Start-AntigravityLane.ps1, Start-OllamaLane.ps1, Start-ParallelAgents.ps1: PASS",
+    "python -m tools.verification.agent_skills: PASS",
+    "python -m tools.verification.catalogue: PASS",
+    "git diff --check: PASS",
+    "HTTP smoke on isolated port: GET /api/state 200 and GET / 200; Antigravity model read back gemini-3.8-flash-medium"
+  ],
+  "safety": [
+    "Dashboard rejects non-loopback bind requests.",
+    "Existing source worktree claims and atomic integration lock remain authoritative.",
+    "External application submission remains OFF.",
+    "GitHub Actions/hosted reviewer policy is unchanged.",
+    "Dashboard setup did not modify active Antigravity/Ollama feature source paths."
+  ]
+}

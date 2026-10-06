@@ -124,3 +124,19 @@ from an old worktree alone.
 
 Supported lanes are `codex`, `antigravity`, and `ollama`. The Ollama lane is a
 real implementation lane using local GPU inference, not a reviewer substitute.
+
+
+## Unattended lane design-gate routing
+
+For dashboard/supervisor parallel lanes, an existing catalogued issue plus its
+authoritative area/source spec is already an implementation contract. Do not invoke
+the generic brainstorming or writing-plans approval workflow merely because the
+accepted issue spans multiple modules. Implement the smallest acceptance-backed
+vertical slice using existing architecture.
+
+If implementation exposes a genuinely new architectural choice that is not resolved
+by the issue, specs, existing code, or current user instruction, do not invent the
+choice and do not stop the whole burn-down waiting for chat approval. Record
+BLOCKED_DESIGN in the lane-local handoff/evidence, release or narrow the claim, and
+select another safe dependency-ready issue. The dashboard will surface the blocker
+for later user review.

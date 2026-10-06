@@ -1,0 +1,46 @@
+from __future__ import annotations
+
+import subprocess
+import tempfile
+import unittest
+from pathlib import Path
+
+from fastapi.testclient import TestClient
+
+from tools.agent_dashboard.server import create_app
+
+
+class AgentDashboardApiTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp.name)
+        subprocess.run(["git", "init"], cwd=self.root, check=True, capture_output=True)
+        (self.root / "prompts").mkdir()
+        for name in ("PARALLEL_CODEX_LANE.md", "PARALLEL_ANTIGRAVITY_LANE.md", "PARALLEL_OLLAMA_LANE.md"):
+            (self.root / "prompts" / name).write_text("PROMPT\n", encoding="utf-8")
+        self.client = TestClient(create_app(self.root))
+
+    def tearDown(self):
+        self.temp.cleanup()
+
+    def test_state_is_available_and_loopback_dashboard_has_three_lanes(self):
+        response = self.client.get("/api/state")
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        self.assertEqual(set(body["lanes"]), {"codex", "antigravity", "ollama"})
+        self.assertIn("git", body)
+        self.assertIn("coordination", body)
+
+    def test_lane_configuration_can_be_changed_without_starting_process(self):
+        response = self.client.patch(
+            "/api/lanes/antigravity/config",
+            json={"model": "gemini-3.8-flash-medium", "reasoning": "medium", "auto_continue": True},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["model"], "gemini-3.8-flash-medium")
+        state = self.client.get("/api/state").json()
+        self.assertEqual(state["lanes"]["antigravity"]["runtime"]["status"], "STOPPED")
+
+
+if __name__ == "__main__":
+    unittest.main()

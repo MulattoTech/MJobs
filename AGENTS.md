@@ -127,3 +127,25 @@ live coordination truth; stale worktree existence alone is not an active claim.
 The local Ollama lane may use Codex CLI's native `--oss --local-provider ollama`
 mode. Local model capability never relaxes normal truthfulness, evidence, privacy,
 external-submission, or integration rules.
+
+
+## Unattended parallel implementation lanes
+
+When a session is launched by the MJobs agent supervisor/dashboard and the selected
+work is an existing catalogued GitHub issue with an authoritative MJobs area/source
+spec, the user has authorized continuous implementation of that existing acceptance
+contract. This is not fresh product ideation.
+
+For those supervised lanes:
+- do not route ordinary existing-issue implementation through the generic
+  brainstorming/writing-plans human-approval workflow;
+- do not ask for routine design/spec/plan approval before implementing acceptance
+  already defined by the issue/spec and existing architecture;
+- prefer reuse and the smallest coherent vertical slice;
+- if a truly new architectural decision is not settled by repository authority,
+  checkpoint it as BLOCKED_DESIGN and select another non-overlapping dependency-ready
+  issue instead of terminating the whole implementation lane.
+
+This does not authorize weakening safety, inventing requirements, external
+application submission, bypassing access controls, or overriding an explicit user
+decision gate.

@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>MJobs Agent Control</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <header>
+    <div>
+      <h1>MJobs Agent Control</h1>
+      <p>Local parallel-agent supervisor · loopback only</p>
+    </div>
+    <div class="header-actions">
+      <span id="mainState" class="pill">loading…</span>
+      <button id="refreshBtn">Refresh</button>
+      <button id="stopAllBtn" class="danger">Stop all</button>
+    </div>
+  </header>
+
+  <main>
+    <section id="alerts"></section>
+    <section id="lanes" class="lane-grid"></section>
+
+    <section class="panel repo-panel">
+      <div class="panel-title">
+        <h2>Repository & coordination</h2>
+        <span id="updatedAt"></span>
+      </div>
+      <div id="repoSummary" class="repo-summary"></div>
+      <details>
+        <summary>Claims / lock / worktrees</summary>
+        <pre id="coordination"></pre>
+      </details>
+    </section>
+  </main>
+
+  <template id="laneTemplate">
+    <article class="panel lane-card">
+      <div class="lane-title">
+        <div>
+          <h2 class="lane-name"></h2>
+          <div class="lane-runner"></div>
+        </div>
+        <span class="status pill"></span>
+      </div>
+
+      <div class="metrics">
+        <div><span>PID</span><strong class="pid">—</strong></div>
+        <div><span>Restarts</span><strong class="restarts">0</strong></div>
+        <div><span>Issue</span><strong class="issue">—</strong></div>
+      </div>
+
+      <label>Model
+        <input class="model" spellcheck="false">
+      </label>
+
+      <label>Reasoning / effort
+        <input class="reasoning" spellcheck="false">
+      </label>
+
+      <label class="check-row">
+        <input type="checkbox" class="auto-continue">
+        <span>Auto-continue after clean completion</span>
+      </label>
+
+      <label>Prompt override
+        <textarea class="prompt" rows="5" placeholder="Optional instructions appended to the lane prompt"></textarea>
+      </label>
+
+      <div class="buttons">
+        <button class="save">Save settings</button>
+        <button class="start primary">Start</button>
+        <button class="restart">Restart</button>
+        <button class="stop danger">Stop</button>
+      </div>
+
+      <div class="reason"></div>
+
+      <details open>
+        <summary>Live log</summary>
+        <pre class="log"></pre>
+      </details>
+    </article>
+  </template>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
