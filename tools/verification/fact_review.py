@@ -28,22 +28,36 @@ def acceptable_result(result, expect_red=False):
     return red_confirmed if expect_red else result.wasSuccessful() and result.testsRun == EXPECTED_TESTS and not result.skipped
 
 
-def resolve_source_commit():
-    """Return a validated exact HEAD SHA or a stable, safe failure category."""
+def _git_output(arguments, timeout_category, failure_category):
     try:
         result = subprocess.run(
-            ['git', 'rev-parse', 'HEAD'], stdout=subprocess.PIPE,
+            ['git', *arguments], stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL, text=True, encoding='utf-8',
             timeout=GIT_REVISION_TIMEOUT, shell=False, check=False)
     except subprocess.TimeoutExpired:
-        return None, 'GIT_TIMEOUT'
+        return None, timeout_category
     except OSError:
         return None, 'GIT_UNAVAILABLE'
     if result.returncode != 0:
-        return None, 'GIT_REVISION_FAILED'
-    commit = (result.stdout or '').strip()
+        return None, failure_category
+    return result.stdout or '', None
+
+
+def resolve_source_commit():
+    """Return a validated clean HEAD SHA or a stable, safe failure category."""
+    revision, error = _git_output(['rev-parse', 'HEAD'], 'GIT_TIMEOUT', 'GIT_REVISION_FAILED')
+    if error:
+        return None, error
+    commit = revision.strip()
     if not _GIT_REVISION.fullmatch(commit):
         return None, 'GIT_REVISION_INVALID'
+    status, error = _git_output(
+        ['status', '--porcelain=v1', '--untracked-files=all'],
+        'GIT_STATUS_TIMEOUT', 'GIT_STATUS_FAILED')
+    if error:
+        return None, error
+    if status.strip():
+        return None, 'GIT_WORKTREE_DIRTY'
     return commit, None
 
 

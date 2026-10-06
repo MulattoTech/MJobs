@@ -7,6 +7,15 @@ nonzero on inconsistency. No GitHub mutations or product/personal data access.
 Dependencies: Python standard library. Tests: python -m unittest discover -s tests.
 New validators must test observable invalid inputs, not exact source text.
 
+The fact-review browser verifier records source identity only when Git returns a
+valid commit SHA and `git status --porcelain=v1 --untracked-files=all` confirms
+the checkout is clean. Both commands have bounded deadlines and suppress Git
+diagnostics; dirty or unavailable Git state fails the verifier and is recorded
+as a stable error category without filenames or raw command output. Validate
+this behavior with `python -m unittest tests.unit.test_verification_fact_review`
+and `python -m tools.verification.fact_review --help` (the browser evidence run
+itself requires the configured local Playwright/Chromium environment).
+
 Implementation progress is recorded in `planning/IMPLEMENTATION_STATE.json` with
 `python -m tools.verification.progress record --entry <evidence-json>`. Each milestone
 contains the original progress-journal fields and a last safe Git/evidence checkpoint.

@@ -44,15 +44,18 @@ class FactReviewVerificationTests(unittest.TestCase):
 
     def test_source_commit_command_has_a_deadline_and_suppresses_diagnostics(self):
         commit = 'a' * 40
-        completed = subprocess.CompletedProcess([], 0, stdout=commit + '\n')
-        with patch('tools.verification.fact_review.subprocess.run', return_value=completed) as run:
+        revision = subprocess.CompletedProcess([], 0, stdout=commit + '\n')
+        clean = subprocess.CompletedProcess([], 0, stdout='')
+        with patch('tools.verification.fact_review.subprocess.run', side_effect=[revision, clean]) as run:
             self.assertEqual(resolve_source_commit(), (commit, None))
-        args, kwargs = run.call_args
-        self.assertEqual(args[0], ['git', 'rev-parse', 'HEAD'])
-        self.assertEqual(kwargs['timeout'], 5)
-        self.assertFalse(kwargs['shell'])
-        self.assertIs(kwargs['stdout'], subprocess.PIPE)
-        self.assertIs(kwargs['stderr'], subprocess.DEVNULL)
+        self.assertEqual(run.call_count, 2)
+        for call, command in zip(run.call_args_list,
+                (['git', 'rev-parse', 'HEAD'], ['git', 'status', '--porcelain=v1', '--untracked-files=all'])):
+            self.assertEqual(call.args[0], command)
+            self.assertEqual(call.kwargs['timeout'], 5)
+            self.assertFalse(call.kwargs['shell'])
+            self.assertIs(call.kwargs['stdout'], subprocess.PIPE)
+            self.assertIs(call.kwargs['stderr'], subprocess.DEVNULL)
 
     def test_source_commit_launch_exit_and_invalid_sha_errors_are_classified(self):
         cases = [
@@ -67,6 +70,26 @@ class FactReviewVerificationTests(unittest.TestCase):
                        else {'return_value': outcome})
             with self.subTest(category=category), \
                  patch('tools.verification.fact_review.subprocess.run', **options):
+                self.assertEqual(resolve_source_commit(), (None, category))
+
+    def test_dirty_worktree_cannot_be_certified_with_only_the_prior_head_sha(self):
+        head = subprocess.CompletedProcess([], 0, stdout='a' * 40 + '\n')
+        dirty = subprocess.CompletedProcess([], 0, stdout=' M tools/verification/fact_review.py\n?? local-output.json\n')
+        with patch('tools.verification.fact_review.subprocess.run', side_effect=[head, dirty]) as run:
+            self.assertEqual(resolve_source_commit(), (None, 'GIT_WORKTREE_DIRTY'))
+        self.assertEqual(run.call_count, 2)
+
+    def test_worktree_status_timeout_launch_and_exit_errors_fail_closed(self):
+        revision = subprocess.CompletedProcess([], 0, stdout='b' * 40 + '\n')
+        cases = [
+            (subprocess.TimeoutExpired('git status', 5), 'GIT_STATUS_TIMEOUT'),
+            (OSError('private git executable path'), 'GIT_UNAVAILABLE'),
+            (subprocess.CompletedProcess([], 1, stdout='private path'), 'GIT_STATUS_FAILED'),
+        ]
+        for status, category in cases:
+            with self.subTest(category=category), \
+                 patch('tools.verification.fact_review.subprocess.run',
+                       side_effect=[revision, status]):
                 self.assertEqual(resolve_source_commit(), (None, category))
 
     def test_source_commit_timeout_is_safe_and_evidence_is_still_written(self):
