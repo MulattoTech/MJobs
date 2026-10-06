@@ -1,15 +1,15 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-06T06:20:43Z",
+  "generated_at": "2026-10-06T06:24:43Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "MJ-REQ-004 worker/source deadline slice integrated by non-force fast-forward at 2b84f9cf610a65791a135a0f5bfc70133b3235af; local and GitHub main synchronized. Planning/evidence receipt pending.",
-    "current_verified_github_state": "GitHub main and local main include the scoped MJ-REQ-004 deadline/cancellation slice at 2b84f9cf610a65791a135a0f5bfc70133b3235af. Issue #5 remains OPEN because broad acceptance is incomplete; GitHub Actions and hosted reviews remain NOT_RUN under local-only policy.",
-    "current_verified_at": "2026-10-06T06:20:43Z"
+    "current_verified_local_state": "MJ-REQ-004 source slice at 2b84f9cf610a65791a135a0f5bfc70133b3235af and evidence/planning receipt at a87704e7c256f14d0fe7c323e59a908b357dad07 are integrated by non-force fast-forward; local and GitHub main synchronized.",
+    "current_verified_github_state": "GitHub main and local main synchronized at a87704e7c256f14d0fe7c323e59a908b357dad07, including the scoped MJ-REQ-004 evidence receipt. Issue #5 remains OPEN/PARTIAL because broad acceptance is incomplete. Actions/reviews remain NOT_RUN.",
+    "current_verified_at": "2026-10-06T06:24:43Z"
   },
   "current_milestone": "MJ-REQ-004-WORKER-DEADLINE-SLICE-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under the local-only delivery policy; one writer and one integration lane.",
@@ -319,7 +319,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Continue open issue #5 / MJ-REQ-004 from main at 2b84f9cf610a65791a135a0f5bfc70133b3235af. Next inspect bounded PDF/DOCX parsing and browser action deadlines, then implement the highest-risk uncovered path test-first. Preserve all 366 requirements and keep #5 PARTIAL until its broad acceptance is evidenced.",
+  "recommended_resume_step": "Continue the open P0 issue #5 / MJ-REQ-004. The worker deadline and Greenhouse cancellation slice is integrated. Next evaluate bounded PDF/DOCX parsing, where current byte/page limits do not prove a hard wall-clock limit. Keep all operation categories and the 366 requirement denominator intact.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -4597,9 +4597,44 @@
         "git_commit": "2b84f9cf610a65791a135a0f5bfc70133b3235af",
         "evidence_path": "docs/evidence/2026-10-06-bound-external-operation-deadlines.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-004-EVIDENCE-PUSH-AND-DNS-PARSER-FOLLOWUP-20261006",
+      "timestamp": "2026-10-06T06:24:43Z",
+      "current_phase": "MJ-REQ-004_WORKER_SLICE_RECEIPTED_NEXT_PARSER_AUDIT",
+      "completed_steps": [
+        "Pushed the partial operation-deadline evidence and planning receipt to main.",
+        "Read back local and remote main synchronized at a87704e7c256f14d0fe7c323e59a908b357dad07.",
+        "Confirmed issue #5 remains OPEN and requirement MJ-REQ-004 remains PARTIAL with the original denominator unchanged.",
+        "Selected local document parsing wall-clock bounds as the next uncovered P0 operation category."
+      ],
+      "files_added": [],
+      "files_modified": [
+        "docs/evidence/2026-10-06-bound-external-operation-deadlines.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Remote main hash and planning receipt readback match a87704e7c256f14d0fe7c323e59a908b357dad07."
+      ],
+      "tests_remaining": [
+        "Push this final receipt metadata, then reconcile the existing issue worktree to current main before continuing the P0 parser audit."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "GitHub main hash readback."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "The broad MJ-REQ-004 acceptance remains PARTIAL and issue #5 OPEN."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "2b84f9cf610a65791a135a0f5bfc70133b3235af",
+        "evidence_path": "docs/evidence/2026-10-06-bound-external-operation-deadlines.json"
+      }
     }
   ],
-  "current_phase": "MJ-REQ-004_WORKER_DEADLINE_SLICE_INTEGRATED_PARTIAL",
+  "current_phase": "MJ-REQ-004_WORKER_SLICE_RECEIPTED_NEXT_PARSER_AUDIT",
   "last_safe_checkpoint": {
     "git_commit": "2b84f9cf610a65791a135a0f5bfc70133b3235af",
     "evidence_path": "docs/evidence/2026-10-06-bound-external-operation-deadlines.json"
@@ -4748,7 +4783,7 @@
     "selection_reason": "Open P0 safety/reliability requirement. This integrated slice fixes worker timeout completion truth and cancellation during Greenhouse rate waiting; full issue acceptance remains unproven.",
     "base": "dc30cbed1856921eda248e2593a8cc8df4ce4edb",
     "branch": "codex/req004-bound-ops-20261006",
-    "next_action": "Continue the same P0 acceptance audit. Add wall-clock bounds for CPU-heavy resume parsing and verify each browser/HTTP/source/ATS operation against timeout, captured output, cancellation, safe retry and stable classification. Keep AI/provider work NOT_RUN while no provider exists; never close #5 on this slice."
+    "next_action": "Audit and test wall-clock cancellation for local PDF/DOCX extraction against existing size/page limits; determine a safe hard timeout boundary, then implement one complete parser slice test-first. Continue the remaining operation-category audit and keep #5 OPEN/PARTIAL."
   },
   "historical_control_snapshots": [
     {
@@ -5867,5 +5902,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-06T06:20:43Z"
+  "updated_at": "2026-10-06T06:24:43Z"
 }

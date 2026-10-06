@@ -145,6 +145,8 @@
     "main_after_source_integration": "2b84f9cf610a65791a135a0f5bfc70133b3235af",
     "remote_main_after_source_integration": "2b84f9cf610a65791a135a0f5bfc70133b3235af",
     "issue_state": "OPEN; broad original acceptance remains incomplete and issue was not closed",
-    "requirement_state": "PARTIAL; the existing 366 denominator and all requirements were preserved"
+    "requirement_state": "PARTIAL; the existing 366 denominator and all requirements were preserved",
+    "planning_receipt_commit": "a87704e7c256f14d0fe7c323e59a908b357dad07",
+    "remote_main_after_planning_receipt": "a87704e7c256f14d0fe7c323e59a908b357dad07"
   }
 }
