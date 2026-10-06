@@ -7,9 +7,9 @@
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Local and origin/main are synchronized at 593569477dbcf035478940c3275380fd732a7127. Active P0 issue #3 / MJ-REQ-002 is being guarded on branch codex/req002-no-gpu-20261006; issue remains OPEN/PARTIAL pending complete local evidence.",
-    "current_verified_github_state": "GitHub and local main were synchronized at 593569477dbcf035478940c3275380fd732a7127; Actions disabled, main unprotected, no open implementation PR. Issue #3 / MJ-REQ-002 remains OPEN while CPU-only dependency/runtime guard is implemented and verified.",
-    "current_verified_at": "2026-10-06T12:35:52Z"
+    "current_verified_local_state": "Local main and origin/main were synchronized at 593569477dbcf035478940c3275380fd732a7127; issue #3 / MJ-REQ-002 candidate 9eece43b520a7d4650feac5656c321bac462d7e0 is fully locally verified on codex/req002-no-gpu-20261006; candidate integration and issue readback are pending.",
+    "current_verified_github_state": "At last live reconciliation, GitHub main matched 593569477dbcf035478940c3275380fd732a7127; Actions disabled, main unprotected, and no open candidate PR. Issue #3 acceptance has complete local evidence; safe integration and closeout readback are pending.",
+    "current_verified_at": "2026-10-06T12:43:48Z"
   },
   "current_milestone": "MJ-REQ-002-GPU-INDEPENDENCE-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under the local-only delivery policy; one writer and one integration lane.",
@@ -53,7 +53,8 @@
     "MJ-REF-014: provider-neutral task prompt construction defaults to no profile context; explicit approved task-scoped facts are isolated, denylisted, audited without values, and treated as evidence only under an untrusted-input instruction boundary (docs/evidence/2026-10-06-least-data-task-prompts.json).",
     "MJ-REQ-004 scoped worker/source behavior: durable operations use a monotonic deadline and stable OPERATION_TIMEOUT result; Greenhouse cancellation during rate waits prevents the next request and preserves source health/failure history (docs/evidence/2026-10-06-bound-external-operation-deadlines.json).",
     "MJ-REQ-005 per-source Greenhouse concurrency slice PASS on candidate ec28943ec20109c2b1bc12c0130a26a2991b0636: saved limits now bound the two independent public-read requests, share request-start pacing, preserve provider-failure and cancellation history, and are explained/read back in the Sources UI. Requirement remains PARTIAL for unavailable AI runtime and real ATS paths (docs/evidence/2026-10-06-per-source-greenhouse-concurrency.json).",
-    "MJ-REQ-004 Greenhouse worker-budget follow-up: configured public GET connect/read and response-body deadlines are capped by the durable worker remaining monotonic budget; 690 Python/integration/browser tests pass with one optional PostgreSQL skip, 36 browser tests and 62 frontend tests pass; real AI/ATS provider paths remain unavailable and the issue remains PARTIAL."
+    "MJ-REQ-004 Greenhouse worker-budget follow-up: configured public GET connect/read and response-body deadlines are capped by the durable worker remaining monotonic budget; 690 Python/integration/browser tests pass with one optional PostgreSQL skip, 36 browser tests and 62 frontend tests pass; real AI/ATS provider paths remain unavailable and the issue remains PARTIAL.",
+    "MJ-REQ-002 PASS: repository dependency/runtime guard excludes GPU requirements; six negative/positive tests, frontend build/tests, 13 headless browser tests, and 696 Python tests passed. GPU hardware was not queried or changed. Evidence: docs/evidence/2026-10-06-gpu-independence.json."
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",

@@ -23,7 +23,7 @@
       "status": "MERGED",
       "branch": "codex/mj-pr-001-governance-safety",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Live GitHub reconciliation: PR #367 merged at b7bdd711bc7f4984e59620e585557aeb4fc06fa6. Active issue #3 / MJ-REQ-002 follow-up on main 593569477dbcf035478940c3275380fd732a7127: add a deterministic validator/test protecting the CPU-only dependency, Compose and frontend runtime boundary; no GPU benchmarks or host configuration changes. Issue #3 remains OPEN/PARTIAL until the full contract is evidenced.",
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Live GitHub reconciliation: PR #367 merged at b7bdd711bc7f4984e59620e585557aeb4fc06fa6. Follow-up issue #3 / MJ-REQ-002 candidate 9eece43b520a7d4650feac5656c321bac462d7e0 passed the GPU independence guard, full local suite and headless browser/build checks; evidence docs/evidence/2026-10-06-gpu-independence.json. Candidate integration and GitHub issue closeout readback pending; hosted checks NOT_RUN by policy.",
       "pr_number": 367,
       "merge_commit": "b7bdd711bc7f4984e59620e585557aeb4fc06fa6",
       "merged_at": "2026-09-30T19:38:24Z"
@@ -96,7 +96,7 @@
     },
     {
       "id": "MJ-PR-005",
-      "title": "Core Search Model: Domain Model \u00e2\u20ac\u201d Core Concepts; Global Job Sources",
+      "title": "Core Search Model: Domain Model â€” Core Concepts; Global Job Sources",
       "domain": "core_search_model",
       "requirements": [
         "MJ-REQ-015",
@@ -275,7 +275,7 @@
     },
     {
       "id": "MJ-PR-013",
-      "title": "Job Identity Dedupe: Deduplication \u00e2\u20ac\u201d Strong Signals; Deduplication \u00e2\u20ac\u201d Company Identity",
+      "title": "Job Identity Dedupe: Deduplication â€” Strong Signals; Deduplication â€” Company Identity",
       "domain": "job_identity_dedupe",
       "requirements": [
         "MJ-REQ-044",
@@ -1186,7 +1186,7 @@
     },
     {
       "id": "MJ-PR-047",
-      "title": "Orchestration Data Security: Security \u00e2\u20ac\u201d Pii; Security \u00e2\u20ac\u201d Web",
+      "title": "Orchestration Data Security: Security â€” Pii; Security â€” Web",
       "domain": "orchestration_data_security",
       "requirements": [
         "MJ-REQ-171",
@@ -1206,7 +1206,7 @@
     },
     {
       "id": "MJ-PR-048",
-      "title": "Orchestration Data Security: Security \u00e2\u20ac\u201d Secret Management; Audit Log",
+      "title": "Orchestration Data Security: Security â€” Secret Management; Audit Log",
       "domain": "orchestration_data_security",
       "requirements": [
         "MJ-REQ-175",
@@ -1421,7 +1421,7 @@
     },
     {
       "id": "MJ-PR-059",
-      "title": "Test Harness: Unit Tests \u00e2\u20ac\u201d Company Resolution; Unit Tests \u00e2\u20ac\u201d Ats Detection",
+      "title": "Test Harness: Unit Tests â€” Company Resolution; Unit Tests â€” Ats Detection",
       "domain": "test_harness",
       "requirements": [
         "MJ-REQ-216",
@@ -1441,7 +1441,7 @@
     },
     {
       "id": "MJ-PR-060",
-      "title": "Test Harness: Unit Tests \u00e2\u20ac\u201d Application State; Application Idempotency Test",
+      "title": "Test Harness: Unit Tests â€” Application State; Application Idempotency Test",
       "domain": "test_harness",
       "requirements": [
         "MJ-REQ-220",

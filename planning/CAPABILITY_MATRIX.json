@@ -21,11 +21,11 @@
     },
     {
       "requirement_id": "MJ-REQ-002",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
-        "docs/evidence/2026-09-29-mock-spine.md"
+        "docs/evidence/2026-10-06-gpu-independence.json"
       ],
-      "note": "Initial scoped behavior only; full requirement remains open"
+      "note": "Repository manifests, Compose/Docker runtime, frontend APIs, six positive/negative guard tests, full local suite, frontend build, and headless browser workflows demonstrate GPU-independent core; host hardware was not queried or changed; hosted checks remain NOT_RUN by policy."
     },
     {
       "requirement_id": "MJ-REQ-003",

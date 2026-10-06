@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-002",
+  "github_issue": 3,
+  "slice_result": "PASS",
+  "requirement_result": "PASS",
+  "base_commit": "593569477dbcf035478940c3275380fd732a7127",
+  "source_commit": "9eece43b520a7d4650feac5656c321bac462d7e0",
+  "candidate_commit": "9eece43b520a7d4650feac5656c321bac462d7e0",
+  "candidate_tree": "01a0494ec9b740577907e2ccbd7a9f97cbe823d1",
+  "recorded_at_utc": "2026-10-06T12:43:48Z",
+  "scope": "Guard the product's dependency/runtime boundary so core development and operation do not require GPU acceleration.",
+  "acceptance": {
+    "python_and_javascript_manifests_have_no_gpu_runtime_dependencies": "PASS",
+    "compose_and_docker_runtime_do_not_require_gpu_devices_cuda_or_rocm": "PASS",
+    "frontend_does_not_require_webgl_or_webgpu": "PASS",
+    "negative_fixture_tests_reject_gpu_dependency_runtime_or_api_regressions": "PASS",
+    "normal_build_and_headless_browser_workflows_run_without_gpu_features": "PASS",
+    "no_gpu_benchmark_host_hardware_query_or_host_configuration_change": "PASS",
+    "external_submission_and_paid_ai_provider_calls": "OFF"
+  },
+  "validation": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_gpu_independence -v",
+      "timestamp_utc": "2026-10-06T12:35:52Z",
+      "target": "CPU-only positive fixture and forbidden Python/JavaScript dependencies, Compose GPU devices, CUDA image and frontend WebGPU negative cases",
+      "result": "PASS",
+      "summary": "Six deterministic fixture tests passed."
+    },
+    {
+      "command": "python -m tools.verification.gpu_independence",
+      "timestamp_utc": "2026-10-06T12:35:52Z",
+      "target": "Current repository Python/JavaScript dependency manifests, Compose/Docker runtime and frontend source",
+      "result": "PASS",
+      "summary": "Current repository has no required GPU package, runtime device reservation or WebGL/WebGPU usage."
+    },
+    {
+      "command": "$env:POSTGRES_PASSWORD='synthetic-validation-only'; docker compose config --quiet; Remove-Item Env:POSTGRES_PASSWORD",
+      "timestamp_utc": "2026-10-06T12:35:52Z",
+      "target": "Compose configuration syntax without persisting credentials or changing host settings",
+      "result": "PASS",
+      "summary": "Compose parsed with a process-local synthetic placeholder; no .env file or secret was written."
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run; npm run build --prefix apps/web",
+      "timestamp_utc": "2026-10-06T12:35:52Z",
+      "target": "Frontend tests and production build",
+      "result": "PASS",
+      "summary": "62 frontend tests passed and the TypeScript/Vite production build succeeded."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_core_workflow_trial tests.browser.test_mock_application",
+      "timestamp_utc": "2026-10-06T12:35:52Z",
+      "target": "Synthetic user workflows through headless Chromium, including mock application review",
+      "result": "PASS",
+      "summary": "13 browser tests passed; live external requests were blocked."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py'",
+      "timestamp_utc": "2026-10-06T12:43:48Z",
+      "target": "Full Python unit, integration and browser suite on exact candidate commit and tree",
+      "result": "PASS",
+      "summary": "696 tests passed; one optional PostgreSQL test skipped because MJOBS_TEST_POSTGRES_URL was not configured."
+    },
+    {
+      "command": "python -m tools.verification.agent_skills; python -m tools.verification.catalogue; python -m tools.verification.progress validate; git diff --check",
+      "timestamp_utc": "2026-10-06T12:43:48Z",
+      "target": "Repository skill, requirement/reference denominator, progress journal and whitespace validators",
+      "result": "PASS",
+      "summary": "All validators passed; denominators remain 366 requirements and 59 reference gaps."
+    }
+  ],
+  "external_boundaries": {
+    "host_gpu_hardware_queried": false,
+    "gpu_benchmark_or_stress_test": false,
+    "host_configuration_changed": false,
+    "live_employer_fetch": false,
+    "personal_profile_data_read_or_changed": false,
+    "ai_provider_calls": false,
+    "external_submission": "OFF",
+    "postgresql_test": "NOT_RUN_OPTIONAL_ENVIRONMENT_MISSING_MJOBS_TEST_POSTGRES_URL",
+    "github_actions": "DISABLED_BY_USER_POLICY",
+    "hosted_review": "NOT_RUN_BY_USER_POLICY"
+  },
+  "requirement_limitations": [],
+  "denominators": {
+    "requirements": 366,
+    "reference_gaps": 59
+  },
+  "integration": {
+    "status": "PENDING",
+    "method": "NON_FORCE_FAST_FORWARD_IF_CURRENT_MAIN_IS_ANCESTOR",
+    "base_commit": "593569477dbcf035478940c3275380fd732a7127",
+    "candidate_branch": "codex/req002-no-gpu-20261006",
+    "hosted_verification": "NOT_RUN_BY_USER_POLICY"
+  }
+}
