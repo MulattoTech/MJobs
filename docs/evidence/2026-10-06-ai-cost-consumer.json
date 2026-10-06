@@ -7,7 +7,7 @@
   "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req110-review-consumer-20261006",
   "result": "PARTIAL",
   "base_main": "8066f781678b099dcfeba5d9cdaa26d1b2dbc97a",
-  "recorded_at": "2026-10-06T22:42:20.862660+00:00",
+  "recorded_at": "2026-10-06T22:43:35.194031+00:00",
   "scope": [
     "Profile-scoped bounded job scoring consumer wired to explicit API evaluation route",
     "Structured output validation and untrusted job-description prompt boundary",
@@ -67,10 +67,11 @@
     "apps/api/main.py": "37e2fe170246c4274db6fab445992c5bb54d94ecae90be54fdb109a5250b8755",
     "tests/unit/test_ai_cost_consumer.py": "45432c1fbe17bc04817b635f162d763ded7c803e7461073e4aee3f098941d570",
     "tests/integration/test_ai_cost_policy_api.py": "570f76e2dee65f546645d1d9eaf99a3ee364b4d6388e3a3ecc2e164b95a19cbd",
-    "planning/lanes/codex/CLAIMS.json": "e253e3efbf9f4a15d56923739b9803aaa313c184aa82e8e0fca09a15381c2bdf",
+    "planning/lanes/codex/CLAIMS.json": "d9a03a445b4eac05dafb42e68013ed166d9f4852702b53e5c155e39420280cec",
     "planning/lanes/codex/CONTINUATION.json": "ac8d29ba2a4719aa6f1bc9860f765ea00fe331d2e874291a0cb2439c1efba4ad",
-    "planning/lanes/codex/IMPLEMENTATION_STATE.json": "5feb2b40ac3a68118c94c7abd03f60018e12aae5b91ea33e32db7516edf3042b",
+    "planning/lanes/codex/IMPLEMENTATION_STATE.json": "198511d7e3fcb2016d11cd7d15a2dcf2b595a5e884b11e690091c85328041245",
     "planning/lanes/codex/PR_QUEUE.json": "d0b43b33e3ce4531fce5ccd9241e288a31f0b5aa80ce3f931992f6d413eb6160",
-    "planning/lanes/codex/SESSION_HANDOFF.md": "26ccecc4797e665f05ce1a1dc66d03d7478470010796bfd393ca224039c59892"
-  }
+    "planning/lanes/codex/SESSION_HANDOFF.md": "cf1eef3aa257cc901ea3e0a3666f86d7f21394f4a421fe486a78832bf9b76e7c"
+  },
+  "implementation_commit": "5e1b9da"
 }

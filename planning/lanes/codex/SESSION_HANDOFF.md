@@ -23,6 +23,7 @@ and build could not start because this worktree lacks `vitest` and `tsc`. No rea
 provider inference or document generation ran; hosted checks remain NOT_RUN by
 policy. Evidence: `docs/evidence/2026-10-06-ai-cost-consumer.json`. Keep issue
 OPEN/PARTIAL until live inference and the reviewed-document workflow are addressed.
+Implementation checkpoint commit: `5e1b9da`.
 
 During implementation write only Codex lane files plus owned feature/evidence paths.
 Canonical planning and root main require the integration lock.
