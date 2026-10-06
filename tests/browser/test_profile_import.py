@@ -2,10 +2,12 @@
 from io import BytesIO
 from pathlib import Path
 from fixtures.browser_ports import bound_browser_socket
+from fixtures.resume_scans import scanned_resume
 import tempfile
 import threading
 import time
 import unittest
+from unittest.mock import patch
 from urllib.parse import urlsplit
 
 from playwright.sync_api import sync_playwright, expect
@@ -14,6 +16,7 @@ import uvicorn
 
 from apps.api.main import create_app
 from packages.persistence.store import Store
+from services.career_profile import ocr
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -149,6 +152,22 @@ class ProfileImportBrowserTests(unittest.TestCase):
                     page.get_by_role('button', name='Store resume', exact=True).click()
                     expect(page.locator('[data-resume-version="2"]')).to_be_visible()
                     expect(page.locator('[data-resume-version="1"]')).to_be_visible()
+                    page.get_by_label('Choose a resume (up to 10 MiB)').set_input_files(
+                        {'name':'scanned.pdf','mimeType':'application/pdf','buffer':scanned_resume(mixed=True)})
+                    page.get_by_role('button', name='Store resume', exact=True).click()
+                    scanned = page.locator('[data-resume-version="3"]')
+                    expect(scanned).to_be_visible()
+                    profile_before_failed_ocr = store.profile(profile_id)
+                    with patch.object(ocr, 'RESOURCE_LIMITS_AVAILABLE', True), \
+                         patch.object(ocr.shutil, 'which', side_effect=lambda name:'/synthetic/'+name), \
+                         patch.object(ocr, '_run_tool', side_effect=ocr.OCRToolFailure(7, 64, False)):
+                        scanned.get_by_role('button', name='Extract and review', exact=True).click()
+                        review = page.get_by_role('region', name='Resume extraction review')
+                        expect(review.get_by_text('Extraction review: READY FOR REVIEW', exact=True)).to_be_visible()
+                        expect(review.get_by_text('OCR tool exited with status 7', exact=False)).to_be_visible()
+                        expect(review.get_by_text('Diagnostic output was captured and omitted for privacy.', exact=False)).to_be_visible()
+                    expect(review).to_be_visible()
+                    self.assertEqual(store.profile(profile_id), profile_before_failed_ocr)
                     page.reload(wait_until='domcontentloaded')
                     page.get_by_role('button', name='Profile', exact=True).click()
                     expect(page.locator('[data-resume-version="2"]')).to_be_visible()

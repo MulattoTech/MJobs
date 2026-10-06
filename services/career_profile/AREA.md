@@ -25,7 +25,12 @@ The fallback processes at most 10 scanned pages, scales each raster to at most
 1800 pixels per dimension, and has a 45-second total deadline with 10-second
 tool deadlines. Linux child processes have 768 MiB address-space, 12-second CPU,
 16 MiB file-size limits and one OCR thread. A per-process slot prevents parallel
-OCR work. Private temporary files are removed on every outcome. Hosts without
+OCR work. Each child captures stderr only into a temporary file bounded by the
+child file-size limit. At most 16 KiB of diagnostic-size metadata is retained;
+diagnostic contents are never returned, logged, or persisted because they may
+contain private paths or document data. Timeouts, launch failures, nonzero exits,
+missing output, and output-limit failures receive distinct sanitized review
+warnings. Private temporary files are removed on every outcome. Hosts without
 the supported tools/resource limits retain the explicit unavailable state.
 Mixed PDFs retain page order and native text. OCR results carry a warning and
 confidence 70, remain unverified/unapproved, and need deliberate review before

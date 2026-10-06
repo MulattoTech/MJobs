@@ -64,6 +64,57 @@ class ResumeOCRTests(unittest.TestCase):
         self.assertTrue(any('OCR' in warning for warning in result['warnings']))
         self.assertTrue(all(not path.exists() for path in self.paths))
 
+    def test_timeout_is_classified_without_discarding_native_text(self):
+        def timeout(executable, args, limit):
+            raise subprocess.TimeoutExpired(executable, limit)
+        with patch.object(ocr, 'RESOURCE_LIMITS_AVAILABLE', True), patch.object(ocr.shutil, 'which', side_effect=lambda name:'/fake/'+name), patch.object(ocr, '_run_tool', side_effect=timeout):
+            result = extract_resume(scanned_resume(mixed=True), 'pdf', 'synthetic-scan')
+        self.assertEqual(result['status'], 'READY_FOR_REVIEW')
+        self.assertEqual(result['contact']['email'], 'example@example.invalid')
+        self.assertTrue(any('timed out' in warning.lower() for warning in result['warnings']))
+        self.assertFalse(any('within its resource limits' in warning for warning in result['warnings']))
+
+    def test_nonzero_tool_exit_reports_status_without_exposing_diagnostics(self):
+        diagnostic = b'PRIVATE-RESUME-DIAGNOSTIC'
+        def failed_process(argv, **kwargs):
+            self.assertNotEqual(kwargs['stderr'], subprocess.DEVNULL)
+            kwargs['stderr'].write(diagnostic)
+            return subprocess.CompletedProcess(argv, 7)
+        with patch('services.career_profile.extraction._run_native_parser', return_value=(['Jane Example\nEmail: example@example.invalid\nExperience\nEngineer 2020 - 2024'], [], [1])), patch.object(ocr, 'RESOURCE_LIMITS_AVAILABLE', True), patch.object(ocr.shutil, 'which', side_effect=lambda name:'/fake/'+name), patch.object(ocr.subprocess, 'run', side_effect=failed_process):
+            result = extract_resume(scanned_resume(mixed=True), 'pdf', 'synthetic-scan')
+        self.assertEqual(result['status'], 'READY_FOR_REVIEW')
+        self.assertEqual(result['contact']['email'], 'example@example.invalid')
+        rendered_warnings = '\n'.join(result['warnings'])
+        self.assertIn('7', rendered_warnings)
+        self.assertNotIn(diagnostic.decode(), rendered_warnings)
+
+    def test_launch_failure_is_distinguished_from_resource_limit(self):
+        with patch.object(ocr, 'RESOURCE_LIMITS_AVAILABLE', True), patch.object(ocr.shutil, 'which', side_effect=lambda name:'/fake/'+name), patch.object(ocr, '_run_tool', side_effect=FileNotFoundError('private executable path')):
+            result = extract_resume(scanned_resume(mixed=True), 'pdf', 'synthetic-scan')
+        self.assertEqual(result['status'], 'READY_FOR_REVIEW')
+        self.assertEqual(result['contact']['email'], 'example@example.invalid')
+        rendered_warnings = '\n'.join(result['warnings'])
+        self.assertIn('could not start', rendered_warnings.lower())
+        self.assertNotIn('private executable path', rendered_warnings)
+
+    def test_missing_renderer_output_is_not_reported_as_resource_exhaustion(self):
+        with patch.object(ocr, 'RESOURCE_LIMITS_AVAILABLE', True), patch.object(ocr.shutil, 'which', side_effect=lambda name:'/fake/'+name), patch.object(ocr, '_run_tool'):
+            result = extract_resume(scanned_resume(mixed=True), 'pdf', 'synthetic-scan')
+        self.assertEqual(result['status'], 'READY_FOR_REVIEW')
+        self.assertEqual(result['contact']['email'], 'example@example.invalid')
+        rendered_warnings = '\n'.join(result['warnings'])
+        self.assertIn('did not create', rendered_warnings.lower())
+        self.assertNotIn('within its resource limits', rendered_warnings)
+
+    def test_missing_recognition_output_is_reported_as_incomplete_extraction(self):
+        def renderer_only(executable, args, timeout):
+            if executable.endswith('pdftoppm'):
+                Image.new('RGB', (100, 100), 'white').save(args[-1]+'.png')
+        with patch.object(ocr, 'RESOURCE_LIMITS_AVAILABLE', True), patch.object(ocr.shutil, 'which', side_effect=lambda name:'/fake/'+name), patch.object(ocr, '_run_tool', side_effect=renderer_only):
+            result = extract_resume(scanned_resume(), 'pdf', 'synthetic-scan')
+        self.assertEqual(result['status'], 'NEEDS_OCR')
+        self.assertTrue(any('recognition did not create text' in warning.lower() for warning in result['warnings']))
+
     def test_page_limit_does_not_launch_unbounded_tools(self):
         with patch.object(ocr, 'RESOURCE_LIMITS_AVAILABLE', True), patch.object(ocr.shutil, 'which', side_effect=lambda name:'/fake/'+name), patch.object(ocr, '_run_tool', side_effect=self.tool) as run:
             text, warnings = ocr.ocr_pdf_pages(b'synthetic', list(range(1, ocr.MAX_OCR_PAGES+3)))
@@ -72,7 +123,7 @@ class ResumeOCRTests(unittest.TestCase):
         self.assertTrue(any('limit' in warning for warning in warnings))
 
     def test_process_wrapper_has_limits_no_shell_and_no_application_secrets(self):
-        with patch.object(ocr.subprocess, 'run') as run, patch.dict(ocr.os.environ, {'DATABASE_URL':'private-database'}):
+        with patch.object(ocr.subprocess, 'run', return_value=subprocess.CompletedProcess([], 0)) as run, patch.dict(ocr.os.environ, {'DATABASE_URL':'private-database'}):
             ocr._run_tool('/usr/bin/tesseract', ['input.png', 'output'], 4)
         args, kwargs = run.call_args
         self.assertIn('RLIMIT_AS', args[0][2])
@@ -83,6 +134,20 @@ class ResumeOCRTests(unittest.TestCase):
         self.assertEqual(kwargs['timeout'], 4)
         self.assertNotIn('DATABASE_URL', kwargs['env'])
         self.assertEqual(kwargs['env']['OMP_THREAD_LIMIT'], '1')
+
+    def test_process_wrapper_caps_and_sanitizes_captured_diagnostics(self):
+        private = b'PRIVATE-RESUME-DIAGNOSTIC'
+        def failed_process(argv, **kwargs):
+            kwargs['stderr'].write(private + b'x' * (ocr.MAX_DIAGNOSTIC_BYTES + 32))
+            return subprocess.CompletedProcess(argv, 9)
+        with patch.object(ocr.subprocess, 'run', side_effect=failed_process):
+            with self.assertRaises(ocr.OCRToolFailure) as raised:
+                ocr._run_tool('/usr/bin/tesseract', ['input.png', 'output'], 4)
+        failure = raised.exception
+        self.assertEqual(failure.returncode, 9)
+        self.assertEqual(failure.diagnostic_bytes, ocr.MAX_DIAGNOSTIC_BYTES)
+        self.assertTrue(failure.diagnostics_truncated)
+        self.assertNotIn(private.decode(), str(failure))
 
     def test_oversized_raster_never_reaches_recognition(self):
         def render(executable, args, timeout):

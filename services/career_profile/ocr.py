@@ -17,6 +17,7 @@ MAX_RENDER_BYTES = 15 * 1024 * 1024
 MAX_PAGE_TEXT_BYTES = 64 * 1024
 PROCESS_TIMEOUT = 10
 TOTAL_TIMEOUT = 45
+MAX_DIAGNOSTIC_BYTES = 16 * 1024
 RESOURCE_LIMITS_AVAILABLE = sys.platform.startswith('linux')
 _SLOT = threading.BoundedSemaphore(1)
 # Exec replaces the helper process, so subprocess timeout kills the actual tool.
@@ -31,12 +32,32 @@ _LIMIT_AND_EXEC = (
 )
 
 
+class OCRToolFailure(subprocess.SubprocessError):
+    """Sanitized nonzero child result with metadata, never diagnostic contents."""
+
+    def __init__(self, returncode, diagnostic_bytes, diagnostics_truncated):
+        self.returncode = returncode
+        self.diagnostic_bytes = diagnostic_bytes
+        self.diagnostics_truncated = diagnostics_truncated
+        super().__init__(f'OCR tool exited with status {returncode}')
+
+
 def _run_tool(executable, args, timeout):
-    subprocess.run([sys.executable, '-c', _LIMIT_AND_EXEC, executable, *args],
-        check=True, shell=False, timeout=timeout, stdin=subprocess.DEVNULL,
-        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-        env={**{key: os.environ[key] for key in ('PATH', 'LANG', 'LC_ALL', 'TMPDIR') if key in os.environ},
-             'OMP_THREAD_LIMIT': '1', 'OMP_NUM_THREADS': '1'})
+    # Tool diagnostics can contain private file paths or document content. Keep
+    # them out of memory, API results, and logs; the Linux child file-size limit
+    # bounds the temporary capture even if a tool emits continuously.
+    with tempfile.TemporaryFile(mode='w+b') as diagnostics:
+        result = subprocess.run([sys.executable, '-c', _LIMIT_AND_EXEC, executable, *args],
+            check=False, shell=False, timeout=timeout, stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL, stderr=diagnostics,
+            env={**{key: os.environ[key] for key in ('PATH', 'LANG', 'LC_ALL', 'TMPDIR') if key in os.environ},
+                 'OMP_THREAD_LIMIT': '1', 'OMP_NUM_THREADS': '1'})
+        diagnostics.flush()
+        diagnostics.seek(0, os.SEEK_END)
+        diagnostic_size = diagnostics.tell()
+    if result.returncode != 0:
+        raise OCRToolFailure(result.returncode, min(diagnostic_size, MAX_DIAGNOSTIC_BYTES),
+                             diagnostic_size > MAX_DIAGNOSTIC_BYTES)
 
 
 def ocr_pdf_pages(data, page_numbers):
@@ -70,6 +91,9 @@ def ocr_pdf_pages(data, page_numbers):
                         '-scale-to', str(MAX_DIMENSION), '-singlefile', '-png', str(source), str(prefix)],
                         min(PROCESS_TIMEOUT, max(0.01, deadline-time.monotonic())))
                     raster = prefix.with_suffix('.png')
+                    if not raster.is_file():
+                        warnings.append(f'OCR renderer did not create an image for page {number}. Native text remains available for review.')
+                        continue
                     if raster.stat().st_size > MAX_RENDER_BYTES:
                         raise ValueError('render limit')
                     with Image.open(raster) as image:
@@ -79,7 +103,11 @@ def ocr_pdf_pages(data, page_numbers):
                         raise subprocess.TimeoutExpired('ocr', TOTAL_TIMEOUT)
                     _run_tool(engine, [str(raster), str(output), '-l', 'eng', '--psm', '3'],
                               min(PROCESS_TIMEOUT, max(0.01, deadline-time.monotonic())))
-                    with output.with_suffix('.txt').open('rb') as stream:
+                    text_output = output.with_suffix('.txt')
+                    if not text_output.is_file():
+                        warnings.append(f'OCR recognition did not create text for page {number}. Native text remains available for review.')
+                        continue
+                    with text_output.open('rb') as stream:
                         content = stream.read(MAX_PAGE_TEXT_BYTES+1)
                     if len(content) > MAX_PAGE_TEXT_BYTES:
                         warnings.append(f'OCR text limit reached on page {number}.')
@@ -88,8 +116,17 @@ def ocr_pdf_pages(data, page_numbers):
                         texts[number] = text
                     else:
                         warnings.append(f'OCR found no readable text on page {number}.')
-                except (OSError, ValueError, subprocess.SubprocessError):
-                    warnings.append(f'OCR could not process page {number} within its resource limits.')
+                except subprocess.TimeoutExpired:
+                    warnings.append(f'OCR tool timed out on page {number}. Native text remains available for review.')
+                except FileNotFoundError:
+                    warnings.append(f'OCR tool could not start on page {number}. Native text remains available for review.')
+                except OCRToolFailure as failure:
+                    diagnostics = ' Diagnostic output was captured and omitted for privacy.' if failure.diagnostic_bytes else ''
+                    warnings.append(f'OCR tool exited with status {failure.returncode} on page {number}.{diagnostics} Native text remains available for review.')
+                except ValueError:
+                    warnings.append(f'OCR output for page {number} exceeded its supported resource limits. Native text remains available for review.')
+                except (OSError, subprocess.SubprocessError):
+                    warnings.append(f'OCR could not read tool output for page {number}. Native text remains available for review.')
                 finally:
                     prefix.with_suffix('.png').unlink(missing_ok=True)
                     output.with_suffix('.txt').unlink(missing_ok=True)
