@@ -23,3 +23,5 @@ Owns provider-neutral AI contracts and explicitly configured model integrations 
 - Higher-level matching behavior belongs in `services/matching`; provider-specific transport belongs in a provider implementation.
 
 `AITaskConfiguration.from_mapping` accepts a task-keyed mapping of non-secret `provider` and `model` identifiers. Omitted task entries default to `disabled`; `AITaskRouter` passes the selected model only to the selected provider. The default factory rejects providers that do not yet exist, so configuration cannot imply that an unavailable remote model works.
+
+`AICostPolicy` applies a configurable minimum deterministic score and per-batch ceilings after stable identity deduplication. It bounds input iteration, rejects conflicting duplicate identities, selects at most the configured AI candidates, and permits document candidates only when they carry an explicit review flag. The planner performs no provider calls or document generation. No production matching pipeline currently consumes it; configuration persistence and caller wiring remain open under `MJ-REQ-110`.
