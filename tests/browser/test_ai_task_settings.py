@@ -75,6 +75,11 @@ class AITaskSettingsBrowserTests(unittest.TestCase):
                             route.continue_()
 
                     context.route("**/*", local_only)
+                    def unavailable_other_profile_policy(route):
+                        route.fulfill(status=503, json={"detail": "synthetic settings outage"})
+
+                    context.route("**/profiles/other-profile/ai-cost-policy",
+                                  unavailable_other_profile_policy)
                     page = context.new_page()
                     page.on("pageerror", lambda error: errors.append(str(error)))
                     page.goto(origin, wait_until="domcontentloaded")
@@ -133,7 +138,10 @@ class AITaskSettingsBrowserTests(unittest.TestCase):
                     expect(panel.get_by_label("Resume tailoring provider", exact=True)).to_have_value("disabled")
                     expect(panel.get_by_label("Resume tailoring model", exact=True)).to_be_disabled()
                     expect(cost_panel.get_by_label("Minimum deterministic score", exact=True)).to_have_value("75")
+                    expect(cost_panel.get_by_label("Minimum deterministic score", exact=True)).to_be_disabled()
                     expect(cost_panel.get_by_label("Maximum AI candidates", exact=True)).to_have_value("75")
+                    context.unroute("**/profiles/other-profile/ai-cost-policy",
+                                    unavailable_other_profile_policy)
                     page.locator("#active-profile").select_option("fixture")
                     expect(panel.get_by_label("Job scoring provider", exact=True)).to_have_value("ollama")
                     expect(panel.get_by_label("Job scoring model", exact=True)).to_have_value("llama3.2:3b")
