@@ -95,7 +95,8 @@
     "remote_main_after_source_integration": "5680d0e317b8614b214b0e93a4b9d4fda799ffd0",
     "issue_state": "OPEN; broad original acceptance remains incomplete and issue was not closed",
     "requirement_state": "PARTIAL; 366 requirement and 59 reference-gap denominators preserved",
-    "planning_receipt_commit": "PENDING",
-    "remote_main_after_planning_receipt": "PENDING"
+    "planning_receipt_commit": "0eb07a2d0ca967639e3cfc43f7556a403dff2d32",
+    "remote_main_after_planning_receipt": "0eb07a2d0ca967639e3cfc43f7556a403dff2d32",
+    "planning_receipt_status": "PASS; evidence and planning receipt are present on synchronized main at the recorded checkpoint."
   }
 }
