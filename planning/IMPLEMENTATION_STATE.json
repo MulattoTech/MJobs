@@ -1,17 +1,17 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-06T19:53:51Z",
+  "generated_at": "2026-10-06T20:04:36Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "origin/main synchronized at 330de33bdec2984c14136951d4d09d2a130e3aa7; issue #109 Ollama slice integrated; issue #110 / MJ-REQ-109 settings candidate a6d64f82598df9eebab6601dafd386b07409706f locally verified in isolated worktree, integration pending.",
-    "current_verified_github_state": "GitHub main remains 330de33bdec2984c14136951d4d09d2a130e3aa7; issue #109 OPEN/PARTIAL; issue #110 OPEN; Actions disabled and hosted verification NOT_RUN.",
-    "current_verified_at": "2026-10-06T19:53:51Z"
+    "current_verified_local_state": "Local main and origin/main synchronized at f6549b8dd2cb7bced64223f30b3870511cd1ba3a; issue #110 / MJ-REQ-109 persisted settings slice integrated PARTIAL; issue #111 / MJ-REQ-110 cost-controls user configuration selected next within MJ-PR-030.",
+    "current_verified_github_state": "GitHub/local main synchronized at f6549b8dd2cb7bced64223f30b3870511cd1ba3a; issue #110 OPEN/PARTIAL after evidence readback; issue #111 OPEN/PARTIAL; Actions disabled, hosted checks NOT_RUN.",
+    "current_verified_at": "2026-10-06T20:04:36Z"
   },
-  "current_milestone": "MJ-REQ-109-AI-TASK-SETTINGS-LOCALLY-VERIFIED-PARTIAL-20261006",
+  "current_milestone": "MJ-REQ-109-AI-TASK-SETTINGS-INTEGRATED-PARTIAL-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -276,7 +276,8 @@
     "MJ-REQ-110 issue #111 funnel: five focused tests and 329 unit tests pass; planner remains PARTIAL without production consumer or persisted configuration (docs/evidence/2026-10-06-ai-cost-controls.json).",
     "MJ-REQ-111 issue #112 structured output: 16 focused AI tests and 337 full unit tests PASS; remote provider and production consumer remain unavailable (docs/evidence/2026-10-06-ai-structured-output.json).",
     "MJ-REQ-108 issue #109 local Ollama adapter: nine provider tests and all 346 unit tests PASS; all requests used synthetic MockTransport, no model inference (docs/evidence/2026-10-06-ai-local-ollama-provider.json).",
-    "MJ-REQ-109 per-profile AI settings candidate a6d64f8: 346 unit, 381 integration (1 optional skip), 38 browser, 62 frontend tests; Vite build; SQLite/PostgreSQL migrations and API persistence; populated downgrade refusal; validators PASS (docs/evidence/2026-10-06-ai-task-settings-persistence.json)."
+    "MJ-REQ-109 per-profile AI settings candidate a6d64f8: 346 unit, 381 integration (1 optional skip), 38 browser, 62 frontend tests; Vite build; SQLite/PostgreSQL migrations and API persistence; populated downgrade refusal; validators PASS (docs/evidence/2026-10-06-ai-task-settings-persistence.json).",
+    "MJ-REQ-109 integration receipt: source a6d64f82598df9eebab6601dafd386b07409706f and evidence/planning checkpoint integrated by non-force fast-forward at synchronized local/GitHub main f6549b8dd2cb7bced64223f30b3870511cd1ba3a; issue #110 remains OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/110#issuecomment-6024402366; exact checkpoint document validators passed."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -454,7 +455,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "a6d64f82598df9eebab6601dafd386b07409706f",
+  "last_implementation_commit": "f6549b8dd2cb7bced64223f30b3870511cd1ba3a",
   "publication": {
     "result": "PASS",
     "integration_method": "NON_FORCE_FAST_FORWARD",
@@ -6748,11 +6749,54 @@
         "git_commit": "a6d64f82598df9eebab6601dafd386b07409706f",
         "evidence_path": "docs/evidence/2026-10-06-ai-task-settings-persistence.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-109-AI-TASK-SETTINGS-INTEGRATED-PARTIAL-20261006",
+      "timestamp": "2026-10-06T20:04:36Z",
+      "current_phase": "Issue #110 / MJ-REQ-109 durable profile-scoped AI task settings integrated at synchronized main f6549b8; issue OPEN/PARTIAL pending production consumers and inference. Next slice is issue #111 / MJ-REQ-110 profile-configurable deterministic AI cost thresholds within active MJ-PR-030.",
+      "completed_steps": [
+        "Integrated source and evidence/planning checkpoint by non-force fast-forward; local main and GitHub main are synchronized.",
+        "Verified no open PR, main unprotected and GitHub Actions disabled before integration.",
+        "Read back issue #110 OPEN/PARTIAL with consumer/inference limitations and local validation evidence."
+      ],
+      "tests_completed": [
+        "346 unit, 381 integration with one optional PostgreSQL skip, 38 browser, 62 frontend tests; build and SQLite/disposable PostgreSQL checks passed on source commit a6d64f8.",
+        "Progress, catalogue, agent-skill, evidence JSON and exact checkpoint diff validators passed."
+      ],
+      "tests_remaining": [
+        "Production AI task consumer and live inference are not implemented; hosted checks/reviews remain NOT_RUN under policy."
+      ],
+      "integration": {
+        "method": "NON_FORCE_FAST_FORWARD",
+        "base": "330de33bdec2984c14136951d4d09d2a130e3aa7",
+        "main": "f6549b8dd2cb7bced64223f30b3870511cd1ba3a",
+        "issue_comment": "https://github.com/MulattoTech/MJobs/issues/110#issuecomment-6024402366"
+      },
+      "limitations": [
+        "Issue #110 remains OPEN/PARTIAL; persisted UI settings have no production consumer; no live inference or remote/paid provider call; external submission OFF."
+      ],
+      "files_added": [],
+      "files_modified": [
+        "docs/evidence/2026-10-06-ai-task-settings-persistence.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "Issue #110 remains OPEN/PARTIAL; persisted UI settings have no production consumer; no live inference or remote/paid provider call; hosted checks NOT_RUN; external submission OFF."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "f6549b8dd2cb7bced64223f30b3870511cd1ba3a",
+        "evidence_path": "docs/evidence/2026-10-06-ai-task-settings-persistence.json"
+      }
     }
   ],
-  "current_phase": "Issue #110 / MJ-REQ-109 profile-scoped AI settings candidate a6d64f82598df9eebab6601dafd386b07409706f is locally verified PARTIAL; persistence and browser behavior pass, production consumers remain unwired; integration pending.",
+  "current_phase": "Issue #110 / MJ-REQ-109 durable profile-scoped AI task settings integrated at synchronized main f6549b8; issue OPEN/PARTIAL pending production consumers and inference. Next slice is issue #111 / MJ-REQ-110 profile-configurable deterministic AI cost thresholds within active MJ-PR-030.",
   "last_safe_checkpoint": {
-    "git_commit": "a6d64f82598df9eebab6601dafd386b07409706f",
+    "git_commit": "f6549b8dd2cb7bced64223f30b3870511cd1ba3a",
     "evidence_path": "docs/evidence/2026-10-06-ai-task-settings-persistence.json"
   },
   "live_integrations_tested": [
@@ -6891,16 +6935,16 @@
     "next_issue": 110
   },
   "active_development_issue": {
-    "issue": 110,
-    "requirement_id": "MJ-REQ-109",
-    "title": "AI Task Configuration",
+    "issue": 111,
+    "requirement_id": "MJ-REQ-110",
+    "title": "AI Cost Controls",
     "state": "ACTIVE",
-    "selection_reason": "The active dependency-ready MJ-PR-030 needs a user-facing durable seven-task provider/model configuration before production consumers can safely use task routing.",
-    "base": "330de33bdec2984c14136951d4d09d2a130e3aa7",
-    "branch": "codex/mj-req109-task-config-persistence-20261006",
-    "candidate": "a6d64f82598df9eebab6601dafd386b07409706f",
-    "evidence": "docs/evidence/2026-10-06-ai-task-settings-persistence.json",
-    "next_action": "Push and safely integrate the locally verified candidate after live main/worktree reconciliation; post issue evidence without closing it, then select the next dependency-ready slice."
+    "selection_reason": "MJ-PR-030 remains active and cost thresholds are currently code-configurable only; per-profile persisted controls expose the existing deterministic funnel to users and protect downstream model/document work with bounded defaults.",
+    "base": "f6549b8dd2cb7bced64223f30b3870511cd1ba3a",
+    "branch": "codex/mj-req110-cost-settings-20261006",
+    "candidate": null,
+    "evidence": null,
+    "next_action": "Implement profile-scoped cost-policy persistence and connected settings/plan preview with disabled-by-default AI, deterministic caps, profile isolation and invalid-value rejection; run local tests/browser and record PARTIAL until a production AI consumer is wired."
   },
   "historical_control_snapshots": [
     {
@@ -8021,7 +8065,7 @@
     "MJ-REQ-004 mock ATS HTTP operation-check source f4cf42c34682be815b0306e693fb57f0ee911dca and evidence/planning integrated by non-force fast-forward at synchronized main bb0f4b2384580fa31e1e054e04923d6bc2665107; issue #5 remains OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6021535660. Full local Python suite PARTIAL with unrelated teardown assertion isolated PASS; evidence docs/evidence/2026-10-06-mock-ats-http-cancellation.json.",
     "MJ-REQ-017.S08 Remotive global job-source adapter: 7 integration tests PASS in 5.7s; 36 discovery source tests PASS; 316 unit tests PASS; 62 frontend tests/build PASS; local validators PASS. Evidence docs/evidence/2026-10-06-remotive-job-source-adapter.json."
   ],
-  "ownership": "Primary integration lane: issue #110 / MJ-REQ-109 task configuration persistence. Antigravity CLI is active concurrently; all observed registered MJobs worktrees were clean at 2026-10-06T19:34Z. Avoid writing to any Antigravity-owned files without a fresh ownership check.",
+  "ownership": "Primary implementation/integration lane: issue #111 / MJ-REQ-110 cost controls. The concurrent Antigravity checkpoint f6549b8 was reconciled and integrated; no Antigravity process was observed during this checkpoint. Continue to recheck worktree ownership before shared writes.",
   "delivery_policy": {
     "mode": "LOCAL_ONLY",
     "effective_at": "2026-10-05T21:32:10.763994+00:00",
@@ -8034,5 +8078,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-06T19:53:51Z"
+  "updated_at": "2026-10-06T20:04:36Z"
 }

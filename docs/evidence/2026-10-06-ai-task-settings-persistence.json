@@ -4,14 +4,14 @@
   "github_issue": 110,
   "result": "PARTIAL",
   "scope": "Durable profile-scoped settings and connected UI for independently selecting a provider/model for each of the seven AI task types. No production AI consumer is claimed.",
-  "observed_at_utc": "2026-10-06T19:53:51Z",
+  "observed_at_utc": "2026-10-06T20:04:36Z",
   "candidate": {
     "repository": "MulattoTech/MJobs",
     "branch": "codex/mj-req109-task-config-persistence-20261006",
     "base": "330de33bdec2984c14136951d4d09d2a130e3aa7",
     "commit": "a6d64f82598df9eebab6601dafd386b07409706f",
     "tree": "ca11ff272beb4d903b6db7087646a5f4b29c518e",
-    "status": "Locally validated candidate; evidence/planning receipt and safe integration pending."
+    "status": "Source and evidence/planning checkpoint fast-forward integrated into synchronized local/GitHub main."
   },
   "source_sha256": {
     "apps/api/main.py": "3ab50e9e7638f77099d03611547eb3c67c9affc7e564bc61026b572eb33865cc",
@@ -125,6 +125,6 @@
   ],
   "reconciled_main_commit": "330de33bdec2984c14136951d4d09d2a130e3aa7",
   "integration_candidate_commit": "a6d64f82598df9eebab6601dafd386b07409706f",
-  "integrated_main_commit": null,
-  "github_issue_comment": null
+  "integrated_main_commit": "f6549b8dd2cb7bced64223f30b3870511cd1ba3a",
+  "github_issue_comment": "https://github.com/MulattoTech/MJobs/issues/110#issuecomment-6024402366"
 }
