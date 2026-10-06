@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-004",
+  "github_issue": 5,
+  "slice_result": "PASS",
+  "requirement_result": "PARTIAL",
+  "base_commit": "2f3e386b5710b2d870b03f115ef20714e88cc7b1",
+  "source_commit": "6abd58aec2562fddaff1367fa8c60417d98b5ebb",
+  "candidate_commit": "6abd58aec2562fddaff1367fa8c60417d98b5ebb",
+  "candidate_tree": "ddc72d5837c7a43fefb81ad751a33015cab9aaea",
+  "recorded_at_utc": "2026-10-06T16:45:15Z",
+  "scope": "Treat the uploaded-comparison cancel endpoint response as authoritative: abort the browser request only when an active extraction was signaled; otherwise tell the user cancellation is unconfirmed and let the comparison finish.",
+  "acceptance": {
+    "cancelled_false_does_not_abort_local_fetch": "PASS",
+    "user_sees_unconfirmed_cancellation_notice": "PASS",
+    "ongoing_comparison_can_finish_and_render_result": "PASS",
+    "confirmed_cancel_stops_extraction": "PASS",
+    "profile_and_application_history_unchanged_in_both_paths": "PASS",
+    "full_local_python_suite": "PASS",
+    "frontend_tests_and_build": "PASS",
+    "complete_MJ_REQ_004_acceptance": "PARTIAL"
+  },
+  "validation": [
+    {
+      "command": "npm ci --prefix apps/web",
+      "timestamp_utc": "2026-10-06T16:35:00Z",
+      "target": "Isolated clean worktree frontend dependencies",
+      "result": "PASS",
+      "summary": "Installed lockfile dependencies; npm reported zero vulnerabilities and an engine warning because Node 25.9.0 is outside Vitest supported Node 22.12/24/26+."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "timestamp_utc": "2026-10-06T16:35:00Z",
+      "target": "Refresh ignored isolated-worktree static bundle required by connected browser tests",
+      "result": "PASS",
+      "summary": "TypeScript and Vite build passed; the clean baseline browser test then passed."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.browser.test_skill_order.SkillOrderBrowserTests.test_explicit_ordering_reaches_worker_and_download -v",
+      "timestamp_utc": "2026-10-06T16:37:00Z",
+      "target": "Connected browser false-acknowledgement and confirmed-cancel workflows",
+      "result": "PASS",
+      "summary": "One end-to-end synthetic browser test covers both negative and positive cancel acknowledgements, result visibility, and unchanged profile/application document history."
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run",
+      "timestamp_utc": "2026-10-06T16:37:00Z",
+      "target": "Frontend regression suite",
+      "result": "PASS",
+      "summary": "13 files and 62 tests passed."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest discover -s tests -p \"test_*.py\"",
+      "timestamp_utc": "2026-10-06T16:43:00Z",
+      "target": "Complete local Python unit/integration/browser suite on the final source candidate",
+      "result": "PASS",
+      "summary": "718 tests ran in 437.101 seconds; zero failures/errors, one optional PostgreSQL test skipped because MJOBS_TEST_POSTGRES_URL was unset."
+    },
+    {
+      "command": "git diff --check",
+      "timestamp_utc": "2026-10-06T16:45:15Z",
+      "target": "Patch whitespace and conflict-marker hygiene",
+      "result": "PASS",
+      "summary": "No whitespace errors."
+    }
+  ],
+  "red_green_evidence": {
+    "initial_clean_baseline": "The first browser baseline failed before page setup because the isolated worktree had no ignored apps/web/dist directory; after locked npm install and build, the unchanged baseline test passed.",
+    "regression_red": "With the new browser case intercepting cancel acknowledgement as {cancelled:false}, the pre-fix UI had no status and the test failed at the expected assertion.",
+    "green": "After the UI change, the same browser test passed both unconfirmed and confirmed cancellation paths."
+  },
+  "environment_limitations": {
+    "optional_postgresql": "NOT_RUN; MJOBS_TEST_POSTGRES_URL unset",
+    "hosted_actions_and_reviews": "NOT_RUN_BY_USER_POLICY",
+    "ai_provider_and_real_ats": "NOT_RUN_OR_UNAVAILABLE",
+    "external_submission": "OFF",
+    "multi_api_replica_cancellation": "NOT_IMPLEMENTED; process-local registry may produce an unconfirmed acknowledgement when routed to another API process"
+  },
+  "requirement_limitations": [
+    "This slice prevents the UI from claiming success when a cancel request did not reach an active comparison in the current API process. It does not add cross-replica event signaling or complete remaining timeout/output/retry/error evidence for MJ-REQ-004.",
+    "Unavailable AI-provider and real ATS operation paths remain unverified; issue #5 / MJ-REQ-004 remains OPEN/PARTIAL."
+  ],
+  "denominators": {
+    "requirements": 366,
+    "reference_gaps": 59
+  },
+  "integration": {
+    "status": "PENDING_LOCAL_ONLY_FAST_FORWARD",
+    "method": "NON_FORCE_FAST_FORWARD",
+    "base_commit": "2f3e386b5710b2d870b03f115ef20714e88cc7b1",
+    "source_commit": "6abd58aec2562fddaff1367fa8c60417d98b5ebb",
+    "candidate_branch": "codex/req004-cancel-acknowledgement-20261006",
+    "hosted_verification": "NOT_RUN_BY_USER_POLICY",
+    "issue_state": "OPEN_PARTIAL"
+  }
+}
