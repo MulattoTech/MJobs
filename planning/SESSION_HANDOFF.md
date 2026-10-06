@@ -1,3 +1,9 @@
+# Active local-only implementation checkpoint — 2026-10-06
+
+Issue #309 / MJ-REQ-017.S08 Remotive global job-source adapter candidate branch `antigravity/mj-pr-087-remotive-adapter-20261006`, based on `c7656bbecec61e2d037bc57869fad4e1ee8f43d4`. Remotive implemented with public JSON collection, multi-company attribution, search semantics normalization, rate-limit/error handling, and registry integration. Evidence `docs/evidence/2026-10-06-remotive-job-source-adapter.json`. Seven focused integration tests, 36 discovery source tests, 316 unit tests, 62 frontend tests, Vite build, and all repository validators pass. Parent MJ-REQ-017 remains PARTIAL/OPEN. External submission OFF; hosted Actions/reviews NOT_RUN.
+
+---
+
 # Integration receipt — 2026-10-06
 
 Extractive target-job summary tailoring source `d53099715ecda0beec5d6b46ef85dbb1f496738b` and evidence/planning were integrated by non-force fast-forward at synchronized local/GitHub main `bff2acf6ffb446c12653b5e9e6c696d6dac6e3bb`. Issue #96 remains OPEN/PARTIAL after readback: https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6022405440. Evidence `docs/evidence/2026-10-06-target-summary-tailoring.json`. 16 focused Python tests, 316 unit tests, 370 integration tests (1 optional PostgreSQL skip), 2 connected Playwright browser tests, 62 frontend tests, Vite build, and all repository validators passed. Continue to next dependency-ready slice; hosted verification NOT_RUN, external submission OFF.

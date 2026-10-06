@@ -176,9 +176,11 @@
     },
     {
       "requirement_id": "MJ-REQ-017",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-06-remotive-job-source-adapter.json"
+      ],
+      "note": "Global job-source adapter Remotive (MJ-REQ-017.S08) implemented and verified with multi-company attribution, search semantics normalization, error/rate-limit handling, and registry integration. Remaining sources pending."
     },
     {
       "requirement_id": "MJ-REQ-018",
@@ -2286,9 +2288,11 @@
     },
     {
       "requirement_id": "MJ-REQ-017.S08",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-06-remotive-job-source-adapter.json"
+      ],
+      "note": "Verified Remotive global job-source adapter capabilities, search/fetch, multi-company attribution, normalization, error handling, and registry integration in MJ-PR-087"
     },
     {
       "requirement_id": "MJ-REQ-017.S09",

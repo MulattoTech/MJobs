@@ -11,7 +11,7 @@
     "current_verified_github_state": "GitHub/local main synchronized at bff2acf6ffb446c12653b5e9e6c696d6dac6e3bb; issue #96 OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6022405440; Actions disabled, no open PR, main unprotected.",
     "current_verified_at": "2026-10-06T18:06:00Z"
   },
-  "current_milestone": "MJ-REQ-109-TASK-CONFIGURATION-SELECTED-20261006",
+  "current_milestone": "MJ-REQ-017-S08-REMOTIVE-ADAPTER-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -59,7 +59,8 @@
     "MJ-REQ-004 scoped public DNS cancellation: the worker cancellation/deadline callback is polled during a pending getaddrinfo wait without weakening its absolute lookup deadline or losing timeout classification. 21 unit, 23 integration, two Chromium workflow, and 703 full Python tests pass (1 optional PostgreSQL skip); see docs/evidence/2026-10-06-public-dns-cancellation.json.",
     "MJ-REQ-009 local staged workflow passed on synchronized current main: 30 focused unit/integration/browser tests, isolated fixture Compose build/readiness, controlled public Greenhouse read (19 jobs, zero application requests), and dry-run stop-before-submit. Real application and cloud deployment NOT_RUN by policy; evidence docs/evidence/2026-10-06-staged-local-operation.json.",
     "MJ-REQ-095 extractive summary tailoring: tailored resumes select whole approved summary facts that match target-job skills, preserve original summary when no facts match, version template/model contracts, and record omitted summary facts in comparison provenance (docs/evidence/2026-10-06-target-summary-tailoring.json).",
-    "MJ-REQ-108.A06: explicit zero-capability disabled/no-AI provider with deterministic no-network and no-prompt-echo contract evidence."
+    "MJ-REQ-108.A06: explicit zero-capability disabled/no-AI provider with deterministic no-network and no-prompt-echo contract evidence.",
+    "MJ-REQ-017.S08: Remotive global job-source adapter implemented with public JSON collection, multi-company attribution, canonical search semantics normalization, error/rate-limit handling, and registry integration (docs/evidence/2026-10-06-remotive-job-source-adapter.json)."
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
@@ -7491,7 +7492,8 @@
     "MJ-REQ-004 cancellation acknowledgement candidate 6abd58aec2562fddaff1367fa8c60417d98b5ebb: browser false/true acknowledgement regression PASS, full Python 718 PASS/1 optional PostgreSQL skip, frontend 62 PASS/build PASS; evidence docs/evidence/2026-10-06-comparison-cancel-acknowledgement.json; requirement remains PARTIAL.",
     "MJ-REQ-004 cancellation acknowledgement source 6abd58aec2562fddaff1367fa8c60417d98b5ebb and evidence/planning integrated by non-force fast-forward at synchronized main 19ce41de0c9c380e1dbd3b6278870477c484bd19; issue #5 remains OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6021034562. Evidence docs/evidence/2026-10-06-comparison-cancel-acknowledgement.json.",
     "MJ-REQ-004 mock ATS HTTP check propagation candidate f4cf42c34682be815b0306e693fb57f0ee911dca: 13 mock ATS tests and 2 transport unit tests PASS; 37 browser tests PASS; full Python 719 tests PARTIAL with one unrelated teardown timeout (isolated PASS), optional PostgreSQL skipped. Evidence docs/evidence/2026-10-06-mock-ats-http-cancellation.json; requirement remains PARTIAL.",
-    "MJ-REQ-004 mock ATS HTTP operation-check source f4cf42c34682be815b0306e693fb57f0ee911dca and evidence/planning integrated by non-force fast-forward at synchronized main bb0f4b2384580fa31e1e054e04923d6bc2665107; issue #5 remains OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6021535660. Full local Python suite PARTIAL with unrelated teardown assertion isolated PASS; evidence docs/evidence/2026-10-06-mock-ats-http-cancellation.json."
+    "MJ-REQ-004 mock ATS HTTP operation-check source f4cf42c34682be815b0306e693fb57f0ee911dca and evidence/planning integrated by non-force fast-forward at synchronized main bb0f4b2384580fa31e1e054e04923d6bc2665107; issue #5 remains OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6021535660. Full local Python suite PARTIAL with unrelated teardown assertion isolated PASS; evidence docs/evidence/2026-10-06-mock-ats-http-cancellation.json.",
+    "MJ-REQ-017.S08 Remotive global job-source adapter: 7 integration tests PASS in 5.7s; 36 discovery source tests PASS; 316 unit tests PASS; 62 frontend tests/build PASS; local validators PASS. Evidence docs/evidence/2026-10-06-remotive-job-source-adapter.json."
   ],
   "ownership": "Mock ATS HTTP operation-check source f4cf42c34682be815b0306e693fb57f0ee911dca and evidence/planning safely integrated by non-force fast-forward to synchronized local/GitHub main bb0f4b2384580fa31e1e054e04923d6bc2665107. Issue #5 remains OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6021535660. Focused 13 mock ATS and all 37 browser tests pass; full Python suite had one unrelated teardown flake that passes alone. Hosted checks NOT_RUN; external submission OFF. Continue the next highest-value local-only safety slice.",
   "delivery_policy": {
@@ -7506,5 +7508,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-06T18:56:03Z"
+  "updated_at": "2026-10-06T18:58:00Z"
 }

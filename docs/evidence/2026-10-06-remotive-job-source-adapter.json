@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REQ-017-S08-REMOTIVE-ADAPTER-20261006",
+  "recorded_at": "2026-10-06T18:50:00Z",
+  "requirement_id": "MJ-REQ-017.S08",
+  "issue": 309,
+  "result": "PASS",
+  "acceptance_scope": "Remotive implemented and verified as an independently traceable global job-source adapter under MJ-REQ-017. Declares exact capabilities (PUBLIC_JSON, DISCOVERY, JOB_DETAIL, SALARY, REMOTE_METADATA, APPLICATION_REDIRECT) and disallows unsupported features (DIRECT_APPLICATION). Normalizes multi-company jobs, salary ranges/currencies, tags into skills, and remote candidate location requirements. Integrated into source registry and collection engine with deterministic tests.",
+  "source": {
+    "repository": "MulattoTech/MJobs",
+    "base_commit": "c7656bbecec61e2d037bc57869fad4e1ee8f43d4",
+    "candidate_commit": "ea10afde98b0451a56ae4a07e0c46b1a21e42dd7",
+    "verified_code_test_diff_sha256": "67dad0b3f424f0157b0e2b3363eb76f3400425aa023548bbae59b10aa1df268d",
+    "branch": "antigravity/mj-pr-087-remotive-adapter-20261006",
+    "worktree": ".worktrees/antigravity-remotive-adapter-20261006"
+  },
+  "acceptance_behavior": [
+    "Remotive adapter declares CollectionStrategy.PUBLIC_JSON and supported capabilities: DISCOVERY, JOB_DETAIL, SALARY, REMOTE_METADATA, APPLICATION_REDIRECT.",
+    "Unsupported features like DIRECT_APPLICATION and SCREENING_QUESTIONS raise UnsupportedFeature / ValueError according to capability contract.",
+    "Public API endpoint https://remotive.com/api/remote-jobs is searched with category/tag/limit/search parameters.",
+    "Per-job multi-company attribution is preserved using SourceCompany with identity parts ('remotive', company_slug).",
+    "Skills, remote metadata (remote status, candidate required location), employment type, and salary bounds/currency are normalized to canonical search semantics.",
+    "Adapter handles transport errors, rate limiting 429 backoff headers, timeout budgets, and updates source health accurately.",
+    "Registry source_adapter recognizes provider 'remotive' and configure_source supports 'remotive' providers."
+  ],
+  "local_checks": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_remotive -v",
+      "result": "PASS",
+      "summary": "7 tests passed in 5.7s covering Remotive adapter capabilities, search contract, multi-company attribution, normalization, single-job fetch, error handling/health, and registry/collection integration."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_greenhouse tests.integration.test_remotive -v",
+      "result": "PASS",
+      "summary": "36 integration tests passed in 15.3s across Greenhouse and Remotive discovery sources."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest discover -s tests/unit -p \"test_*.py\"",
+      "result": "PASS",
+      "summary": "316 unit tests passed in 20.2s."
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run",
+      "result": "PASS",
+      "summary": "13 test files, 62 frontend tests passed."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "summary": "Production Vite build passed."
+    },
+    {
+      "command": "python -m tools.verification.catalogue",
+      "result": "PASS",
+      "summary": "Catalogue validation passed."
+    },
+    {
+      "command": "python -m tools.verification.agent_skills",
+      "result": "PASS",
+      "summary": "Agent skill validation passed."
+    },
+    {
+      "command": "python -m tools.verification.reference_provenance",
+      "result": "PASS",
+      "summary": "Reference provenance validation passed."
+    },
+    {
+      "command": "python -m tools.verification.gpu_independence",
+      "result": "PASS",
+      "summary": "GPU independence validation passed."
+    },
+    {
+      "command": "python -m tools.verification.host_safety",
+      "result": "PASS",
+      "summary": "Host safety validation passed."
+    },
+    {
+      "command": "python -m tools.verification.progress validate",
+      "result": "PASS",
+      "summary": "Progress journal validation passed."
+    }
+  ],
+  "environment": {
+    "python": "Python 3.12.10",
+    "node": "25.9.0",
+    "npm": "11.12.1",
+    "os": "Windows 11",
+    "notes": [
+      "Tests and builds executed in isolated worktree C:\\Tools\\Dev\\MJobs\\.worktrees\\antigravity-remotive-adapter-20261006.",
+      "Local-only policy strictly followed; hosted CI and Actions disabled."
+    ]
+  },
+  "limitations": [
+    "Remotive API does not support direct resume/application submission; application redirect URL is provided.",
+    "Parent MJ-REQ-017 remains open until other job source adapters are completed."
+  ]
+}

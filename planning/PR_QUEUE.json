@@ -1949,10 +1949,10 @@
       "depends_on": [
         "MJ-PR-005"
       ],
-      "status": "QUEUED",
-      "branch": "codex/mj-pr-087-mj-req-017-s08-global-job-source-adapter-remotive",
+      "status": "IN_PROGRESS",
+      "branch": "antigravity/mj-pr-087-remotive-adapter-20261006",
       "draft_until_verified": true,
-      "notes": "Independent provider PR. Declare only capabilities actually verified."
+      "notes": "Verified Remotive global job-source adapter capabilities, search/fetch, multi-company attribution, normalization, error handling, and registry integration. Evidence docs/evidence/2026-10-06-remotive-job-source-adapter.json."
     },
     {
       "id": "MJ-PR-088",
