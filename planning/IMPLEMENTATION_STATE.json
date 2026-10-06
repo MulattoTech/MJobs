@@ -1,15 +1,15 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-06T06:46:24Z",
+  "generated_at": "2026-10-06T06:49:57Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "MJ-REQ-004 native parser source commit 492eb8f9d83d4e2e0f1e8af9e6b18b0ab31b922a is integrated by non-force fast-forward; local and GitHub main are synchronized. Planning/evidence receipt is being recorded.",
-    "current_verified_github_state": "GitHub main and local main synchronized at 492eb8f9d83d4e2e0f1e8af9e6b18b0ab31b922a. Issue #5 remains OPEN/PARTIAL; Actions/reviews remain NOT_RUN by policy.",
-    "current_verified_at": "2026-10-06T06:49:04Z"
+    "current_verified_local_state": "MJ-REQ-004 native parser source commit 492eb8f9d83d4e2e0f1e8af9e6b18b0ab31b922a and planning receipt commit 8a62e862b91039f5c3b5cee636a54c8fd28455d6 are integrated by non-force fast-forward; local and GitHub main are synchronized.",
+    "current_verified_github_state": "GitHub main and local main synchronized at 8a62e862b91039f5c3b5cee636a54c8fd28455d6, including the native parser evidence receipt. Issue #5 remains OPEN/PARTIAL; Actions/reviews remain NOT_RUN by policy.",
+    "current_verified_at": "2026-10-06T06:49:57Z"
   },
   "current_milestone": "MJ-REQ-004-NATIVE-PARSER-DEADLINE-SLICE-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under the local-only delivery policy; one writer and one integration lane.",
@@ -5961,5 +5961,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-06T06:46:24Z"
+  "updated_at": "2026-10-06T06:49:57Z"
 }

@@ -5,7 +5,7 @@
   "result": "PARTIAL",
   "scope_result": "PASS",
   "scope": "Native PDF/DOCX extraction now runs in a shell-free child with a 15-second parent wall deadline, bounded JSON protocol, sanitized environment, and Linux process limits. Timeout, launch failure, nonzero exit, malformed output, real PDF/DOCX extraction, OCR behavior, profile API persistence, comparison isolation, and browser resume history were locally verified. This slice does not claim complete MJ-REQ-004 acceptance.",
-  "observed_at_utc": "2026-10-06T06:49:04Z",
+  "observed_at_utc": "2026-10-06T06:49:57Z",
   "candidate": {
     "repository": "MulattoTech/MJobs",
     "branch": "codex/req004-bound-ops-20261006",
@@ -136,7 +136,7 @@
     "remote_main_after_source_integration": "492eb8f9d83d4e2e0f1e8af9e6b18b0ab31b922a",
     "issue_state": "OPEN; broad original acceptance remains incomplete and issue was not closed",
     "requirement_state": "PARTIAL; the existing 366 requirement and 59 reference-gap denominators were preserved",
-    "planning_receipt_commit": null,
-    "remote_main_after_planning_receipt": null
+    "planning_receipt_commit": "8a62e862b91039f5c3b5cee636a54c8fd28455d6",
+    "remote_main_after_planning_receipt": "8a62e862b91039f5c3b5cee636a54c8fd28455d6"
   }
 }
