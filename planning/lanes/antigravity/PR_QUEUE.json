@@ -5,16 +5,16 @@
     {
       "issue": 303,
       "requirement_id": "MJ-REQ-017.S02",
-      "status": "CANDIDATE",
+      "status": "MERGED",
       "priority": 1,
-      "note": "Primary next lane: We Work Remotely source adapter; verify public interface and no overlap before starting."
+      "note": "We Work Remotely source adapter verified and integrated into main."
     },
     {
       "issue": 308,
       "requirement_id": "MJ-REQ-017.S07",
-      "status": "BACKLOG_AFTER_303",
+      "status": "CANDIDATE",
       "priority": 2,
-      "note": "Remote OK source adapter; do not start concurrently with another source adapter if registry/collection files would overlap."
+      "note": "Remote OK source adapter; next candidate."
     }
   ]
 }
