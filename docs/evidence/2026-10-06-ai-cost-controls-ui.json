@@ -1,0 +1,143 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-110",
+  "github_issue": 111,
+  "result": "PARTIAL",
+  "scope": "Profile-scoped persisted deterministic AI-work thresholds and caps, connected settings UI, and a no-call preview over stored match scores. Does not claim a production model consumer.",
+  "observed_at_utc": "2026-10-06T20:41:56Z",
+  "candidate": {
+    "repository": "MulattoTech/MJobs",
+    "branch": "codex/mj-req110-cost-settings-20261006",
+    "base": "b9e689513251577fe5a369e90f23761f1f421acc",
+    "commits": [
+      "a03ac66a87901b780267217a0a4462808ff6938f",
+      "93e152dbff89c74b5075ce4df703c82cb4da8883"
+    ],
+    "commit": "93e152dbff89c74b5075ce4df703c82cb4da8883",
+    "tree": "63235bb61bd1f4eba8c1257998f28d18a13e3ae1",
+    "status": "Source commits pushed and full local validation passed; non-force fast-forward integration pending live main/worktree reconciliation."
+  },
+  "source_sha256": {
+    "apps/api/main.py": "c4db25c6924d41ab1e4ff1c9bab604d8525adb20109a607e848e1ade9d754065",
+    "apps/web/src/main.tsx": "b782f3beac74a401c533f93616a466d48e224645809738a05a47bfaa83fce55b",
+    "packages/persistence/models.py": "ee85e7e3ee67766cb288452711dc4b0658d1b30b6644f2cbf4b871b5b6c79702",
+    "packages/persistence/store.py": "2c029c2dc35b12b9e8814e67ad70d8059f96ca23adcad50e83e12c0485d9dee6",
+    "migrations/versions/8f3a1c6d92b4_profile_ai_cost_policies.py": "c6ddbe3bfc670c01ba17192d3950200f945e3c21deef27b37fafecca36998961",
+    "tests/integration/test_ai_cost_policy_api.py": "0e52e658be9c01be4b359ac97fe0e57bac263dd05472b84060c6c262ed6866c7",
+    "tests/browser/test_ai_task_settings.py": "92bb3fda1d67c7eeeaaeadcad50f223db4247d9923e65ff255d6346c3867b20a",
+    "apps/api/AREA.md": "15dc8448fcc31ef03526a1e0132451e0d6b40baf2ae5eede44037273b85c19cc",
+    "apps/web/AREA.md": "5c59195603a476d812c8a67f57c8c7b245806f5223251399119c9ee8720aea85",
+    "packages/persistence/AREA.md": "6f3927c01b2dde6725def96aa430d9cc03a29a79171e89805297ae56097a1677",
+    "services/ai/AREA.md": "05fae508a5989b0ecd43ec767217197c96eb5bb75976ad6e9852179d96dae0b7"
+  },
+  "acceptance": {
+    "profile_policy_read_write_and_defaults": "PASS - profiles without a saved row use deterministic defaults: score 75, scan cap 5,000, AI cap 75 and reviewed-document cap 20; saved policy reloads after Store/API restart.",
+    "profile_isolation": "PASS - a policy saved for one profile does not appear in a second profile.",
+    "bounds_and_privacy": "PASS - strict validation rejects invalid ranges, document cap above AI cap, attempts to raise 75/20 caps, secret-shaped extra fields and over-limit job batches; validation errors do not echo submitted values.",
+    "read_only_preview": "PASS - preview counts profile jobs against the scan cap, applies the integer score threshold conservatively, counts only jobs with a stored deterministic score, leaves unscored jobs unknown, and reports counts only. It performs no provider call and creates no documents.",
+    "connected_browser_flow": "PASS - controls save/reload per profile, preview reflects deterministic jobs, failed settings reads keep controls disabled, and the narrow viewport remains usable.",
+    "production_ai_consumer_and_document_dispatch": "PARTIAL - no matching/job task consumer reads the saved policy to run a model or create documents; the preview is not presented as execution. Requirement remains open."
+  },
+  "local_validation": {
+    "observed_at_utc": "2026-10-06T20:41:56Z",
+    "environment": "Windows local worktree, Python 3.12.10, repository-locked frontend dependencies, connected Chromium. SQLite temporary databases and a task-created PostgreSQL 17 container bound only to 127.0.0.1 used synthetic data; that container was removed.",
+    "commands": [
+      {
+        "command": "python -m unittest discover -s tests\\unit -v",
+        "result": "PASS",
+        "tests": 346,
+        "candidate": "93e152dbff89c74b5075ce4df703c82cb4da8883"
+      },
+      {
+        "command": "python -m unittest discover -s tests\\integration -v",
+        "result": "PASS",
+        "tests": 384,
+        "skipped": 1,
+        "skip_note": "Optional PostgreSQL test skipped because MJOBS_TEST_POSTGRES_URL was unset; a separate disposable PostgreSQL 17 test passed migration and durable policy persistence checks.",
+        "backend_candidate": "a03ac66a87901b780267217a0a4462808ff6938f",
+        "note": "The final 93e152d commit changes only the UI load-failure guard and its browser/AREA documentation; backend and integration sources are unchanged."
+      },
+      {
+        "command": "python -m unittest discover -s tests\\browser -v",
+        "result": "PASS",
+        "tests": 38,
+        "candidate": "93e152dbff89c74b5075ce4df703c82cb4da8883"
+      },
+      {
+        "command": "python -m unittest tests.integration.test_ai_cost_policy_api tests.unit.test_ai_cost_controls -v",
+        "result": "PASS",
+        "tests": 8,
+        "note": "Includes final score-boundary, unknown-score, scan-overflow, profile-isolation and sanitized-error cases."
+      },
+      {
+        "command": "npm test --prefix apps/web -- --run",
+        "result": "PASS",
+        "tests": 62,
+        "candidate": "93e152dbff89c74b5075ce4df703c82cb4da8883"
+      },
+      {
+        "command": "npm run build --prefix apps/web",
+        "result": "PASS",
+        "candidate": "93e152dbff89c74b5075ce4df703c82cb4da8883"
+      },
+      {
+        "command": "Temporary SQLite Alembic upgrade head; downgrade to 7c6e1d3a9b20 with an empty policy table",
+        "result": "PASS",
+        "revision": "8f3a1c6d92b4",
+        "parent": "7c6e1d3a9b20"
+      },
+      {
+        "command": "Temporary SQLite populated-policy downgrade to 7c6e1d3a9b20",
+        "result": "PASS",
+        "note": "Downgrade refused and the saved policy row remained readable."
+      },
+      {
+        "command": "Disposable PostgreSQL 17 Alembic upgrade, profile policy API save/read after Store reopen, cap rejection and populated downgrade",
+        "result": "PASS",
+        "note": "127.0.0.1 only; synthetic profile/settings; task-created container removed."
+      },
+      {
+        "command": "python -m tools.verification.progress validate",
+        "result": "PASS"
+      },
+      {
+        "command": "python -m tools.verification.catalogue",
+        "result": "PASS"
+      },
+      {
+        "command": "python -m tools.verification.agent_skills",
+        "result": "PASS"
+      },
+      {
+        "command": "python -m compileall -q apps\\api\\main.py packages\\persistence services\\ai tests\\integration\\test_ai_cost_policy_api.py tests\\browser\\test_ai_task_settings.py migrations\\versions\\8f3a1c6d92b4_profile_ai_cost_policies.py",
+        "result": "PASS"
+      },
+      {
+        "command": "git diff --check",
+        "result": "PASS"
+      }
+    ],
+    "expected_red_and_recovered_failures": [
+      "New API tests initially got 404 before routes existed; final focused tests pass.",
+      "Browser acceptance initially found the AI cost panel missing; final connected browser suites pass.",
+      "A threshold boundary test exposed 74.99 rounding up to 75; preview now truncates nonnegative stored match scores conservatively and the regression passes.",
+      "A missing stored match score is now excluded as unknown rather than treated as zero; scan accounting still includes the job.",
+      "A browser outage case found fallback defaults remained editable after policy-read failure; final UI keeps controls disabled until a successful read.",
+      "A persistence test initially disposed the replacement Store rather than the TestClient's original Store; the fixture now closes the client, disposes the owner, reopens the database, and verifies API readback."
+    ],
+    "not_run": [
+      "No real Ollama inference or production AI task consumer was invoked; no prompts/profile/job descriptions were sent to a model.",
+      "Remote/paid AI providers, GitHub Actions, hosted tests/reviews and cloud automation were NOT_RUN under the active local-only policy.",
+      "External job application submission remained OFF; no submission path was added or invoked."
+    ]
+  },
+  "limitations": [
+    "Cost policy is persisted and previewed but is not yet consumed by a production matching/model worker.",
+    "The preview does not infer a score for jobs whose deterministic match record is missing and does not create document candidates automatically.",
+    "Issue #111 remains OPEN/PARTIAL; full product completion requires a real, reviewed task-consumer workflow."
+  ],
+  "reconciled_main_commit": "b9e689513251577fe5a369e90f23761f1f421acc",
+  "integration_candidate_commit": "93e152dbff89c74b5075ce4df703c82cb4da8883",
+  "integrated_main_commit": null,
+  "github_issue_comment": null
+}

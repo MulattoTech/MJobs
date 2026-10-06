@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-06T19:53:51Z",
+  "timestamp": "2026-10-06T20:41:56Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -1001,9 +1001,10 @@
       "requirement_id": "MJ-REQ-110",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-06-ai-cost-controls.json"
+        "docs/evidence/2026-10-06-ai-cost-controls.json",
+        "docs/evidence/2026-10-06-ai-cost-controls-ui.json"
       ],
-      "note": "Deterministic candidate funnel and per-batch ceilings pass local validation; no production matching consumer or persisted user configuration, so end-to-end runtime cost control remains incomplete."
+      "note": "Deterministic funnel, profile-scoped persisted score/cap settings and a connected no-call preview are locally verified. No production task consumer or automatic reviewed-document execution is wired, so MJ-REQ-110 remains PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-111",

@@ -1,17 +1,17 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-06T20:04:36Z",
+  "generated_at": "2026-10-06T20:41:56Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Local main and origin/main synchronized at f6549b8dd2cb7bced64223f30b3870511cd1ba3a; issue #110 / MJ-REQ-109 persisted settings slice integrated PARTIAL; issue #111 / MJ-REQ-110 cost-controls user configuration selected next within MJ-PR-030.",
-    "current_verified_github_state": "GitHub/local main synchronized at f6549b8dd2cb7bced64223f30b3870511cd1ba3a; issue #110 OPEN/PARTIAL after evidence readback; issue #111 OPEN/PARTIAL; Actions disabled, hosted checks NOT_RUN.",
-    "current_verified_at": "2026-10-06T20:04:36Z"
+    "current_verified_local_state": "Local main/origin main synchronized at b9e689513251577fe5a369e90f23761f1f421acc; issue #110 / MJ-REQ-109 settings integrated PARTIAL; issue #111 / MJ-REQ-110 cost-settings candidate 93e152dbff89c74b5075ce4df703c82cb4da8883 verified in isolated worktree, integration pending.",
+    "current_verified_github_state": "GitHub main remains b9e689513251577fe5a369e90f23761f1f421acc; issue #111 OPEN; Actions disabled, hosted checks NOT_RUN; cost-settings candidate pushed on codex/mj-req110-cost-settings-20261006.",
+    "current_verified_at": "2026-10-06T20:41:56Z"
   },
-  "current_milestone": "MJ-REQ-109-AI-TASK-SETTINGS-INTEGRATED-PARTIAL-20261006",
+  "current_milestone": "MJ-REQ-110-PROFILE-COST-CONTROLS-LOCALLY-VERIFIED-PARTIAL-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -277,7 +277,8 @@
     "MJ-REQ-111 issue #112 structured output: 16 focused AI tests and 337 full unit tests PASS; remote provider and production consumer remain unavailable (docs/evidence/2026-10-06-ai-structured-output.json).",
     "MJ-REQ-108 issue #109 local Ollama adapter: nine provider tests and all 346 unit tests PASS; all requests used synthetic MockTransport, no model inference (docs/evidence/2026-10-06-ai-local-ollama-provider.json).",
     "MJ-REQ-109 per-profile AI settings candidate a6d64f8: 346 unit, 381 integration (1 optional skip), 38 browser, 62 frontend tests; Vite build; SQLite/PostgreSQL migrations and API persistence; populated downgrade refusal; validators PASS (docs/evidence/2026-10-06-ai-task-settings-persistence.json).",
-    "MJ-REQ-109 integration receipt: source a6d64f82598df9eebab6601dafd386b07409706f and evidence/planning checkpoint integrated by non-force fast-forward at synchronized local/GitHub main f6549b8dd2cb7bced64223f30b3870511cd1ba3a; issue #110 remains OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/110#issuecomment-6024402366; exact checkpoint document validators passed."
+    "MJ-REQ-109 integration receipt: source a6d64f82598df9eebab6601dafd386b07409706f and evidence/planning checkpoint integrated by non-force fast-forward at synchronized local/GitHub main f6549b8dd2cb7bced64223f30b3870511cd1ba3a; issue #110 remains OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/110#issuecomment-6024402366; exact checkpoint document validators passed.",
+    "MJ-REQ-110 candidate 93e152dbff89c74b5075ce4df703c82cb4da8883: 346 unit tests, 384 integration tests (1 optional PG skip), 38 connected browser tests, 62 frontend tests, build, direct SQLite/PG migration/persistence checks and repository validators PASS; evidence docs/evidence/2026-10-06-ai-cost-controls-ui.json."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -314,7 +315,8 @@
     "MJ-REQ-004 cancellation acknowledgement: hosted Actions/reviews NOT_RUN under user policy; optional PostgreSQL skipped (MJOBS_TEST_POSTGRES_URL unset); AI provider/real ATS and external submission not run; cross-replica cancellation not implemented. Evidence docs/evidence/2026-10-06-comparison-cancel-acknowledgement.json.",
     "MJ-REQ-004 mock ATS HTTP cancellation: hosted Actions/reviews NOT_RUN; optional PostgreSQL skipped because MJOBS_TEST_POSTGRES_URL is unset; AI/real ATS and external submission not run. Evidence docs/evidence/2026-10-06-mock-ats-http-cancellation.json.",
     "MJ-REQ-108.A06 browser acceptance NOT_APPLICABLE (internal provider contract); external provider calls and GitHub hosted checks NOT_RUN by current policy; full integration suite NOT_RUN because application workflow wiring is outside this child slice.",
-    "MJ-REQ-109: live model inference and production consumer wiring NOT_RUN; remote/paid models and hosted Actions/reviews NOT_RUN by policy. Browser persistence/profile isolation passed (docs/evidence/2026-10-06-ai-task-settings-persistence.json)."
+    "MJ-REQ-109: live model inference and production consumer wiring NOT_RUN; remote/paid models and hosted Actions/reviews NOT_RUN by policy. Browser persistence/profile isolation passed (docs/evidence/2026-10-06-ai-task-settings-persistence.json).",
+    "MJ-REQ-110 production matching/model consumer, real provider inference and reviewed-document generation NOT_RUN; policy preview is read-only. Hosted checks/reviews NOT_RUN by policy; external submission OFF."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -455,7 +457,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "f6549b8dd2cb7bced64223f30b3870511cd1ba3a",
+  "last_implementation_commit": "93e152dbff89c74b5075ce4df703c82cb4da8883",
   "publication": {
     "result": "PASS",
     "integration_method": "NON_FORCE_FAST_FORWARD",
@@ -6792,12 +6794,68 @@
         "git_commit": "f6549b8dd2cb7bced64223f30b3870511cd1ba3a",
         "evidence_path": "docs/evidence/2026-10-06-ai-task-settings-persistence.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-110-PROFILE-COST-CONTROLS-LOCALLY-VERIFIED-PARTIAL-20261006",
+      "timestamp": "2026-10-06T20:41:56Z",
+      "current_phase": "Issue #111 / MJ-REQ-110 profile-scoped deterministic AI funnel policy and no-call preview locally verified at candidate 93e152dbff89c74b5075ce4df703c82cb4da8883; integration pending. No production AI consumer or inference is claimed.",
+      "completed_steps": [
+        "Persisted profile-scoped deterministic AI threshold and caps with database constraints and safe defaults.",
+        "Added connected settings UI and read-only funnel preview over stored match scores; missing scores remain unknown.",
+        "Verified cap/threshold failures do not echo submitted values and settings fail closed in the browser when reads fail."
+      ],
+      "tests_completed": [
+        "Full unit suite 346 PASS.",
+        "Full integration suite 384 PASS, one optional PostgreSQL test skipped because MJOBS_TEST_POSTGRES_URL is unset.",
+        "Full browser suite 38 PASS on final source head; frontend suite 62 PASS and Vite build PASS.",
+        "SQLite and disposable PostgreSQL 17 migration/read/write/reopen and populated-downgrade preservation checks PASS.",
+        "Progress, catalogue, agent-skill, compileall and diff validators PASS."
+      ],
+      "tests_remaining": [
+        "Production task consumer, real local inference and reviewed-document generation remain unverified; hosted Actions/reviews NOT_RUN by policy."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-06-ai-cost-controls-ui.json",
+        "migrations/versions/8f3a1c6d92b4_profile_ai_cost_policies.py",
+        "tests/integration/test_ai_cost_policy_api.py"
+      ],
+      "files_modified": [
+        "apps/api/main.py",
+        "apps/web/src/main.tsx",
+        "packages/persistence/models.py",
+        "packages/persistence/store.py",
+        "apps/api/AREA.md",
+        "apps/web/AREA.md",
+        "packages/persistence/AREA.md",
+        "services/ai/AREA.md",
+        "tests/browser/test_ai_task_settings.py",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "migrations_applied": [
+        "8f3a1c6d92b4 from 7c6e1d3a9b20 on disposable SQLite and PostgreSQL 17 databases; empty downgrade succeeded, populated downgrade refused without losing the row."
+      ],
+      "live_integrations_tested": [
+        "Disposable PostgreSQL 17 container bound to 127.0.0.1 with synthetic profile/policy data; removed after validation."
+      ],
+      "known_errors": [
+        "Expected-red API/browser tests and an SQLite test fixture cleanup error were corrected; the final tests pass."
+      ],
+      "known_limitations": [
+        "No production AI consumer or inference is wired; no model call or document creation occurred. Optional PG suite case skipped because its URL was unset; separate disposable PostgreSQL 17 checks passed. Hosted verification NOT_RUN; external submission OFF."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "93e152dbff89c74b5075ce4df703c82cb4da8883",
+        "evidence_path": "docs/evidence/2026-10-06-ai-cost-controls-ui.json"
+      }
     }
   ],
-  "current_phase": "Issue #110 / MJ-REQ-109 durable profile-scoped AI task settings integrated at synchronized main f6549b8; issue OPEN/PARTIAL pending production consumers and inference. Next slice is issue #111 / MJ-REQ-110 profile-configurable deterministic AI cost thresholds within active MJ-PR-030.",
+  "current_phase": "Issue #111 / MJ-REQ-110 profile-scoped deterministic AI funnel policy and no-call preview locally verified at candidate 93e152dbff89c74b5075ce4df703c82cb4da8883; integration pending. No production AI consumer or inference is claimed.",
   "last_safe_checkpoint": {
-    "git_commit": "f6549b8dd2cb7bced64223f30b3870511cd1ba3a",
-    "evidence_path": "docs/evidence/2026-10-06-ai-task-settings-persistence.json"
+    "git_commit": "93e152dbff89c74b5075ce4df703c82cb4da8883",
+    "evidence_path": "docs/evidence/2026-10-06-ai-cost-controls-ui.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -6939,12 +6997,12 @@
     "requirement_id": "MJ-REQ-110",
     "title": "AI Cost Controls",
     "state": "ACTIVE",
-    "selection_reason": "MJ-PR-030 remains active and cost thresholds are currently code-configurable only; per-profile persisted controls expose the existing deterministic funnel to users and protect downstream model/document work with bounded defaults.",
-    "base": "f6549b8dd2cb7bced64223f30b3870511cd1ba3a",
+    "selection_reason": "MJ-PR-030 remains active; expose the existing deterministic funnel as profile-owned user controls before downstream model or document work.",
+    "base": "b9e689513251577fe5a369e90f23761f1f421acc",
     "branch": "codex/mj-req110-cost-settings-20261006",
-    "candidate": null,
-    "evidence": null,
-    "next_action": "Implement profile-scoped cost-policy persistence and connected settings/plan preview with disabled-by-default AI, deterministic caps, profile isolation and invalid-value rejection; run local tests/browser and record PARTIAL until a production AI consumer is wired."
+    "candidate": "93e152dbff89c74b5075ce4df703c82cb4da8883",
+    "evidence": "docs/evidence/2026-10-06-ai-cost-controls-ui.json",
+    "next_action": "Reconcile exact live main/worktrees and safely integrate; comment/read back issue #111 OPEN/PARTIAL. Then continue within MJ-PR-030 with a real review-gated AI task consumer; do not treat policy preview as execution."
   },
   "historical_control_snapshots": [
     {
@@ -8065,7 +8123,7 @@
     "MJ-REQ-004 mock ATS HTTP operation-check source f4cf42c34682be815b0306e693fb57f0ee911dca and evidence/planning integrated by non-force fast-forward at synchronized main bb0f4b2384580fa31e1e054e04923d6bc2665107; issue #5 remains OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6021535660. Full local Python suite PARTIAL with unrelated teardown assertion isolated PASS; evidence docs/evidence/2026-10-06-mock-ats-http-cancellation.json.",
     "MJ-REQ-017.S08 Remotive global job-source adapter: 7 integration tests PASS in 5.7s; 36 discovery source tests PASS; 316 unit tests PASS; 62 frontend tests/build PASS; local validators PASS. Evidence docs/evidence/2026-10-06-remotive-job-source-adapter.json."
   ],
-  "ownership": "Primary implementation/integration lane: issue #111 / MJ-REQ-110 cost controls. The concurrent Antigravity checkpoint f6549b8 was reconciled and integrated; no Antigravity process was observed during this checkpoint. Continue to recheck worktree ownership before shared writes.",
+  "ownership": "Primary implementation/integration lane: issue #111 / MJ-REQ-110 profile cost controls. Antigravity checkpoint for #110 was reconciled earlier; no Antigravity process was observed during this candidate verification. Recheck ownership before shared writes.",
   "delivery_policy": {
     "mode": "LOCAL_ONLY",
     "effective_at": "2026-10-05T21:32:10.763994+00:00",
@@ -8078,5 +8136,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-06T20:04:36Z"
+  "updated_at": "2026-10-06T20:41:56Z"
 }
