@@ -9,7 +9,7 @@
     "baseline_must_be_reverified": true,
     "current_verified_local_state": "Primary checkout main and origin/main are synchronized at 6f61044e158336385e3ac481a21740f444db8cde after safe non-force fast-forward. The prior #387 worktree is clean at the integration commit; Codespaces checkout remains preserved.",
     "current_verified_github_state": "GitHub and local main are synchronized at c3ce5abf0c2de33533c78635b724c080a9164dea after safe non-force fast-forward. Issues #387, #380 and #373 are closed after scoped evidence; Actions remain disabled, main unprotected and repository rulesets count zero. Issue #384 / MJ-REF-014 is selected for least-data profile access controls.",
-    "current_verified_at": "2026-10-06T03:01:27Z"
+    "current_verified_at": "2026-10-06T03:04:00Z"
   },
   "current_milestone": "MJ-REF-014-SELECTED-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under the local-only delivery policy; one writer and one integration lane.",
@@ -4066,14 +4066,14 @@
         "No paid or external AI provider calls under current policy"
       ],
       "last_safe_checkpoint": {
-        "git_commit": "f7dac95ab4890ccf57a5ca288807d5f1a02a86be",
+        "git_commit": "92595adfc54f87ad8f2004e07c74dd45d1c9246e",
         "evidence_path": "docs/evidence/2026-10-06-avoid-list.json"
       }
     }
   ],
   "current_phase": "MJ-REF-014-SELECTED-20261006",
   "last_safe_checkpoint": {
-    "git_commit": "c3ce5abf0c2de33533c78635b724c080a9164dea",
+    "git_commit": "92595adfc54f87ad8f2004e07c74dd45d1c9246e",
     "evidence_path": "docs/evidence/2026-10-06-avoid-list.json"
   },
   "live_integrations_tested": [
@@ -4184,8 +4184,8 @@
     }
   ],
   "live_reconciliation": {
-    "observed_at": "2026-10-06T03:03:00Z",
-    "github_main": "f7dac95ab4890ccf57a5ca288807d5f1a02a86be",
+    "observed_at": "2026-10-06T03:04:00Z",
+    "github_main": "92595adfc54f87ad8f2004e07c74dd45d1c9246e",
     "candidate": "b6f2238c7ea1e55c5f5b9f7ef1902bd929cb0124",
     "candidate_base": "196ee414c21d01d517bf792063604e6d84f1d333",
     "candidate_is_fast_forward": "YES",
