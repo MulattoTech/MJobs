@@ -131,8 +131,10 @@
       "evidence": []
     },
     "MJ-REF-014": {
-      "result": "NOT_RUN",
-      "evidence": []
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-06-least-data-profile-access.json"
+      ]
     },
     "MJ-REF-015": {
       "result": "NOT_RUN",

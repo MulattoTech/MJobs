@@ -1377,8 +1377,10 @@
     {
       "requirement_id": "MJ-REQ-171",
       "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "evidence": [
+        "docs/evidence/2026-10-06-least-data-profile-access.json"
+      ],
+      "note": "Scoped MJ-REF-014 extension locally verified: task-scoped profile paths expose only approved values and record accessed fact IDs without values. Full PII/security requirement remains NOT_RUN."
     },
     {
       "requirement_id": "MJ-REQ-172",
@@ -1403,8 +1405,10 @@
     {
       "requirement_id": "MJ-REQ-175",
       "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "evidence": [
+        "docs/evidence/2026-10-06-least-data-profile-access.json"
+      ],
+      "note": "Scoped MJ-REF-014 extension locally verified: task authorization denies unregistered scopes and audit rows omit profile values. Provider-secret storage is not implemented; full requirement remains NOT_RUN."
     },
     {
       "requirement_id": "MJ-REQ-176",
@@ -1433,8 +1437,10 @@
     {
       "requirement_id": "MJ-REQ-180",
       "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "evidence": [
+        "docs/evidence/2026-10-06-least-data-profile-access.json"
+      ],
+      "note": "Scoped MJ-REF-014 extension locally verified: accessed/denied profile audits retain identifiers and reason only, never profile values. Full diagnostic-redaction requirement remains NOT_RUN."
     },
     {
       "requirement_id": "MJ-REQ-181",

@@ -7,11 +7,11 @@
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Primary checkout main and origin/main are synchronized at 6f61044e158336385e3ac481a21740f444db8cde after safe non-force fast-forward. The prior #387 worktree is clean at the integration commit; Codespaces checkout remains preserved.",
-    "current_verified_github_state": "GitHub and local main are synchronized at c3ce5abf0c2de33533c78635b724c080a9164dea after safe non-force fast-forward. Issues #387, #380 and #373 are closed after scoped evidence; Actions remain disabled, main unprotected and repository rulesets count zero. Issue #384 / MJ-REF-014 is selected for least-data profile access controls.",
-    "current_verified_at": "2026-10-06T03:04:00Z"
+    "current_verified_local_state": "Primary checkout main and origin/main are synchronized at 92595adfc54f87ad8f2004e07c74dd45d1c9246e; issue #384 candidate is isolated in its dedicated worktree.",
+    "current_verified_github_state": "GitHub and local main are synchronized at 92595adfc54f87ad8f2004e07c74dd45d1c9246e; Actions remain disabled, main unprotected and repository rulesets count zero. Issue #384 / MJ-REF-014 has locally verified partial candidate c5949074cd42df2de16b7310602abce2eb9750de; it remains OPEN because no AI prompt/provider path exists to prove prompt wiring.",
+    "current_verified_at": "2026-10-06T03:30:40Z"
   },
-  "current_milestone": "MJ-REF-014-SELECTED-20261006",
+  "current_milestone": "MJ-REF-014-LOCAL-PARTIAL-PASS-PENDING-SAFE-FF",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under the local-only delivery policy; one writer and one integration lane.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -310,7 +310,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Issue #384 / MJ-REF-014 is the sole active writer lane. Implement an allowlisted, dotted-path career-profile lookup with denied-section filtering, container count/preview responses, and append-only audit of facts accessed by task; prove unapproved access is denied. No paid or external AI provider calls.",
+  "recommended_resume_step": "Safely fast-forward #384 partial candidate and evidence from current main. Keep issue #384 open with the task-prompt integration criterion unchecked because the repository currently has no AI prompt/provider execution path. Then immediately select the next dependency-ready workflow or safety issue; preserve original requirement statuses and denominator.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -4069,12 +4069,61 @@
         "git_commit": "92595adfc54f87ad8f2004e07c74dd45d1c9246e",
         "evidence_path": "docs/evidence/2026-10-06-avoid-list.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REF-014-LOCAL-PARTIAL-20261006",
+      "timestamp": "2026-10-06T03:30:40Z",
+      "current_phase": "MJ-REF-014_LOCAL_PARTIAL_PASS_PENDING_SAFE_FAST_FORWARD",
+      "completed_steps": [
+        "Implemented allowlisted task-scoped dotted-path profile projections with metadata-only container previews and per-operation deny paths",
+        "Returned only verified user-approved fact/answer text; bounded values to 4000 characters each and contexts to 32000 characters without silent truncation",
+        "Persisted value-free accepted/denied access audits with task, operation ID, profile version and accessed fact/answer IDs",
+        "Tested profile isolation, unknown tasks, denylist, invalid/unhashable paths, unapproved facts, redaction, audit restart persistence and context bounds",
+        "Built web client before full suite; full local unit/integration/browser discovery passed 619 tests in 368.290 seconds",
+        "Committed source as c5949074cd42df2de16b7310602abce2eb9750de on issue-owned branch"
+      ],
+      "files_added": [
+        "services/career_profile/profile_access.py",
+        "tests/integration/test_least_data_profile_access.py",
+        "docs/evidence/2026-10-06-least-data-profile-access.json"
+      ],
+      "files_modified": [
+        "services/career_profile/AREA.md",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/REFERENCE_GAP_MATRIX.json"
+      ],
+      "tests_completed": [
+        "Focused profile access, profile import, read model and job tracking suite: 29 PASS in 14.870 seconds",
+        "Full local Python unit/integration/browser suite after web build: 619 PASS in 368.290 seconds",
+        "Company discovery browser teardown test isolated rerun: PASS in 2.872 seconds",
+        "Strict TypeScript check and Vite production build: PASS",
+        "Agent-skill, catalogue, progress and whitespace validators: PASS"
+      ],
+      "tests_remaining": [
+        "Reconcile and safely integrate the partial candidate; re-read and leave issue #384 open because no real task prompt/provider path exists"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [
+        "First full discovery before apps/web build: 619 tests with 2 browser failures, 6 errors and 12 skipped tests because built frontend was missing. After build, one existing company-discovery browser teardown test transiently failed in a full run; it passed alone and in the next complete 619-test run."
+      ],
+      "known_limitations": [
+        "The repository has no AI provider, prompt builder or AI task execution path; context projection is locally testable but no real prompt can yet be wired or provider-tested. Issue #384 acceptance criterion 4 remains unchecked and issue remains OPEN.",
+        "PostgreSQL/Docker/hosted runs remain NOT_RUN under current local-only policy. External submission remains OFF.",
+        "npm reported Node v25.9.0 outside Vitest declared engine range and one high-severity advisory; no dependency files changed.",
+        "MJ-REQ-171/175/180 statuses and the original denominator remain unchanged; full release acceptance remains PARTIAL."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "c5949074cd42df2de16b7310602abce2eb9750de",
+        "evidence_path": "docs/evidence/2026-10-06-least-data-profile-access.json"
+      }
     }
   ],
-  "current_phase": "MJ-REF-014-SELECTED-20261006",
+  "current_phase": "MJ-REF-014_LOCAL_PARTIAL_PASS_PENDING_SAFE_FAST_FORWARD",
   "last_safe_checkpoint": {
-    "git_commit": "92595adfc54f87ad8f2004e07c74dd45d1c9246e",
-    "evidence_path": "docs/evidence/2026-10-06-avoid-list.json"
+    "git_commit": "c5949074cd42df2de16b7310602abce2eb9750de",
+    "evidence_path": "docs/evidence/2026-10-06-least-data-profile-access.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
@@ -4184,28 +4233,30 @@
     }
   ],
   "live_reconciliation": {
-    "observed_at": "2026-10-06T03:04:00Z",
+    "observed_at": "2026-10-06T03:30:40Z",
     "github_main": "92595adfc54f87ad8f2004e07c74dd45d1c9246e",
-    "candidate": "b6f2238c7ea1e55c5f5b9f7ef1902bd929cb0124",
-    "candidate_base": "196ee414c21d01d517bf792063604e6d84f1d333",
+    "candidate": "c5949074cd42df2de16b7310602abce2eb9750de",
+    "candidate_base": "92595adfc54f87ad8f2004e07c74dd45d1c9246e",
     "candidate_is_fast_forward": "YES",
     "actions_enabled": false,
     "main_branch_protected": false,
     "repository_rulesets_count": 0,
-    "issue_373_state": "CLOSED",
-    "integration": "MJ-REF-003_NON_FORCE_FF_AND_ISSUE_CLOSED",
-    "next_issue": 384,
-    "issue_384_state": "OPEN"
+    "issue_384_state": "OPEN",
+    "integration": "PENDING_PARTIAL_EVIDENCE_CHECKPOINT_PUSH",
+    "next_issue": 374
   },
   "active_development_issue": {
     "issue": 384,
     "requirement_id": "MJ-REF-014",
     "title": "Least-data profile lookup interface for AI tasks",
-    "state": "OPEN_SELECTED_DEPENDENCY_READY",
-    "selection_reason": "P1 privacy boundary with reusable least-privilege value across all AI-backed workflows; deterministic authorization, previews, audit, and denial tests can be fully implemented locally without external AI calls.",
-    "base": "f7dac95ab4890ccf57a5ca288807d5f1a02a86be",
+    "state": "OPEN_LOCALLY_VERIFIED_PARTIAL_PENDING_INTEGRATION",
+    "selection_reason": "P1 privacy boundary with reusable least-privilege value across AI workflows; local deterministic service is implemented, but the repository has no actual AI task prompt/provider path to wire or verify.",
+    "base": "92595adfc54f87ad8f2004e07c74dd45d1c9246e",
     "branch": "codex/mj-ref-014-least-data-20261006",
-    "next_action": "Inspect profile schema, AI operation/task context construction, and audit persistence; define bounded allowlist and task authorization contract before implementing."
+    "source_candidate": "c5949074cd42df2de16b7310602abce2eb9750de",
+    "source_tree": "6681753f4380f36f9b22a2aabef7b8b5310d8234",
+    "evidence": "docs/evidence/2026-10-06-least-data-profile-access.json",
+    "next_action": "Push exact local evidence, non-force fast-forward only if main remains an ancestor and policy permits, record the scoped PARTIAL receipt, and leave issue #384 open with criterion 4 unchecked."
   },
   "historical_control_snapshots": [
     {

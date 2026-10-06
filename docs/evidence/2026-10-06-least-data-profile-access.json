@@ -1,0 +1,84 @@
+{
+  "evidence_id": "MJ-REF-014-LEAST-DATA-PROFILE-ACCESS",
+  "recorded_at": "2026-10-06T03:30:40Z",
+  "result": "PARTIAL",
+  "scope": "Task-allowlisted dotted-path lookups over immutable profile snapshots; verified-fact/answer filtering; metadata-only container previews; denial controls and value-free durable access audits",
+  "authority": {
+    "repository": "MulattoTech/MJobs",
+    "issue": 384,
+    "reference_gap_id": "MJ-REF-014",
+    "base_main": "92595adfc54f87ad8f2004e07c74dd45d1c9246e",
+    "candidate_branch": "codex/mj-ref-014-least-data-20261006",
+    "source_candidate": "c5949074cd42df2de16b7310602abce2eb9750de",
+    "source_tree": "6681753f4380f36f9b22a2aabef7b8b5310d8234"
+  },
+  "source_sha256": {
+    "services/career_profile/profile_access.py": "6fc56a36114a5a8ebb9d89fe979226326df2a9814cc1468794490901542c5135",
+    "tests/integration/test_least_data_profile_access.py": "34853702fe31e606bef16765d15e9090d78e116aa959448a076c242d54d2b6ce",
+    "services/career_profile/AREA.md": "b7d0fd9f89771a6b5f86b803e6117276628dfa3a475321d942b08502b62d24d4"
+  },
+  "observations": [
+    {
+      "timestamp_utc": "2026-10-06T03:30:40Z",
+      "action": "Run focused profile access and neighboring profile/read-model/history regression set",
+      "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_least_data_profile_access tests.integration.test_profile_import tests.integration.test_user_read_models tests.integration.test_job_tracking -v",
+      "target": "Temporary SQLite databases with synthetic profiles and facts",
+      "result": "PASS: 29 tests in 14.870 seconds. Task/path denials, unapproved facts, identity isolation, value redaction, metadata-only previews, per-operation denylisting, bounds, restart persistence and adjacent existing flows passed."
+    },
+    {
+      "timestamp_utc": "2026-10-06T03:30:40Z",
+      "action": "Build web client required by browser test harness",
+      "command": "npm ci --prefix apps/web; npm run build --prefix apps/web",
+      "target": "Issue worktree web client",
+      "result": "PASS: strict TypeScript check and Vite production build. Node v25.9.0 is outside Vitest declared engine range; npm reported one high-severity advisory. No dependency manifest or lockfile changed."
+    },
+    {
+      "timestamp_utc": "2026-10-06T03:30:40Z",
+      "action": "Run complete local Python unit/integration/browser test discovery after web build",
+      "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py' -v",
+      "target": "Issue worktree, synthetic fixtures, temporary SQLite and loopback browser cases",
+      "result": "PASS: 619 tests in 368.290 seconds; unittest completed OK."
+    },
+    {
+      "timestamp_utc": "2026-10-06T03:30:40Z",
+      "action": "Investigate one full-suite browser teardown failure",
+      "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_company_discovery_requests.CompanyDiscoveryRequestsBrowserTests.test_real_collection_request_review_worker_and_identity_separation -v",
+      "target": "Isolated loopback browser/API fixture",
+      "result": "PASS: 1 test in 2.872 seconds after a prior full-suite run reported a non-stopping test API thread. The next full suite passed."
+    },
+    {
+      "timestamp_utc": "2026-10-06T03:30:40Z",
+      "action": "Run repository verification validators",
+      "command": "..\\..\\.venv\\Scripts\\python.exe -m tools.verification.agent_skills; ..\\..\\.venv\\Scripts\\python.exe -m tools.verification.catalogue; ..\\..\\.venv\\Scripts\\python.exe -m tools.verification.progress validate; git diff --check",
+      "target": "Candidate skill, requirement, progress-journal and whitespace checks",
+      "result": "PASS."
+    },
+    {
+      "timestamp_utc": "2026-10-06T03:30:40Z",
+      "action": "Record initial full-suite setup failures",
+      "command": "Full unittest discovery before npm build, followed by discovery after build",
+      "target": "Local browser harness setup and asynchronous local API teardown",
+      "result": "Initial no-build run: 619 tests, 2 browser failures, 6 errors and 12 skips because apps/web was not built. First post-build run: 619 tests with one browser test teardown failure; the isolated case and subsequent full run passed. These attempts are not counted as PASS."
+    }
+  ],
+  "verified_behavior": [
+    "Only fixed registered task names can request profile context; each task has a small explicit dotted-path allowlist and an optional request denylist can only narrow that grant.",
+    "Facts and reusable answers are returned only when verified, user-approved, sufficiently confident and sourced; unapproved facts fail closed.",
+    "Container requests return bounded type/count/identifier or key previews, never child values. Each text value is limited to 4000 characters and the full context to 32000 characters; oversize requests fail instead of silently truncating.",
+    "Accepted operation audit rows record operation ID, task, immutable profile version, requested approved paths and accessed fact/answer IDs, but never profile values. Denial audit rows omit requested paths and values.",
+    "Separate profile IDs remain isolated. Durable audit rows survive reopening the SQLite store."
+  ],
+  "limitations": [
+    "No AI provider, prompt builder or AI task execution path exists in the current repository. The context projection is testable but cannot yet be wired to or exercised by a real task prompt. Issue #384 acceptance criterion 4 remains unchecked and the GitHub issue must remain OPEN.",
+    "The service is an internal backend interface, not a user-facing UI. Browser testing of this interface is not applicable; the full existing browser suite ran after frontend build.",
+    "PostgreSQL/Docker and hosted verification were NOT_RUN under the local-only policy. No provider or paid AI call was made; external submission stayed OFF.",
+    "Original MJ-REQ-171, MJ-REQ-175 and MJ-REQ-180 results and the original denominator remain unchanged. Full release acceptance remains PARTIAL."
+  ],
+  "integration_receipt": {
+    "status": "PENDING_PARTIAL_SAFE_FAST_FORWARD",
+    "method": "NON_FORCE_FAST_FORWARD_IF_MAIN_IS_ANCESTOR_AND_RULES_PERMIT",
+    "candidate_branch": "codex/mj-ref-014-least-data-20261006",
+    "candidate_source_commit": "c5949074cd42df2de16b7310602abce2eb9750de",
+    "issue_384": "OPEN; ACCEPTANCE_CRITERION_4_UNCHECKED"
+  }
+}
