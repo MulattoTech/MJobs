@@ -7,11 +7,11 @@
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Local main and origin/main were re-reconciled at bd00c331d503009189a83481ba62a56a66acb75c before the issue #7 inspection checkpoint. Issue #7 is OPEN pending evidence integration; issue #6 remains OPEN/PARTIAL; requirement/reference denominators unchanged.",
-    "current_verified_github_state": "GitHub main and local main synchronized at bd00c331d503009189a83481ba62a56a66acb75c; branch unprotected; no open PR; issue #7 OPEN pending local inspection integration, issue #6 OPEN/PARTIAL. GitHub Actions/hosted reviews NOT_RUN by local-only policy.",
-    "current_verified_at": "2026-10-06T09:10:21Z"
+    "current_verified_local_state": "Issue #7 / MJ-REQ-006 inspection evidence and planning are integrated at 124b084925a807079cce78c168211f73b7bf97fb; local main and origin/main are synchronized there. Issue #7 is CLOSED after GitHub readback; issue #6 remains OPEN/PARTIAL; denominators unchanged.",
+    "current_verified_github_state": "GitHub main and local main synchronized at 124b084925a807079cce78c168211f73b7bf97fb; branch unprotected; no open PR; issue #7 CLOSED, issue #6 OPEN/PARTIAL. GitHub Actions/hosted reviews NOT_RUN by local-only policy.",
+    "current_verified_at": "2026-10-06T09:13:31Z"
   },
-  "current_milestone": "MJ-REQ-006-CURRENT-WORKSPACE-INSPECTION-20261006",
+  "current_milestone": "MJ-REQ-005-PER-SOURCE-CONCURRENCY-TRUTHFULNESS-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under the local-only delivery policy; one writer and one integration lane.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -77,7 +77,7 @@
     "MJ-REQ-170 transient-artifact retention now has explicit local inventory/quarantine/restore/purge with a 30-day default; automatic background cleanup and broader transient/log retention remain incomplete.",
     "MJ-REQ-004 remains PARTIAL: worker-wide cooperative deadlines and Greenhouse rate-wait cancellation are locally verified; AI/provider requests, complete browser/parser/OCR/process/source/ATS coverage, output capture, and all retry/error classifications still need evidence (docs/evidence/2026-10-06-bound-external-operation-deadlines.json).",
     "MJ-REQ-005 scoped category-admission slice: five bounded independent configuration categories; category-wide SQLite/PostgreSQL claim admission and conservative Compose defaults (docs/evidence/2026-10-06-operation-concurrency-categories.json).",
-    "MJ-REQ-006 current workspace inventory and KEEP classification are evidenced locally; awaiting evidence/planning integration and GitHub issue readback (docs/evidence/2026-10-06-current-workspace-inspection.json)."
+    "MJ-REQ-006 current workspace inventory and KEEP classification are evidenced and integrated at 124b084925a807079cce78c168211f73b7bf97fb; issue #7 is CLOSED after GitHub readback (docs/evidence/2026-10-06-current-workspace-inspection.json)."
   ],
   "blocked_capabilities": [],
   "active_requirements": [
@@ -356,7 +356,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Integrate the current-workspace inspection evidence for issue #7, verify issue closure, then resume issue #6 / MJ-REQ-005 for the outstanding truthful source-concurrency behavior. Issue #5 provider/real-ATS paths remain unavailable; preserve 366 requirements and 59 reference gaps; external submission stays OFF.",
+  "recommended_resume_step": "Continue issue #6 / MJ-REQ-005 with the locally actionable persisted per-source concurrency truthfulness gap after live issue/spec/code reconciliation. Keep the requirement PARTIAL for missing AI and real ATS operations; preserve 366 requirements and 59 reference gaps; external submission stays OFF.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -5082,15 +5082,15 @@
     "next_issue": 5
   },
   "active_development_issue": {
-    "issue": 7,
-    "requirement_id": "MJ-REQ-006",
-    "title": "Current Workspace Inspection",
-    "state": "INSPECTED_LOCAL_ACCEPTANCE_EVIDENCED_AWAITING_INTEGRATION",
-    "selection_reason": "Open P0 safety prerequisite; inspect current workspace and classify existing work before making changes.",
-    "base": "bd00c331d503009189a83481ba62a56a66acb75c",
-    "branch": "codex/req006-workspace-inspection-20261006",
-    "evidence": "docs/evidence/2026-10-06-current-workspace-inspection.json",
-    "next_action": "Integrate the inspection evidence and planning receipt, close issue #7 only after GitHub readback, then continue with the next locally actionable open P0 issue #6 / MJ-REQ-005."
+    "issue": 6,
+    "requirement_id": "MJ-REQ-005",
+    "title": "Control Concurrency",
+    "state": "OPEN_PARTIAL_LOCAL_FOLLOWUP_SELECTED",
+    "selection_reason": "Open P0 resource-safety requirement with a persisted per-source concurrency field that currently does not control per-source fetch parallelism.",
+    "base": "124b084925a807079cce78c168211f73b7bf97fb",
+    "branch": "codex/req005-source-concurrency-20261006",
+    "evidence": "docs/evidence/2026-10-06-operation-concurrency-categories.json",
+    "next_action": "Read live issue #6, concurrency area spec, and current source scheduling code. Implement only a locally verifiable, user-visible per-source concurrency cap if architecture supports it safely; retain PARTIAL for absent AI/provider/real ATS paths."
   },
   "historical_control_snapshots": [
     {
@@ -6213,5 +6213,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-06T09:10:21Z"
+  "updated_at": "2026-10-06T09:13:31Z"
 }
