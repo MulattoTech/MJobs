@@ -87,6 +87,30 @@ class WorkerLifecycleTests(unittest.TestCase):
         self.assertEqual(saved["state"], "FAILED")
         self.assertEqual(saved["error"], "OPERATION_TIMEOUT")
 
+    def test_application_worker_exposes_its_remaining_monotonic_budget(self):
+        with fixture_server() as origin:
+            discover(self.store, origin, "fixture")
+        application = prepare(self.store, self.store.jobs()[0]["id"], "fixture", self.root)
+        operation = enqueue_operation(self.store, "APPLY_MOCK", application, {"submit": True})
+        observed = []
+
+        def apply_with_budget(_store, _application_id, _origin, _output_dir, *, check, **_kwargs):
+            remaining = check.remaining_seconds()
+            self.assertGreater(remaining, 0)
+            self.assertLessEqual(remaining, 180)
+            check()
+            observed.append(remaining)
+            return {"state": "DRY_RUN_COMPLETE"}
+
+        with patch.dict("os.environ", MJOBS_DATABASE_URL=self.store.url,
+                        MJOBS_MOCK_ORIGIN="http://127.0.0.1:8090", MJOBS_OUTPUT_DIR=str(self.root),
+                        MJOBS_OPERATION_MODE="FIXTURE"), \
+                patch("workers.tasks.apply_mock", side_effect=apply_with_budget):
+            result = execute_operation(operation)
+
+        self.assertEqual(result["status"], "COMPLETED")
+        self.assertEqual(len(observed), 1)
+
     def application_operation(self):
         with fixture_server() as origin:
             discover(self.store, origin, "fixture")

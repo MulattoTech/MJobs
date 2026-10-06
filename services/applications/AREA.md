@@ -14,10 +14,12 @@ python -m unittest tests.browser.test_mock_application.
 The mock Playwright flow rechecks the durable operation's monotonic deadline and
 cancellation after navigation and upload stages, and checks the deadline again
 after the SUBMITTING reservation but before the irreversible submit click. The
-cancel API rejects cancellation after that reservation and requests reconciliation.
-If the deadline expires in the reserved gap, a missing receipt remains
-SUBMISSION_UNCONFIRMED; the browser does not click Submit and must not blindly
-retry. Existing navigation and locator calls retain explicit Playwright timeouts.
+worker exposes remaining seconds from that same monotonic deadline; browser
+launch, navigation, every waiting locator action, Submit, and confirmation wait
+are capped by the smaller of the remaining budget and their existing action cap.
+The cancel API rejects cancellation after the reservation and requests
+reconciliation. A missing post-click receipt remains SUBMISSION_UNCONFIRMED;
+the browser does not blindly retry.
 
 ## Shared ATS knowledge (MJ-REQ-084)
 

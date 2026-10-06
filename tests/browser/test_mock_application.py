@@ -74,6 +74,47 @@ class MockApplicationTests(unittest.TestCase):
             self.assertEqual(httpx.get(origin + '/ats/receipts/' + app_id).json(),
                              {'status': 'not_found'})
 
+    def test_playwright_actions_never_exceed_remaining_worker_budget(self):
+        from playwright.sync_api import BrowserType, Page
+        from unittest.mock import patch
+
+        with fixture_server() as origin:
+            app_id = self.prepared(origin)
+            check = lambda: None
+            check.remaining_seconds = lambda: 0.25
+            action_timeouts = []
+            navigation_timeouts = []
+            launch_timeouts = []
+            original_set_default_timeout = Page.set_default_timeout
+            original_goto = Page.goto
+            original_launch = BrowserType.launch_persistent_context
+
+            def record_action_timeout(page, timeout):
+                action_timeouts.append(timeout)
+                return original_set_default_timeout(page, timeout)
+
+            def record_navigation_timeout(page, url, *args, **kwargs):
+                navigation_timeouts.append(kwargs.get('timeout'))
+                return original_goto(page, url, *args, **kwargs)
+
+            def record_launch_timeout(browser_type, *args, **kwargs):
+                launch_timeouts.append(kwargs.get('timeout'))
+                return original_launch(browser_type, *args, **kwargs)
+
+            with patch.object(Page, 'set_default_timeout', record_action_timeout), \
+                    patch.object(Page, 'goto', record_navigation_timeout), \
+                    patch.object(BrowserType, 'launch_persistent_context', record_launch_timeout):
+                result = apply_mock(self.store, app_id, origin, self.root, submit=True, check=check)
+
+            self.assertEqual(result['state'], 'CONFIRMED')
+            self.assertTrue(action_timeouts)
+            self.assertTrue(all(0 < timeout <= 250 for timeout in action_timeouts))
+            self.assertTrue(navigation_timeouts)
+            self.assertTrue(all(0 < timeout <= 250 for timeout in navigation_timeouts))
+            self.assertTrue(launch_timeouts)
+            self.assertTrue(all(0 < timeout <= 250 for timeout in launch_timeouts))
+            self.assertEqual(httpx.get(origin + '/ats/receipts/' + app_id).json()['submission_count'], 1)
+
     def test_uncertain_submission_without_receipt_does_not_retry(self):
         with fixture_server() as origin:
             app_id = self.prepared(origin)

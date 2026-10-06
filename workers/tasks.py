@@ -35,10 +35,19 @@ def execute_operation(operation_id):
         try:
             deadline = time.monotonic() + timeout()
 
-            def check():
+            def remaining_seconds():
                 check_cancelled(store, operation_id)
-                if time.monotonic() >= deadline:
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
                     raise OperationTimedOut("OPERATION_TIMEOUT")
+                return remaining
+
+            def check():
+                remaining_seconds()
+
+            # Browser adapters use this same cancellation-aware monotonic
+            # budget to cap each individual Playwright wait.
+            check.remaining_seconds = remaining_seconds
 
             origin = os.environ.get("MJOBS_MOCK_ORIGIN", "")
             check()

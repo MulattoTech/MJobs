@@ -1,6 +1,7 @@
 """Controlled real browser flow for the explicit local mock ATS provider."""
 from datetime import datetime, timedelta, timezone
 import hashlib
+import math
 from pathlib import Path
 from uuid import uuid4
 import httpx
@@ -20,6 +21,22 @@ from services.applications.preflight import (
 from services.documents.errors import PreparationError
 from services.documents.validation import validate_stored_resume, VALIDATOR
 from services.documents.avoid_list import validate_content as validate_avoid_list
+
+
+def _playwright_action_timeout_ms(check, maximum_ms=10000):
+    remaining_seconds = getattr(check, "remaining_seconds", None)
+    if not callable(remaining_seconds):
+        check()
+        return maximum_ms
+    remaining = remaining_seconds()
+    if type(remaining) not in (int, float) or not math.isfinite(remaining) or remaining <= 0:
+        check()
+        raise ValueError("OPERATION_BUDGET_INVALID")
+    timeout_ms = int(remaining * 1000)
+    if timeout_ms < 1:
+        check()
+        raise ValueError("OPERATION_TIMEOUT")
+    return min(maximum_ms, timeout_ms)
 
 
 def _receipt(client, application, requisition):
@@ -179,38 +196,53 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
         try:
             with sync_playwright() as playwright:
                 context = playwright.chromium.launch_persistent_context(str(root / "browser-profile"), headless=True,
-                    args=["--disable-gpu"], timeout=15000)
+                    args=["--disable-gpu"], timeout=_playwright_action_timeout_ms(check, 15000))
                 try:
                     context.route("**/*", lambda route: route.continue_() if client.allowed(route.request.url) else route.abort())
                     page = context.new_page()
+                    page.set_default_timeout(_playwright_action_timeout_ms(check))
+                    page.goto(route["url"], wait_until="domcontentloaded",
+                              timeout=_playwright_action_timeout_ms(check, 15000))
                     check()
-                    page.set_default_timeout(10000)
-                    page.goto(route["url"], wait_until="domcontentloaded", timeout=15000)
-                    check()
+                    page.set_default_timeout(_playwright_action_timeout_ms(check))
                     if page.locator("[data-intervention]").count():
                         store.transition(application_id, ["FILLING"], "USER_INTERVENTION_REQUIRED", "CHALLENGE_DETECTED")
                         return store.application(application_id)
                     store.transition(application_id, ["FILLING"], "FILLING", "DETECT_FORM")
+                    page.set_default_timeout(_playwright_action_timeout_ms(check))
                     page.get_by_label("Name", exact=True).fill(profile["name"])
+                    page.set_default_timeout(_playwright_action_timeout_ms(check))
                     page.get_by_label("Email", exact=True).fill(profile["email"])
                     store.transition(application_id, ["FILLING"], "FILLING", "FILL_CONTACT")
+                    page.set_default_timeout(_playwright_action_timeout_ms(check))
                     page.get_by_label("Resume", exact=True).set_input_files(files[("resume", "pdf")])
+                    page.set_default_timeout(_playwright_action_timeout_ms(check))
                     page.get_by_label("Cover letter", exact=True).set_input_files(files[("cover-letter", "pdf")])
                     store.transition(application_id, ["FILLING"], "FILLING", "UPLOAD_RESUME")
                     check()
+                    page.set_default_timeout(_playwright_action_timeout_ms(check))
                     page.get_by_role("combobox", name="Country", exact=True).select_option(label=answer["country"])
                     if answer["remote"] != "yes":
                         raise ValueError("Unresolved mandatory remote answer")
+                    page.set_default_timeout(_playwright_action_timeout_ms(check))
                     page.get_by_label("Remote role").check()
+                    page.set_default_timeout(_playwright_action_timeout_ms(check))
                     page.get_by_label("Documents reviewed").check()
+                    page.set_default_timeout(_playwright_action_timeout_ms(check))
                     if not page.locator("form").evaluate("form => form.checkValidity()"):
                         raise ValueError("Mock form validation failed")
+                    page.set_default_timeout(_playwright_action_timeout_ms(check))
                     page.get_by_role("button", name="Review application", exact=True).click()
                     check()
+                    page.set_default_timeout(_playwright_action_timeout_ms(check))
                     page.locator('[data-validated="true"]').wait_for()
+                    page.set_default_timeout(_playwright_action_timeout_ms(check))
                     page.get_by_label("Application ID", exact=True).fill(application_id)
+                    page.set_default_timeout(_playwright_action_timeout_ms(check))
                     page.get_by_label("Approved fixture answer", exact=True).fill(answer["fixture_question"])
+                    page.set_default_timeout(_playwright_action_timeout_ms(check))
                     page.get_by_label("Confirm fictional test submission").check()
+                    page.set_default_timeout(_playwright_action_timeout_ms(check))
                     if not page.locator("form").evaluate("form => form.checkValidity()"):
                         raise ValueError("Mock review validation failed")
                     store.transition(application_id, ["FILLING"], "READY_TO_SUBMIT", "VALIDATE")
@@ -225,8 +257,11 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
                     # reservation commits but before the irreversible submit
                     # click. Reconcile conservatively without clicking.
                     check()
+                    page.set_default_timeout(_playwright_action_timeout_ms(check))
                     page.get_by_role("button", name="Submit mock application", exact=True).click()
-                    page.locator("[data-confirmation]").wait_for(timeout=10000)
+                    page.set_default_timeout(_playwright_action_timeout_ms(check))
+                    page.locator("[data-confirmation]").wait_for(
+                        timeout=_playwright_action_timeout_ms(check))
                     receipt = _receipt(client, application, route["requisition"])
                     if receipt is None:
                         raise ValueError("Mock receipt missing after submission")
