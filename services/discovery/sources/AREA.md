@@ -36,7 +36,10 @@ The Greenhouse adapter issues its independent board-metadata and job-inventory
 GETs under a bounded per-source worker cap. Parallel requests reserve starts on
 one shared rate schedule. If one request fails while its sibling observes a
 local cancellation/deadline, the cancellation/deadline remains authoritative
-and does not create provider-failure history.
+and does not create provider-failure history. Each in-flight HTTP request polls
+the worker cancellation/deadline callback; when it stops, the adapter closes
+that response and client, preserves the original stop error, and leaves source
+health, failure history and uncommitted jobs unchanged.
 
 Tests: `python -m unittest tests.integration.test_greenhouse -v`. Live validation
 is separately invoked, bounded, public and read-only; fixtures never stand in

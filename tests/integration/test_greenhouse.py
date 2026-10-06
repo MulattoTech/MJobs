@@ -96,6 +96,100 @@ class GreenhouseTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "SOURCE_TIME_LIMIT"):
             adapter._get("/jobs")
 
+    def test_http_response_wait_observes_worker_cancellation_and_preserves_its_error(self):
+        cancelled = threading.Event()
+        body_started = threading.Event()
+        release_body = threading.Event()
+        cancellation = OperationCancelled("synthetic local cancel")
+        errors = []
+
+        class StalledBody(httpx.SyncByteStream):
+            def __iter__(self):
+                body_started.set()
+                release_body.wait(timeout=2)
+                yield b'{"name":"Example Public Employer"}'
+
+            def close(self):
+                release_body.set()
+
+        def check():
+            if cancelled.is_set():
+                raise cancellation
+
+        adapter = Greenhouse("example", transport=httpx.MockTransport(lambda _: httpx.Response(
+            200, headers={"content-type": "application/json"}, stream=StalledBody())), check=check)
+
+        def request():
+            try:
+                adapter._request("")
+            except Exception as error:
+                errors.append(error)
+
+        try:
+            thread = threading.Thread(target=request)
+            thread.start()
+            self.assertTrue(body_started.wait(timeout=1), "HTTP body read did not start")
+            cancelled.set()
+            thread.join(timeout=0.3)
+            self.assertFalse(thread.is_alive(), "HTTP body read ignored worker cancellation")
+            self.assertEqual(errors, [cancellation])
+        finally:
+            release_body.set()
+
+    def test_cancellation_during_source_body_read_preserves_health_and_import_history(self):
+        source_id = configure_source(self.store, "cancelled-stream", concurrency=1,
+                                     rate_limit=600, jitter_seconds=0)
+        cancelled = threading.Event()
+        body_started = threading.Event()
+        release_body = threading.Event()
+        cancellation = OperationCancelled("synthetic local cancel")
+        errors = []
+
+        class StalledBody(httpx.SyncByteStream):
+            def __iter__(self):
+                body_started.set()
+                release_body.wait(timeout=2)
+                yield b'{"name":"Example Public Employer"}'
+
+            def close(self):
+                release_body.set()
+
+        def check():
+            if cancelled.is_set():
+                raise cancellation
+
+        transport = httpx.MockTransport(lambda _: httpx.Response(
+            200, headers={"content-type": "application/json"}, stream=StalledBody()))
+
+        def collect():
+            try:
+                collect_source(self.store, source_id, "fixture", check=check, transport=transport)
+            except Exception as error:
+                errors.append(error)
+
+        try:
+            thread = threading.Thread(target=collect)
+            thread.start()
+            self.assertTrue(body_started.wait(timeout=1), "source body read did not start")
+            cancelled.set()
+            thread.join(timeout=0.5)
+            self.assertFalse(thread.is_alive(), "source body read ignored worker cancellation")
+            self.assertEqual(errors, [cancellation])
+        finally:
+            release_body.set()
+
+        with self.store.engine.connect() as connection:
+            source = dict(connection.execute(select(m.job_sources).where(
+                m.job_sources.c.id == source_id)).mappings().one())
+            observations = list(connection.execute(select(m.source_quality_observations).where(
+                m.source_quality_observations.c.configured_source_id == source_id)).mappings())
+            jobs = list(connection.execute(select(m.jobs.c.id)).mappings())
+        self.assertEqual(source["health_status"], "NOT_CHECKED")
+        self.assertEqual(source["consecutive_failures"], 0)
+        self.assertIsNone(source["last_error"])
+        self.assertEqual(observations, [])
+        self.assertEqual(jobs, [])
+
     def test_per_source_concurrency_bounds_parallel_read_requests(self):
         def maximum_in_flight(concurrency):
             active = 0

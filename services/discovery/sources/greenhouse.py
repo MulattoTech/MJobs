@@ -23,6 +23,7 @@ from services.discovery.requirement_parsers import parse_job_requirements
 from services.discovery.negative_filters import parse_negative_conditions
 
 HOST = "https://boards-api.greenhouse.io"
+CANCELLATION_POLL_INTERVAL = 0.05
 
 
 class SourceError(ValueError):
@@ -109,39 +110,82 @@ class Greenhouse:
         path = "/v1/boards/" + self.tenant + suffix
         with httpx.Client(timeout=request_timeout, follow_redirects=False, trust_env=False, transport=self.transport,
                           headers={"User-Agent": "MJobs/0.1 public-read-only", "Accept": "application/json"}) as client:
-            with client.stream("GET", HOST + path, params=params) as response:
-                if response.is_redirect:
-                    raise SourceError("SOURCE_REDIRECT_BLOCKED")
-                if response.status_code == 429:
+            stop_watcher = threading.Event()
+            cancellation_errors = []
+            active_response = []
+
+            def interrupt_request():
+                if active_response:
                     try:
-                        seconds = int(response.headers.get("retry-after", "60"))
-                    except ValueError:
-                        seconds = 86400
-                    raise SourceError("SOURCE_RATE_LIMITED", max(60, seconds))
-                if response.status_code != 200:
-                    raise SourceError("SOURCE_HTTP_" + str(response.status_code))
-                if "application/json" not in response.headers.get("content-type", "").lower():
-                    raise SourceError("SOURCE_INVALID_CONTENT_TYPE")
-                content = bytearray()
-                body_budget = max(5, min(120, self.request_timeout * 2))
-                if callable(remaining_budget):
-                    body_budget = min(body_budget, remaining_budget())
-                deadline = time.monotonic() + body_budget
-                for chunk in response.iter_bytes(chunk_size=65536):
-                    self.check()
-                    content.extend(chunk)
-                    if len(content) > 5_000_000:
-                        raise SourceError("SOURCE_PAYLOAD_LIMIT")
-                    if time.monotonic() > deadline:
-                        raise SourceError("SOURCE_TIME_LIMIT")
+                        active_response[0].close()
+                    except Exception:
+                        pass
                 try:
-                    payload = __import__("json").loads(content)
-                except ValueError as error:
-                    raise SourceError("SOURCE_INVALID_JSON") from error
-                with self._status_lock:
-                    if not self._request_failed:
-                        self.status = "HEALTHY"
-                return payload
+                    client.close()
+                except Exception:
+                    pass
+
+            def watch_cancellation():
+                while not stop_watcher.wait(CANCELLATION_POLL_INTERVAL):
+                    try:
+                        self.check()
+                    except BaseException as error:
+                        cancellation_errors.append(error)
+                        interrupt_request()
+                        return
+
+            watcher = threading.Thread(target=watch_cancellation,
+                                       name="mjobs-greenhouse-cancellation", daemon=True)
+            watcher.start()
+            try:
+                with client.stream("GET", HOST + path, params=params) as response:
+                    active_response.append(response)
+                    if response.is_redirect:
+                        raise SourceError("SOURCE_REDIRECT_BLOCKED")
+                    if response.status_code == 429:
+                        try:
+                            seconds = int(response.headers.get("retry-after", "60"))
+                        except ValueError:
+                            seconds = 86400
+                        raise SourceError("SOURCE_RATE_LIMITED", max(60, seconds))
+                    if response.status_code != 200:
+                        raise SourceError("SOURCE_HTTP_" + str(response.status_code))
+                    if "application/json" not in response.headers.get("content-type", "").lower():
+                        raise SourceError("SOURCE_INVALID_CONTENT_TYPE")
+                    content = bytearray()
+                    body_budget = max(5, min(120, self.request_timeout * 2))
+                    if callable(remaining_budget):
+                        body_budget = min(body_budget, remaining_budget())
+                    deadline = time.monotonic() + body_budget
+                    for chunk in response.iter_bytes(chunk_size=65536):
+                        self.check()
+                        content.extend(chunk)
+                        if len(content) > 5_000_000:
+                            raise SourceError("SOURCE_PAYLOAD_LIMIT")
+                        if time.monotonic() > deadline:
+                            raise SourceError("SOURCE_TIME_LIMIT")
+                    self.check()
+                    if cancellation_errors:
+                        raise cancellation_errors[0]
+                    try:
+                        payload = __import__("json").loads(content)
+                    except ValueError as error:
+                        raise SourceError("SOURCE_INVALID_JSON") from error
+            except BaseException:
+                if cancellation_errors:
+                    raise cancellation_errors[0]
+                raise
+            finally:
+                stop_watcher.set()
+                if watcher.is_alive():
+                    watcher.join(timeout=1)
+            if cancellation_errors:
+                raise cancellation_errors[0]
+            self.check()
+            with self._status_lock:
+                if not self._request_failed:
+                    self.status = "HEALTHY"
+            return payload
 
     def _wait_for_rate_limit(self):
         interval = 60 / self.rate_limit
