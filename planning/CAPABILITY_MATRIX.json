@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-06T18:51:40Z",
+  "timestamp": "2026-10-06T19:00:16Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -987,9 +987,11 @@
     },
     {
       "requirement_id": "MJ-REQ-109",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-06-ai-task-configuration.json"
+      ],
+      "note": "All seven task-specific provider/model routes are implemented and locally tested with disabled defaults and fail-closed unknown providers. Runtime persistence and production task-consumer wiring remain incomplete."
     },
     {
       "requirement_id": "MJ-REQ-110",

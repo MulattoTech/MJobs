@@ -11,7 +11,7 @@
     "current_verified_github_state": "GitHub/local main synchronized at bff2acf6ffb446c12653b5e9e6c696d6dac6e3bb; issue #96 OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6022405440; Actions disabled, no open PR, main unprotected.",
     "current_verified_at": "2026-10-06T18:06:00Z"
   },
-  "current_milestone": "MJ-REQ-109-TASK-CONFIGURATION-SELECTED-20261006",
+  "current_milestone": "MJ-REQ-109-TASK-CONFIGURATION-LOCAL-VERIFIED-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -88,7 +88,8 @@
     "MJ-REQ-006 current workspace inventory and KEEP classification are evidenced and integrated at 124b084925a807079cce78c168211f73b7bf97fb; issue #7 is CLOSED after GitHub readback (docs/evidence/2026-10-06-current-workspace-inspection.json).",
     "MJ-REQ-004 native PDF/DOCX parsing now propagates extraction-request disconnects into the parser child, terminates/reaps it, and caps streamed stdout at 2 MiB; OCR already in progress, real provider/AI/ATS calls and complete operation-category policies remain incomplete (docs/evidence/2026-10-06-native-parser-disconnect-cancellation.json).",
     "MJ-REQ-004 now cancels native parser and OCR subprocesses from an explicit profile/resume-scoped UI action and from observed transport disconnects; all-category external-operation policy and unavailable real ATS/AI provider paths remain PARTIAL (docs/evidence/2026-10-06-resume-extraction-cancellation.json).",
-    "MJ-REQ-108 provider-neutral contract and disabled/no-AI provider locally verified; real provider implementations and matching consumer wiring remain incomplete."
+    "MJ-REQ-108 provider-neutral contract and disabled/no-AI provider locally verified; real provider implementations and matching consumer wiring remain incomplete.",
+    "MJ-REQ-109: immutable per-task provider/model router across seven task types; user-facing persistence and production consumer wiring remain incomplete."
   ],
   "blocked_capabilities": [],
   "active_requirements": [
@@ -265,7 +266,8 @@
     "MJ-REQ-004 cancellation acknowledgement candidate 6abd58aec2562fddaff1367fa8c60417d98b5ebb: browser regression PASS for cancelled=false continuation and confirmed cancel; full Python 718 PASS/1 optional PostgreSQL skip; frontend 62 PASS/build PASS. Evidence docs/evidence/2026-10-06-comparison-cancel-acknowledgement.json.",
     "MJ-REQ-004 mock ATS HTTP check propagation candidate f4cf42c34682be815b0306e693fb57f0ee911dca: focused mock ATS suite 13 PASS, stalled/bounded client tests 2 PASS, browser directory 37 PASS, build PASS; evidence docs/evidence/2026-10-06-mock-ats-http-cancellation.json.",
     "MJ-REQ-108.A06: 2 focused provider contract tests PASS; full unit suite 318 PASS; agent_skills, catalogue and git diff checks PASS (docs/evidence/2026-10-06-disabled-ai-provider.json).",
-    "Integrated main 9e340924878484ba257097a5088d83ab10000b3a: focused MJ-REQ-108.A06 contract tests 2 PASS; complete candidate unit suite 318 PASS; progress/catalogue/agent-skill validators PASS."
+    "Integrated main 9e340924878484ba257097a5088d83ab10000b3a: focused MJ-REQ-108.A06 contract tests 2 PASS; complete candidate unit suite 318 PASS; progress/catalogue/agent-skill validators PASS.",
+    "MJ-REQ-109 candidate 49f4769: 8 focused AI contract tests and 324 full unit tests PASS; compile, catalogue, progress and agent-skill validation PASS (docs/evidence/2026-10-06-ai-task-configuration.json)."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -301,7 +303,8 @@
     "MJ-REQ-004 uploaded-comparison cancellation: hosted Actions/reviews NOT_RUN under user policy; optional PostgreSQL skipped because MJOBS_TEST_POSTGRES_URL is unset; AI provider, real ATS, external submission not run; cross-replica event coordination not implemented.",
     "MJ-REQ-004 cancellation acknowledgement: hosted Actions/reviews NOT_RUN under user policy; optional PostgreSQL skipped (MJOBS_TEST_POSTGRES_URL unset); AI provider/real ATS and external submission not run; cross-replica cancellation not implemented. Evidence docs/evidence/2026-10-06-comparison-cancel-acknowledgement.json.",
     "MJ-REQ-004 mock ATS HTTP cancellation: hosted Actions/reviews NOT_RUN; optional PostgreSQL skipped because MJOBS_TEST_POSTGRES_URL is unset; AI/real ATS and external submission not run. Evidence docs/evidence/2026-10-06-mock-ats-http-cancellation.json.",
-    "MJ-REQ-108.A06 browser acceptance NOT_APPLICABLE (internal provider contract); external provider calls and GitHub hosted checks NOT_RUN by current policy; full integration suite NOT_RUN because application workflow wiring is outside this child slice."
+    "MJ-REQ-108.A06 browser acceptance NOT_APPLICABLE (internal provider contract); external provider calls and GitHub hosted checks NOT_RUN by current policy; full integration suite NOT_RUN because application workflow wiring is outside this child slice.",
+    "MJ-REQ-109: browser acceptance NOT_APPLICABLE; live/paid model calls and hosted Actions/reviews NOT_RUN under current policy; runtime persistence/consumer integration remains outside this verified slice."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -332,13 +335,13 @@
     "MJ-REQ-004 candidate 3d604b27b1a4c25e2ff0ee6fa68a07e9ff8f74a0: full suite initially saw stale ignored apps/web/dist; rebuilding restored current Sources UI and isolated browser acceptance. A first rebuilt full run later hit the known intermittent CompanyDiscoveryRequestsBrowserTests server-thread shutdown assertion; isolated case and all 35 browser tests passed, followed by a same-head 680-test full suite pass. Do not weaken shutdown timeout; evidence docs/evidence/2026-10-06-bounded-ocr-diagnostics.json."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-06T18:54:23Z",
+    "timestamp": "2026-10-06T19:00:16Z",
     "result": "PARTIAL",
-    "source_commit": "678aee64243e587608c6580cfaf59064fe42d56e",
-    "source_tree": "9da47147d270cf08dd2dd407072791f6bd4fe3a",
-    "scope": "MJ-REQ-108.A06 locally PASS and integrated; broader MJobs acceptance remains PARTIAL.",
-    "evidence_path": "docs/evidence/2026-10-06-disabled-ai-provider.json",
-    "integration_commit": "9e340924878484ba257097a5088d83ab10000b3a"
+    "source_commit": "49f4769df3b06e413c25b3ab9a2282db74369e5b",
+    "source_tree": "3ea9fcd55130585c12e00cf13fe74f9e6f69359b",
+    "scope": "MJ-REQ-109 seven-task in-process routing is locally verified; persisted settings and production consumer wiring remain incomplete.",
+    "evidence_path": "docs/evidence/2026-10-06-ai-task-configuration.json",
+    "integration_commit": null
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -405,7 +408,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Implement issue #110 / MJ-REQ-109 task-specific model configuration under existing active MJ-PR-030. Keep unsupported providers disabled/fail-closed and preserve parent #108 PARTIAL; avoid Antigravity source adapter files.",
+  "recommended_resume_step": "Reconcile and safely integrate the MJ-REQ-109 candidate while preserving issue #110 OPEN/PARTIAL, then choose the next highest-value dependency-ready queue slice that does not overlap Antigravity source adapter files.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -6221,12 +6224,63 @@
         "git_commit": "9e340924878484ba257097a5088d83ab10000b3a",
         "evidence_path": "docs/evidence/2026-10-06-disabled-ai-provider.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-109-TASK-CONFIGURATION-LOCAL-VERIFIED-20261006",
+      "timestamp": "2026-10-06T19:00:16Z",
+      "current_phase": "MJ-REQ-109 task routing locally verified at candidate 49f4769; persistence/consumer acceptance remains PARTIAL; integration pending",
+      "completed_steps": [
+        "Reproduced missing-task-router failure with five focused red tests",
+        "Implemented seven task-specific provider/model selections and immutable routing configuration",
+        "Kept omitted tasks on the disabled provider and rejected unsupported remote provider calls before network access",
+        "Rejected unknown tasks and secret-shaped model identifiers without echoing input",
+        "Ran focused tests, complete unit suite, compile check and repository validators"
+      ],
+      "files_added": [
+        "services/ai/tasks.py",
+        "tests/unit/test_ai_task_configuration.py",
+        "docs/evidence/2026-10-06-ai-task-configuration.json"
+      ],
+      "files_modified": [
+        "services/ai/AREA.md",
+        "services/ai/providers/__init__.py",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "python -m unittest tests.unit.test_ai_task_configuration tests.unit.test_disabled_ai_provider -v: 8 PASS",
+        "python -m unittest discover -s tests/unit -v: 324 PASS",
+        "python -m compileall -q services/ai tests/unit/test_ai_task_configuration.py: PASS",
+        "python -m tools.verification.agent_skills: PASS",
+        "python -m tools.verification.catalogue: PASS",
+        "python -m tools.verification.progress validate: PASS",
+        "git diff --check: PASS"
+      ],
+      "tests_remaining": [
+        "Verify planning/evidence exact candidate hashes and rerun focused tests after commit",
+        "Push candidate and integrate only if current main remains its ancestor after parallel-worktree reconciliation",
+        "Update issue #110 as OPEN/PARTIAL; do not claim runtime provider availability or user-facing config"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "Task settings are in-process only; no persisted setting or production consumer loads them.",
+        "Only disabled provider is implemented; remote providers and live model calls remain unavailable/not run.",
+        "No connected browser workflow exists for this slice."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "49f4769df3b06e413c25b3ab9a2282db74369e5b",
+        "evidence_path": "docs/evidence/2026-10-06-ai-task-configuration.json"
+      }
     }
   ],
-  "current_phase": "MJ-REQ-109 / issue #110 selected as next locally actionable slice under dependency-ready MJ-PR-030",
+  "current_phase": "MJ-REQ-109 task routing locally verified at candidate 49f4769; persistence/consumer acceptance remains PARTIAL; integration pending",
   "last_safe_checkpoint": {
-    "git_commit": "9e340924878484ba257097a5088d83ab10000b3a",
-    "evidence_path": "docs/evidence/2026-10-06-disabled-ai-provider.json"
+    "git_commit": "49f4769df3b06e413c25b3ab9a2282db74369e5b",
+    "evidence_path": "docs/evidence/2026-10-06-ai-task-configuration.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -6367,13 +6421,13 @@
     "issue": 110,
     "requirement_id": "MJ-REQ-109",
     "title": "AI Task Configuration",
-    "state": "ACTIVE",
-    "selection_reason": "Dependency-ready continuation of MJ-PR-030. Distinct per-task model selection is a shared prerequisite for scoring, parsing, tailoring, answer and company-summary workflows; no provider calls are needed to define and validate configuration.",
-    "base": "9e340924878484ba257097a5088d83ab10000b3a",
+    "state": "PARTIAL_SLICE_VERIFIED_PENDING_MAIN",
+    "selection_reason": "Shared task-to-model routing prerequisite under dependency-ready MJ-PR-030; paid calls are not required to validate deterministic configuration.",
+    "base": "c7656bbecec61e2d037bc57869fad4e1ee8f43d4",
     "branch": "codex/mj-req109-task-config-20261006",
-    "candidate": null,
-    "evidence": null,
-    "next_action": "In an isolated worktree, implement validated per-task provider/model configuration with disabled defaults, deterministic independent task selection, and fail-closed unsupported providers. Do not call paid/external AI providers."
+    "candidate": "49f4769df3b06e413c25b3ab9a2282db74369e5b",
+    "evidence": "docs/evidence/2026-10-06-ai-task-configuration.json",
+    "next_action": "Rerun focused tests against the committed source, validate planning, then recheck current main and parallel worktree ownership before push/fast-forward. Keep issue #110 OPEN/PARTIAL until consumer wiring is complete."
   },
   "historical_control_snapshots": [
     {
@@ -7506,5 +7560,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-06T18:56:03Z"
+  "updated_at": "2026-10-06T19:00:16Z"
 }

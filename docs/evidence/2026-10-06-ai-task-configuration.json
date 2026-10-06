@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-109",
+  "github_issue": 110,
+  "result": "PARTIAL",
+  "scope": "Typed in-process provider/model configuration and routing for the seven defined AI tasks.",
+  "observed_at_utc": "2026-10-06T19:00:16Z",
+  "candidate": {
+    "repository": "MulattoTech/MJobs",
+    "branch": "codex/mj-req109-task-config-20261006",
+    "base": "c7656bbecec61e2d037bc57869fad4e1ee8f43d4",
+    "commit": "49f4769df3b06e413c25b3ab9a2282db74369e5b",
+    "tree": "3ea9fcd55130585c12e00cf13fe74f9e6f69359b",
+    "status": "Committed local candidate; branch push and safe integration pending"
+  },
+  "source_sha256": {
+    "services/ai/AREA.md": "0f4422de7b97eb9ced3d7de84a90142e056e1ae777cb4cffd86477efb22fa0eb",
+    "services/ai/providers/__init__.py": "75c7dd9ffcd05bd273e8489b266ab6cb7c96e22789d5825da8a673c4c915097c",
+    "services/ai/tasks.py": "493cd632c45c67bedf148317f81b33dee46a58a2aa9aeb7bcfc4c062bbf45542",
+    "tests/unit/test_ai_task_configuration.py": "cce2e9de9fb2e1dc095cad737069f346bdd8e84f9ad7f8e0ea467ca33a7b999f"
+  },
+  "acceptance": {
+    "declares_all_seven_task_types": "PASS - job parsing, job scoring, requirement extraction, resume tailoring, cover letters, free-form answers, and company summarization",
+    "selects_an_independent_provider_and_model_per_task": "PASS - each configured selection is passed to that task's provider without cross-task fallback",
+    "omitted_task_defaults_to_disabled": "PASS - all seven tasks default to the no-AI provider",
+    "unknown_task_and_invalid_model_values_fail_closed": "PASS - stable errors do not echo task names or secret-shaped model values",
+    "unsupported_remote_provider_fails_before_generation": "PASS - the default provider factory rejects OpenAI until an implementation is registered; no network call is made",
+    "runtime_configuration_and_consumer_wiring": "PARTIAL - the tested configuration/router is an in-process API; no persisted user-facing setting or production task consumer currently loads it",
+    "actual_model_calls": "NOT_RUN - no external or paid AI call is authorized, and no remote provider is implemented"
+  },
+  "local_validation": {
+    "environment": "Windows local worktree; Python 3.12.10",
+    "commands": [
+      {
+        "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_ai_task_configuration tests.unit.test_disabled_ai_provider -v",
+        "result": "PASS",
+        "tests": 8
+      },
+      {
+        "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest discover -s tests\\unit -v",
+        "result": "PASS",
+        "tests": 324
+      },
+      {
+        "command": "..\\..\\.venv\\Scripts\\python.exe -m compileall -q services\\ai tests\\unit\\test_ai_task_configuration.py",
+        "result": "PASS"
+      },
+      {
+        "command": "..\\..\\.venv\\Scripts\\python.exe -m tools.verification.agent_skills",
+        "result": "PASS"
+      },
+      {
+        "command": "..\\..\\.venv\\Scripts\\python.exe -m tools.verification.catalogue",
+        "result": "PASS"
+      },
+      {
+        "command": "..\\..\\.venv\\Scripts\\python.exe -m tools.verification.progress validate",
+        "result": "PASS"
+      },
+      {
+        "command": "git diff --check",
+        "result": "PASS"
+      }
+    ],
+    "expected_red": "Before implementation, the five focused tests failed because services.ai.tasks did not exist.",
+    "not_run": [
+      "Connected browser acceptance: NOT_APPLICABLE; no AI task settings UI or browser workflow exists in this slice.",
+      "Live model/provider validation: NOT_RUN under the no-paid-AI policy and because no remote provider implementation is available.",
+      "GitHub Actions and hosted reviews: NOT_RUN under current local-only policy."
+    ]
+  },
+  "limitations": [
+    "Task configuration is currently supplied in process; persisted settings, administration UI, and production consumer wiring remain open.",
+    "Only the disabled provider is implemented. Configured remote provider names fail closed until their provider implementations are delivered.",
+    "MJ-REQ-109 and issue #110 remain OPEN/PARTIAL; the wider MJ-REQ-108..111 queue item is not complete.",
+    "External application submission remains OFF; full release acceptance remains PARTIAL."
+  ]
+}

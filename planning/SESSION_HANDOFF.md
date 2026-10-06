@@ -561,3 +561,8 @@ Integration receipt (2026-10-06T18:54:23Z): source/test commit 678aee64243e58760
 ## 2026-10-06 next target — MJ-REQ-109 task configuration
 
 Next implementation target is GitHub issue #110 / `MJ-REQ-109` under the existing dependency-ready `MJ-PR-030`. Implement independent task-specific provider/model selection with disabled defaults and fail-closed unsupported providers; no external or paid AI call is needed. The separate Antigravity worktree is implementing Remotive under `services/discovery/sources`; keep this slice in `services/ai` and its tests/planning only.
+
+
+## 2026-10-06 local-only continuation — MJ-REQ-109 task configuration
+
+Issue #110 / `MJ-REQ-109` now has an in-process seven-task provider/model router in candidate `49f4769df3b06e413c25b3ab9a2282db74369e5b`, based on main `c7656bbecec61e2d037bc57869fad4e1ee8f43d4`. Omitted tasks stay on `disabled`; unknown tasks, invalid/secret-shaped model identifiers, and unimplemented provider calls fail closed. Evidence: [docs/evidence/2026-10-06-ai-task-configuration.json](../docs/evidence/2026-10-06-ai-task-configuration.json). Focused AI tests 8 PASS; complete unit suite 324 PASS; compile, catalogue, progress, agent-skill and diff validation PASS. No UI, persistence, production consumer, or remote provider integration is claimed. Issue #110 remains OPEN/PARTIAL. Candidate branch push and safe integration are pending.

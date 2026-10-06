@@ -869,7 +869,7 @@
       "status": "ACTIVE",
       "branch": "codex/mj-req109-task-config-20261006",
       "draft_until_verified": true,
-      "notes": "Active slice: issue #110 / MJ-REQ-109 per-task model configuration. Child MJ-REQ-108.A06 disabled/no-AI provider is PASS at main 9e340924; parent MJ-REQ-108 remains PARTIAL and full PR requirements MJ-REQ-108..111 remain incomplete."
+      "notes": "Issue #110 / MJ-REQ-109 has a locally verified seven-task in-process provider/model router. Persisted settings and production consumer wiring remain incomplete; parent MJ-REQ-108 stays PARTIAL, and remote providers are unavailable."
     },
     {
       "id": "MJ-PR-031",
