@@ -5,7 +5,7 @@
   "result": "PARTIAL",
   "scope_result": "PASS",
   "scope": "The fact-review local verification wrapper now bounds its Git HEAD lookup to five seconds, suppresses raw stderr, validates a full 40/64-character SHA, and writes a FAIL receipt with a stable category when commit identity cannot be established. The broader MJ-REQ-004 requirement remains PARTIAL.",
-  "observed_at_utc": "2026-10-06T07:26:43Z",
+  "observed_at_utc": "2026-10-06T07:29:14Z",
   "candidate": {
     "repository": "MulattoTech/MJobs",
     "branch": "codex/req004-bound-ops-20261006",
@@ -99,7 +99,7 @@
     "remote_main_after_source_integration": "839c9f0b164a2bef9d93dd1ec64f580a59f7c98f",
     "issue_state": "OPEN; broad original acceptance remains incomplete and issue was not closed",
     "requirement_state": "PARTIAL; existing requirement/reference denominators preserved",
-    "planning_receipt_commit": null,
-    "remote_main_after_planning_receipt": null
+    "planning_receipt_commit": "a9b2331b8396b8f5b2b0bc91e53750e28e281dc4",
+    "remote_main_after_planning_receipt": "a9b2331b8396b8f5b2b0bc91e53750e28e281dc4"
   }
 }

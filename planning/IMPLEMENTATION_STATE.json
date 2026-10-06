@@ -1,15 +1,15 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-06T07:26:43Z",
+  "generated_at": "2026-10-06T07:29:14Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "MJ-REQ-004 bounded fact-review Git lookup source commit 839c9f0b164a2bef9d93dd1ec64f580a59f7c98f is integrated by non-force fast-forward; local and GitHub main are synchronized. Planning/evidence receipt is being recorded.",
-    "current_verified_github_state": "GitHub main and local main synchronized at 839c9f0b164a2bef9d93dd1ec64f580a59f7c98f. Issue #5 remains OPEN/PARTIAL; Actions/reviews remain NOT_RUN by policy.",
-    "current_verified_at": "2026-10-06T07:26:43Z"
+    "current_verified_local_state": "MJ-REQ-004 fact-review Git deadline source commit 839c9f0b164a2bef9d93dd1ec64f580a59f7c98f and planning receipt commit a9b2331b8396b8f5b2b0bc91e53750e28e281dc4 are integrated by non-force fast-forward; local and GitHub main are synchronized.",
+    "current_verified_github_state": "GitHub main and local main synchronized at a9b2331b8396b8f5b2b0bc91e53750e28e281dc4, including the fact-review Git deadline evidence. Issue #5 remains OPEN/PARTIAL; Actions/reviews remain NOT_RUN by policy.",
+    "current_verified_at": "2026-10-06T07:29:14Z"
   },
   "current_milestone": "MJ-REQ-004-FACT-REVIEW-GIT-DEADLINE-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under the local-only delivery policy; one writer and one integration lane.",
@@ -6075,5 +6075,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-06T07:26:43Z"
+  "updated_at": "2026-10-06T07:29:14Z"
 }
