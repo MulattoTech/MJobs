@@ -20,6 +20,12 @@ those two endpoints. Durable discovery operations are also bounded across all
 sources by the global `source_collection` admission ceiling documented in
 `workers/AREA.md`.
 
+The fictional `MockClient` is restricted to the explicit local fixture origin.
+It streams responses under a 2 MB content limit, polls worker cancellation while
+the request is active, and closes the in-flight response/client on cancellation
+while preserving the callback error. Fixture discovery imports nothing from an
+oversized or cancelled response.
+
 Matching can rescore multiple career profiles from one collected batch without
 re-fetching the provider. Manual collection remains available for an immediate
 bounded run and obeys the same source policy.

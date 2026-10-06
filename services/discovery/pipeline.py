@@ -1,6 +1,7 @@
 """Bounded local mock discovery flywheel and strong route deduplication."""
 from urllib.parse import urljoin, urlsplit
 import os
+import threading
 
 from bs4 import BeautifulSoup
 import httpx
@@ -19,6 +20,9 @@ from services.discovery.negative_filters import parse_negative_conditions
 from services.company_discovery.sources import register_ats_tenant, upsert_company_job_source
 from services.discovery.lifecycle import capture_revision, observe_fixture_posting, resolve_lifecycle
 from services.discovery.matching import build_explanation
+
+MAX_MOCK_RESPONSE_BYTES = 2_000_000
+CANCELLATION_POLL_INTERVAL = 0.05
 
 
 class MockClient:
@@ -46,14 +50,67 @@ class MockClient:
             self.check()
             if not self.allowed(url):
                 raise ValueError("Untrusted external redirect blocked")
-            response = self.client.get(url)
-            if response.is_redirect:
-                url = urljoin(url, response.headers["location"])
+            stop_watcher = threading.Event()
+            cancellation_errors = []
+            active_response = []
+
+            def interrupt_request():
+                if active_response:
+                    try:
+                        active_response[0].close()
+                    except Exception:
+                        pass
+                try:
+                    self.client.close()
+                except Exception:
+                    pass
+
+            def watch_cancellation():
+                while not stop_watcher.wait(CANCELLATION_POLL_INTERVAL):
+                    try:
+                        self.check()
+                    except BaseException as error:
+                        cancellation_errors.append(error)
+                        interrupt_request()
+                        return
+
+            watcher = threading.Thread(target=watch_cancellation,
+                                       name="mjobs-fixture-discovery-cancellation", daemon=True)
+            watcher.start()
+            redirect = None
+            try:
+                with self.client.stream("GET", url) as response:
+                    active_response.append(response)
+                    if response.is_redirect:
+                        redirect = urljoin(url, response.headers["location"])
+                    else:
+                        response.raise_for_status()
+                        content = bytearray()
+                        for chunk in response.iter_bytes(chunk_size=65536):
+                            self.check()
+                            content.extend(chunk)
+                            if len(content) > MAX_MOCK_RESPONSE_BYTES:
+                                raise ValueError("Source response exceeds limit")
+                        self.check()
+                        if cancellation_errors:
+                            raise cancellation_errors[0]
+                        result = httpx.Response(response.status_code, headers=response.headers,
+                                                content=bytes(content), request=response.request)
+            except BaseException:
+                if cancellation_errors:
+                    raise cancellation_errors[0]
+                raise
+            finally:
+                stop_watcher.set()
+                if watcher.is_alive():
+                    watcher.join(timeout=1)
+            if cancellation_errors:
+                raise cancellation_errors[0]
+            self.check()
+            if redirect is not None:
+                url = redirect
                 continue
-            response.raise_for_status()
-            if len(response.content) > 2_000_000:
-                raise ValueError("Source response exceeds limit")
-            return response
+            return result
         raise ValueError("Too many source redirects")
 
     def close(self):
