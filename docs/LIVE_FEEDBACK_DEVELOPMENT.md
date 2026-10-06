@@ -7,7 +7,7 @@ Double-click **Start-Feedback.cmd**, or run the VS Code task
 http://127.0.0.1:18702 and reuses the matching local server when already running.
 It needs Python, but does not need Docker, the MJobs API, or a frontend build.
 
-Choose any of the 19 tasks on the page. Each has its own questions; additional
+Choose any of the 20 tasks on the page. Each has its own questions; additional
 details are optional. Drafts save as you type, and **Saved work** restores them.
 Closing the browser or restarting the server does not discard saved drafts.
 The status distinguishes browser-only recovery from a confirmed computer save.
@@ -38,6 +38,14 @@ backup does not currently include this separate feedback directory.
 If the page closes, double-click **Start-Feedback.cmd** again. If the computer
 save fails, keep the page open and use **Save now** after recovery. Port conflicts
 with another workspace are reported rather than silently connecting to it.
+
+## Guided product review
+
+When the goal is to evaluate MJobs as a useful product rather than troubleshoot one known defect, use **MJobs: Guided Product Review - Personal** or **MJobs: Guided Product Review - Fixture** in VS Code. The launcher starts the selected local runtime plus this feedback page and records an ignored outputs/live-feedback/ACTIVE_REVIEW.json session marker.
+
+Follow [GUIDED_PRODUCT_REVIEW.md](GUIDED_PRODUCT_REVIEW.md) with Luna using prompts/VS_CODE_GUIDED_REVIEW.md. Luna should facilitate only: it must not edit code or create issues while you are still evaluating workflows. Create one **Review a core workflow** Ready report per distinct finding.
+
+After the walkthrough, use a fresh turn with prompts/FEEDBACK_TO_GITHUB_ISSUES.md to create/update sanitized, dependency-aware GitHub issues. Fix them only in a later implementation turn using prompts/FIX_FEEDBACK_ISSUES.md.
 
 ## Optional browser diagnostic recording
 

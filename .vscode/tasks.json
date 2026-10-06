@@ -5,22 +5,44 @@
       "label": "MJobs: Development & Feedback",
       "type": "shell",
       "command": "bash",
-      "args": ["${workspaceFolder}/.devcontainer/feedback.sh"],
+      "args": [
+        "${workspaceFolder}/.devcontainer/feedback.sh"
+      ],
       "windows": {
         "command": "powershell",
-        "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}\\Start-Feedback.ps1"]
+        "args": [
+          "-NoProfile",
+          "-ExecutionPolicy",
+          "Bypass",
+          "-File",
+          "${workspaceFolder}\\Start-Feedback.ps1"
+        ]
       },
       "problemMatcher": [],
-      "presentation": {"reveal": "silent", "panel": "dedicated"}
+      "presentation": {
+        "reveal": "silent",
+        "panel": "dedicated"
+      }
     },
     {
       "label": "MJobs: Start Personal (No Browser)",
       "type": "shell",
       "command": "bash",
-      "args": ["${workspaceFolder}/.devcontainer/mjobs.sh", "personal"],
+      "args": [
+        "${workspaceFolder}/.devcontainer/mjobs.sh",
+        "personal"
+      ],
       "windows": {
         "command": "powershell",
-        "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}\\Start-MJobs.ps1", "-Personal", "-NoOpen"]
+        "args": [
+          "-NoProfile",
+          "-ExecutionPolicy",
+          "Bypass",
+          "-File",
+          "${workspaceFolder}\\Start-MJobs.ps1",
+          "-Personal",
+          "-NoOpen"
+        ]
       },
       "problemMatcher": []
     },
@@ -28,10 +50,20 @@
       "label": "MJobs: Start Fixture (No Browser)",
       "type": "shell",
       "command": "bash",
-      "args": ["${workspaceFolder}/.devcontainer/mjobs.sh", "fixture"],
+      "args": [
+        "${workspaceFolder}/.devcontainer/mjobs.sh",
+        "fixture"
+      ],
       "windows": {
         "command": "powershell",
-        "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}\\Start-MJobs.ps1", "-NoOpen"]
+        "args": [
+          "-NoProfile",
+          "-ExecutionPolicy",
+          "Bypass",
+          "-File",
+          "${workspaceFolder}\\Start-MJobs.ps1",
+          "-NoOpen"
+        ]
       },
       "problemMatcher": []
     },
@@ -42,11 +74,22 @@
       "windows": {
         "command": "${workspaceFolder}\\.venv\\Scripts\\python.exe"
       },
-      "args": ["-m", "cli.live_feedback", "run", "--base-url", "http://127.0.0.1:18701"],
-      "dependsOn": ["MJobs: Start Personal (No Browser)"],
+      "args": [
+        "-m",
+        "cli.live_feedback",
+        "run",
+        "--base-url",
+        "http://127.0.0.1:18701"
+      ],
+      "dependsOn": [
+        "MJobs: Start Personal (No Browser)"
+      ],
       "dependsOrder": "sequence",
       "problemMatcher": [],
-      "presentation": {"reveal": "always", "panel": "dedicated"}
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
     },
     {
       "label": "MJobs: Live Feedback - Fixture",
@@ -55,11 +98,22 @@
       "windows": {
         "command": "${workspaceFolder}\\.venv\\Scripts\\python.exe"
       },
-      "args": ["-m", "cli.live_feedback", "run", "--base-url", "http://127.0.0.1:18700"],
-      "dependsOn": ["MJobs: Start Fixture (No Browser)"],
+      "args": [
+        "-m",
+        "cli.live_feedback",
+        "run",
+        "--base-url",
+        "http://127.0.0.1:18700"
+      ],
+      "dependsOn": [
+        "MJobs: Start Fixture (No Browser)"
+      ],
       "dependsOrder": "sequence",
       "problemMatcher": [],
-      "presentation": {"reveal": "always", "panel": "dedicated"}
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
     },
     {
       "label": "MJobs: Summarize Latest Feedback",
@@ -68,7 +122,11 @@
       "windows": {
         "command": "${workspaceFolder}\\.venv\\Scripts\\python.exe"
       },
-      "args": ["-m", "cli.live_feedback", "summarize"],
+      "args": [
+        "-m",
+        "cli.live_feedback",
+        "summarize"
+      ],
       "problemMatcher": []
     },
     {
@@ -78,14 +136,22 @@
       "windows": {
         "command": "${workspaceFolder}\\.venv\\Scripts\\python.exe"
       },
-      "args": ["-m", "playwright", "install", "chromium"],
+      "args": [
+        "-m",
+        "playwright",
+        "install",
+        "chromium"
+      ],
       "problemMatcher": []
     },
     {
       "label": "MJobs: Codespace Verify (Quick)",
       "type": "shell",
       "command": "bash",
-      "args": ["${workspaceFolder}/.devcontainer/verify.sh", "quick"],
+      "args": [
+        "${workspaceFolder}/.devcontainer/verify.sh",
+        "quick"
+      ],
       "linux": {},
       "problemMatcher": []
     },
@@ -93,9 +159,64 @@
       "label": "MJobs: Codespace Verify (Full)",
       "type": "shell",
       "command": "bash",
-      "args": ["${workspaceFolder}/.devcontainer/verify.sh", "full"],
+      "args": [
+        "${workspaceFolder}/.devcontainer/verify.sh",
+        "full"
+      ],
       "linux": {},
       "problemMatcher": []
+    },
+    {
+      "label": "MJobs: Guided Product Review - Personal",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-lc",
+        "echo Guided product review is Windows-first; run Start-GuidedReview.ps1 -Mode PERSONAL on Windows."
+      ],
+      "windows": {
+        "command": "powershell",
+        "args": [
+          "-NoProfile",
+          "-ExecutionPolicy",
+          "Bypass",
+          "-File",
+          "${workspaceFolder}\\Start-GuidedReview.ps1",
+          "-Mode",
+          "PERSONAL"
+        ]
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "MJobs: Guided Product Review - Fixture",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-lc",
+        "echo Guided product review is Windows-first; run Start-GuidedReview.ps1 -Mode FIXTURE on Windows."
+      ],
+      "windows": {
+        "command": "powershell",
+        "args": [
+          "-NoProfile",
+          "-ExecutionPolicy",
+          "Bypass",
+          "-File",
+          "${workspaceFolder}\\Start-GuidedReview.ps1",
+          "-Mode",
+          "FIXTURE"
+        ]
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
     }
   ]
 }

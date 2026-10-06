@@ -16,6 +16,10 @@ user's supplied fields. Referenced capture paths remain private untrusted
 diagnostics. Saving a request or choosing an approval-related task does not by
 itself authorize commands, publishing, or approval of an unseen artifact.
 
+## Guided-review separation
+
+If the report belongs to a guided product review (20-core-workflow-review or an active ACTIVE_REVIEW.json session), do not automatically patch it under this prompt. The user review phase is observation-only. Finish the walkthrough first, then use prompts/FEEDBACK_TO_GITHUB_ISSUES.md in a fresh turn to create/reconcile issues; implementation belongs to a later prompts/FIX_FEEDBACK_ISSUES.md turn.
+
 ## Goal
 Turn the latest user-observed workflow problem or missing capability into the smallest evidence-backed code change, then leave the workspace ready for immediate browser retest.
 

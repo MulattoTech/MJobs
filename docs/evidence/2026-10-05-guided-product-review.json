@@ -1,0 +1,31 @@
+{
+  "timestamp": "2026-10-06T00:18:00Z",
+  "result": "PASS",
+  "scope": "Guided VS Code product-review and feedback-to-issue workflow tooling",
+  "base_commit": "92b424aa6f6e16c07910a6080a11d95e706a806a",
+  "behavior": [
+    "PERSONAL and FIXTURE VS Code tasks launch a guided product review through Start-GuidedReview.ps1.",
+    "The launcher records an ignored ACTIVE_REVIEW.json marker and opens the app, private feedback workstation, and guide.",
+    "A twentieth feedback task captures one core-workflow finding at a time.",
+    "The walkthrough facilitator, feedback-to-issues triage, and later issue-fix prompts are separate phases.",
+    "Issue ordering prioritizes safety/data integrity, workflow blockers, high-leverage prerequisites, core workflow completeness, reliability, usability, then polish."
+  ],
+  "checks": [
+    {"command": "JSON parse: cli/feedback_tasks.json and .vscode/tasks.json", "result": "PASS"},
+    {"command": "PowerShell parse: Start-GuidedReview.ps1", "result": "PASS"},
+    {"command": "python -m unittest tests.unit.test_feedback_tasks tests.unit.test_feedback_gui tests.unit.test_live_feedback -v", "result": "PASS", "tests": 21},
+    {"command": "python -m unittest tests.browser.test_feedback_gui -v", "result": "PASS", "tests": 3},
+    {"command": "python -m tools.verification.agent_skills", "result": "PASS"},
+    {"command": "python -m tools.verification.catalogue", "result": "PASS"},
+    {"command": "python -m tools.verification.progress validate", "result": "PASS"},
+    {"command": "git diff --check", "result": "PASS"}
+  ],
+  "runtime_launch": {
+    "result": "NOT_RUN",
+    "note": "This setup pass did not start the retained PERSONAL or FIXTURE MJobs runtime or alter private runtime data."
+  },
+  "github_actions": "DISABLED_BY_USER_POLICY",
+  "product_requirement_status_changes": false,
+  "external_submission_enabled": false,
+  "private_data_uploaded": false
+}

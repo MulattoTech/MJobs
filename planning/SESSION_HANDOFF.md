@@ -1,3 +1,11 @@
+# Guided hands-on review tooling ? 2026-10-05
+
+The next user-directed product phase is a manual VS Code/Luna walkthrough, not an autonomous implementation run. docs/GUIDED_PRODUCT_REVIEW.md, Start-GuidedReview.ps1, and the two Guided Product Review VS Code tasks launch PERSONAL or FIXTURE review with the existing private feedback workstation. The new 20-core-workflow-review task records one finding at a time.
+
+Keep phases separate: prompts/VS_CODE_GUIDED_REVIEW.md facilitates without source/GitHub mutation; a fresh prompts/FEEDBACK_TO_GITHUB_ISSUES.md turn creates or updates sanitized dependency-aware issues; later implementation uses prompts/FIX_FEEDBACK_ISSUES.md plus the local-only budget policy. GitHub Actions/cloud reviewers remain disabled. External submission remains OFF. No product requirement status changes merely because this review tooling exists.
+
+---
+
 # Current local-only reconciliation — 2026-10-05
 
 The current user stopped GitHub-hosted agents, reviews, automated tests and Actions.

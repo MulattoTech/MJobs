@@ -122,7 +122,7 @@ class FeedbackGUIBrowserTests(unittest.TestCase):
                     page.on('pageerror', lambda error: errors.append(str(error)))
                     await page.goto(origin)
                     await page.get_by_role('heading', name='Development & Feedback', exact=True).wait_for()
-                    await async_expect(page.locator('[data-task-id]')).to_have_count(19)
+                    await async_expect(page.locator('[data-task-id]')).to_have_count(20)
                     await page.locator('[data-task-id="03-bug-report"]').click()
                     await page.get_by_label('Short title').fill('Synthetic regression: lost form')
                     await async_expect(page.locator('#save-status')).to_contain_text('Saved on this computer')

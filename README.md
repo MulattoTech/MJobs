@@ -65,10 +65,12 @@ MJobs also maintains an additive reference-project audit covering JobSpy, Career
 ## Live feedback development
 
 Double-click **Start-Feedback.cmd** for the local **Development & Feedback** page:
-19 guided tasks, automatic draft saving, restored sessions, and a saved-report
+20 guided tasks, automatic draft saving, restored sessions, and a saved-report
 history. No manual template editing is needed, and it works without Docker.
 The equivalent VS Code task is **MJobs: Development & Feedback**. Reports remain
 private and local; **Ready for Codex** prepares the files for the next instruction
 to process your feedback.
+
+For a product-level walkthrough, use [docs/GUIDED_PRODUCT_REVIEW.md](docs/GUIDED_PRODUCT_REVIEW.md) and the VS Code tasks **MJobs: Guided Product Review - Personal/Fixture**.
 
 For browser-driven test/feedback development in VS Code, see [docs/LIVE_FEEDBACK_DEVELOPMENT.md](docs/LIVE_FEEDBACK_DEVELOPMENT.md). Checked-in VS Code tasks can start PERSONAL or FIXTURE mode and a privacy-conscious headed-browser recorder. Session data stays under ignored `outputs/live-feedback/`; use `prompts/VS_CODE_LIVE_FEEDBACK.md` with Codex to turn the latest observation into a test, patch, validation, and retest cycle.

@@ -1053,5 +1053,105 @@
         "placeholder": "For stale-session recovery"
       }
     ]
+  },
+  {
+    "id": "20-core-workflow-review",
+    "title": "Review a core workflow",
+    "group": "Test meaningful workflows",
+    "description": "Record one distinct finding from the guided Profile to Intake to Match/Search to Documents to Answers to Tracking to Recovery review so it can become a granular dependency-aware issue later.",
+    "fields": [
+      {
+        "id": "workflow",
+        "label": "Workflow being reviewed",
+        "kind": "select",
+        "required": true,
+        "placeholder": "Choose workflow",
+        "options": [
+          "Profile and resume truth",
+          "Job intake and source usefulness",
+          "Search, filtering, and match explanation",
+          "Resume and cover-letter preparation",
+          "Reusable application answers",
+          "Application tracking and follow-up",
+          "Restart and continuity",
+          "Overall product experience"
+        ]
+      },
+      {
+        "id": "outcome",
+        "label": "Outcome",
+        "kind": "select",
+        "required": true,
+        "placeholder": "Choose result",
+        "options": [
+          "PASS",
+          "PARTIAL",
+          "BLOCKED",
+          "CONFUSING"
+        ]
+      },
+      {
+        "id": "impact",
+        "label": "Impact",
+        "kind": "select",
+        "required": false,
+        "placeholder": "Choose impact",
+        "options": [
+          "blocks core workflow",
+          "major feature gap",
+          "high friction",
+          "polish"
+        ]
+      },
+      {
+        "id": "trying_to",
+        "label": "I was trying to",
+        "kind": "textarea",
+        "required": true,
+        "placeholder": "Meaningful user outcome"
+      },
+      {
+        "id": "worked",
+        "label": "What worked",
+        "kind": "textarea",
+        "required": false,
+        "placeholder": "Useful behavior worth preserving"
+      },
+      {
+        "id": "observed",
+        "label": "Observed problem or missing capability",
+        "kind": "textarea",
+        "required": false,
+        "placeholder": "Visible behavior, not guessed code cause"
+      },
+      {
+        "id": "expected",
+        "label": "Expected behavior",
+        "kind": "textarea",
+        "required": false,
+        "placeholder": "What a useful product should let you do"
+      },
+      {
+        "id": "requested_change",
+        "label": "Change requested",
+        "kind": "textarea",
+        "required": false,
+        "placeholder": "Desired capability or correction"
+      },
+      {
+        "id": "acceptance",
+        "label": "Retest acceptance",
+        "kind": "textarea",
+        "required": false,
+        "placeholder": "Observable result another turn can verify"
+      },
+      {
+        "id": "private_evidence",
+        "label": "Private local evidence path or recorder session",
+        "kind": "text",
+        "required": false,
+        "placeholder": "Local only; never paste private contents into GitHub"
+      }
+    ]
   }
 ]

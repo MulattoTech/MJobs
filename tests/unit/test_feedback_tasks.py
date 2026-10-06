@@ -30,6 +30,7 @@ EXPECTED_IDS = {
         (17, "launch-diagnosis"),
         (18, "capture-diagnosis"),
         (19, "usability-checkpoint"),
+        (20, "core-workflow-review"),
     ]
 }
 
@@ -90,6 +91,14 @@ class FeedbackTaskCatalogueTests(unittest.TestCase):
         decision = next(field for field in retest["fields"] if field["id"] == "decision")
         self.assertEqual(decision["kind"], "select")
         self.assertEqual(set(decision["options"]), {"ACCEPT", "PARTIAL", "REJECT", "NOT_TESTED"})
+
+    def test_guided_core_workflow_review_has_issue_ready_fields(self):
+        task = self.by_id["20-core-workflow-review"]
+        fields = {field["id"]: field for field in task["fields"]}
+        self.assertTrue({"workflow", "outcome", "trying_to"}.issubset(fields))
+        self.assertIn("Application tracking and follow-up", fields["workflow"]["options"])
+        self.assertEqual(set(fields["outcome"]["options"]), {"PASS", "PARTIAL", "BLOCKED", "CONFUSING"})
+        self.assertIn("granular", task["description"].lower())
 
     def test_session_start_captures_preflight_identity(self):
         task = self.by_id["01-session-start"]
