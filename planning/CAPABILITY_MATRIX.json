@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-06T09:11:10Z",
+  "timestamp": "2026-10-06T10:10:14Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -52,9 +52,10 @@
       "requirement_id": "MJ-REQ-005",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-06-operation-concurrency-categories.json"
+        "docs/evidence/2026-10-06-operation-concurrency-categories.json",
+        "docs/evidence/2026-10-06-per-source-greenhouse-concurrency.json"
       ],
-      "note": "Durable operation admission now uses independent bounded categories for source collection, company discovery, AI configuration, document generation, and application automation. SQLite and isolated PostgreSQL shared-category claim tests, Compose settings, and the local browser/full suites pass. PARTIAL: no AI runtime operation/provider exists; real ATS automation remains unavailable; and the persisted per-source concurrency field is not an active per-source parallel-fetch control."
+      "note": "Durable operations have independent bounded source collection, company discovery, AI configuration, document generation, and application automation admission ceilings. Greenhouse per-source concurrency now bounds its two independent public reads; shared request-start pacing prevents burst bypass; error/cancellation history and Sources UI readback are locally verified. PARTIAL: no AI runtime/provider operation exists and real ATS automation remains unavailable/OFF."
     },
     {
       "requirement_id": "MJ-REQ-006",

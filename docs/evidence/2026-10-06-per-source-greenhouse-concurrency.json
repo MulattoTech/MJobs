@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-005",
+  "github_issue": 6,
+  "slice_result": "PASS",
+  "requirement_result": "PARTIAL",
+  "base_commit": "795bc74d10cae145e40c628daa42a285060e3280",
+  "candidate_commit": "ec28943ec20109c2b1bc12c0130a26a2991b0636",
+  "candidate_tree": "32c50bf1daedadd9b7a903fd81881a8a876e2e84",
+  "scope": "Make the persisted Greenhouse per-source concurrency policy control the two independent public-read requests without exceeding the configured request rate, while preserving failure and local-cancellation semantics.",
+  "acceptance": {
+    "concurrency_1_is_sequential": "PASS",
+    "concurrency_2_overlaps_the_two_independent_requests": "PASS",
+    "values_above_available_work_do_not_create_extra_requests": "PASS",
+    "configured_rate_spacing_is_shared_between_parallel_requests": "PASS",
+    "persisted_source_policy_reaches_the_live_adapter": "PASS",
+    "parallel_rate_limit_failure_does_not_leave_partial_jobs": "PASS",
+    "provider_failure_status_is_not_hidden_by_successful_sibling": "PASS",
+    "local_cancellation_outweighs_sibling_network_error_and_preserves_health_history": "PASS",
+    "sources_ui_explains_concurrency_and_saves_then_reads_back_value_2": "PASS",
+    "global_source_collection_category_cap_unchanged": "PASS",
+    "no_external_provider_request_or_application_submission": "PASS",
+    "requirement_and_reference_denominators_unchanged": "PASS"
+  },
+  "evidence": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py'",
+      "started_at_utc": "2026-10-06T09:58:32Z",
+      "ended_at_utc": "2026-10-06T10:04:56Z",
+      "target": "Full Python, integration, and browser test discovery on exact candidate ec28943ec20109c2b1bc12c0130a26a2991b0636",
+      "result": "PASS",
+      "summary": "674 tests ran; 1 optional PostgreSQL concurrency test skipped because MJOBS_TEST_POSTGRES_URL was not set; zero failures/errors."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_greenhouse tests.integration.test_source_policy_scheduler",
+      "started_at_utc": "2026-10-06T10:06:29Z",
+      "ended_at_utc": "2026-10-06T10:06:40Z",
+      "target": "Greenhouse adapter, persisted source policy, scheduler, rate-limit, cancellation, source-history, and failure atomicity integration",
+      "result": "PASS",
+      "summary": "29 tests passed."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_core_workflow_trial",
+      "started_at_utc": "2026-10-06T10:06:40Z",
+      "ended_at_utc": "2026-10-06T10:06:54Z",
+      "target": "Real Chromium workflow: source concurrency explanation, configure value 2, and persisted UI/API readback after reload",
+      "result": "PASS",
+      "summary": "1 browser test passed; test network routing prevented external requests."
+    },
+    {
+      "command": "npm run build --prefix C:\\Tools\\Dev\\MJobs\\.worktrees\\req005-source-concurrency-20261006\\apps\\web; npm test --prefix C:\\Tools\\Dev\\MJobs\\.worktrees\\req005-source-concurrency-20261006\\apps\\web -- --run",
+      "started_at_utc": "2026-10-06T10:05:29Z",
+      "ended_at_utc": "2026-10-06T10:05:30Z",
+      "target": "Exact-candidate TypeScript/Vite production build and frontend tests",
+      "result": "PASS",
+      "summary": "Production build passed; all 62 tests across 13 frontend test files passed."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.agent_skills; python -m tools.verification.catalogue; python -m tools.verification.progress validate; python -m json.tool planning/IMPLEMENTATION_STATE.json; python -m json.tool planning/PR_QUEUE.json; git diff --check",
+      "started_at_utc": "2026-10-06T10:07:11Z",
+      "ended_at_utc": "2026-10-06T10:07:11Z",
+      "target": "Repository skill, denominator/catalogue, progress, metadata JSON, and whitespace validation",
+      "result": "PASS",
+      "summary": "Agent skill, catalogue, progress journal, JSON parsing, and diff whitespace checks passed."
+    }
+  ],
+  "non_reproducible_test_event": {
+    "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py'",
+    "started_at_utc": "2026-10-06T09:47:44Z",
+    "ended_at_utc": "2026-10-06T09:54:15Z",
+    "result": "FAIL_THEN_NOT_REPRODUCED",
+    "failure": "One CompanyDiscoveryRequestsBrowserTests Uvicorn server-thread shutdown assertion exceeded its 10 second join during full-suite load; the isolated test and full browser suite passed, and the exact same source head then passed a full 674-test rerun.",
+    "disposition": "Recorded as transient test-harness timing evidence; no timeout was weakened."
+  },
+  "external_boundaries": {
+    "github_actions_enabled": false,
+    "hosted_checks": "NOT_RUN_BY_LOCAL_ONLY_POLICY",
+    "hosted_review": "NOT_RUN_BY_LOCAL_ONLY_POLICY",
+    "postgresql_concurrency_test": "NOT_RUN_OPTIONAL_ENVIRONMENT_MISSING_MJOBS_TEST_POSTGRES_URL",
+    "live_employer_fetch": false,
+    "ai_provider_calls": false,
+    "ats_automation": "NOT_AVAILABLE; external submission remains OFF",
+    "source_transport": "synthetic local transport",
+    "personal_profile_data_read_or_changed": false
+  },
+  "requirement_limitations": [
+    "The independent ai category remains configuration-only because no AI operation/provider runtime exists.",
+    "Real ATS/application automation remains unavailable and external submission remains OFF.",
+    "Production employer network behavior was not exercised; local synthetic transports prove bounded overlap, start pacing, error, and cancellation handling."
+  ],
+  "denominators": {
+    "requirements": 366,
+    "reference_gaps": 59
+  },
+  "main_integration": "PENDING"
+}
