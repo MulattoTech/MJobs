@@ -7,9 +7,9 @@
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Local main and origin/main are synchronized at 5b706edb52945dc16a71f86c95b14a8b3bda023a. The issue #5 / MJ-REQ-004 OCR diagnostics slice at 3d604b27b1a4c25e2ff0ee6fa68a07e9ff8f74a0 is pushed on codex/req004-bound-ops-20261006 and locally verified; no PR is open. Issue #5 remains OPEN/PARTIAL.",
-    "current_verified_github_state": "GitHub main is synchronized with local main at 5b706edb52945dc16a71f86c95b14a8b3bda023a; Actions are disabled, main is unprotected, and no PR is open. Issue #5 remains OPEN/PARTIAL; the locally accepted OCR slice is pushed to its issue branch. Hosted checks/review are NOT_RUN by policy.",
-    "current_verified_at": "2026-10-06T10:54:00Z"
+    "current_verified_local_state": "Local main and origin/main are synchronized at fe598c1ee351010502a62e8c9dc6b76c83692ffe after non-force fast-forward integration of the issue #5 OCR diagnostics slice and evidence. GitHub issue #5 remains OPEN/PARTIAL after comment/readback.",
+    "current_verified_github_state": "GitHub main and local main are synchronized at fe598c1ee351010502a62e8c9dc6b76c83692ffe; main had no protection rule, Actions are disabled, and no PR is open. Issue #5 remains OPEN/PARTIAL; hosted checks/review NOT_RUN by policy.",
+    "current_verified_at": "2026-10-06T10:57:12Z"
   },
   "current_milestone": "MJ-REQ-005-PER-SOURCE-GREENHOUSE-CONCURRENCY-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under the local-only delivery policy; one writer and one integration lane.",
@@ -292,11 +292,12 @@
     "MJ-REQ-004 candidate 3d604b27b1a4c25e2ff0ee6fa68a07e9ff8f74a0: full suite initially saw stale ignored apps/web/dist; rebuilding restored current Sources UI and isolated browser acceptance. A first rebuilt full run later hit the known intermittent CompanyDiscoveryRequestsBrowserTests server-thread shutdown assertion; isolated case and all 35 browser tests passed, followed by a same-head 680-test full suite pass. Do not weaken shutdown timeout; evidence docs/evidence/2026-10-06-bounded-ocr-diagnostics.json."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-06T10:54:00Z",
+    "timestamp": "2026-10-06T10:57:12Z",
     "result": "PARTIAL",
     "source_commit": "3d604b27b1a4c25e2ff0ee6fa68a07e9ff8f74a0",
-    "scope": "Bounded OCR diagnostics and truthful failure categories pass focused/API/browser and real isolated Linux checks. Exact-head 680-test suite passed with one optional PostgreSQL skip; requirement #5 remains PARTIAL.",
-    "evidence_path": "docs/evidence/2026-10-06-bounded-ocr-diagnostics.json"
+    "scope": "OCR diagnostics slice PASS and safely integrated; issue #5 remains OPEN/PARTIAL after GitHub readback. Continue on request-disconnect cancellation and remaining operation boundaries.",
+    "evidence_path": "docs/evidence/2026-10-06-bounded-ocr-diagnostics.json",
+    "integration_commit": "fe598c1ee351010502a62e8c9dc6b76c83692ffe"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -363,7 +364,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Integrate issue #5 / MJ-REQ-004 OCR diagnostics candidate 3d604b27b1a4c25e2ff0ee6fa68a07e9ff8f74a0 by safe non-force fast-forward, then continue issue #5 with request-disconnect cancellation and remaining locally implementable error/output/retry boundaries. Keep issue OPEN/PARTIAL for unavailable AI/real ATS and hosted NOT_RUN; denominators remain 366 and 59.",
+  "recommended_resume_step": "Continue P0 issue #5 / MJ-REQ-004 from synchronized main fe598c1ee351010502a62e8c9dc6b76c83692ffe. Reconcile the native parser/OCR request-disconnect cancellation path and choose the highest-value safe local vertical slice; keep #5 OPEN/PARTIAL for unavailable AI/real ATS and remaining operation-category policies. Hosted evidence NOT_RUN; external submission OFF; denominators remain 366 and 59.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -5077,28 +5078,28 @@
     }
   ],
   "live_reconciliation": {
-    "observed_at": "2026-10-06T10:54:00Z",
-    "github_main": "5b706edb52945dc16a71f86c95b14a8b3bda023a",
-    "local_main": "5b706edb52945dc16a71f86c95b14a8b3bda023a",
+    "observed_at": "2026-10-06T10:57:12Z",
+    "github_main": "fe598c1ee351010502a62e8c9dc6b76c83692ffe",
+    "local_main": "fe598c1ee351010502a62e8c9dc6b76c83692ffe",
     "issue_5_state": "OPEN_PARTIAL",
     "issue_6_state": "OPEN_PARTIAL",
     "open_prs": 0,
     "actions_enabled": false,
     "main_branch_protected": false,
-    "integration": "MJ-REQ-004_OCR_DIAGNOSTICS_LOCAL_SLICE_PASS_PUSHED",
+    "integration": "MJ-REQ-004_OCR_DIAGNOSTICS_NON_FORCE_FAST_FORWARD",
     "next_issue": 5
   },
   "active_development_issue": {
     "issue": 5,
     "requirement_id": "MJ-REQ-004",
     "title": "Bound External Operations",
-    "state": "LOCAL_SLICE_PASS_AWAITING_MAIN_INTEGRATION_REQUIREMENT_PARTIAL_OPEN",
+    "state": "LOCAL_SLICE_PASS_INTEGRATED_REQUIREMENT_PARTIAL_OPEN",
     "selection_reason": "The local OCR process discarded diagnostics and mislabeled timeout, launch, nonzero-exit, and missing-output failures as resource-limit failures; issue #5 is a P0 operational-safety requirement.",
     "base": "5b706edb52945dc16a71f86c95b14a8b3bda023a",
     "branch": "codex/req004-bound-ops-20261006",
     "candidate": "3d604b27b1a4c25e2ff0ee6fa68a07e9ff8f74a0",
     "evidence": "docs/evidence/2026-10-06-bounded-ocr-diagnostics.json",
-    "next_action": "Integrate the tested slice by verified non-force fast-forward; keep issue #5 OPEN/PARTIAL for parser request-disconnect cancellation, real AI/ATS paths and the broader operation-category output/retry/error contract. Continue with the next highest-value locally implementable #5 gap."
+    "next_action": "OCR diagnostics candidate 3d604b27b1a4c25e2ff0ee6fa68a07e9ff8f74a0 and its evidence are integrated at fe598c1ee351010502a62e8c9dc6b76c83692ffe; GitHub issue #5 readback confirms OPEN. Continue issue #5 with the highest-value remaining locally implementable cancellation/output/retry boundary."
   },
   "historical_control_snapshots": [
     {
@@ -6208,7 +6209,7 @@
     "MJ-REQ-005 exact candidate 23104373877a275c97204f7e1af08c4cd646b4d9: RED confirmed the former kind-specific limit; 21 focused SQLite/Compose tests, 1 isolated PostgreSQL concurrent-claim test, 35 browser tests and 669 full Python tests passed (1 optional PG skip); current frontend build, catalogue, progress, agent-skills and diff validators passed. Requirement remains PARTIAL for absent AI runtime, real ATS and per-source enforcement.",
     "MJ-REQ-006 live workspace inspection at bd00c331d503009189a83481ba62a56a66acb75c: Git/main/remote, repository structure, Python/FastAPI and TypeScript/React versions, persistence/migrations, browser and test suites, Compose services, private environment-file presence without reading values, and Actions-disabled state checked. Existing product/runtime/worktrees classified KEEP; private outputs preserved; no application files or containers modified. Evidence: docs/evidence/2026-10-06-current-workspace-inspection.json."
   ],
-  "ownership": "One writer: issue #5 candidate 3d604b27b1a4c25e2ff0ee6fa68a07e9ff8f74a0 on codex/req004-bound-ops-20261006, based on synchronized main 5b706edb52945dc16a71f86c95b14a8b3bda023a, pushed and locally verified. Evidence/planning await integration; no PR is open. Issue #5 remains OPEN/PARTIAL. Hosted checks/review remain disabled/NOT_RUN and external submission OFF.",
+  "ownership": "One writer: issue #5 OCR diagnostics source candidate 3d604b27b1a4c25e2ff0ee6fa68a07e9ff8f74a0 plus evidence/planning safely integrated to synchronized local and GitHub main fe598c1ee351010502a62e8c9dc6b76c83692ffe by non-force fast-forward. Issue #5 remains OPEN/PARTIAL after readback. Continue issue #5; hosted checks/review disabled/NOT_RUN, external submission OFF.",
   "delivery_policy": {
     "mode": "LOCAL_ONLY",
     "effective_at": "2026-10-05T21:32:10.763994+00:00",
@@ -6221,5 +6222,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-06T10:54:00Z"
+  "updated_at": "2026-10-06T10:57:12Z"
 }
