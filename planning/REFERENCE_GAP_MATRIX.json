@@ -135,9 +135,10 @@
       ]
     },
     "MJ-REF-014": {
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
-        "docs/evidence/2026-10-06-least-data-profile-access.json"
+        "docs/evidence/2026-10-06-least-data-profile-access.json",
+        "docs/evidence/2026-10-06-least-data-task-prompts.json"
       ]
     },
     "MJ-REF-015": {

@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REF-014",
+  "github_issue": 384,
+  "result": "PASS",
+  "scope": "Task prompt construction receives an empty profile context by default. Explicitly requested fields are projected through approved task scope, denylist, profile isolation, and value-free access audit before entering a provider-neutral prompt. No provider is called.",
+  "observed_at_utc": "2026-10-06T05:55:50Z",
+  "candidate": {
+    "repository": "MulattoTech/MJobs",
+    "branch": "codex/mj-ref-014-least-data-20261006",
+    "base": "5e1f98852a7844a98448c3247c33d137ba3ffe9b",
+    "commit": "5e9d630564a2327838af6d73bebbfd08f3d16a83",
+    "tree": "dddf42e77fcaa5c921eba912b8b948995cc98de9",
+    "integration_commit": "5e9d630564a2327838af6d73bebbfd08f3d16a83",
+    "integration_method": "NON_FORCE_FAST_FORWARD",
+    "main_before": "5e1f98852a7844a98448c3247c33d137ba3ffe9b",
+    "main_after": "5e9d630564a2327838af6d73bebbfd08f3d16a83",
+    "remote_main_after": "5e9d630564a2327838af6d73bebbfd08f3d16a83",
+    "candidate_is_ancestor_of_main": true,
+    "main_remote_sha_verified": true
+  },
+  "acceptance": {
+    "scoped_dotted_path_lookup_returns_approved_data_only": "PASS",
+    "field_section_denylist_and_container_preview_counts": "PASS",
+    "per_operation_fact_access_audit": "PASS",
+    "task_prompt_has_no_unrelated_profile_sections_by_default": "PASS",
+    "hidden_fields_and_cross_profile_or_task_reads_rejected": "PASS",
+    "profile_fields_added_to_prompt_only_when_explicitly_requested_and_approved": "PASS",
+    "external_application_submission_enabled": false,
+    "original_requirement_denominator_changed": false
+  },
+  "local_validation": {
+    "environment": "Windows local checkout/worktree, Python 3.12.10, repository .venv, isolated SQLite integration fixtures.",
+    "full_suite": {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p test_*.py -v",
+      "result": "PASS",
+      "tests": 648,
+      "failures": 0,
+      "skips": 0,
+      "started_at_utc": "2026-10-06T05:45:33.6628857Z",
+      "ended_at_utc": "2026-10-06T05:51:48.4051721Z",
+      "duration_seconds": 372.784,
+      "scope": "All repository Python, integration, and local browser tests."
+    },
+    "focused_suite": {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_agent_task_prompts tests.integration.test_agent_tools tests.integration.test_least_data_profile_access tests.integration.test_profile_import tests.integration.test_job_tracking -v",
+      "result": "PASS",
+      "tests": 39,
+      "duration_seconds": 14.686
+    },
+    "frontend_build": {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "started_at_utc": "2026-10-06T05:52:59.6140902Z",
+      "ended_at_utc": "2026-10-06T05:53:00.3933433Z",
+      "detail": "Strict TypeScript check and Vite production build."
+    },
+    "validators": [
+      {
+        "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.catalogue",
+        "result": "PASS"
+      },
+      {
+        "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.progress validate",
+        "result": "PASS"
+      },
+      {
+        "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.agent_skills",
+        "result": "PASS"
+      },
+      {
+        "command": "git diff --check",
+        "result": "PASS"
+      }
+    ],
+    "failure_history": [
+      {
+        "result": "FAIL_THEN_FIXED",
+        "detail": "An initial full-suite run hit one unrelated browser preflight assertion because ignored apps/web/dist was stale. Rebuilt from current source, reproduced the isolated test PASS, then reran full suite with 648 tests passing. The failed attempt is retained locally in %TEMP% logs and was not promoted to evidence."
+      }
+    ],
+    "not_run": [
+      "GitHub Actions and hosted verification: NOT_RUN by local-only user policy; workflows are disabled.",
+      "Hosted/independent reviews: NOT_RUN by user policy.",
+      "External/paid AI provider call: NOT_RUN; the change constructs provider-neutral messages and has no provider execution path.",
+      "Dedicated visible AI prompt UI journey: NOT_APPLICABLE; this slice adds no UI. Prompt construction and existing local browser suite ran."
+    ]
+  },
+  "integration_receipt": {
+    "branch_protection": "NONE",
+    "actions_workflows": "DISABLED_BY_USER_POLICY",
+    "push_result": "PASS",
+    "issue_state_at_initial_receipt": "OPEN; final missing acceptance checkbox is ready for evidence-backed update",
+    "issue_acceptance_checked_before_update": 4,
+    "issue_acceptance_unchecked_before_update": 1,
+    "external_submission": "OFF"
+  }
+}

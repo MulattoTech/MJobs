@@ -1,15 +1,15 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-06T05:27:21Z",
+  "generated_at": "2026-10-06T05:55:50Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "MJ-REF-013 / issue #383 integrated by non-force fast-forward at 60f2addd1b73c06dcc0f206369a4ee0b78c155e1; evidence/planning receipt is on synchronized main at 8b9370c88b20654e7c9a45795525a3fa70194823.",
-    "current_verified_github_state": "GitHub main and local main include MJ-REF-013 / issue #383 plus its evidence/planning receipt at 8b9370c88b20654e7c9a45795525a3fa70194823. Issue #383 is CLOSED with all five acceptance boxes checked and read back. GitHub Actions and hosted reviews remain NOT_RUN under local-only policy.",
-    "current_verified_at": "2026-10-06T05:27:21Z"
+    "current_verified_local_state": "MJ-REF-014 / issue #384 source implementation integrated by non-force fast-forward at 5e9d630564a2327838af6d73bebbfd08f3d16a83; local and GitHub main synchronized. Planning/evidence receipt is being recorded.",
+    "current_verified_github_state": "GitHub main and local main include MJ-REF-014 task prompt integration at 5e9d630564a2327838af6d73bebbfd08f3d16a83. Issue #384 evidence-backed closure/readback pending. GitHub Actions and hosted reviews remain NOT_RUN under local-only policy.",
+    "current_verified_at": "2026-10-06T05:55:50Z"
   },
   "current_milestone": "MJ-REF-014-SELECTED-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under the local-only delivery policy; one writer and one integration lane.",
@@ -49,7 +49,8 @@
     "Custom-domain ATS detection audited with visible careers URL preserved (MJ-REQ-065).",
     "MJ-REF-017: crash-safe atomic generated document revisions, conservative orphan/staging/temp inventory, audited quarantine, integrity-checked restore, and configured-retention purge (docs/evidence/2026-10-06-artifact-recovery.json).",
     "MJ-REF-037 is locally PASS and integrated at main 70e16d0766f87c7b637cd4731a7e251ddc47d54a: pinned current reference commits/dates/license blobs, clean-room and license-independent no-evasion policy, inspiration log, PR/local checklist, conditional third-party notices, and deterministic validator. Issue #407 closed after complete acceptance readback (docs/evidence/2026-10-06-reference-provenance.json).",
-    "MJ-REF-013 locally PASS and integrated at 60f2addd1b73c06dcc0f206369a4ee0b78c155e1: bounded typed READ/PROPOSE/SIDE_EFFECT registry; host-bound profile/task context; exact reviewed proposals with deterministic policy, replay and cross-profile/task guards; bounded value-free traces on append-only audit storage; all 642 local Python/browser tests PASS; issue #383 closed with all five acceptance boxes checked (docs/evidence/2026-10-06-bounded-agent-toolregistry.json)."
+    "MJ-REF-013 locally PASS and integrated at 60f2addd1b73c06dcc0f206369a4ee0b78c155e1: bounded typed READ/PROPOSE/SIDE_EFFECT registry; host-bound profile/task context; exact reviewed proposals with deterministic policy, replay and cross-profile/task guards; bounded value-free traces on append-only audit storage; all 642 local Python/browser tests PASS; issue #383 closed with all five acceptance boxes checked (docs/evidence/2026-10-06-bounded-agent-toolregistry.json).",
+    "MJ-REF-014: provider-neutral task prompt construction defaults to no profile context; explicit approved task-scoped facts are isolated, denylisted, audited without values, and treated as evidence only under an untrusted-input instruction boundary (docs/evidence/2026-10-06-least-data-task-prompts.json)."
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
@@ -213,7 +214,8 @@
     "Fresh independent review of PR #513 exact source head 8756881 against base 2de5863 found no actionable defects after profile-scoping comparison reads, application detail/history, downloads and fixture mock actions.",
     "PR #513 source head 8756881 push run 37340200494 and pull_request run 37340208479 both passed 585 tests and all connected CI steps; all 9 reports per event passed and artifact SHA-256 digests matched GitHub. These runs precede the metadata commit and are not final-head evidence.",
     "MJ-REF-017: 34 targeted spine/provenance/document/answer/browser tests PASS; final artifact recovery suite 7 tests PASS; browser history/download reload PASS; local frontend build and repository validators PASS (docs/evidence/2026-10-06-artifact-recovery.json).",
-    "MJ-REF-037 candidate 91dfeda: 19 focused skill/provenance tests; reference provenance, skill, catalogue, progress validators and git diff --check PASS."
+    "MJ-REF-037 candidate 91dfeda: 19 focused skill/provenance tests; reference provenance, skill, catalogue, progress validators and git diff --check PASS.",
+    "MJ-REF-014: focused task-prompt/profile-access suite 39 tests PASS; full Python/browser suite 648 tests PASS; strict frontend build, catalogue/progress/skill validators and diff check PASS (docs/evidence/2026-10-06-least-data-task-prompts.json)."
   ],
   "tests_failed": [],
   "tests_not_run": [
@@ -351,7 +353,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "70e16d0766f87c7b637cd4731a7e251ddc47d54a",
+  "last_implementation_commit": "5e9d630564a2327838af6d73bebbfd08f3d16a83",
   "publication": {
     "result": "PASS",
     "integration_method": "NON_FORCE_FAST_FORWARD",
@@ -4456,12 +4458,56 @@
         "git_commit": "60f2addd1b73c06dcc0f206369a4ee0b78c155e1",
         "evidence_path": "docs/evidence/2026-10-06-bounded-agent-toolregistry.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REF-014-LOCAL-PASS-INTEGRATED-20261006",
+      "timestamp": "2026-10-06T05:56:30Z",
+      "current_phase": "MJ-REF-014_LOCAL_PASS_INTEGRATED_ISSUE_READBACK_PENDING",
+      "completed_steps": [
+        "Implemented and integrated provider-neutral task prompt construction with empty profile context by default and explicit approved minimal context only.",
+        "Ran focused profile/privacy tests (39), full local Python/browser suite (648), strict frontend build, and catalogue/progress/skill validators.",
+        "Recorded reference-gap PASS while preserving the historical partial receipt and the 366/59 requirement denominators.",
+        "Confirmed local and GitHub main are synchronized at 5e9d630564a2327838af6d73bebbfd08f3d16a83."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-06-least-data-task-prompts.json"
+      ],
+      "files_modified": [
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/REFERENCE_GAP_MATRIX.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "39 focused integration tests PASS.",
+        "648 repository Python/integration/browser tests PASS; zero failures and reported skips.",
+        "Strict TypeScript/Vite production build PASS.",
+        "Catalogue, progress journal, agent skill validators and git diff --check PASS."
+      ],
+      "tests_remaining": [
+        "Push planning/evidence receipt and read it back from synchronized main.",
+        "Update issue #384 acceptance checkbox and verify CLOSED with all five checked.",
+        "Hosted Actions/reviews and provider calls remain NOT_RUN by local-only policy."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "GitHub main branch push/hash readback; local database-backed profile-access fixtures."
+      ],
+      "known_errors": [
+        "Initial full-suite run exposed stale ignored apps/web/dist; rebuilding from current source fixed the isolated assertion and final full suite passed."
+      ],
+      "known_limitations": [
+        "No external model provider was called; prompt construction is provider-neutral. Dedicated prompt UI is not applicable. External application submission remains OFF."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "5e9d630564a2327838af6d73bebbfd08f3d16a83",
+        "evidence_path": "docs/evidence/2026-10-06-least-data-task-prompts.json"
+      }
     }
   ],
-  "current_phase": "MJ-REF-014_SELECTED_20261006",
+  "current_phase": "MJ-REF-014_LOCAL_PASS_INTEGRATED_ISSUE_READBACK_PENDING",
   "last_safe_checkpoint": {
-    "git_commit": "60f2addd1b73c06dcc0f206369a4ee0b78c155e1",
-    "evidence_path": "docs/evidence/2026-10-06-bounded-agent-toolregistry.json"
+    "git_commit": "5e9d630564a2327838af6d73bebbfd08f3d16a83",
+    "evidence_path": "docs/evidence/2026-10-06-least-data-task-prompts.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
@@ -4603,11 +4649,11 @@
     "issue": 384,
     "requirement_id": "MJ-REF-014",
     "title": "Least-data profile lookup interface for AI tasks",
-    "state": "OPEN_SELECTED_DEPENDENCY_READY",
-    "selection_reason": "P1 privacy gap and direct prerequisite for the new bounded agent interface: four acceptance criteria are evidenced, while keeping task prompts free of unrelated sensitive sections remains open. The missing criterion can be investigated and locally validated without invoking paid or hosted providers.",
-    "base": "60f2addd1b73c06dcc0f206369a4ee0b78c155e1",
-    "branch": "not yet created",
-    "next_action": "Reconcile issue #384, the exact governance_safety spec, existing least-data task allowlists, profile-access audits, and all prompt construction paths; prove or implement that prompt inputs receive only task-approved explicitly requested facts, with negative profile/task isolation tests. Mark PARTIAL/BLOCKED_EXTERNAL if provider prompt delivery cannot be exercised locally; continue to the next dependency-ready P1 issue without changing the requirement denominator."
+    "state": "INTEGRATED_LOCAL_PASS_PENDING_GITHUB_ISSUE_READBACK",
+    "selection_reason": "P1 privacy requirement; all five acceptance criteria are locally evidenced on synchronized main.",
+    "base": "5e1f98852a7844a98448c3247c33d137ba3ffe9b",
+    "branch": "codex/mj-ref-014-least-data-20261006",
+    "next_action": "Update the final issue checkbox with exact local evidence and close only after readback confirms all five checks."
   },
   "historical_control_snapshots": [
     {
@@ -5726,5 +5772,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-06T04:28:51Z"
+  "updated_at": "2026-10-06T05:55:50Z"
 }
