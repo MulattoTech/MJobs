@@ -7,9 +7,9 @@
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Local main and origin/main are synchronized at 7e36a1f92959026585ce265e36bc85c8cb521ed8. Issue #4 / MJ-REQ-003 is OPEN/PARTIAL after headless coverage evidence/readback; real ATS authenticated persistence remains BLOCKED_EXTERNAL. Next implementation target: P0 issue #5 / MJ-REQ-004 bounded external operations.",
-    "current_verified_github_state": "GitHub main and local main synchronized at 7e36a1f92959026585ce265e36bc85c8cb521ed8; Actions disabled, main unprotected, no open implementation PR. Issues #2/#3 CLOSED, #4 OPEN/PARTIAL, #5 OPEN.",
-    "current_verified_at": "2026-10-06T13:23:59Z"
+    "current_verified_local_state": "Issue #5 / MJ-REQ-004 candidate source e830589b32f268427404aee8bcac4f55b3a1b4e1 on codex/req004-ops-audit-20261006, based on main 82567b2615c68eb226a3501e4b777e792b405a71. DNS cancellation, 21 focused unit tests, 23 discovery integration tests, two headless browser tests and full 703-test suite pass (one optional PostgreSQL skip). Evidence commit/integration pending; broad requirement remains PARTIAL due unavailable AI/real ATS and other operation classes.",
+    "current_verified_github_state": "GitHub main last synchronized at 82567b2615c68eb226a3501e4b777e792b405a71; Actions disabled, main unprotected, no open implementation PR. Issue #5 remains OPEN/PARTIAL.",
+    "current_verified_at": "2026-10-06T13:34:53Z"
   },
   "current_milestone": "MJ-REQ-004-BOUNDED-EXTERNAL-OPERATIONS-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under the local-only delivery policy; one writer and one integration lane.",
@@ -55,7 +55,8 @@
     "MJ-REQ-005 per-source Greenhouse concurrency slice PASS on candidate ec28943ec20109c2b1bc12c0130a26a2991b0636: saved limits now bound the two independent public-read requests, share request-start pacing, preserve provider-failure and cancellation history, and are explained/read back in the Sources UI. Requirement remains PARTIAL for unavailable AI runtime and real ATS paths (docs/evidence/2026-10-06-per-source-greenhouse-concurrency.json).",
     "MJ-REQ-004 Greenhouse worker-budget follow-up: configured public GET connect/read and response-body deadlines are capped by the durable worker remaining monotonic budget; 690 Python/integration/browser tests pass with one optional PostgreSQL skip, 36 browser tests and 62 frontend tests pass; real AI/ATS provider paths remain unavailable and the issue remains PARTIAL.",
     "MJ-REQ-002 PASS: repository dependency/runtime guard excludes GPU requirements; six negative/positive tests, frontend build/tests, 13 headless browser tests, and 696 Python tests passed. GPU hardware was not queried or changed. Evidence: docs/evidence/2026-10-06-gpu-independence.json.",
-    "MJ-REQ-001: checked-in development entrypoints now have a deterministic host-safety guard and project-scoped setup fixtures; dev dependency source-map-js 1.2.2 removes a high severity advisory (full npm audit zero). Five guard tests, 62 frontend tests/build, isolated known Uvicorn case, and all 36 browser tests pass. Full 701-test suite had one known Uvicorn shutdown assertion, retained in docs/evidence/2026-10-06-protected-host-safety.json."
+    "MJ-REQ-001: checked-in development entrypoints now have a deterministic host-safety guard and project-scoped setup fixtures; dev dependency source-map-js 1.2.2 removes a high severity advisory (full npm audit zero). Five guard tests, 62 frontend tests/build, isolated known Uvicorn case, and all 36 browser tests pass. Full 701-test suite had one known Uvicorn shutdown assertion, retained in docs/evidence/2026-10-06-protected-host-safety.json.",
+    "MJ-REQ-004 scoped public DNS cancellation: the worker cancellation/deadline callback is polled during a pending getaddrinfo wait without weakening its absolute lookup deadline or losing timeout classification. 21 unit, 23 integration, two Chromium workflow, and 703 full Python tests pass (1 optional PostgreSQL skip); see docs/evidence/2026-10-06-public-dns-cancellation.json."
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",

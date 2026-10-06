@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-004",
+  "github_issue": 5,
+  "slice_result": "PASS",
+  "requirement_result": "PARTIAL",
+  "base_commit": "82567b2615c68eb226a3501e4b777e792b405a71",
+  "source_commit": "e830589b32f268427404aee8bcac4f55b3a1b4e1",
+  "candidate_commit": "e830589b32f268427404aee8bcac4f55b3a1b4e1",
+  "candidate_tree": "2f914f797f1262ae05a0f55a6a80fe96aae3a4f5",
+  "recorded_at_utc": "2026-10-06T13:34:53Z",
+  "scope": "Make public-source DNS resolution respond promptly to the existing durable worker cancellation and monotonic deadline checks while preserving its strict per-lookup timeout and caller error classification.",
+  "acceptance": {
+    "pending_dns_lookup_observes_worker_cancellation_within_bounded_poll_interval": "PASS",
+    "worker_timeout_exception_is_preserved_instead_of_misclassified_as_dns_failure": "PASS",
+    "dns_absolute_timeout_and_private_address_validation_remain_enforced": "PASS",
+    "public_company_source_integration_and_headless_browser_workflows_regressions": "PASS",
+    "no_live_dns_or_employer_request_used_in_tests": "PASS",
+    "external_ai_provider_and_real_ats_operation_classes": "BLOCKED_EXTERNAL",
+    "external_application_submission": "OFF"
+  },
+  "validation": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_public_company_client.PublicCompanyClientTests.test_dns_resolution_observes_operation_cancellation_while_lookup_is_pending -v",
+      "timestamp_utc": "2026-10-06T13:26:00Z",
+      "target": "Reproduce pending-DNS cancellation delay before the implementation change",
+      "result": "FAIL_EXPECTED_RED",
+      "summary": "The new regression test failed because the worker remained blocked waiting for the resolver timeout after cancellation."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_public_company_client -v",
+      "timestamp_utc": "2026-10-06T13:27:10Z",
+      "target": "DNS timeout, cancellation, caller error preservation, resolver pinning, private-address rejection, TLS, redirect and body limits",
+      "result": "PASS",
+      "summary": "All 21 unit tests passed, including cancellation responsiveness and preservation of the worker deadline exception."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_discovery_requests tests.integration.test_company_monitoring_recovery -v",
+      "timestamp_utc": "2026-10-06T13:27:10Z",
+      "target": "Durable discovery authorization, cancellation, monitoring retry, import and history regressions",
+      "result": "PASS",
+      "summary": "23 integration tests passed with fixture-only network transports."
+    },
+    {
+      "command": "npm ci --prefix apps/web; npm run build --prefix apps/web; C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_public_company_discovery tests.browser.test_company_source_monitoring",
+      "timestamp_utc": "2026-10-06T13:28:00Z",
+      "target": "Frontend assets plus connected headless public-company discovery and recurring source monitoring workflows",
+      "result": "PASS",
+      "summary": "TypeScript/Vite production build passed; two Chromium browser tests passed. npm used the committed lockfile and reported zero dependency vulnerabilities. The local Node 25.9 runtime emitted an engine-range warning; project build and tests completed successfully."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py'",
+      "timestamp_utc": "2026-10-06T13:34:10Z",
+      "target": "Full Python/unit/integration/browser test discovery on exact source commit and tree",
+      "result": "PASS",
+      "summary": "703 tests passed; one optional PostgreSQL test was skipped because MJOBS_TEST_POSTGRES_URL was not configured. Test fixtures blocked live employer requests. A feedback-GUI client-disconnect traceback appeared during cleanup but the suite completed successfully."
+    },
+    {
+      "command": "python -m tools.verification.agent_skills; python -m tools.verification.catalogue; python -m tools.verification.progress validate; git diff --check",
+      "timestamp_utc": "2026-10-06T13:34:32Z",
+      "target": "Repository skill contract, unchanged requirement/reference denominator, planning journal and whitespace",
+      "result": "PASS",
+      "summary": "All validators passed; denominators remain 366 requirements and 59 reference gaps."
+    }
+  ],
+  "external_boundaries": {
+    "dns_lookup": "PATCHED_LOCAL_RESOLVER_FIXTURE_ONLY",
+    "live_employer_fetch": false,
+    "ai_provider_calls": false,
+    "real_ats_application_automation": "NOT_AVAILABLE_AND_DISABLED",
+    "personal_profile_data_read_or_changed": false,
+    "external_submission": "OFF",
+    "postgresql_test": "NOT_RUN_OPTIONAL_ENVIRONMENT_MISSING_MJOBS_TEST_POSTGRES_URL",
+    "github_actions": "DISABLED_BY_USER_POLICY",
+    "hosted_review": "NOT_RUN_BY_USER_POLICY"
+  },
+  "requirement_limitations": [
+    "AI requests have no installed provider runtime and real ATS automation remains unsupported/OFF, so those operation classes remain PARTIAL/BLOCKED_EXTERNAL.",
+    "This slice covers cancellation/deadline polling during public-company DNS resolution only; it does not close all timeout, captured-output, retry, and error-classification requirements across every operation class."
+  ],
+  "denominators": {
+    "requirements": 366,
+    "reference_gaps": 59
+  },
+  "integration": {
+    "status": "PENDING",
+    "method": "NON_FORCE_FAST_FORWARD_IF_CURRENT_MAIN_IS_ANCESTOR",
+    "base_commit": "82567b2615c68eb226a3501e4b777e792b405a71",
+    "candidate_branch": "codex/req004-ops-audit-20261006",
+    "hosted_verification": "NOT_RUN_BY_USER_POLICY"
+  }
+}

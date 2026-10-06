@@ -1,4 +1,4 @@
-# Active local-only implementation checkpoint — 2026-10-06T13:20Z
+# Active local-only implementation checkpoint — 2026-10-06T13:34Z
 
 The current authorization remains sustained local-only issue implementation from synchronized `main`, one writer/integration lane, local deterministic tests/browser/database checks, Git operations and issue updates. GitHub Actions/hosted review remain disabled; external application submission stays OFF.
 
@@ -14,7 +14,9 @@ Issue #4 / MJ-REQ-003 headless acceptance is recorded as PARTIAL in `docs/eviden
 
 Issue #4 evidence was integrated at `7e36a1f92959026585ce265e36bc85c8cb521ed8`; the GitHub comment/readback leaves it OPEN/PARTIAL because authenticated real ATS session persistence is BLOCKED_EXTERNAL (https://github.com/MulattoTech/MJobs/issues/4#issuecomment-6017238071).
 
-Next sole writer: P0 issue #5 / MJ-REQ-004 Bound External Operations. Audit the remaining HTTP/browser/AI/document/OCR/process/source/ATS operation classes on current main and implement the highest-value dependency-ready local slice; do not treat unavailable AI/ATS paths as PASS.
+Current issue #5 / MJ-REQ-004 slice: public DNS resolution polls the durable worker cancellation/deadline callback during pending resolver work; the absolute DNS timeout and caller exception identity remain intact. Candidate `e830589b32f268427404aee8bcac4f55b3a1b4e1` has 21 focused unit, 23 discovery/monitoring integration, two connected headless browser, and 703 full Python tests PASS with one optional PostgreSQL skip. Evidence: `docs/evidence/2026-10-06-public-dns-cancellation.json`. Evidence commit and safe integration pending; issue #5 remains OPEN/PARTIAL because AI provider and real ATS operation classes are unavailable and other boundaries remain. Hosted Actions/reviews NOT_RUN; external submission OFF.
+
+Continue issue #5 by auditing the next highest-value locally testable operation boundary after integrating this slice.
 
 The previous integrated issue #5 cancellation slice is source `e57c1759cd75dd453bbe0284325aee3d3174eb1d` and evidence/planning receipt `f9649d9ae374a31203d6cc2774d7ac47f4e4376b`; local and origin main matched at integration. GitHub issue #5 comment/readback remains OPEN (https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6015630443). Evidence: `docs/evidence/2026-10-06-resume-extraction-cancellation.json`. The slice adds profile/resume-scoped **Cancel extraction**, propagates cancellation through native PDF/DOCX and active OCR child processes, and kills/reaps children while keeping operation deadlines and private diagnostics bounded.
 
