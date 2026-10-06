@@ -30,3 +30,11 @@ does not inspect or modify host hardware. Its fixture tests cover valid CPU-only
 inputs plus representative Python, JavaScript, Compose, Dockerfile, and frontend
 GPU regressions. Run `python -m unittest tests.unit.test_gpu_independence` and
 `python -m tools.verification.gpu_independence`.
+
+`host_safety` guards MJ-REQ-001 by inspecting checked-in PowerShell, shell,
+batch, and package-script setup entrypoints for broad host package upgrades,
+driver/firmware/TDR edits, network resets, host shutdown/reboot, and broad
+process termination. Project-scoped dependencies, containers, and local app
+startup remain allowed. The verifier does not change host state or inspect
+private feedback files. Run `python -m unittest tests.unit.test_host_safety`
+and `python -m tools.verification.host_safety`.
