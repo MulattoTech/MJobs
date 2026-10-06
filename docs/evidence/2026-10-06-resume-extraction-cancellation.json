@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-004",
+  "github_issue": 5,
+  "slice_result": "PASS",
+  "requirement_result": "PARTIAL",
+  "base_commit": "53e2239af5fba1428b91dfdc6feef148a7c84ce4",
+  "candidate_commit": "e57c1759cd75dd453bbe0284325aee3d3174eb1d",
+  "candidate_tree": "9d77f9a7f22db58b73ad754568da9f998b4773e1",
+  "recorded_at_utc": "2026-10-06T11:48:28Z",
+  "scope": "Complete local resume extraction cancellation for both native parser and OCR children, including an explicit profile-scoped cancel action for browser clients that abort a fetch while reusing the underlying HTTP connection.",
+  "acceptance": {
+    "profile_ui_shows_cancel_extraction_while_work_is_running": "PASS",
+    "profile_scoped_cancel_route_signals_only_owned_resume_extractions": "PASS",
+    "browser_cancel_stops_request_work_and_preserves_saved_profile": "PASS",
+    "transport_disconnect_fallback_still_cancels_and_returns_499": "PASS",
+    "native_pdf_docx_and_scanned_pdf_ocr_receive_shared_cancellation": "PASS",
+    "running_ocr_child_is_killed_and_reaped_promptly": "PASS",
+    "ocr_per_tool_and_total_deadlines_and_private_diagnostics_remain_bounded": "PASS",
+    "reviewed_native_and_ocr_extraction_behavior_remains_usable": "PASS",
+    "requirement_and_reference_denominators_unchanged": "PASS"
+  },
+  "evidence": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -W error::ResourceWarning -m unittest tests.unit.test_resume_ocr tests.unit.test_resume_extraction tests.integration.test_profile_import tests.browser.test_profile_import -v",
+      "observed_at_utc": "2026-10-06T11:48:28Z",
+      "result": "PASS",
+      "summary": "56 focused tests passed, including route cancellation/profile ownership, actual subprocess termination contracts, extraction fact review and both real Chromium profile workflows. ResourceWarnings were treated as errors."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest discover -s tests/browser -p test_*.py",
+      "observed_at_utc": "2026-10-06T11:48:28Z",
+      "duration_seconds": 163.082,
+      "result": "PASS",
+      "summary": "All 36 Chromium browser tests passed, including the new explicit cancel action and the unrelated company-discovery request workflow."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p test_*.py",
+      "observed_at_utc": "2026-10-06T11:48:28Z",
+      "duration_seconds": 391.621,
+      "result": "PASS",
+      "summary": "688 tests ran; zero failures/errors; one optional PostgreSQL test skipped because MJOBS_TEST_POSTGRES_URL was unset. An earlier same-slice run had one unrelated CompanyDiscoveryRequestsBrowserTests server-thread shutdown assertion; that test passed alone, all browser tests passed, and this same-source full rerun passed."
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run; npm run build --prefix apps/web; C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.agent_skills; C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.catalogue; C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.progress validate; git diff --check",
+      "observed_at_utc": "2026-10-06T11:48:28Z",
+      "result": "PASS",
+      "summary": "All 62 frontend tests passed; strict TypeScript/Vite production build and repository validators passed."
+    },
+    {
+      "command": "Isolated no-network Docker app image with current ocr.py mounted: python -m cli.profile_ocr_e2e; actual local tool cancellation probe using Python child sleep",
+      "observed_at_utc": "2026-10-06T11:30:03.608274Z",
+      "result": "PASS",
+      "summary": "Real Poppler/Tesseract scanned and mixed-PDF extraction plus Chromium review/save/reload passed without mutating the profile. A real local OCR child was cancelled and reaped in 0.201 seconds. Container had no network and external submission remained off."
+    }
+  ],
+  "test_first_red_and_diagnostic_events": [
+    {
+      "test": "tests.unit.test_resume_ocr.ResumeOCRTests.test_cancellation_kills_and_reaps_running_ocr_child",
+      "result": "EXPECTED_RED_THEN_PASS",
+      "failure": "OCR child helper exposed no cancellation exception or cancellation-event process boundary."
+    },
+    {
+      "test": "tests.integration.test_profile_import.ProfileImportTests.test_explicit_extract_cancel_is_profile_scoped",
+      "result": "EXPECTED_RED_THEN_PASS",
+      "failure": "The app had no active extraction registry or profile-scoped cancellation endpoint."
+    },
+    {
+      "command": "Chromium AbortController.fetch abort and page close with ASGI Request.is_disconnected traced",
+      "result": "EXPECTED_LIMITATION_THEN_EXPLICIT_CANCEL_DESIGN",
+      "finding": "The browser cancelled its HTTP/1.1 request but retained a reusable connection; repeated ASGI receive checks remained false. The UI now sends an explicit profile/resume-scoped cancellation request, while transport-disconnect cancellation remains a fallback."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p test_*.py",
+      "result": "FAIL_THEN_NOT_REPRODUCED",
+      "failure": "One unrelated CompanyDiscoveryRequestsBrowserTests server-thread shutdown assertion failed under full-suite load. The case passed alone and in the full 36-test browser suite; the same-source 688-test full rerun passed with one optional PostgreSQL skip. No timeout was changed."
+    }
+  ],
+  "requirement_limitations": [
+    "Cancellation registry is in process memory; it targets the current local API deployment and does not coordinate multiple API replicas.",
+    "Other browser/navigation/provider operation classes still need their own cancellation and output/retry/error contracts; real ATS and AI/provider runtimes are unavailable.",
+    "Hosted checks/reviews are NOT_RUN by the active local-only policy."
+  ],
+  "external_boundaries": {
+    "github_actions_enabled": false,
+    "hosted_checks": "NOT_RUN_BY_LOCAL_ONLY_POLICY",
+    "hosted_review": "NOT_RUN_BY_LOCAL_ONLY_POLICY",
+    "optional_postgresql_test": "SKIPPED_ENVIRONMENT_MISSING_MJOBS_TEST_POSTGRES_URL",
+    "live_employer_fetch": false,
+    "ai_provider_calls": false,
+    "external_application_submission": "OFF",
+    "personal_application_data_read_or_changed": false
+  },
+  "denominators": {
+    "requirements": 366,
+    "reference_gaps": 59
+  },
+  "main_integration": {
+    "method": "PENDING_NON_FORCE_FAST_FORWARD",
+    "base_commit": "53e2239af5fba1428b91dfdc6feef148a7c84ce4",
+    "source_candidate": "e57c1759cd75dd453bbe0284325aee3d3174eb1d",
+    "local_main_at_candidate": "53e2239af5fba1428b91dfdc6feef148a7c84ce4",
+    "origin_main_at_candidate": "53e2239af5fba1428b91dfdc6feef148a7c84ce4",
+    "main_protection": "NOT_CONFIGURED",
+    "github_actions_enabled": false,
+    "open_prs": 0,
+    "issue_state_before_integration": "OPEN"
+  }
+}

@@ -1,14 +1,14 @@
-# Active local-only implementation checkpoint — 2026-10-06T11:12Z
+# Active local-only implementation checkpoint — 2026-10-06T11:48Z
 
-The current authorization is continuous issue implementation from synchronized main, with one writer and one integration lane. GitHub Actions and hosted reviews/tests remain disabled; external application submission stays OFF.
+The current authorization remains sustained local-only issue implementation from synchronized `main`, one writer/integration lane, local deterministic tests/browser/database checks, Git operations and issue updates. GitHub Actions/hosted review remain disabled; external application submission stays OFF.
 
-Current issue #5 slice is integrated: source candidate `6c4283646e8bfb04e27d57d585db72ef7803a282` and evidence/planning receipt at `c9d7fdfdbb5959f8e84a4a564f2541098d542262`; local `main` and `origin/main` matched at integration. GitHub issue #5 comment/readback remains OPEN (https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6015058716). Candidate tests: 36 focused extraction/API tests (ResourceWarnings treated as errors), 1 real Chromium profile import/review test, 683 full Python tests (one optional PostgreSQL skip), 62 web tests and build, skill/catalogue/progress/diff checks all PASS. Evidence: `docs/evidence/2026-10-06-native-parser-disconnect-cancellation.json`.
+Current base and `origin/main`: `53e2239af5fba1428b91dfdc6feef148a7c84ce4`. Active issue #5 / MJ-REQ-004 candidate `e57c1759cd75dd453bbe0284325aee3d3174eb1d` is pushed on `codex/req004-bound-ops-20261006`, locally verified and pending safe non-force fast-forward integration. Evidence: `docs/evidence/2026-10-06-resume-extraction-cancellation.json`. The slice adds profile/resume-scoped **Cancel extraction**, propagates cancellation through native PDF/DOCX and active OCR child processes, and kills/reaps children while keeping operation deadlines and private diagnostics bounded.
 
-The slice passes native PDF/DOCX request-disconnect propagation, promptly kills/reaps parser children, and caps streaming output at 2 MiB. It does not finish broad issue #5: OCR already in progress is not immediately cancelled; AI/provider and real ATS paths are unavailable; broader all-category output/retry/error classification and browser-abort proof remain open. Keep #5 OPEN/PARTIAL and requirement/reference denominators at 366/59.
+Verification: 56 focused extraction/API/browser tests; 36 browser tests; 688 full Python tests PASS with one optional PostgreSQL skip; 62 frontend tests/build; local skill/catalogue/progress/diff validators; isolated no-network Poppler/Tesseract API/Chromium acceptance and actual OCR child cancellation PASS. One initial full-suite `CompanyDiscoveryRequestsBrowserTests` shutdown assertion passed alone, in all browser tests and same-source full rerun.
 
-Continue issue #5 with cancellation for OCR already in progress, then choose the next highest-value locally implementable operation bound. No hosted work, extra reviewers, billing changes or external submissions.
+Broad MJ-REQ-004 and issue #5 remain PARTIAL/OPEN; real ATS/AI provider paths and complete all-category timeout/output/retry/error policy remain open. Requirement/reference denominators remain 366/59. After integration, verify GitHub issue #5 stays OPEN and continue with the next highest-value local operation boundary.
 
-The historical entries below are retained. Their issue/#commit chronology is historical and must not override current Git/GitHub state.
+Historical entries below are preserved and never override live Git/GitHub state.
 
 ---
 

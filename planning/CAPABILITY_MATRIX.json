@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-06T11:12:34Z",
+  "timestamp": "2026-10-06T11:48:28Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -46,9 +46,10 @@
         "docs/evidence/2026-10-06-fact-review-clean-tree.json",
         "docs/evidence/2026-10-06-mock-ats-action-budget.json",
         "docs/evidence/2026-10-06-bounded-ocr-diagnostics.json",
-        "docs/evidence/2026-10-06-native-parser-disconnect-cancellation.json"
+        "docs/evidence/2026-10-06-native-parser-disconnect-cancellation.json",
+        "docs/evidence/2026-10-06-resume-extraction-cancellation.json"
       ],
-      "note": "Scoped local evidence now includes native PDF/DOCX request-disconnect cancellation with prompt child termination and fixed-memory 2 MiB streaming output cap, in addition to worker/source, parser, mock ATS, fact-review and OCR diagnostics slices. Exact candidate full local suite 683 PASS with one optional PostgreSQL skip; browser import/review and route-level cancellation pass. Broad requirement remains PARTIAL: OCR already-running cancellation, unavailable AI/real ATS paths, browser-abort coverage, and complete all-category timeout/output/retry/error policy remain open."
+      "note": "Scoped local evidence now includes native parser plus OCR in-flight cancellation and an explicit profile/resume-scoped browser Cancel extraction flow; browser fetch abort may leave a reusable HTTP connection and therefore needs the explicit cancel request. Current exact implementation suite: 688 tests pass, 1 optional PostgreSQL skip, after one unrelated nonreproduced server-thread shutdown assertion; all 36 browser tests pass. Real AI/ATS paths and complete cross-category timeout/output/retry/error policy remain open."
     },
     {
       "requirement_id": "MJ-REQ-005",

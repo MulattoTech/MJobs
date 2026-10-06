@@ -1,17 +1,17 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-06T11:15:36Z",
+  "generated_at": "2026-10-06T11:48:28Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Local main and origin/main were synchronized at c9d7fdfdbb5959f8e84a4a564f2541098d542262 after non-force fast-forward integration of issue #5 native parser disconnect cancellation and evidence; issue #5 readback remains OPEN/PARTIAL.",
-    "current_verified_github_state": "GitHub main and local main were synchronized at c9d7fdfdbb5959f8e84a4a564f2541098d542262; main had no protection rule, Actions are disabled, and no PR is open. Issue #5 remains OPEN/PARTIAL after readback; hosted checks/reviews NOT_RUN by policy.",
-    "current_verified_at": "2026-10-06T11:15:36Z"
+    "current_verified_local_state": "Local main and origin/main were synchronized at 53e2239af5fba1428b91dfdc6feef148a7c84ce4 after the prior issue #5 parser cancellation slice. New OCR/UI cancellation candidate e57c1759cd75dd453bbe0284325aee3d3174eb1d is pushed and locally verified; pending safe fast-forward integration.",
+    "current_verified_github_state": "GitHub main is 53e2239af5fba1428b91dfdc6feef148a7c84ce4; Actions disabled, main unprotected, no open PRs. Issue #5 remains OPEN. Resume OCR and UI cancellation candidate e57c1759cd75dd453bbe0284325aee3d3174eb1d is pushed and locally verified; hosted checks/reviews NOT_RUN by policy.",
+    "current_verified_at": "2026-10-06T11:48:28Z"
   },
-  "current_milestone": "MJ-REQ-004-NATIVE-PARSER-DISCONNECT-CANCELLATION-20261006",
+  "current_milestone": "MJ-REQ-004-RESUME-EXTRACTION-CANCELLATION-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under the local-only delivery policy; one writer and one integration lane.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -79,7 +79,8 @@
     "MJ-REQ-004 remains PARTIAL: worker-wide cooperative deadlines, Greenhouse rate-wait cancellation, parser subprocess bounds, mock ATS action budgets, fact-review Git bounds and truthful local OCR child failure diagnostics are verified. Native parser/OCR request-disconnect cancellation, real AI/ATS paths, and broad all-category output/retry/error classification remain open (docs/evidence/2026-10-06-bounded-ocr-diagnostics.json).",
     "MJ-REQ-005 scoped category-admission slice: five bounded independent configuration categories; category-wide SQLite/PostgreSQL claim admission and conservative Compose defaults (docs/evidence/2026-10-06-operation-concurrency-categories.json).",
     "MJ-REQ-006 current workspace inventory and KEEP classification are evidenced and integrated at 124b084925a807079cce78c168211f73b7bf97fb; issue #7 is CLOSED after GitHub readback (docs/evidence/2026-10-06-current-workspace-inspection.json).",
-    "MJ-REQ-004 native PDF/DOCX parsing now propagates extraction-request disconnects into the parser child, terminates/reaps it, and caps streamed stdout at 2 MiB; OCR already in progress, real provider/AI/ATS calls and complete operation-category policies remain incomplete (docs/evidence/2026-10-06-native-parser-disconnect-cancellation.json)."
+    "MJ-REQ-004 native PDF/DOCX parsing now propagates extraction-request disconnects into the parser child, terminates/reaps it, and caps streamed stdout at 2 MiB; OCR already in progress, real provider/AI/ATS calls and complete operation-category policies remain incomplete (docs/evidence/2026-10-06-native-parser-disconnect-cancellation.json).",
+    "MJ-REQ-004 now cancels native parser and OCR subprocesses from an explicit profile/resume-scoped UI action and from observed transport disconnects; all-category external-operation policy and unavailable real ATS/AI provider paths remain PARTIAL (docs/evidence/2026-10-06-resume-extraction-cancellation.json)."
   ],
   "blocked_capabilities": [],
   "active_requirements": [
@@ -246,14 +247,16 @@
     "MJ-REQ-005: 21 focused SQLite lifecycle/config/Compose tests PASS; isolated PostgreSQL 17 concurrent shared-category admission PASS; 35 browser tests PASS; 669 Python tests PASS with 1 optional PostgreSQL skip; matching frontend TypeScript/Vite production build and repository validators PASS (docs/evidence/2026-10-06-operation-concurrency-categories.json).",
     "MJ-REQ-005 per-source Greenhouse concurrency exact candidate ec28943ec20109c2b1bc12c0130a26a2991b0636: 29 focused source/scheduler tests PASS; one real-Chromium core workflow PASS; full Python/integration/browser discovery 674 PASS with 1 optional PostgreSQL skip; frontend TypeScript/Vite build plus 62 tests PASS; agent-skills/catalogue/progress/JSON/diff checks PASS. One first-run browser shutdown timeout did not recur in the isolated test, 35-test browser suite, or same-head full rerun. Evidence: docs/evidence/2026-10-06-per-source-greenhouse-concurrency.json.",
     "MJ-REQ-004 bounded OCR diagnostics candidate 3d604b27b1a4c25e2ff0ee6fa68a07e9ff8f74a0: 48 focused unit/API/browser tests, 35 browser suite tests, 680 full suite tests with one optional PostgreSQL skip, 62 frontend tests/build, isolated no-network Linux real OCR and synthetic bounded-diagnostic process test, validators PASS; see docs/evidence/2026-10-06-bounded-ocr-diagnostics.json.",
-    "MJ-REQ-004 native parser disconnect cancellation candidate 6c4283646e8bfb04e27d57d585db72ef7803a282: 36 focused extraction/API tests with ResourceWarnings as errors, 1 Chromium profile import/review test, 683 full Python tests with 1 optional PostgreSQL skip, 62 frontend tests/build, skill/catalogue/progress/diff checks all PASS; see docs/evidence/2026-10-06-native-parser-disconnect-cancellation.json."
+    "MJ-REQ-004 native parser disconnect cancellation candidate 6c4283646e8bfb04e27d57d585db72ef7803a282: 36 focused extraction/API tests with ResourceWarnings as errors, 1 Chromium profile import/review test, 683 full Python tests with 1 optional PostgreSQL skip, 62 frontend tests/build, skill/catalogue/progress/diff checks all PASS; see docs/evidence/2026-10-06-native-parser-disconnect-cancellation.json.",
+    "MJ-REQ-004 resume extraction cancellation candidate e57c1759cd75dd453bbe0284325aee3d3174eb1d: 56 focused extraction/API/browser tests PASS with ResourceWarnings treated as errors; all 36 browser tests pass; 688 full Python tests PASS with 1 optional PostgreSQL skip after one nonreproducible unrelated server-thread teardown failure; 62 frontend tests/build, real no-network OCR API/Chromium and child cancellation, repository validators PASS. Evidence: docs/evidence/2026-10-06-resume-extraction-cancellation.json."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
     "RESOLVED ON SAME HEAD: initial exact-head full run had 663 tests, 1 failure and 1 error because ignored apps/web/dist was stale; two affected tests failed in isolation before rebuild. npm build refreshed dist; both isolated tests and a subsequent exact-head full run (663 tests, zero failures/errors/skips) passed. Details in docs/evidence/2026-10-06-mock-ats-action-budget.json.",
     "MJ-REQ-005 initial full suite before frontend build: 669 tests, 2 failures, 6 errors and 13 skips because this isolated worktree had no apps/web/dist; after building the current unchanged frontend source and rerunning browser/full suites, browser 35 and full 669 tests passed. See docs/evidence/2026-10-06-operation-concurrency-categories.json.",
     "MJ-REQ-005 candidate ec28943ec20109c2b1bc12c0130a26a2991b0636 first exact-head full-suite run: 674 tests, 1 Uvicorn server-thread teardown assertion failure, 1 optional PostgreSQL skip. The failing browser test passed in isolation and as part of the full browser suite; a same-head full rerun passed 674 tests with 1 optional skip. Recorded without weakening the shutdown timeout; see docs/evidence/2026-10-06-per-source-greenhouse-concurrency.json.",
-    "MJ-REQ-004 candidate 3d604b27b1a4c25e2ff0ee6fa68a07e9ff8f74a0 full-suite chronology: initial browser run used stale ignored apps/web/dist and failed the core workflow Sources-copy assertion; rebuilding from current source fixed it. First rebuilt full run had one unrelated Uvicorn teardown assertion in CompanyDiscoveryRequestsBrowserTests; isolated case and 35-test browser suite passed; same-head 680-test rerun passed. See docs/evidence/2026-10-06-bounded-ocr-diagnostics.json."
+    "MJ-REQ-004 candidate 3d604b27b1a4c25e2ff0ee6fa68a07e9ff8f74a0 full-suite chronology: initial browser run used stale ignored apps/web/dist and failed the core workflow Sources-copy assertion; rebuilding from current source fixed it. First rebuilt full run had one unrelated Uvicorn teardown assertion in CompanyDiscoveryRequestsBrowserTests; isolated case and 35-test browser suite passed; same-head 680-test rerun passed. See docs/evidence/2026-10-06-bounded-ocr-diagnostics.json.",
+    "MJ-REQ-004 resume extraction cancellation initial full run: one unrelated CompanyDiscoveryRequestsBrowserTests server-thread shutdown assertion failed under suite load; the test passed alone, all 36 browser tests passed, and same-source 688-test full rerun passed with one optional PostgreSQL skip. No timeout changed; see docs/evidence/2026-10-06-resume-extraction-cancellation.json."
   ],
   "tests_not_run": [
     "Remaining full-spec integrations and product/release requirements",
@@ -269,7 +272,8 @@
     "GitHub Actions/hosted review and provider/real ATS requests remain NOT_RUN by local-only policy; external submission remains OFF.",
     "MJ-REQ-006 source tests were NOT_RUN because this acceptance is a read-only workspace inventory/classification and no executable code changed; hosted workflows remain disabled.",
     "MJ-REQ-005 AI provider/runtime and real ATS concurrency remain NOT_RUN because those operation/provider paths do not exist or are unavailable; one optional PostgreSQL category test was skipped because MJOBS_TEST_POSTGRES_URL is unset. No live employer fetch or application submission was performed.",
-    "MJ-REQ-004 candidate 6c4283646e8bfb04e27d57d585db72ef7803a282: hosted Actions/reviews NOT_RUN by policy; browser-driven abort was not run (route-level disconnect integration plus real child-kill tests passed); PostgreSQL test skipped because MJOBS_TEST_POSTGRES_URL is unset; OCR already-running child cancellation and real provider/ATS operation paths remain open."
+    "MJ-REQ-004 candidate 6c4283646e8bfb04e27d57d585db72ef7803a282: hosted Actions/reviews NOT_RUN by policy; browser-driven abort was not run (route-level disconnect integration plus real child-kill tests passed); PostgreSQL test skipped because MJOBS_TEST_POSTGRES_URL is unset; OCR already-running child cancellation and real provider/ATS operation paths remain open.",
+    "MJ-REQ-004 resume extraction cancellation candidate: hosted checks/review NOT_RUN by local-only policy; one optional PostgreSQL test skipped because MJOBS_TEST_POSTGRES_URL is unset; no employer fetch, AI/provider call, or external submission."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -278,7 +282,8 @@
     "MJ-REQ-004 remains PARTIAL: fact-review verifier still needs a dirty-worktree/source-tree mismatch guard; real provider/AI request paths and complete operation-category policies are unavailable or not yet evidenced.",
     "MJ-REQ-004 remains PARTIAL: real provider/AI requests, request-disconnect cancellation, production external services, and complete all-category operation policies remain unavailable or not yet evidenced.",
     "MJ-REQ-004 remains PARTIAL: real ATS and web-search/AI providers are not configured and were not called; request-disconnect cancellation and some all-category bounds remain unproven.",
-    "Native resume parser cancellation is locally verified, but an already-running OCR subprocess retains its own bounded deadline and is not immediately interrupted on request disconnect; no browser abort test, AI/provider runtime or real ATS path was run."
+    "Native resume parser cancellation is locally verified, but an already-running OCR subprocess retains its own bounded deadline and is not immediately interrupted on request disconnect; no browser abort test, AI/provider runtime or real ATS path was run.",
+    "Resume extraction cancellation uses an in-process active-event registry for the local single API process; distributed cancellation across multiple API replicas is not implemented. Real provider/AI/ATS operation paths remain unavailable."
   ],
   "known_product_defects": [
     "Manual application status is user-reported only; company/application notes beyond this slice, independently verified submission receipts, and full canonical tracker acceptance remain unverified.",
@@ -296,12 +301,12 @@
     "MJ-REQ-004 candidate 3d604b27b1a4c25e2ff0ee6fa68a07e9ff8f74a0: full suite initially saw stale ignored apps/web/dist; rebuilding restored current Sources UI and isolated browser acceptance. A first rebuilt full run later hit the known intermittent CompanyDiscoveryRequestsBrowserTests server-thread shutdown assertion; isolated case and all 35 browser tests passed, followed by a same-head 680-test full suite pass. Do not weaken shutdown timeout; evidence docs/evidence/2026-10-06-bounded-ocr-diagnostics.json."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-06T11:15:36Z",
+    "timestamp": "2026-10-06T11:48:28Z",
     "result": "PARTIAL",
-    "source_commit": "6c4283646e8bfb04e27d57d585db72ef7803a282",
-    "scope": "Native PDF/DOCX request-disconnect cancellation slice PASS and safely integrated; issue #5 remains OPEN/PARTIAL after GitHub readback.",
-    "evidence_path": "docs/evidence/2026-10-06-native-parser-disconnect-cancellation.json",
-    "integration_commit": "c9d7fdfdbb5959f8e84a4a564f2541098d542262"
+    "source_commit": "e57c1759cd75dd453bbe0284325aee3d3174eb1d",
+    "scope": "Native parser and OCR child cancellation plus explicit profile/resume-scoped browser cancel UI PASS; broad issue #5 remains OPEN/PARTIAL.",
+    "evidence_path": "docs/evidence/2026-10-06-resume-extraction-cancellation.json",
+    "integration_commit": null
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -368,7 +373,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Continue P0 issue #5 / MJ-REQ-004 from synchronized main after native parser disconnect cancellation integration at c9d7fdfdbb5959f8e84a4a564f2541098d542262. Address cancellation of OCR already in progress, then remaining locally implementable output/retry/error boundaries. Issue #5 and requirement remain OPEN/PARTIAL; hosted evidence NOT_RUN; external submission OFF; denominators remain 366 and 59.",
+  "recommended_resume_step": "Continue P0 issue #5 / MJ-REQ-004 from synchronized main 53e2239af5fba1428b91dfdc6feef148a7c84ce4. Integrate locally verified resume OCR/UI cancellation candidate e57c1759cd75dd453bbe0284325aee3d3174eb1d and evidence, read back issue #5 remains OPEN, then audit other subprocess, HTTP and browser operation boundaries for the next highest-value locally implementable cancellation/output/retry gap. Hosted evidence NOT_RUN; external submission OFF; denominators remain 366/59.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -405,7 +410,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "6c4283646e8bfb04e27d57d585db72ef7803a282",
+  "last_implementation_commit": "e57c1759cd75dd453bbe0284325aee3d3174eb1d",
   "publication": {
     "result": "PASS",
     "integration_method": "NON_FORCE_FAST_FORWARD",
@@ -5002,12 +5007,67 @@
         "git_commit": "c9d7fdfdbb5959f8e84a4a564f2541098d542262",
         "evidence_path": "docs/evidence/2026-10-06-native-parser-disconnect-cancellation.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-004-RESUME-EXTRACTION-CANCELLATION-20261006",
+      "timestamp": "2026-10-06T11:48:28Z",
+      "current_phase": "MJ-REQ-004_RESUME_EXTRACTION_CANCELLATION_LOCAL_PASS_PENDING_INTEGRATION",
+      "completed_steps": [
+        "Reproduced Chromium fetch abort/page-close behavior: ASGI receive repeatedly returned is_disconnected false on a reusable HTTP/1.1 connection; added the visible explicit cancel action and retained transport-disconnect fallback.",
+        "Added a profile/resume-scoped cancel API and process-local active extraction event registry; verified foreign-profile cancellation receives 404 and does not signal work.",
+        "Converted local OCR child waits to a cancellable deadline loop; propagated the API event through native PDF, scanned-page OCR rendering and recognition; killed and reaped child processes on cancel/timeout.",
+        "Passed real Chromium cancel-button flow with unchanged profile state, real local OCR API/browser synthetic extraction, and actual isolated Linux OCR-child cancellation in 0.201 seconds.",
+        "Pushed exact source candidate e57c1759cd75dd453bbe0284325aee3d3174eb1d based on synchronized main 53e2239af5fba1428b91dfdc6feef148a7c84ce4; waiting for local-only safe integration."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-06-resume-extraction-cancellation.json"
+      ],
+      "files_modified": [
+        "apps/api/main.py",
+        "apps/web/src/resume-library.tsx",
+        "services/career_profile/AREA.md",
+        "services/career_profile/extraction.py",
+        "services/career_profile/ocr.py",
+        "tests/browser/test_profile_import.py",
+        "tests/integration/test_profile_import.py",
+        "tests/unit/test_resume_ocr.py",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "56 focused extraction/API/Chromium tests PASS with ResourceWarnings treated as errors.",
+        "All 36 browser tests PASS.",
+        "688 full Python tests PASS with one optional PostgreSQL skip on same source; an earlier unrelated server shutdown failure was not reproduced alone, in browser suite, or full rerun.",
+        "62 frontend tests, strict TypeScript/Vite build, local skill/catalogue/progress/diff validators PASS.",
+        "No-network Linux app container real Poppler/Tesseract API/Chromium extraction PASS; actual OCR tool child cancellation/reap in 0.201 seconds."
+      ],
+      "tests_remaining": [
+        "Integrate source/evidence by safe non-force fast-forward and read back issue #5 remains OPEN.",
+        "Broader non-resume HTTP/browser/process operation cancellation/output/retry/error policy remains incomplete.",
+        "Hosted Actions/review NOT_RUN by user policy; optional PostgreSQL test skipped because MJOBS_TEST_POSTGRES_URL is unset."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Pushed exact candidate branch and reconciled issue #5 OPEN; Actions disabled, no PRs open, main unprotected."
+      ],
+      "known_errors": [
+        "Initial candidate full suite hit one unrelated CompanyDiscoveryRequestsBrowserTests server-thread shutdown assertion; same test, all browser tests and same-source full rerun passed without changing timeout."
+      ],
+      "known_limitations": [
+        "Browser fetch abort alone may not emit ASGI http.disconnect while the connection is reusable; explicit Cancel extraction control now sends a profile/resume-scoped signal. Cancellation registry is single-process."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "e57c1759cd75dd453bbe0284325aee3d3174eb1d",
+        "evidence_path": "docs/evidence/2026-10-06-resume-extraction-cancellation.json"
+      }
     }
   ],
-  "current_phase": "MJ-REQ-004_NATIVE_PARSER_DISCONNECT_CANCELLATION_INTEGRATED_LOCAL_PARTIAL",
+  "current_phase": "MJ-REQ-004_RESUME_EXTRACTION_CANCELLATION_LOCAL_PASS_PENDING_INTEGRATION",
   "last_safe_checkpoint": {
-    "git_commit": "c9d7fdfdbb5959f8e84a4a564f2541098d542262",
-    "evidence_path": "docs/evidence/2026-10-06-native-parser-disconnect-cancellation.json"
+    "git_commit": "e57c1759cd75dd453bbe0284325aee3d3174eb1d",
+    "evidence_path": "docs/evidence/2026-10-06-resume-extraction-cancellation.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -5149,13 +5209,13 @@
     "issue": 5,
     "requirement_id": "MJ-REQ-004",
     "title": "Bound External Operations",
-    "state": "LOCAL_SLICE_PASS_INTEGRATED_REQUIREMENT_PARTIAL_OPEN",
-    "selection_reason": "P0 operation safety: abandon native resume parser child work promptly when an extraction request disconnects, while enforcing a fixed-memory cross-platform output cap.",
-    "base": "5a068db191fcd0470d005c1c174e6469b99aad44",
+    "state": "LOCAL_SLICE_PASS_PENDING_NON_FORCE_FAST_FORWARD_REQUIREMENT_PARTIAL_OPEN",
+    "selection_reason": "P0 operational safety: stop native PDF/DOCX and scanned-PDF OCR subprocesses when the user cancels extraction, including browsers whose fetch abort does not close a reusable HTTP connection.",
+    "base": "53e2239af5fba1428b91dfdc6feef148a7c84ce4",
     "branch": "codex/req004-bound-ops-20261006",
-    "candidate": "6c4283646e8bfb04e27d57d585db72ef7803a282",
-    "evidence": "docs/evidence/2026-10-06-native-parser-disconnect-cancellation.json",
-    "next_action": "Issue #5 remains OPEN after comment/readback. Continue on synchronized main with cancellation of OCR work already in progress, then select the next highest-value locally implementable operation-boundary slice; preserve the broad requirement as PARTIAL."
+    "candidate": "e57c1759cd75dd453bbe0284325aee3d3174eb1d",
+    "evidence": "docs/evidence/2026-10-06-resume-extraction-cancellation.json",
+    "next_action": "Recheck exact main ancestry and local-only policy, integrate source/evidence through non-force fast-forward, update issue #5 without closing it, then audit the next highest-value locally implementable external-operation cancellation/output/retry boundary."
   },
   "historical_control_snapshots": [
     {
@@ -6265,7 +6325,8 @@
     "MJ-REQ-005 exact candidate 23104373877a275c97204f7e1af08c4cd646b4d9: RED confirmed the former kind-specific limit; 21 focused SQLite/Compose tests, 1 isolated PostgreSQL concurrent-claim test, 35 browser tests and 669 full Python tests passed (1 optional PG skip); current frontend build, catalogue, progress, agent-skills and diff validators passed. Requirement remains PARTIAL for absent AI runtime, real ATS and per-source enforcement.",
     "MJ-REQ-006 live workspace inspection at bd00c331d503009189a83481ba62a56a66acb75c: Git/main/remote, repository structure, Python/FastAPI and TypeScript/React versions, persistence/migrations, browser and test suites, Compose services, private environment-file presence without reading values, and Actions-disabled state checked. Existing product/runtime/worktrees classified KEEP; private outputs preserved; no application files or containers modified. Evidence: docs/evidence/2026-10-06-current-workspace-inspection.json.",
     "MJ-REQ-004 native parser disconnect cancellation candidate 6c4283646e8bfb04e27d57d585db72ef7803a282: focused parser/API 36 PASS with ResourceWarnings as errors; Chromium profile import/review 1 PASS; full Python 683 PASS with one optional PostgreSQL skip; web 62 PASS/build; local validators PASS. Native parser disconnect cancels and reaps child; OCR in-flight cancellation and full issue remain PARTIAL. Evidence: docs/evidence/2026-10-06-native-parser-disconnect-cancellation.json.",
-    "MJ-REQ-004 native parser disconnect cancellation integrated at c9d7fdfdbb5959f8e84a4a564f2541098d542262; source 6c4283646e8bfb04e27d57d585db72ef7803a282, evidence docs/evidence/2026-10-06-native-parser-disconnect-cancellation.json; full local 683 PASS/1 optional PostgreSQL skip, focused and browser checks pass; issue #5 readback OPEN."
+    "MJ-REQ-004 native parser disconnect cancellation integrated at c9d7fdfdbb5959f8e84a4a564f2541098d542262; source 6c4283646e8bfb04e27d57d585db72ef7803a282, evidence docs/evidence/2026-10-06-native-parser-disconnect-cancellation.json; full local 683 PASS/1 optional PostgreSQL skip, focused and browser checks pass; issue #5 readback OPEN.",
+    "MJ-REQ-004 resume extraction cancellation candidate e57c1759cd75dd453bbe0284325aee3d3174eb1d: 56 focused tests, all 36 browser tests and full Python 688 tests PASS (1 optional PostgreSQL skip); 62 frontend tests/build, real Linux OCR and actual child-cancel checks plus validators PASS. Evidence: docs/evidence/2026-10-06-resume-extraction-cancellation.json."
   ],
   "ownership": "One writer: issue #5 OCR diagnostics source candidate 3d604b27b1a4c25e2ff0ee6fa68a07e9ff8f74a0 plus evidence/planning safely integrated to synchronized local and GitHub main fe598c1ee351010502a62e8c9dc6b76c83692ffe by non-force fast-forward. Issue #5 remains OPEN/PARTIAL after readback. Continue issue #5; hosted checks/review disabled/NOT_RUN, external submission OFF.",
   "delivery_policy": {
@@ -6280,5 +6341,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-06T11:15:36Z"
+  "updated_at": "2026-10-06T11:48:28Z"
 }
