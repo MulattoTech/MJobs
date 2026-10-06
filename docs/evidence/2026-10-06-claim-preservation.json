@@ -1,0 +1,100 @@
+{
+  "evidence_id": "MJ-REF-010-LOCAL-CLAIM-PRESERVATION",
+  "recorded_at": "2026-10-06T02:37:36Z",
+  "result": "PASS",
+  "scope": "Deterministic document fact preservation, novel date/numeric claim rejection, profile-scoped claim evidence and mutation blocking before activation",
+  "authority": {
+    "repository": "MulattoTech/MJobs",
+    "issue": 380,
+    "reference_gap_id": "MJ-REF-010",
+    "base_main": "7eb2463d115f32af65e66263f257c48e0b54d77d",
+    "base_tree": "507aba6d749f11dabb9e79d95bc9a86f2153cb16",
+    "source_branch": "codex/mj-ref-010-claim-guard-20261006",
+    "source_candidate": "c37d0908caf0a78095befafa6ea7e53e3ddc515c",
+    "source_tree": "51e30e9069f1eebb35bec9b58dd3acd446361ad4"
+  },
+  "source_sha256": {
+    "services/documents/validation.py": "bff7907edbda3b1aa8a1181625eeddb70cd9cc49b70cc2156f97087efc55ec19",
+    "services/documents/generate.py": "64a1872fa0970bf2ee35fe9d8b6d681fd79d23822c18753bf3fee83c33aa27bc",
+    "tests/unit/test_document_validation.py": "9414462e743b10a223689e3e02e67d2dfb1d7171b9ea2410d60a1c06278fdf07",
+    "tests/integration/test_document_validation.py": "b2e8ffbfeec7a4805c603abe473f4f5e6fe5b2f17fbd61b36b032416c99bc5ea",
+    "services/documents/AREA.md": "6b8fd7a684e555f2493a1f1b2b91671419062a84565a7e5866c5bd4315257a2f"
+  },
+  "observations": [
+    {
+      "timestamp_utc": "2026-10-06T02:37:36Z",
+      "action": "Run complete local Python unittest discovery including unit, integration and browser tests",
+      "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py' -v",
+      "target": "Isolated implementation worktree, synthetic SQLite fixtures and loopback browser harnesses",
+      "result": "PASS: 597 tests in 348.868 seconds. Full suite completed with OK."
+    },
+    {
+      "timestamp_utc": "2026-10-06T02:37:36Z",
+      "action": "Run focused document, history, answer, comparison and browser regression set",
+      "command": "python -m unittest tests.integration.test_application_answer_export tests.integration.test_document_library tests.integration.test_resume_comparison tests.browser.test_application_answer_export tests.browser.test_document_history tests.browser.test_skill_order -v",
+      "target": "Isolated worktree and local Chromium with synthetic profile/application data",
+      "result": "PASS: 23 tests in 41.965 seconds. Browser history and download behavior remained available."
+    },
+    {
+      "timestamp_utc": "2026-10-06T02:37:36Z",
+      "action": "Run claim-specific adversarial and profile-isolation regression set",
+      "command": "python -m unittest tests.unit.test_document_validation tests.integration.test_document_validation tests.integration.test_spine tests.integration.test_document_provenance tests.integration.test_cover_letter_workflow -v",
+      "target": "Temporary SQLite databases, synthetic facts and fixture job server",
+      "result": "PASS: 17 tests in 15.152 seconds. Mutated dates, metrics, employer names, degrees and institutions were blocked; prior revision/history remained intact; claim evidence was persisted without personal text or reversible claim hashes and remained profile scoped."
+    },
+    {
+      "timestamp_utc": "2026-10-06T02:37:36Z",
+      "action": "Build locked local web client and exercise document history browser behavior",
+      "command": "npm ci --prefix apps/web; npm run build --prefix apps/web; python -m unittest tests.browser.test_document_history -v",
+      "target": "Isolated local web build and loopback Chromium",
+      "result": "PASS: strict TypeScript and Vite build succeeded; browser history test passed. Local Node v25.9.0 is outside Vitest's declared v22/v24/v26 engine range and npm reported one high-severity dependency advisory. No dependency or lockfile changed."
+    },
+    {
+      "timestamp_utc": "2026-10-06T02:37:36Z",
+      "action": "Run repository validators and candidate whitespace check",
+      "command": "..\\..\\.venv\\Scripts\\python.exe -m tools.verification.agent_skills; ..\\..\\.venv\\Scripts\\python.exe -m tools.verification.catalogue; ..\\..\\.venv\\Scripts\\python.exe -m tools.verification.progress validate; git diff --check",
+      "target": "Isolated worktree repository metadata and source diff",
+      "result": "PASS: all three validators and git diff --check."
+    },
+    {
+      "timestamp_utc": "2026-10-06T02:37:36Z",
+      "action": "Record an initial validator command path typo and corrected run",
+      "command": "First invocation used ..\\.\\.\\.venv from the worktree; corrected invocation used ..\\..\\.venv",
+      "target": "Repository validator environment",
+      "result": "ENVIRONMENT INVOCATION ERROR: the initial relative executable path did not resolve. No test or source failure; corrected commands all passed."
+    },
+    {
+      "timestamp_utc": "2026-10-06T02:37:36Z",
+      "action": "Check hosted and production-provider scope",
+      "command": "GitHub Actions, hosted tests/reviews, paid AI calls and employer submission not invoked",
+      "target": "Current local-only policy",
+      "result": "NOT_RUN by policy. External submission remained OFF; no AI provider was used."
+    }
+  ],
+  "verified_behavior": [
+    "Generated resume and cover-letter text is compared to deterministic approved-fact templates before staged revisions are published; exact comparison blocks unapproved organization, employer, institution, credential, degree and other text mutations.",
+    "Novel dates and numeric tokens in generated factual content are rejected with UNSUPPORTED_CLAIM before document activation.",
+    "Validated revisions and DOCUMENTS_VALIDATED audit events persist typed fact IDs, protected-field categories, preservation decisions and date/numeric token counts without duplicating claim text, token values or reversible hashes.",
+    "Deterministic template and explicit user fact selection control keep/drop decisions; no LLM relevance scorer or provider is called.",
+    "Adversarial failures preserve existing document bytes and history; equal fact IDs from distinct profiles do not merge profile documents or claim context.",
+    "External submission remained OFF."
+  ],
+  "limitations": [
+    "The no-AI architecture has no LLM relevance scorer; separating a future scorer from deterministic keep/drop is enforced by the current explicit selection boundary, while paid/provider-backed scoring remains unavailable and NOT_RUN.",
+    "The issue-level tests use synthetic SQLite and local browser harnesses; production PostgreSQL/Docker deployment and hosted checks were NOT_RUN under user policy.",
+    "Full original requirements and release acceptance remain PARTIAL; this PASS applies only to MJ-REF-010 issue acceptance.",
+    "The local npm Node-engine mismatch and high-severity advisory are recorded; dependency files were not changed."
+  ],
+  "external_submission": "OFF",
+  "ai_provider": "NOT_USED",
+  "hosted_checks": "NOT_RUN_BY_USER_POLICY",
+  "integration_receipt": {
+    "status": "PENDING_SAFE_FAST_FORWARD",
+    "integration_method": "NON_FORCE_FAST_FORWARD_IF_MAIN_IS_ANCESTOR_AND_RULES_PERMIT",
+    "candidate_branch": "codex/mj-ref-010-claim-guard-20261006",
+    "candidate_source_commit": "c37d0908caf0a78095befafa6ea7e53e3ddc515c",
+    "protection_readback": "PENDING_FINAL_RECONCILIATION",
+    "actions_enabled": false,
+    "issue_380": "OPEN_PENDING_INTEGRATION_AND_ACCEPTANCE_READBACK"
+  }
+}

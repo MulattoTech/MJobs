@@ -8,10 +8,10 @@
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
     "current_verified_local_state": "Primary checkout main and origin/main are synchronized at 6f61044e158336385e3ac481a21740f444db8cde after safe non-force fast-forward. The prior #387 worktree is clean at the integration commit; Codespaces checkout remains preserved.",
-    "current_verified_github_state": "GitHub main is 6f61044e158336385e3ac481a21740f444db8cde; #387 is closed with five checked acceptance criteria. Repository Actions disabled; next selected open issue #380 is dependency-ready for local implementation.",
-    "current_verified_at": "2026-10-06T02:18:22Z"
+    "current_verified_github_state": "GitHub main is 7eb2463d115f32af65e66263f257c48e0b54d77; issue #387 is closed. Actions are disabled, main is unprotected, repository rulesets count is zero. Issue #380 local candidate c37d0908 is based directly on current main and awaits authorized safe fast-forward.",
+    "current_verified_at": "2026-10-06T02:37:36Z"
   },
-  "current_milestone": "MJ-REF-017-INTEGRATED",
+  "current_milestone": "MJ-REF-010-LOCAL-CLAIM-PRESERVATION-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under the local-only delivery policy; one writer and one integration lane.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -310,7 +310,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Implement open issue #380 (MJ-REF-010), the highest-value dependency-ready P1 claim-truthfulness guard, from current main. Continue afterward to #373 avoid-list and other privacy/safety prerequisites without asking for continuation. Keep broader requirements and release status separate.",
+  "recommended_resume_step": "Reconcile and safely integrate locally verified issue #380 candidate c37d0908 from current main, then close #380 only after complete acceptance readback and immediately continue to the next dependency-ready issue. Do not infer full requirement or release PASS from this slice.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -3848,12 +3848,66 @@
         "git_commit": "6f61044e158336385e3ac481a21740f444db8cde",
         "evidence_path": "docs/evidence/2026-10-06-artifact-recovery.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REF-010-LOCAL-CLAIM-PRESERVATION-20261006",
+      "timestamp": "2026-10-06T02:37:36Z",
+      "current_phase": "MJ-REF-010_LOCAL_PASS_PENDING_SAFE_FAST_FORWARD",
+      "completed_steps": [
+        "Added deterministic protected-field claim evidence and novel date/numeric claim rejection before generated revision activation",
+        "Added adversarial employer, institution, degree, date and metric mutation checks plus profile isolation and history preservation",
+        "Ran 597 full Python unit/integration/browser tests and 23 adjacent workflow/document browser regressions locally",
+        "Ran agent-skill, catalogue, progress and whitespace validators successfully",
+        "Committed implementation as c37d0908caf0a78095befafa6ea7e53e3ddc515c on the issue-owned branch"
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-06-claim-preservation.json"
+      ],
+      "files_modified": [
+        "services/documents/validation.py",
+        "services/documents/generate.py",
+        "tests/unit/test_document_validation.py",
+        "tests/integration/test_document_validation.py",
+        "services/documents/AREA.md",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/REFERENCE_GAP_MATRIX.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Full local unittest discovery: 597 tests PASS in 348.868 seconds",
+        "Focused claim/document/provenance/spine/cover-letter suite: 17 tests PASS",
+        "Adjacent answers/library/comparison/browser suite: 23 tests PASS",
+        "Document history Chromium browser check and local TypeScript/Vite production build PASS",
+        "Agent-skill, catalogue, progress and git diff whitespace validators PASS"
+      ],
+      "tests_remaining": [
+        "Reconcile latest GitHub main and verify local-only policy, branch protection/rulesets, Actions-off state, and fast-forward ancestry",
+        "Push exact candidate and integrate with authorized non-force fast-forward if safe",
+        "Read back issue #380 acceptance checkboxes/evidence and close only if all five are satisfied",
+        "Production PostgreSQL/Docker and hosted checks remain NOT_RUN by current user policy",
+        "Full original requirements and release acceptance remain separate and PARTIAL"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [
+        "An initial validator executable path typo was immediately corrected; corrected validators passed."
+      ],
+      "known_limitations": [
+        "No hosted CI/review or production PostgreSQL/Docker run by local-only policy",
+        "No LLM provider/scorer used; current keep/drop authority is deterministic template plus explicit user selection",
+        "Local npm reported Node 25 engine mismatch and one high-severity dependency advisory; dependency files unchanged",
+        "Original capability denominator and full release acceptance remain unchanged and PARTIAL"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "c37d0908caf0a78095befafa6ea7e53e3ddc515c",
+        "evidence_path": "docs/evidence/2026-10-06-claim-preservation.json"
+      }
     }
   ],
-  "current_phase": "MJ-REF-017_INTEGRATED_ISSUE_CLOSED_MJ-REF-010_SELECTED",
+  "current_phase": "MJ-REF-010_LOCAL_PASS_PENDING_SAFE_FAST_FORWARD",
   "last_safe_checkpoint": {
-    "git_commit": "6f61044e158336385e3ac481a21740f444db8cde",
-    "evidence_path": "docs/evidence/2026-10-06-artifact-recovery.json"
+    "git_commit": "c37d0908caf0a78095befafa6ea7e53e3ddc515c",
+    "evidence_path": "docs/evidence/2026-10-06-claim-preservation.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
@@ -3963,21 +4017,28 @@
     }
   ],
   "live_reconciliation": {
-    "timestamp": "2026-10-05T18:29:25Z",
-    "base_commit": "3ec8702ed0f42842e1bac772997760d8db5c9caf",
-    "current_slice_validation": "PARTIAL",
-    "product_status": "PARTIAL",
-    "ownership": "PR #515 is the sole active implementation PR on the task-owned branch. PRs #504, #506, #508-#514 are merged. Current candidate is independently reviewed; final exact-head push/PR runs and runtime artifacts are pending. External submission OFF; retained private runtime/database untouched; Codespaces checkout preserved."
+    "observed_at": "2026-10-06T02:37:36Z",
+    "github_main": "7eb2463d115f32af65e66263f257c48e0b54d77",
+    "candidate": "c37d0908caf0a78095befafa6ea7e53e3ddc515c",
+    "candidate_base": "7eb2463d115f32af65e66263f257c48e0b54d77",
+    "candidate_is_fast_forward": "YES",
+    "actions_enabled": false,
+    "main_branch_protected": false,
+    "repository_rulesets_count": 0,
+    "issue_380_state": "OPEN",
+    "integration": "PENDING_EVIDENCE_CHECKPOINT_PUSH"
   },
   "active_development_issue": {
     "issue": 380,
     "requirement_id": "MJ-REF-010",
     "title": "Deterministic resume preservation and claim-level mutation guard",
-    "state": "OPEN",
-    "selection_reason": "P1 truthfulness/safety guard on the shared factual document validation seam; unlocks safe richer tailoring and complements the completed atomic artifact boundary.",
-    "base": "6f61044e158336385e3ac481a21740f444db8cde",
-    "branch": "pending isolated worktree creation",
-    "next_action": "Read exact issue/spec and current validator, reproduce a deterministic adversarial oracle, then implement one complete local vertical slice."
+    "state": "OPEN_LOCALLY_IMPLEMENTED_PENDING_INTEGRATION",
+    "selection_reason": "P1 truthfulness/safety guard on the shared factual document validation seam; exact text preservation blocks unsafe identity/date/employer/degree mutations and unlocks safe richer tailoring.",
+    "base": "7eb2463d115f32af65e66263f257c48e0b54d77d",
+    "branch": "codex/mj-ref-010-claim-guard-20261006",
+    "candidate": "c37d0908caf0a78095befafa6ea7e53e3ddc515c",
+    "evidence": "docs/evidence/2026-10-06-claim-preservation.json",
+    "next_action": "Reconcile GitHub main, Actions, protection and ancestry; push and safely fast-forward this exact evidence-backed candidate; close issue only after all acceptance checkboxes and evidence are read back; then select the next dependency-ready issue."
   },
   "historical_control_snapshots": [
     {
@@ -5083,7 +5144,7 @@
     "Historical PR #515 review of c069798 against base 3ec8702 had no findings at that checkpoint, but later reviews found and repaired test/evidence issues. Fresh review and exact-head hosted events/artifacts are pending.",
     "CORE-WORKFLOW-TRIAL PR #515 checkpoint 7151348d0b92cd9cb23784785190e0d17ab892b1: exact-head read-only review PASS; push Verification 37359494332 and pull_request Verification 37359772249 both BLOCKED_EXTERNAL before job startup by GitHub account billing/spending limit. No hosted runtime reports/artifacts or PR merge-tree result exist; #515 stays draft."
   ],
-  "ownership": "No active PR. #387 source/evidence integrated into main at 6f61044. The next single writer is starting #380 from current main in an isolated worktree. External submission OFF; Codespaces and private runtime/data preserved.",
+  "ownership": "One writer: issue #380 candidate c37d0908 in its isolated worktree. Local full suite and validators pass. Do not start another writer until this candidate is integrated and issue state is reconciled. External submission OFF; Codespaces and private runtime/data preserved.",
   "delivery_policy": {
     "mode": "LOCAL_ONLY",
     "effective_at": "2026-10-05T21:32:10.763994+00:00",
@@ -5095,5 +5156,6 @@
     "hosted_gates": "NOT_RUN_BY_USER_POLICY",
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
-  }
+  },
+  "updated_at": "2026-10-06T02:37:36Z"
 }
