@@ -11,7 +11,7 @@
     "current_verified_github_state": "GitHub and local main are synchronized at c3ce5abf0c2de33533c78635b724c080a9164dea after safe non-force fast-forward. Issues #387, #380 and #373 are closed after scoped evidence; Actions remain disabled, main unprotected and repository rulesets count zero. Issue #384 / MJ-REF-014 is selected for least-data profile access controls.",
     "current_verified_at": "2026-10-06T03:01:27Z"
   },
-  "current_milestone": "MJ-REF-003-INTEGRATED-ISSUE-CLOSED-MJ-REF-014-SELECTED",
+  "current_milestone": "MJ-REF-014-SELECTED-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under the local-only delivery policy; one writer and one integration lane.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -310,7 +310,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Implement open issue #384 / MJ-REF-014 as the next P1 privacy prerequisite: inspect the career-profile and AI-task data paths, add a narrow allowlisted profile lookup with denied-section behavior and access audit, then test that unapproved tasks cannot fetch sensitive sections. This is locally provable without calling any paid or external AI provider. Preserve the original requirement denominator and full release status.",
+  "recommended_resume_step": "Issue #384 / MJ-REF-014 is the sole active writer lane. Implement an allowlisted, dotted-path career-profile lookup with denied-section filtering, container count/preview responses, and append-only audit of facts accessed by task; prove unapproved access is denied. No paid or external AI provider calls.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -4038,9 +4038,40 @@
         "git_commit": "c3ce5abf0c2de33533c78635b724c080a9164dea",
         "evidence_path": "docs/evidence/2026-10-06-avoid-list.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REF-014-SELECTED-20261006",
+      "timestamp": "2026-10-06T03:03:00Z",
+      "current_phase": "MJ-REF-014-SELECTED-20261006",
+      "completed_steps": [
+        "Closed issue #373 after five acceptance criteria readback",
+        "Integrated and pushed evidence/planning receipt at f7dac95ab4890ccf57a5ca288807d5f1a02a86be",
+        "Reconciled issue #384 OPEN and selected its least-data privacy boundary as next dependency-ready P1 slice"
+      ],
+      "files_added": [],
+      "files_modified": [
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "GitHub main and local main synchronized at f7dac95ab4890ccf57a5ca288807d5f1a02a86be; repository Actions remain disabled; branch protection absent and rulesets zero"
+      ],
+      "tests_remaining": [
+        "Create isolated issue #384 worktree and inspect exact spec, profile paths, task contexts, and existing audit design"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "No paid or external AI provider calls under current policy"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "f7dac95ab4890ccf57a5ca288807d5f1a02a86be",
+        "evidence_path": "docs/evidence/2026-10-06-avoid-list.json"
+      }
     }
   ],
-  "current_phase": "MJ-REF-003_INTEGRATED_AND_ISSUE_CLOSED_MJ-REF-014_SELECTED",
+  "current_phase": "MJ-REF-014-SELECTED-20261006",
   "last_safe_checkpoint": {
     "git_commit": "c3ce5abf0c2de33533c78635b724c080a9164dea",
     "evidence_path": "docs/evidence/2026-10-06-avoid-list.json"
@@ -4153,8 +4184,8 @@
     }
   ],
   "live_reconciliation": {
-    "observed_at": "2026-10-06T03:01:27Z",
-    "github_main": "c3ce5abf0c2de33533c78635b724c080a9164dea",
+    "observed_at": "2026-10-06T03:03:00Z",
+    "github_main": "f7dac95ab4890ccf57a5ca288807d5f1a02a86be",
     "candidate": "b6f2238c7ea1e55c5f5b9f7ef1902bd929cb0124",
     "candidate_base": "196ee414c21d01d517bf792063604e6d84f1d333",
     "candidate_is_fast_forward": "YES",
@@ -4162,20 +4193,19 @@
     "main_branch_protected": false,
     "repository_rulesets_count": 0,
     "issue_373_state": "CLOSED",
-    "integration": "NON_FORCE_FAST_FORWARD_PUSH_VERIFIED_AT_C3CE5ABF"
+    "integration": "MJ-REF-003_NON_FORCE_FF_AND_ISSUE_CLOSED",
+    "next_issue": 384,
+    "issue_384_state": "OPEN"
   },
   "active_development_issue": {
-    "issue": 373,
-    "requirement_id": "MJ-REF-003",
-    "title": "Enforced global avoid-list for generated career content",
-    "state": "CLOSED_SCOPED_LOCAL_PASS_INTEGRATED",
-    "selection_reason": "P1 deterministic privacy/truthfulness guard across resumes, cover letters and reviewed answer exports; current preferences also gate historical output use without provider dependencies.",
-    "base": "196ee414c21d01d517bf792063604e6d84f1d333",
-    "branch": "codex/mj-ref-003-avoid-list-20261006",
-    "candidate": "b6f2238c7ea1e55c5f5b9f7ef1902bd929cb0124",
-    "evidence": "docs/evidence/2026-10-06-avoid-list.json",
-    "integration_commit": "c3ce5abf0c2de33533c78635b724c080a9164dea",
-    "next_action": "Issue #373 closed after all five criteria were checked, scoped local evidence was pushed, and main was safely fast-forwarded. Continue with issue #384 / MJ-REF-014 as the next P1 least-data privacy prerequisite."
+    "issue": 384,
+    "requirement_id": "MJ-REF-014",
+    "title": "Least-data profile lookup interface for AI tasks",
+    "state": "OPEN_SELECTED_DEPENDENCY_READY",
+    "selection_reason": "P1 privacy boundary with reusable least-privilege value across all AI-backed workflows; deterministic authorization, previews, audit, and denial tests can be fully implemented locally without external AI calls.",
+    "base": "f7dac95ab4890ccf57a5ca288807d5f1a02a86be",
+    "branch": "codex/mj-ref-014-least-data-20261006",
+    "next_action": "Inspect profile schema, AI operation/task context construction, and audit persistence; define bounded allowlist and task authorization contract before implementing."
   },
   "historical_control_snapshots": [
     {
