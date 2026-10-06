@@ -1,6 +1,6 @@
 {
   "evidence_id": "MJ-REF-004-ATS-QUESTION-PREFLIGHT",
-  "recorded_at": "2026-10-06T03:56:58Z",
+  "recorded_at": "2026-10-06T04:01:09Z",
   "result": "PASS",
   "scope": "Required-question preflight over structured local mock ATS metadata, bound to immutable profile and document versions, persisted with timestamps, surfaced in application detail, and enforced before browser launch",
   "authority": {
@@ -73,14 +73,16 @@
     "Original MJ-REQ accounting and denominator remain unchanged; full product/release acceptance remains NOT_RUN."
   ],
   "integration_receipt": {
-    "status": "CANDIDATE_VERIFIED_AWAITING_FAST_FORWARD",
+    "status": "INTEGRATED_LOCAL_PASS_ISSUE_CLOSED",
     "method": "NON_FORCE_FAST_FORWARD",
     "candidate_branch": "codex/mj-ref-004-question-preflight-20261006",
     "candidate_source_commit": "8ebd732fb0b6efa83be96d08c00d1c3492fabe28",
-    "integrated_main": null,
+    "integrated_main": "5e5ec4d726b6fc05063b177432d3ee050077a2d3",
     "actions_enabled": false,
     "main_protection": "UNPROTECTED",
     "repository_rulesets_count": 0,
-    "issue_374": "OPEN_PENDING_INTEGRATION"
+    "issue_374": "CLOSED; all five acceptance criteria checked and comment read back",
+    "evidence_checkpoint_commit": "5e5ec4d726b6fc05063b177432d3ee050077a2d3",
+    "integrated_at": "2026-10-06T04:01:09Z"
   }
 }
