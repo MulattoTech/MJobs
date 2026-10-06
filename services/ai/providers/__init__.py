@@ -21,7 +21,8 @@ class AIProvider(Protocol):
     name: str
     capabilities: ProviderCapabilities
 
-    def generate(self, *, task: str, prompt: str, timeout_seconds: float) -> str: ...
+    def generate(self, *, task: str, model: str | None = None, prompt: str,
+                 timeout_seconds: float) -> str: ...
 
 
 class AIProviderDisabled(RuntimeError):
@@ -40,7 +41,8 @@ class DisabledAIProvider:
     name = "disabled"
     capabilities = ProviderCapabilities()
 
-    def generate(self, *, task: str, prompt: str, timeout_seconds: float) -> NoReturn:
+    def generate(self, *, task: str, model: str | None = None, prompt: str,
+                 timeout_seconds: float) -> NoReturn:
         raise AIProviderDisabled()
 
 
