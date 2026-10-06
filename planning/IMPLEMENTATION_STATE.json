@@ -6407,11 +6407,49 @@
         "git_commit": "e32ed99c4e80bade20fcf0a6251a1d55253844ba",
         "evidence_path": "docs/evidence/2026-10-06-ai-cost-controls.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-110-COST-CONTROLS-INTEGRATED-PARTIAL-20261006",
+      "timestamp": "2026-10-06T19:14:29Z",
+      "current_phase": "Issue #111 / MJ-REQ-110 cost-control planner integrated at synchronized main ff3d745; issue remains OPEN/PARTIAL and issue #112 / MJ-REQ-111 structured output is selected next.",
+      "completed_steps": [
+        "Pushed the verified candidate branch and fast-forwarded unprotected main without force at exact base 1bedb95",
+        "Verified local and GitHub main both resolve to ff3d745 with Actions disabled and no open PRs",
+        "Preserved issue #111 OPEN/PARTIAL and selected dependency-ready issue #112 / MJ-REQ-111"
+      ],
+      "files_added": [],
+      "files_modified": [
+        "docs/evidence/2026-10-06-ai-cost-controls.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Exact integrated tree ff3d745: focused cost-control tests 5 PASS",
+        "Exact integrated tree ff3d745: complete unit suite 329 PASS",
+        "Compileall, progress journal, catalogue and agent-skill validators, git diff --check: PASS"
+      ],
+      "tests_remaining": [
+        "Persisted policy settings and production matching consumer remain unimplemented; issue #111 remains PARTIAL.",
+        "Issue #112 structured-output implementation and verification are next."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "No production matching pipeline consumes the planner.",
+        "No persisted user-facing settings or remote AI provider is available.",
+        "External AI/provider and hosted tests are NOT_RUN; external application submission remains OFF."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "ff3d74568c1cff396999fabc9a1946f22cc70924",
+        "evidence_path": "docs/evidence/2026-10-06-ai-cost-controls.json"
+      }
     }
   ],
-  "current_phase": "Issue #111 / MJ-REQ-110 deterministic cost funnel is locally verified PARTIAL on codex/mj-req110-cost-controls-20261006; production matching consumer and persisted settings remain missing.",
+  "current_phase": "Issue #111 / MJ-REQ-110 cost-control planner integrated at synchronized main ff3d745; issue remains OPEN/PARTIAL and issue #112 / MJ-REQ-111 structured output is selected next.",
   "last_safe_checkpoint": {
-    "git_commit": "e32ed99c4e80bade20fcf0a6251a1d55253844ba",
+    "git_commit": "ff3d74568c1cff396999fabc9a1946f22cc70924",
     "evidence_path": "docs/evidence/2026-10-06-ai-cost-controls.json"
   },
   "live_integrations_tested": [

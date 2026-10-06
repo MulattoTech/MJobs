@@ -11,7 +11,7 @@
     "base": "1bedb952e24a73a4f253c95181dd281295ae406b",
     "commit": "e32ed99c4e80bade20fcf0a6251a1d55253844ba",
     "tree": "b078cfbabf947cb73abc57ddccd540be97b02a62",
-    "status": "Source commit locally validated; integration/readback pending."
+    "status": "Integrated by non-force fast-forward at synchronized main ff3d74568c1cff396999fabc9a1946f22cc70924; issue #111 remains OPEN/PARTIAL after local acceptance readback."
   },
   "source_sha256": {
     "services/ai/AREA.md": "8cd4dd51208672f8b0aa84ea15b96cbab6c2a000dff793b95b3391c38ff647cb",
@@ -81,6 +81,15 @@
   ],
   "reconciled_main_commit": "1bedb952e24a73a4f253c95181dd281295ae406b",
   "integration_candidate_commit": "e32ed99c4e80bade20fcf0a6251a1d55253844ba",
-  "integrated_main_commit": null,
-  "github_issue_comment": null
+  "integrated_main_commit": "ff3d74568c1cff396999fabc9a1946f22cc70924",
+  "github_issue_comment": null,
+  "integration": {
+    "method": "non-force fast-forward",
+    "main_before": "1bedb952e24a73a4f253c95181dd281295ae406b",
+    "main_after": "ff3d74568c1cff396999fabc9a1946f22cc70924",
+    "remote_local_match": "PASS",
+    "main_protection": "unprotected",
+    "github_actions_enabled": false,
+    "hosted_checks": "NOT_RUN by local-only policy"
+  }
 }

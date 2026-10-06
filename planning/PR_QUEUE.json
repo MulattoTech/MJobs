@@ -867,9 +867,9 @@
         "MJ-PR-025"
       ],
       "status": "ACTIVE",
-      "branch": "codex/mj-req110-cost-controls-20261006",
+      "branch": "codex/mj-req111-structured-output-20261006",
       "draft_until_verified": true,
-      "notes": "MJ-REQ-108.A06 disabled provider is PASS; issue #110 / MJ-REQ-109 task router integrated PARTIAL. Issue #111 / MJ-REQ-110 now has locally verified deterministic dedupe, score threshold and AI/document ceilings, but remains PARTIAL until persisted configuration and a production matching consumer exist. Remote providers and the full PR requirements remain incomplete."
+      "notes": "MJ-REQ-108.A06 disabled provider PASS; MJ-REQ-109 router integrated PARTIAL; MJ-REQ-110 deterministic cost-control planner integrated PARTIAL at main ff3d745 (issue #111 remains OPEN). Active next issue #112 / MJ-REQ-111 is structured output; persisted settings, production consumers, real providers, and remaining grouped acceptance stay open."
     },
     {
       "id": "MJ-PR-031",

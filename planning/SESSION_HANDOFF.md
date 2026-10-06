@@ -1,3 +1,13 @@
+# Integration receipt — 2026-10-06
+
+Issue #111 / MJ-REQ-110 source `e32ed99c4e80bade20fcf0a6251a1d55253844ba` plus evidence/planning were integrated by non-force fast-forward at synchronized local/GitHub main `ff3d74568c1cff396999fabc9a1946f22cc70924`. Five focused cost-control tests, all 329 unit tests, compileall, progress/catalogue/agent-skill validators, and diff check passed on the exact integrated tree. Evidence: `docs/evidence/2026-10-06-ai-cost-controls.json`. Issue #111 remains OPEN/PARTIAL because no production matching consumer or persisted policy settings exist; external/paid AI and hosted checks remain NOT_RUN, external submission OFF.
+
+# Active local-only implementation checkpoint — 2026-10-06
+
+Next dependency-ready item: issue #112 / MJ-REQ-111 AI structured output, branch `codex/mj-req111-structured-output-20261006`, base `ff3d74568c1cff396999fabc9a1946f22cc70924`. Use typed/schema-validated outputs, reject malformed arbitrary JSON safely, and keep external model calls disabled. Follow the matching_ai area spec; do not load the original source directive unless an ambiguity requires it.
+
+---
+
 # Active local-only implementation checkpoint — 2026-10-06
 
 Issue #111 / MJ-REQ-110 candidate `e32ed99c4e80bade20fcf0a6251a1d55253844ba` on `codex/mj-req110-cost-controls-20261006`, based on synchronized main `1bedb952e24a73a4f253c95181dd281295ae406b`. Added a configurable deterministic funnel that deduplicates stable job identities, rejects conflicting duplicates, bounds input iteration, thresholds deterministic scores, caps AI candidates at 75 and reviewed document candidates at 20 by default, and selects candidates in deterministic order. Focused tests (5), full unit suite (329), compileall, progress/catalogue/agent-skill validators, and diff check pass. Evidence: `docs/evidence/2026-10-06-ai-cost-controls.json`. The planner has no production matching consumer or persisted user settings, so #111 remains OPEN/PARTIAL; no provider/browser test applies, live AI and hosted verification are NOT_RUN, and external submission remains OFF. Next: recheck exact main and local-only policy, push the candidate, safely fast-forward only if current main remains its ancestor, read back issue #111 OPEN, then continue the next dependency-ready issue.
