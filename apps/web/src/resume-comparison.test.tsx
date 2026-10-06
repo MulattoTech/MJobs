@@ -9,8 +9,9 @@ describe('resume comparison',()=>{
     const target:GeneratedDocument={...base,id:'target',version:3,template:'approved-skill-order-headings-v1',generation_model:'deterministic-skill-order-v2',generation_context:{mode:'APPROVED_SKILL_ORDER',job_title:'Example',job_skills:[],matched_skills:{},original_fact_ids:[],ordered_fact_ids:[]}};
     const bulletTarget:GeneratedDocument={...target,id:'bullet-target',version:4,template:'approved-skill-and-bullet-emphasis-v2',generation_model:'deterministic-skill-and-bullet-emphasis-v1'};
     const selectedBulletTarget:GeneratedDocument={...target,id:'selected-bullet-target',version:5,template:'approved-selection-and-bullet-emphasis-v2',generation_model:'deterministic-fact-selection-and-bullet-emphasis-v1'};
-    const html=renderToStaticMarkup(<ResumeComparison documents={[base,{...base,id:'new',version:2,template:'verified-headings-v1',generation_model:'deterministic-fact-copy-v2'},target,bulletTarget,selectedBulletTarget,{...base,id:'invalid',template:'verified-headings-v1'}]}/>);
-    expect(html).toContain('value="g:legacy"');expect(html).toContain('value="g:new"');expect(html).toContain('value="target"');expect(html).toContain('value="bullet-target"');expect(html).toContain('value="selected-bullet-target"');expect(html).not.toContain('g:invalid');
+    const summaryTarget:GeneratedDocument={...target,id:'summary-target',version:6,template:'approved-summary-skill-and-bullet-emphasis-v3',generation_model:'deterministic-summary-skill-and-bullet-emphasis-v2'};
+    const html=renderToStaticMarkup(<ResumeComparison documents={[base,{...base,id:'new',version:2,template:'verified-headings-v1',generation_model:'deterministic-fact-copy-v2'},target,bulletTarget,selectedBulletTarget,summaryTarget,{...base,id:'invalid',template:'verified-headings-v1'}]}/>);
+    expect(html).toContain('value="g:legacy"');expect(html).toContain('value="g:new"');expect(html).toContain('value="target"');expect(html).toContain('value="bullet-target"');expect(html).toContain('value="selected-bullet-target"');expect(html).toContain('value="summary-target"');expect(html).not.toContain('g:invalid');
   });
   it('renders every change category, actual revision labels and escaped historical text',()=>{
     const before={fact_id:'summary',kind:'summary',text:'Original summary'};

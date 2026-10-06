@@ -6,7 +6,7 @@ from sqlalchemy.exc import NoResultFound
 from services.documents.history import application_documents
 from services.documents.validation import validate_assertions
 from services.documents.errors import PreparationError
-from services.documents.templates import contract_role, resume_layout, SELECTION_TEMPLATES, EMPHASIS_TEMPLATES, CONTACT_TEMPLATES, RESPONSIBILITY_EMPHASIS_TEMPLATES, contact_header
+from services.documents.templates import contract_role, resume_layout, SELECTION_TEMPLATES, EMPHASIS_TEMPLATES, CONTACT_TEMPLATES, RESPONSIBILITY_EMPHASIS_TEMPLATES, SUMMARY_TAILORING_TEMPLATES, contact_header
 from services.documents import tailor
 
 
@@ -102,6 +102,27 @@ def tailored_context(target):
             context.get('omitted_fact_ids')!=[value for value in available if value not in selected] or
             context.get('selection_fingerprint')!=tailor.selection_fingerprint(selected)):
             raise ComparisonUnavailable('Original approved selection context is unavailable')
+    if target['template'] in SUMMARY_TAILORING_TEMPLATES:
+        adjustment=context.get('summary_adjustment')
+        if not isinstance(adjustment,dict):
+            raise ComparisonUnavailable('Original summary adjustment context is unavailable')
+        original=adjustment.get('original_summary_fact_ids');selected=adjustment.get('selected_summary_fact_ids')
+        omitted=adjustment.get('omitted_summary_fact_ids');summary_matches=adjustment.get('matched_skills')
+        target_summaries=[row['fact_id'] for row in target['facts_used'] if row['kind']=='summary']
+        if (adjustment.get('mode')!='EXACT_TARGET_SKILL_SUMMARY_FACTS' or
+            type(adjustment.get('adjusted')) is not bool or not isinstance(original,list) or
+            not isinstance(selected,list) or not isinstance(omitted,list) or
+            any(not isinstance(value,str) for value in [*original,*selected,*omitted]) or
+            len(set(original))!=len(original) or len(set(selected))!=len(selected) or
+            len(set(omitted))!=len(omitted) or set(selected)&set(omitted) or
+            set(original)!=(set(selected)|set(omitted)) or selected!=target_summaries or
+            not isinstance(summary_matches,dict) or set(summary_matches)!=set(original) or
+            any(not isinstance(labels,list) or any(not isinstance(label,str) for label in labels)
+                for labels in summary_matches.values()) or
+            (adjustment['adjusted'] and (not selected or any(not summary_matches[value] for value in selected)
+                or any(summary_matches[value] for value in omitted))) or
+            (not adjustment['adjusted'] and (selected!=original or omitted or any(summary_matches.values())))):
+            raise ComparisonUnavailable('Original summary adjustment context is unavailable')
     return context
 
 

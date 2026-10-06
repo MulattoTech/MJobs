@@ -1,9 +1,41 @@
 """Skill relevance must never move responsibilities between roles."""
 import unittest
+from services.documents import tailor
 from services.documents.tailor import order_skills, emphasis
 
 
 class SkillOrderTests(unittest.TestCase):
+    def select_summary_rows(self,rows,job):
+        implementation=getattr(tailor,'select_summary_rows',lambda rows,job:(rows,None))
+        return implementation(rows,job)
+
+    def test_summary_selection_uses_only_exact_skills_and_preserves_fact_text(self):
+        rows=[
+            {'fact_id':'summary-linux','kind':'summary','text':'Linux administrator with Python automation experience.'},
+            {'fact_id':'summary-sales','kind':'summary','text':'Experienced retail sales associate.'},
+            {'fact_id':'skill-python','kind':'skill','text':'Python'},
+        ]
+        selected,context=self.select_summary_rows(rows,{'skills':['Python']})
+        self.assertEqual([row['fact_id'] for row in selected],['summary-linux','skill-python'])
+        self.assertEqual([row['text'] for row in selected],[rows[0]['text'],rows[2]['text']])
+        self.assertEqual(context,{'mode':'EXACT_TARGET_SKILL_SUMMARY_FACTS',
+            'adjusted':True,
+            'original_summary_fact_ids':['summary-linux','summary-sales'],
+            'selected_summary_fact_ids':['summary-linux'],
+            'omitted_summary_fact_ids':['summary-sales'],
+            'matched_skills':{'summary-linux':['Python'],'summary-sales':[]}})
+
+    def test_summary_falls_back_to_original_when_no_summary_fact_matches(self):
+        rows=[
+            {'fact_id':'summary','kind':'summary','text':'Pythonic approach to customer service.'},
+            {'fact_id':'skill','kind':'skill','text':'Python'},
+        ]
+        selected,context=self.select_summary_rows(rows,{'skills':['Python']})
+        self.assertEqual(selected,rows)
+        self.assertFalse(context['adjusted'])
+        self.assertEqual(context['selected_summary_fact_ids'],['summary'])
+        self.assertEqual(context['omitted_summary_fact_ids'],[])
+
     def test_only_skill_slots_move_and_all_text_is_unchanged(self):
         rows=[{'fact_id':str(i),'kind':kind,'text':text} for i,(kind,text) in enumerate([
             ('skill','SQL'),('experience','Example | Engineer | 2020-2024'),

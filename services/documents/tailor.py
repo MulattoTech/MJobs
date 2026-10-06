@@ -61,6 +61,24 @@ def emphasis(facts, job, include_responsibilities=False):
     return [row['fact_id'] for row in facts if matches.get(row['fact_id'])]
 
 
+def select_summary_rows(facts, job):
+    """Keep exact approved summary facts that mention target skills when any match."""
+    summaries=[row for row in facts if row['kind']=='summary']
+    matches=matched_labels(summaries,job)
+    selected_ids=[row['fact_id'] for row in summaries if matches[row['fact_id']]]
+    adjusted=bool(selected_ids)
+    selected=set(selected_ids) if adjusted else {row['fact_id'] for row in summaries}
+    result=[row for row in facts if row['kind']!='summary' or row['fact_id'] in selected]
+    return result,{
+        'mode':'EXACT_TARGET_SKILL_SUMMARY_FACTS',
+        'adjusted':adjusted,
+        'original_summary_fact_ids':[row['fact_id'] for row in summaries],
+        'selected_summary_fact_ids':[row['fact_id'] for row in summaries if row['fact_id'] in selected],
+        'omitted_summary_fact_ids':[row['fact_id'] for row in summaries if row['fact_id'] not in selected],
+        'matched_skills':matches,
+    }
+
+
 def order_skills(facts, job, include_responsibilities=False):
     skills=[row for row in facts if row['kind']=='skill']
     kinds=('skill','technology_experience','responsibility') if include_responsibilities else ('skill','technology_experience')

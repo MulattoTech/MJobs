@@ -110,6 +110,9 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
         staged.append(staging)
         fact_ids = [fact.id for fact in selected]
         texts = [fact.text for fact in selected]
+        summary_adjustment=None
+        if tailor_resume and tailor_fact_ids is None:
+            resume_rows,summary_adjustment=tailor.select_summary_rows(resume_rows,job)
         include_bullet_emphasis=resume_template in RESPONSIBILITY_EMPHASIS_TEMPLATES
         ordered_rows,context=tailor.order_skills(resume_rows,job,
             include_responsibilities=include_bullet_emphasis) if tailor_resume else (resume_rows,None)
@@ -117,6 +120,8 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
             include_responsibilities=include_bullet_emphasis) if tailor_resume else []
         if context is not None:
             context['emphasized_fact_ids']=emphasized
+            if summary_adjustment is not None:
+                context['summary_adjustment']=summary_adjustment
         if selection_ids is not None:
             context.update(selection_mode='EXPLICIT_APPROVED_FACTS',selected_fact_ids=selection_ids,
                 available_fact_ids=fact_ids,omitted_fact_ids=[value for value in fact_ids if value not in set(selection_ids)],

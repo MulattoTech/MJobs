@@ -13,14 +13,20 @@ LEGACY_SELECTION_TEMPLATE = SELECTION_TEMPLATE
 LEGACY_SELECTION_MODEL = SELECTION_MODEL
 TAILORED_TEMPLATE = 'approved-skill-and-bullet-emphasis-v2'
 TAILORED_MODEL = 'deterministic-skill-and-bullet-emphasis-v1'
+BULLET_TAILORED_TEMPLATE = TAILORED_TEMPLATE
+BULLET_TAILORED_MODEL = TAILORED_MODEL
+TAILORED_TEMPLATE = 'approved-summary-skill-and-bullet-emphasis-v3'
+TAILORED_MODEL = 'deterministic-summary-skill-and-bullet-emphasis-v2'
 SELECTION_TEMPLATE = 'approved-selection-and-bullet-emphasis-v2'
 SELECTION_MODEL = 'deterministic-fact-selection-and-bullet-emphasis-v1'
 SELECTION_TEMPLATES = {SELECTION_TEMPLATE, LEGACY_SELECTION_TEMPLATE, 'approved-fact-selection-headings-v1'}
-EMPHASIS_TEMPLATES = {TAILORED_TEMPLATE, LEGACY_TAILORED_TEMPLATE, SELECTION_TEMPLATE, LEGACY_SELECTION_TEMPLATE}
-RESPONSIBILITY_EMPHASIS_TEMPLATES = {TAILORED_TEMPLATE, SELECTION_TEMPLATE}
+EMPHASIS_TEMPLATES = {TAILORED_TEMPLATE, BULLET_TAILORED_TEMPLATE, LEGACY_TAILORED_TEMPLATE, SELECTION_TEMPLATE, LEGACY_SELECTION_TEMPLATE}
+RESPONSIBILITY_EMPHASIS_TEMPLATES = {TAILORED_TEMPLATE, BULLET_TAILORED_TEMPLATE, SELECTION_TEMPLATE}
+SUMMARY_TAILORING_TEMPLATES = {TAILORED_TEMPLATE}
 CONTACT_PAIRS = {
     BASE_TEMPLATE: ('approved-contact-base-v1', 'deterministic-contact-copy-v1'),
-    TAILORED_TEMPLATE: ('approved-contact-skill-and-bullet-emphasis-v2', 'deterministic-contact-skill-and-bullet-emphasis-v1'),
+    BULLET_TAILORED_TEMPLATE: ('approved-contact-skill-and-bullet-emphasis-v2', 'deterministic-contact-skill-and-bullet-emphasis-v1'),
+    TAILORED_TEMPLATE: ('approved-contact-summary-skill-and-bullet-emphasis-v3', 'deterministic-contact-summary-skill-and-bullet-emphasis-v2'),
     SELECTION_TEMPLATE: ('approved-contact-selection-and-bullet-emphasis-v2', 'deterministic-contact-selection-and-bullet-emphasis-v1'),
 }
 LEGACY_CONTACT_PAIRS = {
@@ -32,7 +38,8 @@ CONTACT_TEMPLATES.update(pair[0] for pair in LEGACY_CONTACT_PAIRS.values())
 SELECTION_TEMPLATES.add(CONTACT_PAIRS[SELECTION_TEMPLATE][0])
 SELECTION_TEMPLATES.add(LEGACY_CONTACT_PAIRS[LEGACY_SELECTION_TEMPLATE][0])
 EMPHASIS_TEMPLATES.update(pair[0] for pair in (*CONTACT_PAIRS.values(), *LEGACY_CONTACT_PAIRS.values()) if pair[0] != CONTACT_PAIRS[BASE_TEMPLATE][0])
-RESPONSIBILITY_EMPHASIS_TEMPLATES.update(pair[0] for template,pair in CONTACT_PAIRS.items() if template in (TAILORED_TEMPLATE,SELECTION_TEMPLATE))
+RESPONSIBILITY_EMPHASIS_TEMPLATES.update(pair[0] for template,pair in CONTACT_PAIRS.items() if template in (TAILORED_TEMPLATE,BULLET_TAILORED_TEMPLATE,SELECTION_TEMPLATE))
+SUMMARY_TAILORING_TEMPLATES.update(pair[0] for template,pair in CONTACT_PAIRS.items() if template==TAILORED_TEMPLATE)
 CONTRACTS = {
     'verified-facts-v1': ('deterministic-fact-copy-v1', 'BASE', False),
     'approved-skill-order-v1': ('deterministic-skill-order-v1', 'TAILORED', False),
@@ -42,6 +49,7 @@ CONTRACTS = {
     LEGACY_TAILORED_TEMPLATE: (LEGACY_TAILORED_MODEL, 'TAILORED', True),
     LEGACY_SELECTION_TEMPLATE: (LEGACY_SELECTION_MODEL, 'TAILORED', True),
     TAILORED_TEMPLATE: (TAILORED_MODEL, 'TAILORED', True),
+    BULLET_TAILORED_TEMPLATE: (BULLET_TAILORED_MODEL, 'TAILORED', True),
     SELECTION_TEMPLATE: (SELECTION_MODEL, 'TAILORED', True),
 }
 CONTRACTS.update({pair[0]:(pair[1],CONTRACTS[source][1],True) for source,pair in CONTACT_PAIRS.items()})

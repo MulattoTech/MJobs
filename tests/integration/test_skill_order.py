@@ -10,6 +10,7 @@ from packages.persistence import models as m
 from services.discovery.pipeline import discover
 from services.documents.generate import prepare,PreparationError
 from services.documents.history import application_documents
+from services.documents.comparison import compare_resumes,ComparisonUnavailable
 from tests.integration import test_document_provenance as fixtures
 from tests.integration.test_spine import PROFILE
 from workers.tasks import execute_operation
@@ -18,6 +19,44 @@ from workers.tasks import execute_operation
 class SkillOrderIntegrationTests(unittest.TestCase):
     setUp=fixtures.DocumentProvenanceTests.setUp
     tearDown=fixtures.DocumentProvenanceTests.tearDown
+
+    def test_tailored_resume_selects_exact_skill_matched_summary_facts_and_records_comparison(self):
+        facts=[
+            dict(PROFILE['facts'][0],id='summary-linux',kind='summary',text='Linux administrator with Python automation experience.'),
+            dict(PROFILE['facts'][0],id='summary-sales',kind='summary',text='Experienced retail sales associate.'),
+            PROFILE['facts'][0],PROFILE['facts'][1],
+        ]
+        self.store.save_profile(dict(PROFILE,facts=facts))
+        with fixture_server() as origin:
+            discover(self.store,origin,'fixture')
+        job=self.store.jobs()[0]
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.id==job['id']).values(skills=['Python']))
+        app=prepare(self.store,job['id'],'fixture',self.root)
+        base=next(row for row in application_documents(self.store,app) if row['kind']=='resume')
+        before_profile=self.store.profile('fixture')
+        prepare(self.store,job['id'],'fixture',self.root,tailor_resume=True)
+        rows=application_documents(self.store,app)
+        tailored=next(row for row in rows if row['kind']=='resume' and row['version']==2)
+        self.assertNotIn('summary-sales',tailored['fact_ids'])
+        self.assertIn('summary-linux',tailored['fact_ids'])
+        self.assertEqual(tailored['generation_context']['summary_adjustment']['omitted_summary_fact_ids'],['summary-sales'])
+        self.assertEqual(self.store.profile('fixture'),before_profile)
+        comparison=compare_resumes(self.store,self.root,app,base['id'],tailored['id'])
+        omitted=next(row for row in comparison['omitted'] if row['fact_id']=='summary-sales')
+        self.assertEqual(omitted['text'],'Experienced retail sales associate.')
+        self.assertEqual((tailored['template'],tailored['generation_model']),
+            ('approved-summary-skill-and-bullet-emphasis-v3','deterministic-summary-skill-and-bullet-emphasis-v2'))
+        self.assertEqual(self.store.application(app)['document_version'],2)
+        prepare(self.store,job['id'],'fixture',self.root,tailor_resume=True)
+        self.assertEqual(self.store.application(app)['document_version'],2)
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.documents).where(m.documents.c.id==tailored['id']).values(
+                generation_context={**tailored['generation_context'],'summary_adjustment':{
+                    **tailored['generation_context']['summary_adjustment'],
+                    'selected_summary_fact_ids':['summary-sales']}}))
+        with self.assertRaises(ComparisonUnavailable):
+            compare_resumes(self.store,self.root,app,base['id'],tailored['id'])
 
     def test_explicit_queue_option_versions_preserves_and_labels_skill_order(self):
         facts=[PROFILE['facts'][1],dict(PROFILE['facts'][0],id='role',kind='experience',text='Example Engineer 2020-2024'),
@@ -45,8 +84,8 @@ class SkillOrderIntegrationTests(unittest.TestCase):
             self.assertEqual(resume['generation_context']['job_skills'],['Python'])
             self.assertEqual(resume['generation_context']['original_fact_ids'],['sql','role','duty','python'])
             self.assertEqual((resume['template'],resume['generation_model']),
-                             ('approved-skill-and-bullet-emphasis-v2',
-                              'deterministic-skill-and-bullet-emphasis-v1'))
+                             ('approved-summary-skill-and-bullet-emphasis-v3',
+                              'deterministic-summary-skill-and-bullet-emphasis-v2'))
             self.assertEqual([r for r in rows if r['version']==1],original)
             for fmt in ('txt','docx','pdf'):
                 self.assertEqual(client.get(f"/profiles/fixture/documents/{resume['id']}/{fmt}").status_code,200)
