@@ -5,15 +5,22 @@
   "result": "PARTIAL",
   "scope_result": "PASS",
   "scope": "Durable operation claims now use five independent configurable concurrency categories. PostgreSQL admission takes one transaction advisory lock per category and counts all running operations in that category before leasing; SQLite serializes the same admission boundary. Compose exposes conservative defaults and hard maxima.",
-  "observed_at_utc": "2026-10-06T08:57:57Z",
+  "observed_at_utc": "2026-10-06T08:59:28Z",
   "candidate": {
     "repository": "MulattoTech/MJobs",
     "branch": "codex/req005-category-concurrency-20261006",
     "base": "8123dbff150a7a86ec200ce1cd0a2422bd3ec984",
     "commit": "23104373877a275c97204f7e1af08c4cd646b4d9",
     "tree": "335f4201200131557466146271b09c4faa118e28",
-    "integration_commit": null,
-    "integration_method": null
+    "integration_commit": "23104373877a275c97204f7e1af08c4cd646b4d9",
+    "integration_method": "NON_FORCE_FAST_FORWARD",
+    "main_before": "8123dbff150a7a86ec200ce1cd0a2422bd3ec984",
+    "main_after": "9f5af9fce6a367f084cbdc144364076f88cd6a5a",
+    "remote_main_after": "9f5af9fce6a367f084cbdc144364076f88cd6a5a",
+    "candidate_is_ancestor_of_main": true,
+    "main_remote_sha_verified": true,
+    "candidate_branch_remote_sha": "9f5af9fce6a367f084cbdc144364076f88cd6a5a",
+    "branch_protection": "NONE"
   },
   "category_policy": {
     "source_collection": {
@@ -146,5 +153,17 @@
   "denominators": {
     "requirements": 366,
     "reference_gaps": 59
+  },
+  "integration_receipt": {
+    "result": "PASS",
+    "method": "NON_FORCE_FAST_FORWARD",
+    "main_before": "8123dbff150a7a86ec200ce1cd0a2422bd3ec984",
+    "source_commit": "23104373877a275c97204f7e1af08c4cd646b4d9",
+    "local_main_after": "9f5af9fce6a367f084cbdc144364076f88cd6a5a",
+    "remote_main_after": "9f5af9fce6a367f084cbdc144364076f88cd6a5a",
+    "branch_protection": "NONE",
+    "candidate_is_ancestor_of_main": true,
+    "issue_state": "OPEN; broad MJ-REQ-005 acceptance remains PARTIAL; issue not closed",
+    "open_prs": 0
   }
 }

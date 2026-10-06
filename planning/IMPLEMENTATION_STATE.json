@@ -7,9 +7,9 @@
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Mock ATS remaining-deadline source 5680d0e317b8614b214b0e93a4b9d4fda799ffd0 integrated; evidence/planning receipt checkpoint 0eb07a2d0ca967639e3cfc43f7556a403dff2d32; local and GitHub main were synchronized at checkpoint.",
-    "current_verified_github_state": "GitHub main and local main synchronized at planning receipt checkpoint 0eb07a2d0ca967639e3cfc43f7556a403dff2d32; issue #5 OPEN/PARTIAL. Actions/reviews NOT_RUN by policy.",
-    "current_verified_at": "2026-10-06T08:24:16Z"
+    "current_verified_local_state": "Issue #6 category-admission source 23104373877a275c97204f7e1af08c4cd646b4d9 and evidence receipt integrated by non-force fast-forward; local main and origin/main synchronized at 9f5af9fce6a367f084cbdc144364076f88cd6a5a. Issue #6 remains OPEN/PARTIAL; requirement/reference denominators unchanged.",
+    "current_verified_github_state": "GitHub main and local main synchronized at 9f5af9fce6a367f084cbdc144364076f88cd6a5a; branch unprotected; no open PR; issue #6 OPEN/PARTIAL. GitHub Actions/hosted reviews NOT_RUN by local-only policy.",
+    "current_verified_at": "2026-10-06T08:59:28Z"
   },
   "current_milestone": "MJ-REQ-005-CATEGORY-CONCURRENCY-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under the local-only delivery policy; one writer and one integration lane.",
@@ -354,7 +354,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Finish the issue #6 category-admission checkpoint and integration. Then resume the highest-value open P0 safety slice: continue locally implementable #5 operation bounds or #7 workspace inspection based on current acceptance gaps. Preserve 366 requirement and 59 reference-gap denominators; hosted actions/reviews stay NOT_RUN; external submission stays OFF.",
+  "recommended_resume_step": "Continue the next locally implementable P0 safety slice in issue #5 / MJ-REQ-004 after reconciling current main. The issue #6 category-admission slice is integrated at main 9f5af9fce6a367f084cbdc144364076f88cd6a5a; keep #6 OPEN/PARTIAL for unavailable AI runtime, real ATS and per-source enforcement. Preserve 366 requirements and 59 reference gaps; hosted actions/reviews remain NOT_RUN; external submission stays OFF.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -5068,29 +5068,30 @@
     }
   ],
   "live_reconciliation": {
-    "observed_at": "2026-10-06T04:28:51Z",
-    "github_main": "70e16d0766f87c7b637cd4731a7e251ddc47d54a",
-    "issue_384_state": "OPEN_PARTIAL",
-    "issue_374_state": "CLOSED_LOCAL_PASS",
-    "issue_407_state": "CLOSED_LOCAL_PASS",
-    "issue_383_state": "OPEN_SELECTED_DEPENDENCY_READY",
+    "observed_at": "2026-10-06T08:59:28Z",
+    "github_main": "9f5af9fce6a367f084cbdc144364076f88cd6a5a",
+    "local_main": "9f5af9fce6a367f084cbdc144364076f88cd6a5a",
+    "issue_5_state": "OPEN_PARTIAL",
+    "issue_6_state": "OPEN_PARTIAL",
+    "open_prs": 0,
     "actions_enabled": false,
     "main_branch_protected": false,
-    "repository_rulesets_count": 0,
-    "integration": "MJ-REF-037_NON_FORCE_FAST_FORWARD_LOCAL_PASS",
-    "next_issue": 383
+    "integration": "MJ-REQ-005_NON_FORCE_FAST_FORWARD_LOCAL_PASS",
+    "next_issue": 5
   },
   "active_development_issue": {
     "issue": 6,
     "requirement_id": "MJ-REQ-005",
     "title": "Control Concurrency",
-    "state": "LOCAL_IMPLEMENTATION_COMMITTED_PARTIAL_ACCEPTANCE",
+    "state": "INTEGRATED_LOCAL_PARTIAL_ACCEPTANCE_OPEN",
     "selection_reason": "Open P0 concurrency safety requirement; operation-kind limits and PostgreSQL locks were not shared across related operation kinds.",
     "base": "8123dbff150a7a86ec200ce1cd0a2422bd3ec984",
     "branch": "codex/req005-category-concurrency-20261006",
     "candidate": "23104373877a275c97204f7e1af08c4cd646b4d9",
     "evidence": "docs/evidence/2026-10-06-operation-concurrency-categories.json",
-    "next_action": "Checkpoint the evidence/planning receipt, safely integrate this bounded category-admission slice, keep issue #6 OPEN/PARTIAL, then select the next highest-value locally progressable P0 issue. AI/provider work remains NOT_RUN; do not infer full requirement PASS."
+    "next_action": "Continue issue #5 / MJ-REQ-004: select the next locally implementable external-operation bound or classification gap after reconciling the live issue and current source category coverage. Keep issue #6 open/partial for AI runtime and per-source concurrency gaps.",
+    "integration_commit": "23104373877a275c97204f7e1af08c4cd646b4d9",
+    "integrated_main": "9f5af9fce6a367f084cbdc144364076f88cd6a5a"
   },
   "historical_control_snapshots": [
     {
@@ -6199,7 +6200,7 @@
     "MJ-REQ-004 mock ATS browser action budgets: 12 browser + 12 worker lifecycle tests; exact-head 5680d0e full suite 663 PASS after source-matched frontend rebuild; hosted/provider evidence NOT_RUN.",
     "MJ-REQ-005 exact candidate 23104373877a275c97204f7e1af08c4cd646b4d9: RED confirmed the former kind-specific limit; 21 focused SQLite/Compose tests, 1 isolated PostgreSQL concurrent-claim test, 35 browser tests and 669 full Python tests passed (1 optional PG skip); current frontend build, catalogue, progress, agent-skills and diff validators passed. Requirement remains PARTIAL for absent AI runtime, real ATS and per-source enforcement."
   ],
-  "ownership": "One writer: issue #6 category-concurrency candidate 23104373877a275c97204f7e1af08c4cd646b4d9 in codex/req005-category-concurrency-20261006, based on main 8123dbff150a7a86ec200ce1cd0a2422bd3ec984. Local tests and browser suite pass; source commit awaits evidence/planning receipt, push and safe integration. No hosted workflow/reviewer or external application submission was used.",
+  "ownership": "One writer: issue #6 category-concurrency source 23104373877a275c97204f7e1af08c4cd646b4d9 safely integrated by non-force fast-forward. Local main and GitHub main were synchronized at 9f5af9fce6a367f084cbdc144364076f88cd6a5a; issue #6 remains OPEN/PARTIAL. Next active slice is issue #5 after live reconciliation. External submission OFF; hosted workflows/reviews remain disabled by policy.",
   "delivery_policy": {
     "mode": "LOCAL_ONLY",
     "effective_at": "2026-10-05T21:32:10.763994+00:00",
@@ -6212,5 +6213,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-06T08:53:23Z"
+  "updated_at": "2026-10-06T08:59:28Z"
 }
