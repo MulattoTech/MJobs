@@ -231,8 +231,10 @@
       "evidence": []
     },
     "MJ-REF-037": {
-      "result": "NOT_RUN",
-      "evidence": []
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-06-reference-provenance.json"
+      ]
     },
     "MJ-REF-038": {
       "result": "NOT_RUN",

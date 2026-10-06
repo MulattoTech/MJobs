@@ -11,7 +11,7 @@
     "current_verified_github_state": "GitHub main and local main include issue #374 / MJ-REF-004 at 5e5ec4d726b6fc05063b177432d3ee050077a2d3. Issue #374 is CLOSED with all five criteria checked; #384 / MJ-REF-014 remains OPEN/PARTIAL because AI prompt/provider execution is absent. Actions remain disabled.",
     "current_verified_at": "2026-10-06T04:01:09Z"
   },
-  "current_milestone": "MJ-REF-037-SELECTED-20261006",
+  "current_milestone": "MJ-REF-037-LOCAL-PASS-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under the local-only delivery policy; one writer and one integration lane.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -47,7 +47,8 @@
     "Provider-neutral optional WebDiscoveryProvider contract with disabled default and bounded injected candidates (MJ-REQ-062).",
     "ATS detector recognizes all 22 listed provider hostname families and records evidence/confidence without claiming application support (MJ-REQ-063).",
     "Custom-domain ATS detection audited with visible careers URL preserved (MJ-REQ-065).",
-    "MJ-REF-017: crash-safe atomic generated document revisions, conservative orphan/staging/temp inventory, audited quarantine, integrity-checked restore, and configured-retention purge (docs/evidence/2026-10-06-artifact-recovery.json)."
+    "MJ-REF-017: crash-safe atomic generated document revisions, conservative orphan/staging/temp inventory, audited quarantine, integrity-checked restore, and configured-retention purge (docs/evidence/2026-10-06-artifact-recovery.json).",
+    "MJ-REF-037 candidate local PASS: pinned current reference repository commits/dates/license blobs, clean-room and license-independent no-evasion policy, material inspiration log, PR/local integration checklist, and fail-closed deterministic provenance validator (docs/evidence/2026-10-06-reference-provenance.json)."
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
@@ -210,7 +211,8 @@
     "CORE-WORKFLOW-TRIAL F2 source head 8756881: 42 focused integrations, 5 connected Chromium browser tests, 62 frontend tests, strict TypeScript/Vite build, agent-skills/catalogue/progress validators and CLI compilation passed.",
     "Fresh independent review of PR #513 exact source head 8756881 against base 2de5863 found no actionable defects after profile-scoping comparison reads, application detail/history, downloads and fixture mock actions.",
     "PR #513 source head 8756881 push run 37340200494 and pull_request run 37340208479 both passed 585 tests and all connected CI steps; all 9 reports per event passed and artifact SHA-256 digests matched GitHub. These runs precede the metadata commit and are not final-head evidence.",
-    "MJ-REF-017: 34 targeted spine/provenance/document/answer/browser tests PASS; final artifact recovery suite 7 tests PASS; browser history/download reload PASS; local frontend build and repository validators PASS (docs/evidence/2026-10-06-artifact-recovery.json)."
+    "MJ-REF-017: 34 targeted spine/provenance/document/answer/browser tests PASS; final artifact recovery suite 7 tests PASS; browser history/download reload PASS; local frontend build and repository validators PASS (docs/evidence/2026-10-06-artifact-recovery.json).",
+    "MJ-REF-037 candidate 91dfeda: 19 focused skill/provenance tests; reference provenance, skill, catalogue, progress validators and git diff --check PASS."
   ],
   "tests_failed": [],
   "tests_not_run": [
@@ -221,7 +223,8 @@
     "Live employer/ATS service integration and connected browser behavior; no browser files changed.",
     "Original P0-P3 release acceptance remains open.",
     "Final exact-head push and pull_request Verification for PR #515, including both event artifacts and all required reports.",
-    "Manual owner retest of the delivered browser workflow; retained personal runtime was intentionally not started or migrated."
+    "Manual owner retest of the delivered browser workflow; retained personal runtime was intentionally not started or migrated.",
+    "MJ-REF-037: full repository suite NOT_RUN for this docs/governance-only slice; hosted Actions/reviews NOT_RUN by explicit local-only policy."
   ],
   "known_external_limitations": [
     "Production external career-site/domain acquisition, configured web-search provider and non-mock ATS metadata integration are not verified in MJ-PR-017.",
@@ -239,11 +242,11 @@
     "MJ-PR-016 local Chromium first run used Docker DNS host api, which is not a secure browser origin for crypto.randomUUID; loopback URL rerun passed all five connected UI actions."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-06T04:01:09Z",
+    "timestamp": "2026-10-06T04:23:32Z",
     "result": "PASS",
-    "source_commit": "5e5ec4d726b6fc05063b177432d3ee050077a2d3",
-    "scope": "MJ-REF-004 complete local acceptance integrated by non-force fast-forward; #374 closed after GitHub readback; local-only evidence, no hosted or release acceptance",
-    "evidence_path": "docs/evidence/2026-10-06-ats-question-preflight.json"
+    "source_commit": "91dfedaee699a865bc8ce3a05d6fc8906930a73c",
+    "scope": "MJ-REF-037 local candidate acceptance passed and was pushed; awaiting local safe fast-forward and issue closeout.",
+    "evidence_path": "docs/evidence/2026-10-06-reference-provenance.json"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -310,7 +313,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Continue issue #407 / MJ-REF-037 as the highest-priority open P0 governance/safety reference gap: reconcile actual upstream repository URLs, current inspected commits/dates and licenses; implement a clean-room, license-aware registry plus explicit no-evasion rule and a reference-derived-change verification checklist. Keep evidence and reference completion separate from original requirements.",
+  "recommended_resume_step": "Finish issue #407 non-force fast-forward and GitHub issue readback, then continue with the highest-priority dependency-ready workflow slice without waiting for user continuation.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -4265,12 +4268,73 @@
         "git_commit": "5e5ec4d726b6fc05063b177432d3ee050077a2d3",
         "evidence_path": "docs/evidence/2026-10-06-ats-question-preflight.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REF-037-LOCAL-PASS-20261006",
+      "timestamp": "2026-10-06T04:23:32Z",
+      "current_phase": "MJ-REF-037_LOCAL_PASS_PENDING_SAFE_FAST_FORWARD",
+      "completed_steps": [
+        "Pinned seven reference repositories and two historical license refs to immutable commit/date/license-blob evidence using GitHub API reads.",
+        "Implemented clean-room default, exact-ref compatibility/attribution review, license-independent prohibited-evasion policy, inspiration log, PR template, local checklist, conditional third-party notices, and deterministic fail-closed validator.",
+        "Added positive and negative tests for cross-repository license URLs, incorporation notice requirements, invalid pins, and missing safety terms.",
+        "Pushed candidate 91dfedaee699a865bc8ce3a05d6fc8906930a73c on the owned branch."
+      ],
+      "files_added": [
+        ".github/PULL_REQUEST_TEMPLATE.md",
+        "THIRD_PARTY_NOTICES.md",
+        "docs/reference/REFERENCE_IMPLEMENTATION_POLICY.md",
+        "docs/reference/REFERENCE_INSPIRATION_LOG.md",
+        "docs/reference/REFERENCE_PROJECTS.json",
+        "tests/unit/test_reference_provenance.py",
+        "tools/verification/reference_provenance.py",
+        "docs/evidence/2026-10-06-reference-provenance.json"
+      ],
+      "files_modified": [
+        ".agents/skills/mjobs-delivery/SKILL.md",
+        ".agents/skills/mjobs-delivery/manifest.json",
+        "docs/GITHUB_WORKFLOW.md",
+        "docs/FEATURE_COMPLETENESS.md",
+        "docs/PROGRESS_DASHBOARD.md",
+        "docs/reference/REFERENCE_PROJECT_GAP_ANALYSIS.md",
+        "planning/REFERENCE_GAP_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/SESSION_HANDOFF.md",
+        "tests/unit/test_agent_skills.py",
+        "tools/verification/agent_skills.py"
+      ],
+      "tests_completed": [
+        "python -m unittest tests.unit.test_agent_skills tests.unit.test_reference_provenance -v: 19 tests PASS.",
+        "python -m tools.verification.reference_provenance: PASS.",
+        "python -m tools.verification.agent_skills: PASS.",
+        "python -m tools.verification.catalogue: PASS.",
+        "python -m tools.verification.progress validate: PASS.",
+        "git diff --check: PASS.",
+        "GitHub API pinned-commit and license-blob readback for seven current projects plus two historical license refs: PASS."
+      ],
+      "tests_remaining": [
+        "Hosted Actions/review: NOT_RUN by local-only policy.",
+        "Legal approval: NOT_PROVIDED; not asserted by this provenance registry."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Read-only GitHub metadata API only; no external application or ATS actions."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "The validator checks required evidence relationships and policy artifacts, not every historical source-tree similarity.",
+        "No third-party source/assets were intentionally incorporated.",
+        "Original requirements and full release status are unchanged; hosted evidence remains NOT_RUN."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "91dfedaee699a865bc8ce3a05d6fc8906930a73c",
+        "evidence_path": "docs/evidence/2026-10-06-reference-provenance.json"
+      }
     }
   ],
-  "current_phase": "MJ-REF-037_SELECTED_20261006",
+  "current_phase": "MJ-REF-037_LOCAL_PASS_PENDING_SAFE_FAST_FORWARD",
   "last_safe_checkpoint": {
-    "git_commit": "5e5ec4d726b6fc05063b177432d3ee050077a2d3",
-    "evidence_path": "docs/evidence/2026-10-06-ats-question-preflight.json"
+    "git_commit": "91dfedaee699a865bc8ce3a05d6fc8906930a73c",
+    "evidence_path": "docs/evidence/2026-10-06-reference-provenance.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
@@ -4380,25 +4444,28 @@
     }
   ],
   "live_reconciliation": {
-    "observed_at": "2026-10-06T04:01:09Z",
-    "github_main": "5e5ec4d726b6fc05063b177432d3ee050077a2d3",
+    "observed_at": "2026-10-06T04:23:32Z",
+    "github_main": "1b32e6764cdc525d04f55b6450395efef8d2b36c",
     "issue_384_state": "OPEN_PARTIAL",
     "issue_374_state": "CLOSED_LOCAL_PASS",
+    "issue_407_state": "OPEN_CANDIDATE_PASS",
     "actions_enabled": false,
     "main_branch_protected": false,
     "repository_rulesets_count": 0,
-    "integration": "MJ-REF-004_NON_FORCE_FF_LOCAL_PASS",
+    "integration": "CANDIDATE_PUSHED_PENDING_NON_FORCE_FAST_FORWARD",
     "next_issue": 407
   },
   "active_development_issue": {
     "issue": 407,
     "requirement_id": "MJ-REF-037",
     "title": "Reference implementation provenance and license-safe inspiration policy",
-    "state": "OPEN_SELECTED_DEPENDENCY_READY",
-    "selection_reason": "Highest-priority open P0 reference governance/safety gate; a reliable current upstream registry and enforced clean-room/no-evasion process protect every subsequent reference-inspired product slice.",
-    "base": "5e5ec4d726b6fc05063b177432d3ee050077a2d3",
+    "state": "LOCAL_PASS_PENDING_SAFE_FAST_FORWARD",
+    "selection_reason": "P0 provenance and license-safe process gate protecting subsequent reference-inspired work.",
+    "base": "1b32e6764cdc525d04f55b6450395efef8d2b36c",
     "branch": "codex/mj-ref-037-license-safe-refs-20261006",
-    "next_action": "Inspect existing reference analysis and delivery/checklist contracts; verify the listed upstream repository URLs, current commit/ref/date and license from authoritative repository metadata; implement and locally validate the registry, clean-room guardrail, no-evasion rule, material-inspiration record, and pre-merge verification with evidence."
+    "candidate": "91dfedaee699a865bc8ce3a05d6fc8906930a73c",
+    "evidence_path": "docs/evidence/2026-10-06-reference-provenance.json",
+    "next_action": "Reconcile current origin/main and candidate ancestry, non-force fast-forward only if still safe, verify main synchronization, then update issue #407 and immediately select the next dependency-ready slice."
   },
   "historical_control_snapshots": [
     {
@@ -5517,5 +5584,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-06T02:37:36Z"
+  "updated_at": "2026-10-06T04:23:32Z"
 }

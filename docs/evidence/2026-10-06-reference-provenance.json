@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REF-037",
+  "github_issue": 407,
+  "result": "PASS",
+  "scope": "Local provenance registry, clean-room/no-evasion policy, material inspiration traceability, and deterministic pre-merge enforcement.",
+  "observed_at_utc": "2026-10-06T04:23:32Z",
+  "candidate": {
+    "repository": "MulattoTech/MJobs",
+    "branch": "codex/mj-ref-037-license-safe-refs-20261006",
+    "base": "1b32e6764cdc525d04f55b6450395efef8d2b36c",
+    "commit": "91dfedaee699a865bc8ce3a05d6fc8906930a73c",
+    "tree": "45a62d2483f56972bfd3d64d7a6d95d6f31f0939",
+    "status": "pushed candidate; pending local non-force fast-forward and issue readback"
+  },
+  "source_sha256": {
+    "docs/reference/REFERENCE_PROJECTS.json": "4cd6231e394bd9c8a6ac838ae321a11a9853e6edfba4526327d25a7f20c57bd6",
+    "docs/reference/REFERENCE_IMPLEMENTATION_POLICY.md": "0c22700273d0fc7e59853036c58f11f1cd5b063735bcd307d65e6da9f6c703e3",
+    "docs/reference/REFERENCE_INSPIRATION_LOG.md": "3ed9f55d9693b7ce6cd90d59fb3d875981d663c452498ee80036c101194fee3a",
+    ".github/PULL_REQUEST_TEMPLATE.md": "5a99973428c5c725996e64b6b9f185531d979902e19e070ab91de1df5ba2c3ea",
+    "THIRD_PARTY_NOTICES.md": "8e04816371f115a0124150297cd958981950275ad51adf5ecd87f90097a595b2",
+    "tools/verification/reference_provenance.py": "3f305bb04e50d228e6acfb12a1dc22e0efc2a8b53f3afbf8b64c23ade10aae76"
+  },
+  "upstream_verification": {
+    "method": "Authenticated GitHub API reads for each pinned commit and license Git blob; license texts/SPDX posture inspected at their immutable refs.",
+    "result": "PASS",
+    "current_projects": 7,
+    "historical_license_refs": 2,
+    "source_ids": [
+      "JOBSPY",
+      "CAREERWEAVER",
+      "RESUME_MATCHER",
+      "AUTOAPPLY",
+      "PERSONAL_JOBPILOT",
+      "RESUMORPH",
+      "AIHAWK_INVISIBLE_PLAYWRIGHT"
+    ],
+    "special_cases": [
+      "AutoApply is PolyForm Noncommercial License 1.0.0; GitHub SPDX metadata is NOASSERTION; source/code/assets are prohibited by MJobs posture.",
+      "AIHawk alias resolves to invisible_playwright_mcp; exact history records AGPL-3.0 and later MIT relicense refs, without assuming the relicense changes older copies."
+    ],
+    "checks": [
+      "gh api repos/{owner}/{repo}/commits/{pinned_sha}: response SHA and commit date match registry.",
+      "gh api repos/{owner}/{repo}/git/blobs/{license_blob_sha}: response blob SHA matches registry.",
+      "License source URLs pin the inspected commit and path and match the registered repository URL."
+    ]
+  },
+  "acceptance": {
+    "registry_repository_ref_commit_date_license_allowed_use": "PASS",
+    "clean_room_default_and_exact_ref_license_attribution_review": "PASS",
+    "material_inspiration_records_link_issue_source_commit_concept_and_evidence": "PASS",
+    "license_independent_no_evasion_prohibition": "PASS",
+    "pre_merge_checklist_validator_and_conditional_third_party_notices": "PASS",
+    "third_party_code_or_assets_intentionally_incorporated": false,
+    "legal_opinion_or_approval": "NOT_PROVIDED"
+  },
+  "local_validation": {
+    "environment": "Windows local checkout; Python 3.12.10",
+    "commands": [
+      {
+        "command": "python -m unittest tests.unit.test_agent_skills tests.unit.test_reference_provenance -v",
+        "result": "PASS",
+        "tests": 19
+      },
+      {
+        "command": "python -m tools.verification.reference_provenance",
+        "result": "PASS"
+      },
+      {
+        "command": "python -m tools.verification.agent_skills",
+        "result": "PASS"
+      },
+      {
+        "command": "python -m tools.verification.catalogue",
+        "result": "PASS"
+      },
+      {
+        "command": "python -m tools.verification.progress validate",
+        "result": "PASS"
+      },
+      {
+        "command": "git diff --check",
+        "result": "PASS"
+      }
+    ],
+    "not_run": [
+      "Full repository test suite; this governance-only slice was validated with affected unit suites and repository validators.",
+      "GitHub Actions and hosted reviews: NOT_RUN under current budget policy.",
+      "Legal review: NOT_APPLICABLE; registry posture is policy, not legal approval."
+    ]
+  },
+  "limitations": [
+    "The provenance validator is deterministic and checks local registry/checklist/notices structure; it does not prove absence of historical code similarity.",
+    "Registry records inspected immutable refs and should be refreshed if future work relies on a newer upstream revision.",
+    "Original requirement denominator remains 366 and no original requirement status was changed.",
+    "Reference requirement denominator remains 59; only MJ-REF-037 is newly PASS.",
+    "Full release acceptance remains NOT_RUN; external application submission remains OFF."
+  ]
+}
