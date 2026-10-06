@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-06T19:03:46Z",
+  "timestamp": "2026-10-06T19:53:51Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -992,9 +992,10 @@
       "requirement_id": "MJ-REQ-109",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-06-ai-task-configuration.json"
+        "docs/evidence/2026-10-06-ai-task-configuration.json",
+        "docs/evidence/2026-10-06-ai-task-settings-persistence.json"
       ],
-      "note": "All seven task-specific provider/model routes are implemented and locally tested with disabled defaults and fail-closed unknown providers. Runtime persistence and production task-consumer wiring remain incomplete."
+      "note": "All seven per-profile provider/model choices now have a durable API and browser UI with disabled defaults; consumer wiring and model inference remain unverified."
     },
     {
       "requirement_id": "MJ-REQ-110",

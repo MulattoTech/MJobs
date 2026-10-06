@@ -1,5 +1,15 @@
 # Active local-only implementation checkpoint — 2026-10-06
 
+Issue #110 / MJ-REQ-109 candidate `a6d64f82598df9eebab6601dafd386b07409706f` on `codex/mj-req109-task-config-persistence-20261006`, based on synchronized main `330de33bdec2984c14136951d4d09d2a130e3aa7`. Added durable per-profile provider/model settings for all seven task types, a connected AI Settings page, disabled defaults, strict unsupported-provider validation and sanitized credential-bearing error responses. Tests prove persistence after SQLite reopen, PostgreSQL read/write, profile isolation, browser reload and populated-settings downgrade protection. No prompt, credential or model call is included. Evidence: `docs/evidence/2026-10-06-ai-task-settings-persistence.json`.
+
+Validation: 346 unit, 381 integration (one optional PostgreSQL harness skip), 38 browser, 62 frontend tests PASS; Vite build, SQLite/PostgreSQL Alembic/API checks, populated downgrade refusal, compileall and repository validators PASS. Issue #110 remains OPEN/PARTIAL because production task consumers and inference are not wired; hosted checks NOT_RUN, external submission OFF. Candidate integration and GitHub issue readback pending.
+
+Next: recheck exact live main and shared worktrees, push and fast-forward only if this candidate remains an exact descendant, then continue the next dependency-ready slice.
+
+---
+
+# Active local-only implementation checkpoint — 2026-10-06
+
 Issue #109 / MJ-REQ-108 Ollama provider slice is integrated at synchronized local/GitHub main `6569765749e319e72aebfaa90181eeb351f9a513`. Nine provider tests and all 346 unit tests passed on source `28c07dfad4693ebba089fb4acc9183c851872289`; compileall, progress/catalogue/agent-skill validators and diff check also passed. Tests used synthetic `httpx.MockTransport`; no model inference was run. GitHub readback leaves #109 OPEN/PARTIAL: https://github.com/MulattoTech/MJobs/issues/109#issuecomment-6024000242. Evidence `docs/evidence/2026-10-06-ai-local-ollama-provider.json`. Hosted checks and remote/paid providers remain NOT_RUN; external submission OFF.
 
 Next target: issue #110 / MJ-REQ-109 task-configuration persistence inside active dependency-ready `MJ-PR-030`. Inspect existing profile-scoped configuration/storage and UI patterns first. Preserve disabled provider defaults, avoid credential fields/storage, and test profile isolation plus invalid provider/model inputs. Antigravity remains active; recheck ownership before shared writes.

@@ -1,17 +1,17 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-06T19:35:41Z",
+  "generated_at": "2026-10-06T19:53:51Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Local main and origin/main synchronized at 6569765749e319e72aebfaa90181eeb351f9a513; issue #109 / MJ-REQ-108 Ollama slice integrated PARTIAL; issue #110 selected next under active MJ-PR-030.",
-    "current_verified_github_state": "GitHub/local main synchronized at 6569765749e319e72aebfaa90181eeb351f9a513; issue #109 OPEN/PARTIAL after evidence readback; Actions disabled, no open PRs, main unprotected.",
-    "current_verified_at": "2026-10-06T19:35:41Z"
+    "current_verified_local_state": "origin/main synchronized at 330de33bdec2984c14136951d4d09d2a130e3aa7; issue #109 Ollama slice integrated; issue #110 / MJ-REQ-109 settings candidate a6d64f82598df9eebab6601dafd386b07409706f locally verified in isolated worktree, integration pending.",
+    "current_verified_github_state": "GitHub main remains 330de33bdec2984c14136951d4d09d2a130e3aa7; issue #109 OPEN/PARTIAL; issue #110 OPEN; Actions disabled and hosted verification NOT_RUN.",
+    "current_verified_at": "2026-10-06T19:53:51Z"
   },
-  "current_milestone": "MJ-REQ-108-OLLAMA-PROVIDER-INTEGRATED-PARTIAL-20261006",
+  "current_milestone": "MJ-REQ-109-AI-TASK-SETTINGS-LOCALLY-VERIFIED-PARTIAL-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -275,7 +275,8 @@
     "Integrated main 117a27c: 8 focused AI tests PASS; prior exact reconciled candidate: 324 unit tests and 7 Remotive integration tests PASS; progress/catalogue/agent-skill validation PASS.",
     "MJ-REQ-110 issue #111 funnel: five focused tests and 329 unit tests pass; planner remains PARTIAL without production consumer or persisted configuration (docs/evidence/2026-10-06-ai-cost-controls.json).",
     "MJ-REQ-111 issue #112 structured output: 16 focused AI tests and 337 full unit tests PASS; remote provider and production consumer remain unavailable (docs/evidence/2026-10-06-ai-structured-output.json).",
-    "MJ-REQ-108 issue #109 local Ollama adapter: nine provider tests and all 346 unit tests PASS; all requests used synthetic MockTransport, no model inference (docs/evidence/2026-10-06-ai-local-ollama-provider.json)."
+    "MJ-REQ-108 issue #109 local Ollama adapter: nine provider tests and all 346 unit tests PASS; all requests used synthetic MockTransport, no model inference (docs/evidence/2026-10-06-ai-local-ollama-provider.json).",
+    "MJ-REQ-109 per-profile AI settings candidate a6d64f8: 346 unit, 381 integration (1 optional skip), 38 browser, 62 frontend tests; Vite build; SQLite/PostgreSQL migrations and API persistence; populated downgrade refusal; validators PASS (docs/evidence/2026-10-06-ai-task-settings-persistence.json)."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -312,7 +313,7 @@
     "MJ-REQ-004 cancellation acknowledgement: hosted Actions/reviews NOT_RUN under user policy; optional PostgreSQL skipped (MJOBS_TEST_POSTGRES_URL unset); AI provider/real ATS and external submission not run; cross-replica cancellation not implemented. Evidence docs/evidence/2026-10-06-comparison-cancel-acknowledgement.json.",
     "MJ-REQ-004 mock ATS HTTP cancellation: hosted Actions/reviews NOT_RUN; optional PostgreSQL skipped because MJOBS_TEST_POSTGRES_URL is unset; AI/real ATS and external submission not run. Evidence docs/evidence/2026-10-06-mock-ats-http-cancellation.json.",
     "MJ-REQ-108.A06 browser acceptance NOT_APPLICABLE (internal provider contract); external provider calls and GitHub hosted checks NOT_RUN by current policy; full integration suite NOT_RUN because application workflow wiring is outside this child slice.",
-    "MJ-REQ-109: browser acceptance NOT_APPLICABLE; live/paid model calls and hosted Actions/reviews NOT_RUN under current policy; runtime persistence/consumer integration remains outside this verified slice."
+    "MJ-REQ-109: live model inference and production consumer wiring NOT_RUN; remote/paid models and hosted Actions/reviews NOT_RUN by policy. Browser persistence/profile isolation passed (docs/evidence/2026-10-06-ai-task-settings-persistence.json)."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -416,7 +417,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Recheck synchronized main, Actions-disabled state and branch protection; push issue #109 local provider candidate and safely fast-forward; keep issue #109 OPEN/PARTIAL pending real provider/consumer evidence, then continue the next dependency-ready queue item.",
+  "recommended_resume_step": "Push the verified issue #110 branch, recheck live main/worktrees and Actions policy, fast-forward only if origin/main remains the exact ancestor, comment/read back issue #110 OPEN/PARTIAL, then continue the next dependency-ready item.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -434,7 +435,7 @@
     "cb72f9041d6a",
     "e14ac893620f"
   ],
-  "unfinished_work_evidence": "docs/evidence/2026-10-06-mock-ats-action-budget.json\nMJ-REQ-095 issue #96 responsibility-bullet emphasis locally verified on e6c47515aa20596ed6ec3263c809af26b4cf3910; broader summary adjustment and factual rephrasing remain PARTIAL. Evidence: docs/evidence/2026-10-06-resume-bullet-emphasis.json\nMJ-REQ-095 issue #96 extractive summary tailoring locally verified on d5309972c04062c721ee72986008b04a1f572e03; factual bullet rephrasing and broad AI rewriting remain PARTIAL. Evidence: docs/evidence/2026-10-06-target-summary-tailoring.json\nMJ-REQ-007 issue #8 local config initialization slice c7306774884ad08e5172bfec7ab365dc261f77b3; issue remains PARTIAL pending actual protected-configuration migration recovery. Evidence: docs/evidence/2026-10-06-atomic-env-initialization.json\nMJ-REQ-007 scoped atomic .env initialization integrated at 494e15f46a93b70530755811888ece6046dc98aa; GitHub issue #8 remains OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6019785804. Evidence: docs/evidence/2026-10-06-atomic-env-initialization.json\nMJ-REQ-008 issue #9 isolated container crash/resume proof: docs/evidence/2026-10-06-progress-container-crash-recovery.json; host restart remains unverified.\nMJ-REQ-004 uploaded-original resume comparison cancellation candidate 8a469b03bb7c57448118be9e1b761d8608d179ab; issue #5 remains OPEN/PARTIAL for remaining external-operation categories and multi-replica cancellation. Evidence: docs/evidence/2026-10-06-uploaded-comparison-cancellation.json\nMJ-REQ-004 cancellation acknowledgement truthfulness candidate 6abd58aec2562fddaff1367fa8c60417d98b5ebb; issue #5 remains OPEN/PARTIAL for cross-replica signaling and remaining operation classes. Evidence: docs/evidence/2026-10-06-comparison-cancel-acknowledgement.json\nMJ-REQ-004 mock ATS questionnaire/receipt HTTP calls now honor worker cancellation/deadline; submission receipt uncertainty remains safe. Evidence: docs/evidence/2026-10-06-mock-ats-http-cancellation.json",
+  "unfinished_work_evidence": "docs/evidence/2026-10-06-mock-ats-action-budget.json\nMJ-REQ-095 issue #96 responsibility-bullet emphasis locally verified on e6c47515aa20596ed6ec3263c809af26b4cf3910; broader summary adjustment and factual rephrasing remain PARTIAL. Evidence: docs/evidence/2026-10-06-resume-bullet-emphasis.json\nMJ-REQ-095 issue #96 extractive summary tailoring locally verified on d5309972c04062c721ee72986008b04a1f572e03; factual bullet rephrasing and broad AI rewriting remain PARTIAL. Evidence: docs/evidence/2026-10-06-target-summary-tailoring.json\nMJ-REQ-007 issue #8 local config initialization slice c7306774884ad08e5172bfec7ab365dc261f77b3; issue remains PARTIAL pending actual protected-configuration migration recovery. Evidence: docs/evidence/2026-10-06-atomic-env-initialization.json\nMJ-REQ-007 scoped atomic .env initialization integrated at 494e15f46a93b70530755811888ece6046dc98aa; GitHub issue #8 remains OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6019785804. Evidence: docs/evidence/2026-10-06-atomic-env-initialization.json\nMJ-REQ-008 issue #9 isolated container crash/resume proof: docs/evidence/2026-10-06-progress-container-crash-recovery.json; host restart remains unverified.\nMJ-REQ-004 uploaded-original resume comparison cancellation candidate 8a469b03bb7c57448118be9e1b761d8608d179ab; issue #5 remains OPEN/PARTIAL for remaining external-operation categories and multi-replica cancellation. Evidence: docs/evidence/2026-10-06-uploaded-comparison-cancellation.json\nMJ-REQ-004 cancellation acknowledgement truthfulness candidate 6abd58aec2562fddaff1367fa8c60417d98b5ebb; issue #5 remains OPEN/PARTIAL for cross-replica signaling and remaining operation classes. Evidence: docs/evidence/2026-10-06-comparison-cancel-acknowledgement.json\nMJ-REQ-004 mock ATS questionnaire/receipt HTTP calls now honor worker cancellation/deadline; submission receipt uncertainty remains safe. Evidence: docs/evidence/2026-10-06-mock-ats-http-cancellation.json\nMJ-REQ-109 persisted provider/model selections are connected to a profile-scoped API and AI Settings UI, but no production task consumer or live inference is verified; issue #110 remains PARTIAL/OPEN (docs/evidence/2026-10-06-ai-task-settings-persistence.json).",
   "authorization": "User explicitly provided 100% Git and GitHub authorization on 2026-09-30; still verify native permissions and required checks",
   "user_testing": {
     "result": "PASS",
@@ -453,7 +454,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "6569765749e319e72aebfaa90181eeb351f9a513",
+  "last_implementation_commit": "a6d64f82598df9eebab6601dafd386b07409706f",
   "publication": {
     "result": "PASS",
     "integration_method": "NON_FORCE_FAST_FORWARD",
@@ -6684,12 +6685,75 @@
         "git_commit": "6569765749e319e72aebfaa90181eeb351f9a513",
         "evidence_path": "docs/evidence/2026-10-06-ai-local-ollama-provider.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-109-AI-TASK-SETTINGS-LOCALLY-VERIFIED-PARTIAL-20261006",
+      "timestamp": "2026-10-06T19:53:51Z",
+      "current_phase": "Issue #110 / MJ-REQ-109 profile-scoped AI settings candidate a6d64f82598df9eebab6601dafd386b07409706f is locally verified PARTIAL; persistence and browser behavior pass, production consumers remain unwired; integration pending.",
+      "completed_steps": [
+        "Persisted profile-scoped settings for all seven task types with disabled defaults",
+        "Added strict API validation and sanitized malformed/credential-bearing errors",
+        "Added connected AI Settings UI to independently choose provider/model per task",
+        "Verified SQLite/PostgreSQL migration and persistence plus refusal to discard populated settings",
+        "Verified browser reload and profile isolation; no real inference was run"
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-06-ai-task-settings-persistence.json",
+        "migrations/versions/7c6e1d3a9b20_profile_ai_task_settings.py",
+        "tests/integration/test_ai_task_settings_api.py",
+        "tests/browser/test_ai_task_settings.py"
+      ],
+      "files_modified": [
+        "apps/api/main.py",
+        "apps/api/AREA.md",
+        "apps/web/src/main.tsx",
+        "apps/web/AREA.md",
+        "packages/persistence/models.py",
+        "packages/persistence/store.py",
+        "packages/persistence/AREA.md",
+        "services/ai/AREA.md",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Full unit suite 346 PASS",
+        "Full integration suite 381 PASS, 1 optional PostgreSQL skip",
+        "Full browser suite 38 PASS",
+        "Frontend suite 62 PASS and production build PASS",
+        "SQLite and disposable PostgreSQL Alembic upgrade/API persistence PASS; populated downgrade refusal PASS",
+        "Progress, catalogue, agent-skill, compileall and diff checks PASS"
+      ],
+      "tests_remaining": [
+        "Push and safely integrate; read back issue #110 OPEN/PARTIAL",
+        "Production task-consumer wiring and live inference remain separate incomplete slices"
+      ],
+      "migrations_applied": [
+        "7c6e1d3a9b20 on disposable SQLite/PostgreSQL test databases only; no user/product database touched"
+      ],
+      "live_integrations_tested": [
+        "Disposable loopback-only PostgreSQL 17 container with synthetic profile/configuration data; removed after test"
+      ],
+      "known_errors": [
+        "Initial API validation echoed a rejected api_key; route-scoped sanitized responses now pass privacy tests.",
+        "Initial synthetic DB binding and migration wrapper cleanup issues were test harness errors and were corrected; final suites pass."
+      ],
+      "known_limitations": [
+        "No production AI task consumer loads persisted settings and no real model inference was performed.",
+        "Only disabled and loopback Ollama are selectable; remote providers remain absent.",
+        "Hosted checks remain NOT_RUN; external application submission remains OFF."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "a6d64f82598df9eebab6601dafd386b07409706f",
+        "evidence_path": "docs/evidence/2026-10-06-ai-task-settings-persistence.json"
+      }
     }
   ],
-  "current_phase": "Issue #109 / MJ-REQ-108 loopback-only Ollama slice integrated at synchronized main 6569765749e319e72aebfaa90181eeb351f9a513; issue remains OPEN/PARTIAL; proceed to issue #110 task-configuration persistence within active MJ-PR-030.",
+  "current_phase": "Issue #110 / MJ-REQ-109 profile-scoped AI settings candidate a6d64f82598df9eebab6601dafd386b07409706f is locally verified PARTIAL; persistence and browser behavior pass, production consumers remain unwired; integration pending.",
   "last_safe_checkpoint": {
-    "git_commit": "6569765749e319e72aebfaa90181eeb351f9a513",
-    "evidence_path": "docs/evidence/2026-10-06-ai-local-ollama-provider.json"
+    "git_commit": "a6d64f82598df9eebab6601dafd386b07409706f",
+    "evidence_path": "docs/evidence/2026-10-06-ai-task-settings-persistence.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -6831,12 +6895,12 @@
     "requirement_id": "MJ-REQ-109",
     "title": "AI Task Configuration",
     "state": "ACTIVE",
-    "selection_reason": "Next incomplete locally actionable requirement inside dependency-ready active MJ-PR-030; persisted per-task routing would turn the existing seven-task in-process router into user-configurable durable product behavior.",
-    "base": "6569765749e319e72aebfaa90181eeb351f9a513",
+    "selection_reason": "The active dependency-ready MJ-PR-030 needs a user-facing durable seven-task provider/model configuration before production consumers can safely use task routing.",
+    "base": "330de33bdec2984c14136951d4d09d2a130e3aa7",
     "branch": "codex/mj-req109-task-config-persistence-20261006",
-    "candidate": null,
-    "evidence": "docs/evidence/2026-10-06-ai-task-configuration.json",
-    "next_action": "Inspect profile-scoped settings/API/UI patterns, then implement a durable user-configurable task router while keeping providers disabled by default and secrets out of storage."
+    "candidate": "a6d64f82598df9eebab6601dafd386b07409706f",
+    "evidence": "docs/evidence/2026-10-06-ai-task-settings-persistence.json",
+    "next_action": "Push and safely integrate the locally verified candidate after live main/worktree reconciliation; post issue evidence without closing it, then select the next dependency-ready slice."
   },
   "historical_control_snapshots": [
     {
@@ -7970,5 +8034,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-06T19:35:41Z"
+  "updated_at": "2026-10-06T19:53:51Z"
 }

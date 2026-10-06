@@ -867,9 +867,9 @@
         "MJ-PR-025"
       ],
       "status": "ACTIVE",
-      "branch": "codex/mj-req108-local-provider-20261006",
+      "branch": "codex/mj-req109-task-config-persistence-20261006",
       "draft_until_verified": true,
-      "notes": "Ollama slice integrated by non-force fast-forward at synchronized main 6569765749e319e72aebfaa90181eeb351f9a513; issue #109 remains OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/109#issuecomment-6024000242. Evidence docs/evidence/2026-10-06-ai-local-ollama-provider.json. No live inference or remote/paid provider call was made. MJ-REQ-108.A06 disabled provider PASS; issue #109 / MJ-REQ-108 now has a locally tested loopback Ollama adapter, but remains PARTIAL pending actual inference and remaining provider/consumer paths. MJ-REQ-109 router, MJ-REQ-110 funnel and MJ-REQ-111 structured output are integrated PARTIAL. Persisted settings and end-to-end task consumers remain open."
+      "notes": "Ollama slice integrated by non-force fast-forward at synchronized main 6569765749e319e72aebfaa90181eeb351f9a513; issue #109 remains OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/109#issuecomment-6024000242. Evidence docs/evidence/2026-10-06-ai-local-ollama-provider.json. No live inference or remote/paid provider call was made. MJ-REQ-108.A06 disabled provider PASS; issue #109 / MJ-REQ-108 now has a locally tested loopback Ollama adapter, but remains PARTIAL pending actual inference and remaining provider/consumer paths. MJ-REQ-109 router, MJ-REQ-110 funnel and MJ-REQ-111 structured output are integrated PARTIAL. Persisted settings and end-to-end task consumers remain open. MJ-REQ-109 persisted profile settings locally verified on candidate a6d64f82598df9eebab6601dafd386b07409706f; evidence docs/evidence/2026-10-06-ai-task-settings-persistence.json. Issue #110 remains OPEN/PARTIAL because production task consumers are not wired."
     },
     {
       "id": "MJ-PR-031",

@@ -1,0 +1,130 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-109",
+  "github_issue": 110,
+  "result": "PARTIAL",
+  "scope": "Durable profile-scoped settings and connected UI for independently selecting a provider/model for each of the seven AI task types. No production AI consumer is claimed.",
+  "observed_at_utc": "2026-10-06T19:53:51Z",
+  "candidate": {
+    "repository": "MulattoTech/MJobs",
+    "branch": "codex/mj-req109-task-config-persistence-20261006",
+    "base": "330de33bdec2984c14136951d4d09d2a130e3aa7",
+    "commit": "a6d64f82598df9eebab6601dafd386b07409706f",
+    "tree": "ca11ff272beb4d903b6db7087646a5f4b29c518e",
+    "status": "Locally validated candidate; evidence/planning receipt and safe integration pending."
+  },
+  "source_sha256": {
+    "apps/api/main.py": "3ab50e9e7638f77099d03611547eb3c67c9affc7e564bc61026b572eb33865cc",
+    "apps/web/src/main.tsx": "bcd0434acce97859333408d30401138664f54b4333a10c1f4ad5e07bb84fb628",
+    "packages/persistence/models.py": "5c720e992adf8b1364a25f8f7d06aec73cb6cfb3e7f87a7cd10fe592578d9d3e",
+    "packages/persistence/store.py": "35e26494b225852c6c1f8c469559c35b07aa13959fb72faf1f55cb7bcea8bda0",
+    "migrations/versions/7c6e1d3a9b20_profile_ai_task_settings.py": "499b42e549b8c4bb830704c23c386adb777ff370091c61dc2d127cb271993108",
+    "tests/integration/test_ai_task_settings_api.py": "834aff6a939ea1f0ade92ef49c07a6dd4e021b525fcec086a25a6cf8e653df06",
+    "tests/browser/test_ai_task_settings.py": "d92f7424b8ae11ef3a9d7799dff563002668bd3bd57503df1e6c3a1826ac35ac",
+    "apps/api/AREA.md": "3a03c3be007c6eb7b500559f3c3faec221aa72678a0009b19bec8437f055094a",
+    "apps/web/AREA.md": "519291e4ce82d53755b0ffa49d00ae6828777d4b73c927319c082cdd8645005e",
+    "packages/persistence/AREA.md": "bd30d2e0e334d8b03d1574196c2d0c39d7f9ed52b81149e878b9d1f1a39926ed",
+    "services/ai/AREA.md": "281e85ae2cbeedc1d9777f7f308a796f6e8f26f60c7a1dd9bc86d088c230d605"
+  },
+  "acceptance": {
+    "all_seven_task_types_are_user_configurable": "PASS - job parsing, job scoring, requirement extraction, resume tailoring, cover letters, free-form answers and company summarization are editable independently in AI Settings.",
+    "disabled_defaults_and_explicit_local_provider": "PASS - each profile defaults to disabled for all tasks; the UI only offers disabled or the registered loopback-only Ollama provider; saving settings does not call a model.",
+    "durable_profile_scoped_read_write": "PASS - API and SQLite/PostgreSQL persist and reload task selections; a second profile remains disabled and does not receive another profile selection.",
+    "input_safety": "PASS - unknown tasks/providers, secret-shaped model identifiers, extra credential fields and malformed request bodies fail closed; API responses do not echo rejected values and no credential field exists in storage.",
+    "connected_browser_behavior": "PASS - real Chromium UI saves two different Ollama model selections for separate tasks, reloads them, switches profiles without leakage, and remains usable at 390px.",
+    "production_task_consumer_and_live_inference": "PARTIAL/NOT_RUN - no production task consumer reads the persisted selections and no model inference was performed; issue #110 remains OPEN/PARTIAL."
+  },
+  "local_validation": {
+    "environment": "Windows isolated Git worktree; Python 3.12.10; Vite 8.3.1; local SQLite migration plus disposable PostgreSQL 17 container bound only to loopback; no model call made.",
+    "commands": [
+      {
+        "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_ai_task_settings_api tests.unit.test_ai_task_configuration tests.unit.test_ollama_provider -v",
+        "result": "PASS",
+        "tests": 19
+      },
+      {
+        "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest discover -s tests\\unit -v",
+        "result": "PASS",
+        "tests": 346
+      },
+      {
+        "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest discover -s tests\\integration -v",
+        "result": "PASS",
+        "tests": 381,
+        "skipped": 1,
+        "skip_note": "One optional PostgreSQL integration test skipped because MJOBS_TEST_POSTGRES_URL is unset; a separate disposable PostgreSQL 17 validation passed."
+      },
+      {
+        "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest discover -s tests\\browser -v",
+        "result": "PASS",
+        "tests": 38
+      },
+      {
+        "command": "npm test --prefix apps/web -- --run",
+        "result": "PASS",
+        "tests": 62
+      },
+      {
+        "command": "npm run build --prefix apps/web",
+        "result": "PASS"
+      },
+      {
+        "command": "MJOBS_DATABASE_URL=temporary SQLite URL; python -m alembic upgrade head",
+        "result": "PASS",
+        "note": "New profile_ai_task_settings table present at revision 7c6e1d3a9b20."
+      },
+      {
+        "command": "MJOBS_DATABASE_URL=temporary SQLite URL; populate a setting; python -m alembic downgrade cf4216a93b85",
+        "result": "PASS",
+        "note": "Downgrade refused to drop populated settings and the original setting remained readable."
+      },
+      {
+        "command": "Disposable loopback-only PostgreSQL 17: Alembic upgrade head; profile-scoped API save/read; invalid credential rejected without echo or storage",
+        "result": "PASS",
+        "note": "Only the task-created temporary container was removed."
+      },
+      {
+        "command": "..\\..\\.venv\\Scripts\\python.exe -m tools.verification.progress validate",
+        "result": "PASS"
+      },
+      {
+        "command": "..\\..\\.venv\\Scripts\\python.exe -m tools.verification.catalogue",
+        "result": "PASS"
+      },
+      {
+        "command": "..\\..\\.venv\\Scripts\\python.exe -m tools.verification.agent_skills",
+        "result": "PASS"
+      },
+      {
+        "command": "..\\..\\.venv\\Scripts\\python.exe -m compileall -q apps\\api\\main.py packages\\persistence services\\ai tests\\integration\\test_ai_task_settings_api.py tests\\browser\\test_ai_task_settings.py migrations\\versions\\7c6e1d3a9b20_profile_ai_task_settings.py",
+        "result": "PASS"
+      },
+      {
+        "command": "git diff --check",
+        "result": "PASS"
+      }
+    ],
+    "expected_red_and_recovered_failures": [
+      "API acceptance tests first failed with 404 because the settings route did not exist; after implementation, an error-response test found FastAPI echoed an extra api_key value. A route-scoped sanitized validation response fixed the leak and all four API tests passed.",
+      "Initial isolated fixture setup tried to seed profile rows before binding its operation mode; test setup was corrected to bind the synthetic database first.",
+      "Browser RED check initially skipped until the local build was available, then failed because AI Settings navigation was absent; after UI implementation all 38 browser tests passed.",
+      "Initial frontend build from the fresh worktree could not find tsc; used the already installed repository-locked frontend dependencies through an ignored local junction and built successfully.",
+      "The first SQLite migration wrapper left its sqlite3 connection open during temporary-directory cleanup after migration success; explicit connection close resolved the harness-only cleanup error and migration upgrade/preservation checks passed."
+    ],
+    "not_run": [
+      "Live Ollama model inference and production job/document task consumer wiring: NOT_RUN; settings-only slice does not execute configured models.",
+      "Remote/paid AI providers: NOT_RUN under current local-only/budget policy.",
+      "GitHub Actions and hosted review: NOT_RUN under current local-only policy.",
+      "External job application submission: OFF; no submission path was changed."
+    ]
+  },
+  "limitations": [
+    "The API/UI persists selections but no production task consumer currently loads them; broader requirement and issue remain PARTIAL/OPEN.",
+    "Only disabled and loopback-only Ollama are selectable because those are the registered provider implementations in this candidate.",
+    "No prompts, credentials, profile facts or application data are stored in the new settings table."
+  ],
+  "reconciled_main_commit": "330de33bdec2984c14136951d4d09d2a130e3aa7",
+  "integration_candidate_commit": "a6d64f82598df9eebab6601dafd386b07409706f",
+  "integrated_main_commit": null,
+  "github_issue_comment": null
+}
