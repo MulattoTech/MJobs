@@ -1,34 +1,25 @@
 # Codex lane handoff
 
-Status: **ACTIVE**
+Status: **ACTIVE / PARTIAL**
 
-Issue #111 / MJ-REQ-110 profile-scoped cost controls and deterministic preview are
-integrated in canonical main `54568c7de5edc3594f39f9d139f449bb0eed8cae`.
+Issue #111 / MJ-REQ-110 remains the only Codex claim. Continue in
+`C:/Tools/Dev/MJobs/.worktrees/codex-mj-req110-review-consumer-20261006` on
+`codex/mj-req110-review-consumer-20261006`. This branch contains current
+`origin/main` `54568c7de5edc3594f39f9d139f449bb0eed8cae` as an ancestor. Do not redo
+the integrated cost settings or deterministic preview.
 
-The active Codex slice is the remaining review-gated production task-consumer
-acceptance inside active MJ-PR-030. Do not redo the integrated settings/preview.
-The dedicated worktree `C:/Tools/Dev/MJobs/.worktrees/codex-mj-req110-review-consumer-20261006`
-is on `codex/mj-req110-review-consumer-20261006`, fast-forwarded to current
-origin/main `54568c7de5edc3594f39f9d139f449bb0eed8cae`. Antigravity owns #303
-source-adapter paths; Ollama owns #318 ATS-detection paths.
+The profile-scoped bounded evaluator and explicit AI Settings action are verified
+through a connected synthetic browser flow. The flow obeys the configured
+one-candidate cap, displays a structured advisory result with job/company context,
+and reports zero documents created. API/consumer/browser checks (10), frontend tests
+(62), frontend build, agent-skills, catalogue, progress, and diff validation PASS.
+Evidence: `docs/evidence/2026-10-06-ai-cost-consumer-review-ui.json`.
 
-Checkpoint: `services/ai/consumer.py` and the profile-scoped evaluate API route
-implement bounded deterministic candidate admission and structured AI job scoring.
-The AI Settings UI now permits explicit evaluation after preview and displays
-advisory results with job title/company context. Job descriptions remain bounded
-untrusted text; model results are validated; deterministic match scores remain
-unchanged; this flow creates zero documents and evaluation history is not durable.
-This checkpoint ran `git diff --check` only. The affected API tests, frontend tests,
-browser flow, and build are NOT_RUN. Live inference and a reviewed AI-document
-workflow are not verified. Hosted checks remain NOT_RUN by policy. Current evidence:
-`docs/evidence/2026-10-06-ai-cost-consumer-review-ui.json`; prior evidence remains in
-`docs/evidence/2026-10-06-ai-cost-consumer-resume.json` and
-`docs/evidence/2026-10-06-ai-cost-consumer.json`. Keep issue OPEN/PARTIAL until the
-remaining paths receive their own authorized evidence.
+Issue status remains PARTIAL. Live provider inference, durable evaluation history,
+and reviewed AI-document generation are not verified. The browser check substitutes
+a synthetic structured result and makes no live provider call. Hosted checks remain
+NOT_RUN under active local-only policy; external submission remains OFF.
 
-During implementation write only Codex lane files plus owned feature/evidence paths.
-Canonical planning and root main require the integration lock.
-
-Current-main reconciliation commit: `600156158227997bedbe8dcc9e03d40d625e4557`.
-
-Local implementation checkpoint: `f7c7b82c85f5aa2211a9c5fd13ef78a876c3cc40`.
+Only Codex lane files and owned feature/evidence paths may be changed during this
+claim. Antigravity owns #303 paths; Ollama owns #318 paths. Canonical planning and
+root main require the local integration lock.

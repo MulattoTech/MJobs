@@ -6,7 +6,7 @@
   "current_issue": 111,
   "requirement_id": "MJ-REQ-110",
   "branch": "codex/mj-req110-review-consumer-20261006",
-  "head": "f7c7b82c85f5aa2211a9c5fd13ef78a876c3cc40",
+  "head": "4f5de18c93929adbf595ea6d9670c5dd68f02bf0",
   "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req110-review-consumer-20261006",
   "result": "PARTIAL",
   "evidence_path": "docs/evidence/2026-10-06-ai-cost-consumer-review-ui.json",
@@ -19,7 +19,7 @@
     {
       "issue": 111,
       "requirement_id": "MJ-REQ-110",
-      "title": "AI Cost Controls - run newly connected review UI through local browser acceptance; live inference and document workflow remain unverified"
+      "title": "AI Cost Controls - connected synthetic review UI acceptance PASS; live inference, durable evaluation history, and reviewed document generation remain unverified"
     }
   ],
   "do_not_overlap": [

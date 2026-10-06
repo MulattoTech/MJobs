@@ -7,7 +7,7 @@
       "requirement_id": "MJ-REQ-110",
       "status": "ACTIVE",
       "priority": 1,
-      "note": "Cost settings/preview and an explicit UI action to run/review bounded job scoring are checkpointed. Verify the API response and connected browser flow locally; keep live inference, durable history, and reviewed document generation truthfully NOT_RUN."
+      "note": "Connected synthetic browser review flow, API/consumer tests, frontend tests/build, lane skills, catalogue, progress, and diff validators PASS. Keep issue PARTIAL: live inference, durable evaluation history, and reviewed document generation remain NOT_RUN."
     }
   ]
 }

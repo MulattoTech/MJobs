@@ -5,6 +5,7 @@ import tempfile
 import threading
 import time
 import unittest
+from unittest.mock import patch
 from urllib.parse import urlsplit
 
 from playwright.sync_api import expect, sync_playwright
@@ -13,6 +14,7 @@ import uvicorn
 from apps.api.main import create_app
 from fixtures.browser_ports import bound_browser_socket
 from packages.persistence.store import Store
+from services.ai.consumer import AIJobEvaluation
 from services.discovery.manual_capture import capture_manual_job
 from services.discovery.matching import recalculate
 from tests.integration.test_spine import PROFILE
@@ -24,7 +26,11 @@ ROOT = Path(__file__).resolve().parents[2]
 @unittest.skipUnless((ROOT / "apps/web/dist/index.html").is_file(),
                      "Build apps/web before browser acceptance")
 class AITaskSettingsBrowserTests(unittest.TestCase):
-    def test_settings_save_reload_and_remain_isolated_between_profiles(self):
+    @patch("apps.api.main.AITaskRouter.generate_structured",
+           return_value=AIJobEvaluation(
+               category="REVIEW", rationale="Check the listed infrastructure duties."))
+    def test_settings_save_reload_and_remain_isolated_between_profiles(self,
+                                                                      mock_generate_structured):
         with tempfile.TemporaryDirectory(prefix="mjobs-ai-task-settings-") as directory:
             root = Path(directory)
             store = Store(f"sqlite:///{(root / 'settings.db').as_posix()}")
@@ -124,7 +130,19 @@ class AITaskSettingsBrowserTests(unittest.TestCase):
                         "2 jobs scanned · 1 eligible · 1 AI candidate · 0 reviewed-document candidates",
                         exact=True)).to_be_visible()
                     expect(cost_panel.get_by_text(
-                        "Preview only. No model calls or documents are created.", exact=True)).to_be_visible()
+                        "Evaluation runs only after you request it", exact=False)).to_be_visible()
+
+                    cost_panel.get_by_role("button", name="Evaluate planned AI candidates", exact=True).click()
+                    evaluations = page.get_by_role("region", name="AI evaluation results")
+                    expect(evaluations).to_be_visible()
+                    expect(evaluations.get_by_role("status")).to_have_text(
+                        "1 candidates evaluated. These advisory results do not change deterministic matches. 0 documents created.")
+                    expect(evaluations.locator("article")).to_have_count(1)
+                    expect(evaluations.locator("article h4")).to_contain_text("Synthetic role")
+                    expect(evaluations.locator("article h4")).to_contain_text("Synthetic Company")
+                    expect(evaluations.locator("article").get_by_text("REVIEW", exact=True)).to_be_visible()
+                    expect(evaluations.locator("article").get_by_text(
+                        "Check the listed infrastructure duties.", exact=False)).to_be_visible()
 
                     page.reload(wait_until="domcontentloaded")
                     page.get_by_role("button", name="AI Settings", exact=True).click()

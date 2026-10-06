@@ -7,32 +7,45 @@
   "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req110-review-consumer-20261006",
   "result": "PARTIAL",
   "base_main": "54568c7de5edc3594f39f9d139f449bb0eed8cae",
-  "recorded_at": "2026-10-06T22:55:02Z",
+  "candidate_head_before_checkpoint": "4f5de18c93929adbf595ea6d9670c5dd68f02bf0",
+  "recorded_at": "2026-10-06T23:01:14Z",
   "scope": [
-    "AI Settings now exposes a user-triggered action to invoke the existing profile-scoped bounded job-scoring consumer after preview.",
-    "The API response includes job title and company so advisory structured evaluations can be reviewed in context.",
-    "Evaluation results are held in the active browser view, remain advisory, and do not change deterministic match scores or create documents.",
-    "Changing profiles, previewing again, or changing/saving the policy clears the displayed evaluation results."
+    "AI Settings offers an explicit action after preview to invoke the bounded profile-scoped job-scoring consumer.",
+    "The API returns title and company context with structured advisory results.",
+    "Synthetic connected browser acceptance verifies the saved one-candidate cap, visible review result, and zero created documents.",
+    "This action does not change deterministic matches; results remain in the active browser view and evaluation history is not durable."
   ],
   "checks": [
     {
-      "command": "git diff --check",
-      "result": "PASS"
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_ai_cost_policy_api tests.unit.test_ai_cost_consumer tests.browser.test_ai_task_settings",
+      "result": "PASS",
+      "detail": "10 tests passed, including the connected synthetic browser evaluation flow."
     },
     {
       "command": "npm test --prefix apps/web -- --run",
-      "result": "NOT_RUN",
-      "detail": "Frontend tests were not run for this checkpoint."
+      "result": "PASS",
+      "detail": "13 files and 62 tests passed."
     },
     {
       "command": "npm run build --prefix apps/web",
-      "result": "NOT_RUN",
-      "detail": "Frontend build was not run for this checkpoint."
+      "result": "PASS",
+      "detail": "TypeScript check and Vite production build passed."
     },
     {
-      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_ai_cost_policy_api tests.unit.test_ai_cost_consumer",
-      "result": "NOT_RUN",
-      "detail": "API and consumer tests were not rerun after changing the response shape."
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.agent_skills",
+      "result": "PASS"
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.catalogue",
+      "result": "PASS"
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.progress validate",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
     },
     {
       "command": "Hosted Actions and reviews",
@@ -40,14 +53,20 @@
       "detail": "Disabled by active local-only policy."
     }
   ],
+  "environment": [
+    "Initial frontend build was BLOCKED because apps/web dependencies were absent; npm ci restored lockfile-pinned local dependencies.",
+    "npm ci emitted EBADENGINE because Vitest 5.0.3 declares Node ^22.12.0 || ^24.0.0 || >=26.0.0 and this environment runs Node 25.9.0; frontend tests and build nevertheless completed successfully."
+  ],
   "not_run": [
-    "Live provider inference.",
+    "Live provider inference; the browser test substitutes a synthetic structured result and makes no live inference call.",
     "A durable review history for AI evaluations.",
     "A reviewed AI-document generation workflow; this consumer creates zero documents.",
     "External application submission; OFF."
   ],
   "source_sha256": {
     "apps/api/main.py": "ceb27185a9d4cc2c92dce4a19ce8642239ff57f9276fa9a7263406e76750e744",
-    "apps/web/src/main.tsx": "44b91dff881f531f68adff47766dc55f54cf10e0db192f981e7598cb902f37a6"
+    "apps/web/src/main.tsx": "44b91dff881f531f68adff47766dc55f54cf10e0db192f981e7598cb902f37a6",
+    "services/ai/consumer.py": "2a8d4e6c18f7a5a67043aab55f24d5234bc10a0ba7785d3fcee23aeff5b5049d",
+    "tests/browser/test_ai_task_settings.py": "a6c3cdc941b74e069c39ad66674a868924a662103a730bd5d6fab50bacbb7222"
   }
 }
