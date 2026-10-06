@@ -7,9 +7,9 @@
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Local main and origin/main are synchronized at 2a55de01a6aed215363b6bdfcb6c2029d1658553 after non-force fast-forward integration of the issue #6 Greenhouse concurrency slice and evidence. Issue #6 remains OPEN/PARTIAL after GitHub comment/readback; next is live reconciliation of issue #5 / MJ-REQ-004.",
-    "current_verified_github_state": "GitHub main and local main synchronized at 2a55de01a6aed215363b6bdfcb6c2029d1658553; main is unprotected, Actions disabled, and no PR open. Issue #6 remains OPEN/PARTIAL; hosted checks/review NOT_RUN by local-only policy.",
-    "current_verified_at": "2026-10-06T10:13:08Z"
+    "current_verified_local_state": "Local main and origin/main are synchronized at 5b706edb52945dc16a71f86c95b14a8b3bda023a. The issue #5 / MJ-REQ-004 OCR diagnostics slice at 3d604b27b1a4c25e2ff0ee6fa68a07e9ff8f74a0 is pushed on codex/req004-bound-ops-20261006 and locally verified; no PR is open. Issue #5 remains OPEN/PARTIAL.",
+    "current_verified_github_state": "GitHub main is synchronized with local main at 5b706edb52945dc16a71f86c95b14a8b3bda023a; Actions are disabled, main is unprotected, and no PR is open. Issue #5 remains OPEN/PARTIAL; the locally accepted OCR slice is pushed to its issue branch. Hosted checks/review are NOT_RUN by policy.",
+    "current_verified_at": "2026-10-06T10:54:00Z"
   },
   "current_milestone": "MJ-REQ-005-PER-SOURCE-GREENHOUSE-CONCURRENCY-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under the local-only delivery policy; one writer and one integration lane.",
@@ -76,7 +76,7 @@
     "CORE-WORKFLOW-TRIAL D deterministic job-specific cover letter merged in PR #510 at a63c798; exact-head review, both Verification events, runtime reports and merge-tree equality passed. Combined A-F journey remains pending (docs/evidence/2026-10-05-job-specific-cover-letter.json).",
     "CORE-WORKFLOW-TRIAL E has a usable profile answer bank and per-job manual review/export path with profile-scoped history/download, atomic content-addressed export recovery, and a saved-profile load gate. PR #511 merged at fb8ab73 after exact-head review and passing push/pull_request Verification with nine passing reports and digest-matched artifacts. MJ-REQ-103..107 remain PARTIAL for incomplete matching, confidence, sensitive/legal policy and durable unexported drafts (docs/evidence/2026-10-05-reviewed-application-answers.json).",
     "MJ-REQ-170 transient-artifact retention now has explicit local inventory/quarantine/restore/purge with a 30-day default; automatic background cleanup and broader transient/log retention remain incomplete.",
-    "MJ-REQ-004 remains PARTIAL: worker-wide cooperative deadlines and Greenhouse rate-wait cancellation are locally verified; AI/provider requests, complete browser/parser/OCR/process/source/ATS coverage, output capture, and all retry/error classifications still need evidence (docs/evidence/2026-10-06-bound-external-operation-deadlines.json).",
+    "MJ-REQ-004 remains PARTIAL: worker-wide cooperative deadlines, Greenhouse rate-wait cancellation, parser subprocess bounds, mock ATS action budgets, fact-review Git bounds and truthful local OCR child failure diagnostics are verified. Native parser/OCR request-disconnect cancellation, real AI/ATS paths, and broad all-category output/retry/error classification remain open (docs/evidence/2026-10-06-bounded-ocr-diagnostics.json).",
     "MJ-REQ-005 scoped category-admission slice: five bounded independent configuration categories; category-wide SQLite/PostgreSQL claim admission and conservative Compose defaults (docs/evidence/2026-10-06-operation-concurrency-categories.json).",
     "MJ-REQ-006 current workspace inventory and KEEP classification are evidenced and integrated at 124b084925a807079cce78c168211f73b7bf97fb; issue #7 is CLOSED after GitHub readback (docs/evidence/2026-10-06-current-workspace-inspection.json)."
   ],
@@ -243,13 +243,15 @@
     "MJ-REQ-004 exact-head main 5680d0e full local suite: 663 Python/integration/Chromium tests PASS, zero failures/errors/skips after rebuilding stale ignored apps/web/dist; npm production build PASS.",
     "MJ-REQ-004 clean exact-head post-integration browser test module (12) and worker lifecycle module (12) PASS.",
     "MJ-REQ-005: 21 focused SQLite lifecycle/config/Compose tests PASS; isolated PostgreSQL 17 concurrent shared-category admission PASS; 35 browser tests PASS; 669 Python tests PASS with 1 optional PostgreSQL skip; matching frontend TypeScript/Vite production build and repository validators PASS (docs/evidence/2026-10-06-operation-concurrency-categories.json).",
-    "MJ-REQ-005 per-source Greenhouse concurrency exact candidate ec28943ec20109c2b1bc12c0130a26a2991b0636: 29 focused source/scheduler tests PASS; one real-Chromium core workflow PASS; full Python/integration/browser discovery 674 PASS with 1 optional PostgreSQL skip; frontend TypeScript/Vite build plus 62 tests PASS; agent-skills/catalogue/progress/JSON/diff checks PASS. One first-run browser shutdown timeout did not recur in the isolated test, 35-test browser suite, or same-head full rerun. Evidence: docs/evidence/2026-10-06-per-source-greenhouse-concurrency.json."
+    "MJ-REQ-005 per-source Greenhouse concurrency exact candidate ec28943ec20109c2b1bc12c0130a26a2991b0636: 29 focused source/scheduler tests PASS; one real-Chromium core workflow PASS; full Python/integration/browser discovery 674 PASS with 1 optional PostgreSQL skip; frontend TypeScript/Vite build plus 62 tests PASS; agent-skills/catalogue/progress/JSON/diff checks PASS. One first-run browser shutdown timeout did not recur in the isolated test, 35-test browser suite, or same-head full rerun. Evidence: docs/evidence/2026-10-06-per-source-greenhouse-concurrency.json.",
+    "MJ-REQ-004 bounded OCR diagnostics candidate 3d604b27b1a4c25e2ff0ee6fa68a07e9ff8f74a0: 48 focused unit/API/browser tests, 35 browser suite tests, 680 full suite tests with one optional PostgreSQL skip, 62 frontend tests/build, isolated no-network Linux real OCR and synthetic bounded-diagnostic process test, validators PASS; see docs/evidence/2026-10-06-bounded-ocr-diagnostics.json."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
     "RESOLVED ON SAME HEAD: initial exact-head full run had 663 tests, 1 failure and 1 error because ignored apps/web/dist was stale; two affected tests failed in isolation before rebuild. npm build refreshed dist; both isolated tests and a subsequent exact-head full run (663 tests, zero failures/errors/skips) passed. Details in docs/evidence/2026-10-06-mock-ats-action-budget.json.",
     "MJ-REQ-005 initial full suite before frontend build: 669 tests, 2 failures, 6 errors and 13 skips because this isolated worktree had no apps/web/dist; after building the current unchanged frontend source and rerunning browser/full suites, browser 35 and full 669 tests passed. See docs/evidence/2026-10-06-operation-concurrency-categories.json.",
-    "MJ-REQ-005 candidate ec28943ec20109c2b1bc12c0130a26a2991b0636 first exact-head full-suite run: 674 tests, 1 Uvicorn server-thread teardown assertion failure, 1 optional PostgreSQL skip. The failing browser test passed in isolation and as part of the full browser suite; a same-head full rerun passed 674 tests with 1 optional skip. Recorded without weakening the shutdown timeout; see docs/evidence/2026-10-06-per-source-greenhouse-concurrency.json."
+    "MJ-REQ-005 candidate ec28943ec20109c2b1bc12c0130a26a2991b0636 first exact-head full-suite run: 674 tests, 1 Uvicorn server-thread teardown assertion failure, 1 optional PostgreSQL skip. The failing browser test passed in isolation and as part of the full browser suite; a same-head full rerun passed 674 tests with 1 optional skip. Recorded without weakening the shutdown timeout; see docs/evidence/2026-10-06-per-source-greenhouse-concurrency.json.",
+    "MJ-REQ-004 candidate 3d604b27b1a4c25e2ff0ee6fa68a07e9ff8f74a0 full-suite chronology: initial browser run used stale ignored apps/web/dist and failed the core workflow Sources-copy assertion; rebuilding from current source fixed it. First rebuilt full run had one unrelated Uvicorn teardown assertion in CompanyDiscoveryRequestsBrowserTests; isolated case and 35-test browser suite passed; same-head 680-test rerun passed. See docs/evidence/2026-10-06-bounded-ocr-diagnostics.json."
   ],
   "tests_not_run": [
     "Remaining full-spec integrations and product/release requirements",
@@ -286,15 +288,15 @@
     "MJ-PR-016 local Chromium first run used Docker DNS host api, which is not a secure browser origin for crypto.randomUUID; loopback URL rerun passed all five connected UI actions.",
     "MJ-REQ-004 broad suite rerun on 2026-10-06: one timing-sensitive application-pipeline browser test exceeded its server-thread shutdown wait (661 total; 660 passed); the isolated test rerun passed. No unrelated test code changed.",
     "Browser acceptance depends on current apps/web/dist; stale ignored dist omitted the source-controlled avoid-terms and ATS preflight UI, causing 1 failure and 1 error on 5680d0e until npm run build --prefix apps/web. Rebuilt dist restored both tests; exact-head full suite passed.",
-    "MJ-REQ-005 candidate ec28943ec20109c2b1bc12c0130a26a2991b0636: first exact-head full run hit one nonreproducible CompanyDiscoveryRequestsBrowserTests Uvicorn thread shutdown assertion; isolated test and all 35 browser tests passed, then same-head 674-test full suite passed with only the optional PostgreSQL skip. See docs/evidence/2026-10-06-per-source-greenhouse-concurrency.json."
+    "MJ-REQ-005 candidate ec28943ec20109c2b1bc12c0130a26a2991b0636: first exact-head full run hit one nonreproducible CompanyDiscoveryRequestsBrowserTests Uvicorn thread shutdown assertion; isolated test and all 35 browser tests passed, then same-head 674-test full suite passed with only the optional PostgreSQL skip. See docs/evidence/2026-10-06-per-source-greenhouse-concurrency.json.",
+    "MJ-REQ-004 candidate 3d604b27b1a4c25e2ff0ee6fa68a07e9ff8f74a0: full suite initially saw stale ignored apps/web/dist; rebuilding restored current Sources UI and isolated browser acceptance. A first rebuilt full run later hit the known intermittent CompanyDiscoveryRequestsBrowserTests server-thread shutdown assertion; isolated case and all 35 browser tests passed, followed by a same-head 680-test full suite pass. Do not weaken shutdown timeout; evidence docs/evidence/2026-10-06-bounded-ocr-diagnostics.json."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-06T10:13:08Z",
+    "timestamp": "2026-10-06T10:54:00Z",
     "result": "PARTIAL",
-    "source_commit": "ec28943ec20109c2b1bc12c0130a26a2991b0636",
-    "integration_commit": "2a55de01a6aed215363b6bdfcb6c2029d1658553",
-    "scope": "Per-source Greenhouse concurrency slice PASS and safely integrated; issue #6 remains OPEN/PARTIAL after GitHub readback. Proceed to issue #5 / MJ-REQ-004.",
-    "evidence_path": "docs/evidence/2026-10-06-per-source-greenhouse-concurrency.json"
+    "source_commit": "3d604b27b1a4c25e2ff0ee6fa68a07e9ff8f74a0",
+    "scope": "Bounded OCR diagnostics and truthful failure categories pass focused/API/browser and real isolated Linux checks. Exact-head 680-test suite passed with one optional PostgreSQL skip; requirement #5 remains PARTIAL.",
+    "evidence_path": "docs/evidence/2026-10-06-bounded-ocr-diagnostics.json"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -361,7 +363,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Reconcile live open P0 issue #5 / MJ-REQ-004, its governance_safety area spec and existing partial evidence on current main 2a55de01a6aed215363b6bdfcb6c2029d1658553. Select the highest-value dependency-ready local slice for bounded external operations, preserve all request-disconnect/error/output/retry gaps, and keep hosted evidence NOT_RUN and external submission OFF; denominators remain 366 and 59.",
+  "recommended_resume_step": "Integrate issue #5 / MJ-REQ-004 OCR diagnostics candidate 3d604b27b1a4c25e2ff0ee6fa68a07e9ff8f74a0 by safe non-force fast-forward, then continue issue #5 with request-disconnect cancellation and remaining locally implementable error/output/retry boundaries. Keep issue OPEN/PARTIAL for unavailable AI/real ATS and hosted NOT_RUN; denominators remain 366 and 59.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -5075,28 +5077,28 @@
     }
   ],
   "live_reconciliation": {
-    "observed_at": "2026-10-06T10:13:08Z",
-    "github_main": "2a55de01a6aed215363b6bdfcb6c2029d1658553",
-    "local_main": "2a55de01a6aed215363b6bdfcb6c2029d1658553",
+    "observed_at": "2026-10-06T10:54:00Z",
+    "github_main": "5b706edb52945dc16a71f86c95b14a8b3bda023a",
+    "local_main": "5b706edb52945dc16a71f86c95b14a8b3bda023a",
     "issue_5_state": "OPEN_PARTIAL",
     "issue_6_state": "OPEN_PARTIAL",
     "open_prs": 0,
     "actions_enabled": false,
     "main_branch_protected": false,
-    "integration": "MJ-REQ-005_GREENHOUSE_SLICE_NON_FORCE_FAST_FORWARD",
+    "integration": "MJ-REQ-004_OCR_DIAGNOSTICS_LOCAL_SLICE_PASS_PUSHED",
     "next_issue": 5
   },
   "active_development_issue": {
-    "issue": 6,
-    "requirement_id": "MJ-REQ-005",
-    "title": "Control Concurrency",
-    "state": "LOCAL_SLICE_PASS_INTEGRATED_REQUIREMENT_PARTIAL_OPEN",
-    "selection_reason": "The persisted per-source Greenhouse limit was not controlling actual parallel reads; issue #6 is a P0 resource-safety requirement.",
-    "base": "795bc74d10cae145e40c628daa42a285060e3280",
-    "branch": "codex/req005-source-concurrency-20261006",
-    "candidate": "ec28943ec20109c2b1bc12c0130a26a2991b0636",
-    "evidence": "docs/evidence/2026-10-06-per-source-greenhouse-concurrency.json",
-    "next_action": "Issue #6 slice safely integrated at 2a55de01a6aed215363b6bdfcb6c2029d1658553; GitHub issue readback confirms OPEN. Reconcile next P0 issue #5 / MJ-REQ-004 from current main."
+    "issue": 5,
+    "requirement_id": "MJ-REQ-004",
+    "title": "Bound External Operations",
+    "state": "LOCAL_SLICE_PASS_AWAITING_MAIN_INTEGRATION_REQUIREMENT_PARTIAL_OPEN",
+    "selection_reason": "The local OCR process discarded diagnostics and mislabeled timeout, launch, nonzero-exit, and missing-output failures as resource-limit failures; issue #5 is a P0 operational-safety requirement.",
+    "base": "5b706edb52945dc16a71f86c95b14a8b3bda023a",
+    "branch": "codex/req004-bound-ops-20261006",
+    "candidate": "3d604b27b1a4c25e2ff0ee6fa68a07e9ff8f74a0",
+    "evidence": "docs/evidence/2026-10-06-bounded-ocr-diagnostics.json",
+    "next_action": "Integrate the tested slice by verified non-force fast-forward; keep issue #5 OPEN/PARTIAL for parser request-disconnect cancellation, real AI/ATS paths and the broader operation-category output/retry/error contract. Continue with the next highest-value locally implementable #5 gap."
   },
   "historical_control_snapshots": [
     {
@@ -6206,7 +6208,7 @@
     "MJ-REQ-005 exact candidate 23104373877a275c97204f7e1af08c4cd646b4d9: RED confirmed the former kind-specific limit; 21 focused SQLite/Compose tests, 1 isolated PostgreSQL concurrent-claim test, 35 browser tests and 669 full Python tests passed (1 optional PG skip); current frontend build, catalogue, progress, agent-skills and diff validators passed. Requirement remains PARTIAL for absent AI runtime, real ATS and per-source enforcement.",
     "MJ-REQ-006 live workspace inspection at bd00c331d503009189a83481ba62a56a66acb75c: Git/main/remote, repository structure, Python/FastAPI and TypeScript/React versions, persistence/migrations, browser and test suites, Compose services, private environment-file presence without reading values, and Actions-disabled state checked. Existing product/runtime/worktrees classified KEEP; private outputs preserved; no application files or containers modified. Evidence: docs/evidence/2026-10-06-current-workspace-inspection.json."
   ],
-  "ownership": "One writer: issue #6 Greenhouse source candidate ec28943ec20109c2b1bc12c0130a26a2991b0636 and evidence/planning safely integrated to synchronized local and GitHub main 2a55de01a6aed215363b6bdfcb6c2029d1658553 by non-force fast-forward. Issue #6 is OPEN/PARTIAL after readback. Next selected issue #5 / MJ-REQ-004. Actions/hosted review remain disabled/NOT_RUN; external submission OFF.",
+  "ownership": "One writer: issue #5 candidate 3d604b27b1a4c25e2ff0ee6fa68a07e9ff8f74a0 on codex/req004-bound-ops-20261006, based on synchronized main 5b706edb52945dc16a71f86c95b14a8b3bda023a, pushed and locally verified. Evidence/planning await integration; no PR is open. Issue #5 remains OPEN/PARTIAL. Hosted checks/review remain disabled/NOT_RUN and external submission OFF.",
   "delivery_policy": {
     "mode": "LOCAL_ONLY",
     "effective_at": "2026-10-05T21:32:10.763994+00:00",
@@ -6219,5 +6221,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-06T10:13:08Z"
+  "updated_at": "2026-10-06T10:54:00Z"
 }

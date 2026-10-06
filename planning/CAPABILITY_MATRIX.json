@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-06T10:13:08Z",
+  "timestamp": "2026-10-06T10:54:00Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -44,9 +44,10 @@
         "docs/evidence/2026-10-06-mock-ats-submit-deadline.json",
         "docs/evidence/2026-10-06-bounded-fact-review-git.json",
         "docs/evidence/2026-10-06-fact-review-clean-tree.json",
-        "docs/evidence/2026-10-06-mock-ats-action-budget.json"
+        "docs/evidence/2026-10-06-mock-ats-action-budget.json",
+        "docs/evidence/2026-10-06-bounded-ocr-diagnostics.json"
       ],
-      "note": "Scoped local evidence covers durable-worker deadlines and Greenhouse cancellation, native PDF/DOCX child bounds, mock ATS pre-submit checks and per-action remaining-budget enforcement, and fact-review Git deadline/clean-tree identity. The latest clean exact-head full suite passes 663 tests. Broad requirement remains PARTIAL: real ATS/provider/AI calls are unavailable or not configured, and request-disconnect cancellation plus complete all-category timeout/output/retry/error classification remain open."
+      "note": "Scoped local evidence covers durable-worker deadlines and Greenhouse cancellation; native PDF/DOCX child bounds; mock ATS pre-submit/action budget; fact-review Git deadline and clean-tree identity; and OCR stderr capture with sanitized timeout/launch/nonzero/missing-output outcomes. Current exact-head 680-test suite PASS with one optional PostgreSQL skip. Broad requirement remains PARTIAL: request-disconnect cancellation, unavailable AI/real ATS paths, and complete all-category timeout/output/retry/error policy remain open."
     },
     {
       "requirement_id": "MJ-REQ-005",

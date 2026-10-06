@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-004",
+  "github_issue": 5,
+  "slice_result": "PASS",
+  "requirement_result": "PARTIAL",
+  "base_commit": "5b706edb52945dc16a71f86c95b14a8b3bda023a",
+  "candidate_commit": "3d604b27b1a4c25e2ff0ee6fa68a07e9ff8f74a0",
+  "candidate_tree": "8da7e711923db38454b3ee5fa19015fd47328ebb",
+  "scope": "Capture bounded OCR child diagnostics privately and distinguish timeout, launch, nonzero-exit, and missing-output outcomes without losing native text or exposing raw diagnostic content.",
+  "acceptance": {
+    "stderr_is_captured_to_temporary_file_with_linux_child_file_size_bound": "PASS",
+    "diagnostic_content_never_enters_api_results_logs_or_persistent_storage": "PASS",
+    "retained_diagnostic_size_metadata_caps_at_16_kib_and_marks_truncation": "PASS",
+    "timeout_launch_nonzero_exit_and_missing_renderer_or_text_outputs_are_distinct": "PASS",
+    "mixed_document_native_contact_and_text_survive_ocr_failures": "PASS",
+    "failed_ocr_remains_review_only_and_does_not_mutate_profile": "PASS",
+    "chromium_review_displays_sanitized_failure_warning": "PASS",
+    "actual_local_poppler_tesseract_extraction_and_browser_review": "PASS",
+    "no_external_provider_request_or_application_submission": "PASS",
+    "requirement_and_reference_denominators_unchanged": "PASS"
+  },
+  "evidence": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_resume_ocr tests.unit.test_resume_extraction tests.integration.test_profile_import tests.browser.test_profile_import",
+      "started_at_utc": "2026-10-06T10:53:10.0874769Z",
+      "ended_at_utc": "2026-10-06T10:53:22.1982236Z",
+      "result": "PASS",
+      "summary": "48 tests passed; includes OCR unit failures, parser regressions, profile/API isolation and Chromium warning review."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest discover -s tests/browser -p test_*.py",
+      "started_at_utc": "2026-10-06T10:42:42.3842639Z",
+      "ended_at_utc": "2026-10-06T10:45:26.0506813Z",
+      "result": "PASS",
+      "summary": "35 browser tests passed. A known feedback-GUI client-disconnect traceback was printed during a passing test; it did not fail the suite."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p test_*.py",
+      "started_at_utc": "2026-10-06T10:46:06.3090162Z",
+      "ended_at_utc": "2026-10-06T10:52:33.3209292Z",
+      "result": "PASS",
+      "summary": "680 tests ran; zero failures/errors; one optional PostgreSQL test skipped because MJOBS_TEST_POSTGRES_URL was unset."
+    },
+    {
+      "command": "npm run build --prefix apps/web; npm test --prefix apps/web -- --run; python -m tools.verification.agent_skills; python -m tools.verification.catalogue; python -m tools.verification.progress validate; git diff --check",
+      "started_at_utc": "2026-10-06T10:53:31.2239547Z",
+      "ended_at_utc": "2026-10-06T10:53:33.1717152Z",
+      "result": "PASS",
+      "summary": "Strict TypeScript/Vite build, all 62 frontend tests, skill/catalogue/progress validators and diff whitespace check passed."
+    },
+    {
+      "command": "docker run --rm --network none --read-only --tmpfs /tmp:rw,noexec,nosuid,size=128m --memory 1g --cpus 1 --pids-limit 128 --mount <worktree OCR module to /app/services/career_profile/ocr.py:ro> mjobs-local:spine python -m cli.profile_ocr_e2e; then synthetic nonzero child diagnostic-boundary script",
+      "started_at_utc": "2026-10-06T10:53:49.2202619Z",
+      "ended_at_utc": "2026-10-06T10:53:55.5269560Z",
+      "result": "PASS",
+      "summary": "Isolated no-network Linux container ran actual Poppler/Tesseract, SQLite API and Chromium review. Synthetic child exit 7 captured 20,018 stderr bytes, retained only 16,384 bytes of size metadata, marked truncation, and exposed no private marker."
+    }
+  ],
+  "test_first_red": {
+    "test": "tests.unit.test_resume_ocr.ResumeOCRTests.test_nonzero_tool_exit_reports_status_without_exposing_diagnostics",
+    "result": "EXPECTED_RED_THEN_PASS",
+    "failure": "Before implementation a nonzero OCR child result did not report its exit status and fell through to the generic resource-limit warning."
+  },
+  "non_reproducible_test_events": [
+    {
+      "command": "python -m unittest discover -s tests -p test_*.py",
+      "result": "FAIL_THEN_PASS_AFTER_FRONTEND_BUILD",
+      "failure": "Initial full run loaded stale ignored apps/web/dist and failed the core workflow Sources-copy assertion. Current source contained the copy while generated dist did not. Rebuilding apps/web fixed it; the isolated browser test and later same-head full suite passed."
+    },
+    {
+      "command": "python -m unittest discover -s tests -p test_*.py",
+      "started_at_utc": "2026-10-06T10:35:45.5264007Z",
+      "ended_at_utc": "2026-10-06T10:42:21.5916587Z",
+      "result": "FAIL_THEN_NOT_REPRODUCED",
+      "failure": "One unrelated CompanyDiscoveryRequestsBrowserTests Uvicorn server-thread shutdown assertion exceeded its join during full-suite load. The test passed alone, all 35 browser tests passed, and the exact same source head then passed the 680-test full rerun. No timeout was changed."
+    }
+  ],
+  "external_boundaries": {
+    "github_actions_enabled": false,
+    "hosted_checks": "NOT_RUN_BY_LOCAL_ONLY_POLICY",
+    "hosted_review": "NOT_RUN_BY_LOCAL_ONLY_POLICY",
+    "optional_postgresql_test": "SKIPPED_ENVIRONMENT_MISSING_MJOBS_TEST_POSTGRES_URL",
+    "live_employer_fetch": false,
+    "ai_provider_calls": false,
+    "ats_automation": "NOT_AVAILABLE; external submission remains OFF",
+    "ocr_inputs": "synthetic local resume fixtures",
+    "profile_personal_data_read_or_changed": false
+  },
+  "requirement_limitations": [
+    "Native parser/OCR request-disconnect cancellation is not yet implemented.",
+    "Real ATS navigation/provider and AI request paths are unavailable; broader per-category output, retry and error-classification contracts remain open.",
+    "Hosted checks/reviews are NOT_RUN by explicit local-only policy."
+  ],
+  "denominators": {
+    "requirements": 366,
+    "reference_gaps": 59
+  },
+  "main_integration": "PENDING"
+}

@@ -370,3 +370,12 @@ Issue #6 / MJ-REQ-005 stays OPEN/PARTIAL: source request concurrency and the exi
 
 
 Integration receipt (2026-10-06T10:13:08Z): issue #6 source `ec28943ec20109c2b1bc12c0130a26a2991b0636` plus evidence/planning are integrated on synchronized local and GitHub `main` at `2a55de01a6aed215363b6bdfcb6c2029d1658553` by non-force fast-forward. `main` had no protection rule; Actions were disabled; no PR was opened. GitHub issue #6 comment/readback confirms OPEN. The requirement remains PARTIAL. Next: reconcile issue #5 / MJ-REQ-004 on this main.
+
+
+## 2026-10-06 local-only continuation — MJ-REQ-004 bounded OCR diagnostics
+
+Candidate `3d604b27b1a4c25e2ff0ee6fa68a07e9ff8f74a0` on `codex/req004-bound-ops-20261006`, based on current main `5b706edb52945dc16a71f86c95b14a8b3bda023a`. OCR now captures child stderr in a temporary file under the Linux child file-size limit, retains only capped diagnostic-size metadata, and reports sanitized timeout, launch, nonzero-exit, and missing-output warnings. Raw diagnostics are never returned, logged, or persisted. Native text survives OCR failures; facts remain review-only. Chromium shows the warning and extraction does not mutate profile data.
+
+Validation: 48 focused unit/parser/API/Chromium tests PASS; all 35 browser tests PASS; all 680 full Python/integration/browser tests PASS on the final exact-head run with one optional PostgreSQL test skipped because `MJOBS_TEST_POSTGRES_URL` was unset; all 62 frontend tests and build PASS; isolated no-network Linux app-image OCR/browser acceptance and synthetic exit-7 bounded-diagnostic checks PASS; repository validators PASS. A stale ignored `apps/web/dist` caused one initial browser assertion and was rebuilt. A subsequent full run had one unrelated Uvicorn shutdown timeout; the case passed alone and in the browser suite, and the same-head full rerun passed. No timeout was changed.
+
+Evidence: [bounded OCR diagnostics](../docs/evidence/2026-10-06-bounded-ocr-diagnostics.json). Issue #5 / MJ-REQ-004 remains OPEN/PARTIAL: request-disconnect cancellation, real AI/ATS operations, hosted checks and remaining operation-category policy are outstanding; external submission remains OFF. Denominators remain 366 requirements and 59 reference gaps. The source commit is pushed; evidence/planning integration receipt is pending.
