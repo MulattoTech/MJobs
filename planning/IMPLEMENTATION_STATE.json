@@ -7,9 +7,9 @@
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Primary checkout main and origin/main are synchronized at 901cbc09b910e8432745bd8c433f5895c0331b48; issue #384 remains open with a scoped partial implementation integrated safely.",
-    "current_verified_github_state": "GitHub and local main are synchronized at 901cbc09b910e8432745bd8c433f5895c0331b48. Issues #373 is CLOSED; #384 / MJ-REF-014 remains OPEN with four of five criteria checked and prompt integration blocked by the absent AI task/provider path. Actions remain disabled, main unprotected and repository rulesets count zero.",
-    "current_verified_at": "2026-10-06T03:31:45Z"
+    "current_verified_local_state": "Primary checkout main and origin/main are synchronized at 4e131918f71560171eac75a7776f45e18a7f8dea; issue #384 remains open with a scoped partial implementation integrated safely.",
+    "current_verified_github_state": "GitHub and local main are synchronized at 4e131918f71560171eac75a7776f45e18a7f8dea. Issues #373 is CLOSED; #384 / MJ-REF-014 remains OPEN with four of five criteria checked and prompt integration blocked by the absent AI task/provider path. Actions remain disabled, main unprotected and repository rulesets count zero.",
+    "current_verified_at": "2026-10-06T03:32:30Z"
   },
   "current_milestone": "MJ-REF-004-SELECTED-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under the local-only delivery policy; one writer and one integration lane.",
@@ -4154,7 +4154,7 @@
     },
     {
       "milestone_id": "MJ-REF-004-SELECTED-20261006",
-      "timestamp": "2026-10-06T03:31:45Z",
+      "timestamp": "2026-10-06T03:32:30Z",
       "current_phase": "MJ-REF-004_SELECTED_20261006",
       "completed_steps": [
         "Reconciled issue #374 OPEN and selected the ATS question-preflight safety/workflow slice"
@@ -4177,14 +4177,14 @@
         "External submission remains OFF; acceptance uses synthetic local ATS fixtures."
       ],
       "last_safe_checkpoint": {
-        "git_commit": "901cbc09b910e8432745bd8c433f5895c0331b48",
+        "git_commit": "4e131918f71560171eac75a7776f45e18a7f8dea",
         "evidence_path": "docs/evidence/2026-10-06-least-data-profile-access.json"
       }
     }
   ],
   "current_phase": "MJ-REF-004_SELECTED_20261006",
   "last_safe_checkpoint": {
-    "git_commit": "901cbc09b910e8432745bd8c433f5895c0331b48",
+    "git_commit": "4e131918f71560171eac75a7776f45e18a7f8dea",
     "evidence_path": "docs/evidence/2026-10-06-least-data-profile-access.json"
   },
   "live_integrations_tested": [
@@ -4295,8 +4295,8 @@
     }
   ],
   "live_reconciliation": {
-    "observed_at": "2026-10-06T03:31:45Z",
-    "github_main": "901cbc09b910e8432745bd8c433f5895c0331b48",
+    "observed_at": "2026-10-06T03:32:30Z",
+    "github_main": "4e131918f71560171eac75a7776f45e18a7f8dea",
     "issue_384_state": "OPEN_PARTIAL",
     "issue_374_state": "OPEN",
     "actions_enabled": false,
@@ -4311,7 +4311,7 @@
     "title": "ATS question preflight before browser launch",
     "state": "OPEN_SELECTED_DEPENDENCY_READY",
     "selection_reason": "P1 workflow and truthfulness gate before browser work; avoids launching application sessions when mandatory questions cannot be answered from the approved profile and supports explicit review/assisted routing.",
-    "base": "901cbc09b910e8432745bd8c433f5895c0331b48",
+    "base": "4e131918f71560171eac75a7776f45e18a7f8dea",
     "branch": "codex/mj-ref-004-question-preflight-20261006",
     "next_action": "Read application_automation area spec and current answer/application/browser-start paths; establish an acceptance oracle for required facts and stale preflight before code."
   },
