@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-004",
+  "github_issue": 5,
+  "slice_result": "PASS",
+  "requirement_result": "PARTIAL",
+  "base_commit": "57bb3e6cf4e79fb86edab0d4574a87a5323c151b",
+  "source_commit": "9b95debda403cbf38b4b147be549ece4bc515b4e",
+  "candidate_commit": "9b95debda403cbf38b4b147be549ece4bc515b4e",
+  "candidate_tree": "4cf122d3c5401e1c3e96d93aa722013cc8d18a43",
+  "recorded_at_utc": "2026-10-06T14:31:00Z",
+  "scope": "Bound the explicit local fixture discovery client so response bodies are streamed under the 2 MB ceiling and active local requests stop promptly when the durable worker cancellation/deadline callback raises.",
+  "acceptance": {
+    "oversized_fixture_response_stops_before_full_body_buffering": "PASS",
+    "stalled_fixture_response_observes_worker_cancellation_and_preserves_exact_error": "PASS",
+    "redirect_allowlist_and_fixture_discovery_workflows_regressions": "PASS",
+    "mock_application_review_and_submission_gates_regressions": "PASS",
+    "full_local_unit_integration_browser_suite": "PASS",
+    "live_employer_ai_and_real_ats_paths": "NOT_RUN_OR_BLOCKED_EXTERNAL"
+  },
+  "validation": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_mock_discovery_client -v",
+      "timestamp_utc": "2026-10-06T14:31:00Z",
+      "target": "Reproduce eager oversized buffering and stalled response cancellation before production changes",
+      "result": "FAIL_EXPECTED_RED",
+      "summary": "After correcting the synthetic client injection setup, both regression tests failed: all 100 body chunks were buffered and a stalled response did not stop within 0.3 seconds."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_mock_discovery_client tests.integration.test_application_preflight tests.integration.test_public_company_discovery tests.browser.test_mock_application tests.browser.test_core_workflow_trial -v",
+      "timestamp_utc": "2026-10-06T14:31:00Z",
+      "target": "Fixture response bounds, public-company identity boundaries, application preflight, mock ATS controls and connected core workflow",
+      "result": "PASS",
+      "summary": "31 unit, integration and browser tests passed."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py'",
+      "timestamp_utc": "2026-10-06T14:31:00Z",
+      "target": "Exact candidate full local unit/integration/browser discovery",
+      "result": "PASS",
+      "summary": "708 tests ran in 393.744 seconds, zero failures/errors, one optional PostgreSQL skip because MJOBS_TEST_POSTGRES_URL was unset."
+    },
+    {
+      "command": "git diff --check",
+      "timestamp_utc": "2026-10-06T14:31:00Z",
+      "target": "Patch whitespace integrity",
+      "result": "PASS",
+      "summary": "No whitespace errors."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.agent_skills",
+      "timestamp_utc": "2026-10-06T14:31:00Z",
+      "target": "Repository delivery skill contract",
+      "result": "PASS",
+      "summary": "Validator passed."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.catalogue",
+      "timestamp_utc": "2026-10-06T14:31:00Z",
+      "target": "Requirement/reference denominator preservation",
+      "result": "PASS",
+      "summary": "Validator passed; denominators remain 366 and 59."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.progress validate",
+      "timestamp_utc": "2026-10-06T14:31:00Z",
+      "target": "Evidence-linked implementation progress journal",
+      "result": "PASS",
+      "summary": "Validator passed."
+    }
+  ],
+  "observed_test_setup_issue": "The first cancellation test setup created MockClient before installing its synthetic transport and therefore failed to start the fixture response. The test was corrected to inject the transport at construction; the intended cancellation regression then failed before implementation and passed after.",
+  "external_boundaries": {
+    "fixture_transport": "LOCAL_SYNTHETIC_ONLY",
+    "live_employer_fetch": false,
+    "ai_provider_calls": false,
+    "real_ats_automation": "NOT_AVAILABLE_AND_DISABLED",
+    "external_submission": "OFF",
+    "postgresql_test": "OPTIONAL_SKIP_MJOBS_TEST_POSTGRES_URL_UNSET",
+    "github_actions": "DISABLED_BY_USER_POLICY",
+    "hosted_review": "NOT_RUN_BY_USER_POLICY"
+  },
+  "requirement_limitations": [
+    "This slice covers the local fixture discovery client only. Public Greenhouse and public-company clients have separate scoped bounds; remaining operation classes still need evidence.",
+    "AI provider/runtime and real ATS paths remain unavailable/disabled and keep MJ-REQ-004 PARTIAL."
+  ],
+  "denominators": {
+    "requirements": 366,
+    "reference_gaps": 59
+  }
+}

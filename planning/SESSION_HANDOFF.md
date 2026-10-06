@@ -432,3 +432,10 @@ Verification: 29 Greenhouse integration tests PASS; connected Chromium collectio
 
 
 Integration receipt (2026-10-06T14:19:05Z): issue #5 source 7b586455880b1bde22fecd79b89810be8a27093a and evidence/planning are integrated by non-force fast-forward on synchronized local and GitHub `main` at 973bc50921eae4e242752b2527321069573e8c86. Actions remain disabled, `main` is unprotected, and no PR was opened. GitHub issue #5 remains OPEN/PARTIAL after comment/readback: https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6018276394. Continue the local P0 issue audit without waiting for providers or hosted checks.
+
+
+## 2026-10-06 local-only continuation — MJ-REQ-004 local fixture discovery bounds
+
+The explicit local MockClient now streams fixture responses under its 2 MB size limit and polls durable worker cancellation/deadline checks while the request is active. Cancellation closes the response/client and preserves the original error. A synthetic oversized-body and stalled-response regression failed before implementation after correcting the fixture transport setup. Candidate 9b95debda403cbf38b4b147be549ece4bc515b4e, based on 57bb3e6cf4e79fb86edab0d4574a87a5323c151b; evidence: [docs/evidence/2026-10-06-mock-discovery-bounds.json](../docs/evidence/2026-10-06-mock-discovery-bounds.json).
+
+Verification: 31 focused unit/integration/browser tests PASS; full local suite 708 PASS, zero failures/errors, one optional PostgreSQL skip because MJOBS_TEST_POSTGRES_URL was unset. No live employer request or external submission occurred. Issue #5 / MJ-REQ-004 remains OPEN/PARTIAL; hosted Actions/reviews remain NOT_RUN by policy. Source committed locally; evidence/planning validators and integration are next.
