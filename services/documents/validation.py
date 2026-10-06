@@ -1,13 +1,23 @@
 """Exact assertion validation for deterministic, approved-fact templates."""
 from collections import Counter
+import re
 from docx import Document
 from pypdf import PdfReader
 
 from services.documents.errors import PreparationError
-from services.documents.templates import CONTRACTS, contract_role, resume_layout
+from services.documents.templates import CONTRACTS, contact_header, contract_role, resume_layout
 from services.documents.cover_letter import COVER_LETTER_TEMPLATE, build_cover_letter
 
-VALIDATOR = 'exact-approved-facts-v4-job-specific-cover-letter'
+VALIDATOR = 'exact-approved-facts-v5-claim-preservation'
+_DATE_TOKEN = re.compile(
+    r"\b(?:(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|"
+    r"jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)"
+    r"\.?\s+\d{1,2},?\s+(?:19|20)\d{2}|(?:19|20)\d{2}"
+    r"(?:\s*[-–—/]\s*(?:(?:19|20)?\d{2}))?)\b", re.IGNORECASE)
+_NUMBER_TOKEN = re.compile(
+    r"(?<![\w])(?:[$€£]\s*)?[+-]?\d+(?:[,.]\d+)*"
+    r"(?:\s?%|\s*(?:percent|percentages|x|times|hours?|days?|years?|months?|"
+    r"users?|employees?))?(?![\w])", re.IGNORECASE)
 
 
 def _read(path, reader):
@@ -34,8 +44,49 @@ def pdf_tokens_match(actual, expected):
     return cursor==len(tokens)
 
 
+def _claim_evidence(fact_ids, eligible, profile_facts):
+    by_id = {row['fact_id']: row for row in profile_facts}
+    claims = []
+    for fact_id in fact_ids:
+        text = eligible[fact_id]
+        row = by_id[fact_id]
+        dates = [value.casefold() for value in _DATE_TOKEN.findall(text)]
+        numbers = [value.casefold() for value in _NUMBER_TOKEN.findall(text)]
+        kind = row.get('kind', 'skill')
+        fields = ['FACT_TEXT', 'DATE_TOKENS', 'NUMERIC_TOKENS']
+        if kind == 'experience':
+            fields.append('EMPLOYER_TEXT_WITHIN_EXPERIENCE_FACT')
+        elif kind == 'education':
+            fields.extend(('DEGREE_TEXT_WITHIN_EDUCATION_FACT',
+                           'INSTITUTION_TEXT_WITHIN_EDUCATION_FACT'))
+        elif kind == 'certification':
+            fields.append('CREDENTIAL_TEXT_WITHIN_CERTIFICATION_FACT')
+        claims.append({
+            'fact_id': fact_id,
+            'kind': kind,
+            'decision': 'PRESERVED_EXACT',
+            'protected_fields': fields,
+            'protected_token_counts': {'dates': len(dates), 'numbers': len(numbers)},
+        })
+    return {
+        'strategy': 'DETERMINISTIC_EXACT_FACT_PRESERVATION',
+        'keep_drop_authority': 'TEMPLATE_AND_USER_SELECTION',
+        'claims': claims,
+    }
+
+
+def _reject_novel_tokens(actual_texts, source_texts):
+    for pattern, claim_name in ((_DATE_TOKEN, 'date'), (_NUMBER_TOKEN, 'numeric')):
+        approved = Counter(value.casefold() for text in source_texts for value in pattern.findall(text))
+        generated = Counter(value.casefold() for text in actual_texts for value in pattern.findall(text))
+        if generated - approved:
+            raise PreparationError('UNSUPPORTED_CLAIM',
+                                   f'Document adds a {claim_name} claim absent from approved facts')
+
+
 def validate_assertions(kind, paragraphs, profile, fact_ids, job_title=None, template='verified-facts-v1', generation_context=None):
-    eligible = {row['fact_id']: row['text'] for row in profile['facts']
+    profile_facts = profile['facts']
+    eligible = {row['fact_id']: row['text'] for row in profile_facts
                 if row['verified'] and row['user_approved'] and row['confidence'] >= 80 and row['source'].strip()}
     if len(set(fact_ids)) != len(fact_ids) or any(identifier not in eligible for identifier in fact_ids):
         raise PreparationError('UNSUPPORTED_CLAIM', 'Document references unapproved or missing career facts')
@@ -44,10 +95,14 @@ def validate_assertions(kind, paragraphs, profile, fact_ids, job_title=None, tem
             raise PreparationError('UNSUPPORTED_CLAIM', 'Document template has no assertion validation contract')
         if CONTRACTS[template][2]:
             by_id = {row['fact_id']:row for row in profile['facts']}
-            expected, _ = resume_layout(profile, [by_id[i] for i in fact_ids], template)
+            expected, heading_indices = resume_layout(profile, [by_id[i] for i in fact_ids], template)
+            header = len(contact_header(profile, template))
+            headings = {expected[index] for index in heading_indices}
+            actual_facts = [value for value in paragraphs[header:] if value not in headings]
+            _reject_novel_tokens(actual_facts, [eligible[identifier] for identifier in fact_ids])
             if paragraphs != expected:
                 raise PreparationError('UNSUPPORTED_CLAIM', 'Document assertions differ from the approved factual inputs and template structure')
-            return
+            return _claim_evidence(fact_ids, eligible, profile_facts)
         header = [profile['name'], profile['email']]
     elif kind == 'cover-letter' and template == COVER_LETTER_TEMPLATE:
         context = generation_context if isinstance(generation_context, dict) else {}
@@ -59,10 +114,12 @@ def validate_assertions(kind, paragraphs, profile, fact_ids, job_title=None, tem
                 context.get('style'), context.get('length'))
         except PreparationError as error:
             raise PreparationError('UNSUPPORTED_CLAIM', 'Cover letter evidence is no longer valid') from error
+        _reject_novel_tokens([paragraphs[5]] if len(paragraphs) > 5 else [],
+                             [eligible[identifier] for identifier in expected_context['fact_ids']])
         if (paragraphs != expected or fact_ids != expected_context['fact_ids']
                 or context.get('fact_ids') != expected_context['fact_ids']):
             raise PreparationError('UNSUPPORTED_CLAIM', 'Cover letter differs from the approved facts or saved job evidence')
-        return
+        return _claim_evidence(fact_ids, eligible, profile_facts)
     elif kind == 'cover-letter' and template == 'verified-facts-v1':
         prefix = 'Application for '
         if (len(paragraphs) < 2 or paragraphs[0] != profile['name']
@@ -75,8 +132,10 @@ def validate_assertions(kind, paragraphs, profile, fact_ids, job_title=None, tem
         header = [profile['name'], f'Application for {job_title}']
     else:
         raise PreparationError('UNSUPPORTED_CLAIM', 'Document template has no assertion validation contract')
+    _reject_novel_tokens(paragraphs[2:], [eligible[identifier] for identifier in fact_ids])
     if paragraphs[:2] != header or Counter(paragraphs[2:]) != Counter(eligible[i] for i in fact_ids):
         raise PreparationError('UNSUPPORTED_CLAIM', 'Document assertions differ from the approved factual inputs')
+    return _claim_evidence(fact_ids, eligible, profile_facts)
 
 
 def validate_formats(paths, paragraphs):

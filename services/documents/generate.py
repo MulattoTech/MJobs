@@ -89,8 +89,10 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
             same_selection=selection_ids is None or (prior_resume and (prior_resume['generation_context'] or {}).get('selection_fingerprint')==selection_hash)
             prior_letter=connection.execute(select(m.documents).where(m.documents.c.application_id==prior['id'],
                 m.documents.c.version==prior['document_version'],m.documents.c.kind=='cover-letter')).mappings().one_or_none()
+            prior_letter_context = (prior_letter['generation_context'] or {}) if prior_letter else {}
             same_letter=bool(prior_letter and prior_letter['template']==COVER_LETTER_TEMPLATE
-                and prior_letter['generation_context']==cover_letter_context)
+                and {key:value for key,value in prior_letter_context.items()
+                     if key != 'claim_validation'} == cover_letter_context)
             if prior["profile_version"] == profile["version"] and same_mode and same_target and same_selection and same_letter and prior['state'] != 'REVIEW_REQUIRED':
                 persist_route_choices(connection, prior["id"], route_plan)
                 return prior["id"]
@@ -130,8 +132,11 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
             template = resume_template if kind=='resume' else COVER_LETTER_TEMPLATE
             current_fact_ids = resume_ids if kind=='resume' else cover_letter_context['fact_ids']
             generation_context = context if kind=='resume' else cover_letter_context
-            validate_assertions(kind, paragraphs, profile, current_fact_ids, job['title'], template,
-                                generation_context=generation_context)
+            claim_validation = validate_assertions(
+                kind, paragraphs, profile, current_fact_ids, job['title'], template,
+                generation_context=generation_context)
+            generation_context = {**(generation_context or {}),
+                                 'claim_validation': claim_validation}
             headings = resume_layout(profile, ordered_rows, template)[1] if kind=='resume' else set()
             fact_indices=[index for index in range(len(contact_header(profile,template)),len(paragraphs)) if index not in headings] if kind=='resume' else []
             bold_indices={index for index,row in zip(fact_indices,ordered_rows) if row['fact_id'] in emphasized}
@@ -172,7 +177,9 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
             upsert(connection, m.documents, record)
         store._audit(connection, application_id, 'DOCUMENTS_VALIDATED', {'validator': VALIDATOR,
             'profile_version': profile['version'], 'documents': [
-                {'id': r['id'], 'fact_ids': r['fact_ids'], 'sha256': r['sha256']} for r in records]})
+                {'id': r['id'], 'fact_ids': r['fact_ids'], 'sha256': r['sha256'],
+                 'claim_validation': r['generation_context']['claim_validation']}
+                for r in records]})
         store._audit(connection, application_id, "DOCUMENTS_PREPARED", {"fact_ids": fact_ids, "profile_version": profile["version"], "route_ids": selected_route_ids, "route_mode": route_plan["mode"],
             "adapter_knowledge": application_adapter_knowledge(connection, route["id"])})
         return application_id

@@ -75,6 +75,20 @@ revalidates the current resume against its original profile before browser use,
 including historical rows without a receipt. Rejection becomes REVIEW_REQUIRED;
 explicit preparation repairs it with a new revision, retaining prior bytes.
 
+MJ-REF-010 adds a claim-preservation ledger to each validated generated revision
+and its DOCUMENTS_VALIDATED audit receipt. The ledger records typed fact IDs,
+protected field categories, and date/numeric token counts; it does not copy claim
+text, token values, or guessable token hashes into logs. The immutable document
+profile version and fact IDs bind the result to its saved source. Experience/education/certification fields are
+protected as their complete approved source sentence, so employer, institution,
+degree, and credential wording cannot be independently rewritten. Novel date or
+numeric claims are rejected before staging publication, while exact comparison
+blocks other unapproved edits. Keep/drop authority remains deterministic template
+and explicit user fact selection; no AI relevance scorer or provider is called.
+Entity tokenization beyond dates/numbers is not inferred: preserving the complete
+typed fact sentence is the lossless boundary. Tests: unit/integration.test_document_validation,
+tests.integration.test_spine, and tests.browser.test_document_history.
+
 PDF output embeds Windows Arial or Linux DejaVu Sans (installed in the app
 image). Font registration and rendering are serialized because ReportLab font
 objects cannot be shared by simultaneous documents. Missing fonts, unsupported
