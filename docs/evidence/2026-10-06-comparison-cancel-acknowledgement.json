@@ -85,12 +85,21 @@
     "reference_gaps": 59
   },
   "integration": {
-    "status": "PENDING_LOCAL_ONLY_FAST_FORWARD",
+    "status": "NON_FORCE_FAST_FORWARD_INTEGRATED",
     "method": "NON_FORCE_FAST_FORWARD",
     "base_commit": "2f3e386b5710b2d870b03f115ef20714e88cc7b1",
     "source_commit": "6abd58aec2562fddaff1367fa8c60417d98b5ebb",
     "candidate_branch": "codex/req004-cancel-acknowledgement-20261006",
+    "candidate_integration_commit": "19ce41de0c9c380e1dbd3b6278870477c484bd19",
+    "local_main_after_integration": "19ce41de0c9c380e1dbd3b6278870477c484bd19",
+    "origin_main_after_integration": "19ce41de0c9c380e1dbd3b6278870477c484bd19",
+    "main_protection": "NOT_CONFIGURED",
+    "actions_enabled": false,
+    "open_pr_for_candidate": false,
     "hosted_verification": "NOT_RUN_BY_USER_POLICY",
-    "issue_state": "OPEN_PARTIAL"
+    "integrated_at_utc": "2026-10-06T16:46:28Z",
+    "issue_state_after_readback": "OPEN",
+    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6021034562",
+    "readback_at_utc": "2026-10-06T16:46:28Z"
   }
 }

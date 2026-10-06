@@ -1,3 +1,9 @@
+# Integration receipt — 2026-10-06
+
+Cancellation acknowledgement truthfulness source `6abd58aec2562fddaff1367fa8c60417d98b5ebb` and evidence/planning integrated by non-force fast-forward at synchronized local/GitHub main `19ce41de0c9c380e1dbd3b6278870477c484bd19`. Issue #5 remains OPEN/PARTIAL after readback: https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6021034562. Evidence `docs/evidence/2026-10-06-comparison-cancel-acknowledgement.json`. Continue the next highest-value local-only operation-boundary slice; hosted checks/reviews remain NOT_RUN and external submission OFF.
+
+---
+
 # Active local-only implementation checkpoint — 2026-10-06
 
 Issue #5 / MJ-REQ-004 cancellation acknowledgement truthfulness: source candidate `6abd58aec2562fddaff1367fa8c60417d98b5ebb` on `codex/req004-cancel-acknowledgement-20261006`, based on `2f3e386b5710b2d870b03f115ef20714e88cc7b1`. A `cancelled=false` response now leaves the comparison fetch active and reports that cancellation is unconfirmed; confirmed cancellation still aborts and stops extraction. Evidence `docs/evidence/2026-10-06-comparison-cancel-acknowledgement.json`. Connected browser positive/negative acceptance, full Python 718 (one optional PostgreSQL skip), 62 frontend tests, build and diff check pass. Planning validators remain to run before integration. Cross-replica cancellation and other operation categories remain incomplete; issue #5 stays OPEN/PARTIAL. Hosted checks/reviews NOT_RUN, external submission OFF.
