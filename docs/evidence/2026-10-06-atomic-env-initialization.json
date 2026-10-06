@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REQ-007-ATOMIC-PROTECTED-CONFIG-INITIALIZATION-20261006",
+  "recorded_at": "2026-10-06T15:35:01Z",
+  "requirement_id": "MJ-REQ-007",
+  "issue": 8,
+  "result": "PARTIAL",
+  "accepted_slice": "Project-local .env initialization writes a complete private staged file and atomically publishes it only if absent. Existing or concurrent configuration is preserved; failed staging/publication leaves no final partial file.",
+  "source": {
+    "repository": "MulattoTech/MJobs",
+    "base_commit": "a363ebd686c9237c81bb8c60dc51cb2ba34f77a1",
+    "verified_code_test_diff_sha256": "458ed7e5b8fe2786873ffa921184d17bd87dffabd510033806f93eaa98295c87",
+    "branch": "codex/req007-config-recovery-20261006",
+    "worktree": ".worktrees/req007-config-recovery-20261006"
+  },
+  "local_checks": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_init_env tests.unit.test_local_backup -v",
+      "result": "PASS",
+      "summary": "13 tests passed: private atomic creation, repeated initialization, concurrent winner, sync/publish failure, no staged leftovers, CLI stdout redaction, backup preconditions, archive integrity and restore refusal."
+    },
+    {
+      "command": "python -m tools.verification.agent_skills",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.progress validate",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.catalogue",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "data_boundary": {
+    "touched": "Synthetic temporary configuration files only; test secrets are the literal synthetic value and are never written to test logs.",
+    "real_configuration": "The root checkout .env and all PERSONAL configuration were not read or modified. The isolated worktree was checked only for existence and remained without .env after final tests.",
+    "stdout": "Only Created project-local ignored .env or Existing .env preserved is emitted; no secret value is printed.",
+    "permissions": "POSIX staging/final mode is 0600. Windows keeps the staging file identity/security descriptor through hard-link publication and was exercised here; the ACL was not separately inspected."
+  },
+  "observed_failures_and_recovery": [
+    "The initial pre-refactor test-import probe reproduced the old import-time .env write and created a secret only inside the isolated worktree. It was removed by exact worktree path without reading its contents. Production imports now have no filesystem effect, and the final test suite left no worktree .env or staging file.",
+    "An initial concurrency-test mock recursively patched os.link; correcting the mock to retain the real link implementation produced a passing atomic no-overwrite test. No production defect was hidden by changing a timeout or weakening assertions."
+  ],
+  "limitations": [
+    "MJ-REQ-007 remains PARTIAL. This slice protects the current environment-file initialization operation; it does not prove recovery for a future settings-schema migration.",
+    "Database/document archive restoration and SQLite migration behavior have prior separate evidence; no Docker restore or real configuration migration was run in this slice.",
+    "GitHub Actions, hosted tests and reviews remain NOT_RUN under the local-only policy."
+  ],
+  "external_submission": "OFF",
+  "hosted_verification": "NOT_RUN_BY_USER_POLICY",
+  "hosted_review": "NOT_RUN_BY_USER_POLICY"
+}

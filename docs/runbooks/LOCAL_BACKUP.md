@@ -48,7 +48,9 @@ and port. For the default personal project:
 Use the matching repository version and Compose configuration. The archive's
 Compose SHA-256 must match the checkout. Build the application image from that
 checkout before restoring. `cli.init_env` creates a private `.env` only when it
-is missing; it never replaces an existing one.
+is missing. It stages and flushes the secret before atomically publishing with
+create-if-absent semantics; repeated or concurrent initialization never
+replaces existing configuration.
 
 ```powershell
 .venv\Scripts\python.exe -m cli.init_env

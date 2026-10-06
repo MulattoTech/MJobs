@@ -10,9 +10,10 @@ cd C:\Tools\Dev\MJobs
 ```
 
 Open http://127.0.0.1:18700. First startup downloads/builds the images. The script
-creates an ignored private `.env` only when absent; existing configuration and
-volumes are preserved. It waits for PostgreSQL, Redis, the scheduler, all three
-worker queues, and the mock service. No separate Node/Python install is needed
+creates an ignored private `.env` atomically only when absent; existing
+configuration and volumes are preserved. It waits for PostgreSQL, Redis, the
+scheduler, all three worker queues, and the mock service. No separate
+Node/Python install is needed
 for normal use.
 For startup without opening a browser, add `-NoOpen`. Use `-NoBuild` only when
 the current source has already been built.

@@ -6,6 +6,13 @@ does not own the API's durable state or authorization decisions. The backup
 interface is `python -m cli.local_backup {backup,verify,restore}`; restore only
 creates a fresh Compose project and never overwrites existing volumes.
 
+`python -m cli.init_env` only creates a missing project `.env`. It stages the
+private secret in the same directory, flushes it, and publishes with atomic
+create-if-absent semantics; concurrent or repeated initialization preserves
+the existing configuration. Importing this module has no filesystem effect.
+Synthetic failure, concurrency, private-file and stdout-redaction tests live in
+`tests/unit/test_init_env.py`.
+
 Requirements touched: MJ-REQ-013, MJ-REQ-014, MJ-REQ-167, MJ-REQ-168. Related
 areas: `packages/persistence`, `services/documents`, and `workers`. Tests live
 in `tests/unit/test_local_backup.py`; the isolated Compose recovery evidence is
