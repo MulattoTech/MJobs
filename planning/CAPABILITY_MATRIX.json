@@ -983,6 +983,7 @@
       "requirement_id": "MJ-REQ-108",
       "result": "PARTIAL",
       "evidence": [
+        "docs/evidence/2026-10-06-disabled-ai-provider.json",
         "docs/evidence/2026-10-06-ai-local-ollama-provider.json"
       ],
       "note": "Loopback-only Ollama provider, schema forwarding, bounded/sanitized HTTP behavior and disabled defaults pass synthetic local tests; actual inference, remote providers and production consumer remain unverified."
