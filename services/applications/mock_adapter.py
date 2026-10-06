@@ -12,6 +12,11 @@ from packages.domain.safety import Fact, Policy, SubmissionContext, evaluate_sub
 from packages.persistence import models as m
 from packages.persistence.store import now
 from services.discovery.pipeline import MockClient
+from services.applications.preflight import (
+    build_preflight_result,
+    persist_preflight,
+    questionnaire_fingerprint,
+)
 from services.documents.errors import PreparationError
 from services.documents.validation import validate_stored_resume, VALIDATOR
 from services.documents.avoid_list import validate_content as validate_avoid_list
@@ -58,6 +63,47 @@ def _authorize(store, application_id, confidence, policy=Policy(), check=None):
         return decision
 
 
+def _read_questionnaire(client, route):
+    """Read only structured metadata from the allowlisted local mock service."""
+    if route.get("provider") != "mock-ats" or route.get("tenant") != "example":
+        return None
+    requisition = route.get("requisition")
+    if not isinstance(requisition, str) or not requisition.isalnum() or len(requisition) > 80:
+        return None
+    try:
+        response = client.get(f"{client.origin}/ats/questions/{requisition}")
+        if response.status_code != 200:
+            return None
+        return response.json()
+    except (httpx.HTTPError, ValueError):
+        return None
+
+
+def _preflight(store, application, route, profile, document_kinds, client):
+    questionnaire = _read_questionnaire(client, route)
+    result = build_preflight_result(profile, route, questionnaire, document_kinds,
+                                    application_id=application["id"])
+    result["document_version"] = application["document_version"]
+    persist_preflight(store, application["id"], result)
+    if result["result"] != "PASS":
+        store.transition(application["id"], [application["state"]], "REVIEW_REQUIRED",
+                         "QUESTION_PREFLIGHT_" + result["result"])
+        return result
+
+    # The browser must not start if the public metadata changed after evaluation.
+    latest = _read_questionnaire(client, route)
+    if (latest is None or questionnaire_fingerprint(latest) != result["metadata_fingerprint"]):
+        stale = build_preflight_result(profile, route, latest, document_kinds,
+                                       application_id=application["id"])
+        stale.update({"reason": "STALE_PREFLIGHT", "result": "UNKNOWN",
+                      "document_version": application["document_version"]})
+        persist_preflight(store, application["id"], stale)
+        store.transition(application["id"], [application["state"]], "REVIEW_REQUIRED",
+                         "QUESTION_PREFLIGHT_STALE")
+        return stale
+    return result
+
+
 def apply_mock(store, application_id, mock_origin, output_dir, submit=False, check=None):
     check = check or (lambda: None)
     if type(submit) is not bool:
@@ -80,19 +126,11 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
             elif application["state"] == "SUBMITTING":
                 store.transition(application_id, ["SUBMITTING"], "SUBMISSION_UNCONFIRMED")
             return store.application(application_id)
-        if application["state"] not in ("PREPARED", "DRY_RUN_COMPLETE"):
+        if application["state"] not in ("PREPARED", "DRY_RUN_COMPLETE", "REVIEW_REQUIRED"):
             return application
         check()
         profile = store.profile(application["profile_id"], application["profile_version"])
         current_profile = store.profile(application["profile_id"])
-        # Question-aware reusable-answer metadata is outside the legacy mock
-        # form's Fact contract; only its original safety fields reach policy.
-        answers = select_verified_facts([Fact(**{key: row[key] for key in
-            ("id", "text", "source", "verified", "user_approved", "confidence")})
-            for row in profile["answers"]], ["country", "remote", "fixture_question"])
-        answer = {fact.id: fact.text for fact in answers}
-        facts = select_verified_facts([Fact(id=row["fact_id"], **{key: row[key] for key in ("text", "source", "verified", "user_approved", "confidence")})
-                                      for row in profile["facts"]], application["fact_ids"])
         root = Path(output_dir).resolve() / application_id
         files = {}
         for document in documents:
@@ -122,6 +160,18 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
         with store.engine.begin() as connection:
             store._audit(connection, application_id, 'RESUME_VALIDATED_BEFORE_USE',
                          {'validator': VALIDATOR, 'document_id': resume['id'], 'sha256': resume['sha256']})
+        preflight = _preflight(store, application, route, profile,
+                               {document["kind"] for document in documents}, client)
+        if preflight["result"] != "PASS":
+            return store.application(application_id)
+        # Question-aware reusable-answer metadata is outside the legacy mock
+        # form's Fact contract; only its original safety fields reach policy.
+        answers = select_verified_facts([Fact(**{key: row[key] for key in
+            ("id", "text", "source", "verified", "user_approved", "confidence")})
+            for row in profile["answers"]], ["country", "remote", "fixture_question"])
+        answer = {fact.id: fact.text for fact in answers}
+        facts = select_verified_facts([Fact(id=row["fact_id"], **{key: row[key] for key in ("text", "source", "verified", "user_approved", "confidence")})
+                                      for row in profile["facts"]], application["fact_ids"])
         store.transition(application_id, [application["state"]], "FILLING", "NAVIGATE")
         attempt_id = uuid4().hex
         with store.engine.begin() as connection:

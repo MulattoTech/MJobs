@@ -26,7 +26,9 @@ class MockApplicationTests(unittest.TestCase):
         self.store.engine.dispose()
         self.directory.cleanup()
 
-    def prepared(self, origin):
+    def prepared(self, origin, profile=None):
+        if profile is not None:
+            self.store.save_profile(profile)
         discover(self.store, origin, "fixture")
         job = next(row for row in self.store.jobs() if row["requisition"] == "B")
         return prepare(self.store, job["id"], "fixture", self.root)
@@ -110,6 +112,38 @@ class MockApplicationTests(unittest.TestCase):
             self.assertEqual(self.store.profile("fixture", old_version)["name"], "Alex Fixture")
             result = apply_mock(self.store, app_id, origin, self.root)
             self.assertEqual(result["state"], "DRY_RUN_COMPLETE")
+
+    def test_missing_required_answer_stops_before_browser_and_shows_question(self):
+        from unittest.mock import patch
+        profile = dict(PROFILE, answers=[row for row in PROFILE["answers"] if row["id"] != "remote"])
+        with fixture_server() as origin:
+            app_id = self.prepared(origin, profile)
+            with patch("services.applications.mock_adapter.sync_playwright") as browser:
+                result = apply_mock(self.store, app_id, origin, self.root)
+            self.assertEqual(result["state"], "REVIEW_REQUIRED")
+            self.assertFalse(browser.called)
+            from services.applications.preflight import latest_preflight
+            report = latest_preflight(self.store, app_id)
+            self.assertEqual(report["result"], "FAIL")
+            self.assertEqual(report["missing"][0]["question_id"], "remote")
+            self.assertEqual(report["missing"][0]["answer_ids"], ["remote"])
+
+    def test_changed_questionnaire_stops_before_browser_as_stale(self):
+        from unittest.mock import patch
+        with fixture_server() as origin:
+            app_id = self.prepared(origin)
+            initial = httpx.get(origin + "/ats/questions/B").json()
+            changed = dict(initial, revision=2)
+            from services.applications.preflight import latest_preflight
+            with patch.object(MockClient, "get", side_effect=[httpx.Response(200, json=initial),
+                                                                httpx.Response(200, json=changed)]), \
+                    patch("services.applications.mock_adapter.sync_playwright") as browser:
+                result = apply_mock(self.store, app_id, origin, self.root)
+            self.assertEqual(result["state"], "REVIEW_REQUIRED")
+            self.assertFalse(browser.called)
+            report = latest_preflight(self.store, app_id)
+            self.assertEqual(report["result"], "UNKNOWN")
+            self.assertEqual(report["reason"], "STALE_PREFLIGHT")
 
 
 if __name__ == "__main__":

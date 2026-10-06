@@ -36,6 +36,18 @@ class ApplicationPipelineBrowserTests(unittest.TestCase):
                 discover(store, fixture, "fixture")
             job = store.jobs("fixture")[0]
             application_id = prepare(store, job["id"], "fixture", root)
+            from services.applications.preflight import persist_preflight
+            persist_preflight(store, application_id, {
+                "result": "FAIL", "reason": None, "observed_at": "2026-10-06T00:00:00Z",
+                "profile_version": store.application(application_id)["profile_version"],
+                "document_version": store.application(application_id)["document_version"],
+                "route_id": store.application(application_id)["route_id"],
+                "provider": "mock-ats", "tenant": "example", "requisition": "B",
+                "metadata_fingerprint": "a" * 64, "mappings": [],
+                "missing": [{"question_id": "remote", "question": "Can you work remotely?",
+                             "fact_ids": [], "answer_ids": ["remote"],
+                             "profile_paths": [], "document_kinds": []}],
+            })
             operational_before = store.application(application_id)
             app = create_app(store, "http://127.0.0.1:1", root,
                              "redis://127.0.0.1:1/0", operation_mode="FIXTURE")
@@ -80,6 +92,11 @@ class ApplicationPipelineBrowserTests(unittest.TestCase):
                     card = not_tracked.get_by_role("button", name=job["title"], exact=False)
                     expect(card).to_be_visible()
                     card.click()
+                    preflight = page.get_by_role("region", name="ATS question preflight")
+                    expect(preflight).to_contain_text("FAIL")
+                    expect(preflight.get_by_role("list", name="Unresolved required questions")).to_contain_text(
+                        "Can you work remotely?")
+                    expect(preflight).to_contain_text("answers: remote")
                     tracking = page.get_by_role("region", name="Application tracking")
                     expect(tracking).to_contain_text("Not tracked")
                     page.get_by_label("Manual application status", exact=True).select_option("APPLIED")

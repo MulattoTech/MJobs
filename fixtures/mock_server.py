@@ -56,6 +56,35 @@ def create_mock_app(receipt_file=None):
     def employer(request: Request):
         return {"jobs": jobs(str(request.base_url).rstrip("/"))}
 
+    @app.get("/ats/questions/{requisition}")
+    def questions(requisition: str):
+        if requisition not in ("A", "B"):
+            return HTMLResponse("Question metadata is unavailable", status_code=404)
+        return {
+            "provider": "mock-ats", "tenant": "example", "requisition": requisition,
+            "revision": 1,
+            "questions": [
+                {"id": "name", "label": "Name", "required": True,
+                 "requirements": {"profile_paths": ["name"]}},
+                {"id": "email", "label": "Email", "required": True,
+                 "requirements": {"profile_paths": ["email"]}},
+                {"id": "resume", "label": "Resume", "required": True,
+                 "requirements": {"document_kinds": ["resume"]}},
+                {"id": "cover-letter", "label": "Cover letter", "required": True,
+                 "requirements": {"document_kinds": ["cover-letter"]}},
+                {"id": "country", "label": "Country", "required": True,
+                 "requirements": {"answer_ids": ["country"]}},
+                {"id": "remote", "label": "Remote role", "required": True,
+                 "requirements": {"answer_ids": ["remote"]}},
+                {"id": "fixture_question", "label": "Approved fixture answer", "required": True,
+                 "requirements": {"answer_ids": ["fixture_question"]}},
+                {"id": "application-id", "label": "Application ID", "required": True,
+                 "requirements": {"application_context": ["application_id"]}},
+                {"id": "optional_note", "label": "Optional note", "required": False,
+                 "requirements": {"answer_ids": ["optional_note"]}},
+            ],
+        }
+
     @app.get("/ats/apply/{requisition}", response_class=HTMLResponse)
     def application(requisition: str, challenge: bool = False):
         if challenge:

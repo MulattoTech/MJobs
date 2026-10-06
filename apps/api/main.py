@@ -751,6 +751,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         data = store.application(application_id)
         if data["profile_id"] != profile_id:
             raise NoResultFound("Application is not owned by this profile")
+        from services.applications.preflight import latest_preflight
+        data["question_preflight"] = latest_preflight(store, application_id)
         with store.engine.connect() as connection:
             data["adapter_knowledge"] = application_adapter_knowledge(connection, data["route_id"], operation_mode=operation_mode)
             data["attempts"] = [dict(row) for row in connection.execute(select(m.attempts).where(m.attempts.c.application_id == application_id).order_by(m.attempts.c.started_at)).mappings()]
