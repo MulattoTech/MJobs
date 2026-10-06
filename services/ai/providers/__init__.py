@@ -36,6 +36,23 @@ class AIProviderDisabled(RuntimeError):
         super().__init__(self.code)
 
 
+class AIProviderError(RuntimeError):
+    """Safe provider failure containing only a stable result code."""
+
+    _CODES = {
+        "AI_PROVIDER_CONFIGURATION_INVALID",
+        "AI_PROVIDER_REQUEST_INVALID",
+        "AI_PROVIDER_RESPONSE_INVALID",
+        "AI_PROVIDER_RESPONSE_TOO_LARGE",
+        "AI_PROVIDER_UNAVAILABLE",
+        "AI_PROVIDER_HTTP_ERROR",
+    }
+
+    def __init__(self, code: str) -> None:
+        self.code = code if code in self._CODES else "AI_PROVIDER_RESPONSE_INVALID"
+        super().__init__(self.code)
+
+
 class DisabledAIProvider:
     """No-op provider that declares no capabilities and never performs I/O."""
 
@@ -53,13 +70,20 @@ def create_provider(name: str) -> AIProvider:
 
     if name == "disabled":
         return DisabledAIProvider()
+    if name == "ollama":
+        return OllamaProvider.from_environment()
     raise ValueError("AI_PROVIDER_UNSUPPORTED")
+
+
+from services.ai.providers.ollama import OllamaProvider
 
 
 __all__ = [
     "AIProvider",
     "AIProviderDisabled",
+    "AIProviderError",
     "DisabledAIProvider",
+    "OllamaProvider",
     "ProviderCapabilities",
     "create_provider",
 ]

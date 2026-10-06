@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-06T19:22:38Z",
+  "generated_at": "2026-10-06T19:27:09Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -11,7 +11,7 @@
     "current_verified_github_state": "GitHub/local main synchronized at 117a27ccfdf472fb67135d17f14ebd44c8fa9462; issue #110 OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/110#issuecomment-6023459996; issue #345 CLOSED; Actions disabled, no PR, main unprotected.",
     "current_verified_at": "2026-10-06T19:05:40Z"
   },
-  "current_milestone": "MJ-REQ-111-STRUCTURED-OUTPUT-LOCALLY-VERIFIED-PARTIAL-20261006",
+  "current_milestone": "MJ-REQ-108-LOCAL-PROVIDER-START-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -96,7 +96,7 @@
   ],
   "blocked_capabilities": [],
   "active_requirements": [
-    "MJ-REQ-111"
+    "MJ-REQ-108"
   ],
   "active_prs": [],
   "tests_passed": [
@@ -414,7 +414,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Recheck synchronized main, Actions disabled state and branch protection; push issue #112 candidate and safely fast-forward; leave issue #112 OPEN/PARTIAL pending a provider and production consumer, then select the next dependency-ready item in PR_QUEUE.json.",
+  "recommended_resume_step": "Implement issue #109 / MJ-REQ-108 loopback-only Ollama provider on codex/mj-req108-local-provider-20261006, based on synchronized main d6eae55caca04c33271015b1a1e216d996cb116a. Use bounded HTTP/JSON handling, explicit structured-output capability, synthetic MockTransport tests only, and no external model calls.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -6564,11 +6564,42 @@
         "git_commit": "561185e3bd40e5a43a8092c7d00d99cf8804ab1f",
         "evidence_path": "docs/evidence/2026-10-06-ai-structured-output.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-108-LOCAL-PROVIDER-START-20261006",
+      "timestamp": "2026-10-06T19:27:09Z",
+      "current_phase": "Started issue #109 / MJ-REQ-108 local provider abstraction on codex/mj-req108-local-provider-20261006 from synchronized main d6eae55; no provider source changes have been written yet.",
+      "completed_steps": [
+        "Read issue #109 and matching_ai provider requirements",
+        "Confirmed the current factory contains only the no-I/O disabled provider",
+        "Verified pinned httpx and Pydantic dependencies and consulted current official Ollama API contract"
+      ],
+      "files_added": [],
+      "files_modified": [
+        "planning/IMPLEMENTATION_STATE.json"
+      ],
+      "tests_completed": [
+        "No tests run for this slice yet; expected-red for the Ollama provider is next."
+      ],
+      "tests_remaining": [
+        "Implement local-only endpoint validation and bounded transport before running any provider request.",
+        "Use synthetic HTTP fixtures; do not make real model or network calls."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "No Ollama process or model availability is assumed; no actual model call is authorized."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "d6eae55caca04c33271015b1a1e216d996cb116a",
+        "evidence_path": "docs/evidence/2026-10-06-ai-structured-output.json"
+      }
     }
   ],
-  "current_phase": "Issue #112 / MJ-REQ-111 structured output integrated PARTIAL at synchronized main 561185e; issue #109 / MJ-REQ-108 local provider abstraction is selected next.",
+  "current_phase": "Started issue #109 / MJ-REQ-108 local provider abstraction on codex/mj-req108-local-provider-20261006 from synchronized main d6eae55; no provider source changes have been written yet.",
   "last_safe_checkpoint": {
-    "git_commit": "561185e3bd40e5a43a8092c7d00d99cf8804ab1f",
+    "git_commit": "d6eae55caca04c33271015b1a1e216d996cb116a",
     "evidence_path": "docs/evidence/2026-10-06-ai-structured-output.json"
   },
   "live_integrations_tested": [
@@ -6707,16 +6738,16 @@
     "next_issue": 5
   },
   "active_development_issue": {
-    "issue": 112,
-    "requirement_id": "MJ-REQ-111",
-    "title": "AI Structured Output",
+    "issue": 109,
+    "requirement_id": "MJ-REQ-108",
+    "title": "AI Provider Abstraction",
     "state": "ACTIVE",
-    "selection_reason": "Next dependency-ready P3 item in active MJ-PR-030 after integrating the provider contract, task router, and cost-control prerequisite; structured results establish a typed validation boundary before matching consumers are built.",
-    "base": "43f79f28c7f65cd5054dedc606662fcaa9ae19ee",
-    "branch": "codex/mj-req111-structured-output-20261006",
-    "candidate": "2e1200348c45899c10ab14604b757bead0790e08",
-    "evidence": "docs/evidence/2026-10-06-ai-structured-output.json",
-    "next_action": "Recheck exact main and local-only policy, publish and fast-forward safely if main remains the exact ancestor, read back issue #112 OPEN/PARTIAL, then continue to the next dependency-ready issue."
+    "selection_reason": "Next dependency-ready shared prerequisite in active MJ-PR-030; a loopback-only Ollama adapter supplies a useful local inference path while preserving offline defaults and avoiding paid or remote calls.",
+    "base": "d6eae55caca04c33271015b1a1e216d996cb116a",
+    "branch": "codex/mj-req108-local-provider-20261006",
+    "candidate": null,
+    "evidence": null,
+    "next_action": "Implement a loopback-only Ollama adapter with bounded response handling, local model selection, JSON Schema forwarding, safe stable failures and synthetic transport tests."
   },
   "historical_control_snapshots": [
     {
