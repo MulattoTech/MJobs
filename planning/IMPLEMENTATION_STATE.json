@@ -6526,11 +6526,49 @@
         "git_commit": "2e1200348c45899c10ab14604b757bead0790e08",
         "evidence_path": "docs/evidence/2026-10-06-ai-structured-output.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-111-STRUCTURED-OUTPUT-INTEGRATED-PARTIAL-20261006",
+      "timestamp": "2026-10-06T19:25:38Z",
+      "current_phase": "Issue #112 / MJ-REQ-111 structured output integrated PARTIAL at synchronized main 561185e; issue #109 / MJ-REQ-108 local provider abstraction is selected next.",
+      "completed_steps": [
+        "Pushed issue #112 candidate and fast-forwarded unprotected main from exact base 43f79f2",
+        "Verified local and GitHub main both resolve to 561185e with Actions disabled and no open PRs",
+        "Recorded exact-head evidence and preserved issue #112 OPEN/PARTIAL",
+        "Selected issue #109 / MJ-REQ-108 as next shared provider prerequisite"
+      ],
+      "files_added": [],
+      "files_modified": [
+        "docs/evidence/2026-10-06-ai-structured-output.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Exact integrated tree 561185e: structured-output/AI-config/disabled-provider focused tests 16 PASS",
+        "Exact integrated tree source: full unit suite 337 PASS",
+        "compileall, progress, catalogue and agent-skill validators and diff check: PASS"
+      ],
+      "tests_remaining": [
+        "No real provider or production task consumer exists; issue #112 remains PARTIAL.",
+        "Implement issue #109 local loopback adapter with synthetic transport validation."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "No remote provider or production structured-task consumer exists.",
+        "External AI/provider and hosted checks are NOT_RUN; external application submission remains OFF."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "561185e3bd40e5a43a8092c7d00d99cf8804ab1f",
+        "evidence_path": "docs/evidence/2026-10-06-ai-structured-output.json"
+      }
     }
   ],
-  "current_phase": "Issue #112 / MJ-REQ-111 strict structured-output boundary is locally verified PARTIAL on codex/mj-req111-structured-output-20261006; no real provider or production consumer is available.",
+  "current_phase": "Issue #112 / MJ-REQ-111 structured output integrated PARTIAL at synchronized main 561185e; issue #109 / MJ-REQ-108 local provider abstraction is selected next.",
   "last_safe_checkpoint": {
-    "git_commit": "2e1200348c45899c10ab14604b757bead0790e08",
+    "git_commit": "561185e3bd40e5a43a8092c7d00d99cf8804ab1f",
     "evidence_path": "docs/evidence/2026-10-06-ai-structured-output.json"
   },
   "live_integrations_tested": [

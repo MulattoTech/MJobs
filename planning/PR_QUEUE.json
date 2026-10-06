@@ -867,9 +867,9 @@
         "MJ-PR-025"
       ],
       "status": "ACTIVE",
-      "branch": "codex/mj-req111-structured-output-20261006",
+      "branch": "codex/mj-req108-local-provider-20261006",
       "draft_until_verified": true,
-      "notes": "MJ-REQ-108.A06 disabled provider PASS; MJ-REQ-109 task router and MJ-REQ-110 cost planner integrated PARTIAL. Issue #112 / MJ-REQ-111 strict structured-output boundary is locally verified PARTIAL; no provider or production matching consumer exists. Persisted settings and remaining grouped requirements remain open."
+      "notes": "MJ-REQ-108.A06 disabled provider PASS; MJ-REQ-109 task router, MJ-REQ-110 cost planner, and MJ-REQ-111 structured-output contract integrated PARTIAL. Issue #112 remains OPEN/PARTIAL because no real provider or production consumer exists. Active next issue #109 / MJ-REQ-108 explores a loopback-only Ollama adapter; remaining provider, persistence and consumer acceptance stays open."
     },
     {
       "id": "MJ-PR-031",
