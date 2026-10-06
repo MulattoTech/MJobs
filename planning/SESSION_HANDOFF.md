@@ -1,3 +1,9 @@
+# Integration receipt — 2026-10-06
+
+Uploaded-original comparison cancellation source `8a469b03bb7c57448118be9e1b761d8608d179ab` plus evidence/planning integrated by non-force fast-forward at synchronized local/GitHub main `5cdd3885fdf88140aac3bfa74108dd91a10c7cd7`. Issue #5 read back OPEN/PARTIAL: https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6020769000. Evidence `docs/evidence/2026-10-06-uploaded-comparison-cancellation.json`. Continue to the next dependency-ready local-only issue/slice; hosted Actions/reviews stay NOT_RUN and external submission OFF.
+
+---
+
 # Active local-only implementation checkpoint — 2026-10-06
 
 Current synchronized main at checkpoint start: `6cd72c02d930b23fd09b2657f823ae3b18e04629`. Active candidate source commit: `8a469b03bb7c57448118be9e1b761d8608d179ab` on `codex/req004-upload-compare-cancel-20261006`. Uploaded-original resume comparison now has a user-visible cancellation action scoped to profile, application, uploaded revision, and tailored document; extraction cancellation leaves the profile and application document history unchanged. Evidence: `docs/evidence/2026-10-06-uploaded-comparison-cancellation.json`. Focused integration (6) and Chromium (1), full Python (718; one optional PostgreSQL skip), frontend (62), build, and local validators pass. Hosted checks/reviews remain NOT_RUN; external submission remains OFF. MJ-REQ-004 and issue #5 remain PARTIAL/OPEN, with cross-replica signaling and remaining operation/provider classes unverified. Next: verify exact remote main and policy, integrate via safe non-force fast-forward, read back #5 OPEN, then continue the next dependency-ready P0 issue.
