@@ -302,3 +302,12 @@ Issue #5 / MJ-REQ-004 remains OPEN/PARTIAL. Native PDF and DOCX parsing now runs
 The parser slice preserves review-before-save and profile isolation. Timeout, child launch, nonzero exit, malformed output, existing DOCX XML bounds, native extraction, OCR fallback and resume history were exercised. Actions/hosted reviews and AI-provider calls remain NOT_RUN; request-disconnect cancellation and production deployment were not tested. External application submission remains OFF.
 
 Next continue issue #5 by auditing supported ATS/Playwright navigation and selector waits for operation deadlines, cooperative cancellation, captured output, and safe error classification. Preserve the existing `SUBMISSION_UNCONFIRMED` no-blind-retry behavior. Do not close #5 or mark MJ-REQ-004 PASS until every applicable operation category is evidenced.
+
+
+## 2026-10-06 local-only continuation — MJ-REQ-004 mock ATS deadline boundary
+
+Issue #5 / MJ-REQ-004 remains OPEN/PARTIAL. The local Playwright mock ATS flow now rechecks cancellation/deadline after navigation and upload preparation, and rechecks the worker deadline after the durable SUBMITTING reservation immediately before the irreversible Submit click. When the deadline expires in that gap, no click occurs; absent receipt is reconciled as SUBMISSION_UNCONFIRMED and must not be blindly retried. Candidate `e86e8d0ff2ada3b357961c925a33584ae50d0412` was integrated to local/remote main by non-force fast-forward. Evidence: [mock ATS submit deadline](../docs/evidence/2026-10-06-mock-ats-submit-deadline.json). The focused browser/worker/API tests (31), full local suite (656), and repository validators passed.
+
+One unrelated Uvicorn test-server teardown timed out in the first full-suite run. Systematic investigation found the same test passed alone and with its module, then the full suite passed on rerun without changing that test. The failed attempt and follow-up are recorded in the evidence. External submission remains OFF; real ATS, hosted verification/reviews and AI provider calls remain NOT_RUN.
+
+Next continue issue #5 by auditing remaining public-company/source HTTP and external process paths for timeouts, cancellation, captured-output limits, retry policy, and safe classification. Preserve the current 366-requirement denominator; do not close #5 or mark MJ-REQ-004 PASS from these scoped slices.

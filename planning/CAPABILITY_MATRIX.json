@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-06T06:46:24Z",
+  "timestamp": "2026-10-06T07:11:01Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -40,9 +40,10 @@
       "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-10-06-bound-external-operation-deadlines.json",
-        "docs/evidence/2026-10-06-bounded-native-resume-parsing.json"
+        "docs/evidence/2026-10-06-bounded-native-resume-parsing.json",
+        "docs/evidence/2026-10-06-mock-ats-submit-deadline.json"
       ],
-      "note": "Scoped local evidence now covers a monotonic durable-worker deadline, stable OPERATION_TIMEOUT classification, cooperative Greenhouse rate-wait cancellation without corrupting provider history, and bounded native PDF/DOCX child parsing with Linux process limits. The broad requirement remains PARTIAL: browser cancellation/deadlines, complete HTTP/source/ATS/process coverage, captured-output policy, retry/error classification, and unavailable AI-provider behavior are not fully evidenced."
+      "note": "Scoped local evidence covers durable-worker deadlines and Greenhouse cancellation, native PDF/DOCX child time/resource bounds, and mock ATS deadline checks before the irreversible submit click with receipt reconciliation. The broad requirement remains PARTIAL: real provider and AI paths are unavailable; all-category browser/request cancellation, captured-output, retry, and error-classification contracts remain incomplete."
     },
     {
       "requirement_id": "MJ-REQ-005",

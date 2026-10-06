@@ -37,7 +37,7 @@
   },
   "operation_category_status": {
     "http_requests": "PARTIAL; Greenhouse request bounds and worker deadline exist; provider clients still need complete category audit.",
-    "browser_navigation_and_selectors": "PARTIAL; mock ATS has bounded Playwright navigation/default selector timeouts and cooperative stage checks; a new browser cancellation/deadline journey remains to be exercised.",
+    "browser_navigation_and_selectors": "PARTIAL; mock Playwright navigation and upload stages now recheck operation state, and the SUBMITTING reservation boundary rechecks the deadline before clicking Submit. Deadline expiry prevents the click and preserves SUBMISSION_UNCONFIRMED on absent receipt. Real ATS adapters/provider flows remain unavailable; see docs/evidence/2026-10-06-mock-ats-submit-deadline.json.",
     "ai_requests": "NOT_RUN; no provider request implementation exists; no paid or hosted AI call was made.",
     "document_parsing": "PARTIAL; native PDF/DOCX wall deadline, sanitized child environment, Linux resource limits, safe errors, and size/page/XML/text limits are now tested. Request cancellation and broader deployment evidence remain.",
     "ocr": "PARTIAL; parent-side subprocess hard timeout/resource/output limits remain, alongside new Linux parser integration tests; complete process-category coverage is open.",

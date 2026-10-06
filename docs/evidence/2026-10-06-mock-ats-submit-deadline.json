@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-004",
+  "github_issue": 5,
+  "result": "PARTIAL",
+  "scope_result": "PASS",
+  "scope": "The local Playwright ATS adapter now checks the operation deadline after navigation, after upload preparation, and after the durable SUBMITTING reservation immediately before the irreversible Submit click. A deadline in that reservation gap prevents the click; absent receipt, application history remains SUBMISSION_UNCONFIRMED and is never blindly retried. The broad MJ-REQ-004 requirement remains PARTIAL.",
+  "observed_at_utc": "2026-10-06T07:11:01Z",
+  "candidate": {
+    "repository": "MulattoTech/MJobs",
+    "branch": "codex/req004-bound-ops-20261006",
+    "base": "f564ecedb96842e8b9084907b039e2b3a43d8d35",
+    "commit": "e86e8d0ff2ada3b357961c925a33584ae50d0412",
+    "tree": "76e486870f37c3e649889ae571a68aa369ebc2c8",
+    "integration_commit": "e86e8d0ff2ada3b357961c925a33584ae50d0412",
+    "integration_method": "NON_FORCE_FAST_FORWARD",
+    "main_before": "f564ecedb96842e8b9084907b039e2b3a43d8d35",
+    "main_after": "e86e8d0ff2ada3b357961c925a33584ae50d0412",
+    "remote_main_after": "e86e8d0ff2ada3b357961c925a33584ae50d0412",
+    "candidate_is_ancestor_of_main": true,
+    "main_remote_sha_verified": true
+  },
+  "acceptance": {
+    "deadline_rechecked_after_navigation_and_upload_stages": "PASS",
+    "deadline_rechecked_after_submit_reservation_before_browser_click": "PASS; local Chromium regression expires the injected operation budget only after application state reaches SUBMITTING",
+    "expired_operation_does_not_click_or_create_mock_receipt": "PASS; receipt endpoint remained not_found",
+    "post_reservation_state_retains_no_blind_retry_truth": "PASS; adapter records SUBMISSION_UNCONFIRMED when reconciliation finds no receipt",
+    "user_cancellation_after_submit_reservation_remains_reconciliation_only": "PASS; existing request_cancel path returns RECONCILIATION_REQUIRED and does not authorize another attempt",
+    "ordinary_mock_submission_still_creates_exactly_one_receipt": "PASS",
+    "challenge_or_missing_answer_still_stops_before_submission": "PASS",
+    "external_application_submission_enabled": false,
+    "original_requirement_denominator_changed": false,
+    "original_requirement_all_hanging_operations_complete": "PARTIAL"
+  },
+  "local_validation": {
+    "focused_suite": {
+      "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_mock_application tests.integration.test_worker_lifecycle tests.integration.test_api_queue -v",
+      "result": "PASS",
+      "tests": 31,
+      "failures": 0,
+      "skips": 0,
+      "started_at_utc": "2026-10-06T06:54:24.1412790Z",
+      "ended_at_utc": "2026-10-06T06:55:02.8079642Z",
+      "log": "%TEMP%\\mjobs-req004-ats-focused.log"
+    },
+    "regression_oracle": {
+      "command": "python -m unittest tests.browser.test_mock_application.MockApplicationTests.test_timeout_after_submission_reservation_prevents_submit_click -v",
+      "expected_red": "PASS; with the final post-reservation check removed, the test failed because OperationTimedOut was not raised and the Submit path continued.",
+      "final": "PASS; restored check raises OperationTimedOut, receipt stays not_found, application remains SUBMISSION_UNCONFIRMED.",
+      "existing_cancel_boundary": "Worker lifecycle coverage confirms accepted cancellation during FILLING stops before SUBMITTING; the API rejects cancellation after SUBMITTING and requests reconciliation."
+    },
+    "full_suite_first_run": {
+      "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest discover -s tests -v",
+      "result": "FAIL; 656 tests ran, one unrelated browser server teardown assertion failed because its Uvicorn thread was still alive after a 10-second join.",
+      "started_at_utc": "2026-10-06T06:55:23.5502666Z",
+      "ended_at_utc": "2026-10-06T07:01:48.8021747Z",
+      "failed_test": "tests.browser.test_application_pipeline.ApplicationPipelineBrowserTests.test_lost_status_and_note_responses_can_be_retried_after_edits",
+      "log": "%TEMP%\\mjobs-req004-ats-full-suite.log"
+    },
+    "failure_investigation": {
+      "method": "Read stack/error, checked changed diff and same-file shutdown patterns, reran the failed test alone, then reran its complete browser module.",
+      "isolated_test": "PASS; 1 test in 5.844s, thread shutdown completed.",
+      "isolated_module": "PASS; 3 tests in 18.647s, including the failed case.",
+      "root_cause_assessment": "Transient suite-wide timing/teardown failure; the failing test file was not modified. The same test and module passed independently, and the second full suite passed. No unrelated test harness patch was made."
+    },
+    "full_suite_rerun": {
+      "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest discover -s tests -v",
+      "result": "PASS",
+      "tests": 656,
+      "failures": 0,
+      "skips": 0,
+      "started_at_utc": "2026-10-06T07:03:46.3895914Z",
+      "ended_at_utc": "2026-10-06T07:10:07.1026968Z",
+      "log": "%TEMP%\\mjobs-req004-ats-full-suite-rerun.log"
+    },
+    "validators": {
+      "catalogue": "PASS",
+      "progress": "PASS",
+      "agent_skills": "PASS",
+      "git_diff_check": "PASS",
+      "started_at_utc": "2026-10-06T07:10:25.6892563Z",
+      "ended_at_utc": "2026-10-06T07:10:25.9552679Z"
+    },
+    "not_run": [
+      "GitHub Actions and hosted verification: NOT_RUN by local-only policy; workflows remain disabled.",
+      "Hosted/independent reviews: NOT_RUN by user policy.",
+      "Real ATS/employer submission: OFF; only the local mock ATS fixture was used.",
+      "AI-provider requests: NOT_RUN; no provider implementation exists.",
+      "Real provider browser navigation and CAPTCHA/MFA flows: NOT_RUN; external adapters remain unsupported."
+    ]
+  },
+  "integration_receipt": {
+    "branch_protection": "NONE",
+    "actions_workflows": "DISABLED_BY_USER_POLICY",
+    "candidate_pushed": "PASS",
+    "non_force_fast_forward": "PASS",
+    "main_after_source_integration": "e86e8d0ff2ada3b357961c925a33584ae50d0412",
+    "remote_main_after_source_integration": "e86e8d0ff2ada3b357961c925a33584ae50d0412",
+    "issue_state": "OPEN; broader acceptance remains incomplete and issue was not closed",
+    "requirement_state": "PARTIAL; denominator preserved",
+    "planning_receipt_commit": null,
+    "remote_main_after_planning_receipt": null
+  }
+}

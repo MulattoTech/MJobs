@@ -1,17 +1,17 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-06T06:49:57Z",
+  "generated_at": "2026-10-06T07:11:01Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "MJ-REQ-004 native parser source commit 492eb8f9d83d4e2e0f1e8af9e6b18b0ab31b922a and planning receipt commit 8a62e862b91039f5c3b5cee636a54c8fd28455d6 are integrated by non-force fast-forward; local and GitHub main are synchronized.",
-    "current_verified_github_state": "GitHub main and local main synchronized at 8a62e862b91039f5c3b5cee636a54c8fd28455d6, including the native parser evidence receipt. Issue #5 remains OPEN/PARTIAL; Actions/reviews remain NOT_RUN by policy.",
-    "current_verified_at": "2026-10-06T06:49:57Z"
+    "current_verified_local_state": "MJ-REQ-004 mock ATS deadline source commit e86e8d0ff2ada3b357961c925a33584ae50d0412 is integrated by non-force fast-forward; local and GitHub main are synchronized. Planning/evidence receipt is being recorded.",
+    "current_verified_github_state": "GitHub main and local main synchronized at e86e8d0ff2ada3b357961c925a33584ae50d0412. Issue #5 remains OPEN/PARTIAL; Actions/reviews remain NOT_RUN by policy.",
+    "current_verified_at": "2026-10-06T07:11:01Z"
   },
-  "current_milestone": "MJ-REQ-004-NATIVE-PARSER-DEADLINE-SLICE-20261006",
+  "current_milestone": "MJ-REQ-004-MOCK-ATS-DEADLINE-SLICE-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under the local-only delivery policy; one writer and one integration lane.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -222,7 +222,11 @@
     "MJ-REQ-004 native PDF/DOCX parser boundary: 47 focused unit/API/comparison/browser tests PASS; timeout, launch, child-exit and protocol errors fail closed.",
     "MJ-REQ-004 native parser/OCR Linux runtime: 32 tests PASS in local app image with network disabled, checkout read-only, and temporary filesystem only.",
     "MJ-REQ-004 exact source candidate local full suite: 654 Python/integration/browser tests PASS; zero failures and zero skips.",
-    "Catalogue, progress journal, agent-skill and diff whitespace validators PASS after native parser integration."
+    "Catalogue, progress journal, agent-skill and diff whitespace validators PASS after native parser integration.",
+    "MJ-REQ-004 mock ATS deadline boundary: 31 focused browser/worker/API tests PASS; timeout after durable SUBMITTING reservation prevents Submit click and remains SUBMISSION_UNCONFIRMED without a receipt.",
+    "MJ-REQ-004 exact source candidate local full suite: 656 Python/integration/Chromium browser tests PASS on final run; zero failures and zero skips.",
+    "The full suite had one unrelated server-thread teardown failure on its first run; the isolated test and module passed, and the full rerun passed without changes to that test.",
+    "Catalogue, progress journal, agent-skill and diff whitespace validators PASS after mock ATS deadline integration."
   ],
   "tests_failed": [],
   "tests_not_run": [
@@ -239,7 +243,8 @@
   "known_external_limitations": [
     "Production external career-site/domain acquisition, configured web-search provider and non-mock ATS metadata integration are not verified in MJ-PR-017.",
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
-    "MJ-REQ-004 remains PARTIAL: native parser cancellation on request disconnect, browser operation deadlines/cancellation, full operation-category retry/output/error classification, and AI-provider timeout behavior remain unproven or unavailable."
+    "MJ-REQ-004 remains PARTIAL: native parser cancellation on request disconnect, browser operation deadlines/cancellation, full operation-category retry/output/error classification, and AI-provider timeout behavior remain unproven or unavailable.",
+    "MJ-REQ-004 remains PARTIAL: real provider/AI request execution is unavailable; request-disconnect cancellation in parsing, real ATS navigation, and complete all-category output/retry/error policy remain unproven."
   ],
   "known_product_defects": [
     "Manual application status is user-reported only; company/application notes beyond this slice, independently verified submission receipts, and full canonical tracker acceptance remain unverified.",
@@ -324,7 +329,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Continue open P0 issue #5 / MJ-REQ-004. Native PDF/DOCX parsing now has a 15-second shell-free child deadline, sanitized environment and Linux resource limits; 47 affected tests, 32 Linux-container tests and the 654-test full local suite passed. Next inspect supported Playwright/ATS flows for operation deadlines, cancellation during navigation/selectors, safe captured output, and submission ambiguity. Implement one browser slice test-first; keep #5 OPEN/PARTIAL and the 366 requirement denominator unchanged.",
+  "recommended_resume_step": "Continue open P0 issue #5 / MJ-REQ-004. The worker/source, native parser, and mock ATS deadline slices are integrated locally with exact evidence; the 656-test full suite passed on rerun, and the transient browser teardown failure was reproduced as isolated/module-passing and did not recur. Next audit all remaining public-company/source HTTP and external-process paths for bounded calls, cancellation, captured output, retry policy, and safe classifications. Keep #5 OPEN/PARTIAL and the 366 requirement denominator unchanged.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -342,7 +347,7 @@
     "cb72f9041d6a",
     "e14ac893620f"
   ],
-  "unfinished_work_evidence": "docs/evidence/2026-10-06-bounded-native-resume-parsing.json",
+  "unfinished_work_evidence": "docs/evidence/2026-10-06-mock-ats-submit-deadline.json",
   "authorization": "User explicitly provided 100% Git and GitHub authorization on 2026-09-30; still verify native permissions and required checks",
   "user_testing": {
     "result": "PASS",
@@ -361,7 +366,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "492eb8f9d83d4e2e0f1e8af9e6b18b0ab31b922a",
+  "last_implementation_commit": "e86e8d0ff2ada3b357961c925a33584ae50d0412",
   "publication": {
     "result": "PASS",
     "integration_method": "NON_FORCE_FAST_FORWARD",
@@ -4691,12 +4696,64 @@
         "git_commit": "492eb8f9d83d4e2e0f1e8af9e6b18b0ab31b922a",
         "evidence_path": "docs/evidence/2026-10-06-bounded-native-resume-parsing.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-004-MOCK-ATS-DEADLINE-SLICE-20261006",
+      "timestamp": "2026-10-06T07:11:01Z",
+      "current_phase": "MJ-REQ-004_MOCK_ATS_DEADLINE_SLICE_RECEIPTED_NEXT_OPERATION_AUDIT",
+      "completed_steps": [
+        "Added a real local Chromium regression that expires the worker operation deadline only after the durable SUBMITTING reservation.",
+        "Confirmed the prior flow did not observe expiry before the Submit click; added checks after navigation, upload preparation, and immediately before the irreversible click.",
+        "Verified absent receipt reconciles to SUBMISSION_UNCONFIRMED with no blind retry; accepted cancellation before reservation and request_cancel reconciliation after reservation remain intact.",
+        "The mock ATS/worker/API focused suite (31) and final full local suite (656) passed; an initial unrelated browser teardown failure was investigated and did not reproduce in isolation, module, or full rerun.",
+        "Integrated source commit by non-force fast-forward and verified local/remote main; issue #5 remains OPEN and requirement PARTIAL."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-06-mock-ats-submit-deadline.json",
+        "docs/superpowers/plans/2026-10-06-mock-ats-cancellation-boundaries.md"
+      ],
+      "files_modified": [
+        "services/applications/mock_adapter.py",
+        "services/applications/AREA.md",
+        "tests/browser/test_mock_application.py",
+        "docs/evidence/2026-10-06-bounded-native-resume-parsing.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "31 mock application/worker lifecycle/API focused tests PASS.",
+        "656 Python/integration/Chromium browser tests PASS; zero failures/skips on rerun.",
+        "Catalogue, progress, agent-skill and diff checks PASS."
+      ],
+      "tests_remaining": [
+        "Audit public-company/source HTTP and remaining external process operations for bounded output, cancellation propagation, retry behavior and safe error categories.",
+        "Real ATS provider flows and AI request paths remain NOT_RUN or unavailable."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "GitHub source push/main readback at e86e8d0ff2ada3b357961c925a33584ae50d0412.",
+        "GitHub issue #5 readback remains OPEN.",
+        "Real local Chromium against local mock ATS; synthetic fixture receipt only."
+      ],
+      "known_errors": [
+        "First full suite had one unrelated Uvicorn test-server teardown timeout; same test and module passed independently and full rerun passed without a change to the unrelated test."
+      ],
+      "known_limitations": [
+        "No external ATS submission, real provider browser flow, hosted tests, hosted reviews, or AI-provider call was performed.",
+        "Deadline checks are cooperative between Playwright calls and do not interrupt a synchronous Playwright call mid-call."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "e86e8d0ff2ada3b357961c925a33584ae50d0412",
+        "evidence_path": "docs/evidence/2026-10-06-mock-ats-submit-deadline.json"
+      }
     }
   ],
-  "current_phase": "MJ-REQ-004_NATIVE_PARSER_SLICE_RECEIPTED_NEXT_BROWSER_AUDIT",
+  "current_phase": "MJ-REQ-004_MOCK_ATS_DEADLINE_SLICE_RECEIPTED_NEXT_OPERATION_AUDIT",
   "last_safe_checkpoint": {
-    "git_commit": "492eb8f9d83d4e2e0f1e8af9e6b18b0ab31b922a",
-    "evidence_path": "docs/evidence/2026-10-06-bounded-native-resume-parsing.json"
+    "git_commit": "e86e8d0ff2ada3b357961c925a33584ae50d0412",
+    "evidence_path": "docs/evidence/2026-10-06-mock-ats-submit-deadline.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
@@ -4839,10 +4896,10 @@
     "requirement_id": "MJ-REQ-004",
     "title": "Bound External Operations",
     "state": "INTEGRATED_LOCAL_PARTIAL_BROAD_ACCEPTANCE_OPEN",
-    "selection_reason": "Open P0 safety/reliability requirement. Worker/source deadlines and native resume parser bounds are integrated locally; broad operation-category acceptance remains unproven.",
-    "base": "bc09a66b2e249c0df991d10b72776bfccc046411",
+    "selection_reason": "Open P0 safety/reliability requirement. Durable worker/source, bounded native parser, and mock ATS submit-deadline slices are integrated; broad all-category acceptance remains unproven.",
+    "base": "f564ecedb96842e8b9084907b039e2b3a43d8d35",
     "branch": "codex/req004-bound-ops-20261006",
-    "next_action": "Inspect supported Playwright/ATS action paths for hard navigation/selector deadlines, cooperative cancellation, captured-output handling, and safe error classification; add an observed local regression oracle and implement the smallest complete browser operation slice. Preserve SUBMISSION_UNCONFIRMED behavior and keep issue #5 OPEN/PARTIAL."
+    "next_action": "Audit remaining public-company/source HTTP clients and external subprocess paths for wall/total timeout, cancellation propagation, captured-output bounds, retry policy and stable safe error classification; implement one dependency-ready bounded slice test-first. Preserve SUBMISSION_UNCONFIRMED and keep #5 OPEN/PARTIAL."
   },
   "historical_control_snapshots": [
     {
@@ -5961,5 +6018,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-06T06:49:57Z"
+  "updated_at": "2026-10-06T07:11:01Z"
 }
