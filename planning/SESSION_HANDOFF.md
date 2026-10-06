@@ -1,3 +1,9 @@
+# Integration receipt — 2026-10-06
+
+Extractive target-job summary tailoring source `d53099715ecda0beec5d6b46ef85dbb1f496738b` and evidence/planning were integrated by non-force fast-forward at synchronized local/GitHub main `bff2acf6ffb446c12653b5e9e6c696d6dac6e3bb`. Issue #96 remains OPEN/PARTIAL after readback: https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6022405440. Evidence `docs/evidence/2026-10-06-target-summary-tailoring.json`. 16 focused Python tests, 316 unit tests, 370 integration tests (1 optional PostgreSQL skip), 2 connected Playwright browser tests, 62 frontend tests, Vite build, and all repository validators passed. Continue to next dependency-ready slice; hosted verification NOT_RUN, external submission OFF.
+
+---
+
 # Active local-only implementation checkpoint — 2026-10-06
 
 Issue #96 / MJ-REQ-095 extractive target-job summary tailoring candidate `d5309972c04062c721ee72986008b04a1f572e03` on branch `codex/req095-summary-adjustment-20261006`, based on `fd2f43b0c04f73edd5ace1f0b4e1fd426c1874ec`. Tailored resumes now select whole approved summary facts that match target skills exactly, preserve the entire summary when no facts match, version template/model contracts, and report omitted summary facts in comparison provenance. Evidence `docs/evidence/2026-10-06-target-summary-tailoring.json`. 16 focused Python tests, 316 unit tests, 370 integration tests (1 optional PostgreSQL skip), 2 connected browser tests, 62 frontend tests/build, and all repository validators pass. Broader factual bullet and summary rephrasing remain incomplete; issue #96 stays OPEN/PARTIAL. External submission OFF; hosted Actions/reviews NOT_RUN.

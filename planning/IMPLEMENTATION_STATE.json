@@ -7,11 +7,11 @@
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Local main and origin/main synchronized at bb0f4b2384580fa31e1e054e04923d6bc2665107; mock ATS HTTP cancellation slice integrated; issue #5 remains OPEN/PARTIAL.",
-    "current_verified_github_state": "GitHub/local main synchronized at bb0f4b2384580fa31e1e054e04923d6bc2665107; issue #5 OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6021535660; Actions disabled, no open PR, main unprotected.",
-    "current_verified_at": "2026-10-06T17:15:49Z"
+    "current_verified_local_state": "Local main and origin/main synchronized at bff2acf6ffb446c12653b5e9e6c696d6dac6e3bb; extractive target-job summary tailoring slice integrated; issue #96 remains OPEN/PARTIAL.",
+    "current_verified_github_state": "GitHub/local main synchronized at bff2acf6ffb446c12653b5e9e6c696d6dac6e3bb; issue #96 OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6022405440; Actions disabled, no open PR, main unprotected.",
+    "current_verified_at": "2026-10-06T18:06:00Z"
   },
-  "current_milestone": "MJ-REQ-095-TARGET-SUMMARY-TAILORING-20261006",
+  "current_milestone": "MJ-REQ-095-TARGET-SUMMARY-TAILORING-INTEGRATED-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -6038,11 +6038,66 @@
         "git_commit": "d5309972c04062c721ee72986008b04a1f572e03",
         "evidence_path": "docs/evidence/2026-10-06-target-summary-tailoring.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-095-TARGET-SUMMARY-TAILORING-INTEGRATED-20261006",
+      "timestamp": "2026-10-06T18:06:00Z",
+      "current_phase": "MJ-REQ-095 extractive target-job summary tailoring integrated; continue local delivery",
+      "completed_steps": [
+        "Verified remote main was the candidate base, Actions disabled, main unprotected, no open PR, and exact candidate descended from main",
+        "Fast-forwarded issue #96 source, tests, evidence, and planning to synchronized local and GitHub main",
+        "Read back issue #96 as OPEN/PARTIAL and posted scoped implementation progress",
+        "Confirmed exact local and remote main commit hashes match at bff2acf6ffb446c12653b5e9e6c696d6dac6e3bb"
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-06-target-summary-tailoring.json"
+      ],
+      "files_modified": [
+        "apps/web/src/resume-comparison.tsx",
+        "apps/web/src/resume-comparison.test.tsx",
+        "services/documents/comparison.py",
+        "services/documents/generate.py",
+        "services/documents/tailor.py",
+        "services/documents/templates.py",
+        "tests/integration/test_skill_order.py",
+        "tests/unit/test_skill_order.py",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "16 focused Python tests PASS",
+        "316 unit tests PASS",
+        "370 integration tests PASS (1 optional PostgreSQL skip)",
+        "2 connected Playwright browser tests PASS",
+        "62 frontend tests and Vite build PASS",
+        "Local validators (catalogue, agent_skills, reference_provenance, gpu_independence, host_safety, progress) PASS",
+        "Issue #96 comment and readback PASS"
+      ],
+      "tests_remaining": [
+        "Continue local delivery on dependency-ready requirements",
+        "Broader factual bullet and summary rephrasing acceptance"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "GitHub issue metadata and comment readback only; no external provider or application submission"
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "Issue #96 and MJ-REQ-095 remain OPEN/PARTIAL",
+        "Hosted Actions/reviews NOT_RUN under current user policy",
+        "External application submission remains OFF"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "bff2acf6ffb446c12653b5e9e6c696d6dac6e3bb",
+        "evidence_path": "docs/evidence/2026-10-06-target-summary-tailoring.json"
+      }
     }
   ],
-  "current_phase": "MJ-REQ-095 extractive target-job summary tailoring locally verified",
+  "current_phase": "MJ-REQ-095 extractive target-job summary tailoring integrated; continue local delivery",
   "last_safe_checkpoint": {
-    "git_commit": "d5309972c04062c721ee72986008b04a1f572e03",
+    "git_commit": "bff2acf6ffb446c12653b5e9e6c696d6dac6e3bb",
     "evidence_path": "docs/evidence/2026-10-06-target-summary-tailoring.json"
   },
   "live_integrations_tested": [
