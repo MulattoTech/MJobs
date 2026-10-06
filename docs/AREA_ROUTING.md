@@ -24,6 +24,7 @@ Codex should **not** read the entire original specification for ordinary work. L
 | `operations_ux_ci` | MJ-REQ-248…MJ-REQ-280 | `apps/web; infra; .github; cli` | `docs/spec/areas/operations_ux_ci.md` |
 | `docs_verification` | MJ-REQ-281…MJ-REQ-289 | `docs; tools/verification` | `docs/spec/areas/docs_verification.md` |
 | `delivery_control` | MJ-REQ-290…MJ-REQ-300 | `planning; docs; root` | `docs/spec/areas/delivery_control.md` |
+| `agent_orchestration_safety` | MJ-REF-013; MJ-REQ-000, 008, 121, 140 | `services/agents; packages/persistence` | `services/agents/AREA.md` |
 
 ## Ownership rule
 

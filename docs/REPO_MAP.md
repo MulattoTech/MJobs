@@ -26,6 +26,8 @@ This is the intended ownership map, not a command to generate every directory im
 │  ├─ ai/
 │  │  └─ providers/
 │  ├─ career_profile/
+│  ├─ agents/
+│  │  └─ bounded ToolRegistry, proposal review, value-free traces
 │  ├─ documents/
 │  ├─ applications/
 │  │  └─ adapters/
