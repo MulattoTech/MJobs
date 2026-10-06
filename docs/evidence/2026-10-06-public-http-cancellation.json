@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-004",
+  "github_issue": 5,
+  "slice_result": "PASS",
+  "requirement_result": "PARTIAL",
+  "base_commit": "414f6801291bfca602c7f2a0aee40ad246e8297a",
+  "source_commit": "8890af69c66870dd1d43f7fadb78d0bbbd86adc7",
+  "candidate_commit": "8890af69c66870dd1d43f7fadb78d0bbbd86adc7",
+  "candidate_tree": "dfefea8addd5c4b520bab581a9bd0a1dff46d440",
+  "recorded_at_utc": "2026-10-06T13:51:31Z",
+  "scope": "Make a blocked public-company HTTPS request respond promptly to durable worker cancellation/deadline by closing only its active request sockets and preserving the callback exception.",
+  "acceptance": {
+    "pending_http_response_observes_worker_cancellation_within_bounded_poll_interval": "PASS",
+    "active_request_sockets_are_closed_and_original_cancellation_exception_is_preserved": "PASS",
+    "dns_cancellation_timeout_and_public_address_validation_regressions_remain_green": "PASS",
+    "fixture_backed_discovery_api_and_chromium_workflow_regressions": "PASS",
+    "full_local_python_suite": "PASS",
+    "real_employer_requests_and_external_submission": "NOT_RUN",
+    "external_ai_provider_and_real_ats_operation_classes": "BLOCKED_EXTERNAL"
+  },
+  "validation": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_public_company_client.PublicCompanyClientTests.test_http_read_observes_operation_cancellation_and_closes_request_socket -v",
+      "timestamp_utc": "2026-10-06T13:50:41Z",
+      "target": "Reproduce cancellation during a blocked HTTPS response before implementation",
+      "result": "FAIL_EXPECTED_RED",
+      "summary": "The new test failed because the synthetic response remained blocked after cancellation."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_public_company_client tests.integration.test_public_company_discovery tests.integration.test_discovery_requests tests.integration.test_company_monitoring_recovery -v",
+      "timestamp_utc": "2026-10-06T13:50:41Z",
+      "target": "Public client cancellation, fixture-backed discovery, durable authorization/cancellation and monitoring recovery",
+      "result": "PASS",
+      "summary": "54 unit/integration tests passed; remote responses were fixture-backed."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_public_company_discovery -v",
+      "timestamp_utc": "2026-10-06T13:50:41Z",
+      "target": "Connected headless Chromium company discovery workflow",
+      "result": "PASS",
+      "summary": "One browser test passed against the local application and synthetic employer origin."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p test_*.py",
+      "timestamp_utc": "2026-10-06T13:50:41Z",
+      "target": "Exact candidate full local unit/integration/browser test discovery",
+      "result": "PASS",
+      "summary": "704 tests ran in 399.392 seconds with zero failures/errors and one optional PostgreSQL skip because MJOBS_TEST_POSTGRES_URL was unset. The known feedback-GUI client disconnect traceback appeared during cleanup."
+    },
+    {
+      "command": "git diff --check",
+      "timestamp_utc": "2026-10-06T13:51:31Z",
+      "target": "Whitespace and patch integrity",
+      "result": "PASS",
+      "summary": "No whitespace errors."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.agent_skills",
+      "timestamp_utc": "2026-10-06T13:51:31Z",
+      "target": "Repository contract, requirement denominator and evidence journal validation",
+      "result": "PASS",
+      "summary": "Validator passed."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.catalogue",
+      "timestamp_utc": "2026-10-06T13:51:31Z",
+      "target": "Repository contract, requirement denominator and evidence journal validation",
+      "result": "PASS",
+      "summary": "Validator passed."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.progress validate",
+      "timestamp_utc": "2026-10-06T13:51:31Z",
+      "target": "Repository contract, requirement denominator and evidence journal validation",
+      "result": "PASS",
+      "summary": "Validator passed."
+    }
+  ],
+  "external_boundaries": {
+    "public_http_transport": "SYNTHETIC_FIXTURE_ONLY",
+    "live_employer_fetch": false,
+    "ai_provider_calls": false,
+    "real_ats_application_automation": "NOT_AVAILABLE_AND_DISABLED",
+    "external_submission": "OFF",
+    "postgresql_test": "NOT_RUN_OPTIONAL_ENVIRONMENT_MISSING_MJOBS_TEST_POSTGRES_URL",
+    "github_actions": "DISABLED_BY_USER_POLICY",
+    "hosted_review": "NOT_RUN_BY_USER_POLICY"
+  },
+  "requirement_limitations": [
+    "This slice covers cancellation during public HTTPS socket connect/read only. Other external operation classes still need operation-specific bounds, output/error/retry classification and evidence.",
+    "AI provider/runtime and real ATS paths do not exist or are unavailable and external submission remains OFF; those classes remain PARTIAL/BLOCKED_EXTERNAL."
+  ],
+  "denominators": {
+    "requirements": 366,
+    "reference_gaps": 59
+  }
+}

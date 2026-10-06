@@ -412,3 +412,10 @@ Evidence: [bounded OCR diagnostics](../docs/evidence/2026-10-06-bounded-ocr-diag
 
 
 Integration receipt (2026-10-06T10:57:12Z): issue #5 source candidate `3d604b27b1a4c25e2ff0ee6fa68a07e9ff8f74a0` and evidence/planning are integrated on synchronized local and GitHub `main` at `fe598c1ee351010502a62e8c9dc6b76c83692ffe` by non-force fast-forward. `main` had no protection rule, Actions were disabled, and no PR was opened. GitHub issue #5 comment/readback confirms OPEN. MJ-REQ-004 remains PARTIAL. Continue with request-disconnect cancellation and remaining locally implementable operation boundaries.
+
+
+## 2026-10-06 local-only continuation — MJ-REQ-004 public HTTPS cancellation
+
+A pending public-company HTTPS connect/read now polls the existing durable worker cancellation/deadline callback. When it raises, the client interrupts and closes only that request's sockets, then returns the original exception instead of misclassifying cancellation as a network error. The new synthetic blocked-response test failed before implementation. Source candidate `8890af69c66870dd1d43f7fadb78d0bbbd86adc7`, based on `414f6801291bfca602c7f2a0aee40ad246e8297a`; evidence: [docs/evidence/2026-10-06-public-http-cancellation.json](../docs/evidence/2026-10-06-public-http-cancellation.json).
+
+Verification on the exact candidate: public-client tests 23 PASS; focused public discovery/authorization/monitoring unit and integration tests 54 PASS; connected Chromium discovery workflow 1 PASS; full local Python/unit/integration/browser discovery 704 PASS, zero failures/errors, one optional PostgreSQL skip because MJOBS_TEST_POSTGRES_URL was unset. The known feedback-GUI client disconnect traceback appeared during cleanup. No live employer fetch occurred; AI/provider and real ATS operation classes remain unavailable/OFF, hosted Actions/reviews remain NOT_RUN by policy, and external submission remains OFF. MJ-REQ-004 stays PARTIAL and GitHub issue #5 OPEN. Source is committed locally; evidence/planning validators agent_skills, catalogue and progress all PASS. Evidence/planning push and safe integration are next.
