@@ -11,10 +11,14 @@ The scheduler performs no external I/O: it only creates idempotent durable
 DISCOVER operations when an enabled source is due. Only the discovery worker
 has the source-egress network.
 
-The persisted per-source concurrency value remains policy metadata today; the
-Greenhouse collector makes bounded sequential requests and does not spawn
-per-source parallel fetches. Durable discovery operations instead use the
-global `source_collection` admission ceiling documented in `workers/AREA.md`.
+Greenhouse source concurrency bounds its two independent public GETs (board
+metadata and the bounded jobs inventory). At `1`, requests are sequential; at
+`2` or higher, both may run in parallel. The shared per-source request scheduler
+still spaces request starts according to the configured rate limit. The cap
+applies across each search's independent calls and never creates work beyond
+those two endpoints. Durable discovery operations are also bounded across all
+sources by the global `source_collection` admission ceiling documented in
+`workers/AREA.md`.
 
 Matching can rescore multiple career profiles from one collected batch without
 re-fetching the provider. Manual collection remains available for an immediate

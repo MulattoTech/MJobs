@@ -356,7 +356,7 @@ function App() {
         {operationMode==='PERSONAL'&&<CompanyDiscovery busy={!!busy} onDiscover={(companyName,companyWebsite)=>action('Discovering company jobs',()=>discoverCompany(companyName,companyWebsite))}/>}
         <section className="panel">
           <h2>Public Greenhouse board</h2>
-          <p>Reads public job listings from the provider API. Each board keeps its own bounded schedule, timeout, rate limit, and backoff state. No login or application submission is performed.</p>
+          <p>Reads public job listings from the provider API. Source concurrency limits parallel reads of board details and the job inventory (two independent requests); request starts still follow the configured rate limit. Each board keeps its own bounded schedule and backoff. No login or application submission is performed.</p>
           <form onSubmit={e=>{e.preventDefault();void action('Saving source',async()=>{
             await api('/sources',{method:'PUT',body:JSON.stringify({tenant,enabled:true,poll_interval:sourceIntervalMinutes*60,concurrency:sourceConcurrency,request_timeout:sourceTimeout,rate_limit:sourceRate,jitter_seconds:sourceJitter})});
             setTenant('');setNotice('Source saved. Create a search profile below to enable scheduled discovery.');

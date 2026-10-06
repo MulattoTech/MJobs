@@ -1,7 +1,9 @@
 """Documented public GET adapter. No credentials or application submission."""
+from concurrent.futures import ThreadPoolExecutor
 from html import unescape
 import math
 import re
+import threading
 import time
 from urllib.parse import urlsplit
 
@@ -61,6 +63,9 @@ class Greenhouse:
         self.rate_limit = rate_limit
         self.concurrency = concurrency
         self._last_request = None
+        self._rate_limit_lock = threading.Lock()
+        self._status_lock = threading.Lock()
+        self._request_failed = False
         self.status = "NOT_CHECKED"
 
     def capabilities(self):
@@ -71,23 +76,32 @@ class Greenhouse:
         }))
 
     def health(self):
-        return self.status
+        with self._status_lock:
+            return self.status
 
     def _get(self, suffix, params=None):
         try:
             return self._request(suffix, params)
         except SourceError as failure:
-            self.status = failure.code
+            with self._status_lock:
+                self.status = failure.code
+                self._request_failed = True
             raise
         except httpx.HTTPError:
-            self.status = "SOURCE_NETWORK_ERROR"
+            with self._status_lock:
+                self.status = "SOURCE_NETWORK_ERROR"
+                self._request_failed = True
             raise
+
+    def _reset_request_status(self):
+        with self._status_lock:
+            self.status = "NOT_CHECKED"
+            self._request_failed = False
 
     def _request(self, suffix, params=None):
         self.check()
         if self.transport is None:
             self._wait_for_rate_limit()
-        self._last_request = time.monotonic()
         path = "/v1/boards/" + self.tenant + suffix
         with httpx.Client(timeout=self.request_timeout, follow_redirects=False, trust_env=False, transport=self.transport,
                           headers={"User-Agent": "MJobs/0.1 public-read-only", "Accept": "application/json"}) as client:
@@ -117,23 +131,53 @@ class Greenhouse:
                     payload = __import__("json").loads(content)
                 except ValueError as error:
                     raise SourceError("SOURCE_INVALID_JSON") from error
-                self.status = "HEALTHY"
+                with self._status_lock:
+                    if not self._request_failed:
+                        self.status = "HEALTHY"
                 return payload
 
     def _wait_for_rate_limit(self):
-        if self._last_request is None:
-            return
         interval = 60 / self.rate_limit
-        wait = interval - (time.monotonic() - self._last_request)
+        # Reserve each request start atomically. Parallel callers share the
+        # source's rate schedule instead of independently passing a per-thread
+        # interval check and creating a burst.
+        with self._rate_limit_lock:
+            now = time.monotonic()
+            scheduled = now if self._last_request is None else max(now, self._last_request + interval)
+            self._last_request = scheduled
+        wait = scheduled - time.monotonic()
         while wait > 0:
             self.check()
             time.sleep(min(wait, 0.25))
-            wait = interval - (time.monotonic() - self._last_request)
+            wait = scheduled - time.monotonic()
         self.check()
 
     def search(self):
-        board = self._get("")
-        payload = self._get("/jobs", {"content": "true"})
+        self._reset_request_status()
+        # Board metadata and the bounded job inventory are independent public
+        # GETs. Run them under the configured per-source cap; the cap is an
+        # upper bound, and this search currently has two independent requests.
+        with ThreadPoolExecutor(max_workers=min(self.concurrency, 2),
+                               thread_name_prefix="mjobs-greenhouse") as executor:
+            board_request = executor.submit(self._get, "")
+            jobs_request = executor.submit(self._get, "/jobs", {"content": "true"})
+            failures = []
+            try:
+                board = board_request.result()
+            except Exception as failure:
+                failures.append(failure)
+                board = None
+            try:
+                payload = jobs_request.result()
+            except Exception as failure:
+                failures.append(failure)
+                payload = None
+            if failures:
+                # Both requests have now settled. Recheck cancellation/deadline
+                # so a concurrent provider error cannot turn a local stop into
+                # a provider failure or poison source health/history.
+                self.check()
+                raise failures[0]
         if not isinstance(board, dict) or not isinstance(payload, dict) or not isinstance(payload.get("jobs"), list):
             raise SourceError("SOURCE_INVALID_FORMAT")
         if len(payload["jobs"]) > 1000:
@@ -155,6 +199,7 @@ class Greenhouse:
     def fetch(self, job_id):
         if type(job_id) is not int or job_id <= 0:
             raise ValueError("SOURCE_INVALID_JOB_ID")
+        self._reset_request_status()
         raw = self._get("/jobs/" + str(job_id), {"pay_transparency": "true"})
         self.normalize(raw)
         if raw["id"] != job_id:

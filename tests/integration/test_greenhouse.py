@@ -2,6 +2,8 @@
 from pathlib import Path
 import importlib
 import tempfile
+import threading
+import time
 import unittest
 from unittest.mock import patch
 
@@ -58,6 +60,175 @@ class GreenhouseTests(unittest.TestCase):
         self.assertEqual(batch.items[0].company.domain, "https://job-boards.greenhouse.io/example")
         self.assertEqual(adapter.capabilities().strategy, CollectionStrategy.API)
         self.assertFalse(adapter.capabilities().supports(SourceCapability.DIRECT_APPLICATION))
+
+    def test_per_source_concurrency_bounds_parallel_read_requests(self):
+        def maximum_in_flight(concurrency):
+            active = 0
+            maximum = 0
+            starts = []
+            guard = threading.Lock()
+
+            def slow_transport(request):
+                nonlocal active, maximum
+                with guard:
+                    active += 1
+                    maximum = max(maximum, active)
+                    starts.append(time.monotonic())
+                try:
+                    # Slow synthetic reads overlap only when the per-source
+                    # limit allows it; no external request is made.
+                    time.sleep(0.25)
+                    if request.url.path.endswith("/jobs"):
+                        return httpx.Response(200, json={"jobs": [RAW]})
+                    return httpx.Response(200, json={"name": "Example Public Employer"})
+                finally:
+                    with guard:
+                        active -= 1
+
+            real_client = httpx.Client
+
+            def synthetic_client(*args, **kwargs):
+                kwargs["transport"] = httpx.MockTransport(slow_transport)
+                return real_client(*args, **kwargs)
+
+            with patch("services.discovery.sources.greenhouse.httpx.Client",
+                       side_effect=synthetic_client):
+                adapter = Greenhouse("example", concurrency=concurrency, rate_limit=600)
+                batch = adapter.search()
+            self.assertEqual(len(batch.items), 1)
+            return maximum, sorted(starts)
+
+        sequential_maximum, sequential_starts = maximum_in_flight(1)
+        self.assertEqual(sequential_maximum, 1)
+        self.assertGreaterEqual(sequential_starts[1] - sequential_starts[0], 0.075)
+        parallel_maximum, parallel_starts = maximum_in_flight(2)
+        self.assertEqual(parallel_maximum, 2)
+        self.assertGreaterEqual(parallel_starts[1] - parallel_starts[0], 0.075)
+        # A configured cap above the number of independent requests is still
+        # bounded by actual work; it must not create idle worker threads.
+        self.assertEqual(maximum_in_flight(8)[0], 2)
+
+    def test_persisted_source_concurrency_controls_collection_requests(self):
+        source_id = configure_source(self.store, "configured-concurrency", concurrency=2,
+                                     rate_limit=600, jitter_seconds=0)
+        active = 0
+        maximum = 0
+        guard = threading.Lock()
+
+        def slow_transport(request):
+            nonlocal active, maximum
+            with guard:
+                active += 1
+                maximum = max(maximum, active)
+            try:
+                time.sleep(0.25)
+                if request.url.path.endswith("/jobs"):
+                    return httpx.Response(200, json={"jobs": [RAW]})
+                return httpx.Response(200, json={"name": "Configured Concurrency Employer"})
+            finally:
+                with guard:
+                    active -= 1
+
+        real_client = httpx.Client
+
+        def synthetic_client(*args, **kwargs):
+            kwargs["transport"] = httpx.MockTransport(slow_transport)
+            return real_client(*args, **kwargs)
+
+        with patch("services.discovery.sources.greenhouse.httpx.Client",
+                   side_effect=synthetic_client):
+            result = collect_source(self.store, source_id, "fixture")
+        self.assertEqual(result["jobs_seen"], 1)
+        self.assertEqual(maximum, 2)
+
+    def test_parallel_fetch_failure_records_history_without_partial_jobs(self):
+        source_id = configure_source(self.store, "parallel-failure", concurrency=2,
+                                     rate_limit=600, jitter_seconds=0)
+
+        def mixed_transport(request):
+            if request.url.path.endswith("/jobs"):
+                return httpx.Response(429, headers={"retry-after": "60"})
+            time.sleep(0.1)
+            return httpx.Response(200, json={"name": "Example Public Employer"})
+
+        real_client = httpx.Client
+
+        def synthetic_client(*args, **kwargs):
+            kwargs["transport"] = httpx.MockTransport(mixed_transport)
+            return real_client(*args, **kwargs)
+
+        with patch("services.discovery.sources.greenhouse.httpx.Client",
+                   side_effect=synthetic_client):
+            with self.assertRaisesRegex(ValueError, "SOURCE_RATE_LIMITED"):
+                collect_source(self.store, source_id, "fixture")
+        with self.store.engine.connect() as connection:
+            source = dict(connection.execute(select(m.job_sources).where(
+                m.job_sources.c.id == source_id)).mappings().one())
+            observations = list(connection.execute(select(m.source_quality_observations).where(
+                m.source_quality_observations.c.configured_source_id == source_id)).mappings())
+            job_count = connection.execute(select(m.jobs.c.id)).fetchall()
+        self.assertEqual(source["health_status"], "RATE_LIMITED")
+        self.assertEqual(source["last_error"], "SOURCE_RATE_LIMITED")
+        self.assertEqual(len(observations), 1)
+        self.assertFalse(observations[0]["succeeded"])
+        self.assertEqual(job_count, [])
+
+    def test_local_cancellation_outweighs_concurrent_network_failure(self):
+        source_id = configure_source(self.store, "parallel-cancel", concurrency=2,
+                                     rate_limit=600, jitter_seconds=0)
+        cancelled = threading.Event()
+
+        def check():
+            if cancelled.is_set():
+                raise OperationCancelled("synthetic local cancel")
+            if threading.current_thread().name.endswith("_1"):
+                cancelled.set()
+                raise OperationCancelled("synthetic local cancel")
+
+        def transport(request):
+            self.assertFalse(request.url.path.endswith("/jobs"))
+            self.assertTrue(cancelled.wait(timeout=2))
+            raise httpx.ConnectError("synthetic sibling failure", request=request)
+
+        real_client = httpx.Client
+
+        def synthetic_client(*args, **kwargs):
+            kwargs["transport"] = httpx.MockTransport(transport)
+            return real_client(*args, **kwargs)
+
+        with patch("services.discovery.sources.greenhouse.httpx.Client",
+                   side_effect=synthetic_client):
+            with self.assertRaises(OperationCancelled):
+                collect_source(self.store, source_id, "fixture", check=check)
+        with self.store.engine.connect() as connection:
+            source = dict(connection.execute(select(m.job_sources).where(
+                m.job_sources.c.id == source_id)).mappings().one())
+            observations = list(connection.execute(select(m.source_quality_observations).where(
+                m.source_quality_observations.c.configured_source_id == source_id)).mappings())
+        self.assertEqual(source["health_status"], "NOT_CHECKED")
+        self.assertEqual(source["consecutive_failures"], 0)
+        self.assertIsNone(source["last_error"])
+        self.assertEqual(observations, [])
+
+    def test_successful_parallel_request_does_not_hide_provider_failure(self):
+        def mixed_transport(request):
+            if request.url.path.endswith("/jobs"):
+                return httpx.Response(429, headers={"retry-after": "60"})
+            time.sleep(0.1)
+            return httpx.Response(200, json={"name": "Example Public Employer"})
+
+        real_client = httpx.Client
+
+        def synthetic_client(*args, **kwargs):
+            kwargs["transport"] = httpx.MockTransport(mixed_transport)
+            return real_client(*args, **kwargs)
+
+        with patch("services.discovery.sources.greenhouse.httpx.Client",
+                   side_effect=synthetic_client):
+            adapter = Greenhouse("example", concurrency=2, rate_limit=600)
+            with self.assertRaisesRegex(ValueError, "SOURCE_RATE_LIMITED"):
+                adapter.search()
+        self.assertEqual(adapter.health(), "SOURCE_RATE_LIMITED")
 
     def test_empty_board_collection_preserves_provider_company_name(self):
         def empty_board(request):

@@ -187,16 +187,22 @@ class CoreWorkflowTrialBrowserTests(unittest.TestCase):
                     # Persist an explicit search filter in the UI without
                     # triggering external source collection.
                     navigate("Sources")
+                    expect(page.get_by_text(
+                        "Source concurrency limits parallel reads of board details and the job inventory",
+                        exact=False)).to_be_visible()
                     page.get_by_label("Board token", exact=True).fill("synthetic-board")
+                    page.get_by_label("Source concurrency", exact=True).fill("2")
                     page.get_by_role("button", name="Add board", exact=True).click()
                     expect(page.get_by_role("status").filter(has_text="Source saved")).to_be_visible()
                     source_rows = context.request.get(origin + "/sources").json()["sources"]
                     self.assertEqual(len(source_rows), 1)
                     source = source_rows[0]
+                    self.assertEqual(source["concurrency"], 2)
                     # The source tab does not refresh its local list after a
                     # board is created, so reload through the normal UI readback.
                     page.reload(wait_until="domcontentloaded")
                     navigate("Sources")
+                    expect(page.get_by_text("concurrency 2", exact=False)).to_be_visible()
                     search_form = page.locator("form").filter(
                         has=page.get_by_label("Search name", exact=True))
                     search_form.get_by_label("Search name", exact=True).fill(
