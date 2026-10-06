@@ -869,7 +869,7 @@
       "status": "ACTIVE",
       "branch": "codex/mj-req108-local-provider-20261006",
       "draft_until_verified": true,
-      "notes": "MJ-REQ-108.A06 disabled provider PASS; MJ-REQ-109 task router, MJ-REQ-110 cost planner, and MJ-REQ-111 structured-output contract integrated PARTIAL. Issue #112 remains OPEN/PARTIAL because no real provider or production consumer exists. Active next issue #109 / MJ-REQ-108 explores a loopback-only Ollama adapter; remaining provider, persistence and consumer acceptance stays open."
+      "notes": "MJ-REQ-108.A06 disabled provider PASS; issue #109 / MJ-REQ-108 now has a locally tested loopback Ollama adapter, but remains PARTIAL pending actual inference and remaining provider/consumer paths. MJ-REQ-109 router, MJ-REQ-110 funnel and MJ-REQ-111 structured output are integrated PARTIAL. Persisted settings and end-to-end task consumers remain open."
     },
     {
       "id": "MJ-PR-031",

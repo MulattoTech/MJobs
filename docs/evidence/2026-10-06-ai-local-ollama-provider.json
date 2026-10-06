@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-108",
+  "github_issue": 109,
+  "result": "PARTIAL",
+  "scope": "Registered loopback-only Ollama HTTP provider with bounded, schema-aware transport and stable sanitized errors.",
+  "observed_at_utc": "2026-10-06T19:31:31Z",
+  "candidate": {
+    "repository": "MulattoTech/MJobs",
+    "branch": "codex/mj-req108-local-provider-20261006",
+    "base": "d6eae55caca04c33271015b1a1e216d996cb116a",
+    "commit": "28c07dfad4693ebba089fb4acc9183c851872289",
+    "tree": "9db4c766c27d53107cbd180a282bf6eb655aa37f",
+    "status": "Source commit locally validated; integration and GitHub issue readback pending."
+  },
+  "source_sha256": {
+    "services/ai/AREA.md": "38aabdbba159bf37430ed336d300d1bea30671df80d4379c94cdd1ae482a4ac6",
+    "services/ai/providers/AREA.md": "63ff9a53394b12bc14d8ce4c6774bac1aa5c6dd8123337daf9ff4024778f3b83",
+    "services/ai/providers/__init__.py": "32ebac1f77b9d04e348a3c162e7fe9f9461cf11cbbfac7d00e2817b362278814",
+    "services/ai/providers/ollama.py": "542c0c90b37e3e04766a8db7ce1b7b9ea09479c1b9379015591e90b79baae29a",
+    "tests/unit/test_ollama_provider.py": "7e1270d3de97bd498308299a45152bf61094c6ae63d8796db14522a5f9b541dd"
+  },
+  "acceptance": {
+    "provider_neutral_factory_and_capabilities": "PASS - Ollama registers behind AIProvider; it declares text and structured output, while the disabled provider and all default task selections remain unchanged.",
+    "loopback_only_endpoint_and_proxy_isolation": "PASS - only numeric loopback HTTP origins and fixed /api/generate are accepted; proxy environment variables are disabled; remote hosts, DNS names, credentials, paths, query and fragments are rejected.",
+    "schema_aware_non_streaming_request": "PASS - synthetic MockTransport proves model/prompt/stream=false and JSON Schema in Ollama format are sent; router-to-provider structured roundtrip returns a strict typed result.",
+    "bounded_io_and_sanitized_failures": "PASS - request/schema/response/time budgets are bounded; malformed/duplicate response JSON, incomplete outputs, HTTP errors and transport failures expose stable codes without prompt or body echo.",
+    "actual_model_inference_and_other_providers": "NOT_RUN/PARTIAL - all tests use synthetic HTTP responses; no real inference was performed. OpenAI, Azure and other provider adapters remain future work; issue #109 remains OPEN/PARTIAL."
+  },
+  "local_validation": {
+    "environment": "Windows isolated worktree; Python 3.12.10; httpx from pinned requirements.lock; no model call made.",
+    "commands": [
+      {
+        "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_ollama_provider -v",
+        "result": "PASS",
+        "tests": 9
+      },
+      {
+        "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest discover -s tests\\unit -v",
+        "result": "PASS",
+        "tests": 346
+      },
+      {
+        "command": "..\\..\\.venv\\Scripts\\python.exe -m compileall -q services\\ai tests\\unit\\test_ollama_provider.py",
+        "result": "PASS"
+      },
+      {
+        "command": "..\\..\\.venv\\Scripts\\python.exe -m tools.verification.progress validate",
+        "result": "PASS"
+      },
+      {
+        "command": "..\\..\\.venv\\Scripts\\python.exe -m tools.verification.catalogue",
+        "result": "PASS"
+      },
+      {
+        "command": "..\\..\\.venv\\Scripts\\python.exe -m tools.verification.agent_skills",
+        "result": "PASS"
+      },
+      {
+        "command": "git diff --check",
+        "result": "PASS"
+      }
+    ],
+    "expected_red": "Before provider implementation, all seven new provider tests failed because the provider types were not registered/exported.",
+    "not_run": [
+      "Live Ollama model inference: NOT_RUN; synthetic transport tests establish request/response behavior without nondeterministic model output.",
+      "Remote/paid AI providers: NOT_RUN under current policy.",
+      "Browser acceptance: NOT_APPLICABLE; service-only change.",
+      "GitHub Actions and hosted review: NOT_RUN under current local-only policy."
+    ]
+  },
+  "limitations": [
+    "The provider targets only a numeric loopback HTTP origin; no remote API adapter is included in this slice.",
+    "No actual Ollama model inference or production matching consumer has been verified.",
+    "Provider/task settings remain in-process rather than persisted or user-configurable through a UI.",
+    "External application submission remains OFF; hosted evidence remains NOT_RUN."
+  ],
+  "implementation_reference": "https://github.com/ollama/ollama/blob/main/docs/api.md",
+  "reconciled_main_commit": "d6eae55caca04c33271015b1a1e216d996cb116a",
+  "integration_candidate_commit": "28c07dfad4693ebba089fb4acc9183c851872289",
+  "integrated_main_commit": null,
+  "github_issue_comment": null
+}

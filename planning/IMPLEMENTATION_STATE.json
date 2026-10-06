@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-06T19:27:09Z",
+  "generated_at": "2026-10-06T19:31:31Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -11,7 +11,7 @@
     "current_verified_github_state": "GitHub/local main synchronized at 117a27ccfdf472fb67135d17f14ebd44c8fa9462; issue #110 OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/110#issuecomment-6023459996; issue #345 CLOSED; Actions disabled, no PR, main unprotected.",
     "current_verified_at": "2026-10-06T19:05:40Z"
   },
-  "current_milestone": "MJ-REQ-108-LOCAL-PROVIDER-START-20261006",
+  "current_milestone": "MJ-REQ-108-LOCAL-OLLAMA-PROVIDER-LOCALLY-VERIFIED-PARTIAL-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -92,7 +92,8 @@
     "MJ-REQ-108 provider-neutral contract and disabled/no-AI provider locally verified; real provider implementations and matching consumer wiring remain incomplete.",
     "MJ-REQ-109: immutable per-task provider/model router across seven task types; user-facing persistence and production consumer wiring remain incomplete.",
     "MJ-REQ-110: deterministic dedupe, score threshold, bounded AI/document candidate planning and reviewed-document gating verified locally; production matching consumer and persisted settings remain incomplete (docs/evidence/2026-10-06-ai-cost-controls.json).",
-    "MJ-REQ-111: strict Pydantic result schemas, schema-capable router negotiation, bounded duplicate-safe JSON parsing and sanitized errors pass locally; no remote provider or production consumer exists (docs/evidence/2026-10-06-ai-structured-output.json)."
+    "MJ-REQ-111: strict Pydantic result schemas, schema-capable router negotiation, bounded duplicate-safe JSON parsing and sanitized errors pass locally; no remote provider or production consumer exists (docs/evidence/2026-10-06-ai-structured-output.json).",
+    "MJ-REQ-108: registered loopback-only Ollama provider supports bounded text and schema requests with stable sanitized errors; no live inference, remote providers, persistent settings, or production task consumer (docs/evidence/2026-10-06-ai-local-ollama-provider.json)."
   ],
   "blocked_capabilities": [],
   "active_requirements": [
@@ -273,7 +274,8 @@
     "After merging current main b662979: Remotive integration and AI task routing focused tests 15 PASS; complete unit suite 324 PASS; progress/catalogue validation PASS (docs/evidence/2026-10-06-ai-task-configuration.json).",
     "Integrated main 117a27c: 8 focused AI tests PASS; prior exact reconciled candidate: 324 unit tests and 7 Remotive integration tests PASS; progress/catalogue/agent-skill validation PASS.",
     "MJ-REQ-110 issue #111 funnel: five focused tests and 329 unit tests pass; planner remains PARTIAL without production consumer or persisted configuration (docs/evidence/2026-10-06-ai-cost-controls.json).",
-    "MJ-REQ-111 issue #112 structured output: 16 focused AI tests and 337 full unit tests PASS; remote provider and production consumer remain unavailable (docs/evidence/2026-10-06-ai-structured-output.json)."
+    "MJ-REQ-111 issue #112 structured output: 16 focused AI tests and 337 full unit tests PASS; remote provider and production consumer remain unavailable (docs/evidence/2026-10-06-ai-structured-output.json).",
+    "MJ-REQ-108 issue #109 local Ollama adapter: nine provider tests and all 346 unit tests PASS; all requests used synthetic MockTransport, no model inference (docs/evidence/2026-10-06-ai-local-ollama-provider.json)."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -414,7 +416,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Implement issue #109 / MJ-REQ-108 loopback-only Ollama provider on codex/mj-req108-local-provider-20261006, based on synchronized main d6eae55caca04c33271015b1a1e216d996cb116a. Use bounded HTTP/JSON handling, explicit structured-output capability, synthetic MockTransport tests only, and no external model calls.",
+  "recommended_resume_step": "Recheck synchronized main, Actions-disabled state and branch protection; push issue #109 local provider candidate and safely fast-forward; keep issue #109 OPEN/PARTIAL pending real provider/consumer evidence, then continue the next dependency-ready queue item.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -6595,12 +6597,60 @@
         "git_commit": "d6eae55caca04c33271015b1a1e216d996cb116a",
         "evidence_path": "docs/evidence/2026-10-06-ai-structured-output.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-108-LOCAL-OLLAMA-PROVIDER-LOCALLY-VERIFIED-PARTIAL-20261006",
+      "timestamp": "2026-10-06T19:31:31Z",
+      "current_phase": "Issue #109 / MJ-REQ-108 loopback-only Ollama provider is locally verified PARTIAL on codex/mj-req108-local-provider-20261006; real inference and broader provider/consumer paths remain unverified.",
+      "completed_steps": [
+        "Registered opt-in loopback Ollama provider and declared text/structured capabilities",
+        "Added fixed endpoint, no-proxy transport, request/response bounds and stable sanitized errors",
+        "Verified provider and structured router with synthetic MockTransport; no actual model call was made",
+        "Recorded candidate hashes and preserved issue/capability PARTIAL state"
+      ],
+      "files_added": [
+        "services/ai/providers/AREA.md",
+        "services/ai/providers/ollama.py",
+        "tests/unit/test_ollama_provider.py",
+        "docs/evidence/2026-10-06-ai-local-ollama-provider.json"
+      ],
+      "files_modified": [
+        "services/ai/AREA.md",
+        "services/ai/providers/__init__.py",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Ollama provider tests: 9 PASS",
+        "Complete unit suite: 346 PASS",
+        "compileall, progress journal, catalogue, agent-skill and diff checks: PASS"
+      ],
+      "tests_remaining": [
+        "No live inference performed; no external/paid providers or production matching consumers exist.",
+        "Recheck and integrate safely, read back issue #109 OPEN/PARTIAL, then continue queue."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [
+        "Expected-red: seven initial provider tests failed because OllamaProvider and AIProviderError were not yet implemented/exported."
+      ],
+      "known_limitations": [
+        "No actual Ollama model inference; synthetic transport only.",
+        "Only local Ollama provider is implemented; other provider adapters and production task consumers remain incomplete.",
+        "External AI/provider and hosted checks are NOT_RUN; external application submission remains OFF."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "28c07dfad4693ebba089fb4acc9183c851872289",
+        "evidence_path": "docs/evidence/2026-10-06-ai-local-ollama-provider.json"
+      }
     }
   ],
-  "current_phase": "Started issue #109 / MJ-REQ-108 local provider abstraction on codex/mj-req108-local-provider-20261006 from synchronized main d6eae55; no provider source changes have been written yet.",
+  "current_phase": "Issue #109 / MJ-REQ-108 loopback-only Ollama provider is locally verified PARTIAL on codex/mj-req108-local-provider-20261006; real inference and broader provider/consumer paths remain unverified.",
   "last_safe_checkpoint": {
-    "git_commit": "d6eae55caca04c33271015b1a1e216d996cb116a",
-    "evidence_path": "docs/evidence/2026-10-06-ai-structured-output.json"
+    "git_commit": "28c07dfad4693ebba089fb4acc9183c851872289",
+    "evidence_path": "docs/evidence/2026-10-06-ai-local-ollama-provider.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -6745,9 +6795,9 @@
     "selection_reason": "Next dependency-ready shared prerequisite in active MJ-PR-030; a loopback-only Ollama adapter supplies a useful local inference path while preserving offline defaults and avoiding paid or remote calls.",
     "base": "d6eae55caca04c33271015b1a1e216d996cb116a",
     "branch": "codex/mj-req108-local-provider-20261006",
-    "candidate": null,
-    "evidence": null,
-    "next_action": "Implement a loopback-only Ollama adapter with bounded response handling, local model selection, JSON Schema forwarding, safe stable failures and synthetic transport tests."
+    "candidate": "28c07dfad4693ebba089fb4acc9183c851872289",
+    "evidence": "docs/evidence/2026-10-06-ai-local-ollama-provider.json",
+    "next_action": "Recheck exact main and local-only policy, push and fast-forward safely if main remains the exact ancestor, read back issue #109 OPEN/PARTIAL, then continue to the next dependency-ready issue."
   },
   "historical_control_snapshots": [
     {
