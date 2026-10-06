@@ -1,0 +1,62 @@
+{
+  "timestamp": "2026-10-06T14:38:39Z",
+  "target": "MJ-REQ-007 / GitHub issue #8 — Source Control / Change Safety",
+  "result": "PARTIAL",
+  "source_revision": "0082a651ae7a5aa5a7be4c5dfe593b3bca61815e",
+  "source_tree": "04ac8e86dbedde8a8e52fdc95728cf4b5a6a1696",
+  "source_control": {
+    "branch": "codex/req004-ops-audit-20261006",
+    "status": "M planning/IMPLEMENTATION_STATE.json",
+    "remote_main": "0082a651ae7a5aa5a7be4c5dfe593b3bca61815e",
+    "local_main": "0082a651ae7a5aa5a7be4c5dfe593b3bca61815e",
+    "issue_worktree_head": "0082a651ae7a5aa5a7be4c5dfe593b3bca61815e"
+  },
+  "acceptance": [
+    {
+      "criterion": "Use healthy Git normally; inspect status, branch and uncommitted changes; preserve unrelated work",
+      "result": "PASS",
+      "evidence": "This checkout and its issue worktree were inspected; issue worktree was clean and exactly at current main. Other linked worktrees were enumerated and preserved."
+    },
+    {
+      "criterion": "When no normal Git repository exists, do not initialize it automatically; record a file/hash/backup/operation/timestamp manifest",
+      "result": "NOT_APPLICABLE",
+      "evidence": "Current repository is a healthy Git checkout. The conditional fallback was not run or claimed."
+    },
+    {
+      "criterion": "Critical configuration/database migrations must be recoverable",
+      "result": "PARTIAL",
+      "evidence": "Database backup/restore implementation, runbook and historical isolated FIXTURE/PERSONAL restore receipts exist. Current synthetic migration tests pass. Protected local configuration is excluded from the documented database/document archive; no current protected-configuration migration recovery proof was found."
+    }
+  ],
+  "checks": [
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.unit.test_local_backup tests.integration.test_source_quality_migration tests.integration.test_resume_version_migration tests.integration.test_posting_values_migration tests.integration.test_job_lifecycle_migration tests.integration.test_company_source_monitoring_migration tests.integration.test_company_sources_migration tests.integration.test_company_discovery_requests_migration tests.integration.test_application_link_migration -v",
+      "result": "PASS",
+      "observed": "22 tests passed in 10.937 seconds; synthetic SQLite migration upgrades/downgrades and history-preservation guards plus archive integrity/refusal tests."
+    },
+    {
+      "command": "python -m tools.verification.progress validate",
+      "result": "PASS",
+      "observed": "Implementation checkpoint journal validates."
+    },
+    {
+      "command": "git status --short --branch; git rev-parse HEAD; gh issue view 8; gh api repos/MulattoTech/MJobs/actions/permissions; gh pr list --state open; gh api repos/MulattoTech/MJobs/branches/main/protection",
+      "result": "PASS",
+      "observed": "Issue #8 OPEN; Actions enabled=false; no open PR; main unprotected; exact source and clean status recorded. Branch-protection API returns expected HTTP 404 for unprotected branch."
+    }
+  ],
+  "prior_recovery_evidence": [
+    "docs/runbooks/LOCAL_BACKUP.md",
+    "docs/evidence/2026-09-30-pr004-backup-restore-local.json",
+    "docs/evidence/2026-09-30-pr004-fixture-restore-readback.json",
+    "docs/evidence/2026-09-30-pr004-personal-restore-readback.json"
+  ],
+  "tests_failed": [],
+  "tests_skipped": [
+    "No database service tests were needed for synthetic SQLite migrations; actual Docker backup restore was not rerun."
+  ],
+  "external_limitations": [
+    "Hosted checks and review NOT_RUN by current local-only policy. Physical host restart not exercised."
+  ],
+  "privacy_and_operations": "No protected configuration values, credentials, profile data, external provider, employer site, or application submission was accessed. No service or container was modified."
+}

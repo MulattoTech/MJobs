@@ -7,9 +7,9 @@
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Local main and origin/main synchronized at 96e2c92fcae184e79b7d397f4cc1ced275afa051. Local fixture response limits/cancellation slice is integrated and evidenced; issue #5 remains OPEN/PARTIAL for remaining operation classes.",
-    "current_verified_github_state": "GitHub and local main matched 96e2c92fcae184e79b7d397f4cc1ced275afa051 at non-force integration. Actions disabled, main unprotected, no open PR; issue #5 OPEN/PARTIAL after evidence comment/readback.",
-    "current_verified_at": "2026-10-06T14:32:22Z"
+    "current_verified_local_state": "Local main and origin/main synchronized at 0082a651ae7a5aa5a7be4c5dfe593b3bca61815e; P0 source-control/recovery acceptance slice is locally evidenced with protected-configuration recovery still partial.",
+    "current_verified_github_state": "GitHub main and local main synchronized at 0082a651ae7a5aa5a7be4c5dfe593b3bca61815e before this evidence checkpoint; Actions disabled, main unprotected, no open PR. Issue #8 remains OPEN/PARTIAL pending issue readback.",
+    "current_verified_at": "2026-10-06T14:38:39Z"
   },
   "current_milestone": "MJ-REQ-004-MOCK-DISCOVERY-HTTP-BOUNDS-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under the local-only delivery policy; one writer and one integration lane.",
@@ -312,12 +312,12 @@
     "MJ-REQ-004 candidate 3d604b27b1a4c25e2ff0ee6fa68a07e9ff8f74a0: full suite initially saw stale ignored apps/web/dist; rebuilding restored current Sources UI and isolated browser acceptance. A first rebuilt full run later hit the known intermittent CompanyDiscoveryRequestsBrowserTests server-thread shutdown assertion; isolated case and all 35 browser tests passed, followed by a same-head 680-test full suite pass. Do not weaken shutdown timeout; evidence docs/evidence/2026-10-06-bounded-ocr-diagnostics.json."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-06T14:32:22Z",
+    "timestamp": "2026-10-06T14:38:39Z",
     "result": "PARTIAL",
-    "source_commit": "9b95debda403cbf38b4b147be549ece4bc515b4e",
-    "scope": "Fixture discovery response streaming/cancellation slice PASS and safely integrated; issue #5 remains OPEN/PARTIAL after GitHub readback.",
-    "evidence_path": "docs/evidence/2026-10-06-mock-discovery-bounds.json",
-    "integration_commit": "96e2c92fcae184e79b7d397f4cc1ced275afa051"
+    "source_commit": "0082a651ae7a5aa5a7be4c5dfe593b3bca61815e",
+    "scope": "MJ-REQ-007 normal Git and database migration recovery checks pass; protected local configuration migration recovery remains unverified.",
+    "evidence_path": "docs/evidence/2026-10-06-source-change-safety.json",
+    "integration_commit": "0082a651ae7a5aa5a7be4c5dfe593b3bca61815e"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -5222,12 +5222,84 @@
         "git_commit": "96e2c92fcae184e79b7d397f4cc1ced275afa051",
         "evidence_path": "docs/evidence/2026-10-06-mock-discovery-bounds.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-007-SOURCE-CONTROL-RECOVERY-20261006",
+      "timestamp": "2026-10-06T14:34:00Z",
+      "current_phase": "MJ-REQ-007_ACCEPTANCE_RECONCILIATION_IN_PROGRESS",
+      "completed_steps": [
+        "Reconciled clean source-control worktree at synchronized main 0082a651ae7a5aa5a7be4c5dfe593b3bca61815e.",
+        "Confirmed Actions disabled, main branch unprotected, and no open PRs; no remote automation was invoked.",
+        "Read issue #8 and governance safety working spec; identified healthy-Git path as applicable and no-Git manifest as conditional."
+      ],
+      "files_added": [],
+      "files_modified": [
+        "planning/IMPLEMENTATION_STATE.json"
+      ],
+      "tests_completed": [],
+      "tests_remaining": [
+        "Exact-main local backup integrity tests and migration upgrade/downgrade preservation tests."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Read-only GitHub issue and repository policy reads only; no application or employer requests."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "Prior isolated fixture/personal restore receipts are historical evidence; repeat the deterministic integrity and migration checks at current source head."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "0082a651ae7a5aa5a7be4c5dfe593b3bca61815e",
+        "evidence_path": "docs/evidence/2026-10-06-current-workspace-inspection.json"
+      }
+    },
+    {
+      "milestone_id": "MJ-REQ-007-SOURCE-CONTROL-RECOVERY-EVIDENCED-20261006",
+      "timestamp": "2026-10-06T14:40:00Z",
+      "current_phase": "MJ-REQ-007_LOCAL_ACCEPTANCE_PARTIAL_OPEN",
+      "completed_steps": [
+        "Inspected issue #8 acceptance and governance safety working spec without loading the original source directive.",
+        "Verified healthy-Git branch/status/current diff discipline, preservation of linked worktrees, Actions disabled, no open PR and unprotected main.",
+        "Ran backup/archive and eight SQLite migration modules: 22 tests PASS at exact pre-checkpoint main 0082a651.",
+        "Recorded the no-Git manifest branch as NOT_APPLICABLE for this healthy checkout; database/document recovery has prior isolated receipts.",
+        "Retained PARTIAL because protected local configuration is outside the archive evidence and config-migration recovery is unverified."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-06-source-change-safety.json"
+      ],
+      "files_modified": [
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "22 local backup integrity/refusal and SQLite migration upgrade/downgrade/history-preservation tests PASS in 10.937 seconds.",
+        "Progress journal validator PASS."
+      ],
+      "tests_remaining": [
+        "Protected local configuration migration backup/recovery path and independent restore proof.",
+        "Hosted checks/review NOT_RUN by user policy."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Read-only GitHub issue/repository metadata and source-control state only; no employer/ATS requests or external application actions."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "Protected configuration is excluded from the database/document archive; no proof currently shows recovery after configuration migration.",
+        "No Docker restore rerun or physical host restart was performed in this slice."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "0082a651ae7a5aa5a7be4c5dfe593b3bca61815e",
+        "evidence_path": "docs/evidence/2026-10-06-source-change-safety.json"
+      }
     }
   ],
-  "current_phase": "MJ-REQ-004_MOCK_DISCOVERY_BOUNDS_INTEGRATED_LOCAL_PARTIAL",
+  "current_phase": "MJ-REQ-007_LOCAL_ACCEPTANCE_PARTIAL_OPEN",
   "last_safe_checkpoint": {
-    "git_commit": "96e2c92fcae184e79b7d397f4cc1ced275afa051",
-    "evidence_path": "docs/evidence/2026-10-06-mock-discovery-bounds.json"
+    "git_commit": "0082a651ae7a5aa5a7be4c5dfe593b3bca61815e",
+    "evidence_path": "docs/evidence/2026-10-06-source-change-safety.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -5366,17 +5438,16 @@
     "next_issue": 8
   },
   "active_development_issue": {
-    "issue": 5,
-    "requirement_id": "MJ-REQ-004",
-    "title": "Bound External Operations",
-    "state": "LOCAL_SLICE_PASS_INTEGRATED_REQUIREMENT_PARTIAL_OPEN",
-    "selection_reason": "P0 safety: the explicit local fixture discovery client eagerly buffered untrusted HTML/JSON before checking its 2 MB limit and could not interrupt a stalled response on durable worker cancellation.",
-    "base": "57bb3e6cf4e79fb86edab0d4574a87a5323c151b",
+    "issue": 8,
+    "requirement_id": "MJ-REQ-007",
+    "title": "Source Control / Change Safety",
+    "state": "LOCAL_ACCEPTANCE_PARTIAL_OPEN",
+    "selection_reason": "P0 safety boundary reconciled; healthy-Git operation and recoverable database migrations are evidenced, but protected-configuration migration recovery remains unverified.",
+    "base": "0082a651ae7a5aa5a7be4c5dfe593b3bca61815e",
     "branch": "codex/req004-ops-audit-20261006",
-    "candidate": "9b95debda403cbf38b4b147be549ece4bc515b4e",
-    "evidence": "docs/evidence/2026-10-06-mock-discovery-bounds.json",
-    "next_action": "Reconcile P0 issue #8 / MJ-REQ-007 source control/change safety on current synchronized main; continue #5 later only if a further locally actionable production operation gap exists. Keep issue #5 OPEN/PARTIAL.",
-    "integration_commit": "96e2c92fcae184e79b7d397f4cc1ced275afa051"
+    "candidate": "0082a651ae7a5aa5a7be4c5dfe593b3bca61815e",
+    "evidence": "docs/evidence/2026-10-06-source-change-safety.json",
+    "next_action": "Leave issue #8 OPEN/PARTIAL. Select P0 issue #9 / MJ-REQ-008 progress journal; check crash-resume acceptance and scope local evidence without claiming host-restart proof."
   },
   "historical_control_snapshots": [
     {
@@ -6503,5 +6574,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-06T14:32:22Z"
+  "updated_at": "2026-10-06T14:40:00Z"
 }

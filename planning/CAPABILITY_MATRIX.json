@@ -75,9 +75,12 @@
     },
     {
       "requirement_id": "MJ-REQ-007",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-06-source-change-safety.json",
+        "docs/evidence/2026-09-30-pr004-backup-restore-local.json"
+      ],
+      "note": "Healthy Git path and worktree preservation are verified at synchronized main; conditional no-Git manifest is NOT_APPLICABLE in this checkout. Synthetic migration and archive-integrity tests pass; database/document restore has prior isolated receipts. Protected configuration migration recovery remains unverified, so MJ-REQ-007 stays PARTIAL/OPEN."
     },
     {
       "requirement_id": "MJ-REQ-008",
