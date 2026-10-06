@@ -1,7 +1,11 @@
 """Uploaded originals remain unreviewed and immutable during comparison."""
 from io import BytesIO
+import asyncio
+import inspect
+import threading
+import time
 import unittest
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 from docx import Document
 from fastapi.testclient import TestClient
 from sqlalchemy import update
@@ -84,6 +88,36 @@ class UploadedResumeComparisonTests(unittest.TestCase):
             response=client.get(url,params={'base_revision_id':upload['revision_id'],'tailored_document_id':target['id']})
             self.assertEqual(response.status_code,409)
             self.assertNotIn('Changed private bytes',response.text)
+
+    def test_disconnected_uploaded_comparison_cancels_extraction_without_profile_mutation(self):
+        app,target=self.target();upload=self.upload();before=self.store.profile('fixture')
+        application=self.store.application(app)
+        endpoint=f"/profiles/{{profile_id}}/applications/{{application_id}}/uploaded-resume-comparison"
+        api=create_app(self.store,'http://127.0.0.1:1',self.root,operation_mode='FIXTURE')
+        route=next(route for route in api.routes if getattr(route,'path',None)==endpoint)
+        self.assertTrue(inspect.iscoroutinefunction(route.endpoint))
+        request=type('RequestProbe',(),{})()
+        request.is_disconnected=AsyncMock(side_effect=[False,True])
+        observed=threading.Event()
+
+        def wait_for_cancel(*args):
+            cancellation_event=args[-1]
+            deadline=time.monotonic()+2
+            while not cancellation_event.is_set() and time.monotonic()<deadline:
+                time.sleep(0.005)
+            if cancellation_event.is_set():
+                observed.set()
+                from services.career_profile.extraction import ResumeExtractionCancelled
+                raise ResumeExtractionCancelled()
+            raise AssertionError('client disconnect was not propagated to uploaded-resume comparison')
+
+        with patch('services.documents.uploaded_comparison.compare_uploaded_resume',side_effect=wait_for_cancel):
+            response=asyncio.run(route.endpoint(
+                'fixture',app,upload['revision_id'],target['id'],request))
+        self.assertEqual(response.status_code,499)
+        self.assertTrue(observed.is_set())
+        self.assertEqual(self.store.profile('fixture'),before)
+        self.assertEqual(self.store.application(app),application)
 
     def test_combined_approved_skill_list_and_bullet_markers_do_not_create_false_omissions(self):
         app,target=self.target();upload=self.upload()

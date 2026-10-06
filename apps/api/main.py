@@ -319,6 +319,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     app = FastAPI(title="MJobs", description="Local job discovery, factual preparation and tracking. External submission disabled.")
     app.state.resume_extraction_events = {}
     app.state.resume_extraction_lock = threading.Lock()
+    app.state.uploaded_comparison_events = {}
+    app.state.uploaded_comparison_lock = threading.Lock()
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost", "api", "testserver"])
 
     @app.middleware("http")
@@ -843,15 +845,60 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             raise HTTPException(409, str(error)) from error
 
     @app.get('/profiles/{profile_id}/applications/{application_id}/uploaded-resume-comparison')
-    def uploaded_resume_comparison(profile_id: str, application_id: str, base_revision_id: str, tailored_document_id: str):
+    async def uploaded_resume_comparison(profile_id: str, application_id: str, base_revision_id: str,
+                                         tailored_document_id: str, request: Request):
         from services.documents.uploaded_comparison import compare_uploaded_resume
         from services.documents.comparison import ComparisonUnavailable
         if store.application(application_id)["profile_id"] != profile_id:
             raise NoResultFound("Application is not owned by this profile")
+        cancelled = threading.Event()
+        key = (profile_id, application_id, base_revision_id, tailored_document_id)
+        with app.state.uploaded_comparison_lock:
+            app.state.uploaded_comparison_events.setdefault(key, set()).add(cancelled)
+        work = asyncio.create_task(asyncio.to_thread(
+            compare_uploaded_resume, store, output_dir, application_id, base_revision_id,
+            tailored_document_id, cancelled))
         try:
-            return compare_uploaded_resume(store,output_dir,application_id,base_revision_id,tailored_document_id)
+            while not work.done():
+                if await request.is_disconnected():
+                    cancelled.set()
+                    try:
+                        await work
+                    except ResumeExtractionCancelled:
+                        pass
+                    return JSONResponse({"detail": "Uploaded resume comparison cancelled."}, status_code=499)
+                await asyncio.sleep(0.05)
+            return await work
+        except ResumeExtractionCancelled:
+            return JSONResponse({"detail": "Uploaded resume comparison cancelled."}, status_code=499)
         except ComparisonUnavailable as error:
             raise HTTPException(409,str(error)) from error
+        except asyncio.CancelledError:
+            cancelled.set()
+            try:
+                await asyncio.shield(work)
+            except BaseException:
+                pass
+            raise
+        finally:
+            with app.state.uploaded_comparison_lock:
+                events = app.state.uploaded_comparison_events.get(key)
+                if events is not None:
+                    events.discard(cancelled)
+                    if not events:
+                        app.state.uploaded_comparison_events.pop(key, None)
+
+    @app.post('/profiles/{profile_id}/applications/{application_id}/uploaded-resume-comparison/cancel')
+    def cancel_uploaded_resume_comparison(profile_id: str, application_id: str,
+                                          base_revision_id: str, tailored_document_id: str):
+        if store.application(application_id)["profile_id"] != profile_id:
+            raise NoResultFound("Application is not owned by this profile")
+        key = (profile_id, application_id, base_revision_id, tailored_document_id)
+        with app.state.uploaded_comparison_lock:
+            events = tuple(app.state.uploaded_comparison_events.get(key, ()))
+        for cancelled in events:
+            cancelled.set()
+        return {"cancelled": bool(events)}
 
     def serve_document(document, format):
         document = dict(document)

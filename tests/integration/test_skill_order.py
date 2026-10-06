@@ -44,7 +44,9 @@ class SkillOrderIntegrationTests(unittest.TestCase):
             self.assertEqual(resume['fact_ids'],['python','role','duty','sql'])
             self.assertEqual(resume['generation_context']['job_skills'],['Python'])
             self.assertEqual(resume['generation_context']['original_fact_ids'],['sql','role','duty','python'])
-            self.assertEqual(resume['generation_model'],'deterministic-skill-order-v3')
+            self.assertEqual((resume['template'],resume['generation_model']),
+                             ('approved-skill-and-bullet-emphasis-v2',
+                              'deterministic-skill-and-bullet-emphasis-v1'))
             self.assertEqual([r for r in rows if r['version']==1],original)
             for fmt in ('txt','docx','pdf'):
                 self.assertEqual(client.get(f"/profiles/fixture/documents/{resume['id']}/{fmt}").status_code,200)

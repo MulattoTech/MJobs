@@ -17,6 +17,7 @@ from packages.persistence import models as m
 from packages.persistence.store import Store
 from services.discovery.pipeline import discover
 from services.documents.generate import prepare
+from services.documents.history import application_documents
 from services.documents.uploads import save_resume
 from tests.integration.test_spine import PROFILE
 from workers.tasks import execute_operation
@@ -97,6 +98,27 @@ class SkillOrderBrowserTests(unittest.TestCase):
                     with page.expect_download() as original_download:
                         provenance.get_by_role('link',name='Download compared original',exact=True).click()
                     self.assertEqual(Path(original_download.value.path()).read_bytes(),original)
+                    application_id=store.applications('fixture')[0]['id']
+                    profile_before_cancel=store.profile('fixture');history_before_cancel=application_documents(store,application_id)
+                    comparison_started=threading.Event();comparison_cancelled=threading.Event()
+
+                    def wait_for_comparison_cancel(data,format,cancellation_event):
+                        comparison_started.set();deadline=time.monotonic()+5
+                        while not cancellation_event.is_set() and time.monotonic()<deadline:time.sleep(.005)
+                        if cancellation_event.is_set():
+                            comparison_cancelled.set()
+                            from services.career_profile.extraction import ResumeExtractionCancelled
+                            raise ResumeExtractionCancelled()
+                        raise AssertionError('comparison abort was not propagated into resume extraction')
+
+                    with patch('services.documents.uploaded_comparison.extract_resume_text',side_effect=wait_for_comparison_cancel):
+                        comparison.get_by_role('button',name='Compare selected resumes',exact=True).click()
+                        self.assertTrue(comparison_started.wait(5),'uploaded comparison did not start extraction')
+                        comparison.get_by_role('button',name='Cancel comparison',exact=True).click()
+                        expect(comparison.get_by_role('alert')).to_contain_text('Comparison cancelled.')
+                    self.assertTrue(comparison_cancelled.wait(5),'browser cancellation did not stop extraction work')
+                    self.assertEqual(store.profile('fixture'),profile_before_cancel)
+                    self.assertEqual(application_documents(store,application_id),history_before_cancel)
                     before=store.profile('fixture')
                     page.get_by_role('navigation').get_by_role('button',name='Jobs',exact=False).click()
                     page.get_by_role('button').filter(has=page.get_by_role('heading',name=job['title'],exact=True)).click()

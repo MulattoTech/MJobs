@@ -62,7 +62,8 @@ def _section_change(before,after,kinds,identifier,available):
     return [{'fact_id':identifier,'before':side(old),'after':side(new)}]
 
 
-def compare_uploaded_resume(store,output_dir,application_id,base_revision_id,tailored_document_id):
+def compare_uploaded_resume(store,output_dir,application_id,base_revision_id,tailored_document_id,
+                            cancellation_event=None):
     application=store.application(application_id)
     rows={row['id']:row for row in application_documents(store,application_id)}
     target=rows.get(tailored_document_id);context=tailored_context(target)
@@ -74,7 +75,7 @@ def compare_uploaded_resume(store,output_dir,application_id,base_revision_id,tai
         raise ComparisonUnavailable('Choose an uploaded base resume revision owned by this application profile')
     try:
         upload,data=read_resume(store,output_dir,application['profile_id'],revision['upload_id'])
-        extraction=extract_resume_text(data,upload['format'])
+        extraction=extract_resume_text(data,upload['format'],cancellation_event)
     except (UploadIntegrityError,NoResultFound,ValueError,OSError) as error:
         raise ComparisonUnavailable('Original uploaded resume is unavailable or failed its integrity/extraction checks') from error
     if extraction['status']!='READY_FOR_REVIEW':
