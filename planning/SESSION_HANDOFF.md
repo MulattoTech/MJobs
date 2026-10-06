@@ -1,5 +1,13 @@
 # Active local-only implementation checkpoint — 2026-10-06
 
+GitHub/local `main` are synchronized at `d953bc55a80b9f0c3ed5986b1f42fbc3fe439a87`. Actions remain disabled, no PRs are open, and `main` is unprotected. Issue #10 / MJ-REQ-009 is CLOSED after full local staged-operation evidence/readback at https://github.com/MulattoTech/MJobs/issues/10#issuecomment-6018916813. Issue #8 / MJ-REQ-007 and #9 / MJ-REQ-008 remain OPEN/PARTIAL; P0 external/host recovery blockers remain explicit.
+
+Next selected core-document gap: issue #96 / MJ-REQ-095 Resume Tailoring Engine. Current tailoring selects, orders and emphasizes approved facts; broader summary adjustment and factual rephrasing remain incomplete. A deterministic exact-approved-fact summary/emphasis design has been presented; no feature files have been changed while its design choice is pending. External submission remains OFF, hosted checks/reviews NOT_RUN.
+
+---
+
+# Active local-only implementation checkpoint — 2026-10-06
+
 Current main before this evidence checkpoint: `cbaf2323a24fd57798703a700b879869c3731365`. Actions remain disabled, no PRs are open, and main is unprotected. Issues #8 / MJ-REQ-007 and #9 / MJ-REQ-008 remain OPEN/PARTIAL for configuration migration recovery and physical/container interruption proof.
 
 Issue #10 / MJ-REQ-009 staged local acceptance now PASS at exact source `cbaf2323a24fd57798703a700b879869c3731365`. Thirty unit/integration/browser tests passed; isolated fixture Compose built and reached readiness; a controlled public Greenhouse read returned 19 jobs with external submission OFF and zero application requests; synthetic Chromium dry run stopped before submit. Only the task-created fixture project was stopped; the existing PERSONAL stack stayed running. Evidence: `docs/evidence/2026-10-06-staged-local-operation.json`. Real application submission remains optional/OFF; hosted/cloud release remains NOT_RUN. Close issue #10 only after exact GitHub readback, then continue to the next dependency-ready P0 issue.

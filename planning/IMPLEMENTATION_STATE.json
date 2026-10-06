@@ -7,11 +7,11 @@
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Local main, origin/main and single implementation worktree synchronized at cbaf2323a24fd57798703a700b879869c3731365 after issue #9 resume CLI integration.",
-    "current_verified_github_state": "GitHub and local main synchronized at cbaf2323a24fd57798703a700b879869c3731365; Actions disabled, main unprotected, no open PR. Issue #9 OPEN/PARTIAL after evidence readback https://github.com/MulattoTech/MJobs/issues/9#issuecomment-6018759931.",
-    "current_verified_at": "2026-10-06T14:44:02Z"
+    "current_verified_local_state": "Local main, origin/main and implementation worktree synchronized at d953bc55a80b9f0c3ed5986b1f42fbc3fe439a87; issue #10 / MJ-REQ-009 locally PASS and GitHub CLOSED after exact evidence readback.",
+    "current_verified_github_state": "GitHub/local main synchronized at d953bc55a80b9f0c3ed5986b1f42fbc3fe439a87; issue #10 CLOSED after https://github.com/MulattoTech/MJobs/issues/10#issuecomment-6018916813; Actions disabled, no open PR, main unprotected.",
+    "current_verified_at": "2026-10-06T14:52:24Z"
   },
-  "current_milestone": "MJ-REQ-009-STAGED-LOCAL-OPERATION-20261006",
+  "current_milestone": "MJ-REQ-009-STAGED-LOCAL-OPERATION-CLOSED-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -313,12 +313,12 @@
     "MJ-REQ-004 candidate 3d604b27b1a4c25e2ff0ee6fa68a07e9ff8f74a0: full suite initially saw stale ignored apps/web/dist; rebuilding restored current Sources UI and isolated browser acceptance. A first rebuilt full run later hit the known intermittent CompanyDiscoveryRequestsBrowserTests server-thread shutdown assertion; isolated case and all 35 browser tests passed, followed by a same-head 680-test full suite pass. Do not weaken shutdown timeout; evidence docs/evidence/2026-10-06-bounded-ocr-diagnostics.json."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-06T14:51:35Z",
+    "timestamp": "2026-10-06T14:52:24Z",
     "result": "PASS",
     "source_commit": "cbaf2323a24fd57798703a700b879869c3731365",
-    "scope": "MJ-REQ-009 local staged development, fixture dry-run, controlled public read and isolated Compose deployment pass; real submission remains optional and OFF.",
+    "scope": "MJ-REQ-009 staged local workflow passed; integrated on main and issue #10 closed after complete local acceptance readback.",
     "evidence_path": "docs/evidence/2026-10-06-staged-local-operation.json",
-    "integration_commit": "cbaf2323a24fd57798703a700b879869c3731365"
+    "integration_commit": "d953bc55a80b9f0c3ed5986b1f42fbc3fe439a87"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -5452,11 +5452,47 @@
         "git_commit": "cbaf2323a24fd57798703a700b879869c3731365",
         "evidence_path": "docs/evidence/2026-10-06-staged-local-operation.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-009-STAGED-OPERATION-CLOSED-20261006",
+      "timestamp": "2026-10-06T15:06:41Z",
+      "current_phase": "MJ-REQ-009_LOCAL_STAGED_ACCEPTANCE_PASS_CLOSED",
+      "completed_steps": [
+        "Integrated local staged-operation evidence at d953bc55a80b9f0c3ed5986b1f42fbc3fe439a87.",
+        "Posted exact acceptance evidence to issue #10 and read back its OPEN state before closure.",
+        "Closed issue #10 after verifying the optional external-submission stage remained OFF and all required local staged stages passed.",
+        "Read back issue #10 CLOSED at issuecomment-6018916813; issue #9 remains OPEN/PARTIAL."
+      ],
+      "files_added": [],
+      "files_modified": [
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "No source changes in this closeout receipt; prior exact-source 30-test, isolated fixture Docker build/readiness and live public GET evidence remains docs/evidence/2026-10-06-staged-local-operation.json.",
+        "Progress journal, catalogue and diff validations will run on this receipt."
+      ],
+      "tests_remaining": [
+        "Resume-tailoring implementation remains design review pending."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "GitHub issue #10 evidence readback and closure; no further product/provider requests."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "Issue #8/#9 remain partial for protected configuration/physical restart evidence; external AI/real ATS and hosted checks remain unavailable/not run."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "d953bc55a80b9f0c3ed5986b1f42fbc3fe439a87",
+        "evidence_path": "docs/evidence/2026-10-06-staged-local-operation.json"
+      }
     }
   ],
-  "current_phase": "MJ-REQ-009_LOCAL_STAGED_ACCEPTANCE_PASS_PENDING_READBACK",
+  "current_phase": "MJ-REQ-009_LOCAL_STAGED_ACCEPTANCE_PASS_CLOSED",
   "last_safe_checkpoint": {
-    "git_commit": "cbaf2323a24fd57798703a700b879869c3731365",
+    "git_commit": "d953bc55a80b9f0c3ed5986b1f42fbc3fe439a87",
     "evidence_path": "docs/evidence/2026-10-06-staged-local-operation.json"
   },
   "live_integrations_tested": [
@@ -5596,16 +5632,16 @@
     "next_issue": 8
   },
   "active_development_issue": {
-    "issue": 10,
-    "requirement_id": "MJ-REQ-009",
-    "title": "Separate Development From Production Operation",
-    "state": "LOCAL_ACCEPTANCE_PASS_PENDING_GITHUB_READBACK",
-    "selection_reason": "Current-source local staged operation completed through isolated fixture deployment; no real application submission was performed.",
-    "base": "cbaf2323a24fd57798703a700b879869c3731365",
+    "issue": 96,
+    "requirement_id": "MJ-REQ-095",
+    "title": "Resume Tailoring Engine",
+    "state": "DESIGN_REVIEW_PENDING",
+    "selection_reason": "First open core-document gap after local P0 rows were completed or classified as externally/host blocked: approved-fact summary adjustment and factual bullet tailoring are incomplete.",
+    "base": "d953bc55a80b9f0c3ed5986b1f42fbc3fe439a87",
     "branch": "codex/req004-ops-audit-20261006",
-    "candidate": "cbaf2323a24fd57798703a700b879869c3731365",
+    "candidate": "d953bc55a80b9f0c3ed5986b1f42fbc3fe439a87",
     "evidence": "docs/evidence/2026-10-06-staged-local-operation.json",
-    "next_action": "Commit/push/integrate evidence and close issue #10 only after GitHub acceptance readback; then select the next highest-value dependency-ready P0 requirement."
+    "next_action": "Await choice on deterministic approved-fact summary and bullet-emphasis design; do not write feature code before the design decision."
   },
   "historical_control_snapshots": [
     {
@@ -6732,5 +6768,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-06T14:51:35Z"
+  "updated_at": "2026-10-06T15:06:41Z"
 }
