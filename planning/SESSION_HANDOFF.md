@@ -1,3 +1,9 @@
+# Integration receipt — 2026-10-06
+
+Remotive global job-source adapter source `8b489a05ec5da67184ff5f0c4bbce517f63116df` and evidence/planning were integrated by non-force fast-forward at synchronized local/GitHub main. Issue #309 (MJ-REQ-017.S08) PASS; parent MJ-REQ-017 remains PARTIAL/OPEN. Evidence `docs/evidence/2026-10-06-remotive-job-source-adapter.json`. Seven focused Remotive integration tests, 36 discovery source tests, 316 unit tests, 62 frontend tests, Vite build, and all repository validators passed. Continue to next dependency-ready slice; hosted verification NOT_RUN, external submission OFF.
+
+---
+
 # Active local-only implementation checkpoint — 2026-10-06
 
 Issue #309 / MJ-REQ-017.S08 Remotive global job-source adapter candidate branch `antigravity/mj-pr-087-remotive-adapter-20261006`, based on `c7656bbecec61e2d037bc57869fad4e1ee8f43d4`. Remotive implemented with public JSON collection, multi-company attribution, search semantics normalization, rate-limit/error handling, and registry integration. Evidence `docs/evidence/2026-10-06-remotive-job-source-adapter.json`. Seven focused integration tests, 36 discovery source tests, 316 unit tests, 62 frontend tests, Vite build, and all repository validators pass. Parent MJ-REQ-017 remains PARTIAL/OPEN. External submission OFF; hosted Actions/reviews NOT_RUN.
