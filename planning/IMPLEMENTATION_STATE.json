@@ -11,7 +11,7 @@
     "current_verified_github_state": "GitHub/local main synchronized at 8b489a05ec5da67184ff5f0c4bbce517f63116df; issue #309 PASS, parent MJ-REQ-017 OPEN/PARTIAL; Actions disabled, no open PR, main unprotected.",
     "current_verified_at": "2026-10-06T19:00:00Z"
   },
-  "current_milestone": "MJ-REQ-109-TASK-CONFIGURATION-LOCAL-VERIFIED-20261006",
+  "current_milestone": "MJ-REQ-109-TASK-CONFIG-RECONCILED-MAIN-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -268,7 +268,8 @@
     "MJ-REQ-004 mock ATS HTTP check propagation candidate f4cf42c34682be815b0306e693fb57f0ee911dca: focused mock ATS suite 13 PASS, stalled/bounded client tests 2 PASS, browser directory 37 PASS, build PASS; evidence docs/evidence/2026-10-06-mock-ats-http-cancellation.json.",
     "MJ-REQ-108.A06: 2 focused provider contract tests PASS; full unit suite 318 PASS; agent_skills, catalogue and git diff checks PASS (docs/evidence/2026-10-06-disabled-ai-provider.json).",
     "Integrated main 9e340924878484ba257097a5088d83ab10000b3a: focused MJ-REQ-108.A06 contract tests 2 PASS; complete candidate unit suite 318 PASS; progress/catalogue/agent-skill validators PASS.",
-    "MJ-REQ-109 candidate 49f4769: 8 focused AI contract tests and 324 full unit tests PASS; compile, catalogue, progress and agent-skill validation PASS (docs/evidence/2026-10-06-ai-task-configuration.json)."
+    "MJ-REQ-109 candidate 49f4769: 8 focused AI contract tests and 324 full unit tests PASS; compile, catalogue, progress and agent-skill validation PASS (docs/evidence/2026-10-06-ai-task-configuration.json).",
+    "After merging current main b662979: Remotive integration and AI task routing focused tests 15 PASS; complete unit suite 324 PASS; progress/catalogue validation PASS (docs/evidence/2026-10-06-ai-task-configuration.json)."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -336,11 +337,11 @@
     "MJ-REQ-004 candidate 3d604b27b1a4c25e2ff0ee6fa68a07e9ff8f74a0: full suite initially saw stale ignored apps/web/dist; rebuilding restored current Sources UI and isolated browser acceptance. A first rebuilt full run later hit the known intermittent CompanyDiscoveryRequestsBrowserTests server-thread shutdown assertion; isolated case and all 35 browser tests passed, followed by a same-head 680-test full suite pass. Do not weaken shutdown timeout; evidence docs/evidence/2026-10-06-bounded-ocr-diagnostics.json."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-06T19:00:16Z",
+    "timestamp": "2026-10-06T19:03:46Z",
     "result": "PARTIAL",
     "source_commit": "49f4769df3b06e413c25b3ab9a2282db74369e5b",
     "source_tree": "3ea9fcd55130585c12e00cf13fe74f9e6f69359b",
-    "scope": "MJ-REQ-109 seven-task in-process routing is locally verified; persisted settings and production consumer wiring remain incomplete.",
+    "scope": "MJ-REQ-109 task/model routing is locally verified; persisted settings and production consumer wiring remain incomplete.",
     "evidence_path": "docs/evidence/2026-10-06-ai-task-configuration.json",
     "integration_commit": null
   },
@@ -409,7 +410,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Reconcile and safely integrate the MJ-REQ-109 candidate while preserving issue #110 OPEN/PARTIAL, then choose the next highest-value dependency-ready queue slice that does not overlap Antigravity source adapter files.",
+  "recommended_resume_step": "Push and integrate the locally verified MJ-REQ-109 task-config candidate only after exact current-main checks, update issue #110 as OPEN/PARTIAL, then choose the next dependency-ready slice without colliding with another active writer.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -6276,11 +6277,54 @@
         "git_commit": "49f4769df3b06e413c25b3ab9a2282db74369e5b",
         "evidence_path": "docs/evidence/2026-10-06-ai-task-configuration.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-109-TASK-CONFIG-RECONCILED-MAIN-20261006",
+      "timestamp": "2026-10-06T19:03:46Z",
+      "current_phase": "MJ-REQ-109 candidate reconciled with current main b662979; merged-source regression checks pass; integration push pending",
+      "completed_steps": [
+        "Observed Antigravity integration advance main from c7656bb to b662979 and stopped the stale-base integration",
+        "Compared changed paths; overlap was limited to shared planning files, with no services/ai source conflict",
+        "Merged current origin/main into the isolated task-config branch and resolved only current_milestone/updated_at by timestamp order",
+        "Ran the Remotive synthetic integration tests with AI routing tests on the merged candidate",
+        "Reran all 324 unit tests on the merged candidate; progress and catalogue validators pass"
+      ],
+      "files_added": [],
+      "files_modified": [
+        "docs/evidence/2026-10-06-ai-task-configuration.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Remotive integration plus AI focused tests: 15 PASS",
+        "Complete unit suite after merging current main: 324 PASS",
+        "Progress journal validation: PASS",
+        "Catalogue validation: PASS",
+        "git diff --check: PASS"
+      ],
+      "tests_remaining": [
+        "Commit evidence/planning after current-main reconciliation",
+        "Push candidate and integrate only if exact remote main remains b662979 or is otherwise reconciled",
+        "Update issue #110 as OPEN/PARTIAL; hosted checks remain NOT_RUN"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "MJ-REQ-109 remains PARTIAL: no persisted settings UI or production consumer; remote providers are not implemented.",
+        "Antigravity Remotive slice is now in current main; its integration is covered by 7 local synthetic adapter tests here."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "03a224ce86708f55135dabf9a1c0aaa89a735897",
+        "evidence_path": "docs/evidence/2026-10-06-ai-task-configuration.json"
+      }
     }
   ],
-  "current_phase": "MJ-REQ-109 task routing locally verified at candidate 49f4769; persistence/consumer acceptance remains PARTIAL; integration pending",
+  "current_phase": "MJ-REQ-109 candidate reconciled with current main b662979; merged-source regression checks pass; integration push pending",
   "last_safe_checkpoint": {
-    "git_commit": "49f4769df3b06e413c25b3ab9a2282db74369e5b",
+    "git_commit": "03a224ce86708f55135dabf9a1c0aaa89a735897",
     "evidence_path": "docs/evidence/2026-10-06-ai-task-configuration.json"
   },
   "live_integrations_tested": [
@@ -6423,12 +6467,13 @@
     "requirement_id": "MJ-REQ-109",
     "title": "AI Task Configuration",
     "state": "PARTIAL_SLICE_VERIFIED_PENDING_MAIN",
-    "selection_reason": "Shared task-to-model routing prerequisite under dependency-ready MJ-PR-030; paid calls are not required to validate deterministic configuration.",
-    "base": "c7656bbecec61e2d037bc57869fad4e1ee8f43d4",
+    "selection_reason": "Shared task-to-model routing prerequisite under dependency-ready MJ-PR-030; no provider calls are required for deterministic configuration validation.",
+    "base": "b66297964ab6cc8e36cff4c8c5e46e61ab573715",
     "branch": "codex/mj-req109-task-config-20261006",
-    "candidate": "49f4769df3b06e413c25b3ab9a2282db74369e5b",
+    "candidate": "03a224ce86708f55135dabf9a1c0aaa89a735897",
+    "source_commit": "49f4769df3b06e413c25b3ab9a2282db74369e5b",
     "evidence": "docs/evidence/2026-10-06-ai-task-configuration.json",
-    "next_action": "Rerun focused tests against the committed source, validate planning, then recheck current main and parallel worktree ownership before push/fast-forward. Keep issue #110 OPEN/PARTIAL until consumer wiring is complete."
+    "next_action": "Verify exact current main remains an ancestor, push reconciled branch, integrate safely, and post OPEN/PARTIAL evidence to issue #110. Continue to the next dependency-ready issue afterward."
   },
   "historical_control_snapshots": [
     {
@@ -7562,5 +7607,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-06T19:00:16Z"
+  "updated_at": "2026-10-06T19:03:46Z"
 }
