@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-05T18:29:25Z",
+  "timestamp": "2026-10-06T02:59:16Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -850,9 +850,10 @@
         "docs/evidence/2026-09-29-mock-spine.md",
         "docs/evidence/2026-09-30-user-testing.md",
         "docs/evidence/2026-10-04-document-validation.json",
-        "docs/evidence/2026-10-04-document-validation-exact-head-ci.json"
+        "docs/evidence/2026-10-04-document-validation-exact-head-ci.json",
+        "docs/evidence/2026-10-06-avoid-list.json"
       ],
-      "note": "PR494 exact-head push/PR workflows,14 artifacts and both app-image assertion/Unicode steps PASS. Unsupported scripts fail explicitly; historical bytes preserved. Issues97/99 closed with receipts."
+      "note": "PR494 exact-head push/PR workflows,14 artifacts and both app-image assertion/Unicode steps PASS. Unsupported scripts fail explicitly; historical bytes preserved. Issues97/99 closed with receipts. Scoped MJ-REF-003 extension: whole-term avoid validation also blocks forbidden terms in newly generated factual document output and preserves prior revisions. Full requirement status is unchanged."
     },
     {
       "requirement_id": "MJ-REQ-097",
@@ -940,9 +941,10 @@
       "requirement_id": "MJ-REQ-106",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-05-reviewed-application-answers.json"
+        "docs/evidence/2026-10-05-reviewed-application-answers.json",
+        "docs/evidence/2026-10-06-avoid-list.json"
       ],
-      "note": "Question-aware, versioned answer review and application-linked export merged in PR #511 at fb8ab73. Exact candidate 22d9a36 had passing independent review, push 37307763776 and pull_request 37307771220 Verification, nine PASS reports per artifact, and matching GitHub artifact digests. These requirements remain PARTIAL for fuzzy/semantic matching, configurable confidence, full sensitive/legal controls, and durable unexported drafts."
+      "note": "Question-aware, versioned answer review and application-linked export merged in PR #511 at fb8ab73. Exact candidate 22d9a36 had passing independent review, push 37307763776 and pull_request 37307771220 Verification, nine PASS reports per artifact, and matching GitHub artifact digests. These requirements remain PARTIAL for fuzzy/semantic matching, configurable confidence, full sensitive/legal controls, and durable unexported drafts. Scoped MJ-REF-003 extension: current profile avoid terms block reviewed application-answer exports and historical conflicting export downloads. Full requirement remains PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-107",
@@ -973,8 +975,10 @@
     {
       "requirement_id": "MJ-REQ-111",
       "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "evidence": [
+        "docs/evidence/2026-10-06-avoid-list.json"
+      ],
+      "note": "Not implemented or verified in current milestones Scoped MJ-REF-003 post-generation exclusion behavior verified for local documents and answers; this does not implement or pass the full requirement."
     },
     {
       "requirement_id": "MJ-REQ-112",

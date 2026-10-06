@@ -1,0 +1,105 @@
+{
+  "evidence_id": "MJ-REF-003-LOCAL-AVOID-LIST",
+  "recorded_at": "2026-10-06T02:59:16Z",
+  "result": "PASS",
+  "scope": "Profile-scoped, Unicode-aware whole-term exclusion for generated resumes, cover letters and reviewed application answer exports, including historical output use gates",
+  "authority": {
+    "repository": "MulattoTech/MJobs",
+    "issue": 373,
+    "reference_gap_id": "MJ-REF-003",
+    "base_main": "196ee414c21d01d517bf792063604e6d84f1d333",
+    "base_tree": "b003cbc5a3e2e9abdc8fcb2c3cd842b9f5cb4223",
+    "source_branch": "codex/mj-ref-003-avoid-list-20261006",
+    "source_candidate": "b6f2238c7ea1e55c5f5b9f7ef1902bd929cb0124",
+    "source_tree": "a565d47ca2df78c7216c87a79c30703e3da26e1a"
+  },
+  "source_sha256": {
+    "apps/api/main.py": "eb50741fc995e99eaf13fd4fb7148b8a7608546ac6913e90a99f6a77c6cd7b6a",
+    "apps/web/src/api.ts": "a3db146dae48542c1148905a7ff3c0573ebb8377b1160b61b881a744749dc486",
+    "apps/web/src/document-history.tsx": "f92f9ac69c58d8a47aa5a0dc3303e715b6f0b594cf982de33daf141928eac61c",
+    "apps/web/src/main.tsx": "42a6e657c1232de3b68969983a2c591ed79fe976f9f926d50ca656e44f153900",
+    "packages/domain/profile.py": "2d07d7740009813dce9741a195882adf1213f3c0c9c90423ac692b69088ca874",
+    "packages/persistence/store.py": "65e824da051c185540a542a225967e45cd78e474e66c4705904819c762789715",
+    "services/applications/mock_adapter.py": "6a15559ddcacee224b33dd6337d437e5e858ef014a2584a55f2a5e39e5b2a7a8",
+    "services/career_profile/AREA.md": "a83c52474848868283e09b142c22e80b22dfebd3ac7eb459c6a64f8ce354472f",
+    "services/documents/AREA.md": "2d24769cb64c1a6395d2862ac6b63a653df58fb4f3b036e0a40f7c2b476c24c4",
+    "services/documents/answers.py": "9a2a489895885f2e9fadb6c01ee24381652795f53b84bd6de2e3c7a1546b02a8",
+    "services/documents/avoid_list.py": "7dd36d93db2170fd1406c0ce50e50415b4b63c4221036524850262f14478b608",
+    "services/documents/generate.py": "97a951b82868a8548bb6cd3ff435a7706732b866f90041964c37a52565daf24a",
+    "services/documents/history.py": "a06a2689d26fd0c8296018ed5ed50bc363de65e45569aa6468994ab9d26c4c7c",
+    "tests/browser/test_application_answer_export.py": "7d14b9506abae81664b6e7e49cdfe5101c992d8c8cdab2f68762299d3c27ffa4",
+    "tests/integration/test_application_answer_export.py": "ff3fb5e0b581079890bdd89596f68ccc23ae993521693eeebddeec2b892c61f7",
+    "tests/integration/test_document_validation.py": "c0dd8a03ae1f5b130dc9650728e871ecb6da7ff9aa65d2779473b7a9c500a5b2",
+    "tests/unit/test_avoid_list.py": "b7c0a06d38399fdee4873ae9ccaf99bf6fa4c279838a8c1a90652d05d1793b95"
+  },
+  "observations": [
+    {
+      "timestamp_utc": "2026-10-06T02:59:16Z",
+      "action": "Run full local Python unit/integration/browser discovery",
+      "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py' -v",
+      "target": "Isolated issue worktree; synthetic SQLite fixtures and loopback-only browser cases",
+      "result": "PASS: 607 tests in 366.882 seconds; unittest completed OK."
+    },
+    {
+      "timestamp_utc": "2026-10-06T02:59:16Z",
+      "action": "Run focused avoid-list, document, answer, profile-isolation, adapter, history and browser regression set",
+      "command": "python -m unittest tests.unit.test_avoid_list tests.integration.test_document_validation tests.integration.test_application_answer_export tests.integration.test_cover_letter_workflow tests.integration.test_document_library tests.integration.test_spine tests.browser.test_application_answer_export tests.browser.test_document_history tests.browser.test_core_workflow_trial -v",
+      "target": "Temporary SQLite databases, synthetic profile/job content and loopback Chromium",
+      "result": "PASS: 41 tests in 68.014 seconds. New and previously generated output was blocked as appropriate; old bytes/history remained intact, preference edits rebound existing match snapshots without rescoring, and the mock adapter did not launch Chromium when current terms blocked its revision."
+    },
+    {
+      "timestamp_utc": "2026-10-06T02:59:16Z",
+      "action": "Build local web client",
+      "command": "npm ci --prefix apps/web; npm run build --prefix apps/web",
+      "target": "Isolated worktree frontend",
+      "result": "PASS: strict TypeScript check and Vite production build succeeded. Local Node v25.9.0 is outside Vitest's declared v22/v24/v26 engine range; npm reported one high-severity advisory. No dependency manifest or lockfile changed."
+    },
+    {
+      "timestamp_utc": "2026-10-06T02:59:16Z",
+      "action": "Run repository validators and candidate diff check",
+      "command": "..\\..\\.venv\\Scripts\\python.exe -m tools.verification.agent_skills; ..\\..\\.venv\\Scripts\\python.exe -m tools.verification.catalogue; ..\\..\\.venv\\Scripts\\python.exe -m tools.verification.progress validate; git diff --check",
+      "target": "Repository skills, canonical requirement/reference catalogs and candidate diff",
+      "result": "PASS: all validators and whitespace checks passed."
+    },
+    {
+      "timestamp_utc": "2026-10-06T02:59:16Z",
+      "action": "Record TDD red and corrected local browser attempts",
+      "command": "Initial tests.unit.test_avoid_list discovery before adding the validator; initial browser save before matching ignored avoid_terms; initial browser oracle expected the internal error code in the UI",
+      "target": "Synthetic unit and local browser tests",
+      "result": "EXPECTED RED: the new unit module was absent before implementation. Browser testing exposed unnecessary match rescoring on avoid-term edits; that preference is now excluded from matching projections. The UI intentionally shows only the safe term/path message, while the API retains AVOID_LIST_BLOCKED as a machine-readable code; the corrected browser oracle passes."
+    },
+    {
+      "timestamp_utc": "2026-10-06T02:59:16Z",
+      "action": "Check unavailable hosted and provider scope",
+      "command": "GitHub Actions, hosted tests/reviews, paid AI provider calls, Docker/PostgreSQL deployment and employer submission not invoked",
+      "target": "Current local-only policy and submission-off setting",
+      "result": "NOT_RUN by policy. External submission remained OFF; no AI provider was used."
+    }
+  ],
+  "verified_behavior": [
+    "Users configure up to 50 profile-scoped avoid terms, each at most 120 characters, from the Profile preferences UI; terms are trimmed, case-deduplicated and persisted in immutable profile versions without a schema migration.",
+    "Matching applies Unicode NFKC and casefold normalization with Unicode letter/number/mark/connector boundaries. Possessives and punctuation boundaries match; partial words and embedded identifier substrings do not.",
+    "New resumes, cover letters and reviewed application answers are checked before revision/export activation. A block identifies only the configured term and output path and does not include surrounding career or answer text.",
+    "Current avoid preferences also disable history/download access to prior conflicting revisions and block local mock-adapter use before browser launch; the application becomes REVIEW_REQUIRED and prior files/history remain intact.",
+    "Avoid preferences are not copied into generation contexts/audit payloads and do not trigger job-match rescoring; independently configured profiles enforce only their own terms.",
+    "The browser displays the safe block reason and leaves the answer export unpublished. External application submission remained OFF."
+  ],
+  "limitations": [
+    "This deterministic implementation does not add AI relevance scoring or prompts. Terms are evaluated locally after deterministic document/answer composition.",
+    "Local checks use SQLite and synthetic browser/server fixtures; production PostgreSQL/Docker and hosted checks were NOT_RUN under user policy.",
+    "MJ-REQ-096, MJ-REQ-106 and MJ-REQ-111 retain their existing capability states; this reference slice does not complete or shrink the original requirement denominator.",
+    "The local Node engine mismatch and dependency advisory are recorded; dependency files were not changed."
+  ],
+  "external_submission": "OFF",
+  "ai_provider": "NOT_USED",
+  "hosted_checks": "NOT_RUN_BY_USER_POLICY",
+  "integration_receipt": {
+    "status": "PENDING_SAFE_FAST_FORWARD",
+    "integration_method": "NON_FORCE_FAST_FORWARD_IF_MAIN_IS_ANCESTOR_AND_RULES_PERMIT",
+    "candidate_branch": "codex/mj-ref-003-avoid-list-20261006",
+    "candidate_source_commit": "b6f2238c7ea1e55c5f5b9f7ef1902bd929cb0124",
+    "protection_readback": "PENDING_FINAL_RECONCILIATION",
+    "actions_enabled": false,
+    "issue_373": "OPEN_PENDING_INTEGRATION_AND_ACCEPTANCE_READBACK"
+  }
+}

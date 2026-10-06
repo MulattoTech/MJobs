@@ -8,10 +8,10 @@
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
     "current_verified_local_state": "Primary checkout main and origin/main are synchronized at 6f61044e158336385e3ac481a21740f444db8cde after safe non-force fast-forward. The prior #387 worktree is clean at the integration commit; Codespaces checkout remains preserved.",
-    "current_verified_github_state": "GitHub and local main are synchronized at 8b49fd7e196b8913cae8937b1a50867b72c00c57. Issues #387 and #380 are closed after scoped evidence; Actions remain disabled, main unprotected and ruleset count zero. Issue #373 / MJ-REF-003 is selected as the next deterministic P1 privacy/truthfulness guard.",
-    "current_verified_at": "2026-10-06T02:40:25Z"
+    "current_verified_github_state": "GitHub main is 196ee414c21d01d517bf792063604e6d84f1d333. Issue #380 is closed with evidence; Actions remain disabled, main unprotected and ruleset count zero. Issue #373 has local candidate b6f2238c based directly on current main and awaits safe integration.",
+    "current_verified_at": "2026-10-06T02:59:16Z"
   },
-  "current_milestone": "MJ-REF-010-INTEGRATED-ISSUE-CLOSED-MJ-REF-003-SELECTED",
+  "current_milestone": "MJ-REF-003-LOCAL-AVOID-LIST-PASS-PENDING-SAFE-FF",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under the local-only delivery policy; one writer and one integration lane.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -310,7 +310,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Implement open issue #373 / MJ-REF-003 avoid-list from current main in the sole writer lane. Inspect how career facts/settings are persisted, then enforce configured terms in resume, cover-letter and reusable-answer output with whole-term matching and privacy-safe block reasons. Preserve current data and prove profile isolation/history before integrating.",
+  "recommended_resume_step": "Safely fast-forward locally verified issue #373 candidate b6f2238c and its exact local evidence from current main. Close issue #373 only after all five criteria and GitHub readback; then immediately continue with the next highest-value dependency-ready safety/privacy issue. Keep original requirements and release status separate.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -3937,12 +3937,80 @@
         "git_commit": "8b49fd7e196b8913cae8937b1a50867b72c00c57",
         "evidence_path": "docs/evidence/2026-10-06-claim-preservation.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REF-003-LOCAL-AVOID-LIST-20261006",
+      "timestamp": "2026-10-06T02:59:16Z",
+      "current_phase": "MJ-REF-003_LOCAL_PASS_PENDING_SAFE_FAST_FORWARD",
+      "completed_steps": [
+        "Added bounded profile-scoped avoid-term preferences and deterministic Unicode whole-term matching",
+        "Enforced blocks before resume, cover-letter and reviewed-answer export activation; current preferences gate prior revision downloads and local mock-adapter use",
+        "Added safe term/path reasons, history UI gating, profile isolation, possessive/Unicode/partial-word tests and no-rescore behavior",
+        "Ran 607 full local Python unit/integration/browser tests; focused 41-test set, web build and repository validators passed",
+        "Committed implementation as b6f2238c7ea1e55c5f5b9f7ef1902bd929cb0124 on issue-owned branch"
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-06-avoid-list.json",
+        "services/documents/avoid_list.py",
+        "tests/unit/test_avoid_list.py"
+      ],
+      "files_modified": [
+        "apps/api/main.py",
+        "apps/web/src/api.ts",
+        "apps/web/src/document-history.tsx",
+        "apps/web/src/main.tsx",
+        "packages/domain/profile.py",
+        "packages/persistence/store.py",
+        "services/applications/mock_adapter.py",
+        "services/career_profile/AREA.md",
+        "services/documents/AREA.md",
+        "services/documents/answers.py",
+        "services/documents/generate.py",
+        "services/documents/history.py",
+        "tests/browser/test_application_answer_export.py",
+        "tests/integration/test_application_answer_export.py",
+        "tests/integration/test_document_validation.py",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/REFERENCE_GAP_MATRIX.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Full local unit/integration/browser suite: 607 tests PASS in 366.882 seconds",
+        "Focused avoid-list, document, answer, history, profile, adapter and browser suite: 41 tests PASS in 68.014 seconds",
+        "Browser preference save and blocked reviewed-answer visible explanation PASS",
+        "Strict TypeScript check and Vite production build PASS",
+        "Agent-skill, catalogue, progress and whitespace validators PASS"
+      ],
+      "tests_remaining": [
+        "Reconcile latest GitHub main and verify local-only policy, branch protection/rulesets, Actions-off state and fast-forward ancestry",
+        "Push exact evidence checkpoint and integrate with authorized non-force fast-forward if safe",
+        "Read back all five issue #373 acceptance criteria and close only after issue-level evidence",
+        "Hosted tests/reviews and production PostgreSQL/Docker remain NOT_RUN by policy",
+        "Full original requirements and release acceptance remain separate and PARTIAL"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [
+        "Initial browser acceptance revealed avoid-term edits queued a match rescore and exceeded the UI wait; fixed by excluding avoid_terms from frontend/backend match-input projections. Initial browser oracle expected internal AVOID_LIST_BLOCKED code text in the UI; corrected to assert the intended safe term/path message.",
+        "One early profile-isolation fixture lacked a relevant cover-letter fact; synthetic fixture was corrected and all reruns passed."
+      ],
+      "known_limitations": [
+        "No hosted or production PostgreSQL/Docker acceptance under current policy",
+        "No AI provider used; local deterministic path consumes the term list only for post-composition checks and keeps it out of contexts/audits",
+        "Local npm warned about Node engine mismatch and one high-severity dependency advisory; dependency files unchanged",
+        "Original requirement statuses/denominator remain unchanged; full release acceptance remains PARTIAL"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "b6f2238c7ea1e55c5f5b9f7ef1902bd929cb0124",
+        "evidence_path": "docs/evidence/2026-10-06-avoid-list.json"
+      }
     }
   ],
-  "current_phase": "MJ-REF-010_INTEGRATED_ISSUE_CLOSED_MJ-REF-003_SELECTED",
+  "current_phase": "MJ-REF-003_LOCAL_PASS_PENDING_SAFE_FAST_FORWARD",
   "last_safe_checkpoint": {
-    "git_commit": "8b49fd7e196b8913cae8937b1a50867b72c00c57",
-    "evidence_path": "docs/evidence/2026-10-06-claim-preservation.json"
+    "git_commit": "b6f2238c7ea1e55c5f5b9f7ef1902bd929cb0124",
+    "evidence_path": "docs/evidence/2026-10-06-avoid-list.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
@@ -4052,25 +4120,28 @@
     }
   ],
   "live_reconciliation": {
-    "observed_at": "2026-10-06T02:40:25Z",
-    "github_main": "8b49fd7e196b8913cae8937b1a50867b72c00c57",
-    "local_main": "8b49fd7e196b8913cae8937b1a50867b72c00c57",
+    "observed_at": "2026-10-06T02:59:16Z",
+    "github_main": "196ee414c21d01d517bf792063604e6d84f1d333",
+    "candidate": "b6f2238c7ea1e55c5f5b9f7ef1902bd929cb0124",
+    "candidate_base": "196ee414c21d01d517bf792063604e6d84f1d333",
+    "candidate_is_fast_forward": "YES",
     "actions_enabled": false,
     "main_branch_protected": false,
     "repository_rulesets_count": 0,
-    "issue_380_state": "CLOSED",
     "issue_373_state": "OPEN",
-    "next_issue": 373
+    "integration": "PENDING_EVIDENCE_CHECKPOINT_PUSH"
   },
   "active_development_issue": {
     "issue": 373,
     "requirement_id": "MJ-REF-003",
     "title": "Enforced global avoid-list for generated career content",
-    "state": "OPEN_SELECTED_DEPENDENCY_READY",
-    "selection_reason": "P1 truthfulness/privacy guard immediately downstream of the shared claim-validation seam; deterministic post-generation whole-term blocking protects resumes, cover letters and reusable answer exports without provider dependencies.",
-    "base": "8b49fd7e196b8913cae8937b1a50867b72c00c57",
-    "branch": "pending isolated worktree creation",
-    "next_action": "Read the exact career-profile document spec and relevant answer/document generation code, then implement whole-term avoid-list storage, deterministic post-generation enforcement and adversarial cross-document tests."
+    "state": "OPEN_LOCALLY_IMPLEMENTED_PENDING_INTEGRATION",
+    "selection_reason": "P1 deterministic privacy/truthfulness guard across resumes, cover letters and reviewed answer exports; current preferences also gate historical output use without provider dependencies.",
+    "base": "196ee414c21d01d517bf792063604e6d84f1d333",
+    "branch": "codex/mj-ref-003-avoid-list-20261006",
+    "candidate": "b6f2238c7ea1e55c5f5b9f7ef1902bd929cb0124",
+    "evidence": "docs/evidence/2026-10-06-avoid-list.json",
+    "next_action": "Reconcile current GitHub main, Actions-off state, protection/rulesets and candidate ancestry; push exact evidence checkpoint and safely fast-forward if eligible; read back all issue criteria and close only after complete issue-level acceptance."
   },
   "historical_control_snapshots": [
     {
@@ -5176,7 +5247,7 @@
     "Historical PR #515 review of c069798 against base 3ec8702 had no findings at that checkpoint, but later reviews found and repaired test/evidence issues. Fresh review and exact-head hosted events/artifacts are pending.",
     "CORE-WORKFLOW-TRIAL PR #515 checkpoint 7151348d0b92cd9cb23784785190e0d17ab892b1: exact-head read-only review PASS; push Verification 37359494332 and pull_request Verification 37359772249 both BLOCKED_EXTERNAL before job startup by GitHub account billing/spending limit. No hosted runtime reports/artifacts or PR merge-tree result exist; #515 stays draft."
   ],
-  "ownership": "Issue #380 / MJ-REF-010 closed after its locally verified candidate c37d0908 and evidence checkpoint 8b49fd7 were integrated by non-force fast-forward. GitHub and local main are synchronized at 8b49fd7. Next sole writer is issue #373 / MJ-REF-003, not yet started. External submission OFF; Codespaces and private runtime/data preserved.",
+  "ownership": "One writer: issue #373 candidate b6f2238c in its isolated worktree. Full local suite, browser, build and repository validators pass. Candidate awaits safe integration. External submission OFF; Codespaces and private runtime/data preserved.",
   "delivery_policy": {
     "mode": "LOCAL_ONLY",
     "effective_at": "2026-10-05T21:32:10.763994+00:00",

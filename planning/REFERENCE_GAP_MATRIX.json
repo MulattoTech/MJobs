@@ -83,8 +83,10 @@
       "evidence": []
     },
     "MJ-REF-003": {
-      "result": "NOT_RUN",
-      "evidence": []
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-06-avoid-list.json"
+      ]
     },
     "MJ-REF-004": {
       "result": "NOT_RUN",
