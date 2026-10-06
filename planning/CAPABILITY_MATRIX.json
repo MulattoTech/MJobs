@@ -88,9 +88,10 @@
       "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-10-06-progress-resume-cli.json",
-        "docs/evidence/2026-09-30-progress-journal.json"
+        "docs/evidence/2026-09-30-progress-journal.json",
+        "docs/evidence/2026-10-06-progress-container-crash-recovery.json"
       ],
-      "note": "Atomic evidence-linked append, reload, failed-write preservation and new-process resume/adoption are locally verified. Read-only resume CLI exposes the exact safe checkpoint. Physical host/container restart and live interruption recovery remain untested; hosted checks are NOT_RUN by policy."
+      "note": "The validated read-only resume CLI and separate-process checkpoint adoption pass. An isolated, network-disabled, read-only-bind Linux container was SIGKILLed and restarted; phase, latest milestone and safe checkpoint were identical afterward. Issue #9 remains PARTIAL: physical host restart and browser/product-worker crash recovery are not claimed."
     },
     {
       "requirement_id": "MJ-REQ-009",

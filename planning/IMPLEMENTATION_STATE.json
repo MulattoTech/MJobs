@@ -11,7 +11,7 @@
     "current_verified_github_state": "GitHub/local main synchronized at 494e15f46a93b70530755811888ece6046dc98aa; issue #8 OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6019785804; Actions disabled, no open PR, main unprotected.",
     "current_verified_at": "2026-10-06T15:37:11Z"
   },
-  "current_milestone": "MJ-REQ-007-ATOMIC-ENV-INITIALIZATION-INTEGRATED-20261006",
+  "current_milestone": "MJ-REQ-008-CONTAINER-CRASH-RECOVERY-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -385,7 +385,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Continue P0 issue #9 / MJ-REQ-008 from synchronized main 494e15f46a93b70530755811888ece6046dc98aa; locally exercise synthetic container/process recovery without touching PERSONAL data or rebooting the host.",
+  "recommended_resume_step": "Fast-forward the container-crash evidence to main and update issue #9. Then select the next highest-value local slice among P0 operation safety, while retaining host-restart evidence as PARTIAL.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -403,7 +403,7 @@
     "cb72f9041d6a",
     "e14ac893620f"
   ],
-  "unfinished_work_evidence": "docs/evidence/2026-10-06-mock-ats-action-budget.json\nMJ-REQ-095 issue #96 responsibility-bullet emphasis locally verified on e6c47515aa20596ed6ec3263c809af26b4cf3910; broader summary adjustment and factual rephrasing remain PARTIAL. Evidence: docs/evidence/2026-10-06-resume-bullet-emphasis.json\nMJ-REQ-007 issue #8 local config initialization slice c7306774884ad08e5172bfec7ab365dc261f77b3; issue remains PARTIAL pending actual protected-configuration migration recovery. Evidence: docs/evidence/2026-10-06-atomic-env-initialization.json\nMJ-REQ-007 scoped atomic .env initialization integrated at 494e15f46a93b70530755811888ece6046dc98aa; GitHub issue #8 remains OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6019785804. Evidence: docs/evidence/2026-10-06-atomic-env-initialization.json",
+  "unfinished_work_evidence": "docs/evidence/2026-10-06-mock-ats-action-budget.json\nMJ-REQ-095 issue #96 responsibility-bullet emphasis locally verified on e6c47515aa20596ed6ec3263c809af26b4cf3910; broader summary adjustment and factual rephrasing remain PARTIAL. Evidence: docs/evidence/2026-10-06-resume-bullet-emphasis.json\nMJ-REQ-007 issue #8 local config initialization slice c7306774884ad08e5172bfec7ab365dc261f77b3; issue remains PARTIAL pending actual protected-configuration migration recovery. Evidence: docs/evidence/2026-10-06-atomic-env-initialization.json\nMJ-REQ-007 scoped atomic .env initialization integrated at 494e15f46a93b70530755811888ece6046dc98aa; GitHub issue #8 remains OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6019785804. Evidence: docs/evidence/2026-10-06-atomic-env-initialization.json\nMJ-REQ-008 issue #9 isolated container crash/resume proof: docs/evidence/2026-10-06-progress-container-crash-recovery.json; host restart remains unverified.",
   "authorization": "User explicitly provided 100% Git and GitHub authorization on 2026-09-30; still verify native permissions and required checks",
   "user_testing": {
     "result": "PASS",
@@ -5633,12 +5633,56 @@
         "git_commit": "494e15f46a93b70530755811888ece6046dc98aa",
         "evidence_path": "docs/evidence/2026-10-06-atomic-env-initialization.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-008-CONTAINER-CRASH-RECOVERY-20261006",
+      "timestamp": "2026-10-06T15:40:00Z",
+      "current_phase": "MJ-REQ-008 isolated container crash/restart resume verified",
+      "completed_steps": [
+        "Validated the existing seven-test progress-journal suite on the current candidate",
+        "Started a task-owned read-only, network-disabled container with a read-only repository bind mount",
+        "SIGKILLed and restarted the container; compared phase, latest milestone and safe checkpoint before/after",
+        "Stopped the task-owned container and confirmed PERSONAL containers remain running",
+        "Recorded scoped evidence; issue #9 remains PARTIAL"
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-06-progress-container-crash-recovery.json"
+      ],
+      "files_modified": [
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json"
+      ],
+      "tests_completed": [
+        "7 progress-journal unit tests PASS",
+        "Resume CLI JSON checkpoint oracle PASS",
+        "Container SIGKILL/restart/resume PASS",
+        "Agent skills, catalogue and progress journal validators PASS",
+        "git diff --check PASS"
+      ],
+      "tests_remaining": [
+        "Physical host restart and browser/product-worker crash recovery are not directly tested"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Task-owned Linux container with network disabled, read-only root and read-only bind-mounted worktree"
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "MJ-REQ-008 remains PARTIAL because host restart was not induced; no host reboot authorization was given",
+        "Browser and product-worker crashes remain untested",
+        "Hosted Actions/reviews NOT_RUN under current policy"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "494e15f46a93b70530755811888ece6046dc98aa",
+        "evidence_path": "docs/evidence/2026-10-06-progress-container-crash-recovery.json"
+      }
     }
   ],
-  "current_phase": "MJ-REQ-007 scoped configuration-safety slice integrated; P0 issue #9 selected",
+  "current_phase": "MJ-REQ-008 isolated container crash/restart resume verified",
   "last_safe_checkpoint": {
     "git_commit": "494e15f46a93b70530755811888ece6046dc98aa",
-    "evidence_path": "docs/evidence/2026-10-06-atomic-env-initialization.json"
+    "evidence_path": "docs/evidence/2026-10-06-progress-container-crash-recovery.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -5780,13 +5824,13 @@
     "issue": 9,
     "requirement_id": "MJ-REQ-008",
     "title": "Save Implementation Progress",
-    "state": "SELECTED_READY",
-    "selection_reason": "Next dependency-ready P0 after the local configuration safety slice; continue proving safe resume through crash/restart classes with isolated synthetic state.",
-    "base": "494e15f46a93b70530755811888ece6046dc98aa",
+    "state": "PARTIAL_SLICE_VERIFIED_PENDING_MAIN",
+    "selection_reason": "P0 recovery continuation: validate the existing durable journal and resume CLI after an actual isolated container process crash/restart.",
+    "base": "e00ddd9af6f45cd2560cb418055d8a92011e87aa",
     "branch": "codex/req008-crash-resume-20261006",
-    "candidate": "494e15f46a93b70530755811888ece6046dc98aa",
-    "evidence": "docs/evidence/2026-10-06-progress-resume-cli.json",
-    "next_action": "Reconcile local Docker availability and issue #9 remaining crash classes; exercise an isolated synthetic container restart and resume. Do not reboot the host; no reboot permission was granted. Retain host-restart acceptance PARTIAL if not directly proven."
+    "candidate": "e00ddd9af6f45cd2560cb418055d8a92011e87aa",
+    "evidence": "docs/evidence/2026-10-06-progress-container-crash-recovery.json",
+    "next_action": "Integrate this local evidence slice, update issue #9 OPEN/PARTIAL, then continue to the next dependency-ready P0 operation-boundary slice. Keep host restart and unsupported crash classes explicit."
   },
   "historical_control_snapshots": [
     {
@@ -6913,5 +6957,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-06T15:37:11Z"
+  "updated_at": "2026-10-06T15:40:00Z"
 }

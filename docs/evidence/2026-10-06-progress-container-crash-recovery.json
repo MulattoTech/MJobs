@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REQ-008-ISOLATED-CONTAINER-CRASH-RESUME-20261006",
+  "recorded_at": "2026-10-06T15:39:23Z",
+  "requirement_id": "MJ-REQ-008",
+  "issue": 9,
+  "result": "PARTIAL",
+  "accepted_slice": "The evidence-linked progress journal and read-only resume CLI remain readable after an abrupt task-owned Linux container termination and restart using a read-only bind mount of the current checkout.",
+  "source": {
+    "repository": "MulattoTech/MJobs",
+    "base_commit": "e00ddd9af6f45cd2560cb418055d8a92011e87aa",
+    "worktree": ".worktrees/req008-crash-resume-20261006",
+    "inputs_sha256": {
+      "tools/verification/progress.py": "3769c38ddabbd37c65bbb29eb573e830e25668412c4f17378595dcd589b235bd",
+      "tests/unit/test_progress_journal.py": "af1c74fac035fe1789b85841c0540fe1d998671fb786a4819d543b560122e969",
+      "planning/IMPLEMENTATION_STATE.json": "76f7e93b36783c2ea35c23ecd874747eaeb20ff3f947d4d26a6d5f3cf93898ff"
+    }
+  },
+  "container": {
+    "docker_context": "desktop-linux",
+    "docker_version": "29.8.2 Docker Desktop",
+    "image": "mjobs-local:spine",
+    "image_id": "sha256:85431143caab24080006c8dcb570376d23c63546a430acb171dd6e91cf7e9cab",
+    "container_name": "mjobs-req008-restart-20261006",
+    "container_id": "723df23b759b00e88419a92b8b634c9af8adb3f23c63599ccff1c722de6d81a7",
+    "network": "none",
+    "root_filesystem_read_only": true,
+    "repository_mount": "C:\\Tools\\Dev\\MJobs\\.worktrees\\req008-crash-resume-20261006 mounted read-only at /workspace",
+    "final_state": "stopped after the kill/restart check; no volume was created"
+  },
+  "procedure_and_result": [
+    {
+      "action": "Start a uniquely named task-owned Python container with network disabled, a read-only root filesystem, and a read-only bind mount of the current worktree. Run the progress resume snapshot as the container's long-lived process.",
+      "result": "PASS"
+    },
+    {
+      "action": "Run `python -B -m tools.verification.progress resume` inside the container and parse the JSON snapshot.",
+      "result": "PASS",
+      "observed": "Latest milestone MJ-REQ-007-ATOMIC-ENV-INITIALIZATION-INTEGRATED-20261006; safe checkpoint 494e15f46a93b70530755811888ece6046dc98aa."
+    },
+    {
+      "action": "Terminate the container process with `docker kill --signal KILL`, restart the same task-owned container with `docker start`, rerun the resume command, and compare current phase, latest milestone and safe checkpoint to the pre-crash snapshot.",
+      "result": "PASS",
+      "observed": "All three checkpoint fields matched after restart."
+    },
+    {
+      "action": "Stop the task-owned container and inspect relevant containers.",
+      "result": "PASS",
+      "observed": "The task container is stopped. All existing mjobs-personal containers remained running and healthy where health checks apply."
+    }
+  ],
+  "limitations": [
+    "MJ-REQ-008 remains PARTIAL. No physical host restart was induced; user authorization to reboot the host was not given.",
+    "Browser-process and product-worker crash recovery are not claimed by this container-level journal test.",
+    "The container used an existing local image and a read-only source mount; no hosted tests/reviews, personal data, employer sites, or external submission were involved."
+  ],
+  "external_submission": "OFF",
+  "hosted_verification": "NOT_RUN_BY_USER_POLICY",
+  "hosted_review": "NOT_RUN_BY_USER_POLICY"
+}
