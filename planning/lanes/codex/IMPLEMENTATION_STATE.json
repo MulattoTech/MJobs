@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "lane": "codex",
+  "status": "IDLE_READY",
+  "base_main": "ca53eb29dd0081d7b1151dc4dd2d304226e16ea5",
+  "current_issue": null,
+  "requirement_id": null,
+  "branch": null,
+  "head": null,
+  "worktree": null,
+  "result": "NOT_RUN",
+  "last_completed": {
+    "issue": 111,
+    "requirement_id": "MJ-REQ-110",
+    "integration_commit": "ca53eb29dd0081d7b1151dc4dd2d304226e16ea5"
+  },
+  "next_candidates": [
+    {
+      "issue": 111,
+      "requirement_id": "MJ-REQ-110",
+      "title": "AI Cost Controls - remaining review-gated production consumer acceptance"
+    }
+  ],
+  "do_not_overlap": [
+    "Antigravity active claims",
+    "Ollama active claims",
+    "canonical planning files outside integration lock"
+  ]
+}

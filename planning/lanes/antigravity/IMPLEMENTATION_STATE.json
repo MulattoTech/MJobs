@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "lane": "antigravity",
+  "status": "IDLE_READY",
+  "base_main": "ca53eb29dd0081d7b1151dc4dd2d304226e16ea5",
+  "current_issue": null,
+  "requirement_id": null,
+  "branch": null,
+  "head": null,
+  "worktree": null,
+  "result": "NOT_RUN",
+  "last_completed": {
+    "issue": 309,
+    "requirement_id": "MJ-REQ-017.S08",
+    "integration_commit": "b662979069df26b9c991b1d283733fe6a9bce0be"
+  },
+  "next_candidates": [
+    {
+      "issue": 303,
+      "requirement_id": "MJ-REQ-017.S02",
+      "title": "We Work Remotely source adapter"
+    },
+    {
+      "issue": 308,
+      "requirement_id": "MJ-REQ-017.S07",
+      "title": "Remote OK source adapter"
+    }
+  ],
+  "do_not_overlap": [
+    "Codex active claims",
+    "services/ai while Codex AI lane is active",
+    "canonical planning files outside integration lock"
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "lane": "ollama",
+  "items": [
+    {
+      "issue": 318,
+      "requirement_id": "MJ-REQ-063.D01",
+      "status": "CANDIDATE",
+      "priority": 1,
+      "note": "Greenhouse ATS detection adapter. Separate services/ats_detection/providers lane from Codex AI and Antigravity source-adapter work; recheck claims before starting."
+    }
+  ]
+}

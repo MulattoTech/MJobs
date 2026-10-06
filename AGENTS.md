@@ -110,3 +110,20 @@ A merged branch can still have uncommitted edits or an active writer. Before pub
 
 ## Codespaces entrypoint
 For user-directed cloud development, start with `prompts/CODESPACES_ITERATION.md` and `docs/CODESPACES.md`. Setup installs CLI/dependencies, not an active agent or app runtime. Reuse the checked-in delivery skill; old global PMM/AFK skills and historical session records do not authorize continuation. Keep ports private and use synthetic fixtures unless explicitly approved otherwise.
+
+## Parallel local agent lanes
+
+When more than one implementation CLI is active, use `planning/lanes/README.md` and
+`python -m tools.coordination.lane_coordination`. Codex, Antigravity and the local
+Ollama worker have independent lane state/queue/claims/handoffs. During feature work,
+write only the current lane files; read the other lanes to avoid overlap.
+
+The canonical `planning/IMPLEMENTATION_STATE.json`, `planning/PR_QUEUE.json`,
+`planning/CAPABILITY_MATRIX.json`, `planning/SESSION_HANDOFF.md` and root `main`
+are integration-lock owned. Only the holder of the local atomic integration lock may
+update them. GitHub issue comments plus the machine-local common-Git claim bus are
+live coordination truth; stale worktree existence alone is not an active claim.
+
+The local Ollama lane may use Codex CLI's native `--oss --local-provider ollama`
+mode. Local model capability never relaxes normal truthfulness, evidence, privacy,
+external-submission, or integration rules.

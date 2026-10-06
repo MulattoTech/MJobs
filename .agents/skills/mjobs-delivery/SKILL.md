@@ -112,3 +112,15 @@ git diff --check
 ```
 
 Adapt to touched scope, but never promote evidence beyond what actually ran.
+
+## Parallel-lane routing
+
+When multiple CLIs are active, first read `planning/lanes/README.md` and run
+`python -m tools.coordination.lane_coordination status`. Each agent writes only its
+own `planning/lanes/<lane>/` files during implementation. Canonical planning and
+root-main integration require the local atomic integration lock. Treat local bus
+claims and GitHub issue claim comments as current ownership; do not infer ownership
+from an old worktree alone.
+
+Supported lanes are `codex`, `antigravity`, and `ollama`. The Ollama lane is a
+real implementation lane using local GPU inference, not a reviewer substitute.

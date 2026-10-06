@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "lane": "antigravity",
+  "status": "IDLE_READY",
+  "preferred_model": "claude-opus-4-6-thinking",
+  "preferred_reasoning": "max",
+  "conversation_id": "865172fa-5af4-4e48-bf87-58247c20a6ab",
+  "canonical_main_at_pause": "ca53eb29dd0081d7b1151dc4dd2d304226e16ea5",
+  "last_completed_issue": 309,
+  "last_completed_requirement": "MJ-REQ-017.S08",
+  "last_integrated_head": "b662979069df26b9c991b1d283733fe6a9bce0be",
+  "next_selection_rule": "Pick the highest-value dependency-ready issue that does not overlap Codex active claims. Prefer independent source/ATS lanes while Codex owns AI/persistence.",
+  "candidate_issues": [
+    303,
+    308
+  ],
+  "external_submission_enabled": false,
+  "github_actions_enabled": false
+}

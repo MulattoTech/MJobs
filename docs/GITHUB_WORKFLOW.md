@@ -86,3 +86,20 @@ Tests/results; Evidence; Known limitations; Rollback/recovery.
 
 Close an issue only when acceptance behavior is verified or explicitly superseded/not-planned.
 A merged PR alone is not PASS evidence.
+
+## Parallel lane publication and integration
+
+For concurrent Codex, Antigravity and local-Ollama development, follow
+`planning/lanes/README.md`. Feature branches may publish their own code/tests and
+unique evidence without holding the integration lock, but must not update canonical
+planning or root `main` concurrently.
+
+Before implementation, create/update a machine-local claim with
+`python -m tools.coordination.lane_coordination claim ...` and mirror the sanitized
+claim on the owning GitHub issue. Before integrating, acquire the atomic local lock.
+Only the lock holder may reconcile canonical planning and fast-forward `main`.
+Release it immediately after remote/local main and canonical state agree.
+
+Never use `git add -A` in a parallel feature lane and never use plain `git push -f`.
+If an owned feature branch truly requires rewritten history, use force-with-lease only
+after verifying remote ownership and expected SHA. Never rewrite main.

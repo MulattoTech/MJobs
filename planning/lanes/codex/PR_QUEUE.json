@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "lane": "codex",
+  "items": [
+    {
+      "issue": 111,
+      "requirement_id": "MJ-REQ-110",
+      "status": "CANDIDATE_CONTINUATION",
+      "priority": 1,
+      "note": "Cost settings/preview are integrated. Continue only the remaining real review-gated task-consumer acceptance; keep live inference truthfully NOT_RUN until performed."
+    }
+  ]
+}

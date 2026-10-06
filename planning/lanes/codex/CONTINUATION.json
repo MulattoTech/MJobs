@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "lane": "codex",
+  "status": "IDLE_READY",
+  "preferred_model": "gpt-6-luna",
+  "preferred_reasoning": "high",
+  "session_id": "01a10ed8-5445-7b61-8293-43be1895ecc5",
+  "canonical_main_at_pause": "ca53eb29dd0081d7b1151dc4dd2d304226e16ea5",
+  "last_completed_issue": 111,
+  "last_completed_requirement": "MJ-REQ-110",
+  "last_integrated_head": "ca53eb29dd0081d7b1151dc4dd2d304226e16ea5",
+  "next_issue": 111,
+  "next_requirement": "MJ-REQ-110",
+  "resume_instruction": "Start a fresh parallel-lane session from current main. Continue issue #111 only for the remaining review-gated production task-consumer acceptance inside MJ-PR-030; do not redo integrated cost controls. Reconcile Antigravity/Ollama claims before creating a dedicated Codex worktree.",
+  "external_submission_enabled": false,
+  "github_actions_enabled": false
+}
