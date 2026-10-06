@@ -63,6 +63,20 @@ class ComposeModeTests(unittest.TestCase):
         self.assertEqual(services["scheduler"].get("networks"), {"private": None})
         self.assertIn("source-egress", services["source-worker"].get("networks", {}))
 
+    def test_runtime_workers_receive_five_independent_concurrency_limits(self):
+        configuration = json.loads(self.render("--format", "json"))
+        names = {
+            "MJOBS_SOURCE_COLLECTION_CONCURRENCY": "2",
+            "MJOBS_COMPANY_DISCOVERY_CONCURRENCY": "1",
+            "MJOBS_AI_CONCURRENCY": "1",
+            "MJOBS_DOCUMENT_GENERATION_CONCURRENCY": "1",
+            "MJOBS_APPLICATION_AUTOMATION_CONCURRENCY": "1",
+        }
+        for service_name in ("worker", "source-worker", "document-worker"):
+            environment = configuration["services"][service_name]["environment"]
+            with self.subTest(service=service_name):
+                self.assertEqual({name: environment[name] for name in names}, names)
+
 
 if __name__ == "__main__":
     unittest.main()

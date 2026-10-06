@@ -10,6 +10,26 @@ from packages.persistence.store import now
 QUEUES = {"DISCOVER": "mjobs-discovery", "COMPANY_DISCOVER": "mjobs-discovery",
           "COMPANY_SOURCE_REFRESH": "mjobs-discovery", "PREPARE": "mjobs-document",
           "APPLY_MOCK": "mjobs-application"}
+OPERATION_CATEGORIES = {
+    "DISCOVER": "source_collection",
+    "COMPANY_DISCOVER": "company_discovery",
+    "COMPANY_SOURCE_REFRESH": "company_discovery",
+    "PREPARE": "document_generation",
+    "APPLY_MOCK": "application_automation",
+}
+CATEGORY_LIMITS = {
+    "source_collection": (2, 4),
+    "company_discovery": (1, 2),
+    "ai": (1, 2),
+    "document_generation": (1, 2),
+    "application_automation": (1, 2),
+}
+CATEGORY_KINDS = {
+    category: tuple(kind for kind, operation_category in OPERATION_CATEGORIES.items()
+                    if operation_category == category)
+    for category in CATEGORY_LIMITS
+}
+CATEGORIES = tuple(CATEGORY_LIMITS)
 MAX_ATTEMPTS = 3
 
 
@@ -28,28 +48,45 @@ def timeout():
     return seconds
 
 
-def limit(kind):
-    count = int(os.environ.get("MJOBS_" + kind + "_CONCURRENCY", "1"))
-    if not 1 <= count <= (2 if kind == "APPLY_MOCK" else 4):
+def category_limit(category):
+    if category not in CATEGORY_LIMITS:
+        raise ValueError("Unsupported operation concurrency category")
+    default, maximum = CATEGORY_LIMITS[category]
+    try:
+        count = int(os.environ.get("MJOBS_" + category.upper() + "_CONCURRENCY", str(default)))
+    except (TypeError, ValueError) as error:
+        raise ValueError("Operation concurrency outside conservative bounds") from error
+    if not 1 <= count <= maximum:
         raise ValueError("Operation concurrency outside conservative bounds")
     return count
 
 
-def _lock(connection, kind):
+def limit(kind):
+    try:
+        category = OPERATION_CATEGORIES[kind]
+    except KeyError as error:
+        raise ValueError("Unsupported operation kind") from error
+    return category_limit(category)
+
+
+def _lock(connection, category):
     if connection.dialect.name == "sqlite":
         connection.exec_driver_sql("BEGIN IMMEDIATE")
     else:
-        connection.execute(text("SELECT pg_advisory_xact_lock(:key)"), {"key": 649106700 + list(QUEUES).index(kind)})
+        connection.execute(text("SELECT pg_advisory_xact_lock(:key)"),
+                           {"key": 649106700 + CATEGORIES.index(category)})
 
 
 def claim(store, operation_id):
     with store.engine.begin() as connection:
         kind = connection.execute(select(m.operations.c.kind).where(m.operations.c.id == operation_id)).scalar_one()
-        _lock(connection, kind)
+        category = OPERATION_CATEGORIES[kind]
+        _lock(connection, category)
         row = connection.execute(select(m.operations).where(m.operations.c.id == operation_id).with_for_update()).mappings().one()
         if row["state"] != "QUEUED" or row["cancel_requested"]:
             return None
-        active = connection.execute(select(func.count()).select_from(m.operations).where(m.operations.c.kind == kind, m.operations.c.state == "RUNNING")).scalar_one()
+        active = connection.execute(select(func.count()).select_from(m.operations).where(
+            m.operations.c.kind.in_(CATEGORY_KINDS[category]), m.operations.c.state == "RUNNING")).scalar_one()
         if active >= limit(kind):
             return None
         values = {"state": "RUNNING", "attempt_count": row["attempt_count"] + 1, "updated_at": now(),

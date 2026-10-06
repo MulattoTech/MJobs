@@ -12,6 +12,18 @@ API/queue tests plus Compose mock E2E. Running-operation lease recovery and
 manual intervention resume are still PARTIAL; do not requeue a SUBMITTING
 application for blind retry.
 
+Worker claims are admitted under independent conservative category ceilings:
+source collection (default 2, max 4), company discovery (default 1, max 2),
+AI (default 1, max 2), document generation (default 1, max 2), and application
+automation (default 1, max 2). Set `MJOBS_<CATEGORY>_CONCURRENCY` in the local
+Compose environment. To use more than one source slot, scale the matching
+Compose worker service (for example, `docker compose up -d --scale source-worker=2`).
+Category admission and its PostgreSQL advisory lock are
+shared across operation kinds and worker replicas; each RQ worker process still
+executes one job at a time. The AI limit is configuration-only until an AI
+operation exists. Local SQLite and isolated PostgreSQL tests exercise serialized
+claims.
+
 Every claimed durable task also receives a monotonic operation deadline. Its
 cooperative `check` callback stops work at the configured budget, and a late
 ordinary success is persisted as `FAILED / OPERATION_TIMEOUT`. The worker does

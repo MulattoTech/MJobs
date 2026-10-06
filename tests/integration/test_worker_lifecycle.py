@@ -43,11 +43,33 @@ class WorkerLifecycleTests(unittest.TestCase):
     def test_capacity_is_independent_and_a_duplicate_cannot_claim(self):
         first = enqueue_operation(self.store, "DISCOVER", "fixture", {})
         other = enqueue_operation(self.store, "DISCOVER", "other", {})
+        over_capacity = enqueue_operation(self.store, "DISCOVER", "third", {})
         document = enqueue_operation(self.store, "PREPARE", "fixture", {"job_id": "unused"})
         self.assertIsNotNone(claim(self.store, first))
         self.assertIsNone(claim(self.store, first))
-        self.assertIsNone(claim(self.store, other))
+        self.assertIsNotNone(claim(self.store, other))
+        self.assertIsNone(claim(self.store, over_capacity))
         self.assertIsNotNone(claim(self.store, document))
+
+    def test_company_discovery_kinds_share_one_category_capacity(self):
+        refresh_a = enqueue_operation(self.store, "COMPANY_SOURCE_REFRESH", "source-a", {})
+        refresh_b = enqueue_operation(self.store, "COMPANY_SOURCE_REFRESH", "source-b", {})
+        discovery = enqueue_operation(self.store, "COMPANY_DISCOVER", "company-c", {})
+        document = enqueue_operation(self.store, "PREPARE", "application-d", {})
+        application = enqueue_operation(self.store, "APPLY_MOCK", "application-e", {})
+        settings = {
+            "MJOBS_SOURCE_COLLECTION_CONCURRENCY": "2",
+            "MJOBS_COMPANY_DISCOVERY_CONCURRENCY": "2",
+            "MJOBS_AI_CONCURRENCY": "1",
+            "MJOBS_DOCUMENT_GENERATION_CONCURRENCY": "1",
+            "MJOBS_APPLICATION_AUTOMATION_CONCURRENCY": "1",
+        }
+        with patch.dict("os.environ", settings):
+            self.assertIsNotNone(claim(self.store, refresh_a))
+            self.assertIsNotNone(claim(self.store, refresh_b))
+            self.assertIsNone(claim(self.store, discovery))
+            self.assertIsNotNone(claim(self.store, document))
+            self.assertIsNotNone(claim(self.store, application))
 
     def test_discovery_expiry_retries_at_most_three_claims(self):
         identifier = enqueue_operation(self.store, "DISCOVER", "fixture", {})

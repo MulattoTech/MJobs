@@ -9,7 +9,7 @@ from rq import Worker
 from packages.persistence.store import Store
 from packages.domain.operation_mode import operation_mode_from_env
 from workers.dispatch import dispatch_pending
-from workers.operations import QUEUES, timeout, limit
+from workers.operations import CATEGORIES, QUEUES, category_limit, timeout
 
 
 def main():
@@ -25,8 +25,8 @@ def main():
     if queue not in QUEUES.values():
         raise ValueError("Unsupported worker queue")
     timeout()
-    for kind in QUEUES:
-        limit(kind)
+    for category in CATEGORIES:
+        category_limit(category)
     stopped = threading.Event()
 
     def dispatch():
