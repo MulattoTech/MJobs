@@ -1,0 +1,150 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-005",
+  "github_issue": 6,
+  "result": "PARTIAL",
+  "scope_result": "PASS",
+  "scope": "Durable operation claims now use five independent configurable concurrency categories. PostgreSQL admission takes one transaction advisory lock per category and counts all running operations in that category before leasing; SQLite serializes the same admission boundary. Compose exposes conservative defaults and hard maxima.",
+  "observed_at_utc": "2026-10-06T08:57:57Z",
+  "candidate": {
+    "repository": "MulattoTech/MJobs",
+    "branch": "codex/req005-category-concurrency-20261006",
+    "base": "8123dbff150a7a86ec200ce1cd0a2422bd3ec984",
+    "commit": "23104373877a275c97204f7e1af08c4cd646b4d9",
+    "tree": "335f4201200131557466146271b09c4faa118e28",
+    "integration_commit": null,
+    "integration_method": null
+  },
+  "category_policy": {
+    "source_collection": {
+      "default": 2,
+      "maximum": 4,
+      "operation_kinds": [
+        "DISCOVER"
+      ]
+    },
+    "company_discovery": {
+      "default": 1,
+      "maximum": 2,
+      "operation_kinds": [
+        "COMPANY_DISCOVER",
+        "COMPANY_SOURCE_REFRESH"
+      ]
+    },
+    "ai": {
+      "default": 1,
+      "maximum": 2,
+      "operation_kinds": [],
+      "runtime": "CONFIGURATION_ONLY_NO_AI_OPERATION_EXISTS"
+    },
+    "document_generation": {
+      "default": 1,
+      "maximum": 2,
+      "operation_kinds": [
+        "PREPARE"
+      ]
+    },
+    "application_automation": {
+      "default": 1,
+      "maximum": 2,
+      "operation_kinds": [
+        "APPLY_MOCK"
+      ]
+    }
+  },
+  "acceptance": {
+    "category_defaults_and_independent_overrides": "PASS",
+    "invalid_categories_and_out_of_range_values_fail_closed": "PASS",
+    "company_discovery_kinds_share_one_ceiling": "PASS",
+    "document_and_application_categories_keep_independent_capacity": "PASS",
+    "postgresql_claim_lock_across_concurrent_connections": "PASS",
+    "compose_runtime_configuration": "PASS",
+    "ai_provider_concurrency_runtime": "NOT_RUN_NO_PROVIDER_OPERATION_EXISTS",
+    "per_source_greenhouse_concurrency_field_is_runtime_enforced": "PARTIAL; persisted source policy remains metadata; the adapter uses bounded sequential requests and does not spawn parallel per-source fetches",
+    "real_ats_automation_concurrency": "NOT_RUN; no real ATS submission path is enabled",
+    "external_application_submission_enabled": false,
+    "original_requirement_denominator_changed": false
+  },
+  "local_validation": {
+    "red_test": {
+      "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_worker_lifecycle.WorkerLifecycleTests.test_company_discovery_kinds_share_one_category_capacity -v",
+      "result": "EXPECTED_RED",
+      "detail": "Before implementation, the second company source refresh was rejected under the old operation-kind-specific default, confirming the shared-category gap."
+    },
+    "focused_sqlite_and_compose": {
+      "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_operation_concurrency tests.integration.test_worker_lifecycle tests.unit.test_compose_modes -v",
+      "result": "PASS",
+      "tests": 21,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0
+    },
+    "isolated_postgresql": {
+      "command": "MJOBS_TEST_POSTGRES_URL=<isolated localhost PostgreSQL 17> ..\\..\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_operation_concurrency_postgres -v",
+      "result": "PASS",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "container_id": "fe6ac2a0de021c8b1b1a481a86ed1b22c81cd97bd4eb68f1eb8ab13088d23353",
+      "lifecycle": "Unique resource-capped temporary container on dynamic localhost port; stopped and auto-removed after the test. Existing personal MJobs PostgreSQL was not touched."
+    },
+    "browser_suite": {
+      "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest discover -s tests/browser -p 'test_*.py'",
+      "result": "PASS",
+      "tests": 35,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "ended_at_utc": "2026-10-06T08:45:28.4475635Z",
+      "log": "%TEMP%\\mjobs-req005-browser-after-build.log"
+    },
+    "full_python_suite": {
+      "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py'",
+      "result": "PASS",
+      "tests": 669,
+      "failures": 0,
+      "errors": 0,
+      "skips": 1,
+      "started_at_utc": "2026-10-06T08:45:40.5391318Z",
+      "ended_at_utc": "2026-10-06T08:51:57.7301317Z",
+      "duration_seconds": 377.191,
+      "skip_detail": "Optional PostgreSQL concurrency module skips without MJOBS_TEST_POSTGRES_URL; that test was separately executed and passed against the isolated container recorded above.",
+      "log": "%TEMP%\\mjobs-req005-full-after-build.log"
+    },
+    "frontend_build": {
+      "command": "npm run build --prefix C:\\Tools\\Dev\\MJobs\\apps\\web",
+      "result": "PASS",
+      "detail": "TypeScript and Vite production build ran from the current main checkout because the isolated worktree has no node_modules. Git showed no frontend source, package, lockfile or Vite config differences from the candidate base; the generated ignored dist was copied into the worktree for browser tests."
+    },
+    "repository_validators": {
+      "agent_skills": "PASS",
+      "catalogue": "PASS",
+      "progress": "PASS",
+      "git_diff_check": "PASS"
+    }
+  },
+  "failure_history": [
+    {
+      "result": "EXPECTED_RED_THEN_FIXED",
+      "detail": "The new shared-company-category test failed before implementation because the old kind-specific limit blocked the second COMPANY_SOURCE_REFRESH."
+    },
+    {
+      "result": "ENVIRONMENT_SETUP_FAILURE_RESOLVED",
+      "detail": "The first full suite ran without apps/web/dist and had 2 failures, 6 errors and 13 skips as several browser tests received the API 404 fallback. Building current unchanged frontend source and rerunning the browser suite produced 35 PASS; the subsequent full suite passed 669 tests with one optional PostgreSQL skip."
+    },
+    {
+      "result": "WORKTREE_BUILD_DEPENDENCY_UNAVAILABLE_RESOLVED",
+      "detail": "Direct npm build in the isolated worktree could not find tsc because node_modules is absent there. Build succeeded with the already-installed matching frontend dependencies in the base checkout, whose tracked frontend inputs were identical."
+    }
+  ],
+  "not_run": [
+    "GitHub Actions and hosted verification: NOT_RUN by the active local-only policy.",
+    "Hosted or additional AI reviews: NOT_RUN by policy.",
+    "AI provider requests: NOT_RUN; no provider or worker operation exists.",
+    "Real ATS automation and external submission: OFF."
+  ],
+  "denominators": {
+    "requirements": 366,
+    "reference_gaps": 59
+  }
+}

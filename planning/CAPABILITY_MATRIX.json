@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-06T07:26:43Z",
+  "timestamp": "2026-10-06T08:53:23Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -50,9 +50,11 @@
     },
     {
       "requirement_id": "MJ-REQ-005",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-06-operation-concurrency-categories.json"
+      ],
+      "note": "Durable operation admission now uses independent bounded categories for source collection, company discovery, AI configuration, document generation, and application automation. SQLite and isolated PostgreSQL shared-category claim tests, Compose settings, and the local browser/full suites pass. PARTIAL: no AI runtime operation/provider exists; real ATS automation remains unavailable; and the persisted per-source concurrency field is not an active per-source parallel-fetch control."
     },
     {
       "requirement_id": "MJ-REQ-006",

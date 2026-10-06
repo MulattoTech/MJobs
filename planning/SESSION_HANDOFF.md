@@ -338,3 +338,13 @@ Exact integrated main passed 12 mock application browser tests, 12 worker lifecy
 Hosted Actions/reviews and external web-search, AI-provider, and real ATS calls remain NOT_RUN/BLOCKED_EXTERNAL under current configuration and policy. External submission stays OFF; the 366-requirement and 59-reference-gap denominators are unchanged.
 
 Next continue the local issue #5 audit for remaining subprocess/source operation bounds and error/retry classification. Keep issue #5 OPEN/PARTIAL until broad acceptance is evidenced.
+
+## 2026-10-06 local-only continuation — MJ-REQ-005 category admission
+
+Issue #6 / MJ-REQ-005 now has a bounded local implementation candidate. Durable operation kinds map to independent source collection, company discovery, document generation and application automation ceilings; AI has a validated configuration ceiling but no runtime operation. PostgreSQL claims serialize by category across operation kinds; SQLite and isolated PostgreSQL tests verified admission. Evidence: [operation concurrency categories](../docs/evidence/2026-10-06-operation-concurrency-categories.json).
+
+Candidate `23104373877a275c97204f7e1af08c4cd646b4d9`, based on `8123dbff150a7a86ec200ce1cd0a2422bd3ec984`, passed 21 focused SQLite/Compose tests, one isolated PostgreSQL concurrent-claim test, 35 browser tests, and the 669-test Python suite (zero failures/errors, one optional PostgreSQL skip). TypeScript/Vite build and catalogue/progress/skill validators passed. The first full run lacked ignored `apps/web/dist`; after the current frontend build, the browser suite and complete rerun passed.
+
+Keep #6 OPEN/PARTIAL: no AI runtime provider/operation exists, real ATS automation remains OFF, and the legacy persisted per-source Greenhouse concurrency value is metadata rather than an active per-source parallel-fetch control. No requirement denominator changed (366 requirements, 59 reference gaps). Hosted Actions/reviews remain NOT_RUN by policy. External submission remains OFF.
+
+Continue with the safe source/evidence checkpoint and local-only integration, then select the next highest-value locally progressable P0 safety issue without waiting for a user continue prompt.

@@ -11,7 +11,7 @@
     "current_verified_github_state": "GitHub main and local main synchronized at planning receipt checkpoint 0eb07a2d0ca967639e3cfc43f7556a403dff2d32; issue #5 OPEN/PARTIAL. Actions/reviews NOT_RUN by policy.",
     "current_verified_at": "2026-10-06T08:24:16Z"
   },
-  "current_milestone": "MJ-REQ-004-MOCK-ATS-REMAINING-DEADLINE-20261006",
+  "current_milestone": "MJ-REQ-005-CATEGORY-CONCURRENCY-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under the local-only delivery policy; one writer and one integration lane.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -75,10 +75,13 @@
     "CORE-WORKFLOW-TRIAL D deterministic job-specific cover letter merged in PR #510 at a63c798; exact-head review, both Verification events, runtime reports and merge-tree equality passed. Combined A-F journey remains pending (docs/evidence/2026-10-05-job-specific-cover-letter.json).",
     "CORE-WORKFLOW-TRIAL E has a usable profile answer bank and per-job manual review/export path with profile-scoped history/download, atomic content-addressed export recovery, and a saved-profile load gate. PR #511 merged at fb8ab73 after exact-head review and passing push/pull_request Verification with nine passing reports and digest-matched artifacts. MJ-REQ-103..107 remain PARTIAL for incomplete matching, confidence, sensitive/legal policy and durable unexported drafts (docs/evidence/2026-10-05-reviewed-application-answers.json).",
     "MJ-REQ-170 transient-artifact retention now has explicit local inventory/quarantine/restore/purge with a 30-day default; automatic background cleanup and broader transient/log retention remain incomplete.",
-    "MJ-REQ-004 remains PARTIAL: worker-wide cooperative deadlines and Greenhouse rate-wait cancellation are locally verified; AI/provider requests, complete browser/parser/OCR/process/source/ATS coverage, output capture, and all retry/error classifications still need evidence (docs/evidence/2026-10-06-bound-external-operation-deadlines.json)."
+    "MJ-REQ-004 remains PARTIAL: worker-wide cooperative deadlines and Greenhouse rate-wait cancellation are locally verified; AI/provider requests, complete browser/parser/OCR/process/source/ATS coverage, output capture, and all retry/error classifications still need evidence (docs/evidence/2026-10-06-bound-external-operation-deadlines.json).",
+    "MJ-REQ-005 scoped category-admission slice: five bounded independent configuration categories; category-wide SQLite/PostgreSQL claim admission and conservative Compose defaults (docs/evidence/2026-10-06-operation-concurrency-categories.json)."
   ],
   "blocked_capabilities": [],
-  "active_requirements": [],
+  "active_requirements": [
+    "MJ-REQ-005"
+  ],
   "active_prs": [],
   "tests_passed": [
     "28 domain/control-plane unit tests",
@@ -236,11 +239,13 @@
     "Previously flaky application-pipeline browser test passed in isolated rerun (1 test).",
     "MJ-REQ-004 mock ATS remaining-time gate: 12 browser tests and 12 worker lifecycle tests PASS; real local mock flow observes 250 ms action caps and confirms exactly one fictional submission.",
     "MJ-REQ-004 exact-head main 5680d0e full local suite: 663 Python/integration/Chromium tests PASS, zero failures/errors/skips after rebuilding stale ignored apps/web/dist; npm production build PASS.",
-    "MJ-REQ-004 clean exact-head post-integration browser test module (12) and worker lifecycle module (12) PASS."
+    "MJ-REQ-004 clean exact-head post-integration browser test module (12) and worker lifecycle module (12) PASS.",
+    "MJ-REQ-005: 21 focused SQLite lifecycle/config/Compose tests PASS; isolated PostgreSQL 17 concurrent shared-category admission PASS; 35 browser tests PASS; 669 Python tests PASS with 1 optional PostgreSQL skip; matching frontend TypeScript/Vite production build and repository validators PASS (docs/evidence/2026-10-06-operation-concurrency-categories.json)."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
-    "RESOLVED ON SAME HEAD: initial exact-head full run had 663 tests, 1 failure and 1 error because ignored apps/web/dist was stale; two affected tests failed in isolation before rebuild. npm build refreshed dist; both isolated tests and a subsequent exact-head full run (663 tests, zero failures/errors/skips) passed. Details in docs/evidence/2026-10-06-mock-ats-action-budget.json."
+    "RESOLVED ON SAME HEAD: initial exact-head full run had 663 tests, 1 failure and 1 error because ignored apps/web/dist was stale; two affected tests failed in isolation before rebuild. npm build refreshed dist; both isolated tests and a subsequent exact-head full run (663 tests, zero failures/errors/skips) passed. Details in docs/evidence/2026-10-06-mock-ats-action-budget.json.",
+    "MJ-REQ-005 initial full suite before frontend build: 669 tests, 2 failures, 6 errors and 13 skips because this isolated worktree had no apps/web/dist; after building the current unchanged frontend source and rerunning browser/full suites, browser 35 and full 669 tests passed. See docs/evidence/2026-10-06-operation-concurrency-categories.json."
   ],
   "tests_not_run": [
     "Remaining full-spec integrations and product/release requirements",
@@ -253,7 +258,8 @@
     "Manual owner retest of the delivered browser workflow; retained personal runtime was intentionally not started or migrated.",
     "MJ-REF-037: full repository suite NOT_RUN for this docs/governance-only slice; hosted Actions/reviews NOT_RUN by explicit local-only policy.",
     "GitHub Actions, hosted tests/reviews, and AI-provider calls remain NOT_RUN under local-only policy; external submission remains OFF.",
-    "GitHub Actions/hosted review and provider/real ATS requests remain NOT_RUN by local-only policy; external submission remains OFF."
+    "GitHub Actions/hosted review and provider/real ATS requests remain NOT_RUN by local-only policy; external submission remains OFF.",
+    "MJ-REQ-005 AI-provider and real ATS concurrency runtime: NOT_RUN; no AI worker/provider operation exists and external submission remains OFF. Per-source Greenhouse concurrency is persisted metadata and is not enforced independently; the active cap is at the durable source-collection operation category."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -348,7 +354,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Continue open P0 issue #5 / MJ-REQ-004. Mock ATS launch, navigation, each waiting locator action, Submit, and confirmation are bounded by the worker remaining deadline; evidence is docs/evidence/2026-10-06-mock-ats-action-budget.json. Audit remaining locally implementable subprocess/source bounds. Keep unconfigured web-search/AI providers and real ATS as BLOCKED_EXTERNAL/NOT_RUN; preserve 366 requirements and 59 reference gaps; issue #5 remains OPEN/PARTIAL.",
+  "recommended_resume_step": "Finish the issue #6 category-admission checkpoint and integration. Then resume the highest-value open P0 safety slice: continue locally implementable #5 operation bounds or #7 workspace inspection based on current acceptance gaps. Preserve 366 requirement and 59 reference-gap denominators; hosted actions/reviews stay NOT_RUN; external submission stays OFF.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -385,7 +391,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "5680d0e317b8614b214b0e93a4b9d4fda799ffd0",
+  "last_implementation_commit": "23104373877a275c97204f7e1af08c4cd646b4d9",
   "publication": {
     "result": "PASS",
     "integration_method": "NON_FORCE_FAST_FORWARD",
@@ -5075,14 +5081,16 @@
     "next_issue": 383
   },
   "active_development_issue": {
-    "issue": 5,
-    "requirement_id": "MJ-REQ-004",
-    "title": "Bound External Operations",
-    "state": "INTEGRATED_LOCAL_PARTIAL_BROAD_ACCEPTANCE_OPEN",
-    "selection_reason": "Open P0 safety/truthfulness requirement. Worker/source, native parser, mock ATS deadline and verifier identity slices are integrated; broad operation-category acceptance remains incomplete.",
-    "base": "0bddd4c1dd939dec6447a5c030ceae5cc3661ede",
-    "branch": "codex/req004-bound-ops-20261006",
-    "next_action": "Continue the issue #5 category audit. Prioritize any remaining locally implementable subprocess/source bounds; explicitly retain BLOCKED_EXTERNAL/NOT_RUN for unconfigured web-search/AI providers and real ATS. Do not claim broad PASS or close #5."
+    "issue": 6,
+    "requirement_id": "MJ-REQ-005",
+    "title": "Control Concurrency",
+    "state": "LOCAL_IMPLEMENTATION_COMMITTED_PARTIAL_ACCEPTANCE",
+    "selection_reason": "Open P0 concurrency safety requirement; operation-kind limits and PostgreSQL locks were not shared across related operation kinds.",
+    "base": "8123dbff150a7a86ec200ce1cd0a2422bd3ec984",
+    "branch": "codex/req005-category-concurrency-20261006",
+    "candidate": "23104373877a275c97204f7e1af08c4cd646b4d9",
+    "evidence": "docs/evidence/2026-10-06-operation-concurrency-categories.json",
+    "next_action": "Checkpoint the evidence/planning receipt, safely integrate this bounded category-admission slice, keep issue #6 OPEN/PARTIAL, then select the next highest-value locally progressable P0 issue. AI/provider work remains NOT_RUN; do not infer full requirement PASS."
   },
   "historical_control_snapshots": [
     {
@@ -6188,9 +6196,10 @@
     "Historical PR #515 review of c069798 against base 3ec8702 had no findings at that checkpoint, but later reviews found and repaired test/evidence issues. Fresh review and exact-head hosted events/artifacts are pending.",
     "CORE-WORKFLOW-TRIAL PR #515 checkpoint 7151348d0b92cd9cb23784785190e0d17ab892b1: exact-head read-only review PASS; push Verification 37359494332 and pull_request Verification 37359772249 both BLOCKED_EXTERNAL before job startup by GitHub account billing/spending limit. No hosted runtime reports/artifacts or PR merge-tree result exist; #515 stays draft.",
     "Fact-review clean-tree guard exact-source Chromium and refusal evidence, 9 unit tests; broader full suite PARTIAL with one isolated-passing teardown flake; docs/evidence/2026-10-06-fact-review-clean-tree.json.",
-    "MJ-REQ-004 mock ATS browser action budgets: 12 browser + 12 worker lifecycle tests; exact-head 5680d0e full suite 663 PASS after source-matched frontend rebuild; hosted/provider evidence NOT_RUN."
+    "MJ-REQ-004 mock ATS browser action budgets: 12 browser + 12 worker lifecycle tests; exact-head 5680d0e full suite 663 PASS after source-matched frontend rebuild; hosted/provider evidence NOT_RUN.",
+    "MJ-REQ-005 exact candidate 23104373877a275c97204f7e1af08c4cd646b4d9: RED confirmed the former kind-specific limit; 21 focused SQLite/Compose tests, 1 isolated PostgreSQL concurrent-claim test, 35 browser tests and 669 full Python tests passed (1 optional PG skip); current frontend build, catalogue, progress, agent-skills and diff validators passed. Requirement remains PARTIAL for absent AI runtime, real ATS and per-source enforcement."
   ],
-  "ownership": "One writer: issue #373 candidate b6f2238c in its isolated worktree. Full local suite, browser, build and repository validators pass. Candidate awaits safe integration. External submission OFF; Codespaces and private runtime/data preserved.",
+  "ownership": "One writer: issue #6 category-concurrency candidate 23104373877a275c97204f7e1af08c4cd646b4d9 in codex/req005-category-concurrency-20261006, based on main 8123dbff150a7a86ec200ce1cd0a2422bd3ec984. Local tests and browser suite pass; source commit awaits evidence/planning receipt, push and safe integration. No hosted workflow/reviewer or external application submission was used.",
   "delivery_policy": {
     "mode": "LOCAL_ONLY",
     "effective_at": "2026-10-05T21:32:10.763994+00:00",
@@ -6203,5 +6212,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-06T08:24:16Z"
+  "updated_at": "2026-10-06T08:53:23Z"
 }
