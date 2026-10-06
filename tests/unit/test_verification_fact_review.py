@@ -1,8 +1,15 @@
 """Contract tests for the isolated fact-review acceptance wrapper."""
+import json
+from pathlib import Path
+import subprocess
+import tempfile
+import sys
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
-from tools.verification.fact_review import EXPECTED_RED_TESTS, EXPECTED_TESTS, acceptable_result
+from tools.verification.fact_review import (
+    EXPECTED_RED_TESTS, EXPECTED_TESTS, acceptable_result, main, resolve_source_commit,
+)
 
 
 class FactReviewVerificationTests(unittest.TestCase):
@@ -34,6 +41,53 @@ class FactReviewVerificationTests(unittest.TestCase):
         result.failures = [(test, 'REVIEW_RESET_REQUIRED') for test in failing_tests]
 
         self.assertFalse(acceptable_result(result, expect_red=True))
+
+    def test_source_commit_command_has_a_deadline_and_suppresses_diagnostics(self):
+        commit = 'a' * 40
+        completed = subprocess.CompletedProcess([], 0, stdout=commit + '\n')
+        with patch('tools.verification.fact_review.subprocess.run', return_value=completed) as run:
+            self.assertEqual(resolve_source_commit(), (commit, None))
+        args, kwargs = run.call_args
+        self.assertEqual(args[0], ['git', 'rev-parse', 'HEAD'])
+        self.assertEqual(kwargs['timeout'], 5)
+        self.assertFalse(kwargs['shell'])
+        self.assertIs(kwargs['stdout'], subprocess.PIPE)
+        self.assertIs(kwargs['stderr'], subprocess.DEVNULL)
+
+    def test_source_commit_launch_exit_and_invalid_sha_errors_are_classified(self):
+        cases = [
+            (OSError('private executable path'), 'GIT_UNAVAILABLE'),
+            (subprocess.CompletedProcess([], 2, stdout='private stderr-like detail'),
+             'GIT_REVISION_FAILED'),
+            (subprocess.CompletedProcess([], 0, stdout='private repository path'),
+             'GIT_REVISION_INVALID'),
+        ]
+        for outcome, category in cases:
+            options = ({'side_effect': outcome} if isinstance(outcome, BaseException)
+                       else {'return_value': outcome})
+            with self.subTest(category=category), \
+                 patch('tools.verification.fact_review.subprocess.run', **options):
+                self.assertEqual(resolve_source_commit(), (None, category))
+
+    def test_source_commit_timeout_is_safe_and_evidence_is_still_written(self):
+        with tempfile.TemporaryDirectory() as directory:
+            evidence = Path(directory) / 'fact-review.json'
+            runner = Mock()
+            successful = Mock(testsRun=EXPECTED_TESTS, failures=[], errors=[], skipped=[])
+            successful.wasSuccessful.return_value = True
+            runner.run.return_value = successful
+            timeout = subprocess.TimeoutExpired('git', 5, stderr=b'private repository path')
+            with patch.object(sys, 'argv', ['fact-review', '--evidence', str(evidence)]), \
+                 patch('tools.verification.fact_review.unittest.defaultTestLoader.loadTestsFromName', return_value=object()), \
+                 patch('tools.verification.fact_review.unittest.TextTestRunner', return_value=runner), \
+                 patch('tools.verification.fact_review.subprocess.run', side_effect=timeout):
+                self.assertEqual(main(), 1)
+
+            saved = json.loads(evidence.read_text(encoding='utf-8'))
+            self.assertEqual(saved['result'], 'FAIL')
+            self.assertIsNone(saved['source_commit'])
+            self.assertEqual(saved['source_commit_error_category'], 'GIT_TIMEOUT')
+            self.assertNotIn('private repository path', str(saved))
 
 
 if __name__ == '__main__':

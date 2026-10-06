@@ -5,6 +5,7 @@ import io
 import json
 import platform
 from pathlib import Path
+import re
 import subprocess
 import unittest
 
@@ -15,6 +16,8 @@ EXPECTED_RED_TESTS = frozenset({
     'test_source_edit_requires_fresh_review',
     'test_kind_edit_requires_fresh_review',
 })
+GIT_REVISION_TIMEOUT = 5
+_GIT_REVISION = re.compile(r'(?:[0-9a-f]{40}|[0-9a-f]{64})\Z')
 
 
 def acceptable_result(result, expect_red=False):
@@ -23,6 +26,25 @@ def acceptable_result(result, expect_red=False):
                      and failed_names == EXPECTED_RED_TESTS and not result.errors
                      and not result.skipped and all('REVIEW_RESET_REQUIRED' in text for _, text in result.failures))
     return red_confirmed if expect_red else result.wasSuccessful() and result.testsRun == EXPECTED_TESTS and not result.skipped
+
+
+def resolve_source_commit():
+    """Return a validated exact HEAD SHA or a stable, safe failure category."""
+    try:
+        result = subprocess.run(
+            ['git', 'rev-parse', 'HEAD'], stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL, text=True, encoding='utf-8',
+            timeout=GIT_REVISION_TIMEOUT, shell=False, check=False)
+    except subprocess.TimeoutExpired:
+        return None, 'GIT_TIMEOUT'
+    except OSError:
+        return None, 'GIT_UNAVAILABLE'
+    if result.returncode != 0:
+        return None, 'GIT_REVISION_FAILED'
+    commit = (result.stdout or '').strip()
+    if not _GIT_REVISION.fullmatch(commit):
+        return None, 'GIT_REVISION_INVALID'
+    return commit, None
 
 
 def main():
@@ -34,14 +56,16 @@ def main():
     stream = io.StringIO()
     result = unittest.TextTestRunner(stream=stream, verbosity=2).run(suite)
     print(stream.getvalue(), end='')
-    passed = acceptable_result(result, expect_red=args.expect_red)
+    source_commit, source_commit_error = resolve_source_commit()
+    passed = acceptable_result(result, expect_red=args.expect_red) and source_commit_error is None
     evidence = {
         'timestamp': datetime.now(timezone.utc).isoformat(),
         'result': 'PASS' if passed else 'FAIL',
         'mode': 'BASELINE_EXPECTED_FAILURE' if args.expect_red else 'BROWSER_ACCEPTANCE',
         'command': 'python -m tools.verification.fact_review'+(' --expect-red' if args.expect_red else ''),
         'target': 'Isolated synthetic Chromium, local API, temporary migrated SQLite, existing operation worker and actual document downloads',
-        'source_commit': subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
+        'source_commit': source_commit,
+        'source_commit_error_category': source_commit_error,
         'tests_run': result.testsRun, 'failures': len(result.failures), 'errors': len(result.errors), 'skipped': len(result.skipped),
         'fields': ['text', 'source', 'kind', 'fixture_demo_load'],
         'execution_platform': platform.system(),
