@@ -13,11 +13,11 @@
     },
     {
       "requirement_id": "MJ-REQ-001",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
-        "docs/evidence/2026-09-29-mock-spine.md"
+        "docs/evidence/2026-10-06-protected-host-safety.json"
       ],
-      "note": "Initial scoped behavior only; full requirement remains open"
+      "note": "Checked-in PowerShell/shell/batch/package-script setup entrypoints pass the host-safety guard; five positive/negative fixtures pass, the source-map-js development dependency is patched to 1.2.2 with zero npm audit findings, web build and 62 tests pass, the isolated known Uvicorn shutdown case and all 36 browser tests pass. Full Python run had only that teardown assertion; requirement evidence is scoped to protected development setup, and no host settings were queried or changed."
     },
     {
       "requirement_id": "MJ-REQ-002",

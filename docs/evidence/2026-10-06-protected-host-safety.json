@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-001",
+  "github_issue": 2,
+  "slice_result": "PASS",
+  "requirement_result": "PASS",
+  "base_commit": "08a6cc59f02bdec252a71c01452f1964fc87990e",
+  "source_commit": "6105f8cc99c3978919b945f0b9e0bf66dbeac7ad",
+  "candidate_commit": "6105f8cc99c3978919b945f0b9e0bf66dbeac7ad",
+  "candidate_tree": "b88a8e0293f836bce91cc562fcb82ead0226b2e9",
+  "recorded_at_utc": "2026-10-06T13:19:28Z",
+  "scope": "Keep the checked-in MJobs development entrypoints scoped to project-local dependencies and containers, and prevent common workstation-wide updates, driver/firmware/TDR/network changes, shutdowns, and broad process termination from entering those entrypoints.",
+  "acceptance": {
+    "project_setup_entrypoints_contain_no_detected_prohibited_host_mutations": "PASS",
+    "guard_rejects_broad_package_upgrades_driver_and_network_changes": "PASS",
+    "guard_rejects_host_reboot_shutdown_and_broad_process_termination": "PASS",
+    "project_scoped_dependencies_containers_and_local_startup_remain_allowed": "PASS",
+    "high_severity_transitive_dev_dependency_advisory_remediated_without_broad_upgrade": "PASS",
+    "host_hardware_was_not_queried_or_reconfigured": "PASS",
+    "external_application_submission": "OFF"
+  },
+  "validation": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_host_safety -v",
+      "timestamp_utc": "2026-10-06T12:53:04Z",
+      "target": "Safe project setup fixture and rejection of broad package upgrades, driver/network changes, reboot/process termination and unsafe package scripts",
+      "result": "PASS",
+      "summary": "Five deterministic fixture tests passed. The initial RED run failed because the validator module did not yet exist."
+    },
+    {
+      "command": "python -m tools.verification.host_safety",
+      "timestamp_utc": "2026-10-06T12:53:04Z",
+      "target": "Checked-in PowerShell, shell, batch and package-script development entrypoints",
+      "result": "PASS",
+      "summary": "No prohibited workstation-wide operations were detected; output contains only stable codes and repository paths."
+    },
+    {
+      "command": "npm audit --package-lock-only --ignore-scripts --prefix apps/web; npm ci --prefix apps/web; npm audit --prefix apps/web; npm audit --omit=dev --prefix apps/web",
+      "timestamp_utc": "2026-10-06T13:09:31Z",
+      "target": "Pin the single vulnerable transitive source-map-js development dependency and validate installed dependency tree",
+      "result": "PASS",
+      "summary": "Updated source-map-js from 1.2.1 to 1.2.2 only. Full and production npm audits report zero vulnerabilities. npm emitted an engine warning because local Node 25.9.0 is outside the project's declared Node 22/24 support range."
+    },
+    {
+      "command": "npm run build --prefix apps/web; npm test --prefix apps/web -- --run",
+      "timestamp_utc": "2026-10-06T13:08:04Z",
+      "target": "Frontend TypeScript/Vite production build and web regression tests after the lockfile patch",
+      "result": "PASS",
+      "summary": "Build passed and all 62 frontend tests passed."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py'",
+      "timestamp_utc": "2026-10-06T13:14:55Z",
+      "target": "Full Python/unit/integration/browser suite on source commit 6105f8cc99c3978919b945f0b9e0bf66dbeac7ad and tree b88a8e0293f836bce91cc562fcb82ead0226b2e9",
+      "result": "PARTIAL",
+      "summary": "701 tests ran with one optional PostgreSQL skip. All product and browser assertions passed except the existing CompanyDiscoveryRequestsBrowserTests Uvicorn server-thread shutdown assertion. That exact case passed alone in 2.9 seconds and all 36 browser tests passed on the same tree; no timeout was weakened."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_company_discovery_requests.CompanyDiscoveryRequestsBrowserTests.test_real_collection_request_review_worker_and_identity_separation; C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest discover -s tests/browser -p 'test_*.py'",
+      "timestamp_utc": "2026-10-06T13:18:13Z",
+      "target": "Isolate the sole full-suite failure and verify complete headless browser suite after the dependency update",
+      "result": "PASS",
+      "summary": "Flaky shutdown case passed alone in 2.9 seconds; all 36 headless Chromium browser tests passed. External browser requests remained blocked by the test fixtures."
+    },
+    {
+      "command": "python -m tools.verification.agent_skills; python -m tools.verification.catalogue; python -m tools.verification.progress validate; git diff --check",
+      "timestamp_utc": "2026-10-06T12:53:04Z",
+      "target": "Repository skill, unchanged requirement/reference denominator, progress journal and whitespace validation",
+      "result": "PASS",
+      "summary": "All validators passed; denominators remain 366 requirements and 59 reference gaps."
+    }
+  ],
+  "external_boundaries": {
+    "host_gpu_hardware_queried": false,
+    "driver_firmware_network_or_tdr_configuration_changed": false,
+    "host_shutdown_or_reboot": false,
+    "unrelated_processes_terminated": false,
+    "dependency_install_scope": "LOCKFILE_PINNED_PROJECT_WEB_DEPENDENCIES_ONLY",
+    "live_employer_fetch": false,
+    "personal_profile_data_read_or_changed": false,
+    "external_submission": "OFF",
+    "postgresql_test": "NOT_RUN_OPTIONAL_ENVIRONMENT_MISSING_MJOBS_TEST_POSTGRES_URL",
+    "github_actions": "DISABLED_BY_USER_POLICY",
+    "hosted_review": "NOT_RUN_BY_USER_POLICY"
+  },
+  "requirement_limitations": [
+    "The deterministic checker protects checked-in setup scripts and package scripts against listed common operations; it cannot control manual commands or arbitrary obfuscation outside those entrypoints.",
+    "The full suite had one pre-existing timing-sensitive Uvicorn shutdown assertion; the case passed alone and the entire browser suite passed on the same candidate."
+  ],
+  "denominators": {
+    "requirements": 366,
+    "reference_gaps": 59
+  },
+  "integration": {
+    "status": "PENDING",
+    "method": "NON_FORCE_FAST_FORWARD_IF_CURRENT_MAIN_IS_ANCESTOR",
+    "base_commit": "08a6cc59f02bdec252a71c01452f1964fc87990e",
+    "candidate_branch": "codex/req001-host-safety-20261006",
+    "hosted_verification": "NOT_RUN_BY_USER_POLICY"
+  }
+}
