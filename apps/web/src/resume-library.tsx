@@ -16,6 +16,8 @@ export function ResumeLibrary({profileId, saved, resumes, busy, action, onStored
   const [label,setLabel] = useState('');
   const [series,setSeries] = useState('');
   const [extraction,setExtraction] = useState<Extraction|null>(null);
+  const [extractingResume,setExtractingResume] = useState('');
+  const [cancelNotice,setCancelNotice] = useState('');
   const [selectedFacts,setSelectedFacts] = useState<Set<string>>(new Set());
   const [selectedContact,setSelectedContact] = useState<Set<string>>(new Set());
   const input = useRef<HTMLInputElement>(null);
@@ -34,9 +36,22 @@ export function ResumeLibrary({profileId, saved, resumes, busy, action, onStored
     if(input.current)input.current.value='';
   }
   async function extract(resume:Resume) {
-    const result = await api<Extraction>('/profiles/'+encodeURIComponent(profileId)+'/resumes/'+encodeURIComponent(resume.id)+'/extract',{method:'POST'});
-    if (!mounted.current) return;
-    setExtraction(result);setSelectedFacts(new Set(result.facts.map(f=>f.id!)));setSelectedContact(new Set());
+    setExtractingResume(resume.id);setCancelNotice('');
+    try {
+      const result = await api<Extraction>('/profiles/'+encodeURIComponent(profileId)+'/resumes/'+encodeURIComponent(resume.id)+'/extract',{method:'POST'});
+      if (!mounted.current) return;
+      setExtraction(result);setSelectedFacts(new Set(result.facts.map(f=>f.id!)));setSelectedContact(new Set());
+    } finally {
+      if (mounted.current) setExtractingResume('');
+    }
+  }
+  async function cancelExtraction(resume:Resume) {
+    try {
+      const result = await api<{cancelled:boolean}>('/profiles/'+encodeURIComponent(profileId)+'/resumes/'+encodeURIComponent(resume.id)+'/extract/cancel',{method:'POST'});
+      if (mounted.current) setCancelNotice(result.cancelled?'Resume extraction cancellation requested.':'Resume extraction has already finished.');
+    } catch (error) {
+      if (mounted.current) setCancelNotice(error instanceof Error?error.message:'Could not cancel resume extraction.');
+    }
   }
   return <section className="panel"><h2>Resume history</h2>
     <p>Keep several named resumes and their original versions. Extract a saved file to review suggestions for your profile.</p>
@@ -53,11 +68,12 @@ export function ResumeLibrary({profileId, saved, resumes, busy, action, onStored
         {resumes.filter(r=>r.series_id===id).sort((a,b)=>b.version-a.version).map(resume=><div className="document" key={id+resume.id} data-resume-version={resume.version}>
           <strong>Version {resume.version} · {resume.filename}</strong>
           <p>{resume.status.replaceAll('_',' ')} · {resume.format.toUpperCase()} · stored {new Date(resume.created_at).toLocaleString()}</p>
-          <button type="button" disabled={busy} onClick={()=>void action('Extracting resume',()=>extract(resume))}>Extract and review</button>{' '}
+          {extractingResume===resume.id?<button type="button" onClick={()=>void cancelExtraction(resume)}>Cancel extraction</button>:<button type="button" disabled={busy} onClick={()=>void action('Extracting resume',()=>extract(resume))}>Extract and review</button>}{' '}
           <a className="button-link" href={'/profiles/'+encodeURIComponent(profileId)+'/resumes/'+encodeURIComponent(resume.id)}>Download original</a>
         </div>)}
       </section>)}
     </>}
+    {cancelNotice&&<p role="status">{cancelNotice}</p>}
     {extraction&&<div className="extraction-review" role="region" aria-label="Resume extraction review">
       <h3>Extraction review: {extraction.status.replaceAll('_',' ')}</h3>
       <p>Select contact fields to replace, and career facts to add. You can edit them in the profile before saving. Imported facts require your verification and approval.</p>

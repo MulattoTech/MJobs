@@ -20,9 +20,11 @@ streamed JSON output capped at 2 MiB, client-disconnect cancellation, discarded 
 and a small environment allowlist
 that excludes application credentials. Linux parser children also receive address
 space, CPU, file-size and core-dump limits; Windows relies on the parent wall deadline
-and streaming output cap. Cancellation currently stops native parser children; an
-already-running OCR subprocess retains its own 45-second bounded deadline and is not
-yet interrupted immediately when the client disconnects.
+and streaming output cap. Request disconnect cancels and reaps both native parser and
+currently running OCR tool children. The profile UI also has an explicit, profile- and
+resume-scoped cancellation action for browsers that keep an HTTP connection reusable
+after a fetch abort. OCR retains its own 45-second total deadline and 10-second
+per-tool deadline for non-cancelled requests.
 UTF-8 TXT stays local in the API process. Scanned pages without native text use Poppler and English
 Tesseract locally; no file or extracted text goes to a remote OCR service.
 The fallback processes at most 10 scanned pages, scales each raster to at most

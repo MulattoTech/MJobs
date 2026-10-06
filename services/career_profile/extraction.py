@@ -51,7 +51,10 @@ def _run_parser_process(command, data, cancelled=None, timeout=NATIVE_PARSER_TIM
             if len(output) > output_limit:
                 output_exceeded.set()
                 if process.poll() is None:
-                    process.kill()
+                    try:
+                        process.kill()
+                    except ProcessLookupError:
+                        pass
                 return
 
     def write_input():
@@ -85,7 +88,10 @@ def _run_parser_process(command, data, cancelled=None, timeout=NATIVE_PARSER_TIM
         return subprocess.CompletedProcess(command, process.returncode, bytes(output))
     except (ResumeExtractionCancelled, subprocess.TimeoutExpired, ValueError):
         if process.poll() is None:
-            process.kill()
+            try:
+                process.kill()
+            except ProcessLookupError:
+                pass
         process.wait()
         output_reader.join(timeout=1)
         input_writer.join(timeout=1)
@@ -241,9 +247,14 @@ def _native_pdf(data: bytes, cancelled=None) -> tuple[str, list[str], bool, bool
     pages, warnings, scanned = _run_native_parser(data, 'pdf', cancelled=cancelled)
     recognized = {}
     if scanned:
-        from services.career_profile.ocr import ocr_pdf_pages
+        from services.career_profile.ocr import OCRCancelled, ocr_pdf_pages
         try:
-            recognized, ocr_warnings = ocr_pdf_pages(data, scanned)
+            if cancelled is None:
+                recognized, ocr_warnings = ocr_pdf_pages(data, scanned)
+            else:
+                recognized, ocr_warnings = ocr_pdf_pages(data, scanned, cancelled)
+        except OCRCancelled:
+            raise ResumeExtractionCancelled() from None
         except Exception:
             # OCR is optional enrichment. A helper failure must never erase
             # native text already recovered from the same document.

@@ -317,6 +317,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         guard.close()
     store.bind_workspace_mode(operation_mode)
     app = FastAPI(title="MJobs", description="Local job discovery, factual preparation and tracking. External submission disabled.")
+    app.state.resume_extraction_events = {}
+    app.state.resume_extraction_lock = threading.Lock()
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost", "api", "testserver"])
 
     @app.middleware("http")
@@ -478,6 +480,9 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         except UploadIntegrityError as exc:
             raise HTTPException(409, str(exc)) from exc
         cancelled = threading.Event()
+        key = (profile_id, resume_id)
+        with app.state.resume_extraction_lock:
+            app.state.resume_extraction_events.setdefault(key, set()).add(cancelled)
         work = asyncio.create_task(asyncio.to_thread(
             extract_resume, data, record['format'],
             f"uploaded-resume:{record['id']}:sha256:{record['sha256']}", cancelled))
@@ -489,9 +494,11 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                         await work
                     except ResumeExtractionCancelled:
                         pass
-                    return Response(status_code=499)
+                    return JSONResponse({"detail": "Resume extraction cancelled."}, status_code=499)
                 await asyncio.sleep(0.05)
             return await work
+        except ResumeExtractionCancelled:
+            return JSONResponse({"detail": "Resume extraction cancelled."}, status_code=499)
         except asyncio.CancelledError:
             cancelled.set()
             try:
@@ -499,6 +506,23 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             except BaseException:
                 pass
             raise
+        finally:
+            with app.state.resume_extraction_lock:
+                events = app.state.resume_extraction_events.get(key)
+                if events is not None:
+                    events.discard(cancelled)
+                    if not events:
+                        app.state.resume_extraction_events.pop(key, None)
+
+    @app.post('/profiles/{profile_id}/resumes/{resume_id}/extract/cancel')
+    def profile_resume_extract_cancel(profile_id: str, resume_id: str):
+        if not any(resume['id'] == resume_id for resume in list_resumes(store, profile_id)):
+            raise HTTPException(404, "Resume not found")
+        with app.state.resume_extraction_lock:
+            events = tuple(app.state.resume_extraction_events.get((profile_id, resume_id), ()))
+        for cancelled in events:
+            cancelled.set()
+        return {"cancelled": bool(events)}
 
     @app.post("/discovery", status_code=202)
     def discovery(value: DiscoveryInput):

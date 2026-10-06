@@ -17,6 +17,8 @@ import uvicorn
 from apps.api.main import create_app
 from packages.persistence.store import Store
 from services.career_profile import ocr
+from services.documents.uploads import save_resume
+from tests.integration.test_spine import PROFILE
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -38,6 +40,64 @@ def resume_pdf(extra=''):
 
 @unittest.skipUnless((ROOT / 'apps/web/dist/index.html').is_file(), 'Build apps/web before browser acceptance')
 class ProfileImportBrowserTests(unittest.TestCase):
+    def test_browser_cancel_stops_resume_extract_without_profile_change(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            store = Store(f"sqlite:///{(root / 'browser-cancel.db').as_posix()}")
+            store.migrate()
+            store.bind_workspace_mode('PERSONAL')
+            store.save_profile(PROFILE)
+            uploaded = save_resume(store, root, PROFILE['id'], 'base.pdf', 'application/pdf', resume_pdf())
+            before = store.profile(PROFILE['id'])
+            app = create_app(store, 'http://127.0.0.1:1', root, 'redis://127.0.0.1:1/0', operation_mode='PERSONAL')
+            sock = bound_browser_socket()
+            origin = f'http://127.0.0.1:{sock.getsockname()[1]}'
+            server = uvicorn.Server(uvicorn.Config(app, log_level='error'))
+            thread = threading.Thread(target=server.run, kwargs={'sockets':[sock]}, daemon=True)
+            started, cancelled = threading.Event(), threading.Event()
+
+            def block_until_cancelled(data, format, source, cancellation_event):
+                started.set()
+                deadline = time.monotonic() + 5
+                while not cancellation_event.is_set() and time.monotonic() < deadline:
+                    time.sleep(0.005)
+                if cancellation_event.is_set():
+                    cancelled.set()
+                    from services.career_profile.extraction import ResumeExtractionCancelled
+                    raise ResumeExtractionCancelled()
+                raise AssertionError('explicit browser cancellation did not reach extraction work')
+
+            thread.start()
+            try:
+                deadline = time.monotonic() + 10
+                while not server.started:
+                    if not thread.is_alive() or time.monotonic() > deadline:
+                        self.fail('Isolated browser cancellation API did not start')
+                    time.sleep(0.02)
+                with patch('apps.api.main.extract_resume', side_effect=block_until_cancelled):
+                    with sync_playwright() as pw:
+                        browser = pw.chromium.launch(headless=True)
+                        page = browser.new_page()
+                        page.goto(origin, wait_until='domcontentloaded')
+                        page.get_by_role('button', name='Profile', exact=True).click()
+                        page.locator('#active-profile').select_option(PROFILE['id'])
+                        row = page.locator('[data-resume-version="1"]')
+                        expect(row).to_be_visible()
+                        row.get_by_role('button', name='Extract and review').click()
+                        self.assertTrue(started.wait(5), 'browser extraction request did not start')
+                        row.get_by_role('button', name='Cancel extraction', exact=True).click()
+                        expect(page.get_by_role('status').filter(has_text='cancellation requested')).to_be_visible()
+                        self.assertTrue(cancelled.wait(5), 'browser cancel control did not stop extraction work')
+                        self.assertEqual(store.profile(PROFILE['id']), before)
+                        self.assertEqual(store.count('applications'), 0)
+                        browser.close()
+            finally:
+                server.should_exit = True
+                thread.join(timeout=10)
+                sock.close()
+                store.engine.dispose()
+                self.assertFalse(thread.is_alive())
+
     def test_import_review_preferences_and_resume_history_persist(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

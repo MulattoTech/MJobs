@@ -42,28 +42,54 @@ class OCRToolFailure(subprocess.SubprocessError):
         super().__init__(f'OCR tool exited with status {returncode}')
 
 
-def _run_tool(executable, args, timeout):
+class OCRCancelled(Exception):
+    """The extraction request was cancelled while a local OCR child was running."""
+
+
+def _run_tool(executable, args, timeout, cancellation_event=None):
     # Tool diagnostics can contain private file paths or document content. Keep
     # them out of memory, API results, and logs; the Linux child file-size limit
     # bounds the temporary capture even if a tool emits continuously.
+    argv = [sys.executable, '-c', _LIMIT_AND_EXEC, executable, *args]
+    if cancellation_event is not None and cancellation_event.is_set():
+        raise OCRCancelled()
+    deadline = time.monotonic() + timeout
     with tempfile.TemporaryFile(mode='w+b') as diagnostics:
-        result = subprocess.run([sys.executable, '-c', _LIMIT_AND_EXEC, executable, *args],
-            check=False, shell=False, timeout=timeout, stdin=subprocess.DEVNULL,
+        process = subprocess.Popen(argv, shell=False, stdin=subprocess.DEVNULL,
             stdout=subprocess.DEVNULL, stderr=diagnostics,
             env={**{key: os.environ[key] for key in ('PATH', 'LANG', 'LC_ALL', 'TMPDIR') if key in os.environ},
                  'OMP_THREAD_LIMIT': '1', 'OMP_NUM_THREADS': '1'})
+        try:
+            while process.poll() is None:
+                if cancellation_event is not None and cancellation_event.is_set():
+                    raise OCRCancelled()
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise subprocess.TimeoutExpired(argv, timeout)
+                time.sleep(min(0.05, remaining))
+            returncode = process.wait()
+        except (OCRCancelled, subprocess.TimeoutExpired):
+            if process.poll() is None:
+                try:
+                    process.kill()
+                except ProcessLookupError:
+                    pass
+            process.wait()
+            raise
         diagnostics.flush()
         diagnostics.seek(0, os.SEEK_END)
         diagnostic_size = diagnostics.tell()
-    if result.returncode != 0:
-        raise OCRToolFailure(result.returncode, min(diagnostic_size, MAX_DIAGNOSTIC_BYTES),
+    if returncode != 0:
+        raise OCRToolFailure(returncode, min(diagnostic_size, MAX_DIAGNOSTIC_BYTES),
                              diagnostic_size > MAX_DIAGNOSTIC_BYTES)
 
 
-def ocr_pdf_pages(data, page_numbers):
+def ocr_pdf_pages(data, page_numbers, cancellation_event=None):
     """Return page-number/text pairs and public warnings, without raw diagnostics."""
     if len(data) > 10 * 1024 * 1024 or any(type(n) is not int or not 1 <= n <= 100 for n in page_numbers):
         raise ValueError('OCR input exceeds supported limits')
+    if cancellation_event is not None and cancellation_event.is_set():
+        raise OCRCancelled()
     pages = sorted(set(page_numbers))
     if not pages:
         return {}, []
@@ -82,14 +108,20 @@ def ocr_pdf_pages(data, page_numbers):
             source = root/'source.pdf'
             source.write_bytes(data)
             for number in pages[:MAX_OCR_PAGES]:
+                if cancellation_event is not None and cancellation_event.is_set():
+                    raise OCRCancelled()
                 if time.monotonic() >= deadline:
                     warnings.append('OCR time limit reached; some scanned pages were not processed.')
                     break
                 prefix, output = root/f'page-{number}', root/f'text-{number}'
                 try:
-                    _run_tool(renderer, ['-f', str(number), '-l', str(number), '-r', '150',
-                        '-scale-to', str(MAX_DIMENSION), '-singlefile', '-png', str(source), str(prefix)],
-                        min(PROCESS_TIMEOUT, max(0.01, deadline-time.monotonic())))
+                    tool_args = ['-f', str(number), '-l', str(number), '-r', '150',
+                        '-scale-to', str(MAX_DIMENSION), '-singlefile', '-png', str(source), str(prefix)]
+                    tool_timeout = min(PROCESS_TIMEOUT, max(0.01, deadline-time.monotonic()))
+                    if cancellation_event is None:
+                        _run_tool(renderer, tool_args, tool_timeout)
+                    else:
+                        _run_tool(renderer, tool_args, tool_timeout, cancellation_event)
                     raster = prefix.with_suffix('.png')
                     if not raster.is_file():
                         warnings.append(f'OCR renderer did not create an image for page {number}. Native text remains available for review.')
@@ -101,8 +133,12 @@ def ocr_pdf_pages(data, page_numbers):
                             raise ValueError('pixel limit')
                     if time.monotonic() >= deadline:
                         raise subprocess.TimeoutExpired('ocr', TOTAL_TIMEOUT)
-                    _run_tool(engine, [str(raster), str(output), '-l', 'eng', '--psm', '3'],
-                              min(PROCESS_TIMEOUT, max(0.01, deadline-time.monotonic())))
+                    tool_args = [str(raster), str(output), '-l', 'eng', '--psm', '3']
+                    tool_timeout = min(PROCESS_TIMEOUT, max(0.01, deadline-time.monotonic()))
+                    if cancellation_event is None:
+                        _run_tool(engine, tool_args, tool_timeout)
+                    else:
+                        _run_tool(engine, tool_args, tool_timeout, cancellation_event)
                     text_output = output.with_suffix('.txt')
                     if not text_output.is_file():
                         warnings.append(f'OCR recognition did not create text for page {number}. Native text remains available for review.')
@@ -116,6 +152,8 @@ def ocr_pdf_pages(data, page_numbers):
                         texts[number] = text
                     else:
                         warnings.append(f'OCR found no readable text on page {number}.')
+                except OCRCancelled:
+                    raise
                 except subprocess.TimeoutExpired:
                     warnings.append(f'OCR tool timed out on page {number}. Native text remains available for review.')
                 except FileNotFoundError:

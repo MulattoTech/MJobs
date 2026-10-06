@@ -202,6 +202,21 @@ class ProfileImportTests(unittest.TestCase):
         self.assertEqual(response.status_code, 499)
         self.assertTrue(observed.is_set())
 
+    def test_explicit_extract_cancel_is_profile_scoped(self):
+        self.store.save_profile(PROFILE)
+        uploaded = self.upload().json()
+        active = threading.Event()
+        self.client.app.state.resume_extraction_events[('fixture', uploaded['id'])] = {active}
+
+        denied = self.client.post(f"/profiles/another/resumes/{uploaded['id']}/extract/cancel")
+        self.assertEqual(denied.status_code, 404)
+        self.assertFalse(active.is_set())
+
+        response = self.client.post(f"/profiles/fixture/resumes/{uploaded['id']}/extract/cancel")
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()['cancelled'])
+        self.assertTrue(active.is_set())
+
     def test_named_resume_versions_are_idempotent_scoped_and_downloadable(self):
         self.store.save_profile(PROFILE)
         first = self.upload(**{'X-Resume-Label':'Engineering'}).json()
