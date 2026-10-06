@@ -348,3 +348,10 @@ Candidate `23104373877a275c97204f7e1af08c4cd646b4d9`, based on `8123dbff150a7a86
 Keep #6 OPEN/PARTIAL: no AI runtime provider/operation exists, real ATS automation remains OFF, and the legacy persisted per-source Greenhouse concurrency value is metadata rather than an active per-source parallel-fetch control. No requirement denominator changed (366 requirements, 59 reference gaps). Hosted Actions/reviews remain NOT_RUN by policy. External submission remains OFF.
 
 Source 23104373877a275c97204f7e1af08c4cd646b4d9 and its evidence/planning receipt are integrated by non-force fast-forward; local and remote main matched 9f5af9fce6a367f084cbdc144364076f88cd6a5a, with no protection rule or PR. #6 remains OPEN/PARTIAL. Continue issue #5 / MJ-REQ-004 by selecting the next locally implementable external-operation bound or classification gap after reconciling current code. Do not wait for a user continue prompt.
+
+
+## 2026-10-06 local-only continuation — MJ-REQ-006 current workspace inspection
+
+Issue #7 / MJ-REQ-006 was inspected read-only at `bd00c331d503009189a83481ba62a56a66acb75c`. The current populated MJobs repository has a clean synchronized main, Python/FastAPI plus PostgreSQL/Alembic/Redis/RQ backend, React/TypeScript/Vite frontend, Playwright/browser coverage, Docker Compose, private `.env` and tracked `.env.example`, and disabled GitHub Actions. Existing source, tests, migration history, Compose runtime, worktrees and private outputs were classified KEEP; the private `.env` and output contents were not opened. Evidence: [current workspace inspection](../docs/evidence/2026-10-06-current-workspace-inspection.json).
+
+No application code or runtime services were changed; this issue acceptance is inventory/classification only. After integrating the evidence and closing #7 on exact readback, continue the locally actionable P0 #6 / MJ-REQ-005 source-concurrency truthfulness gap. Denominators remain 366 requirements and 59 reference gaps; hosted Actions/reviews remain NOT_RUN; external submission remains OFF.

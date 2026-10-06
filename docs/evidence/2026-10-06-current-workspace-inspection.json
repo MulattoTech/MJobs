@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-006",
+  "github_issue": 7,
+  "result": "PASS",
+  "observed_at_utc": "2026-10-06T09:10:21Z",
+  "scope": "Read-only current-workspace inspection and KEEP/REFACTOR/REPLACE/REMOVE classification before further implementation. Existing app and local private runtime were preserved.",
+  "repository": {
+    "exists": true,
+    "path": "C:\\Tools\\Dev\\MJobs",
+    "remote": "MulattoTech/MJobs",
+    "default_branch": "main",
+    "local_main": "bd00c331d503009189a83481ba62a56a66acb75c",
+    "remote_main": "bd00c331d503009189a83481ba62a56a66acb75c",
+    "main_worktree_clean": true,
+    "open_pull_requests": 0,
+    "open_requirement_issue": 7,
+    "tracked_root_structure": [
+      "apps",
+      "bootstrap-tools",
+      "cli",
+      "docs",
+      "fixtures",
+      "infra",
+      "migrations",
+      "packages",
+      "planning",
+      "prompts",
+      "services",
+      "tests",
+      "tools",
+      "workers"
+    ],
+    "existing_worktrees": 12,
+    "existing_worktrees_dirty": 0
+  },
+  "technology_inventory": {
+    "language_and_runtime": ["Python 3.12.10", "Node.js v25.9.0", "npm 11.12.1"],
+    "backend": ["FastAPI 0.142.1", "Pydantic 2.13.5", "SQLAlchemy 2.1.1", "Alembic 1.20.0"],
+    "frontend": ["React 19.3.0", "TypeScript 7.0.2", "Vite 8.3.1"],
+    "persistence_and_workers": ["PostgreSQL 17", "Redis 7", "RQ 2.12.0", "versioned migrations under migrations/"],
+    "browser_automation": ["Playwright Chromium", "tests/browser/"],
+    "tests": {
+      "python_test_files": 116,
+      "unit_test_files": 42,
+      "integration_test_files": 58,
+      "browser_test_files": 16
+    },
+    "docker_configuration": {
+      "compose_file": "compose.yml",
+      "dockerfiles": ["infra/docker/Dockerfile", ".devcontainer/Dockerfile"],
+      "rendered_services": ["postgres", "migrate", "scheduler", "redis", "source-worker", "worker", "api", "document-worker"]
+    },
+    "environment_files": {
+      "tracked_example": ".env.example",
+      "private_ignored_file_present": true,
+      "private_file_contents_read": false,
+      "credentials_or_values_recorded": false
+    },
+    "continuous_integration": {
+      "repository_workflows": [".github/workflows/ci.yml", ".github/workflows/codespaces.yml"],
+      "github_actions_enabled": false,
+      "workflows_triggered": false
+    }
+  },
+  "existing_work_classification": [
+    {"area": "Git repository and MJobs application", "disposition": "KEEP", "reason": "Existing source tree is populated, main is clean and synchronized, and implementation history is healthy."},
+    {"area": "Python API, services and durable workers", "disposition": "KEEP", "reason": "FastAPI product paths and worker services are present and wired to the current persistence model."},
+    {"area": "PostgreSQL schema, persistence and Alembic migrations", "disposition": "KEEP", "reason": "Durable persistence and versioned schema evolution already exist; no replacement or migration is needed for this inspection."},
+    {"area": "React/TypeScript web UI", "disposition": "KEEP", "reason": "The existing connected frontend and strict build are part of the working product spine."},
+    {"area": "Unit, integration and browser test suites", "disposition": "KEEP", "reason": "116 Python test modules include dedicated unit, integration and Playwright browser coverage."},
+    {"area": "Docker Compose and local runtime", "disposition": "KEEP", "reason": "Personal/local services already run; this inspection did not restart, reconfigure or migrate them."},
+    {"area": "Environment files and local outputs/runtime data", "disposition": "KEEP", "reason": "The private .env, ignored outputs/test-tmp directories, unknown New folder, and all existing worktrees were preserved; their contents were not inspected or copied."},
+    {"area": "GitHub Actions workflow files", "disposition": "KEEP", "reason": "Workflow definitions remain stored for reference while repository Actions are disabled by the active local-only policy."}
+  ],
+  "dispositions_not_selected": {
+    "REFACTOR": "Not indicated by this workspace-presence and readiness inspection; individual feature gaps remain tracked in their own requirements.",
+    "REPLACE": "No existing application or framework needs replacement.",
+    "REMOVE": "No removal was authorized or required; private and historical data was preserved."
+  },
+  "acceptance": {
+    "repository_exists_and_git_state_reconciled": "PASS",
+    "structure_and_language_framework_identified": "PASS",
+    "database_frontend_backend_browser_tests_docker_environment_and_ci_identified": "PASS",
+    "existing_relevant_work_classified": "PASS",
+    "existing_application_preserved_without_blind_overwrite": "PASS",
+    "create_from_scratch": "NOT_APPLICABLE_EXISTING_APPLICATION_PRESENT",
+    "requirement_denominator_changed": false,
+    "user_private_data_exposed": false
+  },
+  "actions_taken": {
+    "repository_files_read_for_inventory": "tracked manifests, package metadata, repository maps, and file/directory names only",
+    "private_env_contents_read": false,
+    "private_output_contents_read": false,
+    "containers_changed": false,
+    "database_or_migrations_changed": false,
+    "github_actions_or_tests_triggered": false,
+    "external_job_submission": false
+  },
+  "not_run": [
+    "No code-change test run was needed for this read-only workspace inspection.",
+    "GitHub Actions and hosted reviews remain NOT_RUN under the local-only policy."
+  ],
+  "denominators": {"requirements": 366, "reference_gaps": 59}
+}
