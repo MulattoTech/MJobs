@@ -139,6 +139,58 @@ class PublicCompanyClientTests(unittest.TestCase):
         finally:
             client.close()
 
+    def test_http_read_observes_operation_cancellation_and_closes_request_socket(self):
+        class OperationCancelled(Exception):
+            pass
+
+        cancellation = OperationCancelled("operation cancelled")
+        waiting_for_response = threading.Event()
+        release_response = threading.Event()
+        cancelled = threading.Event()
+
+        class TLS:
+            def settimeout(self, _timeout): pass
+            def connect(self, _address): pass
+            def sendall(self, _wire): pass
+            def shutdown(self, _how): release_response.set()
+            def close(self): pass
+
+        class PendingResponse(FakeHttpResponse):
+            def begin(self):
+                waiting_for_response.set()
+                release_response.wait(timeout=2)
+
+        def check_cancelled():
+            if cancelled.is_set():
+                raise cancellation
+
+        client = PublicCompanyClient("https://example.test/jobs", check=check_cancelled)
+        errors = []
+
+        def request():
+            try:
+                client._request_once("https://example.test/jobs", time.monotonic() + 10)
+            except Exception as error:
+                errors.append(error)
+
+        try:
+            with patch.object(client, "_resolve", return_value=[(socket.AF_INET, ("8.8.8.8", 443))]), \
+                 patch.object(client, "_wait"), \
+                 patch("services.company_discovery.public_client.socket.socket", return_value=TLS()), \
+                 patch("services.company_discovery.public_client.ssl.create_default_context") as context_factory, \
+                 patch("services.company_discovery.public_client.http.client.HTTPResponse", return_value=PendingResponse([])):
+                context_factory.return_value.wrap_socket.return_value = TLS()
+                thread = threading.Thread(target=request)
+                thread.start()
+                self.assertTrue(waiting_for_response.wait(timeout=1), "HTTP response wait did not start")
+                cancelled.set()
+                thread.join(timeout=0.3)
+                self.assertFalse(thread.is_alive(), "HTTP response wait ignored operation cancellation")
+            self.assertEqual(errors, [cancellation])
+        finally:
+            release_response.set()
+            client.close()
+
     def test_only_first_validated_dns_destination_is_attempted(self):
         client = PublicCompanyClient("https://example.test/jobs")
         class Socket:

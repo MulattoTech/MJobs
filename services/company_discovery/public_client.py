@@ -225,11 +225,41 @@ class PublicCompanyClient:
             sock = None
             tls = None
             deadline_timer = None
+            cancellation_stop = threading.Event()
+            cancellation_error = []
+
+            def abort_request():
+                for active in (tls, sock):
+                    if active is not None:
+                        try:
+                            active.shutdown(socket.SHUT_RDWR)
+                        except OSError:
+                            pass
+                        try:
+                            active.close()
+                        except OSError:
+                            pass
+
+            def watch_cancellation():
+                while not cancellation_stop.wait(DNS_POLL_INTERVAL):
+                    try:
+                        self._check()
+                    except BaseException as error:
+                        cancellation_error.append(error)
+                        abort_request()
+                        return
+
+            cancellation_watcher = threading.Thread(
+                target=watch_cancellation,
+                name="mjobs-public-fetch-cancellation",
+                daemon=True,
+            )
             try:
                 sock = socket.socket(family, socket.SOCK_STREAM)
                 sock.settimeout(min(REQUEST_TIMEOUT, remaining))
-                sock.connect(sockaddr)
                 self._sockets.add(sock)
+                cancellation_watcher.start()
+                sock.connect(sockaddr)
                 context = ssl.create_default_context()
                 tls = context.wrap_socket(sock, server_hostname=host)
                 self._sockets.add(tls)
@@ -289,15 +319,24 @@ class PublicCompanyClient:
                 self._check()
                 if expected_length is not None and len(body) != expected_length:
                     raise PublicFetchError('RESPONSE_LENGTH_INVALID')
+                if cancellation_error:
+                    raise cancellation_error[0]
                 headers = {key: value for key, value in raw_headers}
                 return httpx.Response(response.status, headers=headers, content=bytes(body), request=request)
             except PublicFetchError:
+                if cancellation_error:
+                    raise cancellation_error[0]
                 raise
             except (OSError, ssl.SSLError, http.client.HTTPException):
+                if cancellation_error:
+                    raise cancellation_error[0]
                 if time.monotonic() >= deadline:
                     raise PublicFetchError("FETCH_DEADLINE")
                 last_error = PublicFetchError("NETWORK_FAILED")
             finally:
+                cancellation_stop.set()
+                if cancellation_watcher.is_alive():
+                    cancellation_watcher.join(timeout=1)
                 if deadline_timer is not None:
                     deadline_timer.cancel()
                 for item in (tls, sock):
