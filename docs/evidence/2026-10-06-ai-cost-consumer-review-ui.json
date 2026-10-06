@@ -10,6 +10,8 @@
   "candidate_head_before_checkpoint": "4f5de18c93929adbf595ea6d9670c5dd68f02bf0",
   "checkpoint_commit": "b21d4829f81967104f08fa6c2c0e4841d8681b59",
   "recorded_at": "2026-10-06T23:01:14Z",
+  "reverified_source_head": "3c68bf45e5b3af558f832fe970db875c80bcdf9a",
+  "reverified_at": "2026-10-06T23:07:43Z",
   "scope": [
     "AI Settings offers an explicit action after preview to invoke the bounded profile-scoped job-scoring consumer.",
     "The API returns title and company context with structured advisory results.",
@@ -49,12 +51,40 @@
       "result": "PASS"
     },
     {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_ai_cost_policy_api tests.unit.test_ai_cost_consumer tests.browser.test_ai_task_settings",
+      "result": "PASS",
+      "detail": "10 tests passed against the unchanged source and test files at reverified_source_head. The worktree has no local .venv; the lockfile-matched sibling checkout environment was used."
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run",
+      "result": "PASS",
+      "detail": "13 files and 62 tests passed."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "detail": "TypeScript check and Vite production build passed."
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.agent_skills",
+      "result": "PASS"
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.catalogue",
+      "result": "PASS"
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.progress validate",
+      "result": "PASS"
+    },
+    {
       "command": "Hosted Actions and reviews",
       "result": "NOT_RUN",
       "detail": "Disabled by active local-only policy."
     }
   ],
   "environment": [
+    "The worktree does not contain .venv; the root checkout's lockfile-matched .venv was used with this worktree as the current directory. Initial attempts to use a worktree-local .venv and global Python were unavailable, and a PowerShell invocation syntax error was corrected before validation; those attempts did not execute tests.",
     "Initial frontend build was BLOCKED because apps/web dependencies were absent; npm ci restored lockfile-pinned local dependencies.",
     "npm ci emitted EBADENGINE because Vitest 5.0.3 declares Node ^22.12.0 || ^24.0.0 || >=26.0.0 and this environment runs Node 25.9.0; frontend tests and build nevertheless completed successfully."
   ],
