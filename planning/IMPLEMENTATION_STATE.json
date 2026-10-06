@@ -7,9 +7,9 @@
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Local main and origin/main synchronized at 370da80fd291d2597f4492109a9e6d0d15e90211. Public HTTPS cancellation slice is integrated and evidenced; issue #5 remains OPEN/PARTIAL for remaining operation classes.",
-    "current_verified_github_state": "GitHub and local main matched 370da80fd291d2597f4492109a9e6d0d15e90211 at non-force integration. Actions disabled, main unprotected, no open PR; issue #5 OPEN/PARTIAL after evidence comment/readback.",
-    "current_verified_at": "2026-10-06T13:54:22Z"
+    "current_verified_local_state": "Local main and origin/main synchronized at 973bc50921eae4e242752b2527321069573e8c86. Greenhouse HTTP cancellation slice is integrated and evidenced; issue #5 remains OPEN/PARTIAL for remaining operation classes.",
+    "current_verified_github_state": "GitHub and local main matched 973bc50921eae4e242752b2527321069573e8c86 at non-force integration. Actions disabled, main unprotected, no open PR; issue #5 OPEN/PARTIAL after evidence comment/readback.",
+    "current_verified_at": "2026-10-06T14:19:05Z"
   },
   "current_milestone": "MJ-REQ-004-GREENHOUSE-HTTP-CANCELLATION-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under the local-only delivery policy; one writer and one integration lane.",
@@ -310,12 +310,12 @@
     "MJ-REQ-004 candidate 3d604b27b1a4c25e2ff0ee6fa68a07e9ff8f74a0: full suite initially saw stale ignored apps/web/dist; rebuilding restored current Sources UI and isolated browser acceptance. A first rebuilt full run later hit the known intermittent CompanyDiscoveryRequestsBrowserTests server-thread shutdown assertion; isolated case and all 35 browser tests passed, followed by a same-head 680-test full suite pass. Do not weaken shutdown timeout; evidence docs/evidence/2026-10-06-bounded-ocr-diagnostics.json."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-06T14:17:21Z",
+    "timestamp": "2026-10-06T14:19:05Z",
     "result": "PARTIAL",
     "source_commit": "7b586455880b1bde22fecd79b89810be8a27093a",
-    "scope": "Configured Greenhouse stream cancellation slice PASS; issue #5 remains OPEN/PARTIAL.",
+    "scope": "Configured Greenhouse stream cancellation slice PASS and safely integrated; issue #5 remains OPEN/PARTIAL after GitHub readback.",
     "evidence_path": "docs/evidence/2026-10-06-greenhouse-http-cancellation.json",
-    "integration_commit": null
+    "integration_commit": "973bc50921eae4e242752b2527321069573e8c86"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -5125,13 +5125,14 @@
     {
       "milestone_id": "MJ-REQ-004-GREENHOUSE-HTTP-CANCELLATION-20261006",
       "timestamp": "2026-10-06T14:17:21Z",
-      "current_phase": "MJ-REQ-004_GREENHOUSE_HTTP_CANCELLATION_LOCAL_PASS_PENDING_INTEGRATION_PARTIAL",
+      "current_phase": "MJ-REQ-004_GREENHOUSE_HTTP_CANCELLATION_INTEGRATED_LOCAL_PARTIAL",
       "completed_steps": [
         "Added a synthetic stalled-body cancellation regression and observed RED before production changes.",
         "Poll the worker cancellation/deadline callback during each active Greenhouse request; close its response/client and preserve the callback exception.",
         "Verified collection cancellation leaves source health/failure metadata, quality observations and job rows unchanged.",
         "Passed all 29 Greenhouse tests, connected Chromium collection, all 36 browser tests and same-head 706-test full suite.",
-        "First full run hit one unrelated server-thread teardown timeout; the isolated case and same-head rerun passed. Source commit is local; evidence/planning integration is pending."
+        "First full run hit one unrelated server-thread teardown timeout; the isolated case and same-head rerun passed. Source commit is local; evidence/planning integration is pending.",
+        "Non-force fast-forwarded source and evidence to synchronized local/GitHub main at 973bc50921eae4e242752b2527321069573e8c86; Actions disabled, main unprotected, no PR. Posted/read back issue #5 OPEN at https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6018276394."
       ],
       "files_added": [
         "docs/evidence/2026-10-06-greenhouse-http-cancellation.json"
@@ -5168,14 +5169,14 @@
         "Only the configured Greenhouse public GET class is covered; broader MJ-REQ-004 operation taxonomy remains PARTIAL."
       ],
       "last_safe_checkpoint": {
-        "git_commit": "7b586455880b1bde22fecd79b89810be8a27093a",
+        "git_commit": "973bc50921eae4e242752b2527321069573e8c86",
         "evidence_path": "docs/evidence/2026-10-06-greenhouse-http-cancellation.json"
       }
     }
   ],
-  "current_phase": "MJ-REQ-004_GREENHOUSE_HTTP_CANCELLATION_LOCAL_PASS_PENDING_INTEGRATION_PARTIAL",
+  "current_phase": "MJ-REQ-004_GREENHOUSE_HTTP_CANCELLATION_INTEGRATED_LOCAL_PARTIAL",
   "last_safe_checkpoint": {
-    "git_commit": "7b586455880b1bde22fecd79b89810be8a27093a",
+    "git_commit": "973bc50921eae4e242752b2527321069573e8c86",
     "evidence_path": "docs/evidence/2026-10-06-greenhouse-http-cancellation.json"
   },
   "live_integrations_tested": [
@@ -5303,28 +5304,29 @@
     }
   ],
   "live_reconciliation": {
-    "observed_at": "2026-10-06T13:54:22Z",
-    "github_main": "370da80fd291d2597f4492109a9e6d0d15e90211",
-    "local_main": "370da80fd291d2597f4492109a9e6d0d15e90211",
+    "observed_at": "2026-10-06T14:19:05Z",
+    "github_main": "973bc50921eae4e242752b2527321069573e8c86",
+    "local_main": "973bc50921eae4e242752b2527321069573e8c86",
     "issue_5_state": "OPEN_PARTIAL",
     "issue_6_state": "OPEN_PARTIAL",
     "open_prs": 0,
     "actions_enabled": false,
     "main_branch_protected": false,
-    "integration": "MJ-REQ-004_PUBLIC_HTTPS_CANCELLATION_NON_FORCE_FAST_FORWARD",
+    "integration": "MJ-REQ-004_GREENHOUSE_HTTP_CANCELLATION_NON_FORCE_FAST_FORWARD",
     "next_issue": 5
   },
   "active_development_issue": {
     "issue": 5,
     "requirement_id": "MJ-REQ-004",
     "title": "Bound External Operations",
-    "state": "LOCAL_SLICE_PASS_PENDING_INTEGRATION_REQUIREMENT_PARTIAL_OPEN",
+    "state": "LOCAL_SLICE_PASS_INTEGRATED_REQUIREMENT_PARTIAL_OPEN",
     "selection_reason": "P0 operational safety: a configured Greenhouse public GET could remain blocked on a stalled response body after durable worker cancellation, delaying cancellation and source recovery.",
     "base": "6688037a2275138b646df2b050f145e70f9e3fe4",
     "branch": "codex/req004-ops-audit-20261006",
     "candidate": "7b586455880b1bde22fecd79b89810be8a27093a",
     "evidence": "docs/evidence/2026-10-06-greenhouse-http-cancellation.json",
-    "next_action": "Push source and evidence, reconcile GitHub main/Actions/protection/open PR state, safely fast-forward, post and read back the issue #5 evidence comment, then continue the next locally actionable P0 boundary. Keep issue #5 OPEN/PARTIAL."
+    "next_action": "Continue the highest-value locally implementable P0 external-operation safety boundary on synchronized main. Keep issue #5 OPEN/PARTIAL until its full operation taxonomy is evidenced.",
+    "integration_commit": "973bc50921eae4e242752b2527321069573e8c86"
   },
   "historical_control_snapshots": [
     {
@@ -6451,5 +6453,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-06T14:17:21Z"
+  "updated_at": "2026-10-06T14:19:05Z"
 }

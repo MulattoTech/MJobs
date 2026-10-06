@@ -8,7 +8,7 @@
   "source_commit": "7b586455880b1bde22fecd79b89810be8a27093a",
   "candidate_commit": "7b586455880b1bde22fecd79b89810be8a27093a",
   "candidate_tree": "5cf748a1ac9a76c615ec6e388d04e572763419d7",
-  "recorded_at_utc": "2026-10-06T14:17:21Z",
+  "recorded_at_utc": "2026-10-06T14:19:05Z",
   "scope": "Interrupt configured Greenhouse HTTPS request streams promptly when the durable worker cancellation/deadline check raises, preserve its exact exception, and avoid recording provider health failures or committing partial postings.",
   "acceptance": {
     "stalled_greenhouse_http_body_observes_worker_cancel_within_bounded_poll_interval": "PASS",
@@ -116,5 +116,23 @@
   "denominators": {
     "requirements": 366,
     "reference_gaps": 59
+  },
+  "integration": {
+    "status": "NON_FORCE_FAST_FORWARD_INTEGRATED",
+    "method": "NON_FORCE_FAST_FORWARD",
+    "base_commit": "6688037a2275138b646df2b050f145e70f9e3fe4",
+    "source_commit": "7b586455880b1bde22fecd79b89810be8a27093a",
+    "candidate_branch": "codex/req004-ops-audit-20261006",
+    "candidate_integration_commit": "973bc50921eae4e242752b2527321069573e8c86",
+    "local_main_after_integration": "973bc50921eae4e242752b2527321069573e8c86",
+    "origin_main_after_integration": "973bc50921eae4e242752b2527321069573e8c86",
+    "main_protection": "NOT_CONFIGURED",
+    "actions_enabled": false,
+    "open_pr_for_candidate": false,
+    "hosted_verification": "NOT_RUN_BY_USER_POLICY",
+    "integrated_at_utc": "2026-10-06T14:19:05Z",
+    "issue_state_after_readback": "OPEN",
+    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6018276394",
+    "readback_at_utc": "2026-10-06T14:19:05Z"
   }
 }
