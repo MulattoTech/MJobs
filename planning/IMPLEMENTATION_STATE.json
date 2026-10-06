@@ -1,17 +1,17 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-06T19:31:31Z",
+  "generated_at": "2026-10-06T19:35:41Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Local main and origin/main synchronized at 117a27ccfdf472fb67135d17f14ebd44c8fa9462; MJ-REQ-109 task config slice integrated PARTIAL; Remotive MJ-REQ-017.S08 PASS; issue #110 OPEN/PARTIAL.",
-    "current_verified_github_state": "GitHub/local main synchronized at 117a27ccfdf472fb67135d17f14ebd44c8fa9462; issue #110 OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/110#issuecomment-6023459996; issue #345 CLOSED; Actions disabled, no PR, main unprotected.",
-    "current_verified_at": "2026-10-06T19:05:40Z"
+    "current_verified_local_state": "Local main and origin/main synchronized at 6569765749e319e72aebfaa90181eeb351f9a513; issue #109 / MJ-REQ-108 Ollama slice integrated PARTIAL; issue #110 selected next under active MJ-PR-030.",
+    "current_verified_github_state": "GitHub/local main synchronized at 6569765749e319e72aebfaa90181eeb351f9a513; issue #109 OPEN/PARTIAL after evidence readback; Actions disabled, no open PRs, main unprotected.",
+    "current_verified_at": "2026-10-06T19:35:41Z"
   },
-  "current_milestone": "MJ-REQ-108-LOCAL-OLLAMA-PROVIDER-LOCALLY-VERIFIED-PARTIAL-20261006",
+  "current_milestone": "MJ-REQ-108-OLLAMA-PROVIDER-INTEGRATED-PARTIAL-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -453,7 +453,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "c7306774884ad08e5172bfec7ab365dc261f77b3",
+  "last_implementation_commit": "6569765749e319e72aebfaa90181eeb351f9a513",
   "publication": {
     "result": "PASS",
     "integration_method": "NON_FORCE_FAST_FORWARD",
@@ -6645,11 +6645,50 @@
         "git_commit": "28c07dfad4693ebba089fb4acc9183c851872289",
         "evidence_path": "docs/evidence/2026-10-06-ai-local-ollama-provider.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-108-OLLAMA-PROVIDER-INTEGRATED-PARTIAL-20261006",
+      "timestamp": "2026-10-06T19:35:41Z",
+      "current_phase": "Issue #109 / MJ-REQ-108 loopback-only Ollama slice integrated at synchronized main 6569765749e319e72aebfaa90181eeb351f9a513; issue remains OPEN/PARTIAL; proceed to issue #110 task-configuration persistence within active MJ-PR-030.",
+      "completed_steps": [
+        "Verified local main and GitHub main both at 6569765749e319e72aebfaa90181eeb351f9a513",
+        "Confirmed repository Actions disabled, main unprotected, and no open implementation PRs",
+        "Recorded Ollama slice as locally verified PARTIAL without changing the broader requirement denominator",
+        "Read back issue #109 OPEN after scoped evidence comment https://github.com/MulattoTech/MJobs/issues/109#issuecomment-6024000242",
+        "Selected issue #110 / MJ-REQ-109 as the next incomplete item in active dependency-ready MJ-PR-030"
+      ],
+      "files_added": [],
+      "files_modified": [
+        "docs/evidence/2026-10-06-ai-local-ollama-provider.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Ollama provider: 9 PASS; all unit tests: 346 PASS on source candidate 28c07dfad4693ebba089fb4acc9183c851872289.",
+        "Compileall, progress/catalogue/agent-skill validation and git diff --check PASS on source candidate."
+      ],
+      "tests_remaining": [
+        "Complete focused and broad validation after the evidence/planning receipt update.",
+        "Implement and validate the next issue #110 slice."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "No actual inference; tests use synthetic MockTransport.",
+        "Other providers and production task consumers remain incomplete; issue #109 stays OPEN/PARTIAL.",
+        "Remote/paid AI and hosted checks remain NOT_RUN; external submission remains OFF."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "6569765749e319e72aebfaa90181eeb351f9a513",
+        "evidence_path": "docs/evidence/2026-10-06-ai-local-ollama-provider.json"
+      }
     }
   ],
-  "current_phase": "Issue #109 / MJ-REQ-108 loopback-only Ollama provider is locally verified PARTIAL on codex/mj-req108-local-provider-20261006; real inference and broader provider/consumer paths remain unverified.",
+  "current_phase": "Issue #109 / MJ-REQ-108 loopback-only Ollama slice integrated at synchronized main 6569765749e319e72aebfaa90181eeb351f9a513; issue remains OPEN/PARTIAL; proceed to issue #110 task-configuration persistence within active MJ-PR-030.",
   "last_safe_checkpoint": {
-    "git_commit": "28c07dfad4693ebba089fb4acc9183c851872289",
+    "git_commit": "6569765749e319e72aebfaa90181eeb351f9a513",
     "evidence_path": "docs/evidence/2026-10-06-ai-local-ollama-provider.json"
   },
   "live_integrations_tested": [
@@ -6777,27 +6816,27 @@
     }
   ],
   "live_reconciliation": {
-    "observed_at": "2026-10-06T17:15:49Z",
-    "github_main": "bb0f4b2384580fa31e1e054e04923d6bc2665107",
-    "local_main": "bb0f4b2384580fa31e1e054e04923d6bc2665107",
-    "issue_5_state": "OPEN_PARTIAL",
+    "observed_at": "2026-10-06T19:35:41Z",
+    "github_main": "6569765749e319e72aebfaa90181eeb351f9a513",
+    "local_main": "6569765749e319e72aebfaa90181eeb351f9a513",
+    "issue_109_state": "OPEN_PARTIAL",
     "open_prs": 0,
     "actions_enabled": false,
     "main_branch_protected": false,
-    "integration": "MJ-REQ-004_MOCK_ATS_HTTP_CANCELLATION_NON_FORCE_FAST_FORWARD",
-    "next_issue": 5
+    "integration": "MJ-REQ-108_OLLAMA_PROVIDER_NON_FORCE_FAST_FORWARD",
+    "next_issue": 110
   },
   "active_development_issue": {
-    "issue": 109,
-    "requirement_id": "MJ-REQ-108",
-    "title": "AI Provider Abstraction",
+    "issue": 110,
+    "requirement_id": "MJ-REQ-109",
+    "title": "AI Task Configuration",
     "state": "ACTIVE",
-    "selection_reason": "Next dependency-ready shared prerequisite in active MJ-PR-030; a loopback-only Ollama adapter supplies a useful local inference path while preserving offline defaults and avoiding paid or remote calls.",
-    "base": "d6eae55caca04c33271015b1a1e216d996cb116a",
-    "branch": "codex/mj-req108-local-provider-20261006",
-    "candidate": "28c07dfad4693ebba089fb4acc9183c851872289",
-    "evidence": "docs/evidence/2026-10-06-ai-local-ollama-provider.json",
-    "next_action": "Recheck exact main and local-only policy, push and fast-forward safely if main remains the exact ancestor, read back issue #109 OPEN/PARTIAL, then continue to the next dependency-ready issue."
+    "selection_reason": "Next incomplete locally actionable requirement inside dependency-ready active MJ-PR-030; persisted per-task routing would turn the existing seven-task in-process router into user-configurable durable product behavior.",
+    "base": "6569765749e319e72aebfaa90181eeb351f9a513",
+    "branch": "codex/mj-req109-task-config-persistence-20261006",
+    "candidate": null,
+    "evidence": "docs/evidence/2026-10-06-ai-task-configuration.json",
+    "next_action": "Inspect profile-scoped settings/API/UI patterns, then implement a durable user-configurable task router while keeping providers disabled by default and secrets out of storage."
   },
   "historical_control_snapshots": [
     {
@@ -7918,7 +7957,7 @@
     "MJ-REQ-004 mock ATS HTTP operation-check source f4cf42c34682be815b0306e693fb57f0ee911dca and evidence/planning integrated by non-force fast-forward at synchronized main bb0f4b2384580fa31e1e054e04923d6bc2665107; issue #5 remains OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6021535660. Full local Python suite PARTIAL with unrelated teardown assertion isolated PASS; evidence docs/evidence/2026-10-06-mock-ats-http-cancellation.json.",
     "MJ-REQ-017.S08 Remotive global job-source adapter: 7 integration tests PASS in 5.7s; 36 discovery source tests PASS; 316 unit tests PASS; 62 frontend tests/build PASS; local validators PASS. Evidence docs/evidence/2026-10-06-remotive-job-source-adapter.json."
   ],
-  "ownership": "Remotive global job-source adapter (MJ-REQ-017.S08) source 8b489a05ec5da67184ff5f0c4bbce517f63116df and evidence/planning safely integrated by non-force fast-forward to synchronized local/GitHub main. Issue #309 PASS; parent MJ-REQ-017 remains PARTIAL/OPEN. 7 focused Remotive integration tests, 36 discovery source tests, 316 unit tests, 62 frontend tests/build, and all repository validators pass. Hosted checks NOT_RUN; external submission OFF. Continue the next dependency-ready queue item.",
+  "ownership": "Primary integration lane: issue #110 / MJ-REQ-109 task configuration persistence. Antigravity CLI is active concurrently; all observed registered MJobs worktrees were clean at 2026-10-06T19:34Z. Avoid writing to any Antigravity-owned files without a fresh ownership check.",
   "delivery_policy": {
     "mode": "LOCAL_ONLY",
     "effective_at": "2026-10-05T21:32:10.763994+00:00",
@@ -7931,5 +7970,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-06T19:05:40Z"
+  "updated_at": "2026-10-06T19:35:41Z"
 }

@@ -4,14 +4,14 @@
   "github_issue": 109,
   "result": "PARTIAL",
   "scope": "Registered loopback-only Ollama HTTP provider with bounded, schema-aware transport and stable sanitized errors.",
-  "observed_at_utc": "2026-10-06T19:31:31Z",
+  "observed_at_utc": "2026-10-06T19:35:41Z",
   "candidate": {
     "repository": "MulattoTech/MJobs",
     "branch": "codex/mj-req108-local-provider-20261006",
     "base": "d6eae55caca04c33271015b1a1e216d996cb116a",
     "commit": "28c07dfad4693ebba089fb4acc9183c851872289",
     "tree": "9db4c766c27d53107cbd180a282bf6eb655aa37f",
-    "status": "Source commit locally validated; integration and GitHub issue readback pending."
+    "status": "Source commit validated and integrated by non-force fast-forward; issue #109 read back OPEN/PARTIAL."
   },
   "source_sha256": {
     "services/ai/AREA.md": "38aabdbba159bf37430ed336d300d1bea30671df80d4379c94cdd1ae482a4ac6",
@@ -78,6 +78,6 @@
   "implementation_reference": "https://github.com/ollama/ollama/blob/main/docs/api.md",
   "reconciled_main_commit": "d6eae55caca04c33271015b1a1e216d996cb116a",
   "integration_candidate_commit": "28c07dfad4693ebba089fb4acc9183c851872289",
-  "integrated_main_commit": null,
-  "github_issue_comment": null
+  "integrated_main_commit": "6569765749e319e72aebfaa90181eeb351f9a513",
+  "github_issue_comment": "https://github.com/MulattoTech/MJobs/issues/109#issuecomment-6024000242"
 }

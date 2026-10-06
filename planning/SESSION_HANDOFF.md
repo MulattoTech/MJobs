@@ -1,5 +1,13 @@
 # Active local-only implementation checkpoint — 2026-10-06
 
+Issue #109 / MJ-REQ-108 Ollama provider slice is integrated at synchronized local/GitHub main `6569765749e319e72aebfaa90181eeb351f9a513`. Nine provider tests and all 346 unit tests passed on source `28c07dfad4693ebba089fb4acc9183c851872289`; compileall, progress/catalogue/agent-skill validators and diff check also passed. Tests used synthetic `httpx.MockTransport`; no model inference was run. GitHub readback leaves #109 OPEN/PARTIAL: https://github.com/MulattoTech/MJobs/issues/109#issuecomment-6024000242. Evidence `docs/evidence/2026-10-06-ai-local-ollama-provider.json`. Hosted checks and remote/paid providers remain NOT_RUN; external submission OFF.
+
+Next target: issue #110 / MJ-REQ-109 task-configuration persistence inside active dependency-ready `MJ-PR-030`. Inspect existing profile-scoped configuration/storage and UI patterns first. Preserve disabled provider defaults, avoid credential fields/storage, and test profile isolation plus invalid provider/model inputs. Antigravity remains active; recheck ownership before shared writes.
+
+---
+
+# Active local-only implementation checkpoint — 2026-10-06
+
 Issue #109 / MJ-REQ-108 candidate `28c07dfad4693ebba089fb4acc9183c851872289` on `codex/mj-req108-local-provider-20261006`, based on synchronized main `d6eae55caca04c33271015b1a1e216d996cb116a`. Added an opt-in Ollama provider constrained to numeric loopback HTTP and `/api/generate`, proxy-free requests, bounded input/schema/response bodies and timeout, JSON Schema forwarding, duplicate-safe provider-envelope parsing, and stable sanitized failures. Nine provider tests, full unit suite (346), compileall, progress/catalogue/agent-skill validation, and diff check pass. Tests use only httpx.MockTransport; no real inference was run. Evidence: `docs/evidence/2026-10-06-ai-local-ollama-provider.json`. Issue #109 remains OPEN/PARTIAL pending real inference, other provider coverage and production consumers. External/paid AI and hosted verification are NOT_RUN; external submission OFF. Next: exact-base recheck, safe local-only integration and issue readback, then continue the next dependency-ready queue item.
 
 ---
