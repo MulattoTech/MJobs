@@ -7,9 +7,9 @@
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "MJ-REQ-004 clean-tree guard source 895b418e84d47a00ca6b7f22f032b401a84460a9 and synchronized local/GitHub main. Planning/evidence receipt is being recorded; source integration was a non-force fast-forward.",
-    "current_verified_github_state": "GitHub main and local main synchronized at 895b418e84d47a00ca6b7f22f032b401a84460a9; issue #5 remains OPEN/PARTIAL. Actions/hosted reviews remain NOT_RUN by policy.",
-    "current_verified_at": "2026-10-06T07:44:10Z"
+    "current_verified_local_state": "Fact-review clean-tree guard source 895b418e84d47a00ca6b7f22f032b401a84460a9 integrated; evidence/planning receipt checkpoint 072b7acfd6ad62d5b92bb7e5059f382050efc2b7; local and GitHub main were synchronized at checkpoint.",
+    "current_verified_github_state": "GitHub main and local main synchronized at planning receipt checkpoint 072b7acfd6ad62d5b92bb7e5059f382050efc2b7; issue #5 OPEN/PARTIAL. Actions/hosted reviews NOT_RUN by policy.",
+    "current_verified_at": "2026-10-06T07:45:02Z"
   },
   "current_milestone": "MJ-REQ-004-FACT-REVIEW-CLEAN-TREE-GUARD-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under the local-only delivery policy; one writer and one integration lane.",
@@ -6140,5 +6140,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-06T07:43:09Z"
+  "updated_at": "2026-10-06T07:45:02Z"
 }
