@@ -119,5 +119,10 @@
     "planning_receipt_commit": "072b7acfd6ad62d5b92bb7e5059f382050efc2b7",
     "remote_main_after_planning_receipt": "072b7acfd6ad62d5b92bb7e5059f382050efc2b7",
     "planning_receipt_status": "PASS; evidence and planning updates are present on synchronized main at the recorded checkpoint."
+  },
+  "followup_mock_ats_remaining_deadline": {
+    "evidence": "docs/evidence/2026-10-06-mock-ats-action-budget.json",
+    "source_commit": "5680d0e317b8614b214b0e93a4b9d4fda799ffd0",
+    "result": "PASS scoped mock ATS budget; broad MJ-REQ-004 remains PARTIAL"
   }
 }

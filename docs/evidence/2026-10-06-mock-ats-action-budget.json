@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-004",
+  "github_issue": 5,
+  "result": "PARTIAL",
+  "scope_result": "PASS",
+  "scope": "Mock ATS Playwright launch, navigation, locator actions, irreversible Submit click, and confirmation wait now use the smaller of their existing per-action cap and the durable worker operation\u2019s remaining monotonic budget. The worker exposes that remaining budget from the same cancellation-aware deadline. Pre-submit authorization remains required; post-click ambiguity remains receipt-reconciled and is never blindly retried. This local mock boundary does not establish real ATS/provider or full MJ-REQ-004 acceptance.",
+  "observed_at_utc": "2026-10-06T08:22:51Z",
+  "candidate": {
+    "repository": "MulattoTech/MJobs",
+    "branch": "codex/req004-bound-ops-20261006",
+    "base": "0bddd4c1dd939dec6447a5c030ceae5cc3661ede",
+    "commit": "5680d0e317b8614b214b0e93a4b9d4fda799ffd0",
+    "tree": "f0c4b87b063a2228cfdc09d67e9b4dd2c15380ee",
+    "integration_commit": "5680d0e317b8614b214b0e93a4b9d4fda799ffd0",
+    "integration_method": "NON_FORCE_FAST_FORWARD",
+    "main_before": "0bddd4c1dd939dec6447a5c030ceae5cc3661ede",
+    "main_after": "5680d0e317b8614b214b0e93a4b9d4fda799ffd0",
+    "remote_main_after": "5680d0e317b8614b214b0e93a4b9d4fda799ffd0",
+    "candidate_is_ancestor_of_main": true,
+    "main_remote_sha_verified": true
+  },
+  "acceptance": {
+    "worker_remaining_budget_uses_operation_monotonic_deadline_and_cancellation": "PASS; worker lifecycle regression observed positive remaining seconds, and check() still enforces cancellation/timeout.",
+    "browser_launch_navigation_and_each_waiting_action_do_not_exceed_remaining_budget": "PASS; real local Chromium mock ATS flow used a 250 ms test budget; observed browser-launch, page-navigation, and each page action cap at or below 250 ms.",
+    "submit_gate_remains_and_expired_pre_submit_budget_never_clicks": "PASS; existing reservation-boundary test remains green and verifies no receipt is created when the worker check expires before Submit.",
+    "ambiguous_post_click_state_reconciles_without_blind_retry": "PASS; existing uncertain receipt/no-retry tests pass.",
+    "external_application_submission_enabled": false,
+    "original_requirement_all_hanging_operations_complete": "PARTIAL",
+    "original_requirement_denominator_changed": false
+  },
+  "validation": {
+    "browser_application_module": {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.browser.test_mock_application -v",
+      "result": "PASS",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "run_head": "5680d0e317b8614b214b0e93a4b9d4fda799ffd0"
+    },
+    "worker_lifecycle_module": {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_worker_lifecycle -v",
+      "result": "PASS",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "run_head": "5680d0e317b8614b214b0e93a4b9d4fda799ffd0"
+    },
+    "full_suite": {
+      "command": ".venv\\Scripts\\python.exe -m unittest discover -s tests -v",
+      "result": "PASS",
+      "tests": 663,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "started_at_utc": "2026-10-06T08:14:35.5508236Z",
+      "ended_at_utc": "2026-10-06T08:20:58.7018436Z",
+      "run_head": "5680d0e317b8614b214b0e93a4b9d4fda799ffd0",
+      "log": "%TEMP%\\mjobs-req004-mock-ats-action-budget-main-5680d0e-rebuilt.log"
+    },
+    "frontend_build": {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "detail": "TypeScript check and Vite production build completed; refreshed ignored local apps/web/dist from current source."
+    },
+    "stale_build_failure_and_resolution": {
+      "initial_full_suite": "FAIL: 663 tests, 1 failure and 1 error; the answer-export field and pipeline preflight region were absent from stale ignored apps/web/dist. Both failing browser tests also failed in isolation before rebuilding.",
+      "root_cause": "Frontend source contained the expected controls; the local compiled dist served to browser acceptance did not. Browser API requests had no failed requests or page errors.",
+      "resolution": "Rebuilt apps/web and reran both affected tests in isolation; each passed. Then reran full exact-head suite: 663 PASS, zero failures/errors/skips."
+    },
+    "tdd_red_green": [
+      "Browser budget acceptance test failed against fixed 10-second/15-second calls, then passed with a 250 ms worker budget.",
+      "Worker lifecycle acceptance test failed because check had no remaining_seconds accessor, then passed after exposing the shared monotonic budget."
+    ],
+    "repository_validators": {
+      "catalogue": "PASS",
+      "progress": "PASS",
+      "agent_skills": "PASS",
+      "git_diff_check": "PASS"
+    }
+  },
+  "not_run": [
+    "GitHub Actions and hosted verification: NOT_RUN by local-only policy; workflows remain disabled.",
+    "Hosted/independent reviews: NOT_RUN by user policy.",
+    "AI-provider calls and real ATS requests: NOT_RUN; no production provider/ATS integration is configured.",
+    "External application submission: OFF."
+  ],
+  "integration_receipt": {
+    "actions_workflows": "DISABLED_BY_USER_POLICY",
+    "candidate_pushed": "PASS",
+    "non_force_fast_forward": "PASS",
+    "main_after_source_integration": "5680d0e317b8614b214b0e93a4b9d4fda799ffd0",
+    "remote_main_after_source_integration": "5680d0e317b8614b214b0e93a4b9d4fda799ffd0",
+    "issue_state": "OPEN; broad original acceptance remains incomplete and issue was not closed",
+    "requirement_state": "PARTIAL; 366 requirement and 59 reference-gap denominators preserved",
+    "planning_receipt_commit": "PENDING",
+    "remote_main_after_planning_receipt": "PENDING"
+  }
+}

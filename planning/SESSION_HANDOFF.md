@@ -327,3 +327,14 @@ Issue #5 / MJ-REQ-004 remains OPEN/PARTIAL. The fact-review verifier now refuses
 Nine focused unit tests, the dirty-tree refusal gate, clean four-case Chromium verifier with exact source SHA, catalogue/progress/agent-skill/diff validators passed. The 661-test full suite had one unrelated timing-sensitive application-pipeline server-thread shutdown assertion; isolated rerun passed (660 full-suite tests passed, zero skips). The initial system-Python browser attempt lacked Playwright; the repository `.venv` run passed. Hosted Actions/reviews remain NOT_RUN by policy and external submission stays OFF. Requirement denominator remains 366 requirements and 59 reference gaps.
 
 Next continue issue #5 by auditing aggregate subprocess output/time/resource bounds and public-company/source HTTP timeout, cancellation, retry, payload, and safe error classification. Do not mark broad acceptance PASS or close #5.
+
+
+## 2026-10-06 local-only continuation — MJ-REQ-004 mock ATS remaining deadline
+
+Issue #5 / MJ-REQ-004 remains OPEN/PARTIAL. Worker cancellation checks now expose the remaining monotonic budget, and local mock ATS browser launch, navigation, each waiting locator action, Submit, and confirmation waits are capped by that budget. The final Submit gate and durable receipt reconciliation remain in place. Source `5680d0e317b8614b214b0e93a4b9d4fda799ffd0` is integrated by non-force fast-forward to synchronized main. Evidence: [mock ATS action budget](../docs/evidence/2026-10-06-mock-ats-action-budget.json).
+
+Exact integrated main passed 12 mock application browser tests, 12 worker lifecycle tests, and the 663-test full local suite (zero failures, errors, or skips). The first exact-head suite used a stale ignored `apps/web/dist` and produced one failure plus one error; rebuilding the current frontend source fixed both, and isolated reruns plus the final exact-head full suite passed. The production frontend build and repository validators passed.
+
+Hosted Actions/reviews and external web-search, AI-provider, and real ATS calls remain NOT_RUN/BLOCKED_EXTERNAL under current configuration and policy. External submission stays OFF; the 366-requirement and 59-reference-gap denominators are unchanged.
+
+Next continue the local issue #5 audit for remaining subprocess/source operation bounds and error/retry classification. Keep issue #5 OPEN/PARTIAL until broad acceptance is evidenced.

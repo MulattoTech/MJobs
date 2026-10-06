@@ -1,17 +1,17 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-06T07:43:09Z",
+  "generated_at": "2026-10-06T08:22:51Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Fact-review clean-tree guard source 895b418e84d47a00ca6b7f22f032b401a84460a9 integrated; evidence/planning receipt checkpoint 072b7acfd6ad62d5b92bb7e5059f382050efc2b7; local and GitHub main were synchronized at checkpoint.",
-    "current_verified_github_state": "GitHub main and local main synchronized at planning receipt checkpoint 072b7acfd6ad62d5b92bb7e5059f382050efc2b7; issue #5 OPEN/PARTIAL. Actions/hosted reviews NOT_RUN by policy.",
-    "current_verified_at": "2026-10-06T07:45:02Z"
+    "current_verified_local_state": "Mock ATS remaining-deadline slice 5680d0e317b8614b214b0e93a4b9d4fda799ffd0 integrated; exact local main and origin/main synchronized. Evidence/planning receipt is being recorded.",
+    "current_verified_github_state": "GitHub main and local main synchronized at 5680d0e317b8614b214b0e93a4b9d4fda799ffd0; issue #5 OPEN/PARTIAL; Actions/reviews NOT_RUN by local-only policy.",
+    "current_verified_at": "2026-10-06T08:22:51Z"
   },
-  "current_milestone": "MJ-REQ-004-FACT-REVIEW-CLEAN-TREE-GUARD-20261006",
+  "current_milestone": "MJ-REQ-004-MOCK-ATS-REMAINING-DEADLINE-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under the local-only delivery policy; one writer and one integration lane.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -233,10 +233,14 @@
     "Catalogue, progress journal, agent-skill and diff whitespace validators PASS after fact-review evidence integration.",
     "MJ-REQ-004 fact-review clean-tree guard: 9 focused unit tests PASS; dirty-tree gate refused certification with fixed category; clean integrated Chromium verifier passed 4 cases and recorded exact source 895b418e84d47a00ca6b7f22f032b401a84460a9.",
     "MJ-REQ-004 fact-review follow-up validators: catalogue, progress journal, agent skills and git diff checks PASS.",
-    "Previously flaky application-pipeline browser test passed in isolated rerun (1 test)."
+    "Previously flaky application-pipeline browser test passed in isolated rerun (1 test).",
+    "MJ-REQ-004 mock ATS remaining-time gate: 12 browser tests and 12 worker lifecycle tests PASS; real local mock flow observes 250 ms action caps and confirms exactly one fictional submission.",
+    "MJ-REQ-004 exact-head main 5680d0e full local suite: 663 Python/integration/Chromium tests PASS, zero failures/errors/skips after rebuilding stale ignored apps/web/dist; npm production build PASS.",
+    "MJ-REQ-004 clean exact-head post-integration browser test module (12) and worker lifecycle module (12) PASS."
   ],
   "tests_failed": [
-    "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log."
+    "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
+    "RESOLVED ON SAME HEAD: initial exact-head full run had 663 tests, 1 failure and 1 error because ignored apps/web/dist was stale; two affected tests failed in isolation before rebuild. npm build refreshed dist; both isolated tests and a subsequent exact-head full run (663 tests, zero failures/errors/skips) passed. Details in docs/evidence/2026-10-06-mock-ats-action-budget.json."
   ],
   "tests_not_run": [
     "Remaining full-spec integrations and product/release requirements",
@@ -248,15 +252,16 @@
     "Final exact-head push and pull_request Verification for PR #515, including both event artifacts and all required reports.",
     "Manual owner retest of the delivered browser workflow; retained personal runtime was intentionally not started or migrated.",
     "MJ-REF-037: full repository suite NOT_RUN for this docs/governance-only slice; hosted Actions/reviews NOT_RUN by explicit local-only policy.",
-    "GitHub Actions, hosted tests/reviews, and AI-provider calls remain NOT_RUN under local-only policy; external submission remains OFF."
+    "GitHub Actions, hosted tests/reviews, and AI-provider calls remain NOT_RUN under local-only policy; external submission remains OFF.",
+    "GitHub Actions/hosted review and provider/real ATS requests remain NOT_RUN by local-only policy; external submission remains OFF."
   ],
   "known_external_limitations": [
-    "Production external career-site/domain acquisition, configured web-search provider and non-mock ATS metadata integration are not verified in MJ-PR-017.",
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
     "MJ-REQ-004 remains PARTIAL: native parser cancellation on request disconnect, browser operation deadlines/cancellation, full operation-category retry/output/error classification, and AI-provider timeout behavior remain unproven or unavailable.",
     "MJ-REQ-004 remains PARTIAL: real provider/AI request execution is unavailable; request-disconnect cancellation in parsing, real ATS navigation, and complete all-category output/retry/error policy remain unproven.",
     "MJ-REQ-004 remains PARTIAL: fact-review verifier still needs a dirty-worktree/source-tree mismatch guard; real provider/AI request paths and complete operation-category policies are unavailable or not yet evidenced.",
-    "MJ-REQ-004 remains PARTIAL: real provider/AI requests, request-disconnect cancellation, production external services, and complete all-category operation policies remain unavailable or not yet evidenced."
+    "MJ-REQ-004 remains PARTIAL: real provider/AI requests, request-disconnect cancellation, production external services, and complete all-category operation policies remain unavailable or not yet evidenced.",
+    "MJ-REQ-004 remains PARTIAL: real ATS and web-search/AI providers are not configured and were not called; request-disconnect cancellation and some all-category bounds remain unproven."
   ],
   "known_product_defects": [
     "Manual application status is user-reported only; company/application notes beyond this slice, independently verified submission receipts, and full canonical tracker acceptance remain unverified.",
@@ -268,14 +273,15 @@
     "Earlier public-browser selector/filter race corrected; final public readback and source cooldown error PASS",
     "Host Node25 unsupported by Vitest5 and managed Windows Vite spawn restricted; production Node24 Docker build/tests PASS",
     "MJ-PR-016 local Chromium first run used Docker DNS host api, which is not a secure browser origin for crypto.randomUUID; loopback URL rerun passed all five connected UI actions.",
-    "MJ-REQ-004 broad suite rerun on 2026-10-06: one timing-sensitive application-pipeline browser test exceeded its server-thread shutdown wait (661 total; 660 passed); the isolated test rerun passed. No unrelated test code changed."
+    "MJ-REQ-004 broad suite rerun on 2026-10-06: one timing-sensitive application-pipeline browser test exceeded its server-thread shutdown wait (661 total; 660 passed); the isolated test rerun passed. No unrelated test code changed.",
+    "Browser acceptance depends on current apps/web/dist; stale ignored dist omitted the source-controlled avoid-terms and ATS preflight UI, causing 1 failure and 1 error on 5680d0e until npm run build --prefix apps/web. Rebuilt dist restored both tests; exact-head full suite passed."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-06T07:44:10Z",
+    "timestamp": "2026-10-06T08:22:51Z",
     "result": "PARTIAL",
-    "source_commit": "895b418e84d47a00ca6b7f22f032b401a84460a9",
-    "scope": "Fact-review dirty-tree guard locally integrated; clean four-case Chromium receipt exact-head PASS; broad 661-test suite PARTIAL due one unrelated thread-shutdown assertion (isolated rerun PASS). Issue #5 remains OPEN/PARTIAL.",
-    "evidence_path": "docs/evidence/2026-10-06-fact-review-clean-tree.json"
+    "source_commit": "5680d0e317b8614b214b0e93a4b9d4fda799ffd0",
+    "scope": "Mock ATS browser launch/navigation/selector/submit/confirmation waits use remaining worker budget; clean exact-head 663-test suite PASS after rebuilding stale ignored frontend dist. #5 remains OPEN/PARTIAL.",
+    "evidence_path": "docs/evidence/2026-10-06-mock-ats-action-budget.json"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -342,7 +348,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Continue open P0 issue #5 / MJ-REQ-004. The fact-review verifier now rejects dirty trees and records the exact clean integrated HEAD; scoped browser and unit evidence is in docs/evidence/2026-10-06-fact-review-clean-tree.json. Audit aggregate subprocess and public-company/source HTTP timeout, output, cancellation, retry, and error classifications next. Preserve 366 requirements / 59 reference gaps; keep issue #5 OPEN/PARTIAL.",
+  "recommended_resume_step": "Continue open P0 issue #5 / MJ-REQ-004. Mock ATS launch, navigation, each waiting locator action, Submit, and confirmation are bounded by the worker remaining deadline; evidence is docs/evidence/2026-10-06-mock-ats-action-budget.json. Audit remaining locally implementable subprocess/source bounds. Keep unconfigured web-search/AI providers and real ATS as BLOCKED_EXTERNAL/NOT_RUN; preserve 366 requirements and 59 reference gaps; issue #5 remains OPEN/PARTIAL.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -360,7 +366,7 @@
     "cb72f9041d6a",
     "e14ac893620f"
   ],
-  "unfinished_work_evidence": "docs/evidence/2026-10-06-fact-review-clean-tree.json",
+  "unfinished_work_evidence": "docs/evidence/2026-10-06-mock-ats-action-budget.json",
   "authorization": "User explicitly provided 100% Git and GitHub authorization on 2026-09-30; still verify native permissions and required checks",
   "user_testing": {
     "result": "PASS",
@@ -379,7 +385,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "895b418e84d47a00ca6b7f22f032b401a84460a9",
+  "last_implementation_commit": "5680d0e317b8614b214b0e93a4b9d4fda799ffd0",
   "publication": {
     "result": "PASS",
     "integration_method": "NON_FORCE_FAST_FORWARD",
@@ -4868,12 +4874,68 @@
         "git_commit": "895b418e84d47a00ca6b7f22f032b401a84460a9",
         "evidence_path": "docs/evidence/2026-10-06-fact-review-clean-tree.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-004-MOCK-ATS-REMAINING-DEADLINE-20261006",
+      "timestamp": "2026-10-06T08:22:51Z",
+      "current_phase": "MJ-REQ-004_MOCK_ATS_ACTIONS_BOUND_TO_REMAINING_WORKER_BUDGET_LOCAL_PASS",
+      "completed_steps": [
+        "Added a failing browser acceptance test showing fixed Playwright timeouts ignored the remaining worker budget.",
+        "Added a failing worker lifecycle test proving the worker did not expose its monotonic remaining time.",
+        "Exposed remaining_seconds() from the worker cancellation/deadline check.",
+        "Capped browser launch, navigation, locator actions, Submit and confirmation wait by remaining operation time and existing per-action maximums.",
+        "Verified pre-submit expiry still prevents a mock submit click; receipt uncertainty remains reconciled without blind retry.",
+        "Integrated source by non-force fast-forward at exact main SHA and ran the clean 663-test full suite."
+      ],
+      "files_added": [
+        "docs/superpowers/plans/2026-10-06-mock-ats-remaining-deadline.md",
+        "docs/evidence/2026-10-06-mock-ats-action-budget.json"
+      ],
+      "files_modified": [
+        "workers/tasks.py",
+        "services/applications/mock_adapter.py",
+        "services/applications/AREA.md",
+        "tests/browser/test_mock_application.py",
+        "tests/integration/test_worker_lifecycle.py",
+        "docs/evidence/2026-10-06-fact-review-clean-tree.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "12 mock application browser tests PASS on exact integrated main, including launch/navigation/selector timeout caps, safe one-time mock receipt and existing no-retry/expiry cases.",
+        "12 worker lifecycle integration tests PASS on exact integrated main.",
+        "npm run build --prefix apps/web PASS.",
+        "663 full local Python/integration/Chromium tests PASS on exact integrated main after refreshing stale ignored frontend dist; zero failures/errors/skips.",
+        "Catalogue, progress, agent-skill and git diff validators PASS."
+      ],
+      "tests_remaining": [
+        "Audit remaining locally implementable subprocess/source operation bounds and exact error/retry policies.",
+        "Real ATS, web-search and AI-provider paths remain unavailable/not configured; hosted actions/reviews NOT_RUN by policy."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "GitHub candidate/main push and exact-head readback.",
+        "Local fixture browser and temporary SQLite application flow; one fictional mock submission only."
+      ],
+      "known_errors": [
+        "Initial exact-head suite used stale ignored apps/web/dist and showed one failure plus one error; both affected tests reproduced alone, then passed after rebuilding the current source. Final exact-head full suite passed 663 tests with zero failures/errors/skips."
+      ],
+      "known_limitations": [
+        "MJ-REQ-004 remains PARTIAL; real ATS/provider/AI operations and request-disconnect cancellation are not evidenced.",
+        "Hosted verification/review NOT_RUN under current policy; external application submission OFF."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "5680d0e317b8614b214b0e93a4b9d4fda799ffd0",
+        "evidence_path": "docs/evidence/2026-10-06-mock-ats-action-budget.json"
+      }
     }
   ],
-  "current_phase": "MJ-REQ-004_FACT_REVIEW_CLEAN_TREE_GUARD_INTEGRATED_LOCAL_PARTIAL",
+  "current_phase": "MJ-REQ-004_MOCK_ATS_ACTIONS_BOUND_TO_REMAINING_WORKER_BUDGET_LOCAL_PASS",
   "last_safe_checkpoint": {
-    "git_commit": "895b418e84d47a00ca6b7f22f032b401a84460a9",
-    "evidence_path": "docs/evidence/2026-10-06-fact-review-clean-tree.json"
+    "git_commit": "5680d0e317b8614b214b0e93a4b9d4fda799ffd0",
+    "evidence_path": "docs/evidence/2026-10-06-mock-ats-action-budget.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -5017,10 +5079,10 @@
     "requirement_id": "MJ-REQ-004",
     "title": "Bound External Operations",
     "state": "INTEGRATED_LOCAL_PARTIAL_BROAD_ACCEPTANCE_OPEN",
-    "selection_reason": "Open P0 safety/truthfulness requirement. Worker/source, native parser, mock ATS deadline and verifier Git identity slices are integrated; broad operation-category acceptance remains incomplete.",
-    "base": "d80ba1b0cd615b9b11d8b6584a2101d5d07ccce6",
+    "selection_reason": "Open P0 safety/truthfulness requirement. Worker/source, native parser, mock ATS deadline and verifier identity slices are integrated; broad operation-category acceptance remains incomplete.",
+    "base": "0bddd4c1dd939dec6447a5c030ceae5cc3661ede",
     "branch": "codex/req004-bound-ops-20261006",
-    "next_action": "Audit aggregate subprocess output/time/resource bounds and public-company/source HTTP timeout, retry, cancellation, output, and safe error classification. Continue one coherent issue #5 slice at a time; keep issue #5 OPEN and MJ-REQ-004 PARTIAL."
+    "next_action": "Continue the issue #5 category audit. Prioritize any remaining locally implementable subprocess/source bounds; explicitly retain BLOCKED_EXTERNAL/NOT_RUN for unconfigured web-search/AI providers and real ATS. Do not claim broad PASS or close #5."
   },
   "historical_control_snapshots": [
     {
@@ -6125,7 +6187,8 @@
     "CORE-WORKFLOW-TRIAL combined browser journey: four consecutive local Chromium runs passed for test source SHA-256 c4e0383f109f0c9396c51a0523cac92dd874c9be0170d7898c7ee4293e1dd054 on top of code base 4548eab; candidate SHA is resolved from live PR #515. It covers synthetic import/review, saved scheduled-search title/employment criteria readback, transient Jobs filtering, manual capture readback after reload, explainable match, job-specific documents and immutable prior bytes, reviewed reusable-answer export, user-reported tracking/history, and SQLite/API/browser reopen.",
     "Historical PR #515 review of c069798 against base 3ec8702 had no findings at that checkpoint, but later reviews found and repaired test/evidence issues. Fresh review and exact-head hosted events/artifacts are pending.",
     "CORE-WORKFLOW-TRIAL PR #515 checkpoint 7151348d0b92cd9cb23784785190e0d17ab892b1: exact-head read-only review PASS; push Verification 37359494332 and pull_request Verification 37359772249 both BLOCKED_EXTERNAL before job startup by GitHub account billing/spending limit. No hosted runtime reports/artifacts or PR merge-tree result exist; #515 stays draft.",
-    "Fact-review clean-tree guard exact-source Chromium and refusal evidence, 9 unit tests; broader full suite PARTIAL with one isolated-passing teardown flake; docs/evidence/2026-10-06-fact-review-clean-tree.json."
+    "Fact-review clean-tree guard exact-source Chromium and refusal evidence, 9 unit tests; broader full suite PARTIAL with one isolated-passing teardown flake; docs/evidence/2026-10-06-fact-review-clean-tree.json.",
+    "MJ-REQ-004 mock ATS browser action budgets: 12 browser + 12 worker lifecycle tests; exact-head 5680d0e full suite 663 PASS after source-matched frontend rebuild; hosted/provider evidence NOT_RUN."
   ],
   "ownership": "One writer: issue #373 candidate b6f2238c in its isolated worktree. Full local suite, browser, build and repository validators pass. Candidate awaits safe integration. External submission OFF; Codespaces and private runtime/data preserved.",
   "delivery_policy": {
@@ -6140,5 +6203,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-06T07:45:02Z"
+  "updated_at": "2026-10-06T08:22:51Z"
 }
