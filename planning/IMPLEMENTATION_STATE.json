@@ -7,9 +7,9 @@
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Local/origin main synchronized at 59572859ff12aefbcb2544d52080bfe4e366eb2f. Issue #4 / MJ-REQ-003 evidence docs/evidence/2026-10-06-headless-browser-acceptance.json records 36 headless browser tests and 62 frontend tests PASS; requirement remains PARTIAL due absent authenticated real ATS provider/account. Next sole writer: P0 issue #5 / MJ-REQ-004 bounded external operations; audit remaining operation classes and choose the next complete locally verifiable slice.",
-    "current_verified_github_state": "GitHub main and local main last matched 59572859ff12aefbcb2544d52080bfe4e366eb2f; Actions disabled, main unprotected, no implementation PR. Issues #2/#3 CLOSED; issue #4 OPEN/PARTIAL; issue #5 OPEN.",
-    "current_verified_at": "2026-10-06T13:22:35Z"
+    "current_verified_local_state": "Local main and origin/main are synchronized at 7e36a1f92959026585ce265e36bc85c8cb521ed8. Issue #4 / MJ-REQ-003 is OPEN/PARTIAL after headless coverage evidence/readback; real ATS authenticated persistence remains BLOCKED_EXTERNAL. Next implementation target: P0 issue #5 / MJ-REQ-004 bounded external operations.",
+    "current_verified_github_state": "GitHub main and local main synchronized at 7e36a1f92959026585ce265e36bc85c8cb521ed8; Actions disabled, main unprotected, no open implementation PR. Issues #2/#3 CLOSED, #4 OPEN/PARTIAL, #5 OPEN.",
+    "current_verified_at": "2026-10-06T13:23:59Z"
   },
   "current_milestone": "MJ-REQ-004-BOUNDED-EXTERNAL-OPERATIONS-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under the local-only delivery policy; one writer and one integration lane.",

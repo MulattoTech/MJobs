@@ -12,6 +12,8 @@ Issue #4 / MJ-REQ-003 headless acceptance is PARTIAL with evidence `docs/evidenc
 
 Issue #4 / MJ-REQ-003 headless acceptance is recorded as PARTIAL in `docs/evidence/2026-10-06-headless-browser-acceptance.json`. Issue #4 remains OPEN because credential-backed ATS authentication persistence requires a real provider/account that is not available; external submission remains OFF.
 
+Issue #4 evidence was integrated at `7e36a1f92959026585ce265e36bc85c8cb521ed8`; the GitHub comment/readback leaves it OPEN/PARTIAL because authenticated real ATS session persistence is BLOCKED_EXTERNAL (https://github.com/MulattoTech/MJobs/issues/4#issuecomment-6017238071).
+
 Next sole writer: P0 issue #5 / MJ-REQ-004 Bound External Operations. Audit the remaining HTTP/browser/AI/document/OCR/process/source/ATS operation classes on current main and implement the highest-value dependency-ready local slice; do not treat unavailable AI/ATS paths as PASS.
 
 The previous integrated issue #5 cancellation slice is source `e57c1759cd75dd453bbe0284325aee3d3174eb1d` and evidence/planning receipt `f9649d9ae374a31203d6cc2774d7ac47f4e4376b`; local and origin main matched at integration. GitHub issue #5 comment/readback remains OPEN (https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6015630443). Evidence: `docs/evidence/2026-10-06-resume-extraction-cancellation.json`. The slice adds profile/resume-scoped **Cancel extraction**, propagates cancellation through native PDF/DOCX and active OCR child processes, and kills/reaps children while keeping operation deadlines and private diagnostics bounded.
