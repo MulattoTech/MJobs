@@ -1,17 +1,17 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-06T07:13:24Z",
+  "generated_at": "2026-10-06T07:26:43Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "MJ-REQ-004 mock ATS deadline source commit e86e8d0ff2ada3b357961c925a33584ae50d0412 and planning receipt commit a2febdf6f68b25fefe09dfc99e526f6b621c0b79 are integrated by non-force fast-forward; local and GitHub main are synchronized.",
-    "current_verified_github_state": "GitHub main and local main synchronized at a2febdf6f68b25fefe09dfc99e526f6b621c0b79, including mock ATS deadline evidence. Issue #5 remains OPEN/PARTIAL; Actions/reviews remain NOT_RUN by policy.",
-    "current_verified_at": "2026-10-06T07:13:24Z"
+    "current_verified_local_state": "MJ-REQ-004 bounded fact-review Git lookup source commit 839c9f0b164a2bef9d93dd1ec64f580a59f7c98f is integrated by non-force fast-forward; local and GitHub main are synchronized. Planning/evidence receipt is being recorded.",
+    "current_verified_github_state": "GitHub main and local main synchronized at 839c9f0b164a2bef9d93dd1ec64f580a59f7c98f. Issue #5 remains OPEN/PARTIAL; Actions/reviews remain NOT_RUN by policy.",
+    "current_verified_at": "2026-10-06T07:26:43Z"
   },
-  "current_milestone": "MJ-REQ-004-MOCK-ATS-DEADLINE-SLICE-20261006",
+  "current_milestone": "MJ-REQ-004-FACT-REVIEW-GIT-DEADLINE-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under the local-only delivery policy; one writer and one integration lane.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -226,7 +226,11 @@
     "MJ-REQ-004 mock ATS deadline boundary: 31 focused browser/worker/API tests PASS; timeout after durable SUBMITTING reservation prevents Submit click and remains SUBMISSION_UNCONFIRMED without a receipt.",
     "MJ-REQ-004 exact source candidate local full suite: 656 Python/integration/Chromium browser tests PASS on final run; zero failures and zero skips.",
     "The full suite had one unrelated server-thread teardown failure on its first run; the isolated test and module passed, and the full rerun passed without changes to that test.",
-    "Catalogue, progress journal, agent-skill and diff whitespace validators PASS after mock ATS deadline integration."
+    "Catalogue, progress journal, agent-skill and diff whitespace validators PASS after mock ATS deadline integration.",
+    "MJ-REQ-004 fact-review Git boundary: seven focused unit tests PASS, including timeout/launch/nonzero/invalid-SHA classification and evidence preservation.",
+    "The actual four-case fact-review Chromium verifier passed on clean integrated main and recorded exact source commit 839c9f0b164a2bef9d93dd1ec64f580a59f7c98f.",
+    "MJ-REQ-004 exact source candidate full Python/integration/Chromium suite: 659 tests PASS; zero failures and zero skips.",
+    "Catalogue, progress journal, agent-skill and diff whitespace validators PASS after fact-review evidence integration."
   ],
   "tests_failed": [],
   "tests_not_run": [
@@ -244,7 +248,8 @@
     "Production external career-site/domain acquisition, configured web-search provider and non-mock ATS metadata integration are not verified in MJ-PR-017.",
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
     "MJ-REQ-004 remains PARTIAL: native parser cancellation on request disconnect, browser operation deadlines/cancellation, full operation-category retry/output/error classification, and AI-provider timeout behavior remain unproven or unavailable.",
-    "MJ-REQ-004 remains PARTIAL: real provider/AI request execution is unavailable; request-disconnect cancellation in parsing, real ATS navigation, and complete all-category output/retry/error policy remain unproven."
+    "MJ-REQ-004 remains PARTIAL: real provider/AI request execution is unavailable; request-disconnect cancellation in parsing, real ATS navigation, and complete all-category output/retry/error policy remain unproven.",
+    "MJ-REQ-004 remains PARTIAL: fact-review verifier still needs a dirty-worktree/source-tree mismatch guard; real provider/AI request paths and complete operation-category policies are unavailable or not yet evidenced."
   ],
   "known_product_defects": [
     "Manual application status is user-reported only; company/application notes beyond this slice, independently verified submission receipts, and full canonical tracker acceptance remain unverified.",
@@ -329,7 +334,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Continue open P0 issue #5 / MJ-REQ-004. The worker/source, native parser, and mock ATS deadline slices are integrated locally with exact evidence; the 656-test full suite passed on rerun, and the transient browser teardown failure was reproduced as isolated/module-passing and did not recur. Next audit all remaining public-company/source HTTP and external-process paths for bounded calls, cancellation, captured output, retry policy, and safe classifications. Keep #5 OPEN/PARTIAL and the 366 requirement denominator unchanged.",
+  "recommended_resume_step": "Continue open P0 issue #5 / MJ-REQ-004. Worker/source, native parser, mock ATS, and verifier Git timeout slices are integrated with evidence; the 659-test full suite passed. Next add an exact evidence identity guard so the fact-review verifier cannot report PASS when tracked or untracked source changes make git HEAD differ from the tested worktree. Then audit remaining subprocess aggregate limits and public-company/source HTTP classifications. Keep #5 OPEN/PARTIAL and the 366 requirement denominator unchanged.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -347,7 +352,7 @@
     "cb72f9041d6a",
     "e14ac893620f"
   ],
-  "unfinished_work_evidence": "docs/evidence/2026-10-06-mock-ats-submit-deadline.json",
+  "unfinished_work_evidence": "docs/evidence/2026-10-06-bounded-fact-review-git.json",
   "authorization": "User explicitly provided 100% Git and GitHub authorization on 2026-09-30; still verify native permissions and required checks",
   "user_testing": {
     "result": "PASS",
@@ -366,7 +371,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "e86e8d0ff2ada3b357961c925a33584ae50d0412",
+  "last_implementation_commit": "839c9f0b164a2bef9d93dd1ec64f580a59f7c98f",
   "publication": {
     "result": "PASS",
     "integration_method": "NON_FORCE_FAST_FORWARD",
@@ -4748,12 +4753,64 @@
         "git_commit": "e86e8d0ff2ada3b357961c925a33584ae50d0412",
         "evidence_path": "docs/evidence/2026-10-06-mock-ats-submit-deadline.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-004-FACT-REVIEW-GIT-DEADLINE-20261006",
+      "timestamp": "2026-10-06T07:26:43Z",
+      "current_phase": "MJ-REQ-004_FACT_REVIEW_GIT_BOUNDARY_RECEIPTED_NEXT_EVIDENCE_IDENTITY_GUARD",
+      "completed_steps": [
+        "Reproduced the unbounded git rev-parse subprocess at the end of local fact-review evidence generation.",
+        "Added a five-second shell-free subprocess.run timeout, stderr suppression, full SHA validation, and stable timeout/launch/exit/output error categories.",
+        "Verified a simulated Git timeout still writes a FAIL evidence record with a null source SHA and no raw diagnostic.",
+        "Ran the four-case Chromium verifier on clean integrated main; the receipt records the exact candidate SHA.",
+        "Integrated source commit by non-force fast-forward; issue #5 remains OPEN and MJ-REQ-004 PARTIAL."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-06-bounded-fact-review-git.json",
+        "docs/superpowers/plans/2026-10-06-bounded-fact-review-git.md"
+      ],
+      "files_modified": [
+        "tools/verification/fact_review.py",
+        "tests/unit/test_verification_fact_review.py",
+        "docs/evidence/2026-10-06-bounded-native-resume-parsing.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Seven focused fact-review verifier unit tests PASS.",
+        "Actual four-case fact-review Chromium verifier PASS on clean integrated main and reported exact source SHA.",
+        "659 full local Python/integration/Chromium browser tests PASS; zero failures/skips.",
+        "Catalogue, progress, agent-skill and git diff checks PASS."
+      ],
+      "tests_remaining": [
+        "Add dirty-worktree/source-tree identity refusal to prevent stale commit evidence.",
+        "Audit aggregate subprocess and public-company/source HTTP output/retry/error bounds."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "GitHub branch/main push and exact-head readback.",
+        "GitHub issue #5 readback remains OPEN.",
+        "Local fact-review Chromium/API/temporary SQLite workflow; synthetic data only."
+      ],
+      "known_errors": [
+        "A pre-commit dirty-worktree smoke run was excluded because its source SHA identified the previous HEAD. The final verifier was rerun after source integration on clean main and recorded the exact candidate SHA."
+      ],
+      "known_limitations": [
+        "The verifier still needs a dirty-worktree guard; no stale SHA result was used as acceptance evidence.",
+        "GitHub Actions/hosted review remain NOT_RUN; AI provider calls are unavailable."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "839c9f0b164a2bef9d93dd1ec64f580a59f7c98f",
+        "evidence_path": "docs/evidence/2026-10-06-bounded-fact-review-git.json"
+      }
     }
   ],
-  "current_phase": "MJ-REQ-004_MOCK_ATS_DEADLINE_SLICE_RECEIPTED_NEXT_OPERATION_AUDIT",
+  "current_phase": "MJ-REQ-004_FACT_REVIEW_GIT_BOUNDARY_RECEIPTED_NEXT_EVIDENCE_IDENTITY_GUARD",
   "last_safe_checkpoint": {
-    "git_commit": "e86e8d0ff2ada3b357961c925a33584ae50d0412",
-    "evidence_path": "docs/evidence/2026-10-06-mock-ats-submit-deadline.json"
+    "git_commit": "839c9f0b164a2bef9d93dd1ec64f580a59f7c98f",
+    "evidence_path": "docs/evidence/2026-10-06-bounded-fact-review-git.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
@@ -4896,10 +4953,10 @@
     "requirement_id": "MJ-REQ-004",
     "title": "Bound External Operations",
     "state": "INTEGRATED_LOCAL_PARTIAL_BROAD_ACCEPTANCE_OPEN",
-    "selection_reason": "Open P0 safety/reliability requirement. Durable worker/source, bounded native parser, and mock ATS submit-deadline slices are integrated; broad all-category acceptance remains unproven.",
-    "base": "f564ecedb96842e8b9084907b039e2b3a43d8d35",
+    "selection_reason": "Open P0 safety/truthfulness requirement. Worker/source, native parser, mock ATS deadline and bounded verifier Git evidence slices are integrated; broader acceptance remains unproven.",
+    "base": "9fbff7dcc0f01fb44146f4dc847a50b340c6d32b",
     "branch": "codex/req004-bound-ops-20261006",
-    "next_action": "Audit remaining public-company/source HTTP clients and external subprocess paths for wall/total timeout, cancellation propagation, captured-output bounds, retry policy and stable safe error classification; implement one dependency-ready bounded slice test-first. Preserve SUBMISSION_UNCONFIRMED and keep #5 OPEN/PARTIAL."
+    "next_action": "Add a clean-worktree/source-tree identity guard to the fact-review verifier so it cannot attach a stale HEAD SHA to tests run against uncommitted changes; use fixed safe categories and no raw paths. Then audit aggregate subprocess and public-company/source HTTP bounds. Keep issue #5 OPEN/PARTIAL."
   },
   "historical_control_snapshots": [
     {
@@ -6018,5 +6075,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-06T07:13:24Z"
+  "updated_at": "2026-10-06T07:26:43Z"
 }

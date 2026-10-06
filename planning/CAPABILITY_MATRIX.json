@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-06T07:11:01Z",
+  "timestamp": "2026-10-06T07:26:43Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -41,9 +41,10 @@
       "evidence": [
         "docs/evidence/2026-10-06-bound-external-operation-deadlines.json",
         "docs/evidence/2026-10-06-bounded-native-resume-parsing.json",
-        "docs/evidence/2026-10-06-mock-ats-submit-deadline.json"
+        "docs/evidence/2026-10-06-mock-ats-submit-deadline.json",
+        "docs/evidence/2026-10-06-bounded-fact-review-git.json"
       ],
-      "note": "Scoped local evidence covers durable-worker deadlines and Greenhouse cancellation, native PDF/DOCX child time/resource bounds, and mock ATS deadline checks before the irreversible submit click with receipt reconciliation. The broad requirement remains PARTIAL: real provider and AI paths are unavailable; all-category browser/request cancellation, captured-output, retry, and error-classification contracts remain incomplete."
+      "note": "Scoped local evidence covers durable-worker deadlines and Greenhouse cancellation, native PDF/DOCX child time/resource bounds, mock ATS deadline checks before submit, and a bounded fact-review Git evidence lookup with safe failure receipts. The broad requirement remains PARTIAL: verifier dirty-worktree identity, real provider and AI paths, and complete all-category cancellation/output/retry/error classification remain open."
     },
     {
       "requirement_id": "MJ-REQ-005",

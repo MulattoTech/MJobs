@@ -311,3 +311,10 @@ Issue #5 / MJ-REQ-004 remains OPEN/PARTIAL. The local Playwright mock ATS flow n
 One unrelated Uvicorn test-server teardown timed out in the first full-suite run. Systematic investigation found the same test passed alone and with its module, then the full suite passed on rerun without changing that test. The failed attempt and follow-up are recorded in the evidence. External submission remains OFF; real ATS, hosted verification/reviews and AI provider calls remain NOT_RUN.
 
 Next continue issue #5 by auditing remaining public-company/source HTTP and external process paths for timeouts, cancellation, captured-output limits, retry policy, and safe classification. Preserve the current 366-requirement denominator; do not close #5 or mark MJ-REQ-004 PASS from these scoped slices.
+
+
+## 2026-10-06 local-only continuation — MJ-REQ-004 verifier Git deadline
+
+Issue #5 / MJ-REQ-004 remains OPEN/PARTIAL. `tools/verification/fact_review.py` now resolves Git HEAD with a five-second shell-free subprocess, discards stderr, validates the SHA, and writes a safe FAIL evidence receipt if Git times out or fails. Candidate `839c9f0b164a2bef9d93dd1ec64f580a59f7c98f` was non-force fast-forwarded to synchronized main. Evidence: [bounded fact-review Git lookup](../docs/evidence/2026-10-06-bounded-fact-review-git.json). Seven focused unit tests, the four-case Chromium verifier on clean main, the 659-test full suite, and catalogue/progress/skill validators passed.
+
+A pre-commit verifier smoke run occurred on a dirty checkout and captured the prior HEAD; it was excluded from candidate evidence. The verifier was rerun after integration on clean main and reported the exact candidate SHA. Next add a dirty-worktree/source-tree identity guard to prevent stale SHA receipts, then continue the remaining subprocess and public-company/source HTTP audit. External submission stays OFF; Actions/hosted reviews remain NOT_RUN; issue #5 must remain open until broad acceptance is fully evidenced.

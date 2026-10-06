@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-004",
+  "github_issue": 5,
+  "result": "PARTIAL",
+  "scope_result": "PASS",
+  "scope": "The fact-review local verification wrapper now bounds its Git HEAD lookup to five seconds, suppresses raw stderr, validates a full 40/64-character SHA, and writes a FAIL receipt with a stable category when commit identity cannot be established. The broader MJ-REQ-004 requirement remains PARTIAL.",
+  "observed_at_utc": "2026-10-06T07:26:43Z",
+  "candidate": {
+    "repository": "MulattoTech/MJobs",
+    "branch": "codex/req004-bound-ops-20261006",
+    "base": "9fbff7dcc0f01fb44146f4dc847a50b340c6d32b",
+    "commit": "839c9f0b164a2bef9d93dd1ec64f580a59f7c98f",
+    "tree": "18ac3a67f19722d2b97e53b88171c0892bf66463",
+    "integration_commit": "839c9f0b164a2bef9d93dd1ec64f580a59f7c98f",
+    "integration_method": "NON_FORCE_FAST_FORWARD",
+    "main_before": "9fbff7dcc0f01fb44146f4dc847a50b340c6d32b",
+    "main_after": "839c9f0b164a2bef9d93dd1ec64f580a59f7c98f",
+    "remote_main_after": "839c9f0b164a2bef9d93dd1ec64f580a59f7c98f",
+    "candidate_is_ancestor_of_main": true,
+    "main_remote_sha_verified": true
+  },
+  "acceptance": {
+    "git_head_lookup_has_five_second_deadline": "PASS",
+    "git_launch_timeout_nonzero_and_invalid_sha_are_safely_classified": "PASS",
+    "raw_git_diagnostics_are_not_written_to_evidence": "PASS",
+    "git_timeout_still_writes_inspectable_fail_receipt": "PASS; result FAIL, source_commit null, category GIT_TIMEOUT, process returns nonzero",
+    "clean_integrated_head_is_bound_to_browser_receipt": "PASS; actual four-case Chromium verifier recorded candidate SHA 839c9f0b164a2bef9d93dd1ec64f580a59f7c98f",
+    "original_requirement_all_hanging_operations_complete": "PARTIAL",
+    "external_application_submission_enabled": false,
+    "original_requirement_denominator_changed": false
+  },
+  "local_validation": {
+    "focused_unit_suite": {
+      "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_verification_fact_review -v",
+      "result": "PASS",
+      "tests": 7,
+      "failures": 0,
+      "skips": 0,
+      "started_at_utc": "2026-10-06T07:17:02.9831641Z",
+      "ended_at_utc": "2026-10-06T07:17:03.0171641Z"
+    },
+    "fact_review_browser_verifier": {
+      "command": "python -m tools.verification.fact_review --evidence %TEMP%\\mjobs-fact-review-integrated-evidence.json",
+      "result": "PASS",
+      "tests": 4,
+      "failures": 0,
+      "skips": 0,
+      "source_commit": "839c9f0b164a2bef9d93dd1ec64f580a59f7c98f",
+      "started_at_utc": "2026-10-06T07:26:02.5382925Z",
+      "ended_at_utc": "2026-10-06T07:26:43.5911437Z",
+      "temporary_receipt": "%TEMP%\\mjobs-fact-review-integrated-evidence.json"
+    },
+    "full_suite": {
+      "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest discover -s tests -v",
+      "result": "PASS",
+      "tests": 659,
+      "failures": 0,
+      "skips": 0,
+      "started_at_utc": "2026-10-06T07:17:56.5306083Z",
+      "ended_at_utc": "2026-10-06T07:24:16.8103295Z",
+      "log": "%TEMP%\\mjobs-req004-git-verifier-full-suite.log"
+    },
+    "validators": {
+      "catalogue": "PASS",
+      "progress": "PASS",
+      "agent_skills": "PASS",
+      "git_diff_check": "PASS",
+      "started_at_utc": "2026-10-06T07:24:41.2750363Z",
+      "ended_at_utc": "2026-10-06T07:24:41.5539661Z"
+    },
+    "failure_history": [
+      {
+        "result": "EXPECTED_RED_THEN_FIXED",
+        "detail": "The initial test import failed because resolve_source_commit did not exist; the final timeout, process-error, SHA-validation, and evidence-writing tests pass."
+      },
+      {
+        "result": "EXCLUDED_DIRTY_WORKTREE_SMOKE",
+        "detail": "A pre-commit verifier invocation passed its browser cases but reported prior HEAD 9fbff7dcc0f01fb44146f4dc847a50b340c6d32b while the working tree contained this candidate. It was excluded as candidate evidence. The verifier was rerun on clean integrated main and recorded the exact candidate SHA. A dirty-worktree refusal guard is a follow-up truthfulness slice."
+      },
+      {
+        "result": "NO_FAILURE_IN_FINAL_CANDIDATE_SUITE",
+        "detail": "Focused unit tests, the clean integrated four-case browser verifier, and all 659 full-suite tests passed."
+      }
+    ],
+    "not_run": [
+      "GitHub Actions and hosted verification: NOT_RUN by local-only policy; workflows remain disabled.",
+      "Hosted/independent reviews: NOT_RUN by user policy.",
+      "AI-provider calls: NOT_RUN; no provider implementation exists.",
+      "External application submission: OFF."
+    ]
+  },
+  "integration_receipt": {
+    "branch_protection": "NONE",
+    "actions_workflows": "DISABLED_BY_USER_POLICY",
+    "candidate_pushed": "PASS",
+    "non_force_fast_forward": "PASS",
+    "main_after_source_integration": "839c9f0b164a2bef9d93dd1ec64f580a59f7c98f",
+    "remote_main_after_source_integration": "839c9f0b164a2bef9d93dd1ec64f580a59f7c98f",
+    "issue_state": "OPEN; broad original acceptance remains incomplete and issue was not closed",
+    "requirement_state": "PARTIAL; existing requirement/reference denominators preserved",
+    "planning_receipt_commit": null,
+    "remote_main_after_planning_receipt": null
+  }
+}

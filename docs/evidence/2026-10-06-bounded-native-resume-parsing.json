@@ -41,10 +41,10 @@
     "ai_requests": "NOT_RUN; no provider request implementation exists; no paid or hosted AI call was made.",
     "document_parsing": "PARTIAL; native PDF/DOCX wall deadline, sanitized child environment, Linux resource limits, safe errors, and size/page/XML/text limits are now tested. Request cancellation and broader deployment evidence remain.",
     "ocr": "PARTIAL; parent-side subprocess hard timeout/resource/output limits remain, alongside new Linux parser integration tests; complete process-category coverage is open.",
-    "external_processes": "PARTIAL; OCR and native parser paths use shell-free bounded subprocesses; other project process paths need audit.",
+  "external_processes": "PARTIAL; OCR and native parser paths use shell-free bounded subprocesses, and the fact-review verifier's Git revision lookup now has a five-second deadline and safe failure categories. Other process and operation-category proof remains open.",
     "source_collectors": "PARTIAL; Greenhouse request timeout/rate-wait cancellation and provider-history preservation are tested; broad retry/classification coverage remains.",
     "ats_collectors": "PARTIAL; supported paths have bounded requests, but provider breadth and browser timeout/cancel behavior are not complete.",
-    "captured_output_retry_policy_and_error_classification": "PARTIAL; parser diagnostics are suppressed and failures are safely categorized, but all-category retry/output/error policy remains open."
+  "captured_output_retry_policy_and_error_classification": "PARTIAL; parser and fact-review Git diagnostics are suppressed and failures safely categorized, but all-category retry/output/error policy remains open."
   },
   "local_validation": {
     "environment": {
