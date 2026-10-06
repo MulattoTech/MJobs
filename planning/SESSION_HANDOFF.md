@@ -1,3 +1,9 @@
+# Integration receipt — 2026-10-06
+
+Mock ATS HTTP cancellation source `f4cf42c34682be815b0306e693fb57f0ee911dca` and evidence/planning were integrated by non-force fast-forward at synchronized local/GitHub main `bb0f4b2384580fa31e1e054e04923d6bc2665107`. Issue #5 remains OPEN/PARTIAL after readback: https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6021535660. Evidence `docs/evidence/2026-10-06-mock-ats-http-cancellation.json`. The full 719-test Python run was PARTIAL due one unrelated Uvicorn teardown assertion that passed alone; 13 mock ATS tests and all 37 browser tests passed. Continue to the next local-only P0 safety slice; hosted verification NOT_RUN, external submission OFF.
+
+---
+
 # Active local-only implementation checkpoint — 2026-10-06
 
 Issue #5 / MJ-REQ-004 mock ATS HTTP cancellation candidate `f4cf42c34682be815b0306e693fb57f0ee911dca` on `codex/req004-mock-ats-http-cancellation-20261006`, based on `7f728d4d046dda7f3a53fe914125a21f068b7b74`. Worker cancellation/deadline now reaches questionnaire and receipt GETs; a cutoff after the SUBMITTING reservation preserves `SUBMISSION_UNCONFIRMED` without blind retry. Evidence `docs/evidence/2026-10-06-mock-ats-http-cancellation.json`. Thirteen mock ATS tests, two mock client cancellation/bounds tests, all 37 browser tests, and build pass. Full Python suite ran 719 with one unrelated application-pipeline server-thread teardown failure and one optional PostgreSQL skip; the failing browser test passed alone. Repository validators remain to run before integration. External submission OFF; hosted Actions/reviews NOT_RUN.
