@@ -7,12 +7,12 @@
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Local main/origin main at 36b4dbdcefd3a30bbe53f1a523f33bd340c8c76f; issue #9 read-only progress resume CLI and subprocess test are implemented on the single worktree, pending checkpoint integration.",
-    "current_verified_github_state": "GitHub/local main at 36b4dbdcefd3a30bbe53f1a523f33bd340c8c76f; issue #8 OPEN/PARTIAL after evidence readback. Actions disabled, no open PR; issue #9 evidence commit pending.",
-    "current_verified_at": "2026-10-06T14:43:21Z"
+    "current_verified_local_state": "Local main, origin/main and single implementation worktree synchronized at cbaf2323a24fd57798703a700b879869c3731365 after issue #9 resume CLI integration.",
+    "current_verified_github_state": "GitHub and local main synchronized at cbaf2323a24fd57798703a700b879869c3731365; Actions disabled, main unprotected, no open PR. Issue #9 OPEN/PARTIAL after evidence readback https://github.com/MulattoTech/MJobs/issues/9#issuecomment-6018759931.",
+    "current_verified_at": "2026-10-06T14:44:02Z"
   },
-  "current_milestone": "MJ-REQ-004-MOCK-DISCOVERY-HTTP-BOUNDS-20261006",
-  "current_objective": "Continuously implement dependency-ready MJobs issues from current main under the local-only delivery policy; one writer and one integration lane.",
+  "current_milestone": "MJ-REQ-009-STAGED-LOCAL-OPERATION-20261006",
+  "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -56,7 +56,8 @@
     "MJ-REQ-004 Greenhouse worker-budget follow-up: configured public GET connect/read and response-body deadlines are capped by the durable worker remaining monotonic budget; 690 Python/integration/browser tests pass with one optional PostgreSQL skip, 36 browser tests and 62 frontend tests pass; real AI/ATS provider paths remain unavailable and the issue remains PARTIAL.",
     "MJ-REQ-002 PASS: repository dependency/runtime guard excludes GPU requirements; six negative/positive tests, frontend build/tests, 13 headless browser tests, and 696 Python tests passed. GPU hardware was not queried or changed. Evidence: docs/evidence/2026-10-06-gpu-independence.json.",
     "MJ-REQ-001: checked-in development entrypoints now have a deterministic host-safety guard and project-scoped setup fixtures; dev dependency source-map-js 1.2.2 removes a high severity advisory (full npm audit zero). Five guard tests, 62 frontend tests/build, isolated known Uvicorn case, and all 36 browser tests pass. Full 701-test suite had one known Uvicorn shutdown assertion, retained in docs/evidence/2026-10-06-protected-host-safety.json.",
-    "MJ-REQ-004 scoped public DNS cancellation: the worker cancellation/deadline callback is polled during a pending getaddrinfo wait without weakening its absolute lookup deadline or losing timeout classification. 21 unit, 23 integration, two Chromium workflow, and 703 full Python tests pass (1 optional PostgreSQL skip); see docs/evidence/2026-10-06-public-dns-cancellation.json."
+    "MJ-REQ-004 scoped public DNS cancellation: the worker cancellation/deadline callback is polled during a pending getaddrinfo wait without weakening its absolute lookup deadline or losing timeout classification. 21 unit, 23 integration, two Chromium workflow, and 703 full Python tests pass (1 optional PostgreSQL skip); see docs/evidence/2026-10-06-public-dns-cancellation.json.",
+    "MJ-REQ-009 local staged workflow passed on synchronized current main: 30 focused unit/integration/browser tests, isolated fixture Compose build/readiness, controlled public Greenhouse read (19 jobs, zero application requests), and dry-run stop-before-submit. Real application and cloud deployment NOT_RUN by policy; evidence docs/evidence/2026-10-06-staged-local-operation.json."
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
@@ -312,12 +313,12 @@
     "MJ-REQ-004 candidate 3d604b27b1a4c25e2ff0ee6fa68a07e9ff8f74a0: full suite initially saw stale ignored apps/web/dist; rebuilding restored current Sources UI and isolated browser acceptance. A first rebuilt full run later hit the known intermittent CompanyDiscoveryRequestsBrowserTests server-thread shutdown assertion; isolated case and all 35 browser tests passed, followed by a same-head 680-test full suite pass. Do not weaken shutdown timeout; evidence docs/evidence/2026-10-06-bounded-ocr-diagnostics.json."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-06T14:43:21Z",
-    "result": "PARTIAL",
-    "source_commit": "36b4dbdcefd3a30bbe53f1a523f33bd340c8c76f",
-    "scope": "MJ-REQ-008 read-only validated resume snapshot and cross-process checkpoint adoption pass locally; physical host/container restart remains untested.",
-    "evidence_path": "docs/evidence/2026-10-06-progress-resume-cli.json",
-    "integration_commit": "36b4dbdcefd3a30bbe53f1a523f33bd340c8c76f"
+    "timestamp": "2026-10-06T14:51:35Z",
+    "result": "PASS",
+    "source_commit": "cbaf2323a24fd57798703a700b879869c3731365",
+    "scope": "MJ-REQ-009 local staged development, fixture dry-run, controlled public read and isolated Compose deployment pass; real submission remains optional and OFF.",
+    "evidence_path": "docs/evidence/2026-10-06-staged-local-operation.json",
+    "integration_commit": "cbaf2323a24fd57798703a700b879869c3731365"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -5373,12 +5374,90 @@
         "git_commit": "36b4dbdcefd3a30bbe53f1a523f33bd340c8c76f",
         "evidence_path": "docs/evidence/2026-10-06-progress-resume-cli.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-009-STAGED-OPERATION-AUDIT-20261006-START",
+      "timestamp": "2026-10-06T14:44:49Z",
+      "current_phase": "MJ-REQ-009_STAGED_OPERATION_AUDIT_IN_PROGRESS",
+      "completed_steps": [
+        "Read issue #10 and exact governance safety acceptance; no source directive needed.",
+        "Inspected current capability entry: separate PERSONAL/FIXTURE data modes and staged local evidence exist; requirement remains PARTIAL.",
+        "Reconciled synchronized main  cbaf2323a24fd57798703a700b879869c3731365 and issue #9 readback."
+      ],
+      "files_added": [],
+      "files_modified": [
+        "planning/IMPLEMENTATION_STATE.json"
+      ],
+      "tests_completed": [],
+      "tests_remaining": [
+        "Identify exact local evidence for implementation, static/unit/mock integration/browser fixture/controlled live read/dry-run stages.",
+        "Run bounded deterministic and fixture browser tests at current main."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "No provider or employer action has been performed in this slice."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "Real submission remains OFF and is not an authorized test harness."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "cbaf2323a24fd57798703a700b879869c3731365",
+        "evidence_path": "docs/evidence/2026-10-06-progress-resume-cli.json"
+      }
+    },
+    {
+      "milestone_id": "MJ-REQ-009-STAGED-LOCAL-OPERATION-20261006",
+      "timestamp": "2026-10-06T14:51:35Z",
+      "current_phase": "MJ-REQ-009_LOCAL_STAGED_ACCEPTANCE_PASS_PENDING_READBACK",
+      "completed_steps": [
+        "Verified source, static/unit/mock integration and browser fixture stages with 30 local test cases.",
+        "Built exact current main into an isolated FIXTURE Compose project with separate volumes; all services reached readiness.",
+        "Executed controlled public Greenhouse read through deployed source worker: 19 jobs, COMPLETED, external submission false, zero external application requests.",
+        "Verified mock ATS multi-page dry run stops before submit and uncertain submissions are not blindly retried.",
+        "Stopped only task-created fixture containers; confirmed pre-existing mjobs-personal containers stayed running."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-06-staged-local-operation.json"
+      ],
+      "files_modified": [
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "30 unit/integration/browser tests PASS in 40.485 seconds.",
+        "Docker image built; image frontend npm tests/build succeeded and isolated fixture stack reached readiness.",
+        "Live public Greenhouse GET in fixture mode PASS (19 jobs; zero application requests).",
+        "Fixture dry-run visible Chromium behavior PASS."
+      ],
+      "tests_remaining": [
+        "Update/close issue #10 after evidence commit integration and exact GitHub readback.",
+        "Hosted checks and cloud deployment NOT_RUN under user policy."
+      ],
+      "migrations_applied": [
+        "Isolated FIXTURE PostgreSQL schema migration to current head; only project-owned disposable synthetic database."
+      ],
+      "live_integrations_tested": [
+        "Public Greenhouse job read through isolated FIXTURE source worker; no external application request."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "User-enabled real application submission is optional and remained OFF.",
+        "Cloud deployment, GitHub Actions and hosted review are NOT_RUN by policy.",
+        "This scoped PASS does not promote other partially complete startup/release requirements."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "cbaf2323a24fd57798703a700b879869c3731365",
+        "evidence_path": "docs/evidence/2026-10-06-staged-local-operation.json"
+      }
     }
   ],
-  "current_phase": "MJ-REQ-008_RESUME_SNAPSHOT_LOCAL_PARTIAL",
+  "current_phase": "MJ-REQ-009_LOCAL_STAGED_ACCEPTANCE_PASS_PENDING_READBACK",
   "last_safe_checkpoint": {
-    "git_commit": "36b4dbdcefd3a30bbe53f1a523f33bd340c8c76f",
-    "evidence_path": "docs/evidence/2026-10-06-progress-resume-cli.json"
+    "git_commit": "cbaf2323a24fd57798703a700b879869c3731365",
+    "evidence_path": "docs/evidence/2026-10-06-staged-local-operation.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -5517,16 +5596,16 @@
     "next_issue": 8
   },
   "active_development_issue": {
-    "issue": 9,
-    "requirement_id": "MJ-REQ-008",
-    "title": "Save Implementation Progress",
-    "state": "LOCAL_RESUME_SNAPSHOT_SLICE_PASS_REQUIREMENT_PARTIAL",
-    "selection_reason": "P0 resumability; a read-only resume command and cross-process milestone-adoption test now provide a deterministic fresh-session path. Physical host/container restart acceptance remains untested.",
-    "base": "36b4dbdcefd3a30bbe53f1a523f33bd340c8c76f",
+    "issue": 10,
+    "requirement_id": "MJ-REQ-009",
+    "title": "Separate Development From Production Operation",
+    "state": "LOCAL_ACCEPTANCE_PASS_PENDING_GITHUB_READBACK",
+    "selection_reason": "Current-source local staged operation completed through isolated fixture deployment; no real application submission was performed.",
+    "base": "cbaf2323a24fd57798703a700b879869c3731365",
     "branch": "codex/req004-ops-audit-20261006",
-    "candidate": "36b4dbdcefd3a30bbe53f1a523f33bd340c8c76f",
-    "evidence": "docs/evidence/2026-10-06-progress-resume-cli.json",
-    "next_action": "Commit/push and fast-forward this tested slice; keep issue #9 PARTIAL/OPEN for host/container restart boundaries and then select the next dependency-ready P0 safety issue."
+    "candidate": "cbaf2323a24fd57798703a700b879869c3731365",
+    "evidence": "docs/evidence/2026-10-06-staged-local-operation.json",
+    "next_action": "Commit/push/integrate evidence and close issue #10 only after GitHub acceptance readback; then select the next highest-value dependency-ready P0 requirement."
   },
   "historical_control_snapshots": [
     {
@@ -6653,5 +6732,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-06T14:43:21Z"
+  "updated_at": "2026-10-06T14:51:35Z"
 }

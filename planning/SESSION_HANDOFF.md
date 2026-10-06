@@ -1,5 +1,13 @@
 # Active local-only implementation checkpoint — 2026-10-06
 
+Current main before this evidence checkpoint: `cbaf2323a24fd57798703a700b879869c3731365`. Actions remain disabled, no PRs are open, and main is unprotected. Issues #8 / MJ-REQ-007 and #9 / MJ-REQ-008 remain OPEN/PARTIAL for configuration migration recovery and physical/container interruption proof.
+
+Issue #10 / MJ-REQ-009 staged local acceptance now PASS at exact source `cbaf2323a24fd57798703a700b879869c3731365`. Thirty unit/integration/browser tests passed; isolated fixture Compose built and reached readiness; a controlled public Greenhouse read returned 19 jobs with external submission OFF and zero application requests; synthetic Chromium dry run stopped before submit. Only the task-created fixture project was stopped; the existing PERSONAL stack stayed running. Evidence: `docs/evidence/2026-10-06-staged-local-operation.json`. Real application submission remains optional/OFF; hosted/cloud release remains NOT_RUN. Close issue #10 only after exact GitHub readback, then continue to the next dependency-ready P0 issue.
+
+---
+
+# Active local-only implementation checkpoint — 2026-10-06
+
 Current main before this evidence/code checkpoint: `36b4dbdcefd3a30bbe53f1a523f33bd340c8c76f`; Actions remain disabled, there are no open PRs, and main is unprotected. Issue #8 / MJ-REQ-007 is OPEN/PARTIAL after evidence readback; protected local configuration migration recovery remains unverified.
 
 Current slice: P0 issue #9 / MJ-REQ-008. Added read-only `python -m tools.verification.progress resume`, which validates and emits the active issue, latest milestone, remaining checks and safe checkpoint. A synthetic second process now reloads and adopts a future milestone. Seven focused tests plus progress/catalogue/agent-skill validators pass. Physical host/container/browser/worker interruption was not induced, so #9 remains OPEN/PARTIAL. Evidence: `docs/evidence/2026-10-06-progress-resume-cli.json`. External submission remains OFF; hosted checks/reviews remain NOT_RUN under local-only policy.

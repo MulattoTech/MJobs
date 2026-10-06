@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-009",
+  "github_issue": 10,
+  "result": "PASS",
+  "scope": "Exercise the issue-required local development-to-deployment ladder without using real external applications as a test harness.",
+  "source_revision": "cbaf2323a24fd57798703a700b879869c3731365",
+  "source_tree": "d24e4e493303ffc1a9116e622f05e99640089f07",
+  "recorded_at_utc": "2026-10-06T14:51:35Z",
+  "acceptance": {
+    "source_and_implementation_before_validation": "PASS: issue #10 and governance safety source were read; current repo implements separate FIXTURE/PERSONAL operation identities and fail-closed application preparation.",
+    "static_unit_and_mocked_integration": "PASS: 30 local unit/integration/browser tests passed; public-target/identity/cancellation guards, question preflight and fixture flow remained green.",
+    "browser_fixture_and_dry_run": "PASS: Chromium dry run filled the synthetic multi-page form, uploaded the fixture file and stopped before submit; uncertainty/retry cases were exercised; external submission remained OFF.",
+    "controlled_live_source_read": "PASS: isolated fixture-only Compose project performed a public Greenhouse GET through deployed RQ/PostgreSQL worker; operation COMPLETED; 19 jobs; external_submission_enabled=false; external_application_requests=0.",
+    "local_deployment": "PASS: current source built and launched under unique fixture Compose project mjobs-issue009-fixture-20261006 with separate database/queue/documents; API and workers became healthy. Only that project was stopped after proof.",
+    "optional_user_enabled_real_application": "NOT_RUN_OPTIONAL: user has not enabled external submission; the feature remained OFF and no external application request was made."
+  },
+  "commands": [
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.unit.test_public_source_probe tests.integration.test_public_company_discovery tests.integration.test_application_preflight tests.browser.test_mock_application tests.browser.test_core_workflow_trial -v",
+      "result": "PASS",
+      "observed": "30 tests passed in 40.485 seconds; synthetic browser/application fixtures only."
+    },
+    {
+      "command": ".\\Start-MJobs.ps1 -Project mjobs-issue009-fixture-20261006 -Port 18731 -NoOpen",
+      "result": "PASS",
+      "observed": "Built current image; frontend Docker build executed npm test and npm run build; fixture API, queue, workers and mock dependencies reached ready state. API image ID sha256:85431143caab24080006c8dcb570376d23c63546a430acb171dd6e91cf7e9cab."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m cli.public_source_probe --base-url http://127.0.0.1:18731 --tenant greenhouse --required-mode FIXTURE --evidence test-tmp/mjobs-issue009-live-read-private.json",
+      "result": "PASS",
+      "observed": "Live public read through deployed source worker completed, returning 19 public jobs; external submission disabled and zero external application requests."
+    },
+    {
+      "command": "docker compose -p mjobs-issue009-fixture-20261006 stop",
+      "result": "PASS",
+      "observed": "Stopped only the task-created fixture project; retained its local synthetic volumes. Existing mjobs-personal stack remained running throughout."
+    },
+    {
+      "command": "docker compose -p mjobs-personal ps --format {{.Name}} {{.State}}",
+      "result": "PASS",
+      "observed": "Existing PERSONAL API, workers, scheduler, PostgreSQL and Redis remained running."
+    }
+  ],
+  "environment": {
+    "docker_context": "desktop-linux",
+    "docker_engine": "29.8.2",
+    "fixture_project": "mjobs-issue009-fixture-20261006",
+    "fixture_api_port": 18731,
+    "personal_project": "mjobs-personal"
+  },
+  "limitations": [
+    "Real external application submission was not run because user authorization remains OFF; it is optional and was never used as a test harness.",
+    "Hosted Actions/reviews and cloud deployment NOT_RUN under the active local-only policy.",
+    "This passes MJ-REQ-009 staged local acceptance only; MJ-REQ-008, MJ-REQ-007 and complete release readiness remain separately PARTIAL."
+  ],
+  "privacy_and_safety": "Used only a fictional profile and isolated fixture database with public GET. No personal records or private configuration values were inspected. No external application request occurred."
+}
