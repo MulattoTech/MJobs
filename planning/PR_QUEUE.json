@@ -1853,10 +1853,12 @@
       "depends_on": [
         "MJ-PR-005"
       ],
-      "status": "QUEUED",
-      "branch": "codex/mj-pr-081-mj-req-017-s02-global-job-source-adapter-we-work-remotely",
+      "status": "MERGED",
+      "branch": "antigravity/mj-req017-s02-wwr-20261006",
       "draft_until_verified": true,
-      "notes": "Independent provider PR. Declare only capabilities actually verified."
+      "notes": "Verified We Work Remotely global job-source adapter capabilities, search/fetch, multi-company attribution, normalization, error handling, and registry integration. Evidence docs/evidence/2026-10-06-we-work-remotely-job-source-adapter.json. Integrated by non-force fast-forward into main at 9cb6bffc330fba0814984f47055ee1ff7ffc6e4e.",
+      "merge_commit": "9cb6bffc330fba0814984f47055ee1ff7ffc6e4e",
+      "merged_at": "2026-10-06T22:40:00Z"
     },
     {
       "id": "MJ-PR-082",
