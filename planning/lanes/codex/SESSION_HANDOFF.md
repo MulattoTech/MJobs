@@ -3,13 +3,13 @@
 Status: **ACTIVE**
 
 Issue #111 / MJ-REQ-110 profile-scoped cost controls and deterministic preview are
-integrated in canonical main `8066f781678b099dcfeba5d9cdaa26d1b2dbc97a`.
+integrated in canonical main `54568c7de5edc3594f39f9d139f449bb0eed8cae`.
 
 The active Codex slice is the remaining review-gated production task-consumer
 acceptance inside active MJ-PR-030. Do not redo the integrated settings/preview.
 The dedicated worktree `C:/Tools/Dev/MJobs/.worktrees/codex-mj-req110-review-consumer-20261006`
 is on `codex/mj-req110-review-consumer-20261006`, fast-forwarded to current
-origin/main `8066f781678b099dcfeba5d9cdaa26d1b2dbc97a`. Antigravity owns #303
+origin/main `54568c7de5edc3594f39f9d139f449bb0eed8cae`. Antigravity owns #303
 source-adapter paths; Ollama owns #318 ATS-detection paths.
 
 Checkpoint: added `services/ai/consumer.py` and a profile-scoped evaluate API
@@ -27,3 +27,5 @@ Implementation checkpoint commit: `5e1b9da`.
 
 During implementation write only Codex lane files plus owned feature/evidence paths.
 Canonical planning and root main require the integration lock.
+
+Current-main reconciliation commit: `600156158227997bedbe8dcc9e03d40d625e4557`.
