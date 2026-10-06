@@ -1,0 +1,120 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-004",
+  "github_issue": 5,
+  "slice_result": "PASS",
+  "requirement_result": "PARTIAL",
+  "base_commit": "6688037a2275138b646df2b050f145e70f9e3fe4",
+  "source_commit": "7b586455880b1bde22fecd79b89810be8a27093a",
+  "candidate_commit": "7b586455880b1bde22fecd79b89810be8a27093a",
+  "candidate_tree": "5cf748a1ac9a76c615ec6e388d04e572763419d7",
+  "recorded_at_utc": "2026-10-06T14:17:21Z",
+  "scope": "Interrupt configured Greenhouse HTTPS request streams promptly when the durable worker cancellation/deadline check raises, preserve its exact exception, and avoid recording provider health failures or committing partial postings.",
+  "acceptance": {
+    "stalled_greenhouse_http_body_observes_worker_cancel_within_bounded_poll_interval": "PASS",
+    "request_response_and_client_close_on_cancel_preserving_callback_error": "PASS",
+    "cancelled_collection_does_not_change_source_health_history_or_import_partial_jobs": "PASS",
+    "per_source_concurrency_deadline_rate_limit_and_provider_failure_regressions": "PASS",
+    "connected_browser_source_review_and_collection_workflow": "PASS",
+    "full_local_suite_same_head_rerun": "PASS",
+    "live_employer_request_external_ai_and_real_ats": "NOT_RUN_OR_BLOCKED_EXTERNAL"
+  },
+  "validation": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_greenhouse.GreenhouseTests.test_http_response_wait_observes_worker_cancellation_and_preserves_its_error -v",
+      "timestamp_utc": "2026-10-06T14:17:21Z",
+      "target": "Reproduce a blocked Greenhouse HTTP response ignoring worker cancellation before implementation",
+      "result": "FAIL_EXPECTED_RED",
+      "summary": "Synthetic response body remained blocked after cancellation; the new regression failed before production changes."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_greenhouse -v",
+      "timestamp_utc": "2026-10-06T14:17:21Z",
+      "target": "Greenhouse source adapter, persistence, cancellation, rate/backoff, timeout, concurrency and provider-error behavior",
+      "result": "PASS",
+      "summary": "29 integration tests passed on the final candidate."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_company_discovery_requests.CompanyDiscoveryRequestsBrowserTests.test_real_collection_request_review_worker_and_identity_separation -v",
+      "timestamp_utc": "2026-10-06T14:17:21Z",
+      "target": "Connected Chromium source review and fixture-backed collection workflow",
+      "result": "PASS",
+      "summary": "One browser test passed against local app/API and synthetic transport."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest discover -s tests/browser -p 'test_*.py'",
+      "timestamp_utc": "2026-10-06T14:17:21Z",
+      "target": "Full local Chromium/browser regression suite",
+      "result": "PASS",
+      "summary": "All 36 browser tests passed."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py'",
+      "timestamp_utc": "2026-10-06T14:17:21Z",
+      "target": "First full local unit/integration/browser run on exact candidate source",
+      "result": "FAIL_TRANSIENT_UNRELATED",
+      "summary": "706 tests; one unrelated timing-sensitive failure in ApplicationPipelineBrowserTests.test_lost_status_and_note_responses_can_be_retried_after_edits at local server-thread teardown; one optional PostgreSQL skip."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_application_pipeline.ApplicationPipelineBrowserTests.test_lost_status_and_note_responses_can_be_retried_after_edits -v",
+      "timestamp_utc": "2026-10-06T14:17:21Z",
+      "target": "Isolate the one failing local server-thread teardown case",
+      "result": "PASS",
+      "summary": "The case passed alone; its teardown timeout was not reproducible."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py'",
+      "timestamp_utc": "2026-10-06T14:17:21Z",
+      "target": "Same-head full local unit/integration/browser rerun after isolated and full-browser verification",
+      "result": "PASS",
+      "summary": "706 tests, zero failures/errors, one optional PostgreSQL skip because MJOBS_TEST_POSTGRES_URL was unset."
+    },
+    {
+      "command": "git diff --check",
+      "timestamp_utc": "2026-10-06T14:17:21Z",
+      "target": "Patch whitespace integrity",
+      "result": "PASS",
+      "summary": "No whitespace errors."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.agent_skills",
+      "timestamp_utc": "2026-10-06T14:17:21Z",
+      "target": "Repository delivery skill contract",
+      "result": "PASS",
+      "summary": "Validator passed."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.catalogue",
+      "timestamp_utc": "2026-10-06T14:17:21Z",
+      "target": "Requirement/reference denominator preservation",
+      "result": "PASS",
+      "summary": "Validator passed; denominators remain 366 and 59."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.progress validate",
+      "timestamp_utc": "2026-10-06T14:17:21Z",
+      "target": "Evidence-linked implementation progress journal",
+      "result": "PASS",
+      "summary": "Validator passed."
+    }
+  ],
+  "observed_command_issue": "One initial browser test selector named a nonexistent method and returned unittest loader AttributeError; the exact method was enumerated and rerun successfully. It did not execute a product test.",
+  "external_boundaries": {
+    "greenhouse_transport": "LOCAL_SYNTHETIC_FIXTURES_ONLY",
+    "live_employer_fetch": false,
+    "ai_provider_calls": false,
+    "real_ats_automation": "NOT_AVAILABLE_AND_DISABLED",
+    "external_submission": "OFF",
+    "postgresql_test": "OPTIONAL_SKIP_MJOBS_TEST_POSTGRES_URL_UNSET",
+    "github_actions": "DISABLED_BY_USER_POLICY",
+    "hosted_review": "NOT_RUN_BY_USER_POLICY"
+  },
+  "requirement_limitations": [
+    "This slice covers cancellation for the configured Greenhouse adapter only; remaining operation categories still require their own timeout/output/cancellation/retry/error acceptance.",
+    "AI provider/runtime and real ATS paths remain unavailable/disabled. They do not block local source adapter progress, but keep MJ-REQ-004 PARTIAL."
+  ],
+  "denominators": {
+    "requirements": 366,
+    "reference_gaps": 59
+  }
+}

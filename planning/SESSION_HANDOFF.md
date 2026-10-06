@@ -422,3 +422,10 @@ Verification on the exact candidate: public-client tests 23 PASS; focused public
 
 
 Integration receipt (2026-10-06T13:54:22Z): issue #5 source 8890af69c66870dd1d43f7fadb78d0bbbd86adc7 and evidence/planning were integrated by non-force fast-forward on synchronized local and GitHub `main` at 370da80fd291d2597f4492109a9e6d0d15e90211. Actions remain disabled, `main` is unprotected, and no PR was opened. GitHub issue #5 remains OPEN/PARTIAL after evidence comment/readback: https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6017780550. Continue the local issue #5 audit without waiting for providers or hosted checks.
+
+
+## 2026-10-06 local-only continuation — MJ-REQ-004 Greenhouse response cancellation
+
+Configured Greenhouse GETs now poll the durable operation cancellation/deadline callback while waiting for response headers or body. Cancellation closes the response/client, preserves the original error, and does not mark the provider unhealthy or commit partial jobs. A synthetic stalled-body regression failed before the implementation. Candidate 7b586455880b1bde22fecd79b89810be8a27093a, based on 6688037a2275138b646df2b050f145e70f9e3fe4; evidence: [docs/evidence/2026-10-06-greenhouse-http-cancellation.json](../docs/evidence/2026-10-06-greenhouse-http-cancellation.json).
+
+Verification: 29 Greenhouse integration tests PASS; connected Chromium collection workflow PASS; full browser suite 36 PASS; exact-head full suite rerun 706 PASS, zero failures/errors, one optional PostgreSQL skip (MJOBS_TEST_POSTGRES_URL unset). The first full run had one unrelated application-pipeline server-thread teardown failure; the isolated case and all browser tests passed, followed by a passing same-head rerun. One initial test selector typo was corrected before the correct browser test passed. No live employer request occurred, and external submission remains OFF. Issue #5 / MJ-REQ-004 remains OPEN/PARTIAL; Actions/reviews remain NOT_RUN by policy. Source committed locally; evidence/planning validators and safe integration are next.
