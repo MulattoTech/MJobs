@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "evidence_id": "PARALLEL-AGENT-LANES-20261006",
+  "timestamp_utc": "2026-10-06T21:15:00Z",
+  "result": "PASS",
+  "integrated_main": "d44b9546b3027b637251fcde94061ba75ae70cbf",
+  "scope": "Repository-native coordination for concurrent Codex, Antigravity and local Ollama/OpenCode implementation lanes.",
+  "controls": [
+    "Separate CONTINUATION.json, IMPLEMENTATION_STATE.json, PR_QUEUE.json, CLAIMS.json and SESSION_HANDOFF.md per lane.",
+    "Canonical planning files and root main are integration-lock owned.",
+    "Machine-local claims bus under the shared Git common directory detects path overlap.",
+    "Atomic integration lock prevents concurrent main/canonical-planning mutation.",
+    "Feature lanes may publish unique source/tests/evidence but must defer canonical planning until lock ownership.",
+    "GitHub Actions and hosted reviewers remain disabled; external application submission remains OFF."
+  ],
+  "local_runtime": {
+    "codex": "GPT-6 Luna High",
+    "antigravity": "Claude Opus 4.6 Thinking / max",
+    "ollama_runner": "OpenCode 1.18.35",
+    "ollama": "0.35.1",
+    "ollama_primary_model": "gpt-oss:20b",
+    "ollama_fallback_model": "gemma4:26b",
+    "gpu": "AMD Radeon RX 7900 XTX",
+    "observed_gpu_execution": "gpt-oss:20b loaded at 100% GPU during local smoke."
+  },
+  "validation": [
+    "PowerShell syntax PASS for all four lane launcher scripts.",
+    "Lane JSON parse PASS.",
+    "python -m tools.coordination.lane_coordination validate: PASS.",
+    "tests.unit.test_lane_coordination: 2 PASS.",
+    "python -m tools.verification.agent_skills: PASS.",
+    "python -m tools.verification.catalogue: PASS.",
+    "git diff --check: PASS."
+  ],
+  "limitations": [
+    "OpenCode local-agent smoke verified Ollama model loading and repository file-tool access; no production MJobs feature was implemented by the local lane during setup.",
+    "Machine-local lock/claims coordinate this workstation and are intentionally not versioned.",
+    "GitHub issue claim comments remain the remote/shared ownership mirror."
+  ]
+}
