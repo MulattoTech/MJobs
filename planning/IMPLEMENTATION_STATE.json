@@ -7,11 +7,11 @@
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Local main and origin/main are synchronized at 4fd47c1a6c53f2caf29409f4b7fba3bcc9982fe4. Issue #3 / MJ-REQ-002 is locally PASS and integrated; GitHub issue evidence comment and closeout readback are pending.",
-    "current_verified_github_state": "GitHub main and local main are synchronized at 4fd47c1a6c53f2caf29409f4b7fba3bcc9982fe4; Actions disabled, main unprotected, and no candidate PR. Issue #3 has full local acceptance evidence; issue readback is pending.",
-    "current_verified_at": "2026-10-06T12:44:31Z"
+    "current_verified_local_state": "Local main and origin/main are synchronized at 0a0c9889ae0b661a872d8f0558c7fdebafbccdfe. Issue #3 / MJ-REQ-002 passed, integrated and closed after evidence readback. Next sole writer: P0 issue #2 / MJ-REQ-001 protected host and development safety; inspect the checked-in operational surface for a bounded local guard.",
+    "current_verified_github_state": "GitHub main and local main matched 0a0c9889ae0b661a872d8f0558c7fdebafbccdfe at latest reconciliation; Actions disabled, main unprotected, no implementation PR. Issue #3 is CLOSED after full acceptance evidence. Issue #2 is OPEN.",
+    "current_verified_at": "2026-10-06T12:46:16Z"
   },
-  "current_milestone": "MJ-REQ-002-GPU-INDEPENDENCE-20261006",
+  "current_milestone": "MJ-REQ-001-PROTECTED-HOST-SAFETY-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under the local-only delivery policy; one writer and one integration lane.",
   "status": "PARTIAL",
   "completed_capabilities": [
