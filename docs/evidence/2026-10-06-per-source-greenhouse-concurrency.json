@@ -92,5 +92,15 @@
     "requirements": 366,
     "reference_gaps": 59
   },
-  "main_integration": "PENDING"
+  "main_integration": {
+    "method": "NON_FORCE_FAST_FORWARD",
+    "base_commit": "795bc74d10cae145e40c628daa42a285060e3280",
+    "integrated_commit": "2a55de01a6aed215363b6bdfcb6c2029d1658553",
+    "local_main": "2a55de01a6aed215363b6bdfcb6c2029d1658553",
+    "origin_main": "2a55de01a6aed215363b6bdfcb6c2029d1658553",
+    "main_protection": "NOT_CONFIGURED",
+    "issue_state_after_readback": "OPEN",
+    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/6#issuecomment-6014081061",
+    "integrated_at_utc": "2026-10-06T10:13:08Z"
+  }
 }

@@ -7,9 +7,9 @@
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Local main and origin/main remain synchronized at 795bc74d10cae145e40c628daa42a285060e3280. Exact locally accepted issue #6 source candidate ec28943ec20109c2b1bc12c0130a26a2991b0636 is pushed to codex/req005-source-concurrency-20261006; no PR is open. Issue #6 remains OPEN/PARTIAL.",
-    "current_verified_github_state": "GitHub main is synchronized with local main at 795bc74d10cae145e40c628daa42a285060e3280; main is unprotected, no PR is open, and GitHub Actions are disabled. Issue #6 remains OPEN/PARTIAL; candidate source commit is pushed on its issue branch. Hosted checks/review are NOT_RUN by policy.",
-    "current_verified_at": "2026-10-06T10:10:14Z"
+    "current_verified_local_state": "Local main and origin/main are synchronized at 2a55de01a6aed215363b6bdfcb6c2029d1658553 after non-force fast-forward integration of the issue #6 Greenhouse concurrency slice and evidence. Issue #6 remains OPEN/PARTIAL after GitHub comment/readback; next is live reconciliation of issue #5 / MJ-REQ-004.",
+    "current_verified_github_state": "GitHub main and local main synchronized at 2a55de01a6aed215363b6bdfcb6c2029d1658553; main is unprotected, Actions disabled, and no PR open. Issue #6 remains OPEN/PARTIAL; hosted checks/review NOT_RUN by local-only policy.",
+    "current_verified_at": "2026-10-06T10:13:08Z"
   },
   "current_milestone": "MJ-REQ-005-PER-SOURCE-GREENHOUSE-CONCURRENCY-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under the local-only delivery policy; one writer and one integration lane.",
@@ -82,7 +82,7 @@
   ],
   "blocked_capabilities": [],
   "active_requirements": [
-    "MJ-REQ-005"
+    "MJ-REQ-004"
   ],
   "active_prs": [],
   "tests_passed": [
@@ -289,10 +289,11 @@
     "MJ-REQ-005 candidate ec28943ec20109c2b1bc12c0130a26a2991b0636: first exact-head full run hit one nonreproducible CompanyDiscoveryRequestsBrowserTests Uvicorn thread shutdown assertion; isolated test and all 35 browser tests passed, then same-head 674-test full suite passed with only the optional PostgreSQL skip. See docs/evidence/2026-10-06-per-source-greenhouse-concurrency.json."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-06T10:07:11Z",
+    "timestamp": "2026-10-06T10:13:08Z",
     "result": "PARTIAL",
     "source_commit": "ec28943ec20109c2b1bc12c0130a26a2991b0636",
-    "scope": "Persisted Greenhouse source concurrency bounds its two independent public reads; shared request-rate pacing, cancellation and failure history, browser configuration/readback, and local full suites pass. MJ-REQ-005 remains PARTIAL for unavailable AI and real ATS paths.",
+    "integration_commit": "2a55de01a6aed215363b6bdfcb6c2029d1658553",
+    "scope": "Per-source Greenhouse concurrency slice PASS and safely integrated; issue #6 remains OPEN/PARTIAL after GitHub readback. Proceed to issue #5 / MJ-REQ-004.",
     "evidence_path": "docs/evidence/2026-10-06-per-source-greenhouse-concurrency.json"
   },
   "ci_verification": {
@@ -360,7 +361,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Integrate the accepted issue #6 / MJ-REQ-005 Greenhouse per-source concurrency slice by a non-force fast-forward after exact-head and protection checks. Keep #6 OPEN/PARTIAL for absent AI runtime and real ATS. Then reconcile open P0 issue #5 / MJ-REQ-004 and continue with the next locally implementable external-operation bound; preserve 366 requirements and 59 reference gaps, keep hosted verification NOT_RUN, and keep external submission OFF.",
+  "recommended_resume_step": "Reconcile live open P0 issue #5 / MJ-REQ-004, its governance_safety area spec and existing partial evidence on current main 2a55de01a6aed215363b6bdfcb6c2029d1658553. Select the highest-value dependency-ready local slice for bounded external operations, preserve all request-disconnect/error/output/retry gaps, and keep hosted evidence NOT_RUN and external submission OFF; denominators remain 366 and 59.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -5074,28 +5075,28 @@
     }
   ],
   "live_reconciliation": {
-    "observed_at": "2026-10-06T08:59:28Z",
-    "github_main": "9f5af9fce6a367f084cbdc144364076f88cd6a5a",
-    "local_main": "9f5af9fce6a367f084cbdc144364076f88cd6a5a",
+    "observed_at": "2026-10-06T10:13:08Z",
+    "github_main": "2a55de01a6aed215363b6bdfcb6c2029d1658553",
+    "local_main": "2a55de01a6aed215363b6bdfcb6c2029d1658553",
     "issue_5_state": "OPEN_PARTIAL",
     "issue_6_state": "OPEN_PARTIAL",
     "open_prs": 0,
     "actions_enabled": false,
     "main_branch_protected": false,
-    "integration": "MJ-REQ-005_NON_FORCE_FAST_FORWARD_LOCAL_PASS",
+    "integration": "MJ-REQ-005_GREENHOUSE_SLICE_NON_FORCE_FAST_FORWARD",
     "next_issue": 5
   },
   "active_development_issue": {
     "issue": 6,
     "requirement_id": "MJ-REQ-005",
     "title": "Control Concurrency",
-    "state": "LOCAL_SLICE_PASS_AWAITING_MAIN_INTEGRATION_REQUIREMENT_PARTIAL_OPEN",
+    "state": "LOCAL_SLICE_PASS_INTEGRATED_REQUIREMENT_PARTIAL_OPEN",
     "selection_reason": "The persisted per-source Greenhouse limit was not controlling actual parallel reads; issue #6 is a P0 resource-safety requirement.",
     "base": "795bc74d10cae145e40c628daa42a285060e3280",
     "branch": "codex/req005-source-concurrency-20261006",
     "candidate": "ec28943ec20109c2b1bc12c0130a26a2991b0636",
     "evidence": "docs/evidence/2026-10-06-per-source-greenhouse-concurrency.json",
-    "next_action": "Integrate by verified non-force fast-forward; keep issue #6 OPEN/PARTIAL for missing AI runtime and real ATS paths, then reconcile the next dependency-ready P0 issue #5 / MJ-REQ-004."
+    "next_action": "Issue #6 slice safely integrated at 2a55de01a6aed215363b6bdfcb6c2029d1658553; GitHub issue readback confirms OPEN. Reconcile next P0 issue #5 / MJ-REQ-004 from current main."
   },
   "historical_control_snapshots": [
     {
@@ -6205,7 +6206,7 @@
     "MJ-REQ-005 exact candidate 23104373877a275c97204f7e1af08c4cd646b4d9: RED confirmed the former kind-specific limit; 21 focused SQLite/Compose tests, 1 isolated PostgreSQL concurrent-claim test, 35 browser tests and 669 full Python tests passed (1 optional PG skip); current frontend build, catalogue, progress, agent-skills and diff validators passed. Requirement remains PARTIAL for absent AI runtime, real ATS and per-source enforcement.",
     "MJ-REQ-006 live workspace inspection at bd00c331d503009189a83481ba62a56a66acb75c: Git/main/remote, repository structure, Python/FastAPI and TypeScript/React versions, persistence/migrations, browser and test suites, Compose services, private environment-file presence without reading values, and Actions-disabled state checked. Existing product/runtime/worktrees classified KEEP; private outputs preserved; no application files or containers modified. Evidence: docs/evidence/2026-10-06-current-workspace-inspection.json."
   ],
-  "ownership": "One writer: issue #6 source candidate ec28943ec20109c2b1bc12c0130a26a2991b0636 on codex/req005-source-concurrency-20261006, based on synchronized main 795bc74d10cae145e40c628daa42a285060e3280, locally verified and pushed. No PR is open; issue #6 remains OPEN/PARTIAL. Next action is exact-head non-force fast-forward integration with planning/evidence receipt; hosted checks remain NOT_RUN and external submission OFF.",
+  "ownership": "One writer: issue #6 Greenhouse source candidate ec28943ec20109c2b1bc12c0130a26a2991b0636 and evidence/planning safely integrated to synchronized local and GitHub main 2a55de01a6aed215363b6bdfcb6c2029d1658553 by non-force fast-forward. Issue #6 is OPEN/PARTIAL after readback. Next selected issue #5 / MJ-REQ-004. Actions/hosted review remain disabled/NOT_RUN; external submission OFF.",
   "delivery_policy": {
     "mode": "LOCAL_ONLY",
     "effective_at": "2026-10-05T21:32:10.763994+00:00",
@@ -6218,5 +6219,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-06T10:10:14Z"
+  "updated_at": "2026-10-06T10:13:08Z"
 }
