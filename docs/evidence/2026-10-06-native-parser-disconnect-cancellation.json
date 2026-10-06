@@ -7,7 +7,7 @@
   "base_commit": "5a068db191fcd0470d005c1c174e6469b99aad44",
   "candidate_commit": "6c4283646e8bfb04e27d57d585db72ef7803a282",
   "candidate_tree": "8a333ecd3c4650276705002b2f3c0ee07f2c2b0d",
-  "recorded_at_utc": "2026-10-06T11:12:34.7119782Z",
+  "recorded_at_utc": "2026-10-06T11:15:36Z",
   "scope": "Propagate API request disconnects into native PDF/DOCX parser child work, kill and reap cancelled children, and enforce bounded streaming parser output on Windows and Linux.",
   "acceptance": {
     "extract_endpoint_detects_request_disconnect_and_returns_499_without_profile_mutation": "PASS",
@@ -35,7 +35,7 @@
     {
       "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p test_*.py",
       "observed_at_utc": "2026-10-06T11:12:34.7119782Z",
-      "duration_seconds": 385.920,
+      "duration_seconds": 385.92,
       "result": "PASS",
       "summary": "683 tests ran; zero failures/errors; one optional PostgreSQL test skipped because MJOBS_TEST_POSTGRES_URL was unset."
     },
@@ -79,14 +79,17 @@
     "reference_gaps": 59
   },
   "main_integration": {
-    "method": "PENDING_NON_FORCE_FAST_FORWARD",
+    "method": "NON_FORCE_FAST_FORWARD",
     "base_commit": "5a068db191fcd0470d005c1c174e6469b99aad44",
     "source_candidate": "6c4283646e8bfb04e27d57d585db72ef7803a282",
-    "local_main_at_candidate": "5a068db191fcd0470d005c1c174e6469b99aad44",
-    "origin_main_at_candidate": "5a068db191fcd0470d005c1c174e6469b99aad44",
+    "integrated_commit": "c9d7fdfdbb5959f8e84a4a564f2541098d542262",
+    "local_main_at_integration": "c9d7fdfdbb5959f8e84a4a564f2541098d542262",
+    "origin_main_at_integration": "c9d7fdfdbb5959f8e84a4a564f2541098d542262",
     "main_protection": "NOT_CONFIGURED",
     "github_actions_enabled": false,
     "open_prs": 0,
-    "issue_state_before_integration": "OPEN"
+    "issue_state_after_readback": "OPEN",
+    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6015058716",
+    "integrated_at_utc": "2026-10-06T11:15:36Z"
   }
 }

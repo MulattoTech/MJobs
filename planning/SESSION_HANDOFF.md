@@ -2,11 +2,11 @@
 
 The current authorization is continuous issue implementation from synchronized main, with one writer and one integration lane. GitHub Actions and hosted reviews/tests remain disabled; external application submission stays OFF.
 
-Current exact main and origin/main: `5a068db191fcd0470d005c1c174e6469b99aad44`. The sole active writer is issue #5 / MJ-REQ-004 branch `codex/req004-bound-ops-20261006`. Its source candidate `6c4283646e8bfb04e27d57d585db72ef7803a282` is pushed and locally validated; integrate only after exact ancestry/policy recheck. Candidate tests: 36 focused extraction/API tests (ResourceWarnings treated as errors), 1 real Chromium profile import/review test, 683 full Python tests (one optional PostgreSQL skip), 62 web tests and build, skill/catalogue/progress/diff checks all PASS. Evidence: `docs/evidence/2026-10-06-native-parser-disconnect-cancellation.json`.
+Current issue #5 slice is integrated: source candidate `6c4283646e8bfb04e27d57d585db72ef7803a282` and evidence/planning receipt at `c9d7fdfdbb5959f8e84a4a564f2541098d542262`; local `main` and `origin/main` matched at integration. GitHub issue #5 comment/readback remains OPEN (https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6015058716). Candidate tests: 36 focused extraction/API tests (ResourceWarnings treated as errors), 1 real Chromium profile import/review test, 683 full Python tests (one optional PostgreSQL skip), 62 web tests and build, skill/catalogue/progress/diff checks all PASS. Evidence: `docs/evidence/2026-10-06-native-parser-disconnect-cancellation.json`.
 
 The slice passes native PDF/DOCX request-disconnect propagation, promptly kills/reaps parser children, and caps streaming output at 2 MiB. It does not finish broad issue #5: OCR already in progress is not immediately cancelled; AI/provider and real ATS paths are unavailable; broader all-category output/retry/error classification and browser-abort proof remain open. Keep #5 OPEN/PARTIAL and requirement/reference denominators at 366/59.
 
-After integration, read back issue #5 remains OPEN, record exact local/origin main receipts, then continue issue #5 with in-flight OCR cancellation and the next highest-value locally implementable operation bound. No hosted work, extra reviewers, billing changes or external submissions.
+Continue issue #5 with cancellation for OCR already in progress, then choose the next highest-value locally implementable operation bound. No hosted work, extra reviewers, billing changes or external submissions.
 
 The historical entries below are retained. Their issue/#commit chronology is historical and must not override current Git/GitHub state.
 
