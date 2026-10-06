@@ -3,6 +3,8 @@ from dataclasses import asdict
 from contextlib import contextmanager
 import hashlib
 from pathlib import Path
+import shutil
+from uuid import uuid4
 
 from docx import Document
 from docx.shared import Pt, RGBColor
@@ -15,6 +17,7 @@ from services.dedupe.routes import persist_route_choices, plan_application_route
 from services.dedupe.source_values import require_route_review
 from services.applications.knowledge import application_adapter_knowledge
 from services.documents import tailor
+from services.documents.artifacts import atomic_generate, publish_directory
 from services.documents.cover_letter import COVER_LETTER_TEMPLATE, build_cover_letter
 from services.documents.errors import PreparationError
 from services.documents.render import render_pdf
@@ -33,8 +36,11 @@ def uncommitted_files():
     try:
         yield paths
     except BaseException:
-        for path in paths:
-            path.unlink(missing_ok=True)
+        for path in reversed(paths):
+            if path.is_dir() and not path.is_symlink():
+                shutil.rmtree(path, ignore_errors=True)
+            else:
+                path.unlink(missing_ok=True)
         raise
 
 
@@ -96,7 +102,9 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
         revision = prior["document_version"] + 1 if prior else 1
         relative = profile["version"] + "/" + str(revision)
         root = Path(output_dir).resolve() / application_id / relative
-        root.mkdir(parents=True, exist_ok=True)
+        staging = root.with_name(f".{root.name}.staging-{uuid4().hex}")
+        staging.mkdir(parents=True, exist_ok=False)
+        staged.append(staging)
         fact_ids = [fact.id for fact in selected]
         texts = [fact.text for fact in selected]
         ordered_rows,context=tailor.order_skills(resume_rows,job) if tailor_resume else (resume_rows,None)
@@ -137,13 +145,14 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
                 paragraph=document.add_paragraph(style='Heading 1' if index in headings else 'Normal')
                 run=paragraph.add_run(text)
                 if index in bold_indices:run.bold=True
-            docx_path = root / f"{kind}.docx"
-            pdf_path = root / f"{kind}.pdf"
-            txt_path = root / f"{kind}.txt"
-            staged.extend((docx_path, pdf_path, txt_path))
-            document.save(docx_path)
-            txt_path.write_text('\n'.join(paragraphs) + '\n', encoding='utf-8', newline='\n')
-            render_pdf(pdf_path, paragraphs, heading_indices=headings, bold_indices=bold_indices)
+            docx_path = staging / f"{kind}.docx"
+            pdf_path = staging / f"{kind}.pdf"
+            txt_path = staging / f"{kind}.txt"
+            atomic_generate(docx_path, document.save)
+            atomic_generate(txt_path, lambda path: path.write_text(
+                '\n'.join(paragraphs) + '\n', encoding='utf-8', newline='\n'))
+            atomic_generate(pdf_path, lambda path: render_pdf(
+                path, paragraphs, heading_indices=headings, bold_indices=bold_indices))
             validate_formats({'docx': docx_path, 'pdf': pdf_path, 'txt': txt_path}, paragraphs)
             records.append({"id": identity(application_id, kind, revision), "application_id": application_id,
                 "kind": kind, "version": revision, "profile_version": profile["version"],
@@ -153,6 +162,8 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
                 "generation_model": resume_model if kind=='resume' else "deterministic-job-evidence-v1",
                 "generation_context": generation_context})
         check()
+        publish_directory(staging, root)
+        staged.append(root)
         upsert(connection, m.applications, {"id": application_id, "job_id": job_id, "route_id": route["id"], "profile_id": profile_id,
             "profile_version": profile["version"], "document_version": revision, "state": "PREPARED", "target": "MOCK" if route["provider"] == "mock-ats" else "REAL", "fact_ids": fact_ids,
             "trace": [*(prior["trace"] if prior else []), "GENERATE_DOCUMENTS", "PREPARE_APPLICATION"], "confirmation": None, "created_at": prior["created_at"] if prior else now()}, replace=bool(prior))
