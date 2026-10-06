@@ -403,7 +403,7 @@
     "cb72f9041d6a",
     "e14ac893620f"
   ],
-  "unfinished_work_evidence": "docs/evidence/2026-10-06-mock-ats-action-budget.json",
+  "unfinished_work_evidence": "docs/evidence/2026-10-06-mock-ats-action-budget.json\nMJ-REQ-095 issue #96 responsibility-bullet emphasis locally verified on e6c47515aa20596ed6ec3263c809af26b4cf3910; broader summary adjustment and factual rephrasing remain PARTIAL. Evidence: docs/evidence/2026-10-06-resume-bullet-emphasis.json",
   "authorization": "User explicitly provided 100% Git and GitHub authorization on 2026-09-30; still verify native permissions and required checks",
   "user_testing": {
     "result": "PASS",
@@ -5488,12 +5488,68 @@
         "git_commit": "d953bc55a80b9f0c3ed5986b1f42fbc3fe439a87",
         "evidence_path": "docs/evidence/2026-10-06-staged-local-operation.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-095-RESPONSIBILITY-BULLET-EMPHASIS-20261006",
+      "timestamp": "2026-10-06T15:26:00Z",
+      "current_phase": "MJ-REQ-095 approved responsibility bullet emphasis locally verified",
+      "completed_steps": [
+        "Versioned new tailored and selected-fact document contracts while retaining legacy contracts",
+        "Emphasized exact target-skill matches in approved responsibility facts without changing wording",
+        "Added matched-bullet provenance to generated history and comparisons",
+        "Added frontend recognition for new immutable generation contracts",
+        "Recorded scoped evidence; issue #96 remains PARTIAL"
+      ],
+      "files_added": [],
+      "files_modified": [
+        "services/documents/tailor.py",
+        "services/documents/templates.py",
+        "services/documents/generate.py",
+        "services/documents/comparison.py",
+        "services/documents/uploaded_comparison.py",
+        "apps/web/src/resume-comparison.tsx",
+        "apps/web/src/document-history.tsx",
+        "tests/unit/test_skill_order.py",
+        "tests/integration/test_technology_emphasis.py",
+        "tests/integration/test_resume_selection.py",
+        "tests/browser/test_skill_order.py",
+        "apps/web/src/resume-comparison.test.tsx",
+        "services/documents/AREA.md",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "26 Python unit/integration/browser tests PASS",
+        "62 frontend tests PASS",
+        "TypeScript check and production Vite build PASS",
+        "Agent skills and progress journal validators PASS",
+        "git diff --check PASS"
+      ],
+      "tests_remaining": [
+        "Affected source and template suites on synchronized main after integration",
+        "Broader MJ-REQ-095 summary adjustment and fact rephrasing acceptance"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Synthetic local Chromium flow and synthetic SQLite document generation only"
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "MJ-REQ-095 summary adjustment and factual rephrasing remain incomplete",
+        "Hosted Actions/reviews NOT_RUN by local-only policy",
+        "No external application submission performed"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "e6c47515aa20596ed6ec3263c809af26b4cf3910",
+        "evidence_path": "docs/evidence/2026-10-06-resume-bullet-emphasis.json"
+      }
     }
   ],
-  "current_phase": "MJ-REQ-009_LOCAL_STAGED_ACCEPTANCE_PASS_CLOSED",
+  "current_phase": "MJ-REQ-095 approved responsibility bullet emphasis locally verified",
   "last_safe_checkpoint": {
-    "git_commit": "d953bc55a80b9f0c3ed5986b1f42fbc3fe439a87",
-    "evidence_path": "docs/evidence/2026-10-06-staged-local-operation.json"
+    "git_commit": "e6c47515aa20596ed6ec3263c809af26b4cf3910",
+    "evidence_path": "docs/evidence/2026-10-06-resume-bullet-emphasis.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",

@@ -758,7 +758,7 @@
       "status": "PARTIAL",
       "branch": null,
       "draft_until_verified": true,
-      "notes": "MJ092/093/094 accepted. MJ095 ordering, explicit approved selection, technology emphasis and optional contact header accepted through PR501. Broader factual rephrasing remains PARTIAL. Fact-editor regression #503 is accepted in PR504; no active tailoring implementation lane.",
+      "notes": "MJ092/093/094 accepted. MJ095 ordering, explicit approved selection, technology emphasis, optional contact header and locally verified exact target-skill emphasis in approved responsibility bullets are implemented. Broader summary adjustment and factual rephrasing remain PARTIAL. Fact-editor regression #503 is accepted in PR504. Local-only evidence: docs/evidence/2026-10-06-resume-bullet-emphasis.json; hosted verification NOT_RUN.",
       "feedback_slice": {
         "branch": "codex/resume-driven-profile",
         "result": "PARTIAL",

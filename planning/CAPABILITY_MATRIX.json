@@ -855,9 +855,10 @@
         "docs/evidence/2026-10-04-technology-emphasis.json",
         "docs/evidence/2026-10-04-technology-emphasis-exact-head-ci.json",
         "docs/evidence/2026-10-04-resume-contact-header.json",
-        "docs/evidence/2026-10-04-contact-header-exact-head-ci.json"
+        "docs/evidence/2026-10-04-contact-header-exact-head-ci.json",
+        "docs/evidence/2026-10-06-resume-bullet-emphasis.json"
       ],
-      "note": "Ordering, explicit fact selection/omission, technology emphasis and optional contact header accepted through PR501 exact-head CI. Broader factual summary/bullet rephrasing remains incomplete. User requested handoff; no active implementation."
+      "note": "Ordering, explicit fact selection/omission, technology emphasis, optional contact header, and deterministic emphasis of responsibility bullets with exact target-skill matches are locally verified. New versioned contracts preserve historical interpretations. Broader summary adjustment and factual rephrasing remain incomplete; local evidence only, hosted checks NOT_RUN."
     },
     {
       "requirement_id": "MJ-REQ-096",
