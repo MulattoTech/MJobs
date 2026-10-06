@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-004",
+  "github_issue": 5,
+  "slice_result": "PASS",
+  "requirement_result": "PARTIAL",
+  "base_commit": "6cd72c02d930b23fd09b2657f823ae3b18e04629",
+  "source_commit": "8a469b03bb7c57448118be9e1b761d8608d179ab",
+  "candidate_commit": "8a469b03bb7c57448118be9e1b761d8608d179ab",
+  "candidate_tree": "8e1ccbdd60e07e0252a2b18f64b3498a2a0d81b0",
+  "recorded_at_utc": "2026-10-06T16:28:22Z",
+  "scope": "Add a profile/application/base-revision/document-scoped cancel action for uploaded-original resume comparison and propagate cancellation into extraction without changing career-profile facts, the uploaded original, or application document history.",
+  "acceptance": {
+    "cancel_control_visible_only_during_uploaded_comparison": "PASS",
+    "cancel_action_stops_uploaded_resume_extraction": "PASS",
+    "transport_disconnect_stops_uploaded_resume_extraction": "PASS",
+    "cancellation_is_profile_application_and_document_scoped": "PASS",
+    "profile_and_application_history_unchanged_after_cancel": "PASS",
+    "existing_document_comparison_and_skill_order_contract": "PASS",
+    "full_local_python_suite": "PASS",
+    "frontend_tests_and_production_build": "PASS",
+    "complete_MJ_REQ_004_acceptance": "PARTIAL"
+  },
+  "validation": [
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_uploaded_resume_comparison -v",
+      "timestamp_utc": "2026-10-06T16:28:22Z",
+      "target": "Uploaded-resume comparison ownership, immutability, and disconnect cancellation",
+      "result": "PASS",
+      "summary": "6 tests passed, including cancellation propagation and unchanged profile/application state."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.browser.test_skill_order.SkillOrderBrowserTests.test_explicit_ordering_reaches_worker_and_download -v",
+      "timestamp_utc": "2026-10-06T16:28:22Z",
+      "target": "Connected browser cancellation and visible review state",
+      "result": "PASS",
+      "summary": "1 connected browser test passed; its uploaded-resume branch exercises the visible Cancel action, extraction cancellation, and unchanged profile/application history."
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run",
+      "timestamp_utc": "2026-10-06T16:28:22Z",
+      "target": "Frontend regression suite",
+      "result": "PASS",
+      "summary": "13 files and 62 tests passed."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "timestamp_utc": "2026-10-06T16:28:22Z",
+      "target": "TypeScript and production frontend build",
+      "result": "PASS",
+      "summary": "TypeScript check and Vite production build passed. Node 25.9.0 emitted an engine-range warning because installed Vitest supports Node 22.12/24/26+; command completed successfully."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest discover -s tests -p \"test_*.py\"",
+      "timestamp_utc": "2026-10-06T16:28:22Z",
+      "target": "Complete local Python unit, integration, and browser discovery on final source candidate",
+      "result": "PASS",
+      "summary": "718 tests ran, zero failures/errors, one optional PostgreSQL test skipped because MJOBS_TEST_POSTGRES_URL was unset."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m tools.verification.agent_skills; .venv\\Scripts\\python.exe -m tools.verification.catalogue; .venv\\Scripts\\python.exe -m tools.verification.progress validate; git diff --check",
+      "timestamp_utc": "2026-10-06T16:28:22Z",
+      "target": "Repository skills, requirement denominator, implementation evidence journal, and patch hygiene",
+      "result": "PASS",
+      "summary": "All validators and diff check passed; requirement and reference denominators preserved at 366 and 59."
+    }
+  ],
+  "observed_test_setup_and_first_run": [
+    "The first full-suite attempt had an unrelated CompanyDiscoveryRequestsBrowserTests teardown assertion and a stale generation-model assertion in tests.integration.test_skill_order; the teardown case passed in isolation, and the stale assertion was updated to assert the current approved skill/bullet-emphasis contract.",
+    "A second full suite on the corrected candidate passed: 718 tests, zero failures/errors, one optional PostgreSQL skip."
+  ],
+  "environment_limitations": {
+    "optional_postgresql": "NOT_RUN; MJOBS_TEST_POSTGRES_URL unset",
+    "hosted_actions_and_reviews": "NOT_RUN_BY_USER_POLICY",
+    "ai_provider_and_real_ats": "NOT_RUN_OR_UNAVAILABLE",
+    "external_submission": "OFF",
+    "multi_api_replica_cancellation": "NOT_IMPLEMENTED; cancellation registry is process-local"
+  },
+  "requirement_limitations": [
+    "This slice adds user-visible cancellation for uploaded-original resume comparison only. Other operation classes still need their own bounded cancellation/deadline/output/error evidence.",
+    "Cancellation signaling is local to one API process; it does not coordinate across multiple API replicas.",
+    "Unavailable AI provider and real ATS paths remain unverified; the broad MJ-REQ-004 acceptance and issue #5 remain PARTIAL/OPEN."
+  ],
+  "denominators": {
+    "requirements": 366,
+    "reference_gaps": 59
+  },
+  "integration": {
+    "status": "PENDING_LOCAL_ONLY_FAST_FORWARD",
+    "method": "NON_FORCE_FAST_FORWARD",
+    "base_commit": "6cd72c02d930b23fd09b2657f823ae3b18e04629",
+    "source_commit": "8a469b03bb7c57448118be9e1b761d8608d179ab",
+    "candidate_branch": "codex/req004-upload-compare-cancel-20261006",
+    "hosted_verification": "NOT_RUN_BY_USER_POLICY",
+    "issue_state": "OPEN_PARTIAL"
+  }
+}

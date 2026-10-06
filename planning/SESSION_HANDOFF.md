@@ -1,5 +1,11 @@
 # Active local-only implementation checkpoint — 2026-10-06
 
+Current synchronized main at checkpoint start: `6cd72c02d930b23fd09b2657f823ae3b18e04629`. Active candidate source commit: `8a469b03bb7c57448118be9e1b761d8608d179ab` on `codex/req004-upload-compare-cancel-20261006`. Uploaded-original resume comparison now has a user-visible cancellation action scoped to profile, application, uploaded revision, and tailored document; extraction cancellation leaves the profile and application document history unchanged. Evidence: `docs/evidence/2026-10-06-uploaded-comparison-cancellation.json`. Focused integration (6) and Chromium (1), full Python (718; one optional PostgreSQL skip), frontend (62), build, and local validators pass. Hosted checks/reviews remain NOT_RUN; external submission remains OFF. MJ-REQ-004 and issue #5 remain PARTIAL/OPEN, with cross-replica signaling and remaining operation/provider classes unverified. Next: verify exact remote main and policy, integrate via safe non-force fast-forward, read back #5 OPEN, then continue the next dependency-ready P0 issue.
+
+---
+
+# Active local-only implementation checkpoint — 2026-10-06
+
 P0 issue #8 / MJ-REQ-007 scoped atomic `.env` initialization is synchronized on local/GitHub `main` at `494e15f46a93b70530755811888ece6046dc98aa`; issue #8 remains OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6019785804.
 
 Active writer: P0 issue #9 / MJ-REQ-008, branch `codex/req008-crash-resume-20261006`, based on `e00ddd9af6f45cd2560cb418055d8a92011e87aa`. The existing resume CLI was exercised inside task-owned container `mjobs-req008-restart-20261006`: network disabled, root and checkout read-only, SIGKILL, restart, and identical checkpoint afterward. The container is stopped; PERSONAL stack stayed running. Seven local progress tests pass. Evidence `docs/evidence/2026-10-06-progress-container-crash-recovery.json`. Issue #9 remains OPEN/PARTIAL because host reboot is unauthorized and browser/product-worker crash classes remain unverified. External submission OFF; hosted checks/reviews NOT_RUN.
