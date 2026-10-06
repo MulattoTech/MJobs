@@ -1,3 +1,9 @@
+# Active local-only implementation checkpoint — 2026-10-06
+
+Issue #112 / MJ-REQ-111 candidate `2e1200348c45899c10ab14604b757bead0790e08` on `codex/mj-req111-structured-output-20261006`, based on synchronized main `43f79f28c7f65cd5054dedc606662fcaa9ae19ee`. Added strict Pydantic result schemas, JSON Schema negotiation only for explicitly capable providers, bounded duplicate-safe parsing that rejects extra/nested fields and malformed JSON, sanitized errors, and a provider-disabled default. Focused AI tests (16), full unit suite (337), compileall, progress/catalogue/agent-skill validators, and diff check pass. Evidence: `docs/evidence/2026-10-06-ai-structured-output.json`. No real provider or production matching consumer exists, so issue #112 remains OPEN/PARTIAL; live AI and hosted verification are NOT_RUN, external submission OFF. Next: exact-base recheck, safe local-only integration, issue readback, then continue with the next dependency-ready queue item.
+
+---
+
 # Integration receipt — 2026-10-06
 
 Issue #111 / MJ-REQ-110 source `e32ed99c4e80bade20fcf0a6251a1d55253844ba` plus evidence/planning were integrated by non-force fast-forward at synchronized local/GitHub main `ff3d74568c1cff396999fabc9a1946f22cc70924`. Five focused cost-control tests, all 329 unit tests, compileall, progress/catalogue/agent-skill validators, and diff check passed on the exact integrated tree. Evidence: `docs/evidence/2026-10-06-ai-cost-controls.json`. Issue #111 remains OPEN/PARTIAL because no production matching consumer or persisted policy settings exist; external/paid AI and hosted checks remain NOT_RUN, external submission OFF.

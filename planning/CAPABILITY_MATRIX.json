@@ -1005,11 +1005,11 @@
     },
     {
       "requirement_id": "MJ-REQ-111",
-      "result": "NOT_RUN",
+      "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-06-avoid-list.json"
+        "docs/evidence/2026-10-06-ai-structured-output.json"
       ],
-      "note": "Not implemented or verified in current milestones Scoped MJ-REF-003 post-generation exclusion behavior verified for local documents and answers; this does not implement or pass the full requirement."
+      "note": "Strict schema and structured-capability-aware task router pass local synthetic tests; no real provider or production task consumer is implemented."
     },
     {
       "requirement_id": "MJ-REQ-112",

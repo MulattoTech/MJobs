@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-111",
+  "github_issue": 112,
+  "result": "PARTIAL",
+  "scope": "Strict typed Pydantic result contract, JSON Schema negotiation with explicitly capable providers, and bounded local output validation.",
+  "observed_at_utc": "2026-10-06T19:22:38Z",
+  "candidate": {
+    "repository": "MulattoTech/MJobs",
+    "branch": "codex/mj-req111-structured-output-20261006",
+    "base": "43f79f28c7f65cd5054dedc606662fcaa9ae19ee",
+    "commit": "2e1200348c45899c10ab14604b757bead0790e08",
+    "tree": "1eb419548e8b859b6c1ec7e1f097d54b2f7ad790",
+    "status": "Source commit locally validated; integration and GitHub readback pending."
+  },
+  "source_sha256": {
+    "services/ai/AREA.md": "2d3910bd11e12401c83471975130d49a4da38d1c1a6e487e67203441f53e6d69",
+    "services/ai/providers/__init__.py": "2e21386970055175a1e0ae2375fe8322af7becda7e56463632b97c1fd8ea0ba8",
+    "services/ai/tasks.py": "c3e4bbf2a20a9424fa1286bfd5571c54a47c21e90c0f396ab213316f9316d631",
+    "services/ai/structured_output.py": "58042b641c24b066efe1f32b943c730b9e81d367efe332f1e3875c922011bf47",
+    "tests/unit/test_ai_structured_output.py": "d47df261052ffe8dfaa45d14d515f4fab51c9e3e1627e271dd4a2e2da20b9440"
+  },
+  "acceptance": {
+    "uses_typed_schema_validated_output": "PASS - StrictAIResult uses Pydantic v2 strict validation, extra=forbid, typed models, and generated JSON Schema.",
+    "offers_schema_only_to_explicit_structured_provider": "PASS - generate_structured requires exact structured_output capability and passes the model schema; text-only providers are rejected before generation.",
+    "rejects_arbitrary_or_ambiguous_json": "PASS - bounded JSON object only, duplicate keys and non-standard constants rejected, root and nested schemas must forbid undeclared fields, and Pydantic strict validation rejects coercion.",
+    "safe_failure_behavior_and_disabled_default": "PASS - stable errors omit prompt/provider response details; disabled and unimplemented providers fail before network or generation.",
+    "actual_remote_provider_and_production_task_consumer": "PARTIAL - no remote provider or production matching/task consumer is available, so live model behavior and end-to-end use are not established."
+  },
+  "local_validation": {
+    "environment": "Windows isolated worktree; Python 3.12.10; pinned Pydantic 2.13.5; base is synchronized main.",
+    "commands": [
+      {
+        "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_ai_structured_output tests.unit.test_ai_task_configuration tests.unit.test_disabled_ai_provider -v",
+        "result": "PASS",
+        "tests": 16
+      },
+      {
+        "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest discover -s tests\\unit -v",
+        "result": "PASS",
+        "tests": 337
+      },
+      {
+        "command": "..\\..\\.venv\\Scripts\\python.exe -m compileall -q services\\ai tests\\unit\\test_ai_structured_output.py",
+        "result": "PASS"
+      },
+      {
+        "command": "..\\..\\.venv\\Scripts\\python.exe -m tools.verification.progress validate",
+        "result": "PASS"
+      },
+      {
+        "command": "..\\..\\.venv\\Scripts\\python.exe -m tools.verification.catalogue",
+        "result": "PASS"
+      },
+      {
+        "command": "..\\..\\.venv\\Scripts\\python.exe -m tools.verification.agent_skills",
+        "result": "PASS"
+      },
+      {
+        "command": "git diff --check",
+        "result": "PASS"
+      }
+    ],
+    "expected_red": "Before implementation, the six new focused tests failed with ModuleNotFoundError for services.ai.structured_output.",
+    "test_authoring_correction": "An intermediate expanded test run had a NameError from referencing a test-local model in another test method; the test was moved to its defining scope, and final focused/full suites pass.",
+    "not_run": [
+      "Live/paid model validation: NOT_RUN by current policy; no remote provider is implemented.",
+      "Connected browser acceptance: NOT_APPLICABLE; this service/API contract has no UI change.",
+      "GitHub Actions and hosted review: NOT_RUN under current local-only policy."
+    ]
+  },
+  "limitations": [
+    "No provider in the repository currently advertises structured_output; successful provider negotiation is proven with an injected local synthetic provider only.",
+    "No matching or document production consumer yet calls generate_structured; issue #112 / MJ-REQ-111 remains OPEN/PARTIAL.",
+    "AI output is still untrusted data and downstream career-fact, matching, and document gates remain required.",
+    "External application submission remains OFF; hosted evidence remains NOT_RUN."
+  ],
+  "reconciled_main_commit": "43f79f28c7f65cd5054dedc606662fcaa9ae19ee",
+  "integration_candidate_commit": "2e1200348c45899c10ab14604b757bead0790e08",
+  "integrated_main_commit": null,
+  "github_issue_comment": null
+}

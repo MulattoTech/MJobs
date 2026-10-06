@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-06T19:17:07Z",
+  "generated_at": "2026-10-06T19:22:38Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -11,7 +11,7 @@
     "current_verified_github_state": "GitHub/local main synchronized at 117a27ccfdf472fb67135d17f14ebd44c8fa9462; issue #110 OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/110#issuecomment-6023459996; issue #345 CLOSED; Actions disabled, no PR, main unprotected.",
     "current_verified_at": "2026-10-06T19:05:40Z"
   },
-  "current_milestone": "MJ-REQ-111-STRUCTURED-OUTPUT-START-20261006",
+  "current_milestone": "MJ-REQ-111-STRUCTURED-OUTPUT-LOCALLY-VERIFIED-PARTIAL-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -91,7 +91,8 @@
     "MJ-REQ-004 now cancels native parser and OCR subprocesses from an explicit profile/resume-scoped UI action and from observed transport disconnects; all-category external-operation policy and unavailable real ATS/AI provider paths remain PARTIAL (docs/evidence/2026-10-06-resume-extraction-cancellation.json).",
     "MJ-REQ-108 provider-neutral contract and disabled/no-AI provider locally verified; real provider implementations and matching consumer wiring remain incomplete.",
     "MJ-REQ-109: immutable per-task provider/model router across seven task types; user-facing persistence and production consumer wiring remain incomplete.",
-    "MJ-REQ-110: deterministic dedupe, score threshold, bounded AI/document candidate planning and reviewed-document gating verified locally; production matching consumer and persisted settings remain incomplete (docs/evidence/2026-10-06-ai-cost-controls.json)."
+    "MJ-REQ-110: deterministic dedupe, score threshold, bounded AI/document candidate planning and reviewed-document gating verified locally; production matching consumer and persisted settings remain incomplete (docs/evidence/2026-10-06-ai-cost-controls.json).",
+    "MJ-REQ-111: strict Pydantic result schemas, schema-capable router negotiation, bounded duplicate-safe JSON parsing and sanitized errors pass locally; no remote provider or production consumer exists (docs/evidence/2026-10-06-ai-structured-output.json)."
   ],
   "blocked_capabilities": [],
   "active_requirements": [
@@ -271,7 +272,8 @@
     "MJ-REQ-109 candidate 49f4769: 8 focused AI contract tests and 324 full unit tests PASS; compile, catalogue, progress and agent-skill validation PASS (docs/evidence/2026-10-06-ai-task-configuration.json).",
     "After merging current main b662979: Remotive integration and AI task routing focused tests 15 PASS; complete unit suite 324 PASS; progress/catalogue validation PASS (docs/evidence/2026-10-06-ai-task-configuration.json).",
     "Integrated main 117a27c: 8 focused AI tests PASS; prior exact reconciled candidate: 324 unit tests and 7 Remotive integration tests PASS; progress/catalogue/agent-skill validation PASS.",
-    "MJ-REQ-110 issue #111 funnel: five focused tests and 329 unit tests pass; planner remains PARTIAL without production consumer or persisted configuration (docs/evidence/2026-10-06-ai-cost-controls.json)."
+    "MJ-REQ-110 issue #111 funnel: five focused tests and 329 unit tests pass; planner remains PARTIAL without production consumer or persisted configuration (docs/evidence/2026-10-06-ai-cost-controls.json).",
+    "MJ-REQ-111 issue #112 structured output: 16 focused AI tests and 337 full unit tests PASS; remote provider and production consumer remain unavailable (docs/evidence/2026-10-06-ai-structured-output.json)."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -412,7 +414,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Implement issue #112 / MJ-REQ-111 structured output on codex/mj-req111-structured-output-20261006, based on synchronized main 43f79f28c7f65cd5054dedc606662fcaa9ae19ee. Add schema-validated typed result parsing and structured-capability-aware task routing; reject malformed, ambiguous, oversized, or extra-field JSON with safe stable errors. Do not make external model calls.",
+  "recommended_resume_step": "Recheck synchronized main, Actions disabled state and branch protection; push issue #112 candidate and safely fast-forward; leave issue #112 OPEN/PARTIAL pending a provider and production consumer, then select the next dependency-ready item in PR_QUEUE.json.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -6476,12 +6478,60 @@
         "git_commit": "43f79f28c7f65cd5054dedc606662fcaa9ae19ee",
         "evidence_path": "docs/evidence/2026-10-06-ai-cost-controls.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-111-STRUCTURED-OUTPUT-LOCALLY-VERIFIED-PARTIAL-20261006",
+      "timestamp": "2026-10-06T19:22:38Z",
+      "current_phase": "Issue #112 / MJ-REQ-111 strict structured-output boundary is locally verified PARTIAL on codex/mj-req111-structured-output-20261006; no real provider or production consumer is available.",
+      "completed_steps": [
+        "Added strict Pydantic result base and generated closed JSON Schema",
+        "Extended provider contract and task router to require declared structured-output capability",
+        "Added bounded duplicate-safe output validation and stable sanitized errors",
+        "Recorded exact candidate hashes, focused/full tests and remaining provider/consumer limitations"
+      ],
+      "files_added": [
+        "services/ai/structured_output.py",
+        "tests/unit/test_ai_structured_output.py",
+        "docs/evidence/2026-10-06-ai-structured-output.json"
+      ],
+      "files_modified": [
+        "services/ai/AREA.md",
+        "services/ai/providers/__init__.py",
+        "services/ai/tasks.py",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Structured output/task config/disabled provider: 16 PASS",
+        "Complete unit suite: 337 PASS",
+        "compileall, progress journal, catalogue, agent-skill and diff checks: PASS"
+      ],
+      "tests_remaining": [
+        "No real remote AI provider or production matching/task consumer is available; keep MJ-REQ-111 PARTIAL.",
+        "Recheck, integrate, and read back issue #112 before selecting the next dependency-ready item."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [
+        "Initial expected-red was six missing-module failures; one intermediate test authoring NameError was corrected before the final passing runs."
+      ],
+      "known_limitations": [
+        "No remote provider advertises structured_output.",
+        "No production matching or document consumer calls generate_structured.",
+        "External AI/provider and hosted checks are NOT_RUN; external application submission remains OFF."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "2e1200348c45899c10ab14604b757bead0790e08",
+        "evidence_path": "docs/evidence/2026-10-06-ai-structured-output.json"
+      }
     }
   ],
-  "current_phase": "Started issue #112 / MJ-REQ-111 structured output on codex/mj-req111-structured-output-20261006 from synchronized main 43f79f2; implementation has not yet been written.",
+  "current_phase": "Issue #112 / MJ-REQ-111 strict structured-output boundary is locally verified PARTIAL on codex/mj-req111-structured-output-20261006; no real provider or production consumer is available.",
   "last_safe_checkpoint": {
-    "git_commit": "43f79f28c7f65cd5054dedc606662fcaa9ae19ee",
-    "evidence_path": "docs/evidence/2026-10-06-ai-cost-controls.json"
+    "git_commit": "2e1200348c45899c10ab14604b757bead0790e08",
+    "evidence_path": "docs/evidence/2026-10-06-ai-structured-output.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -6626,9 +6676,9 @@
     "selection_reason": "Next dependency-ready P3 item in active MJ-PR-030 after integrating the provider contract, task router, and cost-control prerequisite; structured results establish a typed validation boundary before matching consumers are built.",
     "base": "43f79f28c7f65cd5054dedc606662fcaa9ae19ee",
     "branch": "codex/mj-req111-structured-output-20261006",
-    "candidate": null,
-    "evidence": null,
-    "next_action": "Implement schema-validated typed result parsing and structured-output-aware task routing. Use local synthetic providers only and preserve provider-disabled defaults."
+    "candidate": "2e1200348c45899c10ab14604b757bead0790e08",
+    "evidence": "docs/evidence/2026-10-06-ai-structured-output.json",
+    "next_action": "Recheck exact main and local-only policy, publish and fast-forward safely if main remains the exact ancestor, read back issue #112 OPEN/PARTIAL, then continue to the next dependency-ready issue."
   },
   "historical_control_snapshots": [
     {
