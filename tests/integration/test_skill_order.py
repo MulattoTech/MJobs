@@ -58,6 +58,34 @@ class SkillOrderIntegrationTests(unittest.TestCase):
         with self.assertRaises(ComparisonUnavailable):
             compare_resumes(self.store,self.root,app,base['id'],tailored['id'])
 
+    def test_tailored_resume_preserves_all_summary_facts_when_no_summary_fact_matches_target_skills(self):
+        facts=[
+            dict(PROFILE['facts'][0],id='summary-cloud',kind='summary',text='AWS cloud architect.'),
+            dict(PROFILE['facts'][0],id='summary-sales',kind='summary',text='Experienced retail sales associate.'),
+            PROFILE['facts'][0],PROFILE['facts'][1],
+        ]
+        self.store.save_profile(dict(PROFILE,facts=facts))
+        with fixture_server() as origin:
+            discover(self.store,origin,'fixture')
+        job=self.store.jobs()[0]
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.id==job['id']).values(skills=['Python']))
+        app=prepare(self.store,job['id'],'fixture',self.root)
+        base=next(row for row in application_documents(self.store,app) if row['kind']=='resume')
+        before_profile=self.store.profile('fixture')
+        prepare(self.store,job['id'],'fixture',self.root,tailor_resume=True)
+        rows=application_documents(self.store,app)
+        tailored=next(row for row in rows if row['kind']=='resume' and row['version']==2)
+        self.assertIn('summary-cloud',tailored['fact_ids'])
+        self.assertIn('summary-sales',tailored['fact_ids'])
+        adj=tailored['generation_context']['summary_adjustment']
+        self.assertFalse(adj['adjusted'])
+        self.assertEqual(adj['omitted_summary_fact_ids'],[])
+        self.assertEqual(set(adj['selected_summary_fact_ids']),{'summary-cloud','summary-sales'})
+        self.assertEqual(self.store.profile('fixture'),before_profile)
+        comparison=compare_resumes(self.store,self.root,app,base['id'],tailored['id'])
+        self.assertEqual(comparison['omitted'],[])
+
     def test_explicit_queue_option_versions_preserves_and_labels_skill_order(self):
         facts=[PROFILE['facts'][1],dict(PROFILE['facts'][0],id='role',kind='experience',text='Example Engineer 2020-2024'),
             dict(PROFILE['facts'][0],id='duty',kind='responsibility',text='Maintained services.'),PROFILE['facts'][0],
