@@ -293,3 +293,12 @@ This does not close #5: AI provider requests are NOT_RUN because no provider imp
 
 
 Planning receipt synchronization: `a87704e7c256f14d0fe7c323e59a908b357dad07` is verified on local and remote main; the exact issue #5 slice remains PARTIAL. The immediate follow-on audit is hard wall-clock bounds for local PDF/DOCX extraction, because current byte/page/resource bounds do not prove a hard extraction deadline.
+
+
+## 2026-10-06 local-only continuation — MJ-REQ-004 native parser slice
+
+Issue #5 / MJ-REQ-004 remains OPEN/PARTIAL. Native PDF and DOCX parsing now runs in a shell-free child with a 15-second wall deadline, bounded JSON output, a credential-free environment allowlist, and Linux address-space, CPU, file-size, and core-dump limits. OCR stays parent-side under its existing local bounds. Candidate `492eb8f9d83d4e2e0f1e8af9e6b18b0ab31b922a` was non-force fast-forwarded to synchronized local/remote main. Evidence: [bounded native resume parsing](../docs/evidence/2026-10-06-bounded-native-resume-parsing.json). The 47-test affected profile/parser/OCR/comparison/browser suite, 32 Linux-container parser/OCR tests, 654-test full local Python/integration/browser suite, and catalogue/progress/skill validators passed. The original 366-requirement denominator is unchanged.
+
+The parser slice preserves review-before-save and profile isolation. Timeout, child launch, nonzero exit, malformed output, existing DOCX XML bounds, native extraction, OCR fallback and resume history were exercised. Actions/hosted reviews and AI-provider calls remain NOT_RUN; request-disconnect cancellation and production deployment were not tested. External application submission remains OFF.
+
+Next continue issue #5 by auditing supported ATS/Playwright navigation and selector waits for operation deadlines, cooperative cancellation, captured output, and safe error classification. Preserve the existing `SUBMISSION_UNCONFIRMED` no-blind-retry behavior. Do not close #5 or mark MJ-REQ-004 PASS until every applicable operation category is evidenced.

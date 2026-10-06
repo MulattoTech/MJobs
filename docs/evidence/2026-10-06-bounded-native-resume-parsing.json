@@ -1,0 +1,142 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-004",
+  "github_issue": 5,
+  "result": "PARTIAL",
+  "scope_result": "PASS",
+  "scope": "Native PDF/DOCX extraction now runs in a shell-free child with a 15-second parent wall deadline, bounded JSON protocol, sanitized environment, and Linux process limits. Timeout, launch failure, nonzero exit, malformed output, real PDF/DOCX extraction, OCR behavior, profile API persistence, comparison isolation, and browser resume history were locally verified. This slice does not claim complete MJ-REQ-004 acceptance.",
+  "observed_at_utc": "2026-10-06T06:49:04Z",
+  "candidate": {
+    "repository": "MulattoTech/MJobs",
+    "branch": "codex/req004-bound-ops-20261006",
+    "base": "bc09a66b2e249c0df991d10b72776bfccc046411",
+    "commit": "492eb8f9d83d4e2e0f1e8af9e6b18b0ab31b922a",
+    "tree": "ce06602f531afe5db827c15c54496d771a740d6e",
+    "integration_commit": "492eb8f9d83d4e2e0f1e8af9e6b18b0ab31b922a",
+    "integration_method": "NON_FORCE_FAST_FORWARD",
+    "main_before": "bc09a66b2e249c0df991d10b72776bfccc046411",
+    "main_after": "492eb8f9d83d4e2e0f1e8af9e6b18b0ab31b922a",
+    "remote_main_after": "492eb8f9d83d4e2e0f1e8af9e6b18b0ab31b922a",
+    "candidate_is_ancestor_of_main": true,
+    "main_remote_sha_verified": true
+  },
+  "acceptance": {
+    "native_pdf_and_docx_parse_in_a_shell_free_child": "PASS",
+    "native_parser_has_15_second_wall_deadline": "PASS; subprocess timeout path classified safely; no raw output or extracted facts are returned",
+    "linux_parser_child_has_address_space_cpu_file_and_core_limits": "PASS; 32 resume extraction/OCR tests passed in the Linux application image with network disabled and read-only checkout",
+    "parser_environment_excludes_database_and_provider_credentials": "PASS",
+    "parser_stdout_is_bounded_validated_json_and_stderr_is_discarded": "PASS",
+    "launch_nonzero_exit_and_malformed_protocol_fail_closed": "PASS",
+    "existing_docx_xml_resource_limit_remains_enforced": "PASS",
+    "ocr_remains_parent_side_bounded_and_preserves_native_review_text": "PASS",
+    "profile_import_does_not_auto_approve_or_persist_extracted_facts": "PASS; API and browser review/history cases passed",
+    "comparison_does_not_mutate_profile_or_cross_profile_data": "PASS",
+    "original_requirement_all_hanging_operations_complete": "PARTIAL",
+    "external_application_submission_enabled": false,
+    "original_requirement_denominator_changed": false
+  },
+  "operation_category_status": {
+    "http_requests": "PARTIAL; Greenhouse request bounds and worker deadline exist; provider clients still need complete category audit.",
+    "browser_navigation_and_selectors": "PARTIAL; mock ATS has bounded Playwright navigation/default selector timeouts and cooperative stage checks; a new browser cancellation/deadline journey remains to be exercised.",
+    "ai_requests": "NOT_RUN; no provider request implementation exists; no paid or hosted AI call was made.",
+    "document_parsing": "PARTIAL; native PDF/DOCX wall deadline, sanitized child environment, Linux resource limits, safe errors, and size/page/XML/text limits are now tested. Request cancellation and broader deployment evidence remain.",
+    "ocr": "PARTIAL; parent-side subprocess hard timeout/resource/output limits remain, alongside new Linux parser integration tests; complete process-category coverage is open.",
+    "external_processes": "PARTIAL; OCR and native parser paths use shell-free bounded subprocesses; other project process paths need audit.",
+    "source_collectors": "PARTIAL; Greenhouse request timeout/rate-wait cancellation and provider-history preservation are tested; broad retry/classification coverage remains.",
+    "ats_collectors": "PARTIAL; supported paths have bounded requests, but provider breadth and browser timeout/cancel behavior are not complete.",
+    "captured_output_retry_policy_and_error_classification": "PARTIAL; parser diagnostics are suppressed and failures are safely categorized, but all-category retry/output/error policy remains open."
+  },
+  "local_validation": {
+    "environment": {
+      "host": "Windows PowerShell, Python 3.12, repository .venv",
+      "linux_container_image": "mjobs-local:spine",
+      "linux_container_image_id": "sha256:49c3fb39240a02f1da5a2a9e05859df101d7d40de86e311af874e97c84dcaf01",
+      "docker_constraints": "--network none; --read-only; read-only checkout bind; /tmp tmpfs only",
+      "external_application_submission": "OFF"
+    },
+    "focused_suite": {
+      "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_resume_extraction tests.unit.test_resume_ocr tests.integration.test_profile_import tests.integration.test_uploaded_resume_comparison tests.browser.test_profile_import -v",
+      "result": "PASS",
+      "tests": 47,
+      "failures": 0,
+      "skips": 0,
+      "started_at_utc": "2026-10-06T06:42:07.3341512Z",
+      "ended_at_utc": "2026-10-06T06:42:27.0882589Z",
+      "log": "%TEMP%\\mjobs-req004-parser-focused.log"
+    },
+    "full_suite": {
+      "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest discover -s tests -v",
+      "result": "PASS",
+      "tests": 654,
+      "failures": 0,
+      "skips": 0,
+      "started_at_utc": "2026-10-06T06:34:53.5674035Z",
+      "ended_at_utc": "2026-10-06T06:41:12.1207512Z",
+      "log": "%TEMP%\\mjobs-req004-parser-full-suite.log",
+      "notes": "Full run included timeout and sanitized-child tests. The final launch/protocol failure test was added during this run and passed in the complete 47-test focused run afterward. A browser test emitted a connection-aborted teardown traceback but reported ok; suite exited 0."
+    },
+    "linux_container_suite": {
+      "command": "docker run --rm --network none --read-only --tmpfs /tmp:rw,noexec,nosuid,size=512m --mount type=bind,source=<worktree>,target=/workspace,readonly --workdir /workspace mjobs-local:spine python -m unittest tests.unit.test_resume_extraction tests.unit.test_resume_ocr -v",
+      "result": "PASS",
+      "tests": 32,
+      "failures": 0,
+      "skips": 0,
+      "started_at_utc": "2026-10-06T06:43:39.9747395Z",
+      "ended_at_utc": "2026-10-06T06:43:44.3396656Z"
+    },
+    "validators": [
+      {
+        "command": "python -m tools.verification.catalogue",
+        "result": "PASS",
+        "started_at_utc": "2026-10-06T06:42:39.2344883Z",
+        "ended_at_utc": "2026-10-06T06:42:39.5058229Z"
+      },
+      {
+        "command": "python -m tools.verification.progress validate",
+        "result": "PASS"
+      },
+      {
+        "command": "python -m tools.verification.agent_skills",
+        "result": "PASS"
+      },
+      {
+        "command": "git diff --check",
+        "result": "PASS"
+      }
+    ],
+    "failure_history": [
+      {
+        "result": "EXPECTED_RED_THEN_FIXED",
+        "detail": "The timeout regression initially failed because subprocess.run was not yet part of the extraction boundary; the final timeout classification test passes."
+      },
+      {
+        "result": "TEST_HARNESS_ERROR_FIXED",
+        "detail": "The first focused run of the newly added launch/protocol test used patch.side_effect for CompletedProcess values and failed in the test double. The test now uses return_value for normal process results; the final 47-test affected suite passes."
+      },
+      {
+        "result": "NO_FAILURE_IN_FINAL_AFFECTED_OR_FULL_SUITES",
+        "detail": "Final affected suite exited 0 with 47 tests; full suite exited 0 with 654 tests; Linux container suite exited 0 with 32 tests."
+      }
+    ],
+    "not_run": [
+      "GitHub Actions and hosted verification: NOT_RUN by local-only policy; workflows remain disabled.",
+      "Hosted/independent reviews: NOT_RUN by user policy.",
+      "AI provider requests: NOT_RUN; no provider implementation exists and no paid/provider call was made.",
+      "External live employer or ATS calls: NOT_RUN; only synthetic/local fixtures were exercised.",
+      "PostgreSQL runtime integration: NOT_RUN; no schema or migration changed.",
+      "External application submission: OFF."
+    ]
+  },
+  "integration_receipt": {
+    "branch_protection": "NONE",
+    "actions_workflows": "DISABLED_BY_USER_POLICY",
+    "candidate_pushed": "PASS",
+    "non_force_fast_forward": "PASS",
+    "main_after_source_integration": "492eb8f9d83d4e2e0f1e8af9e6b18b0ab31b922a",
+    "remote_main_after_source_integration": "492eb8f9d83d4e2e0f1e8af9e6b18b0ab31b922a",
+    "issue_state": "OPEN; broad original acceptance remains incomplete and issue was not closed",
+    "requirement_state": "PARTIAL; the existing 366 requirement and 59 reference-gap denominators were preserved",
+    "planning_receipt_commit": null,
+    "remote_main_after_planning_receipt": null
+  }
+}

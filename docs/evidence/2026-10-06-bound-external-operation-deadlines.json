@@ -36,7 +36,7 @@
     "http_requests": "PARTIAL; existing Greenhouse HTTP timeout/payload bounds plus worker deadline; provider clients need complete category audit.",
     "browser_navigation_and_selectors": "PARTIAL; mock ATS has bounded Playwright navigation/default selector timeouts and cooperative stage checks; no new browser-specific timeout/cancel journey was added in this slice.",
     "ai_requests": "NOT_RUN; no provider request implementation exists; do not infer provider coverage.",
-    "document_parsing": "PARTIAL; bounded upload sizes/pages/ZIP members/XML/text exist; CPU wall-clock bounds still need an audit.",
+    "document_parsing": "PARTIAL; native PDF/DOCX parsing now runs in a shell-free child with a 15-second parent deadline, bounded JSON, sanitized environment, and Linux address-space/CPU/file/core limits. Timeout and parser/OCR cases passed 47 focused Windows tests, 32 Linux-container tests, and the 654-test full local suite. Request-cancellation and deployment coverage remain open; see docs/evidence/2026-10-06-bounded-native-resume-parsing.json.",
     "ocr": "PARTIAL; subprocess hard timeout/resource/output limits already exist; full process-category evidence remains separate.",
     "external_processes": "PARTIAL; OCR subprocess uses shell-free execution, timeouts, and sanitized diagnostics; other project process paths require audit.",
     "source_collectors": "PARTIAL; Greenhouse request timeout/rate wait and bounded cancellation tested; broader execution and retry classification still open.",

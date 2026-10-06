@@ -46,7 +46,7 @@
       "status": "MERGED",
       "branch": "codex/mj-pr-002-governance-safety",
       "draft_until_verified": true,
-      "notes": "Bounded durable worker lifecycle slice, stacked on actual mock spine; preserve broader independent-limit requirements Live GitHub reconciliation: PR #369 merged at f30a2e5b82ff61204fa4f94c69280f8097da9b90.. MJ-REQ-004 clarification: PR #369 merged only a narrow worker lifecycle slice. Issue #5 remains OPEN/PARTIAL; scoped operation deadline and Greenhouse cancellation evidence is at docs/evidence/2026-10-06-bound-external-operation-deadlines.json. Do not infer whole-requirement PASS from this or the historical merge.",
+      "notes": "Bounded durable worker lifecycle slice, stacked on actual mock spine; preserve broader independent-limit requirements Live GitHub reconciliation: PR #369 merged at f30a2e5b82ff61204fa4f94c69280f8097da9b90.. MJ-REQ-004 clarification: PR #369 merged only a narrow worker lifecycle slice. Issue #5 remains OPEN/PARTIAL; scoped operation deadline and Greenhouse cancellation evidence is at docs/evidence/2026-10-06-bound-external-operation-deadlines.json. Do not infer whole-requirement PASS from this or the historical merge. Current issue #5 local-only continuations: worker/source evidence is docs/evidence/2026-10-06-bound-external-operation-deadlines.json; bounded native PDF/DOCX parser evidence is docs/evidence/2026-10-06-bounded-native-resume-parsing.json, integrated at 492eb8f9d83d4e2e0f1e8af9e6b18b0ab31b922a. Both are partial slices; MJ-REQ-004 remains PARTIAL and issue #5 remains OPEN.",
       "pr_number": 369,
       "merge_commit": "f30a2e5b82ff61204fa4f94c69280f8097da9b90",
       "merged_at": "2026-09-30T19:45:13Z"

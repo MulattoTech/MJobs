@@ -1,17 +1,17 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-06T06:24:43Z",
+  "generated_at": "2026-10-06T06:46:24Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "MJ-REQ-004 source slice at 2b84f9cf610a65791a135a0f5bfc70133b3235af and evidence/planning receipt at a87704e7c256f14d0fe7c323e59a908b357dad07 are integrated by non-force fast-forward; local and GitHub main synchronized.",
-    "current_verified_github_state": "GitHub main and local main synchronized at a87704e7c256f14d0fe7c323e59a908b357dad07, including the scoped MJ-REQ-004 evidence receipt. Issue #5 remains OPEN/PARTIAL because broad acceptance is incomplete. Actions/reviews remain NOT_RUN.",
-    "current_verified_at": "2026-10-06T06:24:43Z"
+    "current_verified_local_state": "MJ-REQ-004 native parser source commit 492eb8f9d83d4e2e0f1e8af9e6b18b0ab31b922a is integrated by non-force fast-forward; local and GitHub main are synchronized. Planning/evidence receipt is being recorded.",
+    "current_verified_github_state": "GitHub main and local main synchronized at 492eb8f9d83d4e2e0f1e8af9e6b18b0ab31b922a. Issue #5 remains OPEN/PARTIAL; Actions/reviews remain NOT_RUN by policy.",
+    "current_verified_at": "2026-10-06T06:49:04Z"
   },
-  "current_milestone": "MJ-REQ-004-WORKER-DEADLINE-SLICE-20261006",
+  "current_milestone": "MJ-REQ-004-NATIVE-PARSER-DEADLINE-SLICE-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under the local-only delivery policy; one writer and one integration lane.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -218,7 +218,11 @@
     "MJ-REF-017: 34 targeted spine/provenance/document/answer/browser tests PASS; final artifact recovery suite 7 tests PASS; browser history/download reload PASS; local frontend build and repository validators PASS (docs/evidence/2026-10-06-artifact-recovery.json).",
     "MJ-REF-037 candidate 91dfeda: 19 focused skill/provenance tests; reference provenance, skill, catalogue, progress validators and git diff --check PASS.",
     "MJ-REF-014: focused task-prompt/profile-access suite 39 tests PASS; full Python/browser suite 648 tests PASS; strict frontend build, catalogue/progress/skill validators and diff check PASS (docs/evidence/2026-10-06-least-data-task-prompts.json).",
-    "MJ-REQ-004 initial P0 operation-boundary slice: 72 affected integrations and 652 full Python/integration/browser tests PASS; 62 frontend tests, strict frontend build, catalogue/progress/agent-skill validators PASS (docs/evidence/2026-10-06-bound-external-operation-deadlines.json)."
+    "MJ-REQ-004 initial P0 operation-boundary slice: 72 affected integrations and 652 full Python/integration/browser tests PASS; 62 frontend tests, strict frontend build, catalogue/progress/agent-skill validators PASS (docs/evidence/2026-10-06-bound-external-operation-deadlines.json).",
+    "MJ-REQ-004 native PDF/DOCX parser boundary: 47 focused unit/API/comparison/browser tests PASS; timeout, launch, child-exit and protocol errors fail closed.",
+    "MJ-REQ-004 native parser/OCR Linux runtime: 32 tests PASS in local app image with network disabled, checkout read-only, and temporary filesystem only.",
+    "MJ-REQ-004 exact source candidate local full suite: 654 Python/integration/browser tests PASS; zero failures and zero skips.",
+    "Catalogue, progress journal, agent-skill and diff whitespace validators PASS after native parser integration."
   ],
   "tests_failed": [],
   "tests_not_run": [
@@ -234,7 +238,8 @@
   ],
   "known_external_limitations": [
     "Production external career-site/domain acquisition, configured web-search provider and non-mock ATS metadata integration are not verified in MJ-PR-017.",
-    "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018."
+    "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
+    "MJ-REQ-004 remains PARTIAL: native parser cancellation on request disconnect, browser operation deadlines/cancellation, full operation-category retry/output/error classification, and AI-provider timeout behavior remain unproven or unavailable."
   ],
   "known_product_defects": [
     "Manual application status is user-reported only; company/application notes beyond this slice, independently verified submission receipts, and full canonical tracker acceptance remain unverified.",
@@ -319,7 +324,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Continue the open P0 issue #5 / MJ-REQ-004. The worker deadline and Greenhouse cancellation slice is integrated. Next evaluate bounded PDF/DOCX parsing, where current byte/page limits do not prove a hard wall-clock limit. Keep all operation categories and the 366 requirement denominator intact.",
+  "recommended_resume_step": "Continue open P0 issue #5 / MJ-REQ-004. Native PDF/DOCX parsing now has a 15-second shell-free child deadline, sanitized environment and Linux resource limits; 47 affected tests, 32 Linux-container tests and the 654-test full local suite passed. Next inspect supported Playwright/ATS flows for operation deadlines, cancellation during navigation/selectors, safe captured output, and submission ambiguity. Implement one browser slice test-first; keep #5 OPEN/PARTIAL and the 366 requirement denominator unchanged.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -337,7 +342,7 @@
     "cb72f9041d6a",
     "e14ac893620f"
   ],
-  "unfinished_work_evidence": "docs/evidence/2026-10-01-company-alias-domain-career-discovery.json",
+  "unfinished_work_evidence": "docs/evidence/2026-10-06-bounded-native-resume-parsing.json",
   "authorization": "User explicitly provided 100% Git and GitHub authorization on 2026-09-30; still verify native permissions and required checks",
   "user_testing": {
     "result": "PASS",
@@ -356,7 +361,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "2b84f9cf610a65791a135a0f5bfc70133b3235af",
+  "last_implementation_commit": "492eb8f9d83d4e2e0f1e8af9e6b18b0ab31b922a",
   "publication": {
     "result": "PASS",
     "integration_method": "NON_FORCE_FAST_FORWARD",
@@ -4632,12 +4637,66 @@
         "git_commit": "2b84f9cf610a65791a135a0f5bfc70133b3235af",
         "evidence_path": "docs/evidence/2026-10-06-bound-external-operation-deadlines.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-004-NATIVE-PARSER-DEADLINE-SLICE-20261006",
+      "timestamp": "2026-10-06T06:46:24Z",
+      "current_phase": "MJ-REQ-004_NATIVE_PARSER_SLICE_RECEIPTED_NEXT_BROWSER_AUDIT",
+      "completed_steps": [
+        "Reproduced and fixed native parser timeout, launch, nonzero exit and malformed-output behavior without leaking parser output or creating career facts.",
+        "Isolated native PDF/DOCX parsing in a shell-free child with a 15-second wall deadline and allowlisted environment; added Linux address-space, CPU, file-size and core-dump limits.",
+        "Kept OCR parent-side and retained existing resource, uncertainty, and review behavior; preserved DOCX hard resource-limit errors.",
+        "Integrated source commit by non-force fast-forward and verified local and remote main at 492eb8f9d83d4e2e0f1e8af9e6b18b0ab31b922a.",
+        "Recorded evidence while leaving issue #5 OPEN and MJ-REQ-004 PARTIAL."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-06-bounded-native-resume-parsing.json",
+        "services/career_profile/parser_worker.py",
+        "docs/superpowers/plans/2026-10-06-bounded-resume-parsing.md"
+      ],
+      "files_modified": [
+        "services/career_profile/extraction.py",
+        "services/career_profile/AREA.md",
+        "tests/unit/test_resume_extraction.py",
+        "docs/evidence/2026-10-06-bound-external-operation-deadlines.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "47 focused profile/parser/OCR/comparison/browser tests PASS.",
+        "654 full local Python/integration/browser tests PASS; zero failures/skips.",
+        "32 Linux-container parser/OCR tests PASS under no-network/read-only-checkout constraints.",
+        "Catalogue, progress, agent-skill, and git diff checks PASS."
+      ],
+      "tests_remaining": [
+        "Audit supported ATS/Playwright navigation and selector deadlines, cooperative cancellation, safe output/error classification, and submission ambiguity.",
+        "Continue the remaining HTTP/source/ATS/process operation-category audit; AI requests remain NOT_RUN because no provider exists."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "GitHub branch and main push/readback at exact source commit.",
+        "GitHub issue #5 readback remains OPEN.",
+        "Existing local Linux Docker app image exercised with synthetic parser/OCR fixtures; no network or persistent app data."
+      ],
+      "known_errors": [
+        "One initial focused regression test used an invalid unittest mock configuration; corrected, and the final 47-test affected suite passed."
+      ],
+      "known_limitations": [
+        "Request-disconnect cancellation and production API deployment were not tested.",
+        "GitHub Actions/hosted tests/reviews remain NOT_RUN by user policy; AI provider tests are unavailable."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "492eb8f9d83d4e2e0f1e8af9e6b18b0ab31b922a",
+        "evidence_path": "docs/evidence/2026-10-06-bounded-native-resume-parsing.json"
+      }
     }
   ],
-  "current_phase": "MJ-REQ-004_WORKER_SLICE_RECEIPTED_NEXT_PARSER_AUDIT",
+  "current_phase": "MJ-REQ-004_NATIVE_PARSER_SLICE_RECEIPTED_NEXT_BROWSER_AUDIT",
   "last_safe_checkpoint": {
-    "git_commit": "2b84f9cf610a65791a135a0f5bfc70133b3235af",
-    "evidence_path": "docs/evidence/2026-10-06-bound-external-operation-deadlines.json"
+    "git_commit": "492eb8f9d83d4e2e0f1e8af9e6b18b0ab31b922a",
+    "evidence_path": "docs/evidence/2026-10-06-bounded-native-resume-parsing.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
@@ -4780,10 +4839,10 @@
     "requirement_id": "MJ-REQ-004",
     "title": "Bound External Operations",
     "state": "INTEGRATED_LOCAL_PARTIAL_BROAD_ACCEPTANCE_OPEN",
-    "selection_reason": "Open P0 safety/reliability requirement. This integrated slice fixes worker timeout completion truth and cancellation during Greenhouse rate waiting; full issue acceptance remains unproven.",
-    "base": "dc30cbed1856921eda248e2593a8cc8df4ce4edb",
+    "selection_reason": "Open P0 safety/reliability requirement. Worker/source deadlines and native resume parser bounds are integrated locally; broad operation-category acceptance remains unproven.",
+    "base": "bc09a66b2e249c0df991d10b72776bfccc046411",
     "branch": "codex/req004-bound-ops-20261006",
-    "next_action": "Audit and test wall-clock cancellation for local PDF/DOCX extraction against existing size/page limits; determine a safe hard timeout boundary, then implement one complete parser slice test-first. Continue the remaining operation-category audit and keep #5 OPEN/PARTIAL."
+    "next_action": "Inspect supported Playwright/ATS action paths for hard navigation/selector deadlines, cooperative cancellation, captured-output handling, and safe error classification; add an observed local regression oracle and implement the smallest complete browser operation slice. Preserve SUBMISSION_UNCONFIRMED behavior and keep issue #5 OPEN/PARTIAL."
   },
   "historical_control_snapshots": [
     {
@@ -5902,5 +5961,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-06T06:24:43Z"
+  "updated_at": "2026-10-06T06:46:24Z"
 }
