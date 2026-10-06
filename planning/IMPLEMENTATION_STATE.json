@@ -7,9 +7,9 @@
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Local main and origin/main synchronized at 973bc50921eae4e242752b2527321069573e8c86. Greenhouse HTTP cancellation slice is integrated and evidenced; issue #5 remains OPEN/PARTIAL for remaining operation classes.",
-    "current_verified_github_state": "GitHub and local main matched 973bc50921eae4e242752b2527321069573e8c86 at non-force integration. Actions disabled, main unprotected, no open PR; issue #5 OPEN/PARTIAL after evidence comment/readback.",
-    "current_verified_at": "2026-10-06T14:19:05Z"
+    "current_verified_local_state": "Local main and origin/main synchronized at 96e2c92fcae184e79b7d397f4cc1ced275afa051. Local fixture response limits/cancellation slice is integrated and evidenced; issue #5 remains OPEN/PARTIAL for remaining operation classes.",
+    "current_verified_github_state": "GitHub and local main matched 96e2c92fcae184e79b7d397f4cc1ced275afa051 at non-force integration. Actions disabled, main unprotected, no open PR; issue #5 OPEN/PARTIAL after evidence comment/readback.",
+    "current_verified_at": "2026-10-06T14:32:22Z"
   },
   "current_milestone": "MJ-REQ-004-MOCK-DISCOVERY-HTTP-BOUNDS-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under the local-only delivery policy; one writer and one integration lane.",
@@ -312,12 +312,12 @@
     "MJ-REQ-004 candidate 3d604b27b1a4c25e2ff0ee6fa68a07e9ff8f74a0: full suite initially saw stale ignored apps/web/dist; rebuilding restored current Sources UI and isolated browser acceptance. A first rebuilt full run later hit the known intermittent CompanyDiscoveryRequestsBrowserTests server-thread shutdown assertion; isolated case and all 35 browser tests passed, followed by a same-head 680-test full suite pass. Do not weaken shutdown timeout; evidence docs/evidence/2026-10-06-bounded-ocr-diagnostics.json."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-06T14:31:00Z",
+    "timestamp": "2026-10-06T14:32:22Z",
     "result": "PARTIAL",
     "source_commit": "9b95debda403cbf38b4b147be549ece4bc515b4e",
-    "scope": "Fixture discovery response streaming/cancellation slice PASS; issue #5 remains OPEN/PARTIAL.",
+    "scope": "Fixture discovery response streaming/cancellation slice PASS and safely integrated; issue #5 remains OPEN/PARTIAL after GitHub readback.",
     "evidence_path": "docs/evidence/2026-10-06-mock-discovery-bounds.json",
-    "integration_commit": null
+    "integration_commit": "96e2c92fcae184e79b7d397f4cc1ced275afa051"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -5178,13 +5178,14 @@
     {
       "milestone_id": "MJ-REQ-004-MOCK-DISCOVERY-HTTP-BOUNDS-20261006",
       "timestamp": "2026-10-06T14:31:00Z",
-      "current_phase": "MJ-REQ-004_MOCK_DISCOVERY_BOUNDS_LOCAL_PASS_PENDING_INTEGRATION_PARTIAL",
+      "current_phase": "MJ-REQ-004_MOCK_DISCOVERY_BOUNDS_INTEGRATED_LOCAL_PARTIAL",
       "completed_steps": [
         "Added fixture-backed RED tests for early stop on oversized bodies and prompt cancellation during a stalled response.",
         "Stream local fixture responses under the 2 MB ceiling and poll the existing worker cancellation/deadline callback while requests are active.",
         "On cancellation, close the response/client and preserve the original callback exception; retain exact local-origin and bounded-redirect checks.",
         "Passed 31 focused unit/integration/browser regressions and the exact candidate 708-test full local suite.",
-        "Source committed locally; evidence/planning push and safe integration are pending."
+        "Source committed locally; evidence/planning push and safe integration are pending.",
+        "Non-force fast-forwarded source and evidence to synchronized local/GitHub main at 96e2c92fcae184e79b7d397f4cc1ced275afa051; Actions disabled, main unprotected, no PR. Posted/read back issue #5 OPEN at https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6018530633."
       ],
       "files_added": [
         "docs/evidence/2026-10-06-mock-discovery-bounds.json",
@@ -5218,14 +5219,14 @@
         "Local fixture discovery only; broad external operation taxonomy and unavailable AI/ATS paths keep issue #5 OPEN/PARTIAL."
       ],
       "last_safe_checkpoint": {
-        "git_commit": "9b95debda403cbf38b4b147be549ece4bc515b4e",
+        "git_commit": "96e2c92fcae184e79b7d397f4cc1ced275afa051",
         "evidence_path": "docs/evidence/2026-10-06-mock-discovery-bounds.json"
       }
     }
   ],
-  "current_phase": "MJ-REQ-004_MOCK_DISCOVERY_BOUNDS_LOCAL_PASS_PENDING_INTEGRATION_PARTIAL",
+  "current_phase": "MJ-REQ-004_MOCK_DISCOVERY_BOUNDS_INTEGRATED_LOCAL_PARTIAL",
   "last_safe_checkpoint": {
-    "git_commit": "9b95debda403cbf38b4b147be549ece4bc515b4e",
+    "git_commit": "96e2c92fcae184e79b7d397f4cc1ced275afa051",
     "evidence_path": "docs/evidence/2026-10-06-mock-discovery-bounds.json"
   },
   "live_integrations_tested": [
@@ -5353,28 +5354,29 @@
     }
   ],
   "live_reconciliation": {
-    "observed_at": "2026-10-06T14:19:05Z",
-    "github_main": "973bc50921eae4e242752b2527321069573e8c86",
-    "local_main": "973bc50921eae4e242752b2527321069573e8c86",
+    "observed_at": "2026-10-06T14:32:22Z",
+    "github_main": "96e2c92fcae184e79b7d397f4cc1ced275afa051",
+    "local_main": "96e2c92fcae184e79b7d397f4cc1ced275afa051",
     "issue_5_state": "OPEN_PARTIAL",
     "issue_6_state": "OPEN_PARTIAL",
     "open_prs": 0,
     "actions_enabled": false,
     "main_branch_protected": false,
-    "integration": "MJ-REQ-004_GREENHOUSE_HTTP_CANCELLATION_NON_FORCE_FAST_FORWARD",
-    "next_issue": 5
+    "integration": "MJ-REQ-004_MOCK_DISCOVERY_BOUNDS_NON_FORCE_FAST_FORWARD",
+    "next_issue": 8
   },
   "active_development_issue": {
     "issue": 5,
     "requirement_id": "MJ-REQ-004",
     "title": "Bound External Operations",
-    "state": "LOCAL_SLICE_PASS_PENDING_INTEGRATION_REQUIREMENT_PARTIAL_OPEN",
+    "state": "LOCAL_SLICE_PASS_INTEGRATED_REQUIREMENT_PARTIAL_OPEN",
     "selection_reason": "P0 safety: the explicit local fixture discovery client eagerly buffered untrusted HTML/JSON before checking its 2 MB limit and could not interrupt a stalled response on durable worker cancellation.",
     "base": "57bb3e6cf4e79fb86edab0d4574a87a5323c151b",
     "branch": "codex/req004-ops-audit-20261006",
     "candidate": "9b95debda403cbf38b4b147be549ece4bc515b4e",
     "evidence": "docs/evidence/2026-10-06-mock-discovery-bounds.json",
-    "next_action": "Push source/evidence, reconcile Actions/protection/open PR state, safely fast-forward and post/read back issue #5 evidence. Then continue the next dependency-ready P0 item; broad issue #5 remains OPEN/PARTIAL."
+    "next_action": "Reconcile P0 issue #8 / MJ-REQ-007 source control/change safety on current synchronized main; continue #5 later only if a further locally actionable production operation gap exists. Keep issue #5 OPEN/PARTIAL.",
+    "integration_commit": "96e2c92fcae184e79b7d397f4cc1ced275afa051"
   },
   "historical_control_snapshots": [
     {
@@ -6501,5 +6503,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-06T14:31:00Z"
+  "updated_at": "2026-10-06T14:32:22Z"
 }

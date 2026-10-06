@@ -8,7 +8,7 @@
   "source_commit": "9b95debda403cbf38b4b147be549ece4bc515b4e",
   "candidate_commit": "9b95debda403cbf38b4b147be549ece4bc515b4e",
   "candidate_tree": "4cf122d3c5401e1c3e96d93aa722013cc8d18a43",
-  "recorded_at_utc": "2026-10-06T14:31:00Z",
+  "recorded_at_utc": "2026-10-06T14:32:22Z",
   "scope": "Bound the explicit local fixture discovery client so response bodies are streamed under the 2 MB ceiling and active local requests stop promptly when the durable worker cancellation/deadline callback raises.",
   "acceptance": {
     "oversized_fixture_response_stops_before_full_body_buffering": "PASS",
@@ -87,5 +87,23 @@
   "denominators": {
     "requirements": 366,
     "reference_gaps": 59
+  },
+  "integration": {
+    "status": "NON_FORCE_FAST_FORWARD_INTEGRATED",
+    "method": "NON_FORCE_FAST_FORWARD",
+    "base_commit": "57bb3e6cf4e79fb86edab0d4574a87a5323c151b",
+    "source_commit": "9b95debda403cbf38b4b147be549ece4bc515b4e",
+    "candidate_branch": "codex/req004-ops-audit-20261006",
+    "candidate_integration_commit": "96e2c92fcae184e79b7d397f4cc1ced275afa051",
+    "local_main_after_integration": "96e2c92fcae184e79b7d397f4cc1ced275afa051",
+    "origin_main_after_integration": "96e2c92fcae184e79b7d397f4cc1ced275afa051",
+    "main_protection": "NOT_CONFIGURED",
+    "actions_enabled": false,
+    "open_pr_for_candidate": false,
+    "hosted_verification": "NOT_RUN_BY_USER_POLICY",
+    "integrated_at_utc": "2026-10-06T14:32:22Z",
+    "issue_state_after_readback": "OPEN",
+    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6018530633",
+    "readback_at_utc": "2026-10-06T14:32:22Z"
   }
 }
