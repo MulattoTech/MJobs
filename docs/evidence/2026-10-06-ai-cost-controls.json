@@ -82,7 +82,7 @@
   "reconciled_main_commit": "1bedb952e24a73a4f253c95181dd281295ae406b",
   "integration_candidate_commit": "e32ed99c4e80bade20fcf0a6251a1d55253844ba",
   "integrated_main_commit": "ff3d74568c1cff396999fabc9a1946f22cc70924",
-  "github_issue_comment": null,
+  "github_issue_comment": "https://github.com/MulattoTech/MJobs/issues/111#issuecomment-6023665025",
   "integration": {
     "method": "non-force fast-forward",
     "main_before": "1bedb952e24a73a4f253c95181dd281295ae406b",
