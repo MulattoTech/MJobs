@@ -75,6 +75,33 @@ class AgentDashboardSupervisorTests(unittest.TestCase):
         self.assertIn("ACTIVE CLAIM: issue #318 / MJ-REQ-063.D01", prompt[:500])
         self.assertIn("Do NOT switch to the repository's global active issue", prompt[:700])
 
+
+    def test_codex_command_uses_claimed_worktree(self):
+        supervisor = AgentSupervisor(self.root)
+        supervisor.bus.mkdir(parents=True, exist_ok=True)
+        claimed = str(self.root / ".worktrees" / "codex-issue")
+        (supervisor.bus / "claims.json").write_text(
+            json.dumps({
+                "schema_version": 1,
+                "claims": {
+                    "codex": {
+                        "issue": 111,
+                        "requirement_id": "MJ-REQ-110",
+                        "branch": "codex/issue",
+                        "worktree": claimed,
+                    }
+                },
+            }),
+            encoding="utf-8",
+        )
+        command = supervisor.command_preview("codex")
+        self.assertIn(claimed, command)
+
+    def test_writable_lane_requires_complete_claim(self):
+        supervisor = AgentSupervisor(self.root)
+        with self.assertRaises(RuntimeError):
+            supervisor._workspace_for_lane("ollama")
+
     def test_dashboard_config_persists_in_git_common_coordination_dir(self):
         supervisor = AgentSupervisor(self.root)
         supervisor.update_config("ollama", {"model": "ollama/gemma4:26b", "auto_continue": False})

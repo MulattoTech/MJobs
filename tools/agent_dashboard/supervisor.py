@@ -263,12 +263,13 @@ class AgentSupervisor:
             + suffix
         )
 
-    def _command(self, lane: str) -> list[str]:
+    def _command(self, lane: str, workspace: Path | None = None) -> list[str]:
         cfg = self.config["lanes"][lane]
         prompt = self._prompt(lane)
+        workspace = workspace or self.root
         if lane == "codex":
             return [
-                "codex", "exec", "-C", str(self.root), "-m", str(cfg["model"]),
+                "codex", "exec", "-C", str(workspace), "-m", str(cfg["model"]),
                 "-c", f'model_reasoning_effort="{cfg.get("reasoning", "high")}"',
                 "-s", "danger-full-access", prompt,
             ]
@@ -284,7 +285,9 @@ class AgentSupervisor:
 
     def command_preview(self, lane: str) -> list[str]:
         self._require_lane(lane)
-        command = self._command(lane)
+        claim = self._live_claim(lane)
+        workspace = Path(claim["worktree"]) if claim.get("worktree") else self.root
+        command = self._command(lane, workspace)
         if command:
             command[-1] = "<prompt>"
         return command
@@ -322,9 +325,41 @@ class AgentSupervisor:
             f"Unable to resolve runner {name!r}. Install it or add it to PATH."
         )
 
-    def _launch_command(self, lane: str) -> list[str]:
-        command = self._command(lane)
+    def _launch_command(self, lane: str, workspace: Path) -> list[str]:
+        command = self._command(lane, workspace)
         return self._runner_prefix(command[0]) + command[1:]
+
+    def _workspace_for_lane(self, lane: str) -> Path:
+        claim = self._live_claim(lane)
+        worktree_value = claim.get("worktree")
+        branch = claim.get("branch")
+        if not worktree_value or not branch:
+            raise RuntimeError(
+                f"Lane {lane} has no complete active claim/worktree. Claim an issue "
+                "before starting a writable supervised lane."
+            )
+        workspace = Path(str(worktree_value))
+        if not workspace.is_absolute():
+            workspace = (self.root / workspace).resolve()
+        if workspace.exists():
+            return workspace
+        workspace.parent.mkdir(parents=True, exist_ok=True)
+        fetch = _run(["git", "fetch", "origin", "main"], self.root, timeout=30)
+        if fetch.returncode:
+            raise RuntimeError(fetch.stderr.strip() or "git fetch failed")
+        local_branch = _run(
+            ["git", "show-ref", "--verify", "--quiet", f"refs/heads/{branch}"],
+            self.root,
+        ).returncode == 0
+        args = ["git", "worktree", "add"]
+        if local_branch:
+            args.extend([str(workspace), str(branch)])
+        else:
+            args.extend(["-b", str(branch), str(workspace), "origin/main"])
+        created = _run(args, self.root, timeout=30)
+        if created.returncode:
+            raise RuntimeError(created.stderr.strip() or created.stdout.strip())
+        return workspace
 
     def log_path(self, lane: str) -> Path:
         return self.log_dir / f"{lane}.log"
@@ -346,14 +381,17 @@ class AgentSupervisor:
             if manual:
                 self._stop_requested.discard(lane)
                 self._fast_exits[lane].clear()
+            workspace = self._workspace_for_lane(lane)
             log_path = self.log_path(lane)
             handle = open(log_path, "a", encoding="utf-8", buffering=1)
-            handle.write(f"\n\n===== START {utc_now()} =====\n")
+            handle.write(
+                f"\n\n===== START {utc_now()} workspace={workspace} =====\n"
+            )
             env = dict(os.environ)
             env["MJOBS_LANE"] = lane
             flags = subprocess.CREATE_NEW_PROCESS_GROUP if os.name == "nt" else 0
             process = subprocess.Popen(
-                self._launch_command(lane), cwd=str(self.root), env=env,
+                self._launch_command(lane, workspace), cwd=str(workspace), env=env,
                 stdin=subprocess.DEVNULL, stdout=handle, stderr=subprocess.STDOUT,
                 text=True, creationflags=flags,
             )
@@ -361,6 +399,7 @@ class AgentSupervisor:
             current.update({
                 "pid": process.pid, "status": "RUNNING", "started_at": utc_now(),
                 "stopped_at": None, "exit_code": None, "last_reason": None,
+                "workspace": str(workspace),
             })
             self.save()
             return dict(current)
