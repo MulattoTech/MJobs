@@ -7,11 +7,11 @@
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Candidate issue #2 / MJ-REQ-001 source 6105f8cc99c3978919b945f0b9e0bf66dbeac7ad on codex/req001-host-safety-20261006, based on main 08a6cc59f02bdec252a71c01452f1964fc87990e. Host-safety fixtures, live repository guard, dependency audit, frontend build/tests, isolated flaky case and all browser tests pass; one full-suite Uvicorn shutdown assertion was isolated. Evidence commit and integration pending.",
-    "current_verified_github_state": "GitHub main last matched 08a6cc59f02bdec252a71c01452f1964fc87990e; Actions disabled and main unprotected. Issue #2 remains OPEN pending safe local integration and issue readback.",
-    "current_verified_at": "2026-10-06T13:19:28Z"
+    "current_verified_local_state": "Local main and origin/main are synchronized at d726c91423343cb6285973b019dec0a7c98a2692. Issue #2 / MJ-REQ-001 is PASS, integrated and CLOSED. Next target: P0 issue #4 / MJ-REQ-003 headless development; reconcile current test coverage and remaining acceptance.",
+    "current_verified_github_state": "GitHub main and local main matched d726c91423343cb6285973b019dec0a7c98a2692 at latest integration. Actions disabled, main unprotected, and no candidate PR. Issue #2 closed after evidence readback; issue #4 remains open.",
+    "current_verified_at": "2026-10-06T13:20:39Z"
   },
-  "current_milestone": "MJ-REQ-001-PROTECTED-HOST-SAFETY-20261006",
+  "current_milestone": "MJ-REQ-003-HEADLESS-DEVELOPMENT-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under the local-only delivery policy; one writer and one integration lane.",
   "status": "PARTIAL",
   "completed_capabilities": [
