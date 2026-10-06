@@ -110,6 +110,16 @@ prepare(store, os.environ["MJOBS_TEST_JOB_ID"], "fixture",
             mixed_revision = self._old_orphan("mixed", now=datetime.now(timezone.utc))
             (mixed_revision / "operator-note.md").write_text(
                 "preserve unknown file beside generated output", encoding="utf-8")
+            old = datetime.now(timezone.utc) - timedelta(days=3)
+            staging = self.root / "stale" / "profile-v2" / ".2.staging-crashed"
+            staging.mkdir(parents=True)
+            staged_temp = staging / ".resume.docx.worker.tmp"
+            staged_temp.write_bytes(b"partial staged document")
+            temp_file = self.root / "stale" / "profile-v3" / "7" / ".cover-letter.pdf.worker.tmp"
+            temp_file.parent.mkdir(parents=True)
+            temp_file.write_bytes(b"partial generated file")
+            for path in (staged_temp, staging, temp_file.parent, temp_file):
+                os.utime(path, (old.timestamp(), old.timestamp()))
             now = datetime.now(timezone.utc)
 
             inventory = scan_artifacts(self.store, self.root, now=now)
@@ -131,6 +141,12 @@ prepare(store, os.environ["MJOBS_TEST_JOB_ID"], "fixture",
             mixed_entry = by_path[mixed_revision.relative_to(self.root).as_posix()]
             self.assertEqual(mixed_entry["classification"], "UNCLASSIFIED_PROTECTED")
             self.assertFalse(mixed_entry["eligible"])
+            staging_entry = by_path[staging.relative_to(self.root).as_posix()]
+            self.assertEqual(staging_entry["classification"], "FAILED_GENERATION_STAGING")
+            self.assertTrue(staging_entry["eligible"])
+            temp_entry = by_path[temp_file.relative_to(self.root).as_posix()]
+            self.assertEqual(temp_entry["classification"], "INCOMPLETE_TEMPORARY_FILE")
+            self.assertTrue(temp_entry["eligible"])
 
     def test_quarantine_restore_collision_and_retention_purge_are_audited(self):
         now = datetime.now(timezone.utc)
