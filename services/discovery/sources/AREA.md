@@ -8,7 +8,8 @@ search and application submission are not supported. Requirements: MJ-REQ-016,
 Interfaces: SourceAdapter.search/fetch/normalize/health/capabilities;
 SearchBatch contains per-posting SourceCompany attribution so a future global
 feed can persist multiple employers in one collection. `source_adapter` is a
-closed provider registry; Greenhouse is the only production implementation.
+closed provider registry supporting Greenhouse (employer board), Remotive (global JSON),
+and We Work Remotely (global RSS feed).
 The legacy Greenhouse.collect method delegates to search for compatibility.
 configure_source and collect_source own policy and provider-neutral persistence.
 Persist job_sources, company sources, canonical jobs/routes, raw postings and
@@ -41,7 +42,7 @@ the worker cancellation/deadline callback; when it stops, the adapter closes
 that response and client, preserves the original stop error, and leaves source
 health, failure history and uncommitted jobs unchanged.
 
-Tests: `python -m unittest tests.integration.test_greenhouse -v`. Live validation
+Tests: `python -m unittest tests.integration.test_greenhouse tests.integration.test_remotive tests.integration.test_wwr -v`. Live validation
 is separately invoked, bounded, public and read-only; fixtures never stand in
 for live evidence. Adding a provider requires official collection policy,
 contract fixtures, native provenance and explicit unsupported capabilities.

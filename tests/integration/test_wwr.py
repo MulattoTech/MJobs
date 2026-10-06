@@ -330,6 +330,22 @@ class WeWorkRemotelyTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             WeWorkRemotely(concurrency=0)
 
+    def test_live_bounded_search_read_only(self):
+        """Bounded live read-only verification against WWR public RSS feed when enabled."""
+        import os
+        if not os.environ.get("MJOBS_ENABLE_LIVE_TESTS"):
+            return
+        adapter = WeWorkRemotely(request_timeout=15)
+        batch = adapter.search(limit=3)
+        self.assertGreater(len(batch.items), 0)
+        self.assertLessEqual(len(batch.items), 3)
+        for item in batch.items:
+            norm = adapter.normalize(item.raw)
+            self.assertTrue(norm["title"])
+            self.assertTrue(norm["requisition"])
+            self.assertEqual(norm["remote_type"], "REMOTE")
+            self.assertEqual(norm["attributes"]["provider"], "wwr")
+
 
 if __name__ == "__main__":
     unittest.main()
