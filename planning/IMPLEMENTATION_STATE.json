@@ -1,17 +1,17 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-06T05:58:46Z",
+  "generated_at": "2026-10-06T06:20:43Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "MJ-REF-014 / issue #384 integrated and evidence/planning receipt synchronized on main at 861f5c4f81da80c1f5400b4e22446fb6e16cec71. GitHub issue #384 is CLOSED with all five acceptance boxes checked and read back.",
-    "current_verified_github_state": "GitHub main and local main synchronized at 861f5c4f81da80c1f5400b4e22446fb6e16cec71. Issue #384 is CLOSED with all five acceptance boxes checked. Actions and hosted reviews remain NOT_RUN under local-only policy.",
-    "current_verified_at": "2026-10-06T05:58:46Z"
+    "current_verified_local_state": "MJ-REQ-004 worker/source deadline slice integrated by non-force fast-forward at 2b84f9cf610a65791a135a0f5bfc70133b3235af; local and GitHub main synchronized. Planning/evidence receipt pending.",
+    "current_verified_github_state": "GitHub main and local main include the scoped MJ-REQ-004 deadline/cancellation slice at 2b84f9cf610a65791a135a0f5bfc70133b3235af. Issue #5 remains OPEN because broad acceptance is incomplete; GitHub Actions and hosted reviews remain NOT_RUN under local-only policy.",
+    "current_verified_at": "2026-10-06T06:20:43Z"
   },
-  "current_milestone": "MJ-REQ-004-SELECTED-20261006",
+  "current_milestone": "MJ-REQ-004-WORKER-DEADLINE-SLICE-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under the local-only delivery policy; one writer and one integration lane.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -50,7 +50,8 @@
     "MJ-REF-017: crash-safe atomic generated document revisions, conservative orphan/staging/temp inventory, audited quarantine, integrity-checked restore, and configured-retention purge (docs/evidence/2026-10-06-artifact-recovery.json).",
     "MJ-REF-037 is locally PASS and integrated at main 70e16d0766f87c7b637cd4731a7e251ddc47d54a: pinned current reference commits/dates/license blobs, clean-room and license-independent no-evasion policy, inspiration log, PR/local checklist, conditional third-party notices, and deterministic validator. Issue #407 closed after complete acceptance readback (docs/evidence/2026-10-06-reference-provenance.json).",
     "MJ-REF-013 locally PASS and integrated at 60f2addd1b73c06dcc0f206369a4ee0b78c155e1: bounded typed READ/PROPOSE/SIDE_EFFECT registry; host-bound profile/task context; exact reviewed proposals with deterministic policy, replay and cross-profile/task guards; bounded value-free traces on append-only audit storage; all 642 local Python/browser tests PASS; issue #383 closed with all five acceptance boxes checked (docs/evidence/2026-10-06-bounded-agent-toolregistry.json).",
-    "MJ-REF-014: provider-neutral task prompt construction defaults to no profile context; explicit approved task-scoped facts are isolated, denylisted, audited without values, and treated as evidence only under an untrusted-input instruction boundary (docs/evidence/2026-10-06-least-data-task-prompts.json)."
+    "MJ-REF-014: provider-neutral task prompt construction defaults to no profile context; explicit approved task-scoped facts are isolated, denylisted, audited without values, and treated as evidence only under an untrusted-input instruction boundary (docs/evidence/2026-10-06-least-data-task-prompts.json).",
+    "MJ-REQ-004 scoped worker/source behavior: durable operations use a monotonic deadline and stable OPERATION_TIMEOUT result; Greenhouse cancellation during rate waits prevents the next request and preserves source health/failure history (docs/evidence/2026-10-06-bound-external-operation-deadlines.json)."
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
@@ -73,7 +74,8 @@
     "Manual postings receive persisted deterministic skill-evidence explanations from approved profile facts; description-only mentions remain UNKNOWN and full matching/search dimensions remain open (CORE-WORKFLOW-TRIAL C local evidence).",
     "CORE-WORKFLOW-TRIAL D deterministic job-specific cover letter merged in PR #510 at a63c798; exact-head review, both Verification events, runtime reports and merge-tree equality passed. Combined A-F journey remains pending (docs/evidence/2026-10-05-job-specific-cover-letter.json).",
     "CORE-WORKFLOW-TRIAL E has a usable profile answer bank and per-job manual review/export path with profile-scoped history/download, atomic content-addressed export recovery, and a saved-profile load gate. PR #511 merged at fb8ab73 after exact-head review and passing push/pull_request Verification with nine passing reports and digest-matched artifacts. MJ-REQ-103..107 remain PARTIAL for incomplete matching, confidence, sensitive/legal policy and durable unexported drafts (docs/evidence/2026-10-05-reviewed-application-answers.json).",
-    "MJ-REQ-170 transient-artifact retention now has explicit local inventory/quarantine/restore/purge with a 30-day default; automatic background cleanup and broader transient/log retention remain incomplete."
+    "MJ-REQ-170 transient-artifact retention now has explicit local inventory/quarantine/restore/purge with a 30-day default; automatic background cleanup and broader transient/log retention remain incomplete.",
+    "MJ-REQ-004 remains PARTIAL: worker-wide cooperative deadlines and Greenhouse rate-wait cancellation are locally verified; AI/provider requests, complete browser/parser/OCR/process/source/ATS coverage, output capture, and all retry/error classifications still need evidence (docs/evidence/2026-10-06-bound-external-operation-deadlines.json)."
   ],
   "blocked_capabilities": [],
   "active_requirements": [],
@@ -215,7 +217,8 @@
     "PR #513 source head 8756881 push run 37340200494 and pull_request run 37340208479 both passed 585 tests and all connected CI steps; all 9 reports per event passed and artifact SHA-256 digests matched GitHub. These runs precede the metadata commit and are not final-head evidence.",
     "MJ-REF-017: 34 targeted spine/provenance/document/answer/browser tests PASS; final artifact recovery suite 7 tests PASS; browser history/download reload PASS; local frontend build and repository validators PASS (docs/evidence/2026-10-06-artifact-recovery.json).",
     "MJ-REF-037 candidate 91dfeda: 19 focused skill/provenance tests; reference provenance, skill, catalogue, progress validators and git diff --check PASS.",
-    "MJ-REF-014: focused task-prompt/profile-access suite 39 tests PASS; full Python/browser suite 648 tests PASS; strict frontend build, catalogue/progress/skill validators and diff check PASS (docs/evidence/2026-10-06-least-data-task-prompts.json)."
+    "MJ-REF-014: focused task-prompt/profile-access suite 39 tests PASS; full Python/browser suite 648 tests PASS; strict frontend build, catalogue/progress/skill validators and diff check PASS (docs/evidence/2026-10-06-least-data-task-prompts.json).",
+    "MJ-REQ-004 initial P0 operation-boundary slice: 72 affected integrations and 652 full Python/integration/browser tests PASS; 62 frontend tests, strict frontend build, catalogue/progress/agent-skill validators PASS (docs/evidence/2026-10-06-bound-external-operation-deadlines.json)."
   ],
   "tests_failed": [],
   "tests_not_run": [
@@ -316,7 +319,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Continue issue #5 / MJ-REQ-004 as the next dependency-ready P0 safety target; inventory existing per-call timeouts/cancellation/retries across external operation categories and implement/verify one coherent shared boundary before broadening. Do not close #5 until every applicable category is evidenced.",
+  "recommended_resume_step": "Continue open issue #5 / MJ-REQ-004 from main at 2b84f9cf610a65791a135a0f5bfc70133b3235af. Next inspect bounded PDF/DOCX parsing and browser action deadlines, then implement the highest-risk uncovered path test-first. Preserve all 366 requirements and keep #5 PARTIAL until its broad acceptance is evidenced.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -353,7 +356,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "5e9d630564a2327838af6d73bebbfd08f3d16a83",
+  "last_implementation_commit": "2b84f9cf610a65791a135a0f5bfc70133b3235af",
   "publication": {
     "result": "PASS",
     "integration_method": "NON_FORCE_FAST_FORWARD",
@@ -4537,12 +4540,69 @@
         "git_commit": "861f5c4f81da80c1f5400b4e22446fb6e16cec71",
         "evidence_path": "docs/evidence/2026-10-06-least-data-task-prompts.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-004-WORKER-DEADLINE-SLICE-20261006",
+      "timestamp": "2026-10-06T06:20:43Z",
+      "current_phase": "MJ-REQ-004_WORKER_DEADLINE_SLICE_INTEGRATED_PARTIAL",
+      "completed_steps": [
+        "Added monotonic durable-worker deadline enforcement at the shared cooperative check boundary and final ordinary-success boundary.",
+        "Persisted worker timeouts with stable OPERATION_TIMEOUT classification without adding automatic retries or changing confirmed/ambiguous submission truth.",
+        "Made the production Greenhouse inter-request rate wait cancellation-aware at bounded 250 ms intervals.",
+        "Restored prior provider health and failure/backoff history when a local operation is cancelled or times out during source collection.",
+        "Safely fast-forwarded exact pushed source candidate 2b84f9cf610a65791a135a0f5bfc70133b3235af to synchronized local/GitHub main.",
+        "Recorded scoped requirement evidence as PARTIAL; issue #5 remains OPEN and the 366 requirement denominator is unchanged."
+      ],
+      "files_added": [
+        "docs/superpowers/plans/2026-10-06-bound-external-operation-deadlines.md"
+      ],
+      "files_modified": [
+        "workers/operations.py",
+        "workers/tasks.py",
+        "workers/AREA.md",
+        "services/discovery/sources/greenhouse.py",
+        "services/discovery/sources/collect.py",
+        "services/discovery/sources/AREA.md",
+        "tests/integration/test_worker_lifecycle.py",
+        "tests/integration/test_greenhouse.py",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "72 focused worker/source/monitoring/recovery/discovery integration tests PASS in 26.794 seconds.",
+        "652 full repository Python/integration/Chromium browser tests PASS in 370.091 seconds; zero failures and skips.",
+        "62 frontend tests in 13 files PASS; strict TypeScript/Vite build PASS.",
+        "Catalogue, progress journal, agent skill validators and git diff --check PASS.",
+        "npm audit reported 1 high vulnerability in source-map-js 1.2.1 under the development dependency tree; npm audit --omit=dev reported zero production dependency vulnerabilities."
+      ],
+      "tests_remaining": [
+        "Continue auditing wall-clock limits for CPU-heavy document parsing and browser actions; verify timeout, output, cancellation, retry and classification per applicable operation category.",
+        "AI provider request behavior remains NOT_RUN because this repository has no provider request implementation; do not invoke paid/provider AI calls."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "GitHub main push/hash/ancestry readback; SQLite worker/source integration fixtures; local Chromium test suite."
+      ],
+      "known_errors": [
+        "An install-time npm engine warning reports local Node v25.9.0 is outside Vitest's declared engine range; all 62 frontend tests and production build nevertheless passed."
+      ],
+      "known_limitations": [
+        "MJ-REQ-004 remains broad and PARTIAL; AI/provider, parser wall-clock, full process/browser/ATS/provider output/retry/error-classification acceptance is unproven.",
+        "npm audit found a fixable high-severity source-map-js advisory only in the development tool dependency tree; no dependency change was made in this slice.",
+        "GitHub Actions and hosted review remain NOT_RUN by user policy; external application submission remains OFF."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "2b84f9cf610a65791a135a0f5bfc70133b3235af",
+        "evidence_path": "docs/evidence/2026-10-06-bound-external-operation-deadlines.json"
+      }
     }
   ],
-  "current_phase": "MJ-REF-014_CLOSED_MJ-REQ-004_SELECTED",
+  "current_phase": "MJ-REQ-004_WORKER_DEADLINE_SLICE_INTEGRATED_PARTIAL",
   "last_safe_checkpoint": {
-    "git_commit": "861f5c4f81da80c1f5400b4e22446fb6e16cec71",
-    "evidence_path": "docs/evidence/2026-10-06-least-data-task-prompts.json"
+    "git_commit": "2b84f9cf610a65791a135a0f5bfc70133b3235af",
+    "evidence_path": "docs/evidence/2026-10-06-bound-external-operation-deadlines.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
@@ -4684,11 +4744,11 @@
     "issue": 5,
     "requirement_id": "MJ-REQ-004",
     "title": "Bound External Operations",
-    "state": "OPEN_SELECTED_P0_DEPENDENCY_READY",
-    "selection_reason": "Open P0 safety/reliability requirement: any potentially hanging operation must have timeout, captured output, controlled cancellation, retry policy, and error classification. Current capability matrix remains NOT_RUN despite merged narrow worker lifecycle slices; do not infer broad completion from those merges.",
-    "base": "861f5c4f81da80c1f5400b4e22446fb6e16cec71",
-    "branch": "not yet created",
-    "next_action": "Map potentially hanging HTTP, browser, AI, parsing/OCR, process and source/ATS paths against the exact governance_safety contract. Choose the smallest reusable vertical boundary with concrete uncovered behavior; preserve requirement 004 as PARTIAL/NOT_RUN until all applicable acceptance is evidenced."
+    "state": "INTEGRATED_LOCAL_PARTIAL_BROAD_ACCEPTANCE_OPEN",
+    "selection_reason": "Open P0 safety/reliability requirement. This integrated slice fixes worker timeout completion truth and cancellation during Greenhouse rate waiting; full issue acceptance remains unproven.",
+    "base": "dc30cbed1856921eda248e2593a8cc8df4ce4edb",
+    "branch": "codex/req004-bound-ops-20261006",
+    "next_action": "Continue the same P0 acceptance audit. Add wall-clock bounds for CPU-heavy resume parsing and verify each browser/HTTP/source/ATS operation against timeout, captured output, cancellation, safe retry and stable classification. Keep AI/provider work NOT_RUN while no provider exists; never close #5 on this slice."
   },
   "historical_control_snapshots": [
     {
@@ -5807,5 +5867,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-06T05:58:46Z"
+  "updated_at": "2026-10-06T06:20:43Z"
 }

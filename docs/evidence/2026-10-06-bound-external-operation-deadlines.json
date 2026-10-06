@@ -1,0 +1,150 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-004",
+  "github_issue": 5,
+  "result": "PARTIAL",
+  "scope_result": "PASS",
+  "scope": "Added a monotonic task deadline at the durable worker boundary; ordinary late results cannot be recorded as COMPLETED, timeout is persisted as the stable OPERATION_TIMEOUT category, and no automatic retry was added. Greenhouse public collection now checks cancellation during its production request-rate wait in bounded intervals. Local cancellation/deadline does not overwrite provider health, failure counts, error, or backoff history. This receipt covers only this worker/source slice; it does not assert whole-requirement PASS.",
+  "observed_at_utc": "2026-10-06T06:20:43Z",
+  "candidate": {
+    "repository": "MulattoTech/MJobs",
+    "branch": "codex/req004-bound-ops-20261006",
+    "base": "dc30cbed1856921eda248e2593a8cc8df4ce4edb",
+    "commit": "2b84f9cf610a65791a135a0f5bfc70133b3235af",
+    "tree": "d9e7fc01dab5a90ee532a92ace8e8269e13ef720",
+    "integration_commit": "2b84f9cf610a65791a135a0f5bfc70133b3235af",
+    "integration_method": "NON_FORCE_FAST_FORWARD",
+    "main_before": "dc30cbed1856921eda248e2593a8cc8df4ce4edb",
+    "main_after": "2b84f9cf610a65791a135a0f5bfc70133b3235af",
+    "remote_main_after": "2b84f9cf610a65791a135a0f5bfc70133b3235af",
+    "candidate_is_ancestor_of_main": true,
+    "main_remote_sha_verified": true
+  },
+  "acceptance": {
+    "durable_worker_has_configured_monotonic_operation_deadline": "PASS",
+    "late_ordinary_worker_result_cannot_be_reported_completed": "PASS",
+    "timeout_does_not_create_automatic_worker_retry": "PARTIAL; the implementation returns a persisted FAILED operation without introducing a retry, but an explicit queue-level negative retry assertion is not part of this slice.",
+    "greenhouse_rate_wait_observes_cancellation_at_most_250ms_between_checks": "PASS",
+    "cancellation_stops_before_next_greenhouse_request": "PASS",
+    "local_cancel_or_budget_timeout_preserves_prior_provider_health_and_failure_history": "PASS",
+    "original_requirement_all_hanging_operations_complete": "PARTIAL",
+    "external_application_submission_enabled": false,
+    "original_requirement_denominator_changed": false,
+    "timeout_is_persisted_as_stable_OPERATION_TIMEOUT_category": "PASS"
+  },
+  "operation_category_status": {
+    "http_requests": "PARTIAL; existing Greenhouse HTTP timeout/payload bounds plus worker deadline; provider clients need complete category audit.",
+    "browser_navigation_and_selectors": "PARTIAL; mock ATS has bounded Playwright navigation/default selector timeouts and cooperative stage checks; no new browser-specific timeout/cancel journey was added in this slice.",
+    "ai_requests": "NOT_RUN; no provider request implementation exists; do not infer provider coverage.",
+    "document_parsing": "PARTIAL; bounded upload sizes/pages/ZIP members/XML/text exist; CPU wall-clock bounds still need an audit.",
+    "ocr": "PARTIAL; subprocess hard timeout/resource/output limits already exist; full process-category evidence remains separate.",
+    "external_processes": "PARTIAL; OCR subprocess uses shell-free execution, timeouts, and sanitized diagnostics; other project process paths require audit.",
+    "source_collectors": "PARTIAL; Greenhouse request timeout/rate wait and bounded cancellation tested; broader execution and retry classification still open.",
+    "ats_collectors": "PARTIAL; supported fixture/public source paths have bounded requests; full provider breadth is not implemented.",
+    "captured_output_retry_policy_and_error_classification": "PARTIAL; this slice records stable timeout categories and adds no automatic timeout retry, but the all-category contract remains open."
+  },
+  "local_validation": {
+    "environment": "Windows local worktree; Python 3.12.10 via repository .venv; SQLite integration fixtures; Node v25.9.0/npm 11.12.1; Vite production build; local Playwright Chromium browser journeys.",
+    "focused_suite": {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_worker_lifecycle tests.integration.test_greenhouse tests.integration.test_company_source_monitoring tests.integration.test_company_monitoring_recovery tests.integration.test_company_discovery -v",
+      "result": "PASS",
+      "tests": 72,
+      "failures": 0,
+      "started_at_utc": "2026-10-06T06:18:04.1926634Z",
+      "ended_at_utc": "2026-10-06T06:18:31.9597192Z",
+      "duration_seconds": 26.794,
+      "coverage": "Worker deadline/category/history, Greenhouse rate-wait cancellation, company monitoring/recovery and discovery regressions."
+    },
+    "full_suite": {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p test_*.py -v",
+      "result": "PASS",
+      "tests": 652,
+      "failures": 0,
+      "skips": 0,
+      "started_at_utc": "2026-10-06T06:10:40.5619982Z",
+      "ended_at_utc": "2026-10-06T06:16:52.9919531Z",
+      "duration_seconds": 370.091,
+      "scope": "All repository Python, integration, and Playwright Chromium browser tests."
+    },
+    "frontend_build": {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "started_at_utc": "2026-10-06T06:18:40.3401417Z",
+      "ended_at_utc": "2026-10-06T06:18:41.1376565Z",
+      "detail": "Strict TypeScript and Vite production build; generated local ignored dist output."
+    },
+    "frontend_tests": {
+      "command": "npm test --prefix apps/web -- --run",
+      "result": "PASS",
+      "tests": 62,
+      "test_files": 13,
+      "started_at_utc": "2026-10-06T06:18:41.1405023Z",
+      "ended_at_utc": "2026-10-06T06:18:41.9669421Z"
+    },
+    "validators": [
+      {
+        "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.catalogue",
+        "result": "PASS",
+        "started_at_utc": "2026-10-06T06:18:41.9674806Z",
+        "ended_at_utc": "2026-10-06T06:18:42.0431800Z"
+      },
+      {
+        "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.progress validate",
+        "result": "PASS",
+        "started_at_utc": "2026-10-06T06:18:42.0436180Z",
+        "ended_at_utc": "2026-10-06T06:18:42.1482285Z"
+      },
+      {
+        "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.agent_skills",
+        "result": "PASS",
+        "started_at_utc": "2026-10-06T06:18:42.1486203Z",
+        "ended_at_utc": "2026-10-06T06:18:42.2197772Z"
+      },
+      {
+        "command": "git diff --check",
+        "result": "PASS"
+      }
+    ],
+    "failure_history": [
+      {
+        "result": "EXPECTED_RED_THEN_FIXED",
+        "detail": "The worker deadline test first observed incorrect COMPLETED instead of FAILED/OPERATION_TIMEOUT; the final regression passes."
+      },
+      {
+        "result": "EXPECTED_RED_THEN_FIXED",
+        "detail": "The source-cancellation regression first observed cancellation marked provider FAILED with new backoff; the final cancellation and timeout preservation tests pass."
+      },
+      {
+        "result": "NO_FAILURE_IN_FINAL_SUITE",
+        "detail": "Full suite exited 0 with 652 tests; no failures or skips were reported."
+      }
+    ],
+    "local_package_install": {
+      "command": "npm ci --prefix apps/web",
+      "result": "PASS_WITH_ENVIRONMENT_WARNINGS",
+      "notes": [
+        "Vitest declared Node requirement ^22.12.0 || ^24.0.0 || >=26.0.0 while local Node is v25.9.0; build and tests nevertheless passed.",
+        "Install-time audit reported one high development dependency advisory for source-map-js 1.2.1 (GHSA-68fv-2mgg-jv7q, fix available); npm audit --omit=dev reported zero production dependency vulnerabilities. No lockfile/dependency change was made in this worker/source slice."
+      ]
+    },
+    "not_run": [
+      "GitHub Actions and hosted verification: NOT_RUN by local-only user policy; workflows remain disabled.",
+      "Hosted/independent reviews: NOT_RUN by user policy.",
+      "PostgreSQL/Docker runtime test: NOT_RUN; no schema or migration change, SQLite behavior covered by focused and full local tests.",
+      "Live public source calls: NOT_RUN in this slice; deterministic transport fixtures used.",
+      "AI provider requests: NOT_RUN; no provider implementation exists and no paid/product AI call was made.",
+      "Dedicated new browser cancellation journey: NOT_APPLICABLE; no UI changed. Existing full local Chromium suite passed.",
+      "External application submission: OFF."
+    ]
+  },
+  "integration_receipt": {
+    "branch_protection": "NONE",
+    "actions_workflows": "DISABLED_BY_USER_POLICY",
+    "candidate_pushed": "PASS",
+    "non_force_fast_forward": "PASS",
+    "main_after_source_integration": "2b84f9cf610a65791a135a0f5bfc70133b3235af",
+    "remote_main_after_source_integration": "2b84f9cf610a65791a135a0f5bfc70133b3235af",
+    "issue_state": "OPEN; broad original acceptance remains incomplete and issue was not closed",
+    "requirement_state": "PARTIAL; the existing 366 denominator and all requirements were preserved"
+  }
+}

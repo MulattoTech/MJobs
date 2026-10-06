@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-06T02:59:16Z",
+  "timestamp": "2026-10-06T06:20:43Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -37,9 +37,11 @@
     },
     {
       "requirement_id": "MJ-REQ-004",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-06-bound-external-operation-deadlines.json"
+      ],
+      "note": "Scoped local evidence covers a monotonic durable-worker deadline, stable OPERATION_TIMEOUT classification, and cooperative Greenhouse source rate-wait cancellation without corrupting provider health/backoff history. The broad requirement remains PARTIAL: provider/AI request paths, complete browser/parser/OCR/process/ATS coverage, captured-output policy and all retry/error classifications are not yet fully evidenced."
     },
     {
       "requirement_id": "MJ-REQ-005",
