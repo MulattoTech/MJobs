@@ -14,16 +14,17 @@ source-adapter paths; Ollama owns #318 ATS-detection paths.
 
 Checkpoint: `services/ai/consumer.py` and the profile-scoped evaluate API route
 implement bounded deterministic candidate admission and structured AI job scoring.
-Job descriptions are passed as bounded untrusted text; model results are validated;
-deterministic match scores remain unchanged; this route creates zero documents.
-On this resume, all 9 focused AI unit/API tests and agent-skill, catalogue, progress,
-compile, and diff validators pass. The prior full Python run recorded 785 tests with
-2 failures, 6 errors, and 15 skips in browser tests. Frontend checks remain unrun
-because the prior checkpoint found `vitest` and `tsc` absent. Live inference and a
-reviewed AI-document workflow are not implemented or verified. Hosted checks remain
-NOT_RUN by policy. Current evidence: `docs/evidence/2026-10-06-ai-cost-consumer-resume.json`;
-preserved earlier record: `docs/evidence/2026-10-06-ai-cost-consumer.json`. Keep
-issue OPEN/PARTIAL until the remaining paths receive their own authorized evidence.
+The AI Settings UI now permits explicit evaluation after preview and displays
+advisory results with job title/company context. Job descriptions remain bounded
+untrusted text; model results are validated; deterministic match scores remain
+unchanged; this flow creates zero documents and evaluation history is not durable.
+This checkpoint ran `git diff --check` only. The affected API tests, frontend tests,
+browser flow, and build are NOT_RUN. Live inference and a reviewed AI-document
+workflow are not verified. Hosted checks remain NOT_RUN by policy. Current evidence:
+`docs/evidence/2026-10-06-ai-cost-consumer-review-ui.json`; prior evidence remains in
+`docs/evidence/2026-10-06-ai-cost-consumer-resume.json` and
+`docs/evidence/2026-10-06-ai-cost-consumer.json`. Keep issue OPEN/PARTIAL until the
+remaining paths receive their own authorized evidence.
 
 During implementation write only Codex lane files plus owned feature/evidence paths.
 Canonical planning and root main require the integration lock.

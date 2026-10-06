@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "issue": 111,
+  "requirement_id": "MJ-REQ-110",
+  "lane": "codex",
+  "branch": "codex/mj-req110-review-consumer-20261006",
+  "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req110-review-consumer-20261006",
+  "result": "PARTIAL",
+  "base_main": "54568c7de5edc3594f39f9d139f449bb0eed8cae",
+  "recorded_at": "2026-10-06T22:55:02Z",
+  "scope": [
+    "AI Settings now exposes a user-triggered action to invoke the existing profile-scoped bounded job-scoring consumer after preview.",
+    "The API response includes job title and company so advisory structured evaluations can be reviewed in context.",
+    "Evaluation results are held in the active browser view, remain advisory, and do not change deterministic match scores or create documents.",
+    "Changing profiles, previewing again, or changing/saving the policy clears the displayed evaluation results."
+  ],
+  "checks": [
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run",
+      "result": "NOT_RUN",
+      "detail": "Frontend tests were not run for this checkpoint."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "NOT_RUN",
+      "detail": "Frontend build was not run for this checkpoint."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_ai_cost_policy_api tests.unit.test_ai_cost_consumer",
+      "result": "NOT_RUN",
+      "detail": "API and consumer tests were not rerun after changing the response shape."
+    },
+    {
+      "command": "Hosted Actions and reviews",
+      "result": "NOT_RUN",
+      "detail": "Disabled by active local-only policy."
+    }
+  ],
+  "not_run": [
+    "Live provider inference.",
+    "A durable review history for AI evaluations.",
+    "A reviewed AI-document generation workflow; this consumer creates zero documents.",
+    "External application submission; OFF."
+  ],
+  "source_sha256": {
+    "apps/api/main.py": "ceb27185a9d4cc2c92dce4a19ce8642239ff57f9276fa9a7263406e76750e744",
+    "apps/web/src/main.tsx": "44b91dff881f531f68adff47766dc55f54cf10e0db192f981e7598cb902f37a6"
+  }
+}

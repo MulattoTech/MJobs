@@ -9,7 +9,7 @@
   "head": "8f011339e5263353cbfca38dfc006c74d9190e90",
   "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req110-review-consumer-20261006",
   "result": "PARTIAL",
-  "evidence_path": "docs/evidence/2026-10-06-ai-cost-consumer-resume.json",
+  "evidence_path": "docs/evidence/2026-10-06-ai-cost-consumer-review-ui.json",
   "last_completed": {
     "issue": 111,
     "requirement_id": "MJ-REQ-110",
@@ -19,7 +19,7 @@
     {
       "issue": 111,
       "requirement_id": "MJ-REQ-110",
-      "title": "AI Cost Controls - live inference and reviewed AI-document workflow remain unverified"
+      "title": "AI Cost Controls - run newly connected review UI through local browser acceptance; live inference and document workflow remain unverified"
     }
   ],
   "do_not_overlap": [

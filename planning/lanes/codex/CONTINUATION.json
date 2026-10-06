@@ -11,7 +11,7 @@
   "last_integrated_head": "ca53eb29dd0081d7b1151dc4dd2d304226e16ea5",
   "next_issue": 111,
   "next_requirement": "MJ-REQ-110",
-  "resume_instruction": "Issue #111 / MJ-REQ-110 remains PARTIAL on codex/mj-req110-review-consumer-20261006, based on origin/main 54568c7de5edc3594f39f9d139f449bb0eed8cae. The profile-scoped bounded scoring consumer and API route pass 9 focused unit/API tests and repository validators; current evidence is docs/evidence/2026-10-06-ai-cost-consumer-resume.json. Live provider inference, a reviewed AI-document workflow, and frontend checks remain NOT_RUN; the previously recorded full Python run had browser failures. Continue only this claim if resumed. Antigravity owns #303 source-adapter paths; Ollama owns #318 ATS-detection paths. Canonical planning/main require the local integration lock.",
+  "resume_instruction": "Issue #111 / MJ-REQ-110 remains PARTIAL on codex/mj-req110-review-consumer-20261006, based on origin/main 54568c7de5edc3594f39f9d139f449bb0eed8cae. The AI Settings UI now offers an explicit user-triggered evaluation after preview and displays advisory results with job context; API response fields were extended. Evidence is docs/evidence/2026-10-06-ai-cost-consumer-review-ui.json. Only git diff --check ran for this checkpoint; affected API tests and frontend browser/build checks remain NOT_RUN. Live inference, durable evaluation history, and reviewed AI-document generation remain NOT_RUN. Continue only this claim if resumed. Antigravity owns #303 source-adapter paths; Ollama owns #318 ATS-detection paths. Canonical planning/main require the local integration lock.",
   "external_submission_enabled": false,
   "github_actions_enabled": false
 }

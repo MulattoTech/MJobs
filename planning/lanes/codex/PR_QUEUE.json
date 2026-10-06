@@ -7,7 +7,7 @@
       "requirement_id": "MJ-REQ-110",
       "status": "ACTIVE",
       "priority": 1,
-      "note": "Cost settings/preview are integrated. Continue only the remaining real review-gated task-consumer acceptance; keep live inference truthfully NOT_RUN until performed."
+      "note": "Cost settings/preview and an explicit UI action to run/review bounded job scoring are checkpointed. Verify the API response and connected browser flow locally; keep live inference, durable history, and reviewed document generation truthfully NOT_RUN."
     }
   ]
 }

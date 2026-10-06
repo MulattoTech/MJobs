@@ -537,6 +537,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             job_id=row["id"], deterministic_score=int(float(row["match_score"])),
             title=row["title"], company=row["company"], description=row["description"],
         ) for row in rows if row.get("match_score") is not None]
+        candidate_by_id = {candidate.job_id: candidate for candidate in candidates}
         try:
             result = consume_ai_candidates(candidates, policy, AITaskRouter(configuration))
         except StructuredOutputError as error:
@@ -551,7 +552,9 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             "profile_id": profile_id,
             "evaluated_candidate_count": len(result.evaluations),
             "evaluations": [{
-                "job_id": job_id, "category": evaluation.category,
+                "job_id": job_id, "title": candidate_by_id[job_id].title,
+                "company": candidate_by_id[job_id].company,
+                "category": evaluation.category,
                 "rationale": evaluation.rationale,
             } for job_id, evaluation in result.evaluations],
             "document_candidate_ids": list(result.document_candidate_ids),
