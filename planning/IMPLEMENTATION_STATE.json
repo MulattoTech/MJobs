@@ -8,10 +8,10 @@
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
     "current_verified_local_state": "Primary checkout main and origin/main are synchronized at 6f61044e158336385e3ac481a21740f444db8cde after safe non-force fast-forward. The prior #387 worktree is clean at the integration commit; Codespaces checkout remains preserved.",
-    "current_verified_github_state": "GitHub main is 196ee414c21d01d517bf792063604e6d84f1d333. Issue #380 is closed with evidence; Actions remain disabled, main unprotected and ruleset count zero. Issue #373 has local candidate b6f2238c based directly on current main and awaits safe integration.",
-    "current_verified_at": "2026-10-06T02:59:16Z"
+    "current_verified_github_state": "GitHub and local main are synchronized at c3ce5abf0c2de33533c78635b724c080a9164dea after safe non-force fast-forward. Issues #387, #380 and #373 are closed after scoped evidence; Actions remain disabled, main unprotected and repository rulesets count zero. Issue #384 / MJ-REF-014 is selected for least-data profile access controls.",
+    "current_verified_at": "2026-10-06T03:01:27Z"
   },
-  "current_milestone": "MJ-REF-003-LOCAL-AVOID-LIST-PASS-PENDING-SAFE-FF",
+  "current_milestone": "MJ-REF-003-INTEGRATED-ISSUE-CLOSED-MJ-REF-014-SELECTED",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under the local-only delivery policy; one writer and one integration lane.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -310,7 +310,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Safely fast-forward locally verified issue #373 candidate b6f2238c and its exact local evidence from current main. Close issue #373 only after all five criteria and GitHub readback; then immediately continue with the next highest-value dependency-ready safety/privacy issue. Keep original requirements and release status separate.",
+  "recommended_resume_step": "Implement open issue #384 / MJ-REF-014 as the next P1 privacy prerequisite: inspect the career-profile and AI-task data paths, add a narrow allowlisted profile lookup with denied-section behavior and access audit, then test that unapproved tasks cannot fetch sensitive sections. This is locally provable without calling any paid or external AI provider. Preserve the original requirement denominator and full release status.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -4005,11 +4005,44 @@
         "git_commit": "b6f2238c7ea1e55c5f5b9f7ef1902bd929cb0124",
         "evidence_path": "docs/evidence/2026-10-06-avoid-list.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REF-003-INTEGRATED-ISSUE-CLOSED-20261006",
+      "timestamp": "2026-10-06T03:01:27Z",
+      "current_phase": "MJ-REF-003_INTEGRATED_AND_ISSUE_CLOSED_MJ-REF-014_SELECTED",
+      "completed_steps": [
+        "Pushed exact evidence checkpoint c3ce5abf0c2de33533c78635b724c080a9164dea to issue branch",
+        "Reconciled current GitHub main at recorded base 196ee414c21d01d517bf792063604e6d84f1d333; Actions disabled, main unprotected, zero repository rulesets",
+        "Fast-forwarded local main and pushed c3ce5abf0c2de33533c78635b724c080a9164dea without force",
+        "Read back all five issue #373 acceptance criteria checked and GitHub state CLOSED"
+      ],
+      "files_added": [],
+      "files_modified": [
+        "docs/evidence/2026-10-06-avoid-list.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Integration ancestry, local main and GitHub main SHA read back as c3ce5abf0c2de33533c78635b724c080a9164dea"
+      ],
+      "tests_remaining": [
+        "Push this integration-receipt planning checkpoint and reconcile the next writer base"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "Hosted checks remain NOT_RUN under user policy; full original requirements and release acceptance remain PARTIAL"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "c3ce5abf0c2de33533c78635b724c080a9164dea",
+        "evidence_path": "docs/evidence/2026-10-06-avoid-list.json"
+      }
     }
   ],
-  "current_phase": "MJ-REF-003_LOCAL_PASS_PENDING_SAFE_FAST_FORWARD",
+  "current_phase": "MJ-REF-003_INTEGRATED_AND_ISSUE_CLOSED_MJ-REF-014_SELECTED",
   "last_safe_checkpoint": {
-    "git_commit": "b6f2238c7ea1e55c5f5b9f7ef1902bd929cb0124",
+    "git_commit": "c3ce5abf0c2de33533c78635b724c080a9164dea",
     "evidence_path": "docs/evidence/2026-10-06-avoid-list.json"
   },
   "live_integrations_tested": [
@@ -4120,28 +4153,29 @@
     }
   ],
   "live_reconciliation": {
-    "observed_at": "2026-10-06T02:59:16Z",
-    "github_main": "196ee414c21d01d517bf792063604e6d84f1d333",
+    "observed_at": "2026-10-06T03:01:27Z",
+    "github_main": "c3ce5abf0c2de33533c78635b724c080a9164dea",
     "candidate": "b6f2238c7ea1e55c5f5b9f7ef1902bd929cb0124",
     "candidate_base": "196ee414c21d01d517bf792063604e6d84f1d333",
     "candidate_is_fast_forward": "YES",
     "actions_enabled": false,
     "main_branch_protected": false,
     "repository_rulesets_count": 0,
-    "issue_373_state": "OPEN",
-    "integration": "PENDING_EVIDENCE_CHECKPOINT_PUSH"
+    "issue_373_state": "CLOSED",
+    "integration": "NON_FORCE_FAST_FORWARD_PUSH_VERIFIED_AT_C3CE5ABF"
   },
   "active_development_issue": {
     "issue": 373,
     "requirement_id": "MJ-REF-003",
     "title": "Enforced global avoid-list for generated career content",
-    "state": "OPEN_LOCALLY_IMPLEMENTED_PENDING_INTEGRATION",
+    "state": "CLOSED_SCOPED_LOCAL_PASS_INTEGRATED",
     "selection_reason": "P1 deterministic privacy/truthfulness guard across resumes, cover letters and reviewed answer exports; current preferences also gate historical output use without provider dependencies.",
     "base": "196ee414c21d01d517bf792063604e6d84f1d333",
     "branch": "codex/mj-ref-003-avoid-list-20261006",
     "candidate": "b6f2238c7ea1e55c5f5b9f7ef1902bd929cb0124",
     "evidence": "docs/evidence/2026-10-06-avoid-list.json",
-    "next_action": "Reconcile current GitHub main, Actions-off state, protection/rulesets and candidate ancestry; push exact evidence checkpoint and safely fast-forward if eligible; read back all issue criteria and close only after complete issue-level acceptance."
+    "integration_commit": "c3ce5abf0c2de33533c78635b724c080a9164dea",
+    "next_action": "Issue #373 closed after all five criteria were checked, scoped local evidence was pushed, and main was safely fast-forwarded. Continue with issue #384 / MJ-REF-014 as the next P1 least-data privacy prerequisite."
   },
   "historical_control_snapshots": [
     {

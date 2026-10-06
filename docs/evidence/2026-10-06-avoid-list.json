@@ -94,12 +94,15 @@
   "ai_provider": "NOT_USED",
   "hosted_checks": "NOT_RUN_BY_USER_POLICY",
   "integration_receipt": {
-    "status": "PENDING_SAFE_FAST_FORWARD",
+    "status": "INTEGRATED_AND_ISSUE_CLOSED",
     "integration_method": "NON_FORCE_FAST_FORWARD_IF_MAIN_IS_ANCESTOR_AND_RULES_PERMIT",
     "candidate_branch": "codex/mj-ref-003-avoid-list-20261006",
     "candidate_source_commit": "b6f2238c7ea1e55c5f5b9f7ef1902bd929cb0124",
-    "protection_readback": "PENDING_FINAL_RECONCILIATION",
+    "evidence_checkpoint_commit": "c3ce5abf0c2de33533c78635b724c080a9164dea",
+    "integrated_main": "c3ce5abf0c2de33533c78635b724c080a9164dea",
+    "integrated_at": "2026-10-06T03:01:27Z",
+    "protection_readback": "UNPROTECTED; ZERO_REPOSITORY_RULESETS",
     "actions_enabled": false,
-    "issue_373": "OPEN_PENDING_INTEGRATION_AND_ACCEPTANCE_READBACK"
+    "issue_373": "CLOSED_AFTER_FIVE_ACCEPTANCE_CRITERIA_CHECKED_AND_READ_BACK"
   }
 }
