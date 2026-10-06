@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-004",
+  "github_issue": 5,
+  "slice_result": "PASS",
+  "requirement_result": "PARTIAL",
+  "base_commit": "837b818576cb0cac60ee3991f21d863cd43f7cd7",
+  "source_commit": "868faa71676d984e1e2f529a6535758a0cf6cdd1",
+  "candidate_commit": "8e0e200745d38495bb65d1d7f3e493f4d7d43bce",
+  "candidate_tree": "f995f21b17f9700104f4a03bb718a5ef899565c6",
+  "recorded_at_utc": "2026-10-06T12:26:39Z",
+  "scope": "Honor the durable discovery worker's remaining monotonic deadline within Greenhouse's configured public GET connect/read and response-body timeouts.",
+  "acceptance": {
+    "worker_budget_caps_http_connect_and_read_timeouts": "PASS",
+    "worker_budget_caps_response_body_deadline": "PASS",
+    "configured_per_source_timeout_remains_an_upper_bound": "PASS",
+    "existing_provider_error_and_local_cancellation_history_semantics": "PASS",
+    "only_synthetic_transport_used": "PASS",
+    "external_submission_and_ai_provider_calls": "OFF"
+  },
+  "validation": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_greenhouse tests.integration.test_source_policy_scheduler tests.integration.test_worker_lifecycle",
+      "timestamp_utc": "2026-10-06T12:19:45Z",
+      "target": "Greenhouse worker deadline, source retry/backoff/history, scheduler and worker lifecycle behavior",
+      "result": "PASS",
+      "summary": "44 tests passed."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_company_source_view tests.browser.test_core_workflow_trial",
+      "timestamp_utc": "2026-10-06T12:19:45Z",
+      "target": "Chromium source policy save/readback and synthetic profile-to-application-tracking journey",
+      "result": "PASS",
+      "summary": "2 browser tests passed; external requests blocked."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_company_discovery_requests.CompanyDiscoveryRequestsBrowserTests.test_real_collection_request_review_worker_and_identity_separation",
+      "timestamp_utc": "2026-10-06T12:26:39Z",
+      "target": "Previously flaky isolated Uvicorn shutdown test",
+      "result": "PASS",
+      "summary": "The exact case passed alone in 2.9 seconds."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest discover -s tests/browser -p 'test_*.py'",
+      "timestamp_utc": "2026-10-06T12:26:39Z",
+      "target": "Full Chromium browser acceptance suite",
+      "result": "PASS",
+      "summary": "36 tests passed."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py'",
+      "timestamp_utc": "2026-10-06T12:26:39Z",
+      "target": "Full Python, integration and browser suite on exact candidate commit and tree",
+      "result": "PASS",
+      "summary": "690 tests passed; one optional PostgreSQL test skipped because MJOBS_TEST_POSTGRES_URL was not configured. A preceding same-head run had the existing CompanyDiscoveryRequestsBrowserTests Uvicorn-thread shutdown assertion; that exact test and all browser tests passed separately, and this full rerun passed without changing its timeout."
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run; npm run build --prefix apps/web",
+      "timestamp_utc": "2026-10-06T12:26:39Z",
+      "target": "Frontend regression suite and production build",
+      "result": "PASS",
+      "summary": "62 frontend tests across 13 files passed; TypeScript and Vite production build passed."
+    },
+    {
+      "command": "python -m tools.verification.agent_skills; python -m tools.verification.catalogue; python -m tools.verification.progress validate; git diff --check",
+      "timestamp_utc": "2026-10-06T12:26:39Z",
+      "target": "Skill, requirement/reference denominator, planning journal, and whitespace validation",
+      "result": "PASS",
+      "summary": "All repository validators passed; requirement/reference denominators remain 366/59."
+    }
+  ],
+  "external_boundaries": {
+    "synthetic_transport": true,
+    "live_employer_fetch": false,
+    "personal_profile_data_read_or_changed": false,
+    "ai_provider_calls": false,
+    "ats_automation": "NOT_AVAILABLE; external submission remains OFF",
+    "postgresql_test": "NOT_RUN_OPTIONAL_ENVIRONMENT_MISSING_MJOBS_TEST_POSTGRES_URL",
+    "github_actions": "DISABLED_BY_USER_POLICY",
+    "hosted_review": "NOT_RUN_BY_USER_POLICY"
+  },
+  "requirement_limitations": [
+    "This slice covers the configured Greenhouse public-read adapter only; other provider/browser/application operation classes still require evidence.",
+    "No AI provider runtime or real ATS application automation was used or available.",
+    "MJ-REQ-004 and issue #5 remain PARTIAL/OPEN; this scoped PASS does not close the broader requirement."
+  ],
+  "denominators": {
+    "requirements": 366,
+    "reference_gaps": 59
+  },
+  "integration": {
+    "status": "PENDING_NON_FORCE_FAST_FORWARD",
+    "candidate_branch": "codex/req004-bound-ops-20261006",
+    "hosted_verification": "NOT_RUN_BY_USER_POLICY"
+  }
+}

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-06T11:48:28Z",
+  "timestamp": "2026-10-06T12:26:39Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -47,9 +47,10 @@
         "docs/evidence/2026-10-06-mock-ats-action-budget.json",
         "docs/evidence/2026-10-06-bounded-ocr-diagnostics.json",
         "docs/evidence/2026-10-06-native-parser-disconnect-cancellation.json",
-        "docs/evidence/2026-10-06-resume-extraction-cancellation.json"
+        "docs/evidence/2026-10-06-resume-extraction-cancellation.json",
+        "docs/evidence/2026-10-06-greenhouse-worker-deadline.json"
       ],
-      "note": "Scoped local evidence now includes native parser plus OCR in-flight cancellation and an explicit profile/resume-scoped browser Cancel extraction flow; browser fetch abort may leave a reusable HTTP connection and therefore needs the explicit cancel request. Current exact implementation suite: 688 tests pass, 1 optional PostgreSQL skip, after one unrelated nonreproduced server-thread shutdown assertion; all 36 browser tests pass. Real AI/ATS paths and complete cross-category timeout/output/retry/error policy remain open."
+      "note": "Scoped local evidence now includes native parser plus OCR in-flight cancellation and an explicit profile/resume-scoped browser Cancel extraction flow; browser fetch abort may leave a reusable HTTP connection and therefore needs the explicit cancel request. Current exact implementation suite: 688 tests pass, 1 optional PostgreSQL skip, after one unrelated nonreproduced server-thread shutdown assertion; all 36 browser tests pass. Real AI/ATS paths and complete cross-category timeout/output/retry/error policy remain open. Latest scoped Greenhouse source validation: worker remaining monotonic budget caps both HTTP connect/read timeout and response-body deadline while persisted per-source timeout remains the upper bound; exact candidate 8e0e200745d38495bb65d1d7f3e493f4d7d43bce passed 690 Python/integration/browser tests (1 optional PostgreSQL skip), all 36 browser tests, 62 frontend tests/build and repository validators. A preceding same-head run hit only the known CompanyDiscoveryRequestsBrowserTests shutdown assertion; the isolated case, full browser suite and a subsequent full rerun passed without changing timeouts. Requirement remains PARTIAL for other operation classes and unavailable provider paths."
     },
     {
       "requirement_id": "MJ-REQ-005",

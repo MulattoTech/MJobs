@@ -1,17 +1,17 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-06T11:51:17Z",
+  "generated_at": "2026-10-06T12:26:39Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Local main and origin/main were synchronized at f9649d9ae374a31203d6cc2774d7ac47f4e4376b after non-force fast-forward integration of issue #5 resume OCR/UI cancellation and evidence; GitHub issue #5 readback remains OPEN/PARTIAL.",
-    "current_verified_github_state": "GitHub main and local main were synchronized at f9649d9ae374a31203d6cc2774d7ac47f4e4376b; main had no protection rule, Actions are disabled, and no PR is open. Issue #5 remains OPEN/PARTIAL after readback; hosted checks/reviews NOT_RUN by policy.",
-    "current_verified_at": "2026-10-06T11:51:17Z"
+    "current_verified_local_state": "Local main and origin/main are synchronized at 837b818576cb0cac60ee3991f21d863cd43f7cd7; issue #5 remains OPEN/PARTIAL. The Greenhouse worker-deadline slice is locally verified on candidate 8e0e200745d38495bb65d1d7f3e493f4d7d43bce and pushed on codex/req004-bound-ops-20261006, pending safe integration.",
+    "current_verified_github_state": "GitHub main and local main remain synchronized at 837b818576cb0cac60ee3991f21d863cd43f7cd7; main is unprotected, Actions are disabled, and no PR is open. Issue #5 remains OPEN/PARTIAL. Candidate 8e0e200745d38495bb65d1d7f3e493f4d7d43bce is pushed and locally verified; local-only integration is pending.",
+    "current_verified_at": "2026-10-06T12:26:39Z"
   },
-  "current_milestone": "MJ-REQ-004-RESUME-EXTRACTION-CANCELLATION-20261006",
+  "current_milestone": "MJ-REQ-004-GREENHOUSE-WORKER-DEADLINE-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under the local-only delivery policy; one writer and one integration lane.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -52,7 +52,8 @@
     "MJ-REF-013 locally PASS and integrated at 60f2addd1b73c06dcc0f206369a4ee0b78c155e1: bounded typed READ/PROPOSE/SIDE_EFFECT registry; host-bound profile/task context; exact reviewed proposals with deterministic policy, replay and cross-profile/task guards; bounded value-free traces on append-only audit storage; all 642 local Python/browser tests PASS; issue #383 closed with all five acceptance boxes checked (docs/evidence/2026-10-06-bounded-agent-toolregistry.json).",
     "MJ-REF-014: provider-neutral task prompt construction defaults to no profile context; explicit approved task-scoped facts are isolated, denylisted, audited without values, and treated as evidence only under an untrusted-input instruction boundary (docs/evidence/2026-10-06-least-data-task-prompts.json).",
     "MJ-REQ-004 scoped worker/source behavior: durable operations use a monotonic deadline and stable OPERATION_TIMEOUT result; Greenhouse cancellation during rate waits prevents the next request and preserves source health/failure history (docs/evidence/2026-10-06-bound-external-operation-deadlines.json).",
-    "MJ-REQ-005 per-source Greenhouse concurrency slice PASS on candidate ec28943ec20109c2b1bc12c0130a26a2991b0636: saved limits now bound the two independent public-read requests, share request-start pacing, preserve provider-failure and cancellation history, and are explained/read back in the Sources UI. Requirement remains PARTIAL for unavailable AI runtime and real ATS paths (docs/evidence/2026-10-06-per-source-greenhouse-concurrency.json)."
+    "MJ-REQ-005 per-source Greenhouse concurrency slice PASS on candidate ec28943ec20109c2b1bc12c0130a26a2991b0636: saved limits now bound the two independent public-read requests, share request-start pacing, preserve provider-failure and cancellation history, and are explained/read back in the Sources UI. Requirement remains PARTIAL for unavailable AI runtime and real ATS paths (docs/evidence/2026-10-06-per-source-greenhouse-concurrency.json).",
+    "MJ-REQ-004 Greenhouse worker-budget follow-up: configured public GET connect/read and response-body deadlines are capped by the durable worker remaining monotonic budget; 690 Python/integration/browser tests pass with one optional PostgreSQL skip, 36 browser tests and 62 frontend tests pass; real AI/ATS provider paths remain unavailable and the issue remains PARTIAL."
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
