@@ -8,7 +8,12 @@ import re
 from types import MappingProxyType
 from typing import Callable, Mapping
 
-from services.ai.providers import AIProvider, create_provider
+from services.ai.providers import (
+    AIProvider, AIProviderDisabled, ProviderCapabilities, create_provider,
+)
+from services.ai.structured_output import (
+    ResultT, StructuredOutputError, output_schema_for, parse_structured_output,
+)
 
 
 class AITask(StrEnum):
@@ -111,6 +116,40 @@ class AITaskRouter:
             task=str(task), model=selection.model, prompt=prompt,
             timeout_seconds=timeout_seconds,
         )
+
+    def generate_structured(self, *, task: str | AITask, prompt: str,
+                            timeout_seconds: float,
+                            result_model: type[ResultT]) -> ResultT:
+        """Request a declared JSON schema and validate the untrusted response."""
+
+        schema = output_schema_for(result_model)
+        selection = self.configuration.for_task(task)
+        if selection.provider == "disabled":
+            raise AIProviderDisabled()
+
+        try:
+            provider = self.provider_factory(selection.provider)
+        except ValueError as error:
+            if str(error) == "AI_PROVIDER_UNSUPPORTED":
+                raise
+            raise StructuredOutputError("AI_STRUCTURED_PROVIDER_FAILED") from None
+        except Exception:
+            raise StructuredOutputError("AI_STRUCTURED_PROVIDER_FAILED") from None
+        try:
+            capabilities = getattr(provider, "capabilities", None)
+        except Exception:
+            raise StructuredOutputError("AI_STRUCTURED_OUTPUT_UNSUPPORTED") from None
+        if (not isinstance(capabilities, ProviderCapabilities)
+                or capabilities.structured_output is not True):
+            raise StructuredOutputError("AI_STRUCTURED_OUTPUT_UNSUPPORTED")
+        try:
+            raw = provider.generate(
+                task=str(task), model=selection.model, prompt=prompt,
+                timeout_seconds=timeout_seconds, response_schema=schema,
+            )
+        except Exception:
+            raise StructuredOutputError("AI_STRUCTURED_PROVIDER_FAILED") from None
+        return parse_structured_output(raw, result_model)
 
 
 __all__ = ["AI_TASKS", "AITask", "AITaskConfiguration", "AITaskRouter", "TaskModelSelection"]

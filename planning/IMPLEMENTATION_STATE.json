@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-06T19:11:17Z",
+  "generated_at": "2026-10-06T19:17:07Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -11,7 +11,7 @@
     "current_verified_github_state": "GitHub/local main synchronized at 117a27ccfdf472fb67135d17f14ebd44c8fa9462; issue #110 OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/110#issuecomment-6023459996; issue #345 CLOSED; Actions disabled, no PR, main unprotected.",
     "current_verified_at": "2026-10-06T19:05:40Z"
   },
-  "current_milestone": "MJ-REQ-110-COST-CONTROLS-LOCALLY-VERIFIED-PARTIAL-20261006",
+  "current_milestone": "MJ-REQ-111-STRUCTURED-OUTPUT-START-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -95,7 +95,7 @@
   ],
   "blocked_capabilities": [],
   "active_requirements": [
-    "MJ-REQ-110"
+    "MJ-REQ-111"
   ],
   "active_prs": [],
   "tests_passed": [
@@ -412,7 +412,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Integrate the locally verified MJ-REQ-110 planner with safe fast-forward after exact-base recheck; keep issue #111 OPEN/PARTIAL, then select the next dependency-ready issue from PR_QUEUE.json without shrinking the requirement denominator.",
+  "recommended_resume_step": "Implement issue #112 / MJ-REQ-111 structured output on codex/mj-req111-structured-output-20261006, based on synchronized main 43f79f28c7f65cd5054dedc606662fcaa9ae19ee. Add schema-validated typed result parsing and structured-capability-aware task routing; reject malformed, ambiguous, oversized, or extra-field JSON with safe stable errors. Do not make external model calls.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -6445,11 +6445,42 @@
         "git_commit": "ff3d74568c1cff396999fabc9a1946f22cc70924",
         "evidence_path": "docs/evidence/2026-10-06-ai-cost-controls.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-111-STRUCTURED-OUTPUT-START-20261006",
+      "timestamp": "2026-10-06T19:17:07Z",
+      "current_phase": "Started issue #112 / MJ-REQ-111 structured output on codex/mj-req111-structured-output-20261006 from synchronized main 43f79f2; implementation has not yet been written.",
+      "completed_steps": [
+        "Reconciled current main and GitHub issue #112 OPEN",
+        "Read authoritative issue acceptance and matching_ai area spec",
+        "Inspected existing provider capabilities, task router, strict Pydantic validation patterns, and pinned Pydantic v2 dependency"
+      ],
+      "files_added": [],
+      "files_modified": [
+        "planning/IMPLEMENTATION_STATE.json"
+      ],
+      "tests_completed": [
+        "No tests run for the new slice yet; TDD expected-red remains next."
+      ],
+      "tests_remaining": [
+        "Add structured-output validation and router behavior tests before implementation.",
+        "Preserve disabled provider and do not call external providers."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "No real remote provider is implemented or authorized; structured behavior will be verified with local synthetic providers."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "43f79f28c7f65cd5054dedc606662fcaa9ae19ee",
+        "evidence_path": "docs/evidence/2026-10-06-ai-cost-controls.json"
+      }
     }
   ],
-  "current_phase": "Issue #111 / MJ-REQ-110 cost-control planner integrated at synchronized main ff3d745; issue remains OPEN/PARTIAL and issue #112 / MJ-REQ-111 structured output is selected next.",
+  "current_phase": "Started issue #112 / MJ-REQ-111 structured output on codex/mj-req111-structured-output-20261006 from synchronized main 43f79f2; implementation has not yet been written.",
   "last_safe_checkpoint": {
-    "git_commit": "ff3d74568c1cff396999fabc9a1946f22cc70924",
+    "git_commit": "43f79f28c7f65cd5054dedc606662fcaa9ae19ee",
     "evidence_path": "docs/evidence/2026-10-06-ai-cost-controls.json"
   },
   "live_integrations_tested": [
@@ -6588,16 +6619,16 @@
     "next_issue": 5
   },
   "active_development_issue": {
-    "issue": 111,
-    "requirement_id": "MJ-REQ-110",
-    "title": "AI Cost Controls",
+    "issue": 112,
+    "requirement_id": "MJ-REQ-111",
+    "title": "AI Structured Output",
     "state": "ACTIVE",
-    "selection_reason": "Dependency-ready continuation of MJ-PR-030; configurable deterministic funnels and ceilings can reduce unnecessary future AI work without invoking any provider.",
-    "base": "1bedb952e24a73a4f253c95181dd281295ae406b",
-    "branch": "codex/mj-req110-cost-controls-20261006",
-    "candidate": "e32ed99c4e80bade20fcf0a6251a1d55253844ba",
-    "evidence": "docs/evidence/2026-10-06-ai-cost-controls.json",
-    "next_action": "Recheck main ancestry, GitHub Actions disabled state and branch protection; push verified source/evidence/planning checkpoint; fast-forward only if main remains the exact ancestor, read back issue #111 OPEN, then continue to the next dependency-ready issue."
+    "selection_reason": "Next dependency-ready P3 item in active MJ-PR-030 after integrating the provider contract, task router, and cost-control prerequisite; structured results establish a typed validation boundary before matching consumers are built.",
+    "base": "43f79f28c7f65cd5054dedc606662fcaa9ae19ee",
+    "branch": "codex/mj-req111-structured-output-20261006",
+    "candidate": null,
+    "evidence": null,
+    "next_action": "Implement schema-validated typed result parsing and structured-output-aware task routing. Use local synthetic providers only and preserve provider-disabled defaults."
   },
   "historical_control_snapshots": [
     {

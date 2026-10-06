@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import NoReturn, Protocol
+from typing import Mapping, NoReturn, Protocol
 
 
 @dataclass(frozen=True)
@@ -22,7 +22,8 @@ class AIProvider(Protocol):
     capabilities: ProviderCapabilities
 
     def generate(self, *, task: str, model: str | None = None, prompt: str,
-                 timeout_seconds: float) -> str: ...
+                 timeout_seconds: float,
+                 response_schema: Mapping[str, object] | None = None) -> str: ...
 
 
 class AIProviderDisabled(RuntimeError):
@@ -42,7 +43,8 @@ class DisabledAIProvider:
     capabilities = ProviderCapabilities()
 
     def generate(self, *, task: str, model: str | None = None, prompt: str,
-                 timeout_seconds: float) -> NoReturn:
+                 timeout_seconds: float,
+                 response_schema: Mapping[str, object] | None = None) -> NoReturn:
         raise AIProviderDisabled()
 
 
