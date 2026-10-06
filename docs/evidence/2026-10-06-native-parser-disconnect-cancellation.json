@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-004",
+  "github_issue": 5,
+  "slice_result": "PASS",
+  "requirement_result": "PARTIAL",
+  "base_commit": "5a068db191fcd0470d005c1c174e6469b99aad44",
+  "candidate_commit": "6c4283646e8bfb04e27d57d585db72ef7803a282",
+  "candidate_tree": "8a333ecd3c4650276705002b2f3c0ee07f2c2b0d",
+  "recorded_at_utc": "2026-10-06T11:12:34.7119782Z",
+  "scope": "Propagate API request disconnects into native PDF/DOCX parser child work, kill and reap cancelled children, and enforce bounded streaming parser output on Windows and Linux.",
+  "acceptance": {
+    "extract_endpoint_detects_request_disconnect_and_returns_499_without_profile_mutation": "PASS",
+    "native_pdf_and_docx_parser_receives_cooperative_cancellation_event": "PASS",
+    "cancelled_native_parser_child_is_killed_and_reaped_promptly": "PASS",
+    "stdout_is_drained_with_fixed_memory_and_2_mib_limit_terminating_excess_writer": "PASS",
+    "15_second_wall_deadline_and_shell_free_launch_are_preserved": "PASS",
+    "parser_stdin_and_bounded_json_protocol_remain_unchanged": "PASS",
+    "existing_profile_import_review_and_persistence_browser_flow_remains_usable": "PASS",
+    "requirement_and_reference_denominators_unchanged": "PASS"
+  },
+  "evidence": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -W error::ResourceWarning -m unittest tests.unit.test_resume_extraction tests.integration.test_profile_import -v",
+      "observed_at_utc": "2026-10-06T11:12:34.7119782Z",
+      "result": "PASS",
+      "summary": "36 tests passed, including actual sleeping and overproducing child-process cases, route-level disconnect propagation, profile ownership/review boundaries, native parsing, and regressions. ResourceWarnings are treated as errors."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_profile_import -v",
+      "observed_at_utc": "2026-10-06T11:12:34.7119782Z",
+      "result": "PASS",
+      "summary": "The real Chromium profile import, extraction review, save/reload, named resume history, failed OCR warning and no-profile-mutation journey passed. Disconnect cancellation itself is asserted at the API route integration boundary, not by a browser abort test."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p test_*.py",
+      "observed_at_utc": "2026-10-06T11:12:34.7119782Z",
+      "duration_seconds": 385.920,
+      "result": "PASS",
+      "summary": "683 tests ran; zero failures/errors; one optional PostgreSQL test skipped because MJOBS_TEST_POSTGRES_URL was unset."
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run; npm run build --prefix apps/web; C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.agent_skills; C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.catalogue; C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.progress validate; git diff --check",
+      "observed_at_utc": "2026-10-06T11:12:34.7119782Z",
+      "result": "PASS",
+      "summary": "All 62 frontend tests passed; strict TypeScript/Vite production build, agent skill, catalogue, progress-journal and whitespace checks passed."
+    }
+  ],
+  "test_first_red": [
+    {
+      "test": "tests.unit.test_resume_extraction.ResumeExtractionTests.test_parser_child_is_killed_promptly_when_cancellation_is_requested",
+      "result": "EXPECTED_RED_THEN_PASS",
+      "failure": "The parser runner did not expose a cancellation-capable process boundary before implementation."
+    },
+    {
+      "test": "tests.integration.test_profile_import.ProfileImportTests.test_disconnected_resume_extract_cancels_child_work_before_returning",
+      "result": "EXPECTED_RED_THEN_PASS",
+      "failure": "The existing extraction endpoint was synchronous and did not detect request disconnects or pass cancellation to parser work."
+    }
+  ],
+  "requirement_limitations": [
+    "Cancellation is wired through native PDF/DOCX parser child execution. OCR already in progress is not immediately interrupted on client disconnect; it retains its independent bounded tool and total deadlines.",
+    "Browser abort behavior was not separately driven through Chromium; endpoint disconnect semantics and actual child termination are covered by API integration and real subprocess tests, while the existing Chromium profile import/review journey passed.",
+    "Real ATS navigation, AI/provider calls and some external provider paths are unavailable; complete cross-category timeout/output/retry/error-classification acceptance remains open.",
+    "Hosted checks and reviews are NOT_RUN by the active local-only policy."
+  ],
+  "external_boundaries": {
+    "github_actions_enabled": false,
+    "hosted_checks": "NOT_RUN_BY_LOCAL_ONLY_POLICY",
+    "hosted_review": "NOT_RUN_BY_LOCAL_ONLY_POLICY",
+    "optional_postgresql_test": "SKIPPED_ENVIRONMENT_MISSING_MJOBS_TEST_POSTGRES_URL",
+    "live_employer_fetch": false,
+    "ai_provider_calls": false,
+    "external_application_submission": "OFF",
+    "personal_application_data_read_or_changed": false
+  },
+  "denominators": {
+    "requirements": 366,
+    "reference_gaps": 59
+  },
+  "main_integration": {
+    "method": "PENDING_NON_FORCE_FAST_FORWARD",
+    "base_commit": "5a068db191fcd0470d005c1c174e6469b99aad44",
+    "source_candidate": "6c4283646e8bfb04e27d57d585db72ef7803a282",
+    "local_main_at_candidate": "5a068db191fcd0470d005c1c174e6469b99aad44",
+    "origin_main_at_candidate": "5a068db191fcd0470d005c1c174e6469b99aad44",
+    "main_protection": "NOT_CONFIGURED",
+    "github_actions_enabled": false,
+    "open_prs": 0,
+    "issue_state_before_integration": "OPEN"
+  }
+}
