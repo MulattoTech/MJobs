@@ -7,7 +7,7 @@
   "base_commit": "53e2239af5fba1428b91dfdc6feef148a7c84ce4",
   "candidate_commit": "e57c1759cd75dd453bbe0284325aee3d3174eb1d",
   "candidate_tree": "9d77f9a7f22db58b73ad754568da9f998b4773e1",
-  "recorded_at_utc": "2026-10-06T11:48:28Z",
+  "recorded_at_utc": "2026-10-06T11:51:17Z",
   "scope": "Complete local resume extraction cancellation for both native parser and OCR children, including an explicit profile-scoped cancel action for browser clients that abort a fetch while reusing the underlying HTTP connection.",
   "acceptance": {
     "profile_ui_shows_cancel_extraction_while_work_is_running": "PASS",
@@ -96,14 +96,17 @@
     "reference_gaps": 59
   },
   "main_integration": {
-    "method": "PENDING_NON_FORCE_FAST_FORWARD",
+    "method": "NON_FORCE_FAST_FORWARD",
     "base_commit": "53e2239af5fba1428b91dfdc6feef148a7c84ce4",
     "source_candidate": "e57c1759cd75dd453bbe0284325aee3d3174eb1d",
-    "local_main_at_candidate": "53e2239af5fba1428b91dfdc6feef148a7c84ce4",
-    "origin_main_at_candidate": "53e2239af5fba1428b91dfdc6feef148a7c84ce4",
+    "integrated_commit": "f9649d9ae374a31203d6cc2774d7ac47f4e4376b",
+    "local_main_at_integration": "f9649d9ae374a31203d6cc2774d7ac47f4e4376b",
+    "origin_main_at_integration": "f9649d9ae374a31203d6cc2774d7ac47f4e4376b",
     "main_protection": "NOT_CONFIGURED",
     "github_actions_enabled": false,
     "open_prs": 0,
-    "issue_state_before_integration": "OPEN"
+    "issue_state_after_readback": "OPEN",
+    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6015630443",
+    "integrated_at_utc": "2026-10-06T11:51:17Z"
   }
 }
