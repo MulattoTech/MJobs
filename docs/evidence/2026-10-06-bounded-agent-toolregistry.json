@@ -4,7 +4,7 @@
   "github_issue": 383,
   "result": "PASS",
   "scope": "Typed bounded tool registry, profile/task-bound execution, proposal-only side effects behind explicit human review and deterministic policy, and bounded value-free durable traces.",
-  "observed_at_utc": "2026-10-06T05:21:48Z",
+  "observed_at_utc": "2026-10-06T05:27:21Z",
   "candidate": {
     "repository": "MulattoTech/MJobs",
     "branch": "codex/mj-ref-013-toolregistry-20261006",
@@ -73,6 +73,13 @@
     "branch_protection": "NONE",
     "actions_workflows": "DISABLED_MANUALLY",
     "candidate_is_ancestor_of_main": true,
-    "issue_state_at_receipt": "OPEN; complete acceptance readback and close follow this receipt"
+    "issue_state_at_receipt": "CLOSED; all five acceptance checkboxes checked and read back.",
+    "latest_main_after_planning_receipt": "8b9370c88b20654e7c9a45795525a3fa70194823",
+    "remote_main_after_planning_receipt": "8b9370c88b20654e7c9a45795525a3fa70194823",
+    "issue_closed_at_utc": "2026-10-06T05:26:16Z",
+    "issue_checked_acceptance_count": 5,
+    "issue_unchecked_acceptance_count": 0,
+    "issue_comment_url": "https://github.com/MulattoTech/MJobs/issues/383#issuecomment-6009978394",
+    "planning_receipt_commit": "8b9370c88b20654e7c9a45795525a3fa70194823"
   }
 }

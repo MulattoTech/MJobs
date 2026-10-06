@@ -1,15 +1,15 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-06T05:23:01Z",
+  "generated_at": "2026-10-06T05:27:21Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "MJ-REF-013 / issue #383 integrated by non-force fast-forward at 60f2addd1b73c06dcc0f206369a4ee0b78c155e1; local main is synchronized with origin/main.",
-    "current_verified_github_state": "GitHub main and local main include MJ-REF-013 / issue #383 at 60f2addd1b73c06dcc0f206369a4ee0b78c155e1; all acceptance criteria are locally evidenced; issue closure follows readback. GitHub Actions and hosted reviews remain NOT_RUN under local-only policy.",
-    "current_verified_at": "2026-10-06T05:23:01Z"
+    "current_verified_local_state": "MJ-REF-013 / issue #383 integrated by non-force fast-forward at 60f2addd1b73c06dcc0f206369a4ee0b78c155e1; evidence/planning receipt is on synchronized main at 8b9370c88b20654e7c9a45795525a3fa70194823.",
+    "current_verified_github_state": "GitHub main and local main include MJ-REF-013 / issue #383 plus its evidence/planning receipt at 8b9370c88b20654e7c9a45795525a3fa70194823. Issue #383 is CLOSED with all five acceptance boxes checked and read back. GitHub Actions and hosted reviews remain NOT_RUN under local-only policy.",
+    "current_verified_at": "2026-10-06T05:27:21Z"
   },
   "current_milestone": "MJ-REF-014-SELECTED-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under the local-only delivery policy; one writer and one integration lane.",
@@ -49,7 +49,7 @@
     "Custom-domain ATS detection audited with visible careers URL preserved (MJ-REQ-065).",
     "MJ-REF-017: crash-safe atomic generated document revisions, conservative orphan/staging/temp inventory, audited quarantine, integrity-checked restore, and configured-retention purge (docs/evidence/2026-10-06-artifact-recovery.json).",
     "MJ-REF-037 is locally PASS and integrated at main 70e16d0766f87c7b637cd4731a7e251ddc47d54a: pinned current reference commits/dates/license blobs, clean-room and license-independent no-evasion policy, inspiration log, PR/local checklist, conditional third-party notices, and deterministic validator. Issue #407 closed after complete acceptance readback (docs/evidence/2026-10-06-reference-provenance.json).",
-    "MJ-REF-013 locally PASS and integrated at 60f2addd1b73c06dcc0f206369a4ee0b78c155e1: bounded typed READ/PROPOSE/SIDE_EFFECT registry; host-bound profile/task context; exact reviewed proposals with deterministic policy, replay and cross-profile/task guards; bounded value-free traces on append-only audit storage; 642-test local suite PASS (docs/evidence/2026-10-06-bounded-agent-toolregistry.json)."
+    "MJ-REF-013 locally PASS and integrated at 60f2addd1b73c06dcc0f206369a4ee0b78c155e1: bounded typed READ/PROPOSE/SIDE_EFFECT registry; host-bound profile/task context; exact reviewed proposals with deterministic policy, replay and cross-profile/task guards; bounded value-free traces on append-only audit storage; all 642 local Python/browser tests PASS; issue #383 closed with all five acceptance boxes checked (docs/evidence/2026-10-06-bounded-agent-toolregistry.json)."
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
@@ -243,10 +243,10 @@
     "MJ-PR-016 local Chromium first run used Docker DNS host api, which is not a secure browser origin for crypto.randomUUID; loopback URL rerun passed all five connected UI actions."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-06T05:23:01Z",
+    "timestamp": "2026-10-06T05:27:21Z",
     "result": "PASS",
     "source_commit": "60f2addd1b73c06dcc0f206369a4ee0b78c155e1",
-    "scope": "MJ-REF-013 complete acceptance implemented, locally validated, non-force fast-forwarded to main, and pushed. Issue closure is a separate GitHub readback step.",
+    "scope": "MJ-REF-013 complete acceptance integrated locally and remotely; issue #383 CLOSED after all five acceptance boxes were checked and read back. Planning/evidence receipt commit is 8b9370c88b20654e7c9a45795525a3fa70194823.",
     "evidence_path": "docs/evidence/2026-10-06-bounded-agent-toolregistry.json"
   },
   "ci_verification": {
@@ -4417,9 +4417,48 @@
         "git_commit": "60f2addd1b73c06dcc0f206369a4ee0b78c155e1",
         "evidence_path": "docs/evidence/2026-10-06-bounded-agent-toolregistry.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REF-013-CLOSED-20261006",
+      "timestamp": "2026-10-06T05:27:21Z",
+      "current_phase": "MJ-REF-014_SELECTED_20261006",
+      "completed_steps": [
+        "Read back GitHub issue #383 as CLOSED with all five acceptance checkboxes checked.",
+        "Corrected and read back the exact planning/evidence receipt commit hash in the issue comment.",
+        "Updated the evidence receipt with closure time, comment URL, and synchronized remote main receipt.",
+        "Selected issue #384 / MJ-REF-014 as the next P1 privacy criterion from current main."
+      ],
+      "files_added": [],
+      "files_modified": [
+        "docs/evidence/2026-10-06-bounded-agent-toolregistry.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/REFERENCE_GAP_MATRIX.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "GitHub issue #383 CLOSED readback PASS; checked_acceptance=5; unchecked_acceptance=0.",
+        "Planning receipt commit and remote main readback match 8b9370c88b20654e7c9a45795525a3fa70194823."
+      ],
+      "tests_remaining": [
+        "GitHub Actions and hosted reviews remain NOT_RUN under user policy.",
+        "Provider-backed AI execution and a dedicated agent UI are outside MJ-REF-013; external application submission remains OFF."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "GitHub issue body/comment/closed-state readback and remote main read-only API checks."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "No hosted verification, paid provider calls, or external application submission.",
+        "The original requirement denominator remains 366."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "60f2addd1b73c06dcc0f206369a4ee0b78c155e1",
+        "evidence_path": "docs/evidence/2026-10-06-bounded-agent-toolregistry.json"
+      }
     }
   ],
-  "current_phase": "MJ-REF-013_INTEGRATED_20261006",
+  "current_phase": "MJ-REF-014_SELECTED_20261006",
   "last_safe_checkpoint": {
     "git_commit": "60f2addd1b73c06dcc0f206369a4ee0b78c155e1",
     "evidence_path": "docs/evidence/2026-10-06-bounded-agent-toolregistry.json"
