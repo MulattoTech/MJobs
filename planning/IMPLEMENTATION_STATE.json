@@ -7,9 +7,9 @@
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Local main and origin/main synchronized at 31373810078177ece8eb4aa56957ce44b40956fa. Issue #5 / MJ-REQ-004 public-DNS cancellation slice is integrated and evidenced; issue remains OPEN/PARTIAL for remaining operation classes.",
-    "current_verified_github_state": "GitHub and local main matched 31373810078177ece8eb4aa56957ce44b40956fa at integration. Actions disabled, main unprotected, no candidate PR; issue #5 OPEN/PARTIAL after comment/readback.",
-    "current_verified_at": "2026-10-06T13:36:08Z"
+    "current_verified_local_state": "Local main and origin/main synchronized at 370da80fd291d2597f4492109a9e6d0d15e90211. Public HTTPS cancellation slice is integrated and evidenced; issue #5 remains OPEN/PARTIAL for remaining operation classes.",
+    "current_verified_github_state": "GitHub and local main matched 370da80fd291d2597f4492109a9e6d0d15e90211 at non-force integration. Actions disabled, main unprotected, no open PR; issue #5 OPEN/PARTIAL after evidence comment/readback.",
+    "current_verified_at": "2026-10-06T13:54:22Z"
   },
   "current_milestone": "MJ-REQ-004-PUBLIC-HTTPS-CANCELLATION-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under the local-only delivery policy; one writer and one integration lane.",
@@ -307,12 +307,12 @@
     "MJ-REQ-004 candidate 3d604b27b1a4c25e2ff0ee6fa68a07e9ff8f74a0: full suite initially saw stale ignored apps/web/dist; rebuilding restored current Sources UI and isolated browser acceptance. A first rebuilt full run later hit the known intermittent CompanyDiscoveryRequestsBrowserTests server-thread shutdown assertion; isolated case and all 35 browser tests passed, followed by a same-head 680-test full suite pass. Do not weaken shutdown timeout; evidence docs/evidence/2026-10-06-bounded-ocr-diagnostics.json."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-06T13:50:41Z",
+    "timestamp": "2026-10-06T13:54:22Z",
     "result": "PARTIAL",
     "source_commit": "8890af69c66870dd1d43f7fadb78d0bbbd86adc7",
-    "scope": "Public HTTPS request socket cancellation slice locally PASS; issue #5 remains OPEN/PARTIAL.",
+    "scope": "Public HTTPS request socket cancellation slice PASS and safely integrated; issue #5 remains OPEN/PARTIAL after GitHub readback.",
     "evidence_path": "docs/evidence/2026-10-06-public-http-cancellation.json",
-    "integration_commit": null
+    "integration_commit": "370da80fd291d2597f4492109a9e6d0d15e90211"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -5074,12 +5074,13 @@
     {
       "milestone_id": "MJ-REQ-004-PUBLIC-HTTPS-CANCELLATION-20261006",
       "timestamp": "2026-10-06T13:50:41Z",
-      "current_phase": "MJ-REQ-004_PUBLIC_HTTPS_CANCELLATION_LOCAL_PASS_PENDING_INTEGRATION_PARTIAL",
+      "current_phase": "MJ-REQ-004_PUBLIC_HTTPS_CANCELLATION_INTEGRATED_LOCAL_PARTIAL",
       "completed_steps": [
         "Added a synthetic blocked-response regression test and observed RED before changing the transport.",
         "Poll the existing worker cancellation/deadline callback during a public HTTPS request; shutdown and close only that request socket, then preserve the original callback exception.",
         "Passed focused public client, discovery API/integration, connected Chromium and exact candidate full Python test suites.",
-        "Committed source on the existing isolated issue #5 branch; evidence/planning receipt and safe main integration are pending."
+        "Committed source on the existing isolated issue #5 branch; evidence/planning receipt and safe main integration are pending.",
+        "Non-force fast-forwarded the source and evidence to synchronized local/GitHub main at 370da80fd291d2597f4492109a9e6d0d15e90211; Actions disabled, main unprotected, no PR. Posted/read back issue #5 OPEN at https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6017780550."
       ],
       "files_added": [
         "docs/evidence/2026-10-06-public-http-cancellation.json"
@@ -5114,14 +5115,14 @@
         "Issue #5 remains OPEN/PARTIAL; operation classes beyond public HTTPS, unavailable AI/ATS paths and external submission remain unverified/off."
       ],
       "last_safe_checkpoint": {
-        "git_commit": "8890af69c66870dd1d43f7fadb78d0bbbd86adc7",
+        "git_commit": "370da80fd291d2597f4492109a9e6d0d15e90211",
         "evidence_path": "docs/evidence/2026-10-06-public-http-cancellation.json"
       }
     }
   ],
-  "current_phase": "MJ-REQ-004_PUBLIC_HTTPS_CANCELLATION_LOCAL_PASS_PENDING_INTEGRATION_PARTIAL",
+  "current_phase": "MJ-REQ-004_PUBLIC_HTTPS_CANCELLATION_INTEGRATED_LOCAL_PARTIAL",
   "last_safe_checkpoint": {
-    "git_commit": "8890af69c66870dd1d43f7fadb78d0bbbd86adc7",
+    "git_commit": "370da80fd291d2597f4492109a9e6d0d15e90211",
     "evidence_path": "docs/evidence/2026-10-06-public-http-cancellation.json"
   },
   "live_integrations_tested": [
@@ -5249,28 +5250,29 @@
     }
   ],
   "live_reconciliation": {
-    "observed_at": "2026-10-06T10:57:12Z",
-    "github_main": "fe598c1ee351010502a62e8c9dc6b76c83692ffe",
-    "local_main": "fe598c1ee351010502a62e8c9dc6b76c83692ffe",
+    "observed_at": "2026-10-06T13:54:22Z",
+    "github_main": "370da80fd291d2597f4492109a9e6d0d15e90211",
+    "local_main": "370da80fd291d2597f4492109a9e6d0d15e90211",
     "issue_5_state": "OPEN_PARTIAL",
     "issue_6_state": "OPEN_PARTIAL",
     "open_prs": 0,
     "actions_enabled": false,
     "main_branch_protected": false,
-    "integration": "MJ-REQ-004_OCR_DIAGNOSTICS_NON_FORCE_FAST_FORWARD",
+    "integration": "MJ-REQ-004_PUBLIC_HTTPS_CANCELLATION_NON_FORCE_FAST_FORWARD",
     "next_issue": 5
   },
   "active_development_issue": {
     "issue": 5,
     "requirement_id": "MJ-REQ-004",
     "title": "Bound External Operations",
-    "state": "LOCAL_SLICE_PASS_PENDING_INTEGRATION_REQUIREMENT_PARTIAL_OPEN",
+    "state": "LOCAL_SLICE_PASS_INTEGRATED_REQUIREMENT_PARTIAL_OPEN",
     "selection_reason": "P0 operational safety: public-company HTTPS response reads did not interrupt promptly when durable worker cancellation or operation deadline arrived.",
     "base": "414f6801291bfca602c7f2a0aee40ad246e8297a",
     "branch": "codex/req004-ops-audit-20261006",
     "candidate": "8890af69c66870dd1d43f7fadb78d0bbbd86adc7",
     "evidence": "docs/evidence/2026-10-06-public-http-cancellation.json",
-    "next_action": "Push candidate and evidence, reconcile Actions/protection/open PR state, safely fast-forward owned candidate into main, then continue the next locally actionable external-operation boundary. Keep issue #5 OPEN/PARTIAL."
+    "next_action": "Continue the highest-value locally implementable P0 external-operation safety boundary on current main; keep issue #5 OPEN/PARTIAL until broad acceptance is evidenced.",
+    "integration_commit": "370da80fd291d2597f4492109a9e6d0d15e90211"
   },
   "historical_control_snapshots": [
     {
@@ -6397,5 +6399,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-06T13:50:41Z"
+  "updated_at": "2026-10-06T13:54:22Z"
 }

@@ -94,5 +94,23 @@
   "denominators": {
     "requirements": 366,
     "reference_gaps": 59
+  },
+  "integration": {
+    "status": "NON_FORCE_FAST_FORWARD_INTEGRATED",
+    "method": "NON_FORCE_FAST_FORWARD",
+    "base_commit": "414f6801291bfca602c7f2a0aee40ad246e8297a",
+    "source_commit": "8890af69c66870dd1d43f7fadb78d0bbbd86adc7",
+    "candidate_branch": "codex/req004-ops-audit-20261006",
+    "candidate_integration_commit": "370da80fd291d2597f4492109a9e6d0d15e90211",
+    "local_main_after_integration": "370da80fd291d2597f4492109a9e6d0d15e90211",
+    "origin_main_after_integration": "370da80fd291d2597f4492109a9e6d0d15e90211",
+    "main_protection": "NOT_CONFIGURED",
+    "actions_enabled": false,
+    "open_pr_for_candidate": false,
+    "hosted_verification": "NOT_RUN_BY_USER_POLICY",
+    "integrated_at_utc": "2026-10-06T13:54:22Z",
+    "issue_state_after_readback": "OPEN",
+    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6017780550",
+    "readback_at_utc": "2026-10-06T13:54:22Z"
   }
 }
