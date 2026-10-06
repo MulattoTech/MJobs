@@ -3,7 +3,7 @@
   "lane": "antigravity",
   "status": "IDLE_READY",
   "preferred_model": "claude-opus-4-6-thinking",
-  "preferred_reasoning": "max",
+  "preferred_reasoning": "model-managed thinking (no --effort flag)",
   "conversation_id": "865172fa-5af4-4e48-bf87-58247c20a6ab",
   "canonical_main_at_pause": "ca53eb29dd0081d7b1151dc4dd2d304226e16ea5",
   "last_completed_issue": 309,

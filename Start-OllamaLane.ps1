@@ -1,6 +1,5 @@
 param(
-  [ValidateSet('ollama/gpt-oss:20b','ollama/gemma4:26b')][string]$Model='ollama/gpt-oss:20b',
-  [switch]$NoNewWindow
+  [ValidateSet('ollama/gpt-oss:20b','ollama/gemma4:26b')][string]$Model='ollama/gpt-oss:20b'
 )
 $ErrorActionPreference='Stop'
 $root=$PSScriptRoot
@@ -9,7 +8,7 @@ if(-not (Get-Command opencode -ErrorAction SilentlyContinue)){ throw 'OpenCode i
 if(-not (Get-Command ollama -ErrorAction SilentlyContinue)){ throw 'Ollama is not installed.' }
 $models=@(opencode models ollama)
 if($models -notcontains $Model){ throw "OpenCode cannot see local model $Model" }
-$prompt='Read prompts/PARALLEL_OLLAMA_LANE.md and execute it. Reconcile live main and both cloud-agent claims first; create a dedicated Ollama feature worktree before any source mutation.'
-$args=@($root,'--pure','--model',$Model,'--auto','--prompt',$prompt)
-if($NoNewWindow){ & opencode @args; exit $LASTEXITCODE }
-Start-Process powershell.exe -ArgumentList @('-NoExit','-Command',('Set-Location "'+$root+'"; $env:MJOBS_LANE="ollama"; opencode '+(($args | ForEach-Object {'"'+($_ -replace '"','\"')+'"'}) -join ' ')))
+$prompt='Read prompts/PARALLEL_OLLAMA_LANE.md and execute it now. Reconcile live main and both cloud-agent claims first. Honor any existing Ollama machine-local claim; create its dedicated feature worktree before source mutation. Work the claimed issue to a coherent locally validated pushed checkpoint and obey the integration lock before canonical planning/main changes.'
+Set-Location $root
+& opencode run --pure --model $Model --auto $prompt
+exit $LASTEXITCODE
