@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REF-013",
+  "github_issue": 383,
+  "result": "PASS",
+  "scope": "Typed bounded tool registry, profile/task-bound execution, proposal-only side effects behind explicit human review and deterministic policy, and bounded value-free durable traces.",
+  "observed_at_utc": "2026-10-06T05:21:48Z",
+  "candidate": {
+    "repository": "MulattoTech/MJobs",
+    "branch": "codex/mj-ref-013-toolregistry-20261006",
+    "base": "6d92e2d22024cce51a7189d5ed3b9ef6c878c142",
+    "commit": "60f2addd1b73c06dcc0f206369a4ee0b78c155e1",
+    "tree": "cb3ea397e4aedc39fd41ba293f55e4516d53a45f",
+    "integration_commit": "60f2addd1b73c06dcc0f206369a4ee0b78c155e1",
+    "integration_method": "NON_FORCE_FAST_FORWARD",
+    "main_remote_sha_verified": true
+  },
+  "acceptance": {
+    "typed_tool_registry_and_read_propose_side_effect_classes": "PASS",
+    "no_database_filesystem_network_or_browser_handles_in_model_schemas": "PASS",
+    "exact_proposal_human_review_and_deterministic_policy_before_side_effect": "PASS",
+    "bounded_durable_value_free_trace_with_result_cost_tokens_and_terminal_state": "PASS",
+    "unregistered_destructive_tool_cannot_mutate_profile_or_history": "PASS",
+    "cross_profile_and_cross_task_proposal_replay_rejected": "PASS",
+    "rejected_denied_or_executed_proposals_cannot_be_replayed": "PASS",
+    "external_application_submission_enabled": false,
+    "database_migration_required": false
+  },
+  "local_validation": {
+    "environment": "Windows local worktree; Python 3.12.10; repository .venv; isolated SQLite integration fixtures.",
+    "full_suite_started_at_utc": "2026-10-06T05:14:40.7163472Z",
+    "full_suite_ended_at_utc": "2026-10-06T05:20:55.6874003Z",
+    "commands": [
+      {
+        "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py' -v",
+        "result": "PASS",
+        "tests": 642,
+        "duration_seconds": 373.102,
+        "scope": "All repository Python, integration, and local browser tests."
+      },
+      {
+        "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_agent_tools -v",
+        "result": "PASS",
+        "tests": 8
+      },
+      {
+        "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.catalogue",
+        "result": "PASS"
+      },
+      {
+        "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.agent_skills",
+        "result": "PASS"
+      },
+      {
+        "command": "git diff --cached --check",
+        "result": "PASS"
+      }
+    ],
+    "failures_in_final_full_suite": 0,
+    "skips_reported_in_final_full_suite": 0,
+    "incidental_log": "An existing feedback GUI browser test printed a handled client-disconnect traceback; that test passed and the suite exited zero.",
+    "not_run": [
+      "GitHub Actions and hosted verification: NOT_RUN under the current local-only policy; workflows were confirmed disabled.",
+      "Hosted or independent reviews: NOT_RUN under the current local-only policy.",
+      "External model providers and paid product-AI calls: NOT_RUN; this provider-neutral boundary was tested with local tools and SQLite.",
+      "A dedicated agent UI/browser journey: NOT_APPLICABLE; this issue adds no UI surface. Existing browser acceptance ran in the full local suite."
+    ]
+  },
+  "integration_receipt": {
+    "main_before": "6d92e2d22024cce51a7189d5ed3b9ef6c878c142",
+    "main_after": "60f2addd1b73c06dcc0f206369a4ee0b78c155e1",
+    "remote_main_after": "60f2addd1b73c06dcc0f206369a4ee0b78c155e1",
+    "branch_protection": "NONE",
+    "actions_workflows": "DISABLED_MANUALLY",
+    "candidate_is_ancestor_of_main": true,
+    "issue_state_at_receipt": "OPEN; complete acceptance readback and close follow this receipt"
+  }
+}

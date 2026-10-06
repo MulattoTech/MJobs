@@ -1,17 +1,17 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-06T04:01:09Z",
+  "generated_at": "2026-10-06T05:23:01Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Issue #374 candidate was safely integrated by non-force fast-forward at 5e5ec4d726b6fc05063b177432d3ee050077a2d3; follow-up main metadata commit records issue/evidence receipt.",
-    "current_verified_github_state": "GitHub main and local main include issue #374 / MJ-REF-004 at 5e5ec4d726b6fc05063b177432d3ee050077a2d3. Issue #374 is CLOSED with all five criteria checked; #384 / MJ-REF-014 remains OPEN/PARTIAL because AI prompt/provider execution is absent. Actions remain disabled.",
-    "current_verified_at": "2026-10-06T04:01:09Z"
+    "current_verified_local_state": "MJ-REF-013 / issue #383 integrated by non-force fast-forward at 60f2addd1b73c06dcc0f206369a4ee0b78c155e1; local main is synchronized with origin/main.",
+    "current_verified_github_state": "GitHub main and local main include MJ-REF-013 / issue #383 at 60f2addd1b73c06dcc0f206369a4ee0b78c155e1; all acceptance criteria are locally evidenced; issue closure follows readback. GitHub Actions and hosted reviews remain NOT_RUN under local-only policy.",
+    "current_verified_at": "2026-10-06T05:23:01Z"
   },
-  "current_milestone": "MJ-REF-013-SELECTED-20261006",
+  "current_milestone": "MJ-REF-014-SELECTED-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under the local-only delivery policy; one writer and one integration lane.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -48,7 +48,8 @@
     "ATS detector recognizes all 22 listed provider hostname families and records evidence/confidence without claiming application support (MJ-REQ-063).",
     "Custom-domain ATS detection audited with visible careers URL preserved (MJ-REQ-065).",
     "MJ-REF-017: crash-safe atomic generated document revisions, conservative orphan/staging/temp inventory, audited quarantine, integrity-checked restore, and configured-retention purge (docs/evidence/2026-10-06-artifact-recovery.json).",
-    "MJ-REF-037 is locally PASS and integrated at main 70e16d0766f87c7b637cd4731a7e251ddc47d54a: pinned current reference commits/dates/license blobs, clean-room and license-independent no-evasion policy, inspiration log, PR/local checklist, conditional third-party notices, and deterministic validator. Issue #407 closed after complete acceptance readback (docs/evidence/2026-10-06-reference-provenance.json)."
+    "MJ-REF-037 is locally PASS and integrated at main 70e16d0766f87c7b637cd4731a7e251ddc47d54a: pinned current reference commits/dates/license blobs, clean-room and license-independent no-evasion policy, inspiration log, PR/local checklist, conditional third-party notices, and deterministic validator. Issue #407 closed after complete acceptance readback (docs/evidence/2026-10-06-reference-provenance.json).",
+    "MJ-REF-013 locally PASS and integrated at 60f2addd1b73c06dcc0f206369a4ee0b78c155e1: bounded typed READ/PROPOSE/SIDE_EFFECT registry; host-bound profile/task context; exact reviewed proposals with deterministic policy, replay and cross-profile/task guards; bounded value-free traces on append-only audit storage; 642-test local suite PASS (docs/evidence/2026-10-06-bounded-agent-toolregistry.json)."
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
@@ -242,11 +243,11 @@
     "MJ-PR-016 local Chromium first run used Docker DNS host api, which is not a secure browser origin for crypto.randomUUID; loopback URL rerun passed all five connected UI actions."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-06T04:28:51Z",
+    "timestamp": "2026-10-06T05:23:01Z",
     "result": "PASS",
-    "source_commit": "70e16d0766f87c7b637cd4731a7e251ddc47d54a",
-    "scope": "MJ-REF-037 locally accepted, non-force fast-forwarded to main, GitHub issue #407 closed after all five criteria checked and read back. Hosted/release evidence remains NOT_RUN.",
-    "evidence_path": "docs/evidence/2026-10-06-reference-provenance.json"
+    "source_commit": "60f2addd1b73c06dcc0f206369a4ee0b78c155e1",
+    "scope": "MJ-REF-013 complete acceptance implemented, locally validated, non-force fast-forwarded to main, and pushed. Issue closure is a separate GitHub readback step.",
+    "evidence_path": "docs/evidence/2026-10-06-bounded-agent-toolregistry.json"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -313,7 +314,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Continue issue #383 / MJ-REF-013, the highest-priority remaining P1 safety architecture gate for bounded typed agent tools and proposal-only side effects. One writer; local deterministic validation only; no hosted automation or external submission.",
+  "recommended_resume_step": "Continue issue #384 / MJ-REF-014, the remaining P1 least-data privacy criterion, from current main. Verify task prompt inputs contain only explicitly requested task-approved facts; use local deterministic tests and keep provider/hosted execution NOT_RUN. One writer; do not shrink original requirements.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -4367,12 +4368,61 @@
         "git_commit": "70e16d0766f87c7b637cd4731a7e251ddc47d54a",
         "evidence_path": "docs/evidence/2026-10-06-reference-provenance.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REF-013-INTEGRATED-20261006",
+      "timestamp": "2026-10-06T05:23:01Z",
+      "current_phase": "MJ-REF-013_INTEGRATED_20261006",
+      "completed_steps": [
+        "Implemented typed bounded ToolRegistry with READ, PROPOSE, and SIDE_EFFECT classes and JSON-only model schemas.",
+        "Bound runtime and proposal identifiers to profile and task; reviewed exact proposals through deterministic policy gates with single-use audit reservations.",
+        "Persisted bounded value-free tool traces and terminal cost/token metadata in append-only audit storage.",
+        "Integrated candidate by non-force fast-forward into local and remote main at the exact candidate commit."
+      ],
+      "files_added": [
+        "services/agents/AREA.md",
+        "services/agents/__init__.py",
+        "services/agents/defaults.py",
+        "services/agents/registry.py",
+        "services/agents/runtime.py",
+        "services/agents/traces.py",
+        "tests/integration/test_agent_tools.py"
+      ],
+      "files_modified": [
+        "docs/AREA_ROUTING.md",
+        "docs/REPO_MAP.md"
+      ],
+      "tests_completed": [
+        "Full local Python/browser suite: 642 passed, 0 failures, 0 reported skips; exact run 2026-10-06T05:14:40.7163472Z through 2026-10-06T05:20:55.6874003Z.",
+        "Focused agent tool boundary integration suite: 8 passed.",
+        "Catalogue validator PASS; agent skill validator PASS; git diff --cached --check PASS."
+      ],
+      "tests_remaining": [
+        "GitHub issue #383 checklist/closed-state readback.",
+        "GitHub Actions and hosted reviews remain NOT_RUN under local-only policy.",
+        "No dedicated agent UI exists; provider-backed model delivery is outside this slice."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Read-only GitHub issue, branch, Actions-workflow, and protection-rule APIs.",
+        "Git push of candidate and non-force fast-forward push to main verified at matching SHA."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "Provider execution, cloud verification, and hosted review are NOT_RUN by user policy.",
+        "External application submission remains OFF.",
+        "Original requirement denominator remains 366; reference status does not promote broader requirements."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "60f2addd1b73c06dcc0f206369a4ee0b78c155e1",
+        "evidence_path": "docs/evidence/2026-10-06-bounded-agent-toolregistry.json"
+      }
     }
   ],
-  "current_phase": "MJ-REF-013_SELECTED_20261006",
+  "current_phase": "MJ-REF-013_INTEGRATED_20261006",
   "last_safe_checkpoint": {
-    "git_commit": "70e16d0766f87c7b637cd4731a7e251ddc47d54a",
-    "evidence_path": "docs/evidence/2026-10-06-reference-provenance.json"
+    "git_commit": "60f2addd1b73c06dcc0f206369a4ee0b78c155e1",
+    "evidence_path": "docs/evidence/2026-10-06-bounded-agent-toolregistry.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals"
@@ -4511,14 +4561,14 @@
     "next_issue": 383
   },
   "active_development_issue": {
-    "issue": 383,
-    "requirement_id": "MJ-REF-013",
-    "title": "Bounded agent ToolRegistry and proposal-only side-effect architecture",
+    "issue": 384,
+    "requirement_id": "MJ-REF-014",
+    "title": "Least-data profile lookup interface for AI tasks",
     "state": "OPEN_SELECTED_DEPENDENCY_READY",
-    "selection_reason": "Highest-priority remaining P1 safety architecture gate: keeps model or future automation proposals behind typed allowlists and deterministic policy execution before consequential application/browser side effects.",
-    "base": "70e16d0766f87c7b637cd4731a7e251ddc47d54a",
+    "selection_reason": "P1 privacy gap and direct prerequisite for the new bounded agent interface: four acceptance criteria are evidenced, while keeping task prompts free of unrelated sensitive sections remains open. The missing criterion can be investigated and locally validated without invoking paid or hosted providers.",
+    "base": "60f2addd1b73c06dcc0f206369a4ee0b78c155e1",
     "branch": "not yet created",
-    "next_action": "Inspect the exact governance_safety spec, issue acceptance, existing worker/application proposal interfaces, and tests; implement the smallest complete allow-listed proposal boundary with durable bounded traces and adversarial non-mutation tests. Continue under local-only policy."
+    "next_action": "Reconcile issue #384, the exact governance_safety spec, existing least-data task allowlists, profile-access audits, and all prompt construction paths; prove or implement that prompt inputs receive only task-approved explicitly requested facts, with negative profile/task isolation tests. Mark PARTIAL/BLOCKED_EXTERNAL if provider prompt delivery cannot be exercised locally; continue to the next dependency-ready P1 issue without changing the requirement denominator."
   },
   "historical_control_snapshots": [
     {

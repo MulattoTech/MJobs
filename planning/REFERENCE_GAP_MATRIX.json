@@ -1,6 +1,6 @@
 {
   "schema_version": 3,
-  "generated_at": "2026-10-06",
+  "generated_at": "2026-10-06T05:23:01Z",
   "canonical_namespace": "MJ-REF",
   "original_catalogue_count": 366,
   "reference_gap_count": 59,
@@ -129,8 +129,10 @@
       "evidence": []
     },
     "MJ-REF-013": {
-      "result": "NOT_RUN",
-      "evidence": []
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-06-bounded-agent-toolregistry.json"
+      ]
     },
     "MJ-REF-014": {
       "result": "PARTIAL",

@@ -264,4 +264,12 @@ review does not require starting the local runtime.
 
 Keep AGENTS.md, current issues/specs, IMPLEMENTATION_STATE, PR_QUEUE,
 CAPABILITY_MATRIX and exact-head receipts authoritative. Older feature dashboards
-are dated snapshots. No new implementation lane is active for this handoff.
+are dated snapshots. The original handoff ended without an active implementation
+lane; the authorized local-only continuation and its current target are recorded
+below.
+
+## 2026-10-06 local-only continuation — MJ-REF-013
+
+Issue #383 / MJ-REF-013 is implemented and locally PASS. Candidate `60f2addd1b73c06dcc0f206369a4ee0b78c155e1` was based on `6d92e2d22024cce51a7189d5ed3b9ef6c878c142` and integrated to synchronized main by a non-force fast-forward. The exact tree is `cb3ea397e4aedc39fd41ba293f55e4516d53a45f`. The evidence receipt is [2026-10-06-bounded-agent-toolregistry.json](../docs/evidence/2026-10-06-bounded-agent-toolregistry.json). The full local suite passed 642 tests; Actions and hosted reviews remain NOT_RUN under the budget policy. External submission remains OFF.
+
+Next selected dependency-ready slice: issue #384 / MJ-REF-014. Its remaining acceptance criterion is that task prompts receive no unrelated sensitive profile sections by default. Verify all local prompt-construction paths and keep the requirement denominator unchanged; no paid/hosted provider call is authorized.
