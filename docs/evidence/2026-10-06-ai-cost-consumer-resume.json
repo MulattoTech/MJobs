@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "issue": 111,
+  "requirement_id": "MJ-REQ-110",
+  "lane": "codex",
+  "branch": "codex/mj-req110-review-consumer-20261006",
+  "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req110-review-consumer-20261006",
+  "result": "PARTIAL",
+  "validated_code_head": "8f011339e5263353cbfca38dfc006c74d9190e90",
+  "base_main": "54568c7de5edc3594f39f9d139f449bb0eed8cae",
+  "recorded_at": "2026-10-06T22:50:08.7790258Z",
+  "scope": [
+    "Profile-scoped cost policy bounds score eligibility, input size, AI candidates, and reviewed-document candidates before provider work.",
+    "POST /profiles/{profile_id}/ai-cost-plan/evaluate consumes the policy and saved job-scoring task configuration.",
+    "Structured AI job evaluations are advisory; deterministic match scores are unchanged and the route creates zero documents.",
+    "Job descriptions are bounded and identified as untrusted input in the scoring prompt."
+  ],
+  "verification": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_ai_cost_consumer tests.integration.test_ai_cost_policy_api",
+      "result": "PASS",
+      "detail": "9 focused unit and API tests passed on the current code head."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.agent_skills",
+      "result": "PASS"
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.catalogue",
+      "result": "PASS"
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.progress validate",
+      "result": "PASS"
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m compileall -q services/ai/consumer.py apps/api/main.py",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p test_*.py",
+      "result": "PARTIAL",
+      "detail": "The prior recorded full run on this code slice reported 785 tests, 2 failures, 6 errors, and 15 skips; the failures/errors were in browser tests. See docs/evidence/2026-10-06-ai-cost-consumer.json. This full suite was not rerun for this resume checkpoint."
+    }
+  ],
+  "not_run": [
+    "Live AI provider inference; deterministic tests use a local structured-result stub and made no provider call.",
+    "Reviewed AI-document generation; this evaluation route intentionally creates no documents and no consumer path currently connects its review-capped IDs to an AI document workflow.",
+    "Frontend tests/build; the prior checkpoint reported missing vitest and tsc in this worktree; no dependency installation was attempted.",
+    "Hosted Actions and reviews; disabled by active user policy.",
+    "External application submission; OFF."
+  ],
+  "source_sha256": {
+    "services/ai/consumer.py": "2a8d4e6c18f7a5a67043aab55f24d5234bc10a0ba7785d3fcee23aeff5b5049d",
+    "apps/api/main.py": "37e2fe170246c4274db6fab445992c5bb54d94ecae90be54fdb109a5250b8755",
+    "tests/unit/test_ai_cost_consumer.py": "45432c1fbe17bc04817b635f162d763ded7c803e7461073e4aee3f098941d570",
+    "tests/integration/test_ai_cost_policy_api.py": "570f76e2dee65f546645d1d9eaf99a3ee364b4d6388e3a3ecc2e164b95a19cbd"
+  }
+}

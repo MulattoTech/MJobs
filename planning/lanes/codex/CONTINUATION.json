@@ -11,7 +11,7 @@
   "last_integrated_head": "ca53eb29dd0081d7b1151dc4dd2d304226e16ea5",
   "next_issue": 111,
   "next_requirement": "MJ-REQ-110",
-  "resume_instruction": "Issue #111 / MJ-REQ-110 is safely checkpointed PARTIAL on codex/mj-req110-review-consumer-20261006 at 600156158227997bedbe8dcc9e03d40d625e4557, reconciled with origin/main 54568c7de5edc3594f39f9d139f449bb0eed8cae. The profile-scoped bounded scoring consumer and API route pass focused local tests. Real provider inference and reviewed-document generation remain NOT_RUN; full Python suite had browser failures and frontend dependencies are missing. Continue only this claim if resumed. Antigravity owns #303 source-adapter paths; Ollama owns #318 ATS-detection paths. Canonical planning/main require the local integration lock.",
+  "resume_instruction": "Issue #111 / MJ-REQ-110 remains PARTIAL on codex/mj-req110-review-consumer-20261006, based on origin/main 54568c7de5edc3594f39f9d139f449bb0eed8cae. The profile-scoped bounded scoring consumer and API route pass 9 focused unit/API tests and repository validators; current evidence is docs/evidence/2026-10-06-ai-cost-consumer-resume.json. Live provider inference, a reviewed AI-document workflow, and frontend checks remain NOT_RUN; the previously recorded full Python run had browser failures. Continue only this claim if resumed. Antigravity owns #303 source-adapter paths; Ollama owns #318 ATS-detection paths. Canonical planning/main require the local integration lock.",
   "external_submission_enabled": false,
   "github_actions_enabled": false
 }
