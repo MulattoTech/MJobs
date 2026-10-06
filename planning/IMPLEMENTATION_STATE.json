@@ -1,15 +1,15 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-06T12:26:39Z",
+  "generated_at": "2026-10-06T12:30:03Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Local main and origin/main are synchronized at 837b818576cb0cac60ee3991f21d863cd43f7cd7; issue #5 remains OPEN/PARTIAL. The Greenhouse worker-deadline slice is locally verified on candidate 8e0e200745d38495bb65d1d7f3e493f4d7d43bce and pushed on codex/req004-bound-ops-20261006, pending safe integration.",
-    "current_verified_github_state": "GitHub main and local main remain synchronized at 837b818576cb0cac60ee3991f21d863cd43f7cd7; main is unprotected, Actions are disabled, and no PR is open. Issue #5 remains OPEN/PARTIAL. Candidate 8e0e200745d38495bb65d1d7f3e493f4d7d43bce is pushed and locally verified; local-only integration is pending.",
-    "current_verified_at": "2026-10-06T12:26:39Z"
+    "current_verified_local_state": "Local main and origin/main are synchronized at f35f4c04272bb50e985adbc1de5b6ea54102d101 after non-force fast-forward integration of the Greenhouse worker-deadline slice from base 837b818576cb0cac60ee3991f21d863cd43f7cd7. GitHub issue #5 remains OPEN/PARTIAL after readback.",
+    "current_verified_github_state": "GitHub main and local main were synchronized at f35f4c04272bb50e985adbc1de5b6ea54102d101; the branch is unprotected, repository Actions are disabled, and no PR was open for the candidate. Issue #5 remains OPEN/PARTIAL; hosted checks/reviews are NOT_RUN by policy.",
+    "current_verified_at": "2026-10-06T12:30:03Z"
   },
   "current_milestone": "MJ-REQ-004-GREENHOUSE-WORKER-DEADLINE-20261006",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under the local-only delivery policy; one writer and one integration lane.",
