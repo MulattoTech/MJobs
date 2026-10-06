@@ -33,6 +33,8 @@ type AITaskKey = 'job_parsing'|'job_scoring'|'requirement_extraction'|'resume_ta
 type AIProviderChoice = 'disabled'|'ollama';
 type AITaskSelection = {provider:AIProviderChoice;model:string|null};
 type AITaskSettings = Record<AITaskKey,AITaskSelection>;
+type AICostPolicy = {minimum_score:number;max_input_candidates:number;max_ai_candidates:number;max_document_candidates:number};
+type AICostPlan = {scanned_job_count:number;scored_candidate_count:number;unique_count:number;eligible_count:number;ai_candidate_count:number;document_candidate_count:number};
 const aiTaskRows: {key:AITaskKey;label:string}[] = [
   {key:'job_parsing',label:'Job parsing'},
   {key:'job_scoring',label:'Job scoring'},
@@ -45,6 +47,7 @@ const aiTaskRows: {key:AITaskKey;label:string}[] = [
 const defaultAITaskSettings = ():AITaskSettings => Object.fromEntries(
   aiTaskRows.map(({key})=>[key,{provider:'disabled',model:null}])
 ) as AITaskSettings;
+const defaultAICostPolicy = ():AICostPolicy => ({minimum_score:75,max_input_candidates:5000,max_ai_candidates:75,max_document_candidates:20});
 const newFact = ():Fact => ({id:crypto.randomUUID(),kind:'skill',text:'',source:'',confidence:100,verified:false,user_approved:false});
 const newAnswer = ():Answer => ({id:crypto.randomUUID(),question:'',text:'',source:'Manual entry',confidence:100,verified:false,user_approved:false});
 const newProfile = ():Profile => ({id:crypto.randomUUID(),name:'',email:'',facts:[],answers:[],contact:{},preferences:{}});
@@ -73,6 +76,9 @@ function App() {
   const [sources,setSources] = useState<Source[]>([]);
   const [aiTaskSettings,setAITaskSettings] = useState<AITaskSettings>(defaultAITaskSettings);
   const [aiSettingsLoading,setAISettingsLoading] = useState(false);
+  const [aiCostPolicy,setAICostPolicy] = useState<AICostPolicy>(defaultAICostPolicy);
+  const [aiCostLoading,setAICostLoading] = useState(false);
+  const [aiCostPlan,setAICostPlan] = useState<AICostPlan|null>(null);
   const [companySources,setCompanySources] = useState<CompanySourceView[]>([]);
   const [discoveryRequests,setDiscoveryRequests] = useState<DiscoveryRequest[]>([]);
   const companySourcesSequence = useRef(0);
@@ -126,6 +132,7 @@ function App() {
   }
   useEffect(() => {void refresh().catch(e=>setError(String(e)));void api<{operation_mode:OperationMode}>('/settings').then(s=>setOperationMode(s.operation_mode)).catch(e=>setError(String(e)));void readiness();const timer=setInterval(()=>void readiness(),15000);return()=>clearInterval(timer);},[]);
   useEffect(() => {const sequence=++editorSequence.current;++appSequence.current;profileBaselineRef.current=null;localStorage.setItem('mjobs-profile',profileId);setDetail(null);setSelectedApp(null);setApplicationTracking(null);setApplicationStatusDraft('');setApplicationNoteDraft('');setApplicationNoteRequestId(crypto.randomUUID());setDocs([]);setResumes([]);setApps([]);setOps([]);setCompanySources([]);setMockConsent(false);setAITaskSettings(defaultAITaskSettings());setAISettingsLoading(!!profileId);void refresh(profileId).catch(e=>setError(String(e)));if(profileId){void api<Profile>('/profiles/'+encodeURIComponent(profileId)).then(p=>{if(sequence===editorSequence.current&&p.id===profileRef.current){const loaded={...p,contact:p.contact||{},preferences:p.preferences||{},facts:(p.facts||[]).map(f=>({...f,id:f.fact_id||f.id}))};setEditor(loaded);profileBaselineRef.current=loaded;}}).catch(e=>setError(String(e)));void api<{resumes:Resume[]}>('/profiles/'+encodeURIComponent(profileId)+'/resumes').then(r=>{if(sequence===editorSequence.current&&profileId===profileRef.current)setResumes(r.resumes);}).catch(e=>setError(String(e)));void api<{tasks:AITaskSettings}>('/profiles/'+encodeURIComponent(profileId)+'/ai-task-settings').then(r=>{if(sequence===editorSequence.current&&profileId===profileRef.current)setAITaskSettings(r.tasks);}).catch(e=>setError(String(e))).finally(()=>{if(sequence===editorSequence.current)setAISettingsLoading(false);});}else setAISettingsLoading(false);},[profileId]);
+  useEffect(()=>{setAICostPolicy(defaultAICostPolicy());setAICostPlan(null);setAICostLoading(!!profileId);if(!profileId)return;const selected=profileId;void api<{policy:AICostPolicy}>(`/profiles/${encodeURIComponent(selected)}/ai-cost-policy`).then(result=>{if(profileRef.current===selected)setAICostPolicy(result.policy);}).catch(e=>{if(profileRef.current===selected)setError(String(e));}).finally(()=>{if(profileRef.current===selected)setAICostLoading(false);});},[profileId]);
   useEffect(() => {++jobsSequence.current;++detailSequence.current;setJobs([]);setDetail(null);const timer=setTimeout(()=>void loadJobs().catch(e=>setError(String(e))),250);return()=>clearTimeout(timer);},[q,sort,remote,provider,profileId,showDismissed]);
   async function action(label:string, fn:()=>Promise<void>) {
     if(busy)return;setBusy(label);setError('');setNotice('');
@@ -307,6 +314,19 @@ function App() {
     setAITaskSettings(result.tasks);
     setNotice('AI task settings saved for this profile.');
   }
+  function setAICostValue<K extends keyof AICostPolicy>(key:K,value:number) {
+    setAICostPolicy(current=>{const next={...current,[key]:value};if(key==='max_ai_candidates'&&next.max_document_candidates>value)next.max_document_candidates=value;return next;});setAICostPlan(null);
+  }
+  async function saveAICostPolicy() {
+    if(!profileId)throw new Error('Select an active profile before saving AI cost controls.');
+    const result=await api<{policy:AICostPolicy}>(`/profiles/${encodeURIComponent(profileId)}/ai-cost-policy`,{method:'PUT',body:JSON.stringify(aiCostPolicy)});
+    setAICostPolicy(result.policy);setAICostPlan(null);setNotice('AI cost policy saved for this profile.');
+  }
+  async function previewAICostPlan() {
+    if(!profileId)throw new Error('Select an active profile before previewing AI work.');
+    const result=await api<{plan:AICostPlan}>(`/profiles/${encodeURIComponent(profileId)}/ai-cost-plan`);
+    if(profileRef.current===profileId)setAICostPlan(result.plan);
+  }
   function addExtraction(extraction:Extraction, selectedFacts:Set<string>, selectedContact:Set<string>) {
     const result = addSelectedExtraction({name:editor.name,email:editor.email,contact:editor.contact as Record<string,unknown>,facts:editor.facts.filter(f=>f.text.trim())}, extraction, selectedFacts, selectedContact);
     setEditor(current=>({...current,name:result.profile.name,email:result.profile.email,contact:result.profile.contact as Partial<Contact>,facts:result.profile.facts as Fact[]}));
@@ -320,6 +340,7 @@ function App() {
       {notice&&<div role="status" className="notice">{notice}</div>}
       {busy&&<div role="status" className="notice">{busy}… {activeOp&&<button className="quiet" onClick={()=>void api('/operations/'+activeOp+'/cancel',{method:'POST'}).then(()=>setNotice('Cancellation requested.')).catch(e=>setError(String(e)))}>Cancel operation</button>}</div>}
       {tab==='AI Settings'&&<section className="panel" aria-label="AI task settings"><div className="toolbar"><div><h2>AI task configuration</h2><p>Choose a provider and model independently for each task and profile.</p></div></div><p className="muted">All tasks start disabled. Ollama uses the configured loopback-only local service. Saving a selection does not make a model call. Credentials are not accepted or stored.</p>{!profileId&&<p className="muted">Select a profile to view and save its AI settings.</p>}{aiSettingsLoading&&<p role="status">Loading AI task settings…</p>}<div className="ai-task-settings">{aiTaskRows.map(({key,label})=><fieldset className="fact" key={key}><legend>{label}</legend><div className="two-col"><label>{label} provider<select aria-label={`${label} provider`} disabled={!!busy||!profileId||aiSettingsLoading} value={aiTaskSettings[key].provider} onChange={event=>setAITaskProvider(key,event.target.value as AIProviderChoice)}><option value="disabled">Disabled</option><option value="ollama">Ollama (local)</option></select></label><label>{label} model<input aria-label={`${label} model`} maxLength={128} disabled={!!busy||!profileId||aiSettingsLoading||aiTaskSettings[key].provider==='disabled'} value={aiTaskSettings[key].model||''} onChange={event=>setAITaskModel(key,event.target.value)} placeholder="For example, llama3.2:3b"/></label></div></fieldset>)}</div><button className="primary" type="button" disabled={!!busy||!profileId||aiSettingsLoading} onClick={()=>void action('Saving AI task settings',saveAITaskSettings)}>Save AI task settings</button></section>}
+      {tab==='AI Settings'&&<section className="panel" aria-label="AI cost controls"><div className="toolbar"><div><h2>AI cost controls</h2><p>Bound the deterministic funnel before any future model or document work.</p></div></div><p className="muted">Defaults scan up to 5,000 jobs, require a score of 75, cap AI candidates at 75 and cap reviewed-document candidates at 20. Lower the limits to fit your workflow. Preview only reads this profile’s deterministic match scores; it makes no model calls and creates no documents.</p>{aiCostLoading&&<p role="status">Loading AI cost policy…</p>}<div className="two-col"><label>Minimum deterministic score<input aria-label="Minimum deterministic score" type="number" min="0" max="100" step="1" disabled={!!busy||!profileId||aiCostLoading} value={aiCostPolicy.minimum_score} onChange={event=>setAICostValue('minimum_score',Number(event.target.value))}/></label><label>Maximum jobs scanned<input aria-label="Maximum jobs scanned" type="number" min="1" max="100000" step="1" disabled={!!busy||!profileId||aiCostLoading} value={aiCostPolicy.max_input_candidates} onChange={event=>setAICostValue('max_input_candidates',Number(event.target.value))}/></label><label>Maximum AI candidates<input aria-label="Maximum AI candidates" type="number" min="0" max="75" step="1" disabled={!!busy||!profileId||aiCostLoading} value={aiCostPolicy.max_ai_candidates} onChange={event=>setAICostValue('max_ai_candidates',Number(event.target.value))}/></label><label>Maximum document candidates<input aria-label="Maximum document candidates" type="number" min="0" max={Math.min(20,aiCostPolicy.max_ai_candidates)} step="1" disabled={!!busy||!profileId||aiCostLoading} value={aiCostPolicy.max_document_candidates} onChange={event=>setAICostValue('max_document_candidates',Number(event.target.value))}/></label></div><div className="toolbar"><button className="primary" type="button" disabled={!!busy||!profileId||aiCostLoading} onClick={()=>void action('Saving AI cost policy',saveAICostPolicy)}>Save AI cost policy</button><button type="button" disabled={!!busy||!profileId||aiCostLoading} onClick={()=>void action('Previewing AI work plan',previewAICostPlan)}>Preview AI work plan</button></div>{aiCostPlan&&<p aria-live="polite">{aiCostPlan.scanned_job_count} jobs scanned · {aiCostPlan.eligible_count} eligible · {aiCostPlan.ai_candidate_count} AI {aiCostPlan.ai_candidate_count===1?'candidate':'candidates'} · {aiCostPlan.document_candidate_count} reviewed-document candidates</p>}<p className="muted">Preview only. No model calls or documents are created.</p></section>}
       {tab==='Jobs'&&<>
         <div className="toolbar"><p>{jobs.length} stored opportunities <span className="muted">· matching uses approved facts</span></p><div><button disabled={!!busy} onClick={()=>setManualCaptureOpen(value=>!value)}>{manualCaptureOpen?'Close capture':'Capture a job'}</button>{' '}<button disabled={!!busy||!profileId} onClick={()=>void action('Refreshing matches',async()=>{await queue('/matches',request());})}>Refresh matches</button></div></div>
         {!profileId&&<section className="welcome"><h2>Start with a profile.</h2><p>{operationMode==='FIXTURE'?'Add your own sourced career facts, or explore the flow with fictional demo data.':'Add your own sourced career facts to begin.'}</p><button className="primary" onClick={()=>setTab('Profile')}>Set up my profile</button> {operationMode==='FIXTURE'&&<button disabled={!!busy} onClick={()=>void action('Loading fictional demo',demo)}>Load fictional demo</button>}</section>}

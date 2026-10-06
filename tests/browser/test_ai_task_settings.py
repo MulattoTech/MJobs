@@ -13,6 +13,8 @@ import uvicorn
 from apps.api.main import create_app
 from fixtures.browser_ports import bound_browser_socket
 from packages.persistence.store import Store
+from services.discovery.manual_capture import capture_manual_job
+from services.discovery.matching import recalculate
 from tests.integration.test_spine import PROFILE
 
 
@@ -33,6 +35,17 @@ class AITaskSettingsBrowserTests(unittest.TestCase):
             second.update(id="other-profile", name="Other Profile", email="other@example.test")
             store.save_profile(first)
             store.save_profile(second)
+            for index, description in enumerate(("Python SQL", "Terraform")):
+                capture_manual_job(store, {
+                    "request_id": f"browser-cost-plan-{index}",
+                    "title": f"Synthetic role {index}",
+                    "company": "Synthetic Company",
+                    "description": description,
+                    "reference_url": f"https://jobs.example.test/role-{index}",
+                    "application_url": f"https://apply.example.test/role-{index}",
+                    "source_details": {},
+                })
+            recalculate(store, "fixture")
 
             sock = bound_browser_socket()
             origin = f"http://127.0.0.1:{sock.getsockname()[1]}"
@@ -90,16 +103,43 @@ class AITaskSettingsBrowserTests(unittest.TestCase):
                     expect(panel.get_by_label("Resume tailoring provider", exact=True)).to_have_value("ollama")
                     expect(panel.get_by_label("Resume tailoring model", exact=True)).to_have_value("qwen2.5:3b")
 
+                    cost_panel = page.get_by_role("region", name="AI cost controls")
+                    expect(cost_panel).to_be_visible()
+                    expect(cost_panel.get_by_label("Minimum deterministic score", exact=True)).to_have_value("75")
+                    cost_panel.get_by_label("Minimum deterministic score", exact=True).fill("50")
+                    cost_panel.get_by_label("Maximum jobs scanned", exact=True).fill("100")
+                    cost_panel.get_by_label("Maximum AI candidates", exact=True).fill("1")
+                    expect(cost_panel.get_by_label("Maximum document candidates", exact=True)).to_have_value("1")
+                    cost_panel.get_by_label("Maximum document candidates", exact=True).fill("0")
+                    cost_panel.get_by_role("button", name="Save AI cost policy", exact=True).click()
+                    expect(page.get_by_role("status").filter(
+                        has_text="AI cost policy saved for this profile.")).to_be_visible()
+                    cost_panel.get_by_role("button", name="Preview AI work plan", exact=True).click()
+                    expect(cost_panel.get_by_text(
+                        "2 jobs scanned · 1 eligible · 1 AI candidate · 0 reviewed-document candidates",
+                        exact=True)).to_be_visible()
+                    expect(cost_panel.get_by_text(
+                        "Preview only. No model calls or documents are created.", exact=True)).to_be_visible()
+
+                    page.reload(wait_until="domcontentloaded")
+                    page.get_by_role("button", name="AI Settings", exact=True).click()
+                    cost_panel = page.get_by_role("region", name="AI cost controls")
+                    expect(cost_panel.get_by_label("Minimum deterministic score", exact=True)).to_have_value("50")
+                    expect(cost_panel.get_by_label("Maximum AI candidates", exact=True)).to_have_value("1")
+
                     page.locator("#active-profile").select_option("other-profile")
                     expect(panel.get_by_label("Job scoring provider", exact=True)).to_have_value("disabled")
                     expect(panel.get_by_label("Job scoring model", exact=True)).to_be_disabled()
                     expect(panel.get_by_label("Resume tailoring provider", exact=True)).to_have_value("disabled")
                     expect(panel.get_by_label("Resume tailoring model", exact=True)).to_be_disabled()
+                    expect(cost_panel.get_by_label("Minimum deterministic score", exact=True)).to_have_value("75")
+                    expect(cost_panel.get_by_label("Maximum AI candidates", exact=True)).to_have_value("75")
                     page.locator("#active-profile").select_option("fixture")
                     expect(panel.get_by_label("Job scoring provider", exact=True)).to_have_value("ollama")
                     expect(panel.get_by_label("Job scoring model", exact=True)).to_have_value("llama3.2:3b")
                     expect(panel.get_by_label("Resume tailoring provider", exact=True)).to_have_value("ollama")
                     expect(panel.get_by_label("Resume tailoring model", exact=True)).to_have_value("qwen2.5:3b")
+                    expect(cost_panel.get_by_label("Minimum deterministic score", exact=True)).to_have_value("50")
 
                     page.set_viewport_size({"width": 390, "height": 844})
                     expect(panel).to_be_visible()

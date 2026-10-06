@@ -15,6 +15,10 @@ while a new key creates a distinct record.
 `GET/PUT /profiles/{profile_id}/ai-task-settings` reads and persists non-secret
 provider/model choices per profile. Invalid selections fail closed without
 echoing submitted credentials or malformed values.
+`GET/PUT /profiles/{profile_id}/ai-cost-policy` persists bounded per-profile
+funnel thresholds. `GET /profiles/{profile_id}/ai-cost-plan` is a read-only
+preview over stored deterministic match scores; it makes no provider request
+and never creates documents. Validation errors omit submitted values.
 Depends on domain/services/persistence; browser work belongs in workers. Contact
 and facts are bounded and strict; cross-origin mutations are rejected; default
 deployment publishes only localhost. Test: python -m unittest

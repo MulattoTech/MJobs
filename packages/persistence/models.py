@@ -29,6 +29,22 @@ ai_task_settings = table(
                                  "(provider <> 'disabled' AND model IS NOT NULL)",
                                  name="ck_profile_ai_task_provider_model")),
 )
+ai_cost_policies = table(
+    "profile_ai_cost_policies",
+    Column("profile_id", ForeignKey("career_profiles.id", ondelete="CASCADE"), nullable=False),
+    Column("minimum_score", Integer, nullable=False),
+    Column("max_input_candidates", Integer, nullable=False),
+    Column("max_ai_candidates", Integer, nullable=False),
+    Column("max_document_candidates", Integer, nullable=False),
+    Column("updated_at", String(64), nullable=False),
+    constraints=(UniqueConstraint("profile_id", name="uq_profile_ai_cost_policy_profile"),
+                 CheckConstraint("minimum_score >= 0 AND minimum_score <= 100 AND "
+                                 "max_input_candidates >= 1 AND max_input_candidates <= 100000 AND "
+                                 "max_ai_candidates >= 0 AND max_ai_candidates <= 75 AND "
+                                 "max_document_candidates >= 0 AND max_document_candidates <= 20 AND "
+                                 "max_document_candidates <= max_ai_candidates",
+                                 name="ck_profile_ai_cost_policy_bounds")),
+)
 facts = table("career_facts", Column("profile_id", ForeignKey("career_profiles.id"), nullable=False),
               Column("version", String(64), nullable=False), Column("fact_id", String(128), nullable=False),
               Column("kind", String(32), nullable=False), Column("text", String(10000), nullable=False),

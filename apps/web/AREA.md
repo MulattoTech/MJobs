@@ -11,3 +11,7 @@ document-preparation path; their user-entered source identity is unverified.
 AI Settings exposes independent provider/model selections for each AI task,
 loads and saves them through the profile-scoped API, and keeps all tasks
 disabled until the user explicitly saves a local provider choice.
+AI cost controls persist per-profile score thresholds and bounded work caps;
+the read-only funnel preview reports eligible/capped counts without invoking a
+model or creating documents. Controls remain unavailable until saved policy
+values for the selected profile finish loading.

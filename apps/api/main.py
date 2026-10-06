@@ -1,6 +1,7 @@
 """Local-first product API; mock submission is explicit and external is off."""
 from contextlib import asynccontextmanager
 import asyncio
+from dataclasses import asdict
 import hashlib
 import json
 import os
@@ -36,6 +37,7 @@ from services.company_discovery.triggers import queue_company_discovery
 from services.applications.knowledge import application_adapter_knowledge
 from services.ai.providers import AIProviderError, create_provider
 from services.ai.tasks import AI_TASKS, AITaskConfiguration
+from services.ai.cost_controls import AICostPolicy, CandidateScore
 from services.company_discovery.public_client import PublicFetchError
 from services.company_discovery.sources import (list_company_job_sources, set_company_source_watch,
     list_company_source_view, set_company_source_pin, set_company_source_enabled)
@@ -79,6 +81,20 @@ class AITaskSettingsInput(BaseModel):
     # Validate nested keys/values through AITaskConfiguration so FastAPI's
     # default validation response cannot echo a rejected credential value.
     tasks: dict[str, dict[str, object]] = Field(max_length=16)
+
+
+class AICostPolicyInput(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+    minimum_score: int = Field(ge=0, le=100)
+    max_input_candidates: int = Field(ge=1, le=100_000)
+    max_ai_candidates: int = Field(ge=0, le=75)
+    max_document_candidates: int = Field(ge=0, le=20)
+
+    @model_validator(mode="after")
+    def document_work_must_fit_ai_cap(self):
+        if self.max_document_candidates > self.max_ai_candidates:
+            raise ValueError("AI_FUNNEL_POLICY_INVALID")
+        return self
 
 
 class DiscoveryInput(BaseModel):
@@ -356,8 +372,11 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
 
     @app.exception_handler(RequestValidationError)
     async def validation_error(request: Request, error: RequestValidationError):
-        if request.url.path.startswith("/profiles/") and request.url.path.endswith("/ai-task-settings"):
-            return JSONResponse({"detail": {"code": "AI_TASK_CONFIG_INVALID"}}, status_code=422)
+        if request.url.path.startswith("/profiles/") and request.url.path.endswith(
+                ("/ai-task-settings", "/ai-cost-policy")):
+            code = ("AI_TASK_CONFIG_INVALID" if request.url.path.endswith("/ai-task-settings")
+                    else "AI_FUNNEL_POLICY_INVALID")
+            return JSONResponse({"detail": {"code": code}}, status_code=422)
         return await request_validation_exception_handler(request, error)
 
     @app.exception_handler(NoResultFound)
@@ -455,6 +474,51 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         }
         saved = store.save_ai_task_settings(profile_id, selections)
         return {"profile_id": profile_id, "tasks": saved}
+
+    @app.get("/profiles/{profile_id}/ai-cost-policy")
+    def ai_cost_policy(profile_id: str):
+        configured = store.ai_cost_policy(profile_id)
+        policy = configured or asdict(AICostPolicy())
+        return {"profile_id": profile_id, "policy": policy}
+
+    @app.put("/profiles/{profile_id}/ai-cost-policy")
+    def save_ai_cost_policy(profile_id: str, value: AICostPolicyInput):
+        try:
+            policy = AICostPolicy(**value.model_dump())
+        except ValueError as error:
+            raise HTTPException(422, {"code": str(error)}) from None
+        saved = store.save_ai_cost_policy(profile_id, asdict(policy))
+        return {"profile_id": profile_id, "policy": saved}
+
+    @app.get("/profiles/{profile_id}/ai-cost-plan")
+    def ai_cost_plan(profile_id: str):
+        configured = store.ai_cost_policy(profile_id)
+        policy = AICostPolicy(**configured) if configured else AICostPolicy()
+        rows = store.jobs(profile_id=profile_id, limit=policy.max_input_candidates + 1)
+        if len(rows) > policy.max_input_candidates:
+            raise HTTPException(422, {"code": "AI_FUNNEL_INPUT_LIMIT"})
+        scored_rows = [row for row in rows if row.get("match_score") is not None]
+        candidates = [CandidateScore(
+            job_id=row["id"],
+            deterministic_score=int(float(row["match_score"])),
+        ) for row in scored_rows]
+        try:
+            plan = policy.plan(candidates)
+        except ValueError as error:
+            raise HTTPException(422, {"code": str(error)}) from None
+        return {
+            "profile_id": profile_id,
+            "policy": asdict(policy),
+            "plan": {
+                "scanned_job_count": len(rows),
+                "scored_candidate_count": plan.received_count,
+                "unique_count": plan.unique_count,
+                "eligible_count": plan.eligible_count,
+                "ai_candidate_count": len(plan.ai_candidate_ids),
+                "document_candidate_count": len(plan.document_candidate_ids),
+            },
+            "no_model_calls": True,
+        }
 
     @app.put("/profiles")
     def profile(value: ProfileInput):

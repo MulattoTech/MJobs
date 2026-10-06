@@ -299,6 +299,37 @@ class Store:
                 }, replace=True)
         return self.ai_task_settings(profile_id)
 
+    def ai_cost_policy(self, profile_id):
+        """Return the explicitly stored funnel policy for one profile, if set."""
+        self.profile(profile_id)
+        with self.engine.connect() as connection:
+            row = connection.execute(
+                select(m.ai_cost_policies).where(
+                    m.ai_cost_policies.c.profile_id == profile_id)
+            ).mappings().first()
+        if row is None:
+            return None
+        return {key: row[key] for key in (
+            "minimum_score", "max_input_candidates", "max_ai_candidates",
+            "max_document_candidates")}
+
+    def save_ai_cost_policy(self, profile_id, policy):
+        """Persist deterministic AI-work limits atomically for one profile."""
+        self.profile(profile_id)
+        fields = ("minimum_score", "max_input_candidates", "max_ai_candidates",
+                  "max_document_candidates")
+        if not isinstance(policy, dict) or set(policy) != set(fields):
+            raise ValueError("AI_FUNNEL_POLICY_INVALID")
+        values = {key: policy[key] for key in fields}
+        with self.engine.begin() as connection:
+            upsert(connection, m.ai_cost_policies, {
+                "id": identity(profile_id, "ai-cost-policy"),
+                "profile_id": profile_id,
+                **values,
+                "updated_at": now(),
+            }, replace=True)
+        return values
+
     def jobs(self, profile_id=None, q="", remote_type=None, provider=None, sort="score", limit=200):
         profile = self.profile(profile_id) if profile_id else None
         with self.engine.connect() as connection:
