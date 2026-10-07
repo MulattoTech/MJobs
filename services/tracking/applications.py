@@ -13,7 +13,8 @@ PIPELINE_STATUSES = {
 }
 ATTRIBUTION = "USER_REPORTED"
 ENTITY_PREFIX = "application-tracking"
-TRACKING_ACTIONS = ("APPLICATION_PIPELINE_STATUS", "APPLICATION_NOTE")
+TRACKING_ACTIONS = ("APPLICATION_PIPELINE_STATUS", "APPLICATION_NOTE",
+                    "EXTERNAL_APPLICATION_REPORTED")
 
 
 def _entity(profile_id: str, application_id: str) -> str:
@@ -36,25 +37,151 @@ def _rows(store, entities):
 
 def _tracking_from_rows(rows):
     status = None
+    attribution = None
     history = []
     notes = []
+    external_reports = []
     for row in sorted(rows, key=lambda item: (
             item["payload"].get("sequence", 0), item["timestamp"], item["id"])):
         payload = row["payload"]
         sequence = payload.get("sequence", 0)
         if row["action"] == "APPLICATION_PIPELINE_STATUS":
             status = payload["status"]
+            attribution = payload.get("attribution", ATTRIBUTION)
             event = {"type": "status", "status": status,
-                     "attribution": payload.get("attribution", ATTRIBUTION),
+                     "attribution": attribution,
                      "sequence": sequence, "timestamp": row["timestamp"]}
-        else:
+        elif row["action"] == "APPLICATION_NOTE":
             note = {"id": payload["note_id"], "text": payload["text"],
                     "sequence": sequence, "timestamp": row["timestamp"]}
             notes.append(note)
             event = {"type": "note", **note}
+        else:
+            report = {"source": payload["source"],
+                      "applied_at": payload["applied_at"],
+                      "request_id": payload["request_id"],
+                      "sequence": sequence, "timestamp": row["timestamp"]}
+            if payload.get("application_url"):
+                report["application_url"] = payload["application_url"]
+            external_reports.append(report)
+            event = {"type": "external_application", **report}
         history.append(event)
-    return {"status": status, "attribution": ATTRIBUTION if status else None,
-            "notes": notes, "history": history}
+    result = {"status": status, "attribution": attribution,
+              "notes": notes, "history": history}
+    if external_reports:
+        result["external_reports"] = external_reports
+    return result
+
+
+def reserve_external_application_capture(store, profile_id: str,
+                                         request_id: str,
+                                         content_sha256: str) -> None:
+    """Claim a profile-scoped idempotency key before resolving or creating a job."""
+    store.profile(profile_id)
+    entity = identity("external-application-capture", profile_id)
+    reservation_id = identity("external-application-capture-reservation",
+                              profile_id, request_id)
+    payload = {"request_id": request_id, "content_sha256": content_sha256}
+    with store.engine.begin() as connection:
+        if connection.dialect.name == "sqlite":
+            connection.exec_driver_sql("BEGIN IMMEDIATE")
+        connection.execute(select(m.profiles.c.id).where(
+            m.profiles.c.id == profile_id).with_for_update()).one()
+        existing = connection.execute(select(m.audit).where(
+            m.audit.c.id == reservation_id)).mappings().one_or_none()
+        if existing is not None:
+            if (existing["entity_id"] != entity
+                    or existing["action"] != "EXTERNAL_APPLICATION_CAPTURE_RESERVED"
+                    or existing["payload"] != payload):
+                raise ValueError("External application request identifier was already used for different content")
+            return
+        connection.execute(m.audit.insert().values(
+            id=reservation_id, entity_id=entity,
+            action="EXTERNAL_APPLICATION_CAPTURE_RESERVED",
+            payload=payload, timestamp=now(),
+        ))
+
+
+def record_external_application_report(store, profile_id: str, application_id: str,
+                                       request_id: str, capture_request_id: str,
+                                       content_sha256: str, source: str,
+                                       applied_at: str, application_url: str | None,
+                                       job_id: str, reconciliation: str) -> dict:
+    """Append a user-reported external application without changing later state."""
+    store.profile(profile_id)
+    entity = _entity(profile_id, application_id)
+    event_id = identity("application-tracking-event", profile_id,
+                        application_id, request_id)
+    capture_entity = identity("external-application-capture", profile_id)
+    capture_id = identity("external-application-capture-event", profile_id,
+                          capture_request_id)
+    report_values = {"request_id": capture_request_id,
+                     "content_sha256": content_sha256,
+                     "application_id": application_id, "job_id": job_id,
+                     "reconciliation": reconciliation}
+    tracking_values = {"request_id": capture_request_id,
+                       "source": source, "applied_at": applied_at,
+                       "application_url": application_url}
+    with store.engine.begin() as connection:
+        if connection.dialect.name == "sqlite":
+            connection.exec_driver_sql("BEGIN IMMEDIATE")
+        connection.execute(select(m.profiles.c.id).where(
+            m.profiles.c.id == profile_id).with_for_update()).one()
+        application = connection.execute(select(m.applications).where(
+            m.applications.c.id == application_id).with_for_update()).mappings().one()
+        if application["profile_id"] != profile_id:
+            raise NoResultFound("Application is not owned by this profile")
+        existing_capture = connection.execute(select(m.audit).where(
+            m.audit.c.id == capture_id)).mappings().one_or_none()
+        if existing_capture is not None:
+            if (existing_capture["entity_id"] != capture_entity
+                    or existing_capture["action"] != "EXTERNAL_APPLICATION_CAPTURE"
+                    or any(existing_capture["payload"].get(key) != value
+                           for key, value in report_values.items())):
+                raise ValueError("External application request identifier was already used for different content")
+        else:
+            existing_report = connection.execute(select(m.audit).where(
+                m.audit.c.id == event_id)).mappings().one_or_none()
+            if existing_report is not None:
+                raise ValueError("External application tracking request identifier is already in use")
+            prior = list(connection.execute(select(m.audit).where(
+                m.audit.c.entity_id == entity,
+                m.audit.c.action.in_(TRACKING_ACTIONS),
+            )).mappings())
+            sequence = max((row["payload"].get("sequence", 0) for row in prior),
+                           default=0) + 1
+            upsert(connection, m.audit, {
+                "id": capture_id, "entity_id": capture_entity,
+                "action": "EXTERNAL_APPLICATION_CAPTURE",
+                "payload": report_values, "timestamp": now(),
+            })
+            upsert(connection, m.audit, {
+                "id": event_id, "entity_id": entity,
+                "action": "EXTERNAL_APPLICATION_REPORTED",
+                "payload": {**tracking_values, "sequence": sequence},
+                "timestamp": now(),
+            })
+            statuses = [row for row in prior
+                        if row["action"] == "APPLICATION_PIPELINE_STATUS"]
+            current_status = max(
+                statuses,
+                key=lambda row: row["payload"].get("sequence", 0),
+                default=None,
+            )
+            if (current_status is None
+                    or current_status["payload"].get("status") in {"SAVED", "READY"}):
+                status_id = identity("application-tracking-event", profile_id,
+                                     application_id, request_id + ":reported-status")
+                upsert(connection, m.audit, {
+                    "id": status_id, "entity_id": entity,
+                    "action": "APPLICATION_PIPELINE_STATUS",
+                    "payload": {"status": "APPLIED",
+                                "attribution": "EXTERNAL_USER_REPORTED",
+                                "sequence": sequence + 1},
+                    "timestamp": now(),
+                })
+    return {"created": existing_capture is None,
+            "tracking": read_application_tracking(store, profile_id, application_id)}
 
 
 def read_application_tracking(store, profile_id: str, application_id: str) -> dict:

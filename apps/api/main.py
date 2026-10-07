@@ -2,6 +2,7 @@
 from contextlib import asynccontextmanager
 import asyncio
 from dataclasses import asdict
+from datetime import datetime
 import hashlib
 import json
 import os
@@ -194,6 +195,34 @@ class ApplicationInput(DiscoveryInput):
         if self.tailor_fact_rewrites is not None and (
                 not self.tailor_resume or self.tailor_fact_ids is None or not self.expected_profile_version):
             raise ValueError('Reviewed resume rewrites require selected facts, tailoring and the observed profile version')
+        return self
+
+
+class ExternalApplicationInput(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid", allow_inf_nan=False)
+    profile_id: str = Field(min_length=1, max_length=128)
+    request_id: str = Field(min_length=1, max_length=64)
+    company: str = Field(min_length=1, max_length=200)
+    title: str = Field(min_length=1, max_length=500)
+    source: Literal["MANUAL", "REFERRAL", "BROWSER", "OTHER"]
+    applied_at: str = Field(min_length=20, max_length=40)
+    application_url: str | None = Field(default=None, max_length=2000)
+    job_description: str | None = Field(default=None, max_length=50000)
+
+    @model_validator(mode="after")
+    def complete_user_report(self):
+        if (not self.profile_id.strip() or not self.request_id.strip()
+                or self.request_id != self.request_id.strip()
+                or not self.company.strip() or not self.title.strip()):
+            raise ValueError("Profile, request identifier, company, and title are required")
+        try:
+            parsed = datetime.fromisoformat(self.applied_at.replace("Z", "+00:00"))
+        except ValueError:
+            raise ValueError("Application timestamp must be ISO 8601") from None
+        if parsed.tzinfo is None or parsed.utcoffset() is None:
+            raise ValueError("Application timestamp must include a timezone")
+        if self.job_description is not None and not self.job_description.strip():
+            raise ValueError("Job description must contain text when provided")
         return self
 
 
@@ -1165,7 +1194,23 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                 value = tracking[row["id"]]
                 row["pipeline_status"] = value["status"]
                 row["pipeline_attribution"] = value["attribution"]
+                row["external_reports"] = value.get("external_reports", [])
         return {"applications": rows}
+
+    @app.post("/applications/external")
+    def external_application_create(value: ExternalApplicationInput, response: Response):
+        from services.applications.external_capture import (
+            ExternalCaptureConflict, capture_external_application,
+        )
+        try:
+            result = capture_external_application(
+                store, value.model_dump(mode="json"))
+        except ExternalCaptureConflict as error:
+            raise HTTPException(409, str(error)) from None
+        except ValueError as error:
+            raise HTTPException(422, str(error)) from None
+        response.status_code = 201 if result["created"] else 200
+        return result
 
     @app.get("/profiles/{profile_id}/applications/{application_id}/tracking")
     def application_tracking_read(profile_id: str, application_id: str):
