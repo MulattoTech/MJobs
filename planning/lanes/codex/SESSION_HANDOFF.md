@@ -59,3 +59,12 @@ Status remains PARTIAL / safely checkpointed. Live configured-provider inference
 Re-ran the focused Python/API/browser/migration suite (20 PASS), frontend tests (62 PASS), frontend build, agent-skills/catalogue/progress validators, lane coordination validation, and `git diff --check` on `970a28a648da42083014248b95506ea874b0addc` (tree `1250acd21214c32e9a2555ad408afa0363366e18`). This head changes only evidence and Codex lane checkpoint files after the previously reconciled main merge; no AI consumer source changes were made. Detailed results are in `docs/evidence/2026-10-06-ai-cost-review-gated-documents.json`.
 
 Issue #111 remains PARTIAL: live configured-provider inference and PostgreSQL runtime checks are NOT_RUN; full Python discovery and hosted checks are NOT_RUN. External submission remains OFF. The active Ollama claim still owns the shared runtime. Canonical planning was not changed.
+
+
+## Current-turn verification — 2026-10-07T01:38:49Z
+
+Fetched `origin/main` at `e37f0c8523b16d4ea5e38bf37f5c34def94ccce3`; it is an ancestor of the claimed branch. The exact claimed worktree and branch were present and clean before validation.
+
+Validated source head `a727f6c558262cc35464738a0041c077755bbdf6` (tree `994aa9e22550954ea639e864e149db4ce94a27d4`). Focused Python/API/browser/migration suite: 20 PASS using the repository virtual environment; frontend: 62 PASS; frontend build, agent-skills/catalogue/progress, compileall, `git diff --check`, and lane coordination validation: PASS. The first command used global Python and failed on missing project dependencies; the same suite passed after switching to the repository virtual environment. Evidence: `docs/evidence/2026-10-06-ai-cost-review-gated-documents.json`.
+
+Status remains PARTIAL / safely checkpointed. Live configured-provider inference remains NOT_RUN while the active Ollama claim owns the shared runtime; PostgreSQL runtime checks, full Python discovery, hosted checks, and external application submission remain NOT_RUN (submission OFF). No AI source changes were made in this turn; canonical planning was not changed.
