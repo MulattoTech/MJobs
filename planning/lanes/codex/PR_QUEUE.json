@@ -7,7 +7,7 @@
       "requirement_id": "MJ-REQ-110",
       "status": "ACTIVE",
       "priority": 1,
-      "note": "Connected synthetic browser review flow, API/consumer tests, frontend tests/build, lane skills, catalogue, progress, and diff validators PASS. Keep issue PARTIAL: live inference, durable evaluation history, and reviewed document generation remain NOT_RUN."
+      "note": "Reconciled with origin/main dab63b4 at merge ef0ef628. Connected synthetic review flow and 10 focused API/consumer/browser tests, 62 frontend tests/build, lane skills, catalogue, progress, and diff validators PASS; evidence docs/evidence/2026-10-06-ai-cost-consumer-main-reconcile.json. Keep issue PARTIAL: live inference, durable evaluation history, and reviewed document generation remain NOT_RUN."
     }
   ]
 }

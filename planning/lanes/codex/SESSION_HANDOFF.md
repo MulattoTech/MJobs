@@ -1,25 +1,25 @@
 # Codex lane handoff
 
-Status: **ACTIVE / PARTIAL**
+Status: **ACTIVE / PARTIAL — safely checkpointed**
 
 Issue #111 / MJ-REQ-110 remains the only Codex claim. Continue in
 `C:/Tools/Dev/MJobs/.worktrees/codex-mj-req110-review-consumer-20261006` on
-`codex/mj-req110-review-consumer-20261006`. This branch contains current
-`origin/main` `54568c7de5edc3594f39f9d139f449bb0eed8cae` as an ancestor. Do not redo
-the integrated cost settings or deterministic preview.
+`codex/mj-req110-review-consumer-20261006`. Fetched `origin/main` at
+`dab63b4fccb246001b12bed9ff2e2a80c5d57ed6` and merged it cleanly in
+`ef0ef628844310437b98b8bf8b74d94d92341239` before further mutation. Do not redo
+the integrated cost settings, deterministic preview, or verified consumer.
 
-The profile-scoped bounded evaluator and explicit AI Settings action are verified
-through a connected synthetic browser flow at source head
-`3c68bf45e5b3af558f832fe970db875c80bcdf9a`. The flow obeys the configured
-one-candidate cap, displays a structured advisory result with job/company context,
-and reports zero documents created. API/consumer/browser checks (10), frontend tests
-(62), frontend build, agent-skills, catalogue, and progress validation PASS.
-Evidence: `docs/evidence/2026-10-06-ai-cost-consumer-review-ui.json`.
+The profile-scoped bounded evaluator and explicit AI Settings action were reverified
+on the reconciled branch at `ef0ef628844310437b98b8bf8b74d94d92341239`. The flow
+obeys saved caps, displays structured advisory output with job/company context, and
+creates zero documents. Ten focused API/consumer/browser tests, 62 frontend tests,
+frontend build, agent-skills, catalogue, progress validation, and diff checks PASS.
+Evidence: `docs/evidence/2026-10-06-ai-cost-consumer-main-reconcile.json`.
 
 Issue status remains PARTIAL. The browser check substitutes a synthetic structured
-result and makes no live provider call. A live configured-provider call and broader
-AI-document workflow remain NOT_RUN. Hosted checks remain NOT_RUN under active
-local-only policy; external submission remains OFF.
+result and makes no live provider call. Live configured-provider inference, durable
+evaluation history, and reviewed AI-document generation remain NOT_RUN. Hosted checks
+remain NOT_RUN under active local-only policy; external submission remains OFF.
 
 Only Codex lane files and owned feature/evidence paths may be changed during this
 claim. Antigravity owns #303 paths; Ollama owns #318 paths. Canonical planning and

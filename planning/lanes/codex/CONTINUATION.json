@@ -5,13 +5,13 @@
   "preferred_model": "gpt-6-luna",
   "preferred_reasoning": "high",
   "session_id": "01a10ed8-5445-7b61-8293-43be1895ecc5",
-  "canonical_main_at_pause": "54568c7de5edc3594f39f9d139f449bb0eed8cae",
+  "canonical_main_at_pause": "dab63b4fccb246001b12bed9ff2e2a80c5d57ed6",
   "last_completed_issue": 111,
   "last_completed_requirement": "MJ-REQ-110",
   "last_integrated_head": "ca53eb29dd0081d7b1151dc4dd2d304226e16ea5",
   "next_issue": 111,
   "next_requirement": "MJ-REQ-110",
-  "resume_instruction": "Issue #111 / MJ-REQ-110 remains PARTIAL on codex/mj-req110-review-consumer-20261006, based on origin/main 54568c7de5edc3594f39f9d139f449bb0eed8cae. At verified source head 3c68bf45e5b3af558f832fe970db875c80bcdf9a, the connected synthetic browser review flow explicitly invokes the profile-scoped consumer after preview, obeys the one-candidate cap, displays title/company and structured advisory output, and reports zero documents. API/consumer/browser checks (10), frontend tests (62), build, agent-skills, catalogue, and progress validators PASS. Evidence: docs/evidence/2026-10-06-ai-cost-consumer-review-ui.json. The browser check uses a synthetic structured result and no live provider call. A live configured-provider call and broader AI-document workflow remain NOT_RUN. Continue only this claim if resumed. Antigravity owns #303 source-adapter paths; Ollama owns #318 ATS-detection paths. Canonical planning/main require the local integration lock.",
+  "resume_instruction": "Issue #111 / MJ-REQ-110 remains PARTIAL on codex/mj-req110-review-consumer-20261006, reconciled with origin/main dab63b4fccb246001b12bed9ff2e2a80c5d57ed6 at merge ef0ef628844310437b98b8bf8b74d94d92341239. The connected synthetic review flow invokes the profile-scoped consumer after preview, obeys saved caps, displays structured advisory output with job/company context, and creates zero documents. Reverified on the reconciled head: 10 focused API/consumer/browser tests, 62 frontend tests, frontend build, agent-skills, catalogue, progress, and diff checks PASS. Evidence: docs/evidence/2026-10-06-ai-cost-consumer-main-reconcile.json. Live provider inference, durable evaluation history, and reviewed document generation remain NOT_RUN. Continue only this claim if resumed. Antigravity owns source-adapter paths; Ollama owns ATS-detection paths. Canonical planning/main require the local integration lock.",
   "external_submission_enabled": false,
   "github_actions_enabled": false
 }
