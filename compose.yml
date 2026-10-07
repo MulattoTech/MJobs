@@ -1,4 +1,9 @@
 name: mjobs
+x-rotating-logging: &rotating-logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: "5"
 x-runtime: &runtime
   image: mjobs-local:spine
   build:
@@ -7,6 +12,7 @@ x-runtime: &runtime
   init: true
   cpus: 2
   mem_limit: 2g
+  logging: *rotating-logging
   environment: &environment
     MJOBS_DATABASE_URL: postgresql+psycopg://mjobs:${POSTGRES_PASSWORD:?Run python cli/init_env.py}@postgres/mjobs
     MJOBS_REDIS_URL: redis://redis:6379/0
@@ -26,6 +32,7 @@ services:
   postgres:
     image: postgres:17
     restart: unless-stopped
+    logging: *rotating-logging
     environment:
       POSTGRES_USER: mjobs
       POSTGRES_DB: mjobs
@@ -41,6 +48,7 @@ services:
   redis:
     image: redis:7
     restart: unless-stopped
+    logging: *rotating-logging
     command: [redis-server, --appendonly, 'yes']
     volumes: [queue:/data]
     healthcheck:

@@ -1,5 +1,21 @@
 # Codex lane handoff
 
+Status: **ACTIVE / issue #179 / MJ-REQ-178 Log Retention**
+
+## Active issue #179 / MJ-REQ-178
+
+Branch: `codex/mj-req178-log-rotation-20261007`
+Worktree: `C:/Tools/Dev/MJobs/.worktrees/codex-mj-req178-log-rotation-20261007`
+Base main: `9a61c6e4ae3b667cd3556b867562ff72900f8a9c`
+Claim: https://github.com/MulattoTech/MJobs/issues/179#issuecomment-6040940208
+Expected files: `compose.yml`, `tests/unit/test_compose_modes.py`, `docs/evidence/2026-10-07-compose-log-rotation.json`, lane-local state.
+
+Acceptance gap reproduced: Docker Compose rendered all nine services without a `logging` bound. A focused regression test failed with missing `logging` for all nine. Compose now has a shared `json-file` rotation policy planned at 10 MiB × 5 files; focused green and neighboring live-feedback/document-artifact tests and repository validators pass using `.venv`. Actual Docker containers are not started. Existing feedback code removes expired managed sessions and disables raw DOM traces; preserve this behavior and reconcile existing evidence before deciding whether issue #179 is fully accepted or remains partial. External submission OFF; hosted checks NOT_RUN_BY_USER_POLICY.
+
+After exact-head evidence: fetch main, inspect claims, acquire integration lock, update canonical state, integrate by non-force fast-forward if safe, release claim/lock, then immediately select the next unclaimed dependency-ready issue.
+
+---
+
 Status: **ACTIVE / issue #6 / MJ-REQ-005**
 
 ## Completed issue #390 / MJ-REF-020

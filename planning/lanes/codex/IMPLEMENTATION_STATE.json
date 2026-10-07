@@ -1,15 +1,15 @@
 {
   "schema_version": 1,
   "lane": "codex",
-  "status": "IDLE_READY",
-  "base_main": "169c3f110978c10af45e4f7e6ef4d950a727d4ae",
-  "current_issue": null,
-  "requirement_id": "MJ-REQ-177",
-  "branch": null,
-  "head": "169c3f110978c10af45e4f7e6ef4d950a727d4ae",
-  "worktree": null,
-  "result": "INTEGRATED_PARTIAL; issue #178 remains OPEN/PARTIAL",
-  "evidence_path": "docs/evidence/2026-10-07-structured-worker-operation-logs.json",
+  "status": "ACTIVE",
+  "base_main": "9a61c6e4ae3b667cd3556b867562ff72900f8a9c",
+  "current_issue": 179,
+  "requirement_id": "MJ-REQ-178",
+  "branch": "codex/mj-req178-log-rotation-20261007",
+  "head": "9a61c6e4ae3b667cd3556b867562ff72900f8a9c",
+  "worktree": ".worktrees/codex-mj-req178-log-rotation-20261007",
+  "result": "ACTIVE; test-first bounded Compose container log rotation",
+  "evidence_path": "docs/evidence/2026-10-07-compose-log-rotation.json",
   "last_completed": {
     "issue": 178,
     "requirement_id": "MJ-REQ-177",
@@ -45,14 +45,16 @@
     "remaining_requirement_gaps": "JOB_MERGED, other settings event producers and full truthful application lifecycle event families remain incomplete",
     "hosted_checks": "NOT_RUN_BY_USER_POLICY",
     "external_submission": "OFF",
-    "browser": "Covered by full suite after frontend build; connected RQ/Redis worker NOT_RUN"
+    "browser": "Covered by full suite after frontend build; connected RQ/Redis worker NOT_RUN",
+    "focused_compose": "Baseline 5 PASS; red regression observed missing logging config on all 9 services; green 6 PASS after rotation config.",
+    "compose_runtime": "docker compose config --profile fixture --format json PASS; actual containers NOT_RUN."
   },
-  "last_integrated_head": "169c3f110978c10af45e4f7e6ef4d950a727d4ae",
+  "last_integrated_head": "9a61c6e4ae3b667cd3556b867562ff72900f8a9c",
   "last_verified_result": "PARTIAL; issue #178 structured worker logging integrated; wider contexts and runtime checks remain open",
-  "updated_at": "2026-10-07T15:18:10Z",
+  "updated_at": "2026-10-07T15:22:07Z",
   "integrated_main": "3c58290a10ff5412c9d92c090e7ebef933af5689",
   "last_integrated_issue": 177,
   "last_integrated_requirement": "MJ-REQ-176 company/source audit event slice",
   "last_integrated_evidence": "docs/evidence/2026-10-07-company-audit-history.json",
-  "canonical_main_at_pause": "66de21a8c4c6c0afeedd31064ee367d7a69f498a"
+  "canonical_main_at_pause": "9a61c6e4ae3b667cd3556b867562ff72900f8a9c"
 }

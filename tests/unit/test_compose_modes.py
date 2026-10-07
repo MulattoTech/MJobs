@@ -82,6 +82,21 @@ class ComposeModeTests(unittest.TestCase):
             with self.subTest(service=service_name):
                 self.assertEqual({name: environment[name] for name in names}, names)
 
+    def test_every_service_uses_bounded_rotating_container_logs(self):
+        configuration = json.loads(self.render("--format", "json", fixture=True))
+        services = configuration["services"]
+
+        self.assertEqual(set(services), {
+            "postgres", "redis", "migrate", "api", "mock", "worker",
+            "scheduler", "source-worker", "document-worker",
+        })
+        for name, service in services.items():
+            with self.subTest(service=name):
+                logging = service["logging"]
+                self.assertEqual(logging["driver"], "json-file")
+                self.assertEqual(logging["options"]["max-size"], "10m")
+                self.assertEqual(logging["options"]["max-file"], "5")
+
 
 if __name__ == "__main__":
     unittest.main()

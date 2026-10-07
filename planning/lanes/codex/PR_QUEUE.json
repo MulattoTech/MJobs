@@ -274,6 +274,17 @@
       "integration_commit": "169c3f110978c10af45e4f7e6ef4d950a727d4ae",
       "source_commit": "21e3f8ffb5d812b4bbdc84424bc5decb42a0cb01",
       "release_comment": "https://github.com/MulattoTech/MJobs/issues/178#issuecomment-6040888652"
+    },
+    {
+      "issue": 179,
+      "requirement_id": "MJ-REQ-178",
+      "status": "IN_PROGRESS",
+      "priority": 1,
+      "target_area": "compose.yml; tests/unit/test_compose_modes.py",
+      "depends_on": [],
+      "evidence_path": "docs/evidence/2026-10-07-compose-log-rotation.json",
+      "scope_complete": false,
+      "note": "Configure bounded rotating logs for all Compose services and verify rendered configuration. Preserve live-feedback 30-day diagnostic cleanup and raw Playwright trace suppression. Assess raw HTML storage; keep broader requirement open unless all acceptance evidence is complete."
     }
   ],
   "generated_at": "2026-10-07T14:05:05Z"
