@@ -3330,16 +3330,16 @@
       "target_area": "services/agents; tests/unit; tests/integration",
       "depends_on": [],
       "status": "INTEGRATED_PARTIAL",
-      "branch": "codex/mj-ref-033-agent-run-limits-20261007",
-      "evidence_path": "docs/evidence/2026-10-07-agent-run-budget-output-validation.json",
-      "base": "de04d6bb06ce23d1a7f4f7f0f04dedcd87bdf7a5",
-      "candidate": "9d010bc7c9b51a4611988c1efe250de7a1d5d791",
+      "branch": "codex/mj-ref033-page-budget-20261007",
+      "evidence_path": "docs/evidence/2026-10-07-agent-page-budget.json",
+      "base": "2e721fdfe27f9218c0d12aa9d9c6c520a2da0182",
+      "candidate": "01596a7a093bbfc359e9ded49076aac3cb95d94d",
       "integration_method": "NON_FORCE_FAST_FORWARD",
-      "integration_commit": "9d010bc7c9b51a4611988c1efe250de7a1d5d791",
+      "integration_commit": "01596a7a093bbfc359e9ded49076aac3cb95d94d",
       "pr_state": "NOT_OPENED_LOCAL_ONLY",
       "scope_complete": false,
       "scope_result": "PARTIAL",
-      "notes": "23 focused agent tests and local validators pass. Browser entrypoint integration, page budgets, diagnostic slice reruns, and hard preemption of an in-flight synchronous handler remain incomplete. Hosted checks/review NOT_RUN by policy."
+      "notes": "23 focused agent tests and local validators pass. Browser entrypoint integration, page budgets, diagnostic slice reruns, and hard preemption of an in-flight synchronous handler remain incomplete. Hosted checks/review NOT_RUN by policy. Follow-up integrated at 01596a7a093bbfc359e9ded49076aac3cb95d94d: explicit per-run page limits and thread-safe host permits prevent undeclared/excess page fetches; safe stop and consumed count persist. 25 focused agent tests and local validators pass. Actual browser/source entrypoint integration, bounded diagnostic slice reruns and hard preemption of an already-running synchronous handler remain unaccepted; issue #403 remains OPEN/PARTIAL. Evidence: docs/evidence/2026-10-07-agent-page-budget.json. Hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF."
     },
     {
       "id": "MJ-PR-160",

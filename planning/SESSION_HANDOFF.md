@@ -1,3 +1,13 @@
+## Issue #403 / MJ-REF-033 page budgets — integrated PARTIAL — 2026-10-07
+
+Per-run page-budget follow-up is integrated at `01596a7a093bbfc359e9ded49076aac3cb95d94d`; behavior commit `79b29ee0fe61af0906772f182c0ac280f73fc2f4`; evidence `docs/evidence/2026-10-07-agent-page-budget.json`. Page-reading tools must declare `max_pages` and obtain a thread-safe host permit immediately before every fetch. An absent/exhausted budget stops the run and persists only the declared limit, consumed count, and stable stop reason. The trace remains free of page values.
+
+Validation on the exact behavior commit: 25 focused agent acceptance/runtime/prompt tests PASS; compileall, agent-skills, catalogue, progress, reference-provenance, lane validation and diff check PASS. Temporary SQLite fixtures only; no schema change. Browser/source integration NOT_RUN because no page-reading browser/source tool is registered in AgentRuntime and Antigravity #302/Ollama #318 own active adapter paths. PostgreSQL/Docker NOT_APPLICABLE; full Python suite NOT_RUN; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.
+
+Issue #403 remains OPEN/PARTIAL. Remaining work: connect budgets to actual browser/source collection entrypoints without touching active claims, support bounded diagnostic slice reruns without equating agreement with correctness, and address interruption of an already-running synchronous handler. Reconcile claims/worktrees before continuing.
+
+---
+
 ## Issue #517 / discovered job-source catalogue — integrated PARTIAL — 2026-10-07
 
 The passive source-candidate catalogue/review slice is integrated on main from source 5b49d595ff48615c8a82a3e383a8ac3d82261578 (integration code checkpoint fb21927f307289b5ed4f1acb5c9b4a862548d905). Its URL-only continuation is integrated from source 20e6835308209c7ae8366d7791215db642ec9ad0 (current evidence/lane checkpoint 859d6b65edb2d38d50407e1071fc94cdd5c45fb3). Evidence: docs/evidence/2026-10-07-source-candidate-catalogue.json. Manual job capture and externally reported applications with supplied third-party URLs now create profile-scoped candidate/provenance records. The Sources UI/API supports sanitized source history, explicit unknown hops, append-only review reasons/site-type assessments, profile isolation, and collection-disabled state. Issue #517 remains OPEN/PARTIAL.

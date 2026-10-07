@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-07T17:47:28Z",
+  "generated_at": "2026-10-07T18:01:27Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -11,7 +11,7 @@
     "current_verified_github_state": "Issue #179 / MJ-REQ-178 log retention acceptance PASS at 8bea57e595e19e638913405a8ec1cd3aa0ebde32; full product remains PARTIAL.",
     "current_verified_at": "2026-10-07T15:27:43Z"
   },
-  "current_milestone": "MJ-REQ-176-JOB-MERGED-AUDIT-PARTIAL-20261007",
+  "current_milestone": "MJ-REF-033-PAGE-BUDGET-PARTIAL-20261007",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -467,21 +467,18 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-07T16:35:59Z",
+    "timestamp": "2026-10-07T18:01:27Z",
     "result": "PARTIAL",
-    "source_commit": "3e9c196d719f589f3c84b2409dc1efc22a1bb37a",
-    "source_tree": "11a5c3e5999a3359108d08e31ec9605128baa1e4",
-    "issue": 177,
-    "requirement_id": "MJ-REQ-176",
-    "title": "[MJ-REQ-176] Audit Log — canonical job merge history slice",
-    "state": "INTEGRATED_PARTIAL",
-    "base": "29a02e2c01a515fe79814cbe79adb6b3342efbc3",
-    "branch": "codex/mj-req176-job-merge-audit-20261007",
-    "candidate_integration_commit": "26deecc77098471f0973e7e0b34193c1e4e0d0e3",
-    "verification_head": "26deecc77098471f0973e7e0b34193c1e4e0d0e3",
-    "verification_tree": "8981ee1a83aabb620c920e55f17f5131bd50444a",
-    "evidence_path": "docs/evidence/2026-10-07-job-merge-audit.json",
-    "scope": "Profile-owned JOB_MERGED history for newly attached company-feed postings resolved to a different canonical job; other audit event families remain incomplete."
+    "issue": 403,
+    "requirement_id": "MJ-REF-033",
+    "source_commit": "79b29ee0fe61af0906772f182c0ac280f73fc2f4",
+    "source_tree": "443fb463d97b5ee45a558e8db06581f0c5d6b333",
+    "base": "2e721fdfe27f9218c0d12aa9d9c6c520a2da0182",
+    "candidate_integration_commit": "01596a7a093bbfc359e9ded49076aac3cb95d94d",
+    "verification_head": "79b29ee0fe61af0906772f182c0ac280f73fc2f4",
+    "verification_tree": "443fb463d97b5ee45a558e8db06581f0c5d6b333",
+    "evidence_path": "docs/evidence/2026-10-07-agent-page-budget.json",
+    "scope": "Host-granted per-run page permits deny undeclared and over-budget page fetches; durable traces retain only limit, consumed count and stop reason. Browser/source adapter integration, bounded diagnostics reruns and in-flight synchronous preemption remain incomplete."
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -548,7 +545,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Issue #177 JOB_MERGED slice is integrated PARTIAL and Codex claim is released; release readback https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6042418780. Reconcile current main, every active claim/comment/worktree/branch, then select the highest-value unclaimed dependency-ready issue.",
+  "recommended_resume_step": "Issue #403 page-budget slice is integrated PARTIAL at 01596a7a093bbfc359e9ded49076aac3cb95d94d; evidence docs/evidence/2026-10-07-agent-page-budget.json. Release the Codex claim, reconcile current main plus all claims/comments/worktrees/branches, and select the highest-value unclaimed dependency-ready issue. Keep #403 OPEN until browser/source integration, bounded diagnostic reruns, and remaining acceptance are verified.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -566,7 +563,7 @@
     "cb72f9041d6a",
     "e14ac893620f"
   ],
-  "unfinished_work_evidence": "docs/evidence/2026-10-06-mock-ats-action-budget.json\nMJ-REQ-095 issue #96 responsibility-bullet emphasis locally verified on e6c47515aa20596ed6ec3263c809af26b4cf3910; broader summary adjustment and factual rephrasing remain PARTIAL. Evidence: docs/evidence/2026-10-06-resume-bullet-emphasis.json\nMJ-REQ-095 issue #96 extractive summary tailoring locally verified on d5309972c04062c721ee72986008b04a1f572e03; factual bullet rephrasing and broad AI rewriting remain PARTIAL. Evidence: docs/evidence/2026-10-06-target-summary-tailoring.json\nMJ-REQ-007 issue #8 local config initialization slice c7306774884ad08e5172bfec7ab365dc261f77b3; issue remains PARTIAL pending actual protected-configuration migration recovery. Evidence: docs/evidence/2026-10-06-atomic-env-initialization.json\nMJ-REQ-007 scoped atomic .env initialization integrated at 494e15f46a93b70530755811888ece6046dc98aa; GitHub issue #8 remains OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6019785804. Evidence: docs/evidence/2026-10-06-atomic-env-initialization.json\nMJ-REQ-008 issue #9 isolated container crash/resume proof: docs/evidence/2026-10-06-progress-container-crash-recovery.json; host restart remains unverified.\nMJ-REQ-004 uploaded-original resume comparison cancellation candidate 8a469b03bb7c57448118be9e1b761d8608d179ab; issue #5 remains OPEN/PARTIAL for remaining external-operation categories and multi-replica cancellation. Evidence: docs/evidence/2026-10-06-uploaded-comparison-cancellation.json\nMJ-REQ-004 cancellation acknowledgement truthfulness candidate 6abd58aec2562fddaff1367fa8c60417d98b5ebb; issue #5 remains OPEN/PARTIAL for cross-replica signaling and remaining operation classes. Evidence: docs/evidence/2026-10-06-comparison-cancel-acknowledgement.json\nMJ-REQ-004 mock ATS questionnaire/receipt HTTP calls now honor worker cancellation/deadline; submission receipt uncertainty remains safe. Evidence: docs/evidence/2026-10-06-mock-ats-http-cancellation.json\nMJ-REQ-109 persisted provider/model selections are connected to a profile-scoped API and AI Settings UI, but no production task consumer or live inference is verified; issue #110 remains PARTIAL/OPEN (docs/evidence/2026-10-06-ai-task-settings-persistence.json).\nMJ-REQ-008 issue #9 product-worker crash recovery/stale-attempt fencing integrated as a scoped PARTIAL slice at source d516834ac3bd48352ef3aa8885a1de1fffe53419; evidence docs/evidence/2026-10-07-product-worker-crash-recovery.json. Physical host restart, browser-process crash, other worker operation types and live PostgreSQL remain unverified.\n\nMJ-REQ-179 issue #180 debug capture scoped implementation PARTIAL: docs/evidence/2026-10-07-safe-browser-debug-capture.json",
+  "unfinished_work_evidence": "docs/evidence/2026-10-06-mock-ats-action-budget.json\nMJ-REQ-095 issue #96 responsibility-bullet emphasis locally verified on e6c47515aa20596ed6ec3263c809af26b4cf3910; broader summary adjustment and factual rephrasing remain PARTIAL. Evidence: docs/evidence/2026-10-06-resume-bullet-emphasis.json\nMJ-REQ-095 issue #96 extractive summary tailoring locally verified on d5309972c04062c721ee72986008b04a1f572e03; factual bullet rephrasing and broad AI rewriting remain PARTIAL. Evidence: docs/evidence/2026-10-06-target-summary-tailoring.json\nMJ-REQ-007 issue #8 local config initialization slice c7306774884ad08e5172bfec7ab365dc261f77b3; issue remains PARTIAL pending actual protected-configuration migration recovery. Evidence: docs/evidence/2026-10-06-atomic-env-initialization.json\nMJ-REQ-007 scoped atomic .env initialization integrated at 494e15f46a93b70530755811888ece6046dc98aa; GitHub issue #8 remains OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6019785804. Evidence: docs/evidence/2026-10-06-atomic-env-initialization.json\nMJ-REQ-008 issue #9 isolated container crash/resume proof: docs/evidence/2026-10-06-progress-container-crash-recovery.json; host restart remains unverified.\nMJ-REQ-004 uploaded-original resume comparison cancellation candidate 8a469b03bb7c57448118be9e1b761d8608d179ab; issue #5 remains OPEN/PARTIAL for remaining external-operation categories and multi-replica cancellation. Evidence: docs/evidence/2026-10-06-uploaded-comparison-cancellation.json\nMJ-REQ-004 cancellation acknowledgement truthfulness candidate 6abd58aec2562fddaff1367fa8c60417d98b5ebb; issue #5 remains OPEN/PARTIAL for cross-replica signaling and remaining operation classes. Evidence: docs/evidence/2026-10-06-comparison-cancel-acknowledgement.json\nMJ-REQ-004 mock ATS questionnaire/receipt HTTP calls now honor worker cancellation/deadline; submission receipt uncertainty remains safe. Evidence: docs/evidence/2026-10-06-mock-ats-http-cancellation.json\nMJ-REQ-109 persisted provider/model selections are connected to a profile-scoped API and AI Settings UI, but no production task consumer or live inference is verified; issue #110 remains PARTIAL/OPEN (docs/evidence/2026-10-06-ai-task-settings-persistence.json).\nMJ-REQ-008 issue #9 product-worker crash recovery/stale-attempt fencing integrated as a scoped PARTIAL slice at source d516834ac3bd48352ef3aa8885a1de1fffe53419; evidence docs/evidence/2026-10-07-product-worker-crash-recovery.json. Physical host restart, browser-process crash, other worker operation types and live PostgreSQL remain unverified.\n\nMJ-REQ-179 issue #180 debug capture scoped implementation PARTIAL: docs/evidence/2026-10-07-safe-browser-debug-capture.json\nMJ-REF-033 issue #403 page permits integrated PARTIAL at 01596a7a093bbfc359e9ded49076aac3cb95d94d; evidence docs/evidence/2026-10-07-agent-page-budget.json. Browser/source entrypoint integration, bounded diagnostic reruns, and preemption of already-running synchronous handlers remain incomplete.",
   "authorization": "User explicitly provided 100% Git and GitHub authorization on 2026-09-30; still verify native permissions and required checks",
   "user_testing": {
     "result": "PASS",
@@ -585,7 +582,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "26deecc77098471f0973e7e0b34193c1e4e0d0e3",
+  "last_implementation_commit": "01596a7a093bbfc359e9ded49076aac3cb95d94d",
   "publication": {
     "result": "PASS",
     "integration_method": "NON_FORCE_FAST_FORWARD",
@@ -9012,12 +9009,59 @@
         "This is only one JOB_MERGED event producer; full audit requirement remains PARTIAL/OPEN.",
         "Synthetic SQLite only; live PostgreSQL/Docker, hosted checks and actual external application submission were not used."
       ]
+    },
+    {
+      "milestone_id": "MJ-REF-033-PAGE-BUDGET-PARTIAL-20261007",
+      "timestamp": "2026-10-07T18:01:27Z",
+      "current_phase": "MJ_REF_033_PAGE_BUDGET_PARTIAL_INTEGRATED",
+      "completed_steps": [
+        "Reconciled current origin/main and all active machine/GitHub issue/path claims; selected the released, open #403 follow-up without overlapping Antigravity #302 or Ollama #318.",
+        "Reproduced missing page-budget behavior: max_pages was rejected and an undeclared page fetch returned generic FAILED instead of a bounded stop.",
+        "Added explicit per-run page declaration and thread-safe host permits; undeclared or exhausted page consumption stops before the next fetch and persists sanitized limit/count/reason only.",
+        "Validated 25 focused agent tests, compileall, catalogue, progress, reference provenance, agent skill, lane, and diff checks; exact behavior source 79b29ee0fe61af0906772f182c0ac280f73fc2f4.",
+        "Integrated evidence-backed partial slice by non-force fast-forward at 01596a7a093bbfc359e9ded49076aac3cb95d94d; issue #403 remains OPEN/PARTIAL."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-07-agent-page-budget.json"
+      ],
+      "files_modified": [
+        "services/agents/registry.py",
+        "services/agents/runtime.py",
+        "services/agents/traces.py",
+        "services/agents/AREA.md",
+        "tests/integration/test_agent_tools.py",
+        "docs/reference/REFERENCE_INSPIRATION_LOG.md",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/REFERENCE_GAP_MATRIX.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "25 focused agent acceptance/runtime/prompt unit/integration tests PASS on behavior source commit 79b29ee0fe61af0906772f182c0ac280f73fc2f4.",
+        "compileall, agent-skills, catalogue, progress, reference-provenance, lane coordination, and git diff checks PASS."
+      ],
+      "tests_remaining": [
+        "Actual browser/source entrypoint integration, bounded diagnostic slice reruns, and hard preemption of an already-running synchronous handler remain incomplete.",
+        "Full Python suite and browser suite NOT_RUN; PostgreSQL/Docker NOT_APPLICABLE for no-schema-change slice; hosted checks NOT_RUN_BY_USER_POLICY."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "01596a7a093bbfc359e9ded49076aac3cb95d94d",
+        "evidence_path": "docs/evidence/2026-10-07-agent-page-budget.json"
+      },
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "Page permits are cooperative: handlers must call consume_page() before each fetch. A currently blocked synchronous handler is not forcibly terminated.",
+        "No browser/source collector is currently registered in AgentRuntime; #403 remains PARTIAL and OPEN.",
+        "External application submission remains OFF."
+      ]
     }
   ],
-  "current_phase": "MJ_REQ_176_JOB_MERGED_AUDIT_PARTIAL_INTEGRATED",
+  "current_phase": "MJ_REF_033_PAGE_BUDGET_PARTIAL_INTEGRATED",
   "last_safe_checkpoint": {
-    "git_commit": "26deecc77098471f0973e7e0b34193c1e4e0d0e3",
-    "evidence_path": "docs/evidence/2026-10-07-job-merge-audit.json"
+    "git_commit": "01596a7a093bbfc359e9ded49076aac3cb95d94d",
+    "evidence_path": "docs/evidence/2026-10-07-agent-page-budget.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -9270,20 +9314,20 @@
     "next_issue": "Release #398 and select the next dependency-ready unclaimed issue after live claim/worktree reconciliation."
   },
   "active_development_issue": {
-    "issue": 177,
-    "requirement_id": "MJ-REQ-176",
-    "title": "[MJ-REQ-176] Audit Log",
+    "issue": 403,
+    "requirement_id": "MJ-REF-033",
+    "title": "Run-level stopping conditions, budgets, and browser-output validation",
     "state": "INTEGRATED_PARTIAL",
-    "base": "29a02e2c01a515fe79814cbe79adb6b3342efbc3",
-    "branch": "codex/mj-req176-job-merge-audit-20261007",
-    "candidate": "26deecc77098471f0973e7e0b34193c1e4e0d0e3",
-    "integrated_main": "26deecc77098471f0973e7e0b34193c1e4e0d0e3",
-    "source_commit": "3e9c196d719f589f3c84b2409dc1efc22a1bb37a",
-    "source_tree": "11a5c3e5999a3359108d08e31ec9605128baa1e4",
-    "evidence": "docs/evidence/2026-10-07-job-merge-audit.json",
+    "base": "2e721fdfe27f9218c0d12aa9d9c6c520a2da0182",
+    "branch": "codex/mj-ref033-page-budget-20261007",
+    "candidate": "01596a7a093bbfc359e9ded49076aac3cb95d94d",
+    "integrated_main": "01596a7a093bbfc359e9ded49076aac3cb95d94d",
+    "source_commit": "79b29ee0fe61af0906772f182c0ac280f73fc2f4",
+    "source_tree": "443fb463d97b5ee45a558e8db06581f0c5d6b333",
+    "evidence": "docs/evidence/2026-10-07-agent-page-budget.json",
     "issue_state": "OPEN",
-    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6042382787",
-    "next_action": "Issue remains OPEN/PARTIAL but Codex released the scoped claim after evidence readback; select the next unclaimed dependency-ready issue after fresh ownership reconciliation."
+    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/403#issuecomment-6043785113",
+    "next_action": "Issue remains OPEN/PARTIAL; reconcile all active claims and select the next unclaimed dependency-ready requirement."
   },
   "historical_control_snapshots": [
     {
@@ -10410,7 +10454,8 @@
     "MJ-REQ-005 / issue #6 direct structured AI evaluations now reserve database-backed AI category capacity across API instances; generic durable cancellation propagates to provider cancellation; completed, cancelled and expired-lease outcomes are recorded. Full Python 849 PASS (1 optional PostgreSQL skip), 32 focused API/worker tests PASS, 8 browser tests PASS after building worktree UI, frontend 62 PASS/build PASS, validators PASS. Evidence docs/evidence/2026-10-07-ai-evaluation-concurrency-admission.json. Requirement remains PARTIAL: live PostgreSQL lock, live provider and real ATS behavior are not evidenced.",
     "Issue #9 / MJ-REQ-008 product-worker crash recovery exact source d516834ac3bd48352ef3aa8885a1de1fffe53419: full Python 851 PASS / 1 optional PostgreSQL skip; focused 20 PASS; frontend build and repository validators PASS. Process-kill and stale-attempt evidence: docs/evidence/2026-10-07-product-worker-crash-recovery.json. Issue remains OPEN/PARTIAL; hosted checks NOT_RUN_BY_USER_POLICY.",
     "Issue #178 / MJ-REQ-177 structured worker logging integrated at 169c3f110978c10af45e4f7e6ef4d950a727d4ae; 21 focused PASS/1 PostgreSQL skip, full Python 932 PASS/8 skipped, frontend 63/build and local validators PASS. Evidence docs/evidence/2026-10-07-structured-worker-operation-logs.json. Remaining scope and unavailable runtime/hosted checks remain PARTIAL/NOT_RUN.",
-    "Issue #179 / MJ-REQ-178 fully accepted and integrated at 8bea57e595e19e638913405a8ec1cd3aa0ebde32. All nine Compose services render 10m/5 file rotation; disposable Docker rollover emitted 50 and retained 11 lines under 1m/2; existing feedback retention and no raw trace/HTML storage verified. 20 focused tests and validators PASS. Evidence docs/evidence/2026-10-07-compose-log-rotation.json."
+    "Issue #179 / MJ-REQ-178 fully accepted and integrated at 8bea57e595e19e638913405a8ec1cd3aa0ebde32. All nine Compose services render 10m/5 file rotation; disposable Docker rollover emitted 50 and retained 11 lines under 1m/2; existing feedback retention and no raw trace/HTML storage verified. 20 focused tests and validators PASS. Evidence docs/evidence/2026-10-07-compose-log-rotation.json.",
+    "Issue #403 / MJ-REF-033 page-budget slice: source 79b29ee0fe61af0906772f182c0ac280f73fc2f4 (443fb463d97b5ee45a558e8db06581f0c5d6b333), integrated candidate 01596a7a093bbfc359e9ded49076aac3cb95d94d (f55ee218fe0bb32249cef537ea66700b235280c5); 25 focused agent tests, compileall, agent_skills/catalogue/progress/reference_provenance/lane_coordination and diff checks PASS. Browser/source entrypoint, full Python suite, PostgreSQL/Docker and hosted checks NOT_RUN or NOT_APPLICABLE as recorded in docs/evidence/2026-10-07-agent-page-budget.json. Issue remains OPEN/PARTIAL."
   ],
   "ownership": "Issue #6 / MJ-REQ-005 AI evaluation admission source cb2681b6a921f2759cf46d4d66a8228645b473e7 and sanitized evidence/planning are integrated at synchronized local/GitHub main cb2681b6a921f2759cf46d4d66a8228645b473e7 under the local Codex integration lock. No PR opened; branch unprotected; hosted checks/review NOT_RUN by policy. Issue remains OPEN/PARTIAL.",
   "delivery_policy": {
@@ -10425,5 +10470,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-07T16:40:07Z"
+  "updated_at": "2026-10-07T18:01:27Z"
 }
