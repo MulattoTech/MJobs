@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-07T14:20:10Z",
+  "issue": 177,
+  "requirement_id": "MJ-REQ-176",
+  "result": "PARTIAL",
+  "source_commit": "54f426a5669ce76c31141d8e6bacd0a6f859ad82",
+  "source_tree": "b9c58dc193abc9e87dea7b1209acc7e427e7568d",
+  "base_main": "f97f45e54ce3bb162e65a3c144a01573be72807a",
+  "acceptance_oracle": "When a user queues deterministic PREPARE work, the profile Activity history shows APPLICATION_QUEUED, APPLICATION_STARTED for each durable worker attempt, and APPLICATION_FAILED only at terminal dead-letter/retry-limit failure. Events survive API readback and reload, stay profile-scoped, use job/company context, and never expose resume content or imply a real application submission/confirmation.",
+  "gap_observation": "Before the slice, the operation queue/worker already persisted mutable operation state and operation-scoped attempt audits, while the user audit read model had no profile-owned PREPARE lifecycle producers. Current acceptance invokes the real queue/claim/retry/failure transition path and observes the append-only profile audit history.",
+  "implementation": [
+    "PREPARE queue audit is written in the same transaction as the durable operation upsert; stable IDs make repeated identical enqueue calls idempotent.",
+    "PREPARE started audit is written with the worker claim transaction and includes a distinct attempt number.",
+    "Terminal dead-letter failures from task execution and retry-limit lease recovery append one stable APPLICATION_FAILED event in the same transaction as the terminal operation state.",
+    "Only job ID, operation ID and attempt number are stored in these profile audit payloads; user-facing readback uses fixed summaries and safe job/company labels."
+  ],
+  "validation": [
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_audit_history tests.integration.test_worker_lifecycle tests.integration.test_transactional_outbox -v",
+      "result": "PASS",
+      "counts": {
+        "passed": 28,
+        "failed": 0,
+        "skipped": 1
+      },
+      "skip_reason": "PostgreSQL worker crash recovery class skipped because MJOBS_WORKER_RECOVERY_POSTGRES_URL was not configured."
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.browser.test_audit_history -v",
+      "result": "PASS",
+      "counts": {
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run",
+      "result": "PASS",
+      "counts": {
+        "files": 13,
+        "tests": 63,
+        "failed": 0
+      }
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "details": "TypeScript check and Vite production build completed."
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.agent_skills",
+      "result": "PASS"
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.catalogue",
+      "result": "PASS"
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.progress validate",
+      "result": "PASS"
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.coordination.lane_coordination validate",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "browser_evidence": {
+    "engine": "Headless Chromium via Playwright",
+    "database": "Temporary SQLite fixture database; durable PREPARE queue and claim events read by the connected API after reload.",
+    "network": "Loopback-only browser requests; no external requests observed.",
+    "verified": [
+      "Activity displays preparation queued and started events with application context.",
+      "Reload preserves the events.",
+      "Other profile does not receive them.",
+      "Existing user-reported status/note privacy checks remain in the connected browser test."
+    ]
+  },
+  "environment_attempts": [
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.browser.test_audit_history -v",
+      "result": "BLOCKED_ENVIRONMENT on initial attempt",
+      "details": "Fresh worktree lacked ignored apps/web/dist; npm ci and build restored the app assets and the browser test passed."
+    },
+    {
+      "command": "npm ci --prefix apps/web",
+      "result": "PASS with engine warning",
+      "details": "44 lockfile packages installed. Local Node 25.9 is outside Vitest 5 declared ranges (^22.12, ^24, >=26); tests and build passed."
+    }
+  ],
+  "remaining_requirement_gaps": [
+    "Company discovery/source-enrollment, job merge and complete setting-change events remain unimplemented or unverified.",
+    "Actual application submission is disabled; no APPLICATION_SUBMITTED or employer-receipt confirmation is emitted.",
+    "Company/source path is actively owned by Antigravity #302; ATS detection is actively owned by Ollama #318."
+  ],
+  "environment": {
+    "os": "Windows",
+    "python": "3.12",
+    "node": "25.9.0",
+    "npm": "11.12.1",
+    "database": "SQLite; no schema change or migration.",
+    "postgresql_docker_migrations": "NOT_RUN; PostgreSQL worker test skipped due missing isolated DB URL.",
+    "hosted_actions_and_review": "NOT_RUN_BY_USER_POLICY",
+    "external_submission": "OFF"
+  }
+}

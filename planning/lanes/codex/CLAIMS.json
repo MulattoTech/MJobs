@@ -428,6 +428,29 @@
       "released_at": "2026-10-07T14:15:45Z",
       "integrated_main": "5051ba20c1bd96939ace7d53071742d2662be0a2",
       "result": "PARTIAL; issue remains OPEN"
+    },
+    {
+      "issue": 177,
+      "requirement_id": "MJ-REQ-176",
+      "branch": "codex/mj-req176-preparation-events-20261007",
+      "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req176-preparation-events-20261007",
+      "head": "54f426a5669ce76c31141d8e6bacd0a6f859ad82",
+      "paths": [
+        "workers/dispatch.py",
+        "workers/operations.py",
+        "workers/tasks.py",
+        "services/audit_history.py",
+        "tests/integration/test_audit_history.py",
+        "tests/integration/test_worker_lifecycle.py",
+        "tests/browser/test_audit_history.py",
+        "docs/evidence/2026-10-07-application-preparation-audit.json",
+        "planning/lanes/codex/**"
+      ],
+      "status": "ACTIVE",
+      "claimed_at": "2026-10-07T14:16:13Z",
+      "claim_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6039877668",
+      "claim_update": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6039952940",
+      "evidence_path": "docs/evidence/2026-10-07-application-preparation-audit.json"
     }
   ]
 }
