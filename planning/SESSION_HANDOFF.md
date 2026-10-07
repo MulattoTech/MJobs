@@ -1,5 +1,13 @@
 # Integration receipt — 2026-10-07
 
+Issue #5 / MJ-REQ-004 in-flight Ollama cancellation integrated by non-force fast-forward at synchronized local/GitHub main ef3a633b8325f26efd3c861ca237a4f318891535. Tested source 0be8c8c87509dd49ce1ca9e48a8f65158b45c2f9 (tree a2d6d0ecfbdcfed5316279640dde8373caa50b69); evidence docs/evidence/2026-10-07-ai-ollama-active-cancel.json. The API cancellation event reaches the real Ollama provider transport; canceling after synthetic loopback response headers and one body byte closes the connection within one second, returns canceled status, and preserves empty evaluation history. Validation: 43 focused AI/provider/API/Chromium tests; 848 full Python tests with one optional PostgreSQL skip; 62 frontend tests/build; agent-skills, catalogue, progress, lane, compile and diff checks PASS. No live inference or external submission. Hosted checks/review NOT_RUN_BY_USER_POLICY. Issue #5 remains OPEN/PARTIAL.
+
+Sanitized issue readback: https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6030873705. Local and remote main match at ef3a633b8325f26efd3c861ca237a4f318891535. Release the Codex claim and lock, then reconcile active ownership and select the next dependency-ready issue.
+
+---
+
+# Integration receipt — 2026-10-07
+
 Issue #5 / MJ-REQ-004 explicit structured-AI evaluation cancellation integrated by non-force fast-forward at synchronized local/GitHub main 0d1bb23b3d11ea44c5026b8e256289b134e38628. Tested source b9cac2c6ec425e5cf888265e97fb70930fde947b (tree cf3e070d5711af2dbf191055c3442b65a3892296); evidence docs/evidence/2026-10-07-ai-evaluation-ui-cancel.json. The AI Settings UI sends a profile/request-scoped cancellation request, remains pending until the bounded synthetic provider call completes, discards the interrupted batch, and confirms empty history after reload. Local validation: 16 focused API/Chromium tests; 847 full Python tests with 1 optional PostgreSQL skip; 62 frontend tests/build; agent-skills, catalogue, progress, lane and compile checks PASS. Live provider inference and PostgreSQL runtime NOT_RUN; hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF. Issue #5 remains OPEN/PARTIAL.
 
 Sanitized GitHub issue readback: https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6030719498. Main and origin/main both 0d1bb23b3d11ea44c5026b8e256289b134e38628. Continue by releasing the Codex claim, reconciling active ownership, and selecting the next dependency-ready issue.
