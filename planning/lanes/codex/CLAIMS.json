@@ -642,11 +642,14 @@
         "docs/evidence/2026-10-07-source-candidate-catalogue.json",
         "planning/lanes/codex/**"
       ],
-      "status": "ACTIVE",
+      "status": "RELEASED",
       "claimed_at": "2026-10-07T17:30:19Z",
       "claim_comment": "https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6043233879",
       "evidence_path": "docs/evidence/2026-10-07-source-candidate-catalogue.json",
-      "result": "URL-only user source report complete locally; issue remains PARTIAL/OPEN"
+      "result": "PARTIAL; issue remains OPEN",
+      "released_at": "2026-10-07T17:48:48Z",
+      "integrated_main": "68b94d72bf7c254154e5ad5099a6f25644e7a0a7",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6043571312"
     }
   ]
 }
