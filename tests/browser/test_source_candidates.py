@@ -14,7 +14,10 @@ import uvicorn
 
 from apps.api.main import create_app
 from fixtures.browser_ports import bound_browser_socket
-from packages.persistence.store import Store
+from packages.persistence import models as m
+from packages.persistence.store import Store, upsert
+from services.company_discovery.sources import upsert_company_job_source
+from services.discovery.company_feed import import_company_feed_jobs
 from tests.integration.test_spine import PROFILE
 
 
@@ -40,6 +43,26 @@ class SourceCandidateBrowserTests(unittest.TestCase):
             store.save_profile(copy.deepcopy(PROFILE))
             store.save_profile({**PROFILE, "id": "other", "name": "Other Profile",
                                 "email": "other@example.invalid"})
+            with store.engine.begin() as connection:
+                upsert(connection, m.companies, {
+                    "id": "browser-feed-candidate-employer", "name": "Feed Employer",
+                    "domain": "employer.example",
+                })
+            endpoint = "https://employer.example/jobs.json"
+            source = upsert_company_job_source(
+                store, company_id="browser-feed-candidate-employer", provider="rss",
+                tenant_identifier="browser-feed", public_api_url=endpoint,
+                collection_strategy="PUBLIC_JSON",
+            )
+            import_company_feed_jobs(
+                store, company_id="browser-feed-candidate-employer", source_id=source["id"],
+                provider="rss", tenant="browser-feed", endpoint=endpoint,
+                strategy="PUBLIC_JSON", profile_id="fixture", items=[{
+                    "id": "browser-feed-role", "title": "Synthetic Platform Engineer",
+                    "description": "Maintain synthetic application systems.",
+                    "url": "https://jobs.example-ats.invalid/apply/role-1",
+                }],
+            )
             SourceUrlProbe.requests = []
             probe = HTTPServer(("127.0.0.1", 0), SourceUrlProbe)
             probe_thread = threading.Thread(target=probe.serve_forever, daemon=True)
@@ -100,6 +123,13 @@ class SourceCandidateBrowserTests(unittest.TestCase):
                     page.get_by_role("button", name="Save captured job", exact=True).click()
                     expect(page.get_by_role("status").filter(has_text="Job captured and evaluated")).to_be_visible()
                     page.get_by_role("button", name="Sources", exact=True).click()
+                    feed_candidate = page.get_by_role(
+                        "article", name="Source candidate jobs.example-ats.invalid")
+                    expect(feed_candidate).to_contain_text("SUPPORTED COLLECTION")
+                    expect(feed_candidate).to_contain_text("https://employer.example/jobs.json")
+                    expect(feed_candidate).to_contain_text(
+                        "https://jobs.example-ats.invalid/apply/role-1")
+                    expect(feed_candidate).to_contain_text("Collection disabled")
                     candidate = page.get_by_role("article", name="Source candidate talenthop.com")
                     expect(candidate).to_contain_text("LinkedIn")
                     expect(candidate).to_contain_text("https://www.talenthop.com/apply/role-123")
@@ -114,6 +144,8 @@ class SourceCandidateBrowserTests(unittest.TestCase):
                     expect(candidate).to_contain_text("Reported destination is an ATS")
                     page.reload(wait_until="domcontentloaded")
                     page.get_by_role("button", name="Sources", exact=True).click()
+                    expect(page.get_by_role(
+                        "article", name="Source candidate jobs.example-ats.invalid")).to_be_visible()
                     candidate = page.get_by_role("article", name="Source candidate talenthop.com")
                     expect(candidate).to_contain_text("BLOCKED")
                     expect(candidate).to_contain_text("ATS")

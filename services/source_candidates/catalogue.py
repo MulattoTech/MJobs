@@ -57,8 +57,9 @@ def record_capture(connection, *, profile_id: str | None, request_id: str,
                    job_id: str | None, application_id: str | None,
                    discovery_origin: str | None, source_url: str | None,
                    application_url: str | None, observed_hops=None,
-                   capture_method: str):
-    """Record one user-supplied capture without opening any URL."""
+                   capture_method: str, origin_attribution: str | None = None,
+                   evidence_status: str | None = None):
+    """Record one sanitized provenance observation without opening any URL."""
     if not profile_id:
         return None
     safe_source = _safe_url(source_url)
@@ -69,6 +70,8 @@ def record_capture(connection, *, profile_id: str | None, request_id: str,
         return None
     timestamp = now()
     candidate_id = identity("source-candidate", profile_id, domain)
+    if capture_method not in {"MANUAL_CAPTURE", "EXTERNAL_APPLICATION", "SUPPORTED_COLLECTION"}:
+        raise ValueError("SOURCE_CANDIDATE_CAPTURE_METHOD_INVALID")
     capture_key = f"{capture_method}:{request_id}"
     observation_id = identity("source-candidate-observation", profile_id, capture_key)
     origin = _origin(discovery_origin)
@@ -79,6 +82,12 @@ def record_capture(connection, *, profile_id: str | None, request_id: str,
             hops.append(_safe_url(item) or {"state": "UNKNOWN"})
     if not hops:
         hops = [{"state": "UNKNOWN"}]
+    attribution = origin_attribution or ("USER_REPORTED" if origin else "UNKNOWN")
+    status = evidence_status or (
+        "USER_REPORTED" if origin or safe_source or safe_application else "UNKNOWN")
+    if attribution not in {"USER_REPORTED", "UNKNOWN"} or status not in {
+            "USER_REPORTED", "PARTIAL", "UNKNOWN"}:
+        raise ValueError("SOURCE_CANDIDATE_EVIDENCE_STATUS_INVALID")
 
     upsert(connection, m.source_candidates, {
         "id": candidate_id, "profile_id": profile_id, "domain": domain,
@@ -106,13 +115,31 @@ def record_capture(connection, *, profile_id: str | None, request_id: str,
         "id": observation_id, "candidate_id": candidate_id, "profile_id": profile_id,
         "capture_key": capture_key, "job_id": job_id, "application_id": application_id,
         "discovery_origin": origin,
-        "origin_attribution": "USER_REPORTED" if origin else "UNKNOWN",
+        "origin_attribution": attribution,
         "source_url": safe_source, "application_url": safe_application,
         "observed_hops": hops, "capture_method": capture_method,
-        "evidence_status": "USER_REPORTED" if origin or safe_source or safe_application else "UNKNOWN",
+        "evidence_status": status,
         "observed_at": timestamp,
     })
     return candidate_id
+
+
+def record_supported_collection(connection, *, profile_id: str, request_id: str,
+                                job_id: str, source_url: str,
+                                application_url: str):
+    """Record feed-observed third-party destinations without claiming redirects or attribution."""
+    safe_source = _safe_url(source_url)
+    safe_application = _safe_url(application_url)
+    if (not safe_source or not safe_application
+            or _domain(safe_source) == _domain(safe_application)):
+        return None
+    return record_capture(
+        connection, profile_id=profile_id, request_id=request_id, job_id=job_id,
+        application_id=None, discovery_origin=None, source_url=safe_source,
+        application_url=safe_application, observed_hops=[{"state": "UNKNOWN"}],
+        capture_method="SUPPORTED_COLLECTION", origin_attribution="UNKNOWN",
+        evidence_status="PARTIAL",
+    )
 
 
 def list_candidates(store, profile_id: str):

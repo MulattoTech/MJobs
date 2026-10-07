@@ -6,7 +6,10 @@ import unittest
 from fastapi.testclient import TestClient
 
 from apps.api.main import create_app
-from packages.persistence.store import Store
+from packages.persistence import models as m
+from packages.persistence.store import Store, upsert
+from services.company_discovery.sources import upsert_company_job_source
+from services.discovery.company_feed import import_company_feed_jobs
 from tests.integration.test_spine import PROFILE
 
 
@@ -102,6 +105,102 @@ class SourceCandidateCaptureTests(unittest.TestCase):
         self.assertEqual(conflict.status_code, 409, conflict.text)
         reread = self.client.get("/source-candidates", params={"profile_id": "fixture"})
         self.assertEqual(len(reread.json()["candidates"][0]["observations"]), 1)
+
+    def test_supported_feed_import_catalogues_external_application_origin_idempotently(self):
+        with self.store.engine.begin() as connection:
+            upsert(connection, m.companies, {
+                "id": "catalogue-feed-employer", "name": "Feed Employer",
+                "domain": "employer.example",
+            })
+        endpoint = "https://employer.example/jobs.json"
+        source = upsert_company_job_source(
+            self.store, company_id="catalogue-feed-employer", provider="rss",
+            tenant_identifier="feed-board", public_api_url=endpoint,
+            collection_strategy="PUBLIC_JSON",
+        )
+        items = [{
+            "id": "role-1", "title": "Systems Administrator",
+            "description": "Maintain synthetic Linux infrastructure.",
+            "url": "https://jobs.example-ats.invalid/apply/role-1?session=private-token",
+        }]
+
+        def fail_receipt(_connection):
+            raise RuntimeError("synthetic feed import rollback")
+
+        with self.assertRaisesRegex(RuntimeError, "synthetic feed import rollback"):
+            import_company_feed_jobs(
+                self.store, company_id="catalogue-feed-employer", source_id=source["id"],
+                provider="rss", tenant="feed-board", endpoint=endpoint,
+                strategy="PUBLIC_JSON", items=items, profile_id="fixture",
+                extra_profile_ids=("other",), import_receipt=fail_receipt,
+            )
+        rolled_back = self.client.get(
+            "/source-candidates", params={"profile_id": "fixture"}).json()["candidates"]
+        self.assertEqual(rolled_back, [])
+
+        imported = import_company_feed_jobs(
+            self.store, company_id="catalogue-feed-employer", source_id=source["id"],
+            provider="rss", tenant="feed-board", endpoint=endpoint,
+            strategy="PUBLIC_JSON", items=items, profile_id="fixture",
+            extra_profile_ids=("other",),
+        )
+        replayed = import_company_feed_jobs(
+            self.store, company_id="catalogue-feed-employer", source_id=source["id"],
+            provider="rss", tenant="feed-board", endpoint=endpoint,
+            strategy="PUBLIC_JSON", items=items, profile_id="fixture",
+            extra_profile_ids=("other",),
+        )
+
+        self.assertEqual(imported, 1)
+        self.assertEqual(replayed, 1)
+        fixture_candidates = self.client.get(
+            "/source-candidates", params={"profile_id": "fixture"}).json()["candidates"]
+        other_candidates = self.client.get(
+            "/source-candidates", params={"profile_id": "other"}).json()["candidates"]
+        self.assertEqual(len(fixture_candidates), 1)
+        self.assertEqual(len(other_candidates), 1)
+        for candidate in (*fixture_candidates, *other_candidates):
+            self.assertEqual(candidate["domain"], "jobs.example-ats.invalid")
+            self.assertFalse(candidate["collection_enabled"])
+            self.assertEqual(len(candidate["observations"]), 1)
+            observation = candidate["observations"][0]
+            self.assertEqual(observation["capture_method"], "SUPPORTED_COLLECTION")
+            self.assertEqual(observation["origin_attribution"], "UNKNOWN")
+            self.assertIsNone(observation["discovery_origin"])
+            self.assertEqual(observation["evidence_status"], "PARTIAL")
+            self.assertEqual(observation["source_url"], endpoint)
+            self.assertEqual(observation["application_url"],
+                             "https://jobs.example-ats.invalid/apply/role-1")
+            self.assertEqual(observation["observed_hops"], [{"state": "UNKNOWN"}])
+            self.assertNotIn("private-token", str(candidate))
+        self.assertIsNotNone(fixture_candidates[0]["observations"][0]["job_id"])
+        self.assertEqual(self.store.count("source_candidates"), 2)
+
+    def test_supported_feed_does_not_catalogue_its_already_enrolled_employer_origin(self):
+        with self.store.engine.begin() as connection:
+            upsert(connection, m.companies, {
+                "id": "catalogue-first-party-employer", "name": "Feed Employer",
+                "domain": "employer.example",
+            })
+        endpoint = "https://employer.example/jobs.json"
+        source = upsert_company_job_source(
+            self.store, company_id="catalogue-first-party-employer", provider="rss",
+            tenant_identifier="feed-board", public_api_url=endpoint,
+            collection_strategy="PUBLIC_JSON",
+        )
+        import_company_feed_jobs(
+            self.store, company_id="catalogue-first-party-employer", source_id=source["id"],
+            provider="rss", tenant="feed-board", endpoint=endpoint,
+            strategy="PUBLIC_JSON", profile_id="fixture", items=[{
+                "id": "role-2", "title": "Systems Administrator",
+                "description": "Maintain synthetic Linux infrastructure.",
+                "url": "https://employer.example/jobs/role-2",
+            }],
+        )
+
+        listed = self.client.get("/source-candidates", params={"profile_id": "fixture"})
+        self.assertEqual(listed.status_code, 200, listed.text)
+        self.assertEqual(listed.json()["candidates"], [])
 
 
     def test_external_application_preserves_origin_and_review_history_is_profile_scoped(self):

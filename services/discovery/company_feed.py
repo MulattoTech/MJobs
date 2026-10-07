@@ -71,6 +71,7 @@ def import_company_feed_jobs(store, *, company_id, source_id, provider, tenant,
     salary_known = 0
     pending_candidates = []
     pending_merges = []
+    pending_source_candidates = []
     batch_postings = {}
     batch_identities = {}
     guard_rejected = False
@@ -174,6 +175,7 @@ def import_company_feed_jobs(store, *, company_id, source_id, provider, tenant,
                     pending_merges.append((posting_id, job_id))
                 pending_candidates.append((posting_id, job_id, external_key, {key: value for key, value in job.items()
                                                                 if key not in {'id', 'company_id'}}))
+                pending_source_candidates.append((posting_id, job_id, application_url))
                 completeness, has_salary = posting_metrics(job, application_url)
                 completeness_sum += completeness
                 salary_known += int(has_salary)
@@ -203,6 +205,16 @@ def import_company_feed_jobs(store, *, company_id, source_id, provider, tenant,
             evaluated_profiles = [current_profile for current_profile in current_profiles
                 if connection.execute(select(m.profiles.c.version).where(
                     m.profiles.c.id == current_profile['id'])).scalar_one_or_none() == current_profile['version']]
+            from services.source_candidates.catalogue import record_supported_collection
+            for current_profile in evaluated_profiles:
+                for posting_id, job_id, application_url in pending_source_candidates:
+                    record_supported_collection(
+                        connection, profile_id=current_profile['id'],
+                        request_id=identity("supported-feed-source-capture", source_id,
+                                            posting_id, application_url),
+                        job_id=job_id, source_url=endpoint,
+                        application_url=application_url,
+                    )
             for posting_id, merged_job_id in pending_merges:
                 for current_profile in evaluated_profiles:
                     record_job_merged(connection, current_profile["id"], merged_job_id, posting_id)

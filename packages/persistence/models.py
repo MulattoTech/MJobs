@@ -281,7 +281,7 @@ source_candidate_observations = table(
         UniqueConstraint("profile_id", "capture_key", name="uq_source_candidate_observation_profile_capture"),
         CheckConstraint("origin_attribution IN ('USER_REPORTED', 'UNKNOWN')",
                         name="ck_source_candidate_origin_attribution"),
-        CheckConstraint("capture_method IN ('MANUAL_CAPTURE', 'EXTERNAL_APPLICATION')",
+        CheckConstraint("capture_method IN ('MANUAL_CAPTURE', 'EXTERNAL_APPLICATION', 'SUPPORTED_COLLECTION')",
                         name="ck_source_candidate_capture_method"),
         CheckConstraint("evidence_status IN ('USER_REPORTED', 'PARTIAL', 'UNKNOWN')",
                         name="ck_source_candidate_evidence_status"),
