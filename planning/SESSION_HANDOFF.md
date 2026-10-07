@@ -927,3 +927,12 @@ GitHub partial integration/release readback for issue #177 / MJ-REQ-176: issue r
 - Evidence: `docs/evidence/2026-10-07-application-preparation-audit.json`.
 - Validation: 28 focused Python integration/worker/outbox tests passed; 1 PostgreSQL-only class skipped because its isolated DB URL was unavailable. 1 headless Chromium browser test, 63 frontend tests, TypeScript/Vite build and repository validators passed.
 - Limitations: full company/source/merge/settings and actual application lifecycle audit coverage remain incomplete. PostgreSQL/Docker/migrations and hosted checks NOT_RUN; external submission OFF.
+
+
+## 2026-10-07 Codex integration checkpoint — MJ-REQ-176 company/source audit events
+
+- Source commit: `4b25f3c1ac1eafe1b5f00d714029bef4268b7b43` (tree `ca6c0b83c82cb13e1bc6d121536041f60bd984b0`); base `20c20392e67f8fe72f0a7ac7c27c30ed72bd095c`; candidate/main `a90c23abca6de19f906ca16a01f0bd92e0aa1801`.
+- Result: **PARTIAL**; issue #177 remains OPEN. Evidence: `docs/evidence/2026-10-07-company-audit-history.json`.
+- Validation: 26 focused Python integration tests, 1 connected Chromium test, frontend 63 tests/build, and repository validators passed. Company event summaries persist after reload, remain profile-isolated, omit URLs/payloads, and are absent when discovery is blocked.
+- Limitations: JOB_MERGED, complete setting-change and full truthful application lifecycle events remain incomplete. PostgreSQL/Docker and hosted checks NOT_RUN; hosted checks disabled by policy; external submission OFF.
+- Next: release Codex claim and integration lock, reconcile live main/claims/worktrees/issues, select and claim the next highest-value unclaimed dependency-ready issue.

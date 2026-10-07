@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-07T14:21:20Z",
+  "timestamp": "2026-10-07T14:28:21Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -1484,9 +1484,10 @@
         "docs/evidence/2026-10-07-profile-audit-history.json",
         "docs/evidence/2026-10-07-profile-audit-job-events.json",
         "docs/evidence/2026-10-07-application-audit-history.json",
-        "docs/evidence/2026-10-07-application-preparation-audit.json"
+        "docs/evidence/2026-10-07-application-preparation-audit.json",
+        "docs/evidence/2026-10-07-company-audit-history.json"
       ],
-      "note": "The profile Activity timeline now includes safe summaries for deterministic discovery/matching, user-reported application tracking, and durable PREPARE queue/start/terminal-failure events. Queue and worker transitions append profile-owned records atomically with operation state; retry failures are visible after lease recovery. API/browser checks cover privacy, isolation and reload. Company/source enrollment, job merge, full settings and actual submission/confirmation event families remain incomplete. Issue #177 stays OPEN/PARTIAL; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF."
+      "note": "The profile Activity timeline now includes safe summaries for deterministic discovery/matching, user-reported application tracking, and durable PREPARE queue/start/terminal-failure events. Queue and worker transitions append profile-owned records atomically with operation state; retry failures are visible after lease recovery. API/browser checks cover privacy, isolation and reload. Company/source enrollment, job merge, full settings and actual submission/confirmation event families remain incomplete. Issue #177 stays OPEN/PARTIAL; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF. Successful profile-owned company discovery and first source enrollment now appear as idempotent safe Activity events after reload, with profile isolation and no raw URLs; focused integration/browser evidence is docs/evidence/2026-10-07-company-audit-history.json. Job merge, full settings and truthful actual submission/confirmation remain incomplete. Issue #177 remains OPEN/PARTIAL; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF."
     },
     {
       "requirement_id": "MJ-REQ-177",

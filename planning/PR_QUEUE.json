@@ -1229,7 +1229,7 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-048-orchestration-data-security",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Profile timeline, deterministic discovery/match events, safe user-reported application history and durable PREPARE queue/start/terminal-failure events integrated PARTIAL at 3c58290a10ff5412c9d92c090e7ebef933af5689; evidence docs/evidence/2026-10-07-profile-audit-history.json, docs/evidence/2026-10-07-profile-audit-job-events.json, docs/evidence/2026-10-07-application-audit-history.json, docs/evidence/2026-10-07-application-preparation-audit.json. Issue #177 remains OPEN for company/source events, merge, settings and complete truthful lifecycle events. Bundled PR remains QUEUED."
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Profile timeline, deterministic discovery/match events, safe user-reported application history and durable PREPARE queue/start/terminal-failure events integrated PARTIAL at 3c58290a10ff5412c9d92c090e7ebef933af5689; evidence docs/evidence/2026-10-07-profile-audit-history.json, docs/evidence/2026-10-07-profile-audit-job-events.json, docs/evidence/2026-10-07-application-audit-history.json, docs/evidence/2026-10-07-application-preparation-audit.json. Issue #177 remains OPEN for company/source events, merge, settings and complete truthful lifecycle events. Bundled PR remains QUEUED. Company/source discovery events are now an additional integrated partial slice at a90c23abca6de19f906ca16a01f0bd92e0aa1801; source 4b25f3c1ac1eafe1b5f00d714029bef4268b7b43; evidence docs/evidence/2026-10-07-company-audit-history.json. Local validation: 26 focused Python integration tests, connected Chromium 1, frontend 63/build, validators PASS. Issue #177 remains OPEN/PARTIAL for JOB_MERGED, complete settings and truthful full application event families. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF."
     },
     {
       "id": "MJ-PR-049",
@@ -3436,5 +3436,5 @@
       "issue_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6036663828"
     }
   ],
-  "generated_at": "2026-10-07T14:21:20Z"
+  "generated_at": "2026-10-07T14:28:21Z"
 }
