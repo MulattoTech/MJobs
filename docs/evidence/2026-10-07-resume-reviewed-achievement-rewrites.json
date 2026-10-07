@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-095",
+  "github_issue": 96,
+  "slice_result": "PASS",
+  "requirement_result": "PARTIAL",
+  "base_main": "911f248db3110f095c9da98a452bab8797aeda16",
+  "source_commit": "97905378cdc79e437a7cae2fe2fbb7c504d0affe",
+  "source_tree": "da25a98c54a926fb3187783157dbc92edbd5e198",
+  "recorded_at_utc": "2026-10-07T12:18:24Z",
+  "input_sha256": {
+    "services/documents/tailor.py": "e98cba33cd098435b2a27a5576492b6903f6a42601b6d1a7373f8f2af0725103",
+    "apps/web/src/resume-fact-selection.tsx": "b06bf7fac04f2ede44c8c240f9d5c9714549287857192a23a132dbc7ee425823",
+    "tests/unit/test_resume_comparison.py": "91c785446374e44cd4bd8e9282145636b4df5485f2d373646606e9c4b537ee5e",
+    "tests/integration/test_resume_comparison.py": "58b0db54ac5da454e84c82e04def915a11f90c6e4561128164d47d2d2a2e9363",
+    "tests/browser/test_skill_order.py": "9600ce4479373ef5d07f4fd08bf02698495bd4b935aa7362e8cfd274c60257ce"
+  },
+  "scope": "Allow user-authored, individually reviewed rewrites for selected approved project and accomplishment facts used as resume bullets, while preserving source identity, exact date/number tokens, durable document provenance and historical comparison.",
+  "acceptance": {
+    "project_and_accomplishment_rewrites_accepted_only_for_selected_approved_facts": "PASS - API/domain validation now supports these two additional fact kinds; unit tests prove unselected rewrites are rejected.",
+    "user_review_required_and_dates_numbers_preserved": "PASS - review remains mandatory; exact date and numeric token preservation is enforced for each rewritten fact.",
+    "source_hash_fact_id_and_kind_recorded": "PASS - generated provenance stores fact ID, source text SHA-256 and server-bound fact kind; rebuilding from saved history succeeds.",
+    "generated_resume_and_cover_letter_are_separate": "PASS - both rewrites appear in the revised resume; neither rewrite is applied to the cover letter or source profile.",
+    "durable_history_survives_reload_and_profile_change": "PASS - connected browser reload and API comparison read back before/after facts from immutable document history after a live profile change.",
+    "external_network_and_submission": "PASS - browser test blocked non-local routes and observed none; no provider inference or external submission was used.",
+    "requirement_denominator_changed": "false"
+  },
+  "test_first_red": {
+    "result": "PASS",
+    "command": "python -m unittest tests.unit.test_resume_comparison.ResumeComparisonUnitTests.test_user_reviewed_project_and_accomplishment_rewrites_are_source_bound -v",
+    "observation": "Before implementation, the regression failed with RESUME_REPHRASE_FACT_INVALID because project/accomplishment were not in the supported rewrite kinds."
+  },
+  "commands": [
+    {
+      "command": "python -m unittest tests.unit.test_resume_comparison tests.integration.test_resume_comparison tests.browser.test_skill_order -v",
+      "result": "PASS",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0
+    },
+    {
+      "command": "python -m unittest discover -v",
+      "result": "PASS",
+      "tests": 908,
+      "failures": 0,
+      "errors": 0,
+      "skips": 5
+    },
+    {
+      "command": "npm ci --prefix apps/web",
+      "result": "PASS",
+      "summary": "Installed lockfile-pinned frontend dependencies in the isolated worktree; npm audit reported 0 vulnerabilities."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS"
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run",
+      "result": "PASS",
+      "tests": 63,
+      "files": 13
+    },
+    {
+      "command": "python -m py_compile services/documents/tailor.py tests/unit/test_resume_comparison.py tests/integration/test_resume_comparison.py tests/browser/test_skill_order.py; python -m tools.verification.agent_skills; python -m tools.verification.catalogue; python -m tools.verification.progress validate; python -m tools.coordination.lane_coordination validate; git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "environment": {
+    "os": "Windows",
+    "python": "repository .venv, Python 3.12",
+    "browser": "local headless Chromium",
+    "database": "isolated synthetic SQLite databases",
+    "postgresql": "NOT_APPLICABLE - no persistence schema changed",
+    "docker": "NOT_APPLICABLE - no container or external runtime required",
+    "hosted_checks": "NOT_RUN_BY_USER_POLICY",
+    "hosted_review": "NOT_RUN_BY_USER_POLICY",
+    "external_submission": false,
+    "real_ai_provider_called": false
+  },
+  "limitations": [
+    "Issue #96 / MJ-REQ-095 remains OPEN/PARTIAL; other tailoring requirement gaps remain.",
+    "User attestation preserves explicit review but is not automated semantic-equivalence verification.",
+    "No real AI provider, ATS, PostgreSQL runtime, Docker workflow or hosted CI/review was exercised."
+  ],
+  "denominators": {
+    "requirements": 366,
+    "reference_gaps": 59
+  },
+  "integration": {
+    "status": "PENDING",
+    "external_submission": "OFF"
+  }
+}

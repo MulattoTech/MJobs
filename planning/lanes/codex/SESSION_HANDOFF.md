@@ -19,3 +19,8 @@ The prior skipped PostgreSQL category-admission proof now ran against an ephemer
 This is a verified slice, not full MJ-REQ-005 completion: no real ATS provider/browser submission was exercised; external submission remains OFF. Hosted checks remain NOT_RUN_BY_USER_POLICY.
 
 Other active lanes: Antigravity #302 owns `services/discovery/sources/**` and Dice tests; Ollama/OpenCode #318 owns `services/ats_detection/**` and detector tests. Avoid both. Next, finalize the evidence/lane checkpoint, fetch current main, reconcile all claims, acquire integration lock, update canonical acceptance records without shrinking 366 requirements, integrate if still a safe fast-forward, release claims/lock, and continue.
+
+
+## Active issue #96 checkpoint — 2026-10-07T12:18:49Z
+
+Project and accomplishment rewrite slice is committed/pushed at source `97905378cdc79e437a7cae2fe2fbb7c504d0affe` from base `911f248db3110f095c9da98a452bab8797aeda16` in isolated worktree `C:/Tools/Dev/MJobs/.worktrees/codex-mj-req095-reviewed-achievement-rewrites-20261007`. Red test reproduced unsupported fact kinds. Unit, integration and connected Chromium acceptance passed; full Python/browser suite passed 908 tests with 5 skips; frontend 63/build and local validators passed. Evidence `docs/evidence/2026-10-07-resume-reviewed-achievement-rewrites.json` is being recorded. Issue #96 remains OPEN/PARTIAL. External submission OFF; hosted checks/review NOT_RUN_BY_USER_POLICY.

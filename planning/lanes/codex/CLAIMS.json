@@ -154,6 +154,27 @@
       "released_at": "2026-10-07T12:01:14Z",
       "integrated_main": "3895e62a3dcf053998d872f3072c0476064128b5",
       "issue_comment": "https://github.com/MulattoTech/MJobs/issues/6#issuecomment-6037452250"
+    },
+    {
+      "issue": 96,
+      "requirement_id": "MJ-REQ-095",
+      "branch": "codex/mj-req095-reviewed-achievement-rewrites-20261007",
+      "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req095-reviewed-achievement-rewrites-20261007",
+      "head": "97905378cdc79e437a7cae2fe2fbb7c504d0affe",
+      "paths": [
+        "services/documents/tailor.py",
+        "services/documents/templates.py",
+        "apps/web/src/resume-fact-selection.tsx",
+        "tests/unit/test_resume_comparison.py",
+        "tests/integration/test_resume_comparison.py",
+        "tests/browser/test_skill_order.py",
+        "docs/evidence/2026-10-07-resume-reviewed-achievement-rewrites.json",
+        "planning/lanes/codex/**"
+      ],
+      "status": "ACTIVE",
+      "claimed_at": "2026-10-07T12:18:49Z",
+      "evidence_path": "docs/evidence/2026-10-07-resume-reviewed-achievement-rewrites.json",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6037747690"
     }
   ]
 }
