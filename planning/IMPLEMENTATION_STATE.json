@@ -354,7 +354,8 @@
     "Agent skills, catalogue, progress, lane coordination and git diff validators PASS.",
     "Issue #517 source-candidate slice: focused API/browser 10 PASS; full Python 954 run/8 skipped; frontend 63/build; SQLite migration and validators PASS; evidence docs/evidence/2026-10-07-source-candidate-catalogue.json.",
     "Issue #517 URL-only source report exact source commit 20e6835308209c7ae8366d7791215db642ec9ad0: 12 focused API/browser/manual/external tests PASS; full Python 955 run/8 skipped; frontend 63/build; validators PASS. Evidence docs/evidence/2026-10-07-source-candidate-catalogue.json.",
-    "MJ-REQ-176 AI task settings audit exact source 06942fd: 15 API/store reopen/profile isolation and connected Chromium Activity tests PASS; TypeScript/Vite build PASS; deterministic repository validators PASS."
+    "MJ-REQ-176 AI task settings audit exact source 06942fd: 15 API/store reopen/profile isolation and connected Chromium Activity tests PASS; TypeScript/Vite build PASS; deterministic repository validators PASS.",
+    "Issue #517 supported company-feed source-candidate capture exact source 48d204a: 105 affected integration/connected Chromium tests PASS; disposable SQLite and PostgreSQL 17 Alembic upgrade/typed-write/downgrade-preservation PASS; TypeScript/Vite build and deterministic repository validators PASS."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -430,7 +431,8 @@
     "Live PostgreSQL and Docker runtime checks for the MJ-REQ-176 JOB_MERGED slice; no schema/migration change and synthetic SQLite transaction/readback coverage was used.",
     "Repository-wide unittest discovery was not rerun during this slice; prior broad failure remains historical evidence and was not promoted.",
     "Issue #517: hosted Actions/review NOT_RUN_BY_USER_POLICY; PostgreSQL/Docker runtime and live source evaluation NOT_RUN. These checks are not promoted to PASS.",
-    "MJ-REQ-176 AI task settings audit: PostgreSQL/Docker NOT_RUN (no schema change); full Python suite NOT_RUN; hosted Actions/review NOT_RUN_BY_USER_POLICY; external submission OFF."
+    "MJ-REQ-176 AI task settings audit: PostgreSQL/Docker NOT_RUN (no schema change); full Python suite NOT_RUN; hosted Actions/review NOT_RUN_BY_USER_POLICY; external submission OFF.",
+    "Issue #517 feed source-candidate slice: full Python suite NOT_RUN; frontend unit suite NOT_RUN (no frontend source changed); hosted Actions/review NOT_RUN_BY_USER_POLICY; external submission OFF."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -576,7 +578,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "93316cccf30df78087c6222a02974484da5d35e5",
+  "last_implementation_commit": "bf1eb739fb05edf96becaa8c4ab0a4e6fe588d92",
   "publication": {
     "result": "PASS",
     "integration_method": "NON_FORCE_FAST_FORWARD",
@@ -9098,12 +9100,70 @@
         "PostgreSQL/Docker and hosted checks were not run; no PASS is inferred for unavailable evidence.",
         "External application submission remains OFF."
       ]
+    },
+    {
+      "milestone_id": "MJ-FEATURE-517-SUPPORTED-FEED-CANDIDATE-CAPTURE-PARTIAL-20261007",
+      "timestamp": "2026-10-07T18:32:30Z",
+      "current_phase": "Issue #517 supported company-feed candidate capture integrated PARTIAL; remaining issue scope stays OPEN.",
+      "completed_steps": [
+        "Reconciled latest main and all machine/GitHub claims, active worktrees and dirty paths; prior #517 claim was released and active #302/#318 paths were disjoint.",
+        "Reproduced that profile-owned supported company-feed import did not create source candidates.",
+        "Added atomic, idempotent profile-owned capture for third-party application origins, with explicit system-observed partial evidence, unknown attribution/hops, sanitized links, no collection enablement and same-origin exclusion.",
+        "Verified import rollback/retry, multiple-profile isolation, repeated collection idempotence, URL sanitization and connected Sources UI readback/reload.",
+        "Added one additive Alembic revision and verified SQLite plus disposable PostgreSQL 17 upgrade, typed observation, data-preserving downgrade refusal and empty downgrade.",
+        "Validated exact-source 105 affected Python integration/connected Chromium tests, TypeScript/Vite build and repository validators.",
+        "Pushed branch and fast-forward integrated at main bf1eb739fb05edf96becaa8c4ab0a4e6fe588d92; #517 remains OPEN/PARTIAL."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-07-source-candidate-feed-import.json",
+        "migrations/versions/d5a7c81e240b_source_candidate_collection_observation.py"
+      ],
+      "files_modified": [
+        "packages/persistence/models.py",
+        "services/discovery/company_feed.py",
+        "services/source_candidates/catalogue.py",
+        "tests/integration/test_source_candidates.py",
+        "tests/browser/test_source_candidates.py"
+      ],
+      "tests_completed": [
+        "105 tests across source candidate, supported company feed, company discovery, source value resolution/integrity, job lifecycle, audit history and connected Chromium browser modules PASS.",
+        "TypeScript/Vite build PASS; npm install reported 0 vulnerabilities and Node v25.9.0 outside the Vitest declared engine range.",
+        "Disposable SQLite and PostgreSQL 17 migration checks PASS; migration downgrade refusal preserved a recorded supported-collection observation.",
+        "Agent skills, catalogue, progress, lane coordination, compileall and git diff checks PASS."
+      ],
+      "tests_remaining": [
+        "Full Python suite NOT_RUN; frontend unit suite NOT_RUN because no frontend source changed.",
+        "Other supported provider/browser capture entry points, candidate evaluation/access/capability/maintenance evidence and bounded integration task linkage remain incomplete.",
+        "Hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF."
+      ],
+      "migrations_applied": [
+        "Disposable SQLite and disposable PostgreSQL 17 upgraded through new head d5a7c81e240b; no personal database was accessed.",
+        "Downgrade with stored SUPPORTED_COLLECTION provenance refused before schema changes; empty downgrade to bc517d01a320 succeeded."
+      ],
+      "live_integrations_tested": [
+        "Issue #517 checkpoint https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6044306990",
+        "Issue #517 release readback https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6044308805",
+        "Main fast-forward integration bf1eb739fb05edf96becaa8c4ab0a4e6fe588d92; local/origin hashes matched."
+      ],
+      "known_errors": [
+        "An initial test run failed on a test assertion-shape bug and absent isolated-worktree frontend dist; both were corrected by fixing the assertion and building the frontend before the exact-source 105-test PASS.",
+        "An initial SQLite migration probe exited nonzero during temporary-directory cleanup due to open sqlite handles; corrected explicit handle closure yielded exit 0 and all migration assertions PASS."
+      ],
+      "known_limitations": [
+        "This slice captures only supported employer-feed imports and is not full #517 acceptance.",
+        "No new feed fetch, provider request, site evaluation, source enrollment, collection enablement or application submission occurred.",
+        "Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "bf1eb739fb05edf96becaa8c4ab0a4e6fe588d92",
+        "evidence_path": "docs/evidence/2026-10-07-source-candidate-feed-import.json"
+      }
     }
   ],
-  "current_phase": "MJ_REQ_176_AI_TASK_SETTINGS_AUDIT_PARTIAL_INTEGRATED",
+  "current_phase": "Issue #517 supported company-feed candidate capture integrated PARTIAL; remaining issue scope stays OPEN.",
   "last_safe_checkpoint": {
-    "git_commit": "93316cccf30df78087c6222a02974484da5d35e5",
-    "evidence_path": "docs/evidence/2026-10-07-ai-task-settings-audit.json"
+    "git_commit": "bf1eb739fb05edf96becaa8c4ab0a4e6fe588d92",
+    "evidence_path": "docs/evidence/2026-10-07-source-candidate-feed-import.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -9364,6 +9424,28 @@
       "external_submission": "OFF",
       "issue_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6043991740",
       "release_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6043994187"
+    },
+    {
+      "result": "PARTIAL",
+      "transport": "Owned codex branch push; non-force fast-forward to main under local integration lock",
+      "branch": "codex/mj-feature-source-candidate-feed-import-20261007",
+      "base": "fe5be5b78232a5a81e0106ab76a99feb4b8f4ca2",
+      "source_commit": "48d204aba31251179c4ff94d7b7d2ecac53a8a94",
+      "candidate": "bf1eb739fb05edf96becaa8c4ab0a4e6fe588d92",
+      "final_head": "bf1eb739fb05edf96becaa8c4ab0a4e6fe588d92",
+      "force": false,
+      "pull_request": "NOT_OPENED_LOCAL_ONLY; GitHub Actions disabled",
+      "issue": 517,
+      "issue_state": "OPEN/PARTIAL",
+      "evidence_path": "docs/evidence/2026-10-07-source-candidate-feed-import.json",
+      "integrated_at_utc": "2026-10-07T18:32:30Z",
+      "actions_enabled": false,
+      "main_protected": false,
+      "local_remote_commit_identical": true,
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6044306990",
+      "release_comment": "https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6044308805",
+      "hosted_checks": "NOT_RUN_BY_USER_POLICY",
+      "external_submission": "OFF"
     }
   ],
   "live_reconciliation": {
@@ -9378,21 +9460,21 @@
     "next_issue": "Release #398 and select the next dependency-ready unclaimed issue after live claim/worktree reconciliation."
   },
   "active_development_issue": {
-    "issue": 177,
-    "requirement_id": "MJ-REQ-176",
-    "title": "Audit Log — AI task settings history slice",
+    "issue": 517,
+    "requirement_id": "MJ-FEATURE-DISCOVERED-JOB-SOURCE-CATALOGUE",
+    "title": "Discovered job-source catalogue — supported feed capture slice",
     "state": "INTEGRATED_PARTIAL",
-    "base": "2befda648953832125eac5505083876f971e12ce",
-    "branch": "codex/mj-req176-ai-settings-audit-20261007",
-    "candidate": "93316cccf30df78087c6222a02974484da5d35e5",
-    "integrated_main": "93316cccf30df78087c6222a02974484da5d35e5",
-    "source_commit": "06942fdddd73b4e2604d339889105dfbff4ea0d8",
-    "source_tree": "2ba315630a0f3762c0eed2cc77a98c0e656c86b7",
-    "evidence": "docs/evidence/2026-10-07-ai-task-settings-audit.json",
+    "base": "fe5be5b78232a5a81e0106ab76a99feb4b8f4ca2",
+    "branch": "codex/mj-feature-source-candidate-feed-import-20261007",
+    "candidate": "bf1eb739fb05edf96becaa8c4ab0a4e6fe588d92",
+    "integrated_main": "bf1eb739fb05edf96becaa8c4ab0a4e6fe588d92",
+    "source_commit": "48d204aba31251179c4ff94d7b7d2ecac53a8a94",
+    "source_tree": "41b28c8678771814690c501698563390a1efacbf",
+    "evidence": "docs/evidence/2026-10-07-source-candidate-feed-import.json",
     "issue_state": "OPEN",
-    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6043991740",
-    "next_action": "Codex claim and integration lock released. Reconcile latest main, claims, issue comments and active worktrees; select and claim the next highest-value dependency-ready issue.",
-    "release_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6043994187"
+    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6044306990",
+    "release_comment": "https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6044308805",
+    "next_action": "Codex claim and integration lock released. Reconcile latest main, all active claims, issue comments and worktrees, then select the highest-value unclaimed dependency-ready issue."
   },
   "historical_control_snapshots": [
     {
@@ -10535,5 +10617,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-07T18:13:00Z"
+  "updated_at": "2026-10-07T18:32:30Z"
 }

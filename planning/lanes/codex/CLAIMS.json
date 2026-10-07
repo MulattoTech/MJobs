@@ -700,6 +700,32 @@
       "result": "PARTIAL; issue remains OPEN",
       "released_at": "2026-10-07T18:14:00Z",
       "issue_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6043994187"
+    },
+    {
+      "issue": 517,
+      "requirement_id": "MJ-FEATURE-DISCOVERED-JOB-SOURCE-CATALOGUE",
+      "branch": "codex/mj-feature-source-candidate-feed-import-20261007",
+      "worktree": ".worktrees/codex-mj-feature-source-candidate-feed-import-20261007",
+      "head": "bf1eb739fb05edf96becaa8c4ab0a4e6fe588d92",
+      "paths": [
+        "services/discovery/company_feed.py",
+        "services/source_candidates/catalogue.py",
+        "packages/persistence/models.py",
+        "migrations/versions/d5a7c81e240b_source_candidate_collection_observation.py",
+        "tests/integration/test_source_candidates.py",
+        "tests/browser/test_source_candidates.py",
+        "docs/evidence/2026-10-07-source-candidate-feed-import.json",
+        "planning/lanes/codex/**"
+      ],
+      "status": "RELEASED",
+      "claimed_at": "2026-10-07T18:18:19Z",
+      "claim_comment": "https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6044072209",
+      "claim_update": "https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6044092293",
+      "evidence_path": "docs/evidence/2026-10-07-source-candidate-feed-import.json",
+      "integrated_main": "bf1eb739fb05edf96becaa8c4ab0a4e6fe588d92",
+      "result": "PARTIAL; issue remains OPEN",
+      "released_at": "2026-10-07T18:32:30Z",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6044308805"
     }
   ]
 }

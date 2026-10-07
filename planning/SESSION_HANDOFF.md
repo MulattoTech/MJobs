@@ -1006,3 +1006,11 @@ Claim release readback for the MJ-REQ-176 JOB_MERGED slice: https://github.com/M
 - Remaining: additional setting families and complete truthful application lifecycle event coverage. Release claim/lock, reconcile all lanes, and continue with next unclaimed dependency-ready issue.
 
 - GitHub integration checkpoint: https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6043991740. AI LANE RELEASED readback: https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6043994187. Codex claim released; integration lock is held for canonical/lane state synchronization only. Issue #177 remains OPEN/PARTIAL.
+
+
+## 2026-10-07 Codex integration checkpoint — #517 supported feed source capture
+
+- Source: `48d204aba31251179c4ff94d7b7d2ecac53a8a94` (tree `41b28c8678771814690c501698563390a1efacbf`); base `fe5be5b78232a5a81e0106ab76a99feb4b8f4ca2`; non-force fast-forward main `bf1eb739fb05edf96becaa8c4ab0a4e6fe588d92`. Evidence: `docs/evidence/2026-10-07-source-candidate-feed-import.json`.
+- Result: **PARTIAL**; issue #517 remains OPEN. Supported company-feed imports now atomically catalogue profile-owned third-party application hosts with explicit system-observed partial provenance, unknown origin/hops, sanitized URLs and collection disabled; same-origin and rollback/replay controls pass.
+- Validation: exact affected 105 Python integration/connected Chromium tests PASS; TypeScript/Vite build PASS; SQLite and disposable PostgreSQL 17 migration checks PASS; local validators PASS. Full Python and frontend unit suites NOT_RUN. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.
+- GitHub checkpoint https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6044306990; release readback https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6044308805. Remaining: other collection/browser entrypoints and candidate evaluation/integration task linkage. Codex claim released; reconcile and continue.
