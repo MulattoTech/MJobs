@@ -264,13 +264,13 @@
     {
       "issue": 178,
       "requirement_id": "MJ-REQ-177",
-      "status": "IN_PROGRESS",
+      "status": "VALIDATED_PARTIAL_PENDING_INTEGRATION",
       "priority": 1,
       "target_area": "workers/main.py; workers/tasks.py; workers/structured_logging.py; tests/integration/test_worker_lifecycle.py; tests/unit/test_structured_logging.py",
       "depends_on": [],
       "evidence_path": "docs/evidence/2026-10-07-structured-worker-operation-logs.json",
       "scope_complete": false,
-      "note": "Claimed scoped vertical slice: privacy-bounded JSON terminal outcome records for durable worker operations with operation ID, applicable entity ID, fixed worker label, duration, allowlisted result/error code. Tests cover a terminal PREPARE failure carrying synthetic private rewrite text and a successful discovery operation. Broader logging contexts remain incomplete; issue stays OPEN/PARTIAL."
+      "note": "Worker durable terminal outcomes now emit newline-delimited JSON from a dedicated JSON-only logger. Context includes operation id/kind, fixed worker, duration/result, safe error code and applicable job/company/application identifier. No params/messages/private resume rewrite values are logged. Focused 22 tests (21 pass, 1 optional PostgreSQL skip); full Python 940 (932 pass, 8 skipped), frontend 63/build and repository validators pass. Evidence docs/evidence/2026-10-07-structured-worker-operation-logs.json. Posting/source/ATS and other contexts, live Redis/RQ runtime remain unverified; issue OPEN/PARTIAL, hosted NOT_RUN_BY_USER_POLICY, submission OFF."
     }
   ],
   "generated_at": "2026-10-07T14:05:05Z"

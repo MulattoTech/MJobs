@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-07T15:05:46Z",
+  "issue": 178,
+  "requirement_id": "MJ-REQ-177",
+  "result": "PARTIAL",
+  "source_commit": "21e3f8ffb5d812b4bbdc84424bc5decb42a0cb01",
+  "source_tree": "784ad46313acf7e55d82bab9b513ef15f63ad743",
+  "base_main": "66de21a8c4c6c0afeedd31064ee367d7a69f498a",
+  "acceptance_oracle": "For every claimed durable worker operation terminal transition, emit one newline-delimited JSON record after durable state persistence with an event timestamp, operation id/kind, fixed worker label, elapsed duration, truthful terminal result, safe error code when present, and applicable internal entity id. Exception messages and operation parameters, including resume rewrites and secret-like content, never appear.",
+  "gap_observation": "Durable worker tasks persisted terminal results and sanitized errors but emitted no operation-level structured log. Default RQ text formatting would wrap a JSON message unless the operation logger has a dedicated JSON-only handler.",
+  "implementation": [
+    "Added dedicated workers.mjobs.operations logger configured to emit JSON-only lines to stdout from worker startup, separate from RQ text loggers.",
+    "Terminal operation events are emitted after the durable state/audit transaction succeeds. Stale ownership returns emit no terminal event.",
+    "Fixed fields allowlist operation kinds/results, identifier shape, worker label and safe uppercase error codes. Only operation-specific identifiers are included; arbitrary params, exception messages, profile data and resume text are not serialized.",
+    "Captured unit and connected worker lifecycle tests verify success/failure records, valid JSON output, and omission of synthetic secret/private rewrite content."
+  ],
+  "test_first": {
+    "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_worker_lifecycle.WorkerLifecycleTests.test_terminal_prepare_failure_is_recorded_without_rewrite_payload -v",
+    "result": "EXPECTED_FAILURE_BEFORE_IMPLEMENTATION",
+    "observed": "Worker reached durable DEAD_LETTERED state but assertLogs found no INFO records from mjobs.operations."
+  },
+  "validation": [
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.unit.test_structured_logging tests.integration.test_worker_lifecycle -v",
+      "result": "PASS",
+      "counts": {
+        "passed": 21,
+        "failed": 0,
+        "skipped": 1
+      },
+      "skip_detail": "PostgreSQLWorkerCrashRecoveryTests skipped because MJOBS_WORKER_RECOVERY_POSTGRES_URL is unset."
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest discover -s tests -p test_*.py",
+      "result": "PASS",
+      "counts": {
+        "passed": 932,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 8
+      },
+      "duration_seconds": 564.657,
+      "skip_detail": "Aggregate unittest output reported 8 skips; skip identities were not emitted in the final summary, so none are promoted."
+    },
+    {
+      "command": "npm ci --prefix apps/web",
+      "result": "PASS_WITH_WARNING",
+      "details": "44 packages; no vulnerabilities. Node v25.9.0 is outside Vitest declared engine ranges."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS"
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run",
+      "result": "PASS",
+      "counts": {
+        "files": 13,
+        "tests": 63,
+        "failed": 0
+      }
+    },
+    {
+      "command": "python -m tools.verification.agent_skills",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.catalogue",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.progress validate",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.coordination.lane_coordination validate",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m compileall -q workers/main.py workers/tasks.py workers/structured_logging.py tests/integration/test_worker_lifecycle.py tests/unit/test_structured_logging.py",
+      "result": "PASS"
+    }
+  ],
+  "environment": {
+    "os": "Windows",
+    "python": "3.12.10",
+    "node": "25.9.0",
+    "database": "temporary SQLite in tests",
+    "browser": "local headless Playwright cases included in full suite; no new external requests",
+    "hosted_checks": "NOT_RUN_BY_USER_POLICY",
+    "external_submission": "OFF"
+  },
+  "limitations": [
+    "This is a scoped worker operation outcome slice; posting_id/source/ATS/other operation-context coverage remains incomplete under MJ-REQ-177.",
+    "No live Redis/RQ worker service integration was run; logger configuration and operation path were verified locally with unit/integration tests.",
+    "PostgreSQL/Docker-specific runtime remains NOT_RUN; optional tests were skipped.",
+    "Issue #178 and MJ-REQ-177 remain OPEN/PARTIAL."
+  ]
+}

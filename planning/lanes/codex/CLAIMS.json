@@ -510,7 +510,7 @@
       "requirement_id": "MJ-REQ-177",
       "branch": "codex/mj-req177-structured-logging-20261007",
       "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req177-structured-logging-20261007",
-      "head": "66de21a8c4c6c0afeedd31064ee367d7a69f498a",
+      "head": "21e3f8ffb5d812b4bbdc84424bc5decb42a0cb01",
       "paths": [
         "workers/main.py",
         "workers/tasks.py",
