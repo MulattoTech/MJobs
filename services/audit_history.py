@@ -23,6 +23,7 @@ _APPLICATION_EVENTS = {
     "CONFIRMED": ("APPLICATION_CONFIRMED", "Application outcome confirmed"),
     "APPLICATION_PIPELINE_STATUS": ("APPLICATION_STATUS_REPORTED", "Application status reported by you"),
     "APPLICATION_NOTE": ("APPLICATION_NOTE_ADDED", "Application note added"),
+    "EXTERNAL_APPLICATION_REPORTED": ("APPLICATION_REPORTED", "You reported applying outside MJobs"),
     "APPLICATION_ANSWERS_EXPORTED": ("APPLICATION_ANSWERS_EXPORTED", "Reviewed answers exported"),
 }
 
@@ -105,6 +106,10 @@ def list_audit_history(store, profile_id: str, limit: int = 100) -> dict:
         ).order_by(m.applications.c.created_at.desc()).limit(200)).mappings().all()
         applications = {row["id"]: row for row in application_rows}
         if applications:
+            tracking_entities = {
+                identity("application-tracking", profile_id, application_id): application_id
+                for application_id in applications
+            }
             documents_by_application = {}
             document_rows = connection.execute(select(
                 m.documents.c.application_id, m.documents.c.kind,
@@ -113,13 +118,19 @@ def list_audit_history(store, profile_id: str, limit: int = 100) -> dict:
                 documents_by_application.setdefault(document["application_id"], set()).add(document["kind"])
             application_audits = connection.execute(select(
                 m.audit.c.id, m.audit.c.entity_id, m.audit.c.action, m.audit.c.timestamp,
-            ).where(m.audit.c.entity_id.in_(applications),
+            ).where(m.audit.c.entity_id.in_([*applications, *tracking_entities]),
                     m.audit.c.action.in_([*_APPLICATION_EVENTS, "DOCUMENTS_PREPARED"])).order_by(
                 m.audit.c.timestamp.desc(), m.audit.c.id.desc()).limit(limit)).mappings()
         else:
+            tracking_entities = {}
             application_audits = []
         for row in application_audits:
-            application = applications[row["entity_id"]]
+            application_id = row["entity_id"]
+            if application_id not in applications:
+                application_id = tracking_entities.get(application_id)
+            application = applications.get(application_id)
+            if application is None:
+                continue
             action = row["action"]
             mapped = _APPLICATION_EVENTS.get(action)
             if action == "DOCUMENTS_PREPARED":

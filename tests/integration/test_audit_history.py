@@ -88,6 +88,39 @@ class AuditHistoryApiTests(unittest.TestCase):
         response = self.client.get("/profiles/not-a-profile/audit-history")
         self.assertEqual(response.status_code, 404)
 
+    def test_user_reported_application_history_appears_without_exposing_note_or_claiming_receipt(self):
+        from services.tracking.applications import (
+            add_application_note, record_external_application_report,
+            set_application_pipeline_status,
+        )
+
+        set_application_pipeline_status(self.store, "fixture", self.application_id,
+                                        "APPLIED", "audit-status-applied")
+        add_application_note(self.store, "fixture", self.application_id,
+                             "Private recruiter follow-up detail", "audit-note-private")
+        record_external_application_report(
+            self.store, "fixture", self.application_id, "audit-external-status",
+            "audit-external-capture", "a" * 64, "MANUAL", "2026-10-07T12:00:00Z",
+            None, self.store.application(self.application_id)["job_id"], "MATCHED")
+
+        response = self.client.get("/profiles/fixture/audit-history")
+        self.assertEqual(response.status_code, 200, response.text)
+        body = response.json()
+        tracked = [event for event in body["events"]
+                   if event["type"] in {
+                       "APPLICATION_STATUS_REPORTED", "APPLICATION_NOTE_ADDED", "APPLICATION_REPORTED"
+                   }]
+        self.assertEqual({event["type"] for event in tracked},
+                         {"APPLICATION_STATUS_REPORTED", "APPLICATION_NOTE_ADDED", "APPLICATION_REPORTED"})
+        self.assertTrue(all(event["subject"] for event in tracked))
+        self.assertNotIn("Private recruiter follow-up detail", response.text)
+        self.assertNotIn("SUBMISSION_CONFIRMED", response.text)
+        other_profile = self.client.get("/profiles/other/audit-history")
+        self.assertEqual(other_profile.status_code, 200, other_profile.text)
+        self.assertFalse(any(event["type"] in {
+            "APPLICATION_STATUS_REPORTED", "APPLICATION_NOTE_ADDED", "APPLICATION_REPORTED"
+        } for event in other_profile.json()["events"]))
+
     def test_discovery_events_survive_scoring_recalculation_without_mutation(self):
         initial = self.client.get("/profiles/fixture/audit-history").json()["events"]
         initial_job_events = [event for event in initial

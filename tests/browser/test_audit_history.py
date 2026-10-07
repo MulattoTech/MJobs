@@ -14,7 +14,9 @@ from fixtures.browser_ports import bound_browser_socket
 from packages.persistence import models as m
 from packages.persistence.store import Store
 from fixtures.mock_server import fixture_server
+from services.documents.generate import prepare
 from services.discovery.pipeline import discover
+from services.tracking.applications import add_application_note, set_application_pipeline_status
 from tests.integration.test_spine import PROFILE
 
 
@@ -33,6 +35,12 @@ class AuditHistoryBrowserTests(unittest.TestCase):
                                 "email": "other@example.invalid"})
             with fixture_server() as fixture_origin:
                 discover(store, fixture_origin, "fixture")
+            application_id = prepare(store, store.jobs("fixture")[0]["id"],
+                                     "fixture", root)
+            set_application_pipeline_status(store, "fixture", application_id,
+                                            "APPLIED", "browser-audit-status")
+            add_application_note(store, "fixture", application_id,
+                                 "Private synthetic recruiter note", "browser-audit-note")
             with store.engine.begin() as connection:
                 connection.execute(m.audit.insert(), [
                     {"id": "fixture-history", "entity_id": "fixture", "action": "SETTING_CHANGED",
@@ -78,6 +86,9 @@ class AuditHistoryBrowserTests(unittest.TestCase):
                     expect(history).to_contain_text("A profile setting changed")
                     expect(history).to_contain_text("Job added to this profile's search")
                     expect(history).to_contain_text("Job match scored")
+                    expect(history).to_contain_text("Application status reported by you")
+                    expect(history).to_contain_text("Application note added")
+                    expect(history).not_to_contain_text("Private synthetic recruiter note")
                     expect(history).not_to_contain_text("private-setting-value")
                     page.reload(wait_until="domcontentloaded")
                     page.get_by_role("button", name="Activity", exact=True).click()
@@ -85,6 +96,8 @@ class AuditHistoryBrowserTests(unittest.TestCase):
                         "A profile setting changed")
                     expect(page.get_by_role("list", name="Audit history")).not_to_contain_text(
                         "other-private-setting")
+                    expect(page.get_by_role("list", name="Audit history")).to_contain_text(
+                        "Application status reported by you")
                     page.get_by_role("button", name="Profile", exact=True).click()
                     page.get_by_label("Active profile", exact=True).select_option("other")
                     page.get_by_role("button", name="Activity", exact=True).click()
@@ -92,6 +105,7 @@ class AuditHistoryBrowserTests(unittest.TestCase):
                     expect(other_history).to_contain_text("Profile details updated")
                     expect(other_history).not_to_contain_text("A profile setting changed")
                     expect(other_history).not_to_contain_text("fixture-history")
+                    expect(other_history).not_to_contain_text("Application status reported by you")
                     self.assertEqual(external, [])
                     context.close()
                     browser.close()
