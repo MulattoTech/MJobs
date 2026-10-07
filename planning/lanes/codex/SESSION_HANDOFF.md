@@ -53,3 +53,9 @@ Fetched origin/main at e37f0c8523b16d4ea5e38bf37f5c34def94ccce3; it is already a
 Fresh checks on 0b6b72c1e9e9fe6bde202072b2de60ff05b5281b (tree 3729c105ee831ea0766eeda86f6a03c97083dceb): focused Python/API/browser/migration 20 PASS; frontend 62 PASS and build PASS; agent-skills/catalogue/progress PASS; compileall and diff check PASS. Evidence is recorded in docs/evidence/2026-10-06-ai-cost-review-gated-documents.json.
 
 Status remains PARTIAL / safely checkpointed. Live configured-provider inference is NOT_RUN while the Ollama claim owns the shared runtime; PostgreSQL runtime migration, full Python discovery, and hosted checks remain NOT_RUN. External submission remains OFF. Canonical planning was not changed.
+
+## Current-turn verification — 2026-10-07T01:36:21Z
+
+Re-ran the focused Python/API/browser/migration suite (20 PASS), frontend tests (62 PASS), frontend build, agent-skills/catalogue/progress validators, lane coordination validation, and `git diff --check` on `970a28a648da42083014248b95506ea874b0addc` (tree `1250acd21214c32e9a2555ad408afa0363366e18`). This head changes only evidence and Codex lane checkpoint files after the previously reconciled main merge; no AI consumer source changes were made. Detailed results are in `docs/evidence/2026-10-06-ai-cost-review-gated-documents.json`.
+
+Issue #111 remains PARTIAL: live configured-provider inference and PostgreSQL runtime checks are NOT_RUN; full Python discovery and hosted checks are NOT_RUN. External submission remains OFF. The active Ollama claim still owns the shared runtime. Canonical planning was not changed.
