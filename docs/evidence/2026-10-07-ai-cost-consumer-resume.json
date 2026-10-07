@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "issue": 111,
+  "requirement_id": "MJ-REQ-110",
+  "lane": "codex",
+  "branch": "codex/mj-req110-review-consumer-20261006",
+  "tested_code_head": "c9276be112cf8db636bd783dc7eb7ad41b539c35",
+  "tested_code_tree": "8493a2ff7002cdeadc4eb11b4137fa32fe239f64",
+  "base_main": "d9d356e8a9da77ebc3cf50608497216a54d4b9b0",
+  "recorded_at_utc": "2026-10-07T03:01:45Z",
+  "result": "PARTIAL",
+  "acceptance": {
+    "bounded_structured_consumer_and_api_history": "PASS - focused consumer and API tests cover the production task router, structured result validation, saved profile limits, persisted evaluation history, and candidate cap.",
+    "durable_review_gate_and_profile_isolation": "PASS - SQLite migration/API tests cover reviewed candidate persistence, stale profile rejection, and preparation requiring the matching profile/run/job review.",
+    "connected_browser_review_flow": "PASS - the focused browser test passed; it uses synthetic structured output and simulates queue completion, so it is not evidence of live provider or real browser-to-worker inference.",
+    "frontend": "PASS - 62 frontend tests and production build completed.",
+    "repository_validators": "PASS - agent-skills, catalogue, progress journal and git diff checks completed.",
+    "real_synthetic_prepare_worker": "PASS - prior isolated evidence in docs/evidence/2026-10-06-ai-cost-review-gated-documents.json records a real synthetic PREPARE worker completion and persisted PREPARED application; this worker execution was not repeated in this resume checkpoint.",
+    "live_configured_provider_inference": "NOT_RUN - no provider was called; Ollama remains owned by its active lane and no paid provider was authorized.",
+    "full_python_discovery": "NOT_RUN - discovery was started but interrupted before completion due to runtime; no aggregate result is claimed.",
+    "postgresql_runtime_migration": "NOT_RUN - no PostgreSQL runtime check was executed in this checkpoint.",
+    "hosted_actions_and_reviews": "NOT_RUN_BY_USER_POLICY"
+  },
+  "validation": {
+    "python_command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_ai_cost_consumer tests.integration.test_ai_cost_policy_api tests.integration.test_ai_document_review_migration tests.browser.test_ai_task_settings",
+    "python_result": "PASS - 15 tests",
+    "frontend_test_command": "npm test --prefix apps/web -- --run",
+    "frontend_test_result": "PASS - 62 tests across 13 files",
+    "frontend_build_command": "npm run build --prefix apps/web",
+    "frontend_build_result": "PASS",
+    "validator_commands": [
+      "python -m tools.verification.agent_skills",
+      "python -m tools.verification.catalogue",
+      "python -m tools.verification.progress validate",
+      "git diff --check origin/main...HEAD"
+    ],
+    "validator_result": "PASS"
+  },
+  "limitations": [
+    "MJ-REQ-110 remains PARTIAL because live configured-provider inference and full-source acceptance have not been demonstrated.",
+    "AI results are advisory; deterministic match scores and user-approved profile facts remain authoritative.",
+    "The review gate enables the existing factual document preparation workflow and does not create AI-authored documents.",
+    "External application submission remains OFF."
+  ]
+}
