@@ -88,9 +88,12 @@
     "reference_gaps": 59
   },
   "integration": {
-    "status": "INTEGRATED",
+    "status": "INTEGRATED_PASS",
     "source_main": "8dc3c4dc4be19703c487b7f329366283a45ab229",
-    "issue_state": "CLOSE_PENDING_GITHUB_READBACK",
+    "main": "a7eea5b291082db1bbe3e32403f7995416a573d5",
+    "issue_state": "CLOSED",
+    "issue_url": "https://github.com/MulattoTech/MJobs/issues/181",
+    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6039255354",
     "external_submission": "OFF"
   }
 }

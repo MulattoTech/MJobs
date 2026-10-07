@@ -141,13 +141,15 @@
     {
       "issue": 181,
       "requirement_id": "MJ-REQ-180",
-      "status": "INTEGRATED_PARTIAL",
+      "status": "INTEGRATED_PASS",
       "priority": 0,
       "target_area": "cli/live_feedback.py; tests/unit/test_live_feedback.py; tests/browser/test_live_feedback_redaction.py; docs/LIVE_FEEDBACK_DEVELOPMENT.md",
       "depends_on": [],
       "evidence_path": "docs/evidence/2026-10-07-redacted-visual-feedback.json",
-      "scope_complete": false,
-      "note": "Integrated to synchronized main 9b51b1d7a7d5f94d1e06412439edde5250d6ba5e; issue #181 remains OPEN/PARTIAL. Evidence docs/evidence/2026-10-07-redacted-visual-feedback.json."
+      "scope_complete": true,
+      "note": "Integrated to synchronized main 9b51b1d7a7d5f94d1e06412439edde5250d6ba5e; issue #181 remains OPEN/PARTIAL. Evidence docs/evidence/2026-10-07-redacted-visual-feedback.json. Issue CLOSED/readback https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6039255354.",
+      "integration_commit": "a7eea5b291082db1bbe3e32403f7995416a573d5",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6039255354"
     },
     {
       "issue": 171,
@@ -163,13 +165,15 @@
     {
       "issue": 181,
       "requirement_id": "MJ-REQ-180",
-      "status": "INTEGRATED_PARTIAL",
+      "status": "INTEGRATED_PASS",
       "priority": 0,
       "target_area": "cli/live_feedback.py; feedback unit/Chromium tests; docs/LIVE_FEEDBACK_DEVELOPMENT.md",
       "depends_on": [],
       "evidence_path": "docs/evidence/2026-10-07-redacted-diagnostic-privacy.json",
-      "scope_complete": false,
-      "note": "Integrated to synchronized main 04507e36bd78b6af4053868f00926d2b8b993b0f; issue #181 remains OPEN/PARTIAL. Evidence docs/evidence/2026-10-07-redacted-diagnostic-privacy.json. Release https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6038249056"
+      "scope_complete": true,
+      "note": "Integrated to synchronized main 04507e36bd78b6af4053868f00926d2b8b993b0f; issue #181 remains OPEN/PARTIAL. Evidence docs/evidence/2026-10-07-redacted-diagnostic-privacy.json. Release https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6038249056 Issue CLOSED/readback https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6039255354.",
+      "integration_commit": "a7eea5b291082db1bbe3e32403f7995416a573d5",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6039255354"
     },
     {
       "issue": 8,
@@ -202,17 +206,17 @@
     {
       "issue": 181,
       "requirement_id": "MJ-REQ-180",
-      "status": "INTEGRATED_PARTIAL",
+      "status": "INTEGRATED_PASS",
       "priority": 0,
       "target_area": "cli/live_feedback.py; tests/unit/test_live_feedback.py; tests/browser/test_live_feedback_redaction.py; docs/LIVE_FEEDBACK_DEVELOPMENT.md",
       "depends_on": [
         "existing screenshot and diagnostic text redaction"
       ],
       "evidence_path": "docs/evidence/2026-10-07-rich-control-screenshot-redaction.json",
-      "scope_complete": false,
-      "note": "Pre-fix Chromium pixel test proves synthetic answer in contenteditable remains visible; add masks for contenteditable except false plus ARIA textbox/combobox. Focused adjacent feedback tests 27 PASS; local validators PASS. Other unclassifiable free text and image/canvas content remain open; issue #181 stays PARTIAL.",
-      "integration_commit": "f1d36053ebb46f1286f3dfb0acd25ac1482a267f",
-      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6038936759"
+      "scope_complete": true,
+      "note": "Pre-fix Chromium pixel test proves synthetic answer in contenteditable remains visible; add masks for contenteditable except false plus ARIA textbox/combobox. Focused adjacent feedback tests 27 PASS; local validators PASS. Other unclassifiable free text and image/canvas content remain open; issue #181 stays PARTIAL. Issue CLOSED/readback https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6039255354.",
+      "integration_commit": "a7eea5b291082db1bbe3e32403f7995416a573d5",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6039255354"
     },
     {
       "issue": 8,
@@ -230,14 +234,16 @@
     {
       "issue": 181,
       "requirement_id": "MJ-REQ-180",
-      "status": "READY_FOR_INTEGRATION",
+      "status": "INTEGRATED_PASS",
       "priority": 1,
       "target_area": "cli/live_feedback.py; cli/ui_e2e.py; cli/ui_source_readback.py; tests/browser/test_live_feedback_redaction.py",
       "depends_on": [],
       "evidence_path": "docs/evidence/2026-10-07-feedback-screenshot-content-masking.json",
       "scope_complete": true,
-      "note": "All discovered production page screenshot paths now call the helper that masks form controls and uses screenshot-only CSS to suppress arbitrary text, pseudo-elements and embedded image/canvas/video/frame pixels. Headless Chromium demonstrates the 3,242-pixel pre-fix leak and zero post-fix pixels; live DOM remains unchanged. Feedback and UI-source suite 32 PASS; validators PASS. Connected Compose UI E2E NOT_RUN. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF."
+      "note": "All discovered production page screenshot paths now call the helper that masks form controls and uses screenshot-only CSS to suppress arbitrary text, pseudo-elements and embedded image/canvas/video/frame pixels. Headless Chromium demonstrates the 3,242-pixel pre-fix leak and zero post-fix pixels; live DOM remains unchanged. Feedback and UI-source suite 32 PASS; validators PASS. Connected Compose UI E2E NOT_RUN. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF. Issue CLOSED/readback https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6039255354.",
+      "integration_commit": "a7eea5b291082db1bbe3e32403f7995416a573d5",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6039255354"
     }
   ],
-  "generated_at": "2026-10-07T13:41:30Z"
+  "generated_at": "2026-10-07T13:44:00Z"
 }

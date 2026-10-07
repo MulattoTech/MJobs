@@ -372,11 +372,14 @@
         "docs/evidence/2026-10-07-feedback-screenshot-content-masking.json",
         "planning/lanes/codex/**"
       ],
-      "status": "ACTIVE",
+      "status": "RELEASED",
       "claimed_at": "2026-10-07T13:36:10Z",
       "evidence_path": "docs/evidence/2026-10-07-feedback-screenshot-content-masking.json",
       "claim_comment": "https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6039120762",
-      "claim_update": "https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6039183625"
+      "claim_update": "https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6039183625",
+      "released_at": "2026-10-07T13:44:00Z",
+      "integrated_main": "a7eea5b291082db1bbe3e32403f7995416a573d5",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6039255354"
     }
   ]
 }

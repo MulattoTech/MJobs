@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-07T13:43:00Z",
+  "timestamp": "2026-10-07T13:44:00Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -1512,7 +1512,7 @@
         "docs/evidence/2026-10-07-rich-control-screenshot-redaction.json",
         "docs/evidence/2026-10-07-feedback-screenshot-content-masking.json"
       ],
-      "note": "Issue #181 / MJ-REQ-180 screenshot and HTML snapshot privacy acceptance is locally PASS. All production CLI screenshot writers use a screenshot-only helper that masks controls and suppresses arbitrary visible DOM text, generated pseudo-elements, background images, and embedded image/canvas/video/frame content while preserving the live page. Raw Playwright trace and DOM snapshots are not stored; no HTML snapshot writer was found in the scoped production code. Evidence docs/evidence/2026-10-07-feedback-screenshot-content-masking.json. Connected UI E2E NOT_RUN; hosted checks/review NOT_RUN_BY_USER_POLICY; full MJobs product/release remains incomplete."
+      "note": "Issue #181 / MJ-REQ-180 screenshot and HTML snapshot privacy acceptance is locally PASS. All production CLI screenshot writers use a screenshot-only helper that masks controls and suppresses arbitrary visible DOM text, generated pseudo-elements, background images, and embedded image/canvas/video/frame content while preserving the live page. Raw Playwright trace and DOM snapshots are not stored; no HTML snapshot writer was found in the scoped production code. Evidence docs/evidence/2026-10-07-feedback-screenshot-content-masking.json. Issue #181 closed after evidence readback (https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6039255354). Connected UI E2E NOT_RUN; hosted checks/review NOT_RUN_BY_USER_POLICY; full MJobs product/release remains incomplete."
     },
     {
       "requirement_id": "MJ-REQ-181",

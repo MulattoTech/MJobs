@@ -442,7 +442,7 @@
     "source_tree": "05a572f8fc71cb87c3ded65acd173de3d0862589",
     "scope": "Full stated screenshot/HTML snapshot privacy acceptance across all discovered production CLI page screenshot writers.",
     "evidence_path": "docs/evidence/2026-10-07-feedback-screenshot-content-masking.json",
-    "integration_commit": "8dc3c4dc4be19703c487b7f329366283a45ab229"
+    "integration_commit": "a7eea5b291082db1bbe3e32403f7995416a573d5"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -8636,7 +8636,8 @@
         "Reproduced arbitrary synthetic DOM answer leakage: pre-fix Chromium image contained 3,242 dark pixels in the answer region.",
         "Applied screenshot-only CSS to suppress visible text, pseudo-elements, background images and embedded image/canvas/video/frame content; live DOM/canvas remained unchanged.",
         "Routed connected UI E2E and source-readback screenshot artifact paths through the shared privacy helper.",
-        "Integrated source/evidence at main 8dc3c4dc4be19703c487b7f329366283a45ab229; marked only MJ-REQ-180 PASS and preserved the global denominator/release status."
+        "Integrated source/evidence at main 8dc3c4dc4be19703c487b7f329366283a45ab229; marked only MJ-REQ-180 PASS and preserved the global denominator/release status.",
+        "Closed issue #181 after local PASS evidence; GitHub state CLOSED/read back at https://github.com/MulattoTech/MJobs/issues/181."
       ],
       "files_added": [
         "docs/evidence/2026-10-07-feedback-screenshot-content-masking.json"
@@ -8657,7 +8658,8 @@
         "Focused synthetic Chromium red/green screenshot acceptance PASS.",
         "Affected feedback/UI-source suite 32 PASS; no failures/errors/skips.",
         "Python compilation and CLI help PASS.",
-        "agent_skills, catalogue, progress, lane coordination, git diff --check PASS."
+        "agent_skills, catalogue, progress, lane coordination, git diff --check PASS.",
+        "Issue #181 CLOSED/readback verified; release comment https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6039255354."
       ],
       "tests_remaining": [
         "Connected application UI E2E for the screenshot writer call sites NOT_RUN.",
@@ -8673,14 +8675,14 @@
         "Hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF."
       ],
       "last_safe_checkpoint": {
-        "git_commit": "8dc3c4dc4be19703c487b7f329366283a45ab229",
+        "git_commit": "a7eea5b291082db1bbe3e32403f7995416a573d5",
         "evidence_path": "docs/evidence/2026-10-07-feedback-screenshot-content-masking.json"
       }
     }
   ],
   "current_phase": "MJ-REQ-180 screenshot privacy acceptance locally evidenced and integrated; full repository release remains PARTIAL",
   "last_safe_checkpoint": {
-    "git_commit": "8dc3c4dc4be19703c487b7f329366283a45ab229",
+    "git_commit": "a7eea5b291082db1bbe3e32403f7995416a573d5",
     "evidence_path": "docs/evidence/2026-10-07-feedback-screenshot-content-masking.json"
   },
   "live_integrations_tested": [
@@ -8926,11 +8928,13 @@
     "base": "50c85cdf42a73ae005cff2aca4da28d7548b81cd",
     "branch": "codex/mj-req180-mask-all-page-content-20261007",
     "candidate": "8dc3c4dc4be19703c487b7f329366283a45ab229",
-    "integrated_main": "8dc3c4dc4be19703c487b7f329366283a45ab229",
+    "integrated_main": "a7eea5b291082db1bbe3e32403f7995416a573d5",
     "source_commit": "7ddf775f58d95c5cef40380a3bc0670d1a7c221f",
     "source_tree": "05a572f8fc71cb87c3ded65acd173de3d0862589",
     "evidence": "docs/evidence/2026-10-07-feedback-screenshot-content-masking.json",
-    "next_action": "Read back GitHub issue after exact-main receipt; release claim and immediately select next high-value unclaimed dependency-ready issue."
+    "next_action": "Synchronize current main and active claims, then select the highest-value unclaimed dependency-ready issue.",
+    "issue_state": "CLOSED",
+    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6039255354"
   },
   "historical_control_snapshots": [
     {
@@ -10070,5 +10074,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-07T13:43:00Z"
+  "updated_at": "2026-10-07T13:44:00Z"
 }
