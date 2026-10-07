@@ -239,25 +239,28 @@ class AgentToolBoundaryTests(unittest.TestCase):
         self.assertEqual(trace["terminal"]["stop_reason"], "TIME_BUDGET_EXHAUSTED")
         self.assertEqual(trace["terminal"]["budget_consumed_ms"], 600)
 
-    def test_explicit_escape_outcome_is_a_terminal_result(self):
+    def test_explicit_escape_outcomes_are_terminal_results(self):
         class Request(BaseModel):
             model_config = ConfigDict(strict=True, extra="forbid")
             value: str
         class Response(BaseModel):
             model_config = ConfigDict(strict=True, extra="forbid")
             value: str
-        registry = ToolRegistry()
-        registry.register(AgentTool("read_value", "Read value", ToolClass.READ,
-                                    Request, Response,
-                                    lambda args, context: (_ for _ in ()).throw(
-                                        AgentToolError("AUTH_REQUIRED"))))
-        runtime = AgentRuntime(self.store, registry, profile_id="fixture", task="resume_tailor")
+        for outcome in ("AUTH_REQUIRED", "NOT_AVAILABLE", "SOURCE_CHANGED"):
+            with self.subTest(outcome=outcome):
+                registry = ToolRegistry()
+                registry.register(AgentTool("read_value", "Read value", ToolClass.READ,
+                                            Request, Response,
+                                            lambda args, context: (_ for _ in ()).throw(
+                                                AgentToolError(outcome))))
+                runtime = AgentRuntime(self.store, registry, profile_id="fixture",
+                                       task="resume_tailor")
 
-        result = runtime.run([{"name": "read_value", "arguments": {"value": "safe"}}])
+                result = runtime.run([{"name": "read_value", "arguments": {"value": "safe"}}])
 
-        self.assertEqual(result["state"], "AUTH_REQUIRED")
-        trace = read_agent_trace(self.store, result["run_id"])
-        self.assertEqual(trace["terminal"]["stop_reason"], "AUTH_REQUIRED")
+                self.assertEqual(result["state"], outcome)
+                trace = read_agent_trace(self.store, result["run_id"])
+                self.assertEqual(trace["terminal"]["stop_reason"], outcome)
 
     def test_collection_contract_prevents_unknown_or_incomplete_output_from_passing(self):
         from services.agents.acceptance import CollectionContract
