@@ -11,17 +11,19 @@
       "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req110-review-consumer-20261006",
       "paths": [
         "services/ai/**",
-        "services/matching/**",
-        "apps/api/**",
-        "apps/web/**",
-        "packages/persistence/**",
+        "apps/api/main.py",
+        "apps/web/src/main.tsx",
+        "apps/web/src/style.css",
+        "packages/persistence/models.py",
+        "packages/persistence/store.py",
         "migrations/versions/**",
+        "tests/unit/test_ai_cost_consumer.py",
         "tests/integration/test_ai_cost_policy_api.py",
         "tests/integration/test_ai_document_review_migration.py",
         "tests/browser/test_ai_task_settings.py",
-        "docs/evidence/2026-10-06-ai-cost-review-gated-documents.json"
+        "docs/evidence/2026-10-07-ai-cost-consumer-resume.json"
       ],
-      "head": "36851eb4548414dc00901fcd7a7a2151e02992b9",
+      "head": "aa05f692ce20d8b0c81fff2da6b93251fe5df6e5",
       "pid": null
     }
   ]

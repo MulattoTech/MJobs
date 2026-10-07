@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-06T20:44:57Z",
+  "timestamp": "2026-10-07T03:01:45Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -1004,9 +1004,10 @@
       "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-10-06-ai-cost-controls.json",
-        "docs/evidence/2026-10-06-ai-cost-controls-ui.json"
+        "docs/evidence/2026-10-06-ai-cost-controls-ui.json",
+        "docs/evidence/2026-10-07-ai-cost-consumer-resume.json"
       ],
-      "note": "Deterministic funnel, profile-scoped persisted score/cap settings and a connected no-call preview are locally verified. No production task consumer or automatic reviewed-document execution is wired, so MJ-REQ-110 remains PARTIAL."
+      "note": "Deterministic bounded funnel, persisted profile-scoped cost controls, structured production consumer, durable evaluation history, and explicit review-gated factual preparation are locally verified. Live configured-provider inference and complete acceptance remain NOT_RUN; MJ-REQ-110 remains PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-111",

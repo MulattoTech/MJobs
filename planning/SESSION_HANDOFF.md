@@ -660,3 +660,10 @@ Reconciliation receipt (2026-10-06T19:03:46Z): main advanced to b66297964ab6cc8e
 
 Integration receipt (2026-10-06T19:05:40Z): task-config source `49f4769df3b06e413c25b3ab9a2282db74369e5b`, reconciled against current main `b66297964ab6cc8e36cff4c8c5e46e61ab573715`, is integrated at synchronized local/GitHub main `117a27ccfdf472fb67135d17f14ebd44c8fa9462`. Issue #110 remains OPEN/PARTIAL after readback (https://github.com/MulattoTech/MJobs/issues/110#issuecomment-6023459996); evidence docs/evidence/2026-10-06-ai-task-configuration.json. Next target: issue #111 / MJ-REQ-110 cost controls, using deterministic local fixtures only.
 
+
+
+## 2026-10-07 Codex takeover — MJ-REQ-110 review-gated consumer
+
+Current candidate `aa05f692ce20d8b0c81fff2da6b93251fe5df6e5` is based on synchronized main `d9d356e8a9da77ebc3cf50608497216a54d4b9b0`. It completes the local production consumer path for bounded structured advisory evaluations, persisted history, durable review, and the existing factual PREPARE workflow. The exact local checkpoint is [`docs/evidence/2026-10-07-ai-cost-consumer-resume.json`](../docs/evidence/2026-10-07-ai-cost-consumer-resume.json). Focused consumer/API/migration/browser tests: 15 PASS; frontend: 62 PASS and build PASS; repository validators PASS. Full Python discovery was interrupted and has no aggregate result. Live provider inference, PostgreSQL runtime migration, hosted actions/reviews remain NOT_RUN. Issue #111 remains OPEN/PARTIAL; external submission OFF.
+
+Takeover was authorized by the current user and the existing branch/checkpoints were preserved. Continue after integration by reconciling all current claims and worktrees before selecting the next unclaimed dependency-ready issue.

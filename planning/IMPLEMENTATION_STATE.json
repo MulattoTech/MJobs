@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-06T20:45:30Z",
+  "generated_at": "2026-10-07T03:01:45Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -11,7 +11,7 @@
     "current_verified_github_state": "GitHub/local main synchronized; issue #308 PASS, parent MJ-REQ-017 OPEN/PARTIAL; Actions disabled, no open PR, main unprotected.",
     "current_verified_at": "2026-10-07T00:18:00Z"
   },
-  "current_milestone": "MJ-REQ-017-S07-REMOTE-OK-ADAPTER-INTEGRATED-20261006",
+  "current_milestone": "MJ-REQ-110-REVIEW-GATED-CONSUMER-INTEGRATED-PARTIAL-20261007",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -93,7 +93,7 @@
     "MJ-REQ-004 now cancels native parser and OCR subprocesses from an explicit profile/resume-scoped UI action and from observed transport disconnects; all-category external-operation policy and unavailable real ATS/AI provider paths remain PARTIAL (docs/evidence/2026-10-06-resume-extraction-cancellation.json).",
     "MJ-REQ-108 provider-neutral contract and disabled/no-AI provider locally verified; real provider implementations and matching consumer wiring remain incomplete.",
     "MJ-REQ-109: immutable per-task provider/model router across seven task types; user-facing persistence and production consumer wiring remain incomplete.",
-    "MJ-REQ-110: deterministic dedupe, score threshold, bounded AI/document candidate planning and reviewed-document gating verified locally; production matching consumer and persisted settings remain incomplete (docs/evidence/2026-10-06-ai-cost-controls.json).",
+    "MJ-REQ-110: deterministic funnel, profile-scoped cost policy, production structured consumer, durable evaluation history and review-gated factual preparation locally verified; live configured-provider inference and full acceptance remain NOT_RUN (docs/evidence/2026-10-07-ai-cost-consumer-resume.json).",
     "MJ-REQ-111: strict Pydantic result schemas, schema-capable router negotiation, bounded duplicate-safe JSON parsing and sanitized errors pass locally; no remote provider or production consumer exists (docs/evidence/2026-10-06-ai-structured-output.json).",
     "MJ-REQ-108: registered loopback-only Ollama provider supports bounded text and schema requests with stable sanitized errors; no live inference, remote providers, persistent settings, or production task consumer (docs/evidence/2026-10-06-ai-local-ollama-provider.json)."
   ],
@@ -280,7 +280,8 @@
     "MJ-REQ-108 issue #109 local Ollama adapter: nine provider tests and all 346 unit tests PASS; all requests used synthetic MockTransport, no model inference (docs/evidence/2026-10-06-ai-local-ollama-provider.json).",
     "MJ-REQ-109 per-profile AI settings candidate a6d64f8: 346 unit, 381 integration (1 optional skip), 38 browser, 62 frontend tests; Vite build; SQLite/PostgreSQL migrations and API persistence; populated downgrade refusal; validators PASS (docs/evidence/2026-10-06-ai-task-settings-persistence.json).",
     "MJ-REQ-109 integration receipt: source a6d64f82598df9eebab6601dafd386b07409706f and evidence/planning checkpoint integrated by non-force fast-forward at synchronized local/GitHub main f6549b8dd2cb7bced64223f30b3870511cd1ba3a; issue #110 remains OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/110#issuecomment-6024402366; exact checkpoint document validators passed.",
-    "MJ-REQ-110 candidate 93e152dbff89c74b5075ce4df703c82cb4da8883: 346 unit tests, 384 integration tests (1 optional PG skip), 38 connected browser tests, 62 frontend tests, build, direct SQLite/PG migration/persistence checks and repository validators PASS; evidence docs/evidence/2026-10-06-ai-cost-controls-ui.json."
+    "MJ-REQ-110 candidate 93e152dbff89c74b5075ce4df703c82cb4da8883: 346 unit tests, 384 integration tests (1 optional PG skip), 38 connected browser tests, 62 frontend tests, build, direct SQLite/PG migration/persistence checks and repository validators PASS; evidence docs/evidence/2026-10-06-ai-cost-controls-ui.json.",
+    "MJ-REQ-110 issue #111 takeover at code head c9276be112cf8db636bd783dc7eb7ad41b539c35: 15 focused consumer/API/SQLite-migration/browser tests PASS; 62 frontend tests, Vite build and agent-skills/catalogue/progress/diff validators PASS. Exact command and limits: docs/evidence/2026-10-07-ai-cost-consumer-resume.json."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -318,7 +319,8 @@
     "MJ-REQ-004 mock ATS HTTP cancellation: hosted Actions/reviews NOT_RUN; optional PostgreSQL skipped because MJOBS_TEST_POSTGRES_URL is unset; AI/real ATS and external submission not run. Evidence docs/evidence/2026-10-06-mock-ats-http-cancellation.json.",
     "MJ-REQ-108.A06 browser acceptance NOT_APPLICABLE (internal provider contract); external provider calls and GitHub hosted checks NOT_RUN by current policy; full integration suite NOT_RUN because application workflow wiring is outside this child slice.",
     "MJ-REQ-109: live model inference and production consumer wiring NOT_RUN; remote/paid models and hosted Actions/reviews NOT_RUN by policy. Browser persistence/profile isolation passed (docs/evidence/2026-10-06-ai-task-settings-persistence.json).",
-    "MJ-REQ-110 production matching/model consumer, real provider inference and reviewed-document generation NOT_RUN; policy preview is read-only. Hosted checks/reviews NOT_RUN by policy; external submission OFF."
+    "MJ-REQ-110 production matching/model consumer, real provider inference and reviewed-document generation NOT_RUN; policy preview is read-only. Hosted checks/reviews NOT_RUN by policy; external submission OFF.",
+    "MJ-REQ-110 takeover: full Python discovery started and was interrupted before completion; no aggregate result. Live configured-provider inference, PostgreSQL runtime migration, GitHub Actions and hosted review NOT_RUN; external submission OFF (docs/evidence/2026-10-07-ai-cost-consumer-resume.json)."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -349,13 +351,13 @@
     "MJ-REQ-004 candidate 3d604b27b1a4c25e2ff0ee6fa68a07e9ff8f74a0: full suite initially saw stale ignored apps/web/dist; rebuilding restored current Sources UI and isolated browser acceptance. A first rebuilt full run later hit the known intermittent CompanyDiscoveryRequestsBrowserTests server-thread shutdown assertion; isolated case and all 35 browser tests passed, followed by a same-head 680-test full suite pass. Do not weaken shutdown timeout; evidence docs/evidence/2026-10-06-bounded-ocr-diagnostics.json."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-06T19:05:40Z",
+    "timestamp": "2026-10-07T03:01:45Z",
     "result": "PARTIAL",
-    "source_commit": "49f4769df3b06e413c25b3ab9a2282db74369e5b",
-    "source_tree": "3ea9fcd55130585c12e00cf13fe74f9e6f69359b",
-    "scope": "MJ-REQ-109 task/model routing locally implemented; issue remains PARTIAL for persistence/consumer wiring.",
-    "evidence_path": "docs/evidence/2026-10-06-ai-task-configuration.json",
-    "integration_commit": "117a27ccfdf472fb67135d17f14ebd44c8fa9462"
+    "source_commit": "c9276be112cf8db636bd783dc7eb7ad41b539c35",
+    "source_tree": "8493a2ff7002cdeadc4eb11b4137fa32fe239f64",
+    "scope": "MJ-REQ-110 connected bounded consumer, durable evaluation history, explicit review gate and factual preparation acceptance; focused checks only.",
+    "evidence_path": "docs/evidence/2026-10-07-ai-cost-consumer-resume.json",
+    "candidate_commit": "aa05f692ce20d8b0c81fff2da6b93251fe5df6e5"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -6861,12 +6863,53 @@
         "main": "a6e6625651aebd8ee3d07cbb31a496195f29de65",
         "issue_comment": "https://github.com/MulattoTech/MJobs/issues/111#issuecomment-6025101467"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-110-REVIEW-GATED-CONSUMER-TAKEOVER-20261007",
+      "timestamp": "2026-10-07T03:01:45Z",
+      "current_phase": "Issue #111 / MJ-REQ-110 review-gated production task consumer and factual preparation path integrated locally at aa05f692ce20d8b0c81fff2da6b93251fe5df6e5; focused local tests pass. Keep issue OPEN/PARTIAL because live configured-provider inference and full discovery are NOT_RUN. Next select a dependency-ready unclaimed issue after claim reconciliation.",
+      "completed_steps": [
+        "Took over the existing Codex claim with the current user authorization while preserving all branch commits.",
+        "Revalidated connected structured consumer, durable profile-scoped evaluation history, review gating and factual document preparation against the owning spec.",
+        "Pushed exact source/evidence checkpoint aa05f692ce20d8b0c81fff2da6b93251fe5df6e5."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-07-ai-cost-consumer-resume.json"
+      ],
+      "files_modified": [
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "15 focused Python consumer/API/migration/browser tests PASS.",
+        "62 frontend tests and Vite build PASS.",
+        "Agent skills, catalogue, progress journal and diff validators PASS."
+      ],
+      "tests_remaining": [
+        "Full Python discovery was interrupted before completion; no aggregate result is claimed.",
+        "Live configured-provider inference, PostgreSQL runtime migration, hosted checks and independent review remain NOT_RUN.",
+        "Issue #111 / MJ-REQ-110 remains OPEN/PARTIAL."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "The browser harness uses synthetic structured output and mocked queue completion.",
+        "Prior exact-worktree evidence documents a real synthetic PREPARE worker run; it was not repeated during this resume checkpoint.",
+        "External submission remains OFF."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "aa05f692ce20d8b0c81fff2da6b93251fe5df6e5",
+        "evidence_path": "docs/evidence/2026-10-07-ai-cost-consumer-resume.json"
+      }
     }
   ],
-  "current_phase": "Issue #111 / MJ-REQ-110 profile-scoped cost controls and deterministic no-call preview integrated at synchronized main a6e6625651aebd8ee3d07cbb31a496195f29de65; issue remains OPEN/PARTIAL. Continue active MJ-PR-030 with a production review-gated task consumer; no live inference is claimed.",
+  "current_phase": "Issue #111 / MJ-REQ-110 review-gated production task consumer and factual preparation path integrated locally at aa05f692ce20d8b0c81fff2da6b93251fe5df6e5; focused local tests pass. Keep issue OPEN/PARTIAL because live configured-provider inference and full discovery are NOT_RUN. Next select a dependency-ready unclaimed issue after claim reconciliation.",
   "last_safe_checkpoint": {
-    "git_commit": "a6e6625651aebd8ee3d07cbb31a496195f29de65",
-    "evidence_path": "docs/evidence/2026-10-06-ai-cost-controls-ui.json"
+    "git_commit": "aa05f692ce20d8b0c81fff2da6b93251fe5df6e5",
+    "evidence_path": "docs/evidence/2026-10-07-ai-cost-consumer-resume.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -8134,9 +8177,10 @@
     "MJ-REQ-004 mock ATS HTTP operation-check source f4cf42c34682be815b0306e693fb57f0ee911dca and evidence/planning integrated by non-force fast-forward at synchronized main bb0f4b2384580fa31e1e054e04923d6bc2665107; issue #5 remains OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6021535660. Full local Python suite PARTIAL with unrelated teardown assertion isolated PASS; evidence docs/evidence/2026-10-06-mock-ats-http-cancellation.json.",
     "MJ-REQ-017.S08 Remotive global job-source adapter: 7 integration tests PASS in 5.7s; 36 discovery source tests PASS; 316 unit tests PASS; 62 frontend tests/build PASS; local validators PASS. Evidence docs/evidence/2026-10-06-remotive-job-source-adapter.json.",
     "MJ-REQ-017.S02 We Work Remotely global job-source adapter: 21 integration tests PASS in 9.0s; 57 discovery source tests PASS; 358 unit tests PASS; 62 frontend tests/build PASS; local validators PASS. Evidence docs/evidence/2026-10-06-we-work-remotely-job-source-adapter.json.",
-    "MJ-REQ-017.S07 Remote OK global job-source adapter: 10 integration tests PASS in 9.3s; 66 discovery source tests PASS; 361 unit tests PASS; 62 frontend tests/build PASS; local validators PASS. Evidence docs/evidence/2026-10-06-remote-ok-job-source-adapter.json."
+    "MJ-REQ-017.S07 Remote OK global job-source adapter: 10 integration tests PASS in 9.3s; 66 discovery source tests PASS; 361 unit tests PASS; 62 frontend tests/build PASS; local validators PASS. Evidence docs/evidence/2026-10-06-remote-ok-job-source-adapter.json.",
+    "MJ-REQ-110 takeover candidate code c9276be112cf8db636bd783dc7eb7ad41b539c35: 15 focused consumer/API/migration/browser tests, 62 frontend tests/build, and local validators PASS. Full Python discovery was interrupted (no aggregate result); live provider inference and hosted checks NOT_RUN. Evidence docs/evidence/2026-10-07-ai-cost-consumer-resume.json. Candidate plus evidence/planning pushed as aa05f692ce20d8b0c81fff2da6b93251fe5df6e5; issue remains OPEN/PARTIAL."
   ],
-  "ownership": "Remote OK global job-source adapter (MJ-REQ-017.S07) source daa37f52be3e26bbd29094ea40befd18aacbed3a and evidence/planning safely integrated by non-force fast-forward to synchronized local/GitHub main. Issue #308 PASS; parent MJ-REQ-017 remains PARTIAL/OPEN. 10 focused Remote OK integration tests, 66 discovery source tests, 361 unit tests, 62 frontend tests/build, and all repository validators pass. Hosted checks NOT_RUN; external submission OFF. Continue the next dependency-ready queue item.",
+  "ownership": "MJ-REQ-110 issue #111 review-gated consumer takeover is integrated by local-only non-force fast-forward at the exact synchronized main recorded in the latest milestone. Evidence docs/evidence/2026-10-07-ai-cost-consumer-resume.json. Local focused/API/migration/browser checks and frontend build pass; full Python discovery incomplete, live provider inference and hosted checks NOT_RUN, issue #111 remains OPEN/PARTIAL, external submission OFF. Continue by reconciling active claims and selecting the next independent dependency-ready issue.",
   "delivery_policy": {
     "mode": "LOCAL_ONLY",
     "effective_at": "2026-10-05T21:32:10.763994+00:00",
@@ -8149,5 +8193,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-07T00:18:00Z"
+  "updated_at": "2026-10-07T03:01:45Z"
 }
