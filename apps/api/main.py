@@ -35,10 +35,9 @@ from services.dedupe.reviews import list_duplicate_reviews, record_review_decisi
 from services.dedupe.routes import load_job_routes, list_route_choices, plan_application_routes, source_provenance_inventory
 from services.company_discovery.triggers import queue_company_discovery
 from services.applications.knowledge import application_adapter_knowledge
-from services.ai.providers import AIProviderError, create_provider
+from services.ai.providers import AIProviderDisabled, AIProviderError, create_provider
 from services.ai.tasks import AI_TASKS, AITaskConfiguration, AITaskRouter
-from services.ai.consumer import consume_ai_candidates, AIJobInput
-from services.ai.providers import AIProviderDisabled, AIProviderError
+from services.ai.consumer import AIConsumerTimeoutError, consume_ai_candidates, AIJobInput
 from services.ai.structured_output import StructuredOutputError
 from services.ai.cost_controls import AICostPolicy, CandidateScore
 from services.company_discovery.public_client import PublicFetchError
@@ -573,6 +572,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         candidate_by_id = {candidate.job_id: candidate for candidate in candidates}
         try:
             result = consume_ai_candidates(candidates, policy, AITaskRouter(configuration))
+        except AIConsumerTimeoutError as error:
+            raise HTTPException(504, {"code": error.code}) from None
         except StructuredOutputError as error:
             raise HTTPException(502, {"code": error.code}) from None
         except ValueError as error:
@@ -580,7 +581,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         except AIProviderDisabled:
             raise HTTPException(409, {"code": "AI_PROVIDER_DISABLED"}) from None
         except AIProviderError as error:
-            raise HTTPException(502, {"code": error.code}) from None
+            status = 504 if error.code == "AI_PROVIDER_TIMEOUT" else 502
+            raise HTTPException(status, {"code": error.code}) from None
         try:
             run = store.save_ai_evaluation_run(profile_id, profile_version, asdict(policy),
                                                task_selection.provider, task_selection.model, [{

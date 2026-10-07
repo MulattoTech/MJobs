@@ -9,7 +9,7 @@ from types import MappingProxyType
 from typing import Callable, Mapping
 
 from services.ai.providers import (
-    AIProvider, AIProviderDisabled, ProviderCapabilities, create_provider,
+    AIProvider, AIProviderDisabled, AIProviderError, ProviderCapabilities, create_provider,
 )
 from services.ai.structured_output import (
     ResultT, StructuredOutputError, output_schema_for, parse_structured_output,
@@ -147,6 +147,10 @@ class AITaskRouter:
                 task=str(task), model=selection.model, prompt=prompt,
                 timeout_seconds=timeout_seconds, response_schema=schema,
             )
+        except AIProviderError as error:
+            if error.code == "AI_PROVIDER_TIMEOUT":
+                raise
+            raise StructuredOutputError("AI_STRUCTURED_PROVIDER_FAILED") from None
         except Exception:
             raise StructuredOutputError("AI_STRUCTURED_PROVIDER_FAILED") from None
         return parse_structured_output(raw, result_model)

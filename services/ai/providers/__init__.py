@@ -44,6 +44,7 @@ class AIProviderError(RuntimeError):
         "AI_PROVIDER_REQUEST_INVALID",
         "AI_PROVIDER_RESPONSE_INVALID",
         "AI_PROVIDER_RESPONSE_TOO_LARGE",
+        "AI_PROVIDER_TIMEOUT",
         "AI_PROVIDER_UNAVAILABLE",
         "AI_PROVIDER_HTTP_ERROR",
     }

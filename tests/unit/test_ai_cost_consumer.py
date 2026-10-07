@@ -15,6 +15,59 @@ class _Router:
 
 
 class AICostConsumerTests(unittest.TestCase):
+    def test_total_deadline_clips_each_provider_timeout_to_remaining_budget(self):
+        from services.ai.cost_controls import AICostPolicy
+        from services.ai.consumer import AIJobEvaluation, AIJobInput, consume_ai_candidates
+
+        router = _Router([
+            AIJobEvaluation(category="STRONG", rationale="Relevant."),
+            AIJobEvaluation(category="REVIEW", rationale="Check details."),
+        ])
+        jobs = [AIJobInput(str(index), 90, "Admin", "Example Co", "Description")
+                for index in range(2)]
+        times = iter([0, 0, 2, 2, 4])
+        consume_ai_candidates(jobs, AICostPolicy(max_ai_candidates=2,
+                                                 max_document_candidates=2), router,
+                              timeout_seconds=30, total_timeout_seconds=5,
+                              clock=lambda: next(times))
+
+        self.assertEqual([call["timeout_seconds"] for call in router.calls], [5, 3])
+
+    def test_result_returned_after_total_deadline_is_discarded(self):
+        from services.ai.cost_controls import AICostPolicy
+        from services.ai.consumer import (
+            AIConsumerTimeoutError, AIJobEvaluation, AIJobInput, consume_ai_candidates,
+        )
+
+        router = _Router([AIJobEvaluation(category="STRONG", rationale="Relevant.")])
+        job = AIJobInput("one", 90, "Admin", "Example Co", "Description")
+        times = iter([0, 0, 6])
+        with self.assertRaisesRegex(AIConsumerTimeoutError, "AI_TASK_TIMEOUT"):
+            consume_ai_candidates([job], AICostPolicy(max_ai_candidates=1,
+                                                       max_document_candidates=1), router,
+                                  timeout_seconds=30, total_timeout_seconds=5,
+                                  clock=lambda: next(times))
+
+    def test_structured_router_preserves_sanitized_provider_timeout_classification(self):
+        from services.ai.providers import AIProviderError, ProviderCapabilities
+        from services.ai.tasks import AITaskConfiguration, AITaskRouter
+
+        class TimeoutProvider:
+            capabilities = ProviderCapabilities(structured_output=True)
+
+            def generate(self, **_kwargs):
+                raise AIProviderError("AI_PROVIDER_TIMEOUT")
+
+        config = AITaskConfiguration.from_mapping({
+            "job_scoring": {"provider": "synthetic", "model": "bounded-test"},
+        })
+        router = AITaskRouter(config, provider_factory=lambda _name: TimeoutProvider())
+        from services.ai.consumer import AIJobEvaluation
+        with self.assertRaises(AIProviderError) as error:
+            router.generate_structured(task=AITask.JOB_SCORING, prompt="synthetic",
+                                       timeout_seconds=1, result_model=AIJobEvaluation)
+        self.assertEqual(error.exception.code, "AI_PROVIDER_TIMEOUT")
+
     def test_consumer_calls_only_score_eligible_top_candidates_and_never_generates_documents(self):
         from services.ai.cost_controls import AICostPolicy
         from services.ai.consumer import AIJobEvaluation, AIJobInput, consume_ai_candidates

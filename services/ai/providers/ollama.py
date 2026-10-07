@@ -127,7 +127,9 @@ class OllamaProvider:
                         body.extend(chunk)
         except AIProviderError:
             raise
-        except (httpx.TimeoutException, httpx.TransportError):
+        except httpx.TimeoutException:
+            raise AIProviderError("AI_PROVIDER_TIMEOUT") from None
+        except httpx.TransportError:
             raise AIProviderError("AI_PROVIDER_UNAVAILABLE") from None
         except Exception:
             raise AIProviderError("AI_PROVIDER_UNAVAILABLE") from None

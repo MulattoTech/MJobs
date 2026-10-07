@@ -207,6 +207,22 @@ class OllamaProviderTests(unittest.TestCase):
         self.assertEqual(transport_error.exception.code, "AI_PROVIDER_UNAVAILABLE")
         self.assertNotIn("PRIVATE_ENDPOINT", str(transport_error.exception))
 
+    def test_provider_timeout_has_a_distinct_sanitized_error_code(self):
+        from services.ai.providers import AIProviderError, OllamaProvider
+
+        def timeout(request):
+            raise httpx.ReadTimeout("PRIVATE_PROMPT PRIVATE_ENDPOINT", request=request)
+
+        provider = OllamaProvider(client_factory=lambda **kwargs: httpx.Client(
+            transport=httpx.MockTransport(timeout), **kwargs,
+        ))
+        with self.assertRaises(AIProviderError) as error:
+            provider.generate(task="job_scoring", model="llama3.2", prompt="PRIVATE_PROMPT",
+                              timeout_seconds=1)
+        self.assertEqual(error.exception.code, "AI_PROVIDER_TIMEOUT")
+        self.assertNotIn("PRIVATE_PROMPT", str(error.exception))
+        self.assertNotIn("PRIVATE_ENDPOINT", str(error.exception))
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -350,6 +350,105 @@ class AICostPolicyApiTests(unittest.TestCase):
         self.assertEqual(response.status_code, 502, response.text)
         self.assertEqual(response.json()["detail"]["code"], "AI_STRUCTURED_PROVIDER_FAILED")
 
+    def test_provider_timeout_is_classified_and_does_not_persist_partial_history(self):
+        from unittest.mock import patch
+        from services.ai.consumer import AIJobEvaluation
+        from services.ai.providers import AIProviderError
+        from services.ai.tasks import AI_TASKS
+
+        for index in range(2):
+            created = self.client.post("/jobs/manual", json={
+                "request_id": f"cost-consumer-timeout-{index}",
+                "title": f"Infrastructure Administrator {index}",
+                "company": "Synthetic Company",
+                "description": "Windows Server operations.",
+                "reference_url": f"https://jobs.example.test/consumer-timeout-{index}",
+                "application_url": f"https://apply.example.test/consumer-timeout-{index}",
+                "source_details": {},
+            })
+            self.assertEqual(created.status_code, 201, created.text)
+        recalculate(self.store, "fixture")
+        jobs = self.store.jobs(profile_id="fixture", limit=20)
+        with self.store.engine.begin() as connection:
+            for job in jobs:
+                connection.execute(update(m.matches).where(
+                    m.matches.c.profile_id == "fixture",
+                    m.matches.c.job_id == job["id"],
+                ).values(score=95.0))
+        self.store.save_ai_task_settings("fixture", {
+            task: {"provider": "ollama", "model": "llama3.2:3b"}
+            if task == "job_scoring" else {"provider": "disabled", "model": None}
+            for task in AI_TASKS
+        })
+
+        class TimedOutRouter:
+            def __init__(self, configuration):
+                self.configuration = configuration
+                self.calls = 0
+
+            def generate_structured(self, **_kwargs):
+                self.calls += 1
+                if self.calls == 1:
+                    return AIJobEvaluation(category="STRONG", rationale="Synthetic result.")
+                raise AIProviderError("AI_PROVIDER_TIMEOUT")
+
+        with patch("apps.api.main.AITaskRouter", TimedOutRouter):
+            response = self.client.post("/profiles/fixture/ai-cost-plan/evaluate")
+
+        self.assertEqual(response.status_code, 504, response.text)
+        self.assertEqual(response.json()["detail"]["code"], "AI_PROVIDER_TIMEOUT")
+        history = self.client.get("/profiles/fixture/ai-cost-plan/evaluations")
+        self.assertEqual(history.json()["runs"], [])
+
+    def test_total_batch_deadline_returns_gateway_timeout_without_saving_results(self):
+        from unittest.mock import patch
+        from services.ai.consumer import AIJobEvaluation, consume_ai_candidates
+        from services.ai.tasks import AI_TASKS
+
+        created = self.client.post("/jobs/manual", json={
+            "request_id": "cost-consumer-total-timeout",
+            "title": "Infrastructure Administrator",
+            "company": "Synthetic Company",
+            "description": "Windows Server operations.",
+            "reference_url": "https://jobs.example.test/consumer-total-timeout",
+            "application_url": "https://apply.example.test/consumer-total-timeout",
+            "source_details": {},
+        })
+        self.assertEqual(created.status_code, 201, created.text)
+        recalculate(self.store, "fixture")
+        job = self.store.jobs(profile_id="fixture")[0]
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.matches).where(
+                m.matches.c.profile_id == "fixture",
+                m.matches.c.job_id == job["id"],
+            ).values(score=95.0))
+        self.store.save_ai_task_settings("fixture", {
+            task: {"provider": "ollama", "model": "llama3.2:3b"}
+            if task == "job_scoring" else {"provider": "disabled", "model": None}
+            for task in AI_TASKS
+        })
+
+        class SlowRouter:
+            def __init__(self, configuration):
+                self.configuration = configuration
+
+            def generate_structured(self, **_kwargs):
+                return AIJobEvaluation(category="STRONG", rationale="Synthetic result.")
+
+        times = iter([0, 0, 121])
+
+        def consume_after_deadline(*args, **kwargs):
+            return consume_ai_candidates(*args, **kwargs, clock=lambda: next(times))
+
+        with patch("apps.api.main.AITaskRouter", SlowRouter), patch(
+                "apps.api.main.consume_ai_candidates", side_effect=consume_after_deadline):
+            response = self.client.post("/profiles/fixture/ai-cost-plan/evaluate")
+
+        self.assertEqual(response.status_code, 504, response.text)
+        self.assertEqual(response.json()["detail"]["code"], "AI_TASK_TIMEOUT")
+        history = self.client.get("/profiles/fixture/ai-cost-plan/evaluations")
+        self.assertEqual(history.json()["runs"], [])
+
     def test_results_are_not_saved_when_profile_changes_during_provider_call(self):
         from unittest.mock import patch
         from services.ai.consumer import AIJobEvaluation

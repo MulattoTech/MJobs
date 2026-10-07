@@ -5,16 +5,27 @@ from __future__ import annotations
 from collections.abc import Callable, Iterable
 from itertools import islice
 from dataclasses import dataclass
+import time
 from typing import Literal
 
 from pydantic import Field, field_validator
 
 from services.ai.cost_controls import AICostPolicy, CandidateScore
+from services.ai.providers import AIProviderError
 from services.ai.structured_output import StrictAIResult
 from services.ai.tasks import AITask, AITaskRouter
 
 _MAX_DESCRIPTION_CHARACTERS = 8_000
 _MAX_PROMPT_CHARACTERS = 12_000
+
+
+class AIConsumerTimeoutError(TimeoutError):
+    """Safe failure when one complete AI candidate batch exceeds its time budget."""
+
+    code = "AI_TASK_TIMEOUT"
+
+    def __init__(self) -> None:
+        super().__init__(self.code)
 
 
 class AIJobEvaluation(StrictAIResult):
@@ -87,7 +98,9 @@ def consume_ai_candidates(
     router: AITaskRouter,
     *,
     timeout_seconds: float = 30,
+    total_timeout_seconds: float = 120,
     check: Callable[[], None] | None = None,
+    clock: Callable[[], float] | None = None,
 ) -> AIConsumption:
     """Evaluate only bounded eligible candidates; never create or publish documents."""
 
@@ -99,6 +112,11 @@ def consume_ai_candidates(
     if (type(timeout_seconds) not in (int, float)
             or not 0 < timeout_seconds <= 600):
         raise ValueError("AI_TASK_TIMEOUT_INVALID")
+    if (type(total_timeout_seconds) not in (int, float)
+            or not 0 < total_timeout_seconds <= 600):
+        raise ValueError("AI_TASK_TOTAL_TIMEOUT_INVALID")
+    if clock is not None and not callable(clock):
+        raise ValueError("AI_TASK_CLOCK_INVALID")
 
     if not isinstance(candidates, Iterable):
         raise ValueError("AI_FUNNEL_INPUT_INVALID")
@@ -115,15 +133,25 @@ def consume_ai_candidates(
         by_id[item.job_id] = item
 
     evaluations: list[tuple[str, AIJobEvaluation]] = []
+    monotonic = clock or time.monotonic
+    deadline = monotonic() + float(total_timeout_seconds)
     for job_id in plan.ai_candidate_ids:
         if check is not None:
             check()
-        evaluation = router.generate_structured(
-            task=AITask.JOB_SCORING,
-            prompt=_prompt(by_id[job_id]),
-            timeout_seconds=float(timeout_seconds),
-            result_model=AIJobEvaluation,
-        )
+        remaining = deadline - monotonic()
+        if remaining <= 0:
+            raise AIConsumerTimeoutError()
+        try:
+            evaluation = router.generate_structured(
+                task=AITask.JOB_SCORING,
+                prompt=_prompt(by_id[job_id]),
+                timeout_seconds=min(float(timeout_seconds), remaining),
+                result_model=AIJobEvaluation,
+            )
+        except AIProviderError:
+            raise
+        if monotonic() >= deadline:
+            raise AIConsumerTimeoutError()
         if not isinstance(evaluation, AIJobEvaluation):
             raise ValueError("AI_STRUCTURED_OUTPUT_INVALID")
         evaluations.append((job_id, evaluation))
@@ -134,4 +162,5 @@ def consume_ai_candidates(
     )
 
 
-__all__ = ["AIConsumption", "AIJobEvaluation", "AIJobInput", "consume_ai_candidates"]
+__all__ = ["AIConsumption", "AIConsumerTimeoutError", "AIJobEvaluation",
+           "AIJobInput", "consume_ai_candidates"]
