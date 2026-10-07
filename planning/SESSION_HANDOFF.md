@@ -1,3 +1,11 @@
+# Integration receipt — 2026-10-07
+
+Issue #5 / MJ-REQ-004 real structured-AI request-disconnect transport slice integrated by non-force fast-forward at synchronized local/GitHub main `c3618496c9a877a8cbca8e5c02af187b50f1ad9c`. Tested source `181ec139d48c6f911cdcd5f93f5a7dcf2b8b3210` (tree `4edb7dfde29e02c1c133131bff358835ab6ad681`); evidence `docs/evidence/2026-10-07-ai-real-disconnect-transport.json`. The real loopback request-side TCP half-close reached `Request.is_disconnected` through pure ASGI origin middleware, preserving guards/security headers and leaving no partial evaluation history. 845 Python tests PASS with one optional PostgreSQL skip, 3 Chromium tests PASS, 62 frontend tests/build PASS, and local validators PASS. Issue #5 remains OPEN/PARTIAL; only a synthetic provider was used, provider inference and hosted checks/review are NOT_RUN, and external submission is OFF. Sanitized issue readback: https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6030523004.
+
+Next: release this Codex claim and lock, reconcile current main and all active claims/worktrees, then select and claim the highest-value unclaimed dependency-ready slice. Continue without waiting for another user prompt.
+
+---
+
 # Integration receipt — 2026-10-06
 
 Remote OK global job-source adapter source `daa37f52be3e26bbd29094ea40befd18aacbed3a` and evidence/planning were integrated by non-force fast-forward at synchronized local/GitHub main. Issue #308 (MJ-REQ-017.S07) PASS; parent MJ-REQ-017 remains PARTIAL/OPEN. Evidence `docs/evidence/2026-10-06-remote-ok-job-source-adapter.json`. 10 focused Remote OK integration tests, 66 discovery source tests, 361 unit tests, 62 frontend tests, Vite build, and all repository validators passed. Continue to next dependency-ready slice; hosted verification NOT_RUN, external submission OFF.

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-07T03:19:06Z",
+  "generated_at": "2026-10-07T03:50:29Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -11,7 +11,7 @@
     "current_verified_github_state": "Local/GitHub main synchronized at bf3c8bc1868987c59661a69184537272c2f8d422 after MJ-REQ-095 user-reviewed responsibility-rewrite integration; issue #96 remains OPEN/PARTIAL; issue #5 remains OPEN/PARTIAL; Actions disabled; external submission OFF.",
     "current_verified_at": "2026-10-07T03:36:00Z"
   },
-  "current_milestone": "MJ-REQ-095-USER-REVIEWED-RESPONSIBILITY-REPHRASE-20261007",
+  "current_milestone": "MJ-REQ-004-AI-REAL-DISCONNECT-TRANSPORT-20261007",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -96,7 +96,7 @@
     "MJ-REQ-110: deterministic funnel, profile-scoped cost policy, production structured consumer, durable evaluation history and review-gated factual preparation locally verified; live configured-provider inference and full acceptance remain NOT_RUN (docs/evidence/2026-10-07-ai-cost-consumer-resume.json).",
     "MJ-REQ-111: strict Pydantic result schemas, schema-capable router negotiation, bounded duplicate-safe JSON parsing and sanitized errors pass locally; no remote provider or production consumer exists (docs/evidence/2026-10-06-ai-structured-output.json).",
     "MJ-REQ-108: registered loopback-only Ollama provider supports bounded text and schema requests with stable sanitized errors; no live inference, remote providers, persistent settings, or production task consumer (docs/evidence/2026-10-06-ai-local-ollama-provider.json).",
-    "MJ-REQ-004 structured AI evaluation now propagates request disconnect to its bounded worker and discards partial batches; other external-operation classes remain open. Evidence: docs/evidence/2026-10-07-ai-evaluation-disconnect-cancellation.json."
+    "MJ-REQ-004 structured AI evaluation now has real loopback transport-disconnect evidence through pure ASGI origin middleware; synthetic in-flight work is discarded without partial history. Other operation categories and real provider paths remain incomplete (docs/evidence/2026-10-07-ai-real-disconnect-transport.json)."
   ],
   "blocked_capabilities": [],
   "active_requirements": [
@@ -287,7 +287,8 @@
     "MJ-REQ-110 issue #111 takeover at code head c9276be112cf8db636bd783dc7eb7ad41b539c35: 15 focused consumer/API/SQLite-migration/browser tests PASS; 62 frontend tests, Vite build and agent-skills/catalogue/progress/diff validators PASS. Exact command and limits: docs/evidence/2026-10-07-ai-cost-consumer-resume.json.",
     "MJ-REQ-004 issue #5 AI evaluation batch deadline integrated from tested source 1ee2c046f0ce39cbd2fe3df2caa0997d965d74f6: 42 focused AI unit/API/browser tests; frontend 62 tests/build; compileall and agent-skills/catalogue/progress/lane-coordination/diff checks PASS. Evidence docs/evidence/2026-10-07-ai-evaluation-time-budget.json.",
     "MJ-REQ-004 AI evaluation disconnect cancellation source 9e8605029b138faa8b8785e043fd6af42fd902ce: 31 focused/adjacent AI consumer/API, profile-import and Chromium tests PASS; frontend build, compileall, skill/catalogue/progress/lane validators and diff check PASS; evidence docs/evidence/2026-10-07-ai-evaluation-disconnect-cancellation.json.",
-    "MJ-REQ-095 reviewed responsibility rewrite: 15 focused unit/integration tests, connected Chromium rewrite/history tests, 62 frontend tests/build and repository validators PASS. Evidence docs/evidence/2026-10-07-resume-user-reviewed-bullet-rephrasing.json."
+    "MJ-REQ-095 reviewed responsibility rewrite: 15 focused unit/integration tests, connected Chromium rewrite/history tests, 62 frontend tests/build and repository validators PASS. Evidence docs/evidence/2026-10-07-resume-user-reviewed-bullet-rephrasing.json.",
+    "MJ-REQ-004 real AI request-disconnect transport slice integrated at main c3618496c9a877a8cbca8e5c02af187b50f1ad9c; tested source 181ec139d48c6f911cdcd5f93f5a7dcf2b8b3210. Real loopback TCP half-close observed during a bounded synthetic provider call; no partial evaluation history persisted. 845 Python tests PASS (1 optional PostgreSQL skip), 3 connected Chromium tests PASS, 62 frontend tests/build PASS, and local validators PASS. Evidence docs/evidence/2026-10-07-ai-real-disconnect-transport.json."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -328,7 +329,7 @@
     "MJ-REQ-110 production matching/model consumer, real provider inference and reviewed-document generation NOT_RUN; policy preview is read-only. Hosted checks/reviews NOT_RUN by policy; external submission OFF.",
     "MJ-REQ-110 takeover: full Python discovery started and was interrupted before completion; no aggregate result. Live configured-provider inference, PostgreSQL runtime migration, GitHub Actions and hosted review NOT_RUN; external submission OFF (docs/evidence/2026-10-07-ai-cost-consumer-resume.json).",
     "MJ-REQ-004 AI timeout slice: full repository Python suite and live provider inference NOT_RUN; GitHub Actions/hosted review NOT_RUN_BY_USER_POLICY. Other operation classes remain incomplete; external submission OFF. Evidence docs/evidence/2026-10-07-ai-evaluation-time-budget.json.",
-    "MJ-REQ-004 AI evaluation disconnect slice: full repository Python discovery, live AI provider inference, real socket-level disconnect, hosted Actions/review NOT_RUN; hosted checks NOT_RUN by policy."
+    "MJ-REQ-004 real AI disconnect slice: live provider inference and hosted checks/review remain NOT_RUN; PostgreSQL runtime was not configured (one optional test skipped). External submission OFF. Evidence docs/evidence/2026-10-07-ai-real-disconnect-transport.json."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -360,13 +361,13 @@
     "MJ-REQ-004 candidate 3d604b27b1a4c25e2ff0ee6fa68a07e9ff8f74a0: full suite initially saw stale ignored apps/web/dist; rebuilding restored current Sources UI and isolated browser acceptance. A first rebuilt full run later hit the known intermittent CompanyDiscoveryRequestsBrowserTests server-thread shutdown assertion; isolated case and all 35 browser tests passed, followed by a same-head 680-test full suite pass. Do not weaken shutdown timeout; evidence docs/evidence/2026-10-06-bounded-ocr-diagnostics.json."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-07T03:34:00Z",
+    "timestamp": "2026-10-07T03:50:29Z",
     "result": "PARTIAL",
-    "source_commit": "3a5e52704e596da8e01f65b55088f32bc8e568ab",
-    "source_tree": "5d284a6ed6560fab931c3db7d9dfc75192bb59b8",
-    "scope": "User-reviewed per-application rewriting of selected approved responsibility facts with immutable source provenance and exact historical comparison.",
-    "evidence_path": "docs/evidence/2026-10-07-resume-user-reviewed-bullet-rephrasing.json",
-    "integration_commit": "bf3c8bc1868987c59661a69184537272c2f8d422"
+    "source_commit": "181ec139d48c6f911cdcd5f93f5a7dcf2b8b3210",
+    "source_tree": "4edb7dfde29e02c1c133131bff358835ab6ad681",
+    "scope": "Real request-side TCP disconnect propagation for structured AI evaluation through pure ASGI local-origin middleware; preserve origin guards/security headers and discard partial history.",
+    "evidence_path": "docs/evidence/2026-10-07-ai-real-disconnect-transport.json",
+    "integration_commit": "c3618496c9a877a8cbca8e5c02af187b50f1ad9c"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -7115,12 +7116,70 @@
         "git_commit": "bf3c8bc1868987c59661a69184537272c2f8d422",
         "evidence_path": "docs/evidence/2026-10-07-resume-user-reviewed-bullet-rephrasing.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-004-AI-REAL-DISCONNECT-TRANSPORT-20261007",
+      "timestamp": "2026-10-07T03:50:29Z",
+      "current_phase": "Issue #5 / MJ-REQ-004 real structured-AI request disconnect slice integrated at synchronized local/GitHub main c3618496c9a877a8cbca8e5c02af187b50f1ad9c. Issue remains OPEN/PARTIAL; other operation categories and real provider inference remain.",
+      "completed_steps": [
+        "Reconciled exact main, active Codex/Antigravity/Ollama claims, open PR state, branch protection and issue #5 ownership while holding the local integration lock.",
+        "Reproduced that the BaseHTTPMiddleware wrapper caused Request.is_disconnected to keep returning false after a real loopback TCP request-side half-close.",
+        "Replaced the request-wrapping middleware with pure ASGI middleware that passes the original receive channel through, preserving origin/cross-site guards and response security headers.",
+        "Verified no partial AI evaluation history is persisted when the second bounded synthetic provider call is in flight during transport disconnect.",
+        "Pushed the dedicated branch and integrated by non-force fast-forward at synchronized local/GitHub main c3618496c9a877a8cbca8e5c02af187b50f1ad9c.",
+        "Posted sanitized evidence and read issue #5 back as OPEN: https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6030523004."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-07-ai-real-disconnect-transport.json"
+      ],
+      "files_modified": [
+        "apps/api/main.py",
+        "tests/integration/test_ai_cost_policy_api.py"
+      ],
+      "tests_completed": [
+        "30 focused AI API, profile import and uploaded resume comparison integration tests PASS.",
+        "845 full Python discovery tests PASS; one optional PostgreSQL test skipped because MJOBS_TEST_POSTGRES_URL was unset.",
+        "3 connected Chromium browser tests PASS after isolated web build.",
+        "62 frontend tests and production build PASS; Node engine warning recorded.",
+        "Agent skills, catalogue, progress journal, compileall and git diff checks PASS."
+      ],
+      "tests_remaining": [
+        "Live AI provider inference NOT_RUN; only a synthetic bounded router was used.",
+        "Hosted Actions/review NOT_RUN_BY_USER_POLICY; external submission remains OFF.",
+        "Other MJ-REQ-004 external operation classes and all-category retry/output/error policy remain incomplete."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Loopback TCP transport to the local API with temporary SQLite and synthetic provider behavior; no employer/provider service contacted."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "The transport oracle uses a request-side TCP half-close and verifies disconnect observation plus empty persisted history; a response-body status assertion is unavailable on the interrupted client transport.",
+        "PostgreSQL was not configured; one optional PostgreSQL test skipped.",
+        "GitHub hosted checks and independent review are NOT_RUN_BY_USER_POLICY."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "c3618496c9a877a8cbca8e5c02af187b50f1ad9c",
+        "evidence_path": "docs/evidence/2026-10-07-ai-real-disconnect-transport.json"
+      },
+      "integration": {
+        "method": "NON_FORCE_FAST_FORWARD",
+        "base": "dbed2ca11c55b99ad5474fd566f8294a30d4ea0f",
+        "main": "c3618496c9a877a8cbca8e5c02af187b50f1ad9c",
+        "source_branch": "codex/req004-ai-real-disconnect-20261007",
+        "source_commit": "181ec139d48c6f911cdcd5f93f5a7dcf2b8b3210",
+        "candidate": "c3618496c9a877a8cbca8e5c02af187b50f1ad9c",
+        "issue_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6030523004",
+        "actions_enabled": false,
+        "main_protected": false,
+        "open_prs": 0
+      }
     }
   ],
-  "current_phase": "MJ-REQ-095 user-reviewed responsibility bullet rewriting integrated locally; broader requirement remains PARTIAL",
+  "current_phase": "Issue #5 / MJ-REQ-004 real structured-AI request disconnect slice integrated at synchronized local/GitHub main c3618496c9a877a8cbca8e5c02af187b50f1ad9c. Issue remains OPEN/PARTIAL; other operation categories and real provider inference remain.",
   "last_safe_checkpoint": {
-    "git_commit": "bf3c8bc1868987c59661a69184537272c2f8d422",
-    "evidence_path": "docs/evidence/2026-10-07-resume-user-reviewed-bullet-rephrasing.json"
+    "git_commit": "c3618496c9a877a8cbca8e5c02af187b50f1ad9c",
+    "evidence_path": "docs/evidence/2026-10-07-ai-real-disconnect-transport.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -7245,32 +7304,52 @@
       "evidence_path": "docs/evidence/2026-10-06-reference-provenance.json",
       "integrated_at_utc": "2026-10-06T04:28:51Z",
       "issue_comment": "https://github.com/MulattoTech/MJobs/issues/407#issuecomment-6009340568"
+    },
+    {
+      "result": "PARTIAL",
+      "transport": "Owned branch push and authorized non-force fast-forward to main",
+      "branch": "codex/req004-ai-real-disconnect-20261007",
+      "base": "dbed2ca11c55b99ad5474fd566f8294a30d4ea0f",
+      "source_commit": "181ec139d48c6f911cdcd5f93f5a7dcf2b8b3210",
+      "candidate": "c3618496c9a877a8cbca8e5c02af187b50f1ad9c",
+      "final_head": "c3618496c9a877a8cbca8e5c02af187b50f1ad9c",
+      "local_remote_commit_identical": true,
+      "force": false,
+      "pull_request": "NOT_OPENED: Actions disabled and direct non-force fast-forward authorized.",
+      "issue": 5,
+      "issue_state": "OPEN",
+      "evidence_path": "docs/evidence/2026-10-07-ai-real-disconnect-transport.json",
+      "integrated_at_utc": "2026-10-07T03:50:29Z",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6030523004",
+      "actions_enabled": false,
+      "main_protected": false,
+      "open_prs": 0
     }
   ],
   "live_reconciliation": {
-    "observed_at": "2026-10-06T19:35:41Z",
-    "github_main": "6569765749e319e72aebfaa90181eeb351f9a513",
-    "local_main": "6569765749e319e72aebfaa90181eeb351f9a513",
-    "issue_109_state": "OPEN_PARTIAL",
+    "observed_at": "2026-10-07T03:50:29Z",
+    "github_main": "c3618496c9a877a8cbca8e5c02af187b50f1ad9c",
+    "local_main": "c3618496c9a877a8cbca8e5c02af187b50f1ad9c",
+    "issue_5_state": "OPEN/PARTIAL",
     "open_prs": 0,
     "actions_enabled": false,
     "main_branch_protected": false,
-    "integration": "MJ-REQ-108_OLLAMA_PROVIDER_NON_FORCE_FAST_FORWARD",
-    "next_issue": 110
+    "integration": "NON_FORCE_FAST_FORWARD under the local Codex integration lock; source branch and main SHAs verified equal at c3618496c9a877a8cbca8e5c02af187b50f1ad9c.",
+    "next_issue": "Reconcile live claims and select an unclaimed dependency-ready issue."
   },
   "active_development_issue": {
     "issue": 5,
     "requirement_id": "MJ-REQ-004",
     "title": "Bound External Operations",
     "state": "ACTIVE",
-    "selection_reason": "P0 operation safety: propagate disconnect cancellation through bounded structured AI evaluation and discard partial history.",
-    "base": "17129454b6301f265e69a77b24f7ce5b1fccba37",
-    "branch": "codex/req004-ai-disconnect-cancel-20261007",
-    "candidate": "1732bddbf2e5a3a41da2b29619340c278cf36dfb",
-    "source_candidate": "9e8605029b138faa8b8785e043fd6af42fd902ce",
-    "source_tree": "63e8f0b4bb5858494fe321476054e7a21564a7e0",
-    "evidence": "docs/evidence/2026-10-07-ai-evaluation-disconnect-cancellation.json",
-    "next_action": "Issue #5 remains OPEN/PARTIAL. Release this claim, reconcile all active lanes and latest main, then select the next highest-value unclaimed dependency-ready issue."
+    "selection_reason": "P0 operation safety: prove real request transport disconnect propagation through API middleware and ensure a partially evaluated AI batch is discarded.",
+    "base": "dbed2ca11c55b99ad5474fd566f8294a30d4ea0f",
+    "branch": "codex/req004-ai-real-disconnect-20261007",
+    "candidate": "c3618496c9a877a8cbca8e5c02af187b50f1ad9c",
+    "source_candidate": "181ec139d48c6f911cdcd5f93f5a7dcf2b8b3210",
+    "source_tree": "4edb7dfde29e02c1c133131bff358835ab6ad681",
+    "evidence": "docs/evidence/2026-10-07-ai-real-disconnect-transport.json",
+    "next_action": "Release the completed slice, recheck every live claim and worktree, then select the next highest-value unclaimed dependency-ready issue. Issue #5 remains OPEN/PARTIAL."
   },
   "historical_control_snapshots": [
     {
@@ -8392,7 +8471,8 @@
     "MJ-REQ-017.S08 Remotive global job-source adapter: 7 integration tests PASS in 5.7s; 36 discovery source tests PASS; 316 unit tests PASS; 62 frontend tests/build PASS; local validators PASS. Evidence docs/evidence/2026-10-06-remotive-job-source-adapter.json.",
     "MJ-REQ-017.S02 We Work Remotely global job-source adapter: 21 integration tests PASS in 9.0s; 57 discovery source tests PASS; 358 unit tests PASS; 62 frontend tests/build PASS; local validators PASS. Evidence docs/evidence/2026-10-06-we-work-remotely-job-source-adapter.json.",
     "MJ-REQ-017.S07 Remote OK global job-source adapter: 10 integration tests PASS in 9.3s; 66 discovery source tests PASS; 361 unit tests PASS; 62 frontend tests/build PASS; local validators PASS. Evidence docs/evidence/2026-10-06-remote-ok-job-source-adapter.json.",
-    "MJ-REQ-110 takeover candidate code c9276be112cf8db636bd783dc7eb7ad41b539c35: 15 focused consumer/API/migration/browser tests, 62 frontend tests/build, and local validators PASS. Full Python discovery was interrupted (no aggregate result); live provider inference and hosted checks NOT_RUN. Evidence docs/evidence/2026-10-07-ai-cost-consumer-resume.json. Candidate plus evidence/planning pushed as aa05f692ce20d8b0c81fff2da6b93251fe5df6e5; issue remains OPEN/PARTIAL."
+    "MJ-REQ-110 takeover candidate code c9276be112cf8db636bd783dc7eb7ad41b539c35: 15 focused consumer/API/migration/browser tests, 62 frontend tests/build, and local validators PASS. Full Python discovery was interrupted (no aggregate result); live provider inference and hosted checks NOT_RUN. Evidence docs/evidence/2026-10-07-ai-cost-consumer-resume.json. Candidate plus evidence/planning pushed as aa05f692ce20d8b0c81fff2da6b93251fe5df6e5; issue remains OPEN/PARTIAL.",
+    "MJ-REQ-004 real AI request-disconnect transport slice integrated at main c3618496c9a877a8cbca8e5c02af187b50f1ad9c; tested source 181ec139d48c6f911cdcd5f93f5a7dcf2b8b3210. Real loopback TCP half-close observed during a bounded synthetic provider call; no partial evaluation history persisted. 845 Python tests PASS (1 optional PostgreSQL skip), 3 connected Chromium tests PASS, 62 frontend tests/build PASS, and local validators PASS. Evidence docs/evidence/2026-10-07-ai-real-disconnect-transport.json."
   ],
   "ownership": "Issue #5 / MJ-REQ-004 AI timeout and request-disconnect cancellation evidence integrated by non-force fast-forward at synchronized local/GitHub main 1732bddbf2e5a3a41da2b29619340c278cf36dfb; source 9e8605029b138faa8b8785e043fd6af42fd902ce, evidence docs/evidence/2026-10-07-ai-evaluation-disconnect-cancellation.json. Issue remains OPEN/PARTIAL after readback. 31 focused/adjacent tests, frontend build and local validators pass; full suite, real socket disconnect, live provider and hosted checks NOT_RUN. External submission OFF. Release claim and reconcile for next independent dependency-ready requirement.",
   "delivery_policy": {
