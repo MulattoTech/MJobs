@@ -510,7 +510,7 @@
       "requirement_id": "MJ-REQ-177",
       "branch": "codex/mj-req177-structured-logging-20261007",
       "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req177-structured-logging-20261007",
-      "head": "21e3f8ffb5d812b4bbdc84424bc5decb42a0cb01",
+      "head": "169c3f110978c10af45e4f7e6ef4d950a727d4ae",
       "paths": [
         "workers/main.py",
         "workers/tasks.py",
@@ -520,10 +520,14 @@
         "docs/evidence/2026-10-07-structured-worker-operation-logs.json",
         "planning/lanes/codex/**"
       ],
-      "status": "ACTIVE",
+      "status": "RELEASED",
       "claimed_at": "2026-10-07T14:52:59Z",
       "claim_comment": "https://github.com/MulattoTech/MJobs/issues/178#issuecomment-6040540554",
-      "evidence_path": "docs/evidence/2026-10-07-structured-worker-operation-logs.json"
+      "evidence_path": "docs/evidence/2026-10-07-structured-worker-operation-logs.json",
+      "released_at": "2026-10-07T15:18:10Z",
+      "integrated_main": "169c3f110978c10af45e4f7e6ef4d950a727d4ae",
+      "source_commit": "21e3f8ffb5d812b4bbdc84424bc5decb42a0cb01",
+      "result": "PARTIAL; structured worker outcome logging integrated; issue remains OPEN/PARTIAL"
     }
   ]
 }

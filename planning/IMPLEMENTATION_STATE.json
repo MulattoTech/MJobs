@@ -1,15 +1,15 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-07T14:48:36Z",
+  "generated_at": "2026-10-07T15:18:10Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Issue #177 / MJ-REQ-176 audit history integrated PARTIAL through 979e4063266ec8409e8d5d8aa34430136148b264; profile preference changes now emit value-free SETTING_CHANGED history. JOB_MERGED, other settings and complete truthful lifecycle events remain incomplete; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
-    "current_verified_github_state": "Issue #177 / MJ-REQ-176 audit history integrated PARTIAL through 979e4063266ec8409e8d5d8aa34430136148b264; profile preference changes now emit value-free SETTING_CHANGED history. JOB_MERGED, other settings and complete truthful lifecycle events remain incomplete; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
-    "current_verified_at": "2026-10-07T14:48:36Z"
+    "current_verified_local_state": "Issue #178 / MJ-REQ-177 structured worker outcome logging integrated PARTIAL at 169c3f110978c10af45e4f7e6ef4d950a727d4ae; broader context coverage and live Redis/RQ/PostgreSQL remain NOT_RUN; full product state remains PARTIAL.",
+    "current_verified_github_state": "Issue #178 / MJ-REQ-177 structured worker outcome logging integrated PARTIAL at 169c3f110978c10af45e4f7e6ef4d950a727d4ae; broader context coverage and live Redis/RQ/PostgreSQL remain NOT_RUN; full product state remains PARTIAL.",
+    "current_verified_at": "2026-10-07T15:18:10Z"
   },
   "current_milestone": "MJ-REQ-176-SETTING-CHANGE-AUDIT-PARTIAL-20261007",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
@@ -115,7 +115,8 @@
     "MJ-REQ-170 / issue #171 advanced PARTIAL: new live-feedback sessions automatically prune only managed timestamped session folders older than 30 days and repair the latest pointer; other transient artifact/log/payload classes remain unverified. Evidence docs/evidence/2026-10-07-live-feedback-retention.json.",
     "MJ-REQ-004 Compose recovery CLI output bounds verified with synthetic child overflow and deadline termination; 2 MiB retained stdout, drained stderr, child reaping and sanitized errors. Real Compose execution NOT_RUN; other operation classes/live AI/ATS remain incomplete. Evidence docs/evidence/2026-10-07-compose-recovery-output-bounds.json.",
     "MJ-REQ-176 / issue #177: Activity now records profile-owned durable PREPARE queued/start/terminal-failure events with stable IDs and attempt history, safe fixed summaries and job/company context. Queue, claim, task terminal failure and retry-limit recovery transactions were exercised; resume rewrite payloads are excluded. 28 focused Python integration/worker/outbox tests PASS with 1 PostgreSQL-only skip, 1 connected Chromium test PASS, frontend 63/build and validators PASS. Evidence docs/evidence/2026-10-07-application-preparation-audit.json. Company/source enrollment, job merge, full settings and truthful complete actual application lifecycle events remain incomplete; issue OPEN/PARTIAL.",
-    "MJ-REQ-176 / issue #177 company/source audit history: successful discovery now records idempotent profile-owned COMPANY_DISCOVERED and first source creation COMPANY_SOURCE_ENROLLED events atomically with source persistence. Fixed summaries remain private, profile-isolated and persist across reload; failed discovery emits neither. 26 focused integration tests, connected Chromium 1, frontend 63/build, and repository validators PASS. Evidence docs/evidence/2026-10-07-company-audit-history.json. Job merge, complete settings and full truthful application lifecycle coverage remain incomplete; issue OPEN/PARTIAL."
+    "MJ-REQ-176 / issue #177 company/source audit history: successful discovery now records idempotent profile-owned COMPANY_DISCOVERED and first source creation COMPANY_SOURCE_ENROLLED events atomically with source persistence. Fixed summaries remain private, profile-isolated and persist across reload; failed discovery emits neither. 26 focused integration tests, connected Chromium 1, frontend 63/build, and repository validators PASS. Evidence docs/evidence/2026-10-07-company-audit-history.json. Job merge, complete settings and full truthful application lifecycle coverage remain incomplete; issue OPEN/PARTIAL.",
+    "MJ-REQ-177 / issue #178 structured worker logging: durable worker terminal outcomes emit JSON-only allowlisted records only after persistence; records contain safe operation context and omit parameters, exception messages and private resume text. Evidence docs/evidence/2026-10-07-structured-worker-operation-logs.json. Focused 21 PASS/1 PostgreSQL-only skip; full Python suite 932 PASS/8 skipped; frontend 63/build and local validators PASS. Posting/source/ATS and other operation types, live Redis/RQ and PostgreSQL remain unverified; issue remains OPEN/PARTIAL."
   ],
   "blocked_capabilities": [],
   "active_requirements": [
@@ -126,7 +127,8 @@
     "MJ-REQ-008",
     "MJ-REQ-180",
     "MJ-REQ-170",
-    "MJ-REQ-176"
+    "MJ-REQ-176",
+    "MJ-REQ-177"
   ],
   "active_prs": [],
   "tests_passed": [
@@ -339,7 +341,8 @@
     "Issue #181 / MJ-REQ-180 rich-control screenshot masking integrated at f1d36053ebb46f1286f3dfb0acd25ac1482a267f: adjacent live-feedback unit/GUI/headless Chromium tests 27 PASS; compile, CLI help and local validators PASS. Pre-fix unit and pixel tests reproduced visible rich-control content. Evidence docs/evidence/2026-10-07-rich-control-screenshot-redaction.json.",
     "MJ-REQ-180 screenshot content masking: affected feedback/UI-source suite 32 PASS with real headless Chromium arbitrary-text, pseudo-element, canvas/image and existing sensitive-control pixel assertions; local validators PASS; connected UI E2E NOT_RUN.",
     "MJ-REQ-176 / issue #177: Activity now records profile-owned durable PREPARE queued/start/terminal-failure events with stable IDs and attempt history, safe fixed summaries and job/company context. Queue, claim, task terminal failure and retry-limit recovery transactions were exercised; resume rewrite payloads are excluded. 28 focused Python integration/worker/outbox tests PASS with 1 PostgreSQL-only skip, 1 connected Chromium test PASS, frontend 63/build and validators PASS. Evidence docs/evidence/2026-10-07-application-preparation-audit.json. Company/source enrollment, job merge, full settings and truthful complete actual application lifecycle events remain incomplete; issue OPEN/PARTIAL.",
-    "MJ-REQ-176 profile setting-change audit slice: focused 34 Python PASS; full Python 936 PASS, 8 skipped; Chromium 1; frontend 63/build; local validators PASS. Evidence docs/evidence/2026-10-07-setting-change-audit-history.json."
+    "MJ-REQ-176 profile setting-change audit slice: focused 34 Python PASS; full Python 936 PASS, 8 skipped; Chromium 1; frontend 63/build; local validators PASS. Evidence docs/evidence/2026-10-07-setting-change-audit-history.json.",
+    "Issue #178 / MJ-REQ-177: focused worker/logging suite 21 PASS, 1 PostgreSQL-only skip; full Python 932 PASS, 8 skipped; frontend 63 PASS/build and local validators PASS. Evidence docs/evidence/2026-10-07-structured-worker-operation-logs.json."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -406,7 +409,8 @@
     "Issue #8 protected-credential migration slice: PostgreSQL-specific failure/retry NOT_RUN (optional URL unavailable); full suite/frontend/browser NOT_RUN_BY_SCOPE; hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF.",
     "Issue #181 rich-control redaction slice: full Python/browser suite and frontend build NOT_RUN_BY_SCOPE; database/PostgreSQL/Docker NOT_APPLICABLE; hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF.",
     "MJ-REQ-180 updated cli.ui_e2e and cli.ui_source_readback artifact paths were not exercised against a running application/Compose stack; shared screenshot helper behavior was tested in synthetic headless Chromium.",
-    "MJ-REQ-176 setting audit slice: PostgreSQL/Docker/migration coverage NOT_RUN (no schema change); hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF."
+    "MJ-REQ-176 setting audit slice: PostgreSQL/Docker/migration coverage NOT_RUN (no schema change); hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
+    "Issue #178: live Redis/RQ worker integration and PostgreSQL runtime NOT_RUN; hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -421,7 +425,8 @@
     "Uploaded-comparison cancellation acknowledgement is truthful when the API process finds no matching active event, but cancellation coordination is process-local and cross-replica signaling remains unimplemented (docs/evidence/2026-10-06-comparison-cancel-acknowledgement.json).",
     "Mock ATS questionnaire/receipt HTTP requests honor worker cancellation/deadline; real ATS and AI provider classes remain unavailable, and cross-replica cancellation is not implemented (docs/evidence/2026-10-06-mock-ats-http-cancellation.json).",
     "MJ-REQ-004 AI evaluation cancellation waits for an already-running provider request to hit its bounded timeout; real transport disconnect and provider inference were not exercised in synthetic acceptance (docs/evidence/2026-10-07-ai-evaluation-disconnect-cancellation.json).",
-    "MJ-REQ-008 process-crash recovery is verified for a synthetic SQLite rescore operation; physical host restart, browser-process crash, all worker operation types and live PostgreSQL remain unverified (docs/evidence/2026-10-07-product-worker-crash-recovery.json)."
+    "MJ-REQ-008 process-crash recovery is verified for a synthetic SQLite rescore operation; physical host restart, browser-process crash, all worker operation types and live PostgreSQL remain unverified (docs/evidence/2026-10-07-product-worker-crash-recovery.json).",
+    "MJ-REQ-177 worker logging currently covers durable operation terminal outcomes only; posting/source/ATS and other contexts plus live Redis/RQ/PostgreSQL remain unverified (docs/evidence/2026-10-07-structured-worker-operation-logs.json)."
   ],
   "known_product_defects": [
     "Manual application status is user-reported only; company/application notes beyond this slice, independently verified submission receipts, and full canonical tracker acceptance remain unverified.",
@@ -442,19 +447,19 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-07T14:48:00Z",
+    "timestamp": "2026-10-07T15:18:10Z",
     "result": "PARTIAL",
-    "source_commit": "0aac9460f0f8573cab04021e2a7adbcb5465de3e",
-    "source_tree": "a98e107a49a53861fd4635ebce4af5d2f6a1bd53",
-    "issue": 177,
-    "requirement_id": "MJ-REQ-176",
-    "title": "[MJ-REQ-176] Audit Log",
+    "source_commit": "21e3f8ffb5d812b4bbdc84424bc5decb42a0cb01",
+    "source_tree": "784ad46313acf7e55d82bab9b513ef15f63ad743",
+    "issue": 178,
+    "requirement_id": "MJ-REQ-177",
+    "title": "[MJ-REQ-177] Structured Logging",
     "state": "INTEGRATED_PARTIAL",
-    "base": "ffa2427799ccf3d76a4f22ddf30e22c9f00a44e5",
-    "branch": "codex/mj-req176-settings-events-20261007",
-    "candidate_integration_commit": "979e4063266ec8409e8d5d8aa34430136148b264",
-    "evidence_path": "docs/evidence/2026-10-07-setting-change-audit-integration.json",
-    "scope": "Changed normalized profile preferences now append a generic profile-owned SETTING_CHANGED event atomically with profile persistence; unchanged and initial saves do not."
+    "base": "66de21a8c4c6c0afeedd31064ee367d7a69f498a",
+    "branch": "codex/mj-req177-structured-logging-20261007",
+    "candidate_integration_commit": "169c3f110978c10af45e4f7e6ef4d950a727d4ae",
+    "evidence_path": "docs/evidence/2026-10-07-structured-worker-operation-logs.json",
+    "scope": "After durable terminal worker operation persistence, emit one JSON-only allowlisted outcome record with safe operation context and without operation parameters, exception text or private resume content."
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -8788,12 +8793,62 @@
         "git_commit": "979e4063266ec8409e8d5d8aa34430136148b264",
         "evidence_path": "docs/evidence/2026-10-07-setting-change-audit-integration.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-177-STRUCTURED-WORKER-LOGGING-PARTIAL-20261007",
+      "timestamp": "2026-10-07T15:18:10Z",
+      "current_phase": "MJ_REQ_177_STRUCTURED_WORKER_LOGGING_PARTIAL_INTEGRATED",
+      "completed_steps": [
+        "Integrated issue #178 source and sanitized evidence at main 169c3f110978c10af45e4f7e6ef4d950a727d4ae after verifying origin/main ancestry and using a non-force fast-forward.",
+        "Worker terminal outcomes log JSON-only allowlisted context after durable persistence; private parameters, exception text and resume payload are excluded.",
+        "Kept issue #178 OPEN/PARTIAL; broader operation-context coverage remains incomplete.",
+        "GitHub acceptance/release comment read back at https://github.com/MulattoTech/MJobs/issues/178#issuecomment-6040888652."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-07-structured-worker-operation-logs.json",
+        "workers/structured_logging.py",
+        "tests/unit/test_structured_logging.py"
+      ],
+      "files_modified": [
+        "workers/main.py",
+        "workers/tasks.py",
+        "tests/integration/test_worker_lifecycle.py",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Focused unit and worker lifecycle suite: 21 PASS, 1 PostgreSQL-only skip.",
+        "Full Python suite: 932 PASS, 8 skips; skip identities were not emitted and are not promoted.",
+        "Frontend: 63 tests PASS and production build PASS.",
+        "Agent skills, catalogue, progress, lane coordination, compileall and git diff checks PASS.",
+        "GitHub issue #178 remains OPEN/PARTIAL; integration/release evidence comment read back."
+      ],
+      "tests_remaining": [
+        "Broader posting/source/ATS and other operation-context log coverage remains open.",
+        "Live Redis/RQ and PostgreSQL worker runtime NOT_RUN.",
+        "Hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Temporary SQLite worker lifecycle tests with synthetic operation data only."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "Scoped PARTIAL advance only; full MJ-REQ-177 and MJobs product remain incomplete.",
+        "Eight full-suite skips had no emitted identities and are not promoted."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "169c3f110978c10af45e4f7e6ef4d950a727d4ae",
+        "evidence_path": "docs/evidence/2026-10-07-structured-worker-operation-logs.json"
+      }
     }
   ],
-  "current_phase": "MJ_REQ_176_SETTING_CHANGE_AUDIT_PARTIAL_INTEGRATED",
+  "current_phase": "MJ_REQ_177_STRUCTURED_WORKER_LOGGING_PARTIAL_INTEGRATED",
   "last_safe_checkpoint": {
-    "git_commit": "979e4063266ec8409e8d5d8aa34430136148b264",
-    "evidence_path": "docs/evidence/2026-10-07-setting-change-audit-integration.json"
+    "git_commit": "169c3f110978c10af45e4f7e6ef4d950a727d4ae",
+    "evidence_path": "docs/evidence/2026-10-07-structured-worker-operation-logs.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -10169,7 +10224,8 @@
     "MJ-REQ-110 takeover candidate code c9276be112cf8db636bd783dc7eb7ad41b539c35: 15 focused consumer/API/migration/browser tests, 62 frontend tests/build, and local validators PASS. Full Python discovery was interrupted (no aggregate result); live provider inference and hosted checks NOT_RUN. Evidence docs/evidence/2026-10-07-ai-cost-consumer-resume.json. Candidate plus evidence/planning pushed as aa05f692ce20d8b0c81fff2da6b93251fe5df6e5; issue remains OPEN/PARTIAL.",
     "MJ-REQ-004 real AI request-disconnect transport slice integrated at main c3618496c9a877a8cbca8e5c02af187b50f1ad9c; tested source 181ec139d48c6f911cdcd5f93f5a7dcf2b8b3210. Real loopback TCP half-close observed during a bounded synthetic provider call; no partial evaluation history persisted. 845 Python tests PASS (1 optional PostgreSQL skip), 3 connected Chromium tests PASS, 62 frontend tests/build PASS, and local validators PASS. Evidence docs/evidence/2026-10-07-ai-real-disconnect-transport.json.",
     "MJ-REQ-005 / issue #6 direct structured AI evaluations now reserve database-backed AI category capacity across API instances; generic durable cancellation propagates to provider cancellation; completed, cancelled and expired-lease outcomes are recorded. Full Python 849 PASS (1 optional PostgreSQL skip), 32 focused API/worker tests PASS, 8 browser tests PASS after building worktree UI, frontend 62 PASS/build PASS, validators PASS. Evidence docs/evidence/2026-10-07-ai-evaluation-concurrency-admission.json. Requirement remains PARTIAL: live PostgreSQL lock, live provider and real ATS behavior are not evidenced.",
-    "Issue #9 / MJ-REQ-008 product-worker crash recovery exact source d516834ac3bd48352ef3aa8885a1de1fffe53419: full Python 851 PASS / 1 optional PostgreSQL skip; focused 20 PASS; frontend build and repository validators PASS. Process-kill and stale-attempt evidence: docs/evidence/2026-10-07-product-worker-crash-recovery.json. Issue remains OPEN/PARTIAL; hosted checks NOT_RUN_BY_USER_POLICY."
+    "Issue #9 / MJ-REQ-008 product-worker crash recovery exact source d516834ac3bd48352ef3aa8885a1de1fffe53419: full Python 851 PASS / 1 optional PostgreSQL skip; focused 20 PASS; frontend build and repository validators PASS. Process-kill and stale-attempt evidence: docs/evidence/2026-10-07-product-worker-crash-recovery.json. Issue remains OPEN/PARTIAL; hosted checks NOT_RUN_BY_USER_POLICY.",
+    "Issue #178 / MJ-REQ-177 structured worker logging integrated at 169c3f110978c10af45e4f7e6ef4d950a727d4ae; 21 focused PASS/1 PostgreSQL skip, full Python 932 PASS/8 skipped, frontend 63/build and local validators PASS. Evidence docs/evidence/2026-10-07-structured-worker-operation-logs.json. Remaining scope and unavailable runtime/hosted checks remain PARTIAL/NOT_RUN."
   ],
   "ownership": "Issue #6 / MJ-REQ-005 AI evaluation admission source cb2681b6a921f2759cf46d4d66a8228645b473e7 and sanitized evidence/planning are integrated at synchronized local/GitHub main cb2681b6a921f2759cf46d4d66a8228645b473e7 under the local Codex integration lock. No PR opened; branch unprotected; hosted checks/review NOT_RUN by policy. Issue remains OPEN/PARTIAL.",
   "delivery_policy": {
