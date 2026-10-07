@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "issue": 5,
+  "requirement_id": "MJ-REQ-004",
+  "lane": "codex",
+  "branch": "codex/req004-resume-extract-durable-cancel-20261007",
+  "source_head": "05d10ac2fafd1bd7146b0c6efdd729f07b11f435",
+  "source_tree": "ea578e341cae448c66183ca333194cd8ec9af8ac",
+  "base_main": "108bb855027328565bbaba63b8512739cccb4dd7",
+  "recorded_at_utc": "2026-10-07T06:00:29Z",
+  "input_sha256": {
+    "apps/api/main.py": "c363b0c81fac82a250a6609a97687fb808ef74779cf775451967064297195162",
+    "workers/operations.py": "366dc06322b195a59769f8032cf82e1d2d7777bf5d0a1fe2341b619e3c80d03d",
+    "tests/integration/test_profile_import.py": "016e238a8b6209f3b20363be3b19eea3c4decde37bc0a57bdd595084ea7c2f98"
+  },
+  "result": "PARTIAL",
+  "acceptance": {
+    "cross_instance_cancel": "PASS - a second API instance sharing SQLite durably requests cancellation; the running extractor observes it and returns sanitized HTTP 499.",
+    "profile_isolation": "PASS - a request for a different profile receives 404 and does not cancel the active extraction.",
+    "durable_operation_history": "PASS - extraction admission and terminal cancellation are persisted as a RESUME_EXTRACT operation; the profile and resume listing remain unchanged after cancellation.",
+    "same_instance_disconnect_and_cancel": "PASS - existing request-disconnect and profile-scoped browser cancel paths remain valid.",
+    "full_requirement": "PARTIAL - this slice advances resume extraction cancellation; other operation classes, provider/real ATS paths, and complete timeout/retry/error policy remain open."
+  },
+  "validation": {
+    "red_reproduction": "PASS - before implementation, the cross-instance test failed because the second API instance returned cancelled=false.",
+    "focused_profile_import": "PASS - 12 tests.",
+    "focused_operation_concurrency": "PASS - 3 tests.",
+    "focused_ai_inline_regression": "PASS - 16 tests.",
+    "browser_command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_profile_import.ProfileImportBrowserTests.test_browser_cancel_stops_resume_extract_without_profile_change",
+    "browser_result": "PASS - 1 connected Chromium cancellation test.",
+    "full_python_command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest discover -s tests",
+    "full_python_result": "PASS - 852 tests, zero failures/errors, one optional PostgreSQL skip; 483.592 seconds.",
+    "frontend_dependency_command": "npm ci --prefix apps/web",
+    "frontend_dependency_result": "PASS - lockfile dependencies installed; zero vulnerabilities. Vitest warned that the available Node 25.9.0 is outside its declared engine range.",
+    "frontend_test_command": "npm test --prefix apps/web -- --run",
+    "frontend_test_result": "PASS - 62 tests across 13 files.",
+    "frontend_build_command": "npm run build --prefix apps/web",
+    "frontend_build_result": "PASS",
+    "other_checks": [
+      "python -m tools.verification.agent_skills",
+      "python -m tools.verification.catalogue",
+      "python -m tools.verification.progress validate",
+      "python -m compileall -q apps/api/main.py workers/operations.py tests/integration/test_profile_import.py",
+      "python -m tools.coordination.lane_coordination validate",
+      "git diff --check"
+    ],
+    "other_checks_result": "PASS"
+  },
+  "environment": {
+    "python": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe (Python 3.12)",
+    "node": "v25.9.0",
+    "database": "Temporary synthetic SQLite databases shared by two independent Store/API instances; no schema migration changed.",
+    "postgresql": "NOT_RUN - the suite skipped its optional PostgreSQL case because MJOBS_TEST_POSTGRES_URL was unset.",
+    "docker": "NOT_RUN - no Docker-backed behavior or migration changed.",
+    "hosted_checks_and_review": "NOT_RUN_BY_USER_POLICY",
+    "external_application_submission": "OFF"
+  },
+  "limitations": [
+    "Issue #5 / MJ-REQ-004 remains OPEN/PARTIAL; this evidence covers durable cross-instance cancellation for resume extraction only.",
+    "The synthetic SQLite test validates independent API instances and durable readback, not a live PostgreSQL deployment.",
+    "No paid/provider AI call, real ATS operation, hosted check, or external application submission was performed."
+  ]
+}
