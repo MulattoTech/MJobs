@@ -935,7 +935,7 @@ def _antigravity_transcript_identity(path: Path) -> dict[str, Any]:
                 if step.get("type") != "USER_INPUT":
                     continue
                 text = str(step.get("content") or "")
-                match = re.search(r"worktree=([^;\n]+)", text, flags=re.I)
+                match = re.search(r"worktree=([^\s;]+)", text, flags=re.I)
                 if match:
                     identity["workspace"] = match.group(1).strip()
                 issue_match = re.search(r"issue\s+#(\d+)", text, flags=re.I)
@@ -999,7 +999,7 @@ def _antigravity_transcript_summary(path: Path) -> dict[str, Any]:
                 typ = step.get("type")
                 if typ == "USER_INPUT":
                     text = str(step.get("content") or "")
-                    match = re.search(r"worktree=([^;\n]+)", text, flags=re.I)
+                    match = re.search(r"worktree=([^\s;]+)", text, flags=re.I)
                     if match:
                         workspace = match.group(1).strip()
                     issue_match = re.search(r"issue\s+#(\d+)", text, flags=re.I)
