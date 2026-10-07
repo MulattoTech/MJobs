@@ -1,20 +1,20 @@
 {
   "schema_version": 1,
   "lane": "codex",
-  "status": "ACTIVE",
+  "status": "IDLE_READY",
   "base_main": "e29454c9e7d89604f786da34f1d9e8e39083803f",
-  "current_issue": 9,
-  "requirement_id": "MJ-REQ-008",
-  "branch": "codex/mj-req008-postgres-worker-recovery-20261007",
-  "head": "9c4dfacdeb5f65883284c7d7628b653097546b12",
-  "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req008-postgres-worker-recovery-20261007",
-  "result": "PASS_FOR_SLICE; requirement PARTIAL",
+  "current_issue": null,
+  "requirement_id": null,
+  "branch": null,
+  "head": "68f38e2bc39f30fd9bb213c14d182991d0c4214e",
+  "worktree": null,
+  "result": "INTEGRATED_PARTIAL",
   "evidence_path": "docs/evidence/2026-10-07-postgres-worker-crash-recovery.json",
   "last_completed": {
-    "issue": 8,
-    "requirement_id": "MJ-REQ-007",
-    "integrated_main": "4f7059f5fcaac5335e2b5aa9e0666dc6848706ad",
-    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6038445116"
+    "issue": 9,
+    "requirement_id": "MJ-REQ-008",
+    "integrated_main": "68f38e2bc39f30fd9bb213c14d182991d0c4214e",
+    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/9#issuecomment-6038585898"
   },
   "next_candidates": [
     {
@@ -29,10 +29,10 @@
     "Ollama/OpenCode active issue #318 paths: services/ats_detection/** and detector tests",
     "canonical planning and main outside integration lock"
   ],
-  "resume_instruction": "Finish exact-source validation and checkpoint issue #9 PostgreSQL worker-recovery acceptance. Claim remains active; do not overlap Antigravity #302 or Ollama #318. Issue stays PARTIAL because physical host restart is untested.",
-  "last_verified_head": "9c4dfacdeb5f65883284c7d7628b653097546b12",
-  "last_verified_tree": "15ae8e240d67c45e2ebdcb5a34315e33ebf9c7ea",
-  "last_verified_at_utc": "2026-10-07T13:05:44Z",
+  "resume_instruction": "Reconcile live main, active claims and dirty worktrees, then choose the next highest-value dependency-ready unclaimed issue. Keep external submission OFF and hosted checks NOT_RUN_BY_USER_POLICY.",
+  "last_verified_head": "68f38e2bc39f30fd9bb213c14d182991d0c4214e",
+  "last_verified_tree": "1832bb15f2e1bc0ff3e7bc14135024a40e8e1739",
+  "last_verified_at_utc": "2026-10-07T13:07:33Z",
   "started_at_utc": "2026-10-07T04:24:01Z",
   "validation": {
     "result": "PASS_FOR_SLICE",
@@ -45,6 +45,6 @@
     "hosted_checks": "NOT_RUN_BY_USER_POLICY",
     "external_submission": "OFF"
   },
-  "last_integrated_head": "4f7059f5fcaac5335e2b5aa9e0666dc6848706ad",
+  "last_integrated_head": "68f38e2bc39f30fd9bb213c14d182991d0c4214e",
   "last_verified_result": "PASS_FOR_SLICE; requirement PARTIAL"
 }

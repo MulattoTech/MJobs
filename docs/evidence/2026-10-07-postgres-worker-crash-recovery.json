@@ -72,5 +72,17 @@
     "Full repository suite, browser/frontend acceptance, and hosted checks were not run; browser/frontend are unaffected by this test-only change.",
     "Issue #9 / MJ-REQ-008 remains OPEN/PARTIAL."
   ],
-  "claim_comment": "https://github.com/MulattoTech/MJobs/issues/9#issuecomment-6038481363"
+  "claim_comment": "https://github.com/MulattoTech/MJobs/issues/9#issuecomment-6038481363",
+  "integration": {
+    "status": "NON_FORCE_FAST_FORWARD",
+    "base_main": "e29454c9e7d89604f786da34f1d9e8e39083803f",
+    "source_commit": "9c4dfacdeb5f65883284c7d7628b653097546b12",
+    "candidate_commit": "68f38e2bc39f30fd9bb213c14d182991d0c4214e",
+    "local_main": "68f38e2bc39f30fd9bb213c14d182991d0c4214e",
+    "origin_main": "68f38e2bc39f30fd9bb213c14d182991d0c4214e",
+    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/9#issuecomment-6038585898",
+    "issue_state": "OPEN_PARTIAL",
+    "external_submission": "OFF"
+  },
+  "recorded_integration_at_utc": "2026-10-07T13:07:33Z"
 }

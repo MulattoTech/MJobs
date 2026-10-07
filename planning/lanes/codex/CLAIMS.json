@@ -268,10 +268,13 @@
         "docs/evidence/2026-10-07-postgres-worker-crash-recovery.json",
         "planning/lanes/codex/**"
       ],
-      "status": "ACTIVE",
+      "status": "RELEASED",
       "claimed_at": "2026-10-07T13:02:29Z",
       "claim_comment": "https://github.com/MulattoTech/MJobs/issues/9#issuecomment-6038481363",
-      "evidence_path": "docs/evidence/2026-10-07-postgres-worker-crash-recovery.json"
+      "evidence_path": "docs/evidence/2026-10-07-postgres-worker-crash-recovery.json",
+      "released_at": "2026-10-07T13:07:33Z",
+      "integrated_main": "68f38e2bc39f30fd9bb213c14d182991d0c4214e",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/9#issuecomment-6038585898"
     }
   ]
 }

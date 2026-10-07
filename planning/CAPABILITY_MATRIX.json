@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-07T13:00:26Z",
+  "timestamp": "2026-10-07T13:07:33Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -108,9 +108,10 @@
         "docs/evidence/2026-10-06-progress-container-crash-recovery.json",
         "docs/evidence/2026-10-07-product-worker-crash-recovery.json",
         "docs/evidence/2026-10-07-browser-crash-recovery.json",
-        "docs/evidence/2026-10-07-browser-process-crash-recovery.json"
+        "docs/evidence/2026-10-07-browser-process-crash-recovery.json",
+        "docs/evidence/2026-10-07-postgres-worker-crash-recovery.json"
       ],
-      "note": "The validated read-only resume CLI and separate-process checkpoint adoption pass. An isolated, network-disabled, read-only-bind Linux container was SIGKILLed and restarted; phase, latest milestone and safe checkpoint were identical afterward. Issue #9 remains PARTIAL: physical host restart and browser/product-worker crash recovery are not claimed. Scoped product-worker recovery is now evidenced: a synthetic worker subprocess was killed after claiming a durable rescore operation; lease recovery and replacement completion passed, and attempt_count fencing stopped a reclaimed stale attempt before its next checked side effect. Evidence docs/evidence/2026-10-07-product-worker-crash-recovery.json. Physical host restart and browser-process crash remain NOT_RUN; live PostgreSQL was skipped because MJOBS_TEST_POSTGRES_URL was unset. Latest scoped browser recovery evidence docs/evidence/2026-10-07-browser-crash-recovery.json: Chromium renderer crash after a durable application-stage commit left status/history readable in a fresh page; 4 connected browser tests and 5 API/service integration tests pass. This does not simulate browser-process termination or host restart; both remain NOT_RUN, so the requirement remains PARTIAL. Latest scoped whole-browser-process evidence docs/evidence/2026-10-07-browser-process-crash-recovery.json: CDP Browser.crash terminated Chromium after a durable application tracking write while its response was held; a replacement browser recovered the same stage and history. Five connected application-pipeline browser tests, five API/service integration tests, frontend 62/build and local validators pass. Physical host restart remains NOT_RUN, so the requirement remains PARTIAL."
+      "note": "The durable implementation journal and recovery behavior have been partially exercised across interruption surfaces: terminal/session checkpoints, container recovery, SQLite product-worker process crash and stale-attempt fencing, Chromium renderer/browser-process crashes, and now current-schema disposable PostgreSQL process-crash lease recovery, audit readback, replacement completion and stale-attempt fencing (docs/evidence/2026-10-07-postgres-worker-crash-recovery.json). Requirement remains PARTIAL because physical host restart and broader release acceptance are NOT_RUN."
     },
     {
       "requirement_id": "MJ-REQ-009",
