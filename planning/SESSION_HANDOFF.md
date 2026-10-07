@@ -1,3 +1,13 @@
+## Issue #166 / MJ-REQ-165 Full-Text Search — integrated PASS — 2026-10-07
+
+Indexed full-text search is integrated at `59039a51701258a35c93fc7deca6fbf85d72fddd` from source `108c502ce0b2c8aa92a4868b09687b4b4a0206f1` (base `fc103a4b01b473967bb67ccd8ef63766f8c80abc`). The Jobs search API and UI now search title, company, description, skills and location. PostgreSQL GIN indexes cover the job text expression and company names; SQLite retains a portable local path.
+
+Evidence: `docs/evidence/2026-10-07-full-text-search.json`. Validation: full Python suite 962 run/8 skipped; focused connected API/browser and saved-search suite 3 PASS; frontend 63 PASS/build PASS; disposable PostgreSQL 17 migration and API acceptance PASS; both GIN indexes confirmed in PostgreSQL plans; SQLite and PostgreSQL migration downgrade/re-upgrade PASS with two PostgreSQL job rows preserved; agent-skills, catalogue, progress, lane and diff validators PASS. A final focused/API/browser/frontend rerun passed after import/indent-only cleanup. Hosted checks/review NOT_RUN_BY_USER_POLICY; live providers NOT_RUN; external submission OFF.
+
+Issue #166 is CLOSED after release readback (https://github.com/MulattoTech/MJobs/issues/166#issuecomment-6044900079). Codex claim released. Hosted checks/review remain NOT_RUN_BY_USER_POLICY; external submission OFF. Reconcile current origin/main, all machine/GitHub claims and dirty active worktrees before selecting the next dependency-ready Codex issue.
+
+---
+
 ## Issue #403 / MJ-REF-033 page budgets — integrated PARTIAL — 2026-10-07
 
 Per-run page-budget follow-up is integrated at `01596a7a093bbfc359e9ded49076aac3cb95d94d`; behavior commit `79b29ee0fe61af0906772f182c0ac280f73fc2f4`; evidence `docs/evidence/2026-10-07-agent-page-budget.json`. Page-reading tools must declare `max_pages` and obtain a thread-safe host permit immediately before every fetch. An absent/exhausted budget stops the run and persists only the declared limit, consumed count, and stable stop reason. The trace remains free of page values.

@@ -726,6 +726,30 @@
       "result": "PARTIAL; issue remains OPEN",
       "released_at": "2026-10-07T18:32:30Z",
       "issue_comment": "https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6044308805"
+    },
+    {
+      "issue": 166,
+      "requirement_id": "MJ-REQ-165",
+      "branch": "codex/mj-req165-full-text-search-20261007",
+      "worktree": ".worktrees/codex-mj-req165-full-text-search-20261007",
+      "head": "59039a51701258a35c93fc7deca6fbf85d72fddd",
+      "paths": [
+        "packages/persistence/store.py",
+        "apps/web/src/main.tsx",
+        "migrations/versions/f37a0c2e91b5_full_text_search_indexes.py",
+        "tests/integration/test_job_full_text_search.py",
+        "tests/browser/test_job_full_text_search.py",
+        "docs/evidence/2026-10-07-full-text-search.json",
+        "planning/lanes/codex/**"
+      ],
+      "status": "RELEASED",
+      "claimed_at": "2026-10-07T18:40:41Z",
+      "claim_comment": "https://github.com/MulattoTech/MJobs/issues/166#issuecomment-6044443684",
+      "evidence_path": "docs/evidence/2026-10-07-full-text-search.json",
+      "integrated_main": "59039a51701258a35c93fc7deca6fbf85d72fddd",
+      "result": "PASS; issue #166 CLOSED",
+      "released_at": "2026-10-07T19:09:10Z",
+      "release_comment": "https://github.com/MulattoTech/MJobs/issues/166#issuecomment-6044900079"
     }
   ]
 }

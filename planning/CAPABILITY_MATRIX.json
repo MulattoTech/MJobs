@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-07T18:13:00Z",
+  "timestamp": "2026-10-07T19:09:10Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -1398,9 +1398,11 @@
     },
     {
       "requirement_id": "MJ-REQ-165",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-07-full-text-search.json"
+      ],
+      "note": "Connected Jobs search covers title, company, description, skills and location. PostgreSQL GIN indexes are used for job/company full-text predicates; SQLite keeps a portable substring path. API/browser reload, saved-search compatibility, migrations and index plans are locally evidenced. Full Python 962/8 skipped, frontend 63/build and validators pass. Hosted checks NOT_RUN_BY_USER_POLICY; live providers NOT_RUN; external submission OFF."
     },
     {
       "requirement_id": "MJ-REQ-166",

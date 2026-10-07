@@ -70,7 +70,8 @@
     "MJ-REF-020 / issue #390: connected UI/API records externally completed applications with source/time, route-first then cautious company/title reconciliation, provenance-marked minimal job creation, profile-scoped idempotency, and non-regressing application history (docs/evidence/2026-10-07-external-application-capture.json).",
     "MJ-REQ-007 / issue #8: stated requirement acceptance PASS. Healthy Git source-control safety, conditional no-Git N/A, atomic private configuration initialization, prior backup/restore, SQLite/PostgreSQL migration rollback/retry, and protected credential migration rollback/retry with ciphertext-preserving downgrade refusal are evidenced in docs/evidence/2026-10-07-source-change-safety-completion.json. Offline SQL generation probe failure at existing cb72f9041d6a remains separately recorded and is outside issue acceptance. Full repository release remains PARTIAL; hosted checks NOT_RUN_BY_USER_POLICY.",
     "MJ-REQ-180 / issue #181 acceptance PASS: all discovered production CLI screenshot artifact paths route through screenshot-only content masking; arbitrary DOM and pseudo-element text plus embedded image/canvas/video/frame content are suppressed, sensitive controls remain blacked out, and the live page remains unchanged. No product HTML snapshot/trace persistence found. Evidence docs/evidence/2026-10-07-feedback-screenshot-content-masking.json. Connected UI E2E NOT_RUN; hosted checks NOT_RUN_BY_USER_POLICY; overall product/release remains PARTIAL.",
-    "MJ-REQ-178 / issue #179 Log Retention PASS: all nine Compose services configure bounded json-file rotation (10 MiB × 5). Isolated no-network Docker runtime test proved rollover: 50 large synthetic lines emitted, 11 retained with 1 MiB × 2 cap, exit 0, temporary container removed; personal MJobs stack untouched. Existing evidence/tests confirm feedback sessions expire after 30 days, raw Playwright traces are not written and no product HTML snapshot writer exists. Related suite 20 PASS; Compose render and validators PASS. Evidence docs/evidence/2026-10-07-compose-log-rotation.json. Issue CLOSED/readback verified; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF."
+    "MJ-REQ-178 / issue #179 Log Retention PASS: all nine Compose services configure bounded json-file rotation (10 MiB × 5). Isolated no-network Docker runtime test proved rollover: 50 large synthetic lines emitted, 11 retained with 1 MiB × 2 cap, exit 0, temporary container removed; personal MJobs stack untouched. Existing evidence/tests confirm feedback sessions expire after 30 days, raw Playwright traces are not written and no product HTML snapshot writer exists. Related suite 20 PASS; Compose render and validators PASS. Evidence docs/evidence/2026-10-07-compose-log-rotation.json. Issue CLOSED/readback verified; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
+    "MJ-REQ-165 / issue #166 Full-Text Search PASS: PostgreSQL GIN full-text indexes cover title, description, JSON skills and location plus company names; GET /jobs?q= searches all five required fields, with connected UI/API readback and saved-search compatibility. Evidence: docs/evidence/2026-10-07-full-text-search.json. Source 108c502ce0b2c8aa92a4868b09687b4b4a0206f1; integrated code/evidence at 59039a51701258a35c93fc7deca6fbf85d72fddd. Full Python 962 tests/8 skipped, frontend 63/build, connected Chromium, SQLite/PostgreSQL migrations and index-plan checks PASS. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF."
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
@@ -355,7 +356,8 @@
     "Issue #517 source-candidate slice: focused API/browser 10 PASS; full Python 954 run/8 skipped; frontend 63/build; SQLite migration and validators PASS; evidence docs/evidence/2026-10-07-source-candidate-catalogue.json.",
     "Issue #517 URL-only source report exact source commit 20e6835308209c7ae8366d7791215db642ec9ad0: 12 focused API/browser/manual/external tests PASS; full Python 955 run/8 skipped; frontend 63/build; validators PASS. Evidence docs/evidence/2026-10-07-source-candidate-catalogue.json.",
     "MJ-REQ-176 AI task settings audit exact source 06942fd: 15 API/store reopen/profile isolation and connected Chromium Activity tests PASS; TypeScript/Vite build PASS; deterministic repository validators PASS.",
-    "Issue #517 supported company-feed source-candidate capture exact source 48d204a: 105 affected integration/connected Chromium tests PASS; disposable SQLite and PostgreSQL 17 Alembic upgrade/typed-write/downgrade-preservation PASS; TypeScript/Vite build and deterministic repository validators PASS."
+    "Issue #517 supported company-feed source-candidate capture exact source 48d204a: 105 affected integration/connected Chromium tests PASS; disposable SQLite and PostgreSQL 17 Alembic upgrade/typed-write/downgrade-preservation PASS; TypeScript/Vite build and deterministic repository validators PASS.",
+    "Issue #166 / MJ-REQ-165 full-text search: focused API/browser and saved-search compatibility 3 PASS; full Python 962 run/8 skipped; frontend 63 PASS/build PASS; PostgreSQL 17 full migration and API acceptance PASS; both GIN expression indexes matched by EXPLAIN; SQLite/PostgreSQL migration downgrade/re-upgrade and PostgreSQL row preservation PASS; deterministic validators PASS. Evidence docs/evidence/2026-10-07-full-text-search.json."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -432,7 +434,8 @@
     "Repository-wide unittest discovery was not rerun during this slice; prior broad failure remains historical evidence and was not promoted.",
     "Issue #517: hosted Actions/review NOT_RUN_BY_USER_POLICY; PostgreSQL/Docker runtime and live source evaluation NOT_RUN. These checks are not promoted to PASS.",
     "MJ-REQ-176 AI task settings audit: PostgreSQL/Docker NOT_RUN (no schema change); full Python suite NOT_RUN; hosted Actions/review NOT_RUN_BY_USER_POLICY; external submission OFF.",
-    "Issue #517 feed source-candidate slice: full Python suite NOT_RUN; frontend unit suite NOT_RUN (no frontend source changed); hosted Actions/review NOT_RUN_BY_USER_POLICY; external submission OFF."
+    "Issue #517 feed source-candidate slice: full Python suite NOT_RUN; frontend unit suite NOT_RUN (no frontend source changed); hosted Actions/review NOT_RUN_BY_USER_POLICY; external submission OFF.",
+    "Issue #166: GitHub Actions/hosted review NOT_RUN_BY_USER_POLICY; live providers NOT_RUN; external submission OFF."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -471,10 +474,10 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "commit": "93316cccf30df78087c6222a02974484da5d35e5",
-    "result": "PARTIAL",
-    "evidence": "docs/evidence/2026-10-07-ai-task-settings-audit.json",
-    "verified_at_utc": "2026-10-07T18:13:00Z"
+    "commit": "108c502ce0b2c8aa92a4868b09687b4b4a0206f1",
+    "result": "PASS",
+    "evidence": "docs/evidence/2026-10-07-full-text-search.json",
+    "verified_at_utc": "2026-10-07T19:04:58Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -578,7 +581,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "bf1eb739fb05edf96becaa8c4ab0a4e6fe588d92",
+  "last_implementation_commit": "108c502ce0b2c8aa92a4868b09687b4b4a0206f1",
   "publication": {
     "result": "PASS",
     "integration_method": "NON_FORCE_FAST_FORWARD",
@@ -9158,12 +9161,67 @@
         "git_commit": "bf1eb739fb05edf96becaa8c4ab0a4e6fe588d92",
         "evidence_path": "docs/evidence/2026-10-07-source-candidate-feed-import.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-165-FULL-TEXT-SEARCH-PASS-20261007",
+      "timestamp": "2026-10-07T19:06:36Z",
+      "current_phase": "Issue #166 / MJ-REQ-165 full-text search integrated PASS at main 59039a51701258a35c93fc7deca6fbf85d72fddd.",
+      "completed_steps": [
+        "Reconciled current main, machine/GitHub claims, worktrees, dirty scopes and issue history; claimed #166 on an isolated Codex worktree with no active path conflicts.",
+        "Reproduced the acceptance gap: GET /jobs?q= missed skills and location while title/company/description searches worked.",
+        "Implemented PostgreSQL web-search full-text predicates and GIN indexes across title, description, JSON skills, location and company names; retained a portable SQLite path and clarified Jobs search fields in the UI.",
+        "Verified API and connected Jobs browser searches for all required fields; browser reload reopened the same synthetic SQLite database and search still found skill/location data.",
+        "Fast-forward integrated source and sanitized evidence from fc103a4b01b473967bb67ccd8ef63766f8c80abc to main 59039a51701258a35c93fc7deca6fbf85d72fddd; candidate/main hashes matched."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-07-full-text-search.json",
+        "migrations/versions/f37a0c2e91b5_full_text_search_indexes.py",
+        "tests/browser/test_job_full_text_search.py",
+        "tests/integration/test_job_full_text_search.py"
+      ],
+      "files_modified": [
+        "apps/web/src/main.tsx",
+        "packages/persistence/store.py"
+      ],
+      "tests_completed": [
+        "Full Python suite: 962 tests run, 8 skipped, zero failures or errors. The later source-only cleanup wrapped imports and restored JSX indentation; focused API/browser and frontend tests were rerun afterward.",
+        "Final connected API/browser and saved-search selection run: 3 tests PASS; direct API search covered title, company, description, skills and location.",
+        "Frontend: 63 tests PASS and TypeScript/Vite production build PASS.",
+        "PostgreSQL 17 full Alembic migration chain and API acceptance PASS; both GIN indexes exist and EXPLAIN matched each expression to its index.",
+        "SQLite and PostgreSQL migration upgrade/downgrade/re-upgrade PASS; PostgreSQL downgrade preserved two canonical job rows.",
+        "Agent skill, catalogue, progress, lane coordination and diff validators PASS after appending this milestone."
+      ],
+      "tests_remaining": [
+        "GitHub Actions and hosted review remain NOT_RUN_BY_USER_POLICY; unavailable hosted checks were not promoted to PASS."
+      ],
+      "migrations_applied": [
+        "Disposable SQLite Alembic chain upgraded to f37a0c2e91b5, downgraded one revision and re-upgraded successfully; PostgreSQL-only indexes were a safe no-op on SQLite.",
+        "Disposable PostgreSQL 17 Alembic chain upgraded to f37a0c2e91b5; index downgrade/re-upgrade preserved two existing canonical job rows."
+      ],
+      "live_integrations_tested": [
+        "Connected headless Chromium UI -> API -> SQLite persistence/reopen search tested with synthetic jobs; external browser requests were blocked and none occurred.",
+        "Disposable PostgreSQL 17 API search and GIN query plans validated; no existing personal MJobs container/database was changed.",
+        "Main fast-forward integration 59039a51701258a35c93fc7deca6fbf85d72fddd verified locally and remotely."
+      ],
+      "known_errors": [
+        "Initial RED also exposed an over-strict company-result oracle because the fixture had multiple postings for one company; corrected the assertion while retaining the reproduced missing skills/location failures.",
+        "A PostgreSQL rerun against a database mutated by the prior test hit the fixture source-identity guard; final PostgreSQL acceptance passed on a fresh disposable database.",
+        "Initial temporary PostgreSQL network was internal-only and unreachable from the host; replaced with a separate bridge and loopback-only port. Existing MJobs personal services remained untouched."
+      ],
+      "known_limitations": [
+        "PostgreSQL uses the simple full-text configuration and websearch_to_tsquery semantics; separate text relevance ranking was not added.",
+        "Live provider requests were not needed for search-field acceptance; external submission remains OFF."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "59039a51701258a35c93fc7deca6fbf85d72fddd",
+        "evidence_path": "docs/evidence/2026-10-07-full-text-search.json"
+      }
     }
   ],
-  "current_phase": "Issue #517 supported company-feed candidate capture integrated PARTIAL; remaining issue scope stays OPEN.",
+  "current_phase": "Issue #166 / MJ-REQ-165 full-text search integrated PASS at main 59039a51701258a35c93fc7deca6fbf85d72fddd.",
   "last_safe_checkpoint": {
-    "git_commit": "bf1eb739fb05edf96becaa8c4ab0a4e6fe588d92",
-    "evidence_path": "docs/evidence/2026-10-07-source-candidate-feed-import.json"
+    "git_commit": "59039a51701258a35c93fc7deca6fbf85d72fddd",
+    "evidence_path": "docs/evidence/2026-10-07-full-text-search.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -10602,7 +10660,8 @@
     "Issue #9 / MJ-REQ-008 product-worker crash recovery exact source d516834ac3bd48352ef3aa8885a1de1fffe53419: full Python 851 PASS / 1 optional PostgreSQL skip; focused 20 PASS; frontend build and repository validators PASS. Process-kill and stale-attempt evidence: docs/evidence/2026-10-07-product-worker-crash-recovery.json. Issue remains OPEN/PARTIAL; hosted checks NOT_RUN_BY_USER_POLICY.",
     "Issue #178 / MJ-REQ-177 structured worker logging integrated at 169c3f110978c10af45e4f7e6ef4d950a727d4ae; 21 focused PASS/1 PostgreSQL skip, full Python 932 PASS/8 skipped, frontend 63/build and local validators PASS. Evidence docs/evidence/2026-10-07-structured-worker-operation-logs.json. Remaining scope and unavailable runtime/hosted checks remain PARTIAL/NOT_RUN.",
     "Issue #179 / MJ-REQ-178 fully accepted and integrated at 8bea57e595e19e638913405a8ec1cd3aa0ebde32. All nine Compose services render 10m/5 file rotation; disposable Docker rollover emitted 50 and retained 11 lines under 1m/2; existing feedback retention and no raw trace/HTML storage verified. 20 focused tests and validators PASS. Evidence docs/evidence/2026-10-07-compose-log-rotation.json.",
-    "Issue #403 / MJ-REF-033 page-budget slice: source 79b29ee0fe61af0906772f182c0ac280f73fc2f4 (443fb463d97b5ee45a558e8db06581f0c5d6b333), integrated candidate 01596a7a093bbfc359e9ded49076aac3cb95d94d (f55ee218fe0bb32249cef537ea66700b235280c5); 25 focused agent tests, compileall, agent_skills/catalogue/progress/reference_provenance/lane_coordination and diff checks PASS. Browser/source entrypoint, full Python suite, PostgreSQL/Docker and hosted checks NOT_RUN or NOT_APPLICABLE as recorded in docs/evidence/2026-10-07-agent-page-budget.json. Issue remains OPEN/PARTIAL."
+    "Issue #403 / MJ-REF-033 page-budget slice: source 79b29ee0fe61af0906772f182c0ac280f73fc2f4 (443fb463d97b5ee45a558e8db06581f0c5d6b333), integrated candidate 01596a7a093bbfc359e9ded49076aac3cb95d94d (f55ee218fe0bb32249cef537ea66700b235280c5); 25 focused agent tests, compileall, agent_skills/catalogue/progress/reference_provenance/lane_coordination and diff checks PASS. Browser/source entrypoint, full Python suite, PostgreSQL/Docker and hosted checks NOT_RUN or NOT_APPLICABLE as recorded in docs/evidence/2026-10-07-agent-page-budget.json. Issue remains OPEN/PARTIAL.",
+    "Issue #166 / MJ-REQ-165 fully accepted and integrated at 59039a51701258a35c93fc7deca6fbf85d72fddd from source 108c502ce0b2c8aa92a4868b09687b4b4a0206f1. Search now covers title, company, description, skills and location; PostgreSQL GIN full-text indexes support job and company search. Full Python 962/8 skipped, frontend 63/build, connected Chromium, SQLite/PostgreSQL migrations, PostgreSQL API/index-plan checks and local validators PASS. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF. Evidence docs/evidence/2026-10-07-full-text-search.json."
   ],
   "ownership": "Issue #6 / MJ-REQ-005 AI evaluation admission source cb2681b6a921f2759cf46d4d66a8228645b473e7 and sanitized evidence/planning are integrated at synchronized local/GitHub main cb2681b6a921f2759cf46d4d66a8228645b473e7 under the local Codex integration lock. No PR opened; branch unprotected; hosted checks/review NOT_RUN by policy. Issue remains OPEN/PARTIAL.",
   "delivery_policy": {
@@ -10617,5 +10676,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-07T18:32:30Z"
+  "updated_at": "2026-10-07T19:04:58Z"
 }
