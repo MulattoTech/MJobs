@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "timestamp_utc": "2026-10-07T19:51:31Z",
+  "result": "PASS",
+  "scope": "MJ-REQ-173 upload-security acceptance across all seven supported uploaded document kinds",
+  "issue": "https://github.com/MulattoTech/MJobs/issues/174",
+  "requirement_id": "MJ-REQ-173",
+  "base_main": "5be79530d5d669c5c2d6a00c38f37afe120ff16b",
+  "source_commit": "c9b168b1c869cdac5ea9097ed61c81c67937f28c",
+  "source_tree": "84bf44016609d64cffaa743b2ac65fbcdfd3155e",
+  "changed_paths": [
+    "tests/integration/test_document_library.py"
+  ],
+  "acceptance": [
+    "All seven uploaded document kinds reject path traversal, disallowed executable extensions, executable-signature data presented as PDF, MIME/extension mismatch, invalid DOCX content, empty content, overlong names, and non-NFC names without creating upload storage or metadata.",
+    "All seven document kinds reject an actual body larger than 10 MiB. A request with an underreported Content-Length is also rejected by the streamed body limit.",
+    "Two distinct documents with the same visible filename retain distinct content-addressed identities and bytes; metadata and bytes survive a fresh Store/API reopen, while a second profile sees no documents.",
+    "Connected Chromium acceptance uploads each of the seven supported kinds, reloads the browser, and reads back the selected collection versions."
+  ],
+  "environment": {
+    "os": "Windows 11 local developer workstation",
+    "python": "3.12 via C:/Tools/Dev/MJobs/.venv/Scripts/python.exe",
+    "database": "Synthetic SQLite databases in temporary directories",
+    "browser": "Local headless Chromium through Playwright; loopback fixture only",
+    "node": "v25.9.0",
+    "npm": "11.12.1"
+  },
+  "checks": [
+    {
+      "command": "& 'C:/Tools/Dev/MJobs/.venv/Scripts/python.exe' -m unittest -q tests.integration.test_document_library tests.integration.test_resume_upload tests.browser.test_document_history tests.browser.test_profile_import",
+      "result": "PASS",
+      "tests": 16,
+      "skips": 0,
+      "details": "Includes API validation for all seven upload kinds, true streamed size limits, collision safety, Store reopen/profile isolation, SQLite migration preservation, and connected Chromium upload/reload/download workflows."
+    },
+    {
+      "command": "npm ci --prefix apps/web",
+      "result": "PASS",
+      "packages_added": 44,
+      "npm_audit_vulnerabilities": 0,
+      "details": "npm emitted EBADENGINE because Vitest declares Node ^22.12, ^24, or >=26 while this machine has Node 25.9.0."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS"
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run",
+      "result": "PASS",
+      "test_files": 13,
+      "tests": 63
+    },
+    {
+      "command": "python -m tools.verification.agent_skills",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.catalogue",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.progress validate",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.coordination.lane_coordination validate",
+      "result": "PASS"
+    },
+    {
+      "command": "& 'C:/Tools/Dev/MJobs/.venv/Scripts/python.exe' -m compileall -q tests/integration/test_document_library.py",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "resolved_test_setup_failures": [
+    "An initial combined integration/browser run could not find the Applications navigation control because the isolated worktree had no frontend node_modules or dist bundle. After npm ci/build, the isolated browser test passed and the final combined matrix passed 16/16 with no skips.",
+    "Early test-authoring runs exposed fixture setup errors (raw non-ASCII HTTP header, absent uploads directory on rejected requests, and a missing second profile); the tests were corrected to follow the encoded browser header contract and create only the profiles they assert. No production-code failure was observed."
+  ],
+  "security_boundary": {
+    "data": "Synthetic resume/document bytes, filenames, and profile-owned metadata only",
+    "external_requests": "No providers, employers, or real application destinations contacted",
+    "application_submission": "OFF",
+    "hosted_actions_and_reviews": "NOT_RUN_BY_USER_POLICY"
+  },
+  "limitations": [
+    "No PostgreSQL or Docker run; this slice makes no schema or database-backend changes. SQLite upgrade/downgrade preservation ran in the focused integration suite.",
+    "Hosted CI and independent reviews remain NOT_RUN_BY_USER_POLICY; local PASS does not promote hosted/release evidence."
+  ]
+}
