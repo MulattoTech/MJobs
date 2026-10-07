@@ -1,5 +1,6 @@
 """Durable operation ownership, cancellation and expiry contracts."""
 from datetime import datetime, timedelta, timezone
+from concurrent.futures import ThreadPoolExecutor
 import json
 import os
 from pathlib import Path
@@ -75,6 +76,54 @@ class WorkerLifecycleTests(unittest.TestCase):
             self.assertIsNone(claim(self.store, discovery))
             self.assertIsNotNone(claim(self.store, document))
             self.assertIsNotNone(claim(self.store, application))
+
+    def test_concurrent_application_workers_share_capacity_across_store_instances(self):
+        first = enqueue_operation(self.store, "APPLY_MOCK", "application-first", {})
+        second = enqueue_operation(self.store, "APPLY_MOCK", "application-second", {})
+        document = enqueue_operation(self.store, "PREPARE", "application-document", {})
+        second_store = Store(self.store.url)
+        barrier = threading.Barrier(3)
+        results = {}
+        errors = []
+
+        def claim_after_barrier(store, operation_id):
+            try:
+                barrier.wait(timeout=3)
+                results[operation_id] = claim(store, operation_id)
+            except BaseException as error:
+                errors.append(error)
+
+        try:
+            with patch.dict(os.environ, {"MJOBS_APPLICATION_AUTOMATION_CONCURRENCY": "1"}):
+                with ThreadPoolExecutor(max_workers=2) as executor:
+                    first_claim = executor.submit(claim_after_barrier, self.store, first)
+                    second_claim = executor.submit(claim_after_barrier, second_store, second)
+                    barrier.wait(timeout=3)
+                    first_claim.result(timeout=5)
+                    second_claim.result(timeout=5)
+
+                self.assertEqual(errors, [])
+                admitted = [operation_id for operation_id, operation in results.items()
+                            if operation is not None]
+                rejected = [operation_id for operation_id, operation in results.items()
+                            if operation is None]
+                self.assertEqual(len(admitted), 1)
+                self.assertEqual(len(rejected), 1)
+                self.assertIsNotNone(claim(second_store, document),
+                                     "document capacity must remain independent")
+
+                with second_store.engine.connect() as connection:
+                    rows = list(connection.execute(select(
+                        m.operations.c.id, m.operations.c.state,
+                        m.operations.c.attempt_count,
+                    ).where(m.operations.c.kind == "APPLY_MOCK")).mappings())
+                states = {row["id"]: row for row in rows}
+                self.assertEqual(states[admitted[0]]["state"], "RUNNING")
+                self.assertEqual(states[rejected[0]]["state"], "QUEUED")
+                self.assertEqual(states[admitted[0]]["attempt_count"], 1)
+                self.assertEqual(states[rejected[0]]["attempt_count"], 0)
+        finally:
+            second_store.engine.dispose()
 
     def test_discovery_expiry_retries_at_most_three_claims(self):
         identifier = enqueue_operation(self.store, "DISCOVER", "fixture", {})
