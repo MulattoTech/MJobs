@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-07T14:26:28Z",
+  "issue": 177,
+  "requirement_id": "MJ-REQ-176",
+  "result": "PARTIAL",
+  "source_commit": "4b25f3c1ac1eafe1b5f00d714029bef4268b7b43",
+  "source_tree": "ca6c0b83c82cb13e1bc6d121536041f60bd984b0",
+  "base_main": "20c20392e67f8fe72f0a7ac7c27c30ed72bd095c",
+  "acceptance_oracle": "A successful profile-owned company discovery persists the company source and appends one COMPANY_DISCOVERED and, when that source is newly enrolled, one COMPANY_SOURCE_ENROLLED event in the same transaction. Activity renders fixed safe summaries after reload, exposes neither raw source URLs nor payloads, and does not show another profile's events.",
+  "gap_observation": "Company discovery persisted company/source records but did not add profile-owned user-facing company events. The Activity timeline already supported safe profile and application event summaries.",
+  "implementation": [
+    "Company discovery passes the initiating profile into the source upsert; source creation/refresh and profile audit writes share one database transaction.",
+    "COMPANY_DISCOVERED uses a stable profile/company identity and remains idempotent on rediscovery.",
+    "COMPANY_SOURCE_ENROLLED is appended only when a source record is first created; its stable profile/source identity prevents duplicate timeline entries.",
+    "The audit read model resolves company names from stored IDs and emits fixed summaries without exposing audit payloads, URLs, or source endpoints.",
+    "Blocked or unsuccessful discovery paths do not emit either company success event."
+  ],
+  "validation": [
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_audit_history tests.integration.test_public_company_discovery tests.integration.test_company_sources -v",
+      "result": "PASS",
+      "counts": {"passed": 26, "failed": 0, "skipped": 0}
+    },
+    {
+      "command": "npm ci --prefix apps/web",
+      "result": "PASS_WITH_WARNING",
+      "details": "44 lockfile packages installed; Node 25.9.0 is outside Vitest's declared Node ranges (^22.12, ^24, >=26). No vulnerabilities reported."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "details": "TypeScript check and Vite production build completed."
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.browser.test_public_company_discovery -v",
+      "result": "PASS",
+      "counts": {"passed": 1, "failed": 0, "skipped": 0}
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run",
+      "result": "PASS",
+      "counts": {"files": 13, "tests": 63, "failed": 0}
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.agent_skills",
+      "result": "PASS"
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.catalogue",
+      "result": "PASS"
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.progress validate",
+      "result": "PASS"
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.coordination.lane_coordination validate",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "browser_evidence": {
+    "engine": "Headless Chromium via Playwright",
+    "database": "Temporary SQLite database with the connected local API and worker; no schema migration was required.",
+    "network": "Browser requests were restricted to the loopback API; no external browser requests observed. The product's public-company HTTP client used deterministic mocked responses.",
+    "verified": [
+      "A successful worker discovery creates a source and imported job and then Activity shows COMPANY_DISCOVERED and COMPANY_SOURCE_ENROLLED with the safe company name.",
+      "Both events remain visible after browser reload.",
+      "Selecting a second profile hides both company events and the company name.",
+      "Activity does not expose the source hostname."
+    ]
+  },
+  "environment_limitations": [
+    "PostgreSQL and Docker checks were not run; this slice changes no schema and used isolated SQLite integration/browser databases.",
+    "GitHub Actions and hosted review remain NOT_RUN_BY_USER_POLICY.",
+    "External application submission remains OFF."
+  ],
+  "remaining_requirement_gaps": [
+    "JOB_MERGED history and complete setting-change history remain incomplete or unverified.",
+    "Actual application submission is disabled; no APPLICATION_SUBMITTED or employer-receipt confirmation is generated.",
+    "The overall MJ-REQ-176 requirement remains PARTIAL and issue #177 remains OPEN."
+  ]
+}
