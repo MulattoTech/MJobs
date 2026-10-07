@@ -8,7 +8,7 @@ from typing import Any
 
 from services.career_profile.profile_access import TASK_PATHS
 from services.agents.registry import (
-    AgentToolContext, AgentToolError, PolicyDecision, ReviewDecision,
+    AgentToolContext, AgentToolError, PageBudget, PolicyDecision, ReviewDecision,
     ToolClass, ToolRegistry,
 )
 from services.agents.acceptance import CollectionContract, validate_collection_output
@@ -20,6 +20,7 @@ from services.agents.traces import (
 _SAFE_TOOL = re.compile(r"^[a-z][a-z0-9_]{1,63}$")
 DEFAULT_RUN_DURATION_MS = 30_000
 MAX_RUN_DURATION_MS = 120_000
+MAX_RUN_PAGES = 100
 _ESCAPE_OUTCOMES = {"AUTH_REQUIRED", "NOT_AVAILABLE", "SOURCE_CHANGED"}
 
 
@@ -41,10 +42,13 @@ class AgentRuntime:
     def run(self, calls: object, *, cost_usd: float | None = None,
             input_tokens: int | None = None, output_tokens: int | None = None,
             max_duration_ms: int = DEFAULT_RUN_DURATION_MS,
+            max_pages: int | None = None,
             collection_contract: CollectionContract | None = None) -> dict[str, Any]:
         self._validate_metrics(cost_usd, input_tokens, output_tokens)
         if (type(max_duration_ms) is not int or not 1 <= max_duration_ms <= MAX_RUN_DURATION_MS):
             raise ValueError("Agent run duration must be between one and 120000 milliseconds")
+        if max_pages is not None and (type(max_pages) is not int or not 1 <= max_pages <= MAX_RUN_PAGES):
+            raise ValueError("Agent page budget must be between one and 100 pages")
         if collection_contract is not None and not isinstance(collection_contract, CollectionContract):
             raise ValueError("Agent collection success contract is invalid")
         started = time.monotonic()
@@ -54,6 +58,7 @@ class AgentRuntime:
         append_agent_event(self.store, run_id, "AGENT_RUN_STARTED", {
             "schema_version": 1, "task": self.task, "profile_ref": profile_ref,
             "step_limit": MAX_AGENT_STEPS, "max_duration_ms": max_duration_ms,
+            "max_pages": max_pages,
             "success_artifact": "collection_output" if collection_contract else "all_tools_completed",
         })
         if not isinstance(calls, list):
@@ -64,7 +69,8 @@ class AgentRuntime:
         results = []
         context = AgentToolContext(run_id=run_id, profile_id=self.profile_id,
                                    task=self.task, deadline_monotonic=deadline,
-                                   max_duration_ms=max_duration_ms)
+                                   max_duration_ms=max_duration_ms,
+                                   page_budget=PageBudget(max_pages) if max_pages is not None else None)
         stop_reason = None
         collection_result = None
         for index, call in enumerate(calls[:MAX_AGENT_STEPS], start=1):
@@ -84,6 +90,9 @@ class AgentRuntime:
                     state = error.code
                     stop_reason = error.code
                 elif error.code == "TIME_BUDGET_EXHAUSTED":
+                    state = "LIMIT_REACHED"
+                    stop_reason = error.code
+                elif error.code in {"PAGE_BUDGET_REQUIRED", "PAGE_BUDGET_EXHAUSTED"}:
                     state = "LIMIT_REACHED"
                     stop_reason = error.code
                 else:
@@ -126,6 +135,8 @@ class AgentRuntime:
             "state": state, "step_count": len(results), "cost_usd": cost_usd,
             "input_tokens": input_tokens, "output_tokens": output_tokens,
             "stop_reason": stop_reason, "budget_consumed_ms": consumed_ms,
+            "max_pages": max_pages,
+            "pages_consumed": context.page_budget.consumed if context.page_budget else 0,
             "collection_result": ({"code": collection_result.code,
                                    "observed_count": collection_result.observed_count,
                                    "tail_matches": collection_result.tail_matches}
@@ -133,6 +144,8 @@ class AgentRuntime:
         })
         return {"run_id": run_id, "state": state, "steps": results,
                 "stop_reason": stop_reason,
+                "max_pages": max_pages,
+                "pages_consumed": context.page_budget.consumed if context.page_budget else 0,
                 "collection_result": ({"code": collection_result.code,
                                        "observed_count": collection_result.observed_count,
                                        "tail_matches": collection_result.tail_matches}

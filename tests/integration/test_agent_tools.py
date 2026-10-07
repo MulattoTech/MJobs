@@ -239,6 +239,66 @@ class AgentToolBoundaryTests(unittest.TestCase):
         self.assertEqual(trace["terminal"]["stop_reason"], "TIME_BUDGET_EXHAUSTED")
         self.assertEqual(trace["terminal"]["budget_consumed_ms"], 600)
 
+    def test_page_budget_blocks_the_next_fetch_and_persists_only_consumption(self):
+        class Request(BaseModel):
+            model_config = ConfigDict(strict=True, extra="forbid")
+            value: str
+        class Response(BaseModel):
+            model_config = ConfigDict(strict=True, extra="forbid")
+            pages: list[str]
+
+        started_pages = []
+
+        def collect_pages(args, context):
+            pages = []
+            for page in range(1, 4):
+                context.consume_page()
+                started_pages.append(page)
+                pages.append(f"private-page-{page}")
+            return {"pages": pages}
+
+        registry = ToolRegistry()
+        registry.register(AgentTool("collect_pages", "Collect pages", ToolClass.READ,
+                                    Request, Response, collect_pages))
+        runtime = AgentRuntime(self.store, registry, profile_id="fixture", task="job_match")
+
+        result = runtime.run([{"name": "collect_pages", "arguments": {"value": "jobs"}}],
+                             max_pages=2)
+
+        self.assertEqual(started_pages, [1, 2])
+        self.assertEqual(result["state"], "LIMIT_REACHED")
+        self.assertEqual(result["stop_reason"], "PAGE_BUDGET_EXHAUSTED")
+        trace = read_agent_trace(self.store, result["run_id"])
+        self.assertEqual(trace["terminal"]["pages_consumed"], 2)
+        self.assertEqual(trace["terminal"]["max_pages"], 2)
+        self.assertNotIn("private-page", json.dumps(trace))
+
+    def test_page_consuming_tool_requires_an_explicit_budget(self):
+        class Request(BaseModel):
+            model_config = ConfigDict(strict=True, extra="forbid")
+            value: str
+        class Response(BaseModel):
+            model_config = ConfigDict(strict=True, extra="forbid")
+            value: str
+
+        starts = []
+
+        def fetch_page(args, context):
+            context.consume_page()
+            starts.append("fetch")
+            return {"value": "private-page"}
+
+        registry = ToolRegistry()
+        registry.register(AgentTool("fetch_page", "Fetch one page", ToolClass.READ,
+                                    Request, Response, fetch_page))
+        runtime = AgentRuntime(self.store, registry, profile_id="fixture", task="job_match")
+
+        result = runtime.run([{"name": "fetch_page", "arguments": {"value": "jobs"}}])
+
+        self.assertEqual(starts, [])
+        self.assertEqual(result["state"], "LIMIT_REACHED")
+        self.assertEqual(result["stop_reason"], "PAGE_BUDGET_REQUIRED")
+
     def test_explicit_escape_outcomes_are_terminal_results(self):
         class Request(BaseModel):
             model_config = ConfigDict(strict=True, extra="forbid")

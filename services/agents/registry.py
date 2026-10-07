@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from enum import Enum
 import json
 import re
+from threading import Lock
 from typing import Any, Callable, Type
 
 from pydantic import BaseModel, ValidationError
@@ -34,6 +35,29 @@ class AgentToolError(ValueError):
         super().__init__(code)
 
 
+class PageBudget:
+    """Thread-safe host-owned permits for page fetches within one run."""
+
+    def __init__(self, maximum: int):
+        if type(maximum) is not int or maximum < 1:
+            raise ValueError("Page budget must be a positive integer")
+        self.maximum = maximum
+        self._consumed = 0
+        self._lock = Lock()
+
+    @property
+    def consumed(self) -> int:
+        with self._lock:
+            return self._consumed
+
+    def consume(self) -> int:
+        with self._lock:
+            if self._consumed >= self.maximum:
+                raise AgentToolError("PAGE_BUDGET_EXHAUSTED")
+            self._consumed += 1
+            return self._consumed
+
+
 @dataclass(frozen=True)
 class AgentToolContext:
     """Host-owned scope metadata; never serialized into model tool schemas."""
@@ -44,12 +68,19 @@ class AgentToolContext:
     proposal_id: str | None = None
     deadline_monotonic: float | None = None
     max_duration_ms: int | None = None
+    page_budget: PageBudget | None = None
 
     def check_budget(self) -> None:
         """Let host-owned handlers stop before starting another bounded operation."""
         import time
         if self.deadline_monotonic is not None and time.monotonic() >= self.deadline_monotonic:
             raise AgentToolError("TIME_BUDGET_EXHAUSTED")
+
+    def consume_page(self) -> int:
+        """Reserve a page-fetch permit before starting its external work."""
+        if self.page_budget is None:
+            raise AgentToolError("PAGE_BUDGET_REQUIRED")
+        return self.page_budget.consume()
 
 
 @dataclass(frozen=True)

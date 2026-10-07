@@ -10,6 +10,10 @@ exposed to a model, or external application submission.
 - `ToolRegistry` registers server-owned JSON schemas and host-side handlers.
 - `AgentRuntime` runs bounded tool-call batches with a host-bound profile/task
   context and records trace metadata in the existing append-only audit table.
+- Page-reading handlers must declare `max_pages` for the run and call
+  `AgentToolContext.consume_page()` immediately before each page fetch. The
+  host grants no permit without an explicit limit, denies fetches after the
+  limit, and persists only the declared limit and consumed count.
 - `AgentRuntime.review` revalidates the exact proposal, requires a human review
   decision, applies the registered deterministic policy, then executes a
   side-effect handler at most once.
