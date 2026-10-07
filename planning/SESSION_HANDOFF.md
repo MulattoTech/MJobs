@@ -888,3 +888,12 @@ Screenshot/HTML-storage privacy acceptance is locally PASS and integrated by non
 
 
 GitHub close/release readback for issue #181 / MJ-REQ-180: CLOSED at https://github.com/MulattoTech/MJobs/issues/181; release https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6039255354. Synchronized main at closeout: `a7eea5b291082db1bbe3e32403f7995416a573d5`. Codex claim released. Next action is fresh main/claims/worktree reconciliation and immediate selection of the highest-value unclaimed dependency-ready issue; full product/release remains PARTIAL.
+
+
+## Integration receipt — issue #177 / MJ-REQ-176 — 2026-10-07T13:55:45Z
+
+A bounded user-facing audit timeline was integrated by non-force fast-forward from base `1a2300c832d8515c2039798b446dc323c1bffb28` through candidate `84024963562ddf69ef5373c6eccea3d445e2a2f4`. Source commit `9d3bff3b5e07b1d1eda1413d78e95a2c9e51f25c` (tree `b5698ceea824b8e9df857705c627a43bc32c5a6a`); evidence `docs/evidence/2026-10-07-profile-audit-history.json`. API/UI and 13 focused API/integration/browser tests, frontend 63 tests/build, and local validators pass. SQLite reload/reopen and profile isolation were verified with synthetic fixtures; no external browser requests occurred. Audit payloads are not returned.
+
+This is PARTIAL, not full issue acceptance: profile-linked job/company discovery, company-source enrollment, job merge, general setting-change producers and truthful real-submission events remain incomplete. Issue #177 remains OPEN. PostgreSQL/Docker/migration behavior and hosted checks are NOT_RUN; hosted checks are disabled by policy. External submission remains OFF.
+
+GitHub issue checkpoint: https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6039479641. Codex integration lock is held while canonical state records this slice. Next action: release the lock and issue claim after final main synchronization, inspect all claims/worktrees, then continue with the highest-value unclaimed dependency-ready requirement. Overall product/release remains PARTIAL.

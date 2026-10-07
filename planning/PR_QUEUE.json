@@ -1229,7 +1229,7 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-048-orchestration-data-security",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Scoped MJ-REQ-176 activity timeline integrated as PARTIAL at 84024963562ddf69ef5373c6eccea3d445e2a2f4; evidence docs/evidence/2026-10-07-profile-audit-history.json; issue #177 remains OPEN. Full audit event families are incomplete, so the bundled PR remains QUEUED."
     },
     {
       "id": "MJ-PR-049",
