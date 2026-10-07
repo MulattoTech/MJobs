@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-07T16:40:07Z",
+  "generated_at": "2026-10-07T17:26:00Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -118,7 +118,8 @@
     "MJ-REQ-176 / issue #177: Activity now records profile-owned durable PREPARE queued/start/terminal-failure events with stable IDs and attempt history, safe fixed summaries and job/company context. Queue, claim, task terminal failure and retry-limit recovery transactions were exercised; resume rewrite payloads are excluded. 28 focused Python integration/worker/outbox tests PASS with 1 PostgreSQL-only skip, 1 connected Chromium test PASS, frontend 63/build and validators PASS. Evidence docs/evidence/2026-10-07-application-preparation-audit.json. Company/source enrollment, job merge, full settings and truthful complete actual application lifecycle events remain incomplete; issue OPEN/PARTIAL.",
     "MJ-REQ-176 / issue #177 company/source audit history: successful discovery now records idempotent profile-owned COMPANY_DISCOVERED and first source creation COMPANY_SOURCE_ENROLLED events atomically with source persistence. Fixed summaries remain private, profile-isolated and persist across reload; failed discovery emits neither. 26 focused integration tests, connected Chromium 1, frontend 63/build, and repository validators PASS. Evidence docs/evidence/2026-10-07-company-audit-history.json. Job merge, complete settings and full truthful application lifecycle coverage remain incomplete; issue OPEN/PARTIAL.",
     "MJ-REQ-177 / issue #178 structured worker logging: durable worker terminal outcomes emit JSON-only allowlisted records only after persistence; records contain safe operation context and omit parameters, exception messages and private resume text. Evidence docs/evidence/2026-10-07-structured-worker-operation-logs.json. Focused 21 PASS/1 PostgreSQL-only skip; full Python suite 932 PASS/8 skipped; frontend 63/build and local validators PASS. Posting/source/ATS and other operation types, live Redis/RQ and PostgreSQL remain unverified; issue remains OPEN/PARTIAL.",
-    "MJ-REQ-179 / issue #180 Debug Capture is locally evidenced for the existing local mock ATS browser adapter. Opt-in defaults OFF; failure diagnostics include a privacy-masked viewport screenshot, structural allowlisted DOM counts, sanitized URL path shape, error-only console/network HMAC fingerprints and current durable step; retention is 30 days/20 captures, events 50, screenshot 5 MiB. Synthetic browser tests preserve REVIEW_REQUIRED and SUBMISSION_UNCONFIRMED/no-blind-retry. Exact-head affected validation 72 PASS and one optional PostgreSQL skip; repository-wide discovery at source 6d3b289 failed (948 run, 2 failures, 9 errors, 28 skipped) and is not promoted. Evidence docs/evidence/2026-10-07-safe-browser-debug-capture.json. Real ATS, live PostgreSQL and hosted checks NOT_RUN; external submission OFF. Requirement remains PARTIAL."
+    "MJ-REQ-179 / issue #180 Debug Capture is locally evidenced for the existing local mock ATS browser adapter. Opt-in defaults OFF; failure diagnostics include a privacy-masked viewport screenshot, structural allowlisted DOM counts, sanitized URL path shape, error-only console/network HMAC fingerprints and current durable step; retention is 30 days/20 captures, events 50, screenshot 5 MiB. Synthetic browser tests preserve REVIEW_REQUIRED and SUBMISSION_UNCONFIRMED/no-blind-retry. Exact-head affected validation 72 PASS and one optional PostgreSQL skip; repository-wide discovery at source 6d3b289 failed (948 run, 2 failures, 9 errors, 28 skipped) and is not promoted. Evidence docs/evidence/2026-10-07-safe-browser-debug-capture.json. Real ATS, live PostgreSQL and hosted checks NOT_RUN; external submission OFF. Requirement remains PARTIAL.",
+    "Issue #517 / discovered job-source catalogue PARTIAL: manual capture and external application reports persist profile-scoped sanitized provenance, destination site-type assessments, review history and explicit unknown hops. Source commit 5b49d595ff48615c8a82a3e383a8ac3d82261578; evidence docs/evidence/2026-10-07-source-candidate-catalogue.json. Full Python 954 run/8 skipped, frontend 63/build, focused 10 API/browser, disposable SQLite migration and local validators PASS. Provider/browser discovery hooks, documented source evaluation/integration task linkage, PostgreSQL/Docker and live source evidence remain NOT_RUN/incomplete. Issue remains OPEN/PARTIAL; external submission OFF."
   ],
   "blocked_capabilities": [],
   "active_requirements": [
@@ -349,7 +350,8 @@
     "Issue #180 / MJ-REQ-179 exact-head affected suite at f8d07ca9a83e9f61541ad74f2bcb1c1c46f02165: 73 run, 72 PASS, 1 optional PostgreSQL skip; repository validators PASS. Evidence docs/evidence/2026-10-07-safe-browser-debug-capture.json.",
     "MJ-REQ-176 canonical job merge Activity slice exact integrated-main affected suite: 67 Python integration/browser tests PASS, 0 failures/errors (head 26deecc77098471f0973e7e0b34193c1e4e0d0e3).",
     "Frontend tests: 63 PASS; TypeScript/Vite build PASS on product-source head 447afe1665af2c81a2e0d63149ca6e00068cbcfb; no frontend source changed in later test isolation commit.",
-    "Agent skills, catalogue, progress, lane coordination and git diff validators PASS."
+    "Agent skills, catalogue, progress, lane coordination and git diff validators PASS.",
+    "Issue #517 source-candidate slice: focused API/browser 10 PASS; full Python 954 run/8 skipped; frontend 63/build; SQLite migration and validators PASS; evidence docs/evidence/2026-10-07-source-candidate-catalogue.json."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -423,7 +425,8 @@
     "Issue #179: actual personal MJobs Compose services were intentionally not restarted/recreated; hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF.",
     "Issue #180: real ATS adapter/browser acceptance and live PostgreSQL not run; one optional PostgreSQL worker recovery class skipped because MJOBS_WORKER_RECOVERY_POSTGRES_URL was unset. GitHub hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF.",
     "Live PostgreSQL and Docker runtime checks for the MJ-REQ-176 JOB_MERGED slice; no schema/migration change and synthetic SQLite transaction/readback coverage was used.",
-    "Repository-wide unittest discovery was not rerun during this slice; prior broad failure remains historical evidence and was not promoted."
+    "Repository-wide unittest discovery was not rerun during this slice; prior broad failure remains historical evidence and was not promoted.",
+    "Issue #517: hosted Actions/review NOT_RUN_BY_USER_POLICY; PostgreSQL/Docker runtime and live source evaluation NOT_RUN. These checks are not promoted to PASS."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -439,7 +442,8 @@
     "Mock ATS questionnaire/receipt HTTP requests honor worker cancellation/deadline; real ATS and AI provider classes remain unavailable, and cross-replica cancellation is not implemented (docs/evidence/2026-10-06-mock-ats-http-cancellation.json).",
     "MJ-REQ-004 AI evaluation cancellation waits for an already-running provider request to hit its bounded timeout; real transport disconnect and provider inference were not exercised in synthetic acceptance (docs/evidence/2026-10-07-ai-evaluation-disconnect-cancellation.json).",
     "MJ-REQ-008 process-crash recovery is verified for a synthetic SQLite rescore operation; physical host restart, browser-process crash, all worker operation types and live PostgreSQL remain unverified (docs/evidence/2026-10-07-product-worker-crash-recovery.json).",
-    "MJ-REQ-177 worker logging currently covers durable operation terminal outcomes only; posting/source/ATS and other contexts plus live Redis/RQ/PostgreSQL remain unverified (docs/evidence/2026-10-07-structured-worker-operation-logs.json)."
+    "MJ-REQ-177 worker logging currently covers durable operation terminal outcomes only; posting/source/ATS and other contexts plus live Redis/RQ/PostgreSQL remain unverified (docs/evidence/2026-10-07-structured-worker-operation-logs.json).",
+    "Issue #517 source catalogue currently captures only manual job and external application reports; existing provider/browser discovery entry points and documented source integration evaluation remain incomplete."
   ],
   "known_product_defects": [
     "Manual application status is user-reported only; company/application notes beyond this slice, independently verified submission receipts, and full canonical tracker acceptance remain unverified.",

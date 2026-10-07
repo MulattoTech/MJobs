@@ -1,3 +1,15 @@
+## Issue #517 / discovered job-source catalogue — integrated PARTIAL — 2026-10-07
+
+The passive source-candidate catalogue/review slice is integrated on main at fb21927f307289b5ed4f1acb5c9b4a862548d905 (source implementation 5b49d595ff48615c8a82a3e383a8ac3d82261578). Evidence: docs/evidence/2026-10-07-source-candidate-catalogue.json. Manual job capture and externally reported applications with supplied third-party URLs now create profile-scoped candidate/provenance records. The Sources UI/API supports sanitized source history, explicit unknown hops, append-only review reasons/site-type assessments, profile isolation, and collection-disabled state. Issue #517 remains OPEN/PARTIAL.
+
+Validation on the exact source tree: 10 focused API/browser tests PASS; full Python discovery 954 run, 8 skipped, no failures/errors; frontend 63 tests and TypeScript/Vite build PASS; disposable SQLite migration upgrade/schema/empty downgrade PASS; agent-skill, catalogue, progress, lane and diff validators PASS. PostgreSQL/Docker runtime, live source evaluation and hosted checks were NOT_RUN; hosted checks are NOT_RUN_BY_USER_POLICY; external submission OFF.
+
+The issue still needs integration with unclaimed supported provider/browser discovery entry points, documented API/feed/access and capabilities/limits/cost evaluation, and a bounded integration task/provider-issue link. Do not touch Antigravity #302 (services/discovery/sources/**) or Ollama #318 (services/ats_detection/**). The Codex claim on #517 remains active while selecting the next slice.
+
+Next: reconcile current main, lane claims and GitHub comments; continue the highest-value independent #517 acceptance gap on an isolated Codex branch/worktree, or choose another dependency-ready unclaimed issue if source-entry ownership conflicts. Do not mark issue #517 complete from this receipt.
+
+---
+
 ## Issue #179 / MJ-REQ-178 Log Retention — integrated PASS — 2026-10-07
 
 Issue #179 is CLOSED after full local acceptance. Main: `8bea57e595e19e638913405a8ec1cd3aa0ebde32`; source `1e11348ec1e10f401453e1d31ba68d651ea2c540`; evidence `docs/evidence/2026-10-07-compose-log-rotation.json`. All nine Compose services render json-file rotation at 10 MiB × 5 files. Disposable no-network Docker rollover retained 11 of 50 large lines at a 1 MiB × 2 limit; container removed and existing MJobs services untouched. Existing feedback session retention and no raw trace/HTML snapshot storage verified. Twenty focused tests, Docker config, validators PASS. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF. Full product remains PARTIAL.
