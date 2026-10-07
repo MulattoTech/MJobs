@@ -1,5 +1,6 @@
 """A manual application pipeline is visible, honest, and survives reload."""
 from pathlib import Path
+import asyncio
 import tempfile
 import threading
 import time
@@ -7,6 +8,7 @@ import unittest
 from unittest.mock import patch
 from urllib.parse import urlsplit
 
+from playwright.async_api import async_playwright, expect as async_expect
 from playwright.sync_api import expect, sync_playwright
 import uvicorn
 
@@ -134,6 +136,134 @@ class ApplicationPipelineBrowserTests(unittest.TestCase):
                     context.close()
                     browser.close()
             finally:
+                server.should_exit = True
+                thread.join(timeout=10)
+                sock.close()
+                store.engine.dispose()
+                self.assertFalse(thread.is_alive())
+
+    def test_application_tracking_recovers_after_browser_renderer_crash(self):
+        with tempfile.TemporaryDirectory(prefix="mjobs-browser-crash-recovery-") as directory:
+            root = Path(directory)
+            store = Store(f"sqlite:///{(root / 'browser.db').as_posix()}")
+            store.migrate()
+            store.bind_workspace_mode("FIXTURE")
+            store.save_profile(dict(PROFILE))
+            with fixture_server() as fixture:
+                discover(store, fixture, "fixture")
+            job = store.jobs("fixture")[0]
+            application_id = prepare(store, job["id"], "fixture", root)
+            app = create_app(store, "http://127.0.0.1:1", root,
+                             "redis://127.0.0.1:1/0", operation_mode="FIXTURE")
+            import services.tracking.applications as tracking_service
+            original_status = tracking_service.set_application_pipeline_status
+            status_committed = threading.Event()
+            release_status_response = threading.Event()
+            status_handler_finished = threading.Event()
+            external = []
+
+            def delay_committed_status(*args, **kwargs):
+                result = original_status(*args, **kwargs)
+                status_committed.set()
+                if not release_status_response.wait(timeout=5):
+                    raise TimeoutError("test did not release the committed status response")
+                status_handler_finished.set()
+                return result
+
+            status_patcher = patch.object(
+                tracking_service, "set_application_pipeline_status", delay_committed_status)
+            status_patcher.start()
+            sock = bound_browser_socket()
+            origin = f"http://127.0.0.1:{sock.getsockname()[1]}"
+            server = uvicorn.Server(uvicorn.Config(app, log_level="critical"))
+            thread = threading.Thread(target=server.run, kwargs={"sockets": [sock]}, daemon=True)
+            thread.start()
+
+            async def only_local(route):
+                if urlsplit(route.request.url).netloc != urlsplit(origin).netloc:
+                    external.append(route.request.url)
+                    await route.abort()
+                else:
+                    await route.continue_()
+
+            async def crash_and_resume():
+                deadline = time.monotonic() + 10
+                while not server.started:
+                    if not thread.is_alive() or time.monotonic() > deadline:
+                        self.fail("Isolated browser-crash recovery API did not start")
+                    await asyncio.sleep(0.02)
+
+                async with async_playwright() as playwright:
+                    browser = await playwright.chromium.launch(headless=True)
+                    context = await browser.new_context()
+                    await context.route("**/*", only_local)
+                    page = await context.new_page()
+                    page.set_default_timeout(8000)
+                    await page.goto(origin, wait_until="domcontentloaded")
+                    await page.evaluate("localStorage.setItem('mjobs-profile', 'fixture')")
+                    await page.reload(wait_until="domcontentloaded")
+                    await page.get_by_role("button", name="Applications", exact=False).click()
+                    board = page.get_by_role("region", name="Application pipeline")
+                    card = board.get_by_role("region", name="Not tracked", exact=True) \
+                        .get_by_role("button", name=job["title"], exact=False)
+                    await card.click()
+                    tracking = page.get_by_role("region", name="Application tracking")
+                    await page.get_by_label("Manual application status", exact=True).select_option(
+                        "RECRUITER_CONTACT")
+
+                    # Start the UI mutation, then wait until the backend has
+                    # committed it but is still holding the HTTP response.
+                    click_task = asyncio.create_task(
+                        tracking.get_by_role("button", name="Update status", exact=True).click())
+                    self.assertTrue(await asyncio.to_thread(status_committed.wait, 5),
+                                    "status was not committed before the simulated crash")
+                    from services.tracking.applications import read_application_tracking
+                    before_crash = read_application_tracking(store, "fixture", application_id)
+                    self.assertEqual(before_crash["status"], "RECRUITER_CONTACT")
+                    self.assertEqual(len(before_crash["history"]), 1)
+
+                    session = await context.new_cdp_session(page)
+                    crash_event = asyncio.create_task(page.wait_for_event("crash", timeout=5000))
+                    await asyncio.sleep(0)
+                    crash_command = asyncio.create_task(session.send("Page.crash"))
+                    try:
+                        await crash_event
+                    finally:
+                        for task in (crash_event, crash_command, click_task):
+                            if not task.done():
+                                task.cancel()
+                        await asyncio.gather(crash_event, crash_command, click_task,
+                                             return_exceptions=True)
+
+                    release_status_response.set()
+                    self.assertTrue(await asyncio.to_thread(status_handler_finished.wait, 5),
+                                    "committed status handler did not finish")
+                    resumed = await context.new_page()
+                    resumed.set_default_timeout(8000)
+                    await resumed.goto(origin, wait_until="domcontentloaded")
+                    await resumed.get_by_role("button", name="Applications", exact=False).click()
+                    resumed_board = resumed.get_by_role("region", name="Application pipeline")
+                    applied = resumed_board.get_by_role(
+                        "region", name="Recruiter Contact", exact=True).get_by_role(
+                            "button", name=job["title"], exact=False)
+                    await async_expect(applied).to_be_visible()
+                    await applied.click()
+                    resumed_tracking = resumed.get_by_role("region", name="Application tracking")
+                    await async_expect(resumed_tracking).to_contain_text("Recruiter Contact")
+                    await async_expect(resumed_tracking.get_by_role(
+                        "list", name="Application history")).to_contain_text("Recruiter Contact")
+                    after_resume = read_application_tracking(store, "fixture", application_id)
+                    self.assertEqual(after_resume, before_crash)
+                    self.assertIsNone(store.application(application_id)["confirmation"])
+                    self.assertFalse(external)
+                    await context.close()
+                    await browser.close()
+
+            try:
+                asyncio.run(crash_and_resume())
+            finally:
+                release_status_response.set()
+                status_patcher.stop()
                 server.should_exit = True
                 thread.join(timeout=10)
                 sock.close()
