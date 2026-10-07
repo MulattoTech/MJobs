@@ -7,7 +7,7 @@
   "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req110-review-consumer-20261006",
   "result": "PARTIAL",
   "base_main": "54be81542d9ab594c9418f15223e9c2aef02249d",
-  "recorded_at_utc": "2026-10-07T01:05:13Z",
+  "recorded_at_utc": "2026-10-07T01:21:39Z",
   "scope": [
     "Persist explicit per-profile AI evaluation candidate review within the run's saved maximum-document-candidate cap.",
     "Reject cross-profile, unevaluated, over-cap, or stale-profile review requests.",
@@ -196,7 +196,36 @@
   },
   "external_submission_enabled": false,
   "hosted_verification": "NOT_RUN_BY_USER_POLICY",
-  "validated_head": "5efb3406bbc605ba683b5b6250d11098c5507ab8",
-  "validated_tree": "8df82383f736d1b749dbfee8af6f67143453c47d",
-  "verified_at_utc": "2026-10-07T01:15:57Z"
+  "validated_head": "2c885656245529d994018d51430a59db6fbf8334",
+  "validated_tree": "abd21d609c824c20807606ee06aa87df188dd916",
+  "verified_at_utc": "2026-10-07T01:21:39Z",
+  "claim_refresh_validation": {
+    "verified_at_utc": "2026-10-07T01:21:39Z",
+    "validated_head": "2c885656245529d994018d51430a59db6fbf8334",
+    "validated_tree": "abd21d609c824c20807606ee06aa87df188dd916",
+    "source_diff_since_worker_acceptance": "none; source and tests are unchanged from the accepted worker implementation",
+    "focused_python_api_browser_migration": "PASS - 20 tests",
+    "frontend_tests": "PASS - 62 tests across 13 files",
+    "frontend_build": "PASS",
+    "agent_skills_catalogue_progress": "PASS",
+    "compileall_and_diff_check": "PASS",
+    "synthetic_real_document_worker": "PASS from the isolated run recorded above; worker source is unchanged",
+    "not_run": [
+      "Live configured-provider inference; the active Ollama claim owns the shared local runtime.",
+      "PostgreSQL runtime migration and persistence checks.",
+      "Full Python test discovery.",
+      "Hosted Actions, checks, and reviews under the active local-only policy.",
+      "External application submission; OFF."
+    ],
+    "commands": [
+      "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_ai_cost_policy_api tests.integration.test_ai_document_review_migration tests.unit.test_ai_cost_consumer tests.unit.test_ai_cost_controls tests.browser.test_ai_task_settings",
+      "npm test --prefix apps/web -- --run",
+      "npm run build --prefix apps/web",
+      "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.agent_skills",
+      "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.catalogue",
+      "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.progress validate",
+      "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m compileall -q changed API, persistence, migration, consumer, and test modules",
+      "git diff --check"
+    ]
+  }
 }

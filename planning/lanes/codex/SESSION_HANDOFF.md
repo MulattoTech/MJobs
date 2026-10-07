@@ -34,3 +34,9 @@ discovery and hosted checks remain NOT_RUN. External submission remains OFF.
 
 Do not update canonical planning outside the integration lock. Continue only issue
 #111 / MJ-REQ-110; do not overlap Antigravity or Ollama scopes.
+
+## Claim refresh — 2026-10-07T01:21:39Z
+
+Current checked-out head 2c885656245529d994018d51430a59db6fbf8334 (tree abd21d609c824c20807606ee06aa87df188dd916) passed 20 focused Python/API/browser/migration tests, 62 frontend tests, the frontend build, agent-skill/catalogue/progress validators, compileall, and git diff --check. Source is unchanged from the previously accepted isolated synthetic PREPARE worker run.
+
+Status remains **PARTIAL / safely checkpointed**. Live configured-provider inference remains NOT_RUN while the active Ollama claim owns the shared runtime; PostgreSQL runtime checks, full Python discovery, and hosted verification remain NOT_RUN. External submission remains OFF. Evidence: docs/evidence/2026-10-06-ai-cost-review-gated-documents.json.
