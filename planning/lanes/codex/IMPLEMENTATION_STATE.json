@@ -1,35 +1,28 @@
 {
   "schema_version": 1,
   "lane": "codex",
-  "status": "ACTIVE",
-  "base_main": "a2053c432d618d49af3e5509a6de00fc0c718392",
-  "current_issue": 181,
-  "requirement_id": "MJ-REQ-180",
-  "branch": "codex/mj-req180-diagnostic-privacy-20261007",
-  "head": "f557cd02878b234170470b88ff4f916917a97a25",
-  "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req180-diagnostic-privacy-20261007",
+  "status": "IDLE_READY",
+  "base_main": "04507e36bd78b6af4053868f00926d2b8b993b0f",
+  "current_issue": null,
+  "requirement_id": null,
+  "branch": null,
+  "head": "04507e36bd78b6af4053868f00926d2b8b993b0f",
+  "worktree": null,
   "result": "PARTIAL",
   "evidence_path": "docs/evidence/2026-10-07-redacted-diagnostic-privacy.json",
   "last_completed": {
-    "issue": 171,
-    "requirement_id": "MJ-REQ-170",
-    "integration_commit": "64dfebcd51d0d1c926d9b3856a42028ec577f88d",
+    "issue": 181,
+    "requirement_id": "MJ-REQ-180",
+    "integration_commit": "04507e36bd78b6af4053868f00926d2b8b993b0f",
     "slice_status": "PARTIAL"
   },
-  "next_candidates": [
-    {
-      "issue": 181,
-      "requirement_id": "MJ-REQ-180",
-      "status": "IMPLEMENTED_AWAITING_EVIDENCE_INTEGRATION",
-      "result": "PARTIAL"
-    }
-  ],
+  "next_candidates": [],
   "do_not_overlap": [
     "Antigravity active issue #302 paths: services/discovery/sources/** and tests/integration/test_dice.py",
     "Ollama/OpenCode active issue #318 paths: services/ats_detection/** and detector tests",
     "canonical planning and main outside integration lock"
   ],
-  "resume_instruction": "Issue #181 diagnostic redaction source/test commit f557cd02878b234170470b88ff4f916917a97a25 is pushed. Record evidence and lane state, reconcile current main and ownership, then acquire integration lock and integrate only if main remains a safe ancestor. Requirement remains OPEN/PARTIAL.",
+  "resume_instruction": "Issue #181 diagnostic redaction is integrated PARTIAL at 04507e36bd78b6af4053868f00926d2b8b993b0f; claim released. Reconcile claims and dirty worktrees, then automatically select the next highest-value dependency-ready issue.",
   "last_verified_head": "f557cd02878b234170470b88ff4f916917a97a25",
   "last_verified_tree": "a5fbe668101b47da34d0ac4270b95bf475cb6003",
   "last_verified_at_utc": "2026-10-07T12:46:41Z",
@@ -44,6 +37,6 @@
     "hosted_checks": "NOT_RUN_BY_USER_POLICY",
     "external_submission": "OFF"
   },
-  "last_integrated_head": "a2053c432d618d49af3e5509a6de00fc0c718392",
+  "last_integrated_head": "04507e36bd78b6af4053868f00926d2b8b993b0f",
   "last_verified_result": "PASS_FOR_SLICE"
 }

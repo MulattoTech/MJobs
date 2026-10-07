@@ -1,17 +1,17 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-07T12:38:14Z",
+  "generated_at": "2026-10-07T12:49:10Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Local and origin/main synchronized at 64dfebcd51d0d1c926d9b3856a42028ec577f88d; issue #171 / MJ-REQ-170 live-feedback retention slice integrated PARTIAL; Actions disabled; external submission OFF.",
-    "current_verified_github_state": "GitHub main 64dfebcd51d0d1c926d9b3856a42028ec577f88d; issue #171 remains OPEN/PARTIAL after scoped retention evidence; Actions disabled; external submission OFF.",
-    "current_verified_at": "2026-10-07T12:38:14Z"
+    "current_verified_local_state": "Issue #181 / MJ-REQ-180 diagnostic redaction slice and sanitized evidence integrated by non-force fast-forward at main 04507e36bd78b6af4053868f00926d2b8b993b0f; requirement PARTIAL; Actions disabled; external submission OFF.",
+    "current_verified_github_state": "GitHub main integration candidate 04507e36bd78b6af4053868f00926d2b8b993b0f; issue #181 remains OPEN/PARTIAL after sanitized release evidence; Actions disabled; external submission OFF.",
+    "current_verified_at": "2026-10-07T12:49:10Z"
   },
-  "current_milestone": "MJ-REQ-170-LIVE-FEEDBACK-RETENTION-20261007",
+  "current_milestone": "MJ-REQ-180-DIAGNOSTIC-PRIVACY-20261007",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -67,7 +67,8 @@
     "Profile-scoped AES-256-GCM provider credential storage with masked UI/API metadata, rotation/deletion, synthetic backup-theft/redaction tests, and bounded explicit provider connection checks",
     "MJ-REF-016 / issue #386 locally complete: exhausted and terminal worker failures persist as DEAD_LETTERED with reason, stable operation identity, attempt timestamps/count, and append-only audit; profile-scoped Activity UI exposes count/reason and explicit retry/discard; ambiguous submissions stay reconciliation-only. Full Python 875 PASS with 1 optional PostgreSQL concurrency skip; frontend 63 PASS/build PASS; SQLite and temporary PostgreSQL 17 migration safety, connected browser, and repository validators PASS. Evidence docs/evidence/2026-10-07-dead-letter-queue.json.",
     "Career-profile-owned saved search can be selected in Jobs and its exact filtered results survive Store reopen with profile isolation (MJ-REQ-022, issue #23).",
-    "MJ-REF-020 / issue #390: connected UI/API records externally completed applications with source/time, route-first then cautious company/title reconciliation, provenance-marked minimal job creation, profile-scoped idempotency, and non-regressing application history (docs/evidence/2026-10-07-external-application-capture.json)."
+    "MJ-REF-020 / issue #390: connected UI/API records externally completed applications with source/time, route-first then cautious company/title reconciliation, provenance-marked minimal job creation, profile-scoped idempotency, and non-regressing application history (docs/evidence/2026-10-07-external-application-capture.json).",
+    "MJ-REQ-180 / issue #181 advanced PARTIAL: raw console/page-error text is never stored (including legacy flag); recognizable email, phone, token/password formats and sensitive-label contexts are redacted in diagnostics/interaction metadata and visually masked in optional screenshots. 26 feedback unit/GUI/Chromium checks pass; arbitrary values, image/canvas text and other debug surfaces remain. Evidence docs/evidence/2026-10-07-redacted-diagnostic-privacy.json."
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
@@ -325,7 +326,8 @@
     "MJ-REF-020 issue #390: focused integration 10 PASS; connected browser 6 PASS; frontend 63 PASS/build PASS; full Python 895 PASS with one optional PostgreSQL skip; validators PASS. Evidence docs/evidence/2026-10-07-external-application-capture.json; source 63142751719eb7b52f5fafd2e93dc47a6f53aa51, tree f70b3ef5884b55525e5faa737f1d962510527900, integrated 3ecad2b84f86808314873547ef4aa31de738ce17.",
     "MJ-REQ-005 / issue #6 PostgreSQL runtime slice: PostgreSQL concurrency, category unit and worker lifecycle tests: 21 PASS, repeated twice against the same disposable PostgreSQL 17 database; repository validators PASS. Evidence docs/evidence/2026-10-07-postgres-concurrency-runtime.json; source 9e282135e9c90d56301b9d8726479479d84a862a, tree fd7665952a141c07a494f3a20b9986766363085b, integration d5d888785d62a091249541fd09cbe092073f7887.",
     "Exact current-main revalidation for MJ-REQ-004 backup CLI output bounds: locked frontend install/build, 11 focused CLI tests, and full Python/browser discovery 903 PASS with 2 skipped; stale root dist run failures disappeared after building the same exact main source in an isolated worktree. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json.",
-    "Issue #6 / MJ-REQ-005 local PostgreSQL category-runtime acceptance: 5 PostgreSQL concurrency tests + 3 category unit tests + 16 worker lifecycle tests passed twice (24/run) against one fresh disposable PostgreSQL 17 DB. All five categories now have runtime evidence for capacity-one admission, including shared inline/worker document-generation category. Evidence docs/evidence/2026-10-07-postgres-all-category-concurrency.json."
+    "Issue #6 / MJ-REQ-005 local PostgreSQL category-runtime acceptance: 5 PostgreSQL concurrency tests + 3 category unit tests + 16 worker lifecycle tests passed twice (24/run) against one fresh disposable PostgreSQL 17 DB. All five categories now have runtime evidence for capacity-one admission, including shared inline/worker document-generation category. Evidence docs/evidence/2026-10-07-postgres-all-category-concurrency.json.",
+    "Focused live-feedback privacy unit/GUI/Chromium acceptance: 26 PASS, 0 failures/errors/skips (synthetic local data only); evidence docs/evidence/2026-10-07-redacted-diagnostic-privacy.json."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -419,13 +421,13 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-07T12:38:14Z",
+    "timestamp": "2026-10-07T12:49:10Z",
     "result": "PARTIAL",
-    "source_commit": "e053916c4a5d6e3606e138feefb4e86823631677",
-    "source_tree": "3306d16f3fcde68e8059fc692c859d2b4ee86b51",
-    "scope": "Automatically prune recognized live-feedback session folders older than 30 days at new-session start; retain unrelated files and application history.",
-    "evidence_path": "docs/evidence/2026-10-07-live-feedback-retention.json",
-    "integration_commit": "64dfebcd51d0d1c926d9b3856a42028ec577f88d"
+    "source_commit": "f557cd02878b234170470b88ff4f916917a97a25",
+    "source_tree": "a5fbe668101b47da34d0ac4270b95bf475cb6003",
+    "scope": "Stop storing raw live-feedback diagnostic text; pattern-redact recognizable sensitive metadata and mask matching text in optional screenshots.",
+    "evidence_path": "docs/evidence/2026-10-07-redacted-diagnostic-privacy.json",
+    "integration_commit": "04507e36bd78b6af4053868f00926d2b8b993b0f"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -529,7 +531,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "64dfebcd51d0d1c926d9b3856a42028ec577f88d",
+  "last_implementation_commit": "04507e36bd78b6af4053868f00926d2b8b993b0f",
   "publication": {
     "result": "PASS",
     "integration_method": "NON_FORCE_FAST_FORWARD",
@@ -8255,12 +8257,60 @@
         "git_commit": "64dfebcd51d0d1c926d9b3856a42028ec577f88d",
         "evidence_path": "docs/evidence/2026-10-07-live-feedback-retention.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-180-DIAGNOSTIC-PRIVACY-20261007",
+      "timestamp": "2026-10-07T12:49:10Z",
+      "current_phase": "Issue #181 / MJ-REQ-180 diagnostic privacy slice is locally validated and integrated PARTIAL; arbitrary rendered values and other debug surfaces remain.",
+      "completed_steps": [
+        "Raw browser console/page-error strings are never persisted, including through the legacy diagnostic-text option.",
+        "Recognizer-based redaction covers common email, phone, token/password formats and sensitive-label metadata; optional screenshots mask matching text in addition to controls and explicitly marked regions.",
+        "Synthetic Chromium pixel assertions and adjacent feedback UI/unit tests passed on exact candidate head.",
+        "Integrated source, evidence and lane checkpoint by non-force fast-forward to synchronized local/origin main; issue #181 remains OPEN/PARTIAL and claim released."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-07-redacted-diagnostic-privacy.json"
+      ],
+      "files_modified": [
+        "cli/live_feedback.py",
+        "tests/unit/test_live_feedback.py",
+        "tests/browser/test_live_feedback_redaction.py",
+        "docs/LIVE_FEEDBACK_DEVELOPMENT.md",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Focused live-feedback unit, GUI and Chromium test set: 26 PASS, 0 failures/errors/skips.",
+        "py_compile, CLI help, agent_skills, catalogue, progress, lane coordination and diff checks PASS."
+      ],
+      "tests_remaining": [
+        "Full repository suite and frontend build not run; CLI-only recorder scope.",
+        "Pattern-based recognition cannot classify every arbitrary private value or text in images/canvas.",
+        "Hosted checks/review NOT_RUN_BY_USER_POLICY."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [
+        "Initial system Python lacked Playwright; repository .venv was used for acceptance."
+      ],
+      "known_limitations": [
+        "Only synthetic in-memory pages and temporary output directories were used; no private live-feedback data was accessed.",
+        "Redaction patterns may over-mask and cannot reliably identify all arbitrary private content.",
+        "No database, PostgreSQL, Docker, frontend, AI provider or application submission flow was applicable or run.",
+        "External application submission remains OFF."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "04507e36bd78b6af4053868f00926d2b8b993b0f",
+        "evidence_path": "docs/evidence/2026-10-07-redacted-diagnostic-privacy.json"
+      }
     }
   ],
-  "current_phase": "Issue #171 / MJ-REQ-170 live-feedback retention is locally verified and integrated PARTIAL; other transient data classes remain.",
+  "current_phase": "Issue #181 / MJ-REQ-180 diagnostic privacy slice is locally validated and integrated PARTIAL; arbitrary rendered values and other debug surfaces remain.",
   "last_safe_checkpoint": {
-    "git_commit": "64dfebcd51d0d1c926d9b3856a42028ec577f88d",
-    "evidence_path": "docs/evidence/2026-10-07-live-feedback-retention.json"
+    "git_commit": "04507e36bd78b6af4053868f00926d2b8b993b0f",
+    "evidence_path": "docs/evidence/2026-10-07-redacted-diagnostic-privacy.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -8498,19 +8548,19 @@
     "next_issue": "Release #398 and select the next dependency-ready unclaimed issue after live claim/worktree reconciliation."
   },
   "active_development_issue": {
-    "issue": 171,
-    "requirement_id": "MJ-REQ-170",
-    "title": "Retention",
+    "issue": 181,
+    "requirement_id": "MJ-REQ-180",
+    "title": "Redact Debug Data",
     "state": "INTEGRATED_PARTIAL",
-    "base": "9a6612e48040d2e17af7ba13a579fc66521a5fea",
-    "branch": "codex/mj-req170-feedback-retention-20261007",
-    "candidate": "64dfebcd51d0d1c926d9b3856a42028ec577f88d",
-    "integrated_main": "64dfebcd51d0d1c926d9b3856a42028ec577f88d",
-    "source_commit": "e053916c4a5d6e3606e138feefb4e86823631677",
-    "source_tree": "3306d16f3fcde68e8059fc692c859d2b4ee86b51",
-    "evidence": "docs/evidence/2026-10-07-live-feedback-retention.json",
-    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/171#issuecomment-6038062799",
-    "next_action": "Retention slice integrated PARTIAL and Codex claim released; continue after fresh claim, GitHub issue-comment, branch and worktree reconciliation."
+    "base": "a2053c432d618d49af3e5509a6de00fc0c718392",
+    "branch": "codex/mj-req180-diagnostic-privacy-20261007",
+    "candidate": "04507e36bd78b6af4053868f00926d2b8b993b0f",
+    "integrated_main": "04507e36bd78b6af4053868f00926d2b8b993b0f",
+    "source_commit": "f557cd02878b234170470b88ff4f916917a97a25",
+    "source_tree": "a5fbe668101b47da34d0ac4270b95bf475cb6003",
+    "evidence": "docs/evidence/2026-10-07-redacted-diagnostic-privacy.json",
+    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6038249056",
+    "next_action": "Issue #181 remains OPEN/PARTIAL; Codex claim released. Reconcile current main, all active claims and dirty worktrees, then immediately select the next highest-value unclaimed dependency-ready issue."
   },
   "historical_control_snapshots": [
     {

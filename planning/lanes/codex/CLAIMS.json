@@ -232,8 +232,11 @@
         "planning/lanes/codex/**"
       ],
       "claimed_at": "2026-10-07T12:41:25Z",
-      "status": "ACTIVE",
-      "claim_comment": "https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6038209994"
+      "status": "RELEASED",
+      "claim_comment": "https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6038209994",
+      "released_at": "2026-10-07T12:49:10Z",
+      "integrated_main": "04507e36bd78b6af4053868f00926d2b8b993b0f",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6038249056"
     }
   ]
 }

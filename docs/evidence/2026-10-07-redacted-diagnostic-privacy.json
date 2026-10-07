@@ -76,11 +76,13 @@
     "reference_gaps": 59
   },
   "integration": {
-    "status": "PENDING",
+    "status": "NON_FORCE_FAST_FORWARD",
     "base_main": "a2053c432d618d49af3e5509a6de00fc0c718392",
     "source_commit": "f557cd02878b234170470b88ff4f916917a97a25",
-    "candidate_commit": null,
-    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6038209994",
+    "candidate_commit": "04507e36bd78b6af4053868f00926d2b8b993b0f",
+    "local_main": "04507e36bd78b6af4053868f00926d2b8b993b0f",
+    "origin_main": "04507e36bd78b6af4053868f00926d2b8b993b0f",
+    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6038249056",
     "issue_state": "OPEN_PARTIAL",
     "external_submission": "OFF"
   }

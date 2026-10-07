@@ -1502,9 +1502,10 @@
       "evidence": [
         "docs/evidence/2026-10-06-least-data-profile-access.json",
         "docs/evidence/2026-10-07-provider-credential-store.json",
-        "docs/evidence/2026-10-07-redacted-visual-feedback.json"
+        "docs/evidence/2026-10-07-redacted-visual-feedback.json",
+        "docs/evidence/2026-10-07-redacted-diagnostic-privacy.json"
       ],
-      "note": "Scoped credential redaction verified for MJ-REF-028; issue #181 adds masked opt-in live-feedback screenshots and removes raw Playwright DOM traces, verified by synthetic Chromium pixel tests. Evidence docs/evidence/2026-10-07-provider-credential-store.json and docs/evidence/2026-10-07-redacted-visual-feedback.json. MJ-REQ-180 remains PARTIAL because arbitrary rendered text and separately opted-in diagnostic text may still contain private values."
+      "note": "Credential-store masked previews and local live-feedback safeguards are verified. Issue #181 now also guarantees raw console/page-error messages are never stored, pattern-redacts recognizable sensitive values in diagnostics/interaction metadata, and pixel-tests masks for recognizable email and sensitive-label text in optional screenshots. Evidence docs/evidence/2026-10-07-provider-credential-store.json, docs/evidence/2026-10-07-redacted-visual-feedback.json, and docs/evidence/2026-10-07-redacted-diagnostic-privacy.json. MJ-REQ-180 remains PARTIAL because arbitrary values, image/canvas text and debug surfaces outside this recorder remain unclassified or NOT_RUN."
     },
     {
       "requirement_id": "MJ-REQ-181",

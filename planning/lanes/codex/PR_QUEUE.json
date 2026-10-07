@@ -163,13 +163,13 @@
     {
       "issue": 181,
       "requirement_id": "MJ-REQ-180",
-      "status": "CANDIDATE_READY",
+      "status": "INTEGRATED_PARTIAL",
       "priority": 0,
       "target_area": "cli/live_feedback.py; feedback unit/Chromium tests; docs/LIVE_FEEDBACK_DEVELOPMENT.md",
       "depends_on": [],
       "evidence_path": "docs/evidence/2026-10-07-redacted-diagnostic-privacy.json",
       "scope_complete": false,
-      "note": "Privacy follow-up source/test commit f557cd02878b234170470b88ff4f916917a97a25 pushed from a2053c432d618d49af3e5509a6de00fc0c718392. Raw diagnostic text is no longer persisted; recognizable sensitive patterns are redacted from metadata and masked in synthetic Chromium screenshots. 26 focused adjacent tests pass. Full requirement remains PARTIAL."
+      "note": "Integrated to synchronized main 04507e36bd78b6af4053868f00926d2b8b993b0f; issue #181 remains OPEN/PARTIAL. Evidence docs/evidence/2026-10-07-redacted-diagnostic-privacy.json. Release https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6038249056"
     }
   ],
   "generated_at": "2026-10-07T12:35:48Z"
