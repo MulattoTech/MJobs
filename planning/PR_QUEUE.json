@@ -3571,7 +3571,39 @@
       "notes": "Shared upload safeguards are verified across all seven supported uploaded document kinds. The affected Python integration/connected Chromium suite (16), frontend 63 tests/build, SQLite migration-preservation test and local validators pass. Hosted checks NOT_RUN_BY_USER_POLICY; PostgreSQL/Docker NOT_APPLICABLE; external submission OFF. Issue #174 closed after evidence readback: https://github.com/MulattoTech/MJobs/issues/174#issuecomment-6045710354.",
       "issue_comment": "https://github.com/MulattoTech/MJobs/issues/174#issuecomment-6045710354",
       "issue_release_comment": "https://github.com/MulattoTech/MJobs/issues/174#issuecomment-6045710354"
+    },
+    {
+      "id": "MJ-PR-167",
+      "title": "MJ-REQ-004 live HTTP resume extraction disconnect cancellation",
+      "domain": "governance_safety",
+      "requirements": [
+        "MJ-REQ-004"
+      ],
+      "issues": [
+        5
+      ],
+      "target_area": "tests/integration/test_profile_import.py; docs/evidence/2026-10-07-live-http-resume-disconnect-cancel.json",
+      "depends_on": [],
+      "status": "INTEGRATED_PARTIAL",
+      "branch": "codex/mj-req004-live-http-resume-20261007",
+      "draft_until_verified": true,
+      "issue_number": 5,
+      "evidence_path": "docs/evidence/2026-10-07-live-http-resume-disconnect-cancel.json",
+      "base": "5732e27dd81f19c0350670a7e625d9ff9301e36d",
+      "candidate": "05fdd3d4b119072d294b4a1f7f862fb73de26406",
+      "integration_method": "NON_FORCE_FAST_FORWARD",
+      "pr_state": "NOT_OPENED_LOCAL_ONLY",
+      "scope_complete": false,
+      "scope_result": "PARTIAL",
+      "source_commit": "56b9ad997c154ff5b2ddacf98ab43c9fd7725cdc",
+      "integration_commit": "05fdd3d4b119072d294b4a1f7f862fb73de26406",
+      "integration_evidence": "docs/evidence/2026-10-07-live-http-resume-disconnect-cancel.json",
+      "integrated_at": "2026-10-07T20:08:51Z",
+      "issue_state": "OPEN/PARTIAL",
+      "notes": "At source 56b9ad997c154ff5b2ddacf98ab43c9fd7725cdc, a real loopback HTTP client disconnect during native resume parsing is observed; the parser child is terminated and reaped; durable operation state is CANCELLED; profile, resume bytes and revision history are unchanged. 58 focused Python unit/integration/connected-browser tests, frontend 63/build and local validators pass. Full MJ-REQ-004 remains PARTIAL; issue #5 remains OPEN. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6045946420",
+      "issue_release_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6045955420"
     }
   ],
-  "generated_at": "2026-10-07T19:56:11Z"
+  "generated_at": "2026-10-07T20:08:51Z"
 }

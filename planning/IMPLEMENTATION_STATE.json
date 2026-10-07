@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-07T19:56:11Z",
+  "generated_at": "2026-10-07T20:08:51Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -11,7 +11,7 @@
     "current_verified_github_state": "Issue #179 / MJ-REQ-178 log retention acceptance PASS at 8bea57e595e19e638913405a8ec1cd3aa0ebde32; full product remains PARTIAL.",
     "current_verified_at": "2026-10-07T15:27:43Z"
   },
-  "current_milestone": "MJ-REQ-173-SEVEN-KIND-UPLOAD-SECURITY-PASS-20261007",
+  "current_milestone": "MJ-REQ-004-LIVE-HTTP-RESUME-DISCONNECT-20261007",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -123,7 +123,8 @@
     "MJ-REQ-179 / issue #180 Debug Capture is locally evidenced for the existing local mock ATS browser adapter. Opt-in defaults OFF; failure diagnostics include a privacy-masked viewport screenshot, structural allowlisted DOM counts, sanitized URL path shape, error-only console/network HMAC fingerprints and current durable step; retention is 30 days/20 captures, events 50, screenshot 5 MiB. Synthetic browser tests preserve REVIEW_REQUIRED and SUBMISSION_UNCONFIRMED/no-blind-retry. Exact-head affected validation 72 PASS and one optional PostgreSQL skip; repository-wide discovery at source 6d3b289 failed (948 run, 2 failures, 9 errors, 28 skipped) and is not promoted. Evidence docs/evidence/2026-10-07-safe-browser-debug-capture.json. Real ATS, live PostgreSQL and hosted checks NOT_RUN; external submission OFF. Requirement remains PARTIAL.",
     "Issue #517 / discovered job-source catalogue PARTIAL: manual capture and external application reports persist profile-scoped sanitized provenance, destination site-type assessments, review history and explicit unknown hops. Source commit 5b49d595ff48615c8a82a3e383a8ac3d82261578; evidence docs/evidence/2026-10-07-source-candidate-catalogue.json. Full Python 954 run/8 skipped, frontend 63/build, focused 10 API/browser, disposable SQLite migration and local validators PASS. Provider/browser discovery hooks, documented source evaluation/integration task linkage, PostgreSQL/Docker and live source evidence remain NOT_RUN/incomplete. Issue remains OPEN/PARTIAL; external submission OFF.",
     "Issue #517 / discovered job-source catalogue follow-up PARTIAL: a URL-only profile-scoped source report now works without title/company/job metadata and creates no job or application. Source commit 20e6835308209c7ae8366d7791215db642ec9ad0; evidence docs/evidence/2026-10-07-source-candidate-catalogue.json. Full Python 955 run/8 skipped, 12 focused API/browser workflow tests, frontend 63/build and local validators PASS. Supported provider/browser capture entry points, documented source evaluation and bounded integration task remain open; hosted, PostgreSQL/Docker and live-source checks NOT_RUN.",
-    "Local MOCK ATS submission history now records APPLICATION_SUBMITTED separately from receipt-backed APPLICATION_CONFIRMED; missing receipt remains SUBMISSION_UNCONFIRMED (MJ-REQ-176 / issue #177 PARTIAL)."
+    "Local MOCK ATS submission history now records APPLICATION_SUBMITTED separately from receipt-backed APPLICATION_CONFIRMED; missing receipt remains SUBMISSION_UNCONFIRMED (MJ-REQ-176 / issue #177 PARTIAL).",
+    "Native resume extraction transport-disconnect cancellation is verified against a real loopback HTTP client abort, including child reaping and durable no-mutation state; broader external-operation categories remain open (MJ-REQ-004 PARTIAL)."
   ],
   "blocked_capabilities": [],
   "active_requirements": [
@@ -362,7 +363,8 @@
     "Issue #166 / MJ-REQ-165 full-text search: focused API/browser and saved-search compatibility 3 PASS; full Python 962 run/8 skipped; frontend 63 PASS/build PASS; PostgreSQL 17 full migration and API acceptance PASS; both GIN expression indexes matched by EXPLAIN; SQLite/PostgreSQL migration downgrade/re-upgrade and PostgreSQL row preservation PASS; deterministic validators PASS. Evidence docs/evidence/2026-10-07-full-text-search.json.",
     "MJ-REQ-176 mock submission audit: 34 affected Python integration/browser tests PASS, including connected Chromium Activity reload/profile isolation; frontend 63 tests/build PASS; changed-file compile and local validators PASS.",
     "Isolated rerun of tests.browser.test_company_discovery_requests.CompanyDiscoveryRequestsBrowserTests.test_real_collection_request_review_worker_and_identity_separation: 1 PASS after the full suite shutdown assertion failure.",
-    "MJ-REQ-173 exact candidate 84136dc: 16 affected integration/connected Chromium tests PASS with zero skips; frontend 63 tests/build; SQLite migration preservation and repository validators PASS."
+    "MJ-REQ-173 exact candidate 84136dc: 16 affected integration/connected Chromium tests PASS with zero skips; frontend 63 tests/build; SQLite migration preservation and repository validators PASS.",
+    "Scoped real loopback resume-extraction transport-disconnect cancellation: parser child terminated/reaped; operation CANCELLED; profile, uploaded resume and revision history unchanged; 58 focused Python tests, frontend 63/build and local validators PASS. See docs/evidence/2026-10-07-live-http-resume-disconnect-cancel.json. Requirement #5 remains PARTIAL."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -481,10 +483,10 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "commit": "84136dcabc99f831538b66f2450292152336750b",
-    "result": "PASS",
-    "evidence": "docs/evidence/2026-10-07-seven-kind-upload-security.json",
-    "verified_at_utc": "2026-10-07T19:56:11Z"
+    "commit": "05fdd3d4b119072d294b4a1f7f862fb73de26406",
+    "result": "PARTIAL",
+    "evidence": "docs/evidence/2026-10-07-live-http-resume-disconnect-cancel.json",
+    "verified_at_utc": "2026-10-07T20:08:51Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -551,7 +553,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Issue #174 / MJ-REQ-173 is PASS and CLOSED; evidence docs/evidence/2026-10-07-seven-kind-upload-security.json; integrated main 8cce4d40d8774435fb57d0f7b8329274f1731b9b; Codex claim and lock closeout pending. Reconcile latest main, all active claims/comments/worktrees, then select and claim the highest-value unclaimed dependency-ready issue. Overall product/release remains PARTIAL; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
+  "recommended_resume_step": "Issue #5 / MJ-REQ-004 remains OPEN/PARTIAL after locally verified real loopback resume-extraction disconnect cancellation; see docs/evidence/2026-10-07-live-http-resume-disconnect-cancel.json. Reconcile current origin/main, all active claims/comments and matching worktrees; select and claim the highest-value unclaimed dependency-ready issue. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -9310,12 +9312,56 @@
         "evidence_path": "docs/evidence/2026-10-07-seven-kind-upload-security.json"
       },
       "source_test_commit": "c9b168b1c869cdac5ea9097ed61c81c67937f28c"
+    },
+    {
+      "milestone_id": "MJ-REQ-004-LIVE-HTTP-RESUME-DISCONNECT-20261007",
+      "timestamp": "2026-10-07T20:08:51Z",
+      "current_phase": "MJ_REQ_004_REAL_HTTP_RESUME_DISCONNECT_CANCELLATION_INTEGRATED_PARTIAL",
+      "completed_steps": [
+        "Integrated the pushed test/evidence candidate by non-force fast-forward from synchronized main under the Codex integration lock.",
+        "Proved an actual loopback HTTP client transport disconnect reaches active native resume parser cancellation; child termination/reaping, durable CANCELLED state, profile/resume preservation and absence of new revision were asserted.",
+        "Recorded only scoped acceptance as PASS; issue #5 and MJ-REQ-004 remain OPEN/PARTIAL; requirement denominator unchanged."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-07-live-http-resume-disconnect-cancel.json"
+      ],
+      "files_modified": [
+        "tests/integration/test_profile_import.py",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "58 focused resume extraction/OCR/profile import and connected browser Python tests PASS.",
+        "Frontend Vitest 63 PASS; TypeScript/Vite production build PASS.",
+        "agent_skills, catalogue, progress, lane coordination, compileall and git diff --check PASS."
+      ],
+      "tests_remaining": [
+        "Other external-operation categories and live ATS/provider runtimes remain unverified; hosted checks remain NOT_RUN_BY_USER_POLICY."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Loopback HTTP transport disconnect against local Uvicorn and actual synthetic sleeping parser child; durable SQLite operation/profile/resume readback.",
+        "GitHub main push/hash readback; issue #5 remains OPEN."
+      ],
+      "known_errors": [
+        "The client half-close cannot receive the HTTP 499 response on the wire; existing direct Request-disconnect test separately asserts 499."
+      ],
+      "known_limitations": [
+        "Test-only evidence slice; broad MJ-REQ-004 remains PARTIAL. No schema changed; PostgreSQL/Docker migration checks NOT_APPLICABLE. Hosted Actions/review NOT_RUN_BY_USER_POLICY; external submission OFF."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "05fdd3d4b119072d294b4a1f7f862fb73de26406",
+        "evidence_path": "docs/evidence/2026-10-07-live-http-resume-disconnect-cancel.json"
+      },
+      "source_test_commit": "56b9ad997c154ff5b2ddacf98ab43c9fd7725cdc"
     }
   ],
-  "current_phase": "MJ_REQ_173_UPLOAD_SECURITY_ACCEPTED_ACROSS_SUPPORTED_DOCUMENT_KINDS",
+  "current_phase": "MJ_REQ_004_REAL_HTTP_RESUME_DISCONNECT_CANCELLATION_INTEGRATED_PARTIAL",
   "last_safe_checkpoint": {
-    "git_commit": "84136dcabc99f831538b66f2450292152336750b",
-    "evidence_path": "docs/evidence/2026-10-07-seven-kind-upload-security.json"
+    "git_commit": "05fdd3d4b119072d294b4a1f7f862fb73de26406",
+    "evidence_path": "docs/evidence/2026-10-07-live-http-resume-disconnect-cancel.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",

@@ -11,7 +11,7 @@
       "depends_on": [],
       "evidence_path": "docs/evidence/2026-10-07-compose-recovery-output-bounds.json",
       "scope_complete": false,
-      "note": "Compose recovery Docker Compose/inspect child output bounded to 2 MiB retained stdout; stderr drained; timeout/overflow child termination and sanitized exit classification proven. Focused tests 4 PASS; all unit tests 408 PASS; local validators PASS. Evidence docs/evidence/2026-10-07-compose-recovery-output-bounds.json. Integrated at 2e99cce66f11a2fad756ab6fc0410506a26fd258; release https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6038708763. Real Compose runtime and other operation categories remain NOT_RUN; issue #5 OPEN/PARTIAL."
+      "note": "Compose recovery Docker Compose/inspect child output bounded to 2 MiB retained stdout; stderr drained; timeout/overflow child termination and sanitized exit classification proven. Focused tests 4 PASS; all unit tests 408 PASS; local validators PASS. Evidence docs/evidence/2026-10-07-compose-recovery-output-bounds.json. Integrated at 2e99cce66f11a2fad756ab6fc0410506a26fd258; release https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6038708763. Real Compose runtime and other operation categories remain NOT_RUN; issue #5 OPEN/PARTIAL. Additional scoped live HTTP resume disconnect acceptance PASS at main 05fdd3d4b119072d294b4a1f7f862fb73de26406; evidence docs/evidence/2026-10-07-live-http-resume-disconnect-cancel.json; see latest Codex issue comment."
     },
     {
       "issue": 6,

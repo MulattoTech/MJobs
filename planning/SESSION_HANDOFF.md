@@ -1040,3 +1040,11 @@ Claim release readback for the MJ-REQ-176 JOB_MERGED slice: https://github.com/M
 - Result: PASS for upload-security acceptance across all seven supported uploaded document kinds. Overall product/release status remains PARTIAL.
 - Validation: 16 affected Python integration/connected Chromium tests PASS, zero skips; frontend 63 tests/build, SQLite migration preservation, repository validators, compileall and diff check PASS. PostgreSQL/Docker NOT_APPLICABLE; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.
 - Issue #174 is CLOSED after evidence readback: https://github.com/MulattoTech/MJobs/issues/174#issuecomment-6045710354. Codex claim RELEASED: https://github.com/MulattoTech/MJobs/issues/174#issuecomment-6045730683. Integration-lock release follows; then reconcile current main/claims/worktrees and immediately claim the next highest-value unclaimed dependency-ready issue.
+
+
+## Integration receipt — issue #5 / MJ-REQ-004 live HTTP resume disconnect — 2026-10-07T20:08:51Z
+
+- Source/test commit: 56b9ad997c154ff5b2ddacf98ab43c9fd7725cdc; integrated candidate/main: 05fdd3d4b119072d294b4a1f7f862fb73de26406 from base 5732e27dd81f19c0350670a7e625d9ff9301e36d by non-force fast-forward under the Codex integration lock. Evidence: `docs/evidence/2026-10-07-live-http-resume-disconnect-cancel.json`.
+- Result: scoped transport-disconnect cancellation PASS; issue #5 and MJ-REQ-004 remain OPEN/PARTIAL. A real loopback client half-close during active native parser work is observed; child is terminated/reaped; durable operation is CANCELLED; profile, uploaded resume and revision history are unchanged.
+- Validation: 58 focused Python unit/integration/connected Chromium tests PASS; frontend 63 tests/build and repository validators PASS. PostgreSQL/Docker NOT_APPLICABLE; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF. Client cannot receive wire HTTP 499 after half-close; direct route probe retains that assertion.
+- Release the Codex claim, then reconcile current main and all claims/worktrees before selecting the next highest-value unclaimed dependency-ready issue.

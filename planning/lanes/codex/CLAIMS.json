@@ -800,6 +800,21 @@
       "released_at": "2026-10-07T19:57:54Z",
       "integration_comment": "https://github.com/MulattoTech/MJobs/issues/174#issuecomment-6045710354",
       "release_comment": "https://github.com/MulattoTech/MJobs/issues/174#issuecomment-6045730683"
+    },
+    {
+      "issue": 5,
+      "requirement_id": "MJ-REQ-004",
+      "branch": "codex/mj-req004-live-http-resume-20261007",
+      "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req004-live-http-resume-20261007",
+      "head": "05fdd3d4b119072d294b4a1f7f862fb73de26406",
+      "paths": [
+        "tests/integration/test_profile_import.py",
+        "docs/evidence/2026-10-07-live-http-resume-disconnect-cancel.json",
+        "planning/lanes/codex/**"
+      ],
+      "status": "RELEASED",
+      "claimed_at": "2026-10-07T20:00:41Z",
+      "released_at": "2026-10-07T20:09:00Z"
     }
   ]
 }
