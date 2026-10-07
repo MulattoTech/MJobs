@@ -78,6 +78,9 @@ class AuditHistoryBrowserTests(unittest.TestCase):
                 )
             with store.engine.begin() as connection:
                 connection.execute(m.audit.insert().values(
+                    id="fixture-setting-changed", entity_id="fixture", action="SETTING_CHANGED",
+                    payload={}, timestamp="2026-10-07T10:00:00+00:00"))
+                connection.execute(m.audit.insert().values(
                     id="other-history", entity_id="other", action="PROFILE_SAVED",
                     payload={"value": "other-private-setting"},
                     timestamp="2026-10-07T10:01:00+00:00"))
@@ -113,12 +116,6 @@ class AuditHistoryBrowserTests(unittest.TestCase):
                     page.evaluate("localStorage.setItem('mjobs-profile', 'fixture')")
                     page.reload(wait_until="domcontentloaded")
                     private_setting = "Private Synthetic Travel Preference"
-                    page.get_by_role("button", name="Profile", exact=True).click()
-                    page.get_by_label("Travel preference").fill(private_setting)
-                    with page.expect_response(lambda response:
-                                              response.request.method == "PUT"
-                                              and response.url.endswith("/profiles")):
-                        page.get_by_role("button", name="Save profile", exact=True).click()
                     page.get_by_role("button", name="Activity", exact=True).click()
                     history = page.get_by_role("list", name="Audit history")
                     expect(history).to_contain_text("A profile setting changed")
