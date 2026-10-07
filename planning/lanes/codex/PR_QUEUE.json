@@ -141,13 +141,13 @@
     {
       "issue": 181,
       "requirement_id": "MJ-REQ-180",
-      "status": "CANDIDATE_READY",
+      "status": "INTEGRATED_PARTIAL",
       "priority": 0,
       "target_area": "cli/live_feedback.py; tests/unit/test_live_feedback.py; tests/browser/test_live_feedback_redaction.py; docs/LIVE_FEEDBACK_DEVELOPMENT.md",
       "depends_on": [],
       "evidence_path": "docs/evidence/2026-10-07-redacted-visual-feedback.json",
       "scope_complete": false,
-      "note": "Source commit bb839a547403a9991bd8c0dfd6357649d1bb7775 is pushed. Raw DOM trace capture is removed from optional live-feedback visuals; Chromium confirms masking for form controls and explicitly marked sensitive regions. Scope tests/validators pass. Requirement remains PARTIAL for sensitive text outside generic selectors; integrate under lock and keep issue open."
+      "note": "Integrated to synchronized main 9b51b1d7a7d5f94d1e06412439edde5250d6ba5e; issue #181 remains OPEN/PARTIAL. Evidence docs/evidence/2026-10-07-redacted-visual-feedback.json."
     }
   ],
   "generated_at": "2026-10-07T12:20:17Z"

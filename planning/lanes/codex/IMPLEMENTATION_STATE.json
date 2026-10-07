@@ -1,30 +1,28 @@
 {
   "schema_version": 1,
   "lane": "codex",
-  "status": "ACTIVE",
-  "base_main": "7d46e45c7139c0be356c163956d6a79ad4010eb3",
-  "current_issue": 181,
-  "requirement_id": "MJ-REQ-180",
-  "branch": "codex/mj-req180-redacted-visual-feedback-20261007",
-  "head": "bb839a547403a9991bd8c0dfd6357649d1bb7775",
-  "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req180-redacted-visual-feedback-20261007",
+  "status": "IDLE_READY",
+  "base_main": "9b51b1d7a7d5f94d1e06412439edde5250d6ba5e",
+  "current_issue": null,
+  "requirement_id": null,
+  "branch": null,
+  "head": "9b51b1d7a7d5f94d1e06412439edde5250d6ba5e",
+  "worktree": null,
   "result": "PARTIAL",
   "evidence_path": "docs/evidence/2026-10-07-redacted-visual-feedback.json",
   "last_completed": {
-    "issue": 96,
-    "requirement_id": "MJ-REQ-095",
-    "integration_commit": "cc9fc3832f47e45cb9e60615c56b430692c3c614",
+    "issue": 181,
+    "requirement_id": "MJ-REQ-180",
+    "integration_commit": "9b51b1d7a7d5f94d1e06412439edde5250d6ba5e",
     "slice_status": "PARTIAL"
   },
-  "next_candidates": [
-    {"issue": 181, "requirement_id": "MJ-REQ-180", "status": "IMPLEMENTED_AWAITING_INTEGRATION", "result": "PARTIAL"}
-  ],
+  "next_candidates": [],
   "do_not_overlap": [
     "Antigravity active issue #302 paths: services/discovery/sources/** and tests/integration/test_dice.py",
     "Ollama/OpenCode active issue #318 paths: services/ats_detection/** and detector tests",
     "canonical planning and main outside integration lock"
   ],
-  "resume_instruction": "Issue #181 / MJ-REQ-180 visual feedback redaction slice is committed and pushed at bb839a547403a9991bd8c0dfd6357649d1bb7775; evidence and lane checkpoint remain to integrate under lock. Requirement remains OPEN/PARTIAL. Reconcile current main and all active claims after release, then automatically select the next highest-value unclaimed dependency-ready issue.",
+  "resume_instruction": "Issue #181 / MJ-REQ-180 scoped visual redaction slice is integrated and claim released at main 9b51b1d7a7d5f94d1e06412439edde5250d6ba5e; requirement remains OPEN/PARTIAL. Reconcile claims and dirty worktrees, then select and claim the next unclaimed dependency-ready issue.",
   "last_verified_head": "bb839a547403a9991bd8c0dfd6357649d1bb7775",
   "last_verified_tree": "775bde1e910f517f4c66b905c067065693b5527a",
   "last_verified_at_utc": "2026-10-07T12:26:56Z",
@@ -39,6 +37,6 @@
     "hosted_checks": "NOT_RUN_BY_USER_POLICY",
     "external_submission": "OFF"
   },
-  "last_integrated_head": "7d46e45c7139c0be356c163956d6a79ad4010eb3",
+  "last_integrated_head": "9b51b1d7a7d5f94d1e06412439edde5250d6ba5e",
   "last_verified_result": "PASS_FOR_SLICE"
 }

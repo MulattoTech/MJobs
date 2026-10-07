@@ -1,17 +1,17 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-07T10:59:10Z",
+  "generated_at": "2026-10-07T12:29:07Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Local and origin/main synchronized at cc9fc3832f47e45cb9e60615c56b430692c3c614; issue #96 / MJ-REQ-095 remains OPEN/PARTIAL after a user-reviewed project/accomplishment rewrite slice; Actions disabled; external submission OFF.",
-    "current_verified_github_state": "GitHub main cc9fc3832f47e45cb9e60615c56b430692c3c614; issue #96 evidence integrated and RELEASED but remains OPEN/PARTIAL; Actions disabled; external submission OFF.",
-    "current_verified_at": "2026-10-07T12:20:17Z"
+    "current_verified_local_state": "Local and origin/main synchronized at 9b51b1d7a7d5f94d1e06412439edde5250d6ba5e; issue #181 / MJ-REQ-180 visual capture slice integrated PARTIAL; Actions disabled; external submission OFF.",
+    "current_verified_github_state": "GitHub main 9b51b1d7a7d5f94d1e06412439edde5250d6ba5e; issue #181 remains OPEN/PARTIAL with sanitized scoped evidence; Actions disabled; external submission OFF.",
+    "current_verified_at": "2026-10-07T12:29:07Z"
   },
-  "current_milestone": "MJ-REQ-095-REVIEWED-PROJECT-ACHIEVEMENT-REWRITES-20261007",
+  "current_milestone": "MJ-REQ-180-REDACTED-LIVE-FEEDBACK-VISUALS-20261007",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -109,7 +109,8 @@
     "Provider credentials are not yet routed into AI inference; master encryption-key rotation and complete original secret/diagnostic requirements remain open",
     "MJ-REQ-156/160/183/184 advanced by the scoped MJ-REF-016 dead-letter slice; full persistent-operation, transient retry-policy, worker-health, and error-management requirements remain PARTIAL/NOT_RUN.",
     "MJ-REF-033 advanced PARTIAL: bounded agent run duration/step stopping, explicit terminal escape outcomes, sanitized stop/budget audit, and typed collection count/tail/shape validation. Browser adapter integration, page budgets, bounded slice reruns, and hard interruption of an in-flight synchronous handler remain open; evidence docs/evidence/2026-10-07-agent-run-budget-output-validation.json.",
-    "MJ-REQ-005 / issue #6: live isolated PostgreSQL 17 advisory-lock tests now prove cross-kind company-discovery and independent application-automation capacity-one admission across separate Store engines; each race leaves one RUNNING and one QUEUED operation with matching attempt counts. The acceptance slice passes; broader requirement remains PARTIAL because real ATS/provider execution is not exercised. Evidence docs/evidence/2026-10-07-postgres-concurrency-runtime.json."
+    "MJ-REQ-005 / issue #6: live isolated PostgreSQL 17 advisory-lock tests now prove cross-kind company-discovery and independent application-automation capacity-one admission across separate Store engines; each race leaves one RUNNING and one QUEUED operation with matching attempt counts. The acceptance slice passes; broader requirement remains PARTIAL because real ATS/provider execution is not exercised. Evidence docs/evidence/2026-10-07-postgres-concurrency-runtime.json.",
+    "MJ-REQ-180 / issue #181 advanced PARTIAL: opt-in live-feedback screenshots mask inputs, textareas, selects and data-sensitive regions; raw Playwright trace/DOM snapshots are no longer saved. Synthetic Chromium pixel acceptance and focused feedback tests pass; arbitrary text and diagnostic-text paths remain. Evidence docs/evidence/2026-10-07-redacted-visual-feedback.json."
   ],
   "blocked_capabilities": [],
   "active_requirements": [
@@ -117,7 +118,8 @@
     "MJ-REQ-004",
     "MJ-REQ-095",
     "MJ-REQ-005",
-    "MJ-REQ-008"
+    "MJ-REQ-008",
+    "MJ-REQ-180"
   ],
   "active_prs": [],
   "tests_passed": [
@@ -415,13 +417,13 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-07T12:20:17Z",
+    "timestamp": "2026-10-07T12:29:07Z",
     "result": "PARTIAL",
-    "source_commit": "97905378cdc79e437a7cae2fe2fbb7c504d0affe",
-    "source_tree": "da25a98c54a926fb3187783157dbc92edbd5e198",
-    "scope": "User-authored reviewed rewrites for approved project/accomplishment bullets with source-bound immutable history and reload comparison.",
-    "evidence_path": "docs/evidence/2026-10-07-resume-reviewed-achievement-rewrites.json",
-    "integration_commit": "cc9fc3832f47e45cb9e60615c56b430692c3c614"
+    "source_commit": "bb839a547403a9991bd8c0dfd6357649d1bb7775",
+    "source_tree": "775bde1e910f517f4c66b905c067065693b5527a",
+    "scope": "Opt-in live feedback visual capture masks browser form controls and explicitly marked sensitive regions and no longer saves raw Playwright DOM traces.",
+    "evidence_path": "docs/evidence/2026-10-07-redacted-visual-feedback.json",
+    "integration_commit": "9b51b1d7a7d5f94d1e06412439edde5250d6ba5e"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -525,7 +527,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "cc9fc3832f47e45cb9e60615c56b430692c3c614",
+  "last_implementation_commit": "9b51b1d7a7d5f94d1e06412439edde5250d6ba5e",
   "publication": {
     "result": "PASS",
     "integration_method": "NON_FORCE_FAST_FORWARD",
@@ -8159,12 +8161,59 @@
         "git_commit": "cc9fc3832f47e45cb9e60615c56b430692c3c614",
         "evidence_path": "docs/evidence/2026-10-07-resume-reviewed-achievement-rewrites.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-180-REDACTED-LIVE-FEEDBACK-VISUALS-20261007",
+      "timestamp": "2026-10-07T12:29:07Z",
+      "current_phase": "Issue #181 / MJ-REQ-180 live-feedback visual capture is locally verified and integrated PARTIAL; broader debug redaction remains incomplete.",
+      "completed_steps": [
+        "Removed raw Playwright trace capture from the optional visual feedback path.",
+        "Masked all input, textarea, select and data-sensitive page regions in the final screenshot.",
+        "Added a synthetic Chromium pixel test for password, demographic and explicitly marked token regions.",
+        "Integrated source and sanitized evidence by non-force fast-forward to synchronized local/origin main; issue #181 remains OPEN/PARTIAL."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-07-redacted-visual-feedback.json",
+        "tests/browser/test_live_feedback_redaction.py"
+      ],
+      "files_modified": [
+        "cli/live_feedback.py",
+        "tests/unit/test_live_feedback.py",
+        "docs/LIVE_FEEDBACK_DEVELOPMENT.md",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Focused unit, adjacent feedback GUI and Chromium browser tests: 21 PASS, 0 failures/errors/skips.",
+        "py_compile, agent_skills, catalogue, progress, lane coordination and diff checks PASS."
+      ],
+      "tests_remaining": [
+        "Full repository suite and frontend build not run for this CLI-only slice.",
+        "Arbitrary sensitive free-form page text and the separate --diagnostic-text path remain outside the implemented masking slice.",
+        "Hosted checks/review NOT_RUN_BY_USER_POLICY."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [
+        "One pre-existing feedback GUI browser test printed transient Windows WinError 10053 after client disconnect while the test passed."
+      ],
+      "known_limitations": [
+        "Only synthetic in-memory browser content was tested; no user data or external route was accessed.",
+        "No database, PostgreSQL, Docker, frontend build, provider, ATS or application submission was applicable or run.",
+        "External application submission remains OFF."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "9b51b1d7a7d5f94d1e06412439edde5250d6ba5e",
+        "evidence_path": "docs/evidence/2026-10-07-redacted-visual-feedback.json"
+      }
     }
   ],
-  "current_phase": "Issue #96 / MJ-REQ-095 selected approved project and accomplishment bullets now support reviewed user-authored rewriting with immutable source-bound history; broader requirement remains PARTIAL.",
+  "current_phase": "Issue #181 / MJ-REQ-180 live-feedback visual capture is locally verified and integrated PARTIAL; broader debug redaction remains incomplete.",
   "last_safe_checkpoint": {
-    "git_commit": "cc9fc3832f47e45cb9e60615c56b430692c3c614",
-    "evidence_path": "docs/evidence/2026-10-07-resume-reviewed-achievement-rewrites.json"
+    "git_commit": "9b51b1d7a7d5f94d1e06412439edde5250d6ba5e",
+    "evidence_path": "docs/evidence/2026-10-07-redacted-visual-feedback.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -8402,17 +8451,18 @@
     "next_issue": "Release #398 and select the next dependency-ready unclaimed issue after live claim/worktree reconciliation."
   },
   "active_development_issue": {
-    "issue": 96,
-    "requirement_id": "MJ-REQ-095",
-    "title": "Resume Tailoring Engine",
+    "issue": 181,
+    "requirement_id": "MJ-REQ-180",
+    "title": "Redact Debug Data",
     "state": "INTEGRATED_PARTIAL",
-    "base": "911f248db3110f095c9da98a452bab8797aeda16",
-    "branch": "codex/mj-req095-reviewed-achievement-rewrites-20261007",
-    "candidate": "cc9fc3832f47e45cb9e60615c56b430692c3c614",
-    "integrated_main": "cc9fc3832f47e45cb9e60615c56b430692c3c614",
-    "evidence": "docs/evidence/2026-10-07-resume-reviewed-achievement-rewrites.json",
-    "next_action": "Issue #96 claim released. Requirement remains OPEN/PARTIAL; reconcile current claims and choose next high-value unclaimed dependency-ready issue.",
-    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6037769866"
+    "base": "7d46e45c7139c0be356c163956d6a79ad4010eb3",
+    "branch": "codex/mj-req180-redacted-visual-feedback-20261007",
+    "candidate": "9b51b1d7a7d5f94d1e06412439edde5250d6ba5e",
+    "integrated_main": "9b51b1d7a7d5f94d1e06412439edde5250d6ba5e",
+    "source_commit": "bb839a547403a9991bd8c0dfd6357649d1bb7775",
+    "source_tree": "775bde1e910f517f4c66b905c067065693b5527a",
+    "evidence": "docs/evidence/2026-10-07-redacted-visual-feedback.json",
+    "next_action": "Issue #181 remains OPEN/PARTIAL after scoped capture work. Release Codex claim, reconcile all claims and worktrees, then select the next highest-value unclaimed dependency-ready issue."
   },
   "historical_control_snapshots": [
     {
@@ -9552,5 +9602,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-07T12:20:17Z"
+  "updated_at": "2026-10-07T12:29:07Z"
 }

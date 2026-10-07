@@ -1499,9 +1499,10 @@
       "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-10-06-least-data-profile-access.json",
-        "docs/evidence/2026-10-07-provider-credential-store.json"
+        "docs/evidence/2026-10-07-provider-credential-store.json",
+        "docs/evidence/2026-10-07-redacted-visual-feedback.json"
       ],
-      "note": "Scoped credential redaction verified for MJ-REF-028: malformed credential input, API serialization, connection failures and sanitized test results do not expose saved keys; evidence docs/evidence/2026-10-07-provider-credential-store.json. Full diagnostic-redaction requirement remains PARTIAL."
+      "note": "Scoped credential redaction verified for MJ-REF-028; issue #181 adds masked opt-in live-feedback screenshots and removes raw Playwright DOM traces, verified by synthetic Chromium pixel tests. Evidence docs/evidence/2026-10-07-provider-credential-store.json and docs/evidence/2026-10-07-redacted-visual-feedback.json. MJ-REQ-180 remains PARTIAL because arbitrary rendered text and separately opted-in diagnostic text may still contain private values."
     },
     {
       "requirement_id": "MJ-REQ-181",

@@ -183,7 +183,7 @@
       "requirement_id": "MJ-REQ-180",
       "branch": "codex/mj-req180-redacted-visual-feedback-20261007",
       "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req180-redacted-visual-feedback-20261007",
-      "head": "bb839a547403a9991bd8c0dfd6357649d1bb7775",
+      "head": "9b51b1d7a7d5f94d1e06412439edde5250d6ba5e",
       "paths": [
         "cli/live_feedback.py",
         "tests/unit/test_live_feedback.py",
@@ -192,8 +192,11 @@
         "docs/evidence/2026-10-07-redacted-visual-feedback.json",
         "planning/lanes/codex/**"
       ],
-      "status": "ACTIVE",
-      "claimed_at": "2026-10-07T12:23:57Z"
+      "claimed_at": "2026-10-07T12:23:57Z",
+      "released_at": "2026-10-07T12:30:39Z",
+      "integrated_main": "9b51b1d7a7d5f94d1e06412439edde5250d6ba5e",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6037942896",
+      "status": "RELEASED"
     }
   ]
 }
