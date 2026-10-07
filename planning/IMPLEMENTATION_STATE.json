@@ -320,7 +320,8 @@
     "MJ-REF-005: full Python suite 889 PASS (one optional PostgreSQL skip); affected 25 Python tests, connected browser 2, frontend 63/build, catalogue/progress/skills/lane validators and diff check PASS. Evidence docs/evidence/2026-10-07-no-ai-fallback.json; integrated main 3804a953317b122879747e0075602994c8151678.",
     "MJ-REF-020 issue #390: focused integration 10 PASS; connected browser 6 PASS; frontend 63 PASS/build PASS; full Python 895 PASS with one optional PostgreSQL skip; validators PASS. Evidence docs/evidence/2026-10-07-external-application-capture.json; source 63142751719eb7b52f5fafd2e93dc47a6f53aa51, tree f70b3ef5884b55525e5faa737f1d962510527900, integrated 3ecad2b84f86808314873547ef4aa31de738ce17.",
     "MJ-REQ-005 / issue #6 PostgreSQL runtime slice: PostgreSQL concurrency, category unit and worker lifecycle tests: 21 PASS, repeated twice against the same disposable PostgreSQL 17 database; repository validators PASS. Evidence docs/evidence/2026-10-07-postgres-concurrency-runtime.json; source 9e282135e9c90d56301b9d8726479479d84a862a, tree fd7665952a141c07a494f3a20b9986766363085b, integration d5d888785d62a091249541fd09cbe092073f7887.",
-    "Exact current-main revalidation for MJ-REQ-004 backup CLI output bounds: locked frontend install/build, 11 focused CLI tests, and full Python/browser discovery 903 PASS with 2 skipped; stale root dist run failures disappeared after building the same exact main source in an isolated worktree. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
+    "Exact current-main revalidation for MJ-REQ-004 backup CLI output bounds: locked frontend install/build, 11 focused CLI tests, and full Python/browser discovery 903 PASS with 2 skipped; stale root dist run failures disappeared after building the same exact main source in an isolated worktree. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json.",
+    "Issue #6 / MJ-REQ-005 local PostgreSQL category-runtime acceptance: 5 PostgreSQL concurrency tests + 3 category unit tests + 16 worker lifecycle tests passed twice (24/run) against one fresh disposable PostgreSQL 17 DB. All five categories now have runtime evidence for capacity-one admission, including shared inline/worker document-generation category. Evidence docs/evidence/2026-10-07-postgres-all-category-concurrency.json."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -377,7 +378,8 @@
     "MJ-REF-028 live provider connection, PostgreSQL runtime migration, hosted Actions/review, and real external application submission were not run. Existing MJobs containers were left untouched; synthetic local tests only.",
     "MJ-REF-016 optional PostgreSQL worker-concurrency test skipped because MJOBS_TEST_POSTGRES_URL was unset; temporary PostgreSQL 17 migration upgrade/downgrade/history-loss guard was run. Hosted checks/review remain NOT_RUN_BY_USER_POLICY; external submission OFF. See docs/evidence/2026-10-07-dead-letter-queue.json.",
     "MJ-REF-020 live PostgreSQL was NOT_RUN because the optional local service was unavailable; hosted Actions/reviews NOT_RUN_BY_USER_POLICY. docs/evidence/2026-10-07-external-application-capture.json.",
-    "MJ-REQ-004 backup CLI slice: frontend unit tests NOT_RUN_BY_SCOPE; no web source changed. PostgreSQL runtime NOT_RUN_BY_SCOPE; no persistence or migration changed. Hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF."
+    "MJ-REQ-004 backup CLI slice: frontend unit tests NOT_RUN_BY_SCOPE; no web source changed. PostgreSQL runtime NOT_RUN_BY_SCOPE; no persistence or migration changed. Hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF.",
+    "MJ-REQ-005 real ATS/provider concurrency and hosted Actions/review remain NOT_RUN; external application submission OFF. Browser/frontend/migrations NOT_APPLICABLE to the test-only slice."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -413,13 +415,13 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-07T11:52:55Z",
+    "timestamp": "2026-10-07T11:58:57Z",
     "result": "PARTIAL",
-    "source_commit": "d7307be3d50e4297f87ba315e9cda3dbdf1a1924",
-    "source_tree": "1109cff1f23653a2cd39995bf92924ba4cbcc2e0",
-    "scope": "Exact integrated main full Python and browser discovery after installing lockfile frontend dependencies and building the exact source bundle; confirms backup-output slice focused acceptance.",
-    "evidence_path": "docs/evidence/2026-10-07-backup-command-output-bounds.json",
-    "integration_commit": "a5927a096c7ee79a9f0cbf1b3480c1a66576f844"
+    "source_commit": "474245178c48bb91145ceae50575795d74777686",
+    "source_tree": "40b228d68ec0fe79eaa887f0a5d34fb526f0ff08",
+    "scope": "Issue #6 / MJ-REQ-005 PostgreSQL runtime concurrency acceptance for source_collection, company_discovery, ai, document_generation and application_automation across independent Store engines.",
+    "evidence_path": "docs/evidence/2026-10-07-postgres-all-category-concurrency.json",
+    "integration_commit": "632354f945ec6c4ac4e1638c4bd74f3fd9197ae7"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -486,7 +488,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Verify synchronized main after the exact-main full-suite evidence correction, release the issue #5 validation claim, reconcile active lane claims/worktrees, and continue the highest-value dependency-ready unclaimed issue. External submission OFF; hosted checks NOT_RUN_BY_USER_POLICY.",
+  "recommended_resume_step": "Verify synchronized main after the PostgreSQL all-category concurrency slice, release the issue #6 claim, reconcile all lanes and continue the highest-value unclaimed dependency-ready requirement. Issue #6 remains OPEN/PARTIAL; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -523,7 +525,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "3e4f18a947d47106eb7f22af141de3b389a09722",
+  "last_implementation_commit": "474245178c48bb91145ceae50575795d74777686",
   "publication": {
     "result": "PASS",
     "integration_method": "NON_FORCE_FAST_FORWARD",
@@ -8048,12 +8050,60 @@
         "issue_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6037350035",
         "remote_verified": true
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-005-POSTGRES-ALL-CATEGORY-ADMISSION-20261007",
+      "timestamp": "2026-10-07T11:58:57Z",
+      "current_phase": "Issue #6 / MJ-REQ-005 all-category PostgreSQL admission tests integrated; broader requirement remains PARTIAL for real ATS/provider behavior.",
+      "completed_steps": [
+        "Reconciled current main and active machine/GitHub claims; selected the previously untested PostgreSQL categories without overlap with Antigravity #302 or Ollama #318.",
+        "Added independent-Store PostgreSQL races for source collection, direct AI evaluation admission, and shared inline RESUME_EXTRACT/worker PREPARE document-generation capacity; preserved company-discovery and APPLY_MOCK cases.",
+        "Ran five PostgreSQL concurrency tests, three category-unit tests and sixteen worker-lifecycle tests twice (24 PASS per run) against the same fresh disposable loopback PostgreSQL 17 database. Read back one RUNNING versus QUEUED/denied admission and zero-versus-one attempts; synthetic rows were cleaned for repeatability.",
+        "Confirmed disposable container cleanup, changed-file compile, agent-skill/catalogue/progress/lane validators, and git diff check PASS; no product source or migration changed.",
+        "Integrated test/evidence checkpoint by non-force fast-forward to main 632354f945ec6c4ac4e1638c4bd74f3fd9197ae7. Issue #6 remains OPEN/PARTIAL."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-07-postgres-all-category-concurrency.json"
+      ],
+      "files_modified": [
+        "tests/integration/test_operation_concurrency_postgres.py"
+      ],
+      "tests_completed": [
+        "PostgreSQL concurrency + category unit + worker lifecycle suites: 24 PASS, repeated twice on one fresh disposable local PostgreSQL 17 DB.",
+        "agent_skills, catalogue, progress, lane coordination, changed-file compile and git diff check: PASS."
+      ],
+      "tests_remaining": [
+        "Real ATS/provider concurrency, hosted Actions/review remain NOT_RUN; frontend/browser/migration checks NOT_APPLICABLE to this test-only slice."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "No real ATS/provider traffic or application submission was performed. Issue #6 / MJ-REQ-005 remains OPEN/PARTIAL."
+      ],
+      "source_commit": "474245178c48bb91145ceae50575795d74777686",
+      "source_tree": "40b228d68ec0fe79eaa887f0a5d34fb526f0ff08",
+      "result": "PARTIAL",
+      "last_safe_checkpoint": {
+        "git_commit": "632354f945ec6c4ac4e1638c4bd74f3fd9197ae7",
+        "evidence_path": "docs/evidence/2026-10-07-postgres-all-category-concurrency.json"
+      },
+      "integration": {
+        "method": "NON_FORCE_FAST_FORWARD",
+        "base": "4a5ab584411450fa63e4dc42f1dc9a7620ce66c7",
+        "main": "632354f945ec6c4ac4e1638c4bd74f3fd9197ae7",
+        "source_branch": "codex/mj-req005-pg-all-category-admission-20261007",
+        "source_commit": "474245178c48bb91145ceae50575795d74777686",
+        "issue_state": "OPEN",
+        "evidence_checkpoint_commit": "632354f945ec6c4ac4e1638c4bd74f3fd9197ae7",
+        "issue_comment": "PENDING_READBACK"
+      }
     }
   ],
-  "current_phase": "Issue #5 / MJ-REQ-004 exact-main full Python/browser suite passed after refreshing the isolated frontend build; bounded CLI slice remains partial.",
+  "current_phase": "Issue #6 / MJ-REQ-005 all-category PostgreSQL admission tests integrated; broader requirement remains PARTIAL for real ATS/provider behavior.",
   "last_safe_checkpoint": {
-    "git_commit": "a5927a096c7ee79a9f0cbf1b3480c1a66576f844",
-    "evidence_path": "docs/evidence/2026-10-07-backup-command-output-bounds.json"
+    "git_commit": "632354f945ec6c4ac4e1638c4bd74f3fd9197ae7",
+    "evidence_path": "docs/evidence/2026-10-07-postgres-all-category-concurrency.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -8237,6 +8287,23 @@
       "main_protected": false,
       "issue_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6037350035",
       "local_remote_commit_identical": true
+    },
+    {
+      "result": "PARTIAL",
+      "transport": "Owned branch push and authorized non-force fast-forward to main",
+      "branch": "codex/mj-req005-pg-all-category-admission-20261007",
+      "base": "4a5ab584411450fa63e4dc42f1dc9a7620ce66c7",
+      "source_commit": "474245178c48bb91145ceae50575795d74777686",
+      "candidate": "632354f945ec6c4ac4e1638c4bd74f3fd9197ae7",
+      "final_head": "632354f945ec6c4ac4e1638c4bd74f3fd9197ae7",
+      "force": false,
+      "pull_request": "NOT_OPENED: local-only policy permits non-force fast-forward; Actions disabled.",
+      "issue": 6,
+      "issue_state": "OPEN",
+      "evidence_path": "docs/evidence/2026-10-07-postgres-all-category-concurrency.json",
+      "integrated_at_utc": "2026-10-07T11:58:53Z",
+      "actions_enabled": false,
+      "main_protected": false
     }
   ],
   "live_reconciliation": {
@@ -8251,17 +8318,17 @@
     "next_issue": "Release #398 and select the next dependency-ready unclaimed issue after live claim/worktree reconciliation."
   },
   "active_development_issue": {
-    "issue": 5,
-    "requirement_id": "MJ-REQ-004",
-    "title": "Bound External Operations",
+    "issue": 6,
+    "requirement_id": "MJ-REQ-005",
+    "title": "Control Concurrency",
     "state": "INTEGRATED_PARTIAL",
-    "base": "d7307be3d50e4297f87ba315e9cda3dbdf1a1924",
-    "branch": "codex/mj-req004-exact-main-full-suite-20261007",
-    "candidate": "a5927a096c7ee79a9f0cbf1b3480c1a66576f844",
-    "integrated_main": "ad9e27c1188bfbcfbe2148a3db766d77be799ec5",
-    "evidence": "docs/evidence/2026-10-07-backup-command-output-bounds.json",
-    "next_action": "Push the exact-main validation correction under the integration lock, post evidence readback, release the claim/lock, reconcile active lanes, and continue the highest-value unclaimed dependency-ready issue. Issue #5 remains OPEN/PARTIAL.",
-    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6037350035"
+    "base": "4a5ab584411450fa63e4dc42f1dc9a7620ce66c7",
+    "branch": "codex/mj-req005-pg-all-category-admission-20261007",
+    "candidate": "632354f945ec6c4ac4e1638c4bd74f3fd9197ae7",
+    "integrated_main": "632354f945ec6c4ac4e1638c4bd74f3fd9197ae7",
+    "evidence": "docs/evidence/2026-10-07-postgres-all-category-concurrency.json",
+    "next_action": "Push synchronized main, post sanitized issue readback, release issue #6 claim and lock, re-reconcile ownership, then continue with the highest-value unclaimed dependency-ready issue. Issue #6 remains OPEN/PARTIAL for real ATS/provider runtime.",
+    "issue_comment": "PENDING_READBACK"
   },
   "historical_control_snapshots": [
     {
@@ -9401,5 +9468,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-07T11:54:01Z"
+  "updated_at": "2026-10-07T11:58:57Z"
 }

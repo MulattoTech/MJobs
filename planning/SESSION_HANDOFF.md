@@ -1,3 +1,13 @@
+# Issue #6 / MJ-REQ-005 PostgreSQL concurrency across all categories — 2026-10-07
+
+Integrated by non-force fast-forward from `4a5ab584411450fa63e4dc42f1dc9a7620ce66c7` to candidate `632354f945ec6c4ac4e1638c4bd74f3fd9197ae7` (test source `474245178c48bb91145ceae50575795d74777686`). Evidence `docs/evidence/2026-10-07-postgres-all-category-concurrency.json`. Existing runtime coverage already verified company discovery and application automation; this slice adds PostgreSQL independent-Store races for source collection, inline AI, and inline resume extraction versus worker document preparation. The decisive readback is one category-capacity winner with durable state/attempts; all synthetic rows were cleaned.
+
+Validation: 24 focused PostgreSQL/unit/worker tests PASS twice against the same fresh disposable loopback PostgreSQL 17 container; changed-file compile and repository validators PASS. Container removed, personal MJobs DB untouched, real ATS/provider NOT_RUN, hosted checks NOT_RUN_BY_USER_POLICY, external submission OFF. This is test evidence only; issue #6 remains OPEN/PARTIAL.
+
+Next: synchronize/push main, post sanitized issue readback, release claim/lock, reconcile all active lanes, and continue the highest-value unclaimed dependency-ready issue.
+
+---
+
 ## Issue #5 exact-main full-suite validation correction — 2026-10-07
 
 Evidence-only correction to the preceding backup CLI receipt: the 903-test full run that showed browser failures executed from the root checkout, whose ignored `apps/web/dist` JavaScript differed from the fresh worktree bundle. Recreated a dedicated worktree at exact synchronized main `d7307be3d50e4297f87ba315e9cda3dbdf1a1924`, installed the lockfile dependencies, rebuilt frontend, and reran full discovery: **903 PASS, 2 skipped, zero failures/errors**. Focused backup tests: 11 PASS. No source code changed. Evidence `docs/evidence/2026-10-07-backup-command-output-bounds.json`. Issue #5 remains OPEN/PARTIAL; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.
