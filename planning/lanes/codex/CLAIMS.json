@@ -570,9 +570,11 @@
         "docs/evidence/2026-10-07-safe-browser-debug-capture.json",
         "planning/lanes/codex/**"
       ],
-      "status": "ACTIVE",
+      "status": "RELEASED",
       "claimed_at": "2026-10-07T15:35:33Z",
-      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/180#issuecomment-6041173125"
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/180#issuecomment-6041786003",
+      "released_at": "2026-10-07T16:03:21Z",
+      "integrated_main": "de12a25841d177ee305278b976ed4057f262ee8c"
     }
   ]
 }

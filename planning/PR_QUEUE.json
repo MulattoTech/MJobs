@@ -1253,20 +1253,20 @@
         "MJ-PR-034"
       ],
       "status": "INTEGRATED_PARTIAL",
-      "branch": "codex/mj-req180-redacted-visual-feedback-20261007",
+      "branch": "codex/mj-req179-safe-browser-debug-capture-20261007",
       "draft_until_verified": true,
-      "notes": "Issue #181 / MJ-REQ-180 scoped capture slice integrated at main 9b51b1d7a7d5f94d1e06412439edde5250d6ba5e. Optional live feedback now masks inputs, textareas, selects, and data-sensitive regions in its screenshot and no longer writes a raw Playwright trace/DOM snapshot. Synthetic Chromium pixel acceptance and 21 focused/adjacent feedback tests pass; hosted checks remain NOT_RUN_BY_USER_POLICY. Full MJ-REQ-180 remains PARTIAL: arbitrary text and diagnostic-text paths remain. Evidence docs/evidence/2026-10-07-redacted-visual-feedback.json. Issue #181 privacy follow-up integrated at main 04507e36bd78b6af4053868f00926d2b8b993b0f: raw diagnostic text is never stored, and recognizable sensitive metadata/screenshot text is redacted. 26 focused feedback unit/GUI/Chromium tests pass. Evidence docs/evidence/2026-10-07-redacted-diagnostic-privacy.json. Requirement remains PARTIAL for unclassifiable and out-of-scope surfaces; hosted checks NOT_RUN_BY_USER_POLICY. Issue #181 / MJ-REQ-180 rich-control screenshot masking integrated at f1d36053ebb46f1286f3dfb0acd25ac1482a267f; evidence docs/evidence/2026-10-07-rich-control-screenshot-redaction.json. Pre-fix Chromium pixel test showed a synthetic answer was visible; post-fix masks contenteditable (except false), ARIA textbox and combobox controls. Focused feedback suite 27 PASS. Requirement remains PARTIAL for arbitrary free text, image/canvas and other debug-data surfaces. Release: https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6038936759. Issue #181 / MJ-REQ-180 screenshot/HTML-storage acceptance locally PASS and integrated at main 8dc3c4dc4be19703c487b7f329366283a45ab229. Evidence docs/evidence/2026-10-07-feedback-screenshot-content-masking.json. Production CLI screenshot outputs use the shared screenshot-only privacy helper; 32 affected feedback/UI-source tests PASS. Connected UI E2E NOT_RUN, hosted checks/review NOT_RUN_BY_USER_POLICY, external submission OFF.",
+      "notes": "Issue #181 / MJ-REQ-180 scoped capture slice integrated at main 9b51b1d7a7d5f94d1e06412439edde5250d6ba5e. Optional live feedback now masks inputs, textareas, selects, and data-sensitive regions in its screenshot and no longer writes a raw Playwright trace/DOM snapshot. Synthetic Chromium pixel acceptance and 21 focused/adjacent feedback tests pass; hosted checks remain NOT_RUN_BY_USER_POLICY. Full MJ-REQ-180 remains PARTIAL: arbitrary text and diagnostic-text paths remain. Evidence docs/evidence/2026-10-07-redacted-visual-feedback.json. Issue #181 privacy follow-up integrated at main 04507e36bd78b6af4053868f00926d2b8b993b0f: raw diagnostic text is never stored, and recognizable sensitive metadata/screenshot text is redacted. 26 focused feedback unit/GUI/Chromium tests pass. Evidence docs/evidence/2026-10-07-redacted-diagnostic-privacy.json. Requirement remains PARTIAL for unclassifiable and out-of-scope surfaces; hosted checks NOT_RUN_BY_USER_POLICY. Issue #181 / MJ-REQ-180 rich-control screenshot masking integrated at f1d36053ebb46f1286f3dfb0acd25ac1482a267f; evidence docs/evidence/2026-10-07-rich-control-screenshot-redaction.json. Pre-fix Chromium pixel test showed a synthetic answer was visible; post-fix masks contenteditable (except false), ARIA textbox and combobox controls. Focused feedback suite 27 PASS. Requirement remains PARTIAL for arbitrary free text, image/canvas and other debug-data surfaces. Release: https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6038936759. Issue #181 / MJ-REQ-180 screenshot/HTML-storage acceptance locally PASS and integrated at main 8dc3c4dc4be19703c487b7f329366283a45ab229. Evidence docs/evidence/2026-10-07-feedback-screenshot-content-masking.json. Production CLI screenshot outputs use the shared screenshot-only privacy helper; 32 affected feedback/UI-source tests PASS. Connected UI E2E NOT_RUN, hosted checks/review NOT_RUN_BY_USER_POLICY, external submission OFF. MJ-REQ-179 / issue #180 Debug Capture is locally evidenced for the existing local mock ATS browser adapter. Opt-in defaults OFF; failure diagnostics include a privacy-masked viewport screenshot, structural allowlisted DOM counts, sanitized URL path shape, error-only console/network HMAC fingerprints and current durable step; retention is 30 days/20 captures, events 50, screenshot 5 MiB. Synthetic browser tests preserve REVIEW_REQUIRED and SUBMISSION_UNCONFIRMED/no-blind-retry. Exact-head affected validation 72 PASS and one optional PostgreSQL skip; repository-wide discovery at source 6d3b289 failed (948 run, 2 failures, 9 errors, 28 skipped) and is not promoted. Evidence docs/evidence/2026-10-07-safe-browser-debug-capture.json. Real ATS, live PostgreSQL and hosted checks NOT_RUN; external submission OFF. Requirement remains PARTIAL. Integrated at main de12a25841d177ee305278b976ed4057f262ee8c with release/acceptance readback https://github.com/MulattoTech/MJobs/issues/180#issuecomment-6041786003.",
       "scope_complete": false,
-      "evidence_path": "docs/evidence/2026-10-07-redacted-visual-feedback.json",
-      "base": "7d46e45c7139c0be356c163956d6a79ad4010eb3",
-      "candidate": "9b51b1d7a7d5f94d1e06412439edde5250d6ba5e",
+      "evidence_path": "docs/evidence/2026-10-07-safe-browser-debug-capture.json",
+      "base": "bd92e070dba13513e78e6127664417c5082fd337",
+      "candidate": "de12a25841d177ee305278b976ed4057f262ee8c",
       "integration_method": "NON_FORCE_FAST_FORWARD",
-      "integration_commit": "9b51b1d7a7d5f94d1e06412439edde5250d6ba5e",
+      "integration_commit": "de12a25841d177ee305278b976ed4057f262ee8c",
       "pr_state": "NOT_OPENED_LOCAL_ONLY",
-      "latest_candidate": "04507e36bd78b6af4053868f00926d2b8b993b0f",
-      "latest_source_commit": "f557cd02878b234170470b88ff4f916917a97a25",
-      "latest_evidence_path": "docs/evidence/2026-10-07-redacted-diagnostic-privacy.json",
-      "latest_issue_comment": "https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6038249056",
+      "latest_candidate": "de12a25841d177ee305278b976ed4057f262ee8c",
+      "latest_source_commit": "f8d07ca9a83e9f61541ad74f2bcb1c1c46f02165",
+      "latest_evidence_path": "docs/evidence/2026-10-07-safe-browser-debug-capture.json",
+      "latest_issue_comment": "https://github.com/MulattoTech/MJobs/issues/180#issuecomment-6041786003",
       "latest_integration_method": "NON_FORCE_FAST_FORWARD"
     },
     {
@@ -3444,5 +3444,5 @@
       "issue_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6036663828"
     }
   ],
-  "generated_at": "2026-10-07T15:27:43Z"
+  "generated_at": "2026-10-07T16:03:21Z"
 }

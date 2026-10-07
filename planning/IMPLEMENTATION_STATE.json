@@ -117,7 +117,8 @@
     "MJ-REQ-004 Compose recovery CLI output bounds verified with synthetic child overflow and deadline termination; 2 MiB retained stdout, drained stderr, child reaping and sanitized errors. Real Compose execution NOT_RUN; other operation classes/live AI/ATS remain incomplete. Evidence docs/evidence/2026-10-07-compose-recovery-output-bounds.json.",
     "MJ-REQ-176 / issue #177: Activity now records profile-owned durable PREPARE queued/start/terminal-failure events with stable IDs and attempt history, safe fixed summaries and job/company context. Queue, claim, task terminal failure and retry-limit recovery transactions were exercised; resume rewrite payloads are excluded. 28 focused Python integration/worker/outbox tests PASS with 1 PostgreSQL-only skip, 1 connected Chromium test PASS, frontend 63/build and validators PASS. Evidence docs/evidence/2026-10-07-application-preparation-audit.json. Company/source enrollment, job merge, full settings and truthful complete actual application lifecycle events remain incomplete; issue OPEN/PARTIAL.",
     "MJ-REQ-176 / issue #177 company/source audit history: successful discovery now records idempotent profile-owned COMPANY_DISCOVERED and first source creation COMPANY_SOURCE_ENROLLED events atomically with source persistence. Fixed summaries remain private, profile-isolated and persist across reload; failed discovery emits neither. 26 focused integration tests, connected Chromium 1, frontend 63/build, and repository validators PASS. Evidence docs/evidence/2026-10-07-company-audit-history.json. Job merge, complete settings and full truthful application lifecycle coverage remain incomplete; issue OPEN/PARTIAL.",
-    "MJ-REQ-177 / issue #178 structured worker logging: durable worker terminal outcomes emit JSON-only allowlisted records only after persistence; records contain safe operation context and omit parameters, exception messages and private resume text. Evidence docs/evidence/2026-10-07-structured-worker-operation-logs.json. Focused 21 PASS/1 PostgreSQL-only skip; full Python suite 932 PASS/8 skipped; frontend 63/build and local validators PASS. Posting/source/ATS and other operation types, live Redis/RQ and PostgreSQL remain unverified; issue remains OPEN/PARTIAL."
+    "MJ-REQ-177 / issue #178 structured worker logging: durable worker terminal outcomes emit JSON-only allowlisted records only after persistence; records contain safe operation context and omit parameters, exception messages and private resume text. Evidence docs/evidence/2026-10-07-structured-worker-operation-logs.json. Focused 21 PASS/1 PostgreSQL-only skip; full Python suite 932 PASS/8 skipped; frontend 63/build and local validators PASS. Posting/source/ATS and other operation types, live Redis/RQ and PostgreSQL remain unverified; issue remains OPEN/PARTIAL.",
+    "MJ-REQ-179 / issue #180 Debug Capture is locally evidenced for the existing local mock ATS browser adapter. Opt-in defaults OFF; failure diagnostics include a privacy-masked viewport screenshot, structural allowlisted DOM counts, sanitized URL path shape, error-only console/network HMAC fingerprints and current durable step; retention is 30 days/20 captures, events 50, screenshot 5 MiB. Synthetic browser tests preserve REVIEW_REQUIRED and SUBMISSION_UNCONFIRMED/no-blind-retry. Exact-head affected validation 72 PASS and one optional PostgreSQL skip; repository-wide discovery at source 6d3b289 failed (948 run, 2 failures, 9 errors, 28 skipped) and is not promoted. Evidence docs/evidence/2026-10-07-safe-browser-debug-capture.json. Real ATS, live PostgreSQL and hosted checks NOT_RUN; external submission OFF. Requirement remains PARTIAL."
   ],
   "blocked_capabilities": [],
   "active_requirements": [
@@ -344,7 +345,8 @@
     "MJ-REQ-176 / issue #177: Activity now records profile-owned durable PREPARE queued/start/terminal-failure events with stable IDs and attempt history, safe fixed summaries and job/company context. Queue, claim, task terminal failure and retry-limit recovery transactions were exercised; resume rewrite payloads are excluded. 28 focused Python integration/worker/outbox tests PASS with 1 PostgreSQL-only skip, 1 connected Chromium test PASS, frontend 63/build and validators PASS. Evidence docs/evidence/2026-10-07-application-preparation-audit.json. Company/source enrollment, job merge, full settings and truthful complete actual application lifecycle events remain incomplete; issue OPEN/PARTIAL.",
     "MJ-REQ-176 profile setting-change audit slice: focused 34 Python PASS; full Python 936 PASS, 8 skipped; Chromium 1; frontend 63/build; local validators PASS. Evidence docs/evidence/2026-10-07-setting-change-audit-history.json.",
     "Issue #178 / MJ-REQ-177: focused worker/logging suite 21 PASS, 1 PostgreSQL-only skip; full Python 932 PASS, 8 skipped; frontend 63 PASS/build and local validators PASS. Evidence docs/evidence/2026-10-07-structured-worker-operation-logs.json.",
-    "Issue #179 / MJ-REQ-178: 20 focused Compose/live-feedback/document-artifact tests PASS; rendered Docker Compose config for all 9 services PASS; isolated Docker rollover runtime PASS (50 emitted / 11 retained). Evidence docs/evidence/2026-10-07-compose-log-rotation.json."
+    "Issue #179 / MJ-REQ-178: 20 focused Compose/live-feedback/document-artifact tests PASS; rendered Docker Compose config for all 9 services PASS; isolated Docker rollover runtime PASS (50 emitted / 11 retained). Evidence docs/evidence/2026-10-07-compose-log-rotation.json.",
+    "Issue #180 / MJ-REQ-179 exact-head affected suite at f8d07ca9a83e9f61541ad74f2bcb1c1c46f02165: 73 run, 72 PASS, 1 optional PostgreSQL skip; repository validators PASS. Evidence docs/evidence/2026-10-07-safe-browser-debug-capture.json."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -365,7 +367,8 @@
     "After restoring locked frontend dependencies and building current apps/web source on integrated CLI-output candidate 1b35a11: 903 tests, 2 failures, 2 errors, 2 skips. Repeatable browser failures: external application capture form absent; summary rewrite editor absent; skill-order comparison shows No changes; AI task fallback list renders zero rows. Focused affected modules reran and reproduced; none are changed by the backup CLI slice. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json.",
     "RESOLVED ENVIRONMENT MISMATCH for docs/evidence/2026-10-07-backup-command-output-bounds.json: initial full runs used absent/stale ignored apps/web/dist; after npm ci and Vite build in a worktree at exact integrated main d7307be3d50e4297f87ba315e9cda3dbdf1a1924, all 903 Python/browser tests passed with 2 skipped. Historical failures preserved above; no product defect was confirmed.",
     "Global Python interpreter lacks repository Alembic dependencies: migration discovery errored on 12 module imports; rerun with repository .venv passed (environment mismatch, not product failure).",
-    "Progress journal validator first run after issue #8 receipt append failed because top-level current_phase still named the preceding milestone; updated current_phase to match the newest journal entry and reran validation successfully."
+    "Progress journal validator first run after issue #8 receipt append failed because top-level current_phase still named the preceding milestone; updated current_phase to match the newest journal entry and reran validation successfully.",
+    "Repository-wide unittest discovery at source 6d3b2893f18289fc76b29ce8955dfb2fb103b58d: 948 run, 2 failures, 9 errors, 28 skipped; test names were not all retained in terminal output, so no attribution is claimed. Recorded in docs/evidence/2026-10-07-safe-browser-debug-capture.json."
   ],
   "tests_not_run": [
     "Remaining full-spec integrations and product/release requirements",
@@ -413,7 +416,8 @@
     "MJ-REQ-180 updated cli.ui_e2e and cli.ui_source_readback artifact paths were not exercised against a running application/Compose stack; shared screenshot helper behavior was tested in synthetic headless Chromium.",
     "MJ-REQ-176 setting audit slice: PostgreSQL/Docker/migration coverage NOT_RUN (no schema change); hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
     "Issue #178: live Redis/RQ worker integration and PostgreSQL runtime NOT_RUN; hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF.",
-    "Issue #179: actual personal MJobs Compose services were intentionally not restarted/recreated; hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF."
+    "Issue #179: actual personal MJobs Compose services were intentionally not restarted/recreated; hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF.",
+    "Issue #180: real ATS adapter/browser acceptance and live PostgreSQL not run; one optional PostgreSQL worker recovery class skipped because MJOBS_WORKER_RECOVERY_POSTGRES_URL was unset. GitHub hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -434,7 +438,8 @@
   "known_product_defects": [
     "Manual application status is user-reported only; company/application notes beyond this slice, independently verified submission receipts, and full canonical tracker acceptance remain unverified.",
     "Transient artifact cleanup is an explicit local maintenance action; automatic background cleanup and broader log/debug retention remain incomplete (MJ-REQ-170).",
-    "Connected browser suite on 1b35a11 reports repeatable failures in external application capture, resume summary/skill-ordering, and AI task fallback settings after locked frontend install/build. These paths were not changed by the backup subprocess slice; see docs/evidence/2026-10-07-backup-command-output-bounds.json."
+    "Connected browser suite on 1b35a11 reports repeatable failures in external application capture, resume summary/skill-ordering, and AI task fallback settings after locked frontend install/build. These paths were not changed by the backup subprocess slice; see docs/evidence/2026-10-07-backup-command-output-bounds.json.",
+    "MJ-REQ-179 debug capture currently covers only the local mock ATS browser adapter; real ATS/browser adapters remain unsupported. Broad unittest discovery currently records 2 failures and 9 errors at source 6d3b289 and requires triage."
   ],
   "known_test_harness_defects": [
     "Historical recovery run used Compose dependency startup; corrected to --no-deps and final isolated run is canonical",
@@ -450,19 +455,19 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-07T15:27:43Z",
-    "result": "PASS",
-    "source_commit": "1e11348ec1e10f401453e1d31ba68d651ea2c540",
-    "source_tree": "df9c3d652ad127facc01b3300475e562fbde65b0",
-    "issue": 179,
-    "requirement_id": "MJ-REQ-178",
-    "title": "[MJ-REQ-178] Log Retention",
-    "state": "INTEGRATED_PASS",
-    "base": "9a61c6e4ae3b667cd3556b867562ff72900f8a9c",
-    "branch": "codex/mj-req178-log-rotation-20261007",
-    "candidate_integration_commit": "8bea57e595e19e638913405a8ec1cd3aa0ebde32",
-    "evidence_path": "docs/evidence/2026-10-07-compose-log-rotation.json",
-    "scope": "Bounded rotation covers all Compose logs; existing browser diagnostics do not store raw traces/HTML and have managed retention."
+    "timestamp": "2026-10-07T16:03:21Z",
+    "result": "PARTIAL",
+    "source_commit": "f8d07ca9a83e9f61541ad74f2bcb1c1c46f02165",
+    "source_tree": "9f09bf53f637aff637be8f8c4188667c050cf167",
+    "issue": 180,
+    "requirement_id": "MJ-REQ-179",
+    "title": "[MJ-REQ-179] Debug Capture",
+    "state": "INTEGRATED_PARTIAL",
+    "base": "bd92e070dba13513e78e6127664417c5082fd337",
+    "branch": "codex/mj-req179-safe-browser-debug-capture-20261007",
+    "candidate_integration_commit": "de12a25841d177ee305278b976ed4057f262ee8c",
+    "evidence_path": "docs/evidence/2026-10-07-safe-browser-debug-capture.json",
+    "scope": "Opt-in, bounded privacy-preserving failure capture for the existing local mock ATS browser flow; real ATS automation remains unavailable."
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -547,7 +552,7 @@
     "cb72f9041d6a",
     "e14ac893620f"
   ],
-  "unfinished_work_evidence": "docs/evidence/2026-10-06-mock-ats-action-budget.json\nMJ-REQ-095 issue #96 responsibility-bullet emphasis locally verified on e6c47515aa20596ed6ec3263c809af26b4cf3910; broader summary adjustment and factual rephrasing remain PARTIAL. Evidence: docs/evidence/2026-10-06-resume-bullet-emphasis.json\nMJ-REQ-095 issue #96 extractive summary tailoring locally verified on d5309972c04062c721ee72986008b04a1f572e03; factual bullet rephrasing and broad AI rewriting remain PARTIAL. Evidence: docs/evidence/2026-10-06-target-summary-tailoring.json\nMJ-REQ-007 issue #8 local config initialization slice c7306774884ad08e5172bfec7ab365dc261f77b3; issue remains PARTIAL pending actual protected-configuration migration recovery. Evidence: docs/evidence/2026-10-06-atomic-env-initialization.json\nMJ-REQ-007 scoped atomic .env initialization integrated at 494e15f46a93b70530755811888ece6046dc98aa; GitHub issue #8 remains OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6019785804. Evidence: docs/evidence/2026-10-06-atomic-env-initialization.json\nMJ-REQ-008 issue #9 isolated container crash/resume proof: docs/evidence/2026-10-06-progress-container-crash-recovery.json; host restart remains unverified.\nMJ-REQ-004 uploaded-original resume comparison cancellation candidate 8a469b03bb7c57448118be9e1b761d8608d179ab; issue #5 remains OPEN/PARTIAL for remaining external-operation categories and multi-replica cancellation. Evidence: docs/evidence/2026-10-06-uploaded-comparison-cancellation.json\nMJ-REQ-004 cancellation acknowledgement truthfulness candidate 6abd58aec2562fddaff1367fa8c60417d98b5ebb; issue #5 remains OPEN/PARTIAL for cross-replica signaling and remaining operation classes. Evidence: docs/evidence/2026-10-06-comparison-cancel-acknowledgement.json\nMJ-REQ-004 mock ATS questionnaire/receipt HTTP calls now honor worker cancellation/deadline; submission receipt uncertainty remains safe. Evidence: docs/evidence/2026-10-06-mock-ats-http-cancellation.json\nMJ-REQ-109 persisted provider/model selections are connected to a profile-scoped API and AI Settings UI, but no production task consumer or live inference is verified; issue #110 remains PARTIAL/OPEN (docs/evidence/2026-10-06-ai-task-settings-persistence.json).\nMJ-REQ-008 issue #9 product-worker crash recovery/stale-attempt fencing integrated as a scoped PARTIAL slice at source d516834ac3bd48352ef3aa8885a1de1fffe53419; evidence docs/evidence/2026-10-07-product-worker-crash-recovery.json. Physical host restart, browser-process crash, other worker operation types and live PostgreSQL remain unverified.\n",
+  "unfinished_work_evidence": "docs/evidence/2026-10-06-mock-ats-action-budget.json\nMJ-REQ-095 issue #96 responsibility-bullet emphasis locally verified on e6c47515aa20596ed6ec3263c809af26b4cf3910; broader summary adjustment and factual rephrasing remain PARTIAL. Evidence: docs/evidence/2026-10-06-resume-bullet-emphasis.json\nMJ-REQ-095 issue #96 extractive summary tailoring locally verified on d5309972c04062c721ee72986008b04a1f572e03; factual bullet rephrasing and broad AI rewriting remain PARTIAL. Evidence: docs/evidence/2026-10-06-target-summary-tailoring.json\nMJ-REQ-007 issue #8 local config initialization slice c7306774884ad08e5172bfec7ab365dc261f77b3; issue remains PARTIAL pending actual protected-configuration migration recovery. Evidence: docs/evidence/2026-10-06-atomic-env-initialization.json\nMJ-REQ-007 scoped atomic .env initialization integrated at 494e15f46a93b70530755811888ece6046dc98aa; GitHub issue #8 remains OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6019785804. Evidence: docs/evidence/2026-10-06-atomic-env-initialization.json\nMJ-REQ-008 issue #9 isolated container crash/resume proof: docs/evidence/2026-10-06-progress-container-crash-recovery.json; host restart remains unverified.\nMJ-REQ-004 uploaded-original resume comparison cancellation candidate 8a469b03bb7c57448118be9e1b761d8608d179ab; issue #5 remains OPEN/PARTIAL for remaining external-operation categories and multi-replica cancellation. Evidence: docs/evidence/2026-10-06-uploaded-comparison-cancellation.json\nMJ-REQ-004 cancellation acknowledgement truthfulness candidate 6abd58aec2562fddaff1367fa8c60417d98b5ebb; issue #5 remains OPEN/PARTIAL for cross-replica signaling and remaining operation classes. Evidence: docs/evidence/2026-10-06-comparison-cancel-acknowledgement.json\nMJ-REQ-004 mock ATS questionnaire/receipt HTTP calls now honor worker cancellation/deadline; submission receipt uncertainty remains safe. Evidence: docs/evidence/2026-10-06-mock-ats-http-cancellation.json\nMJ-REQ-109 persisted provider/model selections are connected to a profile-scoped API and AI Settings UI, but no production task consumer or live inference is verified; issue #110 remains PARTIAL/OPEN (docs/evidence/2026-10-06-ai-task-settings-persistence.json).\nMJ-REQ-008 issue #9 product-worker crash recovery/stale-attempt fencing integrated as a scoped PARTIAL slice at source d516834ac3bd48352ef3aa8885a1de1fffe53419; evidence docs/evidence/2026-10-07-product-worker-crash-recovery.json. Physical host restart, browser-process crash, other worker operation types and live PostgreSQL remain unverified.\n\nMJ-REQ-179 issue #180 debug capture scoped implementation PARTIAL: docs/evidence/2026-10-07-safe-browser-debug-capture.json",
   "authorization": "User explicitly provided 100% Git and GitHub authorization on 2026-09-30; still verify native permissions and required checks",
   "user_testing": {
     "result": "PASS",
@@ -566,7 +571,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "54f426a5669ce76c31141d8e6bacd0a6f859ad82",
+  "last_implementation_commit": "f8d07ca9a83e9f61541ad74f2bcb1c1c46f02165",
   "publication": {
     "result": "PASS",
     "integration_method": "NON_FORCE_FAST_FORWARD",
@@ -8893,12 +8898,65 @@
         "git_commit": "8bea57e595e19e638913405a8ec1cd3aa0ebde32",
         "evidence_path": "docs/evidence/2026-10-07-compose-log-rotation.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-179-DEBUG-CAPTURE-PARTIAL-20261007",
+      "timestamp": "2026-10-07T16:03:21Z",
+      "current_phase": "MJ_REQ_179_DEBUG_CAPTURE_PARTIAL_INTEGRATED",
+      "completed_steps": [
+        "Implemented opt-in failure-only debug capture for the existing local mock ATS browser flow.",
+        "Recorded screenshot-only privacy capture, structural DOM summary, path-shape URL, error-only console/network fingerprints, durable current step, and bounded retention.",
+        "Verified synthetic review-required and ambiguous-submission states remain safe; exact-head affected suite 72 PASS and one optional PostgreSQL skip.",
+        "Recorded broad unittest discovery failure without promoting or attributing it; 948 tests, 2 failures, 9 errors, 28 skipped.",
+        "Fast-forward integrated candidate de12a25841d177ee305278b976ed4057f262ee8c and posted sanitized issue checkpoint https://github.com/MulattoTech/MJobs/issues/180#issuecomment-6041786003.",
+        "Kept issue #180 OPEN/PARTIAL; real ATS adapters are not currently implemented."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-07-safe-browser-debug-capture.json",
+        "services/applications/browser_capture.py",
+        "services/applications/debug_capture.py",
+        "tests/unit/test_browser_debug_capture.py"
+      ],
+      "files_modified": [
+        "cli/live_feedback.py",
+        "compose.yml",
+        "services/applications/mock_adapter.py",
+        "workers/tasks.py",
+        "tests/browser/test_mock_application.py",
+        "tests/unit/test_compose_modes.py",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Exact-head affected unittest suites: 73 run, 72 PASS, 1 optional PostgreSQL skip; 0 failures/errors.",
+        "Agent skills, catalogue, progress, lane coordination and git diff checks PASS."
+      ],
+      "tests_remaining": [
+        "Repository-wide discovery remains failed with 2 failures and 9 errors; all failing tests need triage before broad PASS.",
+        "Real ATS/browser adapters and live PostgreSQL remain unverified.",
+        "Hosted checks remain NOT_RUN_BY_USER_POLICY; external submission OFF."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "de12a25841d177ee305278b976ed4057f262ee8c",
+        "evidence_path": "docs/evidence/2026-10-07-safe-browser-debug-capture.json"
+      },
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [
+        "Repository-wide unittest discovery at source 6d3b289 failed: 948 run, 2 failures, 9 errors, 28 skipped; terminal output did not retain every failing test identity, so no attribution is claimed."
+      ],
+      "known_limitations": [
+        "Only the existing local mock ATS browser adapter supports capture; real ATS adapters remain absent.",
+        "Live PostgreSQL and hosted checks were not run; external submission is OFF."
+      ]
     }
   ],
-  "current_phase": "MJ_REQ_178_LOG_RETENTION_FULL_ACCEPTANCE_INTEGRATED",
+  "current_phase": "MJ_REQ_179_DEBUG_CAPTURE_PARTIAL_INTEGRATED",
   "last_safe_checkpoint": {
-    "git_commit": "8bea57e595e19e638913405a8ec1cd3aa0ebde32",
-    "evidence_path": "docs/evidence/2026-10-07-compose-log-rotation.json"
+    "git_commit": "de12a25841d177ee305278b976ed4057f262ee8c",
+    "evidence_path": "docs/evidence/2026-10-07-safe-browser-debug-capture.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -9136,20 +9194,20 @@
     "next_issue": "Release #398 and select the next dependency-ready unclaimed issue after live claim/worktree reconciliation."
   },
   "active_development_issue": {
-    "issue": 177,
-    "requirement_id": "MJ-REQ-176",
-    "title": "[MJ-REQ-176] Audit Log",
+    "issue": 180,
+    "requirement_id": "MJ-REQ-179",
+    "title": "[MJ-REQ-179] Debug Capture",
     "state": "INTEGRATED_PARTIAL",
-    "base": "20c20392e67f8fe72f0a7ac7c27c30ed72bd095c",
-    "branch": "codex/mj-req176-company-events-20261007",
-    "candidate": "a90c23abca6de19f906ca16a01f0bd92e0aa1801",
-    "integrated_main": "a90c23abca6de19f906ca16a01f0bd92e0aa1801",
-    "source_commit": "4b25f3c1ac1eafe1b5f00d714029bef4268b7b43",
-    "source_tree": "ca6c0b83c82cb13e1bc6d121536041f60bd984b0",
-    "evidence": "docs/evidence/2026-10-07-company-audit-history.json",
+    "base": "bd92e070dba13513e78e6127664417c5082fd337",
+    "branch": "codex/mj-req179-safe-browser-debug-capture-20261007",
+    "candidate": "de12a25841d177ee305278b976ed4057f262ee8c",
+    "integrated_main": "de12a25841d177ee305278b976ed4057f262ee8c",
+    "source_commit": "f8d07ca9a83e9f61541ad74f2bcb1c1c46f02165",
+    "source_tree": "9f09bf53f637aff637be8f8c4188667c050cf167",
+    "evidence": "docs/evidence/2026-10-07-safe-browser-debug-capture.json",
     "issue_state": "OPEN",
-    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6040091739",
-    "next_action": "Release Codex claim and integration lock, reconcile latest main/claims/worktrees/issues, then select and claim the next highest-value dependency-ready unclaimed slice."
+    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/180#issuecomment-6041786003",
+    "next_action": "Release Codex claim and integration lock, reconcile latest main/claims/worktrees/issues, then choose the highest-value unclaimed dependency-ready issue."
   },
   "historical_control_snapshots": [
     {
@@ -10291,5 +10349,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-07T14:21:20Z"
+  "updated_at": "2026-10-07T16:03:21Z"
 }

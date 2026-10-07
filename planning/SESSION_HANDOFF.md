@@ -953,3 +953,12 @@ Integrated by non-force fast-forward from ffa2427799ccf3d76a4f22ddf30e22c9f00a44
 Validation: 34 focused Python tests PASS; full suite 936 PASS, 8 skipped (skip names not emitted; not promoted); Chromium 1 PASS; frontend 63 PASS and build PASS; repository validators PASS. PostgreSQL/Docker/migrations NOT_RUN (no schema change); hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF. Issue #177 remains OPEN/PARTIAL for JOB_MERGED, other settings and full truthful lifecycle events. Antigravity #302 and Ollama #318 active dirty path claims remain untouched.
 
 Next: synchronize and verify origin/main, post sanitized issue evidence, release the Codex claim and integration lock, then reconcile claims/worktrees/issues and select the next unclaimed dependency-ready issue.
+
+
+## 2026-10-07 Codex integration checkpoint — MJ-REQ-179 Debug Capture
+
+- Source: `f8d07ca9a83e9f61541ad74f2bcb1c1c46f02165` (tree `9f09bf53f637aff637be8f8c4188667c050cf167`); base `bd92e070dba13513e78e6127664417c5082fd337`; candidate/main `de12a25841d177ee305278b976ed4057f262ee8c`.
+- Result: **PARTIAL**; GitHub issue #180 remains OPEN. Evidence: `docs/evidence/2026-10-07-safe-browser-debug-capture.json`.
+- Acceptance: opt-in bounded privacy-preserving failure capture for the local mock ATS browser flow; tests preserve review and unconfirmed-submission safety. Exact-head affected suite 72 PASS, 1 optional PostgreSQL skip.
+- Broad suite: 948 run, 2 failures, 9 errors, 28 skipped; no broad PASS claim. Real ATS and live PostgreSQL NOT_RUN; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.
+- Release readback: https://github.com/MulattoTech/MJobs/issues/180#issuecomment-6041786003. Next: release claim/lock, reconcile active claims and branches, select next unclaimed dependency-ready issue.
