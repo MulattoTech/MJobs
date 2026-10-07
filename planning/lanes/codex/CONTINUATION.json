@@ -1,17 +1,17 @@
 {
   "schema_version": 1,
   "lane": "codex",
-  "status": "ACTIVE",
+  "status": "IDLE_READY",
   "preferred_model": "gpt-6-luna",
   "preferred_reasoning": "high",
   "session_id": "01a10ed8-5445-7b61-8293-43be1895ecc5",
-  "canonical_main_at_pause": "647ade803c36eaab738197f74d009aa6aa71ecfa",
+  "canonical_main_at_pause": "5051ba20c1bd96939ace7d53071742d2662be0a2",
   "last_completed_issue": 177,
-  "last_completed_requirement": "MJ-REQ-176 (profile audit timeline integrated PARTIAL; issue #177 OPEN)",
-  "last_integrated_head": "d4ed75530ec9609ec41d2e3b2f4a93aa50e4b259",
+  "last_completed_requirement": "MJ-REQ-176 application status/note/external report readback integrated PARTIAL; issue #177 OPEN",
+  "last_integrated_head": "5051ba20c1bd96939ace7d53071742d2662be0a2",
   "next_issue": 177,
   "next_requirement": "MJ-REQ-176",
-  "resume_instruction": "Integrate this exact-head application-history slice as PARTIAL, leave issue #177 OPEN, release claim and lock, reconcile current main and every live claim, then select and claim the highest-value independent dependency-ready issue. Avoid active Antigravity #302 source paths and Ollama #318 ATS detection paths. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
+  "resume_instruction": "Issue #177 remains the highest-value dependency-ready continuation after fresh ownership reconciliation: add the next safe application lifecycle audit producer/readback slice without claiming real submission or employer receipt. Then consider unclaimed #178 structured logging, #176 secret management remaining scope, and #171 retention remaining scope. Avoid Antigravity #302 source paths and Ollama #318 ATS detection paths. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
   "external_submission_enabled": false,
   "github_actions_enabled": false,
   "last_validated_head": "c80e011cf12bc071755c014935854699fbdcf4aa",
@@ -36,5 +36,5 @@
   "last_verified_tree": "7159e04e13524afc82a3dd4168351eb6cbf73d56",
   "last_verified_at_utc": "2026-10-07T14:13:53Z",
   "last_verified_result": "PARTIAL; issue remains OPEN",
-  "updated_at": "2026-10-07T14:13:53Z"
+  "updated_at": "2026-10-07T14:15:45Z"
 }

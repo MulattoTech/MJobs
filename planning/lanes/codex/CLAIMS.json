@@ -421,10 +421,13 @@
         "docs/evidence/2026-10-07-application-audit-history.json",
         "planning/lanes/codex/**"
       ],
-      "status": "ACTIVE",
+      "status": "RELEASED",
       "claimed_at": "2026-10-07T14:09:41Z",
       "claim_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6039755816",
-      "evidence_path": "docs/evidence/2026-10-07-application-audit-history.json"
+      "evidence_path": "docs/evidence/2026-10-07-application-audit-history.json",
+      "released_at": "2026-10-07T14:15:45Z",
+      "integrated_main": "5051ba20c1bd96939ace7d53071742d2662be0a2",
+      "result": "PARTIAL; issue remains OPEN"
     }
   ]
 }
