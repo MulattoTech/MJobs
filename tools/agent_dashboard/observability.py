@@ -571,3 +571,634 @@ def opencode_usage_snapshot(workspace: str | Path) -> dict[str, Any]:
             con.close()
         except Exception:
             pass
+
+
+
+_CODEX_IDENTITY_CACHE: dict[str, tuple[tuple[int, int], dict[str, Any]]] = {}
+_CODEX_SUMMARY_CACHE: dict[str, tuple[tuple[int, int], dict[str, Any]]] = {}
+_ANTIGRAVITY_IDENTITY_CACHE: dict[str, tuple[tuple[int, int], dict[str, Any]]] = {}
+_ANTIGRAVITY_SUMMARY_CACHE: dict[str, tuple[tuple[int, int], dict[str, Any]]] = {}
+
+
+def _file_signature(path: Path) -> tuple[int, int]:
+    stat = path.stat()
+    return stat.st_mtime_ns, stat.st_size
+
+
+def _cache_get(
+    cache: dict[str, tuple[tuple[int, int], dict[str, Any]]],
+    path: Path,
+) -> dict[str, Any] | None:
+    try:
+        signature = _file_signature(path)
+    except OSError:
+        return None
+    cached = cache.get(str(path))
+    if cached and cached[0] == signature:
+        return dict(cached[1])
+    return None
+
+
+def _cache_put(
+    cache: dict[str, tuple[tuple[int, int], dict[str, Any]]],
+    path: Path,
+    value: dict[str, Any],
+) -> dict[str, Any]:
+    try:
+        cache[str(path)] = (_file_signature(path), dict(value))
+    except OSError:
+        pass
+    return value
+
+
+def _normalized_workspace(value: str | Path | None) -> str:
+    return (
+        str(value or "")
+        .replace("\\", "/")
+        .rstrip()
+        .rstrip(".,;:)]}>\"'")
+        .rstrip("/")
+        .casefold()
+    )
+
+
+def _iso_timestamp(value: str | None) -> float | None:
+    if not value:
+        return None
+    try:
+        return datetime.fromisoformat(value.replace("Z", "+00:00")).timestamp()
+    except Exception:
+        return None
+
+
+def _codex_session_id_from_path(path: Path) -> str | None:
+    match = re.search(
+        r"([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})",
+        path.name,
+        flags=re.I,
+    )
+    return match.group(1) if match else None
+
+
+def _codex_rollout_identity(path: Path) -> dict[str, Any]:
+    cached = _cache_get(_CODEX_IDENTITY_CACHE, path)
+    if cached is not None:
+        return cached
+    identity: dict[str, Any] = {
+        "path": str(path),
+        "session_id": _codex_session_id_from_path(path),
+        "cwd": None,
+        "model": None,
+        "reasoning_effort": None,
+    }
+    try:
+        with path.open(encoding="utf-8", errors="replace") as handle:
+            for index, line in enumerate(handle):
+                if index > 120:
+                    break
+                try:
+                    event = json.loads(line)
+                except Exception:
+                    continue
+                payload = event.get("payload") or {}
+                if event.get("type") == "session_meta":
+                    identity["session_id"] = payload.get("id") or identity["session_id"]
+                    identity["cwd"] = payload.get("cwd") or identity["cwd"]
+                elif event.get("type") == "turn_context":
+                    identity["cwd"] = payload.get("cwd") or identity["cwd"]
+                    identity["model"] = payload.get("model") or identity["model"]
+                    identity["reasoning_effort"] = (
+                        payload.get("effort")
+                        or ((payload.get("collaboration_mode") or {}).get("settings") or {}).get("reasoning_effort")
+                        or identity["reasoning_effort"]
+                    )
+                    if identity["cwd"] and identity["model"]:
+                        break
+    except OSError:
+        pass
+    return _cache_put(_CODEX_IDENTITY_CACHE, path, identity)
+
+
+def _codex_rollout_summary(path: Path) -> dict[str, Any]:
+    cached = _cache_get(_CODEX_SUMMARY_CACHE, path)
+    if cached is not None:
+        return cached
+    identity = _codex_rollout_identity(path)
+    first_time: float | None = None
+    last_time: float | None = None
+    total_usage: dict[str, Any] = {}
+    last_usage: dict[str, Any] = {}
+    context_window: int | None = None
+    model_turns = 0
+    tool_calls = 0
+    tool_breakdown: dict[str, int] = {}
+    reasoning_events = 0
+    rate_limits: dict[str, Any] | None = None
+
+    try:
+        with path.open(encoding="utf-8", errors="replace") as handle:
+            for line in handle:
+                try:
+                    event = json.loads(line)
+                except Exception:
+                    continue
+                stamp = _iso_timestamp(event.get("timestamp"))
+                if stamp is not None:
+                    first_time = stamp if first_time is None else min(first_time, stamp)
+                    last_time = stamp if last_time is None else max(last_time, stamp)
+
+                payload = event.get("payload") or {}
+                if event.get("type") == "turn_context":
+                    identity["cwd"] = payload.get("cwd") or identity.get("cwd")
+                    identity["model"] = payload.get("model") or identity.get("model")
+                    identity["reasoning_effort"] = (
+                        payload.get("effort")
+                        or ((payload.get("collaboration_mode") or {}).get("settings") or {}).get("reasoning_effort")
+                        or identity.get("reasoning_effort")
+                    )
+                elif event.get("type") == "event_msg":
+                    subtype = payload.get("type")
+                    if subtype == "token_count":
+                        info = payload.get("info") or {}
+                        total_usage = dict(info.get("total_token_usage") or total_usage)
+                        last_usage = dict(info.get("last_token_usage") or last_usage)
+                        context_window = info.get("model_context_window") or context_window
+                        rate_limits = payload.get("rate_limits") or rate_limits
+                        model_turns += 1
+                    elif subtype == "reasoning":
+                        reasoning_events += 1
+                elif event.get("type") == "response_item":
+                    subtype = str(payload.get("type") or "")
+                    if subtype.endswith("_call") and not subtype.endswith("_output"):
+                        tool_calls += 1
+                        name = str(payload.get("name") or subtype)
+                        tool_breakdown[name] = tool_breakdown.get(name, 0) + 1
+                    elif subtype == "reasoning":
+                        reasoning_events += 1
+    except OSError as exc:
+        return {"available": False, "error": str(exc), **identity}
+
+    def usage_values(raw: dict[str, Any]) -> dict[str, int]:
+        input_tokens = int(raw.get("input_tokens") or 0)
+        cached = int(raw.get("cached_input_tokens") or 0)
+        cache_write = int(raw.get("cache_write_input_tokens") or 0)
+        output = int(raw.get("output_tokens") or 0)
+        reasoning = int(raw.get("reasoning_output_tokens") or 0)
+        total = int(raw.get("total_tokens") or 0)
+        return {
+            "input_tokens": input_tokens,
+            "new_input_tokens": max(0, input_tokens - cached),
+            "cache_read_tokens": cached,
+            "cache_write_tokens": cache_write,
+            "output_tokens": output,
+            "reasoning_tokens": reasoning,
+            "cumulative_total_tokens": total,
+        }
+
+    cumulative = usage_values(total_usage)
+    current = usage_values(last_usage)
+    elapsed = max(0.0, (last_time or 0) - (first_time or 0)) if first_time and last_time else None
+    cumulative_prompt = cumulative["input_tokens"]
+    cumulative.update({
+        "model_turns": model_turns,
+        "tool_calls": tool_calls,
+        "tool_breakdown": dict(sorted(tool_breakdown.items(), key=lambda kv: (-kv[1], kv[0]))),
+        "reasoning_events": reasoning_events,
+        "elapsed_seconds": round(elapsed, 1) if elapsed is not None else None,
+        "output_tokens_per_wall_second": (
+            round(cumulative["output_tokens"] / elapsed, 2) if elapsed and elapsed > 0 else None
+        ),
+        "avg_output_tokens_per_turn": (
+            round(cumulative["output_tokens"] / model_turns, 1) if model_turns else None
+        ),
+        "cache_share_percent": (
+            round(100.0 * cumulative["cache_read_tokens"] / cumulative_prompt, 1)
+            if cumulative_prompt else None
+        ),
+    })
+    current.update({
+        "context_window": int(context_window) if context_window else None,
+        "context_used_percent": (
+            round(100.0 * current["cumulative_total_tokens"] / context_window, 2)
+            if context_window else None
+        ),
+    })
+    result = {
+        "available": True,
+        **identity,
+        "time_created": (
+            datetime.fromtimestamp(first_time, tz=timezone.utc).isoformat().replace("+00:00", "Z")
+            if first_time else None
+        ),
+        "time_updated": (
+            datetime.fromtimestamp(last_time, tz=timezone.utc).isoformat().replace("+00:00", "Z")
+            if last_time else None
+        ),
+        "current_turn": current,
+        "session": cumulative,
+        "rate_limits": rate_limits,
+    }
+    return _cache_put(_CODEX_SUMMARY_CACHE, path, result)
+
+
+def _codex_aggregate(summaries: list[dict[str, Any]]) -> dict[str, Any]:
+    totals = {
+        "input_tokens": 0,
+        "new_input_tokens": 0,
+        "cache_read_tokens": 0,
+        "cache_write_tokens": 0,
+        "output_tokens": 0,
+        "reasoning_tokens": 0,
+        "cumulative_total_tokens": 0,
+        "model_turns": 0,
+        "tool_calls": 0,
+        "reasoning_events": 0,
+        "elapsed_seconds": 0.0,
+    }
+    tools: dict[str, int] = {}
+    valid = [s for s in summaries if s.get("available")]
+    for summary in valid:
+        session = summary.get("session") or {}
+        for key in list(totals):
+            totals[key] += float(session.get(key) or 0)
+        for name, count in (session.get("tool_breakdown") or {}).items():
+            tools[name] = tools.get(name, 0) + int(count)
+    turns = int(totals["model_turns"])
+    elapsed = float(totals["elapsed_seconds"])
+    input_tokens = int(totals["input_tokens"])
+    result = {
+        **{k: int(v) if k != "elapsed_seconds" else round(v, 1) for k, v in totals.items()},
+        "session_count": len(valid),
+        "tool_breakdown": dict(sorted(tools.items(), key=lambda kv: (-kv[1], kv[0]))),
+        "cache_share_percent": (
+            round(100.0 * totals["cache_read_tokens"] / input_tokens, 1) if input_tokens else None
+        ),
+        "avg_output_tokens_per_turn": (
+            round(totals["output_tokens"] / turns, 1) if turns else None
+        ),
+        "output_tokens_per_wall_second": (
+            round(totals["output_tokens"] / elapsed, 2) if elapsed > 0 else None
+        ),
+    }
+    return result
+
+
+def codex_usage_snapshot(
+    workspace: str | Path,
+    session_id: str | None = None,
+    configured_model: str | None = None,
+) -> dict[str, Any]:
+    root = Path.home() / ".codex" / "sessions"
+    if not root.exists():
+        return {"available": False, "error": "Codex session directory not found"}
+
+    target = _normalized_workspace(workspace)
+    mjobs_root = target.split("/.worktrees/", 1)[0]
+    files = list(root.rglob("*.jsonl"))
+    identities: dict[Path, dict[str, Any]] = {
+        path: _codex_rollout_identity(path) for path in files
+    }
+
+    exact = [
+        path for path, ident in identities.items()
+        if _normalized_workspace(ident.get("cwd")) == target
+    ]
+    exact.sort(key=lambda p: p.stat().st_mtime, reverse=True)
+
+    current_path: Path | None = None
+    if session_id:
+        for path, ident in identities.items():
+            if ident.get("session_id") == session_id or session_id in path.name:
+                current_path = path
+                break
+    if current_path is None and exact:
+        current_path = exact[0]
+
+    cache: dict[Path, dict[str, Any]] = {}
+    def summary(path: Path) -> dict[str, Any]:
+        if path not in cache:
+            cache[path] = _codex_rollout_summary(path)
+        return cache[path]
+
+    worktree_summaries = [summary(path) for path in exact]
+    current = summary(current_path) if current_path else None
+
+    model_name = configured_model or (current or {}).get("model")
+    model_files = [
+        path for path, ident in identities.items()
+        if model_name
+        and ident.get("model") == model_name
+        and _normalized_workspace(ident.get("cwd")).startswith(mjobs_root)
+    ]
+    model_summaries = [summary(path) for path in model_files]
+    cutoff = time.time() - 86400
+    model_24h = [
+        summary(path) for path in model_files if path.stat().st_mtime >= cutoff
+    ]
+
+    return {
+        "available": True,
+        "current_session": current,
+        "worktree": _codex_aggregate(worktree_summaries),
+        "session_count": len(worktree_summaries),
+        "model_mjobs_all_time": _codex_aggregate(model_summaries),
+        "model_mjobs_24h": _codex_aggregate(model_24h),
+        "configured_model": model_name,
+    }
+
+
+def _antigravity_model_hint(user_text: str) -> str | None:
+    patterns = [
+        r"Current preferred model:\s*([^\n(]+)",
+        r"You are\s+(Claude Opus 4\.6 Thinking|Gemini 3\.8 Flash Medium)",
+        r"model[:=]\s*([A-Za-z0-9._ -]+)",
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, user_text, flags=re.I)
+        if match:
+            return match.group(1).strip()
+    return None
+
+
+
+def _antigravity_transcript_identity(path: Path) -> dict[str, Any]:
+    cached = _cache_get(_ANTIGRAVITY_IDENTITY_CACHE, path)
+    if cached is not None:
+        return cached
+    identity: dict[str, Any] = {
+        "conversation_id": path.parents[2].name,
+        "workspace": None,
+        "issue": None,
+        "requirement_id": None,
+        "model_hint": None,
+    }
+    try:
+        with path.open(encoding="utf-8", errors="replace") as handle:
+            for index, line in enumerate(handle):
+                if index > 20:
+                    break
+                try:
+                    step = json.loads(line)
+                except Exception:
+                    continue
+                if step.get("type") != "USER_INPUT":
+                    continue
+                text = str(step.get("content") or "")
+                match = re.search(r"worktree=([^\s;]+)", text, flags=re.I)
+                if match:
+                    identity["workspace"] = match.group(1).strip()
+                issue_match = re.search(r"issue\s+#(\d+)", text, flags=re.I)
+                if issue_match:
+                    identity["issue"] = int(issue_match.group(1))
+                req_match = re.search(r"(MJ-REQ-[A-Z0-9.]+)", text, flags=re.I)
+                if req_match:
+                    identity["requirement_id"] = req_match.group(1).upper()
+                identity["model_hint"] = _antigravity_model_hint(text)
+                if identity["workspace"]:
+                    break
+    except OSError:
+        pass
+    return _cache_put(_ANTIGRAVITY_IDENTITY_CACHE, path, identity)
+
+
+def _antigravity_transcript_summary(path: Path) -> dict[str, Any]:
+    cached = _cache_get(_ANTIGRAVITY_SUMMARY_CACHE, path)
+    if cached is not None:
+        return cached
+    identity = _antigravity_transcript_identity(path)
+    conversation_id = identity["conversation_id"]
+    first_time: float | None = None
+    last_time: float | None = None
+    workspace: str | None = identity.get("workspace")
+    issue: int | None = identity.get("issue")
+    requirement: str | None = identity.get("requirement_id")
+    model_hint: str | None = identity.get("model_hint")
+    total_steps = 0
+    planner_turns = 0
+    generic_steps = 0
+    failed_steps = 0
+    input_tokens = 0
+    cache_read_tokens = 0
+    output_tokens = 0
+    thinking_steps = 0
+    thinking_characters = 0
+    thinking_words = 0
+    tool_calls = 0
+    tools: dict[str, int] = {}
+    latest_context = 0
+    latest_input = 0
+    latest_cache = 0
+    latest_output = 0
+
+    try:
+        with path.open(encoding="utf-8", errors="replace") as handle:
+            for line in handle:
+                try:
+                    step = json.loads(line)
+                except Exception:
+                    continue
+                total_steps += 1
+                stamp = _iso_timestamp(step.get("created_at"))
+                if stamp is not None:
+                    first_time = stamp if first_time is None else min(first_time, stamp)
+                    last_time = stamp if last_time is None else max(last_time, stamp)
+                if str(step.get("status") or "").upper() not in {"DONE", ""}:
+                    failed_steps += 1
+
+                typ = step.get("type")
+                if typ == "USER_INPUT":
+                    text = str(step.get("content") or "")
+                    match = re.search(r"worktree=([^\s;]+)", text, flags=re.I)
+                    if match:
+                        workspace = match.group(1).strip()
+                    issue_match = re.search(r"issue\s+#(\d+)", text, flags=re.I)
+                    if issue_match:
+                        issue = int(issue_match.group(1))
+                    req_match = re.search(r"(MJ-REQ-[A-Z0-9.]+)", text, flags=re.I)
+                    if req_match:
+                        requirement = req_match.group(1).upper()
+                    model_hint = _antigravity_model_hint(text) or model_hint
+                elif typ == "PLANNER_RESPONSE":
+                    planner_turns += 1
+                    current_input = int(step.get("input_tokens") or 0)
+                    current_cache = int(step.get("cache_read_tokens") or 0)
+                    current_output = int(step.get("output_tokens") or 0)
+                    input_tokens += current_input
+                    cache_read_tokens += current_cache
+                    output_tokens += current_output
+                    latest_input = current_input
+                    latest_cache = current_cache
+                    latest_output = current_output
+                    latest_context = current_input + current_cache
+                    thinking = str(step.get("thinking") or "")
+                    if thinking:
+                        thinking_steps += 1
+                        thinking_characters += len(thinking)
+                        thinking_words += len(thinking.split())
+                    for tool in step.get("tool_calls") or []:
+                        tool_calls += 1
+                        name = str(tool.get("name") or "unknown")
+                        tools[name] = tools.get(name, 0) + 1
+                elif typ == "GENERIC":
+                    generic_steps += 1
+    except OSError as exc:
+        return {"available": False, "error": str(exc), "conversation_id": conversation_id}
+
+    elapsed = max(0.0, (last_time or 0) - (first_time or 0)) if first_time and last_time else None
+    prompt_material = input_tokens + cache_read_tokens
+    result = {
+        "available": True,
+        "conversation_id": conversation_id,
+        "workspace": workspace,
+        "issue": issue,
+        "requirement_id": requirement,
+        "model_hint": model_hint,
+        "time_created": (
+            datetime.fromtimestamp(first_time, tz=timezone.utc).isoformat().replace("+00:00", "Z")
+            if first_time else None
+        ),
+        "time_updated": (
+            datetime.fromtimestamp(last_time, tz=timezone.utc).isoformat().replace("+00:00", "Z")
+            if last_time else None
+        ),
+        "latest_context_tokens": latest_context,
+        "latest_input_tokens": latest_input,
+        "latest_cache_read_tokens": latest_cache,
+        "latest_output_tokens": latest_output,
+        "input_tokens": input_tokens,
+        "cache_read_tokens": cache_read_tokens,
+        "output_tokens": output_tokens,
+        "cumulative_total_tokens": input_tokens + cache_read_tokens + output_tokens,
+        "planner_turns": planner_turns,
+        "generic_steps": generic_steps,
+        "total_steps": total_steps,
+        "failed_steps": failed_steps,
+        "tool_calls": tool_calls,
+        "tool_breakdown": dict(sorted(tools.items(), key=lambda kv: (-kv[1], kv[0]))),
+        "thinking_steps": thinking_steps,
+        "thinking_characters": thinking_characters,
+        "thinking_words": thinking_words,
+        "elapsed_seconds": round(elapsed, 1) if elapsed is not None else None,
+        "output_tokens_per_wall_second": (
+            round(output_tokens / elapsed, 2) if elapsed and elapsed > 0 else None
+        ),
+        "avg_output_tokens_per_turn": (
+            round(output_tokens / planner_turns, 1) if planner_turns else None
+        ),
+        "cache_share_percent": (
+            round(100.0 * cache_read_tokens / prompt_material, 1)
+            if prompt_material else None
+        ),
+    }
+    return _cache_put(_ANTIGRAVITY_SUMMARY_CACHE, path, result)
+
+
+def _antigravity_aggregate(summaries: list[dict[str, Any]]) -> dict[str, Any]:
+    valid = [s for s in summaries if s.get("available")]
+    numeric = (
+        "input_tokens", "cache_read_tokens", "output_tokens",
+        "cumulative_total_tokens", "planner_turns", "generic_steps",
+        "total_steps", "failed_steps", "tool_calls", "thinking_steps",
+        "thinking_characters", "thinking_words", "elapsed_seconds",
+    )
+    result: dict[str, Any] = {key: 0 for key in numeric}
+    tools: dict[str, int] = {}
+    for summary in valid:
+        for key in numeric:
+            result[key] += float(summary.get(key) or 0)
+        for name, count in (summary.get("tool_breakdown") or {}).items():
+            tools[name] = tools.get(name, 0) + int(count)
+    for key in numeric:
+        if key != "elapsed_seconds":
+            result[key] = int(result[key])
+    result["elapsed_seconds"] = round(float(result["elapsed_seconds"]), 1)
+    result["conversation_count"] = len(valid)
+    result["tool_breakdown"] = dict(sorted(tools.items(), key=lambda kv: (-kv[1], kv[0])))
+    prompt_material = result["input_tokens"] + result["cache_read_tokens"]
+    result["cache_share_percent"] = (
+        round(100.0 * result["cache_read_tokens"] / prompt_material, 1)
+        if prompt_material else None
+    )
+    result["avg_output_tokens_per_turn"] = (
+        round(result["output_tokens"] / result["planner_turns"], 1)
+        if result["planner_turns"] else None
+    )
+    result["output_tokens_per_wall_second"] = (
+        round(result["output_tokens"] / result["elapsed_seconds"], 2)
+        if result["elapsed_seconds"] else None
+    )
+    return result
+
+
+def _normalize_model_name(value: str | None) -> str:
+    return re.sub(r"[^a-z0-9]+", "", str(value or "").casefold())
+
+
+def antigravity_usage_snapshot(
+    workspace: str | Path,
+    conversation_id: str | None = None,
+    configured_model: str | None = None,
+) -> dict[str, Any]:
+    brain = Path.home() / ".gemini" / "antigravity-cli" / "brain"
+    if not brain.exists():
+        return {"available": False, "error": "Antigravity brain directory not found"}
+
+    target = _normalized_workspace(workspace)
+    mjobs_root = target.split("/.worktrees/", 1)[0]
+    transcript_paths = list(brain.glob("*/.system_generated/logs/transcript_full.jsonl"))
+    identities = {
+        path: _antigravity_transcript_identity(path) for path in transcript_paths
+    }
+    summaries: dict[Path, dict[str, Any]] = {}
+
+    def summary(path: Path) -> dict[str, Any]:
+        if path not in summaries:
+            summaries[path] = _antigravity_transcript_summary(path)
+        return summaries[path]
+
+    matching: list[Path] = [
+        path for path, identity in identities.items()
+        if _normalized_workspace(identity.get("workspace")) == target
+    ]
+    matching.sort(key=lambda p: p.stat().st_mtime, reverse=True)
+
+    current_path: Path | None = None
+    if conversation_id:
+        candidate = brain / conversation_id / ".system_generated" / "logs" / "transcript_full.jsonl"
+        if candidate.exists():
+            candidate_summary = summary(candidate)
+            if _normalized_workspace(candidate_summary.get("workspace")) == target:
+                current_path = candidate
+    if current_path is None and matching:
+        current_path = matching[0]
+
+    worktree_summaries = [summary(path) for path in matching]
+    current = summary(current_path) if current_path else None
+
+    configured_norm = _normalize_model_name(configured_model)
+    model_paths = [
+        path for path, identity in identities.items()
+        if _normalized_workspace(identity.get("workspace")).startswith(mjobs_root)
+        and configured_norm
+        and configured_norm in _normalize_model_name(identity.get("model_hint"))
+    ]
+    model_history = [summary(path) for path in model_paths]
+    cutoff = time.time() - 86400
+    model_24h = [
+        item for item in model_history
+        if (_iso_timestamp(item.get("time_updated")) or 0) >= cutoff
+    ]
+
+    return {
+        "available": True,
+        "current_conversation": current,
+        "worktree": _antigravity_aggregate(worktree_summaries),
+        "conversation_count": len(worktree_summaries),
+        "configured_model_history": _antigravity_aggregate(model_history),
+        "configured_model_24h": _antigravity_aggregate(model_24h),
+        "configured_model": configured_model,
+        "model_history_attribution": (
+            "Historical model grouping uses the model named in each lane launch prompt; "
+            "quota percentages are not exposed by the Antigravity CLI."
+        ),
+    }

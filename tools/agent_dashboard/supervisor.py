@@ -15,6 +15,8 @@ from pathlib import Path
 from typing import Any
 
 from .observability import (
+    antigravity_usage_snapshot,
+    codex_usage_snapshot,
     log_activity,
     ollama_ps,
     opencode_usage_snapshot,
@@ -539,7 +541,7 @@ class AgentSupervisor:
         with self._lock:
             state.update({
                 "pid": None, "status": "STOPPED", "stopped_at": utc_now(),
-                "last_reason": "USER_STOP",
+                "last_reason": "STOP_REQUESTED",
             })
             child = self._children.pop(lane, None)
             if child:
@@ -684,13 +686,33 @@ class AgentSupervisor:
         worktrees = _run(["git", "worktree", "list"], self.root).stdout.splitlines()
         return {"branch": branch, "head": head, "origin_main": origin, "dirty": status, "worktrees": worktrees}
 
+    def _lane_file_status(self, lane: str) -> str | None:
+        path = self.root / "planning" / "lanes" / lane / "CONTINUATION.json"
+        try:
+            value = json.loads(path.read_text(encoding="utf-8")).get("status")
+            return str(value) if value else None
+        except Exception:
+            return None
+
     def snapshot(self) -> dict[str, Any]:
         telemetry = self.telemetry_snapshot()
+        coordination = self.coordination()
+        claims = coordination.get("claims") or {}
         gpu_by_pid = (telemetry.get("gpu") or {}).get("by_pid") or {}
         with self._lock:
             lanes = {}
             for lane in LANES:
                 state = dict(self.runtime["lanes"][lane])
+                claim = claims.get(lane)
+                if (
+                    not state.get("pid")
+                    and not claim
+                    and self._lane_file_status(lane) == "IDLE_READY"
+                ):
+                    state["status"] = "IDLE_UNASSIGNED"
+                    state["last_reason"] = (
+                        "Previous work is complete/released; no active issue claim is assigned."
+                    )
                 if state.get("pid") and not pid_alive(state["pid"]):
                     state["status"] = "EXITED_UNRECONCILED"
                 activity = log_activity(self.log_path(lane), lane)
@@ -709,7 +731,24 @@ class AgentSupervisor:
                     activity_state = "STOPPED"
 
                 if lane == "codex":
-                    usage = telemetry.get("codex_usage") or {"available": False}
+                    usage = dict(telemetry.get("codex_usage") or {"available": False})
+                    workspace = state.get("workspace") or (
+                        self._live_claim(lane).get("worktree")
+                    )
+                    if workspace:
+                        codex_stats = self._cached_telemetry(
+                            f"codex_stats:{workspace}:{activity.get('session_id')}:{self.config['lanes'][lane].get('model')}",
+                            3.0,
+                            lambda workspace=workspace, session_id=activity.get("session_id"), model=self.config["lanes"][lane].get("model"): codex_usage_snapshot(
+                                workspace,
+                                session_id=session_id,
+                                configured_model=model,
+                            ),
+                        )
+                        usage["telemetry"] = codex_stats
+                        current_session = codex_stats.get("current_session") or {}
+                        if current_session.get("session_id"):
+                            activity["session_id"] = current_session["session_id"]
                     visibility = (
                         "codex exec is a separate one-shot process; it is not guaranteed "
                         "to appear inside another interactive Codex /agents view"
@@ -717,9 +756,26 @@ class AgentSupervisor:
                 elif lane == "antigravity":
                     usage = {
                         "available": False,
-                        "message": "Antigravity CLI does not expose a quota percentage locally.",
+                        "message": "Antigravity CLI does not expose a remaining-quota percentage locally.",
                     }
-                    visibility = "agy --print supervised process"
+                    workspace = state.get("workspace") or (
+                        self._live_claim(lane).get("worktree")
+                    )
+                    if workspace:
+                        agy_stats = self._cached_telemetry(
+                            f"antigravity_stats:{workspace}:{activity.get('session_id')}:{self.config['lanes'][lane].get('model')}",
+                            3.0,
+                            lambda workspace=workspace, conversation_id=activity.get("session_id"), model=self.config["lanes"][lane].get("model"): antigravity_usage_snapshot(
+                                workspace,
+                                conversation_id=conversation_id,
+                                configured_model=model,
+                            ),
+                        )
+                        usage["telemetry"] = agy_stats
+                        current_conversation = agy_stats.get("current_conversation") or {}
+                        if current_conversation.get("conversation_id"):
+                            activity["session_id"] = current_conversation["conversation_id"]
+                    visibility = "agy --print supervised process + structured Antigravity transcript telemetry"
                 else:
                     workspace = state.get("workspace") or (
                         self._live_claim(lane).get("worktree")
@@ -778,7 +834,7 @@ class AgentSupervisor:
             "time": utc_now(),
             "lanes": lanes,
             "git": self.git_state(),
-            "coordination": self.coordination(),
+            "coordination": coordination,
             "system": {
                 "gpu": telemetry.get("gpu"),
                 "ollama": telemetry.get("ollama"),
