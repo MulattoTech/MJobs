@@ -78,9 +78,6 @@ class AuditHistoryBrowserTests(unittest.TestCase):
                 )
             with store.engine.begin() as connection:
                 connection.execute(m.audit.insert().values(
-                    id="fixture-setting-changed", entity_id="fixture", action="SETTING_CHANGED",
-                    payload={}, timestamp="2026-10-07T10:00:00+00:00"))
-                connection.execute(m.audit.insert().values(
                     id="other-history", entity_id="other", action="PROFILE_SAVED",
                     payload={"value": "other-private-setting"},
                     timestamp="2026-10-07T10:01:00+00:00"))
@@ -115,7 +112,11 @@ class AuditHistoryBrowserTests(unittest.TestCase):
                     page.goto(origin, wait_until="domcontentloaded")
                     page.evaluate("localStorage.setItem('mjobs-profile', 'fixture')")
                     page.reload(wait_until="domcontentloaded")
-                    private_setting = "Private Synthetic Travel Preference"
+                    page.get_by_role("button", name="AI Settings", exact=True).click()
+                    page.get_by_label("Job scoring provider", exact=True).select_option("ollama")
+                    page.get_by_label("Job scoring model", exact=True).fill("llama3.2:3b")
+                    page.get_by_role("button", name="Save AI task settings", exact=True).click()
+                    expect(page.get_by_text("AI task settings saved for this profile.", exact=True)).to_be_visible()
                     page.get_by_role("button", name="Activity", exact=True).click()
                     history = page.get_by_role("list", name="Audit history")
                     expect(history).to_contain_text("A profile setting changed")
@@ -129,7 +130,9 @@ class AuditHistoryBrowserTests(unittest.TestCase):
                         "New source posting attached to an existing job")
                     expect(history).not_to_contain_text(application_url)
                     expect(history).not_to_contain_text("Private synthetic recruiter note")
-                    expect(history).not_to_contain_text(private_setting)
+                    expect(history).not_to_contain_text("job_scoring")
+                    expect(history).not_to_contain_text("ollama")
+                    expect(history).not_to_contain_text("llama3.2:3b")
                     page.reload(wait_until="domcontentloaded")
                     page.get_by_role("button", name="Activity", exact=True).click()
                     expect(page.get_by_role("list", name="Audit history")).to_contain_text(

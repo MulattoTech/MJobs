@@ -288,10 +288,23 @@ class Store:
             raise ValueError("AI_TASK_CONFIG_INVALID")
         timestamp = now()
         with self.engine.begin() as connection:
+            current_rows = connection.execute(
+                select(m.ai_task_settings.c.task, m.ai_task_settings.c.provider,
+                       m.ai_task_settings.c.model)
+                .where(m.ai_task_settings.c.profile_id == profile_id)
+            ).mappings()
+            current = {
+                row["task"]: {"provider": row["provider"], "model": row["model"]}
+                for row in current_rows
+            }
+            changed = False
             for task, selection in selections.items():
                 if (not isinstance(task, str) or not isinstance(selection, dict)
                         or set(selection) != {"provider", "model"}):
                     raise ValueError("AI_TASK_CONFIG_INVALID")
+                effective_current = current.get(
+                    task, {"provider": "disabled", "model": None})
+                changed = changed or selection != effective_current
                 upsert(connection, m.ai_task_settings, {
                     "id": identity(profile_id, task),
                     "profile_id": profile_id,
@@ -300,6 +313,8 @@ class Store:
                     "model": selection["model"],
                     "updated_at": timestamp,
                 }, replace=True)
+            if changed:
+                self._audit(connection, profile_id, "SETTING_CHANGED", {})
         return self.ai_task_settings(profile_id)
 
     def provider_credentials(self, profile_id):

@@ -6,8 +6,10 @@ import unittest
 from unittest.mock import patch
 
 from fastapi.testclient import TestClient
+from sqlalchemy import select
 
 from apps.api.main import create_app
+from packages.persistence import models as m
 from packages.persistence.store import Store
 from services.discovery.manual_capture import capture_manual_job
 from services.discovery.matching import recalculate
@@ -65,6 +67,55 @@ class AITaskSettingsApiTests(unittest.TestCase):
         reloaded = self.client.get("/profiles/fixture/ai-task-settings")
         self.assertEqual(reloaded.status_code, 200, reloaded.text)
         self.assertEqual(reloaded.json()["tasks"], configured)
+
+    def test_ai_task_setting_changes_append_one_value_free_profile_event(self):
+        defaults = {task: {"provider": "disabled", "model": None} for task in AI_TASKS}
+
+        initial_save = self.client.put("/profiles/fixture/ai-task-settings",
+                                       json={"tasks": defaults})
+        self.assertEqual(initial_save.status_code, 200, initial_save.text)
+        before_change = self.client.get("/profiles/fixture/audit-history")
+        self.assertEqual(before_change.status_code, 200, before_change.text)
+        self.assertFalse(any(event["type"] == "SETTING_CHANGED"
+                             for event in before_change.json()["events"]))
+
+        configured = {**defaults, "job_scoring": {"provider": "ollama",
+                                                    "model": "llama3.2:3b"}}
+        changed = self.client.put("/profiles/fixture/ai-task-settings",
+                                  json={"tasks": configured})
+        self.assertEqual(changed.status_code, 200, changed.text)
+        unchanged = self.client.put("/profiles/fixture/ai-task-settings",
+                                    json={"tasks": configured})
+        self.assertEqual(unchanged.status_code, 200, unchanged.text)
+
+        history = self.client.get("/profiles/fixture/audit-history")
+        self.assertEqual(history.status_code, 200, history.text)
+        setting_events = [event for event in history.json()["events"]
+                          if event["type"] == "SETTING_CHANGED"]
+        self.assertEqual(len(setting_events), 1)
+        self.assertEqual(setting_events[0]["summary"], "A profile setting changed")
+        self.assertNotIn("job_scoring", history.text)
+        self.assertNotIn("ollama", history.text)
+        self.assertNotIn("llama3.2:3b", history.text)
+        with self.store.engine.connect() as connection:
+            payload = connection.execute(select(m.audit.c.payload).where(
+                m.audit.c.id == setting_events[0]["id"])).scalar_one()
+        self.assertEqual(payload, {})
+
+        other_history = self.client.get("/profiles/other-profile/audit-history")
+        self.assertEqual(other_history.status_code, 200, other_history.text)
+        self.assertFalse(any(event["type"] == "SETTING_CHANGED"
+                             for event in other_history.json()["events"]))
+
+        self.client.close()
+        self.store.engine.dispose()
+        self.store = Store(self.database_url)
+        self.client = TestClient(create_app(self.store, "http://127.0.0.1:8090", self.root,
+                                            "redis://127.0.0.1:1/0", operation_mode="PERSONAL"))
+        reloaded = self.client.get("/profiles/fixture/audit-history")
+        self.assertEqual(reloaded.status_code, 200, reloaded.text)
+        self.assertEqual(sum(event["type"] == "SETTING_CHANGED"
+                             for event in reloaded.json()["events"]), 1)
 
     def test_all_disabled_keeps_deterministic_matching_and_factual_documents_available(self):
         settings = self.client.get("/profiles/fixture/ai-task-settings").json()
