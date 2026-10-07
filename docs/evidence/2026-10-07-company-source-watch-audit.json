@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-07T23:31:18Z",
+  "issue": 177,
+  "requirement_id": "MJ-REQ-176",
+  "result": "PARTIAL",
+  "source_commit": "d054731aaffe0ba849bd0deabfe016f522bf931e",
+  "source_tree": "1b46f1041f39c0fdd6a93846547dee33af8fbf6a",
+  "base_main": "95df9ada79deeaa4e96e88797604ae20f7fe72cb",
+  "acceptance_oracle": "For an effective company-source watch-origin change, append one generic empty-payload profile SETTING_CHANGED event for every distinct profile with a recorded COMPANY_SOURCE_ENROLLED link for that source, in the same transaction. No event is written for no-op requests, including unwatching a manually added source that remains USER_WATCHED. Connected Activity remains profile-scoped and value-free after reload.",
+  "red_observation": {
+    "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_audit_history.AuditHistoryApiTests.test_company_source_watch_changes_append_setting_events_only_when_origin_changes -v",
+    "result": "FAIL before implementation as expected: effective watch/unwatch changes produced zero profile SETTING_CHANGED events."
+  },
+  "implementation": [
+    "Effective watch/unwatch changes now append one empty-payload SETTING_CHANGED profile event for each distinct recorded enrollment profile inside the source transaction. No-op operations remain silent, including manual-source unwatch.",
+    "SQLite write transactions use BEGIN IMMEDIATE and other supported databases use row locking while deciding whether origin changes, preventing concurrent no-op/effective-change decisions from producing duplicate audit events.",
+    "Integration tests verify effective changes, repeated no-ops, multiple enrolled profiles, manual-source no-op, empty payloads, API redaction, and profile isolation.",
+    "Connected Chromium exercises Watch and Unwatch from Sources, then verifies Activity after navigation and reload, including redaction and profile isolation."
+  ],
+  "validation": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_audit_history tests.integration.test_company_sources -v",
+      "result": "PASS: 22 integration tests."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_audit_history -v",
+      "result": "PASS: connected Chromium Activity audit-history test."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_company_source_view -v",
+      "result": "PASS: connected Chromium company-source view test."
+    },
+    {
+      "command": "npm ci --prefix apps/web",
+      "result": "PASS: 44 packages installed, zero reported vulnerabilities; EBADENGINE warning because Node 25.9.0 is outside Vitest 5.0.3 declared engine range."
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run",
+      "result": "PASS: 13 files, 63 tests."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS: TypeScript check and Vite production build."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py'",
+      "result": "PASS at source tree 1b46f1041f39c0fdd6a93846547dee33af8fbf6a: 969 tests run, 8 skipped, zero failures/errors; 600.201 seconds."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.agent_skills",
+      "result": "PASS."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.catalogue",
+      "result": "PASS."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.progress validate",
+      "result": "PASS."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.coordination.lane_coordination",
+      "result": "PASS."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m compileall -q services/company_discovery/sources.py tests/integration/test_audit_history.py tests/browser/test_audit_history.py",
+      "result": "PASS."
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS before candidate commit."
+    }
+  ],
+  "scope": {
+    "database": "Temporary SQLite databases; no schema or migration change.",
+    "browser": "Synthetic profile data and local Chromium/loopback API. No provider or employer requests were made.",
+    "postgresql_docker": "NOT_RUN.",
+    "hosted_actions_review": "NOT_RUN_BY_USER_POLICY; repository Actions remain disabled.",
+    "external_submission": "OFF"
+  },
+  "environment_notes": [
+    "Tests used the existing C:\\Tools\\Dev\\MJobs\\.venv virtual environment.",
+    "npm ci emitted the Node/Vitest engine warning recorded above; frontend tests and build passed.",
+    "The full suite reported 8 skipped tests; standard unittest summary did not list their individual reasons.",
+    "The full suite created an untracked zero-byte events.jsonl in the feature worktree. It was preserved and excluded from commits."
+  ],
+  "limitations": [
+    "This is one scoped partial slice. Issue #177 / MJ-REQ-176 remains OPEN/PARTIAL for other setting and truthful lifecycle event producers.",
+    "No PostgreSQL/Docker, hosted CI, or independent review result is claimed."
+  ]
+}
