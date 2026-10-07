@@ -442,7 +442,7 @@
     "source_tree": "162db219e2b3ea614891175924e0c96ccdda29fd",
     "scope": "All stated MJ-REQ-007 issue acceptance, including protected provider-credential migration failure rollback/retry and ciphertext-preserving downgrade refusal on SQLite and isolated PostgreSQL 17.",
     "evidence_path": "docs/evidence/2026-10-07-source-change-safety-completion.json",
-    "integration_commit": "f28652d6fe82e6aac3995103766f6451b81c7ded"
+    "integration_commit": "0cb82638d2fc0d325865abd9a6ebaeed7b41d291"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -8587,7 +8587,8 @@
       "completed_steps": [
         "Integrated protected provider-credential PostgreSQL 17 failure rollback/retry and ciphertext-preserving downgrade proof at f28652d6fe82e6aac3995103766f6451b81c7ded.",
         "Reconciled all issue #8 criteria with prior healthy-Git, atomic private configuration, backup/restore, SQLite and PostgreSQL recovery evidence.",
-        "Marked only MJ-REQ-007 PASS; full requirement denominator and overall repository status remain unchanged/PARTIAL."
+        "Marked only MJ-REQ-007 PASS; full requirement denominator and overall repository status remain unchanged/PARTIAL.",
+        "Closed GitHub issue #8 after PASS evidence and read back CLOSED at https://github.com/MulattoTech/MJobs/issues/8."
       ],
       "files_added": [
         "docs/evidence/2026-10-07-source-change-safety-completion.json"
@@ -8604,7 +8605,8 @@
         "Migration integration suite: 24 PASS, 1 unrelated optional PostgreSQL skip.",
         "Focused SQLite/provider migration suite: 3 PASS.",
         "Agent skills, catalogue, progress, lane coordination and diff checks: PASS.",
-        "Progress journal validation initially identified a current_phase/latest-milestone mismatch; the root field was corrected and rerun PASS. The initial result is retained in tests_failed as a resolved bookkeeping failure."
+        "Progress journal validation initially identified a current_phase/latest-milestone mismatch; the root field was corrected and rerun PASS. The initial result is retained in tests_failed as a resolved bookkeeping failure.",
+        "GitHub issue #8 CLOSED/readback verified; release comment https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6039083848."
       ],
       "tests_remaining": [
         "Hosted checks/review NOT_RUN_BY_USER_POLICY.",
@@ -8622,14 +8624,14 @@
         "Hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF."
       ],
       "last_safe_checkpoint": {
-        "git_commit": "f28652d6fe82e6aac3995103766f6451b81c7ded",
+        "git_commit": "0cb82638d2fc0d325865abd9a6ebaeed7b41d291",
         "evidence_path": "docs/evidence/2026-10-07-source-change-safety-completion.json"
       }
     }
   ],
   "current_phase": "MJ-REQ-007 stated acceptance locally evidenced and integrated; full repository release remains PARTIAL",
   "last_safe_checkpoint": {
-    "git_commit": "f28652d6fe82e6aac3995103766f6451b81c7ded",
+    "git_commit": "0cb82638d2fc0d325865abd9a6ebaeed7b41d291",
     "evidence_path": "docs/evidence/2026-10-07-source-change-safety-completion.json"
   },
   "live_integrations_tested": [
@@ -8875,11 +8877,13 @@
     "base": "fc20e2fbba6d9c6e702ef53fc40e50387bc8fd82",
     "branch": "codex/mj-req007-protected-config-postgres-20261007",
     "candidate": "f28652d6fe82e6aac3995103766f6451b81c7ded",
-    "integrated_main": "f28652d6fe82e6aac3995103766f6451b81c7ded",
+    "integrated_main": "0cb82638d2fc0d325865abd9a6ebaeed7b41d291",
     "source_commit": "4190e5f768f12d5984828fae76d59148b49fe80e",
     "source_tree": "162db219e2b3ea614891175924e0c96ccdda29fd",
     "evidence": "docs/evidence/2026-10-07-source-change-safety-completion.json",
-    "next_action": "Reconcile GitHub issue readback and all active claims; release #8; continue with the highest-value unclaimed dependency-ready issue. Overall release remains PARTIAL."
+    "next_action": "Synchronize current main and active claims, then select the highest-value unclaimed dependency-ready issue.",
+    "issue_state": "CLOSED",
+    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6039083848"
   },
   "historical_control_snapshots": [
     {
@@ -10019,5 +10023,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-07T13:33:30Z"
+  "updated_at": "2026-10-07T13:34:20Z"
 }

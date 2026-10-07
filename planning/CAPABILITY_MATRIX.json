@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-07T13:33:00Z",
+  "timestamp": "2026-10-07T13:34:20Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -100,7 +100,7 @@
         "docs/evidence/2026-10-07-protected-config-migration-recovery.json",
         "docs/evidence/2026-10-07-source-change-safety-completion.json"
       ],
-      "note": "All stated MJ-REQ-007 acceptance is locally evidenced: healthy Git inspection and preservation of unrelated work; conditional no-Git manifest N/A in this healthy checkout; atomic private configuration initialization; prior backup/restore; SQLite and PostgreSQL migration rollback/retry; protected provider-credential rollback/retry and ciphertext-preserving downgrade refusal on SQLite and isolated PostgreSQL 17. See docs/evidence/2026-10-07-source-change-safety-completion.json. Offline Alembic SQL generation probe failure at existing cb72f9041d6a is retained as a separate limitation outside the issue acceptance. Hosted checks/review NOT_RUN_BY_USER_POLICY; full MJobs release remains incomplete."
+      "note": "All stated MJ-REQ-007 acceptance is locally evidenced: healthy Git inspection and preservation of unrelated work; conditional no-Git manifest N/A in this healthy checkout; atomic private configuration initialization; prior backup/restore; SQLite and PostgreSQL migration rollback/retry; protected provider-credential rollback/retry and ciphertext-preserving downgrade refusal on SQLite and isolated PostgreSQL 17. See docs/evidence/2026-10-07-source-change-safety-completion.json. Offline Alembic SQL generation probe failure at existing cb72f9041d6a is retained as a separate limitation outside the issue acceptance. Hosted checks/review NOT_RUN_BY_USER_POLICY; Issue #8 is CLOSED after evidence readback. Full MJobs release remains incomplete."
     },
     {
       "requirement_id": "MJ-REQ-008",

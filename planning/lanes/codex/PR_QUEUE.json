@@ -174,28 +174,30 @@
     {
       "issue": 8,
       "requirement_id": "MJ-REQ-007",
-      "status": "INTEGRATED_PARTIAL",
+      "status": "INTEGRATED_PASS",
       "priority": 0,
       "target_area": "migrations/env.py; tests/integration/test_migration_recovery.py",
       "depends_on": [],
       "evidence_path": "docs/evidence/2026-10-07-migration-recovery.json",
-      "scope_complete": false,
-      "note": "Source 7a2107941a4f3ac0379f0053bd1f0421db117f80 pushed from 82b56526f041cdb2e456dcd7c29ad680011da9dd. Injected failure after DDL now rolls back and retries successfully on SQLite and disposable PostgreSQL 17. Full migration suite 23 PASS, 1 optional skip; related units 18 PASS. Broader requirement remains PARTIAL for protected-config recovery and offline SQL generation. Integrated non-force fast-forward at 4f7059f5fcaac5335e2b5aa9e0666dc6848706ad; release https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6038445116. Focused migration 23 PASS/1 optional skip and units 18 PASS."
+      "scope_complete": true,
+      "note": "Source 7a2107941a4f3ac0379f0053bd1f0421db117f80 pushed from 82b56526f041cdb2e456dcd7c29ad680011da9dd. Injected failure after DDL now rolls back and retries successfully on SQLite and disposable PostgreSQL 17. Full migration suite 23 PASS, 1 optional skip; related units 18 PASS. Broader requirement remains PARTIAL for protected-config recovery and offline SQL generation. Integrated non-force fast-forward at 4f7059f5fcaac5335e2b5aa9e0666dc6848706ad; release https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6038445116. Focused migration 23 PASS/1 optional skip and units 18 PASS. Integration PASS at 0cb82638d2fc0d325865abd9a6ebaeed7b41d291; issue CLOSED/readback verified.",
+      "integration_commit": "0cb82638d2fc0d325865abd9a6ebaeed7b41d291",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6039083848"
     },
     {
       "issue": 8,
       "requirement_id": "MJ-REQ-007",
-      "status": "INTEGRATED_PARTIAL",
+      "status": "INTEGRATED_PASS",
       "priority": 0,
       "target_area": "tests/integration/test_migration_recovery.py",
       "depends_on": [
         "existing SQLite/PostgreSQL migration rollback slice"
       ],
       "evidence_path": "docs/evidence/2026-10-07-protected-config-migration-recovery.json",
-      "scope_complete": false,
-      "note": "Added temporary-SQLite fault/retry acceptance for encrypted provider_credentials schema migration. Synthetic ciphertext prevents downgrade; sentinel, schema version and bytes are read back after failure/refusal. Focused migration tests 4 PASS/1 optional PG skip; migration suite 23 PASS/1 optional PG skip; validators PASS. PostgreSQL protected-config recovery and broader issue #8 remain PARTIAL.",
-      "integration_commit": "f8b6127e645bc0977a696dadf01f0017980fbe5a",
-      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6038839646"
+      "scope_complete": true,
+      "note": "Added temporary-SQLite fault/retry acceptance for encrypted provider_credentials schema migration. Synthetic ciphertext prevents downgrade; sentinel, schema version and bytes are read back after failure/refusal. Focused migration tests 4 PASS/1 optional PG skip; migration suite 23 PASS/1 optional PG skip; validators PASS. PostgreSQL protected-config recovery and broader issue #8 remain PARTIAL. Integration PASS at 0cb82638d2fc0d325865abd9a6ebaeed7b41d291; issue CLOSED/readback verified.",
+      "integration_commit": "0cb82638d2fc0d325865abd9a6ebaeed7b41d291",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6039083848"
     },
     {
       "issue": 181,
@@ -215,14 +217,16 @@
     {
       "issue": 8,
       "requirement_id": "MJ-REQ-007",
-      "status": "READY_FOR_INTEGRATION",
+      "status": "INTEGRATED_PASS",
       "priority": 0,
       "target_area": "tests/integration/test_migration_recovery.py; docs/evidence/2026-10-07-source-change-safety-completion.json",
       "depends_on": [],
       "evidence_path": "docs/evidence/2026-10-07-source-change-safety-completion.json",
       "scope_complete": true,
-      "note": "All stated issue acceptance is now locally evidenced: healthy-Git safety and unrelated-work preservation; conditional no-Git fallback N/A; atomic private config initialization; prior backup/restore; SQLite and PostgreSQL migration rollback/retry; protected credential migration rollback/retry and ciphertext-preserving downgrade guard on both SQLite and PostgreSQL 17. Migration suite 24 PASS/1 unrelated optional PG skip, dedicated protected PostgreSQL case 1 PASS, focused SQLite/provider suite 3 PASS. Offline SQL generation probe failure at existing cb72f9041d6a is retained as a separate non-acceptance limitation. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF."
+      "note": "All stated issue acceptance is now locally evidenced: healthy-Git safety and unrelated-work preservation; conditional no-Git fallback N/A; atomic private config initialization; prior backup/restore; SQLite and PostgreSQL migration rollback/retry; protected credential migration rollback/retry and ciphertext-preserving downgrade guard on both SQLite and PostgreSQL 17. Migration suite 24 PASS/1 unrelated optional PG skip, dedicated protected PostgreSQL case 1 PASS, focused SQLite/provider suite 3 PASS. Offline SQL generation probe failure at existing cb72f9041d6a is retained as a separate non-acceptance limitation. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF. Integration PASS at 0cb82638d2fc0d325865abd9a6ebaeed7b41d291; issue CLOSED/readback verified.",
+      "integration_commit": "0cb82638d2fc0d325865abd9a6ebaeed7b41d291",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6039083848"
     }
   ],
-  "generated_at": "2026-10-07T13:31:43Z"
+  "generated_at": "2026-10-07T13:34:20Z"
 }
