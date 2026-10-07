@@ -121,3 +121,8 @@ The search-profile SETTING_CHANGED slice was integrated at d4fd68c73acfeab3c47d5
 ## 2026-10-07 Issue #177 AI cost-policy audit slice
 
 Source 612a697b47dbf9a9c695261835727445dd699b1b, tree 4ce56334dcdd71470a11ab682aa738032c0c35d6, evidence docs/evidence/2026-10-07-ai-cost-policy-audit.json. Effective profile AI cost-policy saves now append one generic empty-payload SETTING_CHANGED row atomically; absent-row defaults and unchanged saves emit none. 35 affected integration/browser tests, full Python 967/8 skipped, frontend 63/build and local validators PASS. Claim: https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6047753340. Pending integration lock and fast-forward; keep issue OPEN/PARTIAL. PostgreSQL/Docker NOT_RUN; hosted NOT_RUN_BY_USER_POLICY; external submission OFF. Preserve the unrelated zero-byte events.jsonl in the worktree.
+
+
+## 2026-10-07 Issue #177 AI cost-policy audit closeout
+
+Source 612a697b47dbf9a9c695261835727445dd699b1b, validated tree 4ce56334dcdd71470a11ab682aa738032c0c35d6, and evidence docs/evidence/2026-10-07-ai-cost-policy-audit.json integrated at main 2d5dcaba6b20012df93de8546f216ecdd5a26d3c. The policy write and one generic empty-payload SETTING_CHANGED record commit together only for effective changes; default-equivalent and unchanged saves are silent. 35 affected integration/browser tests, full Python 967/8 skipped, frontend 63/build, and local validators PASS. GitHub integration comment: https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6048007349. Issue #177 remains OPEN/PARTIAL. Hosted NOT_RUN_BY_USER_POLICY; PostgreSQL/Docker NOT_RUN; external submission OFF. Preserve the zero-byte events.jsonl in the source worktree.

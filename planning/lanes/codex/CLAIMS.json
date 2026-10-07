@@ -848,11 +848,14 @@
         "docs/evidence/2026-10-07-ai-cost-policy-audit.json",
         "planning/lanes/codex/**"
       ],
-      "status": "ACTIVE",
+      "status": "RELEASED",
       "claimed_at": "2026-10-07T22:18:17Z",
-      "head": "612a697b47dbf9a9c695261835727445dd699b1b",
+      "head": "2d5dcaba6b20012df93de8546f216ecdd5a26d3c",
       "evidence_path": "docs/evidence/2026-10-07-ai-cost-policy-audit.json",
-      "claim_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6047753340"
+      "claim_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6047753340",
+      "released_at": "2026-10-07T22:19:26Z",
+      "integrated_main": "2d5dcaba6b20012df93de8546f216ecdd5a26d3c",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6048007349"
     }
   ]
 }
