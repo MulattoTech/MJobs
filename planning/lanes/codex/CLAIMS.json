@@ -656,7 +656,7 @@
       "requirement_id": "MJ-REF-033",
       "branch": "codex/mj-ref033-page-budget-20261007",
       "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-ref033-page-budget-20261007",
-      "head": "79b29ee0fe61af0906772f182c0ac280f73fc2f4",
+      "head": "01596a7a093bbfc359e9ded49076aac3cb95d94d",
       "paths": [
         "services/agents/registry.py",
         "services/agents/acceptance.py",
@@ -669,10 +669,14 @@
         "docs/reference/REFERENCE_INSPIRATION_LOG.md",
         "planning/lanes/codex/**"
       ],
-      "status": "ACTIVE",
+      "status": "RELEASED",
       "claimed_at": "2026-10-07T17:53:51Z",
       "claim_comment": "https://github.com/MulattoTech/MJobs/issues/403#issuecomment-6043704223",
-      "scope": "Bounded cooperative per-run page permits and durable sanitized stop evidence; #403 remains partial."
+      "scope": "Bounded cooperative per-run page permits and durable sanitized stop evidence; #403 remains partial.",
+      "released_at": "2026-10-07T18:04:15Z",
+      "integrated_main": "e23c6e981318ccc7e3bc60e2faa02d7855d07b7d",
+      "result": "INTEGRATED_PARTIAL; issue #403 remains OPEN",
+      "release_comment": "https://github.com/MulattoTech/MJobs/issues/403#issuecomment-6043832685"
     }
   ]
 }

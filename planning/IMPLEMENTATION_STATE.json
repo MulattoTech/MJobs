@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-07T18:01:27Z",
+  "generated_at": "2026-10-07T18:04:15Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -545,7 +545,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Issue #403 page-budget slice is integrated PARTIAL at 01596a7a093bbfc359e9ded49076aac3cb95d94d; evidence docs/evidence/2026-10-07-agent-page-budget.json. Release the Codex claim, reconcile current main plus all claims/comments/worktrees/branches, and select the highest-value unclaimed dependency-ready issue. Keep #403 OPEN until browser/source integration, bounded diagnostic reruns, and remaining acceptance are verified.",
+  "recommended_resume_step": "Issue #403 page-budget slice integrated PARTIAL at 01596a7a093bbfc359e9ded49076aac3cb95d94d; canonical main e23c6e981318ccc7e3bc60e2faa02d7855d07b7d; release readback https://github.com/MulattoTech/MJobs/issues/403#issuecomment-6043832685. Reconcile current main, every active claim/comment/worktree/branch, then select the highest-value unclaimed dependency-ready issue.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -9019,7 +9019,8 @@
         "Reproduced missing page-budget behavior: max_pages was rejected and an undeclared page fetch returned generic FAILED instead of a bounded stop.",
         "Added explicit per-run page declaration and thread-safe host permits; undeclared or exhausted page consumption stops before the next fetch and persists sanitized limit/count/reason only.",
         "Validated 25 focused agent tests, compileall, catalogue, progress, reference provenance, agent skill, lane, and diff checks; exact behavior source 79b29ee0fe61af0906772f182c0ac280f73fc2f4.",
-        "Integrated evidence-backed partial slice by non-force fast-forward at 01596a7a093bbfc359e9ded49076aac3cb95d94d; issue #403 remains OPEN/PARTIAL."
+        "Integrated evidence-backed partial slice by non-force fast-forward at 01596a7a093bbfc359e9ded49076aac3cb95d94d; issue #403 remains OPEN/PARTIAL.",
+        "Posted sanitized AI LANE RELEASED readback https://github.com/MulattoTech/MJobs/issues/403#issuecomment-6043832685; machine claim released. Issue #403 remains OPEN/PARTIAL."
       ],
       "files_added": [
         "docs/evidence/2026-10-07-agent-page-budget.json"
@@ -9321,13 +9322,13 @@
     "base": "2e721fdfe27f9218c0d12aa9d9c6c520a2da0182",
     "branch": "codex/mj-ref033-page-budget-20261007",
     "candidate": "01596a7a093bbfc359e9ded49076aac3cb95d94d",
-    "integrated_main": "01596a7a093bbfc359e9ded49076aac3cb95d94d",
+    "integrated_main": "e23c6e981318ccc7e3bc60e2faa02d7855d07b7d",
     "source_commit": "79b29ee0fe61af0906772f182c0ac280f73fc2f4",
     "source_tree": "443fb463d97b5ee45a558e8db06581f0c5d6b333",
     "evidence": "docs/evidence/2026-10-07-agent-page-budget.json",
     "issue_state": "OPEN",
-    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/403#issuecomment-6043785113",
-    "next_action": "Issue remains OPEN/PARTIAL; reconcile all active claims and select the next unclaimed dependency-ready requirement."
+    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/403#issuecomment-6043832685",
+    "next_action": "Issue #403 is OPEN/PARTIAL and its Codex claim is RELEASED at https://github.com/MulattoTech/MJobs/issues/403#issuecomment-6043832685. Reconcile claims/worktrees and select the next highest-value unclaimed dependency-ready issue."
   },
   "historical_control_snapshots": [
     {
@@ -10470,5 +10471,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-07T18:01:27Z"
+  "updated_at": "2026-10-07T18:04:15Z"
 }

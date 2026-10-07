@@ -311,7 +311,7 @@
     {
       "issue": 403,
       "requirement_id": "MJ-REF-033",
-      "status": "CHECKPOINTED_PARTIAL",
+      "status": "INTEGRATED_PARTIAL",
       "priority": 1,
       "target_area": "services/agents/registry.py; services/agents/runtime.py; services/agents/traces.py; tests/integration/test_agent_tools.py",
       "depends_on": [],
@@ -319,7 +319,9 @@
       "scope_complete": false,
       "branch": "codex/mj-ref033-page-budget-20261007",
       "head": "79b29ee0fe61af0906772f182c0ac280f73fc2f4",
-      "note": "Page-reading tools can declare max_pages and must obtain a thread-safe host permit before each fetch. Undeclared/exhausted budgets stop safely and persist sanitized consumption. 25 focused agent tests, compileall and local validators pass. Actual browser/source integration, bounded diagnostics reruns, and preemption of synchronous in-flight handlers remain unaccepted; issue #403 stays OPEN/PARTIAL; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF."
+      "note": "Page-reading tools can declare max_pages and must obtain a thread-safe host permit before each fetch. Undeclared/exhausted budgets stop safely and persist sanitized consumption. 25 focused agent tests, compileall and local validators pass. Actual browser/source integration, bounded diagnostics reruns, and preemption of synchronous in-flight handlers remain unaccepted; issue #403 stays OPEN/PARTIAL; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF. Claim RELEASED at https://github.com/MulattoTech/MJobs/issues/403#issuecomment-6043832685. Canonical main e23c6e981318ccc7e3bc60e2faa02d7855d07b7d. Issue #403 remains OPEN/PARTIAL; browser/source integration, diagnostic reruns, and synchronous in-flight preemption remain incomplete.",
+      "integrated_main": "e23c6e981318ccc7e3bc60e2faa02d7855d07b7d",
+      "release_comment": "https://github.com/MulattoTech/MJobs/issues/403#issuecomment-6043832685"
     }
   ],
   "generated_at": "2026-10-07T17:45:53Z"

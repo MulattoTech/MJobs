@@ -4,7 +4,7 @@ Per-run page-budget follow-up is integrated at `01596a7a093bbfc359e9ded49076aac3
 
 Validation on the exact behavior commit: 25 focused agent acceptance/runtime/prompt tests PASS; compileall, agent-skills, catalogue, progress, reference-provenance, lane validation and diff check PASS. Temporary SQLite fixtures only; no schema change. Browser/source integration NOT_RUN because no page-reading browser/source tool is registered in AgentRuntime and Antigravity #302/Ollama #318 own active adapter paths. PostgreSQL/Docker NOT_APPLICABLE; full Python suite NOT_RUN; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.
 
-Issue #403 remains OPEN/PARTIAL. Remaining work: connect budgets to actual browser/source collection entrypoints without touching active claims, support bounded diagnostic slice reruns without equating agreement with correctness, and address interruption of an already-running synchronous handler. Reconcile claims/worktrees before continuing.
+Issue #403 remains OPEN/PARTIAL; Codex released its claim at https://github.com/MulattoTech/MJobs/issues/403#issuecomment-6043832685. Remaining work: connect budgets to actual browser/source collection entrypoints without touching active claims, support bounded diagnostic slice reruns without equating agreement with correctness, and address interruption of an already-running synchronous handler. Reconcile claims/worktrees before continuing.
 
 ---
 
