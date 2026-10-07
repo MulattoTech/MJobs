@@ -720,3 +720,8 @@ Issue #6 / MJ-REQ-005 direct AI evaluation concurrency admission was integrated 
 
 Sanitized GitHub issue comment/readback and claim release are pending. Release #6, reconcile active claims, and continue to the next highest-value unclaimed dependency-ready issue without waiting for another user prompt.
 Sanitized GitHub issue readback: https://github.com/MulattoTech/MJobs/issues/6#issuecomment-6031361188. Claim release and final planning receipt follow under the integration lock.
+
+
+## 2026-10-07 issue #9 product-worker crash recovery integration checkpoint
+
+Issue #9 / MJ-REQ-008 source `d516834ac3bd48352ef3aa8885a1de1fffe53419` and evidence `docs/evidence/2026-10-07-product-worker-crash-recovery.json` are in the Codex lane candidate. The synthetic worker was killed after claiming a durable SQLite operation; lease recovery returned it to the queue and a replacement process completed it. A reproduced stale attempt now stops before its next checked side effect after another worker reclaims the lease. Full exact-source suite: 851 PASS, one optional PostgreSQL skip; focused worker/browser 20 PASS; frontend build, repository validators, compileall and diff checks PASS. The issue remains OPEN/PARTIAL. Physical host restart, browser-process crash, live PostgreSQL and hosted checks remain NOT_RUN; external submission OFF. The candidate is ready for non-force fast-forward from main 4576d9910a5fb65a7af3e72268c7848812948b5a under the active Codex integration lock.

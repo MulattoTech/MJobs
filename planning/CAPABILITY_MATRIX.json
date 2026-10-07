@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-07T05:08:16Z",
+  "timestamp": "2026-10-07T05:44:41Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -98,9 +98,10 @@
       "evidence": [
         "docs/evidence/2026-10-06-progress-resume-cli.json",
         "docs/evidence/2026-09-30-progress-journal.json",
-        "docs/evidence/2026-10-06-progress-container-crash-recovery.json"
+        "docs/evidence/2026-10-06-progress-container-crash-recovery.json",
+        "docs/evidence/2026-10-07-product-worker-crash-recovery.json"
       ],
-      "note": "The validated read-only resume CLI and separate-process checkpoint adoption pass. An isolated, network-disabled, read-only-bind Linux container was SIGKILLed and restarted; phase, latest milestone and safe checkpoint were identical afterward. Issue #9 remains PARTIAL: physical host restart and browser/product-worker crash recovery are not claimed."
+      "note": "The validated read-only resume CLI and separate-process checkpoint adoption pass. An isolated, network-disabled, read-only-bind Linux container was SIGKILLed and restarted; phase, latest milestone and safe checkpoint were identical afterward. Issue #9 remains PARTIAL: physical host restart and browser/product-worker crash recovery are not claimed. Scoped product-worker recovery is now evidenced: a synthetic worker subprocess was killed after claiming a durable rescore operation; lease recovery and replacement completion passed, and attempt_count fencing stopped a reclaimed stale attempt before its next checked side effect. Evidence docs/evidence/2026-10-07-product-worker-crash-recovery.json. Physical host restart and browser-process crash remain NOT_RUN; live PostgreSQL was skipped because MJOBS_TEST_POSTGRES_URL was unset."
     },
     {
       "requirement_id": "MJ-REQ-009",
