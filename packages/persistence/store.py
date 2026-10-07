@@ -7,7 +7,10 @@ import hashlib
 import json
 from uuid import uuid4
 
-from sqlalchemy import create_engine, event, func, select, text, update
+from sqlalchemy import (
+    String, Text, cast, create_engine, event, func, literal, literal_column, or_,
+    select, text, update,
+)
 from sqlalchemy.dialects.postgresql import insert as postgres_insert
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 
@@ -629,7 +632,28 @@ class Store:
                            (m.matches.c.profile_version == (profile["version"] if profile else "")))
                 .outerjoin(m.applications, (m.applications.c.job_id == m.jobs.c.id) & (m.applications.c.profile_id == profile_id)))
             if q:
-                statement = statement.where(m.jobs.c.title.icontains(q, autoescape=True) | m.companies.c.name.icontains(q, autoescape=True) | m.jobs.c.description.icontains(q, autoescape=True))
+                if self.engine.dialect.name == "postgresql":
+                    search_config = literal_column("'simple'::regconfig")
+                    job_search_text = (
+                        func.coalesce(m.jobs.c.title, literal("")) + literal(" ") +
+                        func.coalesce(m.jobs.c.description, literal("")) + literal(" ") +
+                        func.coalesce(cast(m.jobs.c.skills, Text), literal("")) + literal(" ") +
+                        func.coalesce(m.jobs.c.location, literal(""))
+                    )
+                    search_query = func.websearch_to_tsquery(search_config, q)
+                    job_matches = func.to_tsvector(search_config, job_search_text).bool_op("@@")(search_query)
+                    company_matches = func.to_tsvector(
+                        search_config, func.coalesce(m.companies.c.name, literal(""))
+                    ).bool_op("@@")(search_query)
+                    statement = statement.where(or_(job_matches, company_matches))
+                else:
+                    statement = statement.where(
+                        m.jobs.c.title.icontains(q, autoescape=True) |
+                        m.companies.c.name.icontains(q, autoescape=True) |
+                        m.jobs.c.description.icontains(q, autoescape=True) |
+                        cast(m.jobs.c.skills, String).icontains(q, autoescape=True) |
+                        m.jobs.c.location.icontains(q, autoescape=True)
+                    )
             if remote_type:
                 if remote_type == "REMOTE":
                     statement = statement.where(m.jobs.c.remote_type.in_(("REMOTE", "REMOTE_WORLDWIDE", "REMOTE_US", "REMOTE_COUNTRY", "REMOTE_SPECIFIC_STATES")))
