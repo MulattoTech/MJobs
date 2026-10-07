@@ -79,3 +79,22 @@ code { font-family:"Cascadia Code",Consolas,monospace; font-size:.95em; }
 @media (min-width: 1200px) {
   .lane-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
 }
+
+.terminal-toolbar { display:flex; gap:.45rem; align-items:center; flex-wrap:wrap; margin:.55rem 0; }
+.terminal-toolbar button { padding:.32rem .5rem; font-size:.72rem; }
+.terminal-toolbar .compact { margin:0; }
+.terminal-run { color:#8994a4; font-size:.68rem; }
+.terminal {
+  min-height:18rem;
+  max-height:34rem;
+  white-space:pre-wrap;
+  overflow:auto;
+  tab-size:2;
+  background:#030507;
+  color:#d8f0dc;
+  border-color:#1d3324;
+  font:11px/1.38 "Cascadia Mono","Cascadia Code",Consolas,monospace;
+}
+.terminal-expanded { grid-column:1 / -1; }
+.terminal-expanded .terminal { height:68vh; max-height:68vh; }
+.terminal-details > summary { font-weight:600; }

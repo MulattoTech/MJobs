@@ -2,7 +2,7 @@
   "schema_version": 1,
   "lane": "antigravity",
   "status": "IDLE_READY",
-  "base_main": "682a9847c427c61991fa043134f3f50717c2d620",
+  "base_main": "2b5dd36d5080d2b478be989eec9720d74e0513dd",
   "current_issue": null,
   "requirement_id": null,
   "branch": null,
@@ -10,17 +10,11 @@
   "worktree": null,
   "result": "PASS",
   "last_completed": {
-    "issue": 303,
-    "requirement_id": "MJ-REQ-017.S02",
-    "integration_commit": "682a9847c427c61991fa043134f3f50717c2d620"
+    "issue": 308,
+    "requirement_id": "MJ-REQ-017.S07",
+    "integration_commit": "2b5dd36d5080d2b478be989eec9720d74e0513dd"
   },
-  "next_candidates": [
-    {
-      "issue": 308,
-      "requirement_id": "MJ-REQ-017.S07",
-      "title": "Remote OK source adapter"
-    }
-  ],
+  "next_candidates": [],
   "do_not_overlap": [
     "Codex active claims",
     "services/ai while Codex AI lane is active",

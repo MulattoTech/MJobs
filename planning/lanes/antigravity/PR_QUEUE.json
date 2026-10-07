@@ -12,9 +12,9 @@
     {
       "issue": 308,
       "requirement_id": "MJ-REQ-017.S07",
-      "status": "CANDIDATE",
+      "status": "MERGED",
       "priority": 2,
-      "note": "Remote OK source adapter; next candidate."
+      "note": "Remote OK source adapter verified and integrated into main."
     }
   ]
 }

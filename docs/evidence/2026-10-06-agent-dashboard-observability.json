@@ -30,11 +30,37 @@
     "Ollama derived model accepted PARAMETER num_gpu 15",
     "OpenCode listed ollama/mjobs-gemma4-26b-gpu50",
     "Isolated dashboard GET /api/state returned Codex 92% remaining and Windows GPU telemetry",
-    "git diff --check: PASS"
+    "git diff --check: PASS",
+    "WebSocket live-terminal tests including silent heartbeat: PASS",
+    "Exact historical Antigravity RESOURCE_EXHAUSTED wording classifier test: PASS"
   ],
   "limitations": [
     "Antigravity CLI exposes no local quota percentage endpoint found during inspection; dashboard marks quota unavailable.",
     "GPU offload percentage controls model-layer placement and does not guarantee Windows GPU utilization equals the slider value.",
     "Codex exec sessions are separate one-shot processes and may not appear in another interactive Codex /agents view; dashboard proves them via OS process tree, session log, worktree and activity."
-  ]
+  ],
+  "live_terminal": {
+    "transport": "WebSocket",
+    "sources": {
+      "codex": [
+        "supervised stdout/stderr"
+      ],
+      "antigravity": [
+        "supervised stdout/stderr",
+        "Antigravity native --log-file stream"
+      ],
+      "ollama": [
+        "OpenCode stdout/stderr with --print-logs --log-level INFO --thinking"
+      ]
+    },
+    "behavior": "Streams current-run bytes from run start offset; browser reconnects and receives heartbeats while quiet."
+  },
+  "antigravity_quota_evidence": {
+    "historical_exhaustion": [
+      "2026-10-06 16:27 local: RESOURCE_EXHAUSTED 429 Individual quota reached; reset countdown 4h53m26s.",
+      "2026-10-06 16:43 local: RESOURCE_EXHAUSTED 429 Individual quota reached; reset countdown 4h37m15s."
+    ],
+    "current_observation": "Current Gemini 3.8 Flash Medium native log continued successful streamGenerateContent responses into the 19:00 local hour, so the current lane is not presently quota-blocked.",
+    "classification": "Per-run native logs are scanned for RESOURCE_EXHAUSTED / Individual quota reached; the dashboard flips to BLOCKED_QUOTA immediately when observed."
+  }
 }

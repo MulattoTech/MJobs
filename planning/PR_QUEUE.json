@@ -1935,10 +1935,12 @@
       "depends_on": [
         "MJ-PR-005"
       ],
-      "status": "QUEUED",
-      "branch": "codex/mj-pr-086-mj-req-017-s07-global-job-source-adapter-remote-ok",
+      "status": "MERGED",
+      "branch": "antigravity/mj-req017-s07-remote-ok-20261006",
       "draft_until_verified": true,
-      "notes": "Independent provider PR. Declare only capabilities actually verified."
+      "notes": "Verified Remote OK global job-source adapter capabilities, search/fetch, multi-company attribution, normalization, error handling, and registry integration. Evidence docs/evidence/2026-10-06-remote-ok-job-source-adapter.json. Integrated by non-force fast-forward into main at daa37f52be3e26bbd29094ea40befd18aacbed3a.",
+      "merge_commit": "daa37f52be3e26bbd29094ea40befd18aacbed3a",
+      "merged_at": "2026-10-07T00:15:00Z"
     },
     {
       "id": "MJ-PR-087",

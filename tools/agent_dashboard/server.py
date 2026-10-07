@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import argparse
+import asyncio
+import json
 from pathlib import Path
 from typing import Any
 
 import uvicorn
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field
@@ -91,6 +93,67 @@ def create_app(root: Path | None = None) -> FastAPI:
             return supervisor.update_config(lane, values)
         except KeyError:
             raise HTTPException(404, "unknown lane")
+
+
+    @app.websocket("/ws/lanes/{lane}/terminal")
+    async def terminal_stream(websocket: WebSocket, lane: str):
+        if lane not in LANES:
+            await websocket.close(code=4404)
+            return
+        await websocket.accept()
+        positions: dict[str, int] = {}
+        current_run = "__unset__"
+        last_heartbeat = 0.0
+        try:
+            while True:
+                info = supervisor.terminal_sources(lane)
+                run_id = info.get("run_id")
+                if run_id != current_run:
+                    current_run = run_id
+                    positions = {
+                        source["name"]: int(source.get("start_offset") or 0)
+                        for source in info.get("sources", [])
+                    }
+                    await websocket.send_text(json.dumps({
+                        "type": "run",
+                        "run_id": run_id,
+                        "status": info.get("status"),
+                    }))
+                sent = False
+                for source in info.get("sources", []):
+                    name = source["name"]
+                    path = Path(source["path"])
+                    if not path.exists():
+                        continue
+                    pos = positions.get(name, int(source.get("start_offset") or 0))
+                    try:
+                        size = path.stat().st_size
+                        if pos > size:
+                            pos = int(source.get("start_offset") or 0)
+                        if size > pos:
+                            with path.open("rb") as handle:
+                                handle.seek(pos)
+                                chunk = handle.read(min(131072, size - pos))
+                            positions[name] = pos + len(chunk)
+                            await websocket.send_text(json.dumps({
+                                "type": "data",
+                                "source": name,
+                                "data": chunk.decode("utf-8", errors="replace"),
+                            }))
+                            sent = True
+                    except OSError:
+                        continue
+                now = asyncio.get_running_loop().time()
+                if not sent and (now - last_heartbeat) >= 1.0:
+                    await websocket.send_text(json.dumps({
+                        "type": "heartbeat",
+                        "status": info.get("status"),
+                    }))
+                    last_heartbeat = now
+                if not sent:
+                    await asyncio.sleep(0.18)
+        except WebSocketDisconnect:
+            return
 
     @app.post("/api/stop-all")
     def stop_all():

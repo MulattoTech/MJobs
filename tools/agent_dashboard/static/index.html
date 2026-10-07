@@ -102,9 +102,17 @@
       <summary>Process proof</summary>
       <pre class="process-proof"></pre>
     </details>
-    <details open>
-      <summary>Live log</summary>
-      <pre class="log"></pre>
+    <details open class="terminal-details">
+      <summary>Live terminal</summary>
+      <div class="terminal-toolbar">
+        <span class="terminal-connection pill">connecting</span>
+        <span class="terminal-run"></span>
+        <label class="check-row compact"><input type="checkbox" class="terminal-follow" checked><span>Follow</span></label>
+        <button class="terminal-pause">Pause</button>
+        <button class="terminal-clear">Clear view</button>
+        <button class="terminal-grow">Expand</button>
+      </div>
+      <pre class="terminal" aria-label="Live terminal output"></pre>
     </details>
   </article>
 </template>

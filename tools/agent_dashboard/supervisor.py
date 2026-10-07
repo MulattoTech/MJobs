@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import signal
 import shutil
 import subprocess
@@ -131,6 +132,8 @@ class AgentSupervisor:
         self.runtime_path = self.bus / "dashboard-runtime.json"
         self.log_dir = self.root / "outputs" / "agent-dashboard"
         self.log_dir.mkdir(parents=True, exist_ok=True)
+        self.native_log_dir = self.log_dir / "native"
+        self.native_log_dir.mkdir(parents=True, exist_ok=True)
         self._lock = threading.RLock()
         self._children: dict[str, Child] = {}
         self._stop_requested: set[str] = set()
@@ -283,6 +286,7 @@ class AgentSupervisor:
         lane: str,
         workspace: Path | None = None,
         model_override: str | None = None,
+        native_log_path: Path | None = None,
     ) -> list[str]:
         cfg = self.config["lanes"][lane]
         prompt = self._prompt(lane)
@@ -295,13 +299,16 @@ class AgentSupervisor:
                 "-s", "danger-full-access", prompt,
             ]
         if lane == "antigravity":
+            native_log = native_log_path or (self.native_log_dir / "antigravity-preview.log")
             return [
                 "agy", "--print", prompt, "--model", model,
                 "--mode", "accept-edits", "--dangerously-skip-permissions",
+                "--log-file", str(native_log),
             ]
         return [
             "opencode", "run", "--pure", "--model", model,
-            "--auto", prompt,
+            "--auto", "--print-logs", "--log-level", "INFO", "--thinking",
+            prompt,
         ]
 
     def command_preview(self, lane: str) -> list[str]:
@@ -347,9 +354,18 @@ class AgentSupervisor:
         )
 
     def _launch_command(
-        self, lane: str, workspace: Path, model_override: str | None = None
+        self,
+        lane: str,
+        workspace: Path,
+        model_override: str | None = None,
+        native_log_path: Path | None = None,
     ) -> list[str]:
-        command = self._command(lane, workspace, model_override=model_override)
+        command = self._command(
+            lane,
+            workspace,
+            model_override=model_override,
+            native_log_path=native_log_path,
+        )
         return self._runner_prefix(command[0]) + command[1:]
 
     def _workspace_for_lane(self, lane: str) -> Path:
@@ -395,6 +411,65 @@ class AgentSupervisor:
         data = path.read_text(encoding="utf-8", errors="replace").splitlines()
         return "\n".join(data[-max(1, min(lines, 1000)):])
 
+    def terminal_sources(self, lane: str) -> dict[str, Any]:
+        self._require_lane(lane)
+        state = dict(self.runtime["lanes"][lane])
+        sources = [{
+            "name": "stdout",
+            "path": str(self.log_path(lane)),
+            "start_offset": int(state.get("log_start_offset") or 0),
+        }]
+        native = state.get("native_log_path")
+        if native:
+            sources.append({
+                "name": "native",
+                "path": str(native),
+                "start_offset": 0,
+            })
+        return {
+            "lane": lane,
+            "run_id": state.get("run_id"),
+            "status": state.get("status"),
+            "sources": sources,
+        }
+
+    @staticmethod
+    def _quota_error_from_text(text: str) -> str | None:
+        match = re.search(
+            r"(RESOURCE_EXHAUSTED[^\r\n]*Individual quota reached[^\r\n]*)",
+            text,
+            flags=re.I,
+        )
+        if match:
+            return match.group(1).strip()
+        match = re.search(
+            r"(Individual quota reached[^\r\n]*Resets in [^\r\n.]*)",
+            text,
+            flags=re.I,
+        )
+        return match.group(1).strip() if match else None
+
+    def _live_quota_error(self, lane: str, state: dict[str, Any]) -> str | None:
+        entries: list[tuple[Path, int]] = [
+            (self.log_path(lane), int(state.get("log_start_offset") or 0))
+        ]
+        if state.get("native_log_path"):
+            entries.append((Path(state["native_log_path"]), 0))
+        for path, run_start in entries:
+            try:
+                if not path.exists():
+                    continue
+                with path.open("rb") as handle:
+                    size = path.stat().st_size
+                    handle.seek(max(run_start, size - 262144))
+                    text = handle.read().decode("utf-8", errors="replace")
+                error = self._quota_error_from_text(text)
+                if error:
+                    return error
+            except Exception:
+                continue
+        return None
+
     def start(self, lane: str, *, manual: bool = True) -> dict[str, Any]:
         self._require_lane(lane)
         with self._lock:
@@ -413,7 +488,13 @@ class AgentSupervisor:
                     int(self.config["lanes"][lane].get("gpu_offload_percent", 100)),
                     self.bus,
                 )
+            run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S.%fZ")
             log_path = self.log_path(lane)
+            log_start_offset = log_path.stat().st_size if log_path.exists() else 0
+            native_log_path = (
+                self.native_log_dir / f"{lane}-{run_id}.log"
+                if lane == "antigravity" else None
+            )
             handle = open(log_path, "a", encoding="utf-8", buffering=1)
             handle.write(
                 f"\n\n===== START {utc_now()} workspace={workspace} =====\n"
@@ -422,7 +503,12 @@ class AgentSupervisor:
             env["MJOBS_LANE"] = lane
             flags = subprocess.CREATE_NEW_PROCESS_GROUP if os.name == "nt" else 0
             process = subprocess.Popen(
-                self._launch_command(lane, workspace, model_override=effective_model),
+                self._launch_command(
+                    lane,
+                    workspace,
+                    model_override=effective_model,
+                    native_log_path=native_log_path,
+                ),
                 cwd=str(workspace), env=env,
                 stdin=subprocess.DEVNULL, stdout=handle, stderr=subprocess.STDOUT,
                 text=True, creationflags=flags,
@@ -434,6 +520,9 @@ class AgentSupervisor:
                 "workspace": str(workspace),
                 "effective_model": effective_model,
                 "gpu_offload": gpu_offload,
+                "run_id": run_id,
+                "log_start_offset": log_start_offset,
+                "native_log_path": str(native_log_path) if native_log_path else None,
             })
             self.save()
             return dict(current)
@@ -507,7 +596,13 @@ class AgentSupervisor:
             if child is not None:
                 exit_code = child.process.poll()
                 if exit_code is None:
-                    state["status"] = "RUNNING"
+                    quota_error = self._live_quota_error(lane, state)
+                    if quota_error:
+                        state["status"] = "BLOCKED_QUOTA"
+                        state["last_reason"] = quota_error
+                        self.save()
+                    else:
+                        state["status"] = "RUNNING"
                     return
                 runtime_seconds = time.monotonic() - child.started_monotonic
                 try:
