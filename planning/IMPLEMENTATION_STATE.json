@@ -319,7 +319,8 @@
     "2026-10-07 MJ-REF-033 scoped acceptance: 23 focused agent acceptance/integration/prompt tests PASS; compileall, agent-skills, catalogue, progress, reference-provenance, JSON and diff checks PASS. Browser/PostgreSQL/hosted checks NOT_RUN; external submission OFF. Evidence docs/evidence/2026-10-07-agent-run-budget-output-validation.json.",
     "MJ-REF-005: full Python suite 889 PASS (one optional PostgreSQL skip); affected 25 Python tests, connected browser 2, frontend 63/build, catalogue/progress/skills/lane validators and diff check PASS. Evidence docs/evidence/2026-10-07-no-ai-fallback.json; integrated main 3804a953317b122879747e0075602994c8151678.",
     "MJ-REF-020 issue #390: focused integration 10 PASS; connected browser 6 PASS; frontend 63 PASS/build PASS; full Python 895 PASS with one optional PostgreSQL skip; validators PASS. Evidence docs/evidence/2026-10-07-external-application-capture.json; source 63142751719eb7b52f5fafd2e93dc47a6f53aa51, tree f70b3ef5884b55525e5faa737f1d962510527900, integrated 3ecad2b84f86808314873547ef4aa31de738ce17.",
-    "MJ-REQ-005 / issue #6 PostgreSQL runtime slice: PostgreSQL concurrency, category unit and worker lifecycle tests: 21 PASS, repeated twice against the same disposable PostgreSQL 17 database; repository validators PASS. Evidence docs/evidence/2026-10-07-postgres-concurrency-runtime.json; source 9e282135e9c90d56301b9d8726479479d84a862a, tree fd7665952a141c07a494f3a20b9986766363085b, integration d5d888785d62a091249541fd09cbe092073f7887."
+    "MJ-REQ-005 / issue #6 PostgreSQL runtime slice: PostgreSQL concurrency, category unit and worker lifecycle tests: 21 PASS, repeated twice against the same disposable PostgreSQL 17 database; repository validators PASS. Evidence docs/evidence/2026-10-07-postgres-concurrency-runtime.json; source 9e282135e9c90d56301b9d8726479479d84a862a, tree fd7665952a141c07a494f3a20b9986766363085b, integration d5d888785d62a091249541fd09cbe092073f7887.",
+    "Exact current-main revalidation for MJ-REQ-004 backup CLI output bounds: locked frontend install/build, 11 focused CLI tests, and full Python/browser discovery 903 PASS with 2 skipped; stale root dist run failures disappeared after building the same exact main source in an isolated worktree. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -337,7 +338,8 @@
     "MJ-REF-011 initial isolated-worktree full-suite attempt: 854 tests, 2 failures, 7 errors and 18 skips because ignored apps/web/dist and apps/web/node_modules were absent; after npm ci/build, two reproduced browser tests and exact-source full suite passed. Evidence docs/evidence/2026-10-07-ai-prompt-truncation.json",
     "MJ-REF-011 timeout-persistence regression RED before fix: API returned AI_TASK_TIMEOUT but durable operation stored generic AI_EVALUATION_FAILED; exact failure is recorded in docs/evidence/2026-10-07-ai-operation-outcomes.json.",
     "Superseded 2026-10-07 full-suite attempts for #386: first exposed and corrected a stale FAILED-state expectation; second had one timing-sensitive 250 ms Playwright timeout in test_playwright_actions_never_exceed_remaining_worker_budget, which passed in isolation; final exact-tree full suite passed 875 tests with one skip. See docs/evidence/2026-10-07-dead-letter-queue.json.",
-    "After restoring locked frontend dependencies and building current apps/web source on integrated CLI-output candidate 1b35a11: 903 tests, 2 failures, 2 errors, 2 skips. Repeatable browser failures: external application capture form absent; summary rewrite editor absent; skill-order comparison shows No changes; AI task fallback list renders zero rows. Focused affected modules reran and reproduced; none are changed by the backup CLI slice. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
+    "After restoring locked frontend dependencies and building current apps/web source on integrated CLI-output candidate 1b35a11: 903 tests, 2 failures, 2 errors, 2 skips. Repeatable browser failures: external application capture form absent; summary rewrite editor absent; skill-order comparison shows No changes; AI task fallback list renders zero rows. Focused affected modules reran and reproduced; none are changed by the backup CLI slice. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json.",
+    "RESOLVED ENVIRONMENT MISMATCH for docs/evidence/2026-10-07-backup-command-output-bounds.json: initial full runs used absent/stale ignored apps/web/dist; after npm ci and Vite build in a worktree at exact integrated main d7307be3d50e4297f87ba315e9cda3dbdf1a1924, all 903 Python/browser tests passed with 2 skipped. Historical failures preserved above; no product defect was confirmed."
   ],
   "tests_not_run": [
     "Remaining full-spec integrations and product/release requirements",
@@ -407,16 +409,17 @@
     "Browser acceptance depends on current apps/web/dist; stale ignored dist omitted the source-controlled avoid-terms and ATS preflight UI, causing 1 failure and 1 error on 5680d0e until npm run build --prefix apps/web. Rebuilt dist restored both tests; exact-head full suite passed.",
     "MJ-REQ-005 candidate ec28943ec20109c2b1bc12c0130a26a2991b0636: first exact-head full run hit one nonreproducible CompanyDiscoveryRequestsBrowserTests Uvicorn thread shutdown assertion; isolated test and all 35 browser tests passed, then same-head 674-test full suite passed with only the optional PostgreSQL skip. See docs/evidence/2026-10-06-per-source-greenhouse-concurrency.json.",
     "MJ-REQ-004 candidate 3d604b27b1a4c25e2ff0ee6fa68a07e9ff8f74a0: full suite initially saw stale ignored apps/web/dist; rebuilding restored current Sources UI and isolated browser acceptance. A first rebuilt full run later hit the known intermittent CompanyDiscoveryRequestsBrowserTests server-thread shutdown assertion; isolated case and all 35 browser tests passed, followed by a same-head 680-test full suite pass. Do not weaken shutdown timeout; evidence docs/evidence/2026-10-06-bounded-ocr-diagnostics.json.",
-    "Fresh Codex worktrees may lack ignored apps/web/node_modules and apps/web/dist; run npm ci and npm run build --prefix apps/web before browser/full-suite validation. MJ-REF-011 exact-source rerun passed 854 tests after restoring those artifacts; evidence docs/evidence/2026-10-07-ai-prompt-truncation.json"
+    "Fresh Codex worktrees may lack ignored apps/web/node_modules and apps/web/dist; run npm ci and npm run build --prefix apps/web before browser/full-suite validation. MJ-REF-011 exact-source rerun passed 854 tests after restoring those artifacts; evidence docs/evidence/2026-10-07-ai-prompt-truncation.json",
+    "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-07T11:39:26Z",
+    "timestamp": "2026-10-07T11:52:55Z",
     "result": "PARTIAL",
-    "source_commit": "3e4f18a947d47106eb7f22af141de3b389a09722",
-    "source_tree": "4d6d5527fec632d97225c225e70c6b1204e0d4bd",
-    "scope": "Issue #5 / MJ-REQ-004 bounded captured output in local backup and restore Docker CLI subprocesses.",
+    "source_commit": "d7307be3d50e4297f87ba315e9cda3dbdf1a1924",
+    "source_tree": "1109cff1f23653a2cd39995bf92924ba4cbcc2e0",
+    "scope": "Exact integrated main full Python and browser discovery after installing lockfile frontend dependencies and building the exact source bundle; confirms backup-output slice focused acceptance.",
     "evidence_path": "docs/evidence/2026-10-07-backup-command-output-bounds.json",
-    "integration_commit": "1b35a11f3ea6b41997fcc766255ada1771d6c83f"
+    "integration_commit": "a5927a096c7ee79a9f0cbf1b3480c1a66576f844"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -483,7 +486,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Fetch and verify synchronized main after the bounded backup-output slice, release its issue #5 claim, reconcile live active claims/worktrees, and continue the highest-value dependency-ready unclaimed issue. Full local suite still has four repeatable connected-browser failures outside this slice; frontend build is restored in the Codex worktree. External submission OFF; hosted checks NOT_RUN_BY_USER_POLICY.",
+  "recommended_resume_step": "Verify synchronized main after the exact-main full-suite evidence correction, release the issue #5 validation claim, reconcile active lane claims/worktrees, and continue the highest-value dependency-ready unclaimed issue. External submission OFF; hosted checks NOT_RUN_BY_USER_POLICY.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -7992,11 +7995,63 @@
         "integrated_at_utc": "2026-10-07T11:26:33Z",
         "remote_verified": true
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-004-EXACT-MAIN-FULL-SUITE-20261007",
+      "timestamp": "2026-10-07T11:52:55Z",
+      "current_phase": "Issue #5 / MJ-REQ-004 exact-main full Python/browser suite passed after refreshing the isolated frontend build; bounded CLI slice remains partial.",
+      "completed_steps": [
+        "Reconciled the active Codex validation claim with Antigravity #302 and Ollama #318; no path overlap.",
+        "Created a dedicated worktree at exact synchronized main d7307be3d50e4297f87ba315e9cda3dbdf1a1924.",
+        "Installed locked frontend dependencies and built the current Vite output, matching the successful isolated browser bundle.",
+        "Ran full Python/browser discovery: 903 PASS, 2 skipped; reran focused backup unit suite: 11 PASS; validators PASS.",
+        "Corrected evidence chronology: earlier failures were from absent/stale ignored dist and are retained as resolved environment mismatch. No product source changed."
+      ],
+      "files_added": [],
+      "files_modified": [
+        "docs/evidence/2026-10-07-backup-command-output-bounds.json",
+        "planning/lanes/codex/CLAIMS.json",
+        "planning/lanes/codex/IMPLEMENTATION_STATE.json"
+      ],
+      "tests_completed": [
+        "npm ci --prefix apps/web and npm run build --prefix apps/web: PASS.",
+        "python -m unittest discover -s tests: 903 PASS, 2 skipped.",
+        "python -m unittest tests.unit.test_local_backup -v: 11 PASS.",
+        "agent_skills, catalogue, progress, lane coordination and diff check: PASS."
+      ],
+      "tests_remaining": [
+        "PostgreSQL runtime and frontend unit tests NOT_RUN_BY_SCOPE; hosted checks/review NOT_RUN_BY_USER_POLICY."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [
+        "An earlier full-suite run used stale root ignored apps/web/dist and recorded browser failures; exact-main isolated fresh-build rerun passed all tests, resolving the mismatch."
+      ],
+      "known_limitations": [
+        "Two tests were skipped; names were not captured by non-verbose discovery. Broader MJ-REQ-004 operation classes remain incomplete."
+      ],
+      "source_commit": "d7307be3d50e4297f87ba315e9cda3dbdf1a1924",
+      "source_tree": "1109cff1f23653a2cd39995bf92924ba4cbcc2e0",
+      "result": "PARTIAL",
+      "last_safe_checkpoint": {
+        "git_commit": "a5927a096c7ee79a9f0cbf1b3480c1a66576f844",
+        "evidence_path": "docs/evidence/2026-10-07-backup-command-output-bounds.json"
+      },
+      "integration": {
+        "method": "NON_FORCE_FAST_FORWARD",
+        "base": "d7307be3d50e4297f87ba315e9cda3dbdf1a1924",
+        "main": "a5927a096c7ee79a9f0cbf1b3480c1a66576f844",
+        "source_branch": "codex/mj-req004-exact-main-full-suite-20261007",
+        "source_commit": "d7307be3d50e4297f87ba315e9cda3dbdf1a1924",
+        "issue_state": "OPEN",
+        "evidence_checkpoint_commit": "a5927a096c7ee79a9f0cbf1b3480c1a66576f844",
+        "issue_comment": "PENDING_READBACK"
+      }
     }
   ],
-  "current_phase": "Issue #5 bounded backup/restore CLI output slice integrated by local-only non-force fast-forward; broader requirement remains PARTIAL.",
+  "current_phase": "Issue #5 / MJ-REQ-004 exact-main full Python/browser suite passed after refreshing the isolated frontend build; bounded CLI slice remains partial.",
   "last_safe_checkpoint": {
-    "git_commit": "1b35a11f3ea6b41997fcc766255ada1771d6c83f",
+    "git_commit": "a5927a096c7ee79a9f0cbf1b3480c1a66576f844",
     "evidence_path": "docs/evidence/2026-10-07-backup-command-output-bounds.json"
   },
   "live_integrations_tested": [
@@ -8162,6 +8217,23 @@
       "open_prs": 0,
       "local_remote_commit_identical": true,
       "issue_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6037144335"
+    },
+    {
+      "result": "PASS",
+      "transport": "Evidence-only validation correction; exact-main full suite after isolated frontend build",
+      "branch": "codex/mj-req004-exact-main-full-suite-20261007",
+      "base": "d7307be3d50e4297f87ba315e9cda3dbdf1a1924",
+      "source_commit": "d7307be3d50e4297f87ba315e9cda3dbdf1a1924",
+      "candidate": "a5927a096c7ee79a9f0cbf1b3480c1a66576f844",
+      "final_head": "a5927a096c7ee79a9f0cbf1b3480c1a66576f844",
+      "force": false,
+      "pull_request": "NOT_OPENED: local-only non-force fast-forward workflow.",
+      "issue": 5,
+      "issue_state": "OPEN",
+      "evidence_path": "docs/evidence/2026-10-07-backup-command-output-bounds.json",
+      "integrated_at_utc": "2026-10-07T11:52:48Z",
+      "actions_enabled": false,
+      "main_protected": false
     }
   ],
   "live_reconciliation": {
@@ -8180,13 +8252,13 @@
     "requirement_id": "MJ-REQ-004",
     "title": "Bound External Operations",
     "state": "INTEGRATED_PARTIAL",
-    "base": "546f71d91d90cfbf2122ef2c830ddaba825e2a46",
-    "branch": "codex/mj-req004-backup-cli-output-bounds-20261007",
-    "candidate": "1b35a11f3ea6b41997fcc766255ada1771d6c83f",
-    "integrated_main": "3ebc187c2c139876dfa28e0313a6b779e7c53bc1",
+    "base": "d7307be3d50e4297f87ba315e9cda3dbdf1a1924",
+    "branch": "codex/mj-req004-exact-main-full-suite-20261007",
+    "candidate": "a5927a096c7ee79a9f0cbf1b3480c1a66576f844",
+    "integrated_main": "a5927a096c7ee79a9f0cbf1b3480c1a66576f844",
     "evidence": "docs/evidence/2026-10-07-backup-command-output-bounds.json",
-    "next_action": "Release the Codex claim and integration lock, reconcile main and every active lane, then select the next highest-value unclaimed dependency-ready issue. Keep #5 OPEN/PARTIAL.",
-    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6037144335"
+    "next_action": "Push the exact-main validation correction under the integration lock, post evidence readback, release the claim/lock, reconcile active lanes, and continue the highest-value unclaimed dependency-ready issue. Issue #5 remains OPEN/PARTIAL.",
+    "issue_comment": "PENDING_READBACK"
   },
   "historical_control_snapshots": [
     {
@@ -9326,5 +9398,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-07T11:40:55Z"
+  "updated_at": "2026-10-07T11:52:55Z"
 }

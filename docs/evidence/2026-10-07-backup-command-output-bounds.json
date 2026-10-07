@@ -128,12 +128,21 @@
     "remote_fast_forward_verified": true,
     "revalidation_commit": "d7307be3d50e4297f87ba315e9cda3dbdf1a1924",
     "exact_main_full_python": "PASS: 903 run, 2 skipped",
-    "stale_root_dist_failures": "RESOLVED_BY_FRESH_FRONTEND_BUILD_IN_EXACT_MAIN_WORKTREE"
+    "stale_root_dist_failures": "RESOLVED_BY_FRESH_FRONTEND_BUILD_IN_EXACT_MAIN_WORKTREE",
+    "revalidation_checkpoint": "d7307be3d50e4297f87ba315e9cda3dbdf1a1924",
+    "revalidation_result": "PASS: 903 run, 2 skipped",
+    "root_stale_dist_failures": "RESOLVED_AFTER_LOCKFILE_INSTALL_AND_BUILD_IN_EXACT_MAIN_WORKTREE"
   },
   "candidate_commit": "1b35a11f3ea6b41997fcc766255ada1771d6c83f",
   "revalidation": {
     "base_main": "d7307be3d50e4297f87ba315e9cda3dbdf1a1924",
     "tree": "1109cff1f23653a2cd39995bf92924ba4cbcc2e0",
     "purpose": "Repeat the complete test discovery on current integrated main after ensuring this exact worktree uses freshly installed lockfile dependencies and freshly built apps/web/dist. Product source is unchanged from source_commit."
+  },
+  "verification_integration": {
+    "candidate": "a5927a096c7ee79a9f0cbf1b3480c1a66576f844",
+    "base": "d7307be3d50e4297f87ba315e9cda3dbdf1a1924",
+    "integrated_at_utc": "2026-10-07T11:52:48Z",
+    "scope": "evidence-only validation correction; no product source change"
   }
 }

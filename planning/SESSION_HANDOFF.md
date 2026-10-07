@@ -1,3 +1,9 @@
+## Issue #5 exact-main full-suite validation correction — 2026-10-07
+
+Evidence-only correction to the preceding backup CLI receipt: the 903-test full run that showed browser failures executed from the root checkout, whose ignored `apps/web/dist` JavaScript differed from the fresh worktree bundle. Recreated a dedicated worktree at exact synchronized main `d7307be3d50e4297f87ba315e9cda3dbdf1a1924`, installed the lockfile dependencies, rebuilt frontend, and reran full discovery: **903 PASS, 2 skipped, zero failures/errors**. Focused backup tests: 11 PASS. No source code changed. Evidence `docs/evidence/2026-10-07-backup-command-output-bounds.json`. Issue #5 remains OPEN/PARTIAL; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.
+
+---
+
 # Issue #5 / MJ-REQ-004 backup subprocess output bounds — 2026-10-07
 
 Integrated by non-force fast-forward from `546f71d91d90cfbf2122ef2c830ddaba825e2a46` to candidate main `1b35a11f3ea6b41997fcc766255ada1771d6c83f` (source `3e4f18a947d47106eb7f22af141de3b389a09722`). Evidence: `docs/evidence/2026-10-07-backup-command-output-bounds.json`. Captured Docker CLI stdout is capped at 2 MiB; noisy children are terminated/reaped; stderr is drained without retaining diagnostics; direct-to-file database dump streaming remains available. Issue #5 remains OPEN/PARTIAL.
