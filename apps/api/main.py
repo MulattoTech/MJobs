@@ -51,6 +51,7 @@ from services.company_discovery.public_client import PublicFetchError
 from services.company_discovery.sources import (list_company_job_sources, set_company_source_watch,
     list_company_source_view, set_company_source_pin, set_company_source_enabled)
 from services.documents.uploads import MAX_UPLOAD_BYTES, UploadIntegrityError, list_resumes, save_resume, read_resume
+from services.audit_history import list_audit_history
 from workers.dispatch import enqueue_operation
 from workers.operations import (
     QUEUES, OperationActionError, OperationConcurrencyLimit, admit_inline, finish_inline,
@@ -546,6 +547,13 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     @app.get("/profiles/{profile_id}")
     def profile_read(profile_id: str):
         return store.profile(profile_id)
+
+    @app.get("/profiles/{profile_id}/audit-history")
+    def profile_audit_history(profile_id: str, limit: int = Query(default=100, ge=1, le=200)):
+        try:
+            return list_audit_history(store, profile_id, limit)
+        except NoResultFound as exc:
+            raise HTTPException(404, "Profile not found") from exc
 
     @app.get("/profiles/{profile_id}/ai-task-settings")
     def ai_task_settings(profile_id: str):
