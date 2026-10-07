@@ -197,6 +197,22 @@
       "integrated_main": "9b51b1d7a7d5f94d1e06412439edde5250d6ba5e",
       "issue_comment": "https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6037942896",
       "status": "RELEASED"
+    },
+    {
+      "issue": 171,
+      "requirement_id": "MJ-REQ-170",
+      "branch": "codex/mj-req170-feedback-retention-20261007",
+      "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req170-feedback-retention-20261007",
+      "head": "e053916c4a5d6e3606e138feefb4e86823631677",
+      "paths": [
+        "cli/live_feedback.py",
+        "tests/unit/test_live_feedback.py",
+        "docs/LIVE_FEEDBACK_DEVELOPMENT.md",
+        "docs/evidence/2026-10-07-live-feedback-retention.json",
+        "planning/lanes/codex/**"
+      ],
+      "status": "ACTIVE",
+      "claimed_at": "2026-10-07T12:36:47Z"
     }
   ]
 }
