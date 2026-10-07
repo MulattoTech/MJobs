@@ -251,8 +251,27 @@
         "planning/lanes/codex/**"
       ],
       "claimed_at": "2026-10-07T12:52:07Z",
+      "status": "RELEASED",
+      "claim_comment": "https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6038409026",
+      "released_at": "2026-10-07T13:05:44Z",
+      "integrated_main": "e29454c9e7d89604f786da34f1d9e8e39083803f",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6038445116"
+    },
+    {
+      "issue": 9,
+      "requirement_id": "MJ-REQ-008",
+      "branch": "codex/mj-req008-postgres-worker-recovery-20261007",
+      "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req008-postgres-worker-recovery-20261007",
+      "head": "9c4dfacdeb5f65883284c7d7628b653097546b12",
+      "paths": [
+        "tests/integration/test_worker_lifecycle.py",
+        "docs/evidence/2026-10-07-postgres-worker-crash-recovery.json",
+        "planning/lanes/codex/**"
+      ],
       "status": "ACTIVE",
-      "claim_comment": "https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6038409026"
+      "claimed_at": "2026-10-07T13:02:29Z",
+      "claim_comment": "https://github.com/MulattoTech/MJobs/issues/9#issuecomment-6038481363",
+      "evidence_path": "docs/evidence/2026-10-07-postgres-worker-crash-recovery.json"
     }
   ]
 }

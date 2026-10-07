@@ -26,13 +26,13 @@
     {
       "issue": 9,
       "requirement_id": "MJ-REQ-008",
-      "status": "INTEGRATED_PARTIAL",
+      "status": "CANDIDATE_READY",
       "priority": 0,
       "target_area": "workers; tests/integration/test_worker_lifecycle.py",
       "depends_on": [],
-      "evidence_path": "docs/evidence/2026-10-07-product-worker-crash-recovery.json",
+      "evidence_path": "docs/evidence/2026-10-07-postgres-worker-crash-recovery.json",
       "scope_complete": false,
-      "note": "The durable product worker recovers after process kill; worker attempt fencing prevents an expired worker from publishing after replacement claim. Full Python 851 PASS with 1 optional PostgreSQL skip; issue #9 remains OPEN/PARTIAL. Source d516834ac3bd48352ef3aa8885a1de1fffe53419. Physical host and browser-process recovery remain untested. Integrated at main 74403d136e42cde684d9cb4638a2c75d11c07e06."
+      "note": "Source 9c4dfacdeb5f65883284c7d7628b653097546b12 from e29454c9e7d89604f786da34f1d9e8e39083803f. On isolated loopback PostgreSQL 17, worker process crash retains RUNNING lease; expired lease recovery and audit survive independent-Store reopen; replacement completes attempt 2; stale prior worker is fenced before side effect. Worker lifecycle 18 PASS (2 PostgreSQL, 16 SQLite), PostgreSQL category-concurrency 5 PASS; validators PASS. Physical host restart remains NOT_RUN; issue #9 remains OPEN/PARTIAL."
     },
     {
       "issue": 23,
@@ -183,5 +183,5 @@
       "note": "Source 7a2107941a4f3ac0379f0053bd1f0421db117f80 pushed from 82b56526f041cdb2e456dcd7c29ad680011da9dd. Injected failure after DDL now rolls back and retries successfully on SQLite and disposable PostgreSQL 17. Full migration suite 23 PASS, 1 optional skip; related units 18 PASS. Broader requirement remains PARTIAL for protected-config recovery and offline SQL generation. Integrated non-force fast-forward at 4f7059f5fcaac5335e2b5aa9e0666dc6848706ad; release https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6038445116. Focused migration 23 PASS/1 optional skip and units 18 PASS."
     }
   ],
-  "generated_at": "2026-10-07T13:00:26Z"
+  "generated_at": "2026-10-07T13:05:44Z"
 }

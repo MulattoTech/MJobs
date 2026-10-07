@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REQ-008-POSTGRES-WORKER-CRASH-RECOVERY-20261007",
+  "recorded_at_utc": "2026-10-07T13:05:44Z",
+  "requirement_id": "MJ-REQ-008",
+  "github_issue": 9,
+  "slice_result": "PASS",
+  "requirement_result": "PARTIAL",
+  "issue_state": "OPEN_PARTIAL",
+  "base_main": "e29454c9e7d89604f786da34f1d9e8e39083803f",
+  "source_commit": "9c4dfacdeb5f65883284c7d7628b653097546b12",
+  "source_tree": "15ae8e240d67c45e2ebdcb5a34315e33ebf9c7ea",
+  "input_sha256": {
+    "tests/integration/test_worker_lifecycle.py": "aef8ce83ba901f4d5545325db2dabcba74069992375aa805d46801dec8956723"
+  },
+  "acceptance_oracle": "On isolated PostgreSQL with current Alembic schema, kill a real product worker process after it claims a synthetic rescore operation; verify external readback sees the durable RUNNING claim, lease recovery returns it to QUEUED with its attempt and audit history, and a replacement worker completes attempt 2. Separately pause an original worker, recover and reclaim its expired lease from another Store engine, resume the stale worker, and prove it cannot publish the guarded side effect or overwrite the replacement claim.",
+  "acceptance": {
+    "postgresql_process_kill_keeps_durable_running_claim": "PASS - A separate worker process was killed after entering a synthetic DISCOVER rescore operation; PostgreSQL readback retained RUNNING and attempt_count=1.",
+    "expired_lease_recovery_and_audit_survive_reopen": "PASS - recover_expired changed the row to QUEUED/LEASE_EXPIRED; a new Store engine read one OPERATION_ATTEMPT_STARTED and one LEASE_RECOVERY audit event.",
+    "replacement_worker_completes_next_attempt": "PASS - A new worker process reclaimed the operation and persisted COMPLETED at attempt_count=2.",
+    "stale_worker_attempt_is_fenced": "PASS - After a replacement claim increments attempt_count, the paused original worker returned OWNERSHIP_EXPIRED, emitted no side effect, and left replacement state RUNNING at attempt_count=2.",
+    "database_target_safety": "PASS - Tests reject any non-loopback host or database name other than mjobs_worker_recovery; runtime was one disposable PostgreSQL 17 container bound only to 127.0.0.1.",
+    "requirements_denominator_changed": "false"
+  },
+  "tests": [
+    {
+      "command": "repository .venv python -m unittest tests.integration.test_worker_lifecycle -v with MJOBS_WORKER_RECOVERY_POSTGRES_URL set to loopback mjobs_worker_recovery",
+      "result": "PASS",
+      "tests": 18,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "notes": "Includes two PostgreSQL process/reclaim/fencing cases and 16 SQLite worker lifecycle tests; Alembic upgraded disposable PostgreSQL to head."
+    },
+    {
+      "command": "repository .venv python -m unittest tests.integration.test_operation_concurrency_postgres -v with MJOBS_TEST_POSTGRES_URL set to the same disposable loopback database",
+      "result": "PASS",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0
+    },
+    {
+      "command": "repository .venv python -m py_compile tests/integration/test_worker_lifecycle.py; python -m tools.verification.agent_skills; python -m tools.verification.catalogue; python -m tools.verification.progress validate; git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "validation_history": [
+    {
+      "result": "FAIL_THEN_FIXED_TEST_ISOLATION",
+      "observation": "First combined run left the replacement row RUNNING after the fencing test; the next crash test correctly hit the shared source-discovery concurrency ceiling and returned ALREADY_CLAIMED_OR_CAPACITY. Added per-test cleanup for only its synthetic operation and reran the full module on a fresh disposable PostgreSQL container: 18 PASS."
+    }
+  ],
+  "environment": {
+    "os": "Windows",
+    "python": "repository .venv Python 3.12",
+    "database": "disposable PostgreSQL 17; database mjobs_worker_recovery; loopback-only 127.0.0.1:55458; current Alembic upgrade head performed by test setup",
+    "docker_container": "stopped after validation and auto-removed",
+    "data": "synthetic profiles and rescore operation rows only",
+    "personal_mjobs_database": "NOT_USED",
+    "external_network_requests": "NONE",
+    "browser": "NOT_APPLICABLE",
+    "frontend": "NOT_APPLICABLE",
+    "full_python_suite": "NOT_RUN",
+    "host_restart": "NOT_RUN",
+    "hosted_checks": "NOT_RUN_BY_USER_POLICY",
+    "external_submission": "OFF"
+  },
+  "limitations": [
+    "This advances worker crash/lease recovery and attempt fencing on PostgreSQL but does not test physical host restart.",
+    "The PostgreSQL worker tests skip unless explicitly given MJOBS_WORKER_RECOVERY_POSTGRES_URL; unset local runs do not count as PostgreSQL PASS.",
+    "Full repository suite, browser/frontend acceptance, and hosted checks were not run; browser/frontend are unaffected by this test-only change.",
+    "Issue #9 / MJ-REQ-008 remains OPEN/PARTIAL."
+  ],
+  "claim_comment": "https://github.com/MulattoTech/MJobs/issues/9#issuecomment-6038481363"
+}
