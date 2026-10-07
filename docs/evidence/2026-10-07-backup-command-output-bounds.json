@@ -7,7 +7,7 @@
   "base_commit": "546f71d91d90cfbf2122ef2c830ddaba825e2a46",
   "source_commit": "3e4f18a947d47106eb7f22af141de3b389a09722",
   "source_tree": "4d6d5527fec632d97225c225e70c6b1204e0d4bd",
-  "recorded_at_utc": "2026-10-07T11:53:29Z",
+  "recorded_at_utc": "2026-10-07T11:54:01Z",
   "scope": "Bound memory captured from Docker CLI child stdout in local backup and restore operations, terminate and reap noisy children at the limit, preserve intentional direct-to-file database dump streaming, and retain wall deadlines and sanitized failure messages.",
   "input_sha256": {
     "cli/local_backup.py": "046698f9f9606fdc196bd30d53499cf274e2df0373c4ed2a6d7ab3251b48d62a",
@@ -122,7 +122,7 @@
     "external_submission": "OFF",
     "integrated_at_utc": "2026-10-07T11:26:33Z",
     "remote_main_sha": "3ebc187c2c139876dfa28e0313a6b779e7c53bc1",
-    "final_synchronized_main": "4e6e3017af121ac40859455dba4383cba87774d9",
+    "final_synchronized_main": "ad9e27c1188bfbcfbe2148a3db766d77be799ec5",
     "issue_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6037341240",
     "issue_state_after_readback": "OPEN",
     "remote_fast_forward_verified": true,
@@ -131,7 +131,8 @@
     "stale_root_dist_failures": "RESOLVED_BY_FRESH_FRONTEND_BUILD_IN_EXACT_MAIN_WORKTREE",
     "revalidation_checkpoint": "d7307be3d50e4297f87ba315e9cda3dbdf1a1924",
     "revalidation_result": "PASS: 903 run, 2 skipped",
-    "root_stale_dist_failures": "RESOLVED_AFTER_LOCKFILE_INSTALL_AND_BUILD_IN_EXACT_MAIN_WORKTREE"
+    "root_stale_dist_failures": "RESOLVED_AFTER_LOCKFILE_INSTALL_AND_BUILD_IN_EXACT_MAIN_WORKTREE",
+    "release_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6037350035"
   },
   "candidate_commit": "1b35a11f3ea6b41997fcc766255ada1771d6c83f",
   "revalidation": {
@@ -144,8 +145,9 @@
     "base": "d7307be3d50e4297f87ba315e9cda3dbdf1a1924",
     "integrated_at_utc": "2026-10-07T11:52:48Z",
     "scope": "evidence-only validation correction; no product source change",
-    "main_after_push": "4e6e3017af121ac40859455dba4383cba87774d9",
+    "main_after_push": "ad9e27c1188bfbcfbe2148a3db766d77be799ec5",
     "issue_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6037341240",
-    "remote_verification": "PASS"
+    "remote_verification": "PASS",
+    "release_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6037350035"
   }
 }
