@@ -5,18 +5,17 @@
     {
       "lane": "codex",
       "status": "ACTIVE",
-      "issue": 5,
-      "requirement_id": "MJ-REQ-004",
-      "branch": "codex/req004-ai-disconnect-cancel-20261007",
-      "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-req004-ai-disconnect-cancel-20261007",
+      "issue": 9,
+      "requirement_id": "MJ-REQ-008",
+      "branch": "codex/mj-req008-worker-crash-20261007",
+      "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req008-worker-crash-20261007",
       "paths": [
-        "apps/api/main.py",
-        "services/ai/consumer.py",
-        "tests/unit/test_ai_cost_consumer.py",
-        "tests/integration/test_ai_cost_policy_api.py",
-        "docs/evidence/2026-10-07-ai-evaluation-disconnect-cancellation.json"
+        "workers/operations.py",
+        "workers/tasks.py",
+        "tests/integration/test_worker_lifecycle.py",
+        "docs/evidence/2026-10-07-product-worker-crash-recovery.json"
       ],
-      "head": "9e8605029b138faa8b8785e043fd6af42fd902ce",
+      "head": "d516834ac3bd48352ef3aa8885a1de1fffe53419",
       "pid": null
     }
   ]

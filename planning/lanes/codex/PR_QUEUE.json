@@ -8,6 +8,17 @@
       "status": "INTEGRATED_PARTIAL",
       "priority": 0,
       "note": "MJ-REQ-005 / issue #6 direct structured AI evaluations now reserve database-backed AI category capacity across API instances; generic durable cancellation propagates to provider cancellation; completed, cancelled and expired-lease outcomes are recorded. Full Python 849 PASS (1 optional PostgreSQL skip), 32 focused API/worker tests PASS, 8 browser tests PASS after building worktree UI, frontend 62 PASS/build PASS, validators PASS. Evidence docs/evidence/2026-10-07-ai-evaluation-concurrency-admission.json. Requirement remains PARTIAL: live PostgreSQL lock, live provider and real ATS behavior are not evidenced. Source/main cb2681b6a921f2759cf46d4d66a8228645b473e7."
+    },
+    {
+      "issue": 9,
+      "requirement_id": "MJ-REQ-008",
+      "status": "SOURCE_CHECKPOINT_PUSHED",
+      "priority": 0,
+      "target_area": "workers; tests/integration/test_worker_lifecycle.py",
+      "depends_on": [],
+      "evidence_path": "docs/evidence/2026-10-07-product-worker-crash-recovery.json",
+      "scope_complete": false,
+      "note": "The durable product worker recovers after process kill; worker attempt fencing prevents an expired worker from publishing after replacement claim. Full Python 851 PASS with 1 optional PostgreSQL skip; issue #9 remains OPEN/PARTIAL. Source d516834ac3bd48352ef3aa8885a1de1fffe53419. Physical host and browser-process recovery remain untested."
     }
   ]
 }

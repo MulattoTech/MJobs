@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REQ-008-PRODUCT-WORKER-CRASH-RECOVERY-20261007",
+  "recorded_at": "2026-10-07T05:42:04Z",
+  "requirement_id": "MJ-REQ-008",
+  "issue": 9,
+  "result": "PARTIAL",
+  "accepted_slice": "A killed product worker's durable operation lease can be recovered and completed by a replacement worker process. A prior worker attempt that resumes after a replacement claim is fenced before its next checked side effect.",
+  "source": {
+    "repository": "MulattoTech/MJobs",
+    "base_commit": "4576d9910a5fb65a7af3e72268c7848812948b5a",
+    "source_commit": "d516834ac3bd48352ef3aa8885a1de1fffe53419",
+    "source_tree": "f2859b592ebedc3053d3d88ea2d17a7bcad415c5",
+    "branch": "codex/mj-req008-worker-crash-20261007",
+    "input_sha256": {
+      "workers/operations.py": "1a424fe348311ee216ed0a6151820bd7884105c5a2859a580dd5265ddd444286",
+      "workers/tasks.py": "ceb741ef4f6e7330884a6a62b0525edf71b86b6ffdce806f9fefff586af9547b",
+      "tests/integration/test_worker_lifecycle.py": "cfa338096f948de33ae5778afe49bdf9d0f636fed9315b8ebd590612aadbdf43"
+    }
+  },
+  "environment": {
+    "os": "Windows",
+    "python": "repository .venv, Python 3.12",
+    "database": "isolated SQLite temporary database",
+    "frontend": "Node v25.9.0, npm 11.12.1; local Vite production bundle built",
+    "external_submission": "OFF"
+  },
+  "procedure_and_result": [
+    {
+      "action": "Run the stale-attempt regression before implementation. Expire the original worker lease, recover and re-claim the operation, then release the original worker and observe whether it publishes its next checked side effect.",
+      "result": "FAIL",
+      "observed": "The original attempt published after the replacement claim."
+    },
+    {
+      "action": "Fence each worker cancellation/deadline check by the attempt_count returned by its durable claim.",
+      "result": "PASS",
+      "observed": "A stale worker raises the existing cancellation path before its next checked side effect; its guarded terminal update cannot change the replacement attempt's RUNNING state."
+    },
+    {
+      "action": "Start execute_operation in a separate Python process on a synthetic rescore-only operation, kill the process after it enters the operation, expire the durable lease, run recover_expired, and start a replacement worker process.",
+      "result": "PASS",
+      "observed": "The killed process left a durable RUNNING operation; recovery returned it to QUEUED and the replacement process completed it. The test used a temporary local SQLite database and no external requests."
+    },
+    {
+      "action": "Run worker lifecycle, operation concurrency, and two affected connected-browser acceptance tests on the final source candidate.",
+      "result": "PASS",
+      "observed": "20 tests passed."
+    },
+    {
+      "action": "Run `python -m unittest discover -s tests -p 'test_*.py'` on source commit d516834ac3bd48352ef3aa8885a1de1fffe53419 with the local web bundle present.",
+      "result": "PASS",
+      "observed": "851 tests passed; one optional PostgreSQL test skipped because MJOBS_TEST_POSTGRES_URL was unset; duration 485.840 seconds."
+    },
+    {
+      "action": "Run `npm ci` and `npm run build` in apps/web, repository agent-skills/catalogue/progress validators, Python compileall on changed modules, lane coordination validation, and `git diff --check`.",
+      "result": "PASS",
+      "observed": "Frontend production build and repository validators passed. npm reported the existing Vitest engine range does not include Node 25.9.0; the build completed successfully."
+    }
+  ],
+  "limitations": [
+    "MJ-REQ-008 remains PARTIAL and issue #9 remains OPEN. This slice does not prove physical host restart, browser-process crash recovery, or every product worker operation type.",
+    "The test makes the lease expired immediately after killing the synthetic worker instead of waiting for the configured lease interval.",
+    "Live PostgreSQL runtime was NOT_RUN because MJOBS_TEST_POSTGRES_URL was unset; the single optional PostgreSQL test was skipped.",
+    "Hosted Actions and hosted review are NOT_RUN under the current local-only policy."
+  ],
+  "hosted_verification": "NOT_RUN_BY_USER_POLICY",
+  "hosted_review": "NOT_RUN_BY_USER_POLICY"
+}
