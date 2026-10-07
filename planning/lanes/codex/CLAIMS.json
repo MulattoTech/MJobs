@@ -355,6 +355,28 @@
       "released_at": "2026-10-07T13:34:20Z",
       "integrated_main": "0cb82638d2fc0d325865abd9a6ebaeed7b41d291",
       "issue_comment": "https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6039083848"
+    },
+    {
+      "issue": 181,
+      "requirement_id": "MJ-REQ-180",
+      "branch": "codex/mj-req180-mask-all-page-content-20261007",
+      "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req180-mask-all-page-content-20261007",
+      "head": "7ddf775f58d95c5cef40380a3bc0670d1a7c221f",
+      "paths": [
+        "cli/live_feedback.py",
+        "cli/ui_e2e.py",
+        "cli/ui_source_readback.py",
+        "tests/unit/test_live_feedback.py",
+        "tests/browser/test_live_feedback_redaction.py",
+        "docs/LIVE_FEEDBACK_DEVELOPMENT.md",
+        "docs/evidence/2026-10-07-feedback-screenshot-content-masking.json",
+        "planning/lanes/codex/**"
+      ],
+      "status": "ACTIVE",
+      "claimed_at": "2026-10-07T13:36:10Z",
+      "evidence_path": "docs/evidence/2026-10-07-feedback-screenshot-content-masking.json",
+      "claim_comment": "https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6039120762",
+      "claim_update": "https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6039183625"
     }
   ]
 }

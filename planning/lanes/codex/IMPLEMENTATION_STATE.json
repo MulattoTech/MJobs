@@ -1,45 +1,47 @@
 {
   "schema_version": 1,
   "lane": "codex",
-  "status": "ACTIVE",
-  "base_main": "0cb82638d2fc0d325865abd9a6ebaeed7b41d291",
-  "current_issue": null,
-  "requirement_id": null,
-  "branch": null,
-  "head": "0cb82638d2fc0d325865abd9a6ebaeed7b41d291",
-  "worktree": null,
-  "result": "INTEGRATED_PASS",
-  "evidence_path": "docs/evidence/2026-10-07-source-change-safety-completion.json",
+  "status": "INTEGRATING",
+  "base_main": "50c85cdf42a73ae005cff2aca4da28d7548b81cd",
+  "current_issue": 181,
+  "requirement_id": "MJ-REQ-180",
+  "branch": "codex/mj-req180-mask-all-page-content-20261007",
+  "head": "7ddf775f58d95c5cef40380a3bc0670d1a7c221f",
+  "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req180-mask-all-page-content-20261007",
+  "result": "READY_FOR_INTEGRATION",
+  "evidence_path": "docs/evidence/2026-10-07-feedback-screenshot-content-masking.json",
   "last_completed": {
     "issue": 8,
     "requirement_id": "MJ-REQ-007",
     "integrated_main": "0cb82638d2fc0d325865abd9a6ebaeed7b41d291",
     "issue_comment": "https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6039083848"
   },
-  "next_candidates": [],
+  "next_candidates": [
+    181
+  ],
   "do_not_overlap": [
     "Antigravity active issue #302 paths: services/discovery/sources/** and tests/integration/test_dice.py",
     "Ollama/OpenCode active issue #318 paths: services/ats_detection/** and detector tests",
     "canonical planning and main outside integration lock"
   ],
   "resume_instruction": "Issue #8 PASS and CLOSED at main 0cb82638d2fc0d325865abd9a6ebaeed7b41d291. Continue after fresh active-claim and open-issue reconciliation.",
-  "last_verified_head": "4190e5f768f12d5984828fae76d59148b49fe80e",
-  "last_verified_tree": "162db219e2b3ea614891175924e0c96ccdda29fd",
-  "last_verified_at_utc": "2026-10-07T13:34:20Z",
+  "last_verified_head": "7ddf775f58d95c5cef40380a3bc0670d1a7c221f",
+  "last_verified_tree": "05a572f8fc71cb87c3ded65acd173de3d0862589",
+  "last_verified_at_utc": "2026-10-07T13:41:30Z",
   "started_at_utc": "2026-10-07T04:24:01Z",
   "validation": {
     "result": "PASS_FOR_REQUIREMENT; integration pending",
-    "pre_fix_red": "unit selector and Chromium pixel checks showed unmasked rich-control answers",
-    "migration_suite": "24 PASS, 1 unrelated optional PostgreSQL skip",
-    "protected_postgres_case": "1 PASS",
-    "focused_sqlite_provider_suite": "3 PASS",
+    "pre_fix_red": "synthetic arbitrary text remained visible (3,242 dark pixels)",
+    "focused_feedback_ui_source_suite": "32 PASS, 0 failures/errors/skips",
+    "synthetic_chromium": "arbitrary text, pseudo-elements, canvas, inline SVG and existing sensitive controls PASS",
+    "compile_cli_help": "PASS",
     "validators": "agent_skills/catalogue/progress/lane coordination/diff PASS",
-    "full_python_browser": "NOT_APPLICABLE",
-    "frontend": "NOT_APPLICABLE",
+    "connected_app_ui_e2e": "NOT_RUN",
+    "database_frontend": "NOT_APPLICABLE",
     "hosted_checks": "NOT_RUN_BY_USER_POLICY",
     "external_submission": "OFF"
   },
   "last_integrated_head": "0cb82638d2fc0d325865abd9a6ebaeed7b41d291",
-  "last_verified_result": "PASS_FOR_REQUIREMENT; issue CLOSED",
-  "updated_at": "2026-10-07T13:34:20Z"
+  "last_verified_result": "PASS_FOR_REQUIREMENT; candidate integration pending",
+  "updated_at": "2026-10-07T13:41:30Z"
 }

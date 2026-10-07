@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-180",
+  "github_issue": 181,
+  "slice_result": "PASS",
+  "requirement_result": "PASS",
+  "base_main": "50c85cdf42a73ae005cff2aca4da28d7548b81cd",
+  "source_commit": "7ddf775f58d95c5cef40380a3bc0670d1a7c221f",
+  "source_tree": "05a572f8fc71cb87c3ded65acd173de3d0862589",
+  "recorded_at_utc": "2026-10-07T13:41:30Z",
+  "input_sha256": {
+    "cli/live_feedback.py": "dc69a76968cf68914f65082124134ea5ac6bdb3a607d0f7504c1d724895e5548",
+    "cli/ui_e2e.py": "29fabe8774e41970af4877aca60bb3ff0a05faa9f7e41cad1672eac401a8800d",
+    "cli/ui_source_readback.py": "d1dbf92e7c1a5689965b471b5b5a540e877223d2431c1f0913bc68a4caea23f3",
+    "tests/unit/test_live_feedback.py": "fe2e751a85e96c7586f19ab01e3a994adf994906cd987ba2bc7d9e8a847879e0",
+    "tests/browser/test_live_feedback_redaction.py": "b9d0a73229a71ccdccf7f0de952d4f8cc555dfdbc12ab750092fa1dd3f350d1a",
+    "docs/LIVE_FEEDBACK_DEVELOPMENT.md": "181f356ac95cc35b447935cfebceffd3b9027381d7617afc20398402ce2a7961"
+  },
+  "scope": "Extend screenshot privacy to arbitrary DOM text, generated pseudo-element text and embedded image/canvas/video/frame content using screenshot-only browser CSS. Route all production CLI screenshot outputs through the same helper. Keep the live page unchanged and preserve opaque masks for form controls and explicitly sensitive regions.",
+  "acceptance": {
+    "arbitrary_visible_dom_text_hidden": "PASS - pre-fix synthetic Chromium capture contained 3,242 dark pixels in the unclassified-answer region; fixed capture contained zero.",
+    "generated_pseudo_element_text_hidden": "PASS - pixel assertion found visible synthetic generated text before capture and none in the saved screenshot.",
+    "embedded_canvas_and_image_hidden": "PASS - synthetic canvas text and inline SVG image pixels were visible in the baseline and absent in the saved screenshot; DOM canvas data remained present.",
+    "live_page_not_mutated": "PASS - page text, canvas content and control state remained available after the screenshot call; privacy stylesheet is passed only to Playwright screenshot.",
+    "known_sensitive_controls_remain_masked": "PASS - existing password, demographic, data-sensitive, contenteditable, ARIA textbox and combobox pixel tests pass.",
+    "all_product_screenshot_writers_use_helper": "PASS - source inventory found only cli/live_feedback.py calls page.screenshot; cli/ui_e2e.py and cli/ui_source_readback.py route artifacts through the same helper.",
+    "html_snapshot_and_raw_trace_storage": "PASS - no product HTML snapshot writers found in cli/apps/services/workers; live feedback tracing remains disabled and no DOM snapshot is written.",
+    "requirements_denominator_changed": "false"
+  },
+  "test_first_red": {
+    "result": "PASS_AS_RED_REPRODUCTION",
+    "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_live_feedback_redaction.LiveFeedbackScreenshotRedactionTests.test_arbitrary_text_and_embedded_media_are_hidden_without_changing_page -v",
+    "observation": "Before the production change the assertion expected zero dark pixels but observed 3,242 in the synthetic arbitrary-text region."
+  },
+  "commands": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_live_feedback_redaction.LiveFeedbackScreenshotRedactionTests.test_arbitrary_text_and_embedded_media_are_hidden_without_changing_page -v",
+      "result": "PASS",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "notes": "Headless Chromium synthetic DOM, canvas and inline data-URI SVG only."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_live_feedback tests.unit.test_feedback_gui tests.browser.test_live_feedback_redaction tests.browser.test_feedback_gui tests.unit.test_ui_source_readback -q",
+      "result": "PASS",
+      "tests": 32,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m py_compile cli/live_feedback.py cli/ui_e2e.py cli/ui_source_readback.py tests/unit/test_live_feedback.py tests/browser/test_live_feedback_redaction.py",
+      "result": "PASS"
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m cli.live_feedback run --help",
+      "result": "PASS"
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.agent_skills; python -m tools.verification.catalogue; python -m tools.verification.progress validate; python -m tools.coordination.lane_coordination validate; git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "environment": {
+    "os": "Windows 11",
+    "python": "Python 3.12.10, repository .venv",
+    "playwright": "1.63.0",
+    "browser": "Headless Chromium 153.0.8010.12",
+    "test_data": "synthetic text and local data-URI media only; no external navigation",
+    "connected_ui_e2e": "NOT_RUN; live application/Compose was not started",
+    "database": "NOT_APPLICABLE",
+    "frontend_build": "NOT_APPLICABLE",
+    "hosted_checks": "NOT_RUN_BY_USER_POLICY",
+    "hosted_review": "NOT_RUN_BY_USER_POLICY",
+    "external_submission": false,
+    "real_ai_provider_called": false
+  },
+  "attempts_and_limitations": [
+    "The system Python initially could not import Playwright; all acceptance tests were rerun and passed using the existing repository .venv. No host-wide install was made.",
+    "A one-off metadata probe used a nonexistent playwright.__version__ attribute; the installed version was then read successfully through importlib.metadata. No test result was affected.",
+    "Browser chrome is outside Playwright page screenshots. Screenshots remain opt-in and local; review before sharing.",
+    "This evidence covers repository production screenshot writers found by scoped source search; connected UI E2E execution was not run. The shared redaction helper was verified with real Chromium pixels."
+  ],
+  "denominators": {
+    "requirements": 366,
+    "reference_gaps": 59
+  },
+  "integration": {
+    "status": "PENDING",
+    "issue_state": "OPEN",
+    "external_submission": "OFF"
+  }
+}
