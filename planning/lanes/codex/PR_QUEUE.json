@@ -18,9 +18,9 @@
       "requirement_id": "MJ-REQ-005",
       "status": "INTEGRATED_PARTIAL",
       "priority": 0,
-      "target_area": "workers/operations.py; tests/integration/test_worker_lifecycle.py",
-      "evidence_path": "docs/evidence/2026-10-07-application-automation-category-capacity.json",
-      "note": "Integrated to main e455c8e; issue remains OPEN/PARTIAL because real ATS and live PostgreSQL behavior remain unverified.",
+      "target_area": "workers/operations.py; tests/integration/test_worker_lifecycle.py; tests/integration/test_operation_concurrency_postgres.py",
+      "evidence_path": "docs/evidence/2026-10-07-postgres-all-category-concurrency.json",
+      "note": "Integrated to main e455c8e; issue remains OPEN/PARTIAL because real ATS and live PostgreSQL behavior remain unverified. Additional PostgreSQL 17 runtime tests now exercise source_collection, inline AI_EVALUATE admission, and shared inline RESUME_EXTRACT/worker PREPARE document-generation capacity across independent Store engines. Existing company-discovery and APPLY_MOCK PG races remain. 24 focused tests passed twice against one disposable DB; evidence docs/evidence/2026-10-07-postgres-all-category-concurrency.json. Real ATS/provider runtime remains NOT_RUN; issue #6 stays OPEN/PARTIAL.",
       "scope_complete": false
     },
     {

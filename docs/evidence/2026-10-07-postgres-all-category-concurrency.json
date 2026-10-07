@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-005",
+  "github_issue": 6,
+  "slice_result": "PASS",
+  "requirement_result": "PARTIAL",
+  "base_main": "4a5ab584411450fa63e4dc42f1dc9a7620ce66c7",
+  "source_commit": "474245178c48bb91145ceae50575795d74777686",
+  "source_tree": "40b228d68ec0fe79eaa887f0a5d34fb526f0ff08",
+  "recorded_at_utc": "2026-10-07T11:58:12Z",
+  "input_sha256": {
+    "tests/integration/test_operation_concurrency_postgres.py": "bbca967d82990af5f9c6f98d0815c004a21d2e75b5f2c5ed24e4af70d3fe6866"
+  },
+  "scope": "Complete real local PostgreSQL advisory-lock acceptance coverage across all five independently configured operation concurrency categories, adding source-collection, inline-AI and shared inline/worker document-generation cases. Product implementation and schema are unchanged.",
+  "acceptance": {
+    "source_collection_capacity_one_across_independent_store_engines": "PASS - exactly one DISCOVER operation RUNNING; the other remains QUEUED with attempt_count zero",
+    "company_discovery_cross_kind_capacity_one_on_postgresql": "PASS - existing COMPANY_DISCOVER and COMPANY_SOURCE_REFRESH regression",
+    "ai_inline_admission_capacity_one_across_independent_store_engines": "PASS - exactly one AI_EVALUATE row RUNNING with attempt_count one; competing admission is rejected",
+    "document_generation_capacity_shared_between_inline_and_worker_paths": "PASS - concurrent RESUME_EXTRACT admission and PREPARE claim produce one RUNNING winner and no over-capacity operation",
+    "application_automation_capacity_one_across_independent_store_engines": "PASS - existing APPLY_MOCK regression with durable RUNNING/QUEUED and one/zero attempt readback",
+    "synthetic_test_rows_cancelled_for_repeatability": "PASS - focused suite passed twice against the same disposable database",
+    "personal_mjobs_database_touched": false,
+    "real_ats_or_ai_provider_called": false,
+    "external_application_submission": false,
+    "requirement_and_reference_denominators_unchanged": "PASS"
+  },
+  "environment": {
+    "os": "Windows",
+    "python": "repository .venv, Python 3.12",
+    "docker_server": "29.8.2",
+    "database": "fresh disposable PostgreSQL 17 container, loopback ephemeral host port and temporary container storage",
+    "postgres_container_cleanup": "PASS - the disposable test container was removed; no matching test container remained"
+  },
+  "commands": [
+    {
+      "command": "& 'C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe' -m unittest tests.integration.test_operation_concurrency_postgres tests.unit.test_operation_concurrency tests.integration.test_worker_lifecycle -v (MJOBS_TEST_POSTGRES_URL set for the command to a fresh disposable loopback PostgreSQL 17 URL)",
+      "repeat_count": 2,
+      "result": "PASS",
+      "tests_per_run": 24,
+      "failures_per_run": 0,
+      "errors_per_run": 0,
+      "skips_per_run": 0,
+      "summary": "Five PostgreSQL runtime category tests, three category configuration unit tests and sixteen worker-lifecycle integration tests passed on both runs against the same disposable database."
+    },
+    {
+      "command": "& 'C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe' -m py_compile tests/integration/test_operation_concurrency_postgres.py; python -m tools.verification.agent_skills; python -m tools.verification.catalogue; python -m tools.verification.progress validate; python -m tools.coordination.lane_coordination validate; git diff --check",
+      "result": "PASS",
+      "summary": "Changed-file compile, repository validators, lane coordination validation and whitespace check passed."
+    }
+  ],
+  "test_first_red": {
+    "result": "NOT_APPLICABLE",
+    "reason": "This slice adds missing real-PostgreSQL acceptance coverage for already implemented category locks. No product behavior change was proposed, so the decisive test is execution against PostgreSQL rather than a pre-change failure."
+  },
+  "limitations": [
+    "Real ATS/provider runtime, hosted Actions/reviews, browser and frontend checks were not part of this test-only database slice.",
+    "Issue #6 / MJ-REQ-005 remains OPEN/PARTIAL; no external submission was attempted."
+  ],
+  "denominators": {
+    "requirements": 366,
+    "reference_gaps": 59
+  },
+  "integration": {
+    "status": "PENDING",
+    "external_submission": "OFF"
+  }
+}

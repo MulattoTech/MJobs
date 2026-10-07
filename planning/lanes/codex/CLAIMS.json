@@ -136,6 +136,21 @@
       "released_at": "2026-10-07T11:54:01Z",
       "integrated_main": "ad9e27c1188bfbcfbe2148a3db766d77be799ec5",
       "issue_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6037350035"
+    },
+    {
+      "issue": 6,
+      "requirement_id": "MJ-REQ-005",
+      "branch": "codex/mj-req005-pg-all-category-admission-20261007",
+      "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req005-pg-all-category-admission-20261007",
+      "head": "474245178c48bb91145ceae50575795d74777686",
+      "paths": [
+        "tests/integration/test_operation_concurrency_postgres.py",
+        "docs/evidence/2026-10-07-postgres-all-category-concurrency.json",
+        "planning/lanes/codex/**"
+      ],
+      "status": "ACTIVE",
+      "claimed_at": "2026-10-07T11:56:20Z",
+      "evidence_path": "docs/evidence/2026-10-07-postgres-all-category-concurrency.json"
     }
   ]
 }
