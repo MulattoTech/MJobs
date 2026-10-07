@@ -11,7 +11,7 @@
     "current_verified_github_state": "Issue #179 / MJ-REQ-178 log retention acceptance PASS at 8bea57e595e19e638913405a8ec1cd3aa0ebde32; full product remains PARTIAL.",
     "current_verified_at": "2026-10-07T15:27:43Z"
   },
-  "current_milestone": "MJ-REQ-004-LIVE-HTTP-RESUME-DISCONNECT-20261007",
+  "current_milestone": "MJ-REQ-176-SEARCH-PROFILE-SETTING-AUDIT-20261007",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -364,7 +364,8 @@
     "MJ-REQ-176 mock submission audit: 34 affected Python integration/browser tests PASS, including connected Chromium Activity reload/profile isolation; frontend 63 tests/build PASS; changed-file compile and local validators PASS.",
     "Isolated rerun of tests.browser.test_company_discovery_requests.CompanyDiscoveryRequestsBrowserTests.test_real_collection_request_review_worker_and_identity_separation: 1 PASS after the full suite shutdown assertion failure.",
     "MJ-REQ-173 exact candidate 84136dc: 16 affected integration/connected Chromium tests PASS with zero skips; frontend 63 tests/build; SQLite migration preservation and repository validators PASS.",
-    "Scoped real loopback resume-extraction transport-disconnect cancellation: parser child terminated/reaped; operation CANCELLED; profile, uploaded resume and revision history unchanged; 58 focused Python tests, frontend 63/build and local validators PASS. See docs/evidence/2026-10-07-live-http-resume-disconnect-cancel.json. Requirement #5 remains PARTIAL."
+    "Scoped real loopback resume-extraction transport-disconnect cancellation: parser child terminated/reaped; operation CANCELLED; profile, uploaded resume and revision history unchanged; 58 focused Python tests, frontend 63/build and local validators PASS. See docs/evidence/2026-10-07-live-http-resume-disconnect-cancel.json. Requirement #5 remains PARTIAL.",
+    "MJ-REQ-176 search-profile settings audit: targeted integration/browser 10 PASS; full Python suite 966 PASS, 8 skipped; frontend 63 PASS and production build PASS; local validators PASS; evidence docs/evidence/2026-10-07-search-profile-audit-history.json; issue #177 remains OPEN/PARTIAL at integrated main d4fd68c73acfeab3c47d523ac2de822c0c1e841f."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -444,7 +445,8 @@
     "MJ-REQ-176 AI task settings audit: PostgreSQL/Docker NOT_RUN (no schema change); full Python suite NOT_RUN; hosted Actions/review NOT_RUN_BY_USER_POLICY; external submission OFF.",
     "Issue #517 feed source-candidate slice: full Python suite NOT_RUN; frontend unit suite NOT_RUN (no frontend source changed); hosted Actions/review NOT_RUN_BY_USER_POLICY; external submission OFF.",
     "Issue #166: GitHub Actions/hosted review NOT_RUN_BY_USER_POLICY; live providers NOT_RUN; external submission OFF.",
-    "MJ-REQ-176 mock submission audit: PostgreSQL/Docker/migrations NOT_APPLICABLE (no schema change); hosted Actions/reviews NOT_RUN_BY_USER_POLICY; production providers/employer sites NOT_RUN; external submission OFF."
+    "MJ-REQ-176 mock submission audit: PostgreSQL/Docker/migrations NOT_APPLICABLE (no schema change); hosted Actions/reviews NOT_RUN_BY_USER_POLICY; production providers/employer sites NOT_RUN; external submission OFF.",
+    "GitHub Actions, hosted tests and independent review NOT_RUN_BY_USER_POLICY; PostgreSQL/Docker NOT_RUN (no schema change); external submission OFF."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -483,10 +485,10 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "commit": "05fdd3d4b119072d294b4a1f7f862fb73de26406",
+    "commit": "d4fd68c73acfeab3c47d523ac2de822c0c1e841f",
     "result": "PARTIAL",
-    "evidence": "docs/evidence/2026-10-07-live-http-resume-disconnect-cancel.json",
-    "verified_at_utc": "2026-10-07T20:08:51Z"
+    "evidence": "docs/evidence/2026-10-07-search-profile-audit-history.json",
+    "verified_at_utc": "2026-10-07T22:01:00Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -553,7 +555,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Issue #5 / MJ-REQ-004 remains OPEN/PARTIAL after locally verified real loopback resume-extraction disconnect cancellation; see docs/evidence/2026-10-07-live-http-resume-disconnect-cancel.json. Reconcile current origin/main, all active claims/comments and matching worktrees; select and claim the highest-value unclaimed dependency-ready issue. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
+  "recommended_resume_step": "Issue #177 / MJ-REQ-176 remains OPEN/PARTIAL after the existing search-profile save now records generic empty-payload SETTING_CHANGED atomically for effective changes; creation/no-op writes emit none. Evidence docs/evidence/2026-10-07-search-profile-audit-history.json. Reconcile live main, claims and dependency-ready issues; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -590,7 +592,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "84136dcabc99f831538b66f2450292152336750b",
+  "last_implementation_commit": "d4fd68c73acfeab3c47d523ac2de822c0c1e841f",
   "publication": {
     "result": "PASS",
     "integration_method": "NON_FORCE_FAST_FORWARD",
@@ -9356,12 +9358,53 @@
         "evidence_path": "docs/evidence/2026-10-07-live-http-resume-disconnect-cancel.json"
       },
       "source_test_commit": "56b9ad997c154ff5b2ddacf98ab43c9fd7725cdc"
+    },
+    {
+      "milestone_id": "MJ-REQ-176-SEARCH-PROFILE-SETTING-AUDIT-20261007",
+      "timestamp": "2026-10-07T22:01:00Z",
+      "current_phase": "MJ_REQ_176_SEARCH_PROFILE_SETTING_AUDIT_INTEGRATED_PARTIAL",
+      "completed_steps": [
+        "Integrated profile-scoped generic SETTING_CHANGED event for effective search-profile saves in the same transaction.",
+        "Creation and unchanged saves emit no setting-change event; payload remains empty and contains no setting values.",
+        "Recorded partial verification and issue state after fast-forward to main."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-07-search-profile-audit-history.json"
+      ],
+      "files_modified": [
+        "services/discovery/search_profiles.py",
+        "tests/integration/test_audit_history.py",
+        "tests/browser/test_audit_history.py",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json"
+      ],
+      "tests_completed": [
+        "Targeted audit integration/browser suites: 10 PASS.",
+        "Full Python suite: 966 PASS, 8 skipped.",
+        "Frontend: 63 PASS; production build PASS.",
+        "Local repository validators and diff check PASS."
+      ],
+      "tests_remaining": [
+        "Other settings and complete truthful lifecycle event families in MJ-REQ-176.",
+        "PostgreSQL/Docker runtime validation NOT_RUN; hosted CI/review NOT_RUN_BY_USER_POLICY."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "Issue #177 remains OPEN/PARTIAL; this scoped slice does not close the requirement.",
+        "External submission remains OFF."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "d4fd68c73acfeab3c47d523ac2de822c0c1e841f",
+        "evidence_path": "docs/evidence/2026-10-07-search-profile-audit-history.json"
+      }
     }
   ],
-  "current_phase": "MJ_REQ_004_REAL_HTTP_RESUME_DISCONNECT_CANCELLATION_INTEGRATED_PARTIAL",
+  "current_phase": "MJ_REQ_176_SEARCH_PROFILE_SETTING_AUDIT_INTEGRATED_PARTIAL",
   "last_safe_checkpoint": {
-    "git_commit": "05fdd3d4b119072d294b4a1f7f862fb73de26406",
-    "evidence_path": "docs/evidence/2026-10-07-live-http-resume-disconnect-cancel.json"
+    "git_commit": "d4fd68c73acfeab3c47d523ac2de822c0c1e841f",
+    "evidence_path": "docs/evidence/2026-10-07-search-profile-audit-history.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -9658,21 +9701,21 @@
     "next_issue": "Release #398 and select the next dependency-ready unclaimed issue after live claim/worktree reconciliation."
   },
   "active_development_issue": {
-    "issue": 517,
-    "requirement_id": "MJ-FEATURE-DISCOVERED-JOB-SOURCE-CATALOGUE",
-    "title": "Discovered job-source catalogue — supported feed capture slice",
+    "issue": 177,
+    "requirement_id": "MJ-REQ-176",
+    "title": "Audit Log",
     "state": "INTEGRATED_PARTIAL",
-    "base": "fe5be5b78232a5a81e0106ab76a99feb4b8f4ca2",
-    "branch": "codex/mj-feature-source-candidate-feed-import-20261007",
-    "candidate": "bf1eb739fb05edf96becaa8c4ab0a4e6fe588d92",
-    "integrated_main": "bf1eb739fb05edf96becaa8c4ab0a4e6fe588d92",
-    "source_commit": "48d204aba31251179c4ff94d7b7d2ecac53a8a94",
-    "source_tree": "41b28c8678771814690c501698563390a1efacbf",
-    "evidence": "docs/evidence/2026-10-07-source-candidate-feed-import.json",
+    "base": "23826b281dce6901734c63cb4f428dd694320b1e",
+    "branch": "codex/mj-req176-search-profile-settings-audit-20261007",
+    "candidate": "d4fd68c73acfeab3c47d523ac2de822c0c1e841f",
+    "integrated_main": "d4fd68c73acfeab3c47d523ac2de822c0c1e841f",
+    "source_commit": "96ccfc0e6b0c1ab095b41f1337579820b118d86f",
+    "source_tree": "c765a208cf33f95e3d5961e6089b54340c74d93b",
+    "validated_tree": "87831e8bde9374416a135eefda262f91aeb8ac72",
+    "evidence": "docs/evidence/2026-10-07-search-profile-audit-history.json",
     "issue_state": "OPEN",
-    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6044306990",
-    "release_comment": "https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6044308805",
-    "next_action": "Codex claim and integration lock released. Reconcile latest main, all active claims, issue comments and worktrees, then select the highest-value unclaimed dependency-ready issue."
+    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6047708003",
+    "next_action": "Continue with the highest-value unclaimed dependency-ready issue after reconciling current main, claims, comments and worktrees; keep each issue status bounded to demonstrated evidence."
   },
   "historical_control_snapshots": [
     {
@@ -10803,7 +10846,7 @@
     "Issue #403 / MJ-REF-033 page-budget slice: source 79b29ee0fe61af0906772f182c0ac280f73fc2f4 (443fb463d97b5ee45a558e8db06581f0c5d6b333), integrated candidate 01596a7a093bbfc359e9ded49076aac3cb95d94d (f55ee218fe0bb32249cef537ea66700b235280c5); 25 focused agent tests, compileall, agent_skills/catalogue/progress/reference_provenance/lane_coordination and diff checks PASS. Browser/source entrypoint, full Python suite, PostgreSQL/Docker and hosted checks NOT_RUN or NOT_APPLICABLE as recorded in docs/evidence/2026-10-07-agent-page-budget.json. Issue remains OPEN/PARTIAL.",
     "Issue #166 / MJ-REQ-165 fully accepted and integrated at 59039a51701258a35c93fc7deca6fbf85d72fddd from source 108c502ce0b2c8aa92a4868b09687b4b4a0206f1. Search now covers title, company, description, skills and location; PostgreSQL GIN full-text indexes support job and company search. Full Python 962/8 skipped, frontend 63/build, connected Chromium, SQLite/PostgreSQL migrations, PostgreSQL API/index-plan checks and local validators PASS. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF. Evidence docs/evidence/2026-10-07-full-text-search.json."
   ],
-  "ownership": "Issue #6 / MJ-REQ-005 AI evaluation admission source cb2681b6a921f2759cf46d4d66a8228645b473e7 and sanitized evidence/planning are integrated at synchronized local/GitHub main cb2681b6a921f2759cf46d4d66a8228645b473e7 under the local Codex integration lock. No PR opened; branch unprotected; hosted checks/review NOT_RUN by policy. Issue remains OPEN/PARTIAL.",
+  "ownership": "Issue #177 / MJ-REQ-176 search-profile SETTING_CHANGED slice source 96ccfc0e6b0c1ab095b41f1337579820b118d86f, evidence and planning are integrated at synchronized local/GitHub main d4fd68c73acfeab3c47d523ac2de822c0c1e841f under the local Codex integration lock. No PR opened; main is unprotected; hosted checks/review NOT_RUN_BY_USER_POLICY. Issue remains OPEN/PARTIAL.",
   "delivery_policy": {
     "mode": "LOCAL_ONLY",
     "effective_at": "2026-10-05T21:32:10.763994+00:00",
@@ -10816,5 +10859,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-07T19:56:11Z"
+  "updated_at": "2026-10-07T22:01:00Z"
 }
