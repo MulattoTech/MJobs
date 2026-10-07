@@ -3,11 +3,11 @@
   "lane": "codex",
   "items": [
     {
-      "issue": 5,
-      "requirement_id": "MJ-REQ-004",
-      "status": "ACTIVE",
+      "issue": 6,
+      "requirement_id": "MJ-REQ-005",
+      "status": "INTEGRATED_PARTIAL",
       "priority": 0,
-      "note": "Request-disconnect cancellation for structured AI evaluation. Regression reproduced before implementation. Source 9e8605029b138faa8b8785e043fd6af42fd902ce: 31 focused/adjacent consumer, API, profile-import and browser tests PASS; frontend build and repository validators PASS. Evidence docs/evidence/2026-10-07-ai-evaluation-disconnect-cancellation.json. Synthetic Request probe only; real socket disconnect, full suite and live provider NOT_RUN. Issue remains OPEN/PARTIAL."
+      "note": "MJ-REQ-005 / issue #6 direct structured AI evaluations now reserve database-backed AI category capacity across API instances; generic durable cancellation propagates to provider cancellation; completed, cancelled and expired-lease outcomes are recorded. Full Python 849 PASS (1 optional PostgreSQL skip), 32 focused API/worker tests PASS, 8 browser tests PASS after building worktree UI, frontend 62 PASS/build PASS, validators PASS. Evidence docs/evidence/2026-10-07-ai-evaluation-concurrency-admission.json. Requirement remains PARTIAL: live PostgreSQL lock, live provider and real ATS behavior are not evidenced. Source/main cb2681b6a921f2759cf46d4d66a8228645b473e7."
     }
   ]
 }

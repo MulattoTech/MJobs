@@ -711,3 +711,12 @@ Next: release the Codex issue #96 claim, reconcile current main and every active
 
 
 Integration receipt (2026-10-07T03:36:00Z): issue #96 source and evidence were non-force fast-forwarded from synchronized main `72b2bb31a853f49f07e7176dc4b12e8a0cad4fdf` to `bf3c8bc1868987c59661a69184537272c2f8d422`; canonical evidence, capability, PR queue and journal updates were then pushed to synchronized main `3818920b967c27cfd886e7f6ae7f3ff3037b31a8`. Main was unprotected, no open PR existed, and no hosted workflow was dispatched. Issue #96 remains OPEN/PARTIAL.
+
+---
+
+# Integration receipt — 2026-10-07
+
+Issue #6 / MJ-REQ-005 direct AI evaluation concurrency admission was integrated by non-force fast-forward at synchronized local/GitHub main cb2681b6a921f2759cf46d4d66a8228645b473e7 from base 0a3a5fa588b55087030a19496d5228afcd3a2cc. Evidence: docs/evidence/2026-10-07-ai-evaluation-concurrency-admission.json. Independent API instances sharing SQLite honor MJOBS_AI_CONCURRENCY; generic operation cancellation reaches the provider cancellation event; inline crash leases become FAILED without retry. Local verification: 32 focused API/worker tests; 849 full Python tests PASS with one optional PostgreSQL skip; eight affected browser tests PASS after rebuilding worktree assets; frontend 62 tests/build and validators PASS. PostgreSQL runtime, live provider/real ATS, hosted checks/review NOT_RUN; external submission OFF. Issue #6 remains OPEN/PARTIAL.
+
+Sanitized GitHub issue comment/readback and claim release are pending. Release #6, reconcile active claims, and continue to the next highest-value unclaimed dependency-ready issue without waiting for another user prompt.
+Sanitized GitHub issue readback: https://github.com/MulattoTech/MJobs/issues/6#issuecomment-6031361188. Claim release and final planning receipt follow under the integration lock.

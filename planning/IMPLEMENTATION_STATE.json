@@ -1,17 +1,17 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-07T04:22:25Z",
+  "generated_at": "2026-10-07T05:08:16Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Local main/origin main synchronized at 1732bddbf2e5a3a41da2b29619340c278cf36dfb; issue #5 / MJ-REQ-004 AI evaluation disconnect cancellation integrated as a scoped PARTIAL slice.",
-    "current_verified_github_state": "Local/GitHub main synchronized at bf3c8bc1868987c59661a69184537272c2f8d422 after MJ-REQ-095 user-reviewed responsibility-rewrite integration; issue #96 remains OPEN/PARTIAL; issue #5 remains OPEN/PARTIAL; Actions disabled; external submission OFF.",
-    "current_verified_at": "2026-10-07T03:36:00Z"
+    "current_verified_local_state": "Local main/origin main synchronized at cb2681b6a921f2759cf46d4d66a8228645b473e7; issue #6 / MJ-REQ-005 direct structured AI evaluation admission integrated as a scoped PARTIAL slice.",
+    "current_verified_github_state": "Local/GitHub main synchronized at cb2681b6a921f2759cf46d4d66a8228645b473e7; issue #6 remains OPEN/PARTIAL after local evidence readback; Actions disabled; external submission OFF.",
+    "current_verified_at": "2026-10-07T05:08:16Z"
   },
-  "current_milestone": "MJ-REQ-004-AI-OLLAMA-INFLIGHT-CANCEL-20261007",
+  "current_milestone": "MJ-REQ-005-AI-EVALUATION-ADMISSION-20261007",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -98,13 +98,15 @@
     "MJ-REQ-108: registered loopback-only Ollama provider supports bounded text and schema requests with stable sanitized errors; no live inference, remote providers, persistent settings, or production task consumer (docs/evidence/2026-10-06-ai-local-ollama-provider.json).",
     "MJ-REQ-004 structured AI evaluation now has real loopback transport-disconnect evidence through pure ASGI origin middleware; synthetic in-flight work is discarded without partial history. Other operation categories and real provider paths remain incomplete (docs/evidence/2026-10-07-ai-real-disconnect-transport.json).",
     "MJ-REQ-004 structured AI evaluation now has explicit profile/request-scoped UI/API cancellation, bounded in-flight completion and no partial history; synthetic provider and connected Chromium only. Other operation categories and real provider acceptance remain incomplete (docs/evidence/2026-10-07-ai-evaluation-ui-cancel.json).",
-    "MJ-REQ-004 structured AI evaluation cancellation now closes blocked loopback Ollama transport promptly and discards partial batches; synthetic local HTTP only. Other operation categories and live provider acceptance remain incomplete (docs/evidence/2026-10-07-ai-ollama-active-cancel.json)."
+    "MJ-REQ-004 structured AI evaluation cancellation now closes blocked loopback Ollama transport promptly and discards partial batches; synthetic local HTTP only. Other operation categories and live provider acceptance remain incomplete (docs/evidence/2026-10-07-ai-ollama-active-cancel.json).",
+    "MJ-REQ-005 / issue #6 direct structured AI evaluations now reserve database-backed AI category capacity across API instances; generic durable cancellation propagates to provider cancellation; completed, cancelled and expired-lease outcomes are recorded. Full Python 849 PASS (1 optional PostgreSQL skip), 32 focused API/worker tests PASS, 8 browser tests PASS after building worktree UI, frontend 62 PASS/build PASS, validators PASS. Evidence docs/evidence/2026-10-07-ai-evaluation-concurrency-admission.json. Requirement remains PARTIAL: live PostgreSQL lock, live provider and real ATS behavior are not evidenced."
   ],
   "blocked_capabilities": [],
   "active_requirements": [
     "MJ-REQ-108",
     "MJ-REQ-004",
-    "MJ-REQ-095"
+    "MJ-REQ-095",
+    "MJ-REQ-005"
   ],
   "active_prs": [],
   "tests_passed": [
@@ -292,7 +294,8 @@
     "MJ-REQ-095 reviewed responsibility rewrite: 15 focused unit/integration tests, connected Chromium rewrite/history tests, 62 frontend tests/build and repository validators PASS. Evidence docs/evidence/2026-10-07-resume-user-reviewed-bullet-rephrasing.json.",
     "MJ-REQ-004 real AI request-disconnect transport slice integrated at main c3618496c9a877a8cbca8e5c02af187b50f1ad9c; tested source 181ec139d48c6f911cdcd5f93f5a7dcf2b8b3210. Real loopback TCP half-close observed during a bounded synthetic provider call; no partial evaluation history persisted. 845 Python tests PASS (1 optional PostgreSQL skip), 3 connected Chromium tests PASS, 62 frontend tests/build PASS, and local validators PASS. Evidence docs/evidence/2026-10-07-ai-real-disconnect-transport.json.",
     "Issue #5 / MJ-REQ-004 explicit structured-AI evaluation cancellation integrated by non-force fast-forward at synchronized local/GitHub main 0d1bb23b3d11ea44c5026b8e256289b134e38628. Tested source b9cac2c6ec425e5cf888265e97fb70930fde947b (tree cf3e070d5711af2dbf191055c3442b65a3892296); evidence docs/evidence/2026-10-07-ai-evaluation-ui-cancel.json. The AI Settings UI sends a profile/request-scoped cancellation request, remains pending until the bounded synthetic provider call completes, discards the interrupted batch, and confirms empty history after reload. Local validation: 16 focused API/Chromium tests; 847 full Python tests with 1 optional PostgreSQL skip; 62 frontend tests/build; agent-skills, catalogue, progress, lane and compile checks PASS. Live provider inference and PostgreSQL runtime NOT_RUN; hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF. Issue #5 remains OPEN/PARTIAL.",
-    "Issue #5 / MJ-REQ-004 in-flight Ollama cancellation integrated by non-force fast-forward at synchronized local/GitHub main ef3a633b8325f26efd3c861ca237a4f318891535. Tested source 0be8c8c87509dd49ce1ca9e48a8f65158b45c2f9 (tree a2d6d0ecfbdcfed5316279640dde8373caa50b69); evidence docs/evidence/2026-10-07-ai-ollama-active-cancel.json. The API cancellation event reaches the real Ollama provider transport; canceling after synthetic loopback response headers and one body byte closes the connection within one second, returns canceled status, and preserves empty evaluation history. Validation: 43 focused AI/provider/API/Chromium tests; 848 full Python tests with one optional PostgreSQL skip; 62 frontend tests/build; agent-skills, catalogue, progress, lane, compile and diff checks PASS. No live inference or external submission. Hosted checks/review NOT_RUN_BY_USER_POLICY. Issue #5 remains OPEN/PARTIAL."
+    "Issue #5 / MJ-REQ-004 in-flight Ollama cancellation integrated by non-force fast-forward at synchronized local/GitHub main ef3a633b8325f26efd3c861ca237a4f318891535. Tested source 0be8c8c87509dd49ce1ca9e48a8f65158b45c2f9 (tree a2d6d0ecfbdcfed5316279640dde8373caa50b69); evidence docs/evidence/2026-10-07-ai-ollama-active-cancel.json. The API cancellation event reaches the real Ollama provider transport; canceling after synthetic loopback response headers and one body byte closes the connection within one second, returns canceled status, and preserves empty evaluation history. Validation: 43 focused AI/provider/API/Chromium tests; 848 full Python tests with one optional PostgreSQL skip; 62 frontend tests/build; agent-skills, catalogue, progress, lane, compile and diff checks PASS. No live inference or external submission. Hosted checks/review NOT_RUN_BY_USER_POLICY. Issue #5 remains OPEN/PARTIAL.",
+    "MJ-REQ-005 issue #6 candidate cb2681b6a921f2759cf46d4d66a8228645b473e7: 32 focused API/worker lifecycle tests PASS; 849 full Python tests PASS with 1 optional PostgreSQL concurrency skip; 8 affected browser tests PASS after building worktree apps/web/dist; frontend 62 PASS and Vite build PASS; repository validators, compileall and diff check PASS. Evidence docs/evidence/2026-10-07-ai-evaluation-concurrency-admission.json."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -304,7 +307,8 @@
     "MJ-REQ-004 Greenhouse response cancellation candidate 7b586455880b1bde22fecd79b89810be8a27093a first full run: 706 tests, one unrelated ApplicationPipelineBrowserTests.test_lost_status_and_note_responses_can_be_retried_after_edits teardown thread timeout and one optional PostgreSQL skip. The isolated test, all 36 browser tests and same-head full rerun passed. See docs/evidence/2026-10-06-greenhouse-http-cancellation.json.",
     "MJ-REQ-004 uploaded-comparison cancellation first full-suite attempt: unrelated CompanyDiscoveryRequestsBrowserTests teardown assertion and stale model expectation in test_skill_order. Teardown passed isolated; stale assertion was updated to current approved model contract; same-candidate full rerun passed 718 tests with one optional PostgreSQL skip. See docs/evidence/2026-10-06-uploaded-comparison-cancellation.json.",
     "MJ-REQ-004 cancellation acknowledgement TDD red on 6abd58a parent: connected browser asserted an unconfirmed-cancel status, but UI provided none and aborted the local fetch; expected regression. Clean baseline first needed ignored web bundle; after npm ci/build it passed. Evidence docs/evidence/2026-10-06-comparison-cancel-acknowledgement.json.",
-    "MJ-REQ-004 mock ATS cancellation first full candidate run: missing ignored apps/web/dist caused browser 404 errors; after restoring bundle, cancellation-aware receipt lookup exposed SUBMITTING persistence when operation check expired. Receipt reconciliation now catches a failed operation check and preserves SUBMISSION_UNCONFIRMED; 13 focused mock ATS tests pass. Second full suite had only unrelated application-pipeline shutdown timeout; isolated and all-browser reruns passed. Evidence docs/evidence/2026-10-06-mock-ats-http-cancellation.json."
+    "MJ-REQ-004 mock ATS cancellation first full candidate run: missing ignored apps/web/dist caused browser 404 errors; after restoring bundle, cancellation-aware receipt lookup exposed SUBMITTING persistence when operation check expired. Receipt reconciliation now catches a failed operation check and preserves SUBMISSION_UNCONFIRMED; 13 focused mock ATS tests pass. Second full suite had only unrelated application-pipeline shutdown timeout; isolated and all-browser reruns passed. Evidence docs/evidence/2026-10-06-mock-ats-http-cancellation.json.",
+    "MJ-REQ-005 candidate cb2681b6a921f2759cf46d4d66a8228645b473e7 first full run before building worktree apps/web/dist: 849 tests, 2 failures and 6 browser navigation errors due missing served UI assets. Building the unchanged frontend made all 8 affected browser cases pass; final same-candidate full run passed 849 tests with 1 optional PostgreSQL skip. Evidence docs/evidence/2026-10-07-ai-evaluation-concurrency-admission.json."
   ],
   "tests_not_run": [
     "Remaining full-spec integrations and product/release requirements",
@@ -335,7 +339,8 @@
     "MJ-REQ-004 AI timeout slice: full repository Python suite and live provider inference NOT_RUN; GitHub Actions/hosted review NOT_RUN_BY_USER_POLICY. Other operation classes remain incomplete; external submission OFF. Evidence docs/evidence/2026-10-07-ai-evaluation-time-budget.json.",
     "MJ-REQ-004 real AI disconnect slice: live provider inference and hosted checks/review remain NOT_RUN; PostgreSQL runtime was not configured (one optional test skipped). External submission OFF. Evidence docs/evidence/2026-10-07-ai-real-disconnect-transport.json.",
     "MJ-REQ-004 AI evaluation cancellation: real/paid provider inference, PostgreSQL runtime, and GitHub hosted checks/review NOT_RUN_BY_USER_POLICY; one optional PostgreSQL test skipped because MJOBS_TEST_POSTGRES_URL was unset. External submission OFF.",
-    "MJ-REQ-004 in-flight Ollama cancellation: real/live Ollama inference, PostgreSQL runtime, and GitHub hosted checks/review NOT_RUN_BY_USER_POLICY; one optional PostgreSQL test skipped because MJOBS_TEST_POSTGRES_URL was unset. External submission OFF."
+    "MJ-REQ-004 in-flight Ollama cancellation: real/live Ollama inference, PostgreSQL runtime, and GitHub hosted checks/review NOT_RUN_BY_USER_POLICY; one optional PostgreSQL test skipped because MJOBS_TEST_POSTGRES_URL was unset. External submission OFF.",
+    "MJ-REQ-005 issue #6: live PostgreSQL advisory-lock runtime, live AI-provider inference, real ATS concurrency and hosted Actions/review remain NOT_RUN; one optional isolated PostgreSQL concurrency test skipped because MJOBS_TEST_POSTGRES_URL was unset; external submission remains OFF."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -367,13 +372,13 @@
     "MJ-REQ-004 candidate 3d604b27b1a4c25e2ff0ee6fa68a07e9ff8f74a0: full suite initially saw stale ignored apps/web/dist; rebuilding restored current Sources UI and isolated browser acceptance. A first rebuilt full run later hit the known intermittent CompanyDiscoveryRequestsBrowserTests server-thread shutdown assertion; isolated case and all 35 browser tests passed, followed by a same-head 680-test full suite pass. Do not weaken shutdown timeout; evidence docs/evidence/2026-10-06-bounded-ocr-diagnostics.json."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-07T04:22:25Z",
+    "timestamp": "2026-10-07T05:08:16Z",
     "result": "PARTIAL",
-    "source_commit": "0be8c8c87509dd49ce1ca9e48a8f65158b45c2f9",
-    "source_tree": "a2d6d0ecfbdcfed5316279640dde8373caa50b69",
-    "scope": "Propagate the structured AI cancellation event through the task consumer/router and close an in-flight blocked loopback Ollama HTTP connection; do not persist partial evaluation history.",
-    "evidence_path": "docs/evidence/2026-10-07-ai-ollama-active-cancel.json",
-    "integration_commit": "ef3a633b8325f26efd3c861ca237a4f318891535"
+    "source_commit": "cb2681b6a921f2759cf46d4d66a8228645b473e7",
+    "source_tree": "f5686be08c9dd911c13660afc28b8520ad011ebd",
+    "scope": "Direct structured AI evaluation requests share the configured cross-process durable AI concurrency ceiling; terminal status and non-retrying expired-lease recovery are persisted.",
+    "evidence_path": "docs/evidence/2026-10-07-ai-evaluation-concurrency-admission.json",
+    "integration_commit": "cb2681b6a921f2759cf46d4d66a8228645b473e7"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -440,7 +445,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Release the completed Codex issue #5 claim and integration lock, reconcile current main and active claims/comments/worktrees, then claim the highest-value dependency-ready unclaimed issue and continue in a dedicated Codex worktree.",
+  "recommended_resume_step": "Release issue #6 claim and integration lock, reconcile current main plus all machine/GitHub claims and worktrees, then claim the next highest-value unclaimed dependency-ready issue in a dedicated Codex worktree and continue automatically.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -477,7 +482,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "1732bddbf2e5a3a41da2b29619340c278cf36dfb",
+  "last_implementation_commit": "cb2681b6a921f2759cf46d4d66a8228645b473e7",
   "publication": {
     "result": "PASS",
     "integration_method": "NON_FORCE_FAST_FORWARD",
@@ -7180,12 +7185,79 @@
         "main_protected": false,
         "open_prs": 0
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-005-AI-EVALUATION-ADMISSION-20261007",
+      "current_phase": "Issue #6 / MJ-REQ-005 AI evaluation concurrency admission integrated at synchronized local/GitHub main cb2681b6a921f2759cf46d4d66a8228645b473e7; requirement remains OPEN/PARTIAL.",
+      "timestamp": "2026-10-07T05:08:16Z",
+      "completed_steps": [
+        "Reconciled issue #6 and live machine/GitHub claims; Codex owned only the AI evaluation admission paths.",
+        "Reproduced cross-instance over-admission with two FastAPI apps and separate Store instances against one SQLite database.",
+        "Added durable AI_EVALUATE admission under the existing cross-process AI category lock, truthful 429 capacity response, terminal operation states, cancellation propagation, and expired-lease recovery without retries.",
+        "Pushed candidate and integrated by non-force fast-forward under the local integration lock; local and origin main synchronized at cb2681b6a921f2759cf46d4d66a8228645b473e7.",
+        "Recorded sanitized issue evidence and kept issue #6 OPEN/PARTIAL."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-07-ai-evaluation-concurrency-admission.json"
+      ],
+      "files_modified": [
+        "apps/api/main.py",
+        "workers/operations.py",
+        "workers/AREA.md",
+        "tests/integration/test_ai_cost_policy_api.py",
+        "tests/unit/test_operation_concurrency.py",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md",
+        "planning/lanes/codex/CONTINUATION.json",
+        "planning/lanes/codex/IMPLEMENTATION_STATE.json",
+        "planning/lanes/codex/PR_QUEUE.json"
+      ],
+      "tests_completed": [
+        "32 focused AI evaluation API, operation-concurrency and worker-lifecycle tests PASS.",
+        "849 full Python discovery tests PASS; one optional PostgreSQL concurrency test skipped because MJOBS_TEST_POSTGRES_URL was unset.",
+        "Eight browser tests that initially failed without worktree frontend assets passed after npm build.",
+        "13 frontend files / 62 tests PASS; TypeScript and Vite production build PASS.",
+        "Agent skills, catalogue, progress journal, lane validation, compileall and git diff checks PASS."
+      ],
+      "tests_remaining": [
+        "PostgreSQL runtime concurrency test NOT_RUN because MJOBS_TEST_POSTGRES_URL was unset.",
+        "Live AI provider inference and real ATS concurrency NOT_RUN.",
+        "Hosted GitHub Actions and reviews NOT_RUN by user policy; external submission remains OFF."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Two API application/store instances shared one temporary SQLite database; provider calls were synthetic and no external service was contacted."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "One optional PostgreSQL test was skipped; production PostgreSQL advisory-lock behavior was not exercised.",
+        "The full MJ-REQ-005 requirement remains PARTIAL because real ATS concurrency and live PostgreSQL evidence remain incomplete.",
+        "Hosted checks/reviews are NOT_RUN_BY_USER_POLICY; external submission OFF."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "cb2681b6a921f2759cf46d4d66a8228645b473e7",
+        "evidence_path": "docs/evidence/2026-10-07-ai-evaluation-concurrency-admission.json"
+      },
+      "integration": {
+        "method": "NON_FORCE_FAST_FORWARD",
+        "base": "e0a3a5fa588b55087030a19496d5228afcd3a2cc",
+        "main": "cb2681b6a921f2759cf46d4d66a8228645b473e7",
+        "source_branch": "codex/req005-ai-evaluation-admission-20261007",
+        "source_commit": "cb2681b6a921f2759cf46d4d66a8228645b473e7",
+        "candidate": "cb2681b6a921f2759cf46d4d66a8228645b473e7",
+        "issue_comment": "https://github.com/MulattoTech/MJobs/issues/6#issuecomment-6031361188",
+        "actions_enabled": false,
+        "main_protected": false,
+        "open_prs": 0
+      }
     }
   ],
-  "current_phase": "Issue #5 / MJ-REQ-004 real structured-AI request disconnect slice integrated at synchronized local/GitHub main c3618496c9a877a8cbca8e5c02af187b50f1ad9c. Issue remains OPEN/PARTIAL; other operation categories and real provider inference remain.",
+  "current_phase": "Issue #6 / MJ-REQ-005 AI evaluation concurrency admission integrated at synchronized local/GitHub main cb2681b6a921f2759cf46d4d66a8228645b473e7; requirement remains OPEN/PARTIAL.",
   "last_safe_checkpoint": {
-    "git_commit": "c3618496c9a877a8cbca8e5c02af187b50f1ad9c",
-    "evidence_path": "docs/evidence/2026-10-07-ai-real-disconnect-transport.json"
+    "git_commit": "cb2681b6a921f2759cf46d4d66a8228645b473e7",
+    "evidence_path": "docs/evidence/2026-10-07-ai-evaluation-concurrency-admission.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -7333,29 +7405,28 @@
     }
   ],
   "live_reconciliation": {
-    "observed_at": "2026-10-07T03:50:29Z",
-    "github_main": "c3618496c9a877a8cbca8e5c02af187b50f1ad9c",
-    "local_main": "c3618496c9a877a8cbca8e5c02af187b50f1ad9c",
-    "issue_5_state": "OPEN/PARTIAL",
+    "observed_at": "2026-10-07T05:08:16Z",
+    "github_main": "cb2681b6a921f2759cf46d4d66a8228645b473e7",
+    "local_main": "cb2681b6a921f2759cf46d4d66a8228645b473e7",
+    "issue_6_state": "OPEN/PARTIAL",
     "open_prs": 0,
     "actions_enabled": false,
     "main_branch_protected": false,
-    "integration": "NON_FORCE_FAST_FORWARD under the local Codex integration lock; source branch and main SHAs verified equal at c3618496c9a877a8cbca8e5c02af187b50f1ad9c.",
-    "next_issue": "Reconcile live claims and select an unclaimed dependency-ready issue."
+    "integration": "NON_FORCE_FAST_FORWARD under local Codex integration lock; source candidate and synchronized local/GitHub main verified at cb2681b6a921f2759cf46d4d66a8228645b473e7.",
+    "next_issue": "Release issue #6 claim and re-evaluate live claims before selecting the next unclaimed dependency-ready issue."
   },
   "active_development_issue": {
-    "issue": 5,
-    "requirement_id": "MJ-REQ-004",
-    "title": "Bound External Operations",
-    "state": "ACTIVE",
-    "selection_reason": "P0 operation safety: prove real request transport disconnect propagation through API middleware and ensure a partially evaluated AI batch is discarded.",
-    "base": "dbed2ca11c55b99ad5474fd566f8294a30d4ea0f",
-    "branch": "codex/req004-ai-real-disconnect-20261007",
-    "candidate": "c3618496c9a877a8cbca8e5c02af187b50f1ad9c",
-    "source_candidate": "181ec139d48c6f911cdcd5f93f5a7dcf2b8b3210",
-    "source_tree": "4edb7dfde29e02c1c133131bff358835ab6ad681",
-    "evidence": "docs/evidence/2026-10-07-ai-real-disconnect-transport.json",
-    "next_action": "Release the completed slice, recheck every live claim and worktree, then select the next highest-value unclaimed dependency-ready issue. Issue #5 remains OPEN/PARTIAL."
+    "issue": 6,
+    "requirement_id": "MJ-REQ-005",
+    "title": "Control Concurrency",
+    "state": "INTEGRATED_PARTIAL",
+    "base": "e0a3a5fa588b55087030a19496d5228afcd3a2cc",
+    "branch": "codex/req005-ai-evaluation-admission-20261007",
+    "candidate": "cb2681b6a921f2759cf46d4d66a8228645b473e7",
+    "source_tree": "f5686be08c9dd911c13660afc28b8520ad011ebd",
+    "evidence": "docs/evidence/2026-10-07-ai-evaluation-concurrency-admission.json",
+    "next_action": "Release this completed scoped claim and integration lock; reconcile live ownership and select the next highest-value unclaimed dependency-ready issue. Issue #6 remains OPEN/PARTIAL.",
+    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/6#issuecomment-6031361188"
   },
   "historical_control_snapshots": [
     {
@@ -8478,9 +8549,10 @@
     "MJ-REQ-017.S02 We Work Remotely global job-source adapter: 21 integration tests PASS in 9.0s; 57 discovery source tests PASS; 358 unit tests PASS; 62 frontend tests/build PASS; local validators PASS. Evidence docs/evidence/2026-10-06-we-work-remotely-job-source-adapter.json.",
     "MJ-REQ-017.S07 Remote OK global job-source adapter: 10 integration tests PASS in 9.3s; 66 discovery source tests PASS; 361 unit tests PASS; 62 frontend tests/build PASS; local validators PASS. Evidence docs/evidence/2026-10-06-remote-ok-job-source-adapter.json.",
     "MJ-REQ-110 takeover candidate code c9276be112cf8db636bd783dc7eb7ad41b539c35: 15 focused consumer/API/migration/browser tests, 62 frontend tests/build, and local validators PASS. Full Python discovery was interrupted (no aggregate result); live provider inference and hosted checks NOT_RUN. Evidence docs/evidence/2026-10-07-ai-cost-consumer-resume.json. Candidate plus evidence/planning pushed as aa05f692ce20d8b0c81fff2da6b93251fe5df6e5; issue remains OPEN/PARTIAL.",
-    "MJ-REQ-004 real AI request-disconnect transport slice integrated at main c3618496c9a877a8cbca8e5c02af187b50f1ad9c; tested source 181ec139d48c6f911cdcd5f93f5a7dcf2b8b3210. Real loopback TCP half-close observed during a bounded synthetic provider call; no partial evaluation history persisted. 845 Python tests PASS (1 optional PostgreSQL skip), 3 connected Chromium tests PASS, 62 frontend tests/build PASS, and local validators PASS. Evidence docs/evidence/2026-10-07-ai-real-disconnect-transport.json."
+    "MJ-REQ-004 real AI request-disconnect transport slice integrated at main c3618496c9a877a8cbca8e5c02af187b50f1ad9c; tested source 181ec139d48c6f911cdcd5f93f5a7dcf2b8b3210. Real loopback TCP half-close observed during a bounded synthetic provider call; no partial evaluation history persisted. 845 Python tests PASS (1 optional PostgreSQL skip), 3 connected Chromium tests PASS, 62 frontend tests/build PASS, and local validators PASS. Evidence docs/evidence/2026-10-07-ai-real-disconnect-transport.json.",
+    "MJ-REQ-005 / issue #6 direct structured AI evaluations now reserve database-backed AI category capacity across API instances; generic durable cancellation propagates to provider cancellation; completed, cancelled and expired-lease outcomes are recorded. Full Python 849 PASS (1 optional PostgreSQL skip), 32 focused API/worker tests PASS, 8 browser tests PASS after building worktree UI, frontend 62 PASS/build PASS, validators PASS. Evidence docs/evidence/2026-10-07-ai-evaluation-concurrency-admission.json. Requirement remains PARTIAL: live PostgreSQL lock, live provider and real ATS behavior are not evidenced."
   ],
-  "ownership": "Issue #5 / MJ-REQ-004 in-flight Ollama cancellation integrated by non-force fast-forward at synchronized local/GitHub main ef3a633b8325f26efd3c861ca237a4f318891535. Tested source 0be8c8c87509dd49ce1ca9e48a8f65158b45c2f9 (tree a2d6d0ecfbdcfed5316279640dde8373caa50b69); evidence docs/evidence/2026-10-07-ai-ollama-active-cancel.json. The API cancellation event reaches the real Ollama provider transport; canceling after synthetic loopback response headers and one body byte closes the connection within one second, returns canceled status, and preserves empty evaluation history. Validation: 43 focused AI/provider/API/Chromium tests; 848 full Python tests with one optional PostgreSQL skip; 62 frontend tests/build; agent-skills, catalogue, progress, lane, compile and diff checks PASS. No live inference or external submission. Hosted checks/review NOT_RUN_BY_USER_POLICY. Issue #5 remains OPEN/PARTIAL.",
+  "ownership": "Issue #6 / MJ-REQ-005 AI evaluation admission source cb2681b6a921f2759cf46d4d66a8228645b473e7 and sanitized evidence/planning are integrated at synchronized local/GitHub main cb2681b6a921f2759cf46d4d66a8228645b473e7 under the local Codex integration lock. No PR opened; branch unprotected; hosted checks/review NOT_RUN by policy. Issue remains OPEN/PARTIAL.",
   "delivery_policy": {
     "mode": "LOCAL_ONLY",
     "effective_at": "2026-10-05T21:32:10.763994+00:00",
@@ -8493,5 +8565,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-07T03:19:06Z"
+  "updated_at": "2026-10-07T05:08:16Z"
 }
