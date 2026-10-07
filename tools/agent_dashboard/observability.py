@@ -612,7 +612,14 @@ def _cache_put(
 
 
 def _normalized_workspace(value: str | Path | None) -> str:
-    return str(value or "").replace("\\", "/").rstrip("/").casefold()
+    return (
+        str(value or "")
+        .replace("\\", "/")
+        .rstrip()
+        .rstrip(".,;:)]}>\"'")
+        .rstrip("/")
+        .casefold()
+    )
 
 
 def _iso_timestamp(value: str | None) -> float | None:
@@ -726,6 +733,8 @@ def _codex_rollout_summary(path: Path) -> dict[str, Any]:
                         tool_calls += 1
                         name = str(payload.get("name") or subtype)
                         tool_breakdown[name] = tool_breakdown.get(name, 0) + 1
+                    elif subtype == "reasoning":
+                        reasoning_events += 1
     except OSError as exc:
         return {"available": False, "error": str(exc), **identity}
 

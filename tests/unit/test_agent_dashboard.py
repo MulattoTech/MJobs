@@ -106,7 +106,7 @@ class AgentDashboardSupervisorTests(unittest.TestCase):
                 "created_at": "2026-10-07T00:05:41Z",
                 "content": (
                     "EXECUTE NOW. issue #308 / MJ-REQ-017.S07; "
-                    "worktree=C:/Tools/Dev/MJobs/.worktrees/antigravity-test; "
+                    "worktree=C:/Tools/Dev/MJobs/.worktrees/antigravity-test. "
                     "Current preferred model: Gemini 3.8 Flash Medium"
                 ),
             },
@@ -167,6 +167,38 @@ class AgentDashboardSupervisorTests(unittest.TestCase):
         self.assertEqual(result["tool_breakdown"]["run_command"], 2)
         self.assertEqual(result["tool_breakdown"]["view_file"], 1)
         self.assertIn("Gemini 3.8 Flash Medium", result["model_hint"])
+
+    def test_idle_ready_lane_without_claim_displays_idle_unassigned(self):
+        lane_dir = self.root / "planning" / "lanes" / "antigravity"
+        lane_dir.mkdir(parents=True)
+        (lane_dir / "CONTINUATION.json").write_text(
+            json.dumps({"status": "IDLE_READY"}),
+            encoding="utf-8",
+        )
+        supervisor = AgentSupervisor(self.root)
+        supervisor.telemetry_snapshot = lambda: {
+            "processes": [],
+            "gpu": {"available": False, "by_pid": {}},
+            "codex_usage": {"available": False},
+            "ollama": {"available": True, "models": []},
+        }
+        supervisor.coordination = lambda: {"claims": {}, "lock": None}
+        supervisor.git_state = lambda: {
+            "branch": "main",
+            "head": "abc",
+            "origin_main": "abc",
+            "dirty": [],
+            "worktrees": [],
+        }
+        state = supervisor.snapshot()
+        self.assertEqual(
+            state["lanes"]["antigravity"]["runtime"]["status"],
+            "IDLE_UNASSIGNED",
+        )
+        self.assertIn(
+            "no active issue claim",
+            state["lanes"]["antigravity"]["runtime"]["last_reason"],
+        )
 
     def test_gpu_offload_percent_maps_to_model_blocks(self):
         self.assertEqual(offload_layers(30, 100), 30)

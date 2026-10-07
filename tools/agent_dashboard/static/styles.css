@@ -112,3 +112,5 @@ code { font-family:"Cascadia Code",Consolas,monospace; font-size:.95em; }
 
 .interface-stats { margin:.8rem 0; display:grid; gap:.65rem; }
 .codex-raw-stats, .antigravity-raw-stats { max-height:28rem; }
+
+.pill.idle_unassigned { border-color:#466494; color:#9fc2ff; }

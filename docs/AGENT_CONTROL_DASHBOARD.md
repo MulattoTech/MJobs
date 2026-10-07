@@ -166,3 +166,13 @@ Antigravity transcript JSONL records exact input_tokens, cache_read_tokens, and 
 - configured-model historical/24-hour totals only when the model named in the recorded lane launch prompt matches the configured dashboard model.
 
 Antigravity does not expose hidden thinking-token counts or a reliable remaining quota percentage through its local CLI. The dashboard therefore never invents those numbers. It shows thinking-text statistics and native quota/429 evidence instead. Historical model grouping is explicitly marked as launch-prompt attribution rather than provider-billed model accounting.
+
+
+## Lane idle-state semantics
+
+A completed/released lane with `planning/lanes/<lane>/CONTINUATION.json` at
+`IDLE_READY` and no live machine claim is displayed as `IDLE_UNASSIGNED`.
+A prior supervisor stop/restart does not masquerade as a user block. Explicit stop
+actions record `STOP_REQUESTED`. A writable lane still requires a live claim before
+Start; this preserves worktree/path isolation instead of silently choosing arbitrary
+GitHub work.

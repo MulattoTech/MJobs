@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "evidence_id": "AGENT-DASHBOARD-CODEX-ANTIGRAVITY-TELEMETRY-20261006",
+  "timestamp_utc": "2026-10-07T01:22:00Z",
+  "issue": 516,
+  "result": "PASS",
+  "scope": "Deep structured usage/turn/tool telemetry for Codex and Antigravity, plus honest idle/unassigned lane state.",
+  "codex_acceptance_sample": {
+    "source": "~/.codex/sessions rollout JSONL",
+    "session_id": "01a113eb-ec93-7db0-ab74-b45b81701646",
+    "model": "gpt-6-luna",
+    "reasoning_effort": "high",
+    "current_turn": {
+      "context_tokens": 69498,
+      "context_window": 258400,
+      "context_used_percent": 26.9,
+      "input_tokens": 69281,
+      "new_input_tokens": 1953,
+      "cached_input_tokens": 67328,
+      "output_tokens": 217,
+      "reasoning_output_tokens": 108
+    },
+    "current_session": {
+      "processed_tokens": 934163,
+      "model_turns": 17,
+      "tool_calls": 17,
+      "cache_share_percent": 92.3
+    },
+    "worktree": {
+      "sessions": 17,
+      "processed_tokens": 52391173,
+      "tool_calls": 539
+    },
+    "note": "Acceptance snapshot only; dashboard reads live rollout files dynamically."
+  },
+  "antigravity_acceptance_sample": {
+    "source": "~/.gemini/antigravity-cli/brain MJobs transcript JSONL",
+    "conversation_id": "164f1767-595a-494c-8d6d-9a3fce8454c6",
+    "model_hint": "Gemini 3.8 Flash Medium",
+    "issue": 308,
+    "requirement_id": "MJ-REQ-017.S07",
+    "latest_prompt_context_tokens": 166515,
+    "conversation": {
+      "processed_tokens": 13490268,
+      "planner_turns": 134,
+      "tool_calls": 130,
+      "thinking_steps": 33,
+      "thinking_characters": 23003,
+      "cache_share_percent": 95.7
+    },
+    "worktree": {
+      "conversations": 2,
+      "processed_tokens": 14243442,
+      "tool_calls": 155
+    },
+    "configured_model_mjobs_history": {
+      "conversations": 6,
+      "processed_tokens": 32730574,
+      "tool_calls": 452
+    },
+    "note": "Thinking text is observable, but hidden thinking-token counts and remaining quota percentage are not exposed by the CLI and are not estimated."
+  },
+  "lane_state_fix": {
+    "observed_problem": "After #308 completed/released, a prior supervisor stop persisted STOPPED/USER_STOP even though the user had not blocked the lane and no claim remained.",
+    "resolution": [
+      "STOP_REQUESTED replaces misleading USER_STOP wording.",
+      "IDLE_READY lane with no active claim renders IDLE_UNASSIGNED with an explicit no-claim explanation.",
+      "Issue #302 / MJ-REQ-017.S01 Dice was selected and claimed for Antigravity; live Gemini 3.8 Flash Medium requests succeeded."
+    ]
+  },
+  "skill_fix": "Quoted mjobs-delivery SKILL.md description YAML so Antigravity can parse the repo-local skill on future launches.",
+  "validation": [
+    "Python compile: PASS",
+    "Dashboard supervisor/API/WebSocket suite: 20 PASS with ResourceWarnings as errors",
+    "node --check tools/agent_dashboard/static/app.js: PASS",
+    "python -m tools.verification.agent_skills: PASS",
+    "python -m tools.verification.catalogue: PASS",
+    "git diff --check: PASS",
+    "Real Codex rollout parse: PASS",
+    "Real Antigravity #308 transcript/worktree parse: PASS"
+  ]
+}

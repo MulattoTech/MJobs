@@ -541,7 +541,7 @@ class AgentSupervisor:
         with self._lock:
             state.update({
                 "pid": None, "status": "STOPPED", "stopped_at": utc_now(),
-                "last_reason": "USER_STOP",
+                "last_reason": "STOP_REQUESTED",
             })
             child = self._children.pop(lane, None)
             if child:
@@ -686,13 +686,33 @@ class AgentSupervisor:
         worktrees = _run(["git", "worktree", "list"], self.root).stdout.splitlines()
         return {"branch": branch, "head": head, "origin_main": origin, "dirty": status, "worktrees": worktrees}
 
+    def _lane_file_status(self, lane: str) -> str | None:
+        path = self.root / "planning" / "lanes" / lane / "CONTINUATION.json"
+        try:
+            value = json.loads(path.read_text(encoding="utf-8")).get("status")
+            return str(value) if value else None
+        except Exception:
+            return None
+
     def snapshot(self) -> dict[str, Any]:
         telemetry = self.telemetry_snapshot()
+        coordination = self.coordination()
+        claims = coordination.get("claims") or {}
         gpu_by_pid = (telemetry.get("gpu") or {}).get("by_pid") or {}
         with self._lock:
             lanes = {}
             for lane in LANES:
                 state = dict(self.runtime["lanes"][lane])
+                claim = claims.get(lane)
+                if (
+                    not state.get("pid")
+                    and not claim
+                    and self._lane_file_status(lane) == "IDLE_READY"
+                ):
+                    state["status"] = "IDLE_UNASSIGNED"
+                    state["last_reason"] = (
+                        "Previous work is complete/released; no active issue claim is assigned."
+                    )
                 if state.get("pid") and not pid_alive(state["pid"]):
                     state["status"] = "EXITED_UNRECONCILED"
                 activity = log_activity(self.log_path(lane), lane)
@@ -814,7 +834,7 @@ class AgentSupervisor:
             "time": utc_now(),
             "lanes": lanes,
             "git": self.git_state(),
-            "coordination": self.coordination(),
+            "coordination": coordination,
             "system": {
                 "gpu": telemetry.get("gpu"),
                 "ollama": telemetry.get("ollama"),

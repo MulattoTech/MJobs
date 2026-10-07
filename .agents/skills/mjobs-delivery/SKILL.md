@@ -1,6 +1,6 @@
 ---
 name: mjobs-delivery
-description: Use in MulattoTech/MJobs for repository delivery work: reconcile live Git/GitHub state, select dependency-ready slices, route recurring high-risk changes to the matching playbook, verify evidence, and publish only exact-head-backed PRs. Skip unrelated repositories and read-only questions.
+description: "Use in MulattoTech/MJobs for repository delivery work: reconcile live Git/GitHub state, select dependency-ready slices, route recurring high-risk changes to the matching playbook, verify evidence, and publish only exact-head-backed PRs. Skip unrelated repositories and read-only questions."
 version: 0.4.0
 compatibility: Codex Agent Skills SKILL.md
 ---
