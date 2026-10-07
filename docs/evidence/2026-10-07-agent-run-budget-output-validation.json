@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-07T08:21:51Z",
+  "issue": 403,
+  "reference_gap_id": "MJ-REF-033",
+  "result": "PARTIAL",
+  "source_commit": "9880d97819c2f574bec0ffb4ba990b7d553a72a4",
+  "base_main": "de04d6bb06ce23d1a7f4f7f0f04dedcd87bdf7a5",
+  "acceptance_progress": [
+    {
+      "behavior": "Agent tool dispatch has a bounded elapsed-time budget and existing step ceiling; cooperative handlers can check the host-owned deadline before another effect.",
+      "result": "PASS",
+      "evidence": "tests/integration/test_agent_tools.py::test_wall_clock_budget_stops_before_next_tool_and_persists_consumption"
+    },
+    {
+      "behavior": "Explicit AUTH_REQUIRED, NOT_AVAILABLE, SOURCE_CHANGED, and REVIEW_REQUIRED outcomes stop the run; append-only trace stores the terminal reason and sanitized duration consumption.",
+      "result": "PASS",
+      "evidence": "tests/integration/test_agent_tools.py; tests.integration.test_agent_tools"
+    },
+    {
+      "behavior": "A host-declared collection contract checks output structure, stated and expected counts, empty/unknown results, required fields, and the expected tail item; unknown or incomplete output cannot be reported as successful.",
+      "result": "PASS",
+      "evidence": "tests/unit/test_agent_acceptance.py; tests/integration/test_agent_tools.py"
+    }
+  ],
+  "validation": [
+    {
+      "command": "python -m unittest tests.unit.test_agent_acceptance tests.integration.test_agent_tools tests.integration.test_agent_task_prompts -v",
+      "result": "PASS",
+      "counts": {"passed": 23, "failed": 0, "skipped": 0}
+    },
+    {
+      "command": "python -m compileall -q services/agents tests/unit/test_agent_acceptance.py tests/integration/test_agent_tools.py",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.agent_skills",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.catalogue",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.progress validate",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.reference_provenance",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "environment": {
+    "os": "Windows",
+    "python": "3.12",
+    "persistence_test": "temporary SQLite database with close/reopen trace readback",
+    "browser": "NOT_RUN; this agent runtime does not expose a browser adapter",
+    "postgresql": "NOT_RUN; no PostgreSQL-specific behavior or migration changed",
+    "hosted_actions_and_review": "NOT_RUN by current local-only policy",
+    "external_submission": "OFF"
+  },
+  "remaining_acceptance": [
+    "Connect the run contract to actual browser/source collection entrypoints and verify it with a controlled browser flow.",
+    "Add page-count budgets and bounded slice re-runs for flakiness diagnosis.",
+    "A synchronous tool handler already in progress cannot be forcibly terminated; handlers must check the host deadline cooperatively before additional work."
+  ],
+  "reference_provenance": {
+    "reference": "AIHawk / invisible_playwright_mcp",
+    "inspected_commit": "c64ba668842d111e37c1b88f960c0c7ecd756444",
+    "license": "MIT at inspected ref; earlier lineage includes AGPL-3.0 copies",
+    "use": "clean-room concepts only; no third-party code, tests, prompts, prose, or assets"
+  }
+}
