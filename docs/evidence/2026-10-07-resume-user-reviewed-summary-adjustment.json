@@ -1,0 +1,78 @@
+{
+  "timestamp": "2026-10-07T11:06:23Z",
+  "target": "MJ-REQ-095 / issue #96 user-reviewed summary adjustment slice",
+  "result": "PASS",
+  "requirement_overall_result": "PARTIAL",
+  "base_main": "74398ffd0b9271008d1e7a1f2dc12e285972fe78",
+  "source_commit": "bac4de1ad20e851b9a5e2d7ae27510ab1e7c30e3",
+  "source_tree": "b88b993274690af37cae261efceeebb7260c9603",
+  "input_sha256": {
+    "tests/unit/test_resume_comparison.py": "b8a90977681099238a9bcb4756aa08ee0144a70459da816c0550a975cf6054a1",
+    "tests/integration/test_resume_comparison.py": "9ccad161d79c6cb2637cf42925e529895483f2f2742ccac09e72f38aca21d344",
+    "tests/browser/test_skill_order.py": "e199dd197a6d367d9fcaf3f27b70b214fe2e0b4b9531d494a5d1ed6cc621ea221"
+  },
+  "environment": {
+    "os": "Windows",
+    "python": "repository .venv, Python 3.12.10",
+    "node": "25.9.0",
+    "frontend_dependencies": "apps/web lockfile install in isolated worktree",
+    "persistence": "isolated SQLite fixture databases",
+    "browser": "local Playwright Chromium against fixture API/server",
+    "external_submission": "OFF"
+  },
+  "commands": [
+    {
+      "command": "python -m unittest tests.unit.test_resume_comparison tests.integration.test_resume_comparison tests.integration.test_resume_selection -v",
+      "result": "PASS",
+      "tests": 12,
+      "notes": "Runs against isolated SQLite fixture databases."
+    },
+    {
+      "command": "python -m unittest tests.browser.test_skill_order -v",
+      "result": "PASS",
+      "tests": 2,
+      "notes": "Includes user-reviewed summary rewrite through UI, API, worker generation, download, reload and immutable comparison; outbound requests were blocked and none attempted."
+    },
+    {
+      "command": "python -m unittest tests.unit.test_document_validation tests.unit.test_resume_templates tests.integration.test_document_validation tests.integration.test_document_provenance tests.integration.test_resume_contact_header tests.browser.test_document_history -v",
+      "result": "PASS",
+      "tests": 20
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run",
+      "result": "PASS",
+      "tests": 63,
+      "test_files": 13
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.agent_skills; python -m tools.verification.catalogue; python -m tools.verification.progress validate; python -m tools.coordination.lane_coordination status; python -m tools.coordination.lane_coordination validate; git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "initial_environment_failures": [
+    "The first focused test invocation used global Python and could not import SQLAlchemy; rerun with repository .venv passed.",
+    "The first frontend invocation lacked worktree-local dependencies; npm ci --prefix apps/web installed the lockfile-pinned dependencies, after which all frontend tests and build passed."
+  ],
+  "acceptance": {
+    "selected_approved_summary_can_be_rewritten_and_individually_attested": "PASS",
+    "backend_preserves_source_hash_fact_kind_dates_and_numbers": "PASS",
+    "generated_resume_history_is_immutable_and_comparable_after_profile_change": "PASS",
+    "legacy_responsibility_rewrite_versions_remain_readable": "PASS",
+    "profile_facts_and_cover_letter_remain_unchanged": "PASS",
+    "external_submission": "OFF"
+  },
+  "scope": {
+    "schema_migration": "NOT_APPLICABLE - no schema change",
+    "postgresql": "NOT_RUN - persistence changes use existing document provenance fields and were exercised using isolated SQLite fixtures",
+    "hosted_actions_and_reviews": "NOT_RUN_BY_USER_POLICY",
+    "real_ai_provider": "NOT_RUN - feature is user-authored deterministic text handling"
+  },
+  "limitations": [
+    "This completes the summary-adjustment acceptance slice while issue #96 / MJ-REQ-095 remains PARTIAL for its broader requirement scope.",
+    "Hosted checks and reviews remain NOT_RUN_BY_USER_POLICY."
+  ]
+}
