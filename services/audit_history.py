@@ -17,10 +17,13 @@ _PROFILE_EVENTS = {
     "APPLICATION_QUEUED": ("APPLICATION_QUEUED", "Application preparation queued"),
     "APPLICATION_STARTED": ("APPLICATION_STARTED", "Application preparation started"),
     "APPLICATION_FAILED": ("APPLICATION_FAILED", "Application preparation failed"),
+    "COMPANY_DISCOVERED": ("COMPANY_DISCOVERED", "Company discovered for this profile"),
+    "COMPANY_SOURCE_ENROLLED": ("COMPANY_SOURCE_ENROLLED", "Company job source enrolled"),
 }
 _APPLICATION_PREPARATION_EVENTS = {
     "APPLICATION_QUEUED", "APPLICATION_STARTED", "APPLICATION_FAILED",
 }
+_COMPANY_EVENTS = {"COMPANY_DISCOVERED", "COMPANY_SOURCE_ENROLLED"}
 _APPLICATION_EVENTS = {
     "APPLICATION_QUEUED": ("APPLICATION_QUEUED", "Application preparation queued"),
     "QUEUED": ("APPLICATION_QUEUED", "Application preparation queued"),
@@ -57,6 +60,38 @@ def record_application_preparation_event(connection, action: str, profile_id: st
     values = {"id": event_id, "entity_id": profile_id, "action": action,
               "payload": {"job_id": job_id, "operation_id": operation_id,
                           "attempt": attempt}, "timestamp": now()}
+    dialect = connection.dialect.name
+    if dialect == "sqlite":
+        statement = sqlite_insert(m.audit).values(**values).on_conflict_do_nothing(
+            index_elements=[m.audit.c.id])
+    elif dialect == "postgresql":
+        statement = postgres_insert(m.audit).values(**values).on_conflict_do_nothing(
+            index_elements=[m.audit.c.id])
+    else:
+        if connection.execute(select(m.audit.c.id).where(
+                m.audit.c.id == event_id)).first() is not None:
+            return
+        statement = m.audit.insert().values(**values)
+    connection.execute(statement)
+
+
+def record_company_discovered(connection, profile_id: str, company_id: str) -> None:
+    _append_profile_event(connection, "COMPANY_DISCOVERED", profile_id,
+                          company_id, {"company_id": company_id})
+
+
+def record_company_source_enrolled(connection, profile_id: str, company_id: str,
+                                   company_source_id: str) -> None:
+    _append_profile_event(connection, "COMPANY_SOURCE_ENROLLED", profile_id,
+                          company_source_id, {"company_id": company_id,
+                                              "company_source_id": company_source_id})
+
+
+def _append_profile_event(connection, action: str, profile_id: str,
+                          stable_subject_id: str, payload: dict) -> None:
+    event_id = identity("profile-audit", action, profile_id, stable_subject_id)
+    values = {"id": event_id, "entity_id": profile_id, "action": action,
+              "payload": payload, "timestamp": now()}
     dialect = connection.dialect.name
     if dialect == "sqlite":
         statement = sqlite_insert(m.audit).values(**values).on_conflict_do_nothing(
@@ -113,7 +148,17 @@ def list_audit_history(store, profile_id: str, limit: int = 100) -> dict:
             if row["action"] in _APPLICATION_PREPARATION_EVENTS
             and isinstance((row["payload"] or {}).get("job_id"), str)
         )
+        profile_company_ids = {
+            (row["payload"] or {}).get("company_id") for row in profile_rows
+            if row["action"] in _COMPANY_EVENTS
+            and isinstance((row["payload"] or {}).get("company_id"), str)
+        }
         profile_jobs = {}
+        profile_companies = {}
+        if profile_company_ids:
+            profile_companies = {row["id"]: row["name"] for row in connection.execute(select(
+                m.companies.c.id, m.companies.c.name,
+            ).where(m.companies.c.id.in_(profile_company_ids))).mappings()}
         if profile_job_ids:
             profile_jobs = {row["id"]: row for row in connection.execute(select(
                 m.jobs.c.id, m.jobs.c.title,
@@ -131,6 +176,11 @@ def list_audit_history(store, profile_id: str, limit: int = 100) -> dict:
                     if job is None:
                         continue
                     events.append(_event(row, event_type, summary, job["title"], job["company"]))
+                elif row["action"] in _COMPANY_EVENTS:
+                    company_name = profile_companies.get((row["payload"] or {}).get("company_id"))
+                    if company_name is None:
+                        continue
+                    events.append(_event(row, event_type, summary, company_name, ""))
                 else:
                     events.append(_event(row, event_type, summary, "Profile", ""))
 

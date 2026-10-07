@@ -35,6 +35,8 @@ class PublicCompanyDiscoveryBrowserTests(unittest.TestCase):
             store.migrate()
             store.bind_workspace_mode("PERSONAL")
             store.save_profile(copy.deepcopy(PROFILE))
+            store.save_profile({**PROFILE, "id": "other", "name": "Other Synthetic Applicant",
+                                "email": "other@example.invalid"})
             env = {
                 "MJOBS_DATABASE_URL": store.url,
                 "MJOBS_OPERATION_MODE": "PERSONAL",
@@ -119,6 +121,24 @@ class PublicCompanyDiscoveryBrowserTests(unittest.TestCase):
                         expect(source_card).to_contain_text("Job link observations")
                         expect(source_card).to_contain_text("1 sampled posting observations across 1 accepted feed row")
                         expect(source_card).to_contain_text("Conclusive checks: 1/1 matched")
+                        page.get_by_role("button", name="Activity", exact=True).click()
+                        activity = page.get_by_role("list", name="Audit history")
+                        expect(activity).to_contain_text("Company discovered for this profile")
+                        expect(activity).to_contain_text("Company job source enrolled")
+                        expect(activity).to_contain_text("Example Systems")
+                        expect(activity).not_to_contain_text("employer.example")
+                        page.reload(wait_until="domcontentloaded")
+                        page.get_by_role("button", name="Activity", exact=True).click()
+                        activity = page.get_by_role("list", name="Audit history")
+                        expect(activity).to_contain_text("Company discovered for this profile")
+                        expect(activity).to_contain_text("Company job source enrolled")
+                        page.get_by_role("button", name="Profile", exact=True).click()
+                        page.get_by_label("Active profile", exact=True).select_option("other")
+                        page.get_by_role("button", name="Activity", exact=True).click()
+                        other_activity = page.get_by_role("list", name="Audit history")
+                        expect(other_activity).not_to_contain_text("Company discovered for this profile")
+                        expect(other_activity).not_to_contain_text("Company job source enrolled")
+                        expect(other_activity).not_to_contain_text("Example Systems")
                         self.assertEqual(errors, [])
                         self.assertEqual(external, [])
                         context.close()

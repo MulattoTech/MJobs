@@ -17,6 +17,7 @@ from services.company_discovery.public_resolution import resolve_public_company
 from services.company_discovery.public_client import PublicCompanyClient
 from services.company_discovery.domains import record_company_domain
 from services.company_discovery.sources import set_company_source_enabled
+from services.audit_history import list_audit_history
 from workers.operations import OperationCancelled
 from services.company_discovery.triggers import queue_company_discovery
 from tests.integration.test_spine import PROFILE
@@ -32,6 +33,8 @@ class PublicCompanyDiscoveryTests(unittest.TestCase):
         self.store.migrate()
         self.store.bind_workspace_mode('PERSONAL')
         self.store.save_profile(PROFILE)
+        self.store.save_profile({**PROFILE, 'id': 'other', 'name': 'Other Profile',
+                                 'email': 'other@example.invalid'})
         self.candidate = {'company_name':'Example Systems','company_website':'https://employer.example/'}
         self.env = {'MJOBS_DATABASE_URL':self.url,'MJOBS_OPERATION_MODE':'PERSONAL',
                     'MJOBS_REDIS_URL':'redis://127.0.0.1:1/0','MJOBS_OUTPUT_DIR':str(self.root/'outputs')}
@@ -102,6 +105,15 @@ class PublicCompanyDiscoveryTests(unittest.TestCase):
                 operation_id=response.json()['operation_id']
                 result=execute_operation(operation_id)
                 self.assertEqual(result['status'],'COMPLETED',result)
+                history=client.get('/profiles/fixture/audit-history').json()['events']
+                company_events=[event for event in history if event['type'] in {
+                    'COMPANY_DISCOVERED','COMPANY_SOURCE_ENROLLED'}]
+                self.assertEqual({event['type'] for event in company_events},
+                                 {'COMPANY_DISCOVERED','COMPANY_SOURCE_ENROLLED'})
+                self.assertEqual([event['type'] for event in company_events].count('COMPANY_DISCOVERED'),1)
+                self.assertEqual([event['type'] for event in company_events].count('COMPANY_SOURCE_ENROLLED'),1)
+                self.assertTrue(all(event['subject']=='Example Systems' for event in company_events))
+                self.assertNotIn('employer.example',str(company_events))
                 view=client.get('/company-sources/view',params={'profile_id':'fixture'}).json()['company_sources']
                 self.assertEqual(len(view),1)
                 self.assertEqual(view[0]['status'],'COMPANY_SOURCE_REVIEW_REQUIRED')
@@ -119,6 +131,14 @@ class PublicCompanyDiscoveryTests(unittest.TestCase):
                 retry=queue_company_discovery(self.store,self.candidate,'USER_ADDED_COMPANY','fixture',public=True,request_id='explicit-rediscovery')
                 self.assertEqual(retry['status'],'QUEUED')
                 self.assertEqual(execute_operation(retry['operation_id'])['status'],'COMPLETED')
+                repeated=list_audit_history(self.store,'fixture')['events']
+                repeated_company_events=[event for event in repeated if event['type'] in {
+                    'COMPANY_DISCOVERED','COMPANY_SOURCE_ENROLLED'}]
+                self.assertEqual({event['type'] for event in repeated_company_events},
+                                 {'COMPANY_DISCOVERED','COMPANY_SOURCE_ENROLLED'})
+                self.assertEqual(len(repeated_company_events),2)
+                self.assertFalse(any(event['type'] in {'COMPANY_DISCOVERED','COMPANY_SOURCE_ENROLLED'}
+                                     for event in list_audit_history(self.store,'other')['events']))
         self.assertEqual(self.store.count('canonical_jobs'),1)
         self.assertEqual(self.store.count('company_ats_tenants'),0)
         with self.store.engine.connect() as connection:
@@ -143,11 +163,14 @@ class PublicCompanyDiscoveryTests(unittest.TestCase):
             req=httpx.Request('GET',url)
             return httpx.Response(200,text=pages[req.url.path],request=req)
         with patch.dict(os.environ,self.env),patch.object(PublicCompanyClient,'_request_once',fetch):
-            queued=queue_company_discovery(self.store,self.candidate,'USER_ADDED_COMPANY',public=True)
+            queued=queue_company_discovery(self.store,self.candidate,'USER_ADDED_COMPANY',
+                                           profile_id='fixture',public=True)
             result=execute_operation(queued['operation_id'])
         self.assertEqual(result['status'],'BLOCKED',result)
         self.assertEqual(self.store.count('company_job_sources'),0)
         self.assertEqual(self.store.count('company_ats_tenants'),0)
+        self.assertFalse(any(event['type'] in {'COMPANY_DISCOVERED','COMPANY_SOURCE_ENROLLED'}
+                             for event in list_audit_history(self.store,'fixture')['events']))
 
     def test_verified_domain_is_required_for_existing_company_binding_and_ties_need_review(self):
         with self.store.engine.begin() as connection:

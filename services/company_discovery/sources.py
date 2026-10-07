@@ -11,6 +11,7 @@ from sqlalchemy import func, select, update
 
 from packages.persistence import models as m
 from packages.persistence.store import Store, identity, now, upsert
+from services.audit_history import record_company_discovered, record_company_source_enrolled
 
 
 _PRIORITIES = {"USER_PINNED", "HIGH", "NORMAL", "LOW", "DORMANT"}
@@ -114,7 +115,7 @@ def upsert_company_job_source(store, *, company_id, provider, tenant_identifier,
                               career_url=None, search_url=None, feed_url=None, public_api_url=None,
                               collection_strategy="UNKNOWN", confidence=0.45, enabled=True,
                               priority="NORMAL", discovered_automatically=False, ats_tenant_id=None,
-                              last_validation=None, last_success=_UNSET):
+                              last_validation=None, last_success=_UNSET, profile_id=None):
     """Create or update one source portal without collapsing sibling portals."""
     company_id = _token(company_id, "COMPANY_ID", 128)
     provider = _token(provider, "PROVIDER", 32, fold=True)
@@ -196,6 +197,10 @@ def upsert_company_job_source(store, *, company_id, provider, tenant_identifier,
             "collection_strategy": strategy, "confidence": confidence, "enabled": enabled,
             "priority": priority, "last_validation": last_validation, "last_success": last_success,
         }, replace=True)
+        if profile_id:
+            record_company_discovered(connection, profile_id, company_id)
+            if not existing:
+                record_company_source_enrolled(connection, profile_id, company_id, source_id)
         return dict(connection.execute(select(m.company_sources).where(
             m.company_sources.c.id == source_id
         )).mappings().one())

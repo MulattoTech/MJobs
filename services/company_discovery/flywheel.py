@@ -255,6 +255,7 @@ def discover_company_source(store, candidate, client, check=None, search_provide
                     collection_strategy=feed["strategy"], confidence=source_confidence, enabled=fixture or verified_origin,
                     priority="NORMAL", discovered_automatically=True,
                     ats_tenant_id=tenant_record["id"] if tenant_record else None, last_validation=timestamp,
+                    profile_id=profile_id,
                 )
                 if preserve_source_id and source_record['id'] != preserve_source_id:
                     raise PublicFetchError('COMPANY_SOURCE_MIGRATION_REVIEW_REQUIRED')
@@ -326,7 +327,7 @@ def discover_company_source(store, candidate, client, check=None, search_provide
         career_url=careers_url or str(careers.url), public_api_url=endpoint,
         collection_strategy="FIXTURE", confidence=0.95, enabled=True, priority="NORMAL",
         discovered_automatically=True, ats_tenant_id=tenant_record["id"],
-        last_validation=timestamp, last_success=timestamp,
+        last_validation=timestamp, last_success=timestamp, profile_id=profile_id,
     )
     source_id = source_record["id"]
     with store.engine.begin() as connection:
