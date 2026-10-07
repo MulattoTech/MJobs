@@ -1,15 +1,15 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-07T13:55:45Z",
+  "generated_at": "2026-10-07T13:57:32Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Issue #177 / MJ-REQ-176 profile-scoped audit timeline integrated as a PARTIAL slice at main 84024963562ddf69ef5373c6eccea3d445e2a2f4; required job/company discovery, source enrollment, merge and complete setting/submission event history remain incomplete; issue OPEN; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
-    "current_verified_github_state": "Issue #177 / MJ-REQ-176 profile-scoped audit timeline integrated as a PARTIAL slice at main 84024963562ddf69ef5373c6eccea3d445e2a2f4; required job/company discovery, source enrollment, merge and complete setting/submission event history remain incomplete; issue OPEN; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
-    "current_verified_at": "2026-10-07T13:55:45Z"
+    "current_verified_local_state": "Issue #177 / MJ-REQ-176 profile-scoped audit timeline integrated as a PARTIAL slice at synchronized main d4ed75530ec9609ec41d2e3b2f4a93aa50e4b259; job/company discovery, enrollment, merge, complete settings and truthful submission event history remain incomplete; issue OPEN; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
+    "current_verified_github_state": "Issue #177 / MJ-REQ-176 profile-scoped audit timeline integrated as a PARTIAL slice at synchronized main d4ed75530ec9609ec41d2e3b2f4a93aa50e4b259; job/company discovery, enrollment, merge, complete settings and truthful submission event history remain incomplete; issue OPEN; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
+    "current_verified_at": "2026-10-07T13:57:32Z"
   },
   "current_milestone": "MJ-REQ-176-PROFILE-AUDIT-HISTORY-20261007",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
@@ -445,7 +445,8 @@
     "source_tree": "b5698ceea824b8e9df857705c627a43bc32c5a6a",
     "scope": "Profile-scoped safe user-facing audit summaries across existing profile/application audit rows; full required event producer coverage is incomplete.",
     "evidence_path": "docs/evidence/2026-10-07-profile-audit-history.json",
-    "integration_commit": "84024963562ddf69ef5373c6eccea3d445e2a2f4"
+    "integration_commit": "84024963562ddf69ef5373c6eccea3d445e2a2f4",
+    "synchronized_main": "d4ed75530ec9609ec41d2e3b2f4a93aa50e4b259"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -512,7 +513,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Issue #177 is integrated as PARTIAL; release Codex claim and select the next dependency-ready unclaimed requirement. Preserve open event-family gaps in MJ-REQ-176.",
+  "recommended_resume_step": "Issue #177 partial slice integrated and claim released. Reconcile current main and every active claim/worktree, then choose the next highest-value unclaimed dependency-ready issue; preserve full event requirements.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -8931,13 +8932,14 @@
     "base": "1a2300c832d8515c2039798b446dc323c1bffb28",
     "branch": "codex/mj-req176-profile-audit-history-20261007",
     "candidate": "84024963562ddf69ef5373c6eccea3d445e2a2f4",
-    "integrated_main": "84024963562ddf69ef5373c6eccea3d445e2a2f4",
+    "integrated_main": "d4ed75530ec9609ec41d2e3b2f4a93aa50e4b259",
     "source_commit": "9d3bff3b5e07b1d1eda1413d78e95a2c9e51f25c",
     "source_tree": "b5698ceea824b8e9df857705c627a43bc32c5a6a",
     "evidence": "docs/evidence/2026-10-07-profile-audit-history.json",
     "issue_state": "OPEN",
     "issue_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6039479641",
-    "next_action": "Release the completed Codex claim, reconcile all active claims and dirty worktrees, then select the next highest-value dependency-ready unclaimed issue."
+    "next_action": "Release the completed Codex claim, reconcile all active claims and dirty worktrees, then select the next highest-value dependency-ready unclaimed issue.",
+    "release_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6039527055"
   },
   "historical_control_snapshots": [
     {
@@ -10077,5 +10079,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-07T13:55:45Z"
+  "updated_at": "2026-10-07T13:57:32Z"
 }

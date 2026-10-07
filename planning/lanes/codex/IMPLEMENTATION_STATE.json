@@ -2,27 +2,31 @@
   "schema_version": 1,
   "lane": "codex",
   "status": "ACTIVE",
-  "base_main": "1a2300c832d8515c2039798b446dc323c1bffb28",
-  "current_issue": 177,
-  "requirement_id": "MJ-REQ-176",
-  "branch": "codex/mj-req176-profile-audit-history-20261007",
-  "head": "9d3bff3b5e07b1d1eda1413d78e95a2c9e51f25c",
-  "worktree": ".worktrees/codex-mj-req176-profile-audit-history-20261007",
-  "result": "PARTIAL; integration pending",
+  "base_main": "d4ed75530ec9609ec41d2e3b2f4a93aa50e4b259",
+  "current_issue": null,
+  "requirement_id": null,
+  "branch": null,
+  "head": "d4ed75530ec9609ec41d2e3b2f4a93aa50e4b259",
+  "worktree": null,
+  "result": "INTEGRATED_PARTIAL",
   "evidence_path": "docs/evidence/2026-10-07-profile-audit-history.json",
   "last_completed": {
-    "issue": 181,
-    "requirement_id": "MJ-REQ-180",
-    "integrated_main": "a7eea5b291082db1bbe3e32403f7995416a573d5",
-    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6039255354"
+    "issue": 177,
+    "requirement_id": "MJ-REQ-176",
+    "integrated_main": "d4ed75530ec9609ec41d2e3b2f4a93aa50e4b259",
+    "issue_state": "OPEN/PARTIAL",
+    "evidence_path": "docs/evidence/2026-10-07-profile-audit-history.json",
+    "release_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6039527055"
   },
-  "next_candidates": [177],
+  "next_candidates": [
+    177
+  ],
   "do_not_overlap": [
     "Antigravity active issue #302 paths: services/discovery/sources/** and tests/integration/test_dice.py",
     "Ollama/OpenCode active issue #318 paths: services/ats_detection/** and detector tests",
     "canonical planning and main outside integration lock"
   ],
-  "resume_instruction": "Issue #177 / MJ-REQ-176 has a profile-scoped audit timeline and locally verified safe API/UI history. Required discovery/company enrollment/merge/setting event emitters remain incomplete; keep issue OPEN/PARTIAL. After integration, reconcile claims and choose the next highest-value unclaimed dependency-ready issue; continue automatically.",
+  "resume_instruction": "Issue #177 / MJ-REQ-176 is integrated PARTIAL; its Codex claim was released and issue remains OPEN. Reconcile all current claims and select the next highest-value unclaimed dependency-ready issue; issue #177 may be selected again only if it remains the top safe candidate. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
   "last_verified_head": "9d3bff3b5e07b1d1eda1413d78e95a2c9e51f25c",
   "last_verified_tree": "b5698ceea824b8e9df857705c627a43bc32c5a6a",
   "last_verified_at_utc": "2026-10-07T13:53:25Z",
@@ -39,7 +43,7 @@
     "hosted_checks": "NOT_RUN_BY_USER_POLICY",
     "external_submission": "OFF"
   },
-  "last_integrated_head": "1a2300c832d8515c2039798b446dc323c1bffb28",
-  "last_verified_result": "PARTIAL; integration pending",
-  "updated_at": "2026-10-07T13:53:25Z"
+  "last_integrated_head": "d4ed75530ec9609ec41d2e3b2f4a93aa50e4b259",
+  "last_verified_result": "PARTIAL; issue remains OPEN",
+  "updated_at": "2026-10-07T13:57:32Z"
 }
