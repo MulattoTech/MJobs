@@ -3567,9 +3567,11 @@
       "scope_result": "PASS",
       "source_commit": "c9b168b1c869cdac5ea9097ed61c81c67937f28c",
       "integrated_at": "2026-10-07T19:55:13Z",
-      "issue_state": "OPEN/PASS",
-      "notes": "Shared upload safeguards are verified across all seven supported uploaded document kinds. The affected Python integration/connected Chromium suite (16), frontend 63 tests/build, SQLite migration-preservation test and local validators pass. Hosted checks NOT_RUN_BY_USER_POLICY; PostgreSQL/Docker NOT_APPLICABLE; external submission OFF."
+      "issue_state": "CLOSED/PASS",
+      "notes": "Shared upload safeguards are verified across all seven supported uploaded document kinds. The affected Python integration/connected Chromium suite (16), frontend 63 tests/build, SQLite migration-preservation test and local validators pass. Hosted checks NOT_RUN_BY_USER_POLICY; PostgreSQL/Docker NOT_APPLICABLE; external submission OFF. Issue #174 closed after evidence readback: https://github.com/MulattoTech/MJobs/issues/174#issuecomment-6045710354.",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/174#issuecomment-6045710354",
+      "issue_release_comment": "https://github.com/MulattoTech/MJobs/issues/174#issuecomment-6045710354"
     }
   ],
-  "generated_at": "2026-10-07T19:55:13Z"
+  "generated_at": "2026-10-07T19:56:11Z"
 }

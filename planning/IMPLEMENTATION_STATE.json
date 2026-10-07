@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-07T19:37:19Z",
+  "generated_at": "2026-10-07T19:56:11Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -484,7 +484,7 @@
     "commit": "84136dcabc99f831538b66f2450292152336750b",
     "result": "PASS",
     "evidence": "docs/evidence/2026-10-07-seven-kind-upload-security.json",
-    "verified_at_utc": "2026-10-07T19:55:13Z"
+    "verified_at_utc": "2026-10-07T19:56:11Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -551,7 +551,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Issue #403 page-budget slice integrated PARTIAL at 01596a7a093bbfc359e9ded49076aac3cb95d94d; canonical main e23c6e981318ccc7e3bc60e2faa02d7855d07b7d; release readback https://github.com/MulattoTech/MJobs/issues/403#issuecomment-6043832685. Reconcile current main, every active claim/comment/worktree/branch, then select the highest-value unclaimed dependency-ready issue.",
+  "recommended_resume_step": "Issue #174 / MJ-REQ-173 is PASS and CLOSED; evidence docs/evidence/2026-10-07-seven-kind-upload-security.json; integrated main 8cce4d40d8774435fb57d0f7b8329274f1731b9b; Codex claim and lock closeout pending. Reconcile latest main, all active claims/comments/worktrees, then select and claim the highest-value unclaimed dependency-ready issue. Overall product/release remains PARTIAL; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -9277,7 +9277,8 @@
         "Integrated candidate 84136dcabc99f831538b66f2450292152336750b from base 5be79530d5d669c5c2d6a00c38f37afe120ff16b by non-force fast-forward under the Codex integration lock",
         "Verified MIME, extension, content, actual streamed size, filename and path safeguards across all seven uploaded document kinds",
         "Verified executable rejection, duplicate-name safety, profile isolation, Store reopen and connected browser reload/readback",
-        "Requirement MJ-REQ-173 is PASS; overall product/release status remains PARTIAL"
+        "Requirement MJ-REQ-173 is PASS; overall product/release status remains PARTIAL",
+        "GitHub issue #174 closed after evidence readback: https://github.com/MulattoTech/MJobs/issues/174#issuecomment-6045710354"
       ],
       "files_added": [
         "docs/evidence/2026-10-07-seven-kind-upload-security.json"
@@ -10769,5 +10770,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-07T19:55:13Z"
+  "updated_at": "2026-10-07T19:56:11Z"
 }

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-07T19:55:13Z",
+  "timestamp": "2026-10-07T19:56:11Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -1463,7 +1463,7 @@
         "docs/evidence/2026-09-30-pr004-upload-restore-local.json",
         "docs/evidence/2026-10-07-seven-kind-upload-security.json"
       ],
-      "note": "Upload validation is verified across all seven supported document kinds: MIME/extension/content, actual streamed size including underreported Content-Length, filename normalization/length, path traversal, executable rejection, duplicate display-name preservation, profile isolation, durable reopen and connected browser reload/readback. Scoped requirement PASS is local-only; hosted checks remain NOT_RUN_BY_USER_POLICY and overall product/release status remains PARTIAL."
+      "note": "Upload validation is verified across all seven supported document kinds: MIME/extension/content, actual streamed size including underreported Content-Length, filename normalization/length, path traversal, executable rejection, duplicate display-name preservation, profile isolation, durable reopen and connected browser reload/readback. Scoped requirement PASS is local-only; hosted checks remain NOT_RUN_BY_USER_POLICY and overall product/release status remains PARTIAL. GitHub issue #174 was closed after live evidence readback: https://github.com/MulattoTech/MJobs/issues/174#issuecomment-6045710354."
     },
     {
       "requirement_id": "MJ-REQ-174",
