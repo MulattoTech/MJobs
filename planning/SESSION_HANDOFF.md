@@ -2,7 +2,7 @@
 
 Source commit `b778917a56d266a50f3cb1e21c9f4220bb20a28c` was fast-forwarded to local `main` from synchronized origin/main `5d37700bcedf7013fc89968e260454af6fae1817` under the Codex integration lock. Evidence: `docs/evidence/2026-10-07-dead-letter-queue.json`. Acceptance covers durable dead-letter state/reason/attempt metadata, stable operation idempotency, audited retry/discard, ambiguous-submission retry protection, profile-scoped Activity queue count/reasons, connected browser reload/readback, and SQLite/PostgreSQL 17 migration preservation. Final full suite: 875 Python tests passed with 1 optional PostgreSQL concurrency test skipped; 63 frontend tests/build and repository validators passed. MJ-REF-016 is scoped PASS; MJ-REQ-156/160/183/184 and overall product state remain incomplete. Hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF. Active Antigravity #302 and Ollama #318 claims remained disjoint at integration.
 
-GitHub issue closure and the Codex claim release follow after synchronized main push and readback.
+GitHub issue #386 is CLOSED after sanitized acceptance readback at https://github.com/MulattoTech/MJobs/issues/386#issuecomment-6033750324. The Codex claim was released after posting AI LANE RELEASED at https://github.com/MulattoTech/MJobs/issues/386#issuecomment-6033756651. Antigravity #302 and Ollama #318 remain active and disjoint.
 
 ---
 

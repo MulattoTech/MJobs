@@ -1,6 +1,14 @@
 # Codex lane handoff
 
-Status: **ACTIVE / locally verified**
+Status: **IDLE_READY / issue #386 integrated and released**
+
+## Latest completion
+
+Issue #386 / MJ-REF-016 is integrated at local/origin main `4c7357e6a8882ed2ef207e56459234f93e49bf30` (implementation source `b778917a56d266a50f3cb1e21c9f4220bb20a28c`) and closed after sanitized evidence readback. Evidence: `docs/evidence/2026-10-07-dead-letter-queue.json`. Full Python suite: 875 PASS, one optional PostgreSQL concurrency skip; frontend 63 tests/build PASS; local browser, SQLite and PostgreSQL 17 migration checks and repository validators PASS. Broader MJ-REQ-156/160/183/184 remain incomplete. Hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF.
+
+Release comment: https://github.com/MulattoTech/MJobs/issues/386#issuecomment-6033756651.
+
+## Previous completion
 
 ## Latest completion
 
@@ -18,8 +26,10 @@ Issue #381 can be closed with its full local acceptance evidence. This does not 
 Release the Codex #381 claim after issue evidence/closure, recheck machine claims, GitHub AI LANE comments and worktrees, then select the next highest-value dependency-ready issue. Actions remain disabled.
 
 
-## 2026-10-07 active issue #386 / MJ-REF-016
+## 2026-10-07 completed issue #386 / MJ-REF-016
 
 Dedicated worktree `C:/Tools/Dev/MJobs/.worktrees/codex-mj-ref-016-dead-letter-20261007`, branch `codex/mj-ref-016-dead-letter-20261007`, base main `5d37700bcedf7013fc89968e260454af6fae1817`. Claim mirrored at https://github.com/MulattoTech/MJobs/issues/386#issuecomment-6033066988. Baseline queue/lifecycle 16 tests passed. Exhausted expiry originally persisted FAILED instead of DEAD_LETTERED. Existing operation ID is the dispatcher idempotency identity; append-only audit_events retain retry/discard history. Ambiguous application retry is blocked for reconciliation.
 
 Implementation commit `b778917a56d266a50f3cb1e21c9f4220bb20a28c` is pushed and fast-forwarded to local main. Evidence `docs/evidence/2026-10-07-dead-letter-queue.json`. Exact full suite: 875 Python tests PASS with one optional PostgreSQL concurrency skip; 63 frontend tests/build, connected browser review/actions/reload, SQLite and temporary PostgreSQL 17 migration checks, repository validators PASS. Hosted checks/review remain NOT_RUN_BY_USER_POLICY; external submission OFF. Close issue after origin/main and evidence readback, then release claim/lock and select the next dependency-ready issue.
+
+Issue closure: https://github.com/MulattoTech/MJobs/issues/386#issuecomment-6033750324. The next Codex slice has not yet been selected; reconcile current claims and open issues first.
