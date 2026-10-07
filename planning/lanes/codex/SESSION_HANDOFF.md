@@ -24,3 +24,8 @@ Other active lanes: Antigravity #302 owns `services/discovery/sources/**` and Di
 ## Active issue #96 checkpoint — 2026-10-07T12:18:49Z
 
 Project and accomplishment rewrite slice is committed/pushed at source `97905378cdc79e437a7cae2fe2fbb7c504d0affe` from base `911f248db3110f095c9da98a452bab8797aeda16` in isolated worktree `C:/Tools/Dev/MJobs/.worktrees/codex-mj-req095-reviewed-achievement-rewrites-20261007`. Red test reproduced unsupported fact kinds. Unit, integration and connected Chromium acceptance passed; full Python/browser suite passed 908 tests with 5 skips; frontend 63/build and local validators passed. Evidence `docs/evidence/2026-10-07-resume-reviewed-achievement-rewrites.json` is being recorded. Issue #96 remains OPEN/PARTIAL. External submission OFF; hosted checks/review NOT_RUN_BY_USER_POLICY.
+
+
+## Issue #96 released — 2026-10-07T12:20:17Z
+
+Integrated at main `cc9fc3832f47e45cb9e60615c56b430692c3c614` from source `97905378cdc79e437a7cae2fe2fbb7c504d0affe` with evidence `docs/evidence/2026-10-07-resume-reviewed-achievement-rewrites.json`. GitHub release readback https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6037769866. User-reviewed project/accomplishment rewrites preserve source provenance/history; full Python/browser 908 PASS, 5 skipped; frontend 63/build PASS. Requirement remains OPEN/PARTIAL. Claim released; continue from fresh reconciliation.

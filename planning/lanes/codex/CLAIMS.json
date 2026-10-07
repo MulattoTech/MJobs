@@ -171,10 +171,12 @@
         "docs/evidence/2026-10-07-resume-reviewed-achievement-rewrites.json",
         "planning/lanes/codex/**"
       ],
-      "status": "ACTIVE",
+      "status": "RELEASED",
       "claimed_at": "2026-10-07T12:18:49Z",
       "evidence_path": "docs/evidence/2026-10-07-resume-reviewed-achievement-rewrites.json",
-      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6037747690"
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6037769866",
+      "released_at": "2026-10-07T12:20:17Z",
+      "integrated_main": "cc9fc3832f47e45cb9e60615c56b430692c3c614"
     }
   ]
 }

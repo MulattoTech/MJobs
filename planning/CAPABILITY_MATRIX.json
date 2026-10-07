@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-07T12:01:14Z",
+  "timestamp": "2026-10-07T12:20:17Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -884,9 +884,10 @@
         "docs/evidence/2026-10-06-resume-bullet-emphasis.json",
         "docs/evidence/2026-10-06-target-summary-tailoring.json",
         "docs/evidence/2026-10-07-resume-user-reviewed-bullet-rephrasing.json",
-        "docs/evidence/2026-10-07-resume-user-reviewed-summary-adjustment.json"
+        "docs/evidence/2026-10-07-resume-user-reviewed-summary-adjustment.json",
+        "docs/evidence/2026-10-07-resume-reviewed-achievement-rewrites.json"
       ],
-      "note": "Ordering, explicit fact selection/omission, technology emphasis, optional contact header, responsibility bullet emphasis, deterministic exact-skill summary selection/fallback, and per-application user-reviewed responsibility and summary rephrasing are locally verified. Rewrites retain immutable source IDs/hashes, preserve exact date/numeric tokens, and are reconstructable in historical comparison. Broader factual bullet rephrasing remains incomplete; user review is not automated semantic proof; hosted checks NOT_RUN."
+      "note": "Ordering, explicit fact selection/omission, technology emphasis, optional contact header, responsibility bullet emphasis, deterministic exact-skill summary selection/fallback, and per-application user-reviewed responsibility and summary rephrasing are locally verified. Rewrites retain immutable source IDs/hashes, preserve exact date/numeric tokens, and are reconstructable in historical comparison. Broader factual bullet rephrasing remains incomplete; user review is not automated semantic proof; hosted checks NOT_RUN. Additional locally verified vertical slice: approved project and accomplishment resume bullets support user-authored individually reviewed rewrites. API, generated resume, immutable source hash/fact-kind provenance, exact date/number preservation, profile/cover-letter isolation and historical comparison after reload/profile changes pass; evidence docs/evidence/2026-10-07-resume-reviewed-achievement-rewrites.json, integrated at main cc9fc3832f47e45cb9e60615c56b430692c3c614, issue readback https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6037769866. Focused 12; full Python/browser 908 PASS, 5 skipped; frontend 63/build and validators PASS. User attestation is not automated semantic-equivalence proof. Broader MJ-REQ-095 remains PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-096",
