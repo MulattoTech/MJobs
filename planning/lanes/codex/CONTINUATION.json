@@ -1,17 +1,17 @@
 {
   "schema_version": 1,
   "lane": "codex",
-  "status": "ACTIVE",
+  "status": "IDLE_READY",
   "preferred_model": "gpt-6-luna",
   "preferred_reasoning": "high",
   "session_id": "01a10ed8-5445-7b61-8293-43be1895ecc5",
-  "canonical_main_at_pause": "5051ba20c1bd96939ace7d53071742d2662be0a2",
+  "canonical_main_at_pause": "3c58290a10ff5412c9d92c090e7ebef933af5689",
   "last_completed_issue": 177,
-  "last_completed_requirement": "MJ-REQ-176 application status/note/external report readback integrated PARTIAL; issue #177 OPEN",
-  "last_integrated_head": "5051ba20c1bd96939ace7d53071742d2662be0a2",
+  "last_completed_requirement": "MJ-REQ-176 PREPARE queued/start/terminal-failure history integrated PARTIAL; issue #177 OPEN",
+  "last_integrated_head": "3c58290a10ff5412c9d92c090e7ebef933af5689",
   "next_issue": 177,
   "next_requirement": "MJ-REQ-176",
-  "resume_instruction": "Integrate this exact-head partial preparation-history slice and keep issue #177 OPEN. Release claim and lock, reconcile all current claims/worktrees and current main, then claim the highest-value independent dependency-ready issue. Avoid Antigravity #302 discovery sources and Ollama #318 ATS detection. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
+  "resume_instruction": "After releasing this integration claim and lock, reconcile latest main and all active claims. Continue with the highest-value independent unclaimed dependency-ready slice; issue #177 still has company/source enrollment, merge, settings and actual lifecycle event gaps. Avoid Antigravity #302 discovery source and Ollama #318 ATS detection paths. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
   "external_submission_enabled": false,
   "github_actions_enabled": false,
   "last_validated_head": "c80e011cf12bc071755c014935854699fbdcf4aa",
@@ -36,5 +36,5 @@
   "last_verified_tree": "b9c58dc193abc9e87dea7b1209acc7e427e7568d",
   "last_verified_at_utc": "2026-10-07T14:20:10Z",
   "last_verified_result": "PARTIAL; issue remains OPEN",
-  "updated_at": "2026-10-07T14:20:10Z"
+  "updated_at": "2026-10-07T14:21:20Z"
 }

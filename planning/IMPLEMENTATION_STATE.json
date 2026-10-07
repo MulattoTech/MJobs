@@ -1,15 +1,15 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-07T14:15:10Z",
+  "generated_at": "2026-10-07T14:21:20Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Issue #177 / MJ-REQ-176 audit timeline integrated PARTIAL at main 65d5390cb2edc03e3012c50d75c31ab5b22b6f78; safe job and user-reported application history now appear in Activity. Company/source enrollment, job merge, full settings and complete application lifecycle event producers remain incomplete; issue OPEN; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
-    "current_verified_github_state": "Issue #177 / MJ-REQ-176 audit timeline integrated PARTIAL at main 65d5390cb2edc03e3012c50d75c31ab5b22b6f78; safe job and user-reported application history now appear in Activity. Company/source enrollment, job merge, full settings and complete application lifecycle event producers remain incomplete; issue OPEN; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
-    "current_verified_at": "2026-10-07T14:15:10Z"
+    "current_verified_local_state": "Issue #177 / MJ-REQ-176 audit timeline integrated PARTIAL through main 3c58290a10ff5412c9d92c090e7ebef933af5689; deterministic job, user-reported application and PREPARE queue/start/failure history are visible with safe profile-scoped summaries. Company/source enrollment, merge, full settings and actual submission/confirmation events incomplete; issue OPEN; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
+    "current_verified_github_state": "Issue #177 / MJ-REQ-176 audit timeline integrated PARTIAL through main 3c58290a10ff5412c9d92c090e7ebef933af5689; deterministic job, user-reported application and PREPARE queue/start/failure history are visible with safe profile-scoped summaries. Company/source enrollment, merge, full settings and actual submission/confirmation events incomplete; issue OPEN; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
+    "current_verified_at": "2026-10-07T14:21:20Z"
   },
   "current_milestone": "MJ-REQ-176-PROFILE-AUDIT-HISTORY-20261007",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
@@ -114,7 +114,7 @@
     "MJ-REQ-005 / issue #6: live isolated PostgreSQL 17 advisory-lock tests now prove cross-kind company-discovery and independent application-automation capacity-one admission across separate Store engines; each race leaves one RUNNING and one QUEUED operation with matching attempt counts. The acceptance slice passes; broader requirement remains PARTIAL because real ATS/provider execution is not exercised. Evidence docs/evidence/2026-10-07-postgres-concurrency-runtime.json.",
     "MJ-REQ-170 / issue #171 advanced PARTIAL: new live-feedback sessions automatically prune only managed timestamped session folders older than 30 days and repair the latest pointer; other transient artifact/log/payload classes remain unverified. Evidence docs/evidence/2026-10-07-live-feedback-retention.json.",
     "MJ-REQ-004 Compose recovery CLI output bounds verified with synthetic child overflow and deadline termination; 2 MiB retained stdout, drained stderr, child reaping and sanitized errors. Real Compose execution NOT_RUN; other operation classes/live AI/ATS remain incomplete. Evidence docs/evidence/2026-10-07-compose-recovery-output-bounds.json.",
-    "MJ-REQ-176 / issue #177: profile Activity now shows safe user-reported application status, note-added, and external-application-report summaries, correctly joining persisted application-tracking audit entity IDs back to owner applications. Raw notes/payloads are withheld; no employer receipt or MJobs submission is inferred. Regression before-fix reproduced missing rows. 36 focused Python integration tests, 1 headless Chromium browser test, frontend 63 tests/build and validators PASS. Evidence docs/evidence/2026-10-07-application-audit-history.json. Company/source enrollment, job merge, complete settings, queue/start/failure and truthful real submission/confirmation audit event families remain incomplete; keep issue OPEN/PARTIAL."
+    "MJ-REQ-176 / issue #177: Activity now records profile-owned durable PREPARE queued/start/terminal-failure events with stable IDs and attempt history, safe fixed summaries and job/company context. Queue, claim, task terminal failure and retry-limit recovery transactions were exercised; resume rewrite payloads are excluded. 28 focused Python integration/worker/outbox tests PASS with 1 PostgreSQL-only skip, 1 connected Chromium test PASS, frontend 63/build and validators PASS. Evidence docs/evidence/2026-10-07-application-preparation-audit.json. Company/source enrollment, job merge, full settings and truthful complete actual application lifecycle events remain incomplete; issue OPEN/PARTIAL."
   ],
   "blocked_capabilities": [],
   "active_requirements": [
@@ -337,7 +337,7 @@
     "Issue #8 / MJ-REQ-007 protected credential migration recovery slice integrated at f8b6127e645bc0977a696dadf01f0017980fbe5a: focused migration tests 4 PASS, 1 optional PostgreSQL skip; migration integration suite 23 PASS, 1 optional PostgreSQL skip; validators PASS. SQLite failure after credential-table DDL rolls back schema/version and preserves sentinel, retry succeeds, and synthetic ciphertext prevents destructive downgrade. Evidence docs/evidence/2026-10-07-protected-config-migration-recovery.json.",
     "Issue #181 / MJ-REQ-180 rich-control screenshot masking integrated at f1d36053ebb46f1286f3dfb0acd25ac1482a267f: adjacent live-feedback unit/GUI/headless Chromium tests 27 PASS; compile, CLI help and local validators PASS. Pre-fix unit and pixel tests reproduced visible rich-control content. Evidence docs/evidence/2026-10-07-rich-control-screenshot-redaction.json.",
     "MJ-REQ-180 screenshot content masking: affected feedback/UI-source suite 32 PASS with real headless Chromium arbitrary-text, pseudo-element, canvas/image and existing sensitive-control pixel assertions; local validators PASS; connected UI E2E NOT_RUN.",
-    "MJ-REQ-176 / issue #177: profile Activity now shows safe user-reported application status, note-added, and external-application-report summaries, correctly joining persisted application-tracking audit entity IDs back to owner applications. Raw notes/payloads are withheld; no employer receipt or MJobs submission is inferred. Regression before-fix reproduced missing rows. 36 focused Python integration tests, 1 headless Chromium browser test, frontend 63 tests/build and validators PASS. Evidence docs/evidence/2026-10-07-application-audit-history.json. Company/source enrollment, job merge, complete settings, queue/start/failure and truthful real submission/confirmation audit event families remain incomplete; keep issue OPEN/PARTIAL."
+    "MJ-REQ-176 / issue #177: Activity now records profile-owned durable PREPARE queued/start/terminal-failure events with stable IDs and attempt history, safe fixed summaries and job/company context. Queue, claim, task terminal failure and retry-limit recovery transactions were exercised; resume rewrite payloads are excluded. 28 focused Python integration/worker/outbox tests PASS with 1 PostgreSQL-only skip, 1 connected Chromium test PASS, frontend 63/build and validators PASS. Evidence docs/evidence/2026-10-07-application-preparation-audit.json. Company/source enrollment, job merge, full settings and truthful complete actual application lifecycle events remain incomplete; issue OPEN/PARTIAL."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -439,19 +439,19 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-07T14:15:10Z",
+    "timestamp": "2026-10-07T14:21:20Z",
     "result": "PARTIAL",
-    "source_commit": "f43f199cccf6f483918b4ce521d17db46e7d470d",
-    "source_tree": "7159e04e13524afc82a3dd4168351eb6cbf73d56",
+    "source_commit": "54f426a5669ce76c31141d8e6bacd0a6f859ad82",
+    "source_tree": "b9c58dc193abc9e87dea7b1209acc7e427e7568d",
     "issue": 177,
     "requirement_id": "MJ-REQ-176",
     "title": "[MJ-REQ-176] Audit Log",
     "state": "INTEGRATED_PARTIAL",
-    "base": "910bf1937fe6b7276187b6b8685d2adf343c8684",
-    "branch": "codex/mj-req176-application-history-20261007",
-    "candidate_integration_commit": "65d5390cb2edc03e3012c50d75c31ab5b22b6f78",
-    "evidence_path": "docs/evidence/2026-10-07-application-audit-history.json",
-    "scope": "Profile-owned application status, note-added and external application report summaries in Activity; full audit event coverage remains incomplete."
+    "base": "f97f45e54ce3bb162e65a3c144a01573be72807a",
+    "branch": "codex/mj-req176-preparation-events-20261007",
+    "candidate_integration_commit": "3c58290a10ff5412c9d92c090e7ebef933af5689",
+    "evidence_path": "docs/evidence/2026-10-07-application-preparation-audit.json",
+    "scope": "Durable PREPARE queue/start/dead-letter-failure events are visible in profile Activity; complete audit event coverage remains incomplete."
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -555,7 +555,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "f43f199cccf6f483918b4ce521d17db46e7d470d",
+  "last_implementation_commit": "54f426a5669ce76c31141d8e6bacd0a6f859ad82",
   "publication": {
     "result": "PASS",
     "integration_method": "NON_FORCE_FAST_FORWARD",
@@ -10084,5 +10084,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-07T14:15:10Z"
+  "updated_at": "2026-10-07T14:21:20Z"
 }

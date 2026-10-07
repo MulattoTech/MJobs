@@ -918,3 +918,12 @@ GitHub partial integration/release readback for issue #177 / MJ-REQ-176: issue r
 - Evidence: `docs/evidence/2026-10-07-application-audit-history.json`.
 - Validation: 36 focused Python integration tests, 1 headless Chromium browser test, 63 frontend tests, TypeScript/Vite build and repository validators passed. Manual status, note and external application reports are visible after reload with profile isolation and privacy-safe fixed summaries.
 - Limitations: company/source enrollment, job merge, full settings, and complete actual application lifecycle event coverage remain incomplete. PostgreSQL/Docker/migrations and hosted checks NOT_RUN; external submission OFF.
+
+
+## 2026-10-07 Codex integration checkpoint — MJ-REQ-176 preparation lifecycle
+
+- Source commit: `54f426a5669ce76c31141d8e6bacd0a6f859ad82` (tree `b9c58dc193abc9e87dea7b1209acc7e427e7568d`); base `f97f45e54ce3bb162e65a3c144a01573be72807a`; candidate fast-forward `3c58290a10ff5412c9d92c090e7ebef933af5689`.
+- Result: **PARTIAL**; issue #177 remains OPEN.
+- Evidence: `docs/evidence/2026-10-07-application-preparation-audit.json`.
+- Validation: 28 focused Python integration/worker/outbox tests passed; 1 PostgreSQL-only class skipped because its isolated DB URL was unavailable. 1 headless Chromium browser test, 63 frontend tests, TypeScript/Vite build and repository validators passed.
+- Limitations: full company/source/merge/settings and actual application lifecycle audit coverage remain incomplete. PostgreSQL/Docker/migrations and hosted checks NOT_RUN; external submission OFF.

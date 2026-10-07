@@ -446,11 +446,14 @@
         "docs/evidence/2026-10-07-application-preparation-audit.json",
         "planning/lanes/codex/**"
       ],
-      "status": "ACTIVE",
+      "status": "RELEASED",
       "claimed_at": "2026-10-07T14:16:13Z",
       "claim_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6039877668",
       "claim_update": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6039952940",
-      "evidence_path": "docs/evidence/2026-10-07-application-preparation-audit.json"
+      "evidence_path": "docs/evidence/2026-10-07-application-preparation-audit.json",
+      "released_at": "2026-10-07T14:21:20Z",
+      "integrated_main": "3c58290a10ff5412c9d92c090e7ebef933af5689",
+      "result": "PARTIAL; issue remains OPEN"
     }
   ]
 }

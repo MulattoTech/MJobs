@@ -1,14 +1,14 @@
 {
   "schema_version": 1,
   "lane": "codex",
-  "status": "ACTIVE",
+  "status": "IDLE_READY",
   "base_main": "f97f45e54ce3bb162e65a3c144a01573be72807a",
   "current_issue": 177,
   "requirement_id": "MJ-REQ-176",
   "branch": "codex/mj-req176-preparation-events-20261007",
   "head": "54f426a5669ce76c31141d8e6bacd0a6f859ad82",
   "worktree": ".worktrees/codex-mj-req176-preparation-events-20261007",
-  "result": "PARTIAL; durable preparation lifecycle history locally verified, integration pending",
+  "result": "PARTIAL; issue #177 remains OPEN",
   "evidence_path": "docs/evidence/2026-10-07-application-preparation-audit.json",
   "last_completed": {
     "issue": 177,
@@ -42,7 +42,11 @@
     "hosted_checks": "NOT_RUN_BY_USER_POLICY",
     "external_submission": "OFF"
   },
-  "last_integrated_head": "d4ed75530ec9609ec41d2e3b2f4a93aa50e4b259",
+  "last_integrated_head": "3c58290a10ff5412c9d92c090e7ebef933af5689",
   "last_verified_result": "PARTIAL; issue remains OPEN",
-  "updated_at": "2026-10-07T14:20:10Z"
+  "updated_at": "2026-10-07T14:21:20Z",
+  "integrated_main": "3c58290a10ff5412c9d92c090e7ebef933af5689",
+  "last_integrated_issue": 177,
+  "last_integrated_requirement": "MJ-REQ-176",
+  "last_integrated_evidence": "docs/evidence/2026-10-07-application-preparation-audit.json"
 }
