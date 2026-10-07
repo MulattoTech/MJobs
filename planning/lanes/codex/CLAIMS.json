@@ -405,6 +405,26 @@
       "evidence_path": "docs/evidence/2026-10-07-profile-audit-history.json",
       "issue_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6039527055",
       "result": "PARTIAL; issue remains OPEN"
+    },
+    {
+      "issue": 177,
+      "requirement_id": "MJ-REQ-176",
+      "branch": "codex/mj-req176-application-history-20261007",
+      "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req176-application-history-20261007",
+      "head": "f43f199cccf6f483918b4ce521d17db46e7d470d",
+      "paths": [
+        "services/audit_history.py",
+        "services/tracking/applications.py",
+        "tests/integration/test_audit_history.py",
+        "tests/integration/test_application_tracking.py",
+        "tests/browser/test_audit_history.py",
+        "docs/evidence/2026-10-07-application-audit-history.json",
+        "planning/lanes/codex/**"
+      ],
+      "status": "ACTIVE",
+      "claimed_at": "2026-10-07T14:09:41Z",
+      "claim_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6039755816",
+      "evidence_path": "docs/evidence/2026-10-07-application-audit-history.json"
     }
   ]
 }

@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-07T14:13:53Z",
+  "issue": 177,
+  "requirement_id": "MJ-REQ-176",
+  "result": "PARTIAL",
+  "source_commit": "f43f199cccf6f483918b4ce521d17db46e7d470d",
+  "source_tree": "7159e04e13524afc82a3dd4168351eb6cbf73d56",
+  "base_main": "910bf1937fe6b7276187b6b8685d2adf343c8684",
+  "acceptance_oracle": "When a profile owner records an application status, note, or external application report, the Activity timeline shows a stable safe summary for the matching application after reload, only in that profile. User reports remain attributed as user reports; note text and raw audit payload never appear; no employer receipt or actual MJobs submission is inferred.",
+  "red_observation": "Before this slice, the tracking API persisted APPLICATION_PIPELINE_STATUS and APPLICATION_NOTE against a profile/application-scoped tracking entity, but GET /profiles/fixture/audit-history returned neither event. The new regression failed because both expected event types were absent.",
+  "implementation": [
+    "The audit read model now resolves profile-bound application tracking entity IDs back to the owner application before selecting visible events.",
+    "Fixed allowlisted summaries expose application status reports, notes, and external-application reports without serializing note text, event payloads, request IDs, or other private details.",
+    "External user reports display as APPLICATION_REPORTED with explicit user-report wording; no APPLICATION_SUBMITTED or employer confirmation claim is emitted."
+  ],
+  "validation": [
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_audit_history tests.integration.test_application_pipeline tests.integration.test_external_application_capture tests.integration.test_application_answer_export tests.integration.test_explainable_matching -v",
+      "result": "PASS",
+      "counts": {
+        "passed": 36,
+        "failed": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.browser.test_audit_history -v",
+      "result": "PASS",
+      "counts": {
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run",
+      "result": "PASS",
+      "counts": {
+        "files": 13,
+        "tests": 63,
+        "failed": 0
+      }
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "details": "TypeScript check and Vite production build completed."
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.agent_skills",
+      "result": "PASS"
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.catalogue",
+      "result": "PASS"
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.progress validate",
+      "result": "PASS"
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.coordination.lane_coordination validate",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "browser_evidence": {
+    "engine": "Headless Chromium via Playwright",
+    "database": "Temporary SQLite fixture database; API and browser readback after persistent writes and browser reload.",
+    "network": "Browser requests restricted to isolated loopback API; no external requests observed; fixtures local-only.",
+    "verified": [
+      "Application status and note summaries appear in Activity after reload.",
+      "A second profile does not see the first profile application events.",
+      "Raw note content is absent from the timeline.",
+      "User-reported wording remains explicit; no submission confirmation is inferred."
+    ]
+  },
+  "environment_attempts": [
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.browser.test_audit_history -v",
+      "result": "BLOCKED_ENVIRONMENT on initial attempt",
+      "details": "The fresh worktree had no ignored apps/web/dist bundle. After npm ci from the checked-in lockfile and a successful build, the same browser test passed."
+    },
+    {
+      "command": "npm ci --prefix apps/web",
+      "result": "PASS with environment warning",
+      "details": "Installed 44 lockfile dependencies; npm reported Vitest supports Node 22.12, 24, or >=26 while local Node is 25.9. Tests and production build nevertheless passed."
+    }
+  ],
+  "remaining_requirement_gaps": [
+    "Company discovery and source enrollment events remain outside this slice; Antigravity owns the active discovery-source path.",
+    "Job merge and complete setting-change event producers remain incomplete.",
+    "Actual application queue/start/failure and real employer confirmation lifecycle events are not fully evidenced. External submission remains OFF; no user-reported status is treated as employer receipt."
+  ],
+  "environment": {
+    "os": "Windows",
+    "python": "3.12",
+    "node": "25.9.0",
+    "npm": "11.12.1",
+    "database": "SQLite only; no schema or migration changed.",
+    "postgresql_docker_migrations": "NOT_RUN; no database-specific change.",
+    "hosted_actions_and_review": "NOT_RUN_BY_USER_POLICY",
+    "external_submission": "OFF"
+  }
+}

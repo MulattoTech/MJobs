@@ -11,11 +11,30 @@
   "last_integrated_head": "d4ed75530ec9609ec41d2e3b2f4a93aa50e4b259",
   "next_issue": 177,
   "next_requirement": "MJ-REQ-176",
-  "resume_instruction": "Issue #177 / MJ-REQ-176 second slice adds profile-scoped JOB_DISCOVERED and MATCH_SCORED events and is locally verified, pending integration as PARTIAL. After integration, release the claim and lock, reconcile all active claims/worktrees, and continue with the highest-value dependency-ready unclaimed issue. Issue remains OPEN and required event families remain incomplete. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
+  "resume_instruction": "Integrate this exact-head application-history slice as PARTIAL, leave issue #177 OPEN, release claim and lock, reconcile current main and every live claim, then select and claim the highest-value independent dependency-ready issue. Avoid active Antigravity #302 source paths and Ollama #318 ATS detection paths. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
   "external_submission_enabled": false,
   "github_actions_enabled": false,
   "last_validated_head": "c80e011cf12bc071755c014935854699fbdcf4aa",
   "last_validated_tree": "da2c8dd27d01961805bcdfb84a6b0a99238114d4",
   "last_validated_at_utc": "2026-10-07T14:05:05Z",
-  "last_validated_result": "PARTIAL; job discovery/match events pass; integration pending"
+  "last_validated_result": "PARTIAL; job discovery/match events pass; integration pending",
+  "base_main": "910bf1937fe6b7276187b6b8685d2adf343c8684",
+  "current_issue": 177,
+  "requirement_id": "MJ-REQ-176",
+  "branch": "codex/mj-req176-application-history-20261007",
+  "head": "f43f199cccf6f483918b4ce521d17db46e7d470d",
+  "worktree": ".worktrees/codex-mj-req176-application-history-20261007",
+  "result": "PARTIAL; application status/note/external report summaries verified locally, integration pending",
+  "evidence_path": "docs/evidence/2026-10-07-application-audit-history.json",
+  "next_candidates": [
+    177,
+    178,
+    176,
+    171
+  ],
+  "last_verified_head": "f43f199cccf6f483918b4ce521d17db46e7d470d",
+  "last_verified_tree": "7159e04e13524afc82a3dd4168351eb6cbf73d56",
+  "last_verified_at_utc": "2026-10-07T14:13:53Z",
+  "last_verified_result": "PARTIAL; issue remains OPEN",
+  "updated_at": "2026-10-07T14:13:53Z"
 }
