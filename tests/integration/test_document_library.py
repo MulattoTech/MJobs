@@ -3,6 +3,9 @@ from concurrent.futures import ThreadPoolExecutor
 from threading import Barrier
 import unittest
 
+from apps.api.main import create_app
+from fastapi.testclient import TestClient
+from packages.persistence.store import Store
 from tests.integration import test_resume_upload as upload_tests
 from tests.integration.test_spine import PROFILE
 
@@ -57,6 +60,89 @@ class DocumentLibraryTests(unittest.TestCase):
         self.assertEqual(self.client.get('/profiles/fixture/document-library',headers={'Sec-Fetch-Site':'cross-site'}).status_code,403)
         (self.root/'uploads'/(cert['id']+'.txt')).write_bytes(b'corrupted')
         self.assertEqual(self.client.get('/profiles/fixture/document-library/'+cert['revision_id']).status_code,409)
+
+    def test_upload_security_contract_applies_to_every_document_kind(self):
+        valid_pdf = b'%PDF-1.4\nSynthetic document\n%%EOF\n'
+        oversized_content = b'x' * (10 * 1024 * 1024 + 1)
+        invalid_uploads = (
+            ('../outside.pdf', 'application/pdf', valid_pdf),
+            ('unsafe.exe', 'application/octet-stream', b'MZ\x00\x00'),
+            ('mismatched.pdf', 'text/plain', valid_pdf),
+            ('executable.pdf', 'application/pdf', b'MZ\x00\x00'),
+            ('invalid.docx',
+             'application/vnd.openxmlformats-officedocument.wordprocessingml.document', b'PK\x03\x04invalid'),
+            ('empty.txt', 'text/plain', b''),
+            ('x' * 201 + '.txt', 'text/plain', b'oversized filename'),
+            ('resume.e%CC%81.txt', 'text/plain', b'non-normalized filename'),
+        )
+        for kind in KINDS:
+            for filename, media_type, content in invalid_uploads:
+                with self.subTest(kind=kind, filename=filename):
+                    response = self.client.post(
+                        '/profiles/fixture/document-library',
+                        content=content,
+                        headers={
+                            'X-Filename': filename,
+                            'Content-Type': media_type,
+                            'X-Document-Kind': kind,
+                        },
+                    )
+                    self.assertIn(response.status_code, (400, 413, 415, 422), response.text)
+            oversized = self.client.post(
+                '/profiles/fixture/document-library',
+                content=oversized_content,
+                headers={
+                    'X-Filename': 'oversized.txt',
+                    'Content-Type': 'text/plain',
+                    'X-Document-Kind': kind,
+                },
+            )
+            self.assertEqual(oversized.status_code, 413, oversized.text)
+        underreported = self.client.post(
+            '/profiles/fixture/document-library',
+            content=oversized_content,
+            headers={
+                'X-Filename': 'underreported.txt',
+                'Content-Type': 'text/plain',
+                'X-Document-Kind': 'CERTIFICATION',
+                'Content-Length': '1',
+            },
+        )
+        self.assertEqual(underreported.status_code, 413, underreported.text)
+        self.assertEqual(self.client.get('/profiles/fixture/document-library').json()['uploaded'], [])
+        self.assertFalse((self.root/'uploads').exists())
+        self.assertFalse((self.root/'outside.pdf').exists())
+
+    def test_same_display_filename_with_distinct_documents_never_overwrites(self):
+        first_content = b'First synthetic document'
+        second_content = b'Second synthetic document'
+        first = self.upload('SUPPORTING_DOCUMENT', first_content,
+                            **{'X-Filename': 'shared-name.txt'}).json()
+        second = self.upload('CERTIFICATION', second_content,
+                             **{'X-Filename': 'shared-name.txt'}).json()
+        self.assertNotEqual(first['id'], second['id'])
+        self.assertEqual(first['filename'], second['filename'])
+        self.assertEqual(self.client.get('/profiles/fixture/document-library/'+first['revision_id']).content,
+                         first_content)
+        self.assertEqual(self.client.get('/profiles/fixture/document-library/'+second['revision_id']).content,
+                         second_content)
+        self.assertEqual(len(list((self.root/'uploads').iterdir())), 2)
+
+        reopened = Store(f"sqlite:///{(self.root/'test.db').as_posix()}")
+        reopened.migrate()
+        reopened.save_profile(dict(PROFILE, id='other', email='other@example.invalid'))
+        try:
+            with TestClient(create_app(reopened, 'http://127.0.0.1:8090', self.root)) as client:
+                listing = client.get('/profiles/fixture/document-library').json()['uploaded']
+                self.assertEqual({item['id'] for item in listing}, {first['id'], second['id']})
+                self.assertEqual(client.get('/profiles/fixture/document-library/'+first['revision_id']).content,
+                                 first_content)
+                self.assertEqual(client.get('/profiles/fixture/document-library/'+second['revision_id']).content,
+                                 second_content)
+                self.assertEqual(client.get('/profiles/other/document-library').json(),
+                                 {'uploaded': [], 'generated': []})
+        finally:
+            reopened.engine.dispose()
 
     def test_concurrent_different_kinds_share_blob_without_mixing_version_counters(self):
         from services.documents.uploads import save_resume
