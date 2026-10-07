@@ -1234,7 +1234,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     @app.post("/applications", status_code=202)
     def application(value: ApplicationInput):
         from services.dedupe.source_values import require_route_review
-        from services.documents.tailor import eligible_rows, select_resume_rows, validate_user_rephrases
+        from services.documents.tailor import eligible_rows, select_resume_rows, validate_user_rewrites
         from services.documents.errors import PreparationError
         profile = store.profile(value.profile_id)
         if value.ai_evaluation_run_id:
@@ -1257,7 +1257,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         try:
             select_resume_rows(eligible_rows(profile),value.tailor_resume,value.tailor_fact_ids)
             if value.tailor_fact_rewrites is not None:
-                validate_user_rephrases(eligible_rows(profile), value.tailor_fact_ids,
+                validate_user_rewrites(eligible_rows(profile), value.tailor_fact_ids,
                     [rewrite.model_dump() for rewrite in value.tailor_fact_rewrites])
         except PreparationError as error:
             raise HTTPException(409,str(error)) from error

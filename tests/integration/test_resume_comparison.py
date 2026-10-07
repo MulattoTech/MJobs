@@ -105,6 +105,47 @@ class ResumeComparisonTests(unittest.TestCase):
             self.assertIn('preserve every source date and number',invalid.json()['detail'])
         self.assertEqual(self.store.profile('fixture')['facts'][0]['text'],'Changed live career fact')
 
+    def test_user_reviewed_summary_adjustment_is_historical_and_cover_letter_is_unchanged(self):
+        summary=dict(PROFILE['facts'][0],id='summary',kind='summary',
+            text='Systems engineer with 12 years of Linux experience, 2012-2024.')
+        skill=dict(PROFILE['facts'][0],id='linux',kind='skill',text='Linux')
+        original_profile=dict(PROFILE,facts=[summary,skill])
+        self.store.save_profile(original_profile)
+        with fixture_server() as origin:
+            discover(self.store,origin,'fixture')
+        job=self.store.jobs()[0]
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.id==job['id']).values(skills=['Linux']))
+        app=prepare(self.store,job['id'],'fixture',self.root)
+        base=next(row for row in application_documents(self.store,app) if row['kind']=='resume')
+        wording='Linux systems engineer with 12 years of experience, 2012-2024.'
+        rewrites=[{'fact_id':'summary','text':wording,'reviewed':True}]
+        prepare(self.store,job['id'],'fixture',self.root,tailor_resume=True,
+            tailor_fact_ids=['summary'],tailor_fact_rewrites=rewrites,
+            profile_version=self.store.profile('fixture')['version'])
+        rows=application_documents(self.store,app)
+        target=next(row for row in rows if row['kind']=='resume' and row['version']==2)
+        cover=next(row for row in rows if row['kind']=='cover-letter' and row['version']==2)
+        self.assertEqual(target['generation_context']['fact_rephrases'][0]['fact_kind'],'summary')
+        target_text=(self.root/app/target['files']['txt']).read_text(encoding='utf-8')
+        cover_text=(self.root/app/cover['files']['txt']).read_text(encoding='utf-8')
+        self.assertIn(wording,target_text)
+        self.assertNotIn(summary['text'],target_text)
+        self.assertNotIn(wording,cover_text)
+        self.assertEqual(self.store.profile('fixture')['facts'][0]['text'],summary['text'])
+        with TestClient(create_app(self.store,'http://127.0.0.1:1',self.root,operation_mode='FIXTURE')) as client:
+            url=f'/profiles/fixture/applications/{app}/document-comparison'
+            params={'base_document_id':base['id'],'tailored_document_id':target['id']}
+            response=client.get(url,params=params)
+            self.assertEqual(response.status_code,200,response.text)
+            comparison=response.json()
+            self.assertEqual(comparison['summary_changes'][0]['before']['text'],summary['text'])
+            self.assertEqual(comparison['summary_changes'][0]['after']['text'],wording)
+            self.assertEqual(comparison['bullet_changes'],[])
+            changed=dict(summary,text='A different current profile summary')
+            self.store.save_profile(dict(original_profile,facts=[changed,skill]))
+            self.assertEqual(client.get(url,params=params).json(),comparison)
+
     def test_unavailable_or_wrong_history_is_not_reported_as_unchanged(self):
         app,base,target=self.pair()
         with TestClient(create_app(self.store,'http://127.0.0.1:1',self.root,operation_mode='FIXTURE')) as client:

@@ -5,8 +5,8 @@ from docx import Document
 from pypdf import PdfReader
 
 from services.documents.errors import PreparationError
-from services.documents.templates import (CONTRACTS, REPHRASE_TEMPLATE, contact_header,
-    contract_role, resume_layout)
+from services.documents.templates import (CONTRACTS, REPHRASE_TEMPLATE, LEGACY_REPHRASE_TEMPLATE,
+    CONTACT_PAIRS, LEGACY_CONTACT_PAIRS, contact_header, contract_role, resume_layout)
 from services.documents.cover_letter import COVER_LETTER_TEMPLATE, build_cover_letter
 
 VALIDATOR = 'exact-approved-facts-v5-claim-preservation'
@@ -94,16 +94,22 @@ def validate_assertions(kind, paragraphs, profile, fact_ids, job_title=None, tem
     if kind == 'resume':
         if template not in CONTRACTS:
             raise PreparationError('UNSUPPORTED_CLAIM', 'Document template has no assertion validation contract')
-        if template in (REPHRASE_TEMPLATE, 'approved-contact-selection-user-rephrase-v1'):
+        legacy_rephrase_templates = (LEGACY_REPHRASE_TEMPLATE,
+            LEGACY_CONTACT_PAIRS[LEGACY_REPHRASE_TEMPLATE][0])
+        current_rewrite_templates = (REPHRASE_TEMPLATE, CONTACT_PAIRS[REPHRASE_TEMPLATE][0])
+        if template in (*legacy_rephrase_templates, *current_rewrite_templates):
             context = generation_context if isinstance(generation_context, dict) else {}
             if (context.get('selection_mode') != 'EXPLICIT_APPROVED_FACTS' or
                     context.get('selected_fact_ids') != context.get('original_fact_ids') or
                     set(context.get('selected_fact_ids', [])) != set(fact_ids)):
                 raise PreparationError('RESUME_REPHRASE_CONTEXT_INVALID', 'Rewritten resume facts lack an explicit saved selection')
-            from services.documents.tailor import apply_saved_user_rephrases
+            from services.documents.tailor import apply_saved_user_rephrases, apply_saved_user_rewrites
             by_id = {row['fact_id']:row for row in profile_facts}
             rows = [dict(by_id[identifier]) for identifier in fact_ids]
-            rewritten = apply_saved_user_rephrases(rows, fact_ids, context.get('fact_rephrases'))
+            if template in current_rewrite_templates:
+                rewritten = apply_saved_user_rewrites(rows, fact_ids, context.get('fact_rephrases'))
+            else:
+                rewritten = apply_saved_user_rephrases(rows, fact_ids, context.get('fact_rephrases'))
             expected, heading_indices = resume_layout(profile, rewritten, template)
             header = len(contact_header(profile, template))
             headings = {expected[index] for index in heading_indices}

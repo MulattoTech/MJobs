@@ -326,7 +326,7 @@ function App() {
   }
   async function prepareJobRoute(job:Job, routeMode:'DEFAULT'|'THIS_ROUTE'='DEFAULT', routeId?:string) {
     if(tailorResume&&resumeSelection&&(!resumeSelection.version||!resumeSelection.ids.length||resumeSelection.profileId!==profileId||resumeSelection.jobId!==job.id))throw new Error('Reload approved facts and select at least one fact for this resume.');
-    if(tailorResume&&resumeSelection?.rewrites.some(item=>!item.reviewed))throw new Error('Review each rewritten resume bullet before preparing documents.');
+    if(tailorResume&&resumeSelection?.rewrites.some(item=>!item.reviewed))throw new Error('Review each rewritten resume fact before preparing documents.');
     const op=await queue('/applications',{profile_id:profileId,job_id:job.id,request_id:crypto.randomUUID(),route_mode:routeMode,tailor_resume:tailorResume,include_resume_contact:includeResumeContact,
       cover_letter_length:coverLetterLength,cover_letter_style:coverLetterStyle,
       ...(tailorResume&&resumeSelection?{tailor_fact_ids:resumeSelection.ids,expected_profile_version:resumeSelection.version}:{}),

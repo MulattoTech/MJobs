@@ -216,3 +216,67 @@ class SkillOrderBrowserTests(unittest.TestCase):
             finally:
                 server.should_exit=True;thread.join(timeout=10);sock.close();store.engine.dispose()
                 self.assertFalse(thread.is_alive())
+
+    def test_user_reviewed_summary_adjustment_survives_reload_and_comparison(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory);store=Store(f"sqlite:///{(root/'summary.db').as_posix()}")
+            store.migrate();store.bind_workspace_mode('FIXTURE')
+            summary=dict(PROFILE['facts'][0],id='linux-summary',kind='summary',
+                text='Systems engineer with 12 years of Linux experience, 2012-2024.')
+            skill=dict(PROFILE['facts'][0],id='linux',kind='skill',text='Linux')
+            store.save_profile(dict(PROFILE,facts=[summary,skill]))
+            with fixture_server() as fixture:discover(store,fixture,'fixture')
+            job=store.jobs()[0]
+            with store.engine.begin() as connection:
+                connection.execute(update(m.jobs).where(m.jobs.c.id==job['id']).values(skills=['Linux']))
+            prepare(store,job['id'],'fixture',root)
+            before=store.profile('fixture')
+            sock=bound_browser_socket();origin=f'http://127.0.0.1:{sock.getsockname()[1]}'
+            app=create_app(store,'http://127.0.0.1:1',root,'redis://127.0.0.1:1/0',operation_mode='FIXTURE')
+            server=uvicorn.Server(uvicorn.Config(app,log_level='error'))
+            thread=threading.Thread(target=server.run,kwargs={'sockets':[sock]},daemon=True);thread.start()
+            try:
+                deadline=time.monotonic()+10
+                while not server.started:
+                    if not thread.is_alive() or time.monotonic()>deadline:self.fail('Summary-adjustment test API did not start')
+                    time.sleep(.02)
+                with sync_playwright() as playwright:
+                    browser=playwright.chromium.launch(headless=True);context=browser.new_context(accept_downloads=True)
+                    external=[]
+                    def local_only(route):
+                        if urlsplit(route.request.url).netloc!=urlsplit(origin).netloc:
+                            external.append(route.request.url);route.abort()
+                        else:route.continue_()
+                    context.route('**/*',local_only)
+                    page=context.new_page();page.goto(origin)
+                    page.evaluate("localStorage.setItem('mjobs-profile','fixture')");page.reload()
+                    page.get_by_role('button').filter(has=page.get_by_role('heading',name=job['title'],exact=True)).click()
+                    page.get_by_label('Order approved skills for this job',exact=True).check()
+                    page.get_by_label('Choose resume facts',exact=True).check()
+                    page.get_by_label('Include '+summary['text'],exact=True).check()
+                    wording='Linux systems engineer with 12 years of experience, 2012-2024.'
+                    page.get_by_label('Rewrite this summary: '+summary['text'],exact=True).fill(wording)
+                    page.get_by_label('I reviewed this rewrite: '+summary['text'],exact=True).check()
+                    with page.expect_response(lambda response:response.url==origin+'/applications' and response.request.method=='POST') as event:
+                        page.get_by_role('button',name='Prepare documents',exact=True).click()
+                    operation=event.value.json();queued=event.value.request.post_data_json
+                    self.assertEqual(queued['tailor_fact_rewrites'],[{'fact_id':'linux-summary','text':wording,'reviewed':True}])
+                    with patch.dict('os.environ',MJOBS_DATABASE_URL=store.url,MJOBS_MOCK_ORIGIN='http://127.0.0.1:1',
+                                    MJOBS_OUTPUT_DIR=str(root),MJOBS_OPERATION_MODE='FIXTURE'):
+                        self.assertEqual(execute_operation(operation['operation_id'])['status'],'COMPLETED')
+                    summary_document=page.get_by_role('region',name='resume version 2',exact=True)
+                    with page.expect_download() as download:
+                        summary_document.get_by_role('link',name='Download TXT',exact=True).click()
+                    self.assertIn(wording,Path(download.value.path()).read_text(encoding='utf-8'))
+                    page.reload();page.get_by_role('navigation').get_by_role('button',name='Applications',exact=False).first.click()
+                    page.locator('.job-card').first.click()
+                    comparison=page.get_by_role('region',name='Compare base and tailored resumes',exact=True)
+                    comparison.get_by_role('button',name='Compare selected resumes',exact=True).click()
+                    changes=comparison.get_by_role('region',name='Summary changes',exact=True)
+                    expect(changes).to_contain_text(summary['text']);expect(changes).to_contain_text(wording)
+                    self.assertEqual(store.profile('fixture'),before)
+                    self.assertFalse(external)
+                    context.close();browser.close()
+            finally:
+                server.should_exit=True;thread.join(timeout=10);sock.close();store.engine.dispose()
+                self.assertFalse(thread.is_alive())

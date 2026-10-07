@@ -69,7 +69,7 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
         resume_rows = tailor.select_resume_rows(eligible, tailor_resume, tailor_fact_ids)
         selection_ids = [row['fact_id'] for row in resume_rows] if tailor_fact_ids is not None else None
         selection_hash = tailor.selection_fingerprint(selection_ids) if selection_ids is not None else None
-        rewritten_rows, rephrase_context = (tailor.validate_user_rephrases(
+        rewritten_rows, rephrase_context = (tailor.validate_user_rewrites(
             resume_rows, selection_ids, tailor_fact_rewrites) if tailor_fact_rewrites is not None
             else (resume_rows, []))
         rephrase_hash = hashlib.sha256(json.dumps(tailor_fact_rewrites,

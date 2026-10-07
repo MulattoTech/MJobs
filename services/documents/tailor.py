@@ -8,14 +8,13 @@ from services.documents.templates import TAILORED_TEMPLATE as TEMPLATE, TAILORED
 from services.documents.errors import PreparationError
 
 
-def validate_user_rephrases(facts, selected_fact_ids, rewrites):
-    """Apply only individually reviewed wording to selected approved duties."""
+def _validate_user_rewrites(facts, selected_fact_ids, rewrites, *, allowed_kinds, include_kind):
     if rewrites is None:
         return [dict(row) for row in facts], []
     if (type(rewrites) is not list or not 1 <= len(rewrites) <= 100 or
             type(selected_fact_ids) is not list or not selected_fact_ids or
             len(set(selected_fact_ids)) != len(selected_fact_ids)):
-        raise PreparationError('RESUME_REPHRASE_INVALID', 'Select approved facts before rephrasing a resume bullet')
+        raise PreparationError('RESUME_REPHRASE_INVALID', 'Select approved resume facts before rewriting')
     eligible = {row['fact_id']: row for row in eligible_rows({'facts': facts})}
     selected = set(selected_fact_ids)
     provenance = []
@@ -28,29 +27,46 @@ def validate_user_rephrases(facts, selected_fact_ids, rewrites):
             raise PreparationError('RESUME_REPHRASE_INVALID', 'Resume bullet wording has an invalid review record')
         fact_id = item['fact_id']
         source = eligible.get(fact_id)
-        if source is None or fact_id not in selected or source['kind'] != 'responsibility':
-            raise PreparationError('RESUME_REPHRASE_FACT_INVALID', 'Only selected approved responsibility facts may be rephrased')
+        if source is None or fact_id not in selected or source['kind'] not in allowed_kinds:
+            kinds = 'summary and responsibility' if include_kind else 'responsibility'
+            raise PreparationError('RESUME_REPHRASE_FACT_INVALID',
+                f'Only selected approved {kinds} facts may be rewritten')
         text = item['text'].strip()
         if not item['reviewed']:
-            raise PreparationError('RESUME_REPHRASE_REVIEW_REQUIRED', 'Review each rewritten bullet before preparing documents')
+            raise PreparationError('RESUME_REPHRASE_REVIEW_REQUIRED', 'Review each rewritten resume fact before preparing documents')
         if not text or len(text) > 10_000 or '\x00' in text or text == source['text']:
-            raise PreparationError('RESUME_REPHRASE_INVALID', 'Enter changed, nonempty bullet wording within the supported limit')
+            raise PreparationError('RESUME_REPHRASE_INVALID', 'Enter changed, nonempty resume wording within the supported limit')
         if (sorted(value.casefold() for value in _DATE_TOKEN.findall(text)) !=
                 sorted(value.casefold() for value in _DATE_TOKEN.findall(source['text'])) or
                 sorted(value.casefold() for value in _NUMBER_TOKEN.findall(text)) !=
                 sorted(value.casefold() for value in _NUMBER_TOKEN.findall(source['text']))):
             raise PreparationError('RESUME_REPHRASE_FACTS_CHANGED', 'Rewritten wording must preserve every source date and number exactly')
         replacement_text[fact_id] = text
-        provenance.append({
+        record = {
             'fact_id': fact_id,
             'source_text_sha256': hashlib.sha256(source['text'].encode('utf-8')).hexdigest(),
             'text': text,
             'reviewed': True,
             'review_policy': 'USER_CONFIRMED_FACTUAL_PARAPHRASE',
-        })
+        }
+        if include_kind:
+            record['fact_kind'] = source['kind']
+        provenance.append(record)
     if len(replacement_text) != len(rewrites):
-        raise PreparationError('RESUME_REPHRASE_INVALID', 'Each responsibility fact may be rephrased only once')
+        raise PreparationError('RESUME_REPHRASE_INVALID', 'Each resume fact may be rewritten only once')
     return [dict(row, text=replacement_text.get(row['fact_id'], row['text'])) for row in facts], provenance
+
+
+def validate_user_rephrases(facts, selected_fact_ids, rewrites):
+    """Preserve the original v1 contract: reviewed responsibility bullets only."""
+    return _validate_user_rewrites(facts, selected_fact_ids, rewrites,
+                                   allowed_kinds={'responsibility'}, include_kind=False)
+
+
+def validate_user_rewrites(facts, selected_fact_ids, rewrites):
+    """Apply reviewed wording to selected approved summary or responsibility facts."""
+    return _validate_user_rewrites(facts, selected_fact_ids, rewrites,
+                                   allowed_kinds={'summary', 'responsibility'}, include_kind=True)
 
 
 def apply_saved_user_rephrases(facts, selected_fact_ids, saved):
@@ -69,6 +85,27 @@ def apply_saved_user_rephrases(facts, selected_fact_ids, saved):
     rewritten, expected = validate_user_rephrases(facts, selected_fact_ids, requests)
     if any(actual['source_text_sha256'] != item['source_text_sha256']
            for actual,item in zip(expected,saved)):
+        raise PreparationError('RESUME_REPHRASE_SOURCE_CHANGED', 'Saved resume wording is not bound to its original fact')
+    return rewritten
+
+
+def apply_saved_user_rewrites(facts, selected_fact_ids, saved):
+    """Rebuild v2 historical summary/responsibility rewrites from their source facts."""
+    if type(saved) is not list or not saved:
+        raise PreparationError('RESUME_REPHRASE_CONTEXT_INVALID', 'Saved resume wording review is unavailable')
+    requests=[]
+    for item in saved:
+        if (type(item) is not dict or set(item) != {
+                'fact_id','fact_kind','source_text_sha256','text','reviewed','review_policy'} or
+                item.get('reviewed') is not True or
+                item.get('review_policy') != 'USER_CONFIRMED_FACTUAL_PARAPHRASE' or
+                type(item.get('source_text_sha256')) is not str or
+                item.get('fact_kind') not in {'summary','responsibility'}):
+            raise PreparationError('RESUME_REPHRASE_CONTEXT_INVALID', 'Saved resume wording review is invalid')
+        requests.append({'fact_id':item['fact_id'],'text':item['text'],'reviewed':True})
+    rewritten, expected = validate_user_rewrites(facts, selected_fact_ids, requests)
+    if any(actual['source_text_sha256'] != item['source_text_sha256'] or
+           actual['fact_kind'] != item['fact_kind'] for actual,item in zip(expected,saved)):
         raise PreparationError('RESUME_REPHRASE_SOURCE_CHANGED', 'Saved resume wording is not bound to its original fact')
     return rewritten
 
