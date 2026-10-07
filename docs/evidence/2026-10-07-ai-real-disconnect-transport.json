@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "issue": 5,
+  "requirement_id": "MJ-REQ-004",
+  "lane": "codex",
+  "branch": "codex/req004-ai-real-disconnect-20261007",
+  "base_main": "dbed2ca11c55b99ad5474fd566f8294a30d4ea0f",
+  "source_head": "181ec139d48c6f911cdcd5f93f5a7dcf2b8b3210",
+  "source_tree": "4edb7dfde29e02c1c133131bff358835ab6ad681",
+  "recorded_at_utc": "2026-10-07T03:48:52Z",
+  "result": "PARTIAL",
+  "scope": "Preserve real request transport disconnect signals through API local-origin middleware and verify structured AI evaluation cancellation does not persist a partial batch.",
+  "acceptance": {
+    "real_loopback_request_disconnect": "PASS - a real TCP client half-closes its write side while the second bounded synthetic provider call is in flight; Starlette Request.is_disconnected observes the transport EOF through the API middleware.",
+    "partial_batch_history": "PASS - the first synthetic candidate completes, the second remains in flight until the transport disconnect is observed, and profile evaluation history remains empty afterward.",
+    "origin_guard": "PASS - cross-origin mutations and cross-site profile reads remain rejected with HTTP 403.",
+    "security_response_headers": "PASS - Cache-Control, X-Content-Type-Options, Referrer-Policy, and Content-Security-Policy remain present with their existing values.",
+    "provider_inference": "NOT_RUN - synthetic router only; no local model or paid provider was invoked.",
+    "complete_MJ_REQ_004": "PARTIAL - other external-operation categories and acceptance evidence remain outstanding."
+  },
+  "validation": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_ai_cost_policy_api tests.integration.test_profile_import tests.integration.test_uploaded_resume_comparison -v",
+      "result": "PASS",
+      "summary": "30 tests passed across the API, profile import, and uploaded comparison integration suites."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py'",
+      "result": "PASS",
+      "summary": "845 tests passed; 1 optional PostgreSQL test skipped because MJOBS_TEST_POSTGRES_URL was unset."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_ai_task_settings tests.browser.test_profile_import -v",
+      "result": "PASS",
+      "summary": "3 Chromium browser tests passed after building the isolated worktree frontend."
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run",
+      "result": "PASS",
+      "summary": "13 files and 62 frontend tests passed."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "summary": "TypeScript check and Vite production build passed. npm emitted an engine warning because Vitest declares Node 22.12/24/26+ while this machine has Node 25.9.0."
+    },
+    {
+      "commands": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.agent_skills",
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.catalogue",
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.progress validate",
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m compileall -q apps/api tests/integration/test_ai_cost_policy_api.py",
+        "git diff HEAD^ HEAD --check",
+        "ConvertFrom-Json docs/evidence/2026-10-07-ai-real-disconnect-transport.json"
+      ],
+      "result": "PASS",
+      "summary": "All listed local validators, bytecode compilation, and diff checks passed."
+    },
+    {
+      "command": "GitHub hosted Actions and hosted review",
+      "result": "NOT_RUN_BY_USER_POLICY",
+      "summary": "Hosted checks remain disabled."
+    }
+  ],
+  "environment": {
+    "python": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+    "node": "v25.9.0",
+    "database": "Temporary SQLite integration databases; no schema changes.",
+    "postgresql": "NOT_RUN - MJOBS_TEST_POSTGRES_URL was unset; one optional test skipped.",
+    "docker": "NOT_RUN - no container-dependent change.",
+    "external_submission": "OFF"
+  },
+  "limitations": [
+    "Issue #5 / MJ-REQ-004 remains OPEN/PARTIAL; this slice adds real transport evidence for structured AI evaluation and fixes receive-channel handling for API routes, but does not close remaining operation-bound requirements.",
+    "The transport oracle is a real loopback TCP request-side half-close, not a live user, employer, ATS, or external network call.",
+    "Synthetic provider behavior proves request cancellation and history discard, not inference quality or provider acceptance.",
+    "The interrupted client transport does not provide a response-body assertion; the decisive oracle is observed disconnect plus empty persisted history.",
+    "Hosted checks and independent review remain NOT_RUN_BY_USER_POLICY."
+  ]
+}
