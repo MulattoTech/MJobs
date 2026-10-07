@@ -314,6 +314,25 @@
       "released_at": "2026-10-07T13:21:21Z",
       "integrated_main": "f8b6127e645bc0977a696dadf01f0017980fbe5a",
       "issue_comment": "https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6038839646"
+    },
+    {
+      "issue": 181,
+      "requirement_id": "MJ-REQ-180",
+      "branch": "codex/mj-req180-mask-rich-controls-20261007",
+      "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req180-mask-rich-controls-20261007",
+      "head": "b6468ba71893c71eed818e97444ff7a1614215f0",
+      "paths": [
+        "cli/live_feedback.py",
+        "tests/unit/test_live_feedback.py",
+        "tests/browser/test_live_feedback_redaction.py",
+        "docs/LIVE_FEEDBACK_DEVELOPMENT.md",
+        "docs/evidence/2026-10-07-rich-control-screenshot-redaction.json",
+        "planning/lanes/codex/**"
+      ],
+      "status": "ACTIVE",
+      "claimed_at": "2026-10-07T13:25:24Z",
+      "claim_comment": "https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6038875550",
+      "evidence_path": "docs/evidence/2026-10-07-rich-control-screenshot-redaction.json"
     }
   ]
 }
