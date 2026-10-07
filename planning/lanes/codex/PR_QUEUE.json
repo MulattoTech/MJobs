@@ -23,13 +23,13 @@
     {
       "issue": 381,
       "requirement_id": "MJ-REF-011",
-      "status": "INTEGRATED_PARTIAL",
+      "status": "INTEGRATED_PASS",
       "priority": 1,
-      "target_area": "services/ai/consumer.py; tests/unit/test_ai_cost_consumer.py",
+      "target_area": "services/ai/consumer.py; apps/api/main.py; tests/unit/test_ai_cost_consumer.py; tests/integration/test_ai_cost_policy_api.py",
       "depends_on": [],
-      "evidence_path": "docs/evidence/2026-10-07-ai-prompt-truncation.json",
-      "scope_complete": false,
-      "note": "Description truncation now carries its omitted character count, with an explicit instruction not to infer omitted details. Focused AI 47 PASS; exact-source full Python 854 PASS, one optional PostgreSQL skip; frontend build and validators PASS. Broader shared budgets and persisted timeout/cancel recovery remain open."
+      "evidence_path": "docs/evidence/2026-10-07-ai-operation-outcomes.json",
+      "scope_complete": true,
+      "note": "All issue acceptance is locally evidenced: shared batch deadline is inherited as remaining timeout by provider calls; oversized prompt content carries an explicit omitted-character marker and no-inference instruction; timeout/cancel outcomes persist with stable reason and no partial evaluation history. Focused 50 PASS; full Python 854 PASS, one optional PostgreSQL skip; frontend build and validators PASS. Integrated at main 8bb20aeb08dbb696af0629bfc861833c7bce0220."
     }
   ]
 }

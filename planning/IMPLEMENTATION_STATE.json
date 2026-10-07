@@ -11,7 +11,7 @@
     "current_verified_github_state": "Local/GitHub main synchronized at cb2681b6a921f2759cf46d4d66a8228645b473e7; issue #6 remains OPEN/PARTIAL after local evidence readback; Actions disabled; external submission OFF.",
     "current_verified_at": "2026-10-07T05:08:16Z"
   },
-  "current_milestone": "MJ-REF-011-EXPLICIT-PROMPT-TRUNCATION-20261007",
+  "current_milestone": "MJ-REF-011-SHARED-AI-BUDGETS-AND-TRUNCATION-20261007",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -62,7 +62,8 @@
     "MJ-REQ-108.A06: explicit zero-capability disabled/no-AI provider with deterministic no-network and no-prompt-echo contract evidence.",
     "MJ-REQ-017.S08: Remotive global job-source adapter implemented with public JSON collection, multi-company attribution, canonical search semantics normalization, error/rate-limit handling, and registry integration (docs/evidence/2026-10-06-remotive-job-source-adapter.json).",
     "MJ-REQ-017.S02: We Work Remotely global job-source adapter implemented with public RSS feed collection, multi-company attribution, canonical search semantics normalization, error/rate-limit handling, and registry integration (docs/evidence/2026-10-06-we-work-remotely-job-source-adapter.json).",
-    "MJ-REQ-017.S07: Remote OK global job-source adapter implemented with public JSON collection, multi-company attribution, canonical search semantics normalization, error/rate-limit handling, and registry integration (docs/evidence/2026-10-06-remote-ok-job-source-adapter.json)."
+    "MJ-REQ-017.S07: Remote OK global job-source adapter implemented with public JSON collection, multi-company attribution, canonical search semantics normalization, error/rate-limit handling, and registry integration (docs/evidence/2026-10-06-remote-ok-job-source-adapter.json).",
+    "MJ-REF-011 locally complete: operation-wide AI candidate deadline reaches each nested provider call as remaining time; prompt truncation is explicit and omitted details cannot be inferred; timeout/cancel reasons persist without partial evaluation history. Focused 50 PASS; full Python 854 PASS with one optional PostgreSQL skip; frontend build and repository validators PASS. Evidence docs/evidence/2026-10-07-ai-prompt-truncation.json and docs/evidence/2026-10-07-ai-operation-outcomes.json."
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
@@ -302,7 +303,8 @@
     "MJ-REQ-004 resume extraction cancellation: durable RESUME_EXTRACT admission and cancellation now cross API instances; cross-profile cancel remains denied; cancelled profile facts/history remain unchanged. Full Python 852 PASS (1 optional PostgreSQL skip), 12 profile-import, 16 AI API, 3 operation-concurrency and 1 connected browser test PASS; frontend 62 PASS/build PASS; repository validators PASS. Evidence docs/evidence/2026-10-07-resume-extraction-cross-instance-cancel.json. Issue #5 remains OPEN/PARTIAL; hosted checks remain NOT_RUN_BY_USER_POLICY.",
     "MJ-REQ-008 / issue #9 browser-renderer crash acceptance: committed manual application status and history recovered in a fresh Chromium page after CDP Page.crash while the write response was held. Four connected application-pipeline browser tests and five API/service integration tests PASS; frontend 62 tests/build and repository validators PASS. Evidence docs/evidence/2026-10-07-browser-crash-recovery.json. Whole-browser-process and physical host restart remain NOT_RUN; issue stays OPEN/PARTIAL.",
     "MJ-REQ-008 / issue #9 whole-browser-process crash acceptance: CDP Browser.crash terminated Chromium after a manual application status/history commit while the response was held; a replacement browser read back identical state. Five connected application-pipeline browser tests and five API/service integration tests PASS; frontend 62 tests/build and local validators PASS. Evidence docs/evidence/2026-10-07-browser-process-crash-recovery.json. Physical host restart remains NOT_RUN; issue stays OPEN/PARTIAL.",
-    "MJ-REF-011 prompt truncation: 47 focused AI unit/API integration tests PASS; exact-head full Python suite 854 PASS with one optional PostgreSQL skip; frontend build and repository validators PASS. Evidence docs/evidence/2026-10-07-ai-prompt-truncation.json"
+    "MJ-REF-011 prompt truncation: 47 focused AI unit/API integration tests PASS; exact-head full Python suite 854 PASS with one optional PostgreSQL skip; frontend build and repository validators PASS. Evidence docs/evidence/2026-10-07-ai-prompt-truncation.json",
+    "MJ-REF-011 complete local acceptance: 50 focused AI unit/API tests PASS; 854 full Python tests PASS with one optional PostgreSQL skip; frontend build, repository validators, compileall, diff and coordination checks PASS. Timeout operation state survives Store/API reopen; cancellation persists with no partial history. Evidence docs/evidence/2026-10-07-ai-operation-outcomes.json."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -317,7 +319,8 @@
     "MJ-REQ-004 mock ATS cancellation first full candidate run: missing ignored apps/web/dist caused browser 404 errors; after restoring bundle, cancellation-aware receipt lookup exposed SUBMITTING persistence when operation check expired. Receipt reconciliation now catches a failed operation check and preserves SUBMISSION_UNCONFIRMED; 13 focused mock ATS tests pass. Second full suite had only unrelated application-pipeline shutdown timeout; isolated and all-browser reruns passed. Evidence docs/evidence/2026-10-06-mock-ats-http-cancellation.json.",
     "MJ-REQ-005 candidate cb2681b6a921f2759cf46d4d66a8228645b473e7 first full run before building worktree apps/web/dist: 849 tests, 2 failures and 6 browser navigation errors due missing served UI assets. Building the unchanged frontend made all 8 affected browser cases pass; final same-candidate full run passed 849 tests with 1 optional PostgreSQL skip. Evidence docs/evidence/2026-10-07-ai-evaluation-concurrency-admission.json.",
     "MJ-REQ-008 initial full Python run on source d516834ac3bd48352ef3aa8885a1de1fffe53419 before rebuilding ignored apps/web/dist: 2 failures, 6 errors, 16 skips. After npm ci/npm run build, affected browser cases passed and the exact-source full rerun passed 851 tests with 1 optional PostgreSQL skip; see docs/evidence/2026-10-07-product-worker-crash-recovery.json.",
-    "MJ-REF-011 initial isolated-worktree full-suite attempt: 854 tests, 2 failures, 7 errors and 18 skips because ignored apps/web/dist and apps/web/node_modules were absent; after npm ci/build, two reproduced browser tests and exact-source full suite passed. Evidence docs/evidence/2026-10-07-ai-prompt-truncation.json"
+    "MJ-REF-011 initial isolated-worktree full-suite attempt: 854 tests, 2 failures, 7 errors and 18 skips because ignored apps/web/dist and apps/web/node_modules were absent; after npm ci/build, two reproduced browser tests and exact-source full suite passed. Evidence docs/evidence/2026-10-07-ai-prompt-truncation.json",
+    "MJ-REF-011 timeout-persistence regression RED before fix: API returned AI_TASK_TIMEOUT but durable operation stored generic AI_EVALUATION_FAILED; exact failure is recorded in docs/evidence/2026-10-07-ai-operation-outcomes.json."
   ],
   "tests_not_run": [
     "Remaining full-spec integrations and product/release requirements",
@@ -385,13 +388,13 @@
     "Fresh Codex worktrees may lack ignored apps/web/node_modules and apps/web/dist; run npm ci and npm run build --prefix apps/web before browser/full-suite validation. MJ-REF-011 exact-source rerun passed 854 tests after restoring those artifacts; evidence docs/evidence/2026-10-07-ai-prompt-truncation.json"
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-07T06:32:51Z",
-    "result": "PARTIAL",
-    "source_commit": "0371f4f7b53f43e78b3d990e023e076ddc79e88e",
-    "source_tree": "f0f991bd00f8f224ebbf332adbc29beb1b531a31",
-    "scope": "AI job scoring now marks omitted description characters and instructs the model not to infer from omitted content; the broader reference issue remains incomplete.",
-    "evidence_path": "docs/evidence/2026-10-07-ai-prompt-truncation.json",
-    "integration_commit": "cc526a9bc18f716f3234869882f5c03b89240d12"
+    "timestamp": "2026-10-07T06:47:03Z",
+    "result": "PASS",
+    "source_commit": "b682e0c2d60ad3326a665cebe42ad0d9118d3fa4",
+    "source_tree": "c71110d8043354c42a4fbcddb32d7854c4d80de1",
+    "scope": "All MJ-REF-011 issue acceptance is locally evidenced across operation-wide provider deadlines, explicit input truncation/no-inference instructions, structured timeout/cancel persistence and no partial results.",
+    "evidence_path": "docs/evidence/2026-10-07-ai-operation-outcomes.json",
+    "integration_commit": "8bb20aeb08dbb696af0629bfc861833c7bce0220"
   },
   "ci_verification": {
     "result": "NOT_RUN",

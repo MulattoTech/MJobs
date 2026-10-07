@@ -5,14 +5,15 @@
     {
       "issue": 381,
       "requirement_id": "MJ-REF-011",
-      "branch": "codex/mj-ref-011-explicit-truncation-20261007",
-      "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-ref-011-explicit-truncation-20261007",
+      "branch": "codex/mj-ref-011-persist-timeout-20261007",
+      "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-ref-011-persist-timeout-20261007",
       "paths": [
-        "services/ai/consumer.py",
-        "tests/unit/test_ai_cost_consumer.py",
-        "docs/evidence/2026-10-07-ai-prompt-truncation.json"
+        "apps/api/main.py",
+        "workers/operations.py",
+        "tests/integration/test_ai_cost_policy_api.py",
+        "docs/evidence/2026-10-07-ai-operation-outcomes.json"
       ],
-      "head": "cc526a9bc18f716f3234869882f5c03b89240d12",
+      "head": "8bb20aeb08dbb696af0629bfc861833c7bce0220",
       "status": "ACTIVE"
     }
   ]
