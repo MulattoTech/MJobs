@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import subprocess
 import tempfile
+import time
 import unittest
 from pathlib import Path
 
@@ -265,6 +266,27 @@ class AgentDashboardSupervisorTests(unittest.TestCase):
         self.assertEqual(supervisor.lane_config("antigravity")["model"], "gemini-3.8-flash-medium")
         command = supervisor.command_preview("antigravity")
         self.assertIn("gemini-3.8-flash-medium", command)
+
+
+    def test_stale_telemetry_returns_cached_value_then_refreshes_in_background(self):
+        supervisor = AgentSupervisor(self.root)
+        supervisor._telemetry_cache["slow"] = (
+            time.monotonic() - 30,
+            {"value": "old"},
+        )
+
+        def loader():
+            time.sleep(0.1)
+            return {"value": "new"}
+
+        value = supervisor._cached_telemetry("slow", 1.0, loader)
+        self.assertEqual(value, {"value": "old"})
+        deadline = time.monotonic() + 2
+        while time.monotonic() < deadline:
+            if supervisor._telemetry_cache["slow"][1] == {"value": "new"}:
+                break
+            time.sleep(0.02)
+        self.assertEqual(supervisor._telemetry_cache["slow"][1], {"value": "new"})
 
     def test_codex_prompt_contains_unattended_existing_issue_authority(self):
         supervisor = AgentSupervisor(self.root)

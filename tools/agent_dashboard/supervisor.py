@@ -142,6 +142,7 @@ class AgentSupervisor:
         self._stop_requested: set[str] = set()
         self._fast_exits: dict[str, list[float]] = {lane: [] for lane in LANES}
         self._telemetry_cache: dict[str, tuple[float, Any]] = {}
+        self._telemetry_inflight: set[str] = set()
         self.config = self._load_config()
         self.runtime = self._load_runtime()
         self._monitor = threading.Thread(target=self._monitor_loop, daemon=True)
@@ -647,13 +648,36 @@ class AgentSupervisor:
                 self.runtime["lanes"][lane]["restart_count"] += 1
             self.start(lane, manual=False)
 
+    def _refresh_telemetry_async(self, key: str, loader) -> None:
+        try:
+            value = loader()
+            with self._lock:
+                self._telemetry_cache[key] = (time.monotonic(), value)
+        except Exception:
+            pass
+        finally:
+            with self._lock:
+                self._telemetry_inflight.discard(key)
+
     def _cached_telemetry(self, key: str, ttl: float, loader):
         now = time.monotonic()
-        cached = self._telemetry_cache.get(key)
-        if cached and (now - cached[0]) < ttl:
-            return cached[1]
+        with self._lock:
+            cached = self._telemetry_cache.get(key)
+            if cached and (now - cached[0]) < ttl:
+                return cached[1]
+            if cached:
+                if key not in self._telemetry_inflight:
+                    self._telemetry_inflight.add(key)
+                    threading.Thread(
+                        target=self._refresh_telemetry_async,
+                        args=(key, loader),
+                        daemon=True,
+                    ).start()
+                return cached[1]
+
         value = loader()
-        self._telemetry_cache[key] = (now, value)
+        with self._lock:
+            self._telemetry_cache[key] = (time.monotonic(), value)
         return value
 
     def telemetry_snapshot(self) -> dict[str, Any]:
