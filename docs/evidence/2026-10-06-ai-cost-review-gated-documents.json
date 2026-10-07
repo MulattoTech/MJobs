@@ -99,6 +99,39 @@
         "Live configured-provider inference and actual model cost remain NOT_RUN; active Ollama lane shares the local runtime.",
         "PostgreSQL runtime migration, full Python discovery, and hosted checks remain NOT_RUN."
       ]
+    },
+    "followup_checkpoint_validation": {
+      "verified_at_utc": "2026-10-07T01:09:09Z",
+      "checkpoint_head": "3a6b0af9d2570412ac51b1a03d050db6471d9cd1",
+      "checkpoint_tree_before_evidence_update": "b8ca54b47adffa7b86b2dcc6240d9ddf0a8fce93",
+      "validated_source_head": "f7fee34492a6303bb051f5adea3e2a84d49c8a48",
+      "source_diff_since_validated_head": "none",
+      "commands": [
+        {
+          "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_ai_cost_policy_api tests.integration.test_ai_document_review_migration tests.unit.test_ai_cost_consumer tests.unit.test_ai_cost_controls tests.browser.test_ai_task_settings",
+          "result": "PASS",
+          "detail": "20 tests passed."
+        },
+        {
+          "command": "npm test --prefix apps/web -- --run",
+          "result": "PASS",
+          "detail": "13 files and 62 tests passed."
+        },
+        {
+          "command": "npm run build --prefix apps/web",
+          "result": "PASS",
+          "detail": "TypeScript check and Vite production build passed."
+        },
+        {
+          "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.agent_skills; C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.catalogue; C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.progress validate; git diff --check",
+          "result": "PASS",
+          "detail": "Agent-skill, catalogue, progress, and diff checks passed."
+        }
+      ],
+      "limitations": [
+        "The real synthetic PREPARE worker result remains the earlier isolated run recorded above; source files are unchanged since that run.",
+        "Live configured-provider inference, PostgreSQL runtime migration checks, full Python discovery, and hosted checks remain NOT_RUN."
+      ]
     }
   },
   "limitations": [
