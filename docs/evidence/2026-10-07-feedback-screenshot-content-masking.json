@@ -7,7 +7,7 @@
   "base_main": "50c85cdf42a73ae005cff2aca4da28d7548b81cd",
   "source_commit": "7ddf775f58d95c5cef40380a3bc0670d1a7c221f",
   "source_tree": "05a572f8fc71cb87c3ded65acd173de3d0862589",
-  "recorded_at_utc": "2026-10-07T13:41:30Z",
+  "recorded_at_utc": "2026-10-07T13:43:00Z",
   "input_sha256": {
     "cli/live_feedback.py": "dc69a76968cf68914f65082124134ea5ac6bdb3a607d0f7504c1d724895e5548",
     "cli/ui_e2e.py": "29fabe8774e41970af4877aca60bb3ff0a05faa9f7e41cad1672eac401a8800d",
@@ -88,8 +88,9 @@
     "reference_gaps": 59
   },
   "integration": {
-    "status": "PENDING",
-    "issue_state": "OPEN",
+    "status": "INTEGRATED",
+    "source_main": "8dc3c4dc4be19703c487b7f329366283a45ab229",
+    "issue_state": "CLOSE_PENDING_GITHUB_READBACK",
     "external_submission": "OFF"
   }
 }

@@ -880,3 +880,8 @@ Protected provider-credential migration failure/retry and ciphertext-preserving 
 
 
 GitHub close/release readback for issue #8 / MJ-REQ-007: CLOSED at https://github.com/MulattoTech/MJobs/issues/8; release https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6039083848. Synchronized main at closeout: `0cb82638d2fc0d325865abd9a6ebaeed7b41d291`. Codex claim released. Next action is fresh main/claims/worktree reconciliation and immediate selection of the highest-value unclaimed dependency-ready issue; full product/release remains PARTIAL.
+
+
+## Integration receipt — issue #181 / MJ-REQ-180 — 2026-10-07T13:43:00Z
+
+Screenshot/HTML-storage privacy acceptance is locally PASS and integrated by non-force fast-forward at synchronized main `8dc3c4dc4be19703c487b7f329366283a45ab229` (source `7ddf775f58d95c5cef40380a3bc0670d1a7c221f`, tree `05a572f8fc71cb87c3ded65acd173de3d0862589`). A test-first Chromium pixel check reproduced 3,242 dark pixels from arbitrary synthetic answer text before the fix; afterward arbitrary DOM text, generated text, inline image and canvas pixels are absent while live page text/canvas data remain intact. All discovered production CLI page screenshot paths use the shared screenshot-only helper; no HTML snapshot or raw trace writer was found in scoped production code. Affected feedback/UI-source suite: 32 PASS, 0 failures/errors/skips; compilation/help/repository validators PASS. Evidence `docs/evidence/2026-10-07-feedback-screenshot-content-masking.json`. Connected UI E2E was NOT_RUN and is recorded; issue close/readback is pending. Hosted checks/review NOT_RUN_BY_USER_POLICY; full MJobs product/release remains PARTIAL; external submission OFF.

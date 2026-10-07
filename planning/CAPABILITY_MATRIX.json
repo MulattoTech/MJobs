@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-07T13:34:20Z",
+  "timestamp": "2026-10-07T13:43:00Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -1503,15 +1503,16 @@
     },
     {
       "requirement_id": "MJ-REQ-180",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
         "docs/evidence/2026-10-06-least-data-profile-access.json",
         "docs/evidence/2026-10-07-provider-credential-store.json",
         "docs/evidence/2026-10-07-redacted-visual-feedback.json",
         "docs/evidence/2026-10-07-redacted-diagnostic-privacy.json",
-        "docs/evidence/2026-10-07-rich-control-screenshot-redaction.json"
+        "docs/evidence/2026-10-07-rich-control-screenshot-redaction.json",
+        "docs/evidence/2026-10-07-feedback-screenshot-content-masking.json"
       ],
-      "note": "Credential-store masked previews and local live-feedback safeguards are verified. Issue #181 now also guarantees raw console/page-error messages are never stored, pattern-redacts recognizable sensitive values in diagnostics/interaction metadata, and pixel-tests masks for recognizable email and sensitive-label text in optional screenshots. Evidence docs/evidence/2026-10-07-provider-credential-store.json, docs/evidence/2026-10-07-redacted-visual-feedback.json, and docs/evidence/2026-10-07-redacted-diagnostic-privacy.json. MJ-REQ-180 remains PARTIAL because arbitrary values, image/canvas text and debug surfaces outside this recorder remain unclassified or NOT_RUN. Additional opt-in screenshot masking covers contenteditable, ARIA textbox and combobox answers with synthetic Chromium pixel evidence; arbitrary free text, image/canvas text and remaining debug-data surfaces still prevent full acceptance. Evidence docs/evidence/2026-10-07-rich-control-screenshot-redaction.json."
+      "note": "Issue #181 / MJ-REQ-180 screenshot and HTML snapshot privacy acceptance is locally PASS. All production CLI screenshot writers use a screenshot-only helper that masks controls and suppresses arbitrary visible DOM text, generated pseudo-elements, background images, and embedded image/canvas/video/frame content while preserving the live page. Raw Playwright trace and DOM snapshots are not stored; no HTML snapshot writer was found in the scoped production code. Evidence docs/evidence/2026-10-07-feedback-screenshot-content-masking.json. Connected UI E2E NOT_RUN; hosted checks/review NOT_RUN_BY_USER_POLICY; full MJobs product/release remains incomplete."
     },
     {
       "requirement_id": "MJ-REQ-181",
