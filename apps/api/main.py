@@ -208,6 +208,9 @@ class ExternalApplicationInput(BaseModel):
     source: Literal["MANUAL", "REFERRAL", "BROWSER", "OTHER"]
     applied_at: str = Field(min_length=20, max_length=40)
     application_url: str | None = Field(default=None, max_length=2000)
+    source_url: str | None = Field(default=None, max_length=2000)
+    discovery_origin: str | None = Field(default=None, max_length=253)
+    observed_hops: list[str] = Field(default_factory=list, max_length=20)
     job_description: str | None = Field(default=None, max_length=50000)
 
     @model_validator(mode="after")
@@ -224,6 +227,20 @@ class ExternalApplicationInput(BaseModel):
             raise ValueError("Application timestamp must include a timezone")
         if self.job_description is not None and not self.job_description.strip():
             raise ValueError("Job description must contain text when provided")
+        return self
+
+
+class SourceCandidateReviewInput(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+    state: Literal["NEEDS_REVIEW", "INTEGRATION_QUEUED", "BLOCKED", "REJECTED"]
+    site_type: Literal["JOB_BOARD", "EMPLOYER", "ATS", "UNKNOWN"] = "UNKNOWN"
+    reason: str = Field(min_length=1, max_length=1000)
+    request_id: str = Field(min_length=1, max_length=128)
+
+    @model_validator(mode="after")
+    def bounded_review(self):
+        if not self.reason.strip() or self.request_id != self.request_id.strip():
+            raise ValueError("A review reason and unpadded request identifier are required")
         return self
 
 
@@ -270,6 +287,9 @@ class ManualJobCaptureInput(BaseModel):
                          "REMOTE_SPECIFIC_STATES", "HYBRID", "ONSITE"] = "UNKNOWN"
     reference_url: str | None = Field(default=None, max_length=2000)
     application_url: str | None = Field(default=None, max_length=2000)
+    profile_id: str | None = Field(default=None, min_length=1, max_length=128)
+    discovery_origin: str | None = Field(default=None, max_length=253)
+    observed_hops: list[str] | None = Field(default=None, max_length=20)
     source_details: dict[str, object] = Field(default_factory=dict)
 
     @model_validator(mode="after")
@@ -1123,10 +1143,32 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             result = capture_manual_job(store, value.model_dump(mode="json"))
         except ManualCaptureConflict as error:
             raise HTTPException(409, str(error)) from error
+        except NoResultFound:
+            raise HTTPException(404, "Career profile not found") from None
         except ValueError as error:
             raise HTTPException(422, str(error)) from error
         response.status_code = 201 if result["created"] else 200
         return result
+
+    @app.get("/source-candidates")
+    def source_candidates(profile_id: str = Query(min_length=1, max_length=128)):
+        from services.source_candidates.catalogue import list_candidates
+        try:
+            return list_candidates(store, profile_id)
+        except NoResultFound:
+            raise HTTPException(404, "Career profile not found") from None
+
+    @app.put("/profiles/{profile_id}/source-candidates/{candidate_id}/review")
+    def source_candidate_review(profile_id: str, candidate_id: str,
+                                value: SourceCandidateReviewInput):
+        from services.source_candidates.catalogue import SourceCandidateConflict, review_candidate
+        try:
+            return review_candidate(store, profile_id, candidate_id,
+                                    value.state, value.site_type, value.reason, value.request_id)
+        except NoResultFound:
+            raise HTTPException(404, "Source candidate not found") from None
+        except ValueError as error:
+            raise HTTPException(409, str(error)) from None
 
     @app.get("/jobs")
     def jobs(profile_id: str | None = None, q: str = Query(default="", max_length=200),

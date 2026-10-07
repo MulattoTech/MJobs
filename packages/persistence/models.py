@@ -240,6 +240,71 @@ source_application_link_observations = table(
     ),
 )
 Index("ix_source_application_link_observed_at", source_application_link_observations.c.observed_at)
+source_candidates = table(
+    "source_candidates",
+    Column("profile_id", ForeignKey("career_profiles.id", ondelete="CASCADE"), nullable=False),
+    Column("domain", String(253), nullable=False),
+    Column("display_name", String(253), nullable=False),
+    Column("site_type", String(32), nullable=False, server_default="UNKNOWN"),
+    Column("state", String(32), nullable=False, server_default="NEEDS_REVIEW"),
+    Column("first_seen_at", String(64), nullable=False),
+    Column("last_seen_at", String(64), nullable=False),
+    Column("collection_enabled", Boolean, nullable=False, server_default=false()),
+    Column("review_reason", String(1000)),
+    Column("integration_issue", Integer),
+    constraints=(
+        UniqueConstraint("profile_id", "domain", name="uq_source_candidate_profile_domain"),
+        CheckConstraint("site_type IN ('JOB_BOARD', 'EMPLOYER', 'ATS', 'UNKNOWN')",
+                        name="ck_source_candidate_site_type"),
+        CheckConstraint("state IN ('DISCOVERED', 'NEEDS_REVIEW', 'INTEGRATION_QUEUED', 'INTEGRATED', 'BLOCKED', 'REJECTED')",
+                        name="ck_source_candidate_state"),
+    ),
+)
+Index("ix_source_candidates_profile_state", source_candidates.c.profile_id,
+      source_candidates.c.state, source_candidates.c.last_seen_at)
+source_candidate_observations = table(
+    "source_candidate_observations",
+    Column("candidate_id", ForeignKey("source_candidates.id", ondelete="CASCADE"), nullable=False),
+    Column("profile_id", ForeignKey("career_profiles.id", ondelete="CASCADE"), nullable=False),
+    Column("capture_key", String(128), nullable=False),
+    Column("job_id", ForeignKey("canonical_jobs.id", ondelete="SET NULL")),
+    Column("application_id", ForeignKey("applications.id", ondelete="SET NULL")),
+    Column("discovery_origin", String(253)),
+    Column("origin_attribution", String(32), nullable=False),
+    Column("source_url", String(2000)),
+    Column("application_url", String(2000)),
+    Column("observed_hops", JSON, nullable=False),
+    Column("capture_method", String(32), nullable=False),
+    Column("evidence_status", String(32), nullable=False),
+    Column("observed_at", String(64), nullable=False),
+    constraints=(
+        UniqueConstraint("profile_id", "capture_key", name="uq_source_candidate_observation_profile_capture"),
+        CheckConstraint("origin_attribution IN ('USER_REPORTED', 'UNKNOWN')",
+                        name="ck_source_candidate_origin_attribution"),
+        CheckConstraint("capture_method IN ('MANUAL_CAPTURE', 'EXTERNAL_APPLICATION')",
+                        name="ck_source_candidate_capture_method"),
+        CheckConstraint("evidence_status IN ('USER_REPORTED', 'PARTIAL', 'UNKNOWN')",
+                        name="ck_source_candidate_evidence_status"),
+    ),
+)
+Index("ix_source_candidate_observations_candidate_time",
+      source_candidate_observations.c.candidate_id,
+      source_candidate_observations.c.observed_at)
+source_candidate_reviews = table(
+    "source_candidate_reviews",
+    Column("candidate_id", ForeignKey("source_candidates.id", ondelete="CASCADE"), nullable=False),
+    Column("profile_id", ForeignKey("career_profiles.id", ondelete="CASCADE"), nullable=False),
+    Column("state", String(32), nullable=False),
+    Column("site_type", String(32), nullable=False, server_default="UNKNOWN"),
+    Column("reason", String(1000), nullable=False),
+    Column("reviewed_at", String(64), nullable=False),
+    constraints=(CheckConstraint("state IN ('NEEDS_REVIEW', 'INTEGRATION_QUEUED', 'INTEGRATED', 'BLOCKED', 'REJECTED')",
+                                 name="ck_source_candidate_review_state"),
+                 CheckConstraint("site_type IN ('JOB_BOARD', 'EMPLOYER', 'ATS', 'UNKNOWN')",
+                                 name="ck_source_candidate_review_site_type")),
+)
+Index("ix_source_candidate_reviews_candidate_time", source_candidate_reviews.c.candidate_id,
+      source_candidate_reviews.c.reviewed_at)
 company_discovery_requests = table(
     "company_discovery_requests",
     Column("company_id", ForeignKey("companies.id"), nullable=False),

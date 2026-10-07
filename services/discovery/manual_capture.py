@@ -59,6 +59,9 @@ def capture_manual_job(store, submitted: dict) -> dict:
     raw = {"source": "MANUAL_USER_ENTRY", "captured_at": timestamp,
            "submitted_fields": data}
     skill_data = extract_skills(title + " " + description)
+    profile_id = data.get("profile_id")
+    if profile_id:
+        store.profile(profile_id)
 
     created = True
     with store.engine.begin() as connection:
@@ -123,5 +126,16 @@ def capture_manual_job(store, submitted: dict) -> dict:
             store._audit(connection, job_id, "MANUAL_JOB_CAPTURED", {
                 "source": "MANUAL_USER_ENTRY", "captured_at": timestamp,
             })
+            from services.source_candidates.catalogue import record_capture
+            source_details = data.get("source_details") or {}
+            record_capture(
+                connection, profile_id=profile_id, request_id=request_id,
+                job_id=job_id, application_id=None,
+                discovery_origin=(data.get("discovery_origin") or
+                                  source_details.get("discovery_origin")),
+                source_url=reference_url, application_url=application_url,
+                observed_hops=data.get("observed_hops") or source_details.get("observed_hops"),
+                capture_method="MANUAL_CAPTURE",
+            )
 
     return {"job": store.job(job_id), "created": created}

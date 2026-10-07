@@ -116,6 +116,23 @@ def _content_hash(data: dict) -> str:
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
 
+def _record_source_candidate(store, data, job_id, application_id):
+    from services.source_candidates.catalogue import SourceCandidateConflict, record_capture
+    try:
+        with store.engine.begin() as connection:
+            return record_capture(
+                connection, profile_id=data["profile_id"], request_id=data["request_id"],
+                job_id=job_id, application_id=application_id,
+                discovery_origin=data.get("discovery_origin"),
+                source_url=data.get("source_url"),
+                application_url=data.get("application_url"),
+                observed_hops=data.get("observed_hops"),
+                capture_method="EXTERNAL_APPLICATION",
+            )
+    except SourceCandidateConflict as error:
+        raise ExternalCaptureConflict(str(error)) from error
+
+
 def _response(store, profile_id: str, application_id: str, job_id: str,
               reconciliation: str, created: bool):
     return {
@@ -135,6 +152,15 @@ def capture_external_application(store, submitted: dict) -> dict:
     data["title"] = data["title"].strip()
     data["source"] = data["source"].upper()
     data["application_url"] = _http_url(data.get("application_url"))
+    data["source_url"] = _http_url(data.get("source_url"))
+    data["observed_hops"] = data.get("observed_hops") or []
+    if (type(data["observed_hops"]) is not list or len(data["observed_hops"]) > 20
+            or any(type(hop) is not str or _http_url(hop) is None for hop in data["observed_hops"])):
+        raise ValueError("Observed application hops must be valid HTTP or HTTPS URLs")
+    if data.get("discovery_origin") is not None:
+        if type(data["discovery_origin"]) is not str:
+            raise ValueError("Discovery origin must be text")
+        data["discovery_origin"] = " ".join(data["discovery_origin"].split()) or None
     data["applied_at"] = _utc(data["applied_at"])
     data["job_description"] = data.get("job_description")
     if not data["company"] or not data["title"] or not data["request_id"].strip():
@@ -151,6 +177,7 @@ def capture_external_application(store, submitted: dict) -> dict:
                 or payload.get("content_sha256") != fingerprint):
             raise ExternalCaptureConflict(
                 "External application request identifier was already used for different content")
+        _record_source_candidate(store, data, payload["job_id"], payload["application_id"])
         return _response(store, data["profile_id"], payload["application_id"],
                          payload["job_id"], payload["reconciliation"], False)
 
@@ -213,6 +240,7 @@ def capture_external_application(store, submitted: dict) -> dict:
         )
     except ValueError as error:
         raise ExternalCaptureConflict(str(error)) from error
+    _record_source_candidate(store, data, job_id, application_id)
     return {"created": report["created"], "application_id": application_id, "job_id": job_id,
             "reconciliation": reconciliation, "application": store.application(application_id),
             "tracking": report["tracking"]}
