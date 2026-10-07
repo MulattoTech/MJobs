@@ -18,6 +18,7 @@ class ComposeModeTests(unittest.TestCase):
         environment["MJOBS_CREDENTIAL_ENCRYPTION_KEY"] = "synthetic-base64-test-key"
         environment.pop("MJOBS_OPERATION_MODE", None)
         environment.pop("MJOBS_COMPOSE_MOCK", None)
+        environment.pop("MJOBS_BROWSER_DEBUG_CAPTURE", None)
         environment.pop("COMPOSE_PROFILES", None)
         command = ["docker", "compose"]
         if fixture:
@@ -81,6 +82,32 @@ class ComposeModeTests(unittest.TestCase):
             environment = configuration["services"][service_name]["environment"]
             with self.subTest(service=service_name):
                 self.assertEqual({name: environment[name] for name in names}, names)
+
+    def test_browser_debug_capture_is_disabled_by_default(self):
+        configuration = json.loads(self.render("--format", "json"))
+        for service_name in ("worker", "source-worker", "document-worker"):
+            with self.subTest(service=service_name):
+                self.assertEqual(
+                    configuration["services"][service_name]["environment"]["MJOBS_BROWSER_DEBUG_CAPTURE"],
+                    "0",
+                )
+
+    def test_browser_debug_capture_can_be_opted_in_for_runtime_workers(self):
+        environment = os.environ.copy()
+        environment["MJOBS_BROWSER_DEBUG_CAPTURE"] = "1"
+        environment["POSTGRES_PASSWORD"] = "synthetic-compose-test-value"
+        environment["MJOBS_CREDENTIAL_ENCRYPTION_KEY"] = "synthetic-base64-test-key"
+        result = subprocess.run(
+            ["docker", "compose", "config", "--format", "json"], cwd=ROOT,
+            env=environment, capture_output=True, text=True, timeout=30, check=True,
+        )
+        configuration = json.loads(result.stdout)
+        for service_name in ("worker", "source-worker", "document-worker"):
+            with self.subTest(service=service_name):
+                self.assertEqual(
+                    configuration["services"][service_name]["environment"]["MJOBS_BROWSER_DEBUG_CAPTURE"],
+                    "1",
+                )
 
     def test_every_service_uses_bounded_rotating_container_logs(self):
         configuration = json.loads(self.render("--format", "json", fixture=True))

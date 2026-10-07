@@ -1,6 +1,7 @@
 from pathlib import Path
 import tempfile
 import unittest
+import json
 
 import httpx
 from sqlalchemy import update
@@ -41,6 +42,64 @@ class MockApplicationTests(unittest.TestCase):
             self.assertIn("UPLOAD_RESUME", result["trace"])
             self.assertIn("VALIDATE", result["trace"])
             self.assertEqual(httpx.get(origin + "/ats/receipts/" + app_id).json(), {"status": "not_found"})
+
+    def test_opt_in_browser_failure_capture_is_redacted_and_does_not_change_review_state(self):
+        from playwright.sync_api import Locator
+        from unittest.mock import patch
+
+        with fixture_server() as origin:
+            app_id = self.prepared(origin)
+            original_fill = Locator.fill
+
+            def fail_after_filling_email(locator, value, *args, **kwargs):
+                result = original_fill(locator, value, *args, **kwargs)
+                if locator.get_attribute("name") == "email":
+                    raise RuntimeError("PRIVATE_FAILURE user@example.test token=secret-value")
+                return result
+
+            with patch.object(Locator, "fill", fail_after_filling_email):
+                with self.assertRaisesRegex(RuntimeError, "PRIVATE_FAILURE"):
+                    apply_mock(self.store, app_id, origin, self.root, debug_capture=True)
+
+            self.assertEqual(self.store.application(app_id)["state"], "REVIEW_REQUIRED")
+            captures = list((self.root / app_id / "debug-captures").glob("*/metadata.json"))
+            self.assertEqual(len(captures), 1)
+            metadata_path = captures[0]
+            metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+            dom_path = metadata_path.with_name("dom.json")
+            self.assertEqual(metadata["current_step"], "DETECT_FORM")
+            self.assertEqual(metadata["error"]["type"], "RuntimeError")
+            self.assertTrue((metadata_path.parent / "screenshot.png").is_file())
+            serialized = metadata_path.read_text(encoding="utf-8") + dom_path.read_text(encoding="utf-8")
+            self.assertNotIn("user@example.test", serialized)
+            self.assertNotIn("secret-value", serialized)
+            self.assertNotIn("PRIVATE_FAILURE", serialized)
+            self.assertEqual(httpx.get(origin + "/ats/receipts/" + app_id).json(), {"status": "not_found"})
+
+    def test_opt_in_capture_preserves_unconfirmed_submission_without_retry(self):
+        from unittest.mock import patch
+
+        with fixture_server() as origin:
+            app_id = self.prepared(origin)
+            original_get = MockClient.get
+
+            def hide_receipt(client, url):
+                if "/ats/receipts/" in url:
+                    return httpx.Response(404, json={"status": "not_found"})
+                return original_get(client, url)
+
+            with patch.object(MockClient, "get", hide_receipt):
+                with self.assertRaisesRegex(ValueError, "Mock receipt missing"):
+                    apply_mock(self.store, app_id, origin, self.root, submit=True, debug_capture=True)
+                first = self.store.application(app_id)
+                self.assertEqual(first["state"], "SUBMISSION_UNCONFIRMED")
+                second = apply_mock(self.store, app_id, origin, self.root, submit=True, debug_capture=True)
+                self.assertEqual(second["state"], "SUBMISSION_UNCONFIRMED")
+
+            receipt = httpx.get(origin + "/ats/receipts/" + app_id).json()
+            self.assertEqual(receipt["submission_count"], 1)
+            captures = list((self.root / app_id / "debug-captures").glob("*/metadata.json"))
+            self.assertEqual(len(captures), 1)
 
     def test_mock_submission_confirmed_once_and_survives_restart(self):
         with fixture_server() as origin:

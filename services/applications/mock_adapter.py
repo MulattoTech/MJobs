@@ -18,6 +18,10 @@ from services.applications.preflight import (
     persist_preflight,
     questionnaire_fingerprint,
 )
+from services.applications.debug_capture import (
+    append_diagnostic_event,
+    capture_browser_failure,
+)
 from services.documents.errors import PreparationError
 from services.documents.validation import validate_stored_resume, VALIDATOR
 from services.documents.avoid_list import validate_content as validate_avoid_list
@@ -127,10 +131,13 @@ def _preflight(store, application, route, profile, document_kinds, client):
     return result
 
 
-def apply_mock(store, application_id, mock_origin, output_dir, submit=False, check=None):
+def apply_mock(store, application_id, mock_origin, output_dir, submit=False, check=None,
+               debug_capture=False):
     check = check or (lambda: None)
     if type(submit) is not bool:
         raise ValueError("Mock submission selection must be explicit boolean")
+    if type(debug_capture) is not bool:
+        raise ValueError("Browser debug capture selection must be explicit boolean")
     client = MockClient(mock_origin, check=check)
     try:
         application = store.application(application_id)
@@ -199,6 +206,34 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
         attempt_id = uuid4().hex
         with store.engine.begin() as connection:
             connection.execute(m.attempts.insert().values(id=attempt_id, application_id=application_id, state="RUNNING", steps=[], started_at=now()))
+        page = None
+        browser_events = []
+        browser_failure_handled = False
+
+        def handle_browser_failure(error):
+            nonlocal browser_failure_handled
+            current = store.application(application_id)["state"]
+            trace = store.application(application_id).get("trace") or []
+            failed_step = trace[-1] if trace else "UNKNOWN"
+            if current == "SUBMITTING":
+                receipt = _receipt(client, application, route["requisition"])
+                store.transition(application_id, ["SUBMITTING"], "CONFIRMED" if receipt else "SUBMISSION_UNCONFIRMED",
+                                 "RECONCILE_CONFIRMATION", receipt)
+            elif current in ("FILLING", "READY_TO_SUBMIT"):
+                store.transition(application_id, [current], "REVIEW_REQUIRED", "FORM_OR_DOCUMENT_ERROR")
+            if debug_capture:
+                try:
+                    capture_browser_failure(
+                        page, root / "debug-captures", attempt_id=attempt_id,
+                        step=failed_step, configured_url=route.get("url"),
+                        error=error, events=browser_events,
+                    )
+                except Exception:
+                    # Diagnostics must never alter application state or shadow
+                    # the original browser failure.
+                    pass
+            browser_failure_handled = True
+
         try:
             with sync_playwright() as playwright:
                 context = playwright.chromium.launch_persistent_context(str(root / "browser-profile"), headless=True,
@@ -206,6 +241,15 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
                 try:
                     context.route("**/*", lambda route: route.continue_() if client.allowed(route.request.url) else route.abort())
                     page = context.new_page()
+                    if debug_capture:
+                        page.on("console", lambda message: append_diagnostic_event(
+                            browser_events, "console", getattr(message, "location", {}).get("url", page.url),
+                            getattr(message, "text", "")))
+                        page.on("pageerror", lambda error: append_diagnostic_event(
+                            browser_events, "pageerror", page.url, error))
+                        page.on("requestfailed", lambda request: append_diagnostic_event(
+                            browser_events, "requestfailed", request.url,
+                            getattr(request, "failure", None) or "REQUEST_FAILED"))
                     page.set_default_timeout(_playwright_action_timeout_ms(check))
                     page.goto(route["url"], wait_until="domcontentloaded",
                               timeout=_playwright_action_timeout_ms(check, 15000))
@@ -273,16 +317,14 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
                         raise ValueError("Mock receipt missing after submission")
                     store.transition(application_id, ["SUBMITTING"], "CONFIRMED", "VERIFY_CONFIRMATION", receipt)
                     return store.application(application_id)
+                except Exception as error:
+                    handle_browser_failure(error)
+                    raise
                 finally:
                     context.close()
-        except Exception:
-            current = store.application(application_id)["state"]
-            if current == "SUBMITTING":
-                receipt = _receipt(client, application, route["requisition"])
-                store.transition(application_id, ["SUBMITTING"], "CONFIRMED" if receipt else "SUBMISSION_UNCONFIRMED",
-                                 "RECONCILE_CONFIRMATION", receipt)
-            elif current in ("FILLING", "READY_TO_SUBMIT"):
-                store.transition(application_id, [current], "REVIEW_REQUIRED", "FORM_OR_DOCUMENT_ERROR")
+        except Exception as error:
+            if not browser_failure_handled:
+                handle_browser_failure(error)
             raise
         finally:
             completed = store.application(application_id)

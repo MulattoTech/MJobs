@@ -11,6 +11,10 @@ from pathlib import Path
 from urllib.parse import urlsplit, urlunsplit
 
 from playwright.sync_api import sync_playwright
+from services.applications.browser_capture import (
+    SCREENSHOT_PRIVACY_STYLE,
+    capture_redacted_screenshot,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -33,39 +37,6 @@ SENSITIVE_LABEL_RE = re.compile(
     r"citizenship|visa status)\b",
     re.IGNORECASE,
 )
-SCREENSHOT_REDACTION_SCRIPT = r"""
-(() => {
-  const sensitive = /\b(?:password|passwd|cookie|token|api\s+key|access\s+key|gender|sex|race|ethnicity|veteran|disability|sexual\s+orientation|marital\s+status|religion|pronouns?|date\s+of\s+birth|birth\s+date|social\s+security|ssn|national\s+id|work\s+authorization|citizenship|visa\s+status)\b/i;
-  const value = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b|\b(?:bearer\s+)?(?:gh[pousr]_[A-Z0-9_]{12,}|sk-[A-Z0-9_-]{12,}|xox[baprs]-[A-Z0-9-]{12,})\b|\beyJ[A-Z0-9_-]{5,}\.[A-Z0-9_-]{5,}\.[A-Z0-9_-]{5,}\b|\b(?:password|passwd|token|api[_ -]?key|access[_ -]?token|auth[_ -]?token|client[_ -]?secret|cookie)\s*[:=]\s*[^\s,;]+|(?<!\w)(?:\+?1[ .-]?)?(?:\(?\d{3}\)?[ .-]?)\d{3}[ .-]?\d{4}(?!\w)/i;
-  const mask = element => {
-    if (element && element !== document.body && element !== document.documentElement) element.setAttribute('data-mjobs-sensitive-mask', '');
-  };
-  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-  const nodes = [];
-  while (walker.nextNode()) nodes.push(walker.currentNode);
-  for (const node of nodes) {
-    const text = (node.nodeValue || '').trim();
-    if (!text) continue;
-    const element = node.parentElement;
-    if (value.test(text)) mask(element);
-    if (sensitive.test(text) && element.parentElement) mask(element.parentElement);
-  }
-})();
-"""
-SCREENSHOT_PRIVACY_STYLE = """
-* {
-  color: transparent !important;
-  -webkit-text-fill-color: transparent !important;
-  text-shadow: none !important;
-  background-image: none !important;
-}
-*::before, *::after { content: none !important; }
-img, picture, canvas, svg, video, iframe, object, embed {
-  visibility: hidden !important;
-}
-"""
-
-
 def utc_now():
     return datetime.now(timezone.utc).isoformat()
 
@@ -101,31 +72,6 @@ def redact_sensitive_text(value):
 def text_fingerprint(value):
     raw = str(value or "").encode("utf-8", errors="replace")
     return {"sha256": hashlib.sha256(raw).hexdigest(), "length": len(raw)}
-
-
-def capture_redacted_screenshot(page, path):
-    """Capture layout context while excluding visible page text and embedded media."""
-    page.evaluate(SCREENSHOT_REDACTION_SCRIPT)
-    masks = [
-        page.locator("input"),
-        page.locator("textarea"),
-        page.locator("select"),
-        page.locator("[contenteditable]:not([contenteditable='false'])"),
-        page.locator("[role='textbox']"),
-        page.locator("[role='combobox']"),
-        page.locator("[data-sensitive]"),
-        page.locator("[data-mjobs-sensitive-mask]"),
-    ]
-    try:
-        page.screenshot(
-            path=str(path), full_page=True, mask=masks, mask_color="#000000",
-            style=SCREENSHOT_PRIVACY_STYLE,
-        )
-    finally:
-        page.evaluate(
-            "document.querySelectorAll('[data-mjobs-sensitive-mask]')"
-            ".forEach(node => node.removeAttribute('data-mjobs-sensitive-mask'))"
-        )
 
 
 def sanitize_interaction(payload):

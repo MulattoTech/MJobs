@@ -133,7 +133,8 @@ def execute_operation(operation_id):
                         cover_letter_length=operation['params'].get('cover_letter_length','normal'))
             elif operation["kind"] == "APPLY_MOCK":
                 application = apply_mock(store, operation["entity_id"], origin, Path(os.environ["MJOBS_OUTPUT_DIR"]),
-                           submit=operation["params"].get("submit", False), check=check)
+                           submit=operation["params"].get("submit", False), check=check,
+                           debug_capture=os.environ.get("MJOBS_BROWSER_DEBUG_CAPTURE", "0") == "1")
                 if application["state"] not in ("CONFIRMED", "DRY_RUN_COMPLETE"):
                     state, error = "BLOCKED", application["state"]
             else:
