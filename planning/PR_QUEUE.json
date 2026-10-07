@@ -1221,15 +1221,20 @@
         "MJ-REQ-177",
         "MJ-REQ-178"
       ],
-      "target_area": "workers; packages/persistence; services/security; observability",
+      "target_area": "packages/persistence/store.py; services/audit_history.py; tests/integration/test_audit_history.py; tests/browser/test_audit_history.py",
       "depends_on": [
         "MJ-PR-047",
         "MJ-PR-034"
       ],
-      "status": "QUEUED",
+      "status": "INTEGRATED_PARTIAL",
       "branch": "codex/mj-pr-048-orchestration-data-security",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Profile timeline, deterministic discovery/match events, safe user-reported application history and durable PREPARE queue/start/terminal-failure events integrated PARTIAL at 3c58290a10ff5412c9d92c090e7ebef933af5689; evidence docs/evidence/2026-10-07-profile-audit-history.json, docs/evidence/2026-10-07-profile-audit-job-events.json, docs/evidence/2026-10-07-application-audit-history.json, docs/evidence/2026-10-07-application-preparation-audit.json. Issue #177 remains OPEN for company/source events, merge, settings and complete truthful lifecycle events. Bundled PR remains QUEUED. Company/source discovery events are now an additional integrated partial slice at a90c23abca6de19f906ca16a01f0bd92e0aa1801; source 4b25f3c1ac1eafe1b5f00d714029bef4268b7b43; evidence docs/evidence/2026-10-07-company-audit-history.json. Local validation: 26 focused Python integration tests, connected Chromium 1, frontend 63/build, validators PASS. Issue #177 remains OPEN/PARTIAL for JOB_MERGED, complete settings and truthful full application event families. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF."
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Profile timeline, deterministic discovery/match events, safe user-reported application history and durable PREPARE queue/start/terminal-failure events integrated PARTIAL at 3c58290a10ff5412c9d92c090e7ebef933af5689; evidence docs/evidence/2026-10-07-profile-audit-history.json, docs/evidence/2026-10-07-profile-audit-job-events.json, docs/evidence/2026-10-07-application-audit-history.json, docs/evidence/2026-10-07-application-preparation-audit.json. Issue #177 remains OPEN for company/source events, merge, settings and complete truthful lifecycle events. Bundled PR remains QUEUED. Company/source discovery events are now an additional integrated partial slice at a90c23abca6de19f906ca16a01f0bd92e0aa1801; source 4b25f3c1ac1eafe1b5f00d714029bef4268b7b43; evidence docs/evidence/2026-10-07-company-audit-history.json. Local validation: 26 focused Python integration tests, connected Chromium 1, frontend 63/build, validators PASS. Issue #177 remains OPEN/PARTIAL for JOB_MERGED, complete settings and truthful full application event families. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF. Profile preference SETTING_CHANGED slice integrated at 979e4063266ec8409e8d5d8aa34430136148b264, source 0aac9460f0f8573cab04021e2a7adbcb5465de3e; 34 focused Python tests, full suite 936 PASS/8 skipped, browser 1, frontend 63/build and validators PASS. Evidence docs/evidence/2026-10-07-setting-change-audit-integration.json. Issue #177 remains OPEN/PARTIAL for JOB_MERGED, other settings and full truthful lifecycle events; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
+      "evidence_path": "docs/evidence/2026-10-07-setting-change-audit-history.json",
+      "scope_complete": false,
+      "source_commit": "0aac9460f0f8573cab04021e2a7adbcb5465de3e",
+      "integration_commit": "979e4063266ec8409e8d5d8aa34430136148b264",
+      "integration_evidence": "docs/evidence/2026-10-07-setting-change-audit-integration.json"
     },
     {
       "id": "MJ-PR-049",

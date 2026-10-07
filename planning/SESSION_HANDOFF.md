@@ -936,3 +936,12 @@ GitHub partial integration/release readback for issue #177 / MJ-REQ-176: issue r
 - Validation: 26 focused Python integration tests, 1 connected Chromium test, frontend 63 tests/build, and repository validators passed. Company event summaries persist after reload, remain profile-isolated, omit URLs/payloads, and are absent when discovery is blocked.
 - Limitations: JOB_MERGED, complete setting-change and full truthful application lifecycle events remain incomplete. PostgreSQL/Docker and hosted checks NOT_RUN; hosted checks disabled by policy; external submission OFF.
 - Next: release Codex claim and integration lock, reconcile live main/claims/worktrees/issues, select and claim the next highest-value unclaimed dependency-ready issue.
+
+
+## Issue #177 / MJ-REQ-176 profile setting-change history — 2026-10-07
+
+Integrated by non-force fast-forward from ffa2427799ccf3d76a4f22ddf30e22c9f00a44e5 through candidate 979e4063266ec8409e8d5d8aa34430136148b264 (feature source 0aac9460f0f8573cab04021e2a7adbcb5465de3e). Evidence: `docs/evidence/2026-10-07-setting-change-audit-integration.json` and `docs/evidence/2026-10-07-setting-change-audit-history.json`. Changed normalized preferences on an existing profile now append a generic profile-owned SETTING_CHANGED event atomically with persistence; empty payload, no event on initial/unchanged save. Connected API/UI and Chromium prove safe summary, reload and profile isolation.
+
+Validation: 34 focused Python tests PASS; full suite 936 PASS, 8 skipped (skip names not emitted; not promoted); Chromium 1 PASS; frontend 63 PASS and build PASS; repository validators PASS. PostgreSQL/Docker/migrations NOT_RUN (no schema change); hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF. Issue #177 remains OPEN/PARTIAL for JOB_MERGED, other settings and full truthful lifecycle events. Antigravity #302 and Ollama #318 active dirty path claims remain untouched.
+
+Next: synchronize and verify origin/main, post sanitized issue evidence, release the Codex claim and integration lock, then reconcile claims/worktrees/issues and select the next unclaimed dependency-ready issue.

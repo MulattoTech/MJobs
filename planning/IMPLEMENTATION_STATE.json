@@ -1,17 +1,17 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-07T14:28:21Z",
+  "generated_at": "2026-10-07T14:48:36Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Issue #177 / MJ-REQ-176 audit timeline integrated PARTIAL through main 3c58290a10ff5412c9d92c090e7ebef933af5689; deterministic job, user-reported application and PREPARE queue/start/failure history are visible with safe profile-scoped summaries. Company/source enrollment, merge, full settings and actual submission/confirmation events incomplete; issue OPEN; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
-    "current_verified_github_state": "Issue #177 / MJ-REQ-176 audit timeline integrated PARTIAL through main 3c58290a10ff5412c9d92c090e7ebef933af5689; deterministic job, user-reported application and PREPARE queue/start/failure history are visible with safe profile-scoped summaries. Company/source enrollment, merge, full settings and actual submission/confirmation events incomplete; issue OPEN; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
-    "current_verified_at": "2026-10-07T14:21:20Z"
+    "current_verified_local_state": "Issue #177 / MJ-REQ-176 audit history integrated PARTIAL through 979e4063266ec8409e8d5d8aa34430136148b264; profile preference changes now emit value-free SETTING_CHANGED history. JOB_MERGED, other settings and complete truthful lifecycle events remain incomplete; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
+    "current_verified_github_state": "Issue #177 / MJ-REQ-176 audit history integrated PARTIAL through 979e4063266ec8409e8d5d8aa34430136148b264; profile preference changes now emit value-free SETTING_CHANGED history. JOB_MERGED, other settings and complete truthful lifecycle events remain incomplete; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
+    "current_verified_at": "2026-10-07T14:48:36Z"
   },
-  "current_milestone": "MJ-REQ-176-COMPANY-AUDIT-PARTIAL-20261007",
+  "current_milestone": "MJ-REQ-176-SETTING-CHANGE-AUDIT-PARTIAL-20261007",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -338,7 +338,8 @@
     "Issue #8 / MJ-REQ-007 protected credential migration recovery slice integrated at f8b6127e645bc0977a696dadf01f0017980fbe5a: focused migration tests 4 PASS, 1 optional PostgreSQL skip; migration integration suite 23 PASS, 1 optional PostgreSQL skip; validators PASS. SQLite failure after credential-table DDL rolls back schema/version and preserves sentinel, retry succeeds, and synthetic ciphertext prevents destructive downgrade. Evidence docs/evidence/2026-10-07-protected-config-migration-recovery.json.",
     "Issue #181 / MJ-REQ-180 rich-control screenshot masking integrated at f1d36053ebb46f1286f3dfb0acd25ac1482a267f: adjacent live-feedback unit/GUI/headless Chromium tests 27 PASS; compile, CLI help and local validators PASS. Pre-fix unit and pixel tests reproduced visible rich-control content. Evidence docs/evidence/2026-10-07-rich-control-screenshot-redaction.json.",
     "MJ-REQ-180 screenshot content masking: affected feedback/UI-source suite 32 PASS with real headless Chromium arbitrary-text, pseudo-element, canvas/image and existing sensitive-control pixel assertions; local validators PASS; connected UI E2E NOT_RUN.",
-    "MJ-REQ-176 / issue #177: Activity now records profile-owned durable PREPARE queued/start/terminal-failure events with stable IDs and attempt history, safe fixed summaries and job/company context. Queue, claim, task terminal failure and retry-limit recovery transactions were exercised; resume rewrite payloads are excluded. 28 focused Python integration/worker/outbox tests PASS with 1 PostgreSQL-only skip, 1 connected Chromium test PASS, frontend 63/build and validators PASS. Evidence docs/evidence/2026-10-07-application-preparation-audit.json. Company/source enrollment, job merge, full settings and truthful complete actual application lifecycle events remain incomplete; issue OPEN/PARTIAL."
+    "MJ-REQ-176 / issue #177: Activity now records profile-owned durable PREPARE queued/start/terminal-failure events with stable IDs and attempt history, safe fixed summaries and job/company context. Queue, claim, task terminal failure and retry-limit recovery transactions were exercised; resume rewrite payloads are excluded. 28 focused Python integration/worker/outbox tests PASS with 1 PostgreSQL-only skip, 1 connected Chromium test PASS, frontend 63/build and validators PASS. Evidence docs/evidence/2026-10-07-application-preparation-audit.json. Company/source enrollment, job merge, full settings and truthful complete actual application lifecycle events remain incomplete; issue OPEN/PARTIAL.",
+    "MJ-REQ-176 profile setting-change audit slice: focused 34 Python PASS; full Python 936 PASS, 8 skipped; Chromium 1; frontend 63/build; local validators PASS. Evidence docs/evidence/2026-10-07-setting-change-audit-history.json."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -404,7 +405,8 @@
     "Issue #5 Compose recovery output bounds: real Docker Compose recovery intentionally NOT_RUN to avoid stopping/restarting local services; full integration/browser/frontend suites NOT_RUN_BY_SCOPE; hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF.",
     "Issue #8 protected-credential migration slice: PostgreSQL-specific failure/retry NOT_RUN (optional URL unavailable); full suite/frontend/browser NOT_RUN_BY_SCOPE; hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF.",
     "Issue #181 rich-control redaction slice: full Python/browser suite and frontend build NOT_RUN_BY_SCOPE; database/PostgreSQL/Docker NOT_APPLICABLE; hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF.",
-    "MJ-REQ-180 updated cli.ui_e2e and cli.ui_source_readback artifact paths were not exercised against a running application/Compose stack; shared screenshot helper behavior was tested in synthetic headless Chromium."
+    "MJ-REQ-180 updated cli.ui_e2e and cli.ui_source_readback artifact paths were not exercised against a running application/Compose stack; shared screenshot helper behavior was tested in synthetic headless Chromium.",
+    "MJ-REQ-176 setting audit slice: PostgreSQL/Docker/migration coverage NOT_RUN (no schema change); hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -440,19 +442,19 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-07T14:28:21Z",
+    "timestamp": "2026-10-07T14:48:00Z",
     "result": "PARTIAL",
-    "source_commit": "4b25f3c1ac1eafe1b5f00d714029bef4268b7b43",
-    "source_tree": "ca6c0b83c82cb13e1bc6d121536041f60bd984b0",
+    "source_commit": "0aac9460f0f8573cab04021e2a7adbcb5465de3e",
+    "source_tree": "a98e107a49a53861fd4635ebce4af5d2f6a1bd53",
     "issue": 177,
     "requirement_id": "MJ-REQ-176",
     "title": "[MJ-REQ-176] Audit Log",
     "state": "INTEGRATED_PARTIAL",
-    "base": "20c20392e67f8fe72f0a7ac7c27c30ed72bd095c",
-    "branch": "codex/mj-req176-company-events-20261007",
-    "candidate_integration_commit": "a90c23abca6de19f906ca16a01f0bd92e0aa1801",
-    "evidence_path": "docs/evidence/2026-10-07-company-audit-history.json",
-    "scope": "Successful profile-owned company discovery and first source enrollment now append idempotent safe Activity history atomically with source persistence; full MJ-REQ-176 coverage remains incomplete."
+    "base": "ffa2427799ccf3d76a4f22ddf30e22c9f00a44e5",
+    "branch": "codex/mj-req176-settings-events-20261007",
+    "candidate_integration_commit": "979e4063266ec8409e8d5d8aa34430136148b264",
+    "evidence_path": "docs/evidence/2026-10-07-setting-change-audit-integration.json",
+    "scope": "Changed normalized profile preferences now append a generic profile-owned SETTING_CHANGED event atomically with profile persistence; unchanged and initial saves do not."
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -8737,12 +8739,61 @@
         "git_commit": "a90c23abca6de19f906ca16a01f0bd92e0aa1801",
         "evidence_path": "docs/evidence/2026-10-07-company-audit-history.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-176-SETTING-CHANGE-AUDIT-PARTIAL-20261007",
+      "timestamp": "2026-10-07T14:48:19Z",
+      "current_phase": "MJ_REQ_176_SETTING_CHANGE_AUDIT_PARTIAL_INTEGRATED",
+      "completed_steps": [
+        "Integrated profile preference setting-change audit slice at 979e4063266ec8409e8d5d8aa34430136148b264 from source 0aac9460f0f8573cab04021e2a7adbcb5465de3e",
+        "Existing profile preference changes append one generic profile-owned SETTING_CHANGED event atomically with profile persistence",
+        "Initial save and unchanged preferences emit no setting-change event; connected UI/API, reload, privacy and isolation verified",
+        "Kept issue #177 OPEN and MJ-REQ-176 PARTIAL; no requirement denominator changed"
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-07-setting-change-audit-integration.json",
+        "docs/evidence/2026-10-07-setting-change-audit-history.json"
+      ],
+      "files_modified": [
+        "packages/persistence/store.py",
+        "tests/integration/test_audit_history.py",
+        "tests/browser/test_audit_history.py",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Focused Python audit/profile/application suite: 34 PASS, zero failures or skips",
+        "Full Python suite: 936 PASS, zero failures/errors, 8 skipped; skip identities not emitted and not promoted",
+        "Connected headless Chromium profile-setting audit acceptance: 1 PASS",
+        "Frontend: 63 tests PASS; TypeScript/Vite build PASS",
+        "agent_skills, catalogue, progress, lane coordination and git diff checks PASS",
+        "Feature/evidence branch pushed; fast-forward candidate integrated locally at 979e4063266ec8409e8d5d8aa34430136148b264"
+      ],
+      "tests_remaining": [
+        "JOB_MERGED, other settings producers and complete truthful application lifecycle event families remain incomplete",
+        "PostgreSQL/Docker/migration checks NOT_RUN; no schema change",
+        "GitHub hosted checks/review NOT_RUN_BY_USER_POLICY"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Connected local API and headless Chromium using temporary SQLite; external submission OFF"
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "MJ-REQ-176 and issue #177 remain PARTIAL/OPEN; full Python suite reported 8 skipped without skip names; PostgreSQL/Docker and hosted scopes remain NOT_RUN"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "979e4063266ec8409e8d5d8aa34430136148b264",
+        "evidence_path": "docs/evidence/2026-10-07-setting-change-audit-integration.json"
+      }
     }
   ],
-  "current_phase": "MJ_REQ_176_COMPANY_AUDIT_PARTIAL_INTEGRATED",
+  "current_phase": "MJ_REQ_176_SETTING_CHANGE_AUDIT_PARTIAL_INTEGRATED",
   "last_safe_checkpoint": {
-    "git_commit": "a90c23abca6de19f906ca16a01f0bd92e0aa1801",
-    "evidence_path": "docs/evidence/2026-10-07-company-audit-history.json"
+    "git_commit": "979e4063266ec8409e8d5d8aa34430136148b264",
+    "evidence_path": "docs/evidence/2026-10-07-setting-change-audit-integration.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",

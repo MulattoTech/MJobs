@@ -1,0 +1,49 @@
+{
+  "milestone_id": "MJ-REQ-176-SETTING-CHANGE-AUDIT-PARTIAL-20261007",
+  "timestamp": "2026-10-07T14:48:19Z",
+  "current_phase": "MJ_REQ_176_SETTING_CHANGE_AUDIT_PARTIAL_INTEGRATED",
+  "completed_steps": [
+    "Integrated profile preference setting-change audit slice at 979e4063266ec8409e8d5d8aa34430136148b264 from source 0aac9460f0f8573cab04021e2a7adbcb5465de3e",
+    "Existing profile preference changes append one generic profile-owned SETTING_CHANGED event atomically with profile persistence",
+    "Initial save and unchanged preferences emit no setting-change event; connected UI/API, reload, privacy and isolation verified",
+    "Kept issue #177 OPEN and MJ-REQ-176 PARTIAL; no requirement denominator changed"
+  ],
+  "files_added": [
+    "docs/evidence/2026-10-07-setting-change-audit-integration.json",
+    "docs/evidence/2026-10-07-setting-change-audit-history.json"
+  ],
+  "files_modified": [
+    "packages/persistence/store.py",
+    "tests/integration/test_audit_history.py",
+    "tests/browser/test_audit_history.py",
+    "planning/CAPABILITY_MATRIX.json",
+    "planning/IMPLEMENTATION_STATE.json",
+    "planning/PR_QUEUE.json",
+    "planning/SESSION_HANDOFF.md"
+  ],
+  "tests_completed": [
+    "Focused Python audit/profile/application suite: 34 PASS, zero failures or skips",
+    "Full Python suite: 936 PASS, zero failures/errors, 8 skipped; skip identities not emitted and not promoted",
+    "Connected headless Chromium profile-setting audit acceptance: 1 PASS",
+    "Frontend: 63 tests PASS; TypeScript/Vite build PASS",
+    "agent_skills, catalogue, progress, lane coordination and git diff checks PASS",
+    "Feature/evidence branch pushed; fast-forward candidate integrated locally at 979e4063266ec8409e8d5d8aa34430136148b264"
+  ],
+  "tests_remaining": [
+    "JOB_MERGED, other settings producers and complete truthful application lifecycle event families remain incomplete",
+    "PostgreSQL/Docker/migration checks NOT_RUN; no schema change",
+    "GitHub hosted checks/review NOT_RUN_BY_USER_POLICY"
+  ],
+  "migrations_applied": [],
+  "live_integrations_tested": [
+    "Connected local API and headless Chromium using temporary SQLite; external submission OFF"
+  ],
+  "known_errors": [],
+  "known_limitations": [
+    "MJ-REQ-176 and issue #177 remain PARTIAL/OPEN; full Python suite reported 8 skipped without skip names; PostgreSQL/Docker and hosted scopes remain NOT_RUN"
+  ],
+  "last_safe_checkpoint": {
+    "git_commit": "979e4063266ec8409e8d5d8aa34430136148b264",
+    "evidence_path": "docs/evidence/2026-10-07-setting-change-audit-integration.json"
+  }
+}

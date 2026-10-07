@@ -247,18 +247,19 @@
     {
       "issue": 177,
       "requirement_id": "MJ-REQ-176",
-      "status": "INTEGRATION_PENDING_PARTIAL",
+      "status": "INTEGRATED_PARTIAL",
       "priority": 1,
       "target_area": "packages/persistence/store.py; services/audit_history.py; tests/integration/test_audit_history.py; tests/browser/test_audit_history.py",
       "depends_on": [],
       "evidence_path": "docs/evidence/2026-10-07-setting-change-audit-history.json",
       "scope_complete": false,
       "note": "Profile preference updates now append a generic profile-scoped SETTING_CHANGED record atomically with the normalized preference update; payload is empty. Initial save and unchanged repeated save emit no event. Regression tests verify privacy, idempotency, persistence, browser reload and profile isolation. Validation: 34 focused Python tests; 936 full Python tests with 8 skipped and no failures/errors; Chromium 1; frontend 63/build; repository validators pass. Job merge, other settings producers and truthful complete application lifecycle event families remain incomplete; issue #177 stays OPEN/PARTIAL.",
-      "integration_commit": "a90c23abca6de19f906ca16a01f0bd92e0aa1801",
+      "integration_commit": "979e4063266ec8409e8d5d8aa34430136148b264",
       "issue_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6040125003",
       "prior_integration_commit": "d4ed75530ec9609ec41d2e3b2f4a93aa50e4b259",
       "source_commit": "0aac9460f0f8573cab04021e2a7adbcb5465de3e",
-      "release_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6040125344"
+      "release_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6040125344",
+      "integration_evidence": "docs/evidence/2026-10-07-setting-change-audit-integration.json"
     }
   ],
   "generated_at": "2026-10-07T14:05:05Z"

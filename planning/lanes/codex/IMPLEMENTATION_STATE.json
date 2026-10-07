@@ -3,13 +3,13 @@
   "lane": "codex",
   "status": "IDLE_READY",
   "base_main": "ffa2427799ccf3d76a4f22ddf30e22c9f00a44e5",
-  "current_issue": 177,
+  "current_issue": null,
   "requirement_id": "MJ-REQ-176",
-  "branch": "codex/mj-req176-settings-events-20261007",
-  "head": "0aac9460f0f8573cab04021e2a7adbcb5465de3e",
-  "worktree": ".worktrees/codex-mj-req176-settings-events-20261007",
-  "result": "PARTIAL; profile preference setting-change history verified locally; integration pending",
-  "evidence_path": "docs/evidence/2026-10-07-setting-change-audit-history.json",
+  "branch": null,
+  "head": "979e4063266ec8409e8d5d8aa34430136148b264",
+  "worktree": null,
+  "result": "INTEGRATED_PARTIAL; profile preference setting-change history; issue #177 remains OPEN",
+  "evidence_path": "docs/evidence/2026-10-07-setting-change-audit-integration.json",
   "last_completed": {
     "issue": 177,
     "requirement_id": "MJ-REQ-176",
@@ -30,9 +30,9 @@
     "canonical planning and main outside integration lock"
   ],
   "resume_instruction": "Active #177 profile setting-event slice locally verified and pushed source checkpoint; evidence checkpoint pending push and integration. Preferences change produces value-free profile-owned SETTING_CHANGED transactionally. Issue #177 remains OPEN/PARTIAL for merge, broader settings and truthful application lifecycle events. Reconcile current main/claims after integration. Avoid active #302 discovery-source and #318 ATS-detection paths.",
-  "last_verified_head": "0aac9460f0f8573cab04021e2a7adbcb5465de3e",
+  "last_verified_head": "979e4063266ec8409e8d5d8aa34430136148b264",
   "last_verified_tree": "a98e107a49a53861fd4635ebce4af5d2f6a1bd53",
-  "last_verified_at_utc": "2026-10-07T14:45:07Z",
+  "last_verified_at_utc": "2026-10-07T14:48:19Z",
   "started_at_utc": "2026-10-07T04:24:01Z",
   "validation": {
     "result": "PARTIAL; issue acceptance incomplete",
@@ -46,11 +46,12 @@
     "hosted_checks": "NOT_RUN_BY_USER_POLICY",
     "external_submission": "OFF"
   },
-  "last_integrated_head": "a90c23abca6de19f906ca16a01f0bd92e0aa1801",
-  "last_verified_result": "PARTIAL; setting event slice tested; integration pending",
-  "updated_at": "2026-10-07T14:45:07Z",
+  "last_integrated_head": "979e4063266ec8409e8d5d8aa34430136148b264",
+  "last_verified_result": "PARTIAL; issue #177 remains OPEN",
+  "updated_at": "2026-10-07T14:48:19Z",
   "integrated_main": "3c58290a10ff5412c9d92c090e7ebef933af5689",
   "last_integrated_issue": 177,
   "last_integrated_requirement": "MJ-REQ-176 company/source audit event slice",
-  "last_integrated_evidence": "docs/evidence/2026-10-07-company-audit-history.json"
+  "last_integrated_evidence": "docs/evidence/2026-10-07-company-audit-history.json",
+  "canonical_main_at_pause": "979e4063266ec8409e8d5d8aa34430136148b264"
 }

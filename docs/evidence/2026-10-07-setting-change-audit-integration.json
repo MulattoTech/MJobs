@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-07T14:48:00Z",
+  "issue": 177,
+  "requirement_id": "MJ-REQ-176",
+  "result": "PARTIAL",
+  "source_commit": "0aac9460f0f8573cab04021e2a7adbcb5465de3e",
+  "feature_checkpoint": "979e4063266ec8409e8d5d8aa34430136148b264",
+  "base_main": "ffa2427799ccf3d76a4f22ddf30e22c9f00a44e5",
+  "integrated_source_main": "979e4063266ec8409e8d5d8aa34430136148b264",
+  "evidence_path": "docs/evidence/2026-10-07-setting-change-audit-history.json",
+  "scope": "Existing profile preference changes now append a generic profile-owned SETTING_CHANGED event atomically; empty payload; initial and unchanged saves do not emit it. Connected profile UI/API, persistence/reload, privacy, and cross-profile isolation are covered.",
+  "validation": {
+    "focused_python": "34 PASS, 0 failures, 0 skips",
+    "full_python": "936 PASS, 0 failures/errors, 8 skipped (skip names not emitted; not promoted)",
+    "connected_browser": "1 Chromium PASS",
+    "frontend": "63 PASS; TypeScript/Vite build PASS",
+    "validators": "agent_skills, catalogue, progress, lane coordination, diff check PASS",
+    "postgres_docker_migrations": "NOT_RUN; no migration/schema change",
+    "hosted_checks": "NOT_RUN_BY_USER_POLICY",
+    "external_submission": "OFF"
+  },
+  "remaining_gaps": [
+    "JOB_MERGED event",
+    "settings event producers beyond profile preferences",
+    "complete truthful application lifecycle coverage"
+  ],
+  "issue_state": "OPEN/PARTIAL",
+  "integration": "Fast-forwarded from synchronized main; canonical planning update follows in a separate lock-held commit."
+}
