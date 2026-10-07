@@ -3362,7 +3362,33 @@
       "integration_commit": "3804a953317b122879747e0075602994c8151678",
       "issue_comment": "https://github.com/MulattoTech/MJobs/issues/375#issuecomment-6035816600",
       "integrated_at": "2026-10-07T10:15:25Z"
+    },
+    {
+      "id": "MJ-PR-162",
+      "title": "MJ-REF-020 capture and reconcile applications completed outside MJobs",
+      "domain": "application_automation",
+      "requirements": [],
+      "issues": [
+        390
+      ],
+      "reference_gaps": [
+        "MJ-REF-020"
+      ],
+      "target_area": "services/applications; services/tracking; apps/api; apps/web; tests/integration; tests/browser",
+      "depends_on": [],
+      "status": "INTEGRATED_PASS",
+      "branch": "codex/mj-ref020-external-application-capture-20261007",
+      "evidence_path": "docs/evidence/2026-10-07-external-application-capture.json",
+      "base": "ab49c58e401ec93c2cce8614c499242e414e9e31",
+      "candidate": "63142751719eb7b52f5fafd2e93dc47a6f53aa51",
+      "integration_method": "NON_FORCE_FAST_FORWARD",
+      "pr_state": "NOT_OPENED_LOCAL_ONLY",
+      "scope_complete": true,
+      "scope_result": "PASS",
+      "notes": "All issue acceptance locally evidenced. Source/time capture, route-first reconciliation, cautious fallback, minimal provenance-marked record creation, profile-scoped idempotency, status non-regression, UI/API reload and profile isolation pass. Focused integration 10, connected browser 6, frontend 63/build, full Python 895 with one optional PostgreSQL skip, validators PASS. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
+      "integration_commit": "3ecad2b84f86808314873547ef4aa31de738ce17",
+      "integrated_at": "2026-10-07T10:52:30Z"
     }
   ],
-  "generated_at": "2026-10-07T10:15:25Z"
+  "generated_at": "2026-10-07T10:52:30Z"
 }

@@ -1,17 +1,17 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-07T10:15:25Z",
+  "generated_at": "2026-10-07T10:52:30Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Local main and origin/main synchronized at 3804a953317b122879747e0075602994c8151678; issue #375 / MJ-REF-005 closed with local evidence-backed PASS; Actions disabled; external submission OFF.",
-    "current_verified_github_state": "GitHub main 3804a953317b122879747e0075602994c8151678; issue #375 closed after evidence readback; Actions disabled; external submission OFF.",
-    "current_verified_at": "2026-10-07T10:15:25Z"
+    "current_verified_local_state": "Local and origin/main synchronized at 3ecad2b84f86808314873547ef4aa31de738ce17; issue #390 / MJ-REF-020 scoped local acceptance PASS; Actions disabled; external submission OFF.",
+    "current_verified_github_state": "GitHub main 3ecad2b84f86808314873547ef4aa31de738ce17; issue #390 acceptance evidence recorded; Actions disabled; external submission OFF.",
+    "current_verified_at": "2026-10-07T10:52:30Z"
   },
-  "current_milestone": "MJ-REF-005-DETERMINISTIC-NO-AI-FALLBACK-20261007",
+  "current_milestone": "MJ-REF-020-EXTERNAL-APPLICATION-CAPTURE-20261007",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -66,7 +66,8 @@
     "MJ-REF-011 locally complete: operation-wide AI candidate deadline reaches each nested provider call as remaining time; prompt truncation is explicit and omitted details cannot be inferred; timeout/cancel reasons persist without partial evaluation history. Focused 50 PASS; full Python 854 PASS with one optional PostgreSQL skip; frontend build and repository validators PASS. Evidence docs/evidence/2026-10-07-ai-prompt-truncation.json and docs/evidence/2026-10-07-ai-operation-outcomes.json.",
     "Profile-scoped AES-256-GCM provider credential storage with masked UI/API metadata, rotation/deletion, synthetic backup-theft/redaction tests, and bounded explicit provider connection checks",
     "MJ-REF-016 / issue #386 locally complete: exhausted and terminal worker failures persist as DEAD_LETTERED with reason, stable operation identity, attempt timestamps/count, and append-only audit; profile-scoped Activity UI exposes count/reason and explicit retry/discard; ambiguous submissions stay reconciliation-only. Full Python 875 PASS with 1 optional PostgreSQL concurrency skip; frontend 63 PASS/build PASS; SQLite and temporary PostgreSQL 17 migration safety, connected browser, and repository validators PASS. Evidence docs/evidence/2026-10-07-dead-letter-queue.json.",
-    "Career-profile-owned saved search can be selected in Jobs and its exact filtered results survive Store reopen with profile isolation (MJ-REQ-022, issue #23)."
+    "Career-profile-owned saved search can be selected in Jobs and its exact filtered results survive Store reopen with profile isolation (MJ-REQ-022, issue #23).",
+    "MJ-REF-020 / issue #390: connected UI/API records externally completed applications with source/time, route-first then cautious company/title reconciliation, provenance-marked minimal job creation, profile-scoped idempotency, and non-regressing application history (docs/evidence/2026-10-07-external-application-capture.json)."
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
@@ -315,7 +316,8 @@
     "MJ-REF-028 full Python suite: 867 tests run, 1 skipped, 0 failures; frontend 62 tests and production build passed; repository validators, scoped compile, pip check and diff checks passed.",
     "2026-10-07 #386 / MJ-REF-016: 875 Python tests PASS with one optional PostgreSQL concurrency skip; 63 frontend tests/build, connected dead-letter browser workflow, PostgreSQL 17 migration exercise, SQLite migration/reopen, validators and diff checks PASS. Evidence docs/evidence/2026-10-07-dead-letter-queue.json.",
     "2026-10-07 MJ-REF-033 scoped acceptance: 23 focused agent acceptance/integration/prompt tests PASS; compileall, agent-skills, catalogue, progress, reference-provenance, JSON and diff checks PASS. Browser/PostgreSQL/hosted checks NOT_RUN; external submission OFF. Evidence docs/evidence/2026-10-07-agent-run-budget-output-validation.json.",
-    "MJ-REF-005: full Python suite 889 PASS (one optional PostgreSQL skip); affected 25 Python tests, connected browser 2, frontend 63/build, catalogue/progress/skills/lane validators and diff check PASS. Evidence docs/evidence/2026-10-07-no-ai-fallback.json; integrated main 3804a953317b122879747e0075602994c8151678."
+    "MJ-REF-005: full Python suite 889 PASS (one optional PostgreSQL skip); affected 25 Python tests, connected browser 2, frontend 63/build, catalogue/progress/skills/lane validators and diff check PASS. Evidence docs/evidence/2026-10-07-no-ai-fallback.json; integrated main 3804a953317b122879747e0075602994c8151678.",
+    "MJ-REF-020 issue #390: focused integration 10 PASS; connected browser 6 PASS; frontend 63 PASS/build PASS; full Python 895 PASS with one optional PostgreSQL skip; validators PASS. Evidence docs/evidence/2026-10-07-external-application-capture.json; source 63142751719eb7b52f5fafd2e93dc47a6f53aa51, tree f70b3ef5884b55525e5faa737f1d962510527900, integrated 3ecad2b84f86808314873547ef4aa31de738ce17."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -368,7 +370,8 @@
     "MJ-REQ-008 physical host restart and browser-process crash acceptance remain NOT_RUN; the scoped product-worker subprocess crash acceptance is recorded in docs/evidence/2026-10-07-product-worker-crash-recovery.json.",
     "MJ-REQ-008 live PostgreSQL runtime NOT_RUN because MJOBS_TEST_POSTGRES_URL was unset; hosted Actions/review remain NOT_RUN_BY_USER_POLICY.",
     "MJ-REF-028 live provider connection, PostgreSQL runtime migration, hosted Actions/review, and real external application submission were not run. Existing MJobs containers were left untouched; synthetic local tests only.",
-    "MJ-REF-016 optional PostgreSQL worker-concurrency test skipped because MJOBS_TEST_POSTGRES_URL was unset; temporary PostgreSQL 17 migration upgrade/downgrade/history-loss guard was run. Hosted checks/review remain NOT_RUN_BY_USER_POLICY; external submission OFF. See docs/evidence/2026-10-07-dead-letter-queue.json."
+    "MJ-REF-016 optional PostgreSQL worker-concurrency test skipped because MJOBS_TEST_POSTGRES_URL was unset; temporary PostgreSQL 17 migration upgrade/downgrade/history-loss guard was run. Hosted checks/review remain NOT_RUN_BY_USER_POLICY; external submission OFF. See docs/evidence/2026-10-07-dead-letter-queue.json.",
+    "MJ-REF-020 live PostgreSQL was NOT_RUN because the optional local service was unavailable; hosted Actions/reviews NOT_RUN_BY_USER_POLICY. docs/evidence/2026-10-07-external-application-capture.json."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -402,13 +405,13 @@
     "Fresh Codex worktrees may lack ignored apps/web/node_modules and apps/web/dist; run npm ci and npm run build --prefix apps/web before browser/full-suite validation. MJ-REF-011 exact-source rerun passed 854 tests after restoring those artifacts; evidence docs/evidence/2026-10-07-ai-prompt-truncation.json"
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-07T10:15:25Z",
+    "timestamp": "2026-10-07T10:52:30Z",
     "result": "PASS",
-    "source_commit": "5f220ed17c51e148de71712485f497707704fdee",
-    "source_tree": "08241a82986438919be746c491f3f3dd52fe1d59",
-    "scope": "Issue #375 / MJ-REF-005 complete local acceptance for truthful per-task no-AI behavior, deterministic matching and factual documents.",
-    "evidence_path": "docs/evidence/2026-10-07-no-ai-fallback.json",
-    "integration_commit": "3804a953317b122879747e0075602994c8151678"
+    "source_commit": "63142751719eb7b52f5fafd2e93dc47a6f53aa51",
+    "source_tree": "f70b3ef5884b55525e5faa737f1d962510527900",
+    "scope": "Issue #390 / MJ-REF-020 complete local acceptance for user-reported external application capture and reconciliation.",
+    "evidence_path": "docs/evidence/2026-10-07-external-application-capture.json",
+    "integration_commit": "3ecad2b84f86808314873547ef4aa31de738ce17"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -7743,12 +7746,72 @@
         "issue_state": "CLOSED",
         "evidence_checkpoint_commit": "3804a953317b122879747e0075602994c8151678"
       }
+    },
+    {
+      "milestone_id": "MJ-REF-020-EXTERNAL-APPLICATION-CAPTURE-20261007",
+      "timestamp": "2026-10-07T10:52:30Z",
+      "current_phase": "Issue #390 / MJ-REF-020 locally passed complete issue acceptance and was integrated by non-force fast-forward; continue the dependency-ready backlog.",
+      "completed_steps": [
+        "Connected the profile-scoped UI/API capture flow for externally completed applications with source and timezone-aware timestamp.",
+        "Reconciled canonical application URL first, then cautious exact normalized company/title; created provenance-marked minimal jobs when no match existed.",
+        "Reserved profile-scoped idempotency before creation, rejected conflicting reuse, and preserved later application stages/history.",
+        "Verified integration and connected-browser reload/profile-isolation behavior with no employer or ATS traffic and no worker operations.",
+        "Recorded source hashes and sanitized local evidence; integrated candidate 3ecad2b84f86808314873547ef4aa31de738ce17 by non-force fast-forward under the Codex lock."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-07-external-application-capture.json",
+        "services/applications/external_capture.py",
+        "tests/integration/test_external_application_capture.py",
+        "tests/browser/test_external_application_capture.py"
+      ],
+      "files_modified": [
+        "apps/api/main.py",
+        "apps/web/src/main.tsx",
+        "services/tracking/applications.py",
+        "docs/reference/REFERENCE_INSPIRATION_LOG.md"
+      ],
+      "tests_completed": [
+        "10 focused integration tests PASS.",
+        "6 connected browser tests PASS.",
+        "63 frontend tests PASS and production build PASS.",
+        "895 Python tests PASS with 1 optional PostgreSQL skip.",
+        "Repository validators and diff checks PASS."
+      ],
+      "limitations": [
+        "Live PostgreSQL NOT_RUN because optional service was unavailable.",
+        "Hosted Actions/reviews NOT_RUN_BY_USER_POLICY.",
+        "Issue-scoped PASS does not change broader requirement denominator or overall PARTIAL state.",
+        "External application submission remains OFF."
+      ],
+      "source_commit": "63142751719eb7b52f5fafd2e93dc47a6f53aa51",
+      "source_tree": "f70b3ef5884b55525e5faa737f1d962510527900",
+      "integration_commit": "3ecad2b84f86808314873547ef4aa31de738ce17",
+      "evidence_path": "docs/evidence/2026-10-07-external-application-capture.json",
+      "tests_remaining": [
+        "Live PostgreSQL NOT_RUN because the optional service was unavailable.",
+        "Hosted Actions and reviews NOT_RUN_BY_USER_POLICY.",
+        "Broader MJobs requirements and final release verification remain incomplete."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Synthetic FastAPI and temporary SQLite stores; connected loopback Chromium. No employer or ATS traffic, no worker operations, no paid provider, and external application submission OFF."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "Live PostgreSQL was not exercised.",
+        "Hosted checks and reviews remain NOT_RUN_BY_USER_POLICY.",
+        "This issue-scoped PASS does not change broader requirement status or denominator."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "3ecad2b84f86808314873547ef4aa31de738ce17",
+        "evidence_path": "docs/evidence/2026-10-07-external-application-capture.json"
+      }
     }
   ],
-  "current_phase": "Issue #375 / MJ-REF-005 local acceptance passed and integrated to main; continue with the next unclaimed dependency-ready issue.",
+  "current_phase": "Issue #390 / MJ-REF-020 locally passed complete issue acceptance and was integrated by non-force fast-forward; continue the dependency-ready backlog.",
   "last_safe_checkpoint": {
-    "git_commit": "3804a953317b122879747e0075602994c8151678",
-    "evidence_path": "docs/evidence/2026-10-07-no-ai-fallback.json"
+    "git_commit": "3ecad2b84f86808314873547ef4aa31de738ce17",
+    "evidence_path": "docs/evidence/2026-10-07-external-application-capture.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",

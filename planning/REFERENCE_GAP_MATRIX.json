@@ -1,6 +1,6 @@
 {
   "schema_version": 3,
-  "generated_at": "2026-10-07T10:11:30Z",
+  "generated_at": "2026-10-07T10:52:30Z",
   "canonical_namespace": "MJ-REF",
   "original_catalogue_count": 366,
   "reference_gap_count": 59,
@@ -171,8 +171,10 @@
       "evidence": []
     },
     "MJ-REF-020": {
-      "result": "NOT_RUN",
-      "evidence": []
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-07-external-application-capture.json"
+      ]
     },
     "MJ-REF-021": {
       "result": "NOT_RUN",
