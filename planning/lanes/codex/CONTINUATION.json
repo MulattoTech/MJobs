@@ -22,7 +22,7 @@
   "current_issue": 177,
   "requirement_id": "MJ-REQ-176",
   "branch": "codex/mj-req176-job-merge-audit-20261007",
-  "head": "3e9c196d719f589f3c84b2409dc1efc22a1bb37a",
+  "head": "ed4875c5cb574ad5c00ae37684173e2cd3e64732",
   "worktree": ".worktrees/codex-mj-req176-job-merge-audit-20261007",
   "result": "CHECKPOINTED_PARTIAL; integration pending",
   "evidence_path": "docs/evidence/2026-10-07-job-merge-audit.json",
@@ -43,5 +43,5 @@
   "current_requirement": "MJ-REQ-176",
   "current_branch": "codex/mj-req176-job-merge-audit-20261007",
   "current_worktree": ".worktrees/codex-mj-req176-job-merge-audit-20261007",
-  "current_head": "3e9c196d719f589f3c84b2409dc1efc22a1bb37a"
+  "current_head": "ed4875c5cb574ad5c00ae37684173e2cd3e64732"
 }
