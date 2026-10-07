@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REQ-004-COMPOSE-RECOVERY-OUTPUT-BOUNDS-20261007",
+  "recorded_at_utc": "2026-10-07T13:13:02Z",
+  "requirement_id": "MJ-REQ-004",
+  "github_issue": 5,
+  "slice_result": "PASS",
+  "requirement_result": "PARTIAL",
+  "issue_state": "OPEN_PARTIAL",
+  "base_main": "9e83fb7ecb1b42e2de666e573cd9f4913d39ee3c",
+  "source_commit": "0a14aaa2d9c0fe2cb1ae0c94a3281a1ebd99987f",
+  "source_tree": "1c647a72802f656ecd86627f67aec4057417e7f8",
+  "input_sha256": {
+    "cli/compose_recovery.py": "a25fd46f08686716b0525777f3e91c0cadc7f6b35041b988687b94f608204ff3",
+    "tests/unit/test_compose_recovery.py": "43b110f16ae508bcfa8e37b66d30c5cfe1b1c7c1179c1c7eb27c471e397579dd"
+  },
+  "acceptance_oracle": "Synthetic Docker-like child output exceeding the 2 MiB retained-stdout limit is terminated and reaped promptly; a blocked child is terminated/reaped at its deadline; small bounded stdout continues to feed recovery parsing; failures expose fixed sanitized classifications without arbitrary child output.",
+  "acceptance": {
+    "pre_fix_regression": "FAIL - compose() returned a synthetic 2 MiB + 1 stdout result without enforcing any output ceiling.",
+    "oversized_child_termination": "PASS - A real synthetic Python child wrote 3,000,000 stdout bytes then slept; the runner raised captured-output limit within 5 seconds and reaped the child.",
+    "deadline_termination": "PASS - A synthetic 30-second child was terminated/reaped after a 0.1-second budget.",
+    "bounded_stdout_and_sanitized_errors": "PASS - Small stdout is normalized for text parsing; nonzero child output content is not included in the raised error.",
+    "all_recovery_subprocess_capture_paths_bounded": "PASS - Both Docker Compose calls and docker inspect restart-count calls now use the same bounded runner.",
+    "requirements_denominator_changed": "false"
+  },
+  "commands": [
+    {
+      "command": "repository .venv python -m unittest tests.unit.test_compose_recovery -v",
+      "result": "PASS",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "notes": "Synthetic process children only; no Docker service was touched."
+    },
+    {
+      "command": "repository .venv python -m unittest discover -s tests/unit -p 'test_*.py'",
+      "result": "PASS",
+      "tests": 408,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "notes": "Local deterministic unit suite; no Compose recovery or external services invoked."
+    },
+    {
+      "command": "repository .venv python -m py_compile cli/compose_recovery.py tests/unit/test_compose_recovery.py; agent_skills; catalogue; progress validate; lane coordination validate; git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "environment": {
+    "os": "Windows",
+    "python": "repository .venv Python 3.12",
+    "docker_compose_runtime": "NOT_RUN; recovery CLI would stop/restart the local Compose stack, so only synthetic child processes were used.",
+    "database": "NOT_APPLICABLE",
+    "browser": "NOT_APPLICABLE",
+    "frontend": "NOT_APPLICABLE",
+    "migrations": "NOT_APPLICABLE",
+    "full_python_integration_suite": "NOT_RUN",
+    "hosted_checks": "NOT_RUN_BY_USER_POLICY",
+    "external_submission": "OFF"
+  },
+  "limitations": [
+    "Only the local Compose recovery CLI subprocess boundaries are covered; issue #5 remains PARTIAL for other operation categories and live AI/ATS/provider acceptance.",
+    "Real Compose recovery, browser, and database behavior were not exercised.",
+    "Hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF."
+  ],
+  "claim_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6038614779"
+}
