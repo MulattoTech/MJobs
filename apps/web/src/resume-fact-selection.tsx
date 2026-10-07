@@ -45,8 +45,8 @@ export function ResumeFactSelection({profileId,jobId,disabled,onChange}:{profile
       {!loading&&!error&&<><p>{ids.length} of {facts.length} approved facts selected. Choose at least one.</p>
         {facts.map(fact=><div key={fact.fact_id}>
           <label className="consent"><input type="checkbox" aria-label={'Include '+fact.text} checked={ids.includes(fact.fact_id)} disabled={disabled} onChange={event=>select(fact.fact_id,event.target.checked)}/><span>{fact.kind}: {fact.text}</span></label>
-          {ids.includes(fact.fact_id)&&(fact.kind==='responsibility'||fact.kind==='summary')&&<div className="form-row">
-            <label>Rewrite this {fact.kind==='summary'?'summary':'bullet'} for this application<textarea aria-label={'Rewrite this '+(fact.kind==='summary'?'summary':'bullet')+': '+fact.text} value={rewrites[fact.fact_id]?.text||''} disabled={disabled} maxLength={10000} onChange={event=>editRewrite(fact,event.target.value)}/></label>
+          {ids.includes(fact.fact_id)&&['summary','responsibility','accomplishment','project'].includes(fact.kind)&&<div className="form-row">
+            <label>Rewrite this {fact.kind==='summary'?'summary':fact.kind==='project'?'project bullet':fact.kind==='accomplishment'?'accomplishment bullet':'bullet'} for this application<textarea aria-label={'Rewrite this '+(fact.kind==='summary'?'summary':fact.kind==='project'?'project bullet':fact.kind==='accomplishment'?'accomplishment bullet':'bullet')+': '+fact.text} value={rewrites[fact.fact_id]?.text||''} disabled={disabled} maxLength={10000} onChange={event=>editRewrite(fact,event.target.value)}/></label>
             {Boolean(rewrites[fact.fact_id]?.text.trim())&&<label className="consent"><input type="checkbox" aria-label={'I reviewed this rewrite: '+fact.text} checked={rewrites[fact.fact_id]?.reviewed||false} disabled={disabled} onChange={event=>reviewRewrite(fact,event.target.checked)}/>I reviewed this wording and confirm it preserves the selected approved fact.</label>}
           </div>}
         </div>)}

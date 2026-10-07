@@ -1,4 +1,4 @@
-"""Explainable skill ordering; never rewrite facts or move work-history lines."""
+"""Explainable skill ordering and user-attested wording for selected approved facts."""
 import hashlib
 import json
 import re
@@ -6,6 +6,8 @@ from services.discovery.skill_taxonomy import canonical_skill_id, extract_skill_
 
 from services.documents.templates import TAILORED_TEMPLATE as TEMPLATE, TAILORED_MODEL as MODEL
 from services.documents.errors import PreparationError
+
+REWRITABLE_RESUME_FACT_KINDS = {'summary', 'responsibility', 'accomplishment', 'project'}
 
 
 def _validate_user_rewrites(facts, selected_fact_ids, rewrites, *, allowed_kinds, include_kind):
@@ -28,9 +30,8 @@ def _validate_user_rewrites(facts, selected_fact_ids, rewrites, *, allowed_kinds
         fact_id = item['fact_id']
         source = eligible.get(fact_id)
         if source is None or fact_id not in selected or source['kind'] not in allowed_kinds:
-            kinds = 'summary and responsibility' if include_kind else 'responsibility'
             raise PreparationError('RESUME_REPHRASE_FACT_INVALID',
-                f'Only selected approved {kinds} facts may be rewritten')
+                'Only selected approved resume facts in supported sections may be rewritten')
         text = item['text'].strip()
         if not item['reviewed']:
             raise PreparationError('RESUME_REPHRASE_REVIEW_REQUIRED', 'Review each rewritten resume fact before preparing documents')
@@ -64,9 +65,9 @@ def validate_user_rephrases(facts, selected_fact_ids, rewrites):
 
 
 def validate_user_rewrites(facts, selected_fact_ids, rewrites):
-    """Apply reviewed wording to selected approved summary or responsibility facts."""
+    """Apply reviewed wording to selected approved summary and resume-bullet facts."""
     return _validate_user_rewrites(facts, selected_fact_ids, rewrites,
-                                   allowed_kinds={'summary', 'responsibility'}, include_kind=True)
+                                   allowed_kinds=REWRITABLE_RESUME_FACT_KINDS, include_kind=True)
 
 
 def apply_saved_user_rephrases(facts, selected_fact_ids, saved):
@@ -100,7 +101,7 @@ def apply_saved_user_rewrites(facts, selected_fact_ids, saved):
                 item.get('reviewed') is not True or
                 item.get('review_policy') != 'USER_CONFIRMED_FACTUAL_PARAPHRASE' or
                 type(item.get('source_text_sha256')) is not str or
-                item.get('fact_kind') not in {'summary','responsibility'}):
+                item.get('fact_kind') not in REWRITABLE_RESUME_FACT_KINDS):
             raise PreparationError('RESUME_REPHRASE_CONTEXT_INVALID', 'Saved resume wording review is invalid')
         requests.append({'fact_id':item['fact_id'],'text':item['text'],'reviewed':True})
     rewritten, expected = validate_user_rewrites(facts, selected_fact_ids, requests)

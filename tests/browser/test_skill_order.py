@@ -217,14 +217,18 @@ class SkillOrderBrowserTests(unittest.TestCase):
                 server.should_exit=True;thread.join(timeout=10);sock.close();store.engine.dispose()
                 self.assertFalse(thread.is_alive())
 
-    def test_user_reviewed_summary_adjustment_survives_reload_and_comparison(self):
+    def test_user_reviewed_summary_project_and_accomplishment_adjustments_survive_reload(self):
         with tempfile.TemporaryDirectory() as directory:
             root=Path(directory);store=Store(f"sqlite:///{(root/'summary.db').as_posix()}")
             store.migrate();store.bind_workspace_mode('FIXTURE')
             summary=dict(PROFILE['facts'][0],id='linux-summary',kind='summary',
                 text='Systems engineer with 12 years of Linux experience, 2012-2024.')
+            project=dict(PROFILE['facts'][0],id='recovery-project',kind='project',
+                text='Built a local-first recovery harness for 3 environments in 2021.')
+            achievement=dict(PROFILE['facts'][0],id='recovery-achievement',kind='accomplishment',
+                text='Reduced recovery time by 25% in 2022.')
             skill=dict(PROFILE['facts'][0],id='linux',kind='skill',text='Linux')
-            store.save_profile(dict(PROFILE,facts=[summary,skill]))
+            store.save_profile(dict(PROFILE,facts=[summary,project,achievement,skill]))
             with fixture_server() as fixture:discover(store,fixture,'fixture')
             job=store.jobs()[0]
             with store.engine.begin() as connection:
@@ -253,27 +257,41 @@ class SkillOrderBrowserTests(unittest.TestCase):
                     page.get_by_role('button').filter(has=page.get_by_role('heading',name=job['title'],exact=True)).click()
                     page.get_by_label('Order approved skills for this job',exact=True).check()
                     page.get_by_label('Choose resume facts',exact=True).check()
-                    page.get_by_label('Include '+summary['text'],exact=True).check()
-                    wording='Linux systems engineer with 12 years of experience, 2012-2024.'
-                    page.get_by_label('Rewrite this summary: '+summary['text'],exact=True).fill(wording)
-                    page.get_by_label('I reviewed this rewrite: '+summary['text'],exact=True).check()
+                    rewrites=[
+                        (summary,'Linux systems engineer with 12 years of experience, 2012-2024.','summary'),
+                        (project,'Created a recovery harness for 3 environments in 2021.','project bullet'),
+                        (achievement,'Cut recovery time by 25% in 2022.','accomplishment bullet'),
+                    ]
+                    for fact,wording,label in rewrites:
+                        page.get_by_label('Include '+fact['text'],exact=True).check()
+                        page.get_by_label(f'Rewrite this {label}: '+fact['text'],exact=True).fill(wording)
+                        page.get_by_label('I reviewed this rewrite: '+fact['text'],exact=True).check()
                     with page.expect_response(lambda response:response.url==origin+'/applications' and response.request.method=='POST') as event:
                         page.get_by_role('button',name='Prepare documents',exact=True).click()
                     operation=event.value.json();queued=event.value.request.post_data_json
-                    self.assertEqual(queued['tailor_fact_rewrites'],[{'fact_id':'linux-summary','text':wording,'reviewed':True}])
+                    self.assertEqual(queued['tailor_fact_rewrites'],[
+                        {'fact_id':fact['id'],'text':wording,'reviewed':True} for fact,wording,_ in rewrites])
                     with patch.dict('os.environ',MJOBS_DATABASE_URL=store.url,MJOBS_MOCK_ORIGIN='http://127.0.0.1:1',
                                     MJOBS_OUTPUT_DIR=str(root),MJOBS_OPERATION_MODE='FIXTURE'):
                         self.assertEqual(execute_operation(operation['operation_id'])['status'],'COMPLETED')
-                    summary_document=page.get_by_role('region',name='resume version 2',exact=True)
+                    tailored_document=page.get_by_role('region',name='resume version 2',exact=True)
                     with page.expect_download() as download:
-                        summary_document.get_by_role('link',name='Download TXT',exact=True).click()
-                    self.assertIn(wording,Path(download.value.path()).read_text(encoding='utf-8'))
+                        tailored_document.get_by_role('link',name='Download TXT',exact=True).click()
+                    rendered=Path(download.value.path()).read_text(encoding='utf-8')
+                    for fact,wording,_ in rewrites:
+                        self.assertIn(wording,rendered)
+                        self.assertNotIn(fact['text'],rendered)
                     page.reload();page.get_by_role('navigation').get_by_role('button',name='Applications',exact=False).first.click()
                     page.locator('.job-card').first.click()
                     comparison=page.get_by_role('region',name='Compare base and tailored resumes',exact=True)
                     comparison.get_by_role('button',name='Compare selected resumes',exact=True).click()
-                    changes=comparison.get_by_role('region',name='Summary changes',exact=True)
-                    expect(changes).to_contain_text(summary['text']);expect(changes).to_contain_text(wording)
+                    summary_changes=comparison.get_by_role('region',name='Summary changes',exact=True)
+                    expect(summary_changes).to_contain_text(summary['text'])
+                    expect(summary_changes).to_contain_text(rewrites[0][1])
+                    bullet_changes=comparison.get_by_role('region',name='Bullet and fact changes',exact=True)
+                    for fact,wording,_ in rewrites[1:]:
+                        expect(bullet_changes).to_contain_text(fact['text'])
+                        expect(bullet_changes).to_contain_text(wording)
                     self.assertEqual(store.profile('fixture'),before)
                     self.assertFalse(external)
                     context.close();browser.close()

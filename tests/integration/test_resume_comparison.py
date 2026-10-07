@@ -146,6 +146,57 @@ class ResumeComparisonTests(unittest.TestCase):
             self.store.save_profile(dict(original_profile,facts=[changed,skill]))
             self.assertEqual(client.get(url,params=params).json(),comparison)
 
+    def test_user_reviewed_project_and_accomplishment_rewrites_survive_reload_and_comparison(self):
+        project=dict(PROFILE['facts'][0],id='project',kind='project',
+            text='Built a local-first recovery harness for 3 environments in 2021.')
+        achievement=dict(PROFILE['facts'][0],id='achievement',kind='accomplishment',
+            text='Reduced recovery time by 25% in 2022.')
+        skill=dict(PROFILE['facts'][0],id='linux',kind='skill',text='Linux')
+        original_profile=dict(PROFILE,facts=[project,achievement,skill])
+        self.store.save_profile(original_profile)
+        profile_version=self.store.profile('fixture')['version']
+        with fixture_server() as origin:
+            discover(self.store,origin,'fixture')
+        job=self.store.jobs()[0]
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.id==job['id']).values(skills=['Linux']))
+        app=prepare(self.store,job['id'],'fixture',self.root)
+        base=next(row for row in application_documents(self.store,app) if row['kind']=='resume')
+        rewrites=[
+            {'fact_id':'project','text':'Created a recovery harness for 3 environments in 2021.','reviewed':True},
+            {'fact_id':'achievement','text':'Cut recovery time by 25% in 2022.','reviewed':True},
+        ]
+        prepare(self.store,job['id'],'fixture',self.root,tailor_resume=True,
+            tailor_fact_ids=['project','achievement'],tailor_fact_rewrites=rewrites,
+            profile_version=self.store.profile('fixture')['version'])
+        rows=application_documents(self.store,app)
+        target=next(row for row in rows if row['kind']=='resume' and row['version']==2)
+        cover=next(row for row in rows if row['kind']=='cover-letter' and row['version']==2)
+        self.assertEqual([item['fact_kind'] for item in target['generation_context']['fact_rephrases']],
+            ['project','accomplishment'])
+        target_text=(self.root/app/target['files']['txt']).read_text(encoding='utf-8')
+        cover_text=(self.root/app/cover['files']['txt']).read_text(encoding='utf-8')
+        for item,source in zip(rewrites,[project,achievement]):
+            self.assertIn(item['text'],target_text)
+            self.assertNotIn(source['text'],target_text)
+            self.assertNotIn(item['text'],cover_text)
+        self.assertEqual([row['text'] for row in self.store.profile('fixture')['facts']],
+            [row['text'] for row in original_profile['facts']])
+        self.assertEqual(self.store.profile('fixture')['version'],profile_version)
+        with TestClient(create_app(self.store,'http://127.0.0.1:1',self.root,operation_mode='FIXTURE')) as client:
+            url=f'/profiles/fixture/applications/{app}/document-comparison'
+            params={'base_document_id':base['id'],'tailored_document_id':target['id']}
+            response=client.get(url,params=params)
+            self.assertEqual(response.status_code,200,response.text)
+            comparison=response.json()
+            changes={item['before']['fact_id']:item for item in comparison['bullet_changes']}
+            for item,source in zip(rewrites,[project,achievement]):
+                self.assertEqual(changes[source['id']]['before']['text'],source['text'])
+                self.assertEqual(changes[source['id']]['after']['text'],item['text'])
+            current=dict(project,text='Changed current project profile text')
+            self.store.save_profile(dict(original_profile,facts=[current,achievement]))
+            self.assertEqual(client.get(url,params=params).json(),comparison)
+
     def test_unavailable_or_wrong_history_is_not_reported_as_unchanged(self):
         app,base,target=self.pair()
         with TestClient(create_app(self.store,'http://127.0.0.1:1',self.root,operation_mode='FIXTURE')) as client:
