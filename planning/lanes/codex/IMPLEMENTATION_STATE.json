@@ -6,7 +6,7 @@
   "current_issue": 111,
   "requirement_id": "MJ-REQ-110",
   "branch": "codex/mj-req110-review-consumer-20261006",
-  "head": "2c885656245529d994018d51430a59db6fbf8334",
+  "head": "4fe2fb30fb41ded176128e3bb6075ce9d5691ce0",
   "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req110-review-consumer-20261006",
   "result": "PARTIAL",
   "evidence_path": "docs/evidence/2026-10-06-ai-cost-review-gated-documents.json",
@@ -27,8 +27,8 @@
     "Ollama active claims",
     "canonical planning files outside integration lock"
   ],
-  "resume_instruction": "Issue #111 / MJ-REQ-110 remains PARTIAL on the claimed Codex branch. Current head 2c885656245529d994018d51430a59db6fbf8334 (tree abd21d609c824c20807606ee06aa87df188dd916) passed focused Python/API/browser/migration 20 tests, frontend 62 tests/build, agent-skills/catalogue/progress, compileall, and diff checks. Review-gated factual PREPARE worker previously completed with synthetic data and unchanged source. Live configured-provider inference remains NOT_RUN while the Ollama lane owns the shared runtime; PostgreSQL runtime checks, full Python discovery, and hosted verification remain NOT_RUN. External submission remains OFF. Do not edit canonical planning outside the integration lock.",
-  "last_verified_head": "2c885656245529d994018d51430a59db6fbf8334",
-  "last_verified_tree": "abd21d609c824c20807606ee06aa87df188dd916",
-  "last_verified_at_utc": "2026-10-07T01:21:39Z"
+  "resume_instruction": "Issue #111 / MJ-REQ-110 remains PARTIAL on the claimed Codex branch. Tested source head 4fe2fb30fb41ded176128e3bb6075ce9d5691ce0 (tree a040f3cbd714006cdaa3b2362071e5760f7caae9) passed focused Python/API/browser/migration 20 tests, frontend 62 tests/build, agent-skills/catalogue/progress, compileall, and diff checks. Review-gated factual PREPARE worker previously completed with synthetic data and unchanged source. Live configured-provider inference remains NOT_RUN while the Ollama lane owns the shared runtime; PostgreSQL runtime checks, full Python discovery, and hosted verification remain NOT_RUN. External submission remains OFF. Do not edit canonical planning outside the integration lock.",
+  "last_verified_head": "4fe2fb30fb41ded176128e3bb6075ce9d5691ce0",
+  "last_verified_tree": "a040f3cbd714006cdaa3b2362071e5760f7caae9",
+  "last_verified_at_utc": "2026-10-07T01:25:24Z"
 }

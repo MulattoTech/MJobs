@@ -40,3 +40,7 @@ Do not update canonical planning outside the integration lock. Continue only iss
 Current checked-out head 2c885656245529d994018d51430a59db6fbf8334 (tree abd21d609c824c20807606ee06aa87df188dd916) passed 20 focused Python/API/browser/migration tests, 62 frontend tests, the frontend build, agent-skill/catalogue/progress validators, compileall, and git diff --check. Source is unchanged from the previously accepted isolated synthetic PREPARE worker run.
 
 Status remains **PARTIAL / safely checkpointed**. Live configured-provider inference remains NOT_RUN while the active Ollama claim owns the shared runtime; PostgreSQL runtime checks, full Python discovery, and hosted verification remain NOT_RUN. External submission remains OFF. Evidence: docs/evidence/2026-10-06-ai-cost-review-gated-documents.json.
+
+## Claim refresh — 2026-10-07T01:25:24Z
+
+Fetched `origin/main` at `54be81542d9ab594c9418f15223e9c2aef02249d`; it is an ancestor of the claimed branch. No rebase or merge was needed, and the worktree was clean before validation. Current tested head `4fe2fb30fb41ded176128e3bb6075ce9d5691ce0` (tree `a040f3cbd714006cdaa3b2362071e5760f7caae9`) passed 20 focused Python/API/browser/migration tests, 62 frontend tests, frontend build, agent-skills/catalogue/progress validators, lane coordination validation, and `git diff --check`. Source files remain unchanged from the previously accepted synthetic PREPARE worker run. Live provider inference, PostgreSQL runtime checks, full Python discovery, and hosted checks remain NOT_RUN; external submission remains OFF.

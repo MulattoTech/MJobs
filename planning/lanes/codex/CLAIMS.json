@@ -21,7 +21,7 @@
         "tests/browser/test_ai_task_settings.py",
         "docs/evidence/2026-10-06-ai-cost-review-gated-documents.json"
       ],
-      "head": "5efb3406bbc605ba683b5b6250d11098c5507ab8",
+      "head": "4fe2fb30fb41ded176128e3bb6075ce9d5691ce0",
       "pid": null
     }
   ]
