@@ -14,27 +14,6 @@
       "note": "Integrated at main aa28501b0db8a00e9331d43347e2bbdfc3ed2b98. Uploaded-original comparison cancellation is durably shared across API instances; evidence docs/evidence/2026-10-07-uploaded-comparison-cross-instance-cancel.json. Focused 46/full Python 886 tests, connected browser, frontend 63/build, and local validators pass (one optional PostgreSQL skip). Broader issue #5 remains OPEN/PARTIAL."
     },
     {
-      "issue": 23,
-      "requirement_id": "MJ-REQ-022",
-      "status": "INTEGRATED_PASS",
-      "priority": 1,
-      "target_area": "apps/web/src/main.tsx; tests/browser/test_search_profile_selection.py",
-      "depends_on": ["MJ-REQ-023"],
-      "evidence_path": "docs/evidence/2026-10-07-search-profile-selection.json",
-      "scope_complete": true,
-      "note": "Integrated at main 805e52bab0528e562578f51f5426285af0163657. Connects profile-owned saved searches to the Jobs view and existing profile-aware API. Loopback Chromium test verifies filtered response/readback, clearing, career-profile switching/isolation, and database reopen. Focused 18 Python tests, frontend 63 tests/build, and repository validators pass. Hosted checks NOT_RUN by policy; external submission OFF."
-    },
-    {
-      "issue": 403,
-      "requirement_id": "MJ-REF-033",
-      "status": "INTEGRATED_PARTIAL",
-      "priority": 1,
-      "target_area": "services/agents; tests/unit; tests/integration",
-      "evidence_path": "docs/evidence/2026-10-07-agent-run-budget-output-validation.json",
-      "scope_complete": false,
-      "note": "Integrated as a scoped PARTIAL slice: agent run time/step stop outcomes and typed collection count/tail/shape validation are locally verified. Actual browser collection integration, page budgets, bounded diagnostic slice reruns, and hard preemption of an in-flight synchronous handler remain open."
-    },
-    {
       "issue": 6,
       "requirement_id": "MJ-REQ-005",
       "status": "ACTIVE_PARTIAL",
@@ -53,6 +32,19 @@
       "evidence_path": "docs/evidence/2026-10-07-product-worker-crash-recovery.json",
       "scope_complete": false,
       "note": "The durable product worker recovers after process kill; worker attempt fencing prevents an expired worker from publishing after replacement claim. Full Python 851 PASS with 1 optional PostgreSQL skip; issue #9 remains OPEN/PARTIAL. Source d516834ac3bd48352ef3aa8885a1de1fffe53419. Physical host and browser-process recovery remain untested. Integrated at main 74403d136e42cde684d9cb4638a2c75d11c07e06."
+    },
+    {
+      "issue": 23,
+      "requirement_id": "MJ-REQ-022",
+      "status": "INTEGRATED_PASS",
+      "priority": 1,
+      "target_area": "apps/web/src/main.tsx; tests/browser/test_search_profile_selection.py",
+      "depends_on": [
+        "MJ-REQ-023"
+      ],
+      "evidence_path": "docs/evidence/2026-10-07-search-profile-selection.json",
+      "scope_complete": true,
+      "note": "Integrated at main 805e52bab0528e562578f51f5426285af0163657. Connects profile-owned saved searches to the Jobs view and existing profile-aware API. Loopback Chromium test verifies filtered response/readback, clearing, career-profile switching/isolation, and database reopen. Focused 18 Python tests, frontend 63 tests/build, and repository validators pass. Hosted checks NOT_RUN by policy; external submission OFF."
     },
     {
       "issue": 381,
@@ -76,6 +68,27 @@
       "scope_complete": true,
       "note": "All issue acceptance locally evidenced: durable terminal state/reason/timestamps and attempt count, stable idempotency identity, audited retry/discard, ambiguous-submission retry block, profile-scoped queue depth/reason, reload/history, SQLite and PostgreSQL 17 migrations. Full Python 875 PASS (1 optional PostgreSQL concurrency skip); frontend 63 PASS/build; connected browser; local validators PASS. Hosted checks/review NOT_RUN by user policy; external submission OFF. Broader original requirements remain incomplete.",
       "integration_commit": "b778917a56d266a50f3cb1e21c9f4220bb20a28c"
+    },
+    {
+      "issue": 403,
+      "requirement_id": "MJ-REF-033",
+      "status": "INTEGRATED_PARTIAL",
+      "priority": 1,
+      "target_area": "services/agents; tests/unit; tests/integration",
+      "evidence_path": "docs/evidence/2026-10-07-agent-run-budget-output-validation.json",
+      "scope_complete": false,
+      "note": "Integrated as a scoped PARTIAL slice: agent run time/step stop outcomes and typed collection count/tail/shape validation are locally verified. Actual browser collection integration, page budgets, bounded diagnostic slice reruns, and hard preemption of an in-flight synchronous handler remain open."
+    },
+    {
+      "issue": 375,
+      "requirement_id": "MJ-REF-005",
+      "status": "READY_LOCAL_PASS",
+      "priority": 2,
+      "target_area": "services/ai/tasks.py; apps/api/main.py; apps/web/src/main.tsx; tests/unit; tests/integration; tests/browser",
+      "depends_on": [],
+      "evidence_path": "docs/evidence/2026-10-07-no-ai-fallback.json",
+      "scope_complete": true,
+      "note": "Per-task fallback capability is exposed through profile-scoped API/UI; deterministic matching and safe factual document preparation pass with every task provider disabled. Full Python suite 889 PASS (1 optional PostgreSQL skip), frontend 63 PASS/build PASS, connected browser 2 PASS. Candidate source 5f220ed17c51e148de71712485f497707704fdee; canonical reference matrix/report pending integration lock. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF."
     }
   ]
 }

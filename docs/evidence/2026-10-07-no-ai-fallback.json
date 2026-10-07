@@ -1,0 +1,116 @@
+{
+  "evidence_id": "MJ-REF-005-NO-AI-FALLBACK",
+  "recorded_at": "2026-10-07T10:09:20Z",
+  "result": "PASS",
+  "scope": "Per-task truthful no-provider capability reporting, with deterministic matching and factual document preparation remaining usable when all configured AI tasks are disabled.",
+  "authority": {
+    "repository": "MulattoTech/MJobs",
+    "issue": 375,
+    "reference_gap_id": "MJ-REF-005",
+    "base_main": "e455c8e05ee5f826918c7c353fc7968994a35be1",
+    "candidate_branch": "codex/mj-ref005-no-ai-fallback-20261007",
+    "source_candidate": "5f220ed17c51e148de71712485f497707704fdee",
+    "source_tree": "08241a82986438919be746c491f3f3dd52fe1d59"
+  },
+  "source_sha256": {
+    "services/ai/tasks.py": "850ce6f8f015c4a1a6e5a58a57532215412660b71b442de598b468d20b4498d3",
+    "apps/api/main.py": "b3d7e54996669e30f98ae27a8c4a514622dd0b676a6af1b6043f6c4611b6d270",
+    "apps/web/src/main.tsx": "9d63b8d3b0fe714d27b52d90efc2294f191d949580c6993a96902269ce397853",
+    "tests/unit/test_ai_task_configuration.py": "c487ac8043756f5b4c9a9f275ebb9050faf2f4573473a6a8f1e47273fd089c14",
+    "tests/integration/test_ai_task_settings_api.py": "2f48d405073d4de791510affa0e23d69b38964ff1b0933530f81131df997a094",
+    "tests/browser/test_ai_task_settings.py": "fcc06d1f391091fb7a68bc57a56d9c3bd60a68d7231968bc24bd319bd9e38f81"
+  },
+  "environment": {
+    "os": "Windows-11-10.0.26300-SP0",
+    "python": "3.12.10",
+    "node": "v25.9.0",
+    "database": "temporary SQLite test stores",
+    "browser": "local Chromium via Playwright"
+  },
+  "observations": [
+    {
+      "timestamp_utc": "2026-10-07T10:09:20Z",
+      "action": "Reproduce missing explicit fallback contract before implementation",
+      "command": "focused new unit and API integration tests",
+      "target": "candidate behavior on base e455c8e",
+      "result": "RED: missing fallback_capabilities catalog and API response; no source was changed before this observation."
+    },
+    {
+      "timestamp_utc": "2026-10-07T10:09:20Z",
+      "action": "Run focused AI task configuration and settings API tests",
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_ai_task_configuration tests.integration.test_ai_task_settings_api -v",
+      "target": "5f220ed17c51e148de71712485f497707704fdee",
+      "result": "PASS: 12 tests, including disabled-provider matching and durable factual resume/cover-letter preparation; create_provider patched to fail if the deterministic path calls a provider."
+    },
+    {
+      "timestamp_utc": "2026-10-07T10:09:20Z",
+      "action": "Build production frontend",
+      "command": "npm run build --prefix apps/web",
+      "target": "5f220ed17c51e148de71712485f497707704fdee",
+      "result": "PASS: TypeScript check and Vite production build."
+    },
+    {
+      "timestamp_utc": "2026-10-07T10:09:20Z",
+      "action": "Run frontend unit suite",
+      "command": "npm test --prefix apps/web -- --run",
+      "target": "5f220ed17c51e148de71712485f497707704fdee",
+      "result": "PASS: 13 files, 63 tests."
+    },
+    {
+      "timestamp_utc": "2026-10-07T10:09:20Z",
+      "action": "Run connected AI settings browser acceptance",
+      "command": "python -m unittest tests.browser.test_ai_task_settings.AITaskSettingsBrowserTests.test_settings_save_reload_and_remain_isolated_between_profiles -v",
+      "target": "5f220ed17c51e148de71712485f497707704fdee",
+      "result": "PASS: visible per-task fallback modes, approved-fact safety language, persistence after reload, and profile-isolated AI task settings."
+    },
+    {
+      "timestamp_utc": "2026-10-07T10:09:20Z",
+      "action": "Run affected deterministic document, matching, task-settings and spine suites",
+      "command": "python -m unittest tests.unit.test_ai_task_configuration tests.integration.test_ai_task_settings_api tests.unit.test_cover_letter tests.integration.test_resume_selection tests.integration.test_spine -v",
+      "target": "5f220ed17c51e148de71712485f497707704fdee",
+      "result": "PASS: 25 tests."
+    },
+    {
+      "timestamp_utc": "2026-10-07T10:09:20Z",
+      "action": "Run demo-readiness regression and AI-settings browser acceptance after consolidating profile settings fetch",
+      "command": "python -m unittest tests.browser.test_fact_review.FactReviewBrowserTests.test_demo_profile_stays_read_only_until_saved_version_loads tests.browser.test_ai_task_settings.AITaskSettingsBrowserTests.test_settings_save_reload_and_remain_isolated_between_profiles -v",
+      "target": "5f220ed17c51e148de71712485f497707704fdee",
+      "result": "PASS: 2 connected Chromium tests. Consolidating fallback metadata into the existing profile-settings request avoids adding a second profile read."
+    },
+    {
+      "timestamp_utc": "2026-10-07T10:09:20Z",
+      "action": "Run the complete local Python unit, integration and browser discovery suite on the final source head",
+      "command": "python -m unittest discover -s tests",
+      "target": "5f220ed17c51e148de71712485f497707704fdee",
+      "result": "PASS: 889 tests in 528.533 seconds; one optional PostgreSQL test skipped because no live PostgreSQL service is configured."
+    },
+    {
+      "timestamp_utc": "2026-10-07T10:09:20Z",
+      "action": "Run repository skills, catalogue, progress and whitespace validators",
+      "command": "python -m tools.verification.agent_skills; python -m tools.verification.catalogue; python -m tools.verification.progress validate; git diff --check",
+      "target": "5f220ed17c51e148de71712485f497707704fdee",
+      "result": "PASS: all validators and whitespace check."
+    }
+  ],
+  "verified_behavior": [
+    "Every configured AI task has an explicit fallback mode and user-facing description; an import-time assertion prevents the policy catalog from silently omitting a newly added task.",
+    "Matching and filtering produce a numeric deterministic match with all AI task providers disabled.",
+    "The factual document workflow prepares a resume and cover letter from the selected profile and posting. Resume provenance includes approved fact identifiers and the current profile version.",
+    "The test patches provider construction to raise if the no-AI matching or document path attempts provider inference.",
+    "The settings API returns fallback capabilities while leaving persisted per-profile task configuration unchanged. The UI reports all seven behaviors and clears them when switching profiles until the selected profile response arrives.",
+    "The browser test verifies visible capability labels, profile task-settings persistence across reload, and isolation between profiles."
+  ],
+  "limitations": [
+    "No delayed task queue is claimed; tasks without deterministic behavior are explicitly UNAVAILABLE.",
+    "The complete suite uses synthetic fixtures and temporary SQLite stores. One optional live PostgreSQL test was skipped because PostgreSQL was not configured; no migration or live PostgreSQL claim is made.",
+    "Hosted Actions and hosted reviewers were NOT_RUN under the active local-only policy. Their status is not represented as PASS.",
+    "No product AI provider was invoked, no paid/cloud service was contacted, and external application submission remained OFF."
+  ],
+  "integration_receipt": {
+    "status": "PENDING_LOCAL_INTEGRATION",
+    "method": "PENDING",
+    "candidate_branch": "codex/mj-ref005-no-ai-fallback-20261007",
+    "candidate_source_commit": "5f220ed17c51e148de71712485f497707704fdee",
+    "hosted_checks": "NOT_RUN_BY_USER_POLICY"
+  }
+}
