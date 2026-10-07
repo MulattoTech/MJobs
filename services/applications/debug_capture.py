@@ -95,6 +95,13 @@ def append_diagnostic_event(events, source, url, message):
     return event
 
 
+def append_console_error(events, message, url):
+    """Keep only error-level console records, never ordinary page logging."""
+    if getattr(message, "type", None) != "error":
+        return None
+    return append_diagnostic_event(events, "console", url, getattr(message, "text", ""))
+
+
 def _atomic_json(path, value):
     """Write a complete JSON artifact or leave no partial destination behind."""
     temporary = path.with_name(f".{path.name}.{secrets.token_hex(8)}.tmp")

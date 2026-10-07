@@ -7,6 +7,7 @@ from pathlib import Path
 
 from services.applications.debug_capture import (
     append_diagnostic_event,
+    append_console_error,
     capture_browser_failure,
     prune_debug_captures,
     sanitize_debug_url,
@@ -83,6 +84,20 @@ class BrowserDebugCaptureTests(unittest.TestCase):
             "https://example.test/:redacted/:redacted",
         )
         self.assertEqual(sanitize_debug_url("file:///private/resume.pdf"), "")
+
+    def test_console_capture_ignores_non_error_messages(self):
+        class ConsoleMessage:
+            def __init__(self, message_type, text):
+                self.type = message_type
+                self.text = text
+
+        events = []
+        append_console_error(events, ConsoleMessage("log", "PRIVATE_NORMAL_LOG"), "https://example.test")
+        append_console_error(events, ConsoleMessage("error", "PRIVATE_CONSOLE_ERROR"), "https://example.test")
+
+        self.assertEqual(len(events), 1)
+        self.assertEqual(events[0]["source"], "console")
+        self.assertNotIn("PRIVATE", json.dumps(events))
 
     def test_event_buffer_and_capture_retention_are_bounded(self):
         now = datetime(2026, 10, 7, 15, tzinfo=timezone.utc)

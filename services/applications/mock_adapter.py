@@ -20,6 +20,7 @@ from services.applications.preflight import (
 )
 from services.applications.debug_capture import (
     append_diagnostic_event,
+    append_console_error,
     capture_browser_failure,
 )
 from services.documents.errors import PreparationError
@@ -242,9 +243,9 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
                     context.route("**/*", lambda route: route.continue_() if client.allowed(route.request.url) else route.abort())
                     page = context.new_page()
                     if debug_capture:
-                        page.on("console", lambda message: append_diagnostic_event(
-                            browser_events, "console", getattr(message, "location", {}).get("url", page.url),
-                            getattr(message, "text", "")))
+                        page.on("console", lambda message: append_console_error(
+                            browser_events, message,
+                            getattr(message, "location", {}).get("url", page.url)))
                         page.on("pageerror", lambda error: append_diagnostic_event(
                             browser_events, "pageerror", page.url, error))
                         page.on("requestfailed", lambda request: append_diagnostic_event(
