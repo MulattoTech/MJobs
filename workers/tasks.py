@@ -36,7 +36,7 @@ def execute_operation(operation_id):
             deadline = time.monotonic() + timeout()
 
             def remaining_seconds():
-                check_cancelled(store, operation_id)
+                check_cancelled(store, operation_id, operation["attempt_count"])
                 remaining = deadline - time.monotonic()
                 if remaining <= 0:
                     raise OperationTimedOut("OPERATION_TIMEOUT")

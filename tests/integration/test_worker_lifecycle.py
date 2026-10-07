@@ -1,7 +1,12 @@
 """Durable operation ownership, cancellation and expiry contracts."""
 from datetime import datetime, timedelta, timezone
+import json
+import os
 from pathlib import Path
+import subprocess
+import sys
 import tempfile
+import threading
 import time
 import unittest
 from unittest.mock import patch
@@ -109,6 +114,104 @@ class WorkerLifecycleTests(unittest.TestCase):
         self.assertEqual(saved["state"], "FAILED")
         self.assertEqual(saved["error"], "OPERATION_TIMEOUT")
 
+    def test_reclaimed_attempt_fences_original_worker_before_side_effect(self):
+        operation = enqueue_operation(self.store, "DISCOVER", "fixture", {"rescore_only": True})
+        entered = threading.Event()
+        resume = threading.Event()
+        side_effects = []
+        result = []
+
+        def paused_recalculate(_store, _profile_id, *, check):
+            entered.set()
+            if not resume.wait(5):
+                raise TimeoutError("test did not release the stale worker")
+            check()
+            side_effects.append("published")
+
+        with patch.dict("os.environ", MJOBS_DATABASE_URL=self.store.url,
+                        MJOBS_MOCK_ORIGIN="http://127.0.0.1:8090",
+                        MJOBS_OUTPUT_DIR=str(self.root), MJOBS_OPERATION_MODE="FIXTURE"), \
+                patch("workers.tasks.recalculate", side_effect=paused_recalculate):
+            worker = threading.Thread(target=lambda: result.append(execute_operation(operation)), daemon=True)
+            worker.start()
+            try:
+                self.assertTrue(entered.wait(5), "worker did not enter its operation")
+                first_attempt = self.read(operation)["attempt_count"]
+                self.expired(operation)
+                self.assertEqual(recover_expired(self.store), 1)
+                replacement = claim(self.store, operation)
+                self.assertEqual(replacement["attempt_count"], first_attempt + 1)
+            finally:
+                resume.set()
+                worker.join(5)
+
+        self.assertFalse(worker.is_alive(), "worker did not stop after losing its claim")
+        self.assertEqual(result[0]["status"], "OWNERSHIP_EXPIRED")
+        self.assertEqual(side_effects, [])
+        saved = self.read(operation)
+        self.assertEqual(saved["state"], "RUNNING")
+        self.assertEqual(saved["attempt_count"], first_attempt + 1)
+
+    def test_product_worker_process_crash_recovers_from_durable_lease(self):
+        operation = enqueue_operation(self.store, "DISCOVER", "fixture", {"rescore_only": True})
+        marker = self.root / "worker-entered-operation.marker"
+        script = """
+import json, sys, time
+from pathlib import Path
+from workers import tasks
+operation_id, marker_path, mode = sys.argv[1:]
+if mode == "crash":
+    def block_until_killed(*_args, **_kwargs):
+        Path(marker_path).write_text("entered", encoding="utf-8")
+        while True:
+            time.sleep(0.05)
+    tasks.recalculate = block_until_killed
+print(json.dumps(tasks.execute_operation(operation_id)), flush=True)
+"""
+        environment = {
+            key: os.environ[key]
+            for key in ("PATH", "SYSTEMROOT", "WINDIR", "TEMP", "TMP")
+            if key in os.environ
+        }
+        environment.update({
+            "MJOBS_DATABASE_URL": self.store.url,
+            "MJOBS_MOCK_ORIGIN": "http://127.0.0.1:8090",
+            "MJOBS_OUTPUT_DIR": str(self.root),
+            "MJOBS_OPERATION_MODE": "FIXTURE",
+        })
+        project_root = Path(__file__).resolve().parents[2]
+        crashed_worker = subprocess.Popen(
+            [sys.executable, "-c", script, operation, str(marker), "crash"],
+            cwd=project_root, env=environment, stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE, text=True,
+        )
+        try:
+            deadline = time.monotonic() + 10
+            while not marker.exists() and time.monotonic() < deadline:
+                if crashed_worker.poll() is not None:
+                    stdout, stderr = crashed_worker.communicate()
+                    self.fail(f"worker exited before crash point: {stdout} {stderr}")
+                time.sleep(0.02)
+            self.assertTrue(marker.exists(), "worker did not reach the crash point")
+            self.assertEqual(self.read(operation)["state"], "RUNNING")
+            crashed_worker.kill()
+            crashed_worker.communicate(timeout=5)
+        finally:
+            if crashed_worker.poll() is None:
+                crashed_worker.kill()
+                crashed_worker.communicate(timeout=5)
+
+        self.expired(operation)
+        self.assertEqual(recover_expired(self.store), 1)
+        self.assertEqual(self.read(operation)["state"], "QUEUED")
+        completed_worker = subprocess.run(
+            [sys.executable, "-c", script, operation, str(marker), "resume"],
+            cwd=project_root, env=environment, capture_output=True, text=True, timeout=15,
+        )
+        self.assertEqual(completed_worker.returncode, 0, completed_worker.stderr)
+        self.assertEqual(json.loads(completed_worker.stdout)["status"], "COMPLETED")
+        self.assertEqual(self.read(operation)["state"], "COMPLETED")
+
     def test_application_worker_exposes_its_remaining_monotonic_budget(self):
         with fixture_server() as origin:
             discover(self.store, origin, "fixture")
@@ -215,10 +318,10 @@ class WorkerLifecycleTests(unittest.TestCase):
             discover(self.store, origin, "fixture")
             application = prepare(self.store, self.store.jobs()[0]["id"], "fixture", self.root)
             operation = enqueue_operation(self.store, "APPLY_MOCK", application, {"submit": True})
-            def cancel_in_form(store, identifier):
+            def cancel_in_form(store, identifier, attempt_count=None):
                 if store.application(application)["state"] == "FILLING":
                     request_cancel(store, identifier)
-                check_cancelled(store, identifier)
+                check_cancelled(store, identifier, attempt_count)
             with patch.dict("os.environ", MJOBS_DATABASE_URL=self.store.url, MJOBS_MOCK_ORIGIN=origin, MJOBS_OUTPUT_DIR=str(self.root), MJOBS_OPERATION_MODE="FIXTURE"), patch("workers.tasks.check_cancelled", side_effect=cancel_in_form):
                 result = execute_operation(operation)
         self.assertEqual(result["status"], "CANCELLED")

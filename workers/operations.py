@@ -164,10 +164,14 @@ def inline_cancel_requested(store, operation_id):
     return row is None or row.cancel_requested or row.state != "RUNNING"
 
 
-def check_cancelled(store, operation_id):
+def check_cancelled(store, operation_id, attempt_count=None):
     with store.engine.connect() as connection:
-        row = connection.execute(select(m.operations.c.cancel_requested, m.operations.c.state).where(m.operations.c.id == operation_id)).one()
-    if row.cancel_requested or row.state != "RUNNING":
+        row = connection.execute(select(
+            m.operations.c.cancel_requested, m.operations.c.state,
+            m.operations.c.attempt_count,
+        ).where(m.operations.c.id == operation_id)).one()
+    if (row.cancel_requested or row.state != "RUNNING"
+            or (attempt_count is not None and row.attempt_count != attempt_count)):
         raise OperationCancelled("Operation no longer authorized to continue")
 
 
