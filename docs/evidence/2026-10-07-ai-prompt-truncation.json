@@ -25,10 +25,11 @@
     "focused_unit_result": "PASS - 47 tests.",
     "api_integration_command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_ai_cost_policy_api",
     "api_integration_result": "PASS - 16 tests.",
-    "full_python_command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest discover -s tests",
-    "full_python_result": "FAIL - 854 tests ran; 2 failures, 7 errors, and 18 skips. The complete test output was truncated by the terminal. Two browser cases were reproduced separately: document-history navigation timed out waiting for the Applications button, and manual-job-capture returned API Not Found instead of its expected view.",
+    "full_python_command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest discover -s tests (after npm ci and npm run build --prefix apps/web)",
+    "full_python_result": "PASS - 854 tests ran; zero failures/errors and one optional PostgreSQL skip in 508.359 seconds.",
+    "initial_full_python_attempt": "FAIL - 854 tests ran; 2 failures, 7 errors, and 18 skips because this isolated worktree lacked ignored apps/web/dist and apps/web/node_modules. The two reproduced browser cases failed to load UI routes. After npm ci and the frontend build restored the ignored bundle, both cases passed independently and the full suite passed.",
     "reproduced_browser_command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_document_history tests.browser.test_manual_job_capture -v",
-    "reproduced_browser_result": "FAIL - 2 tests: one error and one failure, with the unrelated route/navigation symptoms stated above.",
+    "reproduced_browser_result": "PASS after preparing the ignored frontend bundle - both tests passed in 13.662 seconds.",
     "repository_checks": [
       "python -m tools.verification.agent_skills",
       "python -m tools.verification.catalogue",
@@ -41,8 +42,9 @@
   },
   "environment": {
     "python": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe (Python 3.12)",
-    "database": "No database migration changed; the full repository suite ran SQLite migration tests but ended with failures/errors.",
-    "browser": "The full suite's browser tests produced failures/errors; no focused browser acceptance for the AI prompt path applies.",
+    "database": "No database migration changed; the full repository suite exercised SQLite migration tests.",
+    "browser": "No browser acceptance for the AI prompt behavior applies. The full-suite browser tests passed after preparing the ignored frontend bundle in this worktree.",
+    "frontend_build": "npm ci and npm run build --prefix apps/web PASS; Node v25.9.0 is outside Vitest's declared engine range, and npm reported zero vulnerabilities. The build restored ignored apps/web/dist and apps/web/node_modules required by this isolated worktree's browser tests.",
     "postgresql": "NOT_RUN - no database code or migration changed.",
     "frontend": "NOT_RUN - no UI code changed.",
     "hosted_checks_and_review": "NOT_RUN_BY_USER_POLICY",
@@ -50,7 +52,7 @@
   },
   "limitations": [
     "Issue #381 / MJ-REF-011 remains OPEN/PARTIAL; nested operation-scoped budgets and full persisted timeout/cancellation behavior are outside this slice.",
-    "The complete Python suite is not PASS: it reported 2 failures, 7 errors, and 18 skips. The full failure detail was not preserved from the truncated terminal output; two unrelated browser failures were independently reproduced.",
+    "The first full-suite run failed because ignored frontend build artifacts were absent in the new worktree; after restoring those artifacts, the full suite passed with one optional PostgreSQL skip.",
     "No product provider calls, paid/cloud AI calls, hosted checks, external application submissions, or private user data were used."
   ]
 }
