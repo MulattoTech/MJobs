@@ -15,6 +15,7 @@ from services.discovery.company_feed import import_company_feed_jobs
 from services.discovery.pipeline import discover
 from services.discovery.matching import recalculate
 from services.documents.generate import prepare
+from services.discovery.search_profiles import save_search_profile
 from tests.integration.test_spine import PROFILE
 
 
@@ -126,6 +127,46 @@ class AuditHistoryApiTests(unittest.TestCase):
         after_added = [event for event in after if event["type"] == "SETTING_CHANGED"
                        and event["id"] not in before_ids]
         self.assertEqual(after_added, added)
+
+    def test_changed_search_profile_appends_generic_setting_event_once(self):
+        search_profile = {
+            "id": "audit-search-profile",
+            "profile_id": "fixture",
+            "name": "Synthetic saved search",
+            "include_titles": ["Private synthetic search phrase"],
+            "source_ids": [],
+        }
+        before = self.client.get("/profiles/fixture/audit-history").json()["events"]
+        before_setting_ids = {event["id"] for event in before
+                              if event["type"] == "SETTING_CHANGED"}
+
+        save_search_profile(self.store, search_profile)
+        created = self.client.get("/profiles/fixture/audit-history").json()["events"]
+        self.assertEqual({event["id"] for event in created
+                          if event["type"] == "SETTING_CHANGED"}, before_setting_ids)
+
+        save_search_profile(self.store, {**search_profile, "enabled": False})
+        changed = self.client.get("/profiles/fixture/audit-history")
+        self.assertEqual(changed.status_code, 200, changed.text)
+        changed_events = [event for event in changed.json()["events"]
+                          if event["type"] == "SETTING_CHANGED"
+                          and event["id"] not in before_setting_ids]
+        self.assertEqual(len(changed_events), 1)
+        self.assertEqual(changed_events[0]["summary"], "A profile setting changed")
+        self.assertNotIn("Private synthetic search phrase", changed.text)
+        with self.store.engine.connect() as connection:
+            payload = connection.execute(select(m.audit.c.payload).where(
+                m.audit.c.id == changed_events[0]["id"])).scalar_one()
+        self.assertEqual(payload, {})
+
+        save_search_profile(self.store, {**search_profile, "enabled": False})
+        repeated = self.client.get("/profiles/fixture/audit-history").json()["events"]
+        self.assertEqual(len([event for event in repeated
+                              if event["type"] == "SETTING_CHANGED"]),
+                         len(before_setting_ids) + 1)
+        other_profile = self.client.get("/profiles/other/audit-history").json()["events"]
+        self.assertFalse(any(event["id"] == changed_events[0]["id"]
+                             for event in other_profile))
 
     def test_new_feed_posting_attached_to_existing_job_records_profile_merge_once(self):
         company_id = "audit-merge-company"

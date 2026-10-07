@@ -19,6 +19,7 @@ from fixtures.mock_server import fixture_server
 from services.applications.mock_adapter import apply_mock
 from services.documents.generate import prepare
 from services.discovery.pipeline import discover
+from services.discovery.search_profiles import save_search_profile
 from services.tracking.applications import add_application_note, set_application_pipeline_status
 from workers.dispatch import enqueue_operation
 from workers.operations import claim
@@ -38,6 +39,12 @@ class AuditHistoryBrowserTests(unittest.TestCase):
             store.save_profile(dict(PROFILE))
             store.save_profile({**PROFILE, "id": "other", "name": "Other Synthetic Applicant",
                                 "email": "other@example.invalid"})
+            save_search_profile(store, {
+                "id": "browser-audit-search-profile",
+                "profile_id": "fixture",
+                "name": "Synthetic saved search",
+                "include_titles": ["Private synthetic search phrase"],
+            })
             with fixture_server() as fixture_origin:
                 discover(store, fixture_origin, "fixture")
                 application_id = prepare(store, store.jobs("fixture")[0]["id"],
@@ -139,17 +146,40 @@ class AuditHistoryBrowserTests(unittest.TestCase):
                     expect(history).not_to_contain_text("job_scoring")
                     expect(history).not_to_contain_text("ollama")
                     expect(history).not_to_contain_text("llama3.2:3b")
+                    before_search_setting_ids = page.evaluate("""async () => {
+                        const response = await fetch('/profiles/fixture/audit-history');
+                        const history = await response.json();
+                        return history.events.filter(event => event.type === 'SETTING_CHANGED')
+                            .map(event => event.id);
+                    }""")
+                    page.get_by_role("button", name="Sources", exact=True).click()
+                    page.get_by_role("button", name="Pause", exact=True).click()
+                    expect(page.get_by_role("button", name="Resume", exact=True)).to_be_visible()
+                    after_search_settings = page.evaluate("""async () => {
+                        const response = await fetch('/profiles/fixture/audit-history');
+                        const history = await response.json();
+                        return history.events.filter(event => event.type === 'SETTING_CHANGED')
+                            .map(event => event.id);
+                    }""")
+                    new_search_setting_ids = [event_id for event_id in after_search_settings
+                                              if event_id not in before_search_setting_ids]
+                    self.assertEqual(len(new_search_setting_ids), 1)
+                    page.get_by_role("button", name="Activity", exact=True).click()
+                    history = page.get_by_role("list", name="Audit history")
+                    expect(history).to_contain_text("A profile setting changed")
+                    expect(history).not_to_contain_text("Private synthetic search phrase")
                     page.reload(wait_until="domcontentloaded")
                     page.get_by_role("button", name="Activity", exact=True).click()
-                    expect(page.get_by_role("list", name="Audit history")).to_contain_text(
-                        "A profile setting changed")
-                    expect(page.get_by_role("list", name="Audit history")).not_to_contain_text(
-                        "other-private-setting")
-                    expect(page.get_by_role("list", name="Audit history")).to_contain_text(
-                        "Application status reported by you")
-                    expect(page.get_by_role("list", name="Audit history")).to_contain_text(
+                    reloaded_history = page.get_by_role("list", name="Audit history")
+                    expect(reloaded_history).to_contain_text("A profile setting changed")
+                    self.assertEqual(reloaded_history.locator("li").filter(
+                        has_text="A profile setting changed").count(),
+                        len(before_search_setting_ids) + 1)
+                    expect(reloaded_history).not_to_contain_text("other-private-setting")
+                    expect(reloaded_history).to_contain_text("Application status reported by you")
+                    expect(reloaded_history).to_contain_text(
                         "Application submitted to the local mock ATS")
-                    expect(page.get_by_role("list", name="Audit history")).to_contain_text(
+                    expect(reloaded_history).to_contain_text(
                         "New source posting attached to an existing job")
                     page.get_by_role("button", name="Profile", exact=True).click()
                     page.get_by_label("Active profile", exact=True).select_option("other")

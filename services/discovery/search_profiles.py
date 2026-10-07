@@ -162,6 +162,13 @@ def save_search_profile(store, data):
         existing = connection.execute(select(m.search_profiles).where(
             m.search_profiles.c.id == data["id"])).mappings().one_or_none()
         created_at = existing["created_at"] if existing else timestamp
+        changed = existing is not None and any((
+            existing["profile_id"] != data["profile_id"],
+            existing["name"] != data["name"].strip(),
+            existing["enabled"] != data.get("enabled", True),
+            existing["criteria"] != criteria,
+            existing["source_ids"] != source_ids,
+        ))
         upsert(connection, m.search_profiles, {
             "id": data["id"],
             "profile_id": data["profile_id"],
@@ -177,6 +184,9 @@ def save_search_profile(store, data):
             "enabled": data.get("enabled", True),
             "source_count": len(source_ids),
         })
+        if changed:
+            for profile_id in sorted({existing["profile_id"], data["profile_id"]}):
+                store._audit(connection, profile_id, "SETTING_CHANGED", {})
     return data["id"]
 
 
