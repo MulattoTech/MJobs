@@ -68,8 +68,36 @@
         "docs/evidence/2026-10-07-postgres-concurrency-runtime.json",
         "planning/lanes/codex/**"
       ],
+      "status": "RELEASED",
+      "claimed_at": "2026-10-07T10:58:08Z",
+      "released_at": "2026-10-07T11:06:23Z"
+    },
+    {
+      "issue": 96,
+      "requirement_id": "MJ-REQ-095",
+      "branch": "codex/mj-req095-summary-adjustment-20261007",
+      "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req095-summary-adjustment-20261007",
+      "head": "964bb555255d7437b58b87e852692522447c40d2",
+      "paths": [
+        "services/documents/tailor.py",
+        "services/documents/templates.py",
+        "services/documents/generate.py",
+        "services/documents/validation.py",
+        "services/documents/comparison.py",
+        "apps/api/main.py",
+        "apps/web/src/main.tsx",
+        "apps/web/src/resume-fact-selection.tsx",
+        "apps/web/src/resume-comparison.tsx",
+        "workers/tasks.py",
+        "tests/unit/test_resume_comparison.py",
+        "tests/integration/test_resume_comparison.py",
+        "tests/browser/test_skill_order.py",
+        "docs/evidence/2026-10-07-resume-user-reviewed-summary-adjustment.json",
+        "planning/lanes/codex/**"
+      ],
       "status": "ACTIVE",
-      "claimed_at": "2026-10-07T10:58:08Z"
+      "claimed_at": "2026-10-07T11:03:37Z",
+      "evidence_path": "docs/evidence/2026-10-07-resume-user-reviewed-summary-adjustment.json"
     }
   ]
 }

@@ -107,6 +107,20 @@
       "note": "Local issue acceptance PASS at source 63142751719eb7b52f5fafd2e93dc47a6f53aa51 with evidence docs/evidence/2026-10-07-external-application-capture.json: focused integration 10, connected browser 6, frontend 63/build, full Python 895 (one optional PostgreSQL skip), local validators PASS. Hosted checks NOT_RUN_BY_USER_POLICY. Canonical planning remains integration-lock owned.",
       "scope_result": "PASS",
       "integration_commit": "300cf704915574d4e33beb251af14b003bd384d9"
+    },
+    {
+      "issue": 96,
+      "requirement_id": "MJ-REQ-095",
+      "status": "VALIDATED_PARTIAL_AWAITING_INTEGRATION",
+      "priority": 0,
+      "target_area": "services/documents; apps/api/main.py; apps/web resume fact selection/comparison",
+      "depends_on": [
+        "approved career facts",
+        "existing resume selection and document provenance"
+      ],
+      "evidence_path": "docs/evidence/2026-10-07-resume-user-reviewed-summary-adjustment.json",
+      "scope_complete": false,
+      "note": "Validated summary adjustment vertical slice at source bac4de1ad20e851b9a5e2d7ae27510ab1e7c30e3: selected approved summary fact can be rewritten with per-fact user attestation; source hash, fact kind, dates and numbers are preserved; generated document history is immutable and comparable after live profile changes. Python 12 + affected document 20 + browser 2 + frontend 63/build + validators PASS. Broader issue remains PARTIAL; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF."
     }
   ]
 }
