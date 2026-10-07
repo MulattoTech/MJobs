@@ -13,6 +13,8 @@ from apps.api.main import create_app
 from fixtures.browser_ports import bound_browser_socket
 from packages.persistence import models as m
 from packages.persistence.store import Store
+from fixtures.mock_server import fixture_server
+from services.discovery.pipeline import discover
 from tests.integration.test_spine import PROFILE
 
 
@@ -29,6 +31,8 @@ class AuditHistoryBrowserTests(unittest.TestCase):
             store.save_profile(dict(PROFILE))
             store.save_profile({**PROFILE, "id": "other", "name": "Other Synthetic Applicant",
                                 "email": "other@example.invalid"})
+            with fixture_server() as fixture_origin:
+                discover(store, fixture_origin, "fixture")
             with store.engine.begin() as connection:
                 connection.execute(m.audit.insert(), [
                     {"id": "fixture-history", "entity_id": "fixture", "action": "SETTING_CHANGED",
@@ -72,6 +76,8 @@ class AuditHistoryBrowserTests(unittest.TestCase):
                     page.get_by_role("button", name="Activity", exact=True).click()
                     history = page.get_by_role("list", name="Audit history")
                     expect(history).to_contain_text("A profile setting changed")
+                    expect(history).to_contain_text("Job added to this profile's search")
+                    expect(history).to_contain_text("Job match scored")
                     expect(history).not_to_contain_text("private-setting-value")
                     page.reload(wait_until="domcontentloaded")
                     page.get_by_role("button", name="Activity", exact=True).click()

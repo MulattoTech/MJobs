@@ -11,6 +11,7 @@ from fixtures.mock_server import fixture_server
 from packages.persistence import models as m
 from packages.persistence.store import Store
 from services.discovery.pipeline import discover
+from services.discovery.matching import recalculate
 from services.documents.generate import prepare
 from tests.integration.test_spine import PROFILE
 
@@ -53,6 +54,8 @@ class AuditHistoryApiTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200, response.text)
         body = response.json()
         self.assertEqual(body["profile_id"], "fixture")
+        self.assertTrue(any(event["type"] == "JOB_DISCOVERED" for event in body["events"]), body)
+        self.assertTrue(any(event["type"] == "MATCH_SCORED" for event in body["events"]), body)
         self.assertTrue(any(event["type"] == "SETTING_CHANGED" for event in body["events"]))
         self.assertTrue(any(event["type"] == "RESUME_GENERATED" for event in body["events"]), body)
         self.assertTrue(any(event["company"] for event in body["events"]))
@@ -60,6 +63,10 @@ class AuditHistoryApiTests(unittest.TestCase):
         self.assertNotIn("never expose this payload", serialized)
         self.assertNotIn("other profile private payload", serialized)
         self.assertNotIn("other-profile-audit", serialized)
+        other_profile = self.client.get("/profiles/other/audit-history")
+        self.assertEqual(other_profile.status_code, 200, other_profile.text)
+        self.assertFalse(any(event["type"] in {"JOB_DISCOVERED", "MATCH_SCORED"}
+                             for event in other_profile.json()["events"]))
 
         with self.store.engine.connect() as connection:
             count_before = connection.execute(select(m.audit.c.id).where(
@@ -80,3 +87,27 @@ class AuditHistoryApiTests(unittest.TestCase):
     def test_unknown_profile_does_not_receive_an_empty_success_timeline(self):
         response = self.client.get("/profiles/not-a-profile/audit-history")
         self.assertEqual(response.status_code, 404)
+
+    def test_discovery_events_survive_scoring_recalculation_without_mutation(self):
+        initial = self.client.get("/profiles/fixture/audit-history").json()["events"]
+        initial_job_events = [event for event in initial
+                              if event["type"] in {"JOB_DISCOVERED", "MATCH_SCORED"}]
+        self.assertTrue(initial_job_events)
+        recalculate(self.store, "fixture")
+        repeated = self.client.get("/profiles/fixture/audit-history").json()["events"]
+        repeated_job_events = [event for event in repeated
+                               if event["type"] in {"JOB_DISCOVERED", "MATCH_SCORED"}]
+        self.assertEqual(repeated_job_events, initial_job_events)
+
+    def test_recalculation_records_first_profile_discovery_then_stays_idempotent(self):
+        recalculate(self.store, "other")
+        first = self.client.get("/profiles/other/audit-history").json()["events"]
+        first_job_events = [event for event in first
+                            if event["type"] in {"JOB_DISCOVERED", "MATCH_SCORED"}]
+        self.assertTrue(first_job_events)
+        recalculate(self.store, "other")
+        second = self.client.get("/profiles/other/audit-history").json()["events"]
+        second_job_events = [event for event in second
+                             if event["type"] in {"JOB_DISCOVERED", "MATCH_SCORED"}]
+        self.assertEqual(second_job_events, first_job_events)
+        self.assertTrue(all(event["company"] for event in second_job_events))

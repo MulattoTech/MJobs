@@ -20,6 +20,7 @@ from services.discovery.negative_filters import parse_negative_conditions
 from services.company_discovery.sources import register_ats_tenant, upsert_company_job_source
 from services.discovery.lifecycle import capture_revision, observe_fixture_posting, resolve_lifecycle
 from services.discovery.matching import build_explanation
+from services.audit_history import record_job_discovered, record_match_scored
 
 MAX_MOCK_RESPONSE_BYTES = 2_000_000
 CANCELLATION_POLL_INTERVAL = 0.05
@@ -252,6 +253,13 @@ def discover(store, mock_origin, profile_id, check=None, profile_version=None):
                 observe_fixture_posting(connection, identity(source, row['source_job_id']))
                 resolve_lifecycle(connection, job_id)
                 explanation = build_explanation(job, profile)
+                had_profile_match = connection.execute(select(m.matches.c.id).where(
+                    m.matches.c.job_id == job_id,
+                    m.matches.c.profile_id == profile_id,
+                ).limit(1)).first() is not None
+                if not had_profile_match:
+                    record_job_discovered(connection, profile_id, job_id)
+                record_match_scored(connection, profile_id, job_id, profile["version"])
                 upsert(connection, m.matches, {"id": identity(job_id, profile_id, profile["version"]), "job_id": job_id,
                     "profile_id": profile_id, "profile_version": profile["version"], **explanation}, replace=True)
             store._audit(connection, profile_id, "MOCK_DISCOVERY_COMPLETE", {"sources": len(sources), "raw_postings": len(all_rows)})

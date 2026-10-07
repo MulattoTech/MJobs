@@ -5,6 +5,7 @@ from packages.persistence import models as m
 from packages.persistence.store import identity, upsert
 from services.company_discovery.requests import record_discovery_requests
 from services.discovery.skill_taxonomy import canonical_skill_id, extract_skills, skill_label
+from services.audit_history import record_job_discovered, record_match_scored
 
 
 _STRENGTH_WEIGHT = {"REQUIRED": 1.0, "PREFERRED": 0.5, "NICE_TO_HAVE": 0.25, "UNKNOWN": 0.25}
@@ -105,6 +106,13 @@ def recalculate(store, profile_id, profile_version=None, check=None):
         for job in connection.execute(select(m.jobs).order_by(m.jobs.c.id)).mappings():
             check()
             explanation = build_explanation(job, profile)
+            had_profile_match = connection.execute(select(m.matches.c.id).where(
+                m.matches.c.job_id == job["id"],
+                m.matches.c.profile_id == profile_id,
+            ).limit(1)).first() is not None
+            if not had_profile_match:
+                record_job_discovered(connection, profile_id, job["id"])
+            record_match_scored(connection, profile_id, job["id"], profile["version"])
             upsert(connection, m.matches, {"id": identity(job["id"], profile_id, profile["version"]), "job_id": job["id"],
                 "profile_id": profile_id, "profile_version": profile["version"], **explanation}, replace=True)
             job_ids.append(job['id'])

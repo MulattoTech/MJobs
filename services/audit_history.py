@@ -1,13 +1,18 @@
 """Safe, profile-scoped summaries of append-only audit history."""
 
 from sqlalchemy import select
+from sqlalchemy.dialects.postgresql import insert as postgres_insert
+from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 
 from packages.persistence import models as m
+from packages.persistence.store import identity, now
 
 
 _PROFILE_EVENTS = {
     "PROFILE_SAVED": ("PROFILE_UPDATED", "Profile details updated"),
-    "MATCHES_RECALCULATED": ("MATCH_SCORED", "Job matches recalculated"),
+    "MATCHES_RECALCULATED": ("MATCHING_REFRESHED", "Profile matching refreshed"),
+    "JOB_DISCOVERED": ("JOB_DISCOVERED", "Job added to this profile's search"),
+    "MATCH_SCORED": ("MATCH_SCORED", "Job match scored"),
     "SETTING_CHANGED": ("SETTING_CHANGED", "A profile setting changed"),
 }
 _APPLICATION_EVENTS = {
@@ -22,22 +27,74 @@ _APPLICATION_EVENTS = {
 }
 
 
+def record_job_discovered(connection, profile_id: str, job_id: str) -> None:
+    _append_once(connection, profile_id, "JOB_DISCOVERED", job_id,
+                 {"job_id": job_id})
+
+
+def record_match_scored(connection, profile_id: str, job_id: str,
+                        profile_version: str) -> None:
+    _append_once(connection, profile_id, "MATCH_SCORED", job_id,
+                 {"job_id": job_id, "profile_version": profile_version},
+                 profile_version=profile_version)
+
+
+def _append_once(connection, profile_id: str, action: str, job_id: str,
+                 payload: dict, profile_version: str = "") -> None:
+    event_id = identity("profile-audit", action, profile_id, job_id, profile_version)
+    values = {"id": event_id, "entity_id": profile_id, "action": action,
+              "payload": payload, "timestamp": now()}
+    dialect = connection.dialect.name
+    if dialect == "sqlite":
+        statement = sqlite_insert(m.audit).values(**values).on_conflict_do_nothing(
+            index_elements=[m.audit.c.id])
+    elif dialect == "postgresql":
+        statement = postgres_insert(m.audit).values(**values).on_conflict_do_nothing(
+            index_elements=[m.audit.c.id])
+    else:
+        if connection.execute(select(m.audit.c.id).where(
+                m.audit.c.id == event_id)).first() is not None:
+            return
+        statement = m.audit.insert().values(**values)
+    connection.execute(statement)
+
+
 def list_audit_history(store, profile_id: str, limit: int = 100) -> dict:
     """Return a bounded timeline without exposing stored audit payloads."""
     store.profile(profile_id)
     limit = max(1, min(int(limit), 200))
     events = []
     with store.engine.connect() as connection:
-        profile_rows = connection.execute(select(
-            m.audit.c.id, m.audit.c.action, m.audit.c.timestamp,
+        profile_rows = list(connection.execute(select(
+            m.audit.c.id, m.audit.c.action, m.audit.c.timestamp, m.audit.c.payload,
         ).where(m.audit.c.entity_id == profile_id,
                m.audit.c.action.in_(_PROFILE_EVENTS)).order_by(
-            m.audit.c.timestamp.desc(), m.audit.c.id.desc()).limit(limit)).mappings()
+            m.audit.c.timestamp.desc(), m.audit.c.id.desc()).limit(limit)).mappings())
+        profile_job_ids = {
+            (row["payload"] or {}).get("job_id") for row in profile_rows
+            if row["action"] in {"JOB_DISCOVERED", "MATCH_SCORED"}
+            and isinstance((row["payload"] or {}).get("job_id"), str)
+        }
+        profile_jobs = {}
+        if profile_job_ids:
+            profile_jobs = {row["id"]: row for row in connection.execute(select(
+                m.jobs.c.id, m.jobs.c.title,
+                m.companies.c.name.label("company"),
+            ).select_from(m.jobs.join(m.companies,
+                                     m.jobs.c.company_id == m.companies.c.id)).where(
+                m.jobs.c.id.in_(profile_job_ids),
+            )).mappings()}
         for row in profile_rows:
             mapped = _PROFILE_EVENTS.get(row["action"])
             if mapped:
                 event_type, summary = mapped
-                events.append(_event(row, event_type, summary, "Profile", ""))
+                if row["action"] in {"JOB_DISCOVERED", "MATCH_SCORED"}:
+                    job = profile_jobs.get((row["payload"] or {}).get("job_id"))
+                    if job is None:
+                        continue
+                    events.append(_event(row, event_type, summary, job["title"], job["company"]))
+                else:
+                    events.append(_event(row, event_type, summary, "Profile", ""))
 
         application_rows = connection.execute(select(
             m.applications.c.id, m.applications.c.target, m.jobs.c.title,
