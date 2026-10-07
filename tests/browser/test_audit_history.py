@@ -16,6 +16,7 @@ from packages.persistence.store import Store, upsert
 from services.company_discovery.sources import upsert_company_job_source
 from services.discovery.company_feed import import_company_feed_jobs
 from fixtures.mock_server import fixture_server
+from services.applications.mock_adapter import apply_mock
 from services.documents.generate import prepare
 from services.discovery.pipeline import discover
 from services.tracking.applications import add_application_note, set_application_pipeline_status
@@ -39,8 +40,11 @@ class AuditHistoryBrowserTests(unittest.TestCase):
                                 "email": "other@example.invalid"})
             with fixture_server() as fixture_origin:
                 discover(store, fixture_origin, "fixture")
-            application_id = prepare(store, store.jobs("fixture")[0]["id"],
-                                     "fixture", root)
+                application_id = prepare(store, store.jobs("fixture")[0]["id"],
+                                         "fixture", root)
+                submitted = apply_mock(store, application_id, fixture_origin, root,
+                                       submit=True)
+                self.assertEqual(submitted["state"], "CONFIRMED")
             preparation = enqueue_operation(store, "PREPARE", "fixture", {
                 "job_id": store.jobs("fixture")[0]["id"]})
             claim(store, preparation)
@@ -126,6 +130,8 @@ class AuditHistoryBrowserTests(unittest.TestCase):
                     expect(history).to_contain_text("Application note added")
                     expect(history).to_contain_text("Application preparation queued")
                     expect(history).to_contain_text("Application preparation started")
+                    expect(history).to_contain_text("Application submitted to the local mock ATS")
+                    expect(history).to_contain_text("Fictional mock application outcome confirmed")
                     expect(history).to_contain_text(
                         "New source posting attached to an existing job")
                     expect(history).not_to_contain_text(application_url)
@@ -142,6 +148,8 @@ class AuditHistoryBrowserTests(unittest.TestCase):
                     expect(page.get_by_role("list", name="Audit history")).to_contain_text(
                         "Application status reported by you")
                     expect(page.get_by_role("list", name="Audit history")).to_contain_text(
+                        "Application submitted to the local mock ATS")
+                    expect(page.get_by_role("list", name="Audit history")).to_contain_text(
                         "New source posting attached to an existing job")
                     page.get_by_role("button", name="Profile", exact=True).click()
                     page.get_by_label("Active profile", exact=True).select_option("other")
@@ -150,6 +158,10 @@ class AuditHistoryBrowserTests(unittest.TestCase):
                     expect(other_history).to_contain_text("Profile details updated")
                     expect(other_history).not_to_contain_text("A profile setting changed")
                     expect(other_history).not_to_contain_text("Application status reported by you")
+                    expect(other_history).not_to_contain_text(
+                        "Application submitted to the local mock ATS")
+                    expect(other_history).not_to_contain_text(
+                        "Fictional mock application outcome confirmed")
                     expect(other_history).not_to_contain_text(
                         "New source posting attached to an existing job")
                     self.assertEqual(external, [])

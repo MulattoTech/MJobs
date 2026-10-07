@@ -26,6 +26,7 @@ _APPLICATION_PREPARATION_EVENTS = {
 }
 _COMPANY_EVENTS = {"COMPANY_DISCOVERED", "COMPANY_SOURCE_ENROLLED"}
 _APPLICATION_EVENTS = {
+    "APPLICATION_SUBMITTED": ("APPLICATION_SUBMITTED", "Application submitted to the local mock ATS"),
     "APPLICATION_QUEUED": ("APPLICATION_QUEUED", "Application preparation queued"),
     "QUEUED": ("APPLICATION_QUEUED", "Application preparation queued"),
     "STARTED": ("APPLICATION_STARTED", "Application preparation started"),
@@ -36,6 +37,34 @@ _APPLICATION_EVENTS = {
     "EXTERNAL_APPLICATION_REPORTED": ("APPLICATION_REPORTED", "You reported applying outside MJobs"),
     "APPLICATION_ANSWERS_EXPORTED": ("APPLICATION_ANSWERS_EXPORTED", "Reviewed answers exported"),
 }
+
+
+def record_mock_application_submitted(store, application_id: str) -> None:
+    """Record a completed local mock submit click once, without implying receipt."""
+    with store.engine.begin() as connection:
+        application = connection.execute(select(
+            m.applications.c.id, m.applications.c.profile_id, m.applications.c.target,
+        ).where(m.applications.c.id == application_id).with_for_update()).mappings().one()
+        if application["target"] != "MOCK":
+            raise ValueError("Submission history is restricted to the local mock ATS")
+        action = "APPLICATION_SUBMITTED"
+        event_id = identity("application-audit", application["profile_id"],
+                            application_id, action)
+        values = {"id": event_id, "entity_id": application_id,
+                  "action": action, "payload": {}, "timestamp": now()}
+        dialect = connection.dialect.name
+        if dialect == "sqlite":
+            statement = sqlite_insert(m.audit).values(**values).on_conflict_do_nothing(
+                index_elements=[m.audit.c.id])
+        elif dialect == "postgresql":
+            statement = postgres_insert(m.audit).values(**values).on_conflict_do_nothing(
+                index_elements=[m.audit.c.id])
+        else:
+            if connection.execute(select(m.audit.c.id).where(
+                    m.audit.c.id == event_id)).first() is not None:
+                return
+            statement = m.audit.insert().values(**values)
+        connection.execute(statement)
 
 
 def record_job_discovered(connection, profile_id: str, job_id: str) -> None:

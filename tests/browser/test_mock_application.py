@@ -5,7 +5,9 @@ import json
 
 import httpx
 from sqlalchemy import update
+from fastapi.testclient import TestClient
 
+from apps.api.main import create_app
 from fixtures.mock_server import fixture_server
 from packages.persistence import models as m
 from packages.persistence.store import Store
@@ -21,6 +23,7 @@ class MockApplicationTests(unittest.TestCase):
         self.root = Path(self.directory.name)
         self.store = Store(f"sqlite:///{(self.root / 'test.db').as_posix()}")
         self.store.migrate()
+        self.store.bind_workspace_mode("FIXTURE")
         self.store.save_profile(PROFILE)
 
     def tearDown(self):
@@ -33,6 +36,14 @@ class MockApplicationTests(unittest.TestCase):
         discover(self.store, origin, "fixture")
         job = next(row for row in self.store.jobs() if row["requisition"] == "B")
         return prepare(self.store, job["id"], "fixture", self.root)
+
+    def history(self, profile_id="fixture", store=None):
+        store = store or self.store
+        with TestClient(create_app(store, "http://127.0.0.1:1", self.root,
+                                   operation_mode="FIXTURE")) as client:
+            response = client.get(f"/profiles/{profile_id}/audit-history")
+            self.assertEqual(response.status_code, 200, response.text)
+            return response.json()["events"]
 
     def test_dry_run_fills_two_pages_uploads_and_stops_before_submit(self):
         with fixture_server() as origin:
@@ -96,6 +107,12 @@ class MockApplicationTests(unittest.TestCase):
                 second = apply_mock(self.store, app_id, origin, self.root, submit=True, debug_capture=True)
                 self.assertEqual(second["state"], "SUBMISSION_UNCONFIRMED")
 
+            history = self.history()
+            lifecycle = [event["type"] for event in history
+                         if event["type"] in {"APPLICATION_SUBMITTED", "APPLICATION_CONFIRMED"}]
+            self.assertEqual(lifecycle.count("APPLICATION_SUBMITTED"), 1)
+            self.assertNotIn("APPLICATION_CONFIRMED", lifecycle)
+
             receipt = httpx.get(origin + "/ats/receipts/" + app_id).json()
             self.assertEqual(receipt["submission_count"], 1)
             captures = list((self.root / app_id / "debug-captures").glob("*/metadata.json"))
@@ -103,6 +120,8 @@ class MockApplicationTests(unittest.TestCase):
 
     def test_mock_submission_confirmed_once_and_survives_restart(self):
         with fixture_server() as origin:
+            self.store.save_profile({**PROFILE, "id": "other", "name": "Other Fixture",
+                                     "email": "other@example.invalid"})
             app_id = self.prepared(origin)
             result = apply_mock(self.store, app_id, origin, self.root, submit=True)
             self.assertEqual(result["state"], "CONFIRMED")
@@ -112,6 +131,15 @@ class MockApplicationTests(unittest.TestCase):
                 again = apply_mock(reopened, app_id, origin, self.root, submit=True)
                 self.assertEqual(again["state"], "CONFIRMED")
                 self.assertEqual(httpx.get(origin + "/ats/receipts/" + app_id).json()["submission_count"], 1)
+                history = self.history(store=reopened)
+                lifecycle = [event for event in history
+                             if event["type"] in {"APPLICATION_SUBMITTED", "APPLICATION_CONFIRMED"}]
+                self.assertEqual([event["type"] for event in lifecycle],
+                                 ["APPLICATION_CONFIRMED", "APPLICATION_SUBMITTED"])
+                self.assertEqual(lifecycle[0]["summary"], "Fictional mock application outcome confirmed")
+                self.assertTrue(all(event["subject"] and event["company"] for event in lifecycle))
+                self.assertFalse(any(event["type"] in {"APPLICATION_SUBMITTED", "APPLICATION_CONFIRMED"}
+                                     for event in self.history("other", reopened)))
             finally:
                 reopened.engine.dispose()
 
@@ -132,6 +160,8 @@ class MockApplicationTests(unittest.TestCase):
             self.assertEqual(result['state'], 'SUBMISSION_UNCONFIRMED')
             self.assertEqual(httpx.get(origin + '/ats/receipts/' + app_id).json(),
                              {'status': 'not_found'})
+            self.assertFalse(any(event["type"] in {"APPLICATION_SUBMITTED", "APPLICATION_CONFIRMED"}
+                                 for event in self.history()))
 
     def test_playwright_actions_never_exceed_remaining_worker_budget(self):
         from playwright.sync_api import BrowserType, Page
@@ -212,6 +242,8 @@ class MockApplicationTests(unittest.TestCase):
             result = apply_mock(self.store, app_id, origin, self.root, submit=True)
             self.assertEqual(result["state"], "SUBMISSION_UNCONFIRMED")
             self.assertEqual(httpx.get(origin + "/ats/receipts/" + app_id).json(), {"status": "not_found"})
+            self.assertFalse(any(event["type"] in {"APPLICATION_SUBMITTED", "APPLICATION_CONFIRMED"}
+                                 for event in self.history()))
 
     def test_captcha_requires_intervention(self):
         with fixture_server() as origin:

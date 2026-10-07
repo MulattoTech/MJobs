@@ -13,6 +13,7 @@ from packages.domain.safety import Fact, Policy, SubmissionContext, evaluate_sub
 from packages.persistence import models as m
 from packages.persistence.store import now
 from services.discovery.pipeline import MockClient
+from services.audit_history import record_mock_application_submitted
 from services.applications.preflight import (
     build_preflight_result,
     persist_preflight,
@@ -153,6 +154,7 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
         if application["state"] in ("SUBMITTING", "SUBMISSION_UNCONFIRMED"):
             receipt = _receipt(client, application, route["requisition"])
             if receipt:
+                record_mock_application_submitted(store, application_id)
                 store.transition(application_id, [application["state"]], "CONFIRMED", "VERIFY_CONFIRMATION", receipt)
             elif application["state"] == "SUBMITTING":
                 store.transition(application_id, ["SUBMITTING"], "SUBMISSION_UNCONFIRMED")
@@ -218,6 +220,8 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
             failed_step = trace[-1] if trace else "UNKNOWN"
             if current == "SUBMITTING":
                 receipt = _receipt(client, application, route["requisition"])
+                if receipt:
+                    record_mock_application_submitted(store, application_id)
                 store.transition(application_id, ["SUBMITTING"], "CONFIRMED" if receipt else "SUBMISSION_UNCONFIRMED",
                                  "RECONCILE_CONFIRMATION", receipt)
             elif current in ("FILLING", "READY_TO_SUBMIT"):
@@ -310,6 +314,7 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
                     check()
                     page.set_default_timeout(_playwright_action_timeout_ms(check))
                     page.get_by_role("button", name="Submit mock application", exact=True).click()
+                    record_mock_application_submitted(store, application_id)
                     page.set_default_timeout(_playwright_action_timeout_ms(check))
                     page.locator("[data-confirmation]").wait_for(
                         timeout=_playwright_action_timeout_ms(check))
