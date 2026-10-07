@@ -7,7 +7,7 @@
   "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req110-review-consumer-20261006",
   "result": "PARTIAL",
   "base_main": "54be81542d9ab594c9418f15223e9c2aef02249d",
-  "recorded_at_utc": "2026-10-07T00:52:59Z",
+  "recorded_at_utc": "2026-10-07T01:05:13Z",
   "scope": [
     "Persist explicit per-profile AI evaluation candidate review within the run's saved maximum-document-candidate cap.",
     "Reject cross-profile, unevaluated, over-cap, or stale-profile review requests.",
@@ -21,10 +21,11 @@
     "review_gate_before_ai_funnel_preparation": "PASS - the API rejects a job without the matching reviewed evaluation record and accepts a reviewed job into the existing queued factual preparation workflow.",
     "connected_browser_flow": "PASS - synthetic browser flow confirms a candidate, reloads persisted review, opens the job, and sends the run ID only after the user selects Prepare documents.",
     "live_configured_provider_inference": "NOT_RUN - the browser and API checks use a synthetic structured result; no Ollama or paid provider was called.",
-    "generated_document_runtime": "NOT_RUN - the browser harness simulates successful queue completion; real document worker execution was not exercised in this checkpoint."
+    "generated_document_runtime": "NOT_RUN - the browser harness simulates successful queue completion; real document worker execution was not exercised in this checkpoint.",
+    "real_document_worker_execution": "PASS - isolated synthetic API review/preparation flow executed the real PREPARE worker; operation COMPLETED and persisted application PREPARED with document version 1."
   },
   "local_validation": {
-    "environment": "Windows local claimed worktree, repository Python 3.12 environment, locked frontend dependencies, temporary SQLite databases, synthetic profile and job fixtures, isolated Chromium browser.",
+    "environment": "Windows claimed worktree source with the shared repository Python 3.12 environment, locked frontend dependencies, temporary SQLite databases, synthetic profile/job fixtures, and isolated Chromium browser.",
     "commands": [
       {
         "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_ai_cost_policy_api tests.integration.test_ai_document_review_migration tests.unit.test_ai_cost_consumer tests.unit.test_ai_cost_controls tests.browser.test_ai_task_settings",
@@ -65,36 +66,43 @@
         "command": "GitHub Actions and hosted review",
         "result": "NOT_RUN",
         "detail": "Disabled under the active local-only budget policy."
+      },
+      {
+        "command": "python - (isolated probe wrapping tests.integration.test_ai_cost_policy_api.AICostPolicyApiTests.test_reviewed_document_candidates_are_capped_persisted_and_required_for_preparation; dispatches accepted PREPARE operation to workers.tasks.execute_operation)",
+        "result": "PASS",
+        "detail": "Unreviewed request refused; one explicitly reviewed candidate queued; real worker completed with application PREPARED and document_version=1. Used only temporary SQLite/output paths and synthetic facts/jobs; no AI provider or external submission."
       }
     ],
     "resolved_test_findings": [
       "The new API acceptance first failed because ApplicationInput did not accept an evaluation run ID; the guard and review endpoint were added, after which the acceptance passed.",
-      "The first browser run used stale built assets; rebuilding the frontend exposed a harness route that intercepted profile application reads. The route was narrowed to synthetic POST /applications only; the connected browser acceptance then passed."
+      "The first browser run used stale built assets; rebuilding the frontend exposed a harness route that intercepted profile application reads. The route was narrowed to synthetic POST /applications only; the connected browser acceptance then passed.",
+      "Initial worker probe used synthetic job descriptions without a clear responsibility section and correctly failed with COVER_LETTER_JOB_CONTEXT_MISSING. Repeated with a representative responsibility-bearing synthetic posting; the real worker completed. No product code or persisted repo data was changed by the probe."
     ],
     "not_run": [
       "Full Python test discovery.",
       "PostgreSQL migration and persistence checks.",
       "Live configured-provider inference and real model cost.",
-      "Real document worker execution for this browser journey.",
       "Hosted Actions, hosted checks, and hosted reviews.",
       "External application submission; OFF."
     ],
     "current_head_rerun": {
-      "verified_at_utc": "2026-10-07T00:57:07Z",
-      "head": "680801ae23aeed82facbdc8f6d9eff8d7d5f5b78",
-      "tree": "077bf5b6c866ac4fdc62f80011fec0019fa5ec2c",
+      "verified_at_utc": "2026-10-07T01:05:13Z",
+      "head": "f7fee34492a6303bb051f5adea3e2a84d49c8a48",
+      "tree": "661b0790696a62519cbd5524a10cacab99fd0c26",
       "focused_python_api_browser_migration": "PASS - 20 tests",
+      "real_document_worker": "PASS - COMPLETED; PREPARED; document version 1, isolated synthetic fixtures",
       "frontend_tests": "PASS - 62 tests across 13 files",
       "frontend_build": "PASS",
       "agent_skills_catalogue_progress": "PASS",
+      "compileall_and_diff_check": "PASS",
       "limitations_unchanged": [
-        "Live configured-provider inference and real document worker execution remain NOT_RUN.",
+        "Live configured-provider inference and actual model cost remain NOT_RUN; active Ollama lane shares the local runtime.",
         "PostgreSQL runtime migration, full Python discovery, and hosted checks remain NOT_RUN."
       ]
     }
   },
   "limitations": [
-    "MJ-REQ-110 remains PARTIAL because live configured-provider inference and real document worker execution were not verified.",
+    "MJ-REQ-110 remains PARTIAL because live configured-provider inference was not run; the active Ollama lane shares that runtime.",
     "The document workflow uses the existing factual preparation path; it does not generate AI-authored text.",
     "External application submission remains OFF."
   ],
@@ -109,11 +117,15 @@
     "apps/api/AREA.md": "a8a16c854af9655ae09857a4dfde81ce365697d839402fbb39a24ab74ca4ae9d",
     "tests/integration/test_ai_cost_policy_api.py": "54d156862691b3067ddcc6cd4eed19fac9d6cce37e4825b23d9a3798974a8863",
     "tests/integration/test_ai_document_review_migration.py": "1c85cbd3b6bad585486cc0df673a511dadae363f0db5b3a511d45ef141ecc622",
-    "tests/browser/test_ai_task_settings.py": "5a90b2170e2db66ce43bf3cf564f184da5ef4880e6b5ed916236fbbe6fffd2fe"
+    "tests/browser/test_ai_task_settings.py": "5a90b2170e2db66ce43bf3cf564f184da5ef4880e6b5ed916236fbbe6fffd2fe",
+    "services/ai/consumer.py": "2a8d4e6c18f7a5a67043aab55f24d5234bc10a0ba7785d3fcee23aeff5b5049d",
+    "services/ai/cost_controls.py": "e6c7eb6b8d3763671dde512514726b4ba90f0951f27a2740b49eeee2b81eba8d",
+    "tests/unit/test_ai_cost_consumer.py": "45432c1fbe17bc04817b635f162d763ded7c803e7461073e4aee3f098941d570",
+    "tests/unit/test_ai_cost_controls.py": "0a53a7b9c69092fbd5ae2eb4a650644de5162ec5f3ba8530b6024f50be8eaca8"
   },
   "external_submission_enabled": false,
   "hosted_verification": "NOT_RUN_BY_USER_POLICY",
-  "validated_head": "680801ae23aeed82facbdc8f6d9eff8d7d5f5b78",
-  "validated_tree": "077bf5b6c866ac4fdc62f80011fec0019fa5ec2c",
-  "verified_at_utc": "2026-10-07T00:57:07Z"
+  "validated_head": "f7fee34492a6303bb051f5adea3e2a84d49c8a48",
+  "validated_tree": "661b0790696a62519cbd5524a10cacab99fd0c26",
+  "verified_at_utc": "2026-10-07T01:05:13Z"
 }
