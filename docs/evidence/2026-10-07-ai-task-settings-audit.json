@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-07T18:10:36Z",
+  "issue": 177,
+  "requirement_id": "MJ-REQ-176",
+  "result": "PARTIAL",
+  "source_commit": "06942fdddd73b4e2604d339889105dfbff4ea0d8",
+  "source_tree": "2ba315630a0f3762c0eed2cc77a98c0e656c86b7",
+  "base_main": "2befda648953832125eac5505083876f971e12ce",
+  "acceptance_oracle": "Saving profile AI task settings records exactly one generic SETTING_CHANGED Activity event when effective values change, records none for an initial all-disabled save or unchanged repeat, stores no task/provider/model values in the audit payload or summary, remains isolated by profile, and survives store reopen and browser reload.",
+  "red_observation": {
+    "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_ai_task_settings_api.AITaskSettingsApiTests.test_ai_task_setting_changes_append_one_value_free_profile_event",
+    "result": "FAIL as expected before implementation: no SETTING_CHANGED event was written for an effective AI task setting change. The connected browser test also failed because Activity had no setting-change event after saving through AI Settings."
+  },
+  "implementation": [
+    "Store.save_ai_task_settings compares requested task values against the profile's current rows, treating an absent row as the disabled default.",
+    "A changed save appends one empty-payload profile SETTING_CHANGED event in the same transaction as the settings upsert; default-equivalent and unchanged saves append none.",
+    "The browser test now changes a synthetic AI setting through the UI instead of inserting a synthetic setting-change audit event."
+  ],
+  "validation": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_ai_task_settings_api tests.integration.test_audit_history tests.browser.test_audit_history",
+      "result": "PASS; 15 tests, 0 failures/errors/skips. SQLite integration and local Chromium browser acceptance ran."
+    },
+    {
+      "command": "npm ci --prefix apps/web",
+      "result": "PASS; 44 packages installed, 0 vulnerabilities. npm reported an EBADENGINE warning: installed Node v25.9.0 is outside vitest@5.0.3 declared engine ranges."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS; TypeScript check and Vite production build completed."
+    },
+    {
+      "command": "python -m tools.verification.agent_skills",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.catalogue",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.progress validate",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.coordination.lane_coordination validate",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "scope": {
+    "persistence": "Temporary SQLite database; verifies empty audit payload, profile isolation, repeat-save idempotence, and audit history after Store reopen.",
+    "browser": "Local Chromium with isolated SQLite fixture API; config saved through AI Settings UI, read in Activity, retained after browser reload; outbound requests blocked and none attempted.",
+    "frontend": "Production TypeScript/Vite build PASS; no frontend source changed.",
+    "postgresql_docker": "NOT_APPLICABLE; no schema/migration changes. PostgreSQL was not exercised.",
+    "full_python_suite": "NOT_RUN; focused settings, audit-history, and browser tests ran.",
+    "hosted_actions_review": "NOT_RUN_BY_USER_POLICY",
+    "external_submission": "OFF"
+  },
+  "limitations": [
+    "This slice covers AI task setting changes only; other configuration event families in MJ-REQ-176 may remain incomplete.",
+    "No PostgreSQL, Docker, hosted CI, or independent review evidence is claimed.",
+    "Issue #177 remains OPEN until its complete acceptance contract has been evidenced."
+  ]
+}
