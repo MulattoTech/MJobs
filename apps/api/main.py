@@ -654,8 +654,13 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                     work_error = _work.exception()
                 except BaseException:
                     work_error = RuntimeError()
-                state, error = (("FAILED", "AI_EVALUATION_FAILED") if work_error
-                                else ("COMPLETED", None))
+                if isinstance(work_error, AIConsumerTimeoutError) or (
+                        isinstance(work_error, AIProviderError)
+                        and work_error.code == "AI_PROVIDER_TIMEOUT"):
+                    state, error = "FAILED", work_error.code
+                else:
+                    state, error = (("FAILED", "AI_EVALUATION_FAILED") if work_error
+                                    else ("COMPLETED", None))
             finish_inline(store, operation_id, state, error)
             with app.state.ai_evaluation_lock:
                 if app.state.ai_evaluation_events.get(cancel_key) is cancelled:

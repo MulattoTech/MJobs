@@ -538,6 +538,11 @@ class AICostPolicyApiTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 504, response.text)
         self.assertEqual(response.json()["detail"]["code"], "AI_PROVIDER_TIMEOUT")
+        with self.store.engine.connect() as connection:
+            operation = connection.execute(select(m.operations).where(
+                m.operations.c.kind == "AI_EVALUATE")).mappings().one()
+        self.assertEqual(operation["state"], "FAILED")
+        self.assertEqual(operation["error"], "AI_PROVIDER_TIMEOUT")
         history = self.client.get("/profiles/fixture/ai-cost-plan/evaluations")
         self.assertEqual(history.json()["runs"], [])
 
@@ -587,6 +592,21 @@ class AICostPolicyApiTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 504, response.text)
         self.assertEqual(response.json()["detail"]["code"], "AI_TASK_TIMEOUT")
+        with self.store.engine.connect() as connection:
+            operation = connection.execute(select(m.operations).where(
+                m.operations.c.kind == "AI_EVALUATE")).mappings().one()
+        self.assertEqual(operation["state"], "FAILED")
+        self.assertEqual(operation["error"], "AI_TASK_TIMEOUT")
+        operation_id = operation["id"]
+        self.client.close()
+        self.store.engine.dispose()
+        self.store = Store(self.database_url)
+        self.client = TestClient(create_app(self.store, "http://127.0.0.1:8090", self.root,
+                                            "redis://127.0.0.1:1/0", operation_mode="PERSONAL"))
+        persisted = self.client.get(f"/operations/{operation_id}")
+        self.assertEqual(persisted.status_code, 200, persisted.text)
+        self.assertEqual(persisted.json()["state"], "FAILED")
+        self.assertEqual(persisted.json()["error"], "AI_TASK_TIMEOUT")
         history = self.client.get("/profiles/fixture/ai-cost-plan/evaluations")
         self.assertEqual(history.json()["runs"], [])
 
@@ -759,6 +779,11 @@ class AICostPolicyApiTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200, response.text)
         self.assertEqual(response.json(), {"cancelled": True, "request_id": request_id})
         self.assertEqual(provider_calls, [1, 2])
+        with self.store.engine.connect() as connection:
+            operation = connection.execute(select(m.operations).where(
+                m.operations.c.kind == "AI_EVALUATE")).mappings().one()
+        self.assertEqual(operation["state"], "CANCELLED")
+        self.assertEqual(operation["error"], "CANCEL_REQUESTED")
         finished_cancel = self.client.post(
             f"/profiles/fixture/ai-cost-plan/evaluations/{request_id}/cancel")
         self.assertEqual(finished_cancel.status_code, 200, finished_cancel.text)
