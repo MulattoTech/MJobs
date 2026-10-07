@@ -1,8 +1,8 @@
 # Codex lane handoff
 
-Status: **ACTIVE / issue #179 / MJ-REQ-178 Log Retention**
+Status: **IDLE_READY / issue #179 / MJ-REQ-178 Log Retention PASS**
 
-## Active issue #179 / MJ-REQ-178
+## Completed issue #179 / MJ-REQ-178
 
 Branch: `codex/mj-req178-log-rotation-20261007`
 Worktree: `C:/Tools/Dev/MJobs/.worktrees/codex-mj-req178-log-rotation-20261007`
@@ -12,7 +12,7 @@ Expected files: `compose.yml`, `tests/unit/test_compose_modes.py`, `docs/evidenc
 
 Acceptance gap reproduced: Docker Compose rendered all nine services without a `logging` bound. A focused regression test failed with missing `logging` for all nine. Source `1e11348ec1e10f401453e1d31ba68d651ea2c540` adds a shared `json-file` rotation policy at 10 MiB × 5 files for all nine services. Focused Compose/live-feedback/document-artifact tests: 20 PASS; validators pass using `.venv`. Evidence `docs/evidence/2026-10-07-compose-log-rotation.json` is being recorded. A disposable no-network Docker container verified actual rollover (50 large lines emitted, 11 retained with a 1 MiB × 2 cap, then removed); the running personal MJobs services were untouched. Existing feedback code removes expired managed sessions and disables raw DOM traces; preserve this behavior and reconcile existing evidence before deciding whether issue #179 is fully accepted or remains partial. External submission OFF; hosted checks NOT_RUN_BY_USER_POLICY.
 
-After exact-head evidence: fetch main, inspect claims, acquire integration lock, update canonical state, integrate by non-force fast-forward if safe, release claim/lock, then immediately select the next unclaimed dependency-ready issue.
+Integrated PASS at main 8bea57e595e19e638913405a8ec1cd3aa0ebde32; GitHub issue closed/release comment https://github.com/MulattoTech/MJobs/issues/179#issuecomment-6041087412. Local claim released. Next: release integration lock, reconcile all active claims and dirty worktrees, then select and claim the next highest-value dependency-ready issue.
 
 ---
 

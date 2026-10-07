@@ -278,15 +278,17 @@
     {
       "issue": 179,
       "requirement_id": "MJ-REQ-178",
-      "status": "VALIDATED_PASS_PENDING_INTEGRATION",
+      "status": "INTEGRATED_PASS",
       "priority": 1,
       "target_area": "compose.yml; tests/unit/test_compose_modes.py",
       "depends_on": [],
       "evidence_path": "docs/evidence/2026-10-07-compose-log-rotation.json",
-      "scope_complete": false,
-      "note": "All nine Compose services render bounded json-file log rotation (10 MiB × 5 files). Existing managed feedback sessions are pruned after 30 days; raw Playwright traces and product HTML snapshots are not stored. Focused config/live-feedback/artifact tests: 20 PASS; Compose config and local validators PASS. Synthetic no-network Docker runtime check: 50 large lines emitted, 11 retained with 1 MiB × 2 rotation, exit 0; production MJobs services untouched. Evidence docs/evidence/2026-10-07-compose-log-rotation.json.",
+      "scope_complete": true,
+      "note": "All nine Compose services render bounded json-file log rotation (10 MiB × 5 files). Existing managed feedback sessions are pruned after 30 days; raw Playwright traces and product HTML snapshots are not stored. Focused config/live-feedback/artifact tests: 20 PASS; Compose config and local validators PASS. Synthetic no-network Docker runtime check: 50 large lines emitted, 11 retained with 1 MiB × 2 rotation, exit 0; production MJobs services untouched. Evidence docs/evidence/2026-10-07-compose-log-rotation.json. Integrated PASS at 8bea57e595e19e638913405a8ec1cd3aa0ebde32; issue CLOSED/readback verified. Evidence docs/evidence/2026-10-07-compose-log-rotation.json.",
       "source_commit": "1e11348ec1e10f401453e1d31ba68d651ea2c540",
-      "source_tree": "df9c3d652ad127facc01b3300475e562fbde65b0"
+      "source_tree": "df9c3d652ad127facc01b3300475e562fbde65b0",
+      "integration_commit": "8bea57e595e19e638913405a8ec1cd3aa0ebde32",
+      "release_comment": "https://github.com/MulattoTech/MJobs/issues/179#issuecomment-6041087412"
     }
   ],
   "generated_at": "2026-10-07T14:05:05Z"

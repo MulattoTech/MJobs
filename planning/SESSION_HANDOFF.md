@@ -1,3 +1,11 @@
+## Issue #179 / MJ-REQ-178 Log Retention — integrated PASS — 2026-10-07
+
+Issue #179 is CLOSED after full local acceptance. Main: `8bea57e595e19e638913405a8ec1cd3aa0ebde32`; source `1e11348ec1e10f401453e1d31ba68d651ea2c540`; evidence `docs/evidence/2026-10-07-compose-log-rotation.json`. All nine Compose services render json-file rotation at 10 MiB × 5 files. Disposable no-network Docker rollover retained 11 of 50 large lines at a 1 MiB × 2 limit; container removed and existing MJobs services untouched. Existing feedback session retention and no raw trace/HTML snapshot storage verified. Twenty focused tests, Docker config, validators PASS. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF. Full product remains PARTIAL.
+
+Next: release integration lock; reconcile current claims/dirty paths/GitHub issues and continue with the highest-value unclaimed dependency-ready issue.
+
+---
+
 # Issue #6 / MJ-REQ-005 PostgreSQL concurrency across all categories — 2026-10-07
 
 Integrated by non-force fast-forward from `4a5ab584411450fa63e4dc42f1dc9a7620ce66c7` to candidate `632354f945ec6c4ac4e1638c4bd74f3fd9197ae7` (test source `474245178c48bb91145ceae50575795d74777686`). Evidence `docs/evidence/2026-10-07-postgres-all-category-concurrency.json`. Existing runtime coverage already verified company discovery and application automation; this slice adds PostgreSQL independent-Store races for source collection, inline AI, and inline resume extraction versus worker document preparation. The decisive readback is one category-capacity winner with durable state/attempts; all synthetic rows were cleaned.

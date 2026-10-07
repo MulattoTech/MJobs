@@ -1,15 +1,15 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-07T15:18:10Z",
+  "generated_at": "2026-10-07T15:27:43Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Issue #178 / MJ-REQ-177 structured worker outcome logging integrated PARTIAL at 169c3f110978c10af45e4f7e6ef4d950a727d4ae; broader context coverage and live Redis/RQ/PostgreSQL remain NOT_RUN; full product state remains PARTIAL.",
-    "current_verified_github_state": "Issue #178 / MJ-REQ-177 structured worker outcome logging integrated PARTIAL at 169c3f110978c10af45e4f7e6ef4d950a727d4ae; broader context coverage and live Redis/RQ/PostgreSQL remain NOT_RUN; full product state remains PARTIAL.",
-    "current_verified_at": "2026-10-07T15:18:10Z"
+    "current_verified_local_state": "Issue #179 / MJ-REQ-178 log retention acceptance PASS at 8bea57e595e19e638913405a8ec1cd3aa0ebde32; full product remains PARTIAL.",
+    "current_verified_github_state": "Issue #179 / MJ-REQ-178 log retention acceptance PASS at 8bea57e595e19e638913405a8ec1cd3aa0ebde32; full product remains PARTIAL.",
+    "current_verified_at": "2026-10-07T15:27:43Z"
   },
   "current_milestone": "MJ-REQ-176-SETTING-CHANGE-AUDIT-PARTIAL-20261007",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
@@ -69,7 +69,8 @@
     "Career-profile-owned saved search can be selected in Jobs and its exact filtered results survive Store reopen with profile isolation (MJ-REQ-022, issue #23).",
     "MJ-REF-020 / issue #390: connected UI/API records externally completed applications with source/time, route-first then cautious company/title reconciliation, provenance-marked minimal job creation, profile-scoped idempotency, and non-regressing application history (docs/evidence/2026-10-07-external-application-capture.json).",
     "MJ-REQ-007 / issue #8: stated requirement acceptance PASS. Healthy Git source-control safety, conditional no-Git N/A, atomic private configuration initialization, prior backup/restore, SQLite/PostgreSQL migration rollback/retry, and protected credential migration rollback/retry with ciphertext-preserving downgrade refusal are evidenced in docs/evidence/2026-10-07-source-change-safety-completion.json. Offline SQL generation probe failure at existing cb72f9041d6a remains separately recorded and is outside issue acceptance. Full repository release remains PARTIAL; hosted checks NOT_RUN_BY_USER_POLICY.",
-    "MJ-REQ-180 / issue #181 acceptance PASS: all discovered production CLI screenshot artifact paths route through screenshot-only content masking; arbitrary DOM and pseudo-element text plus embedded image/canvas/video/frame content are suppressed, sensitive controls remain blacked out, and the live page remains unchanged. No product HTML snapshot/trace persistence found. Evidence docs/evidence/2026-10-07-feedback-screenshot-content-masking.json. Connected UI E2E NOT_RUN; hosted checks NOT_RUN_BY_USER_POLICY; overall product/release remains PARTIAL."
+    "MJ-REQ-180 / issue #181 acceptance PASS: all discovered production CLI screenshot artifact paths route through screenshot-only content masking; arbitrary DOM and pseudo-element text plus embedded image/canvas/video/frame content are suppressed, sensitive controls remain blacked out, and the live page remains unchanged. No product HTML snapshot/trace persistence found. Evidence docs/evidence/2026-10-07-feedback-screenshot-content-masking.json. Connected UI E2E NOT_RUN; hosted checks NOT_RUN_BY_USER_POLICY; overall product/release remains PARTIAL.",
+    "MJ-REQ-178 / issue #179 Log Retention PASS: all nine Compose services configure bounded json-file rotation (10 MiB × 5). Isolated no-network Docker runtime test proved rollover: 50 large synthetic lines emitted, 11 retained with 1 MiB × 2 cap, exit 0, temporary container removed; personal MJobs stack untouched. Existing evidence/tests confirm feedback sessions expire after 30 days, raw Playwright traces are not written and no product HTML snapshot writer exists. Related suite 20 PASS; Compose render and validators PASS. Evidence docs/evidence/2026-10-07-compose-log-rotation.json. Issue CLOSED/readback verified; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF."
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
@@ -342,7 +343,8 @@
     "MJ-REQ-180 screenshot content masking: affected feedback/UI-source suite 32 PASS with real headless Chromium arbitrary-text, pseudo-element, canvas/image and existing sensitive-control pixel assertions; local validators PASS; connected UI E2E NOT_RUN.",
     "MJ-REQ-176 / issue #177: Activity now records profile-owned durable PREPARE queued/start/terminal-failure events with stable IDs and attempt history, safe fixed summaries and job/company context. Queue, claim, task terminal failure and retry-limit recovery transactions were exercised; resume rewrite payloads are excluded. 28 focused Python integration/worker/outbox tests PASS with 1 PostgreSQL-only skip, 1 connected Chromium test PASS, frontend 63/build and validators PASS. Evidence docs/evidence/2026-10-07-application-preparation-audit.json. Company/source enrollment, job merge, full settings and truthful complete actual application lifecycle events remain incomplete; issue OPEN/PARTIAL.",
     "MJ-REQ-176 profile setting-change audit slice: focused 34 Python PASS; full Python 936 PASS, 8 skipped; Chromium 1; frontend 63/build; local validators PASS. Evidence docs/evidence/2026-10-07-setting-change-audit-history.json.",
-    "Issue #178 / MJ-REQ-177: focused worker/logging suite 21 PASS, 1 PostgreSQL-only skip; full Python 932 PASS, 8 skipped; frontend 63 PASS/build and local validators PASS. Evidence docs/evidence/2026-10-07-structured-worker-operation-logs.json."
+    "Issue #178 / MJ-REQ-177: focused worker/logging suite 21 PASS, 1 PostgreSQL-only skip; full Python 932 PASS, 8 skipped; frontend 63 PASS/build and local validators PASS. Evidence docs/evidence/2026-10-07-structured-worker-operation-logs.json.",
+    "Issue #179 / MJ-REQ-178: 20 focused Compose/live-feedback/document-artifact tests PASS; rendered Docker Compose config for all 9 services PASS; isolated Docker rollover runtime PASS (50 emitted / 11 retained). Evidence docs/evidence/2026-10-07-compose-log-rotation.json."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -410,7 +412,8 @@
     "Issue #181 rich-control redaction slice: full Python/browser suite and frontend build NOT_RUN_BY_SCOPE; database/PostgreSQL/Docker NOT_APPLICABLE; hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF.",
     "MJ-REQ-180 updated cli.ui_e2e and cli.ui_source_readback artifact paths were not exercised against a running application/Compose stack; shared screenshot helper behavior was tested in synthetic headless Chromium.",
     "MJ-REQ-176 setting audit slice: PostgreSQL/Docker/migration coverage NOT_RUN (no schema change); hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
-    "Issue #178: live Redis/RQ worker integration and PostgreSQL runtime NOT_RUN; hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF."
+    "Issue #178: live Redis/RQ worker integration and PostgreSQL runtime NOT_RUN; hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF.",
+    "Issue #179: actual personal MJobs Compose services were intentionally not restarted/recreated; hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -447,19 +450,19 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-07T15:18:10Z",
-    "result": "PARTIAL",
-    "source_commit": "21e3f8ffb5d812b4bbdc84424bc5decb42a0cb01",
-    "source_tree": "784ad46313acf7e55d82bab9b513ef15f63ad743",
-    "issue": 178,
-    "requirement_id": "MJ-REQ-177",
-    "title": "[MJ-REQ-177] Structured Logging",
-    "state": "INTEGRATED_PARTIAL",
-    "base": "66de21a8c4c6c0afeedd31064ee367d7a69f498a",
-    "branch": "codex/mj-req177-structured-logging-20261007",
-    "candidate_integration_commit": "169c3f110978c10af45e4f7e6ef4d950a727d4ae",
-    "evidence_path": "docs/evidence/2026-10-07-structured-worker-operation-logs.json",
-    "scope": "After durable terminal worker operation persistence, emit one JSON-only allowlisted outcome record with safe operation context and without operation parameters, exception text or private resume content."
+    "timestamp": "2026-10-07T15:27:43Z",
+    "result": "PASS",
+    "source_commit": "1e11348ec1e10f401453e1d31ba68d651ea2c540",
+    "source_tree": "df9c3d652ad127facc01b3300475e562fbde65b0",
+    "issue": 179,
+    "requirement_id": "MJ-REQ-178",
+    "title": "[MJ-REQ-178] Log Retention",
+    "state": "INTEGRATED_PASS",
+    "base": "9a61c6e4ae3b667cd3556b867562ff72900f8a9c",
+    "branch": "codex/mj-req178-log-rotation-20261007",
+    "candidate_integration_commit": "8bea57e595e19e638913405a8ec1cd3aa0ebde32",
+    "evidence_path": "docs/evidence/2026-10-07-compose-log-rotation.json",
+    "scope": "Bounded rotation covers all Compose logs; existing browser diagnostics do not store raw traces/HTML and have managed retention."
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -8843,12 +8846,59 @@
         "git_commit": "169c3f110978c10af45e4f7e6ef4d950a727d4ae",
         "evidence_path": "docs/evidence/2026-10-07-structured-worker-operation-logs.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-178-LOG-RETENTION-PASS-20261007",
+      "timestamp": "2026-10-07T15:27:43Z",
+      "current_phase": "MJ_REQ_178_LOG_RETENTION_FULL_ACCEPTANCE_INTEGRATED",
+      "completed_steps": [
+        "Integrated all-service Docker json-file log rotation at 8bea57e595e19e638913405a8ec1cd3aa0ebde32 from source 1e11348ec1e10f401453e1d31ba68d651ea2c540.",
+        "Verified actual rollover in an isolated no-network disposable container; 50 synthetic lines emitted, 11 retained with 1 MiB × 2 cap, and container removed.",
+        "Verified existing live-feedback retention and raw Playwright trace behavior; prior accepted source inventory found no product HTML snapshot writers.",
+        "Marked only MJ-REQ-178 PASS; requirements denominator unchanged and full product remains PARTIAL.",
+        "Closed GitHub issue #179 with acceptance/release readback at https://github.com/MulattoTech/MJobs/issues/179#issuecomment-6041087412."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-07-compose-log-rotation.json"
+      ],
+      "files_modified": [
+        "compose.yml",
+        "tests/unit/test_compose_modes.py",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Compose modes and rotation regression, live-feedback privacy/retention, document artifact tests: 20 PASS.",
+        "Rendered fixture Compose graph: all 9 services have max-size 10m/max-file 5.",
+        "Disposable no-network Docker json-file rollover test: 50 lines emitted, 11 retained under 1m/2, exit 0; removed.",
+        "Agent skills, catalogue, progress, lane validation and diff check PASS."
+      ],
+      "tests_remaining": [
+        "Actual personal MJobs Compose containers intentionally not restarted or recreated.",
+        "PostgreSQL/migration and browser E2E not applicable to this logging-only change.",
+        "Hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Docker Engine 29.8.2 with isolated synthetic no-network container; existing personal MJobs services untouched."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "The synthetic runtime used a smaller rotation cap to keep validation bounded; exact production 10m/5 values were validated in rendered Compose config.",
+        "Full MJobs product remains PARTIAL despite this individual requirement PASS."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "8bea57e595e19e638913405a8ec1cd3aa0ebde32",
+        "evidence_path": "docs/evidence/2026-10-07-compose-log-rotation.json"
+      }
     }
   ],
-  "current_phase": "MJ_REQ_177_STRUCTURED_WORKER_LOGGING_PARTIAL_INTEGRATED",
+  "current_phase": "MJ_REQ_178_LOG_RETENTION_FULL_ACCEPTANCE_INTEGRATED",
   "last_safe_checkpoint": {
-    "git_commit": "169c3f110978c10af45e4f7e6ef4d950a727d4ae",
-    "evidence_path": "docs/evidence/2026-10-07-structured-worker-operation-logs.json"
+    "git_commit": "8bea57e595e19e638913405a8ec1cd3aa0ebde32",
+    "evidence_path": "docs/evidence/2026-10-07-compose-log-rotation.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -10225,7 +10275,8 @@
     "MJ-REQ-004 real AI request-disconnect transport slice integrated at main c3618496c9a877a8cbca8e5c02af187b50f1ad9c; tested source 181ec139d48c6f911cdcd5f93f5a7dcf2b8b3210. Real loopback TCP half-close observed during a bounded synthetic provider call; no partial evaluation history persisted. 845 Python tests PASS (1 optional PostgreSQL skip), 3 connected Chromium tests PASS, 62 frontend tests/build PASS, and local validators PASS. Evidence docs/evidence/2026-10-07-ai-real-disconnect-transport.json.",
     "MJ-REQ-005 / issue #6 direct structured AI evaluations now reserve database-backed AI category capacity across API instances; generic durable cancellation propagates to provider cancellation; completed, cancelled and expired-lease outcomes are recorded. Full Python 849 PASS (1 optional PostgreSQL skip), 32 focused API/worker tests PASS, 8 browser tests PASS after building worktree UI, frontend 62 PASS/build PASS, validators PASS. Evidence docs/evidence/2026-10-07-ai-evaluation-concurrency-admission.json. Requirement remains PARTIAL: live PostgreSQL lock, live provider and real ATS behavior are not evidenced.",
     "Issue #9 / MJ-REQ-008 product-worker crash recovery exact source d516834ac3bd48352ef3aa8885a1de1fffe53419: full Python 851 PASS / 1 optional PostgreSQL skip; focused 20 PASS; frontend build and repository validators PASS. Process-kill and stale-attempt evidence: docs/evidence/2026-10-07-product-worker-crash-recovery.json. Issue remains OPEN/PARTIAL; hosted checks NOT_RUN_BY_USER_POLICY.",
-    "Issue #178 / MJ-REQ-177 structured worker logging integrated at 169c3f110978c10af45e4f7e6ef4d950a727d4ae; 21 focused PASS/1 PostgreSQL skip, full Python 932 PASS/8 skipped, frontend 63/build and local validators PASS. Evidence docs/evidence/2026-10-07-structured-worker-operation-logs.json. Remaining scope and unavailable runtime/hosted checks remain PARTIAL/NOT_RUN."
+    "Issue #178 / MJ-REQ-177 structured worker logging integrated at 169c3f110978c10af45e4f7e6ef4d950a727d4ae; 21 focused PASS/1 PostgreSQL skip, full Python 932 PASS/8 skipped, frontend 63/build and local validators PASS. Evidence docs/evidence/2026-10-07-structured-worker-operation-logs.json. Remaining scope and unavailable runtime/hosted checks remain PARTIAL/NOT_RUN.",
+    "Issue #179 / MJ-REQ-178 fully accepted and integrated at 8bea57e595e19e638913405a8ec1cd3aa0ebde32. All nine Compose services render 10m/5 file rotation; disposable Docker rollover emitted 50 and retained 11 lines under 1m/2; existing feedback retention and no raw trace/HTML storage verified. 20 focused tests and validators PASS. Evidence docs/evidence/2026-10-07-compose-log-rotation.json."
   ],
   "ownership": "Issue #6 / MJ-REQ-005 AI evaluation admission source cb2681b6a921f2759cf46d4d66a8228645b473e7 and sanitized evidence/planning are integrated at synchronized local/GitHub main cb2681b6a921f2759cf46d4d66a8228645b473e7 under the local Codex integration lock. No PR opened; branch unprotected; hosted checks/review NOT_RUN by policy. Issue remains OPEN/PARTIAL.",
   "delivery_policy": {

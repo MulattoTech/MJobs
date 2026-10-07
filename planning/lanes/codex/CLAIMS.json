@@ -534,17 +534,21 @@
       "requirement_id": "MJ-REQ-178",
       "branch": "codex/mj-req178-log-rotation-20261007",
       "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req178-log-rotation-20261007",
-      "head": "1e11348ec1e10f401453e1d31ba68d651ea2c540",
+      "head": "8bea57e595e19e638913405a8ec1cd3aa0ebde32",
       "paths": [
         "compose.yml",
         "tests/unit/test_compose_modes.py",
         "docs/evidence/2026-10-07-compose-log-rotation.json",
         "planning/lanes/codex/**"
       ],
-      "status": "ACTIVE",
+      "status": "RELEASED",
       "claimed_at": "2026-10-07T15:22:07Z",
       "claim_comment": "https://github.com/MulattoTech/MJobs/issues/179#issuecomment-6040940208",
-      "evidence_path": "docs/evidence/2026-10-07-compose-log-rotation.json"
+      "evidence_path": "docs/evidence/2026-10-07-compose-log-rotation.json",
+      "released_at": "2026-10-07T15:27:43Z",
+      "integrated_main": "8bea57e595e19e638913405a8ec1cd3aa0ebde32",
+      "source_commit": "1e11348ec1e10f401453e1d31ba68d651ea2c540",
+      "result": "PASS; issue #179 fully evidenced and closed"
     }
   ]
 }
