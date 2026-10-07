@@ -575,6 +575,25 @@
       "issue_comment": "https://github.com/MulattoTech/MJobs/issues/180#issuecomment-6041786003",
       "released_at": "2026-10-07T16:03:21Z",
       "integrated_main": "de12a25841d177ee305278b976ed4057f262ee8c"
+    },
+    {
+      "issue": 177,
+      "requirement_id": "MJ-REQ-176",
+      "branch": "codex/mj-req176-job-merge-audit-20261007",
+      "worktree": ".worktrees/codex-mj-req176-job-merge-audit-20261007",
+      "head": "3e9c196d719f589f3c84b2409dc1efc22a1bb37a",
+      "paths": [
+        "services/audit_history.py",
+        "services/discovery/company_feed.py",
+        "tests/integration/test_audit_history.py",
+        "tests/browser/test_audit_history.py",
+        "docs/evidence/2026-10-07-job-merge-audit.json",
+        "planning/lanes/codex/**"
+      ],
+      "status": "ACTIVE",
+      "claimed_at": "2026-10-07T16:23:39Z",
+      "claim_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6041981843",
+      "evidence_path": "docs/evidence/2026-10-07-job-merge-audit.json"
     }
   ]
 }
