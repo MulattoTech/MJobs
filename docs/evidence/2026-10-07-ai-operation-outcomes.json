@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "issue": 381,
+  "requirement_id": "MJ-REF-011",
+  "lane": "codex",
+  "branch": "codex/mj-ref-011-persist-timeout-20261007",
+  "base_main": "977178a837003136f45308ab2d18e2c046eabb3c",
+  "source_head": "b682e0c2d60ad3326a665cebe42ad0d9118d3fa4",
+  "source_tree": "c71110d8043354c42a4fbcddb32d7854c4d80de1",
+  "recorded_at_utc": "2026-10-07T06:45:35Z",
+  "input_sha256": {
+    "apps/api/main.py": "f5386b0b20aa498484397f9db5a4d9b32f7983c0274fd7c569b9f9a60b68c4b2",
+    "tests/integration/test_ai_cost_policy_api.py": "e8743aa78330560de5efb8068fa323717610338302e92588291058f9e6a3d54f"
+  },
+  "result": "PASS",
+  "related_evidence": [
+    "docs/evidence/2026-10-07-ai-prompt-truncation.json"
+  ],
+  "acceptance": {
+    "operation_scoped_budget": "PASS - consume_ai_candidates establishes one monotonic total deadline for the complete evaluation batch and passes each nested provider call only the remaining time; existing tests prove later calls receive less budget and late results are discarded.",
+    "bounded_inputs_and_explicit_truncation": "PASS - oversized job descriptions are bounded with an explicit omitted-character marker; see related prompt-truncation evidence.",
+    "no_inference_from_omitted_content": "PASS - the job-scoring prompt explicitly prohibits inference from omitted content; see related prompt-truncation evidence.",
+    "structured_timeout_and_cancellation": "PASS - total and provider timeouts are returned as stable 504 codes and durably recorded as FAILED with AI_TASK_TIMEOUT or AI_PROVIDER_TIMEOUT. Explicit cancellation is durably recorded as CANCELLED / CANCEL_REQUESTED.",
+    "no_partial_success": "PASS - timeout and cancellation preserve empty AI evaluation history even after a previous candidate returned a synthetic result.",
+    "persisted_timeout_readback": "PASS - after the API returns AI_TASK_TIMEOUT, a fresh Store/API instance reads back the exact FAILED operation and error code from SQLite."
+  },
+  "validation": {
+    "red_reproduction": "PASS - before the API callback change, the regression failed because the durable operation error was AI_EVALUATION_FAILED instead of AI_TASK_TIMEOUT, while the HTTP response already carried AI_TASK_TIMEOUT.",
+    "focused_command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_ai_cost_consumer tests.unit.test_ai_cost_controls tests.unit.test_ai_task_configuration tests.unit.test_ai_structured_output tests.unit.test_operation_concurrency tests.integration.test_ai_cost_policy_api tests.integration.test_ai_task_settings_api",
+    "focused_result": "PASS - 50 unit/API integration tests.",
+    "full_python_command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest discover -s tests (after npm ci and npm run build --prefix apps/web)",
+    "full_python_result": "PASS - 854 tests ran; zero failures/errors and one optional PostgreSQL skip in 495.157 seconds.",
+    "frontend_dependency_command": "npm ci --prefix apps/web",
+    "frontend_dependency_result": "PASS - 44 packages installed, zero vulnerabilities; Node v25.9.0 emitted the declared Vitest engine-range warning.",
+    "frontend_build_command": "npm run build --prefix apps/web",
+    "frontend_build_result": "PASS - TypeScript check and Vite production build completed.",
+    "repository_checks": [
+      "python -m tools.verification.agent_skills",
+      "python -m tools.verification.catalogue",
+      "python -m tools.verification.progress validate",
+      "python -m compileall -q apps/api/main.py tests/integration/test_ai_cost_policy_api.py",
+      "python -m tools.coordination.lane_coordination validate",
+      "git diff --check"
+    ],
+    "repository_checks_result": "PASS"
+  },
+  "environment": {
+    "python": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe (Python 3.12)",
+    "database": "Temporary synthetic SQLite; timeout operation state survived closing and reopening the Store/API. No migration changed.",
+    "browser": "Browser tests were part of the full suite; ignored frontend assets were built in this worktree before the run.",
+    "postgresql": "NOT_RUN - one optional PostgreSQL test skipped because the local test URL was not configured.",
+    "provider": "Synthetic router and local tests only; no product inference or paid/cloud provider call.",
+    "hosted_checks_and_review": "NOT_RUN_BY_USER_POLICY",
+    "external_application_submission": "OFF"
+  },
+  "limitations": [
+    "The full issue acceptance is locally evidenced; this does not promote overlapping original requirements MJ-REQ-004, MJ-REQ-109, MJ-REQ-110, or MJ-REQ-111 to PASS.",
+    "Hosted verification/review and live provider acceptance remain NOT_RUN under local-only policy; external submission remains OFF."
+  ]
+}
