@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-07T14:45:07Z",
+  "issue": 177,
+  "requirement_id": "MJ-REQ-176",
+  "result": "PARTIAL",
+  "source_commit": "0aac9460f0f8573cab04021e2a7adbcb5465de3e",
+  "source_tree": "a98e107a49a53861fd4635ebce4af5d2f6a1bd53",
+  "base_main": "ffa2427799ccf3d76a4f22ddf30e22c9f00a44e5",
+  "acceptance_oracle": "When an existing profile's normalized preferences change through the connected Profile UI/API, one profile-owned SETTING_CHANGED record is committed atomically with the profile update. Its Activity summary is fixed and value-free, persists after reload, and stays invisible to another profile. Creating a profile or saving unchanged preferences emits no setting-change event.",
+  "gap_observation": "The Activity read model already translated SETTING_CHANGED records to a fixed safe summary, but profile preference writes emitted only PROFILE_SAVED. No production preference mutation generated the required user-facing setting event.",
+  "implementation": [
+    "Store.save_profile compares validated normalized preferences with the prior immutable profile snapshot.",
+    "A changed preference set appends a generic SETTING_CHANGED audit record in the same transaction as profile persistence; the payload is empty and contains no preference names or values.",
+    "Initial profile creation and repeat saves with unchanged preferences do not emit SETTING_CHANGED.",
+    "The event retains normal append-only audit IDs and is profile-scoped; existing Activity readback uses the fixed summary."
+  ],
+  "test_first": {
+    "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_audit_history.AuditHistoryApiTests.test_profile_preference_change_appends_value_free_setting_event_once -v",
+    "result": "EXPECTED_FAILURE_BEFORE_IMPLEMENTATION",
+    "observed": "The connected profile PUT succeeded but emitted zero new SETTING_CHANGED timeline events; expected exactly one."
+  },
+  "validation": [
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_audit_history tests.integration.test_profile_import tests.integration.test_application_answer_export -v",
+      "result": "PASS",
+      "counts": {"passed": 34, "failed": 0, "skipped": 0}
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.browser.test_audit_history -v",
+      "result": "PASS",
+      "counts": {"passed": 1, "failed": 0, "skipped": 0}
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest discover -s tests -p test_*.py",
+      "result": "PASS",
+      "counts": {"passed": 936, "failed": 0, "errors": 0, "skipped": 8},
+      "skip_detail": "This nonverbose full-suite invocation reported the aggregate skip count but did not print skip names. No skip was treated as PASS."
+    },
+    {
+      "command": "npm ci --prefix apps/web",
+      "result": "PASS_WITH_WARNING",
+      "details": "44 lockfile packages installed. Node 25.9.0 is outside Vitest's declared Node ranges (^22.12, ^24, >=26); no vulnerabilities reported."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "details": "TypeScript check and Vite production build completed."
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run",
+      "result": "PASS",
+      "counts": {"files": 13, "tests": 63, "failed": 0}
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.agent_skills",
+      "result": "PASS"
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.catalogue",
+      "result": "PASS"
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.progress validate",
+      "result": "PASS"
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.coordination.lane_coordination validate",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "browser_evidence": {
+    "engine": "Headless Chromium via Playwright",
+    "database": "Connected local API and temporary SQLite database; no migration or schema change.",
+    "network": "Browser traffic was restricted to the loopback API; no external browser requests observed.",
+    "verified": [
+      "A real Profile UI preference edit produces the generic setting-change Activity event.",
+      "The synthetic preference value is absent from Activity text.",
+      "The event remains after browser reload and is absent after switching to a second profile."
+    ]
+  },
+  "environment_limitations": [
+    "PostgreSQL/Docker coverage was not independently enabled; optional tests skipped in the full suite remain NOT_RUN for their external runtime scope.",
+    "GitHub Actions and hosted review remain NOT_RUN_BY_USER_POLICY.",
+    "External application submission remains OFF."
+  ],
+  "remaining_requirement_gaps": [
+    "JOB_MERGED, other settings producers outside profile preferences, and complete truthful application lifecycle events remain incomplete or unverified.",
+    "Issue #177 and MJ-REQ-176 remain OPEN/PARTIAL."
+  ]
+}

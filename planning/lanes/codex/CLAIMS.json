@@ -481,6 +481,25 @@
       "source_commit": "4b25f3c1ac1eafe1b5f00d714029bef4268b7b43",
       "integrated_main": "a90c23abca6de19f906ca16a01f0bd92e0aa1801",
       "result": "PARTIAL; issue remains OPEN"
+    },
+    {
+      "issue": 177,
+      "requirement_id": "MJ-REQ-176",
+      "branch": "codex/mj-req176-settings-events-20261007",
+      "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req176-settings-events-20261007",
+      "head": "0aac9460f0f8573cab04021e2a7adbcb5465de3e",
+      "paths": [
+        "packages/persistence/store.py",
+        "services/audit_history.py",
+        "tests/integration/test_audit_history.py",
+        "tests/browser/test_audit_history.py",
+        "docs/evidence/2026-10-07-setting-change-audit-history.json",
+        "planning/lanes/codex/**"
+      ],
+      "status": "ACTIVE",
+      "claimed_at": "2026-10-07T14:32:22Z",
+      "claim_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6040190242",
+      "evidence_path": "docs/evidence/2026-10-07-setting-change-audit-history.json"
     }
   ]
 }
