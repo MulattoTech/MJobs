@@ -216,6 +216,24 @@
       "integrated_main": "64dfebcd51d0d1c926d9b3856a42028ec577f88d",
       "issue_comment": "https://github.com/MulattoTech/MJobs/issues/171#issuecomment-6038062799",
       "status": "RELEASED"
+    },
+    {
+      "issue": 181,
+      "requirement_id": "MJ-REQ-180",
+      "branch": "codex/mj-req180-diagnostic-privacy-20261007",
+      "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req180-diagnostic-privacy-20261007",
+      "head": "f557cd02878b234170470b88ff4f916917a97a25",
+      "paths": [
+        "cli/live_feedback.py",
+        "tests/unit/test_live_feedback.py",
+        "tests/browser/test_live_feedback_redaction.py",
+        "docs/LIVE_FEEDBACK_DEVELOPMENT.md",
+        "docs/evidence/2026-10-07-redacted-diagnostic-privacy.json",
+        "planning/lanes/codex/**"
+      ],
+      "claimed_at": "2026-10-07T12:41:25Z",
+      "status": "ACTIVE",
+      "claim_comment": "https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6038209994"
     }
   ]
 }

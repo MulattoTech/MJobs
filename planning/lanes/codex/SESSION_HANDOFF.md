@@ -46,3 +46,8 @@ Issue #171 / MJ-REQ-170 live-feedback retention is claimed in machine and GitHub
 ## Issue #171 released — 2026-10-07T12:39:55Z
 
 Issue #171 / MJ-REQ-170 is integrated PARTIAL at synchronized main `64dfebcd51d0d1c926d9b3856a42028ec577f88d`. Release readback: https://github.com/MulattoTech/MJobs/issues/171#issuecomment-6038062799. Machine claim released; focused acceptance was 24 PASS and hosted checks remain NOT_RUN_BY_USER_POLICY. The retention feature covers recognized live-feedback session directories only; broader retention requirements remain open. Reconcile current main, active lane claims and dirty worktrees, then select the next unclaimed dependency-ready issue. External submission OFF.
+
+
+## Active issue #181 diagnostic privacy — 2026-10-07T12:47:41Z
+
+Issue #181 / MJ-REQ-180 is active on branch `codex/mj-req180-diagnostic-privacy-20261007` from main `a2053c432d618d49af3e5509a6de00fc0c718392`. Source commit `f557cd02878b234170470b88ff4f916917a97a25` is pushed (tree `a5fbe668101b47da34d0ac4270b95bf475cb6003`). Raw console/page-error strings are no longer stored even with the legacy diagnostic flag; recognizable common sensitive patterns are redacted from metadata and masked in optional screenshots. Focused feedback unit/GUI/Chromium tests: 26 PASS. Evidence: `docs/evidence/2026-10-07-redacted-diagnostic-privacy.json`. Issue remains OPEN/PARTIAL for unclassifiable values, image/canvas text and debug surfaces outside this recorder. GitHub claim update: https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6038209994. A zero-byte untracked `events.jsonl` appeared during focused GUI tests and is intentionally preserved outside Git. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.

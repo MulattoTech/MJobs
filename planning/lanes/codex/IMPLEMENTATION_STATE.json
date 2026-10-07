@@ -1,35 +1,42 @@
 {
   "schema_version": 1,
   "lane": "codex",
-  "status": "IDLE_READY",
-  "base_main": "64dfebcd51d0d1c926d9b3856a42028ec577f88d",
-  "current_issue": null,
-  "requirement_id": null,
-  "branch": null,
-  "head": "64dfebcd51d0d1c926d9b3856a42028ec577f88d",
-  "worktree": null,
+  "status": "ACTIVE",
+  "base_main": "a2053c432d618d49af3e5509a6de00fc0c718392",
+  "current_issue": 181,
+  "requirement_id": "MJ-REQ-180",
+  "branch": "codex/mj-req180-diagnostic-privacy-20261007",
+  "head": "f557cd02878b234170470b88ff4f916917a97a25",
+  "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req180-diagnostic-privacy-20261007",
   "result": "PARTIAL",
-  "evidence_path": "docs/evidence/2026-10-07-live-feedback-retention.json",
+  "evidence_path": "docs/evidence/2026-10-07-redacted-diagnostic-privacy.json",
   "last_completed": {
     "issue": 171,
     "requirement_id": "MJ-REQ-170",
     "integration_commit": "64dfebcd51d0d1c926d9b3856a42028ec577f88d",
     "slice_status": "PARTIAL"
   },
-  "next_candidates": [],
+  "next_candidates": [
+    {
+      "issue": 181,
+      "requirement_id": "MJ-REQ-180",
+      "status": "IMPLEMENTED_AWAITING_EVIDENCE_INTEGRATION",
+      "result": "PARTIAL"
+    }
+  ],
   "do_not_overlap": [
     "Antigravity active issue #302 paths: services/discovery/sources/** and tests/integration/test_dice.py",
     "Ollama/OpenCode active issue #318 paths: services/ats_detection/** and detector tests",
     "canonical planning and main outside integration lock"
   ],
-  "resume_instruction": "Issue #171 / MJ-REQ-170 scoped live-feedback retention is integrated and claim released at main 64dfebcd51d0d1c926d9b3856a42028ec577f88d; requirement remains OPEN/PARTIAL. Reconcile claims and dirty worktrees, then automatically select and claim the next highest-value dependency-ready issue.",
-  "last_verified_head": "e053916c4a5d6e3606e138feefb4e86823631677",
-  "last_verified_tree": "3306d16f3fcde68e8059fc692c859d2b4ee86b51",
-  "last_verified_at_utc": "2026-10-07T12:35:48Z",
+  "resume_instruction": "Issue #181 diagnostic redaction source/test commit f557cd02878b234170470b88ff4f916917a97a25 is pushed. Record evidence and lane state, reconcile current main and ownership, then acquire integration lock and integrate only if main remains a safe ancestor. Requirement remains OPEN/PARTIAL.",
+  "last_verified_head": "f557cd02878b234170470b88ff4f916917a97a25",
+  "last_verified_tree": "a5fbe668101b47da34d0ac4270b95bf475cb6003",
+  "last_verified_at_utc": "2026-10-07T12:46:41Z",
   "started_at_utc": "2026-10-07T04:24:01Z",
   "validation": {
     "result": "PASS_FOR_SLICE",
-    "focused_python_and_feedback_browser": "24 PASS",
+    "focused_python_and_feedback_browser": "26 PASS, 0 failures/errors/skips",
     "full_python_browser": "NOT_RUN",
     "frontend": "NOT_APPLICABLE",
     "validators": "agent_skills/catalogue/progress/lane coordination/compile/diff PASS",
@@ -37,6 +44,6 @@
     "hosted_checks": "NOT_RUN_BY_USER_POLICY",
     "external_submission": "OFF"
   },
-  "last_integrated_head": "64dfebcd51d0d1c926d9b3856a42028ec577f88d",
+  "last_integrated_head": "a2053c432d618d49af3e5509a6de00fc0c718392",
   "last_verified_result": "PASS_FOR_SLICE"
 }

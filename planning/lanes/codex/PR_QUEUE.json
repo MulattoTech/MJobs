@@ -159,6 +159,17 @@
       "evidence_path": "docs/evidence/2026-10-07-live-feedback-retention.json",
       "scope_complete": false,
       "note": "Integrated to synchronized main 64dfebcd51d0d1c926d9b3856a42028ec577f88d; issue #171 remains OPEN/PARTIAL. Evidence docs/evidence/2026-10-07-live-feedback-retention.json."
+    },
+    {
+      "issue": 181,
+      "requirement_id": "MJ-REQ-180",
+      "status": "CANDIDATE_READY",
+      "priority": 0,
+      "target_area": "cli/live_feedback.py; feedback unit/Chromium tests; docs/LIVE_FEEDBACK_DEVELOPMENT.md",
+      "depends_on": [],
+      "evidence_path": "docs/evidence/2026-10-07-redacted-diagnostic-privacy.json",
+      "scope_complete": false,
+      "note": "Privacy follow-up source/test commit f557cd02878b234170470b88ff4f916917a97a25 pushed from a2053c432d618d49af3e5509a6de00fc0c718392. Raw diagnostic text is no longer persisted; recognizable sensitive patterns are redacted from metadata and masked in synthetic Chromium screenshots. 26 focused adjacent tests pass. Full requirement remains PARTIAL."
     }
   ],
   "generated_at": "2026-10-07T12:35:48Z"
