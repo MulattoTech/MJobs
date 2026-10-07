@@ -6,7 +6,7 @@
   "requirement_result": "PARTIAL",
   "base_main": "bcb551ba26b4f9e2dbc4bc988bde3d695238b2fe",
   "source_commit": "2420e67b00ab7d14fbe002379a4ce4b4337350d2",
-  "recorded_at_utc": "2026-10-07T13:17:52Z",
+  "recorded_at_utc": "2026-10-07T13:21:21Z",
   "input_sha256": {
     "tests/integration/test_migration_recovery.py": "0439941d4218d09a0f1dc04c75b5b62b1514fa38c8df8873b2ec0dc63b2ddabf"
   },
@@ -64,9 +64,16 @@
     "reference_gaps": 59
   },
   "integration": {
-    "status": "SOURCE_CHECKPOINT_PUSHED",
+    "status": "NON_FORCE_FAST_FORWARD",
+    "base_main": "bcb551ba26b4f9e2dbc4bc988bde3d695238b2fe",
     "source_commit": "2420e67b00ab7d14fbe002379a4ce4b4337350d2",
+    "candidate_commit": "f8b6127e645bc0977a696dadf01f0017980fbe5a",
+    "local_main": "f8b6127e645bc0977a696dadf01f0017980fbe5a",
+    "origin_main": "f8b6127e645bc0977a696dadf01f0017980fbe5a",
+    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6038839646",
     "issue_state": "OPEN_PARTIAL",
     "external_submission": "OFF"
-  }
+  },
+  "source_tree": "7edee0a504bff70ae05589723eaec5386bd0758c",
+  "recorded_integration_at_utc": "2026-10-07T13:21:21Z"
 }

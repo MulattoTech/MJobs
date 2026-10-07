@@ -1,45 +1,38 @@
 {
   "schema_version": 1,
   "lane": "codex",
-  "status": "IMPLEMENTED_AWAITING_INTEGRATION",
+  "status": "IDLE_READY",
   "base_main": "bcb551ba26b4f9e2dbc4bc988bde3d695238b2fe",
-  "current_issue": 8,
-  "requirement_id": "MJ-REQ-007",
-  "branch": "codex/mj-req007-protected-config-recovery-20261007",
-  "head": "2420e67b00ab7d14fbe002379a4ce4b4337350d2",
-  "worktree": ".worktrees/codex-mj-req007-protected-config-recovery-20261007",
-  "result": "PARTIAL",
+  "current_issue": null,
+  "requirement_id": null,
+  "branch": null,
+  "head": "f8b6127e645bc0977a696dadf01f0017980fbe5a",
+  "worktree": null,
+  "result": "INTEGRATED_PARTIAL",
   "evidence_path": "docs/evidence/2026-10-07-protected-config-migration-recovery.json",
   "last_completed": {
-    "issue": 5,
-    "requirement_id": "MJ-REQ-004",
-    "integrated_main": "2e99cce66f11a2fad756ab6fc0410506a26fd258",
-    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6038708763"
+    "issue": 8,
+    "requirement_id": "MJ-REQ-007",
+    "integrated_main": "f8b6127e645bc0977a696dadf01f0017980fbe5a",
+    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6038839646"
   },
-  "next_candidates": [
-    {
-      "issue": 8,
-      "requirement_id": "MJ-REQ-007",
-      "status": "IMPLEMENTED_AWAITING_INTEGRATION",
-      "result": "PARTIAL"
-    }
-  ],
+  "next_candidates": [],
   "do_not_overlap": [
     "Antigravity active issue #302 paths: services/discovery/sources/** and tests/integration/test_dice.py",
     "Ollama/OpenCode active issue #318 paths: services/ats_detection/** and detector tests",
     "canonical planning and main outside integration lock"
   ],
   "resume_instruction": "Reconcile current main, active claims and dirty worktrees, then select the next highest-value dependency-ready unclaimed issue. Keep external submission OFF and hosted checks NOT_RUN_BY_USER_POLICY.",
-  "last_verified_head": "2420e67b00ab7d14fbe002379a4ce4b4337350d2",
+  "last_verified_head": "f8b6127e645bc0977a696dadf01f0017980fbe5a",
   "last_verified_tree": "7edee0a504bff70ae05589723eaec5386bd0758c",
-  "last_verified_at_utc": "2026-10-07T13:19:44Z",
+  "last_verified_at_utc": "2026-10-07T13:21:21Z",
   "started_at_utc": "2026-10-07T04:24:01Z",
   "validation": {
     "result": "PASS_FOR_SLICE",
-    "protected_credential_sqlite_recovery": "PASS - post-DDL failure rolls back table/version, preserves sentinel, retry succeeds",
-    "credential_downgrade_guard": "PASS - synthetic ciphertext preserved and version unchanged after refusal",
-    "focused_migration_tests": "5 tests; 4 PASS, 1 optional PostgreSQL skip",
-    "migration_integration_suite": "24 tests; 23 PASS, 1 optional PostgreSQL skip",
+    "protected_credential_sqlite_recovery": "PASS - rollback, sentinel preservation, retry to revision",
+    "credential_downgrade_guard": "PASS - synthetic ciphertext and schema version preserved after refusal",
+    "focused_migration_tests": "4 PASS, 1 optional PostgreSQL skip",
+    "migration_integration_suite": "23 PASS, 1 optional PostgreSQL skip",
     "full_python_browser": "NOT_RUN",
     "frontend": "NOT_APPLICABLE",
     "validators": "agent_skills/catalogue/progress/lane coordination/compile/diff PASS",

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-07T13:14:00Z",
+  "timestamp": "2026-10-07T13:21:21Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -96,9 +96,10 @@
         "docs/evidence/2026-10-06-source-change-safety.json",
         "docs/evidence/2026-09-30-pr004-backup-restore-local.json",
         "docs/evidence/2026-10-06-atomic-env-initialization.json",
-        "docs/evidence/2026-10-07-migration-recovery.json"
+        "docs/evidence/2026-10-07-migration-recovery.json",
+        "docs/evidence/2026-10-07-protected-config-migration-recovery.json"
       ],
-      "note": "Healthy Git path/worktree preservation and conditional no-Git NOT_APPLICABLE remain evidenced. Database/document restore and archive integrity have prior receipts. Atomic protected .env initialization is verified. Online SQLite and isolated PostgreSQL 17 migration failure/rollback/retry preserves schema version and sentinel data (docs/evidence/2026-10-07-migration-recovery.json). Requirement remains PARTIAL: protected-configuration schema migration recovery is unverified and existing offline Alembic SQL generation fails at cb72f9041d6a."
+      "note": "Healthy Git path/worktree preservation and conditional no-Git NOT_APPLICABLE remain evidenced. Database/document restore and archive integrity have prior receipts. Atomic protected .env initialization is verified. Online SQLite and isolated PostgreSQL 17 migration failure/rollback/retry preserves schema version and sentinel data (docs/evidence/2026-10-07-migration-recovery.json). Requirement remains PARTIAL: protected-credential schema recovery is verified with synthetic SQLite fault/retry and downgrade-preservation tests; PostgreSQL protected-credential recovery remains unverified and existing offline Alembic SQL generation fails at cb72f9041d6a. Additional evidence: docs/evidence/2026-10-07-protected-config-migration-recovery.json. Issue #8 remains PARTIAL for PostgreSQL protected-config recovery and broader change-safety criteria."
     },
     {
       "requirement_id": "MJ-REQ-008",

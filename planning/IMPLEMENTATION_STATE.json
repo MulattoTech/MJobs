@@ -11,7 +11,7 @@
     "current_verified_github_state": "GitHub main integrated issue #5 / MJ-REQ-004 Compose recovery output bounds at 2e99cce66f11a2fad756ab6fc0410506a26fd258; issue remains OPEN/PARTIAL after sanitized release evidence; Actions disabled; external submission OFF.",
     "current_verified_at": "2026-10-07T13:14:00Z"
   },
-  "current_milestone": "MJ-REQ-004-COMPOSE-RECOVERY-OUTPUT-BOUNDS-20261007",
+  "current_milestone": "MJ-REQ-007-PROTECTED-CREDENTIAL-MIGRATION-RECOVERY-20261007",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -113,7 +113,8 @@
     "MJ-REQ-005 / issue #6: live isolated PostgreSQL 17 advisory-lock tests now prove cross-kind company-discovery and independent application-automation capacity-one admission across separate Store engines; each race leaves one RUNNING and one QUEUED operation with matching attempt counts. The acceptance slice passes; broader requirement remains PARTIAL because real ATS/provider execution is not exercised. Evidence docs/evidence/2026-10-07-postgres-concurrency-runtime.json.",
     "MJ-REQ-180 / issue #181 advanced PARTIAL: opt-in live-feedback screenshots mask inputs, textareas, selects and data-sensitive regions; raw Playwright trace/DOM snapshots are no longer saved. Synthetic Chromium pixel acceptance and focused feedback tests pass; arbitrary text and diagnostic-text paths remain. Evidence docs/evidence/2026-10-07-redacted-visual-feedback.json.",
     "MJ-REQ-170 / issue #171 advanced PARTIAL: new live-feedback sessions automatically prune only managed timestamped session folders older than 30 days and repair the latest pointer; other transient artifact/log/payload classes remain unverified. Evidence docs/evidence/2026-10-07-live-feedback-retention.json.",
-    "MJ-REQ-004 Compose recovery CLI output bounds verified with synthetic child overflow and deadline termination; 2 MiB retained stdout, drained stderr, child reaping and sanitized errors. Real Compose execution NOT_RUN; other operation classes/live AI/ATS remain incomplete. Evidence docs/evidence/2026-10-07-compose-recovery-output-bounds.json."
+    "MJ-REQ-004 Compose recovery CLI output bounds verified with synthetic child overflow and deadline termination; 2 MiB retained stdout, drained stderr, child reaping and sanitized errors. Real Compose execution NOT_RUN; other operation classes/live AI/ATS remain incomplete. Evidence docs/evidence/2026-10-07-compose-recovery-output-bounds.json.",
+    "MJ-REQ-007 / issue #8 advanced PARTIAL: synthetic SQLite recovery of encrypted provider-credential schema migration and downgrade data-preservation are verified; PostgreSQL-specific protected credential recovery and broader change-safety criteria remain incomplete. Evidence docs/evidence/2026-10-07-protected-config-migration-recovery.json."
   ],
   "blocked_capabilities": [],
   "active_requirements": [
@@ -331,7 +332,8 @@
     "Focused live-feedback privacy unit/GUI/Chromium acceptance: 26 PASS, 0 failures/errors/skips (synthetic local data only); evidence docs/evidence/2026-10-07-redacted-diagnostic-privacy.json.",
     "Issue #8 / MJ-REQ-007 migration recovery integrated at 4f7059f5fcaac5335e2b5aa9e0666dc6848706ad: SQLite and isolated disposable PostgreSQL 17 injected post-DDL rollback/retry; 23 migration tests PASS with 1 optional PostgreSQL skip; 18 related unit tests PASS. Evidence docs/evidence/2026-10-07-migration-recovery.json.",
     "Issue #9 / MJ-REQ-008 PostgreSQL worker recovery integrated at 68f38e2bc39f30fd9bb213c14d182991d0c4214e: worker lifecycle module 18 PASS (two disposable PostgreSQL cases and 16 SQLite cases); PostgreSQL category concurrency 5 PASS; repository validators PASS. Evidence docs/evidence/2026-10-07-postgres-worker-crash-recovery.json.",
-    "Issue #5 / MJ-REQ-004 Compose recovery output boundary integrated at 2e99cce66f11a2fad756ab6fc0410506a26fd258: focused synthetic child tests 4 PASS, full unit suite 408 PASS, validators PASS. Evidence docs/evidence/2026-10-07-compose-recovery-output-bounds.json."
+    "Issue #5 / MJ-REQ-004 Compose recovery output boundary integrated at 2e99cce66f11a2fad756ab6fc0410506a26fd258: focused synthetic child tests 4 PASS, full unit suite 408 PASS, validators PASS. Evidence docs/evidence/2026-10-07-compose-recovery-output-bounds.json.",
+    "Issue #8 / MJ-REQ-007 protected credential migration recovery slice integrated at f8b6127e645bc0977a696dadf01f0017980fbe5a: focused migration tests 4 PASS, 1 optional PostgreSQL skip; migration integration suite 23 PASS, 1 optional PostgreSQL skip; validators PASS. SQLite failure after credential-table DDL rolls back schema/version and preserves sentinel, retry succeeds, and synthetic ciphertext prevents destructive downgrade. Evidence docs/evidence/2026-10-07-protected-config-migration-recovery.json."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -393,7 +395,8 @@
     "MJ-REQ-005 real ATS/provider concurrency and hosted Actions/review remain NOT_RUN; external application submission OFF. Browser/frontend/migrations NOT_APPLICABLE to the test-only slice.",
     "Full repository suite, frontend/browser tests, hosted checks/review NOT_RUN_BY_USER_POLICY; offline SQL generation attempted and failed in existing migration cb72f9041d6a; external submission OFF.",
     "Issue #9 PostgreSQL worker recovery: physical host restart and full repository suite NOT_RUN; frontend/browser NOT_APPLICABLE to this test-only slice; hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF.",
-    "Issue #5 Compose recovery output bounds: real Docker Compose recovery intentionally NOT_RUN to avoid stopping/restarting local services; full integration/browser/frontend suites NOT_RUN_BY_SCOPE; hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF."
+    "Issue #5 Compose recovery output bounds: real Docker Compose recovery intentionally NOT_RUN to avoid stopping/restarting local services; full integration/browser/frontend suites NOT_RUN_BY_SCOPE; hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF.",
+    "Issue #8 protected-credential migration slice: PostgreSQL-specific failure/retry NOT_RUN (optional URL unavailable); full suite/frontend/browser NOT_RUN_BY_SCOPE; hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -429,13 +432,13 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-07T13:14:00Z",
+    "timestamp": "2026-10-07T13:21:21Z",
     "result": "PARTIAL",
-    "source_commit": "0a14aaa2d9c0fe2cb1ae0c94a3281a1ebd99987f",
-    "source_tree": "1c647a72802f656ecd86627f67aec4057417e7f8",
-    "scope": "Bound retained stdout, drain stderr, enforce deadlines, terminate/reap overflowing or timed-out children, and sanitize errors for Compose recovery and Docker inspect subprocesses.",
-    "evidence_path": "docs/evidence/2026-10-07-compose-recovery-output-bounds.json",
-    "integration_commit": "2e99cce66f11a2fad756ab6fc0410506a26fd258"
+    "source_commit": "2420e67b00ab7d14fbe002379a4ce4b4337350d2",
+    "source_tree": "7edee0a504bff70ae05589723eaec5386bd0758c",
+    "scope": "Fault/retry recovery of profile-scoped encrypted provider-credential schema migration on temporary SQLite and preservation of synthetic ciphertext on refused downgrade.",
+    "evidence_path": "docs/evidence/2026-10-07-protected-config-migration-recovery.json",
+    "integration_commit": "f8b6127e645bc0977a696dadf01f0017980fbe5a"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -539,7 +542,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "04507e36bd78b6af4053868f00926d2b8b993b0f",
+  "last_implementation_commit": "f8b6127e645bc0977a696dadf01f0017980fbe5a",
   "publication": {
     "result": "PASS",
     "integration_method": "NON_FORCE_FAST_FORWARD",
@@ -8464,12 +8467,64 @@
         "git_commit": "2e99cce66f11a2fad756ab6fc0410506a26fd258",
         "evidence_path": "docs/evidence/2026-10-07-compose-recovery-output-bounds.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-007-PROTECTED-CREDENTIAL-MIGRATION-RECOVERY-INTEGRATED-20261007",
+      "current_phase": "Issue #8 / MJ-REQ-007 protected provider-credential migration recovery integrated PARTIAL; PostgreSQL protected-credential recovery remains NOT_RUN.",
+      "timestamp": "2026-10-07T13:21:21Z",
+      "completed_steps": [
+        "Added synthetic SQLite failure injection after encrypted provider-credential schema DDL.",
+        "Verified failed migration rolls back schema and Alembic version, preserves sentinel data, and succeeds on retry.",
+        "Verified synthetic ciphertext prevents lossy downgrade and remains intact after refusal.",
+        "Integrated by non-force fast-forward and recorded sanitized evidence; issue remains OPEN/PARTIAL."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-07-protected-config-migration-recovery.json"
+      ],
+      "files_modified": [
+        "tests/integration/test_migration_recovery.py",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md",
+        "planning/lanes/codex/CLAIMS.json",
+        "planning/lanes/codex/CONTINUATION.json",
+        "planning/lanes/codex/IMPLEMENTATION_STATE.json",
+        "planning/lanes/codex/PR_QUEUE.json"
+      ],
+      "tests_completed": [
+        "Focused migration and credential migration tests: 4 PASS, 1 optional PostgreSQL skip.",
+        "Migration integration suite: 23 PASS, 1 optional PostgreSQL skip.",
+        "Agent skill, catalogue, progress, lane coordination, compilation, JSON and diff validation PASS."
+      ],
+      "tests_remaining": [
+        "PostgreSQL protected provider-credential migration failure/retry NOT_RUN.",
+        "Full Python/browser/frontend suite NOT_RUN_BY_SCOPE.",
+        "Hosted checks/review NOT_RUN_BY_USER_POLICY."
+      ],
+      "migrations_applied": [
+        "Temporary SQLite databases only; migration recovery fault/retry and downgrade guard. No personal database or real credentials used."
+      ],
+      "live_integrations_tested": [
+        "GitHub issue #8 sanitized release comment: https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6038839646.",
+        "Local and origin/main verified at f8b6127e645bc0977a696dadf01f0017980fbe5a."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "SQLite only for the protected provider-credential migration slice; PostgreSQL recovery is NOT_RUN.",
+        "Issue #8 / MJ-REQ-007 remains OPEN/PARTIAL for PostgreSQL protected-config recovery and broader change-safety criteria.",
+        "Offline Alembic SQL generation remains unsupported by existing data-query migration cb72f9041d6a; hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "f8b6127e645bc0977a696dadf01f0017980fbe5a",
+        "evidence_path": "docs/evidence/2026-10-07-protected-config-migration-recovery.json"
+      }
     }
   ],
-  "current_phase": "Issue #5 / MJ-REQ-004 Compose recovery subprocess output bound integrated; requirement remains PARTIAL.",
+  "current_phase": "Issue #8 / MJ-REQ-007 protected provider-credential migration recovery integrated PARTIAL; PostgreSQL protected-credential recovery remains NOT_RUN.",
   "last_safe_checkpoint": {
-    "git_commit": "2e99cce66f11a2fad756ab6fc0410506a26fd258",
-    "evidence_path": "docs/evidence/2026-10-07-compose-recovery-output-bounds.json"
+    "git_commit": "f8b6127e645bc0977a696dadf01f0017980fbe5a",
+    "evidence_path": "docs/evidence/2026-10-07-protected-config-migration-recovery.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -8707,19 +8762,19 @@
     "next_issue": "Release #398 and select the next dependency-ready unclaimed issue after live claim/worktree reconciliation."
   },
   "active_development_issue": {
-    "issue": 5,
-    "requirement_id": "MJ-REQ-004",
-    "title": "Bound External Operations",
+    "issue": 8,
+    "requirement_id": "MJ-REQ-007",
+    "title": "Source Control / Change Safety",
     "state": "INTEGRATED_PARTIAL",
-    "base": "9e83fb7ecb1b42e2de666e573cd9f4913d39ee3c",
-    "branch": "codex/mj-req004-compose-recovery-output-bounds-20261007",
-    "candidate": "2e99cce66f11a2fad756ab6fc0410506a26fd258",
-    "integrated_main": "2e99cce66f11a2fad756ab6fc0410506a26fd258",
-    "source_commit": "0a14aaa2d9c0fe2cb1ae0c94a3281a1ebd99987f",
-    "source_tree": "1c647a72802f656ecd86627f67aec4057417e7f8",
-    "evidence": "docs/evidence/2026-10-07-compose-recovery-output-bounds.json",
-    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6038708763",
-    "next_action": "Issue #5 remains OPEN/PARTIAL for other operation categories and live provider/ATS paths; Codex claim released. Reconcile current main, claims and dirty worktrees, then select the next highest-value unclaimed dependency-ready issue."
+    "base": "bcb551ba26b4f9e2dbc4bc988bde3d695238b2fe",
+    "branch": "codex/mj-req007-protected-config-recovery-20261007",
+    "candidate": "f8b6127e645bc0977a696dadf01f0017980fbe5a",
+    "integrated_main": "f8b6127e645bc0977a696dadf01f0017980fbe5a",
+    "source_commit": "2420e67b00ab7d14fbe002379a4ce4b4337350d2",
+    "source_tree": "7edee0a504bff70ae05589723eaec5386bd0758c",
+    "evidence": "docs/evidence/2026-10-07-protected-config-migration-recovery.json",
+    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6038839646",
+    "next_action": "Issue #8 remains OPEN/PARTIAL for PostgreSQL protected-credential migration recovery and broader change-safety acceptance. Claim released; reconcile current main, machine/GitHub claims and dirty worktrees, then select the next highest-value unclaimed dependency-ready issue."
   },
   "historical_control_snapshots": [
     {
@@ -9859,5 +9914,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-07T12:38:14Z"
+  "updated_at": "2026-10-07T13:21:21Z"
 }

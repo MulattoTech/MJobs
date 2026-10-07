@@ -307,10 +307,13 @@
         "docs/evidence/2026-10-07-protected-config-migration-recovery.json",
         "planning/lanes/codex/**"
       ],
-      "status": "ACTIVE",
+      "status": "RELEASED",
       "claimed_at": "2026-10-07T13:19:41Z",
       "claim_comment": "https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6038755695",
-      "evidence_path": "docs/evidence/2026-10-07-protected-config-migration-recovery.json"
+      "evidence_path": "docs/evidence/2026-10-07-protected-config-migration-recovery.json",
+      "released_at": "2026-10-07T13:21:21Z",
+      "integrated_main": "f8b6127e645bc0977a696dadf01f0017980fbe5a",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6038839646"
     }
   ]
 }

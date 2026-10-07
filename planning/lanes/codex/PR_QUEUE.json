@@ -185,7 +185,7 @@
     {
       "issue": 8,
       "requirement_id": "MJ-REQ-007",
-      "status": "IMPLEMENTED_AWAITING_INTEGRATION",
+      "status": "INTEGRATED_PARTIAL",
       "priority": 0,
       "target_area": "tests/integration/test_migration_recovery.py",
       "depends_on": [
@@ -193,7 +193,9 @@
       ],
       "evidence_path": "docs/evidence/2026-10-07-protected-config-migration-recovery.json",
       "scope_complete": false,
-      "note": "Added temporary-SQLite fault/retry acceptance for encrypted provider_credentials schema migration. Synthetic ciphertext prevents downgrade; sentinel, schema version and bytes are read back after failure/refusal. Focused migration tests 4 PASS/1 optional PG skip; migration suite 23 PASS/1 optional PG skip; validators PASS. PostgreSQL protected-config recovery and broader issue #8 remain PARTIAL."
+      "note": "Added temporary-SQLite fault/retry acceptance for encrypted provider_credentials schema migration. Synthetic ciphertext prevents downgrade; sentinel, schema version and bytes are read back after failure/refusal. Focused migration tests 4 PASS/1 optional PG skip; migration suite 23 PASS/1 optional PG skip; validators PASS. PostgreSQL protected-config recovery and broader issue #8 remain PARTIAL.",
+      "integration_commit": "f8b6127e645bc0977a696dadf01f0017980fbe5a",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6038839646"
     }
   ],
   "generated_at": "2026-10-07T13:07:33Z"
