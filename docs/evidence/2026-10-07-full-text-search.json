@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "generated_at_utc": "2026-10-07T19:02:07Z",
+  "requirement_id": "MJ-REQ-165",
+  "github_issue": 166,
+  "candidate_result": "PASS",
+  "integration_status": "PENDING",
+  "base_main_sha": "fc103a4b01b473967bb67ccd8ef63766f8c80abc",
+  "validated_source_commit": "108c502ce0b2c8aa92a4868b09687b4b4a0206f1",
+  "validated_source_tree": "3d3bc464b52f3414b919f7c18d3038b08debcd08",
+  "acceptance_oracle": "GET /jobs?q=... returns matching jobs when the query appears in title, company name, description, skills, or location. PostgreSQL uses matching GIN full-text indexes. Existing saved-search filtering, search profile isolation, ordering, and result limits remain intact.",
+  "environment": {
+    "os": "Windows",
+    "python": "3.12",
+    "node": "25.9.0",
+    "postgresql": "17.11 disposable container",
+    "docker_engine": "29.8.2",
+    "browser": "headless Chromium",
+    "database_data": "synthetic fixture records only"
+  },
+  "tests": [
+    {
+      "command": "python -m unittest tests.integration.test_job_full_text_search",
+      "result": "PASS",
+      "detail": "API search returned the fixture job for each of the five specified fields on SQLite and PostgreSQL."
+    },
+    {
+      "command": "python -m unittest tests.integration.test_job_full_text_search tests.browser.test_job_full_text_search tests.browser.test_search_profile_selection",
+      "result": "PASS",
+      "detail": "3 tests passed on the committed source. Connected browser search covered skill and location queries, database close/reopen, and saved-search compatibility."
+    },
+    {
+      "command": "python -m unittest discover -s tests -p 'test_*.py'",
+      "result": "PASS",
+      "detail": "962 tests run, 8 skipped, 0 failures, 0 errors. This broad run preceded only import wrapping and JSX indentation cleanup; the affected API/browser tests, frontend suite, and build were rerun afterward."
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run",
+      "result": "PASS",
+      "detail": "13 test files, 63 tests passed. npm ci reported the repository's Vitest engine range does not include Node 25.9.0; tests and build completed successfully with the installed runtime."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "detail": "TypeScript check and Vite production build passed."
+    },
+    {
+      "command": "Alembic upgrade/downgrade/re-upgrade on temporary SQLite and disposable PostgreSQL 17 databases",
+      "result": "PASS",
+      "detail": "Full migration chain reached f37a0c2e91b5 on both engines. PostgreSQL downgrade removed both indexes without changing two existing canonical job rows; re-upgrade restored both indexes. SQLite dialect migration remained a safe no-op for PostgreSQL-only indexes."
+    },
+    {
+      "command": "PostgreSQL EXPLAIN with enable_seqscan=off for job and company search expressions",
+      "result": "PASS",
+      "detail": "Planner matched ix_canonical_jobs_full_text and ix_companies_name_full_text via Bitmap Index Scan."
+    },
+    {
+      "command": "python -m tools.verification.agent_skills; python -m tools.verification.catalogue; python -m tools.verification.progress validate; python -m tools.coordination.lane_coordination validate; git diff --check",
+      "result": "PASS",
+      "detail": "All repository validators passed. Git emitted only the existing LF-to-CRLF warning for apps/web/src/main.tsx."
+    }
+  ],
+  "failed_attempts_and_resolution": [
+    "The initial RED test exposed missing skills/location search and an over-strict company assertion because the fixture had multiple jobs for one company; the company oracle was corrected to require the target among valid matches.",
+    "A PostgreSQL rerun against a database already modified by the prior test conflicted with the fixture source identity. The migration/data-preservation check remained successful; the final API acceptance was rerun from a fresh disposable database and passed.",
+    "The first temporary PostgreSQL network was configured internal-only and was unreachable from the host test process. It was replaced with a separate bridge network and loopback-only published port. No existing MJobs container or database was changed."
+  ],
+  "not_run": [
+    "GitHub Actions and hosted reviewers: NOT_RUN_BY_USER_POLICY.",
+    "Live job-provider requests: NOT_RUN; tests used synthetic fixture sources only.",
+    "External application submission: OFF."
+  ],
+  "scope_limitations": [
+    "PostgreSQL full-text matching uses the simple configuration and AND semantics from websearch_to_tsquery; no separate relevance ranking was added.",
+    "SQLite retains portable case-insensitive substring behavior for local tests and development; PostgreSQL production search uses the GIN full-text indexes."
+  ]
+}
