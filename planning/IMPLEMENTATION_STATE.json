@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-07T06:09:35Z",
+  "generated_at": "2026-10-07T07:17:15Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -11,7 +11,7 @@
     "current_verified_github_state": "Local/GitHub main synchronized at cb2681b6a921f2759cf46d4d66a8228645b473e7; issue #6 remains OPEN/PARTIAL after local evidence readback; Actions disabled; external submission OFF.",
     "current_verified_at": "2026-10-07T05:08:16Z"
   },
-  "current_milestone": "MJ-REF-011-SHARED-AI-BUDGETS-AND-TRUNCATION-20261007",
+  "current_milestone": "MJ-REF-028-ENCRYPTED-PROVIDER-CREDENTIAL-STORE-20261007",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -63,7 +63,8 @@
     "MJ-REQ-017.S08: Remotive global job-source adapter implemented with public JSON collection, multi-company attribution, canonical search semantics normalization, error/rate-limit handling, and registry integration (docs/evidence/2026-10-06-remotive-job-source-adapter.json).",
     "MJ-REQ-017.S02: We Work Remotely global job-source adapter implemented with public RSS feed collection, multi-company attribution, canonical search semantics normalization, error/rate-limit handling, and registry integration (docs/evidence/2026-10-06-we-work-remotely-job-source-adapter.json).",
     "MJ-REQ-017.S07: Remote OK global job-source adapter implemented with public JSON collection, multi-company attribution, canonical search semantics normalization, error/rate-limit handling, and registry integration (docs/evidence/2026-10-06-remote-ok-job-source-adapter.json).",
-    "MJ-REF-011 locally complete: operation-wide AI candidate deadline reaches each nested provider call as remaining time; prompt truncation is explicit and omitted details cannot be inferred; timeout/cancel reasons persist without partial evaluation history. Focused 50 PASS; full Python 854 PASS with one optional PostgreSQL skip; frontend build and repository validators PASS. Evidence docs/evidence/2026-10-07-ai-prompt-truncation.json and docs/evidence/2026-10-07-ai-operation-outcomes.json."
+    "MJ-REF-011 locally complete: operation-wide AI candidate deadline reaches each nested provider call as remaining time; prompt truncation is explicit and omitted details cannot be inferred; timeout/cancel reasons persist without partial evaluation history. Focused 50 PASS; full Python 854 PASS with one optional PostgreSQL skip; frontend build and repository validators PASS. Evidence docs/evidence/2026-10-07-ai-prompt-truncation.json and docs/evidence/2026-10-07-ai-operation-outcomes.json.",
+    "Profile-scoped AES-256-GCM provider credential storage with masked UI/API metadata, rotation/deletion, synthetic backup-theft/redaction tests, and bounded explicit provider connection checks"
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
@@ -101,7 +102,8 @@
     "MJ-REQ-004 structured AI evaluation now has explicit profile/request-scoped UI/API cancellation, bounded in-flight completion and no partial history; synthetic provider and connected Chromium only. Other operation categories and real provider acceptance remain incomplete (docs/evidence/2026-10-07-ai-evaluation-ui-cancel.json).",
     "MJ-REQ-004 structured AI evaluation cancellation now closes blocked loopback Ollama transport promptly and discards partial batches; synthetic local HTTP only. Other operation categories and live provider acceptance remain incomplete (docs/evidence/2026-10-07-ai-ollama-active-cancel.json).",
     "MJ-REQ-005 / issue #6 direct structured AI evaluations now reserve database-backed AI category capacity across API instances; generic durable cancellation propagates to provider cancellation; completed, cancelled and expired-lease outcomes are recorded. Full Python 849 PASS (1 optional PostgreSQL skip), 32 focused API/worker tests PASS, 8 browser tests PASS after building worktree UI, frontend 62 PASS/build PASS, validators PASS. Evidence docs/evidence/2026-10-07-ai-evaluation-concurrency-admission.json. Requirement remains PARTIAL: live PostgreSQL lock, live provider and real ATS behavior are not evidenced.",
-    "MJ-REQ-008: durable synthetic product-worker process crash recovery and stale-attempt fencing are verified; physical host and browser-process crash recovery remain open."
+    "MJ-REQ-008: durable synthetic product-worker process crash recovery and stale-attempt fencing are verified; physical host and browser-process crash recovery remain open.",
+    "Provider credentials are not yet routed into AI inference; master encryption-key rotation and complete original secret/diagnostic requirements remain open"
   ],
   "blocked_capabilities": [],
   "active_requirements": [
@@ -304,7 +306,9 @@
     "MJ-REQ-008 / issue #9 browser-renderer crash acceptance: committed manual application status and history recovered in a fresh Chromium page after CDP Page.crash while the write response was held. Four connected application-pipeline browser tests and five API/service integration tests PASS; frontend 62 tests/build and repository validators PASS. Evidence docs/evidence/2026-10-07-browser-crash-recovery.json. Whole-browser-process and physical host restart remain NOT_RUN; issue stays OPEN/PARTIAL.",
     "MJ-REQ-008 / issue #9 whole-browser-process crash acceptance: CDP Browser.crash terminated Chromium after a manual application status/history commit while the response was held; a replacement browser read back identical state. Five connected application-pipeline browser tests and five API/service integration tests PASS; frontend 62 tests/build and local validators PASS. Evidence docs/evidence/2026-10-07-browser-process-crash-recovery.json. Physical host restart remains NOT_RUN; issue stays OPEN/PARTIAL.",
     "MJ-REF-011 prompt truncation: 47 focused AI unit/API integration tests PASS; exact-head full Python suite 854 PASS with one optional PostgreSQL skip; frontend build and repository validators PASS. Evidence docs/evidence/2026-10-07-ai-prompt-truncation.json",
-    "MJ-REF-011 complete local acceptance: 50 focused AI unit/API tests PASS; 854 full Python tests PASS with one optional PostgreSQL skip; frontend build, repository validators, compileall, diff and coordination checks PASS. Timeout operation state survives Store/API reopen; cancellation persists with no partial history. Evidence docs/evidence/2026-10-07-ai-operation-outcomes.json."
+    "MJ-REF-011 complete local acceptance: 50 focused AI unit/API tests PASS; 854 full Python tests PASS with one optional PostgreSQL skip; frontend build, repository validators, compileall, diff and coordination checks PASS. Timeout operation state survives Store/API reopen; cancellation persists with no partial history. Evidence docs/evidence/2026-10-07-ai-operation-outcomes.json.",
+    "MJ-REF-028 focused credential unit/API/migration tests and connected Chromium flow passed.",
+    "MJ-REF-028 full Python suite: 867 tests run, 1 skipped, 0 failures; frontend 62 tests and production build passed; repository validators, scoped compile, pip check and diff checks passed."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -354,7 +358,8 @@
     "MJ-REQ-004 in-flight Ollama cancellation: real/live Ollama inference, PostgreSQL runtime, and GitHub hosted checks/review NOT_RUN_BY_USER_POLICY; one optional PostgreSQL test skipped because MJOBS_TEST_POSTGRES_URL was unset. External submission OFF.",
     "MJ-REQ-005 issue #6: live PostgreSQL advisory-lock runtime, live AI-provider inference, real ATS concurrency and hosted Actions/review remain NOT_RUN; one optional isolated PostgreSQL concurrency test skipped because MJOBS_TEST_POSTGRES_URL was unset; external submission remains OFF.",
     "MJ-REQ-008 physical host restart and browser-process crash acceptance remain NOT_RUN; the scoped product-worker subprocess crash acceptance is recorded in docs/evidence/2026-10-07-product-worker-crash-recovery.json.",
-    "MJ-REQ-008 live PostgreSQL runtime NOT_RUN because MJOBS_TEST_POSTGRES_URL was unset; hosted Actions/review remain NOT_RUN_BY_USER_POLICY."
+    "MJ-REQ-008 live PostgreSQL runtime NOT_RUN because MJOBS_TEST_POSTGRES_URL was unset; hosted Actions/review remain NOT_RUN_BY_USER_POLICY.",
+    "MJ-REF-028 live provider connection, PostgreSQL runtime migration, hosted Actions/review, and real external application submission were not run. Existing MJobs containers were left untouched; synthetic local tests only."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -388,13 +393,13 @@
     "Fresh Codex worktrees may lack ignored apps/web/node_modules and apps/web/dist; run npm ci and npm run build --prefix apps/web before browser/full-suite validation. MJ-REF-011 exact-source rerun passed 854 tests after restoring those artifacts; evidence docs/evidence/2026-10-07-ai-prompt-truncation.json"
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-07T06:47:03Z",
+    "timestamp": "2026-10-07T07:17:15Z",
     "result": "PASS",
-    "source_commit": "b682e0c2d60ad3326a665cebe42ad0d9118d3fa4",
-    "source_tree": "c71110d8043354c42a4fbcddb32d7854c4d80de1",
-    "scope": "All MJ-REF-011 issue acceptance is locally evidenced across operation-wide provider deadlines, explicit input truncation/no-inference instructions, structured timeout/cancel persistence and no partial results.",
-    "evidence_path": "docs/evidence/2026-10-07-ai-operation-outcomes.json",
-    "integration_commit": "8bb20aeb08dbb696af0629bfc861833c7bce0220"
+    "source_commit": "7636b620b60e53380b48051a5550aa1dc23be663",
+    "source_tree": "eb580c4073864bfd06f7c56ea10af0527488ddc9",
+    "scope": "All issue #398 acceptance criteria locally exercised: encrypted persistence and key boundary, masked client previews, profile isolation, rotation/delete, secret redaction, synthetic backup theft checks, and explicit mocked connection checks.",
+    "evidence_path": "docs/evidence/2026-10-07-provider-credential-store.json",
+    "integration_commit": "7636b620b60e53380b48051a5550aa1dc23be663"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -498,16 +503,16 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "d516834ac3bd48352ef3aa8885a1de1fffe53419",
+  "last_implementation_commit": "7636b620b60e53380b48051a5550aa1dc23be663",
   "publication": {
     "result": "PASS",
     "integration_method": "NON_FORCE_FAST_FORWARD",
-    "integration_commit": "ae7e27a6202272ab5a65408df91a3ccaff151dfd",
-    "prior_main": "3ec8702ed0f42842e1bac772997760d8db5c9caf",
-    "pr_number": 515,
-    "pr_state": "CLOSED",
-    "github_reports_merged": true,
-    "note": "PR515 source is contained in main. This is local-only integration; hosted tests and additional AI review were not run. Final metadata SHA/local sync is in the closing receipt."
+    "integration_commit": "7636b620b60e53380b48051a5550aa1dc23be663",
+    "prior_main": "104e5533bbbc174e0e8c6e806741074e5f83d3a8",
+    "pr_number": null,
+    "pr_state": "NOT_OPENED_LOCAL_ONLY",
+    "github_reports_merged": false,
+    "note": "Source/evidence integrated under the local integration lock. Hosted checks and independent review are NOT_RUN_BY_USER_POLICY; GitHub Actions remain disabled."
   },
   "optional_afk_journal": {
     "result": "PASS",
@@ -7325,12 +7330,98 @@
         "main_protected": false,
         "open_prs": 0
       }
+    },
+    {
+      "milestone_id": "MJ-REF-028-ENCRYPTED-PROVIDER-CREDENTIAL-STORE-20261007",
+      "timestamp": "2026-10-07T07:17:15Z",
+      "current_phase": "Issue #398 acceptance integrated as a complete scoped feature; broader overlapping security requirements remain partial.",
+      "completed_steps": [
+        "Implemented AES-256-GCM encryption with profile/provider authenticated data and a server-only environment key.",
+        "Connected masked provider credential metadata, save/rotate/delete and explicit fixed-origin eight-second connection checks through API and AI Settings UI.",
+        "Added profile isolation, persistence/reopen, ciphertext/backup, logging/serialization redaction, migration downgrade-preservation and connected Chromium tests.",
+        "Ran 867 Python tests (one skipped), 62 frontend tests/build and repository validators; full suite passed.",
+        "Pushed candidate and integrated by non-force fast-forward from 104e5533bbbc174e0e8c6e806741074e5f83d3a8 under the Codex integration lock.",
+        "Posted sanitized local acceptance evidence to GitHub issue #398: https://github.com/MulattoTech/MJobs/issues/398#issuecomment-6032995423"
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-07-provider-credential-store.json",
+        "docs/runbooks/PROVIDER_CREDENTIALS.md",
+        "migrations/versions/e5019c4a7b20_encrypted_provider_credentials.py",
+        "services/credentials/__init__.py",
+        "services/credentials/connection.py",
+        "services/credentials/vault.py",
+        "tests/browser/test_provider_credentials.py",
+        "tests/integration/test_provider_credentials_api.py",
+        "tests/integration/test_provider_credentials_migration.py",
+        "tests/unit/test_credential_store.py"
+      ],
+      "files_modified": [
+        "apps/api/main.py",
+        "apps/web/src/main.tsx",
+        "cli/init_env.py",
+        "compose.yml",
+        "docs/reference/REFERENCE_INSPIRATION_LOG.md",
+        "packages/persistence/models.py",
+        "packages/persistence/store.py",
+        "requirements.lock",
+        "tests/unit/test_compose_modes.py",
+        "tests/unit/test_init_env.py",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/REFERENCE_GAP_MATRIX.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Full Python suite: 867 run, 1 skipped, 0 failures.",
+        "Frontend: 62 tests PASS and production build PASS.",
+        "Credential unit, API integration, migration integration and Chromium workflow PASS.",
+        "agent_skills, catalogue, progress, reference provenance, compileall, pip check and git diff --check PASS."
+      ],
+      "tests_remaining": [
+        "PostgreSQL runtime migration was not run because the existing MJobs personal stack was left untouched.",
+        "Live provider authentication was not run; tests used synthetic credentials and mock HTTP transport.",
+        "Hosted Actions and review remain disabled and NOT_RUN by user policy."
+      ],
+      "migrations_applied": [
+        "e5019c4a7b20 encrypted provider credentials; SQLite upgrade, downgrade and populated rollback refusal passed."
+      ],
+      "live_integrations_tested": [
+        "No live provider request; explicit check behavior was exercised with a mock transport."
+      ],
+      "known_errors": [
+        "An earlier full-suite run exposed a browser test stall caused by eager credential metadata requests; credentials are now fetched only while AI Settings is active, and the full rerun plus targeted browser regression passed."
+      ],
+      "known_limitations": [
+        "OpenAI/Anthropic keys are not yet consumed by AI inference; AI routing remains disabled by default and currently supports local Ollama.",
+        "Master encryption-key backup/rotation is an operator responsibility; changing or losing it makes existing ciphertext unusable.",
+        "PostgreSQL runtime, provider network and hosted checks/review were not run.",
+        "Issue #398 scoped acceptance is complete; original MJ-REQ-175 and MJ-REQ-180 remain PARTIAL."
+      ],
+      "source_commit": "7636b620b60e53380b48051a5550aa1dc23be663",
+      "source_tree": "eb580c4073864bfd06f7c56ea10af0527488ddc9",
+      "result": "PASS",
+      "last_safe_checkpoint": {
+        "git_commit": "7636b620b60e53380b48051a5550aa1dc23be663",
+        "evidence_path": "docs/evidence/2026-10-07-provider-credential-store.json"
+      },
+      "integration": {
+        "method": "NON_FORCE_FAST_FORWARD",
+        "base": "104e5533bbbc174e0e8c6e806741074e5f83d3a8",
+        "main": "7636b620b60e53380b48051a5550aa1dc23be663",
+        "source_branch": "codex/mj-ref-028-credential-store-20261007",
+        "source_commit": "7636b620b60e53380b48051a5550aa1dc23be663",
+        "candidate": "7636b620b60e53380b48051a5550aa1dc23be663",
+        "issue_comment": "https://github.com/MulattoTech/MJobs/issues/398#issuecomment-6032995423",
+        "actions_disabled": true,
+        "hosted_review": "NOT_RUN_BY_USER_POLICY"
+      }
     }
   ],
-  "current_phase": "Issue #9 / MJ-REQ-008 product-worker crash recovery and stale-attempt fencing integrated by non-force fast-forward at 74403d136e42cde684d9cb4638a2c75d11c07e06; requirement remains OPEN/PARTIAL.",
+  "current_phase": "Issue #398 acceptance integrated as a complete scoped feature; broader overlapping security requirements remain partial.",
   "last_safe_checkpoint": {
-    "git_commit": "d516834ac3bd48352ef3aa8885a1de1fffe53419",
-    "evidence_path": "docs/evidence/2026-10-07-product-worker-crash-recovery.json"
+    "git_commit": "7636b620b60e53380b48051a5550aa1dc23be663",
+    "evidence_path": "docs/evidence/2026-10-07-provider-credential-store.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -7478,29 +7569,29 @@
     }
   ],
   "live_reconciliation": {
-    "observed_at": "2026-10-07T05:45:48Z",
-    "github_main": "74403d136e42cde684d9cb4638a2c75d11c07e06",
-    "local_main": "74403d136e42cde684d9cb4638a2c75d11c07e06",
-    "issue_9_state": "OPEN/PARTIAL",
+    "observed_at": "2026-10-07T07:17:15Z",
+    "github_main": "104e5533bbbc174e0e8c6e806741074e5f83d3a8",
+    "local_main": "7636b620b60e53380b48051a5550aa1dc23be663",
+    "issue_398_state": "OPEN; sanitized acceptance evidence posted at https://github.com/MulattoTech/MJobs/issues/398#issuecomment-6032995423; close after remote main/planning readback.",
     "open_prs": 0,
     "actions_enabled": false,
     "main_branch_protected": false,
-    "integration": "Non-force fast-forward under the Codex integration lock from 4576d9910a5fb65a7af3e72268c7848812948b5a; source d516834ac3bd48352ef3aa8885a1de1fffe53419, evidence and canonical planning synchronized at local/origin main 74403d136e42cde684d9cb4638a2c75d11c07e06.",
-    "next_issue": "Release issue #9 and recompute the next highest-value unclaimed dependency-ready issue."
+    "integration": "Non-force fast-forward under the Codex integration lock from 104e5533bbbc174e0e8c6e806741074e5f83d3a8 to 7636b620b60e53380b48051a5550aa1dc23be663; canonical planning reconciliation is checkpointed separately.",
+    "next_issue": "Release #398 and select the next dependency-ready unclaimed issue after live claim reconciliation."
   },
   "active_development_issue": {
-    "issue": 9,
-    "requirement_id": "MJ-REQ-008",
-    "title": "Save Implementation Progress",
-    "state": "INTEGRATED_PARTIAL",
-    "base": "4576d9910a5fb65a7af3e72268c7848812948b5a",
-    "branch": "codex/mj-req008-worker-crash-20261007",
-    "candidate": "d516834ac3bd48352ef3aa8885a1de1fffe53419",
-    "source_tree": "f2859b592ebedc3053d3d88ea2d17a7bcad415c5",
-    "evidence": "docs/evidence/2026-10-07-product-worker-crash-recovery.json",
-    "next_action": "Release the completed scoped claim and local integration lock, reconcile all current claims, then select the next highest-value unclaimed dependency-ready issue. Issue #9 remains OPEN/PARTIAL.",
-    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/9#issuecomment-6031778626",
-    "integrated_main": "74403d136e42cde684d9cb4638a2c75d11c07e06"
+    "issue": 398,
+    "requirement_id": "MJ-REF-028",
+    "title": "Encrypted provider credential store with masked client previews",
+    "state": "INTEGRATED_SCOPE_PASS",
+    "base": "104e5533bbbc174e0e8c6e806741074e5f83d3a8",
+    "branch": "codex/mj-ref-028-credential-store-20261007",
+    "candidate": "7636b620b60e53380b48051a5550aa1dc23be663",
+    "source_tree": "eb580c4073864bfd06f7c56ea10af0527488ddc9",
+    "evidence": "docs/evidence/2026-10-07-provider-credential-store.json",
+    "next_action": "Verify canonical planning push and synchronized main; close issue #398 on GitHub, release its claim and the lock, then reconcile claims and continue to the highest-value unclaimed dependency-ready issue.",
+    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/398#issuecomment-6032995423",
+    "integrated_main": "7636b620b60e53380b48051a5550aa1dc23be663"
   },
   "historical_control_snapshots": [
     {
@@ -8640,5 +8731,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-07T05:45:48Z"
+  "updated_at": "2026-10-07T07:17:15Z"
 }

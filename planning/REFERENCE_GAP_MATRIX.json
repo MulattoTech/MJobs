@@ -1,6 +1,6 @@
 {
   "schema_version": 3,
-  "generated_at": "2026-10-07T06:47:03Z",
+  "generated_at": "2026-10-07T07:17:15Z",
   "canonical_namespace": "MJ-REF",
   "original_catalogue_count": 366,
   "reference_gap_count": 59,
@@ -199,8 +199,10 @@
       "evidence": []
     },
     "MJ-REF-028": {
-      "result": "NOT_RUN",
-      "evidence": []
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-07-provider-credential-store.json"
+      ]
     },
     "MJ-REF-029": {
       "result": "PASS",

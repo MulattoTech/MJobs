@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-07T06:09:35Z",
+  "timestamp": "2026-10-07T07:17:15Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -1452,11 +1452,12 @@
     },
     {
       "requirement_id": "MJ-REQ-175",
-      "result": "NOT_RUN",
+      "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-06-least-data-profile-access.json"
+        "docs/evidence/2026-10-06-least-data-profile-access.json",
+        "docs/evidence/2026-10-07-provider-credential-store.json"
       ],
-      "note": "Scoped MJ-REF-014 extension locally verified: task authorization denies unregistered scopes and audit rows omit profile values. Provider-secret storage is not implemented; full requirement remains NOT_RUN."
+      "note": "Scoped provider-secret storage verified for MJ-REF-028: profile-bound AES-256-GCM ciphertext, API/UI masked metadata, synthetic database/backup theft checks, profile isolation and rotation/deletion are evidenced at docs/evidence/2026-10-07-provider-credential-store.json. The broader PII/security requirement remains PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-176",
@@ -1484,11 +1485,12 @@
     },
     {
       "requirement_id": "MJ-REQ-180",
-      "result": "NOT_RUN",
+      "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-06-least-data-profile-access.json"
+        "docs/evidence/2026-10-06-least-data-profile-access.json",
+        "docs/evidence/2026-10-07-provider-credential-store.json"
       ],
-      "note": "Scoped MJ-REF-014 extension locally verified: accessed/denied profile audits retain identifiers and reason only, never profile values. Full diagnostic-redaction requirement remains NOT_RUN."
+      "note": "Scoped credential redaction verified for MJ-REF-028: malformed credential input, API serialization, connection failures and sanitized test results do not expose saved keys; evidence docs/evidence/2026-10-07-provider-credential-store.json. Full diagnostic-redaction requirement remains PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-181",

@@ -728,3 +728,10 @@ Issue #9 / MJ-REQ-008 source `d516834ac3bd48352ef3aa8885a1de1fffe53419` and evid
 
 
 Integration receipt (2026-10-07T05:45:48Z): issue #9 / MJ-REQ-008 source d516834ac3bd48352ef3aa8885a1de1fffe53419, evidence `docs/evidence/2026-10-07-product-worker-crash-recovery.json` and canonical planning are integrated by non-force fast-forward from 4576d9910a5fb65a7af3e72268c7848812948b5a at synchronized local and GitHub `main` 74403d136e42cde684d9cb4638a2c75d11c07e06. GitHub issue #9 remains OPEN/PARTIAL after evidence readback: https://github.com/MulattoTech/MJobs/issues/9#issuecomment-6031778626. Actions/reviews remain NOT_RUN by policy; external submission OFF. Codex integration lock and issue claim are being released before selecting the next unclaimed dependency-ready issue.
+
+
+---
+
+# Integration receipt — 2026-10-07
+
+Issue #398 / MJ-REF-028 encrypted provider credentials source `7636b620b60e53380b48051a5550aa1dc23be663` and evidence `docs/evidence/2026-10-07-provider-credential-store.json` are fast-forwarded into local main from `104e5533bbbc174e0e8c6e806741074e5f83d3a8` under the Codex integration lock. Local evidence: 867 Python tests PASS, 1 skipped; 62 frontend tests and build PASS; focused credential unit/API/migration/connected-browser tests, validators, compile, pip check and diff check PASS. PostgreSQL runtime, live provider requests, hosted checks/review NOT_RUN; external submission OFF. OpenAI/Anthropic inference routing and broader MJ-REQ-175/MJ-REQ-180 remain incomplete. Sanitized issue evidence: https://github.com/MulattoTech/MJobs/issues/398#issuecomment-6032995423. Canonical main publication/readback and issue closure are in progress.

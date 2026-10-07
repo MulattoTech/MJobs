@@ -3256,6 +3256,31 @@
       "integration_method": "NON_FORCE_FAST_FORWARD",
       "pr_state": "CLOSED",
       "github_reports_merged": true
+    },
+    {
+      "id": "MJ-PR-158",
+      "title": "MJ-REF-028 encrypted provider credential storage, masked previews and explicit connection checks",
+      "domain": "orchestration_data_security",
+      "requirements": [
+        "MJ-REQ-175",
+        "MJ-REQ-180"
+      ],
+      "issues": [
+        398
+      ],
+      "target_area": "services/credentials; packages/persistence; migrations; apps/api; apps/web; tests",
+      "depends_on": [],
+      "status": "MERGED",
+      "branch": "codex/mj-ref-028-credential-store-20261007",
+      "draft_until_verified": true,
+      "scope_complete": true,
+      "notes": "Issue #398 acceptance passed local deterministic validation and was integrated by non-force fast-forward under the Codex integration lock. OpenAI/Anthropic credentials are stored encrypted and returned as masked metadata; user-triggered fixed-origin authentication checks send no prompt/profile/job data. Full original requirements MJ-REQ-175/180 remain PARTIAL. Hosted Actions/review, live provider checks, and PostgreSQL runtime were NOT_RUN under local-only policy.",
+      "evidence_path": "docs/evidence/2026-10-07-provider-credential-store.json",
+      "base": "104e5533bbbc174e0e8c6e806741074e5f83d3a8",
+      "candidate": "7636b620b60e53380b48051a5550aa1dc23be663",
+      "integration_method": "NON_FORCE_FAST_FORWARD",
+      "integration_commit": "7636b620b60e53380b48051a5550aa1dc23be663",
+      "pr_state": "NOT_OPENED_LOCAL_ONLY"
     }
   ]
 }
