@@ -211,7 +211,18 @@
       "note": "Pre-fix Chromium pixel test proves synthetic answer in contenteditable remains visible; add masks for contenteditable except false plus ARIA textbox/combobox. Focused adjacent feedback tests 27 PASS; local validators PASS. Other unclassifiable free text and image/canvas content remain open; issue #181 stays PARTIAL.",
       "integration_commit": "f1d36053ebb46f1286f3dfb0acd25ac1482a267f",
       "issue_comment": "https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6038936759"
+    },
+    {
+      "issue": 8,
+      "requirement_id": "MJ-REQ-007",
+      "status": "READY_FOR_INTEGRATION",
+      "priority": 0,
+      "target_area": "tests/integration/test_migration_recovery.py; docs/evidence/2026-10-07-source-change-safety-completion.json",
+      "depends_on": [],
+      "evidence_path": "docs/evidence/2026-10-07-source-change-safety-completion.json",
+      "scope_complete": true,
+      "note": "All stated issue acceptance is now locally evidenced: healthy-Git safety and unrelated-work preservation; conditional no-Git fallback N/A; atomic private config initialization; prior backup/restore; SQLite and PostgreSQL migration rollback/retry; protected credential migration rollback/retry and ciphertext-preserving downgrade guard on both SQLite and PostgreSQL 17. Migration suite 24 PASS/1 unrelated optional PG skip, dedicated protected PostgreSQL case 1 PASS, focused SQLite/provider suite 3 PASS. Offline SQL generation probe failure at existing cb72f9041d6a is retained as a separate non-acceptance limitation. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF."
     }
   ],
-  "generated_at": "2026-10-07T13:07:33Z"
+  "generated_at": "2026-10-07T13:31:43Z"
 }

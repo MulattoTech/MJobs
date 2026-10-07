@@ -336,6 +336,22 @@
       "released_at": "2026-10-07T13:26:47Z",
       "integrated_main": "f1d36053ebb46f1286f3dfb0acd25ac1482a267f",
       "issue_comment": "https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6038936759"
+    },
+    {
+      "issue": 8,
+      "requirement_id": "MJ-REQ-007",
+      "branch": "codex/mj-req007-protected-config-postgres-20261007",
+      "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req007-protected-config-postgres-20261007",
+      "head": "4190e5f768f12d5984828fae76d59148b49fe80e",
+      "paths": [
+        "tests/integration/test_migration_recovery.py",
+        "docs/evidence/2026-10-07-source-change-safety-completion.json",
+        "planning/lanes/codex/**"
+      ],
+      "status": "ACTIVE",
+      "claimed_at": "2026-10-07T13:31:47Z",
+      "evidence_path": "docs/evidence/2026-10-07-source-change-safety-completion.json",
+      "claim_comment": "https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6039035527"
     }
   ]
 }
