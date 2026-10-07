@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "issue": 517,
+  "requirement_id": "MJ-FEATURE-DISCOVERED-JOB-SOURCE-CATALOGUE",
+  "title": "Catalogue discovered third-party job sources",
+  "status": "PARTIAL",
+  "recorded_at_utc": "2026-10-07T17:19:46Z",
+  "base_main": "71332ef5536b1eab1ed0c1442102eeeafb2a5d1c",
+  "source_commit": "5b49d595ff48615c8a82a3e383a8ac3d82261578",
+  "source_tree": "21fd61d0c08a9e5d524004bb7e7b367d77ae841b",
+  "branch": "codex/mj-req517-source-candidate-catalogue-20261007",
+  "acceptance_oracle": "With synthetic profile data, manually captured jobs and externally reported applications that include a third-party URL create a durable profile-scoped source candidate and provenance observation. Reading the source queue after reload shows the reported origin separately from the destination, sanitized links, explicit unknown hops, review state/reason and site type. Replays do not duplicate observations; cross-profile reads/reviews do not disclose or mutate another profile's candidate. Capture and review make no outbound requests and never enable collection or represent an application as submitted.",
+  "implementation": {
+    "capture_paths": [
+      "Manual job capture records candidates from user-supplied reference/application URLs.",
+      "External application recording records candidates from user-supplied source/destination URLs, including retry readback.",
+      "Candidate capture is profile-scoped, hostname normalized, tenant/subdomain preserving, and request-id idempotent.",
+      "URL query/fragment and URL userinfo are excluded; known sensitive path values are redacted. Reported origin remains user-reported and distinct from destination.",
+      "Candidate review stores append-only reason, state, and site-type assessment history. Integration is never asserted by capture/review; collection stays disabled.",
+      "Malformed hop metadata is represented as one explicit UNKNOWN value."
+    ],
+    "remaining_scope": "PARTIAL: supported provider/browser discovery entry points are not all connected; candidate evaluation still needs documented API/feed/access evidence, capabilities/limits/maintenance-cost records, and a bounded integration task/provider-issue link. No collector is implemented or enabled, and no live TalentHop/source inspection was attempted. Missing job metadata is supported when existing capture supplies a URL, but the existing external-application contract still requires company/title. Issue #517 remains OPEN; no broad acceptance is claimed."
+  },
+  "validation": {
+    "exact_source_focused": {
+      "source_commit": "5b49d595ff48615c8a82a3e383a8ac3d82261578",
+      "command": "python -m unittest tests.integration.test_source_candidates tests.browser.test_source_candidates tests.browser.test_manual_job_capture tests.integration.test_external_application_capture",
+      "result": "10 tests PASS; 0 failures/errors"
+    },
+    "full_python": {
+      "command": "python -m unittest discover -s tests -p 'test_*.py'",
+      "result": "954 tests run; 0 failures/errors; 8 skipped"
+    },
+    "frontend": {
+      "test_command": "npm test --prefix apps/web -- --run",
+      "test_result": "13 files passed; 63 tests passed",
+      "build_command": "npm run build --prefix apps/web",
+      "build_result": "TypeScript check and Vite production build PASS"
+    },
+    "migration": {
+      "commands": [
+        "MJOBS_DATABASE_URL=sqlite:///temporary-disposable-database python -m alembic upgrade head",
+        "inspect source_candidates, source_candidate_observations, source_candidate_reviews and review-history site_type schema",
+        "MJOBS_DATABASE_URL=sqlite:///temporary-disposable-database python -m alembic downgrade f0169e7d4ac2"
+      ],
+      "result": "SQLite migration upgrade and schema assertions PASS; empty-database downgrade PASS; Alembic has one head at bc517d01a320"
+    },
+    "validators": {
+      "commands": [
+        "python -m tools.verification.agent_skills",
+        "python -m tools.verification.catalogue",
+        "python -m tools.verification.progress validate",
+        "python -m tools.coordination.lane_coordination validate",
+        "git diff --check"
+      ],
+      "result": "PASS"
+    },
+    "browser_and_network_scope": "Chromium browser acceptance used fixture profile data, loopback API/UI and an isolated SQLite database. A local-only route guard observed no external browser requests; a local HTTP probe received no source URL request. Capture, review, reload, profile isolation and collection-disabled behavior passed.",
+    "database_environment": "Disposable SQLite migration and synthetic persistence were run. PostgreSQL and Docker runtime checks were not run.",
+    "hosted_checks": "NOT_RUN_BY_USER_POLICY; GitHub Actions and hosted reviewers remain disabled.",
+    "external_submission": "OFF"
+  },
+  "evidence_privacy": "Only synthetic profile, employer, job, URL and browser data were used. No private resume, credentials, cookies, application database, or raw private logs are included.",
+  "validated_candidate_commit": "5b49d595ff48615c8a82a3e383a8ac3d82261578",
+  "validated_candidate_tree": "21fd61d0c08a9e5d524004bb7e7b367d77ae841b"
+}

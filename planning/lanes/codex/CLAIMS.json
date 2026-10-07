@@ -598,6 +598,31 @@
       "released_at": "2026-10-07T16:40:07Z",
       "issue_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6042418780",
       "result": "PARTIAL; issue remains OPEN"
+    },
+    {
+      "issue": 517,
+      "requirement_id": "MJ-FEATURE-DISCOVERED-JOB-SOURCE-CATALOGUE",
+      "branch": "codex/mj-req517-source-candidate-catalogue-20261007",
+      "worktree": ".worktrees/codex-mj-req517-source-candidate-catalogue-20261007",
+      "head": "5b49d595ff48615c8a82a3e383a8ac3d82261578",
+      "paths": [
+        "services/source_candidates/**",
+        "services/discovery/manual_capture.py",
+        "services/applications/external_capture.py",
+        "packages/persistence/models.py",
+        "migrations/versions/bc517d01a320_source_candidate_catalogue.py",
+        "apps/api/main.py",
+        "apps/web/src/main.tsx",
+        "tests/integration/test_source_candidates.py",
+        "tests/browser/test_source_candidates.py",
+        "docs/evidence/2026-10-07-source-candidate-catalogue.json",
+        "planning/lanes/codex/**"
+      ],
+      "status": "ACTIVE",
+      "claimed_at": "2026-10-07T16:46:55Z",
+      "claim_comment": "https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6042556004",
+      "evidence_path": "docs/evidence/2026-10-07-source-candidate-catalogue.json",
+      "result": "PARTIAL checkpoint; supported provider/browser intake integration and documented integration evaluation remain open"
     }
   ]
 }

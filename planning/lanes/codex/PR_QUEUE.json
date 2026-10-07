@@ -303,6 +303,20 @@
       "evidence_path": "docs/evidence/2026-10-07-safe-browser-debug-capture.json",
       "scope_complete": false,
       "note": "The local mock browser failure capture is implemented and pushed on f8d07ca9a83e9f61541ad74f2bcb1c1c46f02165 (tree 9f09bf53f637aff637be8f8c4188667c050cf167). Exact-head targeted validation: 73 tests, 72 PASS, 1 optional PostgreSQL skip. Compose default-off/opt-in, redacted screenshot and structural DOM, sanitized URL, error-only console/network fingerprints, 30-day/20-attempt retention, REVIEW_REQUIRED and SUBMISSION_UNCONFIRMED/no-blind-retry behavior are covered. Validators pass. Repository-wide discovery at prior source commit failed (948 run, 2 failures, 9 errors, 28 skipped) and is not called PASS. Real ATS adapters/live PostgreSQL/hosted checks were NOT_RUN; external submission OFF. Evidence: docs/evidence/2026-10-07-safe-browser-debug-capture.json."
+    },
+    {
+      "issue": 517,
+      "requirement_id": "MJ-FEATURE-DISCOVERED-JOB-SOURCE-CATALOGUE",
+      "status": "IN_PROGRESS_PARTIAL",
+      "priority": 1,
+      "target_area": "services/source_candidates; services/discovery/manual_capture.py; services/applications/external_capture.py; persistence migration; API and Sources UI; focused tests",
+      "depends_on": [
+        390,
+        507
+      ],
+      "evidence_path": "docs/evidence/2026-10-07-source-candidate-catalogue.json",
+      "scope_complete": false,
+      "note": "Passive source catalogue/review slice committed at 5b49d595ff48615c8a82a3e383a8ac3d82261578 (tree 21fd61d0c08a9e5d524004bb7e7b367d77ae841b). Full Python 954 run/8 skipped, frontend 63/build, focused 10 API/browser and disposable SQLite migration checks pass. Existing supported source/browser capture entry points, documented source evaluation/integration tasks, PostgreSQL/Docker and live source evidence remain incomplete; issue stays OPEN/PARTIAL."
     }
   ],
   "generated_at": "2026-10-07T14:05:05Z"
