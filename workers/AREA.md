@@ -6,10 +6,15 @@ Requirements: MJ-REQ-004, 156, 158, 159 (scoped operation-boundary and
 initial queue/restart slices).
 Queue disconnect leaves QUEUED authority in the database. Execution claims use
 conditional updates; duplicate jobs cannot both claim the same operation.
+Exhausted and terminal worker failures are durable DEAD_LETTERED rows with
+attempt timestamps and append-only audit events. Operators may explicitly retry
+the same operation identity or discard it without erasing its failure record.
+Submission-ambiguous applications remain in reconciliation and cannot be
+retried from the dead-letter queue.
 Redis and worker configuration are private environment values, never job args
 containing credentials. Error persistence is category only. Tests: integration
-API/queue tests plus Compose mock E2E. Running-operation lease recovery and
-manual intervention resume are still PARTIAL; do not requeue a SUBMITTING
+API/queue tests plus Compose mock E2E. Broader running-operation recovery and
+manual intervention resume remain PARTIAL; do not requeue a SUBMITTING
 application for blind retry.
 
 Worker claims are admitted under independent conservative category ceilings:
@@ -29,11 +34,13 @@ acceptance test uses two app instances against one SQLite database.
 
 Every claimed durable task also receives a monotonic operation deadline. Its
 cooperative `check` callback stops work at the configured budget, and a late
-ordinary success is persisted as `FAILED / OPERATION_TIMEOUT`. The worker does
-not add an automatic retry for a budget timeout. Application confirmation
-remains authoritative; ambiguous submission continues through
-`SUBMISSION_UNCONFIRMED` reconciliation. This is a scoped MJ-REQ-004 slice, not
-evidence that every external operation category is complete.
+ordinary success is persisted as `DEAD_LETTERED / OPERATION_TIMEOUT`. The worker
+does not add an automatic retry for a budget timeout. Operators can inspect
+the bounded queue in Activity and choose a deliberate retry or discard.
+Application confirmation remains authoritative; ambiguous submission
+continues through `SUBMISSION_UNCONFIRMED` reconciliation and is never blindly
+retried. This is a scoped MJ-REF-016 slice, not evidence that every external
+operation category is complete.
 
 For MJ-REQ-009, PERSONAL-mode workers block fictional discovery, mock-job
 preparation and mock browser submission before executing queued fixture work.

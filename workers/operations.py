@@ -49,6 +49,14 @@ class OperationConcurrencyLimit(Exception):
     """The configured category concurrency ceiling is currently occupied."""
 
 
+class OperationActionError(ValueError):
+    """A manual operation action is not valid for the persisted state."""
+
+    def __init__(self, code):
+        self.code = code
+        super().__init__(code)
+
+
 def timeout():
     seconds = int(os.environ.get("MJOBS_OPERATION_TIMEOUT", "180"))
     if not 30 <= seconds <= 600:
@@ -97,9 +105,13 @@ def claim(store, operation_id):
             m.operations.c.kind.in_(CATEGORY_KINDS[category]), m.operations.c.state == "RUNNING")).scalar_one()
         if active >= limit(kind):
             return None
-        values = {"state": "RUNNING", "attempt_count": row["attempt_count"] + 1, "updated_at": now(),
+        timestamp = now()
+        values = {"state": "RUNNING", "attempt_count": row["attempt_count"] + 1,
+                  "last_attempt_at": timestamp, "updated_at": timestamp,
                   "lease_expires_at": (datetime.now(timezone.utc) + timedelta(seconds=timeout() + 30)).isoformat()}
         connection.execute(update(m.operations).where(m.operations.c.id == operation_id).values(**values))
+        store._audit(connection, operation_id, "OPERATION_ATTEMPT_STARTED",
+                     {"attempt_count": values["attempt_count"]})
         return {**dict(row), **values}
 
 
@@ -194,6 +206,71 @@ def request_cancel(store, operation_id):
         return {**row, **values}
 
 
+def retry_dead_letter(store, operation_id):
+    """Explicitly requeue a dead letter without changing its idempotency identity."""
+    timestamp = now()
+    with store.engine.begin() as connection:
+        if connection.dialect.name == "sqlite":
+            connection.exec_driver_sql("BEGIN IMMEDIATE")
+        row = connection.execute(select(m.operations).where(
+            m.operations.c.id == operation_id).with_for_update()).mappings().one_or_none()
+        if row is None:
+            raise OperationActionError("OPERATION_NOT_FOUND")
+        if row["state"] != "DEAD_LETTERED":
+            raise OperationActionError("OPERATION_NOT_DEAD_LETTERED")
+        if row["kind"] not in QUEUES:
+            raise OperationActionError("OPERATION_NOT_RETRYABLE")
+        if row["kind"] == "APPLY_MOCK":
+            application = connection.execute(select(m.applications.c.state).where(
+                m.applications.c.id == row["entity_id"]).with_for_update()).scalar_one_or_none()
+            if application is None:
+                raise OperationActionError("APPLICATION_NOT_FOUND")
+            if application in ("SUBMITTING", "SUBMISSION_UNCONFIRMED"):
+                raise OperationActionError("RECONCILIATION_REQUIRED")
+            if application == "CONFIRMED":
+                raise OperationActionError("APPLICATION_ALREADY_CONFIRMED")
+            if application not in ("PREPARED", "DRY_RUN_COMPLETE"):
+                raise OperationActionError("APPLICATION_REVIEW_REQUIRED")
+        values = {"state": "QUEUED", "cancel_requested": False,
+                  "lease_expires_at": None, "updated_at": timestamp}
+        changed = connection.execute(update(m.operations).where(
+            m.operations.c.id == operation_id,
+            m.operations.c.state == "DEAD_LETTERED").values(**values))
+        if changed.rowcount != 1:
+            raise OperationActionError("OPERATION_NOT_DEAD_LETTERED")
+        store._audit(connection, operation_id, "DEAD_LETTER_RETRY_REQUESTED", {
+            "attempt_count": int(row["attempt_count"]),
+            "reason": row["error"],
+        })
+    return {"operation_id": operation_id, "state": "QUEUED"}
+
+
+def discard_dead_letter(store, operation_id):
+    """Explicitly discard a dead letter while retaining its row and audit history."""
+    timestamp = now()
+    with store.engine.begin() as connection:
+        if connection.dialect.name == "sqlite":
+            connection.exec_driver_sql("BEGIN IMMEDIATE")
+        row = connection.execute(select(m.operations).where(
+            m.operations.c.id == operation_id).with_for_update()).mappings().one_or_none()
+        if row is None:
+            raise OperationActionError("OPERATION_NOT_FOUND")
+        if row["state"] != "DEAD_LETTERED":
+            raise OperationActionError("OPERATION_NOT_DEAD_LETTERED")
+        values = {"state": "DISCARDED", "discarded_at": timestamp,
+                  "lease_expires_at": None, "updated_at": timestamp}
+        changed = connection.execute(update(m.operations).where(
+            m.operations.c.id == operation_id,
+            m.operations.c.state == "DEAD_LETTERED").values(**values))
+        if changed.rowcount != 1:
+            raise OperationActionError("OPERATION_NOT_DEAD_LETTERED")
+        store._audit(connection, operation_id, "DEAD_LETTER_DISCARDED", {
+            "attempt_count": int(row["attempt_count"]),
+            "reason": row["error"],
+        })
+    return {"operation_id": operation_id, "state": "DISCARDED"}
+
+
 def recover_expired(store):
     timestamp = now()
     with store.engine.begin() as connection:
@@ -204,7 +281,7 @@ def recover_expired(store):
             if row["kind"] in INLINE_KINDS:
                 state, error = "FAILED", "LEASE_EXPIRED"
             else:
-                state, error = ("QUEUED", "LEASE_EXPIRED") if row["attempt_count"] < MAX_ATTEMPTS else ("FAILED", "RETRY_LIMIT")
+                state, error = ("QUEUED", "LEASE_EXPIRED") if row["attempt_count"] < MAX_ATTEMPTS else ("DEAD_LETTERED", "RETRY_LIMIT")
             if row["cancel_requested"]:
                 state, error = "CANCELLED", "CANCEL_REQUESTED"
             if row["kind"] == "APPLY_MOCK":
@@ -217,6 +294,14 @@ def recover_expired(store):
                 elif application["state"] not in ("PREPARED", "DRY_RUN_COMPLETE"):
                     state, error = "BLOCKED", "PRE_SUBMIT_REVIEW_REQUIRED"
                     connection.execute(update(m.applications).where(m.applications.c.id == application["id"]).values(state="REVIEW_REQUIRED"))
-            connection.execute(update(m.operations).where(m.operations.c.id == row["id"]).values(state=state, error=error, lease_expires_at=None, updated_at=timestamp))
-            store._audit(connection, row["id"], "LEASE_RECOVERY", {"state": state, "error": error})
+            values = {"state": state, "error": error, "lease_expires_at": None,
+                      "updated_at": timestamp}
+            if state == "DEAD_LETTERED":
+                values["dead_lettered_at"] = timestamp
+            connection.execute(update(m.operations).where(
+                m.operations.c.id == row["id"]).values(**values))
+            action = "OPERATION_DEAD_LETTERED" if state == "DEAD_LETTERED" else "LEASE_RECOVERY"
+            store._audit(connection, row["id"], action, {
+                "state": state, "error": error, "attempt_count": int(row["attempt_count"]),
+            })
         return len(rows)

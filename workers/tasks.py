@@ -152,10 +152,22 @@ def execute_operation(operation_id):
         except Exception as failure:
             state, error = "FAILED", failure.code if isinstance(failure, (SourceError, PreparationError)) else type(failure).__name__
         with store.engine.begin() as connection:
+            if state == "FAILED":
+                state = "DEAD_LETTERED"
+                error = error or "OPERATION_FAILED"
+            finished_at = now()
+            values = {"state": state, "error": error, "lease_expires_at": None,
+                      "updated_at": finished_at}
+            if state == "DEAD_LETTERED":
+                values["dead_lettered_at"] = finished_at
             changed = connection.execute(update(m.operations).where(m.operations.c.id == operation_id,
-                m.operations.c.state == "RUNNING", m.operations.c.attempt_count == operation["attempt_count"]).values(state=state, error=error, lease_expires_at=None, updated_at=now()))
+                m.operations.c.state == "RUNNING", m.operations.c.attempt_count == operation["attempt_count"]).values(**values))
             if changed.rowcount != 1:
                 return {"operation_id": operation_id, "status": "OWNERSHIP_EXPIRED"}
+            store._audit(connection, operation_id,
+                         "OPERATION_DEAD_LETTERED" if state == "DEAD_LETTERED" else "OPERATION_ATTEMPT_FINISHED",
+                         {"state": state, "error": error,
+                          "attempt_count": int(operation["attempt_count"])})
         return {"operation_id": operation_id, "status": state, "error_category": error}
     finally:
         store.engine.dispose()

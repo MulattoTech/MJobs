@@ -82,8 +82,28 @@ class WorkerLifecycleTests(unittest.TestCase):
             self.assertIsNotNone(claim(self.store, identifier))
             self.expired(identifier)
             recover_expired(self.store)
-            self.assertEqual(self.read(identifier)["state"], "QUEUED" if attempt < 2 else "FAILED")
+            self.assertEqual(self.read(identifier)["state"], "QUEUED" if attempt < 2 else "DEAD_LETTERED")
         self.assertEqual(self.read(identifier)["attempt_count"], 3)
+        terminal = self.read(identifier)
+        self.assertEqual(terminal["error"], "RETRY_LIMIT")
+        self.assertIsNotNone(terminal["last_attempt_at"])
+        self.assertIsNotNone(terminal["dead_lettered_at"])
+        with self.store.engine.connect() as connection:
+            actions = list(connection.execute(select(m.audit.c.action).where(
+                m.audit.c.entity_id == identifier)).scalars())
+        self.assertEqual(actions.count("OPERATION_ATTEMPT_STARTED"), 3)
+        self.assertIn("OPERATION_DEAD_LETTERED", actions)
+
+        reopened = Store(self.store.url)
+        try:
+            with reopened.engine.connect() as connection:
+                saved = connection.execute(select(m.operations).where(
+                    m.operations.c.id == identifier)).mappings().one()
+                self.assertEqual(saved["state"], "DEAD_LETTERED")
+                self.assertEqual(saved["attempt_count"], 3)
+                self.assertIsNotNone(saved["dead_lettered_at"])
+        finally:
+            reopened.engine.dispose()
 
     def test_cancel_before_claim_and_running_cancellation_are_durable(self):
         identifier = enqueue_operation(self.store, "DISCOVER", "fixture", {})
@@ -108,10 +128,10 @@ class WorkerLifecycleTests(unittest.TestCase):
                 patch("workers.tasks.check_cancelled"):
             result = execute_operation(operation)
 
-        self.assertEqual(result["status"], "FAILED")
+        self.assertEqual(result["status"], "DEAD_LETTERED")
         self.assertEqual(result["error_category"], "OPERATION_TIMEOUT")
         saved = self.read(operation)
-        self.assertEqual(saved["state"], "FAILED")
+        self.assertEqual(saved["state"], "DEAD_LETTERED")
         self.assertEqual(saved["error"], "OPERATION_TIMEOUT")
 
     def test_reclaimed_attempt_fences_original_worker_before_side_effect(self):

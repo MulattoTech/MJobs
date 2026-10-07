@@ -36,6 +36,22 @@ class ApiQueueTests(unittest.TestCase):
         self.assertEqual(result["status"], "QUEUE_UNAVAILABLE")
         self.assertEqual(self.store.count("worker_operations"), 1)
 
+    def test_duplicate_enqueue_does_not_reopen_a_dead_letter(self):
+        from sqlalchemy import select, update
+        from packages.persistence import models as m
+
+        identifier = enqueue_operation(self.store, "DISCOVER", "fixture", {})
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.operations).where(m.operations.c.id == identifier).values(
+                state="DEAD_LETTERED", error="RETRY_LIMIT", attempt_count=3))
+
+        self.assertEqual(enqueue_operation(self.store, "DISCOVER", "fixture", {}), identifier)
+        with self.store.engine.connect() as connection:
+            row = connection.execute(select(m.operations).where(m.operations.c.id == identifier)).mappings().one()
+        self.assertEqual(row["state"], "DEAD_LETTERED")
+        self.assertEqual(row["error"], "RETRY_LIMIT")
+        self.assertEqual(row["attempt_count"], 3)
+
     def test_concurrent_requests_share_one_durable_operation(self):
         with ThreadPoolExecutor(max_workers=2) as pool:
             identifiers = list(pool.map(lambda _: enqueue_operation(self.store, "DISCOVER", "fixture", {}), range(2)))

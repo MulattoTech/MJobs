@@ -20,7 +20,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field, SecretStr, model_validator
 from redis import Redis
 from rq import Worker
-from sqlalchemy import select, text
+from sqlalchemy import func, select, text
 from sqlalchemy.exc import NoResultFound
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 from starlette.datastructures import MutableHeaders
@@ -52,8 +52,8 @@ from services.company_discovery.sources import (list_company_job_sources, set_co
 from services.documents.uploads import MAX_UPLOAD_BYTES, UploadIntegrityError, list_resumes, save_resume, read_resume
 from workers.dispatch import enqueue_operation
 from workers.operations import (
-    QUEUES, OperationConcurrencyLimit, admit_inline, finish_inline,
-    inline_cancel_requested, request_cancel, limit,
+    QUEUES, OperationActionError, OperationConcurrencyLimit, admit_inline, finish_inline,
+    inline_cancel_requested, request_cancel, retry_dead_letter, discard_dead_letter, limit,
 )
 
 
@@ -1409,10 +1409,55 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                 statement = statement.where((m.operations.c.entity_id == profile_id) | m.operations.c.entity_id.in_(app_ids))
             return {"operations": [dict(row) for row in connection.execute(statement.order_by(m.operations.c.updated_at.desc()).limit(100)).mappings()]}
 
+    @app.get("/operations/dead-letter-queue")
+    def dead_letter_queue(profile_id: str | None = None):
+        statement = select(m.operations).where(m.operations.c.state == "DEAD_LETTERED")
+        if profile_id:
+            app_ids = select(m.applications.c.id).where(m.applications.c.profile_id == profile_id)
+            statement = statement.where((m.operations.c.entity_id == profile_id) | m.operations.c.entity_id.in_(app_ids))
+        with store.engine.connect() as connection:
+            rows = list(connection.execute(statement.add_columns(func.count().over().label("queue_count")).order_by(
+                m.operations.c.dead_lettered_at.desc().nullslast(), m.operations.c.updated_at.desc()).limit(100)).mappings())
+            count = int(rows[0]["queue_count"]) if rows else 0
+            operations = []
+            for row in rows:
+                item = dict(row)
+                item.pop("queue_count", None)
+                if item["kind"] == "APPLY_MOCK":
+                    application_state = connection.execute(select(m.applications.c.state).where(
+                        m.applications.c.id == item["entity_id"])).scalar_one_or_none()
+                    item["retryable"] = application_state in ("PREPARED", "DRY_RUN_COMPLETE")
+                    if application_state in ("SUBMITTING", "SUBMISSION_UNCONFIRMED"):
+                        item["retry_blocked_reason"] = "RECONCILIATION_REQUIRED"
+                    elif application_state not in ("PREPARED", "DRY_RUN_COMPLETE"):
+                        item["retry_blocked_reason"] = "APPLICATION_REVIEW_REQUIRED"
+                else:
+                    item["retryable"] = item["kind"] in QUEUES
+                    if not item["retryable"]:
+                        item["retry_blocked_reason"] = "OPERATION_NOT_RETRYABLE"
+                operations.append(item)
+            return {"count": count, "operations": operations}
+
     @app.get("/operations/{operation_id}")
     def operation(operation_id: str):
         with store.engine.connect() as connection:
             return dict(connection.execute(select(m.operations).where(m.operations.c.id == operation_id)).mappings().one())
+
+    @app.post("/operations/{operation_id}/retry", status_code=202)
+    def retry_operation(operation_id: str):
+        try:
+            return retry_dead_letter(store, operation_id)
+        except OperationActionError as error:
+            status = 404 if error.code == "OPERATION_NOT_FOUND" else 409
+            return JSONResponse({"detail": {"code": error.code}}, status_code=status)
+
+    @app.post("/operations/{operation_id}/discard")
+    def discard_operation(operation_id: str):
+        try:
+            return discard_dead_letter(store, operation_id)
+        except OperationActionError as error:
+            status = 404 if error.code == "OPERATION_NOT_FOUND" else 409
+            return JSONResponse({"detail": {"code": error.code}}, status_code=status)
 
     @app.post("/operations/{operation_id}/cancel", status_code=202)
     def cancel(operation_id: str):

@@ -32,4 +32,4 @@ export async function uploadResume<T>(profileId: string, file: File, options: { 
 export function eligible(fact: {verified: boolean; user_approved: boolean; confidence: number; source: string}) {
   return fact.verified && fact.user_approved && fact.confidence >= 80 && fact.source.trim().length > 0;
 }
-export const terminal = new Set(['COMPLETED', 'FAILED', 'BLOCKED', 'CANCELLED']);
+export const terminal = new Set(['COMPLETED', 'FAILED', 'BLOCKED', 'CANCELLED', 'DEAD_LETTERED', 'DISCARDED']);

@@ -10,6 +10,10 @@ describe('user safety presentation', () => {
     for (const state of ['COMPLETED','FAILED','BLOCKED','CANCELLED']) expect(terminal.has(state)).toBe(true);
     expect(terminal.has('QUEUED')).toBe(false);
   });
+  it('stops polling dead-lettered and explicitly discarded work', () => {
+    expect(terminal.has('DEAD_LETTERED')).toBe(true);
+    expect(terminal.has('DISCARDED')).toBe(true);
+  });
   it('selects a precise MIME type for supported base resume formats', () => {
     expect(resumeMediaType('Experience.PDF')).toBe('application/pdf');
     expect(resumeMediaType('Experience.docx')).toBe('application/vnd.openxmlformats-officedocument.wordprocessingml.document');

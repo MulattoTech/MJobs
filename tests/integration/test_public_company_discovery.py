@@ -54,7 +54,13 @@ class PublicCompanyDiscoveryTests(unittest.TestCase):
         with patch.dict(os.environ, self.env), patch.object(PublicCompanyClient, '_request_once', fetch):
             queued = queue_company_discovery(self.store, self.candidate, 'USER_ADDED_COMPANY', 'fixture', public=True)
             result = execute_operation(queued['operation_id'])
-        self.assertEqual(result['status'], 'FAILED', result)
+        self.assertEqual(result['status'], 'DEAD_LETTERED', result)
+        with self.store.engine.connect() as connection:
+            operation = connection.execute(select(m.operations).where(
+                m.operations.c.id == queued['operation_id'])).mappings().one()
+        self.assertEqual(operation['state'], 'DEAD_LETTERED')
+        self.assertEqual(operation['error'], 'ValueError')
+        self.assertIsNotNone(operation['dead_lettered_at'])
         self.assertEqual(self.store.count('canonical_jobs'), 0)
         self.assertEqual(self.store.count('source_application_link_observations'), 0)
         with self.store.engine.connect() as connection:

@@ -1,0 +1,122 @@
+{
+  "evidence_id": "MJ-REF-016-dead-letter-queue-2026-10-07",
+  "requirement_id": "MJ-REF-016",
+  "issue": 386,
+  "status": "PASS",
+  "tested_base_sha": "5d37700bcedf7013fc89968e260454af6fae1817",
+  "candidate_patch_sha256_excluding_this_evidence_file": "378f801f053563df34f2e312c977b70988c08103d209d9544c3b426f1ef06598",
+  "environment": {
+    "os": "Windows",
+    "python": "repository .venv, Python 3.12.10",
+    "node": "25.9.0",
+    "npm": "11.12.1",
+    "database_checks": "SQLite synthetic stores and temporary isolated PostgreSQL 17 container"
+  },
+  "acceptance": {
+    "durable_dead_letter_reason_attempt_count_and_timestamps": "PASS",
+    "stable_operation_id_and_duplicate_enqueue_does_not_reopen_terminal_state": "PASS",
+    "explicit_retry_preserves_operation_identity_and_audit_history": "PASS",
+    "explicit_discard_preserves_failure_reason_and_audit_history": "PASS",
+    "ambiguous_application_submission_retry_is_blocked_for_reconciliation": "PASS",
+    "profile_scoped_queue_count_and_actionable_failure_reason": "PASS",
+    "connected_browser_retry_discard_reload_and_readback": "PASS",
+    "sqlite_migration_upgrade_downgrade_and_lossy_rollback_guard": "PASS",
+    "postgresql_17_additive_upgrade_clean_downgrade_and_lossy_rollback_guard": "PASS"
+  },
+  "validation": [
+    {
+      "command": "python -m unittest discover -s tests",
+      "result": "PASS",
+      "summary": "875 tests run; 1 skipped; 0 failures; full-suite run completed 2026-10-07T07:59:19Z"
+    },
+    {
+      "command": "python -m unittest tests.integration.test_dead_letter_queue tests.integration.test_dead_letter_migration tests.integration.test_worker_lifecycle tests.integration.test_api_queue",
+      "result": "PASS",
+      "summary": "31 focused tests passed"
+    },
+    {
+      "command": "python -m unittest tests.integration.test_public_company_discovery",
+      "result": "PASS",
+      "summary": "9 tests passed, including the updated terminal operation state"
+    },
+    {
+      "command": "python -m unittest tests.browser.test_dead_letter_queue",
+      "result": "PASS",
+      "summary": "Connected local browser, API, and SQLite flow passed; no external requests"
+    },
+    {
+      "command": "npm test -- --run",
+      "result": "PASS",
+      "summary": "13 frontend test files; 63 tests passed"
+    },
+    {
+      "command": "npm run build",
+      "result": "PASS",
+      "summary": "TypeScript check and production frontend build completed"
+    },
+    {
+      "command": "python -m unittest -v tests.integration.test_operation_concurrency_postgres",
+      "result": "NOT_RUN",
+      "summary": "Optional PostgreSQL worker-concurrency test skipped because MJOBS_TEST_POSTGRES_URL was not set"
+    },
+    {
+      "command": "isolated PostgreSQL 17 Alembic migration exercise",
+      "result": "PASS",
+      "summary": "Existing queued row preserved by upgrade; empty rollback succeeded; populated dead-letter rollback was refused without losing state; temporary loopback-only container removed"
+    },
+    {
+      "command": "python -m pip check",
+      "result": "PASS",
+      "summary": "No broken requirements found"
+    },
+    {
+      "command": "python -m tools.verification.agent_skills",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.catalogue",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.progress validate",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.reference_provenance",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m compileall -q workers apps/api/main.py tests/integration/test_dead_letter_queue.py tests/integration/test_dead_letter_migration.py tests/integration/test_public_company_discovery.py tests/browser/test_dead_letter_queue.py migrations/versions/f0169e7d4ac2_durable_dead_letter_metadata.py",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --cached --check",
+      "result": "PASS",
+      "summary": "Staged source diff contains no whitespace errors; Git emitted only its expected LF-to-CRLF normalization warnings for frontend TypeScript files"
+    }
+  ],
+  "superseded_attempts": [
+    {
+      "command": "python -m unittest discover -s tests",
+      "result": "FAIL",
+      "summary": "An earlier run exposed the old FAILED expectation in test_conflicting_feed_id_preflight_records_failure_without_partial_jobs; assertion was updated to DEAD_LETTERED and the affected 9-test module passed"
+    },
+    {
+      "command": "python -m unittest discover -s tests",
+      "result": "PARTIAL",
+      "summary": "A subsequent run had 874 passing tests, 1 skip, and one 250 ms Playwright timeout in test_playwright_actions_never_exceed_remaining_worker_budget; that exact test passed when rerun alone, and the final full suite passed"
+    }
+  ],
+  "not_run": {
+    "hosted_actions_and_review": "NOT_RUN_BY_USER_POLICY",
+    "real_external_application_submission": "OFF",
+    "live_external_provider_or_ats_calls": "NOT_RUN",
+    "existing_mjobs_database_migration": "NOT_RUN; only synthetic SQLite and temporary PostgreSQL stores were used"
+  },
+  "limitations": [
+    "The PostgreSQL worker concurrency acceptance test was skipped because no isolated MJOBS_TEST_POSTGRES_URL was configured; the migration path was independently exercised against a temporary PostgreSQL 17 instance.",
+    "This PASS covers MJ-REF-016 only. Broader MJ-REQ-156, MJ-REQ-160, MJ-REQ-183, and MJ-REQ-184 requirements remain PARTIAL or NOT_RUN and their denominator is unchanged.",
+    "Hosted verification and independent review remain NOT_RUN under the local-only delivery policy."
+  ],
+  "validated_at_utc": "2026-10-07T08:02:19Z"
+}
