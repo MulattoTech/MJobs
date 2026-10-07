@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-07T13:44:00Z",
+  "timestamp": "2026-10-07T14:07:50Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -1481,9 +1481,10 @@
       "requirement_id": "MJ-REQ-176",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-07-profile-audit-history.json"
+        "docs/evidence/2026-10-07-profile-audit-history.json",
+        "docs/evidence/2026-10-07-profile-audit-job-events.json"
       ],
-      "note": "A profile-scoped user-visible timeline now reads allowlisted append-only profile/application audit events, with safe summaries only. API + connected browser prove selected-profile isolation and persisted history after SQLite reopen; 13 focused Python tests and 63 frontend tests/build pass. Required profile-linked job/company discovery, company-source enrollment, job merge, general setting-change and truthful real-submission event families remain incomplete. Issue #177 stays OPEN/PARTIAL. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF."
+      "note": "A profile-scoped user-facing timeline reads allowlisted append-only profile/application events and now records profile-owned first job discovery and match scoring during deterministic discovery/recalculation. Focused tests cover profile isolation, safe summaries, SQLite reopen, reload, and idempotent rescoring. Required company discovery/source enrollment, job merge, complete settings and truthful real-submission event families remain incomplete. Issue #177 stays OPEN/PARTIAL. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF."
     },
     {
       "requirement_id": "MJ-REQ-177",

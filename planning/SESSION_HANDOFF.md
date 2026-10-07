@@ -900,3 +900,12 @@ GitHub issue checkpoint: https://github.com/MulattoTech/MJobs/issues/177#issueco
 
 
 GitHub partial integration/release readback for issue #177 / MJ-REQ-176: issue remains OPEN/PARTIAL. Source integration is synchronized at local/origin main `d4ed75530ec9609ec41d2e3b2f4a93aa50e4b259`; evidence `docs/evidence/2026-10-07-profile-audit-history.json`. Release comment: https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6039527055. Codex claim is released; the integration lock remains held only for this canonical handoff update. Next step is a fresh claim/worktree/main reconciliation, then immediate selection of the highest-value dependency-ready unclaimed issue. Full event-family gaps and product PARTIAL status remain explicit; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.
+
+
+## 2026-10-07 Codex integration checkpoint — MJ-REQ-176 job audit events
+
+- Source commit: `c80e011cf12bc071755c014935854699fbdcf4aa` (tree `da2c8dd27d01961805bcdfb84a6b0a99238114d4`); candidate fast-forward from `647ade803c36eaab738197f74d009aa6aa71ecfa` at `209ec4aff8e2fd9d0440df9681f2e9f745215de0`.
+- Result: **PARTIAL**. Issue #177 remains OPEN.
+- Evidence: `docs/evidence/2026-10-07-profile-audit-job-events.json`.
+- Validation: 16 focused Python integration/browser tests passed; web test suite 63 passed; TypeScript/Vite build passed; agent skills, catalogue, progress, lane coordination and diff checks passed. SQLite persistence/reopen, profile isolation, browser reload and idempotent rescoring covered.
+- Limitations: company discovery/source enrollment, job merge, complete settings and truthful real submission event families remain incomplete. PostgreSQL/Docker/migrations and hosted checks NOT_RUN; external submission OFF.
