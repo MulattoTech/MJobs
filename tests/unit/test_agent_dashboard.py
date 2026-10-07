@@ -7,7 +7,12 @@ import unittest
 from pathlib import Path
 
 from tools.agent_dashboard.supervisor import AgentSupervisor, classify_exit
-from tools.agent_dashboard.observability import offload_layers, normalize_codex_rate_limits
+from tools.agent_dashboard.observability import (
+    _antigravity_transcript_summary,
+    _codex_rollout_summary,
+    offload_layers,
+    normalize_codex_rate_limits,
+)
 
 
 class AgentDashboardSupervisorTests(unittest.TestCase):
@@ -22,6 +27,146 @@ class AgentDashboardSupervisorTests(unittest.TestCase):
     def tearDown(self):
         self.temp.cleanup()
 
+
+
+    def test_codex_rollout_summary_separates_current_turn_and_session_totals(self):
+        rollout = self.root / "rollout-2026-10-06T19-43-32-01a113d0-ca3b-7280-b4ab-8d00937b6f38.jsonl"
+        events = [
+            {
+                "timestamp": "2026-10-07T00:43:32Z",
+                "type": "turn_context",
+                "payload": {
+                    "cwd": "C:\\Tools\\Dev\\MJobs\\.worktrees\\codex-test",
+                    "model": "gpt-6-luna",
+                    "effort": "high",
+                },
+            },
+            {
+                "timestamp": "2026-10-07T00:43:40Z",
+                "type": "response_item",
+                "payload": {"type": "custom_tool_call", "name": "exec"},
+            },
+            {
+                "timestamp": "2026-10-07T00:43:45Z",
+                "type": "event_msg",
+                "payload": {
+                    "type": "token_count",
+                    "info": {
+                        "total_token_usage": {
+                            "input_tokens": 100000,
+                            "cached_input_tokens": 80000,
+                            "cache_write_input_tokens": 2000,
+                            "output_tokens": 5000,
+                            "reasoning_output_tokens": 1200,
+                            "total_tokens": 105000,
+                        },
+                        "last_token_usage": {
+                            "input_tokens": 30000,
+                            "cached_input_tokens": 25000,
+                            "cache_write_input_tokens": 500,
+                            "output_tokens": 1000,
+                            "reasoning_output_tokens": 300,
+                            "total_tokens": 31000,
+                        },
+                        "model_context_window": 258400,
+                    },
+                },
+            },
+        ]
+        rollout.write_text(
+            "\n".join(json.dumps(event) for event in events) + "\n",
+            encoding="utf-8",
+        )
+        result = _codex_rollout_summary(rollout)
+        self.assertEqual(result["model"], "gpt-6-luna")
+        self.assertEqual(result["current_turn"]["new_input_tokens"], 5000)
+        self.assertEqual(result["current_turn"]["cache_read_tokens"], 25000)
+        self.assertEqual(result["current_turn"]["cumulative_total_tokens"], 31000)
+        self.assertAlmostEqual(
+            result["current_turn"]["context_used_percent"],
+            100 * 31000 / 258400,
+            places=2,
+        )
+        self.assertEqual(result["session"]["new_input_tokens"], 20000)
+        self.assertEqual(result["session"]["tool_calls"], 1)
+        self.assertEqual(result["session"]["tool_breakdown"]["exec"], 1)
+
+    def test_antigravity_transcript_summary_counts_tokens_thinking_and_tools(self):
+        transcript = (
+            self.root / "164f1767-595a-494c-8d6d-9a3fce8454c6"
+            / ".system_generated" / "logs" / "transcript_full.jsonl"
+        )
+        transcript.parent.mkdir(parents=True)
+        steps = [
+            {
+                "step_index": 0,
+                "source": "USER_EXPLICIT",
+                "type": "USER_INPUT",
+                "status": "DONE",
+                "created_at": "2026-10-07T00:05:41Z",
+                "content": (
+                    "EXECUTE NOW. issue #308 / MJ-REQ-017.S07; "
+                    "worktree=C:/Tools/Dev/MJobs/.worktrees/antigravity-test; "
+                    "Current preferred model: Gemini 3.8 Flash Medium"
+                ),
+            },
+            {
+                "step_index": 1,
+                "source": "MODEL",
+                "type": "PLANNER_RESPONSE",
+                "status": "DONE",
+                "created_at": "2026-10-07T00:05:42Z",
+                "input_tokens": 1000,
+                "cache_read_tokens": 4000,
+                "output_tokens": 200,
+                "thinking": "Inspect the repository carefully.",
+                "tool_calls": [{"name": "run_command", "args": {}}],
+            },
+            {
+                "step_index": 2,
+                "source": "MODEL",
+                "type": "GENERIC",
+                "status": "DONE",
+                "created_at": "2026-10-07T00:05:45Z",
+                "content": "tool result",
+            },
+            {
+                "step_index": 3,
+                "source": "MODEL",
+                "type": "PLANNER_RESPONSE",
+                "status": "DONE",
+                "created_at": "2026-10-07T00:05:48Z",
+                "input_tokens": 500,
+                "cache_read_tokens": 4500,
+                "output_tokens": 100,
+                "tool_calls": [
+                    {"name": "view_file", "args": {}},
+                    {"name": "run_command", "args": {}},
+                ],
+            },
+        ]
+        transcript.write_text(
+            "\n".join(json.dumps(step) for step in steps) + "\n",
+            encoding="utf-8",
+        )
+        result = _antigravity_transcript_summary(transcript)
+        self.assertEqual(
+            result["conversation_id"],
+            "164f1767-595a-494c-8d6d-9a3fce8454c6",
+        )
+        self.assertEqual(result["issue"], 308)
+        self.assertEqual(result["requirement_id"], "MJ-REQ-017.S07")
+        self.assertEqual(result["latest_context_tokens"], 5000)
+        self.assertEqual(result["input_tokens"], 1500)
+        self.assertEqual(result["cache_read_tokens"], 8500)
+        self.assertEqual(result["output_tokens"], 300)
+        self.assertEqual(result["cumulative_total_tokens"], 10300)
+        self.assertEqual(result["planner_turns"], 2)
+        self.assertEqual(result["thinking_steps"], 1)
+        self.assertEqual(result["tool_calls"], 3)
+        self.assertEqual(result["tool_breakdown"]["run_command"], 2)
+        self.assertEqual(result["tool_breakdown"]["view_file"], 1)
+        self.assertIn("Gemini 3.8 Flash Medium", result["model_hint"])
 
     def test_gpu_offload_percent_maps_to_model_blocks(self):
         self.assertEqual(offload_layers(30, 100), 30)
