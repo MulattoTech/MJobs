@@ -114,9 +114,12 @@
         "docs/evidence/2026-10-07-backup-command-output-bounds.json",
         "planning/lanes/codex/**"
       ],
-      "status": "ACTIVE",
+      "status": "RELEASED",
       "claimed_at": "2026-10-07T11:11:54Z",
-      "evidence_path": "docs/evidence/2026-10-07-backup-command-output-bounds.json"
+      "evidence_path": "docs/evidence/2026-10-07-backup-command-output-bounds.json",
+      "released_at": "2026-10-07T11:40:55Z",
+      "integrated_main": "3ebc187c2c139876dfa28e0313a6b779e7c53bc1",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6037144335"
     }
   ]
 }

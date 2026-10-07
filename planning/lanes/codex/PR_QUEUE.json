@@ -7,11 +7,11 @@
       "requirement_id": "MJ-REQ-004",
       "status": "INTEGRATED_PARTIAL",
       "priority": 0,
-      "target_area": "apps/api/main.py; workers/operations.py; tests/integration/test_uploaded_resume_comparison.py",
+      "target_area": "apps/api/main.py; workers/operations.py; tests/integration/test_uploaded_resume_comparison.py; cli/local_backup.py; tests/unit/test_local_backup.py",
       "depends_on": [],
-      "evidence_path": "docs/evidence/2026-10-07-uploaded-comparison-cross-instance-cancel.json",
+      "evidence_path": "docs/evidence/2026-10-07-backup-command-output-bounds.json",
       "scope_complete": false,
-      "note": "Integrated at main aa28501b0db8a00e9331d43347e2bbdfc3ed2b98. Uploaded-original comparison cancellation is durably shared across API instances; evidence docs/evidence/2026-10-07-uploaded-comparison-cross-instance-cancel.json. Focused 46/full Python 886 tests, connected browser, frontend 63/build, and local validators pass (one optional PostgreSQL skip). Broader issue #5 remains OPEN/PARTIAL."
+      "note": "Integrated at main aa28501b0db8a00e9331d43347e2bbdfc3ed2b98. Uploaded-original comparison cancellation is durably shared across API instances; evidence docs/evidence/2026-10-07-uploaded-comparison-cross-instance-cancel.json. Focused 46/full Python 886 tests, connected browser, frontend 63/build, and local validators pass (one optional PostgreSQL skip). Broader issue #5 remains OPEN/PARTIAL. Additional bounded backup/restore CLI subprocess output slice integrated at 3ebc187c2c139876dfa28e0313a6b779e7c53bc1; evidence docs/evidence/2026-10-07-backup-command-output-bounds.json and issue readback https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6037144335. Focused 11 pass; built frontend/two browser checks pass; broad Python remains 903 run with 2 failures, 2 errors, 2 skips due unrelated repeatable browser regressions. Issue stays OPEN/PARTIAL."
     },
     {
       "issue": 6,

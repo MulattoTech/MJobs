@@ -7983,13 +7983,14 @@
       "integration": {
         "method": "NON_FORCE_FAST_FORWARD",
         "base": "546f71d91d90cfbf2122ef2c830ddaba825e2a46",
-        "main": "1b35a11f3ea6b41997fcc766255ada1771d6c83f",
+        "main": "3ebc187c2c139876dfa28e0313a6b779e7c53bc1",
         "source_branch": "codex/mj-req004-backup-cli-output-bounds-20261007",
         "source_commit": "3e4f18a947d47106eb7f22af141de3b389a09722",
         "issue_state": "OPEN",
         "evidence_checkpoint_commit": "1b35a11f3ea6b41997fcc766255ada1771d6c83f",
-        "issue_comment": "PENDING_READBACK",
-        "integrated_at_utc": "2026-10-07T11:26:33Z"
+        "issue_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6037144335",
+        "integrated_at_utc": "2026-10-07T11:26:33Z",
+        "remote_verified": true
       }
     }
   ],
@@ -8149,7 +8150,7 @@
       "base": "546f71d91d90cfbf2122ef2c830ddaba825e2a46",
       "source_commit": "3e4f18a947d47106eb7f22af141de3b389a09722",
       "candidate": "1b35a11f3ea6b41997fcc766255ada1771d6c83f",
-      "final_head": "1b35a11f3ea6b41997fcc766255ada1771d6c83f",
+      "final_head": "3ebc187c2c139876dfa28e0313a6b779e7c53bc1",
       "force": false,
       "pull_request": "NOT_OPENED: local-only policy permits non-force fast-forward; Actions disabled.",
       "issue": 5,
@@ -8158,7 +8159,9 @@
       "integrated_at_utc": "2026-10-07T11:26:33Z",
       "actions_enabled": false,
       "main_protected": false,
-      "open_prs": 0
+      "open_prs": 0,
+      "local_remote_commit_identical": true,
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6037144335"
     }
   ],
   "live_reconciliation": {
@@ -8180,10 +8183,10 @@
     "base": "546f71d91d90cfbf2122ef2c830ddaba825e2a46",
     "branch": "codex/mj-req004-backup-cli-output-bounds-20261007",
     "candidate": "1b35a11f3ea6b41997fcc766255ada1771d6c83f",
-    "integrated_main": "1b35a11f3ea6b41997fcc766255ada1771d6c83f",
+    "integrated_main": "3ebc187c2c139876dfa28e0313a6b779e7c53bc1",
     "evidence": "docs/evidence/2026-10-07-backup-command-output-bounds.json",
     "next_action": "Release the Codex claim and integration lock, reconcile main and every active lane, then select the next highest-value unclaimed dependency-ready issue. Keep #5 OPEN/PARTIAL.",
-    "issue_comment": "PENDING_READBACK"
+    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6037144335"
   },
   "historical_control_snapshots": [
     {
@@ -9323,5 +9326,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-07T11:40:23Z"
+  "updated_at": "2026-10-07T11:40:55Z"
 }
