@@ -204,6 +204,21 @@ class WorkerLifecycleTests(unittest.TestCase):
         self.assertEqual(saved["state"], "DEAD_LETTERED")
         self.assertEqual(saved["error"], "OPERATION_TIMEOUT")
 
+    def test_worker_logs_successful_operation_as_structured_record(self):
+        operation = enqueue_operation(self.store, "DISCOVER", "fixture", {"rescore_only": True})
+        with patch.dict("os.environ", MJOBS_DATABASE_URL=self.store.url,
+                        MJOBS_MOCK_ORIGIN="http://127.0.0.1:8090", MJOBS_OUTPUT_DIR=str(self.root),
+                        MJOBS_OPERATION_MODE="FIXTURE"), \
+                self.assertLogs("mjobs.operations", level="INFO") as captured:
+            result = execute_operation(operation)
+
+        self.assertEqual(result["status"], "COMPLETED")
+        record = json.loads(captured.records[0].getMessage())
+        self.assertEqual(record["operation_id"], operation)
+        self.assertEqual(record["operation_kind"], "DISCOVER")
+        self.assertEqual(record["result"], "COMPLETED")
+        self.assertNotIn("error_code", record)
+
     def test_terminal_prepare_failure_is_recorded_without_rewrite_payload(self):
         with fixture_server() as origin:
             discover(self.store, origin, "fixture")
@@ -215,11 +230,23 @@ class WorkerLifecycleTests(unittest.TestCase):
         with patch.dict("os.environ", MJOBS_DATABASE_URL=self.store.url,
                         MJOBS_MOCK_ORIGIN=origin, MJOBS_OUTPUT_DIR=str(self.root),
                         MJOBS_OPERATION_MODE="FIXTURE"), \
+                self.assertLogs("mjobs.operations", level="INFO") as captured, \
                 patch("workers.tasks.prepare",
                       side_effect=PreparationError("DOCUMENT_GENERATION_FAILED", "synthetic failure")):
             result = execute_operation(operation)
 
         self.assertEqual(result["status"], "DEAD_LETTERED")
+        log = json.loads(captured.records[0].getMessage())
+        self.assertEqual(log["event"], "operation_finished")
+        self.assertEqual(log["operation_id"], operation)
+        self.assertEqual(log["operation_kind"], "PREPARE")
+        self.assertEqual(log["job_id"], job_id)
+        self.assertEqual(log["result"], "DEAD_LETTERED")
+        self.assertEqual(log["error_code"], "DOCUMENT_GENERATION_FAILED")
+        self.assertEqual(log["worker"], "mjobs-worker")
+        self.assertIsInstance(log["duration_ms"], int)
+        self.assertNotIn("private rewrite", captured.output[0])
+        self.assertNotIn("synthetic failure", captured.output[0])
         events = list_audit_history(self.store, "fixture")["events"]
         lifecycle = [event for event in events if event["type"] in {
             "APPLICATION_QUEUED", "APPLICATION_STARTED", "APPLICATION_FAILED"

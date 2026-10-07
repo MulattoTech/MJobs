@@ -19,6 +19,7 @@ from services.discovery.matching import recalculate
 from services.documents.generate import prepare, PreparationError
 from services.audit_history import record_application_preparation_event
 from workers.operations import claim, check_cancelled, OperationCancelled, OperationTimedOut, timeout
+from workers.structured_logging import log_operation_finished
 
 
 class FixtureOperationDisabled(Exception):
@@ -33,6 +34,7 @@ def execute_operation(operation_id):
         operation = claim(store, operation_id)
         if operation is None:
             return {"status": "ALREADY_CLAIMED_OR_CAPACITY"}
+        started_at = time.monotonic()
         try:
             deadline = time.monotonic() + timeout()
 
@@ -174,6 +176,7 @@ def execute_operation(operation_id):
                 record_application_preparation_event(
                     connection, "APPLICATION_FAILED", operation["entity_id"],
                     operation["params"]["job_id"], operation_id)
+        log_operation_finished(operation, state, error, time.monotonic() - started_at)
         return {"operation_id": operation_id, "status": state, "error_category": error}
     finally:
         store.engine.dispose()

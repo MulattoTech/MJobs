@@ -260,6 +260,17 @@
       "source_commit": "0aac9460f0f8573cab04021e2a7adbcb5465de3e",
       "release_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6040125344",
       "integration_evidence": "docs/evidence/2026-10-07-setting-change-audit-integration.json"
+    },
+    {
+      "issue": 178,
+      "requirement_id": "MJ-REQ-177",
+      "status": "IN_PROGRESS",
+      "priority": 1,
+      "target_area": "workers/main.py; workers/tasks.py; workers/structured_logging.py; tests/integration/test_worker_lifecycle.py; tests/unit/test_structured_logging.py",
+      "depends_on": [],
+      "evidence_path": "docs/evidence/2026-10-07-structured-worker-operation-logs.json",
+      "scope_complete": false,
+      "note": "Claimed scoped vertical slice: privacy-bounded JSON terminal outcome records for durable worker operations with operation ID, applicable entity ID, fixed worker label, duration, allowlisted result/error code. Tests cover a terminal PREPARE failure carrying synthetic private rewrite text and a successful discovery operation. Broader logging contexts remain incomplete; issue stays OPEN/PARTIAL."
     }
   ],
   "generated_at": "2026-10-07T14:05:05Z"

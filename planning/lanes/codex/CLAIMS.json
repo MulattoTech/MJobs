@@ -504,6 +504,26 @@
       "integrated_main": "979e4063266ec8409e8d5d8aa34430136148b264",
       "source_commit": "0aac9460f0f8573cab04021e2a7adbcb5465de3e",
       "result": "PARTIAL; profile preference setting-change history integrated; issue remains OPEN"
+    },
+    {
+      "issue": 178,
+      "requirement_id": "MJ-REQ-177",
+      "branch": "codex/mj-req177-structured-logging-20261007",
+      "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req177-structured-logging-20261007",
+      "head": "66de21a8c4c6c0afeedd31064ee367d7a69f498a",
+      "paths": [
+        "workers/main.py",
+        "workers/tasks.py",
+        "workers/structured_logging.py",
+        "tests/integration/test_worker_lifecycle.py",
+        "tests/unit/test_structured_logging.py",
+        "docs/evidence/2026-10-07-structured-worker-operation-logs.json",
+        "planning/lanes/codex/**"
+      ],
+      "status": "ACTIVE",
+      "claimed_at": "2026-10-07T14:52:59Z",
+      "claim_comment": "https://github.com/MulattoTech/MJobs/issues/178#issuecomment-6040540554",
+      "evidence_path": "docs/evidence/2026-10-07-structured-worker-operation-logs.json"
     }
   ]
 }

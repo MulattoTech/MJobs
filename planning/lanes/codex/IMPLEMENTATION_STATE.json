@@ -1,15 +1,15 @@
 {
   "schema_version": 1,
   "lane": "codex",
-  "status": "IDLE_READY",
-  "base_main": "ffa2427799ccf3d76a4f22ddf30e22c9f00a44e5",
-  "current_issue": null,
-  "requirement_id": "MJ-REQ-176",
-  "branch": null,
-  "head": "979e4063266ec8409e8d5d8aa34430136148b264",
-  "worktree": null,
-  "result": "INTEGRATED_PARTIAL; profile preference setting-change history; issue #177 remains OPEN",
-  "evidence_path": "docs/evidence/2026-10-07-setting-change-audit-integration.json",
+  "status": "ACTIVE",
+  "base_main": "66de21a8c4c6c0afeedd31064ee367d7a69f498a",
+  "current_issue": 178,
+  "requirement_id": "MJ-REQ-177",
+  "branch": "codex/mj-req177-structured-logging-20261007",
+  "head": "66de21a8c4c6c0afeedd31064ee367d7a69f498a",
+  "worktree": ".worktrees/codex-mj-req177-structured-logging-20261007",
+  "result": "FOCUSED_LOCAL_PASS; full Python suite/evidence pending; #178 remains OPEN/PARTIAL",
+  "evidence_path": "docs/evidence/2026-10-07-structured-worker-operation-logs.json",
   "last_completed": {
     "issue": 177,
     "requirement_id": "MJ-REQ-176",
@@ -36,7 +36,7 @@
   "started_at_utc": "2026-10-07T04:24:01Z",
   "validation": {
     "result": "PARTIAL; issue acceptance incomplete",
-    "focused_integration": "34 PASS; 0 failures; 0 skips",
+    "focused_integration": "22 tests PASS, 1 optional PostgreSQL skip",
     "connected_browser": "1 PASS; setting event, value redaction, reload persistence and profile isolation",
     "full_python_suite": "936 PASS; 0 failures/errors; 8 skipped; nonverbose run did not print skip names",
     "frontend": "63 tests PASS; TypeScript and Vite build PASS",
@@ -47,11 +47,11 @@
     "external_submission": "OFF"
   },
   "last_integrated_head": "979e4063266ec8409e8d5d8aa34430136148b264",
-  "last_verified_result": "PARTIAL; issue #177 remains OPEN",
-  "updated_at": "2026-10-07T14:48:19Z",
+  "last_verified_result": "Focused unit/worker lifecycle tests PASS; full suite pending",
+  "updated_at": "2026-10-07T14:52:59Z",
   "integrated_main": "3c58290a10ff5412c9d92c090e7ebef933af5689",
   "last_integrated_issue": 177,
   "last_integrated_requirement": "MJ-REQ-176 company/source audit event slice",
   "last_integrated_evidence": "docs/evidence/2026-10-07-company-audit-history.json",
-  "canonical_main_at_pause": "979e4063266ec8409e8d5d8aa34430136148b264"
+  "canonical_main_at_pause": "66de21a8c4c6c0afeedd31064ee367d7a69f498a"
 }

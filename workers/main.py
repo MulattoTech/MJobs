@@ -10,6 +10,7 @@ from packages.persistence.store import Store
 from packages.domain.operation_mode import operation_mode_from_env
 from workers.dispatch import dispatch_pending
 from workers.operations import CATEGORIES, QUEUES, category_limit, timeout
+from workers.structured_logging import configure_operation_logger
 
 
 def main():
@@ -41,6 +42,7 @@ def main():
     thread.start()
     redis = Redis.from_url(redis_url, socket_connect_timeout=5, socket_timeout=10)
     try:
+        configure_operation_logger()
         Worker([queue], connection=redis).work(logging_level="WARNING")
     finally:
         stopped.set()
