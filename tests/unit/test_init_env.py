@@ -1,5 +1,6 @@
 """Private project configuration is published atomically and never overwritten."""
 import os
+import base64
 from contextlib import redirect_stdout
 from io import StringIO
 from pathlib import Path
@@ -12,9 +13,22 @@ from cli.init_env import initialize
 
 
 class InitEnvTests(unittest.TestCase):
+    def test_new_configuration_has_separate_base64_credential_encryption_key(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / '.env'
+            self.assertTrue(initialize(
+                path,
+                secret_factory=lambda _size: 'synthetic-database-secret',
+                encryption_key_factory=lambda size: b'k' * size,
+            ))
+            values = dict(line.split('=', 1) for line in path.read_text(encoding='utf-8').splitlines())
+            self.assertEqual(values['POSTGRES_PASSWORD'], 'synthetic-database-secret')
+            self.assertEqual(base64.urlsafe_b64decode(values['MJOBS_CREDENTIAL_ENCRYPTION_KEY']), b'k' * 32)
+            self.assertNotIn('synthetic-database-secret', values['MJOBS_CREDENTIAL_ENCRYPTION_KEY'])
+
     def test_cli_reports_creation_and_preservation_without_printing_secret(self):
         with tempfile.TemporaryDirectory() as directory:
-            with patch('cli.init_env.ROOT',Path(directory)), patch('cli.init_env.secrets.token_urlsafe',return_value='synthetic-secret'):
+            with patch('cli.init_env.ROOT',Path(directory)), patch('cli.init_env.secrets.token_urlsafe',return_value='synthetic-secret'), patch('cli.init_env.secrets.token_bytes',return_value=b'k'*32):
                 first=StringIO()
                 with redirect_stdout(first):self.assertEqual(init_env.main(),0)
                 second=StringIO()
@@ -22,14 +36,17 @@ class InitEnvTests(unittest.TestCase):
             self.assertEqual(first.getvalue(),'Created project-local ignored .env\n')
             self.assertEqual(second.getvalue(),'Existing .env preserved\n')
             self.assertNotIn('synthetic-secret',first.getvalue()+second.getvalue())
-            self.assertEqual((Path(directory)/'.env').read_text(encoding='utf-8'),'POSTGRES_PASSWORD=synthetic-secret\n')
+            values=dict(line.split('=',1) for line in (Path(directory)/'.env').read_text(encoding='utf-8').splitlines())
+            self.assertEqual(values['POSTGRES_PASSWORD'],'synthetic-secret')
+            self.assertEqual(base64.urlsafe_b64decode(values['MJOBS_CREDENTIAL_ENCRYPTION_KEY']),b'k'*32)
 
     def test_creates_complete_private_configuration(self):
         with tempfile.TemporaryDirectory() as directory:
             path=Path(directory)/'.env'
-            created=initialize(path,secret_factory=lambda _size:'synthetic-secret')
+            created=initialize(path,secret_factory=lambda _size:'synthetic-secret',encryption_key_factory=lambda size:b'k'*size)
             self.assertTrue(created)
-            self.assertEqual(path.read_text(encoding='utf-8'),'POSTGRES_PASSWORD=synthetic-secret\n')
+            values=dict(line.split('=',1) for line in path.read_text(encoding='utf-8').splitlines())
+            self.assertEqual(values,{'POSTGRES_PASSWORD':'synthetic-secret','MJOBS_CREDENTIAL_ENCRYPTION_KEY':base64.urlsafe_b64encode(b'k'*32).decode('ascii')})
             if os.name!='nt':
                 self.assertEqual(path.stat().st_mode & 0o777,0o600)
             self.assertEqual(list(Path(directory).glob('.env.init-*.tmp')),[])
@@ -38,7 +55,7 @@ class InitEnvTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             path=Path(directory)/'.env';path.write_bytes(b'EXISTING_PRIVATE_CONFIGURATION\n')
             initializer=initialize
-            with patch('cli.init_env.secrets.token_urlsafe',side_effect=AssertionError('must not generate')):
+            with patch('cli.init_env.secrets.token_urlsafe',side_effect=AssertionError('must not generate')), patch('cli.init_env.secrets.token_bytes',side_effect=AssertionError('must not generate')):
                 self.assertFalse(initializer(path))
             self.assertEqual(path.read_bytes(),b'EXISTING_PRIVATE_CONFIGURATION\n')
             self.assertEqual(list(Path(directory).glob('.env.init-*.tmp')),[])
@@ -48,7 +65,7 @@ class InitEnvTests(unittest.TestCase):
             path=Path(directory)/'.env'
             with patch('cli.init_env.os.link',side_effect=OSError('synthetic publish failure')):
                 with self.assertRaisesRegex(OSError,'synthetic publish failure'):
-                    initialize(path,secret_factory=lambda _size:'synthetic-secret')
+                    initialize(path,secret_factory=lambda _size:'synthetic-secret',encryption_key_factory=lambda size:b'k'*size)
             self.assertFalse(path.exists())
             self.assertEqual(list(Path(directory).glob('.env.init-*.tmp')),[])
 
@@ -57,7 +74,7 @@ class InitEnvTests(unittest.TestCase):
             path=Path(directory)/'.env'
             with patch('cli.init_env.os.fsync',side_effect=OSError('synthetic sync failure')):
                 with self.assertRaisesRegex(OSError,'synthetic sync failure'):
-                    initialize(path,secret_factory=lambda _size:'synthetic-secret')
+                    initialize(path,secret_factory=lambda _size:'synthetic-secret',encryption_key_factory=lambda size:b'k'*size)
             self.assertFalse(path.exists())
             self.assertEqual(list(Path(directory).glob('.env.init-*.tmp')),[])
 
@@ -69,7 +86,7 @@ class InitEnvTests(unittest.TestCase):
                 Path(destination).write_bytes(b'WINNING_CONFIGURATION\n')
                 real_link(source,destination)
             with patch('cli.init_env.os.link',side_effect=publish_other_winner):
-                self.assertFalse(initialize(path,secret_factory=lambda _size:'losing-secret'))
+                self.assertFalse(initialize(path,secret_factory=lambda _size:'losing-secret',encryption_key_factory=lambda size:b'k'*size))
             self.assertEqual(path.read_bytes(),b'WINNING_CONFIGURATION\n')
             self.assertEqual(list(Path(directory).glob('.env.init-*.tmp')),[])
 

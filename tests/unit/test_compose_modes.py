@@ -15,6 +15,7 @@ class ComposeModeTests(unittest.TestCase):
     def render(self, *arguments, fixture=False):
         environment = os.environ.copy()
         environment["POSTGRES_PASSWORD"] = "synthetic-compose-test-value"
+        environment["MJOBS_CREDENTIAL_ENCRYPTION_KEY"] = "synthetic-base64-test-key"
         environment.pop("MJOBS_OPERATION_MODE", None)
         environment.pop("MJOBS_COMPOSE_MOCK", None)
         environment.pop("COMPOSE_PROFILES", None)
@@ -31,6 +32,10 @@ class ComposeModeTests(unittest.TestCase):
         services = self.render("--services").splitlines()
         configuration = json.loads(self.render("--format", "json"))
         self.assertNotIn("mock", services)
+        api_environment = configuration["services"]["api"]["environment"]
+        self.assertEqual(api_environment["MJOBS_CREDENTIAL_ENCRYPTION_KEY"], "synthetic-base64-test-key")
+        self.assertNotIn("MJOBS_CREDENTIAL_ENCRYPTION_KEY", configuration["services"]["worker"]["environment"])
+        self.assertIn("source-egress", configuration["services"]["api"]["networks"])
         for name in ("api", "scheduler", "worker", "source-worker", "document-worker"):
             service = configuration["services"][name]
             self.assertEqual(service["environment"]["MJOBS_OPERATION_MODE"], "PERSONAL")

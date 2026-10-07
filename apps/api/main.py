@@ -17,7 +17,7 @@ from fastapi.exception_handlers import request_validation_exception_handler
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, FileResponse, Response
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, SecretStr, model_validator
 from redis import Redis
 from rq import Worker
 from sqlalchemy import select, text
@@ -45,6 +45,7 @@ from services.ai.consumer import (
 )
 from services.ai.structured_output import StructuredOutputError
 from services.ai.cost_controls import AICostPolicy, CandidateScore
+from services.credentials.vault import CredentialCipher, CredentialConfigurationError
 from services.company_discovery.public_client import PublicFetchError
 from services.company_discovery.sources import (list_company_job_sources, set_company_source_watch,
     list_company_source_view, set_company_source_pin, set_company_source_enabled)
@@ -143,6 +144,11 @@ class AICostPolicyInput(BaseModel):
         if self.max_document_candidates > self.max_ai_candidates:
             raise ValueError("AI_FUNNEL_POLICY_INVALID")
         return self
+
+
+class ProviderCredentialInput(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+    secret: SecretStr = Field(min_length=1, max_length=16_384)
 
 
 class AIEvaluationRequest(BaseModel):
@@ -438,6 +444,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
 
     @app.exception_handler(RequestValidationError)
     async def validation_error(request: Request, error: RequestValidationError):
+        if "/provider-credentials" in request.url.path:
+            return JSONResponse({"detail": {"code": "CREDENTIAL_INPUT_INVALID"}}, status_code=422)
         if request.url.path.startswith("/profiles/") and request.url.path.endswith(
                 ("/ai-task-settings", "/ai-cost-policy")):
             code = ("AI_TASK_CONFIG_INVALID" if request.url.path.endswith("/ai-task-settings")
@@ -540,6 +548,50 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         }
         saved = store.save_ai_task_settings(profile_id, selections)
         return {"profile_id": profile_id, "tasks": saved}
+
+    @app.get("/profiles/{profile_id}/provider-credentials")
+    def list_provider_credentials(profile_id: str):
+        return {"profile_id": profile_id, "credentials": store.provider_credentials(profile_id)}
+
+    @app.put("/profiles/{profile_id}/provider-credentials/{provider}")
+    def save_provider_credential(profile_id: str, provider: str, value: ProviderCredentialInput):
+        if provider not in ("openai", "anthropic"):
+            raise HTTPException(422, {"code": "CREDENTIAL_PROVIDER_UNSUPPORTED"})
+        try:
+            cipher = CredentialCipher.from_environment()
+            encrypted = cipher.encrypt(profile_id, provider, value.secret.get_secret_value())
+        except CredentialConfigurationError as error:
+            raise HTTPException(503, {"code": error.code}) from None
+        metadata = store.save_provider_credential(profile_id, provider, encrypted)
+        return {"profile_id": profile_id, "provider": provider, **metadata}
+
+    @app.delete("/profiles/{profile_id}/provider-credentials/{provider}")
+    def delete_provider_credential(profile_id: str, provider: str):
+        if provider not in ("openai", "anthropic"):
+            raise HTTPException(422, {"code": "CREDENTIAL_PROVIDER_UNSUPPORTED"})
+        if not store.delete_provider_credential(profile_id, provider):
+            raise HTTPException(404, {"code": "CREDENTIAL_NOT_FOUND"})
+        return {"profile_id": profile_id, "provider": provider, "deleted": True}
+
+    @app.post("/profiles/{profile_id}/provider-credentials/{provider}/test")
+    def test_provider_credential(profile_id: str, provider: str):
+        if provider not in ("openai", "anthropic"):
+            raise HTTPException(422, {"code": "CREDENTIAL_PROVIDER_UNSUPPORTED"})
+        encrypted = store.encrypted_provider_credential(profile_id, provider)
+        if encrypted is None:
+            raise HTTPException(404, {"code": "CREDENTIAL_NOT_FOUND"})
+        try:
+            secret = CredentialCipher.from_environment().decrypt(profile_id, provider, encrypted)
+        except CredentialConfigurationError as error:
+            raise HTTPException(503, {"code": error.code}) from None
+        from services.credentials.connection import test_provider_connection
+        result = test_provider_connection(provider, secret)
+        metadata = store.record_provider_credential_test(profile_id, provider, result["status"])
+        if metadata is None:
+            raise HTTPException(404, {"code": "CREDENTIAL_NOT_FOUND"})
+        return {"profile_id": profile_id, "provider": provider,
+                "status": result["status"], "code": result["code"],
+                "last_tested_at": metadata["last_tested_at"]}
 
     @app.get("/profiles/{profile_id}/ai-cost-policy")
     def ai_cost_policy(profile_id: str):

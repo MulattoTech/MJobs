@@ -299,6 +299,75 @@ class Store:
                 }, replace=True)
         return self.ai_task_settings(profile_id)
 
+    def provider_credentials(self, profile_id):
+        """Return credential metadata only; encrypted values stay in the store boundary."""
+        self.profile(profile_id)
+        with self.engine.connect() as connection:
+            rows = connection.execute(
+                select(m.provider_credentials.c.provider, m.provider_credentials.c.created_at,
+                       m.provider_credentials.c.updated_at, m.provider_credentials.c.last_tested_at,
+                       m.provider_credentials.c.last_test_status, m.provider_credentials.c.rotation_count)
+                .where(m.provider_credentials.c.profile_id == profile_id)
+                .order_by(m.provider_credentials.c.provider)
+            ).mappings()
+            return [dict(row, configured=True, masked="********") for row in rows]
+
+    def encrypted_provider_credential(self, profile_id, provider):
+        """Return ciphertext only to the server-side credential service."""
+        self.profile(profile_id)
+        with self.engine.connect() as connection:
+            row = connection.execute(select(m.provider_credentials.c.encrypted_secret).where(
+                m.provider_credentials.c.profile_id == profile_id,
+                m.provider_credentials.c.provider == provider)).first()
+        return row[0] if row else None
+
+    def save_provider_credential(self, profile_id, provider, encrypted_secret):
+        """Insert or rotate one encrypted profile/provider credential atomically."""
+        if not isinstance(encrypted_secret, bytes) or not encrypted_secret:
+            raise ValueError("CREDENTIAL_INPUT_INVALID")
+        self.profile(profile_id)
+        timestamp = now()
+        credential_id = identity(profile_id, provider)
+        with self.engine.begin() as connection:
+            existing = connection.execute(select(m.provider_credentials).where(
+                m.provider_credentials.c.profile_id == profile_id,
+                m.provider_credentials.c.provider == provider)).mappings().one_or_none()
+            upsert(connection, m.provider_credentials, {
+                "id": credential_id,
+                "profile_id": profile_id,
+                "provider": provider,
+                "encrypted_secret": encrypted_secret,
+                "created_at": existing["created_at"] if existing else timestamp,
+                "updated_at": timestamp,
+                "last_tested_at": None,
+                "last_test_status": "NOT_TESTED",
+                "rotation_count": int(existing["rotation_count"] + 1) if existing else 0,
+            }, replace=True)
+        return next(item for item in self.provider_credentials(profile_id) if item["provider"] == provider)
+
+    def record_provider_credential_test(self, profile_id, provider, status):
+        """Persist only a bounded result code and timestamp from a connection check."""
+        if status not in ("CONNECTED", "FAILED"):
+            raise ValueError("CREDENTIAL_TEST_RESULT_INVALID")
+        timestamp = now()
+        with self.engine.begin() as connection:
+            result = connection.execute(update(m.provider_credentials).where(
+                m.provider_credentials.c.profile_id == profile_id,
+                m.provider_credentials.c.provider == provider).values(
+                    last_tested_at=timestamp, last_test_status=status))
+            if result.rowcount != 1:
+                return None
+        return next(item for item in self.provider_credentials(profile_id) if item["provider"] == provider)
+
+    def delete_provider_credential(self, profile_id, provider):
+        """Delete a credential for its owning profile without returning ciphertext."""
+        self.profile(profile_id)
+        with self.engine.begin() as connection:
+            result = connection.execute(m.provider_credentials.delete().where(
+                m.provider_credentials.c.profile_id == profile_id,
+                m.provider_credentials.c.provider == provider))
+        return result.rowcount == 1
+
     def ai_cost_policy(self, profile_id):
         """Return the explicitly stored funnel policy for one profile, if set."""
         self.profile(profile_id)

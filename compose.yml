@@ -57,9 +57,12 @@ services:
       postgres: {condition: service_healthy}
   api:
     <<: *runtime
+    environment:
+      <<: *environment
+      MJOBS_CREDENTIAL_ENCRYPTION_KEY: ${MJOBS_CREDENTIAL_ENCRYPTION_KEY:?Run python -m cli/init_env}
     command: [python, -m, uvicorn, apps.api.main:create_from_env, --factory, --host, 0.0.0.0, --port, '8000']
     ports: ['127.0.0.1:${MJOBS_PORT:-18700}:8000']
-    networks: [private, ui]
+    networks: [private, ui, source-egress]
     restart: unless-stopped
     depends_on:
       migrate: {condition: service_completed_successfully}

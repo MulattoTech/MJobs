@@ -1,5 +1,5 @@
 """Relational authority for the initial product spine."""
-from sqlalchemy import Boolean, CheckConstraint, Column, Float, ForeignKey, Index, Integer, JSON, MetaData, String, Table, UniqueConstraint, false, true
+from sqlalchemy import Boolean, CheckConstraint, Column, Float, ForeignKey, Index, Integer, JSON, LargeBinary, MetaData, String, Table, UniqueConstraint, false, true
 
 metadata = MetaData()
 
@@ -28,6 +28,22 @@ ai_task_settings = table(
                  CheckConstraint("(provider = 'disabled' AND model IS NULL) OR "
                                  "(provider <> 'disabled' AND model IS NOT NULL)",
                                  name="ck_profile_ai_task_provider_model")),
+)
+provider_credentials = table(
+    "provider_credentials",
+    Column("profile_id", ForeignKey("career_profiles.id", ondelete="CASCADE"), nullable=False),
+    Column("provider", String(32), nullable=False),
+    Column("encrypted_secret", LargeBinary, nullable=False),
+    Column("created_at", String(64), nullable=False),
+    Column("updated_at", String(64), nullable=False),
+    Column("last_tested_at", String(64)),
+    Column("last_test_status", String(24), nullable=False, server_default="NOT_TESTED"),
+    Column("rotation_count", Integer, nullable=False, server_default="0"),
+    constraints=(UniqueConstraint("profile_id", "provider", name="uq_provider_credentials_profile_provider"),
+                 CheckConstraint("provider IN ('openai', 'anthropic')", name="ck_provider_credentials_provider"),
+                 CheckConstraint("last_test_status IN ('NOT_TESTED', 'CONNECTED', 'FAILED')",
+                                 name="ck_provider_credentials_test_status"),
+                 CheckConstraint("rotation_count >= 0", name="ck_provider_credentials_rotation_count")),
 )
 ai_cost_policies = table(
     "profile_ai_cost_policies",
