@@ -3306,7 +3306,36 @@
       "scope_complete": false,
       "scope_result": "PARTIAL",
       "notes": "23 focused agent tests and local validators pass. Browser entrypoint integration, page budgets, diagnostic slice reruns, and hard preemption of an in-flight synchronous handler remain incomplete. Hosted checks/review NOT_RUN by policy."
+    },
+    {
+      "id": "MJ-PR-160",
+      "title": "Search Profiles: Apply career-profile-owned saved searches in Jobs",
+      "domain": "core_search_model",
+      "requirements": [
+        "MJ-REQ-022"
+      ],
+      "issues": [
+        23
+      ],
+      "reference_gaps": [],
+      "target_area": "apps/web/src/main.tsx; tests/browser/test_search_profile_selection.py",
+      "depends_on": [
+        "MJ-PR-007"
+      ],
+      "status": "INTEGRATED_PASS",
+      "branch": "codex/mj-req022-search-profile-selection-20261007",
+      "evidence_path": "docs/evidence/2026-10-07-search-profile-selection.json",
+      "base": "ece8b69189a5589a079c2b01aa43a57037605d07",
+      "candidate": "698e504ecc5059a5e015e987612b8c3572b422de",
+      "integration_method": "NON_FORCE_FAST_FORWARD",
+      "integration_commit": "698e504ecc5059a5e015e987612b8c3572b422de",
+      "pr_state": "NOT_OPENED_LOCAL_ONLY",
+      "scope_complete": true,
+      "scope_result": "PASS",
+      "notes": "Connected profile-owned saved-search selection to the existing Jobs API. Focused 18 Python tests, including loopback Chromium with temp SQLite/reopen/profile isolation; frontend 63 tests/build; local repository validators pass. Issue evidence comment read back. Hosted checks/review NOT_RUN by current policy; external submission OFF.",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/23#issuecomment-6034383775",
+      "integrated_at": "2026-10-07T08:48:43Z"
     }
   ],
-  "generated_at": "2026-10-07T08:27:01Z"
+  "generated_at": "2026-10-07T08:48:43Z"
 }

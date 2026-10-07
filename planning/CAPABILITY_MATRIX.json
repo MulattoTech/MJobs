@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-07T08:04:17Z",
+  "timestamp": "2026-10-07T08:48:43Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -232,11 +232,12 @@
     },
     {
       "requirement_id": "MJ-REQ-022",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
-        "docs/evidence/2026-10-01-source-policy-scheduler.json"
+        "docs/evidence/2026-10-01-source-policy-scheduler.json",
+        "docs/evidence/2026-10-07-search-profile-selection.json"
       ],
-      "note": "Persistent unlimited search-profile CRUD, source scoping, pause/resume and scheduling are verified in API/UI; title/remote/employment query semantics are intentionally deferred to MJ-REQ-023 / MJ-PR-007."
+      "note": "Unlimited data-driven search-profile CRUD, profile scoping, pause/resume/scheduling, and Jobs-view application of the active career profile's saved criteria are locally verified. Connected loopback Chromium confirmed exact filtered results, clear/reset behavior, career-profile isolation, and persistence after Store reopen. Query semantics are separately PASS under MJ-REQ-023. Hosted checks NOT_RUN by policy."
     },
     {
       "requirement_id": "MJ-REQ-023",

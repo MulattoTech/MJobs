@@ -11,7 +11,7 @@
     "current_verified_github_state": "Local/GitHub main synchronized at cb2681b6a921f2759cf46d4d66a8228645b473e7; issue #6 remains OPEN/PARTIAL after local evidence readback; Actions disabled; external submission OFF.",
     "current_verified_at": "2026-10-07T05:08:16Z"
   },
-  "current_milestone": "MJ-REF-033-AGENT-RUN-BUDGET-OUTPUT-VALIDATION-20261007",
+  "current_milestone": "MJ-REQ-022-SEARCH-PROFILE-SELECTION-20261007",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -65,7 +65,8 @@
     "MJ-REQ-017.S07: Remote OK global job-source adapter implemented with public JSON collection, multi-company attribution, canonical search semantics normalization, error/rate-limit handling, and registry integration (docs/evidence/2026-10-06-remote-ok-job-source-adapter.json).",
     "MJ-REF-011 locally complete: operation-wide AI candidate deadline reaches each nested provider call as remaining time; prompt truncation is explicit and omitted details cannot be inferred; timeout/cancel reasons persist without partial evaluation history. Focused 50 PASS; full Python 854 PASS with one optional PostgreSQL skip; frontend build and repository validators PASS. Evidence docs/evidence/2026-10-07-ai-prompt-truncation.json and docs/evidence/2026-10-07-ai-operation-outcomes.json.",
     "Profile-scoped AES-256-GCM provider credential storage with masked UI/API metadata, rotation/deletion, synthetic backup-theft/redaction tests, and bounded explicit provider connection checks",
-    "MJ-REF-016 / issue #386 locally complete: exhausted and terminal worker failures persist as DEAD_LETTERED with reason, stable operation identity, attempt timestamps/count, and append-only audit; profile-scoped Activity UI exposes count/reason and explicit retry/discard; ambiguous submissions stay reconciliation-only. Full Python 875 PASS with 1 optional PostgreSQL concurrency skip; frontend 63 PASS/build PASS; SQLite and temporary PostgreSQL 17 migration safety, connected browser, and repository validators PASS. Evidence docs/evidence/2026-10-07-dead-letter-queue.json."
+    "MJ-REF-016 / issue #386 locally complete: exhausted and terminal worker failures persist as DEAD_LETTERED with reason, stable operation identity, attempt timestamps/count, and append-only audit; profile-scoped Activity UI exposes count/reason and explicit retry/discard; ambiguous submissions stay reconciliation-only. Full Python 875 PASS with 1 optional PostgreSQL concurrency skip; frontend 63 PASS/build PASS; SQLite and temporary PostgreSQL 17 migration safety, connected browser, and repository validators PASS. Evidence docs/evidence/2026-10-07-dead-letter-queue.json.",
+    "Career-profile-owned saved search can be selected in Jobs and its exact filtered results survive Store reopen with profile isolation (MJ-REQ-022, issue #23)."
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
@@ -473,7 +474,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Reconcile current main and all lane claims, then select the next highest-value unclaimed dependency-ready issue in a dedicated Codex worktree. MJ-REQ-008 remains PARTIAL pending physical host restart; external application submission remains OFF.",
+  "recommended_resume_step": "Reconcile current main, active machine/GitHub claims and worktrees; select and claim the next highest-value dependency-ready issue that does not overlap Antigravity #302 or Ollama #318.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -510,7 +511,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "9d010bc7c9b51a4611988c1efe250de7a1d5d791",
+  "last_implementation_commit": "698e504ecc5059a5e015e987612b8c3572b422de",
   "publication": {
     "result": "PASS",
     "integration_method": "NON_FORCE_FAST_FORWARD",
@@ -7492,12 +7493,75 @@
         "hosted_review": "NOT_RUN_BY_USER_POLICY",
         "issue_closed": false
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-022-SEARCH-PROFILE-SELECTION-20261007",
+      "timestamp": "2026-10-07T08:48:43Z",
+      "current_phase": "Issue #23 / MJ-REQ-022 Search Profiles is locally PASS and integrated; continue the broader MJobs backlog.",
+      "completed_steps": [
+        "Reconciled exact current main, issue contract, worktrees and Antigravity #302/Ollama #318 claims; held the Codex integration lock.",
+        "Connected active career-profile saved-search selection in Jobs to the existing profile-aware /jobs API; profile switches clear prior options and selection.",
+        "Integrated candidate by non-force fast-forward; verified local and remote main at the exact candidate before canonical state updates.",
+        "Read back sanitized evidence comment and updated MJ-REQ-022 capability, implementation progress, PR queue and session handoff without reducing the requirements denominator."
+      ],
+      "files_added": [
+        "tests/browser/test_search_profile_selection.py",
+        "docs/evidence/2026-10-07-search-profile-selection.json"
+      ],
+      "files_modified": [
+        "apps/web/src/main.tsx",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md",
+        "planning/lanes/codex/CLAIMS.json",
+        "planning/lanes/codex/CONTINUATION.json",
+        "planning/lanes/codex/IMPLEMENTATION_STATE.json",
+        "planning/lanes/codex/PR_QUEUE.json",
+        "planning/lanes/codex/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.unit.test_search_semantics tests.integration.test_source_policy_scheduler tests.browser.test_search_profile_selection -v: 18 PASS, 0 fail, 0 skip on integrated main after rebuilding stale ignored frontend dist.",
+        "npm test --prefix apps/web -- --run: 13 files / 63 tests PASS.",
+        "npm run build --prefix apps/web: TypeScript and Vite production build PASS.",
+        "agent_skills, catalogue, progress validate, lane coordination validate, and git diff --check PASS."
+      ],
+      "tests_remaining": [
+        "Full repository Python suite NOT_RUN in this slice.",
+        "PostgreSQL-specific checks NOT_APPLICABLE because no schema or persistence code changed.",
+        "Hosted actions/review NOT_RUN by current local-only policy."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Synthetic connected headless Chromium to isolated loopback FastAPI and temporary SQLite after Store reopen; external browser requests were blocked and none were observed."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "Broader MJobs requirements remain incomplete; overall implementation state stays PARTIAL.",
+        "Hosted checks and independent reviews remain NOT_RUN under user policy; external submission OFF."
+      ],
+      "source_commit": "698e504ecc5059a5e015e987612b8c3572b422de",
+      "source_tree": "02ad83f670e10d403d86db6f517291060e83a707",
+      "result": "PASS",
+      "last_safe_checkpoint": {
+        "git_commit": "698e504ecc5059a5e015e987612b8c3572b422de",
+        "evidence_path": "docs/evidence/2026-10-07-search-profile-selection.json"
+      },
+      "integration": {
+        "method": "NON_FORCE_FAST_FORWARD",
+        "base": "ece8b69189a5589a079c2b01aa43a57037605d07",
+        "main": "698e504ecc5059a5e015e987612b8c3572b422de",
+        "source_branch": "codex/mj-req022-search-profile-selection-20261007",
+        "source_commit": "698e504ecc5059a5e015e987612b8c3572b422de",
+        "candidate": "698e504ecc5059a5e015e987612b8c3572b422de",
+        "issue_comment": "https://github.com/MulattoTech/MJobs/issues/23#issuecomment-6034383775"
+      }
     }
   ],
-  "current_phase": "Issue #403 / MJ-REF-033 scoped agent-run budget and collection validation integrated PARTIAL; browser integration, page budgets and bounded slice reruns remain open.",
+  "current_phase": "Issue #23 / MJ-REQ-022 Search Profiles is locally PASS and integrated; continue the broader MJobs backlog.",
   "last_safe_checkpoint": {
-    "git_commit": "f735bc58e3318f2c097b7c2ebaf037a1ae8a9edf",
-    "evidence_path": "docs/evidence/2026-10-07-agent-run-budget-output-validation.json"
+    "git_commit": "698e504ecc5059a5e015e987612b8c3572b422de",
+    "evidence_path": "docs/evidence/2026-10-07-search-profile-selection.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -7656,17 +7720,17 @@
     "next_issue": "Release #398 and select the next dependency-ready unclaimed issue after live claim/worktree reconciliation."
   },
   "active_development_issue": {
-    "issue": 403,
-    "requirement_id": "MJ-REF-033",
-    "title": "Run-level stopping conditions, budgets, and browser-output validation",
-    "state": "OPEN_PARTIAL",
-    "base": "de04d6bb06ce23d1a7f4f7f0f04dedcd87bdf7a5",
-    "branch": "codex/mj-ref-033-agent-run-limits-20261007",
-    "candidate": "9d010bc7c9b51a4611988c1efe250de7a1d5d791",
-    "evidence": "docs/evidence/2026-10-07-agent-run-budget-output-validation.json",
-    "next_action": "Release this scoped partial claim after reconciliation and continue with the next highest-value unclaimed dependency-ready issue; browser integration, page budgets, and diagnostic slice reruns remain open.",
-    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/403#issuecomment-6033983627",
-    "integrated_main": "f735bc58e3318f2c097b7c2ebaf037a1ae8a9edf"
+    "issue": 23,
+    "requirement_id": "MJ-REQ-022",
+    "title": "Search Profiles",
+    "state": "INTEGRATED_PASS",
+    "base": "ece8b69189a5589a079c2b01aa43a57037605d07",
+    "branch": "codex/mj-req022-search-profile-selection-20261007",
+    "candidate": "698e504ecc5059a5e015e987612b8c3572b422de",
+    "evidence": "docs/evidence/2026-10-07-search-profile-selection.json",
+    "next_action": "Release the completed Codex claim and integration lock, then reconcile all active claims and choose the next highest-value unclaimed dependency-ready issue.",
+    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/23#issuecomment-6034383775",
+    "integrated_main": "698e504ecc5059a5e015e987612b8c3572b422de"
   },
   "historical_control_snapshots": [
     {
@@ -8806,5 +8870,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-07T08:27:01Z"
+  "updated_at": "2026-10-07T08:48:43Z"
 }

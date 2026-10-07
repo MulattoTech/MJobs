@@ -1,3 +1,11 @@
+# Issue #23 / MJ-REQ-022 integration receipt — 2026-10-07
+
+Issue #23 is scoped PASS and evidence-readback is recorded at https://github.com/MulattoTech/MJobs/issues/23#issuecomment-6034383775. Candidate `698e504ecc5059a5e015e987612b8c3572b422de` was non-force fast-forwarded from synchronized main `ece8b69189a5589a079c2b01aa43a57037605d07`; local and remote main matched before canonical planning changes. Evidence: `docs/evidence/2026-10-07-search-profile-selection.json`. The Jobs view applies saved-search criteria owned by the active career profile. Loopback Chromium verified filtered UI/API results, clearing, profile switching/isolation, Store reopen, and no external browser requests. Focused suite: 18 PASS; frontend: 63 PASS; production build and local validators PASS. Initial root browser attempt used a stale ignored build; rebuild followed by the same 18-test suite passed. Hosted checks/reviews NOT_RUN by policy; external submission OFF. Overall MJobs state remains PARTIAL; the requirements denominator is unchanged.
+
+Next: release the Codex #23 claim and integration lock, reconcile all active claims, then select the next unclaimed dependency-ready issue. Antigravity #302 and Ollama #318 remain active on disjoint paths.
+
+---
+
 ## Issue #386 / MJ-REF-016 integration receipt — 2026-10-07
 
 Source commit `b778917a56d266a50f3cb1e21c9f4220bb20a28c` was fast-forwarded to local `main` from synchronized origin/main `5d37700bcedf7013fc89968e260454af6fae1817` under the Codex integration lock. Evidence: `docs/evidence/2026-10-07-dead-letter-queue.json`. Acceptance covers durable dead-letter state/reason/attempt metadata, stable operation idempotency, audited retry/discard, ambiguous-submission retry protection, profile-scoped Activity queue count/reasons, connected browser reload/readback, and SQLite/PostgreSQL 17 migration preservation. Final full suite: 875 Python tests passed with 1 optional PostgreSQL concurrency test skipped; 63 frontend tests/build and repository validators passed. MJ-REF-016 is scoped PASS; MJ-REQ-156/160/183/184 and overall product state remain incomplete. Hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF. Active Antigravity #302 and Ollama #318 claims remained disjoint at integration.
