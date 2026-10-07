@@ -90,6 +90,160 @@ function renderTokenGroup(target, stats, extras={}) {
   for(const [k,v] of Object.entries(extras)) tiles.push([k,v]);
   target.innerHTML=tiles.map(([label,value])=>statTile(label,value)).join("");
 }
+
+function renderStatsTiles(target, entries) {
+  if(!target) return;
+  target.innerHTML=entries.map(([label,value,title])=>statTile(label,value,title||"")).join("");
+}
+function secs(value) {
+  const n=Number(value);
+  if(!Number.isFinite(n)) return "—";
+  if(n<60) return n.toFixed(1)+"s";
+  if(n<3600) return (n/60).toFixed(1)+"m";
+  return (n/3600).toFixed(2)+"h";
+}
+function renderCodexStats(node, usage) {
+  const telemetry=usage?.telemetry||{};
+  const current=telemetry.current_session||{};
+  const turn=current.current_turn||{};
+  const session=current.session||{};
+  const worktree=telemetry.worktree||{};
+  const all=telemetry.model_mjobs_all_time||{};
+  const day=telemetry.model_mjobs_24h||{};
+  renderStatsTiles($(".codex-turn-grid",node),[
+    ["Context",fmtTokens(turn.cumulative_total_tokens)],
+    ["Context used",turn.context_used_percent!=null?Number(turn.context_used_percent).toFixed(1)+"%":"—"],
+    ["Context window",fmtTokens(turn.context_window)],
+    ["New input",fmtTokens(turn.new_input_tokens)],
+    ["Cached input",fmtTokens(turn.cache_read_tokens)],
+    ["Cache write",fmtTokens(turn.cache_write_tokens)],
+    ["Output",fmtTokens(turn.output_tokens)],
+    ["Reasoning",fmtTokens(turn.reasoning_tokens)],
+  ]);
+  renderStatsTiles($(".codex-session-grid",node),[
+    ["Processed",fmtTokens(session.cumulative_total_tokens)],
+    ["Input",fmtTokens(session.input_tokens)],
+    ["New input",fmtTokens(session.new_input_tokens)],
+    ["Cached input",fmtTokens(session.cache_read_tokens)],
+    ["Output",fmtTokens(session.output_tokens)],
+    ["Reasoning",fmtTokens(session.reasoning_tokens)],
+    ["Model turns",fmtNum(session.model_turns)],
+    ["Tool calls",fmtNum(session.tool_calls)],
+    ["Cache share",session.cache_share_percent!=null?Number(session.cache_share_percent).toFixed(1)+"%":"—"],
+    ["Output tok/s",session.output_tokens_per_wall_second!=null?Number(session.output_tokens_per_wall_second).toFixed(2):"—"],
+    ["Elapsed",secs(session.elapsed_seconds)],
+    ["Avg output/turn",session.avg_output_tokens_per_turn!=null?fmtTokens(session.avg_output_tokens_per_turn):"—"],
+  ]);
+  renderStatsTiles($(".codex-worktree-grid",node),[
+    ["Sessions",fmtNum(worktree.session_count)],
+    ["Processed",fmtTokens(worktree.cumulative_total_tokens)],
+    ["Input",fmtTokens(worktree.input_tokens)],
+    ["Cached input",fmtTokens(worktree.cache_read_tokens)],
+    ["Output",fmtTokens(worktree.output_tokens)],
+    ["Reasoning",fmtTokens(worktree.reasoning_tokens)],
+    ["Model turns",fmtNum(worktree.model_turns)],
+    ["Tool calls",fmtNum(worktree.tool_calls)],
+    ["Elapsed",secs(worktree.elapsed_seconds)],
+    ["Cache share",worktree.cache_share_percent!=null?Number(worktree.cache_share_percent).toFixed(1)+"%":"—"],
+  ]);
+  renderStatsTiles($(".codex-model-grid",node),[
+    ["MJobs sessions",fmtNum(all.session_count)],
+    ["Processed",fmtTokens(all.cumulative_total_tokens)],
+    ["Input",fmtTokens(all.input_tokens)],
+    ["Cached input",fmtTokens(all.cache_read_tokens)],
+    ["Output",fmtTokens(all.output_tokens)],
+    ["Reasoning",fmtTokens(all.reasoning_tokens)],
+    ["24h processed",fmtTokens(day.cumulative_total_tokens)],
+    ["24h output",fmtTokens(day.output_tokens)],
+    ["24h sessions",fmtNum(day.session_count)],
+  ]);
+  $(".codex-raw-stats",node).textContent=JSON.stringify({
+    session_id:current.session_id,
+    model:current.model,
+    reasoning_effort:current.reasoning_effort,
+    time_created:current.time_created,
+    time_updated:current.time_updated,
+    current_turn:turn,
+    session_total:session,
+    tool_breakdown:session.tool_breakdown,
+    worktree_total:worktree,
+    selected_model_mjobs_all_time:all,
+    selected_model_mjobs_24h:day,
+    quota:{
+      used_percent:usage?.used_percent,
+      remaining_percent:usage?.remaining_percent,
+      resets_at:usage?.resets_at,
+      credits_balance:usage?.credits_balance,
+    }
+  },null,2);
+}
+function renderAntigravityStats(node, usage) {
+  const telemetry=usage?.telemetry||{};
+  const current=telemetry.current_conversation||{};
+  const worktree=telemetry.worktree||{};
+  const all=telemetry.configured_model_history||{};
+  const day=telemetry.configured_model_24h||{};
+  renderStatsTiles($(".antigravity-current-grid",node),[
+    ["Prompt context",fmtTokens(current.latest_context_tokens)],
+    ["Latest input",fmtTokens(current.latest_input_tokens)],
+    ["Latest cache",fmtTokens(current.latest_cache_read_tokens)],
+    ["Latest output",fmtTokens(current.latest_output_tokens)],
+    ["Input total",fmtTokens(current.input_tokens)],
+    ["Cache read",fmtTokens(current.cache_read_tokens)],
+    ["Output total",fmtTokens(current.output_tokens)],
+    ["Processed",fmtTokens(current.cumulative_total_tokens)],
+    ["Planner turns",fmtNum(current.planner_turns)],
+    ["Tool calls",fmtNum(current.tool_calls)],
+    ["Thinking steps",fmtNum(current.thinking_steps)],
+    ["Thinking chars",fmtNum(current.thinking_characters)],
+    ["Cache share",current.cache_share_percent!=null?Number(current.cache_share_percent).toFixed(1)+"%":"—"],
+    ["Output tok/s",current.output_tokens_per_wall_second!=null?Number(current.output_tokens_per_wall_second).toFixed(2):"—"],
+    ["Elapsed",secs(current.elapsed_seconds)],
+  ]);
+  renderStatsTiles($(".antigravity-worktree-grid",node),[
+    ["Conversations",fmtNum(worktree.conversation_count)],
+    ["Processed",fmtTokens(worktree.cumulative_total_tokens)],
+    ["Input",fmtTokens(worktree.input_tokens)],
+    ["Cache read",fmtTokens(worktree.cache_read_tokens)],
+    ["Output",fmtTokens(worktree.output_tokens)],
+    ["Planner turns",fmtNum(worktree.planner_turns)],
+    ["Tool calls",fmtNum(worktree.tool_calls)],
+    ["Thinking steps",fmtNum(worktree.thinking_steps)],
+    ["Thinking chars",fmtNum(worktree.thinking_characters)],
+    ["Elapsed",secs(worktree.elapsed_seconds)],
+    ["Cache share",worktree.cache_share_percent!=null?Number(worktree.cache_share_percent).toFixed(1)+"%":"—"],
+  ]);
+  renderStatsTiles($(".antigravity-model-grid",node),[
+    ["Conversations",fmtNum(all.conversation_count)],
+    ["Processed",fmtTokens(all.cumulative_total_tokens)],
+    ["Input",fmtTokens(all.input_tokens)],
+    ["Cache read",fmtTokens(all.cache_read_tokens)],
+    ["Output",fmtTokens(all.output_tokens)],
+    ["Tool calls",fmtNum(all.tool_calls)],
+    ["24h processed",fmtTokens(day.cumulative_total_tokens)],
+    ["24h output",fmtTokens(day.output_tokens)],
+    ["24h conversations",fmtNum(day.conversation_count)],
+  ]);
+  $(".antigravity-raw-stats",node).textContent=JSON.stringify({
+    conversation_id:current.conversation_id,
+    issue:current.issue,
+    requirement_id:current.requirement_id,
+    model_hint:current.model_hint,
+    time_created:current.time_created,
+    time_updated:current.time_updated,
+    latest_context_tokens:current.latest_context_tokens,
+    thinking_words:current.thinking_words,
+    thinking_characters:current.thinking_characters,
+    tool_breakdown:current.tool_breakdown,
+    current_conversation:current,
+    worktree_total:worktree,
+    configured_model_history:all,
+    configured_model_24h:day,
+    attribution_note:telemetry.model_history_attribution,
+    quota_note:usage?.message,
+  },null,2);
+}
+
 function renderOllamaStats(node, usage) {
   const panel=$(".ollama-stats",node);
   panel.classList.remove("hidden");
@@ -290,6 +444,12 @@ function updateCard(lane,data,coord) {
 
   const gpuControl=$(".gpu-control",node);
   gpuControl.classList.toggle("hidden",lane!=="ollama");
+  const codexStats=$(".codex-stats",node);
+  codexStats.classList.toggle("hidden",lane!=="codex");
+  if(lane==="codex") renderCodexStats(node,data.usage);
+  const antigravityStats=$(".antigravity-stats",node);
+  antigravityStats.classList.toggle("hidden",lane!=="antigravity");
+  if(lane==="antigravity") renderAntigravityStats(node,data.usage);
   const ollamaStats=$(".ollama-stats",node);
   ollamaStats.classList.toggle("hidden",lane!=="ollama");
   if(lane==="ollama") renderOllamaStats(node,data.usage);
