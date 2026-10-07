@@ -633,7 +633,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
 
         work = asyncio.create_task(asyncio.to_thread(
             consume_ai_candidates, candidates, policy, router,
-            check=check_cancelled,
+            check=check_cancelled, cancellation_event=cancelled,
         ))
 
         def forget_finished_evaluation(_work):

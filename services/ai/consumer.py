@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable, Iterable
 from itertools import islice
 from dataclasses import dataclass
+import threading
 import time
 from typing import Literal
 
@@ -109,6 +110,7 @@ def consume_ai_candidates(
     timeout_seconds: float = 30,
     total_timeout_seconds: float = 120,
     check: Callable[[], None] | None = None,
+    cancellation_event: threading.Event | None = None,
     clock: Callable[[], float] | None = None,
 ) -> AIConsumption:
     """Evaluate only bounded eligible candidates; never create or publish documents."""
@@ -151,13 +153,18 @@ def consume_ai_candidates(
         if remaining <= 0:
             raise AIConsumerTimeoutError()
         try:
-            evaluation = router.generate_structured(
+            request = dict(
                 task=AITask.JOB_SCORING,
                 prompt=_prompt(by_id[job_id]),
                 timeout_seconds=min(float(timeout_seconds), remaining),
                 result_model=AIJobEvaluation,
             )
-        except AIProviderError:
+            if cancellation_event is not None:
+                request["cancellation_event"] = cancellation_event
+            evaluation = router.generate_structured(**request)
+        except AIProviderError as error:
+            if error.code == "AI_PROVIDER_CANCELLED":
+                raise AIConsumerCancelledError() from None
             raise
         if monotonic() >= deadline:
             raise AIConsumerTimeoutError()

@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import StrEnum
 import re
+import threading
 from types import MappingProxyType
 from typing import Callable, Mapping
 
@@ -119,7 +120,8 @@ class AITaskRouter:
 
     def generate_structured(self, *, task: str | AITask, prompt: str,
                             timeout_seconds: float,
-                            result_model: type[ResultT]) -> ResultT:
+                            result_model: type[ResultT],
+                            cancellation_event: threading.Event | None = None) -> ResultT:
         """Request a declared JSON schema and validate the untrusted response."""
 
         schema = output_schema_for(result_model)
@@ -143,12 +145,15 @@ class AITaskRouter:
                 or capabilities.structured_output is not True):
             raise StructuredOutputError("AI_STRUCTURED_OUTPUT_UNSUPPORTED")
         try:
-            raw = provider.generate(
+            request = dict(
                 task=str(task), model=selection.model, prompt=prompt,
                 timeout_seconds=timeout_seconds, response_schema=schema,
             )
+            if cancellation_event is not None:
+                request["cancellation_event"] = cancellation_event
+            raw = provider.generate(**request)
         except AIProviderError as error:
-            if error.code == "AI_PROVIDER_TIMEOUT":
+            if error.code in ("AI_PROVIDER_TIMEOUT", "AI_PROVIDER_CANCELLED"):
                 raise
             raise StructuredOutputError("AI_STRUCTURED_PROVIDER_FAILED") from None
         except Exception:

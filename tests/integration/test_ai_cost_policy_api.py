@@ -800,6 +800,124 @@ class AICostPolicyApiTests(unittest.TestCase):
         self.assertEqual(history.status_code, 200, history.text)
         self.assertEqual(history.json()["runs"], [])
 
+    def test_explicit_cancel_closes_a_blocked_local_ollama_response(self):
+        from concurrent.futures import ThreadPoolExecutor
+        from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+        import socket
+        import threading
+        import time
+        from unittest.mock import patch
+        from sqlalchemy import update
+        from services.ai.consumer import consume_ai_candidates as original_consume
+        from services.ai.providers import OllamaProvider
+        from services.ai.tasks import AI_TASKS, AITaskRouter
+
+        captured = self.client.post("/jobs/manual", json={
+            "request_id": "blocked-ollama-cancel-job", "title": "Infrastructure Administrator",
+            "company": "Synthetic Company", "description": "Windows and Linux infrastructure.",
+            "reference_url": "https://jobs.example.test/blocked-ollama-cancel",
+            "application_url": "https://apply.example.test/blocked-ollama-cancel",
+            "source_details": {},
+        })
+        self.assertEqual(captured.status_code, 201, captured.text)
+        recalculate(self.store, "fixture")
+        jobs = self.store.jobs(profile_id="fixture")
+        with self.store.engine.begin() as connection:
+            for job in jobs:
+                connection.execute(update(m.matches).where(
+                    m.matches.c.profile_id == "fixture",
+                    m.matches.c.job_id == job["id"],
+                ).values(score=95.0))
+        self.store.save_ai_task_settings("fixture", {
+            task: {"provider": "ollama", "model": "synthetic-test"}
+            if task == "job_scoring" else {"provider": "disabled", "model": None}
+            for task in AI_TASKS
+        })
+
+        provider_started = threading.Event()
+        provider_connection_closed = threading.Event()
+        finish_response = threading.Event()
+        response_body = (
+            b'{"model":"synthetic-test","response":"{\\"category\\":'
+            b'\\"STRONG\\",\\"rationale\\":\\"Synthetic result.\\"}","done":true}'
+        )
+
+        class BlockingOllamaHandler(BaseHTTPRequestHandler):
+            protocol_version = "HTTP/1.1"
+
+            def do_POST(self):
+                self.rfile.read(int(self.headers["Content-Length"]))
+                provider_started.set()
+                self.send_response(200)
+                self.send_header("Content-Length", str(len(response_body)))
+                self.end_headers()
+                self.wfile.write(response_body[:1])
+                self.wfile.flush()
+                self.connection.settimeout(0.05)
+                deadline = time.monotonic() + 5
+                while time.monotonic() < deadline and not finish_response.is_set():
+                    try:
+                        if self.connection.recv(1) == b"":
+                            provider_connection_closed.set()
+                            return
+                    except socket.timeout:
+                        continue
+                    except OSError:
+                        provider_connection_closed.set()
+                        return
+                if finish_response.is_set():
+                    try:
+                        self.wfile.write(response_body[1:])
+                        self.wfile.flush()
+                    except OSError:
+                        provider_connection_closed.set()
+
+            def log_message(self, _format, *_args):
+                pass
+
+        server = ThreadingHTTPServer(("127.0.0.1", 0), BlockingOllamaHandler)
+        server.daemon_threads = True
+        server_thread = threading.Thread(target=server.serve_forever, daemon=True)
+        server_thread.start()
+        provider = OllamaProvider(base_url=f"http://127.0.0.1:{server.server_port}")
+
+        def router_factory(configuration):
+            return AITaskRouter(configuration, provider_factory=lambda _name: provider)
+
+        def short_bounded_consume(*args, **kwargs):
+            kwargs["timeout_seconds"] = 3
+            kwargs["total_timeout_seconds"] = 4
+            return original_consume(*args, **kwargs)
+
+        request_id = "blocked-ollama-evaluation"
+        evaluation = None
+        try:
+            with ThreadPoolExecutor(max_workers=1) as executor, \
+                    patch("apps.api.main.AITaskRouter", router_factory), \
+                    patch("apps.api.main.consume_ai_candidates", short_bounded_consume):
+                evaluation = executor.submit(
+                    self.client.post, "/profiles/fixture/ai-cost-plan/evaluate",
+                    json={"request_id": request_id},
+                )
+                self.assertTrue(provider_started.wait(3), "local Ollama request did not start")
+                acknowledged = self.client.post(
+                    f"/profiles/fixture/ai-cost-plan/evaluations/{request_id}/cancel")
+                self.assertEqual(acknowledged.status_code, 200, acknowledged.text)
+                self.assertTrue(acknowledged.json()["cancelled"])
+                self.assertTrue(provider_connection_closed.wait(1),
+                                "cancellation did not close the stalled Ollama connection promptly")
+                response = evaluation.result(timeout=4)
+            self.assertEqual(response.status_code, 200, response.text)
+            self.assertEqual(response.json(), {"cancelled": True, "request_id": request_id})
+            history = self.client.get("/profiles/fixture/ai-cost-plan/evaluations")
+            self.assertEqual(history.status_code, 200, history.text)
+            self.assertEqual(history.json()["runs"], [])
+        finally:
+            finish_response.set()
+            server.shutdown()
+            server.server_close()
+            server_thread.join(timeout=2)
+
 
 if __name__ == "__main__":
     unittest.main()

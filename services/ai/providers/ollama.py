@@ -6,6 +6,7 @@ import ipaddress
 import json
 import os
 import re
+import threading
 from typing import Callable, Mapping
 from urllib.parse import urlsplit
 
@@ -74,7 +75,8 @@ class OllamaProvider:
 
     def generate(self, *, task: str, model: str | None = None, prompt: str,
                  timeout_seconds: float,
-                 response_schema: Mapping[str, object] | None = None) -> str:
+                 response_schema: Mapping[str, object] | None = None,
+                 cancellation_event: threading.Event | None = None) -> str:
         if (not isinstance(task, str) or not _TASK.fullmatch(task)
                 or not isinstance(model, str) or not _MODEL.fullmatch(model)
                 or not isinstance(prompt, str) or not prompt.strip()
@@ -113,26 +115,69 @@ class OllamaProvider:
         if len(encoded_request) > MAX_REQUEST_BYTES:
             raise AIProviderError("AI_PROVIDER_REQUEST_INVALID")
 
+        if cancellation_event is not None and cancellation_event.is_set():
+            raise AIProviderError("AI_PROVIDER_CANCELLED")
+
+        client = None
+        stop_cancellation_watch = threading.Event()
+        watcher = None
         try:
-            with self._client_factory(
-                    trust_env=False,
-                    timeout=httpx.Timeout(float(timeout_seconds))) as client:
+            client = self._client_factory(
+                trust_env=False,
+                timeout=httpx.Timeout(float(timeout_seconds)),
+            )
+            if cancellation_event is not None:
+                def close_client_when_cancelled():
+                    while not stop_cancellation_watch.wait(0.01):
+                        if cancellation_event.is_set():
+                            try:
+                                client.close()
+                            except Exception:
+                                pass
+                            return
+
+                watcher = threading.Thread(
+                    target=close_client_when_cancelled,
+                    name="mjobs-ollama-cancel-watch",
+                    daemon=True,
+                )
+                watcher.start()
+            with client:
                 with client.stream("POST", self.endpoint, json=payload) as response:
                     if not 200 <= response.status_code < 300:
                         raise AIProviderError("AI_PROVIDER_HTTP_ERROR")
                     body = bytearray()
                     for chunk in response.iter_bytes(chunk_size=64 * 1024):
+                        if cancellation_event is not None and cancellation_event.is_set():
+                            raise AIProviderError("AI_PROVIDER_CANCELLED")
                         if len(body) + len(chunk) > MAX_RESPONSE_BYTES:
                             raise AIProviderError("AI_PROVIDER_RESPONSE_TOO_LARGE")
                         body.extend(chunk)
-        except AIProviderError:
-            raise
+                    if cancellation_event is not None and cancellation_event.is_set():
+                        raise AIProviderError("AI_PROVIDER_CANCELLED")
+        except AIProviderError as error:
+            if cancellation_event is not None and cancellation_event.is_set():
+                raise AIProviderError("AI_PROVIDER_CANCELLED") from None
+            raise error
         except httpx.TimeoutException:
+            if cancellation_event is not None and cancellation_event.is_set():
+                raise AIProviderError("AI_PROVIDER_CANCELLED") from None
             raise AIProviderError("AI_PROVIDER_TIMEOUT") from None
         except httpx.TransportError:
+            if cancellation_event is not None and cancellation_event.is_set():
+                raise AIProviderError("AI_PROVIDER_CANCELLED") from None
             raise AIProviderError("AI_PROVIDER_UNAVAILABLE") from None
         except Exception:
+            if cancellation_event is not None and cancellation_event.is_set():
+                raise AIProviderError("AI_PROVIDER_CANCELLED") from None
             raise AIProviderError("AI_PROVIDER_UNAVAILABLE") from None
+        finally:
+            stop_cancellation_watch.set()
+            if watcher is not None:
+                watcher.join(timeout=1)
+
+        if cancellation_event is not None and cancellation_event.is_set():
+            raise AIProviderError("AI_PROVIDER_CANCELLED")
 
         try:
             envelope = json.loads(

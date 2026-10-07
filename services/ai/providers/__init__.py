@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import threading
 from typing import Mapping, NoReturn, Protocol
 
 
@@ -23,7 +24,8 @@ class AIProvider(Protocol):
 
     def generate(self, *, task: str, model: str | None = None, prompt: str,
                  timeout_seconds: float,
-                 response_schema: Mapping[str, object] | None = None) -> str: ...
+                 response_schema: Mapping[str, object] | None = None,
+                 cancellation_event: threading.Event | None = None) -> str: ...
 
 
 class AIProviderDisabled(RuntimeError):
@@ -41,6 +43,7 @@ class AIProviderError(RuntimeError):
 
     _CODES = {
         "AI_PROVIDER_CONFIGURATION_INVALID",
+        "AI_PROVIDER_CANCELLED",
         "AI_PROVIDER_REQUEST_INVALID",
         "AI_PROVIDER_RESPONSE_INVALID",
         "AI_PROVIDER_RESPONSE_TOO_LARGE",
@@ -62,7 +65,8 @@ class DisabledAIProvider:
 
     def generate(self, *, task: str, model: str | None = None, prompt: str,
                  timeout_seconds: float,
-                 response_schema: Mapping[str, object] | None = None) -> NoReturn:
+                 response_schema: Mapping[str, object] | None = None,
+                 cancellation_event: threading.Event | None = None) -> NoReturn:
         raise AIProviderDisabled()
 
 
