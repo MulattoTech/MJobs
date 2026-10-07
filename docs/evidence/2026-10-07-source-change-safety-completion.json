@@ -7,7 +7,7 @@
   "base_main": "fc20e2fbba6d9c6e702ef53fc40e50387bc8fd82",
   "source_commit": "4190e5f768f12d5984828fae76d59148b49fe80e",
   "source_tree": "162db219e2b3ea614891175924e0c96ccdda29fd",
-  "recorded_at_utc": "2026-10-07T13:30:27Z",
+  "recorded_at_utc": "2026-10-07T13:33:00Z",
   "input_sha256": {
     "tests/integration/test_migration_recovery.py": "e3d276d4e0880f3bd9a727590907700bed37447c462110ede8c7efe416bc0061"
   },
@@ -77,8 +77,9 @@
     "reference_gaps": 59
   },
   "integration": {
-    "status": "PENDING",
-    "issue_state": "OPEN",
+    "status": "INTEGRATED",
+    "source_main": "f28652d6fe82e6aac3995103766f6451b81c7ded",
+    "issue_state": "CLOSE_PENDING_GITHUB_READBACK",
     "external_submission": "OFF"
   }
 }

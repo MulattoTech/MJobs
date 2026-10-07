@@ -68,7 +68,8 @@
     "MJ-REF-016 / issue #386 locally complete: exhausted and terminal worker failures persist as DEAD_LETTERED with reason, stable operation identity, attempt timestamps/count, and append-only audit; profile-scoped Activity UI exposes count/reason and explicit retry/discard; ambiguous submissions stay reconciliation-only. Full Python 875 PASS with 1 optional PostgreSQL concurrency skip; frontend 63 PASS/build PASS; SQLite and temporary PostgreSQL 17 migration safety, connected browser, and repository validators PASS. Evidence docs/evidence/2026-10-07-dead-letter-queue.json.",
     "Career-profile-owned saved search can be selected in Jobs and its exact filtered results survive Store reopen with profile isolation (MJ-REQ-022, issue #23).",
     "MJ-REF-020 / issue #390: connected UI/API records externally completed applications with source/time, route-first then cautious company/title reconciliation, provenance-marked minimal job creation, profile-scoped idempotency, and non-regressing application history (docs/evidence/2026-10-07-external-application-capture.json).",
-    "MJ-REQ-180 / issue #181 advanced PARTIAL: raw console/page-error text is never stored (including legacy flag); recognizable email, phone, token/password formats and sensitive-label contexts are redacted in diagnostics/interaction metadata and visually masked in optional screenshots. 26 feedback unit/GUI/Chromium checks pass; arbitrary values, image/canvas text and other debug surfaces remain. Evidence docs/evidence/2026-10-07-redacted-diagnostic-privacy.json."
+    "MJ-REQ-180 / issue #181 advanced PARTIAL: raw console/page-error text is never stored (including legacy flag); recognizable email, phone, token/password formats and sensitive-label contexts are redacted in diagnostics/interaction metadata and visually masked in optional screenshots. 26 feedback unit/GUI/Chromium checks pass; arbitrary values, image/canvas text and other debug surfaces remain. Evidence docs/evidence/2026-10-07-redacted-diagnostic-privacy.json.",
+    "MJ-REQ-007 / issue #8: stated requirement acceptance PASS. Healthy Git source-control safety, conditional no-Git N/A, atomic private configuration initialization, prior backup/restore, SQLite/PostgreSQL migration rollback/retry, and protected credential migration rollback/retry with ciphertext-preserving downgrade refusal are evidenced in docs/evidence/2026-10-07-source-change-safety-completion.json. Offline SQL generation probe failure at existing cb72f9041d6a remains separately recorded and is outside issue acceptance. Full repository release remains PARTIAL; hosted checks NOT_RUN_BY_USER_POLICY."
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
@@ -114,7 +115,6 @@
     "MJ-REQ-180 / issue #181 advanced PARTIAL: opt-in live-feedback screenshots mask inputs, textareas, selects and data-sensitive regions; raw Playwright trace/DOM snapshots are no longer saved. Synthetic Chromium pixel acceptance and focused feedback tests pass; arbitrary text and diagnostic-text paths remain. Evidence docs/evidence/2026-10-07-redacted-visual-feedback.json.",
     "MJ-REQ-170 / issue #171 advanced PARTIAL: new live-feedback sessions automatically prune only managed timestamped session folders older than 30 days and repair the latest pointer; other transient artifact/log/payload classes remain unverified. Evidence docs/evidence/2026-10-07-live-feedback-retention.json.",
     "MJ-REQ-004 Compose recovery CLI output bounds verified with synthetic child overflow and deadline termination; 2 MiB retained stdout, drained stderr, child reaping and sanitized errors. Real Compose execution NOT_RUN; other operation classes/live AI/ATS remain incomplete. Evidence docs/evidence/2026-10-07-compose-recovery-output-bounds.json.",
-    "MJ-REQ-007 / issue #8 advanced PARTIAL: synthetic SQLite recovery of encrypted provider-credential schema migration and downgrade data-preservation are verified; PostgreSQL-specific protected credential recovery and broader change-safety criteria remain incomplete. Evidence docs/evidence/2026-10-07-protected-config-migration-recovery.json.",
     "MJ-REQ-180 / issue #181 advanced PARTIAL: opt-in feedback screenshots mask contenteditable, ARIA textbox and combobox answer controls; synthetic Chromium pixels verify opaque masks. Unclassifiable free text, image/canvas content, and remaining diagnostic-data surfaces remain open. Evidence docs/evidence/2026-10-07-rich-control-screenshot-redaction.json."
   ],
   "blocked_capabilities": [],
@@ -355,7 +355,8 @@
     "Superseded 2026-10-07 full-suite attempts for #386: first exposed and corrected a stale FAILED-state expectation; second had one timing-sensitive 250 ms Playwright timeout in test_playwright_actions_never_exceed_remaining_worker_budget, which passed in isolation; final exact-tree full suite passed 875 tests with one skip. See docs/evidence/2026-10-07-dead-letter-queue.json.",
     "After restoring locked frontend dependencies and building current apps/web source on integrated CLI-output candidate 1b35a11: 903 tests, 2 failures, 2 errors, 2 skips. Repeatable browser failures: external application capture form absent; summary rewrite editor absent; skill-order comparison shows No changes; AI task fallback list renders zero rows. Focused affected modules reran and reproduced; none are changed by the backup CLI slice. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json.",
     "RESOLVED ENVIRONMENT MISMATCH for docs/evidence/2026-10-07-backup-command-output-bounds.json: initial full runs used absent/stale ignored apps/web/dist; after npm ci and Vite build in a worktree at exact integrated main d7307be3d50e4297f87ba315e9cda3dbdf1a1924, all 903 Python/browser tests passed with 2 skipped. Historical failures preserved above; no product defect was confirmed.",
-    "Global Python interpreter lacks repository Alembic dependencies: migration discovery errored on 12 module imports; rerun with repository .venv passed (environment mismatch, not product failure)."
+    "Global Python interpreter lacks repository Alembic dependencies: migration discovery errored on 12 module imports; rerun with repository .venv passed (environment mismatch, not product failure).",
+    "Progress journal validator first run after issue #8 receipt append failed because top-level current_phase still named the preceding milestone; updated current_phase to match the newest journal entry and reran validation successfully."
   ],
   "tests_not_run": [
     "Remaining full-spec integrations and product/release requirements",
@@ -435,13 +436,13 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-07T13:26:47Z",
-    "result": "PARTIAL",
-    "source_commit": "b6468ba71893c71eed818e97444ff7a1614215f0",
-    "source_tree": "f89af9d200c91bb3db5c24fe9de80fb0589a40b2",
-    "scope": "Opt-in screenshot masking for contenteditable, ARIA textbox and combobox answer controls with synthetic Chromium pixel proof.",
-    "evidence_path": "docs/evidence/2026-10-07-rich-control-screenshot-redaction.json",
-    "integration_commit": "f1d36053ebb46f1286f3dfb0acd25ac1482a267f"
+    "timestamp": "2026-10-07T13:33:00Z",
+    "result": "PASS",
+    "source_commit": "4190e5f768f12d5984828fae76d59148b49fe80e",
+    "source_tree": "162db219e2b3ea614891175924e0c96ccdda29fd",
+    "scope": "All stated MJ-REQ-007 issue acceptance, including protected provider-credential migration failure rollback/retry and ciphertext-preserving downgrade refusal on SQLite and isolated PostgreSQL 17.",
+    "evidence_path": "docs/evidence/2026-10-07-source-change-safety-completion.json",
+    "integration_commit": "f28652d6fe82e6aac3995103766f6451b81c7ded"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -508,7 +509,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Refresh origin/main and all active machine/GitHub claims and dirty worktrees, then select the highest-value unclaimed dependency-ready slice. Keep original/reference denominators unchanged, hosted checks NOT_RUN_BY_USER_POLICY and external submission OFF.",
+  "recommended_resume_step": "Refresh origin/main and machine/GitHub claims, release the completed #8 claim, then select and claim the highest-value unowned dependency-ready issue. Keep requirement/reference denominators unchanged, hosted checks NOT_RUN_BY_USER_POLICY, and external submission OFF.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -545,7 +546,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "f1d36053ebb46f1286f3dfb0acd25ac1482a267f",
+  "last_implementation_commit": "f28652d6fe82e6aac3995103766f6451b81c7ded",
   "publication": {
     "result": "PASS",
     "integration_method": "NON_FORCE_FAST_FORWARD",
@@ -8578,12 +8579,58 @@
         "git_commit": "f1d36053ebb46f1286f3dfb0acd25ac1482a267f",
         "evidence_path": "docs/evidence/2026-10-07-rich-control-screenshot-redaction.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-007-SOURCE-CHANGE-SAFETY-COMPLETE-20261007",
+      "timestamp": "2026-10-07T13:33:00Z",
+      "current_phase": "MJ-REQ-007 stated acceptance locally evidenced and integrated; full repository release remains PARTIAL",
+      "completed_steps": [
+        "Integrated protected provider-credential PostgreSQL 17 failure rollback/retry and ciphertext-preserving downgrade proof at f28652d6fe82e6aac3995103766f6451b81c7ded.",
+        "Reconciled all issue #8 criteria with prior healthy-Git, atomic private configuration, backup/restore, SQLite and PostgreSQL recovery evidence.",
+        "Marked only MJ-REQ-007 PASS; full requirement denominator and overall repository status remain unchanged/PARTIAL."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-07-source-change-safety-completion.json"
+      ],
+      "files_modified": [
+        "tests/integration/test_migration_recovery.py",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "PostgreSQL protected credential migration case: 1 PASS.",
+        "Migration integration suite: 24 PASS, 1 unrelated optional PostgreSQL skip.",
+        "Focused SQLite/provider migration suite: 3 PASS.",
+        "Agent skills, catalogue, progress, lane coordination and diff checks: PASS.",
+        "Progress journal validation initially identified a current_phase/latest-milestone mismatch; the root field was corrected and rerun PASS. The initial result is retained in tests_failed as a resolved bookkeeping failure."
+      ],
+      "tests_remaining": [
+        "Hosted checks/review NOT_RUN_BY_USER_POLICY.",
+        "Offline alembic upgrade head --sql remains unsupported at existing data-query migration cb72f9041d6a; retained as a separate limitation outside issue #8 acceptance."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Disposable PostgreSQL 17 loopback database with synthetic role/data only; personal MJobs containers/database untouched."
+      ],
+      "known_errors": [
+        "Offline alembic upgrade head --sql probe fails at existing migration cb72f9041d6a because it requires live connection data; not an issue #8 acceptance criterion."
+      ],
+      "known_limitations": [
+        "Full MJobs original/reference/release denominator remains incomplete; this issue PASS does not imply full product PASS.",
+        "Hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "f28652d6fe82e6aac3995103766f6451b81c7ded",
+        "evidence_path": "docs/evidence/2026-10-07-source-change-safety-completion.json"
+      }
     }
   ],
-  "current_phase": "Issue #181 / MJ-REQ-180 rich-control screenshot redaction integrated PARTIAL; arbitrary free text, image/canvas text and other debug-data surfaces remain open.",
+  "current_phase": "MJ-REQ-007 stated acceptance locally evidenced and integrated; full repository release remains PARTIAL",
   "last_safe_checkpoint": {
-    "git_commit": "f1d36053ebb46f1286f3dfb0acd25ac1482a267f",
-    "evidence_path": "docs/evidence/2026-10-07-rich-control-screenshot-redaction.json"
+    "git_commit": "f28652d6fe82e6aac3995103766f6451b81c7ded",
+    "evidence_path": "docs/evidence/2026-10-07-source-change-safety-completion.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -8821,19 +8868,18 @@
     "next_issue": "Release #398 and select the next dependency-ready unclaimed issue after live claim/worktree reconciliation."
   },
   "active_development_issue": {
-    "issue": 181,
-    "requirement_id": "MJ-REQ-180",
-    "title": "Redact Debug Data",
-    "state": "INTEGRATED_PARTIAL",
-    "base": "dfa1fd37a4282890c52e563845ce410a56dcd964",
-    "branch": "codex/mj-req180-mask-rich-controls-20261007",
-    "candidate": "f1d36053ebb46f1286f3dfb0acd25ac1482a267f",
-    "integrated_main": "f1d36053ebb46f1286f3dfb0acd25ac1482a267f",
-    "source_commit": "b6468ba71893c71eed818e97444ff7a1614215f0",
-    "source_tree": "f89af9d200c91bb3db5c24fe9de80fb0589a40b2",
-    "evidence": "docs/evidence/2026-10-07-rich-control-screenshot-redaction.json",
-    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6038936759",
-    "next_action": "Issue #181 / MJ-REQ-180 remains OPEN/PARTIAL for unclassifiable free text, image/canvas content and other debug-data surfaces. Codex claim released; reconcile current main and all active claims, then select the highest-value unclaimed dependency-ready issue."
+    "issue": 8,
+    "requirement_id": "MJ-REQ-007",
+    "title": "Source Control / Change Safety",
+    "state": "INTEGRATED_PASS",
+    "base": "fc20e2fbba6d9c6e702ef53fc40e50387bc8fd82",
+    "branch": "codex/mj-req007-protected-config-postgres-20261007",
+    "candidate": "f28652d6fe82e6aac3995103766f6451b81c7ded",
+    "integrated_main": "f28652d6fe82e6aac3995103766f6451b81c7ded",
+    "source_commit": "4190e5f768f12d5984828fae76d59148b49fe80e",
+    "source_tree": "162db219e2b3ea614891175924e0c96ccdda29fd",
+    "evidence": "docs/evidence/2026-10-07-source-change-safety-completion.json",
+    "next_action": "Reconcile GitHub issue readback and all active claims; release #8; continue with the highest-value unclaimed dependency-ready issue. Overall release remains PARTIAL."
   },
   "historical_control_snapshots": [
     {
@@ -9973,5 +10019,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-07T13:26:47Z"
+  "updated_at": "2026-10-07T13:33:30Z"
 }
