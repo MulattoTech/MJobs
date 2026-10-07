@@ -11,7 +11,7 @@
     "current_verified_github_state": "Issue #179 / MJ-REQ-178 log retention acceptance PASS at 8bea57e595e19e638913405a8ec1cd3aa0ebde32; full product remains PARTIAL.",
     "current_verified_at": "2026-10-07T15:27:43Z"
   },
-  "current_milestone": "MJ-REQ-176-AI-COST-POLICY-SETTING-AUDIT-20261007",
+  "current_milestone": "MJ-REQ-176-COMPANY-SOURCE-SETTING-AUDIT-20261007",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -366,7 +366,8 @@
     "MJ-REQ-173 exact candidate 84136dc: 16 affected integration/connected Chromium tests PASS with zero skips; frontend 63 tests/build; SQLite migration preservation and repository validators PASS.",
     "Scoped real loopback resume-extraction transport-disconnect cancellation: parser child terminated/reaped; operation CANCELLED; profile, uploaded resume and revision history unchanged; 58 focused Python tests, frontend 63/build and local validators PASS. See docs/evidence/2026-10-07-live-http-resume-disconnect-cancel.json. Requirement #5 remains PARTIAL.",
     "MJ-REQ-176 search-profile settings audit: targeted integration/browser 10 PASS; full Python suite 966 PASS, 8 skipped; frontend 63 PASS and production build PASS; local validators PASS; evidence docs/evidence/2026-10-07-search-profile-audit-history.json; issue #177 remains OPEN/PARTIAL at integrated main d4fd68c73acfeab3c47d523ac2de822c0c1e841f.",
-    "MJ-REQ-176 AI cost-policy setting audit: 35 focused integration/browser tests PASS; full Python suite 967 PASS, 8 skipped; frontend 63 PASS and TypeScript/Vite build PASS; local validators PASS. Evidence docs/evidence/2026-10-07-ai-cost-policy-audit.json; scoped issue remains OPEN/PARTIAL at 2d5dcaba6b20012df93de8546f216ecdd5a26d3c."
+    "MJ-REQ-176 AI cost-policy setting audit: 35 focused integration/browser tests PASS; full Python suite 967 PASS, 8 skipped; frontend 63 PASS and TypeScript/Vite build PASS; local validators PASS. Evidence docs/evidence/2026-10-07-ai-cost-policy-audit.json; scoped issue remains OPEN/PARTIAL at 2d5dcaba6b20012df93de8546f216ecdd5a26d3c.",
+    "Issue #177 company-source settings Activity slice: 21 focused integration tests, 2 connected Chromium tests, frontend 63/build, full Python 968 run/8 skipped, validators, compileall and diff check PASS; evidence docs/evidence/2026-10-07-company-source-setting-audit.json."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -486,10 +487,10 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "commit": "2d5dcaba6b20012df93de8546f216ecdd5a26d3c",
+    "commit": "68a0630b690cfa855e43829bc4f1836cf6add246",
     "result": "PARTIAL",
-    "evidence": "docs/evidence/2026-10-07-ai-cost-policy-audit.json",
-    "verified_at_utc": "2026-10-07T22:19:26Z"
+    "evidence": "docs/evidence/2026-10-07-company-source-setting-audit.json",
+    "verified_at_utc": "2026-10-07T23:04:30Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -556,7 +557,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Issue #177 / MJ-REQ-176 remains OPEN/PARTIAL after profile search, AI task, and AI cost-policy effective changes now emit generic value-free SETTING_CHANGED events atomically; default-equivalent and unchanged saves emit none. Evidence docs/evidence/2026-10-07-search-profile-audit-history.json, docs/evidence/2026-10-07-ai-task-settings-audit.json, docs/evidence/2026-10-07-ai-cost-policy-audit.json. Reconcile current main, claims and worktrees before selecting the next gap; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
+  "recommended_resume_step": "Issue #177 / MJ-REQ-176 remains OPEN/PARTIAL after the company-source pin/enabled settings slice integrated at 68a0630b690cfa855e43829bc4f1836cf6add246. Effective changes emit generic empty-payload profile SETTING_CHANGED events to profiles with recorded enrollment links; no-op and unlinked-source changes are silent. Evidence docs/evidence/2026-10-07-company-source-setting-audit.json. Reconcile current main, claims, issue comments and worktrees, then select the next remaining audit-event gap; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -593,16 +594,16 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "2d5dcaba6b20012df93de8546f216ecdd5a26d3c",
+  "last_implementation_commit": "68a0630b690cfa855e43829bc4f1836cf6add246",
   "publication": {
     "result": "PASS",
     "integration_method": "NON_FORCE_FAST_FORWARD",
-    "integration_commit": "26deecc77098471f0973e7e0b34193c1e4e0d0e3",
-    "prior_main": "29a02e2c01a515fe79814cbe79adb6b3342efbc3",
+    "integration_commit": "68a0630b690cfa855e43829bc4f1836cf6add246",
+    "prior_main": "c0ea57bca0e4a7c37b71f19d9cdd07bb062113a1",
     "pr_number": null,
     "pr_state": "NOT_OPENED_LOCAL_ONLY",
     "github_reports_merged": false,
-    "note": "Issue #177 scoped JOB_MERGED acceptance was integrated under the Codex integration lock. The issue remains OPEN/PARTIAL; GitHub issue checkpoint posted. Hosted checks/review NOT_RUN_BY_USER_POLICY; GitHub Actions remain disabled; external submission OFF."
+    "note": "Issue #177 company-source setting Activity slice integrated under the Codex integration lock. The issue remains OPEN/PARTIAL; local GitHub issue checkpoint posted. Hosted checks/review NOT_RUN_BY_USER_POLICY; GitHub Actions remain disabled; external submission OFF."
   },
   "optional_afk_journal": {
     "result": "PASS",
@@ -9441,12 +9442,60 @@
         "git_commit": "2d5dcaba6b20012df93de8546f216ecdd5a26d3c",
         "evidence_path": "docs/evidence/2026-10-07-ai-cost-policy-audit.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-176-COMPANY-SOURCE-SETTING-AUDIT-20261007",
+      "timestamp": "2026-10-07T23:04:30Z",
+      "current_phase": "MJ_REQ_176_COMPANY_SOURCE_SETTING_AUDIT_INTEGRATED_PARTIAL",
+      "completed_steps": [
+        "Integrated company-source pin/enabled Activity history for profiles with recorded COMPANY_SOURCE_ENROLLED links.",
+        "Effective changes append one generic empty-payload SETTING_CHANGED event per linked profile in the existing source transaction; no-op and unlinked-source changes append none.",
+        "Preserved source-global audit records and verified connected Activity reload/profile isolation.",
+        "Recorded only this scoped progress; issue #177 / MJ-REQ-176 remains OPEN/PARTIAL."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-07-company-source-setting-audit.json"
+      ],
+      "files_modified": [
+        "services/company_discovery/sources.py",
+        "tests/integration/test_audit_history.py",
+        "tests/browser/test_audit_history.py",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json"
+      ],
+      "tests_completed": [
+        "21 focused integration tests and 2 connected Chromium tests PASS.",
+        "Frontend 63 tests and TypeScript/Vite build PASS.",
+        "Full Python suite: 968 tests run, 8 skipped, zero failures.",
+        "Agent skills, catalogue, progress, lane coordination, compileall and diff validators PASS."
+      ],
+      "tests_remaining": [
+        "Other settings and complete truthful lifecycle event families in MJ-REQ-176.",
+        "PostgreSQL/Docker NOT_RUN; hosted CI/review NOT_RUN_BY_USER_POLICY."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Synthetic SQLite databases and connected Chromium against a loopback API; no external provider or employer requests.",
+        "GitHub main fast-forward and issue checkpoint readback; issue #177 remains OPEN."
+      ],
+      "known_errors": [
+        "Initial pre-implementation regression test failed as expected with zero profile setting events. An initial full-suite invocation used a mistyped interpreter path and exited before test discovery; corrected full-suite invocation passed."
+      ],
+      "known_limitations": [
+        "This scoped slice does not complete MJ-REQ-176; issue #177 remains OPEN/PARTIAL.",
+        "PostgreSQL/Docker and hosted verification were not run; external submission remains OFF."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "68a0630b690cfa855e43829bc4f1836cf6add246",
+        "evidence_path": "docs/evidence/2026-10-07-company-source-setting-audit.json"
+      },
+      "source_test_commit": "0c76b225f48a882e8aa90b5e7686d22a8891425e"
     }
   ],
-  "current_phase": "MJ_REQ_176_AI_COST_POLICY_SETTING_AUDIT_INTEGRATED_PARTIAL",
+  "current_phase": "MJ_REQ_176_COMPANY_SOURCE_SETTING_AUDIT_INTEGRATED_PARTIAL",
   "last_safe_checkpoint": {
-    "git_commit": "2d5dcaba6b20012df93de8546f216ecdd5a26d3c",
-    "evidence_path": "docs/evidence/2026-10-07-ai-cost-policy-audit.json"
+    "git_commit": "68a0630b690cfa855e43829bc4f1836cf6add246",
+    "evidence_path": "docs/evidence/2026-10-07-company-source-setting-audit.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -9729,6 +9778,20 @@
       "release_comment": "https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6044308805",
       "hosted_checks": "NOT_RUN_BY_USER_POLICY",
       "external_submission": "OFF"
+    },
+    {
+      "issue": 177,
+      "requirement_id": "MJ-REQ-176",
+      "source_commit": "0c76b225f48a882e8aa90b5e7686d22a8891425e",
+      "source_tree": "3d7733e26c5d4d097518d3c911d6029c7f1c5e86",
+      "integration_commit": "68a0630b690cfa855e43829bc4f1836cf6add246",
+      "prior_main": "c0ea57bca0e4a7c37b71f19d9cdd07bb062113a1",
+      "integration_method": "NON_FORCE_FAST_FORWARD",
+      "evidence_path": "docs/evidence/2026-10-07-company-source-setting-audit.json",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6048627184",
+      "issue_state": "OPEN/PARTIAL",
+      "integrated_at_utc": "2026-10-07T23:04:30Z",
+      "scope_complete": false
     }
   ],
   "live_reconciliation": {
@@ -10889,7 +10952,7 @@
     "Issue #403 / MJ-REF-033 page-budget slice: source 79b29ee0fe61af0906772f182c0ac280f73fc2f4 (443fb463d97b5ee45a558e8db06581f0c5d6b333), integrated candidate 01596a7a093bbfc359e9ded49076aac3cb95d94d (f55ee218fe0bb32249cef537ea66700b235280c5); 25 focused agent tests, compileall, agent_skills/catalogue/progress/reference_provenance/lane_coordination and diff checks PASS. Browser/source entrypoint, full Python suite, PostgreSQL/Docker and hosted checks NOT_RUN or NOT_APPLICABLE as recorded in docs/evidence/2026-10-07-agent-page-budget.json. Issue remains OPEN/PARTIAL.",
     "Issue #166 / MJ-REQ-165 fully accepted and integrated at 59039a51701258a35c93fc7deca6fbf85d72fddd from source 108c502ce0b2c8aa92a4868b09687b4b4a0206f1. Search now covers title, company, description, skills and location; PostgreSQL GIN full-text indexes support job and company search. Full Python 962/8 skipped, frontend 63/build, connected Chromium, SQLite/PostgreSQL migrations, PostgreSQL API/index-plan checks and local validators PASS. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF. Evidence docs/evidence/2026-10-07-full-text-search.json."
   ],
-  "ownership": "Issue #177 / MJ-REQ-176 AI cost-policy SETTING_CHANGED slice source 612a697b47dbf9a9c695261835727445dd699b1b, evidence and planning are integrated at synchronized local/GitHub main 2d5dcaba6b20012df93de8546f216ecdd5a26d3c under the local Codex integration lock. No PR opened; main is unprotected; hosted checks/review NOT_RUN_BY_USER_POLICY. Issue remains OPEN/PARTIAL.",
+  "ownership": "Issue #177 / MJ-REQ-176 company-source setting Activity slice source 0c76b225f48a882e8aa90b5e7686d22a8891425e, source tree 3d7733e26c5d4d097518d3c911d6029c7f1c5e86, evidence and tests integrated at synchronized local/GitHub main 68a0630b690cfa855e43829bc4f1836cf6add246 under the Codex integration lock. GitHub issue checkpoint: https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6048627184. The issue remains OPEN/PARTIAL; hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL/Docker NOT_RUN; external submission OFF.",
   "delivery_policy": {
     "mode": "LOCAL_ONLY",
     "effective_at": "2026-10-05T21:32:10.763994+00:00",
@@ -10902,5 +10965,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-07T22:19:26Z"
+  "updated_at": "2026-10-07T23:05:00Z"
 }

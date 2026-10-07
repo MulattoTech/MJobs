@@ -243,14 +243,25 @@
       "depends_on": [],
       "evidence_path": "docs/evidence/2026-10-07-job-merge-audit.json",
       "scope_complete": false,
-      "note": "Integrated at main 26deecc77098471f0973e7e0b34193c1e4e0d0e3. When a new company-feed posting with a distinct provider identity is attached by the existing exact same-company application-route rule to a different canonical job, append one profile-scoped JOB_MERGED event in the same transaction. The safe Activity timeline shows the fixed summary, job title and company after reload, and another profile cannot see it. A replay of the same posting, an ambiguous/unmerged route, or a rolled-back import must not create the event. Validation: 67 focused Python/browser PASS; frontend 63/build and repository validators PASS. Issue #177 remains OPEN/PARTIAL for remaining audit event families; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
+      "note": "Integrated at main 26deecc77098471f0973e7e0b34193c1e4e0d0e3. When a new company-feed posting with a distinct provider identity is attached by the existing exact same-company application-route rule to a different canonical job, append one profile-scoped JOB_MERGED event in the same transaction. The safe Activity timeline shows the fixed summary, job title and company after reload, and another profile cannot see it. A replay of the same posting, an ambiguous/unmerged route, or a rolled-back import must not create the event. Validation: 67 focused Python/browser PASS; frontend 63/build and repository validators PASS. Issue #177 remains OPEN/PARTIAL for remaining audit event families; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF. Company-source pin/enabled setting slice integrated PARTIAL at 68a0630b690cfa855e43829bc4f1836cf6add246; evidence docs/evidence/2026-10-07-company-source-setting-audit.json; 21 integration, 2 connected Chromium, frontend 63/build, full Python 968/8 skipped and validators PASS. Issue remains OPEN/PARTIAL; https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6048627184.",
       "integration_commit": "26deecc77098471f0973e7e0b34193c1e4e0d0e3",
       "issue_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6042418780",
       "prior_integration_commit": "d4ed75530ec9609ec41d2e3b2f4a93aa50e4b259",
       "source_commit": "3e9c196d719f589f3c84b2409dc1efc22a1bb37a",
       "release_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6042418780",
       "integration_evidence": "docs/evidence/2026-10-07-setting-change-audit-integration.json",
-      "candidate_tree": "8981ee1a83aabb620c920e55f17f5131bd50444a"
+      "candidate_tree": "8981ee1a83aabb620c920e55f17f5131bd50444a",
+      "latest_slice_source_commit": "0c76b225f48a882e8aa90b5e7686d22a8891425e",
+      "latest_slice_integration_commit": "68a0630b690cfa855e43829bc4f1836cf6add246",
+      "latest_slice_evidence": "docs/evidence/2026-10-07-company-source-setting-audit.json",
+      "latest_slice_validated_head": "0c76b225f48a882e8aa90b5e7686d22a8891425e",
+      "latest_slice_validated_tree": "3d7733e26c5d4d097518d3c911d6029c7f1c5e86",
+      "latest_slice_issue_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6048627184",
+      "latest_slice_status": "PARTIAL",
+      "latest_slice_base": "c0ea57bca0e4a7c37b71f19d9cdd07bb062113a1",
+      "latest_slice_branch": "codex/mj-req176-company-source-setting-audit-20261007",
+      "latest_slice_scope_complete": false,
+      "latest_slice_release_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6048641183"
     },
     {
       "issue": 178,
@@ -332,7 +343,8 @@
       "depends_on": [],
       "evidence_path": "docs/evidence/2026-10-07-application-submit-audit.json",
       "scope_complete": false,
-      "note": "Integrated at bd251813996deac05010d1d080a7ec5671a0dbd9 from source 382db126a1b504754ec2ad748bb543df586d976b. https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6045375245; https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6045401912. Issue #177 remains OPEN/PARTIAL; full Python suite one unrelated failure/8 skipped; hosted NOT_RUN_BY_USER_POLICY; external submission OFF."
+      "note": "Integrated at bd251813996deac05010d1d080a7ec5671a0dbd9 from source 382db126a1b504754ec2ad748bb543df586d976b. https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6045375245; https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6045401912. Issue #177 remains OPEN/PARTIAL; full Python suite one unrelated failure/8 skipped; hosted NOT_RUN_BY_USER_POLICY; external submission OFF.",
+      "latest_slice_release_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6048641183"
     },
     {
       "issue": 174,
