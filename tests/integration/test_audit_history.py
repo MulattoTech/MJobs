@@ -88,6 +88,43 @@ class AuditHistoryApiTests(unittest.TestCase):
         response = self.client.get("/profiles/not-a-profile/audit-history")
         self.assertEqual(response.status_code, 404)
 
+    def test_profile_preference_change_appends_value_free_setting_event_once(self):
+        before = self.client.get("/profiles/fixture/audit-history").json()["events"]
+        before_ids = {event["id"] for event in before if event["type"] == "SETTING_CHANGED"}
+        current = self.store.profile("fixture")
+        private_value = "Synthetic confidential salary preference"
+        payload = dict(PROFILE, answers=current["answers"],
+                       preferences={**current["preferences"],
+                                    "salary_expectations": private_value},
+                       expected_version=current["version"])
+
+        saved = self.client.put("/profiles", json=payload)
+        self.assertEqual(saved.status_code, 200, saved.text)
+        first = self.client.get("/profiles/fixture/audit-history")
+        self.assertEqual(first.status_code, 200, first.text)
+        events = first.json()["events"]
+        added = [event for event in events if event["type"] == "SETTING_CHANGED"
+                 and event["id"] not in before_ids]
+        self.assertEqual(len(added), 1)
+        self.assertEqual(added[0]["summary"], "A profile setting changed")
+        self.assertNotIn(private_value, first.text)
+        self.assertNotIn(private_value, str(added[0]))
+        self.assertFalse(any(event["id"] == added[0]["id"]
+                             for event in self.client.get(
+                                 "/profiles/other/audit-history").json()["events"]))
+        with self.store.engine.connect() as connection:
+            row = connection.execute(select(m.audit.c.payload).where(
+                m.audit.c.id == added[0]["id"])).scalar_one()
+        self.assertEqual(row, {})
+
+        payload["expected_version"] = saved.json()["version"]
+        repeated = self.client.put("/profiles", json=payload)
+        self.assertEqual(repeated.status_code, 200, repeated.text)
+        after = self.client.get("/profiles/fixture/audit-history").json()["events"]
+        after_added = [event for event in after if event["type"] == "SETTING_CHANGED"
+                       and event["id"] not in before_ids]
+        self.assertEqual(after_added, added)
+
     def test_user_reported_application_history_appears_without_exposing_note_or_claiming_receipt(self):
         from services.tracking.applications import (
             add_application_note, record_external_application_report,

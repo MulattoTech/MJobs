@@ -162,6 +162,7 @@ class Store:
         previous = self.profile(profile['id']) if current else {}
         profile['contact'] = ContactDetails.model_validate(profile.get('contact', previous.get('contact', {}))).model_dump()
         profile['preferences'] = JobPreferences.model_validate(profile.get('preferences', previous.get('preferences', {}))).model_dump()
+        preferences_changed = current is not None and previous.get('preferences', {}) != profile['preferences']
         verified = [Fact(**{key: row[key] for key in ("id", "text", "source", "verified", "user_approved", "confidence")}) for row in profile["facts"]]
         if len({fact.id for fact in verified}) != len(verified):
             raise ValueError("Duplicate fact identity")
@@ -222,6 +223,8 @@ class Store:
                                 {"from_profile_version": previous["version"], "to_profile_version": version,
                                  "count": len(prior_matches)})
             self._audit(connection, profile["id"], "PROFILE_SAVED", {"version": version})
+            if preferences_changed:
+                self._audit(connection, profile["id"], "SETTING_CHANGED", {})
         return version
 
     @staticmethod

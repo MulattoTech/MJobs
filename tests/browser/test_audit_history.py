@@ -47,14 +47,10 @@ class AuditHistoryBrowserTests(unittest.TestCase):
             add_application_note(store, "fixture", application_id,
                                  "Private synthetic recruiter note", "browser-audit-note")
             with store.engine.begin() as connection:
-                connection.execute(m.audit.insert(), [
-                    {"id": "fixture-history", "entity_id": "fixture", "action": "SETTING_CHANGED",
-                     "payload": {"value": "private-setting-value"},
-                     "timestamp": "2026-10-07T10:00:00+00:00"},
-                    {"id": "other-history", "entity_id": "other", "action": "PROFILE_SAVED",
-                     "payload": {"value": "other-private-setting"},
-                     "timestamp": "2026-10-07T10:01:00+00:00"},
-                ])
+                connection.execute(m.audit.insert().values(
+                    id="other-history", entity_id="other", action="PROFILE_SAVED",
+                    payload={"value": "other-private-setting"},
+                    timestamp="2026-10-07T10:01:00+00:00"))
             app = create_app(store, "http://127.0.0.1:1", ROOT,
                              "redis://127.0.0.1:1/0", operation_mode="FIXTURE")
             sock = bound_browser_socket()
@@ -86,6 +82,13 @@ class AuditHistoryBrowserTests(unittest.TestCase):
                     page.goto(origin, wait_until="domcontentloaded")
                     page.evaluate("localStorage.setItem('mjobs-profile', 'fixture')")
                     page.reload(wait_until="domcontentloaded")
+                    private_setting = "Private Synthetic Travel Preference"
+                    page.get_by_role("button", name="Profile", exact=True).click()
+                    page.get_by_label("Travel preference").fill(private_setting)
+                    with page.expect_response(lambda response:
+                                              response.request.method == "PUT"
+                                              and response.url.endswith("/profiles")):
+                        page.get_by_role("button", name="Save profile", exact=True).click()
                     page.get_by_role("button", name="Activity", exact=True).click()
                     history = page.get_by_role("list", name="Audit history")
                     expect(history).to_contain_text("A profile setting changed")
@@ -96,7 +99,7 @@ class AuditHistoryBrowserTests(unittest.TestCase):
                     expect(history).to_contain_text("Application preparation queued")
                     expect(history).to_contain_text("Application preparation started")
                     expect(history).not_to_contain_text("Private synthetic recruiter note")
-                    expect(history).not_to_contain_text("private-setting-value")
+                    expect(history).not_to_contain_text(private_setting)
                     page.reload(wait_until="domcontentloaded")
                     page.get_by_role("button", name="Activity", exact=True).click()
                     expect(page.get_by_role("list", name="Audit history")).to_contain_text(
@@ -111,7 +114,6 @@ class AuditHistoryBrowserTests(unittest.TestCase):
                     other_history = page.get_by_role("list", name="Audit history")
                     expect(other_history).to_contain_text("Profile details updated")
                     expect(other_history).not_to_contain_text("A profile setting changed")
-                    expect(other_history).not_to_contain_text("fixture-history")
                     expect(other_history).not_to_contain_text("Application status reported by you")
                     self.assertEqual(external, [])
                     context.close()
