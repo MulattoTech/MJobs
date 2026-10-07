@@ -1,5 +1,6 @@
 """Connected browser acceptance for durable, profile-isolated AI task settings."""
 import copy
+import json
 from pathlib import Path
 import tempfile
 import threading
@@ -68,7 +69,7 @@ class AITaskSettingsBrowserTests(unittest.TestCase):
                         self.fail("Isolated task-settings API did not start")
                     time.sleep(0.02)
 
-                external, errors = [], []
+                external, errors, prepared_requests = [], [], []
                 with sync_playwright() as pw:
                     browser = pw.chromium.launch(headless=True)
                     context = browser.new_context(viewport={"width": 1280, "height": 900})
@@ -84,10 +85,27 @@ class AITaskSettingsBrowserTests(unittest.TestCase):
                     def unavailable_other_profile_policy(route):
                         route.fulfill(status=503, json={"detail": "synthetic settings outage"})
 
+                    def synthetic_application_preparation(route):
+                        if route.request.method == "POST" and urlsplit(route.request.url).path == "/applications":
+                            route.fulfill(status=202, json={
+                                "operation_id": "synthetic-reviewed-preparation"})
+                        else:
+                            route.continue_()
+
                     context.route("**/profiles/other-profile/ai-cost-policy",
                                   unavailable_other_profile_policy)
+                    context.route("**/applications", synthetic_application_preparation)
+                    context.route("**/operations/synthetic-reviewed-preparation",
+                                  lambda route: route.fulfill(status=200, json={
+                                      "id": "synthetic-reviewed-preparation", "kind": "PREPARE",
+                                      "state": "COMPLETED", "error": None, "attempt_count": 1,
+                                      "cancel_requested": False, "updated_at": "synthetic",
+                                  }))
                     page = context.new_page()
                     page.on("pageerror", lambda error: errors.append(str(error)))
+                    page.on("request", lambda request: prepared_requests.append(json.loads(request.post_data))
+                            if request.method == "POST" and urlsplit(request.url).path == "/applications"
+                            else None)
                     page.goto(origin, wait_until="domcontentloaded")
                     page.locator("#active-profile").select_option("fixture")
                     page.get_by_role("button", name="AI Settings", exact=True).click()
@@ -121,7 +139,6 @@ class AITaskSettingsBrowserTests(unittest.TestCase):
                     cost_panel.get_by_label("Maximum jobs scanned", exact=True).fill("100")
                     cost_panel.get_by_label("Maximum AI candidates", exact=True).fill("1")
                     expect(cost_panel.get_by_label("Maximum document candidates", exact=True)).to_have_value("1")
-                    cost_panel.get_by_label("Maximum document candidates", exact=True).fill("0")
                     cost_panel.get_by_role("button", name="Save AI cost policy", exact=True).click()
                     expect(page.get_by_role("status").filter(
                         has_text="AI cost policy saved for this profile.")).to_be_visible()
@@ -153,6 +170,19 @@ class AITaskSettingsBrowserTests(unittest.TestCase):
                     expect(evaluations).to_be_visible()
                     expect(evaluations.get_by_role("article")).to_have_count(1)
                     expect(evaluations.get_by_text("Check the listed infrastructure duties.", exact=False)).to_be_visible()
+                    evaluation = evaluations.get_by_role("article")
+                    evaluation.get_by_label("I reviewed this AI result and approve document preparation").check()
+                    evaluation.get_by_role("button", name="Confirm review and open job", exact=True).click()
+                    page.get_by_role("button", name="AI Settings", exact=True).click()
+                    page.reload(wait_until="domcontentloaded")
+                    page.get_by_role("button", name="AI Settings", exact=True).click()
+                    evaluations = page.get_by_role("region", name="AI evaluation history")
+                    evaluations.get_by_role("button", name="Prepare reviewed documents", exact=True).click()
+                    page.get_by_role("button", name="Prepare documents", exact=True).click()
+                    expect(page.get_by_role("button", name="AI Settings", exact=True)).to_be_visible()
+                    self.assertTrue(prepared_requests)
+                    self.assertIn("ai_evaluation_run_id", prepared_requests[-1])
+                    page.get_by_role("button", name="AI Settings", exact=True).click()
 
                     page.locator("#active-profile").select_option("other-profile")
                     expect(panel.get_by_label("Job scoring provider", exact=True)).to_have_value("disabled")

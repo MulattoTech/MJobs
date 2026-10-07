@@ -424,10 +424,17 @@ class Store:
                 ).order_by(m.ai_job_evaluations.c.deterministic_score.desc(),
                            m.ai_job_evaluations.c.id)
             ).mappings()]
+            reviewed = {(row["run_id"], row["job_id"]) for row in connection.execute(
+                select(m.ai_document_reviews.c.run_id, m.ai_document_reviews.c.job_id).where(
+                    m.ai_document_reviews.c.profile_id == profile_id,
+                    m.ai_document_reviews.c.run_id.in_(run_ids),
+                )
+            ).mappings()}
         by_run = {run_id: [] for run_id in run_ids}
         for row in evaluations:
             by_run[row["run_id"]].append({key: row[key] for key in (
-                "job_id", "title", "company", "deterministic_score", "category", "rationale")})
+                "job_id", "title", "company", "deterministic_score", "category", "rationale")}
+                | {"document_reviewed": (row["run_id"], row["job_id"]) in reviewed})
         return [{
             "run_id": row["id"],
             "profile_version": row["profile_version"],
@@ -438,6 +445,86 @@ class Store:
             "created_at": row["created_at"],
             "evaluations": by_run[row["id"]],
         } for row in runs]
+
+    def review_ai_document_candidates(self, profile_id, run_id, job_ids):
+        """Persist explicit review for at most the run's document-candidate cap."""
+        if (not isinstance(run_id, str) or not run_id or len(run_id) > 128
+                or not isinstance(job_ids, list) or not 1 <= len(job_ids) <= 20
+                or any(not isinstance(job_id, str) or not job_id or len(job_id) > 128
+                       for job_id in job_ids)
+                or len(set(job_ids)) != len(job_ids)):
+            raise ValueError("AI_DOCUMENT_REVIEW_INPUT_INVALID")
+        reviewed_at = now()
+        with self.engine.begin() as connection:
+            run = connection.execute(
+                select(m.ai_evaluation_runs).where(
+                    m.ai_evaluation_runs.c.id == run_id,
+                    m.ai_evaluation_runs.c.profile_id == profile_id,
+                ).with_for_update()
+            ).mappings().first()
+            if run is None:
+                raise ValueError("AI_EVALUATION_RUN_NOT_FOUND")
+            current_version = connection.execute(
+                select(m.profiles.c.version).where(m.profiles.c.id == profile_id)
+            ).scalar_one()
+            if current_version != run["profile_version"]:
+                raise ValueError("AI_EVALUATION_PROFILE_CHANGED")
+            allowed = set(connection.execute(
+                select(m.ai_job_evaluations.c.job_id).where(
+                    m.ai_job_evaluations.c.profile_id == profile_id,
+                    m.ai_job_evaluations.c.run_id == run_id,
+                )
+            ).scalars())
+            if not set(job_ids).issubset(allowed):
+                raise ValueError("AI_DOCUMENT_CANDIDATE_NOT_EVALUATED")
+            existing = set(connection.execute(
+                select(m.ai_document_reviews.c.job_id).where(
+                    m.ai_document_reviews.c.profile_id == profile_id,
+                    m.ai_document_reviews.c.run_id == run_id,
+                )
+            ).scalars())
+            new_ids = set(job_ids) - existing
+            cap = int(run["policy"]["max_document_candidates"])
+            if len(existing) + len(new_ids) > cap:
+                raise ValueError("AI_DOCUMENT_CANDIDATE_LIMIT")
+            for job_id in job_ids:
+                if job_id in new_ids:
+                    upsert(connection, m.ai_document_reviews, {
+                        "id": identity(run_id, job_id, "ai-document-review"),
+                        "profile_id": profile_id,
+                        "run_id": run_id,
+                        "job_id": job_id,
+                        "reviewed_at": reviewed_at,
+                    })
+        return {"run_id": run_id, "reviewed_job_ids": job_ids,
+                "reviewed_candidate_count": len(existing | set(job_ids)),
+                "max_document_candidates": cap}
+
+    def require_reviewed_ai_document_candidate(self, profile_id, run_id, job_id):
+        """Guard document preparation against stale, cross-profile, or unreviewed AI runs."""
+        with self.engine.connect() as connection:
+            run = connection.execute(
+                select(m.ai_evaluation_runs.c.profile_version).where(
+                    m.ai_evaluation_runs.c.id == run_id,
+                    m.ai_evaluation_runs.c.profile_id == profile_id,
+                )
+            ).first()
+            if run is None:
+                raise ValueError("AI_EVALUATION_RUN_NOT_FOUND")
+            current_version = connection.execute(
+                select(m.profiles.c.version).where(m.profiles.c.id == profile_id)
+            ).scalar_one()
+            if current_version != run.profile_version:
+                raise ValueError("AI_EVALUATION_PROFILE_CHANGED")
+            reviewed = connection.execute(
+                select(m.ai_document_reviews.c.id).where(
+                    m.ai_document_reviews.c.profile_id == profile_id,
+                    m.ai_document_reviews.c.run_id == run_id,
+                    m.ai_document_reviews.c.job_id == job_id,
+                )
+            ).first()
+            if reviewed is None:
+                raise ValueError("AI_DOCUMENT_CANDIDATE_NOT_REVIEWED")
 
     def jobs(self, profile_id=None, q="", remote_type=None, provider=None, sort="score", limit=200):
         profile = self.profile(profile_id) if profile_id else None

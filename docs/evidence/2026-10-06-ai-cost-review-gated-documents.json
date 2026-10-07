@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "issue": 111,
+  "requirement_id": "MJ-REQ-110",
+  "lane": "codex",
+  "branch": "codex/mj-req110-review-consumer-20261006",
+  "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req110-review-consumer-20261006",
+  "result": "PARTIAL",
+  "base_main": "54be81542d9ab594c9418f15223e9c2aef02249d",
+  "recorded_at_utc": "2026-10-07T00:52:59Z",
+  "scope": [
+    "Persist explicit per-profile AI evaluation candidate review within the run's saved maximum-document-candidate cap.",
+    "Reject cross-profile, unevaluated, over-cap, or stale-profile review requests.",
+    "Require the matching durable review record when document preparation is requested through an AI evaluation run.",
+    "Expose the review confirmation and reloadable preparation path in AI Settings, while retaining the separate existing Prepare documents action."
+  ],
+  "acceptance": {
+    "candidate_review_is_profile_scoped_and_durable": "PASS - review records are keyed by profile, run, and job; evaluation history exposes review state after reload.",
+    "document_candidate_cap": "PASS - the saved run policy caps unique reviewed candidates; repeating an accepted review is idempotent and new candidates beyond the cap are rejected.",
+    "stale_evaluation_rejection": "PASS - review and preparation are rejected when profile facts change after evaluation.",
+    "review_gate_before_ai_funnel_preparation": "PASS - the API rejects a job without the matching reviewed evaluation record and accepts a reviewed job into the existing queued factual preparation workflow.",
+    "connected_browser_flow": "PASS - synthetic browser flow confirms a candidate, reloads persisted review, opens the job, and sends the run ID only after the user selects Prepare documents.",
+    "live_configured_provider_inference": "NOT_RUN - the browser and API checks use a synthetic structured result; no Ollama or paid provider was called.",
+    "generated_document_runtime": "NOT_RUN - the browser harness simulates successful queue completion; real document worker execution was not exercised in this checkpoint."
+  },
+  "local_validation": {
+    "environment": "Windows local claimed worktree, repository Python 3.12 environment, locked frontend dependencies, temporary SQLite databases, synthetic profile and job fixtures, isolated Chromium browser.",
+    "commands": [
+      {
+        "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_ai_cost_policy_api tests.integration.test_ai_document_review_migration tests.unit.test_ai_cost_consumer tests.unit.test_ai_cost_controls tests.browser.test_ai_task_settings",
+        "result": "PASS",
+        "detail": "20 tests passed, including profile isolation, saved-cap enforcement, stale-profile rejection, unreviewed-preparation refusal, connected browser reload, and the synthetic preparation request."
+      },
+      {
+        "command": "npm test --prefix apps/web -- --run",
+        "result": "PASS",
+        "detail": "13 files and 62 frontend tests passed."
+      },
+      {
+        "command": "npm run build --prefix apps/web",
+        "result": "PASS",
+        "detail": "TypeScript check and Vite production build passed."
+      },
+      {
+        "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.agent_skills",
+        "result": "PASS"
+      },
+      {
+        "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.catalogue",
+        "result": "PASS"
+      },
+      {
+        "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.progress validate",
+        "result": "PASS"
+      },
+      {
+        "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m compileall -q on changed API, persistence, migration, and test modules",
+        "result": "PASS"
+      },
+      {
+        "command": "git diff --check",
+        "result": "PASS"
+      },
+      {
+        "command": "GitHub Actions and hosted review",
+        "result": "NOT_RUN",
+        "detail": "Disabled under the active local-only budget policy."
+      }
+    ],
+    "resolved_test_findings": [
+      "The new API acceptance first failed because ApplicationInput did not accept an evaluation run ID; the guard and review endpoint were added, after which the acceptance passed.",
+      "The first browser run used stale built assets; rebuilding the frontend exposed a harness route that intercepted profile application reads. The route was narrowed to synthetic POST /applications only; the connected browser acceptance then passed."
+    ],
+    "not_run": [
+      "Full Python test discovery.",
+      "PostgreSQL migration and persistence checks.",
+      "Live configured-provider inference and real model cost.",
+      "Real document worker execution for this browser journey.",
+      "Hosted Actions, hosted checks, and hosted reviews.",
+      "External application submission; OFF."
+    ]
+  },
+  "limitations": [
+    "MJ-REQ-110 remains PARTIAL because live configured-provider inference and real document worker execution were not verified.",
+    "The document workflow uses the existing factual preparation path; it does not generate AI-authored text.",
+    "External application submission remains OFF."
+  ],
+  "source_sha256": {
+    "apps/api/main.py": "c51bd404d64ce67599a3bea036a6d198bd40caeb09bc2bf7f434ff757c478055",
+    "apps/web/src/main.tsx": "682bce4e8c927d0af1262c1ad55b37a2ba3b6ac119b2c75120bd362d3462feee",
+    "packages/persistence/models.py": "0f6f8e561e470dede92ce050ca0c2de04de9027ba3a4f8dd8953ed90d44bdf64",
+    "packages/persistence/store.py": "c06cf1da260f623c5fe8eeb61640414fc1354aa579d1bec5fd3cb3062280c43c",
+    "migrations/versions/c90d4a12fe37_record_ai_document_reviews.py": "f4c699f97100d256c1cea76d78d107451f3dd5a7bd6728138e8a2552ef59e90f",
+    "services/ai/AREA.md": "aeed467dd4f8fec74edd46b11189bd1fdf7a7177209ebafab2c8c160c051f67e",
+    "packages/persistence/AREA.md": "131858dfa13ffb859f833ad55bc2965bc8bcbb8d88ba7055aab8875d079ff063",
+    "apps/api/AREA.md": "a8a16c854af9655ae09857a4dfde81ce365697d839402fbb39a24ab74ca4ae9d",
+    "tests/integration/test_ai_cost_policy_api.py": "54d156862691b3067ddcc6cd4eed19fac9d6cce37e4825b23d9a3798974a8863",
+    "tests/integration/test_ai_document_review_migration.py": "1c85cbd3b6bad585486cc0df673a511dadae363f0db5b3a511d45ef141ecc622",
+    "tests/browser/test_ai_task_settings.py": "5a90b2170e2db66ce43bf3cf564f184da5ef4880e6b5ed916236fbbe6fffd2fe"
+  },
+  "external_submission_enabled": false,
+  "hosted_verification": "NOT_RUN_BY_USER_POLICY"
+}

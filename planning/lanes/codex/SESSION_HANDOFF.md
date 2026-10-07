@@ -3,30 +3,22 @@
 Status: **ACTIVE / PARTIAL — safely checkpointed**
 
 Issue #111 / MJ-REQ-110 remains the only Codex claim. Continue in
-`C:/Tools/Dev/MJobs/.worktrees/codex-mj-req110-review-consumer-20261006` on
-`codex/mj-req110-review-consumer-20261006`.
+C:/Tools/Dev/MJobs/.worktrees/codex-mj-req110-review-consumer-20261006 on
+codex/mj-req110-review-consumer-20261006.
 
-Fetched current `origin/main` at `b187e2ed7d84d1a9e7f6f27a1e771d597e7cf11f` and merged it into the claimed branch
-at `380311801205b435db93c6a1c9c2351e3ea8a3ad` without conflicts. The implementation checkpoint is
-`d872d45610ab32c79563462cee3e75f60c546eb9`.
+Fetched origin/main at 54be81542d9ab594c9418f15223e9c2aef02249d and merged it
+at bef266514c978856a5f9f372327a4d433b495a0a without conflicts. This checkpoint
+adds durable per-run candidate review constrained by the saved document cap,
+stale/cross-profile rejection, and a required review receipt when the AI funnel
+queues the existing factual document-preparation workflow. The UI persists review
+across reload and still requires the separate Prepare documents action.
 
-This slice persists bounded per-profile evaluation history with the profile
-version, cost policy, and non-secret provider/model identifiers. Stale results
-are rejected if profile facts change during inference. The API and browser reload
-history per profile; deterministic matches remain unchanged and no documents are
-created. Evidence: `docs/evidence/2026-10-06-ai-cost-evaluation-history.json`.
-
-Local verification: 11 focused Python/API/browser tests PASS; 62 frontend tests
-and TypeScript/Vite build PASS; SQLite migration upgrade, empty downgrade, and
-populated-history downgrade protection PASS; agent-skills, catalogue, progress,
-compileall, and diff checks PASS. Validation used synthetic profiles/jobs and
-structured provider output; no live model was invoked.
-
-Keep the issue PARTIAL. Live configured-provider inference, reviewed AI-document
-generation, PostgreSQL migration verification, and full Python discovery remain
-NOT_RUN. Hosted checks remain NOT_RUN under the active local-only policy;
-external submission remains OFF.
-
-Only Codex lane files and owned feature/evidence paths may be changed during this
-claim. Antigravity owns source-adapter paths; Ollama owns ATS-detection paths.
-Canonical planning and root main require the local integration lock.
+Evidence: docs/evidence/2026-10-06-ai-cost-review-gated-documents.json.
+Focused Python/API/browser/migration tests: 20 PASS; frontend tests: 62 PASS;
+frontend build, agent-skills, catalogue, progress, compileall, and diff checks PASS.
+The browser path uses synthetic model output and simulates queue completion.
+Live configured-provider inference, real document worker execution, PostgreSQL
+migration, full Python discovery, and hosted checks remain NOT_RUN. External
+submission remains OFF. Do not update canonical planning outside the integration
+lock. Continue only issue #111 / MJ-REQ-110; Antigravity and Ollama scopes remain
+independent.

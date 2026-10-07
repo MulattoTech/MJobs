@@ -80,6 +80,14 @@ ai_job_evaluations = table(
 )
 Index("ix_ai_job_evaluations_profile_created", ai_job_evaluations.c.profile_id,
       ai_job_evaluations.c.created_at)
+ai_document_reviews = table(
+    "ai_document_reviews",
+    Column("profile_id", ForeignKey("career_profiles.id", ondelete="CASCADE"), nullable=False),
+    Column("run_id", ForeignKey("ai_evaluation_runs.id", ondelete="CASCADE"), nullable=False),
+    Column("job_id", String(128), nullable=False),
+    Column("reviewed_at", String(64), nullable=False),
+    constraints=(UniqueConstraint("run_id", "job_id", name="uq_ai_document_review_run_job"),),
+)
 facts = table("career_facts", Column("profile_id", ForeignKey("career_profiles.id"), nullable=False),
               Column("version", String(64), nullable=False), Column("fact_id", String(128), nullable=False),
               Column("kind", String(32), nullable=False), Column("text", String(10000), nullable=False),

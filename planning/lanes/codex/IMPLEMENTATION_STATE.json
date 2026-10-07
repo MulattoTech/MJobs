@@ -2,14 +2,14 @@
   "schema_version": 1,
   "lane": "codex",
   "status": "ACTIVE",
-  "base_main": "b187e2ed7d84d1a9e7f6f27a1e771d597e7cf11f",
+  "base_main": "54be81542d9ab594c9418f15223e9c2aef02249d",
   "current_issue": 111,
   "requirement_id": "MJ-REQ-110",
   "branch": "codex/mj-req110-review-consumer-20261006",
-  "head": "380311801205b435db93c6a1c9c2351e3ea8a3ad",
+  "head": "bef266514c978856a5f9f372327a4d433b495a0a",
   "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req110-review-consumer-20261006",
   "result": "PARTIAL",
-  "evidence_path": "docs/evidence/2026-10-06-ai-cost-evaluation-history.json",
+  "evidence_path": "docs/evidence/2026-10-06-ai-cost-review-gated-documents.json",
   "last_completed": {
     "issue": 111,
     "requirement_id": "MJ-REQ-110",
@@ -19,7 +19,7 @@
     {
       "issue": 111,
       "requirement_id": "MJ-REQ-110",
-      "title": "AI Cost Controls - live provider inference and reviewed AI-document workflow remain"
+      "title": "Live configured-provider inference and real document-worker evidence remain"
     }
   ],
   "do_not_overlap": [
@@ -27,5 +27,5 @@
     "Ollama active claims",
     "canonical planning files outside integration lock"
   ],
-  "resume_instruction": "Issue #111 / MJ-REQ-110 remains PARTIAL on codex/mj-req110-review-consumer-20261006. Current origin/main b187e2ed7d84d1a9e7f6f27a1e771d597e7cf11f is merged at 380311801205b435db93c6a1c9c2351e3ea8a3ad; feature commit d872d45610ab32c79563462cee3e75f60c546eb9. Added durable profile-scoped evaluation history with policy/provider snapshots, profile-version stale-result rejection, and browser reload/readback. Focused Python/API/browser 11 PASS, frontend 62 PASS/build PASS, migration upgrade/empty downgrade/populated-history preservation PASS, agent-skills/catalogue/progress/compileall/diff checks PASS. Evidence: docs/evidence/2026-10-06-ai-cost-evaluation-history.json. Live configured-provider inference and reviewed AI-document generation remain NOT_RUN; full Python discovery and PostgreSQL migration remain NOT_RUN. Hosted verification remains NOT_RUN by local-only policy; external submission remains OFF. Continue only this claim if resumed."
+  "resume_instruction": "Issue #111 / MJ-REQ-110 remains PARTIAL on codex/mj-req110-review-consumer-20261006. Fetched origin/main 54be81542d9ab594c9418f15223e9c2aef02249d and merged it at bef266514c978856a5f9f372327a4d433b495a0a with no conflicts. Added durable, run-capped per-profile candidate review before AI-funnel preparation. The user must affirm review, then separately click Prepare documents; stale and cross-profile runs fail closed. Focused Python/API/browser/migration: 20 PASS; frontend: 62 PASS and build PASS; agent-skills/catalogue/progress/compileall/diff checks PASS. Evidence: docs/evidence/2026-10-06-ai-cost-review-gated-documents.json. Live configured-provider inference, real document worker execution, PostgreSQL migration, full Python discovery and hosted verification remain NOT_RUN. External submission remains OFF."
 }

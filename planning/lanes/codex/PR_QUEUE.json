@@ -7,7 +7,7 @@
       "requirement_id": "MJ-REQ-110",
       "status": "ACTIVE",
       "priority": 1,
-      "note": "History checkpoint at 380311801205b435db93c6a1c9c2351e3ea8a3ad; evidence docs/evidence/2026-10-06-ai-cost-evaluation-history.json. Durable profile-scoped runs and browser reload/readback pass. Keep PARTIAL: live provider inference, reviewed AI-document generation, PostgreSQL migration and full Python suite remain NOT_RUN."
+      "note": "Review-gated factual document preparation checkpoint at bef266514c978856a5f9f372327a4d433b495a0a; evidence docs/evidence/2026-10-06-ai-cost-review-gated-documents.json. Profile-scoped candidate reviews persist and enforce the run cap; the application API requires matching review state. Keep PARTIAL: live provider inference, real document worker execution, PostgreSQL migration, and full Python discovery remain NOT_RUN."
     }
   ]
 }

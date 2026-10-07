@@ -20,5 +20,9 @@ AI cost thresholds are stored per profile; missing policy rows use bounded code
 defaults. Validated AI evaluation runs and job results are append-only, scoped
 to their profile and the profile version used for inference, and retain the
 threshold and non-secret provider/model identifiers. They can be reloaded without
-invoking a provider. The persistence layer remains the durable authority for
-settings and evaluation history.
+invoking a provider. Explicit document-review records are append-only, unique per
+evaluation run and job, profile-scoped, and capped against the run's saved policy.
+They are rejected when the profile version changes and are required by the
+application-preparation API when it is called from the AI-evaluation workflow.
+The migration refuses to discard populated review history. The persistence layer
+remains the durable authority for settings, evaluation history, and review state.

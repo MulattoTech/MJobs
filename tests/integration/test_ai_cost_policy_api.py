@@ -218,6 +218,97 @@ class AICostPolicyApiTests(unittest.TestCase):
         self.assertEqual(reopened.json()["runs"][0]["run_id"], run_id)
         self.assertEqual(reopened.json()["runs"][0]["evaluations"][0]["category"], "STRONG")
 
+    def test_reviewed_document_candidates_are_capped_persisted_and_required_for_preparation(self):
+        for index in range(2):
+            response = self.client.post("/jobs/manual", json={
+                "request_id": f"cost-document-review-{index}",
+                "title": f"Reviewed infrastructure role {index}",
+                "company": "Synthetic Company",
+                "description": f"Windows Server administration role {index}.",
+                "reference_url": f"https://jobs.example.test/document-review-{index}",
+                "application_url": f"https://apply.example.test/document-review-{index}",
+                "source_details": {},
+            })
+            self.assertEqual(response.status_code, 201, response.text)
+        recalculate(self.store, "fixture")
+        jobs = self.store.jobs(profile_id="fixture")
+        job_ids = [job["id"] for job in jobs]
+        policy = {"minimum_score": 0, "max_input_candidates": 20,
+                  "max_ai_candidates": 2, "max_document_candidates": 1}
+        self.store.save_ai_cost_policy("fixture", policy)
+        profile_version = self.store.profile("fixture")["version"]
+        run = self.store.save_ai_evaluation_run(
+            "fixture", profile_version, policy, "ollama", "llama3.2:3b", [
+                {"job_id": job_id, "title": job["title"], "company": job["company"],
+                 "deterministic_score": 90 - index, "category": "STRONG",
+                 "rationale": "Review the original posting before preparation."}
+                for index, (job_id, job) in enumerate(zip(job_ids, jobs))
+            ])
+
+        cross_profile = self.client.post(
+            f"/profiles/other-profile/ai-cost-plan/evaluations/{run['run_id']}/review-documents",
+            json={"job_ids": [job_ids[0]]})
+        self.assertEqual(cross_profile.status_code, 404, cross_profile.text)
+
+        rejected = self.client.post("/applications", json={
+            "profile_id": "fixture", "job_id": job_ids[1],
+            "ai_evaluation_run_id": run["run_id"],
+        })
+        self.assertEqual(rejected.status_code, 409, rejected.text)
+        self.assertEqual(rejected.json()["detail"], "AI_DOCUMENT_CANDIDATE_NOT_REVIEWED")
+
+        reviewed = self.client.post(
+            f"/profiles/fixture/ai-cost-plan/evaluations/{run['run_id']}/review-documents",
+            json={"job_ids": [job_ids[0]]})
+        self.assertEqual(reviewed.status_code, 200, reviewed.text)
+        self.assertEqual(reviewed.json()["reviewed_job_ids"], [job_ids[0]])
+
+        over_cap = self.client.post(
+            f"/profiles/fixture/ai-cost-plan/evaluations/{run['run_id']}/review-documents",
+            json={"job_ids": [job_ids[1]]})
+        self.assertEqual(over_cap.status_code, 409, over_cap.text)
+        self.assertEqual(over_cap.json()["detail"]["code"], "AI_DOCUMENT_CANDIDATE_LIMIT")
+
+        prepared = self.client.post("/applications", json={
+            "profile_id": "fixture", "job_id": job_ids[0],
+            "ai_evaluation_run_id": run["run_id"],
+        })
+        self.assertEqual(prepared.status_code, 202, prepared.text)
+        self.assertEqual(prepared.json()["state"], "QUEUED")
+        history = self.client.get("/profiles/fixture/ai-cost-plan/evaluations").json()["runs"]
+        self.assertTrue(next(row for row in history[0]["evaluations"]
+                             if row["job_id"] == job_ids[0])["document_reviewed"])
+
+    def test_document_review_rejects_evaluation_after_profile_changes(self):
+        response = self.client.post("/jobs/manual", json={
+            "request_id": "cost-document-review-stale",
+            "title": "Infrastructure role", "company": "Synthetic Company",
+            "description": "Windows Server operations.",
+            "reference_url": "https://jobs.example.test/document-review-stale",
+            "application_url": "https://apply.example.test/document-review-stale",
+            "source_details": {},
+        })
+        self.assertEqual(response.status_code, 201, response.text)
+        recalculate(self.store, "fixture")
+        job = self.store.jobs(profile_id="fixture")[0]
+        policy = {"minimum_score": 0, "max_input_candidates": 20,
+                  "max_ai_candidates": 1, "max_document_candidates": 1}
+        run = self.store.save_ai_evaluation_run(
+            "fixture", self.store.profile("fixture")["version"], policy,
+            "ollama", "llama3.2:3b", [{
+                "job_id": job["id"], "title": job["title"], "company": job["company"],
+                "deterministic_score": 90, "category": "STRONG",
+                "rationale": "Check the actual role requirements."}])
+        changed = copy.deepcopy(PROFILE)
+        changed["name"] = "Changed after evaluation"
+        self.store.save_profile(changed)
+
+        response = self.client.post(
+            f"/profiles/fixture/ai-cost-plan/evaluations/{run['run_id']}/review-documents",
+            json={"job_ids": [job["id"]]})
+        self.assertEqual(response.status_code, 409, response.text)
+        self.assertEqual(response.json()["detail"]["code"], "AI_EVALUATION_PROFILE_CHANGED")
+
     def test_structured_provider_failures_are_reported_as_upstream_errors(self):
         from unittest.mock import patch
         from services.ai.structured_output import StructuredOutputError

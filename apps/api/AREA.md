@@ -25,7 +25,12 @@ results, the applied cost policy, and non-secret provider/model identifiers are
 durably stored against the profile version used; profile changes during
 inference reject persistence. `GET /profiles/{profile_id}/ai-cost-plan/evaluations`
 returns bounded recent history for that profile. Neither route changes match
-scores or creates documents.
+scores or creates documents. `POST /profiles/{profile_id}/ai-cost-plan/evaluations/{run_id}/review-documents`
+persists explicit candidate review up to the run's saved document cap, rejects
+cross-profile and stale-profile decisions, and exposes the review in history.
+`POST /applications` can carry that evaluation run ID; the API refuses the
+AI-funnel preparation path unless the same profile explicitly reviewed that job.
+The existing preparation flow remains a second deliberate user action.
 Depends on domain/services/persistence; browser work belongs in workers. Contact
 and facts are bounded and strict; cross-origin mutations are rejected; default
 deployment publishes only localhost. Test: python -m unittest

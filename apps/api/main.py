@@ -116,6 +116,7 @@ class ApplicationInput(DiscoveryInput):
     cover_letter_style: Literal["professional", "warm", "technical", "direct", "conversational", "formal"] = "professional"
     tailor_fact_ids: list[Annotated[str,Field(strict=True,min_length=1,max_length=128)]] | None = Field(default=None,min_length=1,max_length=1000)
     expected_profile_version: str | None = Field(default=None,min_length=64,max_length=64)
+    ai_evaluation_run_id: str | None = Field(default=None, min_length=1, max_length=128)
 
     @model_validator(mode='after')
     def selected_facts_require_tailoring_and_snapshot(self):
@@ -142,6 +143,18 @@ class ApplicationAnswerExportInput(BaseModel):
     model_config = ConfigDict(strict=True, extra="forbid")
     profile_id: str = Field(min_length=1, max_length=128)
     items: list[ApplicationAnswerItem] = Field(min_length=1, max_length=100)
+
+
+class AIDocumentReviewInput(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+    job_ids: list[Annotated[str, Field(strict=True, min_length=1, max_length=128)]] = Field(
+        min_length=1, max_length=20)
+
+    @model_validator(mode="after")
+    def unique_review_candidates(self):
+        if len(set(self.job_ids)) != len(self.job_ids):
+            raise ValueError("AI_DOCUMENT_REVIEW_INPUT_INVALID")
+        return self
 
 
 class ManualJobCaptureInput(BaseModel):
@@ -528,6 +541,18 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                                    limit: int = Query(default=20, ge=1, le=100)):
         return {"profile_id": profile_id,
                 "runs": store.ai_evaluation_history(profile_id, limit)}
+
+    @app.post("/profiles/{profile_id}/ai-cost-plan/evaluations/{run_id}/review-documents")
+    def review_ai_document_candidates(profile_id: str, run_id: str,
+                                      value: AIDocumentReviewInput):
+        try:
+            return store.review_ai_document_candidates(profile_id, run_id, value.job_ids)
+        except ValueError as error:
+            code = str(error)
+            status = 404 if code == "AI_EVALUATION_RUN_NOT_FOUND" else (
+                409 if code in ("AI_EVALUATION_PROFILE_CHANGED", "AI_DOCUMENT_CANDIDATE_LIMIT")
+                else 422)
+            raise HTTPException(status, {"code": code}) from None
 
     @app.post("/profiles/{profile_id}/ai-cost-plan/evaluate")
     def evaluate_ai_cost_plan(profile_id: str):
@@ -941,6 +966,14 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         from services.documents.tailor import eligible_rows, select_resume_rows
         from services.documents.errors import PreparationError
         profile = store.profile(value.profile_id)
+        if value.ai_evaluation_run_id:
+            try:
+                store.require_reviewed_ai_document_candidate(
+                    value.profile_id, value.ai_evaluation_run_id, value.job_id)
+            except ValueError as error:
+                code = str(error)
+                status = 404 if code == "AI_EVALUATION_RUN_NOT_FOUND" else 409
+                raise HTTPException(status, code) from None
         if value.expected_profile_version and value.expected_profile_version != profile['version']:
             raise HTTPException(409,'Profile changed; reload the approved facts before preparing')
         job = store.job(value.job_id)
