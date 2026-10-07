@@ -590,10 +590,14 @@
         "docs/evidence/2026-10-07-job-merge-audit.json",
         "planning/lanes/codex/**"
       ],
-      "status": "ACTIVE",
+      "status": "RELEASED",
       "claimed_at": "2026-10-07T16:23:39Z",
       "claim_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6041981843",
-      "evidence_path": "docs/evidence/2026-10-07-job-merge-audit.json"
+      "evidence_path": "docs/evidence/2026-10-07-job-merge-audit.json",
+      "integrated_main": "26deecc77098471f0973e7e0b34193c1e4e0d0e3",
+      "released_at": "2026-10-07T16:40:07Z",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6042418780",
+      "result": "PARTIAL; issue remains OPEN"
     }
   ]
 }

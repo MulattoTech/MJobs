@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-07T16:38:10Z",
+  "generated_at": "2026-10-07T16:40:07Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -542,7 +542,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Issue #177 / MJ-REQ-176 JOB_MERGED slice integrated PARTIAL at main 26deecc77098471f0973e7e0b34193c1e4e0d0e3; issue remains OPEN. Release the Codex claim and integration lock, reconcile current main/claims/GitHub issue comments/dirty worktrees, then select and claim the highest-value unclaimed dependency-ready issue.",
+  "recommended_resume_step": "Issue #177 JOB_MERGED slice is integrated PARTIAL and Codex claim is released; release readback https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6042418780. Reconcile current main, every active claim/comment/worktree/branch, then select the highest-value unclaimed dependency-ready issue.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -8962,13 +8962,14 @@
     },
     {
       "milestone_id": "MJ-REQ-176-JOB-MERGED-AUDIT-PARTIAL-20261007",
-      "timestamp": "2026-10-07T16:38:10Z",
+      "timestamp": "2026-10-07T16:40:07Z",
       "current_phase": "MJ_REQ_176_JOB_MERGED_AUDIT_PARTIAL_INTEGRATED",
       "completed_steps": [
         "Reproduced missing JOB_MERGED timeline behavior for a new distinct provider posting attached to an existing canonical job.",
         "Recorded the profile-owned event only after accepted posting persistence; posting and event share one transaction and retries are deterministic.",
         "Verified failed import rollback, existing-posting refresh idempotency, distinct-route non-merge behavior, safe API summary, profile isolation, SQLite persistence and connected Chromium reload.",
-        "Integrated candidate by non-force fast-forward from 29a02e2c01a515fe79814cbe79adb6b3342efbc3 to 26deecc77098471f0973e7e0b34193c1e4e0d0e3 and posted sanitized issue checkpoint https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6042382787."
+        "Integrated candidate by non-force fast-forward from 29a02e2c01a515fe79814cbe79adb6b3342efbc3 to 26deecc77098471f0973e7e0b34193c1e4e0d0e3 and posted sanitized issue checkpoint https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6042382787.",
+        "Posted sanitized AI LANE RELEASED readback https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6042418780; machine-local issue claim released. Integration lock remains held only for this lane-state/handoff receipt."
       ],
       "files_added": [
         "docs/evidence/2026-10-07-job-merge-audit.json"
@@ -9247,7 +9248,8 @@
       "issue": 177,
       "evidence_path": "docs/evidence/2026-10-07-job-merge-audit.json",
       "issue_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6042382787",
-      "hosted_checks": "NOT_RUN_BY_USER_POLICY"
+      "hosted_checks": "NOT_RUN_BY_USER_POLICY",
+      "release_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6042418780"
     }
   ],
   "live_reconciliation": {
@@ -9275,7 +9277,7 @@
     "evidence": "docs/evidence/2026-10-07-job-merge-audit.json",
     "issue_state": "OPEN",
     "issue_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6042382787",
-    "next_action": "Release this partial claim and integration lock, then reconcile live ownership and select the next highest-value unclaimed dependency-ready issue."
+    "next_action": "Issue remains OPEN/PARTIAL but Codex released the scoped claim after evidence readback; select the next unclaimed dependency-ready issue after fresh ownership reconciliation."
   },
   "historical_control_snapshots": [
     {
@@ -10417,5 +10419,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-07T16:38:10Z"
+  "updated_at": "2026-10-07T16:40:07Z"
 }

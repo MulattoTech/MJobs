@@ -1243,7 +1243,8 @@
       "latest_slice_status": "PARTIAL",
       "latest_slice_validated_head": "26deecc77098471f0973e7e0b34193c1e4e0d0e3",
       "latest_slice_validated_tree": "8981ee1a83aabb620c920e55f17f5131bd50444a",
-      "latest_slice_issue_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6042382787"
+      "latest_slice_issue_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6042382787",
+      "latest_slice_release_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6042418780"
     },
     {
       "id": "MJ-PR-049",
@@ -3450,5 +3451,5 @@
       "issue_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6036663828"
     }
   ],
-  "generated_at": "2026-10-07T16:38:10Z"
+  "generated_at": "2026-10-07T16:40:07Z"
 }
