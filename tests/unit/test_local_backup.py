@@ -5,6 +5,7 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 
 from cli import local_backup
@@ -96,6 +97,42 @@ class LocalBackupTests(unittest.TestCase):
             )
             self.assertEqual(result.returncode, 2)
             self.assertIn("already exists", result.stderr)
+
+    def test_captured_compose_output_is_bounded_and_sanitized(self):
+        marker = "PRIVATE_DIAGNOSTIC_SENTINEL"
+        with tempfile.TemporaryDirectory() as temporary:
+            completion = Path(temporary) / "child-finished"
+            script = ("import pathlib,sys,time; sys.stdout.write(" + repr(marker) +
+                      " * 100000); sys.stdout.flush(); time.sleep(1); pathlib.Path(" +
+                      repr(str(completion)) + ").write_text('finished')")
+            command = [sys.executable, "-c", script]
+            with self.assertRaisesRegex(local_backup.BackupError, "output limit") as error:
+                local_backup._run(command, timeout=5, action="Inspect project")
+            self.assertNotIn(marker, str(error.exception))
+            time.sleep(0.05)
+            self.assertFalse(completion.exists(), "oversized child continued after the output limit")
+
+    def test_large_database_dump_stream_is_not_counted_as_captured_metadata(self):
+        payload = b"D" * (local_backup.MAX_CAPTURED_STDOUT_BYTES + 1)
+        command = [sys.executable, "-c", "import sys; sys.stdout.buffer.write(b'D' * " +
+                   str(len(payload)) + ")"]
+        with tempfile.TemporaryFile(mode="w+b") as dump:
+            result = local_backup._run(command, stdout=dump, timeout=5, action="Write database dump")
+            dump.seek(0, 2)
+            self.assertEqual(dump.tell(), len(payload))
+        self.assertEqual(result, b"")
+
+    def test_process_timeout_is_classified_without_echoing_child_output(self):
+        marker = "PRIVATE_TIMEOUT_SENTINEL"
+        command = [sys.executable, "-c",
+                   "import sys,time; print(" + repr(marker) + ",flush=True); time.sleep(5)"]
+        with self.assertRaisesRegex(local_backup.BackupError, "could not complete") as error:
+            local_backup._run(command, timeout=0.1, action="Inspect project")
+        self.assertNotIn(marker, str(error.exception))
+
+    def test_large_stderr_is_drained_without_becoming_returned_output(self):
+        command = [sys.executable, "-c", "import os; os.write(2,b'X'*8388608); os.write(1,b'ok')"]
+        self.assertEqual(local_backup._run(command, timeout=5, action="Inspect project"), b"ok")
 
 
 if __name__ == "__main__":

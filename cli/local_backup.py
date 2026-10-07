@@ -12,6 +12,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 import urllib.error
 import urllib.request
@@ -27,6 +28,8 @@ class BackupError(ValueError):
 
 
 WRITERS = ("api", "worker", "source-worker", "document-worker", "migrate")
+MAX_CAPTURED_STDOUT_BYTES = 2 * 1024 * 1024
+_OUTPUT_CHUNK_BYTES = 64 * 1024
 
 
 def require_stopped_writers(states: dict[str, str]) -> None:
@@ -107,15 +110,83 @@ def verify_backup(archive: Path) -> dict:
 
 def _run(command: list[str], *, environment: dict[str, str] | None = None,
          stdin=None, stdout=None, timeout: int = 120, action: str) -> bytes:
+    capture_stdout = stdout is None
+    captured = []
+    captured_size = 0
+    output_limit_exceeded = threading.Event()
+
+    def drain(stream, *, retain_limit=None):
+        nonlocal captured_size
+        try:
+            while True:
+                chunk = stream.read(_OUTPUT_CHUNK_BYTES)
+                if not chunk:
+                    return
+                if retain_limit is None:
+                    continue
+                available = max(0, retain_limit - captured_size)
+                if available:
+                    captured.append(chunk[:available])
+                    captured_size += min(len(chunk), available)
+                if len(chunk) > available:
+                    output_limit_exceeded.set()
+        except (OSError, ValueError):
+            return
+
+    def stop_child(process):
+        if process.poll() is not None:
+            return
+        try:
+            process.terminate()
+        except OSError:
+            pass
+        try:
+            process.wait(timeout=1)
+        except subprocess.TimeoutExpired:
+            try:
+                process.kill()
+            except OSError:
+                pass
+            process.wait()
+
     try:
-        result = subprocess.run(command, cwd=ROOT, env=environment, stdin=stdin,
-                                stdout=subprocess.PIPE if stdout is None else stdout,
-                                stderr=subprocess.PIPE, timeout=timeout, check=False)
-    except (OSError, subprocess.TimeoutExpired) as exc:
+        process = subprocess.Popen(command, cwd=ROOT, env=environment, stdin=stdin,
+                                   stdout=subprocess.PIPE if capture_stdout else stdout,
+                                   stderr=subprocess.PIPE, shell=False)
+    except OSError as exc:
         raise BackupError(f"{action} could not complete; inspect Docker state") from exc
-    if result.returncode:
-        raise BackupError(f"{action} failed with exit code {result.returncode}; inspect Docker logs")
-    return result.stdout or b""
+    readers = [threading.Thread(target=drain, args=(process.stderr,), daemon=True)]
+    if capture_stdout:
+        readers.append(threading.Thread(target=drain,
+            kwargs={"stream": process.stdout, "retain_limit": MAX_CAPTURED_STDOUT_BYTES}, daemon=True))
+    for reader in readers:
+        reader.start()
+    deadline = time.monotonic() + timeout
+    try:
+        while process.poll() is None:
+            if output_limit_exceeded.is_set():
+                stop_child(process)
+                raise BackupError(f"{action} exceeded the captured-output limit")
+            if time.monotonic() >= deadline:
+                stop_child(process)
+                raise BackupError(f"{action} could not complete; inspect Docker state")
+            time.sleep(0.01)
+        returncode = process.wait()
+        for reader in readers:
+            reader.join(timeout=1)
+        if output_limit_exceeded.is_set():
+            raise BackupError(f"{action} exceeded the captured-output limit")
+        if returncode:
+            raise BackupError(f"{action} failed with exit code {returncode}; inspect Docker logs")
+        return b"".join(captured) if capture_stdout else b""
+    finally:
+        if process.poll() is None:
+            stop_child(process)
+        for stream in (process.stdout, process.stderr):
+            if stream is not None:
+                stream.close()
+        for reader in readers:
+            reader.join(timeout=1)
 
 
 def _compose(project: str, *arguments: str, environment: dict[str, str] | None = None,
