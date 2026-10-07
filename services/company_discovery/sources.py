@@ -295,6 +295,16 @@ def _set_source_control(store, source_id, column, value, action):
             store._audit(connection, source_id, action, {
                 "company_source_id": source_id, "previous": current[column], "value": value,
             })
+            enrolled_rows = connection.execute(select(
+                m.audit.c.entity_id, m.audit.c.payload
+            ).where(m.audit.c.action == "COMPANY_SOURCE_ENROLLED")).mappings()
+            profile_ids = {
+                row["entity_id"] for row in enrolled_rows
+                if row["entity_id"] and isinstance(row["payload"], dict)
+                and row["payload"].get("company_source_id") == source_id
+            }
+            for profile_id in profile_ids:
+                store._audit(connection, profile_id, "SETTING_CHANGED", {})
             if column == 'enabled':
                 connection.execute(update(m.company_source_monitoring).where(m.company_source_monitoring.c.source_id == source_id)
                     .values(revision=m.company_source_monitoring.c.revision+1, status='IDLE' if value else 'BLOCKED',

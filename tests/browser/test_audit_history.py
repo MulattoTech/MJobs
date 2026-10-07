@@ -67,7 +67,7 @@ class AuditHistoryBrowserTests(unittest.TestCase):
             first_source = upsert_company_job_source(
                 store, company_id="browser-audit-merge-company", provider="rss",
                 tenant_identifier="rss-board", public_api_url="https://browser-merge.example/rss.json",
-                collection_strategy="PUBLIC_JSON",
+                collection_strategy="PUBLIC_JSON", profile_id="fixture",
             )
             second_source = upsert_company_job_source(
                 store, company_id="browser-audit-merge-company", provider="greenhouse",
@@ -202,17 +202,36 @@ class AuditHistoryBrowserTests(unittest.TestCase):
                     new_search_setting_ids = [event_id for event_id in after_search_settings
                                               if event_id not in before_search_setting_ids]
                     self.assertEqual(len(new_search_setting_ids), 1)
+                    before_source_setting_ids = after_search_settings
+                    page.get_by_role("button", name="Sources", exact=True).click()
+                    source_card = page.locator(f'[data-source-id="{first_source["id"]}"]')
+                    expect(source_card).to_be_visible()
+                    source_card.get_by_role(
+                        "button", name="Pin Browser Merge Employer source", exact=True
+                    ).click()
+                    source_card.get_by_role(
+                        "button", name="Disable Browser Merge Employer source", exact=True
+                    ).click()
+                    after_source_settings = page.evaluate("""async () => {
+                        const response = await fetch('/profiles/fixture/audit-history');
+                        const history = await response.json();
+                        return history.events.filter(event => event.type === 'SETTING_CHANGED')
+                            .map(event => event.id);
+                    }""")
+                    self.assertEqual(len([event_id for event_id in after_source_settings
+                                          if event_id not in before_source_setting_ids]), 2)
                     page.get_by_role("button", name="Activity", exact=True).click()
                     history = page.get_by_role("list", name="Audit history")
                     expect(history).to_contain_text("A profile setting changed")
                     expect(history).not_to_contain_text("Private synthetic search phrase")
+                    expect(history).not_to_contain_text(first_source["id"])
                     page.reload(wait_until="domcontentloaded")
                     page.get_by_role("button", name="Activity", exact=True).click()
                     reloaded_history = page.get_by_role("list", name="Audit history")
                     expect(reloaded_history).to_contain_text("A profile setting changed")
                     self.assertEqual(reloaded_history.locator("li").filter(
                         has_text="A profile setting changed").count(),
-                        len(before_search_setting_ids) + 1)
+                        len(before_source_setting_ids) + 2)
                     expect(reloaded_history).not_to_contain_text("other-private-setting")
                     expect(reloaded_history).to_contain_text("Application status reported by you")
                     expect(reloaded_history).to_contain_text(

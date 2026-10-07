@@ -10,7 +10,12 @@ from apps.api.main import create_app
 from fixtures.mock_server import fixture_server
 from packages.persistence import models as m
 from packages.persistence.store import Store, upsert
-from services.company_discovery.sources import upsert_company_job_source
+from services.audit_history import record_company_source_enrolled
+from services.company_discovery.sources import (
+    set_company_source_enabled,
+    set_company_source_pin,
+    upsert_company_job_source,
+)
 from services.discovery.company_feed import import_company_feed_jobs
 from services.discovery.pipeline import discover
 from services.discovery.matching import recalculate
@@ -167,6 +172,78 @@ class AuditHistoryApiTests(unittest.TestCase):
         other_profile = self.client.get("/profiles/other/audit-history").json()["events"]
         self.assertFalse(any(event["id"] == changed_events[0]["id"]
                              for event in other_profile))
+
+    def test_company_source_changes_append_setting_events_to_enrolled_profiles_only(self):
+        company_id = "audit-source-settings-company"
+        with self.store.engine.begin() as connection:
+            upsert(connection, m.companies, {
+                "id": company_id, "name": "Source Settings Employer", "domain": "",
+            })
+        source = upsert_company_job_source(
+            self.store, company_id=company_id, provider="rss", tenant_identifier="settings-board",
+            public_api_url="https://source-settings.example/jobs.json",
+            collection_strategy="PUBLIC_JSON", profile_id="fixture",
+        )
+        with self.store.engine.begin() as connection:
+            record_company_source_enrolled(connection, "other", company_id, source["id"])
+
+        initial = {
+            profile_id: self.client.get(f"/profiles/{profile_id}/audit-history").json()["events"]
+            for profile_id in ("fixture", "other")
+        }
+        initial_ids = {
+            profile_id: {event["id"] for event in events if event["type"] == "SETTING_CHANGED"}
+            for profile_id, events in initial.items()
+        }
+
+        set_company_source_pin(self.store, source["id"], pinned=True)
+        set_company_source_pin(self.store, source["id"], pinned=True)
+        set_company_source_enabled(self.store, source["id"], enabled=False)
+        set_company_source_enabled(self.store, source["id"], enabled=False)
+
+        for profile_id in ("fixture", "other"):
+            history = self.client.get(f"/profiles/{profile_id}/audit-history")
+            self.assertEqual(history.status_code, 200, history.text)
+            setting_events = [event for event in history.json()["events"]
+                              if event["type"] == "SETTING_CHANGED"]
+            added = [event for event in setting_events if event["id"] not in initial_ids[profile_id]]
+            self.assertEqual(len(added), 2, history.text)
+            self.assertTrue(all(event["summary"] == "A profile setting changed" for event in added))
+            self.assertNotIn(source["id"], history.text)
+            self.assertNotIn("USER_PINNED", history.text)
+            self.assertNotIn("COMPANY_SOURCE_ENABLED_CHANGED", history.text)
+
+        with self.store.engine.connect() as connection:
+            profile_rows = connection.execute(select(m.audit.c.entity_id, m.audit.c.payload).where(
+                m.audit.c.action == "SETTING_CHANGED",
+                m.audit.c.entity_id.in_(("fixture", "other")),
+            )).all()
+            source_rows = connection.execute(select(m.audit.c.action).where(
+                m.audit.c.entity_id == source["id"],
+                m.audit.c.action.in_(("COMPANY_SOURCE_PIN_CHANGED", "COMPANY_SOURCE_ENABLED_CHANGED")),
+            )).all()
+        value_free_profile_rows = [row for row in profile_rows if row.payload == {}]
+        self.assertEqual(len(value_free_profile_rows), 4)
+        self.assertEqual({row.action for row in source_rows}, {
+            "COMPANY_SOURCE_PIN_CHANGED", "COMPANY_SOURCE_ENABLED_CHANGED",
+        })
+
+        unlinked = upsert_company_job_source(
+            self.store, company_id=company_id, provider="greenhouse", tenant_identifier="unlinked-board",
+            public_api_url="https://source-settings.example/greenhouse.json",
+            collection_strategy="PUBLIC_JSON",
+        )
+        before_unlinked = {
+            profile_id: {event["id"] for event in self.client.get(
+                f"/profiles/{profile_id}/audit-history").json()["events"]
+                         if event["type"] == "SETTING_CHANGED"}
+            for profile_id in ("fixture", "other")
+        }
+        set_company_source_pin(self.store, unlinked["id"], pinned=True)
+        for profile_id in ("fixture", "other"):
+            after = self.client.get(f"/profiles/{profile_id}/audit-history").json()["events"]
+            self.assertEqual({event["id"] for event in after
+                              if event["type"] == "SETTING_CHANGED"}, before_unlinked[profile_id])
 
     def test_new_feed_posting_attached_to_existing_job_records_profile_merge_once(self):
         company_id = "audit-merge-company"
