@@ -136,13 +136,19 @@ class AICostConsumerTests(unittest.TestCase):
         from services.ai.consumer import AIJobEvaluation, AIJobInput, consume_ai_candidates
 
         router = _Router([AIJobEvaluation(category="REVIEW", rationale="Needs review.")])
-        long_description = "x" * 30_000
+        sentinel = "OMITTED_SENTINEL"
+        long_description = "A" * 8_000 + sentinel + "x" * (30_000 - 8_000 - len(sentinel))
         consume_ai_candidates(
             [AIJobInput("one", 90, "Admin", "Example Co", long_description)],
             AICostPolicy(max_ai_candidates=1, max_document_candidates=1), router,
         )
 
-        self.assertLessEqual(len(router.calls[0]["prompt"]), 12_000)
+        prompt = router.calls[0]["prompt"]
+        self.assertLessEqual(len(prompt), 12_000)
+        self.assertIn("[TRUNCATED: 22000 characters omitted]", prompt)
+        self.assertIn("Do not infer any details from omitted content", prompt)
+        self.assertIn("A" * 8_000, prompt)
+        self.assertNotIn(sentinel, prompt)
 
 
     def test_consumer_stops_reading_candidates_at_the_policy_bound(self):
