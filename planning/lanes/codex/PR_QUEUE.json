@@ -170,6 +170,17 @@
       "evidence_path": "docs/evidence/2026-10-07-redacted-diagnostic-privacy.json",
       "scope_complete": false,
       "note": "Integrated to synchronized main 04507e36bd78b6af4053868f00926d2b8b993b0f; issue #181 remains OPEN/PARTIAL. Evidence docs/evidence/2026-10-07-redacted-diagnostic-privacy.json. Release https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6038249056"
+    },
+    {
+      "issue": 8,
+      "requirement_id": "MJ-REQ-007",
+      "status": "CANDIDATE_READY",
+      "priority": 0,
+      "target_area": "migrations/env.py; tests/integration/test_migration_recovery.py",
+      "depends_on": [],
+      "evidence_path": "docs/evidence/2026-10-07-migration-recovery.json",
+      "scope_complete": false,
+      "note": "Source 7a2107941a4f3ac0379f0053bd1f0421db117f80 pushed from 82b56526f041cdb2e456dcd7c29ad680011da9dd. Injected failure after DDL now rolls back and retries successfully on SQLite and disposable PostgreSQL 17. Full migration suite 23 PASS, 1 optional skip; related units 18 PASS. Broader requirement remains PARTIAL for protected-config recovery and offline SQL generation."
     }
   ],
   "generated_at": "2026-10-07T12:35:48Z"

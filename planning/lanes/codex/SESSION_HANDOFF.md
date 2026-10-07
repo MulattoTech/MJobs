@@ -56,3 +56,8 @@ Issue #181 / MJ-REQ-180 is active on branch `codex/mj-req180-diagnostic-privacy-
 ## Issue #181 diagnostic privacy released — 2026-10-07T12:49:10Z
 
 Integrated PARTIAL at synchronized main `04507e36bd78b6af4053868f00926d2b8b993b0f`; release readback https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6038249056. Claim released. Focused feedback test set 26 PASS; hosted checks NOT_RUN_BY_USER_POLICY. Full MJ-REQ-180 remains incomplete for unclassifiable values and out-of-scope debug surfaces. Continue from fresh live reconciliation.
+
+
+## Active issue #8 migration recovery — 2026-10-07T12:57:51Z
+
+Issue #8 / MJ-REQ-007 is active on `codex/mj-req007-migration-recovery-20261007` from main `82b56526f041cdb2e456dcd7c29ad680011da9dd`. Source/test commit `7a2107941a4f3ac0379f0053bd1f0421db117f80` (tree `f89ef1004ac2448f7a2fe7b099e97f6e0291f8e3`) is pushed. Reproduced an interrupted SQLite migration leaving an orphan table while `alembic_version` remained at parent; online migrations now explicitly start SQLite transactions. The same injected DDL failure rolls back and retries successfully on temporary SQLite and isolated PostgreSQL 17. Existing migration integration tests: 23 PASS, one optional PostgreSQL skip; related init-env/backup units: 18 PASS. Evidence `docs/evidence/2026-10-07-migration-recovery.json`. A separate offline `--sql` attempt fails in existing revision `cb72f9041d6a` because it queries a live connection; protected-config migration recovery is also unverified. Claim active; do not modify canonical planning outside lock. External submission OFF; hosted checks NOT_RUN_BY_USER_POLICY.

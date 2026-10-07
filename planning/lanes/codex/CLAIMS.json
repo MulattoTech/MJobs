@@ -237,6 +237,22 @@
       "released_at": "2026-10-07T12:49:10Z",
       "integrated_main": "04507e36bd78b6af4053868f00926d2b8b993b0f",
       "issue_comment": "https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6038249056"
+    },
+    {
+      "issue": 8,
+      "requirement_id": "MJ-REQ-007",
+      "branch": "codex/mj-req007-migration-recovery-20261007",
+      "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req007-migration-recovery-20261007",
+      "head": "7a2107941a4f3ac0379f0053bd1f0421db117f80",
+      "paths": [
+        "migrations/env.py",
+        "tests/integration/test_migration_recovery.py",
+        "docs/evidence/2026-10-07-migration-recovery.json",
+        "planning/lanes/codex/**"
+      ],
+      "claimed_at": "2026-10-07T12:52:07Z",
+      "status": "ACTIVE",
+      "claim_comment": "https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6038409026"
     }
   ]
 }

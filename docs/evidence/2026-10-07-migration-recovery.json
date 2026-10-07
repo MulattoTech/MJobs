@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-007",
+  "github_issue": 8,
+  "slice_result": "PASS",
+  "requirement_result": "PARTIAL",
+  "base_main": "82b56526f041cdb2e456dcd7c29ad680011da9dd",
+  "source_commit": "7a2107941a4f3ac0379f0053bd1f0421db117f80",
+  "source_tree": "f89ef1004ac2448f7a2fe7b099e97f6e0291f8e3",
+  "recorded_at_utc": "2026-10-07T12:57:51Z",
+  "input_sha256": {
+    "migrations/env.py": "fd9fc58f095bb401bc08bd15db0d2ec81428155b0dd7ced1cfc8be4f04c3cf61",
+    "tests/integration/test_migration_recovery.py": "f35520a2c230a55edb234763766ce2404913d71f11602d8b0d0f8218cf2b9a0f"
+  },
+  "scope": "Make supported online Alembic migrations atomic on SQLite by explicitly issuing BEGIN from the SQLAlchemy begin hook and configuring transactional DDL. Inject a failure after revision b2d6f0a19c44 creates its table; verify SQLite and PostgreSQL preserve the parent revision and prior sentinel data, roll back partial schema, and allow a clean retry to head.",
+  "acceptance": {
+    "sqlite_failed_upgrade_rolls_back_schema_and_version": "PASS - After-CREATE-TABLE fault injection leaves no target table or index and alembic_version remains at parent revision.",
+    "sqlite_existing_data_preserved_and_retry_succeeds": "PASS - A synthetic sentinel row survives the injected rollback; retry reaches current head and retains the row.",
+    "postgresql_failed_upgrade_rolls_back_and_retry_succeeds": "PASS - Same interruption/readback/retry acceptance passed against isolated PostgreSQL 17 database mjobs_migration_recovery.",
+    "migration_revisions_changed": "false - No shared migration revision/head changed.",
+    "issue_requirement_complete": "false - Protected configuration schema migration recovery and broader source-control acceptance remain unverified.",
+    "requirement_denominator_changed": "false"
+  },
+  "test_first_red": {
+    "result": "PASS",
+    "command": "python -m unittest tests.integration.test_migration_recovery.MigrationRecoveryTests.test_interrupted_sqlite_upgrade_preserves_data_and_can_resume -v",
+    "observation": "After injecting an exception immediately after SQLite executed CREATE TABLE for revision b2d6f0a19c44, the pre-fix behavior left the table present while alembic_version remained at parent a7c4e1b92d30. Alembic logged non-transactional DDL; a subsequent retry would collide with orphaned schema. Explicit transaction start now rolls back the table/index and version atomically."
+  },
+  "commands": [
+    {
+      "command": "python -m unittest tests.integration.test_migration_recovery (with MJOBS_MIGRATION_RECOVERY_POSTGRES_URL targeting disposable PostgreSQL 17)",
+      "result": "PASS",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "notes": "One SQLite and one isolated PostgreSQL 17 fault/rollback/retry case; synthetic recovery_sentinel only."
+    },
+    {
+      "command": "python -m unittest discover -s tests/integration -p '*migration*.py'",
+      "result": "PASS",
+      "tests": 23,
+      "failures": 0,
+      "errors": 0,
+      "skips": 1,
+      "notes": "Temporary SQLite migration database for the suite; PostgreSQL recovery was run separately against an isolated disposable container."
+    },
+    {
+      "command": "python -m unittest tests.unit.test_init_env tests.unit.test_local_backup",
+      "result": "PASS",
+      "tests": 18,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0
+    },
+    {
+      "command": "python -m py_compile migrations/env.py tests/integration/test_migration_recovery.py; python -m tools.verification.agent_skills; python -m tools.verification.catalogue; python -m tools.verification.progress validate; python -m tools.coordination.lane_coordination validate; git diff --check",
+      "result": "PASS"
+    },
+    {
+      "command": "MJOBS_DATABASE_URL=postgresql+psycopg://offline/unused python -m alembic upgrade head --sql",
+      "result": "FAIL - existing migration cb72f9041d6a executes a live data query through the offline connection, raising TypeError before full SQL is generated; offline SQL generation is unsupported by this migration chain and remains unresolved."
+    }
+  ],
+  "environment": {
+    "os": "Windows",
+    "python": "repository .venv Python 3.12",
+    "sqlite": "temporary file database; synthetic sentinel row only",
+    "postgresql": "isolated disposable postgres:17 container at loopback port 55457, database name mjobs_migration_recovery; container stopped and auto-removed after tests",
+    "personal_mjobs_database": "NOT_USED",
+    "docker": "one isolated PostgreSQL 17 test container started and removed; personal MJobs services untouched",
+    "frontend": "NOT_APPLICABLE",
+    "full_repository_suite": "NOT_RUN",
+    "hosted_checks": "NOT_RUN_BY_USER_POLICY",
+    "hosted_review": "NOT_RUN_BY_USER_POLICY",
+    "external_submission": false
+  },
+  "limitations": [
+    "The existing offline Alembic SQL path fails at migration cb72f9041d6a because that revision reads database rows; offline migration support remains unavailable and was not changed.",
+    "Protected configuration schema migration recovery was not exercised; only database migration recovery is covered.",
+    "Issue #8 / MJ-REQ-007 remains OPEN/PARTIAL for broader change safety and protected configuration acceptance.",
+    "No schema revision was changed; full repository suite and frontend build were not run."
+  ],
+  "denominators": {
+    "requirements": 366,
+    "reference_gaps": 59
+  },
+  "integration": {
+    "status": "PENDING",
+    "base_main": "82b56526f041cdb2e456dcd7c29ad680011da9dd",
+    "source_commit": "7a2107941a4f3ac0379f0053bd1f0421db117f80",
+    "candidate_commit": null,
+    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6038409026",
+    "issue_state": "OPEN_PARTIAL",
+    "external_submission": "OFF"
+  }
+}
