@@ -677,6 +677,29 @@
       "integrated_main": "e23c6e981318ccc7e3bc60e2faa02d7855d07b7d",
       "result": "INTEGRATED_PARTIAL; issue #403 remains OPEN",
       "release_comment": "https://github.com/MulattoTech/MJobs/issues/403#issuecomment-6043832685"
+    },
+    {
+      "issue": 177,
+      "requirement_id": "MJ-REQ-176",
+      "branch": "codex/mj-req176-ai-settings-audit-20261007",
+      "worktree": ".worktrees/codex-mj-req176-ai-settings-audit-20261007",
+      "head": "93316cccf30df78087c6222a02974484da5d35e5",
+      "paths": [
+        "packages/persistence/store.py",
+        "tests/integration/test_ai_task_settings_api.py",
+        "tests/integration/test_audit_history.py",
+        "tests/browser/test_audit_history.py",
+        "docs/evidence/2026-10-07-ai-task-settings-audit.json",
+        "planning/lanes/codex/**"
+      ],
+      "status": "RELEASED",
+      "claimed_at": "2026-10-07T18:07:06Z",
+      "claim_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6043887082",
+      "evidence_path": "docs/evidence/2026-10-07-ai-task-settings-audit.json",
+      "integrated_main": "93316cccf30df78087c6222a02974484da5d35e5",
+      "result": "PARTIAL; issue remains OPEN",
+      "released_at": "2026-10-07T18:14:00Z",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6043994187"
     }
   ]
 }

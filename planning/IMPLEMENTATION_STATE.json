@@ -353,7 +353,8 @@
     "Frontend tests: 63 PASS; TypeScript/Vite build PASS on product-source head 447afe1665af2c81a2e0d63149ca6e00068cbcfb; no frontend source changed in later test isolation commit.",
     "Agent skills, catalogue, progress, lane coordination and git diff validators PASS.",
     "Issue #517 source-candidate slice: focused API/browser 10 PASS; full Python 954 run/8 skipped; frontend 63/build; SQLite migration and validators PASS; evidence docs/evidence/2026-10-07-source-candidate-catalogue.json.",
-    "Issue #517 URL-only source report exact source commit 20e6835308209c7ae8366d7791215db642ec9ad0: 12 focused API/browser/manual/external tests PASS; full Python 955 run/8 skipped; frontend 63/build; validators PASS. Evidence docs/evidence/2026-10-07-source-candidate-catalogue.json."
+    "Issue #517 URL-only source report exact source commit 20e6835308209c7ae8366d7791215db642ec9ad0: 12 focused API/browser/manual/external tests PASS; full Python 955 run/8 skipped; frontend 63/build; validators PASS. Evidence docs/evidence/2026-10-07-source-candidate-catalogue.json.",
+    "MJ-REQ-176 AI task settings audit exact source 06942fd: 15 API/store reopen/profile isolation and connected Chromium Activity tests PASS; TypeScript/Vite build PASS; deterministic repository validators PASS."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -428,7 +429,8 @@
     "Issue #180: real ATS adapter/browser acceptance and live PostgreSQL not run; one optional PostgreSQL worker recovery class skipped because MJOBS_WORKER_RECOVERY_POSTGRES_URL was unset. GitHub hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF.",
     "Live PostgreSQL and Docker runtime checks for the MJ-REQ-176 JOB_MERGED slice; no schema/migration change and synthetic SQLite transaction/readback coverage was used.",
     "Repository-wide unittest discovery was not rerun during this slice; prior broad failure remains historical evidence and was not promoted.",
-    "Issue #517: hosted Actions/review NOT_RUN_BY_USER_POLICY; PostgreSQL/Docker runtime and live source evaluation NOT_RUN. These checks are not promoted to PASS."
+    "Issue #517: hosted Actions/review NOT_RUN_BY_USER_POLICY; PostgreSQL/Docker runtime and live source evaluation NOT_RUN. These checks are not promoted to PASS.",
+    "MJ-REQ-176 AI task settings audit: PostgreSQL/Docker NOT_RUN (no schema change); full Python suite NOT_RUN; hosted Actions/review NOT_RUN_BY_USER_POLICY; external submission OFF."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -467,18 +469,10 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-07T18:01:27Z",
+    "commit": "93316cccf30df78087c6222a02974484da5d35e5",
     "result": "PARTIAL",
-    "issue": 403,
-    "requirement_id": "MJ-REF-033",
-    "source_commit": "79b29ee0fe61af0906772f182c0ac280f73fc2f4",
-    "source_tree": "443fb463d97b5ee45a558e8db06581f0c5d6b333",
-    "base": "2e721fdfe27f9218c0d12aa9d9c6c520a2da0182",
-    "candidate_integration_commit": "01596a7a093bbfc359e9ded49076aac3cb95d94d",
-    "verification_head": "79b29ee0fe61af0906772f182c0ac280f73fc2f4",
-    "verification_tree": "443fb463d97b5ee45a558e8db06581f0c5d6b333",
-    "evidence_path": "docs/evidence/2026-10-07-agent-page-budget.json",
-    "scope": "Host-granted per-run page permits deny undeclared and over-budget page fetches; durable traces retain only limit, consumed count and stop reason. Browser/source adapter integration, bounded diagnostics reruns and in-flight synchronous preemption remain incomplete."
+    "evidence": "docs/evidence/2026-10-07-ai-task-settings-audit.json",
+    "verified_at_utc": "2026-10-07T18:13:00Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -582,7 +576,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "01596a7a093bbfc359e9ded49076aac3cb95d94d",
+  "last_implementation_commit": "93316cccf30df78087c6222a02974484da5d35e5",
   "publication": {
     "result": "PASS",
     "integration_method": "NON_FORCE_FAST_FORWARD",
@@ -9057,12 +9051,59 @@
         "No browser/source collector is currently registered in AgentRuntime; #403 remains PARTIAL and OPEN.",
         "External application submission remains OFF."
       ]
+    },
+    {
+      "milestone_id": "MJ-REQ-176-AI-TASK-SETTINGS-AUDIT-PARTIAL-20261007",
+      "timestamp": "2026-10-07T18:13:00Z",
+      "current_phase": "MJ_REQ_176_AI_TASK_SETTINGS_AUDIT_PARTIAL_INTEGRATED",
+      "completed_steps": [
+        "Reconciled origin/main and active claims; claimed only the disjoint profile settings/audit persistence and focused test paths for issue #177.",
+        "Reproduced missing setting history through API and connected Chromium Activity UI before implementation.",
+        "Implemented atomic, value-free profile SETTING_CHANGED event on effective AI task setting changes; initial default-equivalent and unchanged saves emit none.",
+        "Verified profile isolation, empty audit payload, API readback after Store reopen, connected UI Activity readback/reload, and no outbound requests.",
+        "Validated 15 focused Python integration/browser tests, TypeScript/Vite build, agent skill/catalogue/progress/lane validators, and diff check.",
+        "Pushed and non-force fast-forward integrated at main 93316cccf30df78087c6222a02974484da5d35e5; issue #177 remains OPEN/PARTIAL."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-07-ai-task-settings-audit.json"
+      ],
+      "files_modified": [
+        "packages/persistence/store.py",
+        "tests/integration/test_ai_task_settings_api.py",
+        "tests/browser/test_audit_history.py",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "15 tests across AI task settings API, audit history integration and connected Chromium browser PASS; zero failures/errors/skips.",
+        "TypeScript/Vite production build PASS; npm install audit found 0 vulnerabilities but reported Node v25.9.0 outside Vitest declared engine ranges.",
+        "Agent skills, catalogue, progress, lane coordination and git diff checks PASS."
+      ],
+      "tests_remaining": [
+        "Full Python suite NOT_RUN; live PostgreSQL/Docker NOT_RUN because there was no schema change.",
+        "Other setting-change producers and complete truthful application submitted/confirmed audit event families remain incomplete.",
+        "Hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "93316cccf30df78087c6222a02974484da5d35e5",
+        "evidence_path": "docs/evidence/2026-10-07-ai-task-settings-audit.json"
+      },
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "This slice covers AI task configuration changes only, not every settings surface or the complete audit event contract.",
+        "PostgreSQL/Docker and hosted checks were not run; no PASS is inferred for unavailable evidence.",
+        "External application submission remains OFF."
+      ]
     }
   ],
-  "current_phase": "MJ_REF_033_PAGE_BUDGET_PARTIAL_INTEGRATED",
+  "current_phase": "MJ_REQ_176_AI_TASK_SETTINGS_AUDIT_PARTIAL_INTEGRATED",
   "last_safe_checkpoint": {
-    "git_commit": "01596a7a093bbfc359e9ded49076aac3cb95d94d",
-    "evidence_path": "docs/evidence/2026-10-07-agent-page-budget.json"
+    "git_commit": "93316cccf30df78087c6222a02974484da5d35e5",
+    "evidence_path": "docs/evidence/2026-10-07-ai-task-settings-audit.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -9301,6 +9342,28 @@
       "issue_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6042382787",
       "hosted_checks": "NOT_RUN_BY_USER_POLICY",
       "release_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6042418780"
+    },
+    {
+      "result": "PARTIAL",
+      "transport": "Owned codex branch push; non-force fast-forward to main under local integration lock",
+      "branch": "codex/mj-req176-ai-settings-audit-20261007",
+      "base": "2befda648953832125eac5505083876f971e12ce",
+      "source_commit": "06942fdddd73b4e2604d339889105dfbff4ea0d8",
+      "candidate": "93316cccf30df78087c6222a02974484da5d35e5",
+      "final_head": "93316cccf30df78087c6222a02974484da5d35e5",
+      "force": false,
+      "pull_request": "NOT_OPENED_LOCAL_ONLY; GitHub Actions disabled",
+      "issue": 177,
+      "issue_state": "OPEN/PARTIAL",
+      "evidence_path": "docs/evidence/2026-10-07-ai-task-settings-audit.json",
+      "integrated_at_utc": "2026-10-07T18:13:00Z",
+      "actions_enabled": false,
+      "main_protected": false,
+      "local_remote_commit_identical": true,
+      "hosted_checks": "NOT_RUN_BY_USER_POLICY",
+      "external_submission": "OFF",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6043991740",
+      "release_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6043994187"
     }
   ],
   "live_reconciliation": {
@@ -9315,20 +9378,21 @@
     "next_issue": "Release #398 and select the next dependency-ready unclaimed issue after live claim/worktree reconciliation."
   },
   "active_development_issue": {
-    "issue": 403,
-    "requirement_id": "MJ-REF-033",
-    "title": "Run-level stopping conditions, budgets, and browser-output validation",
+    "issue": 177,
+    "requirement_id": "MJ-REQ-176",
+    "title": "Audit Log — AI task settings history slice",
     "state": "INTEGRATED_PARTIAL",
-    "base": "2e721fdfe27f9218c0d12aa9d9c6c520a2da0182",
-    "branch": "codex/mj-ref033-page-budget-20261007",
-    "candidate": "01596a7a093bbfc359e9ded49076aac3cb95d94d",
-    "integrated_main": "e23c6e981318ccc7e3bc60e2faa02d7855d07b7d",
-    "source_commit": "79b29ee0fe61af0906772f182c0ac280f73fc2f4",
-    "source_tree": "443fb463d97b5ee45a558e8db06581f0c5d6b333",
-    "evidence": "docs/evidence/2026-10-07-agent-page-budget.json",
+    "base": "2befda648953832125eac5505083876f971e12ce",
+    "branch": "codex/mj-req176-ai-settings-audit-20261007",
+    "candidate": "93316cccf30df78087c6222a02974484da5d35e5",
+    "integrated_main": "93316cccf30df78087c6222a02974484da5d35e5",
+    "source_commit": "06942fdddd73b4e2604d339889105dfbff4ea0d8",
+    "source_tree": "2ba315630a0f3762c0eed2cc77a98c0e656c86b7",
+    "evidence": "docs/evidence/2026-10-07-ai-task-settings-audit.json",
     "issue_state": "OPEN",
-    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/403#issuecomment-6043832685",
-    "next_action": "Issue #403 is OPEN/PARTIAL and its Codex claim is RELEASED at https://github.com/MulattoTech/MJobs/issues/403#issuecomment-6043832685. Reconcile claims/worktrees and select the next highest-value unclaimed dependency-ready issue."
+    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6043991740",
+    "next_action": "Codex claim and integration lock released. Reconcile latest main, claims, issue comments and active worktrees; select and claim the next highest-value dependency-ready issue.",
+    "release_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6043994187"
   },
   "historical_control_snapshots": [
     {
@@ -10471,5 +10535,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-07T18:04:15Z"
+  "updated_at": "2026-10-07T18:13:00Z"
 }

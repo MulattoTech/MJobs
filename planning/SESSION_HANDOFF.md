@@ -996,3 +996,13 @@ Next: synchronize and verify origin/main, post sanitized issue evidence, release
 
 
 Claim release readback for the MJ-REQ-176 JOB_MERGED slice: https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6042418780. Issue #177 remains OPEN/PARTIAL. Canonical planning/release metadata is synchronized at main bedbb0b390486a71506c570042e1ca463deb599d. Codex claim is released; integration lock is held only for final lane receipt sync. Next: release lock, reconcile all live ownership and select the next highest-value unclaimed dependency-ready issue.
+
+
+## 2026-10-07 Codex integration checkpoint — MJ-REQ-176 AI task settings audit
+
+- Source: `06942fdddd73b4e2604d339889105dfbff4ea0d8` (tree `2ba315630a0f3762c0eed2cc77a98c0e656c86b7`); base `2befda648953832125eac5505083876f971e12ce`; non-force fast-forward main `93316cccf30df78087c6222a02974484da5d35e5`. Evidence: `docs/evidence/2026-10-07-ai-task-settings-audit.json`.
+- Result: **PARTIAL**; issue #177 remains OPEN. AI task settings now append one profile-owned empty-payload SETTING_CHANGED event atomically when values effectively change; default-equivalent and repeat saves do not duplicate events.
+- Validation: 15 focused API/store-reopen/profile-isolation and connected Chromium Activity tests PASS; TypeScript/Vite build and local validators PASS. Synthetic SQLite only; PostgreSQL/Docker/full Python NOT_RUN. npm reported Node v25.9.0 outside Vitest declared engine ranges. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.
+- Remaining: additional setting families and complete truthful application lifecycle event coverage. Release claim/lock, reconcile all lanes, and continue with next unclaimed dependency-ready issue.
+
+- GitHub integration checkpoint: https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6043991740. AI LANE RELEASED readback: https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6043994187. Codex claim released; integration lock is held for canonical/lane state synchronization only. Issue #177 remains OPEN/PARTIAL.
