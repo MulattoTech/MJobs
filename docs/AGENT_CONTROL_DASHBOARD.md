@@ -139,3 +139,30 @@ selected Ollama model.
 Ollama runtime information (loaded model, memory size, processor/offload description,
 context window, keepalive) and observed Windows GPU utilization are shown separately
 from token accounting.
+
+
+## Codex deep telemetry
+
+The Codex card reads the local Codex rollout JSONL records in addition to the account rate-limit RPC. It keeps four scopes separate:
+
+1. **Current model turn** — current context/turn total, context-window utilization, new versus cached input, cache-write input, output and reasoning output.
+2. **Current Codex session** — cumulative processed/input/cache/output/reasoning tokens, model turns, structured tool calls, cache share and wall-clock throughput.
+3. **Claimed MJobs worktree** — aggregate session/token/tool totals for Codex rollout files whose recorded cwd matches the claimed worktree.
+4. **Selected Codex model on MJobs** — all-time and last-24-hour aggregates for that model across Codex sessions rooted in the MJobs repository.
+
+Codex input_tokens includes cached input. The dashboard therefore also reports new_input_tokens = input_tokens - cached_input_tokens; it does not double-count cached context as new prompt material. The account quota bar remains sourced from account/rateLimits/read, not from these token totals.
+
+## Antigravity deep telemetry
+
+Antigravity transcript JSONL records exact input_tokens, cache_read_tokens, and output_tokens on each PLANNER_RESPONSE. The dashboard scopes transcripts to the claimed MJobs worktree and reports:
+
+- latest prompt/context material (input + cache-read) and latest output;
+- conversation cumulative input/cache/output/processed tokens;
+- planner turns, generic/tool-result steps and failed steps;
+- tool-call count and per-tool breakdown;
+- thinking-step count plus thinking text characters/words;
+- cache share, elapsed conversation time and wall-clock output-token throughput;
+- aggregate totals across all conversations tied to the same MJobs worktree;
+- configured-model historical/24-hour totals only when the model named in the recorded lane launch prompt matches the configured dashboard model.
+
+Antigravity does not expose hidden thinking-token counts or a reliable remaining quota percentage through its local CLI. The dashboard therefore never invents those numbers. It shows thinking-text statistics and native quota/429 evidence instead. Historical model grouping is explicitly marked as launch-prompt attribution rather than provider-billed model accounting.
