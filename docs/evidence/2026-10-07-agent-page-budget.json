@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-07T17:57:44Z",
+  "issue": 403,
+  "reference_gap_id": "MJ-REF-033",
+  "result": "PARTIAL",
+  "source_commit": "79b29ee0fe61af0906772f182c0ac280f73fc2f4",
+  "source_tree": "443fb463d97b5ee45a558e8db06581f0c5d6b333",
+  "base_main": "2e721fdfe27f9218c0d12aa9d9c6c520a2da0182",
+  "acceptance_oracle": "A page-reading tool must explicitly declare a bounded run page budget and receive a host-owned permit before each page fetch. An undeclared or exhausted budget prevents the next fetch and records only the limit, count, and stable stop code in durable run history.",
+  "red_observation": {
+    "command": "python -m unittest tests.integration.test_agent_tools.AgentToolBoundaryTests.test_page_budget_blocks_the_next_fetch_and_persists_only_consumption tests.integration.test_agent_tools.AgentToolBoundaryTests.test_page_consuming_tool_requires_an_explicit_budget -v",
+    "result": "FAIL as expected before implementation: run() rejected max_pages; an undeclared page consume became generic FAILED rather than a bounded stop."
+  },
+  "implementation": [
+    "AgentRuntime accepts an optional max_pages run declaration bounded to 1..100.",
+    "A thread-safe host PageBudget grants one permit immediately before each handler page fetch; no permit exists if a limit was not declared.",
+    "Budget-required and exhausted outcomes stop the run as LIMIT_REACHED and persist max_pages/pages_consumed with stable result codes. Tool output and page values are not copied into traces.",
+    "The agent area contract documents how a page-reading handler must consume permits."
+  ],
+  "validation": [
+    {
+      "command": "python -m unittest tests.integration.test_agent_tools.AgentToolBoundaryTests.test_page_budget_blocks_the_next_fetch_and_persists_only_consumption tests.integration.test_agent_tools.AgentToolBoundaryTests.test_page_consuming_tool_requires_an_explicit_budget -v",
+      "result": "PASS after fix; 2 tests"
+    },
+    {
+      "command": "python -m unittest tests.unit.test_agent_acceptance tests.integration.test_agent_tools tests.integration.test_agent_task_prompts -v",
+      "result": "PASS on exact source commit; 25 tests, 0 failures/errors/skips"
+    },
+    {
+      "command": "python -m compileall -q services/agents tests/unit/test_agent_acceptance.py tests/integration/test_agent_tools.py",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.agent_skills",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.catalogue",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.progress validate",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.reference_provenance",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.coordination.lane_coordination validate",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "scope": {
+    "database": "Temporary SQLite integration fixtures; no migration or schema change.",
+    "browser": "NOT_RUN; no browser/source tool is currently registered in the local AgentRuntime. Browser/source entrypoint integration remains unaccepted.",
+    "postgresql_docker": "NOT_APPLICABLE; no database schema/runtime behavior changed.",
+    "frontend": "NOT_APPLICABLE; no UI code changed.",
+    "full_python_suite": "NOT_RUN; focused affected unit/integration packages were run.",
+    "hosted_actions_review": "NOT_RUN_BY_USER_POLICY",
+    "external_submission": "OFF"
+  },
+  "limitations": [
+    "The page limit is enforced when a host tool calls consume_page() before each page fetch; this does not forcibly terminate a synchronous handler already blocked inside a call.",
+    "No browser/source adapter currently consumes the new page permits; actual entrypoint wiring remains open.",
+    "Bounded diagnostic slice reruns remain open; this evidence does not claim the complete #403 acceptance."
+  ],
+  "reference_provenance": {
+    "reference": "AIHawk / feder-cr/invisible_playwright_mcp",
+    "inspected_commit": "c64ba668842d111e37c1b88f960c0c7ecd756444",
+    "license": "MIT at inspected ref; earlier lineage includes AGPL-3.0 copies",
+    "use": "Clean-room host-owned page permit mechanism; no reference source, tests, prompts, prose, or assets copied."
+  }
+}

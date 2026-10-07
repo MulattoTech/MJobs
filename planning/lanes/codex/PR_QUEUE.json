@@ -71,16 +71,6 @@
       "integration_commit": "b778917a56d266a50f3cb1e21c9f4220bb20a28c"
     },
     {
-      "issue": 403,
-      "requirement_id": "MJ-REF-033",
-      "status": "INTEGRATED_PARTIAL",
-      "priority": 1,
-      "target_area": "services/agents; tests/unit; tests/integration",
-      "evidence_path": "docs/evidence/2026-10-07-agent-run-budget-output-validation.json",
-      "scope_complete": false,
-      "note": "Integrated as a scoped PARTIAL slice: agent run time/step stop outcomes and typed collection count/tail/shape validation are locally verified. Actual browser collection integration, page budgets, bounded diagnostic slice reruns, and hard preemption of an in-flight synchronous handler remain open."
-    },
-    {
       "issue": 375,
       "requirement_id": "MJ-REF-005",
       "status": "INTEGRATED_PASS",
@@ -317,6 +307,19 @@
       "evidence_path": "docs/evidence/2026-10-07-source-candidate-catalogue.json",
       "scope_complete": false,
       "note": "Partial catalogue integrated at fb21927f307289b5ed4f1acb5c9b4a862548d905. Follow-up URL-only report integrated locally at 20e6835308209c7ae8366d7791215db642ec9ad0: source reports can omit job metadata, preserve source URL/origin, sanitize query secrets, remain profile-scoped/idempotent and never create applications or open links. Full Python 955 run/8 skipped, frontend 63/build, focused 12, validators pass. Supported provider/browser capture hooks and documented integration evaluation/task remain open; issue remains OPEN/PARTIAL."
+    },
+    {
+      "issue": 403,
+      "requirement_id": "MJ-REF-033",
+      "status": "CHECKPOINTED_PARTIAL",
+      "priority": 1,
+      "target_area": "services/agents/registry.py; services/agents/runtime.py; services/agents/traces.py; tests/integration/test_agent_tools.py",
+      "depends_on": [],
+      "evidence_path": "docs/evidence/2026-10-07-agent-page-budget.json",
+      "scope_complete": false,
+      "branch": "codex/mj-ref033-page-budget-20261007",
+      "head": "79b29ee0fe61af0906772f182c0ac280f73fc2f4",
+      "note": "Page-reading tools can declare max_pages and must obtain a thread-safe host permit before each fetch. Undeclared/exhausted budgets stop safely and persist sanitized consumption. 25 focused agent tests, compileall and local validators pass. Actual browser/source integration, bounded diagnostics reruns, and preemption of synchronous in-flight handlers remain unaccepted; issue #403 stays OPEN/PARTIAL; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF."
     }
   ],
   "generated_at": "2026-10-07T17:45:53Z"

@@ -650,6 +650,29 @@
       "released_at": "2026-10-07T17:48:48Z",
       "integrated_main": "68b94d72bf7c254154e5ad5099a6f25644e7a0a7",
       "issue_comment": "https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6043571312"
+    },
+    {
+      "issue": 403,
+      "requirement_id": "MJ-REF-033",
+      "branch": "codex/mj-ref033-page-budget-20261007",
+      "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-ref033-page-budget-20261007",
+      "head": "79b29ee0fe61af0906772f182c0ac280f73fc2f4",
+      "paths": [
+        "services/agents/registry.py",
+        "services/agents/acceptance.py",
+        "services/agents/runtime.py",
+        "services/agents/traces.py",
+        "services/agents/AREA.md",
+        "tests/unit/test_agent_acceptance.py",
+        "tests/integration/test_agent_tools.py",
+        "docs/evidence/2026-10-07-agent-page-budget.json",
+        "docs/reference/REFERENCE_INSPIRATION_LOG.md",
+        "planning/lanes/codex/**"
+      ],
+      "status": "ACTIVE",
+      "claimed_at": "2026-10-07T17:53:51Z",
+      "claim_comment": "https://github.com/MulattoTech/MJobs/issues/403#issuecomment-6043704223",
+      "scope": "Bounded cooperative per-run page permits and durable sanitized stop evidence; #403 remains partial."
     }
   ]
 }
