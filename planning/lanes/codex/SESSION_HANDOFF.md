@@ -1,18 +1,18 @@
 # Codex lane handoff
 
-Status: **ACTIVE / issue #5 scoped acceptance locally verified; integration pending**
+Status: **ACTIVE / issue #6 scoped acceptance locally verified; integration pending**
 
-## Active issue #5 / MJ-REQ-004
+## Active issue #6 / MJ-REQ-005
 
-Claim: `codex/mj-req004-upload-compare-cross-instance-20261007`, worktree `C:/Tools/Dev/MJobs/.worktrees/codex-mj-req004-upload-compare-cross-instance-20261007`.
-Base main: `805e52bab0528e562578f51f5426285af0163657`; source commit: `dff77688f25fde18e24201dc8f62e6f9324e542b`.
-Evidence: `docs/evidence/2026-10-07-uploaded-comparison-cross-instance-cancel.json` (evidence and lane-state checkpoint pending commit).
+Claim: `codex/mj-req005-application-category-capacity-20261007`, worktree `C:/Tools/Dev/MJobs/.worktrees/codex-mj-req005-application-category-capacity-20261007`.
+Base main: `aa28501b0db8a00e9331d43347e2bbdfc3ed2b98`; source commit: `704b2fc3fadd00d4e40ca1bea4ccbbe3a0c3bf50`.
+Evidence: `docs/evidence/2026-10-07-application-automation-category-capacity.json` (evidence and lane-state checkpoint pending commit).
 
-Uploaded-original comparisons now reserve a durable worker operation keyed by a hash of profile/application/revision/document scope. A second API instance sharing the operation store can cancel the in-flight comparison. The synthetic SQLite integration regression verifies HTTP 499, durable CANCELLED readback, wrong-profile denial, wrong-document non-cancellation, no raw resume identifiers or parameters in the operation row, and unchanged profile/application history. The regression was observed failing before implementation.
+The new integration regression races two APPLY_MOCK claims through independent Store engines over the same SQLite database at a configured application-automation limit of one. It verifies one durable RUNNING claim, one still-QUEUED operation with no attempt, and independent PREPARE capacity. This adds missing acceptance coverage for the existing database-backed category lock; no product source change was needed for this slice.
 
-Validation on this source: focused Python/API suite 46 PASS; full Python suite 886 PASS with one optional PostgreSQL skip; connected headless Chromium browser test PASS; frontend 63 tests and TypeScript/Vite build PASS; agent-skills, catalogue, progress, lane, compileall, and diff checks PASS. No migration was changed. PostgreSQL runtime was NOT_RUN because `MJOBS_TEST_POSTGRES_URL` was unset. Hosted checks/review are NOT_RUN by policy; external submission remains OFF.
+Validation on this source: worker lifecycle, dead-letter and category-concurrency suites 23 PASS; isolated race regression 1 PASS; diff check PASS. No migration or frontend change. Browser test, frontend test/build, full repository suite, live PostgreSQL, and hosted checks/review were NOT_RUN for this test-only slice. External submission remains OFF.
 
-Next: fetch current main and reconcile active claims. Acquire the integration lock; verify the exact candidate/base; update canonical requirement/capability/progress/queue/handoff evidence while holding the lock; fast-forward only if main is an ancestor; push and verify local/remote hashes. Post sanitized evidence on issue #5, keep it OPEN/PARTIAL because broader operation/provider/ATS requirements remain, release the claim and lock, then immediately select the next unclaimed dependency-ready issue.
+Next: fetch current main and reconcile active claims/worktrees. Acquire the integration lock; verify the exact candidate/base; update canonical requirement/capability/progress/queue/handoff evidence while holding the lock; fast-forward only if main is an ancestor; push and verify local/remote hashes. Post sanitized evidence on issue #6, keep it OPEN/PARTIAL because live PostgreSQL and real ATS behavior remain unverified, release the claim and lock, then immediately select the next unclaimed dependency-ready issue.
 
 ## Other active lane claims
 

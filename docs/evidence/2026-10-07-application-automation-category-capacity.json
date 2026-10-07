@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "issue": 6,
+  "requirement_id": "MJ-REQ-005",
+  "lane": "codex",
+  "branch": "codex/mj-req005-application-category-capacity-20261007",
+  "source_head": "704b2fc3fadd00d4e40ca1bea4ccbbe3a0c3bf50",
+  "source_tree": "83fe92e373173c8035efb06a48efebdab58b6473",
+  "base_main": "aa28501b0db8a00e9331d43347e2bbdfc3ed2b98",
+  "recorded_at_utc": "2026-10-07T09:30:30Z",
+  "input_sha256": {
+    "tests/integration/test_worker_lifecycle.py": "3f80d086c7a72bf85b9af963505d48eda32c3e5ec7760132dfa032114e7b77c4"
+  },
+  "result": "PARTIAL",
+  "acceptance": {
+    "independent_store_concurrency": "PASS - two simultaneous APPLY_MOCK claims from separate Store engines sharing one SQLite database contend at an application-automation ceiling of one; exactly one becomes RUNNING and the other remains QUEUED with zero attempts.",
+    "category_isolation": "PASS - a PREPARE operation can still claim while one APPLY_MOCK operation is RUNNING, demonstrating that the document-generation ceiling is independent.",
+    "durable_readback": "PASS - operation state and attempt counts read back through the second Store instance.",
+    "requirement_scope": "PARTIAL - this adds acceptance coverage for the existing database-backed application-automation category claim. Real ATS concurrency and live PostgreSQL advisory-lock behavior remain unverified; other requirement coverage is tracked separately."
+  },
+  "validation": {
+    "focused_command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_worker_lifecycle tests.integration.test_dead_letter_queue tests.unit.test_operation_concurrency -v",
+    "focused_result": "PASS - 23 tests, zero failures/errors.",
+    "isolated_regression_command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_worker_lifecycle.WorkerLifecycleTests.test_concurrent_application_workers_share_capacity_across_store_instances -v",
+    "isolated_regression_result": "PASS - 1 test.",
+    "repository_checks": [
+      "git diff --check"
+    ],
+    "repository_checks_result": "PASS"
+  },
+  "environment": {
+    "python": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe (Python 3.12)",
+    "database": "Temporary synthetic SQLite shared by two independent Store engines; no migrations changed.",
+    "browser": "NOT_RUN - no browser/UI code changed; the asserted behavior is operation admission before a browser worker can start.",
+    "frontend": "NOT_RUN - no frontend code changed.",
+    "postgresql": "NOT_RUN - live PostgreSQL runtime was unavailable; the optional PostgreSQL concurrency test was not run in this focused slice.",
+    "docker": "NOT_RUN - no container or migration behavior changed.",
+    "hosted_checks_and_review": "NOT_RUN_BY_USER_POLICY; GitHub Actions and hosted reviewers remain disabled.",
+    "external_application_submission": "OFF"
+  },
+  "limitations": [
+    "This slice adds missing race acceptance coverage; the category-lock implementation itself was already present on main.",
+    "Separate Store engines in one process exercise SQLite database serialization but do not prove separate OS-process contention or PostgreSQL advisory-lock behavior.",
+    "Real ATS browser-worker concurrency remains unverified and external submission remains OFF.",
+    "Issue #6 / MJ-REQ-005 remains OPEN/PARTIAL."
+  ]
+}
