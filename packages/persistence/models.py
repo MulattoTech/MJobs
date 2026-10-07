@@ -45,6 +45,41 @@ ai_cost_policies = table(
                                  "max_document_candidates <= max_ai_candidates",
                                  name="ck_profile_ai_cost_policy_bounds")),
 )
+ai_evaluation_runs = table(
+    "ai_evaluation_runs",
+    Column("profile_id", ForeignKey("career_profiles.id", ondelete="CASCADE"), nullable=False),
+    Column("profile_version", String(64), nullable=False),
+    Column("policy", JSON, nullable=False),
+    Column("task_provider", String(64), nullable=False),
+    Column("task_model", String(128), nullable=False),
+    Column("evaluated_candidate_count", Integer, nullable=False),
+    Column("created_at", String(64), nullable=False),
+    constraints=(CheckConstraint("evaluated_candidate_count >= 0",
+                                 name="ck_ai_evaluation_runs_candidate_count"),),
+)
+Index("ix_ai_evaluation_runs_profile_created", ai_evaluation_runs.c.profile_id,
+      ai_evaluation_runs.c.created_at)
+ai_job_evaluations = table(
+    "ai_job_evaluations",
+    Column("run_id", ForeignKey("ai_evaluation_runs.id", ondelete="CASCADE"), nullable=False),
+    Column("profile_id", ForeignKey("career_profiles.id", ondelete="CASCADE"), nullable=False),
+    Column("job_id", String(128), nullable=False),
+    Column("title", String(512), nullable=False),
+    Column("company", String(512), nullable=False),
+    Column("deterministic_score", Integer, nullable=False),
+    Column("category", String(16), nullable=False),
+    Column("rationale", String(1000), nullable=False),
+    Column("created_at", String(64), nullable=False),
+    constraints=(
+        UniqueConstraint("run_id", "job_id", name="uq_ai_job_evaluation_run_job"),
+        CheckConstraint("deterministic_score >= 0 AND deterministic_score <= 100",
+                        name="ck_ai_job_evaluation_score"),
+        CheckConstraint("category IN ('STRONG', 'REVIEW', 'WEAK')",
+                        name="ck_ai_job_evaluation_category"),
+    ),
+)
+Index("ix_ai_job_evaluations_profile_created", ai_job_evaluations.c.profile_id,
+      ai_job_evaluations.c.created_at)
 facts = table("career_facts", Column("profile_id", ForeignKey("career_profiles.id"), nullable=False),
               Column("version", String(64), nullable=False), Column("fact_id", String(128), nullable=False),
               Column("kind", String(32), nullable=False), Column("text", String(10000), nullable=False),

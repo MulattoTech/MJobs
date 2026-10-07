@@ -149,9 +149,15 @@ class AITaskSettingsBrowserTests(unittest.TestCase):
                     cost_panel = page.get_by_role("region", name="AI cost controls")
                     expect(cost_panel.get_by_label("Minimum deterministic score", exact=True)).to_have_value("50")
                     expect(cost_panel.get_by_label("Maximum AI candidates", exact=True)).to_have_value("1")
+                    evaluations = page.get_by_role("region", name="AI evaluation history")
+                    expect(evaluations).to_be_visible()
+                    expect(evaluations.get_by_role("article")).to_have_count(1)
+                    expect(evaluations.get_by_text("Check the listed infrastructure duties.", exact=False)).to_be_visible()
 
                     page.locator("#active-profile").select_option("other-profile")
                     expect(panel.get_by_label("Job scoring provider", exact=True)).to_have_value("disabled")
+                    expect(page.get_by_role("region", name="AI evaluation history").get_by_text(
+                        "No saved AI evaluations for this profile.", exact=True)).to_be_visible()
                     expect(panel.get_by_label("Job scoring model", exact=True)).to_be_disabled()
                     expect(panel.get_by_label("Resume tailoring provider", exact=True)).to_have_value("disabled")
                     expect(panel.get_by_label("Resume tailoring model", exact=True)).to_be_disabled()

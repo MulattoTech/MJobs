@@ -15,3 +15,6 @@ AI cost controls persist per-profile score thresholds and bounded work caps;
 the read-only funnel preview reports eligible/capped counts without invoking a
 model or creating documents. Controls remain unavailable until saved policy
 values for the selected profile load successfully.
+Evaluation remains an explicit action. Validated advisory results are shown in
+profile-scoped history after reload; they do not change deterministic scores or
+create documents.

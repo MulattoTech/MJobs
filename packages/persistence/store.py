@@ -330,6 +330,115 @@ class Store:
             }, replace=True)
         return values
 
+    def save_ai_evaluation_run(self, profile_id, profile_version, policy,
+                               task_provider, task_model, evaluations):
+        """Atomically persist bounded advisory evaluations for the profile snapshot."""
+        policy_fields = {"minimum_score", "max_input_candidates", "max_ai_candidates",
+                         "max_document_candidates"}
+        if (not isinstance(profile_version, str) or not profile_version
+                or not isinstance(policy, dict) or set(policy) != policy_fields
+                or any(type(value) is not int for value in policy.values())
+                or not 0 <= policy["minimum_score"] <= 100
+                or not 1 <= policy["max_input_candidates"] <= 100000
+                or not 0 <= policy["max_ai_candidates"] <= 75
+                or not 0 <= policy["max_document_candidates"] <= min(20, policy["max_ai_candidates"])
+                or not isinstance(task_provider, str) or not task_provider or len(task_provider) > 64
+                or not isinstance(task_model, str) or not task_model or len(task_model) > 128
+                or not isinstance(evaluations, list) or len(evaluations) > 75):
+            raise ValueError("AI_EVALUATION_INPUT_INVALID")
+        values = []
+        seen_job_ids = set()
+        for item in evaluations:
+            if not isinstance(item, dict) or set(item) != {
+                    "job_id", "title", "company", "deterministic_score", "category", "rationale"}:
+                raise ValueError("AI_EVALUATION_INPUT_INVALID")
+            if (not isinstance(item["job_id"], str) or not item["job_id"]
+                    or len(item["job_id"]) > 200 or item["job_id"] in seen_job_ids
+                    or not isinstance(item["title"], str) or len(item["title"]) > 512
+                    or not isinstance(item["company"], str) or len(item["company"]) > 512
+                    or type(item["deterministic_score"]) is not int
+                    or not 0 <= item["deterministic_score"] <= 100
+                    or item["category"] not in ("STRONG", "REVIEW", "WEAK")
+                    or not isinstance(item["rationale"], str)
+                    or not item["rationale"].strip() or len(item["rationale"]) > 1000):
+                raise ValueError("AI_EVALUATION_INPUT_INVALID")
+            seen_job_ids.add(item["job_id"])
+            values.append(item)
+
+        run_id = identity(profile_id, "ai-evaluation-run", uuid4().hex)
+        created_at = now()
+        with self.engine.begin() as connection:
+            current_version = connection.execute(
+                select(m.profiles.c.version).where(m.profiles.c.id == profile_id)
+                .with_for_update()
+            ).scalar_one()
+            if current_version != profile_version:
+                raise ValueError("AI_EVALUATION_PROFILE_CHANGED")
+            upsert(connection, m.ai_evaluation_runs, {
+                "id": run_id,
+                "profile_id": profile_id,
+                "profile_version": profile_version,
+                "policy": policy,
+                "task_provider": task_provider,
+                "task_model": task_model,
+                "evaluated_candidate_count": len(values),
+                "created_at": created_at,
+            })
+            for item in values:
+                upsert(connection, m.ai_job_evaluations, {
+                    "id": identity(run_id, item["job_id"]),
+                    "run_id": run_id,
+                    "profile_id": profile_id,
+                    "job_id": item["job_id"],
+                    "title": item["title"],
+                    "company": item["company"],
+                    "deterministic_score": item["deterministic_score"],
+                    "category": item["category"],
+                    "rationale": item["rationale"],
+                    "created_at": created_at,
+                })
+        return {"run_id": run_id, "profile_version": profile_version,
+                "policy": policy, "task_provider": task_provider,
+                "task_model": task_model,
+                "evaluated_candidate_count": len(values), "created_at": created_at}
+
+    def ai_evaluation_history(self, profile_id, limit=20):
+        """Read the newest persisted advisory evaluations for one profile."""
+        self.profile(profile_id)
+        if type(limit) is not int or not 1 <= limit <= 100:
+            raise ValueError("AI_EVALUATION_HISTORY_LIMIT_INVALID")
+        with self.engine.connect() as connection:
+            runs = [dict(row) for row in connection.execute(
+                select(m.ai_evaluation_runs).where(
+                    m.ai_evaluation_runs.c.profile_id == profile_id
+                ).order_by(m.ai_evaluation_runs.c.created_at.desc(),
+                           m.ai_evaluation_runs.c.id.desc()).limit(limit)
+            ).mappings()]
+            if not runs:
+                return []
+            run_ids = [row["id"] for row in runs]
+            evaluations = [dict(row) for row in connection.execute(
+                select(m.ai_job_evaluations).where(
+                    m.ai_job_evaluations.c.profile_id == profile_id,
+                    m.ai_job_evaluations.c.run_id.in_(run_ids),
+                ).order_by(m.ai_job_evaluations.c.deterministic_score.desc(),
+                           m.ai_job_evaluations.c.id)
+            ).mappings()]
+        by_run = {run_id: [] for run_id in run_ids}
+        for row in evaluations:
+            by_run[row["run_id"]].append({key: row[key] for key in (
+                "job_id", "title", "company", "deterministic_score", "category", "rationale")})
+        return [{
+            "run_id": row["id"],
+            "profile_version": row["profile_version"],
+            "policy": row["policy"],
+            "task_provider": row["task_provider"],
+            "task_model": row["task_model"],
+            "evaluated_candidate_count": row["evaluated_candidate_count"],
+            "created_at": row["created_at"],
+            "evaluations": by_run[row["id"]],
+        } for row in runs]
+
     def jobs(self, profile_id=None, q="", remote_type=None, provider=None, sort="score", limit=200):
         profile = self.profile(profile_id) if profile_id else None
         with self.engine.connect() as connection:

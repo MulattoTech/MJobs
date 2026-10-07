@@ -195,6 +195,28 @@ class AICostPolicyApiTests(unittest.TestCase):
         self.assertEqual(response.json()["evaluated_candidate_count"], 1)
         self.assertEqual(response.json()["document_candidate_ids"], [])
         self.assertEqual(response.json()["evaluations"][0]["category"], "STRONG")
+        self.assertEqual(response.json()["task_provider"], "ollama")
+        self.assertEqual(response.json()["task_model"], "llama3.2:3b")
+        self.assertEqual(response.json()["policy"]["max_ai_candidates"], 1)
+        run_id = response.json()["run_id"]
+
+        history = self.client.get("/profiles/fixture/ai-cost-plan/evaluations")
+        self.assertEqual(history.status_code, 200, history.text)
+        self.assertEqual(history.json()["runs"][0]["run_id"], run_id)
+        self.assertEqual(history.json()["runs"][0]["evaluations"][0]["job_id"],
+                         response.json()["evaluations"][0]["job_id"])
+        self.assertEqual(self.client.get(
+            "/profiles/other-profile/ai-cost-plan/evaluations").json()["runs"], [])
+
+        self.client.close()
+        self.store.engine.dispose()
+        self.store = Store(self.database_url)
+        self.client = TestClient(create_app(self.store, "http://127.0.0.1:8090", self.root,
+                                            "redis://127.0.0.1:1/0", operation_mode="PERSONAL"))
+        reopened = self.client.get("/profiles/fixture/ai-cost-plan/evaluations")
+        self.assertEqual(reopened.status_code, 200, reopened.text)
+        self.assertEqual(reopened.json()["runs"][0]["run_id"], run_id)
+        self.assertEqual(reopened.json()["runs"][0]["evaluations"][0]["category"], "STRONG")
 
     def test_structured_provider_failures_are_reported_as_upstream_errors(self):
         from unittest.mock import patch
@@ -236,6 +258,54 @@ class AICostPolicyApiTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 502, response.text)
         self.assertEqual(response.json()["detail"]["code"], "AI_STRUCTURED_PROVIDER_FAILED")
+
+    def test_results_are_not_saved_when_profile_changes_during_provider_call(self):
+        from unittest.mock import patch
+        from services.ai.consumer import AIJobEvaluation
+        from services.ai.tasks import AI_TASKS
+
+        response = self.client.post("/jobs/manual", json={
+            "request_id": "cost-consumer-profile-change",
+            "title": "Infrastructure Administrator",
+            "company": "Synthetic Company",
+            "description": "Windows Server operations.",
+            "reference_url": "https://jobs.example.test/profile-change",
+            "application_url": "https://apply.example.test/profile-change",
+            "source_details": {},
+        })
+        self.assertEqual(response.status_code, 201, response.text)
+        recalculate(self.store, "fixture")
+        job = self.store.jobs(profile_id="fixture")[0]
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.matches).where(
+                m.matches.c.profile_id == "fixture",
+                m.matches.c.job_id == job["id"],
+            ).values(score=95.0))
+        self.store.save_ai_task_settings("fixture", {
+            task: {"provider": "ollama", "model": "llama3.2:3b"}
+            if task == "job_scoring" else {"provider": "disabled", "model": None}
+            for task in AI_TASKS
+        })
+
+        class ChangingRouter:
+            def __init__(self, configuration):
+                self.configuration = configuration
+
+            def generate_structured(self, **kwargs):
+                changed = copy.deepcopy(PROFILE)
+                changed["name"] = "Changed while inference was running"
+                self_outer.store.save_profile(changed)
+                return AIJobEvaluation(category="REVIEW", rationale="Review required.")
+
+        self_outer = self
+        with patch("apps.api.main.AITaskRouter", ChangingRouter):
+            response = self.client.post("/profiles/fixture/ai-cost-plan/evaluate")
+
+        self.assertEqual(response.status_code, 409, response.text)
+        self.assertEqual(response.json()["detail"]["code"], "AI_EVALUATION_PROFILE_CHANGED")
+        history = self.client.get("/profiles/fixture/ai-cost-plan/evaluations")
+        self.assertEqual(history.status_code, 200, history.text)
+        self.assertEqual(history.json()["runs"], [])
 
 
 if __name__ == "__main__":

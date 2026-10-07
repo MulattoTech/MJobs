@@ -17,4 +17,8 @@ Never backfill a generation timestamp from application creation time.
 Profile AI task settings store only provider/model identifiers, default to no
 rows (all providers disabled), and are isolated by profile with cascade ownership.
 AI cost thresholds are stored per profile; missing policy rows use bounded code
-defaults. The persistence layer remains the durable authority for both settings.
+defaults. Validated AI evaluation runs and job results are append-only, scoped
+to their profile and the profile version used for inference, and retain the
+threshold and non-secret provider/model identifiers. They can be reloaded without
+invoking a provider. The persistence layer remains the durable authority for
+settings and evaluation history.

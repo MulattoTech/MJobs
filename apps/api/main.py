@@ -523,6 +523,12 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             "no_model_calls": True,
         }
 
+    @app.get("/profiles/{profile_id}/ai-cost-plan/evaluations")
+    def ai_cost_evaluation_history(profile_id: str,
+                                   limit: int = Query(default=20, ge=1, le=100)):
+        return {"profile_id": profile_id,
+                "runs": store.ai_evaluation_history(profile_id, limit)}
+
     @app.post("/profiles/{profile_id}/ai-cost-plan/evaluate")
     def evaluate_ai_cost_plan(profile_id: str):
         configured_policy = store.ai_cost_policy(profile_id)
@@ -530,9 +536,11 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         configuration = AITaskConfiguration.from_mapping(store.ai_task_settings(profile_id))
         if configuration.for_task("job_scoring").provider == "disabled":
             raise HTTPException(409, {"code": "AI_PROVIDER_DISABLED"})
+        task_selection = configuration.for_task("job_scoring")
         rows = store.jobs(profile_id=profile_id, limit=policy.max_input_candidates + 1)
         if len(rows) > policy.max_input_candidates:
             raise HTTPException(422, {"code": "AI_FUNNEL_INPUT_LIMIT"})
+        profile_version = store.profile(profile_id)["version"]
         candidates = [AIJobInput(
             job_id=row["id"], deterministic_score=int(float(row["match_score"])),
             title=row["title"], company=row["company"], description=row["description"],
@@ -548,12 +556,28 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             raise HTTPException(409, {"code": "AI_PROVIDER_DISABLED"}) from None
         except AIProviderError as error:
             raise HTTPException(502, {"code": error.code}) from None
+        try:
+            run = store.save_ai_evaluation_run(profile_id, profile_version, asdict(policy),
+                                               task_selection.provider, task_selection.model, [{
+                "job_id": job_id,
+                "title": candidate_by_id[job_id].title,
+                "company": candidate_by_id[job_id].company,
+                "deterministic_score": candidate_by_id[job_id].deterministic_score,
+                "category": evaluation.category,
+                "rationale": evaluation.rationale,
+            } for job_id, evaluation in result.evaluations])
+        except ValueError as error:
+            if str(error) == "AI_EVALUATION_PROFILE_CHANGED":
+                raise HTTPException(409, {"code": str(error)}) from None
+            raise HTTPException(422, {"code": str(error)}) from None
         return {
             "profile_id": profile_id,
+            **run,
             "evaluated_candidate_count": len(result.evaluations),
             "evaluations": [{
                 "job_id": job_id, "title": candidate_by_id[job_id].title,
                 "company": candidate_by_id[job_id].company,
+                "deterministic_score": candidate_by_id[job_id].deterministic_score,
                 "category": evaluation.category,
                 "rationale": evaluation.rationale,
             } for job_id, evaluation in result.evaluations],
