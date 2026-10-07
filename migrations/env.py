@@ -2,6 +2,7 @@ from logging.config import fileConfig
 import os
 
 from sqlalchemy import engine_from_config
+from sqlalchemy import event
 from sqlalchemy import pool
 
 from alembic import context
@@ -48,6 +49,7 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        transactional_ddl=True,
     )
 
     with context.begin_transaction():
@@ -66,10 +68,20 @@ def run_migrations_online() -> None:
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )
+    if connectable.dialect.name == "sqlite":
+        # Python sqlite3 legacy transaction control skips BEGIN for DDL. Emit it
+        # explicitly so a failed Alembic revision cannot leave orphaned schema.
+        @event.listens_for(connectable, "begin")
+        def _begin_sqlite_migration_transaction(connection):
+            connection.exec_driver_sql("BEGIN")
 
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, target_metadata=target_metadata
+            connection=connection,
+            target_metadata=target_metadata,
+            # SQLite otherwise leaves applied DDL behind if a revision fails,
+            # making retry unsafe while alembic_version still points at parent.
+            transactional_ddl=True,
         )
 
         with context.begin_transaction():
