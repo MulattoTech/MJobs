@@ -205,6 +205,104 @@ class ProfileImportTests(unittest.TestCase):
         self.assertEqual(response.status_code, 499)
         self.assertTrue(observed.is_set())
 
+    def test_live_http_disconnect_kills_native_resume_parser_child_without_profile_mutation(self):
+        import socket
+        import subprocess
+        import sys
+        import uvicorn
+        from starlette.requests import Request as StarletteRequest
+        from fixtures.browser_ports import bound_browser_socket
+
+        self.store.save_profile(PROFILE)
+        pdf_stream = BytesIO()
+        pdf = canvas.Canvas(pdf_stream)
+        pdf.drawString(72, 720, 'Synthetic profile extraction disconnect test')
+        pdf.save()
+        resume_bytes = pdf_stream.getvalue()
+        uploaded = self.upload(content=resume_bytes, **{
+            'X-Filename': 'disconnect-test.pdf', 'Content-Type': 'application/pdf',
+        }).json()
+        profile_before = self.store.profile('fixture')
+        child_started = threading.Event()
+        disconnect_observed = threading.Event()
+        children = []
+        original_popen = subprocess.Popen
+        original_is_disconnected = StarletteRequest.is_disconnected
+
+        def slow_parser_child(command, **kwargs):
+            if 'services.career_profile.parser_worker' not in command:
+                return original_popen(command, **kwargs)
+            child = original_popen([sys.executable, '-c', 'import time; time.sleep(30)'], **kwargs)
+            children.append(child)
+            child_started.set()
+            return child
+
+        async def observe_disconnect(request):
+            disconnected = await original_is_disconnected(request)
+            if disconnected:
+                disconnect_observed.set()
+            return disconnected
+
+        app = create_app(self.store, 'http://127.0.0.1:1', self.root, operation_mode='PERSONAL')
+        sock = bound_browser_socket()
+        origin = f'http://127.0.0.1:{sock.getsockname()[1]}'
+        server = uvicorn.Server(uvicorn.Config(app, log_level='error'))
+        server_thread = threading.Thread(target=server.run, kwargs={'sockets': [sock]}, daemon=True)
+        server_thread.start()
+        peer = None
+        try:
+            deadline = time.monotonic() + 10
+            while not server.started:
+                if not server_thread.is_alive() or time.monotonic() > deadline:
+                    self.fail('Resume extraction disconnect API did not start')
+                time.sleep(0.02)
+
+            peer = socket.create_connection(('127.0.0.1', sock.getsockname()[1]), timeout=5)
+            peer.settimeout(5)
+            request_path = f"/profiles/fixture/resumes/{uploaded['id']}/extract"
+            peer.sendall((f'POST {request_path} HTTP/1.1\r\n'
+                          f'Host: 127.0.0.1:{sock.getsockname()[1]}\r\n'
+                          f'Origin: {origin}\r\nContent-Length: 0\r\n'
+                          'Connection: keep-alive\r\n\r\n').encode('ascii'))
+            with patch.object(subprocess, 'Popen', slow_parser_child), patch.object(
+                    StarletteRequest, 'is_disconnected', observe_disconnect):
+                self.assertTrue(child_started.wait(5), 'native parser child did not start')
+                peer.shutdown(socket.SHUT_WR)
+                self.assertTrue(disconnect_observed.wait(3),
+                                'API did not observe the actual closed client request transport')
+                child_deadline = time.monotonic() + 3
+                while children and children[0].poll() is None and time.monotonic() < child_deadline:
+                    time.sleep(0.01)
+                self.assertTrue(children and children[0].poll() is not None,
+                                'cancelled parser child was not reaped')
+
+            self.assertEqual(self.store.profile('fixture'), profile_before)
+            readback = self.client.get(f"/profiles/fixture/resumes/{uploaded['id']}")
+            self.assertEqual(readback.status_code, 200, readback.text)
+            self.assertEqual(readback.content, resume_bytes)
+            with self.store.engine.connect() as connection:
+                operation = connection.execute(select(m.operations).where(
+                    m.operations.c.kind == 'RESUME_EXTRACT',
+                    m.operations.c.entity_id == uploaded['id'],
+                )).mappings().one()
+            operation_deadline = time.monotonic() + 3
+            while operation['state'] != 'CANCELLED' and time.monotonic() < operation_deadline:
+                time.sleep(0.01)
+                with self.store.engine.connect() as connection:
+                    operation = connection.execute(select(m.operations).where(
+                        m.operations.c.kind == 'RESUME_EXTRACT',
+                        m.operations.c.entity_id == uploaded['id'],
+                    )).mappings().one()
+            self.assertEqual(operation['state'], 'CANCELLED')
+            self.assertEqual(self.store.count('resume_revisions'), 1)
+        finally:
+            if peer is not None:
+                peer.close()
+            server.should_exit = True
+            server_thread.join(timeout=10)
+            sock.close()
+            self.assertFalse(server_thread.is_alive(), 'Resume extraction disconnect API did not stop')
+
     def test_explicit_extract_cancel_is_profile_scoped(self):
         self.store.save_profile(PROFILE)
         uploaded = self.upload().json()
