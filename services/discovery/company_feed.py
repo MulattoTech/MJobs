@@ -23,6 +23,7 @@ from services.company_discovery.link_evidence import validate_reports, record_li
 from services.dedupe.source_values import lock_candidate_job, record_candidate, resolve_job_values
 from services.discovery.lifecycle import status_claim
 from services.dedupe.ingestion_identity import canonical_ingestion_job, lock_company_ingestion
+from services.audit_history import record_job_merged
 
 
 def _validate_source_identity(store, *, source_id, company_id, provider, tenant, endpoint):
@@ -69,6 +70,7 @@ def import_company_feed_jobs(store, *, company_id, source_id, provider, tenant,
     completeness_sum = 0.0
     salary_known = 0
     pending_candidates = []
+    pending_merges = []
     batch_postings = {}
     batch_identities = {}
     guard_rejected = False
@@ -117,6 +119,8 @@ def import_company_feed_jobs(store, *, company_id, source_id, provider, tenant,
                 posting_source = 'company-feed:' + str(source_id)
                 source_job_id = identity(posting_source, external_key)
                 posting_id = identity(posting_source, source_job_id)
+                posting_already_persisted = connection.execute(select(m.postings.c.id).where(
+                    m.postings.c.id == posting_id)).first() is not None
                 canonical = canonical_ingestion_job(connection, company_id=company_id,
                     proposed_id=native_job_id, posting_id=posting_id, application_url=application_url,
                     provider=provider, tenant=tenant, requisition=requisition, batch_identities=batch_identities)
@@ -166,6 +170,8 @@ def import_company_feed_jobs(store, *, company_id, source_id, provider, tenant,
                 persist_posting(connection, {"id": posting_id, "job_id": job_id,
                     "source": posting_source, "source_job_id": source_job_id, "source_url": endpoint,
                     "application_url": application_url, "raw": item, "fetched_at": timestamp})
+                if not posting_already_persisted and canonical is not None and job_id != native_job_id:
+                    pending_merges.append((posting_id, job_id))
                 pending_candidates.append((posting_id, job_id, external_key, {key: value for key, value in job.items()
                                                                 if key not in {'id', 'company_id'}}))
                 completeness, has_salary = posting_metrics(job, application_url)
@@ -197,6 +203,9 @@ def import_company_feed_jobs(store, *, company_id, source_id, provider, tenant,
             evaluated_profiles = [current_profile for current_profile in current_profiles
                 if connection.execute(select(m.profiles.c.version).where(
                     m.profiles.c.id == current_profile['id'])).scalar_one_or_none() == current_profile['version']]
+            for posting_id, merged_job_id in pending_merges:
+                for current_profile in evaluated_profiles:
+                    record_job_merged(connection, current_profile["id"], merged_job_id, posting_id)
             matched_job_ids = set()
             for current_profile in evaluated_profiles:
                 matched_job_ids.update(connection.execute(select(m.matches.c.job_id).where(

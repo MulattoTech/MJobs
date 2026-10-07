@@ -9,7 +9,9 @@ from sqlalchemy import select
 from apps.api.main import create_app
 from fixtures.mock_server import fixture_server
 from packages.persistence import models as m
-from packages.persistence.store import Store
+from packages.persistence.store import Store, upsert
+from services.company_discovery.sources import upsert_company_job_source
+from services.discovery.company_feed import import_company_feed_jobs
 from services.discovery.pipeline import discover
 from services.discovery.matching import recalculate
 from services.documents.generate import prepare
@@ -124,6 +126,98 @@ class AuditHistoryApiTests(unittest.TestCase):
         after_added = [event for event in after if event["type"] == "SETTING_CHANGED"
                        and event["id"] not in before_ids]
         self.assertEqual(after_added, added)
+
+    def test_new_feed_posting_attached_to_existing_job_records_profile_merge_once(self):
+        company_id = "audit-merge-company"
+        application_url = "https://employer.example/careers/apply/req-1001"
+        with self.store.engine.begin() as connection:
+            upsert(connection, m.companies, {
+                "id": company_id, "name": "Merge Employer", "domain": "employer.example",
+            })
+        first_source = upsert_company_job_source(
+            self.store, company_id=company_id, provider="rss", tenant_identifier="rss-board",
+            public_api_url="https://employer.example/rss.json", collection_strategy="PUBLIC_JSON",
+        )
+        second_source = upsert_company_job_source(
+            self.store, company_id=company_id, provider="greenhouse", tenant_identifier="gh-board",
+            public_api_url="https://employer.example/greenhouse.json", collection_strategy="PUBLIC_JSON",
+        )
+
+        def item(external_id, title):
+            return {"id": external_id, "title": title, "description": "Systems administration",
+                    "location": "Remote", "url": application_url}
+
+        import_company_feed_jobs(
+            self.store, company_id=company_id, source_id=first_source["id"], provider="rss",
+            tenant="rss-board", endpoint=first_source["endpoint"], strategy="PUBLIC_JSON",
+            items=[item("rss-req-1001", "Systems Administrator")], profile_id="fixture",
+        )
+        with self.store.engine.connect() as connection:
+            first_job_id = connection.execute(m.routes.select().where(
+                m.routes.c.company_id == company_id)).mappings().one()["job_id"]
+
+        def reject_commit(_connection):
+            raise RuntimeError("synthetic import receipt failure")
+
+        with self.assertRaisesRegex(RuntimeError, "synthetic import receipt failure"):
+            import_company_feed_jobs(
+                self.store, company_id=company_id, source_id=second_source["id"], provider="greenhouse",
+                tenant="gh-board", endpoint=second_source["endpoint"], strategy="PUBLIC_JSON",
+                items=[item("gh-req-1001", "Systems Administrator")], profile_id="fixture",
+                import_receipt=reject_commit,
+            )
+        self.assertFalse(any(event["type"] == "JOB_MERGED" for event in
+                             self.client.get("/profiles/fixture/audit-history").json()["events"]))
+        with self.store.engine.connect() as connection:
+            self.assertEqual(connection.execute(m.postings.select().where(
+                m.postings.c.source == f"company-feed:{second_source['id']}")).all(), [])
+
+        import_company_feed_jobs(
+            self.store, company_id=company_id, source_id=second_source["id"], provider="greenhouse",
+            tenant="gh-board", endpoint=second_source["endpoint"], strategy="PUBLIC_JSON",
+            items=[item("gh-req-1001", "Systems Administrator")], profile_id="fixture",
+        )
+        response = self.client.get("/profiles/fixture/audit-history")
+        self.assertEqual(response.status_code, 200, response.text)
+        events = response.json()["events"]
+        merged = [event for event in events if event["type"] == "JOB_MERGED"]
+        self.assertEqual(len(merged), 1, events)
+        self.assertEqual(merged[0]["summary"], "New source posting attached to an existing job")
+        self.assertEqual(merged[0]["subject"], "Systems Administrator")
+        self.assertEqual(merged[0]["company"], "Merge Employer")
+        self.assertNotIn(application_url, response.text)
+        with self.store.engine.connect() as connection:
+            self.assertEqual(connection.execute(select(m.audit.c.payload).where(
+                m.audit.c.id == merged[0]["id"])).scalar_one(), {"job_id": first_job_id})
+        self.assertFalse(any(event["type"] == "JOB_MERGED" for event in
+                             self.client.get("/profiles/other/audit-history").json()["events"]))
+        with self.store.engine.connect() as connection:
+            postings = connection.execute(m.postings.select().where(
+                m.postings.c.job_id == first_job_id)).mappings().all()
+            job_ids = {posting["job_id"] for posting in postings
+                       if posting["source"] in {f"company-feed:{first_source['id']}",
+                                                 f"company-feed:{second_source['id']}"}}
+        self.assertEqual(len(postings), 2)
+        self.assertEqual(job_ids, {first_job_id})
+
+        # Re-reading the same provider posting refreshes it without inventing another merge.
+        import_company_feed_jobs(
+            self.store, company_id=company_id, source_id=second_source["id"], provider="greenhouse",
+            tenant="gh-board", endpoint=second_source["endpoint"], strategy="PUBLIC_JSON",
+            items=[item("gh-req-1001", "Systems Administrator")], profile_id="fixture",
+        )
+        after_retry = self.client.get("/profiles/fixture/audit-history").json()["events"]
+        self.assertEqual([event for event in after_retry if event["type"] == "JOB_MERGED"], merged)
+
+        # A distinct route remains a separate job and does not create a merge event.
+        import_company_feed_jobs(
+            self.store, company_id=company_id, source_id=second_source["id"], provider="greenhouse",
+            tenant="gh-board", endpoint=second_source["endpoint"], strategy="PUBLIC_JSON",
+            items=[item("gh-req-1002", "Systems Administrator") | {
+                "url": "https://employer.example/careers/apply/req-1002"}], profile_id="fixture",
+        )
+        after_distinct = self.client.get("/profiles/fixture/audit-history").json()["events"]
+        self.assertEqual([event for event in after_distinct if event["type"] == "JOB_MERGED"], merged)
 
     def test_user_reported_application_history_appears_without_exposing_note_or_claiming_receipt(self):
         from services.tracking.applications import (

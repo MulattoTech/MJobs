@@ -12,6 +12,7 @@ _PROFILE_EVENTS = {
     "PROFILE_SAVED": ("PROFILE_UPDATED", "Profile details updated"),
     "MATCHES_RECALCULATED": ("MATCHING_REFRESHED", "Profile matching refreshed"),
     "JOB_DISCOVERED": ("JOB_DISCOVERED", "Job added to this profile's search"),
+    "JOB_MERGED": ("JOB_MERGED", "New source posting attached to an existing job"),
     "MATCH_SCORED": ("MATCH_SCORED", "Job match scored"),
     "SETTING_CHANGED": ("SETTING_CHANGED", "A profile setting changed"),
     "APPLICATION_QUEUED": ("APPLICATION_QUEUED", "Application preparation queued"),
@@ -40,6 +41,12 @@ _APPLICATION_EVENTS = {
 def record_job_discovered(connection, profile_id: str, job_id: str) -> None:
     _append_once(connection, profile_id, "JOB_DISCOVERED", job_id,
                  {"job_id": job_id})
+
+
+def record_job_merged(connection, profile_id: str, job_id: str, posting_id: str) -> None:
+    """Record a newly attached source posting without exposing its source payload."""
+    _append_profile_event(connection, "JOB_MERGED", profile_id, posting_id,
+                          {"job_id": job_id})
 
 
 def record_match_scored(connection, profile_id: str, job_id: str,
@@ -145,6 +152,11 @@ def list_audit_history(store, profile_id: str, limit: int = 100) -> dict:
         }
         profile_job_ids.update(
             (row["payload"] or {}).get("job_id") for row in profile_rows
+            if row["action"] == "JOB_MERGED"
+            and isinstance((row["payload"] or {}).get("job_id"), str)
+        )
+        profile_job_ids.update(
+            (row["payload"] or {}).get("job_id") for row in profile_rows
             if row["action"] in _APPLICATION_PREPARATION_EVENTS
             and isinstance((row["payload"] or {}).get("job_id"), str)
         )
@@ -171,7 +183,7 @@ def list_audit_history(store, profile_id: str, limit: int = 100) -> dict:
             mapped = _PROFILE_EVENTS.get(row["action"])
             if mapped:
                 event_type, summary = mapped
-                if row["action"] in {"JOB_DISCOVERED", "MATCH_SCORED", *_APPLICATION_PREPARATION_EVENTS}:
+                if row["action"] in {"JOB_DISCOVERED", "JOB_MERGED", "MATCH_SCORED", *_APPLICATION_PREPARATION_EVENTS}:
                     job = profile_jobs.get((row["payload"] or {}).get("job_id"))
                     if job is None:
                         continue

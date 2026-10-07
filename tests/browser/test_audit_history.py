@@ -12,7 +12,9 @@ import uvicorn
 from apps.api.main import create_app
 from fixtures.browser_ports import bound_browser_socket
 from packages.persistence import models as m
-from packages.persistence.store import Store
+from packages.persistence.store import Store, upsert
+from services.company_discovery.sources import upsert_company_job_source
+from services.discovery.company_feed import import_company_feed_jobs
 from fixtures.mock_server import fixture_server
 from services.documents.generate import prepare
 from services.discovery.pipeline import discover
@@ -46,6 +48,34 @@ class AuditHistoryBrowserTests(unittest.TestCase):
                                             "APPLIED", "browser-audit-status")
             add_application_note(store, "fixture", application_id,
                                  "Private synthetic recruiter note", "browser-audit-note")
+            with store.engine.begin() as connection:
+                upsert(connection, m.companies, {
+                    "id": "browser-audit-merge-company", "name": "Browser Merge Employer",
+                    "domain": "browser-merge.example",
+                })
+            first_source = upsert_company_job_source(
+                store, company_id="browser-audit-merge-company", provider="rss",
+                tenant_identifier="rss-board", public_api_url="https://browser-merge.example/rss.json",
+                collection_strategy="PUBLIC_JSON",
+            )
+            second_source = upsert_company_job_source(
+                store, company_id="browser-audit-merge-company", provider="greenhouse",
+                tenant_identifier="gh-board", public_api_url="https://browser-merge.example/greenhouse.json",
+                collection_strategy="PUBLIC_JSON",
+            )
+            application_url = "https://browser-merge.example/careers/apply/req-1"
+            for source, provider, tenant, external_id in (
+                (first_source, "rss", "rss-board", "rss-req-1"),
+                (second_source, "greenhouse", "gh-board", "gh-req-1"),
+            ):
+                import_company_feed_jobs(
+                    store, company_id="browser-audit-merge-company", source_id=source["id"],
+                    provider=provider, tenant=tenant, endpoint=source["endpoint"],
+                    strategy="PUBLIC_JSON", profile_id="fixture",
+                    items=[{"id": external_id, "title": "Systems Administrator",
+                            "description": "Manage synthetic systems", "location": "Remote",
+                            "url": application_url}],
+                )
             with store.engine.begin() as connection:
                 connection.execute(m.audit.insert().values(
                     id="other-history", entity_id="other", action="PROFILE_SAVED",
@@ -98,6 +128,9 @@ class AuditHistoryBrowserTests(unittest.TestCase):
                     expect(history).to_contain_text("Application note added")
                     expect(history).to_contain_text("Application preparation queued")
                     expect(history).to_contain_text("Application preparation started")
+                    expect(history).to_contain_text(
+                        "New source posting attached to an existing job")
+                    expect(history).not_to_contain_text(application_url)
                     expect(history).not_to_contain_text("Private synthetic recruiter note")
                     expect(history).not_to_contain_text(private_setting)
                     page.reload(wait_until="domcontentloaded")
@@ -108,6 +141,8 @@ class AuditHistoryBrowserTests(unittest.TestCase):
                         "other-private-setting")
                     expect(page.get_by_role("list", name="Audit history")).to_contain_text(
                         "Application status reported by you")
+                    expect(page.get_by_role("list", name="Audit history")).to_contain_text(
+                        "New source posting attached to an existing job")
                     page.get_by_role("button", name="Profile", exact=True).click()
                     page.get_by_label("Active profile", exact=True).select_option("other")
                     page.get_by_role("button", name="Activity", exact=True).click()
@@ -115,6 +150,8 @@ class AuditHistoryBrowserTests(unittest.TestCase):
                     expect(other_history).to_contain_text("Profile details updated")
                     expect(other_history).not_to_contain_text("A profile setting changed")
                     expect(other_history).not_to_contain_text("Application status reported by you")
+                    expect(other_history).not_to_contain_text(
+                        "New source posting attached to an existing job")
                     self.assertEqual(external, [])
                     context.close()
                     browser.close()
