@@ -25,7 +25,7 @@
   "resume_instruction": "Issue #23 / MJ-REQ-022 is active in its dedicated Codex worktree. Connected Jobs saved-search selection calls the profile-aware jobs API, shows exact filtered results, and clears/isolate selections on career-profile changes. Source commit 74acc9f0b472034b575baa9f45d5aafe5ce7a4c0 and evidence/lane checkpoint are pushed. Focused tests, browser acceptance, frontend tests/build and repository validators pass. Candidate is based on current origin/main; integrate under lock. Hosted checks NOT_RUN by user policy; external submission OFF.",
   "last_verified_head": "74acc9f0b472034b575baa9f45d5aafe5ce7a4c0",
   "last_verified_tree": "ea750e476466b723255c7de12695489d2caa2817",
-  "last_verified_at_utc": "2026-10-07T08:38:13Z",
+  "last_verified_at_utc": "2026-10-07T08:47:44Z",
   "started_at_utc": "2026-10-07T04:24:01Z",
   "validation": {
     "result": "PASS",

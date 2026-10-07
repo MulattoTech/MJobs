@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "recorded_at_utc": "2026-10-07T08:42:39Z",
+  "recorded_at_utc": "2026-10-07T08:47:44Z",
   "issue": 23,
   "requirement_id": "MJ-REQ-022",
   "result": "PASS",
@@ -64,6 +64,11 @@
       "command": "python -m unittest tests.unit.test_search_semantics tests.integration.test_source_policy_scheduler tests.browser.test_search_profile_selection -v",
       "result": "BLOCKED_ENVIRONMENT",
       "details": "Global Python 3.12 lacked SQLAlchemy and Playwright; the unchanged test command passed using the checkout's dependency-complete .venv interpreter."
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.unit.test_search_semantics tests.integration.test_source_policy_scheduler tests.browser.test_search_profile_selection -v",
+      "result": "BLOCKED_ENVIRONMENT",
+      "details": "Root checkout initially served an ignored stale apps/web/dist bundle from 2026-10-06, which lacked the saved-search selector. Rebuilt apps/web, then reran this exact suite on integrated main: 18 passed, 0 failed, 0 skipped."
     }
   ],
   "browser_evidence": {
