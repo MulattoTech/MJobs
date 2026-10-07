@@ -7,7 +7,7 @@
       "requirement_id": "MJ-REQ-110",
       "status": "ACTIVE",
       "priority": 1,
-      "note": "Review-gated cost-control consumer and real isolated preparation worker are verified. Current validated code head 5efb3406bbc605ba683b5b6250d11098c5507ab8 (tree 8df82383f736d1b749dbfee8af6f67143453c47d); no source changes since the accepted implementation. Fresh focused Python/API/browser/migration 20 PASS, frontend 62 PASS/build PASS, and agent-skills/catalogue/progress/compileall/diff checks PASS on 2026-10-07T01:15:57Z. Earlier isolated synthetic worker completed with PREPARED document v1. Evidence docs/evidence/2026-10-06-ai-cost-review-gated-documents.json. Keep PARTIAL: live provider inference is NOT_RUN while the active Ollama lane owns the shared runtime; PostgreSQL runtime migration was not run because the personal database service is already in use; full Python discovery and hosted checks remain NOT_RUN."
+      "note": "Review-gated AI document consumer and isolated synthetic PREPARE worker are verified. Fresh checks on 36851eb4548414dc00901fcd7a7a2151e02992b9 at 2026-10-07T01:57:30Z: focused Python/API/browser/migration 20 PASS, frontend 62 PASS/build PASS, agent-skills/catalogue/progress/lane coordination/compileall/diff checks PASS. Keep PARTIAL: live configured-provider inference is NOT_RUN while the Ollama lane is active; PostgreSQL runtime, full Python discovery, and hosted checks remain NOT_RUN. External submission OFF."
     }
   ]
 }

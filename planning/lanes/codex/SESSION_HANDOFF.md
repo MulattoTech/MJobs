@@ -68,3 +68,17 @@ Fetched `origin/main` at `e37f0c8523b16d4ea5e38bf37f5c34def94ccce3`; it is an an
 Validated source head `a727f6c558262cc35464738a0041c077755bbdf6` (tree `994aa9e22550954ea639e864e149db4ce94a27d4`). Focused Python/API/browser/migration suite: 20 PASS using the repository virtual environment; frontend: 62 PASS; frontend build, agent-skills/catalogue/progress, compileall, `git diff --check`, and lane coordination validation: PASS. The first command used global Python and failed on missing project dependencies; the same suite passed after switching to the repository virtual environment. Evidence: `docs/evidence/2026-10-06-ai-cost-review-gated-documents.json`.
 
 Status remains PARTIAL / safely checkpointed. Live configured-provider inference remains NOT_RUN while the active Ollama claim owns the shared runtime; PostgreSQL runtime checks, full Python discovery, hosted checks, and external application submission remain NOT_RUN (submission OFF). No AI source changes were made in this turn; canonical planning was not changed.
+
+
+## Current-turn verification — 2026-10-07T01:41:54Z
+
+Fetched origin/main at e37f0c8523b16d4ea5e38bf37f5c34def94ccce3. It is an ancestor of the claimed branch; the exact claimed worktree was clean before validation. Checked head 71570bf78e1dab70a88c869b3103abf69517ecf1 (tree fed87c1258c3350c43aaa5524156ac80ba976487): focused Python/API/browser/migration 20 PASS; frontend 62 PASS and build PASS; agent-skills/catalogue/progress and lane coordination PASS; compileall and git diff --check PASS. The source diff since the previously accepted consumer/worker implementation is empty.
+
+Issue #111 remains PARTIAL. Live configured-provider inference remains NOT_RUN while the active Ollama lane owns the shared runtime. PostgreSQL runtime checks, full Python discovery and hosted checks remain NOT_RUN; external application submission remains OFF. Detailed evidence is in docs/evidence/2026-10-06-ai-cost-review-gated-documents.json.
+
+
+## Reconciled claim checkpoint — 2026-10-07T01:57:30Z
+
+Fetched and merged origin/main 7a3f69a6ee7ac1265e0c2cc7dc1b69cc7d9b1fec into the exact claimed branch. The merge commit is 36851eb4548414dc00901fcd7a7a2151e02992b9 (tree 9f18fe556b09ef6b4ee359d490e507d8b54d1df1); AI consumer, API, persistence, migration, and acceptance-test source is unchanged. Fresh focused Python/API/browser/migration tests: 20 PASS; frontend tests: 62 PASS; frontend build, agent-skills/catalogue/progress/lane-coordination validators, compileall, and git diff --check: PASS. The earlier isolated synthetic PREPARE worker acceptance remains documented in the evidence file.
+
+Status remains PARTIAL / safely checkpointed. Live provider inference is NOT_RUN while the Ollama lane owns the shared runtime; PostgreSQL runtime migration, full Python discovery, and hosted checks are NOT_RUN. External submission remains OFF. No canonical planning files or source files were modified.

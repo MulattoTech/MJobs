@@ -278,5 +278,41 @@
     ],
     "status": "PARTIAL",
     "lane_coordination": "PASS"
+  },
+  "latest_turn_validation": {
+    "verified_at_utc": "2026-10-07T01:57:30Z",
+    "validated_head": "36851eb4548414dc00901fcd7a7a2151e02992b9",
+    "validated_tree": "9f18fe556b09ef6b4ee359d490e507d8b54d1df1",
+    "fetched_origin_main": "7a3f69a6ee7ac1265e0c2cc7dc1b69cc7d9b1fec",
+    "origin_main_is_ancestor": true,
+    "reconciled_by_merge": true,
+    "source_changed": false,
+    "focused_python_api_browser_migration": "PASS - 20 tests",
+    "frontend_tests": "PASS - 62 tests across 13 files",
+    "frontend_build": "PASS",
+    "agent_skills_catalogue_progress": "PASS",
+    "lane_coordination_validation": "PASS",
+    "compileall": "PASS",
+    "git_diff_check": "PASS",
+    "real_synthetic_prepare_worker": "PASS from the earlier isolated run; completed PREPARE with persisted application PREPARED and document version 1",
+    "not_run": [
+      "Live configured-provider inference; Ollama lane is active and owns the shared local inference runtime.",
+      "PostgreSQL runtime migration and persistence checks.",
+      "Full Python test discovery.",
+      "Hosted checks and reviews under the active local-only policy.",
+      "External application submission; OFF."
+    ],
+    "status": "PARTIAL",
+    "commands": [
+      "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_ai_cost_policy_api tests.integration.test_ai_document_review_migration tests.unit.test_ai_cost_consumer tests.unit.test_ai_cost_controls tests.browser.test_ai_task_settings",
+      "npm test --prefix apps/web -- --run",
+      "npm run build --prefix apps/web",
+      "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.agent_skills",
+      "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.catalogue",
+      "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.progress validate",
+      "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.coordination.lane_coordination validate",
+      "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m compileall -q affected API, persistence, migration, consumer, and test modules",
+      "git diff --check"
+    ]
   }
 }
