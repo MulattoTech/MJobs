@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-07T18:04:15Z",
+  "generated_at": "2026-10-07T19:37:19Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -11,7 +11,7 @@
     "current_verified_github_state": "Issue #179 / MJ-REQ-178 log retention acceptance PASS at 8bea57e595e19e638913405a8ec1cd3aa0ebde32; full product remains PARTIAL.",
     "current_verified_at": "2026-10-07T15:27:43Z"
   },
-  "current_milestone": "MJ-REF-033-PAGE-BUDGET-PARTIAL-20261007",
+  "current_milestone": "MJ-REQ-176-MOCK-SUBMITTED-HISTORY-PARTIAL-20261007",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -121,7 +121,8 @@
     "MJ-REQ-177 / issue #178 structured worker logging: durable worker terminal outcomes emit JSON-only allowlisted records only after persistence; records contain safe operation context and omit parameters, exception messages and private resume text. Evidence docs/evidence/2026-10-07-structured-worker-operation-logs.json. Focused 21 PASS/1 PostgreSQL-only skip; full Python suite 932 PASS/8 skipped; frontend 63/build and local validators PASS. Posting/source/ATS and other operation types, live Redis/RQ and PostgreSQL remain unverified; issue remains OPEN/PARTIAL.",
     "MJ-REQ-179 / issue #180 Debug Capture is locally evidenced for the existing local mock ATS browser adapter. Opt-in defaults OFF; failure diagnostics include a privacy-masked viewport screenshot, structural allowlisted DOM counts, sanitized URL path shape, error-only console/network HMAC fingerprints and current durable step; retention is 30 days/20 captures, events 50, screenshot 5 MiB. Synthetic browser tests preserve REVIEW_REQUIRED and SUBMISSION_UNCONFIRMED/no-blind-retry. Exact-head affected validation 72 PASS and one optional PostgreSQL skip; repository-wide discovery at source 6d3b289 failed (948 run, 2 failures, 9 errors, 28 skipped) and is not promoted. Evidence docs/evidence/2026-10-07-safe-browser-debug-capture.json. Real ATS, live PostgreSQL and hosted checks NOT_RUN; external submission OFF. Requirement remains PARTIAL.",
     "Issue #517 / discovered job-source catalogue PARTIAL: manual capture and external application reports persist profile-scoped sanitized provenance, destination site-type assessments, review history and explicit unknown hops. Source commit 5b49d595ff48615c8a82a3e383a8ac3d82261578; evidence docs/evidence/2026-10-07-source-candidate-catalogue.json. Full Python 954 run/8 skipped, frontend 63/build, focused 10 API/browser, disposable SQLite migration and local validators PASS. Provider/browser discovery hooks, documented source evaluation/integration task linkage, PostgreSQL/Docker and live source evidence remain NOT_RUN/incomplete. Issue remains OPEN/PARTIAL; external submission OFF.",
-    "Issue #517 / discovered job-source catalogue follow-up PARTIAL: a URL-only profile-scoped source report now works without title/company/job metadata and creates no job or application. Source commit 20e6835308209c7ae8366d7791215db642ec9ad0; evidence docs/evidence/2026-10-07-source-candidate-catalogue.json. Full Python 955 run/8 skipped, 12 focused API/browser workflow tests, frontend 63/build and local validators PASS. Supported provider/browser capture entry points, documented source evaluation and bounded integration task remain open; hosted, PostgreSQL/Docker and live-source checks NOT_RUN."
+    "Issue #517 / discovered job-source catalogue follow-up PARTIAL: a URL-only profile-scoped source report now works without title/company/job metadata and creates no job or application. Source commit 20e6835308209c7ae8366d7791215db642ec9ad0; evidence docs/evidence/2026-10-07-source-candidate-catalogue.json. Full Python 955 run/8 skipped, 12 focused API/browser workflow tests, frontend 63/build and local validators PASS. Supported provider/browser capture entry points, documented source evaluation and bounded integration task remain open; hosted, PostgreSQL/Docker and live-source checks NOT_RUN.",
+    "Local MOCK ATS submission history now records APPLICATION_SUBMITTED separately from receipt-backed APPLICATION_CONFIRMED; missing receipt remains SUBMISSION_UNCONFIRMED (MJ-REQ-176 / issue #177 PARTIAL)."
   ],
   "blocked_capabilities": [],
   "active_requirements": [
@@ -357,7 +358,9 @@
     "Issue #517 URL-only source report exact source commit 20e6835308209c7ae8366d7791215db642ec9ad0: 12 focused API/browser/manual/external tests PASS; full Python 955 run/8 skipped; frontend 63/build; validators PASS. Evidence docs/evidence/2026-10-07-source-candidate-catalogue.json.",
     "MJ-REQ-176 AI task settings audit exact source 06942fd: 15 API/store reopen/profile isolation and connected Chromium Activity tests PASS; TypeScript/Vite build PASS; deterministic repository validators PASS.",
     "Issue #517 supported company-feed source-candidate capture exact source 48d204a: 105 affected integration/connected Chromium tests PASS; disposable SQLite and PostgreSQL 17 Alembic upgrade/typed-write/downgrade-preservation PASS; TypeScript/Vite build and deterministic repository validators PASS.",
-    "Issue #166 / MJ-REQ-165 full-text search: focused API/browser and saved-search compatibility 3 PASS; full Python 962 run/8 skipped; frontend 63 PASS/build PASS; PostgreSQL 17 full migration and API acceptance PASS; both GIN expression indexes matched by EXPLAIN; SQLite/PostgreSQL migration downgrade/re-upgrade and PostgreSQL row preservation PASS; deterministic validators PASS. Evidence docs/evidence/2026-10-07-full-text-search.json."
+    "Issue #166 / MJ-REQ-165 full-text search: focused API/browser and saved-search compatibility 3 PASS; full Python 962 run/8 skipped; frontend 63 PASS/build PASS; PostgreSQL 17 full migration and API acceptance PASS; both GIN expression indexes matched by EXPLAIN; SQLite/PostgreSQL migration downgrade/re-upgrade and PostgreSQL row preservation PASS; deterministic validators PASS. Evidence docs/evidence/2026-10-07-full-text-search.json.",
+    "MJ-REQ-176 mock submission audit: 34 affected Python integration/browser tests PASS, including connected Chromium Activity reload/profile isolation; frontend 63 tests/build PASS; changed-file compile and local validators PASS.",
+    "Isolated rerun of tests.browser.test_company_discovery_requests.CompanyDiscoveryRequestsBrowserTests.test_real_collection_request_review_worker_and_identity_separation: 1 PASS after the full suite shutdown assertion failure."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -380,7 +383,8 @@
     "Global Python interpreter lacks repository Alembic dependencies: migration discovery errored on 12 module imports; rerun with repository .venv passed (environment mismatch, not product failure).",
     "Progress journal validator first run after issue #8 receipt append failed because top-level current_phase still named the preceding milestone; updated current_phase to match the newest journal entry and reran validation successfully.",
     "Repository-wide unittest discovery at source 6d3b2893f18289fc76b29ce8955dfb2fb103b58d: 948 run, 2 failures, 9 errors, 28 skipped; test names were not all retained in terminal output, so no attribution is claimed. Recorded in docs/evidence/2026-10-07-safe-browser-debug-capture.json.",
-    "Resolved test-harness attempt: combined 67-test run at 447afe1665af2c81a2e0d63149ca6e00068cbcfb had 66 PASS and one browser test failure while its profile-save interaction remained pending after preceding integration modules. Isolated browser passed; Activity UI test now seeds a value-free setting event rather than repeating that separate save workflow, and combined exact-main suite passes 67/67 at 26deecc77098471f0973e7e0b34193c1e4e0d0e3."
+    "Resolved test-harness attempt: combined 67-test run at 447afe1665af2c81a2e0d63149ca6e00068cbcfb had 66 PASS and one browser test failure while its profile-save interaction remained pending after preceding integration modules. Isolated browser passed; Activity UI test now seeds a value-free setting event rather than repeating that separate save workflow, and combined exact-main suite passes 67/67 at 26deecc77098471f0973e7e0b34193c1e4e0d0e3.",
+    "MJ-REQ-176 candidate full Python suite at source 382db126a1b504754ec2ad748bb543df586d976b: 962 tests ran, 8 skipped, one failure at tests.browser.test_company_discovery_requests.CompanyDiscoveryRequestsBrowserTests.test_real_collection_request_review_worker_and_identity_separation because isolated Uvicorn thread remained alive at shutdown; same test isolated rerun passed. Overall suite remains a failed run, not PASS; see docs/evidence/2026-10-07-application-submit-audit.json."
   ],
   "tests_not_run": [
     "Remaining full-spec integrations and product/release requirements",
@@ -435,7 +439,8 @@
     "Issue #517: hosted Actions/review NOT_RUN_BY_USER_POLICY; PostgreSQL/Docker runtime and live source evaluation NOT_RUN. These checks are not promoted to PASS.",
     "MJ-REQ-176 AI task settings audit: PostgreSQL/Docker NOT_RUN (no schema change); full Python suite NOT_RUN; hosted Actions/review NOT_RUN_BY_USER_POLICY; external submission OFF.",
     "Issue #517 feed source-candidate slice: full Python suite NOT_RUN; frontend unit suite NOT_RUN (no frontend source changed); hosted Actions/review NOT_RUN_BY_USER_POLICY; external submission OFF.",
-    "Issue #166: GitHub Actions/hosted review NOT_RUN_BY_USER_POLICY; live providers NOT_RUN; external submission OFF."
+    "Issue #166: GitHub Actions/hosted review NOT_RUN_BY_USER_POLICY; live providers NOT_RUN; external submission OFF.",
+    "MJ-REQ-176 mock submission audit: PostgreSQL/Docker/migrations NOT_APPLICABLE (no schema change); hosted Actions/reviews NOT_RUN_BY_USER_POLICY; production providers/employer sites NOT_RUN; external submission OFF."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -474,10 +479,10 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "commit": "108c502ce0b2c8aa92a4868b09687b4b4a0206f1",
-    "result": "PASS",
-    "evidence": "docs/evidence/2026-10-07-full-text-search.json",
-    "verified_at_utc": "2026-10-07T19:04:58Z"
+    "commit": "bd251813996deac05010d1d080a7ec5671a0dbd9",
+    "result": "PARTIAL",
+    "evidence": "docs/evidence/2026-10-07-application-submit-audit.json",
+    "verified_at_utc": "2026-10-07T19:37:19Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -9216,12 +9221,57 @@
         "git_commit": "59039a51701258a35c93fc7deca6fbf85d72fddd",
         "evidence_path": "docs/evidence/2026-10-07-full-text-search.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-176-MOCK-SUBMITTED-HISTORY-PARTIAL-20261007",
+      "timestamp": "2026-10-07T19:36:11Z",
+      "current_phase": "MJ_REQ_176_MOCK_APPLICATION_SUBMITTED_AUDIT_PARTIAL_INTEGRATED",
+      "completed_steps": [
+        "Integrated truthful local MOCK ATS submission history at bd251813996deac05010d1d080a7ec5671a0dbd9 from implementation source 382db126a1b504754ec2ad748bb543df586d976b",
+        "APPLICATION_SUBMITTED is idempotent and appears only after the mock click returns or a valid local mock receipt is recovered; APPLICATION_CONFIRMED remains separate",
+        "Connected Activity reload and profile isolation verified; SUBMISSION_UNCONFIRMED and pre-click reservation semantics preserved",
+        "Issue #177 remains OPEN/PARTIAL; the MJ-REQ-176 requirement denominator is unchanged"
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-07-application-submit-audit.json"
+      ],
+      "files_modified": [
+        "services/applications/mock_adapter.py",
+        "services/audit_history.py",
+        "tests/browser/test_mock_application.py",
+        "tests/browser/test_audit_history.py"
+      ],
+      "tests_completed": [
+        "34 affected Python integration/browser tests PASS, zero failures/errors/skips; connected Chromium Activity event reload/profile isolation included",
+        "Frontend 63 tests PASS; TypeScript/Vite build PASS",
+        "Changed-file compileall and agent-skills/catalogue/progress/lane/diff validators PASS",
+        "Full Python suite ran 962, with 8 skipped and one unrelated company-discovery browser Uvicorn-shutdown assertion failure; isolated rerun of that test passed"
+      ],
+      "tests_remaining": [
+        "Other MJ-REQ-176 setting, submission, confirmation and lifecycle producers remain incomplete",
+        "PostgreSQL/Docker NOT_APPLICABLE for this no-schema-change slice",
+        "GitHub hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Temporary SQLite persistence and the repository local synthetic MOCK ATS; connected Chromium Activity browser; no external employer/provider calls"
+      ],
+      "known_errors": [
+        "The full Python suite had one unrelated browser server-thread shutdown assertion; the named test passed on isolated rerun."
+      ],
+      "known_limitations": [
+        "MJ-REQ-176 remains PARTIAL and issue #177 remains OPEN; hosted checks and PostgreSQL/Docker were not run; external submission remains OFF."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "bd251813996deac05010d1d080a7ec5671a0dbd9",
+        "evidence_path": "docs/evidence/2026-10-07-application-submit-audit.json"
+      }
     }
   ],
-  "current_phase": "Issue #166 / MJ-REQ-165 full-text search integrated PASS at main 59039a51701258a35c93fc7deca6fbf85d72fddd.",
+  "current_phase": "MJ_REQ_176_MOCK_APPLICATION_SUBMITTED_AUDIT_PARTIAL_INTEGRATED",
   "last_safe_checkpoint": {
-    "git_commit": "59039a51701258a35c93fc7deca6fbf85d72fddd",
-    "evidence_path": "docs/evidence/2026-10-07-full-text-search.json"
+    "git_commit": "bd251813996deac05010d1d080a7ec5671a0dbd9",
+    "evidence_path": "docs/evidence/2026-10-07-application-submit-audit.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",

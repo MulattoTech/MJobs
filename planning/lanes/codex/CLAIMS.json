@@ -750,6 +750,33 @@
       "result": "PASS; issue #166 CLOSED",
       "released_at": "2026-10-07T19:09:10Z",
       "release_comment": "https://github.com/MulattoTech/MJobs/issues/166#issuecomment-6044900079"
+    },
+    {
+      "issue": 177,
+      "requirement_id": "MJ-REQ-176",
+      "branch": "codex/mj-req176-application-submit-audit-20261007",
+      "worktree": ".worktrees/codex-mj-req176-application-submit-audit-20261007",
+      "head": "bd251813996deac05010d1d080a7ec5671a0dbd9",
+      "paths": [
+        "services/applications/mock_adapter.py",
+        "services/audit_history.py",
+        "tests/browser/test_mock_application.py",
+        "tests/browser/test_audit_history.py",
+        "tests/integration/test_audit_history.py",
+        "docs/evidence/2026-10-07-application-submit-audit.json",
+        "planning/lanes/codex/**",
+        "docs/evidence/2026-10-07-application-submit-audit-progress-entry.json"
+      ],
+      "status": "RELEASED",
+      "claimed_at": "2026-10-07T19:30:56Z",
+      "claim_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6044993631",
+      "claim_update": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6045299190",
+      "evidence_path": "docs/evidence/2026-10-07-application-submit-audit.json",
+      "integrated_main": "bd251813996deac05010d1d080a7ec5671a0dbd9",
+      "result": "INTEGRATED_PARTIAL; issue #177 remains OPEN/PARTIAL",
+      "released_at": "2026-10-07T19:37:19Z",
+      "integration_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6045375245",
+      "release_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6045401912"
     }
   ]
 }

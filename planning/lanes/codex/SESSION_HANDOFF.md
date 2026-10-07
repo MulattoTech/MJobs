@@ -1,5 +1,15 @@
 # Codex lane handoff
 
+Status: **IDLE_READY / #177 MJ-REQ-176 partial slice integrated at bd251813996deac05010d1d080a7ec5671a0dbd9**
+
+Issue #177 remains OPEN/PARTIAL. `APPLICATION_SUBMITTED` is now appended only after the local MOCK ATS submit click returns or a valid fixture receipt is recovered; confirmation remains separate and unconfirmed outcomes are preserved. Evidence: `docs/evidence/2026-10-07-application-submit-audit.json`. Affected 34-test suite, frontend 63/build and local validators PASS. Full Python suite ran 962, 8 skipped, one unrelated company-discovery Uvicorn shutdown assertion failure; isolated rerun passed. Claim release comment: https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6045401912.
+
+Next: reconcile current main and all active claims/worktrees before selecting the next unclaimed dependency-ready issue. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.
+
+---
+
+# Codex lane handoff
+
 Status: **IDLE_READY / issue #179 / MJ-REQ-178 Log Retention PASS**
 
 ## Completed issue #179 / MJ-REQ-178

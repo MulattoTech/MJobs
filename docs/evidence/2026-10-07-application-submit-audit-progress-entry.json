@@ -1,0 +1,45 @@
+{
+  "milestone_id": "MJ-REQ-176-MOCK-SUBMITTED-HISTORY-PARTIAL-20261007",
+  "timestamp": "2026-10-07T19:36:11Z",
+  "current_phase": "MJ_REQ_176_MOCK_APPLICATION_SUBMITTED_AUDIT_PARTIAL_INTEGRATED",
+  "completed_steps": [
+    "Integrated truthful local MOCK ATS submission history at bd251813996deac05010d1d080a7ec5671a0dbd9 from implementation source 382db126a1b504754ec2ad748bb543df586d976b",
+    "APPLICATION_SUBMITTED is idempotent and appears only after the mock click returns or a valid local mock receipt is recovered; APPLICATION_CONFIRMED remains separate",
+    "Connected Activity reload and profile isolation verified; SUBMISSION_UNCONFIRMED and pre-click reservation semantics preserved",
+    "Issue #177 remains OPEN/PARTIAL; the MJ-REQ-176 requirement denominator is unchanged"
+  ],
+  "files_added": [
+    "docs/evidence/2026-10-07-application-submit-audit.json"
+  ],
+  "files_modified": [
+    "services/applications/mock_adapter.py",
+    "services/audit_history.py",
+    "tests/browser/test_mock_application.py",
+    "tests/browser/test_audit_history.py"
+  ],
+  "tests_completed": [
+    "34 affected Python integration/browser tests PASS, zero failures/errors/skips; connected Chromium Activity event reload/profile isolation included",
+    "Frontend 63 tests PASS; TypeScript/Vite build PASS",
+    "Changed-file compileall and agent-skills/catalogue/progress/lane/diff validators PASS",
+    "Full Python suite ran 962, with 8 skipped and one unrelated company-discovery browser Uvicorn-shutdown assertion failure; isolated rerun of that test passed"
+  ],
+  "tests_remaining": [
+    "Other MJ-REQ-176 setting, submission, confirmation and lifecycle producers remain incomplete",
+    "PostgreSQL/Docker NOT_APPLICABLE for this no-schema-change slice",
+    "GitHub hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF"
+  ],
+  "migrations_applied": [],
+  "live_integrations_tested": [
+    "Temporary SQLite persistence and the repository local synthetic MOCK ATS; connected Chromium Activity browser; no external employer/provider calls"
+  ],
+  "known_errors": [
+    "The full Python suite had one unrelated browser server-thread shutdown assertion; the named test passed on isolated rerun."
+  ],
+  "known_limitations": [
+    "MJ-REQ-176 remains PARTIAL and issue #177 remains OPEN; hosted checks and PostgreSQL/Docker were not run; external submission remains OFF."
+  ],
+  "last_safe_checkpoint": {
+    "git_commit": "bd251813996deac05010d1d080a7ec5671a0dbd9",
+    "evidence_path": "docs/evidence/2026-10-07-application-submit-audit.json"
+  }
+}

@@ -3508,7 +3508,39 @@
       "notes": "Issue #166 / MJ-REQ-165 fully accepted and integrated at 59039a51701258a35c93fc7deca6fbf85d72fddd from source 108c502ce0b2c8aa92a4868b09687b4b4a0206f1. Search now covers title, company, description, skills and location; PostgreSQL GIN full-text indexes support job and company search. Full Python 962/8 skipped, frontend 63/build, connected Chromium, SQLite/PostgreSQL migrations, PostgreSQL API/index-plan checks and local validators PASS. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF. Evidence docs/evidence/2026-10-07-full-text-search.json. No hosted validation is represented as PASS. GitHub issue closed after release readback: https://github.com/MulattoTech/MJobs/issues/166#issuecomment-6044900079.",
       "issue_state": "CLOSED",
       "issue_release_comment": "https://github.com/MulattoTech/MJobs/issues/166#issuecomment-6044900079"
+    },
+    {
+      "id": "MJ-PR-165",
+      "title": "MJ-REQ-176 truthful mock submission history",
+      "domain": "governance_safety",
+      "requirements": [
+        "MJ-REQ-176"
+      ],
+      "issues": [
+        177
+      ],
+      "target_area": "services/applications/mock_adapter.py; services/audit_history.py; application and Activity browser tests",
+      "depends_on": [],
+      "status": "INTEGRATED_PARTIAL",
+      "branch": "codex/mj-req176-application-submit-audit-20261007",
+      "draft_until_verified": true,
+      "issue_number": 177,
+      "evidence_path": "docs/evidence/2026-10-07-application-submit-audit.json",
+      "base": "5ec8f8bdb5cc37841043e8041bab7e40f02545f3",
+      "candidate": "bd251813996deac05010d1d080a7ec5671a0dbd9",
+      "integration_method": "NON_FORCE_FAST_FORWARD",
+      "pr_state": "NOT_OPENED_LOCAL_ONLY",
+      "scope_complete": false,
+      "scope_result": "PARTIAL",
+      "source_commit": "382db126a1b504754ec2ad748bb543df586d976b",
+      "integration_commit": "bd251813996deac05010d1d080a7ec5671a0dbd9",
+      "integration_evidence": "docs/evidence/2026-10-07-application-submit-audit.json",
+      "integrated_at": "2026-10-07T19:37:19Z",
+      "issue_state": "OPEN/PARTIAL",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6045375245",
+      "issue_release_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6045401912",
+      "notes": "The local MOCK ATS writes one empty-payload, idempotent APPLICATION_SUBMITTED event only after mock click return or valid receipt recovery. APPLICATION_CONFIRMED is separate; no receipt remains SUBMISSION_UNCONFIRMED; reservation/pre-click timeout creates no submission event. Connected Chromium Activity reload and profile isolation pass. Affected suite 34 PASS; frontend 63/build and validators PASS. Full suite 962 ran, 8 skipped, one unrelated company-discovery Uvicorn shutdown assertion failure; isolated rerun passed. Hosted NOT_RUN_BY_USER_POLICY; PostgreSQL/Docker NOT_APPLICABLE; external submission OFF. Issue #177 remains OPEN/PARTIAL for remaining event families."
     }
   ],
-  "generated_at": "2026-10-07T19:09:10Z"
+  "generated_at": "2026-10-07T19:37:19Z"
 }

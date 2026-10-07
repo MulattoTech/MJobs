@@ -1,3 +1,11 @@
+## Issue #177 / MJ-REQ-176 — mock submission history — integrated PARTIAL — 2026-10-07
+
+Integrated by non-force fast-forward at `bd251813996deac05010d1d080a7ec5671a0dbd9` from base `5ec8f8bdb5cc37841043e8041bab7e40f02545f3`; implementation source `382db126a1b504754ec2ad748bb543df586d976b`. Evidence: `docs/evidence/2026-10-07-application-submit-audit.json`. Local MOCK ATS now records an idempotent `APPLICATION_SUBMITTED` only after click return or valid local receipt recovery; `APPLICATION_CONFIRMED` remains distinct. Missing receipt stays `SUBMISSION_UNCONFIRMED`; a reservation/pre-click timeout emits no submitted event. Connected Chromium verified both Activity summaries after reload and profile isolation.
+
+Validation: 34 affected Python integration/browser tests PASS; frontend 63 tests/build and local validators PASS. Full Python suite: 962 ran, 8 skipped, one unrelated company-discovery Uvicorn shutdown assertion failed; its isolated rerun passed, so the broad run remains recorded as failed. PostgreSQL/Docker NOT_APPLICABLE; hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF. Integration comment: https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6045375245. Codex claim released: https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6045401912. Issue #177 remains OPEN/PARTIAL for other audit event families.
+
+---
+
 ## Issue #166 / MJ-REQ-165 Full-Text Search — integrated PASS — 2026-10-07
 
 Indexed full-text search is integrated at `59039a51701258a35c93fc7deca6fbf85d72fddd` from source `108c502ce0b2c8aa92a4868b09687b4b4a0206f1` (base `fc103a4b01b473967bb67ccd8ef63766f8c80abc`). The Jobs search API and UI now search title, company, description, skills and location. PostgreSQL GIN indexes cover the job text expression and company names; SQLite retains a portable local path.
