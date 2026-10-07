@@ -1,17 +1,17 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-07T12:49:10Z",
+  "generated_at": "2026-10-07T13:00:26Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Issue #181 / MJ-REQ-180 diagnostic redaction slice and sanitized evidence integrated by non-force fast-forward at main 04507e36bd78b6af4053868f00926d2b8b993b0f; requirement PARTIAL; Actions disabled; external submission OFF.",
-    "current_verified_github_state": "GitHub main integration candidate 04507e36bd78b6af4053868f00926d2b8b993b0f; issue #181 remains OPEN/PARTIAL after sanitized release evidence; Actions disabled; external submission OFF.",
-    "current_verified_at": "2026-10-07T12:49:10Z"
+    "current_verified_local_state": "Issue #8 / MJ-REQ-007 database migration recovery integrated as a scoped PARTIAL slice at main 4f7059f5fcaac5335e2b5aa9e0666dc6848706ad; issue remains OPEN/PARTIAL; Actions disabled; external submission OFF.",
+    "current_verified_github_state": "GitHub main integration candidate 4f7059f5fcaac5335e2b5aa9e0666dc6848706ad; issue #8 remains OPEN/PARTIAL after sanitized release evidence; Actions disabled; external submission OFF.",
+    "current_verified_at": "2026-10-07T13:00:26Z"
   },
-  "current_milestone": "MJ-REQ-180-DIAGNOSTIC-PRIVACY-20261007",
+  "current_milestone": "MJ-REQ-007-DATABASE-MIGRATION-RECOVERY-20261007",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -327,7 +327,8 @@
     "MJ-REQ-005 / issue #6 PostgreSQL runtime slice: PostgreSQL concurrency, category unit and worker lifecycle tests: 21 PASS, repeated twice against the same disposable PostgreSQL 17 database; repository validators PASS. Evidence docs/evidence/2026-10-07-postgres-concurrency-runtime.json; source 9e282135e9c90d56301b9d8726479479d84a862a, tree fd7665952a141c07a494f3a20b9986766363085b, integration d5d888785d62a091249541fd09cbe092073f7887.",
     "Exact current-main revalidation for MJ-REQ-004 backup CLI output bounds: locked frontend install/build, 11 focused CLI tests, and full Python/browser discovery 903 PASS with 2 skipped; stale root dist run failures disappeared after building the same exact main source in an isolated worktree. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json.",
     "Issue #6 / MJ-REQ-005 local PostgreSQL category-runtime acceptance: 5 PostgreSQL concurrency tests + 3 category unit tests + 16 worker lifecycle tests passed twice (24/run) against one fresh disposable PostgreSQL 17 DB. All five categories now have runtime evidence for capacity-one admission, including shared inline/worker document-generation category. Evidence docs/evidence/2026-10-07-postgres-all-category-concurrency.json.",
-    "Focused live-feedback privacy unit/GUI/Chromium acceptance: 26 PASS, 0 failures/errors/skips (synthetic local data only); evidence docs/evidence/2026-10-07-redacted-diagnostic-privacy.json."
+    "Focused live-feedback privacy unit/GUI/Chromium acceptance: 26 PASS, 0 failures/errors/skips (synthetic local data only); evidence docs/evidence/2026-10-07-redacted-diagnostic-privacy.json.",
+    "Issue #8 / MJ-REQ-007 migration recovery integrated at 4f7059f5fcaac5335e2b5aa9e0666dc6848706ad: SQLite and isolated disposable PostgreSQL 17 injected post-DDL rollback/retry; 23 migration tests PASS with 1 optional PostgreSQL skip; 18 related unit tests PASS. Evidence docs/evidence/2026-10-07-migration-recovery.json."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -346,7 +347,8 @@
     "MJ-REF-011 timeout-persistence regression RED before fix: API returned AI_TASK_TIMEOUT but durable operation stored generic AI_EVALUATION_FAILED; exact failure is recorded in docs/evidence/2026-10-07-ai-operation-outcomes.json.",
     "Superseded 2026-10-07 full-suite attempts for #386: first exposed and corrected a stale FAILED-state expectation; second had one timing-sensitive 250 ms Playwright timeout in test_playwright_actions_never_exceed_remaining_worker_budget, which passed in isolation; final exact-tree full suite passed 875 tests with one skip. See docs/evidence/2026-10-07-dead-letter-queue.json.",
     "After restoring locked frontend dependencies and building current apps/web source on integrated CLI-output candidate 1b35a11: 903 tests, 2 failures, 2 errors, 2 skips. Repeatable browser failures: external application capture form absent; summary rewrite editor absent; skill-order comparison shows No changes; AI task fallback list renders zero rows. Focused affected modules reran and reproduced; none are changed by the backup CLI slice. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json.",
-    "RESOLVED ENVIRONMENT MISMATCH for docs/evidence/2026-10-07-backup-command-output-bounds.json: initial full runs used absent/stale ignored apps/web/dist; after npm ci and Vite build in a worktree at exact integrated main d7307be3d50e4297f87ba315e9cda3dbdf1a1924, all 903 Python/browser tests passed with 2 skipped. Historical failures preserved above; no product defect was confirmed."
+    "RESOLVED ENVIRONMENT MISMATCH for docs/evidence/2026-10-07-backup-command-output-bounds.json: initial full runs used absent/stale ignored apps/web/dist; after npm ci and Vite build in a worktree at exact integrated main d7307be3d50e4297f87ba315e9cda3dbdf1a1924, all 903 Python/browser tests passed with 2 skipped. Historical failures preserved above; no product defect was confirmed.",
+    "Global Python interpreter lacks repository Alembic dependencies: migration discovery errored on 12 module imports; rerun with repository .venv passed (environment mismatch, not product failure)."
   ],
   "tests_not_run": [
     "Remaining full-spec integrations and product/release requirements",
@@ -385,7 +387,8 @@
     "MJ-REF-016 optional PostgreSQL worker-concurrency test skipped because MJOBS_TEST_POSTGRES_URL was unset; temporary PostgreSQL 17 migration upgrade/downgrade/history-loss guard was run. Hosted checks/review remain NOT_RUN_BY_USER_POLICY; external submission OFF. See docs/evidence/2026-10-07-dead-letter-queue.json.",
     "MJ-REF-020 live PostgreSQL was NOT_RUN because the optional local service was unavailable; hosted Actions/reviews NOT_RUN_BY_USER_POLICY. docs/evidence/2026-10-07-external-application-capture.json.",
     "MJ-REQ-004 backup CLI slice: frontend unit tests NOT_RUN_BY_SCOPE; no web source changed. PostgreSQL runtime NOT_RUN_BY_SCOPE; no persistence or migration changed. Hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF.",
-    "MJ-REQ-005 real ATS/provider concurrency and hosted Actions/review remain NOT_RUN; external application submission OFF. Browser/frontend/migrations NOT_APPLICABLE to the test-only slice."
+    "MJ-REQ-005 real ATS/provider concurrency and hosted Actions/review remain NOT_RUN; external application submission OFF. Browser/frontend/migrations NOT_APPLICABLE to the test-only slice.",
+    "Full repository suite, frontend/browser tests, hosted checks/review NOT_RUN_BY_USER_POLICY; offline SQL generation attempted and failed in existing migration cb72f9041d6a; external submission OFF."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -421,13 +424,13 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-07T12:49:10Z",
+    "timestamp": "2026-10-07T13:00:26Z",
     "result": "PARTIAL",
-    "source_commit": "f557cd02878b234170470b88ff4f916917a97a25",
-    "source_tree": "a5fbe668101b47da34d0ac4270b95bf475cb6003",
-    "scope": "Stop storing raw live-feedback diagnostic text; pattern-redact recognizable sensitive metadata and mask matching text in optional screenshots.",
-    "evidence_path": "docs/evidence/2026-10-07-redacted-diagnostic-privacy.json",
-    "integration_commit": "04507e36bd78b6af4053868f00926d2b8b993b0f"
+    "source_commit": "7a2107941a4f3ac0379f0053bd1f0421db117f80",
+    "source_tree": "f89ef1004ac2448f7a2fe7b099e97f6e0291f8e3",
+    "scope": "Atomic rollback/retry for supported online Alembic SQLite and PostgreSQL database migrations after injected post-DDL failure.",
+    "evidence_path": "docs/evidence/2026-10-07-migration-recovery.json",
+    "integration_commit": "4f7059f5fcaac5335e2b5aa9e0666dc6848706ad"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -8305,12 +8308,63 @@
         "git_commit": "04507e36bd78b6af4053868f00926d2b8b993b0f",
         "evidence_path": "docs/evidence/2026-10-07-redacted-diagnostic-privacy.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-007-DATABASE-MIGRATION-RECOVERY-INTEGRATED-20261007",
+      "current_phase": "MJ-REQ-007 database migration rollback and retry slice integrated; requirement remains PARTIAL",
+      "timestamp": "2026-10-07T13:00:26Z",
+      "completed_steps": [
+        "Integrated atomic online Alembic SQLite/PostgreSQL rollback and retry behavior after injected post-DDL interruption.",
+        "Recorded sanitized evidence and GitHub issue release; issue remains OPEN/PARTIAL."
+      ],
+      "files_added": [
+        "tests/integration/test_migration_recovery.py",
+        "docs/evidence/2026-10-07-migration-recovery.json"
+      ],
+      "files_modified": [
+        "migrations/env.py",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Repository .venv: migration integration discovery 23 PASS, 1 optional PostgreSQL skip.",
+        "Repository .venv: initializer/backup unit tests 18 PASS.",
+        "git diff --check PASS."
+      ],
+      "tests_remaining": [
+        "Full Python suite NOT_RUN.",
+        "Frontend/browser checks NOT_RUN; unaffected by this migration-only slice.",
+        "Hosted checks/review NOT_RUN_BY_USER_POLICY."
+      ],
+      "migrations_applied": [
+        "Disposable SQLite migration failure/rollback/retry exercised.",
+        "Disposable PostgreSQL 17 migration failure/rollback/retry exercised.",
+        "No migration revision/head changed."
+      ],
+      "live_integrations_tested": [
+        "GitHub issue #8 release comment read back at https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6038445116.",
+        "origin/main and local main verified at 4f7059f5fcaac5335e2b5aa9e0666dc6848706ad."
+      ],
+      "known_errors": [
+        "Global Python lacked repository Alembic dependencies; failed import-only attempt corrected using repository .venv.",
+        "Offline alembic upgrade head --sql fails in pre-existing migration cb72f9041d6a due live row query."
+      ],
+      "known_limitations": [
+        "Protected-configuration schema migration recovery remains unverified; issue #8 stays OPEN/PARTIAL.",
+        "Hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "4f7059f5fcaac5335e2b5aa9e0666dc6848706ad",
+        "evidence_path": "docs/evidence/2026-10-07-migration-recovery.json"
+      }
     }
   ],
-  "current_phase": "Issue #181 / MJ-REQ-180 diagnostic privacy slice is locally validated and integrated PARTIAL; arbitrary rendered values and other debug surfaces remain.",
+  "current_phase": "MJ-REQ-007 database migration rollback and retry slice integrated; requirement remains PARTIAL",
   "last_safe_checkpoint": {
-    "git_commit": "04507e36bd78b6af4053868f00926d2b8b993b0f",
-    "evidence_path": "docs/evidence/2026-10-07-redacted-diagnostic-privacy.json"
+    "git_commit": "4f7059f5fcaac5335e2b5aa9e0666dc6848706ad",
+    "evidence_path": "docs/evidence/2026-10-07-migration-recovery.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -8548,19 +8602,19 @@
     "next_issue": "Release #398 and select the next dependency-ready unclaimed issue after live claim/worktree reconciliation."
   },
   "active_development_issue": {
-    "issue": 181,
-    "requirement_id": "MJ-REQ-180",
-    "title": "Redact Debug Data",
+    "issue": 8,
+    "requirement_id": "MJ-REQ-007",
+    "title": "Source Control / Change Safety",
     "state": "INTEGRATED_PARTIAL",
-    "base": "a2053c432d618d49af3e5509a6de00fc0c718392",
-    "branch": "codex/mj-req180-diagnostic-privacy-20261007",
-    "candidate": "04507e36bd78b6af4053868f00926d2b8b993b0f",
-    "integrated_main": "04507e36bd78b6af4053868f00926d2b8b993b0f",
-    "source_commit": "f557cd02878b234170470b88ff4f916917a97a25",
-    "source_tree": "a5fbe668101b47da34d0ac4270b95bf475cb6003",
-    "evidence": "docs/evidence/2026-10-07-redacted-diagnostic-privacy.json",
-    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6038249056",
-    "next_action": "Issue #181 remains OPEN/PARTIAL; Codex claim released. Reconcile current main, all active claims and dirty worktrees, then immediately select the next highest-value unclaimed dependency-ready issue."
+    "base": "82b56526f041cdb2e456dcd7c29ad680011da9dd",
+    "branch": "codex/mj-req007-migration-recovery-20261007",
+    "candidate": "4f7059f5fcaac5335e2b5aa9e0666dc6848706ad",
+    "integrated_main": "4f7059f5fcaac5335e2b5aa9e0666dc6848706ad",
+    "source_commit": "7a2107941a4f3ac0379f0053bd1f0421db117f80",
+    "source_tree": "f89ef1004ac2448f7a2fe7b099e97f6e0291f8e3",
+    "evidence": "docs/evidence/2026-10-07-migration-recovery.json",
+    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6038445116",
+    "next_action": "Issue #8 remains OPEN/PARTIAL for protected-configuration schema migration recovery and offline Alembic SQL support; Codex claim released. Reconcile all live claims and dirty paths, then immediately select the next highest-value unclaimed dependency-ready slice."
   },
   "historical_control_snapshots": [
     {

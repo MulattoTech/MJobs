@@ -174,14 +174,14 @@
     {
       "issue": 8,
       "requirement_id": "MJ-REQ-007",
-      "status": "CANDIDATE_READY",
+      "status": "INTEGRATED_PARTIAL",
       "priority": 0,
       "target_area": "migrations/env.py; tests/integration/test_migration_recovery.py",
       "depends_on": [],
       "evidence_path": "docs/evidence/2026-10-07-migration-recovery.json",
       "scope_complete": false,
-      "note": "Source 7a2107941a4f3ac0379f0053bd1f0421db117f80 pushed from 82b56526f041cdb2e456dcd7c29ad680011da9dd. Injected failure after DDL now rolls back and retries successfully on SQLite and disposable PostgreSQL 17. Full migration suite 23 PASS, 1 optional skip; related units 18 PASS. Broader requirement remains PARTIAL for protected-config recovery and offline SQL generation."
+      "note": "Source 7a2107941a4f3ac0379f0053bd1f0421db117f80 pushed from 82b56526f041cdb2e456dcd7c29ad680011da9dd. Injected failure after DDL now rolls back and retries successfully on SQLite and disposable PostgreSQL 17. Full migration suite 23 PASS, 1 optional skip; related units 18 PASS. Broader requirement remains PARTIAL for protected-config recovery and offline SQL generation. Integrated non-force fast-forward at 4f7059f5fcaac5335e2b5aa9e0666dc6848706ad; release https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6038445116. Focused migration 23 PASS/1 optional skip and units 18 PASS."
     }
   ],
-  "generated_at": "2026-10-07T12:35:48Z"
+  "generated_at": "2026-10-07T13:00:26Z"
 }

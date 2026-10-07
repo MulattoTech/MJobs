@@ -1,20 +1,20 @@
 {
   "schema_version": 1,
   "lane": "codex",
-  "status": "ACTIVE",
+  "status": "IDLE_READY",
   "base_main": "82b56526f041cdb2e456dcd7c29ad680011da9dd",
-  "current_issue": 8,
-  "requirement_id": "MJ-REQ-007",
-  "branch": "codex/mj-req007-migration-recovery-20261007",
-  "head": "7a2107941a4f3ac0379f0053bd1f0421db117f80",
-  "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req007-migration-recovery-20261007",
-  "result": "PARTIAL",
+  "current_issue": null,
+  "requirement_id": null,
+  "branch": null,
+  "head": "4f7059f5fcaac5335e2b5aa9e0666dc6848706ad",
+  "worktree": null,
+  "result": "INTEGRATED_PARTIAL",
   "evidence_path": "docs/evidence/2026-10-07-migration-recovery.json",
   "last_completed": {
-    "issue": 181,
-    "requirement_id": "MJ-REQ-180",
-    "integration_commit": "04507e36bd78b6af4053868f00926d2b8b993b0f",
-    "slice_status": "PARTIAL"
+    "issue": 8,
+    "requirement_id": "MJ-REQ-007",
+    "integrated_main": "4f7059f5fcaac5335e2b5aa9e0666dc6848706ad",
+    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6038445116"
   },
   "next_candidates": [
     {
@@ -29,10 +29,10 @@
     "Ollama/OpenCode active issue #318 paths: services/ats_detection/** and detector tests",
     "canonical planning and main outside integration lock"
   ],
-  "resume_instruction": "Issue #8 / MJ-REQ-007 migration failure recovery is validated on SQLite and disposable PostgreSQL at source 7a2107941a4f3ac0379f0053bd1f0421db117f80. Record/checkpoint evidence, reconcile main and active claims, integrate under lock if safe. Broader source safety and protected configuration migration recovery remain PARTIAL.",
-  "last_verified_head": "7a2107941a4f3ac0379f0053bd1f0421db117f80",
+  "resume_instruction": "Reconcile live GitHub/main, claims and dirty worktrees immediately, then select the next highest-value unclaimed dependency-ready issue. Keep external submission OFF and hosted checks NOT_RUN_BY_USER_POLICY.",
+  "last_verified_head": "4f7059f5fcaac5335e2b5aa9e0666dc6848706ad",
   "last_verified_tree": "f89ef1004ac2448f7a2fe7b099e97f6e0291f8e3",
-  "last_verified_at_utc": "2026-10-07T12:57:51Z",
+  "last_verified_at_utc": "2026-10-07T13:00:26Z",
   "started_at_utc": "2026-10-07T04:24:01Z",
   "validation": {
     "result": "PASS_FOR_SLICE",
@@ -45,6 +45,6 @@
     "hosted_checks": "NOT_RUN_BY_USER_POLICY",
     "external_submission": "OFF"
   },
-  "last_integrated_head": "04507e36bd78b6af4053868f00926d2b8b993b0f",
-  "last_verified_result": "PASS_FOR_SLICE"
+  "last_integrated_head": "4f7059f5fcaac5335e2b5aa9e0666dc6848706ad",
+  "last_verified_result": "PASS_FOR_SLICE; requirement PARTIAL"
 }

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-07T12:20:17Z",
+  "timestamp": "2026-10-07T13:00:26Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -94,9 +94,10 @@
       "evidence": [
         "docs/evidence/2026-10-06-source-change-safety.json",
         "docs/evidence/2026-09-30-pr004-backup-restore-local.json",
-        "docs/evidence/2026-10-06-atomic-env-initialization.json"
+        "docs/evidence/2026-10-06-atomic-env-initialization.json",
+        "docs/evidence/2026-10-07-migration-recovery.json"
       ],
-      "note": "Healthy Git path/worktree preservation and conditional no-Git NOT_APPLICABLE remain evidenced. Database/document restore and archive integrity have prior receipts. Current .env initialization now stages, fsyncs and atomically publishes create-if-absent with synthetic failure/concurrency/redaction tests. Requirement remains PARTIAL: no actual protected-configuration schema migration recovery was exercised."
+      "note": "Healthy Git path/worktree preservation and conditional no-Git NOT_APPLICABLE remain evidenced. Database/document restore and archive integrity have prior receipts. Atomic protected .env initialization is verified. Online SQLite and isolated PostgreSQL 17 migration failure/rollback/retry preserves schema version and sentinel data (docs/evidence/2026-10-07-migration-recovery.json). Requirement remains PARTIAL: protected-configuration schema migration recovery is unverified and existing offline Alembic SQL generation fails at cb72f9041d6a."
     },
     {
       "requirement_id": "MJ-REQ-008",

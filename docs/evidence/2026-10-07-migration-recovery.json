@@ -60,6 +60,14 @@
     {
       "command": "MJOBS_DATABASE_URL=postgresql+psycopg://offline/unused python -m alembic upgrade head --sql",
       "result": "FAIL - existing migration cb72f9041d6a executes a live data query through the offline connection, raising TypeError before full SQL is generated; offline SQL generation is unsupported by this migration chain and remains unresolved."
+    },
+    {
+      "command": "python -m unittest discover -s tests/integration -p \"*migration*.py\" from the global Python 3.12 interpreter",
+      "result": "FAIL - 12 test modules could not import Alembic because this interpreter does not include the repository dependencies; rerun with C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe passed 23 tests with one optional PostgreSQL skip.",
+      "tests": 12,
+      "failures": 0,
+      "errors": 12,
+      "skips": 0
     }
   ],
   "environment": {
@@ -86,12 +94,15 @@
     "reference_gaps": 59
   },
   "integration": {
-    "status": "PENDING",
+    "status": "NON_FORCE_FAST_FORWARD",
     "base_main": "82b56526f041cdb2e456dcd7c29ad680011da9dd",
     "source_commit": "7a2107941a4f3ac0379f0053bd1f0421db117f80",
-    "candidate_commit": null,
-    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6038409026",
+    "candidate_commit": "4f7059f5fcaac5335e2b5aa9e0666dc6848706ad",
+    "local_main": "4f7059f5fcaac5335e2b5aa9e0666dc6848706ad",
+    "origin_main": "4f7059f5fcaac5335e2b5aa9e0666dc6848706ad",
+    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6038445116",
     "issue_state": "OPEN_PARTIAL",
     "external_submission": "OFF"
-  }
+  },
+  "recorded_integration_at_utc": "2026-10-07T13:00:26Z"
 }
