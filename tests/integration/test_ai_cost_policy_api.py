@@ -557,6 +557,95 @@ class AICostPolicyApiTests(unittest.TestCase):
         self.assertEqual(history.status_code, 200, history.text)
         self.assertEqual(history.json()["runs"], [])
 
+    def test_explicit_ai_evaluation_cancel_is_profile_and_request_scoped(self):
+        from concurrent.futures import ThreadPoolExecutor
+        import threading
+        from unittest.mock import patch
+        from services.ai.consumer import AIJobEvaluation
+        from services.ai.tasks import AI_TASKS
+
+        for index, title in enumerate(("Infrastructure Administrator", "Systems Administrator")):
+            response = self.client.post("/jobs/manual", json={
+                "request_id": f"explicit-ai-cancel-{index}", "title": title,
+                "company": "Synthetic Company", "description": "Windows and Linux infrastructure.",
+                "reference_url": f"https://jobs.example.test/explicit-cancel-{index}",
+                "application_url": f"https://apply.example.test/explicit-cancel-{index}",
+                "source_details": {},
+            })
+            self.assertEqual(response.status_code, 201, response.text)
+        recalculate(self.store, "fixture")
+        jobs = self.store.jobs(profile_id="fixture")
+        with self.store.engine.begin() as connection:
+            for job in jobs:
+                connection.execute(update(m.matches).where(
+                    m.matches.c.profile_id == "fixture",
+                    m.matches.c.job_id == job["id"],
+                ).values(score=95.0))
+        self.store.save_ai_task_settings("fixture", {
+            task: {"provider": "ollama", "model": "synthetic-test"}
+            if task == "job_scoring" else {"provider": "disabled", "model": None}
+            for task in AI_TASKS
+        })
+
+        provider_started = threading.Event()
+        release_provider = threading.Event()
+        provider_calls = []
+
+        class WaitingRouter:
+            def __init__(self, _configuration):
+                pass
+
+            def generate_structured(self, **_kwargs):
+                provider_calls.append(len(provider_calls) + 1)
+                if len(provider_calls) == 1:
+                    return AIJobEvaluation(category="STRONG", rationale="Synthetic completed result.")
+                provider_started.set()
+                if not release_provider.wait(60):
+                    raise AssertionError("test did not release the bounded provider call")
+                return AIJobEvaluation(category="REVIEW", rationale="Synthetic interrupted result.")
+
+        request_id = "fixture-evaluation-request"
+        with ThreadPoolExecutor(max_workers=1) as executor, patch(
+                "apps.api.main.AITaskRouter", WaitingRouter):
+            evaluation = executor.submit(self.client.post,
+                "/profiles/fixture/ai-cost-plan/evaluate", json={"request_id": request_id})
+            try:
+                self.assertTrue(provider_started.wait(5), "second provider call did not start")
+                wrong_profile = self.client.post(
+                    f"/profiles/other-profile/ai-cost-plan/evaluations/{request_id}/cancel")
+                wrong_request = self.client.post(
+                    "/profiles/fixture/ai-cost-plan/evaluations/another-request/cancel")
+                duplicate_request = self.client.post(
+                    "/profiles/fixture/ai-cost-plan/evaluate", json={"request_id": request_id})
+                self.assertEqual(wrong_profile.status_code, 200, wrong_profile.text)
+                self.assertFalse(wrong_profile.json()["cancelled"])
+                self.assertEqual(wrong_request.status_code, 200, wrong_request.text)
+                self.assertFalse(wrong_request.json()["cancelled"])
+                self.assertEqual(duplicate_request.status_code, 409, duplicate_request.text)
+                self.assertEqual(duplicate_request.json()["detail"]["code"],
+                                 "AI_EVALUATION_REQUEST_ACTIVE")
+
+                acknowledged = self.client.post(
+                    f"/profiles/fixture/ai-cost-plan/evaluations/{request_id}/cancel")
+                self.assertEqual(acknowledged.status_code, 200, acknowledged.text)
+                self.assertTrue(acknowledged.json()["cancelled"])
+                self.assertFalse(evaluation.done(), "cancel acknowledgement must not imply provider completion")
+            finally:
+                release_provider.set()
+
+            response = evaluation.result(timeout=5)
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual(response.json(), {"cancelled": True, "request_id": request_id})
+        self.assertEqual(provider_calls, [1, 2])
+        finished_cancel = self.client.post(
+            f"/profiles/fixture/ai-cost-plan/evaluations/{request_id}/cancel")
+        self.assertEqual(finished_cancel.status_code, 200, finished_cancel.text)
+        self.assertFalse(finished_cancel.json()["cancelled"])
+        for profile_id in ("fixture", "other-profile"):
+            history = self.client.get(f"/profiles/{profile_id}/ai-cost-plan/evaluations")
+            self.assertEqual(history.status_code, 200, history.text)
+            self.assertEqual(history.json()["runs"], [])
+
     def test_real_http_disconnect_during_provider_call_discards_partial_batch(self):
         import socket
         import threading

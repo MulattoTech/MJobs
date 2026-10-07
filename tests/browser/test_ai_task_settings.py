@@ -216,6 +216,133 @@ class AITaskSettingsBrowserTests(unittest.TestCase):
                 store.engine.dispose()
                 self.assertFalse(thread.is_alive(), "Isolated task-settings API must stop")
 
+    def test_user_can_cancel_ai_evaluation_without_persisting_partial_batch(self):
+        from sqlalchemy import update
+        from packages.persistence import models as m
+        from services.ai.tasks import AI_TASKS
+
+        with tempfile.TemporaryDirectory(prefix="mjobs-ai-evaluation-cancel-") as directory:
+            root = Path(directory)
+            store = Store(f"sqlite:///{(root / 'cancel.db').as_posix()}")
+            store.migrate()
+            store.bind_workspace_mode("PERSONAL")
+            store.save_profile(copy.deepcopy(PROFILE))
+            for index, title in enumerate(("Infrastructure Administrator", "Systems Administrator")):
+                capture_manual_job(store, {
+                    "request_id": f"browser-ai-cancel-{index}",
+                    "title": title,
+                    "company": "Synthetic Company",
+                    "description": "Windows and Linux infrastructure administration.",
+                    "reference_url": f"https://jobs.example.test/cancel-{index}",
+                    "application_url": f"https://apply.example.test/cancel-{index}",
+                    "source_details": {},
+                })
+            recalculate(store, "fixture")
+            with store.engine.begin() as connection:
+                connection.execute(update(m.matches).where(
+                    m.matches.c.profile_id == "fixture",
+                ).values(score=95.0))
+            store.save_ai_task_settings("fixture", {
+                task: {"provider": "ollama", "model": "synthetic-test"}
+                if task == "job_scoring" else {"provider": "disabled", "model": None}
+                for task in AI_TASKS
+            })
+
+            provider_started = threading.Event()
+            release_provider = threading.Event()
+            provider_returned = threading.Event()
+            batch_finished = threading.Event()
+            provider_calls = []
+
+            class WaitingRouter:
+                def __init__(self, _configuration):
+                    pass
+
+                def generate_structured(self, **_kwargs):
+                    provider_calls.append(len(provider_calls) + 1)
+                    if len(provider_calls) == 1:
+                        return AIJobEvaluation(category="STRONG", rationale="Synthetic completed result.")
+                    provider_started.set()
+                    if not release_provider.wait(60):
+                        raise AssertionError("browser test did not release the bounded provider call")
+                    provider_returned.set()
+                    return AIJobEvaluation(category="REVIEW", rationale="Synthetic interrupted result.")
+
+            from apps.api.main import consume_ai_candidates as original_consume
+
+            def consume_and_signal(*args, **kwargs):
+                try:
+                    return original_consume(*args, **kwargs)
+                finally:
+                    batch_finished.set()
+
+            sock = bound_browser_socket()
+            origin = f"http://127.0.0.1:{sock.getsockname()[1]}"
+            server = uvicorn.Server(uvicorn.Config(
+                create_app(store, "http://127.0.0.1:1", root,
+                           "redis://127.0.0.1:1/0", operation_mode="PERSONAL"),
+                log_level="error"))
+            thread = threading.Thread(target=server.run, kwargs={"sockets": [sock]}, daemon=True)
+            thread.start()
+            deadline = time.monotonic() + 10
+            try:
+                while not server.started:
+                    if not thread.is_alive() or time.monotonic() > deadline:
+                        self.fail("AI-evaluation cancellation API did not start")
+                    time.sleep(0.02)
+
+                external, errors = [], []
+                with patch("apps.api.main.AITaskRouter", WaitingRouter), \
+                        patch("apps.api.main.consume_ai_candidates", consume_and_signal), \
+                        sync_playwright() as pw:
+                    browser = pw.chromium.launch(headless=True)
+                    context = browser.new_context(viewport={"width": 1280, "height": 900})
+
+                    def local_only(route):
+                        if urlsplit(route.request.url).netloc != urlsplit(origin).netloc:
+                            external.append(route.request.url)
+                            route.abort()
+                        else:
+                            route.continue_()
+
+                    context.route("**/*", local_only)
+                    page = context.new_page()
+                    page.set_default_timeout(2000)
+                    page.on("pageerror", lambda error: errors.append(str(error)))
+                    page.goto(origin, wait_until="domcontentloaded")
+                    page.locator("#active-profile").select_option("fixture")
+                    page.get_by_role("button", name="AI Settings", exact=True).click()
+                    panel = page.get_by_role("region", name="AI cost controls")
+                    panel.get_by_role("button", name="Preview AI work plan", exact=True).click()
+                    panel.get_by_role("button", name="Evaluate planned AI candidates", exact=True).click()
+                    self.assertTrue(provider_started.wait(5), "second synthetic provider call did not start")
+                    page.get_by_role("button", name="Cancel AI evaluation", exact=True).click()
+                    expect(page.get_by_role("status").filter(
+                        has_text="Cancellation accepted. Waiting for the bounded provider call; partial results will not be saved.")).to_be_visible()
+                    self.assertFalse(batch_finished.is_set(), "cancel acknowledgement must wait for the provider call")
+                    release_provider.set()
+                    self.assertTrue(provider_returned.wait(5), "bounded provider call was not released")
+                    self.assertTrue(batch_finished.wait(5), "AI batch did not finish cancellation handling")
+                    expect(page.get_by_role("status").filter(
+                        has_text="AI evaluation canceled. The interrupted batch was discarded.")).to_be_visible()
+                    self.assertEqual(provider_calls, [1, 2])
+
+                    page.reload(wait_until="domcontentloaded")
+                    page.get_by_role("button", name="AI Settings", exact=True).click()
+                    evaluations = page.get_by_role("region", name="AI evaluation history")
+                    expect(evaluations.get_by_text(
+                        "No saved AI evaluations for this profile.", exact=True)).to_be_visible()
+                    self.assertEqual(errors, [])
+                    self.assertEqual(external, [])
+                    browser.close()
+            finally:
+                release_provider.set()
+                server.should_exit = True
+                thread.join(timeout=10)
+                sock.close()
+                store.engine.dispose()
+                self.assertFalse(thread.is_alive(), "AI-evaluation cancellation API must stop")
+
 
 if __name__ == "__main__":
     unittest.main()

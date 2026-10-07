@@ -9,6 +9,7 @@ from pathlib import Path
 import threading
 from typing import Literal, Annotated
 from urllib.parse import unquote
+from uuid import uuid4
 
 from fastapi import FastAPI, HTTPException, Request, Query
 from fastapi.exception_handlers import request_validation_exception_handler
@@ -138,6 +139,11 @@ class AICostPolicyInput(BaseModel):
         if self.max_document_candidates > self.max_ai_candidates:
             raise ValueError("AI_FUNNEL_POLICY_INVALID")
         return self
+
+
+class AIEvaluationRequest(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+    request_id: str = Field(min_length=1, max_length=128)
 
 
 class DiscoveryInput(BaseModel):
@@ -415,6 +421,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     app.state.resume_extraction_lock = threading.Lock()
     app.state.uploaded_comparison_events = {}
     app.state.uploaded_comparison_lock = threading.Lock()
+    app.state.ai_evaluation_events = {}
+    app.state.ai_evaluation_lock = threading.Lock()
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost", "api", "testserver"])
     app.add_middleware(LocalOriginMiddleware)
 
@@ -593,7 +601,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             raise HTTPException(status, {"code": code}) from None
 
     @app.post("/profiles/{profile_id}/ai-cost-plan/evaluate")
-    async def evaluate_ai_cost_plan(profile_id: str, request: Request):
+    async def evaluate_ai_cost_plan(profile_id: str, request: Request,
+                                   value: AIEvaluationRequest | None = None):
         configured_policy = store.ai_cost_policy(profile_id)
         policy = AICostPolicy(**configured_policy) if configured_policy else AICostPolicy()
         configuration = AITaskConfiguration.from_mapping(store.ai_task_settings(profile_id))
@@ -604,21 +613,35 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         if len(rows) > policy.max_input_candidates:
             raise HTTPException(422, {"code": "AI_FUNNEL_INPUT_LIMIT"})
         profile_version = store.profile(profile_id)["version"]
+        router = AITaskRouter(configuration)
         candidates = [AIJobInput(
             job_id=row["id"], deterministic_score=int(float(row["match_score"])),
             title=row["title"], company=row["company"], description=row["description"],
         ) for row in rows if row.get("match_score") is not None]
         candidate_by_id = {candidate.job_id: candidate for candidate in candidates}
+        request_id = value.request_id if value else uuid4().hex
+        cancel_key = (profile_id, request_id)
         cancelled = threading.Event()
+        with app.state.ai_evaluation_lock:
+            if cancel_key in app.state.ai_evaluation_events:
+                raise HTTPException(409, {"code": "AI_EVALUATION_REQUEST_ACTIVE"})
+            app.state.ai_evaluation_events[cancel_key] = cancelled
 
         def check_cancelled():
             if cancelled.is_set():
                 raise AIConsumerCancelledError()
 
         work = asyncio.create_task(asyncio.to_thread(
-            consume_ai_candidates, candidates, policy, AITaskRouter(configuration),
+            consume_ai_candidates, candidates, policy, router,
             check=check_cancelled,
         ))
+
+        def forget_finished_evaluation(_work):
+            with app.state.ai_evaluation_lock:
+                if app.state.ai_evaluation_events.get(cancel_key) is cancelled:
+                    app.state.ai_evaluation_events.pop(cancel_key, None)
+
+        work.add_done_callback(forget_finished_evaluation)
         try:
             while not work.done():
                 if await request.is_disconnected():
@@ -630,9 +653,13 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                     return JSONResponse({"detail": {"code": "AI_TASK_CANCELLED"}}, status_code=499)
                 await asyncio.sleep(0.05)
             result = await work
+            if cancelled.is_set():
+                return {"cancelled": True, "request_id": request_id}
             if await request.is_disconnected():
                 return JSONResponse({"detail": {"code": "AI_TASK_CANCELLED"}}, status_code=499)
         except AIConsumerCancelledError:
+            if not await request.is_disconnected():
+                return {"cancelled": True, "request_id": request_id}
             return JSONResponse({"detail": {"code": "AI_TASK_CANCELLED"}}, status_code=499)
         except AIConsumerTimeoutError as error:
             raise HTTPException(504, {"code": error.code}) from None
@@ -681,6 +708,14 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             "documents_created": 0,
             "deterministic_matches_unchanged": True,
         }
+
+    @app.post("/profiles/{profile_id}/ai-cost-plan/evaluations/{request_id}/cancel")
+    def cancel_ai_cost_evaluation(profile_id: str, request_id: str):
+        with app.state.ai_evaluation_lock:
+            cancelled = app.state.ai_evaluation_events.get((profile_id, request_id))
+            if cancelled is not None:
+                cancelled.set()
+        return {"cancelled": cancelled is not None}
     @app.put("/profiles")
     def profile(value: ProfileInput):
         payload = value.model_dump()
