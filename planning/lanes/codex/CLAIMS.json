@@ -835,6 +835,24 @@
       "integrated_main": "d4fd68c73acfeab3c47d523ac2de822c0c1e841f",
       "evidence_path": "docs/evidence/2026-10-07-search-profile-audit-history.json",
       "issue_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6047708003"
+    },
+    {
+      "issue": 177,
+      "requirement_id": "MJ-REQ-176",
+      "branch": "codex/mj-req176-ai-cost-policy-audit-20261007",
+      "worktree": ".worktrees/codex-mj-req176-ai-cost-policy-audit-20261007",
+      "paths": [
+        "packages/persistence/store.py",
+        "tests/integration/test_ai_cost_policy_api.py",
+        "tests/browser/test_audit_history.py",
+        "docs/evidence/2026-10-07-ai-cost-policy-audit.json",
+        "planning/lanes/codex/**"
+      ],
+      "status": "ACTIVE",
+      "claimed_at": "2026-10-07T22:18:17Z",
+      "head": "612a697b47dbf9a9c695261835727445dd699b1b",
+      "evidence_path": "docs/evidence/2026-10-07-ai-cost-policy-audit.json",
+      "claim_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6047753340"
     }
   ]
 }

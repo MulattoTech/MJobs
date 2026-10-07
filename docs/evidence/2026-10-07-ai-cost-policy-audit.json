@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-07T22:18:17Z",
+  "issue": 177,
+  "requirement_id": "MJ-REQ-176",
+  "result": "PARTIAL",
+  "source_commit": "612a697b47dbf9a9c695261835727445dd699b1b",
+  "source_tree": "4ce56334dcdd71470a11ab682aa738032c0c35d6",
+  "base_main": "e78359f699ef9e678084eae795d99b8bc19c7d3f",
+  "acceptance_oracle": "Saving an existing profile AI cost policy writes exactly one generic empty-payload SETTING_CHANGED event in the policy transaction when effective limits change. An initial default-equivalent save and an unchanged repeat emit none. Audit history remains profile-scoped and durable through store reopen, and the connected AI Settings save is visible in Activity after reload without revealing policy values.",
+  "red_observation": {
+    "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_ai_cost_policy_api.AICostPolicyApiTests.test_effective_cost_policy_change_appends_one_value_free_audit_event",
+    "result": "FAIL before implementation as expected: after saving a changed cost policy the API returned zero SETTING_CHANGED events."
+  },
+  "implementation": [
+    "Store.save_ai_cost_policy locks/reads the current policy inside the existing transaction, comparing against the documented defaults when no row exists.",
+    "The validated upsert and generic empty-payload profile SETTING_CHANGED event commit together only when effective values differ.",
+    "Integration coverage verifies initial/default-equivalent save, one changed event, empty audit payload and response fields, profile isolation, unchanged repeat, and event durability after store reopen.",
+    "Connected Chromium changes AI cost policy through AI Settings, verifies a default save adds no event, an effective change adds one event, an unchanged repeat adds none, and Activity displays the event after reload without displaying policy values."
+  ],
+  "validation": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_ai_cost_policy_api.AICostPolicyApiTests.test_effective_cost_policy_change_appends_one_value_free_audit_event tests.integration.test_ai_cost_policy_api.AICostPolicyApiTests.test_profile_cost_policy_defaults_are_safe_and_persist_independently",
+      "result": "PASS: 2 tests."
+    },
+    {
+      "command": "npm ci --prefix apps/web",
+      "result": "PASS: 44 packages installed, zero reported vulnerabilities; EBADENGINE warning because Node 25.9.0 is outside Vitest 5.0.3 declared engine range."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS: TypeScript check and Vite production build."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_ai_cost_policy_api tests.integration.test_ai_task_settings_api tests.integration.test_audit_history tests.browser.test_audit_history tests.browser.test_ai_task_settings",
+      "result": "PASS: 35 tests, zero failures/errors/skips."
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run",
+      "result": "PASS: 13 files, 63 tests."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p \"test_*.py\"",
+      "result": "PASS at source tree 4ce56334dcdd71470a11ab682aa738032c0c35d6: 967 tests run, 8 skipped, zero failures/errors; 635.997 seconds."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.agent_skills",
+      "result": "PASS."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.catalogue",
+      "result": "PASS."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.progress validate",
+      "result": "PASS."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.coordination.lane_coordination validate",
+      "result": "PASS."
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS."
+    }
+  ],
+  "scope": {
+    "persistence": "Temporary SQLite databases; no schema or migration change.",
+    "browser": "Synthetic profile data and local Chromium/loopback API. Outbound browser requests were blocked by the test fixture; no provider calls or employer requests.",
+    "postgresql_docker": "NOT_RUN; no schema or runtime dependency change.",
+    "hosted_actions_review": "NOT_RUN_BY_USER_POLICY; repository Actions remain disabled.",
+    "external_submission": "OFF"
+  },
+  "environment_notes": [
+    "The system Python did not have SQLAlchemy; tests used the existing root checkout virtual environment without modifying or reinstalling it.",
+    "npm ci reported the Node/Vitest engine warning noted above; frontend tests and build passed.",
+    "The full suite produced an untracked zero-byte events.jsonl in this feature worktree; it was preserved and excluded from commits."
+  ],
+  "limitations": [
+    "This is one scoped partial slice. Issue #177 / MJ-REQ-176 remains OPEN/PARTIAL for remaining settings and complete truthful lifecycle event coverage.",
+    "No PostgreSQL/Docker, hosted CI, or independent review result is claimed."
+  ]
+}
