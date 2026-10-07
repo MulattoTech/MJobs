@@ -143,6 +143,12 @@ class ApplicationPipelineBrowserTests(unittest.TestCase):
                 self.assertFalse(thread.is_alive())
 
     def test_application_tracking_recovers_after_browser_renderer_crash(self):
+        self._assert_application_tracking_recovers_after_crash("renderer")
+
+    def test_application_tracking_recovers_after_browser_process_crash(self):
+        self._assert_application_tracking_recovers_after_crash("browser")
+
+    def _assert_application_tracking_recovers_after_crash(self, crash_kind):
         with tempfile.TemporaryDirectory(prefix="mjobs-browser-crash-recovery-") as directory:
             root = Path(directory)
             store = Store(f"sqlite:///{(root / 'browser.db').as_posix()}")
@@ -222,25 +228,46 @@ class ApplicationPipelineBrowserTests(unittest.TestCase):
                     self.assertEqual(before_crash["status"], "RECRUITER_CONTACT")
                     self.assertEqual(len(before_crash["history"]), 1)
 
-                    session = await context.new_cdp_session(page)
-                    crash_event = asyncio.create_task(page.wait_for_event("crash", timeout=5000))
-                    await asyncio.sleep(0)
-                    crash_command = asyncio.create_task(session.send("Page.crash"))
-                    try:
-                        await crash_event
-                    finally:
-                        for task in (crash_event, crash_command, click_task):
-                            if not task.done():
-                                task.cancel()
-                        await asyncio.gather(crash_event, crash_command, click_task,
-                                             return_exceptions=True)
+                    if crash_kind == "renderer":
+                        session = await context.new_cdp_session(page)
+                        crash_event = asyncio.create_task(page.wait_for_event("crash", timeout=5000))
+                        await asyncio.sleep(0)
+                        crash_command = asyncio.create_task(session.send("Page.crash"))
+                        try:
+                            await crash_event
+                        finally:
+                            for task in (crash_event, crash_command, click_task):
+                                if not task.done():
+                                    task.cancel()
+                            await asyncio.gather(crash_event, crash_command, click_task,
+                                                 return_exceptions=True)
+                    else:
+                        browser_disconnected = asyncio.Event()
+                        browser.on("disconnected", lambda: browser_disconnected.set())
+                        session = await browser.new_browser_cdp_session()
+                        crash_command = asyncio.create_task(session.send("Browser.crash"))
+                        try:
+                            await asyncio.wait_for(browser_disconnected.wait(), timeout=5)
+                        finally:
+                            for task in (crash_command, click_task):
+                                if not task.done():
+                                    task.cancel()
+                            await asyncio.gather(crash_command, click_task, return_exceptions=True)
+                        self.assertFalse(browser.is_connected(), "CDP Browser.crash did not terminate Chromium")
 
                     release_status_response.set()
                     self.assertTrue(await asyncio.to_thread(status_handler_finished.wait, 5),
                                     "committed status handler did not finish")
+                    if crash_kind == "browser":
+                        browser = await playwright.chromium.launch(headless=True)
+                        context = await browser.new_context()
+                        await context.route("**/*", only_local)
                     resumed = await context.new_page()
                     resumed.set_default_timeout(8000)
                     await resumed.goto(origin, wait_until="domcontentloaded")
+                    if crash_kind == "browser":
+                        await resumed.evaluate("localStorage.setItem('mjobs-profile', 'fixture')")
+                        await resumed.reload(wait_until="domcontentloaded")
                     await resumed.get_by_role("button", name="Applications", exact=False).click()
                     resumed_board = resumed.get_by_role("region", name="Application pipeline")
                     applied = resumed_board.get_by_role(
@@ -256,8 +283,9 @@ class ApplicationPipelineBrowserTests(unittest.TestCase):
                     self.assertEqual(after_resume, before_crash)
                     self.assertIsNone(store.application(application_id)["confirmation"])
                     self.assertFalse(external)
-                    await context.close()
-                    await browser.close()
+                    if browser.is_connected():
+                        await context.close()
+                        await browser.close()
 
             try:
                 asyncio.run(crash_and_resume())
