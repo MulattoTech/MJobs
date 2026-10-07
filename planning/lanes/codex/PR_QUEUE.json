@@ -181,6 +181,19 @@
       "evidence_path": "docs/evidence/2026-10-07-migration-recovery.json",
       "scope_complete": false,
       "note": "Source 7a2107941a4f3ac0379f0053bd1f0421db117f80 pushed from 82b56526f041cdb2e456dcd7c29ad680011da9dd. Injected failure after DDL now rolls back and retries successfully on SQLite and disposable PostgreSQL 17. Full migration suite 23 PASS, 1 optional skip; related units 18 PASS. Broader requirement remains PARTIAL for protected-config recovery and offline SQL generation. Integrated non-force fast-forward at 4f7059f5fcaac5335e2b5aa9e0666dc6848706ad; release https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6038445116. Focused migration 23 PASS/1 optional skip and units 18 PASS."
+    },
+    {
+      "issue": 8,
+      "requirement_id": "MJ-REQ-007",
+      "status": "IMPLEMENTED_AWAITING_INTEGRATION",
+      "priority": 0,
+      "target_area": "tests/integration/test_migration_recovery.py",
+      "depends_on": [
+        "existing SQLite/PostgreSQL migration rollback slice"
+      ],
+      "evidence_path": "docs/evidence/2026-10-07-protected-config-migration-recovery.json",
+      "scope_complete": false,
+      "note": "Added temporary-SQLite fault/retry acceptance for encrypted provider_credentials schema migration. Synthetic ciphertext prevents downgrade; sentinel, schema version and bytes are read back after failure/refusal. Focused migration tests 4 PASS/1 optional PG skip; migration suite 23 PASS/1 optional PG skip; validators PASS. PostgreSQL protected-config recovery and broader issue #8 remain PARTIAL."
     }
   ],
   "generated_at": "2026-10-07T13:07:33Z"

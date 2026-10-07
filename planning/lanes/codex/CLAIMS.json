@@ -295,6 +295,22 @@
       "released_at": "2026-10-07T13:14:00Z",
       "integrated_main": "2e99cce66f11a2fad756ab6fc0410506a26fd258",
       "issue_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6038708763"
+    },
+    {
+      "issue": 8,
+      "requirement_id": "MJ-REQ-007",
+      "branch": "codex/mj-req007-protected-config-recovery-20261007",
+      "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req007-protected-config-recovery-20261007",
+      "head": "2420e67b00ab7d14fbe002379a4ce4b4337350d2",
+      "paths": [
+        "tests/integration/test_migration_recovery.py",
+        "docs/evidence/2026-10-07-protected-config-migration-recovery.json",
+        "planning/lanes/codex/**"
+      ],
+      "status": "ACTIVE",
+      "claimed_at": "2026-10-07T13:19:41Z",
+      "claim_comment": "https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6038755695",
+      "evidence_path": "docs/evidence/2026-10-07-protected-config-migration-recovery.json"
     }
   ]
 }
