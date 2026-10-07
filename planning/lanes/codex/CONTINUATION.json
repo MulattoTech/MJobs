@@ -5,13 +5,13 @@
   "preferred_model": "gpt-6-luna",
   "preferred_reasoning": "high",
   "session_id": "01a10ed8-5445-7b61-8293-43be1895ecc5",
-  "canonical_main_at_pause": "7139ea017fcff3a2f3611063872e852d45308063",
+  "canonical_main_at_pause": "b187e2ed7d84d1a9e7f6f27a1e771d597e7cf11f",
   "last_completed_issue": 111,
   "last_completed_requirement": "MJ-REQ-110",
   "last_integrated_head": "ca53eb29dd0081d7b1151dc4dd2d304226e16ea5",
   "next_issue": 111,
   "next_requirement": "MJ-REQ-110",
-  "resume_instruction": "Issue #111 / MJ-REQ-110 remains PARTIAL on codex/mj-req110-review-consumer-20261006, reconciled with origin/main 7139ea017fcff3a2f3611063872e852d45308063 at merge bd955345f4381bf3f0bd1311d94342f9fcf7b4b8. The profile-scoped cost funnel and explicit synthetic review UI are verified: 15 focused Python/API/browser tests, 62 frontend tests, frontend build, agent-skills, catalogue, progress, and diff checks PASS. Evidence: docs/evidence/2026-10-06-ai-cost-consumer-main-reconcile.json. Live configured-provider inference, durable evaluation history, and reviewed AI-document generation remain NOT_RUN. Hosted checks remain NOT_RUN under local-only policy; external submission remains OFF. Continue only this claim if resumed.",
+  "resume_instruction": "Issue #111 / MJ-REQ-110 remains PARTIAL on codex/mj-req110-review-consumer-20261006. Current origin/main b187e2ed7d84d1a9e7f6f27a1e771d597e7cf11f is merged at 380311801205b435db93c6a1c9c2351e3ea8a3ad; feature commit d872d45610ab32c79563462cee3e75f60c546eb9. Added durable profile-scoped evaluation history with policy/provider snapshots, profile-version stale-result rejection, and browser reload/readback. Focused Python/API/browser 11 PASS, frontend 62 PASS/build PASS, migration upgrade/empty downgrade/populated-history preservation PASS, agent-skills/catalogue/progress/compileall/diff checks PASS. Evidence: docs/evidence/2026-10-06-ai-cost-evaluation-history.json. Live configured-provider inference and reviewed AI-document generation remain NOT_RUN; full Python discovery and PostgreSQL migration remain NOT_RUN. Hosted verification remains NOT_RUN by local-only policy; external submission remains OFF. Continue only this claim if resumed.",
   "external_submission_enabled": false,
   "github_actions_enabled": false
 }

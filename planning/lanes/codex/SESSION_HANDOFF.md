@@ -3,21 +3,30 @@
 Status: **ACTIVE / PARTIAL — safely checkpointed**
 
 Issue #111 / MJ-REQ-110 remains the only Codex claim. Continue in
-C:/Tools/Dev/MJobs/.worktrees/codex-mj-req110-review-consumer-20261006 on codex/mj-req110-review-consumer-20261006. Fetched origin/main at 7139ea017fcff3a2f3611063872e852d45308063 and merged it
-cleanly in bd955345f4381bf3f0bd1311d94342f9fcf7b4b8 before further source mutation.
+`C:/Tools/Dev/MJobs/.worktrees/codex-mj-req110-review-consumer-20261006` on
+`codex/mj-req110-review-consumer-20261006`.
 
-The profile-scoped cost funnel and explicit synthetic review UI are verified on
-this reconciled head. The policy persists per-profile score thresholds and
-bounded candidate ceilings; evaluation is explicit, schema-validated, and leaves
-deterministic scores unchanged. Fifteen focused Python/API/browser tests, 62
-frontend tests, frontend build, agent-skills, catalogue, progress validation,
-and diff checks PASS. Evidence: docs/evidence/2026-10-06-ai-cost-consumer-main-reconcile.json.
+Fetched current `origin/main` at `b187e2ed7d84d1a9e7f6f27a1e771d597e7cf11f` and merged it into the claimed branch
+at `380311801205b435db93c6a1c9c2351e3ea8a3ad` without conflicts. The implementation checkpoint is
+`d872d45610ab32c79563462cee3e75f60c546eb9`.
 
-Keep the issue PARTIAL. Configured-provider inference, durable evaluation
-history/readback, and reviewed AI-document generation remain NOT_RUN. Hosted
-checks remain NOT_RUN under the active local-only policy; external submission
-remains OFF.
+This slice persists bounded per-profile evaluation history with the profile
+version, cost policy, and non-secret provider/model identifiers. Stale results
+are rejected if profile facts change during inference. The API and browser reload
+history per profile; deterministic matches remain unchanged and no documents are
+created. Evidence: `docs/evidence/2026-10-06-ai-cost-evaluation-history.json`.
 
-Only Codex lane files and owned feature/evidence paths may be changed during
-this claim. Antigravity owns source-adapter paths; Ollama owns ATS-detection
-paths. Canonical planning and root main require the local integration lock.
+Local verification: 11 focused Python/API/browser tests PASS; 62 frontend tests
+and TypeScript/Vite build PASS; SQLite migration upgrade, empty downgrade, and
+populated-history downgrade protection PASS; agent-skills, catalogue, progress,
+compileall, and diff checks PASS. Validation used synthetic profiles/jobs and
+structured provider output; no live model was invoked.
+
+Keep the issue PARTIAL. Live configured-provider inference, reviewed AI-document
+generation, PostgreSQL migration verification, and full Python discovery remain
+NOT_RUN. Hosted checks remain NOT_RUN under the active local-only policy;
+external submission remains OFF.
+
+Only Codex lane files and owned feature/evidence paths may be changed during this
+claim. Antigravity owns source-adapter paths; Ollama owns ATS-detection paths.
+Canonical planning and root main require the local integration lock.

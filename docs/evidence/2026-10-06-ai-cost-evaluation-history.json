@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "issue": 111,
+  "requirement_id": "MJ-REQ-110",
+  "lane": "codex",
+  "branch": "codex/mj-req110-review-consumer-20261006",
+  "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req110-review-consumer-20261006",
+  "result": "PARTIAL",
+  "feature_commit": "d872d45610ab32c79563462cee3e75f60c546eb9",
+  "tested_head": "380311801205b435db93c6a1c9c2351e3ea8a3ad",
+  "tested_tree": "fd1a22007fcc67b247198966c5a7c1342aa8d724",
+  "reconciled_origin_main": "b187e2ed7d84d1a9e7f6f27a1e771d597e7cf11f",
+  "origin_main_is_ancestor": true,
+  "observed_at_utc": "2026-10-07T00:32:13Z",
+  "scope": [
+    "Persist bounded advisory AI evaluation runs and results per profile, including profile version, score policy, and non-secret provider/model identifiers.",
+    "Reject saving results if the profile changes during inference; keep deterministic match scores unchanged and do not create documents.",
+    "Provide bounded profile-scoped history readback and show recent evaluations in AI Settings after browser reload."
+  ],
+  "acceptance": {
+    "durable_history_and_profile_isolation": "PASS - the synthetic API consumer writes a run; another profile cannot read it; closing and reopening Store retains the run and result.",
+    "version_guard": "PASS - a profile change during the synthetic provider call returns AI_EVALUATION_PROFILE_CHANGED and stores no stale run.",
+    "browser_reload_and_profile_switch": "PASS - connected browser UI reloads saved history, retains each result with its cost/provider snapshot, and shows no saved results for another profile.",
+    "cost_bounds_and_review_boundary": "PASS - existing per-profile score and candidate caps remain in effect; evaluation is explicit and creates zero documents.",
+    "live_configured_provider_inference": "NOT_RUN - tests use synthetic structured provider results; no live model was invoked.",
+    "reviewed_ai_document_generation": "NOT_RUN - the consumer continues to report zero created documents and does not approve or generate application documents."
+  },
+  "local_validation": {
+    "environment": "Windows local worktree, Python 3.12 repository virtual environment, Node/Vite locked frontend dependencies, isolated SQLite data, synthetic job/profile fixtures, Chromium browser.",
+    "commands": [
+      {
+        "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_ai_cost_policy_api tests.unit.test_ai_cost_consumer tests.browser.test_ai_task_settings",
+        "result": "PASS",
+        "detail": "11 tests passed on tested head 380311801205b435db93c6a1c9c2351e3ea8a3ad."
+      },
+      {
+        "command": "npm run build --prefix apps/web",
+        "result": "PASS",
+        "detail": "TypeScript check and Vite production build passed on the tested source."
+      },
+      {
+        "command": "npm test --prefix apps/web -- --run",
+        "result": "PASS",
+        "detail": "13 files and 62 tests passed."
+      },
+      {
+        "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.agent_skills",
+        "result": "PASS"
+      },
+      {
+        "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.catalogue",
+        "result": "PASS"
+      },
+      {
+        "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.progress validate",
+        "result": "PASS"
+      },
+      {
+        "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m compileall -q on changed Python modules, migration, and tests",
+        "result": "PASS"
+      },
+      {
+        "command": "Temporary SQLite Alembic upgrade to head; empty downgrade; populated-history downgrade preservation probe",
+        "result": "PASS",
+        "detail": "New tables were created; empty downgrade succeeded; populated history downgrade was refused and the row remained readable."
+      },
+      {
+        "command": "git diff --check",
+        "result": "PASS"
+      }
+    ],
+    "resolved_red_checks": [
+      "The new API history assertion initially failed because evaluation responses had no persisted run identifier; it passed after the storage/readback path was implemented.",
+      "The browser reload assertion initially found no evaluation-history region; it passed after connecting the profile-scoped history API.",
+      "The mobile browser check exposed a long unbroken job identifier in stored model output; the evaluation card now wraps untrusted text and the final browser run passed."
+    ],
+    "not_run": [
+      "Full Python test discovery; only affected AI consumer/API/browser tests were run.",
+      "PostgreSQL migration/persistence check; migration was exercised with isolated SQLite.",
+      "Live Ollama or paid provider inference.",
+      "Reviewed AI document generation.",
+      "GitHub Actions, hosted checks, and reviews; disabled by current local-only policy.",
+      "External application submission; OFF."
+    ]
+  },
+  "limitations": [
+    "MJ-REQ-110 remains PARTIAL; live configured-provider inference and a reviewed AI-document workflow are not verified.",
+    "History stores successful completed evaluation results; an interrupted in-flight provider request is not persisted as a durable queued operation.",
+    "The issue remains OPEN."
+  ],
+  "source_sha256": {
+    "apps/api/main.py": "d02cb699cf9237bfa42faed58c8c7d4f26042845ac805dc3152f83059005058f",
+    "apps/web/src/main.tsx": "9d15d9b623da74c31730b3c5a48da8eb0bfcf45addb6d185763592fa75e7d7dc",
+    "apps/web/src/style.css": "6e7968ae654557a934109ccd6cb9caaa789ab20e97b4b32d3194d05bb72c841e",
+    "packages/persistence/models.py": "9c947e0261618863b410ca934b325d2a94401c1cbd49cefbb0c9d8d674e08b0d",
+    "packages/persistence/store.py": "a9dd1e3c948cbc29b09ccfbf89f34d063dab93f6c57ba0d554ca992375652e32",
+    "migrations/versions/a4c19e7d603b_persist_ai_evaluation_history.py": "a68e54b3260f5a35b28333c36f37116aa01985e8ac7e6529d7126533851346f2",
+    "tests/integration/test_ai_cost_policy_api.py": "aeb3af432e95f99530a198bd52aa652028be6255c371d578f276897566b6f232",
+    "tests/browser/test_ai_task_settings.py": "764033b6ed1a767d9d6eec851641def7df495dd4d4893761580f6c2706331427"
+  },
+  "external_submission_enabled": false,
+  "hosted_verification": "NOT_RUN_BY_USER_POLICY"
+}
