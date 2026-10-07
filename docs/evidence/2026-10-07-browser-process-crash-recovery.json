@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "issue": 9,
+  "requirement_id": "MJ-REQ-008",
+  "lane": "codex",
+  "branch": "codex/req008-browser-process-crash-20261007",
+  "source_head": "9aaf0356dae39b40a876cbab6ce1aa64ec2a798c",
+  "source_tree": "2b1bf6208987cc3e0e77e161085ec09e540e8f48",
+  "base_main": "811956fd69b32ef7b41f22ca5fb23e6bea8324d2",
+  "recorded_at_utc": "2026-10-07T06:09:15Z",
+  "input_sha256": {
+    "tests/browser/test_application_pipeline.py": "7a7fa43354743a34b3aca3161c1bc7bd199d88b0142125301f6402e729838fb6"
+  },
+  "result": "PARTIAL",
+  "acceptance": {
+    "browser_process_crash": "PASS - Chromium's CDP Browser.crash command terminated the owned browser process; Playwright observed browser disconnection.",
+    "pending_operation_recovery": "PASS - the user-reported application stage and append-only history were committed before the browser crash while the HTTP response was intentionally held.",
+    "fresh_browser_readback": "PASS - a replacement Chromium process and fresh context recovered the same manual stage/history from the unchanged durable store.",
+    "no_false_submission": "PASS - application submission state and confirmation remained unchanged/absent; the stage is explicitly a user report.",
+    "external_activity": "PASS - the browser was restricted to the synthetic local API; no employer request or submission occurred.",
+    "full_requirement": "PARTIAL - product-worker, Chromium renderer and whole Chromium browser-process crash cases are evidenced; physical host restart remains NOT_RUN."
+  },
+  "validation": {
+    "local_protocol_probe": "PASS - Browser.crash disconnected the owned browser, and a replacement Chromium process launched successfully.",
+    "browser_crash_command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_application_pipeline.ApplicationPipelineBrowserTests.test_application_tracking_recovers_after_browser_process_crash tests.browser.test_application_pipeline.ApplicationPipelineBrowserTests.test_application_tracking_recovers_after_browser_renderer_crash",
+    "browser_crash_result": "PASS - 2 connected browser-crash recovery cases.",
+    "affected_browser_command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_application_pipeline",
+    "affected_browser_result": "PASS - 5 connected application-pipeline browser tests.",
+    "affected_integration_command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_application_pipeline",
+    "affected_integration_result": "PASS - 5 API/service integration tests.",
+    "frontend_dependency_command": "npm ci --prefix apps/web",
+    "frontend_dependency_result": "PASS - lockfile dependencies installed; zero vulnerabilities. Vitest warned that Node 25.9.0 is outside its declared engine range.",
+    "frontend_test_command": "npm test --prefix apps/web -- --run",
+    "frontend_test_result": "PASS - 62 tests across 13 files.",
+    "frontend_build_command": "npm run build --prefix apps/web",
+    "frontend_build_result": "PASS",
+    "repository_checks": [
+      "python -m tools.verification.agent_skills",
+      "python -m tools.verification.catalogue",
+      "python -m tools.verification.progress validate",
+      "python -m compileall -q tests/browser/test_application_pipeline.py",
+      "python -m tools.coordination.lane_coordination validate",
+      "git diff --check"
+    ],
+    "repository_checks_result": "PASS",
+    "full_python_suite": "NOT_RUN - test/evidence-only browser-crash slice; the complete affected browser and API integration modules were run."
+  },
+  "environment": {
+    "python": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe (Python 3.12)",
+    "node": "v25.9.0",
+    "database": "Temporary synthetic SQLite database; API process remained running across actual Chromium browser-process termination and replacement.",
+    "docker_postgresql": "NOT_RUN - no database code or migration changed.",
+    "hosted_checks_and_review": "NOT_RUN_BY_USER_POLICY",
+    "external_application_submission": "OFF"
+  },
+  "limitations": [
+    "CDP Browser.crash terminated the isolated Chromium process; this did not restart Windows or validate survival of a host restart.",
+    "No production source changed because the existing durable application tracking path recovered correctly after a real browser-process crash.",
+    "Issue #9 / MJ-REQ-008 remains OPEN/PARTIAL until physical host restart and any remaining acceptance cases are independently evidenced."
+  ]
+}
