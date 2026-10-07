@@ -2,7 +2,7 @@
 
 64 PASS / 76 PARTIAL / 226 NOT_RUN across 366 original requirements; no original requirement status changed. Reference requirements: 12 PASS / 1 PARTIAL / 46 NOT_RUN across 59. The bounded combined synthetic journey passes locally; full release remains NOT_RUN. See [the current dashboard](PROGRESS_DASHBOARD.md) and [local-only delivery policy](GITHUB_WORKFLOW.md).
 
-## Local reference-scope verification — 2026-10-06
+## Local reference-scope verification — 2026-10-07
 
 MJ-REF-004 / issue #374 passes locally: the explicit fictional mock ATS publishes bounded structured question metadata; required questions map to approved facts/answers, minimal profile paths, prepared documents, or the deterministic application ID; unsupported or unmapped questions return UNKNOWN; missing required values return FAIL with the exact question and missing IDs. The adapter persists timestamped value-free evidence, re-reads metadata before browser launch, blocks on missing/stale data, and displays unresolved questions in the application detail UI. The local full suite passed 628 tests, the exact-candidate focused browser/API suite passed 18 tests, the frontend production build passed, and repository validators passed. Only the mock fixture supports automation; real ATS integrations and hosted verification remain NOT_RUN, external submission remains OFF, and no original requirement or release status was promoted. Evidence: `docs/evidence/2026-10-06-ats-question-preflight.json`.
 

@@ -6,26 +6,23 @@
   "current_issue": 375,
   "requirement_id": "MJ-REF-005",
   "branch": "codex/mj-ref005-no-ai-fallback-20261007",
-  "head": "5f220ed17c51e148de71712485f497707704fdee",
+  "head": "3804a953317b122879747e0075602994c8151678",
   "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-ref005-no-ai-fallback-20261007",
   "result": "PASS",
   "evidence_path": "docs/evidence/2026-10-07-no-ai-fallback.json",
   "last_completed": {
-    "issue": 6,
-    "requirement_id": "MJ-REQ-005",
-    "integration_commit": "e455c8e05ee5f826918c7c353fc7968994a35be1",
+    "issue": 375,
+    "requirement_id": "MJ-REF-005",
+    "integration_commit": "3804a953317b122879747e0075602994c8151678",
     "slice_status": "PASS"
   },
-  "next_candidates": [
-    375,
-    390
-  ],
+  "next_candidates": [],
   "do_not_overlap": [
     "Antigravity active discovery-source claim #302",
     "Ollama active ATS-detection claim #318",
     "canonical planning and main outside integration lock"
   ],
-  "resume_instruction": "Issue #375 / MJ-REF-005 source 5f220ed17c51e148de71712485f497707704fdee is pushed and verified. Local Python full suite: 889 PASS, 1 optional PostgreSQL skip; focused task/API/document/matching suite 25 PASS; connected browser regressions 2 PASS; frontend 63 PASS and build PASS; validators and diff check PASS. Evidence docs/evidence/2026-10-07-no-ai-fallback.json. Await integration-lock reconciliation and canonical matrix/report update. Keep hosted checks NOT_RUN_BY_USER_POLICY and external submission OFF.",
+  "resume_instruction": "Issue #375 / MJ-REF-005 is integrated and closed. Reconcile active claims and current main before selecting the next issue. The next issue must avoid Antigravity #302 discovery sources and Ollama #318 ATS detection paths. Evidence docs/evidence/2026-10-07-no-ai-fallback.json. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
   "last_verified_head": "5f220ed17c51e148de71712485f497707704fdee",
   "last_verified_tree": "08241a82986438919be746c491f3f3dd52fe1d59",
   "last_verified_at_utc": "2026-10-07T10:08:33Z",
@@ -38,10 +35,10 @@
     "frontend_failures": 0,
     "full_python_tests": 889,
     "full_python_skips": 1,
-    "browser": "PASS - 2 connected Chromium acceptance tests, including profile switching/reload and demo loading",
-    "frontend_build": "PASS - TypeScript and Vite production build",
-    "repository_validators": "PASS - agent skills, catalogue, progress, diff check",
-    "postgresql": "NOT_RUN - optional live PostgreSQL test skipped because service is not configured",
+    "browser": "PASS - connected Chromium tests for AI settings/profile isolation and demo-loading regression",
+    "frontend_build": "PASS",
+    "repository_validators": "PASS",
+    "postgresql": "NOT_RUN - optional PostgreSQL test skipped without configured service",
     "hosted_checks": "NOT_RUN_BY_USER_POLICY"
   },
   "last_integrated_head": "805e52bab0528e562578f51f5426285af0163657"

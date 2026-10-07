@@ -16,11 +16,12 @@
     {
       "issue": 6,
       "requirement_id": "MJ-REQ-005",
-      "status": "ACTIVE_PARTIAL",
+      "status": "INTEGRATED_PARTIAL",
       "priority": 0,
       "target_area": "workers/operations.py; tests/integration/test_worker_lifecycle.py",
       "evidence_path": "docs/evidence/2026-10-07-application-automation-category-capacity.json",
-      "note": "In addition to the existing durable category admission and AI evaluation slices, issue #6 now has a concurrent two-Store regression for APPLY_MOCK: at a configured limit of one, exactly one operation enters RUNNING and the other remains QUEUED; PREPARE retains independent capacity. Focused worker, dead-letter and category suites: 23 PASS. Source 704b2fc3fadd00d4e40ca1bea4ccbbe3a0c3bf50; evidence docs/evidence/2026-10-07-application-automation-category-capacity.json. Live PostgreSQL advisory-lock and real ATS behavior remain NOT_RUN; issue remains OPEN/PARTIAL."
+      "note": "Integrated to main e455c8e; issue remains OPEN/PARTIAL because real ATS and live PostgreSQL behavior remain unverified.",
+      "scope_complete": false
     },
     {
       "issue": 9,
@@ -82,13 +83,15 @@
     {
       "issue": 375,
       "requirement_id": "MJ-REF-005",
-      "status": "READY_LOCAL_PASS",
+      "status": "INTEGRATED_PASS",
       "priority": 2,
       "target_area": "services/ai/tasks.py; apps/api/main.py; apps/web/src/main.tsx; tests/unit; tests/integration; tests/browser",
       "depends_on": [],
       "evidence_path": "docs/evidence/2026-10-07-no-ai-fallback.json",
       "scope_complete": true,
-      "note": "Per-task fallback capability is exposed through profile-scoped API/UI; deterministic matching and safe factual document preparation pass with every task provider disabled. Full Python suite 889 PASS (1 optional PostgreSQL skip), frontend 63 PASS/build PASS, connected browser 2 PASS. Candidate source 5f220ed17c51e148de71712485f497707704fdee; canonical reference matrix/report pending integration lock. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF."
+      "note": "Per-task fallback capability is exposed through profile-scoped API/UI; deterministic matching and safe factual document preparation pass with every task provider disabled. Full Python suite 889 PASS (1 optional PostgreSQL skip), frontend 63 PASS/build PASS, connected browser 2 PASS. Candidate source 5f220ed17c51e148de71712485f497707704fdee; canonical reference matrix/report pending integration lock. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
+      "integration_commit": "3804a953317b122879747e0075602994c8151678",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/375#issuecomment-6035816600"
     }
   ]
 }

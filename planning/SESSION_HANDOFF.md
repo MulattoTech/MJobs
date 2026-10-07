@@ -1,3 +1,15 @@
+# Issue #375 / MJ-REF-005 integration receipt — 2026-10-07
+
+Issue #375 is CLOSED with evidence-backed local PASS for its full scope. Source `5f220ed17c51e148de71712485f497707704fdee` and sanitized evidence `docs/evidence/2026-10-07-no-ai-fallback.json` were integrated by non-force fast-forward from `e455c8e05ee5f826918c7c353fc7968994a35be1` to main `3804a953317b122879747e0075602994c8151678`. Acceptance comment and issue state were read back: https://github.com/MulattoTech/MJobs/issues/375#issuecomment-6035816600.
+
+All seven AI tasks expose a per-task no-provider mode through the profile-scoped API and connected UI. Deterministic matching and factual resume/cover-letter preparation work with all task providers disabled; no provider calls are made. Full local Python suite: 889 PASS, one optional PostgreSQL skip. Focused AI/document/matching suite: 25 PASS; connected browser: 2 PASS; frontend: 63 PASS and build PASS; repository validators PASS. Hosted checks/review and live PostgreSQL remain NOT_RUN by local-only policy; external submission OFF. Original accounting stays 64 PASS / 76 PARTIAL / 226 NOT_RUN across 366, unchanged. Reference accounting is 12 PASS / 1 PARTIAL / 46 NOT_RUN across 59.
+
+Other active claims remain Antigravity #302 (`services/discovery/sources/**`) and Ollama/OpenCode #318 (`services/ats_detection/**`); their dirty worktrees were preserved.
+
+Next: release Codex #375 claim and the integration lock, reconcile latest main/claims, select the next highest-value unclaimed dependency-ready issue, and checkpoint it in a dedicated Codex worktree.
+
+---
+
 # Issue #6 / MJ-REQ-005 integration receipt — 2026-10-07
 
 Issue #6 remains OPEN/PARTIAL. Added a simultaneous APPLY_MOCK worker-claim regression using two independent Store engines over one SQLite database. With application-automation capacity set to one, exactly one operation becomes RUNNING and the other stays QUEUED with attempt_count zero; a PREPARE operation still claims under its independent document-generation limit. This is local concurrency acceptance coverage; the category-lock implementation was already on main. Source `704b2fc3fadd00d4e40ca1bea4ccbbe3a0c3bf50` plus evidence/lane checkpoint integrated by non-force fast-forward at `60c2a85e47a7aaaed382cfa9b1683fbb4ec8e209` from `aa28501b0db8a00e9331d43347e2bbdfc3ed2b98`. Evidence: `docs/evidence/2026-10-07-application-automation-category-capacity.json`; sanitized issue readback: https://github.com/MulattoTech/MJobs/issues/6#issuecomment-6035160756.

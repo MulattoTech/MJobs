@@ -8,9 +8,33 @@
       "branch": "codex/mj-req005-application-category-capacity-20261007",
       "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req005-application-category-capacity-20261007",
       "head": "704b2fc3fadd00d4e40ca1bea4ccbbe3a0c3bf50",
-      "paths": ["tests/integration/test_worker_lifecycle.py", "docs/evidence/*.json", "planning/lanes/codex/**"],
-      "status": "ACTIVE",
+      "paths": [
+        "tests/integration/test_worker_lifecycle.py",
+        "docs/evidence/*.json",
+        "planning/lanes/codex/**"
+      ],
+      "status": "RELEASED",
       "claimed_at": "2026-10-07T09:28:36Z"
+    },
+    {
+      "issue": 375,
+      "requirement_id": "MJ-REF-005",
+      "branch": "codex/mj-ref005-no-ai-fallback-20261007",
+      "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-ref005-no-ai-fallback-20261007",
+      "head": "3804a953317b122879747e0075602994c8151678",
+      "paths": [
+        "services/ai/tasks.py",
+        "apps/api/main.py",
+        "apps/web/src/main.tsx",
+        "tests/unit/test_ai_task_configuration.py",
+        "tests/integration/test_ai_task_settings_api.py",
+        "tests/browser/test_ai_task_settings.py",
+        "docs/evidence/2026-10-07-no-ai-fallback.json",
+        "planning/lanes/codex/**"
+      ],
+      "status": "RELEASED",
+      "claimed_at": "2026-10-07T09:37:54Z",
+      "released_at": "2026-10-07T10:15:25Z"
     }
   ]
 }

@@ -1,17 +1,17 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-07T08:27:01Z",
+  "generated_at": "2026-10-07T10:15:25Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Local main/origin main synchronized at cb2681b6a921f2759cf46d4d66a8228645b473e7; issue #6 / MJ-REQ-005 direct structured AI evaluation admission integrated as a scoped PARTIAL slice.",
-    "current_verified_github_state": "Local/GitHub main synchronized at cb2681b6a921f2759cf46d4d66a8228645b473e7; issue #6 remains OPEN/PARTIAL after local evidence readback; Actions disabled; external submission OFF.",
-    "current_verified_at": "2026-10-07T05:08:16Z"
+    "current_verified_local_state": "Local main and origin/main synchronized at 3804a953317b122879747e0075602994c8151678; issue #375 / MJ-REF-005 closed with local evidence-backed PASS; Actions disabled; external submission OFF.",
+    "current_verified_github_state": "GitHub main 3804a953317b122879747e0075602994c8151678; issue #375 closed after evidence readback; Actions disabled; external submission OFF.",
+    "current_verified_at": "2026-10-07T10:15:25Z"
   },
-  "current_milestone": "MJ-REQ-022-SEARCH-PROFILE-SELECTION-20261007",
+  "current_milestone": "MJ-REF-005-DETERMINISTIC-NO-AI-FALLBACK-20261007",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -314,7 +314,8 @@
     "MJ-REF-028 focused credential unit/API/migration tests and connected Chromium flow passed.",
     "MJ-REF-028 full Python suite: 867 tests run, 1 skipped, 0 failures; frontend 62 tests and production build passed; repository validators, scoped compile, pip check and diff checks passed.",
     "2026-10-07 #386 / MJ-REF-016: 875 Python tests PASS with one optional PostgreSQL concurrency skip; 63 frontend tests/build, connected dead-letter browser workflow, PostgreSQL 17 migration exercise, SQLite migration/reopen, validators and diff checks PASS. Evidence docs/evidence/2026-10-07-dead-letter-queue.json.",
-    "2026-10-07 MJ-REF-033 scoped acceptance: 23 focused agent acceptance/integration/prompt tests PASS; compileall, agent-skills, catalogue, progress, reference-provenance, JSON and diff checks PASS. Browser/PostgreSQL/hosted checks NOT_RUN; external submission OFF. Evidence docs/evidence/2026-10-07-agent-run-budget-output-validation.json."
+    "2026-10-07 MJ-REF-033 scoped acceptance: 23 focused agent acceptance/integration/prompt tests PASS; compileall, agent-skills, catalogue, progress, reference-provenance, JSON and diff checks PASS. Browser/PostgreSQL/hosted checks NOT_RUN; external submission OFF. Evidence docs/evidence/2026-10-07-agent-run-budget-output-validation.json.",
+    "MJ-REF-005: full Python suite 889 PASS (one optional PostgreSQL skip); affected 25 Python tests, connected browser 2, frontend 63/build, catalogue/progress/skills/lane validators and diff check PASS. Evidence docs/evidence/2026-10-07-no-ai-fallback.json; integrated main 3804a953317b122879747e0075602994c8151678."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -401,13 +402,13 @@
     "Fresh Codex worktrees may lack ignored apps/web/node_modules and apps/web/dist; run npm ci and npm run build --prefix apps/web before browser/full-suite validation. MJ-REF-011 exact-source rerun passed 854 tests after restoring those artifacts; evidence docs/evidence/2026-10-07-ai-prompt-truncation.json"
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-07T08:04:17Z",
+    "timestamp": "2026-10-07T10:15:25Z",
     "result": "PASS",
-    "source_commit": "b778917a56d266a50f3cb1e21c9f4220bb20a28c",
-    "source_tree": "71b03b0338f847d6d57230463e9700f87c6e7d19",
-    "scope": "Issue #386 local acceptance only: durable dead-letter metadata/state, bounded exhaustion, stable idempotency, explicit audited retry/discard, ambiguous-submission guard, profile-scoped queue UI, browser reload, SQLite and PostgreSQL 17 migration preservation.",
-    "evidence_path": "docs/evidence/2026-10-07-dead-letter-queue.json",
-    "integration_commit": "b778917a56d266a50f3cb1e21c9f4220bb20a28c"
+    "source_commit": "5f220ed17c51e148de71712485f497707704fdee",
+    "source_tree": "08241a82986438919be746c491f3f3dd52fe1d59",
+    "scope": "Issue #375 / MJ-REF-005 complete local acceptance for truthful per-task no-AI behavior, deterministic matching and factual documents.",
+    "evidence_path": "docs/evidence/2026-10-07-no-ai-fallback.json",
+    "integration_commit": "3804a953317b122879747e0075602994c8151678"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -515,12 +516,12 @@
   "publication": {
     "result": "PASS",
     "integration_method": "NON_FORCE_FAST_FORWARD",
-    "integration_commit": "7636b620b60e53380b48051a5550aa1dc23be663",
-    "prior_main": "104e5533bbbc174e0e8c6e806741074e5f83d3a8",
+    "integration_commit": "3804a953317b122879747e0075602994c8151678",
+    "prior_main": "e455c8e05ee5f826918c7c353fc7968994a35be1",
     "pr_number": null,
     "pr_state": "NOT_OPENED_LOCAL_ONLY",
     "github_reports_merged": false,
-    "note": "Source/evidence integrated under the local integration lock. Hosted checks and independent review are NOT_RUN_BY_USER_POLICY; GitHub Actions remain disabled."
+    "note": "Issue #375 local acceptance integrated under the Codex lock. Hosted Actions/review NOT_RUN_BY_USER_POLICY; Actions remain disabled; external submission OFF."
   },
   "optional_afk_journal": {
     "result": "PASS",
@@ -7677,12 +7678,77 @@
         "candidate": "60c2a85e47a7aaaed382cfa9b1683fbb4ec8e209",
         "issue_comment": "https://github.com/MulattoTech/MJobs/issues/6#issuecomment-6035160756"
       }
+    },
+    {
+      "milestone_id": "MJ-REF-005-DETERMINISTIC-NO-AI-FALLBACK-20261007",
+      "timestamp": "2026-10-07T10:14:31Z",
+      "current_phase": "Issue #375 / MJ-REF-005 local acceptance passed and integrated to main; continue with the next unclaimed dependency-ready issue.",
+      "completed_steps": [
+        "Added an exhaustive per-task no-provider behavior catalog and returned it through the profile-scoped AI task settings API without changing persisted task settings.",
+        "Displayed the seven deterministic/unavailable behaviors in the connected AI settings UI and verified profile settings reload/isolation.",
+        "Proved deterministic matching and safe factual resume/cover-letter preparation work with every configured task provider disabled; provider construction was patched to fail on accidental inference.",
+        "Ran the complete local Python suite, focused connected browser tests, frontend unit/build checks, validators, and diff check.",
+        "Updated the reference feature result, feature completeness report, and PR queue without changing original requirement status or denominator; integrated by non-force fast-forward."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-07-no-ai-fallback.json"
+      ],
+      "files_modified": [
+        "services/ai/tasks.py",
+        "apps/api/main.py",
+        "apps/web/src/main.tsx",
+        "tests/unit/test_ai_task_configuration.py",
+        "tests/integration/test_ai_task_settings_api.py",
+        "tests/browser/test_ai_task_settings.py",
+        "planning/REFERENCE_GAP_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "planning/PR_QUEUE_README.md",
+        "docs/FEATURE_COMPLETENESS.md"
+      ],
+      "tests_completed": [
+        "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.unit.test_ai_task_configuration tests.integration.test_ai_task_settings_api tests.unit.test_cover_letter tests.integration.test_resume_selection tests.integration.test_spine -v: 25 PASS.",
+        "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.browser.test_fact_review.FactReviewBrowserTests.test_demo_profile_stays_read_only_until_saved_version_loads tests.browser.test_ai_task_settings.AITaskSettingsBrowserTests.test_settings_save_reload_and_remain_isolated_between_profiles -v: 2 PASS.",
+        "npm test --prefix apps/web -- --run: 13 files, 63 tests PASS; npm run build --prefix apps/web: TypeScript and Vite PASS.",
+        "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest discover -s tests: 889 PASS, 1 optional PostgreSQL test skipped.",
+        "python -m tools.verification.agent_skills; python -m tools.verification.catalogue; python -m tools.verification.progress validate; python -m tools.coordination.lane_coordination validate; git diff --check: PASS."
+      ],
+      "tests_remaining": [
+        "Hosted Actions/review NOT_RUN_BY_USER_POLICY.",
+        "No live PostgreSQL service was configured; the one optional PostgreSQL test was skipped.",
+        "Other MJobs requirements and full release verification remain outside this scoped acceptance."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Synthetic FastAPI and temporary SQLite stores; connected loopback Chromium. No employer, ATS, paid AI, or external application service contacted."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "No queued-for-later task mode is claimed; tasks without deterministic no-provider behavior are explicitly UNAVAILABLE.",
+        "Hosted verification remains NOT_RUN under the current local-only policy; external submission remains OFF."
+      ],
+      "source_commit": "5f220ed17c51e148de71712485f497707704fdee",
+      "source_tree": "08241a82986438919be746c491f3f3dd52fe1d59",
+      "result": "PASS",
+      "last_safe_checkpoint": {
+        "git_commit": "3804a953317b122879747e0075602994c8151678",
+        "evidence_path": "docs/evidence/2026-10-07-no-ai-fallback.json"
+      },
+      "integration": {
+        "method": "NON_FORCE_FAST_FORWARD",
+        "base": "e455c8e05ee5f826918c7c353fc7968994a35be1",
+        "main": "3804a953317b122879747e0075602994c8151678",
+        "source_branch": "codex/mj-ref005-no-ai-fallback-20261007",
+        "source_commit": "5f220ed17c51e148de71712485f497707704fdee",
+        "issue_comment": "https://github.com/MulattoTech/MJobs/issues/375#issuecomment-6035816600",
+        "issue_state": "CLOSED",
+        "evidence_checkpoint_commit": "3804a953317b122879747e0075602994c8151678"
+      }
     }
   ],
-  "current_phase": "Issue #6 / MJ-REQ-005 application automation concurrency has new scoped local PASS evidence and is integrated PARTIAL; continue broader backlog.",
+  "current_phase": "Issue #375 / MJ-REF-005 local acceptance passed and integrated to main; continue with the next unclaimed dependency-ready issue.",
   "last_safe_checkpoint": {
-    "git_commit": "60c2a85e47a7aaaed382cfa9b1683fbb4ec8e209",
-    "evidence_path": "docs/evidence/2026-10-07-application-automation-category-capacity.json"
+    "git_commit": "3804a953317b122879747e0075602994c8151678",
+    "evidence_path": "docs/evidence/2026-10-07-no-ai-fallback.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -7841,17 +7907,17 @@
     "next_issue": "Release #398 and select the next dependency-ready unclaimed issue after live claim/worktree reconciliation."
   },
   "active_development_issue": {
-    "issue": 23,
-    "requirement_id": "MJ-REQ-022",
-    "title": "Search Profiles",
+    "issue": 375,
+    "requirement_id": "MJ-REF-005",
+    "title": "Deterministic no-LLM fallback for core career workflows",
     "state": "INTEGRATED_PASS",
-    "base": "ece8b69189a5589a079c2b01aa43a57037605d07",
-    "branch": "codex/mj-req022-search-profile-selection-20261007",
-    "candidate": "698e504ecc5059a5e015e987612b8c3572b422de",
-    "evidence": "docs/evidence/2026-10-07-search-profile-selection.json",
-    "next_action": "Release the completed Codex claim and integration lock, then reconcile all active claims and choose the next highest-value unclaimed dependency-ready issue.",
-    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/23#issuecomment-6034383775",
-    "integrated_main": "698e504ecc5059a5e015e987612b8c3572b422de"
+    "base": "e455c8e05ee5f826918c7c353fc7968994a35be1",
+    "branch": "codex/mj-ref005-no-ai-fallback-20261007",
+    "candidate": "5f220ed17c51e148de71712485f497707704fdee",
+    "integrated_main": "3804a953317b122879747e0075602994c8151678",
+    "evidence": "docs/evidence/2026-10-07-no-ai-fallback.json",
+    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/375#issuecomment-6035816600",
+    "next_action": "Release the completed Codex claim and integration lock; reconcile all active claims and main, then select and claim the next highest-value dependency-ready unowned issue."
   },
   "historical_control_snapshots": [
     {

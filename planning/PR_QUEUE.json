@@ -3358,8 +3358,11 @@
       "pr_state": "NOT_OPENED_LOCAL_ONLY",
       "scope_complete": true,
       "scope_result": "PASS",
-      "notes": "All seven tasks expose deterministic or unavailable no-provider behavior. Matching and safe factual documents pass with all configured providers disabled; connected profile UI/API and reload behavior pass. Full Python suite 889 PASS (1 optional PostgreSQL skip), frontend 63 PASS/build PASS, connected browser 2 PASS, repository validators PASS. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF."
+      "notes": "All seven tasks expose deterministic or unavailable no-provider behavior. Matching and safe factual documents pass with all configured providers disabled; connected profile UI/API and reload behavior pass. Full Python suite 889 PASS (1 optional PostgreSQL skip), frontend 63 PASS/build PASS, connected browser 2 PASS, repository validators PASS. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
+      "integration_commit": "3804a953317b122879747e0075602994c8151678",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/375#issuecomment-6035816600",
+      "integrated_at": "2026-10-07T10:15:25Z"
     }
   ],
-  "generated_at": "2026-10-07T10:11:30Z"
+  "generated_at": "2026-10-07T10:15:25Z"
 }

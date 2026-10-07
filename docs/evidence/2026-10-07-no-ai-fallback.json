@@ -107,10 +107,18 @@
     "No product AI provider was invoked, no paid/cloud service was contacted, and external application submission remained OFF."
   ],
   "integration_receipt": {
-    "status": "PENDING_LOCAL_INTEGRATION",
-    "method": "PENDING",
+    "status": "INTEGRATED_LOCAL_PASS_ISSUE_CLOSED",
+    "method": "NON_FORCE_FAST_FORWARD",
     "candidate_branch": "codex/mj-ref005-no-ai-fallback-20261007",
     "candidate_source_commit": "5f220ed17c51e148de71712485f497707704fdee",
-    "hosted_checks": "NOT_RUN_BY_USER_POLICY"
+    "integrated_main": "3804a953317b122879747e0075602994c8151678",
+    "prior_main": "e455c8e05ee5f826918c7c353fc7968994a35be1",
+    "actions_enabled": false,
+    "main_protection": "UNPROTECTED",
+    "repository_rulesets_count": 0,
+    "issue_375": "CLOSED; all five acceptance criteria evidenced locally; sanitized result comment read back.",
+    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/375#issuecomment-6035816600",
+    "hosted_checks": "NOT_RUN_BY_USER_POLICY",
+    "integrated_at": "2026-10-07T10:15:25Z"
   }
 }
