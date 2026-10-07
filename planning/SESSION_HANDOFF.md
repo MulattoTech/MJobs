@@ -1,5 +1,11 @@
 # Integration receipt — 2026-10-06
 
+Remote OK global job-source adapter source `daa37f52be3e26bbd29094ea40befd18aacbed3a` and evidence/planning were integrated by non-force fast-forward at synchronized local/GitHub main. Issue #308 (MJ-REQ-017.S07) PASS; parent MJ-REQ-017 remains PARTIAL/OPEN. Evidence `docs/evidence/2026-10-06-remote-ok-job-source-adapter.json`. 10 focused Remote OK integration tests, 66 discovery source tests, 361 unit tests, 62 frontend tests, Vite build, and all repository validators passed. Continue to next dependency-ready slice; hosted verification NOT_RUN, external submission OFF.
+
+---
+
+# Integration receipt — 2026-10-06
+
 We Work Remotely global job-source adapter source `9cb6bffc330fba0814984f47055ee1ff7ffc6e4e` and evidence/planning were integrated by non-force fast-forward at synchronized local/GitHub main. Issue #303 (MJ-REQ-017.S02) PASS; parent MJ-REQ-017 remains PARTIAL/OPEN. Evidence `docs/evidence/2026-10-06-we-work-remotely-job-source-adapter.json`. 21 focused We Work Remotely integration tests, 57 discovery source tests, 358 unit tests, 62 frontend tests, Vite build, and all repository validators passed. Continue to next dependency-ready slice; hosted verification NOT_RUN, external submission OFF.
 
 ---
