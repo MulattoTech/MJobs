@@ -8,12 +8,13 @@ import unittest
 from unittest.mock import AsyncMock, patch
 from docx import Document
 from fastapi.testclient import TestClient
-from sqlalchemy import update
+from sqlalchemy import select, update
 
-from apps.api.main import create_app
+from apps.api.main import _uploaded_comparison_entity_id, create_app
 from fixtures.mock_server import fixture_server
 from fixtures.resume_scans import scanned_resume
 from packages.persistence import models as m
+from packages.persistence.store import Store
 from services.discovery.pipeline import discover
 from services.documents.generate import prepare
 from services.documents.history import application_documents
@@ -118,6 +119,79 @@ class UploadedResumeComparisonTests(unittest.TestCase):
         self.assertTrue(observed.is_set())
         self.assertEqual(self.store.profile('fixture'),before)
         self.assertEqual(self.store.application(app),application)
+
+    def test_second_api_instance_durably_cancels_uploaded_comparison(self):
+        app,target=self.target();upload=self.upload();before=self.store.profile('fixture')
+        application=self.store.application(app)
+        self.store.save_profile(dict(PROFILE,id='other'))
+        database_url=str(self.store.engine.url)
+        second_store=Store(database_url)
+        first_app=create_app(self.store,'http://127.0.0.1:1',self.root,operation_mode='FIXTURE')
+        second_app=create_app(second_store,'http://127.0.0.1:1',self.root,operation_mode='FIXTURE')
+        url=f'/profiles/fixture/applications/{app}/uploaded-resume-comparison'
+        cancel_url=url+'/cancel'
+        params={'base_revision_id':upload['revision_id'],'tailored_document_id':target['id']}
+        entered=threading.Event();cancel_events=[];responses=[];worker_errors=[];thread=None
+
+        def wait_for_durable_cancel(*args):
+            cancel_events.append(args[-1])
+            entered.set()
+            deadline=time.monotonic()+3
+            while not args[-1].is_set() and time.monotonic()<deadline:
+                time.sleep(0.005)
+            if args[-1].is_set():
+                from services.career_profile.extraction import ResumeExtractionCancelled
+                raise ResumeExtractionCancelled()
+            raise AssertionError('second API instance did not durably cancel comparison')
+
+        try:
+            with patch('services.documents.uploaded_comparison.compare_uploaded_resume',
+                       side_effect=wait_for_durable_cancel):
+                with TestClient(first_app) as first, TestClient(second_app) as second:
+                    def compare():
+                        try:
+                            responses.append(first.get(url,params=params))
+                        except BaseException as error:
+                            worker_errors.append(error)
+
+                    thread=threading.Thread(target=compare,daemon=True)
+                    thread.start()
+                    self.assertTrue(entered.wait(2),'comparison extraction did not start')
+                    other_profile_url=cancel_url.replace('/profiles/fixture/', '/profiles/other/')
+                    self.assertEqual(second.post(other_profile_url,params=params).status_code,404)
+                    wrong_document={**params,'tailored_document_id':'another-document'}
+                    self.assertFalse(second.post(cancel_url,params=wrong_document).json()['cancelled'])
+                    self.assertFalse(cancel_events[0].is_set())
+                    cancel_response=second.post(cancel_url,params=params)
+                    self.assertEqual(cancel_response.status_code,200,cancel_response.text)
+                    cancel_ack=cancel_response.json()['cancelled']
+                    if not cancel_ack and cancel_events:
+                        cancel_events[0].set()
+                    thread.join(timeout=4)
+                    self.assertFalse(thread.is_alive(),'comparison did not stop after cancellation')
+                    self.assertEqual(worker_errors,[])
+                    self.assertTrue(cancel_ack,'second API instance did not report the durable cancellation')
+                    self.assertEqual(responses[0].status_code,499,responses[0].text)
+                    with second_store.engine.connect() as connection:
+                        operations=list(connection.execute(select(m.operations).where(
+                            m.operations.c.kind=='UPLOADED_RESUME_COMPARE',
+                            m.operations.c.entity_id==_uploaded_comparison_entity_id(
+                                'fixture',app,upload['revision_id'],target['id']))).mappings())
+                    self.assertEqual(len(operations),1)
+                    self.assertEqual(operations[0]['state'],'CANCELLED')
+                    self.assertTrue(operations[0]['cancel_requested'])
+                    self.assertEqual(operations[0]['error'],'CANCEL_REQUESTED')
+                    self.assertEqual(operations[0]['entity_id'],_uploaded_comparison_entity_id(
+                        'fixture',app,upload['revision_id'],target['id']))
+                    self.assertNotIn(upload['revision_id'],operations[0]['entity_id'])
+                    self.assertEqual(operations[0]['params'],{})
+                    self.assertEqual(self.store.profile('fixture'),before)
+                    self.assertEqual(self.store.application(app),application)
+        finally:
+            if cancel_events and thread is not None and thread.is_alive():
+                cancel_events[0].set()
+                thread.join(timeout=4)
+            second_store.engine.dispose()
 
     def test_combined_approved_skill_list_and_bullet_markers_do_not_create_false_omissions(self):
         app,target=self.target();upload=self.upload()

@@ -71,6 +71,11 @@ class CareerFactInput(FactInput):
     kind: Literal["skill", "experience", "responsibility", "education", "certification", "project", "accomplishment", "summary", "technology_experience"] = "skill"
 
 
+def _uploaded_comparison_entity_id(profile_id, application_id, base_revision_id, tailored_document_id):
+    scope = "\0".join((profile_id, application_id, base_revision_id, tailored_document_id))
+    return "uploaded-comparison:" + hashlib.sha256(scope.encode("utf-8")).hexdigest()
+
+
 class LocalOriginMiddleware:
     """Apply local-origin guards without wrapping the request receive channel."""
 
@@ -1290,6 +1295,12 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         from services.documents.comparison import ComparisonUnavailable
         if store.application(application_id)["profile_id"] != profile_id:
             raise NoResultFound("Application is not owned by this profile")
+        entity_id = _uploaded_comparison_entity_id(
+            profile_id, application_id, base_revision_id, tailored_document_id)
+        try:
+            operation_id = admit_inline(store, "UPLOADED_RESUME_COMPARE", entity_id)
+        except OperationConcurrencyLimit:
+            raise HTTPException(429, {"code": "DOCUMENT_CONCURRENCY_LIMIT"}) from None
         cancelled = threading.Event()
         key = (profile_id, application_id, base_revision_id, tailored_document_id)
         with app.state.uploaded_comparison_lock:
@@ -1299,25 +1310,41 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             tailored_document_id, cancelled))
         try:
             while not work.done():
-                if await request.is_disconnected():
+                if not cancelled.is_set() and await request.is_disconnected():
+                    cancellation = request_cancel(store, operation_id)
+                    if cancellation.get("cancel_requested"):
+                        cancelled.set()
+                if inline_cancel_requested(store, operation_id):
                     cancelled.set()
-                    try:
-                        await work
-                    except ResumeExtractionCancelled:
-                        pass
-                    return JSONResponse({"detail": "Uploaded resume comparison cancelled."}, status_code=499)
                 await asyncio.sleep(0.05)
-            return await work
+            result = await work
+            if cancelled.is_set():
+                finish_inline(store, operation_id, "CANCELLED", "CANCEL_REQUESTED")
+                return JSONResponse({"detail": "Uploaded resume comparison cancelled."}, status_code=499)
+            finish_inline(store, operation_id, "COMPLETED")
+            with store.engine.connect() as connection:
+                state = connection.execute(select(m.operations.c.state).where(
+                    m.operations.c.id == operation_id)).scalar_one_or_none()
+            if state == "CANCELLED":
+                return JSONResponse({"detail": "Uploaded resume comparison cancelled."}, status_code=499)
+            return result
         except ResumeExtractionCancelled:
+            finish_inline(store, operation_id, "CANCELLED", "CANCEL_REQUESTED")
             return JSONResponse({"detail": "Uploaded resume comparison cancelled."}, status_code=499)
         except ComparisonUnavailable as error:
+            finish_inline(store, operation_id, "FAILED", "COMPARISON_UNAVAILABLE")
             raise HTTPException(409,str(error)) from error
         except asyncio.CancelledError:
             cancelled.set()
+            request_cancel(store, operation_id)
             try:
                 await asyncio.shield(work)
             except BaseException:
                 pass
+            finish_inline(store, operation_id, "CANCELLED", "CANCEL_REQUESTED")
+            raise
+        except Exception:
+            finish_inline(store, operation_id, "FAILED", "UPLOADED_COMPARISON_FAILED")
             raise
         finally:
             with app.state.uploaded_comparison_lock:
@@ -1332,12 +1359,30 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                                           base_revision_id: str, tailored_document_id: str):
         if store.application(application_id)["profile_id"] != profile_id:
             raise NoResultFound("Application is not owned by this profile")
+        entity_id = _uploaded_comparison_entity_id(
+            profile_id, application_id, base_revision_id, tailored_document_id)
+        with store.engine.connect() as connection:
+            active_operations = list(connection.execute(select(
+                m.operations.c.id, m.operations.c.cancel_requested,
+            ).where(
+                m.operations.c.kind == "UPLOADED_RESUME_COMPARE",
+                m.operations.c.entity_id == entity_id,
+                m.operations.c.state == "RUNNING",
+            )).mappings())
+        durable_cancelled = False
+        for operation in active_operations:
+            if operation["cancel_requested"]:
+                durable_cancelled = True
+            else:
+                result = request_cancel(store, operation["id"])
+                durable_cancelled = durable_cancelled or bool(result.get("cancel_requested"))
         key = (profile_id, application_id, base_revision_id, tailored_document_id)
         with app.state.uploaded_comparison_lock:
             events = tuple(app.state.uploaded_comparison_events.get(key, ()))
-        for cancelled in events:
-            cancelled.set()
-        return {"cancelled": bool(events)}
+        if durable_cancelled:
+            for cancelled in events:
+                cancelled.set()
+        return {"cancelled": durable_cancelled}
 
     def serve_document(document, format):
         document = dict(document)

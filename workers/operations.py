@@ -17,6 +17,7 @@ OPERATION_CATEGORIES = {
     "COMPANY_SOURCE_REFRESH": "company_discovery",
     "AI_EVALUATE": "ai",
     "RESUME_EXTRACT": "document_generation",
+    "UPLOADED_RESUME_COMPARE": "document_generation",
     "PREPARE": "document_generation",
     "APPLY_MOCK": "application_automation",
 }
@@ -34,7 +35,7 @@ CATEGORY_KINDS = {
 }
 CATEGORIES = tuple(CATEGORY_LIMITS)
 MAX_ATTEMPTS = 3
-INLINE_KINDS = ("AI_EVALUATE", "RESUME_EXTRACT")
+INLINE_KINDS = ("AI_EVALUATE", "RESUME_EXTRACT", "UPLOADED_RESUME_COMPARE")
 
 
 class OperationCancelled(Exception):
