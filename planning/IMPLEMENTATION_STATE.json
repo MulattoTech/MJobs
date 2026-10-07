@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-07T06:06:28Z",
+  "generated_at": "2026-10-07T06:09:35Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -300,7 +300,8 @@
     "MJ-REQ-005 issue #6 candidate cb2681b6a921f2759cf46d4d66a8228645b473e7: 32 focused API/worker lifecycle tests PASS; 849 full Python tests PASS with 1 optional PostgreSQL concurrency skip; 8 affected browser tests PASS after building worktree apps/web/dist; frontend 62 PASS and Vite build PASS; repository validators, compileall and diff check PASS. Evidence docs/evidence/2026-10-07-ai-evaluation-concurrency-admission.json.",
     "MJ-REQ-008 issue #9 product-worker recovery exact source d516834ac3bd48352ef3aa8885a1de1fffe53419: 20 focused worker/concurrency/browser tests PASS; full 851-test Python suite PASS with 1 optional PostgreSQL skip; frontend production build, repository validators, compileall, lane coordination and diff check PASS. Evidence docs/evidence/2026-10-07-product-worker-crash-recovery.json.",
     "MJ-REQ-004 resume extraction cancellation: durable RESUME_EXTRACT admission and cancellation now cross API instances; cross-profile cancel remains denied; cancelled profile facts/history remain unchanged. Full Python 852 PASS (1 optional PostgreSQL skip), 12 profile-import, 16 AI API, 3 operation-concurrency and 1 connected browser test PASS; frontend 62 PASS/build PASS; repository validators PASS. Evidence docs/evidence/2026-10-07-resume-extraction-cross-instance-cancel.json. Issue #5 remains OPEN/PARTIAL; hosted checks remain NOT_RUN_BY_USER_POLICY.",
-    "MJ-REQ-008 / issue #9 browser-renderer crash acceptance: committed manual application status and history recovered in a fresh Chromium page after CDP Page.crash while the write response was held. Four connected application-pipeline browser tests and five API/service integration tests PASS; frontend 62 tests/build and repository validators PASS. Evidence docs/evidence/2026-10-07-browser-crash-recovery.json. Whole-browser-process and physical host restart remain NOT_RUN; issue stays OPEN/PARTIAL."
+    "MJ-REQ-008 / issue #9 browser-renderer crash acceptance: committed manual application status and history recovered in a fresh Chromium page after CDP Page.crash while the write response was held. Four connected application-pipeline browser tests and five API/service integration tests PASS; frontend 62 tests/build and repository validators PASS. Evidence docs/evidence/2026-10-07-browser-crash-recovery.json. Whole-browser-process and physical host restart remain NOT_RUN; issue stays OPEN/PARTIAL.",
+    "MJ-REQ-008 / issue #9 whole-browser-process crash acceptance: CDP Browser.crash terminated Chromium after a manual application status/history commit while the response was held; a replacement browser read back identical state. Five connected application-pipeline browser tests and five API/service integration tests PASS; frontend 62 tests/build and local validators PASS. Evidence docs/evidence/2026-10-07-browser-process-crash-recovery.json. Physical host restart remains NOT_RUN; issue stays OPEN/PARTIAL."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -381,13 +382,13 @@
     "MJ-REQ-004 candidate 3d604b27b1a4c25e2ff0ee6fa68a07e9ff8f74a0: full suite initially saw stale ignored apps/web/dist; rebuilding restored current Sources UI and isolated browser acceptance. A first rebuilt full run later hit the known intermittent CompanyDiscoveryRequestsBrowserTests server-thread shutdown assertion; isolated case and all 35 browser tests passed, followed by a same-head 680-test full suite pass. Do not weaken shutdown timeout; evidence docs/evidence/2026-10-06-bounded-ocr-diagnostics.json."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-07T06:06:28Z",
+    "timestamp": "2026-10-07T06:09:35Z",
     "result": "PARTIAL",
-    "source_commit": "9e2ea3a50db86f7d6fd067b19c680c2316b74f44",
-    "source_tree": "9fbad498486d990549cdee43c9d24e38daa11536",
-    "scope": "A committed user-reported application stage and append-only history survive a real Chromium renderer crash while the HTTP response is held; a fresh page reads back identical durable state.",
-    "evidence_path": "docs/evidence/2026-10-07-browser-crash-recovery.json",
-    "integration_commit": "faafd1a5de8d47b4908b814eb16b8cce0a5e00e3"
+    "source_commit": "9aaf0356dae39b40a876cbab6ce1aa64ec2a798c",
+    "source_tree": "2b1bf6208987cc3e0e77e161085ec09e540e8f48",
+    "scope": "After a user-reported application status/history commit, the whole Chromium browser process crashed before response delivery; a replacement process recovered identical durable state.",
+    "evidence_path": "docs/evidence/2026-10-07-browser-process-crash-recovery.json",
+    "integration_commit": "da69609fce3ce2153892da709c80af93c80ff97d"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -454,7 +455,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Reconcile current main and all active claims, then select the next highest-value unclaimed dependency-ready issue in a dedicated Codex worktree; keep issues #8/#9 and requirement MJ-REQ-008 PARTIAL until config recovery and whole-browser/host restart gaps are evidenced.",
+  "recommended_resume_step": "Reconcile current main and all lane claims, then select the next highest-value unclaimed dependency-ready issue in a dedicated Codex worktree. MJ-REQ-008 remains PARTIAL pending physical host restart; external application submission remains OFF.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
