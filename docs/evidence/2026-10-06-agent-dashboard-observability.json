@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "evidence_id": "AGENT-DASHBOARD-OBSERVABILITY-20261006",
+  "timestamp_utc": "2026-10-06T23:48:00Z",
+  "issue": 516,
+  "result": "PASS",
+  "scope": "Agent process proof, Codex quota telemetry, Windows GPU telemetry, and Ollama GPU-offload control.",
+  "codex_quota_probe": {
+    "rpc": "account/rateLimits/read",
+    "used_percent": 8,
+    "remaining_percent": 92,
+    "window_minutes": 10080,
+    "credits_balance": "1902.9721227500",
+    "reset_credits_available": 1,
+    "plan_type": "prolite",
+    "note": "Snapshot observed during implementation; dashboard reads dynamically and does not hard-code these values."
+  },
+  "gpu_control": {
+    "label": "GPU offload cap",
+    "semantics": "Percentage of transformer blocks mapped to Ollama num_gpu; not a hard utilization percentage.",
+    "gemma4_26b_block_count": 30,
+    "verified_50_percent_layers": 15,
+    "verified_alias": "ollama/mjobs-gemma4-26b-gpu50",
+    "opencode_alias_visible": true
+  },
+  "validation": [
+    "Python compile: PASS",
+    "Agent dashboard supervisor/API unit suite: 13 PASS before final handle cleanup",
+    "Codex app-server native RPC returned real rate-limit payload",
+    "Ollama derived model accepted PARAMETER num_gpu 15",
+    "OpenCode listed ollama/mjobs-gemma4-26b-gpu50",
+    "Isolated dashboard GET /api/state returned Codex 92% remaining and Windows GPU telemetry",
+    "git diff --check: PASS"
+  ],
+  "limitations": [
+    "Antigravity CLI exposes no local quota percentage endpoint found during inspection; dashboard marks quota unavailable.",
+    "GPU offload percentage controls model-layer placement and does not guarantee Windows GPU utilization equals the slider value.",
+    "Codex exec sessions are separate one-shot processes and may not appear in another interactive Codex /agents view; dashboard proves them via OS process tree, session log, worktree and activity."
+  ]
+}

@@ -7,84 +7,108 @@
   <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
-  <header>
-    <div>
-      <h1>MJobs Agent Control</h1>
-      <p>Local parallel-agent supervisor · loopback only</p>
-    </div>
-    <div class="header-actions">
-      <span id="mainState" class="pill">loading…</span>
-      <button id="refreshBtn">Refresh</button>
-      <button id="stopAllBtn" class="danger">Stop all</button>
-    </div>
-  </header>
+<header>
+  <div>
+    <h1>MJobs Agent Control</h1>
+    <p>Verified local agent processes · worktree isolated · loopback only</p>
+  </div>
+  <div class="header-actions">
+    <span id="gpuState" class="pill">GPU …</span>
+    <span id="mainState" class="pill">loading…</span>
+    <button id="refreshBtn">Refresh</button>
+    <button id="stopAllBtn" class="danger">Stop all</button>
+  </div>
+</header>
 
-  <main>
-    <section id="alerts"></section>
-    <section id="lanes" class="lane-grid"></section>
+<main>
+  <section id="alerts"></section>
+  <section id="lanes" class="lane-grid"></section>
 
-    <section class="panel repo-panel">
-      <div class="panel-title">
-        <h2>Repository & coordination</h2>
-        <span id="updatedAt"></span>
+  <section class="panel repo-panel">
+    <div class="panel-title">
+      <h2>Repository & coordination</h2>
+      <span id="updatedAt"></span>
+    </div>
+    <div id="repoSummary" class="repo-summary"></div>
+    <details>
+      <summary>Claims / lock / worktrees</summary>
+      <pre id="coordination"></pre>
+    </details>
+  </section>
+</main>
+
+<template id="laneTemplate">
+  <article class="panel lane-card">
+    <div class="lane-title">
+      <div>
+        <h2 class="lane-name"></h2>
+        <div class="lane-runner"></div>
       </div>
-      <div id="repoSummary" class="repo-summary"></div>
-      <details>
-        <summary>Claims / lock / worktrees</summary>
-        <pre id="coordination"></pre>
-      </details>
-    </section>
-  </main>
-
-  <template id="laneTemplate">
-    <article class="panel lane-card">
-      <div class="lane-title">
-        <div>
-          <h2 class="lane-name"></h2>
-          <div class="lane-runner"></div>
-        </div>
+      <div class="status-stack">
+        <span class="activity pill"></span>
         <span class="status pill"></span>
       </div>
+    </div>
 
-      <div class="metrics">
-        <div><span>PID</span><strong class="pid">—</strong></div>
-        <div><span>Restarts</span><strong class="restarts">0</strong></div>
-        <div><span>Issue</span><strong class="issue">—</strong></div>
+    <div class="metrics metrics-six">
+      <div><span>PID</span><strong class="pid">—</strong></div>
+      <div><span>Issue</span><strong class="issue">—</strong></div>
+      <div><span>Last output</span><strong class="last-activity">—</strong></div>
+      <div><span>Session</span><strong class="session">—</strong></div>
+      <div><span>RAM</span><strong class="memory">—</strong></div>
+      <div><span>GPU</span><strong class="lane-gpu">—</strong></div>
+    </div>
+
+    <div class="usage-panel">
+      <div class="usage-head">
+        <strong class="usage-title">Usage</strong>
+        <span class="usage-percent"></span>
       </div>
+      <div class="progress"><div class="usage-fill"></div></div>
+      <div class="usage-meta"></div>
+    </div>
 
-      <label>Model
-        <input class="model" spellcheck="false">
+    <div class="gpu-control hidden">
+      <label>GPU offload cap: <strong class="gpu-offload-value">100%</strong>
+        <input type="range" class="gpu-offload" min="0" max="100" step="5" value="100">
       </label>
+      <div class="helper">Maps the percentage to Ollama <code>num_gpu</code> model layers. This is an enforceable offload cap, not a promise that Task Manager utilization stays at that exact percentage. Applies after restart.</div>
+    </div>
 
-      <label>Reasoning / effort
-        <input class="reasoning" spellcheck="false">
-      </label>
+    <label>Model
+      <input class="model" spellcheck="false">
+    </label>
+    <label>Reasoning / effort
+      <input class="reasoning" spellcheck="false">
+    </label>
+    <label class="check-row">
+      <input type="checkbox" class="auto-continue">
+      <span>Auto-continue after clean completion</span>
+    </label>
+    <label>Prompt override
+      <textarea class="prompt" rows="4" placeholder="Optional instructions appended to the lane prompt"></textarea>
+    </label>
 
-      <label class="check-row">
-        <input type="checkbox" class="auto-continue">
-        <span>Auto-continue after clean completion</span>
-      </label>
+    <div class="buttons">
+      <button class="save">Save settings</button>
+      <button class="start primary">Start</button>
+      <button class="restart">Restart</button>
+      <button class="stop danger">Stop</button>
+    </div>
+    <div class="reason"></div>
+    <div class="workspace"></div>
 
-      <label>Prompt override
-        <textarea class="prompt" rows="5" placeholder="Optional instructions appended to the lane prompt"></textarea>
-      </label>
+    <details>
+      <summary>Process proof</summary>
+      <pre class="process-proof"></pre>
+    </details>
+    <details open>
+      <summary>Live log</summary>
+      <pre class="log"></pre>
+    </details>
+  </article>
+</template>
 
-      <div class="buttons">
-        <button class="save">Save settings</button>
-        <button class="start primary">Start</button>
-        <button class="restart">Restart</button>
-        <button class="stop danger">Stop</button>
-      </div>
-
-      <div class="reason"></div>
-
-      <details open>
-        <summary>Live log</summary>
-        <pre class="log"></pre>
-      </details>
-    </article>
-  </template>
-
-  <script src="/static/app.js"></script>
+<script src="/static/app.js"></script>
 </body>
 </html>

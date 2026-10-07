@@ -77,3 +77,26 @@ The dashboard does not bypass the MJobs coordination rules:
 
 The web server rejects non-loopback bind requests and allows only localhost host
 headers.
+
+
+## Verified activity and quota telemetry
+
+The dashboard distinguishes a process being alive from a model actively producing output. Each lane reports:
+
+- supervisor PID plus the descendant process tree;
+- exact worktree and effective model;
+- ACTIVE, QUIET, or STOPPED activity based on log freshness;
+- session ID when the runner emits one (Codex does);
+- aggregate resident memory for the supervised process tree;
+- observed Windows GPU-engine activity for the supervised process tree;
+- last-output age.
+
+Codex quota comes from the local Codex app-server account/rateLimits/read RPC—the same rate-limit model consumed by Codex clients. It exposes used/remaining percentage, reset time/window, credits, plan type, and reset credits when the backend supplies them. This is account quota, not an estimate based on local token logs.
+
+Antigravity CLI currently does not expose an equivalent local percentage endpoint. The dashboard therefore reports its process/model/activity proof and explicitly marks quota percentage unavailable rather than estimating it.
+
+### Ollama GPU offload control
+
+The Ollama lane exposes a 0–100% GPU offload cap. This is not a hard GPU utilization percentage. On restart, the supervisor reads the model's transformer block count and creates/reuses a local derived Ollama model with PARAMETER num_gpu <layers>. Example: Gemma4 26B reports 30 blocks, so a 50% offload cap uses 15 GPU layers. The derived alias is added to OpenCode's local Ollama model configuration and then used for the supervised lane.
+
+Windows GPU engine counters are shown separately as observed utilization so the user can compare configured offload with actual activity.
