@@ -573,6 +573,44 @@ def opencode_usage_snapshot(workspace: str | Path) -> dict[str, Any]:
             pass
 
 
+
+_CODEX_IDENTITY_CACHE: dict[str, tuple[tuple[int, int], dict[str, Any]]] = {}
+_CODEX_SUMMARY_CACHE: dict[str, tuple[tuple[int, int], dict[str, Any]]] = {}
+_ANTIGRAVITY_IDENTITY_CACHE: dict[str, tuple[tuple[int, int], dict[str, Any]]] = {}
+_ANTIGRAVITY_SUMMARY_CACHE: dict[str, tuple[tuple[int, int], dict[str, Any]]] = {}
+
+
+def _file_signature(path: Path) -> tuple[int, int]:
+    stat = path.stat()
+    return stat.st_mtime_ns, stat.st_size
+
+
+def _cache_get(
+    cache: dict[str, tuple[tuple[int, int], dict[str, Any]]],
+    path: Path,
+) -> dict[str, Any] | None:
+    try:
+        signature = _file_signature(path)
+    except OSError:
+        return None
+    cached = cache.get(str(path))
+    if cached and cached[0] == signature:
+        return dict(cached[1])
+    return None
+
+
+def _cache_put(
+    cache: dict[str, tuple[tuple[int, int], dict[str, Any]]],
+    path: Path,
+    value: dict[str, Any],
+) -> dict[str, Any]:
+    try:
+        cache[str(path)] = (_file_signature(path), dict(value))
+    except OSError:
+        pass
+    return value
+
+
 def _normalized_workspace(value: str | Path | None) -> str:
     return str(value or "").replace("\\", "/").rstrip("/").casefold()
 
@@ -596,6 +634,9 @@ def _codex_session_id_from_path(path: Path) -> str | None:
 
 
 def _codex_rollout_identity(path: Path) -> dict[str, Any]:
+    cached = _cache_get(_CODEX_IDENTITY_CACHE, path)
+    if cached is not None:
+        return cached
     identity: dict[str, Any] = {
         "path": str(path),
         "session_id": _codex_session_id_from_path(path),
@@ -628,10 +669,13 @@ def _codex_rollout_identity(path: Path) -> dict[str, Any]:
                         break
     except OSError:
         pass
-    return identity
+    return _cache_put(_CODEX_IDENTITY_CACHE, path, identity)
 
 
 def _codex_rollout_summary(path: Path) -> dict[str, Any]:
+    cached = _cache_get(_CODEX_SUMMARY_CACHE, path)
+    if cached is not None:
+        return cached
     identity = _codex_rollout_identity(path)
     first_time: float | None = None
     last_time: float | None = None
@@ -730,7 +774,7 @@ def _codex_rollout_summary(path: Path) -> dict[str, Any]:
             if context_window else None
         ),
     })
-    return {
+    result = {
         "available": True,
         **identity,
         "time_created": (
@@ -745,6 +789,7 @@ def _codex_rollout_summary(path: Path) -> dict[str, Any]:
         "session": cumulative,
         "rate_limits": rate_limits,
     }
+    return _cache_put(_CODEX_SUMMARY_CACHE, path, result)
 
 
 def _codex_aggregate(summaries: list[dict[str, Any]]) -> dict[str, Any]:
@@ -866,14 +911,59 @@ def _antigravity_model_hint(user_text: str) -> str | None:
     return None
 
 
+
+def _antigravity_transcript_identity(path: Path) -> dict[str, Any]:
+    cached = _cache_get(_ANTIGRAVITY_IDENTITY_CACHE, path)
+    if cached is not None:
+        return cached
+    identity: dict[str, Any] = {
+        "conversation_id": path.parents[2].name,
+        "workspace": None,
+        "issue": None,
+        "requirement_id": None,
+        "model_hint": None,
+    }
+    try:
+        with path.open(encoding="utf-8", errors="replace") as handle:
+            for index, line in enumerate(handle):
+                if index > 20:
+                    break
+                try:
+                    step = json.loads(line)
+                except Exception:
+                    continue
+                if step.get("type") != "USER_INPUT":
+                    continue
+                text = str(step.get("content") or "")
+                match = re.search(r"worktree=([^;\n]+)", text, flags=re.I)
+                if match:
+                    identity["workspace"] = match.group(1).strip()
+                issue_match = re.search(r"issue\s+#(\d+)", text, flags=re.I)
+                if issue_match:
+                    identity["issue"] = int(issue_match.group(1))
+                req_match = re.search(r"(MJ-REQ-[A-Z0-9.]+)", text, flags=re.I)
+                if req_match:
+                    identity["requirement_id"] = req_match.group(1).upper()
+                identity["model_hint"] = _antigravity_model_hint(text)
+                if identity["workspace"]:
+                    break
+    except OSError:
+        pass
+    return _cache_put(_ANTIGRAVITY_IDENTITY_CACHE, path, identity)
+
+
 def _antigravity_transcript_summary(path: Path) -> dict[str, Any]:
-    conversation_id = path.parents[2].name
+    cached = _cache_get(_ANTIGRAVITY_SUMMARY_CACHE, path)
+    if cached is not None:
+        return cached
+    identity = _antigravity_transcript_identity(path)
+    conversation_id = identity["conversation_id"]
     first_time: float | None = None
     last_time: float | None = None
-    workspace: str | None = None
-    issue: int | None = None
-    requirement: str | None = None
-    model_hint: str | None = None
+    workspace: str | None = identity.get("workspace")
+    issue: int | None = identity.get("issue")
+    requirement: str | None = identity.get("requirement_id")
+    model_hint: str | None = identity.get("model_hint")
     total_steps = 0
     planner_turns = 0
     generic_steps = 0
@@ -947,7 +1037,7 @@ def _antigravity_transcript_summary(path: Path) -> dict[str, Any]:
 
     elapsed = max(0.0, (last_time or 0) - (first_time or 0)) if first_time and last_time else None
     prompt_material = input_tokens + cache_read_tokens
-    return {
+    result = {
         "available": True,
         "conversation_id": conversation_id,
         "workspace": workspace,
@@ -991,6 +1081,7 @@ def _antigravity_transcript_summary(path: Path) -> dict[str, Any]:
             if prompt_material else None
         ),
     }
+    return _cache_put(_ANTIGRAVITY_SUMMARY_CACHE, path, result)
 
 
 def _antigravity_aggregate(summaries: list[dict[str, Any]]) -> dict[str, Any]:
@@ -1046,6 +1137,9 @@ def antigravity_usage_snapshot(
     target = _normalized_workspace(workspace)
     mjobs_root = target.split("/.worktrees/", 1)[0]
     transcript_paths = list(brain.glob("*/.system_generated/logs/transcript_full.jsonl"))
+    identities = {
+        path: _antigravity_transcript_identity(path) for path in transcript_paths
+    }
     summaries: dict[Path, dict[str, Any]] = {}
 
     def summary(path: Path) -> dict[str, Any]:
@@ -1053,11 +1147,10 @@ def antigravity_usage_snapshot(
             summaries[path] = _antigravity_transcript_summary(path)
         return summaries[path]
 
-    matching: list[Path] = []
-    for path in transcript_paths:
-        item = summary(path)
-        if _normalized_workspace(item.get("workspace")) == target:
-            matching.append(path)
+    matching: list[Path] = [
+        path for path, identity in identities.items()
+        if _normalized_workspace(identity.get("workspace")) == target
+    ]
     matching.sort(key=lambda p: p.stat().st_mtime, reverse=True)
 
     current_path: Path | None = None
@@ -1074,15 +1167,13 @@ def antigravity_usage_snapshot(
     current = summary(current_path) if current_path else None
 
     configured_norm = _normalize_model_name(configured_model)
-    mjobs_summaries = [
-        summary(path) for path in transcript_paths
-        if _normalized_workspace(summary(path).get("workspace")).startswith(mjobs_root)
+    model_paths = [
+        path for path, identity in identities.items()
+        if _normalized_workspace(identity.get("workspace")).startswith(mjobs_root)
+        and configured_norm
+        and configured_norm in _normalize_model_name(identity.get("model_hint"))
     ]
-    model_history = [
-        item for item in mjobs_summaries
-        if configured_norm
-        and configured_norm in _normalize_model_name(item.get("model_hint"))
-    ]
+    model_history = [summary(path) for path in model_paths]
     cutoff = time.time() - 86400
     model_24h = [
         item for item in model_history
