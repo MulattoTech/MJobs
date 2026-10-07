@@ -243,7 +243,18 @@
       "note": "All discovered production page screenshot paths now call the helper that masks form controls and uses screenshot-only CSS to suppress arbitrary text, pseudo-elements and embedded image/canvas/video/frame pixels. Headless Chromium demonstrates the 3,242-pixel pre-fix leak and zero post-fix pixels; live DOM remains unchanged. Feedback and UI-source suite 32 PASS; validators PASS. Connected Compose UI E2E NOT_RUN. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF. Issue CLOSED/readback https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6039255354.",
       "integration_commit": "a7eea5b291082db1bbe3e32403f7995416a573d5",
       "issue_comment": "https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6039255354"
+    },
+    {
+      "issue": 177,
+      "requirement_id": "MJ-REQ-176",
+      "status": "INTEGRATION_PENDING_PARTIAL",
+      "priority": 1,
+      "target_area": "services/audit_history.py; apps/api/main.py; apps/web/src/main.tsx; tests/integration/test_audit_history.py; tests/browser/test_audit_history.py",
+      "depends_on": [],
+      "evidence_path": "docs/evidence/2026-10-07-profile-audit-history.json",
+      "scope_complete": false,
+      "note": "Profile-scoped user-visible audit summaries are locally tested across API, SQLite reopen and connected browser profile switching. 13 focused integration/browser tests, 63 frontend tests, TypeScript/Vite build and local validators PASS. Required job/company discovery, company enrollment, merge, setting mutation and truthful real-submission event families remain incomplete; issue stays OPEN/PARTIAL. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF. Source 9d3bff3b5e07b1d1eda1413d78e95a2c9e51f25c; integration pending."
     }
   ],
-  "generated_at": "2026-10-07T13:44:00Z"
+  "generated_at": "2026-10-07T13:53:25Z"
 }

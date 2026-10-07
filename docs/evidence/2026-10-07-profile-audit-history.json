@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-07T13:53:25Z",
+  "issue": 177,
+  "requirement_id": "MJ-REQ-176",
+  "result": "PARTIAL",
+  "source_commit": "9d3bff3b5e07b1d1eda1413d78e95a2c9e51f25c",
+  "source_tree": "b5698ceea824b8e9df857705c627a43bc32c5a6a",
+  "base_main": "1a2300c832d8515c2039798b446dc323c1bffb28",
+  "acceptance_oracle": "For a selected profile, Activity displays durable, recent human-readable audit summaries; it never returns arbitrary audit payloads or another profile's events, and it reads the same history after reload and database reopen.",
+  "red_observation": "Before implementation, GET /profiles/fixture/audit-history returned 404 in the new integration regression test.",
+  "implementation": [
+    "Added a bounded profile-scoped API timeline for allowlisted profile and application audit actions, including generated resume/cover-letter summaries based on persisted document kinds.",
+    "The API returns only event IDs, event type, fixed safe summaries, timestamps and job/company context; audit payload JSON, private notes and credentials are never serialized.",
+    "Added the timeline to the Activity tab with profile-switch refresh and explicit copy that local or mock events do not establish employer receipt.",
+    "Mock confirmation is labeled fictional; non-mock CONFIRMED rows are omitted because a local state alone is not employer receipt evidence. No external submission behavior was added."
+  ],
+  "validated_coverage": [
+    "The profile-owned events PROFILE_SAVED, MATCHES_RECALCULATED and allowlisted SETTING_CHANGED can appear as safe summaries.",
+    "The application-owned events DOCUMENTS_PREPARED, application tracking notes/status, answer export, queued/started/failed states and fictional mock confirmation are mapped only when matching append-only audit rows exist; generated-document labels derive from durable document records.",
+    "Other stored audit actions are excluded by query allowlists. Existing emitters do not yet provide profile-linked JOB_DISCOVERED, COMPANY_DISCOVERED, COMPANY_SOURCE_ENROLLED, JOB_MERGED, general SETTING_CHANGED, or a truthful real APPLICATION_SUBMITTED event history. These required event families remain incomplete; issue #177 stays OPEN/PARTIAL."
+  ],
+  "validation": [
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_audit_history tests.integration.test_application_pipeline tests.integration.test_job_tracking tests.browser.test_audit_history tests.browser.test_job_tracking -v",
+      "result": "PASS",
+      "counts": {"passed": 13, "failed": 0, "skipped": 0}
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run",
+      "result": "PASS",
+      "counts": {"files": 13, "tests": 63, "failed": 0}
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "details": "TypeScript check and Vite production build completed."
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m py_compile services/audit_history.py apps/api/main.py tests/integration/test_audit_history.py tests/browser/test_audit_history.py",
+      "result": "PASS"
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.agent_skills",
+      "result": "PASS"
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.catalogue",
+      "result": "PASS"
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.progress validate",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "browser_evidence": {
+    "engine": "Headless Chromium via Playwright",
+    "database": "Temporary SQLite fixture database; profile-owned audit history was read after Store reopen.",
+    "network": "Browser requests were restricted to isolated loopback API; no external requests observed.",
+    "verified": [
+      "The Activity tab renders profile audit summaries and reloads persisted history.",
+      "Switching profiles loads only the newly selected profile's events.",
+      "Raw audit payload values and other-profile event identifiers are absent from returned/rendered history.",
+      "Application/job tracking browser regression continues to pass."
+    ]
+  },
+  "environment": {
+    "os": "Windows",
+    "python": "3.12",
+    "node": "25.9.0",
+    "npm": "11.12.1",
+    "node_engine_notice": "Vitest declares Node ^22.12, ^24, or >=26; Node 25.9 emitted EBADENGINE during npm ci, while the frontend tests/build passed.",
+    "database": "SQLite only; no schema or migration changed.",
+    "postgresql_docker": "NOT_RUN; no database-specific behavior changed.",
+    "hosted_actions_and_review": "NOT_RUN by current local-only policy.",
+    "external_submission": "OFF"
+  }
+}
