@@ -96,7 +96,7 @@
     },
     {
       "id": "MJ-PR-005",
-      "title": "Core Search Model: Domain Model â€” Core Concepts; Global Job Sources",
+      "title": "Core Search Model: Domain Model \u00e2\u20ac\u201d Core Concepts; Global Job Sources",
       "domain": "core_search_model",
       "requirements": [
         "MJ-REQ-015",
@@ -275,7 +275,7 @@
     },
     {
       "id": "MJ-PR-013",
-      "title": "Job Identity Dedupe: Deduplication â€” Strong Signals; Deduplication â€” Company Identity",
+      "title": "Job Identity Dedupe: Deduplication \u00e2\u20ac\u201d Strong Signals; Deduplication \u00e2\u20ac\u201d Company Identity",
       "domain": "job_identity_dedupe",
       "requirements": [
         "MJ-REQ-044",
@@ -1186,7 +1186,7 @@
     },
     {
       "id": "MJ-PR-047",
-      "title": "Orchestration Data Security: Security â€” Pii; Security â€” Web",
+      "title": "Orchestration Data Security: Security \u00e2\u20ac\u201d Pii; Security \u00e2\u20ac\u201d Web",
       "domain": "orchestration_data_security",
       "requirements": [
         "MJ-REQ-171",
@@ -1206,7 +1206,7 @@
     },
     {
       "id": "MJ-PR-048",
-      "title": "Orchestration Data Security: Security â€” Secret Management; Audit Log",
+      "title": "Orchestration Data Security: Security \u00e2\u20ac\u201d Secret Management; Audit Log",
       "domain": "orchestration_data_security",
       "requirements": [
         "MJ-REQ-175",
@@ -1421,7 +1421,7 @@
     },
     {
       "id": "MJ-PR-059",
-      "title": "Test Harness: Unit Tests â€” Company Resolution; Unit Tests â€” Ats Detection",
+      "title": "Test Harness: Unit Tests \u00e2\u20ac\u201d Company Resolution; Unit Tests \u00e2\u20ac\u201d Ats Detection",
       "domain": "test_harness",
       "requirements": [
         "MJ-REQ-216",
@@ -1441,7 +1441,7 @@
     },
     {
       "id": "MJ-PR-060",
-      "title": "Test Harness: Unit Tests â€” Application State; Application Idempotency Test",
+      "title": "Test Harness: Unit Tests \u00e2\u20ac\u201d Application State; Application Idempotency Test",
       "domain": "test_harness",
       "requirements": [
         "MJ-REQ-220",
@@ -3335,7 +3335,31 @@
       "notes": "Connected profile-owned saved-search selection to the existing Jobs API. Focused 18 Python tests, including loopback Chromium with temp SQLite/reopen/profile isolation; frontend 63 tests/build; local repository validators pass. Issue evidence comment read back. Hosted checks/review NOT_RUN by current policy; external submission OFF.",
       "issue_comment": "https://github.com/MulattoTech/MJobs/issues/23#issuecomment-6034383775",
       "integrated_at": "2026-10-07T08:48:43Z"
+    },
+    {
+      "id": "MJ-PR-161",
+      "title": "MJ-REF-005 deterministic no-AI fallback reporting for core career workflows",
+      "domain": "matching_ai",
+      "requirements": [],
+      "issues": [
+        375
+      ],
+      "reference_gaps": [
+        "MJ-REF-005"
+      ],
+      "target_area": "services/ai/tasks.py; apps/api/main.py; apps/web/src/main.tsx; tests/unit; tests/integration; tests/browser",
+      "depends_on": [],
+      "status": "INTEGRATED_PASS",
+      "branch": "codex/mj-ref005-no-ai-fallback-20261007",
+      "evidence_path": "docs/evidence/2026-10-07-no-ai-fallback.json",
+      "base": "e455c8e05ee5f826918c7c353fc7968994a35be1",
+      "candidate": "5f220ed17c51e148de71712485f497707704fdee",
+      "integration_method": "NON_FORCE_FAST_FORWARD",
+      "pr_state": "NOT_OPENED_LOCAL_ONLY",
+      "scope_complete": true,
+      "scope_result": "PASS",
+      "notes": "All seven tasks expose deterministic or unavailable no-provider behavior. Matching and safe factual documents pass with all configured providers disabled; connected profile UI/API and reload behavior pass. Full Python suite 889 PASS (1 optional PostgreSQL skip), frontend 63 PASS/build PASS, connected browser 2 PASS, repository validators PASS. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF."
     }
   ],
-  "generated_at": "2026-10-07T08:48:43Z"
+  "generated_at": "2026-10-07T10:11:30Z"
 }

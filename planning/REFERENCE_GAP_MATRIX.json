@@ -1,6 +1,6 @@
 {
   "schema_version": 3,
-  "generated_at": "2026-10-07T08:27:01Z",
+  "generated_at": "2026-10-07T10:11:30Z",
   "canonical_namespace": "MJ-REF",
   "original_catalogue_count": 366,
   "reference_gap_count": 59,
@@ -95,8 +95,10 @@
       ]
     },
     "MJ-REF-005": {
-      "result": "NOT_RUN",
-      "evidence": []
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-07-no-ai-fallback.json"
+      ]
     },
     "MJ-REF-006": {
       "result": "NOT_RUN",
