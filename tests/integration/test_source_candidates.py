@@ -78,6 +78,31 @@ class SourceCandidateCaptureTests(unittest.TestCase):
         candidates = self.client.get("/source-candidates", params={"profile_id": "fixture"}).json()["candidates"]
         self.assertEqual(candidates[0]["observations"][0]["observed_hops"], [{"state": "UNKNOWN"}])
 
+    def test_url_only_report_creates_profile_scoped_candidate_without_job_metadata(self):
+        payload = {
+            "profile_id": "fixture", "request_id": "url-only-source-report",
+            "application_url": "https://www.talenthop.com/apply/role?session=private-token",
+            "discovery_origin": "LinkedIn", "observed_hops": [],
+        }
+        captured = self.client.post("/source-candidates", json=payload)
+        self.assertEqual(captured.status_code, 201, captured.text)
+        candidate = captured.json()["candidate"]
+        self.assertEqual(candidate["domain"], "talenthop.com")
+        observation = candidate["observations"][0]
+        self.assertIsNone(observation["job_id"])
+        self.assertIsNone(observation["application_id"])
+        self.assertEqual(observation["discovery_origin"], "LinkedIn")
+        self.assertEqual(observation["observed_hops"], [{"state": "UNKNOWN"}])
+        self.assertNotIn("private-token", str(candidate))
+        replay = self.client.post("/source-candidates", json=payload)
+        self.assertEqual(replay.status_code, 200, replay.text)
+        conflict = self.client.post("/source-candidates", json={
+            **payload, "application_url": "https://different-provider.invalid/role",
+        })
+        self.assertEqual(conflict.status_code, 409, conflict.text)
+        reread = self.client.get("/source-candidates", params={"profile_id": "fixture"})
+        self.assertEqual(len(reread.json()["candidates"][0]["observations"]), 1)
+
 
     def test_external_application_preserves_origin_and_review_history_is_profile_scoped(self):
         payload = {

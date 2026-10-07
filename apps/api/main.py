@@ -244,6 +244,24 @@ class SourceCandidateReviewInput(BaseModel):
         return self
 
 
+class SourceCandidateCaptureInput(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+    profile_id: str = Field(min_length=1, max_length=128)
+    request_id: str = Field(min_length=1, max_length=64)
+    discovery_origin: str | None = Field(default=None, max_length=253)
+    source_url: str | None = Field(default=None, max_length=2000)
+    application_url: str | None = Field(default=None, max_length=2000)
+    observed_hops: list[str] = Field(default_factory=list, max_length=20)
+
+    @model_validator(mode="after")
+    def bounded_source_report(self):
+        if (not self.profile_id.strip() or not self.request_id.strip()
+                or self.request_id != self.request_id.strip()
+                or not (self.source_url or self.application_url)):
+            raise ValueError("Profile, request identifier, and at least one source URL are required")
+        return self
+
+
 class ApplicationAnswerItem(BaseModel):
     model_config = ConfigDict(strict=True, extra="forbid")
     question: str = Field(min_length=1, max_length=2000)
@@ -1157,6 +1175,24 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             return list_candidates(store, profile_id)
         except NoResultFound:
             raise HTTPException(404, "Career profile not found") from None
+
+    @app.post("/source-candidates")
+    def source_candidate_capture(value: SourceCandidateCaptureInput, response: Response):
+        from services.source_candidates.catalogue import SourceCandidateConflict, report_source_candidate
+        try:
+            result = report_source_candidate(
+                store, profile_id=value.profile_id, request_id=value.request_id,
+                discovery_origin=value.discovery_origin, source_url=value.source_url,
+                application_url=value.application_url, observed_hops=value.observed_hops,
+            )
+        except NoResultFound:
+            raise HTTPException(404, "Career profile not found") from None
+        except SourceCandidateConflict as error:
+            raise HTTPException(409, str(error)) from None
+        except ValueError as error:
+            raise HTTPException(422, str(error)) from None
+        response.status_code = 201 if result["created"] else 200
+        return result
 
     @app.put("/profiles/{profile_id}/source-candidates/{candidate_id}/review")
     def source_candidate_review(profile_id: str, candidate_id: str,

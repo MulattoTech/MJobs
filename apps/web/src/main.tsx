@@ -95,6 +95,8 @@ function App() {
   const [sourceCandidates,setSourceCandidates] = useState<SourceCandidate[]>([]);
   const [sourceCandidateReviewDraft,setSourceCandidateReviewDraft] = useState<Record<string,string>>({});
   const [sourceCandidateSiteTypeDraft,setSourceCandidateSiteTypeDraft] = useState<Record<string,SourceCandidate['site_type']>>({});
+  const [sourceReportUrl,setSourceReportUrl] = useState('');
+  const [sourceReportOrigin,setSourceReportOrigin] = useState('');
   const [aiTaskSettings,setAITaskSettings] = useState<AITaskSettings>(defaultAITaskSettings);
   const [aiTaskFallbacks,setAITaskFallbacks] = useState<Partial<AITaskFallbacks>>({});
   const [aiSettingsLoading,setAISettingsLoading] = useState(false);
@@ -338,13 +340,29 @@ function App() {
       setNotice('Source-candidate review saved. Collection remains disabled.');
     });
   }
+  async function reportSourceCandidate() {
+    if(!profileId)throw new Error('Select a profile before recording a source URL.');
+    if(!sourceReportUrl.trim())throw new Error('Enter the source or application URL you want to catalogue.');
+    const selectedProfile=profileId;
+    await action('Recording source URL',async()=>{
+      const result=await api<{created:boolean}>('/source-candidates',{method:'POST',body:JSON.stringify({
+        profile_id:selectedProfile,request_id:crypto.randomUUID(),
+        application_url:null,discovery_origin:sourceReportOrigin.trim()||null,
+        source_url:sourceReportUrl.trim(),observed_hops:[],
+      })});
+      if(selectedProfile!==profileRef.current)return;
+      await refresh(selectedProfile);
+      setSourceReportUrl('');setSourceReportOrigin('');
+      setNotice(result.created?'Source URL recorded for review. No site was opened and collection remains disabled.':'Source URL report already exists. No site was opened.');
+    });
+  }
   function switchProfile(id:string) {
     if(id===profileId)return;
     profileRef.current=id;
     ++companySourcesSequence.current;++jobsSequence.current;++detailSequence.current;
     ++appSequence.current;++editorSequence.current;
     profileBaselineRef.current=null;
-    setDetail(null);setJobs([]);setJobNoteDraft('');setJobNoteRequestId(crypto.randomUUID());setAIDocumentPreparation(null);setAIDocumentReviewConsent({});setSourceCandidates([]);setSourceCandidateReviewDraft({});setSourceCandidateSiteTypeDraft({});
+    setDetail(null);setJobs([]);setJobNoteDraft('');setJobNoteRequestId(crypto.randomUUID());setAIDocumentPreparation(null);setAIDocumentReviewConsent({});setSourceCandidates([]);setSourceCandidateReviewDraft({});setSourceCandidateSiteTypeDraft({});setSourceReportUrl('');setSourceReportOrigin('');
     jobDispositionRequestIds.current.clear();applicationStatusRequestIds.current.clear();setSelectedApp(null);setApplicationTracking(null);setApplicationStatusDraft('');setApplicationNoteDraft('');setApplicationNoteRequestId(crypto.randomUUID());externalCaptureRequestId.current=crypto.randomUUID();setExternalCompany('');setExternalTitle('');setExternalUrl('');setExternalSourceUrl('');setExternalOrigin('');setExternalDescription('');setExternalAppliedAt(localDateTimeInput());setAnswerDrafts([]);
     setApps([]);setDocs([]);setResumes([]);setOps([]);setCompanySources([]);
     setDiscoveryRequests([]);setSearchProfiles([]);setMockConsent(false);setActiveOp('');
@@ -575,6 +593,11 @@ function App() {
           });
         }}/>
         <section className="panel" aria-label="Discovered source candidates"><div className="toolbar"><div><h2>Discovered source candidates</h2><p>Review sites recorded from your captures. Recording a site does not inspect it, enable collection, or confirm it is a supported job source.</p></div><span className="tag">{sourceCandidates.length} saved</span></div>
+          <form aria-label="Report a source site" onSubmit={event=>{event.preventDefault();void reportSourceCandidate();}}>
+            <p className="muted">Know the site but not the job title or employer? Record the URL and optional reported origin; MJobs will not open it.</p>
+            <div className="two-col"><label>Source site URL<input aria-label="Source site URL" type="url" maxLength={2000} required disabled={!!busy||!profileId} value={sourceReportUrl} onChange={event=>setSourceReportUrl(event.target.value)}/></label><label>Reported discovery origin<input aria-label="Reported discovery origin for source site" maxLength={253} disabled={!!busy||!profileId} value={sourceReportOrigin} onChange={event=>setSourceReportOrigin(event.target.value)} placeholder="For example, LinkedIn"/></label></div>
+            <button className="primary" disabled={!!busy||!profileId||!sourceReportUrl.trim()}>Record source URL</button>
+          </form>
           {!profileId?<p className="muted">Select a profile to view its source candidates.</p>:!sourceCandidates.length?<p>No third-party source candidates are recorded for this profile.</p>:sourceCandidates.map(candidate=><article className="fact" key={candidate.id} aria-label={`Source candidate ${candidate.domain}`}>
             <div className="toolbar"><div><h3>{candidate.display_name}</h3><p><code>{candidate.domain}</code> · {candidate.site_type.replaceAll('_',' ')} · first seen {stamp(candidate.first_seen_at)} · last seen {stamp(candidate.last_seen_at)}</p></div><span className="tag">{candidate.state.replaceAll('_',' ')}</span></div>
             <p className="muted">Collection {candidate.collection_enabled?'enabled':'disabled'} · site type and integration suitability remain unverified.</p>

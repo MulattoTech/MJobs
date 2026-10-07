@@ -142,6 +142,31 @@ def list_candidates(store, profile_id: str):
         return {"candidates": candidates}
 
 
+def report_source_candidate(store, *, profile_id: str, request_id: str,
+                           discovery_origin: str | None, source_url: str | None,
+                           application_url: str | None, observed_hops=None):
+    """Persist a user-reported source URL even when job/application metadata is unknown."""
+    store.profile(profile_id)
+    capture_method = "MANUAL_CAPTURE"
+    capture_key = f"{capture_method}:{request_id}"
+    observation_id = identity("source-candidate-observation", profile_id, capture_key)
+    with store.engine.begin() as connection:
+        existed = connection.execute(select(m.source_candidate_observations.c.id).where(
+            m.source_candidate_observations.c.id == observation_id
+        )).first() is not None
+        candidate_id = record_capture(
+            connection, profile_id=profile_id, request_id=request_id,
+            job_id=None, application_id=None, discovery_origin=discovery_origin,
+            source_url=source_url, application_url=application_url,
+            observed_hops=observed_hops, capture_method=capture_method,
+        )
+        if candidate_id is None:
+            raise ValueError("A valid HTTP or HTTPS source URL is required")
+    candidate = next(row for row in list_candidates(store, profile_id)["candidates"]
+                     if row["id"] == candidate_id)
+    return {"candidate": candidate, "created": not existed}
+
+
 def review_candidate(store, profile_id: str, candidate_id: str,
                      state: str, site_type: str, reason: str, request_id: str):
     store.profile(profile_id)
