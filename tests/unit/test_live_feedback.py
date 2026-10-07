@@ -7,6 +7,7 @@ from unittest.mock import patch
 
 from cli.live_feedback import (
     Recorder,
+    SCREENSHOT_PRIVACY_STYLE,
     capture_redacted_screenshot,
     prune_expired_sessions,
     redact_sensitive_text,
@@ -102,6 +103,9 @@ class LiveFeedbackTests(unittest.TestCase):
             ("locator", "[data-mjobs-sensitive-mask]"),
         ])
         self.assertEqual(page.capture["mask_color"], "#000000")
+        self.assertEqual(page.capture["style"], SCREENSHOT_PRIVACY_STYLE)
+        self.assertIn("color: transparent", page.capture["style"])
+        self.assertIn("canvas", page.capture["style"])
 
     def test_visual_feedback_does_not_write_raw_dom_trace(self):
         class Tracing:

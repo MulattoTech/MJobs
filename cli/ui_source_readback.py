@@ -6,6 +6,8 @@ from pathlib import Path
 
 from playwright.sync_api import sync_playwright, expect
 
+from cli.live_feedback import capture_redacted_screenshot
+
 
 def classify_public_preparation(applications, alert_text):
     """Require a safe prepared application or the explicit missing-context block."""
@@ -88,7 +90,7 @@ def run(base_url, evidence_path):
             actions.append({"action": "Browser cooldown error after live collection", "result": "NOT_RUN", "reason": "Cooldown already elapsed; no redundant provider read was performed"})
         artifact = Path("outputs/ui-e2e/public-source-policy.png")
         artifact.parent.mkdir(parents=True, exist_ok=True)
-        page.screenshot(path=str(artifact), full_page=True)
+        capture_redacted_screenshot(page, artifact)
         context.close()
         browser.close()
     evidence = {"result": "PASS", "timestamp": datetime.now(timezone.utc).isoformat(), "command": "python -m cli.ui_source_readback", "target": "Actual browser readback of persisted first-party public jobs",

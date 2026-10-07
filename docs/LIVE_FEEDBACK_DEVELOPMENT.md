@@ -118,14 +118,14 @@ For an explicit visual debugging session, run manually:
 
 This adds one final screenshot. Inputs, textareas, selects, editable regions, ARIA
 textboxes and comboboxes, and page regions marked `data-sensitive` are covered with
-opaque masks. Recognizable email addresses, phone
-numbers, common token formats, and text grouped with sensitive labels (such as gender,
-race, disability, or work authorization) are also masked. The recorder does not save a
-Playwright trace, DOM snapshot, or raw console/page-error text. The legacy
+opaque masks. Screenshot-only styling also hides all visible DOM text, generated
+pseudo-element text, backgrounds, and embedded images/canvas/video/frame content while
+leaving the live page unchanged. The resulting image preserves layout and controls but
+does not preserve readable page copy. The recorder does not save a Playwright trace,
+DOM snapshot, or raw console/page-error text. The legacy
 `--diagnostic-text` flag is accepted for compatibility but still records only a
-fingerprint and redaction indicator. Pattern-based redaction cannot recognize every
-private value, especially text embedded in images or canvas; treat screenshots as
-private local artifacts and review them before sharing.
+fingerprint and redaction indicator. Browser chrome is outside page screenshots; treat
+screenshots as private local artifacts and review them before sharing.
 
 ## What Codex can and cannot infer
 

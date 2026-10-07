@@ -52,6 +52,18 @@ SCREENSHOT_REDACTION_SCRIPT = r"""
   }
 })();
 """
+SCREENSHOT_PRIVACY_STYLE = """
+* {
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
+  text-shadow: none !important;
+  background-image: none !important;
+}
+*::before, *::after { content: none !important; }
+img, picture, canvas, svg, video, iframe, object, embed {
+  visibility: hidden !important;
+}
+"""
 
 
 def utc_now():
@@ -92,7 +104,7 @@ def text_fingerprint(value):
 
 
 def capture_redacted_screenshot(page, path):
-    """Capture visual context while masking controls and recognizable sensitive text."""
+    """Capture layout context while excluding visible page text and embedded media."""
     page.evaluate(SCREENSHOT_REDACTION_SCRIPT)
     masks = [
         page.locator("input"),
@@ -106,7 +118,8 @@ def capture_redacted_screenshot(page, path):
     ]
     try:
         page.screenshot(
-            path=str(path), full_page=True, mask=masks, mask_color="#000000"
+            path=str(path), full_page=True, mask=masks, mask_color="#000000",
+            style=SCREENSHOT_PRIVACY_STYLE,
         )
     finally:
         page.evaluate(
@@ -343,8 +356,8 @@ def run_session(base_url, visuals=False, diagnostic_text=False):
             print("Use the headed browser normally. Typed field values are not recorded.")
             if visuals:
                 print(
-                    "Redacted screenshot capture is ON; form controls and recognizable "
-                    "sensitive text are masked. Review the private local image before sharing."
+                    "Redacted screenshot capture is ON; form controls, visible page text, "
+                    "and embedded media are hidden. Review the private local image before sharing."
                 )
             print("Press ENTER in this terminal when you finish the test flow.")
             try:
@@ -416,8 +429,8 @@ def build_parser():
     run = sub.add_parser("run", help="Start a headed browser and record safe interaction diagnostics")
     run.add_argument("--base-url", default="http://127.0.0.1:18700")
     run.add_argument("--visuals", action="store_true",
-                     help=("Opt in to a screenshot with form controls and recognizable "
-                           "sensitive text masked"))
+                     help=("Opt in to a layout screenshot with page text and embedded "
+                           "media hidden and form controls masked"))
     run.add_argument("--diagnostic-text", action="store_true",
                      help="Legacy compatibility flag; raw console/page-error text is never stored")
     report = sub.add_parser("summarize", help="Summarize the latest or selected feedback session")

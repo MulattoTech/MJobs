@@ -10,6 +10,8 @@ from urllib.parse import urlsplit
 from docx import Document
 from playwright.sync_api import sync_playwright, expect
 
+from cli.live_feedback import capture_redacted_screenshot
+
 
 def run(base_url, evidence_path):
     artifacts = Path("outputs/ui-e2e") / str(urlsplit(base_url).port)
@@ -221,7 +223,7 @@ def run(base_url, evidence_path):
             repeated = context.request.post(base_url + "/profiles/" + profile_id + "/applications/" + identifier + "/mock-run", data={"submit": True}).json()
             assert repeated["state"] == "COMPLETED"
             assert request("/profiles/" + profile_id + "/applications/" + identifier)["confirmation"] == confirmed["confirmation"]
-            page.screenshot(path=str(artifacts / "application-confirmed.png"), full_page=True)
+            capture_redacted_screenshot(page, artifacts / "application-confirmed.png")
             actions.append({"action": "Browser dry-run stops before submission; explicit local mock receipt count remains one on repeat", "result": "PASS"})
 
             page.reload(wait_until="networkidle")
@@ -251,11 +253,11 @@ def run(base_url, evidence_path):
             expect(page.get_by_role("heading", name="Service health", exact=True)).to_be_visible()
             page.set_viewport_size({"width": 390, "height": 844})
             assert page.evaluate("document.documentElement.scrollWidth <= innerWidth"), "Mobile overflow"
-            page.screenshot(path=str(artifacts / "activity-mobile.png"), full_page=True)
+            capture_redacted_screenshot(page, artifacts / "activity-mobile.png")
             assert not failures, failures
             actions.append({"action": "Browser reload restores selected profile and application history; responsive Activity has no horizontal overflow or browser exceptions", "result": "PASS"})
         except BaseException:
-            page.screenshot(path=str(artifacts / "failure.png"), full_page=True)
+            capture_redacted_screenshot(page, artifacts / "failure.png")
             raise
         finally:
             context.close()

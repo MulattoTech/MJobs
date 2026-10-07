@@ -10,6 +10,79 @@ from cli.live_feedback import capture_redacted_screenshot
 
 
 class LiveFeedbackScreenshotRedactionTests(unittest.TestCase):
+    def test_arbitrary_text_and_embedded_media_are_hidden_without_changing_page(self):
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch(headless=True)
+            try:
+                page = browser.new_page(viewport={"width": 800, "height": 400})
+                page.set_content("""
+                    <style>
+                      body { margin: 24px; background: #fff; color: #000; font: 30px Arial; }
+                      #canvas-private { display: block; width: 500px; height: 90px; }
+                      #generated-private::before { content: "SYNTHETIC_GENERATED_PRIVATE_7391"; }
+                    </style>
+                    <p id="ordinary-private">SYNTHETIC_UNCLASSIFIED_ANSWER_8426</p>
+                    <p id="generated-private">Visible body text</p>
+                    <canvas id="canvas-private" width="500" height="90"></canvas>
+                    <img id="image-private" alt="synthetic image"
+                      src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='60'%3E%3Crect width='90' height='60' fill='black'/%3E%3C/svg%3E">
+                    <script>
+                      const canvas = document.querySelector('#canvas-private');
+                      const context = canvas.getContext('2d');
+                      context.fillStyle = '#000';
+                      context.font = '30px Arial';
+                      context.fillText('SYNTHETIC_CANVAS_ANSWER_1964', 4, 48);
+                    </script>
+                """)
+                ordinary = page.locator("#ordinary-private").bounding_box()
+                generated = page.locator("#generated-private").bounding_box()
+                canvas = page.locator("#canvas-private").bounding_box()
+                image = page.locator("#image-private")
+                image.evaluate("image => image.decode()")
+                image_box = image.bounding_box()
+
+                with tempfile.TemporaryDirectory() as directory:
+                    baseline_path = Path(directory) / "baseline.png"
+                    capture_path = Path(directory) / "redacted.png"
+                    page.screenshot(path=str(baseline_path), full_page=True)
+                    capture_redacted_screenshot(page, capture_path)
+
+                    with Image.open(baseline_path) as image:
+                        baseline = image.convert("RGB")
+                        self.assertGreater(self._dark_pixel_count(baseline, ordinary), 0)
+                        self.assertGreater(self._dark_pixel_count(baseline, generated), 0)
+                        self.assertGreater(self._dark_pixel_count(baseline, canvas), 0)
+                        self.assertGreater(self._dark_pixel_count(baseline, image_box), 0)
+                    with Image.open(capture_path) as image:
+                        redacted = image.convert("RGB")
+                        self.assertEqual(self._dark_pixel_count(redacted, ordinary), 0)
+                        self.assertEqual(self._dark_pixel_count(redacted, generated), 0)
+                        self.assertEqual(self._dark_pixel_count(redacted, canvas), 0)
+                        self.assertEqual(self._dark_pixel_count(redacted, image_box), 0)
+
+                self.assertEqual(
+                    page.locator("#ordinary-private").inner_text(),
+                    "SYNTHETIC_UNCLASSIFIED_ANSWER_8426",
+                )
+                self.assertEqual(
+                    page.locator("#canvas-private").evaluate(
+                        "canvas => canvas.toDataURL().length"
+                    ) > 100,
+                    True,
+                )
+            finally:
+                browser.close()
+
+    @staticmethod
+    def _dark_pixel_count(image, box):
+        left = max(0, int(box["x"]))
+        top = max(0, int(box["y"]))
+        right = min(image.width, int(box["x"] + box["width"]) + 1)
+        bottom = min(image.height, int(box["y"] + box["height"]) + 1)
+        crop = image.crop((left, top, right, bottom))
+        return sum(1 for red, green, blue in crop.get_flattened_data()
+                   if max(red, green, blue) < 100)
+
     def test_synthetic_password_demographic_and_sensitive_regions_are_masked(self):
         with sync_playwright() as playwright:
             browser = playwright.chromium.launch(headless=True)
