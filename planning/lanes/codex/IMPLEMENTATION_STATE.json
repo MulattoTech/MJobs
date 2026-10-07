@@ -1,30 +1,28 @@
 {
   "schema_version": 1,
   "lane": "codex",
-  "status": "ACTIVE",
-  "base_main": "9a6612e48040d2e17af7ba13a579fc66521a5fea",
-  "current_issue": 171,
-  "requirement_id": "MJ-REQ-170",
-  "branch": "codex/mj-req170-feedback-retention-20261007",
-  "head": "e053916c4a5d6e3606e138feefb4e86823631677",
-  "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req170-feedback-retention-20261007",
+  "status": "IDLE_READY",
+  "base_main": "64dfebcd51d0d1c926d9b3856a42028ec577f88d",
+  "current_issue": null,
+  "requirement_id": null,
+  "branch": null,
+  "head": "64dfebcd51d0d1c926d9b3856a42028ec577f88d",
+  "worktree": null,
   "result": "PARTIAL",
   "evidence_path": "docs/evidence/2026-10-07-live-feedback-retention.json",
   "last_completed": {
-    "issue": 181,
-    "requirement_id": "MJ-REQ-180",
-    "integration_commit": "9b51b1d7a7d5f94d1e06412439edde5250d6ba5e",
+    "issue": 171,
+    "requirement_id": "MJ-REQ-170",
+    "integration_commit": "64dfebcd51d0d1c926d9b3856a42028ec577f88d",
     "slice_status": "PARTIAL"
   },
-  "next_candidates": [
-    {"issue": 171, "requirement_id": "MJ-REQ-170", "status": "IMPLEMENTED_AWAITING_INTEGRATION", "result": "PARTIAL"}
-  ],
+  "next_candidates": [],
   "do_not_overlap": [
     "Antigravity active issue #302 paths: services/discovery/sources/** and tests/integration/test_dice.py",
     "Ollama/OpenCode active issue #318 paths: services/ats_detection/** and detector tests",
     "canonical planning and main outside integration lock"
   ],
-  "resume_instruction": "Issue #171 / MJ-REQ-170 30-day live-feedback retention is committed and pushed at e053916c4a5d6e3606e138feefb4e86823631677; evidence/lane checkpoint remains to integrate under lock. Requirement remains OPEN/PARTIAL. Release the claim after integration, reconcile all lanes and continue.",
+  "resume_instruction": "Issue #171 / MJ-REQ-170 scoped live-feedback retention is integrated and claim released at main 64dfebcd51d0d1c926d9b3856a42028ec577f88d; requirement remains OPEN/PARTIAL. Reconcile claims and dirty worktrees, then automatically select and claim the next highest-value dependency-ready issue.",
   "last_verified_head": "e053916c4a5d6e3606e138feefb4e86823631677",
   "last_verified_tree": "3306d16f3fcde68e8059fc692c859d2b4ee86b51",
   "last_verified_at_utc": "2026-10-07T12:35:48Z",
@@ -39,6 +37,6 @@
     "hosted_checks": "NOT_RUN_BY_USER_POLICY",
     "external_submission": "OFF"
   },
-  "last_integrated_head": "9a6612e48040d2e17af7ba13a579fc66521a5fea",
+  "last_integrated_head": "64dfebcd51d0d1c926d9b3856a42028ec577f88d",
   "last_verified_result": "PASS_FOR_SLICE"
 }

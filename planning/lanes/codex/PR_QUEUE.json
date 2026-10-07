@@ -152,13 +152,13 @@
     {
       "issue": 171,
       "requirement_id": "MJ-REQ-170",
-      "status": "CANDIDATE_READY",
+      "status": "INTEGRATED_PARTIAL",
       "priority": 1,
       "target_area": "cli/live_feedback.py; tests/unit/test_live_feedback.py; docs/LIVE_FEEDBACK_DEVELOPMENT.md",
       "depends_on": [],
       "evidence_path": "docs/evidence/2026-10-07-live-feedback-retention.json",
       "scope_complete": false,
-      "note": "Source commit e053916c4a5d6e3606e138feefb4e86823631677 is pushed. Managed live-feedback session directories older than 30 days are automatically pruned on new-session start; application history and unrelated directories are preserved. 24 focused/adjacent feedback tests and validators pass. Broader retention requirement remains PARTIAL."
+      "note": "Integrated to synchronized main 64dfebcd51d0d1c926d9b3856a42028ec577f88d; issue #171 remains OPEN/PARTIAL. Evidence docs/evidence/2026-10-07-live-feedback-retention.json."
     }
   ],
   "generated_at": "2026-10-07T12:35:48Z"

@@ -41,3 +41,8 @@ Integrated at synchronized main `9b51b1d7a7d5f94d1e06412439edde5250d6ba5e`; GitH
 ## Active issue #171 checkpoint — 2026-10-07T12:35:48Z
 
 Issue #171 / MJ-REQ-170 live-feedback retention is claimed in machine and GitHub coordination. Source commit `e053916c4a5d6e3606e138feefb4e86823631677` is pushed from base `9a6612e48040d2e17af7ba13a579fc66521a5fea` in isolated worktree `C:/Tools/Dev/MJobs/.worktrees/codex-mj-req170-feedback-retention-20261007`. New sessions now prune only recognized direct-child feedback directories older than 30 days, preserve the cutoff boundary and application history, and repair `LATEST.txt`. Exact-head feedback unit/adjacent browser checks: 24 PASS; compile and repository validators pass. Evidence: `docs/evidence/2026-10-07-live-feedback-retention.json`. Broader MJ-REQ-170 remains PARTIAL. Integrate under lock, release the claim, then reconcile and immediately continue.
+
+
+## Issue #171 released — 2026-10-07T12:39:55Z
+
+Issue #171 / MJ-REQ-170 is integrated PARTIAL at synchronized main `64dfebcd51d0d1c926d9b3856a42028ec577f88d`. Release readback: https://github.com/MulattoTech/MJobs/issues/171#issuecomment-6038062799. Machine claim released; focused acceptance was 24 PASS and hosted checks remain NOT_RUN_BY_USER_POLICY. The retention feature covers recognized live-feedback session directories only; broader retention requirements remain open. Reconcile current main, active lane claims and dirty worktrees, then select the next unclaimed dependency-ready issue. External submission OFF.

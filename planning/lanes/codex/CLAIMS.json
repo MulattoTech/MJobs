@@ -203,7 +203,7 @@
       "requirement_id": "MJ-REQ-170",
       "branch": "codex/mj-req170-feedback-retention-20261007",
       "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req170-feedback-retention-20261007",
-      "head": "e053916c4a5d6e3606e138feefb4e86823631677",
+      "head": "64dfebcd51d0d1c926d9b3856a42028ec577f88d",
       "paths": [
         "cli/live_feedback.py",
         "tests/unit/test_live_feedback.py",
@@ -211,8 +211,11 @@
         "docs/evidence/2026-10-07-live-feedback-retention.json",
         "planning/lanes/codex/**"
       ],
-      "status": "ACTIVE",
-      "claimed_at": "2026-10-07T12:36:47Z"
+      "claimed_at": "2026-10-07T12:36:47Z",
+      "released_at": "2026-10-07T12:37:51Z",
+      "integrated_main": "64dfebcd51d0d1c926d9b3856a42028ec577f88d",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/171#issuecomment-6038062799",
+      "status": "RELEASED"
     }
   ]
 }

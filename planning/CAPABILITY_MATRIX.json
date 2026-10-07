@@ -1429,9 +1429,11 @@
     },
     {
       "requirement_id": "MJ-REQ-170",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-07-live-feedback-retention.json"
+      ],
+      "note": "Issue #171 adds a 30-day automatic retention policy for timestamped live-feedback session folders, including latest-pointer recovery; isolated temporary-filesystem tests and focused adjacent GUI/Chromium validation pass. Broader old raw payloads, other diagnostic screenshots/HTML, temporary generated files and rotated-log cleanup remain NOT_RUN. Full MJ-REQ-170 remains PARTIAL. Evidence docs/evidence/2026-10-07-live-feedback-retention.json."
     },
     {
       "requirement_id": "MJ-REQ-171",
