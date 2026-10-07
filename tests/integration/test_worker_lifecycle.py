@@ -398,3 +398,177 @@ print(json.dumps(tasks.execute_operation(operation_id)), flush=True)
         self.assertEqual(saved["state"], "REVIEW_REQUIRED")
         self.assertNotIn("SUBMIT", saved["trace"])
         self.assertIsNone(saved["submitted_at"])
+
+
+class PostgreSQLWorkerCrashRecoveryTests(unittest.TestCase):
+    """Exercise durable worker recovery against a dedicated disposable PostgreSQL database."""
+
+    @classmethod
+    def setUpClass(cls):
+        from alembic import command
+        from alembic.config import Config
+        from sqlalchemy.engine import make_url
+
+        cls.database_url = os.environ.get("MJOBS_WORKER_RECOVERY_POSTGRES_URL")
+        if not cls.database_url:
+            raise unittest.SkipTest(
+                "Set MJOBS_WORKER_RECOVERY_POSTGRES_URL to the isolated mjobs_worker_recovery database")
+        database = make_url(cls.database_url)
+        if (database.database != "mjobs_worker_recovery"
+                or database.host not in ("127.0.0.1", "localhost", "::1")):
+            raise ValueError("Worker recovery acceptance requires loopback database mjobs_worker_recovery")
+        root = Path(__file__).resolve().parents[2]
+        config = Config(str(root / "alembic.ini"))
+        config.set_main_option("sqlalchemy.url", cls.database_url.replace("%", "%%"))
+        with patch.dict(os.environ, {"MJOBS_DATABASE_URL": cls.database_url}):
+            command.upgrade(config, "head")
+        cls.store = Store(cls.database_url)
+        cls.store.bind_workspace_mode("FIXTURE")
+
+    @classmethod
+    def tearDownClass(cls):
+        if getattr(cls, "store", None) is not None:
+            cls.store.engine.dispose()
+
+    def setUp(self):
+        self.root = Path(tempfile.mkdtemp(prefix="mjobs-pg-worker-recovery-"))
+        self.profile_id = "pg-worker-" + os.urandom(8).hex()
+        self.operation_ids = []
+        profile = dict(PROFILE, id=self.profile_id, email=f"{self.profile_id}@example.test")
+        self.store.save_profile(profile)
+
+    def tearDown(self):
+        import shutil
+        if self.operation_ids:
+            with self.store.engine.begin() as connection:
+                connection.execute(update(m.operations).where(
+                    m.operations.c.id.in_(self.operation_ids)).values(
+                        state="CANCELLED", cancel_requested=True, lease_expires_at=None))
+        shutil.rmtree(self.root, ignore_errors=True)
+
+    def read(self, identifier):
+        with self.store.engine.connect() as connection:
+            return dict(connection.execute(select(m.operations).where(
+                m.operations.c.id == identifier)).mappings().one())
+
+    def expire(self, identifier):
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.operations).where(
+                m.operations.c.id == identifier).values(lease_expires_at=(
+                    datetime.now(timezone.utc) - timedelta(seconds=1)).isoformat()))
+
+    def worker_environment(self):
+        environment = {
+            key: os.environ[key]
+            for key in ("PATH", "SYSTEMROOT", "WINDIR", "TEMP", "TMP")
+            if key in os.environ
+        }
+        environment.update({
+            "MJOBS_DATABASE_URL": self.database_url,
+            "MJOBS_MOCK_ORIGIN": "http://127.0.0.1:8090",
+            "MJOBS_OUTPUT_DIR": str(self.root),
+            "MJOBS_OPERATION_MODE": "FIXTURE",
+        })
+        return environment
+
+    def test_postgresql_worker_process_crash_recovers_and_reclaims_durable_operation(self):
+        operation = enqueue_operation(self.store, "DISCOVER", self.profile_id,
+                                      {"rescore_only": True})
+        self.operation_ids.append(operation)
+        marker = self.root / "worker-entered-operation.marker"
+        script = """
+import json, sys, time
+from pathlib import Path
+from workers import tasks
+operation_id, marker_path, mode = sys.argv[1:]
+if mode == "crash":
+    def block_until_killed(*_args, **_kwargs):
+        Path(marker_path).write_text("entered", encoding="utf-8")
+        while True:
+            time.sleep(0.05)
+    tasks.recalculate = block_until_killed
+print(json.dumps(tasks.execute_operation(operation_id)), flush=True)
+"""
+        project_root = Path(__file__).resolve().parents[2]
+        environment = self.worker_environment()
+        crashed_worker = subprocess.Popen(
+            [sys.executable, "-c", script, operation, str(marker), "crash"],
+            cwd=project_root, env=environment, stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE, text=True,
+        )
+        try:
+            deadline = time.monotonic() + 15
+            while not marker.exists() and time.monotonic() < deadline:
+                if crashed_worker.poll() is not None:
+                    stdout, stderr = crashed_worker.communicate()
+                    self.fail(f"PostgreSQL worker exited before crash point: {stdout} {stderr}")
+                time.sleep(0.02)
+            self.assertTrue(marker.exists(), "PostgreSQL worker did not reach the crash point")
+            self.assertEqual(self.read(operation)["state"], "RUNNING")
+            crashed_worker.kill()
+            crashed_worker.communicate(timeout=10)
+        finally:
+            if crashed_worker.poll() is None:
+                crashed_worker.kill()
+                crashed_worker.communicate(timeout=10)
+
+        self.expire(operation)
+        self.assertEqual(recover_expired(self.store), 1)
+        recovered = self.read(operation)
+        self.assertEqual((recovered["state"], recovered["error"], recovered["attempt_count"]),
+                         ("QUEUED", "LEASE_EXPIRED", 1))
+        reopened = Store(self.database_url)
+        try:
+            with reopened.engine.connect() as connection:
+                actions = list(connection.execute(select(m.audit.c.action).where(
+                    m.audit.c.entity_id == operation)).scalars())
+            self.assertEqual(actions.count("OPERATION_ATTEMPT_STARTED"), 1)
+            self.assertEqual(actions.count("LEASE_RECOVERY"), 1)
+        finally:
+            reopened.engine.dispose()
+        completed_worker = subprocess.run(
+            [sys.executable, "-c", script, operation, str(marker), "resume"],
+            cwd=project_root, env=environment, capture_output=True, text=True, timeout=30,
+        )
+        self.assertEqual(completed_worker.returncode, 0, completed_worker.stderr)
+        self.assertIn('"status": "COMPLETED"', completed_worker.stdout)
+        saved = self.read(operation)
+        self.assertEqual((saved["state"], saved["attempt_count"]), ("COMPLETED", 2))
+
+    def test_postgresql_reclaimed_attempt_fences_original_worker_side_effect(self):
+        operation = enqueue_operation(self.store, "DISCOVER", self.profile_id,
+                                      {"rescore_only": True})
+        self.operation_ids.append(operation)
+        entered = threading.Event()
+        resume = threading.Event()
+        side_effects = []
+        results = []
+
+        def paused_recalculate(_store, _profile_id, *, check):
+            entered.set()
+            if not resume.wait(10):
+                raise TimeoutError("test did not release the stale PostgreSQL worker")
+            check()
+            side_effects.append("published")
+
+        with patch.dict("os.environ", self.worker_environment()), \
+                patch("workers.tasks.recalculate", side_effect=paused_recalculate):
+            worker = threading.Thread(
+                target=lambda: results.append(execute_operation(operation)), daemon=True)
+            worker.start()
+            try:
+                self.assertTrue(entered.wait(10), "PostgreSQL worker did not enter its operation")
+                first_attempt = self.read(operation)["attempt_count"]
+                self.expire(operation)
+                self.assertEqual(recover_expired(self.store), 1)
+                replacement = claim(self.store, operation)
+                self.assertEqual(replacement["attempt_count"], first_attempt + 1)
+            finally:
+                resume.set()
+                worker.join(10)
+
+        self.assertFalse(worker.is_alive(), "stale PostgreSQL worker did not stop after losing its claim")
+        self.assertEqual(results[0]["status"], "OWNERSHIP_EXPIRED")
+        self.assertEqual(side_effects, [])
+        saved = self.read(operation)
+        self.assertEqual((saved["state"], saved["attempt_count"]), ("RUNNING", first_attempt + 1))
