@@ -7619,12 +7619,70 @@
         "candidate": "1116133ebaf0f03eb819b2f32929817b09aff644",
         "issue_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6034962276"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-005-APPLICATION-AUTOMATION-CATEGORY-CAPACITY-20261007",
+      "timestamp": "2026-10-07T09:35:00Z",
+      "current_phase": "Issue #6 / MJ-REQ-005 application automation concurrency has new scoped local PASS evidence and is integrated PARTIAL; continue broader backlog.",
+      "completed_steps": [
+        "Reconciled P0 issue #6, prior RELEASED claim, current main, machine/GitHub claims and dirty worktrees; Antigravity #302 and Ollama #318 remained disjoint.",
+        "Added a concurrent regression for two independent Store engines claiming APPLY_MOCK operations against one SQLite database at capacity one; verified separate PREPARE capacity and durable state/attempt readback.",
+        "Ran 23 worker-lifecycle, dead-letter and category tests plus the isolated race case; compileall, JSON and local repository/lane validators passed.",
+        "Pushed isolated Codex branch, fast-forwarded main without force from its verified ancestor, and updated canonical requirement evidence and handoff under the integration lock."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-07-application-automation-category-capacity.json"
+      ],
+      "files_modified": [
+        "tests/integration/test_worker_lifecycle.py",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_worker_lifecycle tests.integration.test_dead_letter_queue tests.unit.test_operation_concurrency -v: 23 PASS, zero failures/errors.",
+        "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_worker_lifecycle.WorkerLifecycleTests.test_concurrent_application_workers_share_capacity_across_store_instances -v: 1 PASS.",
+        "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m compileall -q tests/integration/test_worker_lifecycle.py; git diff --check; agent_skills, catalogue, progress, lane validators: PASS."
+      ],
+      "tests_remaining": [
+        "Full Python suite NOT_RUN for this test-only slice.",
+        "Live PostgreSQL advisory-lock behavior NOT_RUN; no PostgreSQL URL was configured.",
+        "Browser/frontend checks NOT_RUN because no UI code changed; hosted Actions/review NOT_RUN_BY_USER_POLICY.",
+        "Real ATS concurrency remains unavailable/unverified; external submission OFF."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Two Store engines in one process sharing temporary synthetic SQLite; no browser worker execution, employer traffic or submission."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "This is focused acceptance coverage for existing application-automation category admission, not a production source change.",
+        "Separate SQLite engines do not establish separate OS-process or PostgreSQL advisory-lock behavior.",
+        "Issue #6 / MJ-REQ-005 remains OPEN/PARTIAL; real ATS concurrency is unverified."
+      ],
+      "source_commit": "704b2fc3fadd00d4e40ca1bea4ccbbe3a0c3bf50",
+      "source_tree": "83fe92e373173c8035efb06a48efebdab58b6473",
+      "result": "PARTIAL",
+      "last_safe_checkpoint": {
+        "git_commit": "60c2a85e47a7aaaed382cfa9b1683fbb4ec8e209",
+        "evidence_path": "docs/evidence/2026-10-07-application-automation-category-capacity.json"
+      },
+      "integration": {
+        "method": "NON_FORCE_FAST_FORWARD",
+        "base": "aa28501b0db8a00e9331d43347e2bbdfc3ed2b98",
+        "main": "60c2a85e47a7aaaed382cfa9b1683fbb4ec8e209",
+        "source_branch": "codex/mj-req005-application-category-capacity-20261007",
+        "source_commit": "704b2fc3fadd00d4e40ca1bea4ccbbe3a0c3bf50",
+        "candidate": "60c2a85e47a7aaaed382cfa9b1683fbb4ec8e209",
+        "issue_comment": "https://github.com/MulattoTech/MJobs/issues/6#issuecomment-6035160756"
+      }
     }
   ],
-  "current_phase": "Issue #5 / MJ-REQ-004 uploaded-original comparison cancellation is a locally PASS, integrated PARTIAL slice; continue the broader MJobs backlog.",
+  "current_phase": "Issue #6 / MJ-REQ-005 application automation concurrency has new scoped local PASS evidence and is integrated PARTIAL; continue broader backlog.",
   "last_safe_checkpoint": {
-    "git_commit": "1116133ebaf0f03eb819b2f32929817b09aff644",
-    "evidence_path": "docs/evidence/2026-10-07-uploaded-comparison-cross-instance-cancel.json"
+    "git_commit": "60c2a85e47a7aaaed382cfa9b1683fbb4ec8e209",
+    "evidence_path": "docs/evidence/2026-10-07-application-automation-category-capacity.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",

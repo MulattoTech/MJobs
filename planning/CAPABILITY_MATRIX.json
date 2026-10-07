@@ -72,9 +72,10 @@
       "evidence": [
         "docs/evidence/2026-10-06-operation-concurrency-categories.json",
         "docs/evidence/2026-10-06-per-source-greenhouse-concurrency.json",
-        "docs/evidence/2026-10-07-ai-evaluation-concurrency-admission.json"
+        "docs/evidence/2026-10-07-ai-evaluation-concurrency-admission.json",
+        "docs/evidence/2026-10-07-application-automation-category-capacity.json"
       ],
-      "note": "Durable operations have independent bounded source collection, company discovery, AI, document generation, and application automation admission ceilings. Greenhouse per-source concurrency bounds its two independent public reads; shared request-start pacing prevents burst bypass; source failure/cancellation history and Sources UI readback are locally verified. Direct structured AI evaluations now reserve the database-backed AI category across API instances and persist safe terminal/expired-lease outcomes. PARTIAL: live PostgreSQL advisory-lock execution and real ATS automation remain unavailable/unverified; external submission stays OFF."
+      "note": "Durable operations have independent bounded source collection, company discovery, AI, document generation, and application automation admission ceilings. Greenhouse per-source concurrency bounds its two independent public reads; shared request-start pacing prevents burst bypass; source failure/cancellation history and Sources UI readback are locally verified. Direct structured AI evaluations now reserve the database-backed AI category across API instances and persist safe terminal/expired-lease outcomes. PARTIAL: live PostgreSQL advisory-lock execution and real ATS automation remain unavailable/unverified; external submission stays OFF. Latest scoped acceptance coverage integrated at main 60c2a85e47a7aaaed382cfa9b1683fbb4ec8e209: independent Store engines racing for APPLY_MOCK capacity one produce exactly one RUNNING and one QUEUED/no-attempt operation, while PREPARE capacity remains independent. 23 worker/dead-letter/category tests and isolated regression PASS; evidence docs/evidence/2026-10-07-application-automation-category-capacity.json. This closes a local SQLite cross-Store race coverage gap only; live PostgreSQL advisory-lock and real ATS concurrency remain NOT_RUN, so issue #6 / MJ-REQ-005 remains OPEN/PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-006",

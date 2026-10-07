@@ -1,3 +1,13 @@
+# Issue #6 / MJ-REQ-005 integration receipt — 2026-10-07
+
+Issue #6 remains OPEN/PARTIAL. Added a simultaneous APPLY_MOCK worker-claim regression using two independent Store engines over one SQLite database. With application-automation capacity set to one, exactly one operation becomes RUNNING and the other stays QUEUED with attempt_count zero; a PREPARE operation still claims under its independent document-generation limit. This is local concurrency acceptance coverage; the category-lock implementation was already on main. Source `704b2fc3fadd00d4e40ca1bea4ccbbe3a0c3bf50` plus evidence/lane checkpoint integrated by non-force fast-forward at `60c2a85e47a7aaaed382cfa9b1683fbb4ec8e209` from `aa28501b0db8a00e9331d43347e2bbdfc3ed2b98`. Evidence: `docs/evidence/2026-10-07-application-automation-category-capacity.json`; sanitized issue readback: https://github.com/MulattoTech/MJobs/issues/6#issuecomment-6035160756.
+
+Validation: worker lifecycle, dead-letter and category tests 23 PASS; isolated regression, compileall and diff check PASS. PostgreSQL, browser, frontend, full-suite and hosted checks NOT_RUN for this test-only slice. External submission OFF. Live PostgreSQL advisory-lock and real ATS concurrency remain unverified; overall MJobs remains PARTIAL.
+
+Next: release this claim/lock, reconcile active claims and current main, and continue with the highest-value unclaimed dependency-ready slice.
+
+---
+
 # Issue #5 / MJ-REQ-004 integration receipt — 2026-10-07
 
 Issue #5 remains OPEN/PARTIAL. Uploaded-original comparison now persists a hashed-scope operation and supports durable cancellation from another API instance. The cancelled request returns HTTP 499; durable state reads back CANCELLED; wrong-profile and wrong-document requests do not cancel; profile/application history and comparison output remain unchanged. Source `dff77688f25fde18e24201dc8f62e6f9324e542b` and evidence checkpoint integrated by non-force fast-forward at main `1116133ebaf0f03eb819b2f32929817b09aff644` from `805e52bab0528e562578f51f5426285af0163657`. Evidence: `docs/evidence/2026-10-07-uploaded-comparison-cross-instance-cancel.json`; sanitized issue readback: https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6034962276.
