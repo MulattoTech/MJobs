@@ -12,14 +12,17 @@ from unittest.mock import AsyncMock, patch
 
 from fastapi.testclient import TestClient
 from reportlab.pdfgen import canvas
+from sqlalchemy import select
 
 from apps.api.main import create_app
+from packages.persistence import models as m
 from packages.persistence.store import Store
 from services.career_profile.extraction import ResumeExtractionCancelled
 from services.documents.generate import prepare, PreparationError
 from services.documents.uploads import save_resume
 from fixtures.mock_server import fixture_server
 from services.discovery.pipeline import discover
+from workers.operations import admit_inline
 from tests.integration.test_spine import PROFILE
 
 
@@ -205,6 +208,7 @@ class ProfileImportTests(unittest.TestCase):
     def test_explicit_extract_cancel_is_profile_scoped(self):
         self.store.save_profile(PROFILE)
         uploaded = self.upload().json()
+        admit_inline(self.store, 'RESUME_EXTRACT', uploaded['id'])
         active = threading.Event()
         self.client.app.state.resume_extraction_events[('fixture', uploaded['id'])] = {active}
 
@@ -216,6 +220,60 @@ class ProfileImportTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.json()['cancelled'])
         self.assertTrue(active.is_set())
+
+    def test_extract_cancel_from_another_api_instance_stops_work_without_profile_changes(self):
+        self.store.save_profile(PROFILE)
+        uploaded = self.upload().json()
+        other_store = Store(self.store.url)
+        other_client = TestClient(create_app(other_store, 'http://127.0.0.1:1', self.root))
+        started = threading.Event()
+        cleanup = threading.Event()
+        observed = threading.Event()
+        endpoint = f"/profiles/fixture/resumes/{uploaded['id']}/extract"
+        cancel_endpoint = endpoint + "/cancel"
+        before = self.store.profile('fixture')
+
+        def wait_for_durable_cancel(_data, _format, _source, cancellation_event):
+            started.set()
+            deadline = time.monotonic() + 3
+            while (not cancellation_event.is_set() and not cleanup.is_set()
+                   and time.monotonic() < deadline):
+                time.sleep(0.005)
+            if cancellation_event.is_set():
+                observed.set()
+                raise ResumeExtractionCancelled()
+            if cleanup.is_set():
+                raise ResumeExtractionCancelled()
+            raise AssertionError('cross-instance cancellation was not propagated')
+
+        with ThreadPoolExecutor(max_workers=1) as pool:
+            with patch('apps.api.main.extract_resume', side_effect=wait_for_durable_cancel):
+                work = pool.submit(self.client.post, endpoint)
+                try:
+                    self.assertTrue(started.wait(2), 'resume extraction did not start')
+                    denied = other_client.post('/profiles/another' + cancel_endpoint[len('/profiles/fixture'):])
+                    self.assertEqual(denied.status_code, 404)
+                    cancelled = other_client.post(cancel_endpoint)
+                    self.assertEqual(cancelled.status_code, 200, cancelled.text)
+                    self.assertTrue(cancelled.json()['cancelled'])
+                    response = work.result(timeout=3)
+                    self.assertEqual(response.status_code, 499, response.text)
+                finally:
+                    cleanup.set()
+                    if not work.done():
+                        work.result(timeout=4)
+                    other_client.close()
+                    other_store.engine.dispose()
+
+        self.assertTrue(observed.is_set())
+        self.assertEqual(self.store.profile('fixture'), before)
+        self.assertEqual(self.client.get('/profiles/fixture/resumes').json()['resumes'][0]['id'], uploaded['id'])
+        with self.store.engine.connect() as connection:
+            row = connection.execute(select(m.operations).where(
+                m.operations.c.kind == 'RESUME_EXTRACT',
+                m.operations.c.entity_id == uploaded['id'],
+            )).mappings().one()
+        self.assertEqual(row['state'], 'CANCELLED')
 
     def test_named_resume_versions_are_idempotent_scoped_and_downloadable(self):
         self.store.save_profile(PROFILE)

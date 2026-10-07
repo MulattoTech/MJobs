@@ -16,6 +16,7 @@ OPERATION_CATEGORIES = {
     "COMPANY_DISCOVER": "company_discovery",
     "COMPANY_SOURCE_REFRESH": "company_discovery",
     "AI_EVALUATE": "ai",
+    "RESUME_EXTRACT": "document_generation",
     "PREPARE": "document_generation",
     "APPLY_MOCK": "application_automation",
 }
@@ -33,6 +34,7 @@ CATEGORY_KINDS = {
 }
 CATEGORIES = tuple(CATEGORY_LIMITS)
 MAX_ATTEMPTS = 3
+INLINE_KINDS = ("AI_EVALUATE", "RESUME_EXTRACT")
 
 
 class OperationCancelled(Exception):
@@ -103,17 +105,17 @@ def claim(store, operation_id):
 
 def admit_inline(store, kind, entity_id):
     """Reserve a bounded operation that executes in the API process, not RQ."""
-    if kind != "AI_EVALUATE" or kind in QUEUES:
+    if kind not in INLINE_KINDS or kind in QUEUES:
         raise ValueError("Unsupported inline operation kind")
     category = OPERATION_CATEGORIES[kind]
     timestamp = now()
     operation_id = uuid4().hex
     with store.engine.begin() as connection:
         _lock(connection, category)
-        # An API process may have exited without a completion callback. Direct
-        # evaluations are never retried: an expired lease only frees capacity.
+        # An API process may exit without a completion callback. Inline
+        # operations are never retried: an expired lease only frees capacity.
         connection.execute(update(m.operations).where(
-            m.operations.c.kind == kind,
+            m.operations.c.kind.in_(INLINE_KINDS),
             m.operations.c.state == "RUNNING",
             m.operations.c.lease_expires_at <= timestamp,
         ).values(state="FAILED", error="LEASE_EXPIRED", lease_expires_at=None,
@@ -142,14 +144,14 @@ def finish_inline(store, operation_id, state, error=None):
         row = connection.execute(select(
             m.operations.c.state, m.operations.c.cancel_requested,
         ).where(m.operations.c.id == operation_id,
-                m.operations.c.kind == "AI_EVALUATE").with_for_update()).one_or_none()
+                m.operations.c.kind.in_(INLINE_KINDS)).with_for_update()).one_or_none()
         if row is None or row.state != "RUNNING":
             return False
         if row.cancel_requested and state == "COMPLETED":
             state, error = "CANCELLED", "CANCEL_REQUESTED"
         connection.execute(update(m.operations).where(
             m.operations.c.id == operation_id,
-            m.operations.c.kind == "AI_EVALUATE",
+            m.operations.c.kind.in_(INLINE_KINDS),
             m.operations.c.state == "RUNNING",
         ).values(state=state, error=error, updated_at=now(), lease_expires_at=None))
         return True
@@ -160,7 +162,7 @@ def inline_cancel_requested(store, operation_id):
         row = connection.execute(select(
             m.operations.c.cancel_requested, m.operations.c.state,
         ).where(m.operations.c.id == operation_id,
-                m.operations.c.kind == "AI_EVALUATE")).one_or_none()
+                m.operations.c.kind.in_(INLINE_KINDS))).one_or_none()
     return row is None or row.cancel_requested or row.state != "RUNNING"
 
 
@@ -199,7 +201,7 @@ def recover_expired(store):
             connection.exec_driver_sql("BEGIN IMMEDIATE")
         rows = list(connection.execute(select(m.operations).where(m.operations.c.state == "RUNNING", m.operations.c.lease_expires_at <= timestamp).with_for_update(skip_locked=True)).mappings())
         for row in rows:
-            if row["kind"] == "AI_EVALUATE":
+            if row["kind"] in INLINE_KINDS:
                 state, error = "FAILED", "LEASE_EXPIRED"
             else:
                 state, error = ("QUEUED", "LEASE_EXPIRED") if row["attempt_count"] < MAX_ATTEMPTS else ("FAILED", "RETRY_LIMIT")

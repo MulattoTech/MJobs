@@ -819,6 +819,10 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             record, data = read_resume(store, output_dir, profile_id, resume_id)
         except UploadIntegrityError as exc:
             raise HTTPException(409, str(exc)) from exc
+        try:
+            operation_id = admit_inline(store, "RESUME_EXTRACT", resume_id)
+        except OperationConcurrencyLimit:
+            raise HTTPException(429, {"code": "DOCUMENT_CONCURRENCY_LIMIT"}) from None
         cancelled = threading.Event()
         key = (profile_id, resume_id)
         with app.state.resume_extraction_lock:
@@ -827,17 +831,25 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             extract_resume, data, record['format'],
             f"uploaded-resume:{record['id']}:sha256:{record['sha256']}", cancelled))
         try:
+            client_disconnected = False
             while not work.done():
                 if await request.is_disconnected():
+                    client_disconnected = True
                     cancelled.set()
-                    try:
-                        await work
-                    except ResumeExtractionCancelled:
-                        pass
-                    return JSONResponse({"detail": "Resume extraction cancelled."}, status_code=499)
+                if inline_cancel_requested(store, operation_id):
+                    cancelled.set()
+                if cancelled.is_set():
+                    break
                 await asyncio.sleep(0.05)
-            return await work
+            result = await work
+            if (client_disconnected or cancelled.is_set()
+                    or inline_cancel_requested(store, operation_id)):
+                finish_inline(store, operation_id, "CANCELLED", "CANCEL_REQUESTED")
+                return JSONResponse({"detail": "Resume extraction cancelled."}, status_code=499)
+            finish_inline(store, operation_id, "COMPLETED")
+            return result
         except ResumeExtractionCancelled:
+            finish_inline(store, operation_id, "CANCELLED", "CANCEL_REQUESTED")
             return JSONResponse({"detail": "Resume extraction cancelled."}, status_code=499)
         except asyncio.CancelledError:
             cancelled.set()
@@ -845,6 +857,10 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                 await asyncio.shield(work)
             except BaseException:
                 pass
+            finish_inline(store, operation_id, "CANCELLED", "CANCEL_REQUESTED")
+            raise
+        except Exception:
+            finish_inline(store, operation_id, "FAILED", "RESUME_EXTRACTION_FAILED")
             raise
         finally:
             with app.state.resume_extraction_lock:
@@ -858,11 +874,27 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     def profile_resume_extract_cancel(profile_id: str, resume_id: str):
         if not any(resume['id'] == resume_id for resume in list_resumes(store, profile_id)):
             raise HTTPException(404, "Resume not found")
-        with app.state.resume_extraction_lock:
-            events = tuple(app.state.resume_extraction_events.get((profile_id, resume_id), ()))
-        for cancelled in events:
-            cancelled.set()
-        return {"cancelled": bool(events)}
+        with store.engine.connect() as connection:
+            active_operations = list(connection.execute(select(
+                m.operations.c.id, m.operations.c.cancel_requested,
+            ).where(
+                m.operations.c.kind == "RESUME_EXTRACT",
+                m.operations.c.entity_id == resume_id,
+                m.operations.c.state == "RUNNING",
+            )).mappings())
+        durable_cancelled = False
+        for operation in active_operations:
+            if operation["cancel_requested"]:
+                durable_cancelled = True
+                continue
+            result = request_cancel(store, operation["id"])
+            durable_cancelled = durable_cancelled or bool(result.get("cancel_requested"))
+        if durable_cancelled:
+            with app.state.resume_extraction_lock:
+                events = tuple(app.state.resume_extraction_events.get((profile_id, resume_id), ()))
+            for cancelled in events:
+                cancelled.set()
+        return {"cancelled": durable_cancelled}
 
     @app.post("/discovery", status_code=202)
     def discovery(value: DiscoveryInput):
