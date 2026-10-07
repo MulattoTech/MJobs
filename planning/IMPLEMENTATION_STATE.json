@@ -1,17 +1,17 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-07T10:52:30Z",
+  "generated_at": "2026-10-07T10:59:10Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Local and origin/main synchronized at 3ecad2b84f86808314873547ef4aa31de738ce17; issue #390 / MJ-REF-020 scoped local acceptance PASS; Actions disabled; external submission OFF.",
-    "current_verified_github_state": "GitHub main 3ecad2b84f86808314873547ef4aa31de738ce17; issue #390 acceptance evidence recorded; Actions disabled; external submission OFF.",
-    "current_verified_at": "2026-10-07T10:52:30Z"
+    "current_verified_local_state": "Local and origin/main synchronized at d5d888785d62a091249541fd09cbe092073f7887; issue #6 / MJ-REQ-005 remains PARTIAL with isolated PostgreSQL 17 category-admission proof added; Actions disabled; external submission OFF.",
+    "current_verified_github_state": "GitHub main d5d888785d62a091249541fd09cbe092073f7887; issue #6 PostgreSQL acceptance evidence integrated; Actions disabled; external submission OFF.",
+    "current_verified_at": "2026-10-07T10:59:10Z"
   },
-  "current_milestone": "MJ-REF-020-EXTERNAL-APPLICATION-CAPTURE-20261007",
+  "current_milestone": "MJ-REQ-005-POSTGRES-CATEGORY-RUNTIME-20261007",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -108,7 +108,8 @@
     "MJ-REQ-008: durable synthetic product-worker process crash recovery and stale-attempt fencing are verified; physical host and browser-process crash recovery remain open.",
     "Provider credentials are not yet routed into AI inference; master encryption-key rotation and complete original secret/diagnostic requirements remain open",
     "MJ-REQ-156/160/183/184 advanced by the scoped MJ-REF-016 dead-letter slice; full persistent-operation, transient retry-policy, worker-health, and error-management requirements remain PARTIAL/NOT_RUN.",
-    "MJ-REF-033 advanced PARTIAL: bounded agent run duration/step stopping, explicit terminal escape outcomes, sanitized stop/budget audit, and typed collection count/tail/shape validation. Browser adapter integration, page budgets, bounded slice reruns, and hard interruption of an in-flight synchronous handler remain open; evidence docs/evidence/2026-10-07-agent-run-budget-output-validation.json."
+    "MJ-REF-033 advanced PARTIAL: bounded agent run duration/step stopping, explicit terminal escape outcomes, sanitized stop/budget audit, and typed collection count/tail/shape validation. Browser adapter integration, page budgets, bounded slice reruns, and hard interruption of an in-flight synchronous handler remain open; evidence docs/evidence/2026-10-07-agent-run-budget-output-validation.json.",
+    "MJ-REQ-005 / issue #6: live isolated PostgreSQL 17 advisory-lock tests now prove cross-kind company-discovery and independent application-automation capacity-one admission across separate Store engines; each race leaves one RUNNING and one QUEUED operation with matching attempt counts. The acceptance slice passes; broader requirement remains PARTIAL because real ATS/provider execution is not exercised. Evidence docs/evidence/2026-10-07-postgres-concurrency-runtime.json."
   ],
   "blocked_capabilities": [],
   "active_requirements": [
@@ -317,7 +318,8 @@
     "2026-10-07 #386 / MJ-REF-016: 875 Python tests PASS with one optional PostgreSQL concurrency skip; 63 frontend tests/build, connected dead-letter browser workflow, PostgreSQL 17 migration exercise, SQLite migration/reopen, validators and diff checks PASS. Evidence docs/evidence/2026-10-07-dead-letter-queue.json.",
     "2026-10-07 MJ-REF-033 scoped acceptance: 23 focused agent acceptance/integration/prompt tests PASS; compileall, agent-skills, catalogue, progress, reference-provenance, JSON and diff checks PASS. Browser/PostgreSQL/hosted checks NOT_RUN; external submission OFF. Evidence docs/evidence/2026-10-07-agent-run-budget-output-validation.json.",
     "MJ-REF-005: full Python suite 889 PASS (one optional PostgreSQL skip); affected 25 Python tests, connected browser 2, frontend 63/build, catalogue/progress/skills/lane validators and diff check PASS. Evidence docs/evidence/2026-10-07-no-ai-fallback.json; integrated main 3804a953317b122879747e0075602994c8151678.",
-    "MJ-REF-020 issue #390: focused integration 10 PASS; connected browser 6 PASS; frontend 63 PASS/build PASS; full Python 895 PASS with one optional PostgreSQL skip; validators PASS. Evidence docs/evidence/2026-10-07-external-application-capture.json; source 63142751719eb7b52f5fafd2e93dc47a6f53aa51, tree f70b3ef5884b55525e5faa737f1d962510527900, integrated 3ecad2b84f86808314873547ef4aa31de738ce17."
+    "MJ-REF-020 issue #390: focused integration 10 PASS; connected browser 6 PASS; frontend 63 PASS/build PASS; full Python 895 PASS with one optional PostgreSQL skip; validators PASS. Evidence docs/evidence/2026-10-07-external-application-capture.json; source 63142751719eb7b52f5fafd2e93dc47a6f53aa51, tree f70b3ef5884b55525e5faa737f1d962510527900, integrated 3ecad2b84f86808314873547ef4aa31de738ce17.",
+    "MJ-REQ-005 / issue #6 PostgreSQL runtime slice: PostgreSQL concurrency, category unit and worker lifecycle tests: 21 PASS, repeated twice against the same disposable PostgreSQL 17 database; repository validators PASS. Evidence docs/evidence/2026-10-07-postgres-concurrency-runtime.json; source 9e282135e9c90d56301b9d8726479479d84a862a, tree fd7665952a141c07a494f3a20b9986766363085b, integration d5d888785d62a091249541fd09cbe092073f7887."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -349,7 +351,7 @@
     "GitHub Actions, hosted tests/reviews, and AI-provider calls remain NOT_RUN under local-only policy; external submission remains OFF.",
     "GitHub Actions/hosted review and provider/real ATS requests remain NOT_RUN by local-only policy; external submission remains OFF.",
     "MJ-REQ-006 source tests were NOT_RUN because this acceptance is a read-only workspace inventory/classification and no executable code changed; hosted workflows remain disabled.",
-    "MJ-REQ-005 AI provider/runtime and real ATS concurrency remain NOT_RUN because those operation/provider paths do not exist or are unavailable; one optional PostgreSQL category test was skipped because MJOBS_TEST_POSTGRES_URL is unset. No live employer fetch or application submission was performed.",
+    "MJ-REQ-005 AI-provider inference and real ATS concurrency remain NOT_RUN; isolated PostgreSQL 17 cross-category advisory-lock claims now PASS. No live employer fetch or application submission was performed.",
     "MJ-REQ-004 candidate 6c4283646e8bfb04e27d57d585db72ef7803a282: hosted Actions/reviews NOT_RUN by policy; browser-driven abort was not run (route-level disconnect integration plus real child-kill tests passed); PostgreSQL test skipped because MJOBS_TEST_POSTGRES_URL is unset; OCR already-running child cancellation and real provider/ATS operation paths remain open.",
     "MJ-REQ-004 resume extraction cancellation candidate: hosted checks/review NOT_RUN by local-only policy; one optional PostgreSQL test skipped because MJOBS_TEST_POSTGRES_URL is unset; no employer fetch, AI/provider call, or external submission.",
     "MJ-REQ-004 public HTTPS cancellation candidate: hosted Actions/reviews NOT_RUN by local-only policy; optional PostgreSQL test skipped because MJOBS_TEST_POSTGRES_URL is unset; no live employer fetch, AI/provider request, real ATS automation or external submission.",
@@ -366,7 +368,7 @@
     "MJ-REQ-004 real AI disconnect slice: live provider inference and hosted checks/review remain NOT_RUN; PostgreSQL runtime was not configured (one optional test skipped). External submission OFF. Evidence docs/evidence/2026-10-07-ai-real-disconnect-transport.json.",
     "MJ-REQ-004 AI evaluation cancellation: real/paid provider inference, PostgreSQL runtime, and GitHub hosted checks/review NOT_RUN_BY_USER_POLICY; one optional PostgreSQL test skipped because MJOBS_TEST_POSTGRES_URL was unset. External submission OFF.",
     "MJ-REQ-004 in-flight Ollama cancellation: real/live Ollama inference, PostgreSQL runtime, and GitHub hosted checks/review NOT_RUN_BY_USER_POLICY; one optional PostgreSQL test skipped because MJOBS_TEST_POSTGRES_URL was unset. External submission OFF.",
-    "MJ-REQ-005 issue #6: live PostgreSQL advisory-lock runtime, live AI-provider inference, real ATS concurrency and hosted Actions/review remain NOT_RUN; one optional isolated PostgreSQL concurrency test skipped because MJOBS_TEST_POSTGRES_URL was unset; external submission remains OFF.",
+    "MJ-REQ-005 issue #6: live AI-provider inference, real ATS concurrency and hosted Actions/review remain NOT_RUN; PostgreSQL 17 company-discovery and application-automation concurrency tests PASS on an isolated disposable container. External submission remains OFF.",
     "MJ-REQ-008 physical host restart and browser-process crash acceptance remain NOT_RUN; the scoped product-worker subprocess crash acceptance is recorded in docs/evidence/2026-10-07-product-worker-crash-recovery.json.",
     "MJ-REQ-008 live PostgreSQL runtime NOT_RUN because MJOBS_TEST_POSTGRES_URL was unset; hosted Actions/review remain NOT_RUN_BY_USER_POLICY.",
     "MJ-REF-028 live provider connection, PostgreSQL runtime migration, hosted Actions/review, and real external application submission were not run. Existing MJobs containers were left untouched; synthetic local tests only.",
@@ -405,13 +407,13 @@
     "Fresh Codex worktrees may lack ignored apps/web/node_modules and apps/web/dist; run npm ci and npm run build --prefix apps/web before browser/full-suite validation. MJ-REF-011 exact-source rerun passed 854 tests after restoring those artifacts; evidence docs/evidence/2026-10-07-ai-prompt-truncation.json"
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-07T10:52:30Z",
+    "timestamp": "2026-10-07T10:59:10Z",
     "result": "PASS",
-    "source_commit": "63142751719eb7b52f5fafd2e93dc47a6f53aa51",
-    "source_tree": "f70b3ef5884b55525e5faa737f1d962510527900",
-    "scope": "Issue #390 / MJ-REF-020 complete local acceptance for user-reported external application capture and reconciliation.",
-    "evidence_path": "docs/evidence/2026-10-07-external-application-capture.json",
-    "integration_commit": "3ecad2b84f86808314873547ef4aa31de738ce17"
+    "source_commit": "9e282135e9c90d56301b9d8726479479d84a862a",
+    "source_tree": "fd7665952a141c07a494f3a20b9986766363085b",
+    "scope": "Issue #6 / MJ-REQ-005 isolated PostgreSQL 17 category admission acceptance slice; broader requirement remains PARTIAL.",
+    "evidence_path": "docs/evidence/2026-10-07-postgres-concurrency-runtime.json",
+    "integration_commit": "d5d888785d62a091249541fd09cbe092073f7887"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -7806,12 +7808,68 @@
         "git_commit": "3ecad2b84f86808314873547ef4aa31de738ce17",
         "evidence_path": "docs/evidence/2026-10-07-external-application-capture.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-005-POSTGRES-CATEGORY-RUNTIME-20261007",
+      "timestamp": "2026-10-07T10:59:10Z",
+      "current_phase": "Issue #6 / MJ-REQ-005 PostgreSQL advisory-lock category admission tests passed twice on an isolated local PostgreSQL 17 database and integrated by non-force fast-forward; broader requirement remains PARTIAL.",
+      "completed_steps": [
+        "Reconciled issue #6, active claims, and dirty worktrees; selected the previously skipped PostgreSQL concurrency acceptance gap without touching the personal MJobs service.",
+        "Added PostgreSQL application-automation capacity-one race coverage across independent Store engines and durable RUNNING/QUEUED plus attempt-count readback.",
+        "Made each PostgreSQL concurrency test cancel only its unique synthetic test operation rows after assertions, so the suite is repeatable against the same isolated DB.",
+        "Ran cross-kind company discovery, application automation, operation category unit and worker lifecycle suites twice against one fresh disposable PostgreSQL 17 container: 21 PASS each run.",
+        "Recorded sanitized evidence and integrated by non-force fast-forward at main d5d888785d62a091249541fd09cbe092073f7887; preserved requirement PARTIAL pending real ATS/provider acceptance."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-07-postgres-concurrency-runtime.json"
+      ],
+      "files_modified": [
+        "tests/integration/test_operation_concurrency_postgres.py"
+      ],
+      "tests_completed": [
+        "python -m unittest tests.integration.test_operation_concurrency_postgres tests.unit.test_operation_concurrency tests.integration.test_worker_lifecycle -v: 21 PASS, repeated twice against the same isolated PostgreSQL 17 database.",
+        "agent_skills, catalogue, progress, reference_provenance, lane validators and git diff --check: PASS."
+      ],
+      "tests_remaining": [
+        "Live AI-provider inference and real ATS concurrency remain NOT_RUN.",
+        "Hosted Actions/reviews remain NOT_RUN_BY_USER_POLICY.",
+        "Broader MJ-REQ-005 acceptance is still PARTIAL."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Disposable local PostgreSQL 17 advisory-lock concurrency across independent Store engines; no existing personal MJobs service was used or restarted."
+      ],
+      "known_errors": [
+        "An initial rerun before cleanup failed because an earlier test run left synthetic RUNNING rows in a reused disposable database; the test was corrected to release only its unique test rows and then passed twice on the same DB."
+      ],
+      "known_limitations": [
+        "No real ATS/provider request or external application submission was made.",
+        "PostgreSQL acceptance is limited to company-discovery and application-automation category capacity.",
+        "Hosted checks and review remain NOT_RUN_BY_USER_POLICY."
+      ],
+      "source_commit": "9e282135e9c90d56301b9d8726479479d84a862a",
+      "source_tree": "fd7665952a141c07a494f3a20b9986766363085b",
+      "result": "PARTIAL",
+      "last_safe_checkpoint": {
+        "git_commit": "d5d888785d62a091249541fd09cbe092073f7887",
+        "evidence_path": "docs/evidence/2026-10-07-postgres-concurrency-runtime.json"
+      },
+      "integration": {
+        "method": "NON_FORCE_FAST_FORWARD",
+        "base": "300cf704915574d4e33beb251af14b003bd384d9",
+        "main": "d5d888785d62a091249541fd09cbe092073f7887",
+        "source_branch": "codex/mj-req005-postgres-concurrency-20261007",
+        "source_commit": "9e282135e9c90d56301b9d8726479479d84a862a",
+        "issue_comment": "https://github.com/MulattoTech/MJobs/issues/6#issuecomment-6036492226",
+        "issue_state": "OPEN",
+        "evidence_checkpoint_commit": "d5d888785d62a091249541fd09cbe092073f7887"
+      }
     }
   ],
-  "current_phase": "Issue #390 / MJ-REF-020 locally passed complete issue acceptance and was integrated by non-force fast-forward; continue the dependency-ready backlog.",
+  "current_phase": "Issue #6 / MJ-REQ-005 PostgreSQL advisory-lock category admission tests passed twice on an isolated local PostgreSQL 17 database and integrated by non-force fast-forward; broader requirement remains PARTIAL.",
   "last_safe_checkpoint": {
-    "git_commit": "3ecad2b84f86808314873547ef4aa31de738ce17",
-    "evidence_path": "docs/evidence/2026-10-07-external-application-capture.json"
+    "git_commit": "d5d888785d62a091249541fd09cbe092073f7887",
+    "evidence_path": "docs/evidence/2026-10-07-postgres-concurrency-runtime.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
