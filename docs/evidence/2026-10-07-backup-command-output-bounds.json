@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-004",
+  "github_issue": 5,
+  "slice_result": "PASS",
+  "requirement_result": "PARTIAL",
+  "base_commit": "546f71d91d90cfbf2122ef2c830ddaba825e2a46",
+  "source_commit": "3e4f18a947d47106eb7f22af141de3b389a09722",
+  "source_tree": "4d6d5527fec632d97225c225e70c6b1204e0d4bd",
+  "recorded_at_utc": "2026-10-07T11:24:40Z",
+  "scope": "Bound memory captured from Docker CLI child stdout in local backup and restore operations, terminate and reap noisy children at the limit, preserve intentional direct-to-file database dump streaming, and retain wall deadlines and sanitized failure messages.",
+  "input_sha256": {
+    "cli/local_backup.py": "046698f9f9606fdc196bd30d53499cf274e2df0373c4ed2a6d7ab3251b48d62a",
+    "tests/unit/test_local_backup.py": "6ce3bf5435bc61c831b80bd81421ee47c2546274f25b1f7e2749ed9e4af1954d"
+  },
+  "acceptance": {
+    "captured_stdout_has_a_fixed_2_mib_memory_limit": "PASS",
+    "oversized_child_is_terminated_and_reaped_with_sanitized_error": "PASS",
+    "database_dump_stdout_direct_to_file_remains_unbounded_stream": "PASS",
+    "stderr_is_drained_without_retaining_diagnostic_contents": "PASS",
+    "timeout_and_nonzero_exit_remain_sanitized": "PASS",
+    "no_docker_project_or_personal_backup_accessed": "PASS",
+    "external_application_submission_remains_off": "PASS",
+    "requirement_and_reference_denominators_unchanged": "PASS"
+  },
+  "evidence": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_local_backup -v",
+      "result": "PASS",
+      "summary": "11 tests passed, including noisy stdout termination, direct dump streaming above the cap, large stderr draining, and sanitized timeout behavior."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest discover -s tests",
+      "result": "FAIL",
+      "summary": "903 tests ran: 2 failures, 9 errors, 22 skipped. The suite includes browser tests; no success is claimed from this broad run."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_document_history tests.browser.test_manual_job_capture -v",
+      "result": "FAIL",
+      "summary": "Both browser cases failed because the local app root returned {\"detail\":\"Not Found\"}; this worktree has no generated apps/web/dist."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "BLOCKED_ENVIRONMENT",
+      "summary": "Build could not start because this worktree has no node_modules and the tsc executable was unavailable."
+    },
+    {
+      "command": "python -m tools.verification.agent_skills; python -m tools.verification.catalogue; python -m tools.verification.progress validate; python -m tools.coordination.lane_coordination validate; git diff --check",
+      "result": "PASS",
+      "summary": "All four repository/coordination validators and the whitespace check passed."
+    },
+    {
+      "command": "python -m py_compile cli/local_backup.py tests/unit/test_local_backup.py",
+      "result": "PASS",
+      "summary": "Changed Python module and unit test compiled successfully."
+    }
+  ],
+  "test_first_red": {
+    "test": "tests.unit.test_local_backup.LocalBackupTests.test_captured_compose_output_is_bounded_and_sanitized",
+    "result": "EXPECTED_RED_THEN_PASS",
+    "failure": "Before implementation, the capture boundary accepted output beyond the new fixed cap and did not stop the noisy synthetic child."
+  },
+  "external_boundaries": {
+    "github_actions_enabled": false,
+    "hosted_checks": "NOT_RUN_BY_USER_POLICY",
+    "hosted_review": "NOT_RUN_BY_USER_POLICY",
+    "docker_project_accessed": false,
+    "personal_backup_accessed_or_changed": false,
+    "synthetic_child_processes_only": true,
+    "external_application_submission": false,
+    "postgresql_runtime": "NOT_RUN_BY_SCOPE"
+  },
+  "requirement_limitations": [
+    "Other operation classes in MJ-REQ-004 remain outside this slice, including providers, source collection, browser navigation, and supported real ATS paths.",
+    "The broad Python suite did not pass; 2 failures, 9 errors, and 22 skips remain unclassified beyond the reproduced browser-root Not Found failures.",
+    "Frontend/browser acceptance could not be restored in this worktree because the locked JavaScript dependencies are absent; the build was not retried with dependency installation."
+  ],
+  "denominators": {
+    "requirements": 366,
+    "reference_gaps": 59
+  },
+  "main_integration": {
+    "status": "PENDING",
+    "external_submission": "OFF"
+  }
+}

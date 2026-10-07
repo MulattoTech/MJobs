@@ -101,6 +101,22 @@
       "released_at": "2026-10-07T11:09:18Z",
       "integrated_main": "975a044e918105e4d7162254aa03dd771f6175ea",
       "issue_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6036663828"
+    },
+    {
+      "issue": 5,
+      "requirement_id": "MJ-REQ-004",
+      "branch": "codex/mj-req004-backup-cli-output-bounds-20261007",
+      "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req004-backup-cli-output-bounds-20261007",
+      "head": "3e4f18a947d47106eb7f22af141de3b389a09722",
+      "paths": [
+        "cli/local_backup.py",
+        "tests/unit/test_local_backup.py",
+        "docs/evidence/2026-10-07-backup-command-output-bounds.json",
+        "planning/lanes/codex/**"
+      ],
+      "status": "ACTIVE",
+      "claimed_at": "2026-10-07T11:11:54Z",
+      "evidence_path": "docs/evidence/2026-10-07-backup-command-output-bounds.json"
     }
   ]
 }
