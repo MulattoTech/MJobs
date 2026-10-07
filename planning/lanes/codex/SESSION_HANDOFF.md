@@ -1,6 +1,14 @@
 # Codex lane handoff
 
-Status: **IDLE_READY / issue #386 integrated and released**
+Status: **ACTIVE / issue #403 scoped acceptance PARTIAL**
+
+## Active issue #403 / MJ-REF-033
+
+Claim: `codex/mj-ref-033-agent-run-limits-20261007`, worktree `C:/Tools/Dev/MJobs/.worktrees/codex-mj-ref-033-agent-run-limits-20261007`.
+Current pushed source/evidence head: `bf7a1c585f9abdf2a5fc10fff6ee20dd03677939`; base main `de04d6bb06ce23d1a7f4f7f0f04dedcd87bdf7a5`.
+Evidence: `docs/evidence/2026-10-07-agent-run-budget-output-validation.json`. The slice adds elapsed-time and step stop accounting, explicit auth/source escape outcomes, and value-free collection count/tail/shape validation over the append-only run trace. Focused agent and prompt tests: 23 PASS; compileall, agent-skill, catalogue, progress, reference-provenance, JSON, and diff checks PASS.
+
+Scope remains PARTIAL and the issue stays open: browser/source collection entrypoint integration, page budgets, bounded diagnostic slice reruns, and hard termination of an in-flight synchronous handler remain unimplemented. Browser/PostgreSQL/hosted checks were NOT_RUN; external submission OFF. Antigravity #302 and Ollama #318 are active on disjoint paths. Continue to reconcile main and claims before selecting later work.
 
 ## Latest completion
 

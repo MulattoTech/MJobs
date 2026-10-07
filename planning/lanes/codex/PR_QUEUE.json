@@ -3,6 +3,16 @@
   "lane": "codex",
   "items": [
     {
+      "issue": 403,
+      "requirement_id": "MJ-REF-033",
+      "status": "ACTIVE_PARTIAL",
+      "priority": 1,
+      "target_area": "services/agents; tests/unit; tests/integration",
+      "evidence_path": "docs/evidence/2026-10-07-agent-run-budget-output-validation.json",
+      "scope_complete": false,
+      "note": "Agent run time/step stop outcomes and typed collection count/tail/shape validation are locally verified. Actual browser collection integration, page budgets, bounded diagnostic slice reruns, and hard preemption of an in-flight synchronous handler remain open."
+    },
+    {
       "issue": 6,
       "requirement_id": "MJ-REQ-005",
       "status": "INTEGRATED_PARTIAL",

@@ -1,5 +1,16 @@
 {
   "schema_version": 1,
   "lane": "codex",
-  "claims": []
+  "claims": [
+    {
+      "issue": 403,
+      "requirement_id": "MJ-REF-033",
+      "branch": "codex/mj-ref-033-agent-run-limits-20261007",
+      "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-ref-033-agent-run-limits-20261007",
+      "head": "bf7a1c585f9abdf2a5fc10fff6ee20dd03677939",
+      "paths": ["services/agents/**", "tests/unit/test_agent*", "tests/integration/test_agent_tools.py", "docs/evidence/*.json", "docs/reference/REFERENCE_INSPIRATION_LOG.md", "planning/lanes/codex/**"],
+      "status": "ACTIVE",
+      "claimed_at": "2026-10-07T08:22:59Z"
+    }
+  ]
 }
