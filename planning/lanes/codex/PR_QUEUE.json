@@ -278,13 +278,15 @@
     {
       "issue": 179,
       "requirement_id": "MJ-REQ-178",
-      "status": "IN_PROGRESS",
+      "status": "VALIDATED_PASS_PENDING_INTEGRATION",
       "priority": 1,
       "target_area": "compose.yml; tests/unit/test_compose_modes.py",
       "depends_on": [],
       "evidence_path": "docs/evidence/2026-10-07-compose-log-rotation.json",
       "scope_complete": false,
-      "note": "Configure bounded rotating logs for all Compose services and verify rendered configuration. Preserve live-feedback 30-day diagnostic cleanup and raw Playwright trace suppression. Assess raw HTML storage; keep broader requirement open unless all acceptance evidence is complete."
+      "note": "All nine Compose services render bounded json-file log rotation (10 MiB × 5 files). Existing managed feedback sessions are pruned after 30 days; raw Playwright traces and product HTML snapshots are not stored. Focused config/live-feedback/artifact tests: 20 PASS; Compose config and local validators PASS. Docker engine runtime NOT_RUN; no PostgreSQL/browser E2E applies. Evidence docs/evidence/2026-10-07-compose-log-rotation.json.",
+      "source_commit": "1e11348ec1e10f401453e1d31ba68d651ea2c540",
+      "source_tree": "df9c3d652ad127facc01b3300475e562fbde65b0"
     }
   ],
   "generated_at": "2026-10-07T14:05:05Z"

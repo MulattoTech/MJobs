@@ -534,7 +534,7 @@
       "requirement_id": "MJ-REQ-178",
       "branch": "codex/mj-req178-log-rotation-20261007",
       "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req178-log-rotation-20261007",
-      "head": "9a61c6e4ae3b667cd3556b867562ff72900f8a9c",
+      "head": "1e11348ec1e10f401453e1d31ba68d651ea2c540",
       "paths": [
         "compose.yml",
         "tests/unit/test_compose_modes.py",

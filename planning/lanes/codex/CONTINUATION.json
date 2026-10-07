@@ -22,7 +22,7 @@
   "current_issue": 179,
   "requirement_id": "MJ-REQ-178",
   "branch": "codex/mj-req178-log-rotation-20261007",
-  "head": "9a61c6e4ae3b667cd3556b867562ff72900f8a9c",
+  "head": "1e11348ec1e10f401453e1d31ba68d651ea2c540",
   "worktree": ".worktrees/codex-mj-req178-log-rotation-20261007",
   "result": "ACTIVE; test-first bounded Compose log rotation slice",
   "evidence_path": "docs/evidence/2026-10-07-compose-log-rotation.json",
@@ -32,9 +32,9 @@
     176,
     171
   ],
-  "last_verified_head": "169c3f110978c10af45e4f7e6ef4d950a727d4ae",
-  "last_verified_tree": "784ad46313acf7e55d82bab9b513ef15f63ad743",
-  "last_verified_at_utc": "2026-10-07T15:18:10Z",
-  "last_verified_result": "PARTIAL; issue #178 structured operation logging integrated; wider requirement incomplete",
-  "updated_at": "2026-10-07T15:22:07Z"
+  "last_verified_head": "1e11348ec1e10f401453e1d31ba68d651ea2c540",
+  "last_verified_tree": "df9c3d652ad127facc01b3300475e562fbde65b0",
+  "last_verified_at_utc": "2026-10-07T15:23:58Z",
+  "last_verified_result": "PASS; all Compose service logs bounded by rotation config; issue #179 scoped acceptance verified; awaiting integration",
+  "updated_at": "2026-10-07T15:23:58Z"
 }
