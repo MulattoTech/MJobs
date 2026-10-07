@@ -454,6 +454,33 @@
       "released_at": "2026-10-07T14:21:20Z",
       "integrated_main": "3c58290a10ff5412c9d92c090e7ebef933af5689",
       "result": "PARTIAL; issue remains OPEN"
+    },
+    {
+      "issue": 177,
+      "requirement_id": "MJ-REQ-176",
+      "branch": "codex/mj-req176-company-events-20261007",
+      "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req176-company-events-20261007",
+      "head": "a90c23abca6de19f906ca16a01f0bd92e0aa1801",
+      "paths": [
+        "services/audit_history.py",
+        "services/company_discovery/flywheel.py",
+        "services/company_discovery/sources.py",
+        "tests/integration/test_public_company_discovery.py",
+        "tests/browser/test_public_company_discovery.py",
+        "docs/evidence/2026-10-07-company-audit-history.json",
+        "planning/lanes/codex/**"
+      ],
+      "status": "RELEASED",
+      "claimed_at": "2026-10-07T14:22:34Z",
+      "released_at": "2026-10-07T14:29:15Z",
+      "claim_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6039998948",
+      "checkpoint_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6040091739",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6040125003",
+      "release_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6040125344",
+      "evidence_path": "docs/evidence/2026-10-07-company-audit-history.json",
+      "source_commit": "4b25f3c1ac1eafe1b5f00d714029bef4268b7b43",
+      "integrated_main": "a90c23abca6de19f906ca16a01f0bd92e0aa1801",
+      "result": "PARTIAL; issue remains OPEN"
     }
   ]
 }

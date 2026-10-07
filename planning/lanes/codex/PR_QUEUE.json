@@ -247,17 +247,18 @@
     {
       "issue": 177,
       "requirement_id": "MJ-REQ-176",
-      "status": "INTEGRATION_PENDING_PARTIAL",
+      "status": "INTEGRATED_PARTIAL",
       "priority": 1,
       "target_area": "services/audit_history.py; services/company_discovery/sources.py; services/company_discovery/flywheel.py; tests/integration/test_public_company_discovery.py; tests/browser/test_public_company_discovery.py",
       "depends_on": [],
       "evidence_path": "docs/evidence/2026-10-07-company-audit-history.json",
       "scope_complete": false,
-      "note": "Company-discovery success now appends idempotent profile-scoped COMPANY_DISCOVERED and first-enrollment COMPANY_SOURCE_ENROLLED events atomically with source persistence. Safe fixed summaries omit source URLs/payloads; worker retry, profile isolation and failure-no-success are covered. Validation: 26 focused Python integration tests, connected Chromium 1, frontend 63/build, validators PASS. PostgreSQL/Docker NOT_RUN (no schema changed); hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF. Issue #177 remains OPEN/PARTIAL for merge, full settings and truthful complete application lifecycle event coverage.",
-      "integration_commit": "d4ed75530ec9609ec41d2e3b2f4a93aa50e4b259",
-      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6039527055",
+      "note": "Company-discovery success now appends idempotent profile-scoped COMPANY_DISCOVERED and first-enrollment COMPANY_SOURCE_ENROLLED events atomically with source persistence. Safe fixed summaries omit source URLs/payloads; worker retry, profile isolation and failure-no-success are covered. Validation: 26 focused Python integration tests, connected Chromium 1, frontend 63/build, validators PASS. PostgreSQL/Docker NOT_RUN (no schema changed); hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF. Issue #177 remains OPEN/PARTIAL for merge, full settings and truthful complete application lifecycle event coverage. Integrated by non-force fast-forward at main a90c23abca6de19f906ca16a01f0bd92e0aa1801; issue remains OPEN/PARTIAL.",
+      "integration_commit": "a90c23abca6de19f906ca16a01f0bd92e0aa1801",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6040125003",
       "prior_integration_commit": "d4ed75530ec9609ec41d2e3b2f4a93aa50e4b259",
-      "source_commit": "4b25f3c1ac1eafe1b5f00d714029bef4268b7b43"
+      "source_commit": "4b25f3c1ac1eafe1b5f00d714029bef4268b7b43",
+      "release_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6040125344"
     }
   ],
   "generated_at": "2026-10-07T14:05:05Z"

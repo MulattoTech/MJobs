@@ -6,47 +6,50 @@
   "current_issue": 177,
   "requirement_id": "MJ-REQ-176",
   "branch": "codex/mj-req176-company-events-20261007",
-  "head": "4b25f3c1ac1eafe1b5f00d714029bef4268b7b43",
+  "head": "a90c23abca6de19f906ca16a01f0bd92e0aa1801",
   "worktree": ".worktrees/codex-mj-req176-company-events-20261007",
-  "result": "PARTIAL; profile company discovery/source-enrollment history verified locally, integration pending",
+  "result": "INTEGRATED_PARTIAL; #177 remains OPEN for JOB_MERGED, full settings and remaining truthful lifecycle events",
   "evidence_path": "docs/evidence/2026-10-07-company-audit-history.json",
   "last_completed": {
     "issue": 177,
     "requirement_id": "MJ-REQ-176",
-    "integrated_main": "d4ed75530ec9609ec41d2e3b2f4a93aa50e4b259",
+    "integrated_main": "a90c23abca6de19f906ca16a01f0bd92e0aa1801",
     "issue_state": "OPEN/PARTIAL",
-    "evidence_path": "docs/evidence/2026-10-07-profile-audit-history.json",
-    "release_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6039527055"
+    "evidence_path": "docs/evidence/2026-10-07-company-audit-history.json",
+    "release_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6040125344"
   },
   "next_candidates": [
-    177
+    177,
+    178,
+    176,
+    171
   ],
   "do_not_overlap": [
     "Antigravity active issue #302 paths: services/discovery/sources/** and tests/integration/test_dice.py",
     "Ollama/OpenCode active issue #318 paths: services/ats_detection/** and detector tests",
     "canonical planning and main outside integration lock"
   ],
-  "resume_instruction": "Issue #177 / MJ-REQ-176 has a second verified slice adding profile-scoped JOB_DISCOVERED and MATCH_SCORED events, pending integration. Integrate only as PARTIAL and leave issue OPEN. Reconcile all claims/worktrees afterward; continue with the next highest-value unclaimed dependency-ready issue. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
-  "last_verified_head": "4b25f3c1ac1eafe1b5f00d714029bef4268b7b43",
-  "last_verified_tree": "ca6c0b83c82cb13e1bc6d121536041f60bd984b0",
-  "last_verified_at_utc": "2026-10-07T14:26:57Z",
+  "resume_instruction": "Company/source history integrated partial at main a90c23abca6de19f906ca16a01f0bd92e0aa1801; claim released. Immediately re-fetch main and inspect all machine/GitHub claims, dirty worktrees and issue comments, then choose the highest-value unclaimed dependency-ready issue. #177 still has JOB_MERGED/settings/remaining truthful lifecycle gaps. Avoid active #302 discovery source and #318 ATS detection. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
+  "last_verified_head": "a90c23abca6de19f906ca16a01f0bd92e0aa1801",
+  "last_verified_tree": "f89481c3b647ce306961ab767599b04d53d5c34d",
+  "last_verified_at_utc": "2026-10-07T14:29:15Z",
   "started_at_utc": "2026-10-07T04:24:01Z",
   "validation": {
     "result": "PARTIAL; issue acceptance incomplete",
     "focused_integration": "26 PASS; 0 failures; 0 skipped",
-    "connected_browser": "1 PASS; company discovery/source events visible, reload persistence and profile isolation",
+    "connected_browser": "1 PASS; safe company/source events, reload persistence, profile isolation",
     "frontend": "63 tests PASS; TypeScript and Vite build PASS",
     "validators": "agent_skills/catalogue/progress/lane_coordination/diff PASS",
-    "postgres_docker_migrations": "NOT_RUN; no schema changed; isolated SQLite integration/browser databases used",
-    "remaining_requirement_gaps": "JOB_MERGED and complete settings/application lifecycle event coverage remain incomplete; real application submission disabled",
+    "postgres_docker_migrations": "NOT_RUN; no schema change; isolated SQLite used",
+    "remaining_requirement_gaps": "JOB_MERGED, complete settings and full truthful application lifecycle event families remain incomplete",
     "hosted_checks": "NOT_RUN_BY_USER_POLICY",
     "external_submission": "OFF"
   },
-  "last_integrated_head": "3c58290a10ff5412c9d92c090e7ebef933af5689",
-  "last_verified_result": "PARTIAL; company/source events locally accepted, integration pending",
-  "updated_at": "2026-10-07T14:26:57Z",
+  "last_integrated_head": "a90c23abca6de19f906ca16a01f0bd92e0aa1801",
+  "last_verified_result": "PARTIAL; company/source audit events integrated; broader issue remains open",
+  "updated_at": "2026-10-07T14:29:15Z",
   "integrated_main": "3c58290a10ff5412c9d92c090e7ebef933af5689",
   "last_integrated_issue": 177,
-  "last_integrated_requirement": "MJ-REQ-176",
-  "last_integrated_evidence": "docs/evidence/2026-10-07-application-preparation-audit.json"
+  "last_integrated_requirement": "MJ-REQ-176 company/source audit event slice",
+  "last_integrated_evidence": "docs/evidence/2026-10-07-company-audit-history.json"
 }
