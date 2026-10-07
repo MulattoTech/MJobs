@@ -11,7 +11,7 @@
   "last_integrated_head": "1f2e0a4fd6c6c445ca1e47cfd39be39df9a06fda",
   "next_issue": 5,
   "next_requirement": "MJ-REQ-004",
-  "resume_instruction": "Claimed issue #5 / MJ-REQ-004 AI evaluation disconnect cancellation in isolated worktree codex/req004-ai-disconnect-cancel-20261007 from main 17129454b6301f265e69a77b24f7ce5b1fccba37. Implementing async request-disconnect propagation to the bounded AI evaluation worker; discard all partial results and persist no history. Other lanes remain Antigravity #302 discovery-source paths and Ollama #318 ATS-detection paths. Continue with focused validation, sanitized evidence, safe integration, claim release, then reconcile for the next dependency-ready issue. Hosted checks NOT_RUN by policy; external submission OFF.",
+  "resume_instruction": "Issue #5 / MJ-REQ-004 request-disconnect cancellation is implemented and locally validated at 9e8605029b138faa8b8785e043fd6af42fd902ce (tree 63e8f0b4bb5858494fe321476054e7a21564a7e0); evidence docs/evidence/2026-10-07-ai-evaluation-disconnect-cancellation.json. 31 focused/adjacent tests and local build/validators PASS. Real socket disconnect, full suite and live inference NOT_RUN. Integrate under the local lock, then release this claim and reconcile current main and all agent claims before selecting the next issue. Preserve OPEN/PARTIAL and hosted NOT_RUN; submission OFF.",
   "external_submission_enabled": false,
   "github_actions_enabled": false,
   "last_validated_head": "1ee2c046f0ce39cbd2fe3df2caa0997d965d74f6",

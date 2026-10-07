@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "issue": 5,
+  "requirement_id": "MJ-REQ-004",
+  "lane": "codex",
+  "branch": "codex/req004-ai-disconnect-cancel-20261007",
+  "source_head": "9e8605029b138faa8b8785e043fd6af42fd902ce",
+  "source_tree": "63e8f0b4bb5858494fe321476054e7a21564a7e0",
+  "base_main": "17129454b6301f265e69a77b24f7ce5b1fccba37",
+  "recorded_at_utc": "2026-10-07T03:18:02Z",
+  "result": "PARTIAL",
+  "acceptance": {
+    "request_disconnect_cancellation": "PASS - the AI evaluation route observes request disconnect, signals a thread-safe cancellation check, and waits for the bounded in-flight provider call to finish before returning sanitized HTTP 499.",
+    "partial_batch_history": "PASS - a synthetic first candidate completes and the second provider call is held until disconnect; the entire batch is discarded and profile evaluation history remains empty.",
+    "post_provider_disconnect_check": "PASS - the consumer checks cancellation after each provider response so a result returned after a disconnect cannot enter the evaluation batch.",
+    "provider_inference": "NOT_RUN - synthetic router only; no local model or paid provider was invoked.",
+    "real_transport_disconnect": "NOT_RUN - the API coroutine was exercised with a deterministic Request probe; no socket-level client disconnect was induced.",
+    "full_repository_python_suite": "NOT_RUN - focused AI API/consumer, profile-import and browser suites only.",
+    "hosted_checks_and_review": "NOT_RUN_BY_USER_POLICY"
+  },
+  "validation": {
+    "python_command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_ai_cost_consumer tests.integration.test_ai_cost_policy_api tests.integration.test_profile_import tests.browser.test_ai_task_settings",
+    "python_result": "PASS - 31 tests",
+    "red_reproduction": "PASS - before implementation, the consumer test failed because AIConsumerCancelledError was missing and the API regression failed because the route was synchronous.",
+    "frontend_dependency_command": "npm ci --prefix apps/web",
+    "frontend_dependency_result": "PASS - installed lockfile dependencies; 0 vulnerabilities. npm warned that Vitest's declared Node engine range excludes Node 25.9.0.",
+    "frontend_build_command": "npm run build --prefix apps/web",
+    "frontend_build_result": "PASS",
+    "browser_command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_ai_task_settings",
+    "browser_result": "PASS - 1 Chromium browser test; the connected settings/profile-isolation flow remained valid after the API route change.",
+    "other_checks": [
+      "python -m compileall -q apps/api/main.py services/ai/consumer.py tests/unit/test_ai_cost_consumer.py tests/integration/test_ai_cost_policy_api.py",
+      "python -m tools.coordination.lane_coordination validate",
+      "python -m tools.verification.agent_skills",
+      "python -m tools.verification.catalogue",
+      "python -m tools.verification.progress validate",
+      "git diff --check"
+    ],
+    "other_checks_result": "PASS"
+  },
+  "environment": {
+    "python": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+    "node": "v25.9.0",
+    "database": "Temporary SQLite integration database; no migration changed.",
+    "docker_postgresql": "NOT_RUN - no PostgreSQL-specific behavior or migration changed."
+  },
+  "limitations": [
+    "Issue #5 / MJ-REQ-004 remains OPEN/PARTIAL; this slice covers request-disconnect cancellation for structured AI evaluation only. Other operation classes and complete retry/error policies remain outstanding.",
+    "The in-flight provider call is not forcibly interrupted; the route waits for its bounded provider timeout, then discards the result. The complete batch remains capped by the existing 120-second total deadline.",
+    "A deterministic Request probe verified route behavior, but real network transport disconnect timing was not exercised.",
+    "External application submission remains OFF."
+  ]
+}

@@ -16,7 +16,7 @@
         "tests/integration/test_ai_cost_policy_api.py",
         "docs/evidence/2026-10-07-ai-evaluation-disconnect-cancellation.json"
       ],
-      "head": "17129454b6301f265e69a77b24f7ce5b1fccba37",
+      "head": "9e8605029b138faa8b8785e043fd6af42fd902ce",
       "pid": null
     }
   ]

@@ -7,7 +7,7 @@
       "requirement_id": "MJ-REQ-004",
       "status": "ACTIVE",
       "priority": 0,
-      "note": "Follow-up slice: propagate HTTP request disconnect into bounded structured AI evaluation, discard partial batch results, and avoid durable history writes. Regression reproduced before implementation; focused AI unit/API suite 19 PASS, adjacent profile-import suite 11 PASS, AI settings Chromium test PASS after local build, build and repository validators PASS. Evidence pending final source SHA. Live provider/full suite NOT_RUN; issue remains OPEN/PARTIAL."
+      "note": "Request-disconnect cancellation for structured AI evaluation. Regression reproduced before implementation. Source 9e8605029b138faa8b8785e043fd6af42fd902ce: 31 focused/adjacent consumer, API, profile-import and browser tests PASS; frontend build and repository validators PASS. Evidence docs/evidence/2026-10-07-ai-evaluation-disconnect-cancellation.json. Synthetic Request probe only; real socket disconnect, full suite and live provider NOT_RUN. Issue remains OPEN/PARTIAL."
     }
   ]
 }
