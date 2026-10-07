@@ -42,6 +42,14 @@ class AgentToolContext:
     profile_id: str
     task: str
     proposal_id: str | None = None
+    deadline_monotonic: float | None = None
+    max_duration_ms: int | None = None
+
+    def check_budget(self) -> None:
+        """Let host-owned handlers stop before starting another bounded operation."""
+        import time
+        if self.deadline_monotonic is not None and time.monotonic() >= self.deadline_monotonic:
+            raise AgentToolError("TIME_BUDGET_EXHAUSTED")
 
 
 @dataclass(frozen=True)

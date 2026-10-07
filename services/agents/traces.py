@@ -12,9 +12,12 @@ from packages.persistence import models as m
 
 MAX_AGENT_STEPS = 20
 _RUN_ID = re.compile(r"^[0-9a-f]{32}$")
-_TERMINAL_STATES = {"COMPLETED", "REVIEW_REQUIRED", "REJECTED", "FAILED", "CANCELLED", "LIMIT_REACHED"}
+_TERMINAL_STATES = {"COMPLETED", "REVIEW_REQUIRED", "REJECTED", "FAILED", "CANCELLED",
+                    "LIMIT_REACHED", "AUTH_REQUIRED", "NOT_AVAILABLE", "SOURCE_CHANGED",
+                    "OUTPUT_UNVERIFIED"}
 _STEP_RESULT_CODES = {"OK", "PROPOSAL_PENDING", "UNKNOWN_TOOL", "INVALID_ARGUMENTS",
-                      "ARGUMENTS_TOO_LARGE", "INVALID_TOOL_RESULT", "RESULT_TOO_LARGE", "TOOL_FAILED"}
+                      "ARGUMENTS_TOO_LARGE", "INVALID_TOOL_RESULT", "RESULT_TOO_LARGE", "TOOL_FAILED",
+                      "TIME_BUDGET_EXHAUSTED", "AUTH_REQUIRED", "NOT_AVAILABLE", "SOURCE_CHANGED"}
 
 
 def new_run_id() -> str:
@@ -99,6 +102,9 @@ def append_agent_event(store, run_id: str, action: str, payload: dict) -> dict:
             payload = {**payload, "cost_usd": _validate_cost(payload.get("cost_usd")),
                        "input_tokens": _validate_tokens(payload.get("input_tokens")),
                        "output_tokens": _validate_tokens(payload.get("output_tokens"))}
+            duration = payload.get("budget_consumed_ms")
+            if type(duration) is not int or duration < 0:
+                raise ValueError("Agent run needs a non-negative consumed-duration value")
         store._audit(connection, entity, action, payload)
     return {"entity_id": entity, "action": action, "payload": payload}
 

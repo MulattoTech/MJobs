@@ -3,12 +3,13 @@ from pathlib import Path
 import json
 import tempfile
 import unittest
+from unittest.mock import patch
 from pydantic import BaseModel, ConfigDict
 
 from packages.persistence import models as m
 from packages.persistence.store import Store
 from services.agents.defaults import build_default_registry
-from services.agents.registry import AgentTool, AgentToolContext, ToolClass, ToolRegistry
+from services.agents.registry import AgentTool, AgentToolContext, AgentToolError, ToolClass, ToolRegistry
 from services.agents.runtime import AgentRuntime, ReviewDecision, read_agent_trace
 from services.tracking.jobs import read_job_tracking
 from tests.integration.test_spine import PROFILE
@@ -203,6 +204,118 @@ class AgentToolBoundaryTests(unittest.TestCase):
         self.assertEqual(len(result["steps"]), 20)
         trace = read_agent_trace(self.store, result["run_id"])
         self.assertEqual(trace["terminal"]["state"], "LIMIT_REACHED")
+
+    def test_wall_clock_budget_stops_before_next_tool_and_persists_consumption(self):
+        from services.agents import runtime as runtime_module
+        calls = []
+        class Clock:
+            now = 10.0
+            def __call__(self):
+                return self.now
+        clock = Clock()
+        class Request(BaseModel):
+            model_config = ConfigDict(strict=True, extra="forbid")
+            value: str
+        class Response(BaseModel):
+            model_config = ConfigDict(strict=True, extra="forbid")
+            value: str
+        def handler(args, context):
+            calls.append(args.value)
+            clock.now += 0.6
+            return {"value": args.value}
+        registry = ToolRegistry()
+        registry.register(AgentTool("read_value", "Read value", ToolClass.READ,
+                                    Request, Response, handler))
+        runtime = AgentRuntime(self.store, registry, profile_id="fixture", task="resume_tailor")
+        with patch.object(runtime_module.time, "monotonic", clock):
+            result = runtime.run([
+                {"name": "read_value", "arguments": {"value": "first"}},
+                {"name": "read_value", "arguments": {"value": "second"}},
+            ], max_duration_ms=500)
+
+        self.assertEqual(calls, ["first"])
+        self.assertEqual(result["state"], "LIMIT_REACHED")
+        trace = read_agent_trace(self.store, result["run_id"])
+        self.assertEqual(trace["terminal"]["stop_reason"], "TIME_BUDGET_EXHAUSTED")
+        self.assertEqual(trace["terminal"]["budget_consumed_ms"], 600)
+
+    def test_explicit_escape_outcome_is_a_terminal_result(self):
+        class Request(BaseModel):
+            model_config = ConfigDict(strict=True, extra="forbid")
+            value: str
+        class Response(BaseModel):
+            model_config = ConfigDict(strict=True, extra="forbid")
+            value: str
+        registry = ToolRegistry()
+        registry.register(AgentTool("read_value", "Read value", ToolClass.READ,
+                                    Request, Response,
+                                    lambda args, context: (_ for _ in ()).throw(
+                                        AgentToolError("AUTH_REQUIRED"))))
+        runtime = AgentRuntime(self.store, registry, profile_id="fixture", task="resume_tailor")
+
+        result = runtime.run([{"name": "read_value", "arguments": {"value": "safe"}}])
+
+        self.assertEqual(result["state"], "AUTH_REQUIRED")
+        trace = read_agent_trace(self.store, result["run_id"])
+        self.assertEqual(trace["terminal"]["stop_reason"], "AUTH_REQUIRED")
+
+    def test_collection_contract_prevents_unknown_or_incomplete_output_from_passing(self):
+        from services.agents.acceptance import CollectionContract
+        class Request(BaseModel):
+            model_config = ConfigDict(strict=True, extra="forbid")
+            value: str
+        class Response(BaseModel):
+            model_config = ConfigDict(strict=True, extra="forbid")
+            items: list[dict]
+            count: int | None
+        registry = ToolRegistry()
+        registry.register(AgentTool("collect_jobs", "Collect jobs", ToolClass.READ,
+                                    Request, Response,
+                                    lambda args, context: {"items": [{"id": "job-1"}],
+                                                           "count": None}))
+        runtime = AgentRuntime(self.store, registry, profile_id="fixture", task="job_match")
+
+        result = runtime.run([{"name": "collect_jobs", "arguments": {"value": "page-1"}}],
+                             collection_contract=CollectionContract(
+                                 items_key="items", count_key="count", expected_count=2,
+                                 tail_key="id", expected_tail="job-2"))
+
+        self.assertEqual(result["state"], "OUTPUT_UNVERIFIED")
+        self.assertEqual(result["stop_reason"], "COUNT_UNKNOWN")
+        self.assertEqual(result["collection_result"]["code"], "COUNT_UNKNOWN")
+        trace = read_agent_trace(self.store, result["run_id"])
+        self.assertEqual(trace["terminal"]["state"], "OUTPUT_UNVERIFIED")
+        self.assertEqual(trace["terminal"]["collection_result"]["code"], "COUNT_UNKNOWN")
+        self.assertNotIn("job-1", json.dumps(trace))
+
+    def test_collection_contract_records_verified_tail_and_count(self):
+        from services.agents.acceptance import CollectionContract
+        class Request(BaseModel):
+            model_config = ConfigDict(strict=True, extra="forbid")
+            value: str
+        class Response(BaseModel):
+            model_config = ConfigDict(strict=True, extra="forbid")
+            items: list[dict]
+            count: int
+        registry = ToolRegistry()
+        registry.register(AgentTool("collect_jobs", "Collect jobs", ToolClass.READ,
+                                    Request, Response,
+                                    lambda args, context: {"items": [{"id": "job-1"},
+                                                                      {"id": "job-2"}],
+                                                           "count": 2}))
+        runtime = AgentRuntime(self.store, registry, profile_id="fixture", task="job_match")
+
+        result = runtime.run([{"name": "collect_jobs", "arguments": {"value": "page-1"}}],
+                             collection_contract=CollectionContract(
+                                 items_key="items", count_key="count", expected_count=2,
+                                 tail_key="id", expected_tail="job-2"))
+
+        self.assertEqual(result["state"], "COMPLETED")
+        self.assertEqual(result["stop_reason"], "SUCCESS_ARTIFACT_VERIFIED")
+        self.assertEqual(result["collection_result"]["observed_count"], 2)
+        trace = read_agent_trace(self.store, result["run_id"])
+        self.assertEqual(trace["terminal"]["collection_result"]["tail_matches"], True)
+        self.assertNotIn("job-2", json.dumps(trace))
 
     def test_invalid_cost_metadata_does_not_leave_an_unfinished_trace(self):
         before = self.store.count("audit_events")

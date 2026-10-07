@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from hashlib import sha256
 import re
+import time
 from typing import Any
 
 from services.career_profile.profile_access import TASK_PATHS
@@ -10,12 +11,16 @@ from services.agents.registry import (
     AgentToolContext, AgentToolError, PolicyDecision, ReviewDecision,
     ToolClass, ToolRegistry,
 )
+from services.agents.acceptance import CollectionContract, validate_collection_output
 from services.agents.traces import (
     MAX_AGENT_STEPS, append_agent_event, new_run_id, read_agent_trace,
 )
 
 
 _SAFE_TOOL = re.compile(r"^[a-z][a-z0-9_]{1,63}$")
+DEFAULT_RUN_DURATION_MS = 30_000
+MAX_RUN_DURATION_MS = 120_000
+_ESCAPE_OUTCOMES = {"AUTH_REQUIRED", "NOT_AVAILABLE", "SOURCE_CHANGED"}
 
 
 class AgentRuntime:
@@ -34,13 +39,22 @@ class AgentRuntime:
         self.registry.seal()
 
     def run(self, calls: object, *, cost_usd: float | None = None,
-            input_tokens: int | None = None, output_tokens: int | None = None) -> dict[str, Any]:
+            input_tokens: int | None = None, output_tokens: int | None = None,
+            max_duration_ms: int = DEFAULT_RUN_DURATION_MS,
+            collection_contract: CollectionContract | None = None) -> dict[str, Any]:
         self._validate_metrics(cost_usd, input_tokens, output_tokens)
+        if (type(max_duration_ms) is not int or not 1 <= max_duration_ms <= MAX_RUN_DURATION_MS):
+            raise ValueError("Agent run duration must be between one and 120000 milliseconds")
+        if collection_contract is not None and not isinstance(collection_contract, CollectionContract):
+            raise ValueError("Agent collection success contract is invalid")
+        started = time.monotonic()
+        deadline = started + max_duration_ms / 1000
         run_id = new_run_id()
         profile_ref = sha256(self.profile_id.encode("utf-8")).hexdigest()[:24]
         append_agent_event(self.store, run_id, "AGENT_RUN_STARTED", {
             "schema_version": 1, "task": self.task, "profile_ref": profile_ref,
-            "step_limit": MAX_AGENT_STEPS,
+            "step_limit": MAX_AGENT_STEPS, "max_duration_ms": max_duration_ms,
+            "success_artifact": "collection_output" if collection_contract else "all_tools_completed",
         })
         if not isinstance(calls, list):
             calls = []
@@ -49,8 +63,15 @@ class AgentRuntime:
             state = "COMPLETED"
         results = []
         context = AgentToolContext(run_id=run_id, profile_id=self.profile_id,
-                                   task=self.task)
+                                   task=self.task, deadline_monotonic=deadline,
+                                   max_duration_ms=max_duration_ms)
+        stop_reason = None
+        collection_result = None
         for index, call in enumerate(calls[:MAX_AGENT_STEPS], start=1):
+            if time.monotonic() >= deadline:
+                state = "LIMIT_REACHED"
+                stop_reason = "TIME_BUDGET_EXHAUSTED"
+                break
             name = call.get("name") if isinstance(call, dict) else None
             safe_name = name if isinstance(name, str) and _SAFE_TOOL.fullmatch(name) else "INVALID_TOOL_NAME"
             arguments = call.get("arguments") if isinstance(call, dict) else None
@@ -59,7 +80,14 @@ class AgentRuntime:
                 result_code = "PROPOSAL_PENDING" if proposal_id else "OK"
             except AgentToolError as error:
                 output, proposal_id, result_code = {}, None, error.code
-                state = "REJECTED" if error.code in ("UNKNOWN_TOOL", "INVALID_ARGUMENTS", "ARGUMENTS_TOO_LARGE") else "FAILED"
+                if error.code in _ESCAPE_OUTCOMES:
+                    state = error.code
+                    stop_reason = error.code
+                elif error.code == "TIME_BUDGET_EXHAUSTED":
+                    state = "LIMIT_REACHED"
+                    stop_reason = error.code
+                else:
+                    state = "REJECTED" if error.code in ("UNKNOWN_TOOL", "INVALID_ARGUMENTS", "ARGUMENTS_TOO_LARGE") else "FAILED"
             append_agent_event(self.store, run_id, "AGENT_TOOL_STEP", {
                 "step": index, "tool_name": safe_name,
                 "classification": self._classification(name),
@@ -71,15 +99,44 @@ class AgentRuntime:
                             "output": output, "proposal_id": proposal_id})
             if state in ("REJECTED", "FAILED"):
                 break
+            if stop_reason is not None:
+                break
             if proposal_id:
                 state = "REVIEW_REQUIRED"
-        if len(calls) > MAX_AGENT_STEPS:
+                stop_reason = "REVIEW_REQUIRED"
+            if time.monotonic() >= deadline:
+                state = "LIMIT_REACHED"
+                stop_reason = "TIME_BUDGET_EXHAUSTED"
+                break
+        if len(calls) > MAX_AGENT_STEPS and stop_reason is None:
             state = "LIMIT_REACHED"
+            stop_reason = "STEP_BUDGET_EXHAUSTED"
+        if state == "COMPLETED" and collection_contract is not None:
+            collection_result = validate_collection_output(
+                results[-1]["output"] if results else None, collection_contract)
+            if collection_result.code != "OUTPUT_VALID":
+                state = "OUTPUT_UNVERIFIED"
+                stop_reason = collection_result.code
+            else:
+                stop_reason = "SUCCESS_ARTIFACT_VERIFIED"
+        if stop_reason is None:
+            stop_reason = state
+        consumed_ms = max(0, int(round((time.monotonic() - started) * 1000)))
         append_agent_event(self.store, run_id, "AGENT_RUN_TERMINAL", {
             "state": state, "step_count": len(results), "cost_usd": cost_usd,
             "input_tokens": input_tokens, "output_tokens": output_tokens,
+            "stop_reason": stop_reason, "budget_consumed_ms": consumed_ms,
+            "collection_result": ({"code": collection_result.code,
+                                   "observed_count": collection_result.observed_count,
+                                   "tail_matches": collection_result.tail_matches}
+                                  if collection_result else None),
         })
-        return {"run_id": run_id, "state": state, "steps": results}
+        return {"run_id": run_id, "state": state, "steps": results,
+                "stop_reason": stop_reason,
+                "collection_result": ({"code": collection_result.code,
+                                       "observed_count": collection_result.observed_count,
+                                       "tail_matches": collection_result.tail_matches}
+                                      if collection_result else None)}
 
     @staticmethod
     def _validate_metrics(cost_usd, input_tokens, output_tokens):
