@@ -316,8 +316,8 @@
       ],
       "evidence_path": "docs/evidence/2026-10-07-source-candidate-catalogue.json",
       "scope_complete": false,
-      "note": "Passive source catalogue/review slice committed at 5b49d595ff48615c8a82a3e383a8ac3d82261578 (tree 21fd61d0c08a9e5d524004bb7e7b367d77ae841b). Full Python 954 run/8 skipped, frontend 63/build, focused 10 API/browser and disposable SQLite migration checks pass. Existing supported source/browser capture entry points, documented source evaluation/integration tasks, PostgreSQL/Docker and live source evidence remain incomplete; issue stays OPEN/PARTIAL."
+      "note": "Partial catalogue integrated at fb21927f307289b5ed4f1acb5c9b4a862548d905. Follow-up URL-only report integrated locally at 20e6835308209c7ae8366d7791215db642ec9ad0: source reports can omit job metadata, preserve source URL/origin, sanitize query secrets, remain profile-scoped/idempotent and never create applications or open links. Full Python 955 run/8 skipped, frontend 63/build, focused 12, validators pass. Supported provider/browser capture hooks and documented integration evaluation/task remain open; issue remains OPEN/PARTIAL."
     }
   ],
-  "generated_at": "2026-10-07T14:05:05Z"
+  "generated_at": "2026-10-07T17:45:53Z"
 }

@@ -626,6 +626,27 @@
       "released_at": "2026-10-07T17:29:00Z",
       "integrated_main": "f48085f5e915e0070817dcc86628b0ce7b19a3fa",
       "issue_comment": "https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6043192502"
+    },
+    {
+      "issue": 517,
+      "requirement_id": "MJ-FEATURE-DISCOVERED-JOB-SOURCE-CATALOGUE",
+      "branch": "codex/mj-req517-source-candidate-catalogue-20261007",
+      "worktree": ".worktrees/codex-mj-req517-source-candidate-catalogue-20261007",
+      "head": "20e6835308209c7ae8366d7791215db642ec9ad0",
+      "paths": [
+        "services/source_candidates/catalogue.py",
+        "apps/api/main.py",
+        "apps/web/src/main.tsx",
+        "tests/integration/test_source_candidates.py",
+        "tests/browser/test_source_candidates.py",
+        "docs/evidence/2026-10-07-source-candidate-catalogue.json",
+        "planning/lanes/codex/**"
+      ],
+      "status": "ACTIVE",
+      "claimed_at": "2026-10-07T17:30:19Z",
+      "claim_comment": "https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6043233879",
+      "evidence_path": "docs/evidence/2026-10-07-source-candidate-catalogue.json",
+      "result": "URL-only user source report complete locally; issue remains PARTIAL/OPEN"
     }
   ]
 }

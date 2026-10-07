@@ -4,7 +4,7 @@
   "requirement_id": "MJ-FEATURE-DISCOVERED-JOB-SOURCE-CATALOGUE",
   "title": "Catalogue discovered third-party job sources",
   "status": "PARTIAL",
-  "recorded_at_utc": "2026-10-07T17:19:46Z",
+  "recorded_at_utc": "2026-10-07T17:45:53Z",
   "base_main": "71332ef5536b1eab1ed0c1442102eeeafb2a5d1c",
   "source_commit": "5b49d595ff48615c8a82a3e383a8ac3d82261578",
   "source_tree": "21fd61d0c08a9e5d524004bb7e7b367d77ae841b",
@@ -62,5 +62,29 @@
   },
   "evidence_privacy": "Only synthetic profile, employer, job, URL and browser data were used. No private resume, credentials, cookies, application database, or raw private logs are included.",
   "validated_candidate_commit": "5b49d595ff48615c8a82a3e383a8ac3d82261578",
-  "validated_candidate_tree": "21fd61d0c08a9e5d524004bb7e7b367d77ae841b"
+  "validated_candidate_tree": "21fd61d0c08a9e5d524004bb7e7b367d77ae841b",
+  "continuation_slices": [
+    {
+      "issue": 517,
+      "base_main": "42b4bca869b71bd5d64cad5b56b2b66ae764ed12",
+      "source_commit": "20e6835308209c7ae8366d7791215db642ec9ad0",
+      "source_tree": "8c47a33424aab1104dbc3436b301a65b44630558",
+      "status": "PARTIAL",
+      "acceptance_oracle": "A profile user can record a third-party URL and optional reported discovery origin without supplying title, employer, job description, or an application record. Reload shows the source URL in source provenance, application URL remains Unknown, and no external request occurs. Replaying an identical request returns the existing observation; reusing its request ID with different provenance returns HTTP 409 and preserves the original history.",
+      "implementation": "Added POST /source-candidates and a connected Sources form. The service reuses profile-scoped candidate capture with explicit unknown hops and URL sanitization; it creates no job or application. Invalid profile is not found, invalid URL is rejected, collection stays disabled, and source access is never attempted.",
+      "validation": {
+        "focused_command": "python -m unittest tests.integration.test_source_candidates tests.browser.test_source_candidates tests.browser.test_manual_job_capture tests.browser.test_external_application_capture tests.integration.test_external_application_capture",
+        "focused_result": "12 tests PASS; exact source commit 20e6835308209c7ae8366d7791215db642ec9ad0",
+        "full_python_command": "python -m unittest discover -s tests -p 'test_*.py'",
+        "full_python_result": "955 tests run; 0 failures/errors; 8 skipped",
+        "frontend_tests": "13 files passed; 63 tests passed",
+        "frontend_build": "TypeScript check and Vite production build PASS",
+        "validators": "agent_skills, catalogue, progress, lane_coordination and git diff --check PASS",
+        "migration": "No schema change in this continuation; prior slice migration evidence remains in this file.",
+        "hosted_checks": "NOT_RUN_BY_USER_POLICY",
+        "external_submission": "OFF"
+      },
+      "remaining_scope": "Supported provider/browser discovery capture entry points, documented API/feed/access and capability/limit/cost evaluation, and a bounded integration task/provider-issue link remain incomplete. #517 remains OPEN/PARTIAL."
+    }
+  ]
 }
