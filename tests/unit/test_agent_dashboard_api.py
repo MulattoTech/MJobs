@@ -43,6 +43,33 @@ class AgentDashboardApiTests(unittest.TestCase):
 
 
 
+
+    def test_terminal_websocket_streams_appended_bytes(self):
+        supervisor = self.client.app.state.supervisor
+        log = supervisor.log_path("codex")
+        log.parent.mkdir(parents=True, exist_ok=True)
+        log.write_text("old\n", encoding="utf-8")
+        supervisor.runtime["lanes"]["codex"].update({
+            "run_id": "stream-test",
+            "status": "RUNNING",
+            "log_start_offset": log.stat().st_size,
+            "native_log_path": None,
+        })
+        with self.client.websocket_connect("/ws/lanes/codex/terminal") as ws:
+            first = ws.receive_json()
+            self.assertEqual(first["type"], "run")
+            with log.open("a", encoding="utf-8") as handle:
+                handle.write("LIVE BYTE TEST\n")
+                handle.flush()
+            deadline = __import__("time").time() + 3
+            while True:
+                message = ws.receive_json()
+                if message.get("type") == "data":
+                    self.assertIn("LIVE BYTE TEST", message["data"])
+                    break
+                if __import__("time").time() > deadline:
+                    self.fail("terminal did not stream appended bytes")
+
     def test_terminal_websocket_emits_run_metadata(self):
         with self.client.websocket_connect("/ws/lanes/codex/terminal") as ws:
             message = ws.receive_json()
