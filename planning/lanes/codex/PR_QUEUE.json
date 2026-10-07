@@ -284,11 +284,24 @@
       "depends_on": [],
       "evidence_path": "docs/evidence/2026-10-07-compose-log-rotation.json",
       "scope_complete": true,
-      "note": "All nine Compose services render bounded json-file log rotation (10 MiB × 5 files). Existing managed feedback sessions are pruned after 30 days; raw Playwright traces and product HTML snapshots are not stored. Focused config/live-feedback/artifact tests: 20 PASS; Compose config and local validators PASS. Synthetic no-network Docker runtime check: 50 large lines emitted, 11 retained with 1 MiB × 2 rotation, exit 0; production MJobs services untouched. Evidence docs/evidence/2026-10-07-compose-log-rotation.json. Integrated PASS at 8bea57e595e19e638913405a8ec1cd3aa0ebde32; issue CLOSED/readback verified. Evidence docs/evidence/2026-10-07-compose-log-rotation.json.",
+      "note": "All nine Compose services render bounded json-file log rotation (10 MiB \u00d7 5 files). Existing managed feedback sessions are pruned after 30 days; raw Playwright traces and product HTML snapshots are not stored. Focused config/live-feedback/artifact tests: 20 PASS; Compose config and local validators PASS. Synthetic no-network Docker runtime check: 50 large lines emitted, 11 retained with 1 MiB \u00d7 2 rotation, exit 0; production MJobs services untouched. Evidence docs/evidence/2026-10-07-compose-log-rotation.json. Integrated PASS at 8bea57e595e19e638913405a8ec1cd3aa0ebde32; issue CLOSED/readback verified. Evidence docs/evidence/2026-10-07-compose-log-rotation.json.",
       "source_commit": "1e11348ec1e10f401453e1d31ba68d651ea2c540",
       "source_tree": "df9c3d652ad127facc01b3300475e562fbde65b0",
       "integration_commit": "8bea57e595e19e638913405a8ec1cd3aa0ebde32",
       "release_comment": "https://github.com/MulattoTech/MJobs/issues/179#issuecomment-6041087412"
+    },
+    {
+      "issue": 180,
+      "requirement_id": "MJ-REQ-179",
+      "status": "IN_PROGRESS_PARTIAL",
+      "priority": 1,
+      "target_area": "services/applications/mock_adapter.py; services/applications/debug_capture.py; services/applications/browser_capture.py; workers/tasks.py; cli/live_feedback.py; compose.yml; tests/browser/test_mock_application.py; tests/unit/test_browser_debug_capture.py; tests/unit/test_compose_modes.py",
+      "depends_on": [
+        181
+      ],
+      "evidence_path": "docs/evidence/2026-10-07-safe-browser-debug-capture.json",
+      "scope_complete": false,
+      "note": "The local mock browser failure capture is implemented and pushed on f8d07ca9a83e9f61541ad74f2bcb1c1c46f02165 (tree 9f09bf53f637aff637be8f8c4188667c050cf167). Exact-head targeted validation: 73 tests, 72 PASS, 1 optional PostgreSQL skip. Compose default-off/opt-in, redacted screenshot and structural DOM, sanitized URL, error-only console/network fingerprints, 30-day/20-attempt retention, REVIEW_REQUIRED and SUBMISSION_UNCONFIRMED/no-blind-retry behavior are covered. Validators pass. Repository-wide discovery at prior source commit failed (948 run, 2 failures, 9 errors, 28 skipped) and is not called PASS. Real ATS adapters/live PostgreSQL/hosted checks were NOT_RUN; external submission OFF. Evidence: docs/evidence/2026-10-07-safe-browser-debug-capture.json."
     }
   ],
   "generated_at": "2026-10-07T14:05:05Z"

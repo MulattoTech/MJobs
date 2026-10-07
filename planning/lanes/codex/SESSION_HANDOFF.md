@@ -83,3 +83,14 @@ Issue #9 / MJ-REQ-008 checkpoint (2026-10-07T13:05:44Z): source `9c4dfacdeb5f658
 
 
 Issue #5 / MJ-REQ-004 checkpoint (2026-10-07T13:13:02Z): source `0a14aaa2d9c0fe2cb1ae0c94a3281a1ebd99987f` replaces unbounded Compose recovery stdout/stderr capture with a 2 MiB bounded stdout runner, drained stderr, strict timeout, child terminate/reap, and fixed sanitized errors. Both `docker compose` and recovery-worker `docker inspect` use the runner. Pre-fix red reproduced returning 2 MiB + 1 bytes without refusal; focused 4 PASS, all 408 unit tests PASS, validators PASS. Evidence `docs/evidence/2026-10-07-compose-recovery-output-bounds.json`. Live Compose recovery intentionally NOT_RUN to avoid stopping/restarting local services; issue remains OPEN/PARTIAL. Claim: https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6038614779.
+
+
+## Active issue #180 / MJ-REQ-179 checkpoint — 2026-10-07T16:01:18Z
+
+Branch: `codex/mj-req179-safe-browser-debug-capture-20261007`; worktree: `.worktrees/codex-mj-req179-safe-debug-capture-20261007`; base main: `bd92e070dba13513e78e6127664417c5082fd337`; source: `f8d07ca9a83e9f61541ad74f2bcb1c1c46f02165`; tree: `9f09bf53f637aff637be8f8c4188667c050cf167`.
+
+The local mock browser failure capture is implemented and pushed on f8d07ca9a83e9f61541ad74f2bcb1c1c46f02165 (tree 9f09bf53f637aff637be8f8c4188667c050cf167). Exact-head targeted validation: 73 tests, 72 PASS, 1 optional PostgreSQL skip. Compose default-off/opt-in, redacted screenshot and structural DOM, sanitized URL, error-only console/network fingerprints, 30-day/20-attempt retention, REVIEW_REQUIRED and SUBMISSION_UNCONFIRMED/no-blind-retry behavior are covered. Validators pass. Repository-wide discovery at prior source commit failed (948 run, 2 failures, 9 errors, 28 skipped) and is not called PASS. Real ATS adapters/live PostgreSQL/hosted checks were NOT_RUN; external submission OFF. Evidence: docs/evidence/2026-10-07-safe-browser-debug-capture.json.
+
+Focused acceptance oracle is the synthetic local mock browser flow: capture is opt-in; structural DOM and screenshot are redacted; error state persists; ambiguous submission does not retry. Exact-head focused suites: 73 run, 72 PASS, one optional PostgreSQL skip. Exact-head agent_skills, catalogue, progress, lane coordination and diff checks PASS. Full discovery at prior source: 948 run, 2 failures, 9 errors, 28 skipped; output was truncated by terminal transport and no attribution is claimed.
+
+GitHub Actions/review NOT_RUN_BY_USER_POLICY; live PostgreSQL and real ATS NOT_RUN; external submission OFF. Preserve untracked `events.jsonl` in the worktree. Next: acquire integration lock, reconcile and fast-forward only if main remains ancestor; then release claim and select next unclaimed dependency-ready issue.

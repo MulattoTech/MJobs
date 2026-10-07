@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "issue": 180,
+  "requirement_id": "MJ-REQ-179",
+  "title": "Debug Capture",
+  "status": "PARTIAL",
+  "recorded_at_utc": "2026-10-07T16:01:18Z",
+  "base_main": "bd92e070dba13513e78e6127664417c5082fd337",
+  "source_commit": "f8d07ca9a83e9f61541ad74f2bcb1c1c46f02165",
+  "source_tree": "9f09bf53f637aff637be8f8c4188667c050cf167",
+  "branch": "codex/mj-req179-safe-browser-debug-capture-20261007",
+  "acceptance_oracle": "When the existing local mock browser flow fails with opt-in enabled, write bounded screenshot/structural-DOM/URL/console-error/network-error/current-step diagnostics while keeping content redacted; preserve REVIEW_REQUIRED and SUBMISSION_UNCONFIRMED semantics. With the runtime option omitted, debug capture remains disabled.",
+  "implementation": {
+    "enabled_by": "MJOBS_BROWSER_DEBUG_CAPTURE=1",
+    "default": "OFF (Compose renders 0 for worker, source-worker, document-worker)",
+    "capture_scope": "Existing local mock ATS Playwright flow only; files are stored beneath the private configured output directory per application and attempt.",
+    "privacy": [
+      "Screenshot reuses the accepted privacy helper: visible text, controls, and embedded media are hidden; failure capture is viewport-only and timeout-bounded.",
+      "DOM artifact contains allowlisted structural element/ARIA-role counts only; page text, attributes, and control values are omitted.",
+      "URL credentials, query, fragment, and path identifiers are removed; path shape is retained.",
+      "Console captures only error-level messages; console/page/network messages are represented by process-keyed HMAC fingerprints and bounded lengths, never raw message strings.",
+      "Per-application retention is capped at 30 days and 20 managed attempt directories; event count is capped at 50 and screenshot file at 5 MiB.",
+      "Diagnostic write failures are best-effort and do not replace the original browser error."
+    ],
+    "submission_safety": "Synthetic browser tests show a pre-submit failure remains REVIEW_REQUIRED, missing post-submit receipt remains SUBMISSION_UNCONFIRMED, and re-entry does not submit twice.",
+    "limitation": "No real ATS/browser adapter exists in this accepted local product surface. Requirement remains PARTIAL until applicable real-browser adapters and broader capture surfaces are covered."
+  },
+  "validation": {
+    "focused_exact_head": {
+      "source_commit": "f8d07ca9a83e9f61541ad74f2bcb1c1c46f02165",
+      "command": "python -m unittest tests.unit.test_browser_debug_capture tests.unit.test_compose_modes tests.unit.test_live_feedback tests.browser.test_mock_application tests.browser.test_live_feedback_redaction tests.integration.test_application_pipeline tests.integration.test_application_preflight tests.integration.test_worker_lifecycle -v",
+      "result": "72 PASS, 1 optional PostgreSQL test skipped; 73 run; 0 failures/errors"
+    },
+    "previous_broad_discovery": {
+      "source_commit": "6d3b2893f18289fc76b29ce8955dfb2fb103b58d",
+      "command": "python -m unittest discover -s tests -p 'test_*.py'",
+      "result": "FAILED; 948 run; 2 failures, 9 errors, 28 skipped. This result is retained as failure; output did not preserve all failing test names, and no unrelated-failure attribution is claimed."
+    },
+    "validators": {
+      "source_commit": "f8d07ca9a83e9f61541ad74f2bcb1c1c46f02165",
+      "commands": [
+        "python -m tools.verification.agent_skills",
+        "python -m tools.verification.catalogue",
+        "python -m tools.verification.progress validate",
+        "python -m tools.coordination.lane_coordination validate",
+        "git diff --check"
+      ],
+      "result": "PASS"
+    },
+    "compileall": "Changed Python modules compiled successfully before the final console-error-only refinement; exact-head Python tests imported and exercised the changed modules.",
+    "browser": "Local headless Chromium against synthetic mock ATS and synthetic redaction pages; no live ATS.",
+    "compose": "Docker Compose config render assertions passed for default OFF and explicit opt-in ON; running MJobs services were not restarted.",
+    "postgresql": "NOT_RUN as a live service; one optional PostgreSQL worker-recovery test skipped because MJOBS_WORKER_RECOVERY_POSTGRES_URL was unset.",
+    "hosted_checks": "NOT_RUN_BY_USER_POLICY; GitHub Actions/reviewers remain disabled.",
+    "external_submission": "OFF"
+  },
+  "evidence_privacy": "All fixtures and browser inputs were synthetic. No user resume, credentials, cookies, database, or private logs are included.",
+  "remaining_gaps": [
+    "Capture is currently wired to the local mock ATS adapter only.",
+    "Repository-wide unittest discovery failed as recorded above; broad suite should be re-run after its failing tests are triaged."
+  ]
+}

@@ -549,6 +549,30 @@
       "integrated_main": "8bea57e595e19e638913405a8ec1cd3aa0ebde32",
       "source_commit": "1e11348ec1e10f401453e1d31ba68d651ea2c540",
       "result": "PASS; issue #179 fully evidenced and closed"
+    },
+    {
+      "issue": 180,
+      "requirement_id": "MJ-REQ-179",
+      "branch": "codex/mj-req179-safe-browser-debug-capture-20261007",
+      "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req179-safe-debug-capture-20261007",
+      "head": "f8d07ca9a83e9f61541ad74f2bcb1c1c46f02165",
+      "paths": [
+        "services/applications/mock_adapter.py",
+        "services/applications/debug_capture.py",
+        "services/applications/browser_capture.py",
+        "cli/live_feedback.py",
+        "workers/tasks.py",
+        "compose.yml",
+        "tests/browser/test_mock_application.py",
+        "tests/unit/test_browser_debug_capture.py",
+        "tests/unit/test_live_feedback.py",
+        "tests/unit/test_compose_modes.py",
+        "docs/evidence/2026-10-07-safe-browser-debug-capture.json",
+        "planning/lanes/codex/**"
+      ],
+      "status": "ACTIVE",
+      "claimed_at": "2026-10-07T15:35:33Z",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/180#issuecomment-6041173125"
     }
   ]
 }
