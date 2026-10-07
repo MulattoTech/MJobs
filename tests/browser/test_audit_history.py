@@ -128,6 +128,43 @@ class AuditHistoryBrowserTests(unittest.TestCase):
                     page.get_by_label("Job scoring model", exact=True).fill("llama3.2:3b")
                     page.get_by_role("button", name="Save AI task settings", exact=True).click()
                     expect(page.get_by_text("AI task settings saved for this profile.", exact=True)).to_be_visible()
+                    before_cost_policy_ids = page.evaluate("""async () => {
+                        const response = await fetch('/profiles/fixture/audit-history');
+                        const history = await response.json();
+                        return history.events.filter(event => event.type === 'SETTING_CHANGED')
+                            .map(event => event.id);
+                    }""")
+                    cost_panel = page.get_by_role("region", name="AI cost controls")
+                    cost_panel.get_by_role("button", name="Save AI cost policy", exact=True).click()
+                    expect(page.get_by_text("AI cost policy saved for this profile.", exact=True)).to_be_visible()
+                    after_default_cost_policy_ids = page.evaluate("""async () => {
+                        const response = await fetch('/profiles/fixture/audit-history');
+                        const history = await response.json();
+                        return history.events.filter(event => event.type === 'SETTING_CHANGED')
+                            .map(event => event.id);
+                    }""")
+                    self.assertEqual(after_default_cost_policy_ids, before_cost_policy_ids)
+                    cost_panel.get_by_label("Minimum deterministic score", exact=True).fill("74")
+                    cost_panel.get_by_role("button", name="Save AI cost policy", exact=True).click()
+                    expect(page.get_by_text("AI cost policy saved for this profile.", exact=True)).to_be_visible()
+                    after_changed_cost_policy_ids = page.evaluate("""async () => {
+                        const response = await fetch('/profiles/fixture/audit-history');
+                        const history = await response.json();
+                        return history.events.filter(event => event.type === 'SETTING_CHANGED')
+                            .map(event => event.id);
+                    }""")
+                    new_cost_policy_ids = [event_id for event_id in after_changed_cost_policy_ids
+                                           if event_id not in before_cost_policy_ids]
+                    self.assertEqual(len(new_cost_policy_ids), 1)
+                    cost_panel.get_by_role("button", name="Save AI cost policy", exact=True).click()
+                    expect(page.get_by_text("AI cost policy saved for this profile.", exact=True)).to_be_visible()
+                    after_repeated_cost_policy_ids = page.evaluate("""async () => {
+                        const response = await fetch('/profiles/fixture/audit-history');
+                        const history = await response.json();
+                        return history.events.filter(event => event.type === 'SETTING_CHANGED')
+                            .map(event => event.id);
+                    }""")
+                    self.assertEqual(after_repeated_cost_policy_ids, after_changed_cost_policy_ids)
                     page.get_by_role("button", name="Activity", exact=True).click()
                     history = page.get_by_role("list", name="Audit history")
                     expect(history).to_contain_text("A profile setting changed")
@@ -146,6 +183,7 @@ class AuditHistoryBrowserTests(unittest.TestCase):
                     expect(history).not_to_contain_text("job_scoring")
                     expect(history).not_to_contain_text("ollama")
                     expect(history).not_to_contain_text("llama3.2:3b")
+                    expect(history).not_to_contain_text("Minimum deterministic score")
                     before_search_setting_ids = page.evaluate("""async () => {
                         const response = await fetch('/profiles/fixture/audit-history');
                         const history = await response.json();

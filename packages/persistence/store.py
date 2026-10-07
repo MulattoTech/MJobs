@@ -412,12 +412,23 @@ class Store:
             raise ValueError("AI_FUNNEL_POLICY_INVALID")
         values = {key: policy[key] for key in fields}
         with self.engine.begin() as connection:
+            row = connection.execute(select(m.ai_cost_policies).where(
+                m.ai_cost_policies.c.profile_id == profile_id).with_for_update()
+            ).mappings().one_or_none()
+            current = ({key: row[key] for key in fields} if row is not None else {
+                "minimum_score": 75,
+                "max_input_candidates": 5000,
+                "max_ai_candidates": 75,
+                "max_document_candidates": 20,
+            })
             upsert(connection, m.ai_cost_policies, {
                 "id": identity(profile_id, "ai-cost-policy"),
                 "profile_id": profile_id,
                 **values,
                 "updated_at": now(),
             }, replace=True)
+            if values != current:
+                self._audit(connection, profile_id, "SETTING_CHANGED", {})
         return values
 
     def save_ai_evaluation_run(self, profile_id, profile_version, policy,

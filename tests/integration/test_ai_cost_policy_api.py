@@ -78,6 +78,65 @@ class AICostPolicyApiTests(unittest.TestCase):
         self.assertEqual(reopened.status_code, 200, reopened.text)
         self.assertEqual(reopened.json()["policy"], custom)
 
+    def test_effective_cost_policy_change_appends_one_value_free_audit_event(self):
+        default = {"minimum_score": 75, "max_input_candidates": 5000,
+                   "max_ai_candidates": 75, "max_document_candidates": 20}
+        changed = {"minimum_score": 74, "max_input_candidates": 5000,
+                   "max_ai_candidates": 75, "max_document_candidates": 20}
+
+        initial = self.client.get("/profiles/fixture/audit-history")
+        self.assertEqual(initial.status_code, 200, initial.text)
+        self.assertFalse(any(event["type"] == "SETTING_CHANGED"
+                             for event in initial.json()["events"]))
+
+        default_save = self.client.put("/profiles/fixture/ai-cost-policy", json=default)
+        self.assertEqual(default_save.status_code, 200, default_save.text)
+        after_default = self.client.get("/profiles/fixture/audit-history").json()["events"]
+        self.assertFalse(any(event["type"] == "SETTING_CHANGED" for event in after_default))
+
+        changed_save = self.client.put("/profiles/fixture/ai-cost-policy", json=changed)
+        self.assertEqual(changed_save.status_code, 200, changed_save.text)
+        history = self.client.get("/profiles/fixture/audit-history")
+        self.assertEqual(history.status_code, 200, history.text)
+        setting_events = [event for event in history.json()["events"]
+                          if event["type"] == "SETTING_CHANGED"]
+        self.assertEqual(len(setting_events), 1, history.text)
+        self.assertEqual(setting_events[0]["summary"], "A profile setting changed")
+        self.assertEqual(set(setting_events[0]), {
+            "id", "type", "summary", "subject", "company", "timestamp",
+        })
+
+        with self.store.engine.connect() as connection:
+            rows = connection.execute(select(m.audit.c.payload).where(
+                m.audit.c.entity_id == "fixture",
+                m.audit.c.action == "SETTING_CHANGED",
+            )).all()
+        self.assertEqual([row[0] for row in rows], [{}])
+
+        other_history = self.client.get("/profiles/other-profile/audit-history")
+        self.assertEqual(other_history.status_code, 200, other_history.text)
+        self.assertFalse(any(event["type"] == "SETTING_CHANGED"
+                             for event in other_history.json()["events"]))
+
+        repeated = self.client.put("/profiles/fixture/ai-cost-policy", json=changed)
+        self.assertEqual(repeated.status_code, 200, repeated.text)
+        after_repeat = self.client.get("/profiles/fixture/audit-history").json()["events"]
+        self.assertEqual([event["id"] for event in after_repeat
+                          if event["type"] == "SETTING_CHANGED"],
+                         [setting_events[0]["id"]])
+
+        self.client.close()
+        self.store.engine.dispose()
+        self.store = Store(self.database_url)
+        self.client = TestClient(create_app(self.store, "http://127.0.0.1:8090", self.root,
+                                            "redis://127.0.0.1:1/0", operation_mode="PERSONAL"))
+        reopened = self.client.get("/profiles/fixture/audit-history")
+        self.assertEqual(reopened.status_code, 200, reopened.text)
+        reopened_settings = [event for event in reopened.json()["events"]
+                             if event["type"] == "SETTING_CHANGED"]
+        self.assertEqual([event["id"] for event in reopened_settings],
+                         [setting_events[0]["id"]])
+
     def test_invalid_or_secret_bearing_policy_is_rejected_without_echo(self):
         for value in (
             {"minimum_score": 101, "max_input_candidates": 5000,
