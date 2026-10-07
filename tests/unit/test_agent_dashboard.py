@@ -7,6 +7,7 @@ import unittest
 from pathlib import Path
 
 from tools.agent_dashboard.supervisor import AgentSupervisor, classify_exit
+from tools.agent_dashboard.observability import offload_layers, normalize_codex_rate_limits
 
 
 class AgentDashboardSupervisorTests(unittest.TestCase):
@@ -20,6 +21,32 @@ class AgentDashboardSupervisorTests(unittest.TestCase):
 
     def tearDown(self):
         self.temp.cleanup()
+
+
+    def test_gpu_offload_percent_maps_to_model_blocks(self):
+        self.assertEqual(offload_layers(30, 100), 30)
+        self.assertEqual(offload_layers(30, 50), 15)
+        self.assertEqual(offload_layers(30, 25), 8)
+        self.assertEqual(offload_layers(30, 0), 0)
+
+    def test_codex_rate_limit_normalization_reports_remaining_percent(self):
+        result = normalize_codex_rate_limits({
+            "ordinaryUsageAllowed": True,
+            "rateLimits": {
+                "limitId": "codex",
+                "planType": "prolite",
+                "primary": {"usedPercent": 8, "windowDurationMins": 10080, "resetsAt": 1791779899},
+                "secondary": None,
+                "credits": {"hasCredits": True, "unlimited": False, "balance": "1902.97"},
+                "spendControlReached": False,
+            },
+            "rateLimitResetCredits": {"availableCount": 1},
+        })
+        self.assertTrue(result["available"])
+        self.assertEqual(result["used_percent"], 8)
+        self.assertEqual(result["remaining_percent"], 92)
+        self.assertEqual(result["window_minutes"], 10080)
+        self.assertEqual(result["reset_credits_available"], 1)
 
     def test_exit_classification_distinguishes_gate_quota_and_success(self):
         self.assertEqual(classify_exit(0, "Do you approve the recommended design?"), "WAITING_APPROVAL")

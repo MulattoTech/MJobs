@@ -60,3 +60,22 @@ pre {
 .repo-summary span { padding: .35rem .5rem; background: #121720; border: 1px solid #252c38; border-radius: 7px; font-size: .75rem; }
 #alerts > div { padding: .7rem .85rem; margin-bottom: .8rem; border-radius: 9px; background: #3b2e16; border: 1px solid #765b28; color: #f5ce7f; }
 @media (max-width: 720px) { header { align-items: flex-start; flex-direction: column; } main { padding: .75rem; } }
+
+.status-stack { display:flex; flex-direction:column; align-items:flex-end; gap:.35rem; }
+.pill.active { border-color:#287e55; color:#7ae3ac; }
+.pill.quiet { border-color:#8f6e27; color:#ffd278; }
+.pill.stopped, .pill.unknown { color:#8e97a6; }
+.metrics-six { grid-template-columns:repeat(3,1fr); }
+.usage-panel { margin:.8rem 0; padding:.7rem; background:#10151e; border:1px solid #262e3a; border-radius:9px; }
+.usage-head { display:flex; justify-content:space-between; gap:.5rem; font-size:.78rem; }
+.usage-meta { margin-top:.35rem; color:#8e98a7; font-size:.7rem; line-height:1.35; }
+.progress { height:9px; background:#232a35; border-radius:999px; overflow:hidden; margin-top:.45rem; }
+.usage-fill { height:100%; width:0; background:linear-gradient(90deg,#4777bf,#64a8e8); transition:width .25s ease; }
+.gpu-control { margin:.8rem 0; padding:.7rem; background:#10151e; border:1px solid #2c3441; border-radius:9px; }
+.hidden { display:none !important; }
+input[type="range"] { padding:0; accent-color:#6ea8e8; }
+.helper, .workspace { color:#8994a4; font-size:.7rem; line-height:1.35; margin-top:.35rem; word-break:break-word; }
+code { font-family:"Cascadia Code",Consolas,monospace; font-size:.95em; }
+@media (min-width: 1200px) {
+  .lane-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+}

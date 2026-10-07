@@ -8,7 +8,7 @@ import uvicorn
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from .supervisor import AgentSupervisor, LANES
@@ -21,6 +21,7 @@ class LanePatch(BaseModel):
     auto_continue: bool | None = None
     prompt_file: str | None = None
     prompt_override: str | None = None
+    gpu_offload_percent: int | None = Field(default=None, ge=0, le=100)
 
 
 def create_app(root: Path | None = None) -> FastAPI:

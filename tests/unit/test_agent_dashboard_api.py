@@ -42,5 +42,18 @@ class AgentDashboardApiTests(unittest.TestCase):
         self.assertEqual(state["lanes"]["antigravity"]["runtime"]["status"], "STOPPED")
 
 
+    def test_ollama_gpu_offload_percent_is_validated_and_persisted(self):
+        response = self.client.patch(
+            "/api/lanes/ollama/config",
+            json={"gpu_offload_percent": 45},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["gpu_offload_percent"], 45)
+        bad = self.client.patch(
+            "/api/lanes/ollama/config",
+            json={"gpu_offload_percent": 120},
+        )
+        self.assertEqual(bad.status_code, 422)
+
 if __name__ == "__main__":
     unittest.main()

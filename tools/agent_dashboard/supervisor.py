@@ -13,6 +13,16 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from .observability import (
+    log_activity,
+    ollama_ps,
+    prepare_ollama_model,
+    process_tree,
+    read_codex_rate_limits,
+    windows_gpu_snapshot,
+    windows_process_snapshot,
+)
+
 LANES = ("codex", "antigravity", "ollama")
 
 DEFAULTS: dict[str, dict[str, Any]] = {
@@ -36,6 +46,7 @@ DEFAULTS: dict[str, dict[str, Any]] = {
         "auto_continue": True,
         "prompt_file": "prompts/PARALLEL_OLLAMA_LANE.md",
         "runner": "opencode",
+        "gpu_offload_percent": 100,
     },
 }
 
@@ -124,6 +135,7 @@ class AgentSupervisor:
         self._children: dict[str, Child] = {}
         self._stop_requested: set[str] = set()
         self._fast_exits: dict[str, list[float]] = {lane: [] for lane in LANES}
+        self._telemetry_cache: dict[str, tuple[float, Any]] = {}
         self.config = self._load_config()
         self.runtime = self._load_runtime()
         self._monitor = threading.Thread(target=self._monitor_loop, daemon=True)
@@ -183,7 +195,10 @@ class AgentSupervisor:
 
     def update_config(self, lane: str, patch: dict[str, Any]) -> dict[str, Any]:
         self._require_lane(lane)
-        allowed = {"model", "reasoning", "auto_continue", "prompt_file", "prompt_override"}
+        allowed = {
+            "model", "reasoning", "auto_continue", "prompt_file",
+            "prompt_override", "gpu_offload_percent",
+        }
         with self._lock:
             for key, value in patch.items():
                 if key in allowed:
@@ -263,23 +278,29 @@ class AgentSupervisor:
             + suffix
         )
 
-    def _command(self, lane: str, workspace: Path | None = None) -> list[str]:
+    def _command(
+        self,
+        lane: str,
+        workspace: Path | None = None,
+        model_override: str | None = None,
+    ) -> list[str]:
         cfg = self.config["lanes"][lane]
         prompt = self._prompt(lane)
         workspace = workspace or self.root
+        model = model_override or str(cfg["model"])
         if lane == "codex":
             return [
-                "codex", "exec", "-C", str(workspace), "-m", str(cfg["model"]),
+                "codex", "exec", "-C", str(workspace), "-m", model,
                 "-c", f'model_reasoning_effort="{cfg.get("reasoning", "high")}"',
                 "-s", "danger-full-access", prompt,
             ]
         if lane == "antigravity":
             return [
-                "agy", "--print", prompt, "--model", str(cfg["model"]),
+                "agy", "--print", prompt, "--model", model,
                 "--mode", "accept-edits", "--dangerously-skip-permissions",
             ]
         return [
-            "opencode", "run", "--pure", "--model", str(cfg["model"]),
+            "opencode", "run", "--pure", "--model", model,
             "--auto", prompt,
         ]
 
@@ -325,8 +346,10 @@ class AgentSupervisor:
             f"Unable to resolve runner {name!r}. Install it or add it to PATH."
         )
 
-    def _launch_command(self, lane: str, workspace: Path) -> list[str]:
-        command = self._command(lane, workspace)
+    def _launch_command(
+        self, lane: str, workspace: Path, model_override: str | None = None
+    ) -> list[str]:
+        command = self._command(lane, workspace, model_override=model_override)
         return self._runner_prefix(command[0]) + command[1:]
 
     def _workspace_for_lane(self, lane: str) -> Path:
@@ -382,6 +405,14 @@ class AgentSupervisor:
                 self._stop_requested.discard(lane)
                 self._fast_exits[lane].clear()
             workspace = self._workspace_for_lane(lane)
+            effective_model = str(self.config["lanes"][lane]["model"])
+            gpu_offload = None
+            if lane == "ollama":
+                effective_model, gpu_offload = prepare_ollama_model(
+                    effective_model,
+                    int(self.config["lanes"][lane].get("gpu_offload_percent", 100)),
+                    self.bus,
+                )
             log_path = self.log_path(lane)
             handle = open(log_path, "a", encoding="utf-8", buffering=1)
             handle.write(
@@ -391,7 +422,8 @@ class AgentSupervisor:
             env["MJOBS_LANE"] = lane
             flags = subprocess.CREATE_NEW_PROCESS_GROUP if os.name == "nt" else 0
             process = subprocess.Popen(
-                self._launch_command(lane, workspace), cwd=str(workspace), env=env,
+                self._launch_command(lane, workspace, model_override=effective_model),
+                cwd=str(workspace), env=env,
                 stdin=subprocess.DEVNULL, stdout=handle, stderr=subprocess.STDOUT,
                 text=True, creationflags=flags,
             )
@@ -400,6 +432,8 @@ class AgentSupervisor:
                 "pid": process.pid, "status": "RUNNING", "started_at": utc_now(),
                 "stopped_at": None, "exit_code": None, "last_reason": None,
                 "workspace": str(workspace),
+                "effective_model": effective_model,
+                "gpu_offload": gpu_offload,
             })
             self.save()
             return dict(current)
@@ -515,6 +549,27 @@ class AgentSupervisor:
                 self.runtime["lanes"][lane]["restart_count"] += 1
             self.start(lane, manual=False)
 
+    def _cached_telemetry(self, key: str, ttl: float, loader):
+        now = time.monotonic()
+        cached = self._telemetry_cache.get(key)
+        if cached and (now - cached[0]) < ttl:
+            return cached[1]
+        value = loader()
+        self._telemetry_cache[key] = (now, value)
+        return value
+
+    def telemetry_snapshot(self) -> dict[str, Any]:
+        processes = self._cached_telemetry("processes", 2.5, windows_process_snapshot)
+        gpu = self._cached_telemetry("gpu", 3.0, windows_gpu_snapshot)
+        codex_usage = self._cached_telemetry("codex_usage", 30.0, read_codex_rate_limits)
+        ollama = self._cached_telemetry("ollama_ps", 3.0, ollama_ps)
+        return {
+            "processes": processes,
+            "gpu": gpu,
+            "codex_usage": codex_usage,
+            "ollama": ollama,
+        }
+
     def coordination(self) -> dict[str, Any]:
         script = [sys.executable, "-m", "tools.coordination.lane_coordination", "status"]
         result = _run(script, self.root, timeout=10)
@@ -534,21 +589,72 @@ class AgentSupervisor:
         return {"branch": branch, "head": head, "origin_main": origin, "dirty": status, "worktrees": worktrees}
 
     def snapshot(self) -> dict[str, Any]:
+        telemetry = self.telemetry_snapshot()
+        gpu_by_pid = (telemetry.get("gpu") or {}).get("by_pid") or {}
         with self._lock:
             lanes = {}
             for lane in LANES:
                 state = dict(self.runtime["lanes"][lane])
                 if state.get("pid") and not pid_alive(state["pid"]):
                     state["status"] = "EXITED_UNRECONCILED"
+                activity = log_activity(self.log_path(lane), lane)
+                tree = process_tree(telemetry.get("processes") or [], state.get("pid"))
+                tree_gpu = [
+                    float(gpu_by_pid.get(str(item.get("pid")), 0.0))
+                    for item in tree
+                ]
+                observed_gpu = max(tree_gpu, default=0.0)
+                age = activity.get("last_activity_seconds")
+                if state.get("pid") and age is not None and age <= 20:
+                    activity_state = "ACTIVE"
+                elif state.get("pid"):
+                    activity_state = "QUIET"
+                else:
+                    activity_state = "STOPPED"
+
+                if lane == "codex":
+                    usage = telemetry.get("codex_usage") or {"available": False}
+                    visibility = (
+                        "codex exec is a separate one-shot process; it is not guaranteed "
+                        "to appear inside another interactive Codex /agents view"
+                    )
+                elif lane == "antigravity":
+                    usage = {
+                        "available": False,
+                        "message": "Antigravity CLI does not expose a quota percentage locally.",
+                    }
+                    visibility = "agy --print supervised process"
+                else:
+                    usage = {
+                        "available": True,
+                        "local": True,
+                        "message": "Local Ollama model; no cloud usage quota.",
+                    }
+                    visibility = "OpenCode + Ollama supervised process"
+
                 lanes[lane] = {
                     "config": self.lane_config(lane),
                     "runtime": state,
                     "command": self.command_preview(lane),
                     "log_tail": self.log_tail(lane, 40),
+                    "activity": {
+                        **activity,
+                        "state": activity_state,
+                        "process_tree": tree,
+                        "observed_gpu_percent": round(observed_gpu, 1),
+                        "visibility_note": visibility,
+                    },
+                    "usage": usage,
                 }
         return {
-            "time": utc_now(), "lanes": lanes, "git": self.git_state(),
+            "time": utc_now(),
+            "lanes": lanes,
+            "git": self.git_state(),
             "coordination": self.coordination(),
+            "system": {
+                "gpu": telemetry.get("gpu"),
+                "ollama": telemetry.get("ollama"),
+            },
         }
 
     @staticmethod
