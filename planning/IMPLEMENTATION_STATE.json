@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-07T07:17:15Z",
+  "generated_at": "2026-10-07T08:04:17Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -11,7 +11,7 @@
     "current_verified_github_state": "Local/GitHub main synchronized at cb2681b6a921f2759cf46d4d66a8228645b473e7; issue #6 remains OPEN/PARTIAL after local evidence readback; Actions disabled; external submission OFF.",
     "current_verified_at": "2026-10-07T05:08:16Z"
   },
-  "current_milestone": "MJ-REF-028-ENCRYPTED-PROVIDER-CREDENTIAL-STORE-20261007",
+  "current_milestone": "MJ-REF-016-DURABLE-DEAD-LETTER-QUEUE-20261007",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -64,7 +64,8 @@
     "MJ-REQ-017.S02: We Work Remotely global job-source adapter implemented with public RSS feed collection, multi-company attribution, canonical search semantics normalization, error/rate-limit handling, and registry integration (docs/evidence/2026-10-06-we-work-remotely-job-source-adapter.json).",
     "MJ-REQ-017.S07: Remote OK global job-source adapter implemented with public JSON collection, multi-company attribution, canonical search semantics normalization, error/rate-limit handling, and registry integration (docs/evidence/2026-10-06-remote-ok-job-source-adapter.json).",
     "MJ-REF-011 locally complete: operation-wide AI candidate deadline reaches each nested provider call as remaining time; prompt truncation is explicit and omitted details cannot be inferred; timeout/cancel reasons persist without partial evaluation history. Focused 50 PASS; full Python 854 PASS with one optional PostgreSQL skip; frontend build and repository validators PASS. Evidence docs/evidence/2026-10-07-ai-prompt-truncation.json and docs/evidence/2026-10-07-ai-operation-outcomes.json.",
-    "Profile-scoped AES-256-GCM provider credential storage with masked UI/API metadata, rotation/deletion, synthetic backup-theft/redaction tests, and bounded explicit provider connection checks"
+    "Profile-scoped AES-256-GCM provider credential storage with masked UI/API metadata, rotation/deletion, synthetic backup-theft/redaction tests, and bounded explicit provider connection checks",
+    "MJ-REF-016 / issue #386 locally complete: exhausted and terminal worker failures persist as DEAD_LETTERED with reason, stable operation identity, attempt timestamps/count, and append-only audit; profile-scoped Activity UI exposes count/reason and explicit retry/discard; ambiguous submissions stay reconciliation-only. Full Python 875 PASS with 1 optional PostgreSQL concurrency skip; frontend 63 PASS/build PASS; SQLite and temporary PostgreSQL 17 migration safety, connected browser, and repository validators PASS. Evidence docs/evidence/2026-10-07-dead-letter-queue.json."
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
@@ -103,7 +104,8 @@
     "MJ-REQ-004 structured AI evaluation cancellation now closes blocked loopback Ollama transport promptly and discards partial batches; synthetic local HTTP only. Other operation categories and live provider acceptance remain incomplete (docs/evidence/2026-10-07-ai-ollama-active-cancel.json).",
     "MJ-REQ-005 / issue #6 direct structured AI evaluations now reserve database-backed AI category capacity across API instances; generic durable cancellation propagates to provider cancellation; completed, cancelled and expired-lease outcomes are recorded. Full Python 849 PASS (1 optional PostgreSQL skip), 32 focused API/worker tests PASS, 8 browser tests PASS after building worktree UI, frontend 62 PASS/build PASS, validators PASS. Evidence docs/evidence/2026-10-07-ai-evaluation-concurrency-admission.json. Requirement remains PARTIAL: live PostgreSQL lock, live provider and real ATS behavior are not evidenced.",
     "MJ-REQ-008: durable synthetic product-worker process crash recovery and stale-attempt fencing are verified; physical host and browser-process crash recovery remain open.",
-    "Provider credentials are not yet routed into AI inference; master encryption-key rotation and complete original secret/diagnostic requirements remain open"
+    "Provider credentials are not yet routed into AI inference; master encryption-key rotation and complete original secret/diagnostic requirements remain open",
+    "MJ-REQ-156/160/183/184 advanced by the scoped MJ-REF-016 dead-letter slice; full persistent-operation, transient retry-policy, worker-health, and error-management requirements remain PARTIAL/NOT_RUN."
   ],
   "blocked_capabilities": [],
   "active_requirements": [
@@ -308,7 +310,8 @@
     "MJ-REF-011 prompt truncation: 47 focused AI unit/API integration tests PASS; exact-head full Python suite 854 PASS with one optional PostgreSQL skip; frontend build and repository validators PASS. Evidence docs/evidence/2026-10-07-ai-prompt-truncation.json",
     "MJ-REF-011 complete local acceptance: 50 focused AI unit/API tests PASS; 854 full Python tests PASS with one optional PostgreSQL skip; frontend build, repository validators, compileall, diff and coordination checks PASS. Timeout operation state survives Store/API reopen; cancellation persists with no partial history. Evidence docs/evidence/2026-10-07-ai-operation-outcomes.json.",
     "MJ-REF-028 focused credential unit/API/migration tests and connected Chromium flow passed.",
-    "MJ-REF-028 full Python suite: 867 tests run, 1 skipped, 0 failures; frontend 62 tests and production build passed; repository validators, scoped compile, pip check and diff checks passed."
+    "MJ-REF-028 full Python suite: 867 tests run, 1 skipped, 0 failures; frontend 62 tests and production build passed; repository validators, scoped compile, pip check and diff checks passed.",
+    "2026-10-07 #386 / MJ-REF-016: 875 Python tests PASS with one optional PostgreSQL concurrency skip; 63 frontend tests/build, connected dead-letter browser workflow, PostgreSQL 17 migration exercise, SQLite migration/reopen, validators and diff checks PASS. Evidence docs/evidence/2026-10-07-dead-letter-queue.json."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -324,7 +327,8 @@
     "MJ-REQ-005 candidate cb2681b6a921f2759cf46d4d66a8228645b473e7 first full run before building worktree apps/web/dist: 849 tests, 2 failures and 6 browser navigation errors due missing served UI assets. Building the unchanged frontend made all 8 affected browser cases pass; final same-candidate full run passed 849 tests with 1 optional PostgreSQL skip. Evidence docs/evidence/2026-10-07-ai-evaluation-concurrency-admission.json.",
     "MJ-REQ-008 initial full Python run on source d516834ac3bd48352ef3aa8885a1de1fffe53419 before rebuilding ignored apps/web/dist: 2 failures, 6 errors, 16 skips. After npm ci/npm run build, affected browser cases passed and the exact-source full rerun passed 851 tests with 1 optional PostgreSQL skip; see docs/evidence/2026-10-07-product-worker-crash-recovery.json.",
     "MJ-REF-011 initial isolated-worktree full-suite attempt: 854 tests, 2 failures, 7 errors and 18 skips because ignored apps/web/dist and apps/web/node_modules were absent; after npm ci/build, two reproduced browser tests and exact-source full suite passed. Evidence docs/evidence/2026-10-07-ai-prompt-truncation.json",
-    "MJ-REF-011 timeout-persistence regression RED before fix: API returned AI_TASK_TIMEOUT but durable operation stored generic AI_EVALUATION_FAILED; exact failure is recorded in docs/evidence/2026-10-07-ai-operation-outcomes.json."
+    "MJ-REF-011 timeout-persistence regression RED before fix: API returned AI_TASK_TIMEOUT but durable operation stored generic AI_EVALUATION_FAILED; exact failure is recorded in docs/evidence/2026-10-07-ai-operation-outcomes.json.",
+    "Superseded 2026-10-07 full-suite attempts for #386: first exposed and corrected a stale FAILED-state expectation; second had one timing-sensitive 250 ms Playwright timeout in test_playwright_actions_never_exceed_remaining_worker_budget, which passed in isolation; final exact-tree full suite passed 875 tests with one skip. See docs/evidence/2026-10-07-dead-letter-queue.json."
   ],
   "tests_not_run": [
     "Remaining full-spec integrations and product/release requirements",
@@ -359,7 +363,8 @@
     "MJ-REQ-005 issue #6: live PostgreSQL advisory-lock runtime, live AI-provider inference, real ATS concurrency and hosted Actions/review remain NOT_RUN; one optional isolated PostgreSQL concurrency test skipped because MJOBS_TEST_POSTGRES_URL was unset; external submission remains OFF.",
     "MJ-REQ-008 physical host restart and browser-process crash acceptance remain NOT_RUN; the scoped product-worker subprocess crash acceptance is recorded in docs/evidence/2026-10-07-product-worker-crash-recovery.json.",
     "MJ-REQ-008 live PostgreSQL runtime NOT_RUN because MJOBS_TEST_POSTGRES_URL was unset; hosted Actions/review remain NOT_RUN_BY_USER_POLICY.",
-    "MJ-REF-028 live provider connection, PostgreSQL runtime migration, hosted Actions/review, and real external application submission were not run. Existing MJobs containers were left untouched; synthetic local tests only."
+    "MJ-REF-028 live provider connection, PostgreSQL runtime migration, hosted Actions/review, and real external application submission were not run. Existing MJobs containers were left untouched; synthetic local tests only.",
+    "MJ-REF-016 optional PostgreSQL worker-concurrency test skipped because MJOBS_TEST_POSTGRES_URL was unset; temporary PostgreSQL 17 migration upgrade/downgrade/history-loss guard was run. Hosted checks/review remain NOT_RUN_BY_USER_POLICY; external submission OFF. See docs/evidence/2026-10-07-dead-letter-queue.json."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -393,13 +398,13 @@
     "Fresh Codex worktrees may lack ignored apps/web/node_modules and apps/web/dist; run npm ci and npm run build --prefix apps/web before browser/full-suite validation. MJ-REF-011 exact-source rerun passed 854 tests after restoring those artifacts; evidence docs/evidence/2026-10-07-ai-prompt-truncation.json"
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-07T07:17:15Z",
+    "timestamp": "2026-10-07T08:04:17Z",
     "result": "PASS",
-    "source_commit": "7636b620b60e53380b48051a5550aa1dc23be663",
-    "source_tree": "eb580c4073864bfd06f7c56ea10af0527488ddc9",
-    "scope": "All issue #398 acceptance criteria locally exercised: encrypted persistence and key boundary, masked client previews, profile isolation, rotation/delete, secret redaction, synthetic backup theft checks, and explicit mocked connection checks.",
-    "evidence_path": "docs/evidence/2026-10-07-provider-credential-store.json",
-    "integration_commit": "7636b620b60e53380b48051a5550aa1dc23be663"
+    "source_commit": "b778917a56d266a50f3cb1e21c9f4220bb20a28c",
+    "source_tree": "71b03b0338f847d6d57230463e9700f87c6e7d19",
+    "scope": "Issue #386 local acceptance only: durable dead-letter metadata/state, bounded exhaustion, stable idempotency, explicit audited retry/discard, ambiguous-submission guard, profile-scoped queue UI, browser reload, SQLite and PostgreSQL 17 migration preservation.",
+    "evidence_path": "docs/evidence/2026-10-07-dead-letter-queue.json",
+    "integration_commit": "b778917a56d266a50f3cb1e21c9f4220bb20a28c"
   },
   "ci_verification": {
     "result": "NOT_RUN",

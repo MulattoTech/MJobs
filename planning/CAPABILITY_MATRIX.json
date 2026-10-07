@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-07T07:17:15Z",
+  "timestamp": "2026-10-07T08:04:17Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -1322,9 +1322,10 @@
       "requirement_id": "MJ-REQ-156",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-09-29-mock-spine.md"
+        "docs/evidence/2026-09-29-mock-spine.md",
+        "docs/evidence/2026-10-07-dead-letter-queue.json"
       ],
-      "note": "Initial scoped behavior only; full requirement remains open"
+      "note": "Initial scoped behavior only; full requirement remains open Persistent worker-operation slice adds durable dead-letter state and operator actions; complete requirement remains open."
     },
     {
       "requirement_id": "MJ-REQ-157",
@@ -1350,9 +1351,11 @@
     },
     {
       "requirement_id": "MJ-REQ-160",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-07-dead-letter-queue.json"
+      ],
+      "note": "Not implemented or verified in current milestones Bounded lease-expiry attempts, explicit retry/discard and attempt history are covered in MJ-REF-016; the complete transient-error policy remains open."
     },
     {
       "requirement_id": "MJ-REQ-161",
@@ -1510,17 +1513,19 @@
       "requirement_id": "MJ-REQ-183",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-09-30-user-testing.md"
+        "docs/evidence/2026-09-30-user-testing.md",
+        "docs/evidence/2026-10-07-dead-letter-queue.json"
       ],
-      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open"
+      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open Activity now exposes profile-scoped dead-letter depth/reason; full worker health and source diagnostics remain open."
     },
     {
       "requirement_id": "MJ-REQ-184",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-09-30-user-testing.md"
+        "docs/evidence/2026-09-30-user-testing.md",
+        "docs/evidence/2026-10-07-dead-letter-queue.json"
       ],
-      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open"
+      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open Activity supports explicit dead-letter retry/discard with durable audit; broader error-management workflows remain open."
     },
     {
       "requirement_id": "MJ-REQ-185",

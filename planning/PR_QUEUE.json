@@ -1122,7 +1122,7 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-043-orchestration-data-security",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Issue #386 / MJ-REF-016 dead-letter slice integrated at b778917a56d266a50f3cb1e21c9f4220bb20a28c; evidence docs/evidence/2026-10-07-dead-letter-queue.json. Broader MJ-REQ-156/160/183/184 orchestration and operations scope remains open."
     },
     {
       "id": "MJ-PR-044",

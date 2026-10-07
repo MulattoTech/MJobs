@@ -1,3 +1,11 @@
+## Issue #386 / MJ-REF-016 integration receipt — 2026-10-07
+
+Source commit `b778917a56d266a50f3cb1e21c9f4220bb20a28c` was fast-forwarded to local `main` from synchronized origin/main `5d37700bcedf7013fc89968e260454af6fae1817` under the Codex integration lock. Evidence: `docs/evidence/2026-10-07-dead-letter-queue.json`. Acceptance covers durable dead-letter state/reason/attempt metadata, stable operation idempotency, audited retry/discard, ambiguous-submission retry protection, profile-scoped Activity queue count/reasons, connected browser reload/readback, and SQLite/PostgreSQL 17 migration preservation. Final full suite: 875 Python tests passed with 1 optional PostgreSQL concurrency test skipped; 63 frontend tests/build and repository validators passed. MJ-REF-016 is scoped PASS; MJ-REQ-156/160/183/184 and overall product state remain incomplete. Hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF. Active Antigravity #302 and Ollama #318 claims remained disjoint at integration.
+
+GitHub issue closure and the Codex claim release follow after synchronized main push and readback.
+
+---
+
 # Integration receipt — 2026-10-07
 
 Issue #5 / MJ-REQ-004 in-flight Ollama cancellation integrated by non-force fast-forward at synchronized local/GitHub main ef3a633b8325f26efd3c861ca237a4f318891535. Tested source 0be8c8c87509dd49ce1ca9e48a8f65158b45c2f9 (tree a2d6d0ecfbdcfed5316279640dde8373caa50b69); evidence docs/evidence/2026-10-07-ai-ollama-active-cancel.json. The API cancellation event reaches the real Ollama provider transport; canceling after synthetic loopback response headers and one body byte closes the connection within one second, returns canceled status, and preserves empty evaluation history. Validation: 43 focused AI/provider/API/Chromium tests; 848 full Python tests with one optional PostgreSQL skip; 62 frontend tests/build; agent-skills, catalogue, progress, lane, compile and diff checks PASS. No live inference or external submission. Hosted checks/review NOT_RUN_BY_USER_POLICY. Issue #5 remains OPEN/PARTIAL.

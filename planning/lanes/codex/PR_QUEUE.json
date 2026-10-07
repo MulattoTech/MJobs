@@ -30,6 +30,18 @@
       "evidence_path": "docs/evidence/2026-10-07-ai-operation-outcomes.json",
       "scope_complete": true,
       "note": "All issue acceptance is locally evidenced: shared batch deadline is inherited as remaining timeout by provider calls; oversized prompt content carries an explicit omitted-character marker and no-inference instruction; timeout/cancel outcomes persist with stable reason and no partial evaluation history. Focused 50 PASS; full Python 854 PASS, one optional PostgreSQL skip; frontend build and validators PASS. Integrated at main 8bb20aeb08dbb696af0629bfc861833c7bce0220."
+    },
+    {
+      "issue": 386,
+      "requirement_id": "MJ-REF-016",
+      "status": "INTEGRATED_PASS",
+      "priority": 1,
+      "target_area": "workers; packages/persistence; API; diagnostics UI; tests",
+      "depends_on": [],
+      "evidence_path": "docs/evidence/2026-10-07-dead-letter-queue.json",
+      "scope_complete": true,
+      "note": "All issue acceptance locally evidenced: durable terminal state/reason/timestamps and attempt count, stable idempotency identity, audited retry/discard, ambiguous-submission retry block, profile-scoped queue depth/reason, reload/history, SQLite and PostgreSQL 17 migrations. Full Python 875 PASS (1 optional PostgreSQL concurrency skip); frontend 63 PASS/build; connected browser; local validators PASS. Hosted checks/review NOT_RUN by user policy; external submission OFF. Broader original requirements remain incomplete.",
+      "integration_commit": "b778917a56d266a50f3cb1e21c9f4220bb20a28c"
     }
   ]
 }
