@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "issue": 5,
+  "requirement_id": "MJ-REQ-004",
+  "lane": "codex",
+  "branch": "codex/req004-ai-evaluation-deadline-20261007",
+  "source_head": "1ee2c046f0ce39cbd2fe3df2caa0997d965d74f6",
+  "source_tree": "9a4b83d241c70d0a802244b9fbdc35827df6ac23",
+  "base_main": "32318f828dcf8a067d89a2321ca962655c968e1d",
+  "recorded_at_utc": "2026-10-07T03:11:18Z",
+  "result": "PARTIAL",
+  "acceptance": {
+    "batch_operation_deadline": "PASS - one monotonic 120-second deadline bounds the complete sequential AI evaluation batch; each provider request receives no more than the remaining batch budget.",
+    "late_provider_result": "PASS - results that arrive at or after the batch deadline are discarded and not returned as a completed evaluation.",
+    "provider_timeout_classification": "PASS - Ollama HTTP timeout errors retain stable sanitized AI_PROVIDER_TIMEOUT identity through the structured task router.",
+    "api_timeout_classification": "PASS - provider and total-batch timeouts return HTTP 504 with a stable code; the integration test times out the second candidate after one synthetic successful result and confirms no partial evaluation run is persisted.",
+    "provider_credentials_or_inference": "NOT_RUN - only synthetic provider/router transports were used; no local model inference or paid provider call occurred.",
+    "full_repository_python_suite": "NOT_RUN - affected AI unit/integration/browser tests were run; repository-wide Python discovery was not run for this slice.",
+    "hosted_checks_and_review": "NOT_RUN_BY_USER_POLICY"
+  },
+  "validation": {
+    "python_command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_ai_cost_consumer tests.unit.test_ai_structured_output tests.unit.test_ai_task_configuration tests.unit.test_ollama_provider tests.integration.test_ai_cost_policy_api tests.browser.test_ai_task_settings",
+    "python_result": "PASS - 42 tests",
+    "frontend_test_command": "npm test --prefix apps/web -- --run",
+    "frontend_test_result": "PASS - 62 tests across 13 files",
+    "frontend_build_command": "npm run build --prefix apps/web",
+    "frontend_build_result": "PASS",
+    "browser_command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_ai_task_settings",
+    "browser_result": "PASS - 1 Chromium browser test",
+    "other_checks": [
+      "python -m compileall -q services/ai apps/api/main.py",
+      "python -m tools.verification.agent_skills",
+      "python -m tools.verification.catalogue",
+      "python -m tools.verification.progress validate",
+      "python -m tools.coordination.lane_coordination validate",
+      "git diff --check"
+    ],
+    "other_checks_result": "PASS"
+  },
+  "environment": {
+    "node": "v25.9.0",
+    "dependency_install": "npm ci --prefix apps/web succeeded with 0 vulnerabilities; npm reported Vitest's declared engine range excludes Node 25.9.0, although frontend tests/build passed."
+  },
+  "limitations": [
+    "MJ-REQ-004 and issue #5 remain PARTIAL: this slice covers the sequential AI evaluation batch only; other HTTP/browser/source/ATS/process operation classes, cancellation behavior and complete retry policy still need acceptance.",
+    "The current timeout behavior does not add retries; timed-out or failed runs remain absent from evaluation history.",
+    "External application submission remains OFF."
+  ]
+}

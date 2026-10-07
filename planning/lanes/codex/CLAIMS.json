@@ -5,25 +5,22 @@
     {
       "lane": "codex",
       "status": "ACTIVE",
-      "issue": 111,
-      "requirement_id": "MJ-REQ-110",
-      "branch": "codex/mj-req110-review-consumer-20261006",
-      "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req110-review-consumer-20261006",
+      "issue": 5,
+      "requirement_id": "MJ-REQ-004",
+      "branch": "codex/req004-ai-evaluation-deadline-20261007",
+      "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-req004-ai-evaluation-deadline-20261007",
       "paths": [
-        "services/ai/**",
+        "services/ai/consumer.py",
+        "services/ai/tasks.py",
+        "services/ai/providers/**",
+        "services/ai/AREA.md",
         "apps/api/main.py",
-        "apps/web/src/main.tsx",
-        "apps/web/src/style.css",
-        "packages/persistence/models.py",
-        "packages/persistence/store.py",
-        "migrations/versions/**",
         "tests/unit/test_ai_cost_consumer.py",
+        "tests/unit/test_ollama_provider.py",
         "tests/integration/test_ai_cost_policy_api.py",
-        "tests/integration/test_ai_document_review_migration.py",
-        "tests/browser/test_ai_task_settings.py",
-        "docs/evidence/2026-10-07-ai-cost-consumer-resume.json"
+        "docs/evidence/2026-10-07-ai-evaluation-time-budget.json"
       ],
-      "head": "17b9888657c49e0e10ef1fb937a59ef6b6714eb6",
+      "head": "1ee2c046f0ce39cbd2fe3df2caa0997d965d74f6",
       "pid": null
     }
   ]

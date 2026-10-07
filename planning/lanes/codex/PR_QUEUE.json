@@ -3,11 +3,11 @@
   "lane": "codex",
   "items": [
     {
-      "issue": 111,
-      "requirement_id": "MJ-REQ-110",
+      "issue": 5,
+      "requirement_id": "MJ-REQ-004",
       "status": "ACTIVE",
-      "priority": 1,
-      "note": "Review-gated AI document consumer and isolated synthetic PREPARE worker are verified. Fresh checks on 36851eb4548414dc00901fcd7a7a2151e02992b9 at 2026-10-07T01:57:30Z: focused Python/API/browser/migration 20 PASS, frontend 62 PASS/build PASS, agent-skills/catalogue/progress/lane coordination/compileall/diff checks PASS. Keep PARTIAL: live configured-provider inference is NOT_RUN while the Ollama lane is active; PostgreSQL runtime, full Python discovery, and hosted checks remain NOT_RUN. External submission OFF."
+      "priority": 0,
+      "note": "AI evaluation batch-wide timeout and sanitized timeout classification. RED reproduced: 75 sequential calls each receive the full 30-second timeout; Ollama timeouts map to unavailable; the API returns 502 and loses timeout identity. Implement 120-second total monotonic deadline, remaining-time per-call timeout, 504 classification, and no partial history. Source 1ee2c046f0ce39cbd2fe3df2caa0997d965d74f6: 42 focused Python unit/integration/browser tests, 62 frontend tests, build and repository validators PASS; batch timeouts return sanitized 504 and do not persist partial history. Evidence docs/evidence/2026-10-07-ai-evaluation-time-budget.json. Full suite and live provider remain NOT_RUN; issue remains PARTIAL."
     }
   ]
 }
