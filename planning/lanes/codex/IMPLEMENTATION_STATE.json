@@ -47,7 +47,7 @@
     "external_submission": "OFF",
     "browser": "Covered by full suite after frontend build; connected RQ/Redis worker NOT_RUN",
     "focused_compose": "6 tests PASS; related live_feedback/document_artifacts suite included; total 20 PASS",
-    "compose_runtime": "Rendered all 9 fixture services with json-file 10m/5 rotation config; Docker Engine runtime NOT_RUN",
+    "compose_runtime": "Rendered all 9 services with 10m/5 rotation config PASS; isolated no-network Docker log rollover test 50 lines -> 11 retained with 1m/2 PASS; existing MJobs services untouched.",
     "browser_postgres": "NOT_RUN / NOT_APPLICABLE; no UI or schema change"
   },
   "last_integrated_head": "9a61c6e4ae3b667cd3556b867562ff72900f8a9c",
