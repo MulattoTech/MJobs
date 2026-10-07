@@ -11,7 +11,7 @@
     "current_verified_github_state": "Local/GitHub main synchronized at cb2681b6a921f2759cf46d4d66a8228645b473e7; issue #6 remains OPEN/PARTIAL after local evidence readback; Actions disabled; external submission OFF.",
     "current_verified_at": "2026-10-07T05:08:16Z"
   },
-  "current_milestone": "MJ-REQ-008-PRODUCT-WORKER-CRASH-RECOVERY-20261007",
+  "current_milestone": "MJ-REF-011-EXPLICIT-PROMPT-TRUNCATION-20261007",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -301,7 +301,8 @@
     "MJ-REQ-008 issue #9 product-worker recovery exact source d516834ac3bd48352ef3aa8885a1de1fffe53419: 20 focused worker/concurrency/browser tests PASS; full 851-test Python suite PASS with 1 optional PostgreSQL skip; frontend production build, repository validators, compileall, lane coordination and diff check PASS. Evidence docs/evidence/2026-10-07-product-worker-crash-recovery.json.",
     "MJ-REQ-004 resume extraction cancellation: durable RESUME_EXTRACT admission and cancellation now cross API instances; cross-profile cancel remains denied; cancelled profile facts/history remain unchanged. Full Python 852 PASS (1 optional PostgreSQL skip), 12 profile-import, 16 AI API, 3 operation-concurrency and 1 connected browser test PASS; frontend 62 PASS/build PASS; repository validators PASS. Evidence docs/evidence/2026-10-07-resume-extraction-cross-instance-cancel.json. Issue #5 remains OPEN/PARTIAL; hosted checks remain NOT_RUN_BY_USER_POLICY.",
     "MJ-REQ-008 / issue #9 browser-renderer crash acceptance: committed manual application status and history recovered in a fresh Chromium page after CDP Page.crash while the write response was held. Four connected application-pipeline browser tests and five API/service integration tests PASS; frontend 62 tests/build and repository validators PASS. Evidence docs/evidence/2026-10-07-browser-crash-recovery.json. Whole-browser-process and physical host restart remain NOT_RUN; issue stays OPEN/PARTIAL.",
-    "MJ-REQ-008 / issue #9 whole-browser-process crash acceptance: CDP Browser.crash terminated Chromium after a manual application status/history commit while the response was held; a replacement browser read back identical state. Five connected application-pipeline browser tests and five API/service integration tests PASS; frontend 62 tests/build and local validators PASS. Evidence docs/evidence/2026-10-07-browser-process-crash-recovery.json. Physical host restart remains NOT_RUN; issue stays OPEN/PARTIAL."
+    "MJ-REQ-008 / issue #9 whole-browser-process crash acceptance: CDP Browser.crash terminated Chromium after a manual application status/history commit while the response was held; a replacement browser read back identical state. Five connected application-pipeline browser tests and five API/service integration tests PASS; frontend 62 tests/build and local validators PASS. Evidence docs/evidence/2026-10-07-browser-process-crash-recovery.json. Physical host restart remains NOT_RUN; issue stays OPEN/PARTIAL.",
+    "MJ-REF-011 prompt truncation: 47 focused AI unit/API integration tests PASS; exact-head full Python suite 854 PASS with one optional PostgreSQL skip; frontend build and repository validators PASS. Evidence docs/evidence/2026-10-07-ai-prompt-truncation.json"
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -315,7 +316,8 @@
     "MJ-REQ-004 cancellation acknowledgement TDD red on 6abd58a parent: connected browser asserted an unconfirmed-cancel status, but UI provided none and aborted the local fetch; expected regression. Clean baseline first needed ignored web bundle; after npm ci/build it passed. Evidence docs/evidence/2026-10-06-comparison-cancel-acknowledgement.json.",
     "MJ-REQ-004 mock ATS cancellation first full candidate run: missing ignored apps/web/dist caused browser 404 errors; after restoring bundle, cancellation-aware receipt lookup exposed SUBMITTING persistence when operation check expired. Receipt reconciliation now catches a failed operation check and preserves SUBMISSION_UNCONFIRMED; 13 focused mock ATS tests pass. Second full suite had only unrelated application-pipeline shutdown timeout; isolated and all-browser reruns passed. Evidence docs/evidence/2026-10-06-mock-ats-http-cancellation.json.",
     "MJ-REQ-005 candidate cb2681b6a921f2759cf46d4d66a8228645b473e7 first full run before building worktree apps/web/dist: 849 tests, 2 failures and 6 browser navigation errors due missing served UI assets. Building the unchanged frontend made all 8 affected browser cases pass; final same-candidate full run passed 849 tests with 1 optional PostgreSQL skip. Evidence docs/evidence/2026-10-07-ai-evaluation-concurrency-admission.json.",
-    "MJ-REQ-008 initial full Python run on source d516834ac3bd48352ef3aa8885a1de1fffe53419 before rebuilding ignored apps/web/dist: 2 failures, 6 errors, 16 skips. After npm ci/npm run build, affected browser cases passed and the exact-source full rerun passed 851 tests with 1 optional PostgreSQL skip; see docs/evidence/2026-10-07-product-worker-crash-recovery.json."
+    "MJ-REQ-008 initial full Python run on source d516834ac3bd48352ef3aa8885a1de1fffe53419 before rebuilding ignored apps/web/dist: 2 failures, 6 errors, 16 skips. After npm ci/npm run build, affected browser cases passed and the exact-source full rerun passed 851 tests with 1 optional PostgreSQL skip; see docs/evidence/2026-10-07-product-worker-crash-recovery.json.",
+    "MJ-REF-011 initial isolated-worktree full-suite attempt: 854 tests, 2 failures, 7 errors and 18 skips because ignored apps/web/dist and apps/web/node_modules were absent; after npm ci/build, two reproduced browser tests and exact-source full suite passed. Evidence docs/evidence/2026-10-07-ai-prompt-truncation.json"
   ],
   "tests_not_run": [
     "Remaining full-spec integrations and product/release requirements",
@@ -379,16 +381,17 @@
     "MJ-REQ-004 broad suite rerun on 2026-10-06: one timing-sensitive application-pipeline browser test exceeded its server-thread shutdown wait (661 total; 660 passed); the isolated test rerun passed. No unrelated test code changed.",
     "Browser acceptance depends on current apps/web/dist; stale ignored dist omitted the source-controlled avoid-terms and ATS preflight UI, causing 1 failure and 1 error on 5680d0e until npm run build --prefix apps/web. Rebuilt dist restored both tests; exact-head full suite passed.",
     "MJ-REQ-005 candidate ec28943ec20109c2b1bc12c0130a26a2991b0636: first exact-head full run hit one nonreproducible CompanyDiscoveryRequestsBrowserTests Uvicorn thread shutdown assertion; isolated test and all 35 browser tests passed, then same-head 674-test full suite passed with only the optional PostgreSQL skip. See docs/evidence/2026-10-06-per-source-greenhouse-concurrency.json.",
-    "MJ-REQ-004 candidate 3d604b27b1a4c25e2ff0ee6fa68a07e9ff8f74a0: full suite initially saw stale ignored apps/web/dist; rebuilding restored current Sources UI and isolated browser acceptance. A first rebuilt full run later hit the known intermittent CompanyDiscoveryRequestsBrowserTests server-thread shutdown assertion; isolated case and all 35 browser tests passed, followed by a same-head 680-test full suite pass. Do not weaken shutdown timeout; evidence docs/evidence/2026-10-06-bounded-ocr-diagnostics.json."
+    "MJ-REQ-004 candidate 3d604b27b1a4c25e2ff0ee6fa68a07e9ff8f74a0: full suite initially saw stale ignored apps/web/dist; rebuilding restored current Sources UI and isolated browser acceptance. A first rebuilt full run later hit the known intermittent CompanyDiscoveryRequestsBrowserTests server-thread shutdown assertion; isolated case and all 35 browser tests passed, followed by a same-head 680-test full suite pass. Do not weaken shutdown timeout; evidence docs/evidence/2026-10-06-bounded-ocr-diagnostics.json.",
+    "Fresh Codex worktrees may lack ignored apps/web/node_modules and apps/web/dist; run npm ci and npm run build --prefix apps/web before browser/full-suite validation. MJ-REF-011 exact-source rerun passed 854 tests after restoring those artifacts; evidence docs/evidence/2026-10-07-ai-prompt-truncation.json"
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-07T06:09:35Z",
+    "timestamp": "2026-10-07T06:32:51Z",
     "result": "PARTIAL",
-    "source_commit": "9aaf0356dae39b40a876cbab6ce1aa64ec2a798c",
-    "source_tree": "2b1bf6208987cc3e0e77e161085ec09e540e8f48",
-    "scope": "After a user-reported application status/history commit, the whole Chromium browser process crashed before response delivery; a replacement process recovered identical durable state.",
-    "evidence_path": "docs/evidence/2026-10-07-browser-process-crash-recovery.json",
-    "integration_commit": "da69609fce3ce2153892da709c80af93c80ff97d"
+    "source_commit": "0371f4f7b53f43e78b3d990e023e076ddc79e88e",
+    "source_tree": "f0f991bd00f8f224ebbf332adbc29beb1b531a31",
+    "scope": "AI job scoring now marks omitted description characters and instructs the model not to infer from omitted content; the broader reference issue remains incomplete.",
+    "evidence_path": "docs/evidence/2026-10-07-ai-prompt-truncation.json",
+    "integration_commit": "cc526a9bc18f716f3234869882f5c03b89240d12"
   },
   "ci_verification": {
     "result": "NOT_RUN",

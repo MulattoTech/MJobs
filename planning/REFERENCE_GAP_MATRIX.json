@@ -1,6 +1,6 @@
 {
   "schema_version": 3,
-  "generated_at": "2026-10-06T05:23:01Z",
+  "generated_at": "2026-10-07T06:32:51Z",
   "canonical_namespace": "MJ-REF",
   "original_catalogue_count": 366,
   "reference_gap_count": 59,
@@ -121,8 +121,10 @@
       ]
     },
     "MJ-REF-011": {
-      "result": "NOT_RUN",
-      "evidence": []
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-07-ai-prompt-truncation.json"
+      ]
     },
     "MJ-REF-012": {
       "result": "NOT_RUN",

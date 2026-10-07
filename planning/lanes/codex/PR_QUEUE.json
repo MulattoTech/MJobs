@@ -19,6 +19,17 @@
       "evidence_path": "docs/evidence/2026-10-07-product-worker-crash-recovery.json",
       "scope_complete": false,
       "note": "The durable product worker recovers after process kill; worker attempt fencing prevents an expired worker from publishing after replacement claim. Full Python 851 PASS with 1 optional PostgreSQL skip; issue #9 remains OPEN/PARTIAL. Source d516834ac3bd48352ef3aa8885a1de1fffe53419. Physical host and browser-process recovery remain untested. Integrated at main 74403d136e42cde684d9cb4638a2c75d11c07e06."
+    },
+    {
+      "issue": 381,
+      "requirement_id": "MJ-REF-011",
+      "status": "INTEGRATED_PARTIAL",
+      "priority": 1,
+      "target_area": "services/ai/consumer.py; tests/unit/test_ai_cost_consumer.py",
+      "depends_on": [],
+      "evidence_path": "docs/evidence/2026-10-07-ai-prompt-truncation.json",
+      "scope_complete": false,
+      "note": "Description truncation now carries its omitted character count, with an explicit instruction not to infer omitted details. Focused AI 47 PASS; exact-source full Python 854 PASS, one optional PostgreSQL skip; frontend build and validators PASS. Broader shared budgets and persisted timeout/cancel recovery remain open."
     }
   ]
 }

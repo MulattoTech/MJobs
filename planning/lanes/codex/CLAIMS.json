@@ -1,5 +1,19 @@
 {
   "schema_version": 1,
   "lane": "codex",
-  "claims": []
+  "claims": [
+    {
+      "issue": 381,
+      "requirement_id": "MJ-REF-011",
+      "branch": "codex/mj-ref-011-explicit-truncation-20261007",
+      "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-ref-011-explicit-truncation-20261007",
+      "paths": [
+        "services/ai/consumer.py",
+        "tests/unit/test_ai_cost_consumer.py",
+        "docs/evidence/2026-10-07-ai-prompt-truncation.json"
+      ],
+      "head": "cc526a9bc18f716f3234869882f5c03b89240d12",
+      "status": "ACTIVE"
+    }
+  ]
 }
