@@ -7,7 +7,7 @@
       "requirement_id": "MJ-REQ-110",
       "status": "ACTIVE",
       "priority": 1,
-      "note": "Reconciled with origin/main dab63b4 at merge ef0ef628. Connected synthetic review flow and 10 focused API/consumer/browser tests, 62 frontend tests/build, lane skills, catalogue, progress, and diff validators PASS; evidence docs/evidence/2026-10-06-ai-cost-consumer-main-reconcile.json. Keep issue PARTIAL: live inference, durable evaluation history, and reviewed document generation remain NOT_RUN."
+      "note": "Reconciled with origin/main 7139ea017fcff3a2f3611063872e852d45308063 at bd955345f4381bf3f0bd1311d94342f9fcf7b4b8. Configurable per-profile threshold/cap policy and explicit structured synthetic evaluation are locally verified: 15 focused Python/API/browser tests, 62 frontend tests/build, lane skills, catalogue, progress, and diff checks PASS. Evidence docs/evidence/2026-10-06-ai-cost-consumer-main-reconcile.json. Keep issue PARTIAL: configured-provider inference, durable evaluation history, and reviewed AI-document generation remain NOT_RUN."
     }
   ]
 }

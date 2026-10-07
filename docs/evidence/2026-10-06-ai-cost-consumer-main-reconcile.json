@@ -6,26 +6,27 @@
   "branch": "codex/mj-req110-review-consumer-20261006",
   "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req110-review-consumer-20261006",
   "result": "PARTIAL",
-  "base_main": "dab63b4fccb246001b12bed9ff2e2a80c5d57ed6",
-  "tested_head": "ef0ef628844310437b98b8bf8b74d94d92341239",
-  "recorded_at": "2026-10-07T00:03:14Z",
+  "base_main": "7139ea017fcff3a2f3611063872e852d45308063",
+  "tested_head": "bd955345f4381bf3f0bd1311d94342f9fcf7b4b8",
+  "recorded_at": "2026-10-07T00:10:12Z",
   "reconciliation": {
-    "action": "Fetched origin/main and merged it into the claimed branch before any source mutation.",
-    "merge_commit": "ef0ef628844310437b98b8bf8b74d94d92341239",
+    "action": "Fetched current origin/main and merged it into the claimed branch before further source mutation.",
+    "origin_main": "7139ea017fcff3a2f3611063872e852d45308063",
+    "merge_commit": "bd955345f4381bf3f0bd1311d94342f9fcf7b4b8",
     "origin_main_is_ancestor": true,
     "dirty_lane_work_before_merge": false,
     "merge_conflicts": false
   },
   "scope": [
-    "Reverified the bounded profile-scoped scoring consumer and explicit AI Settings review action against the current main base.",
-    "The connected synthetic browser flow uses saved limits, displays structured advisory output with job context, and creates zero documents.",
-    "Deterministic match scores remain unchanged; evaluation history is not durable."
+    "Verified configurable per-profile deterministic score thresholds, bounded input/AI/document ceilings, stable deduplication and score ordering.",
+    "Verified the connected AI Settings action uses the saved policy and displays structured advisory output without changing deterministic matches or creating documents.",
+    "The configured-provider route, durable evaluation history and reviewed AI-document workflow remain unverified; they are outside this bounded consumer checkpoint."
   ],
   "checks": [
     {
-      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_ai_cost_policy_api tests.unit.test_ai_cost_consumer tests.browser.test_ai_task_settings",
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.unit.test_ai_cost_controls tests.unit.test_ai_cost_consumer tests.integration.test_ai_cost_policy_api tests.browser.test_ai_task_settings",
       "result": "PASS",
-      "detail": "10 tests passed on tested_head."
+      "detail": "15 tests passed."
     },
     {
       "command": "npm test --prefix apps/web -- --run",
@@ -35,7 +36,7 @@
     {
       "command": "npm run build --prefix apps/web",
       "result": "PASS",
-      "detail": "TypeScript check and Vite production build passed. Node 25.9.0 emitted the existing Vitest engine-range warning."
+      "detail": "TypeScript check and Vite production build passed."
     },
     {
       "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.agent_skills",
@@ -50,7 +51,7 @@
       "result": "PASS"
     },
     {
-      "command": "git diff origin/main...HEAD --check; git diff --check",
+      "command": "git diff --check",
       "result": "PASS"
     },
     {
@@ -59,18 +60,20 @@
       "detail": "Disabled by active local-only policy."
     }
   ],
+  "not_run": [
+    "Live configured-provider inference.",
+    "Durable AI evaluation history and reload/readback.",
+    "Reviewed AI-document generation workflow.",
+    "External application submission; OFF."
+  ],
   "source_sha256": {
     "apps/api/main.py": "ceb27185a9d4cc2c92dce4a19ce8642239ff57f9276fa9a7263406e76750e744",
     "apps/web/src/main.tsx": "44b91dff881f531f68adff47766dc55f54cf10e0db192f981e7598cb902f37a6",
+    "services/ai/cost_controls.py": "e6c7eb6b8d3763671dde512514726b4ba90f0951f27a2740b49eeee2b81eba8d",
     "services/ai/consumer.py": "2a8d4e6c18f7a5a67043aab55f24d5234bc10a0ba7785d3fcee23aeff5b5049d",
-    "tests/browser/test_ai_task_settings.py": "a6c3cdc941b74e069c39ad66674a868924a662103a730bd5d6fab50bacbb7222",
-    "tests/integration/test_ai_cost_policy_api.py": "570f76e2dee65f546645d1e9eaf99a3ee364b4d6388e3a3ecc2e164b95a19cbd",
-    "tests/unit/test_ai_cost_consumer.py": "45432c1fbe17bc04817b635f162d763ded7c803e7461073e4aee3f098941d570"
-  },
-  "not_run": [
-    "Live configured-provider inference.",
-    "Durable AI evaluation history.",
-    "Reviewed AI-document generation workflow.",
-    "External application submission; OFF."
-  ]
+    "tests/unit/test_ai_cost_controls.py": "0a53a7b9c69092fbd5ae2eb4a650644de5162ec5f3ba8530b6024f50be8eaca8",
+    "tests/unit/test_ai_cost_consumer.py": "45432c1fbe17bc04817b635f162d763ded7c803e7461073e4aee3f098941d570",
+    "tests/integration/test_ai_cost_policy_api.py": "570f76e2dee65f546645d1d9eaf99a3ee364b4d6388e3a3ecc2e164b95a19cbd",
+    "tests/browser/test_ai_task_settings.py": "a6c3cdc941b74e069c39ad66674a868924a662103a730bd5d6fab50bacbb7222"
+  }
 }
