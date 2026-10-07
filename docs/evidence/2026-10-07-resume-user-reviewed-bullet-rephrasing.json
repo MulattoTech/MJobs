@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REQ-095-USER-REVIEWED-RESPONSIBILITY-REPHRASE-20261007",
+  "recorded_at_utc": "2026-10-07T03:31:40Z",
+  "requirement_id": "MJ-REQ-095",
+  "issue": 96,
+  "lane": "codex",
+  "result": "PARTIAL",
+  "source": {
+    "repository": "MulattoTech/MJobs",
+    "base_main": "72b2bb31a853f49f07e7176dc4b12e8a0cad4fdf",
+    "candidate_commit": "3a5e52704e596da8e01f65b55088f32bc8e568ab",
+    "candidate_tree": "5d284a6ed6560fab931c3db7d9dfc75192bb59b8",
+    "branch": "codex/req095-factual-rephrase-20261007",
+    "worktree": ".worktrees/codex-req095-factual-rephrase-20261007"
+  },
+  "acceptance_scope": "Users can enter and explicitly review per-application wording for selected, approved responsibility facts. Source text/profile history remains unchanged; only selected responsibility facts can be rewritten. Exact date and numeric token multisets are preserved. Generation stores the original fact ID and source-text SHA-256 with the reviewed text in the immutable document context. Document validation reconstructs and checks that context; comparison shows the exact before/after wording from the historical profile snapshot.",
+  "acceptance_behavior": [
+    "The connected UI requires explicit fact selection and a per-rewrite review checkbox; editing wording clears that attestation.",
+    "The application API rejects missing review, unselected facts, non-responsibility facts, stale profile snapshots, malformed/duplicate rewrites, and changes to source dates or numbers.",
+    "The durable PREPARE operation carries user-authored wording to the document worker; no AI/provider inference is used.",
+    "A new versioned template/model pair records user-reviewed factual paraphrases without reinterpreting historical documents.",
+    "TXT, DOCX and PDF are generated from the same validated paragraphs; the connected browser verifies the TXT download and format validation runs during generation.",
+    "Comparison verifies source hashes and historical inputs and exposes the exact original and rewritten responsibility wording after reload/profile edits.",
+    "The profile and cover letter remain unchanged by resume-only rewrites; a separate profile and cover-letter check passed.",
+    "Issue #96 remains OPEN/PARTIAL: this slice supports user-reviewed responsibility rewrites only; other factual summary/bullet rewriting and any AI rewrite behavior remain unaccepted."
+  ],
+  "validation": {
+    "python_command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_resume_comparison tests.unit.test_skill_order tests.integration.test_resume_comparison tests.integration.test_skill_order -q",
+    "python_result": "PASS - 15 unit/integration tests; the new user-rephrase integration test was also rerun after enabling the saved-contact template variant and preserving the existing API error response contract.",
+    "browser_command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_skill_order -v",
+    "browser_result": "PASS - 1 connected Chromium test exercised browser selection and review, POST /applications, durable worker execution, generated TXT download, reload, and exact resume comparison.",
+    "history_browser_command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_document_history -v",
+    "history_browser_result": "PASS - 1 connected Chromium history/reload/download regression test.",
+    "frontend_test_command": "npm test -- --run (apps/web)",
+    "frontend_test_result": "PASS - 13 files, 62 tests.",
+    "frontend_build_command": "npm run build (apps/web)",
+    "frontend_build_result": "PASS - TypeScript check and Vite production build.",
+    "frontend_dependency_install": "npm ci (apps/web) PASS, 0 vulnerabilities; npm reported the repository Vitest engine range excludes installed Node v25.9.0.",
+    "other_checks": [
+      "python -m compileall -q apps/api services/documents workers/tasks.py tests/unit/test_resume_comparison.py tests/integration/test_resume_comparison.py tests/browser/test_skill_order.py",
+      "python -m tools.verification.agent_skills",
+      "python -m tools.verification.catalogue",
+      "python -m tools.verification.progress validate",
+      "git diff --check"
+    ],
+    "other_checks_result": "PASS",
+    "database": "Temporary SQLite integration stores migrated through the existing head; no migration was added or modified.",
+    "postgresql_docker": "NOT_RUN - no PostgreSQL-specific behavior or migration changed.",
+    "hosted_verification_and_review": "NOT_RUN_BY_USER_POLICY",
+    "provider_inference": "NOT_RUN",
+    "external_submission": "OFF"
+  },
+  "environment": {
+    "os": "Windows 11",
+    "python": "3.12.10",
+    "node": "25.9.0",
+    "npm": "11.12.1",
+    "database": "Temporary SQLite",
+    "browser": "Local Playwright Chromium, synthetic fixtures, network egress blocked by the test"
+  },
+  "limitations": [
+    "The checkbox records user attestation; automated validation does not prove semantic equivalence of the user's rewritten sentence.",
+    "Exact date/numeric token preservation does not detect every possible unsupported non-numeric semantic change; the document remains explicitly user-reviewed.",
+    "Only responsibility-kind facts are eligible in this slice. Summary, project, accomplishment and other bullet-category rewrites are not implemented here.",
+    "Hosted Actions and independent review were not run under the local-only budget policy. Local checks do not imply hosted PASS.",
+    "External application submission remains OFF."
+  ],
+  "hosted_verification": "NOT_RUN_BY_USER_POLICY",
+  "hosted_review": "NOT_RUN_BY_USER_POLICY"
+}
