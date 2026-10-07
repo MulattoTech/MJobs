@@ -33,7 +33,10 @@
     "git diff --check: PASS",
     "WebSocket live-terminal tests including silent heartbeat: PASS",
     "Exact historical Antigravity RESOURCE_EXHAUSTED wording classifier test: PASS",
-    "Real OpenCode #318 usage snapshot parsed current-session/worktree/model token and tool statistics: PASS"
+    "Real OpenCode #318 usage snapshot parsed current-session/worktree/model token and tool statistics: PASS",
+    "Codex real rollout acceptance: current turn/session/worktree/model scopes reconciled with live #111 files.",
+    "Antigravity real transcript acceptance: #308 exact worktree/conversation identity and token/tool/thinking aggregates reconciled.",
+    "Dashboard/API unit suite after provider telemetry: 20 PASS; Python compile, node --check and git diff --check PASS."
   ],
   "limitations": [
     "Antigravity CLI exposes no local quota percentage endpoint found during inspection; dashboard marks quota unavailable.",
@@ -89,5 +92,53 @@
       "GPU offload cap plus observed Windows GPU utilization"
     ],
     "note": "Acceptance sample is historical evidence only; dashboard queries the live OpenCode database dynamically."
+  },
+  "codex_deep_telemetry": {
+    "source": "Local Codex rollout JSONL token_count / turn_context / response_item records",
+    "acceptance_sample": {
+      "session_id": "01a11404-756b-7ab2-ae9b-29c227936528",
+      "current_turn_context_tokens": 70764,
+      "current_turn_context_used_percent": 27.39,
+      "current_session_processed_tokens": 682945,
+      "current_session_model_turns": 13,
+      "current_session_tool_calls": 13,
+      "worktree_sessions": 23,
+      "worktree_processed_tokens": 60303518,
+      "worktree_tool_calls": 666,
+      "selected_model_mjobs_all_time_processed_tokens": 1172837725,
+      "selected_model_mjobs_24h_processed_tokens": 65715375
+    },
+    "semantics": "Codex input_tokens includes cached input. New input is computed as input_tokens - cached_input_tokens. Processed totals sum context/token accounting across model turns and are not unique-token or billing totals.",
+    "scopes": [
+      "current model turn",
+      "current Codex session",
+      "claimed MJobs worktree",
+      "selected Codex model across MJobs",
+      "selected Codex model last 24 hours"
+    ]
+  },
+  "antigravity_deep_telemetry": {
+    "source": "Antigravity .system_generated/logs/transcript_full.jsonl",
+    "acceptance_sample": {
+      "conversation_id": "164f1767-595a-494c-8d6d-9a3fce8454c6",
+      "issue": 308,
+      "latest_prompt_context_tokens": 166515,
+      "conversation_processed_tokens": 13490268,
+      "conversation_planner_turns": 134,
+      "conversation_tool_calls": 130,
+      "conversation_thinking_steps": 33,
+      "worktree_conversations": 2,
+      "worktree_processed_tokens": 14243442,
+      "configured_model_attributed_conversations": 9,
+      "configured_model_attributed_processed_tokens": 45032681
+    },
+    "semantics": "Antigravity records input_tokens and cache_read_tokens separately. Prompt context is input + cache-read. It stores thinking text but no authoritative hidden thinking-token count, so the dashboard reports thinking steps/characters/words rather than fabricating thinking tokens. Remaining quota percentage is not exposed by the local CLI.",
+    "model_attribution": "Historical model grouping uses the model explicitly named in the recorded MJobs lane launch prompt; it is not provider billing attribution.",
+    "scopes": [
+      "current/last MJobs conversation",
+      "claimed MJobs worktree",
+      "configured-model-attributed MJobs history",
+      "configured-model-attributed last 24 hours"
+    ]
   }
 }
