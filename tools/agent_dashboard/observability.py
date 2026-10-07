@@ -473,14 +473,16 @@ def opencode_usage_snapshot(workspace: str | Path) -> dict[str, Any]:
                 timing = data.get("time") or {}
                 created = timing.get("created")
                 completed = timing.get("completed")
+                if data.get("modelID"):
+                    latest_model = data.get("modelID")
+                if data.get("providerID"):
+                    latest_provider = data.get("providerID")
                 if first_assistant_ms is None or (created and created < first_assistant_ms):
                     first_assistant_ms = created
                 if completed and (last_completed_ms is None or completed >= last_completed_ms):
                     last_completed_ms = completed
                     latest_context = total
                     latest_finish = data.get("finish")
-                    latest_model = data.get("modelID")
-                    latest_provider = data.get("providerID")
 
         tool_counts: dict[str, int] = {}
         tool_calls = 0
