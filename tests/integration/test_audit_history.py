@@ -121,6 +121,28 @@ class AuditHistoryApiTests(unittest.TestCase):
             "APPLICATION_STATUS_REPORTED", "APPLICATION_NOTE_ADDED", "APPLICATION_REPORTED"
         } for event in other_profile.json()["events"]))
 
+    def test_preparation_queue_and_start_are_idempotent_profile_owned_job_events(self):
+        from workers.dispatch import enqueue_operation
+        from workers.operations import claim
+
+        params = {"job_id": self.store.jobs("fixture")[0]["id"],
+                  "tailor_fact_rewrites": [{"text": "private resume wording"}]}
+        operation_id = enqueue_operation(self.store, "PREPARE", "fixture", params)
+        self.assertEqual(enqueue_operation(self.store, "PREPARE", "fixture", params), operation_id)
+        self.assertIsNotNone(claim(self.store, operation_id))
+
+        response = self.client.get("/profiles/fixture/audit-history")
+        self.assertEqual(response.status_code, 200, response.text)
+        events = [event for event in response.json()["events"]
+                  if event["type"] in {"APPLICATION_QUEUED", "APPLICATION_STARTED"}]
+        self.assertEqual({event["type"] for event in events},
+                         {"APPLICATION_QUEUED", "APPLICATION_STARTED"})
+        self.assertTrue(all(event["subject"] for event in events))
+        self.assertNotIn("private resume wording", response.text)
+        self.assertFalse(any(event["type"] in {"APPLICATION_QUEUED", "APPLICATION_STARTED"}
+                             for event in self.client.get(
+                                 "/profiles/other/audit-history").json()["events"]))
+
     def test_discovery_events_survive_scoring_recalculation_without_mutation(self):
         initial = self.client.get("/profiles/fixture/audit-history").json()["events"]
         initial_job_events = [event for event in initial

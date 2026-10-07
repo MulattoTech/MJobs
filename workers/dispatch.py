@@ -8,6 +8,7 @@ from sqlalchemy import select, text
 
 from packages.persistence import models as m
 from packages.persistence.store import identity, now, upsert
+from services.audit_history import record_application_preparation_event
 from workers.operations import QUEUES, recover_expired, timeout
 
 
@@ -20,9 +21,20 @@ def enqueue_operation(store, kind, entity_id, params, *, connection=None):
     if connection is None:
         with store.engine.begin() as owned_connection:
             upsert(owned_connection, m.operations, values)
+            _record_queued_preparation(owned_connection, kind, entity_id,
+                                       params, operation_id)
     else:
         upsert(connection, m.operations, values)
+        _record_queued_preparation(connection, kind, entity_id, params,
+                                   operation_id)
     return operation_id
+
+
+def _record_queued_preparation(connection, kind, profile_id, params, operation_id):
+    if kind == "PREPARE" and isinstance(params.get("job_id"), str):
+        record_application_preparation_event(
+            connection, "APPLICATION_QUEUED", profile_id,
+            params["job_id"], operation_id)
 
 
 def dispatch_pending(store, redis_url):

@@ -17,6 +17,8 @@ from fixtures.mock_server import fixture_server
 from services.documents.generate import prepare
 from services.discovery.pipeline import discover
 from services.tracking.applications import add_application_note, set_application_pipeline_status
+from workers.dispatch import enqueue_operation
+from workers.operations import claim
 from tests.integration.test_spine import PROFILE
 
 
@@ -37,6 +39,9 @@ class AuditHistoryBrowserTests(unittest.TestCase):
                 discover(store, fixture_origin, "fixture")
             application_id = prepare(store, store.jobs("fixture")[0]["id"],
                                      "fixture", root)
+            preparation = enqueue_operation(store, "PREPARE", "fixture", {
+                "job_id": store.jobs("fixture")[0]["id"]})
+            claim(store, preparation)
             set_application_pipeline_status(store, "fixture", application_id,
                                             "APPLIED", "browser-audit-status")
             add_application_note(store, "fixture", application_id,
@@ -88,6 +93,8 @@ class AuditHistoryBrowserTests(unittest.TestCase):
                     expect(history).to_contain_text("Job match scored")
                     expect(history).to_contain_text("Application status reported by you")
                     expect(history).to_contain_text("Application note added")
+                    expect(history).to_contain_text("Application preparation queued")
+                    expect(history).to_contain_text("Application preparation started")
                     expect(history).not_to_contain_text("Private synthetic recruiter note")
                     expect(history).not_to_contain_text("private-setting-value")
                     page.reload(wait_until="domcontentloaded")

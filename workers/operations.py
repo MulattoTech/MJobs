@@ -7,6 +7,7 @@ from sqlalchemy import func, select, text, update
 
 from packages.persistence import models as m
 from packages.persistence.store import now
+from services.audit_history import record_application_preparation_event
 
 QUEUES = {"DISCOVER": "mjobs-discovery", "COMPANY_DISCOVER": "mjobs-discovery",
           "COMPANY_SOURCE_REFRESH": "mjobs-discovery", "PREPARE": "mjobs-document",
@@ -113,6 +114,10 @@ def claim(store, operation_id):
         connection.execute(update(m.operations).where(m.operations.c.id == operation_id).values(**values))
         store._audit(connection, operation_id, "OPERATION_ATTEMPT_STARTED",
                      {"attempt_count": values["attempt_count"]})
+        if kind == "PREPARE" and isinstance(row["params"].get("job_id"), str):
+            record_application_preparation_event(
+                connection, "APPLICATION_STARTED", row["entity_id"],
+                row["params"]["job_id"], operation_id, values["attempt_count"])
         return {**dict(row), **values}
 
 
@@ -305,4 +310,9 @@ def recover_expired(store):
             store._audit(connection, row["id"], action, {
                 "state": state, "error": error, "attempt_count": int(row["attempt_count"]),
             })
+            if (state == "DEAD_LETTERED" and row["kind"] == "PREPARE"
+                    and isinstance(row["params"].get("job_id"), str)):
+                record_application_preparation_event(
+                    connection, "APPLICATION_FAILED", row["entity_id"],
+                    row["params"]["job_id"], row["id"])
         return len(rows)

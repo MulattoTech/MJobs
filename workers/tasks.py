@@ -17,6 +17,7 @@ from services.discovery.sources.collect import collect_source
 from services.discovery.sources.greenhouse import SourceError
 from services.discovery.matching import recalculate
 from services.documents.generate import prepare, PreparationError
+from services.audit_history import record_application_preparation_event
 from workers.operations import claim, check_cancelled, OperationCancelled, OperationTimedOut, timeout
 
 
@@ -168,6 +169,11 @@ def execute_operation(operation_id):
                          "OPERATION_DEAD_LETTERED" if state == "DEAD_LETTERED" else "OPERATION_ATTEMPT_FINISHED",
                          {"state": state, "error": error,
                           "attempt_count": int(operation["attempt_count"])})
+            if (state == "DEAD_LETTERED" and operation["kind"] == "PREPARE"
+                    and isinstance(operation["params"].get("job_id"), str)):
+                record_application_preparation_event(
+                    connection, "APPLICATION_FAILED", operation["entity_id"],
+                    operation["params"]["job_id"], operation_id)
         return {"operation_id": operation_id, "status": state, "error_category": error}
     finally:
         store.engine.dispose()

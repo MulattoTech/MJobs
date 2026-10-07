@@ -14,6 +14,12 @@ _PROFILE_EVENTS = {
     "JOB_DISCOVERED": ("JOB_DISCOVERED", "Job added to this profile's search"),
     "MATCH_SCORED": ("MATCH_SCORED", "Job match scored"),
     "SETTING_CHANGED": ("SETTING_CHANGED", "A profile setting changed"),
+    "APPLICATION_QUEUED": ("APPLICATION_QUEUED", "Application preparation queued"),
+    "APPLICATION_STARTED": ("APPLICATION_STARTED", "Application preparation started"),
+    "APPLICATION_FAILED": ("APPLICATION_FAILED", "Application preparation failed"),
+}
+_APPLICATION_PREPARATION_EVENTS = {
+    "APPLICATION_QUEUED", "APPLICATION_STARTED", "APPLICATION_FAILED",
 }
 _APPLICATION_EVENTS = {
     "APPLICATION_QUEUED": ("APPLICATION_QUEUED", "Application preparation queued"),
@@ -38,6 +44,32 @@ def record_match_scored(connection, profile_id: str, job_id: str,
     _append_once(connection, profile_id, "MATCH_SCORED", job_id,
                  {"job_id": job_id, "profile_version": profile_version},
                  profile_version=profile_version)
+
+
+def record_application_preparation_event(connection, action: str, profile_id: str,
+                                         job_id: str, operation_id: str,
+                                         attempt: int = 0) -> None:
+    """Append an idempotent, profile-owned preparation lifecycle summary."""
+    if action not in _APPLICATION_PREPARATION_EVENTS:
+        raise ValueError("Unsupported application preparation audit action")
+    event_id = identity("profile-audit", action, profile_id, job_id,
+                        operation_id, attempt)
+    values = {"id": event_id, "entity_id": profile_id, "action": action,
+              "payload": {"job_id": job_id, "operation_id": operation_id,
+                          "attempt": attempt}, "timestamp": now()}
+    dialect = connection.dialect.name
+    if dialect == "sqlite":
+        statement = sqlite_insert(m.audit).values(**values).on_conflict_do_nothing(
+            index_elements=[m.audit.c.id])
+    elif dialect == "postgresql":
+        statement = postgres_insert(m.audit).values(**values).on_conflict_do_nothing(
+            index_elements=[m.audit.c.id])
+    else:
+        if connection.execute(select(m.audit.c.id).where(
+                m.audit.c.id == event_id)).first() is not None:
+            return
+        statement = m.audit.insert().values(**values)
+    connection.execute(statement)
 
 
 def _append_once(connection, profile_id: str, action: str, job_id: str,
@@ -76,6 +108,11 @@ def list_audit_history(store, profile_id: str, limit: int = 100) -> dict:
             if row["action"] in {"JOB_DISCOVERED", "MATCH_SCORED"}
             and isinstance((row["payload"] or {}).get("job_id"), str)
         }
+        profile_job_ids.update(
+            (row["payload"] or {}).get("job_id") for row in profile_rows
+            if row["action"] in _APPLICATION_PREPARATION_EVENTS
+            and isinstance((row["payload"] or {}).get("job_id"), str)
+        )
         profile_jobs = {}
         if profile_job_ids:
             profile_jobs = {row["id"]: row for row in connection.execute(select(
@@ -89,7 +126,7 @@ def list_audit_history(store, profile_id: str, limit: int = 100) -> dict:
             mapped = _PROFILE_EVENTS.get(row["action"])
             if mapped:
                 event_type, summary = mapped
-                if row["action"] in {"JOB_DISCOVERED", "MATCH_SCORED"}:
+                if row["action"] in {"JOB_DISCOVERED", "MATCH_SCORED", *_APPLICATION_PREPARATION_EVENTS}:
                     job = profile_jobs.get((row["payload"] or {}).get("job_id"))
                     if job is None:
                         continue

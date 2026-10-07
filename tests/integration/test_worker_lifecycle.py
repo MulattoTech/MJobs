@@ -18,6 +18,8 @@ from packages.persistence import models as m
 from packages.persistence.store import Store
 from services.discovery.pipeline import discover
 from services.documents.generate import prepare
+from services.documents.errors import PreparationError
+from services.audit_history import list_audit_history
 from fixtures.mock_server import fixture_server
 from tests.integration.test_spine import PROFILE
 from workers.dispatch import enqueue_operation
@@ -154,6 +156,25 @@ class WorkerLifecycleTests(unittest.TestCase):
         finally:
             reopened.engine.dispose()
 
+    def test_prepare_retry_limit_adds_one_profile_scoped_failure_event(self):
+        with fixture_server() as origin:
+            discover(self.store, origin, "fixture")
+        job_id = self.store.jobs("fixture")[0]["id"]
+        operation = enqueue_operation(self.store, "PREPARE", "fixture", {"job_id": job_id})
+        for attempt in range(3):
+            self.assertIsNotNone(claim(self.store, operation))
+            self.expired(operation)
+            recover_expired(self.store)
+            self.assertEqual(self.read(operation)["state"],
+                             "QUEUED" if attempt < 2 else "DEAD_LETTERED")
+        events = list_audit_history(self.store, "fixture")["events"]
+        lifecycle = [event for event in events if event["type"] in {
+            "APPLICATION_QUEUED", "APPLICATION_STARTED", "APPLICATION_FAILED"
+        }]
+        self.assertEqual([event["type"] for event in lifecycle].count("APPLICATION_QUEUED"), 1)
+        self.assertEqual([event["type"] for event in lifecycle].count("APPLICATION_STARTED"), 3)
+        self.assertEqual([event["type"] for event in lifecycle].count("APPLICATION_FAILED"), 1)
+
     def test_cancel_before_claim_and_running_cancellation_are_durable(self):
         identifier = enqueue_operation(self.store, "DISCOVER", "fixture", {})
         self.assertEqual(request_cancel(self.store, identifier)["state"], "CANCELLED")
@@ -182,6 +203,39 @@ class WorkerLifecycleTests(unittest.TestCase):
         saved = self.read(operation)
         self.assertEqual(saved["state"], "DEAD_LETTERED")
         self.assertEqual(saved["error"], "OPERATION_TIMEOUT")
+
+    def test_terminal_prepare_failure_is_recorded_without_rewrite_payload(self):
+        with fixture_server() as origin:
+            discover(self.store, origin, "fixture")
+        job_id = self.store.jobs("fixture")[0]["id"]
+        operation = enqueue_operation(self.store, "PREPARE", "fixture", {
+            "job_id": job_id,
+            "tailor_fact_rewrites": [{"fact_id": "synthetic-fact", "text": "private rewrite"}],
+        })
+        with patch.dict("os.environ", MJOBS_DATABASE_URL=self.store.url,
+                        MJOBS_MOCK_ORIGIN=origin, MJOBS_OUTPUT_DIR=str(self.root),
+                        MJOBS_OPERATION_MODE="FIXTURE"), \
+                patch("workers.tasks.prepare",
+                      side_effect=PreparationError("DOCUMENT_GENERATION_FAILED", "synthetic failure")):
+            result = execute_operation(operation)
+
+        self.assertEqual(result["status"], "DEAD_LETTERED")
+        events = list_audit_history(self.store, "fixture")["events"]
+        lifecycle = [event for event in events if event["type"] in {
+            "APPLICATION_QUEUED", "APPLICATION_STARTED", "APPLICATION_FAILED"
+        }]
+        self.assertEqual({event["type"] for event in lifecycle}, {
+            "APPLICATION_QUEUED", "APPLICATION_STARTED", "APPLICATION_FAILED"
+        })
+        self.assertTrue(all(event["subject"] for event in lifecycle))
+        with self.store.engine.connect() as connection:
+            payloads = [row[0] for row in connection.execute(select(m.audit.c.payload).where(
+                m.audit.c.entity_id == "fixture",
+                m.audit.c.action.in_(("APPLICATION_QUEUED", "APPLICATION_STARTED",
+                                      "APPLICATION_FAILED")),
+            )).all()]
+        self.assertEqual(len(payloads), 3)
+        self.assertTrue(all("private rewrite" not in str(payload) for payload in payloads))
 
     def test_reclaimed_attempt_fences_original_worker_before_side_effect(self):
         operation = enqueue_operation(self.store, "DISCOVER", "fixture", {"rescore_only": True})
