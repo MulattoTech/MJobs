@@ -218,6 +218,10 @@ class AICostPolicyApiTests(unittest.TestCase):
         self.assertEqual(response.json()["task_model"], "llama3.2:3b")
         self.assertEqual(response.json()["policy"]["max_ai_candidates"], 1)
         run_id = response.json()["run_id"]
+        with self.store.engine.connect() as connection:
+            operation_state = connection.execute(select(m.operations.c.state).where(
+                m.operations.c.kind == "AI_EVALUATE")).scalar_one()
+        self.assertEqual(operation_state, "COMPLETED")
 
         history = self.client.get("/profiles/fixture/ai-cost-plan/evaluations")
         self.assertEqual(history.status_code, 200, history.text)
@@ -236,6 +240,124 @@ class AICostPolicyApiTests(unittest.TestCase):
         self.assertEqual(reopened.status_code, 200, reopened.text)
         self.assertEqual(reopened.json()["runs"][0]["run_id"], run_id)
         self.assertEqual(reopened.json()["runs"][0]["evaluations"][0]["category"], "STRONG")
+
+    def test_ai_evaluation_concurrency_limit_is_shared_across_api_instances(self):
+        import os
+        import threading
+        from concurrent.futures import ThreadPoolExecutor
+        from unittest.mock import patch
+        from services.ai.consumer import AIJobEvaluation
+        from services.ai.providers import AIProviderError
+        from services.ai.tasks import AI_TASKS
+        import time
+
+        for profile_id, request_id in (("fixture", "ai-admission-first"),
+                                        ("other-profile", "ai-admission-second")):
+            self.assertEqual(self.client.post("/jobs/manual", json={
+                "request_id": request_id,
+                "title": "Infrastructure Administrator",
+                "company": "Synthetic Company",
+                "description": "Windows Server operations.",
+                "reference_url": f"https://jobs.example.test/{request_id}",
+                "application_url": f"https://apply.example.test/{request_id}",
+                "source_details": {},
+            }).status_code, 201)
+            recalculate(self.store, profile_id)
+            self.store.save_ai_cost_policy(profile_id, {
+                "minimum_score": 0, "max_input_candidates": 20,
+                "max_ai_candidates": 5, "max_document_candidates": 0,
+            })
+            self.store.save_ai_task_settings(profile_id, {
+                task: {"provider": "ollama", "model": "synthetic"}
+                if task == "job_scoring" else {"provider": "disabled", "model": None}
+                for task in AI_TASKS
+            })
+
+        second_store = Store(self.database_url)
+        second_client = TestClient(create_app(
+            second_store, "http://127.0.0.1:8090", self.root,
+            "redis://127.0.0.1:1/0", operation_mode="PERSONAL"))
+        provider_started = threading.Event()
+        release_provider = threading.Event()
+        calls = []
+
+        class BlockingRouter:
+            def __init__(self, configuration):
+                self.configuration = configuration
+
+            def generate_structured(self, **_kwargs):
+                calls.append(True)
+                if len(calls) == 1:
+                    provider_started.set()
+                    deadline = time.monotonic() + 3
+                    while time.monotonic() < deadline:
+                        if _kwargs["cancellation_event"].is_set():
+                            raise AIProviderError("AI_PROVIDER_CANCELLED")
+                        if release_provider.wait(0.01):
+                            break
+                    else:
+                        raise TimeoutError("synthetic provider release timed out")
+                return AIJobEvaluation(category="STRONG", rationale="Synthetic result.")
+
+        try:
+            with patch.dict(os.environ, {"MJOBS_AI_CONCURRENCY": "1"}), \
+                    patch("apps.api.main.AITaskRouter", BlockingRouter), \
+                    ThreadPoolExecutor(max_workers=1) as executor:
+                first = executor.submit(
+                    self.client.post, "/profiles/fixture/ai-cost-plan/evaluate",
+                    json={"request_id": "shared-capacity-first"})
+                self.assertTrue(provider_started.wait(2), "first provider call did not start")
+
+                rejected = second_client.post(
+                    "/profiles/other-profile/ai-cost-plan/evaluate",
+                    json={"request_id": "shared-capacity-second"})
+                self.assertEqual(rejected.status_code, 429, rejected.text)
+                self.assertEqual(rejected.json()["detail"]["code"], "AI_CONCURRENCY_LIMIT")
+                self.assertEqual(len(calls), 1)
+
+                active_operations = second_client.get(
+                    "/operations", params={"profile_id": "fixture"}).json()["operations"]
+                active = next(row for row in active_operations
+                              if row["kind"] == "AI_EVALUATE" and row["state"] == "RUNNING")
+                cancellation = second_client.post(f"/operations/{active['id']}/cancel")
+                self.assertEqual(cancellation.status_code, 202, cancellation.text)
+                self.assertTrue(cancellation.json()["cancel_requested"])
+
+                completed = first.result(timeout=4)
+                self.assertEqual(completed.status_code, 200, completed.text)
+                self.assertEqual(completed.json(), {
+                    "cancelled": True, "request_id": "shared-capacity-first"})
+                with self.store.engine.connect() as connection:
+                    first_operation = connection.execute(select(m.operations).where(
+                        m.operations.c.kind == "AI_EVALUATE")).mappings().one()
+                self.assertEqual(first_operation["state"], "CANCELLED")
+
+                with self.store.engine.begin() as connection:
+                    connection.execute(m.operations.insert().values(
+                        id="stale-inline-ai-operation", kind="AI_EVALUATE",
+                        entity_id="fixture", params={}, state="RUNNING", error=None,
+                        updated_at="2000-01-01T00:00:00+00:00", attempt_count=1,
+                        cancel_requested=False, lease_expires_at="2000-01-01T00:00:00+00:00",
+                    ))
+                calls_after_first = len(calls)
+                reopened = second_client.post(
+                    "/profiles/other-profile/ai-cost-plan/evaluate",
+                    json={"request_id": "shared-capacity-reopened"})
+                self.assertEqual(reopened.status_code, 200, reopened.text)
+                self.assertGreater(len(calls), calls_after_first)
+                with self.store.engine.connect() as connection:
+                    stale_operation = connection.execute(select(m.operations).where(
+                        m.operations.c.id == "stale-inline-ai-operation")).mappings().one()
+                self.assertEqual(stale_operation["state"], "FAILED")
+                self.assertEqual(stale_operation["error"], "LEASE_EXPIRED")
+                self.assertEqual(self.client.get(
+                    "/profiles/fixture/ai-cost-plan/evaluations").json()["runs"], [])
+                self.assertEqual(len(second_client.get(
+                    "/profiles/other-profile/ai-cost-plan/evaluations").json()["runs"]), 1)
+        finally:
+            release_provider.set()
+            second_client.close()
+            second_store.engine.dispose()
 
     def test_reviewed_document_candidates_are_capped_persisted_and_required_for_preparation(self):
         for index in range(2):

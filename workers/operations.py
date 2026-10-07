@@ -1,6 +1,7 @@
 """Bounded claims and safe recovery; application state owns submission truth."""
 from datetime import datetime, timedelta, timezone
 import os
+from uuid import uuid4
 
 from sqlalchemy import func, select, text, update
 
@@ -14,6 +15,7 @@ OPERATION_CATEGORIES = {
     "DISCOVER": "source_collection",
     "COMPANY_DISCOVER": "company_discovery",
     "COMPANY_SOURCE_REFRESH": "company_discovery",
+    "AI_EVALUATE": "ai",
     "PREPARE": "document_generation",
     "APPLY_MOCK": "application_automation",
 }
@@ -39,6 +41,10 @@ class OperationCancelled(Exception):
 
 class OperationTimedOut(TimeoutError):
     """The worker operation exceeded its configured monotonic time budget."""
+
+
+class OperationConcurrencyLimit(Exception):
+    """The configured category concurrency ceiling is currently occupied."""
 
 
 def timeout():
@@ -95,6 +101,69 @@ def claim(store, operation_id):
         return {**dict(row), **values}
 
 
+def admit_inline(store, kind, entity_id):
+    """Reserve a bounded operation that executes in the API process, not RQ."""
+    if kind != "AI_EVALUATE" or kind in QUEUES:
+        raise ValueError("Unsupported inline operation kind")
+    category = OPERATION_CATEGORIES[kind]
+    timestamp = now()
+    operation_id = uuid4().hex
+    with store.engine.begin() as connection:
+        _lock(connection, category)
+        # An API process may have exited without a completion callback. Direct
+        # evaluations are never retried: an expired lease only frees capacity.
+        connection.execute(update(m.operations).where(
+            m.operations.c.kind == kind,
+            m.operations.c.state == "RUNNING",
+            m.operations.c.lease_expires_at <= timestamp,
+        ).values(state="FAILED", error="LEASE_EXPIRED", lease_expires_at=None,
+                 updated_at=timestamp))
+        active = connection.execute(select(func.count()).select_from(m.operations).where(
+            m.operations.c.kind.in_(CATEGORY_KINDS[category]),
+            m.operations.c.state == "RUNNING")).scalar_one()
+        if active >= category_limit(category):
+            raise OperationConcurrencyLimit(category)
+        connection.execute(m.operations.insert().values(
+            id=operation_id, kind=kind, entity_id=entity_id, params={},
+            state="RUNNING", error=None, updated_at=timestamp, attempt_count=1,
+            cancel_requested=False,
+            lease_expires_at=(datetime.now(timezone.utc)
+                              + timedelta(seconds=timeout() + 30)).isoformat(),
+        ))
+    return operation_id
+
+
+def finish_inline(store, operation_id, state, error=None):
+    if state not in ("COMPLETED", "CANCELLED", "FAILED"):
+        raise ValueError("Invalid inline operation terminal state")
+    with store.engine.begin() as connection:
+        if connection.dialect.name == "sqlite":
+            connection.exec_driver_sql("BEGIN IMMEDIATE")
+        row = connection.execute(select(
+            m.operations.c.state, m.operations.c.cancel_requested,
+        ).where(m.operations.c.id == operation_id,
+                m.operations.c.kind == "AI_EVALUATE").with_for_update()).one_or_none()
+        if row is None or row.state != "RUNNING":
+            return False
+        if row.cancel_requested and state == "COMPLETED":
+            state, error = "CANCELLED", "CANCEL_REQUESTED"
+        connection.execute(update(m.operations).where(
+            m.operations.c.id == operation_id,
+            m.operations.c.kind == "AI_EVALUATE",
+            m.operations.c.state == "RUNNING",
+        ).values(state=state, error=error, updated_at=now(), lease_expires_at=None))
+        return True
+
+
+def inline_cancel_requested(store, operation_id):
+    with store.engine.connect() as connection:
+        row = connection.execute(select(
+            m.operations.c.cancel_requested, m.operations.c.state,
+        ).where(m.operations.c.id == operation_id,
+                m.operations.c.kind == "AI_EVALUATE")).one_or_none()
+    return row is None or row.cancel_requested or row.state != "RUNNING"
+
+
 def check_cancelled(store, operation_id):
     with store.engine.connect() as connection:
         row = connection.execute(select(m.operations.c.cancel_requested, m.operations.c.state).where(m.operations.c.id == operation_id)).one()
@@ -126,7 +195,10 @@ def recover_expired(store):
             connection.exec_driver_sql("BEGIN IMMEDIATE")
         rows = list(connection.execute(select(m.operations).where(m.operations.c.state == "RUNNING", m.operations.c.lease_expires_at <= timestamp).with_for_update(skip_locked=True)).mappings())
         for row in rows:
-            state, error = ("QUEUED", "LEASE_EXPIRED") if row["attempt_count"] < MAX_ATTEMPTS else ("FAILED", "RETRY_LIMIT")
+            if row["kind"] == "AI_EVALUATE":
+                state, error = "FAILED", "LEASE_EXPIRED"
+            else:
+                state, error = ("QUEUED", "LEASE_EXPIRED") if row["attempt_count"] < MAX_ATTEMPTS else ("FAILED", "RETRY_LIMIT")
             if row["cancel_requested"]:
                 state, error = "CANCELLED", "CANCEL_REQUESTED"
             if row["kind"] == "APPLY_MOCK":

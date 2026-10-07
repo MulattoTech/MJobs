@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "issue": 6,
+  "requirement_id": "MJ-REQ-005",
+  "lane": "codex",
+  "branch": "codex/req005-ai-evaluation-admission-20261007",
+  "base_main": "e0a3a5fa588b55087030a19496d5228afcd3a2cc",
+  "source_head": "e0a3a5fa588b55087030a19496d5228afcd3a2cc",
+  "tested_source_patch_sha256": "41658be8b1943f1b01025ab75aa7f56cfa43684e4e745bd945cb8c2e0104f095",
+  "recorded_at_utc": "2026-10-07T05:06:29Z",
+  "result": "PARTIAL",
+  "scope": "Admit direct structured AI evaluation requests under the configured database-backed MJOBS_AI_CONCURRENCY ceiling across API instances. Persist terminal operation outcomes and recover expired inline leases without queueing a retry.",
+  "tdd_red": "Before implementation, the shared-database/two-API-instance acceptance test returned HTTP 200 to the second profile while the first provider call was blocked, and its synthetic router was entered. After adding durable generic-operation cancellation coverage, the test also showed that a cancel request from the second API instance did not reach the first provider call. The final implementation rejects the second request with 429 / AI_CONCURRENCY_LIMIT, propagates durable cancellation to the provider event, and records cancellation/completion/expired-lease states.",
+  "acceptance": {
+    "cross_instance_limit": "PASS - with MJOBS_AI_CONCURRENCY=1, two API app instances using separate Store objects against one SQLite file cannot start overlapping structured evaluations across different profiles; the second receives 429 / AI_CONCURRENCY_LIMIT before its provider is called.",
+    "capacity_recovery": "PASS - after the active evaluation is cancelled and its terminal state is persisted, a new profile evaluation is admitted.",
+    "operation_lifecycle": "PASS - successful structured evaluation records COMPLETED; generic operation cancellation from a separate API instance reaches the in-flight provider cancellation event and records CANCELLED.",
+    "expired_inline_lease": "PASS - an expired AI_EVALUATE lease is marked FAILED / LEASE_EXPIRED and is never requeued for dispatch.",
+    "profile_history": "PASS - evaluation histories remain scoped to the requesting profile; rejected/cancelled work adds no partial run.",
+    "complete_MJ_REQ_005": "PARTIAL - direct structured AI evaluation now shares durable category admission; real ATS automation and live PostgreSQL advisory-lock execution remain unavailable/not verified."
+  },
+  "validation": [
+    {
+      "command": "python -m unittest tests.integration.test_ai_cost_policy_api tests.unit.test_operation_concurrency tests.integration.test_worker_lifecycle",
+      "result": "PASS",
+      "summary": "32 API, operation-concurrency and worker-lifecycle tests passed after the final source changes."
+    },
+    {
+      "command": "python -m unittest discover -s tests -p 'test_*.py'",
+      "result": "PASS",
+      "summary": "849 tests ran in 476.247 seconds; all passed; 1 optional PostgreSQL concurrency test skipped because MJOBS_TEST_POSTGRES_URL was unset. Browser assets were built in this worktree before the run."
+    },
+    {
+      "command": "npm test -- --run",
+      "result": "PASS",
+      "summary": "13 frontend test files and 62 tests passed."
+    },
+    {
+      "command": "npm run build",
+      "result": "PASS",
+      "summary": "TypeScript check and Vite production build passed. npm ci and build emitted an engine warning because Node v25.9.0 is outside Vitest's declared Node 22.12/24/26+ ranges."
+    },
+    {
+      "commands": [
+        "python -m tools.verification.agent_skills",
+        "python -m tools.verification.catalogue",
+        "python -m tools.verification.progress validate",
+        "python -m tools.coordination.lane_coordination validate",
+        "python -m compileall -q apps/api/main.py workers tests",
+        "git diff --check"
+      ],
+      "result": "PASS",
+      "summary": "All listed local validators, Python bytecode compilation, lane validation and whitespace checks passed."
+    },
+    {
+      "command": "GitHub hosted Actions and hosted review",
+      "result": "NOT_RUN_BY_USER_POLICY",
+      "summary": "Hosted checks and reviewers remain disabled."
+    }
+  ],
+  "environment": {
+    "python": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe (Python 3.12)",
+    "node": "v25.9.0",
+    "npm": "11.12.1",
+    "database": "Synthetic API acceptance used two independent Store instances sharing a temporary SQLite database; no schema migration was required.",
+    "postgresql": "NOT_RUN - MJOBS_TEST_POSTGRES_URL was unset; one optional concurrency test skipped.",
+    "docker_runtime": "NOT_RUN - the change does not require container runtime validation.",
+    "provider_inference": "NOT_RUN - provider behavior used a synthetic in-process router; no Ollama or paid/cloud inference was invoked.",
+    "external_submission": "OFF"
+  },
+  "limitations": [
+    "Issue #6 / MJ-REQ-005 remains OPEN/PARTIAL; this slice implements shared durable admission for the direct structured AI evaluation operation, but does not provide real ATS automation or live PostgreSQL concurrency evidence.",
+    "The shared-database concurrency oracle used SQLite and separate app/store instances; PostgreSQL advisory-lock behavior remains covered only by existing code and the skipped optional PostgreSQL test.",
+    "Hosted checks and independent review remain NOT_RUN_BY_USER_POLICY."
+  ]
+}

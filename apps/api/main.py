@@ -7,6 +7,7 @@ import json
 import os
 from pathlib import Path
 import threading
+from time import monotonic
 from typing import Literal, Annotated
 from urllib.parse import unquote
 from uuid import uuid4
@@ -49,7 +50,10 @@ from services.company_discovery.sources import (list_company_job_sources, set_co
     list_company_source_view, set_company_source_pin, set_company_source_enabled)
 from services.documents.uploads import MAX_UPLOAD_BYTES, UploadIntegrityError, list_resumes, save_resume, read_resume
 from workers.dispatch import enqueue_operation
-from workers.operations import QUEUES, request_cancel, limit
+from workers.operations import (
+    QUEUES, OperationConcurrencyLimit, admit_inline, finish_inline,
+    inline_cancel_requested, request_cancel, limit,
+)
 
 
 class FactInput(BaseModel):
@@ -625,10 +629,15 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         with app.state.ai_evaluation_lock:
             if cancel_key in app.state.ai_evaluation_events:
                 raise HTTPException(409, {"code": "AI_EVALUATION_REQUEST_ACTIVE"})
+            try:
+                operation_id = admit_inline(store, "AI_EVALUATE", profile_id)
+            except OperationConcurrencyLimit:
+                raise HTTPException(429, {"code": "AI_CONCURRENCY_LIMIT"}) from None
             app.state.ai_evaluation_events[cancel_key] = cancelled
 
         def check_cancelled():
-            if cancelled.is_set():
+            if cancelled.is_set() or inline_cancel_requested(store, operation_id):
+                cancelled.set()
                 raise AIConsumerCancelledError()
 
         work = asyncio.create_task(asyncio.to_thread(
@@ -637,12 +646,24 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         ))
 
         def forget_finished_evaluation(_work):
+            if (_work.cancelled() or cancelled.is_set()
+                    or inline_cancel_requested(store, operation_id)):
+                state, error = "CANCELLED", "CANCEL_REQUESTED"
+            else:
+                try:
+                    work_error = _work.exception()
+                except BaseException:
+                    work_error = RuntimeError()
+                state, error = (("FAILED", "AI_EVALUATION_FAILED") if work_error
+                                else ("COMPLETED", None))
+            finish_inline(store, operation_id, state, error)
             with app.state.ai_evaluation_lock:
                 if app.state.ai_evaluation_events.get(cancel_key) is cancelled:
                     app.state.ai_evaluation_events.pop(cancel_key, None)
 
         work.add_done_callback(forget_finished_evaluation)
         try:
+            next_cancel_poll = monotonic()
             while not work.done():
                 if await request.is_disconnected():
                     cancelled.set()
@@ -651,6 +672,10 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                     except AIConsumerCancelledError:
                         pass
                     return JSONResponse({"detail": {"code": "AI_TASK_CANCELLED"}}, status_code=499)
+                if monotonic() >= next_cancel_poll:
+                    if inline_cancel_requested(store, operation_id):
+                        cancelled.set()
+                    next_cancel_poll = monotonic() + 0.25
                 await asyncio.sleep(0.05)
             result = await work
             if cancelled.is_set():

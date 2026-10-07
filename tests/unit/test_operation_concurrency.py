@@ -44,6 +44,7 @@ class OperationConcurrencyTests(unittest.TestCase):
             self.assertEqual(limit("DISCOVER"), 3)
             self.assertEqual(limit("COMPANY_DISCOVER"), 2)
             self.assertEqual(limit("COMPANY_SOURCE_REFRESH"), 2)
+            self.assertEqual(limit("AI_EVALUATE"), 2)
             self.assertEqual(limit("PREPARE"), 1)
             self.assertEqual(limit("APPLY_MOCK"), 1)
             self.assertEqual(category_limit("ai"), 2)

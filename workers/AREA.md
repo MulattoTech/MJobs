@@ -20,9 +20,12 @@ Compose environment. To use more than one source slot, scale the matching
 Compose worker service (for example, `docker compose up -d --scale source-worker=2`).
 Category admission and its PostgreSQL advisory lock are
 shared across operation kinds and worker replicas; each RQ worker process still
-executes one job at a time. The AI limit is configuration-only until an AI
-operation exists. Local SQLite and isolated PostgreSQL tests exercise serialized
-claims.
+executes one job at a time. Direct structured AI evaluations reserve the same
+database-backed AI category before calling a provider, so separate API processes
+share `MJOBS_AI_CONCURRENCY`. These inline evaluations are not RQ jobs and an
+expired lease is marked `FAILED / LEASE_EXPIRED`, never requeued for blind retry.
+Local SQLite and isolated PostgreSQL tests exercise serialized claims; the API
+acceptance test uses two app instances against one SQLite database.
 
 Every claimed durable task also receives a monotonic operation deadline. Its
 cooperative `check` callback stops work at the configured budget, and a late
