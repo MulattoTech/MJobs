@@ -4,7 +4,7 @@ The passive source-candidate catalogue/review slice is integrated on main at fb2
 
 Validation on the exact source tree: 10 focused API/browser tests PASS; full Python discovery 954 run, 8 skipped, no failures/errors; frontend 63 tests and TypeScript/Vite build PASS; disposable SQLite migration upgrade/schema/empty downgrade PASS; agent-skill, catalogue, progress, lane and diff validators PASS. PostgreSQL/Docker runtime, live source evaluation and hosted checks were NOT_RUN; hosted checks are NOT_RUN_BY_USER_POLICY; external submission OFF.
 
-The issue still needs integration with unclaimed supported provider/browser discovery entry points, documented API/feed/access and capabilities/limits/cost evaluation, and a bounded integration task/provider-issue link. Do not touch Antigravity #302 (services/discovery/sources/**) or Ollama #318 (services/ats_detection/**). The Codex claim on #517 remains active while selecting the next slice.
+The issue still needs integration with unclaimed supported provider/browser discovery entry points, documented API/feed/access and capabilities/limits/cost evaluation, and a bounded integration task/provider-issue link. Do not touch Antigravity #302 (services/discovery/sources/**) or Ollama #318 (services/ats_detection/**). The Codex claim for the integrated slice is released; reconcile ownership before selecting the next slice.
 
 Next: reconcile current main, lane claims and GitHub comments; continue the highest-value independent #517 acceptance gap on an isolated Codex branch/worktree, or choose another dependency-ready unclaimed issue if source-entry ownership conflicts. Do not mark issue #517 complete from this receipt.
 

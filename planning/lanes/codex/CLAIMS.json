@@ -618,11 +618,14 @@
         "docs/evidence/2026-10-07-source-candidate-catalogue.json",
         "planning/lanes/codex/**"
       ],
-      "status": "ACTIVE",
+      "status": "RELEASED",
       "claimed_at": "2026-10-07T16:46:55Z",
       "claim_comment": "https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6042556004",
       "evidence_path": "docs/evidence/2026-10-07-source-candidate-catalogue.json",
-      "result": "PARTIAL checkpoint; supported provider/browser intake integration and documented integration evaluation remain open"
+      "result": "PARTIAL; issue remains OPEN",
+      "released_at": "2026-10-07T17:29:00Z",
+      "integrated_main": "f48085f5e915e0070817dcc86628b0ce7b19a3fa",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6043192502"
     }
   ]
 }
