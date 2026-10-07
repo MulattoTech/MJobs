@@ -1,7 +1,11 @@
 # Antigravity lane handoff
 
-Status: **IDLE_READY**
+Status: **PASS / READY_FOR_INTEGRATION**
 
-The We Work Remotely source-adapter slice (issue #303 / MJ-REQ-017.S02) is verified and integrated at `682a9847c427c61991fa043134f3f50717c2d620`. 21 focused integration tests, 57 discovery source tests, and all repository validators passed.
-
-Next recommended candidate: Issue #308 / MJ-REQ-017.S07 (Remote OK global job-source adapter).
+Remote OK global job-source adapter (issue #308 / MJ-REQ-017.S07) is implemented and verified on branch `antigravity/mj-req017-s07-remote-ok-20261006`.
+- Declared exact capabilities (PUBLIC_JSON, DISCOVERY, JOB_DETAIL, SALARY, REMOTE_METADATA, APPLICATION_REDIRECT).
+- Normalizes multi-company postings, salary bounds/currencies, tags into skills, employment type, location/remote metadata, and sanitized descriptions.
+- Registered with source provider registry and collection engine.
+- 10 focused integration tests (including bounded live read-only verification) PASS.
+- 66 discovery source integration tests, 361 unit tests, 62 frontend tests, Vite build, and repository validators PASS.
+- Evidence recorded in `docs/evidence/2026-10-06-remote-ok-job-source-adapter.json`.

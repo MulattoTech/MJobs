@@ -12,9 +12,9 @@
     {
       "issue": 308,
       "requirement_id": "MJ-REQ-017.S07",
-      "status": "CANDIDATE",
+      "status": "READY",
       "priority": 2,
-      "note": "Remote OK source adapter; next candidate."
+      "note": "Remote OK source adapter implemented and verified; evidence docs/evidence/2026-10-06-remote-ok-job-source-adapter.json."
     }
   ]
 }
