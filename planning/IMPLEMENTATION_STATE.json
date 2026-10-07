@@ -7556,12 +7556,75 @@
         "candidate": "698e504ecc5059a5e015e987612b8c3572b422de",
         "issue_comment": "https://github.com/MulattoTech/MJobs/issues/23#issuecomment-6034383775"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-004-UPLOADED-COMPARISON-CROSS-INSTANCE-20261007",
+      "timestamp": "2026-10-07T09:24:09Z",
+      "current_phase": "Issue #5 / MJ-REQ-004 uploaded-original comparison cancellation is a locally PASS, integrated PARTIAL slice; continue the broader MJobs backlog.",
+      "completed_steps": [
+        "Reconciled current main, issue contract, machine claims, GitHub lane comments, worktrees and disjoint Antigravity #302/Ollama #318 ownership; acquired the Codex integration lock.",
+        "Implemented durable profile/application/revision/document-scoped uploaded-original comparison operation admission and cross-instance cancellation with hashed operation identity.",
+        "Observed the regression fail before implementation; verified wrong-profile and wrong-document isolation, durable CANCELLED readback, HTTP 499, no partial result and unchanged profile/application history.",
+        "Ran focused 46-test suite, full 886-test Python suite, connected browser check, frontend 63-test/build and repository validators; retained the optional PostgreSQL skip as NOT_RUN.",
+        "Pushed source/evidence branch, fast-forwarded main without force from the verified ancestor, updated canonical evidence/state/queue/handoff under lock, and read back sanitized GitHub evidence."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-07-uploaded-comparison-cross-instance-cancel.json"
+      ],
+      "files_modified": [
+        "apps/api/main.py",
+        "workers/operations.py",
+        "tests/integration/test_uploaded_resume_comparison.py",
+        "tests/unit/test_operation_concurrency.py",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_uploaded_resume_comparison tests.integration.test_profile_import tests.integration.test_ai_cost_policy_api tests.unit.test_operation_concurrency tests.unit.test_ai_cost_consumer: 46 PASS, 0 failures/errors.",
+        "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest discover -s tests -p test_*.py: 886 PASS, 0 failures/errors, 1 optional PostgreSQL skip.",
+        "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.browser.test_skill_order.SkillOrderBrowserTests.test_explicit_ordering_reaches_worker_and_download: connected synthetic headless Chromium PASS.",
+        "npm test --prefix apps/web -- --run: 63 PASS across 13 files; npm run build --prefix apps/web: TypeScript/Vite PASS.",
+        "python -m tools.verification.agent_skills; python -m tools.verification.catalogue; python -m tools.verification.progress validate; python -m tools.coordination.lane_coordination validate; compileall and git diff --check: PASS."
+      ],
+      "tests_remaining": [
+        "PostgreSQL-specific runtime test NOT_RUN because MJOBS_TEST_POSTGRES_URL was unset; one optional suite case was skipped.",
+        "Hosted Actions, hosted tests and independent review NOT_RUN_BY_USER_POLICY.",
+        "Other operation classes, live AI/provider and real ATS acceptance remain outside this slice."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Two independent FastAPI/Store instances sharing a temporary synthetic SQLite database; no external network, live provider, ATS, or submission."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "Issue #5 and MJ-REQ-004 remain OPEN/PARTIAL; only uploaded-original comparison cross-instance cancellation is evidenced.",
+        "Synthetic SQLite does not establish live PostgreSQL concurrency behavior.",
+        "Hosted checks/review remain NOT_RUN_BY_USER_POLICY; external application submission remains OFF."
+      ],
+      "source_commit": "dff77688f25fde18e24201dc8f62e6f9324e542b",
+      "source_tree": "7ff920b24e022685d322708d2d1388a127210cc3",
+      "result": "PARTIAL",
+      "last_safe_checkpoint": {
+        "git_commit": "1116133ebaf0f03eb819b2f32929817b09aff644",
+        "evidence_path": "docs/evidence/2026-10-07-uploaded-comparison-cross-instance-cancel.json"
+      },
+      "integration": {
+        "method": "NON_FORCE_FAST_FORWARD",
+        "base": "805e52bab0528e562578f51f5426285af0163657",
+        "main": "1116133ebaf0f03eb819b2f32929817b09aff644",
+        "source_branch": "codex/mj-req004-upload-compare-cross-instance-20261007",
+        "source_commit": "dff77688f25fde18e24201dc8f62e6f9324e542b",
+        "candidate": "1116133ebaf0f03eb819b2f32929817b09aff644",
+        "issue_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6034962276"
+      }
     }
   ],
-  "current_phase": "Issue #23 / MJ-REQ-022 Search Profiles is locally PASS and integrated; continue the broader MJobs backlog.",
+  "current_phase": "Issue #5 / MJ-REQ-004 uploaded-original comparison cancellation is a locally PASS, integrated PARTIAL slice; continue the broader MJobs backlog.",
   "last_safe_checkpoint": {
-    "git_commit": "698e504ecc5059a5e015e987612b8c3572b422de",
-    "evidence_path": "docs/evidence/2026-10-07-search-profile-selection.json"
+    "git_commit": "1116133ebaf0f03eb819b2f32929817b09aff644",
+    "evidence_path": "docs/evidence/2026-10-07-uploaded-comparison-cross-instance-cancel.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",

@@ -1,3 +1,13 @@
+# Issue #5 / MJ-REQ-004 integration receipt — 2026-10-07
+
+Issue #5 remains OPEN/PARTIAL. Uploaded-original comparison now persists a hashed-scope operation and supports durable cancellation from another API instance. The cancelled request returns HTTP 499; durable state reads back CANCELLED; wrong-profile and wrong-document requests do not cancel; profile/application history and comparison output remain unchanged. Source `dff77688f25fde18e24201dc8f62e6f9324e542b` and evidence checkpoint integrated by non-force fast-forward at main `1116133ebaf0f03eb819b2f32929817b09aff644` from `805e52bab0528e562578f51f5426285af0163657`. Evidence: `docs/evidence/2026-10-07-uploaded-comparison-cross-instance-cancel.json`; sanitized issue readback: https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6034962276.
+
+Validation: focused 46 Python tests PASS; full Python 886 PASS with one optional PostgreSQL skip; connected synthetic headless Chromium test PASS; frontend 63 tests/build PASS; repository validators PASS. PostgreSQL runtime and hosted checks/review NOT_RUN; external submission OFF. Requirement denominator is unchanged and the broader requirement remains PARTIAL.
+
+Next: release this claim and lock, inspect all active machine/GitHub claims and current main, then select/claim the next highest-value dependency-ready unowned issue in a new Codex worktree.
+
+---
+
 # Issue #23 / MJ-REQ-022 integration receipt — 2026-10-07
 
 Issue #23 is scoped PASS and evidence-readback is recorded at https://github.com/MulattoTech/MJobs/issues/23#issuecomment-6034383775. Candidate `698e504ecc5059a5e015e987612b8c3572b422de` was non-force fast-forwarded from synchronized main `ece8b69189a5589a079c2b01aa43a57037605d07`; local and remote main matched before canonical planning changes. Evidence: `docs/evidence/2026-10-07-search-profile-selection.json`. The Jobs view applies saved-search criteria owned by the active career profile. Loopback Chromium verified filtered UI/API results, clearing, profile switching/isolation, Store reopen, and no external browser requests. Focused suite: 18 PASS; frontend: 63 PASS; production build and local validators PASS. Initial root browser attempt used a stale ignored build; rebuild followed by the same 18-test suite passed. Hosted checks/reviews NOT_RUN by policy; external submission OFF. Overall MJobs state remains PARTIAL; the requirements denominator is unchanged.
