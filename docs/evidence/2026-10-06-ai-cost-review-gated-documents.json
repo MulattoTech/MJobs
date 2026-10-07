@@ -99,5 +99,8 @@
     "tests/browser/test_ai_task_settings.py": "5a90b2170e2db66ce43bf3cf564f184da5ef4880e6b5ed916236fbbe6fffd2fe"
   },
   "external_submission_enabled": false,
-  "hosted_verification": "NOT_RUN_BY_USER_POLICY"
+  "hosted_verification": "NOT_RUN_BY_USER_POLICY",
+  "validated_head": "f57118de20796c19b27eb6d1a94d02754ab9d1bf",
+  "validated_tree": "500b43c09d020980ad4a4e31caf72caf821bc3b4",
+  "verified_at_utc": "2026-10-07T00:54:25Z"
 }

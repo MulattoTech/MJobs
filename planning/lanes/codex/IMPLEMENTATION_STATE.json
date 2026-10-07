@@ -6,7 +6,7 @@
   "current_issue": 111,
   "requirement_id": "MJ-REQ-110",
   "branch": "codex/mj-req110-review-consumer-20261006",
-  "head": "bef266514c978856a5f9f372327a4d433b495a0a",
+  "head": "f57118de20796c19b27eb6d1a94d02754ab9d1bf",
   "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req110-review-consumer-20261006",
   "result": "PARTIAL",
   "evidence_path": "docs/evidence/2026-10-06-ai-cost-review-gated-documents.json",

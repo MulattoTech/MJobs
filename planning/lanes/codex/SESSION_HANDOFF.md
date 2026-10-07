@@ -7,7 +7,7 @@ C:/Tools/Dev/MJobs/.worktrees/codex-mj-req110-review-consumer-20261006 on
 codex/mj-req110-review-consumer-20261006.
 
 Fetched origin/main at 54be81542d9ab594c9418f15223e9c2aef02249d and merged it
-at bef266514c978856a5f9f372327a4d433b495a0a without conflicts. This checkpoint
+at bef266514c978856a5f9f372327a4d433b495a0a without conflicts. The review-gated feature commit is f57118de20796c19b27eb6d1a94d02754ab9d1bf and passed exact-head local validation. This checkpoint
 adds durable per-run candidate review constrained by the saved document cap,
 stale/cross-profile rejection, and a required review receipt when the AI funnel
 queues the existing factual document-preparation workflow. The UI persists review
