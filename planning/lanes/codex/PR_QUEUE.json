@@ -247,16 +247,18 @@
     {
       "issue": 177,
       "requirement_id": "MJ-REQ-176",
-      "status": "INTEGRATED_PARTIAL",
+      "status": "INTEGRATION_PENDING_PARTIAL",
       "priority": 1,
-      "target_area": "services/audit_history.py; apps/api/main.py; apps/web/src/main.tsx; tests/integration/test_audit_history.py; tests/browser/test_audit_history.py",
+      "target_area": "services/audit_history.py; services/discovery/pipeline.py; services/discovery/matching.py; tests/integration/test_audit_history.py; tests/browser/test_audit_history.py",
       "depends_on": [],
-      "evidence_path": "docs/evidence/2026-10-07-profile-audit-history.json",
+      "evidence_path": "docs/evidence/2026-10-07-profile-audit-job-events.json",
       "scope_complete": false,
-      "note": "Profile-scoped user-visible audit summaries are locally tested across API, SQLite reopen and connected browser profile switching. 13 focused integration/browser tests, 63 frontend tests, TypeScript/Vite build and local validators PASS. Required job/company discovery, company enrollment, merge, setting mutation and truthful real-submission event families remain incomplete; issue stays OPEN/PARTIAL. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF. Source 9d3bff3b5e07b1d1eda1413d78e95a2c9e51f25c; integration pending.",
+      "note": "Second partial slice adds idempotent, append-only profile-scoped JOB_DISCOVERED and MATCH_SCORED events to the integrated safe Activity timeline. 16 focused audit/discovery/matching/browser tests, frontend 63 tests/build, and validators PASS. Company/source enrollment, job merge, general settings and full application event families remain incomplete; issue #177 stays OPEN/PARTIAL. Prior timeline evidence: docs/evidence/2026-10-07-profile-audit-history.json. Current evidence: docs/evidence/2026-10-07-profile-audit-job-events.json. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
       "integration_commit": "d4ed75530ec9609ec41d2e3b2f4a93aa50e4b259",
-      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6039527055"
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6039527055",
+      "prior_integration_commit": "d4ed75530ec9609ec41d2e3b2f4a93aa50e4b259",
+      "source_commit": "c80e011cf12bc071755c014935854699fbdcf4aa"
     }
   ],
-  "generated_at": "2026-10-07T13:57:32Z"
+  "generated_at": "2026-10-07T14:05:05Z"
 }

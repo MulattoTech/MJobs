@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-07T14:05:05Z",
+  "issue": 177,
+  "requirement_id": "MJ-REQ-176",
+  "result": "PARTIAL",
+  "source_commit": "c80e011cf12bc071755c014935854699fbdcf4aa",
+  "source_tree": "da2c8dd27d01961805bcdfb84a6b0a99238114d4",
+  "base_main": "647ade803c36eaab738197f74d009aa6aa71ecfa",
+  "acceptance_oracle": "When a job first becomes available to a career profile, the Activity timeline records JOB_DISCOVERED and MATCH_SCORED with safe job/company context. Re-scoring is idempotent for the same profile version; another profile has independent events. The API and UI expose no raw audit payload or match score.",
+  "red_observation": "Before this slice, the connected timeline returned no JOB_DISCOVERED or MATCH_SCORED events after fixture discovery and the regression tests failed on both missing event types.",
+  "implementation": [
+    "Fixture discovery and deterministic match recalculation append profile-owned JOB_DISCOVERED and MATCH_SCORED audit rows in the same transaction as profile match persistence.",
+    "Stable event IDs and conflict-do-nothing inserts prevent duplicate retries while preserving existing audit rows; a new profile gets independent first-seen history.",
+    "The Activity read model resolves job title/company through stored job rows, returns fixed summaries only, and never serializes event payloads, profile-version identifiers or scores.",
+    "The profile-level MATCHES_RECALCULATED summary remains distinct from per-job MATCH_SCORED events."
+  ],
+  "validation": [
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_audit_history tests.integration.test_spine tests.integration.test_explainable_matching tests.browser.test_audit_history -v",
+      "result": "PASS",
+      "counts": {"passed": 16, "failed": 0, "skipped": 0}
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run",
+      "result": "PASS",
+      "counts": {"files": 13, "tests": 63, "failed": 0}
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "details": "TypeScript check and Vite production build completed."
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m py_compile services/audit_history.py services/discovery/pipeline.py services/discovery/matching.py tests/integration/test_audit_history.py tests/browser/test_audit_history.py",
+      "result": "PASS"
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.agent_skills",
+      "result": "PASS"
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.catalogue",
+      "result": "PASS"
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.progress validate",
+      "result": "PASS"
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.coordination.lane_coordination validate",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "environment_attempts": [
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "BLOCKED_ENVIRONMENT",
+      "details": "The fresh worktree had no apps/web/node_modules; tsc was unavailable. npm ci installed the lockfile dependencies, after which the build passed."
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.browser.test_audit_history -v",
+      "result": "BLOCKED_ENVIRONMENT",
+      "details": "The connected UI route had no ignored apps/web/dist bundle in this fresh worktree. After npm ci and a successful frontend build, the browser test passed."
+    }
+  ],
+  "browser_evidence": {
+    "engine": "Headless Chromium via Playwright",
+    "database": "Temporary SQLite fixture database; history and match records were re-read after Store reopen.",
+    "network": "Browser requests were restricted to isolated loopback API; no external requests observed. Fixture job source was local-only.",
+    "verified": [
+      "Fixture discovery creates profile-owned JOB_DISCOVERED and MATCH_SCORED rows with safe job title/company summaries.",
+      "Scoring the same profile/version again leaves the job audit event list unchanged.",
+      "A second profile receives its own first-discovery and match-score events without leaking them into the first profile's view.",
+      "Activity timeline renders job events after reload; previous audit-history safety, document-history and profile isolation checks continue to pass."
+    ]
+  },
+  "remaining_requirement_gaps": [
+    "COMPANY_DISCOVERED and COMPANY_SOURCE_ENROLLED event producers are not covered by this slice.",
+    "JOB_MERGED and complete SETTING_CHANGED event producers remain unverified.",
+    "Application queue/start/failure and user-reported versus fictional submission/confirmation event-family coverage remains incomplete; no real external submission is inferred or enabled."
+  ],
+  "environment": {
+    "os": "Windows",
+    "python": "3.12",
+    "node": "25.9.0",
+    "npm": "11.12.1",
+    "node_engine_notice": "Vitest declares Node ^22.12, ^24, or >=26; Node 25.9 emitted EBADENGINE during npm ci while the frontend tests and build passed.",
+    "database": "SQLite only; no schema/migration changed.",
+    "postgresql_docker": "NOT_RUN; no database-specific behavior changed.",
+    "hosted_actions_and_review": "NOT_RUN by current local-only policy.",
+    "external_submission": "OFF"
+  }
+}
