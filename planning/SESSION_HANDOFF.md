@@ -1,5 +1,13 @@
 # Integration receipt — 2026-10-07
 
+Issue #5 / MJ-REQ-004 explicit structured-AI evaluation cancellation integrated by non-force fast-forward at synchronized local/GitHub main 0d1bb23b3d11ea44c5026b8e256289b134e38628. Tested source b9cac2c6ec425e5cf888265e97fb70930fde947b (tree cf3e070d5711af2dbf191055c3442b65a3892296); evidence docs/evidence/2026-10-07-ai-evaluation-ui-cancel.json. The AI Settings UI sends a profile/request-scoped cancellation request, remains pending until the bounded synthetic provider call completes, discards the interrupted batch, and confirms empty history after reload. Local validation: 16 focused API/Chromium tests; 847 full Python tests with 1 optional PostgreSQL skip; 62 frontend tests/build; agent-skills, catalogue, progress, lane and compile checks PASS. Live provider inference and PostgreSQL runtime NOT_RUN; hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF. Issue #5 remains OPEN/PARTIAL.
+
+Sanitized GitHub issue readback: https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6030719498. Main and origin/main both 0d1bb23b3d11ea44c5026b8e256289b134e38628. Continue by releasing the Codex claim, reconciling active ownership, and selecting the next dependency-ready issue.
+
+---
+
+# Integration receipt — 2026-10-07
+
 Issue #5 / MJ-REQ-004 real structured-AI request-disconnect transport slice integrated by non-force fast-forward at synchronized local/GitHub main `c3618496c9a877a8cbca8e5c02af187b50f1ad9c`. Tested source `181ec139d48c6f911cdcd5f93f5a7dcf2b8b3210` (tree `4edb7dfde29e02c1c133131bff358835ab6ad681`); evidence `docs/evidence/2026-10-07-ai-real-disconnect-transport.json`. The real loopback request-side TCP half-close reached `Request.is_disconnected` through pure ASGI origin middleware, preserving guards/security headers and leaving no partial evaluation history. 845 Python tests PASS with one optional PostgreSQL skip, 3 Chromium tests PASS, 62 frontend tests/build PASS, and local validators PASS. Issue #5 remains OPEN/PARTIAL; only a synthetic provider was used, provider inference and hosted checks/review are NOT_RUN, and external submission is OFF. Sanitized issue readback: https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6030523004.
 
 Next: release this Codex claim and lock, reconcile current main and all active claims/worktrees, then select and claim the highest-value unclaimed dependency-ready slice. Continue without waiting for another user prompt.
