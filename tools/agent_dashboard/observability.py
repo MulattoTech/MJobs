@@ -916,7 +916,7 @@ def _antigravity_model_hint(user_text: str) -> str | None:
     for pattern in patterns:
         match = re.search(pattern, user_text, flags=re.I)
         if match:
-            return match.group(1).strip()
+            return match.group(1).strip().rstrip(".,;:)]}>\"'")
     return None
 
 
@@ -946,7 +946,7 @@ def _antigravity_transcript_identity(path: Path) -> dict[str, Any]:
                 text = str(step.get("content") or "")
                 match = re.search(r"worktree=([^\s;]+)", text, flags=re.I)
                 if match:
-                    identity["workspace"] = match.group(1).strip()
+                    identity["workspace"] = match.group(1).strip().rstrip(".,;:)]}>\"'")
                 issue_match = re.search(r"issue\s+#(\d+)", text, flags=re.I)
                 if issue_match:
                     identity["issue"] = int(issue_match.group(1))
@@ -1010,7 +1010,7 @@ def _antigravity_transcript_summary(path: Path) -> dict[str, Any]:
                     text = str(step.get("content") or "")
                     match = re.search(r"worktree=([^\s;]+)", text, flags=re.I)
                     if match:
-                        workspace = match.group(1).strip()
+                        workspace = match.group(1).strip().rstrip(".,;:)]}>\"'")
                     issue_match = re.search(r"issue\s+#(\d+)", text, flags=re.I)
                     if issue_match:
                         issue = int(issue_match.group(1))
