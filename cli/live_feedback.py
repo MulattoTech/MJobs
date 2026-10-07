@@ -44,6 +44,19 @@ def text_fingerprint(value):
     return {"sha256": hashlib.sha256(raw).hexdigest(), "length": len(raw)}
 
 
+def capture_redacted_screenshot(page, path):
+    """Capture visual context without persisting form values or DOM snapshots."""
+    masks = [
+        page.locator("input"),
+        page.locator("textarea"),
+        page.locator("select"),
+        page.locator("[data-sensitive]"),
+    ]
+    page.screenshot(
+        path=str(path), full_page=True, mask=masks, mask_color="#000000"
+    )
+
+
 def sanitize_interaction(payload):
     if not isinstance(payload, dict):
         return {"type": "invalid"}
@@ -140,14 +153,11 @@ def run_session(base_url, visuals=False, diagnostic_text=False):
     session_dir = new_session_directory()
     recorder = Recorder(session_dir, diagnostic_text=diagnostic_text)
     started = utc_now()
-    trace_path = session_dir / "trace.zip"
 
     try:
         with sync_playwright() as playwright:
             browser = playwright.chromium.launch(headless=False)
             context = browser.new_context()
-            if visuals:
-                context.tracing.start(screenshots=True, snapshots=True, sources=True)
             page = context.new_page()
             page.expose_function(
                 "mjobsFeedbackEvent",
@@ -180,7 +190,10 @@ def run_session(base_url, visuals=False, diagnostic_text=False):
             print(f"Live feedback session: {session_dir}")
             print("Use the headed browser normally. Typed field values are not recorded.")
             if visuals:
-                print("Visual tracing is ON and may contain personal page content.")
+                print(
+                    "Redacted screenshot capture is ON; form controls are masked. "
+                    "Other visible page text may still contain private data."
+                )
             print("Press ENTER in this terminal when you finish the test flow.")
             try:
                 input()
@@ -190,8 +203,7 @@ def run_session(base_url, visuals=False, diagnostic_text=False):
             final_url = redact_url(page.url)
             title = compact_text(page.title(), 200)
             if visuals:
-                page.screenshot(path=str(session_dir / "final.png"), full_page=True)
-                context.tracing.stop(path=str(trace_path))
+                capture_redacted_screenshot(page, session_dir / "final.png")
             browser.close()
 
         ended = utc_now()
@@ -251,7 +263,8 @@ def build_parser():
     run = sub.add_parser("run", help="Start a headed browser and record safe interaction diagnostics")
     run.add_argument("--base-url", default="http://127.0.0.1:18700")
     run.add_argument("--visuals", action="store_true",
-                     help="Opt in to screenshots/Playwright trace; may capture personal page content")
+                     help=("Opt in to a screenshot with form controls masked; "
+                           "other visible page text may contain private data"))
     run.add_argument("--diagnostic-text", action="store_true",
                      help="Opt in to console/page-error text instead of hashes only")
     report = sub.add_parser("summarize", help="Summarize the latest or selected feedback session")

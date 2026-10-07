@@ -111,7 +111,10 @@ For an explicit visual debugging session, run manually:
 .\.venv\Scripts\python.exe -m cli.live_feedback run --base-url http://127.0.0.1:18701 --visuals
 ```
 
-This adds a final screenshot and Playwright trace. Treat them as private local artifacts.
+This adds one final screenshot. Inputs, textareas, selects, and page regions marked
+`data-sensitive` are covered with opaque masks; the recorder does not save a Playwright
+trace or DOM snapshot. Other visible page text may still contain private information,
+so treat the screenshot as a private local artifact and review it before sharing.
 
 Likewise, `--diagnostic-text` stores browser console/page-error text instead of hashes. Only enable it when needed because application-generated diagnostic strings may contain private context.
 
