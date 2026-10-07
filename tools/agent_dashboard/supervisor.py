@@ -15,6 +15,8 @@ from pathlib import Path
 from typing import Any
 
 from .observability import (
+    antigravity_usage_snapshot,
+    codex_usage_snapshot,
     log_activity,
     ollama_ps,
     opencode_usage_snapshot,
@@ -709,7 +711,24 @@ class AgentSupervisor:
                     activity_state = "STOPPED"
 
                 if lane == "codex":
-                    usage = telemetry.get("codex_usage") or {"available": False}
+                    usage = dict(telemetry.get("codex_usage") or {"available": False})
+                    workspace = state.get("workspace") or (
+                        self._live_claim(lane).get("worktree")
+                    )
+                    if workspace:
+                        codex_stats = self._cached_telemetry(
+                            f"codex_stats:{workspace}:{activity.get('session_id')}:{self.config['lanes'][lane].get('model')}",
+                            3.0,
+                            lambda workspace=workspace, session_id=activity.get("session_id"), model=self.config["lanes"][lane].get("model"): codex_usage_snapshot(
+                                workspace,
+                                session_id=session_id,
+                                configured_model=model,
+                            ),
+                        )
+                        usage["telemetry"] = codex_stats
+                        current_session = codex_stats.get("current_session") or {}
+                        if current_session.get("session_id"):
+                            activity["session_id"] = current_session["session_id"]
                     visibility = (
                         "codex exec is a separate one-shot process; it is not guaranteed "
                         "to appear inside another interactive Codex /agents view"
@@ -717,9 +736,26 @@ class AgentSupervisor:
                 elif lane == "antigravity":
                     usage = {
                         "available": False,
-                        "message": "Antigravity CLI does not expose a quota percentage locally.",
+                        "message": "Antigravity CLI does not expose a remaining-quota percentage locally.",
                     }
-                    visibility = "agy --print supervised process"
+                    workspace = state.get("workspace") or (
+                        self._live_claim(lane).get("worktree")
+                    )
+                    if workspace:
+                        agy_stats = self._cached_telemetry(
+                            f"antigravity_stats:{workspace}:{activity.get('session_id')}:{self.config['lanes'][lane].get('model')}",
+                            3.0,
+                            lambda workspace=workspace, conversation_id=activity.get("session_id"), model=self.config["lanes"][lane].get("model"): antigravity_usage_snapshot(
+                                workspace,
+                                conversation_id=conversation_id,
+                                configured_model=model,
+                            ),
+                        )
+                        usage["telemetry"] = agy_stats
+                        current_conversation = agy_stats.get("current_conversation") or {}
+                        if current_conversation.get("conversation_id"):
+                            activity["session_id"] = current_conversation["conversation_id"]
+                    visibility = "agy --print supervised process + structured Antigravity transcript telemetry"
                 else:
                     workspace = state.get("workspace") or (
                         self._live_claim(lane).get("worktree")
