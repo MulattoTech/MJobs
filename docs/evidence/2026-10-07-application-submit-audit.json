@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-07T19:34:45Z",
+  "issue": 177,
+  "requirement_id": "MJ-REQ-176",
+  "result": "PARTIAL",
+  "source_commit": "382db126a1b504754ec2ad748bb543df586d976b",
+  "source_tree": "61cda14042c788d8db2661b9c06f741a66c3db8f",
+  "base_main": "5ec8f8bdb5cc37841043e8041bab7e40f02545f3",
+  "acceptance_oracle": "A confirmed local mock ATS application produces distinct durable APPLICATION_SUBMITTED and APPLICATION_CONFIRMED Activity events after browser reload, scoped to its profile. The submitted event is written only after the local submit click returns or a valid mock receipt is recovered. An absent receipt remains SUBMISSION_UNCONFIRMED; a reservation or pre-click timeout creates no submitted event.",
+  "red_observation": {
+    "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_mock_application.MockApplicationTests.test_mock_submission_confirmed_once_and_survives_restart tests.browser.test_mock_application.MockApplicationTests.test_opt_in_capture_preserves_unconfirmed_submission_without_retry tests.browser.test_mock_application.MockApplicationTests.test_timeout_after_submission_reservation_prevents_submit_click tests.browser.test_mock_application.MockApplicationTests.test_uncertain_submission_without_receipt_does_not_retry -v",
+    "result": "Before implementation, confirmed and post-click/no-receipt paths lacked APPLICATION_SUBMITTED in audit history. Reservation-only and pre-click timeout paths correctly had no submission event."
+  },
+  "implementation": [
+    "Added an idempotent APPLICATION_SUBMITTED audit producer guarded to applications whose target is MOCK; payload is empty and the event identifier is stable per profile/application.",
+    "Record the event after the local mock submit click returns, or during recovery only when a valid local mock receipt exists; keep CONFIRMED receipt mapping separate.",
+    "Connected Activity browser acceptance now performs the submit against one local mock origin, reads both event summaries after reload, and verifies the other profile sees neither event."
+  ],
+  "validation": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_mock_application tests.integration.test_audit_history tests.browser.test_audit_history tests.browser.test_application_pipeline tests.integration.test_application_pipeline -v",
+      "result": "PASS; 34 tests, 0 failures/errors/skips. Local Chromium Activity reload/profile isolation, mock click/receipt/uncertain recovery, application tracker reload/recovery, API history and SQLite persistence all ran."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_audit_history.AuditHistoryBrowserTests.test_activity_history_is_profile_scoped_and_survives_reload -v",
+      "result": "PASS; 1 test after the final UI assertion adjustment."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest discover -q",
+      "result": "Ran 962 tests in 580.199s; 1 failure and 8 skipped. The failure was tests.browser.test_company_discovery_requests.CompanyDiscoveryRequestsBrowserTests.test_real_collection_request_review_worker_and_identity_separation at isolated Uvicorn shutdown (thread remained alive). This path is outside the changed files."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_company_discovery_requests.CompanyDiscoveryRequestsBrowserTests.test_real_collection_request_review_worker_and_identity_separation -v",
+      "result": "PASS; 1 test, 0 failures/errors on isolated rerun. Full-suite result remains recorded as one failure; it is not relabeled PASS."
+    },
+    {
+      "command": "npm ci --prefix apps/web",
+      "result": "PASS; 44 packages installed, 0 vulnerabilities. Node v25.9.0 produced EBADENGINE because vitest@5.0.3 declares ^22.12.0 || ^24.0.0 || >=26.0.0."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS; TypeScript check and Vite build."
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run",
+      "result": "PASS; 13 files, 63 tests."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m compileall -q services/applications/mock_adapter.py services/audit_history.py tests/browser/test_mock_application.py tests/browser/test_audit_history.py",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.agent_skills; python -m tools.verification.catalogue; python -m tools.verification.progress validate; python -m tools.coordination.lane_coordination validate; git diff --check",
+      "result": "PASS; all listed repository validators and diff check passed."
+    },
+    {
+      "command": "python -m unittest tests.browser.test_mock_application -v (system Python)",
+      "result": "ENVIRONMENT FAILURE before test collection: system interpreter lacked SQLAlchemy. All substantive Python validation was rerun with the repository .venv interpreter."
+    }
+  ],
+  "scope": {
+    "persistence": "Temporary SQLite fixture database; no schema/migration changes. Stable-id conflict handling prevents duplicate submitted events; Store reopen readback and other-profile isolation verified.",
+    "browser": "Local Chromium and local mock ATS only. Activity UI displays separate submission and confirmation summaries after reload. Outbound requests from Activity browser were blocked; none attempted.",
+    "frontend": "63 Vitest tests and TypeScript/Vite production build PASS; no frontend source changes.",
+    "postgresql_docker": "NOT_APPLICABLE; no schema changes. PostgreSQL/Docker not exercised by this slice.",
+    "full_python_suite": "PARTIAL; 962 ran, 8 skipped, one unrelated browser-server shutdown failure; isolated rerun of that test passed. The final added Activity assertion was separately rerun and passed.",
+    "hosted_actions_review": "NOT_RUN_BY_USER_POLICY",
+    "external_submission": "OFF; no employer/provider calls. Only the repository's local synthetic mock ATS was used."
+  },
+  "limitations": [
+    "This implements the named submission event for the local MOCK ATS only. It does not claim real employer submission or receipt.",
+    "Other MJ-REQ-176 audit event families remain incomplete; issue #177 stays OPEN/PARTIAL.",
+    "No PostgreSQL/Docker or hosted checks/reviews are claimed."
+  ]
+}
