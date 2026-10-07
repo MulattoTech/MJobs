@@ -126,7 +126,7 @@
       "requirement_id": "MJ-REQ-004",
       "branch": "codex/mj-req004-exact-main-full-suite-20261007",
       "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req004-exact-main-full-suite-20261007",
-      "head": "d7307be3d50e4297f87ba315e9cda3dbdf1a1924",
+      "head": "bb2d4a1fdcb21cd215cc4408cbbba687b15e07ed",
       "paths": [
         "docs/evidence/2026-10-07-backup-command-output-bounds.json",
         "planning/lanes/codex/**"
