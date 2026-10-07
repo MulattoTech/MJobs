@@ -1,17 +1,17 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-07T13:07:33Z",
+  "generated_at": "2026-10-07T13:14:00Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Issue #9 / MJ-REQ-008 PostgreSQL worker recovery integrated as a scoped PARTIAL slice at main 68f38e2bc39f30fd9bb213c14d182991d0c4214e; issue remains OPEN/PARTIAL; Actions disabled; external submission OFF.",
-    "current_verified_github_state": "GitHub main integrated issue #9 / MJ-REQ-008 PostgreSQL worker recovery at 68f38e2bc39f30fd9bb213c14d182991d0c4214e; issue remains OPEN/PARTIAL after sanitized release evidence; Actions disabled; external submission OFF.",
-    "current_verified_at": "2026-10-07T13:07:33Z"
+    "current_verified_local_state": "Issue #5 / MJ-REQ-004 Compose recovery subprocess output bounds integrated as a scoped PARTIAL slice at main 2e99cce66f11a2fad756ab6fc0410506a26fd258; issue remains OPEN/PARTIAL; Actions disabled; external submission OFF.",
+    "current_verified_github_state": "GitHub main integrated issue #5 / MJ-REQ-004 Compose recovery output bounds at 2e99cce66f11a2fad756ab6fc0410506a26fd258; issue remains OPEN/PARTIAL after sanitized release evidence; Actions disabled; external submission OFF.",
+    "current_verified_at": "2026-10-07T13:14:00Z"
   },
-  "current_milestone": "MJ-REQ-008-POSTGRES-WORKER-CRASH-RECOVERY-20261007",
+  "current_milestone": "MJ-REQ-004-COMPOSE-RECOVERY-OUTPUT-BOUNDS-20261007",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -112,7 +112,8 @@
     "MJ-REF-033 advanced PARTIAL: bounded agent run duration/step stopping, explicit terminal escape outcomes, sanitized stop/budget audit, and typed collection count/tail/shape validation. Browser adapter integration, page budgets, bounded slice reruns, and hard interruption of an in-flight synchronous handler remain open; evidence docs/evidence/2026-10-07-agent-run-budget-output-validation.json.",
     "MJ-REQ-005 / issue #6: live isolated PostgreSQL 17 advisory-lock tests now prove cross-kind company-discovery and independent application-automation capacity-one admission across separate Store engines; each race leaves one RUNNING and one QUEUED operation with matching attempt counts. The acceptance slice passes; broader requirement remains PARTIAL because real ATS/provider execution is not exercised. Evidence docs/evidence/2026-10-07-postgres-concurrency-runtime.json.",
     "MJ-REQ-180 / issue #181 advanced PARTIAL: opt-in live-feedback screenshots mask inputs, textareas, selects and data-sensitive regions; raw Playwright trace/DOM snapshots are no longer saved. Synthetic Chromium pixel acceptance and focused feedback tests pass; arbitrary text and diagnostic-text paths remain. Evidence docs/evidence/2026-10-07-redacted-visual-feedback.json.",
-    "MJ-REQ-170 / issue #171 advanced PARTIAL: new live-feedback sessions automatically prune only managed timestamped session folders older than 30 days and repair the latest pointer; other transient artifact/log/payload classes remain unverified. Evidence docs/evidence/2026-10-07-live-feedback-retention.json."
+    "MJ-REQ-170 / issue #171 advanced PARTIAL: new live-feedback sessions automatically prune only managed timestamped session folders older than 30 days and repair the latest pointer; other transient artifact/log/payload classes remain unverified. Evidence docs/evidence/2026-10-07-live-feedback-retention.json.",
+    "MJ-REQ-004 Compose recovery CLI output bounds verified with synthetic child overflow and deadline termination; 2 MiB retained stdout, drained stderr, child reaping and sanitized errors. Real Compose execution NOT_RUN; other operation classes/live AI/ATS remain incomplete. Evidence docs/evidence/2026-10-07-compose-recovery-output-bounds.json."
   ],
   "blocked_capabilities": [],
   "active_requirements": [
@@ -329,7 +330,8 @@
     "Issue #6 / MJ-REQ-005 local PostgreSQL category-runtime acceptance: 5 PostgreSQL concurrency tests + 3 category unit tests + 16 worker lifecycle tests passed twice (24/run) against one fresh disposable PostgreSQL 17 DB. All five categories now have runtime evidence for capacity-one admission, including shared inline/worker document-generation category. Evidence docs/evidence/2026-10-07-postgres-all-category-concurrency.json.",
     "Focused live-feedback privacy unit/GUI/Chromium acceptance: 26 PASS, 0 failures/errors/skips (synthetic local data only); evidence docs/evidence/2026-10-07-redacted-diagnostic-privacy.json.",
     "Issue #8 / MJ-REQ-007 migration recovery integrated at 4f7059f5fcaac5335e2b5aa9e0666dc6848706ad: SQLite and isolated disposable PostgreSQL 17 injected post-DDL rollback/retry; 23 migration tests PASS with 1 optional PostgreSQL skip; 18 related unit tests PASS. Evidence docs/evidence/2026-10-07-migration-recovery.json.",
-    "Issue #9 / MJ-REQ-008 PostgreSQL worker recovery integrated at 68f38e2bc39f30fd9bb213c14d182991d0c4214e: worker lifecycle module 18 PASS (two disposable PostgreSQL cases and 16 SQLite cases); PostgreSQL category concurrency 5 PASS; repository validators PASS. Evidence docs/evidence/2026-10-07-postgres-worker-crash-recovery.json."
+    "Issue #9 / MJ-REQ-008 PostgreSQL worker recovery integrated at 68f38e2bc39f30fd9bb213c14d182991d0c4214e: worker lifecycle module 18 PASS (two disposable PostgreSQL cases and 16 SQLite cases); PostgreSQL category concurrency 5 PASS; repository validators PASS. Evidence docs/evidence/2026-10-07-postgres-worker-crash-recovery.json.",
+    "Issue #5 / MJ-REQ-004 Compose recovery output boundary integrated at 2e99cce66f11a2fad756ab6fc0410506a26fd258: focused synthetic child tests 4 PASS, full unit suite 408 PASS, validators PASS. Evidence docs/evidence/2026-10-07-compose-recovery-output-bounds.json."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -390,7 +392,8 @@
     "MJ-REQ-004 backup CLI slice: frontend unit tests NOT_RUN_BY_SCOPE; no web source changed. PostgreSQL runtime NOT_RUN_BY_SCOPE; no persistence or migration changed. Hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF.",
     "MJ-REQ-005 real ATS/provider concurrency and hosted Actions/review remain NOT_RUN; external application submission OFF. Browser/frontend/migrations NOT_APPLICABLE to the test-only slice.",
     "Full repository suite, frontend/browser tests, hosted checks/review NOT_RUN_BY_USER_POLICY; offline SQL generation attempted and failed in existing migration cb72f9041d6a; external submission OFF.",
-    "Issue #9 PostgreSQL worker recovery: physical host restart and full repository suite NOT_RUN; frontend/browser NOT_APPLICABLE to this test-only slice; hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF."
+    "Issue #9 PostgreSQL worker recovery: physical host restart and full repository suite NOT_RUN; frontend/browser NOT_APPLICABLE to this test-only slice; hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF.",
+    "Issue #5 Compose recovery output bounds: real Docker Compose recovery intentionally NOT_RUN to avoid stopping/restarting local services; full integration/browser/frontend suites NOT_RUN_BY_SCOPE; hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -426,13 +429,13 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-07T13:07:33Z",
+    "timestamp": "2026-10-07T13:14:00Z",
     "result": "PARTIAL",
-    "source_commit": "9c4dfacdeb5f65883284c7d7628b653097546b12",
-    "source_tree": "15ae8e240d67c45e2ebdcb5a34315e33ebf9c7ea",
-    "scope": "Synthetic product-worker process crash, PostgreSQL lease recovery and audit readback, replacement completion, and stale worker attempt fencing on an isolated current-schema PostgreSQL 17 database.",
-    "evidence_path": "docs/evidence/2026-10-07-postgres-worker-crash-recovery.json",
-    "integration_commit": "68f38e2bc39f30fd9bb213c14d182991d0c4214e"
+    "source_commit": "0a14aaa2d9c0fe2cb1ae0c94a3281a1ebd99987f",
+    "source_tree": "1c647a72802f656ecd86627f67aec4057417e7f8",
+    "scope": "Bound retained stdout, drain stderr, enforce deadlines, terminate/reap overflowing or timed-out children, and sanitize errors for Compose recovery and Docker inspect subprocesses.",
+    "evidence_path": "docs/evidence/2026-10-07-compose-recovery-output-bounds.json",
+    "integration_commit": "2e99cce66f11a2fad756ab6fc0410506a26fd258"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -8411,12 +8414,62 @@
         "git_commit": "68f38e2bc39f30fd9bb213c14d182991d0c4214e",
         "evidence_path": "docs/evidence/2026-10-07-postgres-worker-crash-recovery.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-004-COMPOSE-RECOVERY-OUTPUT-BOUNDS-INTEGRATED-20261007",
+      "current_phase": "Issue #5 / MJ-REQ-004 Compose recovery subprocess output bound integrated; requirement remains PARTIAL.",
+      "timestamp": "2026-10-07T13:14:00Z",
+      "completed_steps": [
+        "Reproduced unbounded retained stdout in the Compose recovery command path.",
+        "Added a shared bounded subprocess helper for Docker Compose and inspect commands with timeout/overflow child termination and reaping.",
+        "Recorded sanitized local evidence and GitHub release; integrated as PARTIAL."
+      ],
+      "files_added": [
+        "tests/unit/test_compose_recovery.py",
+        "docs/evidence/2026-10-07-compose-recovery-output-bounds.json"
+      ],
+      "files_modified": [
+        "cli/compose_recovery.py",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Focused Compose recovery subprocess unit tests: 4 PASS.",
+        "Full tests/unit suite: 408 PASS.",
+        "Agent skill, catalogue, progress, lane coordination, compilation and diff validators PASS."
+      ],
+      "tests_remaining": [
+        "Real Compose recovery intentionally NOT_RUN to avoid stopping/restarting local services.",
+        "Full integration/browser/frontend suite NOT_RUN_BY_SCOPE.",
+        "Hosted checks/review NOT_RUN_BY_USER_POLICY."
+      ],
+      "migrations_applied": [
+        "None."
+      ],
+      "live_integrations_tested": [
+        "GitHub issue #5 release comment read back at https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6038708763.",
+        "Local and origin/main verified at 2e99cce66f11a2fad756ab6fc0410506a26fd258."
+      ],
+      "known_errors": [
+        "Pre-fix regression failed as expected because compose() returned synthetic 2 MiB + 1 stdout without enforcing a ceiling."
+      ],
+      "known_limitations": [
+        "Only Compose recovery and inspect output boundaries covered; issue #5 remains OPEN/PARTIAL for other operation types and live provider/ATS paths.",
+        "Real Compose runtime not run; hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF.",
+        "The 408-test unit suite left an untracked local events.jsonl in the isolated Codex worktree; it was not staged or modified."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "2e99cce66f11a2fad756ab6fc0410506a26fd258",
+        "evidence_path": "docs/evidence/2026-10-07-compose-recovery-output-bounds.json"
+      }
     }
   ],
-  "current_phase": "Issue #9 / MJ-REQ-008 PostgreSQL worker process-crash recovery, audit preservation and stale-attempt fencing integrated; requirement remains PARTIAL.",
+  "current_phase": "Issue #5 / MJ-REQ-004 Compose recovery subprocess output bound integrated; requirement remains PARTIAL.",
   "last_safe_checkpoint": {
-    "git_commit": "68f38e2bc39f30fd9bb213c14d182991d0c4214e",
-    "evidence_path": "docs/evidence/2026-10-07-postgres-worker-crash-recovery.json"
+    "git_commit": "2e99cce66f11a2fad756ab6fc0410506a26fd258",
+    "evidence_path": "docs/evidence/2026-10-07-compose-recovery-output-bounds.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -8654,19 +8707,19 @@
     "next_issue": "Release #398 and select the next dependency-ready unclaimed issue after live claim/worktree reconciliation."
   },
   "active_development_issue": {
-    "issue": 9,
-    "requirement_id": "MJ-REQ-008",
-    "title": "Save Implementation Progress",
+    "issue": 5,
+    "requirement_id": "MJ-REQ-004",
+    "title": "Bound External Operations",
     "state": "INTEGRATED_PARTIAL",
-    "base": "e29454c9e7d89604f786da34f1d9e8e39083803f",
-    "branch": "codex/mj-req008-postgres-worker-recovery-20261007",
-    "candidate": "68f38e2bc39f30fd9bb213c14d182991d0c4214e",
-    "integrated_main": "68f38e2bc39f30fd9bb213c14d182991d0c4214e",
-    "source_commit": "9c4dfacdeb5f65883284c7d7628b653097546b12",
-    "source_tree": "15ae8e240d67c45e2ebdcb5a34315e33ebf9c7ea",
-    "evidence": "docs/evidence/2026-10-07-postgres-worker-crash-recovery.json",
-    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/9#issuecomment-6038585898",
-    "next_action": "Issue #9 remains OPEN/PARTIAL because physical host restart remains NOT_RUN. Codex claim released. Reconcile current main, all active claims and dirty worktrees, then select the next highest-value unclaimed dependency-ready issue."
+    "base": "9e83fb7ecb1b42e2de666e573cd9f4913d39ee3c",
+    "branch": "codex/mj-req004-compose-recovery-output-bounds-20261007",
+    "candidate": "2e99cce66f11a2fad756ab6fc0410506a26fd258",
+    "integrated_main": "2e99cce66f11a2fad756ab6fc0410506a26fd258",
+    "source_commit": "0a14aaa2d9c0fe2cb1ae0c94a3281a1ebd99987f",
+    "source_tree": "1c647a72802f656ecd86627f67aec4057417e7f8",
+    "evidence": "docs/evidence/2026-10-07-compose-recovery-output-bounds.json",
+    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6038708763",
+    "next_action": "Issue #5 remains OPEN/PARTIAL for other operation categories and live provider/ATS paths; Codex claim released. Reconcile current main, claims and dirty worktrees, then select the next highest-value unclaimed dependency-ready issue."
   },
   "historical_control_snapshots": [
     {

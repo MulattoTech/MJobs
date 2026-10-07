@@ -64,5 +64,17 @@
     "Real Compose recovery, browser, and database behavior were not exercised.",
     "Hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF."
   ],
-  "claim_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6038614779"
+  "claim_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6038614779",
+  "integration": {
+    "status": "NON_FORCE_FAST_FORWARD",
+    "base_main": "9e83fb7ecb1b42e2de666e573cd9f4913d39ee3c",
+    "source_commit": "0a14aaa2d9c0fe2cb1ae0c94a3281a1ebd99987f",
+    "candidate_commit": "2e99cce66f11a2fad756ab6fc0410506a26fd258",
+    "local_main": "2e99cce66f11a2fad756ab6fc0410506a26fd258",
+    "origin_main": "2e99cce66f11a2fad756ab6fc0410506a26fd258",
+    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6038708763",
+    "issue_state": "OPEN_PARTIAL",
+    "external_submission": "OFF"
+  },
+  "recorded_integration_at_utc": "2026-10-07T13:14:00Z"
 }

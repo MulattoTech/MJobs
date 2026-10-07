@@ -1,20 +1,20 @@
 {
   "schema_version": 1,
   "lane": "codex",
-  "status": "ACTIVE",
+  "status": "IDLE_READY",
   "base_main": "9e83fb7ecb1b42e2de666e573cd9f4913d39ee3c",
-  "current_issue": 5,
-  "requirement_id": "MJ-REQ-004",
-  "branch": "codex/mj-req004-compose-recovery-output-bounds-20261007",
-  "head": "0a14aaa2d9c0fe2cb1ae0c94a3281a1ebd99987f",
-  "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req004-compose-recovery-output-bounds-20261007",
-  "result": "PASS_FOR_SLICE; requirement PARTIAL",
+  "current_issue": null,
+  "requirement_id": null,
+  "branch": null,
+  "head": "2e99cce66f11a2fad756ab6fc0410506a26fd258",
+  "worktree": null,
+  "result": "INTEGRATED_PARTIAL",
   "evidence_path": "docs/evidence/2026-10-07-compose-recovery-output-bounds.json",
   "last_completed": {
-    "issue": 9,
-    "requirement_id": "MJ-REQ-008",
-    "integrated_main": "68f38e2bc39f30fd9bb213c14d182991d0c4214e",
-    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/9#issuecomment-6038585898"
+    "issue": 5,
+    "requirement_id": "MJ-REQ-004",
+    "integrated_main": "2e99cce66f11a2fad756ab6fc0410506a26fd258",
+    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6038708763"
   },
   "next_candidates": [
     {
@@ -29,10 +29,10 @@
     "Ollama/OpenCode active issue #318 paths: services/ats_detection/** and detector tests",
     "canonical planning and main outside integration lock"
   ],
-  "resume_instruction": "Finish exact source verification, checkpoint the issue #5 Compose recovery output boundary, then reconcile main/claims before integrating. Do not run recovery against personal/local Compose services. Preserve issue as PARTIAL.",
-  "last_verified_head": "0a14aaa2d9c0fe2cb1ae0c94a3281a1ebd99987f",
-  "last_verified_tree": "1c647a72802f656ecd86627f67aec4057417e7f8",
-  "last_verified_at_utc": "2026-10-07T13:13:02Z",
+  "resume_instruction": "Reconcile current main, active claims and dirty worktrees, then select the next highest-value dependency-ready unclaimed issue. Keep external submission OFF and hosted checks NOT_RUN_BY_USER_POLICY.",
+  "last_verified_head": "2e99cce66f11a2fad756ab6fc0410506a26fd258",
+  "last_verified_tree": "3d739252d7169e329521e5b3789a9e98ef6bf0fa",
+  "last_verified_at_utc": "2026-10-07T13:14:00Z",
   "started_at_utc": "2026-10-07T04:24:01Z",
   "validation": {
     "result": "PASS_FOR_SLICE",
@@ -45,6 +45,6 @@
     "hosted_checks": "NOT_RUN_BY_USER_POLICY",
     "external_submission": "OFF"
   },
-  "last_integrated_head": "68f38e2bc39f30fd9bb213c14d182991d0c4214e",
+  "last_integrated_head": "2e99cce66f11a2fad756ab6fc0410506a26fd258",
   "last_verified_result": "PASS_FOR_SLICE; requirement PARTIAL"
 }

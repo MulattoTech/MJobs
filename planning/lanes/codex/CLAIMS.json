@@ -288,10 +288,13 @@
         "docs/evidence/2026-10-07-compose-recovery-output-bounds.json",
         "planning/lanes/codex/**"
       ],
-      "status": "ACTIVE",
+      "status": "RELEASED",
       "claimed_at": "2026-10-07T13:08:58Z",
       "claim_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6038614779",
-      "evidence_path": "docs/evidence/2026-10-07-compose-recovery-output-bounds.json"
+      "evidence_path": "docs/evidence/2026-10-07-compose-recovery-output-bounds.json",
+      "released_at": "2026-10-07T13:14:00Z",
+      "integrated_main": "2e99cce66f11a2fad756ab6fc0410506a26fd258",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6038708763"
     }
   ]
 }

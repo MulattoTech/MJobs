@@ -5,13 +5,13 @@
     {
       "issue": 5,
       "requirement_id": "MJ-REQ-004",
-      "status": "CANDIDATE_READY",
+      "status": "INTEGRATED_PARTIAL",
       "priority": 0,
       "target_area": "apps/api/main.py; workers/operations.py; tests/integration/test_uploaded_resume_comparison.py; cli/local_backup.py; tests/unit/test_local_backup.py",
       "depends_on": [],
       "evidence_path": "docs/evidence/2026-10-07-compose-recovery-output-bounds.json",
       "scope_complete": false,
-      "note": "Integrated at main aa28501b0db8a00e9331d43347e2bbdfc3ed2b98. Uploaded-original comparison cancellation is durably shared across API instances; evidence docs/evidence/2026-10-07-uploaded-comparison-cross-instance-cancel.json. Focused 46/full Python 886 tests, connected browser, frontend 63/build, and local validators pass (one optional PostgreSQL skip). Broader issue #5 remains OPEN/PARTIAL. Additional bounded backup/restore CLI subprocess output slice integrated at 3ebc187c2c139876dfa28e0313a6b779e7c53bc1; evidence docs/evidence/2026-10-07-backup-command-output-bounds.json and issue readback https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6037144335. Focused 11 pass; built frontend/two browser checks pass; broad Python remains 903 run with 2 failures, 2 errors, 2 skips due unrelated repeatable browser regressions. Issue stays OPEN/PARTIAL. Exact-main revalidation correction: isolated current-main worktree installed lockfile JS dependencies and rebuilt assets; full 903-test Python/browser suite passed with 2 skipped; 11 backup tests and validators pass. Earlier stale-dist failures resolved; evidence docs/evidence/2026-10-07-backup-command-output-bounds.json. Compose recovery CLI follow-up at 0a14aaa2d9c0fe2cb1ae0c94a3281a1ebd99987f: all docker compose and inspect captures now retain at most 2 MiB, drain stderr, terminate/reap on output overflow or deadline and classify without child text. Four focused real-child/unit checks and 408 unit tests PASS; evidence docs/evidence/2026-10-07-compose-recovery-output-bounds.json. Docker Compose runtime intentionally NOT_RUN; broader issue remains OPEN/PARTIAL."
+      "note": "Compose recovery Docker Compose/inspect child output bounded to 2 MiB retained stdout; stderr drained; timeout/overflow child termination and sanitized exit classification proven. Focused tests 4 PASS; all unit tests 408 PASS; local validators PASS. Evidence docs/evidence/2026-10-07-compose-recovery-output-bounds.json. Integrated at 2e99cce66f11a2fad756ab6fc0410506a26fd258; release https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6038708763. Real Compose runtime and other operation categories remain NOT_RUN; issue #5 OPEN/PARTIAL."
     },
     {
       "issue": 6,
