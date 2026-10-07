@@ -99,6 +99,11 @@ A normal session contains:
 - `feedback.md` — your explicit feedback;
 - `outputs/live-feedback/LATEST.txt` — pointer to the newest session.
 
+When a new feedback session starts, the recorder removes managed live-feedback
+session directories whose UTC timestamp is more than 30 days old. It preserves
+the newest retained session pointer and does not touch application history or
+directories outside the live-feedback session naming scheme.
+
 Run **MJobs: Summarize Latest Feedback** for a compact terminal summary.
 
 ## Optional visual diagnostics

@@ -4,7 +4,9 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-from datetime import datetime, timezone
+import re
+import shutil
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.parse import urlsplit, urlunsplit
 
@@ -15,6 +17,8 @@ ROOT = Path(__file__).resolve().parents[1]
 OUTPUT_ROOT = ROOT / "outputs" / "live-feedback"
 ALLOWED_HOSTS = {"127.0.0.1", "localhost"}
 MAX_METADATA_TEXT = 160
+FEEDBACK_RETENTION_DAYS = 30
+SESSION_DIRECTORY_RE = re.compile(r"^(\d{8}T\d{6}Z)(?:-\d{2})?$")
 
 
 def utc_now():
@@ -76,6 +80,8 @@ def sanitize_interaction(payload):
 
 
 def new_session_directory():
+    OUTPUT_ROOT.mkdir(parents=True, exist_ok=True)
+    prune_expired_sessions(output_root=OUTPUT_ROOT)
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     path = OUTPUT_ROOT / stamp
     suffix = 1
@@ -84,6 +90,85 @@ def new_session_directory():
         suffix += 1
     path.mkdir(parents=True)
     return path
+
+
+def prune_expired_sessions(*, now=None, output_root=OUTPUT_ROOT):
+    """Remove only expired, directly owned live-feedback session directories."""
+    root = Path(output_root)
+    if _is_link_or_junction(root) or not root.is_dir():
+        return []
+    for parent in root.parents:
+        if _is_link_or_junction(parent):
+            return []
+    try:
+        resolved_root = root.resolve(strict=True)
+    except OSError:
+        return []
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        raise ValueError("Retention clock must be timezone-aware")
+    cutoff = current.astimezone(timezone.utc) - timedelta(days=FEEDBACK_RETENTION_DAYS)
+    expired = []
+    for entry in root.iterdir():
+        if _is_link_or_junction(entry) or not entry.is_dir():
+            continue
+        try:
+            if entry.resolve(strict=True).parent != resolved_root:
+                continue
+        except OSError:
+            continue
+        match = SESSION_DIRECTORY_RE.fullmatch(entry.name)
+        if match is None:
+            continue
+        try:
+            created = datetime.strptime(match.group(1), "%Y%m%dT%H%M%SZ").replace(tzinfo=timezone.utc)
+        except ValueError:
+            continue
+        if created < cutoff:
+            expired.append((created, entry.name, entry))
+
+    removed = []
+    for _, name, entry in sorted(expired):
+        try:
+            shutil.rmtree(entry)
+        except FileNotFoundError:
+            continue
+        except OSError:
+            continue
+        removed.append(name)
+
+    marker = root / "LATEST.txt"
+    if removed and not _is_link_or_junction(marker) and marker.is_file():
+        try:
+            latest_name = marker.read_text(encoding="utf-8").strip()
+        except (OSError, UnicodeError):
+            latest_name = ""
+        if latest_name in removed:
+            retained = []
+            for entry in root.iterdir():
+                match = SESSION_DIRECTORY_RE.fullmatch(entry.name)
+                if _is_link_or_junction(entry) or not entry.is_dir() or match is None:
+                    continue
+                try:
+                    created = datetime.strptime(match.group(1), "%Y%m%dT%H%M%SZ").replace(tzinfo=timezone.utc)
+                except ValueError:
+                    continue
+                retained.append((created, entry.name))
+            if retained:
+                try:
+                    marker.write_text(max(retained)[1] + "\n", encoding="utf-8")
+                except OSError:
+                    pass
+            else:
+                try:
+                    marker.unlink(missing_ok=True)
+                except OSError:
+                    pass
+    return removed
+
+
+def _is_link_or_junction(path):
+    return path.is_symlink() or (hasattr(path, "is_junction") and path.is_junction())
 
 
 def latest_session_directory():

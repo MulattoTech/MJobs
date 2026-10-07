@@ -1,11 +1,13 @@
 import json
 import tempfile
 import unittest
+from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import patch
 
 from cli.live_feedback import (
     capture_redacted_screenshot,
+    prune_expired_sessions,
     redact_url,
     run_session,
     safe_url,
@@ -15,6 +17,53 @@ from cli.live_feedback import (
 
 
 class LiveFeedbackTests(unittest.TestCase):
+    def test_retention_removes_only_expired_feedback_sessions_and_repairs_latest(self):
+        now = datetime(2026, 10, 7, 12, tzinfo=timezone.utc)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "live-feedback"
+            expired = root / "20260801T120000Z"
+            boundary = root / "20260907T120000Z"
+            recent = root / "20261001T120000Z"
+            malformed = root / "20260801T120000Z-notes"
+            for session in (expired, boundary, recent, malformed):
+                session.mkdir(parents=True)
+                (session / "marker.txt").write_text("synthetic", encoding="utf-8")
+            (root / "LATEST.txt").write_text(expired.name + "\n", encoding="utf-8")
+            application_history = Path(directory) / "applications" / "history.json"
+            application_history.parent.mkdir()
+            application_history.write_text("preserve", encoding="utf-8")
+
+            removed = prune_expired_sessions(now=now, output_root=root)
+
+            self.assertEqual(removed, [expired.name])
+            self.assertFalse(expired.exists())
+            self.assertTrue(boundary.is_dir())
+            self.assertTrue(recent.is_dir())
+            self.assertTrue(malformed.is_dir())
+            self.assertEqual((root / "LATEST.txt").read_text(encoding="utf-8").strip(), recent.name)
+            self.assertEqual(application_history.read_text(encoding="utf-8"), "preserve")
+
+    def test_retention_is_idempotent_when_no_expired_managed_session_exists(self):
+        now = datetime(2026, 10, 7, 12, tzinfo=timezone.utc)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "live-feedback"
+            (root / "20261001T120000Z").mkdir(parents=True)
+            self.assertEqual(prune_expired_sessions(now=now, output_root=root), [])
+            self.assertEqual(prune_expired_sessions(now=now, output_root=root), [])
+
+    def test_new_feedback_session_automatically_prunes_old_diagnostics(self):
+        from cli.live_feedback import new_session_directory
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "live-feedback"
+            expired = root / "20200101T000000Z"
+            expired.mkdir(parents=True)
+            (expired / "trace.zip").write_bytes(b"synthetic old trace")
+            with patch("cli.live_feedback.OUTPUT_ROOT", root):
+                session = new_session_directory()
+            self.assertTrue(session.is_dir())
+            self.assertFalse(expired.exists())
+
     def test_visual_capture_masks_every_form_control_and_sensitive_region(self):
         class Page:
             def __init__(self):
