@@ -196,9 +196,9 @@
   },
   "external_submission_enabled": false,
   "hosted_verification": "NOT_RUN_BY_USER_POLICY",
-  "validated_head": "2c885656245529d994018d51430a59db6fbf8334",
-  "validated_tree": "abd21d609c824c20807606ee06aa87df188dd916",
-  "verified_at_utc": "2026-10-07T01:21:39Z",
+  "validated_head": "0b6b72c1e9e9fe6bde202072b2de60ff05b5281b",
+  "validated_tree": "3729c105ee831ea0766eeda86f6a03c97083dceb",
+  "verified_at_utc": "2026-10-07T01:31:06Z",
   "claim_refresh_validation": {
     "verified_at_utc": "2026-10-07T01:21:39Z",
     "validated_head": "2c885656245529d994018d51430a59db6fbf8334",
@@ -244,5 +244,27 @@
       "PostgreSQL runtime migration, full Python discovery, and hosted checks.",
       "External application submission; OFF."
     ]
+  },
+  "latest_reconciliation_validation": {
+    "verified_at_utc": "2026-10-07T01:31:06Z",
+    "fetched_origin_main": "e37f0c8523b16d4ea5e38bf37f5c34def94ccce3",
+    "validated_head": "0b6b72c1e9e9fe6bde202072b2de60ff05b5281b",
+    "validated_tree": "3729c105ee831ea0766eeda86f6a03c97083dceb",
+    "source_diff_since_prior_validation": "No AI consumer, API, persistence, migration, or acceptance test changes; the merge added an unrelated dashboard test.",
+    "focused_python_api_browser_migration": "PASS - 20 tests",
+    "frontend_tests": "PASS - 62 tests across 13 files",
+    "frontend_build": "PASS",
+    "agent_skills_catalogue_progress": "PASS",
+    "compileall": "PASS",
+    "git_diff_check": "PASS",
+    "not_run": [
+      "Live configured-provider inference; active Ollama lane owns the shared local runtime.",
+      "PostgreSQL runtime migration and persistence checks.",
+      "Full Python test discovery.",
+      "Hosted checks and reviews under the active local-only policy.",
+      "External application submission; OFF."
+    ],
+    "status": "PARTIAL",
+    "lane_coordination": "PASS"
   }
 }
