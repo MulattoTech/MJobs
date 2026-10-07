@@ -7334,14 +7334,15 @@
     {
       "milestone_id": "MJ-REF-028-ENCRYPTED-PROVIDER-CREDENTIAL-STORE-20261007",
       "timestamp": "2026-10-07T07:17:15Z",
-      "current_phase": "Issue #398 acceptance integrated as a complete scoped feature; broader overlapping security requirements remain partial.",
+      "current_phase": "Issue #398 / MJ-REF-028 fully accepted locally, integrated into synchronized main and closed after sanitized evidence readback; broader MJ-REQ-175/MJ-REQ-180 remain PARTIAL.",
       "completed_steps": [
         "Implemented AES-256-GCM encryption with profile/provider authenticated data and a server-only environment key.",
         "Connected masked provider credential metadata, save/rotate/delete and explicit fixed-origin eight-second connection checks through API and AI Settings UI.",
         "Added profile isolation, persistence/reopen, ciphertext/backup, logging/serialization redaction, migration downgrade-preservation and connected Chromium tests.",
         "Ran 867 Python tests (one skipped), 62 frontend tests/build and repository validators; full suite passed.",
         "Pushed candidate and integrated by non-force fast-forward from 104e5533bbbc174e0e8c6e806741074e5f83d3a8 under the Codex integration lock.",
-        "Posted sanitized local acceptance evidence to GitHub issue #398: https://github.com/MulattoTech/MJobs/issues/398#issuecomment-6032995423"
+        "Posted sanitized local acceptance evidence to GitHub issue #398: https://github.com/MulattoTech/MJobs/issues/398#issuecomment-6032995423",
+        "Verified synchronized local/origin main 715b0e2600276ed2ab438908b4b97d57274d82c3; closed issue #398 after sanitized evidence readback at https://github.com/MulattoTech/MJobs/issues/398#issuecomment-6032995423."
       ],
       "files_added": [
         "docs/evidence/2026-10-07-provider-credential-store.json",
@@ -7408,17 +7409,19 @@
       "integration": {
         "method": "NON_FORCE_FAST_FORWARD",
         "base": "104e5533bbbc174e0e8c6e806741074e5f83d3a8",
-        "main": "7636b620b60e53380b48051a5550aa1dc23be663",
+        "main": "715b0e2600276ed2ab438908b4b97d57274d82c3",
         "source_branch": "codex/mj-ref-028-credential-store-20261007",
         "source_commit": "7636b620b60e53380b48051a5550aa1dc23be663",
         "candidate": "7636b620b60e53380b48051a5550aa1dc23be663",
         "issue_comment": "https://github.com/MulattoTech/MJobs/issues/398#issuecomment-6032995423",
         "actions_disabled": true,
-        "hosted_review": "NOT_RUN_BY_USER_POLICY"
+        "hosted_review": "NOT_RUN_BY_USER_POLICY",
+        "issue_closed": true,
+        "closed_at_utc": "2026-10-07T07:18:51Z"
       }
     }
   ],
-  "current_phase": "Issue #398 acceptance integrated as a complete scoped feature; broader overlapping security requirements remain partial.",
+  "current_phase": "Issue #398 / MJ-REF-028 fully accepted locally, integrated into synchronized main and closed after sanitized evidence readback; broader MJ-REQ-175/MJ-REQ-180 remain PARTIAL.",
   "last_safe_checkpoint": {
     "git_commit": "7636b620b60e53380b48051a5550aa1dc23be663",
     "evidence_path": "docs/evidence/2026-10-07-provider-credential-store.json"
@@ -7569,29 +7572,29 @@
     }
   ],
   "live_reconciliation": {
-    "observed_at": "2026-10-07T07:17:15Z",
-    "github_main": "104e5533bbbc174e0e8c6e806741074e5f83d3a8",
-    "local_main": "7636b620b60e53380b48051a5550aa1dc23be663",
-    "issue_398_state": "OPEN; sanitized acceptance evidence posted at https://github.com/MulattoTech/MJobs/issues/398#issuecomment-6032995423; close after remote main/planning readback.",
+    "observed_at": "2026-10-07T07:18:51Z",
+    "github_main": "715b0e2600276ed2ab438908b4b97d57274d82c3",
+    "local_main": "715b0e2600276ed2ab438908b4b97d57274d82c3",
+    "issue_398_state": "CLOSED after evidence readback at https://github.com/MulattoTech/MJobs/issues/398#issuecomment-6032995423",
     "open_prs": 0,
     "actions_enabled": false,
     "main_branch_protected": false,
-    "integration": "Non-force fast-forward under the Codex integration lock from 104e5533bbbc174e0e8c6e806741074e5f83d3a8 to 7636b620b60e53380b48051a5550aa1dc23be663; canonical planning reconciliation is checkpointed separately.",
-    "next_issue": "Release #398 and select the next dependency-ready unclaimed issue after live claim reconciliation."
+    "integration": "Source 7636b620b60e53380b48051a5550aa1dc23be663 fast-forwarded into main; canonical evidence and planning synchronized by 715b0e2600276ed2ab438908b4b97d57274d82c3 under the Codex integration lock. Local/origin SHA verified.",
+    "next_issue": "Release #398 and select the next dependency-ready unclaimed issue after live claim/worktree reconciliation."
   },
   "active_development_issue": {
     "issue": 398,
     "requirement_id": "MJ-REF-028",
     "title": "Encrypted provider credential store with masked client previews",
-    "state": "INTEGRATED_SCOPE_PASS",
+    "state": "CLOSED_SCOPE_PASS",
     "base": "104e5533bbbc174e0e8c6e806741074e5f83d3a8",
     "branch": "codex/mj-ref-028-credential-store-20261007",
     "candidate": "7636b620b60e53380b48051a5550aa1dc23be663",
     "source_tree": "eb580c4073864bfd06f7c56ea10af0527488ddc9",
     "evidence": "docs/evidence/2026-10-07-provider-credential-store.json",
-    "next_action": "Verify canonical planning push and synchronized main; close issue #398 on GitHub, release its claim and the lock, then reconcile claims and continue to the highest-value unclaimed dependency-ready issue.",
+    "next_action": "Release the completed Codex claim and integration lock, reconcile current main and every active lane claim/worktree, and select the next highest-value unclaimed dependency-ready issue.",
     "issue_comment": "https://github.com/MulattoTech/MJobs/issues/398#issuecomment-6032995423",
-    "integrated_main": "7636b620b60e53380b48051a5550aa1dc23be663"
+    "integrated_main": "715b0e2600276ed2ab438908b4b97d57274d82c3"
   },
   "historical_control_snapshots": [
     {
@@ -8731,5 +8734,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-07T07:17:15Z"
+  "updated_at": "2026-10-07T07:18:51Z"
 }

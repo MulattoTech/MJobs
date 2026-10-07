@@ -735,3 +735,6 @@ Integration receipt (2026-10-07T05:45:48Z): issue #9 / MJ-REQ-008 source d516834
 # Integration receipt — 2026-10-07
 
 Issue #398 / MJ-REF-028 encrypted provider credentials source `7636b620b60e53380b48051a5550aa1dc23be663` and evidence `docs/evidence/2026-10-07-provider-credential-store.json` are fast-forwarded into local main from `104e5533bbbc174e0e8c6e806741074e5f83d3a8` under the Codex integration lock. Local evidence: 867 Python tests PASS, 1 skipped; 62 frontend tests and build PASS; focused credential unit/API/migration/connected-browser tests, validators, compile, pip check and diff check PASS. PostgreSQL runtime, live provider requests, hosted checks/review NOT_RUN; external submission OFF. OpenAI/Anthropic inference routing and broader MJ-REQ-175/MJ-REQ-180 remain incomplete. Sanitized issue evidence: https://github.com/MulattoTech/MJobs/issues/398#issuecomment-6032995423. Canonical main publication/readback and issue closure are in progress.
+
+
+Issue #398 closed after sanitized evidence readback. At closure, local and origin/main matched `715b0e2600276ed2ab438908b4b97d57274d82c3`; source commit `7636b620b60e53380b48051a5550aa1dc23be663` plus canonical planning/evidence were synchronized. The Codex claim and integration lock are now being released before selecting the next unclaimed issue.
