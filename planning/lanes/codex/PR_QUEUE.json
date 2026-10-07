@@ -96,15 +96,17 @@
     {
       "issue": 390,
       "requirement_id": "MJ-REF-020",
-      "status": "READY_FOR_INTEGRATION",
+      "status": "INTEGRATED_PASS",
       "priority": 2,
       "target_area": "services/applications; services/tracking; API; Applications UI",
       "depends_on": [
         "application tracker and canonical job/route model"
       ],
       "evidence_path": "docs/evidence/2026-10-07-external-application-capture.json",
-      "scope_complete": false,
-      "note": "Local issue acceptance PASS at source 63142751719eb7b52f5fafd2e93dc47a6f53aa51 with evidence docs/evidence/2026-10-07-external-application-capture.json: focused integration 10, connected browser 6, frontend 63/build, full Python 895 (one optional PostgreSQL skip), local validators PASS. Hosted checks NOT_RUN_BY_USER_POLICY. Canonical planning remains integration-lock owned."
+      "scope_complete": true,
+      "note": "Local issue acceptance PASS at source 63142751719eb7b52f5fafd2e93dc47a6f53aa51 with evidence docs/evidence/2026-10-07-external-application-capture.json: focused integration 10, connected browser 6, frontend 63/build, full Python 895 (one optional PostgreSQL skip), local validators PASS. Hosted checks NOT_RUN_BY_USER_POLICY. Canonical planning remains integration-lock owned.",
+      "scope_result": "PASS",
+      "integration_commit": "300cf704915574d4e33beb251af14b003bd384d9"
     }
   ]
 }

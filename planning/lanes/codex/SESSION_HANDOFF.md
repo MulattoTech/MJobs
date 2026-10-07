@@ -1,23 +1,21 @@
 # Codex lane handoff
 
-Status: **ACTIVE / issue #390 / MJ-REF-020**
+Status: **ACTIVE / issue #6 / MJ-REQ-005**
 
-## Active issue #390
+## Completed issue #390 / MJ-REF-020
 
-Branch: `codex/mj-ref020-external-application-capture-20261007`
-Worktree: `C:/Tools/Dev/MJobs/.worktrees/codex-mj-ref020-external-application-capture-20261007`
-Base main: `ab49c58e401ec93c2cce8614c499242e414e9e31`
-Evidence target: `docs/evidence/2026-10-07-external-application-capture.json`
+Integrated on main `300cf704915574d4e33beb251af14b003bd384d9`; issue closed with sanitized receipt at https://github.com/MulattoTech/MJobs/issues/390#issuecomment-6036388938. Evidence: `docs/evidence/2026-10-07-external-application-capture.json`.
 
-Issue #390 adds local UI/API capture of user-reported applications completed outside MJobs. The service reconciles canonical application URLs before cautious exact company/title matching, creates a minimal provenance-marked job when required, records an append-only source/time report, and reserves profile-scoped idempotency keys before creation. SAVED/READY can advance to APPLIED; later stages remain unchanged. Existing prepared application classification is preserved. No employer traffic, provider call, or worker task is made.
+## Active issue #6 / MJ-REQ-005
 
-Focused integration: 10 PASS. Connected browser: 6 PASS. Frontend: 63 PASS and build PASS. Full repository Python suite: 895 PASS, one optional PostgreSQL skip. Repository validators PASS. Source commit: `63142751719eb7b52f5fafd2e93dc47a6f53aa51`; tree: `f70b3ef5884b55525e5faa737f1d962510527900`. Evidence: `docs/evidence/2026-10-07-external-application-capture.json`. Live PostgreSQL and hosted checks are NOT_RUN; external submission stays OFF.
+Branch: `codex/mj-req005-postgres-concurrency-20261007`
+Worktree: `C:/Tools/Dev/MJobs/.worktrees/codex-mj-req005-postgres-concurrency-20261007`
+Base: `300cf704915574d4e33beb251af14b003bd384d9`
+Candidate: `9e282135e9c90d56301b9d8726479479d84a862a` (tree `fd7665952a141c07a494f3a20b9986766363085b`)
+Evidence target: `docs/evidence/2026-10-07-postgres-concurrency-runtime.json`
 
-Reference provenance was updated clean-room for Personal JobPilot at pinned commit `a582c29d0f1aed97b93b13d843671487ab8c25d3`; no third-party code was incorporated.
+The prior skipped PostgreSQL category-admission proof now ran against an ephemeral, fresh local PostgreSQL 17 container. Added a cross-kind `APPLY_MOCK` capacity-one race across independent Store engines, with durable `RUNNING`/`QUEUED` state and attempts readback. Both company-discovery and application-automation PostgreSQL race tests plus operation-category unit and worker lifecycle tests passed: 21 tests, repeated twice on the same isolated DB. The first re-run against a reused test database correctly exposed old RUNNING test rows; regression cleanup now marks only its unique test-owned rows CANCELLED in `addCleanup`, and repeated execution passes. The existing personal MJobs PostgreSQL container was never used or restarted.
 
-## Other active lane ownership
+This is a verified slice, not full MJ-REQ-005 completion: no real ATS provider/browser submission was exercised; external submission remains OFF. Hosted checks remain NOT_RUN_BY_USER_POLICY.
 
-- Antigravity #302: `services/discovery/sources/**`, `tests/integration/test_dice.py`.
-- Ollama/OpenCode #318: `services/ats_detection/**`, detector tests.
-
-Local acceptance is complete. Next fetch current main, recheck claims/worktrees, acquire the integration lock, reconcile canonical artifacts, fast-forward/push only if current main is an ancestor, verify SHAs, and close #390 only for fully evidenced acceptance. Release claim and lock; immediately select and claim the next highest-value unclaimed dependency-ready issue.
+Other active lanes: Antigravity #302 owns `services/discovery/sources/**` and Dice tests; Ollama/OpenCode #318 owns `services/ats_detection/**` and detector tests. Avoid both. Next, finalize the evidence/lane checkpoint, fetch current main, reconcile all claims, acquire integration lock, update canonical acceptance records without shrinking 366 requirements, integrate if still a safe fast-forward, release claims/lock, and continue.

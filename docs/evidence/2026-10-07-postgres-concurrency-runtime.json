@@ -1,0 +1,54 @@
+{
+  "timestamp": "2026-10-07T10:58:08Z",
+  "target": "MJ-REQ-005 / issue #6 PostgreSQL concurrency runtime acceptance slice",
+  "result": "PASS",
+  "requirement_overall_result": "PARTIAL",
+  "base_main": "300cf704915574d4e33beb251af14b003bd384d9",
+  "source_commit": "9e282135e9c90d56301b9d8726479479d84a862a",
+  "source_tree": "fd7665952a141c07a494f3a20b9986766363085b",
+  "input_sha256": {
+    "tests/integration/test_operation_concurrency_postgres.py": "6e53874bf5caca6197ec596028166d19d71d0930d9d18154eb01215e3f3ac4dc"
+  },
+  "environment": {
+    "os": "Windows",
+    "python": "repository .venv, Python 3.12.10",
+    "database": "fresh disposable local PostgreSQL 17 container from preloaded postgres:17 image, loopback ephemeral host port, temporary container storage",
+    "existing_personal_mjobs_postgres": "NOT_USED_OR_RESTARTED",
+    "docker_server": "29.8.2",
+    "external_submission": "OFF"
+  },
+  "commands": [
+    {
+      "command": "python -m unittest tests.integration.test_operation_concurrency_postgres tests.unit.test_operation_concurrency tests.integration.test_worker_lifecycle -v",
+      "result": "PASS",
+      "tests": 21,
+      "repeat_count": 2,
+      "skip_count": 0,
+      "notes": "Repeated twice against the same isolated PostgreSQL database."
+    },
+    {
+      "command": "python -m tools.verification.agent_skills; python -m tools.verification.catalogue; python -m tools.verification.progress validate; python -m tools.verification.reference_provenance; python -m tools.coordination.lane_coordination validate; git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "acceptance": {
+    "company_discovery_and_company_source_refresh_share_postgresql_category_cap": "PASS",
+    "application_automation_independent_store_engines_respect_capacity_one": "PASS",
+    "database_readback_one_running_one_queued_zero_vs_one_attempt": "PASS",
+    "five_independent_category_defaults_and_mapping": "PASS"
+  },
+  "debugging_observation": "An initial rerun on a previously used disposable database failed because the old PostgreSQL test left its synthetic claimed row RUNNING. The test now registers cleanup that marks only its unique operation IDs CANCELLED. The complete focused suite then passed twice on the same database, demonstrating repeatability.",
+  "scope": {
+    "schema_migration": "NOT_APPLICABLE - no migration changes",
+    "frontend": "NOT_APPLICABLE",
+    "browser": "NOT_APPLICABLE - no browser workflow exercised",
+    "hosted_actions_and_reviews": "NOT_RUN_BY_USER_POLICY",
+    "real_ats_runtime": "NOT_RUN - not contacted",
+    "external_application_submission": "OFF"
+  },
+  "limitations": [
+    "This slice proves PostgreSQL advisory-lock category capacity for company discovery and mock application automation; it does not claim real ATS execution.",
+    "MJ-REQ-005 remains PARTIAL in canonical state until the broader requirement is independently reconciled.",
+    "Hosted checks and reviews remain NOT_RUN_BY_USER_POLICY."
+  ]
+}

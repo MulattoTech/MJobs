@@ -53,8 +53,23 @@
         "docs/evidence/2026-10-07-external-application-capture.json",
         "planning/lanes/codex/**"
       ],
+      "status": "RELEASED",
+      "claimed_at": "2026-10-07T10:41:49Z",
+      "released_at": "2026-10-07T10:58:08Z"
+    },
+    {
+      "issue": 6,
+      "requirement_id": "MJ-REQ-005",
+      "branch": "codex/mj-req005-postgres-concurrency-20261007",
+      "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req005-postgres-concurrency-20261007",
+      "head": "9e282135e9c90d56301b9d8726479479d84a862a",
+      "paths": [
+        "tests/integration/test_operation_concurrency_postgres.py",
+        "docs/evidence/2026-10-07-postgres-concurrency-runtime.json",
+        "planning/lanes/codex/**"
+      ],
       "status": "ACTIVE",
-      "claimed_at": "2026-10-07T10:41:49Z"
+      "claimed_at": "2026-10-07T10:58:08Z"
     }
   ]
 }
