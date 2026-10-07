@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-07T03:01:45Z",
+  "generated_at": "2026-10-07T03:04:22Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -8,8 +8,8 @@
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
     "current_verified_local_state": "Local main/origin main synchronized; Remote OK global job-source adapter (MJ-REQ-017.S07) integrated at daa37f52be3e26bbd29094ea40befd18aacbed3a; parent MJ-REQ-017 remains PARTIAL/OPEN.",
-    "current_verified_github_state": "GitHub/local main synchronized; issue #308 PASS, parent MJ-REQ-017 OPEN/PARTIAL; Actions disabled, no open PR, main unprotected.",
-    "current_verified_at": "2026-10-07T00:18:00Z"
+    "current_verified_github_state": "GitHub/local main synchronized at 17b9888657c49e0e10ef1fb937a59ef6b6714eb6; issue #111 OPEN/PARTIAL; Actions disabled; external submission OFF.",
+    "current_verified_at": "2026-10-07T03:04:22Z"
   },
   "current_milestone": "MJ-REQ-110-REVIEW-GATED-CONSUMER-INTEGRATED-PARTIAL-20261007",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
@@ -351,13 +351,13 @@
     "MJ-REQ-004 candidate 3d604b27b1a4c25e2ff0ee6fa68a07e9ff8f74a0: full suite initially saw stale ignored apps/web/dist; rebuilding restored current Sources UI and isolated browser acceptance. A first rebuilt full run later hit the known intermittent CompanyDiscoveryRequestsBrowserTests server-thread shutdown assertion; isolated case and all 35 browser tests passed, followed by a same-head 680-test full suite pass. Do not weaken shutdown timeout; evidence docs/evidence/2026-10-06-bounded-ocr-diagnostics.json."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-07T03:01:45Z",
+    "timestamp": "2026-10-07T03:04:22Z",
     "result": "PARTIAL",
     "source_commit": "c9276be112cf8db636bd783dc7eb7ad41b539c35",
     "source_tree": "8493a2ff7002cdeadc4eb11b4137fa32fe239f64",
-    "scope": "MJ-REQ-110 connected bounded consumer, durable evaluation history, explicit review gate and factual preparation acceptance; focused checks only.",
+    "scope": "MJ-REQ-110 focused bounded evaluation consumer, durable history, capped explicit review, and factual preparation checks passed; incomplete full-suite and unavailable provider limitations retained.",
     "evidence_path": "docs/evidence/2026-10-07-ai-cost-consumer-resume.json",
-    "candidate_commit": "aa05f692ce20d8b0c81fff2da6b93251fe5df6e5"
+    "integration_commit": "17b9888657c49e0e10ef1fb937a59ef6b6714eb6"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -461,7 +461,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "93e152dbff89c74b5075ce4df703c82cb4da8883",
+  "last_implementation_commit": "17b9888657c49e0e10ef1fb937a59ef6b6714eb6",
   "publication": {
     "result": "PASS",
     "integration_method": "NON_FORCE_FAST_FORWARD",
@@ -6867,11 +6867,13 @@
     {
       "milestone_id": "MJ-REQ-110-REVIEW-GATED-CONSUMER-TAKEOVER-20261007",
       "timestamp": "2026-10-07T03:01:45Z",
-      "current_phase": "Issue #111 / MJ-REQ-110 review-gated production task consumer and factual preparation path integrated locally at aa05f692ce20d8b0c81fff2da6b93251fe5df6e5; focused local tests pass. Keep issue OPEN/PARTIAL because live configured-provider inference and full discovery are NOT_RUN. Next select a dependency-ready unclaimed issue after claim reconciliation.",
+      "current_phase": "Issue #111 / MJ-REQ-110 bounded structured consumer and review-gated factual preparation slice integrated by non-force fast-forward at synchronized local/GitHub main 17b9888657c49e0e10ef1fb937a59ef6b6714eb6. Issue remains OPEN/PARTIAL; provider inference and full Python discovery were not run. Reconcile active claims and select the next independent dependency-ready issue.",
       "completed_steps": [
         "Took over the existing Codex claim with the current user authorization while preserving all branch commits.",
         "Revalidated connected structured consumer, durable profile-scoped evaluation history, review gating and factual document preparation against the owning spec.",
-        "Pushed exact source/evidence checkpoint aa05f692ce20d8b0c81fff2da6b93251fe5df6e5."
+        "Pushed exact source/evidence checkpoint aa05f692ce20d8b0c81fff2da6b93251fe5df6e5.",
+        "Fast-forward integrated the pushed branch at exact synchronized main 17b9888657c49e0e10ef1fb937a59ef6b6714eb6; verified the GitHub main SHA and clean local checkout.",
+        "Posted and read back sanitized evidence comment; issue #111 remains OPEN: https://github.com/MulattoTech/MJobs/issues/111#issuecomment-6030035838."
       ],
       "files_added": [
         "docs/evidence/2026-10-07-ai-cost-consumer-resume.json"
@@ -6901,14 +6903,26 @@
         "External submission remains OFF."
       ],
       "last_safe_checkpoint": {
-        "git_commit": "aa05f692ce20d8b0c81fff2da6b93251fe5df6e5",
+        "git_commit": "17b9888657c49e0e10ef1fb937a59ef6b6714eb6",
         "evidence_path": "docs/evidence/2026-10-07-ai-cost-consumer-resume.json"
+      },
+      "integration": {
+        "method": "NON_FORCE_FAST_FORWARD",
+        "base": "d9d356e8a9da77ebc3cf50608497216a54d4b9b0",
+        "main": "17b9888657c49e0e10ef1fb937a59ef6b6714eb6",
+        "source_branch": "codex/mj-req110-review-consumer-20261006",
+        "source_candidate": "aa05f692ce20d8b0c81fff2da6b93251fe5df6e5",
+        "planning_checkpoint": "17b9888657c49e0e10ef1fb937a59ef6b6714eb6",
+        "issue_comment": "https://github.com/MulattoTech/MJobs/issues/111#issuecomment-6030035838",
+        "actions_enabled": false,
+        "main_protected": false,
+        "open_prs": 0
       }
     }
   ],
-  "current_phase": "Issue #111 / MJ-REQ-110 review-gated production task consumer and factual preparation path integrated locally at aa05f692ce20d8b0c81fff2da6b93251fe5df6e5; focused local tests pass. Keep issue OPEN/PARTIAL because live configured-provider inference and full discovery are NOT_RUN. Next select a dependency-ready unclaimed issue after claim reconciliation.",
+  "current_phase": "Issue #111 / MJ-REQ-110 bounded structured consumer and review-gated factual preparation slice integrated by non-force fast-forward at synchronized local/GitHub main 17b9888657c49e0e10ef1fb937a59ef6b6714eb6. Issue remains OPEN/PARTIAL; provider inference and full Python discovery were not run. Reconcile active claims and select the next independent dependency-ready issue.",
   "last_safe_checkpoint": {
-    "git_commit": "aa05f692ce20d8b0c81fff2da6b93251fe5df6e5",
+    "git_commit": "17b9888657c49e0e10ef1fb937a59ef6b6714eb6",
     "evidence_path": "docs/evidence/2026-10-07-ai-cost-consumer-resume.json"
   },
   "live_integrations_tested": [
@@ -8180,7 +8194,7 @@
     "MJ-REQ-017.S07 Remote OK global job-source adapter: 10 integration tests PASS in 9.3s; 66 discovery source tests PASS; 361 unit tests PASS; 62 frontend tests/build PASS; local validators PASS. Evidence docs/evidence/2026-10-06-remote-ok-job-source-adapter.json.",
     "MJ-REQ-110 takeover candidate code c9276be112cf8db636bd783dc7eb7ad41b539c35: 15 focused consumer/API/migration/browser tests, 62 frontend tests/build, and local validators PASS. Full Python discovery was interrupted (no aggregate result); live provider inference and hosted checks NOT_RUN. Evidence docs/evidence/2026-10-07-ai-cost-consumer-resume.json. Candidate plus evidence/planning pushed as aa05f692ce20d8b0c81fff2da6b93251fe5df6e5; issue remains OPEN/PARTIAL."
   ],
-  "ownership": "MJ-REQ-110 issue #111 review-gated consumer takeover is integrated by local-only non-force fast-forward at the exact synchronized main recorded in the latest milestone. Evidence docs/evidence/2026-10-07-ai-cost-consumer-resume.json. Local focused/API/migration/browser checks and frontend build pass; full Python discovery incomplete, live provider inference and hosted checks NOT_RUN, issue #111 remains OPEN/PARTIAL, external submission OFF. Continue by reconciling active claims and selecting the next independent dependency-ready issue.",
+  "ownership": "MJ-REQ-110 issue #111 review-gated consumer/evidence/planning integrated by non-force fast-forward at synchronized local and GitHub main 17b9888657c49e0e10ef1fb937a59ef6b6714eb6. Evidence docs/evidence/2026-10-07-ai-cost-consumer-resume.json; issue readback remains OPEN/PARTIAL at https://github.com/MulattoTech/MJobs/issues/111#issuecomment-6030035838. Focused local API/migration/browser and frontend/build checks pass; full Python discovery, live provider inference, PostgreSQL runtime migration and hosted checks NOT_RUN. External submission OFF. Continue after claim reconciliation.",
   "delivery_policy": {
     "mode": "LOCAL_ONLY",
     "effective_at": "2026-10-05T21:32:10.763994+00:00",
@@ -8193,5 +8207,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-07T03:01:45Z"
+  "updated_at": "2026-10-07T03:04:22Z"
 }
