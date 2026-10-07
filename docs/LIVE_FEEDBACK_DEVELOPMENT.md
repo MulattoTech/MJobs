@@ -117,11 +117,14 @@ For an explicit visual debugging session, run manually:
 ```
 
 This adds one final screenshot. Inputs, textareas, selects, and page regions marked
-`data-sensitive` are covered with opaque masks; the recorder does not save a Playwright
-trace or DOM snapshot. Other visible page text may still contain private information,
-so treat the screenshot as a private local artifact and review it before sharing.
-
-Likewise, `--diagnostic-text` stores browser console/page-error text instead of hashes. Only enable it when needed because application-generated diagnostic strings may contain private context.
+`data-sensitive` are covered with opaque masks. Recognizable email addresses, phone
+numbers, common token formats, and text grouped with sensitive labels (such as gender,
+race, disability, or work authorization) are also masked. The recorder does not save a
+Playwright trace, DOM snapshot, or raw console/page-error text. The legacy
+`--diagnostic-text` flag is accepted for compatibility but still records only a
+fingerprint and redaction indicator. Pattern-based redaction cannot recognize every
+private value, especially text embedded in images or canvas; treat screenshots as
+private local artifacts and review them before sharing.
 
 ## What Codex can and cannot infer
 

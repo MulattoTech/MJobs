@@ -19,6 +19,39 @@ ALLOWED_HOSTS = {"127.0.0.1", "localhost"}
 MAX_METADATA_TEXT = 160
 FEEDBACK_RETENTION_DAYS = 30
 SESSION_DIRECTORY_RE = re.compile(r"^(\d{8}T\d{6}Z)(?:-\d{2})?$")
+SENSITIVE_TEXT_PATTERNS = (
+    re.compile(r"\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b", re.IGNORECASE),
+    re.compile(r"\b(?:bearer\s+)?(?:gh[pousr]_[A-Z0-9_]{12,}|sk-[A-Z0-9_-]{12,}|xox[baprs]-[A-Z0-9-]{12,})\b", re.IGNORECASE),
+    re.compile(r"\beyJ[A-Z0-9_-]{5,}\.[A-Z0-9_-]{5,}\.[A-Z0-9_-]{5,}\b", re.IGNORECASE),
+    re.compile(r"\b(?:password|passwd|token|api[_ -]?key|access[_ -]?token|auth[_ -]?token|client[_ -]?secret|cookie)\s*[:=]\s*[^\s,;]+", re.IGNORECASE),
+    re.compile(r"(?<!\w)(?:\+?1[ .-]?)?(?:\(?\d{3}\)?[ .-]?)\d{3}[ .-]?\d{4}(?!\w)"),
+)
+SENSITIVE_LABEL_RE = re.compile(
+    r"\b(password|passwd|cookie|token|api key|access key|gender|sex|race|ethnicity|"
+    r"veteran|disability|sexual orientation|marital status|religion|pronouns?|"
+    r"date of birth|birth date|social security|ssn|national id|work authorization|"
+    r"citizenship|visa status)\b",
+    re.IGNORECASE,
+)
+SCREENSHOT_REDACTION_SCRIPT = r"""
+(() => {
+  const sensitive = /\b(?:password|passwd|cookie|token|api\s+key|access\s+key|gender|sex|race|ethnicity|veteran|disability|sexual\s+orientation|marital\s+status|religion|pronouns?|date\s+of\s+birth|birth\s+date|social\s+security|ssn|national\s+id|work\s+authorization|citizenship|visa\s+status)\b/i;
+  const value = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b|\b(?:bearer\s+)?(?:gh[pousr]_[A-Z0-9_]{12,}|sk-[A-Z0-9_-]{12,}|xox[baprs]-[A-Z0-9-]{12,})\b|\beyJ[A-Z0-9_-]{5,}\.[A-Z0-9_-]{5,}\.[A-Z0-9_-]{5,}\b|\b(?:password|passwd|token|api[_ -]?key|access[_ -]?token|auth[_ -]?token|client[_ -]?secret|cookie)\s*[:=]\s*[^\s,;]+|(?<!\w)(?:\+?1[ .-]?)?(?:\(?\d{3}\)?[ .-]?)\d{3}[ .-]?\d{4}(?!\w)/i;
+  const mask = element => {
+    if (element && element !== document.body && element !== document.documentElement) element.setAttribute('data-mjobs-sensitive-mask', '');
+  };
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode);
+  for (const node of nodes) {
+    const text = (node.nodeValue || '').trim();
+    if (!text) continue;
+    const element = node.parentElement;
+    if (value.test(text)) mask(element);
+    if (sensitive.test(text) && element.parentElement) mask(element.parentElement);
+  }
+})();
+"""
 
 
 def utc_now():
@@ -30,7 +63,8 @@ def redact_url(value):
     if parsed.scheme not in {"http", "https"} or not parsed.hostname:
         return ""
     port = f":{parsed.port}" if parsed.port else ""
-    return urlunsplit((parsed.scheme, f"{parsed.hostname}{port}", parsed.path or "/", "", ""))
+    path = redact_sensitive_text(parsed.path or "/")
+    return urlunsplit((parsed.scheme, f"{parsed.hostname}{port}", path, "", ""))
 
 
 def safe_url(value):
@@ -39,8 +73,17 @@ def safe_url(value):
         raise ValueError("Live feedback is restricted to local HTTP MJobs instances")
     return redact_url(value)
 def compact_text(value, limit=MAX_METADATA_TEXT):
-    text = " ".join(str(value or "").split())
+    text = redact_sensitive_text(" ".join(str(value or "").split()))
     return text[:limit]
+
+
+def redact_sensitive_text(value):
+    text = str(value or "")
+    if SENSITIVE_LABEL_RE.search(text):
+        return "[REDACTED]"
+    for pattern in SENSITIVE_TEXT_PATTERNS:
+        text = pattern.sub("[REDACTED]", text)
+    return text
 
 
 def text_fingerprint(value):
@@ -49,16 +92,24 @@ def text_fingerprint(value):
 
 
 def capture_redacted_screenshot(page, path):
-    """Capture visual context without persisting form values or DOM snapshots."""
+    """Capture visual context while masking controls and recognizable sensitive text."""
+    page.evaluate(SCREENSHOT_REDACTION_SCRIPT)
     masks = [
         page.locator("input"),
         page.locator("textarea"),
         page.locator("select"),
         page.locator("[data-sensitive]"),
+        page.locator("[data-mjobs-sensitive-mask]"),
     ]
-    page.screenshot(
-        path=str(path), full_page=True, mask=masks, mask_color="#000000"
-    )
+    try:
+        page.screenshot(
+            path=str(path), full_page=True, mask=masks, mask_color="#000000"
+        )
+    finally:
+        page.evaluate(
+            "document.querySelectorAll('[data-mjobs-sensitive-mask]')"
+            ".forEach(node => node.removeAttribute('data-mjobs-sensitive-mask'))"
+        )
 
 
 def sanitize_interaction(payload):
@@ -66,16 +117,23 @@ def sanitize_interaction(payload):
         return {"type": "invalid"}
     kind = compact_text(payload.get("type"), 32) or "unknown"
     tag = compact_text(payload.get("tag"), 24).lower()
+    raw_text = str(payload.get("text") or "")
+    raw_aria = str(payload.get("aria_label") or "")
+    sensitive_context = bool(
+        payload.get("sensitive_context")
+        or SENSITIVE_LABEL_RE.search(raw_text)
+        or SENSITIVE_LABEL_RE.search(raw_aria)
+    )
     result = {
         "type": kind,
         "tag": tag,
         "id": compact_text(payload.get("id"), 80),
         "name": compact_text(payload.get("name"), 80),
         "role": compact_text(payload.get("role"), 80),
-        "aria_label": compact_text(payload.get("aria_label"), 120),
+        "aria_label": "[REDACTED]" if sensitive_context else compact_text(raw_aria, 120),
     }
     if tag not in {"input", "textarea", "select", "option"}:
-        result["text"] = compact_text(payload.get("text"))
+        result["text"] = "[REDACTED]" if sensitive_context else compact_text(raw_text)
     return result
 
 
@@ -202,9 +260,12 @@ class Recorder:
         self.stream.flush()
 
     def diagnostic_message(self, kind, level, value):
-        payload = {"level": level, **text_fingerprint(value)}
-        if self.diagnostic_text:
-            payload["text"] = compact_text(value, 500)
+        safe_value = redact_sensitive_text(value)
+        payload = {
+            "level": compact_text(level, 24),
+            **text_fingerprint(safe_value),
+            "sensitive_values_redacted": safe_value != str(value or ""),
+        }
         self.record(kind, payload)
 
 
@@ -215,6 +276,8 @@ INIT_SCRIPT = r"""
     if (!element) return null;
     const tag = (element.tagName || '').toLowerCase();
     const sensitive = ['input','textarea','select','option'].includes(tag);
+    const context = element.closest('fieldset,[role="group"],[data-field]') || element.parentElement;
+    const sensitive_context = /\b(password|passwd|cookie|token|api\s+key|access\s+key|gender|sex|race|ethnicity|veteran|disability|sexual\s+orientation|marital\s+status|religion|pronouns?|date\s+of\s+birth|birth\s+date|social\s+security|ssn|national\s+id|work\s+authorization|citizenship|visa\s+status)\b/i.test(context ? context.innerText || '' : '');
     return {
       type,
       tag,
@@ -222,6 +285,7 @@ INIT_SCRIPT = r"""
       name: element.getAttribute('name') || '',
       role: element.getAttribute('role') || '',
       aria_label: element.getAttribute('aria-label') || '',
+      sensitive_context,
       text: sensitive ? '' : (element.innerText || element.textContent || '').slice(0, 160)
     };
   };
@@ -276,8 +340,8 @@ def run_session(base_url, visuals=False, diagnostic_text=False):
             print("Use the headed browser normally. Typed field values are not recorded.")
             if visuals:
                 print(
-                    "Redacted screenshot capture is ON; form controls are masked. "
-                    "Other visible page text may still contain private data."
+                    "Redacted screenshot capture is ON; form controls and recognizable "
+                    "sensitive text are masked. Review the private local image before sharing."
                 )
             print("Press ENTER in this terminal when you finish the test flow.")
             try:
@@ -300,7 +364,8 @@ def run_session(base_url, visuals=False, diagnostic_text=False):
             "final_url": final_url,
             "page_title": title,
             "visuals": visuals,
-            "diagnostic_text": diagnostic_text,
+            "diagnostic_text_requested": bool(diagnostic_text),
+            "diagnostic_storage": "fingerprint_only",
             "event_count": len(recorder.events),
             "events": recorder.events,
         }
@@ -348,10 +413,10 @@ def build_parser():
     run = sub.add_parser("run", help="Start a headed browser and record safe interaction diagnostics")
     run.add_argument("--base-url", default="http://127.0.0.1:18700")
     run.add_argument("--visuals", action="store_true",
-                     help=("Opt in to a screenshot with form controls masked; "
-                           "other visible page text may contain private data"))
+                     help=("Opt in to a screenshot with form controls and recognizable "
+                           "sensitive text masked"))
     run.add_argument("--diagnostic-text", action="store_true",
-                     help="Opt in to console/page-error text instead of hashes only")
+                     help="Legacy compatibility flag; raw console/page-error text is never stored")
     report = sub.add_parser("summarize", help="Summarize the latest or selected feedback session")
     report.add_argument("--session-dir")
     return parser

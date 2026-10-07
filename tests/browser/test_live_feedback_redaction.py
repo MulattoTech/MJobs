@@ -22,6 +22,8 @@ class LiveFeedbackScreenshotRedactionTests(unittest.TestCase):
                       <option selected>SYNTHETIC_DEMOGRAPHIC_CANARY</option>
                     </select>
                     <p data-sensitive>SYNTHETIC_TOKEN_CANARY</p>
+                    <p>Contact dylan@example.test</p>
+                    <div id="gender-answer"><span>Gender</span><span>Female</span></div>
                     <p>Public synthetic heading</p>
                 """)
                 with tempfile.TemporaryDirectory() as directory:
@@ -30,8 +32,11 @@ class LiveFeedbackScreenshotRedactionTests(unittest.TestCase):
                         page.get_by_label("Password").bounding_box(),
                         page.get_by_label("Sensitive demographic answer").bounding_box(),
                         page.locator("[data-sensitive]").bounding_box(),
+                        page.get_by_text("Contact dylan@example.test").bounding_box(),
+                        page.locator("#gender-answer").bounding_box(),
                     ]
                     capture_redacted_screenshot(page, capture_path)
+                    self.assertGreaterEqual(len(boxes), 5)
                     with Image.open(capture_path) as image:
                         pixels = image.convert("RGB")
                         for box in boxes:

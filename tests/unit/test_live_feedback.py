@@ -6,8 +6,10 @@ from pathlib import Path
 from unittest.mock import patch
 
 from cli.live_feedback import (
+    Recorder,
     capture_redacted_screenshot,
     prune_expired_sessions,
+    redact_sensitive_text,
     redact_url,
     run_session,
     safe_url,
@@ -74,18 +76,22 @@ class LiveFeedbackTests(unittest.TestCase):
                 self.selectors.append(selector)
                 return ("locator", selector)
 
+            def evaluate(self, *args):
+                return None
+
             def screenshot(self, **kwargs):
                 self.capture = kwargs
 
         page = Page()
         capture_redacted_screenshot(page, "synthetic.png")
 
-        self.assertEqual(page.selectors, ["input", "textarea", "select", "[data-sensitive]"])
+        self.assertEqual(page.selectors, ["input", "textarea", "select", "[data-sensitive]", "[data-mjobs-sensitive-mask]"])
         self.assertEqual(page.capture["path"], "synthetic.png")
         self.assertTrue(page.capture["full_page"])
         self.assertEqual(page.capture["mask"], [
             ("locator", "input"), ("locator", "textarea"),
             ("locator", "select"), ("locator", "[data-sensitive]"),
+            ("locator", "[data-mjobs-sensitive-mask]"),
         ])
         self.assertEqual(page.capture["mask_color"], "#000000")
 
@@ -105,6 +111,7 @@ class LiveFeedbackTests(unittest.TestCase):
             def on(self, *args): pass
             def goto(self, *args, **kwargs): pass
             def locator(self, selector): return ("locator", selector)
+            def evaluate(self, *args): return None
             def title(self): return "Synthetic feedback page"
             def screenshot(self, **kwargs):
                 with open(kwargs["path"], "wb") as output:
@@ -187,6 +194,44 @@ class LiveFeedbackTests(unittest.TestCase):
         result = text_fingerprint("private diagnostic string")
         self.assertEqual(result["length"], len("private diagnostic string"))
         self.assertNotIn("private", str(result))
+
+    def test_sensitive_text_is_removed_from_diagnostic_and_interaction_metadata(self):
+        raw = "Contact dylan@example.test or bearer ghp_abcdefghijklmnopqrstuvwxyz123456"
+        redacted = redact_sensitive_text(raw)
+        self.assertNotIn("dylan@example.test", redacted)
+        self.assertNotIn("ghp_abcdefghijklmnopqrstuvwxyz123456", redacted)
+        self.assertIn("[REDACTED]", redacted)
+        self.assertEqual(redact_sensitive_text("Gender: Female"), "[REDACTED]")
+        self.assertEqual(redact_sensitive_text("token=synthetic-secret"), "[REDACTED]")
+
+        result = sanitize_interaction({
+            "type": "click", "tag": "button", "id": "dylan@example.test",
+            "aria_label": "Email dylan@example.test",
+            "text": "Contact dylan@example.test",
+        })
+        self.assertNotIn("dylan@example.test", str(result))
+        sensitive_answer = sanitize_interaction({
+            "type": "click", "tag": "button", "aria_label": "Gender: Female",
+            "text": "Female",
+        })
+        self.assertEqual(sensitive_answer["text"], "[REDACTED]")
+        self.assertEqual(sanitize_interaction({
+            "type": "click", "tag": "button", "text": "Female",
+            "sensitive_context": True,
+        })["text"], "[REDACTED]")
+
+    def test_diagnostic_text_flag_never_persists_raw_message(self):
+        class Stream:
+            def __init__(self): self.text = ""
+            def write(self, value): self.text += value
+            def flush(self): pass
+
+        recorder = Recorder(Path("."), diagnostic_text=True)
+        recorder.stream.close()
+        recorder.stream = Stream()
+        recorder.diagnostic_message("console", "error", "private dylan@example.test")
+        self.assertNotIn("dylan@example.test", recorder.stream.text)
+        self.assertNotIn('"text"', recorder.stream.text)
 
 
 if __name__ == "__main__":
