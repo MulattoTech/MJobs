@@ -107,6 +107,13 @@ class DiscoveryInput(BaseModel):
     request_id: str | None = Field(default=None, min_length=1, max_length=64)
 
 
+class ResumeFactRewriteInput(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+    fact_id: str = Field(min_length=1, max_length=128)
+    text: str = Field(min_length=1, max_length=10000)
+    reviewed: bool
+
+
 class ApplicationInput(DiscoveryInput):
     job_id: str = Field(min_length=64, max_length=64)
     route_mode: Literal["DEFAULT", "THIS_ROUTE", "EMPLOYER_SITE", "ALL_DISTINCT"] = "DEFAULT"
@@ -116,6 +123,7 @@ class ApplicationInput(DiscoveryInput):
     cover_letter_length: Literal["VERY_SHORT", "CONCISE", "NORMAL", "DETAILED"] = "NORMAL"
     cover_letter_style: Literal["professional", "warm", "technical", "direct", "conversational", "formal"] = "professional"
     tailor_fact_ids: list[Annotated[str,Field(strict=True,min_length=1,max_length=128)]] | None = Field(default=None,min_length=1,max_length=1000)
+    tailor_fact_rewrites: list[ResumeFactRewriteInput] | None = Field(default=None,min_length=1,max_length=100)
     expected_profile_version: str | None = Field(default=None,min_length=64,max_length=64)
     ai_evaluation_run_id: str | None = Field(default=None, min_length=1, max_length=128)
 
@@ -123,6 +131,9 @@ class ApplicationInput(DiscoveryInput):
     def selected_facts_require_tailoring_and_snapshot(self):
         if self.tailor_fact_ids is not None and (not self.tailor_resume or not self.expected_profile_version):
             raise ValueError('Explicit resume facts require tailoring and the observed profile version')
+        if self.tailor_fact_rewrites is not None and (
+                not self.tailor_resume or self.tailor_fact_ids is None or not self.expected_profile_version):
+            raise ValueError('Reviewed resume rewrites require selected facts, tailoring and the observed profile version')
         return self
 
 
@@ -997,7 +1008,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     @app.post("/applications", status_code=202)
     def application(value: ApplicationInput):
         from services.dedupe.source_values import require_route_review
-        from services.documents.tailor import eligible_rows, select_resume_rows
+        from services.documents.tailor import eligible_rows, select_resume_rows, validate_user_rephrases
         from services.documents.errors import PreparationError
         profile = store.profile(value.profile_id)
         if value.ai_evaluation_run_id:
@@ -1019,6 +1030,9 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             raise HTTPException(422, "Add an application URL before preparing this manually captured job")
         try:
             select_resume_rows(eligible_rows(profile),value.tailor_resume,value.tailor_fact_ids)
+            if value.tailor_fact_rewrites is not None:
+                validate_user_rephrases(eligible_rows(profile), value.tailor_fact_ids,
+                    [rewrite.model_dump() for rewrite in value.tailor_fact_rewrites])
         except PreparationError as error:
             raise HTTPException(409,str(error)) from error
         with store.engine.connect() as connection:
@@ -1040,6 +1054,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             "cover_letter_length": value.cover_letter_length,
             "cover_letter_style": value.cover_letter_style,
             **({'tailor_fact_ids':value.tailor_fact_ids} if value.tailor_fact_ids is not None else {}),
+            **({'tailor_fact_rewrites':[rewrite.model_dump() for rewrite in value.tailor_fact_rewrites]} if value.tailor_fact_rewrites is not None else {}),
         })
         return {**operation, "application_id": identity(value.job_id, value.profile_id),
                 "route_mode": route_plan["mode"], "route_ids": [route["id"] for route in selected_routes]}

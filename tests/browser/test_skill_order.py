@@ -183,6 +183,34 @@ class SkillOrderBrowserTests(unittest.TestCase):
                         contact_document.get_by_role('link',name='Download TXT',exact=True).click()
                     self.assertIn('Phone: 555 0100',Path(contact_download.value.path()).read_text(encoding='utf-8'))
                     self.assertEqual(store.profile('fixture'),before)
+                    page.get_by_role('navigation').get_by_role('button',name='Jobs',exact=False).click()
+                    page.get_by_role('button').filter(has=page.get_by_role('heading',name=job['title'],exact=True)).click()
+                    page.get_by_label('Order approved skills for this job',exact=True).set_checked(True)
+                    page.get_by_label('Choose resume facts',exact=True).set_checked(True)
+                    duty='Built Python APIs for internal teams.'
+                    page.get_by_label('Include '+duty,exact=True).set_checked(True)
+                    rewrite='Delivered Python API services for internal teams.'
+                    page.get_by_label('Rewrite this bullet: '+duty,exact=True).fill(rewrite)
+                    page.get_by_label('I reviewed this rewrite: '+duty,exact=True).check()
+                    with page.expect_response(lambda response:response.url==origin+'/applications' and response.request.method=='POST') as event:
+                        page.get_by_role('button',name='Prepare documents',exact=True).click()
+                    operation=event.value.json()
+                    queued=event.value.request.post_data_json
+                    self.assertEqual(queued['tailor_fact_rewrites'],[{'fact_id':'python-duty','text':rewrite,'reviewed':True}])
+                    with patch.dict('os.environ',MJOBS_DATABASE_URL=store.url,MJOBS_MOCK_ORIGIN='http://127.0.0.1:1',
+                                    MJOBS_OUTPUT_DIR=str(root),MJOBS_OPERATION_MODE='FIXTURE'):
+                        self.assertEqual(execute_operation(operation['operation_id'])['status'],'COMPLETED')
+                    rewritten=page.get_by_role('region',name='resume version 5',exact=True)
+                    with page.expect_download() as rewritten_download:
+                        rewritten.get_by_role('link',name='Download TXT',exact=True).click()
+                    self.assertIn(rewrite,Path(rewritten_download.value.path()).read_text(encoding='utf-8'))
+                    page.reload();page.get_by_role('navigation').get_by_role('button',name='Applications',exact=False).first.click()
+                    page.locator('.job-card').first.click()
+                    comparison=page.get_by_role('region',name='Compare base and tailored resumes',exact=True)
+                    comparison.get_by_role('button',name='Compare selected resumes',exact=True).click()
+                    changes=comparison.get_by_role('region',name='Bullet and fact changes',exact=True)
+                    expect(changes).to_contain_text(duty);expect(changes).to_contain_text(rewrite)
+                    self.assertEqual(store.profile('fixture'),before)
                     self.assertFalse(external)
                     context.close();browser.close()
             finally:

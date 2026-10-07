@@ -2,6 +2,7 @@
 from dataclasses import asdict
 from contextlib import contextmanager
 import hashlib
+import json
 from pathlib import Path
 import shutil
 from uuid import uuid4
@@ -45,12 +46,13 @@ def uncommitted_files():
         raise
 
 
-def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=None, route_mode="DEFAULT", route_id=None, tailor_resume=False, tailor_fact_ids=None, include_resume_contact=False, cover_letter_style="professional", cover_letter_length="normal"):
+def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=None, route_mode="DEFAULT", route_id=None, tailor_resume=False, tailor_fact_ids=None, tailor_fact_rewrites=None, include_resume_contact=False, cover_letter_style="professional", cover_letter_length="normal"):
     if type(tailor_resume) is not bool:
         raise ValueError('tailor_resume must be a boolean')
     if type(include_resume_contact) is not bool:
         raise ValueError('include_resume_contact must be a boolean')
-    resume_template,resume_model=template_pair(tailor_resume,tailor_fact_ids is not None,include_resume_contact)
+    resume_template,resume_model=template_pair(tailor_resume,tailor_fact_ids is not None,include_resume_contact,
+        user_rephrase=tailor_fact_rewrites is not None)
     check = check or (lambda: None)
     with uncommitted_files() as staged, store.engine.begin() as connection:
         # A profile row serializes preparation and submission reservations.
@@ -67,6 +69,11 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
         resume_rows = tailor.select_resume_rows(eligible, tailor_resume, tailor_fact_ids)
         selection_ids = [row['fact_id'] for row in resume_rows] if tailor_fact_ids is not None else None
         selection_hash = tailor.selection_fingerprint(selection_ids) if selection_ids is not None else None
+        rewritten_rows, rephrase_context = (tailor.validate_user_rephrases(
+            resume_rows, selection_ids, tailor_fact_rewrites) if tailor_fact_rewrites is not None
+            else (resume_rows, []))
+        rephrase_hash = hashlib.sha256(json.dumps(tailor_fact_rewrites,
+            ensure_ascii=False, sort_keys=True, separators=(',',':')).encode()).hexdigest() if tailor_fact_rewrites is not None else None
         check()
         job = dict(connection.execute(select(m.jobs, m.companies.c.name.label("company")).join(
             m.companies, m.companies.c.id == m.jobs.c.company_id).where(m.jobs.c.id == job_id)
@@ -88,13 +95,15 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
             same_mode=prior_resume and prior_resume['template']==expected_template
             same_target=not tailor_resume or (prior_resume and (prior_resume['generation_context'] or {}).get('target_fingerprint')==tailor.target_fingerprint(job))
             same_selection=selection_ids is None or (prior_resume and (prior_resume['generation_context'] or {}).get('selection_fingerprint')==selection_hash)
+            same_rephrases=(rephrase_hash is None or (prior_resume and
+                (prior_resume['generation_context'] or {}).get('rephrase_fingerprint')==rephrase_hash))
             prior_letter=connection.execute(select(m.documents).where(m.documents.c.application_id==prior['id'],
                 m.documents.c.version==prior['document_version'],m.documents.c.kind=='cover-letter')).mappings().one_or_none()
             prior_letter_context = (prior_letter['generation_context'] or {}) if prior_letter else {}
             same_letter=bool(prior_letter and prior_letter['template']==COVER_LETTER_TEMPLATE
                 and {key:value for key,value in prior_letter_context.items()
                      if key != 'claim_validation'} == cover_letter_context)
-            if prior["profile_version"] == profile["version"] and same_mode and same_target and same_selection and same_letter and prior['state'] != 'REVIEW_REQUIRED':
+            if prior["profile_version"] == profile["version"] and same_mode and same_target and same_selection and same_rephrases and same_letter and prior['state'] != 'REVIEW_REQUIRED':
                 persist_route_choices(connection, prior["id"], route_plan)
                 return prior["id"]
             if prior["state"] not in ("PREPARED", "DRY_RUN_COMPLETE", "REVIEW_REQUIRED"):
@@ -126,6 +135,11 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
             context.update(selection_mode='EXPLICIT_APPROVED_FACTS',selected_fact_ids=selection_ids,
                 available_fact_ids=fact_ids,omitted_fact_ids=[value for value in fact_ids if value not in set(selection_ids)],
                 selection_fingerprint=selection_hash)
+        if rephrase_context:
+            ordered_by_id={row['fact_id']:row for row in rewritten_rows}
+            ordered_rows=[dict(row, text=ordered_by_id[row['fact_id']]['text']) for row in ordered_rows]
+            context['fact_rephrases']=rephrase_context
+            context['rephrase_fingerprint']=rephrase_hash
         resume_ids=[row['fact_id'] for row in ordered_rows]
         if include_resume_contact:
             context=context or {'mode':'APPROVED_CONTACT_HEADER'}

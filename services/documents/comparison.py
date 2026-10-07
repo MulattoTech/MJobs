@@ -6,7 +6,7 @@ from sqlalchemy.exc import NoResultFound
 from services.documents.history import application_documents
 from services.documents.validation import validate_assertions
 from services.documents.errors import PreparationError
-from services.documents.templates import contract_role, resume_layout, SELECTION_TEMPLATES, EMPHASIS_TEMPLATES, CONTACT_TEMPLATES, RESPONSIBILITY_EMPHASIS_TEMPLATES, SUMMARY_TAILORING_TEMPLATES, contact_header
+from services.documents.templates import contract_role, resume_layout, SELECTION_TEMPLATES, EMPHASIS_TEMPLATES, CONTACT_TEMPLATES, RESPONSIBILITY_EMPHASIS_TEMPLATES, SUMMARY_TAILORING_TEMPLATES, REPHRASE_TEMPLATE, contact_header
 from services.documents import tailor
 
 
@@ -58,16 +58,24 @@ def read_generated_snapshot(store, output_dir, row):
             raise ComparisonUnavailable('Original selection context differs from its approved fact history')
         if not contract_role(row['template'],row['generation_model'],allow_legacy_unrecorded=True):
             raise ComparisonUnavailable('Original document generation contract is unavailable')
-        paragraphs,_=resume_layout(profile,row['facts_used'],row['template'])
+        facts=row['facts_used']
+        if row['template'] in (REPHRASE_TEMPLATE,'approved-contact-selection-user-rephrase-v1'):
+            by_id={fact['fact_id']:fact for fact in facts}
+            facts=tailor.apply_saved_user_rephrases(
+                [dict(by_id[identifier]) for identifier in row['fact_ids']],
+                row['fact_ids'],(row['generation_context'] or {}).get('fact_rephrases'))
+        paragraphs,_=resume_layout(profile,facts,row['template'])
         header=contact_header(profile,row['template'])
         if row['template'] in CONTACT_TEMPLATES and (row['generation_context'] or {}).get('contact_header')!=header:
             raise ComparisonUnavailable('Original contact header differs from its saved profile snapshot')
-        validate_assertions('resume',paragraphs,profile,row['fact_ids'],template=row['template'])
+        validate_assertions('resume',paragraphs,profile,row['fact_ids'],template=row['template'],
+            generation_context=row['generation_context'])
         if text!='\n'.join(paragraphs)+'\n':
             raise ComparisonUnavailable('Stored text differs from its original fact history')
     except (OSError,UnicodeError,PreparationError,NoResultFound) as error:
         raise ComparisonUnavailable('Original document or approved fact history is unavailable') from error
-    facts=[{key:fact[key] for key in ('fact_id','kind','text')} for fact in row['facts_used']]
+    facts_used=facts if row['template'] in (REPHRASE_TEMPLATE,'approved-contact-selection-user-rephrase-v1') else row['facts_used']
+    facts=[{key:fact[key] for key in ('fact_id','kind','text')} for fact in facts_used]
     return {'id':row['id'],'version':row['version'],'profile_version':row['profile_version'],
             'text':text,'sha256':row['sha256']['txt'],'facts':facts,'contact':header}
 

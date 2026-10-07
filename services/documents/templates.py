@@ -19,15 +19,18 @@ TAILORED_TEMPLATE = 'approved-summary-skill-and-bullet-emphasis-v3'
 TAILORED_MODEL = 'deterministic-summary-skill-and-bullet-emphasis-v2'
 SELECTION_TEMPLATE = 'approved-selection-and-bullet-emphasis-v2'
 SELECTION_MODEL = 'deterministic-fact-selection-and-bullet-emphasis-v1'
-SELECTION_TEMPLATES = {SELECTION_TEMPLATE, LEGACY_SELECTION_TEMPLATE, 'approved-fact-selection-headings-v1'}
-EMPHASIS_TEMPLATES = {TAILORED_TEMPLATE, BULLET_TAILORED_TEMPLATE, LEGACY_TAILORED_TEMPLATE, SELECTION_TEMPLATE, LEGACY_SELECTION_TEMPLATE}
-RESPONSIBILITY_EMPHASIS_TEMPLATES = {TAILORED_TEMPLATE, BULLET_TAILORED_TEMPLATE, SELECTION_TEMPLATE}
+REPHRASE_TEMPLATE = 'approved-selection-user-rephrase-v1'
+REPHRASE_MODEL = 'user-reviewed-factual-rephrase-v1'
+SELECTION_TEMPLATES = {SELECTION_TEMPLATE, REPHRASE_TEMPLATE, LEGACY_SELECTION_TEMPLATE, 'approved-fact-selection-headings-v1'}
+EMPHASIS_TEMPLATES = {TAILORED_TEMPLATE, BULLET_TAILORED_TEMPLATE, LEGACY_TAILORED_TEMPLATE, SELECTION_TEMPLATE, REPHRASE_TEMPLATE, LEGACY_SELECTION_TEMPLATE}
+RESPONSIBILITY_EMPHASIS_TEMPLATES = {TAILORED_TEMPLATE, BULLET_TAILORED_TEMPLATE, SELECTION_TEMPLATE, REPHRASE_TEMPLATE}
 SUMMARY_TAILORING_TEMPLATES = {TAILORED_TEMPLATE}
 CONTACT_PAIRS = {
     BASE_TEMPLATE: ('approved-contact-base-v1', 'deterministic-contact-copy-v1'),
     BULLET_TAILORED_TEMPLATE: ('approved-contact-skill-and-bullet-emphasis-v2', 'deterministic-contact-skill-and-bullet-emphasis-v1'),
     TAILORED_TEMPLATE: ('approved-contact-summary-skill-and-bullet-emphasis-v3', 'deterministic-contact-summary-skill-and-bullet-emphasis-v2'),
     SELECTION_TEMPLATE: ('approved-contact-selection-and-bullet-emphasis-v2', 'deterministic-contact-selection-and-bullet-emphasis-v1'),
+    REPHRASE_TEMPLATE: ('approved-contact-selection-user-rephrase-v1', 'user-reviewed-factual-rephrase-v1'),
 }
 LEGACY_CONTACT_PAIRS = {
     LEGACY_TAILORED_TEMPLATE: ('approved-contact-emphasis-v1', 'deterministic-contact-order-v1'),
@@ -36,9 +39,11 @@ LEGACY_CONTACT_PAIRS = {
 CONTACT_TEMPLATES = {pair[0] for pair in CONTACT_PAIRS.values()}
 CONTACT_TEMPLATES.update(pair[0] for pair in LEGACY_CONTACT_PAIRS.values())
 SELECTION_TEMPLATES.add(CONTACT_PAIRS[SELECTION_TEMPLATE][0])
+SELECTION_TEMPLATES.add(REPHRASE_TEMPLATE)
+SELECTION_TEMPLATES.add(CONTACT_PAIRS[REPHRASE_TEMPLATE][0])
 SELECTION_TEMPLATES.add(LEGACY_CONTACT_PAIRS[LEGACY_SELECTION_TEMPLATE][0])
 EMPHASIS_TEMPLATES.update(pair[0] for pair in (*CONTACT_PAIRS.values(), *LEGACY_CONTACT_PAIRS.values()) if pair[0] != CONTACT_PAIRS[BASE_TEMPLATE][0])
-RESPONSIBILITY_EMPHASIS_TEMPLATES.update(pair[0] for template,pair in CONTACT_PAIRS.items() if template in (TAILORED_TEMPLATE,BULLET_TAILORED_TEMPLATE,SELECTION_TEMPLATE))
+RESPONSIBILITY_EMPHASIS_TEMPLATES.update(pair[0] for template,pair in CONTACT_PAIRS.items() if template in (TAILORED_TEMPLATE,BULLET_TAILORED_TEMPLATE,SELECTION_TEMPLATE,REPHRASE_TEMPLATE))
 SUMMARY_TAILORING_TEMPLATES.update(pair[0] for template,pair in CONTACT_PAIRS.items() if template==TAILORED_TEMPLATE)
 CONTRACTS = {
     'verified-facts-v1': ('deterministic-fact-copy-v1', 'BASE', False),
@@ -51,6 +56,7 @@ CONTRACTS = {
     TAILORED_TEMPLATE: (TAILORED_MODEL, 'TAILORED', True),
     BULLET_TAILORED_TEMPLATE: (BULLET_TAILORED_MODEL, 'TAILORED', True),
     SELECTION_TEMPLATE: (SELECTION_MODEL, 'TAILORED', True),
+    REPHRASE_TEMPLATE: (REPHRASE_MODEL, 'TAILORED', True),
 }
 CONTRACTS.update({pair[0]:(pair[1],CONTRACTS[source][1],True) for source,pair in CONTACT_PAIRS.items()})
 CONTRACTS.update({pair[0]:(pair[1],CONTRACTS[source][1],True) for source,pair in LEGACY_CONTACT_PAIRS.items()})
@@ -69,8 +75,10 @@ def contract_role(template, model, allow_legacy_unrecorded=False):
     return None
 
 
-def template_pair(tailored, selected, contact):
-    template=SELECTION_TEMPLATE if selected else TAILORED_TEMPLATE if tailored else BASE_TEMPLATE
+def template_pair(tailored, selected, contact, user_rephrase=False):
+    if user_rephrase and not selected:
+        raise PreparationError('RESUME_REPHRASE_SELECTION_REQUIRED', 'Select approved resume facts before rewriting bullets')
+    template=REPHRASE_TEMPLATE if user_rephrase else SELECTION_TEMPLATE if selected else TAILORED_TEMPLATE if tailored else BASE_TEMPLATE
     return CONTACT_PAIRS[template] if contact else (template,CONTRACTS[template][0])
 
 

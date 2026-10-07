@@ -124,6 +124,7 @@ def execute_operation(operation_id):
                         route_mode=operation["params"].get("route_mode", "DEFAULT"), route_id=operation["params"].get("route_id"),
                         tailor_resume=operation["params"].get("tailor_resume", False),
                         tailor_fact_ids=operation['params'].get('tailor_fact_ids'),
+                        tailor_fact_rewrites=operation['params'].get('tailor_fact_rewrites'),
                         include_resume_contact=operation['params'].get('include_resume_contact',False),
                         cover_letter_style=operation['params'].get('cover_letter_style','professional'),
                         cover_letter_length=operation['params'].get('cover_letter_length','normal'))

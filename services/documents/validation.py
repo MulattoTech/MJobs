@@ -5,7 +5,8 @@ from docx import Document
 from pypdf import PdfReader
 
 from services.documents.errors import PreparationError
-from services.documents.templates import CONTRACTS, contact_header, contract_role, resume_layout
+from services.documents.templates import (CONTRACTS, REPHRASE_TEMPLATE, contact_header,
+    contract_role, resume_layout)
 from services.documents.cover_letter import COVER_LETTER_TEMPLATE, build_cover_letter
 
 VALIDATOR = 'exact-approved-facts-v5-claim-preservation'
@@ -93,6 +94,31 @@ def validate_assertions(kind, paragraphs, profile, fact_ids, job_title=None, tem
     if kind == 'resume':
         if template not in CONTRACTS:
             raise PreparationError('UNSUPPORTED_CLAIM', 'Document template has no assertion validation contract')
+        if template in (REPHRASE_TEMPLATE, 'approved-contact-selection-user-rephrase-v1'):
+            context = generation_context if isinstance(generation_context, dict) else {}
+            if (context.get('selection_mode') != 'EXPLICIT_APPROVED_FACTS' or
+                    context.get('selected_fact_ids') != context.get('original_fact_ids') or
+                    set(context.get('selected_fact_ids', [])) != set(fact_ids)):
+                raise PreparationError('RESUME_REPHRASE_CONTEXT_INVALID', 'Rewritten resume facts lack an explicit saved selection')
+            from services.documents.tailor import apply_saved_user_rephrases
+            by_id = {row['fact_id']:row for row in profile_facts}
+            rows = [dict(by_id[identifier]) for identifier in fact_ids]
+            rewritten = apply_saved_user_rephrases(rows, fact_ids, context.get('fact_rephrases'))
+            expected, heading_indices = resume_layout(profile, rewritten, template)
+            header = len(contact_header(profile, template))
+            headings = {expected[index] for index in heading_indices}
+            actual_facts = [value for value in paragraphs[header:] if value not in headings]
+            _reject_novel_tokens(actual_facts, [eligible[identifier] for identifier in fact_ids])
+            if paragraphs != expected:
+                raise PreparationError('UNSUPPORTED_CLAIM', 'Rewritten resume differs from its reviewed source-fact context')
+            claims = _claim_evidence(fact_ids, eligible, profile_facts)
+            changed = {row['fact_id'] for row in context['fact_rephrases']}
+            for claim in claims['claims']:
+                if claim['fact_id'] in changed:
+                    claim['decision'] = 'USER_ATTESTED_FACTUAL_PARAPHRASE'
+                    claim['protected_fields'].append('USER_REVIEWED_WORDING_BOUND_TO_SOURCE_SHA256')
+            claims['strategy'] = 'USER_REVIEWED_FACTUAL_PARAPHRASE_WITH_EXACT_NUMERIC_PRESERVATION'
+            return claims
         if CONTRACTS[template][2]:
             by_id = {row['fact_id']:row for row in profile['facts']}
             expected, heading_indices = resume_layout(profile, [by_id[i] for i in fact_ids], template)

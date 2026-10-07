@@ -63,6 +63,48 @@ class ResumeComparisonTests(unittest.TestCase):
         self.assertEqual([r['fact_id'] for r in result['omitted']],['omit'])
         self.assertEqual([r['fact_id'] for r in result['added']],['new'])
 
+    def test_user_reviewed_rephrase_is_source_bound_and_comparison_survives_profile_changes(self):
+        facts=[dict(PROFILE['facts'][0],id='duty',kind='responsibility',
+                    text='Built Python services for 4 clinics in 2020-2022.'),PROFILE['facts'][1]]
+        original_profile=dict(PROFILE,facts=facts)
+        self.store.save_profile(original_profile)
+        with fixture_server() as origin:discover(self.store,origin,'fixture')
+        job=self.store.jobs()[0]
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.id==job['id']).values(skills=['Python']))
+        app=prepare(self.store,job['id'],'fixture',self.root)
+        base=next(row for row in application_documents(self.store,app) if row['kind']=='resume')
+        wording='Delivered Python services for 4 clinics in 2020-2022.'
+        rephrases=[{'fact_id':'duty','text':wording,'reviewed':True}]
+        result=prepare(self.store,job['id'],'fixture',self.root,tailor_resume=True,
+            tailor_fact_ids=['duty'],tailor_fact_rewrites=rephrases,include_resume_contact=True)
+        self.assertEqual(result,app)
+        rows=application_documents(self.store,app)
+        target=next(row for row in rows if row['kind']=='resume' and row['version']==2)
+        self.assertEqual(target['generation_context']['fact_rephrases'][0]['fact_id'],'duty')
+        self.assertEqual(target['generation_context']['claim_validation']['strategy'],
+            'USER_REVIEWED_FACTUAL_PARAPHRASE_WITH_EXACT_NUMERIC_PRESERVATION')
+        self.assertIn(wording,(self.root/app/target['files']['txt']).read_text(encoding='utf-8'))
+        cover=next(row for row in rows if row['kind']=='cover-letter' and row['version']==2)
+        self.assertNotIn(wording,(self.root/app/cover['files']['txt']).read_text(encoding='utf-8'))
+        with TestClient(create_app(self.store,'http://127.0.0.1:1',self.root,operation_mode='FIXTURE')) as client:
+            url=f'/profiles/fixture/applications/{app}/document-comparison'
+            params={'base_document_id':base['id'],'tailored_document_id':target['id']}
+            response=client.get(url,params=params)
+            self.assertEqual(response.status_code,200,response.text)
+            comparison=response.json()
+            self.assertEqual(comparison['bullet_changes'][0]['before']['text'],facts[0]['text'])
+            self.assertEqual(comparison['bullet_changes'][0]['after']['text'],wording)
+            self.store.save_profile(dict(original_profile,name='Changed live name',facts=[
+                dict(facts[0],text='Changed live career fact'),facts[1]]))
+            self.assertEqual(client.get(url,params=params).json(),comparison)
+            invalid=client.post('/applications',json={'profile_id':'fixture','job_id':job['id'],
+                'tailor_resume':True,'tailor_fact_ids':['duty'],'expected_profile_version':self.store.profile('fixture')['version'],
+                'tailor_fact_rewrites':[{'fact_id':'duty','text':'Delivered Python services for 40 clinics in 2020-2022.','reviewed':True}]})
+            self.assertEqual(invalid.status_code,409)
+            self.assertIn('preserve every source date and number',invalid.json()['detail'])
+        self.assertEqual(self.store.profile('fixture')['facts'][0]['text'],'Changed live career fact')
+
     def test_unavailable_or_wrong_history_is_not_reported_as_unchanged(self):
         app,base,target=self.pair()
         with TestClient(create_app(self.store,'http://127.0.0.1:1',self.root,operation_mode='FIXTURE')) as client:

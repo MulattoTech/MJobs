@@ -63,7 +63,9 @@ export function ResumeComparison({documents}:{documents:GeneratedDocument[]}) {
     (row.template==='approved-contact-skill-and-bullet-emphasis-v2'&&row.generation_model==='deterministic-contact-skill-and-bullet-emphasis-v1')||
     (row.template==='approved-summary-skill-and-bullet-emphasis-v3'&&row.generation_model==='deterministic-summary-skill-and-bullet-emphasis-v2')||
     (row.template==='approved-contact-summary-skill-and-bullet-emphasis-v3'&&row.generation_model==='deterministic-contact-summary-skill-and-bullet-emphasis-v2')||
-    (row.template==='approved-contact-selection-and-bullet-emphasis-v2'&&row.generation_model==='deterministic-contact-selection-and-bullet-emphasis-v1')));
+    (row.template==='approved-contact-selection-and-bullet-emphasis-v2'&&row.generation_model==='deterministic-contact-selection-and-bullet-emphasis-v1')||
+    (row.template==='approved-selection-user-rephrase-v1'&&row.generation_model==='user-reviewed-factual-rephrase-v1')||
+    (row.template==='approved-contact-selection-user-rephrase-v1'&&row.generation_model==='user-reviewed-factual-rephrase-v1')));
   const [base,setBase]=useState(bases[0]?'g:'+bases[0].id:'');const [target,setTarget]=useState(targets[0]?.id||'');
   const [result,setResult]=useState<Comparison|null>(null);const [error,setError]=useState('');const [notice,setNotice]=useState('');const [busy,setBusy]=useState(false);
   const comparisonController=useRef<AbortController|null>(null);

@@ -9,7 +9,7 @@ export type GeneratedDocument = {
   created_at:string|null;generation_model:string|null;
   facts_used:{fact_id:string;kind:string;text:string;source:string;confidence:number;verified:boolean;user_approved:boolean}[];
   missing_fact_ids:string[];
-  generation_context?:{mode:string;profile_version?:string;job_title?:string;job_skills?:string[];matched_skills?:Record<string,string[]>;original_fact_ids?:string[];ordered_fact_ids?:string[];selection_mode?:string;selected_fact_ids?:string[];omitted_fact_ids?:string[];emphasized_fact_ids?:string[];contact_header?:string[];style?:string;length?:string;skills?:string[];skill_strengths?:Record<string,string>;responsibilities?:string[];company_identity?:string;items?:{question:string;answer_id?:string|null;source:string;confidence:number|null;answer_mode:string}[]}|null;
+  generation_context?:{mode:string;profile_version?:string;job_title?:string;job_skills?:string[];matched_skills?:Record<string,string[]>;original_fact_ids?:string[];ordered_fact_ids?:string[];selection_mode?:string;selected_fact_ids?:string[];omitted_fact_ids?:string[];emphasized_fact_ids?:string[];contact_header?:string[];fact_rephrases?:{fact_id:string;text:string;reviewed:boolean;review_policy:string}[];style?:string;length?:string;skills?:string[];skill_strengths?:Record<string,string>;responsibilities?:string[];company_identity?:string;items?:{question:string;answer_id?:string|null;source:string;confidence:number|null;answer_mode:string}[]}|null;
 };
 
 export function DocumentHistory({documents}:{documents:GeneratedDocument[]}) {
@@ -19,7 +19,7 @@ export function DocumentHistory({documents}:{documents:GeneratedDocument[]}) {
     {document.kind==='application-answer-export'&&document.generation_context?.mode==='REVIEWED_APPLICATION_ANSWERS'&&<><p>Manually reviewed application answers · profile snapshot {document.generation_context.profile_version?.slice(0,10)}. This export does not fill or submit an employer form.</p><ul>{document.generation_context.items?.map((item,index)=><li key={`${item.question}-${index}`}>{item.question} · {item.answer_mode==='REVIEWED_REUSE'?'reused with explicit review':'entered for this application'} · {item.source}{item.confidence!==null?` · ${item.confidence}% confidence`:''}</li>)}</ul></>}
     {document.kind==='cover-letter'&&document.legacy_job_context_missing&&<p>Legacy letter: its original title is preserved from the saved document; the current job title may differ.</p>}
     {document.generation_context?.mode==='APPROVED_SKILL_ORDER'&&(document.generation_context.selection_mode==='EXPLICIT_APPROVED_FACTS'
-      ?<p>Tailored resume: selected facts for {document.generation_context.job_title}. Approved facts included: {document.generation_context.selected_fact_ids?.length}. Omitted from this resume: {document.generation_context.omitted_fact_ids?.length}. Approved wording preserved.</p>
+      ?<p>Tailored resume: selected facts for {document.generation_context.job_title}. Approved facts included: {document.generation_context.selected_fact_ids?.length}. Omitted from this resume: {document.generation_context.omitted_fact_ids?.length}. {document.generation_context.fact_rephrases?.length?`${document.generation_context.fact_rephrases.length} bullet rewrite(s) were entered and reviewed for this application; profile facts and cover letter stay unchanged.`:'Approved wording preserved.'}</p>
       :<p>Tailored resume: skill order for {document.generation_context.job_title}. Wording and work history preserved.</p>)}
     <p>{document.fact_ids.length} factual sources · profile snapshot {document.profile_version.slice(0,10)}</p>
     {document.generation_context?.emphasized_fact_ids&&<p>Job-matched approved facts in bold: {document.generation_context.emphasized_fact_ids.length}. DOCX and PDF preserve the same approved text as TXT.</p>}
@@ -37,6 +37,7 @@ export function DocumentHistory({documents}:{documents:GeneratedDocument[]}) {
       {document.missing_fact_ids.length>0&&<p className="alert">Some original facts are unavailable: {document.missing_fact_ids.join(', ')}</p>}
       <ul>{document.facts_used.map(fact=><li key={fact.fact_id}><strong>{fact.kind}</strong>: {fact.text}<br/>Source: {fact.source}<br/>
         At generation: {fact.verified?'verified':'unverified'}, {fact.user_approved?'approved':'not approved'}, confidence {fact.confidence}%
+        {!!document.generation_context?.fact_rephrases?.find(item=>item.fact_id===fact.fact_id)&&<p>User-reviewed wording for this application: {document.generation_context.fact_rephrases.find(item=>item.fact_id===fact.fact_id)?.text}</p>}
         {!!document.generation_context?.matched_skills?.[fact.fact_id]?.length&&<p>Matched job skills: {document.generation_context.matched_skills[fact.fact_id].join(', ')}</p>}
         {document.generation_context?.emphasized_fact_ids?.includes(fact.fact_id)&&<p>Emphasized in DOCX and PDF.</p>}</li>)}</ul>
       <p>Checksums (SHA-256)</p><ul>{Object.entries(document.sha256).map(([format,hash])=><li key={format}>{format.toUpperCase()}: <code style={{overflowWrap:'anywhere'}}>{hash}</code></li>)}</ul>

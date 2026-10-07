@@ -3,6 +3,42 @@ from services.documents.comparison import compare_facts
 
 
 class ResumeComparisonUnitTests(unittest.TestCase):
+    def test_user_rephrase_is_reviewed_source_bound_and_preserves_numeric_claims(self):
+        import hashlib
+        from services.documents.tailor import validate_user_rephrases
+        from services.documents.errors import PreparationError
+
+        facts = [{"fact_id": "duty", "kind": "responsibility",
+                  "text": "Built Python services for 4 clinics in 2020-2022.",
+                  "verified": True, "user_approved": True, "confidence": 95,
+                  "source": "User verified"}]
+        selected = ["duty"]
+        rewritten, provenance = validate_user_rephrases(facts, selected, [{
+            "fact_id": "duty",
+            "text": "Developed Python services for 4 clinics in 2020-2022.",
+            "reviewed": True,
+        }])
+
+        self.assertEqual(rewritten[0]["text"], "Developed Python services for 4 clinics in 2020-2022.")
+        self.assertEqual(provenance[0]["fact_id"], "duty")
+        self.assertEqual(provenance[0]["source_text_sha256"],
+                         hashlib.sha256(facts[0]["text"].encode()).hexdigest())
+        self.assertTrue(provenance[0]["reviewed"])
+        self.assertEqual(facts[0]["text"], "Built Python services for 4 clinics in 2020-2022.")
+
+        with self.assertRaises(PreparationError) as review_error:
+            validate_user_rephrases(facts, selected, [{
+                "fact_id": "duty", "text": "Developed Python services for 4 clinics in 2020-2022.",
+                "reviewed": False,
+            }])
+        self.assertEqual(review_error.exception.code, "RESUME_REPHRASE_REVIEW_REQUIRED")
+        with self.assertRaises(PreparationError) as changed_error:
+            validate_user_rephrases(facts, selected, [{
+                "fact_id": "duty", "text": "Developed Python services for 40 clinics in 2020-2022.",
+                "reviewed": True,
+            }])
+        self.assertEqual(changed_error.exception.code, "RESUME_REPHRASE_FACTS_CHANGED")
+
     def test_duplicate_unicode_text_uses_fact_identity_and_additions_do_not_fake_moves(self):
         one={'fact_id':'one','kind':'skill','text':'Δοκιμή'}
         two={**one,'fact_id':'two'}
