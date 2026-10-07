@@ -3,6 +3,7 @@ const laneRoot = $("#lanes");
 const template = $("#laneTemplate");
 const cards = {};
 const editing = new Set();
+const terminals = {};
 
 function esc(value) {
   return String(value ?? "").replace(/[&<>"']/g, c => ({
@@ -77,6 +78,72 @@ function renderUsage(node, usage, lane) {
   fill.style.width="0%";
   meta.textContent = usage?.message || usage?.error || "Usage unavailable";
 }
+
+function terminalState(lane,node) {
+  if (terminals[lane]) return terminals[lane];
+  const state={
+    lane,node,ws:null,paused:false,pending:"",currentRun:null,retryTimer:null,
+  };
+  terminals[lane]=state;
+  $(".terminal-pause",node).onclick=()=>{
+    state.paused=!state.paused;
+    $(".terminal-pause",node).textContent=state.paused?"Resume":"Pause";
+    if(!state.paused && state.pending){
+      appendTerminal(state,state.pending);
+      state.pending="";
+    }
+  };
+  $(".terminal-clear",node).onclick=()=>{ $(".terminal",node).textContent=""; };
+  $(".terminal-grow",node).onclick=()=>{
+    node.classList.toggle("terminal-expanded");
+    $(".terminal-grow",node).textContent=node.classList.contains("terminal-expanded")?"Collapse":"Expand";
+  };
+  return state;
+}
+function appendTerminal(state,text) {
+  if(!text) return;
+  if(state.paused){ state.pending+=text; return; }
+  const terminal=$(".terminal",state.node);
+  terminal.textContent+=text;
+  if($(".terminal-follow",state.node).checked) terminal.scrollTop=terminal.scrollHeight;
+}
+function connectTerminal(lane,node) {
+  const state=terminalState(lane,node);
+  if(state.ws && [WebSocket.OPEN,WebSocket.CONNECTING].includes(state.ws.readyState)) return;
+  const proto=location.protocol==="https:"?"wss":"ws";
+  const ws=new WebSocket(proto+"://"+location.host+"/ws/lanes/"+lane+"/terminal");
+  state.ws=ws;
+  const badge=$(".terminal-connection",node);
+  ws.onopen=()=>{
+    badge.textContent="LIVE";
+    badge.className="terminal-connection pill running";
+  };
+  ws.onmessage=(event)=>{
+    let msg;
+    try{ msg=JSON.parse(event.data); }catch{ appendTerminal(state,event.data); return; }
+    if(msg.type==="run"){
+      if(msg.run_id!==state.currentRun){
+        state.currentRun=msg.run_id;
+        $(".terminal-run",node).textContent=msg.run_id?"run "+msg.run_id:"no active run";
+        appendTerminal(state,"\n\n===== "+lane.toUpperCase()+" RUN "+(msg.run_id||"none")+" =====\n");
+      }
+      return;
+    }
+    if(msg.type==="data"){
+      const prefix=msg.source==="stdout"?"":"\n["+msg.source+"] ";
+      appendTerminal(state,prefix+(msg.data||""));
+    }
+  };
+  ws.onclose=()=>{
+    badge.textContent="reconnecting";
+    badge.className="terminal-connection pill quiet";
+    state.ws=null;
+    clearTimeout(state.retryTimer);
+    state.retryTimer=setTimeout(()=>connectTerminal(lane,node),1200);
+  };
+  ws.onerror=()=>ws.close();
+}
+
 function createCard(lane) {
   const node=template.content.firstElementChild.cloneNode(true);
   node.dataset.lane=lane;
@@ -108,7 +175,10 @@ function createCard(lane) {
   $(".start",node).onclick=()=>action(lane,"start",node);
   $(".restart",node).onclick=()=>action(lane,"restart",node);
   $(".stop",node).onclick=()=>action(lane,"stop",node);
-  laneRoot.appendChild(node); cards[lane]=node; return node;
+  laneRoot.appendChild(node);
+  cards[lane]=node;
+  connectTerminal(lane,node);
+  return node;
 }
 async function action(lane,verb,node) {
   try {
@@ -151,7 +221,6 @@ function updateCard(lane,data,coord) {
       $(".gpu-offload-value",node).textContent=pct+"%";
     }
   }
-  $(".log",node).textContent=data.log_tail||"(no log yet)";
 }
 function renderRepo(state) {
   const git=state.git||{}, coord=state.coordination||{}, dirty=git.dirty||[];

@@ -100,3 +100,24 @@ Antigravity CLI currently does not expose an equivalent local percentage endpoin
 The Ollama lane exposes a 0–100% GPU offload cap. This is not a hard GPU utilization percentage. On restart, the supervisor reads the model's transformer block count and creates/reuses a local derived Ollama model with PARAMETER num_gpu <layers>. Example: Gemma4 26B reports 30 blocks, so a 50% offload cap uses 15 GPU layers. The derived alias is added to OpenCode's local Ollama model configuration and then used for the supervised lane.
 
 Windows GPU engine counters are shown separately as observed utilization so the user can compare configured offload with actual activity.
+
+
+## Live terminal streaming
+
+Each agent card includes a persistent live terminal backed by a WebSocket. It streams
+bytes from the current supervised run rather than polling a small tail. Reconnecting
+starts at the current run's recorded byte offset rather than replaying unrelated
+historical runs.
+
+Antigravity is launched with a per-run native `--log-file`. Its terminal merges the
+normal print-mode output with the native internal log, exposing API requests, quota
+refresh behavior, 429/RESOURCE_EXHAUSTED responses, statusline/runtime errors, and
+other internal execution details. The dashboard scans only the current run's logs for
+quota errors, so stale historical quota failures cannot falsely mark a new run.
+
+Codex streams its supervised execution output. Ollama/OpenCode is launched with
+`--print-logs --log-level INFO --thinking` so the local lane exposes a denser live
+execution stream.
+
+The terminal supports pause/resume without dropping received bytes, follow/autoscroll,
+clear-view, expand/collapse, source labels, and a heartbeat while an agent is quiet.

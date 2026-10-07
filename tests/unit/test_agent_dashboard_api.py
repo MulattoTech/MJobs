@@ -42,6 +42,13 @@ class AgentDashboardApiTests(unittest.TestCase):
         self.assertEqual(state["lanes"]["antigravity"]["runtime"]["status"], "STOPPED")
 
 
+
+    def test_terminal_websocket_emits_run_metadata(self):
+        with self.client.websocket_connect("/ws/lanes/codex/terminal") as ws:
+            message = ws.receive_json()
+            self.assertEqual(message["type"], "run")
+            self.assertIn("status", message)
+
     def test_ollama_gpu_offload_percent_is_validated_and_persisted(self):
         response = self.client.patch(
             "/api/lanes/ollama/config",

@@ -48,6 +48,31 @@ class AgentDashboardSupervisorTests(unittest.TestCase):
         self.assertEqual(result["window_minutes"], 10080)
         self.assertEqual(result["reset_credits_available"], 1)
 
+
+    def test_antigravity_quota_error_is_detected_from_native_wording(self):
+        message = (
+            "RESOURCE_EXHAUSTED (code 429): Individual quota reached. "
+            "Please upgrade your subscription to increase your limits. Resets in 4h37m15s."
+        )
+        self.assertIn(
+            "Individual quota reached",
+            AgentSupervisor._quota_error_from_text(message) or "",
+        )
+
+    def test_terminal_sources_begin_at_current_run_offset(self):
+        supervisor = AgentSupervisor(self.root)
+        log = supervisor.log_path("codex")
+        log.parent.mkdir(parents=True, exist_ok=True)
+        log.write_text("old output\nnew output\n", encoding="utf-8")
+        supervisor.runtime["lanes"]["codex"].update({
+            "run_id": "run-1",
+            "log_start_offset": len("old output\n".encode()),
+            "native_log_path": None,
+        })
+        info = supervisor.terminal_sources("codex")
+        self.assertEqual(info["run_id"], "run-1")
+        self.assertEqual(info["sources"][0]["start_offset"], len("old output\n".encode()))
+
     def test_exit_classification_distinguishes_gate_quota_and_success(self):
         self.assertEqual(classify_exit(0, "Do you approve the recommended design?"), "WAITING_APPROVAL")
         self.assertEqual(classify_exit(1, "RESOURCE_EXHAUSTED quota"), "BLOCKED_QUOTA")
