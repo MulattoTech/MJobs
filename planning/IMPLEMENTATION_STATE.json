@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-07T05:45:48Z",
+  "generated_at": "2026-10-07T06:01:37Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -298,7 +298,8 @@
     "Issue #5 / MJ-REQ-004 explicit structured-AI evaluation cancellation integrated by non-force fast-forward at synchronized local/GitHub main 0d1bb23b3d11ea44c5026b8e256289b134e38628. Tested source b9cac2c6ec425e5cf888265e97fb70930fde947b (tree cf3e070d5711af2dbf191055c3442b65a3892296); evidence docs/evidence/2026-10-07-ai-evaluation-ui-cancel.json. The AI Settings UI sends a profile/request-scoped cancellation request, remains pending until the bounded synthetic provider call completes, discards the interrupted batch, and confirms empty history after reload. Local validation: 16 focused API/Chromium tests; 847 full Python tests with 1 optional PostgreSQL skip; 62 frontend tests/build; agent-skills, catalogue, progress, lane and compile checks PASS. Live provider inference and PostgreSQL runtime NOT_RUN; hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF. Issue #5 remains OPEN/PARTIAL.",
     "Issue #5 / MJ-REQ-004 in-flight Ollama cancellation integrated by non-force fast-forward at synchronized local/GitHub main ef3a633b8325f26efd3c861ca237a4f318891535. Tested source 0be8c8c87509dd49ce1ca9e48a8f65158b45c2f9 (tree a2d6d0ecfbdcfed5316279640dde8373caa50b69); evidence docs/evidence/2026-10-07-ai-ollama-active-cancel.json. The API cancellation event reaches the real Ollama provider transport; canceling after synthetic loopback response headers and one body byte closes the connection within one second, returns canceled status, and preserves empty evaluation history. Validation: 43 focused AI/provider/API/Chromium tests; 848 full Python tests with one optional PostgreSQL skip; 62 frontend tests/build; agent-skills, catalogue, progress, lane, compile and diff checks PASS. No live inference or external submission. Hosted checks/review NOT_RUN_BY_USER_POLICY. Issue #5 remains OPEN/PARTIAL.",
     "MJ-REQ-005 issue #6 candidate cb2681b6a921f2759cf46d4d66a8228645b473e7: 32 focused API/worker lifecycle tests PASS; 849 full Python tests PASS with 1 optional PostgreSQL concurrency skip; 8 affected browser tests PASS after building worktree apps/web/dist; frontend 62 PASS and Vite build PASS; repository validators, compileall and diff check PASS. Evidence docs/evidence/2026-10-07-ai-evaluation-concurrency-admission.json.",
-    "MJ-REQ-008 issue #9 product-worker recovery exact source d516834ac3bd48352ef3aa8885a1de1fffe53419: 20 focused worker/concurrency/browser tests PASS; full 851-test Python suite PASS with 1 optional PostgreSQL skip; frontend production build, repository validators, compileall, lane coordination and diff check PASS. Evidence docs/evidence/2026-10-07-product-worker-crash-recovery.json."
+    "MJ-REQ-008 issue #9 product-worker recovery exact source d516834ac3bd48352ef3aa8885a1de1fffe53419: 20 focused worker/concurrency/browser tests PASS; full 851-test Python suite PASS with 1 optional PostgreSQL skip; frontend production build, repository validators, compileall, lane coordination and diff check PASS. Evidence docs/evidence/2026-10-07-product-worker-crash-recovery.json.",
+    "MJ-REQ-004 resume extraction cancellation: durable RESUME_EXTRACT admission and cancellation now cross API instances; cross-profile cancel remains denied; cancelled profile facts/history remain unchanged. Full Python 852 PASS (1 optional PostgreSQL skip), 12 profile-import, 16 AI API, 3 operation-concurrency and 1 connected browser test PASS; frontend 62 PASS/build PASS; repository validators PASS. Evidence docs/evidence/2026-10-07-resume-extraction-cross-instance-cancel.json. Issue #5 remains OPEN/PARTIAL; hosted checks remain NOT_RUN_BY_USER_POLICY."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -379,13 +380,13 @@
     "MJ-REQ-004 candidate 3d604b27b1a4c25e2ff0ee6fa68a07e9ff8f74a0: full suite initially saw stale ignored apps/web/dist; rebuilding restored current Sources UI and isolated browser acceptance. A first rebuilt full run later hit the known intermittent CompanyDiscoveryRequestsBrowserTests server-thread shutdown assertion; isolated case and all 35 browser tests passed, followed by a same-head 680-test full suite pass. Do not weaken shutdown timeout; evidence docs/evidence/2026-10-06-bounded-ocr-diagnostics.json."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-07T05:44:41Z",
+    "timestamp": "2026-10-07T06:01:37Z",
     "result": "PARTIAL",
-    "source_commit": "d516834ac3bd48352ef3aa8885a1de1fffe53419",
-    "source_tree": "f2859b592ebedc3053d3d88ea2d17a7bcad415c5",
-    "scope": "After worker process termination, durable operation lease recovery allows a replacement worker to complete a synthetic local operation; a reclaimed attempt is fenced before its next checked side effect.",
-    "evidence_path": "docs/evidence/2026-10-07-product-worker-crash-recovery.json",
-    "integration_commit": "74403d136e42cde684d9cb4638a2c75d11c07e06"
+    "source_commit": "05d10ac2fafd1bd7146b0c6efdd729f07b11f435",
+    "source_tree": "ea578e341cae448c66183ca333194cd8ec9af8ac",
+    "scope": "Durable cross-instance cancellation of active profile-scoped resume extraction; persisted terminal cancellation and unchanged profile/resume readback.",
+    "evidence_path": "docs/evidence/2026-10-07-resume-extraction-cross-instance-cancel.json",
+    "integration_commit": "9aa4b9f225f3b17683b99db10fb05d3e523e82d7"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -452,7 +453,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Release issue #6 claim and integration lock, reconcile current main plus all machine/GitHub claims and worktrees, then claim the next highest-value unclaimed dependency-ready issue in a dedicated Codex worktree and continue automatically.",
+  "recommended_resume_step": "Reconcile current main and active lane claims, then select the next highest-value unclaimed dependency-ready issue in a dedicated Codex worktree; retain issue #5 / MJ-REQ-004 as OPEN/PARTIAL.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
