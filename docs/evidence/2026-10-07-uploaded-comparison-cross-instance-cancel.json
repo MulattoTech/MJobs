@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "issue": 5,
+  "requirement_id": "MJ-REQ-004",
+  "lane": "codex",
+  "branch": "codex/mj-req004-upload-compare-cross-instance-20261007",
+  "source_head": "dff77688f25fde18e24201dc8f62e6f9324e542b",
+  "source_tree": "7ff920b24e022685d322708d2d1388a127210cc3",
+  "base_main": "805e52bab0528e562578f51f5426285af0163657",
+  "recorded_at_utc": "2026-10-07T09:17:37Z",
+  "input_sha256": {
+    "apps/api/main.py": "08edf9e077ded77215f8eb8d083689ce17c3f3e6f277bd884b6bd78f7a58d80c",
+    "workers/operations.py": "8536c53ddaea8dd9d3705a0e70e61d653ed2463574d3698f1b4d0efeb8f25a6a",
+    "tests/integration/test_uploaded_resume_comparison.py": "31b95677601e9900891e2f85de91f7345a7e7dcce4025803e9fd4fbaaa5ce0320",
+    "tests/unit/test_operation_concurrency.py": "f920c34ed550a52aa9cb59b3bee6ac996b2f97dc019cecdbfff712d5a6ed3565"
+  },
+  "result": "PARTIAL",
+  "acceptance": {
+    "red_reproduction": "PASS - before the implementation, the two-API-instance regression failed because the cancel endpoint returned cancelled=false.",
+    "cross_instance_cancel": "PASS - uploaded-original comparison reserves a durable operation; another API instance sharing the same SQLite database requests cancellation, the active comparison observes it, and the original request returns sanitized HTTP 499.",
+    "scope_and_profile_isolation": "PASS - a foreign profile is rejected with 404; a mismatched tailored-document scope returns cancelled=false and leaves the active comparison running.",
+    "durable_terminal_readback": "PASS - the operation is read back as CANCELLED with cancel_requested=true and stable cancellation reason; scoped operation identity is hashed and parameters contain no uploaded resume content or raw revision identifiers.",
+    "history_integrity": "PASS - profile and application readback remain unchanged after cancellation; no partial comparison result is returned.",
+    "full_requirement": "PARTIAL - this advances uploaded-original comparison cancellation only. Other operation classes and unavailable real provider/ATS behavior remain outside this slice."
+  },
+  "validation": {
+    "focused_command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_uploaded_resume_comparison tests.integration.test_profile_import tests.integration.test_ai_cost_policy_api tests.unit.test_operation_concurrency tests.unit.test_ai_cost_consumer",
+    "focused_result": "PASS - 46 tests, zero failures/errors.",
+    "browser_command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.browser.test_skill_order.SkillOrderBrowserTests.test_explicit_ordering_reaches_worker_and_download",
+    "browser_result": "PASS - connected headless Chromium browser test; synthetic loopback only.",
+    "full_python_command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest discover -s tests -p 'test_*.py'",
+    "full_python_result": "PASS - 886 tests, zero failures/errors, one optional PostgreSQL test skipped; 524.448 seconds.",
+    "frontend_test_command": "npm test --prefix apps/web -- --run",
+    "frontend_test_result": "PASS - 63 tests across 13 files.",
+    "frontend_build_command": "npm run build --prefix apps/web",
+    "frontend_build_result": "PASS - TypeScript and Vite production build.",
+    "repository_checks": [
+      "python -m tools.verification.agent_skills",
+      "python -m tools.verification.catalogue",
+      "python -m tools.verification.progress validate",
+      "python -m tools.coordination.lane_coordination validate",
+      "python -m compileall -q apps/api/main.py workers/operations.py tests/integration/test_uploaded_resume_comparison.py tests/unit/test_operation_concurrency.py",
+      "git diff --check"
+    ],
+    "repository_checks_result": "PASS"
+  },
+  "environment": {
+    "python": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe (Python 3.12)",
+    "node": "v25.9.0; the installed Vitest package emitted an engine compatibility warning during dependency installation.",
+    "database": "Temporary synthetic SQLite database shared by two independent Store/FastAPI instances; no schema migration changed.",
+    "postgresql": "NOT_RUN - the full suite skipped its optional PostgreSQL case because MJOBS_TEST_POSTGRES_URL was unset.",
+    "docker": "NOT_RUN - no container-backed behavior or migration changed.",
+    "hosted_checks_and_review": "NOT_RUN_BY_USER_POLICY; GitHub Actions and hosted reviewers remain disabled.",
+    "external_application_submission": "OFF"
+  },
+  "limitations": [
+    "Issue #5 / MJ-REQ-004 remains OPEN/PARTIAL; this evidence covers durable cross-instance cancellation for uploaded-original comparison only.",
+    "Synthetic SQLite verifies independent API instances and durable readback, not a live PostgreSQL deployment.",
+    "No paid/provider AI call, real ATS operation, hosted check, independent AI review, or external application submission was performed."
+  ]
+}

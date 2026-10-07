@@ -3,14 +3,14 @@
   "lane": "codex",
   "claims": [
     {
-      "issue": 23,
-      "requirement_id": "MJ-REQ-022",
-      "branch": "codex/mj-req022-search-profile-selection-20261007",
-      "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req022-search-profile-selection-20261007",
-      "head": "74acc9f0b472034b575baa9f45d5aafe5ce7a4c0",
-      "paths": ["apps/web/src/main.tsx", "tests/browser/test_search_profile_selection.py", "docs/evidence/*.json", "planning/lanes/codex/**"],
+      "issue": 5,
+      "requirement_id": "MJ-REQ-004",
+      "branch": "codex/mj-req004-upload-compare-cross-instance-20261007",
+      "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req004-upload-compare-cross-instance-20261007",
+      "head": "dff77688f25fde18e24201dc8f62e6f9324e542b",
+      "paths": ["workers/operations.py", "apps/api/main.py", "tests/integration/test_uploaded_resume_comparison.py", "docs/evidence/*.json", "planning/lanes/codex/**"],
       "status": "ACTIVE",
-      "claimed_at": "2026-10-07T08:38:39Z"
+      "claimed_at": "2026-10-07T08:55:44Z"
     }
   ]
 }

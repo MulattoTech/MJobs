@@ -3,25 +3,36 @@
   "lane": "codex",
   "items": [
     {
+      "issue": 5,
+      "requirement_id": "MJ-REQ-004",
+      "status": "READY_FOR_INTEGRATION",
+      "priority": 0,
+      "target_area": "apps/api/main.py; workers/operations.py; tests/integration/test_uploaded_resume_comparison.py",
+      "depends_on": [],
+      "evidence_path": "docs/evidence/2026-10-07-uploaded-comparison-cross-instance-cancel.json",
+      "scope_complete": false,
+      "note": "Scoped acceptance is locally verified: uploaded-original comparison now persists a hashed-scope operation and a second API instance can cancel it with durable CANCELLED readback while profile/application history remains unchanged. Source dff77688f25fde18e24201dc8f62e6f9324e542b. Focused 46 tests and full Python 886 tests pass (one optional PostgreSQL skip); browser, frontend 63/build, and local validators pass. Ready for integration; issue remains OPEN/PARTIAL."
+    },
+    {
       "issue": 23,
       "requirement_id": "MJ-REQ-022",
-      "status": "READY_FOR_INTEGRATION",
+      "status": "INTEGRATED_PASS",
       "priority": 1,
       "target_area": "apps/web/src/main.tsx; tests/browser/test_search_profile_selection.py",
       "depends_on": ["MJ-REQ-023"],
       "evidence_path": "docs/evidence/2026-10-07-search-profile-selection.json",
       "scope_complete": true,
-      "note": "Connects profile-owned saved searches to the Jobs view and existing profile-aware API. Loopback Chromium test verifies filtered response/readback, clearing, career-profile switching/isolation, and database reopen. Focused 18 Python tests, frontend 63 tests/build, and repository validators pass. Hosted checks NOT_RUN by policy; external submission OFF."
+      "note": "Integrated at main 805e52bab0528e562578f51f5426285af0163657. Connects profile-owned saved searches to the Jobs view and existing profile-aware API. Loopback Chromium test verifies filtered response/readback, clearing, career-profile switching/isolation, and database reopen. Focused 18 Python tests, frontend 63 tests/build, and repository validators pass. Hosted checks NOT_RUN by policy; external submission OFF."
     },
     {
       "issue": 403,
       "requirement_id": "MJ-REF-033",
-      "status": "ACTIVE_PARTIAL",
+      "status": "INTEGRATED_PARTIAL",
       "priority": 1,
       "target_area": "services/agents; tests/unit; tests/integration",
       "evidence_path": "docs/evidence/2026-10-07-agent-run-budget-output-validation.json",
       "scope_complete": false,
-      "note": "Agent run time/step stop outcomes and typed collection count/tail/shape validation are locally verified. Actual browser collection integration, page budgets, bounded diagnostic slice reruns, and hard preemption of an in-flight synchronous handler remain open."
+      "note": "Integrated as a scoped PARTIAL slice: agent run time/step stop outcomes and typed collection count/tail/shape validation are locally verified. Actual browser collection integration, page budgets, bounded diagnostic slice reruns, and hard preemption of an in-flight synchronous handler remain open."
     },
     {
       "issue": 6,
