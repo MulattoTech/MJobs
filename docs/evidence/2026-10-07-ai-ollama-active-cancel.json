@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "issue": 5,
+  "requirement_id": "MJ-REQ-004",
+  "lane": "codex",
+  "branch": "codex/req004-ollama-active-cancel-20261007",
+  "base_main": "6f967b68540cbbcdd86f2287ddc59dcf62a2f2db",
+  "source_head": "0be8c8c87509dd49ce1ca9e48a8f65158b45c2f9",
+  "source_tree": "a2d6d0ecfbdcfed5316279640dde8373caa50b69",
+  "recorded_at_utc": "2026-10-07T04:21:48Z",
+  "result": "PARTIAL",
+  "scope": "Propagate structured AI evaluation cancellation into the loopback Ollama provider and close an in-flight blocked HTTP connection promptly, retaining cancellation classification and discarding all partial batch history.",
+  "tdd_red": "Before production changes, the new API-to-provider loopback regression failed because the stalled provider socket remained open after cancellation acknowledgement. After transport cancellation was implemented, the test exposed a separate router mapping that converted the cancellation classification into AI_STRUCTURED_PROVIDER_FAILED; preserving the cancellation code made the full flow pass.",
+  "acceptance": {
+    "blocked_provider_transport": "PASS - with response headers and one body byte received, explicit evaluation cancellation closed the real loopback Ollama client connection within the one-second test window.",
+    "api_result_and_history": "PASS - the profile/request-scoped cancellation endpoint acknowledged the active request; evaluation completed as cancelled and evaluation history remained empty.",
+    "sanitized_classification": "PASS - transport cancellation remains a stable AI_PROVIDER_CANCELLED error through provider/router/consumer boundaries and maps to the existing canceled-operation API flow.",
+    "profile_and_request_scope": "PASS - existing API coverage confirms wrong profile/request IDs cannot cancel active work, duplicate active IDs are rejected, and completed requests cannot be canceled.",
+    "provider_inference": "NOT_RUN - local synthetic HTTP server only; no Ollama service or model inference was used.",
+    "complete_MJ_REQ_004": "PARTIAL - this slice advances structured local Ollama cancellation; other operation categories, retry/output policies and provider paths remain incomplete."
+  },
+  "validation": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_ollama_provider tests.unit.test_ai_cost_consumer tests.unit.test_ai_task_configuration tests.unit.test_disabled_ai_provider tests.integration.test_ai_cost_policy_api tests.browser.test_ai_task_settings -v",
+      "result": "PASS",
+      "summary": "43 AI provider, consumer, API and connected Chromium tests passed with no skips."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py'",
+      "result": "PASS",
+      "summary": "848 tests ran successfully; 1 optional PostgreSQL test skipped because MJOBS_TEST_POSTGRES_URL was unset."
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run",
+      "result": "PASS",
+      "summary": "13 files and 62 frontend tests passed."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "summary": "TypeScript check and Vite production build passed."
+    },
+    {
+      "commands": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.agent_skills",
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.catalogue",
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.progress validate",
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.coordination.lane_coordination validate",
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m compileall -q apps/api/main.py services/ai/consumer.py services/ai/providers services/ai/tasks.py tests/unit/test_ollama_provider.py tests/unit/test_ai_cost_consumer.py tests/integration/test_ai_cost_policy_api.py",
+        "git diff --check"
+      ],
+      "result": "PASS",
+      "summary": "All listed local validators, bytecode compilation, lane validation, and whitespace checks passed."
+    },
+    {
+      "command": "GitHub hosted Actions and hosted review",
+      "result": "NOT_RUN_BY_USER_POLICY",
+      "summary": "Hosted checks and reviewers remain disabled."
+    }
+  ],
+  "environment": {
+    "python": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+    "node": "v25.9.0",
+    "npm": "11.12.1",
+    "database": "Temporary SQLite API and synthetic loopback HTTP server; no schema changes.",
+    "postgresql": "NOT_RUN - MJOBS_TEST_POSTGRES_URL was unset; one optional test skipped.",
+    "docker": "NOT_RUN - no container-dependent change.",
+    "dependency_setup": "npm ci --prefix apps/web passed; npm emitted an engine warning because installed Node v25.9.0 is outside Vitest's declared Node 22.12/24/26+ ranges.",
+    "external_submission": "OFF"
+  },
+  "limitations": [
+    "Issue #5 / MJ-REQ-004 remains OPEN/PARTIAL; this slice makes the existing local Ollama provider interruptible during an in-flight HTTP request, but does not implement the full timeout, output, cancellation, retry and error-classification policy for every operation category.",
+    "Synthetic loopback HTTP proves cancellation and empty-history behavior, not live Ollama inference, model quality, or acceptance by another provider.",
+    "Hosted checks and independent review remain NOT_RUN_BY_USER_POLICY."
+  ]
+}
