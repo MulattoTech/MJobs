@@ -67,7 +67,8 @@ class AuditHistoryBrowserTests(unittest.TestCase):
             first_source = upsert_company_job_source(
                 store, company_id="browser-audit-merge-company", provider="rss",
                 tenant_identifier="rss-board", public_api_url="https://browser-merge.example/rss.json",
-                collection_strategy="PUBLIC_JSON", profile_id="fixture",
+                collection_strategy="PUBLIC_JSON", discovered_automatically=True,
+                profile_id="fixture",
             )
             second_source = upsert_company_job_source(
                 store, company_id="browser-audit-merge-company", provider="greenhouse",
@@ -212,6 +213,12 @@ class AuditHistoryBrowserTests(unittest.TestCase):
                     source_card.get_by_role(
                         "button", name="Disable Browser Merge Employer source", exact=True
                     ).click()
+                    source_card.get_by_role(
+                        "button", name="Watch Browser Merge Employer source", exact=True
+                    ).click()
+                    source_card.get_by_role(
+                        "button", name="Unwatch Browser Merge Employer source", exact=True
+                    ).click()
                     after_source_settings = page.evaluate("""async () => {
                         const response = await fetch('/profiles/fixture/audit-history');
                         const history = await response.json();
@@ -219,7 +226,7 @@ class AuditHistoryBrowserTests(unittest.TestCase):
                             .map(event => event.id);
                     }""")
                     self.assertEqual(len([event_id for event_id in after_source_settings
-                                          if event_id not in before_source_setting_ids]), 2)
+                                          if event_id not in before_source_setting_ids]), 4)
                     page.get_by_role("button", name="Activity", exact=True).click()
                     history = page.get_by_role("list", name="Audit history")
                     expect(history).to_contain_text("A profile setting changed")
@@ -231,7 +238,7 @@ class AuditHistoryBrowserTests(unittest.TestCase):
                     expect(reloaded_history).to_contain_text("A profile setting changed")
                     self.assertEqual(reloaded_history.locator("li").filter(
                         has_text="A profile setting changed").count(),
-                        len(before_source_setting_ids) + 2)
+                        len(before_source_setting_ids) + 4)
                     expect(reloaded_history).not_to_contain_text("other-private-setting")
                     expect(reloaded_history).to_contain_text("Application status reported by you")
                     expect(reloaded_history).to_contain_text(

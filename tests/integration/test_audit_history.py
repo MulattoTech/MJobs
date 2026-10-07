@@ -14,6 +14,7 @@ from services.audit_history import record_company_source_enrolled
 from services.company_discovery.sources import (
     set_company_source_enabled,
     set_company_source_pin,
+    set_company_source_watch,
     upsert_company_job_source,
 )
 from services.discovery.company_feed import import_company_feed_jobs
@@ -244,6 +245,68 @@ class AuditHistoryApiTests(unittest.TestCase):
             after = self.client.get(f"/profiles/{profile_id}/audit-history").json()["events"]
             self.assertEqual({event["id"] for event in after
                               if event["type"] == "SETTING_CHANGED"}, before_unlinked[profile_id])
+
+    def test_company_source_watch_changes_append_setting_events_only_when_origin_changes(self):
+        company_id = "audit-source-watch-company"
+        with self.store.engine.begin() as connection:
+            upsert(connection, m.companies, {
+                "id": company_id, "name": "Watch Settings Employer", "domain": "",
+            })
+        source = upsert_company_job_source(
+            self.store, company_id=company_id, provider="rss", tenant_identifier="watch-board",
+            public_api_url="https://watch-settings.example/jobs.json",
+            collection_strategy="PUBLIC_JSON", discovered_automatically=True,
+            profile_id="fixture",
+        )
+        with self.store.engine.begin() as connection:
+            record_company_source_enrolled(connection, "other", company_id, source["id"])
+
+        initial = {
+            profile_id: {event["id"] for event in self.client.get(
+                f"/profiles/{profile_id}/audit-history").json()["events"]
+                         if event["type"] == "SETTING_CHANGED"}
+            for profile_id in ("fixture", "other")
+        }
+        watched = set_company_source_watch(self.store, source["id"], watched=True)
+        self.assertEqual(watched["origin"], "USER_WATCHED")
+        no_op_watch = set_company_source_watch(self.store, source["id"], watched=True)
+        self.assertEqual(no_op_watch["origin"], "USER_WATCHED")
+        unwatched = set_company_source_watch(self.store, source["id"], watched=False)
+        self.assertEqual(unwatched["origin"], "AUTO_DISCOVERED")
+        no_op_unwatch = set_company_source_watch(self.store, source["id"], watched=False)
+        self.assertEqual(no_op_unwatch["origin"], "AUTO_DISCOVERED")
+
+        for profile_id in ("fixture", "other"):
+            history = self.client.get(f"/profiles/{profile_id}/audit-history")
+            self.assertEqual(history.status_code, 200, history.text)
+            added = [event for event in history.json()["events"]
+                     if event["type"] == "SETTING_CHANGED" and event["id"] not in initial[profile_id]]
+            self.assertEqual(len(added), 2, history.text)
+            self.assertTrue(all(event["summary"] == "A profile setting changed" for event in added))
+            self.assertNotIn(source["id"], history.text)
+            self.assertNotIn("USER_WATCHED", history.text)
+
+        manual = upsert_company_job_source(
+            self.store, company_id=company_id, provider="greenhouse", tenant_identifier="manual-board",
+            public_api_url="https://watch-settings.example/manual.json",
+            collection_strategy="PUBLIC_JSON", profile_id="fixture",
+        )
+        before_manual_no_op = self.client.get("/profiles/fixture/audit-history").json()["events"]
+        before_manual_ids = {event["id"] for event in before_manual_no_op
+                             if event["type"] == "SETTING_CHANGED"}
+        self.assertEqual(manual["origin"], "USER_WATCHED")
+        unchanged_manual = set_company_source_watch(self.store, manual["id"], watched=False)
+        self.assertEqual(unchanged_manual["origin"], "USER_WATCHED")
+        after_manual_no_op = self.client.get("/profiles/fixture/audit-history").json()["events"]
+        self.assertEqual({event["id"] for event in after_manual_no_op
+                          if event["type"] == "SETTING_CHANGED"}, before_manual_ids)
+
+        with self.store.engine.connect() as connection:
+            rows = connection.execute(select(m.audit.c.entity_id, m.audit.c.payload).where(
+                m.audit.c.action == "SETTING_CHANGED",
+                m.audit.c.entity_id.in_(("fixture", "other")),
+            )).all()
+        self.assertEqual(sum(row.payload == {} for row in rows), 4)
 
     def test_new_feed_posting_attached_to_existing_job_records_profile_merge_once(self):
         company_id = "audit-merge-company"

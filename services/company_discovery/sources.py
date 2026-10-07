@@ -219,6 +219,19 @@ def list_company_job_sources(store, company_id=None):
         return [dict(row) for row in connection.execute(query).mappings()]
 
 
+def _record_enrolled_profile_setting_changes(store, connection, source_id):
+    enrolled_rows = connection.execute(select(
+        m.audit.c.entity_id, m.audit.c.payload
+    ).where(m.audit.c.action == "COMPANY_SOURCE_ENROLLED")).mappings()
+    profile_ids = {
+        row["entity_id"] for row in enrolled_rows
+        if row["entity_id"] and isinstance(row["payload"], dict)
+        and row["payload"].get("company_source_id") == source_id
+    }
+    for profile_id in profile_ids:
+        store._audit(connection, profile_id, "SETTING_CHANGED", {})
+
+
 def set_company_source_watch(store, source_id, *, watched):
     """Explicitly set source watch state; auto refreshes preserve watched priority."""
     source_id = _token(source_id, "SOURCE_ID", 128)
@@ -226,16 +239,20 @@ def set_company_source_watch(store, source_id, *, watched):
         raise ValueError("COMPANY_SOURCE_WATCH_INVALID")
     context = store.engine.begin() if isinstance(store, Store) else nullcontext(store)
     with context as connection:
+        if connection.dialect.name == "sqlite" and isinstance(store, Store):
+            connection.exec_driver_sql("BEGIN IMMEDIATE")
         current = connection.execute(select(m.company_sources).where(
             m.company_sources.c.id == source_id
-        )).mappings().one_or_none()
+        ).with_for_update()).mappings().one_or_none()
         if current is None:
             raise ValueError("COMPANY_SOURCE_NOT_FOUND")
         origin = ("USER_WATCHED" if watched or not current["discovered_automatically"]
                   else "AUTO_DISCOVERED")
-        connection.execute(update(m.company_sources).where(
-            m.company_sources.c.id == source_id
-        ).values(origin=origin))
+        if current["origin"] != origin:
+            connection.execute(update(m.company_sources).where(
+                m.company_sources.c.id == source_id
+            ).values(origin=origin))
+            _record_enrolled_profile_setting_changes(store, connection, source_id)
         return dict(connection.execute(select(m.company_sources).where(
             m.company_sources.c.id == source_id
         )).mappings().one())
@@ -295,16 +312,7 @@ def _set_source_control(store, source_id, column, value, action):
             store._audit(connection, source_id, action, {
                 "company_source_id": source_id, "previous": current[column], "value": value,
             })
-            enrolled_rows = connection.execute(select(
-                m.audit.c.entity_id, m.audit.c.payload
-            ).where(m.audit.c.action == "COMPANY_SOURCE_ENROLLED")).mappings()
-            profile_ids = {
-                row["entity_id"] for row in enrolled_rows
-                if row["entity_id"] and isinstance(row["payload"], dict)
-                and row["payload"].get("company_source_id") == source_id
-            }
-            for profile_id in profile_ids:
-                store._audit(connection, profile_id, "SETTING_CHANGED", {})
+            _record_enrolled_profile_setting_changes(store, connection, source_id)
             if column == 'enabled':
                 connection.execute(update(m.company_source_monitoring).where(m.company_source_monitoring.c.source_id == source_id)
                     .values(revision=m.company_source_monitoring.c.revision+1, status='IDLE' if value else 'BLOCKED',
