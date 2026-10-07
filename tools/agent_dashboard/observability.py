@@ -162,8 +162,10 @@ def log_activity(path: Path, lane: str) -> dict[str, Any]:
     stat = path.stat()
     age = max(0.0, time.time() - stat.st_mtime)
     try:
-        lines = path.read_text(encoding="utf-8", errors="replace").splitlines()[-500:]
-        tail = "\n".join(lines)
+        with path.open("rb") as handle:
+            size = path.stat().st_size
+            handle.seek(max(0, size - 2_000_000))
+            tail = handle.read().decode("utf-8", errors="replace")
     except Exception:
         tail = ""
     session_id = None
@@ -177,6 +179,16 @@ def log_activity(path: Path, lane: str) -> dict[str, Any]:
         if matches:
             session_id = matches[-1]
             break
+    if lane == "antigravity" and not session_id:
+        brain = Path.home() / ".gemini" / "antigravity-cli" / "brain"
+        try:
+            dirs = [p for p in brain.iterdir() if p.is_dir()]
+            if dirs:
+                latest = max(dirs, key=lambda p: p.stat().st_mtime)
+                if re.fullmatch(r"[0-9a-f-]{20,}", latest.name, flags=re.I):
+                    session_id = latest.name
+        except Exception:
+            pass
     return {
         "last_activity_at": datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc).isoformat().replace("+00:00", "Z"),
         "last_activity_seconds": round(age, 1),
