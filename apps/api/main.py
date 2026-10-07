@@ -37,7 +37,9 @@ from services.company_discovery.triggers import queue_company_discovery
 from services.applications.knowledge import application_adapter_knowledge
 from services.ai.providers import AIProviderDisabled, AIProviderError, create_provider
 from services.ai.tasks import AI_TASKS, AITaskConfiguration, AITaskRouter
-from services.ai.consumer import AIConsumerTimeoutError, consume_ai_candidates, AIJobInput
+from services.ai.consumer import (
+    AIConsumerCancelledError, AIConsumerTimeoutError, consume_ai_candidates, AIJobInput,
+)
 from services.ai.structured_output import StructuredOutputError
 from services.ai.cost_controls import AICostPolicy, CandidateScore
 from services.company_discovery.public_client import PublicFetchError
@@ -554,7 +556,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             raise HTTPException(status, {"code": code}) from None
 
     @app.post("/profiles/{profile_id}/ai-cost-plan/evaluate")
-    def evaluate_ai_cost_plan(profile_id: str):
+    async def evaluate_ai_cost_plan(profile_id: str, request: Request):
         configured_policy = store.ai_cost_policy(profile_id)
         policy = AICostPolicy(**configured_policy) if configured_policy else AICostPolicy()
         configuration = AITaskConfiguration.from_mapping(store.ai_task_settings(profile_id))
@@ -570,8 +572,31 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             title=row["title"], company=row["company"], description=row["description"],
         ) for row in rows if row.get("match_score") is not None]
         candidate_by_id = {candidate.job_id: candidate for candidate in candidates}
+        cancelled = threading.Event()
+
+        def check_cancelled():
+            if cancelled.is_set():
+                raise AIConsumerCancelledError()
+
+        work = asyncio.create_task(asyncio.to_thread(
+            consume_ai_candidates, candidates, policy, AITaskRouter(configuration),
+            check=check_cancelled,
+        ))
         try:
-            result = consume_ai_candidates(candidates, policy, AITaskRouter(configuration))
+            while not work.done():
+                if await request.is_disconnected():
+                    cancelled.set()
+                    try:
+                        await work
+                    except AIConsumerCancelledError:
+                        pass
+                    return JSONResponse({"detail": {"code": "AI_TASK_CANCELLED"}}, status_code=499)
+                await asyncio.sleep(0.05)
+            result = await work
+            if await request.is_disconnected():
+                return JSONResponse({"detail": {"code": "AI_TASK_CANCELLED"}}, status_code=499)
+        except AIConsumerCancelledError:
+            return JSONResponse({"detail": {"code": "AI_TASK_CANCELLED"}}, status_code=499)
         except AIConsumerTimeoutError as error:
             raise HTTPException(504, {"code": error.code}) from None
         except StructuredOutputError as error:
@@ -583,6 +608,13 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         except AIProviderError as error:
             status = 504 if error.code == "AI_PROVIDER_TIMEOUT" else 502
             raise HTTPException(status, {"code": error.code}) from None
+        except asyncio.CancelledError:
+            cancelled.set()
+            try:
+                await asyncio.shield(work)
+            except BaseException:
+                pass
+            raise
         try:
             run = store.save_ai_evaluation_run(profile_id, profile_version, asdict(policy),
                                                task_selection.provider, task_selection.model, [{

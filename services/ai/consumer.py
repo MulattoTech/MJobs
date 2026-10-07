@@ -28,6 +28,15 @@ class AIConsumerTimeoutError(TimeoutError):
         super().__init__(self.code)
 
 
+class AIConsumerCancelledError(Exception):
+    """Safe failure when the caller disconnects during one AI candidate batch."""
+
+    code = "AI_TASK_CANCELLED"
+
+    def __init__(self) -> None:
+        super().__init__(self.code)
+
+
 class AIJobEvaluation(StrictAIResult):
     """Advisory AI classification; it never changes the deterministic match score."""
 
@@ -152,6 +161,8 @@ def consume_ai_candidates(
             raise
         if monotonic() >= deadline:
             raise AIConsumerTimeoutError()
+        if check is not None:
+            check()
         if not isinstance(evaluation, AIJobEvaluation):
             raise ValueError("AI_STRUCTURED_OUTPUT_INVALID")
         evaluations.append((job_id, evaluation))
@@ -162,5 +173,7 @@ def consume_ai_candidates(
     )
 
 
-__all__ = ["AIConsumption", "AIConsumerTimeoutError", "AIJobEvaluation",
-           "AIJobInput", "consume_ai_candidates"]
+__all__ = [
+    "AIConsumption", "AIConsumerCancelledError", "AIConsumerTimeoutError",
+    "AIJobEvaluation", "AIJobInput", "consume_ai_candidates",
+]

@@ -449,6 +449,95 @@ class AICostPolicyApiTests(unittest.TestCase):
         history = self.client.get("/profiles/fixture/ai-cost-plan/evaluations")
         self.assertEqual(history.json()["runs"], [])
 
+    def test_disconnect_during_provider_call_cancels_and_does_not_save_partial_run(self):
+        import asyncio
+        import inspect
+        import threading
+        from unittest.mock import patch
+        from fastapi.responses import JSONResponse
+        from services.ai.consumer import AIJobEvaluation
+        from services.ai.tasks import AI_TASKS
+
+        created = self.client.post("/jobs/manual", json={
+            "request_id": "cost-consumer-disconnect",
+            "title": "Infrastructure Administrator",
+            "company": "Synthetic Company",
+            "description": "Windows Server operations.",
+            "reference_url": "https://jobs.example.test/consumer-disconnect",
+            "application_url": "https://apply.example.test/consumer-disconnect",
+            "source_details": {},
+        })
+        self.assertEqual(created.status_code, 201, created.text)
+        second_created = self.client.post("/jobs/manual", json={
+            "request_id": "cost-consumer-disconnect-second",
+            "title": "Systems Administrator",
+            "company": "Synthetic Company",
+            "description": "Linux and infrastructure operations.",
+            "reference_url": "https://jobs.example.test/consumer-disconnect-second",
+            "application_url": "https://apply.example.test/consumer-disconnect-second",
+            "source_details": {},
+        })
+        self.assertEqual(second_created.status_code, 201, second_created.text)
+        recalculate(self.store, "fixture")
+        jobs = self.store.jobs(profile_id="fixture")
+        with self.store.engine.begin() as connection:
+            for job in jobs:
+                connection.execute(update(m.matches).where(
+                    m.matches.c.profile_id == "fixture",
+                    m.matches.c.job_id == job["id"],
+                ).values(score=95.0))
+        self.store.save_ai_task_settings("fixture", {
+            task: {"provider": "ollama", "model": "llama3.2:3b"}
+            if task == "job_scoring" else {"provider": "disabled", "model": None}
+            for task in AI_TASKS
+        })
+
+        route = next(route for route in self.client.app.routes
+                     if getattr(route, "path", None) ==
+                     "/profiles/{profile_id}/ai-cost-plan/evaluate")
+        self.assertTrue(inspect.iscoroutinefunction(route.endpoint))
+        request = type("RequestProbe", (), {})()
+        provider_started = threading.Event()
+        disconnect_observed = threading.Event()
+        provider_released = threading.Event()
+        provider_calls = []
+
+        async def is_disconnected():
+            if provider_started.is_set():
+                disconnect_observed.set()
+                provider_released.set()
+                return True
+            return False
+
+        request.is_disconnected = is_disconnected
+
+        class WaitingRouter:
+            def __init__(self, configuration):
+                self.configuration = configuration
+                self.calls = 0
+
+            def generate_structured(self, **_kwargs):
+                self.calls += 1
+                provider_calls.append(self.calls)
+                if self.calls == 1:
+                    return AIJobEvaluation(category="STRONG", rationale="Synthetic result.")
+                provider_started.set()
+                if not provider_released.wait(2):
+                    raise AssertionError("disconnect was not observed")
+                return AIJobEvaluation(category="STRONG", rationale="Synthetic result.")
+
+        with patch("apps.api.main.AITaskRouter", WaitingRouter):
+            response = asyncio.run(route.endpoint("fixture", request))
+
+        self.assertIsInstance(response, JSONResponse)
+        self.assertEqual(response.status_code, 499)
+        self.assertEqual(response.body, b'{"detail":{"code":"AI_TASK_CANCELLED"}}')
+        self.assertTrue(disconnect_observed.is_set())
+        self.assertEqual(provider_calls, [1, 2])
+        history = self.client.get("/profiles/fixture/ai-cost-plan/evaluations")
+        self.assertEqual(history.status_code, 200, history.text)
+        self.assertEqual(history.json()["runs"], [])
+
     def test_results_are_not_saved_when_profile_changes_during_provider_call(self):
         from unittest.mock import patch
         from services.ai.consumer import AIJobEvaluation

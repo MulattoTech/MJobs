@@ -7,20 +7,16 @@
       "status": "ACTIVE",
       "issue": 5,
       "requirement_id": "MJ-REQ-004",
-      "branch": "codex/req004-ai-evaluation-deadline-20261007",
-      "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-req004-ai-evaluation-deadline-20261007",
+      "branch": "codex/req004-ai-disconnect-cancel-20261007",
+      "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-req004-ai-disconnect-cancel-20261007",
       "paths": [
-        "services/ai/consumer.py",
-        "services/ai/tasks.py",
-        "services/ai/providers/**",
-        "services/ai/AREA.md",
         "apps/api/main.py",
+        "services/ai/consumer.py",
         "tests/unit/test_ai_cost_consumer.py",
-        "tests/unit/test_ollama_provider.py",
         "tests/integration/test_ai_cost_policy_api.py",
-        "docs/evidence/2026-10-07-ai-evaluation-time-budget.json"
+        "docs/evidence/2026-10-07-ai-evaluation-disconnect-cancellation.json"
       ],
-      "head": "1f2e0a4fd6c6c445ca1e47cfd39be39df9a06fda",
+      "head": "17129454b6301f265e69a77b24f7ce5b1fccba37",
       "pid": null
     }
   ]

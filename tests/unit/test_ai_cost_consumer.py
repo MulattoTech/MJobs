@@ -15,6 +15,29 @@ class _Router:
 
 
 class AICostConsumerTests(unittest.TestCase):
+    def test_disconnect_after_provider_response_discards_batch(self):
+        from services.ai.cost_controls import AICostPolicy
+        from services.ai.consumer import (
+            AIConsumerCancelledError, AIJobEvaluation, AIJobInput, consume_ai_candidates,
+        )
+
+        router = _Router([AIJobEvaluation(category="STRONG", rationale="Relevant.")])
+        checks = iter([None, AIConsumerCancelledError()])
+
+        def check():
+            result = next(checks)
+            if isinstance(result, Exception):
+                raise result
+
+        with self.assertRaisesRegex(AIConsumerCancelledError, "AI_TASK_CANCELLED"):
+            consume_ai_candidates(
+                [AIJobInput("one", 90, "Admin", "Example Co", "Description")],
+                AICostPolicy(max_ai_candidates=1, max_document_candidates=1), router,
+                check=check,
+            )
+
+        self.assertEqual(len(router.calls), 1)
+
     def test_total_deadline_clips_each_provider_timeout_to_remaining_budget(self):
         from services.ai.cost_controls import AICostPolicy
         from services.ai.consumer import AIJobEvaluation, AIJobInput, consume_ai_candidates

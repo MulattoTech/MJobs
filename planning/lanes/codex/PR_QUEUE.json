@@ -7,7 +7,7 @@
       "requirement_id": "MJ-REQ-004",
       "status": "ACTIVE",
       "priority": 0,
-      "note": "AI evaluation batch-wide timeout and sanitized timeout classification. RED reproduced: 75 sequential calls each receive the full 30-second timeout; Ollama timeouts map to unavailable; the API returns 502 and loses timeout identity. Implement 120-second total monotonic deadline, remaining-time per-call timeout, 504 classification, and no partial history. Source 1ee2c046f0ce39cbd2fe3df2caa0997d965d74f6: 42 focused Python unit/integration/browser tests, 62 frontend tests, build and repository validators PASS; batch timeouts return sanitized 504 and do not persist partial history. Evidence docs/evidence/2026-10-07-ai-evaluation-time-budget.json. Full suite and live provider remain NOT_RUN; issue remains PARTIAL."
+      "note": "Follow-up slice: propagate HTTP request disconnect into bounded structured AI evaluation, discard partial batch results, and avoid durable history writes. Regression reproduced before implementation; focused AI unit/API suite 19 PASS, adjacent profile-import suite 11 PASS, AI settings Chromium test PASS after local build, build and repository validators PASS. Evidence pending final source SHA. Live provider/full suite NOT_RUN; issue remains OPEN/PARTIAL."
     }
   ]
 }

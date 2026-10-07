@@ -2,14 +2,14 @@
   "schema_version": 1,
   "lane": "codex",
   "status": "ACTIVE",
-  "base_main": "32318f828dcf8a067d89a2321ca962655c968e1d",
+  "base_main": "17129454b6301f265e69a77b24f7ce5b1fccba37",
   "current_issue": 5,
   "requirement_id": "MJ-REQ-004",
-  "branch": "codex/req004-ai-evaluation-deadline-20261007",
-  "head": "1f2e0a4fd6c6c445ca1e47cfd39be39df9a06fda",
-  "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-req004-ai-evaluation-deadline-20261007",
+  "branch": "codex/req004-ai-disconnect-cancel-20261007",
+  "head": "17129454b6301f265e69a77b24f7ce5b1fccba37",
+  "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-req004-ai-disconnect-cancel-20261007",
   "result": "PARTIAL",
-  "evidence_path": "docs/evidence/2026-10-07-ai-evaluation-time-budget.json",
+  "evidence_path": "docs/evidence/2026-10-07-ai-evaluation-disconnect-cancellation.json",
   "last_completed": {
     "issue": 5,
     "requirement_id": "MJ-REQ-004",
@@ -20,7 +20,7 @@
     {
       "issue": 5,
       "requirement_id": "MJ-REQ-004",
-      "title": "Bound the total duration and preserve timeout classification for sequential structured AI evaluation requests."
+      "title": "Complete cancellation and operation bounds for structured AI evaluation."
     }
   ],
   "do_not_overlap": [
@@ -28,16 +28,16 @@
     "Ollama active ATS-detection claim #318",
     "canonical planning and main outside integration lock"
   ],
-  "resume_instruction": "Issue #111 / MJ-REQ-110 remains PARTIAL on this Codex claim. Reconciled fetched origin/main 7a3f69a6ee7ac1265e0c2cc7dc1b69cc7d9b1fec into the claimed branch; current head 36851eb4548414dc00901fcd7a7a2151e02992b9 (tree 9f18fe556b09ef6b4ee359d490e507d8b54d1df1) has no source changes since the accepted implementation. Fresh focused Python/API/browser/migration 20 tests, frontend 62 tests/build, agent-skills/catalogue/progress/lane-coordination validators, compileall, and git diff --check passed at 2026-10-07T01:57:30Z. The synthetic real PREPARE worker acceptance remains in docs/evidence/2026-10-06-ai-cost-review-gated-documents.json. Live configured-provider inference remains NOT_RUN while the Ollama lane is active; PostgreSQL runtime migration, full Python discovery and hosted checks are NOT_RUN. External submission remains OFF.",
+  "resume_instruction": "Issue #5 / MJ-REQ-004 is active for request-disconnect cancellation of bounded structured AI evaluation. Source tests reproduce missing async disconnect handling and missing cancellation classification. Implemented slice is under local validation in codex/req004-ai-disconnect-cancel-20261007; see lane continuation. Keep issue OPEN/PARTIAL, hosted checks NOT_RUN, external submission OFF.",
   "last_verified_head": "1ee2c046f0ce39cbd2fe3df2caa0997d965d74f6",
   "last_verified_tree": "9a4b83d241c70d0a802244b9fbdc35827df6ac23",
   "last_verified_at_utc": "2026-10-07T03:11:18Z",
   "started_at_utc": "2026-10-07T03:07:56Z",
   "validation": {
     "result": "PARTIAL",
-    "python_tests": 42,
-    "frontend_tests": 62,
-    "browser_tests": 1,
+    "focused_python_tests": 19,
+    "adjacent_profile_import_tests": 11,
+    "browser_test": "PASS after local frontend build",
     "frontend_build": "PASS",
     "repository_validators": "PASS",
     "full_python_discovery": "NOT_RUN",
