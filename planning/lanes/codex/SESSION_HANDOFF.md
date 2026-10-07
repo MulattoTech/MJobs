@@ -104,3 +104,10 @@ The local mock browser failure capture is implemented and pushed on f8d07ca9a83e
 Focused acceptance oracle is the synthetic local mock browser flow: capture is opt-in; structural DOM and screenshot are redacted; error state persists; ambiguous submission does not retry. Exact-head focused suites: 73 run, 72 PASS, one optional PostgreSQL skip. Exact-head agent_skills, catalogue, progress, lane coordination and diff checks PASS. Full discovery at prior source: 948 run, 2 failures, 9 errors, 28 skipped; output was truncated by terminal transport and no attribution is claimed.
 
 GitHub Actions/review NOT_RUN_BY_USER_POLICY; live PostgreSQL and real ATS NOT_RUN; external submission OFF. Preserve untracked `events.jsonl` in the worktree. Next: acquire integration lock, reconcile and fast-forward only if main remains ancestor; then release claim and select next unclaimed dependency-ready issue.
+
+
+## 2026-10-07 Codex issue #174 closeout
+
+- Requirement MJ-REQ-173 PASS and GitHub issue CLOSED. Candidate 84136dcabc99f831538b66f2450292152336750b was integrated by non-force fast-forward from 5be79530d5d669c5c2d6a00c38f37afe120ff16b; canonical closeout 0770961b24295e021f8e78084a11406628c84958.
+- Evidence docs/evidence/2026-10-07-seven-kind-upload-security.json; acceptance https://github.com/MulattoTech/MJobs/issues/174#issuecomment-6045710354; AI LANE RELEASED https://github.com/MulattoTech/MJobs/issues/174#issuecomment-6045730683. Local claim released. 16 affected Python integration/browser tests, frontend 63/build, SQLite migration preservation and local validators pass. Hosted checks NOT_RUN_BY_USER_POLICY; PostgreSQL/Docker NOT_APPLICABLE; external submission OFF.
+- Resume by reconciling current main, active claims and dirty active worktrees, then continue with the highest-value unclaimed dependency-ready issue.

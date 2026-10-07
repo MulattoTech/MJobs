@@ -333,7 +333,24 @@
       "evidence_path": "docs/evidence/2026-10-07-application-submit-audit.json",
       "scope_complete": false,
       "note": "Integrated at bd251813996deac05010d1d080a7ec5671a0dbd9 from source 382db126a1b504754ec2ad748bb543df586d976b. https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6045375245; https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6045401912. Issue #177 remains OPEN/PARTIAL; full Python suite one unrelated failure/8 skipped; hosted NOT_RUN_BY_USER_POLICY; external submission OFF."
+    },
+    {
+      "issue": 174,
+      "requirement_id": "MJ-REQ-173",
+      "status": "INTEGRATED_PASS",
+      "priority": 1,
+      "target_area": "shared uploaded-document validation and document-library acceptance",
+      "depends_on": [],
+      "evidence_path": "docs/evidence/2026-10-07-seven-kind-upload-security.json",
+      "scope_complete": true,
+      "branch": "codex/mj-req173-seven-kind-upload-security-20261007",
+      "head": "84136dcabc99f831538b66f2450292152336750b",
+      "base": "5be79530d5d669c5c2d6a00c38f37afe120ff16b",
+      "issue_state": "CLOSED/PASS",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/174#issuecomment-6045710354",
+      "release_comment": "https://github.com/MulattoTech/MJobs/issues/174#issuecomment-6045730683",
+      "note": "16 affected Python integration/connected Chromium tests pass; frontend 63 tests/build, SQLite migration preservation and local validators pass. Hosted NOT_RUN_BY_USER_POLICY; PostgreSQL/Docker NOT_APPLICABLE; external submission OFF."
     }
   ],
-  "generated_at": "2026-10-07T19:37:19Z"
+  "generated_at": "2026-10-07T19:57:54Z"
 }

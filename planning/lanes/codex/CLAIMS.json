@@ -777,6 +777,29 @@
       "released_at": "2026-10-07T19:37:19Z",
       "integration_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6045375245",
       "release_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6045401912"
+    },
+    {
+      "issue": 174,
+      "requirement_id": "MJ-REQ-173",
+      "branch": "codex/mj-req173-seven-kind-upload-security-20261007",
+      "worktree": ".worktrees/codex-mj-req173-seven-kind-upload-security-20261007",
+      "head": "84136dcabc99f831538b66f2450292152336750b",
+      "paths": [
+        "services/documents/uploads.py",
+        "tests/integration/test_document_library.py",
+        "tests/integration/test_resume_upload.py",
+        "docs/evidence/2026-10-07-seven-kind-upload-security.json",
+        "planning/lanes/codex/**"
+      ],
+      "status": "RELEASED",
+      "claimed_at": "2026-10-07T19:42:52Z",
+      "claim_comment": "https://github.com/MulattoTech/MJobs/issues/174#issuecomment-6045495755",
+      "evidence_path": "docs/evidence/2026-10-07-seven-kind-upload-security.json",
+      "integrated_main": "84136dcabc99f831538b66f2450292152336750b",
+      "result": "INTEGRATED_PASS; issue #174 CLOSED",
+      "released_at": "2026-10-07T19:57:54Z",
+      "integration_comment": "https://github.com/MulattoTech/MJobs/issues/174#issuecomment-6045710354",
+      "release_comment": "https://github.com/MulattoTech/MJobs/issues/174#issuecomment-6045730683"
     }
   ]
 }
