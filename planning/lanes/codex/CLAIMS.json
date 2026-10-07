@@ -35,6 +35,26 @@
       "status": "RELEASED",
       "claimed_at": "2026-10-07T09:37:54Z",
       "released_at": "2026-10-07T10:15:25Z"
+    },
+    {
+      "issue": 390,
+      "requirement_id": "MJ-REF-020",
+      "branch": "codex/mj-ref020-external-application-capture-20261007",
+      "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-ref020-external-application-capture-20261007",
+      "head": "63142751719eb7b52f5fafd2e93dc47a6f53aa51",
+      "paths": [
+        "services/tracking/applications.py",
+        "services/applications/external_capture.py",
+        "apps/api/main.py",
+        "apps/web/src/main.tsx",
+        "tests/integration/test_external_application_capture.py",
+        "tests/browser/test_external_application_capture.py",
+        "docs/reference/REFERENCE_INSPIRATION_LOG.md",
+        "docs/evidence/2026-10-07-external-application-capture.json",
+        "planning/lanes/codex/**"
+      ],
+      "status": "ACTIVE",
+      "claimed_at": "2026-10-07T10:41:49Z"
     }
   ]
 }

@@ -1,24 +1,23 @@
 # Codex lane handoff
 
-Status: **ACTIVE / issue #6 scoped acceptance locally verified; integration pending**
+Status: **ACTIVE / issue #390 / MJ-REF-020**
 
-## Active issue #6 / MJ-REQ-005
+## Active issue #390
 
-Claim: `codex/mj-req005-application-category-capacity-20261007`, worktree `C:/Tools/Dev/MJobs/.worktrees/codex-mj-req005-application-category-capacity-20261007`.
-Base main: `aa28501b0db8a00e9331d43347e2bbdfc3ed2b98`; source commit: `704b2fc3fadd00d4e40ca1bea4ccbbe3a0c3bf50`.
-Evidence: `docs/evidence/2026-10-07-application-automation-category-capacity.json` (evidence and lane-state checkpoint pending commit).
+Branch: `codex/mj-ref020-external-application-capture-20261007`
+Worktree: `C:/Tools/Dev/MJobs/.worktrees/codex-mj-ref020-external-application-capture-20261007`
+Base main: `ab49c58e401ec93c2cce8614c499242e414e9e31`
+Evidence target: `docs/evidence/2026-10-07-external-application-capture.json`
 
-The new integration regression races two APPLY_MOCK claims through independent Store engines over the same SQLite database at a configured application-automation limit of one. It verifies one durable RUNNING claim, one still-QUEUED operation with no attempt, and independent PREPARE capacity. This adds missing acceptance coverage for the existing database-backed category lock; no product source change was needed for this slice.
+Issue #390 adds local UI/API capture of user-reported applications completed outside MJobs. The service reconciles canonical application URLs before cautious exact company/title matching, creates a minimal provenance-marked job when required, records an append-only source/time report, and reserves profile-scoped idempotency keys before creation. SAVED/READY can advance to APPLIED; later stages remain unchanged. Existing prepared application classification is preserved. No employer traffic, provider call, or worker task is made.
 
-Validation on this source: worker lifecycle, dead-letter and category-concurrency suites 23 PASS; isolated race regression 1 PASS; diff check PASS. No migration or frontend change. Browser test, frontend test/build, full repository suite, live PostgreSQL, and hosted checks/review were NOT_RUN for this test-only slice. External submission remains OFF.
+Focused integration: 10 PASS. Connected browser: 6 PASS. Frontend: 63 PASS and build PASS. Full repository Python suite: 895 PASS, one optional PostgreSQL skip. Repository validators PASS. Source commit: `63142751719eb7b52f5fafd2e93dc47a6f53aa51`; tree: `f70b3ef5884b55525e5faa737f1d962510527900`. Evidence: `docs/evidence/2026-10-07-external-application-capture.json`. Live PostgreSQL and hosted checks are NOT_RUN; external submission stays OFF.
 
-Next: fetch current main and reconcile active claims/worktrees. Acquire the integration lock; verify the exact candidate/base; update canonical requirement/capability/progress/queue/handoff evidence while holding the lock; fast-forward only if main is an ancestor; push and verify local/remote hashes. Post sanitized evidence on issue #6, keep it OPEN/PARTIAL because live PostgreSQL and real ATS behavior remain unverified, release the claim and lock, then immediately select the next unclaimed dependency-ready issue.
+Reference provenance was updated clean-room for Personal JobPilot at pinned commit `a582c29d0f1aed97b93b13d843671487ab8c25d3`; no third-party code was incorporated.
 
-## Other active lane claims
+## Other active lane ownership
 
-- Antigravity #302 / MJ-REQ-017.S01: `services/discovery/sources/**`, `tests/integration/test_dice.py`.
-- Ollama #318 / MJ-REQ-063.D01: `services/ats_detection/**` and detector tests.
+- Antigravity #302: `services/discovery/sources/**`, `tests/integration/test_dice.py`.
+- Ollama/OpenCode #318: `services/ats_detection/**`, detector tests.
 
-Issue #23 / MJ-REQ-022 is integrated at main `805e52bab0528e562578f51f5426285af0163657`, with scope PASS evidence at `docs/evidence/2026-10-07-search-profile-selection.json`. Issue #403 / MJ-REF-033 remains an integrated PARTIAL slice; browser collection integration, page budgets, bounded diagnostic slice reruns, and in-flight synchronous handler preemption remain open.
-
-Hosted Actions/reviews remain disabled. No unavailable check is promoted to PASS.
+Local acceptance is complete. Next fetch current main, recheck claims/worktrees, acquire the integration lock, reconcile canonical artifacts, fast-forward/push only if current main is an ancestor, verify SHAs, and close #390 only for fully evidenced acceptance. Release claim and lock; immediately select and claim the next highest-value unclaimed dependency-ready issue.

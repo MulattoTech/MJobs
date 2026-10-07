@@ -1,0 +1,70 @@
+{
+  "timestamp": "2026-10-07T10:50:40Z",
+  "target": "MJ-REF-020 / GitHub issue #390 external application capture",
+  "result": "PASS",
+  "base_main": "ab49c58e401ec93c2cce8614c499242e414e9e31",
+  "source_commit": "63142751719eb7b52f5fafd2e93dc47a6f53aa51",
+  "source_tree": "f70b3ef5884b55525e5faa737f1d962510527900",
+  "commands": [
+    {
+      "command": "python -m unittest tests.integration.test_external_application_capture tests.integration.test_application_pipeline -v",
+      "result": "PASS",
+      "tests": 10
+    },
+    {
+      "command": "python -m unittest tests.browser.test_external_application_capture tests.browser.test_application_pipeline -v",
+      "result": "PASS",
+      "tests": 6,
+      "environment": "connected local Chromium; loopback API; external request interceptor observed no employer/ATS traffic; worker operations 0"
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run",
+      "result": "PASS",
+      "tests": 63
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m unittest discover -s tests -p 'test_*.py'",
+      "result": "PASS",
+      "tests": 895,
+      "skipped": 1,
+      "skip_reason": "optional PostgreSQL service unavailable"
+    },
+    {
+      "command": "python -m tools.verification.agent_skills; python -m tools.verification.catalogue; python -m tools.verification.progress validate; python -m tools.verification.reference_provenance; python -m tools.coordination.lane_coordination validate; git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "input_sha256": {
+    "apps/api/main.py": "f024dc0120ad869ce390e5d228c46b97b9be74f495fbfb6dca4c9116832754ca",
+    "apps/web/src/main.tsx": "3b1b5cef10cde401820bd9a0bdb221a066e51640730af037ee1bc452298a4cb5",
+    "docs/reference/REFERENCE_INSPIRATION_LOG.md": "37661e30e8370473e332dbc967da87007e05fb382bf3aee09626537f4f3998ac",
+    "services/applications/external_capture.py": "8f5edb3a925a2fa96d6e3a952577cae756a31aea43116481a035416fe510928c",
+    "services/tracking/applications.py": "149eb136478785478f86520233645fe272253806f44124cb6ffe0eccef47a776",
+    "tests/browser/test_external_application_capture.py": "f031a598e559e3b73a898235eb45efc410dd263b872893f92d1a7673ad55cc47",
+    "tests/integration/test_external_application_capture.py": "d03a464fccd93a7028f78d25e1f95111f47e3d6d5182019028d020343348b35e"
+  },
+  "acceptance": {
+    "capture_ui_and_api_with_source_and_timestamp": "PASS",
+    "route_url_first_then_cautious_company_title_reconciliation": "PASS",
+    "minimal_provenance_marked_job_when_no_match_exists": "PASS",
+    "idempotency_and_non_regressing_application_history": "PASS",
+    "distinguishes_external_completion_from_mjobs_preparation_or_submission": "PASS",
+    "reload_history_and_profile_isolation": "PASS"
+  },
+  "scope": {
+    "database_migration": "NOT_APPLICABLE - existing persistence tables and audit history used",
+    "live_postgresql": "NOT_RUN - optional local service unavailable",
+    "docker": "NOT_APPLICABLE - no migration/container acceptance in this slice",
+    "hosted_actions_and_reviews": "NOT_RUN_BY_USER_POLICY",
+    "external_application_submission": "OFF",
+    "employer_or_ats_traffic": "NONE"
+  },
+  "limitations": [
+    "This PASS applies to issue #390 acceptance only; broader reference and original requirements remain unchanged.",
+    "PostgreSQL-specific runtime behavior and hosted verification were not exercised."
+  ]
+}

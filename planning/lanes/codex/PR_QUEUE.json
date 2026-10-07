@@ -92,6 +92,19 @@
       "note": "Per-task fallback capability is exposed through profile-scoped API/UI; deterministic matching and safe factual document preparation pass with every task provider disabled. Full Python suite 889 PASS (1 optional PostgreSQL skip), frontend 63 PASS/build PASS, connected browser 2 PASS. Candidate source 5f220ed17c51e148de71712485f497707704fdee; canonical reference matrix/report pending integration lock. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
       "integration_commit": "3804a953317b122879747e0075602994c8151678",
       "issue_comment": "https://github.com/MulattoTech/MJobs/issues/375#issuecomment-6035816600"
+    },
+    {
+      "issue": 390,
+      "requirement_id": "MJ-REF-020",
+      "status": "READY_FOR_INTEGRATION",
+      "priority": 2,
+      "target_area": "services/applications; services/tracking; API; Applications UI",
+      "depends_on": [
+        "application tracker and canonical job/route model"
+      ],
+      "evidence_path": "docs/evidence/2026-10-07-external-application-capture.json",
+      "scope_complete": false,
+      "note": "Local issue acceptance PASS at source 63142751719eb7b52f5fafd2e93dc47a6f53aa51 with evidence docs/evidence/2026-10-07-external-application-capture.json: focused integration 10, connected browser 6, frontend 63/build, full Python 895 (one optional PostgreSQL skip), local validators PASS. Hosted checks NOT_RUN_BY_USER_POLICY. Canonical planning remains integration-lock owned."
     }
   ]
 }
