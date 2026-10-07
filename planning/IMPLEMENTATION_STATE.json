@@ -7477,13 +7477,13 @@
       "source_tree": "ff71f70f47d0306f9a74d511f1ebb74a751454bf",
       "result": "PARTIAL",
       "last_safe_checkpoint": {
-        "git_commit": "9d010bc7c9b51a4611988c1efe250de7a1d5d791",
+        "git_commit": "f735bc58e3318f2c097b7c2ebaf037a1ae8a9edf",
         "evidence_path": "docs/evidence/2026-10-07-agent-run-budget-output-validation.json"
       },
       "integration": {
         "method": "NON_FORCE_FAST_FORWARD",
         "base": "de04d6bb06ce23d1a7f4f7f0f04dedcd87bdf7a5",
-        "main": "9d010bc7c9b51a4611988c1efe250de7a1d5d791",
+        "main": "f735bc58e3318f2c097b7c2ebaf037a1ae8a9edf",
         "source_branch": "codex/mj-ref-033-agent-run-limits-20261007",
         "source_commit": "9d010bc7c9b51a4611988c1efe250de7a1d5d791",
         "candidate": "9d010bc7c9b51a4611988c1efe250de7a1d5d791",
@@ -7496,7 +7496,7 @@
   ],
   "current_phase": "Issue #403 / MJ-REF-033 scoped agent-run budget and collection validation integrated PARTIAL; browser integration, page budgets and bounded slice reruns remain open.",
   "last_safe_checkpoint": {
-    "git_commit": "9d010bc7c9b51a4611988c1efe250de7a1d5d791",
+    "git_commit": "f735bc58e3318f2c097b7c2ebaf037a1ae8a9edf",
     "evidence_path": "docs/evidence/2026-10-07-agent-run-budget-output-validation.json"
   },
   "live_integrations_tested": [
@@ -7666,7 +7666,7 @@
     "evidence": "docs/evidence/2026-10-07-agent-run-budget-output-validation.json",
     "next_action": "Release this scoped partial claim after reconciliation and continue with the next highest-value unclaimed dependency-ready issue; browser integration, page budgets, and diagnostic slice reruns remain open.",
     "issue_comment": "https://github.com/MulattoTech/MJobs/issues/403#issuecomment-6033983627",
-    "integrated_main": "9d010bc7c9b51a4611988c1efe250de7a1d5d791"
+    "integrated_main": "f735bc58e3318f2c097b7c2ebaf037a1ae8a9edf"
   },
   "historical_control_snapshots": [
     {
