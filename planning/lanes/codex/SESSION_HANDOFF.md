@@ -12,7 +12,7 @@ The Jobs view now exposes saved searches belonging to the active career profile 
 
 Latest verification: focused search/scheduler/browser tests 18 PASS; frontend 63 PASS; TypeScript/Vite production build PASS; agent-skills, catalogue, progress, lane validators, and diff check PASS. A first rerun with global Python failed to import SQLAlchemy/Playwright; repeating with the checkout's declared dependency environment `C:/Tools/Dev/MJobs/.venv/Scripts/python.exe` passed all 18 tests. Node 25.9 emits the recorded Vitest engine notice, though tests/build pass. PostgreSQL is NOT_APPLICABLE for this no-schema-change slice. Hosted checks/review NOT_RUN by policy; external submission OFF.
 
-Next: commit/push evidence and lane-local state; fetch and reconcile main; acquire the integration lock; fast-forward only if the candidate is based on current main; update canonical requirement/capability/progress/queue/handoff state; verify local and remote hashes; post sanitized evidence and close #23 only after readback; release claim and lock. Then recheck claims and select the next unclaimed dependency-ready issue.
+Next: acquire the integration lock; fast-forward only if the candidate remains based on current main; update canonical requirement/capability/progress/queue/handoff state; verify local and remote hashes; post sanitized evidence and close #23 only after readback; release claim and lock. Then recheck claims and select the next unclaimed dependency-ready issue.
 
 ## Other active lane claims
 
