@@ -1247,7 +1247,7 @@
       "status": "INTEGRATED_PARTIAL",
       "branch": "codex/mj-req180-redacted-visual-feedback-20261007",
       "draft_until_verified": true,
-      "notes": "Issue #181 / MJ-REQ-180 scoped capture slice integrated at main 9b51b1d7a7d5f94d1e06412439edde5250d6ba5e. Optional live feedback now masks inputs, textareas, selects, and data-sensitive regions in its screenshot and no longer writes a raw Playwright trace/DOM snapshot. Synthetic Chromium pixel acceptance and 21 focused/adjacent feedback tests pass; hosted checks remain NOT_RUN_BY_USER_POLICY. Full MJ-REQ-180 remains PARTIAL: arbitrary text and diagnostic-text paths remain. Evidence docs/evidence/2026-10-07-redacted-visual-feedback.json. Issue #181 privacy follow-up integrated at main 04507e36bd78b6af4053868f00926d2b8b993b0f: raw diagnostic text is never stored, and recognizable sensitive metadata/screenshot text is redacted. 26 focused feedback unit/GUI/Chromium tests pass. Evidence docs/evidence/2026-10-07-redacted-diagnostic-privacy.json. Requirement remains PARTIAL for unclassifiable and out-of-scope surfaces; hosted checks NOT_RUN_BY_USER_POLICY.",
+      "notes": "Issue #181 / MJ-REQ-180 scoped capture slice integrated at main 9b51b1d7a7d5f94d1e06412439edde5250d6ba5e. Optional live feedback now masks inputs, textareas, selects, and data-sensitive regions in its screenshot and no longer writes a raw Playwright trace/DOM snapshot. Synthetic Chromium pixel acceptance and 21 focused/adjacent feedback tests pass; hosted checks remain NOT_RUN_BY_USER_POLICY. Full MJ-REQ-180 remains PARTIAL: arbitrary text and diagnostic-text paths remain. Evidence docs/evidence/2026-10-07-redacted-visual-feedback.json. Issue #181 privacy follow-up integrated at main 04507e36bd78b6af4053868f00926d2b8b993b0f: raw diagnostic text is never stored, and recognizable sensitive metadata/screenshot text is redacted. 26 focused feedback unit/GUI/Chromium tests pass. Evidence docs/evidence/2026-10-07-redacted-diagnostic-privacy.json. Requirement remains PARTIAL for unclassifiable and out-of-scope surfaces; hosted checks NOT_RUN_BY_USER_POLICY. Issue #181 / MJ-REQ-180 rich-control screenshot masking integrated at f1d36053ebb46f1286f3dfb0acd25ac1482a267f; evidence docs/evidence/2026-10-07-rich-control-screenshot-redaction.json. Pre-fix Chromium pixel test showed a synthetic answer was visible; post-fix masks contenteditable (except false), ARIA textbox and combobox controls. Focused feedback suite 27 PASS. Requirement remains PARTIAL for arbitrary free text, image/canvas and other debug-data surfaces. Release: https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6038936759.",
       "scope_complete": false,
       "evidence_path": "docs/evidence/2026-10-07-redacted-visual-feedback.json",
       "base": "7d46e45c7139c0be356c163956d6a79ad4010eb3",
@@ -3436,5 +3436,5 @@
       "issue_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6036663828"
     }
   ],
-  "generated_at": "2026-10-07T13:21:21Z"
+  "generated_at": "2026-10-07T13:26:47Z"
 }

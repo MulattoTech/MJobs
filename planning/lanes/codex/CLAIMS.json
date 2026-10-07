@@ -329,10 +329,13 @@
         "docs/evidence/2026-10-07-rich-control-screenshot-redaction.json",
         "planning/lanes/codex/**"
       ],
-      "status": "ACTIVE",
-      "claimed_at": "2026-10-07T13:25:24Z",
+      "status": "RELEASED",
+      "claimed_at": "2026-10-07T13:25:52Z",
       "claim_comment": "https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6038875550",
-      "evidence_path": "docs/evidence/2026-10-07-rich-control-screenshot-redaction.json"
+      "evidence_path": "docs/evidence/2026-10-07-rich-control-screenshot-redaction.json",
+      "released_at": "2026-10-07T13:26:47Z",
+      "integrated_main": "f1d36053ebb46f1286f3dfb0acd25ac1482a267f",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6038936759"
     }
   ]
 }

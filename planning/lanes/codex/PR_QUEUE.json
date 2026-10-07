@@ -200,7 +200,7 @@
     {
       "issue": 181,
       "requirement_id": "MJ-REQ-180",
-      "status": "IMPLEMENTED_AWAITING_INTEGRATION",
+      "status": "INTEGRATED_PARTIAL",
       "priority": 0,
       "target_area": "cli/live_feedback.py; tests/unit/test_live_feedback.py; tests/browser/test_live_feedback_redaction.py; docs/LIVE_FEEDBACK_DEVELOPMENT.md",
       "depends_on": [
@@ -208,7 +208,9 @@
       ],
       "evidence_path": "docs/evidence/2026-10-07-rich-control-screenshot-redaction.json",
       "scope_complete": false,
-      "note": "Pre-fix Chromium pixel test proves synthetic answer in contenteditable remains visible; add masks for contenteditable except false plus ARIA textbox/combobox. Focused adjacent feedback tests 27 PASS; local validators PASS. Other unclassifiable free text and image/canvas content remain open; issue #181 stays PARTIAL."
+      "note": "Pre-fix Chromium pixel test proves synthetic answer in contenteditable remains visible; add masks for contenteditable except false plus ARIA textbox/combobox. Focused adjacent feedback tests 27 PASS; local validators PASS. Other unclassifiable free text and image/canvas content remain open; issue #181 stays PARTIAL.",
+      "integration_commit": "f1d36053ebb46f1286f3dfb0acd25ac1482a267f",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6038936759"
     }
   ],
   "generated_at": "2026-10-07T13:07:33Z"

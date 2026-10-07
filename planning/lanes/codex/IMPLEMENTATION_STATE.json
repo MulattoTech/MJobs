@@ -1,20 +1,20 @@
 {
   "schema_version": 1,
   "lane": "codex",
-  "status": "IMPLEMENTED_AWAITING_INTEGRATION",
+  "status": "IDLE_READY",
   "base_main": "dfa1fd37a4282890c52e563845ce410a56dcd964",
-  "current_issue": 181,
-  "requirement_id": "MJ-REQ-180",
-  "branch": "codex/mj-req180-mask-rich-controls-20261007",
-  "head": "b6468ba71893c71eed818e97444ff7a1614215f0",
-  "worktree": ".worktrees/codex-mj-req180-mask-rich-controls-20261007",
-  "result": "PARTIAL",
+  "current_issue": null,
+  "requirement_id": null,
+  "branch": null,
+  "head": "f1d36053ebb46f1286f3dfb0acd25ac1482a267f",
+  "worktree": null,
+  "result": "INTEGRATED_PARTIAL",
   "evidence_path": "docs/evidence/2026-10-07-rich-control-screenshot-redaction.json",
   "last_completed": {
-    "issue": 8,
-    "requirement_id": "MJ-REQ-007",
-    "integrated_main": "f8b6127e645bc0977a696dadf01f0017980fbe5a",
-    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6038839646"
+    "issue": 181,
+    "requirement_id": "MJ-REQ-180",
+    "integrated_main": "f1d36053ebb46f1286f3dfb0acd25ac1482a267f",
+    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/181#issuecomment-6038936759"
   },
   "next_candidates": [],
   "do_not_overlap": [
@@ -23,13 +23,13 @@
     "canonical planning and main outside integration lock"
   ],
   "resume_instruction": "Reconcile current main, active claims and dirty worktrees, then select the next highest-value dependency-ready unclaimed issue. Keep external submission OFF and hosted checks NOT_RUN_BY_USER_POLICY.",
-  "last_verified_head": "b6468ba71893c71eed818e97444ff7a1614215f0",
+  "last_verified_head": "f1d36053ebb46f1286f3dfb0acd25ac1482a267f",
   "last_verified_tree": "f89af9d200c91bb3db5c24fe9de80fb0589a40b2",
-  "last_verified_at_utc": "2026-10-07T13:25:24Z",
+  "last_verified_at_utc": "2026-10-07T13:26:47Z",
   "started_at_utc": "2026-10-07T04:24:01Z",
   "validation": {
     "result": "PASS_FOR_SLICE",
-    "pre_fix_red": "unit selector and Chromium pixel tests both fail; rich control answer is not masked",
+    "pre_fix_red": "unit selector and Chromium pixel checks showed unmasked rich-control answers",
     "focused_feedback_suite": "27 PASS, 0 failures/errors/skips",
     "compile_cli_help": "PASS",
     "validators": "agent_skills/catalogue/progress/lane coordination/diff PASS",
