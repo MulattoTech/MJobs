@@ -7,7 +7,7 @@
   "base_commit": "546f71d91d90cfbf2122ef2c830ddaba825e2a46",
   "source_commit": "3e4f18a947d47106eb7f22af141de3b389a09722",
   "source_tree": "4d6d5527fec632d97225c225e70c6b1204e0d4bd",
-  "recorded_at_utc": "2026-10-07T11:40:23Z",
+  "recorded_at_utc": "2026-10-07T11:52:00Z",
   "scope": "Bound memory captured from Docker CLI child stdout in local backup and restore operations, terminate and reap noisy children at the limit, preserve intentional direct-to-file database dump streaming, and retain wall deadlines and sanitized failure messages.",
   "input_sha256": {
     "cli/local_backup.py": "046698f9f9606fdc196bd30d53499cf274e2df0373c4ed2a6d7ab3251b48d62a",
@@ -22,7 +22,8 @@
     "no_docker_project_or_personal_backup_accessed": "PASS",
     "external_application_submission_remains_off": "PASS",
     "requirement_and_reference_denominators_unchanged": "PASS",
-    "connected_browser_harness_after_locked_frontend_install_and_build": "PASS - 2 selected existing browser cases passed; no browser product code changed"
+    "connected_browser_harness_after_locked_frontend_install_and_build": "PASS - 2 selected existing browser cases passed; no browser product code changed",
+    "full_python_suite_on_exact_integrated_source_with_fresh_frontend_dist": "PASS - 903 tests ran, zero failures/errors, 2 skipped"
   },
   "evidence": [
     {
@@ -64,6 +65,26 @@
       "command": "python -m tools.verification.agent_skills; python -m tools.verification.catalogue; python -m tools.verification.progress validate; python -m tools.coordination.lane_coordination validate; git diff --check; python -m py_compile cli/local_backup.py tests/unit/test_local_backup.py",
       "result": "PASS",
       "summary": "All repository/coordination validators, changed-file compilation, and whitespace checks passed."
+    },
+    {
+      "command": "npm ci --prefix apps/web; npm run build --prefix apps/web",
+      "result": "PASS",
+      "summary": "On the exact-main verification worktree, installed the lockfile set and built the current bundle; generated asset matched the previously passing worktree bundle (index-Azi-q_zn.js). Node v25.9.0 emitted the known Vitest 5 engine warning; TypeScript/Vite build passed."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest discover -s tests",
+      "result": "PASS",
+      "summary": "Exact integrated source on d7307be3d50e4297f87ba315e9cda3dbdf1a1924 with freshly built ignored frontend dist: 903 tests ran, zero failures/errors, 2 skipped. This supersedes the earlier root-checkout run that used a stale ignored bundle; that failed run is retained above as validation chronology."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_local_backup -v",
+      "result": "PASS",
+      "summary": "11 focused local backup tests passed on the exact-main verification worktree."
+    },
+    {
+      "command": "python -m tools.verification.agent_skills; python -m tools.verification.catalogue; python -m tools.verification.progress validate; python -m tools.coordination.lane_coordination validate; git diff --check",
+      "result": "PASS",
+      "summary": "All local repository and coordination validators and whitespace check passed."
     }
   ],
   "test_first_red": {
@@ -83,8 +104,8 @@
   },
   "requirement_limitations": [
     "Other operation classes in MJ-REQ-004 remain outside this slice, including provider inference, source collection, browser navigation, and supported real ATS paths.",
-    "The rebuilt full Python suite remains FAIL (903 tests, 2 failures, 2 errors, 2 skips) due to repeatable browser regressions in application capture, resume summary/skill-order UI, and AI task settings; these areas were not changed in this slice.",
-    "Vitest frontend tests were NOT_RUN_BY_SCOPE because no frontend source changed; the TypeScript/Vite build was run to restore generated frontend assets for browser validation."
+    "Two full-suite tests were skipped; the complete discovery result is 903 tests, zero failures or errors, 2 skipped. The skipped test names were not captured by this non-verbose run.",
+    "Frontend unit tests were NOT_RUN_BY_SCOPE because no frontend source changed; the TypeScript/Vite build and full Python/browser discovery were run."
   ],
   "denominators": {
     "requirements": 366,
@@ -104,7 +125,15 @@
     "final_synchronized_main": "3ebc187c2c139876dfa28e0313a6b779e7c53bc1",
     "issue_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6037144335",
     "issue_state_after_readback": "OPEN",
-    "remote_fast_forward_verified": true
+    "remote_fast_forward_verified": true,
+    "revalidation_commit": "d7307be3d50e4297f87ba315e9cda3dbdf1a1924",
+    "exact_main_full_python": "PASS: 903 run, 2 skipped",
+    "stale_root_dist_failures": "RESOLVED_BY_FRESH_FRONTEND_BUILD_IN_EXACT_MAIN_WORKTREE"
   },
-  "candidate_commit": "1b35a11f3ea6b41997fcc766255ada1771d6c83f"
+  "candidate_commit": "1b35a11f3ea6b41997fcc766255ada1771d6c83f",
+  "revalidation": {
+    "base_main": "d7307be3d50e4297f87ba315e9cda3dbdf1a1924",
+    "tree": "1109cff1f23653a2cd39995bf92924ba4cbcc2e0",
+    "purpose": "Repeat the complete test discovery on current integrated main after ensuring this exact worktree uses freshly installed lockfile dependencies and freshly built apps/web/dist. Product source is unchanged from source_commit."
+  }
 }

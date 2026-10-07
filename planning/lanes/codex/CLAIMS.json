@@ -120,6 +120,19 @@
       "released_at": "2026-10-07T11:40:55Z",
       "integrated_main": "3ebc187c2c139876dfa28e0313a6b779e7c53bc1",
       "issue_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6037144335"
+    },
+    {
+      "issue": 5,
+      "requirement_id": "MJ-REQ-004",
+      "branch": "codex/mj-req004-exact-main-full-suite-20261007",
+      "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req004-exact-main-full-suite-20261007",
+      "head": "d7307be3d50e4297f87ba315e9cda3dbdf1a1924",
+      "paths": [
+        "docs/evidence/2026-10-07-backup-command-output-bounds.json",
+        "planning/lanes/codex/**"
+      ],
+      "status": "ACTIVE",
+      "claimed_at": "2026-10-07T11:42:16Z"
     }
   ]
 }
