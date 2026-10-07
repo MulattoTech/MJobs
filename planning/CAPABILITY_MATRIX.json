@@ -881,9 +881,10 @@
         "docs/evidence/2026-10-04-contact-header-exact-head-ci.json",
         "docs/evidence/2026-10-06-resume-bullet-emphasis.json",
         "docs/evidence/2026-10-06-target-summary-tailoring.json",
-        "docs/evidence/2026-10-07-resume-user-reviewed-bullet-rephrasing.json"
+        "docs/evidence/2026-10-07-resume-user-reviewed-bullet-rephrasing.json",
+        "docs/evidence/2026-10-07-resume-user-reviewed-summary-adjustment.json"
       ],
-      "note": "Ordering, explicit fact selection/omission, technology emphasis, optional contact header, responsibility bullet emphasis, deterministic exact-skill summary fact selection/fallback, and per-application user-reviewed responsibility rephrasing are locally verified. Rewrites retain immutable source IDs/hashes, preserve exact date/numeric tokens, and are reconstructable in historical comparison. Broader factual summary and non-responsibility bullet rewriting remain incomplete; user review is not automated semantic proof; hosted checks NOT_RUN."
+      "note": "Ordering, explicit fact selection/omission, technology emphasis, optional contact header, responsibility bullet emphasis, deterministic exact-skill summary selection/fallback, and per-application user-reviewed responsibility and summary rephrasing are locally verified. Rewrites retain immutable source IDs/hashes, preserve exact date/numeric tokens, and are reconstructable in historical comparison. Broader factual bullet rephrasing remains incomplete; user review is not automated semantic proof; hosted checks NOT_RUN."
     },
     {
       "requirement_id": "MJ-REQ-096",

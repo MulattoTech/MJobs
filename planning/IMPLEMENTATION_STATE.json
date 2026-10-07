@@ -11,7 +11,7 @@
     "current_verified_github_state": "GitHub main d5d888785d62a091249541fd09cbe092073f7887; issue #6 PostgreSQL acceptance evidence integrated; Actions disabled; external submission OFF.",
     "current_verified_at": "2026-10-07T10:59:10Z"
   },
-  "current_milestone": "MJ-REQ-005-POSTGRES-CATEGORY-RUNTIME-20261007",
+  "current_milestone": "MJ-REQ-095-USER-REVIEWED-SUMMARY-ADJUSTMENT-20261007",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -480,7 +480,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Reconcile current main, active machine/GitHub claims and worktrees; select and claim the next highest-value dependency-ready issue that does not overlap Antigravity #302 or Ollama #318.",
+  "recommended_resume_step": "Fetch and verify synchronized main, inspect active claims and dirty worktrees, then continue the highest-value dependency-ready unclaimed requirement. Issue #96 remains OPEN/PARTIAL after the summary adjustment increment.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -517,7 +517,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "698e504ecc5059a5e015e987612b8c3572b422de",
+  "last_implementation_commit": "bac4de1ad20e851b9a5e2d7ae27510ab1e7c30e3",
   "publication": {
     "result": "PASS",
     "integration_method": "NON_FORCE_FAST_FORWARD",
@@ -7864,12 +7864,78 @@
         "issue_state": "OPEN",
         "evidence_checkpoint_commit": "d5d888785d62a091249541fd09cbe092073f7887"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-095-USER-REVIEWED-SUMMARY-ADJUSTMENT-20261007",
+      "timestamp": "2026-10-07T11:08:16Z",
+      "current_phase": "Issue #96 summary adjustment slice integrated by local-only fast-forward; broader requirement remains PARTIAL.",
+      "completed_steps": [
+        "Reconciled issue #96 claim ownership, current origin/main and competing lane claims; only the Codex document/resume path surface was used.",
+        "Added selected approved summary rewriting with per-fact user attestation, source-hash/fact-kind provenance, and date/numeric preservation while retaining legacy responsibility-rewrite history compatibility.",
+        "Connected the rewrite UI through API, worker generation, durable versioned history, reload, download and immutable comparison; profile facts and cover letters remain unchanged.",
+        "Validated focused Python 12 PASS, affected document 20 PASS, connected browser 2 PASS, frontend 63 PASS/build, and repository validators PASS.",
+        "Recorded sanitized evidence and integrated candidate by non-force fast-forward into synchronized main 975a044e918105e4d7162254aa03dd771f6175ea. Issue #96 remains OPEN/PARTIAL."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-07-resume-user-reviewed-summary-adjustment.json"
+      ],
+      "files_modified": [
+        "services/documents/tailor.py",
+        "services/documents/templates.py",
+        "services/documents/generate.py",
+        "services/documents/validation.py",
+        "services/documents/comparison.py",
+        "apps/api/main.py",
+        "apps/web/src/main.tsx",
+        "apps/web/src/resume-fact-selection.tsx",
+        "apps/web/src/resume-comparison.tsx",
+        "tests/unit/test_resume_comparison.py",
+        "tests/integration/test_resume_comparison.py",
+        "tests/browser/test_skill_order.py"
+      ],
+      "tests_completed": [
+        "Focused resume unit/integration/selection tests: 12 PASS.",
+        "Affected document validation/template/provenance/contact and document-history browser suites: 20 PASS.",
+        "Connected summary-adjustment browser suite: 2 PASS.",
+        "Frontend: 63 tests PASS; TypeScript check and Vite production build PASS.",
+        "agent_skills, catalogue, progress, lane coordination and diff checks PASS."
+      ],
+      "tests_remaining": [
+        "Broader MJ-REQ-095 factual responsibility and summary rewriting acceptance remains open where not covered by existing evidence.",
+        "Hosted Actions and reviews remain NOT_RUN_BY_USER_POLICY."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [
+        "Initial focused validation attempts used global Python or frontend dependencies absent from the isolated worktree; repository .venv and lockfile-installed worktree dependencies were then used and all affected suites passed."
+      ],
+      "known_limitations": [
+        "User attestation is required; automated tests do not claim semantic equivalence.",
+        "No PostgreSQL or live AI provider was needed or exercised for this deterministic local document change.",
+        "Issue #96 / MJ-REQ-095 remains OPEN/PARTIAL; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF."
+      ],
+      "source_commit": "bac4de1ad20e851b9a5e2d7ae27510ab1e7c30e3",
+      "source_tree": "b88b993274690af37cae261efceeebb7260c9603",
+      "result": "PARTIAL",
+      "last_safe_checkpoint": {
+        "git_commit": "975a044e918105e4d7162254aa03dd771f6175ea",
+        "evidence_path": "docs/evidence/2026-10-07-resume-user-reviewed-summary-adjustment.json"
+      },
+      "integration": {
+        "method": "NON_FORCE_FAST_FORWARD",
+        "base": "74398ffd0b9271008d1e7a1f2dc12e285972fe78",
+        "main": "975a044e918105e4d7162254aa03dd771f6175ea",
+        "source_branch": "codex/mj-req095-summary-adjustment-20261007",
+        "source_commit": "bac4de1ad20e851b9a5e2d7ae27510ab1e7c30e3",
+        "issue_state": "OPEN",
+        "evidence_checkpoint_commit": "975a044e918105e4d7162254aa03dd771f6175ea"
+      }
     }
   ],
-  "current_phase": "Issue #6 / MJ-REQ-005 PostgreSQL advisory-lock category admission tests passed twice on an isolated local PostgreSQL 17 database and integrated by non-force fast-forward; broader requirement remains PARTIAL.",
+  "current_phase": "Issue #96 summary adjustment slice integrated by local-only fast-forward; broader requirement remains PARTIAL.",
   "last_safe_checkpoint": {
-    "git_commit": "d5d888785d62a091249541fd09cbe092073f7887",
-    "evidence_path": "docs/evidence/2026-10-07-postgres-concurrency-runtime.json"
+    "git_commit": "975a044e918105e4d7162254aa03dd771f6175ea",
+    "evidence_path": "docs/evidence/2026-10-07-resume-user-reviewed-summary-adjustment.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -8028,17 +8094,16 @@
     "next_issue": "Release #398 and select the next dependency-ready unclaimed issue after live claim/worktree reconciliation."
   },
   "active_development_issue": {
-    "issue": 375,
-    "requirement_id": "MJ-REF-005",
-    "title": "Deterministic no-LLM fallback for core career workflows",
-    "state": "INTEGRATED_PASS",
-    "base": "e455c8e05ee5f826918c7c353fc7968994a35be1",
-    "branch": "codex/mj-ref005-no-ai-fallback-20261007",
-    "candidate": "5f220ed17c51e148de71712485f497707704fdee",
-    "integrated_main": "3804a953317b122879747e0075602994c8151678",
-    "evidence": "docs/evidence/2026-10-07-no-ai-fallback.json",
-    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/375#issuecomment-6035816600",
-    "next_action": "Release the completed Codex claim and integration lock; reconcile all active claims and main, then select and claim the next highest-value dependency-ready unowned issue."
+    "issue": 96,
+    "requirement_id": "MJ-REQ-095",
+    "title": "Factual resume tailoring and user-reviewed fact rephrasing",
+    "state": "INTEGRATED_PARTIAL",
+    "base": "74398ffd0b9271008d1e7a1f2dc12e285972fe78",
+    "branch": "codex/mj-req095-summary-adjustment-20261007",
+    "candidate": "bac4de1ad20e851b9a5e2d7ae27510ab1e7c30e3",
+    "integrated_main": "975a044e918105e4d7162254aa03dd771f6175ea",
+    "evidence": "docs/evidence/2026-10-07-resume-user-reviewed-summary-adjustment.json",
+    "next_action": "Reconcile active lane claims and dependency-ready requirements, then continue issue #96 if independent unclaimed summary/bullet fact work remains; otherwise select the highest-value safe issue."
   },
   "historical_control_snapshots": [
     {
@@ -9178,5 +9243,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-07T08:48:43Z"
+  "updated_at": "2026-10-07T11:08:16Z"
 }
