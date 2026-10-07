@@ -11,7 +11,7 @@
     "current_verified_github_state": "Issue #179 / MJ-REQ-178 log retention acceptance PASS at 8bea57e595e19e638913405a8ec1cd3aa0ebde32; full product remains PARTIAL.",
     "current_verified_at": "2026-10-07T15:27:43Z"
   },
-  "current_milestone": "MJ-REQ-176-COMPANY-SOURCE-SETTING-AUDIT-20261007",
+  "current_milestone": "MJ-REQ-176-COMPANY-SOURCE-WATCH-AUDIT-20261007",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -9490,12 +9490,58 @@
         "evidence_path": "docs/evidence/2026-10-07-company-source-setting-audit.json"
       },
       "source_test_commit": "0c76b225f48a882e8aa90b5e7686d22a8891425e"
+    },
+    {
+      "milestone_id": "MJ-REQ-176-COMPANY-SOURCE-WATCH-AUDIT-20261007",
+      "timestamp": "2026-10-07T23:33:02Z",
+      "current_phase": "MJ_REQ_176_COMPANY_SOURCE_WATCH_AUDIT_INTEGRATED_PARTIAL",
+      "completed_steps": [
+        "Integrated effective company-source Watch/Unwatch Activity history for profiles with recorded COMPANY_SOURCE_ENROLLED links.",
+        "Effective origin changes append one generic empty-payload SETTING_CHANGED event per distinct linked profile in the same transaction; no-op requests, including manual-source unwatch, append none.",
+        "Verified API persistence, profile isolation, connected Activity reload and redaction; preserved external submission OFF.",
+        "Recorded only this scoped progress; issue #177 / MJ-REQ-176 remains OPEN/PARTIAL."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-07-company-source-watch-audit.json"
+      ],
+      "files_modified": [
+        "services/company_discovery/sources.py",
+        "tests/integration/test_audit_history.py",
+        "tests/browser/test_audit_history.py"
+      ],
+      "tests_completed": [
+        "22 focused integration tests and 2 connected Chromium tests PASS.",
+        "Frontend 63 tests and TypeScript/Vite build PASS.",
+        "Full Python suite: 969 tests run, 8 skipped, zero failures (600.201 seconds).",
+        "Agent skills, catalogue, progress, lane coordination, compileall and diff checks PASS."
+      ],
+      "tests_remaining": [
+        "Other setting and truthful lifecycle event producers in MJ-REQ-176.",
+        "PostgreSQL/Docker NOT_RUN; hosted CI/review NOT_RUN_BY_USER_POLICY."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Synthetic SQLite databases and connected Chromium against a loopback API; no external provider or employer requests.",
+        "Candidate and evidence integrated by non-force fast-forward at main 0629a30c98c4921241ed6de61e948672fdb2ae2c; GitHub checkpoint posted at https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6048975470."
+      ],
+      "known_errors": [
+        "The pre-implementation regression test failed as expected because effective Watch/Unwatch changes produced no profile SETTING_CHANGED events."
+      ],
+      "known_limitations": [
+        "This scoped slice does not complete MJ-REQ-176; issue #177 remains OPEN/PARTIAL.",
+        "PostgreSQL/Docker and hosted verification were not run; external submission remains OFF."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "0629a30c98c4921241ed6de61e948672fdb2ae2c",
+        "evidence_path": "docs/evidence/2026-10-07-company-source-watch-audit.json"
+      },
+      "source_test_commit": "d054731aaffe0ba849bd0deabfe016f522bf931e"
     }
   ],
-  "current_phase": "MJ_REQ_176_COMPANY_SOURCE_SETTING_AUDIT_INTEGRATED_PARTIAL",
+  "current_phase": "MJ_REQ_176_COMPANY_SOURCE_WATCH_AUDIT_INTEGRATED_PARTIAL",
   "last_safe_checkpoint": {
-    "git_commit": "68a0630b690cfa855e43829bc4f1836cf6add246",
-    "evidence_path": "docs/evidence/2026-10-07-company-source-setting-audit.json"
+    "git_commit": "0629a30c98c4921241ed6de61e948672fdb2ae2c",
+    "evidence_path": "docs/evidence/2026-10-07-company-source-watch-audit.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -10965,5 +11011,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-07T23:05:00Z"
+  "updated_at": "2026-10-07T23:33:02Z"
 }
