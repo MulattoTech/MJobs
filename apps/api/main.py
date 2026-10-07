@@ -39,7 +39,7 @@ from services.dedupe.routes import load_job_routes, list_route_choices, plan_app
 from services.company_discovery.triggers import queue_company_discovery
 from services.applications.knowledge import application_adapter_knowledge
 from services.ai.providers import AIProviderDisabled, AIProviderError, create_provider
-from services.ai.tasks import AI_TASKS, AITaskConfiguration, AITaskRouter
+from services.ai.tasks import AI_TASKS, AITaskConfiguration, AITaskRouter, fallback_capabilities
 from services.ai.consumer import (
     AIConsumerCancelledError, AIConsumerTimeoutError, consume_ai_candidates, AIJobInput,
 )
@@ -526,7 +526,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             task: {"provider": configuration.for_task(task).provider,
                    "model": configuration.for_task(task).model}
             for task in AI_TASKS
-        }}
+        }, "fallback_capabilities": fallback_capabilities()}
 
     @app.put("/profiles/{profile_id}/ai-task-settings")
     def save_ai_task_settings(profile_id: str, value: AITaskSettingsInput):
@@ -552,7 +552,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             for task in AI_TASKS
         }
         saved = store.save_ai_task_settings(profile_id, selections)
-        return {"profile_id": profile_id, "tasks": saved}
+        return {"profile_id": profile_id, "tasks": saved,
+                "fallback_capabilities": fallback_capabilities()}
 
     @app.get("/profiles/{profile_id}/provider-credentials")
     def list_provider_credentials(profile_id: str):

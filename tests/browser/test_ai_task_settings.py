@@ -112,6 +112,14 @@ class AITaskSettingsBrowserTests(unittest.TestCase):
                     panel = page.get_by_role("region", name="AI task settings")
                     expect(panel).to_be_visible()
                     self.assertEqual(panel.locator(".ai-task-settings fieldset").count(), 7)
+                    fallback_panel = panel.get_by_role("region", name="No-AI fallback modes")
+                    expect(fallback_panel.locator("li")).to_have_count(7)
+                    expect(fallback_panel.locator('[aria-label="Job scoring no-AI behavior"]')).to_contain_text(
+                        "DETERMINISTIC")
+                    expect(fallback_panel.locator('[aria-label="Resume tailoring no-AI behavior"]')).to_contain_text(
+                        "do not add or rephrase claims")
+                    expect(fallback_panel.locator('[aria-label="Free-form answers no-AI behavior"]')).to_contain_text(
+                        "UNAVAILABLE")
                     provider = panel.get_by_label("Job scoring provider", exact=True)
                     model = panel.get_by_label("Job scoring model", exact=True)
                     expect(provider).to_have_value("disabled")

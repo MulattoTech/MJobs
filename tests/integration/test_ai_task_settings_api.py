@@ -3,11 +3,16 @@ import copy
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 
 from apps.api.main import create_app
 from packages.persistence.store import Store
+from services.discovery.manual_capture import capture_manual_job
+from services.discovery.matching import recalculate
+from services.documents.generate import prepare
+from services.documents.history import application_documents
 from services.ai.tasks import AI_TASKS
 from tests.integration.test_spine import PROFILE
 
@@ -38,6 +43,7 @@ class AITaskSettingsApiTests(unittest.TestCase):
         self.assertEqual(set(initial.json()["tasks"]), set(AI_TASKS))
         self.assertTrue(all(value == {"provider": "disabled", "model": None}
                             for value in initial.json()["tasks"].values()))
+        self.assertEqual(set(initial.json()["fallback_capabilities"]), set(AI_TASKS))
 
         configured = {task: {"provider": "disabled", "model": None} for task in AI_TASKS}
         configured["job_scoring"] = {"provider": "ollama", "model": "llama3.2:3b"}
@@ -59,6 +65,36 @@ class AITaskSettingsApiTests(unittest.TestCase):
         reloaded = self.client.get("/profiles/fixture/ai-task-settings")
         self.assertEqual(reloaded.status_code, 200, reloaded.text)
         self.assertEqual(reloaded.json()["tasks"], configured)
+
+    def test_all_disabled_keeps_deterministic_matching_and_factual_documents_available(self):
+        settings = self.client.get("/profiles/fixture/ai-task-settings").json()
+        self.assertTrue(all(task["provider"] == "disabled" for task in settings["tasks"].values()))
+        self.assertEqual(settings["fallback_capabilities"]["job_scoring"]["mode"], "DETERMINISTIC")
+        self.assertEqual(settings["fallback_capabilities"]["resume_tailoring"]["mode"], "DETERMINISTIC")
+        self.assertEqual(settings["fallback_capabilities"]["cover_letters"]["mode"], "DETERMINISTIC")
+
+        job = capture_manual_job(self.store, {
+            "request_id": "no-ai-fallback-job",
+            "title": "Systems Administrator",
+            "company": "Synthetic Company",
+            "description": "Responsibilities:\nMaintain Windows Server infrastructure, build Python automation, and support network operations with PowerShell.",
+            "reference_url": "https://jobs.example.test/no-ai-fallback",
+            "application_url": "https://apply.example.test/no-ai-fallback",
+            "source_details": {},
+        })
+        recalculate(self.store, "fixture")
+        with patch("services.ai.tasks.create_provider",
+                   side_effect=AssertionError("disabled core fallback must not call a provider")):
+            rows = self.client.get("/jobs", params={"profile_id": "fixture"}).json()["jobs"]
+            scored = next(row for row in rows if row["id"] == job["job"]["id"])
+            self.assertIsInstance(scored["match_score"], (int, float))
+            application_id = prepare(self.store, job["job"]["id"], "fixture", self.root)
+
+        documents = application_documents(self.store, application_id)
+        self.assertEqual({row["kind"] for row in documents}, {"resume", "cover-letter"})
+        resume = next(row for row in documents if row["kind"] == "resume")
+        self.assertTrue(resume["fact_ids"])
+        self.assertEqual(resume["profile_version"], self.store.profile("fixture")["version"])
 
     def test_unknown_tasks_and_unsupported_providers_fail_closed(self):
         unknown_task = self.client.put("/profiles/fixture/ai-task-settings", json={

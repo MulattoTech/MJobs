@@ -5,6 +5,18 @@ from unittest.mock import patch
 
 
 class AITaskConfigurationTests(unittest.TestCase):
+    def test_every_task_has_an_explicit_safe_no_ai_fallback(self):
+        from services.ai.tasks import AI_TASKS, fallback_capabilities
+
+        capabilities = fallback_capabilities()
+        self.assertEqual(set(capabilities), set(AI_TASKS))
+        self.assertEqual(capabilities["job_scoring"]["mode"], "DETERMINISTIC")
+        self.assertEqual(capabilities["resume_tailoring"]["mode"], "DETERMINISTIC")
+        self.assertEqual(capabilities["cover_letters"]["mode"], "DETERMINISTIC")
+        self.assertEqual(capabilities["free_form_answers"]["mode"], "UNAVAILABLE")
+        self.assertEqual(capabilities["company_summarization"]["mode"], "UNAVAILABLE")
+        self.assertTrue(all(value["description"].strip() for value in capabilities.values()))
+
     def test_default_configuration_disables_every_task(self):
         from services.ai.providers import AIProviderDisabled
         from services.ai.tasks import AI_TASKS, AITaskConfiguration, AITaskRouter

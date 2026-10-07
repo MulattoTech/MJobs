@@ -28,6 +28,17 @@ class AITask(StrEnum):
 
 
 AI_TASKS = tuple(task.value for task in AITask)
+_FALLBACK_CAPABILITIES = MappingProxyType({
+    "job_parsing": ("DETERMINISTIC", "Use normalized fields supplied by job-source parsers; do not invent missing fields."),
+    "job_scoring": ("DETERMINISTIC", "Rule-based, explainable match scores and filters remain available."),
+    "requirement_extraction": ("DETERMINISTIC", "Use explicit posting requirements; keep unrecognized qualifications unknown."),
+    "resume_tailoring": ("DETERMINISTIC", "Select and reorder approved career facts with safe templates; do not add or rephrase claims."),
+    "cover_letters": ("DETERMINISTIC", "Build a factual cover letter from the approved profile and job fields."),
+    "free_form_answers": ("UNAVAILABLE", "No new answer is generated; review and reuse only explicitly approved saved answers."),
+    "company_summarization": ("UNAVAILABLE", "No company summary is generated; source-grounded company facts remain available."),
+})
+if set(_FALLBACK_CAPABILITIES) != set(AI_TASKS):
+    raise RuntimeError("AI_TASK_FALLBACK_POLICY_INCOMPLETE")
 _SAFE_NAME = re.compile(r"[a-z][a-z0-9_-]{0,63}\Z")
 _SAFE_MODEL = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}\Z")
 _SECRET_PREFIXES = ("sk-", "sk_", "ghp_", "gho_", "hf_")
@@ -102,6 +113,14 @@ class AITaskConfiguration:
         return self._selections[task]
 
 
+def fallback_capabilities() -> dict[str, dict[str, str]]:
+    """Return explicit no-provider behavior for every configured AI task."""
+    return {
+        task: {"mode": mode, "description": description}
+        for task, (mode, description) in _FALLBACK_CAPABILITIES.items()
+    }
+
+
 class AITaskRouter:
     """Pass each task's model choice to its selected, explicitly supported provider."""
 
@@ -161,4 +180,5 @@ class AITaskRouter:
         return parse_structured_output(raw, result_model)
 
 
-__all__ = ["AI_TASKS", "AITask", "AITaskConfiguration", "AITaskRouter", "TaskModelSelection"]
+__all__ = ["AI_TASKS", "AITask", "AITaskConfiguration", "AITaskRouter",
+           "TaskModelSelection", "fallback_capabilities"]
