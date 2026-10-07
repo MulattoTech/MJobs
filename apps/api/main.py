@@ -21,6 +21,7 @@ from rq import Worker
 from sqlalchemy import select, text
 from sqlalchemy.exc import NoResultFound
 from starlette.middleware.trustedhost import TrustedHostMiddleware
+from starlette.datastructures import MutableHeaders
 
 from packages.persistence import models as m
 from packages.persistence.store import ProfileVersionConflict, Store, identity
@@ -62,6 +63,44 @@ class FactInput(BaseModel):
 
 class CareerFactInput(FactInput):
     kind: Literal["skill", "experience", "responsibility", "education", "certification", "project", "accomplishment", "summary", "technology_experience"] = "skill"
+
+
+class LocalOriginMiddleware:
+    """Apply local-origin guards without wrapping the request receive channel."""
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        request = Request(scope, receive)
+        origin = request.headers.get("origin")
+        if request.method not in ("GET", "HEAD", "OPTIONS") and origin and origin != str(request.base_url).rstrip("/"):
+            response = JSONResponse({"detail": "Cross-origin mutation blocked"}, status_code=403)
+            await response(scope, receive, send)
+            return
+        if request.headers.get("sec-fetch-site") == "cross-site" and request.url.path.startswith(
+                ("/profiles", "/documents", "/applications", "/operations", "/duplicate-reviews", "/company-sources")):
+            response = JSONResponse({"detail": "Cross-site personal data access blocked"}, status_code=403)
+            await response(scope, receive, send)
+            return
+
+        async def send_with_security_headers(message):
+            if message["type"] == "http.response.start":
+                headers = MutableHeaders(scope=message)
+                headers["Cache-Control"] = "no-store"
+                headers["X-Content-Type-Options"] = "nosniff"
+                headers["Referrer-Policy"] = "no-referrer"
+                headers["Content-Security-Policy"] = (
+                    "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; "
+                    "connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+                )
+            await send(message)
+
+        await self.app(scope, receive, send_with_security_headers)
 
 
 class AnswerInput(FactInput):
@@ -377,20 +416,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     app.state.uploaded_comparison_events = {}
     app.state.uploaded_comparison_lock = threading.Lock()
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost", "api", "testserver"])
-
-    @app.middleware("http")
-    async def local_origin(request: Request, call_next):
-        origin = request.headers.get("origin")
-        if request.method not in ("GET", "HEAD", "OPTIONS") and origin and origin != str(request.base_url).rstrip("/"):
-            return JSONResponse({"detail": "Cross-origin mutation blocked"}, status_code=403)
-        if request.headers.get("sec-fetch-site") == "cross-site" and request.url.path.startswith(("/profiles", "/documents", "/applications", "/operations", "/duplicate-reviews", "/company-sources")):
-            return JSONResponse({"detail": "Cross-site personal data access blocked"}, status_code=403)
-        response = await call_next(request)
-        response.headers["Cache-Control"] = "no-store"
-        response.headers["X-Content-Type-Options"] = "nosniff"
-        response.headers["Referrer-Policy"] = "no-referrer"
-        response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
-        return response
+    app.add_middleware(LocalOriginMiddleware)
 
     @app.exception_handler(ValueError)
     async def invalid(_, error):

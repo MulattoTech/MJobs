@@ -34,6 +34,25 @@ class AICostPolicyApiTests(unittest.TestCase):
         self.store.engine.dispose()
         self.directory.cleanup()
 
+    def test_local_origin_middleware_preserves_request_guards_and_security_headers(self):
+        response = self.client.get("/health")
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual(response.headers["cache-control"], "no-store")
+        self.assertEqual(response.headers["x-content-type-options"], "nosniff")
+        self.assertEqual(response.headers["referrer-policy"], "no-referrer")
+        self.assertEqual(response.headers["content-security-policy"],
+                         "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; "
+                         "connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'")
+
+        cross_origin = self.client.put("/profiles/fixture/ai-cost-policy",
+                                       headers={"origin": "https://attacker.example"}, json={})
+        self.assertEqual(cross_origin.status_code, 403, cross_origin.text)
+        self.assertEqual(cross_origin.json()["detail"], "Cross-origin mutation blocked")
+        cross_site = self.client.get("/profiles/fixture/ai-cost-policy",
+                                     headers={"sec-fetch-site": "cross-site"})
+        self.assertEqual(cross_site.status_code, 403, cross_site.text)
+        self.assertEqual(cross_site.json()["detail"], "Cross-site personal data access blocked")
+
     def test_profile_cost_policy_defaults_are_safe_and_persist_independently(self):
         default = {"minimum_score": 75, "max_input_candidates": 5000,
                    "max_ai_candidates": 75, "max_document_candidates": 20}
@@ -537,6 +556,112 @@ class AICostPolicyApiTests(unittest.TestCase):
         history = self.client.get("/profiles/fixture/ai-cost-plan/evaluations")
         self.assertEqual(history.status_code, 200, history.text)
         self.assertEqual(history.json()["runs"], [])
+
+    def test_real_http_disconnect_during_provider_call_discards_partial_batch(self):
+        import socket
+        import threading
+        import time
+        from unittest.mock import patch
+        import uvicorn
+        from fixtures.browser_ports import bound_browser_socket
+        from services.ai.consumer import AIJobEvaluation
+        from services.ai.tasks import AI_TASKS
+
+        for index, title in enumerate(("Infrastructure Administrator", "Systems Administrator")):
+            response = self.client.post("/jobs/manual", json={
+                "request_id": f"real-disconnect-{index}", "title": title,
+                "company": "Synthetic Company", "description": "Windows and Linux infrastructure.",
+                "reference_url": f"https://jobs.example.test/real-disconnect-{index}",
+                "application_url": f"https://apply.example.test/real-disconnect-{index}",
+                "source_details": {},
+            })
+            self.assertEqual(response.status_code, 201, response.text)
+        recalculate(self.store, "fixture")
+        jobs = self.store.jobs(profile_id="fixture")
+        with self.store.engine.begin() as connection:
+            for job in jobs:
+                connection.execute(update(m.matches).where(
+                    m.matches.c.profile_id == "fixture",
+                    m.matches.c.job_id == job["id"],
+                ).values(score=95.0))
+        self.store.save_ai_task_settings("fixture", {
+            task: {"provider": "ollama", "model": "synthetic-test"}
+            if task == "job_scoring" else {"provider": "disabled", "model": None}
+            for task in AI_TASKS
+        })
+
+        provider_started = threading.Event()
+        release_provider = threading.Event()
+        disconnect_observed = threading.Event()
+        disconnect_checks = []
+        calls = []
+
+        class WaitingRouter:
+            def __init__(self, _configuration):
+                pass
+
+            def generate_structured(self, **_kwargs):
+                calls.append(len(calls) + 1)
+                if len(calls) == 1:
+                    return AIJobEvaluation(category="STRONG", rationale="Synthetic result.")
+                provider_started.set()
+                if not release_provider.wait(5):
+                    raise AssertionError("test did not release the bounded in-flight provider call")
+                return AIJobEvaluation(category="STRONG", rationale="Synthetic result.")
+
+        from starlette.requests import Request as StarletteRequest
+        original_is_disconnected = StarletteRequest.is_disconnected
+
+        async def observe_real_disconnect(request):
+            disconnected = await original_is_disconnected(request)
+            disconnect_checks.append(disconnected)
+            if disconnected:
+                disconnect_observed.set()
+            return disconnected
+
+        app = create_app(self.store, "http://127.0.0.1:1", self.root,
+                         operation_mode="PERSONAL")
+        sock = bound_browser_socket()
+        origin = f"http://127.0.0.1:{sock.getsockname()[1]}"
+        server = uvicorn.Server(uvicorn.Config(app, log_level="error"))
+        thread = threading.Thread(target=server.run, kwargs={"sockets": [sock]}, daemon=True)
+        thread.start()
+        peer = None
+        try:
+            deadline = time.monotonic() + 10
+            while not server.started:
+                if not thread.is_alive() or time.monotonic() > deadline:
+                    self.fail("AI disconnect transport test API did not start")
+                time.sleep(0.02)
+
+            peer = socket.create_connection(("127.0.0.1", sock.getsockname()[1]), timeout=5)
+            peer.settimeout(5)
+            peer.sendall((f"POST /profiles/fixture/ai-cost-plan/evaluate HTTP/1.1\r\n"
+                          f"Host: 127.0.0.1:{sock.getsockname()[1]}\r\n"
+                          f"Origin: {origin}\r\nContent-Length: 0\r\n"
+                          "Connection: keep-alive\r\n\r\n").encode("ascii"))
+            with patch("apps.api.main.AITaskRouter", WaitingRouter), patch.object(
+                    StarletteRequest, "is_disconnected", observe_real_disconnect):
+                self.assertTrue(provider_started.wait(5),
+                                "provider call did not start before client disconnect")
+                peer.shutdown(socket.SHUT_WR)
+                self.assertTrue(disconnect_observed.wait(3),
+                                f"server did not observe the closed TCP transport; checks={disconnect_checks!r}")
+                release_provider.set()
+                peer.close()
+                time.sleep(0.1)
+            self.assertEqual(calls, [1, 2])
+            history = self.client.get("/profiles/fixture/ai-cost-plan/evaluations")
+            self.assertEqual(history.status_code, 200, history.text)
+            self.assertEqual(history.json()["runs"], [])
+        finally:
+            release_provider.set()
+            if peer is not None:
+                peer.close()
+            server.should_exit = True
+            thread.join(timeout=10)
+            sock.close()
+            self.assertFalse(thread.is_alive(), "AI disconnect transport API did not stop")
 
     def test_results_are_not_saved_when_profile_changes_during_provider_call(self):
         from unittest.mock import patch
