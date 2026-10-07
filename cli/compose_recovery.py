@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import threading
 import time
 from uuid import uuid4
 
@@ -13,14 +14,103 @@ import httpx
 from tests.integration.test_spine import PROFILE
 
 
+MAX_CAPTURED_OUTPUT_BYTES = 2 * 1024 * 1024
+_OUTPUT_CHUNK_BYTES = 64 * 1024
+
+
+def _run_bounded(command, *, timeout, action, environment=None):
+    """Run a local recovery command with bounded retained stdout and a hard deadline."""
+    try:
+        process = subprocess.Popen(
+            list(command), env=environment, stdin=subprocess.DEVNULL,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False,
+        )
+    except OSError as exc:
+        raise RuntimeError(f"{action} could not start") from exc
+
+    captured = bytearray()
+    output_exceeded = threading.Event()
+
+    def drain_stdout():
+        try:
+            while True:
+                chunk = process.stdout.read(_OUTPUT_CHUNK_BYTES)
+                if not chunk:
+                    return
+                available = max(0, MAX_CAPTURED_OUTPUT_BYTES - len(captured))
+                if available:
+                    captured.extend(chunk[:available])
+                if len(chunk) > available:
+                    output_exceeded.set()
+        except (OSError, ValueError):
+            return
+
+    def drain_stderr():
+        try:
+            while process.stderr.read(_OUTPUT_CHUNK_BYTES):
+                pass
+        except (OSError, ValueError):
+            return
+
+    stdout_reader = threading.Thread(target=drain_stdout, daemon=True)
+    stderr_reader = threading.Thread(target=drain_stderr, daemon=True)
+    stdout_reader.start()
+    stderr_reader.start()
+
+    def stop_child():
+        if process.poll() is not None:
+            return
+        try:
+            process.terminate()
+        except OSError:
+            pass
+        try:
+            process.wait(timeout=1)
+        except subprocess.TimeoutExpired:
+            try:
+                process.kill()
+            except OSError:
+                pass
+            process.wait(timeout=5)
+
+    try:
+        deadline = time.monotonic() + timeout
+        while process.poll() is None:
+            if output_exceeded.is_set():
+                stop_child()
+                raise RuntimeError(f"{action} exceeded the captured-output limit")
+            if time.monotonic() >= deadline:
+                stop_child()
+                raise RuntimeError(f"{action} timed out")
+            time.sleep(0.01)
+
+        returncode = process.wait()
+        stdout_reader.join(timeout=1)
+        stderr_reader.join(timeout=1)
+        if output_exceeded.is_set():
+            raise RuntimeError(f"{action} exceeded the captured-output limit")
+        if returncode:
+            raise RuntimeError(f"{action} failed with exit code {returncode}")
+        text = bytes(captured).decode("utf-8", errors="replace")
+        return text.replace("\r\n", "\n").replace("\r", "\n")
+    finally:
+        if process.poll() is None:
+            stop_child()
+        for stream in (process.stdout, process.stderr):
+            if stream is not None:
+                try:
+                    stream.close()
+                except OSError:
+                    pass
+        stdout_reader.join(timeout=1)
+        stderr_reader.join(timeout=1)
+
+
 def compose(*arguments):
     environment = os.environ.copy()
     environment.update(MJOBS_OPERATION_MODE="FIXTURE", MJOBS_COMPOSE_MOCK="1", COMPOSE_PROFILES="fixture")
-    result = subprocess.run(["docker", "compose", "--profile", "fixture", *arguments], env=environment,
-                            capture_output=True, text=True, timeout=90)
-    if result.returncode:
-        raise RuntimeError("Project Compose action failed: " + " ".join(arguments))
-    return result.stdout
+    return _run_bounded(["docker", "compose", "--profile", "fixture", *arguments],
+                        environment=environment, timeout=90, action="Project Compose action")
 
 
 def run(baseline_path, evidence_path):
@@ -59,8 +149,9 @@ def run(baseline_path, evidence_path):
             actions.append({"action": "Redis disconnected; discovery persisted", "result": "PASS", "operation_id": queued["operation_id"]})
             # --no-deps prevents Compose from helpfully restoring Redis early.
             compose("up", "-d", "--no-deps", "--no-build", "worker")
-            until(lambda: int(subprocess.run(["docker", "inspect", "mjobs-worker-1", "--format", "{{.RestartCount}}"],
-                capture_output=True, text=True, timeout=10, check=True).stdout.strip()) > 0)
+            until(lambda: int(_run_bounded(
+                ["docker", "inspect", "mjobs-worker-1", "--format", "{{.RestartCount}}"],
+                timeout=10, action="Inspect recovery worker").strip()) > 0)
             compose("start", "redis")
             compose("start", "worker", "source-worker", "document-worker")
             until(lambda: request("GET", "/operations/" + queued["operation_id"])["state"] == "COMPLETED")
