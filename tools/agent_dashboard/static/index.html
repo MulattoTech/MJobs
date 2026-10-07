@@ -68,6 +68,25 @@
       <div class="usage-meta"></div>
     </div>
 
+    <div class="ollama-stats hidden">
+      <div class="stats-section">
+        <div class="stats-title">Current OpenCode session</div>
+        <div class="token-grid current-token-grid"></div>
+      </div>
+      <div class="stats-section">
+        <div class="stats-title">This MJobs worktree</div>
+        <div class="token-grid worktree-token-grid"></div>
+      </div>
+      <div class="stats-section">
+        <div class="stats-title">Selected model usage</div>
+        <div class="token-grid model-token-grid"></div>
+      </div>
+      <details>
+        <summary>Tool calls / raw local-model statistics</summary>
+        <pre class="ollama-raw-stats"></pre>
+      </details>
+    </div>
+
     <div class="gpu-control hidden">
       <label>GPU offload cap: <strong class="gpu-offload-value">100%</strong>
         <input type="range" class="gpu-offload" min="0" max="100" step="5" value="100">

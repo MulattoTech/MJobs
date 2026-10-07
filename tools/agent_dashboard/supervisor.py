@@ -17,6 +17,7 @@ from typing import Any
 from .observability import (
     log_activity,
     ollama_ps,
+    opencode_usage_snapshot,
     prepare_ollama_model,
     process_tree,
     read_codex_rate_limits,
@@ -720,12 +721,44 @@ class AgentSupervisor:
                     }
                     visibility = "agy --print supervised process"
                 else:
-                    usage = {
-                        "available": True,
-                        "local": True,
-                        "message": "Local Ollama model; no cloud usage quota.",
+                    workspace = state.get("workspace") or (
+                        self._live_claim(lane).get("worktree")
+                    )
+                    if workspace:
+                        usage = self._cached_telemetry(
+                            f"opencode_usage:{workspace}",
+                            2.5,
+                            lambda workspace=workspace: opencode_usage_snapshot(workspace),
+                        )
+                    else:
+                        usage = {"available": False, "error": "No Ollama worktree"}
+                    usage["local"] = True
+                    usage["message"] = "Local Ollama/OpenCode usage; no cloud quota."
+                    loaded_models = (telemetry.get("ollama") or {}).get("models") or []
+                    selected_runtime = loaded_models[0] if loaded_models else {}
+                    context_raw = selected_runtime.get("context")
+                    try:
+                        context_window = int(str(context_raw).replace(",", ""))
+                    except Exception:
+                        context_window = None
+                    usage["runtime"] = {
+                        "loaded_model": selected_runtime.get("name"),
+                        "model_size": selected_runtime.get("size"),
+                        "processor": selected_runtime.get("processor"),
+                        "context_window": context_window,
+                        "keepalive_until": selected_runtime.get("until"),
                     }
-                    visibility = "OpenCode + Ollama supervised process"
+                    current = usage.get("current_session") or {}
+                    current_tokens = current.get("current_context_tokens")
+                    if context_window and current_tokens is not None:
+                        current["context_window"] = context_window
+                        current["context_used_percent"] = round(
+                            100.0 * float(current_tokens) / context_window, 2
+                        )
+                    observed_gpu = float(
+                        (telemetry.get("gpu") or {}).get("utilization_percent") or observed_gpu
+                    )
+                    visibility = "OpenCode + Ollama supervised process; GPU is shared Ollama runtime"
 
                 lanes[lane] = {
                     "config": self.lane_config(lane),

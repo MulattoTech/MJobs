@@ -32,7 +32,8 @@
     "Isolated dashboard GET /api/state returned Codex 92% remaining and Windows GPU telemetry",
     "git diff --check: PASS",
     "WebSocket live-terminal tests including silent heartbeat: PASS",
-    "Exact historical Antigravity RESOURCE_EXHAUSTED wording classifier test: PASS"
+    "Exact historical Antigravity RESOURCE_EXHAUSTED wording classifier test: PASS",
+    "Real OpenCode #318 usage snapshot parsed current-session/worktree/model token and tool statistics: PASS"
   ],
   "limitations": [
     "Antigravity CLI exposes no local quota percentage endpoint found during inspection; dashboard marks quota unavailable.",
@@ -62,5 +63,31 @@
     ],
     "current_observation": "Current Gemini 3.8 Flash Medium native log continued successful streamGenerateContent responses into the 19:00 local hour, so the current lane is not presently quota-blocked.",
     "classification": "Per-run native logs are scanned for RESOURCE_EXHAUSTED / Individual quota reached; the dashboard flips to BLOCKED_QUOTA immediately when observed."
+  },
+  "ollama_token_accounting": {
+    "source": "OpenCode SQLite message/part records",
+    "current_acceptance_sample": {
+      "worktree_sessions": 34,
+      "worktree_cumulative_total_tokens": 3050971,
+      "worktree_input_tokens": 265710,
+      "worktree_output_tokens": 43504,
+      "worktree_cache_read_tokens": 2741757,
+      "worktree_output_tokens_per_wall_second": 10.42,
+      "current_session_assistant_turns": 12,
+      "current_session_tool_calls": 11,
+      "current_session_cumulative_total_tokens": 259582,
+      "current_session_cache_share_percent": 91.4
+    },
+    "displayed_dimensions": [
+      "current session context/input/output/reasoning/cache/processed tokens",
+      "assistant turns and tool-call/tool breakdown",
+      "context utilization versus loaded Ollama context window",
+      "generation wall time and output tokens/sec",
+      "worktree cumulative usage across sessions",
+      "selected-model all-time and last-24-hours usage",
+      "Ollama loaded model/size/processor/context",
+      "GPU offload cap plus observed Windows GPU utilization"
+    ],
+    "note": "Acceptance sample is historical evidence only; dashboard queries the live OpenCode database dynamically."
   }
 }

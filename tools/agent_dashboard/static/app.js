@@ -53,6 +53,86 @@ function processProof(data) {
     visibility_note:a.visibility_note||null,
   },null,2);
 }
+
+function fmtNum(value) {
+  const n=Number(value);
+  if(!Number.isFinite(n)) return "—";
+  return n.toLocaleString();
+}
+function fmtTokens(value) {
+  const n=Number(value);
+  if(!Number.isFinite(n)) return "—";
+  if(n>=1_000_000) return (n/1_000_000).toFixed(n>=10_000_000?1:2)+"M";
+  if(n>=1_000) return (n/1_000).toFixed(n>=100_000?0:1)+"K";
+  return n.toLocaleString();
+}
+function statTile(label,value,title="") {
+  return '<div class="token-stat"'+(title?' title="'+esc(title)+'"':'')+'><span>'+esc(label)+'</span><strong>'+esc(value)+'</strong></div>';
+}
+function renderTokenGroup(target, stats, extras={}) {
+  if(!target) return;
+  if(!stats) { target.innerHTML=statTile("Status","No data yet"); return; }
+  const tiles=[
+    ["Context",fmtTokens(stats.current_context_tokens)],
+    ["Input",fmtTokens(stats.input_tokens)],
+    ["Output",fmtTokens(stats.output_tokens)],
+    ["Reasoning",fmtTokens(stats.reasoning_tokens)],
+    ["Cache read",fmtTokens(stats.cache_read_tokens)],
+    ["Cache write",fmtTokens(stats.cache_write_tokens)],
+    ["Processed",fmtTokens(stats.cumulative_total_tokens)],
+    ["Turns",fmtNum(stats.assistant_turns)],
+  ];
+  if(stats.context_used_percent!=null) tiles.push(["Context used",Number(stats.context_used_percent).toFixed(1)+"%"]);
+  if(stats.output_tokens_per_wall_second!=null) tiles.push(["Output tok/s",Number(stats.output_tokens_per_wall_second).toFixed(2)]);
+  if(stats.cache_share_percent!=null) tiles.push(["Cache share",Number(stats.cache_share_percent).toFixed(1)+"%"]);
+  if(stats.tool_calls!=null) tiles.push(["Tool calls",fmtNum(stats.tool_calls)]);
+  if(stats.session_count!=null) tiles.push(["Sessions",fmtNum(stats.session_count)]);
+  for(const [k,v] of Object.entries(extras)) tiles.push([k,v]);
+  target.innerHTML=tiles.map(([label,value])=>statTile(label,value)).join("");
+}
+function renderOllamaStats(node, usage) {
+  const panel=$(".ollama-stats",node);
+  panel.classList.remove("hidden");
+  const current=usage?.current_session;
+  const worktree=usage?.worktree;
+  const all=usage?.model_all_time;
+  const day=usage?.model_24h;
+  const runtime=usage?.runtime||{};
+  renderTokenGroup($(".current-token-grid",node),current,{
+    "Elapsed":current?.elapsed_seconds!=null ? Math.round(current.elapsed_seconds)+"s" : "—",
+    "Finish":current?.latest_finish||"—",
+  });
+  renderTokenGroup($(".worktree-token-grid",node),worktree,{
+    "Sessions":fmtNum(usage?.session_count),
+  });
+  const modelCombined=all ? {...all} : null;
+  renderTokenGroup($(".model-token-grid",node),modelCombined,{
+    "24h input":fmtTokens(day?.input_tokens),
+    "24h output":fmtTokens(day?.output_tokens),
+    "24h cache":fmtTokens(day?.cache_read_tokens),
+  });
+  const raw={
+    current_session_id:current?.session_id,
+    title:current?.title,
+    model_id:current?.model_id,
+    provider_id:current?.provider_id,
+    current_context_tokens:current?.current_context_tokens,
+    context_window:current?.context_window||runtime.context_window,
+    context_used_percent:current?.context_used_percent,
+    tool_calls:current?.tool_calls,
+    tool_breakdown:current?.tool_breakdown,
+    reasoning_parts:current?.reasoning_parts,
+    assistant_active_seconds:current?.assistant_active_seconds,
+    generation_wall_seconds:current?.generation_wall_seconds,
+    output_tokens_per_wall_second:current?.output_tokens_per_wall_second,
+    runtime,
+    worktree_total:worktree,
+    selected_model_all_time:all,
+    selected_model_24h:day,
+  };
+  $(".ollama-raw-stats",node).textContent=JSON.stringify(raw,null,2);
+}
+
 function renderUsage(node, usage, lane) {
   const fill=$(".usage-fill",node);
   const title=$(".usage-title",node);
@@ -210,6 +290,9 @@ function updateCard(lane,data,coord) {
 
   const gpuControl=$(".gpu-control",node);
   gpuControl.classList.toggle("hidden",lane!=="ollama");
+  const ollamaStats=$(".ollama-stats",node);
+  ollamaStats.classList.toggle("hidden",lane!=="ollama");
+  if(lane==="ollama") renderOllamaStats(node,data.usage);
   if(!editing.has(lane)) {
     $(".model",node).value=cfg.model||"";
     $(".reasoning",node).value=cfg.reasoning||"";

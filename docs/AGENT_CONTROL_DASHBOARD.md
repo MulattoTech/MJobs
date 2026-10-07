@@ -121,3 +121,21 @@ execution stream.
 
 The terminal supports pause/resume without dropping received bytes, follow/autoscroll,
 clear-view, expand/collapse, source labels, and a heartbeat while an agent is quiet.
+
+
+## Expanded Ollama / OpenCode statistics
+
+The Ollama card reads OpenCode's structured local SQLite records instead of estimating
+token counts from terminal text. It separates the newest session from cumulative
+usage for the claimed worktree and the selected local model.
+
+Current-session metrics include context tokens, new input/output/reasoning tokens,
+cache read/write, cumulative processed tokens, assistant turns, tool-call count and
+tool breakdown, context utilization, elapsed/model-turn wall time, cache share and
+output-token throughput. Worktree totals aggregate all OpenCode sessions rooted at
+that claimed worktree. Model totals include all-time and last-24-hour usage for the
+selected Ollama model.
+
+Ollama runtime information (loaded model, memory size, processor/offload description,
+context window, keepalive) and observed Windows GPU utilization are shown separately
+from token accounting.

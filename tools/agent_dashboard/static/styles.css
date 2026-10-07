@@ -98,3 +98,14 @@ code { font-family:"Cascadia Code",Consolas,monospace; font-size:.95em; }
 .terminal-expanded { grid-column:1 / -1; }
 .terminal-expanded .terminal { height:68vh; max-height:68vh; }
 .terminal-details > summary { font-weight:600; }
+
+.ollama-stats { margin:.8rem 0; display:grid; gap:.65rem; }
+.stats-section { padding:.65rem; border:1px solid #293342; border-radius:9px; background:#0d1219; }
+.stats-title { color:#aeb8c8; font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em; margin-bottom:.45rem; }
+.token-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.38rem; }
+.token-stat { min-width:0; padding:.42rem .48rem; border-radius:7px; background:#151b25; border:1px solid #252e3a; }
+.token-stat span { display:block; color:#7f8b9c; font-size:.61rem; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.token-stat strong { display:block; margin-top:.12rem; font-size:.82rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ollama-raw-stats { max-height:28rem; }
+@media (max-width:1100px) { .token-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+@media (max-width:700px) { .token-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }

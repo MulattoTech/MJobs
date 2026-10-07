@@ -4,6 +4,7 @@ import json
 import os
 import queue
 import re
+import sqlite3
 import subprocess
 import threading
 import time
@@ -363,3 +364,208 @@ def prepare_ollama_model(base_model: str, percent: int, bus: Path) -> tuple[str,
         "derived": True,
         "alias": alias,
     }
+
+
+def _token_accumulator() -> dict[str, float]:
+    return {
+        "assistant_turns": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "reasoning_tokens": 0,
+        "cache_read_tokens": 0,
+        "cache_write_tokens": 0,
+        "cumulative_total_tokens": 0,
+        "cost": 0.0,
+        "generation_wall_seconds": 0.0,
+    }
+
+
+def _add_message_usage(acc: dict[str, float], data: dict[str, Any]) -> None:
+    if data.get("role") != "assistant":
+        return
+    tokens = data.get("tokens") or {}
+    cache = tokens.get("cache") or {}
+    acc["assistant_turns"] += 1
+    acc["input_tokens"] += int(tokens.get("input") or 0)
+    acc["output_tokens"] += int(tokens.get("output") or 0)
+    acc["reasoning_tokens"] += int(tokens.get("reasoning") or 0)
+    acc["cache_read_tokens"] += int(cache.get("read") or 0)
+    acc["cache_write_tokens"] += int(cache.get("write") or 0)
+    acc["cumulative_total_tokens"] += int(tokens.get("total") or 0)
+    acc["cost"] += float(data.get("cost") or 0)
+    timing = data.get("time") or {}
+    created = timing.get("created")
+    completed = timing.get("completed")
+    if created and completed and completed >= created:
+        acc["generation_wall_seconds"] += (completed - created) / 1000.0
+
+
+def _finalize_token_accumulator(acc: dict[str, float]) -> dict[str, Any]:
+    prompt_material = (
+        acc["input_tokens"] + acc["cache_read_tokens"] + acc["cache_write_tokens"]
+    )
+    turns = int(acc["assistant_turns"])
+    wall = float(acc["generation_wall_seconds"])
+    output = int(acc["output_tokens"])
+    return {
+        **{k: int(v) for k, v in acc.items() if k not in {"cost", "generation_wall_seconds"}},
+        "cost": round(float(acc["cost"]), 6),
+        "generation_wall_seconds": round(wall, 3),
+        "output_tokens_per_wall_second": round(output / wall, 2) if wall > 0 else None,
+        "avg_output_tokens_per_turn": round(output / turns, 1) if turns else None,
+        "cache_share_percent": round(
+            100.0 * acc["cache_read_tokens"] / prompt_material, 1
+        ) if prompt_material else None,
+    }
+
+
+def opencode_usage_snapshot(workspace: str | Path) -> dict[str, Any]:
+    db = Path.home() / ".local" / "share" / "opencode" / "opencode.db"
+    if not db.exists():
+        return {"available": False, "error": "OpenCode database not found"}
+    directory = Path(workspace).as_posix()
+    try:
+        con = sqlite3.connect(f"file:{db.as_posix()}?mode=ro", uri=True, timeout=2)
+        sessions = list(con.execute(
+            """
+            SELECT id, title, time_created, time_updated
+            FROM session
+            WHERE lower(directory) = lower(?)
+            ORDER BY time_updated DESC
+            """,
+            (directory,),
+        ))
+        if not sessions:
+            return {
+                "available": True,
+                "current_session": None,
+                "worktree": _finalize_token_accumulator(_token_accumulator()),
+                "session_count": 0,
+            }
+
+        latest_id, latest_title, latest_created, latest_updated = sessions[0]
+        current = _token_accumulator()
+        worktree = _token_accumulator()
+        latest_context = 0
+        latest_finish = None
+        latest_model = None
+        latest_provider = None
+        first_assistant_ms = None
+        last_completed_ms = None
+
+        session_ids = {row[0] for row in sessions}
+        for sid, data_text in con.execute(
+            "SELECT session_id, data FROM message WHERE session_id IN (%s)"
+            % ",".join("?" for _ in session_ids),
+            tuple(session_ids),
+        ):
+            try:
+                data = json.loads(data_text)
+            except Exception:
+                continue
+            if data.get("role") != "assistant":
+                continue
+            _add_message_usage(worktree, data)
+            if sid == latest_id:
+                _add_message_usage(current, data)
+                tokens = data.get("tokens") or {}
+                total = int(tokens.get("total") or 0)
+                timing = data.get("time") or {}
+                created = timing.get("created")
+                completed = timing.get("completed")
+                if first_assistant_ms is None or (created and created < first_assistant_ms):
+                    first_assistant_ms = created
+                if completed and (last_completed_ms is None or completed >= last_completed_ms):
+                    last_completed_ms = completed
+                    latest_context = total
+                    latest_finish = data.get("finish")
+                    latest_model = data.get("modelID")
+                    latest_provider = data.get("providerID")
+
+        tool_counts: dict[str, int] = {}
+        tool_calls = 0
+        reasoning_parts = 0
+        for (data_text,) in con.execute(
+            "SELECT data FROM part WHERE session_id = ?",
+            (latest_id,),
+        ):
+            try:
+                part = json.loads(data_text)
+            except Exception:
+                continue
+            typ = part.get("type")
+            if typ == "tool":
+                tool_calls += 1
+                tool = str(part.get("tool") or "unknown")
+                tool_counts[tool] = tool_counts.get(tool, 0) + 1
+            elif typ == "reasoning":
+                reasoning_parts += 1
+
+        current_final = _finalize_token_accumulator(current)
+        worktree_final = _finalize_token_accumulator(worktree)
+
+        model_all = _token_accumulator()
+        model_24h = _token_accumulator()
+        model_sessions: set[str] = set()
+        model_sessions_24h: set[str] = set()
+        if latest_model:
+            cutoff_ms = int(time.time() * 1000) - 86_400_000
+            for sid, created_ms, data_text in con.execute(
+                """
+                SELECT session_id, time_created, data
+                FROM message
+                WHERE json_extract(data, '$.role') = 'assistant'
+                  AND json_extract(data, '$.providerID') = 'ollama'
+                  AND json_extract(data, '$.modelID') = ?
+                """,
+                (latest_model,),
+            ):
+                try:
+                    data = json.loads(data_text)
+                except Exception:
+                    continue
+                _add_message_usage(model_all, data)
+                model_sessions.add(sid)
+                if created_ms and created_ms >= cutoff_ms:
+                    _add_message_usage(model_24h, data)
+                    model_sessions_24h.add(sid)
+
+        model_all_final = _finalize_token_accumulator(model_all)
+        model_all_final["session_count"] = len(model_sessions)
+        model_24h_final = _finalize_token_accumulator(model_24h)
+        model_24h_final["session_count"] = len(model_sessions_24h)
+
+        current_final.update({
+            "session_id": latest_id,
+            "title": latest_title,
+            "time_created_ms": latest_created,
+            "time_updated_ms": latest_updated,
+            "current_context_tokens": latest_context,
+            "latest_finish": latest_finish,
+            "model_id": latest_model,
+            "provider_id": latest_provider,
+            "tool_calls": tool_calls,
+            "tool_breakdown": dict(sorted(tool_counts.items(), key=lambda kv: (-kv[1], kv[0]))),
+            "reasoning_parts": reasoning_parts,
+            "elapsed_seconds": round(
+                max(0, (latest_updated - latest_created) / 1000.0), 1
+            ) if latest_created and latest_updated else None,
+            "assistant_active_seconds": round(
+                max(0, (last_completed_ms - first_assistant_ms) / 1000.0), 1
+            ) if first_assistant_ms and last_completed_ms else None,
+        })
+        return {
+            "available": True,
+            "current_session": current_final,
+            "worktree": worktree_final,
+            "session_count": len(sessions),
+            "model_all_time": model_all_final,
+            "model_24h": model_24h_final,
+        }
+    except Exception as exc:
+        return {"available": False, "error": str(exc)}
+    finally:
+        try:
+            con.close()
+        except Exception:
+            pass
