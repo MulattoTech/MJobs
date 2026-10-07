@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-07T18:30:39Z",
+  "issue": 517,
+  "requirement_id": "MJ-FEATURE-DISCOVERED-JOB-SOURCE-CATALOGUE",
+  "result": "PARTIAL",
+  "source_commit": "48d204aba31251179c4ff94d7b7d2ecac53a8a94",
+  "source_tree": "41b28c8678771814690c501698563390a1efacbf",
+  "base_main": "fe5be5b78232a5a81e0106ab76a99feb4b8f4ca2",
+  "acceptance_oracle": "When an already-supported employer-feed import adds jobs for a current profile and a job application URL points to a different website than the enrolled feed origin, the same import transaction records one profile-owned source-candidate observation linked to that job. Reimport is idempotent; rollback leaves no candidate; unknown attribution/hops remain explicit; candidate URLs are sanitized; collection remains disabled; already-enrolled same-origin jobs do not create redundant candidates. The connected Sources UI reads the feed-created record after reload and profile boundaries remain isolated.",
+  "red_observation": {
+    "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_source_candidates.SourceCandidateCaptureTests.test_supported_feed_import_catalogues_external_application_origin_idempotently tests.integration.test_source_candidates.SourceCandidateCaptureTests.test_supported_feed_does_not_catalogue_its_already_enrolled_employer_origin",
+    "result": "Before implementation, the positive integration oracle failed because the supported feed import produced zero source candidates; the same-origin negative control passed."
+  },
+  "implementation": [
+    "Company-feed imports now record a candidate only for profiles whose profile version is still current and only when the supplied application host differs from the enrolled feed host.",
+    "Each observation links the canonical job, records the sanitized feed endpoint and application URL, labels capture_method SUPPORTED_COLLECTION, sets origin attribution UNKNOWN and evidence status PARTIAL, and leaves redirect hops explicitly UNKNOWN.",
+    "The deterministic observation request identity makes feed replays idempotent; candidate writes share the feed job transaction so a failed import rolls them back.",
+    "Candidate capture/review does not fetch URLs, enroll sources, enable collection, or submit applications.",
+    "An additive Alembic revision admits SUPPORTED_COLLECTION observations; downgrade refuses to discard any such evidence."
+  ],
+  "validation": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_application_link_evidence tests.integration.test_company_discovery tests.integration.test_company_feed_quality tests.integration.test_company_monitoring_recovery tests.integration.test_company_source_view tests.integration.test_cross_provider_lifecycle tests.integration.test_discovery_requests tests.integration.test_job_lifecycle tests.integration.test_source_candidates tests.integration.test_source_value_integrity tests.integration.test_source_value_resolution tests.browser.test_audit_history tests.browser.test_company_source_view tests.browser.test_source_candidates",
+      "result": "PASS on exact source commit 48d204aba31251179c4ff94d7b7d2ecac53a8a94; 105 integration/connected Chromium tests, 0 failures/errors/skips."
+    },
+    {
+      "command": "npm ci --prefix apps/web",
+      "result": "PASS; 44 packages installed, 0 vulnerabilities. npm reported EBADENGINE because Node v25.9.0 is outside vitest@5.0.3 declared engine ranges."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS; TypeScript check and Vite production build."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m alembic upgrade head and guarded downgrade checks on disposable SQLite databases",
+      "result": "PASS; new head d5a7c81e240b applied; downgrade with a SUPPORTED_COLLECTION row was refused without loss, re-upgrade succeeded, and empty downgrade to bc517d01a320 succeeded."
+    },
+    {
+      "command": "Docker disposable PostgreSQL 17; mount this worktree read-only into mjobs-local:spine; python -m alembic upgrade head; typed observation insert; guarded downgrade check",
+      "result": "PASS; PostgreSQL applied the complete migration chain through d5a7c81e240b, accepted a SUPPORTED_COLLECTION observation, and preserved it when downgrade refusal fired. Temporary container and Docker network were removed; existing services/databases were not accessed."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m compileall -q services/discovery/company_feed.py services/source_candidates/catalogue.py packages/persistence/models.py migrations/versions/d5a7c81e240b_source_candidate_collection_observation.py tests/integration/test_source_candidates.py tests/browser/test_source_candidates.py",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.agent_skills; python -m tools.verification.catalogue; python -m tools.verification.progress validate; python -m tools.coordination.lane_coordination validate; git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "validation_history": [
+    "The first post-change combined focused run exposed a test assertion bug (iterating two candidate lists as one candidate) and the isolated browser checkout had not yet built apps/web/dist. The assertion was corrected, npm ci/build ran, and the exact-source 105-test integration/browser suite passed.",
+    "The first SQLite migration probe verified upgrade/downgrade assertions but exited nonzero because the probe left sqlite3 handles open during TemporaryDirectory cleanup. The corrected probe explicitly closed handles and exited 0 with all migration assertions passing."
+  ],
+  "scope": {
+    "database": "Synthetic SQLite API/browser fixtures plus isolated disposable PostgreSQL 17; no personal or persistent application database was used.",
+    "browser": "Local Chromium and loopback API; URL route guard blocked outbound browser traffic and observed none. The supported feed fixture was imported from supplied synthetic data without network access.",
+    "frontend": "TypeScript/Vite production build PASS; no frontend source changed. Frontend unit suite NOT_RUN.",
+    "migration": "SQLite and PostgreSQL full-chain upgrade, collection insert, refusal to discard observed rows, and empty downgrade were checked.",
+    "full_python_suite": "NOT_RUN; 105 directly affected integration/browser tests passed.",
+    "hosted_actions_review": "NOT_RUN_BY_USER_POLICY",
+    "external_submission": "OFF"
+  },
+  "limitations": [
+    "This slice covers supported company-feed imports only; other supported provider/browser discovery entry points remain incomplete.",
+    "Candidate evaluation evidence, documented access/capability/maintenance assessment, and bounded integration-task/provider-issue linking remain incomplete.",
+    "No collector was added or enabled. No TalentHop/source website was accessed. Issue #517 remains OPEN/PARTIAL.",
+    "Hosted checks/review NOT_RUN_BY_USER_POLICY; external application submission OFF."
+  ]
+}
