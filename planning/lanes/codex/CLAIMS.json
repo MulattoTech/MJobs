@@ -3,14 +3,14 @@
   "lane": "codex",
   "claims": [
     {
-      "issue": 403,
-      "requirement_id": "MJ-REF-033",
-      "branch": "codex/mj-ref-033-agent-run-limits-20261007",
-      "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-ref-033-agent-run-limits-20261007",
-      "head": "bf7a1c585f9abdf2a5fc10fff6ee20dd03677939",
-      "paths": ["services/agents/**", "tests/unit/test_agent*", "tests/integration/test_agent_tools.py", "docs/evidence/*.json", "docs/reference/REFERENCE_INSPIRATION_LOG.md", "planning/lanes/codex/**"],
+      "issue": 23,
+      "requirement_id": "MJ-REQ-022",
+      "branch": "codex/mj-req022-search-profile-selection-20261007",
+      "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req022-search-profile-selection-20261007",
+      "head": "74acc9f0b472034b575baa9f45d5aafe5ce7a4c0",
+      "paths": ["apps/web/src/main.tsx", "tests/browser/test_search_profile_selection.py", "docs/evidence/*.json", "planning/lanes/codex/**"],
       "status": "ACTIVE",
-      "claimed_at": "2026-10-07T08:22:59Z"
+      "claimed_at": "2026-10-07T08:38:39Z"
     }
   ]
 }

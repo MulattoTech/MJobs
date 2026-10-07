@@ -3,6 +3,17 @@
   "lane": "codex",
   "items": [
     {
+      "issue": 23,
+      "requirement_id": "MJ-REQ-022",
+      "status": "READY_FOR_INTEGRATION",
+      "priority": 1,
+      "target_area": "apps/web/src/main.tsx; tests/browser/test_search_profile_selection.py",
+      "depends_on": ["MJ-REQ-023"],
+      "evidence_path": "docs/evidence/2026-10-07-search-profile-selection.json",
+      "scope_complete": true,
+      "note": "Connects profile-owned saved searches to the Jobs view and existing profile-aware API. Loopback Chromium test verifies filtered response/readback, clearing, career-profile switching/isolation, and database reopen. Focused 18 Python tests, frontend 63 tests/build, and repository validators pass. Hosted checks NOT_RUN by policy; external submission OFF."
+    },
+    {
       "issue": 403,
       "requirement_id": "MJ-REF-033",
       "status": "ACTIVE_PARTIAL",

@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-07T08:42:39Z",
+  "issue": 23,
+  "requirement_id": "MJ-REQ-022",
+  "result": "PASS",
+  "source_commit": "74acc9f0b472034b575baa9f45d5aafe5ce7a4c0",
+  "base_main": "ece8b69189a5589a079c2b01aa43a57037605d07",
+  "acceptance_oracle": "Choose a saved search profile on Jobs; the UI calls /jobs with that profile ID and renders exactly the matching jobs. Changing the active career profile clears the prior profile selection and lists only the new profile's saved searches.",
+  "red_observation": "Before the UI change, the connected browser test failed because the Jobs view had no Saved search profile control.",
+  "implementation": [
+    "The Jobs view now offers profiles belonging only to the active career profile and sends the selected ID as search_profile_id to the existing profile-aware API.",
+    "Changing career profile immediately clears the saved-search list and selection. A stale prior-profile ID is not sent during the asynchronous profile refresh.",
+    "The existing database/API continue to own the profile criteria; no copy of filter criteria is stored in UI state or added to the schema."
+  ],
+  "validation": [
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.unit.test_search_semantics tests.integration.test_source_policy_scheduler tests.browser.test_search_profile_selection -v",
+      "result": "PASS",
+      "counts": {"passed": 18, "failed": 0, "skipped": 0}
+    },
+    {
+      "command": "python -m unittest tests.browser.test_search_profile_selection -v",
+      "result": "PASS",
+      "counts": {"passed": 1, "failed": 0, "skipped": 0}
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run",
+      "result": "PASS",
+      "counts": {"files": 13, "tests": 63, "failed": 0}
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "details": "TypeScript check and Vite production build completed."
+    },
+    {
+      "command": "python -m compileall -q tests/browser/test_search_profile_selection.py",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.agent_skills",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.catalogue",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.progress validate",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.coordination.lane_coordination validate",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "environment_attempts": [
+    {
+      "command": "python -m unittest tests.unit.test_search_semantics tests.integration.test_source_policy_scheduler tests.browser.test_search_profile_selection -v",
+      "result": "BLOCKED_ENVIRONMENT",
+      "details": "Global Python 3.12 lacked SQLAlchemy and Playwright; the unchanged test command passed using the checkout's dependency-complete .venv interpreter."
+    }
+  ],
+  "browser_evidence": {
+    "engine": "headless Chromium via Playwright",
+    "database": "temporary SQLite; profiles and discovered fixture jobs were read back after reopening Store",
+    "network": "browser requests were restricted to the isolated loopback API; no external requests observed",
+    "verified": [
+      "Selecting Python remote sent search_profile_id=python-search and returned only Python Developer.",
+      "Selecting Data remote sent search_profile_id=data-search and returned only Data Engineer.",
+      "Clearing the saved profile restored both jobs.",
+      "Switching career profile removed the first profile's saved options and selection; the other profile's saved search returned its filtered result."
+    ]
+  },
+  "environment": {
+    "os": "Windows",
+    "python": "3.12",
+    "node": "25.9.0",
+    "npm": "11.12.1",
+    "node_engine_notice": "Vitest declares Node ^22.12, ^24, or >=26; this environment's Node 25.9 emitted EBADENGINE but the full frontend suite and production build passed.",
+    "postgresql": "NOT_RUN; no schema or database-specific behavior changed",
+    "hosted_actions_and_review": "NOT_RUN by current local-only policy",
+    "external_submission": "OFF"
+  }
+}
