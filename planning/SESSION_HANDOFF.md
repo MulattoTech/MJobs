@@ -1032,3 +1032,11 @@ Claim release readback for the MJ-REQ-176 JOB_MERGED slice: https://github.com/M
 - Result: **PARTIAL**; issue #517 remains OPEN. Supported company-feed imports now atomically catalogue profile-owned third-party application hosts with explicit system-observed partial provenance, unknown origin/hops, sanitized URLs and collection disabled; same-origin and rollback/replay controls pass.
 - Validation: exact affected 105 Python integration/connected Chromium tests PASS; TypeScript/Vite build PASS; SQLite and disposable PostgreSQL 17 migration checks PASS; local validators PASS. Full Python and frontend unit suites NOT_RUN. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.
 - GitHub checkpoint https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6044306990; release readback https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6044308805. Remaining: other collection/browser entrypoints and candidate evaluation/integration task linkage. Codex claim released; reconcile and continue.
+
+
+## Integration receipt — issue #174 / MJ-REQ-173 — 2026-10-07T19:55:13Z
+
+- Source/test commit: c9b168b1c869cdac5ea9097ed61c81c67937f28c; integrated candidate/main: 84136dcabc99f831538b66f2450292152336750b from base 5be79530d5d669c5c2d6a00c38f37afe120ff16b by non-force fast-forward. Evidence: docs/evidence/2026-10-07-seven-kind-upload-security.json.
+- Result: PASS for upload-security acceptance across all seven supported uploaded document kinds. Overall product/release status remains PARTIAL.
+- Validation: 16 affected Python integration/connected Chromium tests PASS, zero skips; frontend 63 tests/build, SQLite migration preservation, repository validators, compileall and diff check PASS. PostgreSQL/Docker NOT_APPLICABLE; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.
+- Issue #174 close/release readback and Codex claim release are pending. After closeout, reconcile current main/claims/worktrees and immediately claim the next highest-value unclaimed dependency-ready issue.

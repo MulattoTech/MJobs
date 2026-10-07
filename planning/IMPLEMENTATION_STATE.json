@@ -11,7 +11,7 @@
     "current_verified_github_state": "Issue #179 / MJ-REQ-178 log retention acceptance PASS at 8bea57e595e19e638913405a8ec1cd3aa0ebde32; full product remains PARTIAL.",
     "current_verified_at": "2026-10-07T15:27:43Z"
   },
-  "current_milestone": "MJ-REQ-176-MOCK-SUBMITTED-HISTORY-PARTIAL-20261007",
+  "current_milestone": "MJ-REQ-173-SEVEN-KIND-UPLOAD-SECURITY-PASS-20261007",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -71,7 +71,8 @@
     "MJ-REQ-007 / issue #8: stated requirement acceptance PASS. Healthy Git source-control safety, conditional no-Git N/A, atomic private configuration initialization, prior backup/restore, SQLite/PostgreSQL migration rollback/retry, and protected credential migration rollback/retry with ciphertext-preserving downgrade refusal are evidenced in docs/evidence/2026-10-07-source-change-safety-completion.json. Offline SQL generation probe failure at existing cb72f9041d6a remains separately recorded and is outside issue acceptance. Full repository release remains PARTIAL; hosted checks NOT_RUN_BY_USER_POLICY.",
     "MJ-REQ-180 / issue #181 acceptance PASS: all discovered production CLI screenshot artifact paths route through screenshot-only content masking; arbitrary DOM and pseudo-element text plus embedded image/canvas/video/frame content are suppressed, sensitive controls remain blacked out, and the live page remains unchanged. No product HTML snapshot/trace persistence found. Evidence docs/evidence/2026-10-07-feedback-screenshot-content-masking.json. Connected UI E2E NOT_RUN; hosted checks NOT_RUN_BY_USER_POLICY; overall product/release remains PARTIAL.",
     "MJ-REQ-178 / issue #179 Log Retention PASS: all nine Compose services configure bounded json-file rotation (10 MiB × 5). Isolated no-network Docker runtime test proved rollover: 50 large synthetic lines emitted, 11 retained with 1 MiB × 2 cap, exit 0, temporary container removed; personal MJobs stack untouched. Existing evidence/tests confirm feedback sessions expire after 30 days, raw Playwright traces are not written and no product HTML snapshot writer exists. Related suite 20 PASS; Compose render and validators PASS. Evidence docs/evidence/2026-10-07-compose-log-rotation.json. Issue CLOSED/readback verified; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
-    "MJ-REQ-165 / issue #166 Full-Text Search PASS: PostgreSQL GIN full-text indexes cover title, description, JSON skills and location plus company names; GET /jobs?q= searches all five required fields, with connected UI/API readback and saved-search compatibility. Evidence: docs/evidence/2026-10-07-full-text-search.json. Source 108c502ce0b2c8aa92a4868b09687b4b4a0206f1; integrated code/evidence at 59039a51701258a35c93fc7deca6fbf85d72fddd. Full Python 962 tests/8 skipped, frontend 63/build, connected Chromium, SQLite/PostgreSQL migrations and index-plan checks PASS. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF."
+    "MJ-REQ-165 / issue #166 Full-Text Search PASS: PostgreSQL GIN full-text indexes cover title, description, JSON skills and location plus company names; GET /jobs?q= searches all five required fields, with connected UI/API readback and saved-search compatibility. Evidence: docs/evidence/2026-10-07-full-text-search.json. Source 108c502ce0b2c8aa92a4868b09687b4b4a0206f1; integrated code/evidence at 59039a51701258a35c93fc7deca6fbf85d72fddd. Full Python 962 tests/8 skipped, frontend 63/build, connected Chromium, SQLite/PostgreSQL migrations and index-plan checks PASS. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
+    "MJ-REQ-173 upload security across all seven supported document kinds; evidence docs/evidence/2026-10-07-seven-kind-upload-security.json"
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
@@ -360,7 +361,8 @@
     "Issue #517 supported company-feed source-candidate capture exact source 48d204a: 105 affected integration/connected Chromium tests PASS; disposable SQLite and PostgreSQL 17 Alembic upgrade/typed-write/downgrade-preservation PASS; TypeScript/Vite build and deterministic repository validators PASS.",
     "Issue #166 / MJ-REQ-165 full-text search: focused API/browser and saved-search compatibility 3 PASS; full Python 962 run/8 skipped; frontend 63 PASS/build PASS; PostgreSQL 17 full migration and API acceptance PASS; both GIN expression indexes matched by EXPLAIN; SQLite/PostgreSQL migration downgrade/re-upgrade and PostgreSQL row preservation PASS; deterministic validators PASS. Evidence docs/evidence/2026-10-07-full-text-search.json.",
     "MJ-REQ-176 mock submission audit: 34 affected Python integration/browser tests PASS, including connected Chromium Activity reload/profile isolation; frontend 63 tests/build PASS; changed-file compile and local validators PASS.",
-    "Isolated rerun of tests.browser.test_company_discovery_requests.CompanyDiscoveryRequestsBrowserTests.test_real_collection_request_review_worker_and_identity_separation: 1 PASS after the full suite shutdown assertion failure."
+    "Isolated rerun of tests.browser.test_company_discovery_requests.CompanyDiscoveryRequestsBrowserTests.test_real_collection_request_review_worker_and_identity_separation: 1 PASS after the full suite shutdown assertion failure.",
+    "MJ-REQ-173 exact candidate 84136dc: 16 affected integration/connected Chromium tests PASS with zero skips; frontend 63 tests/build; SQLite migration preservation and repository validators PASS."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -479,10 +481,10 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "commit": "bd251813996deac05010d1d080a7ec5671a0dbd9",
-    "result": "PARTIAL",
-    "evidence": "docs/evidence/2026-10-07-application-submit-audit.json",
-    "verified_at_utc": "2026-10-07T19:37:19Z"
+    "commit": "84136dcabc99f831538b66f2450292152336750b",
+    "result": "PASS",
+    "evidence": "docs/evidence/2026-10-07-seven-kind-upload-security.json",
+    "verified_at_utc": "2026-10-07T19:55:13Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -586,7 +588,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "108c502ce0b2c8aa92a4868b09687b4b4a0206f1",
+  "last_implementation_commit": "84136dcabc99f831538b66f2450292152336750b",
   "publication": {
     "result": "PASS",
     "integration_method": "NON_FORCE_FAST_FORWARD",
@@ -9266,12 +9268,53 @@
         "git_commit": "bd251813996deac05010d1d080a7ec5671a0dbd9",
         "evidence_path": "docs/evidence/2026-10-07-application-submit-audit.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-173-SEVEN-KIND-UPLOAD-SECURITY-PASS-20261007",
+      "timestamp": "2026-10-07T19:55:13Z",
+      "current_phase": "MJ_REQ_173_UPLOAD_SECURITY_ACCEPTED_ACROSS_SUPPORTED_DOCUMENT_KINDS",
+      "completed_steps": [
+        "Integrated candidate 84136dcabc99f831538b66f2450292152336750b from base 5be79530d5d669c5c2d6a00c38f37afe120ff16b by non-force fast-forward under the Codex integration lock",
+        "Verified MIME, extension, content, actual streamed size, filename and path safeguards across all seven uploaded document kinds",
+        "Verified executable rejection, duplicate-name safety, profile isolation, Store reopen and connected browser reload/readback",
+        "Requirement MJ-REQ-173 is PASS; overall product/release status remains PARTIAL"
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-07-seven-kind-upload-security.json"
+      ],
+      "files_modified": [
+        "tests/integration/test_document_library.py"
+      ],
+      "tests_completed": [
+        "16 focused Python integration/browser tests PASS, zero failures/errors/skips; connected Chromium and SQLite migration preservation included",
+        "Frontend 13 files / 63 tests PASS and TypeScript/Vite production build PASS",
+        "agent-skills, catalogue, progress, lane coordination, compileall, JSON and diff validators PASS"
+      ],
+      "tests_remaining": [
+        "PostgreSQL/Docker NOT_APPLICABLE for this no-schema-change slice",
+        "GitHub hosted checks/reviews NOT_RUN_BY_USER_POLICY; full MJobs product/release requirements remain open"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Synthetic temporary SQLite database and local loopback Chromium only; no employer/provider or external application requests"
+      ],
+      "known_errors": [
+        "An initial browser matrix lacked the isolated worktree frontend build; npm ci/build resolved setup and isolated retest plus final matrix passed."
+      ],
+      "known_limitations": [
+        "External application submission remains OFF; hosted verification remains NOT_RUN_BY_USER_POLICY; overall product/release remains PARTIAL."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "84136dcabc99f831538b66f2450292152336750b",
+        "evidence_path": "docs/evidence/2026-10-07-seven-kind-upload-security.json"
+      },
+      "source_test_commit": "c9b168b1c869cdac5ea9097ed61c81c67937f28c"
     }
   ],
-  "current_phase": "MJ_REQ_176_MOCK_APPLICATION_SUBMITTED_AUDIT_PARTIAL_INTEGRATED",
+  "current_phase": "MJ_REQ_173_UPLOAD_SECURITY_ACCEPTED_ACROSS_SUPPORTED_DOCUMENT_KINDS",
   "last_safe_checkpoint": {
-    "git_commit": "bd251813996deac05010d1d080a7ec5671a0dbd9",
-    "evidence_path": "docs/evidence/2026-10-07-application-submit-audit.json"
+    "git_commit": "84136dcabc99f831538b66f2450292152336750b",
+    "evidence_path": "docs/evidence/2026-10-07-seven-kind-upload-security.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -10726,5 +10769,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-07T19:04:58Z"
+  "updated_at": "2026-10-07T19:55:13Z"
 }

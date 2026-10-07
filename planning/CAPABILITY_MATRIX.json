@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-07T19:37:19Z",
+  "timestamp": "2026-10-07T19:55:13Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -1458,11 +1458,12 @@
     },
     {
       "requirement_id": "MJ-REQ-173",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
-        "docs/evidence/2026-09-30-pr004-upload-restore-local.json"
+        "docs/evidence/2026-09-30-pr004-upload-restore-local.json",
+        "docs/evidence/2026-10-07-seven-kind-upload-security.json"
       ],
-      "note": "Local resume endpoint bounds raw bodies to 10 MiB, checks extension/MIME/content, rejects unsafe names and DOCX entries, scopes profile reads and verifies stored hashes. Broader upload-security acceptance across future document types remains open."
+      "note": "Upload validation is verified across all seven supported document kinds: MIME/extension/content, actual streamed size including underreported Content-Length, filename normalization/length, path traversal, executable rejection, duplicate display-name preservation, profile isolation, durable reopen and connected browser reload/readback. Scoped requirement PASS is local-only; hosted checks remain NOT_RUN_BY_USER_POLICY and overall product/release status remains PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-174",
