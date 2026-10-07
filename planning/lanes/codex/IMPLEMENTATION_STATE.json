@@ -6,14 +6,15 @@
   "current_issue": 5,
   "requirement_id": "MJ-REQ-004",
   "branch": "codex/req004-ai-evaluation-deadline-20261007",
-  "head": "1ee2c046f0ce39cbd2fe3df2caa0997d965d74f6",
+  "head": "1f2e0a4fd6c6c445ca1e47cfd39be39df9a06fda",
   "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-req004-ai-evaluation-deadline-20261007",
   "result": "PARTIAL",
   "evidence_path": "docs/evidence/2026-10-07-ai-evaluation-time-budget.json",
   "last_completed": {
-    "issue": 111,
-    "requirement_id": "MJ-REQ-110",
-    "integration_commit": "32318f828dcf8a067d89a2321ca962655c968e1d"
+    "issue": 5,
+    "requirement_id": "MJ-REQ-004",
+    "integration_commit": "1f2e0a4fd6c6c445ca1e47cfd39be39df9a06fda",
+    "slice_status": "PARTIAL"
   },
   "next_candidates": [
     {

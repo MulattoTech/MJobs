@@ -20,7 +20,7 @@
         "tests/integration/test_ai_cost_policy_api.py",
         "docs/evidence/2026-10-07-ai-evaluation-time-budget.json"
       ],
-      "head": "1ee2c046f0ce39cbd2fe3df2caa0997d965d74f6",
+      "head": "1f2e0a4fd6c6c445ca1e47cfd39be39df9a06fda",
       "pid": null
     }
   ]

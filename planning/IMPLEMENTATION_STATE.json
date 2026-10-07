@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-07T03:04:22Z",
+  "generated_at": "2026-10-07T03:12:34Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -8,10 +8,10 @@
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
     "current_verified_local_state": "Local main/origin main synchronized; Remote OK global job-source adapter (MJ-REQ-017.S07) integrated at daa37f52be3e26bbd29094ea40befd18aacbed3a; parent MJ-REQ-017 remains PARTIAL/OPEN.",
-    "current_verified_github_state": "GitHub/local main synchronized at 17b9888657c49e0e10ef1fb937a59ef6b6714eb6; issue #111 OPEN/PARTIAL; Actions disabled; external submission OFF.",
-    "current_verified_at": "2026-10-07T03:04:22Z"
+    "current_verified_github_state": "GitHub/local main synchronized at 1f2e0a4fd6c6c445ca1e47cfd39be39df9a06fda; issue #5 OPEN/PARTIAL; Actions disabled; external submission OFF.",
+    "current_verified_at": "2026-10-07T03:12:34Z"
   },
-  "current_milestone": "MJ-REQ-110-REVIEW-GATED-CONSUMER-INTEGRATED-PARTIAL-20261007",
+  "current_milestone": "MJ-REQ-004-AI-EVALUATION-TIME-BUDGET-INTEGRATED-PARTIAL-20261007",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -99,7 +99,8 @@
   ],
   "blocked_capabilities": [],
   "active_requirements": [
-    "MJ-REQ-108"
+    "MJ-REQ-108",
+    "MJ-REQ-004"
   ],
   "active_prs": [],
   "tests_passed": [
@@ -281,7 +282,8 @@
     "MJ-REQ-109 per-profile AI settings candidate a6d64f8: 346 unit, 381 integration (1 optional skip), 38 browser, 62 frontend tests; Vite build; SQLite/PostgreSQL migrations and API persistence; populated downgrade refusal; validators PASS (docs/evidence/2026-10-06-ai-task-settings-persistence.json).",
     "MJ-REQ-109 integration receipt: source a6d64f82598df9eebab6601dafd386b07409706f and evidence/planning checkpoint integrated by non-force fast-forward at synchronized local/GitHub main f6549b8dd2cb7bced64223f30b3870511cd1ba3a; issue #110 remains OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/110#issuecomment-6024402366; exact checkpoint document validators passed.",
     "MJ-REQ-110 candidate 93e152dbff89c74b5075ce4df703c82cb4da8883: 346 unit tests, 384 integration tests (1 optional PG skip), 38 connected browser tests, 62 frontend tests, build, direct SQLite/PG migration/persistence checks and repository validators PASS; evidence docs/evidence/2026-10-06-ai-cost-controls-ui.json.",
-    "MJ-REQ-110 issue #111 takeover at code head c9276be112cf8db636bd783dc7eb7ad41b539c35: 15 focused consumer/API/SQLite-migration/browser tests PASS; 62 frontend tests, Vite build and agent-skills/catalogue/progress/diff validators PASS. Exact command and limits: docs/evidence/2026-10-07-ai-cost-consumer-resume.json."
+    "MJ-REQ-110 issue #111 takeover at code head c9276be112cf8db636bd783dc7eb7ad41b539c35: 15 focused consumer/API/SQLite-migration/browser tests PASS; 62 frontend tests, Vite build and agent-skills/catalogue/progress/diff validators PASS. Exact command and limits: docs/evidence/2026-10-07-ai-cost-consumer-resume.json.",
+    "MJ-REQ-004 issue #5 AI evaluation batch deadline integrated from tested source 1ee2c046f0ce39cbd2fe3df2caa0997d965d74f6: 42 focused AI unit/API/browser tests; frontend 62 tests/build; compileall and agent-skills/catalogue/progress/lane-coordination/diff checks PASS. Evidence docs/evidence/2026-10-07-ai-evaluation-time-budget.json."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -320,7 +322,8 @@
     "MJ-REQ-108.A06 browser acceptance NOT_APPLICABLE (internal provider contract); external provider calls and GitHub hosted checks NOT_RUN by current policy; full integration suite NOT_RUN because application workflow wiring is outside this child slice.",
     "MJ-REQ-109: live model inference and production consumer wiring NOT_RUN; remote/paid models and hosted Actions/reviews NOT_RUN by policy. Browser persistence/profile isolation passed (docs/evidence/2026-10-06-ai-task-settings-persistence.json).",
     "MJ-REQ-110 production matching/model consumer, real provider inference and reviewed-document generation NOT_RUN; policy preview is read-only. Hosted checks/reviews NOT_RUN by policy; external submission OFF.",
-    "MJ-REQ-110 takeover: full Python discovery started and was interrupted before completion; no aggregate result. Live configured-provider inference, PostgreSQL runtime migration, GitHub Actions and hosted review NOT_RUN; external submission OFF (docs/evidence/2026-10-07-ai-cost-consumer-resume.json)."
+    "MJ-REQ-110 takeover: full Python discovery started and was interrupted before completion; no aggregate result. Live configured-provider inference, PostgreSQL runtime migration, GitHub Actions and hosted review NOT_RUN; external submission OFF (docs/evidence/2026-10-07-ai-cost-consumer-resume.json).",
+    "MJ-REQ-004 AI timeout slice: full repository Python suite and live provider inference NOT_RUN; GitHub Actions/hosted review NOT_RUN_BY_USER_POLICY. Other operation classes remain incomplete; external submission OFF. Evidence docs/evidence/2026-10-07-ai-evaluation-time-budget.json."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -351,13 +354,13 @@
     "MJ-REQ-004 candidate 3d604b27b1a4c25e2ff0ee6fa68a07e9ff8f74a0: full suite initially saw stale ignored apps/web/dist; rebuilding restored current Sources UI and isolated browser acceptance. A first rebuilt full run later hit the known intermittent CompanyDiscoveryRequestsBrowserTests server-thread shutdown assertion; isolated case and all 35 browser tests passed, followed by a same-head 680-test full suite pass. Do not weaken shutdown timeout; evidence docs/evidence/2026-10-06-bounded-ocr-diagnostics.json."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-07T03:04:22Z",
+    "timestamp": "2026-10-07T03:12:34Z",
     "result": "PARTIAL",
-    "source_commit": "c9276be112cf8db636bd783dc7eb7ad41b539c35",
-    "source_tree": "8493a2ff7002cdeadc4eb11b4137fa32fe239f64",
-    "scope": "MJ-REQ-110 focused bounded evaluation consumer, durable history, capped explicit review, and factual preparation checks passed; incomplete full-suite and unavailable provider limitations retained.",
-    "evidence_path": "docs/evidence/2026-10-07-ai-cost-consumer-resume.json",
-    "integration_commit": "17b9888657c49e0e10ef1fb937a59ef6b6714eb6"
+    "source_commit": "1ee2c046f0ce39cbd2fe3df2caa0997d965d74f6",
+    "source_tree": "9a4b83d241c70d0a802244b9fbdc35827df6ac23",
+    "scope": "Bound the whole sequential structured AI evaluation operation to 120 seconds, preserve sanitized timeout classification and refuse partial evaluation history; only affected suites run.",
+    "evidence_path": "docs/evidence/2026-10-07-ai-evaluation-time-budget.json",
+    "integration_commit": "1f2e0a4fd6c6c445ca1e47cfd39be39df9a06fda"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -461,7 +464,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "17b9888657c49e0e10ef1fb937a59ef6b6714eb6",
+  "last_implementation_commit": "1f2e0a4fd6c6c445ca1e47cfd39be39df9a06fda",
   "publication": {
     "result": "PASS",
     "integration_method": "NON_FORCE_FAST_FORWARD",
@@ -6918,12 +6921,75 @@
         "main_protected": false,
         "open_prs": 0
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-004-AI-EVALUATION-TIME-BUDGET-20261007",
+      "timestamp": "2026-10-07T03:12:34Z",
+      "current_phase": "Issue #5 / MJ-REQ-004 AI evaluation time-budget slice integrated by non-force fast-forward at synchronized local/GitHub main 1f2e0a4fd6c6c445ca1e47cfd39be39df9a06fda. Issue remains OPEN/PARTIAL; other operation classes, cancellation and retry acceptance remain.",
+      "completed_steps": [
+        "Selected and claimed the unowned AI timeout acceptance slice on issue #5 after reconciling Antigravity #302 and Ollama #318 active claims and their disjoint paths.",
+        "Added a monotonic 120-second whole-batch deadline, passed remaining time to each provider call, and preserved sanitized timeout classification through API handling.",
+        "Verified timeout after one successful candidate returns 504 without persisting partial history.",
+        "Integrated source/evidence by non-force fast-forward at synchronized main 1f2e0a4fd6c6c445ca1e47cfd39be39df9a06fda.",
+        "Read back issue #5 OPEN after sanitized evidence comment https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6030124111."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-07-ai-evaluation-time-budget.json"
+      ],
+      "files_modified": [
+        "apps/api/main.py",
+        "services/ai/AREA.md",
+        "services/ai/consumer.py",
+        "services/ai/providers/__init__.py",
+        "services/ai/providers/ollama.py",
+        "services/ai/tasks.py",
+        "tests/integration/test_ai_cost_policy_api.py",
+        "tests/unit/test_ai_cost_consumer.py",
+        "tests/unit/test_ollama_provider.py",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "42 focused Python consumer/structured-output/task/provider/API/browser tests PASS.",
+        "62 frontend tests PASS and Vite production build PASS.",
+        "Connected AI settings Chromium test PASS.",
+        "compileall, agent skills, catalogue, progress journal, lane coordination and git diff validators PASS."
+      ],
+      "tests_remaining": [
+        "Full repository Python discovery and live provider inference NOT_RUN.",
+        "PostgreSQL runtime and hosted Actions/reviews NOT_RUN for this slice.",
+        "MJ-REQ-004 and issue #5 remain PARTIAL for other operation classes, cancellation and retry acceptance."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "Node v25.9.0 is outside Vitest 5.0.3 declared engine range, but lockfile install, all 62 frontend tests, TypeScript and Vite build passed.",
+        "No provider credentials or live inference used; no external submission."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "1f2e0a4fd6c6c445ca1e47cfd39be39df9a06fda",
+        "evidence_path": "docs/evidence/2026-10-07-ai-evaluation-time-budget.json"
+      },
+      "integration": {
+        "method": "NON_FORCE_FAST_FORWARD",
+        "base": "32318f828dcf8a067d89a2321ca962655c968e1d",
+        "main": "1f2e0a4fd6c6c445ca1e47cfd39be39df9a06fda",
+        "source_branch": "codex/req004-ai-evaluation-deadline-20261007",
+        "source_commit": "1ee2c046f0ce39cbd2fe3df2caa0997d965d74f6",
+        "issue_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6030124111",
+        "actions_enabled": false,
+        "main_protected": false,
+        "open_prs": 0
+      }
     }
   ],
-  "current_phase": "Issue #111 / MJ-REQ-110 bounded structured consumer and review-gated factual preparation slice integrated by non-force fast-forward at synchronized local/GitHub main 17b9888657c49e0e10ef1fb937a59ef6b6714eb6. Issue remains OPEN/PARTIAL; provider inference and full Python discovery were not run. Reconcile active claims and select the next independent dependency-ready issue.",
+  "current_phase": "Issue #5 / MJ-REQ-004 AI evaluation time-budget slice integrated by non-force fast-forward at synchronized local/GitHub main 1f2e0a4fd6c6c445ca1e47cfd39be39df9a06fda. Issue remains OPEN/PARTIAL; other operation classes, cancellation and retry acceptance remain.",
   "last_safe_checkpoint": {
-    "git_commit": "17b9888657c49e0e10ef1fb937a59ef6b6714eb6",
-    "evidence_path": "docs/evidence/2026-10-07-ai-cost-consumer-resume.json"
+    "git_commit": "1f2e0a4fd6c6c445ca1e47cfd39be39df9a06fda",
+    "evidence_path": "docs/evidence/2026-10-07-ai-evaluation-time-budget.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -8194,7 +8260,7 @@
     "MJ-REQ-017.S07 Remote OK global job-source adapter: 10 integration tests PASS in 9.3s; 66 discovery source tests PASS; 361 unit tests PASS; 62 frontend tests/build PASS; local validators PASS. Evidence docs/evidence/2026-10-06-remote-ok-job-source-adapter.json.",
     "MJ-REQ-110 takeover candidate code c9276be112cf8db636bd783dc7eb7ad41b539c35: 15 focused consumer/API/migration/browser tests, 62 frontend tests/build, and local validators PASS. Full Python discovery was interrupted (no aggregate result); live provider inference and hosted checks NOT_RUN. Evidence docs/evidence/2026-10-07-ai-cost-consumer-resume.json. Candidate plus evidence/planning pushed as aa05f692ce20d8b0c81fff2da6b93251fe5df6e5; issue remains OPEN/PARTIAL."
   ],
-  "ownership": "MJ-REQ-110 issue #111 review-gated consumer/evidence/planning integrated by non-force fast-forward at synchronized local and GitHub main 17b9888657c49e0e10ef1fb937a59ef6b6714eb6. Evidence docs/evidence/2026-10-07-ai-cost-consumer-resume.json; issue readback remains OPEN/PARTIAL at https://github.com/MulattoTech/MJobs/issues/111#issuecomment-6030035838. Focused local API/migration/browser and frontend/build checks pass; full Python discovery, live provider inference, PostgreSQL runtime migration and hosted checks NOT_RUN. External submission OFF. Continue after claim reconciliation.",
+  "ownership": "MJ-REQ-004 issue #5 AI evaluation timeout slice and evidence/planning integrated by non-force fast-forward to synchronized local/GitHub main 1f2e0a4fd6c6c445ca1e47cfd39be39df9a06fda; issue remains OPEN/PARTIAL after readback https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6030124111. Focused tests and validators pass; full repository suite and live inference NOT_RUN; hosted checks NOT_RUN by policy; external submission OFF. Reconcile active lanes and choose another independent dependency-ready requirement.",
   "delivery_policy": {
     "mode": "LOCAL_ONLY",
     "effective_at": "2026-10-05T21:32:10.763994+00:00",
@@ -8207,5 +8273,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-07T03:04:22Z"
+  "updated_at": "2026-10-07T03:12:34Z"
 }
