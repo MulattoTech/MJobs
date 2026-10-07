@@ -132,6 +132,44 @@
         "The real synthetic PREPARE worker result remains the earlier isolated run recorded above; source files are unchanged since that run.",
         "Live configured-provider inference, PostgreSQL runtime migration checks, full Python discovery, and hosted checks remain NOT_RUN."
       ]
+    },
+    "current_lane_checkpoint_validation": {
+      "verified_at_utc": "2026-10-07T01:15:57Z",
+      "validated_head": "5efb3406bbc605ba683b5b6250d11098c5507ab8",
+      "validated_tree": "8df82383f736d1b749dbfee8af6f67143453c47d",
+      "source_diff_since_worker_acceptance": "none; source remains identical to validated source head f7fee34492a6303bb051f5adea3e2a84d49c8a48",
+      "commands": [
+        {
+          "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_ai_cost_policy_api tests.integration.test_ai_document_review_migration tests.unit.test_ai_cost_consumer tests.unit.test_ai_cost_controls tests.browser.test_ai_task_settings",
+          "result": "PASS",
+          "detail": "20 tests passed in 9.035s; temporary SQLite migration paths; no external provider calls."
+        },
+        {
+          "command": "npm test --prefix apps/web -- --run",
+          "result": "PASS",
+          "detail": "13 files and 62 frontend tests passed."
+        },
+        {
+          "command": "npm run build --prefix apps/web",
+          "result": "PASS",
+          "detail": "TypeScript check and Vite production build passed."
+        },
+        {
+          "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.agent_skills; C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.catalogue; C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.progress validate",
+          "result": "PASS"
+        },
+        {
+          "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m compileall -q apps/api/main.py packages/persistence/models.py packages/persistence/store.py migrations/versions/a4c19e7d603b_persist_ai_evaluation_history.py migrations/versions/c90d4a12fe37_record_ai_document_reviews.py services/ai/consumer.py tests/integration/test_ai_cost_policy_api.py tests/integration/test_ai_document_review_migration.py tests/unit/test_ai_cost_consumer.py tests/browser/test_ai_task_settings.py; git diff --check",
+          "result": "PASS"
+        }
+      ],
+      "not_run": [
+        "Live configured-provider inference; the active Ollama lane owns the shared local inference runtime.",
+        "PostgreSQL runtime migration; the already-running personal PostgreSQL service was left untouched.",
+        "Full Python test discovery.",
+        "Hosted checks and reviews under the active local-only budget policy."
+      ],
+      "real_document_worker": "PASS from the earlier isolated synthetic run recorded above; unchanged source since that run."
     }
   },
   "limitations": [
@@ -158,7 +196,7 @@
   },
   "external_submission_enabled": false,
   "hosted_verification": "NOT_RUN_BY_USER_POLICY",
-  "validated_head": "f7fee34492a6303bb051f5adea3e2a84d49c8a48",
-  "validated_tree": "661b0790696a62519cbd5524a10cacab99fd0c26",
-  "verified_at_utc": "2026-10-07T01:05:13Z"
+  "validated_head": "5efb3406bbc605ba683b5b6250d11098c5507ab8",
+  "validated_tree": "8df82383f736d1b749dbfee8af6f67143453c47d",
+  "verified_at_utc": "2026-10-07T01:15:57Z"
 }

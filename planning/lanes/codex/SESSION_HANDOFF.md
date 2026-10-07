@@ -7,9 +7,13 @@ C:/Tools/Dev/MJobs/.worktrees/codex-mj-req110-review-consumer-20261006 on
 codex/mj-req110-review-consumer-20261006.
 
 Fetched origin/main at 54be81542d9ab594c9418f15223e9c2aef02249d. It is the
-branch merge-base; the clean claimed worktree already contains that main, so no
-additional merge was needed. The review-gated consumer and evidence were verified
-at source head f7fee34492a6303bb051f5adea3e2a84d49c8a48 (tree 661b0790696a62519cbd5524a10cacab99fd0c26).
+branch merge-base, so no additional merge was needed. Current validated code head
+5efb3406bbc605ba683b5b6250d11098c5507ab8 (tree
+8df82383f736d1b749dbfee8af6f67143453c47d). Changes after the validated source
+head are evidence and Codex lane handoff updates only. Review-gated consumer and
+source were verified at f7fee34492a6303bb051f5adea3e2a84d49c8a48 (tree
+661b0790696a62519cbd5524a10cacab99fd0c26). No source files changed after that
+accepted implementation.
 
 Durable review is per profile and evaluation run, bounded by the saved document
 candidate cap, and rejected after profile changes or without the matching review
@@ -20,11 +24,13 @@ PREPARED with document version 1. Synthetic input included explicit responsibili
 evidence; no provider or external submission was used.
 
 Evidence: docs/evidence/2026-10-06-ai-cost-review-gated-documents.json.
-Focused Python/API/browser/migration: 20 PASS; real worker: COMPLETED; frontend:
-62 PASS and build PASS; agent-skills/catalogue/progress, compileall, and diff check
-PASS. Live configured-provider inference remains NOT_RUN because the active Ollama
-lane shares the local runtime. PostgreSQL runtime migration, full Python discovery,
-and hosted checks remain NOT_RUN. External submission remains OFF.
+Fresh focused Python/API/browser/migration: 20 PASS; frontend: 62 PASS and build
+PASS; agent-skills/catalogue/progress, compileall, and diff check PASS at
+2026-10-07T01:15:57Z. Earlier isolated real synthetic worker: COMPLETED with
+PREPARED document v1. Live configured-provider inference remains NOT_RUN because
+the active Ollama lane owns the shared runtime. PostgreSQL runtime migration was
+not run because the personal database service is already in use. Full Python
+discovery and hosted checks remain NOT_RUN. External submission remains OFF.
 
 Do not update canonical planning outside the integration lock. Continue only issue
 #111 / MJ-REQ-110; do not overlap Antigravity or Ollama scopes.
