@@ -1229,7 +1229,7 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-048-orchestration-data-security",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Profile-scoped activity timeline and deterministic JOB_DISCOVERED/MATCH_SCORED producers integrated as PARTIAL at 209ec4aff8e2fd9d0440df9681f2e9f745215de0; evidence docs/evidence/2026-10-07-profile-audit-history.json and docs/evidence/2026-10-07-profile-audit-job-events.json. Issue #177 remains OPEN; company/source enrollment, merge, settings and truthful submission event families remain incomplete. Bundled PR remains QUEUED."
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Profile-scoped timeline, deterministic JOB_DISCOVERED/MATCH_SCORED events, and safe user-reported application status/note/external-report summaries integrated as PARTIAL at 65d5390cb2edc03e3012c50d75c31ab5b22b6f78; evidence docs/evidence/2026-10-07-profile-audit-history.json, docs/evidence/2026-10-07-profile-audit-job-events.json, docs/evidence/2026-10-07-application-audit-history.json. Issue #177 remains OPEN; company/source enrollment, merge, settings and complete application lifecycle event families remain incomplete. Bundled PR remains QUEUED."
     },
     {
       "id": "MJ-PR-049",
@@ -3436,5 +3436,5 @@
       "issue_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6036663828"
     }
   ],
-  "generated_at": "2026-10-07T14:07:50Z"
+  "generated_at": "2026-10-07T14:15:10Z"
 }

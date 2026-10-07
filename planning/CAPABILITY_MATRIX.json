@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-07T14:07:50Z",
+  "timestamp": "2026-10-07T14:15:10Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -1482,9 +1482,10 @@
       "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-10-07-profile-audit-history.json",
-        "docs/evidence/2026-10-07-profile-audit-job-events.json"
+        "docs/evidence/2026-10-07-profile-audit-job-events.json",
+        "docs/evidence/2026-10-07-application-audit-history.json"
       ],
-      "note": "A profile-scoped user-facing timeline reads allowlisted append-only profile/application events and now records profile-owned first job discovery and match scoring during deterministic discovery/recalculation. Focused tests cover profile isolation, safe summaries, SQLite reopen, reload, and idempotent rescoring. Required company discovery/source enrollment, job merge, complete settings and truthful real-submission event families remain incomplete. Issue #177 stays OPEN/PARTIAL. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF."
+      "note": "The profile-scoped timeline now includes safe summaries for deterministic job discovery/matching plus user-reported application status, notes, and external application reports, resolved through profile-owned application tracking entity IDs. Note text and raw payload are withheld; the API/browser verify persistence, reload, profile isolation and user-report wording. Company/source enrollment, job merge, full settings and complete truthful application lifecycle producers remain incomplete. Issue #177 remains OPEN/PARTIAL; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF."
     },
     {
       "requirement_id": "MJ-REQ-177",

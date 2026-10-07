@@ -909,3 +909,12 @@ GitHub partial integration/release readback for issue #177 / MJ-REQ-176: issue r
 - Evidence: `docs/evidence/2026-10-07-profile-audit-job-events.json`.
 - Validation: 16 focused Python integration/browser tests passed; web test suite 63 passed; TypeScript/Vite build passed; agent skills, catalogue, progress, lane coordination and diff checks passed. SQLite persistence/reopen, profile isolation, browser reload and idempotent rescoring covered.
 - Limitations: company discovery/source enrollment, job merge, complete settings and truthful real submission event families remain incomplete. PostgreSQL/Docker/migrations and hosted checks NOT_RUN; external submission OFF.
+
+
+## 2026-10-07 Codex integration checkpoint — MJ-REQ-176 application history
+
+- Source commit: `f43f199cccf6f483918b4ce521d17db46e7d470d` (tree `7159e04e13524afc82a3dd4168351eb6cbf73d56`); base `910bf1937fe6b7276187b6b8685d2adf343c8684`; candidate fast-forward `65d5390cb2edc03e3012c50d75c31ab5b22b6f78`.
+- Result: **PARTIAL**. Issue #177 remains OPEN.
+- Evidence: `docs/evidence/2026-10-07-application-audit-history.json`.
+- Validation: 36 focused Python integration tests, 1 headless Chromium browser test, 63 frontend tests, TypeScript/Vite build and repository validators passed. Manual status, note and external application reports are visible after reload with profile isolation and privacy-safe fixed summaries.
+- Limitations: company/source enrollment, job merge, full settings, and complete actual application lifecycle event coverage remain incomplete. PostgreSQL/Docker/migrations and hosted checks NOT_RUN; external submission OFF.
