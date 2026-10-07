@@ -12,13 +12,13 @@
     {
       "issue": 9,
       "requirement_id": "MJ-REQ-008",
-      "status": "SOURCE_CHECKPOINT_PUSHED",
+      "status": "INTEGRATED_PARTIAL",
       "priority": 0,
       "target_area": "workers; tests/integration/test_worker_lifecycle.py",
       "depends_on": [],
       "evidence_path": "docs/evidence/2026-10-07-product-worker-crash-recovery.json",
       "scope_complete": false,
-      "note": "The durable product worker recovers after process kill; worker attempt fencing prevents an expired worker from publishing after replacement claim. Full Python 851 PASS with 1 optional PostgreSQL skip; issue #9 remains OPEN/PARTIAL. Source d516834ac3bd48352ef3aa8885a1de1fffe53419. Physical host and browser-process recovery remain untested."
+      "note": "The durable product worker recovers after process kill; worker attempt fencing prevents an expired worker from publishing after replacement claim. Full Python 851 PASS with 1 optional PostgreSQL skip; issue #9 remains OPEN/PARTIAL. Source d516834ac3bd48352ef3aa8885a1de1fffe53419. Physical host and browser-process recovery remain untested. Integrated at main 74403d136e42cde684d9cb4638a2c75d11c07e06."
     }
   ]
 }

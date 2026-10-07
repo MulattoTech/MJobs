@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-07T05:44:41Z",
+  "generated_at": "2026-10-07T05:45:48Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -384,7 +384,8 @@
     "source_commit": "d516834ac3bd48352ef3aa8885a1de1fffe53419",
     "source_tree": "f2859b592ebedc3053d3d88ea2d17a7bcad415c5",
     "scope": "After worker process termination, durable operation lease recovery allows a replacement worker to complete a synthetic local operation; a reclaimed attempt is fenced before its next checked side effect.",
-    "evidence_path": "docs/evidence/2026-10-07-product-worker-crash-recovery.json"
+    "evidence_path": "docs/evidence/2026-10-07-product-worker-crash-recovery.json",
+    "integration_commit": "74403d136e42cde684d9cb4638a2c75d11c07e06"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -7262,11 +7263,12 @@
     {
       "milestone_id": "MJ-REQ-008-PRODUCT-WORKER-CRASH-RECOVERY-20261007",
       "timestamp": "2026-10-07T05:44:41Z",
-      "current_phase": "Issue #9 / MJ-REQ-008 product-worker crash recovery and stale-attempt fencing verified as a scoped PARTIAL candidate; local-only fast-forward pending.",
+      "current_phase": "Issue #9 / MJ-REQ-008 product-worker crash recovery and stale-attempt fencing integrated by non-force fast-forward at 74403d136e42cde684d9cb4638a2c75d11c07e06; requirement remains OPEN/PARTIAL.",
       "completed_steps": [
         "Reproduced stale worker publication after lease recovery and replacement claim.",
         "Fenced worker cancellation/deadline checks by durable claim attempt_count.",
-        "Killed a synthetic product worker process after operation claim, recovered its durable lease, and completed the operation in a replacement process."
+        "Killed a synthetic product worker process after operation claim, recovered its durable lease, and completed the operation in a replacement process.",
+        "Integrated the source, evidence and canonical planning by non-force fast-forward under the Codex integration lock; local/origin main synchronized at 74403d136e42cde684d9cb4638a2c75d11c07e06. Issue #9 remains OPEN/PARTIAL."
       ],
       "files_added": [
         "docs/evidence/2026-10-07-product-worker-crash-recovery.json"
@@ -7301,10 +7303,22 @@
       "last_safe_checkpoint": {
         "git_commit": "d516834ac3bd48352ef3aa8885a1de1fffe53419",
         "evidence_path": "docs/evidence/2026-10-07-product-worker-crash-recovery.json"
+      },
+      "integration": {
+        "method": "NON_FORCE_FAST_FORWARD",
+        "base": "4576d9910a5fb65a7af3e72268c7848812948b5a",
+        "main": "74403d136e42cde684d9cb4638a2c75d11c07e06",
+        "source_branch": "codex/mj-req008-worker-crash-20261007",
+        "source_commit": "d516834ac3bd48352ef3aa8885a1de1fffe53419",
+        "candidate": "74403d136e42cde684d9cb4638a2c75d11c07e06",
+        "issue_comment": "https://github.com/MulattoTech/MJobs/issues/9#issuecomment-6031778626",
+        "actions_enabled": false,
+        "main_protected": false,
+        "open_prs": 0
       }
     }
   ],
-  "current_phase": "Issue #9 / MJ-REQ-008 product-worker crash recovery and stale-attempt fencing verified as a scoped PARTIAL candidate; local-only fast-forward pending.",
+  "current_phase": "Issue #9 / MJ-REQ-008 product-worker crash recovery and stale-attempt fencing integrated by non-force fast-forward at 74403d136e42cde684d9cb4638a2c75d11c07e06; requirement remains OPEN/PARTIAL.",
   "last_safe_checkpoint": {
     "git_commit": "d516834ac3bd48352ef3aa8885a1de1fffe53419",
     "evidence_path": "docs/evidence/2026-10-07-product-worker-crash-recovery.json"
@@ -7455,28 +7469,29 @@
     }
   ],
   "live_reconciliation": {
-    "observed_at": "2026-10-07T05:44:41Z",
-    "github_main": "4576d9910a5fb65a7af3e72268c7848812948b5a",
-    "local_main": "4576d9910a5fb65a7af3e72268c7848812948b5a",
+    "observed_at": "2026-10-07T05:45:48Z",
+    "github_main": "74403d136e42cde684d9cb4638a2c75d11c07e06",
+    "local_main": "74403d136e42cde684d9cb4638a2c75d11c07e06",
     "issue_9_state": "OPEN/PARTIAL",
     "open_prs": 0,
     "actions_enabled": false,
     "main_branch_protected": false,
-    "integration": "The exact source/evidence candidate is a non-force fast-forward descendant of synchronized local/GitHub main; canonical planning update is under the Codex integration lock.",
-    "next_issue": "After this issue is safely integrated and released, reconcile active claims and select the next highest-value unclaimed dependency-ready issue."
+    "integration": "Non-force fast-forward under the Codex integration lock from 4576d9910a5fb65a7af3e72268c7848812948b5a; source d516834ac3bd48352ef3aa8885a1de1fffe53419, evidence and canonical planning synchronized at local/origin main 74403d136e42cde684d9cb4638a2c75d11c07e06.",
+    "next_issue": "Release issue #9 and recompute the next highest-value unclaimed dependency-ready issue."
   },
   "active_development_issue": {
     "issue": 9,
     "requirement_id": "MJ-REQ-008",
     "title": "Save Implementation Progress",
-    "state": "VERIFIED_PARTIAL_READY_TO_INTEGRATE",
+    "state": "INTEGRATED_PARTIAL",
     "base": "4576d9910a5fb65a7af3e72268c7848812948b5a",
     "branch": "codex/mj-req008-worker-crash-20261007",
     "candidate": "d516834ac3bd48352ef3aa8885a1de1fffe53419",
     "source_tree": "f2859b592ebedc3053d3d88ea2d17a7bcad415c5",
     "evidence": "docs/evidence/2026-10-07-product-worker-crash-recovery.json",
-    "next_action": "Fast-forward the verified candidate under the active local integration lock, then record exact local/GitHub main and keep issue #9 OPEN/PARTIAL.",
-    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/9#issuecomment-6031778626"
+    "next_action": "Release the completed scoped claim and local integration lock, reconcile all current claims, then select the next highest-value unclaimed dependency-ready issue. Issue #9 remains OPEN/PARTIAL.",
+    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/9#issuecomment-6031778626",
+    "integrated_main": "74403d136e42cde684d9cb4638a2c75d11c07e06"
   },
   "historical_control_snapshots": [
     {
@@ -8616,5 +8631,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-07T05:44:41Z"
+  "updated_at": "2026-10-07T05:45:48Z"
 }

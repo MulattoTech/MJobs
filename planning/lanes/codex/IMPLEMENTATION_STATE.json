@@ -2,11 +2,11 @@
   "schema_version": 1,
   "lane": "codex",
   "status": "ACTIVE",
-  "base_main": "4576d9910a5fb65a7af3e72268c7848812948b5a",
+  "base_main": "74403d136e42cde684d9cb4638a2c75d11c07e06",
   "current_issue": 9,
   "requirement_id": "MJ-REQ-008",
   "branch": "codex/mj-req008-worker-crash-20261007",
-  "head": "d516834ac3bd48352ef3aa8885a1de1fffe53419",
+  "head": "74403d136e42cde684d9cb4638a2c75d11c07e06",
   "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req008-worker-crash-20261007",
   "result": "PARTIAL",
   "evidence_path": "docs/evidence/2026-10-07-product-worker-crash-recovery.json",
@@ -22,7 +22,7 @@
     "Ollama active ATS-detection claim #318",
     "canonical planning and main outside integration lock"
   ],
-  "resume_instruction": "Issue #9 / MJ-REQ-008 has source/tests committed and pushed at d516834ac3bd48352ef3aa8885a1de1fffe53419 from main 4576d9910a5fb65a7af3e72268c7848812948b5a. Exact-head local suite: 851 PASS, 1 optional PostgreSQL skip; focused 20 PASS; frontend build and repository validators PASS. Evidence is docs/evidence/2026-10-07-product-worker-crash-recovery.json. Reconcile current main and claims, add the evidence/lane checkpoint, integrate under the local integration lock if safe, keep issue #9 OPEN/PARTIAL, release the claim, then select the next highest-value unclaimed dependency-ready issue. Physical host restart, browser-process crash, live PostgreSQL and hosted checks remain NOT_RUN; external submission OFF.",
+  "resume_instruction": "Issue #9 / MJ-REQ-008 scoped product-worker crash recovery and stale-attempt fencing are integrated at synchronized local/GitHub main 74403d136e42cde684d9cb4638a2c75d11c07e06. Evidence docs/evidence/2026-10-07-product-worker-crash-recovery.json; full local suite 851 PASS, 1 optional PostgreSQL skip. Issue #9 remains OPEN/PARTIAL because physical host restart and browser-process crash remain unverified. Release the issue #9 claim/lock, reconcile active claims and select the next highest-value unclaimed dependency-ready issue. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
   "last_verified_head": "d516834ac3bd48352ef3aa8885a1de1fffe53419",
   "last_verified_tree": "f2859b592ebedc3053d3d88ea2d17a7bcad415c5",
   "last_verified_at_utc": "2026-10-07T05:42:04Z",
@@ -38,5 +38,6 @@
     "diff_check": "PASS",
     "live_postgresql": "NOT_RUN",
     "hosted_checks": "NOT_RUN_BY_USER_POLICY"
-  }
+  },
+  "last_integrated_head": "74403d136e42cde684d9cb4638a2c75d11c07e06"
 }

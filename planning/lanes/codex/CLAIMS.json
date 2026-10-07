@@ -1,22 +1,5 @@
 {
   "schema_version": 1,
   "lane": "codex",
-  "claims": [
-    {
-      "lane": "codex",
-      "status": "ACTIVE",
-      "issue": 9,
-      "requirement_id": "MJ-REQ-008",
-      "branch": "codex/mj-req008-worker-crash-20261007",
-      "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req008-worker-crash-20261007",
-      "paths": [
-        "workers/operations.py",
-        "workers/tasks.py",
-        "tests/integration/test_worker_lifecycle.py",
-        "docs/evidence/2026-10-07-product-worker-crash-recovery.json"
-      ],
-      "head": "d516834ac3bd48352ef3aa8885a1de1fffe53419",
-      "pid": null
-    }
-  ]
+  "claims": []
 }
