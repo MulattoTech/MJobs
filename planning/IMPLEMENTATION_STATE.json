@@ -8,10 +8,10 @@
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
     "current_verified_local_state": "Local main/origin main synchronized at 1732bddbf2e5a3a41da2b29619340c278cf36dfb; issue #5 / MJ-REQ-004 AI evaluation disconnect cancellation integrated as a scoped PARTIAL slice.",
-    "current_verified_github_state": "GitHub/local main synchronized at 1732bddbf2e5a3a41da2b29619340c278cf36dfb; issue #5 OPEN/PARTIAL; Actions disabled; external submission OFF.",
-    "current_verified_at": "2026-10-07T03:19:06Z"
+    "current_verified_github_state": "Local/GitHub main synchronized at bf3c8bc1868987c59661a69184537272c2f8d422 after MJ-REQ-095 user-reviewed responsibility-rewrite integration; issue #96 remains OPEN/PARTIAL; issue #5 remains OPEN/PARTIAL; Actions disabled; external submission OFF.",
+    "current_verified_at": "2026-10-07T03:36:00Z"
   },
-  "current_milestone": "MJ-REQ-004-AI-EVALUATION-TIME-BUDGET-INTEGRATED-PARTIAL-20261007",
+  "current_milestone": "MJ-REQ-095-USER-REVIEWED-RESPONSIBILITY-REPHRASE-20261007",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -101,7 +101,8 @@
   "blocked_capabilities": [],
   "active_requirements": [
     "MJ-REQ-108",
-    "MJ-REQ-004"
+    "MJ-REQ-004",
+    "MJ-REQ-095"
   ],
   "active_prs": [],
   "tests_passed": [
@@ -285,7 +286,8 @@
     "MJ-REQ-110 candidate 93e152dbff89c74b5075ce4df703c82cb4da8883: 346 unit tests, 384 integration tests (1 optional PG skip), 38 connected browser tests, 62 frontend tests, build, direct SQLite/PG migration/persistence checks and repository validators PASS; evidence docs/evidence/2026-10-06-ai-cost-controls-ui.json.",
     "MJ-REQ-110 issue #111 takeover at code head c9276be112cf8db636bd783dc7eb7ad41b539c35: 15 focused consumer/API/SQLite-migration/browser tests PASS; 62 frontend tests, Vite build and agent-skills/catalogue/progress/diff validators PASS. Exact command and limits: docs/evidence/2026-10-07-ai-cost-consumer-resume.json.",
     "MJ-REQ-004 issue #5 AI evaluation batch deadline integrated from tested source 1ee2c046f0ce39cbd2fe3df2caa0997d965d74f6: 42 focused AI unit/API/browser tests; frontend 62 tests/build; compileall and agent-skills/catalogue/progress/lane-coordination/diff checks PASS. Evidence docs/evidence/2026-10-07-ai-evaluation-time-budget.json.",
-    "MJ-REQ-004 AI evaluation disconnect cancellation source 9e8605029b138faa8b8785e043fd6af42fd902ce: 31 focused/adjacent AI consumer/API, profile-import and Chromium tests PASS; frontend build, compileall, skill/catalogue/progress/lane validators and diff check PASS; evidence docs/evidence/2026-10-07-ai-evaluation-disconnect-cancellation.json."
+    "MJ-REQ-004 AI evaluation disconnect cancellation source 9e8605029b138faa8b8785e043fd6af42fd902ce: 31 focused/adjacent AI consumer/API, profile-import and Chromium tests PASS; frontend build, compileall, skill/catalogue/progress/lane validators and diff check PASS; evidence docs/evidence/2026-10-07-ai-evaluation-disconnect-cancellation.json.",
+    "MJ-REQ-095 reviewed responsibility rewrite: 15 focused unit/integration tests, connected Chromium rewrite/history tests, 62 frontend tests/build and repository validators PASS. Evidence docs/evidence/2026-10-07-resume-user-reviewed-bullet-rephrasing.json."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -358,13 +360,13 @@
     "MJ-REQ-004 candidate 3d604b27b1a4c25e2ff0ee6fa68a07e9ff8f74a0: full suite initially saw stale ignored apps/web/dist; rebuilding restored current Sources UI and isolated browser acceptance. A first rebuilt full run later hit the known intermittent CompanyDiscoveryRequestsBrowserTests server-thread shutdown assertion; isolated case and all 35 browser tests passed, followed by a same-head 680-test full suite pass. Do not weaken shutdown timeout; evidence docs/evidence/2026-10-06-bounded-ocr-diagnostics.json."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-07T03:19:06Z",
+    "timestamp": "2026-10-07T03:34:00Z",
     "result": "PARTIAL",
-    "source_commit": "9e8605029b138faa8b8785e043fd6af42fd902ce",
-    "source_tree": "63e8f0b4bb5858494fe321476054e7a21564a7e0",
-    "scope": "Propagate HTTP request disconnect into bounded structured AI evaluation; discard all partial results and persist no evaluation history.",
-    "evidence_path": "docs/evidence/2026-10-07-ai-evaluation-disconnect-cancellation.json",
-    "integration_commit": "1732bddbf2e5a3a41da2b29619340c278cf36dfb"
+    "source_commit": "3a5e52704e596da8e01f65b55088f32bc8e568ab",
+    "source_tree": "5d284a6ed6560fab931c3db7d9dfc75192bb59b8",
+    "scope": "User-reviewed per-application rewriting of selected approved responsibility facts with immutable source provenance and exact historical comparison.",
+    "evidence_path": "docs/evidence/2026-10-07-resume-user-reviewed-bullet-rephrasing.json",
+    "integration_commit": "bf3c8bc1868987c59661a69184537272c2f8d422"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -7052,12 +7054,73 @@
         "open_prs": 0,
         "issue_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6030201735"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-095-USER-REVIEWED-RESPONSIBILITY-REPHRASE-20261007",
+      "timestamp": "2026-10-07T03:34:00Z",
+      "current_phase": "MJ-REQ-095 user-reviewed responsibility bullet rewriting integrated locally; broader requirement remains PARTIAL",
+      "completed_steps": [
+        "Added an explicit UI path for per-application wording changes to selected approved responsibility facts, with review attestation reset whenever wording changes.",
+        "Validated the source fact selection, profile version, responsibility kind, source hash, and exact date/numeric token preservation at the API and document-validation boundaries.",
+        "Recorded user-authored text and source provenance in versioned immutable document history; kept profile facts and cover-letter content unchanged.",
+        "Reconstructed historical rewritten content in resume comparison and verified the exact before/after wording after reload and live profile edits.",
+        "Ran focused unit/integration tests, connected Chromium, frontend tests/build, compile and repository validators; published sanitized evidence. Issue #96 remains OPEN/PARTIAL."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-07-resume-user-reviewed-bullet-rephrasing.json"
+      ],
+      "files_modified": [
+        "apps/api/main.py",
+        "apps/web/src/document-history.tsx",
+        "apps/web/src/main.tsx",
+        "apps/web/src/resume-comparison.tsx",
+        "apps/web/src/resume-fact-selection.tsx",
+        "services/documents/comparison.py",
+        "services/documents/generate.py",
+        "services/documents/tailor.py",
+        "services/documents/templates.py",
+        "services/documents/validation.py",
+        "tests/browser/test_skill_order.py",
+        "tests/integration/test_resume_comparison.py",
+        "tests/unit/test_resume_comparison.py",
+        "workers/tasks.py",
+        "docs/evidence/2026-10-07-resume-user-reviewed-bullet-rephrasing.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "15 focused resume tailoring unit/integration tests PASS; new integration test also passed after contact-template and API-response-contract checks.",
+        "Connected Playwright Chromium skill-order and reviewed-rewrite workflow PASS; document history reload/download browser test PASS.",
+        "13 frontend test files, 62 tests PASS; TypeScript and production Vite build PASS.",
+        "Python compileall, agent-skills, catalogue, progress-journal and git diff checks PASS."
+      ],
+      "tests_remaining": [
+        "Broader summary, project, accomplishment and other factual rewrite cases remain incomplete.",
+        "Full repository Python suite and PostgreSQL/Docker acceptance were not run for this slice.",
+        "Semantic equivalence beyond exact dates/numbers depends on explicit user review; hosted checks/review remain NOT_RUN_BY_USER_POLICY."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Local connected Chromium against FastAPI, durable operation worker, temporary SQLite and synthetic fixtures; no external provider or employer was contacted."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "MJ-REQ-095 / issue #96 remains OPEN/PARTIAL; this slice covers only user-reviewed responsibility fact rewrites.",
+        "The user attests that wording preserves its fact; automated checks do not prove semantic equivalence.",
+        "Hosted checks and independent review NOT_RUN_BY_USER_POLICY; external submission OFF."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "bf3c8bc1868987c59661a69184537272c2f8d422",
+        "evidence_path": "docs/evidence/2026-10-07-resume-user-reviewed-bullet-rephrasing.json"
+      }
     }
   ],
-  "current_phase": "Issue #5 / MJ-REQ-004 AI evaluation request-disconnect cancellation integrated by non-force fast-forward at synchronized local/GitHub main 1732bddbf2e5a3a41da2b29619340c278cf36dfb. Issue remains OPEN/PARTIAL; live provider, full Python discovery and socket-level disconnect remain NOT_RUN.",
+  "current_phase": "MJ-REQ-095 user-reviewed responsibility bullet rewriting integrated locally; broader requirement remains PARTIAL",
   "last_safe_checkpoint": {
-    "git_commit": "1732bddbf2e5a3a41da2b29619340c278cf36dfb",
-    "evidence_path": "docs/evidence/2026-10-07-ai-evaluation-disconnect-cancellation.json"
+    "git_commit": "bf3c8bc1868987c59661a69184537272c2f8d422",
+    "evidence_path": "docs/evidence/2026-10-07-resume-user-reviewed-bullet-rephrasing.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
