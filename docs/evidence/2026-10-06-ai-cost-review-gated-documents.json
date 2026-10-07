@@ -78,7 +78,20 @@
       "Real document worker execution for this browser journey.",
       "Hosted Actions, hosted checks, and hosted reviews.",
       "External application submission; OFF."
-    ]
+    ],
+    "current_head_rerun": {
+      "verified_at_utc": "2026-10-07T00:57:07Z",
+      "head": "680801ae23aeed82facbdc8f6d9eff8d7d5f5b78",
+      "tree": "077bf5b6c866ac4fdc62f80011fec0019fa5ec2c",
+      "focused_python_api_browser_migration": "PASS - 20 tests",
+      "frontend_tests": "PASS - 62 tests across 13 files",
+      "frontend_build": "PASS",
+      "agent_skills_catalogue_progress": "PASS",
+      "limitations_unchanged": [
+        "Live configured-provider inference and real document worker execution remain NOT_RUN.",
+        "PostgreSQL runtime migration, full Python discovery, and hosted checks remain NOT_RUN."
+      ]
+    }
   },
   "limitations": [
     "MJ-REQ-110 remains PARTIAL because live configured-provider inference and real document worker execution were not verified.",
@@ -100,7 +113,7 @@
   },
   "external_submission_enabled": false,
   "hosted_verification": "NOT_RUN_BY_USER_POLICY",
-  "validated_head": "f57118de20796c19b27eb6d1a94d02754ab9d1bf",
-  "validated_tree": "500b43c09d020980ad4a4e31caf72caf821bc3b4",
-  "verified_at_utc": "2026-10-07T00:54:25Z"
+  "validated_head": "680801ae23aeed82facbdc8f6d9eff8d7d5f5b78",
+  "validated_tree": "077bf5b6c866ac4fdc62f80011fec0019fa5ec2c",
+  "verified_at_utc": "2026-10-07T00:57:07Z"
 }

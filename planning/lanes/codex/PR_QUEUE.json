@@ -7,7 +7,7 @@
       "requirement_id": "MJ-REQ-110",
       "status": "ACTIVE",
       "priority": 1,
-      "note": "Review-gated factual document preparation checkpoint at f57118de20796c19b27eb6d1a94d02754ab9d1bf; evidence docs/evidence/2026-10-06-ai-cost-review-gated-documents.json. Profile-scoped candidate reviews persist and enforce the run cap; the application API requires matching review state. Keep PARTIAL: live provider inference, real document worker execution, PostgreSQL migration, and full Python discovery remain NOT_RUN."
+      "note": "Review-gated factual document preparation checkpoint revalidated at 680801ae23aeed82facbdc8f6d9eff8d7d5f5b78; evidence docs/evidence/2026-10-06-ai-cost-review-gated-documents.json. Focused Python/API/browser/migration 20 PASS; frontend 62 PASS and build PASS; agent-skills/catalogue/progress PASS. Keep PARTIAL: live provider inference, real document worker execution, PostgreSQL runtime migration, and full Python discovery remain NOT_RUN."
     }
   ]
 }
