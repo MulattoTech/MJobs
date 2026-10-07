@@ -336,7 +336,8 @@
     "MJ-REQ-008 initial full Python run on source d516834ac3bd48352ef3aa8885a1de1fffe53419 before rebuilding ignored apps/web/dist: 2 failures, 6 errors, 16 skips. After npm ci/npm run build, affected browser cases passed and the exact-source full rerun passed 851 tests with 1 optional PostgreSQL skip; see docs/evidence/2026-10-07-product-worker-crash-recovery.json.",
     "MJ-REF-011 initial isolated-worktree full-suite attempt: 854 tests, 2 failures, 7 errors and 18 skips because ignored apps/web/dist and apps/web/node_modules were absent; after npm ci/build, two reproduced browser tests and exact-source full suite passed. Evidence docs/evidence/2026-10-07-ai-prompt-truncation.json",
     "MJ-REF-011 timeout-persistence regression RED before fix: API returned AI_TASK_TIMEOUT but durable operation stored generic AI_EVALUATION_FAILED; exact failure is recorded in docs/evidence/2026-10-07-ai-operation-outcomes.json.",
-    "Superseded 2026-10-07 full-suite attempts for #386: first exposed and corrected a stale FAILED-state expectation; second had one timing-sensitive 250 ms Playwright timeout in test_playwright_actions_never_exceed_remaining_worker_budget, which passed in isolation; final exact-tree full suite passed 875 tests with one skip. See docs/evidence/2026-10-07-dead-letter-queue.json."
+    "Superseded 2026-10-07 full-suite attempts for #386: first exposed and corrected a stale FAILED-state expectation; second had one timing-sensitive 250 ms Playwright timeout in test_playwright_actions_never_exceed_remaining_worker_budget, which passed in isolation; final exact-tree full suite passed 875 tests with one skip. See docs/evidence/2026-10-07-dead-letter-queue.json.",
+    "After restoring locked frontend dependencies and building current apps/web source on integrated CLI-output candidate 1b35a11: 903 tests, 2 failures, 2 errors, 2 skips. Repeatable browser failures: external application capture form absent; summary rewrite editor absent; skill-order comparison shows No changes; AI task fallback list renders zero rows. Focused affected modules reran and reproduced; none are changed by the backup CLI slice. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "tests_not_run": [
     "Remaining full-spec integrations and product/release requirements",
@@ -373,7 +374,8 @@
     "MJ-REQ-008 live PostgreSQL runtime NOT_RUN because MJOBS_TEST_POSTGRES_URL was unset; hosted Actions/review remain NOT_RUN_BY_USER_POLICY.",
     "MJ-REF-028 live provider connection, PostgreSQL runtime migration, hosted Actions/review, and real external application submission were not run. Existing MJobs containers were left untouched; synthetic local tests only.",
     "MJ-REF-016 optional PostgreSQL worker-concurrency test skipped because MJOBS_TEST_POSTGRES_URL was unset; temporary PostgreSQL 17 migration upgrade/downgrade/history-loss guard was run. Hosted checks/review remain NOT_RUN_BY_USER_POLICY; external submission OFF. See docs/evidence/2026-10-07-dead-letter-queue.json.",
-    "MJ-REF-020 live PostgreSQL was NOT_RUN because the optional local service was unavailable; hosted Actions/reviews NOT_RUN_BY_USER_POLICY. docs/evidence/2026-10-07-external-application-capture.json."
+    "MJ-REF-020 live PostgreSQL was NOT_RUN because the optional local service was unavailable; hosted Actions/reviews NOT_RUN_BY_USER_POLICY. docs/evidence/2026-10-07-external-application-capture.json.",
+    "MJ-REQ-004 backup CLI slice: frontend unit tests NOT_RUN_BY_SCOPE; no web source changed. PostgreSQL runtime NOT_RUN_BY_SCOPE; no persistence or migration changed. Hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -392,7 +394,8 @@
   ],
   "known_product_defects": [
     "Manual application status is user-reported only; company/application notes beyond this slice, independently verified submission receipts, and full canonical tracker acceptance remain unverified.",
-    "Transient artifact cleanup is an explicit local maintenance action; automatic background cleanup and broader log/debug retention remain incomplete (MJ-REQ-170)."
+    "Transient artifact cleanup is an explicit local maintenance action; automatic background cleanup and broader log/debug retention remain incomplete (MJ-REQ-170).",
+    "Connected browser suite on 1b35a11 reports repeatable failures in external application capture, resume summary/skill-ordering, and AI task fallback settings after locked frontend install/build. These paths were not changed by the backup subprocess slice; see docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "known_test_harness_defects": [
     "Historical recovery run used Compose dependency startup; corrected to --no-deps and final isolated run is canonical",
@@ -407,13 +410,13 @@
     "Fresh Codex worktrees may lack ignored apps/web/node_modules and apps/web/dist; run npm ci and npm run build --prefix apps/web before browser/full-suite validation. MJ-REF-011 exact-source rerun passed 854 tests after restoring those artifacts; evidence docs/evidence/2026-10-07-ai-prompt-truncation.json"
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-07T10:59:10Z",
-    "result": "PASS",
-    "source_commit": "9e282135e9c90d56301b9d8726479479d84a862a",
-    "source_tree": "fd7665952a141c07a494f3a20b9986766363085b",
-    "scope": "Issue #6 / MJ-REQ-005 isolated PostgreSQL 17 category admission acceptance slice; broader requirement remains PARTIAL.",
-    "evidence_path": "docs/evidence/2026-10-07-postgres-concurrency-runtime.json",
-    "integration_commit": "d5d888785d62a091249541fd09cbe092073f7887"
+    "timestamp": "2026-10-07T11:39:26Z",
+    "result": "PARTIAL",
+    "source_commit": "3e4f18a947d47106eb7f22af141de3b389a09722",
+    "source_tree": "4d6d5527fec632d97225c225e70c6b1204e0d4bd",
+    "scope": "Issue #5 / MJ-REQ-004 bounded captured output in local backup and restore Docker CLI subprocesses.",
+    "evidence_path": "docs/evidence/2026-10-07-backup-command-output-bounds.json",
+    "integration_commit": "1b35a11f3ea6b41997fcc766255ada1771d6c83f"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -480,7 +483,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Fetch and verify synchronized main, inspect active claims and dirty worktrees, then continue the highest-value dependency-ready unclaimed requirement. Issue #96 remains OPEN/PARTIAL after the summary adjustment increment.",
+  "recommended_resume_step": "Fetch and verify synchronized main after the bounded backup-output slice, release its issue #5 claim, reconcile live active claims/worktrees, and continue the highest-value dependency-ready unclaimed issue. Full local suite still has four repeatable connected-browser failures outside this slice; frontend build is restored in the Codex worktree. External submission OFF; hosted checks NOT_RUN_BY_USER_POLICY.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -517,7 +520,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "bac4de1ad20e851b9a5e2d7ae27510ab1e7c30e3",
+  "last_implementation_commit": "3e4f18a947d47106eb7f22af141de3b389a09722",
   "publication": {
     "result": "PASS",
     "integration_method": "NON_FORCE_FAST_FORWARD",
@@ -7931,12 +7934,69 @@
         "evidence_checkpoint_commit": "975a044e918105e4d7162254aa03dd771f6175ea",
         "issue_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6036663828"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-004-BACKUP-CLI-OUTPUT-BOUNDS-20261007",
+      "timestamp": "2026-10-07T11:40:23Z",
+      "current_phase": "Issue #5 bounded backup/restore CLI output slice integrated by local-only non-force fast-forward; broader requirement remains PARTIAL.",
+      "completed_steps": [
+        "Reconciled main and active machine/GitHub claims; selected bounded Docker CLI stdout in local backup/restore, disjoint from Antigravity #302 and Ollama #318 paths.",
+        "Added a fixed 2 MiB captured-stdout cap, termination/reaping on overflow, concurrent stderr draining without retention, and retained direct-to-file large database dump streaming and wall deadlines.",
+        "Validated focused local backup tests 11 PASS; frontend build PASS; two connected browser controls PASS after installing locked worktree dependencies; local repository validators and changed-file compile PASS.",
+        "Full Python suite on rebuilt frontend assets ran 903 tests with 2 failures, 2 errors and 2 skips. Isolated browser reruns reproduced existing UI failures in external application capture, resume summary/skill order and AI task fallback settings; these files were outside this slice.",
+        "Recorded sanitized evidence and integrated by non-force fast-forward into local main at 1b35a11f3ea6b41997fcc766255ada1771d6c83f. Issue #5 remains OPEN/PARTIAL."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-07-backup-command-output-bounds.json"
+      ],
+      "files_modified": [
+        "cli/local_backup.py",
+        "tests/unit/test_local_backup.py",
+        "planning/lanes/codex/CLAIMS.json",
+        "planning/lanes/codex/IMPLEMENTATION_STATE.json"
+      ],
+      "tests_completed": [
+        "tests.unit.test_local_backup: 11 PASS.",
+        "npm ci --prefix apps/web; npm run build --prefix apps/web: PASS after locked dependency install; host Node 25.9.0 emitted an engine warning for Vitest 5.",
+        "tests.browser.test_document_history and tests.browser.test_manual_job_capture: 2 PASS after frontend build.",
+        "agent_skills, catalogue, progress, lane coordination, py_compile and git diff --check: PASS."
+      ],
+      "tests_remaining": [
+        "Rebuilt full Python suite is PARTIAL/FAIL: 903 tests, 2 failures, 2 errors, 2 skips. Reproduced failures are outside changed paths; see evidence.",
+        "PostgreSQL runtime and frontend unit tests NOT_RUN_BY_SCOPE; hosted checks/review NOT_RUN_BY_USER_POLICY."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [
+        "The first broad/browser run occurred without generated apps/web/dist and failed app-root routes; installing the locked worktree dependencies and building the frontend corrected those two selected browser cases. The rebuilt full suite still exposes independent browser regressions."
+      ],
+      "known_limitations": [
+        "No Docker project, personal backup, provider, employer source, ATS service or external application submission was accessed. Issue #5 / MJ-REQ-004 remains OPEN/PARTIAL."
+      ],
+      "source_commit": "3e4f18a947d47106eb7f22af141de3b389a09722",
+      "source_tree": "4d6d5527fec632d97225c225e70c6b1204e0d4bd",
+      "result": "PARTIAL",
+      "last_safe_checkpoint": {
+        "git_commit": "1b35a11f3ea6b41997fcc766255ada1771d6c83f",
+        "evidence_path": "docs/evidence/2026-10-07-backup-command-output-bounds.json"
+      },
+      "integration": {
+        "method": "NON_FORCE_FAST_FORWARD",
+        "base": "546f71d91d90cfbf2122ef2c830ddaba825e2a46",
+        "main": "1b35a11f3ea6b41997fcc766255ada1771d6c83f",
+        "source_branch": "codex/mj-req004-backup-cli-output-bounds-20261007",
+        "source_commit": "3e4f18a947d47106eb7f22af141de3b389a09722",
+        "issue_state": "OPEN",
+        "evidence_checkpoint_commit": "1b35a11f3ea6b41997fcc766255ada1771d6c83f",
+        "issue_comment": "PENDING_READBACK",
+        "integrated_at_utc": "2026-10-07T11:26:33Z"
+      }
     }
   ],
-  "current_phase": "Issue #96 summary adjustment slice integrated by local-only fast-forward; broader requirement remains PARTIAL.",
+  "current_phase": "Issue #5 bounded backup/restore CLI output slice integrated by local-only non-force fast-forward; broader requirement remains PARTIAL.",
   "last_safe_checkpoint": {
-    "git_commit": "975a044e918105e4d7162254aa03dd771f6175ea",
-    "evidence_path": "docs/evidence/2026-10-07-resume-user-reviewed-summary-adjustment.json"
+    "git_commit": "1b35a11f3ea6b41997fcc766255ada1771d6c83f",
+    "evidence_path": "docs/evidence/2026-10-07-backup-command-output-bounds.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -8081,6 +8141,24 @@
       "actions_enabled": false,
       "main_protected": false,
       "open_prs": 0
+    },
+    {
+      "result": "PARTIAL",
+      "transport": "Owned branch push and authorized non-force fast-forward to main",
+      "branch": "codex/mj-req004-backup-cli-output-bounds-20261007",
+      "base": "546f71d91d90cfbf2122ef2c830ddaba825e2a46",
+      "source_commit": "3e4f18a947d47106eb7f22af141de3b389a09722",
+      "candidate": "1b35a11f3ea6b41997fcc766255ada1771d6c83f",
+      "final_head": "1b35a11f3ea6b41997fcc766255ada1771d6c83f",
+      "force": false,
+      "pull_request": "NOT_OPENED: local-only policy permits non-force fast-forward; Actions disabled.",
+      "issue": 5,
+      "issue_state": "OPEN",
+      "evidence_path": "docs/evidence/2026-10-07-backup-command-output-bounds.json",
+      "integrated_at_utc": "2026-10-07T11:26:33Z",
+      "actions_enabled": false,
+      "main_protected": false,
+      "open_prs": 0
     }
   ],
   "live_reconciliation": {
@@ -8095,17 +8173,17 @@
     "next_issue": "Release #398 and select the next dependency-ready unclaimed issue after live claim/worktree reconciliation."
   },
   "active_development_issue": {
-    "issue": 96,
-    "requirement_id": "MJ-REQ-095",
-    "title": "Factual resume tailoring and user-reviewed fact rephrasing",
+    "issue": 5,
+    "requirement_id": "MJ-REQ-004",
+    "title": "Bound External Operations",
     "state": "INTEGRATED_PARTIAL",
-    "base": "74398ffd0b9271008d1e7a1f2dc12e285972fe78",
-    "branch": "codex/mj-req095-summary-adjustment-20261007",
-    "candidate": "bac4de1ad20e851b9a5e2d7ae27510ab1e7c30e3",
-    "integrated_main": "975a044e918105e4d7162254aa03dd771f6175ea",
-    "evidence": "docs/evidence/2026-10-07-resume-user-reviewed-summary-adjustment.json",
-    "next_action": "Reconcile active lane claims and dependency-ready requirements, then continue issue #96 if independent unclaimed summary/bullet fact work remains; otherwise select the highest-value safe issue.",
-    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6036663828"
+    "base": "546f71d91d90cfbf2122ef2c830ddaba825e2a46",
+    "branch": "codex/mj-req004-backup-cli-output-bounds-20261007",
+    "candidate": "1b35a11f3ea6b41997fcc766255ada1771d6c83f",
+    "integrated_main": "1b35a11f3ea6b41997fcc766255ada1771d6c83f",
+    "evidence": "docs/evidence/2026-10-07-backup-command-output-bounds.json",
+    "next_action": "Release the Codex claim and integration lock, reconcile main and every active lane, then select the next highest-value unclaimed dependency-ready issue. Keep #5 OPEN/PARTIAL.",
+    "issue_comment": "PENDING_READBACK"
   },
   "historical_control_snapshots": [
     {
@@ -9245,5 +9323,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-07T11:08:16Z"
+  "updated_at": "2026-10-07T11:40:23Z"
 }

@@ -1,3 +1,13 @@
+# Issue #5 / MJ-REQ-004 backup subprocess output bounds — 2026-10-07
+
+Integrated by non-force fast-forward from `546f71d91d90cfbf2122ef2c830ddaba825e2a46` to candidate main `1b35a11f3ea6b41997fcc766255ada1771d6c83f` (source `3e4f18a947d47106eb7f22af141de3b389a09722`). Evidence: `docs/evidence/2026-10-07-backup-command-output-bounds.json`. Captured Docker CLI stdout is capped at 2 MiB; noisy children are terminated/reaped; stderr is drained without retaining diagnostics; direct-to-file database dump streaming remains available. Issue #5 remains OPEN/PARTIAL.
+
+Validation: 11 focused CLI tests PASS; locked frontend install and TypeScript/Vite build PASS; 2 connected browser tests PASS after rebuilding frontend dist; repository validators and changed-file compile PASS. Rebuilt broad Python suite ran 903 tests with 2 failures, 2 errors, 2 skips. Isolated reruns reproduced unrelated failures in external application capture, summary adjustment, skill-order comparison and AI task fallback UI. PostgreSQL and frontend unit tests NOT_RUN_BY_SCOPE; hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF.
+
+Next: verify/push synchronized main, post sanitized issue evidence/readback, release the #5 claim and integration lock, reconcile all active claims, and continue with the highest-value unclaimed dependency-ready issue.
+
+---
+
 # Issue #375 / MJ-REF-005 integration receipt — 2026-10-07
 
 Issue #375 is CLOSED with evidence-backed local PASS for its full scope. Source `5f220ed17c51e148de71712485f497707704fdee` and sanitized evidence `docs/evidence/2026-10-07-no-ai-fallback.json` were integrated by non-force fast-forward from `e455c8e05ee5f826918c7c353fc7968994a35be1` to main `3804a953317b122879747e0075602994c8151678`. Acceptance comment and issue state were read back: https://github.com/MulattoTech/MJobs/issues/375#issuecomment-6035816600.
