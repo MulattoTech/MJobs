@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-07T21:57:55Z",
+  "issue": 177,
+  "requirement_id": "MJ-REQ-176",
+  "result": "PARTIAL",
+  "source_commit": "96ccfc0e6b0c1ab095b41f1337579820b118d86f",
+  "source_tree": "c765a208cf33f95e3d5961e6089b54340c74d93b",
+  "base_main": "23826b281dce6901734c63cb4f428dd694320b1e",
+  "acceptance_oracle": "Saving an existing search profile records exactly one generic, empty-payload profile SETTING_CHANGED event when effective normalized values change. Initial creation and unchanged repeat saves emit none. A connected Activity reload displays the event without revealing saved criteria and another profile cannot read it.",
+  "red_observation": {
+    "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_audit_history.AuditHistoryApiTests.test_changed_search_profile_appends_generic_setting_event_once",
+    "result": "FAIL as expected before implementation: expected one new SETTING_CHANGED event after changing an existing search profile; observed zero. The connected browser pause-flow regression also failed because no event was added to the profile timeline."
+  },
+  "implementation": [
+    "save_search_profile compares the existing owner, name, enabled flag, normalized criteria, and source IDs with the normalized update inside the current transaction.",
+    "Effective updates append an empty-payload SETTING_CHANGED event for the affected profile owner or owners in the same transaction; initial and unchanged saves do not.",
+    "The connected Sources UI pause action is exercised against a synthetic profile, and Activity history is checked after browser reload for value-free display and profile isolation."
+  ],
+  "validation": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_audit_history tests.browser.test_audit_history",
+      "result": "PASS at source commit 96ccfc0e6b0c1ab095b41f1337579820b118d86f: 10 tests, zero failures/errors/skips; local SQLite and connected Chromium synthetic fixtures."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p \"test_*.py\"",
+      "result": "PASS at source tree c765a208cf33f95e3d5961e6089b54340c74d93b: 966 tests run, 8 skipped, zero failures/errors."
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run",
+      "result": "PASS: 13 files, 63 tests."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS: TypeScript check and Vite production build."
+    },
+    {
+      "command": "python -m tools.verification.agent_skills",
+      "result": "PASS."
+    },
+    {
+      "command": "python -m tools.verification.catalogue",
+      "result": "PASS."
+    },
+    {
+      "command": "python -m tools.verification.progress validate",
+      "result": "PASS."
+    },
+    {
+      "command": "python -m tools.coordination.lane_coordination validate",
+      "result": "PASS."
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS."
+    }
+  ],
+  "scope": {
+    "database": "Temporary SQLite fixtures; no schema changes or migrations.",
+    "browser": "Local Chromium and loopback API only; synthetic saved search; no external requests or employer submission.",
+    "postgresql_docker": "NOT_RUN; no schema or runtime dependency change.",
+    "hosted_actions_review": "NOT_RUN_BY_USER_POLICY; repository Actions are disabled.",
+    "external_submission": "OFF"
+  },
+  "environment_notes": [
+    "npm ci installed 44 locked packages with zero vulnerabilities and reported EBADENGINE because Node v25.9.0 is outside the declared vitest@5.0.3 engine range; frontend tests and build both passed.",
+    "The first browser invocation had no worktree web dist and stopped before the intended assertion. After npm ci and a successful build, the regression failed for the expected missing-event behavior; the exact-head connected browser test passed after implementation.",
+    "The empty untracked events.jsonl produced during the full local suite was preserved and excluded from the commit."
+  ],
+  "limitations": [
+    "This is one partial audit-history slice. Issue #177 / MJ-REQ-176 remains OPEN/PARTIAL for other settings and application lifecycle event families.",
+    "No PostgreSQL, Docker, hosted checks, or independent review evidence is claimed."
+  ]
+}
