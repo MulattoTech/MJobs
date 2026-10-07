@@ -137,6 +137,17 @@
       "evidence_path": "docs/evidence/2026-10-07-resume-reviewed-achievement-rewrites.json",
       "scope_complete": false,
       "note": "Integrated source/test commit 97905378cdc79e437a7cae2fe2fbb7c504d0affe and evidence docs/evidence/2026-10-07-resume-reviewed-achievement-rewrites.json at main cc9fc3832f47e45cb9e60615c56b430692c3c614. Reviewed project/accomplishment rewrites pass source/history/browser acceptance. Issue #96 remains OPEN/PARTIAL; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF. Release: https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6037769866"
+    },
+    {
+      "issue": 181,
+      "requirement_id": "MJ-REQ-180",
+      "status": "CANDIDATE_READY",
+      "priority": 0,
+      "target_area": "cli/live_feedback.py; tests/unit/test_live_feedback.py; tests/browser/test_live_feedback_redaction.py; docs/LIVE_FEEDBACK_DEVELOPMENT.md",
+      "depends_on": [],
+      "evidence_path": "docs/evidence/2026-10-07-redacted-visual-feedback.json",
+      "scope_complete": false,
+      "note": "Source commit bb839a547403a9991bd8c0dfd6357649d1bb7775 is pushed. Raw DOM trace capture is removed from optional live-feedback visuals; Chromium confirms masking for form controls and explicitly marked sensitive regions. Scope tests/validators pass. Requirement remains PARTIAL for sensitive text outside generic selectors; integrate under lock and keep issue open."
     }
   ],
   "generated_at": "2026-10-07T12:20:17Z"
