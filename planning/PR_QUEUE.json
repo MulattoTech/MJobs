@@ -3281,6 +3281,32 @@
       "integration_method": "NON_FORCE_FAST_FORWARD",
       "integration_commit": "7636b620b60e53380b48051a5550aa1dc23be663",
       "pr_state": "NOT_OPENED_LOCAL_ONLY"
+    },
+    {
+      "id": "MJ-PR-159",
+      "title": "MJ-REF-033 scoped agent run budgets and collection output validation",
+      "domain": "test_harness",
+      "requirements": [],
+      "issues": [
+        403
+      ],
+      "reference_gaps": [
+        "MJ-REF-033"
+      ],
+      "target_area": "services/agents; tests/unit; tests/integration",
+      "depends_on": [],
+      "status": "INTEGRATED_PARTIAL",
+      "branch": "codex/mj-ref-033-agent-run-limits-20261007",
+      "evidence_path": "docs/evidence/2026-10-07-agent-run-budget-output-validation.json",
+      "base": "de04d6bb06ce23d1a7f4f7f0f04dedcd87bdf7a5",
+      "candidate": "9d010bc7c9b51a4611988c1efe250de7a1d5d791",
+      "integration_method": "NON_FORCE_FAST_FORWARD",
+      "integration_commit": "9d010bc7c9b51a4611988c1efe250de7a1d5d791",
+      "pr_state": "NOT_OPENED_LOCAL_ONLY",
+      "scope_complete": false,
+      "scope_result": "PARTIAL",
+      "notes": "23 focused agent tests and local validators pass. Browser entrypoint integration, page budgets, diagnostic slice reruns, and hard preemption of an in-flight synchronous handler remain incomplete. Hosted checks/review NOT_RUN by policy."
     }
-  ]
+  ],
+  "generated_at": "2026-10-07T08:27:01Z"
 }

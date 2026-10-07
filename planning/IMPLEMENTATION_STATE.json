@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-07T08:04:17Z",
+  "generated_at": "2026-10-07T08:27:01Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -11,7 +11,7 @@
     "current_verified_github_state": "Local/GitHub main synchronized at cb2681b6a921f2759cf46d4d66a8228645b473e7; issue #6 remains OPEN/PARTIAL after local evidence readback; Actions disabled; external submission OFF.",
     "current_verified_at": "2026-10-07T05:08:16Z"
   },
-  "current_milestone": "MJ-REF-016-DURABLE-DEAD-LETTER-QUEUE-20261007",
+  "current_milestone": "MJ-REF-033-AGENT-RUN-BUDGET-OUTPUT-VALIDATION-20261007",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -105,7 +105,8 @@
     "MJ-REQ-005 / issue #6 direct structured AI evaluations now reserve database-backed AI category capacity across API instances; generic durable cancellation propagates to provider cancellation; completed, cancelled and expired-lease outcomes are recorded. Full Python 849 PASS (1 optional PostgreSQL skip), 32 focused API/worker tests PASS, 8 browser tests PASS after building worktree UI, frontend 62 PASS/build PASS, validators PASS. Evidence docs/evidence/2026-10-07-ai-evaluation-concurrency-admission.json. Requirement remains PARTIAL: live PostgreSQL lock, live provider and real ATS behavior are not evidenced.",
     "MJ-REQ-008: durable synthetic product-worker process crash recovery and stale-attempt fencing are verified; physical host and browser-process crash recovery remain open.",
     "Provider credentials are not yet routed into AI inference; master encryption-key rotation and complete original secret/diagnostic requirements remain open",
-    "MJ-REQ-156/160/183/184 advanced by the scoped MJ-REF-016 dead-letter slice; full persistent-operation, transient retry-policy, worker-health, and error-management requirements remain PARTIAL/NOT_RUN."
+    "MJ-REQ-156/160/183/184 advanced by the scoped MJ-REF-016 dead-letter slice; full persistent-operation, transient retry-policy, worker-health, and error-management requirements remain PARTIAL/NOT_RUN.",
+    "MJ-REF-033 advanced PARTIAL: bounded agent run duration/step stopping, explicit terminal escape outcomes, sanitized stop/budget audit, and typed collection count/tail/shape validation. Browser adapter integration, page budgets, bounded slice reruns, and hard interruption of an in-flight synchronous handler remain open; evidence docs/evidence/2026-10-07-agent-run-budget-output-validation.json."
   ],
   "blocked_capabilities": [],
   "active_requirements": [
@@ -311,7 +312,8 @@
     "MJ-REF-011 complete local acceptance: 50 focused AI unit/API tests PASS; 854 full Python tests PASS with one optional PostgreSQL skip; frontend build, repository validators, compileall, diff and coordination checks PASS. Timeout operation state survives Store/API reopen; cancellation persists with no partial history. Evidence docs/evidence/2026-10-07-ai-operation-outcomes.json.",
     "MJ-REF-028 focused credential unit/API/migration tests and connected Chromium flow passed.",
     "MJ-REF-028 full Python suite: 867 tests run, 1 skipped, 0 failures; frontend 62 tests and production build passed; repository validators, scoped compile, pip check and diff checks passed.",
-    "2026-10-07 #386 / MJ-REF-016: 875 Python tests PASS with one optional PostgreSQL concurrency skip; 63 frontend tests/build, connected dead-letter browser workflow, PostgreSQL 17 migration exercise, SQLite migration/reopen, validators and diff checks PASS. Evidence docs/evidence/2026-10-07-dead-letter-queue.json."
+    "2026-10-07 #386 / MJ-REF-016: 875 Python tests PASS with one optional PostgreSQL concurrency skip; 63 frontend tests/build, connected dead-letter browser workflow, PostgreSQL 17 migration exercise, SQLite migration/reopen, validators and diff checks PASS. Evidence docs/evidence/2026-10-07-dead-letter-queue.json.",
+    "2026-10-07 MJ-REF-033 scoped acceptance: 23 focused agent acceptance/integration/prompt tests PASS; compileall, agent-skills, catalogue, progress, reference-provenance, JSON and diff checks PASS. Browser/PostgreSQL/hosted checks NOT_RUN; external submission OFF. Evidence docs/evidence/2026-10-07-agent-run-budget-output-validation.json."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -508,7 +510,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "7636b620b60e53380b48051a5550aa1dc23be663",
+  "last_implementation_commit": "9d010bc7c9b51a4611988c1efe250de7a1d5d791",
   "publication": {
     "result": "PASS",
     "integration_method": "NON_FORCE_FAST_FORWARD",
@@ -7424,12 +7426,78 @@
         "issue_closed": true,
         "closed_at_utc": "2026-10-07T07:18:51Z"
       }
+    },
+    {
+      "milestone_id": "MJ-REF-033-AGENT-RUN-BUDGET-OUTPUT-VALIDATION-20261007",
+      "timestamp": "2026-10-07T08:27:51Z",
+      "current_phase": "Issue #403 / MJ-REF-033 scoped agent-run budget and collection validation integrated PARTIAL; browser integration, page budgets and bounded slice reruns remain open.",
+      "completed_steps": [
+        "Reconciled origin/main and active Antigravity #302/Ollama #318 claims; acquired Codex integration lock.",
+        "Implemented elapsed-time/step stops, explicit auth/source escape outcomes, and value-free persisted budget/stop evidence in the existing agent runtime.",
+        "Added typed collection result checks for count, empty/unknown data, required structure, and expected tail item.",
+        "Integrated source and lane checkpoint by non-force fast-forward; kept GitHub issue #403 OPEN/PARTIAL."
+      ],
+      "files_added": [
+        "services/agents/acceptance.py",
+        "tests/unit/test_agent_acceptance.py",
+        "docs/evidence/2026-10-07-agent-run-budget-output-validation.json"
+      ],
+      "files_modified": [
+        "services/agents/registry.py",
+        "services/agents/runtime.py",
+        "services/agents/traces.py",
+        "tests/integration/test_agent_tools.py",
+        "docs/reference/REFERENCE_INSPIRATION_LOG.md",
+        "planning/lanes/codex/CLAIMS.json",
+        "planning/lanes/codex/CONTINUATION.json",
+        "planning/lanes/codex/IMPLEMENTATION_STATE.json",
+        "planning/lanes/codex/PR_QUEUE.json",
+        "planning/lanes/codex/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "23 focused agent acceptance/integration/prompt tests PASS.",
+        "compileall for changed agent modules/tests PASS.",
+        "agent_skills, catalogue, progress, reference_provenance, JSON and git diff --check PASS."
+      ],
+      "tests_remaining": [
+        "Browser/source collection entrypoint integration and controlled browser acceptance.",
+        "Page-count budget and bounded diagnostic slice re-run acceptance.",
+        "PostgreSQL runtime validation was not run; no migration/schema changed.",
+        "Hosted Actions and independent review are NOT_RUN by current user policy."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "The elapsed budget stops later tool dispatch and exposes a cooperative context deadline; it cannot forcibly terminate an in-flight synchronous handler.",
+        "This scoped slice does not connect browser/source collection entrypoints; no real source, browser, or provider operation ran.",
+        "The broader issue remains OPEN/PARTIAL and the requirements denominator is unchanged."
+      ],
+      "source_commit": "9d010bc7c9b51a4611988c1efe250de7a1d5d791",
+      "source_tree": "ff71f70f47d0306f9a74d511f1ebb74a751454bf",
+      "result": "PARTIAL",
+      "last_safe_checkpoint": {
+        "git_commit": "9d010bc7c9b51a4611988c1efe250de7a1d5d791",
+        "evidence_path": "docs/evidence/2026-10-07-agent-run-budget-output-validation.json"
+      },
+      "integration": {
+        "method": "NON_FORCE_FAST_FORWARD",
+        "base": "de04d6bb06ce23d1a7f4f7f0f04dedcd87bdf7a5",
+        "main": "9d010bc7c9b51a4611988c1efe250de7a1d5d791",
+        "source_branch": "codex/mj-ref-033-agent-run-limits-20261007",
+        "source_commit": "9d010bc7c9b51a4611988c1efe250de7a1d5d791",
+        "candidate": "9d010bc7c9b51a4611988c1efe250de7a1d5d791",
+        "issue_comment": "https://github.com/MulattoTech/MJobs/issues/403#issuecomment-6033983627",
+        "actions_disabled": true,
+        "hosted_review": "NOT_RUN_BY_USER_POLICY",
+        "issue_closed": false
+      }
     }
   ],
-  "current_phase": "Issue #398 / MJ-REF-028 fully accepted locally, integrated into synchronized main and closed after sanitized evidence readback; broader MJ-REQ-175/MJ-REQ-180 remain PARTIAL.",
+  "current_phase": "Issue #403 / MJ-REF-033 scoped agent-run budget and collection validation integrated PARTIAL; browser integration, page budgets and bounded slice reruns remain open.",
   "last_safe_checkpoint": {
-    "git_commit": "7636b620b60e53380b48051a5550aa1dc23be663",
-    "evidence_path": "docs/evidence/2026-10-07-provider-credential-store.json"
+    "git_commit": "9d010bc7c9b51a4611988c1efe250de7a1d5d791",
+    "evidence_path": "docs/evidence/2026-10-07-agent-run-budget-output-validation.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -7588,18 +7656,17 @@
     "next_issue": "Release #398 and select the next dependency-ready unclaimed issue after live claim/worktree reconciliation."
   },
   "active_development_issue": {
-    "issue": 398,
-    "requirement_id": "MJ-REF-028",
-    "title": "Encrypted provider credential store with masked client previews",
-    "state": "CLOSED_SCOPE_PASS",
-    "base": "104e5533bbbc174e0e8c6e806741074e5f83d3a8",
-    "branch": "codex/mj-ref-028-credential-store-20261007",
-    "candidate": "7636b620b60e53380b48051a5550aa1dc23be663",
-    "source_tree": "eb580c4073864bfd06f7c56ea10af0527488ddc9",
-    "evidence": "docs/evidence/2026-10-07-provider-credential-store.json",
-    "next_action": "Release the completed Codex claim and integration lock, reconcile current main and every active lane claim/worktree, and select the next highest-value unclaimed dependency-ready issue.",
-    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/398#issuecomment-6032995423",
-    "integrated_main": "715b0e2600276ed2ab438908b4b97d57274d82c3"
+    "issue": 403,
+    "requirement_id": "MJ-REF-033",
+    "title": "Run-level stopping conditions, budgets, and browser-output validation",
+    "state": "OPEN_PARTIAL",
+    "base": "de04d6bb06ce23d1a7f4f7f0f04dedcd87bdf7a5",
+    "branch": "codex/mj-ref-033-agent-run-limits-20261007",
+    "candidate": "9d010bc7c9b51a4611988c1efe250de7a1d5d791",
+    "evidence": "docs/evidence/2026-10-07-agent-run-budget-output-validation.json",
+    "next_action": "Release this scoped partial claim after reconciliation and continue with the next highest-value unclaimed dependency-ready issue; browser integration, page budgets, and diagnostic slice reruns remain open.",
+    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/403#issuecomment-6033983627",
+    "integrated_main": "9d010bc7c9b51a4611988c1efe250de7a1d5d791"
   },
   "historical_control_snapshots": [
     {
@@ -8739,5 +8806,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-07T07:18:51Z"
+  "updated_at": "2026-10-07T08:27:01Z"
 }

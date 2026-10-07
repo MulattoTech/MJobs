@@ -746,3 +746,10 @@ Issue #398 / MJ-REF-028 encrypted provider credentials source `7636b620b60e53380
 
 
 Issue #398 closed after sanitized evidence readback. At closure, local and origin/main matched `715b0e2600276ed2ab438908b4b97d57274d82c3`; source commit `7636b620b60e53380b48051a5550aa1dc23be663` plus canonical planning/evidence were synchronized. The Codex claim and integration lock are now being released before selecting the next unclaimed issue.
+
+
+## 2026-10-07 Codex continuation — MJ-REF-033 scoped advance
+
+Issue #403 / MJ-REF-033 source and lane checkpoint were integrated by non-force fast-forward from synchronized main `de04d6bb06ce23d1a7f4f7f0f04dedcd87bdf7a5` to `9d010bc7c9b51a4611988c1efe250de7a1d5d791`. Evidence: `docs/evidence/2026-10-07-agent-run-budget-output-validation.json`. The append-only agent runtime now bounds elapsed tool-dispatch time and steps, records sanitized stop/budget metadata, recognizes explicit auth/source escape outcomes, and supports host-declared collection shape/count/tail checks. Focused tests: 23 PASS; compileall and agent-skill/catalogue/progress/reference-provenance validators PASS. Issue #403 remains OPEN/PARTIAL: browser/source entrypoint integration, page budgets, bounded diagnostic slice reruns and preemption of an in-flight synchronous handler remain incomplete. PostgreSQL, browser runtime, hosted checks/review NOT_RUN; external submission OFF.
+
+At integration reconciliation, Antigravity #302 owned `services/discovery/sources/**` and `tests/integration/test_dice.py`; Ollama #318 owned `services/ats_detection/**` and related tests. Both had active machine claims, GitHub AI LANE CLAIM comments and matching dirty worktrees; neither overlaps the Codex slice. No open PRs existed. Main was unprotected and no enabled workflows were listed. The issue remains open after sanitized evidence readback: https://github.com/MulattoTech/MJobs/issues/403#issuecomment-6033983627. Release the scoped claim and lock, reconcile current main and all claims/worktrees again, then select the next highest-value unclaimed dependency-ready issue.

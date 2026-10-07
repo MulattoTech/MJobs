@@ -1,6 +1,6 @@
 {
   "schema_version": 3,
-  "generated_at": "2026-10-07T08:04:17Z",
+  "generated_at": "2026-10-07T08:27:01Z",
   "canonical_namespace": "MJ-REF",
   "original_catalogue_count": 366,
   "reference_gap_count": 59,
@@ -225,8 +225,10 @@
       "evidence": []
     },
     "MJ-REF-033": {
-      "result": "NOT_RUN",
-      "evidence": []
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-07-agent-run-budget-output-validation.json"
+      ]
     },
     "MJ-REF-034": {
       "result": "NOT_RUN",
