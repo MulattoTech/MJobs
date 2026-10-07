@@ -98,6 +98,9 @@ def capture_redacted_screenshot(page, path):
         page.locator("input"),
         page.locator("textarea"),
         page.locator("select"),
+        page.locator("[contenteditable]:not([contenteditable='false'])"),
+        page.locator("[role='textbox']"),
+        page.locator("[role='combobox']"),
         page.locator("[data-sensitive]"),
         page.locator("[data-mjobs-sensitive-mask]"),
     ]

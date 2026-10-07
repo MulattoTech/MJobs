@@ -116,8 +116,9 @@ For an explicit visual debugging session, run manually:
 .\.venv\Scripts\python.exe -m cli.live_feedback run --base-url http://127.0.0.1:18701 --visuals
 ```
 
-This adds one final screenshot. Inputs, textareas, selects, and page regions marked
-`data-sensitive` are covered with opaque masks. Recognizable email addresses, phone
+This adds one final screenshot. Inputs, textareas, selects, editable regions, ARIA
+textboxes and comboboxes, and page regions marked `data-sensitive` are covered with
+opaque masks. Recognizable email addresses, phone
 numbers, common token formats, and text grouped with sensitive labels (such as gender,
 race, disability, or work authorization) are also masked. The recorder does not save a
 Playwright trace, DOM snapshot, or raw console/page-error text. The legacy

@@ -47,6 +47,40 @@ class LiveFeedbackScreenshotRedactionTests(unittest.TestCase):
             finally:
                 browser.close()
 
+    def test_synthetic_rich_text_answers_are_masked(self):
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch(headless=True)
+            try:
+                page = browser.new_page(viewport={"width": 800, "height": 320})
+                page.set_content("""
+                    <style>
+                      body { font: 24px sans-serif; }
+                      [contenteditable], [role=textbox], [role=combobox] {
+                        display: block; margin: 24px; min-height: 32px;
+                      }
+                    </style>
+                    <div contenteditable="plaintext-only" aria-label="Answer">SYNTHETIC_WORK_AUTHORIZATION_ANSWER</div>
+                    <div role="textbox" aria-label="Answer">SYNTHETIC_DEMOGRAPHIC_ANSWER</div>
+                    <div role="combobox" aria-label="Answer">SYNTHETIC_VISA_ANSWER</div>
+                """)
+                boxes = [
+                    page.locator("[contenteditable]").bounding_box(),
+                    page.locator("[role='textbox']").bounding_box(),
+                    page.locator("[role='combobox']").bounding_box(),
+                ]
+                with tempfile.TemporaryDirectory() as directory:
+                    capture_path = Path(directory) / "rich-controls.png"
+                    capture_redacted_screenshot(page, capture_path)
+                    with Image.open(capture_path) as image:
+                        pixels = image.convert("RGB")
+                        for box in boxes:
+                            self.assertIsNotNone(box)
+                            sample = (int(box["x"] + box["width"] / 2),
+                                      int(box["y"] + box["height"] / 2))
+                            self.assertEqual(pixels.getpixel(sample), (0, 0, 0))
+            finally:
+                browser.close()
+
 
 if __name__ == "__main__":
     unittest.main()

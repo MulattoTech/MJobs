@@ -85,12 +85,20 @@ class LiveFeedbackTests(unittest.TestCase):
         page = Page()
         capture_redacted_screenshot(page, "synthetic.png")
 
-        self.assertEqual(page.selectors, ["input", "textarea", "select", "[data-sensitive]", "[data-mjobs-sensitive-mask]"])
+        self.assertEqual(page.selectors, [
+            "input", "textarea", "select",
+            "[contenteditable]:not([contenteditable='false'])",
+            "[role='textbox']", "[role='combobox']", "[data-sensitive]",
+            "[data-mjobs-sensitive-mask]",
+        ])
         self.assertEqual(page.capture["path"], "synthetic.png")
         self.assertTrue(page.capture["full_page"])
         self.assertEqual(page.capture["mask"], [
             ("locator", "input"), ("locator", "textarea"),
-            ("locator", "select"), ("locator", "[data-sensitive]"),
+            ("locator", "select"),
+            ("locator", "[contenteditable]:not([contenteditable='false'])"),
+            ("locator", "[role='textbox']"), ("locator", "[role='combobox']"),
+            ("locator", "[data-sensitive]"),
             ("locator", "[data-mjobs-sensitive-mask]"),
         ])
         self.assertEqual(page.capture["mask_color"], "#000000")
