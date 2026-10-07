@@ -3413,7 +3413,8 @@
       "scope_result": "PASS",
       "notes": "A user can rewrite an individually selected approved summary fact for one application and attest it. API/worker validation binds source hash and fact kind, preserves exact dates and numbers, rejects unreviewed/unsupported changes, persists immutable generation provenance, and reconstructs history for connected comparison after profile edits. Profile facts and cover letter stay unchanged. Local Python 12 + affected document 20 + connected browser 2 + frontend 63/build + validators PASS. Broader #96 remains OPEN/PARTIAL; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
       "integration_commit": "975a044e918105e4d7162254aa03dd771f6175ea",
-      "integrated_at": "2026-10-07T11:08:16Z"
+      "integrated_at": "2026-10-07T11:08:16Z",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6036663828"
     }
   ],
   "generated_at": "2026-10-07T11:08:16Z"

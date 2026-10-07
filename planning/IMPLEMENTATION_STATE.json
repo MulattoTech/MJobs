@@ -7928,7 +7928,8 @@
         "source_branch": "codex/mj-req095-summary-adjustment-20261007",
         "source_commit": "bac4de1ad20e851b9a5e2d7ae27510ab1e7c30e3",
         "issue_state": "OPEN",
-        "evidence_checkpoint_commit": "975a044e918105e4d7162254aa03dd771f6175ea"
+        "evidence_checkpoint_commit": "975a044e918105e4d7162254aa03dd771f6175ea",
+        "issue_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6036663828"
       }
     }
   ],
@@ -8103,7 +8104,8 @@
     "candidate": "bac4de1ad20e851b9a5e2d7ae27510ab1e7c30e3",
     "integrated_main": "975a044e918105e4d7162254aa03dd771f6175ea",
     "evidence": "docs/evidence/2026-10-07-resume-user-reviewed-summary-adjustment.json",
-    "next_action": "Reconcile active lane claims and dependency-ready requirements, then continue issue #96 if independent unclaimed summary/bullet fact work remains; otherwise select the highest-value safe issue."
+    "next_action": "Reconcile active lane claims and dependency-ready requirements, then continue issue #96 if independent unclaimed summary/bullet fact work remains; otherwise select the highest-value safe issue.",
+    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6036663828"
   },
   "historical_control_snapshots": [
     {

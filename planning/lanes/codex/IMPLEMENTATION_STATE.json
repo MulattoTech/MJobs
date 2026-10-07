@@ -3,28 +3,26 @@
   "lane": "codex",
   "status": "ACTIVE",
   "base_main": "74398ffd0b9271008d1e7a1f2dc12e285972fe78",
-  "current_issue": 96,
-  "requirement_id": "MJ-REQ-095",
-  "branch": "codex/mj-req095-summary-adjustment-20261007",
-  "head": "964bb555255d7437b58b87e852692522447c40d2",
-  "worktree": "C:/Tools/Dev/MJobs/.worktrees/codex-mj-req095-summary-adjustment-20261007",
+  "current_issue": null,
+  "requirement_id": null,
+  "branch": null,
+  "head": "c3d974980612cbdb0856d3acb794bdc2b518ba31",
+  "worktree": null,
   "result": "PARTIAL",
   "evidence_path": "docs/evidence/2026-10-07-resume-user-reviewed-summary-adjustment.json",
   "last_completed": {
-    "issue": 6,
-    "requirement_id": "MJ-REQ-005",
-    "integration_commit": "74398ffd0b9271008d1e7a1f2dc12e285972fe78",
-    "slice_status": "PARTIAL"
+    "issue": 96,
+    "requirement_id": "MJ-REQ-095",
+    "integration_commit": "975a044e918105e4d7162254aa03dd771f6175ea",
+    "slice_status": "PASS"
   },
-  "next_candidates": [
-    96
-  ],
+  "next_candidates": [],
   "do_not_overlap": [
     "Antigravity active issue #302 paths: services/discovery/sources/** and tests/integration/test_dice.py",
     "Ollama/OpenCode active issue #318 paths: services/ats_detection/** and detector tests",
     "canonical planning and main outside integration lock"
   ],
-  "resume_instruction": "Issue #96 / MJ-REQ-095 summary adjustment slice is implemented and locally validated at source bac4de1ad20e851b9a5e2d7ae27510ab1e7c30e3; evidence docs/evidence/2026-10-07-resume-user-reviewed-summary-adjustment.json, evidence commit 964bb555255d7437b58b87e852692522447c40d2. Focused Python 12 PASS, affected document 20 PASS, browser 2 PASS, frontend 63 PASS/build PASS, validators PASS. Issue remains OPEN/PARTIAL for broader scope; hosted checks NOT_RUN_BY_USER_POLICY, external submission OFF. Fetch/reconcile main/claims, acquire lock, integrate safely and continue with the highest-value unclaimed issue.",
+  "resume_instruction": "Issue #96 summary-adjustment slice integrated and read back from GitHub; broader requirement remains OPEN/PARTIAL. Reconcile claims and main, then select next dependency-ready unclaimed work.",
   "last_verified_head": "964bb555255d7437b58b87e852692522447c40d2",
   "last_verified_tree": "414341aec1e5081efbd6f640cd1bb686b63fbe24",
   "last_verified_at_utc": "2026-10-07T11:06:23Z",

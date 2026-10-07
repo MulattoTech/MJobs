@@ -95,9 +95,12 @@
         "docs/evidence/2026-10-07-resume-user-reviewed-summary-adjustment.json",
         "planning/lanes/codex/**"
       ],
-      "status": "ACTIVE",
+      "status": "RELEASED",
       "claimed_at": "2026-10-07T11:03:37Z",
-      "evidence_path": "docs/evidence/2026-10-07-resume-user-reviewed-summary-adjustment.json"
+      "evidence_path": "docs/evidence/2026-10-07-resume-user-reviewed-summary-adjustment.json",
+      "released_at": "2026-10-07T11:09:18Z",
+      "integrated_main": "975a044e918105e4d7162254aa03dd771f6175ea",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6036663828"
     }
   ]
 }
