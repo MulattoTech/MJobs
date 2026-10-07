@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-07T15:27:43Z",
+  "generated_at": "2026-10-07T16:38:10Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -11,7 +11,7 @@
     "current_verified_github_state": "Issue #179 / MJ-REQ-178 log retention acceptance PASS at 8bea57e595e19e638913405a8ec1cd3aa0ebde32; full product remains PARTIAL.",
     "current_verified_at": "2026-10-07T15:27:43Z"
   },
-  "current_milestone": "MJ-REQ-176-SETTING-CHANGE-AUDIT-PARTIAL-20261007",
+  "current_milestone": "MJ-REQ-176-JOB-MERGED-AUDIT-PARTIAL-20261007",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -346,7 +346,10 @@
     "MJ-REQ-176 profile setting-change audit slice: focused 34 Python PASS; full Python 936 PASS, 8 skipped; Chromium 1; frontend 63/build; local validators PASS. Evidence docs/evidence/2026-10-07-setting-change-audit-history.json.",
     "Issue #178 / MJ-REQ-177: focused worker/logging suite 21 PASS, 1 PostgreSQL-only skip; full Python 932 PASS, 8 skipped; frontend 63 PASS/build and local validators PASS. Evidence docs/evidence/2026-10-07-structured-worker-operation-logs.json.",
     "Issue #179 / MJ-REQ-178: 20 focused Compose/live-feedback/document-artifact tests PASS; rendered Docker Compose config for all 9 services PASS; isolated Docker rollover runtime PASS (50 emitted / 11 retained). Evidence docs/evidence/2026-10-07-compose-log-rotation.json.",
-    "Issue #180 / MJ-REQ-179 exact-head affected suite at f8d07ca9a83e9f61541ad74f2bcb1c1c46f02165: 73 run, 72 PASS, 1 optional PostgreSQL skip; repository validators PASS. Evidence docs/evidence/2026-10-07-safe-browser-debug-capture.json."
+    "Issue #180 / MJ-REQ-179 exact-head affected suite at f8d07ca9a83e9f61541ad74f2bcb1c1c46f02165: 73 run, 72 PASS, 1 optional PostgreSQL skip; repository validators PASS. Evidence docs/evidence/2026-10-07-safe-browser-debug-capture.json.",
+    "MJ-REQ-176 canonical job merge Activity slice exact integrated-main affected suite: 67 Python integration/browser tests PASS, 0 failures/errors (head 26deecc77098471f0973e7e0b34193c1e4e0d0e3).",
+    "Frontend tests: 63 PASS; TypeScript/Vite build PASS on product-source head 447afe1665af2c81a2e0d63149ca6e00068cbcfb; no frontend source changed in later test isolation commit.",
+    "Agent skills, catalogue, progress, lane coordination and git diff validators PASS."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -368,7 +371,8 @@
     "RESOLVED ENVIRONMENT MISMATCH for docs/evidence/2026-10-07-backup-command-output-bounds.json: initial full runs used absent/stale ignored apps/web/dist; after npm ci and Vite build in a worktree at exact integrated main d7307be3d50e4297f87ba315e9cda3dbdf1a1924, all 903 Python/browser tests passed with 2 skipped. Historical failures preserved above; no product defect was confirmed.",
     "Global Python interpreter lacks repository Alembic dependencies: migration discovery errored on 12 module imports; rerun with repository .venv passed (environment mismatch, not product failure).",
     "Progress journal validator first run after issue #8 receipt append failed because top-level current_phase still named the preceding milestone; updated current_phase to match the newest journal entry and reran validation successfully.",
-    "Repository-wide unittest discovery at source 6d3b2893f18289fc76b29ce8955dfb2fb103b58d: 948 run, 2 failures, 9 errors, 28 skipped; test names were not all retained in terminal output, so no attribution is claimed. Recorded in docs/evidence/2026-10-07-safe-browser-debug-capture.json."
+    "Repository-wide unittest discovery at source 6d3b2893f18289fc76b29ce8955dfb2fb103b58d: 948 run, 2 failures, 9 errors, 28 skipped; test names were not all retained in terminal output, so no attribution is claimed. Recorded in docs/evidence/2026-10-07-safe-browser-debug-capture.json.",
+    "Resolved test-harness attempt: combined 67-test run at 447afe1665af2c81a2e0d63149ca6e00068cbcfb had 66 PASS and one browser test failure while its profile-save interaction remained pending after preceding integration modules. Isolated browser passed; Activity UI test now seeds a value-free setting event rather than repeating that separate save workflow, and combined exact-main suite passes 67/67 at 26deecc77098471f0973e7e0b34193c1e4e0d0e3."
   ],
   "tests_not_run": [
     "Remaining full-spec integrations and product/release requirements",
@@ -417,7 +421,9 @@
     "MJ-REQ-176 setting audit slice: PostgreSQL/Docker/migration coverage NOT_RUN (no schema change); hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
     "Issue #178: live Redis/RQ worker integration and PostgreSQL runtime NOT_RUN; hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF.",
     "Issue #179: actual personal MJobs Compose services were intentionally not restarted/recreated; hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF.",
-    "Issue #180: real ATS adapter/browser acceptance and live PostgreSQL not run; one optional PostgreSQL worker recovery class skipped because MJOBS_WORKER_RECOVERY_POSTGRES_URL was unset. GitHub hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF."
+    "Issue #180: real ATS adapter/browser acceptance and live PostgreSQL not run; one optional PostgreSQL worker recovery class skipped because MJOBS_WORKER_RECOVERY_POSTGRES_URL was unset. GitHub hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF.",
+    "Live PostgreSQL and Docker runtime checks for the MJ-REQ-176 JOB_MERGED slice; no schema/migration change and synthetic SQLite transaction/readback coverage was used.",
+    "Repository-wide unittest discovery was not rerun during this slice; prior broad failure remains historical evidence and was not promoted."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -455,19 +461,21 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "timestamp": "2026-10-07T16:03:21Z",
+    "timestamp": "2026-10-07T16:35:59Z",
     "result": "PARTIAL",
-    "source_commit": "f8d07ca9a83e9f61541ad74f2bcb1c1c46f02165",
-    "source_tree": "9f09bf53f637aff637be8f8c4188667c050cf167",
-    "issue": 180,
-    "requirement_id": "MJ-REQ-179",
-    "title": "[MJ-REQ-179] Debug Capture",
+    "source_commit": "3e9c196d719f589f3c84b2409dc1efc22a1bb37a",
+    "source_tree": "11a5c3e5999a3359108d08e31ec9605128baa1e4",
+    "issue": 177,
+    "requirement_id": "MJ-REQ-176",
+    "title": "[MJ-REQ-176] Audit Log — canonical job merge history slice",
     "state": "INTEGRATED_PARTIAL",
-    "base": "bd92e070dba13513e78e6127664417c5082fd337",
-    "branch": "codex/mj-req179-safe-browser-debug-capture-20261007",
-    "candidate_integration_commit": "de12a25841d177ee305278b976ed4057f262ee8c",
-    "evidence_path": "docs/evidence/2026-10-07-safe-browser-debug-capture.json",
-    "scope": "Opt-in, bounded privacy-preserving failure capture for the existing local mock ATS browser flow; real ATS automation remains unavailable."
+    "base": "29a02e2c01a515fe79814cbe79adb6b3342efbc3",
+    "branch": "codex/mj-req176-job-merge-audit-20261007",
+    "candidate_integration_commit": "26deecc77098471f0973e7e0b34193c1e4e0d0e3",
+    "verification_head": "26deecc77098471f0973e7e0b34193c1e4e0d0e3",
+    "verification_tree": "8981ee1a83aabb620c920e55f17f5131bd50444a",
+    "evidence_path": "docs/evidence/2026-10-07-job-merge-audit.json",
+    "scope": "Profile-owned JOB_MERGED history for newly attached company-feed postings resolved to a different canonical job; other audit event families remain incomplete."
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -534,7 +542,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Issue #177 partial slice integrated and claim released. Reconcile current main and every active claim/worktree, then choose the next highest-value unclaimed dependency-ready issue; preserve full event requirements.",
+  "recommended_resume_step": "Issue #177 / MJ-REQ-176 JOB_MERGED slice integrated PARTIAL at main 26deecc77098471f0973e7e0b34193c1e4e0d0e3; issue remains OPEN. Release the Codex claim and integration lock, reconcile current main/claims/GitHub issue comments/dirty worktrees, then select and claim the highest-value unclaimed dependency-ready issue.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -571,16 +579,16 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "f8d07ca9a83e9f61541ad74f2bcb1c1c46f02165",
+  "last_implementation_commit": "26deecc77098471f0973e7e0b34193c1e4e0d0e3",
   "publication": {
     "result": "PASS",
     "integration_method": "NON_FORCE_FAST_FORWARD",
-    "integration_commit": "3804a953317b122879747e0075602994c8151678",
-    "prior_main": "e455c8e05ee5f826918c7c353fc7968994a35be1",
+    "integration_commit": "26deecc77098471f0973e7e0b34193c1e4e0d0e3",
+    "prior_main": "29a02e2c01a515fe79814cbe79adb6b3342efbc3",
     "pr_number": null,
     "pr_state": "NOT_OPENED_LOCAL_ONLY",
     "github_reports_merged": false,
-    "note": "Issue #375 local acceptance integrated under the Codex lock. Hosted Actions/review NOT_RUN_BY_USER_POLICY; Actions remain disabled; external submission OFF."
+    "note": "Issue #177 scoped JOB_MERGED acceptance was integrated under the Codex integration lock. The issue remains OPEN/PARTIAL; GitHub issue checkpoint posted. Hosted checks/review NOT_RUN_BY_USER_POLICY; GitHub Actions remain disabled; external submission OFF."
   },
   "optional_afk_journal": {
     "result": "PASS",
@@ -8951,12 +8959,58 @@
         "Only the existing local mock ATS browser adapter supports capture; real ATS adapters remain absent.",
         "Live PostgreSQL and hosted checks were not run; external submission is OFF."
       ]
+    },
+    {
+      "milestone_id": "MJ-REQ-176-JOB-MERGED-AUDIT-PARTIAL-20261007",
+      "timestamp": "2026-10-07T16:38:10Z",
+      "current_phase": "MJ_REQ_176_JOB_MERGED_AUDIT_PARTIAL_INTEGRATED",
+      "completed_steps": [
+        "Reproduced missing JOB_MERGED timeline behavior for a new distinct provider posting attached to an existing canonical job.",
+        "Recorded the profile-owned event only after accepted posting persistence; posting and event share one transaction and retries are deterministic.",
+        "Verified failed import rollback, existing-posting refresh idempotency, distinct-route non-merge behavior, safe API summary, profile isolation, SQLite persistence and connected Chromium reload.",
+        "Integrated candidate by non-force fast-forward from 29a02e2c01a515fe79814cbe79adb6b3342efbc3 to 26deecc77098471f0973e7e0b34193c1e4e0d0e3 and posted sanitized issue checkpoint https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6042382787."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-07-job-merge-audit.json"
+      ],
+      "files_modified": [
+        "services/audit_history.py",
+        "services/discovery/company_feed.py",
+        "tests/integration/test_audit_history.py",
+        "tests/browser/test_audit_history.py",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Exact integrated-main affected Python integration/browser suite: 67 PASS, 0 failures/errors at 26deecc77098471f0973e7e0b34193c1e4e0d0e3.",
+        "Frontend: 63 tests PASS and TypeScript/Vite build PASS at product-source head 447afe1665af2c81a2e0d63149ca6e00068cbcfb; no frontend source changed afterward.",
+        "Agent skills, catalogue, progress, lane coordination and git diff validators PASS."
+      ],
+      "tests_remaining": [
+        "Other MJ-REQ-176 event producers, settings and complete truthful application lifecycle coverage remain incomplete.",
+        "Live PostgreSQL/Docker and repository-wide unittest discovery were not run in this slice; hosted checks are NOT_RUN_BY_USER_POLICY."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "26deecc77098471f0973e7e0b34193c1e4e0d0e3",
+        "evidence_path": "docs/evidence/2026-10-07-job-merge-audit.json"
+      },
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [
+        "One intermediate combined browser-suite run failed at 447afe because the Activity browser test left a profile-save UI action pending after preceding integration modules; isolated browser and 66 integrations passed, then the browser test was narrowed and the final combined exact-main run passed 67/67."
+      ],
+      "known_limitations": [
+        "This is only one JOB_MERGED event producer; full audit requirement remains PARTIAL/OPEN.",
+        "Synthetic SQLite only; live PostgreSQL/Docker, hosted checks and actual external application submission were not used."
+      ]
     }
   ],
-  "current_phase": "MJ_REQ_179_DEBUG_CAPTURE_PARTIAL_INTEGRATED",
+  "current_phase": "MJ_REQ_176_JOB_MERGED_AUDIT_PARTIAL_INTEGRATED",
   "last_safe_checkpoint": {
-    "git_commit": "de12a25841d177ee305278b976ed4057f262ee8c",
-    "evidence_path": "docs/evidence/2026-10-07-safe-browser-debug-capture.json"
+    "git_commit": "26deecc77098471f0973e7e0b34193c1e4e0d0e3",
+    "evidence_path": "docs/evidence/2026-10-07-job-merge-audit.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -9180,6 +9234,20 @@
       "actions_enabled": false,
       "main_protected": false,
       "open_prs": 0
+    },
+    {
+      "result": "PASS",
+      "transport": "Authenticated Git push; local-only non-force fast-forward under integration lock",
+      "local_remote_commit_identical": true,
+      "force": false,
+      "pr_number": null,
+      "url": null,
+      "initial_head": "29a02e2c01a515fe79814cbe79adb6b3342efbc3",
+      "final_head": "26deecc77098471f0973e7e0b34193c1e4e0d0e3",
+      "issue": 177,
+      "evidence_path": "docs/evidence/2026-10-07-job-merge-audit.json",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6042382787",
+      "hosted_checks": "NOT_RUN_BY_USER_POLICY"
     }
   ],
   "live_reconciliation": {
@@ -9194,20 +9262,20 @@
     "next_issue": "Release #398 and select the next dependency-ready unclaimed issue after live claim/worktree reconciliation."
   },
   "active_development_issue": {
-    "issue": 180,
-    "requirement_id": "MJ-REQ-179",
-    "title": "[MJ-REQ-179] Debug Capture",
+    "issue": 177,
+    "requirement_id": "MJ-REQ-176",
+    "title": "[MJ-REQ-176] Audit Log",
     "state": "INTEGRATED_PARTIAL",
-    "base": "bd92e070dba13513e78e6127664417c5082fd337",
-    "branch": "codex/mj-req179-safe-browser-debug-capture-20261007",
-    "candidate": "de12a25841d177ee305278b976ed4057f262ee8c",
-    "integrated_main": "de12a25841d177ee305278b976ed4057f262ee8c",
-    "source_commit": "f8d07ca9a83e9f61541ad74f2bcb1c1c46f02165",
-    "source_tree": "9f09bf53f637aff637be8f8c4188667c050cf167",
-    "evidence": "docs/evidence/2026-10-07-safe-browser-debug-capture.json",
+    "base": "29a02e2c01a515fe79814cbe79adb6b3342efbc3",
+    "branch": "codex/mj-req176-job-merge-audit-20261007",
+    "candidate": "26deecc77098471f0973e7e0b34193c1e4e0d0e3",
+    "integrated_main": "26deecc77098471f0973e7e0b34193c1e4e0d0e3",
+    "source_commit": "3e9c196d719f589f3c84b2409dc1efc22a1bb37a",
+    "source_tree": "11a5c3e5999a3359108d08e31ec9605128baa1e4",
+    "evidence": "docs/evidence/2026-10-07-job-merge-audit.json",
     "issue_state": "OPEN",
-    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/180#issuecomment-6041786003",
-    "next_action": "Release Codex claim and integration lock, reconcile latest main/claims/worktrees/issues, then choose the highest-value unclaimed dependency-ready issue."
+    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6042382787",
+    "next_action": "Release this partial claim and integration lock, then reconcile live ownership and select the next highest-value unclaimed dependency-ready issue."
   },
   "historical_control_snapshots": [
     {
@@ -10349,5 +10417,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-07T16:03:21Z"
+  "updated_at": "2026-10-07T16:38:10Z"
 }

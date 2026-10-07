@@ -6,17 +6,17 @@
   "current_issue": 177,
   "requirement_id": "MJ-REQ-176",
   "branch": "codex/mj-req176-job-merge-audit-20261007",
-  "head": "ed4875c5cb574ad5c00ae37684173e2cd3e64732",
+  "head": "26deecc77098471f0973e7e0b34193c1e4e0d0e3",
   "worktree": ".worktrees/codex-mj-req176-job-merge-audit-20261007",
-  "result": "CHECKPOINTED_PARTIAL; awaiting integration lock and exact-main reconciliation",
+  "result": "INTEGRATED_PARTIAL; issue #177 remains OPEN",
   "evidence_path": "docs/evidence/2026-10-07-job-merge-audit.json",
   "last_completed": {
-    "issue": 179,
-    "requirement_id": "MJ-REQ-178",
-    "integrated_main": "8bea57e595e19e638913405a8ec1cd3aa0ebde32",
-    "issue_state": "CLOSED/PASS",
-    "evidence_path": "docs/evidence/2026-10-07-compose-log-rotation.json",
-    "release_comment": "https://github.com/MulattoTech/MJobs/issues/179#issuecomment-6041087412"
+    "issue": 177,
+    "requirement_id": "MJ-REQ-176",
+    "integrated_main": "26deecc77098471f0973e7e0b34193c1e4e0d0e3",
+    "issue_state": "OPEN/PARTIAL",
+    "evidence_path": "docs/evidence/2026-10-07-job-merge-audit.json",
+    "release_comment": null
   },
   "next_candidates": [],
   "do_not_overlap": [
@@ -24,10 +24,10 @@
     "Ollama/OpenCode active issue #318 paths: services/ats_detection/** and detector tests",
     "canonical planning and main outside integration lock"
   ],
-  "resume_instruction": "Issue #180 / MJ-REQ-179 scoped local mock adapter debug-capture slice integrated PARTIAL at de12a25841d177ee305278b976ed4057f262ee8c. Claim released; issue remains OPEN. Reconcile latest main, all claims, issue comments and dirty worktrees before selecting the next highest-value dependency-ready unclaimed issue. Preserve broad discovery failure evidence and avoid Antigravity #302 / Ollama #318 paths. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
-  "last_verified_head": "3e9c196d719f589f3c84b2409dc1efc22a1bb37a",
-  "last_verified_tree": "11a5c3e5999a3359108d08e31ec9605128baa1e4",
-  "last_verified_at_utc": "2026-10-07T16:23:39Z",
+  "resume_instruction": "Issue #177 / MJ-REQ-176 JOB_MERGED slice is integrated PARTIAL at main 26deecc77098471f0973e7e0b34193c1e4e0d0e3. The Codex claim remains active only through canonical planning push and GitHub release readback. Then release claim/lock, reconcile all ownership and select the next highest-value unclaimed dependency-ready issue. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
+  "last_verified_head": "26deecc77098471f0973e7e0b34193c1e4e0d0e3",
+  "last_verified_tree": "8981ee1a83aabb620c920e55f17f5131bd50444a",
+  "last_verified_at_utc": "2026-10-07T16:35:59Z",
   "started_at_utc": "2026-10-07T04:24:01Z",
   "validation": {
     "result": "PARTIAL",
@@ -39,14 +39,14 @@
     "hosted_checks": "NOT_RUN_BY_USER_POLICY",
     "external_submission": "OFF"
   },
-  "last_integrated_head": "de12a25841d177ee305278b976ed4057f262ee8c",
-  "last_verified_result": "PARTIAL; 67 focused Python/browser tests, frontend 63/build and local validators pass; integration pending",
-  "updated_at": "2026-10-07T16:24:39Z",
-  "integrated_main": "3c58290a10ff5412c9d92c090e7ebef933af5689",
+  "last_integrated_head": "26deecc77098471f0973e7e0b34193c1e4e0d0e3",
+  "last_verified_result": "PARTIAL; issue #177 JOB_MERGED slice integrated; 67 focused Python/browser tests and local checks pass",
+  "updated_at": "2026-10-07T16:38:10Z",
+  "integrated_main": "26deecc77098471f0973e7e0b34193c1e4e0d0e3",
   "last_integrated_issue": 177,
-  "last_integrated_requirement": "MJ-REQ-176 company/source audit event slice",
-  "last_integrated_evidence": "docs/evidence/2026-10-07-company-audit-history.json",
+  "last_integrated_requirement": "MJ-REQ-176 JOB_MERGED history PARTIAL",
+  "last_integrated_evidence": "docs/evidence/2026-10-07-job-merge-audit.json",
   "canonical_main_at_pause": "9a61c6e4ae3b667cd3556b867562ff72900f8a9c",
-  "last_completed_issue": 180,
-  "last_completed_requirement": "MJ-REQ-179 Debug Capture PARTIAL; issue #180 remains OPEN"
+  "last_completed_issue": 177,
+  "last_completed_requirement": "MJ-REQ-176 JOB_MERGED audit slice PARTIAL; issue #177 remains OPEN"
 }

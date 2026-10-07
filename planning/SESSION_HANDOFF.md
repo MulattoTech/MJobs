@@ -962,3 +962,12 @@ Next: synchronize and verify origin/main, post sanitized issue evidence, release
 - Acceptance: opt-in bounded privacy-preserving failure capture for the local mock ATS browser flow; tests preserve review and unconfirmed-submission safety. Exact-head affected suite 72 PASS, 1 optional PostgreSQL skip.
 - Broad suite: 948 run, 2 failures, 9 errors, 28 skipped; no broad PASS claim. Real ATS and live PostgreSQL NOT_RUN; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.
 - Release readback: https://github.com/MulattoTech/MJobs/issues/180#issuecomment-6041786003. Next: release claim/lock, reconcile active claims and branches, select next unclaimed dependency-ready issue.
+
+
+## 2026-10-07 Codex integration checkpoint — MJ-REQ-176 JOB_MERGED audit
+
+- Feature source: `3e9c196d719f589f3c84b2409dc1efc22a1bb37a` (tree `11a5c3e5999a3359108d08e31ec9605128baa1e4`). Integrated by non-force fast-forward from `29a02e2c01a515fe79814cbe79adb6b3342efbc3` through candidate/main `26deecc77098471f0973e7e0b34193c1e4e0d0e3`; verification tree `8981ee1a83aabb620c920e55f17f5131bd50444a`.
+- Result: **PARTIAL**. Issue #177 remains OPEN. Evidence: `docs/evidence/2026-10-07-job-merge-audit.json`.
+- Validation: exact integrated-main affected suite 67 PASS, 0 failures/errors; frontend 63 tests and TypeScript/Vite build PASS; local validators PASS. Connected synthetic Chromium verifies Activity reload/profile isolation; SQLite import/event rollback and durable readback are covered.
+- Limitations: this slice adds only truthful JOB_MERGED history; other settings and full truthful application lifecycle events remain incomplete. Live PostgreSQL/Docker and repository-wide test discovery NOT_RUN for this slice; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.
+- GitHub checkpoint: https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6042382787. Next: release Codex claim and lock, reconcile current main and all active lanes/worktrees, then select and claim the highest-value unclaimed dependency-ready issue.

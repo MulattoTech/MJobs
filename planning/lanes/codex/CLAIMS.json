@@ -581,7 +581,7 @@
       "requirement_id": "MJ-REQ-176",
       "branch": "codex/mj-req176-job-merge-audit-20261007",
       "worktree": ".worktrees/codex-mj-req176-job-merge-audit-20261007",
-      "head": "ed4875c5cb574ad5c00ae37684173e2cd3e64732",
+      "head": "26deecc77098471f0973e7e0b34193c1e4e0d0e3",
       "paths": [
         "services/audit_history.py",
         "services/discovery/company_feed.py",

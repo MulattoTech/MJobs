@@ -4,7 +4,7 @@
   "requirement_id": "MJ-REQ-176",
   "title": "Audit Log — truthful job merge event",
   "status": "PARTIAL",
-  "recorded_at_utc": "2026-10-07T16:24:39Z",
+  "recorded_at_utc": "2026-10-07T16:38:10Z",
   "base_main": "29a02e2c01a515fe79814cbe79adb6b3342efbc3",
   "source_commit": "3e9c196d719f589f3c84b2409dc1efc22a1bb37a",
   "source_tree": "11a5c3e5999a3359108d08e31ec9605128baa1e4",
@@ -19,15 +19,18 @@
   },
   "validation": {
     "focused_python_browser": {
-      "source_commit": "3e9c196d719f589f3c84b2409dc1efc22a1bb37a",
+      "source_commit": "26deecc77098471f0973e7e0b34193c1e4e0d0e3",
       "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_audit_history tests.integration.test_application_link_evidence tests.integration.test_company_feed_quality tests.integration.test_company_source_monitoring tests.integration.test_cross_provider_lifecycle tests.integration.test_discovery_requests tests.integration.test_job_lifecycle tests.integration.test_source_value_integrity tests.integration.test_source_value_resolution tests.browser.test_audit_history -v",
-      "result": "67 tests PASS; 0 failures/errors"
+      "result": "67 tests PASS; 0 failures/errors on exact integrated main before canonical planning update",
+      "feature_source_commit": "3e9c196d719f589f3c84b2409dc1efc22a1bb37a"
     },
     "frontend": {
       "test_command": "npm test --prefix apps/web -- --run",
       "test_result": "13 files passed; 63 tests passed",
       "build_command": "npm run build --prefix apps/web",
-      "build_result": "TypeScript check and Vite production build PASS"
+      "build_result": "TypeScript check and Vite production build PASS",
+      "validated_head": "447afe1665af2c81a2e0d63149ca6e00068cbcfb",
+      "scope_note": "No frontend source changed in the later Activity browser test isolation commit."
     },
     "validators": {
       "commands": [
@@ -42,7 +45,16 @@
     "browser_setup": "The first isolated browser attempt returned 404 because the worktree had no built frontend. npm ci --prefix apps/web and npm run build --prefix apps/web were run; the exact browser test then passed against loopback API/UI and synthetic SQLite data.",
     "database_and_containers": "Synthetic SQLite persistence/reopen and transaction rollback were exercised. No migration or schema changed. Live PostgreSQL and Docker runtime checks were not run.",
     "hosted_checks": "NOT_RUN_BY_USER_POLICY; GitHub Actions and hosted reviewers remain disabled.",
-    "external_submission": "OFF"
+    "external_submission": "OFF",
+    "exact_head_repeat": {
+      "head": "26deecc77098471f0973e7e0b34193c1e4e0d0e3",
+      "tree": "8981ee1a83aabb620c920e55f17f5131bd50444a",
+      "command": ".\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_audit_history tests.integration.test_application_link_evidence tests.integration.test_company_feed_quality tests.integration.test_company_source_monitoring tests.integration.test_cross_provider_lifecycle tests.integration.test_discovery_requests tests.integration.test_job_lifecycle tests.integration.test_source_value_integrity tests.integration.test_source_value_resolution tests.browser.test_audit_history -v",
+      "result": "67 tests PASS; 0 failures/errors"
+    },
+    "transient_browser_run": "An initial combined exact-main run after 447afe had 66 PASS and one browser-test failure while a profile-save interaction remained pending after preceding integration modules; isolated browser and all 66 integrations passed. The Activity browser test was narrowed to render a value-free synthetic SETTING_CHANGED history event, while profile preference write/readback remains covered by the API integration test. The combined 67-test command passed on 26deecc77098471f0973e7e0b34193c1e4e0d0e3."
   },
-  "evidence_privacy": "Only synthetic employer, job, profile, and browser data were used. No private resume, credentials, cookies, application database, or raw private logs are included."
+  "evidence_privacy": "Only synthetic employer, job, profile, and browser data were used. No private resume, credentials, cookies, application database, or raw private logs are included.",
+  "validated_candidate_commit": "26deecc77098471f0973e7e0b34193c1e4e0d0e3",
+  "validated_candidate_tree": "8981ee1a83aabb620c920e55f17f5131bd50444a"
 }
