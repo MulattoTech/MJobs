@@ -36,8 +36,10 @@
     "issue": 196,
     "requirement_id": "MJ-REQ-195",
     "integrated_main": "17f0170841c2fa089e10b700deea11dbfd7e8167",
-    "issue_state": "PASS pending GitHub issue close readback",
-    "evidence_path": "docs/evidence/2026-10-08-application-tracker-current-main.json"
+    "issue_state": "CLOSED",
+    "evidence_path": "docs/evidence/2026-10-08-application-tracker-current-main.json",
+    "integration_comment": "https://github.com/MulattoTech/MJobs/issues/196#issuecomment-6054595656",
+    "metadata_checkpoint": "8822c54c175358ba2338f7bfd749d9ee90df997e"
   },
   "current_requirement": "MJ-REQ-190",
   "current_branch": "codex/mj-req190-newest-20261008",
