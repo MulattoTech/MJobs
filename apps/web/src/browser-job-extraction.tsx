@@ -1,329 +1,221 @@
-import { useState } from 'react';
-
-const MAX_VISIBLE_TEXT_CHARS = 10_000;
+import React, { useEffect, useRef, useState } from 'react';
+import { api } from './api';
 
 export type BrowserCaptureDraft = {
-  structuredCapture: string;
+  rawCaptureRef: string;
+  jobPostingJson: string;
+  provider: string;
+  providerFieldsJson: string;
   selectedText: string;
   visibleText: string;
 };
 
-export type BrowserJobFieldName = 'title' | 'company' | 'location' | 'description' | 'application_url';
-export type BrowserJobFieldSource =
-  | 'JOB_POSTING_SCHEMA'
-  | 'PROVIDER_STRUCTURED_DATA'
-  | 'SELECTED_TEXT'
-  | 'VISIBLE_TEXT_FALLBACK'
-  | 'UNKNOWN';
-export type BrowserJobFieldConfidence = 'HIGH' | 'MEDIUM' | 'LOW' | 'UNKNOWN';
+export const browserJobExtractionFields = [
+  'title', 'company', 'description', 'location', 'employment_type', 'date_posted',
+  'valid_through', 'source_job_id', 'listing_url', 'application_url',
+] as const;
 
-export type BrowserExtractedJobField = {
+export type BrowserJobExtractionFieldName = typeof browserJobExtractionFields[number];
+export type BrowserJobExtractionField = {
   value: string | null;
-  source: BrowserJobFieldSource;
-  confidence: BrowserJobFieldConfidence;
-  requires_confirmation: boolean;
+  source: 'JOBPOSTING_SCHEMA' | 'PROVIDER_FIELDS' | 'USER_SELECTED_TEXT' | 'VISIBLE_TEXT' | 'UNKNOWN';
+  confidence: number;
+  review_required: boolean;
+};
+export type BrowserJobExtractionResponse = {
+  profile_id: string;
+  job_id: string;
+  raw_capture_ref: string | null;
+  fields: Record<BrowserJobExtractionFieldName, BrowserJobExtractionField>;
+  unknown_fields: string[];
+  review_required: string[];
 };
 
-export type BrowserJobExtractionResult = {
-  fields: Record<BrowserJobFieldName, BrowserExtractedJobField>;
+const emptyDraft: BrowserCaptureDraft = {
+  rawCaptureRef: '', jobPostingJson: '', provider: '', providerFieldsJson: '', selectedText: '', visibleText: '',
 };
 
-type FieldCandidate = Pick<BrowserExtractedJobField, 'value' | 'source' | 'confidence'>;
-type JsonObject = Record<string, unknown>;
-
-const FIELD_PRESENTATION: ReadonlyArray<readonly [BrowserJobFieldName, string]> = [
-  ['title', 'Title'],
-  ['company', 'Company'],
-  ['location', 'Location'],
-  ['description', 'Description'],
-  ['application_url', 'Application route'],
-];
-
-function objectValue(value: unknown): JsonObject | null {
-  return value !== null && typeof value === 'object' && !Array.isArray(value)
-    ? value as JsonObject
-    : null;
-}
-
-function stringValue(value: unknown, maxLength = 20_000): string | null {
-  if (typeof value !== 'string') return null;
-  const trimmed = value.trim();
-  return trimmed.length > 0 && trimmed.length <= maxLength ? trimmed : null;
-}
-
-function applicationUrl(value: unknown): string | null {
-  const candidate = stringValue(value, 2_000);
-  if (!candidate) return null;
+function parseObjectJson(text: string, label: string): Record<string, unknown> | undefined {
+  if (!text.trim()) return undefined;
+  let value: unknown;
   try {
-    const parsed = new URL(candidate);
-    if ((parsed.protocol !== 'https:' && parsed.protocol !== 'http:') || parsed.username || parsed.password) {
-      return null;
-    }
-    return parsed.href;
+    value = JSON.parse(text);
   } catch {
-    return null;
+    throw new Error(`Enter valid JSON for the ${label}.`);
   }
-}
-
-function schemaObjects(value: unknown): JsonObject[] {
-  if (Array.isArray(value)) return value.flatMap(schemaObjects);
-  const object = objectValue(value);
-  if (!object) return [];
-  const graph = object['@graph'];
-  const nested = [
-    ...(Array.isArray(graph) ? graph : graph ? [graph] : []),
-    ...(object.jobPosting ? [object.jobPosting] : []),
-  ].flatMap(schemaObjects);
-  return [object, ...nested];
-}
-
-function isJobPostingSchema(value: JsonObject): boolean {
-  const types = Array.isArray(value['@type']) ? value['@type'] : [value['@type']];
-  return types.some(type => typeof type === 'string' &&
-    (type === 'JobPosting' || type.endsWith('/JobPosting') || type.endsWith('#JobPosting')));
-}
-
-function nestedText(value: unknown, ...keys: string[]): string | null {
-  let current = value;
-  for (const key of keys) {
-    if (Array.isArray(current)) current = current[0];
-    const object = objectValue(current);
-    if (!object) return null;
-    current = object[key];
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error(`The ${label} must be a JSON object.`);
   }
-  if (Array.isArray(current)) current = current[0];
-  const object = objectValue(current);
-  return stringValue(object ? object.name : current);
+  return value as Record<string, unknown>;
 }
 
-function candidate(value: unknown, source: BrowserJobFieldSource, confidence: BrowserJobFieldConfidence,
-                   validate: (value: unknown) => string | null = stringValue): FieldCandidate | undefined {
-  const normalized = validate(value);
-  return normalized ? { value: normalized, source, confidence } : undefined;
+export function buildBrowserCapturePayload(draft: BrowserCaptureDraft): Record<string, unknown> {
+  const jobPosting = parseObjectJson(draft.jobPostingJson, 'structured capture');
+  const providerFields = parseObjectJson(draft.providerFieldsJson, 'provider fields');
+  if (providerFields && !draft.provider.trim()) {
+    throw new Error('Choose a provider before adding provider fields.');
+  }
+  const capture: Record<string, unknown> = {};
+  if (draft.rawCaptureRef.trim()) capture.raw_capture_ref = draft.rawCaptureRef.trim();
+  if (jobPosting) capture.job_posting = jobPosting;
+  if (draft.provider.trim()) capture.provider = draft.provider.trim();
+  if (providerFields) capture.provider_fields = providerFields;
+  if (draft.selectedText.trim()) capture.selected_text = draft.selectedText;
+  if (draft.visibleText.trim()) capture.visible_text = draft.visibleText;
+  if (!('job_posting' in capture) && !('provider_fields' in capture) && !('selected_text' in capture) && !('visible_text' in capture)) {
+    throw new Error('Add structured capture, provider fields, selected text, or visible text to preview.');
+  }
+  return capture;
 }
 
-function schemaCandidates(object: JsonObject | undefined): Partial<Record<BrowserJobFieldName, FieldCandidate>> {
-  if (!object) return {};
-  const hiringOrganization = objectValue(object.hiringOrganization);
-  const address = nestedText(object.jobLocation, 'address', 'addressLocality');
-  const region = nestedText(object.jobLocation, 'address', 'addressRegion');
-  const postal = nestedText(object.jobLocation, 'address', 'postalCode');
-  const country = nestedText(object.jobLocation, 'address', 'addressCountry');
-  const locations = [address, region, postal, country].filter((part): part is string => !!part);
-  const locationValue = locations.length ? [...new Set(locations)].join(', ') :
-    nestedText(object.jobLocation, 'name');
-  const schemaDescription = stringValue(object.description);
-  return {
-    title: candidate(object.title, 'JOB_POSTING_SCHEMA', 'HIGH'),
-    company: candidate(hiringOrganization?.name, 'JOB_POSTING_SCHEMA', 'HIGH'),
-    location: candidate(locationValue, 'JOB_POSTING_SCHEMA', 'HIGH'),
-    description: schemaDescription
-      ? { value: schemaDescription, source: 'JOB_POSTING_SCHEMA', confidence: 'HIGH' }
-      : undefined,
-    application_url: candidate(object.applicationUrl ?? object.application_url ?? object.applyUrl,
-      'JOB_POSTING_SCHEMA', 'HIGH', applicationUrl),
-  };
-}
+type PreviewRequest = (path: string, init: RequestInit) => Promise<BrowserJobExtractionResponse>;
 
-function providerCandidates(root: JsonObject | undefined): Partial<Record<BrowserJobFieldName, FieldCandidate>> {
-  const provider = objectValue(root?.provider_data);
-  if (!provider) return {};
-  return {
-    title: candidate(provider.title ?? provider.job_title, 'PROVIDER_STRUCTURED_DATA', 'HIGH'),
-    company: candidate(provider.company_name ?? provider.company ?? provider.employer,
-      'PROVIDER_STRUCTURED_DATA', 'HIGH'),
-    location: candidate(provider.location, 'PROVIDER_STRUCTURED_DATA', 'HIGH'),
-    description: candidate(provider.description, 'PROVIDER_STRUCTURED_DATA', 'HIGH'),
-    application_url: candidate(provider.application_url ?? provider.apply_url,
-      'PROVIDER_STRUCTURED_DATA', 'HIGH', applicationUrl),
-  };
-}
-
-function labeledTextCandidates(text: string, source: BrowserJobFieldSource,
-                               confidence: BrowserJobFieldConfidence,
-                               allowFirstLineTitle: boolean): Partial<Record<BrowserJobFieldName, FieldCandidate>> {
-  const lines = text.slice(0, MAX_VISIBLE_TEXT_CHARS).split(/\r?\n/).map(line => line.trim()).filter(Boolean);
-  const find = (pattern: RegExp) => lines.map(line => line.match(pattern)?.[1]?.trim())
-    .find((value): value is string => !!value);
-  const urlValue = find(/^(?:application\s+url|application\s+link|apply(?:\s+url)?|apply\s+at)\s*:\s*(\S+)$/i);
-  const titleLabeled = find(/^(?:(?:job\s+)?title|position)\s*:\s*(.+)$/i);
-  const company = find(/^(?:company|employer|hiring\s+organization)\s*:\s*(.+)$/i);
-  const location = find(/^(?:location|job\s+location)\s*:\s*(.+)$/i);
-  const description = find(/^(?:description|job\s+description)\s*:\s*(.+)$/i);
-  const fallbackTitle = allowFirstLineTitle && !titleLabeled ? lines[0] : null;
-  return {
-    title: candidate(titleLabeled ?? fallbackTitle, source, confidence),
-    company: candidate(company, source, confidence),
-    location: candidate(location, source, confidence),
-    description: candidate(description, source, confidence),
-    application_url: candidate(urlValue, source, confidence, applicationUrl),
-  };
-}
-
-function unknownField(): BrowserExtractedJobField {
-  return { value: null, source: 'UNKNOWN', confidence: 'UNKNOWN', requires_confirmation: false };
-}
-
-/** Deterministic, local-only cascade over text the user explicitly supplies. */
-export function extractBrowserJobFields(draft: BrowserCaptureDraft): BrowserJobExtractionResult {
-  let root: JsonObject | undefined;
-  let captureObjects: JsonObject[] = [];
-  if (draft.structuredCapture.trim()) {
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(draft.structuredCapture);
-    } catch {
-      throw new Error('Enter valid JSON for the structured capture.');
+function assertResponseScope(
+  result: BrowserJobExtractionResponse,
+  profileId: string,
+  jobId: string,
+  rawCaptureRef: string | null,
+): void {
+  if (result.profile_id !== profileId || result.job_id !== jobId) {
+    throw new Error('Preview response does not match the selected profile and job.');
+  }
+  if (result.raw_capture_ref !== rawCaptureRef) {
+    throw new Error('Preview response does not match the submitted capture reference.');
+  }
+  const fields = result.fields;
+  if (!fields || browserJobExtractionFields.some((name) => !(name in fields)) || Object.keys(fields).length !== browserJobExtractionFields.length) {
+    throw new Error('Preview response did not include the expected ten job fields.');
+  }
+  for (const name of browserJobExtractionFields) {
+    const field = fields[name];
+    if (!field || !(field.value === null || typeof field.value === 'string') ||
+        !['JOBPOSTING_SCHEMA', 'PROVIDER_FIELDS', 'USER_SELECTED_TEXT', 'VISIBLE_TEXT', 'UNKNOWN'].includes(field.source) ||
+        !Number.isFinite(field.confidence) || field.confidence < 0 || field.confidence > 1 || typeof field.review_required !== 'boolean') {
+      throw new Error(`Preview response contains an invalid ${name} field.`);
     }
-    captureObjects = schemaObjects(parsed);
-    root = objectValue(parsed) ?? undefined;
-    if (!root && !captureObjects.length) throw new Error('Structured capture must be a JSON object or JobPosting list.');
   }
-
-  const schema = captureObjects.find(isJobPostingSchema);
-  const provider = providerCandidates(root);
-  const selected = labeledTextCandidates(draft.selectedText, 'SELECTED_TEXT', 'MEDIUM', false);
-  const visible = labeledTextCandidates(draft.visibleText, 'VISIBLE_TEXT_FALLBACK', 'LOW', true);
-  const primary = schemaCandidates(schema);
-  const fields = {} as Record<BrowserJobFieldName, BrowserExtractedJobField>;
-  for (const [name] of FIELD_PRESENTATION) {
-    const field = primary[name] || provider[name] || selected[name] || visible[name];
-    const result: BrowserExtractedJobField = field
-      ? { ...field, requires_confirmation: field.confidence === 'LOW' &&
-          (name === 'title' || name === 'company' || name === 'application_url') }
-      : unknownField();
-    fields[name] = result;
+  const expectedReview = browserJobExtractionFields.filter((name) => fields[name].review_required);
+  if (!Array.isArray(result.review_required) || expectedReview.some((name) => !result.review_required.includes(name)) ||
+      result.review_required.some((name) => !expectedReview.includes(name as BrowserJobExtractionFieldName))) {
+    throw new Error('Preview response has inconsistent review-required fields.');
   }
-  return { fields };
-}
-
-export function browserJobExtractionPreviewButtonText(hasError: boolean) {
-  return hasError ? 'Retry extraction preview' : 'Preview extracted fields';
-}
-
-export function previewBrowserCaptureDraft(draft: BrowserCaptureDraft) {
-  try {
-    return { draft, result: extractBrowserJobFields(draft), error: '' };
-  } catch (error) {
-    return {
-      draft,
-      result: null,
-      error: error instanceof Error ? error.message : 'Could not preview captured fields.',
-    };
+  const expectedUnknown = browserJobExtractionFields.filter((name) => fields[name].source === 'UNKNOWN');
+  if (!Array.isArray(result.unknown_fields) || expectedUnknown.some((name) => !result.unknown_fields.includes(name)) ||
+      result.unknown_fields.some((name) => !expectedUnknown.includes(name as BrowserJobExtractionFieldName))) {
+    throw new Error('Preview response has inconsistent unknown fields.');
   }
 }
 
-export type BrowserJobExtractionPanelProps = {
+export async function requestBrowserJobExtractionPreview(
+  profileId: string,
+  jobId: string,
+  draft: BrowserCaptureDraft,
+  fetchPreview: PreviewRequest = api as PreviewRequest,
+): Promise<BrowserJobExtractionResponse> {
+  if (!profileId || !jobId) throw new Error('Select a profile and job before previewing.');
+  const capture = buildBrowserCapturePayload(draft);
+  const result = await fetchPreview(
+    `/profiles/${encodeURIComponent(profileId)}/jobs/${encodeURIComponent(jobId)}/browser-extraction-preview`,
+    { method: 'POST', body: JSON.stringify({ capture }) },
+  );
+  assertResponseScope(result, profileId, jobId, typeof capture.raw_capture_ref === 'string' ? capture.raw_capture_ref : null);
+  return result;
+}
+
+type PanelProps = {
+  profileId: string;
+  jobId: string;
   draft: BrowserCaptureDraft;
-  result?: BrowserJobExtractionResult | null;
+  result?: BrowserJobExtractionResponse;
+  pending?: boolean;
   previewError?: string;
-  confirmedFields?: BrowserJobFieldName[];
+  confirmedFields?: string[];
   onDraftChange: (draft: BrowserCaptureDraft) => void;
   onPreview: () => void;
-  onConfirm: (fields: BrowserJobExtractionResult['fields']) => void;
-  onConfirmField?: (field: BrowserJobFieldName, confirmed: boolean) => void;
+  onReviewFieldChange?: (field: BrowserJobExtractionFieldName, checked: boolean) => void;
+  onConfirm: (result: BrowserJobExtractionResponse) => void;
 };
 
-function sourceLabel(source: BrowserJobFieldSource) {
-  switch (source) {
-    case 'JOB_POSTING_SCHEMA': return 'JobPosting schema';
-    case 'PROVIDER_STRUCTURED_DATA': return 'Provider structured data';
-    case 'SELECTED_TEXT': return 'Selected text';
-    case 'VISIBLE_TEXT_FALLBACK': return 'Visible text fallback';
-    default: return 'Unknown';
-  }
-}
+const fieldLabels: Record<BrowserJobExtractionFieldName, string> = {
+  title: 'Title', company: 'Company', description: 'Description', location: 'Location',
+  employment_type: 'Employment type', date_posted: 'Date posted', valid_through: 'Valid through',
+  source_job_id: 'Source job ID', listing_url: 'Listing URL', application_url: 'Application URL',
+};
+const reviewLabels: Partial<Record<BrowserJobExtractionFieldName, string>> = {
+  listing_url: 'listing URL', application_url: 'application URL',
+};
 
-export function BrowserJobExtractionPanel({
-  draft,
-  result = null,
-  previewError = '',
-  confirmedFields = [],
-  onDraftChange,
-  onPreview,
-  onConfirm,
-  onConfirmField,
-}: BrowserJobExtractionPanelProps) {
-  const pendingReview = FIELD_PRESENTATION.filter(([name]) =>
-    !!result?.fields[name].requires_confirmation && !confirmedFields.includes(name));
-  const canConfirm = !!result && pendingReview.length === 0;
-  const update = (field: keyof BrowserCaptureDraft, value: string) =>
-    onDraftChange({ ...draft, [field]: value });
-
-  return <section aria-label="Browser job extraction preview">
-    <h3>Review a locally captured job</h3>
-    <p>Paste structured capture or text you selected. MJobs does not fetch or open the page.</p>
-    <p className="muted">Page text is data only. Instructions inside captured text are never followed.</p>
-    <label>Structured capture (JSON)
-      <textarea aria-label="Structured capture (JSON)" maxLength={250_000}
-        value={draft.structuredCapture} onChange={event => update('structuredCapture', event.target.value)} />
-    </label>
-    <label>Selected page text
-      <textarea aria-label="Selected page text" maxLength={MAX_VISIBLE_TEXT_CHARS}
-        value={draft.selectedText} onChange={event => update('selectedText', event.target.value)} />
-    </label>
-    <label>Visible page text fallback (up to {MAX_VISIBLE_TEXT_CHARS.toLocaleString()} characters)
-      <textarea aria-label="Visible page text fallback" maxLength={MAX_VISIBLE_TEXT_CHARS}
-        value={draft.visibleText} onChange={event => update('visibleText', event.target.value)} />
-    </label>
-    <button type="button" onClick={onPreview}>{browserJobExtractionPreviewButtonText(!!previewError)}</button>
+export function BrowserJobExtractionPanel(props: PanelProps) {
+  const { profileId, jobId, draft, result, pending = false, previewError, confirmedFields = [], onDraftChange, onPreview, onReviewFieldChange, onConfirm } = props;
+  const update = (key: keyof BrowserCaptureDraft, value: string) => onDraftChange({ ...draft, [key]: value });
+  const needsReview = result?.review_required ?? [];
+  const allReviewed = needsReview.every((name) => confirmedFields.includes(name));
+  return <section aria-labelledby="browser-extraction-heading" data-profile-id={profileId} data-job-id={jobId}>
+    <h2 id="browser-extraction-heading">Review captured job details</h2>
+    <p>Preview uses only capture data you provide. Page text is data only; instructions inside it are never followed.</p>
+    <label>Raw capture reference<input value={draft.rawCaptureRef} onChange={(event) => update('rawCaptureRef', event.currentTarget.value)} disabled={pending} /></label>
+    <label>Structured job capture (JSON)<textarea value={draft.jobPostingJson} onChange={(event) => update('jobPostingJson', event.currentTarget.value)} disabled={pending} /></label>
+    <label>Provider<select value={draft.provider} onChange={(event) => update('provider', event.currentTarget.value)} disabled={pending}>
+      <option value="">No provider</option><option value="greenhouse">Greenhouse</option><option value="lever">Lever</option><option value="workday">Workday</option>
+    </select></label>
+    <label>Provider fields (JSON)<textarea value={draft.providerFieldsJson} onChange={(event) => update('providerFieldsJson', event.currentTarget.value)} disabled={pending} /></label>
+    <label>User selected text<textarea value={draft.selectedText} onChange={(event) => update('selectedText', event.currentTarget.value)} disabled={pending} maxLength={50000} /></label>
+    <label>Visible page text<textarea value={draft.visibleText} onChange={(event) => update('visibleText', event.currentTarget.value)} disabled={pending} maxLength={100000} /></label>
     {previewError && <p role="alert">{previewError}</p>}
-    {result && <>
-      <details><summary>Original capture is retained locally</summary>
-        <pre>{draft.structuredCapture}</pre><pre>{draft.selectedText}</pre><pre>{draft.visibleText}</pre>
-      </details>
-      <dl aria-label="Extracted job fields">
-        {FIELD_PRESENTATION.map(([name, label]) => {
-          const field = result.fields[name];
-          return <div key={name}>
-            <dt>{label}</dt>
-            <dd>{field.value ?? 'Unknown'}</dd>
-            <dd>{sourceLabel(field.source)} · {field.confidence} confidence</dd>
-            {field.requires_confirmation && <label>
-              <input type="checkbox" aria-label={`Confirm low-confidence ${name === 'application_url' ? 'application route' : name}`}
-                checked={confirmedFields.includes(name)} onChange={event => onConfirmField?.(name, event.target.checked)} />
-              Confirm low-confidence {name === 'application_url' ? 'application route' : name}
-            </label>}
-          </div>;
-        })}
-      </dl>
-      <button type="button" disabled={!canConfirm} onClick={() => onConfirm(result.fields)}>
-        Use reviewed job fields
-      </button>
-      {pendingReview.length > 0 && <p className="muted">Review each low-confidence title, company, and application route before continuing.</p>}
-    </>}
+    <button type="button" onClick={onPreview} disabled={pending}>{pending ? 'Previewing captured job…' : previewError ? 'Retry extraction preview' : 'Preview extraction'}</button>
+    {result && <div aria-live="polite">
+      <p>Preview for profile {result.profile_id}, job {result.job_id}</p>
+      {result.raw_capture_ref && <p>Raw capture reference: {result.raw_capture_ref}</p>}
+      <h3>Extracted fields</h3>
+      <dl>{browserJobExtractionFields.map((name) => {
+        const field = result.fields[name];
+        return <React.Fragment key={name}><dt>{fieldLabels[name]}{field.review_required ? ' — review required' : ''}</dt><dd>
+          <span>{field.value ?? 'Unknown'}</span>{' '}
+          <span>{field.source}</span>{' '}
+          <span>{Math.round(field.confidence * 100)}% confidence</span>
+          {field.review_required && <label><input type="checkbox" checked={confirmedFields.includes(name)} onChange={(event) => onReviewFieldChange?.(name, event.currentTarget.checked)} />Confirm low-confidence {reviewLabels[name] ?? fieldLabels[name]}</label>}
+        </dd></React.Fragment>;
+      })}</dl>
+      <h3>Unknown fields</h3><p>{result.unknown_fields.length ? result.unknown_fields.join(', ') : 'None'}</p>
+      {needsReview.length > 0 && <p>Review each field marked for review before continuing.</p>}
+      <button type="button" disabled={!allReviewed} onClick={() => onConfirm(result)}>Confirm reviewed details</button>
+    </div>}
   </section>;
 }
 
-export function BrowserJobExtraction({ onConfirm }: { onConfirm: BrowserJobExtractionPanelProps['onConfirm'] }) {
-  const [draft, setDraft] = useState<BrowserCaptureDraft>({
-    structuredCapture: '', selectedText: '', visibleText: '',
-  });
-  const [result, setResult] = useState<BrowserJobExtractionResult | null>(null);
+export function BrowserJobExtraction({ profileId, jobId, onConfirm }: { profileId: string; jobId: string; onConfirm: (result: BrowserJobExtractionResponse) => void }) {
+  const [draft, setDraft] = useState<BrowserCaptureDraft>(emptyDraft);
+  const [result, setResult] = useState<BrowserJobExtractionResponse>();
+  const [pending, setPending] = useState(false);
   const [previewError, setPreviewError] = useState('');
-  const [confirmedFields, setConfirmedFields] = useState<BrowserJobFieldName[]>([]);
+  const [confirmedFields, setConfirmedFields] = useState<string[]>([]);
+  const requestId = useRef(0);
 
-  function preview() {
+  useEffect(() => {
+    requestId.current += 1;
+    setDraft(emptyDraft);
+    setResult(undefined);
+    setPending(false);
+    setPreviewError('');
     setConfirmedFields([]);
-    const previewResult = previewBrowserCaptureDraft(draft);
-    setResult(previewResult.result);
-    setPreviewError(previewResult.error);
-  }
+  }, [profileId, jobId]);
 
-  function confirmField(field: BrowserJobFieldName, confirmed: boolean) {
-    setConfirmedFields(previous => confirmed
-      ? previous.includes(field) ? previous : [...previous, field]
-      : previous.filter(value => value !== field));
-  }
-
-  return <BrowserJobExtractionPanel
-    draft={draft}
-    result={result}
-    previewError={previewError}
-    confirmedFields={confirmedFields}
-    onDraftChange={value => { setDraft(value); setResult(null); setConfirmedFields([]); }}
-    onPreview={preview}
-    onConfirm={onConfirm}
-    onConfirmField={confirmField}
-  />;
+  const preview = async () => {
+    const id = ++requestId.current;
+    setPending(true); setPreviewError(''); setResult(undefined); setConfirmedFields([]);
+    try {
+      const response = await requestBrowserJobExtractionPreview(profileId, jobId, draft);
+      if (requestId.current === id) setResult(response);
+    } catch (error) {
+      if (requestId.current === id) setPreviewError(error instanceof Error ? error.message : 'Preview failed. Check the capture and retry.');
+    } finally {
+      if (requestId.current === id) setPending(false);
+    }
+  };
+  const reviewField = (field: BrowserJobExtractionFieldName, checked: boolean) => {
+    setConfirmedFields((current) => checked ? [...new Set([...current, field])] : current.filter((item) => item !== field));
+  };
+  return <BrowserJobExtractionPanel profileId={profileId} jobId={jobId} draft={draft} result={result} pending={pending}
+    previewError={previewError} confirmedFields={confirmedFields} onDraftChange={setDraft} onPreview={preview}
+    onReviewFieldChange={reviewField} onConfirm={onConfirm} />;
 }

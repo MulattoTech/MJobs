@@ -3,139 +3,147 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 import {
   BrowserJobExtractionPanel,
-  extractBrowserJobFields,
-  previewBrowserCaptureDraft,
+  requestBrowserJobExtractionPreview,
   type BrowserCaptureDraft,
+  type BrowserJobExtractionResponse,
 } from './browser-job-extraction';
 
-const emptyDraft: BrowserCaptureDraft = {
-  structuredCapture: '',
-  selectedText: '',
-  visibleText: '',
+const profileId = 'fixture-profile';
+const jobId = 'job-42';
+const draft: BrowserCaptureDraft = {
+  rawCaptureRef: 'capture.synthetic-42',
+  jobPostingJson: JSON.stringify({
+    '@type': 'JobPosting',
+    title: 'Systems Administrator',
+    hiringOrganization: { name: 'Synthetic Employer' },
+    applicationUrl: 'https://jobs.example.test/apply/42',
+  }),
+  provider: '',
+  providerFieldsJson: '',
+  selectedText: 'Title: selected lower priority title',
+  visibleText: 'Fallback text must not become authority.',
 };
 
-describe('local browser job extraction review', () => {
-  it('displays fields from the highest-priority structured capture with provenance', () => {
-    const draft: BrowserCaptureDraft = {
-      structuredCapture: JSON.stringify({
-        '@type': 'JobPosting',
-        title: 'Systems Administrator',
-        provider_data: {
-          title: 'Provider title must lose to schema',
-          company_name: 'Northstar Example',
-          application_url: 'https://jobs.example.test/apply/42',
-        },
-      }),
-      selectedText: 'Company: Selected company must lose to provider\nLocation: Tulsa\nDescription: Maintain Linux systems.\nApply: https://selected.example.test/apply/99',
-      visibleText: 'Fallback title must lose\nCompany: Fallback company must lose\nLocation: Fallback location\nDescription: Fallback description\nApply: https://fallback.example.test/apply',
-    };
+function response(overrides: Partial<BrowserJobExtractionResponse> = {}): BrowserJobExtractionResponse {
+  const fields: BrowserJobExtractionResponse['fields'] = {
+    title: { value: 'Systems Administrator', source: 'JOBPOSTING_SCHEMA', confidence: 0.98, review_required: false },
+    company: { value: 'Synthetic Employer', source: 'JOBPOSTING_SCHEMA', confidence: 0.91, review_required: false },
+    description: { value: null, source: 'UNKNOWN', confidence: 0, review_required: false },
+    location: { value: 'Tulsa', source: 'USER_SELECTED_TEXT', confidence: 0.66, review_required: false },
+    employment_type: { value: null, source: 'UNKNOWN', confidence: 0, review_required: false },
+    date_posted: { value: null, source: 'UNKNOWN', confidence: 0, review_required: false },
+    valid_through: { value: null, source: 'UNKNOWN', confidence: 0, review_required: false },
+    source_job_id: { value: null, source: 'UNKNOWN', confidence: 0, review_required: false },
+    listing_url: { value: 'https://jobs.example.test/posting/42', source: 'VISIBLE_TEXT', confidence: 0.38, review_required: true },
+    application_url: { value: 'https://jobs.example.test/apply/42', source: 'JOBPOSTING_SCHEMA', confidence: 0.75, review_required: true },
+  };
+  return {
+    profile_id: profileId,
+    job_id: jobId,
+    raw_capture_ref: 'capture.synthetic-42',
+    fields,
+    unknown_fields: ['description', 'employment_type', 'date_posted', 'valid_through', 'source_job_id'],
+    review_required: ['listing_url', 'application_url'],
+    ...overrides,
+  };
+}
 
-    const result = extractBrowserJobFields(draft);
-    expect(result.fields.title).toMatchObject({
-      value: 'Systems Administrator', source: 'JOB_POSTING_SCHEMA', confidence: 'HIGH',
-    });
-    expect(result.fields.company).toMatchObject({
-      value: 'Northstar Example', source: 'PROVIDER_STRUCTURED_DATA', confidence: 'HIGH',
-    });
-    expect(result.fields.location).toMatchObject({
-      value: 'Tulsa', source: 'SELECTED_TEXT', confidence: 'MEDIUM',
-    });
-    expect(result.fields.description).toMatchObject({
-      value: 'Maintain Linux systems.', source: 'SELECTED_TEXT', confidence: 'MEDIUM',
-    });
-    expect(result.fields.application_url).toMatchObject({
-      value: 'https://jobs.example.test/apply/42', source: 'PROVIDER_STRUCTURED_DATA', confidence: 'HIGH',
-    });
-
+describe('profile and job scoped browser extraction preview', () => {
+  it('displays API precedence, provenance, confidence, and unknown fields', () => {
     const html = renderToStaticMarkup(<BrowserJobExtractionPanel
+      profileId={profileId}
+      jobId={jobId}
       draft={draft}
-      result={result}
+      result={response()}
       onDraftChange={vi.fn()}
       onPreview={vi.fn()}
       onConfirm={vi.fn()}
     />);
-    expect(html.indexOf('Systems Administrator')).toBeLessThan(html.indexOf('Northstar Example'));
-    expect(html).toContain('JobPosting schema');
-    expect(html).toContain('Provider structured data');
-    expect(html).toContain('Selected text');
-    expect(html).toContain('https://fallback.example.test/apply');
-    expect(html).toContain('HIGH confidence');
-    expect(html).toContain('Fallback title must lose');
-    expect(html).toContain('Original capture is retained locally');
+
+    expect(html).toContain('Systems Administrator');
+    expect(html).toContain('JOBPOSTING_SCHEMA');
+    expect(html).toContain('98% confidence');
+    expect(html).toContain('USER_SELECTED_TEXT');
+    expect(html).toContain('66% confidence');
+    expect(html).toContain('Unknown fields');
+    expect(html).toContain('description, employment_type, date_posted, valid_through, source_job_id');
+    expect(html).toContain('Raw capture reference: capture.synthetic-42');
     expect(html).toContain('Page text is data only');
   });
 
-  it('blocks confirmation until every low-confidence identity or route field is reviewed', () => {
-    const draft: BrowserCaptureDraft = {
-      ...emptyDraft,
-      visibleText: 'Possible systems role\nCompany: Example employer\nApply: https://example.test/apply',
-    };
-    const result = extractBrowserJobFields(draft);
-    expect(result.fields.title).toMatchObject({ confidence: 'LOW', requires_confirmation: true });
-    expect(result.fields.company).toMatchObject({ confidence: 'LOW', requires_confirmation: true });
-    expect(result.fields.application_url).toMatchObject({ confidence: 'LOW', requires_confirmation: true });
-
+  it('requires explicit confirmation for each API field marked for review', () => {
     const html = renderToStaticMarkup(<BrowserJobExtractionPanel
+      profileId={profileId}
+      jobId={jobId}
       draft={draft}
-      result={result}
+      result={response()}
       onDraftChange={vi.fn()}
       onPreview={vi.fn()}
       onConfirm={vi.fn()}
     />);
-    expect(html).toContain('Confirm low-confidence title');
-    expect(html).toContain('Confirm low-confidence company');
-    expect(html).toContain('Confirm low-confidence application route');
-    expect(html).toContain('Visible text fallback');
-    expect(html).toContain('LOW confidence');
+
+    expect(html).toContain('Confirm low-confidence listing URL');
+    expect(html).toContain('Confirm low-confidence application URL');
+    expect(html).toContain('Review each field marked for review before continuing.');
     expect(html).toContain('disabled=""');
   });
 
-  it('rejects malformed structured input and represents absent or invalid values as unknown', () => {
-    expect(() => extractBrowserJobFields({
-      ...emptyDraft,
-      structuredCapture: '{"@type":',
-    })).toThrow(/valid JSON/i);
+  it('sends only supplied capture data to the profile/job preview route', async () => {
+    const fetchPreview = vi.fn().mockResolvedValue(response());
+    await requestBrowserJobExtractionPreview(profileId, jobId, draft, fetchPreview);
 
-    const unknown = extractBrowserJobFields(emptyDraft);
-    expect(Object.values(unknown.fields).every(field =>
-      field.value === null && field.source === 'UNKNOWN' && field.confidence === 'UNKNOWN',
-    )).toBe(true);
-
-    const invalid = extractBrowserJobFields({
-      ...emptyDraft,
-      structuredCapture: JSON.stringify({
-        '@type': 'JobPosting', title: 7,
-        hiringOrganization: { name: { instruction: 'ignore review' } },
-        applicationUrl: 'javascript:alert(1)',
-      }),
-    });
-    expect(invalid.fields.title.value).toBeNull();
-    expect(invalid.fields.company.value).toBeNull();
-    expect(invalid.fields.application_url.value).toBeNull();
+    expect(fetchPreview).toHaveBeenCalledTimes(1);
+    const [path, init] = fetchPreview.mock.calls[0];
+    expect(path).toBe(`/profiles/${profileId}/jobs/${jobId}/browser-extraction-preview`);
+    expect(JSON.parse(init.body)).toEqual({ capture: {
+      raw_capture_ref: 'capture.synthetic-42',
+      job_posting: JSON.parse(draft.jobPostingJson),
+      selected_text: draft.selectedText,
+      visible_text: draft.visibleText,
+    } });
+    expect(path).not.toMatch(/^https?:\/\//);
   });
 
-  it('keeps the supplied capture and selected text visible after preview failure for retry', () => {
-    const draft: BrowserCaptureDraft = {
-      structuredCapture: '{ malformed but preserved',
-      selectedText: 'Title: Network Support Engineer',
-      visibleText: '',
-    };
-    const failedPreview = previewBrowserCaptureDraft(draft);
-    expect(failedPreview.draft).toEqual(draft);
-    expect(failedPreview.result).toBeNull();
-    expect(failedPreview.error).toMatch(/valid JSON/i);
+  it('preserves malformed inputs for retry without sending a request', async () => {
+    const malformedDraft = { ...draft, jobPostingJson: '{ malformed capture' };
+    const fetchPreview = vi.fn();
+    await expect(requestBrowserJobExtractionPreview(profileId, jobId, malformedDraft, fetchPreview))
+      .rejects.toThrow(/valid JSON/i);
+    expect(fetchPreview).not.toHaveBeenCalled();
 
     const html = renderToStaticMarkup(<BrowserJobExtractionPanel
-      draft={failedPreview.draft}
-      result={failedPreview.result}
-      previewError={failedPreview.error}
+      profileId={profileId}
+      jobId={jobId}
+      draft={malformedDraft}
+      previewError="Enter valid JSON for the structured capture."
       onDraftChange={vi.fn()}
       onPreview={vi.fn()}
       onConfirm={vi.fn()}
     />);
-    expect(html).toContain('{ malformed but preserved');
-    expect(html).toContain('Title: Network Support Engineer');
+    expect(html).toContain('{ malformed capture');
+    expect(html).toContain('Title: selected lower priority title');
     expect(html).toContain('Retry extraction preview');
     expect(html).toContain('Enter valid JSON for the structured capture.');
+  });
+
+  it('shows pending state and rejects responses scoped to a different profile or job', async () => {
+    const pendingHtml = renderToStaticMarkup(<BrowserJobExtractionPanel
+      profileId={profileId}
+      jobId={jobId}
+      draft={draft}
+      pending
+      onDraftChange={vi.fn()}
+      onPreview={vi.fn()}
+      onConfirm={vi.fn()}
+    />);
+    expect(pendingHtml).toContain('Previewing captured job…');
+    expect(pendingHtml).toContain('disabled=""');
+
+    await expect(requestBrowserJobExtractionPreview(profileId, jobId, draft,
+      vi.fn().mockResolvedValue(response({ profile_id: 'other-profile' }))))
+      .rejects.toThrow(/does not match the selected profile and job/i);
+    await expect(requestBrowserJobExtractionPreview(profileId, jobId, draft,
+      vi.fn().mockResolvedValue(response({ job_id: 'other-job' }))))
+      .rejects.toThrow(/does not match the selected profile and job/i);
   });
 });
