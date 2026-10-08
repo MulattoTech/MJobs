@@ -1,0 +1,74 @@
+{
+  "requirement": "MJ-REQ-114",
+  "issue": 115,
+  "slice_status": "PASS",
+  "requirement_status": "PARTIAL",
+  "recorded_at_utc": "2026-10-08T11:59:17Z",
+  "branch": "codex/mj-req114-salary-match-explanation-20261008",
+  "base_commit": "048633be5e4cea6178c5e67cc11d9791262e71f5",
+  "source_head_at_validation": "6173d7a14af4835368114bd26e5aa28208995056",
+  "source_tree_at_validation": "f32ba850153904e732cdcb9f2bb0be40ccb6ec37",
+  "environment": {
+    "python": "repository .venv, Python 3.12",
+    "database": "isolated temporary SQLite fixture database",
+    "browser": "local Playwright Chromium for existing match-detail smoke test",
+    "external_requests": "none initiated by salary slice; existing browser test blocks non-local requests",
+    "hosted_ci": "NOT_RUN by local-only policy",
+    "external_submission": "OFF",
+    "score_generation_or_model_work": "none; salary factor score_effect is NONE"
+  },
+  "acceptance": {
+    "profile_input": "Only the explicit preferences.salary_expectations leaf is added to the job_match task scope; parent preference containers and unrelated leaves are denied.",
+    "salary_comparison": "Compare closed interval overlap only when profile text explicitly states USD or uses the dollar symbol with annual period and complete finite bounds, and the posting has complete finite nonnegative annual USD bounds from employer/source-provided data.",
+    "status_rules": "Overlapping or touching closed intervals are ALIGNS; disjoint intervals are NO_DIRECT_MATCH; incomplete, one-sided, estimated, nonannual, ambiguous, non-USD, or mismatched inputs are UNKNOWN.",
+    "privacy": "Explanations and profile-access audit payloads do not echo the salary preference value.",
+    "score": "No score weight or penalty was added.",
+    "connected_flow": "Synthetic profile API save/read, deterministic match recomputation, job detail API read, and reopened SQLite match readback verified. Existing match-detail display renders the fit_factors collection generically."
+  },
+  "checks": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_explainable_matching tests.integration.test_profile_access tests.integration.test_agent_tools tests.integration.test_agent_task_prompts",
+      "result": "PASS",
+      "observed": "40 tests; explicit annual USD overlap, disjoint and touching endpoints, one-sided and missing bounds, ambiguous/nonannual/mismatched/estimated currency cases, score neutrality, API save/read, recomputation, durable readback, least-data scope, denied preference access, audit value-redaction, and existing agent task compatibility"
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "observed": "TypeScript check and Vite production build; reused existing local node_modules through a temporary worktree junction, then removed the junction"
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_match_categories",
+      "result": "PASS",
+      "observed": "1 local connected Chromium match-detail/reload test; the user with an overlapping annual USD preference sees Salary expectation — ALIGNS, the other profile sees UNKNOWN, reload persists the selected profile and detail, and no external requests occur."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m py_compile services/discovery/matching.py services/career_profile/profile_access.py tests/integration/test_explainable_matching.py tests/integration/test_profile_access.py",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "red_first_reproduction": {
+    "result": "FAIL as expected before implementation",
+    "observed": "New tests failed because no salary fit factor existed and job_match denied preferences.salary_expectations."
+  },
+  "source_sha256": {
+    "services/discovery/matching.py": "32ADAEF0E804AC843066A5CF6F207CB852520ECF9C9BE201F76CC9FC034BAEF1",
+    "services/career_profile/profile_access.py": "B10E13D406A62FF1A1734A99DAF8B37AFFF17D396EE0668068220785B1779ACF",
+    "tests/integration/test_explainable_matching.py": "DF5FBEFCD39A90C2CDA1A06C3159EBCA404C56194ABF5A9D75931D35E3FA905D",
+    "tests/integration/test_profile_access.py": "7951FD6399B323ED037885ABB8014428F3C6C5AE408A2B1EE6E9A663EDB65A46",
+    "tests/browser/test_match_categories.py": "52F36E3A8BB7F44AD98546BCDBFE1632D629C70DDB86581FD149DEA34920A330"
+  },
+  "local_review": {
+    "result": "PASS",
+    "reviewer": "self-review by implementing Luna child",
+    "findings": "Salary explanation is generic and value-free; all recognized salary statuses carry score_effect NONE; only the exact profile salary leaf was added to job_match scope; no scoring weight or external action changed."
+  },
+  "limitations": [
+    "This is one bounded explainable-match factor; MJ-REQ-114 remains PARTIAL.",
+    "Hosted verification was not run by project policy.",
+    "Root main advanced to 6aae6cbe26df53eb303f22fc8dab0634ee2acc13 after this branch was created; the root integrator must rebase or cherry-pick and retest before integration."
+  ]
+}
