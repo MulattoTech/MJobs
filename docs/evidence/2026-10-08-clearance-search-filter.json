@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "issue": 190,
+  "requirement_id": "MJ-REQ-189",
+  "slice": "connected clearance classification facet in Jobs saved searches",
+  "result": "PARTIAL",
+  "base_commit": "aab39b9b5dda190b59346f4176a3f513027768e8",
+  "source_commit": "da0d09ccc2dec0bdbc466d72dd97c4e4a60c62e1",
+  "source_tree": "bd5f5fe5a9f3761931660806fe46314b76f3d800",
+  "validated_at_utc": "2026-10-08T13:44:33Z",
+  "environment": {
+    "platform": "Windows",
+    "python": "3.12",
+    "node": "v25.9.0",
+    "database": "temporary SQLite",
+    "browser": "local Chromium, synthetic fixture"
+  },
+  "behavior": {
+    "implemented": [
+      "Jobs offers All and only the six classifications defined by the existing deterministic clearance parser.",
+      "The API normalizes supported query values and rejects unsupported values; saved filters normalize and validate the same vocabulary.",
+      "Filtering matches the exact nested attributes.clearance.level value in the database before LIMIT; missing, malformed, and unrecognized stored data do not match.",
+      "The facet composes with existing direct filters and saved semantic requirements using AND.",
+      "Named saved searches preserve, restore, and clear the facet per profile; older payloads default it to empty.",
+      "Connected Chromium verified selector transport, saved-search save/reload/restore/clear, profile isolation, and no scheduling/application side effects.",
+      "The facet describes parsed job-posting text only; it does not infer user clearance or eligibility or change user preferences."
+    ],
+    "remaining": "Other MJ-REQ-189 facets and connected product requirements remain incomplete; whole requirement remains OPEN/PARTIAL.",
+    "external_submission": "OFF"
+  },
+  "tests": [
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_saved_search_filters tests.browser.test_saved_search_filters",
+      "result": "PASS",
+      "detail": "21 tests passed, including connected local Chromium."
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run",
+      "result": "PASS",
+      "detail": "18 files and 103 frontend tests passed."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "detail": "TypeScript check and Vite production build passed using cached checkout dependencies."
+    },
+    {
+      "command": "Python 3.12 py_compile for changed API, persistence, search-profile, integration, and browser modules",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.agent_skills",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.catalogue",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.coordination.lane_coordination validate",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    },
+    {
+      "command": "Test-first clearance API regressions against pre-implementation behavior",
+      "result": "PASS",
+      "detail": "Expected RED observed: unknown nested clearance values were not excluded and saved-filter validation rejected the new field."
+    }
+  ],
+  "input_sha256": {
+    "apps/api/main.py": "0294db13af73e016e346dbaa3be5fff7ca0ef993b288dc42c5104c94c246d9e7",
+    "apps/web/src/main.tsx": "32aa2d34b0a018ce7ad86ac2303d10e593dedd5820de1caf65710a440be8aff0",
+    "apps/web/package.json": "40063ee6deb9570a868a6c93b5ff42999353c7fcecc921ce44b6ef20eb500f04",
+    "apps/web/package-lock.json": "453d036596f964fc6a3c19ed0682a34d08c5eec4e64dbaf8c5898046d9c4358a",
+    "packages/persistence/store.py": "0c3caacf36650812803904f4e1d10287b80c0cc507fa544751d8c497b0949dae",
+    "services/discovery/search_profiles.py": "b6365809e46537d5c123e017918c5eb083f396ba0ccf0d4bff6efc94685fae1a",
+    "tests/integration/test_saved_search_filters.py": "e7d52840e30b3c5ab53fd6e5eeabee952730b842a85d0a00ac3ecea198a170bc",
+    "tests/browser/test_saved_search_filters.py": "aa6ad59d0b9fbfee3e3ad2a5fad14453e5e973b081ce48cd9974dacb5dc43fbd"
+  },
+  "not_run": [
+    "PostgreSQL runtime verification",
+    "Hosted GitHub checks and hosted review, disabled by local-only policy",
+    "Live production job sources and real ATS behavior",
+    "Full repository test suite"
+  ],
+  "review": "Local delegated review not run; root owns serialized review and integration.",
+  "integration": "Rebased cleanly onto synchronized main aab39b9b5dda190b59346f4176a3f513027768e8. Exact rebased-source focused API/Chromium suite 21/21, frontend 103/103, build, compilation, agent-skill/catalogue/lane validators, source hashes, and diff checks passed. Not pushed or merged; root owns integration."
+}
