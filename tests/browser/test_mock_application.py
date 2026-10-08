@@ -15,6 +15,7 @@ from packages.persistence import models as m
 from packages.persistence.store import Store
 from services.applications.mock_adapter import apply_mock
 from services.applications.form_analysis import analyze_form_page
+from services.applications.preflight import build_preflight_result
 from services.discovery.pipeline import discover, MockClient
 from services.documents.generate import prepare
 from tests.integration.test_spine import PROFILE
@@ -134,6 +135,8 @@ class MockApplicationTests(unittest.TestCase):
         html = """<!doctype html><html><body><form>
           <label for="labeled">Preferred location <span>PRIVATE_LABEL_RENDERED_ANSWER</span></label>
           <input id="labeled" name="labeled">
+          <label for="output-labeled">Work status <output>PRIVATE_LABEL_OUTPUT_ANSWER</output></label>
+          <input id="output-labeled" name="output_labeled">
         </form></body></html>"""
         with sync_playwright() as playwright:
             browser = playwright.chromium.launch(headless=True)
@@ -144,6 +147,7 @@ class MockApplicationTests(unittest.TestCase):
                 self.assertEqual(result["status"], "UNKNOWN")
                 self.assertEqual(result["reason"], "UNSAFE_TEXT_CONTEXT")
                 self.assertNotIn("PRIVATE_LABEL_RENDERED_ANSWER", json.dumps(result))
+                self.assertNotIn("PRIVATE_LABEL_OUTPUT_ANSWER", json.dumps(result))
             finally:
                 browser.close()
 
@@ -152,7 +156,13 @@ class MockApplicationTests(unittest.TestCase):
 
         with fixture_server() as origin:
             app_id = self.prepared(origin)
+            application = self.store.application(app_id)
+            with self.store.engine.connect() as connection:
+                route = dict(connection.execute(select(m.routes).where(
+                    m.routes.c.id == application["route_id"])).mappings().one())
+            profile = self.store.profile(application["profile_id"], application["profile_version"])
             original_get = MockClient.get
+            legal_preflight_results = []
 
             def malformed_optional_control(client, url):
                 response = original_get(client, url)
@@ -162,6 +172,9 @@ class MockApplicationTests(unittest.TestCase):
                 optional = next(row for row in questionnaire["questions"]
                                 if row["id"] == "optional_note")
                 optional["options"] = {"malformed": True}
+                legal_preflight_results.append(build_preflight_result(
+                    profile, route, questionnaire, {"resume", "cover-letter"},
+                    application_id=app_id)["result"])
                 return httpx.Response(response.status_code, json=questionnaire,
                                       request=response.request)
 
@@ -170,6 +183,7 @@ class MockApplicationTests(unittest.TestCase):
                     result = apply_mock(self.store, app_id, origin, self.root)
                     browser_start.assert_not_called()
 
+            self.assertEqual(legal_preflight_results, ["PASS"])
             self.assertEqual(result["state"], "REVIEW_REQUIRED")
             with self.store.engine.connect() as connection:
                 attempts = connection.execute(select(m.attempts.c.id).where(
