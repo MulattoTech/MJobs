@@ -2,6 +2,7 @@ import React,{useEffect,useState} from 'react';
 import {api,eligible} from './api';
 
 type Fact={fact_id:string;kind:string;text:string;source:string;verified:boolean;user_approved:boolean;confidence:number};
+type AlignmentPreview={profile_id:string;profile_version:string;job_id:string;job_fingerprint:string;matches:{skills:{term:string;fact_ids:string[]}[];responsibilities:{term:string;fact_ids:string[]}[]};unmatched:{skills:string[];responsibilities:string[]};read_only:true};
 export type ResumeFactRewrite={fact_id:string;text:string;reviewed:boolean};
 export type ResumeFactChoice={profileId:string;jobId:string;version:string;ids:string[];rewrites:ResumeFactRewrite[]};
 export const REWRITABLE_RESUME_FACT_KINDS=['summary','responsibility','experience','accomplishment','project','technology_experience'] as const;
@@ -14,22 +15,46 @@ export function resumeFactRewriteLabel(kind:string){
   return 'bullet';
 }
 
-export function ResumeFactSelection({profileId,jobId,disabled,onChange}:{profileId:string;jobId:string;disabled:boolean;onChange:(choice:ResumeFactChoice|null)=>void}) {
+export function ResumeFactSelection({profileId,jobId,jobFingerprint,disabled,onChange,onPreviewReady}:{profileId:string;jobId:string;jobFingerprint:string;disabled:boolean;onChange:(choice:ResumeFactChoice|null)=>void;onPreviewReady:(value:{profileId:string;jobId:string;profileVersion:string;jobFingerprint:string}|null)=>void}) {
   const [choose,setChoose]=useState(false);const [facts,setFacts]=useState<Fact[]>([]);
   const [version,setVersion]=useState('');const [ids,setIds]=useState<string[]>([]);
   const [rewrites,setRewrites]=useState<Record<string,ResumeFactRewrite>>({});
   const [loading,setLoading]=useState(false);const [error,setError]=useState('');const [refresh,setRefresh]=useState(0);
+  const [preview,setPreview]=useState<AlignmentPreview|null>(null);const [previewLoading,setPreviewLoading]=useState(false);const [previewError,setPreviewError]=useState('');
   useEffect(()=>{
-    if(!choose){setRewrites({});onChange(null);return;}
+    setPreview(null);setPreviewError('');onPreviewReady(null);
     const controller=new AbortController();let active=true;
     setLoading(true);setError('');setVersion('');setIds([]);setFacts([]);
-    setRewrites({});onChange({profileId,jobId,version:'',ids:[],rewrites:[]});
+    setRewrites({});onChange(choose?{profileId,jobId,version:'',ids:[],rewrites:[]}:null);
     void api<{version:string;facts:Fact[]}>('/profiles/'+encodeURIComponent(profileId),{signal:controller.signal})
       .then(profile=>{if(active){const rows=profile.facts.filter(eligible);const selected=rows.map(row=>row.fact_id);
-        setFacts(rows);setVersion(profile.version);setIds(selected);onChange({profileId,jobId,version:profile.version,ids:selected,rewrites:[]});}})
+        setFacts(rows);setVersion(profile.version);setIds(choose?selected:[]);if(choose)onChange({profileId,jobId,version:profile.version,ids:selected,rewrites:[]});}})
       .catch(failure=>{if(active)setError(String(failure));}).finally(()=>{if(active)setLoading(false);});
     return ()=>{active=false;controller.abort();};
-  },[choose,profileId,jobId,refresh,onChange]);
+  },[choose,profileId,jobId,jobFingerprint,refresh,onChange,onPreviewReady]);
+  useEffect(()=>{
+    if(!version||!jobFingerprint)return;
+    const controller=new AbortController();let active=true;
+    setPreview(null);setPreviewError('');setPreviewLoading(true);onPreviewReady(null);
+    void api<AlignmentPreview>('/profiles/'+encodeURIComponent(profileId)+'/jobs/'+encodeURIComponent(jobId)+'/resume-alignment-preview',{
+      method:'POST',signal:controller.signal,body:JSON.stringify({expected_profile_version:version,expected_job_fingerprint:jobFingerprint})})
+      .then(result=>{if(!active)return;if(result.profile_id!==profileId||result.job_id!==jobId||result.profile_version!==version||result.job_fingerprint!==jobFingerprint||result.read_only!==true)throw new Error('Alignment preview snapshot did not match the selected profile and job. Reload both and retry.');
+        setPreview(result);onPreviewReady({profileId,jobId,profileVersion:version,jobFingerprint});})
+      .catch(failure=>{if(active)setPreviewError(String(failure));})
+      .finally(()=>{if(active)setPreviewLoading(false);});
+    return ()=>{active=false;controller.abort();};
+  },[version,profileId,jobId,jobFingerprint,refresh,onPreviewReady]);
+  async function previewAlignment(){
+    setPreviewLoading(true);setPreviewError('');setPreview(null);onPreviewReady(null);
+    try{
+      if(!version||!jobFingerprint)throw new Error('Reload this job and its approved facts before previewing.');
+      const result=await api<AlignmentPreview>('/profiles/'+encodeURIComponent(profileId)+'/jobs/'+encodeURIComponent(jobId)+'/resume-alignment-preview',{
+        method:'POST',body:JSON.stringify({expected_profile_version:version,expected_job_fingerprint:jobFingerprint})});
+      if(result.profile_id!==profileId||result.job_id!==jobId||result.profile_version!==version||result.job_fingerprint!==jobFingerprint||result.read_only!==true)throw new Error('Alignment preview snapshot did not match the selected profile and job. Reload both and retry.');
+      setPreview(result);onPreviewReady({profileId,jobId,profileVersion:version,jobFingerprint});
+    }catch(failure){setPreviewError(String(failure));}
+    finally{setPreviewLoading(false);}
+  }
   function select(id:string,checked:boolean){
     const next=checked?[...ids,id]:ids.filter(value=>value!==id);setIds(next);
     const remaining=checked?rewrites:Object.fromEntries(Object.entries(rewrites).filter(([key])=>key!==id));
@@ -47,6 +72,7 @@ export function ResumeFactSelection({profileId,jobId,disabled,onChange}:{profile
   }
   return <section aria-label="Resume content selection">
     <label className="consent"><input type="checkbox" checked={choose} disabled={disabled} onChange={event=>{setChoose(event.target.checked);onChange(event.target.checked?{profileId,jobId,version:'',ids:[],rewrites:[]}:null);}}/> Choose resume facts</label>
+    <>
     {choose&&<>
       <p>Select the approved content to include in this resume. Your profile and cover letter keep their approved facts.</p>
       <button type="button" disabled={disabled||loading} onClick={()=>setRefresh(value=>value+1)}>Reload approved facts</button>
@@ -61,5 +87,20 @@ export function ResumeFactSelection({profileId,jobId,disabled,onChange}:{profile
         </div>)}
         {!facts.length&&<p>Save at least one sourced, verified and approved fact with confidence of 80% or higher in Profile.</p>}</>}
     </>}
+      <section aria-label="Resume keyword alignment preview">
+        <h3>Resume keyword alignment</h3>
+        <p>Exact matches use only saved job terms and currently approved profile facts. Unmatched terms stay out of resume content. This preview does not create a document.</p>
+        <button type="button" disabled={disabled||loading||previewLoading||!version||!jobFingerprint} onClick={()=>void previewAlignment()}>{previewLoading?'Checking alignment…':'Preview keyword alignment'}</button>
+        {previewError&&<p role="alert">{previewError}</p>}
+        {preview&&<>
+          <p role="status">Read-only preview for this saved job and profile version.</p>
+          {(['skills','responsibilities'] as const).map(group=><section key={group} aria-label={group==='skills'?'Skill alignment':'Responsibility alignment'}>
+            <h4>{group==='skills'?'Skills':'Responsibilities'}</h4>
+            {preview.matches[group].length?<ul>{preview.matches[group].map(row=><li key={row.term}><strong>{row.term}</strong> — {row.fact_ids.length?<>supported by approved fact references: {row.fact_ids.join(', ')}</>:'no eligible approved fact match'}</li>)}</ul>:<p>None supported in the saved job snapshot.</p>}
+            {preview.unmatched[group].length>0&&<p><strong>Unmatched {group}:</strong> {preview.unmatched[group].join('; ')}</p>}
+          </section>)}
+        </>}
+      </section>
+    </>
   </section>;
 }

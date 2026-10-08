@@ -58,6 +58,8 @@ from services.company_discovery.public_client import PublicFetchError
 from services.company_discovery.sources import (list_company_job_sources, set_company_source_watch,
     list_company_source_view, set_company_source_pin, set_company_source_enabled)
 from services.documents.uploads import MAX_UPLOAD_BYTES, UploadIntegrityError, list_resumes, save_resume, read_resume
+from services.documents.alignment_preview import build_alignment_preview
+from services.documents.tailor import target_fingerprint
 from services.audit_history import list_audit_history
 from workers.dispatch import enqueue_operation
 from workers.operations import (
@@ -200,6 +202,7 @@ class ApplicationInput(DiscoveryInput):
     tailor_fact_ids: list[Annotated[str,Field(strict=True,min_length=1,max_length=128)]] | None = Field(default=None,min_length=1,max_length=1000)
     tailor_fact_rewrites: list[ResumeFactRewriteInput] | None = Field(default=None,min_length=1,max_length=100)
     expected_profile_version: str | None = Field(default=None,min_length=64,max_length=64)
+    expected_job_fingerprint: str | None = Field(default=None,min_length=64,max_length=64,pattern=r'^[0-9a-f]{64}$')
     ai_evaluation_run_id: str | None = Field(default=None, min_length=1, max_length=128)
 
     @model_validator(mode='after')
@@ -209,6 +212,8 @@ class ApplicationInput(DiscoveryInput):
         if self.tailor_fact_rewrites is not None and (
                 not self.tailor_resume or self.tailor_fact_ids is None or not self.expected_profile_version):
             raise ValueError('Reviewed resume rewrites require selected facts, tailoring and the observed profile version')
+        if self.expected_job_fingerprint is not None and (not self.tailor_resume or not self.expected_profile_version):
+            raise ValueError('A resume alignment snapshot requires tailoring and the observed profile version')
         return self
 
 
@@ -1424,10 +1429,30 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     @app.get("/jobs/{job_id}")
     def job(job_id: str, profile_id: str | None = None):
         result = store.job(job_id, profile_id)
+        result['alignment_fingerprint'] = target_fingerprint(result)
         if profile_id:
             from services.tracking.jobs import read_job_tracking
             result["tracking"] = read_job_tracking(store, profile_id, job_id)
         return result
+
+    class ResumeAlignmentPreviewInput(BaseModel):
+        model_config = ConfigDict(strict=True, extra='forbid')
+        expected_profile_version: str = Field(min_length=64, max_length=64, pattern=r'^[0-9a-f]{64}$')
+        expected_job_fingerprint: str = Field(min_length=64, max_length=64, pattern=r'^[0-9a-f]{64}$')
+
+    @app.post('/profiles/{profile_id}/jobs/{job_id}/resume-alignment-preview')
+    def resume_alignment_preview(profile_id: str, job_id: str, value: ResumeAlignmentPreviewInput):
+        profile = store.profile(profile_id)
+        if profile['version'] != value.expected_profile_version:
+            raise HTTPException(409, 'Profile changed; reload approved facts before previewing')
+        job = store.job(job_id)
+        if job['id'] != job_id:
+            raise HTTPException(404, 'Saved target job not found')
+        try:
+            return build_alignment_preview(profile, job, value.expected_profile_version,
+                                           value.expected_job_fingerprint)
+        except ValueError as error:
+            raise HTTPException(409, str(error)) from None
 
     @app.get("/profiles/{profile_id}/jobs/{job_id}/tracking")
     def job_tracking_read(profile_id: str, job_id: str):
@@ -1535,6 +1560,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         if value.expected_profile_version and value.expected_profile_version != profile['version']:
             raise HTTPException(409,'Profile changed; reload the approved facts before preparing')
         job = store.job(value.job_id)
+        if value.expected_job_fingerprint and value.expected_job_fingerprint != target_fingerprint(job):
+            raise HTTPException(409, 'Target job changed; reload and preview the saved job before preparing')
         manual_postings = [posting for posting in job.get("postings", [])
                            if posting.get("source") == "manual"]
         if manual_postings and not any(
