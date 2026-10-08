@@ -45,6 +45,8 @@ class ApplicationReviewQueueBrowserTests(unittest.TestCase):
                 "source": "Synthetic alternate profile", "confidence": 91,
                 "verified": True, "user_approved": True,
             }]))
+            store.save_profile(dict(PROFILE, id="other-profile", name="Other synthetic applicant",
+                                    email="other@example.invalid", answers=[]))
             with fixture_server() as fixture:
                 discover(store, fixture, "fixture")
             job = store.jobs("fixture")[0]
@@ -67,6 +69,8 @@ class ApplicationReviewQueueBrowserTests(unittest.TestCase):
                      "profile_paths": [], "document_kinds": []},
                 ],
             })
+            from services.applications.preflight import latest_preflight
+            self.assertEqual(latest_preflight(store, application_id)["result"], "FAIL")
             application_before = store.application(application_id)
             app = create_app(store, "http://127.0.0.1:1", root,
                              "redis://127.0.0.1:1/0", operation_mode="FIXTURE")
@@ -81,7 +85,7 @@ class ApplicationReviewQueueBrowserTests(unittest.TestCase):
                     if not thread.is_alive() or time.monotonic() > deadline:
                         self.fail("Isolated application review API did not start")
                     time.sleep(0.02)
-                outside, errors = [], []
+                outside, errors, writes = [], [], []
                 with sync_playwright() as playwright:
                     browser = playwright.chromium.launch(headless=True)
                     context = browser.new_context(accept_downloads=True)
@@ -97,13 +101,21 @@ class ApplicationReviewQueueBrowserTests(unittest.TestCase):
                     page = context.new_page()
                     page.set_default_timeout(8000)
                     page.on("pageerror", lambda error: errors.append(str(error)))
+                    page.on("request", lambda request: writes.append(request.method)
+                            if request.method not in {"GET", "HEAD", "OPTIONS"} else None)
                     page.goto(origin, wait_until="domcontentloaded")
                     page.evaluate("localStorage.setItem('mjobs-profile', 'fixture')")
                     page.reload(wait_until="domcontentloaded")
-                    page.get_by_role("button", name="Applications", exact=False).click()
-                    card = page.get_by_role("region", name="Not tracked", exact=True).get_by_role(
-                        "button", name=job["title"], exact=False)
-                    card.click()
+                    expect(page.get_by_label("Active profile")).to_have_value("fixture")
+                    page.get_by_role("button", name="Review Queue", exact=False).click()
+                    queue = page.get_by_role("region", name="Application review queue")
+                    expect(queue).to_contain_text(job["company"])
+                    expect(queue).to_contain_text("UNRESOLVED_REQUIRED_QUESTIONS")
+                    expect(queue).to_contain_text(QUESTION)
+                    expect(queue).to_contain_text("answers: azure-proof")
+                    expect(queue).not_to_contain_text("CAPTCHA —")
+                    queue.get_by_role("button", name=f"Review application: {job['title']} at {job['company']}").click()
+                    self.assertFalse(writes, "Opening or refreshing the review queue must not mutate application state")
 
                     preflight = page.get_by_role("region", name="ATS question preflight")
                     unresolved = preflight.get_by_role("list", name="Unresolved required questions")
@@ -190,6 +202,12 @@ class ApplicationReviewQueueBrowserTests(unittest.TestCase):
                     page.get_by_role("button", name="Applications", exact=False).click()
                     page.get_by_role("region", name="Not tracked", exact=True).get_by_role(
                         "button", name=job["title"], exact=False).click()
+                    expect(page.get_by_role("region", name="ATS question preflight")).to_be_visible()
+                    page.get_by_role("button", name="Review Queue", exact=False).click()
+                    persisted_queue = page.get_by_role("region", name="Application review queue")
+                    expect(persisted_queue).to_contain_text("UNRESOLVED_REQUIRED_QUESTIONS")
+                    expect(persisted_queue).to_contain_text(QUESTION)
+                    persisted_queue.get_by_role("button", name=f"Review application: {job['title']} at {job['company']}").click()
                     page.get_by_role("button", name="Review this question").first.click()
                     expect(page.get_by_text("saved-answer confidence 88%", exact=False)).to_be_visible()
                     expect(page.get_by_text("Provenance: Reviewed for Example Systems Inc.", exact=False)).to_be_visible()
@@ -222,6 +240,11 @@ class ApplicationReviewQueueBrowserTests(unittest.TestCase):
                     self.assertEqual(store.application(application_id)["state"], application_before["state"])
                     self.assertEqual(store.application(application_id)["confirmation"], application_before["confirmation"])
                     self.assertEqual(store.count("application_attempts"), 0)
+                    page.get_by_label("Active profile").select_option("other-profile")
+                    page.get_by_role("button", name="Review Queue", exact=False).click()
+                    isolated_queue = page.get_by_role("region", name="Application review queue")
+                    expect(isolated_queue).to_contain_text("No saved applications currently need question review.")
+                    expect(isolated_queue).not_to_contain_text(job["company"])
                     self.assertFalse(outside)
                     self.assertFalse(errors, errors)
                     context.close()
