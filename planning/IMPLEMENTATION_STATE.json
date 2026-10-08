@@ -390,7 +390,8 @@
     "Issue #199 / MJ-REQ-198 readable comparison source/test inputs integrated at main 41513c0f3c2c75970bfc8173f0ca8576acb63519. Root exact-integrated-tree recheck: focused Vitest 9/9; TypeScript/Vite build PASS; connected synthetic Chromium document-history 2/2. LOCAL_DELEGATED_REVIEW no material findings; Node 25.9 outside Vitest 5 declared range.",
     "Issue #117 / MJ-REQ-116 match categories integrated at main f1afad5541ebcad1cd07e35b5366b78df4e1f637. Root exact integrated-source checks: 23 focused helper cases PASS; TypeScript/Vite build PASS; connected FIXTURE-mode Chromium 1/1 PASS. Local delegated review found no blocker; Node 25.9 outside Vitest 5 supported engine range.",
     "Issue #96 / MJ-REQ-095 experience-fact rewrite integrated at main 5dfce5eec8e2e6c56442631725c0993c7ce12a29; tested source commit c6eb1cd604d1372800bc798b7454aa9fe40d9d91. Exact source test run: 13 unit/integration + 1 connected synthetic Chromium; targeted Vitest 1; TypeScript/Vite build PASS. Evidence hash/JSON/progress/diff validation PASS. Vitest used Node 25.9.0 outside its declared support range. Evidence docs/evidence/2026-10-08-resume-experience-rewrites.json; issue https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6053321247. Broader requirement remains PARTIAL.",
-    "Issue #275 / MJ-REQ-274 scheduled-source restart slice integrated at main 7d91b3104a2e21d400bdc1a2f59de289e5bbc2b6; tested source bc547e251eef7ed7a97556fde3396cc2655eb718. Root reran the focused scheduler module: 6 PASS, 0 failures/errors/skips. Actual scheduler subprocesses used an isolated temporary SQLite database and synthetic collection stub. Local delegated review found no blocker. Compose was not invoked; default project/fixed port isolation is BLOCKED_ENVIRONMENT; PostgreSQL NOT_RUN. Evidence docs/evidence/2026-10-08-scheduled-source-restart.json; issue https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053378645; requirement remains PARTIAL."
+    "Issue #275 / MJ-REQ-274 scheduled-source restart slice integrated at main 7d91b3104a2e21d400bdc1a2f59de289e5bbc2b6; tested source bc547e251eef7ed7a97556fde3396cc2655eb718. Root reran the focused scheduler module: 6 PASS, 0 failures/errors/skips. Actual scheduler subprocesses used an isolated temporary SQLite database and synthetic collection stub. Local delegated review found no blocker. Compose was not invoked; default project/fixed port isolation is BLOCKED_ENVIRONMENT; PostgreSQL NOT_RUN. Evidence docs/evidence/2026-10-08-scheduled-source-restart.json; issue https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053378645; requirement remains PARTIAL.",
+    "Issue #178 / MJ-REQ-177 exact synchronized-main candidate c2346e1d813e7b052f4779be0525bf495ecaa54d (tree e877098891c090c73b3a4e6612fa068ac5bd054c), tested code source 0678aafc1ac21b347441d824144f4dd860f4c89e: root reran tests.unit.test_structured_logging and tests.integration.test_worker_lifecycle, 24 passed, 0 failures/errors, one optional PostgreSQL class skipped. JSON/compile/diff/agent_skills/catalogue/progress/lane checks passed; LOCAL_DELEGATED_REVIEW no blocker. Evidence docs/evidence/2026-10-08-worker-context-logs.json; issue #178 remains OPEN/PARTIAL; hosted/PostgreSQL/RQ NOT_RUN; external submission OFF."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -481,7 +482,8 @@
     "Hosted checks/review NOT_RUN_BY_USER_POLICY; broader MJ-REQ-115 acceptance and release readiness remain PARTIAL/NOT_RUN.",
     "MJ-REQ-103 PostgreSQL and hosted Actions/CI/review NOT_RUN; overall core-workflow and release acceptance remain PARTIAL.",
     "Issue #199 full Python suite and hosted checks/review NOT_RUN; this is a scoped comparison condition and MJ-REQ-198 remains PARTIAL.",
-    "MJ-REQ-116 PostgreSQL not applicable to this display-only increment; hosted checks/review NOT_RUN_BY_USER_POLICY; matching aggregate/release remain PARTIAL."
+    "MJ-REQ-116 PostgreSQL not applicable to this display-only increment; hosted checks/review NOT_RUN_BY_USER_POLICY; matching aggregate/release remain PARTIAL.",
+    "Issue #178 / MJ-REQ-177: PostgreSQL worker recovery, live Redis/RQ, full Python suite, hosted checks/review NOT_RUN_BY_USER_POLICY; new discovery context remains a narrow local acceptance and broader requirement PARTIAL."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -520,10 +522,10 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "commit": "ef618ac11de79bd751609b691897a516e1ddfa52",
+    "commit": "c2346e1d813e7b052f4779be0525bf495ecaa54d",
     "result": "PARTIAL",
-    "evidence": "docs/evidence/2026-10-07-certification-requirement-strength.json",
-    "verified_at_utc": "2026-10-08T05:08:27Z"
+    "evidence": "docs/evidence/2026-10-08-worker-context-logs.json",
+    "verified_at_utc": "2026-10-08T06:02:18Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -590,7 +592,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Local and remote main are synchronized at 1545a4f0e9bc08422e1f68adb28a6d0be70adb05. Issue #96 / MJ-REQ-095 approved experience-fact rewrite and issue #275 / MJ-REQ-274 scheduled-source process restart have scoped local PASS checkpoints integrated; both umbrellas remain OPEN/PARTIAL. Current Codex worker: #105 / MJ-REQ-104 answer matching, with candidate rebase/checks in progress. Issue #178 / MJ-REQ-177 worker-context logging is independently claimed. Antigravity #302 and Ollama #318 remain active and untouched. Continue serialized integration only after exact candidate/hash/evidence verification. #517 task linkage remains blocked on the Sources UI main.tsx ownership. Hosted checks/reviews NOT_RUN_BY_USER_POLICY; PostgreSQL/Compose restart NOT_RUN or BLOCKED_ENVIRONMENT; external submission OFF; core-workflow and release remain PARTIAL.",
+  "recommended_resume_step": "Local and remote main are synchronized at c2346e1d813e7b052f4779be0525bf495ecaa54d. Issue #178 / MJ-REQ-177 safe persisted discovery-source context is integrated as a narrow PARTIAL slice with evidence docs/evidence/2026-10-08-worker-context-logs.json and issue receipt https://github.com/MulattoTech/MJobs/issues/178#issuecomment-6053465780; claim released at https://github.com/MulattoTech/MJobs/issues/178#issuecomment-6053470173. #105 / MJ-REQ-104 candidate 2593790e57f4fb65b759ad4e2498afa926fe90d0 is rebased, scoped tests pass, and local delegated review found no blocker; perform its serialized exact-candidate integration next. Five read-only scouts are auditing #118, #191, #192, #196 and #197. Antigravity #302 and Ollama #318 remain active and untouched. #517 UI/task linkage remains blocked by the #105 main.tsx ownership until that claim releases. Hosted checks/reviews NOT_RUN_BY_USER_POLICY; PostgreSQL/RQ NOT_RUN; external submission OFF; whole core workflow and release remain PARTIAL.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -628,16 +630,16 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "1545a4f0e9bc08422e1f68adb28a6d0be70adb05",
+  "last_implementation_commit": "c2346e1d813e7b052f4779be0525bf495ecaa54d",
   "publication": {
     "result": "PASS",
     "integration_method": "NON_FORCE_FAST_FORWARD",
-    "integration_commit": "68a0630b690cfa855e43829bc4f1836cf6add246",
-    "prior_main": "c0ea57bca0e4a7c37b71f19d9cdd07bb062113a1",
+    "integration_commit": "c2346e1d813e7b052f4779be0525bf495ecaa54d",
+    "prior_main": "8096b6c81250c5c8012f99e29f19c19e36220083",
     "pr_number": null,
     "pr_state": "NOT_OPENED_LOCAL_ONLY",
     "github_reports_merged": false,
-    "note": "Issue #177 company-source setting Activity slice integrated under the Codex integration lock. The issue remains OPEN/PARTIAL; local GitHub issue checkpoint posted. Hosted checks/review NOT_RUN_BY_USER_POLICY; GitHub Actions remain disabled; external submission OFF."
+    "note": "Issue #178 / MJ-REQ-177 safe structured worker discovery context integrated at synchronized local/origin main. The issue remains OPEN/PARTIAL; hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL/RQ and full-suite acceptance NOT_RUN; external submission OFF."
   },
   "optional_afk_journal": {
     "result": "PASS",
@@ -9930,16 +9932,61 @@
         "issue_state_after_readback": "OPEN"
       },
       "metadata_only_sync_sha": "1545a4f0e9bc08422e1f68adb28a6d0be70adb05"
+    },
+    {
+      "milestone_id": "MJ-REQ-177-SAFE-DISCOVERY-LOG-CONTEXT-20261008",
+      "timestamp": "2026-10-08T06:02:18Z",
+      "current_phase": "MJ_REQ_177_WORKER_CONTEXT_LOGGING_PARTIAL",
+      "completed_steps": [
+        "Rebased worker-context candidate to synchronized main 8096b6c81250c5c8012f99e29f19c19e36220083; executable/test paths remained scoped.",
+        "Root reran 24 focused unit/integration tests; one optional PostgreSQL class skipped because its URL was not set.",
+        "LOCAL_DELEGATED_REVIEW found no blocker; independently confirmed recorded tested-source hashes and privacy-bounded identifier allowlist.",
+        "Integrated by non-force fast-forward and synchronized local/origin main at c2346e1d813e7b052f4779be0525bf495ecaa54d; posted issue acceptance/release receipts; released child claim."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-08-worker-context-logs.json"
+      ],
+      "files_modified": [
+        "workers/structured_logging.py",
+        "tests/unit/test_structured_logging.py",
+        "tests/integration/test_worker_lifecycle.py"
+      ],
+      "tests_completed": [
+        ".venv\\Scripts\\python.exe -m unittest tests.unit.test_structured_logging tests.integration.test_worker_lifecycle -v — 24 passed, 0 failures/errors; optional PostgreSQL class skipped.",
+        "JSON parse, compileall, diff check, agent_skills/catalogue/progress/lane validators passed."
+      ],
+      "tests_remaining": [
+        "PostgreSQL worker recovery, live Redis/RQ, broader operation context and full requirement #178 remain incomplete/NOT_RUN.",
+        "Hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "The logging slice emits only strictly validated persisted source IDs for three discovery operation kinds; broader worker context, live RQ/Redis and PostgreSQL are not evidenced.",
+        "Issue #178 / MJ-REQ-177 remains OPEN/PARTIAL; no whole-product or release PASS implied."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "c2346e1d813e7b052f4779be0525bf495ecaa54d",
+        "tree": "e877098891c090c73b3a4e6612fa068ac5bd054c",
+        "source_commit": "0678aafc1ac21b347441d824144f4dd860f4c89e",
+        "evidence_path": "docs/evidence/2026-10-08-worker-context-logs.json",
+        "issue_receipt": "https://github.com/MulattoTech/MJobs/issues/178#issuecomment-6053465780",
+        "claim_release_receipt": "https://github.com/MulattoTech/MJobs/issues/178#issuecomment-6053470173",
+        "issue_state_after_readback": "OPEN"
+      },
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Temporary local synthetic unit/integration databases only; no PostgreSQL, Redis/RQ, live provider or external system was exercised."
+      ]
     }
   ],
-  "current_phase": "MJ_REQ_274_SCHEDULED_SOURCE_RESTART_SQLITE_PARTIAL",
+  "current_phase": "MJ_REQ_177_WORKER_CONTEXT_LOGGING_PARTIAL",
   "last_safe_checkpoint": {
-    "git_commit": "1545a4f0e9bc08422e1f68adb28a6d0be70adb05",
-    "tree": "8aabe2ecec8309d68876f5796d00fb7c84a74bc9",
-    "source_commit": "7d91b3104a2e21d400bdc1a2f59de289e5bbc2b6",
-    "evidence_path": "docs/evidence/2026-10-08-scheduled-source-restart.json",
-    "issue_receipt": "https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053378645",
-    "claim_release_receipt": "https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053395464",
+    "git_commit": "c2346e1d813e7b052f4779be0525bf495ecaa54d",
+    "tree": "e877098891c090c73b3a4e6612fa068ac5bd054c",
+    "source_commit": "0678aafc1ac21b347441d824144f4dd860f4c89e",
+    "evidence_path": "docs/evidence/2026-10-08-worker-context-logs.json",
+    "issue_receipt": "https://github.com/MulattoTech/MJobs/issues/178#issuecomment-6053465780",
+    "claim_release_receipt": "https://github.com/MulattoTech/MJobs/issues/178#issuecomment-6053470173",
     "issue_state_after_readback": "OPEN"
   },
   "live_integrations_tested": [
@@ -10254,10 +10301,10 @@
     "issue": 105,
     "requirement_id": "MJ-REQ-104",
     "title": "Answer matching and reviewed reuse",
-    "state": "ACTIVE / EXACT-BASE REVALIDATION",
+    "state": "READY FOR SERIALIZED INTEGRATION REVIEW",
     "branch": "codex/mj-req104-answer-matching-20261008",
     "worktree": ".worktrees/codex-mj-req104-answer-matching-20261008",
-    "next_action": "Reconcile the latest main SHA, perform one final rebase if the candidate base is stale, and rerun affected scoped checks. Preserve sensitive/legal-answer no-inference policy."
+    "next_action": "Verify delegated review and exact candidate evidence; integrate candidate 2593790e57f4fb65b759ad4e2498afa926fe90d0 one at a time if it still matches main and scoped checks pass."
   },
   "historical_control_snapshots": [
     {
@@ -11404,5 +11451,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-08T05:43:46Z"
+  "updated_at": "2026-10-08T06:02:18Z"
 }
