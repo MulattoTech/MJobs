@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-08T05:35:59Z",
+  "timestamp": "2026-10-08T05:40:30Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -1674,9 +1674,10 @@
       "requirement_id": "MJ-REQ-198",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-09-30-user-testing.md"
+        "docs/evidence/2026-09-30-user-testing.md",
+        "docs/evidence/2026-10-08-cover-letter-history-comparison.json"
       ],
-      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open"
+      "note": "The immutable same-application cover-letter comparison condition is locally PASS at main 41513c0f3c2c75970bfc8173f0ca8576acb63519 with readable Added/Removed lines, validated fresh previews, fail-closed avoid-list/integrity checks, scope clearing, and preserved downloads. MJ-REQ-198 remains PARTIAL for broader acceptance; hosted/full-suite checks are not claimed."
     },
     {
       "requirement_id": "MJ-REQ-199",

@@ -1422,13 +1422,13 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-054-web-api-analytics",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting.",
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Narrow issue #199/MJ-REQ-198 same-application comparison condition integrated locally at 41513c0f3c2c75970bfc8173f0ca8576acb63519; readable Added/Removed line output is covered. This slice remains PARTIAL for MJ-REQ-198; issue #199 OPEN. Evidence docs/evidence/2026-10-08-cover-letter-history-comparison.json. Parent MJ-PR-054 remains QUEUED with original dependencies MJ-PR-053 and MJ-PR-043 unchanged.",
       "active_slice": {
         "name": "Compare two integrity-validated cover-letter revisions in Documents history",
         "issue": 199,
         "requirement_id": "MJ-REQ-198",
-        "status": "ACTIVE",
-        "publication_state": "LOCAL_WORK_IN_PROGRESS",
+        "status": "INTEGRATED_SCOPE_PASS_PARTIAL_REQUIREMENT",
+        "publication_state": "LOCAL_MAIN_FAST_FORWARD",
         "base_commit": "2c7e2f28dda14a4c9ebb31d7b4b18d5911b3e262",
         "depends_on": [],
         "parent_dependencies_preserved": [
@@ -1442,7 +1442,13 @@
           "docs/evidence/2026-10-08-cover-letter-history-comparison.json"
         ],
         "acceptance": "Select two cover-letter revisions for the same application, load integrity/avoid-list validated previews from the existing application-documents endpoint, display a readable text difference, and disable comparison when either source is invalid or unavailable. Preserve downloads, hashes, immutable history, profile isolation and resume comparison.",
-        "rationale": "Read-only code/issue/spec audit confirmed the comparison increment needs only existing endpoints and data; it does not consume MJ-PR-053 or MJ-PR-043. The parent MJ-PR-054 remains QUEUED with its original dependencies intact; this slice does not promote the umbrella or change any denominator."
+        "rationale": "Read-only code/issue/spec audit confirmed the comparison increment needs only existing endpoints and data; it does not consume MJ-PR-053 or MJ-PR-043. The parent MJ-PR-054 remains QUEUED with its original dependencies intact; this slice does not promote the umbrella or change any denominator.",
+        "integrated_main": "41513c0f3c2c75970bfc8173f0ca8576acb63519",
+        "integrated_tree": "468cd613533706ab96e8de97813fe9fd8c105d02",
+        "evidence_path": "docs/evidence/2026-10-08-cover-letter-history-comparison.json",
+        "issue_receipt": "https://github.com/MulattoTech/MJobs/issues/199#issuecomment-6053174608",
+        "claim_release_receipt": "https://github.com/MulattoTech/MJobs/issues/199#issuecomment-6053176187",
+        "verification": "LOCAL: Vitest 9/9, TypeScript/Vite build, connected Chromium 2/2; LOCAL_DELEGATED_REVIEW no material findings. Root reran exact candidate after metadata-only rebase."
       }
     },
     {

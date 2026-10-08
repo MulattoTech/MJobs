@@ -1142,3 +1142,11 @@ Integration checkpoint: https://github.com/MulattoTech/MJobs/issues/517#issuecom
 
 
 GitHub closeout readback for issue #104 / MJ-REQ-103: CLOSED with local acceptance receipt https://github.com/MulattoTech/MJobs/issues/104#issuecomment-6053137172. Evidence/planning checkpoint source HEAD before this metadata update: `118d3cc486aecd96f4601b7820f1b82b3c5ff1e3` (tree `9630549af8875dc1293126545b393363346d15d4`).
+
+
+## 2026-10-08 issue #199 / MJ-REQ-198 comparison integration
+
+- Integrated and synchronized `main`/`origin/main`: `41513c0f3c2c75970bfc8173f0ca8576acb63519` (tree `468cd613533706ab96e8de97813fe9fd8c105d02`). Non-force fast-forward from `9752bf0fb14ace771d7d1d6b94a1b73f4fe12973`.
+- Readable Added/Removed comparison for same-application cover-letter revisions is locally verified. Exact integrated-tree checks: focused Vitest 9/9, Vite build PASS, connected Chromium 2/2; local delegated review no material findings. Evidence: `docs/evidence/2026-10-08-cover-letter-history-comparison.json`.
+- Issue #199 remains OPEN/PARTIAL; hosted checks and full Python suite NOT_RUN; Node 25.9 outside Vitest 5 supported range. Claim released after receipts: https://github.com/MulattoTech/MJobs/issues/199#issuecomment-6053176187. Parent MJ-PR-054 still QUEUED behind PR-053 and PR-043. External submission OFF.
+- Next: #117 and #96 candidates need reconciliation with current main; #275/MJ-REQ-274 recovery implementation is independently claimed.

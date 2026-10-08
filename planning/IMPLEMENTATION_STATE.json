@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-08T05:37:36Z",
+  "generated_at": "2026-10-08T05:40:30Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -11,7 +11,7 @@
     "current_verified_github_state": "Issue #179 / MJ-REQ-178 log retention acceptance PASS at 8bea57e595e19e638913405a8ec1cd3aa0ebde32; full product remains PARTIAL.",
     "current_verified_at": "2026-10-07T15:27:43Z"
   },
-  "current_milestone": "MJ-REQ-103-ANSWER-BANK-20261008",
+  "current_milestone": "MJ-REQ-198-COVER-LETTER-COMPARISON-20261008",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -127,7 +127,8 @@
     "Native resume extraction transport-disconnect cancellation is verified against a real loopback HTTP client abort, including child reaping and durable no-mutation state; broader external-operation categories remain open (MJ-REQ-004 PARTIAL).",
     "Issue #517 structured source-review evaluation integrated PARTIAL at main 94de9869be86f32d3f815dc318d4d5e9a95e1219; review history stores source kind, API/feed evidence status/reference, access/terms, capabilities/limits and expected value/maintenance notes. Sources UI save/reload, profile isolation, idempotency, safe URL sanitization, collection OFF and no-network behavior verified. Evidence docs/evidence/2026-10-07-source-candidate-review-evaluation.json. Focused API/browser 7 PASS; frontend 63/build, validators and temporary SQLite migration-preservation check PASS. PostgreSQL/Docker, live source inspection and hosted checks NOT_RUN. Provider/browser intake and bounded integration-task linkage remain open.",
     "Issue #167 / MJ-REQ-166 migration graph repair PARTIAL: added merge revision e2a4c9d0b721 joining existing Alembic heads 9b6d40aaf163 and f37a0c2e91b5. Normal `upgrade('head')` now succeeds on a fresh temporary SQLite database and resumes comparison integration setup. Source commit 0a7400d2bf7f8f449d69a81fde84a4f107faf06f; evidence docs/evidence/2026-10-08-alembic-merge-heads.json. Seven focused migration/resume integration tests PASS. Broader database migration, PostgreSQL index runtime, backup/restore acceptance and dependencies remain incomplete; issue #167/MJ-REQ-166 remains OPEN/PARTIAL.",
-    "Issue #104 / MJ-REQ-103 answer bank acceptance is PASS (docs/evidence/2026-10-08-answer-bank-acceptance.json); parent MJ-PR-028 requirements MJ-REQ-100..102 and MJ-REQ-104..107 are not promoted. Aggregate core workflow/release remain PARTIAL."
+    "Issue #104 / MJ-REQ-103 answer bank acceptance is PASS (docs/evidence/2026-10-08-answer-bank-acceptance.json); parent MJ-PR-028 requirements MJ-REQ-100..102 and MJ-REQ-104..107 are not promoted. Aggregate core workflow/release remain PARTIAL.",
+    "Issue #199 / MJ-REQ-198 comparison increment locally integrated PASS at 41513c0f3c2c75970bfc8173f0ca8576acb63519; evidence docs/evidence/2026-10-08-cover-letter-history-comparison.json. Full requirement remains PARTIAL; no change to MJ-PR-054 dependencies, core workflow, or release acceptance."
   ],
   "blocked_capabilities": [],
   "active_requirements": [
@@ -140,7 +141,6 @@
     "MJ-REQ-170",
     "MJ-REQ-176",
     "MJ-REQ-177",
-    "MJ-REQ-198",
     "MJ-REQ-115",
     "MJ-REQ-116"
   ],
@@ -382,7 +382,8 @@
     "MJ-REQ-115 scoped certification clause slice: worker recorded 23 focused parser + matching integration tests PASS against exact input hashes; root reran 16 parser unit tests PASS after rebase.",
     "MJ-REQ-115 TypeScript check and Vite production build PASS on Node 25.9.0; Vite 8.3.1 supports this runtime.",
     "Local delegated review of #116 candidate: no code blocker; branch rebased onto current main and exact source-input hashes rechecked.",
-    "Issue #104 / MJ-REQ-103 answer bank exact-head evidence revalidated against current main: 15 synthetic SQLite integration tests, 2 connected synthetic Chromium tests, web build PASS; input diff from tested snapshot 77a7d36 to d8caa90 contains no executable/test/build inputs. Node 25.9 is outside Vitest 5 declared engine range."
+    "Issue #104 / MJ-REQ-103 answer bank exact-head evidence revalidated against current main: 15 synthetic SQLite integration tests, 2 connected synthetic Chromium tests, web build PASS; input diff from tested snapshot 77a7d36 to d8caa90 contains no executable/test/build inputs. Node 25.9 is outside Vitest 5 declared engine range.",
+    "Issue #199 / MJ-REQ-198 readable comparison source/test inputs integrated at main 41513c0f3c2c75970bfc8173f0ca8576acb63519. Root exact-integrated-tree recheck: focused Vitest 9/9; TypeScript/Vite build PASS; connected synthetic Chromium document-history 2/2. LOCAL_DELEGATED_REVIEW no material findings; Node 25.9 outside Vitest 5 declared range."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -471,7 +472,8 @@
     "MJ-REQ-115 post-rebase matching integration rerun BLOCKED_ENVIRONMENT (0 tests; SQLAlchemy missing).",
     "MJ-REQ-115 post-correction connected browser rerun BLOCKED_ENVIRONMENT (0 tests; Playwright missing); earlier browser evidence predates the last parser corrections.",
     "Hosted checks/review NOT_RUN_BY_USER_POLICY; broader MJ-REQ-115 acceptance and release readiness remain PARTIAL/NOT_RUN.",
-    "MJ-REQ-103 PostgreSQL and hosted Actions/CI/review NOT_RUN; overall core-workflow and release acceptance remain PARTIAL."
+    "MJ-REQ-103 PostgreSQL and hosted Actions/CI/review NOT_RUN; overall core-workflow and release acceptance remain PARTIAL.",
+    "Issue #199 full Python suite and hosted checks/review NOT_RUN; this is a scoped comparison condition and MJ-REQ-198 remains PARTIAL."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -580,7 +582,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Root is reconciling isolated claims and integrating only verified candidates in sequence. #96 reviewed experience rewriting, #117 match categories, and #199 readable cover-letter diff have completed candidate commits on disjoint branches; review #199 has no material findings. Rebase/revalidate them against current main 118d3cc before non-force fast-forward. New lead identified #275/MJ-REQ-274 scheduled-source restart as potentially ready; assign only after exact live issue/spec/path claim. Five read-only leads found no other presently safe slice without #117 main.tsx ownership or active #302/#318 paths. #104/MJ-REQ-103 is CLOSED/PASS; broader core workflow and release stay PARTIAL. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
+  "recommended_resume_step": "Rebase and locally revalidate completed #117/MJ-REQ-116 and #96/MJ-REQ-095 candidates after each main movement, integrate one exact candidate at a time, and release only after GitHub receipts. Independent #275/MJ-REQ-274 scheduled-source restart work has been assigned a dedicated claim after live recheck; root reconciles its result. Five read-only leads found no other safe lane without #117 UI ownership or #302/#318 claims. #199 is OPEN/PARTIAL; #104 is CLOSED/PASS. Core workflow/release remain PARTIAL; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -9719,16 +9721,69 @@
         "issue_receipt": "https://github.com/MulattoTech/MJobs/issues/104#issuecomment-6053137172",
         "issue_state_after_readback": "CLOSED"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-198-COVER-LETTER-COMPARISON-20261008",
+      "timestamp": "2026-10-08T05:40:30Z",
+      "current_phase": "MJ_REQ_198_SAME_APPLICATION_READABLE_DIFF_INTEGRATED_LOCAL_SCOPE_PASS",
+      "completed_steps": [
+        "Implemented deterministic readable Added/Removed lines for two selected immutable cover-letter revisions, sourced only from fresh same-application API previews that pass integrity/avoid-list validation.",
+        "Preserved complete original previews and existing downloads; tests cover A/B scope changes, invalid/unavailable previews, avoid-list refusal, unchanged download bytes and no cross-application options.",
+        "LOCAL_DELEGATED_REVIEW found no material findings on source candidate; root reran exact rebased tree focused frontend tests 9/9, TypeScript/Vite build, and connected Chromium document-history 2/2.",
+        "Integrated via non-force fast-forward on synchronized main at 41513c0f3c2c75970bfc8173f0ca8576acb63519; issue #199 remains OPEN/PARTIAL and claim released after GitHub readback."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-08-cover-letter-history-comparison.json"
+      ],
+      "files_modified": [
+        "apps/web/src/document-history.tsx",
+        "apps/web/src/document-history.test.tsx",
+        "tests/browser/test_document_history.py",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "npm test -- --run src/document-history.test.tsx: 9 PASS.",
+        "npm run build: TypeScript and Vite PASS.",
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_document_history -v: 2 PASS, 0 failures/skips."
+      ],
+      "tests_remaining": [
+        "Full Python suite NOT_RUN.",
+        "Hosted Actions/CI/review NOT_RUN_BY_USER_POLICY.",
+        "Node 25.9.0 is outside Vitest 5 declared engine range.",
+        "MJ-REQ-198 broader action set, core workflow and release acceptance remain PARTIAL."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Synthetic SQLite profile/application documents and connected local Chromium; outgoing external requests blocked/none; external submission OFF."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "The browser sequence guards stale/in-flight responses; in-flight delay is covered by code guard and switching regression but not a separate controlled race test.",
+        "Hosted and full Python suites not run."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "41513c0f3c2c75970bfc8173f0ca8576acb63519",
+        "tree": "468cd613533706ab96e8de97813fe9fd8c105d02",
+        "source_commit": "41513c0f3c2c75970bfc8173f0ca8576acb63519",
+        "evidence_path": "docs/evidence/2026-10-08-cover-letter-history-comparison.json",
+        "issue_receipt": "https://github.com/MulattoTech/MJobs/issues/199#issuecomment-6053174608",
+        "claim_release_receipt": "https://github.com/MulattoTech/MJobs/issues/199#issuecomment-6053176187",
+        "issue_state_after_readback": "OPEN; scoped acceptance only"
+      }
     }
   ],
-  "current_phase": "MJ_REQ_103_ANSWER_BANK_EXACT_INPUT_LOCAL_ACCEPTANCE_PASS",
+  "current_phase": "MJ_REQ_198_SAME_APPLICATION_READABLE_DIFF_INTEGRATED_LOCAL_SCOPE_PASS",
   "last_safe_checkpoint": {
-    "git_commit": "118d3cc486aecd96f4601b7820f1b82b3c5ff1e3",
-    "tree": "9630549af8875dc1293126545b393363346d15d4",
-    "source_commit": "77a7d3670d7cbe3c3fb771dc2e8083b9fbaca66e",
-    "evidence_path": "docs/evidence/2026-10-08-answer-bank-acceptance.json",
-    "issue_receipt": "https://github.com/MulattoTech/MJobs/issues/104#issuecomment-6053137172",
-    "issue_state_after_readback": "CLOSED"
+    "git_commit": "41513c0f3c2c75970bfc8173f0ca8576acb63519",
+    "tree": "468cd613533706ab96e8de97813fe9fd8c105d02",
+    "source_commit": "41513c0f3c2c75970bfc8173f0ca8576acb63519",
+    "evidence_path": "docs/evidence/2026-10-08-cover-letter-history-comparison.json",
+    "issue_receipt": "https://github.com/MulattoTech/MJobs/issues/199#issuecomment-6053174608",
+    "claim_release_receipt": "https://github.com/MulattoTech/MJobs/issues/199#issuecomment-6053176187",
+    "issue_state_after_readback": "OPEN; scoped acceptance only"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -11193,5 +11248,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-08T05:37:36Z"
+  "updated_at": "2026-10-08T05:40:30Z"
 }
