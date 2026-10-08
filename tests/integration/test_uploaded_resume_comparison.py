@@ -75,6 +75,61 @@ class UploadedResumeComparisonTests(unittest.TestCase):
                     self.assertEqual(client.get(url,params=params).json(),result)
                     self.store.save_profile(self.original_profile)
 
+    def test_uploaded_comparison_reads_durable_skill_order_target_without_profile_mutation(self):
+        source=PROFILE['facts'][0]
+        duty=dict(source,id='python-duty',kind='responsibility',text='Built Python APIs for internal teams.')
+        self.store.save_profile(dict(PROFILE,facts=[PROFILE['facts'][1],PROFILE['facts'][0],duty],
+                                     contact={'phones':['555 0100'],'city':'Tulsa'}))
+        with fixture_server() as origin:discover(self.store,origin,'fixture')
+        job=self.store.jobs()[0]
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.id==job['id']).values(skills=['Python']))
+        app=prepare(self.store,job['id'],'fixture',self.root)
+        original=b'Alex Fixture\nalex@example.test\nSkills\nSQL; Python\nResponsibilities\nMaintained servers\n'
+        upload=save_resume(self.store,self.root,'fixture','original.txt','text/plain',original)
+        before=self.store.profile('fixture')
+        self.store.save_profile(dict(PROFILE,id='other'))
+        with TestClient(create_app(self.store,'http://127.0.0.1:1',self.root,operation_mode='FIXTURE')) as client:
+            queued=client.post('/applications',json={
+                'profile_id':'fixture','job_id':job['id'],'tailor_resume':True,
+            })
+            self.assertEqual(queued.status_code,202,queued.text)
+            operation=queued.json()
+            self.assertEqual(operation['application_id'],app)
+        from workers.tasks import execute_operation
+        with patch.dict('os.environ',MJOBS_DATABASE_URL=str(self.store.engine.url),
+                        MJOBS_MOCK_ORIGIN='http://127.0.0.1:1',MJOBS_OUTPUT_DIR=str(self.root),
+                        MJOBS_OPERATION_MODE='FIXTURE'):
+            self.assertEqual(execute_operation(operation['operation_id'])['status'],'COMPLETED')
+        target=next(row for row in application_documents(self.store,app)
+                    if row['kind']=='resume' and row['version']==2)
+        self.assertEqual((target['template'],target['generation_model']),(
+            'approved-target-relevant-bullets-summary-skill-responsibility-and-bullet-emphasis-v5',
+            'deterministic-target-relevant-bullets-summary-skill-responsibility-order-v4'))
+        database_url=str(self.store.engine.url)
+        self.store.engine.dispose()
+        reloaded_store=Store(database_url)
+        url=f'/profiles/fixture/applications/{app}/uploaded-resume-comparison'
+        params={'base_revision_id':upload['revision_id'],'tailored_document_id':target['id']}
+        try:
+            with TestClient(create_app(reloaded_store,'http://127.0.0.1:1',self.root,operation_mode='FIXTURE')) as client:
+                response=client.get(url,params=params)
+                self.assertEqual(response.status_code,200,response.text)
+                result=response.json()
+                self.assertEqual(result['base']['id'],upload['revision_id'])
+                self.assertEqual(result['base']['source_kind'],'UPLOADED')
+                self.assertEqual(result['base']['sha256'],upload['sha256'])
+                self.assertEqual(result['base']['text'],original.decode())
+                self.assertFalse(result['section_availability']['summary_changes'])
+                self.assertTrue(result['section_availability']['bullet_changes'])
+                self.assertEqual(result['summary_changes'],[])
+                self.assertIn('Maintained servers',{row['text'] for row in result['omitted']})
+                foreign_url=url.replace('/profiles/fixture/','/profiles/other/')
+                self.assertEqual(client.get(foreign_url,params=params).status_code,404)
+            self.assertEqual(reloaded_store.profile('fixture'),before)
+        finally:
+            reloaded_store.engine.dispose()
+
     def test_wrong_membership_and_tampered_original_fail_closed(self):
         app,target=self.target()
         self.store.save_profile(dict(PROFILE,id='other'))
