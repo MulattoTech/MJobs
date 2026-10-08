@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-08T12:19:14Z",
+  "requirement_id": "MJ-REQ-133",
+  "issue": 134,
+  "scope": "One MOCK-only country-dependent required dropdown; exact mapped answer fill and fail-closed handling of a newly revealed unmapped required control.",
+  "result": "PASS",
+  "requirement_status": "PARTIAL",
+  "branch": "codex/mj-req133-dynamic-conditional-field-20261008",
+  "base_commit": "27ca5ccb3cdf6e2e37079e53d721a55068cbd7eb",
+  "base_tree": "d422f20eb2eebd6461644468ae23b455fcb97fb1",
+  "source_commit": "ffb41ec9f7fc7fa1e14417a8ab1925f7f4218aa9",
+  "source_tree": "c204b4276f3507200fbae95bc4efa80f94edf491",
+  "test_environment": {
+    "os": "Windows",
+    "python": "repository .venv Python 3.12",
+    "database": "isolated temporary SQLite",
+    "ats": "local synthetic MOCK fixture with Playwright"
+  },
+  "source_inputs_sha256": {
+    "services/applications/mock_adapter.py": "72779A220F053A6B58199405B50F6E64EAC9D4AA8EE8F19660E0AD88EF3100C9",
+    "fixtures/mock_server.py": "0F8E37C4FE4A030316B55CDE02A2E9181F2034BC305040C1CB73E643386A56DC",
+    "tests/integration/test_application_pipeline.py": "7F63B4509B37A72A8DB7318024053EBD60B9373E85A733CE70F8E54F0C3DAE56",
+    "tests/browser/test_mock_application.py": "BB7F9EE91663223C254060684B38D509530C88066FEF35DB233C5C130853ED1C"
+  },
+  "test_first": {
+    "red_command": ".venv\\Scripts\\python.exe -m unittest tests.browser.test_mock_application.MockApplicationTests.test_conditional_required_dropdown_uses_known_preflight_mapping tests.browser.test_mock_application.MockApplicationTests.test_unknown_conditional_required_field_is_reviewed_before_review_or_submit -v",
+    "red_result": "Expected failure before implementation: both paths reached the static form validity error after country revealed the dependent required field."
+  },
+  "validations": [
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.browser.test_mock_application tests.integration.test_application_pipeline tests.integration.test_application_preflight -v",
+      "result": "PASS",
+      "summary": "42 tests passed, 0 failures, 0 skips after clean rebase onto 27ca5ccb3cdf6e2e37079e53d721a55068cbd7eb."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.browser.test_mock_application tests.integration.test_application_pipeline -v",
+      "result": "PASS",
+      "summary": "32 tests passed, 0 failures, 0 skips."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_application_preflight -v",
+      "result": "PASS",
+      "summary": "10 tests passed, 0 failures, 0 skips."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.browser.test_mock_application.MockApplicationTests.test_conditional_required_dropdown_uses_known_preflight_mapping tests.browser.test_mock_application.MockApplicationTests.test_unknown_conditional_required_field_is_reviewed_before_review_or_submit tests.integration.test_application_pipeline.ApplicationPipelineTests.test_unknown_dynamic_required_field_review_survives_reopen_and_detail_read -v",
+      "result": "PASS",
+      "summary": "3 targeted connected-browser/persistence tests passed."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m py_compile services/applications/mock_adapter.py fixtures/mock_server.py tests/integration/test_application_pipeline.py tests/browser/test_mock_application.py",
+      "result": "PASS"
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m tools.verification.agent_skills",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "acceptance_observations": {
+    "known_dependent_dropdown": "After the approved United States answer revealed State or province, the browser re-read visible required controls and filled Oklahoma only through the exact preflight question ID and a verified, user-approved profile answer. The synthetic ATS accepted the dependent field at its review endpoint.",
+    "unknown_required_control": "An unlisted required control produced persisted UNKNOWN/UNKNOWN_DYNAMIC_REQUIRED_FIELD and REVIEW_REQUIRED, remained readable after SQLite reopen and application detail API read, and stopped before review or submit POSTs.",
+    "request_counts": "Known field path: 1 mock review POST, 0 submit POSTs. Unknown required path: 0 review POSTs, 0 submit POSTs; receipt remained not_found.",
+    "privacy": "The DOM snapshot includes only bounded control IDs/names/tag/required visibility; it does not read candidate control values or rendered labels. Attempt and audit output contains stable reasons and IDs only.",
+    "origin_and_gates": "The exercised browser context retains the existing fixed mock-origin route guard. Existing CAPTCHA, intervention, cancellation, and submission authorization code was not changed."
+  },
+  "not_run_or_limited": {
+    "hosted_checks": "NOT_RUN_BY_USER_POLICY",
+    "postgresql": "NOT_RUN",
+    "live_ats": "NOT_RUN",
+    "external_submission": "OFF",
+    "full_repository_suite": "NOT_RUN",
+    "requirement_scope": "PARTIAL: one dependent dropdown example; optional sections, repeatable experience rows, and broader ATS dynamic-field coverage remain outside this slice."
+  }
+}
