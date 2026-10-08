@@ -34,6 +34,20 @@ October 5 trial-deadline instructions. GitHub remains source/issue/PR storage.
 
 See docs/GITHUB_WORKFLOW.md and prompts/LOCAL_ONLY_LUNA_ITERATION.md.
 
+## Current Luna solo release-sprint workflow
+
+For an explicitly invoked MJobs implementation session, the single selected Luna agent owns the full, repeatable sequence:
+RECONCILE live local/GitHub truth -> SELECT the highest-value dependency-ready issue -> CLAIM safe ownership ->
+IMPLEMENT a coherent user-visible vertical slice -> run deterministic LOCAL validation -> inspect the diff and failure cases ->
+RECORD scoped evidence -> COMMIT/PUBLISH by the allowed local-only route -> INTEGRATE only when qualified ->
+RECONCILE and select another authorized slice.
+
+The global Codex orchestration guidance is a reusable workflow, not permission to override this repository's active
+budget limits: no subagents, paid model escalation, AI code reviews, hosted GitHub Actions or new background sessions.
+Follow the three-slice/four-hour limit, source/ownership protection, actual local evidence and exact-input verification in
+`prompts/LOCAL_ONLY_LUNA_ITERATION.md`. A solo Luna self-review is not independent AI review. Do not change model
+settings, launch agents, run tests, or start development merely because this instruction file was edited.
+
 ## Mission
 Build MJobs into the production-quality local-first job discovery, matching, document-generation,
 application-preparation/automation, and tracking platform defined by the repository specs.
@@ -106,7 +120,7 @@ When asked to process a manual VS Code/browser feedback session, follow `prompts
 For implementation/delivery work, Codex may use `.agents/skills/mjobs-delivery/SKILL.md`. It is a router, not a second authority or memory store. Load only the matching high-risk playbooks needed for the boundaries touched. Validate it with `python -m tools.verification.agent_skills`.
 
 ## Checkout ownership and closeout
-A merged branch can still have uncommitted edits or an active writer. Before publishing or retiring a worktree, verify exclusive mutation ownership, recheck dirty files and preserve private/untracked data. Stop mutations on unexpected concurrent changes rather than committing another session's unfinished bytes. One integrator owns shared state and migration ordering. Start new development with the current `prompts/ASTRA_START_HERE.md`; historical session_control fields are observations, not current authorization.
+A merged branch can still have uncommitted edits or an active writer. Before publishing or retiring a worktree, verify exclusive mutation ownership, recheck dirty files and preserve private/untracked data. Stop mutations on unexpected concurrent changes rather than committing another session's unfinished bytes. One integrator owns shared state and migration ordering. Start new MJobs development in the user's selected Luna session with `prompts/LOCAL_ONLY_LUNA_ITERATION.md`; `prompts/ASTRA_START_HERE.md` is historical while the local-only budget policy is active. Historical session_control fields are observations, not current authorization.
 
 ## Codespaces entrypoint
 For user-directed cloud development, start with `prompts/CODESPACES_ITERATION.md` and `docs/CODESPACES.md`. Setup installs CLI/dependencies, not an active agent or app runtime. Reuse the checked-in delivery skill; old global PMM/AFK skills and historical session records do not authorize continuation. Keep ports private and use synthetic fixtures unless explicitly approved otherwise.
