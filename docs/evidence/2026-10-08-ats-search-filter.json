@@ -7,7 +7,7 @@
   "base_commit": "3d7ff2c6fb0a6151026ebbe23033b4b5c5022937",
   "source_commit": "95437738b37e47935b7074203e2b28fbd5412bd7",
   "source_tree": "cabbf5750ba8a6d9e823f35d59793977592449ff",
-  "validated_at_utc": "2026-10-08T14:05:17Z",
+  "validated_at_utc": "2026-10-08T14:09:19Z",
   "environment": {
     "platform": "Windows",
     "python": "3.12",
@@ -95,6 +95,15 @@
     "Live production job sources and real ATS behavior",
     "Full repository test suite"
   ],
-  "review": "Local worker self-review only; root owns serialized local delegated review and exact-candidate revalidation.",
-  "integration": "Candidate committed locally at source_commit on codex/mj-req189-ats-filter-20261008. Not pushed, merged, or integrated. Issue #190 remains OPEN/PARTIAL; root review and exact-candidate revalidation are pending."
+  "review": "Root local evidence review resolved the LF/CRLF discrepancy. SHA-256 inputs are checked-out worktree bytes read by the local Windows test run; canonical Git blob object IDs are separately recorded. Root exact-candidate revalidation remains pending.",
+  "integration": "Candidate committed locally at source_commit on codex/mj-req189-ats-filter-20261008. Not pushed, merged, or integrated. Issue #190 remains OPEN/PARTIAL; root exact-candidate revalidation and integration are pending.",
+  "input_hash_domain": "input_sha256 values are SHA-256 of the exact checked-out worktree bytes read by the local Windows test run; source_commit and source_tree pin canonical Git content.",
+  "canonical_git_blob_oid": {
+    "apps/api/main.py": "8cb7df775057ccec360b2d6f07105db8c455ced5",
+    "apps/web/src/main.tsx": "517b25df5eae5d1052aca763eae1ccedf9c549e6",
+    "packages/persistence/store.py": "b1988da7402b3c494037bd669525367f4d187062",
+    "services/discovery/search_profiles.py": "6295664c79d3646a038f1b6493193b241c5620d9",
+    "tests/integration/test_saved_search_filters.py": "77ac5156c7726a0afbff1718f12be16d51a3134e",
+    "tests/browser/test_saved_search_filters.py": "2299cf465f3e86348d8c736058d6f5b5758f5631"
+  }
 }
