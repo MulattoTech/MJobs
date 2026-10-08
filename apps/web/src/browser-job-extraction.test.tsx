@@ -146,4 +146,97 @@ describe('profile and job scoped browser extraction preview', () => {
       vi.fn().mockResolvedValue(response({ job_id: 'other-job' }))))
       .rejects.toThrow(/does not match the selected profile and job/i);
   });
+
+  it('lets users correct identity and route fields without changing provenance or unknowns', async () => {
+    const result = response();
+    const html = renderToStaticMarkup(<BrowserJobExtractionPanel
+      profileId={profileId}
+      jobId={jobId}
+      draft={draft}
+      result={result}
+      corrections={{ title: 'Network Administrator', application_url: 'https://jobs.example.test/new' }}
+      onDraftChange={vi.fn()}
+      onCorrectionChange={vi.fn()}
+      onPreview={vi.fn()}
+      onConfirm={vi.fn()}
+    />);
+
+    expect(html).toContain('Correction for Title');
+    expect(html).toContain('Network Administrator');
+    expect(html).toContain('Correction for Company');
+    expect(html).toContain('Correction for Source job ID');
+    expect(html).toContain('Correction for Listing URL');
+    expect(html).toContain('Correction for Application URL');
+    expect(html).not.toContain('Correction for Location');
+    expect(html).toContain('JOBPOSTING_SCHEMA');
+    expect(html).toContain('98% confidence');
+    expect(html).toContain('Unknown fields');
+    expect(html).toContain('Raw capture reference');
+    expect(html).toContain('readOnly=""');
+
+    const module = await import('./browser-job-extraction');
+    expect(module.confirmationsAfterCorrection(
+      result, ['listing_url', 'application_url'], 'application_url',
+    )).toEqual(['listing_url']);
+    const reviewed = module.buildBrowserJobExtractionConfirmation(result, {
+      title: 'Network Administrator', application_url: 'https://jobs.example.test/new',
+    }, ['listing_url', 'application_url']);
+    expect(reviewed.preview).toBe(result);
+    expect(reviewed.corrections).toEqual({
+      title: 'Network Administrator', application_url: 'https://jobs.example.test/new',
+    });
+    expect(result.raw_capture_ref).toBe('capture.synthetic-42');
+    expect(result.fields.title).toMatchObject({
+      value: 'Systems Administrator', source: 'JOBPOSTING_SCHEMA', confidence: 0.98,
+    });
+    expect(reviewed.preview.unknown_fields).toEqual(result.unknown_fields);
+  });
+
+  it('validates correction lengths and only accepts safe HTTP(S) routes', async () => {
+    const { validateBrowserJobExtractionCorrections } = await import('./browser-job-extraction');
+    expect(validateBrowserJobExtractionCorrections(response(), {
+      listing_url: 'javascript:alert(1)',
+    }).listing_url).toMatch(/HTTP or HTTPS/i);
+    expect(validateBrowserJobExtractionCorrections(response(), {
+      application_url: 'https://user:secret@jobs.example.test/apply',
+    }).application_url).toMatch(/credentials/i);
+    expect(validateBrowserJobExtractionCorrections(response(), {
+      title: 'x'.repeat(501),
+    }).title).toMatch(/500 characters/i);
+    expect(validateBrowserJobExtractionCorrections(response(), {
+      company: 'x'.repeat(201),
+    }).company).toMatch(/200 characters/i);
+    expect(validateBrowserJobExtractionCorrections(response(), {
+      listing_url: 'https://jobs.example.test/apply',
+      title: 'Network Administrator',
+    })).toEqual({});
+  });
+
+  it('requires review for low-confidence fields and confirmation remains a non-persistent preview', async () => {
+    const result = response();
+    const html = renderToStaticMarkup(<BrowserJobExtractionPanel
+      profileId={profileId}
+      jobId={jobId}
+      draft={draft}
+      result={result}
+      corrections={{ application_url: 'https://jobs.example.test/confirmed' }}
+      confirmedFields={[]}
+      onDraftChange={vi.fn()}
+      onCorrectionChange={vi.fn()}
+      onPreview={vi.fn()}
+      onConfirm={vi.fn()}
+    />);
+    expect(html).toContain('Confirm low-confidence application URL');
+    expect(html).toContain('disabled=""');
+    expect(html).toContain('Corrections are preview only');
+    expect(html).toContain('does not save or change a stored job or application');
+
+    const { buildBrowserJobExtractionConfirmation } = await import('./browser-job-extraction');
+    expect(() => buildBrowserJobExtractionConfirmation(result, {
+      application_url: 'https://jobs.example.test/confirmed',
+    }, [])).toThrow(/explicitly review/i);
+    expect(() => buildBrowserJobExtractionConfirmation(result, {
+      application_url: 'javascript:alert(1)',
+    }, ['listing_url', 'application_url'])).toThrow(/HTTP or HTTPS/i);
+  });
 });
