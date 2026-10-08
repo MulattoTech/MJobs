@@ -164,7 +164,7 @@ class JobSourceAtsSeparationBrowserTests(unittest.TestCase):
                     with page.expect_response(lambda response:
                             response.url.startswith(origin + "/jobs?")
                             and "provider=mock-ats" in response.url) as mock_route:
-                        page.get_by_label("Source", exact=True).select_option("mock-ats")
+                        page.get_by_label("Application provider", exact=True).select_option("mock-ats")
                     self.assertEqual([job["id"] for job in mock_route.value.json()["jobs"]],
                                      ["browser-source-ats-mock-route"])
                     page.get_by_label("Saved search name", exact=True).fill("Mock route provider")
@@ -184,7 +184,7 @@ class JobSourceAtsSeparationBrowserTests(unittest.TestCase):
                         saved.select_option(saved_id)
                     self.assertEqual([job["id"] for job in restored.value.json()["jobs"]],
                                      ["browser-source-ats-mock-route"])
-                    expect(page.get_by_label("Source", exact=True)).to_have_value("mock-ats")
+                    expect(page.get_by_label("Application provider", exact=True)).to_have_value("mock-ats")
                     expect(page.get_by_label("ATS", exact=True)).to_have_value("")
                     restored_card = page.locator(".job-card").filter(has_text="Unverified mock route")
                     expect(restored_card.get_by_text("DISCOVERY SOURCE", exact=True)).to_be_visible()

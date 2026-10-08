@@ -38,17 +38,9 @@ function applicationProviderLabel(value: string | null | undefined): string {
 
 export function JobRouteProvenance({postingSources, routeProvider}: JobRouteProvenanceProps) {
   const sources = discoverySourceLabels(postingSources);
-  return <section className="job-route-provenance" aria-label="Job route provenance">
-    <dl>
-      <div>
-        <dt>DISCOVERY SOURCE</dt>
-        <dd>{sources.length ? <ul>{sources.map(source => <li key={source}>{source}</li>)}</ul> : 'Not recorded'}</dd>
-      </div>
-      <div>
-        <dt>APPLICATION PROVIDER</dt>
-        <dd>{applicationProviderLabel(routeProvider)}</dd>
-      </div>
-    </dl>
-    <p className="muted">The recorded route provider is application-route metadata; it does not prove that ATS support has been verified.</p>
-  </section>;
+  return <span className="job-route-provenance" aria-label="Job route provenance">
+    <span><strong>DISCOVERY SOURCE</strong> <span>{sources.length ? sources.join(', ') : 'Not recorded'}</span></span>
+    <span><strong>APPLICATION PROVIDER</strong> <span>{applicationProviderLabel(routeProvider)}</span></span>
+    <span className="muted">Route-provider metadata does not prove verified ATS support.</span>
+  </span>;
 }

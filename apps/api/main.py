@@ -1439,6 +1439,20 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                 row["tracking"] = tracking[row["id"]]
             if not include_dismissed:
                 rows = [row for row in rows if row["tracking"]["disposition"] not in ("HIDDEN", "NOT_INTERESTED")]
+        if rows:
+            job_ids = [row["id"] for row in rows]
+            with store.engine.connect() as connection:
+                source_rows = connection.execute(
+                    select(m.postings.c.job_id, m.postings.c.source)
+                    .where(m.postings.c.job_id.in_(job_ids))
+                    .distinct()
+                    .order_by(m.postings.c.job_id, m.postings.c.source)
+                ).all()
+            sources_by_job = {}
+            for job_id, source in source_rows:
+                sources_by_job.setdefault(job_id, []).append(source)
+            for row in rows:
+                row["posting_sources"] = sources_by_job.get(row["id"], [])
         return {"jobs": rows}
 
     @app.get("/jobs/{job_id}/routes")

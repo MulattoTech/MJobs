@@ -52,7 +52,10 @@ class JobRouteProvenanceApiTests(unittest.TestCase):
 
         route_filtered = self.client.get("/jobs", params={"provider": "mock-ats"})
         self.assertEqual(route_filtered.status_code, 200, route_filtered.text)
-        self.assertIn(self.job_id, [row["id"] for row in route_filtered.json()["jobs"]])
+        route_rows = {row["id"]: row for row in route_filtered.json()["jobs"]}
+        self.assertIn(self.job_id, route_rows)
+        self.assertIn("mock-board", route_rows[self.job_id]["posting_sources"])
+        self.assertNotIn("mock-ats", route_rows[self.job_id]["posting_sources"])
         ats_filtered_with_evidence = self.client.get(
             "/jobs", params={"ats_provider": "mock-ats"})
         self.assertIn(self.job_id, [row["id"] for row in

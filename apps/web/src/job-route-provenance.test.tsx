@@ -53,6 +53,6 @@ describe('job route provenance', () => {
       routeProvider="Greenhouse"
     />);
 
-    expect(html).toMatch(/recorded route provider.*does not prove that ATS support has been verified/i);
+    expect(html).toMatch(/route-provider metadata does not prove verified ATS support/i);
   });
 });
