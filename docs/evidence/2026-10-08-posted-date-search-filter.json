@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-189",
+  "issue": 190,
+  "result": "PARTIAL",
+  "base_head": "0ebf4616250d9f06df85b0464099d6ea9d56c088",
+  "tested_source_head": "985e53e214e24277a9d1110cdac8273dcf7aabf1",
+  "tested_source_tree": "adb374419935a9d2e182dcdcc660881da07202ee",
+  "branch": "codex/mj-req189-posted-date-filter-20261008",
+  "acceptance": "Connected Jobs posted-within control accepts 1, 3, 7, 14, or 30 days. Filtering uses only source-reported reported_posted_at before LIMIT; missing/NULL values and first_seen_at-only records are excluded; malformed-date PostgreSQL behavior is unverified. Saved filter round-trip and clearing are tested. Full issue remains PARTIAL.",
+  "validation": {
+    "integration": "PASS",
+    "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_saved_search_filters -v",
+    "result": "12 tests passed, 0 failed",
+    "compile": "PASS: compileall on changed Python API, persistence, profile, and test files",
+    "diff_check": "PASS",
+    "browser": "SKIPPED: tests.browser.test_saved_search_filters; apps/web/dist/index.html absent",
+    "frontend": "NOT_RUN: Vitest executable unavailable in isolated worktree",
+    "postgresql": "NOT_RUN",
+    "hosted": "NOT_RUN_BY_USER_POLICY",
+    "external_submission": "OFF"
+  },
+  "source_sha256": {
+    "apps/api/main.py": "f2e8f7b1c22b0851522c7fffcb429ed4161fbb56e222e0f3593249e882470bbe",
+    "apps/web/src/main.tsx": "b55a1eca3290a57bccf3998a7e0fbf67989f4830b10f800859854fcdab49d4d7",
+    "packages/persistence/store.py": "2eed54ae047dac08057ec3b47d55a41a3d6b3877186896f2a303d1dd224334fd",
+    "services/discovery/search_profiles.py": "8ddda93088635396cf7e61e5c1890682116522fb9ca0c13f706e1f04a5030822",
+    "tests/integration/test_saved_search_filters.py": "cef285fa1137f3d14cd78ed6a7a644e91f96c4c68ca28aa6fa493f10bab423b2",
+    "tests/browser/test_saved_search_filters.py": "fb97a755a805cf770b58d4e49a72769d8802362b236cf244cb9ab0010f9eea21"
+  },
+  "recorded_at_utc": "2026-10-08T12:29:47Z"
+}
