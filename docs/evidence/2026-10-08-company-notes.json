@@ -3,9 +3,9 @@
   "issue": 240,
   "scope": "profile-scoped company notes through CompanySources UI and API",
   "result": "PASS",
-  "recorded_at_utc": "2026-10-08T05:08:08Z",
-  "base_commit": "f5800086b5cf8d4a92876a94d6fee2ad63f5d89d",
-  "candidate_commit": null,
+  "recorded_at_utc": "2026-10-08T05:11:40Z",
+  "base_commit": "bba96c0cac3d81d579bf2819eb7b48e4e5392e86",
+  "candidate_commit": "c72e88a2abdcefa213c2b8f0686af6bd108490aa",
   "worktree": ".worktrees/codex-mj-req239-company-notes-20261008",
   "branch": "codex/mj-req239-company-notes-20261008",
   "source_manifest_sha256": "654258874014143970d256316515944273182bee26cc3385e3edde331d1ebe65",
@@ -57,6 +57,24 @@
     {
       "command": "git diff --check",
       "result": "PASS"
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_company_tracking tests.integration.test_company_source_view tests.browser.test_company_tracking -v",
+      "result": "PASS",
+      "passed": 10,
+      "failed": 0,
+      "skipped": 0,
+      "source_commit": "c72e88a2abdcefa213c2b8f0686af6bd108490aa",
+      "rerun_at_utc": "2026-10-08T05:11:40Z"
+    },
+    {
+      "command": "npm --prefix apps/web test -- --run src/company-sources.test.tsx; npm --prefix apps/web run build",
+      "result": "PASS_EXECUTED_RUNTIME_UNSUPPORTED_FOR_VITEST",
+      "frontend_tests": 4,
+      "frontend_build": "PASS",
+      "node": "v25.9.0",
+      "vitest_engine_range": "^22.12.0 || ^24.0.0 || >=26.0.0",
+      "limitation": "Vitest warns current Node version is outside its declared engine range; results are executed but not supported-runtime acceptance."
     }
   ],
   "acceptance_observed": [
@@ -74,6 +92,8 @@
   "limitations": [
     "PostgreSQL concurrency was not run in this isolated SQLite validation.",
     "Hosted checks were not run by local-only policy.",
-    "Working tree is uncommitted; candidate commit and remote head are not applicable."
-  ]
+    "Vitest 5.0.3 ran on Node 25.9.0, outside its declared engine range; its test result is recorded as executed, not supported-runtime acceptance."
+  ],
+  "candidate_tree": "d425e3e528b391eacbf28aa0939830f1c4e90371",
+  "evidence_scope": "The candidate_commit identifies the tested code/test source checkpoint; this evidence metadata update is a descendant commit."
 }
