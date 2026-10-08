@@ -13,7 +13,7 @@ from services.career_profile.interview_preparation import (
     get_interview_prep_pack,
     list_interview_prep_packs,
 )
-from services.career_profile.story_bank import create_story, review_story
+from services.career_profile.story_bank import create_story, revise_story, review_story
 
 
 # Keep this service slice testable on its assigned base while the separately
@@ -160,6 +160,28 @@ class InterviewPreparationTests(unittest.TestCase):
         self.assertEqual(raised.exception.code, "JOB_NOT_FOUND")
         self.assertEqual(raised.exception.status_code, 404)
 
+    def test_pack_survives_store_reopen(self):
+        pack = create_interview_prep_pack(
+            self.store, "prep-owner", "prep-job", [self.story["story_id"]]
+        )
+        database_url = self.store.url
+        self.store.engine.dispose()
+        reopened = Store(database_url)
+        reopened.migrate()
+        self.store = reopened
+
+        readback = get_interview_prep_pack(
+            reopened, "prep-owner", "prep-job", pack["pack_id"]
+        )
+
+        self.assertEqual(readback, pack)
+        self.assertEqual(
+            [item["pack_id"] for item in list_interview_prep_packs(
+                reopened, "prep-owner", "prep-job"
+            )],
+            [pack["pack_id"]],
+        )
+
     def test_pending_or_nonlatest_story_revision_cannot_be_selected(self):
         pending = create_story(self.store, "prep-owner", {
             "kind": "STAR_STORY", "title": "Pending story", "text": "Pending user authored text.",
@@ -173,6 +195,41 @@ class InterviewPreparationTests(unittest.TestCase):
             )
 
         self.assertEqual(raised.exception.code, "STORY_NOT_SELECTABLE")
+
+    def test_approved_superseded_story_revision_is_rejected(self):
+        old_revision = self.story["story_id"]
+        revise_story(self.store, "prep-owner", old_revision, {
+            "kind": "STAR_STORY", "title": "Updated deployment story",
+            "text": "Situation: deployments were manual. Task: improve consistency. "
+                    "Action: documented the deployment. Result: the process was clearer.",
+            "fact_ids": ["fact-automation"], "tags": ["automation"],
+            "allowed_uses": ["INTERVIEW_PREPARATION"],
+        }, expected_revision=1)
+
+        with self.assertRaises(InterviewPreparationError) as raised:
+            create_interview_prep_pack(
+                self.store, "prep-owner", "prep-job", [old_revision]
+            )
+
+        self.assertEqual(raised.exception.code, "STORY_NOT_SELECTABLE")
+
+    def test_profile_or_job_context_change_appends_a_new_pack_version(self):
+        first = create_interview_prep_pack(self.store, "prep-owner", "prep-job", [])
+        with self.store.engine.begin() as connection:
+            connection.execute(
+                m.jobs.update().where(m.jobs.c.id == "prep-job")
+                .values(title="Senior Systems Administrator")
+            )
+        changed_job = create_interview_prep_pack(self.store, "prep-owner", "prep-job", [])
+        self.assertEqual(changed_job["pack_version"], 2)
+        self.assertNotEqual(changed_job["job_fingerprint"], first["job_fingerprint"])
+
+        self.store.save_profile({**PROFILE, "name": "Alex Updated"})
+        changed_profile = create_interview_prep_pack(
+            self.store, "prep-owner", "prep-job", []
+        )
+        self.assertEqual(changed_profile["pack_version"], 3)
+        self.assertNotEqual(changed_profile["profile_version"], changed_job["profile_version"])
 
 
 if __name__ == "__main__":
