@@ -921,10 +921,14 @@
         "tests/browser/test_saved_search_filters.py",
         "docs/evidence/2026-10-08-saved-job-filters.json"
       ],
-      "status": "ACTIVE",
+      "status": "RELEASED",
       "claimed_at": "2026-10-08T06:53:07Z",
       "claim_comment": "https://github.com/MulattoTech/MJobs/issues/192#issuecomment-6054262693",
-      "acceptance": "User can save the currently supported Jobs controls (q, work location, source and sort) with a named saved search for the active career profile; after reload, selecting it restores those controls and connected results. Verify profile isolation, malformed/cross-profile rejection, clear selection, and no discovery scheduling side effect. Preserve semantic search criteria. Scheduler cadence and broader MJ-REQ-191 are outside this child."
+      "acceptance": "User can save the currently supported Jobs controls (q, work location, source and sort) with a named saved search for the active career profile; after reload, selecting it restores those controls and connected results. Verify profile isolation, malformed/cross-profile rejection, clear selection, and no discovery scheduling side effect. Preserve semantic search criteria. Scheduler cadence and broader MJ-REQ-191 are outside this child.",
+      "integrated_main": "908e5de2cfcbf1cfbd1ca10388e90a3cdf9bbef0",
+      "evidence_path": "docs/evidence/2026-10-08-saved-job-filters.json",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/192#issuecomment-6054442666",
+      "released_at": "2026-10-08T07:02:54Z"
     }
   ]
 }

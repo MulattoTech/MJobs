@@ -11,7 +11,7 @@
     "current_verified_github_state": "Issue #179 / MJ-REQ-178 log retention acceptance PASS at 8bea57e595e19e638913405a8ec1cd3aa0ebde32; full product remains PARTIAL.",
     "current_verified_at": "2026-10-07T15:27:43Z"
   },
-  "current_milestone": "MJ-REQ-177-COMPANY-SOURCE-REFRESH-LOG-CONTEXT-CLAIMED-20261008",
+  "current_milestone": "MJ-REQ-177-COMPANY-SOURCE-REFRESH-LOG-CONTEXT-INTEGRATED-20261008",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -607,7 +607,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Issue #191 / MJ-REQ-190 bounded Newest-sort slice is claimed on codex/mj-req190-newest-20261008 at base 877110ea89170043b5cb6ede64f8d0749d9fc430 in .worktrees/codex-mj-req190-newest-20261008. Implement only Newest ordering from persisted effective posted time with first-seen fallback, unknown last and stable ties; add API/storage/browser verification. Preserve MJ-PR-052 dependencies MJ-PR-051 and MJ-PR-043; do not promote the umbrella. Claim: https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6053825467. Issue #517 link slice is integrated PARTIAL at dbc9e573680fcf32498131afe3bee75e72213371; hosted/PostgreSQL NOT_RUN; external submission OFF.",
+  "recommended_resume_step": "Verify/rebase the clean #116 / MJ-REQ-115 negated-must-have candidate ef47c13b07d2935ccbc698b18b3207f9556eb74a onto synchronized main 95c8b5291b13f6a7bc03c4687bc13dc4d8f3cd79, run focused parser + integration checks with repository .venv, obtain local delegated review, then integrate only if exact-source evidence is sound. Preserve #191 Company-sort candidate d2812e117a48e59e430b7d66d05e52c5a1c14623 for serialized rebase/review/integration. Active #96 target-bullet work continues in its own worktree. Hosted checks remain NOT_RUN_BY_USER_POLICY.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -645,7 +645,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "dbc9e573680fcf32498131afe3bee75e72213371",
+  "last_implementation_commit": "95c8b5291b13f6a7bc03c4687bc13dc4d8f3cd79",
   "publication": {
     "result": "PASS — local-only non-force fast-forward integration",
     "integration_method": "NON_FORCE_FAST_FORWARD",
@@ -10496,19 +10496,77 @@
         "at_utc": "2026-10-08T07:26:55Z",
         "note": "Independent log-context child claim established on worker paths; no source edits yet."
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-177-COMPANY-SOURCE-REFRESH-LOG-CONTEXT-INTEGRATED-20261008",
+      "timestamp": "2026-10-08T07:39:07Z",
+      "current_phase": "MJ_REQ_177_COMPANY_SOURCE_REFRESH_LOG_CONTEXT_INTEGRATED_PARTIAL",
+      "completed_steps": [
+        "Implemented and integrated allowlisted company_id context for COMPANY_SOURCE_REFRESH terminal logs using only the persisted source-row FK after durable terminal persistence.",
+        "Root reran focused worker/logging suites on the candidate: 33 tests ran, 32 passed, and the optional PostgreSQL recovery class skipped because its URL was unset.",
+        "Compileall, exact source/test SHA-256 comparison, diff check, evidence JSON and LOCAL_DELEGATED_REVIEW passed; candidate was fast-forward integrated and remote main read back at the exact SHA.",
+        "Posted the exact integration receipt and released the company-refresh child claim; reconciled the stale tracked #192 saved-filter claim to RELEASED from its existing receipt."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-08-company-source-refresh-company-context.json"
+      ],
+      "files_modified": [
+        "workers/tasks.py",
+        "workers/structured_logging.py",
+        "tests/unit/test_structured_logging.py",
+        "tests/integration/test_worker_lifecycle.py",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/SESSION_HANDOFF.md",
+        "planning/lanes/codex/CLAIMS.json"
+      ],
+      "tests_completed": [
+        "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.unit.test_structured_logging tests.integration.test_worker_lifecycle — 33 ran, 32 PASS, 1 optional PostgreSQL class skip.",
+        "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m compileall -q workers/tasks.py workers/structured_logging.py tests/unit/test_structured_logging.py tests/integration/test_worker_lifecycle.py — PASS.",
+        "Evidence source SHA-256 inputs match; git diff --check PASS; independent local Luna review found no blocker.",
+        "Planning progress/catalogue/agent-skill/lane validators and JSON validation are recorded after this metadata checkpoint."
+      ],
+      "tests_remaining": [
+        "Run the complete affected release/core workflow only when justified by changed boundaries.",
+        "PostgreSQL worker recovery, live Redis/RQ, real feed/network behavior, full Python suite and hosted checks/review remain NOT_RUN."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "Issue #178 / MJ-REQ-177 remains OPEN/PARTIAL; only COMPANY_SOURCE_REFRESH persisted company_id context was added.",
+        "Lifecycle coverage exercises completed refresh and a lookup failure; blocked/dead-letter refresh context is not directly exercised.",
+        "PostgreSQL, live Redis/RQ, public feed/network behavior, full suite, hosted checks/review, core-workflow acceptance and release readiness remain unverified."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "95c8b5291b13f6a7bc03c4687bc13dc4d8f3cd79",
+        "tree": "482a2e4a36e36c83a98625b91e284960939fe9d1",
+        "branch": "main",
+        "issue": "#178 / MJ-REQ-177",
+        "issue_state": "OPEN/PARTIAL",
+        "evidence_path": "docs/evidence/2026-10-08-company-source-refresh-company-context.json",
+        "issue_claim": "https://github.com/MulattoTech/MJobs/issues/178#issuecomment-6054885161",
+        "integration_receipt": "https://github.com/MulattoTech/MJobs/issues/178#issuecomment-6055030874",
+        "release_comment": "https://github.com/MulattoTech/MJobs/issues/178#issuecomment-6055033030",
+        "at_utc": "2026-10-08T07:39:07Z",
+        "note": "Company-source refresh terminal logs now include only validated opaque company_id read from the persisted source FK after durable terminal state. Local exact-scope worker/logging checks and delegated review passed; issue remains partial."
+      }
     }
   ],
-  "current_phase": "MJ_REQ_177_COMPANY_SOURCE_REFRESH_LOG_CONTEXT_CLAIMED",
+  "current_phase": "MJ_REQ_177_COMPANY_SOURCE_REFRESH_LOG_CONTEXT_INTEGRATED_PARTIAL",
   "last_safe_checkpoint": {
-    "git_commit": "bd9ecdaaa1ae5d6b12d792e2f0cb372b0cf9d693",
-    "tree": "e0f903ab7bdbf199e84f0c03af2594df1195f348",
+    "git_commit": "95c8b5291b13f6a7bc03c4687bc13dc4d8f3cd79",
+    "tree": "482a2e4a36e36c83a98625b91e284960939fe9d1",
     "branch": "main",
     "issue": "#178 / MJ-REQ-177",
-    "issue_state": "OPEN",
-    "evidence_path": "docs/evidence/2026-10-08-apply-mock-ats-logs.json",
+    "issue_state": "OPEN/PARTIAL",
+    "evidence_path": "docs/evidence/2026-10-08-company-source-refresh-company-context.json",
     "issue_claim": "https://github.com/MulattoTech/MJobs/issues/178#issuecomment-6054885161",
-    "at_utc": "2026-10-08T07:26:55Z",
-    "note": "Independent log-context child claim established on worker paths; no source edits yet."
+    "integration_receipt": "https://github.com/MulattoTech/MJobs/issues/178#issuecomment-6055030874",
+    "release_comment": "https://github.com/MulattoTech/MJobs/issues/178#issuecomment-6055033030",
+    "at_utc": "2026-10-08T07:39:07Z",
+    "note": "Company-source refresh terminal logs now include only validated opaque company_id read from the persisted source FK after durable terminal state. Local exact-scope worker/logging checks and delegated review passed; issue remains partial."
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -10837,7 +10895,7 @@
     "issue": 96,
     "requirement_id": "MJ-REQ-095",
     "title": "Resume Tailoring Engine",
-    "state": "ACTIVE_LOCAL_CLAIMED after ownership scope reconciliation; implementation continues with the same exact behavioral acceptance.",
+    "state": "ACTIVE_LOCAL_CLAIMED; target-relevant bullets now include the claimed v4 comparison UI mapping and reload regression.",
     "branch": "codex/mj-req095-target-relevant-bullets-20261008",
     "worktree": ".worktrees/codex-mj-req095-target-relevant-bullets-20261008",
     "base_commit": "ef47fc9a2b05cc2027c0445116960b43d6d4b2eb",
@@ -10850,9 +10908,11 @@
       "tests/integration/test_skill_order.py",
       "tests/integration/test_resume_comparison.py",
       "tests/browser/test_skill_order.py",
-      "docs/evidence/2026-10-08-resume-target-bullet-selection.json"
+      "docs/evidence/2026-10-08-resume-target-bullet-selection.json",
+      "apps/web/src/resume-comparison.tsx",
+      "apps/web/src/resume-comparison.test.tsx"
     ],
-    "issue_claim_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6054846648",
+    "issue_claim_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6054981272",
     "acceptance": "Default tailored generation selects only approved exact target-skill-matching responsibility/experience/project/accomplishment bullets; all eligible bullets remain if none match; explicit user selection takes precedence. Preserve immutable facts/history/comparison and profile/cover-letter data; no generated wording/provider use.",
     "child_id": "req095-target-relevant-bullets-v2"
   },
@@ -11987,7 +12047,9 @@
     "2026-10-08 #240 / MJ-REQ-239: integrated source/test candidate 1173bf792f0bd4092d638662d982c9bf8e225f9a, tree bf1400d35701eedaf60bbc569881d622692cb3fb; non-force fast-forward local main source/evidence checkpoint bed4f3e6aff9639a30d6ba3f1ded640a5b2dc77a, tree 88df6fa5709efa0daadf139385ce83a7aabfc8fe; the 18-test run was on integrated tree 5f3d7364e0cbe2edccbfee05386a1e9591c791f3. Jobs/company/application note integration/browser suites 18 PASS; company UI 4 tests executed PASS under Node 25.9.0 outside Vitest engine range; TypeScript/Vite build PASS. Requirement MJ-REQ-239 PASS; core-workflow trial/release remain PARTIAL; hosted and PostgreSQL NOT_RUN; external submission OFF.",
     "Issue #96 / MJ-REQ-095 experience-fact rewrite integrated at main 5dfce5eec8e2e6c56442631725c0993c7ce12a29; tested source commit c6eb1cd604d1372800bc798b7454aa9fe40d9d91. Exact source test run: 13 unit/integration + 1 connected synthetic Chromium; targeted Vitest 1; TypeScript/Vite build PASS. Evidence hash/JSON/progress/diff validation PASS. Vitest used Node 25.9.0 outside its declared support range. Evidence docs/evidence/2026-10-08-resume-experience-rewrites.json; issue https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6053321247. Broader requirement remains PARTIAL.",
     "Issue #275 / MJ-REQ-274 scheduled-source restart slice integrated at main 7d91b3104a2e21d400bdc1a2f59de289e5bbc2b6; tested source bc547e251eef7ed7a97556fde3396cc2655eb718. Root reran the focused scheduler module: 6 PASS, 0 failures/errors/skips. Actual scheduler subprocesses used an isolated temporary SQLite database and synthetic collection stub. Local delegated review found no blocker. Compose was not invoked; default project/fixed port isolation is BLOCKED_ENVIRONMENT; PostgreSQL NOT_RUN. Evidence docs/evidence/2026-10-08-scheduled-source-restart.json; issue https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053378645; requirement remains PARTIAL.",
-    "MJ-FEATURE-517 provider issue-reference slice exact integrated main dbc9e573680fcf32498131afe3bee75e72213371: 9 focused API/integration/browser/migration tests PASS, 94 web tests/build PASS, evidence input hashes match, local delegated review no blockers, temporary SQLite migration preservation/guarded downgrade PASS; PostgreSQL and hosted checks NOT_RUN; #517 remains PARTIAL."
+    "MJ-FEATURE-517 provider issue-reference slice exact integrated main dbc9e573680fcf32498131afe3bee75e72213371: 9 focused API/integration/browser/migration tests PASS, 94 web tests/build PASS, evidence input hashes match, local delegated review no blockers, temporary SQLite migration preservation/guarded downgrade PASS; PostgreSQL and hosted checks NOT_RUN; #517 remains PARTIAL.",
+    "Issue #178 / MJ-REQ-177 company-source-refresh logging slice integrated at main 95c8b5291b13f6a7bc03c4687bc13dc4d8f3cd79 (tree 482a2e4a36e36c83a98625b91e284960939fe9d1); tested source 634190c8acc7574ee0bdc225599082ac7db5c28d (tree 20a8718ee118d3fa2303e5c832a91483cd40485e). Root exact focused worker/logging rerun: 33 tests, 32 PASS, 1 optional PostgreSQL class skip; compileall, evidence source hashes, diff check and LOCAL_DELEGATED_REVIEW PASS. Evidence docs/evidence/2026-10-08-company-source-refresh-company-context.json. Temporary SQLite and stubbed refresh only; live Redis/RQ, PostgreSQL, full suite and hosted checks NOT_RUN; issue remains OPEN/PARTIAL.",
+    "Planning checkpoint for #178 company-source refresh context at 2026-10-08T07:39:07Z: issue #178/MJ-REQ-177 remains OPEN/PARTIAL, evidence docs/evidence/2026-10-08-company-source-refresh-company-context.json; core/release acceptance remains PARTIAL."
   ],
   "ownership": "Issue #177 / MJ-REQ-176 company-source setting Activity slice source 0c76b225f48a882e8aa90b5e7686d22a8891425e, source tree 3d7733e26c5d4d097518d3c911d6029c7f1c5e86, evidence and tests integrated at synchronized local/GitHub main 68a0630b690cfa855e43829bc4f1836cf6add246 under the Codex integration lock. GitHub issue checkpoint: https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6048627184. The issue remains OPEN/PARTIAL; hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL/Docker NOT_RUN; external submission OFF.",
   "delivery_policy": {
@@ -12002,5 +12064,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-08T07:26:55Z"
+  "updated_at": "2026-10-08T07:39:07Z"
 }
