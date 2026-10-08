@@ -3,9 +3,11 @@
   "issue": 137,
   "result": "PARTIAL",
   "scope": "Connected, read-only application review screen populated from profile-scoped application, route, document-history, and answer-export readbacks; restores the selected application after reload.",
-  "recorded_at_utc": "2026-10-08T10:26:44Z",
+  "recorded_at_utc": "2026-10-08T10:32:28Z",
   "branch": "codex/mj-req136-application-preview-20261008",
-  "base_sha": "a3a9c1421fdf6d2280636c10341e8e2ceedce93f",
+  "base_sha": "1020cd10444caded2bc3d7aa40dc91ce2ad20102",
+  "tested_source_head": "2d4a26ab5ca787594a1870557a72fb7c0746d3cc",
+  "tested_source_tree_sha": "78cb75f3855592016da17dde656f94cc33cc85cd",
   "validation": [
     {
       "command": "npm run build",
@@ -20,7 +22,7 @@
     {
       "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_application_preview tests.browser.test_application_preview",
       "result": "PASS",
-      "details": "3 tests passed. Browser checks cover saved job/company/route/documents/answers, UNKNOWN confidence and missing data, reload restoration, and GET-only/no-outside-request/no-attempt side effects. Integration checks read durable records and verify that reads do not change application, document, or attempt state."
+      "details": "3 tests passed. Browser checks cover saved job/company/route/documents/answers, UNKNOWN confidence and missing data, reload restoration, PASS preflight without a contradictory blocker, and GET-only/no-outside-request/no-attempt side effects. Integration checks read durable records and verify that reads do not change application, document, or attempt state. A browser regression assertion first failed on the contradictory PASS message, then passed after the fix."
     },
     {
       "command": "git diff --check",
@@ -29,9 +31,9 @@
     }
   ],
   "source_sha256": {
-    "apps/web/src/main.tsx": "67c417a7cab23581cfc9ac154bac8cf58aac682ad9e070c5016f1a6adb6d8ed0",
+    "apps/web/src/main.tsx": "4b09c89c5ed4537843883150617d04244f74d7a74ac860089a08ec80909553d3",
     "tests/integration/test_application_preview.py": "221ef60be79939809179680058c88cafc76bd3dbe0b828d560b26d6c8c9de21c",
-    "tests/browser/test_application_preview.py": "3a547ca49a4a6954a6388b60a15801430c8f098d4c802d37173fce57f4588575"
+    "tests/browser/test_application_preview.py": "644a9649bef5ac73763d8e1c850303a76e25c333de5b46f09ad6ad3e90ac7689"
   },
   "safety": [
     "Opening and reloading the preview only read application state; browser proof observed GET methods only and no requests outside the isolated local origin.",
