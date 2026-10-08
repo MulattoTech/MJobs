@@ -346,6 +346,17 @@ class ApplicationAnswerExportBrowserTests(unittest.TestCase):
                     itsm_card.get_by_label('I approve exact reuse for this question').check()
                     page.get_by_role('button', name='Save profile and answers', exact=True).click()
                     expect(page.get_by_role('status').filter(has_text='Reusable answers saved')).to_be_visible()
+                    page.get_by_role('button', name='Profile', exact=True).click()
+                    page.get_by_role('button', name='Add answer', exact=True).click()
+                    weekend_card = page.locator('.fact').last
+                    weekend_card.get_by_label('Question this answer addresses').fill('Can you work weekends?')
+                    weekend_answer = 'Yes, I am available for weekend shifts.'
+                    weekend_card.get_by_label('Answer text', exact=True).fill(weekend_answer)
+                    weekend_card.get_by_label('Provenance').fill('Synthetic availability profile')
+                    weekend_card.get_by_label('I reviewed and verified this answer').check()
+                    weekend_card.get_by_label('I approve exact reuse for this question').check()
+                    page.get_by_role('button', name='Save profile and answers', exact=True).click()
+                    expect(page.get_by_role('status').filter(has_text='Reusable answers saved')).to_be_visible()
                     self.assertNotIn(('POST', '/matches'), requests)
                     page.get_by_role('button', name='Applications', exact=False).click()
                     page.locator('.job-card').first.click()
@@ -399,6 +410,21 @@ class ApplicationAnswerExportBrowserTests(unittest.TestCase):
                     itsm_review = page.get_by_label('I reviewed this exact answer for this job').last
                     itsm_review.check()
                     expect(export).to_be_enabled()
+                    page.get_by_role('button', name='Add question', exact=True).click()
+                    page.get_by_label('Employer question').last.fill('Are you available to work weekends?')
+                    expect(page.get_by_text(
+                        'Curated semantic synonym match (local rules) · match score 95% · saved-answer confidence 100%',
+                        exact=False)).to_be_visible()
+                    expect(page.get_by_text(
+                        'Saved question: Can you work weekends? · Provenance: Synthetic availability profile',
+                        exact=False)).to_be_visible()
+                    weekend_question = page.get_by_role('group', name='Question 3')
+                    expect(weekend_question.get_by_role('textbox', name='Answer', exact=True)).to_have_value('')
+                    page.get_by_role('button', name='Use saved answer (review required)', exact=True).last.click()
+                    expect(weekend_question.get_by_role('textbox', name='Answer', exact=True)).to_have_value(weekend_answer)
+                    weekend_review = page.get_by_label('I reviewed this exact answer for this job').last
+                    weekend_review.check()
+                    expect(export).to_be_enabled()
                     export.click()
                     document = page.get_by_role('region', name='application-answer-export version 1', exact=True)
                     expect(document.get_by_text('Manually reviewed application answers', exact=False)).to_be_visible()
@@ -407,6 +433,7 @@ class ApplicationAnswerExportBrowserTests(unittest.TestCase):
                     first_bytes = Path(downloaded.value.path()).read_bytes()
                     self.assertIn(answer.encode(), first_bytes)
                     self.assertIn(itsm_answer.encode(), first_bytes)
+                    self.assertIn(weekend_answer.encode(), first_bytes)
                     digest = hashlib.sha256(first_bytes).hexdigest()
                     self.assertEqual(store.count('documents'), 3)
 
@@ -418,6 +445,7 @@ class ApplicationAnswerExportBrowserTests(unittest.TestCase):
                         document.get_by_role('link', name='Download TXT', exact=True).click()
                     self.assertEqual(hashlib.sha256(Path(downloaded_again.value.path()).read_bytes()).hexdigest(), digest)
                     self.assertFalse(external)
+                    self.assertFalse(any('/submit' in path.lower() for _, path in requests))
                     self.assertFalse(errors, errors)
                     context.close(); browser.close()
             finally:

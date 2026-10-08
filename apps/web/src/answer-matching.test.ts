@@ -68,6 +68,25 @@ describe('application answer question matching',()=>{
     }])).toMatchObject([{answer:{id:'itsm-tools'},match:{method:'CURATED_SEMANTIC',score:0.95}}]);
   });
 
+  it('labels equivalent weekend availability wording and rejects weekday and legal near misses',()=>{
+    expect(matchAnswerQuestion(
+      'Are you available to work weekends?',
+      'Can you work weekends?',
+    )).toEqual({method:'CURATED_SEMANTIC',score:0.95});
+    expect(matchAnswerQuestion(
+      'Are you available to work weekends?',
+      'Can you work weekdays?',
+    )).toBeNull();
+    expect(matchAnswerQuestion(
+      'Can you work weekends?',
+      'Are you legally authorized to work in the United States?',
+    )).toBeNull();
+    expect(matchAnswerQuestion(
+      'Can you work weekends?',
+      'Will you now or in the future require visa sponsorship?',
+    )).toBeNull();
+  });
+
   it('rejects a near miss and every sensitive or legal prompt',()=>{
     expect(matchAnswerQuestion(
       'How many years of education?',
