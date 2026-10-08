@@ -3874,9 +3874,9 @@
       "issue_state": "OPEN/PARTIAL",
       "issue_comment": "https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053378645",
       "notes": "Actual subprocess scheduler restart, durable SQLite operation deduplication and synthetic worker completion are locally verified (focused module 6 PASS; root reran exact evidence-final candidate). Mocked command test confirms scheduler is in the Compose recovery service list; Compose itself was not run. PostgreSQL restart is NOT_RUN. Default Compose project/fixed port 127.0.0.1:18700 isolation is unverified; retained personal runtime was not touched. Issue #275/MJ-REQ-274 remains PARTIAL; aggregate MJ-PR-074 dependencies unchanged; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
-      "metadata_checkpoint": "4d9ee79f19bc2a5395482fee9a88b99e84e74ea7",
+      "metadata_checkpoint": "1545a4f0e9bc08422e1f68adb28a6d0be70adb05",
       "claim_release_comment": "https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053395464"
     }
   ],
-  "generated_at": "2026-10-08T05:57:34Z"
+  "generated_at": "2026-10-08T05:58:10Z"
 }
