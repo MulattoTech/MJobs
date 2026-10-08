@@ -245,7 +245,7 @@ function App() {
     if(current.educationRequirement)params.set('education_requirement',current.educationRequirement);
     if(current.clearanceLevel)params.set('clearance_level',current.clearanceLevel);
     if(current.applicationLinkStatus||current.searchProfileId)params.set('application_link_status',current.applicationLinkStatus);
-    if(current.applicationPipelineStatus)params.set('application_pipeline_status',current.applicationPipelineStatus);
+    if(current.applicationPipelineStatus||current.searchProfileId)params.set('application_pipeline_status',current.applicationPipelineStatus);
     if(current.postedWithinDays)params.set('posted_within_days',current.postedWithinDays);if(current.atsProvider)params.set('ats_provider',current.atsProvider);
     if(id)params.set('profile_id',id);if(current.remote)params.set('remote_type',current.remote);if(current.provider)params.set('provider',current.provider);
     if(searchProfiles.some(search=>search.id===current.searchProfileId&&search.profile_id===id)){params.set('search_profile_id',current.searchProfileId);params.set('override_saved_match_score','true');}
