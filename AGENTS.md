@@ -8,10 +8,12 @@ automated tests and Actions because the available budget is exhausted. This sect
 supersedes older hosted-CI, independent-agent-review, retry-after-billing and expired
 October 5 trial-deadline instructions. GitHub remains source/issue/PR storage.
 
+**2026-10-07 user update:** the previous ban on *local* subagents and local delegated AI reviews is lifted. The single interactive Codex primary session may coordinate **up to 50 simultaneously active GPT-6 Luna High child agents** when the runtime, account limits and independent work permit. This does not re-enable GitHub Actions, hosted CI, paid reviews, cloud agents, or unattended execution.
+
 - Keep repository Actions and all workflows disabled. Do not dispatch/rerun them,
-  enable a self-hosted runner, move jobs to another cloud service, request bot reviews,
-  assign cloud agents, or raise billing limits. Do not launch extra local AI reviewers
-  or subagents as a substitute; use the one user-selected CLI session.
+  enable a self-hosted runner, move jobs to another cloud service, request paid/hosted bot reviews,
+  assign cloud agents, or raise billing limits. Local spawned Luna High child agents (up to 50 at once)
+  are now allowed within the one user-selected interactive Codex root session; no separate paid/hosted sessions.
 - Ordinary explicitly invoked deterministic local tests/builds and isolated synthetic
   browser/database checks remain the validation route. No automatic watchers/hooks.
   Local PASS is not hosted PASS. No missing evidence is converted into success.
@@ -19,9 +21,10 @@ October 5 trial-deadline instructions. GitHub remains source/issue/PR storage.
   run affected local checks and validate preservation. Record source/tree or input
   hashes, commands, UTC times, failures/skips and environment limitations. If a
   needed local check cannot run, retain PARTIAL/BLOCKED rather than claim release PASS.
-- Hosted verification and independent AI review are NOT_RUN by user policy, not
-  required waits for funding recovery. Existing records remain historical evidence.
-  No fake approving review, status check or workflow result may replace them.
+- Hosted verification and hosted/third-party independent AI review are NOT_RUN by policy;
+  these are not waits for funding recovery. Local Luna child-agent reviews may be executed and
+  labeled LOCAL_DELEGATED_REVIEW, but never represented as GitHub-hosted checks or external certification.
+  Existing records remain historical; no fake review, status check or workflow result may replace them.
 - A non-force fast-forward of locally accepted, owned work into main is allowed when
   main is its ancestor, no protection rule is bypassed, and PR opening/ready events
   could trigger external automation. Otherwise use an ordinary PR without requesting
@@ -34,19 +37,34 @@ October 5 trial-deadline instructions. GitHub remains source/issue/PR storage.
 
 See docs/GITHUB_WORKFLOW.md and prompts/LOCAL_ONLY_LUNA_ITERATION.md.
 
-## Current Luna solo release-sprint workflow
+## Current Luna-led parallel release-sprint workflow
 
-For an explicitly invoked MJobs implementation session, the single selected Luna agent owns the full, repeatable sequence:
-RECONCILE live local/GitHub truth -> SELECT the highest-value dependency-ready issue -> CLAIM safe ownership ->
-IMPLEMENT a coherent user-visible vertical slice -> run deterministic LOCAL validation -> inspect the diff and failure cases ->
-RECORD scoped evidence -> COMMIT/PUBLISH by the allowed local-only route -> INTEGRATE only when qualified ->
-RECONCILE and select another authorized slice.
+For an explicitly invoked MJobs implementation session, one GPT-6 Luna High primary agent may lead
+**up to 50 simultaneously active GPT-6 Luna High local child agents**. The parent reconciles live local/GitHub
+truth, selects the dependency-ready issue set, allocates mutually exclusive issue/path ownership,
+and coordinates:
 
-The global Codex orchestration guidance is a reusable workflow, not permission to override this repository's active
-budget limits: no subagents, paid model escalation, AI code reviews, hosted GitHub Actions or new background sessions.
-Follow the three-slice/four-hour limit, source/ownership protection, actual local evidence and exact-input verification in
-`prompts/LOCAL_ONLY_LUNA_ITERATION.md`. A solo Luna self-review is not independent AI review. Do not change model
-settings, launch agents, run tests, or start development merely because this instruction file was edited.
+RECONCILE -> SELECT AND CLAIM INDEPENDENT SLICES -> FAN OUT LUNA HIGH WORKERS ->
+IMPLEMENT -> LOCAL TEST -> LOCAL DELEGATED REVIEW (WHEN USED) -> RECORD EVIDENCE ->
+SERIALIZE INTEGRATION -> COMMIT/PUBLISH ONLY BY ALLOWED LOCAL-ONLY ROUTE ->
+RECONCILE -> SELECT THE NEXT AUTHORIZED BATCH.
+
+- All fifty children may work at once when their scopes are independent, runtime slots exist,
+  account capacity is available and host resources remain healthy. The count is an upper bound,
+  not an asserted token-price equivalence to Astra, or a reason to invent filler work.
+- The primary owns the canonical queue/planning files and the Git integration lock. Every writing
+  child gets its own claimed issue, non-overlapping paths, isolated branch/worktree, clear tests
+  and a small evidence/handoff. No child may recursively spawn agents or write shared integration truth.
+- Honor `planning/lanes/README.md` and active claims before starting or merging. One integration
+  owner serializes shared API changes, migrations, validation and merge order. There may be 50 children,
+  but the four-active-PR repository cap remains; not every child opens a PR.
+- Local child reviews supplement, but never impersonate, GitHub Actions, Copilot/cloud reviews
+  or externally independent release checks. Hosted gates stay NOT_RUN. Keep submissions OFF.
+- Use `prompts/LOCAL_ONLY_LUNA_ITERATION.md` for the four-hour interactive session bound,
+  exact source/input evidence, safe publication rules, and interruption handling. Multiple
+  independent slices may progress in parallel; the old three-slice ceiling is superseded.
+- Editing this contract does not itself authorize starting a development session or spawning
+  children now. Work begins only under the current user's explicit selected task.
 
 ## Mission
 Build MJobs into the production-quality local-first job discovery, matching, document-generation,
@@ -91,7 +109,7 @@ Do not stop at planning, TODOs, skeleton adapters, mock-only production paths, o
 - One issue may be tiny; one PR must still be coherent and reviewable.
 - `planning/PR_QUEUE.json` is the planned work queue. Do not open empty PRs.
 - Open a draft PR only after the branch has a real implementation commit.
-- Keep no more than 4 active implementation PRs unless proven non-overlapping.
+- Keep no more than 4 active implementation PRs unless proven non-overlapping. Fifty active Luna child agents may hold separate local branches/worktrees without opening fifty PRs.
 - Link every PR to requirement IDs/issues and update state/evidence before marking ready.
 - Primary agent owns integration truth; parallel agents use non-overlapping file ownership.
 
