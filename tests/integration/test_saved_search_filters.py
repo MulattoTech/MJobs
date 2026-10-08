@@ -316,6 +316,13 @@ class SavedSearchFiltersApiTests(unittest.TestCase):
         relative_response = self.client.get("/jobs", params={"posted_within_days": 7})
         self.assertEqual(relative_response.status_code, 200, relative_response.text)
         self.assertEqual(relative_response.json()["jobs"], [])
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.id == recent_id).values(
+                attributes={"reported_posted_at": "2026-02-30T12:00:00+00:00"}))
+        impossible_date_rows = self.store.jobs(
+            posted_after=datetime(2026, 3, 1, tzinfo=timezone.utc),
+            posted_before=datetime(2026, 3, 31, tzinfo=timezone.utc))
+        self.assertNotIn(recent_id, [row["id"] for row in impossible_date_rows])
         future = (datetime.now(timezone.utc) + timedelta(days=1)).isoformat()
         with self.store.engine.begin() as connection:
             connection.execute(update(m.jobs).where(m.jobs.c.id == recent_id).values(

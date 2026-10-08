@@ -705,7 +705,7 @@ class Store:
                     # ISO timestamps produced by source adapters; PostgreSQL also
                     # considers relative strings such as "now" valid timestamps.
                     iso_timestamp = reported_at.op("~")(
-                        r"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?([Zz]|[+-][0-9]{2}:[0-9]{2})$")
+                        r"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?([Zz]|\+00:00)$")
                     valid_posted_at = and_(
                         iso_timestamp,
                         func.pg_input_is_valid(reported_at, "timestamp with time zone"),
@@ -720,12 +720,16 @@ class Store:
                         "[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T"
                         "[0-9][0-9]:[0-9][0-9]:[0-9][0-9]*")
                     timezone_suffix = or_(
-                        reported_at.op("GLOB")("*[+-][0-9][0-9]:[0-9][0-9]"),
+                        reported_at.op("GLOB")("*+00:00"),
                         reported_at.op("GLOB")("*Z"),
                         reported_at.op("GLOB")("*z"),
                     )
+                    # SQLite's date parser normalizes some impossible dates (for
+                    # example February 30) instead of rejecting them. Require the
+                    # parsed whole-second value to round-trip to the input prefix.
+                    round_trips = func.strftime("%Y-%m-%dT%H:%M:%S", parsed_posted_at) == func.substr(reported_at, 1, 19)
                     parsed_posted_at = case(
-                        (and_(iso_timestamp, timezone_suffix), parsed_posted_at), else_=None)
+                        (and_(iso_timestamp, timezone_suffix, round_trips), parsed_posted_at), else_=None)
                     cutoff = posted_after.strftime("%Y-%m-%d %H:%M:%S")
                     upper_bound = posted_before.strftime("%Y-%m-%d %H:%M:%S") if posted_before else None
                 # Posting time is source-reported. first_seen_at records collection
