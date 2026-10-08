@@ -8,6 +8,7 @@ from services.career_profile.extraction import extract_resume_text,resume_headin
 from services.documents.comparison import ComparisonUnavailable,compare_facts,read_generated_snapshot,tailored_context
 from services.documents.history import application_documents
 from services.documents.uploads import read_resume,UploadIntegrityError
+from services.documents import tailor
 from services.discovery.skill_taxonomy import canonical_skill_id
 
 MAX_COMPARISON_ITEMS=1000
@@ -66,7 +67,19 @@ def compare_uploaded_resume(store,output_dir,application_id,base_revision_id,tai
                             cancellation_event=None):
     application=store.application(application_id)
     rows={row['id']:row for row in application_documents(store,application_id)}
-    target=rows.get(tailored_document_id);context=tailored_context(target)
+    target=rows.get(tailored_document_id)
+    if target is None:
+        context=tailored_context(target)
+    try:
+        if (target.get('profile_id')!=application['profile_id'] or
+            type(target.get('profile_version')) is not str or not target['profile_version'].strip()):
+            raise ComparisonUnavailable('Original tailoring profile snapshot is unavailable')
+        target_profile=store.profile(target['profile_id'],target['profile_version'])
+        context=tailored_context(target,tailor.eligible_rows(target_profile))
+    except ComparisonUnavailable:
+        raise
+    except (KeyError,TypeError,ValueError,NoResultFound) as error:
+        raise ComparisonUnavailable('Original tailoring profile snapshot is unavailable') from error
     after=read_generated_snapshot(store,output_dir,target)
     with store.engine.connect() as c:
         revision=c.execute(select(m.resume_revisions).where(m.resume_revisions.c.id==base_revision_id,
