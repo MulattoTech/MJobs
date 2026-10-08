@@ -39,9 +39,13 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                 discover(store, source_origin, "fixture")
             with store.engine.begin() as connection:
                 connection.execute(update(m.jobs).where(m.jobs.c.title == "Python Developer")
-                                   .values(location="Boston, MA"))
+                                   .values(location="Boston, MA", attributes={
+                                       "salary_min": 80000, "salary_max": 100000,
+                                       "salary_currency": "USD", "salary_period": "YEAR"}))
                 connection.execute(update(m.jobs).where(m.jobs.c.title == "Data Engineer")
-                                   .values(location="Berlin"))
+                                   .values(location="Berlin", attributes={
+                                       "salary_min": 150000, "salary_max": 180000,
+                                       "salary_currency": "EUR", "salary_period": "YEAR"}))
             operations_before = store.count("worker_operations")
             store.engine.dispose()
             store = Store(database_url)
@@ -85,10 +89,14 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                     page.get_by_label("Job title", exact=True).fill("Python")
                     page.get_by_label("Company", exact=True).fill("Example Systems")
                     page.get_by_label("Location text", exact=True).fill("bOsToN")
+                    page.get_by_label("Minimum annual salary (USD)", exact=True).fill("80000")
+                    page.get_by_label("Maximum annual salary (USD)", exact=True).fill("100000")
                     page.get_by_label("Work location", exact=True).select_option("REMOTE")
                     page.get_by_label("Source", exact=True).select_option("mock-ats")
                     with page.expect_response(lambda response:
                             response.url.startswith(origin + "/jobs?")
+                            and "salary_min=80000" in response.url
+                            and "salary_max=100000" in response.url
                             and "sort=company" in response.url) as sorted_jobs:
                         page.get_by_label("Sort", exact=True).select_option("company")
                     self.assertEqual([job["title"] for job in sorted_jobs.value.json()["jobs"]],
@@ -108,6 +116,8 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                             and "title=Python" in response.url
                             and "company=Example+Systems" in response.url
                             and "location=bOsToN" in response.url
+                            and "salary_min=80000" in response.url
+                            and "salary_max=100000" in response.url
                             and "remote_type=REMOTE" in response.url
                             and "provider=mock-ats" in response.url
                             and "sort=company" in response.url) as restored_jobs:
@@ -118,6 +128,8 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                     expect(page.get_by_label("Job title", exact=True)).to_have_value("Python")
                     expect(page.get_by_label("Company", exact=True)).to_have_value("Example Systems")
                     expect(page.get_by_label("Location text", exact=True)).to_have_value("bOsToN")
+                    expect(page.get_by_label("Minimum annual salary (USD)", exact=True)).to_have_value("80000")
+                    expect(page.get_by_label("Maximum annual salary (USD)", exact=True)).to_have_value("100000")
                     expect(page.get_by_label("Work location", exact=True)).to_have_value("REMOTE")
                     expect(page.get_by_label("Source", exact=True)).to_have_value("mock-ats")
                     expect(page.get_by_label("Sort", exact=True)).to_have_value("company")
@@ -130,6 +142,8 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                             and "title=" not in response.url
                             and "company=" not in response.url
                             and "location=" not in response.url
+                            and "salary_min=" not in response.url
+                            and "salary_max=" not in response.url
                             and "remote_type=" not in response.url
                             and "provider=" not in response.url
                             and "sort=score" in response.url) as cleared_jobs:
@@ -139,6 +153,8 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                     expect(page.get_by_label("Job title", exact=True)).to_have_value("")
                     expect(page.get_by_label("Company", exact=True)).to_have_value("")
                     expect(page.get_by_label("Location text", exact=True)).to_have_value("")
+                    expect(page.get_by_label("Minimum annual salary (USD)", exact=True)).to_have_value("")
+                    expect(page.get_by_label("Maximum annual salary (USD)", exact=True)).to_have_value("")
                     expect(page.get_by_label("Work location", exact=True)).to_have_value("")
                     expect(page.get_by_label("Source", exact=True)).to_have_value("")
                     expect(page.get_by_label("Sort", exact=True)).to_have_value("score")

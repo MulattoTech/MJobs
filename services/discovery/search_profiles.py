@@ -1,4 +1,6 @@
 """Persistent data-driven search profiles for one local MJobs workspace."""
+from decimal import Decimal, InvalidOperation
+
 from sqlalchemy import select
 
 from packages.persistence import models as m
@@ -22,7 +24,8 @@ def _clean_job_filters(value):
     if value is None:
         return None
     required = {"q", "remote_type", "provider", "sort"}
-    if not isinstance(value, dict) or not required <= set(value) or set(value) - required - {"title", "company", "location"}:
+    optional = {"title", "company", "location", "salary_min", "salary_max"}
+    if not isinstance(value, dict) or not required <= set(value) or set(value) - required - optional:
         raise ValueError("Saved Jobs filters must include q, remote_type, provider, and sort")
     query = value["q"]
     if not isinstance(query, str) or len(query) > 200:
@@ -33,6 +36,25 @@ def _clean_job_filters(value):
         if not isinstance(item, str) or len(item) > 200:
             raise ValueError(f"Saved Jobs {key} must be text up to 200 characters")
         cleaned[key] = item
+    salary_values = {}
+    for key in ("salary_min", "salary_max"):
+        item = value.get(key, "")
+        if not isinstance(item, str) or len(item) > 32:
+            raise ValueError(f"Saved Jobs {key} must be a non-negative annual USD amount")
+        item = item.strip()
+        if item:
+            try:
+                amount = Decimal(item)
+            except InvalidOperation:
+                raise ValueError(f"Saved Jobs {key} must be a non-negative annual USD amount") from None
+            if not amount.is_finite() or amount < 0 or amount > 100000000:
+                raise ValueError(f"Saved Jobs {key} must be a non-negative annual USD amount")
+            salary_values[key] = amount
+        else:
+            salary_values[key] = None
+        cleaned[key] = item
+    if salary_values["salary_min"] is not None and salary_values["salary_max"] is not None and salary_values["salary_min"] > salary_values["salary_max"]:
+        raise ValueError("Saved Jobs minimum salary cannot exceed maximum salary")
     for key, allowed in JOB_FILTERS.items():
         if not isinstance(value[key], str) or value[key] not in allowed:
             raise ValueError(f"Saved Jobs {key} is invalid")

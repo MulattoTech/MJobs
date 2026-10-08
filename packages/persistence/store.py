@@ -629,7 +629,7 @@ class Store:
                 raise ValueError("AI_DOCUMENT_CANDIDATE_NOT_REVIEWED")
 
     def jobs(self, profile_id=None, q="", remote_type=None, provider=None, sort="score", limit=200,
-             title="", company="", location=""):
+             title="", company="", location="", salary_min=None, salary_max=None):
         profile = self.profile(profile_id) if profile_id else None
         with self.engine.connect() as connection:
             counts = select(m.postings.c.job_id, func.count().label("posting_count")).group_by(m.postings.c.job_id).subquery()
@@ -673,6 +673,23 @@ class Store:
                 statement = statement.where(m.companies.c.name.icontains(company, autoescape=True))
             if location:
                 statement = statement.where(m.jobs.c.location.icontains(location, autoescape=True))
+            if salary_min is not None or salary_max is not None:
+                attributes = m.jobs.c.attributes
+                salary_currency = attributes["salary_currency"].as_string()
+                salary_period = attributes["salary_period"].as_string()
+                if self.engine.dialect.name == "postgresql":
+                    low_is_number = func.json_typeof(attributes["salary_min"]) == "number"
+                    high_is_number = func.json_typeof(attributes["salary_max"]) == "number"
+                else:
+                    low_is_number = func.json_type(attributes, "$.salary_min").in_(("integer", "real"))
+                    high_is_number = func.json_type(attributes, "$.salary_max").in_(("integer", "real"))
+                offer_min = case((low_is_number, attributes["salary_min"].as_float()), else_=None)
+                offer_max = case((high_is_number, attributes["salary_max"].as_float()), else_=None)
+                statement = statement.where(salary_currency == "USD", salary_period == "YEAR")
+                if salary_min is not None:
+                    statement = statement.where(high_is_number, offer_max >= salary_min)
+                if salary_max is not None:
+                    statement = statement.where(low_is_number, offer_min <= salary_max)
             if remote_type:
                 if remote_type == "REMOTE":
                     statement = statement.where(m.jobs.c.remote_type.in_(("REMOTE", "REMOTE_WORLDWIDE", "REMOTE_US", "REMOTE_COUNTRY", "REMOTE_SPECIFIC_STATES")))

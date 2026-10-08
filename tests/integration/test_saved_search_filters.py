@@ -50,7 +50,8 @@ class SavedSearchFiltersApiTests(unittest.TestCase):
             "remote": "REQUIRED", "employment_types": [], "source_ids": [],
             "job_filters": job_filters or {"q": "network", "title": "Developer", "location": "Boston",
                                            "company": "Example", "remote_type": "REMOTE",
-                                           "provider": "greenhouse", "sort": "company"},
+                                           "provider": "greenhouse", "sort": "company",
+                                           "salary_min": "", "salary_max": ""},
         }
 
     def test_saved_jobs_filters_persist_profile_scope_and_do_not_schedule_discovery(self):
@@ -65,7 +66,8 @@ class SavedSearchFiltersApiTests(unittest.TestCase):
         self.assertEqual(row["criteria"]["remote"], "REQUIRED")
         self.assertEqual(row["criteria"]["job_filters"], {
             "q": "network", "title": "Developer", "location": "Boston", "company": "Example",
-            "remote_type": "REMOTE", "provider": "greenhouse", "sort": "company"})
+            "remote_type": "REMOTE", "provider": "greenhouse", "sort": "company",
+            "salary_min": "", "salary_max": ""})
         self.assertFalse(row["enabled"])
         self.assertEqual(self.client.get("/search-profiles", params={"profile_id": "other"})
                          .json()["search_profiles"], [])
@@ -84,6 +86,8 @@ class SavedSearchFiltersApiTests(unittest.TestCase):
             "profile_id": "fixture"}).json()["search_profiles"]
                    if item["id"] == "old-saved-filter")
         self.assertEqual(row["criteria"]["job_filters"]["location"], "")
+        self.assertEqual(row["criteria"]["job_filters"]["salary_min"], "")
+        self.assertEqual(row["criteria"]["job_filters"]["salary_max"], "")
 
     def test_saved_filter_validation_and_cross_profile_update_rejection(self):
         self.client.put("/search-profiles", json=self._profile()).raise_for_status()
@@ -138,6 +142,67 @@ class SavedSearchFiltersApiTests(unittest.TestCase):
             "sort": "title", "limit": 1})
         self.assertEqual(combined.status_code, 200, combined.text)
         self.assertEqual([job["title"] for job in combined.json()["jobs"]], ["Python Developer"])
+
+    def test_annual_usd_salary_filters_are_inclusive_fail_closed_and_apply_before_limit(self):
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.title == "Python Developer").values(
+                title="A Unknown salary", attributes={"salary_min": 120000, "salary_max": 140000,
+                                                       "salary_currency": "EUR", "salary_period": "YEAR"}))
+            connection.execute(update(m.jobs).where(m.jobs.c.title == "Data Engineer").values(
+                title="B Annual salary", attributes={"salary_min": 100000, "salary_max": 120000,
+                                                       "salary_currency": "USD", "salary_period": "YEAR"}))
+
+        operations_before = self.store.count("worker_operations")
+        included = self.client.get("/jobs", params={"salary_min": 100000, "salary_max": 120000,
+                                                     "sort": "title", "limit": 1})
+        self.assertEqual(included.status_code, 200, included.text)
+        self.assertEqual([job["title"] for job in included.json()["jobs"]], ["B Annual salary"])
+
+        lower_endpoint = self.client.get("/jobs", params={"salary_min": 120000})
+        upper_endpoint = self.client.get("/jobs", params={"salary_max": 100000})
+        no_match = self.client.get("/jobs", params={"salary_min": 120001})
+        self.assertEqual([job["title"] for job in lower_endpoint.json()["jobs"]], ["B Annual salary"])
+        self.assertEqual([job["title"] for job in upper_endpoint.json()["jobs"]], ["B Annual salary"])
+        self.assertEqual(no_match.json()["jobs"], [])
+        self.assertEqual(self.client.get("/jobs", params={"salary_min": 120001, "salary_max": 100000}).status_code, 422)
+        matching_job = next(job for job in self.store.jobs() if job["title"] == "B Annual salary")
+        composed = self.client.get("/jobs", params={"q": "B Annual", "title": "B Annual",
+                                                     "company": "Example", "location": "Berlin",
+                                                     "remote_type": matching_job["remote_type"],
+                                                     "provider": "mock-ats", "salary_min": 100000,
+                                                     "salary_max": 120000, "limit": 1})
+        self.assertEqual(composed.status_code, 200, composed.text)
+        self.assertEqual([job["title"] for job in composed.json()["jobs"]], ["B Annual salary"])
+        for metadata in ({}, {"salary_min": 120000, "salary_max": 140000,
+                              "salary_currency": "USD", "salary_period": "HOUR"},
+                         {"salary_min": "competitive", "salary_max": "negotiable",
+                          "salary_currency": "USD", "salary_period": "YEAR"}):
+            with self.subTest(metadata=metadata):
+                with self.store.engine.begin() as connection:
+                    connection.execute(update(m.jobs).where(m.jobs.c.title == "A Unknown salary")
+                                       .values(attributes=metadata))
+                filtered = self.client.get("/jobs", params={"salary_min": 100000})
+                self.assertEqual([job["title"] for job in filtered.json()["jobs"]], ["B Annual salary"])
+        self.assertEqual(self.store.count("worker_operations"), operations_before)
+
+    def test_salary_bounds_round_trip_as_profile_scoped_filters_without_side_effects(self):
+        filters = {"q": "network", "title": "Developer", "location": "Boston", "company": "Example",
+                   "remote_type": "REMOTE", "provider": "greenhouse", "sort": "company",
+                   "salary_min": "85000", "salary_max": "130000"}
+        operations_before = self.store.count("worker_operations")
+        response = self.client.put("/search-profiles", json=self._profile(job_filters=filters))
+        self.assertEqual(response.status_code, 200, response.text)
+        row = next(item for item in self.client.get("/search-profiles", params={
+            "profile_id": "fixture"}).json()["search_profiles"] if item["id"] == "saved-filter")
+        self.assertEqual(row["criteria"]["job_filters"], filters)
+        self.assertEqual(self.client.get("/search-profiles", params={"profile_id": "other"})
+                         .json()["search_profiles"], [])
+        malformed = self.client.put("/search-profiles", json=self._profile(
+            identifier="inverted-salary", job_filters={**filters, "salary_min": "130001"}))
+        self.assertEqual(malformed.status_code, 422)
+        self.assertEqual(self.store.count("worker_operations"), operations_before)
+        self.assertEqual(schedule_due_sources(self.store)["scheduled"], [])
+        self.assertEqual(self.store.count("worker_operations"), operations_before)
 
 
 if __name__ == "__main__":

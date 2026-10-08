@@ -1,0 +1,63 @@
+{
+  "requirement_id": "MJ-REQ-189",
+  "issue": 190,
+  "slice": "Profile-scoped minimum and maximum annual USD salary filters",
+  "slice_result": "PASS",
+  "requirement_result": "PARTIAL",
+  "branch": "codex/mj-req189-salary-filter-20261008",
+  "base_head": "7e2eb983c400c382e6dafa95ac7d06dc8b9bf497",
+  "validated_at_utc": "2026-10-08T10:03:28Z",
+  "behavior": [
+    "Jobs search accepts inclusive annual USD minimum and maximum bounds and composes them with keyword, title, company, location, remote, and source filters before the SQL result limit.",
+    "Comparisons require matching salary currency USD, period YEAR, and a numeric endpoint relevant to each active bound. Missing, malformed, nonannual, other-currency, or otherwise incomparable rows do not match while a salary bound is active.",
+    "Inverted bounds are rejected. Named saved searches preserve and restore the bounds within their owning profile; clearing the selected search clears both bounds. Legacy saved searches without salary fields remain readable.",
+    "Filtering and saved-search operations do not schedule discovery or submit applications."
+  ],
+  "validation": [
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_saved_search_filters",
+      "result": "PASS",
+      "observed": "7 integration tests passed, including inclusive endpoints, no match, invalid bounds, combined filters before limit, unknown/malformed/hourly/EUR metadata, profile scope, legacy compatibility, and no scheduler side effect."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "observed": "TypeScript check and Vite production build passed."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.browser.test_saved_search_filters",
+      "result": "PASS",
+      "observed": "1 connected Chromium browser test passed for saved-search reload, restored salary controls/results, clear, profile isolation, and no external requests or worker operations."
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run",
+      "result": "PASS",
+      "observed": "16 test files and 96 frontend tests passed."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m tools.verification.agent_skills",
+      "result": "PASS",
+      "observed": "Agent skill validation passed."
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS",
+      "observed": "No whitespace errors."
+    }
+  ],
+  "source_sha256": {
+    "apps/api/main.py": "bd648d8f5b7884b95acb89e2243f7128e45e74ad03959f9c32fcfb6cbcdd6cf1",
+    "packages/persistence/store.py": "b7d24f7c8d5765dccf3c26f3d7f32d4fb6b8a47b171358f55d1ab0a80a41eeef",
+    "services/discovery/search_profiles.py": "5faca5517d4c01788a25bf90d9a53bb292c27ce4cbd4e112722779d80ca89319",
+    "apps/web/src/main.tsx": "e81b00e8d6c6bf7975ac163c3bc8ab43c00a9bb49c385018b947bad2a0893e2a",
+    "tests/integration/test_saved_search_filters.py": "0207453b47acd60012c868d0bcfb7945bd0fdfc133b478a07be81a4c5ea83d44",
+    "tests/browser/test_saved_search_filters.py": "0dfccfdab44c8430da8287fff53474a2f1927c54d29b35bd4c8d8e1a77f11fc9"
+  },
+  "not_run": [
+    "PostgreSQL runtime integration",
+    "Hosted Actions and external review, disabled by project policy",
+    "Full-product release acceptance"
+  ],
+  "external_submission": "OFF",
+  "migrations": "NONE"
+}

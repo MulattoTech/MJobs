@@ -490,7 +490,7 @@ class SearchProfileInput(BaseModel):
     profile_id: str = Field(min_length=1, max_length=128)
     name: str = Field(min_length=1, max_length=200)
     enabled: bool = True
-    job_filters: dict[str, str] | None = None
+    job_filters: dict[str, object] | None = None
     include_titles: list[str] = Field(default_factory=list, max_length=100)
     exclude_titles: list[str] = Field(default_factory=list, max_length=100)
     required_keywords: list[str] = Field(default_factory=list, max_length=100)
@@ -1282,11 +1282,16 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
              location: str = Query(default="", max_length=200),
              remote_type: str | None = Query(default=None, max_length=32),
              provider: Literal["mock-ats", "greenhouse"] | None = None, sort: Literal["score", "newest", "company", "title"] = "score",
+             salary_min: float | None = Query(default=None, ge=0, le=100000000),
+             salary_max: float | None = Query(default=None, ge=0, le=100000000),
              search_profile_id: str | None = Query(default=None, max_length=128),
              include_dismissed: bool = False,
              limit: int = Query(default=200, ge=1, le=500)):
+        if salary_min is not None and salary_max is not None and salary_min > salary_max:
+            raise HTTPException(422, "Minimum annual USD salary cannot exceed maximum annual USD salary")
         rows = store.jobs(profile_id, q, remote_type, provider, sort, limit,
-                          title=title, company=company, location=location)
+                          title=title, company=company, location=location,
+                          salary_min=salary_min, salary_max=salary_max)
         if search_profile_id:
             search_profile = get_search_profile(store, search_profile_id)
             if search_profile["profile_id"] != profile_id:
