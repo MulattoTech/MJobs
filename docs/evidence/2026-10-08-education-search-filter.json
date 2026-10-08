@@ -7,7 +7,7 @@
   "base_commit": "52f4cf41184b62068b567981539afec240673e49",
   "source_commit": "00c2b602dd689558a2490682bad090cd5b12c2bf",
   "source_tree": "061e5b44e4618ff1335371f8f90d04a48e752bb7",
-  "validated_at_utc": "2026-10-08T13:32:06Z",
+  "validated_at_utc": "2026-10-08T13:33:00Z",
   "environment": {
     "platform": "Windows",
     "python": "3.12.10",
@@ -82,6 +82,6 @@
     "Live production job sources and real ATS behavior",
     "Full repository test suite"
   ],
-  "review": "LOCAL_SELF_REVIEW: inspected exact rebased owned-path diff and verified supported parser classifications, pre-LIMIT exact matching, validation, saved-search profile isolation, legacy defaults, and no scheduling or submission side effects. No delegated review was run.",
-  "integration": "Root rebased onto synchronized main and reran affected tests on the exact candidate. Ready for serialized fast-forward integration; no push or merge performed yet."
+  "review": "LOCAL_DELEGATED_REVIEW: no material findings on exact product source 00c2b602dd689558a2490682bad090cd5b12c2bf; reviewer ran no tests. Root independently reran the focused connected suite, frontend suite, and production build on this exact source. Not hosted CI or external certification.",
+  "integration": "Root rebased onto synchronized main, reran affected checks on exact candidate, and completed local delegated review. Ready for serialized fast-forward integration; no push or merge performed yet."
 }
