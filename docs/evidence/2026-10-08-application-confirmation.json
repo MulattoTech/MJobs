@@ -5,15 +5,20 @@
   "result": "PARTIAL",
   "slice_result": "PASS",
   "scope": "Explicit local MOCK adapter and synthetic fixture confirmation capture, validation, durable readback, and UI display.",
-  "base_commit": "ea801ec09e24fcc22075b29789fffe40bbd9c5a2",
-  "tested_source_commit": "5f56e8bef985bd91fd75764b971c8bc15a8199c3",
-  "tested_source_tree": "84734003a7382321a3be340dbe24f5e7ca73b2f5",
-  "tested_at_utc": "2026-10-08T08:14:44Z",
-  "rebase": {
-    "count": 1,
-    "old_base": "454217533bf23b88c80c4fdfbf6b604d07c59bea",
-    "new_base": "ea801ec09e24fcc22075b29789fffe40bbd9c5a2"
-  },
+  "base_commit": "86d7bb580c03ed0b0dc0d807e147b5ecea29be7e",
+  "tested_source_commit": "f0eab7d3c6c23e21bc68ea39fe720b6084218b51",
+  "tested_source_tree": "707b75310dac66e1280c468fbdd9fca2e4a8a36d",
+  "tested_at_utc": "2026-10-08T08:18:58Z",
+  "rebase_history": [
+    {
+      "from_base": "454217533bf23b88c80c4fdfbf6b604d07c59bea",
+      "to_base": "ea801ec09e24fcc22075b29789fffe40bbd9c5a2"
+    },
+    {
+      "from_base": "ea801ec09e24fcc22075b29789fffe40bbd9c5a2",
+      "to_base": "86d7bb580c03ed0b0dc0d807e147b5ecea29be7e"
+    }
+  ],
   "branch": "codex/mj-req143-application-confirmation-20261008",
   "worktree": ".worktrees/codex-mj-req143-application-confirmation-20261008",
   "captured_and_validated": [
@@ -26,27 +31,27 @@
     {
       "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_mock_application.MockApplicationTests.test_mock_submission_confirmed_once_and_survives_restart tests.browser.test_mock_application.MockApplicationTests.test_unrecognized_confirmation_text_is_not_persisted_as_confirmed",
       "result": "PASS",
-      "details": "Fresh pre-rebase red/green checks; 2 tests. Current rebased source was rerun with the full mock-application module below."
+      "details": "Initial red/green reproduction before rebases; current source was rerun with the full mock-application module below."
     },
     {
       "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_mock_application",
       "result": "PASS",
-      "details": "Fresh on rebased source; 16 tests. Existing mock submission, failure, idempotence, and safety behavior remains green."
+      "details": "Fresh on source rebased onto 86d7bb5; 16 tests. Existing mock submission, failure, idempotence, and safety behavior remains green."
     },
     {
       "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_application_pipeline.ApplicationPipelineBrowserTests.test_mock_confirmation_fields_read_back_in_ui_after_store_reopen",
       "result": "PASS",
-      "details": "Fresh on rebased source; connected local Chromium and API read the durable confirmation fields after store reopen and browser reload; outbound non-local browser requests were blocked."
+      "details": "Fresh on source rebased onto 86d7bb5; connected local Chromium and API read the durable confirmation fields after store reopen and browser reload; outbound non-local browser requests were blocked."
     },
     {
       "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_application_pipeline",
       "result": "PASS",
-      "details": "Fresh on rebased source; all 6 application pipeline browser tests passed."
+      "details": "Fresh on source rebased onto 86d7bb5; all 6 application pipeline browser tests passed."
     },
     {
       "command": "npm run build --prefix apps/web",
       "result": "PASS",
-      "details": "Fresh on rebased source; TypeScript and Vite production build passed using existing local node_modules via an ignored worktree junction; no dependency install."
+      "details": "Fresh on source rebased onto 86d7bb5; TypeScript and Vite production build passed using existing local node_modules via an ignored worktree junction; no dependency install."
     },
     {
       "command": "python -m tools.verification.agent_skills",
