@@ -728,19 +728,29 @@ class Store:
                 currency_is_usd = attributes["salary_currency"].as_string() == "USD"
                 period_is_year = attributes["salary_period"].as_string() == "YEAR"
                 if self.engine.dialect.name == "postgresql":
+                    low_type = func.json_typeof(attributes["salary_min"])
+                    high_type = func.json_typeof(attributes["salary_max"])
                     low_is_number = func.json_typeof(attributes["salary_min"]) == "number"
                     high_is_number = func.json_typeof(attributes["salary_max"]) == "number"
                 else:
-                    low_is_number = func.json_type(attributes, "$.salary_min").in_(("integer", "real"))
-                    high_is_number = func.json_type(attributes, "$.salary_max").in_(("integer", "real"))
+                    low_type = func.json_type(attributes, "$.salary_min")
+                    high_type = func.json_type(attributes, "$.salary_max")
+                    low_is_number = low_type.in_(("integer", "real"))
+                    high_is_number = high_type.in_(("integer", "real"))
                 low_amount = attributes["salary_min"].as_float()
                 high_amount = attributes["salary_max"].as_float()
-                low_valid = low_is_number & (low_amount >= 0)
-                high_valid = high_is_number & (high_amount >= 0)
+                # Missing and explicit JSON null are valid one-sided endpoints.
+                # Any supplied non-number or negative endpoint invalidates the
+                # entire record, even if the opposite endpoint looks comparable.
+                low_present = low_type.is_not(None) & (low_type != "null")
+                high_present = high_type.is_not(None) & (high_type != "null")
+                low_valid = case((low_is_number & (low_amount >= 0), True), else_=False)
+                high_valid = case((high_is_number & (high_amount >= 0), True), else_=False)
+                endpoints_valid = ~(low_present & ~low_valid) & ~(high_present & ~high_valid)
                 # A malformed/inverted band is not a comparable salary. For a valid
                 # band, use the highest disclosed endpoint; if max is absent, use min.
                 valid_band = ~(low_valid & high_valid) | (low_amount <= high_amount)
-                comparable = currency_is_usd & period_is_year & (low_valid | high_valid) & valid_band
+                comparable = currency_is_usd & period_is_year & endpoints_valid & (low_valid | high_valid) & valid_band
                 disclosed = case((high_valid, high_amount), (low_valid, low_amount), else_=None)
                 sortable_salary = case((comparable, disclosed), else_=None)
                 statement = statement.order_by(

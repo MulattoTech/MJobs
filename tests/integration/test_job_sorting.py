@@ -70,6 +70,9 @@ class JobSortingApiTests(unittest.TestCase):
             ("inverted", {"salary_min": 110000, "salary_max": 90000, "salary_period": "YEAR", "salary_currency": "USD"}),
             ("hourly", {"salary_min": 80, "salary_max": 100, "salary_period": "HOUR", "salary_currency": "USD"}),
             ("currency", {"salary_min": 200000, "salary_max": 250000, "salary_period": "YEAR", "salary_currency": "CAD"}),
+            ("negative_low", {"salary_min": -1, "salary_max": 90000, "salary_period": "YEAR", "salary_currency": "USD"}),
+            ("negative_high", {"salary_min": 80000, "salary_max": -1, "salary_period": "YEAR", "salary_currency": "USD"}),
+            ("negative_only", {"salary_min": -1, "salary_max": None, "salary_period": "YEAR", "salary_currency": "USD"}),
         ]
         with self.store.engine.begin() as connection:
             for name, salary in specs:
@@ -93,7 +96,8 @@ class JobSortingApiTests(unittest.TestCase):
 
     def test_salary_sort_uses_highest_disclosed_annual_usd_endpoint_and_keeps_unknown_last(self):
         ids = self._salary_rows()
-        range_id, low_id, high_id, missing_id, invalid_id, inverted_id, hourly_id, currency_id = ids
+        (range_id, low_id, high_id, missing_id, invalid_id, inverted_id, hourly_id,
+         currency_id, negative_low_id, negative_high_id, negative_only_id) = ids
         with TestClient(self.app) as client:
             high = client.get("/jobs", params={"sort": "salary_high", "title": "Salary"})
             low = client.get("/jobs", params={"sort": "salary_low", "title": "Salary"})
@@ -106,7 +110,8 @@ class JobSortingApiTests(unittest.TestCase):
                              [high_id, low_id, range_id])
             for response in (high, low):
                 ordered = [row["id"] for row in response.json()["jobs"]]
-                self.assertEqual(ordered[-5:], sorted([missing_id, invalid_id, inverted_id, hourly_id, currency_id]))
+                self.assertEqual(ordered[-8:], sorted([missing_id, invalid_id, inverted_id, hourly_id,
+                    currency_id, negative_low_id, negative_high_id, negative_only_id]))
             self.assertEqual([row["id"] for row in limited.json()["jobs"]], [range_id])
             self.assertEqual(client.get("/jobs", params={"sort": "salary"}).status_code, 422)
 
