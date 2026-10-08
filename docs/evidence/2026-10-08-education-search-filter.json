@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "issue": 190,
+  "requirement_id": "MJ-REQ-189",
+  "slice": "parser-classified education requirement facet in connected Jobs saved searches",
+  "result": "PARTIAL",
+  "base_commit": "57e667761de038f5a7ee1692e1053f6c4d5b95eb",
+  "source_commit": "74293c9ccddfc7b28cd7d9be2613896a00dc1bc3",
+  "source_tree": "b5680455abf0819c1eb8bf023307e4d026e8a046",
+  "validated_at_utc": "2026-10-08T13:29:49Z",
+  "environment": {
+    "platform": "Windows",
+    "python": "3.12.10",
+    "node": "v25.9.0",
+    "database": "temporary SQLite",
+    "browser": "local Chromium, synthetic fixture"
+  },
+  "behavior": {
+    "implemented": [
+      "Jobs offers All plus only the five canonical classifications emitted by parse_education_requirement.",
+      "The API and profile-scoped saved-search cleaner trim and case-normalize supported classifications and reject unsupported values.",
+      "The database matches the exact stored education_requirement classification before LIMIT; missing and unrecognized metadata do not match a selected value.",
+      "The education facet AND-composes with the existing direct filters and saved semantic criteria.",
+      "Named saved searches retain and restore the field per profile, clear it, and load legacy payloads with an empty default.",
+      "Connected Chromium readback verified selector options, query transport, save/reload/restore and clear. API/browser checks observed no discovery scheduling, external requests, application creation, or submission."
+    ],
+    "remaining": "Other MJ-REQ-189 facets and connected product requirements remain incomplete; this slice does not change the whole requirement status.",
+    "external_submission": "OFF"
+  },
+  "tests": [
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_saved_search_filters tests.browser.test_saved_search_filters",
+      "result": "PASS",
+      "detail": "19 tests passed: 18 connected API/integration cases and 1 local Chromium workflow."
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run",
+      "result": "PASS",
+      "detail": "18 files and 103 frontend tests passed."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "detail": "TypeScript check and Vite production build passed."
+    },
+    {
+      "command": "Python 3.12 py_compile for changed API, store, search-profile service, and saved-filter tests",
+      "result": "PASS"
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.agent_skills",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    },
+    {
+      "command": "Test-first education-filter API regressions on the pre-implementation source",
+      "result": "PASS",
+      "detail": "Expected RED observed: an unrecognized education classification appeared in selected results and saved-profile validation rejected the new field."
+    },
+    {
+      "command": "Build unchanged base web bundle, then run connected saved-filter Chromium regression before production edits",
+      "result": "PASS",
+      "detail": "Expected RED observed: the accessible Education requirement selector was absent from the Jobs screen."
+    }
+  ],
+  "input_sha256": {
+    "apps/api/main.py": "8d0ce25dd5dee6e41a487b9038549780a8c57c81d3d07476dfca7c7a10de70be",
+    "apps/web/src/main.tsx": "51447976916642640558e42fd69d120fe06503cbf3bdb3346af1883e63d751e6",
+    "apps/web/package.json": "40063ee6deb9570a868a6c93b5ff42999353c7fcecc921ce44b6ef20eb500f04",
+    "apps/web/package-lock.json": "453d036596f964fc6a3c19ed0682a34d08c5eec4e64dbaf8c5898046d9c4358a",
+    "packages/persistence/store.py": "52ab708b0c71764cafc292d042ed0fa7eafed2c8b415ce950ff3aa0ee1448042",
+    "services/discovery/search_profiles.py": "d46f971e449d135300a8dd7ce3e173a2a2409d263590201d1b3fbc16786121d6",
+    "tests/integration/test_saved_search_filters.py": "cac0185740a2c36162e6a629e67c1bbc8d77f4ec10a00ba7db3b56d1b81fc7aa",
+    "tests/browser/test_saved_search_filters.py": "570b4ee40e21e53f8978f697535fb595c2fbf84f5b1fb778cd8d83213aa0fd19"
+  },
+  "not_run": [
+    "PostgreSQL runtime verification",
+    "Hosted GitHub checks and hosted review, disabled by local-only policy",
+    "Live production job sources and real ATS behavior",
+    "Full repository test suite"
+  ],
+  "review": "LOCAL_SELF_REVIEW: checked owned-path diff, exact matching/fail-closed semantics, profile scope, legacy defaults, and no scheduling or external-submission path changes. No independent delegated review was run.",
+  "integration": "Local feature commit is ready for serialized root integration; no push or merge performed. Whole issue #190 and MJ-REQ-189 remain OPEN/PARTIAL."
+}
