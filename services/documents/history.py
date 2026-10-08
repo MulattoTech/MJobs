@@ -60,6 +60,19 @@ def application_documents(store, application_id, output_dir=None):
                                  if (row['profile_version'], identifier) in facts]
             row['missing_fact_ids'] = [identifier for identifier in row['fact_ids']
                                        if (row['profile_version'], identifier) not in facts]
+            adjustment=(row.get('generation_context') or {}).get('bullet_adjustment')
+            if isinstance(adjustment,dict) and 'target_responsibilities' in adjustment:
+                row['responsibility_context_valid']=False
+                try:
+                    from services.documents.comparison import tailored_context
+                    from services.documents.tailor import eligible_rows
+                    profile=store.profile(application['profile_id'],row['profile_version'])
+                    tailored_context(row,eligible_rows(profile))
+                    row['responsibility_context_valid']=True
+                except (KeyError,TypeError,ValueError):
+                    # Keep immutable metadata available for diagnostics, but the UI
+                    # must not present an invalid provenance record as a reason.
+                    pass
             row['avoid_list_error'] = None
             if output_dir is not None:
                 try:

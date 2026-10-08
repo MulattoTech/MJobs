@@ -1,5 +1,6 @@
 """Read-only comparisons of explicitly selected, immutable generated resumes."""
 import hashlib
+import json
 from pathlib import Path
 from sqlalchemy.exc import NoResultFound
 
@@ -96,6 +97,8 @@ def tailored_context(target, target_source_facts=None):
         (target['generation_context'] or {}).get('mode')!='APPROVED_SKILL_ORDER'):
         raise ComparisonUnavailable('Choose a recorded tailored resume from this application')
     context=target['generation_context']
+    if target.get('job_id') is not None and context.get('job_id')!=target.get('job_id'):
+        raise ComparisonUnavailable('Original target job snapshot differs from this application')
     matches=context.get('matched_skills')
     if (context.get('ordered_fact_ids')!=target['fact_ids'] or not isinstance(matches,dict) or
         any(not isinstance(labels,list) or any(not isinstance(label,str) for label in labels) for labels in matches.values())):
@@ -150,13 +153,20 @@ def tailored_context(target, target_source_facts=None):
         recorded_selected=adjustment.get('selected_bullet_fact_ids')
         recorded_omitted=adjustment.get('omitted_bullet_fact_ids')
         recorded_matches=adjustment.get('matched_skills')
+        recorded_responsibilities=adjustment.get('matched_responsibilities')
+        target_responsibilities=adjustment.get('target_responsibilities')
+        description_sha256=adjustment.get('target_description_sha256')
+        responsibility_mode=adjustment.get('mode') in ('EXACT_TARGET_RESPONSIBILITY_PHRASE_BULLET_FACTS',
+            'EXACT_TARGET_SKILL_AND_RESPONSIBILITY_PHRASES')
         target_bullets=[row['fact_id'] for row in target['facts_used']
                         if row['kind'] in tailor.TARGET_BULLET_FACT_KINDS]
         valid_ids=lambda value: isinstance(value,list) and all(isinstance(item,str) for item in value) and len(set(value))==len(value)
         valid_matches=(isinstance(recorded_matches,dict) and
             all(isinstance(labels,list) and all(isinstance(label,str) for label in labels)
                 for labels in recorded_matches.values()))
-        if (adjustment.get('mode')!='EXACT_TARGET_SKILL_BULLET_FACTS' or
+        if (adjustment.get('mode') not in ('EXACT_TARGET_SKILL_BULLET_FACTS',
+                'EXACT_TARGET_RESPONSIBILITY_PHRASE_BULLET_FACTS','EXACT_TARGET_SKILL_AND_RESPONSIBILITY_PHRASES',
+                'ALL_ELIGIBLE_BULLET_FACTS') or
             type(adjustment.get('adjusted')) is not bool or
             not isinstance(skills,list) or any(not isinstance(value,str) for value in skills) or
             not valid_ids(recorded_original) or not valid_ids(recorded_selected) or
@@ -167,22 +177,53 @@ def tailored_context(target, target_source_facts=None):
             recorded_omitted!=[identifier for identifier in recorded_original if identifier in set(recorded_omitted)] or
             set(recorded_matches)!=set(recorded_original) or target_bullets!=recorded_selected):
             raise ComparisonUnavailable('Original target-bullet adjustment context is unavailable')
+        if 'target_responsibilities' in adjustment:
+            if (not isinstance(target_responsibilities,list) or
+                any(not isinstance(value,str) for value in target_responsibilities) or
+                not isinstance(description_sha256,str) or len(description_sha256)!=64 or
+                adjustment.get('target_responsibility_snapshot_sha256') != hashlib.sha256(
+                    json.dumps(target_responsibilities,ensure_ascii=False,separators=(',',':')).encode('utf-8')).hexdigest() or
+                not isinstance(recorded_responsibilities,dict) or set(recorded_responsibilities)!=set(recorded_original) or
+                not isinstance(adjustment.get('selected_reasons'),dict) or
+                set(adjustment['selected_reasons'])!=set(recorded_original) or
+                not isinstance(adjustment.get('source_fact_fingerprints'),dict) or
+                set(adjustment['source_fact_fingerprints'])!=set(recorded_original) or
+                context.get('target_fingerprint') != tailor.target_snapshot_fingerprint(
+                    context.get('job_id'),context.get('job_title'),skills,description_sha256,target_responsibilities)):
+                raise ComparisonUnavailable('Original responsibility target snapshot is unavailable')
+            if any(not isinstance(phrases,list) or any(not isinstance(value,str) for value in phrases)
+                   for phrases in recorded_responsibilities.values()):
+                raise ComparisonUnavailable('Original responsibility provenance is unavailable')
+        elif responsibility_mode:
+            raise ComparisonUnavailable('Original responsibility target snapshot is unavailable')
         if target_source_facts is not None:
             original=[row['fact_id'] for row in target_source_facts if row['kind'] in tailor.TARGET_BULLET_FACT_KINDS]
             bullet_rows=[row for row in target_source_facts if row['kind'] in tailor.TARGET_BULLET_FACT_KINDS]
             matches=tailor.matched_labels(bullet_rows,{'skills':skills})
-            matched=[identifier for identifier in original if matches[identifier]]
-            selected=matched if matched else original
+            responsibility_matches=tailor.matched_responsibility_phrases(bullet_rows,target_responsibilities or [])
+            selected,mode,reasons=tailor.bullet_selection(original,matches,responsibility_matches)
+            source_fingerprints={row['fact_id']:tailor.source_fact_fingerprint(row) for row in bullet_rows}
             omitted=[identifier for identifier in original if identifier not in set(selected)]
-            if (adjustment['adjusted'] != bool(matched) or recorded_original != original or
-                recorded_selected != selected or recorded_omitted != omitted or recorded_matches != matches):
+            if (adjustment['mode']!=mode or adjustment.get('selected_reasons')!=reasons or
+                adjustment['adjusted'] != (selected!=original) or recorded_original != original or
+                recorded_selected != selected or recorded_omitted != omitted or recorded_matches != matches or
+                adjustment['source_fact_fingerprints'] != source_fingerprints or
+                ('target_responsibilities' in adjustment and recorded_responsibilities != responsibility_matches)):
                 raise ComparisonUnavailable('Original target-bullet adjustment context is unavailable')
         else:
             # Uploaded-source comparisons do not supply the target profile's full source
             # rows here. Validate the saved partition and recompute included bullets.
             target_rows=[row for row in target['facts_used'] if row['kind'] in tailor.TARGET_BULLET_FACT_KINDS]
             target_matches=tailor.matched_labels(target_rows,{'skills':skills})
+            target_responsibility_matches=tailor.matched_responsibility_phrases(target_rows,target_responsibilities or [])
+            _,target_mode,target_reasons=tailor.bullet_selection(target_bullets,target_matches,target_responsibility_matches)
+            target_fingerprints={row['fact_id']:tailor.source_fact_fingerprint(row) for row in target_rows}
             if (any(recorded_matches[identifier] != target_matches[identifier] for identifier in target_bullets) or
+                any(adjustment['source_fact_fingerprints'][identifier] != target_fingerprints[identifier] for identifier in target_bullets) or
+                ('target_responsibilities' in adjustment and any(recorded_responsibilities[identifier] != target_responsibility_matches[identifier] for identifier in target_bullets)) or
+                (adjustment.get('selected_reasons') is not None and
+                    (any(adjustment['selected_reasons'][identifier]!=target_reasons[identifier] for identifier in target_bullets) or
+                     (len(target_bullets)==len(recorded_selected) and adjustment.get('mode')!=target_mode))) or
                 (adjustment['adjusted'] and (not recorded_selected or
                     any(not recorded_matches[identifier] for identifier in recorded_selected) or
                     any(recorded_matches[identifier] for identifier in recorded_omitted))) or

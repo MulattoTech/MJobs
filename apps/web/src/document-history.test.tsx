@@ -21,6 +21,13 @@ describe('document provenance',()=>{
     const html=renderToStaticMarkup(<DocumentHistory documents={[{...historical,template:'approved-fact-selection-headings-v1',generation_model:'deterministic-fact-selection-v1',generation_context:{mode:'APPROVED_SKILL_ORDER',job_title:'Example role',job_skills:[],matched_skills:{},original_fact_ids:['python'],ordered_fact_ids:['python'],selection_mode:'EXPLICIT_APPROVED_FACTS',selected_fact_ids:['python'],omitted_fact_ids:['sql']}}]}/>);
     expect(html).toContain('Tailored resume: selected facts');expect(html).toContain('Approved facts included: 1. Omitted from this resume: 1.');expect(html).not.toContain('work history preserved');
   });
+  it('shows the exact job responsibility phrase that selected an approved fact',()=>{
+    const html=renderToStaticMarkup(<DocumentHistory documents={[{...historical,template:'tailored-responsibility-v1',generation_model:'deterministic-responsibility-tailoring-v1',missing_fact_ids:[],
+      generation_context:{mode:'APPROVED_SKILL_ORDER',job_title:'Systems Administrator',job_skills:[],matched_skills:{},original_fact_ids:['duty'],ordered_fact_ids:['duty'],
+        bullet_adjustment:{mode:'EXACT_TARGET_RESPONSIBILITY_PHRASE_BULLET_FACTS',matched_responsibilities:{duty:['maintain nightly database backups for four clinics']},selected_reasons:{duty:['EXACT_TARGET_RESPONSIBILITY_PHRASE']} }},
+      facts_used:[{fact_id:'duty',kind:'responsibility',text:'Maintain nightly database backups for four clinics.',source:'Reviewed profile fact',confidence:100,verified:true,user_approved:true}]}]}/>);
+    expect(html).toContain('Selected for this job responsibility: maintain nightly database backups for four clinics');
+  });
   it('shows missing historical evidence without invented timestamps or dead format links',()=>{
     const html=renderToStaticMarkup(<DocumentHistory documents={[historical]}/>);
     expect(html).toContain('Not recorded for this historical document');

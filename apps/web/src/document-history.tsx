@@ -8,10 +8,11 @@ export type GeneratedDocument = {
   files:Record<string,string>;sha256:Record<string,string>;template:string;
   preview_text?:string|null;preview_error?:string|null;avoid_list_error?:string|null;
   legacy_job_context_missing?:boolean;
+  responsibility_context_valid?:boolean;
   created_at:string|null;generation_model:string|null;
   facts_used:{fact_id:string;kind:string;text:string;source:string;confidence:number;verified:boolean;user_approved:boolean}[];
   missing_fact_ids:string[];
-  generation_context?:{mode:string;profile_version?:string;job_title?:string;job_skills?:string[];matched_skills?:Record<string,string[]>;original_fact_ids?:string[];ordered_fact_ids?:string[];selection_mode?:string;selected_fact_ids?:string[];omitted_fact_ids?:string[];emphasized_fact_ids?:string[];contact_header?:string[];fact_rephrases?:{fact_id:string;text:string;reviewed:boolean;review_policy:string}[];style?:string;length?:string;skills?:string[];skill_strengths?:Record<string,string>;responsibilities?:string[];company_identity?:string;items?:{question:string;answer_id?:string|null;source:string;confidence:number|null;answer_mode:string}[]}|null;
+  generation_context?:{mode:string;profile_version?:string;job_title?:string;job_skills?:string[];matched_skills?:Record<string,string[]>;original_fact_ids?:string[];ordered_fact_ids?:string[];selection_mode?:string;selected_fact_ids?:string[];omitted_fact_ids?:string[];emphasized_fact_ids?:string[];contact_header?:string[];fact_rephrases?:{fact_id:string;text:string;reviewed:boolean;review_policy:string}[];bullet_adjustment?:{mode?:string;matched_responsibilities?:Record<string,string[]>;selected_reasons?:Record<string,string[]>};style?:string;length?:string;skills?:string[];skill_strengths?:Record<string,string>;responsibilities?:string[];company_identity?:string;items?:{question:string;answer_id?:string|null;source:string;confidence:number|null;answer_mode:string}[]}|null;
 };
 
 type CoverLetterPreview = Pick<GeneratedDocument,'id'|'application_id'|'profile_id'|'kind'|'version'|'preview_text'|'preview_error'|'avoid_list_error'>;
@@ -125,6 +126,7 @@ export function DocumentHistory({documents}:{documents:GeneratedDocument[]}) {
         At generation: {fact.verified?'verified':'unverified'}, {fact.user_approved?'approved':'not approved'}, confidence {fact.confidence}%
         {!!document.generation_context?.fact_rephrases?.find(item=>item.fact_id===fact.fact_id)&&<p>User-reviewed wording for this application: {document.generation_context.fact_rephrases.find(item=>item.fact_id===fact.fact_id)?.text}</p>}
         {!!document.generation_context?.matched_skills?.[fact.fact_id]?.length&&<p>Matched job skills: {document.generation_context.matched_skills[fact.fact_id].join(', ')}</p>}
+        {document.responsibility_context_valid!==false&&document.generation_context?.bullet_adjustment?.selected_reasons?.[fact.fact_id]?.includes('EXACT_TARGET_RESPONSIBILITY_PHRASE')&&!!document.generation_context.bullet_adjustment.matched_responsibilities?.[fact.fact_id]?.length&&<p>Selected for this job responsibility: {document.generation_context.bullet_adjustment.matched_responsibilities[fact.fact_id].join('; ')}</p>}
         {document.generation_context?.emphasized_fact_ids?.includes(fact.fact_id)&&<p>Emphasized in DOCX and PDF.</p>}</li>)}</ul>
       <p>Checksums (SHA-256)</p><ul>{Object.entries(document.sha256).map(([format,hash])=><li key={format}>{format.toUpperCase()}: <code style={{overflowWrap:'anywhere'}}>{hash}</code></li>)}</ul>
     </details>
