@@ -60,6 +60,14 @@ class RequirementParserTests(unittest.TestCase):
         self.assertEqual(by_id["ITIL"]["strength"], "NICE_TO_HAVE")
         self.assertEqual(by_id["MCSA"]["strength"], "NICE_TO_HAVE")
 
+    def test_compound_negated_required_or_mandatory_clause_stays_unknown(self):
+        rows = parse_certifications(
+            "CCNA is not required or mandatory. Security+ is not mandatory."
+        )
+        by_id = {row["id"]: row for row in rows}
+        self.assertEqual(by_id["CCNA"]["strength"], "UNKNOWN")
+        self.assertEqual(by_id["COMPTIA_SECURITY_PLUS"]["strength"], "UNKNOWN")
+
     def test_clearance_distinguishes_levels_and_none_stated(self):
         self.assertEqual(parse_clearance("Active TS/SCI clearance required.")["level"], "TS_SCI")
         self.assertEqual(parse_clearance("Ability to obtain a Public Trust.")["level"], "PUBLIC_TRUST")

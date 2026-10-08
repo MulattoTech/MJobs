@@ -5,11 +5,13 @@
   "status": "PARTIAL",
   "base_sha": "b94999bb66537eb2b28df26e648db96e36d0d6b2",
   "target": "codex/mj-req115-certification-strength-20261007",
-  "observed_at_utc": "2026-10-08T04:40:34Z",
+  "observed_at_utc": "2026-10-08T04:42:55Z",
   "behavior": {
     "unqualified_certification": "UNKNOWN",
     "negated_strength_wording": {
-      "not_required_or_mandatory_alone": "UNKNOWN",
+      "not_required_alone": "UNKNOWN",
+      "not_mandatory_alone": "UNKNOWN",
+      "not_required_or_mandatory": "UNKNOWN",
       "not_required_but_preferred": "PREFERRED",
       "not_required_but_bonus_or_nice_to_have": "NICE_TO_HAVE"
     },
@@ -26,7 +28,7 @@
     {
       "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_requirement_parsers tests.integration.test_explainable_matching",
       "result": "PASS",
-      "summary": "16 tests passed, including explicit positive strengths, negated required/mandatory controls, and reopened-store persistence. The new negation regression was first run RED: 'CCNA is not required' returned REQUIRED."
+      "summary": "17 tests passed, including explicit positive strengths, standalone and compound negated required/mandatory wording, preferred/nice-to-have exceptions, and reopened-store persistence. Test-first regressions reproduced both 'CCNA is not required' and 'CCNA is not required or mandatory' as REQUIRED before fixes."
     },
     {
       "command": "npm ci --prefix apps/web --no-audit --no-fund",
@@ -47,6 +49,11 @@
       "command": "npm test --prefix apps/web -- --run",
       "result": "PASS",
       "summary": "13 files and 63 tests passed."
+    },
+    {
+      "command": "Local delegated review follow-up; test-first case for 'CCNA is not required or mandatory' and standalone 'Security+ is not mandatory'",
+      "result": "PASS",
+      "summary": "Both negated clauses resolve to UNKNOWN; companion controls verify not-required-but-preferred remains PREFERRED and not-required-but-bonus/nice-to-have remains NICE_TO_HAVE."
     },
     {
       "command": "..\\..\\.venv\\Scripts\\python.exe -m alembic heads; git diff --exit-code b94999bb66537eb2b28df26e648db96e36d0d6b2 HEAD -- migrations",
