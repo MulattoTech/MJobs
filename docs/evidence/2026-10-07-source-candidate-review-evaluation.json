@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "issue": 517,
+  "requirement": "MJ-FEATURE-DISCOVERED-JOB-SOURCE-CATALOGUE",
+  "result": "PASS_SCOPED_SLICE; issue remains OPEN/PARTIAL",
+  "recorded_at_utc": "2026-10-08T04:15:38Z",
+  "branch": "codex/mj517-structured-source-review-20261007",
+  "base_main": "3476f4c8b4594f18dc21f61e9ee7fce165da5826",
+  "tested_source_tree": "bea4c99bca9e3194e105a717b58dd472432ca8d4",
+  "runtime": {
+    "platform": "Windows",
+    "python": "3.12 repository .venv",
+    "node": "v25.9.0",
+    "npm": "11.12.1",
+    "database_validation": "temporary SQLite"
+  },
+  "implemented": [
+    "Review events persist the assessed source kind, API/feed evidence status and sanitized public reference, evidence note, access/terms note, capabilities/limits note, and expected-value/maintenance note.",
+    "Review events remain profile-scoped and append-only; retries with identical request identifiers are idempotent and conflicting replays return 409.",
+    "Public documented evidence requires a safe HTTP(S) reference. Unknown and blocked states remain explicit. Query strings, fragments, and credentials are removed from stored references.",
+    "Existing Sources detail UI supports review creation and readback after reload. Collection remains disabled and the browser test observes no outbound request or visit to the candidate site.",
+    "The migration backfills prior review rows as UNKNOWN with a clear legacy-not-evaluated note and refuses to discard newly recorded structured evidence on downgrade."
+  ],
+  "validation": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_source_candidates tests.browser.test_source_candidates",
+      "result": "PASS: 7 tests"
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run",
+      "result": "PASS: 13 files, 63 tests"
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS: TypeScript check and Vite production build"
+    },
+    {
+      "command": "python -m tools.verification.agent_skills; python -m tools.verification.catalogue; python -m tools.verification.progress validate",
+      "result": "PASS: all three validators"
+    },
+    {
+      "command": "python -m compileall -q services/source_candidates packages/persistence apps/api tests/integration/test_source_candidates.py tests/browser/test_source_candidates.py; git diff --check",
+      "result": "PASS"
+    },
+    {
+      "command": "temporary SQLite Alembic upgrade to 9b6d40aaf163; insert legacy review; inspect backfill; verify structured-evidence downgrade refusal preserves row",
+      "result": "PASS"
+    }
+  ],
+  "negative_controls": [
+    "API rejects blank evaluation notes and PUBLIC_DOCUMENTED without a reference (422).",
+    "API rejects review replay with changed content under the same request identifier (409).",
+    "Review by a different profile cannot access the candidate (404).",
+    "Browser flow confirms the private query token is not rendered or persisted and the loopback URL probe receives zero requests.",
+    "Browser flow confirms collection stays disabled after review and reload."
+  ],
+  "initial_red": "The extended integration oracle failed before implementation with 422 extra_forbidden for the new structured review fields.",
+  "environment_notes": [
+    "System Python lacked project dependencies; validation used the repository .venv.",
+    "The isolated worktree had no local web node_modules; the production build used a temporary junction to the repository's already-installed web dependencies."
+  ],
+  "not_run": [
+    "Hosted Actions and hosted review: NOT_RUN_BY_USER_POLICY.",
+    "PostgreSQL/Docker migration runtime: NOT_RUN.",
+    "Live source inspection, API/feed access, authentication, and collection: NOT_RUN by design; no network call was made."
+  ],
+  "known_gap": "Review attribution is profile, candidate, event identifier, and timestamp scoped. The current application has no authenticated user principal, so this slice does not claim a named reviewer identity.",
+  "source_sha256": {
+    "apps/api/main.py": "0227D980DDA2F272E0CC9DC6360E4B9A0694BC41124C3000BB3E52E5CC5ADB45",
+    "apps/web/src/main.tsx": "FFB85C80C6F636AD61961C3C3B17BDBDA254A815933BCCB8C55D798CAD7EA984",
+    "packages/persistence/models.py": "8339ACA268570BE78C962114559E76D905C8D42E05BE807B86659DFE3041D288",
+    "services/source_candidates/catalogue.py": "2F325F941F3AB368C885BB42C8541FE845FCFFEEDD9C8EE3DA8087DF8BD9049E",
+    "migrations/versions/9b6d40aaf163_source_candidate_review_evaluation.py": "D73BB715B0218A9CCB81E4AD2E540CCA49634B28153B44B6A4436F225AFAB51D",
+    "tests/integration/test_source_candidates.py": "5FC0A6FB8208A38BA29D3F1E99375AF688303E8960661956964F1298D9DAA0C7",
+    "tests/browser/test_source_candidates.py": "2499C812D4DEEF04E01D796AA0011E1F0812DD50F917B4F250F32E1721C8848B"
+  },
+  "external_submission": "OFF",
+  "publication": "LOCAL_COMMIT_ONLY; NOT_PUSHED; NOT_INTEGRATED"
+}

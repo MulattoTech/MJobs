@@ -138,10 +138,27 @@ class SourceCandidateBrowserTests(unittest.TestCase):
                     candidate.get_by_label("Site type assessment for talenthop.com").select_option("ATS")
                     candidate.get_by_label("Review reason for talenthop.com").fill(
                         "Reported destination is an ATS; endpoint access was denied and collection is not authorized.")
+                    candidate.get_by_label("API or feed evidence status for talenthop.com").select_option("BLOCKED")
+                    candidate.get_by_label("API or feed evidence reference for talenthop.com").fill(
+                        "https://talenthop.com/api/jobs?token=private-token")
+                    candidate.get_by_label("API or feed evidence note for talenthop.com").fill(
+                        "Prior read-only inspection of the job endpoint was denied.")
+                    candidate.get_by_label("Access and terms note for talenthop.com").fill(
+                        "Terms and automated access permission remain unverified.")
+                    candidate.get_by_label("Capabilities and limits note for talenthop.com").fill(
+                        "No documented feed is currently evidenced.")
+                    candidate.get_by_label("Expected value and maintenance note for talenthop.com").fill(
+                        "Expected value is unknown; ongoing maintenance cannot be assessed.")
                     candidate.get_by_role("button", name="Mark blocked", exact=True).click()
                     expect(candidate).to_contain_text("BLOCKED")
                     expect(candidate).to_contain_text("ATS")
                     expect(candidate).to_contain_text("Reported destination is an ATS")
+                    expect(candidate).to_contain_text("API/feed evidence: BLOCKED")
+                    expect(candidate).to_contain_text("https://talenthop.com/api/jobs")
+                    expect(candidate).to_contain_text("Terms and automated access permission remain unverified.")
+                    expect(candidate).not_to_contain_text("private-token")
+                    candidate.get_by_text("Review history (1)", exact=True).click()
+                    expect(candidate).to_contain_text("Prior read-only inspection of the job endpoint was denied.")
                     page.reload(wait_until="domcontentloaded")
                     page.get_by_role("button", name="Sources", exact=True).click()
                     expect(page.get_by_role(
@@ -149,6 +166,7 @@ class SourceCandidateBrowserTests(unittest.TestCase):
                     candidate = page.get_by_role("article", name="Source candidate talenthop.com")
                     expect(candidate).to_contain_text("BLOCKED")
                     expect(candidate).to_contain_text("ATS")
+                    expect(candidate).to_contain_text("API/feed evidence: BLOCKED")
                     expect(candidate).to_contain_text("Collection disabled")
                     page.locator("#active-profile").select_option("other")
                     page.get_by_role("button", name="Sources", exact=True).click()

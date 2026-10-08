@@ -194,15 +194,40 @@ def report_source_candidate(store, *, profile_id: str, request_id: str,
     return {"candidate": candidate, "created": not existed}
 
 
+def _review_note(value: object) -> str:
+    if not isinstance(value, str):
+        raise ValueError("SOURCE_CANDIDATE_REVIEW_INVALID")
+    normalized = value.strip()
+    if not normalized or len(normalized) > 1000:
+        raise ValueError("SOURCE_CANDIDATE_REVIEW_INVALID")
+    return normalized
+
+
 def review_candidate(store, profile_id: str, candidate_id: str,
-                     state: str, site_type: str, reason: str, request_id: str):
+                     state: str, site_type: str, reason: str, request_id: str,
+                     api_feed_evidence_status: str, api_feed_evidence_reference: str | None,
+                     api_feed_evidence_note: str,
+                     access_terms_note: str, capabilities_limits_note: str,
+                     expected_value_maintenance_note: str):
     store.profile(profile_id)
-    reason = reason.strip()
+    reason = _review_note(reason)
     request_id = request_id.strip()
     if (state not in {"NEEDS_REVIEW", "INTEGRATION_QUEUED", "BLOCKED", "REJECTED"}
             or site_type not in {"JOB_BOARD", "EMPLOYER", "ATS", "UNKNOWN"}
-            or not reason or not request_id):
+            or api_feed_evidence_status not in {"PUBLIC_DOCUMENTED", "UNKNOWN", "BLOCKED"}
+            or not request_id):
         raise ValueError("SOURCE_CANDIDATE_REVIEW_INVALID")
+    api_feed_evidence_note = _review_note(api_feed_evidence_note)
+    raw_reference = api_feed_evidence_reference
+    api_feed_evidence_reference = _safe_url(raw_reference)
+    if raw_reference and not api_feed_evidence_reference:
+        raise ValueError("SOURCE_CANDIDATE_REVIEW_REFERENCE_INVALID")
+    if api_feed_evidence_status == "PUBLIC_DOCUMENTED" and not api_feed_evidence_reference:
+        raise ValueError("SOURCE_CANDIDATE_PUBLIC_EVIDENCE_REQUIRES_SAFE_REFERENCE")
+    access_terms_note = _review_note(access_terms_note)
+    capabilities_limits_note = _review_note(capabilities_limits_note)
+    expected_value_maintenance_note = _review_note(
+        expected_value_maintenance_note)
     event_id = identity("source-candidate-review", profile_id, candidate_id, request_id)
     with store.engine.begin() as connection:
         candidate = connection.execute(select(m.source_candidates).where(
@@ -215,13 +240,26 @@ def review_candidate(store, profile_id: str, candidate_id: str,
             m.source_candidate_reviews.c.id == event_id)).mappings().one_or_none()
         if previous is not None:
             if (previous["state"] != state or previous["site_type"] != site_type
-                    or previous["reason"] != reason):
+                    or previous["reason"] != reason
+                    or previous["api_feed_evidence_status"] != api_feed_evidence_status
+                    or previous["api_feed_evidence_reference"] != api_feed_evidence_reference
+                    or previous["api_feed_evidence_note"] != api_feed_evidence_note
+                    or previous["access_terms_note"] != access_terms_note
+                    or previous["capabilities_limits_note"] != capabilities_limits_note
+                    or previous["expected_value_maintenance_note"] != expected_value_maintenance_note):
                 raise SourceCandidateConflict("Source candidate review request was reused for different content")
         else:
             timestamp = now()
             connection.execute(m.source_candidate_reviews.insert().values(
                 id=event_id, candidate_id=candidate_id, profile_id=profile_id,
-                state=state, site_type=site_type, reason=reason, reviewed_at=timestamp,
+                state=state, site_type=site_type, reason=reason,
+                api_feed_evidence_status=api_feed_evidence_status,
+                api_feed_evidence_reference=api_feed_evidence_reference,
+                api_feed_evidence_note=api_feed_evidence_note,
+                access_terms_note=access_terms_note,
+                capabilities_limits_note=capabilities_limits_note,
+                expected_value_maintenance_note=expected_value_maintenance_note,
+                reviewed_at=timestamp,
             ))
             connection.execute(update(m.source_candidates).where(
                 m.source_candidates.c.id == candidate_id,

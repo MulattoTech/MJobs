@@ -233,14 +233,25 @@ class ExternalApplicationInput(BaseModel):
 class SourceCandidateReviewInput(BaseModel):
     model_config = ConfigDict(strict=True, extra="forbid")
     state: Literal["NEEDS_REVIEW", "INTEGRATION_QUEUED", "BLOCKED", "REJECTED"]
-    site_type: Literal["JOB_BOARD", "EMPLOYER", "ATS", "UNKNOWN"] = "UNKNOWN"
+    site_type: Literal["JOB_BOARD", "EMPLOYER", "ATS", "UNKNOWN"]
     reason: str = Field(min_length=1, max_length=1000)
+    api_feed_evidence_status: Literal["PUBLIC_DOCUMENTED", "UNKNOWN", "BLOCKED"]
+    api_feed_evidence_reference: str | None = Field(default=None, max_length=2000)
+    api_feed_evidence_note: str = Field(min_length=1, max_length=1000)
+    access_terms_note: str = Field(min_length=1, max_length=1000)
+    capabilities_limits_note: str = Field(min_length=1, max_length=1000)
+    expected_value_maintenance_note: str = Field(min_length=1, max_length=1000)
     request_id: str = Field(min_length=1, max_length=128)
 
     @model_validator(mode="after")
     def bounded_review(self):
-        if not self.reason.strip() or self.request_id != self.request_id.strip():
-            raise ValueError("A review reason and unpadded request identifier are required")
+        notes = (self.reason, self.api_feed_evidence_note, self.access_terms_note,
+                 self.capabilities_limits_note, self.expected_value_maintenance_note)
+        if (any(not note.strip() for note in notes)
+                or self.request_id != self.request_id.strip()):
+            raise ValueError("Every source evaluation note and unpadded request identifier are required")
+        if self.api_feed_evidence_status == "PUBLIC_DOCUMENTED" and not self.api_feed_evidence_reference:
+            raise ValueError("Public documented API/feed evidence requires a reference URL")
         return self
 
 
@@ -1200,7 +1211,11 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         from services.source_candidates.catalogue import SourceCandidateConflict, review_candidate
         try:
             return review_candidate(store, profile_id, candidate_id,
-                                    value.state, value.site_type, value.reason, value.request_id)
+                                    value.state, value.site_type, value.reason, value.request_id,
+                                    value.api_feed_evidence_status, value.api_feed_evidence_reference,
+                                    value.api_feed_evidence_note, value.access_terms_note,
+                                    value.capabilities_limits_note,
+                                    value.expected_value_maintenance_note)
         except NoResultFound:
             raise HTTPException(404, "Source candidate not found") from None
         except ValueError as error:

@@ -223,19 +223,66 @@ class SourceCandidateCaptureTests(unittest.TestCase):
         self.assertEqual(observation["observed_hops"], [{"state": "UNKNOWN"}])
         self.assertNotIn("private-token", str(candidate))
 
-        review = self.client.put(f"/profiles/fixture/source-candidates/{candidate['id']}/review", json={
+        review_payload = {
             "state": "BLOCKED", "site_type": "ATS", "reason": "Read-only inspection was denied; integration is unsupported.",
+            "api_feed_evidence_status": "BLOCKED",
+            "api_feed_evidence_reference": "https://talenthop.com/api/jobs?token=private-token",
+            "api_feed_evidence_note": "The documented job endpoint returned an access denial during prior read-only inspection.",
+            "access_terms_note": "Terms and automated access permission have not been verified.",
+            "capabilities_limits_note": "No public job feed is currently evidenced; application destination only.",
+            "expected_value_maintenance_note": "Potential value is unknown; maintenance cost cannot be estimated without an authorized feed.",
             "request_id": "source-candidate-review-1",
-        })
+        }
+        review = self.client.put(f"/profiles/fixture/source-candidates/{candidate['id']}/review", json=review_payload)
         self.assertEqual(review.status_code, 200, review.text)
         reread = self.client.get("/source-candidates", params={"profile_id": "fixture"}).json()["candidates"][0]
         self.assertEqual(reread["state"], "BLOCKED")
         self.assertEqual(reread["site_type"], "ATS")
         self.assertEqual(reread["review_history"][0]["site_type"], "ATS")
+        history = reread["review_history"][0]
+        self.assertEqual(history["api_feed_evidence_status"], "BLOCKED")
+        self.assertEqual(history["api_feed_evidence_reference"], "https://talenthop.com/api/jobs")
+        self.assertIn("access denial", history["api_feed_evidence_note"])
+        self.assertIn("not been verified", history["access_terms_note"])
+        self.assertIn("No public job feed", history["capabilities_limits_note"])
+        self.assertIn("unknown", history["expected_value_maintenance_note"])
+        self.assertEqual(history["profile_id"], "fixture")
         self.assertFalse(reread["collection_enabled"])
         self.assertEqual(len(reread["review_history"]), 1)
+        changed_replay = self.client.put(f"/profiles/fixture/source-candidates/{candidate['id']}/review", json={
+            **review_payload, "api_feed_evidence_note": "Different content with the same request id.",
+        })
+        self.assertEqual(changed_replay.status_code, 409, changed_replay.text)
+        invalid_evidence = self.client.put(f"/profiles/fixture/source-candidates/{candidate['id']}/review", json={
+            "state": "NEEDS_REVIEW", "site_type": "UNKNOWN", "reason": "Evidence state requires detail.",
+            "api_feed_evidence_status": "PUBLIC_DOCUMENTED", "api_feed_evidence_note": "documented feed",
+            "access_terms_note": "not checked", "capabilities_limits_note": "unknown",
+            "expected_value_maintenance_note": "unknown", "request_id": "source-candidate-invalid-evidence",
+        })
+        self.assertEqual(invalid_evidence.status_code, 422, invalid_evidence.text)
+        documented = self.client.put(f"/profiles/fixture/source-candidates/{candidate['id']}/review", json={
+            "state": "NEEDS_REVIEW", "site_type": "JOB_BOARD", "reason": "Public documentation reviewed.",
+            "api_feed_evidence_status": "PUBLIC_DOCUMENTED",
+            "api_feed_evidence_reference": "https://docs.example.invalid/jobs?token=public-reference-token",
+            "api_feed_evidence_note": "Documentation describes a public JSON endpoint.",
+            "access_terms_note": "Documented terms permit public read access.",
+            "capabilities_limits_note": "Provides title, company, location, and application URL.",
+            "expected_value_maintenance_note": "High expected value; maintenance is moderate.",
+            "request_id": "source-candidate-review-2",
+        })
+        self.assertEqual(documented.status_code, 200, documented.text)
+        history = documented.json()["review_history"]
+        self.assertEqual(len(history), 2)
+        latest = history[-1]
+        self.assertEqual(latest["api_feed_evidence_status"], "PUBLIC_DOCUMENTED")
+        self.assertEqual(latest["api_feed_evidence_reference"], "https://docs.example.invalid/jobs")
+        self.assertNotIn("public-reference-token", str(history))
         hidden = self.client.put(f"/profiles/other/source-candidates/{candidate['id']}/review", json={
-            "state": "REJECTED", "reason": "Foreign profile", "request_id": "foreign-review",
+            "state": "REJECTED", "reason": "Foreign profile", "site_type": "ATS",
+            "api_feed_evidence_status": "UNKNOWN", "api_feed_evidence_reference": None,
+            "api_feed_evidence_note": "not reviewed",
+            "access_terms_note": "unknown", "capabilities_limits_note": "unknown",
+            "expected_value_maintenance_note": "unknown", "request_id": "foreign-review",
         })
         self.assertEqual(hidden.status_code, 404)
 
@@ -243,7 +290,7 @@ class SourceCandidateCaptureTests(unittest.TestCase):
         self.assertEqual(replay.status_code, 200, replay.text)
         reread = self.client.get("/source-candidates", params={"profile_id": "fixture"}).json()["candidates"][0]
         self.assertEqual(len(reread["observations"]), 1)
-        self.assertEqual(len(reread["review_history"]), 1)
+        self.assertEqual(len(reread["review_history"]), 2)
 
 
 if __name__ == "__main__":
