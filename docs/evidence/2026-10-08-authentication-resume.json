@@ -4,16 +4,16 @@
   "area": "application_automation",
   "acceptance": "PARTIAL",
   "branch": "codex/mj-req142-auth-resume-20261008",
-  "tested_base_head": "118b121afa4ffe12867f1024247ab6722a618d8b",
-  "implementation_commit_sha": "0f768f458ff8a6bd064c731e121fcb526ff68c0f",
-  "implementation_commit_tree": "61d46ee39bcce1a66acf3b474bf51b9978302ec3",
+  "tested_base_head": "65914db2da7fb13c65fa2c115259017ee585f097",
+  "implementation_commit_sha": "c06b93636240968defe756449948965f5a4b627d",
+  "implementation_commit_tree": "67b39a0148c92723cf2f5ca9aa49e34e86bc4591",
   "tested_source_files": {
     "fixtures/mock_server.py": "14688bd9580c9cbeb2cd03b09cfbe8f6ab08bbebb72f256ffaa6f8ebafa527a8",
     "services/applications/mock_adapter.py": "a3c7bfb4b2044b0c5b7544fd01476d53d7d75e102f8c666055169181073b30ed",
     "tests/browser/test_mock_application.py": "a82b2b6f160dcf510048be162d4dcb59a94b9d19a1297cd16542b68129bac3d1",
     "tests/integration/test_application_pipeline.py": "0ed3c517da5f330666c34d7c80de9989b8ec9453800a621da23198276108e258"
   },
-  "validated_at_utc": "2026-10-08T13:04:16Z",
+  "validated_at_utc": "2026-10-08T13:10:08Z",
   "environment": {
     "os": "Windows",
     "python": "3.12",
@@ -32,14 +32,9 @@
   },
   "commands": [
     {
-      "command": "python -m unittest tests.browser.test_mock_application -v",
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.browser.test_mock_application tests.integration.test_application_pipeline -v",
       "result": "PASS",
-      "output": "Ran 25 tests in 46.190s; OK"
-    },
-    {
-      "command": "python -m unittest tests.integration.test_application_pipeline -v",
-      "result": "PASS",
-      "output": "Ran 9 tests in 19.017s; OK"
+      "output": "Root rerun on rebased source: 34 tests passed in 63.023s."
     },
     {
       "command": "python -m compileall -q services/applications/mock_adapter.py fixtures/mock_server.py tests/browser/test_mock_application.py tests/integration/test_application_pipeline.py",
