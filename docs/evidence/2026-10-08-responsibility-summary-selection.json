@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "created_at_utc": "2026-10-08T14:03:15Z",
+  "created_at_utc": "2026-10-08T14:11:12Z",
   "requirement_id": "MJ-REQ-095",
   "issue": 96,
   "result": "PARTIAL",
@@ -11,19 +11,23 @@
     "commit": "3d7ff2c6fb0a6151026ebbe23033b4b5c5022937",
     "tree": "6c421600785b9d54874c60c51456b3b0b7bd06f9"
   },
-  "candidate_state": "Product code and tests are committed; this evidence artifact will be committed as an evidence-only descendant.",
+  "candidate_state": "Product code and tests are committed; this evidence artifact is an evidence-only descendant.",
   "product_source": {
-    "commit": "74e5b35b30f85369faf5431db77f717cce7c77f1",
-    "tree": "8bb2a7964afccbb6a40d583f61cc200ce869d47d",
-    "parent": "3d7ff2c6fb0a6151026ebbe23033b4b5c5022937"
+    "commit": "64800d6487a0c4e491ae6e04d35a82c6857dc53a",
+    "tree": "993bff6b0b532400fc7c3a9cdf3c527c466c6435",
+    "parent": "8c1084069ca6eb1e0830694ebbbf4acd80b7bf9b"
   },
   "source_inputs_sha256": {
     "services/documents/tailor.py": "85ebfecfaec26a12251274711ca356317cd79d897c27d9a45a6d7d17889991fd",
-    "services/documents/comparison.py": "6cf5de87da5361c59993319a566ffb662a5c139b6d6c2fced65de419439842d3",
+    "services/documents/comparison.py": "da90e07f681d95f49b652cb53c72777dbb4a6fc0399363c0b701852f91279b49",
+    "services/documents/templates.py": "52a4ecc0f01791bb4487973231d817e3dd550328684767239bb93e471d3bd45b",
+    "apps/web/src/resume-comparison.tsx": "a4c0396652b575acac468566cd9686f66c00c8e95ed33ef59931355ad2c23b41",
+    "apps/web/src/resume-comparison.test.tsx": "7177dfc67e455c53e84202840d820b8215e18244f4f13ba20c9266c217dadfa8",
     "tests/unit/test_skill_order.py": "9b0295e4b93e6edc6c19afb96f485d97a245ae581b112b54a2d271cc046f3d89",
-    "tests/integration/test_skill_order.py": "1b77bfb907e54557a0e0feb15f6b189d22bf72868b7ea4fe274745499dad1a5c",
-    "tests/integration/test_resume_comparison.py": "6e905a6b13453e37d1bc6413658ecafdbc90d9cff74ab0ee794186ce5a3a083d",
-    "tests/browser/test_skill_order.py": "04e3f9a2edde13c511b17382f6881de91c8cb739a001973d0d7e00d3fedd23c4"
+    "tests/unit/test_resume_templates.py": "6a0b1dcc3243862eb7f6db4ba695563b06347c7f3ce18821df23df1d4cb82fdb",
+    "tests/integration/test_skill_order.py": "3a9b2f70e6cac394bdd75f1a3f64d45f473659445b0d1d3c6c7313d3a6eedc92",
+    "tests/integration/test_resume_comparison.py": "fa741cfa83a631a467537fd413e79ed2e1260d990b7512d8cbb685bb04e0ab9f",
+    "tests/browser/test_skill_order.py": "73c9ddb9346b254797fe84df17c5502ec21e949000126aae194d375abbc77877"
   },
   "behavior_verified": [
     "Exact extracted multiword duty evidence selects matching approved summary facts when exact skill matches also exist.",
@@ -36,22 +40,33 @@
   ],
   "validation": {
     "focused_command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_skill_order tests.integration.test_skill_order tests.integration.test_resume_comparison tests.browser.test_skill_order -v",
-    "focused_result": "PARTIAL: 27 tests ran; 26 passed and one unchanged-main baseline browser test failed.",
-    "passing_new_acceptance": "Responsibility-only and mixed skill+responsibility union selection, paraphrase fallback, stable order, durable reopen/comparison, tamper rejection, unchanged profile/cover letter, and connected Chromium flow passed.",
-    "baseline_failure": "tests.browser.test_skill_order.SkillOrderBrowserTests.test_explicit_ordering_reaches_worker_and_download fails on unchanged main 3d7ff2c6fb0a6151026ebbe23033b4b5c5022937 with Comparison unavailable: Original target-bullet adjustment context is unavailable. This reproduces outside this branch and is unrelated to summary responsibility selection.",
-    "compile": "python -m py_compile for both changed services and all four changed test modules: PASS.",
+    "focused_result": "PARTIAL: 27 tests ran; 26 passed. One unchanged-main baseline browser test failed.",
+    "passing_new_acceptance": "Responsibility-only and mixed skill+responsibility union selection, paraphrase fallback, stable order, durable reopen/comparison, tamper rejection including rejection under a v4 identity, unchanged profile/cover letter, connected Chromium reload/comparison, and v5/contact-v5 comparison list rendering passed.",
+    "baseline_failure": "tests.browser.test_skill_order.SkillOrderBrowserTests.test_explicit_ordering_reaches_worker_and_download fails on unchanged main 3d7ff2c6fb0a6151026ebbe23033b4b5c5022937 with Comparison unavailable: Original target-bullet adjustment context is unavailable; exact focused rerun retained the same failure. This is unrelated to responsibility summary selection.",
+    "compile": "python -m py_compile for services/documents/templates.py, services/documents/comparison.py, and the changed Python test modules: PASS.",
     "diff_check": "git diff --check: PASS.",
     "web_build": "npm run build --prefix apps/web using local dependencies: PASS.",
     "hosted_checks": "NOT_RUN_BY_USER_POLICY",
-    "postgresql": "NOT_RUN"
+    "postgresql": "NOT_RUN",
+    "web_tests": "npm test --prefix apps/web -- --run: 103 passed across 18 files."
   },
   "claim": {
     "child_id": "req095-responsibility-summary-selection",
     "lane_claim_key": "codex:req095-responsibility-summary-selection",
     "github_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6061276273",
-    "status": "ACTIVE_THROUGH_ROOT_INTEGRATION_READBACK",
+    "status": "BOTH_CLAIMS_ACTIVE_THROUGH_ROOT_INTEGRATION_READBACK",
     "correction_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6061491635",
-    "scope_update_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6061578686"
+    "scope_update_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6061620217",
+    "additional_lane_claim_key": "codex:req095-template-v5"
   },
-  "external_submission": "OFF"
+  "external_submission": "OFF",
+  "generation_identity": {
+    "current_template": "approved-target-relevant-bullets-summary-skill-responsibility-and-bullet-emphasis-v5",
+    "current_model": "deterministic-target-relevant-bullets-summary-skill-responsibility-order-v4",
+    "contact_template": "approved-contact-target-relevant-bullets-summary-skill-responsibility-and-bullet-emphasis-v5",
+    "contact_model": "deterministic-contact-target-relevant-bullets-summary-skill-responsibility-order-v4",
+    "legacy_v4_preserved": true,
+    "responsibility_summary_mode_allowed_only_for_v5": true,
+    "migration_required": false
+  }
 }
