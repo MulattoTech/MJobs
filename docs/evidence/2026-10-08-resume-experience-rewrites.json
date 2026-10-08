@@ -6,6 +6,9 @@
   "result": "PASS",
   "overall_requirement_status": "PARTIAL",
   "validated_at_utc": "2026-10-08T05:36:56Z",
+  "candidate_commit": "c6eb1cd604d1372800bc798b7454aa9fe40d9d91",
+  "candidate_tree": "9be02589f74ba57622a2a7aa69b7d87602353136",
+  "candidate_parent": "f34131a4047467284bb25b37138f872bf5f14a42",
   "branch": "codex/mj-req095-experience-rewrite-20261008",
   "base_commit": "1defb5d76f7d0c1050a5936a7077eb222acdd86a",
   "integration_base_commit": "d8caa9093138faba04d62f4f6474b4d19bcb02ae",
@@ -33,11 +36,26 @@
   ],
   "source_input_sha256": {
     "services/documents/tailor.py": "46de9bfbb5eca2c6a61641a5e88417aeffab7a90b281e25538bd858ac5be4f92",
-    "apps/web/src/resume-fact-selection.tsx": "3fb98af8f7c9815fc748cae6dfeaf52701fee64cf956adf8153ada832dc82441",
-    "apps/web/src/resume-fact-selection.test.tsx": "08ae3a9cdebb11c119c18d9d0e20e901fa2c7c0398e1598d78979608900baad3",
+    "apps/web/src/resume-fact-selection.tsx": "38c95abfebfd0002c7b7c755d12a5e812239f38ac348bd5470202c545d746a35",
+    "apps/web/src/resume-fact-selection.test.tsx": "35c8273bd67d0ee22ba2bac365863b79b8da9b2da3b1b9623cb6ecebeffce481",
     "tests/unit/test_resume_comparison.py": "41b98f228158d8e846f3428c1deccce21eb84c941f86eb9af6b185a1c1f5e48c",
     "tests/integration/test_resume_comparison.py": "526c91702859947b4e4de68309ba4999442002352f2be185d90793fb6b3e02e2",
     "tests/browser/test_resume_experience_rewrite.py": "7732b676d44c1eceafe5c924d8568096c4337cc5416a2be2be6462d355147aa9"
+  },
+  "tested_source_boundary": {
+    "test_base_commit": "1defb5d76f7d0c1050a5936a7077eb222acdd86a",
+    "test_input_sha256": {
+      "services/documents/tailor.py": "46de9bfbb5eca2c6a61641a5e88417aeffab7a90b281e25538bd858ac5be4f92",
+      "apps/web/src/resume-fact-selection.tsx": "3fb98af8f7c9815fc748cae6dfeaf52701fee64cf956adf8153ada832dc82441",
+      "apps/web/src/resume-fact-selection.test.tsx": "08ae3a9cdebb11c119c18d9d0e20e901fa2c7c0398e1598d78979608900baad3",
+      "tests/unit/test_resume_comparison.py": "41b98f228158d8e846f3428c1deccce21eb84c941f86eb9af6b185a1c1f5e48c",
+      "tests/integration/test_resume_comparison.py": "526c91702859947b4e4de68309ba4999442002352f2be185d90793fb6b3e02e2",
+      "tests/browser/test_resume_experience_rewrite.py": "7732b676d44c1eceafe5c924d8568096c4337cc5416a2be2be6462d355147aa9"
+    },
+    "candidate_source_commit": "c6eb1cd604d1372800bc798b7454aa9fe40d9d91",
+    "candidate_tree": "9be02589f74ba57622a2a7aa69b7d87602353136",
+    "candidate_source_files_unchanged_after_validation": true,
+    "boundary_note": "The focused tests ran against the listed source inputs before commit. Candidate c6eb1cd contains those same source/test Git blobs. On this Windows checkout core.autocrlf=true translates line endings in the two TSX working copies, so source_input_sha256 records current candidate working-copy bytes and test_input_sha256 retains the exact raw bytes used by the test run."
   },
   "validation": [
     {
