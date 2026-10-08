@@ -1,0 +1,67 @@
+{
+  "evidence_id": "MJ-REQ-114-CERTIFICATION-MATCH-EXPLANATION",
+  "recorded_at": "2026-10-08T09:40:03Z",
+  "result": "PARTIAL",
+  "scope": "Certification evidence factors in the existing deterministic match explanation and persisted Job Detail read model",
+  "authority": {
+    "repository": "MulattoTech/MJobs",
+    "issue": 115,
+    "requirements": ["MJ-REQ-114"],
+    "base_main": "13426c6d5f9630133dfdf8184c84005cc01436b9",
+    "task_branch": "codex/mj-req114-certification-explanation-20261008",
+    "implementation_commit": "35f97e5e1cf2f3f9ad595a4cfa2c1588e106dbc9",
+    "implementation_tree": "d5938cab47ae766aea90b8294a63bb3c0c13ea31",
+    "implementation_parent": "13426c6d5f9630133dfdf8184c84005cc01436b9",
+    "source_hashes_sha256": {
+      "services/discovery/matching.py": "0f64abedfbac91b0e03bc7b68aca88823ff96b878f842c46dbb15f3394f83db8",
+      "tests/integration/test_explainable_matching.py": "c1cb7d297d24800335c93e77d33f9d66c9a694a292ee5d3e6c41d6b8fd179aeb"
+    }
+  },
+  "observations": [
+    {
+      "action": "Verify the new certification-factor tests fail before implementation",
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_explainable_matching.ExplainableMatchingTests.test_certification_fit_factors_use_approved_canonical_facts_and_preserve_strength tests.integration.test_explainable_matching.ExplainableMatchingTests.test_certification_factor_is_durably_rescored_after_approval_is_revoked",
+      "target": "Temporary SQLite database and synthetic profile/job records in the assigned worktree",
+      "result": "EXPECTED RED: both tests failed because the certification factors were absent from components.fit_factors"
+    },
+    {
+      "action": "Run focused matching integration and certification parser tests on the exact implementation commit",
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_explainable_matching tests.unit.test_requirement_parsers",
+      "target": "Commit 35f97e5e1cf2f3f9ad595a4cfa2c1588e106dbc9; temporary SQLite databases and synthetic facts/job descriptions",
+      "result": "PASS: 37 tests, including approved canonical evidence, unapproved/wrong-kind/low-confidence and explicitly negative profile facts, required/preferred/UNKNOWN strength preservation, no score effect, approval-revocation rescore, and persisted readback after store reopen"
+    },
+    {
+      "action": "Compile changed Python modules and check the committed patch for whitespace errors",
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m py_compile services/discovery/matching.py tests/integration/test_explainable_matching.py; git diff HEAD^ HEAD --check",
+      "target": "Commit 35f97e5e1cf2f3f9ad595a4cfa2c1588e106dbc9",
+      "result": "PASS"
+    },
+    {
+      "action": "Attempt the existing manual-capture browser regression alongside backend/parser tests",
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_explainable_matching tests.unit.test_requirement_parsers tests.browser.test_manual_job_capture",
+      "target": "Assigned worktree with isolated SQLite fixture and Chromium",
+      "result": "BLOCKED_ENVIRONMENT: 37 backend/parser tests passed; the existing browser test received the API JSON 404 page before exercising the UI because apps/web/dist/index.html and apps/web/node_modules are absent in this worktree. The UI build/browser check is NOT_RUN on this candidate."
+    }
+  ],
+  "verified_behavior": [
+    "Each canonical locally parsed job certification produces one informational fit factor through the existing components.fit_factors response used by the generic Job Detail renderer.",
+    "Only career facts of kind certification that are sourced, verified, user-approved, and at least 80 confidence support a certification factor; exact local parser identities are compared, and explicitly negative fact statements are excluded.",
+    "The factor preserves REQUIRED, PREFERRED, NICE TO HAVE, or UNKNOWN strength in its response and visible label; conflicting repeated strengths resolve to UNKNOWN.",
+    "A factor always has score_effect NONE and does not change the existing skill evidence score.",
+    "When no approved evidence matches, the explanation states that no approved evidence is present and that this does not establish the person lacks the certification.",
+    "A rescore after certification-fact approval is revoked replaces the previous result; the new factor and profile version survive Store close and reopen."
+  ],
+  "limitations": [
+    "This is a bounded certification explanation slice. The full MJ-REQ-114 and surrounding matching requirements remain PARTIAL.",
+    "The generic UI contract was inspected but browser confirmation on this worktree is BLOCKED_ENVIRONMENT because its web build and node_modules are absent; no UI source was changed.",
+    "PostgreSQL behavior, hosted CI, hosted review, and broad repository regressions were NOT_RUN. Hosted checks remain NOT_RUN by repository policy.",
+    "External job submission remains disabled."
+  ],
+  "safety": {
+    "personal_data_used": false,
+    "synthetic_profile_and_jobs_only": true,
+    "external_submission": "OFF",
+    "provider_calls": false,
+    "external_url_fetch": false
+  }
+}
