@@ -1628,9 +1628,10 @@
       "requirement_id": "MJ-REQ-190",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-08-job-sorting-newest.json"
+        "docs/evidence/2026-10-08-job-sorting-newest.json",
+        "docs/evidence/2026-10-08-job-sorting-company.json"
       ],
-      "note": "Newest-only Jobs ordering locally verified on exact integrated main (API/browser/build); Best Match and Title preserved. Application Priority and Salary sorts plus full MJ-REQ-190 acceptance remain incomplete. Full Python discovery was PARTIAL_NOT_COMPLETE (F/ss at 600s, no summary); hosted/PostgreSQL NOT_RUN."
+      "note": "Newest-only Jobs ordering locally verified on exact integrated main (API/browser/build); Best Match and Title preserved. Application Priority and Salary sorts plus full MJ-REQ-190 acceptance remain incomplete. Full Python discovery was PARTIAL_NOT_COMPLETE (F/ss at 600s, no summary); hosted/PostgreSQL NOT_RUN. Company-only slice integrated at fcddebedd6f238271ecd59ef171c2ce1e5e4245b (tested source eba9f77a0cd54468fb91e2f6406777e25cb4e5a3 / tree a3c96974d1112af01da72cd9edd98b8cf0e5181e): connected Jobs sort uses canonical company name, blank-last, stable tie order, and database limit after sorting. Root exact-candidate API/browser 6/6, frontend 94/94, build and diff PASS; LOCAL_DELEGATED_REVIEW found no blocker. Evidence docs/evidence/2026-10-08-job-sorting-company.json. SQLite tests cover ASCII/ordinary spaces only; PostgreSQL NOT_RUN. Application Priority and Salary remain incomplete; issue stays PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-191",

@@ -1502,6 +1502,52 @@
             "postgresql": "NOT_RUN",
             "review": "LOCAL_DELEGATED_REVIEW PASS"
           }
+        },
+        {
+          "name": "Company sort using canonical company display names",
+          "issue": 191,
+          "requirement_id": "MJ-REQ-190",
+          "status": "INTEGRATED_PARTIAL",
+          "depends_on": [],
+          "parent_dependencies_preserved": [
+            "MJ-PR-051",
+            "MJ-PR-043"
+          ],
+          "owned_paths": [
+            "apps/api/main.py",
+            "apps/web/src/main.tsx",
+            "packages/persistence/store.py",
+            "tests/integration/test_job_sorting.py",
+            "tests/browser/test_job_sorting.py",
+            "docs/evidence/2026-10-08-job-sorting-company.json"
+          ],
+          "acceptance": "Add connected Company ordering by canonical companies.name; named rows before blank names, case-insensitive ascending, stable job-ID ties, and apply DB limit after ordering. Preserve Best Match, Newest, and Title. Application Priority and Salary remain incomplete.",
+          "branch": "codex/mj-req190-company-20261008",
+          "worktree": ".worktrees/codex-mj-req190-company-20261008",
+          "base": "75d91e37571da5db4c90c776cbd9b408f978fd32",
+          "tested_source_head": "eba9f77a0cd54468fb91e2f6406777e25cb4e5a3",
+          "tested_source_tree": "a3c96974d1112af01da72cd9edd98b8cf0e5181e",
+          "evidence_head": "fcddebedd6f238271ecd59ef171c2ce1e5e4245b",
+          "evidence_tree": "6b53c18d92ed07f5ec7e12574604a90c15ffd970",
+          "evidence_path": "docs/evidence/2026-10-08-job-sorting-company.json",
+          "issue_claim_comment": "https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6054990476",
+          "integration_method": "NON_FORCE_FAST_FORWARD",
+          "integration_comment": "https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6055292637",
+          "claim_release_comment": "https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6055051769",
+          "issue_state": "OPEN/PARTIAL",
+          "validation": {
+            "api_and_browser": "PASS 6/6 exact source",
+            "frontend": "PASS 94/94; Node 25.9.0 outside Vitest 5 declared support",
+            "build": "PASS TypeScript/Vite",
+            "review": "LOCAL_DELEGATED_REVIEW: PASS, no blocking finding",
+            "postgresql": "NOT_RUN",
+            "full_python": "NOT_RUN for this slice; prior capped run incomplete",
+            "hosted": "NOT_RUN_BY_USER_POLICY"
+          },
+          "limitations": [
+            "SQLite lower/trim coverage only ASCII names and ordinary spaces; Unicode normalization and PostgreSQL unverified.",
+            "Application Priority, Salary, and broader MJ-REQ-190 acceptance remain incomplete."
+          ]
         }
       ]
     },
