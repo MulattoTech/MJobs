@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-08T11:12:52Z",
+  "timestamp": "2026-10-08T11:28:23Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -1701,9 +1701,11 @@
     },
     {
       "requirement_id": "MJ-REQ-196",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-08-application-review-queue.json"
+      ],
+      "note": "Connected, profile-scoped Review Queue lists persisted UNKNOWN/FAIL question-preflight blockers, explains saved reason/question/missing mappings, and opens existing review through read-only navigation. Root exact integrated-main frontend 100/100, TypeScript/Vite build, Chromium/API browser 1/1, source blob hashes and diff checks PASS; local delegated review found no material blocker. Other review categories remain unsupported/unlisted; full MJ-REQ-196 remains PARTIAL; hosted/live ATS NOT_RUN and external submission OFF."
     },
     {
       "requirement_id": "MJ-REQ-197",

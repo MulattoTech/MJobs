@@ -1577,7 +1577,7 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-052-web-api-analytics",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Additional slice #190 / MJ-REQ-189 title/company filters integrated locally at a33ecc497c412a3ee547ac35930b43de6fe274d4; see docs/evidence/2026-10-08-title-company-search-filters.json. Original PR-052 dependencies/status unchanged. Additional #190 / MJ-REQ-189 location filter slice integrated at e5fee45c0c3e074154ef523d252a2e78a2ffa2de; evidence docs/evidence/2026-10-08-location-search-filter.json. Other search-profile criteria remain post-limit and salary/other facets are outstanding; dependencies/status unchanged. Issue #190 / MJ-REQ-189 annual USD salary-bound filters integrated locally at 7f8f76f8d33eb1dc1f4fce91e86e1f6139ccbe56; evidence docs/evidence/2026-10-08-salary-job-search-filter.json. SQL-before-limit, saved-search restore/clear and unknown-pay exclusions verified; root combined search/trace suite 44/44 PASS, frontend 96/96/build PASS; PR status/dependencies unchanged.",
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Additional slice #190 / MJ-REQ-189 title/company filters integrated locally at a33ecc497c412a3ee547ac35930b43de6fe274d4; see docs/evidence/2026-10-08-title-company-search-filters.json. Original PR-052 dependencies/status unchanged. Additional #190 / MJ-REQ-189 location filter slice integrated at e5fee45c0c3e074154ef523d252a2e78a2ffa2de; evidence docs/evidence/2026-10-08-location-search-filter.json. Other search-profile criteria remain post-limit and salary/other facets are outstanding; dependencies/status unchanged. Issue #190 / MJ-REQ-189 annual USD salary-bound filters integrated locally at 7f8f76f8d33eb1dc1f4fce91e86e1f6139ccbe56; evidence docs/evidence/2026-10-08-salary-job-search-filter.json. SQL-before-limit, saved-search restore/clear and unknown-pay exclusions verified; root combined search/trace suite 44/44 PASS, frontend 96/96/build PASS; PR status/dependencies unchanged. New independent bounded #190/MJ-REQ-189 minimum match-score facet is ACTIVE on codex/mj-req189-match-score-filter-20261008; uses current profile-version persisted score, applies threshold before result limit, persists through saved searches. Parent dependencies MJ-PR-051/MJ-PR-043 remain QUEUED.",
       "active_slice": {
         "name": "Save and restore supported Jobs filters in a profile-scoped saved search",
         "issue": 192,
@@ -1742,7 +1742,7 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-053-web-api-analytics",
       "draft_until_verified": true,
-      "notes": "Bounded #197/MJ-REQ-196 question-preflight review queue slice active in isolated worktree; parent dependencies and other queue categories remain unresolved. Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Issue #196 / MJ-REQ-195 full standalone acceptance is independently verified PASS at main 17f0170841c2fa089e10b700deea11dbfd7e8167; evidence docs/evidence/2026-10-08-application-tracker-current-main.json. This does not promote bundled MJ-PR-053; dependencies MJ-PR-052/MJ-PR-043 remain QUEUED and other requirements remain incomplete. Issue #195/MJ-REQ-194 full direct acceptance is PASS/CLOSED at main e211f013801849a4fe2cf24c855313b8fcfc3978; evidence docs/evidence/2026-10-08-companies-screen.json. Parent dependencies remain QUEUED and bundle is not promoted.",
+      "notes": "Bounded #197/MJ-REQ-196 question-preflight review queue slice integrated PARTIAL at 44bc300eacb28010e3ff3486264222e13ae42342 with evidence docs/evidence/2026-10-08-application-review-queue.json; parent dependencies and other queue categories remain unresolved. Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Issue #196 / MJ-REQ-195 full standalone acceptance is independently verified PASS at main 17f0170841c2fa089e10b700deea11dbfd7e8167; evidence docs/evidence/2026-10-08-application-tracker-current-main.json. This does not promote bundled MJ-PR-053; dependencies MJ-PR-052/MJ-PR-043 remain QUEUED and other requirements remain incomplete. Issue #195/MJ-REQ-194 full direct acceptance is PASS/CLOSED at main e211f013801849a4fe2cf24c855313b8fcfc3978; evidence docs/evidence/2026-10-08-companies-screen.json. Parent dependencies remain QUEUED and bundle is not promoted. Bounded #197 / MJ-REQ-196 Review Queue slice integrated PARTIAL at 44bc300eacb28010e3ff3486264222e13ae42342; evidence docs/evidence/2026-10-08-application-review-queue.json; root frontend 100/100, build, browser 1/1 and source hashes PASS; receipt https://github.com/MulattoTech/MJobs/issues/197#issuecomment-6058796580. Parent dependencies unchanged.",
       "slice_history": [
         {
           "name": "Full application tracker/Kanban acceptance verified at current main",
@@ -1791,6 +1791,43 @@
           "issue_close_comment": "https://github.com/MulattoTech/MJobs/issues/195#issuecomment-6055840362",
           "acceptance": "All eight required display fields; canonical-company/profile-scoped durable Applications count; persisted User Preference display.",
           "external_submission": "OFF"
+        },
+        {
+          "name": "Profile-scoped read-only question-preflight application Review Queue",
+          "issue": 197,
+          "requirement_id": "MJ-REQ-196",
+          "status": "INTEGRATED_PARTIAL",
+          "depends_on": [],
+          "parent_dependencies_preserved": [
+            "MJ-PR-052",
+            "MJ-PR-043"
+          ],
+          "owned_paths": [
+            "apps/web/src/main.tsx",
+            "apps/web/src/application-review-queue.tsx",
+            "apps/web/src/application-review-queue.test.tsx",
+            "tests/browser/test_application_review_queue.py",
+            "docs/evidence/2026-10-08-application-review-queue.json"
+          ],
+          "acceptance": "Connected Review Queue lists active-profile saved applications whose persisted question preflight is UNKNOWN or FAIL, explains reason/question/missing fields, excludes PASS and other profiles, and navigates via existing profile-scoped review GETs without writes, answer, automation, or submission.",
+          "base_head": "4bfb001f9669948dfb2ce37a97e57bf4a02c2bd5",
+          "source_head": "001b049a859e070e8dd9f29e4c265641f8450774",
+          "source_tree": "7db998ad8da3f02b25d2d010cda20f56aa2727f6",
+          "integrated_main": "44bc300eacb28010e3ff3486264222e13ae42342",
+          "integrated_tree": "709b3e29dee99b0a8d242974cd2be3f7e755e8d7",
+          "evidence_path": "docs/evidence/2026-10-08-application-review-queue.json",
+          "validation": {
+            "frontend": "PASS 100/100",
+            "build": "PASS TypeScript and Vite production build",
+            "connected_browser": "PASS 1/1",
+            "source_hashes": "PASS against exact Git blobs",
+            "local_review": "LOCAL_DELEGATED_REVIEW no material blocker",
+            "hosted": "NOT_RUN_BY_USER_POLICY",
+            "live_ats": "NOT_RUN",
+            "external_submission": "OFF"
+          },
+          "issue_state": "OPEN/PARTIAL",
+          "issue_receipt": "https://github.com/MulattoTech/MJobs/issues/197#issuecomment-6058796580"
         }
       ]
     },
@@ -4300,5 +4337,5 @@
       "claim_release_comment": "https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053395464"
     }
   ],
-  "generated_at": "2026-10-08T11:12:52Z"
+  "generated_at": "2026-10-08T11:28:23Z"
 }

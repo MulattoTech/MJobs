@@ -1,3 +1,13 @@
+## 2026-10-08T11:28:23Z — #197 review queue and #96 resume fact guard integrated; core feature lanes active
+
+Local and origin/main are synchronized at `44bc300eacb28010e3ff3486264222e13ae42342` (tree `709b3e29dee99b0a8d242974cd2be3f7e755e8d7`). #197/MJ-REQ-196 adds a profile-scoped queue for persisted UNKNOWN/FAIL question preflight, with blocker details and read-only navigation into existing review. Evidence `docs/evidence/2026-10-08-application-review-queue.json`; root exact-main checks: frontend 100/100, build, connected browser 1/1, source blob hashes/diff; local delegated review found no material blocker. Whole requirement remains OPEN/PARTIAL.
+
+#96/MJ-REQ-095 prevents reviewed resume wording from dropping recognized credential/issuer tokens while retaining exact dates/numbers and source-bound history. Evidence `docs/evidence/2026-10-08-resume-reviewed-fact-tailoring.json`; rebased-source checks: 20 unit/integration/browser tests, py_compile, build, hashes and diff PASS; review found no material blocker. Browser uses an injected terminal worker failure for visible UI recovery; integration proves backend rejection/no-write. Whole requirement remains OPEN/PARTIAL.
+
+Authoritative original totals after #197 matrix update: **83 PASS / 91 PARTIAL / 192 NOT_RUN**; reference **13 PASS / 1 PARTIAL / 45 NOT_RUN**; release UNKNOWN. Active Codex children: #105/MJ-REQ-104 opposite-polarity answer matching and #190/MJ-REQ-189 minimum match-score filter. Preserve Antigravity #302 and Ollama #318. Hosted checks, PostgreSQL and live ATS remain NOT_RUN; external submission OFF.
+
+---
+
 ## 2026-10-08T11:12:52Z — #101 company-context cover-letter flow integrated; core product lanes active
 
 Local and origin main are synchronized at `fe4f2dc488b882d1cdf49a2faf3629d77ddc89be` (tree `aea714e1e0a554f2fdc2e45944b4c06406d02ae2`). #101/MJ-REQ-100 adds user-reviewed, versioned context tied to an exact company source identity, visibly labeled `USER_PROVIDED` / `CONTENT UNVERIFIED`, with a cited immutable per-job cover-letter snapshot. Evidence `docs/evidence/2026-10-08-verified-company-context.json`; 19 Python integration, 5 frontend, 1 browser tests, build, fresh temporary SQLite migration/schema readback, source hashes, diff and local delegated review PASS. Full requirement remains PARTIAL. Original progress is 83 PASS / 90 PARTIAL / 193 NOT_RUN; reference 13 PASS / 1 PARTIAL / 45 NOT_RUN; release UNKNOWN.
