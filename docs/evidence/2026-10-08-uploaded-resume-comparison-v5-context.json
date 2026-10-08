@@ -1,9 +1,9 @@
 {
-  "timestamp": "2026-10-08T18:19:03Z",
+  "timestamp": "2026-10-08T18:29:27Z",
   "result": "PARTIAL",
   "branch": "codex/root-mjreq095-uploaded-comparison-integration-20261008",
-  "source_commit": "b8e7ebb57cd9e44868b37f5c06b31b937517f9d0",
-  "source_tree": "dc3b484948f0ab828f4dfe94be190c41f29bd474",
+  "source_commit": "d3ffa8c6f8c79848e2b00d316fe89987cbd2907a",
+  "source_tree": "1806395d3f127198881ba0bd293df5333ace7943",
   "requirements": [
     "MJ-REQ-095"
   ],
@@ -11,47 +11,55 @@
     "Uploaded-base comparison validates immutable v5 selected-bullet context after durable Store reopen.",
     "Responsibility-only selected bullets and fully matched unadjusted selections are accepted when recomputed evidence, IDs, fingerprints, reasons, and mode agree.",
     "Omitted bullets with recorded skill or responsibility evidence, incomplete snapshots, and tampered provenance remain rejected.",
-    "Connected browser flow displays included and omitted content truthfully and excludes unapproved facts and job-only claims."
+    "Comparison binds omitted-fact fingerprints to the exact stored profile version and fails closed before reading or returning uploaded-resume comparison content when that provenance is corrupt.",
+    "Connected browser flow displays included and omitted content truthfully and excludes unapproved facts, job-only claims, and external calls."
   ],
   "input_sha256": {
-    "services/documents/comparison.py": "73f0d3ce2d5c996355a8c3e45346eb9435e95532b1b993c48cd48fa8be9419ae",
-    "tests/unit/test_resume_comparison.py": "3a3d23a44bb739f34e66a7271b2fd65033c6562d46a326b27c75dec04ce84f14",
-    "tests/integration/test_uploaded_resume_comparison.py": "613d38248ea17f73bc0785aaea0da3f8e63e790f472f10e03cb993e50ba6e8df",
-    "tests/browser/test_uploaded_resume_comparison.py": "11b56f7d15f040a2cdbfeb199e2096d143de75975a982e58975344e67b657202"
+    "services/documents/uploaded_comparison.py": "8da4a3d78388d9fb7921c3af8193f2acc8673577c0ff7ed5547a069f52f0b47f",
+    "tests/unit/test_resume_comparison.py": "81d3441e4e3c0b1c28ea625c25a164bc5e0f7f12715a39a1ba6a48034080bb92",
+    "tests/integration/test_uploaded_resume_comparison.py": "19f0526bbf4c1f5c202271611b5d3be57aa25eeb16f227e080dafb15b01e5f60",
+    "tests/browser/test_uploaded_resume_comparison.py": "97979bf9dd56c989f9256873e51f752b150d106b2d83e2b3fb3bbbc66ee34464"
   },
   "checks": [
     {
-      "recorded_at_utc": "2026-10-08T18:19:03Z",
+      "recorded_at_utc": "2026-10-08T18:29:27Z",
       "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_resume_comparison tests.integration.test_uploaded_resume_comparison -v",
-      "target": "Uploaded resume comparison unit and reopened-store API acceptance",
+      "target": "Uploaded-resume comparison unit cases and reopened-store API acceptance, including the tampered omitted-fingerprint regression",
       "result": "PASS",
-      "tests": 20
+      "tests": 22
     },
     {
-      "recorded_at_utc": "2026-10-08T18:19:03Z",
-      "command": "npm ci --prefix apps/web; npm run build --prefix apps/web",
-      "target": "Local production frontend bundle required by connected browser test",
+      "recorded_at_utc": "2026-10-08T18:29:27Z",
+      "command": "npm test --prefix apps/web",
+      "target": "Frontend regression suite on the candidate tree",
       "result": "PASS",
-      "note": "Node 25.9.0 is outside Vitest 5 supported engine range; Vitest was not run."
+      "test_files": 26,
+      "tests": 139
     },
     {
-      "recorded_at_utc": "2026-10-08T18:19:03Z",
+      "recorded_at_utc": "2026-10-08T18:29:27Z",
+      "command": "npm run build --prefix apps/web",
+      "target": "Local production frontend bundle required by connected browser checks",
+      "result": "PASS"
+    },
+    {
+      "recorded_at_utc": "2026-10-08T18:29:27Z",
       "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_uploaded_resume_comparison -v",
-      "target": "Synthetic connected Chromium uploaded-base comparison after Store reopen",
+      "target": "Synthetic connected Chromium flows for valid reopened-store comparison and tampered provenance rejection",
       "result": "PASS",
-      "tests": 1,
+      "tests": 2,
       "external_requests": 0
     },
     {
-      "recorded_at_utc": "2026-10-08T18:19:03Z",
-      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m py_compile services/documents/comparison.py; git diff 0214b4bf022cee4bb8498468aa7535decb71392e --check",
-      "target": "Changed source compilation and candidate whitespace validation",
+      "recorded_at_utc": "2026-10-08T18:29:27Z",
+      "command": "python -m py_compile services/documents/uploaded_comparison.py tests/unit/test_resume_comparison.py tests/integration/test_uploaded_resume_comparison.py tests/browser/test_uploaded_resume_comparison.py; git diff --check c487e86bfc33c77f87e81ab3d23173b6d3e37e36 HEAD",
+      "target": "Changed source/test compilation and candidate whitespace validation",
       "result": "PASS"
     }
   ],
   "remaining_checks": [
     "Root exact-candidate review and integration into main",
-    "Full Python/frontend suites, PostgreSQL, and hosted checks"
+    "Full Python regression suite, PostgreSQL, and hosted checks"
   ],
   "limitations": [
     "Issue #96 and MJ-REQ-095 remain OPEN/PARTIAL; broader truthful tailoring and semantic-equivalence requirements are not completed by this slice.",
