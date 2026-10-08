@@ -3,11 +3,17 @@
 Canonical files under `planning/` remain **integration truth**. They are not normal
 feature-branch scratchpads when Codex and Antigravity are running concurrently.
 
-Each active implementation agent owns exactly one lane:
+Each active implementation CLI owns exactly one lane:
 
 - `planning/lanes/codex/`
 - `planning/lanes/antigravity/`
 - `planning/lanes/ollama/`
+
+For concurrent Codex child agents, the root integrator owns the shared Codex lane
+files. Each child uses a unique child-ID claim and issue comment, writes only its
+exclusive source/test/evidence paths, and must not modify `planning/lanes/codex/**`
+or canonical planning. This prevents children in the same Codex lane from racing on
+one lane handoff while retaining independent issue/path claims.
 
 Each lane contains:
 
