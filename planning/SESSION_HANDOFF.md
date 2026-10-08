@@ -1412,3 +1412,12 @@ Issue #134 / MJ-REQ-133 now handles one MOCK-only country-dependent required dro
 Full requirement remains PARTIAL: optional sections, repeatable rows and broader ATS dynamic-form behaviors remain. Hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL, live ATS and full repository suite NOT_RUN; external submission OFF. Authoritative original requirements now: 83 PASS / 92 PARTIAL / 191 NOT_RUN. Reference: 13 PASS / 1 PARTIAL / 45 NOT_RUN. Release readiness UNKNOWN. PR-037 remains QUEUED behind PR-036 and PR-030.
 
 Root owns and will release the integration lock at closeout. #134 claim released; candidate branch is integrated. Antigravity #302 and Ollama #318 claims remain untouched. Highest-value next step: select another dependency-ready connected jobseeker feature from live issues/specs; no unattended continuation is active.
+
+
+## 2026-10-08T12:30:08Z — interactive closeout; posted-date filter preserved for next integration pass
+
+Main and origin/main remain synchronized at `0ebf4616250d9f06df85b0464099d6ea9d56c088`. #134 integration receipt: https://github.com/MulattoTech/MJobs/issues/134#issuecomment-6059749511.
+
+A second core feature candidate is preserved on clean, unmerged/unpushed branch `codex/mj-req189-posted-date-filter-20261008`: source `985e53e214e24277a9d1110cdac8273dcf7aabf1`, evidence `b258d574074b0ba02d14cd0eaa223e1a10edc028`. It adds profile-scoped posted-within filtering using only source-reported dates, before LIMIT; `first_seen_at` is not treated as a posting date. Saved-filter integration tests pass 12/12, compileall and diff check pass. Browser was skipped because web dist is absent; Vitest unavailable; PostgreSQL and hosted checks NOT_RUN. Evidence accurately marks PARTIAL. Next session should review/rebuild frontend, run connected browser/Vitest on exact candidate, verify hashes, then decide integration; do not count this unmerged candidate in main’s requirement matrix. The child claim is released.
+
+Current authoritative main totals remain original 83 PASS / 92 PARTIAL / 191 NOT_RUN; reference 13 PASS / 1 PARTIAL / 45 NOT_RUN; release readiness UNKNOWN. Hosted checks remain NOT_RUN_BY_USER_POLICY; PostgreSQL and live ATS NOT_RUN for these slices; external submission OFF. Antigravity #302, Ollama #318 and existing #96 handoff data remain preserved. Root is closing this authorized interactive window; no unattended continuation is active.
