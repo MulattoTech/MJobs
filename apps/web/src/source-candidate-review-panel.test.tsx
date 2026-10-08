@@ -108,6 +108,34 @@ describe('source candidate review panel controller', () => {
     expect(list).toHaveBeenCalledTimes(1);
     expect(controller.getSnapshot().candidates).toEqual([candidate('profile-1')]);
   });
+
+  it('rereads only on refresh-token changes and preserves the active filters', async () => {
+    const list = vi.fn().mockResolvedValue([candidate('profile-1')]);
+    const controller = new SourceCandidateReviewPanelController({ list, review: vi.fn() });
+
+    await controller.syncSelection('profile-1', 0);
+    controller.setFilters('BLOCKED', 'talenthop');
+    await controller.syncSelection('profile-1', 0);
+    expect(list).toHaveBeenCalledTimes(1);
+
+    list.mockResolvedValueOnce([candidate('profile-1', 'after-capture')]);
+    await controller.syncSelection('profile-1', 1);
+
+    expect(list).toHaveBeenCalledTimes(2);
+    expect(list).toHaveBeenLastCalledWith('profile-1');
+    expect(controller.getSnapshot()).toMatchObject({
+      profileId: 'profile-1', candidates: [candidate('profile-1', 'after-capture')],
+      stateFilter: 'BLOCKED', sourceQuery: 'talenthop', loading: false,
+    });
+
+    list.mockResolvedValueOnce([candidate('profile-2')]);
+    await controller.syncSelection('profile-2', 1);
+    expect(list).toHaveBeenCalledTimes(3);
+    expect(list).toHaveBeenLastCalledWith('profile-2');
+    expect(controller.getSnapshot()).toMatchObject({
+      profileId: 'profile-2', stateFilter: 'ALL', sourceQuery: '',
+    });
+  });
 });
 
 describe('source candidate review panel filters', () => {

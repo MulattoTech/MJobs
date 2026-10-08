@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useSyncExternalStore } from 'react';
+import React, { useEffect, useSyncExternalStore } from 'react';
 import type {
   SourceCandidate,
   SourceCandidateState,
@@ -7,11 +7,15 @@ import type {
 import { SourceCandidateReviewQueue } from './source-candidate-review';
 import type { SourceCandidateReviewClient } from './source-candidate-review-client';
 
+export type SourceCandidateReviewStateFilter = 'ALL' | SourceCandidateState;
+
 export type SourceCandidateReviewPanelState = {
   profileId: string | null;
   candidates: SourceCandidate[];
   loading: boolean;
   error: string | null;
+  stateFilter: SourceCandidateReviewStateFilter;
+  sourceQuery: string;
 };
 
 function errorMessage(error: unknown): string {
@@ -24,8 +28,11 @@ function errorMessage(error: unknown): string {
 export class SourceCandidateReviewPanelController {
   private state: SourceCandidateReviewPanelState = {
     profileId: null, candidates: [], loading: false, error: null,
+    stateFilter: 'ALL', sourceQuery: '',
   };
   private generation = 0;
+  private syncedProfile: string | null | undefined;
+  private syncedRefreshToken: string | number | null | undefined;
   private readonly listeners = new Set<() => void>();
 
   constructor(private readonly client: SourceCandidateReviewClient) {}
@@ -44,17 +51,18 @@ export class SourceCandidateReviewPanelController {
 
   private async load(profileId: string, generation: number, retainRows: boolean): Promise<void> {
     const currentRows = retainRows && this.state.profileId === profileId ? this.state.candidates : [];
-    this.publish({ profileId, candidates: currentRows, loading: true, error: null });
+    this.publish({ ...this.state, profileId, candidates: currentRows, loading: true, error: null });
     try {
       const candidates = await this.client.list(profileId);
       if (generation !== this.generation || this.state.profileId !== profileId) return;
       if (candidates.some(candidate => candidate.profile_id !== profileId)) {
         throw new Error('Source candidate list did not match the selected profile.');
       }
-      this.publish({ profileId, candidates, loading: false, error: null });
+      this.publish({ ...this.state, profileId, candidates, loading: false, error: null });
     } catch (error) {
       if (generation !== this.generation || this.state.profileId !== profileId) return;
       this.publish({
+        ...this.state,
         profileId,
         candidates: currentRows,
         loading: false,
@@ -67,11 +75,48 @@ export class SourceCandidateReviewPanelController {
     const selectedProfile = profileId?.trim() || null;
     const generation = ++this.generation;
     if (!selectedProfile) {
-      this.publish({ profileId: null, candidates: [], loading: false, error: null });
+      this.publish({
+        profileId: null, candidates: [], loading: false, error: null,
+        stateFilter: 'ALL', sourceQuery: '',
+      });
       return;
     }
-    this.publish({ profileId: selectedProfile, candidates: [], loading: true, error: null });
+    this.publish({
+      profileId: selectedProfile, candidates: [], loading: true, error: null,
+      stateFilter: 'ALL', sourceQuery: '',
+    });
     await this.load(selectedProfile, generation, false);
+  }
+
+  async syncSelection(
+    profileId: string | null,
+    refreshToken?: string | number | null,
+  ): Promise<'PROFILE' | 'REFRESH' | 'NONE'> {
+    if (this.syncedProfile === undefined || this.syncedProfile !== profileId) {
+      this.syncedProfile = profileId;
+      this.syncedRefreshToken = refreshToken;
+      await this.selectProfile(profileId);
+      return 'PROFILE';
+    }
+    if (!Object.is(this.syncedRefreshToken, refreshToken)) {
+      this.syncedRefreshToken = refreshToken;
+      if (profileId) {
+        await this.refreshProfile(profileId);
+        return 'REFRESH';
+      }
+    }
+    return 'NONE';
+  }
+
+  async refreshProfile(profileId: string): Promise<void> {
+    if (!profileId || this.state.profileId !== profileId) return;
+    const generation = ++this.generation;
+    await this.load(profileId, generation, true);
+  }
+
+  setFilters(stateFilter: SourceCandidateReviewStateFilter, sourceQuery: string): void {
+    if (stateFilter === this.state.stateFilter && sourceQuery === this.state.sourceQuery) return;
+    this.publish({ ...this.state, stateFilter, sourceQuery });
   }
 
   retry = async (): Promise<void> => {
@@ -107,9 +152,8 @@ export class SourceCandidateReviewPanelController {
 export type SourceCandidateReviewPanelProps = {
   profileId: string | null;
   client: SourceCandidateReviewClient;
+  refreshToken?: string | number | null;
 };
-
-export type SourceCandidateReviewStateFilter = 'ALL' | SourceCandidateState;
 
 const statePriority: Record<SourceCandidateState, number> = {
   NEEDS_REVIEW: 0,
@@ -144,33 +188,29 @@ export function filterAndSortSourceCandidates(
       compareStableText(left.domain, right.domain) || compareStableText(left.id, right.id));
 }
 
-export function SourceCandidateReviewPanel({ profileId, client }: SourceCandidateReviewPanelProps) {
+export function SourceCandidateReviewPanel({ profileId, client, refreshToken }: SourceCandidateReviewPanelProps) {
   const [controller] = React.useState(() => new SourceCandidateReviewPanelController(client));
-  const [stateFilter, setStateFilter] = useState<SourceCandidateReviewStateFilter>('ALL');
-  const [sourceQuery, setSourceQuery] = useState('');
   const state = useSyncExternalStore(controller.subscribe, controller.getSnapshot, controller.getSnapshot);
 
   useEffect(() => {
-    setStateFilter('ALL');
-    setSourceQuery('');
-    void controller.selectProfile(profileId);
-  }, [controller, profileId]);
+    void controller.syncSelection(profileId, refreshToken);
+  }, [controller, profileId, refreshToken]);
 
   const stateMatchesSelection = state.profileId === profileId;
   const profileCandidates = stateMatchesSelection ? state.candidates : [];
   const filteredCandidates = filterAndSortSourceCandidates(
-    profileCandidates, profileId, stateFilter, sourceQuery,
+    profileCandidates, profileId, state.stateFilter, state.sourceQuery,
   );
   const controlsDisabled = !stateMatchesSelection || state.loading;
-  const filtersActive = stateFilter !== 'ALL' || sourceQuery.trim().length > 0;
+  const filtersActive = state.stateFilter !== 'ALL' || state.sourceQuery.trim().length > 0;
   return <div className="source-candidate-review-panel">
     {profileId && <section className="panel" aria-label="Source candidate queue filters">
       <div className="toolbar"><div><h2>Filter source candidates</h2>
         <p>Changing filters hides unmatched rows; entered review notes and retry IDs remain with their candidates.</p></div>
         <span className="tag">Showing {filteredCandidates.length} of {profileCandidates.length}</span></div>
       <div className="toolbar">
-        <label>Review state<select aria-label="Filter by review state" value={stateFilter} disabled={controlsDisabled}
-          onChange={event => setStateFilter(event.currentTarget.value as SourceCandidateReviewStateFilter)}>
+        <label>Review state<select aria-label="Filter by review state" value={state.stateFilter} disabled={controlsDisabled}
+          onChange={event => controller.setFilters(event.currentTarget.value as SourceCandidateReviewStateFilter, state.sourceQuery)}>
           <option value="ALL">All review states</option>
           <option value="NEEDS_REVIEW">Needs review</option>
           <option value="DISCOVERED">Discovered</option>
@@ -179,10 +219,10 @@ export function SourceCandidateReviewPanel({ profileId, client }: SourceCandidat
           <option value="INTEGRATED">Integrated</option>
           <option value="REJECTED">Rejected</option>
         </select></label>
-        <label>Source or domain<input aria-label="Filter by source name or domain" type="search" value={sourceQuery}
-          disabled={controlsDisabled} onChange={event => setSourceQuery(event.currentTarget.value)} /></label>
+        <label>Source or domain<input aria-label="Filter by source name or domain" type="search" value={state.sourceQuery}
+          disabled={controlsDisabled} onChange={event => controller.setFilters(state.stateFilter, event.currentTarget.value)} /></label>
         <button type="button" disabled={controlsDisabled || !filtersActive}
-          onClick={() => { setStateFilter('ALL'); setSourceQuery(''); }}>Clear filters</button>
+          onClick={() => controller.setFilters('ALL', '')}>Clear filters</button>
       </div>
       <p className="muted">Sorted by review priority, then source domain; candidate ID breaks ties.</p>
       {profileCandidates.length > 0 && filteredCandidates.length === 0 &&
