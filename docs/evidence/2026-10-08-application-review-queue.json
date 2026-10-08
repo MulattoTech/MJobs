@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REQ-196-APPLICATION-REVIEW-QUEUE-20261008",
+  "recorded_at_utc": "2026-10-08T11:23:21Z",
+  "result": "PARTIAL",
+  "issue": 197,
+  "requirement_id": "MJ-REQ-196",
+  "scope": "Profile-scoped navigation and a durable read-only review queue for applications with supported question preflight UNKNOWN or FAIL results.",
+  "authority": {
+    "repository": "MulattoTech/MJobs",
+    "issue_url": "https://github.com/MulattoTech/MJobs/issues/197",
+    "issue_state": "OPEN",
+    "branch": "codex/mj-req196-review-queue-20261008",
+    "worktree": ".worktrees/codex-mj-req196-review-queue-20261008",
+    "base_head": "4bfb001f9669948dfb2ce37a97e57bf4a02c2bd5",
+    "source_sha": "001b049a859e070e8dd9f29e4c265641f8450774",
+    "source_tree": "7db998ad8da3f02b25d2d010cda20f56aa2727f6"
+  },
+  "acceptance": {
+    "queue_visibility": "PASS; main navigation includes a Review Queue and filters the active profile's saved applications to question-preflight UNKNOWN or FAIL.",
+    "explainable_blockers": "PASS; items show the saved job and company, exact preflight result/reason, question ID/text, and recorded missing fact, answer, profile, document, or application fields. Missing mappings receive an explicit review explanation.",
+    "existing_review_route": "PASS; the only queue action opens the existing profile-scoped application detail and review workflow. It does not answer, save, continue automation, or submit.",
+    "reload_and_profile_isolation": "PASS; synthetic browser acceptance reopens the queue after reload and confirms another profile's empty queue does not reveal the first profile's application.",
+    "pass_and_other_categories": "PASS for this bounded slice; component tests exclude PASS preflight and another profile. CAPTCHA, login, sensitive question, low-confidence field, unsupported ATS, ambiguous submission, and document validation categories are labeled unsupported and not listed.",
+    "side_effects": "PASS; browser acceptance observes no write request while entering the queue and opening the existing review, zero application attempts, unchanged application state/confirmation during queue navigation, and no outside network request. Explicit question-answer review later in the existing workflow remains user-directed and separate.",
+    "whole_requirement": "PARTIAL; only persisted question-preflight blockers are centralized. The other MJ-REQ-196 review categories remain unsupported and unlisted; no live employer ATS or external submission was exercised."
+  },
+  "red_first_observation": {
+    "result": "FAIL_BEFORE_IMPLEMENTATION",
+    "details": "The new frontend test initially failed because application-review-queue did not exist. After implementation it passed while verifying UNKNOWN and FAIL details, PASS exclusion, active-profile filtering, and navigation-only actions."
+  },
+  "checks": [
+    {
+      "command": "npm test",
+      "target": "apps/web full local Vitest suite",
+      "result": "PASS",
+      "tests": 100,
+      "test_files": 17,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "npm run build",
+      "target": "apps/web TypeScript check and Vite production build",
+      "result": "PASS",
+      "details": "TypeScript check passed; Vite transformed 34 modules."
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.browser.test_application_review_queue -v",
+      "target": "synthetic local Chromium/API queue, persisted reload, existing-review route, profile isolation, and side-effect checks",
+      "result": "PASS",
+      "tests": 1,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "git diff --check",
+      "target": "owned source, frontend test, and browser test changes",
+      "result": "PASS"
+    }
+  ],
+  "environment": {
+    "platform": "Windows PowerShell",
+    "python": "3.12.10, existing repository .venv",
+    "node": "25.9.0",
+    "npm": "11.12.1",
+    "dependencies": "Existing root apps/web/node_modules reused through an ignored worktree-local junction; shared dependency contents were not modified."
+  },
+  "hosted_checks": "NOT_RUN by repository policy",
+  "external_submission": "NOT_RUN; external submission remains OFF",
+  "source_sha256": {
+    "apps/web/src/main.tsx": "939D657499208B223690FD7F1A557FCCD38B9C2941F729B7C1A529E535324993",
+    "apps/web/src/application-review-queue.tsx": "82495B0324F34DFE0EB3686310E3188F7522B4BE3A2365417B3E8A8F221FA98B",
+    "apps/web/src/application-review-queue.test.tsx": "B5E2B8C3025E96233FDB302A745EBFF44253C8D323AE10E7381745EBE31C52D0",
+    "tests/browser/test_application_review_queue.py": "6313FCE3A0118DBAEF9C606CF37F7CFA2B4E8239500390BD34562FF12D079942"
+  },
+  "limitations": [
+    "The canonical MJ-REQ-196 requirement remains PARTIAL; supported categories beyond UNKNOWN/FAIL question preflight are not present in this queue.",
+    "Browser acceptance uses synthetic local data and does not establish live ATS compatibility.",
+    "Hosted CI, hosted review, and whole-product release eligibility are NOT_RUN by policy."
+  ]
+}
