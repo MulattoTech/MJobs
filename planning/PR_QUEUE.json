@@ -1352,7 +1352,23 @@
       "latest_source_commit": "f8d07ca9a83e9f61541ad74f2bcb1c1c46f02165",
       "latest_evidence_path": "docs/evidence/2026-10-07-safe-browser-debug-capture.json",
       "latest_issue_comment": "https://github.com/MulattoTech/MJobs/issues/180#issuecomment-6041786003",
-      "latest_integration_method": "NON_FORCE_FAST_FORWARD"
+      "latest_integration_method": "NON_FORCE_FAST_FORWARD",
+      "active_slice": {
+        "name": "Synthetic debug-capture package-writer privacy regression",
+        "issue": 180,
+        "requirement_id": "MJ-REQ-179",
+        "status": "ACTIVE_LOCAL_CLAIMED",
+        "depends_on": [],
+        "owned_paths": [
+          "tests/browser/test_debug_capture_privacy.py",
+          "docs/evidence/2026-10-08-debug-capture-package-privacy.json"
+        ],
+        "acceptance": "Use synthetic FIXTURE data to exercise the existing mock ATS failure-capture package writer. Check screenshot pixel redaction and sanitized metadata/DOM for synthetic contact/token/form/canvas/image canaries and applicable URL/error/retention controls. Test-only; no real ATS or browser data; broad issue remains partial.",
+        "branch": "codex/mj-req179-debug-package-privacy-20261008",
+        "worktree": ".worktrees/codex-mj-req179-debug-package-privacy-20261008",
+        "base": "691fcae2969ad1a8407588b34ddfd44fc294b147",
+        "issue_claim_comment": "https://github.com/MulattoTech/MJobs/issues/180#issuecomment-6054500133"
+      }
     },
     {
       "id": "MJ-PR-050",
@@ -4010,5 +4026,5 @@
       "claim_release_comment": "https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053395464"
     }
   ],
-  "generated_at": "2026-10-08T07:03:20Z"
+  "generated_at": "2026-10-08T07:06:06Z"
 }

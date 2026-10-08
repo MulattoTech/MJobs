@@ -31,7 +31,7 @@
   "last_verified_tree": "d2e191922230b2ab6ba55229d8889414c5fc5268",
   "last_verified_at_utc": "2026-10-08T07:03:20Z",
   "last_verified_result": "PASS bounded local slice: issue #192 integrated; full requirement remains PARTIAL. See docs/evidence/2026-10-08-saved-job-filters.json",
-  "updated_at": "2026-10-08T07:03:20Z",
+  "updated_at": "2026-10-08T07:06:06Z",
   "last_completed": {
     "issue": 192,
     "requirement_id": "MJ-REQ-191",
@@ -59,5 +59,38 @@
     "hosted_checks": "NOT_RUN_BY_USER_POLICY",
     "external_submission": "OFF"
   },
-  "issue_claim_comment": "https://github.com/MulattoTech/MJobs/issues/178#issuecomment-6054437313"
+  "issue_claim_comment": "https://github.com/MulattoTech/MJobs/issues/178#issuecomment-6054437313",
+  "active_children": [
+    {
+      "child_id": "req177-apply-mock-ats",
+      "issue": 178,
+      "requirement_id": "MJ-REQ-177",
+      "status": "ACTIVE_LOCAL_CLAIMED",
+      "branch": "codex/mj-req177-ats-context-logs-20261008",
+      "worktree": ".worktrees/codex-mj-req177-ats-context-logs-20261008",
+      "base": "908e5de2cfcbf1cfbd1ca10388e90a3cdf9bbef0",
+      "owned_paths": [
+        "workers/tasks.py",
+        "workers/structured_logging.py",
+        "tests/unit/test_structured_logging.py",
+        "tests/integration/test_worker_lifecycle.py",
+        "docs/evidence/2026-10-08-apply-mock-ats-logs.json"
+      ],
+      "claim": "https://github.com/MulattoTech/MJobs/issues/178#issuecomment-6054437313"
+    },
+    {
+      "child_id": "req179-debug-package-privacy",
+      "issue": 180,
+      "requirement_id": "MJ-REQ-179",
+      "status": "ACTIVE_LOCAL_CLAIMED",
+      "branch": "codex/mj-req179-debug-package-privacy-20261008",
+      "worktree": ".worktrees/codex-mj-req179-debug-package-privacy-20261008",
+      "base": "691fcae2969ad1a8407588b34ddfd44fc294b147",
+      "owned_paths": [
+        "tests/browser/test_debug_capture_privacy.py",
+        "docs/evidence/2026-10-08-debug-capture-package-privacy.json"
+      ],
+      "claim": "https://github.com/MulattoTech/MJobs/issues/180#issuecomment-6054500133"
+    }
+  ]
 }

@@ -43,7 +43,7 @@
   },
   "last_integrated_head": "dbc9e573680fcf32498131afe3bee75e72213371",
   "last_verified_result": "PARTIAL (bounded Newest slice integrated; full discovery incomplete F/ss at 600s).",
-  "updated_at": "2026-10-08T06:53:07Z",
+  "updated_at": "2026-10-08T07:06:06Z",
   "integrated_main": "dbc9e573680fcf32498131afe3bee75e72213371",
   "last_integrated_issue": 517,
   "last_integrated_requirement": "MJ-FEATURE-517",
@@ -71,5 +71,38 @@
     "tests/integration/test_worker_lifecycle.py",
     "docs/evidence/2026-10-08-apply-mock-ats-logs.json"
   ],
-  "acceptance": "Allowlisted provider identifier resolved from persisted application route for APPLY_MOCK terminal log only; best effort; omit unknown/malformed values; no private parameters/URLs; log after durable terminal persistence. Preserve broader requirement as PARTIAL."
+  "acceptance": "Allowlisted provider identifier resolved from persisted application route for APPLY_MOCK terminal log only; best effort; omit unknown/malformed values; no private parameters/URLs; log after durable terminal persistence. Preserve broader requirement as PARTIAL.",
+  "active_children": [
+    {
+      "child_id": "req177-apply-mock-ats",
+      "issue": 178,
+      "requirement_id": "MJ-REQ-177",
+      "status": "ACTIVE_LOCAL_CLAIMED",
+      "branch": "codex/mj-req177-ats-context-logs-20261008",
+      "worktree": ".worktrees/codex-mj-req177-ats-context-logs-20261008",
+      "base": "908e5de2cfcbf1cfbd1ca10388e90a3cdf9bbef0",
+      "owned_paths": [
+        "workers/tasks.py",
+        "workers/structured_logging.py",
+        "tests/unit/test_structured_logging.py",
+        "tests/integration/test_worker_lifecycle.py",
+        "docs/evidence/2026-10-08-apply-mock-ats-logs.json"
+      ],
+      "claim": "https://github.com/MulattoTech/MJobs/issues/178#issuecomment-6054437313"
+    },
+    {
+      "child_id": "req179-debug-package-privacy",
+      "issue": 180,
+      "requirement_id": "MJ-REQ-179",
+      "status": "ACTIVE_LOCAL_CLAIMED",
+      "branch": "codex/mj-req179-debug-package-privacy-20261008",
+      "worktree": ".worktrees/codex-mj-req179-debug-package-privacy-20261008",
+      "base": "691fcae2969ad1a8407588b34ddfd44fc294b147",
+      "owned_paths": [
+        "tests/browser/test_debug_capture_privacy.py",
+        "docs/evidence/2026-10-08-debug-capture-package-privacy.json"
+      ],
+      "claim": "https://github.com/MulattoTech/MJobs/issues/180#issuecomment-6054500133"
+    }
+  ]
 }
