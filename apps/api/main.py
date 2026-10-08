@@ -1337,6 +1337,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
              min_match_score: int | None = Query(default=None, ge=0, le=100),
              experience_level: Literal["INTERNSHIP", "ENTRY", "JUNIOR", "ASSOCIATE", "MID", "SENIOR",
                                        "LEAD", "MANAGER", "DIRECTOR", "EXECUTIVE", "UNKNOWN"] | None = None,
+             employment_type: Literal["FULL_TIME", "PART_TIME", "CONTRACT", "CONTRACT_TO_HIRE",
+                                     "TEMPORARY", "INTERNSHIP", "OTHER", "UNKNOWN"] | None = None,
              posted_within_days: int | None = Query(default=None, ge=1, le=30),
              override_saved_match_score: bool = False,
              search_profile_id: str | None = Query(default=None, max_length=128),
@@ -1368,6 +1370,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                           title=title, company=company, location=location,
                           salary_min=salary_min, salary_max=salary_max,
                           min_match_score=effective_match_score, experience_level=experience_level,
+                          employment_type=employment_type,
                           posted_after=posted_after, posted_before=posted_before)
         if search_profile_id:
             rows = filter_jobs(rows, search_profile["criteria"])

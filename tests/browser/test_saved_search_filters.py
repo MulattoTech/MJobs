@@ -42,12 +42,14 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                                    .values(location="Boston, MA", attributes={
                                        "salary_min": 80000, "salary_max": 100000,
                                        "salary_currency": "USD", "salary_period": "YEAR",
-                                       "experience_level": "SENIOR", "reported_posted_at": "2026-10-07T00:00:00+00:00"}))
+                                       "experience_level": "SENIOR", "employment_type": "FULL_TIME",
+                                       "reported_posted_at": "2026-10-07T00:00:00+00:00"}))
                 connection.execute(update(m.jobs).where(m.jobs.c.title == "Data Engineer")
                                    .values(location="Berlin", attributes={
                                        "salary_min": 150000, "salary_max": 180000,
                                        "salary_currency": "EUR", "salary_period": "YEAR",
-                                       "experience_level": "STAFF_PLUS", "reported_posted_at": "2026-09-01T00:00:00+00:00"}))
+                                       "experience_level": "STAFF_PLUS", "employment_type": "OTHER",
+                                       "reported_posted_at": "2026-09-01T00:00:00+00:00"}))
             operations_before = store.count("worker_operations")
             store.engine.dispose()
             store = Store(database_url)
@@ -106,12 +108,14 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                     page.get_by_label("Minimum annual salary (USD)", exact=True).fill("80000")
                     page.get_by_label("Maximum annual salary (USD)", exact=True).fill("100000")
                     page.get_by_label("Experience level", exact=True).select_option("SENIOR")
+                    page.get_by_label("Employment type", exact=True).select_option("FULL_TIME")
                     page.get_by_label("Posted within", exact=True).select_option("7")
                     page.get_by_label("Work location", exact=True).select_option("REMOTE")
                     page.get_by_label("Source", exact=True).select_option("mock-ats")
                     with page.expect_response(lambda response:
                             response.url.startswith(origin + "/jobs?")
                             and "experience_level=SENIOR" in response.url
+                            and "employment_type=FULL_TIME" in response.url
                             and "salary_min=80000" in response.url
                             and "salary_max=100000" in response.url
                             and "sort=company" in response.url) as sorted_jobs:
@@ -134,6 +138,7 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                             and "company=Example+Systems" in response.url
                             and "location=bOsToN" in response.url
                             and "experience_level=SENIOR" in response.url
+                            and "employment_type=FULL_TIME" in response.url
                             and "salary_min=80000" in response.url
                             and "salary_max=100000" in response.url
                             and "remote_type=REMOTE" in response.url
@@ -149,6 +154,7 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                     expect(page.get_by_label("Minimum annual salary (USD)", exact=True)).to_have_value("80000")
                     expect(page.get_by_label("Maximum annual salary (USD)", exact=True)).to_have_value("100000")
                     expect(page.get_by_label("Experience level", exact=True)).to_have_value("SENIOR")
+                    expect(page.get_by_label("Employment type", exact=True)).to_have_value("FULL_TIME")
                     expect(page.get_by_label("Posted within", exact=True)).to_have_value("7")
                     expect(page.get_by_label("Work location", exact=True)).to_have_value("REMOTE")
                     expect(page.get_by_label("Source", exact=True)).to_have_value("mock-ats")
@@ -158,11 +164,19 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
 
                     with page.expect_response(lambda response:
                             response.url.startswith(origin + "/jobs?")
+                            and "employment_type=" not in response.url) as employment_cleared:
+                        page.get_by_label("Employment type", exact=True).select_option("")
+                    self.assertEqual(employment_cleared.value.status, 200)
+                    expect(page.get_by_label("Employment type", exact=True)).to_have_value("")
+
+                    with page.expect_response(lambda response:
+                            response.url.startswith(origin + "/jobs?")
                             and "q=" in response.url
                             and "title=" not in response.url
                             and "company=" not in response.url
                             and "location=" not in response.url
                             and "experience_level=" not in response.url
+                            and "employment_type=" not in response.url
                             and "salary_min=" not in response.url
                             and "salary_max=" not in response.url
                             and "remote_type=" not in response.url
@@ -177,6 +191,7 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                     expect(page.get_by_label("Minimum annual salary (USD)", exact=True)).to_have_value("")
                     expect(page.get_by_label("Maximum annual salary (USD)", exact=True)).to_have_value("")
                     expect(page.get_by_label("Experience level", exact=True)).to_have_value("")
+                    expect(page.get_by_label("Employment type", exact=True)).to_have_value("")
                     expect(page.get_by_label("Posted within", exact=True)).to_have_value("")
                     expect(page.get_by_label("Work location", exact=True)).to_have_value("")
                     expect(page.get_by_label("Source", exact=True)).to_have_value("")

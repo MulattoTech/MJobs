@@ -67,7 +67,7 @@ class SavedSearchFiltersApiTests(unittest.TestCase):
         self.assertEqual(row["criteria"]["remote"], "REQUIRED")
         self.assertEqual(row["criteria"]["job_filters"], {
             "q": "network", "title": "Developer", "location": "Boston", "company": "Example",
-            "experience_level": "", "posted_within_days": "", "remote_type": "REMOTE", "provider": "greenhouse", "sort": "company",
+            "experience_level": "", "employment_type": "", "posted_within_days": "", "remote_type": "REMOTE", "provider": "greenhouse", "sort": "company",
             "salary_min": "", "salary_max": ""})
         self.assertFalse(row["enabled"])
         self.assertEqual(self.client.get("/search-profiles", params={"profile_id": "other"})
@@ -89,6 +89,7 @@ class SavedSearchFiltersApiTests(unittest.TestCase):
         self.assertEqual(row["criteria"]["job_filters"]["location"], "")
         self.assertEqual(row["criteria"]["job_filters"]["salary_min"], "")
         self.assertEqual(row["criteria"]["job_filters"]["salary_max"], "")
+        self.assertEqual(row["criteria"]["job_filters"]["employment_type"], "")
 
     def test_saved_job_filters_accept_experience_level_and_legacy_payload(self):
         filters = {"q": "", "title": "", "company": "", "location": "",
@@ -167,6 +168,66 @@ class SavedSearchFiltersApiTests(unittest.TestCase):
         wrong_owner = self.client.get("/jobs", params={"profile_id": "other", "search_profile_id": "saved-filter",
                                                        "experience_level": "SENIOR"})
         self.assertEqual(wrong_owner.status_code, 409)
+
+    def test_employment_type_filter_is_normalized_fail_closed_and_before_limit(self):
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.title == "Python Developer").values(
+                title="A Unrecognized type", attributes={"employment_type": "FULLTIME"}))
+            connection.execute(update(m.jobs).where(m.jobs.c.title == "Data Engineer").values(
+                title="B Full-time role", attributes={"employment_type": "FULL_TIME"}))
+        selected = self.client.get("/jobs", params={"employment_type": "FULL_TIME", "sort": "title", "limit": 1})
+        self.assertEqual(selected.status_code, 200, selected.text)
+        self.assertEqual([job["title"] for job in selected.json()["jobs"]], ["B Full-time role"])
+        self.assertEqual(self.client.get("/jobs", params={"employment_type": "OTHER"}).json()["jobs"], [])
+        self.assertEqual(self.client.get("/jobs", params={"employment_type": "UNKNOWN"}).json()["jobs"], [])
+        unsupported = self.client.get("/jobs", params={"employment_type": "FULLTIME"})
+        self.assertEqual(unsupported.status_code, 422)
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.title == "A Unrecognized type").values(
+                attributes={"employment_type": "UNKNOWN"}))
+        unknown = self.client.get("/jobs", params={"employment_type": "UNKNOWN", "sort": "title"})
+        self.assertEqual([job["title"] for job in unknown.json()["jobs"]], ["A Unrecognized type"])
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.title == "A Unrecognized type").values(attributes={}))
+        absent = self.client.get("/jobs", params={"employment_type": "FULL_TIME", "sort": "title"})
+        self.assertEqual([job["title"] for job in absent.json()["jobs"]], ["B Full-time role"])
+
+    def test_employment_type_saved_search_round_trip_clear_legacy_and_profile_scope(self):
+        filters = {"q": "", "title": "", "company": "", "location": "", "salary_min": "",
+                   "salary_max": "", "min_match_score": "", "experience_level": "",
+                   "posted_within_days": "", "employment_type": "FULL_TIME",
+                   "remote_type": "", "provider": "", "sort": "score"}
+        saved = self.client.put("/search-profiles", json={**self._profile(job_filters=filters),
+                                                            "include_titles": [], "remote": "ANY"})
+        self.assertEqual(saved.status_code, 200, saved.text)
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.title == "Python Developer").values(
+                attributes={"employment_type": "FULL_TIME"}))
+        row = next(item for item in self.client.get("/search-profiles", params={
+            "profile_id": "fixture"}).json()["search_profiles"] if item["id"] == "saved-filter")
+        self.assertEqual(row["criteria"]["job_filters"]["employment_type"], "FULL_TIME")
+        results = self.client.get("/jobs", params={"profile_id": "fixture", "search_profile_id": "saved-filter",
+                                                    "employment_type": "FULL_TIME"})
+        self.assertEqual(results.status_code, 200, results.text)
+        self.assertEqual([job["title"] for job in results.json()["jobs"]], ["Python Developer"])
+        self.assertEqual(self.client.get("/search-profiles", params={"profile_id": "other"})
+                         .json()["search_profiles"], [])
+        legacy = self.client.put("/search-profiles", json=self._profile(
+            identifier="employment-legacy", job_filters={"q": "", "remote_type": "",
+                                                           "provider": "", "sort": "score"}))
+        self.assertEqual(legacy.status_code, 200, legacy.text)
+        legacy_row = next(item for item in self.client.get("/search-profiles", params={
+            "profile_id": "fixture"}).json()["search_profiles"] if item["id"] == "employment-legacy")
+        self.assertEqual(legacy_row["criteria"]["job_filters"]["employment_type"], "")
+        cleared = self.client.put("/search-profiles", json=self._profile(
+            job_filters={**filters, "employment_type": ""}))
+        self.assertEqual(cleared.status_code, 200, cleared.text)
+        invalid = self.client.put("/search-profiles", json=self._profile(
+            identifier="employment-invalid", job_filters={**filters, "employment_type": "FULLTIME"}))
+        self.assertEqual(invalid.status_code, 422)
+        operations_before = self.store.count("worker_operations")
+        self.assertEqual(schedule_due_sources(self.store)["scheduled"], [])
+        self.assertEqual(self.store.count("worker_operations"), operations_before)
 
     def test_saved_filter_validation_and_cross_profile_update_rejection(self):
         self.client.put("/search-profiles", json=self._profile()).raise_for_status()
@@ -268,7 +329,7 @@ class SavedSearchFiltersApiTests(unittest.TestCase):
         filters = {"q": "network", "title": "Developer", "location": "Boston", "company": "Example",
                    "remote_type": "REMOTE", "provider": "greenhouse", "sort": "company",
                    "salary_min": "85000", "salary_max": "130000", "experience_level": "",
-                   "posted_within_days": ""}
+                   "employment_type": "", "posted_within_days": ""}
         operations_before = self.store.count("worker_operations")
         response = self.client.put("/search-profiles", json=self._profile(job_filters=filters))
         self.assertEqual(response.status_code, 200, response.text)
