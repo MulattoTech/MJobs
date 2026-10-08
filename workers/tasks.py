@@ -185,6 +185,13 @@ def execute_operation(operation_id):
                 # Logging context is best effort and cannot change a persisted outcome.
                 ats_provider = None
             logged_operation = {**operation, "ats_provider": ats_provider}
+        elif operation["kind"] == "COMPANY_SOURCE_REFRESH":
+            try:
+                company_id = _resolve_company_source_company_id(store, operation)
+            except Exception:
+                # Logging context is best effort and cannot change a persisted outcome.
+                company_id = None
+            logged_operation = {**operation, "company_id": company_id}
         log_operation_finished(logged_operation, state, error, time.monotonic() - started_at)
         return {"operation_id": operation_id, "status": state, "error_category": error}
     finally:
@@ -199,3 +206,12 @@ def _resolve_application_ats_provider(store, operation):
         return connection.execute(select(m.routes.c.provider).select_from(
             m.applications.join(m.routes, m.applications.c.route_id == m.routes.c.id)
         ).where(m.applications.c.id == operation.get("entity_id"))).scalar_one_or_none()
+
+
+def _resolve_company_source_company_id(store, operation):
+    """Read only the persisted company FK for COMPANY_SOURCE_REFRESH log context."""
+    if operation.get("kind") != "COMPANY_SOURCE_REFRESH":
+        return None
+    with store.engine.connect() as connection:
+        return connection.execute(select(m.company_sources.c.company_id).where(
+            m.company_sources.c.id == operation.get("entity_id"))).scalar_one_or_none()

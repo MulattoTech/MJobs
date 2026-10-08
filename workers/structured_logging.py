@@ -97,6 +97,10 @@ def log_operation_finished(operation, result, error_code, duration_seconds):
         company_id = _safe_identifier(operation.get("entity_id"))
         if company_id:
             record["company_id"] = company_id
+    elif kind == "COMPANY_SOURCE_REFRESH":
+        company_id = _safe_identifier(operation.get("company_id"))
+        if company_id and not _SECRET_SHAPED_IDENTIFIER.search(company_id):
+            record["company_id"] = company_id
     elif kind == "APPLY_MOCK":
         application_id = _safe_identifier(operation.get("entity_id"))
         if application_id:

@@ -118,6 +118,49 @@ class StructuredOperationLoggingTests(unittest.TestCase):
 
         self.assertNotIn("ats", json.loads(captured.records[0].getMessage()))
 
+    def test_company_source_refresh_logs_only_validated_company_id_context(self):
+        with self.assertLogs("mjobs.operations", level="INFO") as captured:
+            log_operation_finished({
+                "id": "operation-refresh", "kind": "COMPANY_SOURCE_REFRESH",
+                "entity_id": "source-123", "company_id": "company-456",
+                "params": {
+                    "source_id": "source-123", "company_name": "Private Employer",
+                    "endpoint": "https://private.test/jobs?token=synthetic-secret",
+                    "tenant": "private-tenant", "provider": "greenhouse",
+                },
+            }, "COMPLETED", None, 0.01)
+
+        message = captured.records[0].getMessage()
+        record = json.loads(message)
+        self.assertEqual(record["company_id"], "company-456")
+        self.assertEqual(record["source_id"], "source-123")
+        self.assertNotIn("company_name", record)
+        self.assertNotIn("provider", record)
+        self.assertNotIn("tenant", record)
+        self.assertNotIn("params", record)
+        for private_value in ("Private Employer", "private.test", "synthetic-secret",
+                              "private-tenant", "greenhouse"):
+            self.assertNotIn(private_value, message)
+
+    def test_company_id_context_is_refresh_only_and_rejects_malformed_or_secret_shaped_ids(self):
+        for kind, company_id, expected in (
+            ("COMPANY_SOURCE_REFRESH", "company-456", "company-456"),
+            ("COMPANY_SOURCE_REFRESH", None, None),
+            ("COMPANY_SOURCE_REFRESH", "bad\ncompany", None),
+            ("COMPANY_SOURCE_REFRESH", "api-key-secret-value", None),
+            ("COMPANY_DISCOVER", "company-456", "entity-original"),
+            ("PREPARE", "company-456", None),
+        ):
+            with self.subTest(kind=kind, company_id=company_id), \
+                    self.assertLogs("mjobs.operations", level="INFO") as captured:
+                log_operation_finished({
+                    "id": "operation-context", "kind": kind, "entity_id": "entity-original",
+                    "company_id": company_id, "params": {},
+                }, "BLOCKED", "SAFE_ERROR", 0.01)
+
+            record = json.loads(captured.records[0].getMessage())
+            self.assertEqual(record.get("company_id"), expected)
+
     def test_prepare_log_contains_safe_context_but_never_serializes_params(self):
         operation = {
             "id": "a" * 64,

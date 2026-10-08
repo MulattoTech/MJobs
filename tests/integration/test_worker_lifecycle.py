@@ -16,6 +16,7 @@ from sqlalchemy import select, update
 
 from packages.persistence import models as m
 from packages.persistence.store import Store
+from services.company_discovery.sources import upsert_company_job_source
 from services.discovery.pipeline import discover
 from services.documents.generate import prepare
 from services.documents.errors import PreparationError
@@ -279,6 +280,87 @@ class WorkerLifecycleTests(unittest.TestCase):
         self.assertNotIn("ats", record)
         self.assertNotIn("private database diagnostic", message)
         self.assertNotIn("private answer", message)
+
+    def _personal_company_source_store(self):
+        path = self.root / "personal-company-source.db"
+        store = Store(f"sqlite:///{path.as_posix()}")
+        store.migrate()
+        store.bind_workspace_mode("PERSONAL")
+        store.save_profile(PROFILE)
+        with store.engine.begin() as connection:
+            connection.execute(m.companies.insert().values(
+                id="company-logged-id", name="Private Employer Name", domain="private.example"))
+        source = upsert_company_job_source(
+            store, company_id="company-logged-id", provider="rss",
+            tenant_identifier="private-tenant", feed_url="https://private.example/jobs",
+            collection_strategy="RSS")
+        return store, source
+
+    def test_company_source_refresh_logs_persisted_company_fk_after_terminal_persistence(self):
+        store, source = self._personal_company_source_store()
+        try:
+            operation_id = enqueue_operation(store, "COMPANY_SOURCE_REFRESH", source["id"], {
+                "source_id": source["id"], "profile_ids": ["fixture"],
+                "endpoint": source["endpoint"], "tenant": source["tenant"],
+                "provider": source["provider"], "company_name": "Private Employer Name",
+            })
+            from workers.structured_logging import log_operation_finished
+            def assert_persisted_then_log(operation, result, error_code, duration_seconds):
+                with store.engine.connect() as connection:
+                    state = connection.execute(select(m.operations.c.state).where(
+                        m.operations.c.id == operation_id)).scalar_one()
+                self.assertEqual(state, result)
+                log_operation_finished(operation, result, error_code, duration_seconds)
+
+            with patch.dict("os.environ", MJOBS_DATABASE_URL=store.url,
+                            MJOBS_OPERATION_MODE="PERSONAL"), \
+                    self.assertLogs("mjobs.operations", level="INFO") as captured, \
+                    patch("services.company_discovery.monitoring.refresh_company_source"), \
+                    patch("workers.tasks.log_operation_finished", side_effect=assert_persisted_then_log):
+                result = execute_operation(operation_id)
+
+            self.assertEqual(result["status"], "COMPLETED")
+            message = captured.records[0].getMessage()
+            record = json.loads(message)
+            self.assertEqual(record["company_id"], "company-logged-id")
+            self.assertEqual(record["source_id"], source["id"])
+            for private_value in ("Private Employer Name", "private.example", "private-tenant", "rss"):
+                self.assertNotIn(private_value, message)
+            self.assertNotIn("params", record)
+        finally:
+            store.engine.dispose()
+
+    def test_company_source_refresh_context_lookup_failure_preserves_result_and_omits_diagnostics(self):
+        store, source = self._personal_company_source_store()
+        try:
+            operation_id = enqueue_operation(store, "COMPANY_SOURCE_REFRESH", source["id"], {
+                "source_id": source["id"], "profile_ids": ["fixture"],
+            })
+            from workers import tasks
+
+            with patch.dict("os.environ", MJOBS_DATABASE_URL=store.url,
+                            MJOBS_OPERATION_MODE="PERSONAL"), \
+                    self.assertLogs("mjobs.operations", level="INFO") as captured, \
+                    patch("services.company_discovery.monitoring.refresh_company_source"), \
+                    patch("workers.tasks._resolve_company_source_company_id", create=True,
+                          side_effect=RuntimeError("private database diagnostic")) as resolve_company:
+                result = execute_operation(operation_id)
+
+            resolve_company.assert_called_once()
+            self.assertEqual(result["status"], "COMPLETED")
+            self.assertEqual(self.read_from(store, operation_id)["state"], "COMPLETED")
+            message = captured.records[0].getMessage()
+            record = json.loads(message)
+            self.assertNotIn("company_id", record)
+            self.assertNotIn("private database diagnostic", message)
+        finally:
+            store.engine.dispose()
+
+    @staticmethod
+    def read_from(store, identifier):
+        with store.engine.connect() as connection:
+            return dict(connection.execute(select(m.operations).where(
+                m.operations.c.id == identifier)).mappings().one())
 
     def test_terminal_prepare_failure_is_recorded_without_rewrite_payload(self):
         with fixture_server() as origin:
