@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REQ-104-ANSWER-MATCHING-LOCAL-20261008",
+  "recorded_at_utc": "2026-10-08T05:55:04Z",
+  "result": "PARTIAL",
+  "issue": 105,
+  "requirement_id": "MJ-REQ-104",
+  "scope": "Reviewed reusable-answer suggestions now distinguish exact normalization, bounded token-edit fuzzy matches, and one explicitly curated semantic synonym family. Export rechecks the selected match against the current locked profile snapshot and persists match provenance in the immutable document manifest.",
+  "authority": {
+    "repository": "MulattoTech/MJobs",
+    "issue_url": "https://github.com/MulattoTech/MJobs/issues/105",
+    "issue_state": "OPEN",
+    "branch": "codex/mj-req104-answer-matching-20261008",
+    "worktree": ".worktrees/codex-mj-req104-answer-matching-20261008",
+    "base_main": "33fcafb820317a7917e97d1753b00d068feacde7",
+    "tested_commit": "fa3370af4b83a9f70f68068883af17c767a0096d",
+    "tested_tree": "2c7520dd73b293db4f9bf18523010a111f0ee5cf"
+  },
+  "acceptance": {
+    "exact_normalization": "PASS; case and punctuation variants produce EXACT_NORMALIZATION with score 1.0.",
+    "fuzzy_matching": "PASS for bounded question edits; token edit-distance score and required token overlap are recomputed server-side.",
+    "semantic_similarity": "PARTIAL; CURATED_SEMANTIC recognizes only an explicit programming-language synonym set at 0.95. This is deterministic and labeled as local curated rules; general semantic understanding is not claimed.",
+    "suggestion_and_review_gate": "PASS; the UI shows method, match score, saved question, saved-answer confidence and source. A suggestion does not populate the answer until selected; selection requires deliberate per-application review before export. Prompt or answer edits clear selection/review.",
+    "sensitive_and_legal_questions": "PASS; sensitive/legal prompts remain excluded from reusable suggestions and export, including the work-authorization example. No profile policy or inference behavior was added.",
+    "stale_approval_and_source": "PASS; server recomputes a selected match from the current profile version under the existing export lock. Substantive source edits revoke approval; reusing the stale selected answer is rejected.",
+    "provenance_history_and_download": "PASS; immutable export metadata records employer question, saved question/id, match method/score, source and saved-answer confidence. The synthetic browser flow verified history reload and identical downloaded bytes/hash; integration verified profile isolation and preserved old export bytes after an answer-source edit."
+  },
+  "checks": [
+    {
+      "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_answer_matching tests.integration.test_application_answer_export -v",
+      "target": "local unit matcher and synthetic SQLite/API export workflow",
+      "result": "PASS",
+      "tests": 21,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_application_answer_export -v",
+      "target": "isolated loopback Chromium answer suggestion, review reset, history reload and download",
+      "result": "PASS",
+      "tests": 2,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "npm test -- src/answer-matching.test.ts",
+      "target": "apps/web local Vitest matcher tests",
+      "result": "PASS",
+      "tests": 5,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "npm run build",
+      "target": "apps/web TypeScript and Vite production build",
+      "result": "PASS",
+      "details": "33 modules transformed. Node 25.9.0 emitted npm ci EBADENGINE warning because Vitest declares support for ^22.12.0, ^24.0.0, or >=26.0.0."
+    },
+    {
+      "command": "git diff --check",
+      "target": "tested candidate tree",
+      "result": "PASS"
+    }
+  ],
+  "environment": {
+    "platform": "Windows PowerShell",
+    "python": "3.12.10 via repository .venv",
+    "node": "25.9.0",
+    "npm": "11.12.1",
+    "dependencies": "apps/web npm ci --offline; no hosted install or AI inference"
+  },
+  "source_inputs": {
+    "services/documents/answers.py": {
+      "git_blob": "7e06f4b70fc61c51327718ab7f583617160b4a8a",
+      "sha256": "C944AE6878583E28E4DE68BC6D5F5F9B65492D2D340B16B7E9F311A11CF841F7"
+    },
+    "apps/web/src/main.tsx": {
+      "git_blob": "ccfc674b3826631acd309a98550886839ec20298",
+      "sha256": "CC2ABDE69B7A05AE15F8D8016A0AAF55A38CD805E9B541EDACA75487D5AC5359"
+    },
+    "apps/web/src/answer-matching.ts": {
+      "git_blob": "39ddf56c2e9dff83d2c9adc808c68f27495a156f",
+      "sha256": "8E350153CA5B978B1118B97612FBB6E14A969483AE8313B9C02B87224AFBE51B"
+    },
+    "apps/web/src/answer-matching.test.ts": {
+      "git_blob": "861c685f6d9217a2eedab46cfccd845563362267",
+      "sha256": "7FBE46EBC1AD6967D8BF510E70BEF161467560901C237EDC8DC739820C59DFB7"
+    },
+    "tests/unit/test_answer_matching.py": {
+      "git_blob": "3224980d667c79c8c6bca1095c1b14f644f9c9f3",
+      "sha256": "3753D287B1B816EE2337FBABFE7307111FF5D321F921A35F51346A14F215B976"
+    },
+    "tests/integration/test_application_answer_export.py": {
+      "git_blob": "ea35e34be079afb4c90dda9f04c97d4a3fc92723",
+      "sha256": "360DB46333DBB2CE020CAA28D0512F3E0EEABA7B5AAE4CCCC447DBFC69E9F081"
+    },
+    "tests/browser/test_application_answer_export.py": {
+      "git_blob": "c31e88db263b7f1d6ee81e6a20c684738c4be5b0",
+      "sha256": "C780578E3353011151DD417150927E396A23832F6ADCB2D21A92EBB567B67C1E"
+    }
+  },
+  "limitations": {
+    "overall_requirement": "PARTIAL; only a bounded fuzzy edit-distance strategy and one curated semantic synonym group are implemented. Broad semantic matching and configurable confidence thresholds remain separate/incomplete acceptance.",
+    "postgresql": "NOT_RUN",
+    "hosted_actions_review_ci": "NOT_RUN_BY_USER_POLICY",
+    "external_ai_or_network": "NONE",
+    "external_application_submission": "OFF"
+  },
+  "safety": {
+    "external_requests": "NONE",
+    "application_submission": "OFF",
+    "personal_data": "NOT_USED; synthetic fixture answers only"
+  },
+  "red_first_observation": {
+    "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_application_answer_export.ApplicationAnswerExportTests.test_fuzzy_and_curated_semantic_matches_export_with_recomputed_provenance -v",
+    "result": "FAIL",
+    "details": "Expected 201; exact-only backend guard returned 422 with reusable answer question mismatch. This was the intended pre-fix red oracle."
+  }
+}
