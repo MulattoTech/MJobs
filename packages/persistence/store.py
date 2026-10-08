@@ -8,7 +8,7 @@ import json
 from uuid import uuid4
 
 from sqlalchemy import (
-    String, Text, cast, create_engine, event, func, literal, literal_column, or_,
+    String, Text, case, cast, create_engine, event, func, literal, literal_column, or_,
     select, text, update,
 )
 from sqlalchemy.dialects.postgresql import insert as postgres_insert
@@ -677,6 +677,11 @@ class Store:
                 statement = statement.order_by(m.matches.c.score.desc().nulls_last(), m.jobs.c.title, m.jobs.c.id)
             elif sort == "title":
                 statement = statement.order_by(m.jobs.c.title, m.jobs.c.id)
+            elif sort == "company":
+                company_name = func.trim(func.coalesce(m.companies.c.name, literal("")))
+                statement = statement.order_by(
+                    case((company_name == "", 1), else_=0), func.lower(company_name), m.jobs.c.id
+                )
             elif sort == "newest":
                 rows = [canonical_job_view(dict(row)) for row in connection.execute(statement).mappings()]
                 dated = [(effective_job_timestamp(row), row) for row in rows]

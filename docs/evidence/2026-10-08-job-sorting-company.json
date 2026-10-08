@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-190",
+  "issue": 191,
+  "slice": "Company sort only",
+  "status": "PASS_BOUNDED_LOCAL_SLICE",
+  "branch": "codex/mj-req190-company-20261008",
+  "base_commit": "7ea461ab02cbdfd314e9be07970b96765fba4e6f",
+  "validated_at_utc": "2026-10-08T07:35:58Z",
+  "acceptance": {
+    "company_field": "Existing canonical companies.name display field",
+    "ordering": "Case-insensitive ascending; trimmed blank names last; job ID ascending for stable ties",
+    "limit": "Applied by the database after ordering",
+    "api": "Company accepted by GET /jobs sort parameter",
+    "ui": "Connected Jobs sort dropdown exposes Company and readback confirms ordered cards",
+    "preservation": "Existing score, newest, and title sort behaviors remain covered and unchanged"
+  },
+  "source_sha256": {
+    "apps/api/main.py": "4E2ADFAAE7F3F52078F6E21A34D6D66EBB8D95427087CA1CA20A1533A2C2087F",
+    "apps/web/src/main.tsx": "6C6F94DD1C3A584A4F915D866A99A483CE709766B4F9A4D3182A28862C488F82",
+    "packages/persistence/store.py": "FC6561E72E5F8CEC0E70AB2D4CECAE11B11807ACD4F2AF48D63BE413F221D834",
+    "tests/integration/test_job_sorting.py": "493BFA2626093998DF2E5C8146971FBB89B1940B34DEEEE310C641C8C384A525",
+    "tests/browser/test_job_sorting.py": "217947D48C79B1262C3D7D400DEB33C00858933DE440E4AAC699FC5E403A9776"
+  },
+  "validation": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_job_sorting tests.browser.test_job_sorting",
+      "result": "PASS: 6 tests"
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run",
+      "result": "PASS: 16 files, 94 tests"
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS: TypeScript and Vite production build"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "environment": {
+    "python": "3.12.10",
+    "node": "25.9.0",
+    "browser": "Local Chromium through Playwright; synthetic fixture API and browser requests remained on loopback",
+    "web_dependencies": "Used existing local apps/web/node_modules through a worktree-only junction; no install or network fetch"
+  },
+  "not_run": [
+    "Full Python test discovery",
+    "PostgreSQL-specific validation",
+    "GitHub-hosted checks by user policy"
+  ],
+  "safety": {
+    "external_submission": "OFF",
+    "external_provider_calls": "None"
+  },
+  "scope_limit": "MJ-REQ-190 remains PARTIAL: Best Match, Newest, and Title have prior bounded coverage; Application Priority and Salary remain unimplemented. MJ-PR-052 dependencies MJ-PR-051 and MJ-PR-043 are unchanged."
+}

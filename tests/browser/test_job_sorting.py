@@ -8,7 +8,7 @@ from urllib.parse import urlsplit
 
 from playwright.sync_api import expect, sync_playwright
 import uvicorn
-from sqlalchemy import update
+from sqlalchemy import insert, update
 
 from apps.api.main import create_app
 from fixtures.browser_ports import bound_browser_socket
@@ -37,6 +37,14 @@ class JobSortingBrowserTests(unittest.TestCase):
             jobs = sorted(store.jobs(profile_id="fixture"), key=lambda row: row["id"])
             older, newer = jobs
             with store.engine.begin() as connection:
+                for job, company_name in ((older, "alpha Systems"), (newer, "Zulu Systems")):
+                    company_id = f"sort-company-{job['id']}"
+                    connection.execute(insert(m.companies).values(
+                        id=company_id, name=company_name, domain="",
+                        parent_company_id=None, relationship_type=None,
+                    ))
+                    connection.execute(update(m.jobs).where(m.jobs.c.id == job["id"])
+                                       .values(company_id=company_id))
                 connection.execute(update(m.jobs).where(m.jobs.c.id == older["id"]).values(
                     title="Alpha Older Role",
                     attributes={**older["attributes"], "reported_posted_at": "2026-10-01T00:00:00Z"},
@@ -93,6 +101,15 @@ class JobSortingBrowserTests(unittest.TestCase):
                                      ["Zulu Newest Role", "Alpha Older Role"])
                     expect(page.locator(".job-card h2").first).to_have_text("Zulu Newest Role")
                     expect(page.locator(".job-card h2").nth(1)).to_have_text("Alpha Older Role")
+
+                    with page.expect_response(lambda response:
+                            response.url.startswith(origin + "/jobs?")
+                            and "sort=company" in response.url) as company_response:
+                        sort.select_option("company")
+                    self.assertEqual([row["title"] for row in company_response.value.json()["jobs"]],
+                                     ["Alpha Older Role", "Zulu Newest Role"])
+                    expect(page.locator(".job-card h2").first).to_have_text("Alpha Older Role")
+                    expect(page.locator(".job-card h2").nth(1)).to_have_text("Zulu Newest Role")
                     self.assertEqual(external, [])
                     context.close()
                     browser.close()

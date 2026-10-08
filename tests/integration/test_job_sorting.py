@@ -4,7 +4,7 @@ import tempfile
 import unittest
 
 from fastapi.testclient import TestClient
-from sqlalchemy import select, update
+from sqlalchemy import insert, select, update
 
 from apps.api.main import create_app
 from fixtures.mock_server import fixture_server
@@ -41,6 +41,23 @@ class JobSortingApiTests(unittest.TestCase):
                 attributes.update(changes)
                 connection.execute(update(m.jobs).where(m.jobs.c.id == job_id)
                                    .values(attributes=attributes))
+
+    def _set_company_names(self, values):
+        with self.store.engine.begin() as connection:
+            for job_id, name in values.items():
+                company_id = f"sort-company-{job_id}"
+                existing = connection.execute(select(m.companies.c.id).where(
+                    m.companies.c.id == company_id
+                )).first()
+                if existing:
+                    connection.execute(update(m.companies).where(m.companies.c.id == company_id)
+                                       .values(name=name))
+                else:
+                    connection.execute(insert(m.companies).values(
+                        id=company_id, name=name, domain="", parent_company_id=None, relationship_type=None,
+                    ))
+                    connection.execute(update(m.jobs).where(m.jobs.c.id == job_id)
+                                       .values(company_id=company_id))
 
     def test_newest_orders_matching_rows_before_limit_without_changing_existing_sorts(self):
         old_id, new_id = self.job_ids
@@ -93,6 +110,28 @@ class JobSortingApiTests(unittest.TestCase):
             response = client.get("/jobs", params={"sort": "newest"})
         self.assertEqual(response.status_code, 200, response.text)
         self.assertEqual([row["id"] for row in response.json()["jobs"]], [first_id, second_id])
+
+    def test_company_sort_is_case_insensitive_and_applies_limit_after_ordering(self):
+        first_id, second_id = self.job_ids
+        self._set_company_names({first_id: "Zulu Systems", second_id: "alpha Systems"})
+        with TestClient(self.app) as client:
+            response = client.get("/jobs", params={"sort": "company", "limit": 1})
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual([row["id"] for row in response.json()["jobs"]], [second_id])
+
+    def test_company_sort_places_blank_names_after_named_and_breaks_ties_by_job_id(self):
+        first_id, second_id = self.job_ids
+        self._set_company_names({first_id: "  ", second_id: "Acme Systems"})
+        with TestClient(self.app) as client:
+            named_before_blank = client.get("/jobs", params={"sort": "company"})
+        self.assertEqual(named_before_blank.status_code, 200, named_before_blank.text)
+        self.assertEqual([row["id"] for row in named_before_blank.json()["jobs"]], [second_id, first_id])
+
+        self._set_company_names({first_id: "Acme Systems", second_id: "acme systems"})
+        with TestClient(self.app) as client:
+            tied = client.get("/jobs", params={"sort": "company"})
+        self.assertEqual(tied.status_code, 200, tied.text)
+        self.assertEqual([row["id"] for row in tied.json()["jobs"]], self.job_ids)
 
 
 if __name__ == "__main__":
