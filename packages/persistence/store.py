@@ -19,6 +19,7 @@ from packages.domain.profile import ContactDetails, JobPreferences
 from packages.domain.operation_mode import WorkspaceModeError, parse_operation_mode
 from packages.persistence import models as m
 from services.normalization.jobs import canonical_job_view, raw_posting_view
+from services.discovery.search_semantics import effective_job_timestamp
 
 
 class ProfileVersionConflict(Exception):
@@ -672,7 +673,19 @@ class Store:
                     statement = statement.where(m.jobs.c.remote_type == remote_type)
             if provider:
                 statement = statement.where(m.jobs.c.id.in_(select(m.routes.c.job_id).where(m.routes.c.provider == provider)))
-            statement = statement.order_by(m.matches.c.score.desc().nulls_last(), m.jobs.c.title, m.jobs.c.id) if sort == "score" else statement.order_by(m.jobs.c.title, m.jobs.c.id)
+            if sort == "score":
+                statement = statement.order_by(m.matches.c.score.desc().nulls_last(), m.jobs.c.title, m.jobs.c.id)
+            elif sort == "title":
+                statement = statement.order_by(m.jobs.c.title, m.jobs.c.id)
+            elif sort == "newest":
+                rows = [canonical_job_view(dict(row)) for row in connection.execute(statement).mappings()]
+                dated = [(effective_job_timestamp(row), row) for row in rows]
+                dated_rows = [(timestamp, row) for timestamp, row in dated if timestamp is not None]
+                unknown_rows = sorted((row for timestamp, row in dated if timestamp is None),
+                                      key=lambda row: row["id"])
+                dated_rows.sort(key=lambda item: item[1]["id"])
+                dated_rows.sort(key=lambda item: item[0], reverse=True)
+                return [row for _, row in dated_rows[:limit]] + unknown_rows[:max(0, limit - len(dated_rows))]
             return [canonical_job_view(dict(row)) for row in connection.execute(statement.limit(limit)).mappings()]
 
     def job(self, job_id, profile_id=None):

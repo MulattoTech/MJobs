@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-08T06:45:36Z",
+  "issue": 191,
+  "requirement": "MJ-REQ-190",
+  "result": "PARTIAL",
+  "slice": "Newest only",
+  "scope_note": "Best Match and Title remain supported and unchanged. Application Priority, Salary, and Company sorts are not implemented. This evidence does not complete MJ-REQ-190.",
+  "branch": "codex/mj-req190-newest-20261008",
+  "worktree": "C:\\Tools\\Dev\\MJobs\\.worktrees\\codex-mj-req190-newest-20261008",
+  "base": {
+    "commit": "d0f594fc77e6f70e441738992ce70889034b22f1",
+    "tree": "43c99ca8f17fc5e476209af33b3b4a1e21eedcd4"
+  },
+  "tested_source": {
+    "tree": "54ce13560f915ae291f61fe083986df834ae5492",
+    "commit_at_evidence_capture": "NOT_COMMITTED",
+    "inputs_sha256": {
+      "apps/api/main.py": "c84a3c279943716fbd003e35d21b2932b349d2882a68bb027a6fa142282827a4",
+      "apps/web/src/main.tsx": "40781a6100df9829148369cba87c3e80dc1482d97b63510731277b7f795fe996",
+      "packages/persistence/store.py": "e4f8b453af2b995d136aa99367916d04854c0b96441801019de704bc3fffb274",
+      "tests/integration/test_job_sorting.py": "eb366aa7e01d9edfdbe50c5c036e4dba77851b2debc69bc0f04016806815f91b",
+      "tests/browser/test_job_sorting.py": "3a34f39105db1c987782dce090268f41d438687478a8beb7ed6e6b0ee6cba8ae"
+    }
+  },
+  "behavior": {
+    "api_sort": "The Jobs API accepts explicit sort=newest.",
+    "ordering": "Persistence reads all database-filtered matching rows before applying limit, uses the existing effective_job_timestamp semantics (reported_posted_at then first_seen_at), sorts valid timestamps descending, places missing/unparseable effective timestamps last, and orders ties by job ID.",
+    "unchanged_paths": "Best Match and Title retain their prior SQL order clauses; tests also verify match rows are unchanged.",
+    "durability": "Connected browser acceptance reopens the synthetic SQLite database before selecting Newest.",
+    "safety": "Synthetic fixture data only; no provider/network calls, external submission, or production data mutation."
+  },
+  "validation": {
+    "red": {
+      "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_job_sorting.JobSortingApiTests.test_newest_orders_matching_rows_before_limit_without_changing_existing_sorts",
+      "result": "EXPECTED_FAIL",
+      "detail": "Before production changes, the API returned HTTP 422 because sort accepted only score and title."
+    },
+    "focused_api": {
+      "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_job_sorting",
+      "result": "PASS",
+      "counts": "3 tests"
+    },
+    "connected_browser": {
+      "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_job_sorting",
+      "result": "PASS",
+      "counts": "1 test",
+      "details": "Restored the selected career profile after reload, selected Newest, observed sort=newest in the connected API request, and verified newest-first card order. Browser network guard observed no external requests."
+    },
+    "frontend_tests": {
+      "command": "npm test --prefix apps/web",
+      "result": "PASS",
+      "counts": "94 tests across 16 files"
+    },
+    "frontend_build": {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "details": "TypeScript check and Vite production build completed."
+    },
+    "validators": {
+      "agent_skills": "PASS",
+      "catalogue": "PASS",
+      "progress_validate": "PASS",
+      "lane_coordination_validate": "PASS"
+    },
+    "diff_check": "PASS",
+    "full_python_discovery": {
+      "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py'",
+      "result": "PARTIAL_NOT_COMPLETE",
+      "elapsed_cap_seconds": 600,
+      "partial_output": "The run advanced throughout the cap and showed one failure marker (F) and two skips (ss) among progress dots. It was stopped at the 10-minute cap before a traceback or final count could be captured. No discovery rerun was made."
+    }
+  },
+  "environment": {
+    "python": "Repository .venv, Python 3.12",
+    "frontend_dependencies": "Installed with npm ci --prefix apps/web --no-audit --no-fund from the checked-in lockfile in the isolated worktree.",
+    "node": "v25.9.0; npm ci emitted EBADENGINE because Vitest 5.0.3 declares Node ^22.12.0, ^24.0.0, or >=26.0.0. Frontend tests and build nevertheless passed locally.",
+    "database": "Temporary synthetic SQLite only; PostgreSQL NOT_RUN."
+  },
+  "not_run": {
+    "hosted_checks": "NOT_RUN_BY_USER_POLICY",
+    "postgresql": "NOT_RUN",
+    "issue_or_queue_updates": "NOT_RUN; issue #191 remains OPEN/PARTIAL and MJ-PR-052/dependencies were not modified."
+  },
+  "publication": "Local candidate only; not pushed, merged, or opened as a pull request."
+}
