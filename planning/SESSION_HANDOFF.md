@@ -1,3 +1,27 @@
+# MJobs session handoff — 2026-10-08 15:49Z
+
+Current local main source: `a2ddaee0cb31b4e539f27173a2baf911d3847d4d` (tree `e405e68f54698d45cabbf876c6f2a4418ba52bf1`), fast-forwarded from `1870f34273b4e57c0017d3e2d8a10f1eb5ebaff8`. `origin/main` and GitHub main were last observed at `9808cdce34ab0302bf5231b09d6ae5fd56a33b81`; local sync and issue receipts remain pending. Root preserves the preexisting canonical tracker edits and owns the live Codex integration lock. Actions are disabled; recheck branch protection before push.
+
+Accepted product milestones in this batch:
+- #394 / MJ-REF-024 grounded follow-up drafts for quiet, user-reported APPLIED applications; copy-only, labeled unverified, no send/external requests. Evidence: `docs/evidence/2026-10-08-follow-up-drafts.json`; reference result now PASS.
+- #190 / MJ-REQ-189 application-link availability facet: exact `PROVIDER_SUPPLIED` vs `UNAVAILABLE`, fail-closed missing/unknown statuses, before-limit filtering, saved-search persistence/reload, UUID-safe selection and clear override without overwriting the saved value. Evidence: `docs/evidence/2026-10-08-application-link-search-filter.json`; original requirement and PR-052 remain PARTIAL/QUEUED.
+
+Local verification for #190: 34 focused Python tests, connected Chromium 1/1, frontend 3/3, TypeScript/Vite build, compilation, agent-skill and lane validators, evidence source hashes/blob IDs, diff check and local delegated review PASS. PostgreSQL runtime, live employers/ATS, full suite and hosted checks NOT_RUN; Vitest used Node 25.9.0 outside the declared supported range. Real external submissions remain OFF.
+
+## Star Wars squad roster
+
+- ROGUE SQUADRON — Luke Skywalker, Wedge Antilles, Biggs Darklighter, R2-D2: 0/4 active. Source work overlaps active Antigravity #302 and Ollama #318; #517 provider capture waits on #302.
+- PHOENIX SQUADRON — Hera Syndulla, Kanan Jarrus, Sabine Wren, Ezra Bridger: 0/4 active. The link-filter feature is integrated locally; next search/matching candidates require live dependency and path recheck.
+- CLONE FORCE 99 — Hunter, Tech, Echo, Wrecker: 0/4 active. Recheck current resume/answer acceptance gaps and claims before assignment.
+- JEDI ORDER — Obi-Wan Kenobi, Anakin Skywalker, Ahsoka Tano, Plo Koon: 0/4 active. #145 and upload/document expansion remain dependency- or shared-contract-blocked.
+- MANDALORIAN COMMAND — Bo-Katan Kryze, Din Djarin, The Armorer, Paz Vizsla: 0/4 active. #394 is integrated locally and its scoped reference acceptance is PASS.
+
+STAR WARS SQUADS: 0/20 active; FEATURES: 0/5 currently coding; DISCRETIONARY AGENTS: 0/30; TOTAL CHILDREN: 0/50; ROOT: GPT-6 Luna High. Safe staffing shortfall: no five distinct dependency-ready feature lanes were verified; do not fill slots with duplicate reviews or overlapping source/API/UI ownership.
+
+## Next work
+
+Verify/push the accepted local-main batch by the local-only non-force route, post truthful issue receipts and release only owned claims. Then reconcile live issues/specs/claims and select the next independent user-facing core feature; keep the #190 umbrella PARTIAL and update trackers only at the next accepted integration checkpoint.
+
 ## 2026-10-08T13:23:13Z — taxonomy-backed skill facet integrated; education facet active
 
 Local `main` fast-forward integrated the connected #190 / MJ-REQ-189 skill facet at `57e667761de038f5a7ee1692e1053f6c4d5b95eb` (tree `550dd8c21b16a3f256444b4db1fe5eaddff7f8fe`). After the planning checkpoint, local, origin and GitHub default main were verified synchronized at `4819fd00704abbcb438797e12ae9a5ae31055817`. Evidence `docs/evidence/2026-10-08-skill-search-filter.json`; root exact rebased candidate passed 17 API/integration/browser tests, 103 frontend tests, TypeScript/Vite build, compilation, skill validation, eight input hashes and diff checks. Local delegated review found no material findings. Receipt https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6060801276; claim release https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6060814548. The filter normalizes taxonomy aliases, matches exact skill IDs/labels before LIMIT, fails closed for missing/unrecognized values, and saves/restores/clears within profile-scoped saved searches. #190 remains OPEN/PARTIAL for education and other facets.

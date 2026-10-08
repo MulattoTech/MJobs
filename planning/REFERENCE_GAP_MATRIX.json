@@ -1,6 +1,6 @@
 {
   "schema_version": 3,
-  "generated_at": "2026-10-07T18:01:27Z",
+  "generated_at": "2026-10-08T15:49:20Z",
   "canonical_namespace": "MJ-REF",
   "original_catalogue_count": 366,
   "reference_gap_count": 59,
@@ -189,8 +189,10 @@
       "evidence": []
     },
     "MJ-REF-024": {
-      "result": "NOT_RUN",
-      "evidence": []
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-08-follow-up-drafts.json"
+      ]
     },
     "MJ-REF-025": {
       "result": "NOT_RUN",

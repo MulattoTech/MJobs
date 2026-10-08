@@ -7,12 +7,12 @@
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Exact synchronized main 980f89c78d384ec3098e083616b48c8c713089f3 (tree 23e7c7f9b9a2b471a9078e3047bb420846194abc); bounded #190 experience-level filter, #115 score-neutral salary-fit explanation, and #191 annual USD salary sort are integrated with local evidence.",
-    "current_verified_github_state": "Local main, origin/main and GitHub default main synchronized at 980f89c78d384ec3098e083616b48c8c713089f3; receipts posted for #115 and #191. Hosted checks/reviews remain NOT_RUN_BY_USER_POLICY.",
+    "current_verified_local_state": "Local main a2ddaee0cb31b4e539f27173a2baf911d3847d4d (tree e405e68f54698d45cabbf876c6f2a4418ba52bf1) includes the connected #394/MJ-REF-024 follow-up-draft workflow and the bounded #190/MJ-REQ-189 application-link availability facet. The latter passes 34 focused Python tests, connected Chromium 1/1, focused frontend 3/3, TypeScript/Vite build, Python compilation, agent-skill/lane validators, source hashes/blob IDs, diff check, and local delegated review. #394 evidence records 18 API/integration tests, 110 frontend tests, build and connected browser PASS. PostgreSQL runtime, full repository suite, live employer/ATS behavior, and hosted checks remain NOT_RUN; external submission OFF.",
+    "current_verified_github_state": "Last live GitHub/origin main read was 9808cdce34ab0302bf5231b09d6ae5fd56a33b81. Local main is ahead with accepted local-only commits through a2ddaee0cb31b4e539f27173a2baf911d3847d4d; synchronized push and issue receipts are pending. GitHub Actions are disabled and branch protection was previously reported off; recheck immediately before push. Hosted checks/review remain NOT_RUN_BY_USER_POLICY; external submission OFF.",
     "current_verified_at": "2026-10-08T12:10:15Z"
   },
-  "current_milestone": "CORE-FEATURE-BATCH-20261008-O",
-  "current_objective": "Advance connected jobseeker search, explainable matching, truthful documents, and consent-safe application preparation through dependency-ready vertical slices.",
+  "current_milestone": "CORE-FEATURE-BATCH-20261008-R",
+  "current_objective": "Advance connected jobseeker search, explainable matching, truthful documents, consent-safe application preparation and tracking through dependency-ready vertical slices.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -448,7 +448,8 @@
     "Root exact integrated search-filter checks: 15 Python integration/browser tests PASS; 103 frontend tests PASS; TypeScript/Vite production build PASS for employment type; authentication pipeline/browser suites 34/34 PASS; compile, skills, evidence hashes and git diff checks PASS. Local delegated reviews found no material issues.",
     "Requirement tracker/dashboard validators are rerun at accepted integration checkpoints; PostgreSQL/hosted/live ATS NOT_RUN; external application submission OFF.",
     "Root exact rebased #190 normalized skill filter validation: 17 connected API/integration/browser tests PASS, frontend 103/103 PASS, TypeScript/Vite build PASS, compile, agent-skills, eight source hashes, evidence JSON and diff check PASS; LOCAL_DELEGATED_REVIEW no material findings.",
-    "Dashboard checkpoint after skill facet: original totals remain 83 PASS / 93 PARTIAL / 190 NOT_RUN; reference 13 PASS / 1 PARTIAL / 45 NOT_RUN; release UNKNOWN."
+    "Dashboard checkpoint after skill facet: original totals remain 83 PASS / 93 PARTIAL / 190 NOT_RUN; reference 13 PASS / 1 PARTIAL / 45 NOT_RUN; release UNKNOWN.",
+    "#190 / MJ-REQ-189 application-link facet: 34 focused Python, connected Chromium 1/1, frontend 3/3, TypeScript/Vite build, compilation, skill/lane validators, exact source hashes/blob IDs and local delegated review PASS at local main a2ddaee0cb31b4e539f27173a2baf911d3847d4d."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -472,7 +473,8 @@
     "Progress journal validator first run after issue #8 receipt append failed because top-level current_phase still named the preceding milestone; updated current_phase to match the newest journal entry and reran validation successfully.",
     "Repository-wide unittest discovery at source 6d3b2893f18289fc76b29ce8955dfb2fb103b58d: 948 run, 2 failures, 9 errors, 28 skipped; test names were not all retained in terminal output, so no attribution is claimed. Recorded in docs/evidence/2026-10-07-safe-browser-debug-capture.json.",
     "Resolved test-harness attempt: combined 67-test run at 447afe1665af2c81a2e0d63149ca6e00068cbcfb had 66 PASS and one browser test failure while its profile-save interaction remained pending after preceding integration modules. Isolated browser passed; Activity UI test now seeds a value-free setting event rather than repeating that separate save workflow, and combined exact-main suite passes 67/67 at 26deecc77098471f0973e7e0b34193c1e4e0d0e3.",
-    "MJ-REQ-176 candidate full Python suite at source 382db126a1b504754ec2ad748bb543df586d976b: 962 tests ran, 8 skipped, one failure at tests.browser.test_company_discovery_requests.CompanyDiscoveryRequestsBrowserTests.test_real_collection_request_review_worker_and_identity_separation because isolated Uvicorn thread remained alive at shutdown; same test isolated rerun passed. Overall suite remains a failed run, not PASS; see docs/evidence/2026-10-07-application-submit-audit.json."
+    "MJ-REQ-176 candidate full Python suite at source 382db126a1b504754ec2ad748bb543df586d976b: 962 tests ran, 8 skipped, one failure at tests.browser.test_company_discovery_requests.CompanyDiscoveryRequestsBrowserTests.test_real_collection_request_review_worker_and_identity_separation because isolated Uvicorn thread remained alive at shutdown; same test isolated rerun passed. Overall suite remains a failed run, not PASS; see docs/evidence/2026-10-07-application-submit-audit.json.",
+    "Initial #190 application-link browser test wait timed out against a fixed saved-search UUID. Root cause was a brittle test expectation; Ezra Bridger changed it to use the persisted UUID and added saved-search clear-override coverage. Exact current browser test passes 1/1."
   ],
   "tests_not_run": [
     "Remaining full-spec integrations and product/release requirements",
@@ -552,7 +554,8 @@
     "Issue #144: real employer ATS, PostgreSQL, hosted checks/review and full suite NOT_RUN; no employer site contacted; external submission OFF.",
     "Hosted GitHub checks/reviews remain NOT_RUN by local-only policy; PostgreSQL and whole-product E2E not run for this batch.",
     "Semantic criteria supplied only through search_profile_id remain post-LIMIT; new direct location filter is applied before LIMIT.",
-    "Issue #134 / MJ-REQ-133 hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL/live ATS/full repository suite NOT_RUN; only one synthetic dynamic dropdown variant implemented."
+    "Issue #134 / MJ-REQ-133 hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL/live ATS/full repository suite NOT_RUN; only one synthetic dynamic dropdown variant implemented.",
+    "#190 application-link facet: PostgreSQL runtime, live production sources/ATS, full repository suite, hosted GitHub checks/review NOT_RUN; local-only policy."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -666,7 +669,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Reconcile dependency blockers and active claims before selecting another original core slice. The live queue scans found no other unclaimed dependency-ready discovery, ranking, document, or application-preparation task. Candidate work remains gated by current queue parents: match-weight configuration #118 by PR-032/031; application priority #119 and sorting #191 by PR-032 or PR-052 dependencies; ambiguous submission #145 by PR-039/038/030. Preserve external Antigravity #302 and Ollama #318 claims; do not duplicate them.",
+  "recommended_resume_step": "Finish this accepted integration batch: verify remote policy, sync local main and GitHub issue receipts, release only the owned #190 claim, and re-evaluate remaining application-capability/state facets against the area spec. Recheck live dependencies before assigning the next independent core feature. At this checkpoint no five-feature/20-agent allocation is safely available; source claims #302/#318, queued PR dependencies, and shared API/UI ownership constrain the remaining candidates.",
   "release_readiness": "UNKNOWN",
   "migrations_applied": [
     "92f0997f753e",
@@ -11652,20 +11655,141 @@
         ],
         "note": "ATS and responsibility-aware resume summary slices are integrated and synchronized; both requirements remain PARTIAL and hosted/external-provider checks are not run."
       }
+    },
+    {
+      "milestone_id": "CORE-FEATURE-BATCH-20261008-Q",
+      "current_phase": "CORE_FEATURE_IMPLEMENTATION",
+      "timestamp": "2026-10-08T15:12:20Z",
+      "completed_steps": [
+        "Verified local main, origin/main, GitHub main and the Codex integration lock before the accepted integration batch.",
+        "Integrated #96/MJ-REQ-095 pre-generation selected-fact alignment preview by non-force fast-forward; posted the truthful receipt and released its claim.",
+        "Integrated #105/MJ-REQ-104 narrow weekend answer alias and explicit unavailable-polarity guard; exact feature tests and local review passed; issue receipt posted and four worker claims released.",
+        "Recorded the previous bounded #115/MJ-REQ-114 education-fit increment and kept umbrella requirements and PR dependencies PARTIAL/unchanged.",
+        "Started #394/MJ-REF-024 as the next safe user-facing feature with four isolated Mandalorian Command worktrees, branches, stable claims and exclusive paths."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-08-resume-alignment-preview.json",
+        "docs/evidence/2026-10-08-answer-weekend-availability-semantic-match.json"
+      ],
+      "files_modified": [
+        "services/documents/alignment_preview.py",
+        "apps/api/main.py",
+        "apps/web/src/main.tsx",
+        "apps/web/src/resume-fact-selection.tsx",
+        "services/documents/answers.py",
+        "apps/web/src/answer-matching.ts",
+        "apps/web/src/answer-matching.test.ts",
+        "tests/unit/test_answer_matching.py",
+        "tests/integration/test_application_answer_export.py",
+        "tests/browser/test_application_answer_export.py",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/SESSION_HANDOFF.md",
+        "planning/lanes/codex/SESSION_HANDOFF.md",
+        "docs/PROGRESS_DASHBOARD.md"
+      ],
+      "tests_completed": [
+        "#96 exact candidate: 6 focused unit/API/connected Chromium, 103 frontend, TypeScript/Vite build, Python compile and evidence hashes PASS; adjacent uploaded-base comparison failure recorded out of slice.",
+        "#105 exact candidate: 39 Python unit/API tests, focused connected Chromium 1/1, full frontend 104/104, TypeScript/Vite build, compile, six raw SHA/canonical blob checks, diff and local delegated review PASS.",
+        "Full adjacent answer-export browser module: 3/4 PASS; the existing profile-threshold test fails only at isolated API server shutdown (thread.is_alive, WinError 10054); recorded and not promoted.",
+        "Progress dashboard and repository validators are being run for this accepted batch."
+      ],
+      "tests_remaining": [
+        "PostgreSQL/full repository suite NOT_RUN.",
+        "Hosted actions/review NOT_RUN_BY_USER_POLICY.",
+        "Live employer/provider checks NOT_RUN; external submission OFF.",
+        "One adjacent browser server-shutdown failure remains unresolved; #105 browser acceptance itself passes."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [
+        "Existing profile-scoped confidence-threshold browser test shutdown assertion did not stop the isolated local API thread before timeout (WinError 10054); weekend feature flow passed independently."
+      ],
+      "known_limitations": [
+        "MJ-REQ-095, MJ-REQ-104 and MJ-REQ-114 remain PARTIAL; parent PR-026/029/031 states/dependencies unchanged.",
+        "Reference feature #394 is in progress but not yet accepted; no reference-matrix/dashboard pass recorded.",
+        "Only Mandalorian Command has a ready active feature team under current claims/dependencies."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "9808cdce34ab0302bf5231b09d6ae5fd56a33b81",
+        "tree": "7c897d4e3dcf4f3bc32f88677d3f542638b49809",
+        "branch": "main",
+        "issue": "#105 / MJ-REQ-104 and #96 / MJ-REQ-095",
+        "evidence_path": "docs/evidence/2026-10-08-answer-weekend-availability-semantic-match.json",
+        "integration_receipts": [
+          "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6062697043",
+          "https://github.com/MulattoTech/MJobs/issues/105#issuecomment-6062869066"
+        ],
+        "note": "Two bounded core product increments are integrated and local/origin/GitHub main are synchronized. Original requirements remain PARTIAL; release readiness UNKNOWN."
+      }
+    },
+    {
+      "milestone_id": "CORE-FEATURE-BATCH-20261008-R",
+      "current_phase": "CORE_FEATURE_IMPLEMENTATION",
+      "timestamp": "2026-10-08T15:49:20Z",
+      "completed_steps": [
+        "Reconciled current local main, candidate ancestry, dirty canonical trackers, claims, worktrees, GitHub issue state and the integration lock; preserved the preexisting root tracker edits.",
+        "Integrated #394/MJ-REF-024 follow-up drafts and #190/MJ-REQ-189 application-link availability as local fast-forwards; #394 reference acceptance is supported by its connected evidence and #190 remains a bounded PARTIAL slice.",
+        "Completed focused API/unit, connected browser, frontend component, build, compilation, skill/lane, source hash/blob and local delegated review checks for #190.",
+        "Resolved the browser test UUID assumption and added explicit saved-search clear-override coverage; verified the stored AVAILABLE criterion is not overwritten.",
+        "Updated authoritative capability/reference/queue/state trackers once for this integrated batch and regenerated the progress dashboard."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-08-application-link-search-filter.json",
+        "docs/evidence/2026-10-08-follow-up-drafts.json"
+      ],
+      "files_modified": [
+        "apps/api/main.py",
+        "apps/web/src/main.tsx",
+        "apps/web/src/application-link-filter.tsx",
+        "packages/persistence/store.py",
+        "services/discovery/search_profiles.py",
+        "tests/unit/test_application_link_search_filter_validation.py",
+        "tests/unit/test_application_link_filter_store.py",
+        "tests/integration/test_application_link_filter.py",
+        "tests/browser/test_application_link_filter.py"
+      ],
+      "tests_completed": [
+        "#190 exact-source Python: 34 focused integration/unit tests PASS; connected Chromium 1/1 PASS; frontend component 3/3 PASS; TypeScript/Vite build PASS; py_compile, agent-skill validation, lane validation, source hashes/blob IDs and diff check PASS.",
+        "LOCAL_DELEGATED_REVIEW by Hera Syndulla found no material code issue; root reran exact candidate tests after closing the saved-search clear-override coverage note.",
+        "#394 exact source evidence records API/integration 18, frontend 110, build and connected Chromium PASS; narrow reference outcome PASS."
+      ],
+      "tests_remaining": [
+        "PostgreSQL runtime, live provider/ATS behavior and full repository suite NOT_RUN.",
+        "Hosted Actions/CI/review NOT_RUN_BY_USER_POLICY; Actions disabled.",
+        "Vitest ran on Node v25.9.0 outside its declared supported range."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [
+        "An initial connected browser test timed out because its test expected a fixed saved-search ID while the UI correctly creates a UUID. The test now captures the actual ID and verifies explicit clear override; the exact connected browser test passes 1/1."
+      ],
+      "known_limitations": [
+        "MJ-REQ-189 and PR-052 remain PARTIAL/QUEUED with formal dependencies unchanged; the application capability/state facets and broader matching/saved-search criteria are not complete.",
+        "MJ-REF-024 is PASS for its bounded reference workflow; release readiness remains UNKNOWN.",
+        "STAR WARS SQUADS: 0/20 active; FEATURES: 0/5 currently coding; DISCRETIONARY AGENTS: 0/30. No safe five-feature allocation was available at this checkpoint because other ready-looking tasks are claimed, overlap shared paths, or remain dependency-blocked."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "a2ddaee0cb31b4e539f27173a2baf911d3847d4d",
+        "tree": "e405e68f54698d45cabbf876c6f2a4418ba52bf1",
+        "branch": "main",
+        "issue": "#190 / MJ-REQ-189 application-link availability; #394 / MJ-REF-024 follow-up drafts",
+        "evidence_path": "docs/evidence/2026-10-08-application-link-search-filter.json",
+        "integration_receipts": [],
+        "note": "#190 bounded facet is accepted on local main and #394 is integrated locally. GitHub/origin sync and issue receipts are the remaining publication steps; original MJ-REQ-189 remains PARTIAL, MJ-REF-024 is PASS, and release readiness remains UNKNOWN."
+      }
     }
   ],
   "current_phase": "CORE_FEATURE_IMPLEMENTATION",
   "last_safe_checkpoint": {
-    "git_commit": "0863e55d1617b708906e7c865118105c841a6d18",
-    "tree": "01b75ee2176ca161ebbed90e537c9e7147883fd9",
+    "git_commit": "a2ddaee0cb31b4e539f27173a2baf911d3847d4d",
+    "tree": "e405e68f54698d45cabbf876c6f2a4418ba52bf1",
     "branch": "main",
-    "issue": "#190 / MJ-REQ-189 and #96 / MJ-REQ-095",
-    "evidence_path": "docs/evidence/2026-10-08-responsibility-summary-selection.json",
-    "integration_receipts": [
-      "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6061772788",
-      "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6061888874"
-    ],
-    "note": "ATS and responsibility-aware resume summary slices are integrated and synchronized; both requirements remain PARTIAL and hosted/external-provider checks are not run."
+    "issue": "#190 / MJ-REQ-189 application-link availability; #394 / MJ-REF-024 follow-up drafts",
+    "evidence_path": "docs/evidence/2026-10-08-application-link-search-filter.json",
+    "integration_receipts": [],
+    "note": "#190 bounded facet is accepted on local main and #394 is integrated locally. GitHub/origin sync and issue receipts are the remaining publication steps; original MJ-REQ-189 remains PARTIAL, MJ-REF-024 is PASS, and release readiness remains UNKNOWN."
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -11977,29 +12101,44 @@
       "issue_state": "OPEN/PARTIAL",
       "integrated_at_utc": "2026-10-08T06:50:23Z",
       "scope_complete": false
+    },
+    {
+      "issue": 190,
+      "requirement_id": "MJ-REQ-189",
+      "source_commit": "a2ddaee0cb31b4e539f27173a2baf911d3847d4d",
+      "source_tree": "e405e68f54698d45cabbf876c6f2a4418ba52bf1",
+      "integration_commit": "a2ddaee0cb31b4e539f27173a2baf911d3847d4d",
+      "prior_main": "1870f34273b4e57c0017d3e2d8a10f1eb5ebaff8",
+      "integration_method": "NON_FORCE_FAST_FORWARD",
+      "evidence_path": "docs/evidence/2026-10-08-application-link-search-filter.json",
+      "issue_state": "OPEN/PARTIAL",
+      "integrated_at_utc": "2026-10-08T15:49:20Z",
+      "scope_complete": false,
+      "github_sync": "PENDING"
     }
   ],
   "live_reconciliation": {
-    "observed_at": "2026-10-07T07:18:51Z",
-    "github_main": "715b0e2600276ed2ab438908b4b97d57274d82c3",
-    "local_main": "715b0e2600276ed2ab438908b4b97d57274d82c3",
-    "issue_398_state": "CLOSED after evidence readback at https://github.com/MulattoTech/MJobs/issues/398#issuecomment-6032995423",
-    "open_prs": 0,
+    "observed_at": "2026-10-08T15:49:20Z",
+    "github_main": "9808cdce34ab0302bf5231b09d6ae5fd56a33b81",
+    "local_main": "a2ddaee0cb31b4e539f27173a2baf911d3847d4d",
+    "issue_394_state": "OPEN; local integration complete, receipt pending",
+    "issue_190_state": "OPEN; bounded facet locally integrated, receipt pending",
+    "open_prs": "Not refreshed in this checkpoint",
     "actions_enabled": false,
-    "main_branch_protected": false,
-    "integration": "Source 7636b620b60e53380b48051a5550aa1dc23be663 fast-forwarded into main; canonical evidence and planning synchronized by 715b0e2600276ed2ab438908b4b97d57274d82c3 under the Codex integration lock. Local/origin SHA verified.",
-    "next_issue": "Release #398 and select the next dependency-ready unclaimed issue after live claim/worktree reconciliation."
+    "main_branch_protected": "Previously observed false; recheck before publication",
+    "integration": "#394 and #190 source slices are locally integrated; tracker refresh done; GitHub sync pending.",
+    "next_issue": "Re-evaluate #190 residual facets and select the next live dependency-ready core issue; no safe five-lane assignment found yet."
   },
   "active_development_issue": {
-    "issue": null,
-    "requirement_id": null,
-    "title": "Select next dependency-ready original core feature after reconciling queued parent work",
-    "state": "CORE_FEATURE_SPRINT_ACTIVE_NO_READY_UNCLAIMED_ISSUE",
+    "issue": "#190",
+    "requirement_id": "MJ-REQ-189",
+    "title": "Job Filter Sidebar — application-link availability facet",
+    "state": "BOUNDED_SLICE_INTEGRATED_PARTIAL_REMAINDER",
     "active_codex_children": [],
-    "latest_integrated_issue": 96,
-    "latest_integrated_requirement": "MJ-REQ-095",
-    "latest_integrated_head": "0863e55d1617b708906e7c865118105c841a6d18",
-    "latest_receipt": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6061888874"
+    "latest_integrated_issue": 190,
+    "latest_integrated_requirement": "MJ-REQ-189",
+    "latest_integrated_head": "a2ddaee0cb31b4e539f27173a2baf911d3847d4d",
+    "latest_receipt": "PENDING_GITHUB_MAIN_SYNC"
   },
   "historical_control_snapshots": [
     {
@@ -13155,7 +13294,7 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-08T14:20:06Z",
-  "current_verified_local_state": "Local main 0863e55d1617b708906e7c865118105c841a6d18 (tree 01b75ee2176ca161ebbed90e537c9e7147883fd9) integrates two user-visible slices: evidence-qualified Greenhouse/synthetic ATS filtering in saved Jobs searches, and source-order union of exact target skill/responsibility resume summaries with v5 history identity. ATS root exact checks: 24 connected API/Chromium, 103 frontend, build, py_compile, 11 worktree hashes, six Git blob IDs and diff PASS. Resume: 26/26 focused tests excluding one unchanged-main baseline browser failure; exact suite 26/27 with baseline reproduced on pre-integration main; 103 frontend, build, compile, evidence hashes, local review PASS. Both original requirements remain PARTIAL.",
-  "current_verified_github_state": "Local main, origin/main and GitHub default main synchronized at 0863e55d1617b708906e7c865118105c841a6d18. ATS receipt https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6061772788; resume receipt https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6061888874. Actions disabled; hosted checks NOT_RUN_BY_USER_POLICY; external application submission OFF."
+  "updated_at": "2026-10-08T15:49:20Z",
+  "current_verified_local_state": "Local main a2ddaee0cb31b4e539f27173a2baf911d3847d4d (tree e405e68f54698d45cabbf876c6f2a4418ba52bf1) includes the connected #394/MJ-REF-024 follow-up-draft workflow and the bounded #190/MJ-REQ-189 application-link availability facet. The latter passes 34 focused Python tests, connected Chromium 1/1, focused frontend 3/3, TypeScript/Vite build, Python compilation, agent-skill/lane validators, source hashes/blob IDs, diff check, and local delegated review. #394 evidence records 18 API/integration tests, 110 frontend tests, build and connected browser PASS. PostgreSQL runtime, full repository suite, live employer/ATS behavior, and hosted checks remain NOT_RUN; external submission OFF.",
+  "current_verified_github_state": "Last live GitHub/origin main read was 9808cdce34ab0302bf5231b09d6ae5fd56a33b81. Local main is ahead with accepted local-only commits through a2ddaee0cb31b4e539f27173a2baf911d3847d4d; synchronized push and issue receipts are pending. GitHub Actions are disabled and branch protection was previously reported off; recheck immediately before push. Hosted checks/review remain NOT_RUN_BY_USER_POLICY; external submission OFF."
 }
