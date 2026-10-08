@@ -656,7 +656,7 @@ function App() {
   const reviewCoverLetter=latestApplicationDocument('cover-letter');
   const reviewAnswerExports=docs.filter(document=>document.kind==='application-answer-export').sort((left,right)=>right.version-left.version);
   const reviewRoute=selectedApp?.route_choices?.find(choice=>choice.route_id===selectedApp.route_id);
-  const applicationReviewIssues:string[]=selectedApp?[]:[];
+  const applicationReviewIssues:string[]=[];
   if(selectedApp&&!reviewRoute)applicationReviewIssues.push('Selected application route: UNKNOWN.');
   if(selectedApp&&!reviewResume)applicationReviewIssues.push('Resume is missing from this application.');
   else if(reviewResume?.missing_fact_ids?.length)applicationReviewIssues.push(`Resume has unavailable source facts: ${reviewResume.missing_fact_ids.join(', ')}.`);
@@ -670,7 +670,7 @@ function App() {
     else applicationReviewIssues.push('Required question preflight failed: '+(selectedApp.question_preflight.reason||'reason unavailable'));
   }
   if(selectedApp&&reviewAnswerExports.length&&!answerExportText?.text)applicationReviewIssues.push('Latest reviewed answer export could not be read back.');
-  if(selectedApp&&!applicationReviewIssues.length)applicationReviewIssues.push('No blockers were returned by the saved application and document records. Required employer questions still need supported preflight evidence.');
+  if(selectedApp&&!applicationReviewIssues.length)applicationReviewIssues.push('No blockers were returned by the saved application and document records.');
   return <div className="layout" data-operation-mode={operationMode||'LOADING'}>
     <aside className="sidebar"><a className="brand" href="/">M<span>Jobs</span><small>YOUR LOCAL WORKSPACE</small></a><nav aria-label="Main navigation">{(['Jobs','Profile','Sources','Applications','AI Settings','Activity'] as Tab[]).map(item=><button key={item} aria-current={tab===item?'page':undefined} onClick={()=>setTab(item)}>{item}<span>{item==='Jobs'?jobs.length:item==='Applications'?apps.length:''}</span></button>)}</nav><div className="side-note"><strong>Built around your facts.</strong><p>Discover opportunities, prepare truthful documents, and keep a clear record.</p><span className="status">External submission OFF</span></div></aside>
     <main><header><div className="eyebrow">LOCAL FIRST · USER TESTING</div><div className="header-row"><h1>{tab==='Jobs'?'Find your next opportunity.':tab==='Profile'?'Your experience, in your words.':tab==='Sources'?'Choose where to look.':tab==='Applications'?'Every application, accounted for.':tab==='AI Settings'?'Choose models by task.':'See what is happening.'}</h1><span className={'status '+(ready?.status==='ready'?'good':'warn')}>{ready?.status==='ready'?'Services ready':'Services '+(ready?.status||'checking')}</span></div><div className="profile-switch"><label htmlFor="active-profile">Active profile</label><select id="active-profile" disabled={!!busy} value={profileId} onChange={e=>switchProfile(e.target.value)}><option value="">Select a profile</option>{profiles.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select><button className="quiet" disabled={!!busy} onClick={()=>{++editorSequence.current;switchProfile('');profileBaselineRef.current=null;setEditor(newProfile());setTab('Profile');}}>New profile</button></div></header>

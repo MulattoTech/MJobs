@@ -19,6 +19,7 @@ from packages.persistence import models as m
 from services.discovery.pipeline import discover
 from services.documents.answers import export_answers
 from services.documents.generate import prepare
+from services.applications.preflight import persist_preflight
 from tests.integration.test_spine import PROFILE
 
 
@@ -65,6 +66,15 @@ class ApplicationPreviewBrowserTests(unittest.TestCase):
         return origin, sock, server, thread
 
     def test_selected_application_preview_survives_reload_without_starting_automation(self):
+        stored_application = self.store.application(self.application_id)
+        persist_preflight(self.store, self.application_id, {
+            "result": "PASS", "reason": None, "observed_at": "2026-10-08T10:30:00Z",
+            "profile_version": stored_application["profile_version"],
+            "document_version": stored_application["document_version"],
+            "route_id": stored_application["route_id"], "provider": "mock-ats",
+            "tenant": "example", "requisition": "B", "metadata_fingerprint": "b" * 64,
+            "mappings": [], "missing": [],
+        })
         before = self.store.application(self.application_id)
         before_documents = self.store.count("documents")
         before_attempts = self.store.count("application_attempts")
@@ -103,12 +113,18 @@ class ApplicationPreviewBrowserTests(unittest.TestCase):
                 expect(review).to_contain_text("Outstanding issues")
                 expect(review).to_contain_text("UNKNOWN")
                 expect(review).to_contain_text("Automation confidence")
+                expect(page.get_by_role("region", name="ATS question preflight")).to_contain_text("PASS")
+                issues = review.get_by_role("list", name="Outstanding application issues")
+                expect(issues).not_to_contain_text("Required employer questions")
+                expect(issues).not_to_contain_text("supported preflight evidence")
 
                 page.reload(wait_until="domcontentloaded")
                 review = page.get_by_role("region", name="Application review")
                 expect(review).to_contain_text(self.job["title"])
                 expect(review).to_contain_text("I built a small synthetic Python project.")
                 expect(review).to_contain_text("Automation confidence")
+                expect(page.get_by_role("region", name="ATS question preflight")).to_contain_text("PASS")
+                expect(review.get_by_role("list", name="Outstanding application issues")).not_to_contain_text("supported preflight evidence")
                 expect(page.get_by_role("button", name="Run dry-run")).to_have_count(1)
                 self.assertTrue(all(method == "GET" for method, _ in methods), methods)
                 self.assertEqual(outside, [])
