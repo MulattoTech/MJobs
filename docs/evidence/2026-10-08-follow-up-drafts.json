@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "issue": 394,
+  "requirement": "MJ-REF-024",
+  "result": "NOT_RUN",
+  "acceptance_status": "PARTIAL",
+  "branch": "codex/mj-ref024-follow-up-tests-20261008",
+  "source_sha": "9808cdce34ab0302bf5231b09d6ae5fd56a33b81",
+  "source_tree": "7c897d4e3dcf4f3bc32f88677d3f542638b49809",
+  "tested_inputs": [],
+  "validation": {
+    "integration_tests": "NOT_RUN",
+    "browser_test": "NOT_RUN",
+    "reason": "Test code is awaiting integration with the independently implemented route, service and UI slices; this record does not claim those paths ran or passed."
+  },
+  "privacy": {
+    "data": "synthetic only",
+    "external_network": "NOT_USED",
+    "submission": "NOT_USED",
+    "send_path": "NOT_USED"
+  },
+  "remaining": [
+    "Reconcile the combined candidate and exact six source/test input paths with the integration owner.",
+    "Run the focused synthetic integration tests and connected loopback browser test against the exact combined candidate.",
+    "Record actual commands, UTC timestamps, source/tree hashes, skips, failures and results before changing this evidence status."
+  ]
+}
