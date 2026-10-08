@@ -946,7 +946,9 @@
       "claimed_at": "2026-10-08T08:46:00Z",
       "evidence_path": "docs/evidence/2026-10-08-manual-skill-requirement-strength.json",
       "integrated_main": "4861439ba189502b8f0b6ed26b16b37c17ba87dc",
-      "result": "INTEGRATED_PARTIAL; issue #116 remains OPEN/PARTIAL"
+      "result": "INTEGRATED_PARTIAL; issue #116 remains OPEN/PARTIAL",
+      "claim_release_comment": "https://github.com/MulattoTech/MJobs/issues/116#issuecomment-6056637366",
+      "integration_comment": "https://github.com/MulattoTech/MJobs/issues/116#issuecomment-6056900288"
     },
     {
       "issue": 198,
@@ -963,7 +965,9 @@
       "claimed_at": "2026-10-08T08:54:59Z",
       "evidence_path": "docs/evidence/2026-10-08-application-review-ux.json",
       "integrated_main": "4861439ba189502b8f0b6ed26b16b37c17ba87dc",
-      "result": "INTEGRATED_PARTIAL; issue #198 remains OPEN/PARTIAL"
+      "result": "INTEGRATED_PARTIAL; issue #198 remains OPEN/PARTIAL",
+      "integration_comment": "https://github.com/MulattoTech/MJobs/issues/198#issuecomment-6056900582",
+      "release_comment": "https://github.com/MulattoTech/MJobs/issues/198#issuecomment-6056900819"
     },
     {
       "issue": 96,
@@ -984,7 +988,9 @@
       "claimed_at": "2026-10-08T09:05:01Z",
       "evidence_path": "docs/evidence/2026-10-08-responsibility-phrase-tailoring.json",
       "integrated_main": "4861439ba189502b8f0b6ed26b16b37c17ba87dc",
-      "result": "INTEGRATED_PARTIAL; issue #96 remains OPEN/PARTIAL"
+      "result": "INTEGRATED_PARTIAL; issue #96 remains OPEN/PARTIAL",
+      "integration_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6056901053",
+      "release_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6056901326"
     },
     {
       "issue": 190,

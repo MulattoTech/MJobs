@@ -853,7 +853,9 @@
           "validation": "Root exact rebased candidate: 21 focused Python/Chromium PASS; 10 frontend PASS; build, py_compile, agent skill validation and evidence hashes PASS.",
           "limitations": [
             "Whole MJ-REQ-095 remains PARTIAL; broader factual rephrasing and PostgreSQL/hosted checks NOT_RUN."
-          ]
+          ],
+          "issue_receipt": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6056901053",
+          "claim_release_receipt": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6056901326"
         }
       ]
     },
@@ -1015,7 +1017,9 @@
           "validation": "Root combined parser, explainable-matching, application-answer and review-queue suite 59 PASS; web build and 95 frontend tests PASS before this batch; rebase exact evidence retained.",
           "limitations": [
             "Unknown/ambiguous requirements remain UNKNOWN; broader matching requirement and hosted checks NOT_RUN."
-          ]
+          ],
+          "issue_receipt": "https://github.com/MulattoTech/MJobs/issues/116#issuecomment-6056900288",
+          "claim_release_receipt": "https://github.com/MulattoTech/MJobs/issues/116#issuecomment-6056637366"
         }
       ]
     },
@@ -1807,7 +1811,9 @@
           "validation": "Root combined Python 59 PASS, frontend 95/95, TypeScript/Vite build PASS; exact source hashes reconciled after rebase.",
           "limitations": [
             "No live ATS or full Continue action; hosted checks NOT_RUN."
-          ]
+          ],
+          "issue_receipt": "https://github.com/MulattoTech/MJobs/issues/198#issuecomment-6056900582",
+          "claim_release_receipt": "https://github.com/MulattoTech/MJobs/issues/198#issuecomment-6056900819"
         }
       ]
     },
@@ -4254,5 +4260,5 @@
       "claim_release_comment": "https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053395464"
     }
   ],
-  "generated_at": "2026-10-08T09:23:01.774980Z"
+  "generated_at": "2026-10-08T09:30:06.596421Z"
 }

@@ -29,8 +29,8 @@
     "canonical planning and main outside integration lock"
   ],
   "resume_instruction": "Interactive session handed off at user request. Local/origin main was e211f013801849a4fe2cf24c855313b8fcfc3978 before local metadata checkpoint. No Codex child claims remain active. Antigravity #302 and Ollama #318 are preserved. Next issue #191 Salary remains BLOCKED_DESIGN; inspect fresh state before selecting another unclaimed dependency-ready task. Keep hosted checks disabled and external submission OFF.",
-  "last_verified_head": "4861439ba189502b8f0b6ed26b16b37c17ba87dc",
-  "last_verified_tree": "72a7c772bac5bf1ae9b2385b03e194f530c93e85",
+  "last_verified_head": "4a538003dc151a97d03d615d6ea2ee34802d20aa",
+  "last_verified_tree": "feebe8fb04d267a4a4aac06aa272b68d532c4f30",
   "last_verified_at_utc": "2026-10-08T09:28:27.190192Z",
   "started_at_utc": "2026-10-07T04:24:01Z",
   "validation": {
@@ -43,10 +43,10 @@
     "hosted_checks": "NOT_RUN_BY_USER_POLICY",
     "external_submission": "OFF"
   },
-  "last_integrated_head": "4861439ba189502b8f0b6ed26b16b37c17ba87dc",
-  "last_verified_result": "PASS scoped local batch; #95 #115 #197 requirements remain PARTIAL.",
+  "last_integrated_head": "4a538003dc151a97d03d615d6ea2ee34802d20aa",
+  "last_verified_result": "PASS scoped feature evidence plus progress/dashboard/catalogue/coordination/skills validation. Root origin sync confirmed at current checkpoint.",
   "updated_at": "2026-10-08T09:28:27.190192Z",
-  "integrated_main": "4861439ba189502b8f0b6ed26b16b37c17ba87dc",
+  "integrated_main": "4a538003dc151a97d03d615d6ea2ee34802d20aa",
   "last_integrated_issue": 96,
   "last_integrated_requirement": "MJ-REQ-095",
   "last_integrated_evidence": "docs/evidence/2026-10-08-responsibility-phrase-tailoring.json",
