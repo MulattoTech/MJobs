@@ -1,18 +1,20 @@
 {
   "schema_version": 1,
-  "recorded_at_utc": "2026-10-08T07:07:53Z",
+  "recorded_at_utc": "2026-10-08T07:12:42Z",
   "issue": 178,
   "requirement_id": "MJ-REQ-177",
   "result": "PARTIAL",
   "scoped_acceptance": "PASS",
-  "base_commit": "17f0170841c2fa089e10b700deea11dbfd7e8167",
-  "tested_candidate_commit": "bb95130c45d927cc3cf671b4d698f5183dcb6bb1",
-  "tested_candidate_tree": "3632ab2dfe815d8c8bac93d999acf41710b9a9a9",
+  "base_commit": "3760eb6d05c6cc8c9d0e22bbdfa02e59ae8ee86d",
+  "tested_candidate_commit": "2e9c17012a8d27ddcfacd3432d00dc4a9ba46ead",
+  "tested_candidate_tree": "e65995eb40d4e2e61f1745e95039cb7fa2bbb6b5",
   "rebase_validation": {
-    "previous_commit": "33d2617095de80f62bce3c3f88fccad0dd14dc3a",
-    "current_main": "17f0170841c2fa089e10b700deea11dbfd7e8167",
+    "previous_commit": "5d2a72a5f137888b4eccf0e14acdeb23b34f4cd2",
+    "current_main": "3760eb6d05c6cc8c9d0e22bbdfa02e59ae8ee86d",
     "source_test_blobs_unchanged": true,
-    "hosted_automation_used": false
+    "hosted_automation_used": false,
+    "root_rerun_on_exact_candidate": true,
+    "root_validation_at_utc": "2026-10-08T07:12:42Z"
   },
   "acceptance_oracle": "For APPLY_MOCK terminal records, emit the ATS provider only when resolved from the persisted application-to-route relationship and recognized by the existing ATS provider registry. Provider lookup is best effort after durable terminal-state persistence; missing, unknown, malformed, or unavailable context is omitted without changing the operation outcome. Never serialize operation params, application content, credentials, URLs, or exception diagnostics.",
   "implementation": [
@@ -40,6 +42,14 @@
     },
     {
       "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m compileall -q workers/tasks.py workers/structured_logging.py tests/unit/test_structured_logging.py tests/integration/test_worker_lifecycle.py",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m compileall -q workers/tasks.py workers/structured_logging.py tests/unit/test_structured_logging.py tests/integration/test_worker_lifecycle.py",
       "result": "PASS"
     },
     {
