@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "recorded_at_utc": "2026-10-08T09:48:14Z",
+  "recorded_at_utc": "2026-10-08T10:05:18Z",
   "requirement_id": "MJ-REQ-135",
   "issue": 136,
   "scope": "Bounded fail-closed validation for required structured ATS questions recognized as sensitive or legal.",
@@ -65,11 +65,11 @@
     "browser_review_queue": "SKIPPED: requires apps/web build"
   },
   "root_verification": {
-    "recorded_at_utc": "2026-10-08T09:52:24Z",
-    "candidate_source_head": "3b8ea0a379280997dbab0f0f7ad6ebc84f107bfe",
-    "candidate_source_tree": "d6583ea714a6935bfa18a37de49a10448e0063ba",
-    "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_application_preflight tests.browser.test_mock_application tests.integration.test_application_answer_export tests.browser.test_application_review_queue -q",
-    "result": "PASS: 48 tests run, 47 passed, 1 skipped because the browser review-queue test requires an apps/web build; run on exact rebased candidate source.",
-    "evidence_input_hashes": "PASS: all source_inputs_sha256 match current candidate bytes."
+    "recorded_at_utc": "2026-10-08T10:05:18Z",
+    "candidate_source_head": "e5fee45c0c3e074154ef523d252a2e78a2ffa2de",
+    "candidate_source_tree": "1364af93793e56fdc17fa79487032b7647dba844",
+    "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_application_preflight tests.browser.test_mock_application tests.integration.test_application_answer_export tests.browser.test_application_review_queue -q",
+    "result": "PASS: 48 tests run, 48 passed, 0 skipped after building current apps/web via npm run build --prefix apps/web.",
+    "evidence_input_hashes": "PASS: all three source_inputs_sha256 match exact integrated source bytes."
   }
 }

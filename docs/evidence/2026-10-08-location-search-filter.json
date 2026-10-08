@@ -6,9 +6,9 @@
   "scope_result": "PASS",
   "requirement_result": "PARTIAL",
   "base_commit": "760271a9a1205858cda2e99980e37783f49dedc6",
-  "verified_source_head": "bb390b94afade18996b27e2663767f43659a96ce",
-  "verified_source_tree": "67e8017b663f30b9c24a4fa6877fae96bc50361b",
-  "verified_at_utc": "2026-10-08T09:45:17Z",
+  "verified_source_head": "e5fee45c0c3e074154ef523d252a2e78a2ffa2de",
+  "verified_source_tree": "1364af93793e56fdc17fa79487032b7647dba844",
+  "verified_at_utc": "2026-10-08T10:03:00Z",
   "environment": {
     "python": "Repository virtual environment at C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe (Python 3.12.10)",
     "node": "v25.9.0",
@@ -19,7 +19,7 @@
   },
   "source_sha256": {
     "apps/api/main.py": "895BE59EE53BCCEBCE38D0A2733BE138008DA9A67F7C45F15F3B4011515802F0",
-    "apps/web/src/main.tsx": "473710446B5D0A14BE3A39F922523FE79A6842FA371E12DA72D5E1AD92FD728E",
+    "apps/web/src/main.tsx": "C6B451BD9E99DBD192EB48A9365C71E9060D18B2F556AB228CE82E31D5AC2FE2",
     "packages/persistence/store.py": "05BBC770985DA60D019AE050FC9C0BC89DE0EC2414D131511BA550CFD88053FB",
     "services/discovery/search_profiles.py": "878365F46DC80474769245EE99E81B817D7CA490E4E0AC8E4CAA3A931855CA68",
     "tests/integration/test_saved_search_filters.py": "52AA77C70D33C672C418B66B97EFD4D3DDED7C29F3962B4D09BEAFB08BCFB6A9",
@@ -50,6 +50,16 @@
       "command": "Get-FileHash on all six source and test inputs listed above",
       "result": "PASS",
       "summary": "All SHA-256 values match the committed verified source head."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_saved_search_filters tests.integration.test_job_sorting tests.browser.test_saved_search_filters tests.browser.test_job_sorting -v (after npm run build --prefix apps/web)",
+      "result": "PASS",
+      "summary": "Root exact-main replay passed 12 integration/browser tests after rebuilding stale ignored apps/web/dist. The first run had 11 passes and one browser timeout because dist predated the Jobs title filter; rebuilt dist contains the current control and the same browser test passes."
+    },
+    {
+      "command": "Recomputed SHA-256 for all source_sha256 inputs",
+      "result": "PASS",
+      "summary": "All six hashes match the exact integrated source tree pinned above."
     }
   ],
   "safety_and_limits": {

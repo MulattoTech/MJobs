@@ -992,7 +992,7 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-031-matching-ai",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Latest scoped #116 / MJ-REQ-115 negated-must-have slice integrated at c05d6c90b660508417ba7c17a0aa24a4116fded3; tested source 12ac4048f92f59423a08d5f4af49453f4949f570 / tree 23f5220012726c5eac91f711428d80e8f72f3a0b. Root: 25 parser/matching tests and 1 synthetic Chromium manual-capture/reopen test PASS; TypeScript/Vite build, py_compile and exact evidence hashes PASS. Vitest NOT_RUN (Node 25 outside declared range); hosted checks/review NOT_RUN_BY_USER_POLICY. Evidence docs/evidence/2026-10-08-required-vs-preferred-negated-must-have.json; #116 and PR-031 remain OPEN/PARTIAL; dependencies unchanged. Latest bounded local slice 115 / MJ-REQ-114 integrated on tested candidate b96700264ac660c91b5be0093b979607ddfd6267; evidence docs/evidence/2026-10-08-explainable-match-factors.json. Parent aggregate status and dependencies are unchanged; broader acceptance remains PARTIAL. Additional #116 / MJ-REQ-115 required-versus-preferred skill slice integrated at 4861439ba189502b8f0b6ed26b16b37c17ba87dc; evidence docs/evidence/2026-10-08-manual-skill-requirement-strength.json. Parent and dependency state unchanged; issue remains OPEN/PARTIAL.",
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Latest scoped #116 / MJ-REQ-115 negated-must-have slice integrated at c05d6c90b660508417ba7c17a0aa24a4116fded3; tested source 12ac4048f92f59423a08d5f4af49453f4949f570 / tree 23f5220012726c5eac91f711428d80e8f72f3a0b. Root: 25 parser/matching tests and 1 synthetic Chromium manual-capture/reopen test PASS; TypeScript/Vite build, py_compile and exact evidence hashes PASS. Vitest NOT_RUN (Node 25 outside declared range); hosted checks/review NOT_RUN_BY_USER_POLICY. Evidence docs/evidence/2026-10-08-required-vs-preferred-negated-must-have.json; #116 and PR-031 remain OPEN/PARTIAL; dependencies unchanged. Latest bounded local slice 115 / MJ-REQ-114 integrated on tested candidate b96700264ac660c91b5be0093b979607ddfd6267; evidence docs/evidence/2026-10-08-explainable-match-factors.json. Parent aggregate status and dependencies are unchanged; broader acceptance remains PARTIAL. Additional #116 / MJ-REQ-115 required-versus-preferred skill slice integrated at 4861439ba189502b8f0b6ed26b16b37c17ba87dc; evidence docs/evidence/2026-10-08-manual-skill-requirement-strength.json. Parent and dependency state unchanged; issue remains OPEN/PARTIAL. Additional #115 / MJ-REQ-114 certification fit explanation slice integrated at e5fee45c0c3e074154ef523d252a2e78a2ffa2de; evidence docs/evidence/2026-10-08-certification-match-explanation.json. Scoped and PARTIAL; dependencies/status unchanged.",
       "slice_history": [
         {
           "name": "Explain title, arrangement and employment fit factors",
@@ -1168,7 +1168,7 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-037-application-automation",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Additional #136 / MJ-REQ-135 sensitive/legal question preflight slice integrated at e5fee45c0c3e074154ef523d252a2e78a2ffa2de; evidence docs/evidence/2026-10-08-sensitive-question-preflight.json. Fail-closed pre-browser slice only; dependencies/status unchanged."
     },
     {
       "id": "MJ-PR-038",
@@ -1549,7 +1549,7 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-052-web-api-analytics",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Additional slice #190 / MJ-REQ-189 title/company filters integrated locally at a33ecc497c412a3ee547ac35930b43de6fe274d4; see docs/evidence/2026-10-08-title-company-search-filters.json. Original PR-052 dependencies/status unchanged.",
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Additional slice #190 / MJ-REQ-189 title/company filters integrated locally at a33ecc497c412a3ee547ac35930b43de6fe274d4; see docs/evidence/2026-10-08-title-company-search-filters.json. Original PR-052 dependencies/status unchanged. Additional #190 / MJ-REQ-189 location filter slice integrated at e5fee45c0c3e074154ef523d252a2e78a2ffa2de; evidence docs/evidence/2026-10-08-location-search-filter.json. Other search-profile criteria remain post-limit and salary/other facets are outstanding; dependencies/status unchanged.",
       "active_slice": {
         "name": "Save and restore supported Jobs filters in a profile-scoped saved search",
         "issue": 192,

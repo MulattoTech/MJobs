@@ -1,18 +1,18 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-08T09:37:57.285378Z",
+  "generated_at": "2026-10-08T10:05:18Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Issue #179 / MJ-REQ-178 log retention acceptance PASS at 8bea57e595e19e638913405a8ec1cd3aa0ebde32; full product remains PARTIAL.",
-    "current_verified_github_state": "Local and origin main synchronized at e211f013801849a4fe2cf24c855313b8fcfc3978; latest integrated scoped slice is #144/MJ-REQ-143 MOCK-only confirmation capture; whole release remains PARTIAL.",
-    "current_verified_at": "2026-10-08T08:24:33Z"
+    "current_verified_local_state": "CORE-FEATURE-BATCH-20261008-D local source integration at e5fee45c0c3e074154ef523d252a2e78a2ffa2de; three scoped core features accepted and requirements remain PARTIAL.",
+    "current_verified_github_state": "origin/main at 760271a9a1205858cda2e99980e37783f49dedc6 while authorized local tracker checkpoint awaits fast-forward publication.",
+    "current_verified_at": "2026-10-08T10:01:03Z"
   },
-  "current_milestone": "CORE-FEATURE-BATCH-20261008-C",
-  "current_objective": "Advance connected jobseeker search, matching, truthful documents, and consent-safe application preparation through dependency-ready vertical slices.",
+  "current_milestone": "CORE-FEATURE-BATCH-20261008-D",
+  "current_objective": "Advance connected jobseeker search, explainable matching, truthful documents, and consent-safe application preparation through dependency-ready vertical slices.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -75,7 +75,8 @@
     "MJ-REQ-173 upload security across all seven supported document kinds; evidence docs/evidence/2026-10-07-seven-kind-upload-security.json",
     "Issue #117 / MJ-REQ-116 Match Categories locally verified PASS at docs/evidence/2026-10-08-match-categories.json; parent MJ-PR-032 and other matching requirements remain queued/partial.",
     "MJ-REQ-195 / issue #196 application tracker: all ten documented stages in a user-reported Kanban pipeline with profile-scoped durable status/history and explicit no-submission distinction; evidence docs/evidence/2026-10-08-application-tracker-current-main.json.",
-    "MJ-REQ-194 / issue #195 Companies Screen: all eight exact fields, profile-scoped durable Applications count, persisted User Preference; full issue acceptance verified and issue closed PASS. Aggregate MJ-PR-053 remains queued."
+    "MJ-REQ-194 / issue #195 Companies Screen: all eight exact fields, profile-scoped durable Applications count, persisted User Preference; full issue acceptance verified and issue closed PASS. Aggregate MJ-PR-053 remains queued.",
+    "Connected location search filter, certification-fit explanation, and sensitive-question preflight slices integrated on local main e5fee45c0c3e074154ef523d252a2e78a2ffa2de; all requirements remain PARTIAL."
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
@@ -155,7 +156,8 @@
     "MJ-REQ-191",
     "MJ-REQ-179",
     "MJ-REQ-100",
-    "MJ-REQ-114"
+    "MJ-REQ-139",
+    "MJ-REQ-189"
   ],
   "active_prs": [],
   "tests_passed": [
@@ -412,7 +414,11 @@
     "Issue #96 bounded target-relevant bullets: Python unit/integration/connected synthetic browser 19/19; focused Vitest 3/3; TypeScript/Vite build; nine exact input hashes and diff check PASS on tested source 18263e4fa0b29b4b9fbda51ea1c2b3f8882782a9; LOCAL_DELEGATED_REVIEW no blocker.",
     "Issue #195 / MJ-REQ-194: company-source integration 8/8, connected synthetic browser 1/1, web 94/94, TypeScript/Vite build, input hashes and diff check PASS; LOCAL_DELEGATED_REVIEW no blockers.",
     "Issue #178 / MJ-REQ-177 APPLY_MOCK context: integrated worker/logging suite 33 passed, 1 optional PostgreSQL skip (34 discovered), compileall, evidence hashes and diff check PASS; LOCAL_DELEGATED_REVIEW no blockers.",
-    "Issue #144 / MJ-REQ-143 MOCK confirmation: integrated mock/application-pipeline browser suites 22/22 PASS; py_compile, four evidence hashes and diff check PASS; connected readback after reopen/reload and web build PASS."
+    "Issue #144 / MJ-REQ-143 MOCK confirmation: integrated mock/application-pipeline browser suites 22/22 PASS; py_compile, four evidence hashes and diff check PASS; connected readback after reopen/reload and web build PASS.",
+    "Root exact-main location integration/browser checks: 12 PASS; worker frontend tests 96 PASS and production build PASS.",
+    "Root exact-main explainable-matching and requirement-parser checks: 40 PASS.",
+    "Root exact-main application preflight/mock-browser/review queue checks: 47 PASS, 1 SKIP (review-queue browser test requires apps/web build).",
+    "Root exact-main application preflight/mock-browser/answer-export/review-queue suite: 48/48 PASS after building current apps/web; evidence docs/evidence/2026-10-08-sensitive-question-preflight.json."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -513,7 +519,9 @@
     "Issue #96: full Python regression, supported Node 24 Vitest, PostgreSQL, hosted verification/review and release eligibility NOT_RUN; hosted gates NOT_RUN_BY_USER_POLICY.",
     "Issue #195: PostgreSQL and hosted/release checks NOT_RUN; issue acceptance closed independently; MJ-PR-053 remains QUEUED with dependencies intact.",
     "Issue #178: PostgreSQL/RQ runtime, full Python suite and hosted checks/review NOT_RUN; broader MJ-REQ-177 remains PARTIAL.",
-    "Issue #144: real employer ATS, PostgreSQL, hosted checks/review and full suite NOT_RUN; no employer site contacted; external submission OFF."
+    "Issue #144: real employer ATS, PostgreSQL, hosted checks/review and full suite NOT_RUN; no employer site contacted; external submission OFF.",
+    "Hosted GitHub checks/reviews remain NOT_RUN by local-only policy; PostgreSQL and whole-product E2E not run for this batch.",
+    "Semantic criteria supplied only through search_profile_id remain post-LIMIT; new direct location filter is applied before LIMIT."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -553,11 +561,15 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "commit": "a33ecc497c412a3ee547ac35930b43de6fe274d4",
-    "tree": "9f4d23b024e2746c1ac1448464cd344ee847007a",
-    "result": "PASS scoped connected title/company saved-filter slice; whole product/release remains PARTIAL/NOT_RUN.",
-    "evidence": "docs/evidence/2026-10-08-title-company-search-filters.json",
-    "verified_at_utc": "2026-10-08T09:37:57.285378Z"
+    "commit": "e5fee45c0c3e074154ef523d252a2e78a2ffa2de",
+    "tree": "1364af93793e56fdc17fa79487032b7647dba844",
+    "result": "PASS for three scoped local slices; connected location search, certification factor explanations, and sensitive question preflight. Overall product/release remains PARTIAL; hosted and full-stack checks NOT_RUN.",
+    "evidence": [
+      "docs/evidence/2026-10-08-location-search-filter.json",
+      "docs/evidence/2026-10-08-certification-match-explanation.json",
+      "docs/evidence/2026-10-08-sensitive-question-preflight.json"
+    ],
+    "verified_at_utc": "2026-10-08T09:59:27Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -12588,5 +12600,7 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-08T09:37:57.285378Z"
+  "updated_at": "2026-10-08T09:37:57.285378Z",
+  "current_verified_local_state": "CORE-FEATURE-BATCH-20261008-D: three scoped jobseeker search/matching/application-preflight slices integrated locally on main e5fee45c0c3e074154ef523d252a2e78a2ffa2de; requirements remain PARTIAL.",
+  "current_verified_github_state": "GitHub main remains at 760271a9 until local-only fast-forward publication of the accepted batch and tracker checkpoint; no hosted automation or real submissions."
 }

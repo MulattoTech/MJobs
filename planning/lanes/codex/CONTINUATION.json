@@ -5,27 +5,27 @@
   "preferred_model": "gpt-6-luna",
   "preferred_reasoning": "high",
   "session_id": "01a10ed8-5445-7b61-8293-43be1895ecc5",
-  "canonical_main_at_pause": "a33ecc497c412a3ee547ac35930b43de6fe274d4",
-  "last_completed_issue": 190,
-  "last_completed_requirement": "MJ-REQ-189 bounded title/company saved-search filters integrated PARTIAL; issue remains OPEN",
-  "last_integrated_head": "a33ecc497c412a3ee547ac35930b43de6fe274d4",
-  "next_issue": 136,
-  "next_requirement": "MJ-REQ-135",
-  "resume_instruction": "Active sprint is continuing. Local main is at a33ecc497c412a3ee547ac35930b43de6fe274d4, origin remains at 13426c6 until this tracker checkpoint push. #190/MJ-REQ-189 title/company filters are integrated and verified. Active isolated writers: #115/MJ-REQ-114 certification explanation on branch codex/mj-req114-certification-explanation-20261008 (based on 13426c6; rebase before exact-head checks), and #136/MJ-REQ-135 sensitive-question preflight on branch codex/mj-req135-sensitive-question-preflight-20261008 (based on a33ecc4). Preserve Antigravity #302 and Ollama #318. Hosted checks/review NOT_RUN; external submission OFF.",
+  "canonical_main_at_pause": "e5fee45c0c3e074154ef523d252a2e78a2ffa2de",
+  "last_completed_issue": 136,
+  "last_completed_requirement": "MJ-REQ-135 sensitive question preflight integrated PARTIAL; location and certification slices also accepted in current batch.",
+  "last_integrated_head": "e5fee45c0c3e074154ef523d252a2e78a2ffa2de",
+  "next_issue": 140,
+  "next_requirement": "MJ-REQ-139",
+  "resume_instruction": "Root holds integration ownership and is finishing the accepted tracker batch. Current main is e5fee45c0c3e074154ef523d252a2e78a2ffa2de, origin main still 760271a9 pending authorized fast-forward push. Active isolated workers #140 (step trace/debug phase fix) and #190 salary filters; do not overlap their paths. Preserve all dirty Antigravity/Ollama and unrelated worktrees. Hosted checks/review NOT_RUN; external submission OFF.",
   "external_submission_enabled": false,
   "github_actions_enabled": false,
-  "last_validated_head": "a33ecc497c412a3ee547ac35930b43de6fe274d4",
-  "last_validated_tree": "9f4d23b024e2746c1ac1448464cd344ee847007a",
-  "last_validated_at_utc": "2026-10-08T09:38:20.747897Z",
-  "last_validated_result": "PASS bounded filter slice and local validators; repository-wide/PostgreSQL/hosted validation remain NOT_RUN.",
-  "base_main": "908e5de2cfcbf1cfbd1ca10388e90a3cdf9bbef0",
-  "current_issue": 136,
-  "requirement_id": "MJ-REQ-135",
-  "branch": "codex/mj-req135-sensitive-question-preflight-20261008",
-  "head": "a33ecc497c412a3ee547ac35930b43de6fe274d4",
-  "worktree": ".worktrees/codex-mj-req135-sensitive-question-preflight-20261008",
-  "result": "ACTIVE; fail-closed sensitive-question preflight underway.",
-  "evidence_path": "docs/evidence/2026-10-08-sensitive-question-preflight.json",
+  "last_validated_head": "e5fee45c0c3e074154ef523d252a2e78a2ffa2de",
+  "last_validated_tree": "1364af93793e56fdc17fa79487032b7647dba844",
+  "last_validated_at_utc": "2026-10-08T10:05:18Z",
+  "last_validated_result": "PASS for 3 scoped accepted slices; root exact-main replay 12 search and 48 preflight/application review tests PASS; broad product and hosted validation remain PARTIAL/NOT_RUN.",
+  "base_main": "e5fee45c0c3e074154ef523d252a2e78a2ffa2de",
+  "current_issue": 140,
+  "requirement_id": "MJ-REQ-139",
+  "branch": "codex/mj-req139-application-step-trace-20261008",
+  "head": "e5fee45c0c3e074154ef523d252a2e78a2ffa2de",
+  "worktree": ".worktrees/codex-mj-req139-application-step-trace-20261008",
+  "result": "ACTIVE; correcting failure diagnostics to persist the actual active step with privacy-safe fixed labels.",
+  "evidence_path": "docs/evidence/2026-10-08-application-step-trace.json",
   "next_candidates": [
     {
       "issue": 191,
@@ -37,14 +37,18 @@
   "last_verified_tree": "72a7c772bac5bf1ae9b2385b03e194f530c93e85",
   "last_verified_at_utc": "2026-10-08T09:28:27.190192Z",
   "last_verified_result": "Scoped root verification: application review combined suite 59 Python, 95 frontend, build; resume tailoring 21 focused Python/Chromium, 10 frontend, build and provenance checks; see integrated evidence.",
-  "updated_at": "2026-10-08T09:38:20.747897Z",
+  "updated_at": "2026-10-08T10:05:18Z",
   "last_completed": {
-    "issue": 190,
-    "requirement_id": "MJ-REQ-189",
-    "integrated_main": "a33ecc497c412a3ee547ac35930b43de6fe274d4",
-    "integrated_tree": "9f4d23b024e2746c1ac1448464cd344ee847007a",
+    "issue": 136,
+    "requirement_id": "MJ-REQ-135",
+    "integrated_main": "e5fee45c0c3e074154ef523d252a2e78a2ffa2de",
+    "integrated_tree": "1364af93793e56fdc17fa79487032b7647dba844",
     "issue_state": "OPEN/PARTIAL",
-    "evidence_path": "docs/evidence/2026-10-08-title-company-search-filters.json"
+    "evidence_paths": [
+      "docs/evidence/2026-10-08-sensitive-question-preflight.json",
+      "docs/evidence/2026-10-08-location-search-filter.json",
+      "docs/evidence/2026-10-08-certification-match-explanation.json"
+    ]
   },
   "current_requirement": "MJ-REQ-135",
   "current_branch": "codex/mj-req135-sensitive-question-preflight-20261008",
@@ -65,5 +69,18 @@
     "external_submission": "OFF"
   },
   "issue_claim_comment": "https://github.com/MulattoTech/MJobs/issues/178#issuecomment-6054437313",
-  "active_children": []
+  "active_children": [
+    {
+      "issue": 140,
+      "requirement_id": "MJ-REQ-139",
+      "branch": "codex/mj-req139-application-step-trace-20261008",
+      "status": "ACTIVE; debug active phase regression under focused test; worker rebasing/fixing."
+    },
+    {
+      "issue": 190,
+      "requirement_id": "MJ-REQ-189",
+      "branch": "codex/mj-req189-salary-filter-20261008",
+      "status": "ACTIVE; annual-USD minimum/maximum saved-search filtering."
+    }
+  ]
 }

@@ -1015,6 +1015,65 @@
       "integrated_main": "a33ecc497c412a3ee547ac35930b43de6fe274d4",
       "result": "INTEGRATED_PARTIAL; issue #190 remains OPEN/PARTIAL",
       "released_at": "2026-10-08T09:38:20.747897Z"
+    },
+    {
+      "issue": 115,
+      "requirement_id": "MJ-REQ-114",
+      "branch": "codex/mj-req114-certification-explanation-20261008",
+      "worktree": ".worktrees/codex-mj-req114-certification-explanation-20261008",
+      "head": "7e2eb983c400c382e6dafa95ac7d06dc8b9bf497",
+      "paths": [
+        "services/matching/requirement_parsers.py",
+        "tests/unit/test_requirement_parsers.py",
+        "tests/integration/test_explainable_matching.py",
+        "docs/evidence/2026-10-08-certification-match-explanation.json"
+      ],
+      "status": "RELEASED",
+      "evidence_path": "docs/evidence/2026-10-08-certification-match-explanation.json",
+      "integrated_main": "e5fee45c0c3e074154ef523d252a2e78a2ffa2de",
+      "result": "INTEGRATED_PARTIAL; issue #115 and MJ-REQ-114 remain OPEN/PARTIAL; root focused matching/parser suite 40 PASS; hosted NOT_RUN_BY_POLICY.",
+      "local_review": "PASS; no material findings",
+      "released_at": "2026-10-08T09:59:27Z"
+    },
+    {
+      "issue": 136,
+      "requirement_id": "MJ-REQ-135",
+      "branch": "codex/mj-req135-sensitive-question-preflight-20261008",
+      "worktree": ".worktrees/codex-mj-req135-sensitive-question-preflight-20261008",
+      "head": "3b8ea0a379280997dbab0f0f7ad6ebc84f107bfe",
+      "paths": [
+        "services/applications/preflight.py",
+        "tests/integration/test_application_preflight.py",
+        "tests/browser/test_mock_application.py",
+        "docs/evidence/2026-10-08-sensitive-question-preflight.json"
+      ],
+      "status": "RELEASED",
+      "evidence_path": "docs/evidence/2026-10-08-sensitive-question-preflight.json",
+      "integrated_main": "e5fee45c0c3e074154ef523d252a2e78a2ffa2de",
+      "result": "INTEGRATED_PARTIAL; issue #136 and MJ-REQ-135 remain OPEN/PARTIAL; root exact-main suite 48/48 PASS; hosted NOT_RUN_BY_POLICY.",
+      "released_at": "2026-10-08T09:59:27Z"
+    },
+    {
+      "issue": 190,
+      "requirement_id": "MJ-REQ-189",
+      "branch": "codex/mj-req189-location-filter-20261008",
+      "worktree": ".worktrees/codex-mj-req189-location-filter-20261008",
+      "head": "df925cf5ac7d67a748ccf877e3b3ee3fa2793ccf",
+      "paths": [
+        "apps/api/main.py",
+        "packages/persistence/store.py",
+        "services/discovery/search_profiles.py",
+        "apps/web/src/main.tsx",
+        "tests/integration/test_saved_search_filters.py",
+        "tests/browser/test_saved_search_filters.py",
+        "docs/evidence/2026-10-08-location-search-filter.json"
+      ],
+      "status": "RELEASED",
+      "evidence_path": "docs/evidence/2026-10-08-location-search-filter.json",
+      "integrated_main": "e5fee45c0c3e074154ef523d252a2e78a2ffa2de",
+      "result": "INTEGRATED_PARTIAL; issue #190 and MJ-REQ-189 remain OPEN/PARTIAL; root integration/browser suite 12 PASS, worker frontend 96 PASS and build PASS; hosted NOT_RUN_BY_POLICY.",
+      "limitation": "Other search_profile_id semantics remain post-limit; direct location filter runs before limit.",
+      "released_at": "2026-10-08T09:59:27Z"
     }
   ]
 }

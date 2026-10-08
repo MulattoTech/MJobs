@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-08T09:37:57.285378Z",
+  "timestamp": "2026-10-08T10:01:03Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -1079,9 +1079,10 @@
         "docs/evidence/2026-09-30-user-testing.md",
         "docs/evidence/2026-10-05-explainable-matching.json",
         "docs/evidence/2026-10-05-core-workflow-trial-combined.json",
-        "docs/evidence/2026-10-08-explainable-match-factors.json"
+        "docs/evidence/2026-10-08-explainable-match-factors.json",
+        "docs/evidence/2026-10-08-certification-match-explanation.json"
       ],
-      "note": "Persisted scheduled-search title/employment criteria are read back; separate transient Jobs title/location controls and match explanations are included in the connected synthetic journey; full acceptance remains PARTIAL. Additional bounded local slice integrated on exact tested main candidate b96700264ac660c91b5be0093b979607ddfd6267: match explanation shows title-family, work-arrangement, and employment-type fit from explicit preferences/known job attributes; missing inputs remain UNKNOWN and score_effect is NONE. Root exact candidate matching tests, connected synthetic Chromium journey, frontend 95/95/build pass. Salary, education, certification and remaining factors are incomplete; #115 / MJ-REQ-114 and MJ-PR-031 remain PARTIAL. Hosted checks NOT_RUN_BY_USER_POLICY."
+      "note": "Persisted scheduled-search title/employment criteria are read back; separate transient Jobs title/location controls and match explanations are included in the connected synthetic journey; full acceptance remains PARTIAL. Additional bounded local slice integrated on exact tested main candidate b96700264ac660c91b5be0093b979607ddfd6267: match explanation shows title-family, work-arrangement, and employment-type fit from explicit preferences/known job attributes; missing inputs remain UNKNOWN and score_effect is NONE. Root exact candidate matching tests, connected synthetic Chromium journey, frontend 95/95/build pass. Salary, education, certification and remaining factors are incomplete; #115 / MJ-REQ-114 and MJ-PR-031 remain PARTIAL. Hosted checks NOT_RUN_BY_USER_POLICY. Additional exact-main certification factor explanation slice: only verified, approved, sourced current certification facts with confidence >=80 can yield informational ALIGNS/MISMATCH; version qualifiers are preserved, current-status absence stays UNKNOWN, score_effect=NONE. Root focused matching/parser checks passed 40 tests. Broad requirement remains PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-115",
@@ -1216,9 +1217,11 @@
     },
     {
       "requirement_id": "MJ-REQ-135",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-08-sensitive-question-preflight.json"
+      ],
+      "note": "Scoped sensitive-question preflight slice integrated. Sensitive/legal-work and background-screening paraphrases yield UNKNOWN before Playwright, persist REVIEW_REQUIRED without answer values, and preserve ordinary/optional question behavior. Root exact-main focused suite: 48/48 passed after building the current web app. Broader application validation remains PARTIAL; hosted checks NOT_RUN."
     },
     {
       "requirement_id": "MJ-REQ-136",
@@ -1631,9 +1634,10 @@
       "requirement_id": "MJ-REQ-189",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-08-title-company-search-filters.json"
+        "docs/evidence/2026-10-08-title-company-search-filters.json",
+        "docs/evidence/2026-10-08-location-search-filter.json"
       ],
-      "note": "A bounded connected title/company filter slice is verified: separate case-insensitive literal substring filters compose with keyword, location, source and sort; filtering runs before result limits; named profile-scoped saved searches retain and restore the fields and supported Company sort after reload. Reset, cross-profile ownership/isolation, wildcard literals, existing query behavior, no discovery scheduling, and no off-origin requests are covered. Evidence docs/evidence/2026-10-08-title-company-search-filters.json. Issue #190/MJ-REQ-189 remains PARTIAL; salary, experience, date, employment type, skills, education, clearance, match score, ATS, application capability/state filters and hosted/PostgreSQL checks remain NOT_RUN."
+      "note": "A bounded connected title/company filter slice is verified: separate case-insensitive literal substring filters compose with keyword, location, source and sort; filtering runs before result limits; named profile-scoped saved searches retain and restore the fields and supported Company sort after reload. Reset, cross-profile ownership/isolation, wildcard literals, existing query behavior, no discovery scheduling, and no off-origin requests are covered. Evidence docs/evidence/2026-10-08-title-company-search-filters.json. Issue #190/MJ-REQ-189 remains PARTIAL; salary, experience, date, employment type, skills, education, clearance, match score, ATS, application capability/state filters and hosted/PostgreSQL checks remain NOT_RUN. Additional connected location filter slice: escaped case-insensitive literal stored-location match composes with keyword/title/company/remote/source/sort before LIMIT and saves/restores with profile-scoped saved searches. Root integration/browser tests 12 PASS; worker frontend tests 96 PASS and production build PASS. Salary and other facets remain incomplete; semantic search-profile criteria besides direct filter parameters are still applied after LIMIT."
     },
     {
       "requirement_id": "MJ-REQ-190",
