@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REQ-104-ANSWER-MATCH-POLARITY-GUARD-20261008",
+  "recorded_at_utc": "2026-10-08T11:30:07Z",
+  "result": "PARTIAL",
+  "accepted_slice_result": "PASS",
+  "issue": 105,
+  "requirement_id": "MJ-REQ-104",
+  "scope": "Prevent deterministic fuzzy or curated reuse suggestions when one question contains an explicit polarity-negation cue and the other does not. Preserve same-polarity exact/fuzzy behavior, sensitive/legal exclusions, deliberate per-job review, and manually entered answers.",
+  "authority": {
+    "repository": "MulattoTech/MJobs",
+    "issue_url": "https://github.com/MulattoTech/MJobs/issues/105",
+    "issue_state": "OPEN",
+    "branch": "codex/mj-req104-polarity-guard-20261008",
+    "worktree": ".worktrees/codex-mj-req104-polarity-guard-20261008",
+    "base_head": "b633578112a9553cc29dcbda7e7e21d88f1547c5"
+  },
+  "acceptance": {
+    "opposite_polarity": "PASS; Python and TypeScript reject positive versus not, never, and cannot/contraction prompt variants before semantic/fuzzy matching.",
+    "same_polarity_control": "PASS; the existing positive same-polarity fuzzy wording variant still matches at its bounded score.",
+    "export_recomputation": "PASS; API rejects a selected positive saved answer against the negated prompt with HTTP 422 and creates no document.",
+    "manual_application_path": "PASS; browser shows no saved-answer suggestion for the negated prompt, permits user-entered text plus explicit per-job review, and exports locally with external submission OFF.",
+    "sensitive_and_legal": "PASS; existing sensitive/legal no-suggestion unit, integration, and browser controls remain green.",
+    "automatic_selection_or_submission": "OFF; no saved answer is selected automatically and no employer submission occurs."
+  },
+  "red_first_observation": {
+    "result": "FAIL_BEFORE_IMPLEMENTATION",
+    "details": "Python matcher returned FUZZY 0.833 for 'Have you supported production systems?' versus 'Have you not supported production systems?' and FUZZY 0.875 for the corresponding never variant. The export endpoint returned HTTP 201 and created an answer document for the opposite-polarity selection. The browser test found one 'Use saved answer (review required)' button where none should be offered."
+  },
+  "checks": [
+    {
+      "command": ".venv/Scripts/python.exe -m unittest tests.unit.test_answer_matching tests.integration.test_application_answer_export -v",
+      "target": "deterministic answer matching and synthetic SQLite/API reviewed answer export",
+      "result": "PASS",
+      "tests": 33,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "apps/web: npm test -- --run",
+      "target": "complete local frontend Vitest suite",
+      "result": "PASS",
+      "tests": 101,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "apps/web: npm run build",
+      "target": "TypeScript check and Vite production build",
+      "result": "PASS",
+      "details": "34 modules transformed. Existing local npm dependencies were exposed through a temporary worktree-local junction, removed after the run; no install or network call."
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m unittest tests.browser.test_application_answer_export -v",
+      "target": "synthetic Chromium/API application answer suggestion, manual review, and export path",
+      "result": "PASS",
+      "tests": 4,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m py_compile services/documents/answers.py tests/unit/test_answer_matching.py tests/integration/test_application_answer_export.py tests/browser/test_application_answer_export.py",
+      "target": "changed Python sources and tests",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check b633578112a9553cc29dcbda7e7e21d88f1547c5",
+      "target": "candidate patch integrity",
+      "result": "PASS"
+    }
+  ],
+  "source_inputs_sha256": {
+    "services/documents/answers.py": "487C3D5DFC41934D8E366C7F11E1F838B002EA8B9766FFB5F54A71F1C1365615",
+    "apps/web/src/answer-matching.ts": "3506F29050926895B155A813F074E02A31B9EE875E1D1D4BB249F58FD7A3C8C0",
+    "tests/unit/test_answer_matching.py": "25D93819A740CB3AD9AE5F5F26BA2EA5BDA570D31AAD21DAF9BF01C86A799FE1",
+    "apps/web/src/answer-matching.test.ts": "4E4D5079E1295E5DFEC14F76213EFF6F5A2B2225CBCD340E31F225367A665640",
+    "tests/integration/test_application_answer_export.py": "7A30F5C0C8614006239C09A59B120898EB1310A7966745F6CD5BF51AB3344ADD",
+    "tests/browser/test_application_answer_export.py": "5E73F92E84FAC23032829AAD97EEDDFCD998610E02A9DEE7367414F89807A93B"
+  },
+  "environment": {
+    "platform": "Windows PowerShell",
+    "python": "3.12 repository .venv",
+    "node": "25.9.0",
+    "npm": "11.12.1",
+    "data": "synthetic profile/application fixture and temporary SQLite; browser routes block non-local requests"
+  },
+  "limitations": {
+    "negation_scope": "The guard covers common explicit negation words and contractions. It is not a complete parser for implied, morphological, or multi-clause polarity; uncertain wording outside these cues remains a possible match gap.",
+    "semantic_scope": "No general-purpose semantic model was introduced.",
+    "hosted_actions_and_reviews": "NOT_RUN_BY_USER_POLICY",
+    "postgresql": "NOT_RUN",
+    "external_application_submission": "OFF",
+    "issue_status": "OPEN/PARTIAL; broader MJ-REQ-104 acceptance remains incomplete"
+  }
+}

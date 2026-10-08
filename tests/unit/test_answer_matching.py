@@ -26,6 +26,26 @@ class AnswerMatchingTests(unittest.TestCase):
         self.assertGreaterEqual(result["score"], 0.75)
         self.assertLess(result["score"], 0.95)
 
+    def test_fuzzy_matching_rejects_opposite_positive_and_not_polarity(self):
+        self.assertIsNone(self.matcher()(
+            "Have you supported production systems?",
+            "Have you not supported production systems?",
+        ))
+        self.assertIsNone(self.matcher()(
+            "Can you support production systems?",
+            "Can you not support production systems?",
+        ))
+
+    def test_fuzzy_matching_rejects_positive_and_never_verb_forms(self):
+        self.assertIsNone(self.matcher()(
+            "Have you managed Linux servers in production?",
+            "Have you never managed Linux servers in production?",
+        ))
+        self.assertIsNone(self.matcher()(
+            "Can you administer Linux servers?",
+            "Can't you administer Linux servers?",
+        ))
+
     def test_configured_match_confidence_threshold_filters_fuzzy_matches(self):
         question = "How many years of professional experience have you had?"
         saved_question = "How many years of professional experience do you have?"

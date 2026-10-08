@@ -14,6 +14,30 @@ describe('application answer question matching',()=>{
     )).toEqual({method:'FUZZY',score:0.778});
   });
 
+  it('does not fuzzy-match prompts with opposite positive and negative polarity',()=>{
+    expect(matchAnswerQuestion(
+      'Have you supported production systems?',
+      'Have you not supported production systems?',
+    )).toBeNull();
+    expect(matchAnswerQuestion(
+      'Have you managed Linux servers in production?',
+      'Have you never managed Linux servers in production?',
+    )).toBeNull();
+    expect(matchAnswerQuestion(
+      'Can you support production systems?',
+      'Can you not support production systems?',
+    )).toBeNull();
+    expect(matchAnswerQuestion(
+      'Can you administer Linux servers?',
+      "Can't you administer Linux servers?",
+    )).toBeNull();
+    expect(suggestAnswers('Have you not supported production systems?',[{
+      id:'production-systems',question:'Have you supported production systems?',
+      text:'I have supported synthetic production systems.',source:'Synthetic profile',
+      confidence:95,verified:true,user_approved:true,
+    }])).toEqual([]);
+  });
+
   it('labels only the explicit programming-language synonym set as curated semantic',()=>{
     expect(matchAnswerQuestion(
       'What coding languages have you worked with?',

@@ -21,6 +21,13 @@ _SENSITIVE_TERMS = re.compile(
     r"visa|sponsorship|criminal|convict\w*|felon\w*|background check|legally authorized|"
     r"salary expectation\w*|salary range|desired compensation|compensation expectation\w*|"
     r"non[ -]?compete|conflict\w* of interest|minimum age|attest\w*|certif\w* under penalty)\b", re.IGNORECASE)
+_QUESTION_NEGATION = re.compile(
+    r"\b(?:no|not|never|without|neither|nor|cannot|"
+    r"can['’]t|won['’]t|wouldn['’]t|shouldn['’]t|couldn['’]t|"
+    r"didn['’]t|doesn['’]t|don['’]t|isn['’]t|aren['’]t|"
+    r"wasn['’]t|weren['’]t|haven['’]t|hasn['’]t|hadn['’]t|mustn['’]t)\b",
+    re.IGNORECASE,
+)
 
 _EXPORT_LOCKS_GUARD = Lock()
 _EXPORT_LOCKS = {}
@@ -121,6 +128,11 @@ def _semantic_question_key(value):
     return normalize_question(canonical)
 
 
+def _question_is_negated(value):
+    """Conservatively detect common explicit negation words and contractions."""
+    return bool(_QUESTION_NEGATION.search(value))
+
+
 def _token_edit_distance(left, right):
     """Levenshtein distance over bounded question tokens, using linear memory."""
     previous = list(range(len(right) + 1))
@@ -153,6 +165,10 @@ def match_answer_question(question, saved_question, minimum_confidence=0.75):
     normalized = normalize_question(question)
     saved_normalized = normalize_question(saved_question)
     if not normalized or not saved_normalized:
+        return None
+    # Edit distance can make a one-token polarity reversal look highly similar.
+    # Keep exact wording reusable, but never infer across opposite polarity.
+    if _question_is_negated(question) != _question_is_negated(saved_question):
         return None
     if normalized == saved_normalized:
         score = 1.0

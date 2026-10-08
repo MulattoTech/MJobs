@@ -24,6 +24,81 @@ ROOT = Path(__file__).resolve().parents[2]
 
 @unittest.skipUnless((ROOT / 'apps/web/dist/index.html').is_file(), 'Build apps/web before browser acceptance')
 class ApplicationAnswerExportBrowserTests(unittest.TestCase):
+    def test_opposite_polarity_answer_is_not_suggested_but_manual_review_remains_available(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            store = Store(f"sqlite:///{(root/'browser.db').as_posix()}")
+            store.migrate()
+            store.bind_workspace_mode('FIXTURE')
+            store.save_profile(dict(PROFILE, answers=[{
+                'id': 'production-systems',
+                'question': 'Have you supported production systems?',
+                'text': 'I have supported synthetic production systems.',
+                'source': 'Synthetic profile', 'verified': True,
+                'user_approved': True, 'confidence': 95,
+            }]))
+            with fixture_server() as fixture:
+                discover(store, fixture, 'fixture')
+            prepare(store, store.jobs()[0]['id'], 'fixture', root)
+            app = create_app(store, 'http://127.0.0.1:1', root,
+                             'redis://127.0.0.1:1/0', operation_mode='FIXTURE')
+            sock = bound_browser_socket()
+            origin = f'http://127.0.0.1:{sock.getsockname()[1]}'
+            server = uvicorn.Server(uvicorn.Config(app, log_level='error'))
+            thread = threading.Thread(target=server.run, kwargs={'sockets': [sock]}, daemon=True)
+            thread.start()
+            try:
+                deadline = time.monotonic() + 10
+                while not server.started:
+                    if not thread.is_alive() or time.monotonic() > deadline:
+                        self.fail('Isolated answer API did not start')
+                    time.sleep(.02)
+                with sync_playwright() as pw:
+                    browser = pw.chromium.launch(headless=True)
+                    context = browser.new_context()
+                    external, errors = [], []
+
+                    def local_only(route):
+                        if urlsplit(route.request.url).netloc != urlsplit(origin).netloc:
+                            external.append(route.request.url)
+                            route.abort()
+                        else:
+                            route.continue_()
+
+                    context.route('**/*', local_only)
+                    page = context.new_page()
+                    page.on('pageerror', lambda error: errors.append(str(error)))
+                    page.goto(origin)
+                    page.evaluate("localStorage.setItem('mjobs-profile','fixture')")
+                    page.reload()
+                    page.get_by_role('button', name='Applications', exact=False).click()
+                    page.locator('.job-card').first.click()
+                    page.get_by_role('button', name='Add question', exact=True).click()
+                    page.get_by_label('Employer question').fill(
+                        'Have you not supported production systems?')
+                    self.assertEqual(page.get_by_role(
+                        'button', name='Use saved answer (review required)', exact=True).count(), 0)
+                    answer = 'I have not supported synthetic production systems.'
+                    page.get_by_role('textbox', name='Answer', exact=True).fill(answer)
+                    page.get_by_label('I reviewed this exact answer for this job').check()
+                    export = page.get_by_role(
+                        'button', name='Save reviewed answers and export TXT', exact=True)
+                    expect(export).to_be_enabled()
+                    with page.expect_response(lambda response: response.url.endswith('/answers/export')) as sent:
+                        export.click()
+                    self.assertEqual(sent.value.status, 201, sent.value.text)
+                    self.assertEqual(sent.value.json()['external_submission'], 'OFF')
+                    self.assertFalse(external)
+                    self.assertFalse(errors, errors)
+                    context.close()
+                    browser.close()
+            finally:
+                server.should_exit = True
+                thread.join(timeout=10)
+                sock.close()
+                store.engine.dispose()
+                self.assertFalse(thread.is_alive())
+
     def test_profile_scoped_confidence_threshold_controls_reuse_without_blocking_manual_answers(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

@@ -268,6 +268,34 @@ class ApplicationAnswerExportTests(unittest.TestCase):
         self.assertEqual(row['generation_context']['items'][0]['match_score'], 1.0)
         self.assertEqual(row['profile_version'], self.client.get('/profiles/fixture').json()['version'])
 
+    def test_export_rejects_reusable_answer_for_opposite_polarity_without_creating_document(self):
+        profile = dict(PROFILE, answers=[{
+            'id': 'production-systems',
+            'question': 'Have you supported production systems?',
+            'text': 'I have supported synthetic production systems.',
+            'source': 'Synthetic profile', 'verified': True,
+            'user_approved': True, 'confidence': 95,
+        }])
+        self.assertEqual(self.put_profile(profile).status_code, 200)
+        before_count = self.store.count('documents')
+
+        response = self.client.post(self.export_url, json={
+            'profile_id': 'fixture',
+            'items': [{
+                'question': 'Have you not supported production systems?',
+                'answer_id': 'production-systems',
+                'text': 'I have supported synthetic production systems.',
+                'reviewed': True,
+            }],
+        })
+
+        self.assertEqual(response.status_code, 422, response.text)
+        self.assertEqual(self.store.count('documents'), before_count)
+        documents = self.client.get(
+            f'/profiles/fixture/applications/{self.application_id}/documents'
+        ).json()['documents']
+        self.assertFalse(any(row['kind'] == 'application-answer-export' for row in documents))
+
     def test_fuzzy_and_curated_semantic_matches_export_with_recomputed_provenance(self):
         profile = dict(PROFILE, answers=[
             {
