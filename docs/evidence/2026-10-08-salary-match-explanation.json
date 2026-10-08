@@ -3,11 +3,11 @@
   "issue": 115,
   "slice_status": "PASS",
   "requirement_status": "PARTIAL",
-  "recorded_at_utc": "2026-10-08T11:59:17Z",
+  "recorded_at_utc": "2026-10-08T12:02:41Z",
   "branch": "codex/mj-req114-salary-match-explanation-20261008",
-  "base_commit": "048633be5e4cea6178c5e67cc11d9791262e71f5",
-  "source_head_at_validation": "6173d7a14af4835368114bd26e5aa28208995056",
-  "source_tree_at_validation": "f32ba850153904e732cdcb9f2bb0be40ccb6ec37",
+  "base_commit": "6aae6cbe26df53eb303f22fc8dab0634ee2acc13",
+  "source_head_at_validation": "5a7642053404063cebf3f74a2e39086afa86c893",
+  "source_tree_at_validation": "9a95f330ebb7fd26ead217313ce2dea9eb55f463",
   "environment": {
     "python": "repository .venv, Python 3.12",
     "database": "isolated temporary SQLite fixture database",
@@ -19,8 +19,8 @@
   },
   "acceptance": {
     "profile_input": "Only the explicit preferences.salary_expectations leaf is added to the job_match task scope; parent preference containers and unrelated leaves are denied.",
-    "salary_comparison": "Compare closed interval overlap only when profile text explicitly states USD or uses the dollar symbol with annual period and complete finite bounds, and the posting has complete finite nonnegative annual USD bounds from employer/source-provided data.",
-    "status_rules": "Overlapping or touching closed intervals are ALIGNS; disjoint intervals are NO_DIRECT_MATCH; incomplete, one-sided, estimated, nonannual, ambiguous, non-USD, or mismatched inputs are UNKNOWN.",
+    "salary_comparison": "Compare closed interval overlap only when profile text explicitly states USD or uses the dollar symbol with annual period and complete finite bounds, and the posting has complete finite nonnegative annual USD bounds from employer/source-provided data. Mixed k-suffix ranges are left UNKNOWN because shared scale cannot safely be inferred.",
+    "status_rules": "Overlapping or touching closed intervals are ALIGNS; disjoint intervals are NO_DIRECT_MATCH; incomplete, one-sided, mixed-scale, estimated, nonannual, ambiguous, non-USD, or mismatched inputs are UNKNOWN.",
     "privacy": "Explanations and profile-access audit payloads do not echo the salary preference value.",
     "score": "No score weight or penalty was added.",
     "connected_flow": "Synthetic profile API save/read, deterministic match recomputation, job detail API read, and reopened SQLite match readback verified. Existing match-detail display renders the fit_factors collection generically."
@@ -46,18 +46,23 @@
       "result": "PASS"
     },
     {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.agent_skills",
+      "result": "PASS"
+    },
+    {
       "command": "git diff --check",
       "result": "PASS"
     }
   ],
   "red_first_reproduction": {
     "result": "FAIL as expected before implementation",
-    "observed": "New tests failed because no salary fit factor existed and job_match denied preferences.salary_expectations."
+    "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_explainable_matching.ExplainableMatchingTests.test_salary_factor_uses_only_explicit_annual_usd_interval_overlap",
+    "observed": "The added USD 90-110k annually expectation against posting bounds 80000-89000 falsely returned ALIGNS instead of UNKNOWN because the shared parser scaled only the endpoint with k."
   },
   "source_sha256": {
-    "services/discovery/matching.py": "32ADAEF0E804AC843066A5CF6F207CB852520ECF9C9BE201F76CC9FC034BAEF1",
+    "services/discovery/matching.py": "FE64257B9199C7405E8EEF2AC68DE2022F0182E3989C3BE6A18A2B88985EF158",
     "services/career_profile/profile_access.py": "B10E13D406A62FF1A1734A99DAF8B37AFFF17D396EE0668068220785B1779ACF",
-    "tests/integration/test_explainable_matching.py": "DF5FBEFCD39A90C2CDA1A06C3159EBCA404C56194ABF5A9D75931D35E3FA905D",
+    "tests/integration/test_explainable_matching.py": "7F77A09605EED0C2525A31EA629BF44C2829C67012A332486DA72C841FF95EEF",
     "tests/integration/test_profile_access.py": "7951FD6399B323ED037885ABB8014428F3C6C5AE408A2B1EE6E9A663EDB65A46",
     "tests/browser/test_match_categories.py": "52F36E3A8BB7F44AD98546BCDBFE1632D629C70DDB86581FD149DEA34920A330"
   },
