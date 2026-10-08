@@ -5,11 +5,13 @@
   "result": "PASS",
   "scope": "Compare two immutable cover-letter revisions belonging to the same application using only preview text freshly returned by the existing profile-scoped application documents endpoint.",
   "branch": "codex/mj-req198-cover-letter-comparison-20261008",
-  "base_commit": "1e8dca63d37849ead245dd34c9c1374d52c0089a",
-  "base_git_tree": "f7147089ec56f29148327ca484afa479ba4c6643",
-  "rebase_result": "CLEAN; rebased both feature commits onto the exact synchronized main; no conflicts.",
-  "rebased_pre_evidence_git_tree": "cf9b6f4973581c7f349dda972a8a67279056dda3",
-  "tested_rebased_source_commit": "78a0eb6fbfd80a60decde87a1daed9f2252d9f82",
+  "base_commit": "77a7d3670d7cbe3c3fb771dc2e8083b9fbaca66",
+  "base_git_tree": "f143c2367df10b9ba755e45218e7fdeeb899d49b",
+  "rebase_result": "CLEAN; rebased all three feature commits onto exact synchronized main; no conflicts.",
+  "rebased_pre_evidence_git_tree": "abf25bb086dc5a79db78433a02559018f4be979f",
+  "tested_candidate_commit_before_metadata_rebase": "dc9e00205c4ba666c17d75f1dba99407051ffdfd",
+  "tested_candidate_git_tree_before_metadata_rebase": "33ceb3d16138f37df4b1f5f2af005dfa296f55f7",
+  "tested_source_commit_before_evidence_refresh": "78a0eb6fbfd80a60decde87a1daed9f2252d9f82",
   "issue_acceptance": "PARTIAL; the immutable same-application cover-letter comparison condition is implemented and locally verified; this slice does not certify the full MJ-REQ-198 action set.",
   "source_inputs": {
     "apps/web/src/document-history.tsx": "dea669a0163649ed38da71a5189ea64c586316bd18048db9f0cc5e7f9f48d314",
@@ -18,7 +20,20 @@
   },
   "source_tree_sha256": "39efae0ee6959c1d293e965fed9b48856c3d30667e1926aca7de903dff789053",
   "combined_source_sha256": "39efae0ee6959c1d293e965fed9b48856c3d30667e1926aca7de903dff789053",
-  "verified_at_utc": "2026-10-08T05:26:46Z",
+  "tested_input_comparison": {
+    "classification": "UNCHANGED; runtime reruns were unnecessary because no executable, frontend, browser, build, or API integrity input differs from the fully tested candidate.",
+    "frontend_git_tree_tested_and_final": "181888da3e9bba7e915df5c6a8b04dd7c803c250",
+    "browser_test_git_blob_tested_and_final": "619d67a7d844be6b753d3bbd0a640fbc20121ef3",
+    "comparison_command": "git diff --quiet dc9e00205c4ba666c17d75f1dba99407051ffdfd HEAD -- apps/web tests/browser/test_document_history.py apps/api/main.py services/documents/history.py services/documents/generate.py fixtures/browser_ports.py fixtures/mock_server.py packages/persistence packages/domain",
+    "comparison_result": "PASS; exit code 0",
+    "only_paths_changed_by_new_main_since_tested_base": [
+      "planning/IMPLEMENTATION_STATE.json",
+      "planning/PR_QUEUE.json",
+      "planning/SESSION_HANDOFF.md"
+    ]
+  },
+  "final_evidence_tree_note": "Source/input hashes above are independent of the final evidence commit tree. The final branch commit/tree are reported in the handoff to avoid self-referential commit hashes.",
+  "verified_at_utc": "2026-10-08T05:28:45Z",
   "environment": {
     "os": "Windows PowerShell",
     "node": "v25.9.0",
@@ -61,6 +76,36 @@
       "command": "git diff --check",
       "result": "PASS",
       "details": "No whitespace errors."
+    },
+    {
+      "command": "git diff --quiet dc9e00205c4ba666c17d75f1dba99407051ffdfd HEAD -- apps/web tests/browser/test_document_history.py apps/api/main.py services/documents/history.py services/documents/generate.py fixtures/browser_ports.py fixtures/mock_server.py packages/persistence packages/domain",
+      "result": "PASS",
+      "details": "Exit code 0; listed frontend, browser, API, document-validation, and persistence/runtime inputs are unchanged from the fully tested candidate. The complete apps/web Git tree and browser test blob IDs also match."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.agent_skills",
+      "result": "PASS",
+      "details": "Agent skill validation passed."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.catalogue",
+      "result": "PASS",
+      "details": "Catalogue validation passed."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.progress validate",
+      "result": "PASS",
+      "details": "Progress journal validation passed."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.coordination.lane_coordination validate",
+      "result": "PASS",
+      "details": "Lane claim and coordination validation passed with no errors."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -c \"import json,pathlib; json.loads(pathlib.Path('docs/evidence/2026-10-08-cover-letter-history-comparison.json').read_text(encoding='utf-8'))\"",
+      "result": "PASS",
+      "details": "Evidence JSON parsed successfully."
     }
   ],
   "preserved_invariants": [
