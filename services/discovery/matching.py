@@ -40,6 +40,9 @@ def _certification_fact_is_explicitly_negative(clause, mention):
     negative = bool(re.search(
         r"\b(?:do\s+not|don't|does\s+not|doesn't|did\s+not|didn't|have\s+not|haven't|has\s+not|hasn't)"
         r"\s+(?:currently\s+)?(?:hold|have|possess|earned?|obtained?)\b|"
+        r"\bno\s+longer\s+(?:currently\s+)?(?:hold|have|possess|earned?|obtained?|valid|active)\b|"
+        r"\b(?:formerly|previously)\s+(?:held|had|possessed|certified|earned?|obtained?)\b|"
+        r"\bused\s+to\s+(?:hold|have|possess|be\s+certified)\b|"
         r"\b(?:am|is|are|was|were)\s+not\s+(?:currently\s+)?certified\b|"
         r"\bnot\s+a\s+holder\s+of\b|"
         r"\b(?:expired|lapsed|inactive|revoked)\b",
@@ -50,6 +53,15 @@ def _certification_fact_is_explicitly_negative(clause, mention):
         folded,
     ))
     return negative or no_named_certification
+
+
+def _certification_identity(identifier, text):
+    """Keep locally parsed ITIL versions distinct; other parser ids are canonical."""
+    if identifier != "ITIL":
+        return identifier, None
+    match = re.search(r"\bITIL\s+(v\d+|Foundation)\b", str(text or ""), re.I)
+    version = match.group(1).casefold() if match else None
+    return identifier, version
 
 
 def _certification_fit_factors(job, profile):
@@ -72,7 +84,8 @@ def _certification_fit_factors(job, profile):
         for mention in parse_certifications(fact["text"]):
             if not _certification_fact_is_explicitly_negative(
                     mention.get("clause"), mention.get("raw")):
-                eligible_certification_ids.add(mention["id"])
+                eligible_certification_ids.add(
+                    _certification_identity(mention["id"], mention.get("raw")))
 
     names_by_id = {identifier: name for identifier, name, _ in CERTIFICATION_PATTERNS}
     factors_by_id = {}
@@ -82,20 +95,25 @@ def _certification_fit_factors(job, profile):
         identifier = row.get("id")
         if identifier not in names_by_id:
             continue
+        identity = _certification_identity(identifier, row.get("raw") or row.get("name"))
         strength = row.get("strength")
         if strength not in {"REQUIRED", "PREFERRED", "NICE_TO_HAVE", "UNKNOWN"}:
             strength = "UNKNOWN"
-        name = str(row.get("name") or names_by_id[identifier]).strip()
-        if not name:
-            name = names_by_id[identifier]
-        prior = factors_by_id.get(identifier)
+        name = names_by_id[identifier]
+        if identifier == "ITIL" and identity[1]:
+            version_label = "Foundation" if identity[1] == "foundation" else identity[1]
+            name = f"ITIL {version_label}"
+        else:
+            name = str(row.get("name") or name).strip() or name
+        prior = factors_by_id.get(identity)
         if prior is not None:
             if prior["strength"] != strength:
                 prior["strength"] = "UNKNOWN"
             continue
-        aligned = identifier in eligible_certification_ids
-        factors_by_id[identifier] = {
-            "id": f"certification:{identifier}",
+        aligned = identity in eligible_certification_ids
+        suffix = f":{identity[1]}" if identity[1] else ""
+        factors_by_id[identity] = {
+            "id": f"certification:{identifier}{suffix}",
             "name": name,
             "strength": strength,
             "status": "ALIGNS" if aligned else "NO_DIRECT_MATCH",

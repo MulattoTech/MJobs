@@ -225,6 +225,58 @@ class ExplainableMatchingTests(unittest.TestCase):
         self.assertIn("does not establish", after_factor["explanation"].lower())
         self.assertEqual(after_factor["score_effect"], "NONE")
 
+    def test_versioned_itil_certifications_only_match_the_same_version(self):
+        from services.discovery.matching import build_explanation
+        from services.discovery.requirement_parsers import parse_certifications
+
+        for fact_text, job_text, expected_status in (
+            ("ITIL v3", "ITIL v4 required.", "NO_DIRECT_MATCH"),
+            ("ITIL v4", "ITIL v3 preferred.", "NO_DIRECT_MATCH"),
+            ("ITIL v3", "ITIL v3 preferred.", "ALIGNS"),
+        ):
+            with self.subTest(fact=fact_text, job=job_text):
+                result = build_explanation({
+                    "skills": [],
+                    "attributes": {"certifications": parse_certifications(job_text)},
+                }, {"facts": [{
+                    "kind": "certification", "text": fact_text,
+                    "source": "user-confirmed certification record", "confidence": 100,
+                    "verified": True, "user_approved": True,
+                }]})
+                factor = next(
+                    row for row in result["components"]["fit_factors"]
+                    if row["id"].startswith("certification:")
+                )
+
+                self.assertEqual(factor["status"], expected_status)
+                self.assertIn(job_text.split()[0] + " " + job_text.split()[1], factor["label"])
+                self.assertEqual(factor["score_effect"], "NONE")
+
+    def test_historical_certification_facts_do_not_claim_current_certification(self):
+        from services.discovery.matching import build_explanation
+        from services.discovery.requirement_parsers import parse_certifications
+
+        for fact_text, job_text in (
+            ("I no longer hold CCNA.", "CCNA required."),
+            ("I formerly held AZ-104.", "AZ-104 preferred."),
+        ):
+            with self.subTest(fact=fact_text, job=job_text):
+                result = build_explanation({
+                    "skills": [],
+                    "attributes": {"certifications": parse_certifications(job_text)},
+                }, {"facts": [{
+                    "kind": "certification", "text": fact_text,
+                    "source": "user-confirmed certification history", "confidence": 100,
+                    "verified": True, "user_approved": True,
+                }]})
+                factor = next(
+                    row for row in result["components"]["fit_factors"]
+                    if row["id"].startswith("certification:")
+                )
+
+                self.assertEqual(factor["status"], "NO_DIRECT_MATCH")
+                self.assertIn("no approved evidence", factor["explanation"].lower())
+
     def test_manual_skill_strengths_survive_reopen_and_weight_explainable_match(self):
         description = (
             "Windows Server is required. Active Directory is preferred. "
