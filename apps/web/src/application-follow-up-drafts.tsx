@@ -18,9 +18,14 @@ export type FollowUpDraftCandidate = {
 
 type FollowUpDraftResponse = {quiet_days:number;candidates:FollowUpDraftCandidate[]};
 type CopyKind = 'subject'|'email'|'dm';
+type ClipboardError = {context:string;message:string};
 
 export function followUpDraftsPath(profileId:string,quietDays:number) {
   return `/profiles/${encodeURIComponent(profileId)}/application-follow-up-drafts?quiet_days=${quietDays}`;
+}
+
+export function clipboardErrorAfterContextChange(error:ClipboardError|null,previousContext:string,nextContext:string) {
+  return previousContext===nextContext?error:null;
 }
 
 function reportedAt(value:string) {
@@ -80,10 +85,15 @@ export function ApplicationFollowUpDrafts({profileId}:{profileId:string}) {
   const [loading,setLoading]=useState(true);
   const [error,setError]=useState<string|null>(null);
   const [copied,setCopied]=useState<string|null>(null);
-  const [copyError,setCopyError]=useState<string|null>(null);
+  const [copyError,setCopyError]=useState<ClipboardError|null>(null);
+  const draftContext=JSON.stringify([profileId,quietDays]);
+  const previousDraftContext=useRef(draftContext);
   const requestSequence=useRef(0);
 
   useEffect(()=>{
+    const previousContext=previousDraftContext.current;
+    previousDraftContext.current=draftContext;
+    setCopyError(error=>clipboardErrorAfterContextChange(error,previousContext,draftContext));
     const sequence=++requestSequence.current;
     let active=true;
     if(!profileId){setCandidates([]);setLoading(false);setError(null);return ()=>{active=false;};}
@@ -94,7 +104,7 @@ export function ApplicationFollowUpDrafts({profileId}:{profileId:string}) {
       if(active&&sequence===requestSequence.current){setCandidates([]);setError(reason instanceof Error?reason.message:'The local API returned an error.');}
     }).finally(()=>{if(active&&sequence===requestSequence.current)setLoading(false);});
     return ()=>{active=false;};
-  },[profileId,quietDays]);
+  },[profileId,quietDays,draftContext]);
 
   async function copy(kind:CopyKind,candidate:FollowUpDraftCandidate) {
     const text=kind==='subject'?candidate.email_subject:kind==='email'?candidate.email_body:candidate.dm_body;
@@ -103,13 +113,13 @@ export function ApplicationFollowUpDrafts({profileId}:{profileId:string}) {
       await navigator.clipboard.writeText(text);
       setCopied(`${candidate.application_id}:${kind}`);setCopyError(null);
     } catch {
-      setCopyError('Clipboard access is unavailable. Select and copy the draft text manually.');
+      setCopyError({context:draftContext,message:'Clipboard access is unavailable. Select and copy the draft text manually.'});
     }
   }
 
   return <>
     <FollowUpDraftsView quietDays={quietDays} candidates={candidates} loading={loading} error={error} copied={copied}
       onQuietDaysChange={setQuietDays} onCopy={(kind,candidate)=>void copy(kind,candidate)}/>
-    {copyError&&<p role="alert">{copyError}</p>}
+    {copyError?.context===draftContext&&<p role="alert">{copyError.message}</p>}
   </>;
 }

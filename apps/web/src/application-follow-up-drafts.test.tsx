@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { FollowUpDraftsView, followUpDraftsPath, type FollowUpDraftCandidate } from './application-follow-up-drafts';
+import { FollowUpDraftsView, followUpDraftsPath, clipboardErrorAfterContextChange, type FollowUpDraftCandidate } from './application-follow-up-drafts';
 
 const candidate:FollowUpDraftCandidate={
   application_id:'app-1',job_id:'job-1',job_title:'Systems Administrator',company:'Acme',days_quiet:8,
@@ -11,6 +11,13 @@ const candidate:FollowUpDraftCandidate={
 };
 
 describe('follow-up drafts UI',()=>{
+  it('clears clipboard errors when profile or quiet-days context changes',()=>{
+    const error={context:JSON.stringify(['profile-a',7]),message:'Clipboard access is unavailable.'};
+    expect(clipboardErrorAfterContextChange(error,JSON.stringify(['profile-a',7]),JSON.stringify(['profile-a',7]))).toEqual(error);
+    expect(clipboardErrorAfterContextChange(error,JSON.stringify(['profile-a',7]),JSON.stringify(['profile-a',14]))).toBeNull();
+    expect(clipboardErrorAfterContextChange(error,JSON.stringify(['profile-a',7]),JSON.stringify(['profile-b',7]))).toBeNull();
+  });
+
   it('builds the profile-scoped local API request with the selected quiet-days threshold',()=>{
     expect(followUpDraftsPath('profile / one',7)).toBe('/profiles/profile%20%2F%20one/application-follow-up-drafts?quiet_days=7');
   });
