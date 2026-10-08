@@ -723,6 +723,31 @@ class Store:
                 dated_rows.sort(key=lambda item: item[1]["id"])
                 dated_rows.sort(key=lambda item: item[0], reverse=True)
                 return [row for _, row in dated_rows[:limit]] + unknown_rows[:max(0, limit - len(dated_rows))]
+            elif sort in {"salary_high", "salary_low"}:
+                attributes = m.jobs.c.attributes
+                currency_is_usd = attributes["salary_currency"].as_string() == "USD"
+                period_is_year = attributes["salary_period"].as_string() == "YEAR"
+                if self.engine.dialect.name == "postgresql":
+                    low_is_number = func.json_typeof(attributes["salary_min"]) == "number"
+                    high_is_number = func.json_typeof(attributes["salary_max"]) == "number"
+                else:
+                    low_is_number = func.json_type(attributes, "$.salary_min").in_(("integer", "real"))
+                    high_is_number = func.json_type(attributes, "$.salary_max").in_(("integer", "real"))
+                low_amount = attributes["salary_min"].as_float()
+                high_amount = attributes["salary_max"].as_float()
+                low_valid = low_is_number & (low_amount >= 0)
+                high_valid = high_is_number & (high_amount >= 0)
+                # A malformed/inverted band is not a comparable salary. For a valid
+                # band, use the highest disclosed endpoint; if max is absent, use min.
+                valid_band = ~(low_valid & high_valid) | (low_amount <= high_amount)
+                comparable = currency_is_usd & period_is_year & (low_valid | high_valid) & valid_band
+                disclosed = case((high_valid, high_amount), (low_valid, low_amount), else_=None)
+                sortable_salary = case((comparable, disclosed), else_=None)
+                statement = statement.order_by(
+                    case((comparable, 0), else_=1),
+                    sortable_salary.desc().nulls_last() if sort == "salary_high" else sortable_salary.asc().nulls_last(),
+                    m.jobs.c.id,
+                )
             return [canonical_job_view(dict(row)) for row in connection.execute(statement.limit(limit)).mappings()]
 
     def job(self, job_id, profile_id=None):

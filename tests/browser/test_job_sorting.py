@@ -16,6 +16,7 @@ from fixtures.mock_server import fixture_server
 from packages.persistence import models as m
 from packages.persistence.store import Store
 from services.discovery.pipeline import discover
+from services.discovery.search_profiles import save_search_profile
 from tests.integration.test_spine import PROFILE
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -47,12 +48,23 @@ class JobSortingBrowserTests(unittest.TestCase):
                                        .values(company_id=company_id))
                 connection.execute(update(m.jobs).where(m.jobs.c.id == older["id"]).values(
                     title="Alpha Older Role",
-                    attributes={**older["attributes"], "reported_posted_at": "2026-10-01T00:00:00Z"},
+                    attributes={**older["attributes"], "reported_posted_at": "2026-10-01T00:00:00Z",
+                                "salary_min": 90000, "salary_max": 110000,
+                                "salary_currency": "USD", "salary_period": "YEAR"},
                 ))
                 connection.execute(update(m.jobs).where(m.jobs.c.id == newer["id"]).values(
                     title="Zulu Newest Role",
-                    attributes={**newer["attributes"], "reported_posted_at": "2026-10-07T00:00:00Z"},
+                    attributes={**newer["attributes"], "reported_posted_at": "2026-10-07T00:00:00Z",
+                                "salary_min": 120000, "salary_max": 130000,
+                                "salary_currency": "USD", "salary_period": "YEAR"},
                 ))
+            save_search_profile(store, {
+                "id": "salary-saved", "profile_id": "fixture", "name": "Salary descending",
+                "enabled": False, "include_titles": [], "remote": "ANY", "employment_types": [],
+                "source_ids": [], "job_filters": {"q": "", "title": "", "company": "",
+                                                     "location": "", "salary_min": "", "salary_max": "",
+                                                     "remote_type": "", "provider": "", "sort": "salary_high"},
+            })
             store.engine.dispose()
             store = Store(database_url)
 
@@ -92,6 +104,17 @@ class JobSortingBrowserTests(unittest.TestCase):
                     expect(page.get_by_label("Active profile", exact=True)).to_have_value("fixture")
                     sort = page.get_by_label("Sort", exact=True)
                     expect(page.locator(".job-card h2").first).to_have_text("Alpha Older Role")
+
+                    expect(page.get_by_text("Salary sorting compares explicit annual USD only.", exact=False)).to_be_visible()
+                    page.get_by_label("Saved search profile", exact=True).select_option("salary-saved")
+                    expect(sort).to_have_value("salary_high")
+                    expect(page.locator(".job-card h2").first).to_have_text("Zulu Newest Role")
+                    with page.expect_response(lambda response:
+                            response.url.startswith(origin + "/jobs?")
+                            and "sort=salary_low" in response.url) as salary_response:
+                        sort.select_option("salary_low")
+                    self.assertEqual([row["title"] for row in salary_response.value.json()["jobs"]],
+                                     ["Alpha Older Role", "Zulu Newest Role"])
 
                     with page.expect_response(lambda response:
                             response.url.startswith(origin + "/jobs?")

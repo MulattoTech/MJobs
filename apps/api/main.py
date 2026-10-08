@@ -1331,7 +1331,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
              company: str = Query(default="", max_length=200),
              location: str = Query(default="", max_length=200),
              remote_type: str | None = Query(default=None, max_length=32),
-             provider: Literal["mock-ats", "greenhouse"] | None = None, sort: Literal["score", "newest", "company", "title"] = "score",
+             provider: Literal["mock-ats", "greenhouse"] | None = None, sort: Literal["score", "newest", "company", "title", "salary_high", "salary_low"] = "score",
              salary_min: float | None = Query(default=None, ge=0, le=100000000),
              salary_max: float | None = Query(default=None, ge=0, le=100000000),
              min_match_score: int | None = Query(default=None, ge=0, le=100),
