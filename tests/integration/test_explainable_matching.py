@@ -467,9 +467,10 @@ class ExplainableMatchingTests(unittest.TestCase):
         for row in unknown_inputs:
             preference, low, high, period, currency, *source = row
             with self.subTest(preference=preference, low=low, period=period, currency=currency):
-                self.assertEqual(factor(preference, low=low, high=high, period=period,
-                                        currency=currency, source=source[0] if source else "EMPLOYER_PROVIDED")["status"],
-                                 "UNKNOWN")
+                result = factor(preference, low=low, high=high, period=period,
+                                currency=currency, source=source[0] if source else "EMPLOYER_PROVIDED")
+                self.assertEqual(result["status"], "UNKNOWN")
+                self.assertEqual(result["score_effect"], "NONE")
 
     def test_salary_explanation_recomputes_from_profile_api_and_survives_readback(self):
         from fastapi.testclient import TestClient
