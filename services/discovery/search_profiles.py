@@ -24,7 +24,8 @@ def _clean_job_filters(value):
     if value is None:
         return None
     required = {"q", "remote_type", "provider", "sort"}
-    optional = {"title", "company", "location", "salary_min", "salary_max", "min_match_score"}
+    optional = {"title", "company", "location", "salary_min", "salary_max", "min_match_score",
+                "experience_level"}
     if not isinstance(value, dict) or not required <= set(value) or set(value) - required - optional:
         raise ValueError("Saved Jobs filters must include q, remote_type, provider, and sort")
     query = value["q"]
@@ -63,6 +64,10 @@ def _clean_job_filters(value):
         if item and (not item.isascii() or not item.isdigit() or not 0 <= int(item) <= 100):
             raise ValueError("Saved Jobs minimum match score must be a whole percent from 0 to 100")
         cleaned["min_match_score"] = item
+    experience_level = value.get("experience_level", "")
+    if not isinstance(experience_level, str) or experience_level not in {"", *EXPERIENCE_LEVELS}:
+        raise ValueError("Saved Jobs experience level is invalid")
+    cleaned["experience_level"] = experience_level
     for key, allowed in JOB_FILTERS.items():
         if not isinstance(value[key], str) or value[key] not in allowed:
             raise ValueError(f"Saved Jobs {key} is invalid")

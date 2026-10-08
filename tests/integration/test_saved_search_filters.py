@@ -4,12 +4,12 @@ import tempfile
 import unittest
 
 from fastapi.testclient import TestClient
-from sqlalchemy import update
+from sqlalchemy import select, update
 
 from apps.api.main import create_app
 from fixtures.mock_server import fixture_server
 from packages.persistence import models as m
-from packages.persistence.store import Store
+from packages.persistence.store import Store, identity, upsert
 from services.discovery.scheduler import schedule_due_sources
 from services.discovery.pipeline import discover
 from services.discovery.sources.collect import configure_source
@@ -45,7 +45,7 @@ class SavedSearchFiltersApiTests(unittest.TestCase):
 
     def _profile(self, *, identifier="saved-filter", profile_id="fixture", job_filters=None):
         return {
-            "id": identifier, "profile_id": profile_id, "name": "Remote admin roles",
+            "id": identifier, "profile_id": profile_id, "name": f"Remote admin roles {identifier}",
             "enabled": False, "include_titles": ["System Administrator"],
             "remote": "REQUIRED", "employment_types": [], "source_ids": [],
             "job_filters": job_filters or {"q": "network", "title": "Developer", "location": "Boston",
@@ -66,7 +66,7 @@ class SavedSearchFiltersApiTests(unittest.TestCase):
         self.assertEqual(row["criteria"]["remote"], "REQUIRED")
         self.assertEqual(row["criteria"]["job_filters"], {
             "q": "network", "title": "Developer", "location": "Boston", "company": "Example",
-            "remote_type": "REMOTE", "provider": "greenhouse", "sort": "company",
+            "experience_level": "", "remote_type": "REMOTE", "provider": "greenhouse", "sort": "company",
             "salary_min": "", "salary_max": ""})
         self.assertFalse(row["enabled"])
         self.assertEqual(self.client.get("/search-profiles", params={"profile_id": "other"})
@@ -88,6 +88,84 @@ class SavedSearchFiltersApiTests(unittest.TestCase):
         self.assertEqual(row["criteria"]["job_filters"]["location"], "")
         self.assertEqual(row["criteria"]["job_filters"]["salary_min"], "")
         self.assertEqual(row["criteria"]["job_filters"]["salary_max"], "")
+
+    def test_saved_job_filters_accept_experience_level_and_legacy_payload(self):
+        filters = {"q": "", "title": "", "company": "", "location": "",
+                   "salary_min": "", "salary_max": "", "min_match_score": "",
+                   "experience_level": "SENIOR", "remote_type": "", "provider": "", "sort": "score"}
+        saved = self.client.put("/search-profiles", json=self._profile(job_filters=filters))
+        self.assertEqual(saved.status_code, 200, saved.text)
+        row = next(item for item in self.client.get("/search-profiles", params={
+            "profile_id": "fixture"}).json()["search_profiles"] if item["id"] == "saved-filter")
+        self.assertEqual(row["criteria"]["job_filters"]["experience_level"], "SENIOR")
+        legacy = self.client.put("/search-profiles", json=self._profile(
+            identifier="experience-legacy", job_filters={"q": "", "remote_type": "",
+                                                           "provider": "", "sort": "score"}))
+        self.assertEqual(legacy.status_code, 200, legacy.text)
+        legacy_row = next(item for item in self.client.get("/search-profiles", params={
+            "profile_id": "fixture"}).json()["search_profiles"] if item["id"] == "experience-legacy")
+        self.assertEqual(legacy_row["criteria"]["job_filters"]["experience_level"], "")
+        self.assertEqual(self.client.get("/search-profiles", params={"profile_id": "other"})
+                         .json()["search_profiles"], [])
+        invalid = self.client.put("/search-profiles", json=self._profile(
+            identifier="experience-invalid", job_filters={**filters, "experience_level": "STAFF_PLUS"}))
+        self.assertEqual(invalid.status_code, 422)
+
+    def test_experience_level_filter_is_direct_fail_closed_and_before_limit(self):
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.title == "Python Developer").values(
+                title="A Unsupported level", attributes={"experience_level": "STAFF_PLUS"}))
+            connection.execute(update(m.jobs).where(m.jobs.c.title == "Data Engineer").values(
+                title="B Senior role", attributes={"experience_level": "SENIOR"}))
+        profile = self.store.profile("fixture")
+        for job in {item["id"]: item for item in self.store.jobs()}.values():
+            with self.store.engine.begin() as connection:
+                upsert(connection, m.matches, dict(
+                    id=identity(job["id"], "fixture", profile["version"]), job_id=job["id"],
+                    profile_id="fixture", profile_version=profile["version"], score=63.5,
+                    missing=[], components={}), replace=True)
+        with self.store.engine.connect() as connection:
+            job_rows_before = connection.execute(
+                select(m.jobs.c.id, m.jobs.c.title, m.jobs.c.attributes).order_by(m.jobs.c.id)).all()
+            match_rows_before = connection.execute(
+                select(m.matches.c.job_id, m.matches.c.score).order_by(m.matches.c.job_id)).all()
+        operations_before = self.store.count("worker_operations")
+        selected = self.client.get("/jobs", params={"experience_level": "SENIOR", "sort": "title", "limit": 1})
+        self.assertEqual(selected.status_code, 200, selected.text)
+        self.assertEqual([job["title"] for job in selected.json()["jobs"]], ["B Senior role"])
+        unknown = self.client.get("/jobs", params={"experience_level": "UNKNOWN", "sort": "title"})
+        self.assertEqual(unknown.status_code, 200, unknown.text)
+        self.assertEqual(unknown.json()["jobs"], [])
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.title == "A Unsupported level").values(
+                attributes={"experience_level": "UNKNOWN"}))
+        normalized_unknown = self.client.get("/jobs", params={"experience_level": "UNKNOWN", "sort": "title"})
+        self.assertEqual([job["title"] for job in normalized_unknown.json()["jobs"]], ["A Unsupported level"])
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.title == "A Unsupported level").values(
+                attributes={"experience_level": "STAFF_PLUS"}))
+        self.assertEqual(self.client.get("/jobs", params={"experience_level": "UNKNOWN"}).json()["jobs"], [])
+        unsupported = self.client.get("/jobs", params={"experience_level": "STAFF_PLUS"})
+        self.assertEqual(unsupported.status_code, 422)
+        with self.store.engine.connect() as connection:
+            self.assertEqual(connection.execute(
+                select(m.jobs.c.id, m.jobs.c.title, m.jobs.c.attributes).order_by(m.jobs.c.id)).all(), job_rows_before)
+            self.assertEqual(connection.execute(
+                select(m.matches.c.job_id, m.matches.c.score).order_by(m.matches.c.job_id)).all(), match_rows_before)
+        self.assertEqual(schedule_due_sources(self.store)["scheduled"], [])
+        self.assertEqual(self.store.count("worker_operations"), operations_before)
+
+    def test_saved_experience_filter_round_trip_and_profile_scoping(self):
+        filters = {"q": "", "title": "", "company": "", "location": "",
+                   "salary_min": "", "salary_max": "", "min_match_score": "",
+                   "experience_level": "SENIOR", "remote_type": "", "provider": "", "sort": "score"}
+        self.client.put("/search-profiles", json=self._profile(job_filters=filters)).raise_for_status()
+        results = self.client.get("/jobs", params={"profile_id": "fixture", "search_profile_id": "saved-filter",
+                                                    "experience_level": "SENIOR"})
+        self.assertEqual(results.status_code, 200, results.text)
+        wrong_owner = self.client.get("/jobs", params={"profile_id": "other", "search_profile_id": "saved-filter",
+                                                       "experience_level": "SENIOR"})
+        self.assertEqual(wrong_owner.status_code, 409)
 
     def test_saved_filter_validation_and_cross_profile_update_rejection(self):
         self.client.put("/search-profiles", json=self._profile()).raise_for_status()
@@ -188,7 +266,7 @@ class SavedSearchFiltersApiTests(unittest.TestCase):
     def test_salary_bounds_round_trip_as_profile_scoped_filters_without_side_effects(self):
         filters = {"q": "network", "title": "Developer", "location": "Boston", "company": "Example",
                    "remote_type": "REMOTE", "provider": "greenhouse", "sort": "company",
-                   "salary_min": "85000", "salary_max": "130000"}
+                   "salary_min": "85000", "salary_max": "130000", "experience_level": ""}
         operations_before = self.store.count("worker_operations")
         response = self.client.put("/search-profiles", json=self._profile(job_filters=filters))
         self.assertEqual(response.status_code, 200, response.text)
