@@ -180,11 +180,11 @@ def execute_operation(operation_id):
         logged_operation = operation
         if operation["kind"] == "APPLY_MOCK":
             try:
-                ats_provider = _resolve_application_ats_provider(store, operation)
+                context = _resolve_application_log_context(store, operation)
             except Exception:
                 # Logging context is best effort and cannot change a persisted outcome.
-                ats_provider = None
-            logged_operation = {**operation, "ats_provider": ats_provider}
+                context = {}
+            logged_operation = {**operation, **context}
         elif operation["kind"] == "COMPANY_SOURCE_REFRESH":
             try:
                 company_id = _resolve_company_source_company_id(store, operation)
@@ -198,14 +198,21 @@ def execute_operation(operation_id):
         store.engine.dispose()
 
 
-def _resolve_application_ats_provider(store, operation):
-    """Read only the persisted route provider for APPLY_MOCK log context."""
+def _resolve_application_log_context(store, operation):
+    """Read persisted provider and job/company IDs for APPLY_MOCK log context."""
     if operation.get("kind") != "APPLY_MOCK":
-        return None
+        return {}
     with store.engine.connect() as connection:
-        return connection.execute(select(m.routes.c.provider).select_from(
-            m.applications.join(m.routes, m.applications.c.route_id == m.routes.c.id)
-        ).where(m.applications.c.id == operation.get("entity_id"))).scalar_one_or_none()
+        row = connection.execute(select(
+            m.routes.c.provider.label("ats_provider"),
+            m.applications.c.job_id.label("job_id"),
+            m.jobs.c.company_id.label("company_id"),
+        ).select_from(m.applications.join(
+            m.routes, m.applications.c.route_id == m.routes.c.id,
+        ).join(
+            m.jobs, m.applications.c.job_id == m.jobs.c.id,
+        )).where(m.applications.c.id == operation.get("entity_id"))).mappings().one_or_none()
+    return dict(row) if row is not None else {}
 
 
 def _resolve_company_source_company_id(store, operation):

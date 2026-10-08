@@ -78,6 +78,7 @@ class StructuredOperationLoggingTests(unittest.TestCase):
             log_operation_finished({
                 "id": "operation-apply", "kind": "APPLY_MOCK",
                 "entity_id": "application-123",
+                "job_id": "job-456", "company_id": "company-789",
                 "ats_provider": "greenhouse",
                 "params": {"submit": True, "ats": "https://host.test/?token=private",
                            "private_answer": "private application data"},
@@ -86,12 +87,34 @@ class StructuredOperationLoggingTests(unittest.TestCase):
         message = captured.records[0].getMessage()
         record = json.loads(message)
         self.assertEqual(record["application_id"], "application-123")
+        self.assertEqual(record["job_id"], "job-456")
+        self.assertEqual(record["company_id"], "company-789")
         self.assertEqual(record.get("ats"), "greenhouse")
         self.assertNotIn("params", record)
         self.assertNotIn("submit", message)
         self.assertNotIn("host.test", message)
         self.assertNotIn("token=private", message)
         self.assertNotIn("private application data", message)
+
+    def test_apply_mock_omits_malformed_or_secret_shaped_job_and_company_ids(self):
+        cases = (("bad\njob", "company-1", None, "company-1"),
+                 ("job-1", "api-key-secret-value", "job-1", None))
+        for job_id, company_id, expected_job_id, expected_company_id in cases:
+            with self.subTest(job_id=job_id, company_id=company_id), \
+                    self.assertLogs("mjobs.operations", level="INFO") as captured:
+                log_operation_finished({
+                    "id": "operation-apply", "kind": "APPLY_MOCK",
+                    "entity_id": "application-123", "job_id": job_id,
+                    "company_id": company_id, "ats_provider": "greenhouse",
+                    "params": {"answer": "private application data"},
+                }, "BLOCKED", "SAFE_ERROR", 0.01)
+
+            message = captured.records[0].getMessage()
+            record = json.loads(message)
+            self.assertEqual(record.get("job_id"), expected_job_id)
+            self.assertEqual(record.get("company_id"), expected_company_id)
+            self.assertNotIn("api-key-secret-value", message)
+            self.assertNotIn("private application data", message)
 
     def test_apply_mock_omits_unknown_malformed_and_secret_shaped_ats_values(self):
         for provider in (None, "unknown-provider", "https://ats.test/?api_key=private",

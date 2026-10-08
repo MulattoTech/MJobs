@@ -250,14 +250,20 @@ class WorkerLifecycleTests(unittest.TestCase):
         self.assertEqual(self.read(operation)["state"], "COMPLETED")
         message = captured.records[0].getMessage()
         record = json.loads(message)
+        job = self.store.jobs("fixture")[0]
+        with self.store.engine.connect() as connection:
+            company_id = connection.execute(select(m.jobs.c.company_id).where(
+                m.jobs.c.id == job["id"])).scalar_one()
         self.assertEqual(record["application_id"], application_id)
+        self.assertEqual(record["job_id"], job["id"])
+        self.assertEqual(record["company_id"], company_id)
         self.assertEqual(record.get("ats"), "mock-ats")
         self.assertNotIn("api_key", message)
         self.assertNotIn("synthetic-secret", message)
         self.assertNotIn("private application answer", message)
         self.assertNotIn("submit", message)
 
-    def test_apply_mock_ats_lookup_failure_does_not_change_outcome_or_log_diagnostics(self):
+    def test_apply_mock_context_lookup_failure_does_not_change_outcome_or_log_diagnostics(self):
         operation = enqueue_operation(self.store, "APPLY_MOCK", "missing-application", {
             "submit": False, "private_answer": "private answer",
         })
@@ -268,16 +274,18 @@ class WorkerLifecycleTests(unittest.TestCase):
                         MJOBS_OPERATION_MODE="FIXTURE"), \
                 self.assertLogs("mjobs.operations", level="INFO") as captured, \
                 patch("workers.tasks.apply_mock", return_value={"state": "DRY_RUN_COMPLETE"}), \
-                patch.object(tasks, "_resolve_application_ats_provider", create=True,
-                              side_effect=RuntimeError("private database diagnostic")) as resolve_provider:
+                patch.object(tasks, "_resolve_application_log_context", create=True,
+                              side_effect=RuntimeError("private database diagnostic")) as resolve_context:
             result = execute_operation(operation)
 
-        resolve_provider.assert_called_once()
+        resolve_context.assert_called_once()
         self.assertEqual(result["status"], "COMPLETED")
         self.assertEqual(self.read(operation)["state"], "COMPLETED")
         message = captured.records[0].getMessage()
         record = json.loads(message)
         self.assertNotIn("ats", record)
+        self.assertNotIn("job_id", record)
+        self.assertNotIn("company_id", record)
         self.assertNotIn("private database diagnostic", message)
         self.assertNotIn("private answer", message)
 
