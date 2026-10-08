@@ -600,6 +600,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     app.include_router(create_career_story_selection_router(store))
     from apps.api.role_lenses import create_role_lenses_router
     app.include_router(create_role_lenses_router(store))
+    from apps.api.browser_job_extraction import create_browser_job_extraction_router
+    app.include_router(create_browser_job_extraction_router(store))
     app.state.resume_extraction_events = {}
     app.state.resume_extraction_lock = threading.Lock()
     app.state.uploaded_comparison_events = {}
