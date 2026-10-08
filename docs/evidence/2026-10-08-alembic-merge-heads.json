@@ -1,0 +1,75 @@
+{
+  "issue": 167,
+  "requirement": "MJ-REQ-166",
+  "scope": "merge two Alembic heads so the normal head target resolves to one revision",
+  "scope_result": "PASS",
+  "requirement_result": "PARTIAL",
+  "branch": "codex/mj-req166-merge-migration-heads-20261008",
+  "base_commit": "b35830ed000357d5508ec17a9574ec03454022a4",
+  "base_tree": "b1f24be25a2d8bb6eeeb4b92c54f28341856b129",
+  "tested_at_utc": "2026-10-08T04:43:19Z",
+  "platform": "Microsoft Windows 10.0.26300; Python 3.12; repository .venv with Alembic 1.20.0 and SQLAlchemy 2.1.1",
+  "source_inputs": {
+    "migration": {
+      "path": "migrations/versions/e2a4c9d0b721_merge_9b6d40_f37a0c2e_heads.py",
+      "sha256": "74f781021f575c0c47ed035eeee1fbf4a8a7b782398b14a87bb1c177028d46d3"
+    },
+    "test": {
+      "path": "tests/integration/test_migration_graph.py",
+      "sha256": "c6ef5924fbc8eab9b0214f83914318eaaee8a86b71d0975d4711720fafb6b928"
+    }
+  },
+  "graph": {
+    "prior_heads": ["9b6d40aaf163", "f37a0c2e91b5"],
+    "merge_revision": "e2a4c9d0b721",
+    "parents": ["9b6d40aaf163", "f37a0c2e91b5"],
+    "resulting_heads": ["e2a4c9d0b721"]
+  },
+  "checks": [
+    {
+      "command": "& 'C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe' -m unittest tests.integration.test_migration_graph -v",
+      "result": "PASS",
+      "count": "1 passed",
+      "details": "Runs command.upgrade(config, 'head') against a unique TemporaryDirectory SQLite database; verifies the single graph head, both merge parents, expected source_candidate_reviews columns, and one alembic_version row at the resulting head. Temporary database removed on test completion."
+    },
+    {
+      "command": "& 'C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe' -m unittest tests.integration.test_migration_graph -v (before adding merge revision; test-first reproduction)",
+      "result": "FAIL_EXPECTED",
+      "count": "1 failure",
+      "details": "The test failed at the one-head assertion and reported both existing heads: 9b6d40aaf163 and f37a0c2e91b5."
+    },
+    {
+      "command": "& 'C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe' -m unittest tests.integration.test_migration_recovery -v",
+      "result": "PASS_WITH_SKIPS",
+      "count": "2 passed, 2 skipped",
+      "details": "SQLite recovery cases passed. PostgreSQL cases skipped because disposable PostgreSQL URLs were not configured."
+    },
+    {
+      "command": "& 'C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe' -m tools.verification.agent_skills",
+      "result": "PASS",
+      "count": "validator passed"
+    },
+    {
+      "command": "& 'C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe' -m tools.verification.catalogue",
+      "result": "PASS",
+      "count": "validator passed"
+    },
+    {
+      "command": "& 'C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe' -m tools.verification.progress validate",
+      "result": "PASS",
+      "count": "validator passed"
+    },
+    {
+      "command": "git diff --cached --check",
+      "result": "PASS",
+      "count": "no whitespace errors"
+    }
+  ],
+  "limitations": [
+    "No PostgreSQL upgrade or PostgreSQL full-text-index runtime validation was run.",
+    "No destructive migration backup/restore or broader data-migration acceptance was exercised.",
+    "No production, user, Docker, or shared database was accessed.",
+    "This is an early hotfix slice; issue 167, MJ-REQ-166, MJ-PR-045, and dependencies remain open or incomplete as applicable.",
+    "GitHub-hosted checks and external review were not run under local-only policy."
+  ]
+}
