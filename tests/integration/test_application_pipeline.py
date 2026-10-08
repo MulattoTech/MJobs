@@ -178,5 +178,114 @@ class ApplicationPipelineTests(unittest.TestCase):
         self.assertEqual(self.client.get(self.url).json()["status"], history[-1]["status"])
 
 
+class ApplicationStepTraceTests(unittest.TestCase):
+    """The mock attempt trace is durable, ordered, and contains no form values."""
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory(prefix="mjobs-application-step-trace-")
+        self.root = Path(self.temp.name)
+        self.database = self.root / "trace.db"
+        self.store = Store(f"sqlite:///{self.database.as_posix()}")
+        self.store.migrate()
+        self.store.bind_workspace_mode("FIXTURE")
+        self.store.save_profile(dict(PROFILE))
+
+    def tearDown(self):
+        self.store.engine.dispose()
+        self.temp.cleanup()
+
+    def _attempt(self, store, application_id):
+        with store.engine.connect() as connection:
+            rows = list(connection.execute(select(m.attempts).where(
+                m.attempts.c.application_id == application_id
+            ).order_by(m.attempts.c.started_at)).mappings())
+        self.assertEqual(len(rows), 1)
+        return dict(rows[0])
+
+    def _prepare(self, origin):
+        from services.discovery.pipeline import discover
+        from services.documents.generate import prepare
+
+        discover(self.store, origin, "fixture")
+        job = next(row for row in self.store.jobs("fixture")
+                   if row["requisition"] == "B")
+        return prepare(self.store, job["id"], "fixture", self.root)
+
+    def test_mock_attempt_records_all_phases_in_order_without_form_values_after_reopen(self):
+        from fixtures.mock_server import fixture_server
+        from services.applications.mock_adapter import apply_mock
+        import json
+
+        expected = [
+            "NAVIGATE:COMPLETED", "DETECT_FORM:COMPLETED",
+            "UPLOAD_RESUME:COMPLETED", "FILL_CONTACT:COMPLETED",
+            "FILL_LOCATION:COMPLETED", "ANSWER_STANDARD:COMPLETED",
+            "ANSWER_CUSTOM:COMPLETED", "VALIDATE:COMPLETED",
+            "SUBMIT:COMPLETED", "VERIFY_CONFIRMATION:COMPLETED",
+        ]
+        with fixture_server() as origin:
+            application_id = self._prepare(origin)
+            result = apply_mock(self.store, application_id, origin, self.root, submit=True)
+            self.assertEqual(result["state"], "CONFIRMED")
+            self.assertEqual(self.store.application(application_id)["trace"][-1],
+                             "VERIFY_CONFIRMATION")
+            self.store.engine.dispose()
+            reopened = Store(f"sqlite:///{self.database.as_posix()}")
+            try:
+                reopened.migrate()
+                trace = self._attempt(reopened, application_id)["steps"]
+                self.assertEqual(trace, expected)
+                serialized = json.dumps(trace)
+                private_values = [PROFILE["name"], PROFILE["email"]]
+                private_values.extend(row["text"] for row in PROFILE.get("answers", []))
+                self.assertTrue(all(value not in serialized for value in private_values if value),
+                                "attempt trace must not echo candidate answer or contact values")
+                receipt = origin + "/ats/receipts/" + application_id
+                self.assertEqual(__import__("httpx").get(receipt).json()["submission_count"], 1)
+            finally:
+                reopened.engine.dispose()
+
+    def test_interrupted_contact_phase_is_persisted_as_failed_without_private_values(self):
+        from fixtures.mock_server import fixture_server
+        from playwright.sync_api import Locator
+        from services.applications.mock_adapter import apply_mock
+        from unittest.mock import patch
+        import json
+
+        with fixture_server() as origin:
+            application_id = self._prepare(origin)
+            original_fill = Locator.fill
+
+            def interrupt_after_email(locator, value, *args, **kwargs):
+                result = original_fill(locator, value, *args, **kwargs)
+                if locator.get_attribute("name") == "email":
+                    raise RuntimeError("PRIVATE_FAILURE synthetic answer=SECRET_SENTINEL")
+                return result
+
+            with patch.object(Locator, "fill", interrupt_after_email):
+                with self.assertRaisesRegex(RuntimeError, "PRIVATE_FAILURE"):
+                    apply_mock(self.store, application_id, origin, self.root)
+
+            self.store.engine.dispose()
+            reopened = Store(f"sqlite:///{self.database.as_posix()}")
+            try:
+                reopened.migrate()
+                attempt = self._attempt(reopened, application_id)
+                self.assertEqual(attempt["state"], "REVIEW_REQUIRED")
+                self.assertIn("NAVIGATE:COMPLETED", attempt["steps"])
+                self.assertIn("DETECT_FORM:COMPLETED", attempt["steps"])
+                self.assertIn("UPLOAD_RESUME:COMPLETED", attempt["steps"])
+                self.assertIn("FILL_CONTACT:FAILED", attempt["steps"])
+                serialized = json.dumps(attempt["steps"])
+                self.assertNotIn(PROFILE["email"], serialized)
+                self.assertNotIn(PROFILE["name"], serialized)
+                self.assertNotIn("SECRET_SENTINEL", serialized)
+                self.assertEqual(__import__("httpx").get(
+                    origin + "/ats/receipts/" + application_id
+                ).json(), {"status": "not_found"})
+            finally:
+                reopened.engine.dispose()
+
+
 if __name__ == "__main__":
     unittest.main()

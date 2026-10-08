@@ -237,19 +237,60 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
         answer = {fact.id: fact.text for fact in answers}
         facts = select_verified_facts([Fact(id=row["fact_id"], **{key: row[key] for key in ("text", "source", "verified", "user_approved", "confidence")})
                                       for row in profile["facts"]], application["fact_ids"])
-        store.transition(application_id, [application["state"]], "FILLING", "NAVIGATE")
         attempt_id = uuid4().hex
         with store.engine.begin() as connection:
             connection.execute(m.attempts.insert().values(id=attempt_id, application_id=application_id, state="RUNNING", steps=[], started_at=now()))
         page = None
         browser_events = []
         browser_failure_handled = False
+        active_step = None
+
+        def append_attempt_step(step, status):
+            # Persist only the fixed phase label and status. Never retain form
+            # values, answer text, browser content, or exception messages here.
+            with store.engine.begin() as connection:
+                saved = connection.execute(select(m.attempts.c.steps).where(
+                    m.attempts.c.id == attempt_id).with_for_update()).scalar_one()
+                steps = list(saved or [])
+                steps.append(f"{step}:{status}")
+                connection.execute(update(m.attempts).where(
+                    m.attempts.c.id == attempt_id).values(steps=steps))
+
+        def start_step(step):
+            nonlocal active_step
+            if active_step is not None:
+                raise RuntimeError("APPLICATION_TRACE_STEP_ALREADY_ACTIVE")
+            append_attempt_step(step, "STARTED")
+            active_step = step
+
+        def finish_step(status):
+            nonlocal active_step
+            if active_step is None:
+                return
+            step = active_step
+            with store.engine.begin() as connection:
+                saved = connection.execute(select(m.attempts.c.steps).where(
+                    m.attempts.c.id == attempt_id).with_for_update()).scalar_one()
+                steps = list(saved or [])
+                started = f"{step}:STARTED"
+                if steps and steps[-1] == started:
+                    steps[-1] = f"{step}:{status}"
+                else:
+                    steps.append(f"{step}:{status}")
+                connection.execute(update(m.attempts).where(
+                    m.attempts.c.id == attempt_id).values(steps=steps))
+            active_step = None
 
         def handle_browser_failure(error):
             nonlocal browser_failure_handled
             current = store.application(application_id)["state"]
             trace = store.application(application_id).get("trace") or []
+            # Keep opt-in diagnostic capture's established transition-label
+            # semantics; the exact in-flight phase and its FAILED status live
+            # only in the sanitized attempt trace below.
             failed_step = trace[-1] if trace else "UNKNOWN"
+            if active_step is not None:
+                finish_step("FAILED")
             if current == "SUBMITTING":
                 receipt = _receipt(client, application, route["requisition"])
                 if receipt:
@@ -288,33 +329,47 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
                             browser_events, "requestfailed", request.url,
                             getattr(request, "failure", None) or "REQUEST_FAILED"))
                     page.set_default_timeout(_playwright_action_timeout_ms(check))
+                    start_step("NAVIGATE")
+                    store.transition(application_id, [application["state"]], "FILLING", "NAVIGATE")
                     page.goto(route["url"], wait_until="domcontentloaded",
                               timeout=_playwright_action_timeout_ms(check, 15000))
                     check()
+                    finish_step("COMPLETED")
                     page.set_default_timeout(_playwright_action_timeout_ms(check))
-                    if page.locator("[data-intervention]").count():
+                    start_step("DETECT_FORM")
+                    intervention_detected = page.locator("[data-intervention]").count() > 0
+                    finish_step("COMPLETED")
+                    if intervention_detected:
                         store.transition(application_id, ["FILLING"], "USER_INTERVENTION_REQUIRED", "CHALLENGE_DETECTED")
                         return store.application(application_id)
                     store.transition(application_id, ["FILLING"], "FILLING", "DETECT_FORM")
                     page.set_default_timeout(_playwright_action_timeout_ms(check))
-                    page.get_by_label("Name", exact=True).fill(profile["name"])
-                    page.set_default_timeout(_playwright_action_timeout_ms(check))
-                    page.get_by_label("Email", exact=True).fill(profile["email"])
-                    store.transition(application_id, ["FILLING"], "FILLING", "FILL_CONTACT")
-                    page.set_default_timeout(_playwright_action_timeout_ms(check))
+                    start_step("UPLOAD_RESUME")
                     page.get_by_label("Resume", exact=True).set_input_files(files[("resume", "pdf")])
                     page.set_default_timeout(_playwright_action_timeout_ms(check))
                     page.get_by_label("Cover letter", exact=True).set_input_files(files[("cover-letter", "pdf")])
+                    finish_step("COMPLETED")
                     store.transition(application_id, ["FILLING"], "FILLING", "UPLOAD_RESUME")
                     check()
                     page.set_default_timeout(_playwright_action_timeout_ms(check))
+                    start_step("FILL_CONTACT")
+                    page.get_by_label("Name", exact=True).fill(profile["name"])
+                    page.set_default_timeout(_playwright_action_timeout_ms(check))
+                    page.get_by_label("Email", exact=True).fill(profile["email"])
+                    finish_step("COMPLETED")
+                    store.transition(application_id, ["FILLING"], "FILLING", "FILL_CONTACT")
+                    page.set_default_timeout(_playwright_action_timeout_ms(check))
+                    start_step("FILL_LOCATION")
                     page.get_by_role("combobox", name="Country", exact=True).select_option(label=answer["country"])
+                    finish_step("COMPLETED")
+                    start_step("ANSWER_STANDARD")
                     if answer["remote"] != "yes":
                         raise ValueError("Unresolved mandatory remote answer")
                     page.set_default_timeout(_playwright_action_timeout_ms(check))
                     page.get_by_label("Remote role").check()
                     page.set_default_timeout(_playwright_action_timeout_ms(check))
                     page.get_by_label("Documents reviewed").check()
+                    finish_step("COMPLETED")
                     page.set_default_timeout(_playwright_action_timeout_ms(check))
                     if not page.locator("form").evaluate("form => form.checkValidity()"):
                         raise ValueError("Mock form validation failed")
@@ -324,14 +379,18 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
                     page.set_default_timeout(_playwright_action_timeout_ms(check))
                     page.locator('[data-validated="true"]').wait_for()
                     page.set_default_timeout(_playwright_action_timeout_ms(check))
+                    start_step("ANSWER_CUSTOM")
                     page.get_by_label("Application ID", exact=True).fill(application_id)
                     page.set_default_timeout(_playwright_action_timeout_ms(check))
                     page.get_by_label("Approved fixture answer", exact=True).fill(answer["fixture_question"])
                     page.set_default_timeout(_playwright_action_timeout_ms(check))
                     page.get_by_label("Confirm fictional test submission").check()
+                    finish_step("COMPLETED")
+                    start_step("VALIDATE")
                     page.set_default_timeout(_playwright_action_timeout_ms(check))
                     if not page.locator("form").evaluate("form => form.checkValidity()"):
                         raise ValueError("Mock review validation failed")
+                    finish_step("COMPLETED")
                     store.transition(application_id, ["FILLING"], "READY_TO_SUBMIT", "VALIDATE")
                     if not submit:
                         store.transition(application_id, ["READY_TO_SUBMIT"], "DRY_RUN_COMPLETE", "STOP_BEFORE_SUBMIT")
@@ -343,10 +402,13 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
                     # The operation deadline may expire after the durable
                     # reservation commits but before the irreversible submit
                     # click. Reconcile conservatively without clicking.
+                    start_step("SUBMIT")
                     check()
                     page.set_default_timeout(_playwright_action_timeout_ms(check))
                     page.get_by_role("button", name="Submit mock application", exact=True).click()
                     record_mock_application_submitted(store, application_id)
+                    finish_step("COMPLETED")
+                    start_step("VERIFY_CONFIRMATION")
                     page.set_default_timeout(_playwright_action_timeout_ms(check))
                     confirmation = page.locator("[data-confirmation]")
                     confirmation.wait_for(
@@ -359,6 +421,7 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
                     if receipt is None:
                         raise ValueError("Mock receipt missing or invalid after submission")
                     store.transition(application_id, ["SUBMITTING"], "CONFIRMED", "VERIFY_CONFIRMATION", receipt)
+                    finish_step("COMPLETED")
                     return store.application(application_id)
                 except Exception as error:
                     handle_browser_failure(error)
@@ -372,6 +435,7 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
         finally:
             completed = store.application(application_id)
             with store.engine.begin() as connection:
-                connection.execute(update(m.attempts).where(m.attempts.c.id == attempt_id).values(state=completed["state"], steps=completed["trace"]))
+                connection.execute(update(m.attempts).where(
+                    m.attempts.c.id == attempt_id).values(state=completed["state"]))
     finally:
         client.close()

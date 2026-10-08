@@ -89,6 +89,20 @@ class ApplicationPipelineBrowserTests(unittest.TestCase):
                             "button", name=job["title"], exact=False)
                         expect(card).to_be_visible()
                         card.click()
+                        attempt_trace = page.get_by_role("heading", name="Attempts", exact=True).locator(
+                            "xpath=following-sibling::p[1]")
+                        for phase in [
+                            "NAVIGATE:COMPLETED", "DETECT_FORM:COMPLETED",
+                            "UPLOAD_RESUME:COMPLETED", "FILL_CONTACT:COMPLETED",
+                            "FILL_LOCATION:COMPLETED", "ANSWER_STANDARD:COMPLETED",
+                            "ANSWER_CUSTOM:COMPLETED", "VALIDATE:COMPLETED",
+                            "SUBMIT:COMPLETED", "VERIFY_CONFIRMATION:COMPLETED",
+                        ]:
+                            expect(attempt_trace).to_contain_text(phase)
+                        self.assertNotIn(PROFILE["email"], attempt_trace.inner_text())
+                        self.assertFalse(any(row["text"] in attempt_trace.inner_text()
+                                             for row in PROFILE.get("answers", [])
+                                             if row.get("text")))
                         confirmation_view = page.locator("pre").filter(
                             has_text=confirmation["reference_number"])
                         expect(confirmation_view).to_contain_text("timestamp")
@@ -106,6 +120,10 @@ class ApplicationPipelineBrowserTests(unittest.TestCase):
                         card = board.get_by_role("region", name="Not tracked", exact=True).get_by_role(
                             "button", name=job["title"], exact=False)
                         card.click()
+                        attempt_trace = page.get_by_role("heading", name="Attempts", exact=True).locator(
+                            "xpath=following-sibling::p[1]")
+                        expect(attempt_trace).to_contain_text("NAVIGATE:COMPLETED")
+                        expect(attempt_trace).to_contain_text("VERIFY_CONFIRMATION:COMPLETED")
                         expect(page.locator("pre").filter(
                             has_text=confirmation["reference_number"])).to_contain_text(
                                 confirmation["confirmation_url"])
