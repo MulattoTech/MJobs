@@ -6,12 +6,14 @@
   "authority": {
     "repository": "MulattoTech/MJobs",
     "issue": 115,
-    "requirements": ["MJ-REQ-114"],
-    "base_main": "760271a9a1205858cda2e99980e37783f49dedc6",
+    "requirements": [
+      "MJ-REQ-114"
+    ],
+    "base_main": "df925cf5ac7d67a748ccf877e3b3ee3fa2793ccf",
     "task_branch": "codex/mj-req114-certification-explanation-20261008",
-    "implementation_commit": "6218db3a76a2608af5671defe0549559c4ae028c",
-    "implementation_tree": "a90726d427ed80405d20e520283140249f29c173",
-    "implementation_parent": "772551ec5f83f184761930baf2eabc05ff445ab3",
+    "implementation_commit": "52024be6a47adedc54449003cec105a04b5bf41f",
+    "implementation_tree": "4653aa41658c79e98954946aeca412eb8cf43ec4",
+    "implementation_parent": "02405dbec269e231c318062666d9fe1b24dfea26",
     "source_hashes_sha256": {
       "services/discovery/matching.py": "bd3a0417e90fa2d59f6332c03e0755e668e302e7c5a259913f3a1bfd1edbf7ce",
       "tests/integration/test_explainable_matching.py": "200c044d0c3f7d5a070cb35ae9a84cd05a72b98a0592155341be0c12132504eb"
@@ -83,6 +85,12 @@
       "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m py_compile services/discovery/matching.py tests/integration/test_explainable_matching.py; git diff HEAD^ HEAD --check",
       "target": "Commit 6218db3a76a2608af5671defe0549559c4ae028c",
       "result": "PASS"
+    },
+    {
+      "action": "Root independently re-ran the focused certification explanation and requirement parser tests after rebasing onto the latest main",
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_explainable_matching tests.unit.test_requirement_parsers -q",
+      "target": "Rebased candidate source commit 52024be6a47adedc54449003cec105a04b5bf41f (tree 4653aa41658c79e98954946aeca412eb8cf43ec4); current main base df925cf5ac7d67a748ccf877e3b3ee3fa2793ccf; synthetic profile/job fixtures and temporary SQLite store",
+      "result": "PASS: 40 tests on the exact rebased source; all version mismatch, historical/no-longer-current, approval, strength, score-effect, and durable rescore assertions passed"
     }
   ],
   "verified_behavior": [
