@@ -141,8 +141,8 @@ def list_archive_events(
 def _verify_document_owner(connection, profile_id: str, application_id: str | None,
                            document_id: str | None) -> None:
     if application_id is None:
-        profile_exists = connection.execute(select(m.career_profiles.c.id).where(
-            m.career_profiles.c.id == profile_id
+        profile_exists = connection.execute(select(m.profiles.c.id).where(
+            m.profiles.c.id == profile_id
         )).first()
         if profile_exists is None:
             raise LookupError("Document is not available to this profile")
