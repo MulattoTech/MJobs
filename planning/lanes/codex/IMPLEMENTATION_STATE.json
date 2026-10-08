@@ -2,42 +2,39 @@
   "schema_version": 1,
   "lane": "codex",
   "status": "ACTIVE_CORE_FEATURE_SPRINT",
-  "base_main": "0863e55d1617b708906e7c865118105c841a6d18",
-  "current_issue": null,
-  "requirement_id": null,
+  "base_main": "5d55050d3acfa2561d9bf4508c3a8c40817f9d3d",
+  "current_issue": 107,
+  "requirement_id": "MJ-REQ-106",
   "branch": "main",
-  "head": "0863e55d1617b708906e7c865118105c841a6d18",
-  "worktree": ".worktrees/codex-mj-req095-responsibility-summary-20261008",
-  "result": "Two bounded core product slices integrated; original requirements remain PARTIAL and release readiness UNKNOWN.",
-  "evidence_path": "docs/evidence/2026-10-08-responsibility-summary-selection.json",
+  "head": "9287de43eba3168f2c4d5f3ecd3e9e7c2f21f1d8",
+  "worktree": ".",
+  "result": "Bounded #107 sensitive-answer policy workflow integrated locally and connected acceptance verified; tracker checkpoint is current and safe remote sync is pending.",
+  "evidence_path": "docs/evidence/2026-10-08-sensitive-answer-policy.json",
   "last_completed": {
-    "issue": 190,
-    "requirement_id": "MJ-REQ-189",
-    "integrated_main": "9823b00479a5d9157e74ea84d3485ecca835a52c",
+    "issue": 107,
+    "requirement_id": "MJ-REQ-106",
+    "integrated_main": "9287de43eba3168f2c4d5f3ecd3e9e7c2f21f1d8",
     "issue_state": "OPEN/PARTIAL",
     "evidence_paths": [
-      "docs/evidence/2026-10-08-clearance-search-filter.json"
+      "docs/evidence/2026-10-08-sensitive-answer-policy.json"
     ],
-    "validation": "Root exact source: 21 saved-filter API/connected Chromium, frontend 103/103, build, Python compilation, agent-skills/catalogue/lane validators, evidence hashes and diff PASS; LOCAL_DELEGATED_REVIEW no material findings; PostgreSQL/hosted/live/full suite NOT_RUN.",
-    "integration_comments": [
-      "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6061279336"
-    ]
+    "validation": "PASS: 17 focused Python unit/integration/connected Chromium; 127 frontend; TypeScript/Vite build; diff check. Hosted/PostgreSQL/live ATS NOT_RUN; submission OFF."
   },
   "next_candidates": [
     {
-      "issue": 118,
-      "requirement_id": "MJ-REQ-117",
-      "status": "BLOCKED_QUEUED: MJ-PR-032 depends on MJ-PR-031"
+      "issue": 62,
+      "requirement_id": "MJ-REQ-061",
+      "status": "CLAIMED_READY: same-origin sitemap career-page discovery; four exclusive paths and four registered squad claims."
     },
     {
-      "issue": 119,
-      "requirement_id": "MJ-REQ-118",
-      "status": "BLOCKED_QUEUED: MJ-PR-032 dependency chain remains queued"
+      "issue": 143,
+      "requirement_id": "MJ-REQ-142",
+      "status": "RECHECK_AFTER_#107_REMOTE_SYNC: bounded user-opened MOCK sign-in recovery; application API/UI ownership overlaps the just-integrated #107 surface."
     },
     {
-      "issue": 145,
-      "requirement_id": "MJ-REQ-144",
-      "status": "BLOCKED_QUEUED: MJ-PR-039 depends on MJ-PR-038 and MJ-PR-030"
+      "issue": 115,
+      "requirement_id": "MJ-REQ-114",
+      "status": "RECHECK_LIVE_CLAIMS_AND_DEPENDENCIES: score-neutral education-fit explanation; full PR dependency chain remains queued."
     }
   ],
   "do_not_overlap": [
@@ -45,31 +42,33 @@
     "Ollama/OpenCode active issue #318 paths: services/ats_detection/** and detector tests",
     "canonical planning and main outside integration lock"
   ],
-  "resume_instruction": "Local/origin/GitHub main synchronized at 3d7ff2c6fb0a6151026ebbe23033b4b5c5022937. #190 clearance facet integrated PARTIAL at 9823b00479a5d9157e74ea84d3485ecca835a52c; receipt https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6061279336. Current children: #96/MJ-REQ-095 responsibility-based summary selection and #190/MJ-REQ-189 evidence-qualified ATS facet, separate worktrees/path ownership. External claims #302/#318. Hosted checks disabled; PostgreSQL/live ATS/full suite NOT_RUN; external submission OFF.",
-  "last_verified_head": "9823b00479a5d9157e74ea84d3485ecca835a52c",
-  "last_verified_tree": "84944fb02a3f8e7275a473879974eb24481e2618",
-  "last_verified_at_utc": "2026-10-08T13:55:06Z",
+  "resume_instruction": "#107/MJ-REQ-106 integrated locally at 9287de43eba3168f2c4d5f3ecd3e9e7c2f21f1d8 with evidence docs/evidence/2026-10-08-sensitive-answer-policy.json. Exact focused 17 Python/API/Chromium, web 127, TypeScript/Vite build, and diff checks passed; original requirement remains PARTIAL. Main is four code commits plus this batch ahead of origin/main; Actions are disabled, branch is unprotected, ordinary non-force synchronization remains pending. Next start the already selected #62 same-origin sitemap discovery squad after checking branch claims/worktrees and posting the local claim receipt. Preserve external #302/#318 lanes. External submission OFF.",
+  "last_verified_head": "9287de43eba3168f2c4d5f3ecd3e9e7c2f21f1d8",
+  "last_verified_tree": "64a2ff961ed8fb7c73ad35171da0035231cef511",
+  "last_verified_at_utc": "2026-10-08T16:47:22Z",
   "started_at_utc": "2026-10-07T04:24:01Z",
   "validation": {
-    "result": "PASS for bounded #190 clearance facet; requirement remains PARTIAL",
-    "clearance_search_filter": "21 focused API/integration/connected Chromium; 103 frontend; TypeScript/Vite build; compilation and validators PASS; exact source/evidence hashes match.",
-    "review": "LOCAL_DELEGATED_REVIEW found no material findings.",
+    "result": "PASS for bounded #107 profile-policy to reviewed application-answer workflow; exact local source commit 9287de43eba3168f2c4d5f3ecd3e9e7c2f21f1d8",
+    "focused_python_api_browser": "17 PASS, including connected local Chromium and profile/no-side-effect cases",
+    "web_tests": "127 PASS across 23 files",
+    "typescript_vite_build": "PASS",
+    "diff_check": "PASS",
     "hosted_checks": "NOT_RUN_BY_USER_POLICY",
     "postgresql": "NOT_RUN",
     "external_submission": "OFF"
   },
-  "last_integrated_head": "3d7ff2c6fb0a6151026ebbe23033b4b5c5022937",
-  "last_verified_result": "PASS bounded #105 and #190 slices integrated/synchronized; full requirements remain PARTIAL.",
-  "updated_at": "2026-10-08T14:20:06Z",
-  "integrated_main": "0863e55d1617b708906e7c865118105c841a6d18",
-  "last_integrated_issue": 96,
-  "last_integrated_requirement": "MJ-REQ-095",
-  "last_integrated_evidence": "docs/evidence/2026-10-08-clearance-search-filter.json",
-  "canonical_main_at_pause": "0863e55d1617b708906e7c865118105c841a6d18",
-  "last_completed_issue": 190,
-  "last_completed_requirement": "MJ-REQ-189 bounded parser-classified clearance facet; whole requirement PARTIAL.",
-  "next_issue": 96,
-  "next_requirement": "MJ-REQ-095",
+  "last_integrated_head": "9287de43eba3168f2c4d5f3ecd3e9e7c2f21f1d8",
+  "last_verified_result": "PASS: focused Python unit/integration/Chromium 17; full web suite 127; TypeScript/Vite build; diff check. Requirement remains PARTIAL.",
+  "updated_at": "2026-10-08T16:47:22Z",
+  "integrated_main": "9287de43eba3168f2c4d5f3ecd3e9e7c2f21f1d8",
+  "last_integrated_issue": 107,
+  "last_integrated_requirement": "MJ-REQ-106",
+  "last_integrated_evidence": "docs/evidence/2026-10-08-sensitive-answer-policy.json",
+  "canonical_main_at_pause": "9287de43eba3168f2c4d5f3ecd3e9e7c2f21f1d8",
+  "last_completed_issue": 107,
+  "last_completed_requirement": "MJ-REQ-106 bounded profile-configured sensitive-answer suggestions with per-application review gate; whole requirement remains PARTIAL.",
+  "next_issue": 62,
+  "next_requirement": "MJ-REQ-061",
   "last_validated_head": "4a3c16563c1dd389c6222c9751dacfbe1728d509",
   "current_branch": "main",
   "current_worktree": ".",

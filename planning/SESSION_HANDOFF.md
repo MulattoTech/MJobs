@@ -1492,3 +1492,14 @@ The #96 / MJ-REQ-095 resume-summary slice is documented in `docs/evidence/2026-1
 Validation: ATS connected API/Chromium 24/24, web 103/103, build, compilation and hash domains PASS. Resume scoped 26/26 plus 103 web/build/compile/hash checks PASS; exact 27-test run retains one legacy browser failure independently reproduced on main (`Original target-bullet adjustment context is unavailable`). Dashboard tests 4/4, catalogue/progress/lane validators PASS. PostgreSQL, full suite, live ATS and hosted checks NOT_RUN; external submission OFF.
 
 No other unclaimed dependency-ready original discovery, ranking, documents or application-preparation issue surfaced. Next: reconcile queued dependency groups before claiming #118, #119/#191 or #145. External Antigravity #302 and Ollama #318 claims remain untouched.
+
+
+## 2026-10-08T16:47:22Z — #107 profile-configured sensitive-answer workflow integrated locally
+
+Root integrated #107 / MJ-REQ-106 on local main at `9287de43eba3168f2c4d5f3ecd3e9e7c2f21f1d8` (tree `64a2ff961ed8fb7c73ad35171da0035231cef511`): users can save profile-owned policies, see a clearly attributed suggestion for a supported sensitive application question, explicitly choose it for that application, and review the exact answer before export. Unknown categories stay blank; profile isolation is enforced; the proposal does not create documents, attempts, or Answer Bank entries.
+
+Evidence: `docs/evidence/2026-10-08-sensitive-answer-policy.json`. Exact local validation: focused unit/integration/connected Chromium **17 passed**, web **127 passed across 23 files**, TypeScript/Vite build PASS, `git diff --check` PASS; catalogue/progress validators and progress dashboard tests PASS. The authoritative totals remain 83/366 original PASS, 94 PARTIAL, 189 NOT_RUN; reference 14/59 PASS; release UNKNOWN. MJ-REQ-106 remains PARTIAL and MJ-PR-029 dependencies/status are unchanged.
+
+The integration lock is held by live keeper PID 36820. GitHub Actions are disabled and main is unprotected. Local main is a fast-forward of origin/GitHub main at `5d55050d3acfa2561d9bf4508c3a8c40817f9d3d`; the exact tested source plus tracker checkpoint still needs ordinary non-force sync and GitHub readback. Hosted checks/review, PostgreSQL, live provider behavior and external application submission remain NOT_RUN/OFF.
+
+Next ready slice: #62 / MJ-REQ-061 same-origin sitemap career-page discovery; preserve Antigravity #302 and Ollama #318 source/ATS claims. Four #62 claims are registered with disjoint source, UI and test paths; worktrees and GitHub claim receipt must be verified before launching those writers. The other high-value candidates require a fresh live path/dependency check before staffing.

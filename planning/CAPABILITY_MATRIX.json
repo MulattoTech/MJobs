@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-08T16:21:29Z",
+  "timestamp": "2026-10-08T16:47:22Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -1010,9 +1010,10 @@
       "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-10-05-reviewed-application-answers.json",
-        "docs/evidence/2026-10-06-avoid-list.json"
+        "docs/evidence/2026-10-06-avoid-list.json",
+        "docs/evidence/2026-10-08-sensitive-answer-policy.json"
       ],
-      "note": "Question-aware, versioned answer review and application-linked export merged in PR #511 at fb8ab73. Exact candidate 22d9a36 had passing independent review, push 37307763776 and pull_request 37307771220 Verification, nine PASS reports per artifact, and matching GitHub artifact digests. These requirements remain PARTIAL for fuzzy/semantic matching, configurable confidence, full sensitive/legal controls, and durable unexported drafts. Scoped MJ-REF-003 extension: current profile avoid terms block reviewed application-answer exports and historical conflicting export downloads. Full requirement remains PARTIAL."
+      "note": "Question-aware, versioned answer review and application-linked export merged in PR #511 at fb8ab73. Exact candidate 22d9a36 had passing independent review, push 37307763776 and pull_request 37307771220 Verification, nine PASS reports per artifact, and matching GitHub artifact digests. These requirements remain PARTIAL for fuzzy/semantic matching, configurable confidence, full sensitive/legal controls, and durable unexported drafts. Scoped MJ-REF-003 extension: current profile avoid terms block reviewed application-answer exports and historical conflicting export downloads. Full requirement remains PARTIAL. Bounded #107 / MJ-REQ-106 slice integrated locally at 9287de43eba3168f2c4d5f3ecd3e9e7c2f21f1d8: profile-owned explicit sensitive-answer policies now connect profile settings to attributed, user-selected per-application suggestions and reviewed export; 17 focused Python/API/Chromium tests, 127 frontend tests, TypeScript/Vite build and diff check pass. Evidence: docs/evidence/2026-10-08-sensitive-answer-policy.json. Whole requirement remains PARTIAL for broader semantic/legal coverage and durable unsaved drafts."
     },
     {
       "requirement_id": "MJ-REQ-107",

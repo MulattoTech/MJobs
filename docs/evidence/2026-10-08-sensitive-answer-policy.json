@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "created_at_utc": "2026-10-08T16:44:26Z",
+  "issue": 107,
+  "requirement_id": "MJ-REQ-106",
+  "result": "PARTIAL",
+  "scope": "Connect explicit per-profile sensitive-answer policies to profile editing and reviewed per-application answer preparation.",
+  "integration": {
+    "branch": "main",
+    "source_commit": "9287de43eba3168f2c4d5f3ecd3e9e7c2f21f1d8",
+    "source_tree": "64a2ff961ed8fb7c73ad35171da0035231cef511",
+    "base_commit": "e6bbf1ae95a07d69fb51cfab25c8779d5bab6728",
+    "status": "INTEGRATED_LOCALLY_PENDING_REMOTE_SYNC"
+  },
+  "behavior_verified": [
+    "A profile can save explicit policies for the supported sensitive categories and the settings survive durable profile readback.",
+    "The application answer flow classifies supported questions and returns only that active profile's explicit policy; unsupported or unrecognized questions fail closed.",
+    "A configured response is visibly attributed to profile configuration and remains blank in the application answer field until the user chooses to use it.",
+    "Using a proposed response does not mark it reviewed; export remains gated on per-application review.",
+    "Sensitive configured text does not enter the reusable Answer Bank, and profile selection is enforced at the API boundary.",
+    "Policy changes do not trigger irrelevant job-match refreshes."
+  ],
+  "tests": [
+    {
+      "command": ".venv/Scripts/python.exe -m unittest tests.unit.test_sensitive_answer_policy tests.unit.test_sensitive_answer_policy_model tests.integration.test_sensitive_answer_policy tests.browser.test_sensitive_answer_policy -v",
+      "result": "PASS",
+      "detail": "17 tests passed, including local Chromium workflow and no-side-effect/profile-isolation checks."
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run",
+      "result": "PASS",
+      "detail": "127 tests passed across 23 files."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "detail": "TypeScript check and Vite production build passed."
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS",
+      "detail": "Passed on the integrated source change."
+    }
+  ],
+  "source_sha256": {
+    "packages/domain/profile.py": "d780b5dc6bde9b976242503d1c535d00891c6c64af92b137c24283f5e0aeee53",
+    "services/documents/sensitive_answer_policy.py": "c4100f697d7af2c9b7f029adf0a6b4a0ce3a766d92e911179333d382d02acb84",
+    "apps/api/main.py": "c1857f28c5a4fd11e309c4c7c3100a9deded6984e89ed0101b6576dee0e25e08",
+    "apps/web/src/main.tsx": "ec1e5553c394cf4852f2564a175efdd449483f267e6a2e00c4187fef8404f726",
+    "apps/web/src/sensitive-answer-policy.tsx": "c03fe789e9b269ccef80ab1fd055c29c705b8335263234ee87d48bd55f07f64a",
+    "apps/web/src/sensitive-answer-policy.test.tsx": "bc3668c8ddc1f99109157e0c28c372212df64123475f034da100506d399e8459",
+    "tests/unit/test_sensitive_answer_policy_model.py": "2ab4f4c7f3cc1cde3ca1cf16b3f5ccf66897bd4319628482959e3985e4dfe85e",
+    "tests/unit/test_sensitive_answer_policy.py": "1538b8cc8d402fc5eabb904bcf37e9ddb651f7396e26f7090df7346b39efa5a9",
+    "tests/integration/test_sensitive_answer_policy.py": "743ca016aa528d6213ef1ae16afbbb7b8f082be17f26d41ab3d694fcc196ae2f",
+    "tests/browser/test_sensitive_answer_policy.py": "3ccff2cd97514251b392cd15eb10b2680964e275715b29d3aa39f64e2b3253ba"
+  },
+  "limitations": [
+    "Broader semantic question classification, complete legal-field coverage, and durable unsaved application-answer drafts remain incomplete.",
+    "PostgreSQL and live production ATS behavior were not exercised.",
+    "Hosted checks and hosted review are NOT_RUN_BY_POLICY; external submission remains OFF."
+  ],
+  "external_submission": "OFF",
+  "hosted_checks": "NOT_RUN_BY_POLICY"
+}
