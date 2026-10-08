@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-08T06:23:18Z",
+  "timestamp": "2026-10-08T06:27:03Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -2743,5 +2743,5 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "delivery_policy_note": "No requirement result promoted by local-only budget cutover. Hosted verification is disabled by current user; exact local scope/evidence remains distinct. Additive #517 slice on dbc9e573680fcf32498131afe3bee75e72213371 is locally verified PARTIAL; it is not an original or MJ-REF requirement and does not change either denominator. See docs/evidence/2026-10-08-source-candidate-issue-link.json. Hosted/PostgreSQL checks remain NOT_RUN."
+  "delivery_policy_note": "No requirement result promoted by local-only budget cutover. Hosted verification is disabled by current user; exact local scope/evidence remains distinct. Additive #517 slice on dbc9e573680fcf32498131afe3bee75e72213371 is locally verified PARTIAL; it is not an original or MJ-REF requirement and does not change either denominator. See docs/evidence/2026-10-08-source-candidate-issue-link.json. Hosted/PostgreSQL checks remain NOT_RUN. Bounded MJ-REQ-190 Newest sorting is ACTIVE under issue #191; no capability status is promoted until exact acceptance passes, and MJ-PR-052 dependencies remain unchanged."
 }

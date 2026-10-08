@@ -594,7 +594,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Product source checkpoint integrated at dbc9e573680fcf32498131afe3bee75e72213371; subsequent canonical planning closeout is metadata-only, so re-read local/origin/GitHub main before resuming. The bounded #517 provider issue-reference slice is integrated PARTIAL with evidence docs/evidence/2026-10-08-source-candidate-issue-link.json, integration receipt https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6053758883, and claim released https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6053719038. Preserve #517 as OPEN/PARTIAL for broader provider/browser intake and evaluation/task linkage. Reconcile live claims and select the next highest-value dependency-ready user-visible slice; do not change queued dependencies. Antigravity #302 and Ollama #318 remain active and untouched. Hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF.",
+  "recommended_resume_step": "Issue #191 / MJ-REQ-190 bounded Newest-sort slice is claimed on codex/mj-req190-newest-20261008 at base 877110ea89170043b5cb6ede64f8d0749d9fc430 in .worktrees/codex-mj-req190-newest-20261008. Implement only Newest ordering from persisted effective posted time with first-seen fallback, unknown last and stable ties; add API/storage/browser verification. Preserve MJ-PR-052 dependencies MJ-PR-051 and MJ-PR-043; do not promote the umbrella. Claim: https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6053825467. Issue #517 link slice is integrated PARTIAL at dbc9e573680fcf32498131afe3bee75e72213371; hosted/PostgreSQL NOT_RUN; external submission OFF.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -10352,13 +10352,22 @@
     "next_issue": "Release #398 and select the next dependency-ready unclaimed issue after live claim/worktree reconciliation."
   },
   "active_development_issue": {
-    "issue": 517,
-    "requirement_id": "MJ-FEATURE-517",
-    "title": "Catalogue discovered job sites and queue source integrations",
-    "state": "INTEGRATED / PARTIAL — bounded provider issue-reference slice; no active Codex claim",
-    "branch": "codex/mj-feature-517-issue-link-20261008",
-    "worktree": ".worktrees/codex-mj-feature-517-issue-link-20261008",
-    "next_action": "Select a new dependency-ready slice. #517 remains OPEN/PARTIAL for supported provider/browser intake and broader bounded integration review. Preserve Antigravity #302 and Ollama #318 claims; no provider/API lookup, automatic task creation, collection, or application submission."
+    "issue": 191,
+    "requirement_id": "MJ-REQ-190",
+    "title": "Job Sorting",
+    "state": "ACTIVE / CLAIMED — bounded Newest sort slice; parent dependencies preserved",
+    "branch": "codex/mj-req190-newest-20261008",
+    "worktree": ".worktrees/codex-mj-req190-newest-20261008",
+    "base_commit": "877110ea89170043b5cb6ede64f8d0749d9fc430",
+    "owned_paths": [
+      "apps/api/main.py",
+      "apps/web/src/main.tsx",
+      "packages/persistence/store.py",
+      "tests/integration/test_job_sorting.py",
+      "tests/browser/test_job_sorting.py",
+      "docs/evidence/2026-10-08-job-sorting-newest.json"
+    ],
+    "next_action": "Implement the Newest sort as a complete API/storage/browser path with stable tie order and unknown dates last. Keep Application Priority and Salary semantics out of this slice unless their authoritative data rules are already persisted and unambiguous; keep Best Match/Title unchanged and PR-052 dependencies intact. No submission/provider calls."
   },
   "historical_control_snapshots": [
     {
@@ -11506,5 +11515,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-08T06:23:18Z"
+  "updated_at": "2026-10-08T06:27:03Z"
 }

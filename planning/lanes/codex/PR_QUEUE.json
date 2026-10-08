@@ -380,7 +380,26 @@
       "integration_comment": "https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6053758883",
       "release_comment": "https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6053719038",
       "note": "User-supplied issue reference on deliberately queued candidate review; durable profile-scoped history, strict validation, replay/conflict controls, reload and guarded SQLite migration verified. No provider lookup/task creation/collection/application submission. Broader #517 remains PARTIAL; hosted/PostgreSQL NOT_RUN."
+    },
+    {
+      "issue": 191,
+      "requirement_id": "MJ-REQ-190",
+      "status": "ACTIVE_LOCAL_CLAIMED",
+      "priority": 5,
+      "target_area": "packages/persistence/store.py; apps/api/main.py; apps/web/src/main.tsx",
+      "depends_on": [],
+      "parent_dependencies_preserved": [
+        "MJ-PR-051",
+        "MJ-PR-043"
+      ],
+      "branch": "codex/mj-req190-newest-20261008",
+      "worktree": ".worktrees/codex-mj-req190-newest-20261008",
+      "base": "877110ea89170043b5cb6ede64f8d0749d9fc430",
+      "evidence_path": "docs/evidence/2026-10-08-job-sorting-newest.json",
+      "issue_claim_comment": "https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6053825467",
+      "scope_complete": false,
+      "note": "Narrow Newest ordering only; effective persisted posted timestamp then first_seen_at fallback, unknown last, stable ties. Preserve other sort requirements and parent queue dependencies."
     }
   ],
-  "generated_at": "2026-10-08T06:23:57Z"
+  "generated_at": "2026-10-08T06:27:03Z"
 }

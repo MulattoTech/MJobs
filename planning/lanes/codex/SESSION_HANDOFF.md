@@ -1,3 +1,9 @@
+## 2026-10-08T06:27:03Z — issue #191 / MJ-REQ-190 Newest sort slice assigned
+
+Bounded Newest-sort implementation is claimed on `codex/mj-req190-newest-20261008` in `.worktrees/codex-mj-req190-newest-20261008`, based on main `877110ea89170043b5cb6ede64f8d0749d9fc430`. The user action is selecting Newest in Jobs; use the persisted effective posted timestamp with first-seen fallback, order unknown dates last, and keep stable ties. Existing Best Match and Title behavior must remain. Application Priority and Salary are outside this slice because their rules/data are not yet established. The parent `MJ-PR-052` remains QUEUED with dependencies `MJ-PR-051` and `MJ-PR-043` unchanged. Claim: https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6053825467. No provider calls or external submission.
+
+---
+
 ## 2026-10-08T06:23:57Z — #517 issue-reference slice integrated PARTIAL
 
 Integrated product source checkpoint: `dbc9e573680fcf32498131afe3bee75e72213371` (tree `12d277b97734f28e1e1ac37b2fc5101ada693e5c`); planning closeout is a subsequent metadata-only checkpoint. Re-read current main before resuming. Evidence: `docs/evidence/2026-10-08-source-candidate-issue-link.json`. Root exact-tree verification: 9 focused source-candidate API/integration/browser/migration tests PASS; 94 web tests and Vite build PASS; seven evidence hashes match; temporary SQLite migration upgrade/readback/guarded downgrade PASS. LOCAL_DELEGATED_REVIEW found no blocker. PostgreSQL and hosted checks NOT_RUN_BY_USER_POLICY. #517 remains OPEN/PARTIAL. Receipt: https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6053758883; claim release: https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6053719038. Collection and external submission OFF.

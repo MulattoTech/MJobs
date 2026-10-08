@@ -1392,7 +1392,32 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-052-web-api-analytics",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting.",
+      "active_slice": {
+        "name": "Add deterministic Newest ordering to Jobs results",
+        "issue": 191,
+        "requirement_id": "MJ-REQ-190",
+        "status": "ACTIVE_LOCAL_CLAIMED",
+        "depends_on": [],
+        "parent_dependencies_preserved": [
+          "MJ-PR-051",
+          "MJ-PR-043"
+        ],
+        "owned_paths": [
+          "apps/api/main.py",
+          "apps/web/src/main.tsx",
+          "packages/persistence/store.py",
+          "tests/integration/test_job_sorting.py",
+          "tests/browser/test_job_sorting.py",
+          "docs/evidence/2026-10-08-job-sorting-newest.json"
+        ],
+        "acceptance": "User can select Newest; API and durable query order by persisted effective posting timestamp (reported_posted_at then first_seen_at fallback), unknown/unparseable timestamps last, stable ties; browser verifies exact order after reload/profile selection without changing scores or tracker state. Best Match and Title remain unchanged. This bounded child does not claim Application Priority or Salary and does not promote the parent.",
+        "rationale": "Existing persisted posting timestamps make this a deterministic independently testable user-visible increment; PR-052 remains QUEUED pending MJ-PR-051 and MJ-PR-043.",
+        "branch": "codex/mj-req190-newest-20261008",
+        "worktree": ".worktrees/codex-mj-req190-newest-20261008",
+        "base": "877110ea89170043b5cb6ede64f8d0749d9fc430",
+        "issue_claim_comment": "https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6053825467"
+      }
     },
     {
       "id": "MJ-PR-053",
@@ -3904,5 +3929,5 @@
       "claim_release_comment": "https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053395464"
     }
   ],
-  "generated_at": "2026-10-08T06:23:18Z"
+  "generated_at": "2026-10-08T06:27:03Z"
 }
