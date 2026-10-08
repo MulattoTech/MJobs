@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-08T07:06:06Z",
+  "generated_at": "2026-10-08T07:09:21Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -11,7 +11,7 @@
     "current_verified_github_state": "Issue #179 / MJ-REQ-178 log retention acceptance PASS at 8bea57e595e19e638913405a8ec1cd3aa0ebde32; full product remains PARTIAL.",
     "current_verified_at": "2026-10-07T15:27:43Z"
   },
-  "current_milestone": "MJ-REQ-179-DEBUG-CAPTURE-PACKAGE-PRIVACY-CLAIMED-20261008",
+  "current_milestone": "MJ-REQ-195-APPLICATION-TRACKER-PASS-20261008",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -73,14 +73,15 @@
     "MJ-REQ-178 / issue #179 Log Retention PASS: all nine Compose services configure bounded json-file rotation (10 MiB × 5). Isolated no-network Docker runtime test proved rollover: 50 large synthetic lines emitted, 11 retained with 1 MiB × 2 cap, exit 0, temporary container removed; personal MJobs stack untouched. Existing evidence/tests confirm feedback sessions expire after 30 days, raw Playwright traces are not written and no product HTML snapshot writer exists. Related suite 20 PASS; Compose render and validators PASS. Evidence docs/evidence/2026-10-07-compose-log-rotation.json. Issue CLOSED/readback verified; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
     "MJ-REQ-165 / issue #166 Full-Text Search PASS: PostgreSQL GIN full-text indexes cover title, description, JSON skills and location plus company names; GET /jobs?q= searches all five required fields, with connected UI/API readback and saved-search compatibility. Evidence: docs/evidence/2026-10-07-full-text-search.json. Source 108c502ce0b2c8aa92a4868b09687b4b4a0206f1; integrated code/evidence at 59039a51701258a35c93fc7deca6fbf85d72fddd. Full Python 962 tests/8 skipped, frontend 63/build, connected Chromium, SQLite/PostgreSQL migrations and index-plan checks PASS. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
     "MJ-REQ-173 upload security across all seven supported document kinds; evidence docs/evidence/2026-10-07-seven-kind-upload-security.json",
-    "Issue #117 / MJ-REQ-116 Match Categories locally verified PASS at docs/evidence/2026-10-08-match-categories.json; parent MJ-PR-032 and other matching requirements remain queued/partial."
+    "Issue #117 / MJ-REQ-116 Match Categories locally verified PASS at docs/evidence/2026-10-08-match-categories.json; parent MJ-PR-032 and other matching requirements remain queued/partial.",
+    "MJ-REQ-195 / issue #196 application tracker: all ten documented stages in a user-reported Kanban pipeline with profile-scoped durable status/history and explicit no-submission distinction; evidence docs/evidence/2026-10-08-application-tracker-current-main.json."
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
     "Configured Greenhouse boards support public GET; broader providers and broader automatic employer enrollment remain open",
     "Factual fact-list PDF/DOCX templates verified; import, tailoring, AI and advanced document-quality requirements remain open",
     "Heuristic description skill coverage for real jobs and exact structured skills for mock; advanced matching remains open",
-    "Real jobs support manual preparation only; manual status updates, real automation and intervention resume remain open",
+    "Real jobs support manual preparation and the profile-scoped application pipeline with all ten user-reported stages, notes and durable history; real submission automation and intervention resume remain open.",
     "Greenhouse API-first source strategy verified; additional global feeds and strategy ladder remain open",
     "Local personal first-run, stored-profile relaunch and scoped backup/restore verified; protected configuration, native resume extraction/review and complete startup acceptance remain",
     "Mock-ATS company discovery supports a durable user-added trigger, evidence-based identity, automatic fixture source enrollment, and immediate employer-only job matching; production ATS providers and remaining automatic trigger wiring remains open.",
@@ -399,7 +400,8 @@
     "Issue #191 exact integrated-tree API sorting suite: 3/3 PASS; root rerun after non-force fast-forward at 0bb8e5048b45bd8324e938b197e39a9242cdaa1f.",
     "Issue #191 exact integrated-tree connected synthetic browser test: 1/1 PASS after TypeScript/Vite production build.",
     "Issue #191 candidate frontend suite: 94/94 PASS; production build PASS; validators PASS; local delegated review PASS.",
-    "Integrated issue #192/MJ-REQ-191 saved-filter acceptance: related API/integration/browser regressions 12 PASS; dedicated saved-filter integration and connected browser checks 3 PASS; web 94/94 and TypeScript/Vite build PASS at 908e5de2cfcbf1cfbd1ca10388e90a3cdf9bbef0."
+    "Integrated issue #192/MJ-REQ-191 saved-filter acceptance: related API/integration/browser regressions 12 PASS; dedicated saved-filter integration and connected browser checks 3 PASS; web 94/94 and TypeScript/Vite build PASS at 908e5de2cfcbf1cfbd1ca10388e90a3cdf9bbef0.",
+    "Issue #196 / MJ-REQ-195 exact current-main tracker acceptance: 10 integration/browser tests PASS on 17f0170841c2fa089e10b700deea11dbfd7e8167; all ten stages, profile ownership, ordered/concurrent history, reopen/reload, crash/lost-response recovery and user-reported Applied without submission confirmation. TypeScript/Vite build PASS."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -493,7 +495,8 @@
     "MJ-REQ-116 PostgreSQL not applicable to this display-only increment; hosted checks/review NOT_RUN_BY_USER_POLICY; matching aggregate/release remain PARTIAL.",
     "Issue #178 / MJ-REQ-177: PostgreSQL worker recovery, live Redis/RQ, full Python suite, hosted checks/review NOT_RUN_BY_USER_POLICY; new discovery context remains a narrow local acceptance and broader requirement PARTIAL.",
     "Issue #105 / MJ-REQ-104: PostgreSQL and hosted checks/review NOT_RUN_BY_USER_POLICY. Vitest 5 executed on Node 25.9.0 outside its declared supported Node range. Broad semantic matching/configurable thresholds remain incomplete; external submission OFF.",
-    "Issue #192 full Python discovery and PostgreSQL validation NOT_RUN; hosted checks/review NOT_RUN_BY_USER_POLICY. Vitest 5 ran on Node 25.9.0 outside its declared supported range."
+    "Issue #192 full Python discovery and PostgreSQL validation NOT_RUN; hosted checks/review NOT_RUN_BY_USER_POLICY. Vitest 5 ran on Node 25.9.0 outside its declared supported range.",
+    "Issue #196 tracker closeout: PostgreSQL-specific tracker runtime and hosted Actions/review NOT_RUN_BY_USER_POLICY; this does not limit the stated SQLite/browser Kanban acceptance but is not release certification."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -533,11 +536,11 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "commit": "908e5de2cfcbf1cfbd1ca10388e90a3cdf9bbef0",
-    "tree": "d2e191922230b2ab6ba55229d8889414c5fc5268",
-    "result": "PARTIAL — issue #192 bounded save/restore filter slice locally verified and integrated; issue remains OPEN/PARTIAL.",
-    "evidence": "docs/evidence/2026-10-08-saved-job-filters.json",
-    "verified_at_utc": "2026-10-08T07:03:20Z"
+    "commit": "17f0170841c2fa089e10b700deea11dbfd7e8167",
+    "tree": "3bf195752fa13150454d24e7e3853b3a2a34f5d7",
+    "result": "PASS — complete MJ-REQ-195 issue acceptance verified at current main; repository release remains PARTIAL.",
+    "evidence": "docs/evidence/2026-10-08-application-tracker-current-main.json",
+    "verified_at_utc": "2026-10-08T07:09:21Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -10248,18 +10251,57 @@
         "issue_state": "OPEN",
         "at_utc": "2026-10-08T07:06:06Z"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-195-APPLICATION-TRACKER-PASS-20261008",
+      "timestamp": "2026-10-08T07:09:21Z",
+      "current_phase": "MJ_REQ_195_APPLICATION_TRACKER_FULL_ACCEPTANCE_PASS",
+      "completed_steps": [
+        "Re-read live issue #196 and authoritative area spec: the full acceptance is a pipeline/Kanban view containing the ten documented manual stages.",
+        "Verified current UI renders all ten stages and manual, profile-scoped status updates keep user-reported Applied distinct from operational submission/confirmation.",
+        "Current-main integration and connected browser suite passed 10/10; TypeScript/Vite production build passed. Synthetic FIXTURE mode, temporary SQLite and loopback Chromium were used.",
+        "Recorded exact source commit/tree and six input hashes in the sanitized evidence receipt. PostgreSQL and hosted checks remain NOT_RUN; this acceptance does not promote release readiness."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-08-application-tracker-current-main.json"
+      ],
+      "files_modified": [],
+      "tests_completed": [
+        ".venv\\Scripts\\python.exe -m unittest tests.integration.test_application_pipeline tests.browser.test_application_pipeline -v — PASS, 10 tests, 0 skips/failures at exact main 17f0170841c2fa089e10b700deea11dbfd7e8167.",
+        "npm run build --prefix apps/web — PASS, TypeScript and Vite production build at exact current tree.",
+        "Evidence JSON parsing and source hash capture PASS."
+      ],
+      "tests_remaining": [
+        "PostgreSQL tracker runtime NOT_RUN; no PostgreSQL claim.",
+        "Hosted Actions/review NOT_RUN_BY_USER_POLICY; whole-product release remains PARTIAL."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Temporary synthetic SQLite, local API and loopback Chromium in FIXTURE mode; no provider requests, external browser requests or application submission."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "Issue acceptance is PASS, but GitHub Actions/hosted review are NOT_RUN by policy; PostgreSQL runtime NOT_RUN.",
+        "Original/reference denominators, core-workflow acceptance and full release readiness are unchanged."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "17f0170841c2fa089e10b700deea11dbfd7e8167",
+        "tree": "3bf195752fa13150454d24e7e3853b3a2a34f5d7",
+        "evidence_path": "docs/evidence/2026-10-08-application-tracker-current-main.json",
+        "issue": "#196 / MJ-REQ-195",
+        "issue_state_before_close": "OPEN",
+        "at_utc": "2026-10-08T07:09:21Z"
+      }
     }
   ],
-  "current_phase": "MJ_REQ_179_SYNTHETIC_CAPTURE_PACKAGE_PRIVACY_CLAIMED",
+  "current_phase": "MJ_REQ_195_APPLICATION_TRACKER_FULL_ACCEPTANCE_PASS",
   "last_safe_checkpoint": {
-    "git_commit": "691fcae2969ad1a8407588b34ddfd44fc294b147",
-    "tree": "d2e191922230b2ab6ba55229d8889414c5fc5268",
-    "branch": "codex/mj-req179-debug-package-privacy-20261008",
-    "worktree": ".worktrees/codex-mj-req179-debug-package-privacy-20261008",
-    "evidence_path": "docs/evidence/2026-10-08-saved-job-filters.json",
-    "issue_claim": "https://github.com/MulattoTech/MJobs/issues/180#issuecomment-6054500133",
-    "issue_state": "OPEN",
-    "at_utc": "2026-10-08T07:06:06Z"
+    "git_commit": "17f0170841c2fa089e10b700deea11dbfd7e8167",
+    "tree": "3bf195752fa13150454d24e7e3853b3a2a34f5d7",
+    "evidence_path": "docs/evidence/2026-10-08-application-tracker-current-main.json",
+    "issue": "#196 / MJ-REQ-195",
+    "issue_state_before_close": "OPEN",
+    "at_utc": "2026-10-08T07:09:21Z"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",

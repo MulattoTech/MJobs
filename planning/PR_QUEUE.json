@@ -1534,7 +1534,31 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-053-web-api-analytics",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Issue #196 / MJ-REQ-195 full standalone acceptance is independently verified PASS at main 17f0170841c2fa089e10b700deea11dbfd7e8167; evidence docs/evidence/2026-10-08-application-tracker-current-main.json. This does not promote bundled MJ-PR-053; dependencies MJ-PR-052/MJ-PR-043 remain QUEUED and other requirements remain incomplete.",
+      "slice_history": [
+        {
+          "name": "Full application tracker/Kanban acceptance verified at current main",
+          "issue": 196,
+          "requirement_id": "MJ-REQ-195",
+          "status": "PASS",
+          "depends_on": [],
+          "parent_dependencies_preserved": [
+            "MJ-PR-052",
+            "MJ-PR-043"
+          ],
+          "evidence_path": "docs/evidence/2026-10-08-application-tracker-current-main.json",
+          "source_head": "17f0170841c2fa089e10b700deea11dbfd7e8167",
+          "source_tree": "3bf195752fa13150454d24e7e3853b3a2a34f5d7",
+          "validation": {
+            "integration_and_browser": "PASS 10/10; zero skips/failures",
+            "web_build": "PASS TypeScript and Vite",
+            "postgresql": "NOT_RUN",
+            "hosted": "NOT_RUN_BY_USER_POLICY"
+          },
+          "acceptance": "All ten documented stages render in the Applications Kanban; profile-scoped manual status and notes persist with ordered history across store/browser reopen; user-reported Applied is not a submission receipt.",
+          "issue_state_before_close": "OPEN"
+        }
+      ]
     },
     {
       "id": "MJ-PR-054",
@@ -4026,5 +4050,5 @@
       "claim_release_comment": "https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053395464"
     }
   ],
-  "generated_at": "2026-10-08T07:06:06Z"
+  "generated_at": "2026-10-08T07:09:21Z"
 }

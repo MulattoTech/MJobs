@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-08T07:06:06Z",
+  "timestamp": "2026-10-08T07:09:21Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -1659,13 +1659,14 @@
     },
     {
       "requirement_id": "MJ-REQ-195",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
         "docs/evidence/2026-09-30-user-testing.md",
         "docs/evidence/2026-10-05-application-pipeline.json",
-        "docs/evidence/2026-10-05-core-workflow-trial-combined.json"
+        "docs/evidence/2026-10-05-core-workflow-trial-combined.json",
+        "docs/evidence/2026-10-08-application-tracker-current-main.json"
       ],
-      "note": "User-reported APPLIED status and notes survive API/database/browser reopen without changing operational state or creating a submission receipt; full tracker acceptance remains PARTIAL."
+      "note": "Full issue acceptance verified on current main: Applications provides a Kanban pipeline for all ten documented stages. Profile-scoped manual status/notes and chronological history persist across store/browser reload; user-reported Applied remains distinct from operational submission/confirmation. Exact current-main integration and browser tests plus production web build passed. PostgreSQL and hosted checks remain NOT_RUN; whole-product release remains PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-196",

@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-08T07:08:56Z",
+  "issue": 196,
+  "requirement": "MJ-REQ-195",
+  "result": "PASS",
+  "scope": "Complete application pipeline/Kanban view with the ten documented user-reported stages, durable profile-scoped manual status and history, and no implication that an employer submission was confirmed.",
+  "source": {
+    "repository": "MulattoTech/MJobs",
+    "branch": "main",
+    "commit": "17f0170841c2fa089e10b700deea11dbfd7e8167",
+    "tree": "3bf195752fa13150454d24e7e3853b3a2a34f5d7",
+    "inputs": [
+      {
+        "path": "apps/web/src/main.tsx",
+        "sha256": "567e771fd53a534b45cbeac1f238adc5b0549f75d6840ab29653b2c22ff90078",
+        "git_blob": "ce590fdf3551c6cb2999d22403eb5d06c91cf356"
+      },
+      {
+        "path": "apps/api/main.py",
+        "sha256": "36ad0af340ca045c5f649c00ac4bccedc0d4d58eb3c7172411da6e9147e98e37",
+        "git_blob": "a9f778aa58839a5820dcd6ba43f5e9faaa8a55cd"
+      },
+      {
+        "path": "services/tracking/applications.py",
+        "sha256": "149eb136478785478f86520233645fe272253806f44124cb6ffe0eccef47a776",
+        "git_blob": "37a15c437ef14f87f02820a0e62e3f39c63dd727"
+      },
+      {
+        "path": "packages/persistence/store.py",
+        "sha256": "e4f8b453af2b995d136aa99367916d04854c0b96441801019de704bc3fffb274",
+        "git_blob": "18423e45d501fac468c594e043333033f6b00a2a"
+      },
+      {
+        "path": "tests/integration/test_application_pipeline.py",
+        "sha256": "82a637182e60494836a33c240375dc2581ca3900a76f3ddf3b76dd5f605839ad",
+        "git_blob": "a2553be103b947832891d383dfbe63f690b7b1d8"
+      },
+      {
+        "path": "tests/browser/test_application_pipeline.py",
+        "sha256": "7a7fa43354743a34b3aca3161c1bc7bd199d88b0142125301f6402e729838fb6",
+        "git_blob": "cd2ea6e0fa0dfc3edf14495f902d6fc48e698ffe"
+      }
+    ]
+  },
+  "environment": {
+    "platform": "Windows 11",
+    "shell": "PowerShell",
+    "python": "repository .venv Python 3.12",
+    "database": "temporary synthetic SQLite",
+    "browser": "connected local Chromium in FIXTURE mode",
+    "external_submission": "OFF"
+  },
+  "checks": [
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_application_pipeline tests.browser.test_application_pipeline -v",
+      "result": "PASS",
+      "counts": "10 tests passed; 0 failures; 0 skips",
+      "covers": [
+        "All ten documented stages accepted by profile-scoped API",
+        "Validation rejects unsupported stages and empty notes without history writes",
+        "Idempotency and changed-request replay safeguards",
+        "Concurrent status changes allocate unique ordered history",
+        "Wrong-profile access rejected",
+        "User-reported Applied and notes survive store reopen without operational submission receipt",
+        "Connected pipeline displays manual stages; status and note history survive reload",
+        "Delayed and lost responses do not leak between applications or duplicate history",
+        "Renderer/browser-process crash recovery preserves durable tracking state",
+        "Browser requests stay local; no submission confirmation is created"
+      ]
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "counts": "TypeScript check and Vite production build completed"
+    }
+  ],
+  "limitations": [
+    "PostgreSQL tracker persistence was NOT_RUN; local synthetic SQLite acceptance does not claim PostgreSQL.",
+    "GitHub-hosted Actions/review are NOT_RUN_BY_USER_POLICY.",
+    "No real employer/provider traffic or application submission occurred."
+  ],
+  "acceptance_basis": "The authoritative issue contract asks for a pipeline/Kanban view and lists Saved, Ready, Applied, Recruiter Contact, Interview, Technical Interview, Final Interview, Offer, Rejected and Withdrawn. Current UI renders all ten columns and the connected integration/browser tests validate stage behavior and truthful reporting. This receipt closes only MJ-REQ-195; overall release acceptance is unchanged."
+}

@@ -11,14 +11,12 @@
   "result": "ACTIVE_LOCAL_CLAIMED; bounded APPLY_MOCK persisted ATS/provider context logging slice.",
   "evidence_path": "docs/evidence/2026-10-08-apply-mock-ats-logs.json",
   "last_completed": {
-    "issue": 192,
-    "requirement_id": "MJ-REQ-191",
-    "integrated_main": "908e5de2cfcbf1cfbd1ca10388e90a3cdf9bbef0",
-    "integrated_tree": "d2e191922230b2ab6ba55229d8889414c5fc5268",
-    "issue_state": "OPEN/PARTIAL",
-    "evidence_path": "docs/evidence/2026-10-08-saved-job-filters.json",
-    "integration_comment": "https://github.com/MulattoTech/MJobs/issues/192#issuecomment-6054442666",
-    "release_comment": "https://github.com/MulattoTech/MJobs/issues/192#issuecomment-6054443936"
+    "issue": 196,
+    "requirement_id": "MJ-REQ-195",
+    "integrated_main": "17f0170841c2fa089e10b700deea11dbfd7e8167",
+    "integrated_tree": "3bf195752fa13150454d24e7e3853b3a2a34f5d7",
+    "issue_state": "PASS pending GitHub issue close readback",
+    "evidence_path": "docs/evidence/2026-10-08-application-tracker-current-main.json"
   },
   "next_candidates": [],
   "do_not_overlap": [
@@ -43,7 +41,7 @@
   },
   "last_integrated_head": "dbc9e573680fcf32498131afe3bee75e72213371",
   "last_verified_result": "PARTIAL (bounded Newest slice integrated; full discovery incomplete F/ss at 600s).",
-  "updated_at": "2026-10-08T07:06:06Z",
+  "updated_at": "2026-10-08T07:09:21Z",
   "integrated_main": "dbc9e573680fcf32498131afe3bee75e72213371",
   "last_integrated_issue": 517,
   "last_integrated_requirement": "MJ-FEATURE-517",
