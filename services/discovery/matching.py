@@ -1,5 +1,6 @@
 """Recalculate deterministic matches against stored jobs without provider requests."""
 import re
+from math import isfinite
 
 from sqlalchemy import select
 
@@ -8,11 +9,41 @@ from packages.persistence.store import identity, upsert
 from services.company_discovery.requests import record_discovery_requests
 from services.discovery.skill_taxonomy import canonical_skill_id, extract_skills, skill_label
 from services.discovery.requirement_parsers import CERTIFICATION_PATTERNS, parse_certifications
-from services.discovery.search_semantics import normalize_title
+from services.discovery.search_semantics import normalize_title, parse_salary
 from services.audit_history import record_job_discovered, record_match_scored
 
 
 _STRENGTH_WEIGHT = {"REQUIRED": 1.0, "PREFERRED": 0.5, "NICE_TO_HAVE": 0.25, "UNKNOWN": 0.25}
+_CURRENCY_CODES = re.compile(r"\b(?:USD|CAD|AUD|NZD|EUR|GBP|JPY|CNY|INR|CHF|MXN|BRL|SEK|NOK|DKK|ZAR)\b", re.I)
+
+
+def _annual_usd_interval(value, *, job=False):
+    """Return finite closed annual USD bounds only when their currency is explicit."""
+    if job:
+        if (value.get("salary_currency") != "USD" or value.get("salary_period") != "YEAR"
+                or value.get("salary_source") not in {"EMPLOYER_PROVIDED", "SOURCE_PROVIDED"}):
+            return None
+        low, high = value.get("salary_min"), value.get("salary_max")
+        if (type(low) not in (int, float) or type(high) not in (int, float)
+                or not isfinite(low) or not isfinite(high) or low < 0 or low > high):
+            return None
+        return float(low), float(high)
+
+    text = value if isinstance(value, str) else ""
+    if not text.strip():
+        return None
+    currencies = {match.group(0).upper() for match in _CURRENCY_CODES.finditer(text)}
+    has_dollar = "$" in text
+    if currencies - {"USD"} or len(currencies) > 1 or not ("USD" in currencies or has_dollar):
+        return None
+    parse_text = _CURRENCY_CODES.sub(lambda match: "$" if match.group(0).upper() == "USD" else match.group(0), text)
+    parsed = parse_salary(parse_text)
+    low, high = parsed["salary_min"], parsed["salary_max"]
+    if (parsed["salary_period"] != "YEAR" or type(low) not in (int, float)
+            or type(high) not in (int, float) or not isfinite(low) or not isfinite(high)
+            or low > high):
+        return None
+    return float(low), float(high)
 
 
 def _canonical_set(values):
@@ -138,6 +169,23 @@ def _fit_factors(job, profile):
     attributes = job.get("attributes") or {}
     preferences = profile.get("preferences") or {}
     factors = []
+
+    expected_salary = _annual_usd_interval(preferences.get("salary_expectations"))
+    posted_salary = _annual_usd_interval(attributes, job=True)
+    if expected_salary is None or posted_salary is None:
+        salary_status = "UNKNOWN"
+        salary_explanation = (
+            "A directly stated annual USD preference and a complete annual USD posting range "
+            "are both needed to compare salary fit."
+        )
+    elif max(expected_salary[0], posted_salary[0]) <= min(expected_salary[1], posted_salary[1]):
+        salary_status = "ALIGNS"
+        salary_explanation = "The stated annual USD preference and posting ranges overlap."
+    else:
+        salary_status = "NO_DIRECT_MATCH"
+        salary_explanation = "The stated annual USD preference and posting ranges do not overlap."
+    factors.append({"id": "salary", "label": "Salary expectation", "status": salary_status,
+                    "explanation": salary_explanation, "score_effect": "NONE"})
 
     desired_roles = _strings(preferences.get("desired_roles"))
     title = str(job.get("title") or "").strip()

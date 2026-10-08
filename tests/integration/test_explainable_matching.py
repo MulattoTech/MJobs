@@ -4,7 +4,9 @@ import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
+from sqlalchemy import update
 
+from packages.persistence import models as m
 from packages.persistence.store import Store
 from workers.dispatch import enqueue_operation
 from workers.tasks import execute_operation
@@ -427,6 +429,100 @@ class ExplainableMatchingTests(unittest.TestCase):
         self.assertEqual(factors["title"]["status"], "UNKNOWN")
         self.assertEqual(factors["work_arrangement"]["status"], "UNKNOWN")
         self.assertTrue(all(row["score_effect"] == "NONE" for row in factors.values()))
+
+    def test_salary_factor_uses_only_explicit_annual_usd_interval_overlap(self):
+        from services.discovery.matching import build_explanation
+
+        def factor(preference, *, low=100000, high=120000, period="YEAR", currency="USD",
+                   source="EMPLOYER_PROVIDED"):
+            result = build_explanation({"attributes": {
+                "salary_min": low, "salary_max": high,
+                "salary_period": period, "salary_currency": currency,
+                "salary_source": source,
+            }}, {"facts": [], "preferences": {"salary_expectations": preference}})
+            return next(row for row in result["components"]["fit_factors"]
+                        if row["id"] == "salary")
+
+        overlap = factor("USD 90000-110000 annually")
+        self.assertEqual(overlap["status"], "ALIGNS")
+        self.assertIn("overlap", overlap["explanation"].lower())
+        self.assertEqual(overlap["score_effect"], "NONE")
+        self.assertEqual(factor("USD 125000-140000 annually")["status"], "NO_DIRECT_MATCH")
+        self.assertEqual(factor("USD 110000 annually")["status"], "ALIGNS")
+        self.assertEqual(factor("USD 90000-100000 annually")["status"], "ALIGNS",
+                         "Closed range endpoints that touch count as overlap.")
+
+        unknown_inputs = (
+            ("USD 90000+ annually", 100000, 120000, "YEAR", "USD"),
+            ("USD 90000-110000 annually", None, 120000, "YEAR", "USD"),
+            ("CAD 90000-110000 annually", 100000, 120000, "YEAR", "USD"),
+            ("USD 90000-110000 hourly", 100000, 120000, "YEAR", "USD"),
+            ("USD 90000-110000 annually", 100000, 120000, "HOUR", "USD"),
+            ("USD 90000-110000 annually", 100000, 120000, "YEAR", "CAD"),
+            ("$90000-110000", 100000, 120000, "YEAR", "USD"),
+            ("90000-110000 annually", 100000, 120000, "YEAR", "USD"),
+            ("USD 90000-110000 annually", 100000, 120000, "YEAR", "USD", "ESTIMATED"),
+            ("USD 90000-110000 annually", -1, 120000, "YEAR", "USD"),
+        )
+        for row in unknown_inputs:
+            preference, low, high, period, currency, *source = row
+            with self.subTest(preference=preference, low=low, period=period, currency=currency):
+                self.assertEqual(factor(preference, low=low, high=high, period=period,
+                                        currency=currency, source=source[0] if source else "EMPLOYER_PROVIDED")["status"],
+                                 "UNKNOWN")
+
+    def test_salary_explanation_recomputes_from_profile_api_and_survives_readback(self):
+        from fastapi.testclient import TestClient
+        from apps.api.main import create_app
+
+        job = capture_manual_job(self.store, {
+            "request_id": "salary-fit-readback", "title": "Systems Administrator",
+            "company": "Example Infrastructure", "description": "Administers servers",
+            "reference_url": "https://jobs.example.invalid/role/salary",
+            "application_url": "https://apply.example.invalid/role/salary",
+        })["job"]
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.id == job["id"]).values(attributes={
+                **job["attributes"], "salary_min": 100000, "salary_max": 120000,
+                "salary_currency": "USD", "salary_period": "YEAR",
+                "salary_source": "EMPLOYER_PROVIDED",
+            }))
+
+        client = TestClient(create_app(self.store, "http://127.0.0.1:1", self.temp.name,
+                                       operation_mode="FIXTURE"))
+        try:
+            profile = self.store.profile("fixture")
+            preferences = {**profile["preferences"],
+                           "salary_expectations": "USD 90000-110000 annually"}
+            response = client.put("/profiles", json={
+                "id": profile["id"], "name": profile["name"], "email": profile["email"],
+                "facts": [{key: fact[key] for key in
+                           ("id", "kind", "text", "source", "verified", "user_approved", "confidence")}
+                          for fact in profile["facts"]], "preferences": preferences,
+                "expected_version": profile["version"],
+            })
+            self.assertEqual(response.status_code, 200, response.text)
+            current_version = response.json()["version"]
+            self.assertEqual(client.get("/profiles/fixture").json()["preferences"]["salary_expectations"],
+                             "USD 90000-110000 annually")
+            recalculate(self.store, "fixture")
+            api_match = client.get(f"/jobs/{job['id']}?profile_id=fixture")
+            self.assertEqual(api_match.status_code, 200, api_match.text)
+            api_factors = {row["id"]: row for row in api_match.json()["match"]["components"]["fit_factors"]}
+            self.assertEqual(api_factors["salary"]["status"], "ALIGNS")
+            database_url = self.store.url
+            self.store.engine.dispose()
+            reopened = Store(database_url)
+            try:
+                match = reopened.job(job["id"], profile_id="fixture")["match"]
+                factors = {row["id"]: row for row in match["components"]["fit_factors"]}
+                self.assertEqual(match["profile_version"], current_version)
+                self.assertEqual(factors["salary"]["status"], "ALIGNS")
+                self.assertEqual(factors["salary"]["score_effect"], "NONE")
+            finally:
+                reopened.engine.dispose()
+        finally:
+            client.close()
 
     def test_queued_rescore_uses_latest_profile_version_after_approval_changes(self):
         job = capture_manual_job(self.store, {

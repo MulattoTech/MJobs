@@ -21,7 +21,7 @@ TASK_PATHS = {
     "resume_tailor": ("name", "facts.*.text"),
     "cover_letter": ("name", "contact.first_name", "facts.*.text"),
     "application_answer": ("answers.*.text", "facts.*.text"),
-    "job_match": ("facts.*.text", "preferences.desired_roles"),
+    "job_match": ("facts.*.text", "preferences.desired_roles", "preferences.salary_expectations"),
 }
 MAX_PATHS = 20
 MAX_DENY_PATHS = 100
@@ -154,7 +154,16 @@ def build_profile_context(store, profile_id: str, task: str, operation_id: str,
             seen.add(path)
     rules = tuple(tuple(rule.split(".")) for rule in TASK_PATHS[task])
     for path in parsed:
-        if not any(_rule_matches(path, rule) for rule in rules):
+        allowed = any(_rule_matches(path, rule) for rule in rules)
+        # Matching needs the approved leaf values; a container preview would
+        # disclose unrelated preference names and expand the task's grant.
+        if task == "job_match":
+            allowed = allowed and any(
+                len(path) == len(rule) and all(expected == "*" or expected == actual
+                                               for actual, expected in zip(path, rule))
+                for rule in rules
+            )
+        if not allowed:
             _audit_denial(store, profile_id, operation_id, task, "TASK_SCOPE")
             raise ProfileAccessDenied("Profile path is outside the approved task scope")
         if _is_denied(path, denied):

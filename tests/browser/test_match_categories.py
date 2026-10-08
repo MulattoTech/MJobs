@@ -31,7 +31,12 @@ class MatchCategoriesBrowserTests(unittest.TestCase):
             store = Store(f"sqlite:///{(root / 'categories.db').as_posix()}")
             store.migrate()
             store.bind_workspace_mode("FIXTURE")
-            store.save_profile(copy.deepcopy(PROFILE))
+            salary_profile = copy.deepcopy(PROFILE)
+            salary_profile["preferences"] = {
+                **salary_profile.get("preferences", {}),
+                "salary_expectations": "USD 90000-110000 annually",
+            }
+            store.save_profile(salary_profile)
             second_profile = copy.deepcopy(PROFILE)
             second_profile.update(id="second-profile", name="Second Profile",
                                   email="second@example.test")
@@ -55,6 +60,12 @@ class MatchCategoriesBrowserTests(unittest.TestCase):
                 "application_url": "https://apply.example.test/unscored",
                 "source_details": {},
             })["job"]
+            with store.engine.begin() as connection:
+                connection.execute(m.jobs.update().where(m.jobs.c.id == scored["id"]).values(
+                    attributes={**scored["attributes"], "salary_min": 100000,
+                                "salary_max": 120000, "salary_period": "YEAR",
+                                "salary_currency": "USD", "salary_source": "EMPLOYER_PROVIDED"}
+                ))
             recalculate(store, "fixture")
             recalculate(store, "second-profile")
             with store.engine.begin() as connection:
@@ -118,6 +129,8 @@ class MatchCategoriesBrowserTests(unittest.TestCase):
                     scored_card.click()
                     expect(detail.locator(".big-score")).to_contain_text("94%")
                     expect(detail.locator(".big-score")).to_contain_text("Excellent")
+                    expect(detail.get_by_label("Additional fit signals")).to_contain_text(
+                        "Salary expectation — ALIGNS")
 
                     page.get_by_label("Active profile", exact=True).select_option(
                         "second-profile")
@@ -126,6 +139,8 @@ class MatchCategoriesBrowserTests(unittest.TestCase):
                     scored_card.click()
                     expect(detail.locator(".big-score")).to_contain_text("95%")
                     expect(detail.locator(".big-score")).to_contain_text("Exceptional")
+                    expect(detail.get_by_label("Additional fit signals")).to_contain_text(
+                        "Salary expectation — UNKNOWN")
                     page.reload(wait_until="domcontentloaded")
                     expect(page.get_by_label("Active profile", exact=True)).to_have_value(
                         "second-profile")
