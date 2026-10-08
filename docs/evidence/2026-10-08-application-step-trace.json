@@ -1,16 +1,16 @@
 {
   "schema_version": 1,
-  "recorded_at_utc": "2026-10-08T10:03:17Z",
+  "recorded_at_utc": "2026-10-08T10:09:07Z",
   "requirement_id": "MJ-REQ-139",
   "issue": 140,
   "scope": "Durable ordered mock application phase trace, failure-step persistence, and safe failure diagnostics.",
   "result": "PARTIAL",
   "requirement_status": "PARTIAL",
   "branch": "codex/mj-req139-application-step-trace-20261008",
-  "base_commit": "e5fee45c0c3e074154ef523d252a2e78a2ffa2de",
-  "base_tree": "1364af93793e56fdc17fa79487032b7647dba844",
-  "source_commit": "959cd6e784a3c43d2b6d7d271748a286c0eeafdd",
-  "source_tree": "2b686c126dba91fbb00d0918773813565682ae66",
+  "base_commit": "da52067f3278a5415d05c4631b280d407ca26037",
+  "base_tree": "2a999e2b9b1f567cd30d0e96e8515e3d68761976",
+  "source_commit": "a9c8a60aba8852f11a38f7d5a3768c77adaf2b5b",
+  "source_tree": "4a40e51db6e6ea7478fe8ffa1f32b8a904101fa6",
   "test_environment": {
     "os": "Windows",
     "python": "repository .venv Python 3.12.10",
@@ -43,14 +43,14 @@
   },
   "validations": [
     {
-      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_application_pipeline tests.browser.test_mock_application tests.unit.test_browser_debug_capture tests.browser.test_debug_capture_privacy tests.browser.test_application_pipeline",
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_application_pipeline tests.browser.test_application_pipeline tests.browser.test_mock_application tests.unit.test_browser_debug_capture tests.browser.test_debug_capture_privacy -q",
       "result": "PASS",
-      "summary": "36 tests ran; 30 passed; 6 UI browser tests skipped because this worktree has no apps/web/dist/index.html."
+      "summary": "Root exact-source rerun on rebased candidate with current ignored web build available: 36 tests ran, all 36 passed, zero skipped."
     },
     {
-      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_application_pipeline.ApplicationStepTraceTests",
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_application_pipeline tests.browser.test_application_pipeline tests.browser.test_mock_application tests.unit.test_browser_debug_capture tests.browser.test_debug_capture_privacy -q",
       "result": "PASS",
-      "summary": "2 trace tests passed, including all ten phases, status order, API readback after reopening SQLite, a persisted FAILED contact phase, and no answer/contact-value echo."
+      "summary": "Root exact-source rerun on rebased candidate with current ignored web build available: 36 tests ran, all 36 passed, zero skipped."
     },
     {
       "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_browser_debug_capture.BrowserDebugCaptureTests.test_fixed_application_trace_phases_are_allowed_in_failure_metadata tests.browser.test_mock_application.MockApplicationTests.test_opt_in_browser_failure_capture_is_redacted_and_does_not_change_review_state",
@@ -69,19 +69,18 @@
     "mock_submission_boundary": "One success path submitted only to the in-process MOCK fixture and verified its single local receipt. The interruption path produced no receipt. No real ATS, external submission, or external browser request was used."
   },
   "not_run_or_limited": {
-    "ui_browser_acceptance": "SKIPPED: six tests require apps/web/dist/index.html; this isolated worktree has no apps/web/node_modules, installed Vite, or built dist artifact.",
-    "web_build": "NOT_RUN: required web dependencies and build output are absent; no install was attempted.",
+    "ui_browser_acceptance": "PASS: all six previously skipped UI browser tests ran against built apps/web/dist; the root-built artifact matches the unchanged UI source in this branch.",
+    "web_build": "PASS on the synchronized main source; current build artifact was copied to the isolated worktree because UI source is unchanged in this slice.",
     "hosted_checks": "NOT_RUN_BY_USER_POLICY",
     "external_submission": "OFF",
     "full_repository_suite": "NOT_RUN"
   },
   "root_verification": {
-    "recorded_at_utc": "2026-10-08T10:03:17Z",
-    "candidate_source_head": "959cd6e784a3c43d2b6d7d271748a286c0eeafdd",
-    "candidate_source_tree": "2b686c126dba91fbb00d0918773813565682ae66",
-    "test_command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_application_pipeline tests.browser.test_mock_application tests.unit.test_browser_debug_capture tests.browser.test_debug_capture_privacy tests.browser.test_application_pipeline",
-      "result": "PASS",
-      "summary": "36 tests ran, 30 passed, and 6 were skipped because the UI browser suite requires a web build.",
-    "evidence_input_hashes": "PASS: source_inputs_sha256 values were computed from the committed candidate source/test/spec files before this evidence-only commit."
+    "recorded_at_utc": "2026-10-08T10:09:07Z",
+    "candidate_source_head": "a9c8a60aba8852f11a38f7d5a3768c77adaf2b5b",
+    "candidate_source_tree": "4a40e51db6e6ea7478fe8ffa1f32b8a904101fa6",
+    "test_command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_application_pipeline tests.browser.test_application_pipeline tests.browser.test_mock_application tests.unit.test_browser_debug_capture tests.browser.test_debug_capture_privacy -q",
+    "result": "PASS: 36 tests, 36 passed, 0 skipped on exact rebased code source.",
+    "evidence_input_hashes": "PASS: all eight source_inputs_sha256 match candidate source/test/spec bytes."
   }
 }
