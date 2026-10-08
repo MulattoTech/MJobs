@@ -577,6 +577,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     app = FastAPI(title="MJobs", description="Local job discovery, factual preparation and tracking. External submission disabled.")
     from apps.api.document_archive import create_document_archive_router
     app.include_router(create_document_archive_router(store))
+    from apps.api.manual_auth import create_manual_auth_router
+    app.include_router(create_manual_auth_router(store, mock_origin, output_dir, operation_mode))
     app.state.resume_extraction_events = {}
     app.state.resume_extraction_lock = threading.Lock()
     app.state.uploaded_comparison_events = {}
