@@ -3,6 +3,7 @@ from copy import deepcopy
 from pathlib import Path
 import tempfile
 import threading
+import re
 import time
 import unittest
 from urllib.parse import urlsplit
@@ -32,15 +33,7 @@ class SensitiveAnswerPolicyBrowserTests(unittest.TestCase):
             store.migrate()
             store.bind_workspace_mode("FIXTURE")
             profile = deepcopy(PROFILE)
-            profile["preferences"] = {
-                "sensitive_answer_policies": {
-                    "RACE_ETHNICITY": {"mode": "PREFER_NOT_TO_ANSWER"},
-                    "SEX_GENDER": {
-                        "mode": "USE_CONFIGURED_RESPONSE",
-                        "response": "SYNTHETIC_USER_CONFIGURED_RESPONSE_6f96",
-                    },
-                },
-            }
+            profile["preferences"] = {}
             store.save_profile(profile)
             other = deepcopy(PROFILE)
             other.update(id="other-profile", name="Other Fixture", email="other@example.test")
@@ -87,7 +80,25 @@ class SensitiveAnswerPolicyBrowserTests(unittest.TestCase):
                         page.on("pageerror", lambda error: errors.append(str(error)))
                         page.goto(origin, wait_until="domcontentloaded")
                         page.locator("#active-profile").select_option("fixture")
-                        page.get_by_role("button", name="Applications", exact=True).click()
+                        page.get_by_role("button", name="Profile", exact=True).click()
+                        page.get_by_label("Race and ethnicity response policy", exact=True).select_option(
+                            "PREFER_NOT_TO_ANSWER")
+                        page.get_by_label("Sex and gender response policy", exact=True).select_option(
+                            "USE_CONFIGURED_RESPONSE")
+                        configured_response = page.get_by_label(
+                            "Sex and gender configured response", exact=True)
+                        configured_response.fill("SYNTHETIC_USER_CONFIGURED_RESPONSE_6f96")
+                        page.get_by_role("button", name="Save profile", exact=True).click()
+                        expect(page.get_by_role("status").filter(
+                            has_text="Profile saved.")).to_be_visible()
+                        self.assertEqual(store.profile("fixture")["preferences"]["sensitive_answer_policies"], {
+                            "RACE_ETHNICITY": {"mode": "PREFER_NOT_TO_ANSWER", "response": None},
+                            "SEX_GENDER": {
+                                "mode": "USE_CONFIGURED_RESPONSE",
+                                "response": "SYNTHETIC_USER_CONFIGURED_RESPONSE_6f96",
+                            },
+                        })
+                        page.get_by_role("button", name=re.compile(r"^Applications")).click()
                         page.get_by_role("region", name="Not tracked").get_by_role(
                             "button", name=job["title"], exact=False).click()
 
@@ -100,10 +111,10 @@ class SensitiveAnswerPolicyBrowserTests(unittest.TestCase):
                         expect(race).to_contain_text("Prefer not to answer")
                         expect(race).to_contain_text("this profile's explicit policy")
                         expect(race).to_contain_text("requires review")
-                        expect(race.get_by_label("Answer", exact=True)).to_have_value("")
+                        expect(race.get_by_role("textbox", name="Answer", exact=True)).to_have_value("")
                         race.get_by_role("button", name="Use “Prefer not to answer” for this application",
                                           exact=True).click()
-                        expect(race.get_by_label("Answer", exact=True)).to_have_value(
+                        expect(race.get_by_role("textbox", name="Answer", exact=True)).to_have_value(
                             "Prefer not to answer")
                         expect(race.get_by_role("checkbox", name=
                                "I reviewed this exact answer for this job")).not_to_be_checked()
@@ -116,10 +127,10 @@ class SensitiveAnswerPolicyBrowserTests(unittest.TestCase):
                         expect(gender).to_contain_text("Profile preference")
                         expect(gender).to_contain_text(
                             "SYNTHETIC_USER_CONFIGURED_RESPONSE_6f96")
-                        expect(gender.get_by_label("Answer", exact=True)).to_have_value("")
+                        expect(gender.get_by_role("textbox", name="Answer", exact=True)).to_have_value("")
                         gender.get_by_role("button", name="Use configured response for this application",
                                            exact=True).click()
-                        expect(gender.get_by_label("Answer", exact=True)).to_have_value(
+                        expect(gender.get_by_role("textbox", name="Answer", exact=True)).to_have_value(
                             "SYNTHETIC_USER_CONFIGURED_RESPONSE_6f96")
                         expect(gender.get_by_role("checkbox", name=
                                "I reviewed this exact answer for this job")).not_to_be_checked()
@@ -129,7 +140,7 @@ class SensitiveAnswerPolicyBrowserTests(unittest.TestCase):
                         unknown = answers.get_by_role("group", name="Question 3")
                         unknown.get_by_label("Employer question", exact=True).fill(
                             "How would you describe the experiences that shaped you?")
-                        expect(unknown.get_by_label("Answer", exact=True)).to_have_value("")
+                        expect(unknown.get_by_role("textbox", name="Answer", exact=True)).to_have_value("")
                         expect(unknown.get_by_role("checkbox", name=
                                "I reviewed this exact answer for this job")).not_to_be_checked()
                         expect(unknown.get_by_role(

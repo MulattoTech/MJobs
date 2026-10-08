@@ -152,6 +152,66 @@ class SensitiveAnswerPolicyIntegrationTests(unittest.TestCase):
             f"/profiles/fixture/applications/{self.application_id}/answers")
         self.assertNotIn(secret, str(bank_after_export.json()))
 
+    def test_suggestion_uses_only_the_active_profile_explicit_policy_without_side_effects(self):
+        profile = self.client.get("/profiles/fixture").json()
+        profile["preferences"]["sensitive_answer_policies"] = {
+            "RACE_ETHNICITY": {"mode": "PREFER_NOT_TO_ANSWER"},
+            "SEX_GENDER": {
+                "mode": "USE_CONFIGURED_RESPONSE",
+                "response": "SYNTHETIC_USER_CONFIGURED_RESPONSE_6f96",
+            },
+        }
+        saved = self._save_profile(profile)
+        self.assertEqual(saved.status_code, 200, saved.text)
+
+        documents_before = self.store.count("documents")
+        attempts_before = self.store.count("application_attempts")
+        configured = self.client.post(
+            f"/profiles/fixture/applications/{self.application_id}/sensitive-answer-suggestion",
+            json={"question": "What is your gender identity?"},
+        )
+        self.assertEqual(configured.status_code, 200, configured.text)
+        self.assertEqual(configured.json(), {
+            "category": "SEX_GENDER",
+            "response": "SYNTHETIC_USER_CONFIGURED_RESPONSE_6f96",
+            "mode": "USE_CONFIGURED_RESPONSE",
+            "source": "PROFILE_CONFIGURATION",
+            "review_required": True,
+        })
+
+        prefer_not = self.client.post(
+            f"/profiles/fixture/applications/{self.application_id}/sensitive-answer-suggestion",
+            json={"question": "What is your race/ethnicity?"},
+        )
+        self.assertEqual(prefer_not.status_code, 200, prefer_not.text)
+        self.assertEqual(prefer_not.json(), {
+            "category": "RACE_ETHNICITY",
+            "response": "Prefer not to answer",
+            "mode": "PREFER_NOT_TO_ANSWER",
+            "source": "PROFILE_CONFIGURATION",
+            "review_required": True,
+        })
+
+        unknown = self.client.post(
+            f"/profiles/fixture/applications/{self.application_id}/sensitive-answer-suggestion",
+            json={"question": "How would you describe your background?"},
+        )
+        self.assertEqual(unknown.status_code, 200, unknown.text)
+        self.assertEqual(unknown.json(), {
+            "category": None,
+            "response": "",
+            "mode": "ALWAYS_REQUIRE_REVIEW",
+            "review_required": True,
+        })
+
+        wrong_profile = self.client.post(
+            f"/profiles/other-profile/applications/{self.application_id}/sensitive-answer-suggestion",
+            json={"question": "What is your gender identity?"},
+        )
+        self.assertIn(wrong_profile.status_code, (404, 422), wrong_profile.text)
+        self.assertEqual(self.store.count("documents"), documents_before)
+        self.assertEqual(self.store.count("application_attempts"), attempts_before)
+
 
 if __name__ == "__main__":
     unittest.main()

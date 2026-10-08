@@ -315,6 +315,11 @@ class ApplicationAnswerExportInput(BaseModel):
     items: list[ApplicationAnswerItem] = Field(min_length=1, max_length=100)
 
 
+class SensitiveAnswerSuggestionInput(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+    question: str = Field(min_length=1, max_length=4000)
+
+
 class AIDocumentReviewInput(BaseModel):
     model_config = ConfigDict(strict=True, extra="forbid")
     job_ids: list[Annotated[str, Field(strict=True, min_length=1, max_length=128)]] = Field(
@@ -1677,6 +1682,36 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             raise NoResultFound("Application is not owned by this profile")
         # Expose only the active profile bank inside its profile-scoped route.
         return {"answers": store.profile(profile_id).get("answers", [])}
+
+    @app.post("/profiles/{profile_id}/applications/{application_id}/sensitive-answer-suggestion")
+    def sensitive_answer_suggestion(profile_id: str, application_id: str,
+                                    value: SensitiveAnswerSuggestionInput):
+        from services.documents.sensitive_answer_policy import (
+            classify_sensitive_category,
+            resolve_sensitive_answer,
+        )
+
+        application = store.application(application_id)
+        if application["profile_id"] != profile_id:
+            raise NoResultFound("Application is not owned by this profile")
+        profile = store.profile(profile_id)
+        category = classify_sensitive_category(value.question)
+        category_keys = {
+            "race_ethnicity": "RACE_ETHNICITY",
+            "religion": "RELIGION",
+            "sex_gender": "SEX_GENDER",
+            "disability": "DISABILITY",
+            "veteran_status": "VETERAN_STATUS",
+            "other_voluntary_demographics": "OTHER_VOLUNTARY_DEMOGRAPHIC",
+        }
+        profile_category = category_keys.get(category) if category else None
+        policies = (profile.get("preferences") or {}).get("sensitive_answer_policies", {})
+        stored_policy = policies.get(profile_category) if profile_category else None
+        policy = dict(stored_policy) if isinstance(stored_policy, dict) else None
+        if policy is not None and policy.get("response") is None:
+            policy.pop("response", None)
+        proposal = resolve_sensitive_answer(category, {category: policy} if policy else {})
+        return {"category": profile_category, **proposal}
 
     @app.post("/profiles/{profile_id}/applications/{application_id}/answers/export", status_code=201)
     def export_application_answers(profile_id: str, application_id: str, value: ApplicationAnswerExportInput):
