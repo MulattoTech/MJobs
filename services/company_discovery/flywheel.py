@@ -54,6 +54,12 @@ def _sitemap_career_candidates(homepage, client, check):
     for location in sitemap_locations(homepage_url, homepage.text)[:_MAX_SITEMAP_FETCHES]:
         if _same_origin(homepage_url, location) and location not in sitemap_queue:
             sitemap_queue.append(location)
+    # Many employers do not advertise their sitemap in page markup. Probe the
+    # conventional root location after any explicit same-origin hints; the
+    # normal bounded fetch policy still enforces robots, origin, and size rules.
+    conventional = urljoin(homepage_url, "/sitemap.xml")
+    if _same_origin(homepage_url, conventional) and conventional not in sitemap_queue:
+        sitemap_queue.append(conventional)
     candidates = []
     child_count = 0
     fetched = 0

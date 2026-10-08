@@ -172,7 +172,9 @@ class CompanyDiscoverySitemapBrowserTests(unittest.TestCase):
                     job = connection.execute(select(m.jobs)).mappings().one()
                     operation = connection.execute(select(m.operations).where(
                         m.operations.c.id == operation_id)).mappings().one()
-                self.assertEqual(source["career_url"], "https://employer.example/team/careers/")
+                # Company source URLs use the existing canonical form, which
+                # strips a non-root trailing slash after the actual fetch.
+                self.assertEqual(source["career_url"], "https://employer.example/team/careers")
                 self.assertEqual(job["title"], "Python Systems Engineer")
                 self.assertEqual(operation["state"], "COMPLETED")
             finally:

@@ -158,7 +158,13 @@ class PublicCompanyDiscoveryTests(unittest.TestCase):
 
     def test_production_page_cannot_promote_mock_ats_markup(self):
         pages={'/robots.txt':'User-agent: *\nAllow: /','/':'Example Systems<a rel="careers" href="/careers">Careers</a>',
+               '/sitemap.xml':'<urlset/>',
                '/careers':'<a data-provider="mock-ats" data-tenant="fake" href="/fake">Jobs</a>'}
+        # The public discovery policy also checks its bounded same-origin
+        # fallback routes before rejecting unsupported mock-only ATS markup.
+        pages.update({path: 'Example Systems' for path in (
+            '/jobs', '/careers/jobs', '/jobs/search', '/work-with-us', '/join-us',
+            '/join-our-team', '/employment', '/opportunities')})
         def fetch(client,url,deadline):
             req=httpx.Request('GET',url)
             return httpx.Response(200,text=pages[req.url.path],request=req)
