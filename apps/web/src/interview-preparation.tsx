@@ -39,7 +39,7 @@ export type InterviewPrepPack = {
   export_text: string;
 };
 
-/** Current, approved story revisions supplied by the existing story selector. */
+/** Story revisions the caller has already verified for this profile and job use. */
 export type InterviewPrepStoryOption = {
   revision_id: string;
   title: string;
@@ -50,6 +50,8 @@ export type InterviewPrepStoryOption = {
 export type InterviewPreparationProps = {
   profileId: string;
   jobId: string;
+  jobTitle?: string;
+  companyName?: string;
   availableStories?: readonly InterviewPrepStoryOption[];
   /** Optional preloaded values for a containing view or deterministic rendering. */
   packs?: readonly InterviewPrepPack[];
@@ -128,7 +130,7 @@ function shortDate(value: string) {
   return Number.isNaN(date.valueOf()) ? value : date.toLocaleString();
 }
 
-export function InterviewPreparation({profileId, jobId, availableStories = [], packs: initialPacks, fetcher = fetch}: InterviewPreparationProps) {
+export function InterviewPreparation({profileId, jobId, jobTitle, companyName, availableStories = [], packs: initialPacks, fetcher = fetch}: InterviewPreparationProps) {
   const [packs, setPacks] = useState<InterviewPrepPack[]>([...(initialPacks || [])]);
   const [activePack, setActivePack] = useState<InterviewPrepPack | null>(initialPacks?.[0] || null);
   const [selectedStoryIds, setSelectedStoryIds] = useState<string[]>([]);
@@ -193,6 +195,11 @@ export function InterviewPreparation({profileId, jobId, availableStories = [], p
   return <section aria-label="Interview preparation">
     <h2>Interview preparation</h2>
     <p>Review a saved prep pack grounded in approved career evidence. Prompts help you prepare; they do not write answers for you.</p>
+    <section aria-label="Selected interview target">
+      <h3>Selected job</h3>
+      <p><strong>{jobTitle || 'Selected job'}</strong>{companyName ? ` · ${companyName}` : ''}</p>
+      <p>Job ID: {jobId}</p>
+    </section>
 
     <section aria-label="Create an interview prep pack">
       <h3>Create a version</h3>

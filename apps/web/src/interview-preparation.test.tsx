@@ -34,10 +34,14 @@ const stories: InterviewPrepStoryOption[] = [
 describe('interview preparation review',()=>{
   it('shows grounded questions, talking point sources, STAR prompts, missing evidence, and exact pack identity',()=>{
     const html=renderToStaticMarkup(<InterviewPreparation
-      profileId="profile-a" jobId="job-a" packs={[pack]} availableStories={stories}
+      profileId="profile-a" jobId="job-a" jobTitle="Python Developer" companyName="Example Systems"
+      packs={[pack]} availableStories={stories}
     />);
 
     expect(html).toContain('Interview preparation');
+    expect(html).toContain('Python Developer');
+    expect(html).toContain('Example Systems');
+    expect(html).toContain('Job ID: job-a');
     expect(html).toContain('Version 2');
     expect(html).toContain('profile-v3');
     expect(html).toContain('Tell me about a service outage you resolved.');

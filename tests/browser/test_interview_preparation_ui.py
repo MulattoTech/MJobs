@@ -126,7 +126,7 @@ class InterviewPreparationUiBrowserTests(unittest.TestCase):
                     page.evaluate("localStorage.setItem('mjobs-profile', 'fixture')")
                     page.reload(wait_until="domcontentloaded")
 
-                    self.open_interview_preparation(page, job["title"])
+                    self.open_interview_preparation(page, job["title"], job["id"])
                     workspace = page.get_by_role("region", name="Interview preparation", exact=True)
                     story_label = re.compile(
                         r"Documented a Linux service recovery handoff · revision 1.*"
@@ -135,6 +135,10 @@ class InterviewPreparationUiBrowserTests(unittest.TestCase):
                     )
                     story_checkbox = workspace.get_by_role("checkbox", name=story_label)
                     expect(story_checkbox).not_to_be_checked()
+                    expect(workspace).to_contain_text("Prompts help you prepare; they do not write answers for you.")
+                    expect(workspace.get_by_role(
+                        "button", name="Download deterministic export", exact=True,
+                    )).to_have_count(0)
                     story_checkbox.check()
                     expect(story_checkbox).to_be_checked()
 
@@ -174,7 +178,7 @@ class InterviewPreparationUiBrowserTests(unittest.TestCase):
                     page.reload(wait_until="domcontentloaded")
                     page.evaluate("localStorage.setItem('mjobs-profile', 'fixture')")
                     page.reload(wait_until="domcontentloaded")
-                    self.open_interview_preparation(page, job["title"])
+                    self.open_interview_preparation(page, job["title"], job["id"])
                     workspace = page.get_by_role("region", name="Interview preparation", exact=True)
                     pack_article = workspace.get_by_role("article", name="Interview prep pack version 1", exact=True)
                     preview = pack_article.get_by_role("region", name="Deterministic export preview", exact=True)
@@ -211,7 +215,7 @@ class InterviewPreparationUiBrowserTests(unittest.TestCase):
                 self.assertFalse(thread.is_alive())
 
     @staticmethod
-    def open_interview_preparation(page, job_title):
+    def open_interview_preparation(page, job_title, job_id):
         page.get_by_role("button", name="Applications", exact=False).first.click()
         page.locator(".job-card").filter(has_text=job_title).first.click()
         workspace = page.get_by_role("region", name="Interview preparation", exact=True)
@@ -220,6 +224,9 @@ class InterviewPreparationUiBrowserTests(unittest.TestCase):
             tab = navigation.get_by_role("button", name=re.compile(r"interview (?:prep|preparation)", re.I))
             tab.click()
         expect(workspace).to_be_visible()
+        target = workspace.get_by_role("region", name="Selected interview target", exact=True)
+        expect(target).to_contain_text(job_title)
+        expect(target).to_contain_text(f"Job ID: {job_id}")
 
 
 if __name__ == "__main__":
