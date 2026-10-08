@@ -101,6 +101,47 @@ class ExplainableMatchingTests(unittest.TestCase):
             {"CCNA": "UNKNOWN", "COMPTIA_SECURITY_PLUS": "REQUIRED"},
         )
 
+    def test_manual_skill_strengths_survive_reopen_and_weight_explainable_match(self):
+        description = (
+            "Windows Server is required. Active Directory is preferred. "
+            "PowerShell is a nice to have. Linux."
+        )
+        captured = capture_manual_job(self.store, {
+            "request_id": "skill-strength-reopen-test", "title": "Systems Administrator",
+            "company": "Example Infrastructure", "description": description,
+            "reference_url": "https://jobs.example.invalid/skill-strength/1",
+            "profile_id": "fixture",
+        })["job"]
+
+        self.store.engine.dispose()
+        reopened = Store(self.store.url)
+        try:
+            stored = reopened.job(captured["id"])
+            self.assertEqual(stored["attributes"]["required_skills"], ["Windows Server"])
+            self.assertEqual(stored["attributes"]["preferred_skills"], ["Active Directory"])
+            self.assertEqual(stored["attributes"]["nice_to_have_skills"], ["PowerShell"])
+
+            recalculate(reopened, "fixture")
+            match = reopened.job(captured["id"], profile_id="fixture")["match"]
+        finally:
+            reopened.engine.dispose()
+
+        self.assertEqual(match["score"], 25.0)
+        rows = {row["skill"]: row for row in match["components"]["requirements"]}
+        self.assertEqual(
+            {skill: row["strength"] for skill, row in rows.items()},
+            {"Windows Server": "REQUIRED", "Active Directory": "PREFERRED",
+             "PowerShell": "NICE_TO_HAVE", "Linux": "UNKNOWN"},
+        )
+        self.assertLess(rows["Active Directory"]["weight"], rows["Windows Server"]["weight"])
+        self.assertLess(rows["PowerShell"]["weight"], rows["Windows Server"]["weight"])
+        self.assertEqual(rows["Windows Server"]["profile_evidence"], "NO_APPROVED_EVIDENCE")
+        self.assertEqual(rows["Active Directory"]["profile_evidence"], "APPROVED")
+        self.assertEqual(rows["PowerShell"]["profile_evidence"], "NO_APPROVED_EVIDENCE")
+        self.assertEqual(rows["Linux"]["profile_evidence"], "NO_APPROVED_EVIDENCE")
+        self.assertIn("does not state", rows["Linux"]["explanation"])
+        self.assertIn("not qualification", match["components"]["limitation"])
+
     def test_explicit_preferred_requirement_has_lower_weight_than_required(self):
         from services.discovery.matching import build_explanation
 

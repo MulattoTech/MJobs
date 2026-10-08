@@ -1,0 +1,64 @@
+{
+  "timestamp": "2026-10-08T09:07:46Z",
+  "result": "PARTIAL",
+  "scope": "MJ-REQ-115 / issue #116 manual skill requirement strength",
+  "branch": "codex/mj-req115-skill-strength-20261008",
+  "worktree": ".worktrees/codex-mj-req115-skill-strength-20261008",
+  "base_commit": "41f5fb7eb8b6d802a1f9e8c84365a0d526d448a9",
+  "base_tree": "e175fe3b73e6f458067297f892f9b6df529727ba",
+  "target": "Synthetic manual job description, approved fictional profile fact, isolated temporary SQLite database",
+  "behavior": [
+    "Manual capture classifies only recognized taxonomy skills with locally explicit, unambiguous required, preferred, or nice-to-have language.",
+    "Classification persists in existing job JSON attributes and appears per skill in explainable match factors after store reopen and recalculation.",
+    "Negated, conflicting, unqualified, and ambiguous skill-list scope remains UNKNOWN."
+  ],
+  "red_green": {
+    "red_command": "python -m unittest tests.unit.test_requirement_parsers.RequirementParserTests.test_skill_strengths_require_local_unambiguous_classification tests.unit.test_requirement_parsers.RequirementParserTests.test_skill_strength_negation_conflict_and_ambiguous_lists_fail_closed tests.unit.test_requirement_parsers.RequirementParserTests.test_skill_aliases_keep_canonical_identity_and_strength_scope tests.unit.test_requirement_parsers.RequirementParserTests.test_skill_strength_does_not_cross_clause_boundaries",
+    "red_result": "FAIL as expected before implementation: parser import reported missing parse_skill_requirements; no production implementation existed.",
+    "green_result": "All new parser and connected storage/rescore assertions pass in focused final runs."
+  },
+  "runtime": {
+    "os": "Windows PowerShell",
+    "python": "Python 3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+    "environment": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe"
+  },
+  "checks": [
+    {
+      "command": ".venv/Scripts/python.exe -m unittest tests.unit.test_requirement_parsers",
+      "failures": 0,
+      "result": "PASS",
+      "tests": 22,
+      "skips": 0
+    },
+    {
+      "tests": 11,
+      "result": "PASS",
+      "command": ".venv/Scripts/python.exe -m unittest tests.integration.test_explainable_matching",
+      "proof": "manual capture, existing JSON attributes, SQLite dispose/reopen, recalculation/readback; matched preferred Active Directory at 0.5 weight, with Windows Server required, PowerShell nice-to-have, Linux UNKNOWN; observed score 25.0",
+      "skips": 0,
+      "failures": 0
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m py_compile services/discovery/requirement_parsers.py services/discovery/manual_capture.py services/discovery/matching.py tests/unit/test_requirement_parsers.py tests/integration/test_explainable_matching.py",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "browser_flow": "NOT_RUN: the assigned connected SQLite/service integration covers classification-to-score persistence; no isolated Jobs detail browser bundle was prepared for this slice.",
+  "hosted_checks": "NOT_RUN_BY_USER_POLICY",
+  "unverified": [
+    "Full repository acceptance and browser Jobs detail workflow were not run.",
+    "Real providers and external application submission were not accessed; submission remains OFF.",
+    "Broader MJ-REQ-115 and PR-031 acceptance remain incomplete; issue #116 remains OPEN/PARTIAL."
+  ],
+  "source_sha256": {
+    "services/discovery/requirement_parsers.py": "92A1B032E68BEFEAAECAB83FA6CBA835ADD52D6AD0518D9B1AB40A4598809870",
+    "services/discovery/manual_capture.py": "882EE802ADC5303CC4F45B82A69CE6558B2ECA522DA4D09CE27E431FD7EDDACE",
+    "services/discovery/matching.py": "4626F73E8E8D82E09D9631EE4F17BA4CB0B2D6454531D7ECE8EFC5DD34048990",
+    "tests/unit/test_requirement_parsers.py": "DEDA2CE9C908BEB8A6BCB7EB7A74F69E88404A8439F6B16FE2E0BF078087D6A4",
+    "tests/integration/test_explainable_matching.py": "B6725D10087598729D1B1B43232033382F376724EBE1492E3F670D02685C456F"
+  }
+}

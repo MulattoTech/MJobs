@@ -10,7 +10,7 @@ from packages.persistence import models as m
 from packages.persistence.store import identity, now, upsert
 from services.discovery.sources.collect import persist_posting
 from services.discovery.skill_taxonomy import extract_skills
-from services.discovery.requirement_parsers import parse_certifications
+from services.discovery.requirement_parsers import parse_certifications, parse_skill_requirements
 
 
 class ManualCaptureConflict(ValueError):
@@ -60,6 +60,8 @@ def capture_manual_job(store, submitted: dict) -> dict:
     raw = {"source": "MANUAL_USER_ENTRY", "captured_at": timestamp,
            "submitted_fields": data}
     skill_data = extract_skills(title + " " + description)
+    description_skills = extract_skills(description)
+    skill_requirements = parse_skill_requirements(description, description_skills["mentions"])
     profile_id = data.get("profile_id")
     if profile_id:
         store.profile(profile_id)
@@ -93,6 +95,12 @@ def capture_manual_job(store, submitted: dict) -> dict:
                 "skill_evidence": "description_mentions",
                 "skill_ids": skill_data["ids"],
                 "skill_mentions": skill_data["mentions"],
+                "required_skills": [row["skill"] for row in skill_requirements
+                                    if row["strength"] == "REQUIRED"],
+                "preferred_skills": [row["skill"] for row in skill_requirements
+                                     if row["strength"] == "PREFERRED"],
+                "nice_to_have_skills": [row["skill"] for row in skill_requirements
+                                        if row["strength"] == "NICE_TO_HAVE"],
                 "certifications": parse_certifications(description),
             }
             upsert(connection, m.jobs, {

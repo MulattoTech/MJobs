@@ -146,10 +146,11 @@ def build_explanation(job, profile):
     matched = sorted(row["skill"] for row in rows if row["profile_evidence"] == "APPROVED")
     missing = sorted(row["skill"] for row in rows if row["profile_evidence"] != "APPROVED")
     score = round(100 * weighted_covered / weighted_total, 2) if weighted_total else 0
+    has_classified_skills = bool(required or preferred or nice_to_have)
     structured_full = all_are_required and not preferred and not nice_to_have
     method = ("structured_required_skills" if structured_full else
-              "description_skill_mentions" if evidence_type in {None, "description_mentions"} else
-              "weighted_skill_evidence_coverage")
+              "weighted_skill_evidence_coverage" if has_classified_skills or evidence_type not in {None, "description_mentions"} else
+              "description_skill_mentions")
     return {
         "score": score,
         "missing": missing,
@@ -159,7 +160,7 @@ def build_explanation(job, profile):
             "matched": matched,
             "detected": skills,
             "requirements": rows,
-            "limitation": "This score measures evidence coverage, not qualification. Description mentions remain UNKNOWN unless the source explicitly classifies them; no approved profile evidence does not prove the person lacks a skill.",
+            "limitation": "This score measures evidence coverage, not qualification. Description mentions remain UNKNOWN unless the source classifies them locally and unambiguously; no approved profile evidence does not prove the person lacks a skill.",
         },
     }
 

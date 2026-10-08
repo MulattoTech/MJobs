@@ -5,12 +5,68 @@ from services.discovery.requirement_parsers import (
     parse_certifications,
     parse_clearance,
     parse_job_requirements,
+    parse_skill_requirements,
     parse_work_authorization,
 )
+from services.discovery.skill_taxonomy import extract_skill_mentions
 from services.discovery.search_semantics import evaluate_search
 
 
 class RequirementParserTests(unittest.TestCase):
+    def test_skill_strengths_require_local_unambiguous_classification(self):
+        description = (
+            "Windows Server required. Active Directory preferred. "
+            "PowerShell is a nice-to-have. Docker is a must-have. Linux."
+        )
+        rows = parse_skill_requirements(description, extract_skill_mentions(description))
+        self.assertEqual(
+            {row["id"]: row["strength"] for row in rows},
+            {"WINDOWS_SERVER": "REQUIRED", "ACTIVE_DIRECTORY": "PREFERRED",
+             "POWERSHELL": "NICE_TO_HAVE", "DOCKER": "REQUIRED", "LINUX": "UNKNOWN"},
+        )
+
+    def test_skill_strength_negation_conflict_and_ambiguous_lists_fail_closed(self):
+        description = (
+            "Windows Server is not required. Active Directory required but preferred. "
+            "PowerShell, Linux required. Docker preferred, but Docker is a bonus. "
+            "Azure mustn't be required."
+        )
+        rows = parse_skill_requirements(description, extract_skill_mentions(description))
+        self.assertEqual(
+            {row["id"]: row["strength"] for row in rows},
+            {"WINDOWS_SERVER": "UNKNOWN", "ACTIVE_DIRECTORY": "UNKNOWN",
+             "POWERSHELL": "UNKNOWN", "LINUX": "UNKNOWN", "DOCKER": "UNKNOWN",
+             "AZURE": "UNKNOWN"},
+        )
+
+    def test_skill_aliases_keep_canonical_identity_and_strength_scope(self):
+        description = "AD required. Azure AD preferred."
+        rows = parse_skill_requirements(description, extract_skill_mentions(description))
+        self.assertEqual(
+            [(row["id"], row["skill"], row["strength"]) for row in rows],
+            [("ACTIVE_DIRECTORY", "Active Directory", "REQUIRED"),
+             ("ENTRA_ID", "Entra ID", "PREFERRED")],
+        )
+
+    def test_skill_strength_does_not_cross_clause_boundaries(self):
+        description = "Windows Server required; Active Directory is not required."
+        rows = parse_skill_requirements(description, extract_skill_mentions(description))
+        self.assertEqual(
+            {row["id"]: row["strength"] for row in rows},
+            {"WINDOWS_SERVER": "REQUIRED", "ACTIVE_DIRECTORY": "UNKNOWN"},
+        )
+
+    def test_individually_qualified_comma_list_stays_per_skill(self):
+        for description, expected in (
+            ("Windows Server required, Active Directory preferred.",
+             {"WINDOWS_SERVER": "REQUIRED", "ACTIVE_DIRECTORY": "PREFERRED"}),
+            ("Active Directory preferred, Windows Server required.",
+             {"ACTIVE_DIRECTORY": "PREFERRED", "WINDOWS_SERVER": "REQUIRED"}),
+        ):
+            with self.subTest(description=description):
+                rows = parse_skill_requirements(description, extract_skill_mentions(description))
+                self.assertEqual({row["id"]: row["strength"] for row in rows}, expected)
+
     def test_experience_requirements_preserve_bounds_strength_and_equivalence(self):
         result = experience_requirement_summary(
             "Requires 3-5 years of systems administration. "
