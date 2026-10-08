@@ -7,8 +7,8 @@
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Local main a2ddaee0cb31b4e539f27173a2baf911d3847d4d (tree e405e68f54698d45cabbf876c6f2a4418ba52bf1) includes the connected #394/MJ-REF-024 follow-up-draft workflow and the bounded #190/MJ-REQ-189 application-link availability facet. The latter passes 34 focused Python tests, connected Chromium 1/1, focused frontend 3/3, TypeScript/Vite build, Python compilation, agent-skill/lane validators, source hashes/blob IDs, diff check, and local delegated review. #394 evidence records 18 API/integration tests, 110 frontend tests, build and connected browser PASS. PostgreSQL runtime, full repository suite, live employer/ATS behavior, and hosted checks remain NOT_RUN; external submission OFF.",
-    "current_verified_github_state": "Last live GitHub/origin main read was 9808cdce34ab0302bf5231b09d6ae5fd56a33b81. Local main is ahead with accepted local-only commits through a2ddaee0cb31b4e539f27173a2baf911d3847d4d; synchronized push and issue receipts are pending. GitHub Actions are disabled and branch protection was previously reported off; recheck immediately before push. Hosted checks/review remain NOT_RUN_BY_USER_POLICY; external submission OFF.",
+    "current_verified_local_state": "Local main is 5834f224b918eb21d9c9aaa4e086fcc36c7b7731 (tree df42bc80b6840348b344be1f4695f51467842b61), synchronized with origin/main and live GitHub main after a non-force push. It includes #394/MJ-REF-024 grounded follow-up drafts (reference acceptance PASS; issue CLOSED) and the #190/MJ-REQ-189 application-link availability facet (bounded slice verified; umbrella OPEN/PARTIAL). Focused #190 checks: 34 Python, Chromium 1/1, frontend 3/3, build, compilation, validators, source hashes/blob IDs and local delegated review PASS. PostgreSQL/live providers/full repository suite and hosted checks NOT_RUN; external submission OFF.",
+    "current_verified_github_state": "Local/origin/GitHub main synchronized at 5834f224b918eb21d9c9aaa4e086fcc36c7b7731 (tree df42bc80b6840348b344be1f4695f51467842b61). #394 receipt https://github.com/MulattoTech/MJobs/issues/394#issuecomment-6063734760; #190 receipt/claim release https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6063736008. GitHub Actions remain disabled, main protection is off, no open PRs were observed. Hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF.",
     "current_verified_at": "2026-10-08T12:10:15Z"
   },
   "current_milestone": "CORE-FEATURE-BATCH-20261008-R",
@@ -669,7 +669,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Finish this accepted integration batch: verify remote policy, sync local main and GitHub issue receipts, release only the owned #190 claim, and re-evaluate remaining application-capability/state facets against the area spec. Recheck live dependencies before assigning the next independent core feature. At this checkpoint no five-feature/20-agent allocation is safely available; source claims #302/#318, queued PR dependencies, and shared API/UI ownership constrain the remaining candidates.",
+  "recommended_resume_step": "Reconcile live issue claims, worktrees, PR dependencies and area specs, then select the next dependency-ready user-facing core feature. Recheck whether application capability/state is a distinct, accurately classifiable search facet; #517 waits on source-owner #302 and #145/#118 remain dependency constrained. Do not fill the 20 Star Wars positions with duplicate or overlapping work; the last live staffing checkpoint was 0/20.",
   "release_readiness": "UNKNOWN",
   "migrations_applied": [
     "92f0997f753e",
@@ -11733,7 +11733,9 @@
         "Integrated #394/MJ-REF-024 follow-up drafts and #190/MJ-REQ-189 application-link availability as local fast-forwards; #394 reference acceptance is supported by its connected evidence and #190 remains a bounded PARTIAL slice.",
         "Completed focused API/unit, connected browser, frontend component, build, compilation, skill/lane, source hash/blob and local delegated review checks for #190.",
         "Resolved the browser test UUID assumption and added explicit saved-search clear-override coverage; verified the stored AVAILABLE criterion is not overwritten.",
-        "Updated authoritative capability/reference/queue/state trackers once for this integrated batch and regenerated the progress dashboard."
+        "Updated authoritative capability/reference/queue/state trackers once for this integrated batch and regenerated the progress dashboard.",
+        "Pushed the local-only integration batch with a non-force update and verified local/origin/GitHub main synchronization at 5834f224b918eb21d9c9aaa4e086fcc36c7b7731.",
+        "Posted #394 integration receipt and closed the completed MJ-REF-024 issue; posted #190 bounded-facet receipt and released its claim."
       ],
       "files_added": [
         "docs/evidence/2026-10-08-application-link-search-filter.json",
@@ -11768,28 +11770,34 @@
       "known_limitations": [
         "MJ-REQ-189 and PR-052 remain PARTIAL/QUEUED with formal dependencies unchanged; the application capability/state facets and broader matching/saved-search criteria are not complete.",
         "MJ-REF-024 is PASS for its bounded reference workflow; release readiness remains UNKNOWN.",
-        "STAR WARS SQUADS: 0/20 active; FEATURES: 0/5 currently coding; DISCRETIONARY AGENTS: 0/30. No safe five-feature allocation was available at this checkpoint because other ready-looking tasks are claimed, overlap shared paths, or remain dependency-blocked."
+        "Last live staffing checkpoint: 0/20 Star Wars agents and 0/5 active coding features; no five distinct safe dependency-ready feature lanes were verified."
       ],
       "last_safe_checkpoint": {
-        "git_commit": "a2ddaee0cb31b4e539f27173a2baf911d3847d4d",
-        "tree": "e405e68f54698d45cabbf876c6f2a4418ba52bf1",
+        "git_commit": "5834f224b918eb21d9c9aaa4e086fcc36c7b7731",
+        "tree": "df42bc80b6840348b344be1f4695f51467842b61",
         "branch": "main",
-        "issue": "#190 / MJ-REQ-189 application-link availability; #394 / MJ-REF-024 follow-up drafts",
+        "issue": "#394 / MJ-REF-024 and #190 / MJ-REQ-189 application-link availability",
         "evidence_path": "docs/evidence/2026-10-08-application-link-search-filter.json",
-        "integration_receipts": [],
-        "note": "#190 bounded facet is accepted on local main and #394 is integrated locally. GitHub/origin sync and issue receipts are the remaining publication steps; original MJ-REQ-189 remains PARTIAL, MJ-REF-024 is PASS, and release readiness remains UNKNOWN."
+        "integration_receipts": [
+          "https://github.com/MulattoTech/MJobs/issues/394#issuecomment-6063734760",
+          "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6063736008"
+        ],
+        "note": "Local, origin and GitHub main are synchronized. MJ-REF-024 is PASS and #394 CLOSED; MJ-REQ-189 remains PARTIAL and #190 OPEN. Release readiness remains UNKNOWN."
       }
     }
   ],
   "current_phase": "CORE_FEATURE_IMPLEMENTATION",
   "last_safe_checkpoint": {
-    "git_commit": "a2ddaee0cb31b4e539f27173a2baf911d3847d4d",
-    "tree": "e405e68f54698d45cabbf876c6f2a4418ba52bf1",
+    "git_commit": "5834f224b918eb21d9c9aaa4e086fcc36c7b7731",
+    "tree": "df42bc80b6840348b344be1f4695f51467842b61",
     "branch": "main",
-    "issue": "#190 / MJ-REQ-189 application-link availability; #394 / MJ-REF-024 follow-up drafts",
+    "issue": "#394 / MJ-REF-024 and #190 / MJ-REQ-189 application-link availability",
     "evidence_path": "docs/evidence/2026-10-08-application-link-search-filter.json",
-    "integration_receipts": [],
-    "note": "#190 bounded facet is accepted on local main and #394 is integrated locally. GitHub/origin sync and issue receipts are the remaining publication steps; original MJ-REQ-189 remains PARTIAL, MJ-REF-024 is PASS, and release readiness remains UNKNOWN."
+    "integration_receipts": [
+      "https://github.com/MulattoTech/MJobs/issues/394#issuecomment-6063734760",
+      "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6063736008"
+    ],
+    "note": "Local, origin and GitHub main are synchronized. MJ-REF-024 is PASS and #394 CLOSED; MJ-REQ-189 remains PARTIAL and #190 OPEN. Release readiness remains UNKNOWN."
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -12114,31 +12122,50 @@
       "issue_state": "OPEN/PARTIAL",
       "integrated_at_utc": "2026-10-08T15:49:20Z",
       "scope_complete": false,
-      "github_sync": "PENDING"
+      "github_sync": "SYNCED",
+      "integration_checkpoint": "5834f224b918eb21d9c9aaa4e086fcc36c7b7731",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6063736008",
+      "claim_release_comment": "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6063736008"
+    },
+    {
+      "issue": 394,
+      "requirement_id": "MJ-REF-024",
+      "source_commit": "95977e5924c122abecd7bc95db48874333baf170",
+      "source_tree": "a91f5e93977afa6b5a51cd2d7f748d63cbf16be5",
+      "integration_commit": "1870f34273b4e57c0017d3e2d8a10f1eb5ebaff8",
+      "prior_main": "9808cdce34ab0302bf5231b09d6ae5fd56a33b81",
+      "integration_method": "NON_FORCE_FAST_FORWARD",
+      "evidence_path": "docs/evidence/2026-10-08-follow-up-drafts.json",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/394#issuecomment-6063734760",
+      "issue_state": "CLOSED/PASS",
+      "integrated_at_utc": "2026-10-08T15:32:58Z",
+      "scope_complete": true,
+      "github_sync": "SYNCED",
+      "sync_checkpoint": "5834f224b918eb21d9c9aaa4e086fcc36c7b7731"
     }
   ],
   "live_reconciliation": {
-    "observed_at": "2026-10-08T15:49:20Z",
-    "github_main": "9808cdce34ab0302bf5231b09d6ae5fd56a33b81",
-    "local_main": "a2ddaee0cb31b4e539f27173a2baf911d3847d4d",
-    "issue_394_state": "OPEN; local integration complete, receipt pending",
-    "issue_190_state": "OPEN; bounded facet locally integrated, receipt pending",
-    "open_prs": "Not refreshed in this checkpoint",
+    "observed_at": "2026-10-08T15:52:00Z",
+    "github_main": "5834f224b918eb21d9c9aaa4e086fcc36c7b7731",
+    "local_main": "5834f224b918eb21d9c9aaa4e086fcc36c7b7731",
+    "issue_394_state": "CLOSED/PASS for MJ-REF-024",
+    "issue_190_state": "OPEN/PARTIAL for MJ-REQ-189",
+    "open_prs": [],
     "actions_enabled": false,
-    "main_branch_protected": "Previously observed false; recheck before publication",
-    "integration": "#394 and #190 source slices are locally integrated; tracker refresh done; GitHub sync pending.",
-    "next_issue": "Re-evaluate #190 residual facets and select the next live dependency-ready core issue; no safe five-lane assignment found yet."
+    "main_branch_protected": false,
+    "integration": "Non-force push synchronized local/origin/GitHub main at 5834f224b918eb21d9c9aaa4e086fcc36c7b7731; receipts posted and #190 claim released.",
+    "next_issue": "Re-evaluate #190 residual capability/state filter semantics, then highest-value live dependency-ready core issue."
   },
   "active_development_issue": {
     "issue": "#190",
     "requirement_id": "MJ-REQ-189",
-    "title": "Job Filter Sidebar — application-link availability facet",
-    "state": "BOUNDED_SLICE_INTEGRATED_PARTIAL_REMAINDER",
+    "title": "Job Filter Sidebar — remaining facets after application-link availability",
+    "state": "BOUNDED_SLICE_INTEGRATED_UMBRELLA_PARTIAL",
     "active_codex_children": [],
     "latest_integrated_issue": 190,
     "latest_integrated_requirement": "MJ-REQ-189",
-    "latest_integrated_head": "a2ddaee0cb31b4e539f27173a2baf911d3847d4d",
-    "latest_receipt": "PENDING_GITHUB_MAIN_SYNC"
+    "latest_integrated_head": "5834f224b918eb21d9c9aaa4e086fcc36c7b7731",
+    "latest_receipt": "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6063736008"
   },
   "historical_control_snapshots": [
     {
@@ -13294,7 +13321,7 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-08T15:49:20Z",
-  "current_verified_local_state": "Local main a2ddaee0cb31b4e539f27173a2baf911d3847d4d (tree e405e68f54698d45cabbf876c6f2a4418ba52bf1) includes the connected #394/MJ-REF-024 follow-up-draft workflow and the bounded #190/MJ-REQ-189 application-link availability facet. The latter passes 34 focused Python tests, connected Chromium 1/1, focused frontend 3/3, TypeScript/Vite build, Python compilation, agent-skill/lane validators, source hashes/blob IDs, diff check, and local delegated review. #394 evidence records 18 API/integration tests, 110 frontend tests, build and connected browser PASS. PostgreSQL runtime, full repository suite, live employer/ATS behavior, and hosted checks remain NOT_RUN; external submission OFF.",
-  "current_verified_github_state": "Last live GitHub/origin main read was 9808cdce34ab0302bf5231b09d6ae5fd56a33b81. Local main is ahead with accepted local-only commits through a2ddaee0cb31b4e539f27173a2baf911d3847d4d; synchronized push and issue receipts are pending. GitHub Actions are disabled and branch protection was previously reported off; recheck immediately before push. Hosted checks/review remain NOT_RUN_BY_USER_POLICY; external submission OFF."
+  "updated_at": "2026-10-08T15:52:00Z",
+  "current_verified_local_state": "Local main is 5834f224b918eb21d9c9aaa4e086fcc36c7b7731 (tree df42bc80b6840348b344be1f4695f51467842b61), synchronized with origin/main and live GitHub main after a non-force push. It includes #394/MJ-REF-024 grounded follow-up drafts (reference acceptance PASS; issue CLOSED) and the #190/MJ-REQ-189 application-link availability facet (bounded slice verified; umbrella OPEN/PARTIAL). Focused #190 checks: 34 Python, Chromium 1/1, frontend 3/3, build, compilation, validators, source hashes/blob IDs and local delegated review PASS. PostgreSQL/live providers/full repository suite and hosted checks NOT_RUN; external submission OFF.",
+  "current_verified_github_state": "Local/origin/GitHub main synchronized at 5834f224b918eb21d9c9aaa4e086fcc36c7b7731 (tree df42bc80b6840348b344be1f4695f51467842b61). #394 receipt https://github.com/MulattoTech/MJobs/issues/394#issuecomment-6063734760; #190 receipt/claim release https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6063736008. GitHub Actions remain disabled, main protection is off, no open PRs were observed. Hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF."
 }

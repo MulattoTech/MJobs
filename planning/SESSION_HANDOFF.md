@@ -1,26 +1,26 @@
-# MJobs session handoff — 2026-10-08 15:49Z
+# MJobs session handoff — 2026-10-08 15:52Z
 
-Current local main source: `a2ddaee0cb31b4e539f27173a2baf911d3847d4d` (tree `e405e68f54698d45cabbf876c6f2a4418ba52bf1`), fast-forwarded from `1870f34273b4e57c0017d3e2d8a10f1eb5ebaff8`. `origin/main` and GitHub main were last observed at `9808cdce34ab0302bf5231b09d6ae5fd56a33b81`; local sync and issue receipts remain pending. Root preserves the preexisting canonical tracker edits and owns the live Codex integration lock. Actions are disabled; recheck branch protection before push.
+Current local/origin/GitHub main: `5834f224b918eb21d9c9aaa4e086fcc36c7b7731` (tree `df42bc80b6840348b344be1f4695f51467842b61`), verified synchronized. The product source fast-forwards are #394 at `1870f34273b4e57c0017d3e2d8a10f1eb5ebaff8` and #190 at `a2ddaee0cb31b4e539f27173a2baf911d3847d4d`; the tracker checkpoint is included in current main. Root holds the live Codex integration lock. GitHub Actions disabled, main unprotected, no open PRs at last read. Hosted checks/review NOT_RUN; external submission OFF.
 
-Accepted product milestones in this batch:
-- #394 / MJ-REF-024 grounded follow-up drafts for quiet, user-reported APPLIED applications; copy-only, labeled unverified, no send/external requests. Evidence: `docs/evidence/2026-10-08-follow-up-drafts.json`; reference result now PASS.
-- #190 / MJ-REQ-189 application-link availability facet: exact `PROVIDER_SUPPLIED` vs `UNAVAILABLE`, fail-closed missing/unknown statuses, before-limit filtering, saved-search persistence/reload, UUID-safe selection and clear override without overwriting the saved value. Evidence: `docs/evidence/2026-10-08-application-link-search-filter.json`; original requirement and PR-052 remain PARTIAL/QUEUED.
+Accepted product milestones:
+- #394 / MJ-REF-024 grounded follow-up drafts for quiet user-reported applications: PASS and issue CLOSED. Copy-only, labeled unverified, bounded and contact-scrubbed. Evidence `docs/evidence/2026-10-08-follow-up-drafts.json`; receipt https://github.com/MulattoTech/MJobs/issues/394#issuecomment-6063734760.
+- #190 / MJ-REQ-189 application-link availability: exact `PROVIDER_SUPPLIED`/`UNAVAILABLE`, unknown/missing fail closed, before-limit SQL, profile-scoped save/reload and explicit clearing without overwriting saved state. Evidence `docs/evidence/2026-10-08-application-link-search-filter.json`; receipt https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6063736008. Broader original requirement remains PARTIAL; issue OPEN.
 
-Local verification for #190: 34 focused Python tests, connected Chromium 1/1, frontend 3/3, TypeScript/Vite build, compilation, agent-skill and lane validators, evidence source hashes/blob IDs, diff check and local delegated review PASS. PostgreSQL runtime, live employers/ATS, full suite and hosted checks NOT_RUN; Vitest used Node 25.9.0 outside the declared supported range. Real external submissions remain OFF.
+#190 exact local checks: 34 focused Python, connected Chromium 1/1, frontend 3/3, TypeScript/Vite build, py_compile, skill/lane validators, input hashes/blob IDs, diff check and local delegated review PASS. Vitest ran on Node 25.9.0 outside supported range; PostgreSQL runtime, live providers and full suite NOT_RUN.
 
 ## Star Wars squad roster
 
-- ROGUE SQUADRON — Luke Skywalker, Wedge Antilles, Biggs Darklighter, R2-D2: 0/4 active. Source work overlaps active Antigravity #302 and Ollama #318; #517 provider capture waits on #302.
-- PHOENIX SQUADRON — Hera Syndulla, Kanan Jarrus, Sabine Wren, Ezra Bridger: 0/4 active. The link-filter feature is integrated locally; next search/matching candidates require live dependency and path recheck.
-- CLONE FORCE 99 — Hunter, Tech, Echo, Wrecker: 0/4 active. Recheck current resume/answer acceptance gaps and claims before assignment.
-- JEDI ORDER — Obi-Wan Kenobi, Anakin Skywalker, Ahsoka Tano, Plo Koon: 0/4 active. #145 and upload/document expansion remain dependency- or shared-contract-blocked.
-- MANDALORIAN COMMAND — Bo-Katan Kryze, Din Djarin, The Armorer, Paz Vizsla: 0/4 active. #394 is integrated locally and its scoped reference acceptance is PASS.
+- ROGUE SQUADRON — Luke Skywalker, Wedge Antilles, Biggs Darklighter, R2-D2: 0/4 active; source paths overlap active Antigravity #302/Ollama #318; #517 waits on #302.
+- PHOENIX SQUADRON — Hera Syndulla, Kanan Jarrus, Sabine Wren, Ezra Bridger: 0/4 active; #190 link facet integrated; recheck remaining filters/dependencies.
+- CLONE FORCE 99 — Hunter, Tech, Echo, Wrecker: 0/4 active; next distinct profile/document acceptance gap requires live claim recheck.
+- JEDI ORDER — Obi-Wan Kenobi, Anakin Skywalker, Ahsoka Tano, Plo Koon: 0/4 active; #145 and upload expansion remain dependency/shared-contract constrained.
+- MANDALORIAN COMMAND — Bo-Katan Kryze, Din Djarin, The Armorer, Paz Vizsla: 0/4 active; #394 integrated and closed at its reference scope.
 
-STAR WARS SQUADS: 0/20 active; FEATURES: 0/5 currently coding; DISCRETIONARY AGENTS: 0/30; TOTAL CHILDREN: 0/50; ROOT: GPT-6 Luna High. Safe staffing shortfall: no five distinct dependency-ready feature lanes were verified; do not fill slots with duplicate reviews or overlapping source/API/UI ownership.
+STAR WARS SQUADS: 0/20 active; FEATURES: 0/5 currently coding; DISCRETIONARY AGENTS: 0/30; TOTAL CHILDREN: 0/50; ROOT: GPT-6 Luna High. Do not use filler or overlapping tasks to hit staffing targets.
 
 ## Next work
 
-Verify/push the accepted local-main batch by the local-only non-force route, post truthful issue receipts and release only owned claims. Then reconcile live issues/specs/claims and select the next independent user-facing core feature; keep the #190 umbrella PARTIAL and update trackers only at the next accepted integration checkpoint.
+Reconcile live issue/spec/claim truth after this batch; test whether a remaining #190 application capability/state facet has independent, honest semantics, then select the highest-value dependency-ready core requirement. Refresh authoritative trackers only at the next accepted integration batch.
 
 ## 2026-10-08T13:23:13Z — taxonomy-backed skill facet integrated; education facet active
 
