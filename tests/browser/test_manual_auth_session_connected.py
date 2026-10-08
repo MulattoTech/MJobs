@@ -74,8 +74,9 @@ class ManualAuthSessionConnectedBrowserTests(unittest.TestCase):
 
                 def record_response(response):
                     # Record only the path; never retain a cookie value.
+                    parsed = urlsplit(response.url)
                     if "set-cookie" in response.headers:
-                        cookie_responses.append(urlsplit(response.url).path)
+                        cookie_responses.append(parsed.path)
 
                 with patch("apps.api.manual_auth.open_mock_authentication",
                            return_value="MANUAL_AUTH_WINDOW_CLOSED") as open_window:
@@ -129,9 +130,10 @@ class ManualAuthSessionConnectedBrowserTests(unittest.TestCase):
                             self.assertEqual(ui_requests, [])
                             attempts_before_sign_in = store.count("application_attempts")
                             with page.expect_response(lambda response:
-                                    response.url.endswith("/manual-auth") and response.status == 200):
+                                    response.url.endswith("/manual-auth")) as sign_in_response:
                                 auth_panel.get_by_role(
                                     "button", name="Open MOCK sign-in", exact=True).click()
+                            self.assertEqual(sign_in_response.value.status, 200)
                             open_window.assert_called_once()
                             self.assertEqual(open_window.call_args.kwargs["application_id"], application_id)
                             self.assertEqual(open_window.call_args.kwargs["mock_origin"], fixture)
@@ -148,10 +150,12 @@ class ManualAuthSessionConnectedBrowserTests(unittest.TestCase):
                             self.assertEqual(httpx.get(f"{fixture}/_test/request-counts").json()["submit"], 0)
 
                             # Rerun happens only after its separate click and stays non-submitting.
+                            rerun_button = auth_panel.get_by_role(
+                                "button", name="Rerun MOCK application", exact=True)
+                            expect(rerun_button).to_be_enabled()
                             with page.expect_response(lambda response:
                                     response.url.endswith("/mock-run") and response.status == 202):
-                                auth_panel.get_by_role(
-                                    "button", name="Rerun MOCK application", exact=True).click()
+                                rerun_button.click()
                             self.assertEqual(ui_requests[-1], (
                                 "POST", f"/profiles/fixture/applications/{application_id}/mock-run",
                                 {"submit": False}))

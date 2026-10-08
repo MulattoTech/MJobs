@@ -30,7 +30,7 @@ export function ManualMockAuthentication({
       <button type="button" disabled={signInPending} aria-busy={signInPending} onClick={()=>onStartSignIn(applicationId)}>
         {signInPending?'Opening MOCK sign-in':'Open MOCK sign-in'}
       </button>
-      <button type="button" disabled={rerunPending} aria-busy={rerunPending} onClick={()=>onRerun(applicationId)}>
+      <button type="button" disabled={signInPending||rerunPending} aria-busy={rerunPending} onClick={()=>onRerun(applicationId)}>
         {rerunPending?'Rerunning MOCK application':'Rerun MOCK application'}
       </button>
     </div>

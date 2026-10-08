@@ -44,5 +44,10 @@ describe('manual mock authentication',()=>{
     expect(html).toContain('Systems Administrator');
     expect(html).toContain('Opening MOCK sign-in');
     expect(html).toContain('Rerun MOCK application');
+
+    const element=ManualMockAuthentication({...props,signInPending:true});
+    const sections=element.props.children as React.ReactElement[];
+    const actionBar=sections[3] as React.ReactElement<{children:React.ReactElement<{disabled?:boolean}>[]}>;
+    expect(actionBar.props.children[1].props.disabled).toBe(true);
   });
 });
