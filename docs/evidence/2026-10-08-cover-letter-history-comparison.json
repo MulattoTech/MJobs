@@ -5,15 +5,20 @@
   "result": "PASS",
   "scope": "Compare two immutable cover-letter revisions belonging to the same application using only preview text freshly returned by the existing profile-scoped application documents endpoint.",
   "branch": "codex/mj-req198-cover-letter-comparison-20261008",
-  "base_commit": "9aa502a9df222dc517e6e9a3f46ed5ad4002cd00",
+  "base_commit": "1e8dca63d37849ead245dd34c9c1374d52c0089a",
+  "base_git_tree": "f7147089ec56f29148327ca484afa479ba4c6643",
+  "rebase_result": "CLEAN; rebased both feature commits onto the exact synchronized main; no conflicts.",
+  "rebased_pre_evidence_git_tree": "cf9b6f4973581c7f349dda972a8a67279056dda3",
+  "tested_rebased_source_commit": "78a0eb6fbfd80a60decde87a1daed9f2252d9f82",
+  "issue_acceptance": "PARTIAL; the immutable same-application cover-letter comparison condition is implemented and locally verified; this slice does not certify the full MJ-REQ-198 action set.",
   "source_inputs": {
-    "apps/web/src/document-history.tsx": "ca88c12c12dc49c60e5e1593c392bf707c3883f0eb29b6577400468c593a750d",
-    "apps/web/src/document-history.test.tsx": "4e178dae5268e428ebddd2ad92231435cb70c6734e455c9a08ac651b57a0f485",
+    "apps/web/src/document-history.tsx": "dea669a0163649ed38da71a5189ea64c586316bd18048db9f0cc5e7f9f48d314",
+    "apps/web/src/document-history.test.tsx": "26121516fe6baa1f50e476ef90ae54ac4c160adb250fb0d2435f59a5c4d1704d",
     "tests/browser/test_document_history.py": "1ecb5cf9f643accd95dd6ec2e4f225d1ec76d882787c5e316c4cb22ca8b13cdb"
   },
-  "combined_source_sha256": "4031da8ca2dee73bf8fff92c017cb5bcb0a33f221b17dce1c495c2bd3f248ca2",
-  "working_diff_sha256_before_evidence": "88dce113c6e34342cd442f4a221f49338ff78909c68000fd110818e33e49720a",
-  "verified_at_utc": "2026-10-08T05:04:42Z",
+  "source_tree_sha256": "39efae0ee6959c1d293e965fed9b48856c3d30667e1926aca7de903dff789053",
+  "combined_source_sha256": "39efae0ee6959c1d293e965fed9b48856c3d30667e1926aca7de903dff789053",
+  "verified_at_utc": "2026-10-08T05:26:46Z",
   "environment": {
     "os": "Windows PowerShell",
     "node": "v25.9.0",
@@ -30,22 +35,27 @@
     {
       "command": "npm test -- --run src/document-history.test.tsx",
       "result": "PASS",
-      "details": "1 test file, 8 tests passed."
+      "details": "Rebased candidate: 1 test file, 8 tests passed."
     },
     {
       "command": "npm run build",
       "result": "PASS",
-      "details": "TypeScript check and Vite production build passed."
+      "details": "Rebased candidate: TypeScript check and Vite production build passed."
     },
     {
       "command": "npm test -- --run",
       "result": "PASS",
-      "details": "13 test files, 64 tests passed."
+      "details": "Rebased candidate: 13 test files, 64 tests passed."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_document_history.DocumentHistoryBrowserTests.test_cover_letter_comparison_uses_only_validated_same_application_previews -v",
+      "result": "PASS",
+      "details": "Rebased candidate: focused connected Chromium comparison workflow passed, including switching applications while prior comparison text was displayed."
     },
     {
       "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_document_history -v",
       "result": "PASS",
-      "details": "2 connected Chromium browser tests passed, covering same-application options, validated revision previews, application switching while a comparison is displayed, avoid-list-blocked previews, endpoint read failure, corrupted and missing previews, and unchanged prior TXT download bytes."
+      "details": "Rebased candidate: 2 connected Chromium browser tests passed, covering same-application options, validated revision previews, application switching while a comparison is displayed, avoid-list-blocked previews, endpoint read failure, corrupted and missing previews, and unchanged prior TXT download bytes."
     },
     {
       "command": "git diff --check",
