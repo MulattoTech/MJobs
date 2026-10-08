@@ -11,7 +11,7 @@
   "validated_tree": "5b66af70cf1afd9243c122bae64b8ae67267ca50",
   "scope": "One synthetic FIXTURE-mode Chromium regression through the existing mock ATS adapter failure handler and debug capture package writer. No production code changed.",
   "input_sha256": {
-    "tests/browser/test_debug_capture_privacy.py": "ef703071a2a4bdef22fd67083733f4130102487f0e7b926defbdbf8d0fd29652",
+    "tests/browser/test_debug_capture_privacy.py": "49a52f9b25529b306a04728d3d84858199d4f581428389458eca0cc473e77ea4",
     "services/applications/mock_adapter.py": "0b85ce6d743d5c2f47420842faab916a0de8b96053db5571ff62594c121899a3",
     "services/applications/debug_capture.py": "3bcb5a00970baffd863e804f0a456f7d5857a374235070582b0fbf32d53b74b6",
     "services/applications/browser_capture.py": "bd1c51a6a1aa3f3a17a5228e3e6e4e36a097616aeeBAC23290363e92e7d5d9bc",
@@ -19,7 +19,8 @@
   },
   "validation": {
     "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_debug_capture_privacy -v",
-    "recorded_at_utc": "2026-10-08T07:12:08Z",
+    "recorded_at_utc": "2026-10-08T07:15:51Z",
+    "pre_rebase_test_head": "99dd87e402d654263bc4f5a017c0a7cc9c5895c7",
     "result": "PASS: 1 test, 0 failures, 0 errors",
     "environment": "Windows; Python 3.12.10; Playwright 1.63.0; Chromium 153.0.8010.12 headless; isolated temporary SQLite database and local fictional mock ATS fixture server",
     "diff_check": "PASS: git diff --check",
@@ -28,12 +29,14 @@
   "assertions": [
     "FIXTURE-mode application flow reaches the existing browser failure handler and writes exactly metadata.json, dom.json, and screenshot.png in one capture package.",
     "Synthetic contact, token, profile name, form value, exception and failure canaries do not appear in metadata or DOM JSON; raw HTML is absent.",
-    "Fixture screenshots taken before and during capture show the canary regions were visually populated before capture; captured canary regions contain only black or white pixels, and input values are masked black.",
+    "Fixture screenshots taken before and during capture show the canary regions were visually populated before capture; captured canary regions contain only black or white pixels, and every pixel in each captured name/email input region is masked black.",
+    "A negative control that changes one pixel in a captured input region to white fails the full-region-black predicate, proving partial masking is detected.",
     "URL path identifiers are redacted, current step and bounded retention metadata remain present, application state is REVIEW_REQUIRED, and the mock ATS has no submission receipt."
   ],
   "privacy": "All inputs and browser content were synthetic fixture data. The temporary database, baseline image and capture package were removed with the test temporary directory. No real browser profile, ATS, resume, credentials, or user data was accessed.",
   "limitations": [
     "This test covers the already-supported local mock ATS adapter only; no real ATS/browser adapter support is added or claimed.",
-    "Overall MJ-REQ-179 remains PARTIAL because there is no real ATS/browser adapter; hosted checks are not run by policy."
+    "Overall MJ-REQ-179 remains PARTIAL because there is no real ATS/browser adapter; hosted checks are not run by policy.",
+    "After this test/evidence commit is clean, rebase onto synchronized main 047a780be248c94e802cba3068e884b7edf20428, rerun the focused test, and refresh the final evidence head/tree and input hashes."
   ]
 }

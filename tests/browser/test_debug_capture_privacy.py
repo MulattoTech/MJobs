@@ -127,13 +127,21 @@ class DebugCapturePackagePrivacyTests(unittest.TestCase):
                         self.assertTrue(self._uniformly_redacted_or_blank(crop), selector)
                     for selector in ("input[name=name]", "input[name=email]"):
                         field = observed_boxes[selector]
-                        center = (int(field["x"] + field["width"] / 2),
-                                  int(field["y"] + field["height"] / 2))
-                        self.assertEqual(screenshot.getpixel(center), (0, 0, 0), selector)
                         field_box = (int(field["x"]), int(field["y"]),
                                      int(field["x"] + field["width"]),
                                      int(field["y"] + field["height"]))
-                        self.assertTrue(self._contains_visible_content(baseline.crop(field_box)), selector)
+                        baseline_value_region = baseline.crop(field_box)
+                        captured_value_region = screenshot.crop(field_box)
+                        self.assertTrue(self._contains_visible_content(baseline_value_region), selector)
+                        self.assertTrue(self._fully_masked_black(captured_value_region), selector)
+
+                        if selector == "input[name=email]":
+                            one_pixel_leak = captured_value_region.copy()
+                            one_pixel_leak.putpixel(
+                                (one_pixel_leak.width - 1, one_pixel_leak.height // 2),
+                                (255, 255, 255),
+                            )
+                            self.assertFalse(self._fully_masked_black(one_pixel_leak))
             finally:
                 store.engine.dispose()
 
@@ -145,6 +153,12 @@ class DebugCapturePackagePrivacyTests(unittest.TestCase):
     @staticmethod
     def _contains_visible_content(image):
         return any(0 < max(pixel) < 255 for pixel in image.get_flattened_data())
+
+    @staticmethod
+    def _fully_masked_black(image):
+        return image.width > 0 and image.height > 0 and all(
+            pixel == (0, 0, 0) for pixel in image.get_flattened_data()
+        )
 
 
 if __name__ == "__main__":
