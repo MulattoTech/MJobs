@@ -13,6 +13,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.postgresql import insert as postgres_insert
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
+from sqlalchemy.dialects.postgresql import JSONB
 
 from packages.domain.safety import Fact
 from packages.domain.profile import ContactDetails, JobPreferences
@@ -632,7 +633,8 @@ class Store:
     def jobs(self, profile_id=None, q="", remote_type=None, provider=None, sort="score", limit=200,
              title="", company="", location="", salary_min=None, salary_max=None,
              min_match_score=None, experience_level=None, employment_type=None, skill_id=None,
-             education_requirement=None, clearance_level=None, posted_after=None, posted_before=None):
+             education_requirement=None, clearance_level=None, posted_after=None, posted_before=None,
+             ats_provider=None):
         profile = self.profile(profile_id) if profile_id else None
         with self.engine.connect() as connection:
             counts = select(m.postings.c.job_id, func.count().label("posting_count")).group_by(m.postings.c.job_id).subquery()
@@ -647,6 +649,57 @@ class Store:
                 .outerjoin(m.matches, (m.matches.c.job_id == m.jobs.c.id) & (m.matches.c.profile_id == profile_id) &
                            (m.matches.c.profile_version == (profile["version"] if profile else "")))
                 .outerjoin(m.applications, (m.applications.c.job_id == m.jobs.c.id) & (m.applications.c.profile_id == profile_id)))
+            if ats_provider:
+                ats_identity = m.company_ats_tenants
+
+                def has_nonempty_ats_evidence(tenant):
+                    if self.engine.dialect.name == "sqlite":
+                        is_array = func.json_type(tenant.c.evidence) == "array"
+                        safe_evidence = case((is_array, tenant.c.evidence), else_=literal("[]"))
+                        evidence_items = func.json_each(safe_evidence).table_valued(
+                            "key", "value", "type").alias()
+                        nonempty = select(literal(1)).select_from(evidence_items).where(
+                            evidence_items.c.type == "text",
+                            func.length(func.trim(evidence_items.c.value)) > 0,
+                        ).correlate(tenant).exists()
+                    else:
+                        evidence_json = cast(tenant.c.evidence, JSONB)
+                        is_array = func.jsonb_typeof(evidence_json) == "array"
+                        safe_evidence = case(
+                            (is_array, evidence_json), else_=cast(literal("[]"), JSONB))
+                        evidence_items = func.jsonb_array_elements(safe_evidence).table_valued(
+                            "value").alias()
+                        evidence_text = evidence_items.c.value.op("#>>")(literal("{}"))
+                        nonempty = select(literal(1)).select_from(evidence_items).where(
+                            func.jsonb_typeof(evidence_items.c.value) == "string",
+                            func.length(func.btrim(evidence_text)) > 0,
+                        ).correlate(tenant).exists()
+                    return and_(is_array, nonempty)
+
+                other_identity = ats_identity.alias("matching_ats_identity")
+                matching_identity_count = select(func.count(other_identity.c.id)).select_from(
+                    other_identity
+                ).where(
+                    other_identity.c.company_id == m.routes.c.company_id,
+                    other_identity.c.provider == m.routes.c.provider,
+                    other_identity.c.tenant_identifier == m.routes.c.tenant,
+                    has_nonempty_ats_evidence(other_identity),
+                ).correlate(m.routes).scalar_subquery()
+                exact_ats_route = select(literal(1)).select_from(
+                    m.routes.join(ats_identity, and_(
+                        ats_identity.c.company_id == m.routes.c.company_id,
+                        ats_identity.c.provider == m.routes.c.provider,
+                        ats_identity.c.tenant_identifier == m.routes.c.tenant,
+                    ))
+                ).where(
+                    m.routes.c.job_id == m.jobs.c.id,
+                    m.routes.c.provider == ats_provider,
+                    ats_identity.c.confidence >= 0.75,
+                    ats_identity.c.confidence <= 1.0,
+                    has_nonempty_ats_evidence(ats_identity),
+                    matching_identity_count == 1,
+                ).correlate(m.jobs).exists()
+                statement = statement.where(exact_ats_route)
             if q:
                 if self.engine.dialect.name == "postgresql":
                     search_config = literal_column("'simple'::regconfig")

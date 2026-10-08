@@ -7,14 +7,15 @@ import unittest
 from urllib.parse import urlsplit
 
 from playwright.sync_api import expect, sync_playwright
-from sqlalchemy import update
+from sqlalchemy import select, update
 import uvicorn
 
 from apps.api.main import create_app
 from fixtures.browser_ports import bound_browser_socket
 from fixtures.mock_server import fixture_server
 from packages.persistence import models as m
-from packages.persistence.store import Store
+from packages.persistence.store import Store, identity, upsert
+from services.company_discovery.sources import register_ats_tenant
 from services.discovery.pipeline import discover
 from services.discovery.scheduler import schedule_due_sources
 from tests.integration.test_spine import PROFILE
@@ -37,6 +38,36 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                                 "email": "other@example.test"})
             with fixture_server() as source_origin:
                 discover(store, source_origin, "fixture")
+            ats_routes = [
+                ("Python Developer", "python-board", "python-board", 0.95, ["QUALIFIED_GREENHOUSE_ROUTE"]),
+                ("Data Engineer", "source-only-board", None, 0.95, ["TEST_EVIDENCE"]),
+                ("Data Engineer", "route-mismatch", "different-tenant", 0.95, ["TEST_EVIDENCE"]),
+                ("Data Engineer", "low-confidence-board", "low-confidence-board", 0.74, ["TEST_EVIDENCE"]),
+                ("Data Engineer", "blank-evidence-board", "blank-evidence-board", 0.95, ["  "]),
+                ("Data Engineer", "ambiguous-board", "ambiguous-board", 0.95, ["TEST_EVIDENCE"]),
+            ]
+            for title, route_tenant, identity_tenant, confidence, evidence in ats_routes:
+                with store.engine.connect() as connection:
+                    job = connection.execute(select(m.jobs).where(m.jobs.c.title == title)).mappings().one()
+                if identity_tenant is not None:
+                    register_ats_tenant(store, job["company_id"], provider="greenhouse",
+                                        tenant_identifier=identity_tenant,
+                                        confidence=confidence, evidence=evidence)
+                with store.engine.begin() as connection:
+                    upsert(connection, m.routes, {
+                        "id": identity("browser-ats-route", title, route_tenant),
+                        "job_id": job["id"], "company_id": job["company_id"],
+                        "provider": "greenhouse", "tenant": route_tenant,
+                        "requisition": "browser-ats-filter-" + route_tenant,
+                        "url": f"https://jobs.example.test/greenhouse/{route_tenant}/{title}",
+                    })
+            with store.engine.connect() as connection:
+                ambiguous_job = connection.execute(select(m.jobs).where(
+                    m.jobs.c.title == "Data Engineer")).mappings().one()
+            register_ats_tenant(store, ambiguous_job["company_id"], provider="greenhouse",
+                                tenant_identifier="ambiguous-board",
+                                organization_identifier="second-organization",
+                                confidence=0.95, evidence=["SECOND_TEST_EVIDENCE"])
             with store.engine.begin() as connection:
                 connection.execute(update(m.jobs).where(m.jobs.c.title == "Python Developer")
                                    .values(location="Boston, MA", attributes={
@@ -125,6 +156,22 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                         page.get_by_label("Skill", exact=True).select_option("")
                     self.assertEqual(skill_cleared.value.status, 200)
 
+                    with page.expect_response(lambda response:
+                            response.url.startswith(origin + "/jobs?")
+                            and "ats_provider=greenhouse" in response.url) as greenhouse_jobs:
+                        page.get_by_label("ATS", exact=True).select_option("greenhouse")
+                    self.assertEqual([job["title"] for job in greenhouse_jobs.value.json()["jobs"]],
+                                     ["Python Developer"])
+                    with page.expect_response(lambda response:
+                            response.url.startswith(origin + "/jobs?")
+                            and "ats_provider=mock-ats" in response.url) as mock_jobs:
+                        page.get_by_label("ATS", exact=True).select_option("mock-ats")
+                    self.assertEqual(len(mock_jobs.value.json()["jobs"]), 2)
+                    with page.expect_response(lambda response:
+                            response.url.startswith(origin + "/jobs?") and "ats_provider=" not in response.url) as ats_cleared:
+                        page.get_by_label("ATS", exact=True).select_option("")
+                    self.assertEqual(len(ats_cleared.value.json()["jobs"]), 2)
+
                     page.get_by_label("Search jobs", exact=True).fill("Developer")
                     page.get_by_label("Job title", exact=True).fill("Python")
                     page.get_by_label("Company", exact=True).fill("Example Systems")
@@ -139,6 +186,7 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                     page.get_by_label("Posted within", exact=True).select_option("7")
                     page.get_by_label("Work location", exact=True).select_option("REMOTE")
                     page.get_by_label("Source", exact=True).select_option("mock-ats")
+                    page.get_by_label("ATS", exact=True).select_option("greenhouse")
                     with page.expect_response(lambda response:
                             response.url.startswith(origin + "/jobs?")
                             and "experience_level=SENIOR" in response.url
@@ -146,6 +194,7 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                             and "skill=PYTHON" in response.url
                             and "education_requirement=BACHELORS_REQUIRED" in response.url
                             and "clearance_level=PUBLIC_TRUST" in response.url
+                            and "ats_provider=greenhouse" in response.url
                             and "salary_min=80000" in response.url
                             and "salary_max=100000" in response.url
                             and "sort=company" in response.url) as sorted_jobs:
@@ -172,6 +221,7 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                             and "skill=PYTHON" in response.url
                             and "education_requirement=BACHELORS_REQUIRED" in response.url
                             and "clearance_level=PUBLIC_TRUST" in response.url
+                            and "ats_provider=greenhouse" in response.url
                             and "salary_min=80000" in response.url
                             and "salary_max=100000" in response.url
                             and "remote_type=REMOTE" in response.url
@@ -191,6 +241,7 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                     expect(page.get_by_label("Skill", exact=True)).to_have_value("PYTHON")
                     expect(page.get_by_label("Education requirement", exact=True)).to_have_value("BACHELORS_REQUIRED")
                     expect(page.get_by_label("Clearance requirement", exact=True)).to_have_value("PUBLIC_TRUST")
+                    expect(page.get_by_label("ATS", exact=True)).to_have_value("greenhouse")
                     expect(page.get_by_label("Posted within", exact=True)).to_have_value("7")
                     expect(page.get_by_label("Work location", exact=True)).to_have_value("REMOTE")
                     expect(page.get_by_label("Source", exact=True)).to_have_value("mock-ats")
@@ -237,6 +288,7 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                             and "skill=" not in response.url
                             and "education_requirement=" not in response.url
                             and "clearance_level=" not in response.url
+                            and "ats_provider=" not in response.url
                             and "salary_min=" not in response.url
                             and "salary_max=" not in response.url
                             and "remote_type=" not in response.url
@@ -255,6 +307,7 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                     expect(page.get_by_label("Skill", exact=True)).to_have_value("")
                     expect(page.get_by_label("Education requirement", exact=True)).to_have_value("")
                     expect(page.get_by_label("Clearance requirement", exact=True)).to_have_value("")
+                    expect(page.get_by_label("ATS", exact=True)).to_have_value("")
                     expect(page.get_by_label("Posted within", exact=True)).to_have_value("")
                     expect(page.get_by_label("Work location", exact=True)).to_have_value("")
                     expect(page.get_by_label("Source", exact=True)).to_have_value("")

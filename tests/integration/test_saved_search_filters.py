@@ -11,6 +11,7 @@ from apps.api.main import create_app
 from fixtures.mock_server import fixture_server
 from packages.persistence import models as m
 from packages.persistence.store import Store, identity, upsert
+from services.company_discovery.sources import register_ats_tenant
 from services.discovery.scheduler import schedule_due_sources
 from services.discovery.pipeline import discover
 from services.discovery.sources.collect import configure_source
@@ -55,6 +56,122 @@ class SavedSearchFiltersApiTests(unittest.TestCase):
                                            "salary_min": "", "salary_max": ""},
         }
 
+    def _add_ats_route(self, title, *, route_provider="greenhouse", route_tenant,
+                       identity_provider=None, identity_tenant=None, identity_organization="",
+                       confidence=0.95, evidence=("VERIFIED_ROUTE_TEST_EVIDENCE",)):
+        with self.store.engine.begin() as connection:
+            job = connection.execute(select(m.jobs).where(m.jobs.c.title == title)).mappings().one()
+            company_id = job["company_id"]
+        if identity_provider is not None:
+            register_ats_tenant(
+                self.store, company_id, provider=identity_provider,
+                tenant_identifier=identity_tenant if identity_tenant is not None else route_tenant,
+                organization_identifier=identity_organization,
+                confidence=confidence, evidence=list(evidence),
+            )
+        with self.store.engine.begin() as connection:
+            upsert(connection, m.routes, {
+                "id": identity("saved-ats-route", title, route_provider, route_tenant),
+                "job_id": job["id"], "company_id": company_id, "provider": route_provider,
+                "tenant": route_tenant, "requisition": "ats-filter-test-" + title,
+                "url": f"https://jobs.example.test/{route_provider}/{route_tenant}/{title}",
+            })
+
+    def _seed_ats_filter_routes(self):
+        self._add_ats_route(
+            "Python Developer", route_tenant="python-board", identity_provider="greenhouse",
+            confidence=0.75, evidence=("QUALIFIED_GREENHOUSE_ROUTE",),
+        )
+        self._add_ats_route("Data Engineer", route_tenant="source-only-board")
+        self._add_ats_route(
+            "Data Engineer", route_tenant="route-mismatch",
+            identity_provider="greenhouse", identity_tenant="different-tenant",
+        )
+        self._add_ats_route(
+            "Data Engineer", route_tenant="low-confidence-board",
+            identity_provider="greenhouse", confidence=0.74,
+        )
+        self._add_ats_route(
+            "Data Engineer", route_tenant="blank-evidence-board",
+            identity_provider="greenhouse", evidence=("  ",),
+        )
+        self._add_ats_route(
+            "Data Engineer", route_tenant="ambiguous-board", identity_provider="greenhouse",
+        )
+        self._add_ats_route(
+            "Data Engineer", route_tenant="ambiguous-board", identity_provider="greenhouse",
+            identity_organization="second-organization",
+        )
+
+    def test_ats_filter_requires_qualified_persisted_route_identity_before_limit(self):
+        self._seed_ats_filter_routes()
+
+        response = self.client.get("/jobs", params={
+            "ats_provider": "greenhouse", "sort": "title", "limit": 1,
+        })
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual([row["title"] for row in response.json()["jobs"]], ["Python Developer"])
+        self.assertEqual(self.client.get("/jobs", params={
+            "ats_provider": "greenhouse", "title": "Data",
+        }).json()["jobs"], [])
+
+        # Existing source filtering remains separate; it cannot establish the ATS facet.
+        source_only = self.client.get("/jobs", params={"provider": "greenhouse", "sort": "title"})
+        self.assertEqual([row["title"] for row in source_only.json()["jobs"]],
+                         ["Data Engineer", "Python Developer"])
+        self.assertEqual(self.client.get("/jobs", params={"ats_provider": "workday"}).status_code, 422)
+
+    def test_ats_filter_saved_search_round_trip_clear_legacy_and_profile_scope(self):
+        self._seed_ats_filter_routes()
+        filters = {
+            "q": "", "title": "", "company": "", "location": "", "salary_min": "",
+            "salary_max": "", "min_match_score": "", "experience_level": "",
+            "employment_type": "", "skill": "", "education_requirement": "",
+            "clearance_level": "", "posted_within_days": "", "remote_type": "",
+            "provider": "", "ats_provider": "greenhouse", "sort": "title",
+        }
+        profile_data = {**self._profile(job_filters=filters), "include_titles": [], "remote": "ANY"}
+        saved = self.client.put("/search-profiles", json=profile_data)
+        self.assertEqual(saved.status_code, 200, saved.text)
+        row = next(item for item in self.client.get("/search-profiles", params={
+            "profile_id": "fixture"}).json()["search_profiles"] if item["id"] == "saved-filter")
+        self.assertEqual(row["criteria"]["job_filters"]["ats_provider"], "greenhouse")
+        self.assertEqual(self.client.get("/search-profiles", params={"profile_id": "other"})
+                         .json()["search_profiles"], [])
+
+        selected = self.client.get("/jobs", params={
+            "profile_id": "fixture", "search_profile_id": "saved-filter",
+            "ats_provider": row["criteria"]["job_filters"]["ats_provider"], "sort": "title",
+        })
+        self.assertEqual([job["title"] for job in selected.json()["jobs"]], ["Python Developer"])
+        self.assertEqual(self.client.get("/jobs", params={
+            "profile_id": "other", "search_profile_id": "saved-filter",
+        }).status_code, 409)
+
+        cleared_filters = {**filters, "ats_provider": ""}
+        cleared = self.client.put("/search-profiles", json=self._profile(job_filters=cleared_filters))
+        self.assertEqual(cleared.status_code, 200, cleared.text)
+        self.assertEqual(len(self.client.get("/jobs", params={"sort": "title"}).json()["jobs"]), 2)
+
+        legacy = {key: value for key, value in filters.items() if key != "ats_provider"}
+        legacy_saved = self.client.put("/search-profiles", json=self._profile(
+            identifier="ats-legacy", job_filters=legacy))
+        self.assertEqual(legacy_saved.status_code, 200, legacy_saved.text)
+        legacy_row = next(item for item in self.client.get("/search-profiles", params={
+            "profile_id": "fixture"}).json()["search_profiles"] if item["id"] == "ats-legacy")
+        self.assertEqual(legacy_row["criteria"]["job_filters"]["ats_provider"], "")
+        self.assertEqual(self.client.put("/search-profiles", json=self._profile(
+            identifier="ats-invalid", job_filters={**filters, "ats_provider": "workday"})).status_code, 422)
+        operations_before = self.store.count("worker_operations")
+        self.assertEqual(schedule_due_sources(self.store)["scheduled"], [])
+        self.assertEqual(self.store.count("worker_operations"), operations_before)
+
+    def test_qualified_synthetic_mock_identity_is_filterable(self):
+        response = self.client.get("/jobs", params={"ats_provider": "mock-ats", "sort": "title"})
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual([row["title"] for row in response.json()["jobs"]],
+                         ["Data Engineer", "Python Developer"])
+
     def test_saved_jobs_filters_persist_profile_scope_and_do_not_schedule_discovery(self):
         response = self.client.put("/search-profiles", json=self._profile())
         self.assertEqual(response.status_code, 200, response.text)
@@ -69,7 +186,7 @@ class SavedSearchFiltersApiTests(unittest.TestCase):
             "q": "network", "title": "Developer", "location": "Boston", "company": "Example",
             "experience_level": "", "employment_type": "", "posted_within_days": "", "remote_type": "REMOTE", "provider": "greenhouse", "sort": "company",
             "salary_min": "", "salary_max": "", "skill": "", "education_requirement": "",
-            "clearance_level": ""})
+            "clearance_level": "", "ats_provider": ""})
         self.assertFalse(row["enabled"])
         self.assertEqual(self.client.get("/search-profiles", params={"profile_id": "other"})
                          .json()["search_profiles"], [])
@@ -568,7 +685,7 @@ class SavedSearchFiltersApiTests(unittest.TestCase):
                    "remote_type": "REMOTE", "provider": "greenhouse", "sort": "company",
                    "salary_min": "85000", "salary_max": "130000", "experience_level": "",
                    "employment_type": "", "posted_within_days": "", "skill": "",
-                   "education_requirement": "", "clearance_level": ""}
+                   "education_requirement": "", "clearance_level": "", "ats_provider": ""}
         operations_before = self.store.count("worker_operations")
         response = self.client.put("/search-profiles", json=self._profile(job_filters=filters))
         self.assertEqual(response.status_code, 200, response.text)

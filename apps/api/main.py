@@ -1339,7 +1339,9 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
              company: str = Query(default="", max_length=200),
              location: str = Query(default="", max_length=200),
              remote_type: str | None = Query(default=None, max_length=32),
-             provider: Literal["mock-ats", "greenhouse"] | None = None, sort: Literal["score", "newest", "company", "title", "salary_high", "salary_low"] = "score",
+             provider: Literal["mock-ats", "greenhouse"] | None = None,
+             ats_provider: Literal["mock-ats", "greenhouse"] | None = None,
+             sort: Literal["score", "newest", "company", "title", "salary_high", "salary_low"] = "score",
              salary_min: float | None = Query(default=None, ge=0, le=100000000),
              salary_max: float | None = Query(default=None, ge=0, le=100000000),
              min_match_score: int | None = Query(default=None, ge=0, le=100),
@@ -1389,7 +1391,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         posted_after = (posted_before - timedelta(days=effective_posted_within)
                         if posted_before is not None else None)
         rows = store.jobs(profile_id, q, remote_type, provider, sort, limit,
-                          title=title, company=company, location=location,
+                          title=title, company=company, location=location, ats_provider=ats_provider,
                           salary_min=salary_min, salary_max=salary_max,
                           min_match_score=effective_match_score, experience_level=experience_level,
                           employment_type=employment_type,

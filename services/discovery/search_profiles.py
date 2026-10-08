@@ -22,6 +22,7 @@ EDUCATION_REQUIREMENTS = {
 }
 JOB_FILTERS = {"remote_type": {"", "REMOTE", "HYBRID", "ONSITE", "UNKNOWN"},
                "provider": {"", "mock-ats", "greenhouse"},
+               "ats_provider": {"", "mock-ats", "greenhouse"},
                "sort": {"score", "newest", "company", "title", "salary_high", "salary_low"}}
 
 
@@ -31,7 +32,7 @@ def _clean_job_filters(value):
     required = {"q", "remote_type", "provider", "sort"}
     optional = {"title", "company", "location", "salary_min", "salary_max", "min_match_score",
                 "experience_level", "posted_within_days", "employment_type", "skill", "education_requirement",
-                "clearance_level"}
+                "clearance_level", "ats_provider"}
     if not isinstance(value, dict) or not required <= set(value) or set(value) - required - optional:
         raise ValueError("Saved Jobs filters must include q, remote_type, provider, and sort")
     query = value["q"]
@@ -104,9 +105,10 @@ def _clean_job_filters(value):
         raise ValueError("Saved Jobs clearance requirement is invalid")
     cleaned["clearance_level"] = clearance_level
     for key, allowed in JOB_FILTERS.items():
-        if not isinstance(value[key], str) or value[key] not in allowed:
+        item = value.get(key, "") if key == "ats_provider" else value[key]
+        if not isinstance(item, str) or item not in allowed:
             raise ValueError(f"Saved Jobs {key} is invalid")
-        cleaned[key] = value[key]
+        cleaned[key] = item
     return cleaned
 
 
