@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "issue": 190,
+  "requirement_id": "MJ-REQ-189",
+  "slice": "connected verified ATS facet in Jobs saved searches",
+  "result": "PARTIAL",
+  "base_commit": "3d7ff2c6fb0a6151026ebbe23033b4b5c5022937",
+  "source_commit": "95437738b37e47935b7074203e2b28fbd5412bd7",
+  "source_tree": "cabbf5750ba8a6d9e823f35d59793977592449ff",
+  "validated_at_utc": "2026-10-08T14:05:17Z",
+  "environment": {
+    "platform": "Windows",
+    "python": "3.12",
+    "node": "v25.9.0",
+    "database": "temporary SQLite",
+    "browser": "local Chromium, synthetic fixture",
+    "dependency_source": "cached apps/web/node_modules from synchronized root checkout via local junction"
+  },
+  "behavior": {
+    "implemented": [
+      "Jobs exposes a separate ATS selector for Greenhouse and the synthetic mock provider; the existing Source filter remains independent.",
+      "The API filters with a correlated EXISTS before ordering and LIMIT. A route must exactly match one persisted company_ats_tenants provider and tenant identity with confidence from 0.75 through 1.0 and at least one nonblank string evidence item.",
+      "ATS identity matching reuses fail-closed resolver behavior: missing evidence, route-only/source-only providers, mismatched tenant, low confidence, and ambiguous same-provider/same-tenant identities do not qualify.",
+      "The ATS facet composes with existing direct Jobs criteria using AND.",
+      "Saved searches validate supported ATS values, save/restore/clear the facet per profile, and default legacy payloads to empty.",
+      "Connected Chromium verified exact Greenhouse inclusion, qualified synthetic mock selection, fail-closed route cases, saved-search reload/restore/clear and profile isolation.",
+      "Filtering causes no discovery schedule, application mutation, or submission side effect."
+    ],
+    "remaining": "Other MJ-REQ-189 facets and connected product requirements remain incomplete; issue #190 remains OPEN/PARTIAL.",
+    "external_submission": "OFF"
+  },
+  "tests": [
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_saved_search_filters tests.browser.test_saved_search_filters",
+      "result": "PASS",
+      "detail": "24 tests passed, including connected local Chromium."
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run",
+      "result": "PASS",
+      "detail": "18 files and 103 frontend tests passed under Node v25.9.0, outside the declared Vitest 5 supported Node range."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "detail": "TypeScript check and Vite production build passed."
+    },
+    {
+      "command": "Python 3.12 py_compile for changed API, persistence, saved-profile, integration, and browser modules",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.agent_skills",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.catalogue",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.progress_dashboard --check",
+      "result": "PASS",
+      "detail": "Dashboard was current; no canonical planning files were edited."
+    },
+    {
+      "command": "python -m tools.coordination.lane_coordination validate",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    },
+    {
+      "command": "Test-first regressions on the unimplemented base and ambiguous-identity negative control",
+      "result": "PASS",
+      "detail": "Before implementation, ATS filtering returned Data Engineer before LIMIT and saved-search validation rejected ats_provider. Removing only the uniqueness predicate made the ambiguity regression fail with Data Engineer; restoring it passed."
+    }
+  ],
+  "input_sha256": {
+    "apps/api/main.py": "511fc0eb9fe5a3faea5dc6c4a26d736dfe9701810050eb3f3ba02c784bc51110",
+    "apps/web/src/main.tsx": "bdd2f71ecd2efe47c88fb0d4eb8d5aaf8040e4182e094eb198d1a3ede6b3e895",
+    "packages/persistence/store.py": "b8a0c86d30de44803c1fd0618d720ff7342a0386f2194fea3d2f2720579aca3f",
+    "services/discovery/search_profiles.py": "c093859c190864e2c0959a8de089a5a783c02e985db9c28adfea4ce7ac599e7b",
+    "tests/integration/test_saved_search_filters.py": "d1fa8b2ee79340811d7b070ee536eadc2e6b16021d6c8669f2eafd35a30459cd",
+    "tests/browser/test_saved_search_filters.py": "7021d6c300307a871268a002b51a42670e69f2d9eeab27ecd085d5310172de3b",
+    "docs/spec/areas/web_api_analytics.md": "d8ba4356b69a1fa96134ce87de1cfc950b689309342c7d438d7900edc149f850",
+    "services/applications/knowledge.py": "91be04bc5c9d81b1b3d91d02513424c2153199fe19f1e1acf81fccef82c37321",
+    "services/company_discovery/sources.py": "22ee57d08258d7cac9a9a686edb29697f8f3c2707e812a3f8caeab455dac4149",
+    "apps/web/package.json": "40063ee6deb9570a868a6c93b5ff42999353c7fcecc921ce44b6ef20eb500f04",
+    "apps/web/package-lock.json": "453d036596f964fc6a3c19ed0682a34d08c5eec4e64dbaf8c5898046d9c4358a"
+  },
+  "not_run": [
+    "PostgreSQL runtime verification",
+    "Hosted GitHub checks and hosted review, disabled by local-only policy",
+    "Live production job sources and real ATS behavior",
+    "Full repository test suite"
+  ],
+  "review": "Local worker self-review only; root owns serialized local delegated review and exact-candidate revalidation.",
+  "integration": "Candidate committed locally at source_commit on codex/mj-req189-ats-filter-20261008. Not pushed, merged, or integrated. Issue #190 remains OPEN/PARTIAL; root review and exact-candidate revalidation are pending."
+}
