@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REQ-104-SEMANTIC-CLOUD-QUESTION-MATCHING-20261008",
+  "recorded_at_utc": "2026-10-08T08:44:08Z",
+  "result": "PARTIAL",
+  "issue": 105,
+  "requirement_id": "MJ-REQ-104",
+  "scope": "Extend local reviewed-answer suggestions with one explicitly curated ordinary-question paraphrase: cloud provider wording matches cloud platform wording. Match method and score remain visible, and export records the selected match provenance.",
+  "authority": {
+    "repository": "MulattoTech/MJobs",
+    "issue_url": "https://github.com/MulattoTech/MJobs/issues/105",
+    "issue_state": "OPEN",
+    "branch": "codex/mj-req104-semantic-answer-matching-20261008",
+    "worktree": ".worktrees/codex-mj-req104-semantic-answer-matching-20261008",
+    "base_head": "1f4c7771d01b5918943cb1569c5aae84a9e53181",
+    "tested_commit": "e7f3a84af914b5dc6687b180287123b055a2ebad",
+    "tested_tree": "d42e5316736d4924e58649ccff0843e192044482"
+  },
+  "acceptance": {
+    "exact_and_fuzzy": "PASS; existing exact-normalization and bounded fuzzy behavior is preserved.",
+    "curated_semantic": "PARTIAL; the local rule maps the specific ordinary phrasing 'cloud providers' to 'cloud platforms' and reports CURATED_SEMANTIC at 0.95. The rule set is not a general semantic model.",
+    "suggestion_and_export": "PASS; approved synthetic profile answers match in the UI helper and server export recomputes the match and stores method, score, saved question and source provenance.",
+    "review_and_profile_guards": "PASS; existing per-application review, saved-answer approval, confidence threshold, current profile snapshot and export checks are unchanged.",
+    "sensitive_and_legal": "PASS; existing sensitive/legal exclusions remain ahead of curated matching; no work-authorization or other sensitive suggestion was added."
+  },
+  "red_first_observation": {
+    "result": "FAIL_BEFORE_IMPLEMENTATION",
+    "details": "The new Vitest and Python matcher cases returned no match. The new synthetic application export returned HTTP 422 because the phrasing had no supported match rule."
+  },
+  "checks": [
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.unit.test_answer_matching tests.integration.test_application_answer_export",
+      "target": "local Python answer matcher unit tests and synthetic SQLite/API answer export workflow",
+      "result": "PASS",
+      "tests": 28,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/apps/web/node_modules/.bin/vitest.cmd run src/answer-matching.test.ts",
+      "target": "focused browser-side matcher tests",
+      "result": "PASS",
+      "tests": 6,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "vitest run",
+      "target": "apps/web complete local frontend suite using a temporary worktree-local node_modules junction to existing root dependencies",
+      "result": "PASS",
+      "tests": 95,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "target": "TypeScript check and Vite production build using the temporary worktree-local dependency junction",
+      "result": "PASS",
+      "details": "33 modules transformed; the temporary junction was removed after the build."
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.browser.test_application_answer_export",
+      "target": "local browser answer-export workflow",
+      "result": "NOT_RUN",
+      "details": "All three tests were skipped by their runtime availability guard."
+    },
+    {
+      "command": "git diff --check",
+      "target": "candidate source and test changes",
+      "result": "PASS"
+    }
+  ],
+  "environment": {
+    "platform": "Windows PowerShell",
+    "python": "3.12 repository .venv",
+    "node": "25.9.0",
+    "npm": "11.12.1",
+    "dependencies": "Reused existing local npm dependencies through a temporary junction; no install, hosted runner, paid reviewer, or remote AI inference. Junction removed after checks."
+  },
+  "source_inputs": {
+    "services/documents/answers.py": "47B69142C5624871043983DCB2C423A85EBA7AB622A5178CCA36EB00F90E02BB",
+    "apps/web/src/answer-matching.ts": "269328A708A8F126E63997D3080FFA44D89DC5864F3145A69EF783044C0D3DA2",
+    "apps/web/src/answer-matching.test.ts": "4EC5627489865D7E6A5A76B3DAA8C97B842DD3476CE72ECEEC58B63140F1B35F",
+    "tests/unit/test_answer_matching.py": "9C0F3D184BE8D9DC7EB2DE0C18D294AACE74D75A5EAA3AE10A55520A53ECB1A3",
+    "tests/integration/test_application_answer_export.py": "BECBC76C66B273D12FD4F50DA2647E8E32D67D89D781DA7A8B77F9EA338B23BD"
+  },
+  "limitations": {
+    "semantic_scope": "PARTIAL; no general-purpose semantic engine was introduced, and match suggestions remain only as broad as the explicit local rules.",
+    "browser_runtime": "NOT_RUN; the browser suite skipped because its runtime guard was unavailable.",
+    "hosted_actions_review_ci": "NOT_RUN_BY_USER_POLICY",
+    "external_application_submission": "OFF",
+    "external_requests": "NONE"
+  }
+}
