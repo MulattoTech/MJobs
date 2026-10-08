@@ -630,7 +630,7 @@ class Store:
 
     def jobs(self, profile_id=None, q="", remote_type=None, provider=None, sort="score", limit=200,
              title="", company="", location="", salary_min=None, salary_max=None,
-             min_match_score=None, experience_level=None, posted_after=None):
+             min_match_score=None, experience_level=None, posted_after=None, posted_before=None):
         profile = self.profile(profile_id) if profile_id else None
         with self.engine.connect() as connection:
             counts = select(m.postings.c.job_id, func.count().label("posting_count")).group_by(m.postings.c.job_id).subquery()
@@ -701,14 +701,22 @@ class Store:
             if posted_after is not None:
                 reported_at = m.jobs.c.attributes["reported_posted_at"].as_string()
                 if self.engine.dialect.name == "postgresql":
-                    parsed_posted_at = cast(reported_at, DateTime(timezone=True))
+                    # Third-party JSON is untrusted input. Gate PostgreSQL's cast
+                    # so malformed legacy dates behave as unknown, not query errors.
+                    valid_posted_at = func.pg_input_is_valid(reported_at, "timestamp with time zone")
+                    parsed_posted_at = case(
+                        (valid_posted_at, cast(reported_at, DateTime(timezone=True))), else_=None)
                     cutoff = posted_after
+                    upper_bound = posted_before
                 else:
                     parsed_posted_at = func.datetime(reported_at)
                     cutoff = posted_after.strftime("%Y-%m-%d %H:%M:%S")
+                    upper_bound = posted_before.strftime("%Y-%m-%d %H:%M:%S") if posted_before else None
                 # Posting time is source-reported. first_seen_at records collection
                 # time and must never make an undated job appear newly posted.
                 statement = statement.where(parsed_posted_at >= cutoff)
+                if upper_bound is not None:
+                    statement = statement.where(parsed_posted_at <= upper_bound)
             if remote_type:
                 if remote_type == "REMOTE":
                     statement = statement.where(m.jobs.c.remote_type.in_(("REMOTE", "REMOTE_WORLDWIDE", "REMOTE_US", "REMOTE_COUNTRY", "REMOTE_SPECIFIC_STATES")))

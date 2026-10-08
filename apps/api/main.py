@@ -1361,13 +1361,14 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                                if search_profile else "")
         effective_posted_within = posted_within_days if posted_within_days is not None else (
             int(saved_posted_within) if saved_posted_within else None)
-        posted_after = (datetime.now(timezone.utc) - timedelta(days=effective_posted_within)
-                        if effective_posted_within is not None else None)
+        posted_before = datetime.now(timezone.utc) if effective_posted_within is not None else None
+        posted_after = (posted_before - timedelta(days=effective_posted_within)
+                        if posted_before is not None else None)
         rows = store.jobs(profile_id, q, remote_type, provider, sort, limit,
                           title=title, company=company, location=location,
                           salary_min=salary_min, salary_max=salary_max,
                           min_match_score=effective_match_score, experience_level=experience_level,
-                          posted_after=posted_after)
+                          posted_after=posted_after, posted_before=posted_before)
         if search_profile_id:
             rows = filter_jobs(rows, search_profile["criteria"])
         if profile_id:

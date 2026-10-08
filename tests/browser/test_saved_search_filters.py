@@ -87,6 +87,18 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                     page.reload(wait_until="domcontentloaded")
                     expect(page.get_by_label("Active profile", exact=True)).to_have_value("fixture")
 
+                    # A date-only change must fetch new results immediately, then clear cleanly.
+                    with page.expect_response(lambda response:
+                            response.url.startswith(origin + "/jobs?")
+                            and "posted_within_days=7" in response.url) as date_only:
+                        page.get_by_label("Posted within", exact=True).select_option("7")
+                    self.assertEqual(date_only.value.status, 200)
+                    with page.expect_response(lambda response:
+                            response.url.startswith(origin + "/jobs?")
+                            and "posted_within_days" not in response.url) as date_cleared:
+                        page.get_by_label("Posted within", exact=True).select_option("")
+                    self.assertEqual(date_cleared.value.status, 200)
+
                     page.get_by_label("Search jobs", exact=True).fill("Developer")
                     page.get_by_label("Job title", exact=True).fill("Python")
                     page.get_by_label("Company", exact=True).fill("Example Systems")

@@ -1,5 +1,6 @@
 """Connected API acceptance for profile-scoped saved Jobs filters."""
 from pathlib import Path
+from datetime import datetime, timedelta, timezone
 import tempfile
 import unittest
 
@@ -303,6 +304,19 @@ class SavedSearchFiltersApiTests(unittest.TestCase):
         unknown = self.client.get("/jobs", params={"posted_within_days": 7})
         self.assertEqual(unknown.status_code, 200, unknown.text)
         self.assertEqual(unknown.json()["jobs"], [])
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.id == recent_id).values(
+                attributes={"reported_posted_at": "not a source date"}))
+        malformed = self.client.get("/jobs", params={"posted_within_days": 7})
+        self.assertEqual(malformed.status_code, 200, malformed.text)
+        self.assertEqual(malformed.json()["jobs"], [])
+        future = (datetime.now(timezone.utc) + timedelta(days=1)).isoformat()
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.id == recent_id).values(
+                attributes={"reported_posted_at": future}))
+        future_response = self.client.get("/jobs", params={"posted_within_days": 7})
+        self.assertEqual(future_response.status_code, 200, future_response.text)
+        self.assertEqual(future_response.json()["jobs"], [])
 
     def test_posted_within_search_filter_round_trips_profile_scoped(self):
         filters = {"q": "", "title": "", "company": "", "location": "", "salary_min": "",
