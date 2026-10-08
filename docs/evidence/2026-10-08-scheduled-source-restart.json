@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REQ-274-SCHEDULED-SOURCE-RESTART-20261008",
+  "issue": 275,
+  "requirement_id": "MJ-REQ-274",
+  "result": "PARTIAL",
+  "recorded_at_utc": "2026-10-08T05:44:19Z",
+  "base_commit": "9752bf0fb14ace771d7d1d6b94a1b73f4fe12973",
+  "implementation_commit": "526500cb2bf8edc070b2d1a82bd8c936b0b6e2c6",
+  "implementation_tree": "5e3d44b28efed8239f18992c8e6cbfea0c85344d",
+  "input_sha256": {
+    "cli/compose_recovery.py": "b556f3b4dd72cf0742b1ba5761fec12faecbd310eb680244e24eb97b77e0e6dd",
+    "tests/integration/test_source_policy_scheduler.py": "1a0e5636b3bd1a95aac4b6f3eeac4f6fb3343dfad7ca13b129175cde37789cc0"
+  },
+  "acceptance": {
+    "scheduler_in_recovery_restart_set": "PASS - The Compose recovery helper now restarts scheduler along with PostgreSQL, Redis, API and all three workers. A focused command-contract test verifies this service set.",
+    "sqlite_scheduler_process_restart": "PASS - A deterministic test runs the actual scheduler module in two separate Python processes against one temporary SQLite database. A due synthetic source is enqueued once; the second scheduler process preserves the queued operation without duplication; the real operation executor persists COMPLETED with source collection stubbed to avoid network access.",
+    "postgresql_or_compose_service_restart": "BLOCKED_ENVIRONMENT - Docker is installed, but the existing recovery runner targets the default Compose project and fixed port 127.0.0.1:18700. Read-only Compose inventory showed the retained mjobs-personal project running. No Compose service was started or restarted because this runner does not provide a verified isolated project/port/baseline for this acceptance."
+  },
+  "test_first": {
+    "result": "FAIL_EXPECTED",
+    "command": "python -m unittest tests.integration.test_source_policy_scheduler.SourcePolicySchedulerTests.test_compose_recovery_restarts_scheduler_service -v",
+    "observation": "Before the recovery service list was fixed, the focused probe failed because scheduler was absent from the seven services passed to docker compose restart. This was a command-list probe only; it did not execute or simulate runtime acceptance."
+  },
+  "validation": {
+    "focused_command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_source_policy_scheduler tests.integration.test_api_queue -v",
+    "focused_result": "PASS - 16 tests, 0 failures, 0 errors, 0 skips.",
+    "agent_skills": "PASS - python -m tools.verification.agent_skills",
+    "lane_coordination": "PASS - python -m tools.coordination.lane_coordination validate",
+    "diff_check": "PASS - git diff --check",
+    "postgresql_tests": "NOT_RUN",
+    "compose_recovery_runtime": "NOT_RUN"
+  },
+  "environment": {
+    "os": "Windows",
+    "python": "Repository .venv Python 3.12",
+    "sqlite": "Temporary database created and removed by the integration test; synthetic profile/source only",
+    "docker": "Docker Engine 29.8.2 available; no container lifecycle commands run for this slice",
+    "external_submission": "OFF",
+    "production_credentials": "NOT_USED",
+    "network_requests": "NONE from the SQLite recovery test"
+  },
+  "limitations": [
+    "The SQLite test proves scheduler process restart and durable queued-operation recovery on SQLite; it does not establish PostgreSQL persistence or service restart under Compose.",
+    "The source collector is stubbed in the SQLite restart test, so no provider fetch behavior is claimed.",
+    "No company-source, document, application-state or ambiguous-submission Compose restart acceptance was run for this slice.",
+    "Issue #275 remains OPEN/PARTIAL; hosted checks and review remain NOT_RUN_BY_USER_POLICY."
+  ],
+  "external_submission": "OFF"
+}
