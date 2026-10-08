@@ -10,8 +10,14 @@ describe('resume comparison',()=>{
     const bulletTarget:GeneratedDocument={...target,id:'bullet-target',version:4,template:'approved-skill-and-bullet-emphasis-v2',generation_model:'deterministic-skill-and-bullet-emphasis-v1'};
     const selectedBulletTarget:GeneratedDocument={...target,id:'selected-bullet-target',version:5,template:'approved-selection-and-bullet-emphasis-v2',generation_model:'deterministic-fact-selection-and-bullet-emphasis-v1'};
     const summaryTarget:GeneratedDocument={...target,id:'summary-target',version:6,template:'approved-summary-skill-and-bullet-emphasis-v3',generation_model:'deterministic-summary-skill-and-bullet-emphasis-v2'};
-    const html=renderToStaticMarkup(<ResumeComparison documents={[base,{...base,id:'new',version:2,template:'verified-headings-v1',generation_model:'deterministic-fact-copy-v2'},target,bulletTarget,selectedBulletTarget,summaryTarget,{...base,id:'invalid',template:'verified-headings-v1'}]}/>);
-    expect(html).toContain('value="g:legacy"');expect(html).toContain('value="g:new"');expect(html).toContain('value="target"');expect(html).toContain('value="bullet-target"');expect(html).toContain('value="selected-bullet-target"');expect(html).toContain('value="summary-target"');expect(html).not.toContain('g:invalid');
+    const targetRelevantBullets:GeneratedDocument={...target,id:'target-relevant-bullets',version:7,
+      template:'approved-target-relevant-bullets-summary-skill-and-bullet-emphasis-v4',
+      generation_model:'deterministic-target-relevant-bullets-summary-skill-order-v3'};
+    const contactTargetRelevantBullets:GeneratedDocument={...target,id:'contact-target-relevant-bullets',version:8,
+      template:'approved-contact-target-relevant-bullets-summary-skill-and-bullet-emphasis-v4',
+      generation_model:'deterministic-contact-target-relevant-bullets-summary-skill-order-v3'};
+    const html=renderToStaticMarkup(<ResumeComparison documents={[base,{...base,id:'new',version:2,template:'verified-headings-v1',generation_model:'deterministic-fact-copy-v2'},target,bulletTarget,selectedBulletTarget,summaryTarget,targetRelevantBullets,contactTargetRelevantBullets,{...base,id:'invalid',template:'verified-headings-v1'}]}/>);
+    expect(html).toContain('value="g:legacy"');expect(html).toContain('value="g:new"');expect(html).toContain('value="target"');expect(html).toContain('value="bullet-target"');expect(html).toContain('value="selected-bullet-target"');expect(html).toContain('value="summary-target"');expect(html).toContain('value="target-relevant-bullets"');expect(html).toContain('value="contact-target-relevant-bullets"');expect(html).not.toContain('g:invalid');
   });
   it('renders every change category, actual revision labels and escaped historical text',()=>{
     const before={fact_id:'summary',kind:'summary',text:'Original summary'};

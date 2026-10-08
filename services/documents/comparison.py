@@ -8,7 +8,8 @@ from services.documents.validation import validate_assertions
 from services.documents.errors import PreparationError
 from services.documents.templates import (contract_role, resume_layout, SELECTION_TEMPLATES,
     EMPHASIS_TEMPLATES, CONTACT_TEMPLATES, RESPONSIBILITY_EMPHASIS_TEMPLATES,
-    SUMMARY_TAILORING_TEMPLATES, REPHRASE_TEMPLATE, LEGACY_REPHRASE_TEMPLATE,
+    SUMMARY_TAILORING_TEMPLATES, TARGET_BULLET_TAILORING_TEMPLATES,
+    REPHRASE_TEMPLATE, LEGACY_REPHRASE_TEMPLATE,
     CONTACT_PAIRS, LEGACY_CONTACT_PAIRS, contact_header)
 from services.documents import tailor
 
@@ -89,7 +90,7 @@ def read_generated_snapshot(store, output_dir, row):
             'text':text,'sha256':row['sha256']['txt'],'facts':facts,'contact':header}
 
 
-def tailored_context(target):
+def tailored_context(target, target_source_facts=None):
     if (not target or target['kind']!='resume' or
         contract_role(target['template'],target['generation_model'])!='TAILORED' or
         (target['generation_context'] or {}).get('mode')!='APPROVED_SKILL_ORDER'):
@@ -140,6 +141,54 @@ def tailored_context(target):
                 or any(summary_matches[value] for value in omitted))) or
             (not adjustment['adjusted'] and (selected!=original or omitted or any(summary_matches.values())))):
             raise ComparisonUnavailable('Original summary adjustment context is unavailable')
+    if target['template'] in TARGET_BULLET_TAILORING_TEMPLATES:
+        adjustment=context.get('bullet_adjustment')
+        if not isinstance(adjustment,dict):
+            raise ComparisonUnavailable('Original target-bullet adjustment context is unavailable')
+        skills=context.get('job_skills')
+        recorded_original=adjustment.get('original_bullet_fact_ids')
+        recorded_selected=adjustment.get('selected_bullet_fact_ids')
+        recorded_omitted=adjustment.get('omitted_bullet_fact_ids')
+        recorded_matches=adjustment.get('matched_skills')
+        target_bullets=[row['fact_id'] for row in target['facts_used']
+                        if row['kind'] in tailor.TARGET_BULLET_FACT_KINDS]
+        valid_ids=lambda value: isinstance(value,list) and all(isinstance(item,str) for item in value) and len(set(value))==len(value)
+        valid_matches=(isinstance(recorded_matches,dict) and
+            all(isinstance(labels,list) and all(isinstance(label,str) for label in labels)
+                for labels in recorded_matches.values()))
+        if (adjustment.get('mode')!='EXACT_TARGET_SKILL_BULLET_FACTS' or
+            type(adjustment.get('adjusted')) is not bool or
+            not isinstance(skills,list) or any(not isinstance(value,str) for value in skills) or
+            not valid_ids(recorded_original) or not valid_ids(recorded_selected) or
+            not valid_ids(recorded_omitted) or not valid_matches or
+            set(recorded_selected)&set(recorded_omitted) or
+            set(recorded_original)!=(set(recorded_selected)|set(recorded_omitted)) or
+            recorded_selected!=[identifier for identifier in recorded_original if identifier in set(recorded_selected)] or
+            recorded_omitted!=[identifier for identifier in recorded_original if identifier in set(recorded_omitted)] or
+            set(recorded_matches)!=set(recorded_original) or target_bullets!=recorded_selected):
+            raise ComparisonUnavailable('Original target-bullet adjustment context is unavailable')
+        if target_source_facts is not None:
+            original=[row['fact_id'] for row in target_source_facts if row['kind'] in tailor.TARGET_BULLET_FACT_KINDS]
+            bullet_rows=[row for row in target_source_facts if row['kind'] in tailor.TARGET_BULLET_FACT_KINDS]
+            matches=tailor.matched_labels(bullet_rows,{'skills':skills})
+            matched=[identifier for identifier in original if matches[identifier]]
+            selected=matched if matched else original
+            omitted=[identifier for identifier in original if identifier not in set(selected)]
+            if (adjustment['adjusted'] != bool(matched) or recorded_original != original or
+                recorded_selected != selected or recorded_omitted != omitted or recorded_matches != matches):
+                raise ComparisonUnavailable('Original target-bullet adjustment context is unavailable')
+        else:
+            # Uploaded-source comparisons do not supply the target profile's full source
+            # rows here. Validate the saved partition and recompute included bullets.
+            target_rows=[row for row in target['facts_used'] if row['kind'] in tailor.TARGET_BULLET_FACT_KINDS]
+            target_matches=tailor.matched_labels(target_rows,{'skills':skills})
+            if (any(recorded_matches[identifier] != target_matches[identifier] for identifier in target_bullets) or
+                (adjustment['adjusted'] and (not recorded_selected or
+                    any(not recorded_matches[identifier] for identifier in recorded_selected) or
+                    any(recorded_matches[identifier] for identifier in recorded_omitted))) or
+                (not adjustment['adjusted'] and (recorded_selected != recorded_original or
+                    recorded_omitted or any(recorded_matches.values())))):
+                raise ComparisonUnavailable('Original target-bullet adjustment context is unavailable')
     return context
 
 
@@ -148,8 +197,11 @@ def compare_resumes(store, output_dir, application_id, base_document_id, tailore
     base=rows.get(base_document_id);target=rows.get(tailored_document_id)
     if (not base or base['kind']!='resume' or contract_role(base['template'],base['generation_model'],allow_legacy_unrecorded=True)!='BASE'):
         raise ComparisonUnavailable('Choose a recorded generated base and tailored resume from this application')
-    context=tailored_context(target)
     before=read_generated_snapshot(store,output_dir,base);after=read_generated_snapshot(store,output_dir,target)
+    # Tailoring decisions are bound to the target's generation-time profile snapshot,
+    # which may differ from the older generated base being compared.
+    target_profile=store.profile(target['profile_id'],target['profile_version'])
+    context=tailored_context(target,tailor.eligible_rows(target_profile))
     return {'base':before,'tailored':after,
             **compare_facts(before['facts'],after['facts'],context['matched_skills']),
             'contact_changed':before['contact']!=after['contact'],

@@ -35,6 +35,150 @@ class ResumeComparisonTests(unittest.TestCase):
         target=next(r for r in rows if r['kind']=='resume' and r['version']==2)
         return app,base,target
 
+    def test_tailored_resume_selects_exact_target_skill_bullets_and_records_omissions(self):
+        source = PROFILE['facts'][0]
+        facts = [
+            dict(source, id='summary', kind='summary', text='Systems administrator.'),
+            dict(source, id='python', kind='skill', text='Python'),
+            dict(source, id='sql', kind='skill', text='SQL'),
+            dict(source, id='postgres-experience', kind='technology_experience',
+                 text='Administered PostgreSQL for six teams.'),
+            dict(source, id='certificate', kind='certification', text='Certified systems administrator.'),
+            dict(source, id='responsibility-match', kind='responsibility',
+                 text='Built Python APIs for internal teams.'),
+            dict(source, id='responsibility-unmatched', kind='responsibility',
+                 text='Managed VMware hosts for regional offices.'),
+            dict(source, id='experience-match', kind='experience',
+                 text='Supported Python automation across six clinics.'),
+            dict(source, id='experience-unmatched', kind='experience',
+                 text='Maintained Windows Server environments.'),
+            dict(source, id='project-match', kind='project',
+                 text='Created a Python inventory report for 12 sites.'),
+            dict(source, id='project-unmatched', kind='project',
+                 text='Built a Hyper-V lab for six teams.'),
+            dict(source, id='accomplishment-match', kind='accomplishment',
+                 text='Improved Python job processing by 20%.'),
+            dict(source, id='accomplishment-unmatched', kind='accomplishment',
+                 text='Reduced VMware recovery time by 10%.'),
+            dict(source, id='unapproved-python', kind='responsibility',
+                 text='Led Python operations for 20 teams.', verified=False,
+                 user_approved=False),
+        ]
+        original_profile = dict(PROFILE, facts=facts)
+        self.store.save_profile(original_profile)
+        profile_before = self.store.profile('fixture')
+        with fixture_server() as origin:
+            discover(self.store, origin, 'fixture')
+        job = self.store.jobs()[0]
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.id == job['id']).values(skills=['Python']))
+        application_id = prepare(self.store, job['id'], 'fixture', self.root)
+        base_rows = application_documents(self.store, application_id)
+        base_resume = next(row for row in base_rows if row['kind'] == 'resume')
+        base_letter = next(row for row in base_rows if row['kind'] == 'cover-letter')
+
+        prepare(self.store, job['id'], 'fixture', self.root, tailor_resume=True)
+
+        rows = application_documents(self.store, application_id)
+        tailored = next(row for row in rows if row['kind'] == 'resume' and row['version'] == 2)
+        tailored_letter = next(row for row in rows if row['kind'] == 'cover-letter' and row['version'] == 2)
+        self.assertEqual(set(tailored['fact_ids']), {
+            'summary', 'python', 'sql', 'postgres-experience', 'certificate',
+            'responsibility-match', 'experience-match', 'project-match', 'accomplishment-match',
+        })
+        text = (self.root / application_id / tailored['files']['txt']).read_text(encoding='utf-8')
+        for fact_id in ('responsibility-unmatched', 'experience-unmatched', 'project-unmatched',
+                        'accomplishment-unmatched', 'unapproved-python'):
+            fact = next(row for row in facts if row['id'] == fact_id)
+            self.assertNotIn(fact['text'], text)
+        for fact_id in ('summary', 'postgres-experience', 'sql', 'certificate'):
+            fact = next(row for row in facts if row['id'] == fact_id)
+            self.assertIn(fact['text'], text)
+
+        context = tailored['generation_context']['bullet_adjustment']
+        self.assertEqual(context['mode'], 'EXACT_TARGET_SKILL_BULLET_FACTS')
+        self.assertTrue(context['adjusted'])
+        self.assertEqual(context['selected_bullet_fact_ids'], [
+            'responsibility-match', 'experience-match', 'project-match', 'accomplishment-match',
+        ])
+        self.assertEqual(context['omitted_bullet_fact_ids'], [
+            'responsibility-unmatched', 'experience-unmatched', 'project-unmatched',
+            'accomplishment-unmatched',
+        ])
+        self.assertEqual(self.store.profile('fixture'), profile_before)
+        self.assertEqual(
+            (self.root / application_id / base_letter['files']['txt']).read_bytes(),
+            (self.root / application_id / tailored_letter['files']['txt']).read_bytes(),
+        )
+
+        with TestClient(create_app(self.store, 'http://127.0.0.1:1', self.root, operation_mode='FIXTURE')) as client:
+            response = client.get(f'/profiles/fixture/applications/{application_id}/document-comparison', params={
+                'base_document_id': base_resume['id'], 'tailored_document_id': tailored['id'],
+            })
+        self.assertEqual(response.status_code, 200, response.text)
+        comparison = response.json()
+        self.assertEqual({row['fact_id'] for row in comparison['omitted']}, {
+            'responsibility-unmatched', 'experience-unmatched', 'project-unmatched',
+            'accomplishment-unmatched',
+        })
+        self.assertEqual(comparison['added'], [])
+        from services.documents.comparison import ComparisonUnavailable, tailored_context
+        from services.documents.tailor import eligible_rows
+        target_source = eligible_rows(self.store.profile(tailored['profile_id'], tailored['profile_version']))
+        changed_source = [dict(row, text='Built Ruby APIs for internal teams.')
+                          if row['fact_id'] == 'responsibility-match' else dict(row)
+                          for row in target_source]
+        with self.assertRaises(ComparisonUnavailable):
+            tailored_context(tailored, changed_source)
+        changed_identity = [dict(row, fact_id='replacement-id')
+                            if row['fact_id'] == 'project-unmatched' else dict(row)
+                            for row in target_source]
+        with self.assertRaises(ComparisonUnavailable):
+            tailored_context(tailored, changed_identity)
+
+        reopened = type(self.store)(self.store.url)
+        try:
+            durable = application_documents(reopened, application_id)
+            loaded_tailored = next(row for row in durable if row['id'] == tailored['id'])
+            self.assertEqual(loaded_tailored['fact_ids'], tailored['fact_ids'])
+            self.assertEqual(loaded_tailored['generation_context']['bullet_adjustment'], context)
+        finally:
+            reopened.engine.dispose()
+
+    def test_target_bullet_no_match_fallback_and_explicit_selection_precedence(self):
+        source = PROFILE['facts'][0]
+        facts = [
+            dict(source, id='python', kind='skill', text='Python'),
+            dict(source, id='summary', kind='summary', text='Systems administrator.'),
+            dict(source, id='responsibility-unmatched', kind='responsibility', text='Administered VMware hosts.'),
+            dict(source, id='project-unmatched', kind='project', text='Built a Hyper-V lab.'),
+            dict(source, id='unapproved-python', kind='accomplishment', text='Built Python automation.',
+                 verified=False, user_approved=False),
+        ]
+        self.store.save_profile(dict(PROFILE, facts=facts))
+        profile_before = self.store.profile('fixture')
+        with fixture_server() as origin:
+            discover(self.store, origin, 'fixture')
+        job = self.store.jobs()[0]
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.id == job['id']).values(skills=['Python']))
+        application_id = prepare(self.store, job['id'], 'fixture', self.root)
+
+        prepare(self.store, job['id'], 'fixture', self.root, tailor_resume=True)
+        rows = application_documents(self.store, application_id)
+        fallback = next(row for row in rows if row['kind'] == 'resume' and row['version'] == 2)
+        self.assertEqual(set(fallback['fact_ids']), {'python', 'summary', 'responsibility-unmatched', 'project-unmatched'})
+        self.assertFalse(fallback['generation_context']['bullet_adjustment']['adjusted'])
+        self.assertEqual(fallback['generation_context']['bullet_adjustment']['omitted_bullet_fact_ids'], [])
+
+        prepare(self.store, job['id'], 'fixture', self.root, tailor_resume=True,
+                tailor_fact_ids=['project-unmatched'])
+        rows = application_documents(self.store, application_id)
+        explicit = next(row for row in rows if row['kind'] == 'resume' and row['version'] == 3)
+        self.assertEqual(explicit['fact_ids'], ['project-unmatched'])
+        self.assertNotIn('bullet_adjustment', explicit['generation_context'])
+        self.assertEqual(self.store.profile('fixture'), profile_before)
+
     def test_comparison_uses_immutable_inputs_after_live_profile_changes(self):
         app,base,target=self.pair()
         with TestClient(create_app(self.store,'http://127.0.0.1:1',self.root,operation_mode='FIXTURE')) as client:

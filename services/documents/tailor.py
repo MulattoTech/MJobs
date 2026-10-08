@@ -10,6 +10,7 @@ from services.documents.errors import PreparationError
 REWRITABLE_RESUME_FACT_KINDS = {
     'summary', 'responsibility', 'experience', 'accomplishment', 'project', 'technology_experience'
 }
+TARGET_BULLET_FACT_KINDS = {'responsibility', 'experience', 'project', 'accomplishment'}
 
 
 def _validate_user_rewrites(facts, selected_fact_ids, rewrites, *, allowed_kinds, include_kind):
@@ -181,6 +182,27 @@ def select_summary_rows(facts, job):
         'selected_summary_fact_ids':[row['fact_id'] for row in summaries if row['fact_id'] in selected],
         'omitted_summary_fact_ids':[row['fact_id'] for row in summaries if row['fact_id'] not in selected],
         'matched_skills':matches,
+    }
+
+
+def select_bullet_rows(facts, job):
+    """Prefer only approved bullets with exact job-skill evidence when any match."""
+    bullets = [row for row in facts if row['kind'] in TARGET_BULLET_FACT_KINDS]
+    matches = matched_labels(bullets, job)
+    original_ids = [row['fact_id'] for row in bullets]
+    matched_ids = [identifier for identifier in original_ids if matches[identifier]]
+    adjusted = bool(matched_ids)
+    selected_ids = matched_ids if adjusted else original_ids
+    selected = set(selected_ids)
+    result = [row for row in facts if row['kind'] not in TARGET_BULLET_FACT_KINDS or
+              row['fact_id'] in selected]
+    return result, {
+        'mode': 'EXACT_TARGET_SKILL_BULLET_FACTS',
+        'adjusted': adjusted,
+        'original_bullet_fact_ids': original_ids,
+        'selected_bullet_fact_ids': selected_ids,
+        'omitted_bullet_fact_ids': [identifier for identifier in original_ids if identifier not in selected],
+        'matched_skills': matches,
     }
 
 

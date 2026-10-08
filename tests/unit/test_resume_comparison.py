@@ -3,6 +3,27 @@ from services.documents.comparison import compare_facts
 
 
 class ResumeComparisonUnitTests(unittest.TestCase):
+    def test_target_bullet_selection_uses_exact_skill_boundaries_and_falls_back(self):
+        from services.documents.tailor import select_bullet_rows
+
+        rows = [
+            {'fact_id': 'match', 'kind': 'responsibility', 'text': 'Built Python APIs.'},
+            {'fact_id': 'boundary', 'kind': 'project', 'text': 'Created Pythonic tooling.'},
+            {'fact_id': 'non-bullet', 'kind': 'technology_experience', 'text': 'Administered VMware.'},
+        ]
+        selected, adjustment = select_bullet_rows(rows, {'skills': ['Python']})
+
+        self.assertEqual([row['fact_id'] for row in selected], ['match', 'non-bullet'])
+        self.assertTrue(adjustment['adjusted'])
+        self.assertEqual(adjustment['matched_skills'], {'match': ['Python'], 'boundary': []})
+        self.assertEqual(adjustment['omitted_bullet_fact_ids'], ['boundary'])
+
+        selected, adjustment = select_bullet_rows(rows, {'skills': ['Go']})
+        self.assertEqual(selected, rows)
+        self.assertFalse(adjustment['adjusted'])
+        self.assertEqual(adjustment['selected_bullet_fact_ids'], ['match', 'boundary'])
+        self.assertEqual(adjustment['omitted_bullet_fact_ids'], [])
+
     def test_user_reviewed_experience_rewrite_is_source_bound_and_fact_safe(self):
         import hashlib
         from services.documents.tailor import apply_saved_user_rewrites, validate_user_rewrites

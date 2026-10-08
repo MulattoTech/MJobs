@@ -24,6 +24,141 @@ from workers.tasks import execute_operation
 
 
 class SkillOrderBrowserTests(unittest.TestCase):
+    def test_target_bullet_fallback_explicit_precedence_and_reload(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            store = Store(f"sqlite:///{(root / 'target-bullets.db').as_posix()}")
+            store.migrate()
+            store.bind_workspace_mode('FIXTURE')
+            source = PROFILE['facts'][0]
+            facts = [
+                dict(source, id='python', kind='skill', text='Python'),
+                dict(source, id='summary', kind='summary', text='Systems administrator.'),
+                dict(source, id='responsibility-unmatched', kind='responsibility', text='Administered VMware hosts.'),
+                dict(source, id='project-unmatched', kind='project', text='Built a Hyper-V lab.'),
+                dict(source, id='unapproved-python', kind='responsibility', text='Built Python automation.',
+                     verified=False, user_approved=False),
+            ]
+            store.save_profile(dict(PROFILE, facts=facts))
+            profile_before = store.profile('fixture')
+            with fixture_server() as fixture:
+                discover(store, fixture, 'fixture')
+            job = store.jobs()[0]
+            with store.engine.begin() as connection:
+                connection.execute(update(m.jobs).where(m.jobs.c.id == job['id']).values(skills=['Python']))
+            application_id = prepare(store, job['id'], 'fixture', root)
+            base_letter = next(row for row in application_documents(store, application_id)
+                               if row['kind'] == 'cover-letter')
+            base_letter_bytes = (root / application_id / base_letter['files']['txt']).read_bytes()
+
+            sock = bound_browser_socket()
+            origin = f'http://127.0.0.1:{sock.getsockname()[1]}'
+            app = create_app(store, 'http://127.0.0.1:1', root, 'redis://127.0.0.1:1/0', operation_mode='FIXTURE')
+            server = uvicorn.Server(uvicorn.Config(app, log_level='error'))
+            thread = threading.Thread(target=server.run, kwargs={'sockets': [sock]}, daemon=True)
+            thread.start()
+            try:
+                deadline = time.monotonic() + 10
+                while not server.started:
+                    if not thread.is_alive() or time.monotonic() > deadline:
+                        self.fail('Target-bullet test API did not start')
+                    time.sleep(.02)
+                with sync_playwright() as playwright:
+                    browser = playwright.chromium.launch(headless=True)
+                    context = browser.new_context(accept_downloads=True)
+                    external = []
+
+                    def local_only(route):
+                        if urlsplit(route.request.url).netloc != urlsplit(origin).netloc:
+                            external.append(route.request.url)
+                            route.abort()
+                        else:
+                            route.continue_()
+
+                    context.route('**/*', local_only)
+                    page = context.new_page()
+                    page.set_default_timeout(5000)
+                    page.goto(origin)
+                    page.get_by_label('Active profile', exact=True).select_option('fixture')
+                    page.get_by_role('button').filter(has=page.get_by_role('heading', name=job['title'], exact=True)).click()
+                    page.get_by_label('Order approved skills for this job', exact=True).check()
+                    with page.expect_response(lambda response: response.url == origin + '/applications' and
+                                              response.request.method == 'POST') as event:
+                        page.get_by_role('button', name='Prepare documents', exact=True).click()
+                    operation = event.value.json()
+                    with patch.dict('os.environ', MJOBS_DATABASE_URL=store.url,
+                                    MJOBS_MOCK_ORIGIN='http://127.0.0.1:1', MJOBS_OUTPUT_DIR=str(root),
+                                    MJOBS_OPERATION_MODE='FIXTURE'):
+                        self.assertEqual(execute_operation(operation['operation_id'])['status'], 'COMPLETED')
+                    fallback_document = page.get_by_role('region', name='resume version 2', exact=True)
+                    with page.expect_download() as fallback_download:
+                        fallback_document.get_by_role('link', name='Download TXT', exact=True).click()
+                    fallback_text = Path(fallback_download.value.path()).read_text(encoding='utf-8')
+                    self.assertIn('Administered VMware hosts.', fallback_text)
+                    self.assertIn('Built a Hyper-V lab.', fallback_text)
+                    self.assertNotIn('Built Python automation.', fallback_text)
+                    page.reload()
+                    page.get_by_role('navigation').get_by_role('button', name='Applications', exact=False).first.click()
+                    page.locator('.job-card').first.click()
+                    fallback_document = page.get_by_role('region', name='resume version 2', exact=True)
+                    expect(fallback_document).to_be_visible()
+                    comparison = page.get_by_role('region', name='Compare base and tailored resumes', exact=True)
+                    comparison.get_by_role('button', name='Compare selected resumes', exact=True).click()
+                    expect(comparison.get_by_role('region', name='Content omitted', exact=True)).to_contain_text(
+                        'No content omitted.')
+
+                    page.get_by_role('navigation').get_by_role('button', name='Jobs', exact=False).click()
+                    page.get_by_role('button').filter(has=page.get_by_role('heading', name=job['title'], exact=True)).click()
+                    page.get_by_label('Order approved skills for this job', exact=True).check()
+                    page.get_by_label('Choose resume facts', exact=True).check()
+                    page.get_by_label('Include Python', exact=True).uncheck()
+                    page.get_by_label('Include Systems administrator.', exact=True).uncheck()
+                    page.get_by_label('Include Administered VMware hosts.', exact=True).uncheck()
+                    page.get_by_label('Include Built a Hyper-V lab.', exact=True).check()
+                    with page.expect_response(lambda response: response.url == origin + '/applications' and
+                                              response.request.method == 'POST') as event:
+                        page.get_by_role('button', name='Prepare documents', exact=True).click()
+                    operation = event.value.json()
+                    queued = event.value.request.post_data_json
+                    self.assertEqual(queued['tailor_fact_ids'], ['project-unmatched'])
+                    with patch.dict('os.environ', MJOBS_DATABASE_URL=store.url,
+                                    MJOBS_MOCK_ORIGIN='http://127.0.0.1:1', MJOBS_OUTPUT_DIR=str(root),
+                                    MJOBS_OPERATION_MODE='FIXTURE'):
+                        self.assertEqual(execute_operation(operation['operation_id'])['status'], 'COMPLETED')
+                    explicit_document = page.get_by_role('region', name='resume version 3', exact=True)
+                    with page.expect_download() as explicit_download:
+                        explicit_document.get_by_role('link', name='Download TXT', exact=True).click()
+                    explicit_text = Path(explicit_download.value.path()).read_text(encoding='utf-8')
+                    self.assertIn('Built a Hyper-V lab.', explicit_text)
+                    self.assertNotIn('Administered VMware hosts.', explicit_text)
+                    history = application_documents(store, application_id)
+                    explicit_row = next(row for row in history if row['kind'] == 'resume' and row['version'] == 3)
+                    page.reload()
+                    page.get_by_role('navigation').get_by_role('button', name='Applications', exact=False).first.click()
+                    page.locator('.job-card').first.click()
+                    expect(page.get_by_role('region', name='resume version 3', exact=True)).to_be_visible()
+                    comparison = page.get_by_role('region', name='Compare base and tailored resumes', exact=True)
+                    comparison.get_by_label('Tailored version', exact=True).select_option(explicit_row['id'])
+                    comparison.get_by_role('button', name='Compare selected resumes', exact=True).click()
+                    omitted = comparison.get_by_role('region', name='Content omitted', exact=True)
+                    expect(omitted).to_contain_text('Administered VMware hosts.')
+                    expect(omitted).to_contain_text('Python')
+                    expect(omitted).to_contain_text('Systems administrator.')
+                    self.assertEqual(store.profile('fixture'), profile_before)
+                    current_letter = next(row for row in application_documents(store, application_id)
+                                          if row['kind'] == 'cover-letter' and row['version'] == 3)
+                    self.assertEqual((root / application_id / current_letter['files']['txt']).read_bytes(),
+                                     base_letter_bytes)
+                    self.assertFalse(external)
+                    context.close()
+                    browser.close()
+            finally:
+                server.should_exit = True
+                thread.join(timeout=10)
+                sock.close()
+                store.engine.dispose()
+                self.assertFalse(thread.is_alive())
+
     def test_explicit_ordering_reaches_worker_and_download(self):
         with tempfile.TemporaryDirectory() as directory:
             root=Path(directory);store=Store(f"sqlite:///{(root/'test.db').as_posix()}")

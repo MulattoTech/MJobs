@@ -17,6 +17,10 @@ BULLET_TAILORED_TEMPLATE = TAILORED_TEMPLATE
 BULLET_TAILORED_MODEL = TAILORED_MODEL
 TAILORED_TEMPLATE = 'approved-summary-skill-and-bullet-emphasis-v3'
 TAILORED_MODEL = 'deterministic-summary-skill-and-bullet-emphasis-v2'
+SUMMARY_BULLET_TAILORED_TEMPLATE = TAILORED_TEMPLATE
+SUMMARY_BULLET_TAILORED_MODEL = TAILORED_MODEL
+TAILORED_TEMPLATE = 'approved-target-relevant-bullets-summary-skill-and-bullet-emphasis-v4'
+TAILORED_MODEL = 'deterministic-target-relevant-bullets-summary-skill-order-v3'
 SELECTION_TEMPLATE = 'approved-selection-and-bullet-emphasis-v2'
 SELECTION_MODEL = 'deterministic-fact-selection-and-bullet-emphasis-v1'
 LEGACY_REPHRASE_TEMPLATE = 'approved-selection-user-rephrase-v1'
@@ -24,16 +28,22 @@ LEGACY_REPHRASE_MODEL = 'user-reviewed-factual-rephrase-v1'
 REPHRASE_TEMPLATE = 'approved-selection-user-reviewed-adjustment-v2'
 REPHRASE_MODEL = 'user-reviewed-factual-adjustment-v2'
 SELECTION_TEMPLATES = {SELECTION_TEMPLATE, REPHRASE_TEMPLATE, LEGACY_REPHRASE_TEMPLATE, LEGACY_SELECTION_TEMPLATE, 'approved-fact-selection-headings-v1'}
-EMPHASIS_TEMPLATES = {TAILORED_TEMPLATE, BULLET_TAILORED_TEMPLATE, LEGACY_TAILORED_TEMPLATE, SELECTION_TEMPLATE, REPHRASE_TEMPLATE, LEGACY_REPHRASE_TEMPLATE, LEGACY_SELECTION_TEMPLATE}
-RESPONSIBILITY_EMPHASIS_TEMPLATES = {TAILORED_TEMPLATE, BULLET_TAILORED_TEMPLATE, SELECTION_TEMPLATE, REPHRASE_TEMPLATE, LEGACY_REPHRASE_TEMPLATE}
-SUMMARY_TAILORING_TEMPLATES = {TAILORED_TEMPLATE}
+EMPHASIS_TEMPLATES = {TAILORED_TEMPLATE, SUMMARY_BULLET_TAILORED_TEMPLATE, BULLET_TAILORED_TEMPLATE, LEGACY_TAILORED_TEMPLATE, SELECTION_TEMPLATE, REPHRASE_TEMPLATE, LEGACY_REPHRASE_TEMPLATE, LEGACY_SELECTION_TEMPLATE}
+RESPONSIBILITY_EMPHASIS_TEMPLATES = {TAILORED_TEMPLATE, SUMMARY_BULLET_TAILORED_TEMPLATE, BULLET_TAILORED_TEMPLATE, SELECTION_TEMPLATE, REPHRASE_TEMPLATE, LEGACY_REPHRASE_TEMPLATE}
+SUMMARY_TAILORING_TEMPLATES = {SUMMARY_BULLET_TAILORED_TEMPLATE, TAILORED_TEMPLATE}
+TARGET_BULLET_TAILORING_TEMPLATES = {TAILORED_TEMPLATE}
 CONTACT_PAIRS = {
     BASE_TEMPLATE: ('approved-contact-base-v1', 'deterministic-contact-copy-v1'),
     BULLET_TAILORED_TEMPLATE: ('approved-contact-skill-and-bullet-emphasis-v2', 'deterministic-contact-skill-and-bullet-emphasis-v1'),
+    SUMMARY_BULLET_TAILORED_TEMPLATE: ('approved-contact-summary-skill-and-bullet-emphasis-v3', 'deterministic-contact-summary-skill-and-bullet-emphasis-v2'),
     TAILORED_TEMPLATE: ('approved-contact-summary-skill-and-bullet-emphasis-v3', 'deterministic-contact-summary-skill-and-bullet-emphasis-v2'),
     SELECTION_TEMPLATE: ('approved-contact-selection-and-bullet-emphasis-v2', 'deterministic-contact-selection-and-bullet-emphasis-v1'),
     REPHRASE_TEMPLATE: ('approved-contact-selection-user-reviewed-adjustment-v2', 'user-reviewed-factual-adjustment-v2'),
 }
+CONTACT_PAIRS[TAILORED_TEMPLATE] = (
+    'approved-contact-target-relevant-bullets-summary-skill-and-bullet-emphasis-v4',
+    'deterministic-contact-target-relevant-bullets-summary-skill-order-v3',
+)
 LEGACY_CONTACT_PAIRS = {
     LEGACY_TAILORED_TEMPLATE: ('approved-contact-emphasis-v1', 'deterministic-contact-order-v1'),
     LEGACY_SELECTION_TEMPLATE: ('approved-contact-selection-v1', 'deterministic-contact-selection-v1'),
@@ -48,9 +58,10 @@ SELECTION_TEMPLATES.add(LEGACY_REPHRASE_TEMPLATE)
 SELECTION_TEMPLATES.add(LEGACY_CONTACT_PAIRS[LEGACY_REPHRASE_TEMPLATE][0])
 SELECTION_TEMPLATES.add(LEGACY_CONTACT_PAIRS[LEGACY_SELECTION_TEMPLATE][0])
 EMPHASIS_TEMPLATES.update(pair[0] for pair in (*CONTACT_PAIRS.values(), *LEGACY_CONTACT_PAIRS.values()) if pair[0] != CONTACT_PAIRS[BASE_TEMPLATE][0])
-RESPONSIBILITY_EMPHASIS_TEMPLATES.update(pair[0] for template,pair in CONTACT_PAIRS.items() if template in (TAILORED_TEMPLATE,BULLET_TAILORED_TEMPLATE,SELECTION_TEMPLATE,REPHRASE_TEMPLATE))
+RESPONSIBILITY_EMPHASIS_TEMPLATES.update(pair[0] for template,pair in CONTACT_PAIRS.items() if template in (TAILORED_TEMPLATE,SUMMARY_BULLET_TAILORED_TEMPLATE,BULLET_TAILORED_TEMPLATE,SELECTION_TEMPLATE,REPHRASE_TEMPLATE))
 RESPONSIBILITY_EMPHASIS_TEMPLATES.add(LEGACY_CONTACT_PAIRS[LEGACY_REPHRASE_TEMPLATE][0])
-SUMMARY_TAILORING_TEMPLATES.update(pair[0] for template,pair in CONTACT_PAIRS.items() if template==TAILORED_TEMPLATE)
+SUMMARY_TAILORING_TEMPLATES.update(pair[0] for template,pair in CONTACT_PAIRS.items() if template in (TAILORED_TEMPLATE,SUMMARY_BULLET_TAILORED_TEMPLATE))
+TARGET_BULLET_TAILORING_TEMPLATES.update(pair[0] for template,pair in CONTACT_PAIRS.items() if template==TAILORED_TEMPLATE)
 CONTRACTS = {
     'verified-facts-v1': ('deterministic-fact-copy-v1', 'BASE', False),
     'approved-skill-order-v1': ('deterministic-skill-order-v1', 'TAILORED', False),
@@ -58,6 +69,7 @@ CONTRACTS = {
     'approved-fact-selection-headings-v1': ('deterministic-fact-selection-v1', 'TAILORED', True),
     BASE_TEMPLATE: (BASE_MODEL, 'BASE', True),
     LEGACY_TAILORED_TEMPLATE: (LEGACY_TAILORED_MODEL, 'TAILORED', True),
+    SUMMARY_BULLET_TAILORED_TEMPLATE: (SUMMARY_BULLET_TAILORED_MODEL, 'TAILORED', True),
     LEGACY_SELECTION_TEMPLATE: (LEGACY_SELECTION_MODEL, 'TAILORED', True),
     TAILORED_TEMPLATE: (TAILORED_MODEL, 'TAILORED', True),
     BULLET_TAILORED_TEMPLATE: (BULLET_TAILORED_MODEL, 'TAILORED', True),

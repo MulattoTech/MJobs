@@ -63,6 +63,8 @@ export function ResumeComparison({documents}:{documents:GeneratedDocument[]}) {
     (row.template==='approved-contact-skill-and-bullet-emphasis-v2'&&row.generation_model==='deterministic-contact-skill-and-bullet-emphasis-v1')||
     (row.template==='approved-summary-skill-and-bullet-emphasis-v3'&&row.generation_model==='deterministic-summary-skill-and-bullet-emphasis-v2')||
     (row.template==='approved-contact-summary-skill-and-bullet-emphasis-v3'&&row.generation_model==='deterministic-contact-summary-skill-and-bullet-emphasis-v2')||
+    (row.template==='approved-target-relevant-bullets-summary-skill-and-bullet-emphasis-v4'&&row.generation_model==='deterministic-target-relevant-bullets-summary-skill-order-v3')||
+    (row.template==='approved-contact-target-relevant-bullets-summary-skill-and-bullet-emphasis-v4'&&row.generation_model==='deterministic-contact-target-relevant-bullets-summary-skill-order-v3')||
     (row.template==='approved-contact-selection-and-bullet-emphasis-v2'&&row.generation_model==='deterministic-contact-selection-and-bullet-emphasis-v1')||
     (row.template==='approved-selection-user-rephrase-v1'&&row.generation_model==='user-reviewed-factual-rephrase-v1')||
     (row.template==='approved-contact-selection-user-rephrase-v1'&&row.generation_model==='user-reviewed-factual-rephrase-v1')||
