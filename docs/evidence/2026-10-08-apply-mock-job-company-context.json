@@ -13,13 +13,13 @@
   "evidence_inputs": {
     "workers/tasks.py": "25d25724985274a4208c6a6c4e1a1dc7fb0c8d4923222de2e466472483e36d96",
     "workers/structured_logging.py": "1e6d4f0f2c37dbdb13d7d8fc589f04d933b8e1167c4b7c5d44cbea1e6538a43a",
-    "tests/unit/test_structured_logging.py": "5f682e22a1fb65046ecc3383784b84def5cdfE654b9db4e0283c5e2355fc1ac6",
+    "tests/unit/test_structured_logging.py": "5f682e22a1fb65046ecc3383784b84def5cdfe654b9db4e0283c5e2355fc1ac6",
     "tests/integration/test_worker_lifecycle.py": "157d812c3bd9048d48f2e2f25f8965dbaaf24888f89a692370a7ddd921b1249f"
   },
   "validation": {
     "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_structured_logging tests.integration.test_worker_lifecycle",
     "runtime": "Python 3.12.10; SQLAlchemy 2.1.1; synthetic SQLite fixture",
-    "result": "PASS: 34 tests, 0 failures/errors, 1 optional PostgreSQL recovery class skipped",
+    "result": "PASS: 33 passed, 1 skipped (34 discovered), 0 failures/errors",
     "skip_reason": "MJOBS_WORKER_RECOVERY_POSTGRES_URL is unset",
     "additional_checks": {
       "git_diff_check": "PASS",
