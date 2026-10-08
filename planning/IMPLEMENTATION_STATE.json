@@ -11460,7 +11460,9 @@
       "last_safe_checkpoint": {
         "git_commit": "09449f4cc3b14cf5f7f351b1fb9d845580deb7f3",
         "tree": "e04f31ef44d3bb66952bfb4a95279f6eeb09d781",
-        "evidence_path": "docs/evidence/2026-10-08-posted-date-search-filter.json"
+        "evidence_path": "docs/evidence/2026-10-08-posted-date-search-filter.json",
+        "integration_receipt": "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6060235796",
+        "note": "Local and origin main synchronized at 7a6130610e1a2baa6c36f24ea5d51f856e4629b1; posted-date feature acceptance is recorded at code checkpoint 09449f4, evidence pins exact source 6f2f722."
       }
     }
   ],
@@ -11468,7 +11470,9 @@
   "last_safe_checkpoint": {
     "git_commit": "09449f4cc3b14cf5f7f351b1fb9d845580deb7f3",
     "tree": "e04f31ef44d3bb66952bfb4a95279f6eeb09d781",
-    "evidence_path": "docs/evidence/2026-10-08-posted-date-search-filter.json"
+    "evidence_path": "docs/evidence/2026-10-08-posted-date-search-filter.json",
+    "integration_receipt": "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6060235796",
+    "note": "Local and origin main synchronized at 7a6130610e1a2baa6c36f24ea5d51f856e4629b1; posted-date feature acceptance is recorded at code checkpoint 09449f4, evidence pins exact source 6f2f722."
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -12961,7 +12965,7 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-08T12:44:26Z",
-  "current_verified_local_state": "Root integrated #190 / MJ-REQ-189 posted-date filter at local main 09449f4cc3b14cf5f7f351b1fb9d845580deb7f3 (tree e04f31ef44d3bb66952bfb4a95279f6eeb09d781); evidence pins tested code 6f2f722df3d893c3d0c33ca0420fdfb78238468b/tree ebb24f2746d1557492271248f34b55903cc12884. Tests: saved-filter integration 12/12, connected browser 1/1, frontend 103/103, build/compile/skills PASS; local review PASS. PostgreSQL/hosted NOT_RUN. Local origin push and tracker checkpoint in progress.",
-  "current_verified_github_state": "Origin/GitHub main remains cf415ef649ad33b45e83afcddf36bf3d9769d506 pending the accepted local-only fast-forward publication; no hosted Actions/review requested or enabled. Issue #190 remains OPEN/PARTIAL; external submission OFF."
+  "updated_at": "2026-10-08T12:49:05Z",
+  "current_verified_local_state": "Main and origin/main were verified synchronized at 7a6130610e1a2baa6c36f24ea5d51f856e4629b1 after #190 / MJ-REQ-189 integration; the source feature is at 09449f4cc3b14cf5f7f351b1fb9d845580deb7f3 and exact tested code source 6f2f722df3d893c3d0c33ca0420fdfb78238468b. Tests: 12 saved-filter integration, 1 connected browser, 103 frontend, build/compile/skills/evidence/diff checks/local review PASS. Tracker is current at 83 PASS / 92 PARTIAL / 191 NOT_RUN; PostgreSQL/hosted NOT_RUN.",
+  "current_verified_github_state": "Verified GitHub default main and origin/main equal local main at 7a6130610e1a2baa6c36f24ea5d51f856e4629b1 after the accepted fast-forward. Integration receipt https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6060235796; #190 remains OPEN/PARTIAL; hosted automation/reviews disabled and submission OFF."
 }

@@ -5,13 +5,13 @@
   "preferred_model": "gpt-6-luna",
   "preferred_reasoning": "high",
   "session_id": "01a10ed8-5445-7b61-8293-43be1895ecc5",
-  "canonical_main_at_pause": "09449f4cc3b14cf5f7f351b1fb9d845580deb7f3",
+  "canonical_main_at_pause": "7a6130610e1a2baa6c36f24ea5d51f856e4629b1",
   "last_completed_issue": 190,
   "last_completed_requirement": "MJ-REQ-189 bounded posted-date filter; whole requirement PARTIAL.",
-  "last_integrated_head": "09449f4cc3b14cf5f7f351b1fb9d845580deb7f3",
+  "last_integrated_head": "7a6130610e1a2baa6c36f24ea5d51f856e4629b1",
   "next_issue": 96,
   "next_requirement": "MJ-REQ-095",
-  "resume_instruction": "#190 posted-date filtering is accepted on local main 09449f4cc3b14cf5f7f351b1fb9d845580deb7f3 with a current progress dashboard; finish ordinary origin sync and issue receipt. Preserve the unintegrated but completed #96/MJ-REQ-095 follow-up branch and claim for root exact-base reconciliation; no active Codex child writers. Preserve Antigravity #302 and Ollama #318, keep external submission OFF, and retain hosted checks disabled.",
+  "resume_instruction": "Local and origin main verified synchronized at 7a6130610e1a2baa6c36f24ea5d51f856e4629b1. #190 posted-date filter is integrated PARTIAL; receipt https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6060235796. Continue with a dependency-ready connected core feature after reconciling active claims. Preserve unintegrated #96 reviewed-fact tailoring branch/claim, external claims #302/#318, hosted checks disabled, and external submission OFF.",
   "external_submission_enabled": false,
   "github_actions_enabled": false,
   "last_validated_head": "4a3c16563c1dd389c6222c9751dacfbe1728d509",
@@ -37,16 +37,19 @@
   "last_verified_tree": "72a7c772bac5bf1ae9b2385b03e194f530c93e85",
   "last_verified_at_utc": "2026-10-08T09:28:27.190192Z",
   "last_verified_result": "Scoped root verification: application review combined suite 59 Python, 95 frontend, build; resume tailoring 21 focused Python/Chromium, 10 frontend, build and provenance checks; see integrated evidence.",
-  "updated_at": "2026-10-08T12:47:30Z",
+  "updated_at": "2026-10-08T12:49:05Z",
   "last_completed": {
     "issue": 190,
     "requirement_id": "MJ-REQ-189",
-    "integrated_main": "09449f4cc3b14cf5f7f351b1fb9d845580deb7f3",
+    "integrated_main": "7a6130610e1a2baa6c36f24ea5d51f856e4629b1",
     "issue_state": "OPEN/PARTIAL",
     "evidence_paths": [
       "docs/evidence/2026-10-08-posted-date-search-filter.json"
     ],
-    "local_validation": "12 integration, 1 connected browser, 103 frontend, build/compile/skill/hash/dashboard/catalogue/progress/diff checks PASS; local delegated review PASS; PostgreSQL/hosted NOT_RUN."
+    "local_validation": "12 integration, 1 connected browser, 103 frontend, build/compile/skill/hash/dashboard/catalogue/progress/diff checks PASS; local delegated review PASS; PostgreSQL/hosted NOT_RUN.",
+    "integration_comments": [
+      "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6060235796"
+    ]
   },
   "current_requirement": "MJ-REQ-095",
   "current_branch": "codex/mj-req095-reviewed-fact-tailoring-20261008",
@@ -55,7 +58,7 @@
   "last_integrated_issue": 137,
   "last_integrated_requirement": "MJ-REQ-136",
   "last_integrated_evidence": "docs/evidence/2026-10-08-application-preview.json",
-  "integrated_main": "fe4f2dc488b882d1cdf49a2faf3629d77ddc89be",
+  "integrated_main": "7a6130610e1a2baa6c36f24ea5d51f856e4629b1",
   "validation": {
     "result": "PASS (bounded local slice; issue remains PARTIAL)",
     "affected_python": "9 source-candidate API/integration/browser/migration tests PASS on exact integrated main",
@@ -66,7 +69,7 @@
     "hosted_checks": "NOT_RUN_BY_USER_POLICY",
     "external_submission": "OFF"
   },
-  "issue_claim_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6058600212",
+  "issue_claim_comment": "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6059983388",
   "active_children": [],
-  "last_issue_comment": "https://github.com/MulattoTech/MJobs/issues/137#issuecomment-6058001677"
+  "last_issue_comment": "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6060235796"
 }

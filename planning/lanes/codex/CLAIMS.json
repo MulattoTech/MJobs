@@ -1281,8 +1281,9 @@
       "claimed_at": "2026-10-08T12:35:00Z",
       "evidence_path": "docs/evidence/2026-10-08-posted-date-search-filter.json",
       "integrated_main": "09449f4cc3b14cf5f7f351b1fb9d845580deb7f3",
-      "released_at": "2026-10-08T12:47:30Z",
-      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6059983388"
+      "released_at": "2026-10-08T12:49:05Z",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6060235796",
+      "release_receipt": "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6060235796"
     }
   ]
 }

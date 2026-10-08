@@ -13,12 +13,15 @@
   "last_completed": {
     "issue": 190,
     "requirement_id": "MJ-REQ-189",
-    "integrated_main": "09449f4cc3b14cf5f7f351b1fb9d845580deb7f3",
+    "integrated_main": "7a6130610e1a2baa6c36f24ea5d51f856e4629b1",
     "issue_state": "OPEN/PARTIAL",
     "evidence_paths": [
       "docs/evidence/2026-10-08-posted-date-search-filter.json"
     ],
-    "validation": "12 integration, 1 browser, 103 frontend, build and local review PASS; PostgreSQL/hosted NOT_RUN."
+    "validation": "12 integration, 1 browser, 103 frontend, build and local review PASS; PostgreSQL/hosted NOT_RUN.",
+    "integration_comments": [
+      "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6060235796"
+    ]
   },
   "next_candidates": [
     {
@@ -32,7 +35,7 @@
     "Ollama/OpenCode active issue #318 paths: services/ats_detection/** and detector tests",
     "canonical planning and main outside integration lock"
   ],
-  "resume_instruction": "Local main feature checkpoint 09449f4 is integrated; tracker validation passes and progress is 83 PASS / 92 PARTIAL / 191 NOT_RUN. Sync origin and post issue receipt, then reconcile ready core candidates with GitHub/local claims. Issue #96 resume tailoring branch remains an active no-writer integration candidate. Preserve #302/#318; external submission OFF.",
+  "resume_instruction": "Local and origin main verified synchronized at 7a6130610e1a2baa6c36f24ea5d51f856e4629b1. #190 posted-date filter is integrated PARTIAL; receipt https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6060235796. Continue with a dependency-ready connected core feature after reconciling active claims. Preserve unintegrated #96 reviewed-fact tailoring branch/claim, external claims #302/#318, hosted checks disabled, and external submission OFF.",
   "last_verified_head": "d6a8f519ccc8cf6de3943effb2afc037fd89920b",
   "last_verified_tree": "c53080d034f7514d1a7fee994d5294f0cd77dec5",
   "last_verified_at_utc": "2026-10-08T11:42:38Z",
@@ -44,14 +47,14 @@
     "hosted_checks": "NOT_RUN_BY_USER_POLICY",
     "external_submission": "OFF"
   },
-  "last_integrated_head": "09449f4cc3b14cf5f7f351b1fb9d845580deb7f3",
+  "last_integrated_head": "7a6130610e1a2baa6c36f24ea5d51f856e4629b1",
   "last_verified_result": "PASS bounded #105 and #190 slices integrated/synchronized; full requirements remain PARTIAL.",
-  "updated_at": "2026-10-08T12:47:30Z",
-  "integrated_main": "09449f4cc3b14cf5f7f351b1fb9d845580deb7f3",
+  "updated_at": "2026-10-08T12:49:05Z",
+  "integrated_main": "7a6130610e1a2baa6c36f24ea5d51f856e4629b1",
   "last_integrated_issue": 190,
   "last_integrated_requirement": "MJ-REQ-189",
   "last_integrated_evidence": "docs/evidence/2026-10-08-posted-date-search-filter.json",
-  "canonical_main_at_pause": "d6a8f519ccc8cf6de3943effb2afc037fd89920b",
+  "canonical_main_at_pause": "7a6130610e1a2baa6c36f24ea5d51f856e4629b1",
   "last_completed_issue": 190,
   "last_completed_requirement": "MJ-REQ-189 bounded posted-date filter; whole requirement PARTIAL.",
   "next_issue": 123,
@@ -65,8 +68,8 @@
   "last_validated_result": "PASS: #105 exact source verified with 33 Python, 101 frontend, 4 browser tests/build; #190 exact source verified with 2 integration, 1 browser, 2 Vitest/build; delegated reviews PASS.",
   "current_requirement": "MJ-REQ-189",
   "last_integrated_tree": "c53080d034f7514d1a7fee994d5294f0cd77dec5",
-  "last_issue_comment": "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6059055310",
-  "issue_claim_comment": "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6059055310",
+  "last_issue_comment": "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6060235796",
+  "issue_claim_comment": "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6059983388",
   "owned_paths": [],
   "acceptance": "No active claim. Preserve exact issue acceptance and dependencies. #191 Salary direction/range/unit semantics require resolution; do not infer unknown compensation.",
   "active_children": []
