@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-FEATURE-517-SOURCE-CANDIDATE-ISSUE-LINK-20261008",
+  "issue": 517,
+  "requirement_id": "MJ-FEATURE-517",
+  "result": "PARTIAL",
+  "recorded_at_utc": "2026-10-08T06:18:53Z",
+  "branch": "codex/mj-feature-517-issue-link-20261008",
+  "base_commit": "49d9c95a1ce5827e9c1f10c7a7aba304a7ac313c",
+  "implementation_commit": "13adac0d601e2805a31da49a3bdcc46cc0289336",
+  "implementation_tree": "8d95fd1aea87362d832c90fc3b91a8da24cc775f",
+  "input_sha256": {
+    "apps/api/main.py": "108ad8e91d1ff369ac96cc113ed230f0b318e5998ad369c1fe43d2b748ba6bf2",
+    "apps/web/src/main.tsx": "1645f62cc59e5405d64300628d4202b40fcfa3b78b79df6703a067fa42d758a8",
+    "packages/persistence/models.py": "58ce811ad6b1a04271e77d35e44fb858235170d44bf07de9d1da4bd0e47e3974",
+    "services/source_candidates/catalogue.py": "e4e587e9dc2eefe6c4b97c1f2ed734055e2b0e99bad3e419902b7a94c00602e5",
+    "migrations/versions/8e2f4c6a1b93_source_candidate_review_issue_reference.py": "dddc7e5e7907d99d2fd298976ba2f841c3018c4195551a27eb9b1dd1b933169d",
+    "tests/integration/test_source_candidates.py": "fa245eb70970cf7c569a5ac0806e32f17cba24b35102201e476318797dba49ed",
+    "tests/browser/test_source_candidates.py": "803aa32696861ce12bd7730aa031935362e38b8dd09ff466c4f288fcd61bc78a"
+  },
+  "acceptance": {
+    "profile_scoped_existing_issue_link": "PASS - Queueing an existing candidate review with a user-supplied positive bounded issue number persists the reference on its review event and current candidate, scoped to the requested profile.",
+    "provenance_and_reload": "PASS - API and connected Chromium browser show the issue number as user supplied and not externally verified. Reload preserves the aggregate and review-history reference.",
+    "idempotency_and_conflicts": "PASS - Replaying the same request is idempotent. Reusing its request identifier with a different issue number returns conflict. Older history retains the reference after a later review clears the current candidate link.",
+    "negative_controls": "PASS - Zero, oversized and boolean issue values are rejected; a reference supplied for a non-queued state is rejected; another profile cannot review the candidate; non-queued review clears aggregate linkage; collection remains disabled.",
+    "passive_boundary": "PASS - No GitHub/provider lookup, collector enablement, task creation or submission occurs. Browser test intercepts external requests and observes none."
+  },
+  "validation": {
+    "focused_command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_source_candidates tests.browser.test_source_candidates -v",
+    "focused_result": "PASS - 9 tests, 0 failures, 0 errors, 0 skips. Includes connected Chromium reload/profile isolation and an isolated temporary SQLite Alembic upgrade/readback/guarded-downgrade test.",
+    "web_unit_command": "npm test --prefix apps/web -- --run",
+    "web_unit_result": "PASS - 16 files, 94 tests, 0 failures.",
+    "web_build_command": "npm run build --prefix apps/web",
+    "web_build_result": "PASS - TypeScript check and Vite production build.",
+    "compileall": "PASS - Repository .venv Python compileall for changed Python modules and tests.",
+    "agent_skills": "PASS - Repository .venv Python -m tools.verification.agent_skills.",
+    "catalogue": "PASS - Repository .venv Python -m tools.verification.catalogue.",
+    "diff_check": "PASS - git diff --check and staged diff check.",
+    "postgresql": "NOT_RUN",
+    "hosted_checks_and_review": "NOT_RUN_BY_USER_POLICY"
+  },
+  "development_runs": "An initial invocation with the global Python 3.12 lacked the repository dependencies redis and playwright. The focused suite was rerun successfully with the repository .venv; no product changes were made for the environment mismatch.",
+  "environment": {
+    "os": "Windows",
+    "python": "Repository .venv Python 3.12",
+    "database": "Temporary SQLite databases only; synthetic profile and candidate data",
+    "browser": "Connected local Chromium via Playwright",
+    "external_submission": "OFF",
+    "production_credentials": "NOT_USED",
+    "provider_or_github_api_requests": "NONE"
+  },
+  "limitations": [
+    "The integer is intentionally not looked up or validated against any external issue tracker; USER_SUPPLIED_UNVERIFIED is explicit in API/UI provenance.",
+    "PostgreSQL migration execution and hosted checks/review were not run.",
+    "The implementation is a bounded source-candidate linkage slice; issue #517 remains OPEN/PARTIAL."
+  ],
+  "external_submission": "OFF"
+}
