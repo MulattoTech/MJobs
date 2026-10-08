@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-08T10:03:17Z",
+  "requirement_id": "MJ-REQ-139",
+  "issue": 140,
+  "scope": "Durable ordered mock application phase trace, failure-step persistence, and safe failure diagnostics.",
+  "result": "PARTIAL",
+  "requirement_status": "PARTIAL",
+  "branch": "codex/mj-req139-application-step-trace-20261008",
+  "base_commit": "e5fee45c0c3e074154ef523d252a2e78a2ffa2de",
+  "base_tree": "1364af93793e56fdc17fa79487032b7647dba844",
+  "source_commit": "959cd6e784a3c43d2b6d7d271748a286c0eeafdd",
+  "source_tree": "2b686c126dba91fbb00d0918773813565682ae66",
+  "test_environment": {
+    "os": "Windows",
+    "python": "repository .venv Python 3.12.10",
+    "database": "isolated temporary SQLite, reopened between persistence assertions",
+    "ats": "local synthetic MOCK fixture only"
+  },
+  "source_inputs_sha256": {
+    "services/applications/mock_adapter.py": "9E184203D09E25033D381C535CBEE7BD661A4C418F163034561594E20B9F57E7",
+    "services/applications/debug_capture.py": "7F19D1DC0B9573659A38F9806037141C0EBA84279C737F960301382EA5B50C16",
+    "tests/integration/test_application_pipeline.py": "DD59E5BBCAEEEB563DC11793E4E847252D7F283DEAE4F78A1D26058B310E3A2E",
+    "tests/browser/test_application_pipeline.py": "1523C8AF4E76FF180B4D9BF54F189675C72CD6A53DD62BC40DD0058B94000501",
+    "tests/browser/test_mock_application.py": "6D9D185AA6DE37467F26D5CFBA7FEE850CCA4959BD04730F9E5603D623D6F73B",
+    "tests/unit/test_browser_debug_capture.py": "3790D4950D380DCA0D9FADB33F45D9F1856E701474EC3747326114E2F4155C22",
+    "tests/browser/test_debug_capture_privacy.py": "1125C0DB12D587F9B50849FE138CFB259E633F97E83A333A69465083FA83B5CC",
+    "docs/spec/areas/application_automation.md": "03A6A2E93E46AA29AEBFDA85CCD644F0E0ADA7490A802727D0160947603E433E"
+  },
+  "test_first": {
+    "red_observations": [
+      {
+        "pre_rebase_base": "760271a9a1205858cda2e99980e37783f49dedc6",
+        "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_application_pipeline.ApplicationStepTraceTests",
+        "result": "EXPECTED_FAILURE: both new tests showed missing per-phase completion/failure statuses, missing required phases, and no durable failing-phase attribution."
+      },
+      {
+        "rebased_test_parent": "e30f7ea1f7a0c21147b522b1dfaa1c7589824fd3",
+        "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_browser_debug_capture.BrowserDebugCaptureTests.test_fixed_application_trace_phases_are_allowed_in_failure_metadata tests.browser.test_mock_application.MockApplicationTests.test_opt_in_browser_failure_capture_is_redacted_and_does_not_change_review_state",
+        "result": "EXPECTED_FAILURE: FILL_LOCATION, ANSWER_STANDARD, and ANSWER_CUSTOM sanitized to UNKNOWN; contact failure metadata reported last completed UPLOAD_RESUME instead of active FILL_CONTACT."
+      }
+    ]
+  },
+  "validations": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_application_pipeline tests.browser.test_mock_application tests.unit.test_browser_debug_capture tests.browser.test_debug_capture_privacy tests.browser.test_application_pipeline",
+      "result": "PASS",
+      "summary": "36 tests ran; 30 passed; 6 UI browser tests skipped because this worktree has no apps/web/dist/index.html."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_application_pipeline.ApplicationStepTraceTests",
+      "result": "PASS",
+      "summary": "2 trace tests passed, including all ten phases, status order, API readback after reopening SQLite, a persisted FAILED contact phase, and no answer/contact-value echo."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_browser_debug_capture.BrowserDebugCaptureTests.test_fixed_application_trace_phases_are_allowed_in_failure_metadata tests.browser.test_mock_application.MockApplicationTests.test_opt_in_browser_failure_capture_is_redacted_and_does_not_change_review_state",
+      "result": "PASS",
+      "summary": "New fixed-phase allowlist checks and mock browser failure-step capture passed."
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "root_cause_and_fix": {
+    "root_cause": "handle_browser_failure used only the last completed application transition for diagnostic current_step and ignored active_step, so a failure during contact filling was mislabeled as the earlier completed upload phase.",
+    "fix": "Failure diagnostics now use the active fixed phase, falling back to the last completed transition or UNKNOWN. The debug sanitizer allowlists the fixed FILL_LOCATION, ANSWER_STANDARD, and ANSWER_CUSTOM phase labels.",
+    "preserved_privacy": "Attempt traces contain only fixed phase labels/statuses. Existing serialized and screenshot privacy canaries passed; answer values, form content, and exception text remain excluded.",
+    "mock_submission_boundary": "One success path submitted only to the in-process MOCK fixture and verified its single local receipt. The interruption path produced no receipt. No real ATS, external submission, or external browser request was used."
+  },
+  "not_run_or_limited": {
+    "ui_browser_acceptance": "SKIPPED: six tests require apps/web/dist/index.html; this isolated worktree has no apps/web/node_modules, installed Vite, or built dist artifact.",
+    "web_build": "NOT_RUN: required web dependencies and build output are absent; no install was attempted.",
+    "hosted_checks": "NOT_RUN_BY_USER_POLICY",
+    "external_submission": "OFF",
+    "full_repository_suite": "NOT_RUN"
+  },
+  "root_verification": {
+    "recorded_at_utc": "2026-10-08T10:03:17Z",
+    "candidate_source_head": "959cd6e784a3c43d2b6d7d271748a286c0eeafdd",
+    "candidate_source_tree": "2b686c126dba91fbb00d0918773813565682ae66",
+    "test_command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_application_pipeline tests.browser.test_mock_application tests.unit.test_browser_debug_capture tests.browser.test_debug_capture_privacy tests.browser.test_application_pipeline",
+      "result": "PASS",
+      "summary": "36 tests ran, 30 passed, and 6 were skipped because the UI browser suite requires a web build.",
+    "evidence_input_hashes": "PASS: source_inputs_sha256 values were computed from the committed candidate source/test/spec files before this evidence-only commit."
+  }
+}
