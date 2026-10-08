@@ -294,6 +294,21 @@ def _record_dynamic_review(store, application_id, preflight, problem):
     return store.application(application_id)
 
 
+def open_mock_authentication(store, application_id, attempt_id, mock_origin,
+                             output_dir, check=None):
+    """Open the exact saved MOCK attempt for a deliberate manual sign-in.
+
+    The user initiated this synchronous action from an AUTH_REQUIRED
+    application. The helper owns eligibility checks and the headed browser
+    lifetime; this adapter boundary deliberately does not resume, retry, or
+    submit the application after the user closes the window.
+    """
+    from services.applications.manual_auth import open_manual_auth_window as open_window
+
+    return open_window(store, application_id, attempt_id, mock_origin,
+                       output_dir, check=check)
+
+
 def apply_mock(store, application_id, mock_origin, output_dir, submit=False, check=None,
                debug_capture=False):
     check = check or (lambda: None)
