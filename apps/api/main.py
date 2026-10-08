@@ -34,7 +34,7 @@ from services.career_profile.extraction import ResumeExtractionCancelled, extrac
 from services.discovery.pipeline import MockClient
 from services.discovery.sources.collect import configure_source
 from services.discovery.search_profiles import (
-    EDUCATION_REQUIREMENTS, get_search_profile, list_search_profiles, save_search_profile,
+    CLEARANCE_LEVELS, EDUCATION_REQUIREMENTS, get_search_profile, list_search_profiles, save_search_profile,
 )
 from services.discovery.search_semantics import filter_jobs
 from services.discovery.skill_taxonomy import SKILL_TAXONOMY, canonical_skill_id
@@ -1349,6 +1349,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                                      "TEMPORARY", "INTERNSHIP", "OTHER", "UNKNOWN"] | None = None,
              skill: str | None = Query(default=None, max_length=100),
              education_requirement: str | None = Query(default=None, max_length=64),
+             clearance_level: str | None = Query(default=None, max_length=32),
              posted_within_days: int | None = Query(default=None, ge=1, le=30),
              override_saved_match_score: bool = False,
              search_profile_id: str | None = Query(default=None, max_length=128),
@@ -1365,6 +1366,10 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             education_requirement = education_requirement.strip().upper()
             if not education_requirement or education_requirement not in EDUCATION_REQUIREMENTS:
                 raise HTTPException(422, "Education requirement is not supported")
+        if clearance_level is not None:
+            clearance_level = clearance_level.strip().upper()
+            if not clearance_level or clearance_level not in CLEARANCE_LEVELS:
+                raise HTTPException(422, "Clearance requirement is not supported")
         search_profile = get_search_profile(store, search_profile_id) if search_profile_id else None
         if search_profile and search_profile["profile_id"] != profile_id:
             raise HTTPException(409, "Search profile belongs to a different career profile")
@@ -1390,6 +1395,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                           employment_type=employment_type,
                           skill_id=skill_id,
                           education_requirement=education_requirement,
+                          clearance_level=clearance_level,
                           posted_after=posted_after, posted_before=posted_before)
         if search_profile_id:
             rows = filter_jobs(rows, search_profile["criteria"])

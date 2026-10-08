@@ -632,7 +632,7 @@ class Store:
     def jobs(self, profile_id=None, q="", remote_type=None, provider=None, sort="score", limit=200,
              title="", company="", location="", salary_min=None, salary_max=None,
              min_match_score=None, experience_level=None, employment_type=None, skill_id=None,
-             education_requirement=None, posted_after=None, posted_before=None):
+             education_requirement=None, clearance_level=None, posted_after=None, posted_before=None):
         profile = self.profile(profile_id) if profile_id else None
         with self.engine.connect() as connection:
             counts = select(m.postings.c.job_id, func.count().label("posting_count")).group_by(m.postings.c.job_id).subquery()
@@ -740,6 +740,11 @@ class Store:
                 # Parser classifications are matched exactly; missing, malformed, and future values fail closed.
                 statement = statement.where(
                     m.jobs.c.attributes["education_requirement"].as_string() == education_requirement)
+            if clearance_level:
+                # Clearance facets describe only parser output on a job posting. Exact nested
+                # JSON matching excludes missing, malformed, and unknown values before LIMIT.
+                statement = statement.where(
+                    m.jobs.c.attributes["clearance"]["level"].as_string() == clearance_level)
             if posted_after is not None:
                 reported_at = m.jobs.c.attributes["reported_posted_at"].as_string()
                 if self.engine.dialect.name == "postgresql":

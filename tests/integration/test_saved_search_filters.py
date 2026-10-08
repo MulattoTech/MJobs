@@ -68,7 +68,8 @@ class SavedSearchFiltersApiTests(unittest.TestCase):
         self.assertEqual(row["criteria"]["job_filters"], {
             "q": "network", "title": "Developer", "location": "Boston", "company": "Example",
             "experience_level": "", "employment_type": "", "posted_within_days": "", "remote_type": "REMOTE", "provider": "greenhouse", "sort": "company",
-            "salary_min": "", "salary_max": "", "skill": "", "education_requirement": ""})
+            "salary_min": "", "salary_max": "", "skill": "", "education_requirement": "",
+            "clearance_level": ""})
         self.assertFalse(row["enabled"])
         self.assertEqual(self.client.get("/search-profiles", params={"profile_id": "other"})
                          .json()["search_profiles"], [])
@@ -387,6 +388,85 @@ class SavedSearchFiltersApiTests(unittest.TestCase):
         self.assertEqual(schedule_due_sources(self.store)["scheduled"], [])
         self.assertEqual(self.store.count("worker_operations"), operations_before)
 
+    def test_clearance_filter_matches_exact_posted_classification_before_limit_and_rejects_unknown(self):
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.title == "Python Developer").values(
+                title="B exact secret", attributes={"clearance": {"level": "SECRET"}}))
+            connection.execute(update(m.jobs).where(m.jobs.c.title == "Data Engineer").values(
+                title="A malformed clearance", attributes={"clearance": "SECRET"}))
+        selected = self.client.get("/jobs", params={"clearance_level": "SECRET", "sort": "title", "limit": 1})
+        self.assertEqual(selected.status_code, 200, selected.text)
+        self.assertEqual([job["title"] for job in selected.json()["jobs"]], ["B exact secret"])
+        normalized = self.client.get("/jobs", params={"clearance_level": " secret ", "sort": "title"})
+        self.assertEqual([job["title"] for job in normalized.json()["jobs"]], ["B exact secret"])
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.title == "A malformed clearance").values(
+                attributes={"clearance": {"level": "SECRET_EXTRA"}}))
+        exact_only = self.client.get("/jobs", params={"clearance_level": "SECRET", "sort": "title"})
+        self.assertEqual([job["title"] for job in exact_only.json()["jobs"]], ["B exact secret"])
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.title == "A malformed clearance").values(
+                attributes={}))
+        missing_excluded = self.client.get("/jobs", params={"clearance_level": "SECRET", "sort": "title"})
+        self.assertEqual([job["title"] for job in missing_excluded.json()["jobs"]], ["B exact secret"])
+        invalid = self.client.get("/jobs", params={"clearance_level": "SECRET_EXTRA"})
+        self.assertEqual(invalid.status_code, 422)
+        supported = {"NONE_STATED", "PUBLIC_TRUST", "SECRET", "TOP_SECRET", "TS_SCI", "OTHER"}
+        from services.discovery.requirement_parsers import CLEARANCE_LEVELS
+        self.assertEqual(CLEARANCE_LEVELS, supported)
+        for level in supported:
+            self.assertEqual(self.client.get("/jobs", params={"clearance_level": level}).status_code, 200)
+
+    def test_clearance_filter_saved_search_round_trips_clears_and_composes_without_side_effects(self):
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.title == "Python Developer").values(
+                attributes={"clearance": {"level": "PUBLIC_TRUST"}}))
+            connection.execute(update(m.jobs).where(m.jobs.c.title == "Data Engineer").values(
+                attributes={"clearance": {"level": "SECRET"}}))
+        filters = {"q": "", "title": "", "company": "", "location": "", "salary_min": "",
+                   "salary_max": "", "min_match_score": "", "experience_level": "",
+                   "employment_type": "", "posted_within_days": "", "skill": "",
+                   "education_requirement": "", "clearance_level": "public_trust",
+                   "remote_type": "", "provider": "", "sort": "score"}
+        saved = self.client.put("/search-profiles", json={**self._profile(job_filters=filters),
+                                                            "include_titles": [], "remote": "ANY"})
+        self.assertEqual(saved.status_code, 200, saved.text)
+        row = next(item for item in self.client.get("/search-profiles", params={
+            "profile_id": "fixture"}).json()["search_profiles"] if item["id"] == "saved-filter")
+        self.assertEqual(row["criteria"]["job_filters"]["clearance_level"], "PUBLIC_TRUST")
+        result = self.client.get("/jobs", params={"profile_id": "fixture", "search_profile_id": "saved-filter",
+                                                   "clearance_level": "PUBLIC_TRUST"})
+        self.assertEqual(result.status_code, 200, result.text)
+        self.assertEqual([job["title"] for job in result.json()["jobs"]], ["Python Developer"])
+        contradictory = self.client.put("/search-profiles", json={**self._profile(job_filters=filters),
+            "include_titles": [], "remote": "ANY", "required_skills": ["RUST"]})
+        self.assertEqual(contradictory.status_code, 200, contradictory.text)
+        result = self.client.get("/jobs", params={"profile_id": "fixture", "search_profile_id": "saved-filter",
+                                                   "clearance_level": "PUBLIC_TRUST"})
+        self.assertEqual(result.json()["jobs"], [])
+        self.assertEqual(self.client.get("/search-profiles", params={"profile_id": "other"})
+                         .json()["search_profiles"], [])
+        legacy = self.client.put("/search-profiles", json=self._profile(
+            identifier="clearance-legacy", job_filters={"q": "", "remote_type": "", "provider": "",
+                                                           "sort": "score"}))
+        self.assertEqual(legacy.status_code, 200, legacy.text)
+        legacy_row = next(item for item in self.client.get("/search-profiles", params={
+            "profile_id": "fixture"}).json()["search_profiles"] if item["id"] == "clearance-legacy")
+        self.assertEqual(legacy_row["criteria"]["job_filters"]["clearance_level"], "")
+        cleared = self.client.put("/search-profiles", json={**self._profile(job_filters={
+            **filters, "clearance_level": ""}), "include_titles": [], "remote": "ANY"})
+        self.assertEqual(cleared.status_code, 200, cleared.text)
+        cleared_row = next(item for item in self.client.get("/search-profiles", params={
+            "profile_id": "fixture"}).json()["search_profiles"] if item["id"] == "saved-filter")
+        self.assertEqual(cleared_row["criteria"]["job_filters"]["clearance_level"], "")
+        invalid = self.client.put("/search-profiles", json={**self._profile(
+            identifier="clearance-invalid", job_filters={**filters, "clearance_level": "SECRET_EXTRA"}),
+            "include_titles": [], "remote": "ANY"})
+        self.assertEqual(invalid.status_code, 422)
+        operations_before = self.store.count("worker_operations")
+        self.assertEqual(schedule_due_sources(self.store)["scheduled"], [])
+        self.assertEqual(self.store.count("worker_operations"), operations_before)
+
     def test_saved_filter_validation_and_cross_profile_update_rejection(self):
         self.client.put("/search-profiles", json=self._profile()).raise_for_status()
         malformed = self.client.put("/search-profiles", json=self._profile(
@@ -488,7 +568,7 @@ class SavedSearchFiltersApiTests(unittest.TestCase):
                    "remote_type": "REMOTE", "provider": "greenhouse", "sort": "company",
                    "salary_min": "85000", "salary_max": "130000", "experience_level": "",
                    "employment_type": "", "posted_within_days": "", "skill": "",
-                   "education_requirement": ""}
+                   "education_requirement": "", "clearance_level": ""}
         operations_before = self.store.count("worker_operations")
         response = self.client.put("/search-profiles", json=self._profile(job_filters=filters))
         self.assertEqual(response.status_code, 200, response.text)

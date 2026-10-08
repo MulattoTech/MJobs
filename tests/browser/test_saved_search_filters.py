@@ -45,6 +45,7 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                                        "experience_level": "SENIOR", "employment_type": "FULL_TIME",
                                        "skill_ids": ["PYTHON"],
                                        "education_requirement": "BACHELORS_REQUIRED",
+                                       "clearance": {"level": "PUBLIC_TRUST"},
                                        "reported_posted_at": "2026-10-07T00:00:00+00:00"}))
                 connection.execute(update(m.jobs).where(m.jobs.c.title == "Data Engineer")
                                    .values(location="Berlin", attributes={
@@ -53,6 +54,7 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                                        "experience_level": "STAFF_PLUS", "employment_type": "OTHER",
                                        "skill_ids": ["SQL"],
                                        "education_requirement": "ASSOCIATE_REQUIRED",
+                                       "clearance": {"level": "SECRET"},
                                        "reported_posted_at": "2026-09-01T00:00:00+00:00"}))
                 connection.execute(update(m.jobs).where(m.jobs.c.title == "Python Developer")
                                    .values(skills=["Python"]))
@@ -133,6 +135,7 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                     page.get_by_label("Employment type", exact=True).select_option("FULL_TIME")
                     page.get_by_label("Skill", exact=True).select_option("PYTHON")
                     page.get_by_label("Education requirement", exact=True).select_option("BACHELORS_REQUIRED")
+                    page.get_by_label("Clearance requirement", exact=True).select_option("PUBLIC_TRUST")
                     page.get_by_label("Posted within", exact=True).select_option("7")
                     page.get_by_label("Work location", exact=True).select_option("REMOTE")
                     page.get_by_label("Source", exact=True).select_option("mock-ats")
@@ -142,6 +145,7 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                             and "employment_type=FULL_TIME" in response.url
                             and "skill=PYTHON" in response.url
                             and "education_requirement=BACHELORS_REQUIRED" in response.url
+                            and "clearance_level=PUBLIC_TRUST" in response.url
                             and "salary_min=80000" in response.url
                             and "salary_max=100000" in response.url
                             and "sort=company" in response.url) as sorted_jobs:
@@ -167,6 +171,7 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                             and "employment_type=FULL_TIME" in response.url
                             and "skill=PYTHON" in response.url
                             and "education_requirement=BACHELORS_REQUIRED" in response.url
+                            and "clearance_level=PUBLIC_TRUST" in response.url
                             and "salary_min=80000" in response.url
                             and "salary_max=100000" in response.url
                             and "remote_type=REMOTE" in response.url
@@ -185,6 +190,7 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                     expect(page.get_by_label("Employment type", exact=True)).to_have_value("FULL_TIME")
                     expect(page.get_by_label("Skill", exact=True)).to_have_value("PYTHON")
                     expect(page.get_by_label("Education requirement", exact=True)).to_have_value("BACHELORS_REQUIRED")
+                    expect(page.get_by_label("Clearance requirement", exact=True)).to_have_value("PUBLIC_TRUST")
                     expect(page.get_by_label("Posted within", exact=True)).to_have_value("7")
                     expect(page.get_by_label("Work location", exact=True)).to_have_value("REMOTE")
                     expect(page.get_by_label("Source", exact=True)).to_have_value("mock-ats")
@@ -215,6 +221,13 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
 
                     with page.expect_response(lambda response:
                             response.url.startswith(origin + "/jobs?")
+                            and "clearance_level=" not in response.url) as clearance_cleared:
+                        page.get_by_label("Clearance requirement", exact=True).select_option("")
+                    self.assertEqual(clearance_cleared.value.status, 200)
+                    expect(page.get_by_label("Clearance requirement", exact=True)).to_have_value("")
+
+                    with page.expect_response(lambda response:
+                            response.url.startswith(origin + "/jobs?")
                             and "q=" in response.url
                             and "title=" not in response.url
                             and "company=" not in response.url
@@ -223,6 +236,7 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                             and "employment_type=" not in response.url
                             and "skill=" not in response.url
                             and "education_requirement=" not in response.url
+                            and "clearance_level=" not in response.url
                             and "salary_min=" not in response.url
                             and "salary_max=" not in response.url
                             and "remote_type=" not in response.url
@@ -240,6 +254,7 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                     expect(page.get_by_label("Employment type", exact=True)).to_have_value("")
                     expect(page.get_by_label("Skill", exact=True)).to_have_value("")
                     expect(page.get_by_label("Education requirement", exact=True)).to_have_value("")
+                    expect(page.get_by_label("Clearance requirement", exact=True)).to_have_value("")
                     expect(page.get_by_label("Posted within", exact=True)).to_have_value("")
                     expect(page.get_by_label("Work location", exact=True)).to_have_value("")
                     expect(page.get_by_label("Source", exact=True)).to_have_value("")
