@@ -82,6 +82,10 @@ class RequirementParserTests(unittest.TestCase):
         self.assertEqual(by_id["CCNA"]["strength"], "UNKNOWN")
         self.assertEqual(by_id["COMPTIA_SECURITY_PLUS"]["strength"], "UNKNOWN")
 
+    def test_negated_must_have_does_not_become_required(self):
+        rows = parse_certifications("CCNA is not a must-have.")
+        self.assertEqual(rows[0]["strength"], "UNKNOWN")
+
     def test_no_certification_required_phrasings_are_unknown_without_changing_positive(self):
         rows = parse_certifications(
             "CCNA required. No CCNA required. No Security+ certification is required."

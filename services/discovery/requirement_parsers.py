@@ -118,7 +118,14 @@ def _cert_strength(clause, certification_mention):
             ))
         ) or (
             match.group(0) in {"must", "shall"}
-            and bool(re.match(r"\s+not\b", suffix))
+            and (
+                bool(re.match(r"\s+not\b", suffix))
+                or (
+                    match.group(0) == "must"
+                    and bool(re.search(r"\b(?:not|never)\s+(?:a\s+)?$", prefix))
+                    and bool(re.match(r"[-\s]?have\b", suffix))
+                )
+            )
         )
         if not negated:
             return "REQUIRED"
