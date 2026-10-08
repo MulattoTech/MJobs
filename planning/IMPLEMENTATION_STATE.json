@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-08T12:10:15Z",
+  "generated_at": "2026-10-08T12:21:30Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -11,7 +11,7 @@
     "current_verified_github_state": "Local main, origin/main and GitHub default main synchronized at 980f89c78d384ec3098e083616b48c8c713089f3; receipts posted for #115 and #191. Hosted checks/reviews remain NOT_RUN_BY_USER_POLICY.",
     "current_verified_at": "2026-10-08T12:10:15Z"
   },
-  "current_milestone": "CORE-FEATURE-BATCH-20261008-K",
+  "current_milestone": "CORE-FEATURE-BATCH-20261008-L",
   "current_objective": "Advance connected jobseeker search, explainable matching, truthful documents, and consent-safe application preparation through dependency-ready vertical slices.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -144,7 +144,8 @@
     "MJ-REQ-143 / issue #144: MOCK-only timestamp, local confirmation URL, observed text and reference persist/read back; invalid receipts remain SUBMISSION_UNCONFIRMED; real ATS confirmation remains PARTIAL.",
     "MJ-REQ-107: exact mapped work-authorization and current/future sponsorship values are supported only as private preflight checks; mixed, hedged, historical or unrelated legal questions remain UNKNOWN before Playwright. Broader legal fields remain PARTIAL.",
     "MJ-REQ-136: durable job/company/route/resume/cover-letter/reviewed-answer application preview with visible UNKNOWN blockers/confidence; selection survives reload and viewing performs only local GET reads. Broader automation remains PARTIAL.",
-    "Profile-scoped persisted application Review Queue shows and explains UNKNOWN/FAIL question preflight blockers and navigates read-only to the existing review; other blocker categories remain unsupported and full MJ-REQ-196 remains PARTIAL."
+    "Profile-scoped persisted application Review Queue shows and explains UNKNOWN/FAIL question preflight blockers and navigates read-only to the existing review; other blocker categories remain unsupported and full MJ-REQ-196 remains PARTIAL.",
+    "MOCK dynamic application form: exact reviewed dependent-dropdown mapping and durable fail-closed user review for unknown required fields (MJ-REQ-133); full requirement remains PARTIAL."
   ],
   "blocked_capabilities": [],
   "active_requirements": [
@@ -438,7 +439,8 @@
     "Issue #197 / MJ-REQ-196: integrated main frontend 100/100; TypeScript/Vite build PASS; connected synthetic Chromium/API review queue 1/1; Git blob source hashes, evidence JSON, diff check and LOCAL_DELEGATED_REVIEW PASS.",
     "Issue #96 / MJ-REQ-095: rebased exact-source unit/integration/browser suite 20/20; py_compile and TypeScript/Vite build PASS; exact Git blob hashes, evidence JSON, diff check and LOCAL_DELEGATED_REVIEW PASS.",
     "Issue #105 exact rebased source: 33 Python unit/integration, 101 frontend, 4 connected browser tests, TypeScript/Vite build, py_compile, source hashes and diff check PASS; LOCAL_DELEGATED_REVIEW no material findings.",
-    "Issue #190 exact rebased source: 2 Python integration, 1 connected browser, 2 Vitest tests, TypeScript/Vite build, py_compile, agent-skill validation, source hashes and diff check PASS; LOCAL_DELEGATED_REVIEW no material findings."
+    "Issue #190 exact rebased source: 2 Python integration, 1 connected browser, 2 Vitest tests, TypeScript/Vite build, py_compile, agent-skill validation, source hashes and diff check PASS; LOCAL_DELEGATED_REVIEW no material findings.",
+    "Issue #134 / MJ-REQ-133 exact-main candidate: browser, application pipeline and preflight suites 42/42 PASS; connected MOCK dependent-field behavior, persisted unknown-field review/readback, zero review/submit POSTs for unknown fields. py_compile, evidence input hashes, evidence JSON, agent-skill validator and git diff --check PASS. Hosted/PostgreSQL/live ATS/full repo remain NOT_RUN; external submission OFF."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -541,7 +543,8 @@
     "Issue #178: PostgreSQL/RQ runtime, full Python suite and hosted checks/review NOT_RUN; broader MJ-REQ-177 remains PARTIAL.",
     "Issue #144: real employer ATS, PostgreSQL, hosted checks/review and full suite NOT_RUN; no employer site contacted; external submission OFF.",
     "Hosted GitHub checks/reviews remain NOT_RUN by local-only policy; PostgreSQL and whole-product E2E not run for this batch.",
-    "Semantic criteria supplied only through search_profile_id remain post-LIMIT; new direct location filter is applied before LIMIT."
+    "Semantic criteria supplied only through search_profile_id remain post-LIMIT; new direct location filter is applied before LIMIT.",
+    "Issue #134 / MJ-REQ-133 hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL/live ATS/full repository suite NOT_RUN; only one synthetic dynamic dropdown variant implemented."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -581,14 +584,13 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "commit": "d6a8f519ccc8cf6de3943effb2afc037fd89920b",
-    "tree": "c53080d034f7514d1a7fee994d5294f0cd77dec5",
-    "result": "PASS for bounded #105 answer polarity guard and #190 match-score search filter; broader requirements remain PARTIAL; hosted/PostgreSQL/live ATS gates NOT_RUN by policy.",
+    "commit": "6ade66fd9ad2d35362264df403cacfa493a9b416",
+    "tree": "a245a619c7b8881385d4d17f39a91c904450fa18",
+    "result": "PASS for bounded #134 / MJ-REQ-133 MOCK dynamic conditional required-field handling; broader dynamic-form requirement remains PARTIAL; hosted/PostgreSQL/live ATS/full-suite gates NOT_RUN.",
     "evidence": [
-      "docs/evidence/2026-10-08-answer-match-polarity-guard.json",
-      "docs/evidence/2026-10-08-match-score-search-filter.json"
+      "docs/evidence/2026-10-08-dynamic-form-conditional-field.json"
     ],
-    "verified_at_utc": "2026-10-08T11:42:38Z"
+    "verified_at_utc": "2026-10-08T12:21:30Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -655,8 +657,8 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Select the next dependency-ready connected user-facing feature from live GitHub issues/specs after reconciling claims. Preserve PR dependencies; do not build an adapter scaffold disconnected from UI/API/storage. Highest-value Greenhouse adapter work under MJ-REQ-122 currently sits behind queued parent dependencies.",
-  "release_readiness": "NOT_RUN",
+  "recommended_resume_step": "Select the next dependency-ready connected core feature from live GitHub issues/specs after reconciling claims. Continue saved-search/search usability, explainable matching, truthful document workflows or application preparation/tracking; preserve PR dependencies and keep unknown ATS fields behind review.",
+  "release_readiness": "UNKNOWN",
   "migrations_applied": [
     "92f0997f753e",
     "098f12099319",
@@ -12918,8 +12920,7 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "release_readiness": "UNKNOWN",
-  "updated_at": "2026-10-08T12:10:15Z",
-  "current_verified_local_state": "Exact synchronized main 980f89c78d384ec3098e083616b48c8c713089f3; bounded normalized experience filter, score-neutral annual USD salary match explanation, and annual USD salary sorting are integrated with exact local evidence. All remain requirement-level PARTIAL; the #134 dynamic-form slice is active in its isolated worktree.",
-  "current_verified_github_state": "Local main, origin/main and GitHub default main synchronized at 980f89c78d384ec3098e083616b48c8c713089f3. Integration receipts posted for #115 and #191; hosted checks/reviews remain NOT_RUN_BY_USER_POLICY."
+  "updated_at": "2026-10-08T12:21:30Z",
+  "current_verified_local_state": "Exact synchronized main 6ade66fd9ad2d35362264df403cacfa493a9b416; #134 / MJ-REQ-133 now has one bounded MOCK dynamic dependent-dropdown path with exact reviewed-answer filling and durable fail-closed user review for unknown newly required fields. Exact-main 42 browser/pipeline/preflight tests PASS; broader dynamic forms remain PARTIAL.",
+  "current_verified_github_state": "Local main, origin/main and GitHub default main synchronized at 6ade66fd9ad2d35362264df403cacfa493a9b416. #134 integration receipt pending; hosted checks/reviews remain NOT_RUN_BY_USER_POLICY."
 }

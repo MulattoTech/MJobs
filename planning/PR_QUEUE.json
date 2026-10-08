@@ -1196,7 +1196,7 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-037-application-automation",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Additional #136 / MJ-REQ-135 sensitive/legal question preflight slice integrated at e5fee45c0c3e074154ef523d252a2e78a2ffa2de; evidence docs/evidence/2026-10-08-sensitive-question-preflight.json. Fail-closed pre-browser slice only; dependencies/status unchanged. Additional #137 / MJ-REQ-136 application preview integrated and synchronized at 347d4e7e53058135246f734aa1c7e850be25e51d; evidence docs/evidence/2026-10-08-application-preview.json. This is a read-only review slice only; parent requirement and dependencies remain PARTIAL/QUEUED.",
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Additional #136 / MJ-REQ-135 sensitive/legal question preflight slice integrated at e5fee45c0c3e074154ef523d252a2e78a2ffa2de; evidence docs/evidence/2026-10-08-sensitive-question-preflight.json. Fail-closed pre-browser slice only; dependencies/status unchanged. Additional #137 / MJ-REQ-136 application preview integrated and synchronized at 347d4e7e53058135246f734aa1c7e850be25e51d; evidence docs/evidence/2026-10-08-application-preview.json. This is a read-only review slice only; parent requirement and dependencies remain PARTIAL/QUEUED. Additional #134 / MJ-REQ-133 bounded dynamic-form slice integrated on main 6ade66fd9ad2d35362264df403cacfa493a9b416; evidence docs/evidence/2026-10-08-dynamic-form-conditional-field.json. Exact reviewed dependent dropdown mapping succeeds; unknown newly-required fields persist REVIEW_REQUIRED before review/submit. 42 browser/pipeline/preflight tests PASS. PR-037 remains QUEUED behind PR-036 and PR-030; parent requirement remains PARTIAL.",
       "slice_history": [
         {
           "name": "Connected read-only application preview",
@@ -1209,6 +1209,20 @@
           "limitations": [
             "Synthetic SQLite/browser fixtures only; hosted/manual/live ATS checks NOT_RUN.",
             "External employer submission remains OFF."
+          ]
+        },
+        {
+          "name": "Fail-closed dependent required field handling",
+          "issue": 134,
+          "requirement_id": "MJ-REQ-133",
+          "status": "INTEGRATED_PARTIAL",
+          "candidate_head": "6ade66fd9ad2d35362264df403cacfa493a9b416",
+          "evidence_path": "docs/evidence/2026-10-08-dynamic-form-conditional-field.json",
+          "validation": "PASS: exact-main browser, application-pipeline and preflight suites 42/42; py_compile, source hashes, evidence JSON, skills validator and diff check PASS.",
+          "limitations": [
+            "Synthetic SQLite/MOCK ATS only; hosted checks/review, PostgreSQL, live ATS and full repository suite NOT_RUN.",
+            "One conditional dropdown path covered; optional sections, repeatable rows and broader ATS dynamic forms remain incomplete.",
+            "External submission remains OFF."
           ]
         }
       ]
@@ -4367,5 +4381,5 @@
       "claim_release_comment": "https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053395464"
     }
   ],
-  "generated_at": "2026-10-08T11:42:38Z"
+  "generated_at": "2026-10-08T12:21:30Z"
 }
