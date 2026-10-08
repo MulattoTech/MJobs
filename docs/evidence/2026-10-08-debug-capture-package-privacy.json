@@ -3,12 +3,12 @@
   "issue": 180,
   "requirement_id": "MJ-REQ-179",
   "status": "PASS for this local regression; overall requirement remains PARTIAL",
-  "recorded_at_utc": "2026-10-08T07:12:08Z",
+  "recorded_at_utc": "2026-10-08T07:16:26Z",
   "branch": "codex/mj-req179-debug-package-privacy-20261008",
   "claim_id": "codex:req179-debug-package-privacy",
-  "base_commit": "3760eb6d05c6cc8c9d0e22bbdfa02e59ae8ee86d",
-  "validated_head": "6dcbe88121b76b28fc844decd9aa3dd4ecde3239",
-  "validated_tree": "5b66af70cf1afd9243c122bae64b8ae67267ca50",
+  "base_commit": "ef47fc9a2b05cc2027c0445116960b43d6d4b2eb",
+  "validated_head": "b5fd61fa6616938e69f88acc2ba23a639396b3dc",
+  "validated_tree": "a363edede0cd678373a9e2a96d26e51f9770ccec",
   "scope": "One synthetic FIXTURE-mode Chromium regression through the existing mock ATS adapter failure handler and debug capture package writer. No production code changed.",
   "input_sha256": {
     "tests/browser/test_debug_capture_privacy.py": "49a52f9b25529b306a04728d3d84858199d4f581428389458eca0cc473e77ea4",
@@ -19,8 +19,8 @@
   },
   "validation": {
     "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_debug_capture_privacy -v",
-    "recorded_at_utc": "2026-10-08T07:15:51Z",
-    "pre_rebase_test_head": "99dd87e402d654263bc4f5a017c0a7cc9c5895c7",
+    "recorded_at_utc": "2026-10-08T07:16:26Z",
+    "test_commit": "b5fd61fa6616938e69f88acc2ba23a639396b3dc",
     "result": "PASS: 1 test, 0 failures, 0 errors",
     "environment": "Windows; Python 3.12.10; Playwright 1.63.0; Chromium 153.0.8010.12 headless; isolated temporary SQLite database and local fictional mock ATS fixture server",
     "diff_check": "PASS: git diff --check",
@@ -36,7 +36,6 @@
   "privacy": "All inputs and browser content were synthetic fixture data. The temporary database, baseline image and capture package were removed with the test temporary directory. No real browser profile, ATS, resume, credentials, or user data was accessed.",
   "limitations": [
     "This test covers the already-supported local mock ATS adapter only; no real ATS/browser adapter support is added or claimed.",
-    "Overall MJ-REQ-179 remains PARTIAL because there is no real ATS/browser adapter; hosted checks are not run by policy.",
-    "After this test/evidence commit is clean, rebase onto synchronized main 047a780be248c94e802cba3068e884b7edf20428, rerun the focused test, and refresh the final evidence head/tree and input hashes."
+    "Overall MJ-REQ-179 remains PARTIAL because there is no real ATS/browser adapter; hosted checks are not run by policy."
   ]
 }
