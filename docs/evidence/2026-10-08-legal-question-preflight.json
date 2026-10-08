@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REQ-107-LEGAL-QUESTION-PREFLIGHT-20261008",
+  "recorded_at_utc": "2026-10-08T10:14:26Z",
+  "result": "PARTIAL",
+  "issue": 108,
+  "requirement_id": "MJ-REQ-107",
+  "authority": {
+    "repository": "MulattoTech/MJobs",
+    "issue_url": "https://github.com/MulattoTech/MJobs/issues/108",
+    "issue_state": "OPEN",
+    "branch": "codex/mj-req107-legal-question-profile-values-20261008",
+    "worktree": ".worktrees/codex-mj-req107-legal-question-profile-values-20261008",
+    "base_head": "347a46a62f80159d6f9a8ffb1a6c75aeb169bd4f"
+  },
+  "scope": "Preflight supports only exact structured mappings from work-authorization and sponsorship questions to their explicit saved career-profile preference fields. It does not infer, echo, or fill either response.",
+  "acceptance": {
+    "explicit_structured_values": "PASS; legally authorized-for-employment questions mapped only to preferences.work_authorization and sponsorship questions mapped only to preferences.sponsorship_needs pass when their saved values are explicit and unambiguous.",
+    "missing_or_ambiguous_values": "PASS; blank, unknown, unspecified, maybe, and not-sure work-authorization values plus NOT_SPECIFIED sponsorship remain UNKNOWN with LEGAL_PROFILE_VALUE_UNAVAILABLE and a question-only missing record.",
+    "unrelated_legal_attestations": "PASS; criminal-history, mismapped fields, combined fields, and unsupported paths remain UNKNOWN or UNMAPPED_REQUIRED_QUESTION.",
+    "ordinary_question_control": "PASS; an ordinary question satisfied by the existing approved answer mapping remains PASS.",
+    "persistence_and_redaction": "PASS; a connected preflight audit/readback persists the supported mapping but neither explicit profile value appears in the result or audit payload.",
+    "pre_browser_stop": "PASS; an unrelated required legal attestation transitions the synthetic application to REVIEW_REQUIRED before Playwright, with zero application-attempt rows.",
+    "submission_safety": "PASS; no external application submission path was invoked."
+  },
+  "red_first_observation": {
+    "result": "FAIL_BEFORE_IMPLEMENTATION",
+    "details": "The initial new integration tests failed because the supported dotted preference paths were rejected and all required legal questions were classified as unexpected sensitive questions."
+  },
+  "checks": [
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_legal_question_preflight tests.integration.test_application_preflight -v",
+      "target": "Synthetic SQLite/API preflight, durable audit readback, redaction, ordinary control, and pre-browser stop",
+      "result": "PASS",
+      "tests": 16,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m py_compile services/applications/preflight.py tests/integration/test_legal_question_preflight.py",
+      "target": "Changed Python modules",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "target": "Owned implementation and test changes",
+      "result": "PASS"
+    }
+  ],
+  "source_sha256": {
+    "services/applications/preflight.py": "70045c5654411282aeba27095d3f7b3e91dfc8e1e1197efe37bb23eb370371c7",
+    "tests/integration/test_legal_question_preflight.py": "ba4f5be5200f12ec7b371803d00a38f8070ace00ff18620cec272cdd6bb75316"
+  },
+  "environment": {
+    "platform": "Windows PowerShell",
+    "python": "3.12 repository .venv",
+    "database": "Temporary synthetic SQLite database",
+    "ATS": "Local synthetic mock fixture; browser launch patched and asserted absent for the blocked case"
+  },
+  "hosted_checks": "NOT_RUN by repository policy",
+  "external_submission": "OFF; NOT_RUN",
+  "limitations": [
+    "Only the bounded preflight behavior is covered; broader application automation and all other legally significant profile fields remain outside this slice.",
+    "A passing preflight does not populate or submit legal responses; values remain private profile state and require downstream user handling.",
+    "Hosted checks and live employer ATS validation were not run."
+  ]
+}

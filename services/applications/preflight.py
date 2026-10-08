@@ -12,6 +12,7 @@ from packages.persistence.store import now
 
 
 _IDENTIFIER = re.compile(r"^[A-Za-z0-9_-]{1,80}$")
+_PROFILE_PATH = re.compile(r"^[A-Za-z0-9_-]{1,80}(?:\.[A-Za-z0-9_-]{1,80})?$")
 _UNEXPECTED_SENSITIVE_QUESTION = re.compile(
     r"\b(race|ethnic\w*|gender|sex|sexual orientation|disabilit\w*|veteran\w*|relig\w*|"
     r"date of birth|birth date|social security(?: number)?|ssn|national id|national origin|"
@@ -21,7 +22,20 @@ _UNEXPECTED_SENSITIVE_QUESTION = re.compile(
     r"legally authorized|salary expectation\w*|salary range|"
     r"desired compensation|compensation expectation\w*|non[ -]?compete|conflict\w* of interest|"
     r"minimum age|attest\w*|certif\w* under penalty)\b", re.IGNORECASE)
-_PROFILE_PATHS = {"name", "email"}
+_PROFILE_PATHS = {
+    "name", "email", "preferences.work_authorization", "preferences.sponsorship_needs",
+}
+_LEGAL_PROFILE_PATHS = {
+    "preferences.work_authorization", "preferences.sponsorship_needs",
+}
+_WORK_AUTHORIZATION_QUESTION = re.compile(
+    r"\b(work authorization|employment authorization|work eligibility|right to work|"
+    r"eligible to work|authorized to work|permitted to work|permission to work|"
+    r"legally authorized(?: for employment| to work))\b", re.IGNORECASE)
+_SPONSORSHIP_QUESTION = re.compile(r"\bsponsorship\b", re.IGNORECASE)
+_AMBIGUOUS_WORK_AUTHORIZATION = re.compile(
+    r"\b(?:unknown|unspecified|not specified|not sure|unsure|uncertain|maybe|"
+    r"prefer not to answer|decline to answer|do not know|don't know)\b", re.IGNORECASE)
 _FACT_KEYS = {"fact_ids", "answer_ids", "profile_paths", "document_kinds", "application_context"}
 _DOCUMENT_KINDS = {"resume", "cover-letter"}
 _APPLICATION_CONTEXT = {"application_id"}
@@ -79,7 +93,8 @@ def _valid_mapping(question):
         values = mapping.get(key, [])
         if not isinstance(values, list) or len(values) > 50:
             return None
-        if any(not isinstance(value, str) or not _IDENTIFIER.fullmatch(value)
+        pattern = _PROFILE_PATH if key == "profile_paths" else _IDENTIFIER
+        if any(not isinstance(value, str) or not pattern.fullmatch(value)
                for value in values):
             return None
         if choices is not None and any(value not in choices for value in values):
@@ -141,14 +156,21 @@ def build_preflight_result(profile: dict, route: dict, questionnaire: dict | Non
                 or question["id"] in seen):
             return _unknown(profile, route, questionnaire, document_kinds, "INVALID_QUESTION_METADATA")
         seen.add(question["id"])
-        if question["required"] and _is_unexpected_sensitive_question(question):
+        mapping = _valid_mapping(question)
+        legal_path = _legal_profile_mapping(question, mapping)
+        if (question["required"] and _is_unexpected_sensitive_question(question)
+                and legal_path is None):
             sensitive = _unknown(profile, route, questionnaire, document_kinds,
                                  "UNEXPECTED_SENSITIVE_REQUIRED_QUESTION")
             sensitive["missing"] = [{
                 "question_id": question["id"], "question": question["label"],
             }]
             return sensitive
-        mapping = _valid_mapping(question)
+        if (question["required"] and mapping is not None
+                and any(path in _LEGAL_PROFILE_PATHS for path in mapping["profile_paths"])
+                and legal_path is None):
+            return _unknown(profile, route, questionnaire, document_kinds,
+                            "UNMAPPED_REQUIRED_QUESTION")
         if mapping is None:
             if question["required"]:
                 return _unknown(profile, route, questionnaire, document_kinds,
@@ -163,11 +185,18 @@ def build_preflight_result(profile: dict, route: dict, questionnaire: dict | Non
         result["mappings"].append(row)
         if not question["required"]:
             continue
+        if legal_path is not None and not _legal_profile_value(profile, legal_path):
+            unavailable = _unknown(profile, route, questionnaire, document_kinds,
+                                   "LEGAL_PROFILE_VALUE_UNAVAILABLE")
+            unavailable["missing"] = [{
+                "question_id": question["id"], "question": question["label"],
+            }]
+            return unavailable
         absent = {
             "fact_ids": [value for value in mapping["fact_ids"] if value not in fact_ids],
             "answer_ids": [value for value in mapping["answer_ids"] if value not in answer_ids],
             "profile_paths": [value for value in mapping["profile_paths"]
-                              if not _profile_value(profile, value)],
+                              if (value != legal_path and not _profile_value(profile, value))],
             "document_kinds": [value for value in mapping["document_kinds"]
                                if value not in document_kinds],
             "application_context": [value for value in mapping["application_context"]
@@ -184,6 +213,37 @@ def build_preflight_result(profile: dict, route: dict, questionnaire: dict | Non
 def _profile_value(profile, path):
     value = profile.get(path)
     return isinstance(value, str) and bool(value.strip())
+
+
+def _legal_profile_mapping(question, mapping):
+    """Return the one supported legal profile field only for its exact question class."""
+    if mapping is None or any(mapping[key] for key in (
+            "fact_ids", "answer_ids", "document_kinds", "application_context")):
+        return None
+    paths = mapping["profile_paths"]
+    if len(paths) != 1:
+        return None
+    path = paths[0]
+    label = question["label"]
+    if path == "preferences.work_authorization" and _WORK_AUTHORIZATION_QUESTION.search(label):
+        return path
+    if path == "preferences.sponsorship_needs" and _SPONSORSHIP_QUESTION.search(label):
+        return path
+    return None
+
+
+def _legal_profile_value(profile, path):
+    preferences = profile.get("preferences")
+    if not isinstance(preferences, dict):
+        return False
+    value = preferences.get(path.split(".", 1)[1])
+    if path == "preferences.sponsorship_needs":
+        return value in {"REQUIRED", "NOT_REQUIRED"}
+    if not isinstance(value, str):
+        return False
+    normalized = " ".join(value.split()).casefold()
+    return (bool(normalized) and normalized not in {"n/a", "na"}
+            and _AMBIGUOUS_WORK_AUTHORIZATION.search(normalized) is None)
 
 
 def _is_unexpected_sensitive_question(question):
