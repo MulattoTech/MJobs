@@ -18,7 +18,7 @@ export type SuggestedAnswer = {
 };
 
 const sensitiveQuestion = /\b(race|ethnic\w*|gender|sex|sexual orientation|disabilit\w*|veteran\w*|relig\w*|date of birth|birth date|age|marital|citizenship|citizen|authoriz\w*|work authorization|eligible to work|work eligibility|right to work|visa|sponsorship|criminal|convict\w*|felon\w*|background check|salary expectation\w*|salary range|desired compensation|compensation expectation\w*|non[ -]?compete|conflict\w* of interest|minimum age|attest\w*|certif\w* under penalty)\b/i;
-const questionNegation = /\b(?:no|not|never|without|neither|nor|cannot|can['’]t|won['’]t|wouldn['’]t|shouldn['’]t|couldn['’]t|didn['’]t|doesn['’]t|don['’]t|isn['’]t|aren['’]t|wasn['’]t|weren['’]t|haven['’]t|hasn['’]t|hadn['’]t|mustn['’]t)\b/i;
+const questionNegation = /\b(?:no|not|never|without|neither|nor|unavailable|cannot|can['’]t|won['’]t|wouldn['’]t|shouldn['’]t|couldn['’]t|didn['’]t|doesn['’]t|don['’]t|isn['’]t|aren['’]t|wasn['’]t|weren['’]t|haven['’]t|hasn['’]t|hadn['’]t|mustn['’]t)\b/i;
 
 export const isSensitiveAnswerQuestion = (value:string) => sensitiveQuestion.test(value);
 const isNegatedQuestion = (value:string) => questionNegation.test(value);
