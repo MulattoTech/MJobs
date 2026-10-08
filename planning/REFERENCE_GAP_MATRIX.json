@@ -75,8 +75,10 @@
   ],
   "result_by_id": {
     "MJ-REF-001": {
-      "result": "NOT_RUN",
-      "evidence": []
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-08-role-lens-document-preparation.json"
+      ]
     },
     "MJ-REF-002": {
       "result": "NOT_RUN",

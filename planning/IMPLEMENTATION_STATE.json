@@ -1,18 +1,18 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-08T18:03:37Z",
+  "generated_at": "2026-10-08T21:38:15Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Local main at 08715b516dd8fe9d109102b969f4f77eacd311cd (tree 2ed36e932dcf0598f25302cd74fb20f6b4906ced) after connected #190/MJ-REQ-189 application-capability facet integration; local tracker/dashboard checkpoint pending in this batch.",
-    "current_verified_github_state": "Local/origin/GitHub main synchronized at 5834f224b918eb21d9c9aaa4e086fcc36c7b7731 (tree df42bc80b6840348b344be1f4695f51467842b61). #394 receipt https://github.com/MulattoTech/MJobs/issues/394#issuecomment-6063734760; #190 receipt/claim release https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6063736008. GitHub Actions remain disabled, main protection is off, no open PRs were observed. Hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF.",
-    "current_verified_at": "2026-10-08T17:23:55Z"
+    "current_verified_local_state": "Local main at 260cf9f090f4706d2c2994534b35ff95f6608908 (tree 66739379ddcbc35c730f2ea78e7ffdcde26df5a7) after integrating the job-specific role-lens document-preparation flow; main is locally ahead of origin/main.",
+    "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; no push performed. Hosted Actions/reviews remain disabled by policy; external submission remains OFF.",
+    "current_verified_at": "2026-10-08T21:38:15Z"
   },
-  "current_milestone": "CORE-FEATURE-BATCH-20261008-SAVED-SEARCH-SCHEDULER",
-  "current_objective": "Continue dependency-ready core product features after the connected application-capability saved-search filter.",
+  "current_milestone": "CORE-FEATURE-BATCH-20261008-ROLE-LENS-DOCUMENT-PREPARATION",
+  "current_objective": "Advance the role-lens capability into live job matching, then continue dependency-ready core product features.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -596,13 +596,13 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "commit": "0214b4bf022cee4bb8498468aa7535decb71392e",
-    "tree": "b5c7e67a9ba5b1ba1e96879641dd2f919a3a160c",
-    "result": "PASS for bounded connected #192 / MJ-REQ-191 saved-search scheduler; issue remains OPEN/PARTIAL and release eligibility UNKNOWN.",
+    "commit": "260cf9f090f4706d2c2994534b35ff95f6608908",
+    "tree": "66739379ddcbc35c730f2ea78e7ffdcde26df5a7",
+    "result": "PASS for connected job-specific role-lens document preparation; MJ-REF-001 remains PARTIAL pending search/match integration.",
     "evidence": [
-      "docs/evidence/2026-10-08-saved-search-scheduler.json"
+      "docs/evidence/2026-10-08-role-lens-document-preparation.json"
     ],
-    "verified_at_utc": "2026-10-08T17:57:14Z"
+    "verified_at_utc": "2026-10-08T21:38:15Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -669,7 +669,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Resolve the exact #96 uploaded-base resume-comparison API failure against the active candidate before integration; then advance ready integration candidates #199, #143 and #83 in serialized order, rechecking main.tsx/main.py ownership at each boundary. Keep the Star Wars roster honest and replenish only with useful, non-overlapping assignments.",
+  "recommended_resume_step": "Connect job-specific role-lens selection to the live search/match explanation without changing score or evidence truth; reconcile other open claims before selecting the next feature.",
   "release_readiness": "UNKNOWN",
   "migrations_applied": [
     "92f0997f753e",
@@ -688,7 +688,7 @@
   "authorization": "User explicitly provided 100% Git and GitHub authorization on 2026-09-30; still verify native permissions and required checks",
   "user_testing": {
     "result": "PASS",
-    "timestamp": "2026-09-30T13:05:46.654343+00:00",
+    "timestamp": "2026-09-30T08:05:46.654343-05:00",
     "evidence": [
       "docs/evidence/2026-09-30-mvp-ui-final.json",
       "docs/evidence/2026-09-30-mvp-fresh-start.json",
@@ -703,7 +703,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "d9f92cfdd9b9f5e1bc683004e2c713ac0a9c9d88",
+  "last_implementation_commit": "260cf9f090f4706d2c2994534b35ff95f6608908",
   "publication": {
     "result": "PASS_SOURCE_SYNC_AT_CHECKPOINT; TRACKER_BATCH_LOCAL",
     "integration_method": "Ordinary non-force fast-forward under the root integration lock; no PR opened.",
@@ -1299,7 +1299,7 @@
     },
     {
       "milestone_id": "M4-SOURCE-ADAPTER-REMOTE",
-      "timestamp": "2026-09-30T23:15:11.938920Z",
+      "timestamp": "2026-09-30T23:15:11.93892Z",
       "current_phase": "M4_SOURCE_ADAPTER_REMOTE_VERIFIED",
       "completed_steps": [
         "Verified exact-head push and PR runs succeeded on 2222cb1",
@@ -1633,7 +1633,7 @@
     },
     {
       "milestone_id": "M17-COMPANY-IDENTITY-DATA-LOCAL",
-      "timestamp": "2026-10-01T22:59:20.640374+00:00",
+      "timestamp": "2026-10-01T22:59:20.640374Z",
       "current_phase": "M17_COMPANY_IDENTITY_LOCAL_VERIFIED",
       "completed_steps": [
         "Reconciled merged PR #443 and adopted the dependency-eligible PR-017 worktree on current main.",
@@ -1687,7 +1687,7 @@
     },
     {
       "milestone_id": "M17-COMPANY-FETCH-SAFETY",
-      "timestamp": "2026-10-01T23:11:30.474326+00:00",
+      "timestamp": "2026-10-01T23:11:30.474326Z",
       "current_phase": "M17_COMPANY_FETCH_GUARDS_LOCAL_VERIFIED",
       "completed_steps": [
         "Reviewed PR feedback against current worker/client boundaries and confirmed all discovery fetches need explicit destination and redirect checks.",
@@ -1736,7 +1736,7 @@
     },
     {
       "milestone_id": "M18-ATS-SEARCH-DETECTION-LOCAL",
-      "timestamp": "2026-10-01T23:55:59.049070+00:00",
+      "timestamp": "2026-10-01T23:55:59.049070Z",
       "current_phase": "M18_ATS_SEARCH_DETECTION_LOCAL_VERIFIED",
       "completed_steps": [
         "Reconciled and repaired stale PR #444 planning/evidence state using merged GitHub state, exact head and successful exact-head runs.",
@@ -1793,7 +1793,7 @@
     },
     {
       "milestone_id": "M19-ATS-TENANT-SOURCE-HIERARCHY-LOCAL",
-      "timestamp": "2026-10-02T00:26:58.998180+00:00",
+      "timestamp": "2026-10-02T00:26:58.998180Z",
       "current_phase": "M19_ATS_TENANT_SOURCE_HIERARCHY_LOCAL_VERIFIED",
       "completed_steps": [
         "Reconciled live main after PR #445 merged; corrected stale PR-018 state and evidence additively.",
@@ -1845,7 +1845,7 @@
         "evidence_path": "docs/evidence/2026-10-02-ats-tenant-source-hierarchy.json"
       },
       "post_merge_reconciliation": {
-        "verified_at": "2026-10-02T00:39:10+00:00",
+        "verified_at": "2026-10-01T19:39:10-05:00",
         "github_repository": "MulattoTech/MJobs",
         "pr_number": 446,
         "pr_state": "MERGED",
@@ -1871,7 +1871,7 @@
     },
     {
       "milestone_id": "M20-MACHINE-READABLE-COMPANY-SOURCES-LOCAL",
-      "timestamp": "2026-10-02T00:44:00+00:00",
+      "timestamp": "2026-10-02T00:44:00Z",
       "current_phase": "M20_MACHINE_READABLE_COMPANY_SOURCE_DISCOVERY_DRAFT_PR",
       "completed_steps": [
         "Reconciled and fast-forwarded main after exact-head PR #446 success/merge.",
@@ -1919,7 +1919,7 @@
     },
     {
       "milestone_id": "M21-COMPANY-SOURCE-WATCH-LOCAL",
-      "timestamp": "2026-10-02T01:37:46+00:00",
+      "timestamp": "2026-10-02T01:37:46Z",
       "current_phase": "M21_COMPANY_SOURCE_WATCH_AND_PRIORITY_LOCAL_VERIFIED",
       "completed_steps": [
         "Added durable AUTO_DISCOVERED and USER_WATCHED source origin with deterministic legacy backfill.",
@@ -1974,7 +1974,7 @@
     },
     {
       "milestone_id": "M24-DEVELOPMENT-FEEDBACK-GUI",
-      "timestamp": "2026-10-03T05:12:45.248619+00:00",
+      "timestamp": "2026-10-03T05:12:45.248619Z",
       "current_phase": "M24_FEEDBACK_GUI_LOCAL_VERIFIED",
       "completed_steps": [
         "Delivered user-approved standalone 19-task feedback GUI with tailored forms, saved history and autosave.",
@@ -2036,7 +2036,7 @@
     },
     {
       "milestone_id": "RESUME-PROFILE-FEEDBACK-20261003",
-      "timestamp": "2026-10-03T19:07:22.805950+00:00",
+      "timestamp": "2026-10-03T19:07:22.805950Z",
       "current_phase": "RESUME_PROFILE_FEEDBACK_LOCAL_VERIFIED",
       "completed_steps": [
         "Reproduced the missing import/profile/history behavior.",
@@ -2088,7 +2088,7 @@
     },
     {
       "milestone_id": "COMMERCIAL-CATALOGUE-20261003",
-      "timestamp": "2026-10-03T19:50:42.221863+00:00",
+      "timestamp": "2026-10-03T19:50:42.221863Z",
       "current_phase": "CATALOGUE_VALIDATION_AND_CONTINUOUS_DELIVERY",
       "completed_steps": [
         "Reconciled live Git/GitHub, preserved all25 initial worktrees and24 untracked files.",
@@ -2131,7 +2131,7 @@
     },
     {
       "milestone_id": "FEEDBACK-RESUME-INTEGRATION-20261003",
-      "timestamp": "2026-10-03T19:51:32.962304+00:00",
+      "timestamp": "2026-10-03T19:51:32.962304Z",
       "current_phase": "FEEDBACK_RESUME_INTEGRATION",
       "completed_steps": [
         "Resolved mainline merge conflict while retaining both feature histories and requirements.",
@@ -2167,7 +2167,7 @@
     },
     {
       "milestone_id": "RESUME-UPLOAD-INTEGRITY-20261003",
-      "timestamp": "2026-10-03T20:02:48.702650+00:00",
+      "timestamp": "2026-10-03T20:02:48.702650Z",
       "current_phase": "RESUME_UPLOAD_INTEGRITY_VERIFIED",
       "completed_steps": [
         "Reproduced alternate-format orphan file on identical-byte upload.",
@@ -2209,7 +2209,7 @@
     },
     {
       "milestone_id": "FULL-DELIVERY-INTEGRATION-20261003",
-      "timestamp": "2026-10-03T20:09:49.399240+00:00",
+      "timestamp": "2026-10-03T20:09:49.399240Z",
       "current_phase": "FEEDBACK_RESUME_CATALOGUE_UPLOAD_INTEGRATION",
       "completed_steps": [
         "Integrated preserved feedback GUI, resume/profile work,59-reference catalogue and upload integrity fix.",
@@ -2281,7 +2281,7 @@
         "Reference59 NOT_RUN; release readiness NOT_RUN."
       ],
       "milestone_id": "SOURCE-QUALITY-OBSERVATIONS-20261003",
-      "timestamp": "2026-10-03T20:43:55.435569+00:00",
+      "timestamp": "2026-10-03T20:43:55.435569Z",
       "current_phase": "SOURCE_QUALITY_OBSERVATIONS",
       "last_safe_checkpoint": {
         "git_commit": "0ab211153f3f9da7669b1832b554aa996cef8942",
@@ -2290,7 +2290,7 @@
     },
     {
       "milestone_id": "AUTHORITATIVE-SOURCE-VALUES-20261003",
-      "timestamp": "2026-10-03T21:28:33.949813+00:00",
+      "timestamp": "2026-10-03T21:28:33.949813Z",
       "current_phase": "AUTHORITATIVE_SOURCE_VALUES",
       "completed_steps": [
         "Preserved normalized candidates and exact observed origins; authority precedes measured quality in canonical value selection.",
@@ -2338,7 +2338,7 @@
     },
     {
       "milestone_id": "PUBLIC-COMPANY-DISCOVERY-20261003",
-      "timestamp": "2026-10-03T22:02:40.951389+00:00",
+      "timestamp": "2026-10-03T22:02:40.951389Z",
       "current_phase": "PUBLIC_COMPANY_DISCOVERY",
       "completed_steps": [
         "Added real bounded HTTPS transport and conservative public company identity binding.",
@@ -2382,7 +2382,7 @@
     },
     {
       "milestone_id": "APPLICATION-LINK-EVIDENCE-20261003",
-      "timestamp": "2026-10-03T22:38:15.833182+00:00",
+      "timestamp": "2026-10-03T22:38:15.833182Z",
       "current_phase": "APPLICATION_LINK_EVIDENCE",
       "completed_steps": [
         "Sampled bounded public-feed application pages through existing production client.",
@@ -2432,7 +2432,7 @@
     },
     {
       "milestone_id": "COMPANY-DISCOVERY-REQUESTS-20261003",
-      "timestamp": "2026-10-03T23:28:15.874617+00:00",
+      "timestamp": "2026-10-03T23:28:15.874617Z",
       "current_phase": "COMPANY_DISCOVERY_REQUESTS",
       "completed_steps": [
         "Integrated company requests with intake/matching and transactional outbox.",
@@ -2484,7 +2484,7 @@
     },
     {
       "milestone_id": "company-source-monitoring-20261004",
-      "timestamp": "2026-10-04T00:22:19.621350+00:00",
+      "timestamp": "2026-10-04T00:22:19.621350Z",
       "current_phase": "COMPANY_SOURCE_MONITORING_LOCAL_VERIFIED",
       "completed_steps": [
         "Reconciled PR477 exact-head merge",
@@ -2558,7 +2558,7 @@
         "Exact candidate-head hosted CI remains the merge gate; final run/merge receipt belongs to the PR closeout comment."
       ],
       "milestone_id": "clean-baseline-reconciliation-20261004",
-      "timestamp": "2026-10-04T14:03:47.184867+00:00",
+      "timestamp": "2026-10-04T14:03:47.184867Z",
       "current_phase": "CLEAN_BASELINE_VALIDATING",
       "last_safe_checkpoint": {
         "git_commit": "b122b0ea9ffb6d6527e4b46ce04899d03021e361",
@@ -2593,7 +2593,7 @@
         "No external submission or production-release acceptance"
       ],
       "milestone_id": "canonical-route-attachment-20261004",
-      "timestamp": "2026-10-04T17:44:54.484958+00:00",
+      "timestamp": "2026-10-04T17:44:54.484958Z",
       "current_phase": "IMPLEMENTED_VALIDATING",
       "last_safe_checkpoint": {
         "git_commit": "77b98129384f440d3769f4ca21ca6073c517f577",
@@ -2625,7 +2625,7 @@
         "Scanned OCR remains unimplemented"
       ],
       "milestone_id": "resume-date-review-20261004",
-      "timestamp": "2026-10-04T17:56:39.051192+00:00",
+      "timestamp": "2026-10-04T17:56:39.051192Z",
       "current_phase": "IMPLEMENTED_VALIDATING",
       "last_safe_checkpoint": {
         "git_commit": "e8f8ba6c46e83b976c9b565549c0f6f0367415d0",
@@ -2656,7 +2656,7 @@
         "OCR remains imperfect and all recognized facts require user review; SQL observed as SOL and preserved unchanged"
       ],
       "milestone_id": "local-resume-ocr-20261004",
-      "timestamp": "2026-10-04T18:20:58.798924+00:00",
+      "timestamp": "2026-10-04T18:20:58.798924Z",
       "current_phase": "MERGED",
       "last_safe_checkpoint": {
         "git_commit": "831fd5a91be9b9843b529bd6593978c4586750f8",
@@ -2665,7 +2665,7 @@
     },
     {
       "milestone_id": "document-provenance-20261004",
-      "timestamp": "2026-10-04T18:53:14.753590+00:00",
+      "timestamp": "2026-10-04T18:53:14.753590Z",
       "current_phase": "MERGED",
       "last_safe_checkpoint": {
         "git_commit": "2120534c1d169c125412cf63321c2916d2a28984",
@@ -2696,7 +2696,7 @@
     },
     {
       "milestone_id": "document-library-20261004",
-      "timestamp": "2026-10-04T19:14:25.469554+00:00",
+      "timestamp": "2026-10-04T19:14:25.469554Z",
       "current_phase": "MERGED",
       "last_safe_checkpoint": {
         "git_commit": "36d28ba62f81ae1acc1a5d6a4f0e7950d6fd9550",
@@ -2727,7 +2727,7 @@
     },
     {
       "milestone_id": "approved-skill-order-20261004",
-      "timestamp": "2026-10-04T19:32:05.465854+00:00",
+      "timestamp": "2026-10-04T19:32:05.465854Z",
       "current_phase": "MERGED",
       "last_safe_checkpoint": {
         "git_commit": "49d71a9c99b045e8bb76b2d2ae136c4f52a49454",
@@ -2781,7 +2781,7 @@
         "Universal Unicode and arbitrary prose validation are not promised"
       ],
       "milestone_id": "document-validation-20261004",
-      "timestamp": "2026-10-04T19:51:47.651939+00:00",
+      "timestamp": "2026-10-04T19:51:47.651939Z",
       "current_phase": "MERGED",
       "last_safe_checkpoint": {
         "git_commit": "fdba1e8e40fdaa21ad1c63a54399559fa3b3ce45",
@@ -2813,7 +2813,7 @@
         "MJ095 broader tailoring and MJ097 ATS headings remain open"
       ],
       "milestone_id": "resume-comparison-20261004",
-      "timestamp": "2026-10-04T20:06:52.668978+00:00",
+      "timestamp": "2026-10-04T20:06:52.668978Z",
       "current_phase": "MERGED",
       "last_safe_checkpoint": {
         "git_commit": "2a8e95a5023b26f3576b71c2fa46489dc9512094",
@@ -2842,7 +2842,7 @@
         "Unknown sections are explicitly unclassified; OCR-derived text remains uncertain"
       ],
       "milestone_id": "uploaded-resume-comparison-20261004",
-      "timestamp": "2026-10-04T20:21:19.219179+00:00",
+      "timestamp": "2026-10-04T20:21:19.219179Z",
       "current_phase": "MERGED",
       "last_safe_checkpoint": {
         "git_commit": "5c5bb565b949746117c3cacb017bdb98f7de171a",
@@ -2870,7 +2870,7 @@
       "known_errors": [],
       "known_limitations": [],
       "milestone_id": "ats-headings-20261004",
-      "timestamp": "2026-10-04T20:47:50.621120+00:00",
+      "timestamp": "2026-10-04T20:47:50.621120Z",
       "current_phase": "MERGED",
       "last_safe_checkpoint": {
         "git_commit": "5a2f77c2a622433c9bf3dbcad22294a3de99c595",
@@ -2898,7 +2898,7 @@
       "known_errors": [],
       "known_limitations": [],
       "milestone_id": "approved-resume-selection-20261004",
-      "timestamp": "2026-10-04T21:03:37.708586+00:00",
+      "timestamp": "2026-10-04T21:03:37.708586Z",
       "current_phase": "MERGED",
       "last_safe_checkpoint": {
         "git_commit": "4016a732bffde4707b3e0bba07ea2c2a33b69c17",
@@ -2907,7 +2907,7 @@
     },
     {
       "milestone_id": "technology-emphasis-20261004",
-      "timestamp": "2026-10-04T21:42:28.675566+00:00",
+      "timestamp": "2026-10-04T21:42:28.675566Z",
       "current_phase": "MERGED",
       "completed_steps": [
         "Versioned approved technology emphasis implemented",
@@ -2937,7 +2937,7 @@
     },
     {
       "milestone_id": "resume-contact-header-20261004",
-      "timestamp": "2026-10-04T22:03:04.426498+00:00",
+      "timestamp": "2026-10-04T22:03:04.426498Z",
       "current_phase": "MERGED",
       "completed_steps": [
         "Versioned opt-in contact header through API/worker/UI/history/comparison",
@@ -2966,7 +2966,7 @@
     },
     {
       "milestone_id": "user-requested-chatgpt-handoff-20261004",
-      "timestamp": "2026-10-04T22:28:44.373673+00:00",
+      "timestamp": "2026-10-04T22:28:44.373673Z",
       "current_phase": "HANDOFF",
       "completed_steps": [
         "All15 implementation PRs merged with exact-head evidence",
@@ -2996,7 +2996,7 @@
     },
     {
       "milestone_id": "FACT-REVIEW-RESET-503-LOCAL",
-      "timestamp": "2026-10-05T00:42:13.989737+00:00",
+      "timestamp": "2026-10-05T00:42:13.989737Z",
       "current_phase": "IMPLEMENTED_VALIDATING",
       "completed_steps": [
         "Reproduced three stale-approval failures in actual Chromium on unchanged UI",
@@ -3042,7 +3042,7 @@
     },
     {
       "milestone_id": "FACT-REVIEW-RESET-503-MERGED",
-      "timestamp": "2026-10-05T01:00:52.123884+00:00",
+      "timestamp": "2026-10-05T01:00:52.123884Z",
       "current_phase": "MERGED_VERIFIED",
       "completed_steps": [
         "Merged PR504 and closed issue503 after exact-final-head acceptance",
@@ -3073,7 +3073,7 @@
     },
     {
       "milestone_id": "CODESPACES-505-LOCAL",
-      "timestamp": "2026-10-05T01:00:52.123884+00:00",
+      "timestamp": "2026-10-05T01:00:52.123884Z",
       "current_phase": "IMPLEMENTED_VALIDATING",
       "completed_steps": [
         "Replaced automatic global skills/AFK setup with CLI-only bootstrap",
@@ -3116,7 +3116,7 @@
     },
     {
       "milestone_id": "CORE-WORKFLOW-TRIAL-B-MANUAL-CAPTURE",
-      "timestamp": "2026-10-05T05:28:10.640890+00:00",
+      "timestamp": "2026-10-05T05:28:10.640890Z",
       "current_phase": "B_MANUAL_CAPTURE_REVIEW_REPAIR",
       "completed_steps": [
         "Implemented manual job capture on the existing Jobs screen and canonical persistence model",
@@ -3167,7 +3167,7 @@
     },
     {
       "milestone_id": "CORE-WORKFLOW-TRIAL-B-MANUAL-CAPTURE-REPAIRED",
-      "timestamp": "2026-10-05T05:32:12.160784+00:00",
+      "timestamp": "2026-10-05T05:32:12.160784Z",
       "current_phase": "B_MANUAL_CAPTURE_FINAL_LOCAL_VERIFIED_PENDING_REVIEW",
       "completed_steps": [
         "Blocked reference-only manual jobs from preparation in both browser UI and API",
@@ -3212,7 +3212,7 @@
     },
     {
       "milestone_id": "CORE-WORKFLOW-TRIAL-B-MANUAL-CAPTURE-MERGED",
-      "timestamp": "2026-10-05T05:42:14+00:00",
+      "timestamp": "2026-10-05T05:42:14Z",
       "current_phase": "B_MANUAL_CAPTURE_MERGED_CONTINUE",
       "completed_steps": [
         "Reconciled PR #508 closing receipt and exact-head CI",
@@ -3245,7 +3245,7 @@
     },
     {
       "milestone_id": "CORE-WORKFLOW-TRIAL-C-DETERMINISTIC-MATCHING",
-      "timestamp": "2026-10-05T06:01:23+00:00",
+      "timestamp": "2026-10-05T06:01:23Z",
       "current_phase": "C_MATCHING_LOCAL_VERIFIED_PENDING_REVIEW",
       "completed_steps": [
         "Mapped deterministic user-visible matching to live requirements #113, #115, and #116 without changing the optional-AI dependency in MJ-PR-031",
@@ -3291,7 +3291,7 @@
     },
     {
       "milestone_id": "CORE-WORKFLOW-TRIAL-C-MATCHING-PUBLISHED-DRAFT",
-      "timestamp": "2026-10-05T06:04:29+00:00",
+      "timestamp": "2026-10-05T06:04:29Z",
       "current_phase": "C_MATCHING_DRAFT_509_PENDING_INDEPENDENT_REVIEW_AND_EXACT_HEAD_CI",
       "completed_steps": [
         "Committed deterministic match explanation slice and sanitized local evidence",
@@ -3325,7 +3325,7 @@
     },
     {
       "milestone_id": "CORE-WORKFLOW-TRIAL-C-MATCHING-REVIEW-REPAIRS",
-      "timestamp": "2026-10-05T06:20:39+00:00",
+      "timestamp": "2026-10-05T06:20:39Z",
       "current_phase": "C_MATCHING_REPAIRS_COMMITTED_AWAITING_FINAL_CANDIDATE",
       "completed_steps": [
         "Bound independent review findings to candidate 5792dc5d77269c6dc1bbb86b8348cba51211022b against base 77cf0825e51f34874f49cc7753e721b60a944ef0",
@@ -3565,7 +3565,7 @@
     },
     {
       "milestone_id": "CORE-WORKFLOW-TRIAL-D-COVER-LETTER-WIP",
-      "timestamp": "2026-10-05T07:40:30.394902+00:00",
+      "timestamp": "2026-10-05T07:40:30.394902Z",
       "current_phase": "D_COVER_LETTER_LOCAL_BROWSER_AND_DURABLE_VALIDATION_PASS_HOSTED_GATES_PENDING",
       "completed_steps": [
         "PR #509 merged as 959f9a36cd32a4c326459a0ba472a24a4abd7d3f with candidate/base/merge tree equality and verified push+PR artifacts",
@@ -4043,7 +4043,7 @@
     },
     {
       "milestone_id": "LOCAL-ONLY-BUDGET-CUTOVER-20261005",
-      "timestamp": "2026-10-05T21:32:10.763994+00:00",
+      "timestamp": "2026-10-05T21:32:10.763994Z",
       "current_phase": "LOCAL_ONLY_INTEGRATION_READY",
       "completed_steps": [
         "Disabled repository Actions and all three known workflows",
@@ -4086,7 +4086,7 @@
     },
     {
       "milestone_id": "LOCAL-ONLY-INTEGRATION-CLOSEOUT-20261005",
-      "timestamp": "2026-10-05T21:39:52.641468+00:00",
+      "timestamp": "2026-10-05T21:39:52.641468Z",
       "current_phase": "LOCAL_ONLY_HANDOFF",
       "completed_steps": [
         "Published accepted candidate to main with a non-force fast-forward",
@@ -11035,7 +11035,7 @@
     },
     {
       "milestone_id": "CORE-FEATURE-BATCH-20261008-B",
-      "timestamp": "2026-10-08T09:23:01.774980Z",
+      "timestamp": "2026-10-08T09:23:01.77498Z",
       "current_phase": "CORE_FEATURE_IMPLEMENTATION",
       "completed_steps": [
         "Integrated #116/MJ-REQ-115 conservative required/preferred strength classification with exact known-skill evidence.",
@@ -12041,16 +12041,66 @@
         "evidence_path": "docs/evidence/2026-10-08-saved-search-scheduler.json",
         "note": "Exact local checks PASS and source checkpoint synchronized; this requirement remains PARTIAL."
       }
+    },
+    {
+      "milestone_id": "CORE-FEATURE-BATCH-20261008-ROLE-LENS-DOCUMENT-PREPARATION",
+      "current_phase": "CORE_FEATURE_IMPLEMENTATION",
+      "timestamp": "2026-10-08T21:38:15Z",
+      "completed_steps": [
+        "Integrated the user-selected role-lens picker and explicit selection loader into document preparation.",
+        "Confirmed PREPARE receives only a profile/job-readback-confirmed lens ID and expected version; generation persists lens provenance for document history.",
+        "Kept issue #371 / MJ-REF-001 PARTIAL because the live search-result match explanation does not yet use the selected lens."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-08-role-lens-document-preparation.json",
+        "tests/integration/test_role_lens_application_mount.py"
+      ],
+      "files_modified": [
+        "apps/api/main.py",
+        "apps/web/src/main.tsx",
+        "apps/web/src/document-history.tsx",
+        "workers/tasks.py",
+        "planning/REFERENCE_GAP_MATRIX.json",
+        "docs/PROGRESS_DASHBOARD.md"
+      ],
+      "tests_completed": [
+        "16 focused Python unit/API/integration tests PASS.",
+        "Connected Chromium role-lens document-preparation test 1/1 PASS.",
+        "Frontend tests 201/201 PASS; strict TypeScript/Vite build PASS.",
+        "Agent-skill, reference-provenance, catalogue, progress journal, dashboard and diff checks PASS."
+      ],
+      "tests_remaining": [
+        "PostgreSQL runtime and full repository suite NOT_RUN.",
+        "Hosted Actions and hosted review NOT_RUN_BY_USER_POLICY.",
+        "Search/match explanation and matching-specific lens UI are not implemented."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Synthetic local React UI/API/worker/database flow in FIXTURE mode; no external request or application submission."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "MJ-REF-001 and issue #371 remain PARTIAL until role-lens influence is visible in live match explanations.",
+        "Local main is ahead of origin/main; no push performed."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "260cf9f090f4706d2c2994534b35ff95f6608908",
+        "tree": "66739379ddcbc35c730f2ea78e7ffdcde26df5a7",
+        "branch": "main",
+        "issue": "#371 / MJ-REF-001 role-lens document-preparation slice",
+        "evidence_path": "docs/evidence/2026-10-08-role-lens-document-preparation.json",
+        "note": "Local connected role-lens document preparation verified; issue remains PARTIAL because search-result/match explanation integration is outstanding."
+      }
     }
   ],
   "current_phase": "CORE_FEATURE_IMPLEMENTATION",
   "last_safe_checkpoint": {
-    "git_commit": "0214b4bf022cee4bb8498468aa7535decb71392e",
-    "tree": "b5c7e67a9ba5b1ba1e96879641dd2f919a3a160c",
+    "git_commit": "260cf9f090f4706d2c2994534b35ff95f6608908",
+    "tree": "66739379ddcbc35c730f2ea78e7ffdcde26df5a7",
     "branch": "main",
-    "issue": "#192 / MJ-REQ-191 saved-search scheduler",
-    "evidence_path": "docs/evidence/2026-10-08-saved-search-scheduler.json",
-    "note": "Exact local checks PASS and source checkpoint synchronized; this requirement remains PARTIAL."
+    "issue": "#371 / MJ-REF-001 role-lens document-preparation slice",
+    "evidence_path": "docs/evidence/2026-10-08-role-lens-document-preparation.json",
+    "note": "Local connected role-lens document preparation verified; issue remains PARTIAL because search-result/match explanation integration is outstanding."
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -12421,7 +12471,7 @@
   },
   "historical_control_snapshots": [
     {
-      "archived_at": "2026-10-03T20:12:32.612186+00:00",
+      "archived_at": "2026-10-03T15:12:32.612186-05:00",
       "publication": {
         "result": "IN_PROGRESS",
         "branch": "codex/mj-pr-021-company-ats-discovery",
@@ -12435,7 +12485,7 @@
       },
       "last_implementation_commit": "b096b868b4feb6df6afbe1581ff7a6a80a891c16",
       "last_verified_checkpoint": {
-        "timestamp": "2026-10-02T11:03:00.071536+00:00",
+        "timestamp": "2026-10-02T06:03:00.071536-05:00",
         "base_commit": "566bbf9cdebf882cc80bbb65b803ca3996fa9beb",
         "result": "PASS",
         "scope": "235 Python tests, 11 frontend tests/build, validators, and actual feed-import-to-browser activity acceptance",
@@ -12443,7 +12493,7 @@
       }
     },
     {
-      "archived_at": "2026-10-03T20:42:26.854175+00:00",
+      "archived_at": "2026-10-03T15:42:26.854175-05:00",
       "publication": {
         "result": "PARTIAL",
         "branch": "codex/feedback-gui",
@@ -12453,7 +12503,7 @@
         "url": "https://github.com/MulattoTech/MJobs/pull/452",
         "draft": true,
         "observed_head_before_bookkeeping": "8860d7ea2818359341eee90bd2a48a68351b365d",
-        "observed_at": "2026-10-03T20:12:32.612186+00:00",
+        "observed_at": "2026-10-03T15:12:32.612186-05:00",
         "note": "This bookkeeping commit changes the head. Resolve the exact current head/checks from GitHub before merge; prior-head checks cannot promote it."
       },
       "ci_verification": {
@@ -12468,7 +12518,7 @@
       },
       "last_implementation_commit": "8860d7ea2818359341eee90bd2a48a68351b365d",
       "last_verified_checkpoint": {
-        "timestamp": "2026-10-03T20:12:32.612186+00:00",
+        "timestamp": "2026-10-03T15:12:32.612186-05:00",
         "base_commit": "8860d7ea2818359341eee90bd2a48a68351b365d",
         "result": "PASS",
         "scope": "Combined287 Python tests,17 frontend tests/build, catalogue/progress validators, synthetic SQLite/PostgreSQL and browser recovery; final-head hosted CI pending.",
@@ -12489,13 +12539,13 @@
       }
     },
     {
-      "archived_at": "2026-10-03T21:28:33.949813+00:00",
+      "archived_at": "2026-10-03T16:28:33.949813-05:00",
       "publication": {
         "result": "PARTIAL",
         "branch": "codex/source-quality",
         "worktree": "C:\\Tools\\Dev\\MJobs\\.worktrees\\source-quality",
         "base": "0ab211153f3f9da7669b1832b554aa996cef8942",
-        "observed_at": "2026-10-03T20:45:15.968815+00:00",
+        "observed_at": "2026-10-03T15:45:15.968815-05:00",
         "note": "This state commit changes the PR head. Verify exact latest SHA and hosted CI before merge.",
         "pr_number": 473,
         "url": "https://github.com/MulattoTech/MJobs/pull/473",
@@ -12509,7 +12559,7 @@
       },
       "last_implementation_commit": "230cb9844f776e4ee1b49d0bcacec23c26f58a5f",
       "last_verified_checkpoint": {
-        "timestamp": "2026-10-03T20:42:26.854175+00:00",
+        "timestamp": "2026-10-03T15:42:26.854175-05:00",
         "base_commit": "0ab211153f3f9da7669b1832b554aa996cef8942",
         "result": "PASS",
         "scope": "309 Python tests zero skips,17 frontend tests/build, validators, isolated PostgreSQL17 upgrade/rollback guard/restart; hosted CI not yet run.",
@@ -12529,13 +12579,13 @@
       }
     },
     {
-      "archived_at": "2026-10-03T22:02:40.951389+00:00",
+      "archived_at": "2026-10-03T17:02:40.951389-05:00",
       "publication": {
         "result": "PARTIAL",
         "branch": "codex/source-value-resolution",
         "worktree": "C:\\Tools\\Dev\\MJobs\\.worktrees\\source-value-resolution",
         "base": "96e48325793c29f74c96063abf36ea86c9180a2f",
-        "observed_at": "2026-10-03T21:31:44.309470+00:00",
+        "observed_at": "2026-10-03T16:31:44.30947-05:00",
         "note": "This bookkeeping commit changes the PR head. Verify exact latest SHA and hosted CI before merge.",
         "pr_number": 474,
         "url": "https://github.com/MulattoTech/MJobs/pull/474",
@@ -12549,7 +12599,7 @@
       },
       "last_implementation_commit": "b40e7580660a1f6c611c102c65e65c52ff648986",
       "last_verified_checkpoint": {
-        "timestamp": "2026-10-03T21:28:33.949813+00:00",
+        "timestamp": "2026-10-03T16:28:33.949813-05:00",
         "base_commit": "96e48325793c29f74c96063abf36ea86c9180a2f",
         "result": "PASS",
         "scope": "322 Python tests zero skips;21 frontend tests/build; isolated PostgreSQL17 concurrency, migration guards and restart. Hosted CI pending.",
@@ -12569,13 +12619,13 @@
       }
     },
     {
-      "archived_at": "2026-10-03T22:38:15.833182+00:00",
+      "archived_at": "2026-10-03T17:38:15.833182-05:00",
       "publication": {
         "result": "PARTIAL",
         "branch": "codex/public-company-discovery",
         "worktree": "C:\\Tools\\Dev\\MJobs\\.worktrees\\public-company-discovery",
         "base": "216f1a4696abc8dcb07fb57b5a67102091343ec5",
-        "observed_at": "2026-10-03T22:05:02.314398+00:00",
+        "observed_at": "2026-10-03T17:05:02.314398-05:00",
         "note": "This state commit changes the PR head. Verify latest exact SHA and required CI before merge.",
         "pr_number": 475,
         "url": "https://github.com/MulattoTech/MJobs/pull/475",
@@ -12589,7 +12639,7 @@
       },
       "last_implementation_commit": "db9fae035b7ae0a4fa2beb84628c057ee73d000d",
       "last_verified_checkpoint": {
-        "timestamp": "2026-10-03T22:02:40.951389+00:00",
+        "timestamp": "2026-10-03T17:02:40.951389-05:00",
         "base_commit": "216f1a4696abc8dcb07fb57b5a67102091343ec5",
         "result": "PASS",
         "scope": "350 Python tests zero skips;23 frontend tests/build; catalogue/progress; actual browser/local worker flow and unmocked bounded HTTPS GET. Exact-head hosted CI pending.",
@@ -12614,13 +12664,13 @@
       }
     },
     {
-      "archived_at": "2026-10-03T23:28:15.874617+00:00",
+      "archived_at": "2026-10-03T18:28:15.874617-05:00",
       "publication": {
         "result": "PARTIAL",
         "branch": "codex/application-link-evidence",
         "worktree": "C:\\Tools\\Dev\\MJobs\\.worktrees\\application-link-evidence",
         "base": "5a082f26a34765be32cd6c0c726c957b242b72a7",
-        "observed_at": "2026-10-03T22:39:37.340715+00:00",
+        "observed_at": "2026-10-03T17:39:37.340715-05:00",
         "note": "Final parser ambiguity fix changes the head again. Verify latest exact SHA and required CI before merge.",
         "pr_number": 476,
         "url": "https://github.com/MulattoTech/MJobs/pull/476",
@@ -12634,7 +12684,7 @@
       },
       "last_implementation_commit": "cd487dea9772d58df5a2b811fb0f6de932f438d6",
       "last_verified_checkpoint": {
-        "timestamp": "2026-10-03T22:38:15.833182+00:00",
+        "timestamp": "2026-10-03T17:38:15.833182-05:00",
         "base_commit": "5a082f26a34765be32cd6c0c726c957b242b72a7",
         "result": "PASS",
         "scope": "369 Python tests zero skips,26 frontend tests/build, isolated PostgreSQL17 upgrade/downgrade guard/restart; exact-head hosted CI pending. Final parser ambiguity guard:27 affected tests PASS after observed RED.",
@@ -12654,13 +12704,13 @@
       }
     },
     {
-      "archived_at": "2026-10-04T00:22:19.621350+00:00",
+      "archived_at": "2026-10-03T19:22:19.62135-05:00",
       "publication": {
         "result": "PARTIAL",
         "branch": "codex/company-discovery-triggers",
         "worktree": "C:\\Tools\\Dev\\MJobs\\.worktrees\\company-discovery-triggers",
         "base": "8240e471260ebeb60bde9932368651da410f3148",
-        "observed_at": "2026-10-03T23:29:36.552072+00:00",
+        "observed_at": "2026-10-03T18:29:36.552072-05:00",
         "note": "This bookkeeping commit changes the head; verify latest exact SHA and CI before merge.",
         "pr_number": 477,
         "url": "https://github.com/MulattoTech/MJobs/pull/477",
@@ -12674,7 +12724,7 @@
       },
       "last_implementation_commit": "c12effd2c0d1126f60194842dd4e7af2ca19eda0",
       "last_verified_checkpoint": {
-        "timestamp": "2026-10-03T23:28:15.874617+00:00",
+        "timestamp": "2026-10-03T18:28:15.874617-05:00",
         "base_commit": "8240e471260ebeb60bde9932368651da410f3148",
         "result": "PASS",
         "scope": "393 Python tests zero skips;29 frontend tests/build; isolated PostgreSQL17 concurrency, migration guard and restart; exact-head hosted CI pending.",
@@ -12696,7 +12746,7 @@
       }
     },
     {
-      "archived_at": "2026-10-04T14:03:47.184867+00:00",
+      "archived_at": "2026-10-04T09:03:47.184867-05:00",
       "reason": "Superseded pre-publication fields retained during clean-baseline reconciliation",
       "session_control": {
         "requested_action": "MJ_PR_023_COMPLETION",
@@ -12707,7 +12757,7 @@
         "branch": "codex/company-source-refresh",
         "worktree": "C:\\Tools\\Dev\\MJobs\\.worktrees\\company-source-refresh",
         "base": "b4fa3a11762b0c26bfbb09e105f3c47681763e20",
-        "observed_at": "2026-10-04T00:22:19.621350+00:00",
+        "observed_at": "2026-10-03T19:22:19.62135-05:00",
         "note": "Prepared for one publication head. Live PR/CI receipt is in GitHub and private integration checkpoint; next reconciliation records merged truth without a post-publication bookkeeping commit."
       },
       "ci_verification": {
@@ -12730,7 +12780,7 @@
       }
     },
     {
-      "archived_at": "2026-10-05T00:42:13.989737+00:00",
+      "archived_at": "2026-10-04T19:42:13.989737-05:00",
       "scope": "Before user-authorized issue503",
       "publication": {
         "result": "NOT_RUN",
@@ -12751,7 +12801,7 @@
       }
     },
     {
-      "archived_at": "2026-10-05T01:00:52.123884+00:00",
+      "archived_at": "2026-10-04T20:00:52.123884-05:00",
       "scope": "Issue503 merged with exact-head acceptance",
       "publication": {
         "result": "PARTIAL",
@@ -12766,7 +12816,7 @@
       }
     },
     {
-      "archived_at": "2026-10-05T21:32:10.763994+00:00",
+      "archived_at": "2026-10-05T16:32:10.763994-05:00",
       "current_objective": "Deliver the bounded core workflows by 2026-10-05 15:00 America/Chicago; stop feature work at 13:00; preserve external submission OFF; report PARTIAL for unfinished criteria.",
       "active_development_issue": {
         "number": 196,
@@ -12796,7 +12846,7 @@
       }
     },
     {
-      "archived_at": "2026-10-05T21:39:52.641468+00:00",
+      "archived_at": "2026-10-05T16:39:52.641468-05:00",
       "reason": "Active PR list contained historical integrated work; use live PR state",
       "active_prs": [
         {
@@ -13450,7 +13500,7 @@
     }
   ],
   "company_discovery_requests_ci": {
-    "timestamp": "2026-10-03T23:35:27.080059+00:00",
+    "timestamp": "2026-10-03T18:35:27.080059-05:00",
     "result": "PASS",
     "head": "ef847659af10c7907f99fd8d38371ee732cf30e9",
     "base": "8240e471260ebeb60bde9932368651da410f3148",
@@ -13495,7 +13545,7 @@
     "note": "No further implementation authorized by this historical session receipt. Current user can invoke the checked-in local-only prompt."
   },
   "pr023_completion": {
-    "timestamp": "2026-10-04T01:33:37.729938+00:00",
+    "timestamp": "2026-10-03T20:33:37.729938-05:00",
     "base_commit": "eff87832515e54a4a8eabc595b00e2957977ef93",
     "branch": "codex/pr023-completion-20261003",
     "status": "PARTIAL",
@@ -13565,7 +13615,7 @@
   "ownership": "Issue #177 / MJ-REQ-176 company-source setting Activity slice source 0c76b225f48a882e8aa90b5e7686d22a8891425e, source tree 3d7733e26c5d4d097518d3c911d6029c7f1c5e86, evidence and tests integrated at synchronized local/GitHub main 68a0630b690cfa855e43829bc4f1836cf6add246 under the Codex integration lock. GitHub issue checkpoint: https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6048627184. The issue remains OPEN/PARTIAL; hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL/Docker NOT_RUN; external submission OFF.",
   "delivery_policy": {
     "mode": "LOCAL_ONLY",
-    "effective_at": "2026-10-05T21:32:10.763994+00:00",
+    "effective_at": "2026-10-05T16:32:10.763994-05:00",
     "github_actions_enabled": false,
     "hosted_tests_allowed": false,
     "github_agent_reviews_allowed": false,
@@ -13575,29 +13625,34 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-08T18:03:37Z",
+  "updated_at": "2026-10-08T21:38:15Z",
   "current_verified_local_state": "Local main source checkpoint 0214b4bf022cee4bb8498468aa7535decb71392e (tree b5c7e67a9ba5b1ba1e96879641dd2f919a3a160c) includes the #192 per-saved-search cadence scheduler: enable/edit/disable, profile-scoped durable DISCOVER enqueue, idempotency/recovery, and connected UI save/readback. Exact evidence is docs/evidence/2026-10-08-saved-search-scheduler.json. 26 focused Python tests, Chromium 1/1, frontend 136/136, build and local validators PASS. #96 uploaded-base comparison follow-up remains unintegrated; Tech reports the API v5 skill-order case still returns 409 and needs diagnosis.",
   "current_verified_github_state": "Local main, origin/main and GitHub main synchronized at 0214b4bf022cee4bb8498468aa7535decb71392e for the #192 source checkpoint. The scheduler issue receipt is recorded at https://github.com/MulattoTech/MJobs/issues/192#issuecomment-6065967967. GitHub Actions/hosted checks remain disabled or NOT_RUN_BY_POLICY; external application submission OFF.",
   "next_candidates": [
     {
-      "issue": 96,
-      "requirement_id": "MJ-REQ-095",
-      "status": "ACTIVE_IMPLEMENTATION: exact API v5 uploaded-base skill-order comparison still fails 409; diagnose before integrating."
+      "issue": 371,
+      "requirement_id": "MJ-REF-001",
+      "status": "PARTIAL_ON_MAIN: document preparation flow integrated; live match explanation remains."
     },
     {
-      "issue": 199,
-      "requirement_id": "MJ-REQ-198",
-      "status": "READY_FOR_ROOT_INTEGRATION: durable archive service/UI/test contributions prepared; API/UI wiring and connected readback remain."
+      "issue": 408,
+      "requirement_id": "MJ-REF-038",
+      "status": "READY_FOR_ROOT_INTEGRATION: scoring service/API/UI/test branches need assembled worker/search wiring; do not overlap the role-lens match slice."
     },
     {
-      "issue": 143,
-      "requirement_id": "MJ-REQ-142",
-      "status": "READY_FOR_ROOT_INTEGRATION: MOCK-only manual-auth service/adapter/API/UI/test contributions prepared; app entrypoint wiring and connected revalidation remain."
+      "issue": 401,
+      "requirement_id": "MJ-REF-031",
+      "status": "READY_FOR_ROOT_INTEGRATION: local capture service/API/UI/tests are prepared; mount and verify against current main."
     },
     {
-      "issue": 83,
-      "requirement_id": "MJ-REQ-082",
-      "status": "READY_FOR_ROOT_INTEGRATION: sanitized source-activity service/formatter/UI/test contributions prepared; API/main screen wiring and connected validation remain."
+      "issue": 391,
+      "requirement_id": "MJ-REF-021",
+      "status": "PARTIAL: company workspace/advisor modules exist; snapshot history/undo acceptance remains."
+    },
+    {
+      "issue": 372,
+      "requirement_id": "MJ-REF-002",
+      "status": "PARTIAL: career story bank/selectors exist; connected document/answer consumption remains."
     }
   ]
 }

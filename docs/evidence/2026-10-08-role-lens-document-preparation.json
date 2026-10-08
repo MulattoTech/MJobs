@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REF-001-ROLE-LENS-DOCUMENT-PREPARATION-20261008",
+  "issue": 371,
+  "requirement_id": "MJ-REF-001",
+  "result": "PARTIAL",
+  "recorded_at_utc": "2026-10-08T21:35:20Z",
+  "branch": "main",
+  "implementation_commit": "260cf9f090f4706d2c2994534b35ff95f6608908",
+  "implementation_tree": "66739379ddcbc35c730f2ea78e7ffdcde26df5a7",
+  "input_sha256": {
+    "apps/api/main.py": "68239abdf15ac428a2f01ed0ae128cd8de59c699c1ecf782c581dbe378fbac9d",
+    "apps/api/role_lenses.py": "7d058c9175c4e3803c945cee1e61ad49b0cbe70fb0896a407d773e3200f55e87",
+    "services/career_profile/role_lenses.py": "1a7355f959f247f3e28fda20923a8f53a445ebe0f233f6bce89bc0f29a648cee",
+    "services/documents/generate.py": "53f3e2af11167d5e9600db1d1702a5bcda5f1aa02d984254d41f8d32c861f073",
+    "workers/tasks.py": "be842a088bfbc42c551a0ccf9cf54271255538b5a20b44f77a17e40f5608a03b",
+    "apps/web/src/main.tsx": "d3a999b8823d539f2b817fa855db9c13d7468a5514aff826c341b0ca7fdcd3a0",
+    "apps/web/src/role-lens-picker.tsx": "709ddd96968a50265963554fd045e3c4813539fbf921c542c71fbbd5cb6484fc",
+    "apps/web/src/role-lens-selection.tsx": "b1fbaf3252b899de2a86442e44a71520036458db3fe62566ae6fac3d193ed837",
+    "apps/web/src/document-history.tsx": "f02cfdfaec526382815cfa6762994386a8399c99a342ebf1ac703ac95277409c",
+    "tests/integration/test_role_lens_generation.py": "e4481b3dc70871082f86365185900017b9a058a12eaa8849fedcb21d239221f4",
+    "tests/browser/test_role_lens_generation.py": "d156b52e6f307a6d7bc48dafe7bedd47e1af5f918ea58a65765fa525983e9761"
+  },
+  "acceptance": {
+    "versioned_lens_configuration_independent_of_career_facts": "PASS - Five occupation-agnostic versioned lenses are defined separately from CareerFacts.",
+    "truthful_fact_selection_and_emphasis": "PASS - Lens selection reorders/emphasizes only current verified and approved facts and approved story revisions; it creates or edits no career facts.",
+    "job_scoped_document_preparation": "PASS - The local UI displays deterministic suggestions without auto-selecting them. Explicit selection is confirmed by a same-profile/job/version API readback; PREPARE carries only the lens ID and expected version. Worker generation records lens provenance in saved resume documents and history.",
+    "search_matching_lens_integration": "PARTIAL - Job-title-based selection preview is available, but the selected lens is not yet connected to the search-result match explanation/scoring workflow.",
+    "different_emphasis_from_same_fact_set": "PASS - Service and document-generation tests show different lenses produce different emphasis/order while preserving the same source facts.",
+    "visible_document_influence": "PASS - Document history names the selected lens/version, selection reason, evidence counts, and included fact count."
+  },
+  "validation": {
+    "python_command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_role_lens_document_generation tests.unit.test_role_lenses tests.integration.test_role_lens_generation tests.integration.test_role_lenses_api tests.integration.test_role_lens_application_mount -v",
+    "python_result": "PASS - 16 tests, 0 failures, 0 errors, 0 skips.",
+    "browser_command": "..\\..\\.venv\\Scripts\\python.exe -m pytest tests/browser/test_role_lens_generation.py -q",
+    "browser_result": "PASS - 1 connected Chromium test; local fixture API only; no external request or submission observed.",
+    "web_unit_command": "npm test --prefix apps/web -- --run",
+    "web_unit_result": "PASS - 42 files, 201 tests.",
+    "web_build_command": "npm run build --prefix apps/web",
+    "web_build_result": "PASS - strict TypeScript check and Vite production build.",
+    "validators": "PASS - agent skill validation, reference provenance validation, and catalogue validation.",
+    "diff_check": "PASS - git diff --check and staged diff check.",
+    "postgresql": "NOT_RUN",
+    "hosted_checks_and_review": "NOT_RUN_BY_USER_POLICY"
+  },
+  "release_safety": {
+    "external_application_submission": "OFF",
+    "hosted_actions": "DISABLED_BY_POLICY",
+    "origin_main": "0a8719d4db524c90b632d990cc7b205add0c2577; no push performed"
+  },
+  "next_gap": "Connect role-lens selection to the live job match explanation/search workflow and then rerun connected browser acceptance."
+}
