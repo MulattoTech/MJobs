@@ -45,6 +45,122 @@ class ApplicationAnswerExportTests(unittest.TestCase):
         self.store.engine.dispose()
         self.temp.cleanup()
 
+    def test_answer_confidence_thresholds_are_profile_scoped_and_survive_reopen(self):
+        self.store.save_profile(dict(PROFILE, id='other', name='Other fixture',
+                                     email='other@example.test'))
+        endpoint = '/profiles/fixture/application-answer-confidence-thresholds'
+        other_endpoint = '/profiles/other/application-answer-confidence-thresholds'
+        defaults = self.client.get(endpoint)
+        self.assertEqual(defaults.status_code, 200, defaults.text)
+        self.assertEqual(defaults.json()['policy'], {
+            'minimum_saved_answer_confidence': 80,
+            'minimum_question_match_confidence': 0.75,
+        })
+
+        saved = self.client.put(endpoint, json={
+            'minimum_saved_answer_confidence': 90,
+            'minimum_question_match_confidence': 0.9,
+        })
+        self.assertEqual(saved.status_code, 200, saved.text)
+        self.assertEqual(self.client.get(other_endpoint).json()['policy'], {
+            'minimum_saved_answer_confidence': 80,
+            'minimum_question_match_confidence': 0.75,
+        })
+        self.assertEqual(self.client.get(
+            '/profiles/missing/application-answer-confidence-thresholds').status_code, 404)
+
+        self.store.engine.dispose()
+        from packages.persistence.store import Store
+        self.store = Store(f"sqlite:///{(self.root / 'test.db').as_posix()}")
+        self.client.close()
+        self.client = TestClient(create_app(self.store, 'http://127.0.0.1:1', self.root))
+        self.assertEqual(self.client.get(endpoint).json()['policy'], {
+            'minimum_saved_answer_confidence': 90,
+            'minimum_question_match_confidence': 0.9,
+        })
+
+    def test_invalid_answer_confidence_thresholds_are_rejected(self):
+        endpoint = '/profiles/fixture/application-answer-confidence-thresholds'
+        for policy in (
+            {'minimum_saved_answer_confidence': -1, 'minimum_question_match_confidence': 0.75},
+            {'minimum_saved_answer_confidence': 101, 'minimum_question_match_confidence': 0.75},
+            {'minimum_saved_answer_confidence': 80, 'minimum_question_match_confidence': 1.1},
+        ):
+            response = self.client.put(endpoint, json=policy)
+            self.assertEqual(response.status_code, 422, response.text)
+
+    def test_current_answer_threshold_is_rechecked_by_export(self):
+        profile = dict(PROFILE, answers=[{
+            'id': 'years-experience', 'question': 'How many years of experience?',
+            'text': 'Five years', 'source': 'User review', 'verified': True,
+            'user_approved': True, 'confidence': 85,
+        }])
+        self.assertEqual(self.put_profile(profile).status_code, 200)
+        policy_url = '/profiles/fixture/application-answer-confidence-thresholds'
+        self.assertEqual(self.client.put(policy_url, json={
+            'minimum_saved_answer_confidence': 90,
+            'minimum_question_match_confidence': 0.75,
+        }).status_code, 200)
+        item = {'question': 'How many years of experience?', 'answer_id': 'years-experience',
+                'text': 'Five years', 'reviewed': True}
+        denied = self.client.post(self.export_url,
+                                  json={'profile_id': 'fixture', 'items': [item]})
+        self.assertEqual(denied.status_code, 422, denied.text)
+
+        self.assertEqual(self.client.put(policy_url, json={
+            'minimum_saved_answer_confidence': 80,
+            'minimum_question_match_confidence': 0.75,
+        }).status_code, 200)
+        accepted = self.client.post(self.export_url,
+                                    json={'profile_id': 'fixture', 'items': [item]})
+        self.assertEqual(accepted.status_code, 201, accepted.text)
+
+    def test_confidence_boundaries_manual_answers_and_external_submission_control(self):
+        profile = dict(PROFILE, answers=[{
+            'id': 'years-experience',
+            'question': 'How many years of professional experience do you have?',
+            'text': 'Five synthetic years', 'source': 'Synthetic user review',
+            'verified': True, 'user_approved': True, 'confidence': 85,
+        }])
+        self.assertEqual(self.put_profile(profile).status_code, 200)
+        policy_url = '/profiles/fixture/application-answer-confidence-thresholds'
+        item = {
+            'question': 'How many years of professional experience have you had?',
+            'answer_id': 'years-experience', 'text': 'Five synthetic years', 'reviewed': True,
+        }
+        self.assertEqual(self.client.put(policy_url, json={
+            'minimum_saved_answer_confidence': 85,
+            'minimum_question_match_confidence': 0.778,
+        }).status_code, 200)
+        accepted = self.client.post(self.export_url,
+                                    json={'profile_id': 'fixture', 'items': [item]})
+        self.assertEqual(accepted.status_code, 201, accepted.text)
+        self.assertEqual(accepted.json()['external_submission'], 'OFF')
+
+        self.assertEqual(self.client.put(policy_url, json={
+            'minimum_saved_answer_confidence': 86,
+            'minimum_question_match_confidence': 0.778,
+        }).status_code, 200)
+        self.assertEqual(self.client.post(
+            self.export_url, json={'profile_id': 'fixture', 'items': [item]}).status_code, 422)
+        self.assertEqual(self.client.put(policy_url, json={
+            'minimum_saved_answer_confidence': 85,
+            'minimum_question_match_confidence': 0.779,
+        }).status_code, 200)
+        self.assertEqual(self.client.post(
+            self.export_url, json={'profile_id': 'fixture', 'items': [item]}).status_code, 422)
+
+        self.assertEqual(self.client.put(policy_url, json={
+            'minimum_saved_answer_confidence': 100,
+            'minimum_question_match_confidence': 1.0,
+        }).status_code, 200)
+        manual = self.client.post(self.export_url, json={'profile_id': 'fixture', 'items': [{
+            'question': 'What did you learn from a synthetic project?',
+            'text': 'I learned to test carefully.', 'reviewed': True,
+        }]})
+        self.assertEqual(manual.status_code, 201, manual.text)
+        self.assertEqual(manual.json()['external_submission'], 'OFF')
+
     def test_substantive_answer_edit_resets_approval_and_survives_reload(self):
         profile = dict(PROFILE, answers=[{
             'id': 'years-experience', 'question': 'How many years of experience?',

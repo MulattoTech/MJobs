@@ -25,6 +25,7 @@ type JobTracking = {disposition:'ACTIVE'|'SAVED'|'HIDDEN'|'NOT_INTERESTED';notes
 type Job = {id:string; title:string; company:string; provider:string; location:string; remote_type:string; description:string; skills:string[]; application_url:string; match_score:number|null; posting_count:number; tracking?:JobTracking; attributes:{fictional?:boolean; captured_at?:string; source_type?:string; company_identity?:string; skill_evidence?:string; certifications?:{id:string;name:string;strength:'REQUIRED'|'PREFERRED'|'NICE_TO_HAVE'|'UNKNOWN'}[]; salary?:{min:number;max:number;currency:string;period:string}[]; last_collected_at?:string; source_resolution?:SourceValueResolution|null}; match?:Match|null; postings?:{source:string;source_job_id:string;source_url?:string;application_url?:string;fetched_at:string;raw?:{submitted_fields?:{application_url?:string;reference_url?:string;source_details?:Record<string,unknown>}};snapshots:{sha256:string;retrieved_at:string}[]}[]};
 type ApplicationTracking = {status:string|null;attribution:'USER_REPORTED'|'EXTERNAL_USER_REPORTED'|null;notes:{id:string;text:string;sequence:number;timestamp:string}[];external_reports?:{source:string;applied_at:string;application_url?:string;sequence:number;timestamp:string}[];history:{type:'status'|'note'|'external_application';status?:string;attribution?:string;text?:string;source?:string;applied_at?:string;sequence:number;timestamp:string}[]};
 type Application = {id:string; title:string; company:string; state:string; target:string; job_id:string; profile_id:string; document_version:number; profile_version:string; fact_ids:string[]; trace:string[]; confirmation:Record<string,unknown>|null; question_preflight?:{result:'PASS'|'FAIL'|'UNKNOWN';reason:string|null;observed_at:string;missing:{question_id:string;question:string;fact_ids?:string[];answer_ids?:string[];profile_paths?:string[];document_kinds?:string[];application_context?:string[]}[]}|null; pipeline_status?:string|null; pipeline_attribution?:string|null; external_reports?:{source:string;applied_at:string;application_url?:string;sequence:number;timestamp:string}[]; answer_bank?:Answer[]; attempts?:{state:string; started_at:string;steps:string[]}[]};
+type AnswerConfidencePolicy = {minimum_saved_answer_confidence:number;minimum_question_match_confidence:number};
 type Doc = GeneratedDocument;
 type Operation = {id:string; kind:string; state:string; error:string|null;attempt_count:number;cancel_requested:boolean;updated_at:string;last_attempt_at?:string|null;dead_lettered_at?:string|null;discarded_at?:string|null;retryable?:boolean;retry_blocked_reason?:string};
 type AuditEvent = {id:string;type:string;summary:string;subject:string;company:string;timestamp:string};
@@ -60,6 +61,7 @@ const defaultAITaskSettings = ():AITaskSettings => Object.fromEntries(
   aiTaskRows.map(({key})=>[key,{provider:'disabled',model:null}])
 ) as AITaskSettings;
 const defaultAICostPolicy = ():AICostPolicy => ({minimum_score:75,max_input_candidates:5000,max_ai_candidates:75,max_document_candidates:20});
+const defaultAnswerConfidencePolicy = ():AnswerConfidencePolicy => ({minimum_saved_answer_confidence:80,minimum_question_match_confidence:0.75});
 const newFact = ():Fact => ({id:crypto.randomUUID(),kind:'skill',text:'',source:'',confidence:100,verified:false,user_approved:false});
 const newAnswer = ():Answer => ({id:crypto.randomUUID(),question:'',text:'',source:'Manual entry',confidence:100,verified:false,user_approved:false});
 const newProfile = ():Profile => ({id:crypto.randomUUID(),name:'',email:'',facts:[],answers:[],contact:{},preferences:{}});
@@ -143,6 +145,9 @@ function App() {
   const [applicationNoteRequestId,setApplicationNoteRequestId]=useState(()=>crypto.randomUUID());
   const applicationStatusRequestIds=useRef(new Map<string,string>());
   const [answerDrafts,setAnswerDrafts]=useState<{question:string;text:string;answer_id?:string;reviewed:boolean}[]>([]);
+  const [answerConfidencePolicy,setAnswerConfidencePolicy]=useState<AnswerConfidencePolicy>(defaultAnswerConfidencePolicy);
+  const [answerConfidencePolicyDraft,setAnswerConfidencePolicyDraft]=useState<AnswerConfidencePolicy>(defaultAnswerConfidencePolicy);
+  const [answerConfidencePolicyProfileId,setAnswerConfidencePolicyProfileId]=useState('');
   const [docs,setDocs]=useState<Doc[]>([]);
   const [resumes,setResumes]=useState<Resume[]>([]);
   const [tenant,setTenant]=useState(''); const [sourceIntervalMinutes,setSourceIntervalMinutes]=useState(30); const [sourceConcurrency,setSourceConcurrency]=useState(1); const [sourceTimeout,setSourceTimeout]=useState(10); const [sourceRate,setSourceRate]=useState(60); const [sourceJitter,setSourceJitter]=useState(30);
@@ -206,6 +211,15 @@ function App() {
   useEffect(() => {void refresh().catch(e=>setError(String(e)));void api<{operation_mode:OperationMode}>('/settings').then(s=>setOperationMode(s.operation_mode)).catch(e=>setError(String(e)));void readiness();const timer=setInterval(()=>void readiness(),15000);return()=>clearInterval(timer);},[]);
   useEffect(()=>{if(tab==='Activity'){void loadDeadLetters(profileId).catch(e=>setError(String(e)));void loadAuditHistory(profileId).catch(e=>setError(String(e)));}},[tab,profileId]);
   useEffect(()=>{setDeadLetters([]);setDeadLetterCount(0);setAuditEvents([]);},[profileId]);
+  useEffect(()=>{
+    let current=true;const selected=profileId;const defaults=defaultAnswerConfidencePolicy();
+    setAnswerConfidencePolicy(defaults);setAnswerConfidencePolicyDraft(defaults);setAnswerConfidencePolicyProfileId('');
+    if(!selected)return()=>{current=false;};
+    void api<{policy:AnswerConfidencePolicy}>(`/profiles/${encodeURIComponent(selected)}/application-answer-confidence-thresholds`)
+      .then(result=>{if(current&&profileRef.current===selected){setAnswerConfidencePolicy(result.policy);setAnswerConfidencePolicyDraft(result.policy);setAnswerConfidencePolicyProfileId(selected);}})
+      .catch(error=>{if(current&&profileRef.current===selected)setError(String(error));});
+    return()=>{current=false;};
+  },[profileId]);
   useEffect(() => {const sequence=++editorSequence.current;++appSequence.current;profileBaselineRef.current=null;localStorage.setItem('mjobs-profile',profileId);setSearchProfiles([]);setSelectedSearchProfileId('');setDetail(null);setSelectedApp(null);setApplicationTracking(null);setApplicationStatusDraft('');setApplicationNoteDraft('');setApplicationNoteRequestId(crypto.randomUUID());externalCaptureRequestId.current=crypto.randomUUID();setExternalCompany('');setExternalTitle('');setExternalUrl('');setExternalDescription('');setExternalAppliedAt(localDateTimeInput());setDocs([]);setResumes([]);setApps([]);setOps([]);setCompanySources([]);setMockConsent(false);setAITaskSettings(defaultAITaskSettings());setAITaskFallbacks({});setAISettingsLoading(!!profileId);void refresh(profileId).catch(e=>setError(String(e)));if(profileId){void api<Profile>('/profiles/'+encodeURIComponent(profileId)).then(p=>{if(sequence===editorSequence.current&&p.id===profileRef.current){const loaded={...p,contact:p.contact||{},preferences:p.preferences||{},facts:(p.facts||[]).map(f=>({...f,id:f.fact_id||f.id}))};setEditor(loaded);profileBaselineRef.current=loaded;}}).catch(e=>setError(String(e)));void api<{resumes:Resume[]}>('/profiles/'+encodeURIComponent(profileId)+'/resumes').then(r=>{if(sequence===editorSequence.current&&profileId===profileRef.current)setResumes(r.resumes);}).catch(e=>setError(String(e)));void api<{tasks:AITaskSettings;fallback_capabilities:AITaskFallbacks}>(`/profiles/${encodeURIComponent(profileId)}/ai-task-settings`).then(r=>{if(sequence===editorSequence.current&&profileId===profileRef.current){setAITaskSettings(r.tasks);setAITaskFallbacks(r.fallback_capabilities);}}).catch(e=>setError(String(e))).finally(()=>{if(sequence===editorSequence.current)setAISettingsLoading(false);});}else setAISettingsLoading(false);},[profileId]);
   useEffect(()=>{++credentialSequence.current;setProviderCredentials([]);setCredentialDrafts({openai:'',anthropic:''});},[profileId]);
   useEffect(()=>{const sequence=++credentialSequence.current;if(!profileId||tab!=='AI Settings')return;const selected=profileId;void api<{credentials:ProviderCredential[]}>(`/profiles/${encodeURIComponent(selected)}/provider-credentials`).then(result=>{if(sequence===credentialSequence.current&&profileRef.current===selected)setProviderCredentials(result.credentials);}).catch(e=>{if(sequence===credentialSequence.current&&profileRef.current===selected)setError(String(e));});},[profileId,tab]);
@@ -438,6 +452,16 @@ function App() {
     if(!selectedApp||!profileId)throw new Error('Select an application and profile before exporting answers');
     const result=await api<{document_id:string}>(`/profiles/${encodeURIComponent(profileId)}/applications/${encodeURIComponent(selectedApp.id)}/answers/export`,{method:'POST',body:JSON.stringify({profile_id:profileId,items:answerDrafts})});
     await showApp(selectedApp.id);setNotice(`Reviewed answer export saved as document ${result.document_id.slice(0,10)}.`);
+  }
+  async function saveAnswerConfidencePolicy() {
+    if(!profileId||answerConfidencePolicyProfileId!==profileId)throw new Error('Load the active profile confidence settings before saving.');
+    const selected=profileId;
+    const result=await api<{policy:AnswerConfidencePolicy}>(`/profiles/${encodeURIComponent(selected)}/application-answer-confidence-thresholds`,{
+      method:'PUT',body:JSON.stringify(answerConfidencePolicyDraft),
+    });
+    if(profileRef.current!==selected)return;
+    setAnswerConfidencePolicy(result.policy);setAnswerConfidencePolicyDraft(result.policy);
+    setNotice('Application answer thresholds saved for this profile. Existing answer approval and per-application review requirements remain in effect.');
   }
   function setContact(key:keyof Contact,value:string) { setEditor(current=>({...current,contact:{...current.contact,[key]:value}})); }
   function setPreference(key:keyof Preferences,value:unknown) { setEditor(current=>({...current,preferences:{...current.preferences,[key]:value}})); }
@@ -753,14 +777,27 @@ function App() {
             </div>
             <button type="button" onClick={()=>setAnswerDrafts(rows=>[...rows,{question:'',text:'',reviewed:false}])}>Add question</button>
           </div>
+          <section className="panel" aria-label="Application answer confidence thresholds">
+            <h3>Reusable answer confidence thresholds</h3>
+            <p>These profile settings can make answer reuse more selective. They never approve an answer or permit sensitive or legal answers to be reused.</p>
+            {answerConfidencePolicyProfileId!==profileId?<p role="status">Loading the active profile's answer thresholds…</p>:<>
+              <div className="two-col">
+                <label>Minimum saved answer confidence (%)<input aria-label="Minimum saved answer confidence" type="number" min={80} max={100} step={1} value={answerConfidencePolicyDraft.minimum_saved_answer_confidence} disabled={!!busy} onChange={event=>setAnswerConfidencePolicyDraft(current=>({...current,minimum_saved_answer_confidence:Number(event.target.value)}))}/></label>
+                <label>Minimum question match confidence (%)<input aria-label="Minimum question match confidence" type="number" min={75} max={100} step={1} value={Math.round(answerConfidencePolicyDraft.minimum_question_match_confidence*100)} disabled={!!busy} onChange={event=>setAnswerConfidencePolicyDraft(current=>({...current,minimum_question_match_confidence:Number(event.target.value)/100}))}/></label>
+              </div>
+              <p className="muted">Current thresholds: answer {answerConfidencePolicy.minimum_saved_answer_confidence}%; question match {Math.round(answerConfidencePolicy.minimum_question_match_confidence*100)}%. Changes apply after saving. The supported range preserves the existing 80% answer and 75% question-match floors.</p>
+              <button type="button" disabled={!!busy||!profileId||JSON.stringify(answerConfidencePolicyDraft)===JSON.stringify(answerConfidencePolicy)} onClick={()=>void action('Saving answer thresholds',saveAnswerConfidencePolicy)}>Save answer thresholds</button>
+            </>}
+          </section>
           {answerDrafts.map((draft,index)=>{
             const sensitive=isSensitiveAnswerQuestion(draft.question);
-            const suggestions=sensitive?[]:suggestAnswers(draft.question,selectedApp.answer_bank||[]);
+            const suggestions=sensitive||answerConfidencePolicyProfileId!==profileId?[]:suggestAnswers(draft.question,selectedApp.answer_bank||[]).filter(({answer,match})=>answer.confidence>=answerConfidencePolicy.minimum_saved_answer_confidence&&match.score>=answerConfidencePolicy.minimum_question_match_confidence);
             const selected=suggestions.find(item=>item.answer.id===draft.answer_id);
             return <fieldset className="fact" key={index}>
               <legend>Question {index+1}</legend>
               <label>Employer question<textarea maxLength={2000} value={draft.question} onChange={e=>setAnswerDrafts(rows=>rows.map((row,i)=>i===index?{...row,question:e.target.value,answer_id:undefined,reviewed:false}:row))}/></label>
               {sensitive&&<p className="safety">Sensitive or legal question: enter your answer for this application. Reusable answers are not suggested.</p>}
+              {draft.answer_id&&!selected&&<p className="safety">The selected reusable answer no longer meets the active profile's saved confidence thresholds. Choose another eligible answer or replace this text with a manually reviewed answer.</p>}
               {selected&&<div className="provenance" aria-label={`Selected reusable answer for question ${index+1}`}>
                 <p>{answerMatchLabel(selected.match.method)} · match score {Math.round(selected.match.score*100)}% · saved-answer confidence {selected.answer.confidence}%</p>
                 <p>Saved question: {selected.answer.question} · Provenance: {selected.answer.source}</p>
@@ -779,7 +816,7 @@ function App() {
               <button type="button" className="quiet" onClick={()=>setAnswerDrafts(rows=>rows.filter((_,i)=>i!==index))}>Remove question</button>
             </fieldset>;
           })}
-          {answerDrafts.length>0&&<button className="primary" disabled={!!busy||!answerDrafts.every(row=>row.question.trim()&&row.text.trim()&&row.reviewed)} onClick={()=>void action('Saving reviewed answer export',exportAnswers)}>Save reviewed answers and export TXT</button>}
+          {answerDrafts.length>0&&<button className="primary" disabled={!!busy||answerConfidencePolicyProfileId!==profileId||!answerDrafts.every(row=>row.question.trim()&&row.text.trim()&&row.reviewed&&(!row.answer_id||suggestAnswers(row.question,selectedApp.answer_bank||[]).some(({answer,match})=>answer.id===row.answer_id&&answer.confidence>=answerConfidencePolicy.minimum_saved_answer_confidence&&match.score>=answerConfidencePolicy.minimum_question_match_confidence)))} onClick={()=>void action('Saving reviewed answer export',exportAnswers)}>Save reviewed answers and export TXT</button>}
           <p className="muted">Unreviewed answers, missing text, and saved answers below the supported match threshold are blocked. Earlier exports remain available in document history.</p>
         </section>
         {selectedApp.target==='MOCK'?(operationMode==='FIXTURE'?<section className="mock-box"><h3>Controlled fictional test</h3><p>The dry-run fills and reviews the local mock form, then stops before submission.</p><button disabled={!!busy||selectedApp.state==='CONFIRMED'} onClick={()=>void action('Running mock dry-run',async()=>{await queue('/profiles/'+encodeURIComponent(profileId||'')+'/applications/'+selectedApp.id+'/mock-run',{submit:false});await showApp(selectedApp.id);})}>Run dry-run</button><label className="consent"><input type="checkbox" checked={mockConsent} onChange={e=>setMockConsent(e.target.checked)}/> I approve one fictional mock submission</label><button disabled={!!busy||!mockConsent||selectedApp.state==='CONFIRMED'} onClick={()=>void action('Submitting to local mock',async()=>{await queue('/profiles/'+encodeURIComponent(profileId||'')+'/applications/'+selectedApp.id+'/mock-run',{submit:true});await showApp(selectedApp.id);})}>Submit to local mock</button></section>:<p className="safety">Fictional application actions are disabled in personal mode.</p>):<p className="safety">Manual preparation only. Review the documents and use the employer’s own application page.</p>}

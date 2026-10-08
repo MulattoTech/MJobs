@@ -24,6 +24,111 @@ ROOT = Path(__file__).resolve().parents[2]
 
 @unittest.skipUnless((ROOT / 'apps/web/dist/index.html').is_file(), 'Build apps/web before browser acceptance')
 class ApplicationAnswerExportBrowserTests(unittest.TestCase):
+    def test_profile_scoped_confidence_threshold_controls_reuse_without_blocking_manual_answers(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            store = Store(f"sqlite:///{(root/'browser.db').as_posix()}")
+            store.migrate()
+            store.bind_workspace_mode('FIXTURE')
+            store.save_profile(dict(PROFILE, answers=[{
+                'id': 'languages', 'question': 'Which programming languages have you used?',
+                'text': 'I used Python in a synthetic project.', 'source': 'Synthetic profile',
+                'verified': True, 'user_approved': True, 'confidence': 85,
+            }]))
+            store.save_profile(dict(PROFILE, id='other', name='Other fixture',
+                                    email='other@example.test', answers=[]))
+            with fixture_server() as fixture:
+                discover(store, fixture, 'fixture')
+            job_id = store.jobs()[0]['id']
+            prepare(store, job_id, 'fixture', root)
+            prepare(store, job_id, 'other', root)
+            app = create_app(store, 'http://127.0.0.1:1', root,
+                             'redis://127.0.0.1:1/0', operation_mode='FIXTURE')
+            sock = bound_browser_socket()
+            origin = f'http://127.0.0.1:{sock.getsockname()[1]}'
+            server = uvicorn.Server(uvicorn.Config(app, log_level='error'))
+            thread = threading.Thread(target=server.run, kwargs={'sockets': [sock]}, daemon=True)
+            thread.start()
+            try:
+                deadline = time.monotonic() + 10
+                while not server.started:
+                    if not thread.is_alive() or time.monotonic() > deadline:
+                        self.fail('Isolated confidence-threshold API did not start')
+                    time.sleep(.02)
+                outside, errors = [], []
+                with sync_playwright() as pw:
+                    browser = pw.chromium.launch(headless=True)
+                    context = browser.new_context()
+
+                    def local_only(route):
+                        if urlsplit(route.request.url).netloc != urlsplit(origin).netloc:
+                            outside.append(route.request.url)
+                            route.abort()
+                        else:
+                            route.continue_()
+
+                    context.route('**/*', local_only)
+                    page = context.new_page()
+                    page.on('pageerror', lambda error: errors.append(str(error)))
+                    page.goto(origin, wait_until='domcontentloaded')
+                    page.evaluate("localStorage.setItem('mjobs-profile','fixture')")
+                    page.reload(wait_until='domcontentloaded')
+                    page.get_by_role('button', name='Applications', exact=False).click()
+                    page.locator('.job-card').first.click()
+                    page.get_by_role('button', name='Add question', exact=True).click()
+                    page.get_by_label('Employer question').fill('What coding languages have you worked with?')
+                    expect(page.get_by_role('button', name='Use saved answer (review required)', exact=True)).to_be_visible()
+
+                    page.get_by_label('Minimum saved answer confidence').fill('86')
+                    page.get_by_role('button', name='Save answer thresholds', exact=True).click()
+                    expect(page.get_by_role('status').filter(
+                        has_text='Application answer thresholds saved for this profile')).to_be_visible()
+                    page.reload(wait_until='domcontentloaded')
+                    page.get_by_role('button', name='Applications', exact=False).click()
+                    page.locator('.job-card').first.click()
+                    expect(page.get_by_label('Minimum saved answer confidence')).to_have_value('86')
+                    page.get_by_role('button', name='Add question', exact=True).click()
+                    page.get_by_label('Employer question').fill('What coding languages have you worked with?')
+                    expect(page.get_by_role('button', name='Use saved answer (review required)', exact=True)).to_have_count(0)
+
+                    page.get_by_label('Minimum saved answer confidence').fill('80')
+                    page.get_by_label('Minimum question match confidence').fill('96')
+                    page.get_by_role('button', name='Save answer thresholds', exact=True).click()
+                    page.get_by_label('Employer question').last.fill('Which programming languages have you used?')
+                    expect(page.get_by_role('button', name='Use saved answer (review required)', exact=True)).to_have_count(0)
+
+                    page.get_by_label('Minimum question match confidence').fill('75')
+                    page.get_by_role('button', name='Save answer thresholds', exact=True).click()
+                    expect(page.get_by_role('button', name='Use saved answer (review required)', exact=True)).to_be_visible()
+                    page.get_by_label('Active profile', exact=True).select_option('other')
+                    page.locator('.job-card').first.click()
+                    expect(page.get_by_label('Minimum saved answer confidence')).to_have_value('80')
+                    expect(page.get_by_label('Minimum question match confidence')).to_have_value('75')
+
+                    page.get_by_label('Active profile', exact=True).select_option('fixture')
+                    page.locator('.job-card').first.click()
+                    page.get_by_label('Minimum saved answer confidence').fill('100')
+                    page.get_by_label('Minimum question match confidence').fill('100')
+                    page.get_by_role('button', name='Save answer thresholds', exact=True).click()
+                    page.get_by_role('button', name='Add question', exact=True).click()
+                    page.get_by_label('Employer question').fill('What did you learn from a synthetic project?')
+                    page.get_by_label('Answer', exact=True).fill('I learned to test carefully.')
+                    page.get_by_label('I reviewed this exact answer for this job').check()
+                    with page.expect_response(lambda response: response.url.endswith('/answers/export')) as exported:
+                        page.get_by_role('button', name='Save reviewed answers and export TXT', exact=True).click()
+                    self.assertEqual(exported.value.status, 201)
+                    self.assertEqual(exported.value.json()['external_submission'], 'OFF')
+                    self.assertEqual(outside, [])
+                    self.assertEqual(errors, [])
+                    context.close()
+                    browser.close()
+            finally:
+                server.should_exit = True
+                thread.join(timeout=5)
+                sock.close()
+                store.engine.dispose()
+            self.assertFalse(thread.is_alive(), 'Isolated confidence-threshold API did not stop')
+
     def test_avoid_terms_save_and_block_reviewed_answer_with_safe_reason(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

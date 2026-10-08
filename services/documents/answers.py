@@ -10,7 +10,7 @@ from uuid import uuid4
 from sqlalchemy import func, select, text
 
 from packages.persistence import models as m
-from packages.persistence.store import identity, upsert
+from packages.persistence.store import identity, now, upsert
 from services.documents.avoid_list import validate_content as validate_avoid_list
 
 
@@ -24,6 +24,67 @@ _SENSITIVE_TERMS = re.compile(
 
 _EXPORT_LOCKS_GUARD = Lock()
 _EXPORT_LOCKS = {}
+
+DEFAULT_ANSWER_CONFIDENCE_POLICY = {
+    "minimum_saved_answer_confidence": 80,
+    "minimum_question_match_confidence": 0.75,
+}
+
+
+def validate_answer_confidence_policy(value):
+    fields = set(DEFAULT_ANSWER_CONFIDENCE_POLICY)
+    if not isinstance(value, dict) or set(value) != fields:
+        raise ValueError("ANSWER_CONFIDENCE_POLICY_INVALID")
+    answer_confidence = value["minimum_saved_answer_confidence"]
+    match_confidence = value["minimum_question_match_confidence"]
+    if (type(answer_confidence) is not int or not 80 <= answer_confidence <= 100
+            or isinstance(match_confidence, bool)
+            or not isinstance(match_confidence, (int, float))
+            or not 0.75 <= match_confidence <= 1):
+        raise ValueError("ANSWER_CONFIDENCE_POLICY_INVALID")
+    return {
+        "minimum_saved_answer_confidence": answer_confidence,
+        "minimum_question_match_confidence": float(match_confidence),
+    }
+
+
+def get_answer_confidence_policy(store, profile_id, connection=None):
+    """Return one career profile's durable thresholds or behavior-preserving defaults."""
+    if connection is None:
+        store.profile(profile_id)
+        with store.engine.connect() as current:
+            return get_answer_confidence_policy(store, profile_id, current)
+    row = connection.execute(select(m.answer_confidence_policies).where(
+        m.answer_confidence_policies.c.profile_id == profile_id)).mappings().one_or_none()
+    if row is None:
+        return dict(DEFAULT_ANSWER_CONFIDENCE_POLICY)
+    return {
+        "minimum_saved_answer_confidence": row["minimum_saved_answer_confidence"],
+        "minimum_question_match_confidence": row["minimum_question_match_confidence"],
+    }
+
+
+def save_answer_confidence_policy(store, profile_id, value):
+    """Persist thresholds without changing profile content or answer approvals."""
+    policy = validate_answer_confidence_policy(value)
+    store.profile(profile_id)
+    with store.engine.begin() as connection:
+        existing = connection.execute(select(m.answer_confidence_policies).where(
+            m.answer_confidence_policies.c.profile_id == profile_id).with_for_update()
+        ).mappings().one_or_none()
+        current = ({
+            "minimum_saved_answer_confidence": existing["minimum_saved_answer_confidence"],
+            "minimum_question_match_confidence": existing["minimum_question_match_confidence"],
+        } if existing else dict(DEFAULT_ANSWER_CONFIDENCE_POLICY))
+        upsert(connection, m.answer_confidence_policies, {
+            "id": identity(profile_id, "answer-confidence-policy"),
+            "profile_id": profile_id,
+            **policy,
+            "updated_at": now(),
+        }, replace=True)
+        if policy != current:
+            store._audit(connection, profile_id, "SETTING_CHANGED", {})
+    return policy
 
 
 def _export_lock(application_id):
@@ -68,12 +129,16 @@ def _token_edit_distance(left, right):
     return previous[-1]
 
 
-def match_answer_question(question, saved_question):
+def match_answer_question(question, saved_question, minimum_confidence=0.75):
     """Return a transparent local question match, or None when no safe match exists.
 
     The semantic tier covers only the explicit synonym rewrites above. It is not
     a general language model and does not classify answer meaning or sensitivity.
     """
+    if (isinstance(minimum_confidence, bool)
+            or not isinstance(minimum_confidence, (int, float))
+            or not 0.75 <= minimum_confidence <= 1):
+        raise ValueError("ANSWER_CONFIDENCE_POLICY_INVALID")
     if not isinstance(question, str) or not isinstance(saved_question, str):
         return None
     if _SENSITIVE_TERMS.search(question) or _SENSITIVE_TERMS.search(saved_question):
@@ -83,19 +148,21 @@ def match_answer_question(question, saved_question):
     if not normalized or not saved_normalized:
         return None
     if normalized == saved_normalized:
-        return {"method": "EXACT_NORMALIZATION", "score": 1.0}
+        score = 1.0
+        return {"method": "EXACT_NORMALIZATION", "score": score} if score >= minimum_confidence else None
     if _semantic_question_key(question) == _semantic_question_key(saved_question):
-        return {"method": "CURATED_SEMANTIC", "score": 0.95}
+        score = 0.95
+        return {"method": "CURATED_SEMANTIC", "score": score} if score >= minimum_confidence else None
 
     left = normalized.split()
     right = saved_normalized.split()
     if max(len(left), len(right)) > 40 or min(len(left), len(right)) < 5:
         return None
     overlap = len(set(left) & set(right)) / len(set(left) | set(right))
-    score = 1 - _token_edit_distance(left, right) / max(len(left), len(right))
-    if overlap < 0.7 or score < 0.75:
+    score = round(1 - _token_edit_distance(left, right) / max(len(left), len(right)), 3)
+    if overlap < 0.7 or score < minimum_confidence:
         return None
-    return {"method": "FUZZY", "score": round(score, 3)}
+    return {"method": "FUZZY", "score": score}
 
 
 def export_answers(store, application_id, output_dir, items):
@@ -130,6 +197,7 @@ def export_answers(store, application_id, output_dir, items):
             # the same transaction as the profile-row lock. A substantive profile
             # edit must wait until this export commits.
             profile = store.profile(profile_id, connection=connection)
+            policy = get_answer_confidence_policy(store, profile_id, connection=connection)
             bank = {row["id"]: row for row in profile.get("answers", [])}
             used_questions = set()
             exported = []
@@ -150,10 +218,13 @@ def export_answers(store, application_id, output_dir, items):
                         raise ValueError("Reusable answer is unavailable in this application profile snapshot")
                     if _SENSITIVE_TERMS.search(question) or _SENSITIVE_TERMS.search(reusable["question"]):
                         raise ValueError("Sensitive or legal questions require an answer entered for this application")
-                    match = match_answer_question(question, reusable["question"])
+                    match = match_answer_question(
+                        question, reusable["question"],
+                        minimum_confidence=policy["minimum_question_match_confidence"])
                     if match is None:
                         raise ValueError("Reusable answer question did not meet a supported match threshold")
-                    if not reusable["verified"] or not reusable["user_approved"] or reusable["confidence"] < 80:
+                    if (not reusable["verified"] or not reusable["user_approved"]
+                            or reusable["confidence"] < policy["minimum_saved_answer_confidence"]):
                         raise ValueError("Reusable answer needs deliberate verification and approval first")
                     if reusable["text"].strip() != answer:
                         raise ValueError("Review the saved answer text before exporting it")
@@ -168,6 +239,8 @@ def export_answers(store, application_id, output_dir, items):
                 exported.extend((f"Question: {question}", f"Answer: {answer}", ""))
                 manifest.append({"question": question, "answer_id": answer_id,
                                  "source": source, "confidence": confidence,
+                                 "minimum_saved_answer_confidence": policy["minimum_saved_answer_confidence"],
+                                 "minimum_question_match_confidence": policy["minimum_question_match_confidence"],
                                  "answer_mode": "REVIEWED_REUSE" if answer_id else "USER_ENTERED",
                                  "saved_question": saved_question,
                                  "match_method": match["method"] if match else None,

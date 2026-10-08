@@ -26,6 +26,22 @@ class AnswerMatchingTests(unittest.TestCase):
         self.assertGreaterEqual(result["score"], 0.75)
         self.assertLess(result["score"], 0.95)
 
+    def test_configured_match_confidence_threshold_filters_fuzzy_matches(self):
+        question = "How many years of professional experience have you had?"
+        saved_question = "How many years of professional experience do you have?"
+
+        self.assertIsNone(self.matcher()(question, saved_question, minimum_confidence=0.80))
+        self.assertEqual(self.matcher()(question, saved_question, minimum_confidence=0.75)["score"], 0.778)
+
+    def test_match_threshold_boundary_uses_the_visible_rounded_score(self):
+        result = self.matcher()(
+            "How many years of professional experience have you had?",
+            "How many years of professional experience do you have?",
+            minimum_confidence=0.778,
+        )
+
+        self.assertEqual(result, {"method": "FUZZY", "score": 0.778})
+
     def test_curated_semantic_synonyms_are_distinct_from_fuzzy_matching(self):
         result = self.matcher()(
             "What coding languages have you worked with?",

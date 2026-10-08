@@ -61,6 +61,18 @@ ai_cost_policies = table(
                                  "max_document_candidates <= max_ai_candidates",
                                  name="ck_profile_ai_cost_policy_bounds")),
 )
+answer_confidence_policies = table(
+    "profile_answer_confidence_policies",
+    Column("profile_id", ForeignKey("career_profiles.id", ondelete="CASCADE"), nullable=False),
+    Column("minimum_saved_answer_confidence", Integer, nullable=False),
+    Column("minimum_question_match_confidence", Float, nullable=False),
+    Column("updated_at", String(64), nullable=False),
+    constraints=(UniqueConstraint("profile_id", name="uq_profile_answer_confidence_policy_profile"),
+                 CheckConstraint(
+                     "minimum_saved_answer_confidence >= 80 AND minimum_saved_answer_confidence <= 100 AND "
+                     "minimum_question_match_confidence >= 0.75 AND minimum_question_match_confidence <= 1.0",
+                     name="ck_profile_answer_confidence_policy_bounds")),
+)
 ai_evaluation_runs = table(
     "ai_evaluation_runs",
     Column("profile_id", ForeignKey("career_profiles.id", ondelete="CASCADE"), nullable=False),

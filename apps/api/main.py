@@ -35,6 +35,10 @@ from services.discovery.pipeline import MockClient
 from services.discovery.sources.collect import configure_source
 from services.discovery.search_profiles import get_search_profile, list_search_profiles, save_search_profile
 from services.discovery.search_semantics import filter_jobs
+from services.documents.answers import (
+    DEFAULT_ANSWER_CONFIDENCE_POLICY, get_answer_confidence_policy,
+    save_answer_confidence_policy,
+)
 from services.dedupe.reviews import list_duplicate_reviews, record_review_decision
 from services.dedupe.routes import load_job_routes, list_route_choices, plan_application_routes, source_provenance_inventory
 from services.company_discovery.triggers import queue_company_discovery
@@ -151,6 +155,12 @@ class AICostPolicyInput(BaseModel):
         if self.max_document_candidates > self.max_ai_candidates:
             raise ValueError("AI_FUNNEL_POLICY_INVALID")
         return self
+
+
+class AnswerConfidencePolicyInput(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+    minimum_saved_answer_confidence: int = Field(ge=80, le=100)
+    minimum_question_match_confidence: float = Field(ge=0.75, le=1)
 
 
 class ProviderCredentialInput(BaseModel):
@@ -707,6 +717,26 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     def ai_cost_policy(profile_id: str):
         configured = store.ai_cost_policy(profile_id)
         policy = configured or asdict(AICostPolicy())
+        return {"profile_id": profile_id, "policy": policy}
+
+    @app.get("/profiles/{profile_id}/application-answer-confidence-thresholds")
+    def application_answer_confidence_thresholds(profile_id: str):
+        try:
+            policy = get_answer_confidence_policy(store, profile_id)
+        except NoResultFound as exc:
+            raise HTTPException(404, "Profile not found") from exc
+        return {"profile_id": profile_id, "policy": policy or DEFAULT_ANSWER_CONFIDENCE_POLICY}
+
+    @app.put("/profiles/{profile_id}/application-answer-confidence-thresholds")
+    def save_application_answer_confidence_thresholds(
+        profile_id: str, value: AnswerConfidencePolicyInput,
+    ):
+        try:
+            policy = save_answer_confidence_policy(store, profile_id, value.model_dump())
+        except NoResultFound as exc:
+            raise HTTPException(404, "Profile not found") from exc
+        except ValueError as exc:
+            raise HTTPException(422, {"code": str(exc)}) from None
         return {"profile_id": profile_id, "policy": policy}
 
     @app.put("/profiles/{profile_id}/ai-cost-policy")
