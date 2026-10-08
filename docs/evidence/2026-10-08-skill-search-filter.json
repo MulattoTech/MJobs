@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "issue": 190,
+  "requirement_id": "MJ-REQ-189",
+  "slice": "canonical taxonomy skill facet in Jobs saved searches",
+  "result": "PARTIAL",
+  "base_commit": "5ca978be11a78a71cf93a8be5755f7fede319e12",
+  "source_commit": "6593915e507d4925a037a721e67564969df3f7e6",
+  "source_tree": "dff25f33efaa6442388b6aedb47609009a473ac9",
+  "validated_at_utc": "2026-10-08T13:17:30Z",
+  "environment": {
+    "platform": "Windows",
+    "python": "3.12.10",
+    "node": "v25.9.0",
+    "database": "temporary SQLite",
+    "browser": "local Chromium, synthetic fixture"
+  },
+  "behavior": {
+    "implemented": [
+      "Jobs loads its Skill options from the current server-side canonical taxonomy; All skills is the default and no technology is mandatory.",
+      "The API canonicalizes supported aliases with canonical_skill_id and rejects unsupported values.",
+      "Database filtering matches exact normalized skill IDs or exact canonical labels before LIMIT; missing and unrecognized skills do not match a known selection.",
+      "The facet AND-composes with query/location and saved semantic requirements; contradictory criteria return no rows.",
+      "Saved searches normalize and retain the facet per profile, support legacy payloads, restore after reload, and clear the control and persisted value.",
+      "Connected readback showed the selected skill in request/results; no discovery scheduling or application/submission side effects were observed."
+    ],
+    "remaining": "The broader requirement remains incomplete; education, clearance, ATS, application capability, and application-state facets remain outside this slice.",
+    "external_submission": "OFF"
+  },
+  "tests": [
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_saved_search_filters tests.browser.test_saved_search_filters",
+      "result": "PASS",
+      "detail": "17 tests passed: 16 connected API/integration tests and 1 Chromium workflow. Covers taxonomy/alias normalization, exact ID and label matches, unrecognized values, pre-LIMIT filtering, saved-search round-trip/clear/profile isolation, legacy payloads, semantic AND composition, and no scheduling side effects."
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run",
+      "result": "PASS",
+      "detail": "18 files and 103 frontend tests passed."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "detail": "TypeScript check and Vite production build passed after all runtime changes; only integration-test assertions changed afterward."
+    },
+    {
+      "command": "Python 3.12 py_compile for the changed API, store, search-profile service, and saved-filter tests",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.agent_skills",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    },
+    {
+      "command": "Test-first API saved-filter and exact skill regression on the pre-implementation source",
+      "result": "PASS",
+      "detail": "Expected RED observed: an unrecognized skill row appeared in filtered results and saved-profile validation rejected the new skill field."
+    },
+    {
+      "command": "Build pre-implementation web bundle, then run the connected saved-filter Chromium test",
+      "result": "PASS",
+      "detail": "Expected RED observed: the accessible Skill selector was absent from the Jobs screen."
+    }
+  ],
+  "input_sha256": {
+    "apps/api/main.py": "bc51f6ec18d7de9c95aeeeefe378f1b38f00cf8620e88a38057f2c7cf4a8f3c7",
+    "apps/web/src/main.tsx": "135477596bec5610fe6696ac580bfca859b0796a297cdab691a0642fcfe71d50",
+    "apps/web/package.json": "40063ee6deb9570a868a6c93b5ff42999353c7fcecc921ce44b6ef20eb500f04",
+    "apps/web/package-lock.json": "453d036596f964fc6a3c19ed0682a34d08c5eec4e64dbaf8c5898046d9c4358a",
+    "packages/persistence/store.py": "b3205472a14e513999662630e2db78034aedab20a3e21f209b859020b1e0855c",
+    "services/discovery/search_profiles.py": "fae8e2eb14443421d5e5f057646204bc36b78e823f85e6c714b3b8e83d4aeb0f",
+    "tests/integration/test_saved_search_filters.py": "f1ef3aa1c47f091903bab29d11b93efcb14cb3ced270be592774c56736a41ae8",
+    "tests/browser/test_saved_search_filters.py": "524118eec15b1100243bca97478542b03807cff0d0334690d4f1bb67d7bb0809"
+  },
+  "not_run": [
+    "PostgreSQL runtime verification",
+    "Hosted GitHub checks and hosted review, disabled by local-only policy",
+    "Live production job sources and real ATS behavior",
+    "Full repository test suite"
+  ],
+  "integration": "Local feature commit only; awaiting root review and serialized integration."
+}
