@@ -37,7 +37,7 @@ class MatchScoreSearchFilterApiTests(unittest.TestCase):
             connection.execute(update(m.matches).where(
                 m.matches.c.profile_id == "fixture",
                 m.matches.c.profile_version == self.version,
-                m.matches.c.job_id == self.python_id).values(score=40.0))
+                m.matches.c.job_id == self.python_id).values(score=60.0))
             connection.execute(update(m.matches).where(
                 m.matches.c.profile_id == "fixture",
                 m.matches.c.profile_version == self.version,
@@ -78,12 +78,12 @@ class MatchScoreSearchFilterApiTests(unittest.TestCase):
         zero = self.client.get("/jobs", params={"profile_id": "fixture", "min_match_score": 0})
         self.assertEqual({job["title"] for job in zero.json()["jobs"]},
                          {"A Stale score", "B Current score"})
-        lower_endpoint = self.client.get("/jobs", params={"profile_id": "fixture", "min_match_score": 40,
+        lower_endpoint = self.client.get("/jobs", params={"profile_id": "fixture", "min_match_score": 60,
                                                             "title": "A Stale"})
         self.assertEqual([job["title"] for job in lower_endpoint.json()["jobs"]], ["A Stale score"])
         maximum = self.client.get("/jobs", params={"profile_id": "fixture", "min_match_score": 100})
         self.assertEqual(maximum.json()["jobs"], [])
-        below = self.client.get("/jobs", params={"profile_id": "fixture", "min_match_score": 41,
+        below = self.client.get("/jobs", params={"profile_id": "fixture", "min_match_score": 61,
                                                    "title": "A Stale"})
         self.assertEqual(below.json()["jobs"], [])
         null_score = self.client.get("/jobs", params={"profile_id": "other", "min_match_score": 0})
@@ -110,6 +110,15 @@ class MatchScoreSearchFilterApiTests(unittest.TestCase):
                                   "search_profile_id": "score-filter", "sort": "title", "limit": 1})
         self.assertEqual(filtered.status_code, 200, filtered.text)
         self.assertEqual([job["title"] for job in filtered.json()["jobs"]], ["B Current score"])
+        lowered = self.client.get("/jobs", params={"profile_id": "fixture",
+            "search_profile_id": "score-filter", "min_match_score": 50,
+            "override_saved_match_score": True})
+        self.assertEqual({job["title"] for job in lowered.json()["jobs"]},
+                         {"A Stale score", "B Current score"})
+        cleared = self.client.get("/jobs", params={"profile_id": "fixture",
+            "search_profile_id": "score-filter", "override_saved_match_score": True})
+        self.assertEqual({job["title"] for job in cleared.json()["jobs"]},
+                         {"A Stale score", "B Current score"})
         self.assertEqual(self.client.get("/search-profiles", params={"profile_id": "other"})
                          .json()["search_profiles"], [])
         self.assertEqual(self.client.get("/jobs", params={"profile_id": "other",

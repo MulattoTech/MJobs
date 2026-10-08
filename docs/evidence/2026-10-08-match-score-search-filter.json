@@ -3,10 +3,10 @@
   "issue": 190,
   "slice_status": "PASS",
   "requirement_status": "PARTIAL",
-  "recorded_at_utc": "2026-10-08T11:31:41Z",
+  "recorded_at_utc": "2026-10-08T11:37:38Z",
   "branch": "codex/mj-req189-match-score-filter-20261008",
-  "base_commit": "b633578112a9553cc29dcbda7e7e21d88f1547c5",
-  "source_head_at_validation": "b633578112a9553cc29dcbda7e7e21d88f1547c5",
+  "base_commit": "78d58b8f878549c33622c7c4e140cfcf954ad602",
+  "source_head_at_validation": "88a741d8812ce9a9c5fff0da826bfa77aa103e23",
   "environment": {
     "workspace_mode": "FIXTURE",
     "database": "isolated SQLite fixture database",
@@ -22,7 +22,7 @@
     "score_source": "persisted matches.score for current profile version",
     "unknown_scores": "excluded while threshold is active",
     "database_limit_order": "score predicate applied in SQL before result LIMIT",
-    "saved_search": "profile-scoped persistence, reload/restore, clear, legacy payload compatibility",
+    "saved_search": "profile-scoped persistence and reload; selected UI controls override the persisted score cutoff, including lowering or clearing it without deselecting; non-UI saved-search requests inherit the saved cutoff",
     "profile_isolation": "cross-profile saved-search use rejected with HTTP 409",
     "scheduler_or_submission_side_effect": "none"
   },
@@ -52,18 +52,28 @@
       "result": "PASS"
     },
     {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_match_score_search_filter",
+      "result": "PASS",
+      "observed": "1 connected browser test; visible result change at 75, save/reload/reselect, lower to 50 and clear while saved search remains selected, profile isolation, no external requests, unchanged persisted match rows, and no scheduler side effect"
+    },
+    {
       "command": "git diff --check",
       "result": "PASS"
     }
   ],
   "source_sha256": {
-    "apps/api/main.py": "5247159E2ADA2115AF8F2ECDF64F1D17B411A7810FC89EB5331FCACFB79212D8",
+    "apps/api/main.py": "5703A1B1198412D8569AFD6CE4E4E194A757A9DF41BA1DB60CB400C2DC56D8A1",
     "packages/persistence/store.py": "8AD62775D71A66A38F24A573B2E4DAE3CDD36963585A5E2E77A8E5F15A5B49B1",
     "services/discovery/search_profiles.py": "D9C7F55C25193D03539E0FD1D11FE7866DD8BDBAD951A59A038E1F9D13ABDE9A",
-    "apps/web/src/main.tsx": "D346EB61A10C58E35DACA2903BB9FA0817D64E9A511B8C90D252B5E2444ED9CC",
-    "apps/web/src/job-match-score-filter.tsx": "8EF8D42067DA8DF480D0377EFD2B78EF8A931DB7CDC8B90C35667F1744D0C942",
-    "apps/web/src/job-match-score-filter.test.tsx": "9707D02A9474B02CA3802D3E65E79498F52776F52BAB734C23847D5C581E614C",
-    "tests/integration/test_match_score_search_filter.py": "200D4FE8C3C7CB286069AD13FF76081EF51346D39BCB159EE910955A74A5324D",
-    "tests/browser/test_match_score_search_filter.py": "A813883E1C275A0DC93CBB41C66723CD2B59EFB62223FEF9D1BCC563742C28C8"
+    "apps/web/src/main.tsx": "4DEF3950DC1E3AA5C524FE58029D3A61F2BF997100559775CC68889FB11E04F3",
+    "apps/web/src/job-match-score-filter.tsx": "35E813484225F7CEC3563F389C6735DB9A27E292FD97C9E2F9B51C3F1C6FBAB8",
+    "apps/web/src/job-match-score-filter.test.tsx": "5674DB7B22AB336A4E7191B4024D04B7F77FF3F48B63521772C93A6819EDBA5D",
+    "tests/integration/test_match_score_search_filter.py": "3161C4DE352CB24A7B6C15EBFC29BF233FF652EF87682FB4790D7D80CC8F9A01",
+    "tests/browser/test_match_score_search_filter.py": "03C30C7CE45BC2261ADAFD3EDCA4B904A9AA3E1424B16AA89DF58EF596F28CA7"
+  },
+  "candidate_tree_at_validation": "4473e99c68608cbd3eff053739ccc44a0a45a972",
+  "red_first_reproduction": {
+    "result": "FAIL as expected before fix",
+    "observed": "With saved cutoff 75 selected, lowering visible control to 50 returned only the 75+ result because API combined query and saved cutoff using max()"
   }
 }

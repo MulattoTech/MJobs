@@ -45,7 +45,7 @@ class MatchScoreSearchFilterBrowserTests(unittest.TestCase):
                     m.matches.c.job_id == jobs["Python Developer"]["id"]).values(score=75.0))
                 connection.execute(update(m.matches).where(
                     m.matches.c.profile_id == "fixture", m.matches.c.profile_version == version,
-                    m.matches.c.job_id == jobs["Data Engineer"]["id"]).values(score=40.0))
+                    m.matches.c.job_id == jobs["Data Engineer"]["id"]).values(score=60.0))
                 match_rows_before = connection.execute(select(m.matches)).mappings().all()
             operations_before = store.count("worker_operations")
             sock = bound_browser_socket()
@@ -100,17 +100,32 @@ class MatchScoreSearchFilterBrowserTests(unittest.TestCase):
                     saved = page.get_by_label("Saved search profile", exact=True)
                     expect(saved.locator("option", has_text="High score roles")).to_have_count(1)
                     with page.expect_response(lambda response: response.url.startswith(origin + "/jobs?")
-                            and "min_match_score=75" in response.url) as restored:
+                            and "min_match_score=75" in response.url
+                            and "override_saved_match_score=true" in response.url) as restored:
                         saved.select_option(saved.locator("option", has_text="High score roles").get_attribute("value"))
                     self.assertEqual([job["title"] for job in restored.value.json()["jobs"]],
                                      ["Python Developer"])
                     expect(page.get_by_label("Minimum match score (%)", exact=True)).to_have_value("75")
                     expect(page.locator(".job-card").filter(has_text="Data Engineer")).to_have_count(0)
 
+                    selected_search_id = saved.input_value()
                     with page.expect_response(lambda response: response.url.startswith(origin + "/jobs?")
-                            and "min_match_score=" not in response.url) as cleared:
-                        saved.select_option("")
+                            and "min_match_score=50" in response.url
+                            and "override_saved_match_score=true" in response.url
+                            and f"search_profile_id={selected_search_id}" in response.url) as lowered:
+                        page.get_by_label("Minimum match score (%)", exact=True).fill("50")
+                    self.assertEqual({job["title"] for job in lowered.value.json()["jobs"]},
+                                     {"Python Developer", "Data Engineer"})
+                    expect(saved).to_have_value(selected_search_id)
+                    expect(page.locator(".job-card").filter(has_text="Data Engineer")).to_be_visible()
+
+                    with page.expect_response(lambda response: response.url.startswith(origin + "/jobs?")
+                            and "min_match_score=" not in response.url
+                            and "override_saved_match_score=true" in response.url
+                            and f"search_profile_id={selected_search_id}" in response.url) as cleared:
+                        page.get_by_label("Minimum match score (%)", exact=True).fill("")
                     self.assertEqual(len(cleared.value.json()["jobs"]), 2)
+                    expect(saved).to_have_value(selected_search_id)
                     expect(page.get_by_label("Minimum match score (%)", exact=True)).to_have_value("")
                     expect(page.locator(".job-card").filter(has_text="Data Engineer")).to_be_visible()
 

@@ -216,7 +216,7 @@ function App() {
     if(current.locationText)params.set('location',current.locationText);
     if(current.salaryMin)params.set('salary_min',current.salaryMin);if(current.salaryMax)params.set('salary_max',current.salaryMax);if(current.minMatchScore)params.set('min_match_score',current.minMatchScore);
     if(id)params.set('profile_id',id);if(current.remote)params.set('remote_type',current.remote);if(current.provider)params.set('provider',current.provider);
-    if(searchProfiles.some(search=>search.id===current.searchProfileId&&search.profile_id===id))params.set('search_profile_id',current.searchProfileId);
+    if(searchProfiles.some(search=>search.id===current.searchProfileId&&search.profile_id===id)){params.set('search_profile_id',current.searchProfileId);params.set('override_saved_match_score','true');}
     if(current.showDismissed)params.set('include_dismissed','true');
     const result=await api<{jobs:Job[]}>('/jobs?'+params);
     if(sequence===jobsSequence.current&&id===profileRef.current)setJobs(result.jobs);
