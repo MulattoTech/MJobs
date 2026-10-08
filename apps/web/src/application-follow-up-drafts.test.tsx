@@ -23,7 +23,7 @@ describe('follow-up drafts UI',()=>{
   });
 
   it('renders the bounded quiet-days selector with its accessible default',()=>{
-    const html=renderToStaticMarkup(<FollowUpDraftsView quietDays={7} candidates={[]} loading={true} error={null} onQuietDaysChange={vi.fn()} onCopy={vi.fn()}/>);
+    const html=renderToStaticMarkup(<FollowUpDraftsView quietDays={7} candidates={[]} loading={true} error={null} copied={null} onQuietDaysChange={vi.fn()} onCopy={vi.fn()}/>);
     expect(html).toContain('Follow-up drafts');
     expect(html).toContain('Quiet days before follow-up');
     expect(html).toContain('value="1">1 day</option>');
@@ -33,13 +33,13 @@ describe('follow-up drafts UI',()=>{
   });
 
   it('labels only reported and unverified evidence, shows bounded draft text, and offers copy only',()=>{
-    const html=renderToStaticMarkup(<FollowUpDraftsView quietDays={7} candidates={[candidate]} loading={false} error={null} onQuietDaysChange={vi.fn()} onCopy={vi.fn()}/>);
+    const html=renderToStaticMarkup(<FollowUpDraftsView quietDays={7} candidates={[candidate]} loading={false} error={null} copied={null} onQuietDaysChange={vi.fn()} onCopy={vi.fn()}/>);
     expect(html).toContain('Acme');
     expect(html).toContain('Systems Administrator');
     expect(html).toContain('Reported by you · not verified');
     expect(html).toContain('Email subject');
     expect(html).toContain('Following up on my application');
-    expect(html).toContain('1 / 120 characters');
+    expect(html).toContain('30 / 120 characters');
     expect(html).toContain('I applied and would appreciate an update.');
     expect(html).toContain('DM wording');
     expect(html).toContain('Copy email subject');
@@ -48,10 +48,16 @@ describe('follow-up drafts UI',()=>{
     expect(html).not.toMatch(/>\s*Send\s*</i);
   });
 
+  it('counts supplementary Unicode characters as one character against the API limit',()=>{
+    const nearLimit={...candidate,email_subject:`${'a'.repeat(119)}😀`};
+    const html=renderToStaticMarkup(<FollowUpDraftsView quietDays={7} candidates={[nearLimit]} loading={false} error={null} copied={null} onQuietDaysChange={vi.fn()} onCopy={vi.fn()}/>);
+    expect(html).toContain('120 / 120 characters');
+  });
+
   it('has explicit empty and API error states',()=>{
-    const empty=renderToStaticMarkup(<FollowUpDraftsView quietDays={7} candidates={[]} loading={false} error={null} onQuietDaysChange={vi.fn()} onCopy={vi.fn()}/>);
-    const verified=renderToStaticMarkup(<FollowUpDraftsView quietDays={7} candidates={[{...candidate,verified:true}]} loading={false} error={null} onQuietDaysChange={vi.fn()} onCopy={vi.fn()}/>);
-    const error=renderToStaticMarkup(<FollowUpDraftsView quietDays={7} candidates={[]} loading={false} error="Local API unavailable" onQuietDaysChange={vi.fn()} onCopy={vi.fn()}/>);
+    const empty=renderToStaticMarkup(<FollowUpDraftsView quietDays={7} candidates={[]} loading={false} error={null} copied={null} onQuietDaysChange={vi.fn()} onCopy={vi.fn()}/>);
+    const verified=renderToStaticMarkup(<FollowUpDraftsView quietDays={7} candidates={[{...candidate,verified:true}]} loading={false} error={null} copied={null} onQuietDaysChange={vi.fn()} onCopy={vi.fn()}/>);
+    const error=renderToStaticMarkup(<FollowUpDraftsView quietDays={7} candidates={[]} loading={false} error="Local API unavailable" copied={null} onQuietDaysChange={vi.fn()} onCopy={vi.fn()}/>);
     expect(empty).toContain('No reported applications have been quiet for 7 days or more.');
     expect(verified).toContain('No reported applications have been quiet for 7 days or more.');
     expect(verified).not.toContain('Following up on my application');

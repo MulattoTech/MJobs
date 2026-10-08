@@ -44,7 +44,7 @@ export function FollowUpDraftsView({
   onQuietDaysChange:(days:number)=>void;
   onCopy:(kind:CopyKind,candidate:FollowUpDraftCandidate)=>void;
 }) {
-  const count=(value:string,limit:number)=>`${value.length} / ${limit} characters`;
+  const count=(value:string,limit:number)=>`${Array.from(value).length} / ${limit} characters`;
   const eligibleCandidates=candidates.filter(candidate=>candidate.verified===false&&
     (candidate.attribution==='USER_REPORTED'||candidate.attribution==='EXTERNAL_USER_REPORTED'));
   return <section className="panel" aria-label="Follow-up drafts">
