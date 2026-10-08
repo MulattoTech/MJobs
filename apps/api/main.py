@@ -35,6 +35,7 @@ from services.discovery.pipeline import MockClient
 from services.discovery.sources.collect import configure_source
 from services.discovery.search_profiles import get_search_profile, list_search_profiles, save_search_profile
 from services.discovery.search_semantics import filter_jobs
+from services.discovery.skill_taxonomy import SKILL_TAXONOMY, canonical_skill_id
 from services.documents.answers import (
     DEFAULT_ANSWER_CONFIDENCE_POLICY, get_answer_confidence_policy,
     save_answer_confidence_policy,
@@ -1244,6 +1245,11 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     def search_profiles(profile_id: str | None = None):
         return {"search_profiles": list_search_profiles(store, profile_id)}
 
+    @app.get("/search-skills")
+    def search_skills():
+        return {"skills": [{"id": identifier, "label": entry[0]}
+                           for identifier, entry in SKILL_TAXONOMY.items()]}
+
     @app.get("/search-profiles/{search_profile_id}")
     def search_profile_read(search_profile_id: str):
         return get_search_profile(store, search_profile_id)
@@ -1339,6 +1345,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                                        "LEAD", "MANAGER", "DIRECTOR", "EXECUTIVE", "UNKNOWN"] | None = None,
              employment_type: Literal["FULL_TIME", "PART_TIME", "CONTRACT", "CONTRACT_TO_HIRE",
                                      "TEMPORARY", "INTERNSHIP", "OTHER", "UNKNOWN"] | None = None,
+             skill: str | None = Query(default=None, max_length=100),
              posted_within_days: int | None = Query(default=None, ge=1, le=30),
              override_saved_match_score: bool = False,
              search_profile_id: str | None = Query(default=None, max_length=128),
@@ -1348,6 +1355,9 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             raise HTTPException(422, "Minimum annual USD salary cannot exceed maximum annual USD salary")
         if posted_within_days is not None and posted_within_days not in {1, 3, 7, 14, 30}:
             raise HTTPException(422, "Posted-within window must be 1, 3, 7, 14, or 30 days")
+        skill_id = canonical_skill_id(skill) if skill else None
+        if skill and skill_id is None:
+            raise HTTPException(422, "Skill is not in the supported taxonomy")
         search_profile = get_search_profile(store, search_profile_id) if search_profile_id else None
         if search_profile and search_profile["profile_id"] != profile_id:
             raise HTTPException(409, "Search profile belongs to a different career profile")
@@ -1371,6 +1381,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                           salary_min=salary_min, salary_max=salary_max,
                           min_match_score=effective_match_score, experience_level=experience_level,
                           employment_type=employment_type,
+                          skill_id=skill_id,
                           posted_after=posted_after, posted_before=posted_before)
         if search_profile_id:
             rows = filter_jobs(rows, search_profile["criteria"])

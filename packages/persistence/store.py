@@ -8,7 +8,7 @@ import json
 from uuid import uuid4
 
 from sqlalchemy import (
-    DateTime, String, Text, and_, case, cast, create_engine, event, func, literal, literal_column, or_,
+    JSON, DateTime, String, Text, and_, case, cast, create_engine, event, func, literal, literal_column, or_,
     select, text, update,
 )
 from sqlalchemy.dialects.postgresql import insert as postgres_insert
@@ -20,6 +20,7 @@ from packages.domain.operation_mode import WorkspaceModeError, parse_operation_m
 from packages.persistence import models as m
 from services.normalization.jobs import canonical_job_view, raw_posting_view
 from services.discovery.search_semantics import EMPLOYMENT_TYPES, effective_job_timestamp
+from services.discovery.skill_taxonomy import skill_label
 
 
 class ProfileVersionConflict(Exception):
@@ -630,7 +631,8 @@ class Store:
 
     def jobs(self, profile_id=None, q="", remote_type=None, provider=None, sort="score", limit=200,
              title="", company="", location="", salary_min=None, salary_max=None,
-             min_match_score=None, experience_level=None, employment_type=None, posted_after=None, posted_before=None):
+             min_match_score=None, experience_level=None, employment_type=None, skill_id=None,
+             posted_after=None, posted_before=None):
         profile = self.profile(profile_id) if profile_id else None
         with self.engine.connect() as connection:
             counts = select(m.postings.c.job_id, func.count().label("posting_count")).group_by(m.postings.c.job_id).subquery()
@@ -710,6 +712,30 @@ class Store:
                     ))
                 else:
                     statement = statement.where(reported_employment_type == employment_type)
+            if skill_id:
+                label = skill_label(skill_id)
+
+                def has_exact_skill(array_column, expected, json_path=None):
+                    if self.engine.dialect.name == "postgresql":
+                        array_value = array_column[json_path] if json_path else array_column
+                        is_array = func.json_typeof(array_value) == "array"
+                        safe_array = case((is_array, array_value), else_=cast(literal("[]"), JSON))
+                        values = func.json_array_elements_text(safe_array).table_valued("value").alias()
+                    else:
+                        type_check = (func.json_type(array_column, json_path) if json_path
+                                      else func.json_type(array_column))
+                        array_value = (func.json_extract(array_column, json_path) if json_path
+                                       else array_column)
+                        safe_array = case((type_check == "array", array_value), else_=literal("[]"))
+                        values = func.json_each(safe_array).table_valued("key", "value").alias()
+                    return select(literal(1)).select_from(values).where(
+                        values.c.value == expected).correlate(m.jobs).exists()
+
+                statement = statement.where(or_(
+                    has_exact_skill(m.jobs.c.attributes, skill_id, "$.skill_ids")
+                    if self.engine.dialect.name == "sqlite" else has_exact_skill(m.jobs.c.attributes, skill_id, "skill_ids"),
+                    has_exact_skill(m.jobs.c.skills, label),
+                ))
             if posted_after is not None:
                 reported_at = m.jobs.c.attributes["reported_posted_at"].as_string()
                 if self.engine.dialect.name == "postgresql":

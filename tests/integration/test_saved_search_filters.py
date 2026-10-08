@@ -68,7 +68,7 @@ class SavedSearchFiltersApiTests(unittest.TestCase):
         self.assertEqual(row["criteria"]["job_filters"], {
             "q": "network", "title": "Developer", "location": "Boston", "company": "Example",
             "experience_level": "", "employment_type": "", "posted_within_days": "", "remote_type": "REMOTE", "provider": "greenhouse", "sort": "company",
-            "salary_min": "", "salary_max": ""})
+            "salary_min": "", "salary_max": "", "skill": ""})
         self.assertFalse(row["enabled"])
         self.assertEqual(self.client.get("/search-profiles", params={"profile_id": "other"})
                          .json()["search_profiles"], [])
@@ -90,6 +90,7 @@ class SavedSearchFiltersApiTests(unittest.TestCase):
         self.assertEqual(row["criteria"]["job_filters"]["salary_min"], "")
         self.assertEqual(row["criteria"]["job_filters"]["salary_max"], "")
         self.assertEqual(row["criteria"]["job_filters"]["employment_type"], "")
+        self.assertEqual(row["criteria"]["job_filters"]["skill"], "")
 
     def test_saved_job_filters_accept_experience_level_and_legacy_payload(self):
         filters = {"q": "", "title": "", "company": "", "location": "",
@@ -107,6 +108,7 @@ class SavedSearchFiltersApiTests(unittest.TestCase):
         legacy_row = next(item for item in self.client.get("/search-profiles", params={
             "profile_id": "fixture"}).json()["search_profiles"] if item["id"] == "experience-legacy")
         self.assertEqual(legacy_row["criteria"]["job_filters"]["experience_level"], "")
+        self.assertEqual(legacy_row["criteria"]["job_filters"]["skill"], "")
         self.assertEqual(self.client.get("/search-profiles", params={"profile_id": "other"})
                          .json()["search_profiles"], [])
         invalid = self.client.put("/search-profiles", json=self._profile(
@@ -232,6 +234,75 @@ class SavedSearchFiltersApiTests(unittest.TestCase):
         self.assertEqual(schedule_due_sources(self.store)["scheduled"], [])
         self.assertEqual(self.store.count("worker_operations"), operations_before)
 
+    def test_skill_filter_normalizes_alias_matches_exact_ids_and_labels_before_limit(self):
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.title == "Python Developer").values(
+                title="A unrecognized skill", location="Berlin", skills=["Active Directory Plus"],
+                attributes={"skill_ids": ["ACTIVE_DIRECTORY_EXTRA"]}))
+            connection.execute(update(m.jobs).where(m.jobs.c.title == "Data Engineer").values(
+                title="Z normalized skill", skills=["Active Directory"],
+                attributes={"skill_ids": ["ACTIVE_DIRECTORY"]}))
+        selected = self.client.get("/jobs", params={"skill": "AD", "sort": "title", "limit": 1,
+                                                     "location": "Berlin"})
+        self.assertEqual(selected.status_code, 200, selected.text)
+        self.assertEqual([job["title"] for job in selected.json()["jobs"]], ["Z normalized skill"])
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.title == "Z normalized skill").values(
+                attributes={}))
+        label_match = self.client.get("/jobs", params={"skill": "ACTIVE_DIRECTORY", "sort": "title"})
+        self.assertEqual([job["title"] for job in label_match.json()["jobs"]], ["Z normalized skill"])
+        no_match = self.client.get("/jobs", params={"skill": "PowerShell"})
+        self.assertEqual(no_match.status_code, 200, no_match.text)
+        self.assertEqual(no_match.json()["jobs"], [])
+        invalid = self.client.get("/jobs", params={"skill": "UNSUPPORTED_TECHNOLOGY"})
+        self.assertEqual(invalid.status_code, 422)
+        taxonomy = self.client.get("/search-skills")
+        self.assertEqual(taxonomy.status_code, 200, taxonomy.text)
+        self.assertIn({"id": "ACTIVE_DIRECTORY", "label": "Active Directory"}, taxonomy.json()["skills"])
+
+    def test_skill_filter_saved_search_normalizes_alias_and_composes_semantic_requirements(self):
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.title == "Data Engineer").values(
+                skills=["Active Directory"], attributes={"skill_ids": ["ACTIVE_DIRECTORY"]}))
+        filters = {"q": "", "title": "", "company": "", "location": "", "salary_min": "",
+                   "salary_max": "", "min_match_score": "", "experience_level": "",
+                   "employment_type": "", "posted_within_days": "", "skill": "AD",
+                   "remote_type": "", "provider": "", "sort": "score"}
+        saved = self.client.put("/search-profiles", json={**self._profile(job_filters=filters),
+                                                            "include_titles": [], "remote": "ANY"})
+        self.assertEqual(saved.status_code, 200, saved.text)
+        row = next(item for item in self.client.get("/search-profiles", params={
+            "profile_id": "fixture"}).json()["search_profiles"] if item["id"] == "saved-filter")
+        self.assertEqual(row["criteria"]["job_filters"]["skill"], "ACTIVE_DIRECTORY")
+        result = self.client.get("/jobs", params={"profile_id": "fixture", "search_profile_id": "saved-filter",
+                                                   "skill": "AD"})
+        self.assertEqual([job["title"] for job in result.json()["jobs"]], ["Data Engineer"])
+        contradictory = self.client.put("/search-profiles", json={**self._profile(job_filters=filters),
+            "include_titles": [], "remote": "ANY", "required_skills": ["RUST"]})
+        self.assertEqual(contradictory.status_code, 200, contradictory.text)
+        result = self.client.get("/jobs", params={"profile_id": "fixture", "search_profile_id": "saved-filter",
+                                                   "skill": "AD"})
+        self.assertEqual(result.json()["jobs"], [])
+        legacy = self.client.put("/search-profiles", json=self._profile(
+            identifier="skill-legacy", job_filters={"q": "", "remote_type": "", "provider": "", "sort": "score"}))
+        self.assertEqual(legacy.status_code, 200, legacy.text)
+        legacy_row = next(item for item in self.client.get("/search-profiles", params={
+            "profile_id": "fixture"}).json()["search_profiles"] if item["id"] == "skill-legacy")
+        self.assertEqual(legacy_row["criteria"]["job_filters"]["skill"], "")
+        cleared = self.client.put("/search-profiles", json={**self._profile(job_filters={**filters, "skill": ""}),
+            "include_titles": [], "remote": "ANY"})
+        self.assertEqual(cleared.status_code, 200, cleared.text)
+        cleared_row = next(item for item in self.client.get("/search-profiles", params={
+            "profile_id": "fixture"}).json()["search_profiles"] if item["id"] == "saved-filter")
+        self.assertEqual(cleared_row["criteria"]["job_filters"]["skill"], "")
+        invalid = self.client.put("/search-profiles", json={**self._profile(
+            identifier="skill-invalid", job_filters={**filters, "skill": "unsupported technology"}),
+            "include_titles": [], "remote": "ANY"})
+        self.assertEqual(invalid.status_code, 422)
+        operations_before = self.store.count("worker_operations")
+        self.assertEqual(schedule_due_sources(self.store)["scheduled"], [])
+        self.assertEqual(self.store.count("worker_operations"), operations_before)
+
     def test_saved_filter_validation_and_cross_profile_update_rejection(self):
         self.client.put("/search-profiles", json=self._profile()).raise_for_status()
         malformed = self.client.put("/search-profiles", json=self._profile(
@@ -332,7 +403,7 @@ class SavedSearchFiltersApiTests(unittest.TestCase):
         filters = {"q": "network", "title": "Developer", "location": "Boston", "company": "Example",
                    "remote_type": "REMOTE", "provider": "greenhouse", "sort": "company",
                    "salary_min": "85000", "salary_max": "130000", "experience_level": "",
-                   "employment_type": "", "posted_within_days": ""}
+                   "employment_type": "", "posted_within_days": "", "skill": ""}
         operations_before = self.store.count("worker_operations")
         response = self.client.put("/search-profiles", json=self._profile(job_filters=filters))
         self.assertEqual(response.status_code, 200, response.text)

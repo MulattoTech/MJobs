@@ -11,6 +11,7 @@ from services.discovery.search_semantics import (
 from services.discovery.skill_taxonomy import normalize_skill_list
 from services.discovery.requirement_parsers import CLEARANCE_LEVELS, WORK_AUTHORIZATION_FLAGS
 from services.discovery.negative_filters import NEGATIVE_CONDITIONS
+from services.discovery.skill_taxonomy import canonical_skill_id
 
 
 REMOTE_PREFERENCES = {"ANY", "REQUIRED", "EXCLUDED"}
@@ -25,7 +26,7 @@ def _clean_job_filters(value):
         return None
     required = {"q", "remote_type", "provider", "sort"}
     optional = {"title", "company", "location", "salary_min", "salary_max", "min_match_score",
-                "experience_level", "posted_within_days", "employment_type"}
+                "experience_level", "posted_within_days", "employment_type", "skill"}
     if not isinstance(value, dict) or not required <= set(value) or set(value) - required - optional:
         raise ValueError("Saved Jobs filters must include q, remote_type, provider, and sort")
     query = value["q"]
@@ -76,6 +77,13 @@ def _clean_job_filters(value):
     if not isinstance(employment_type, str) or employment_type not in {"", *EMPLOYMENT_TYPES}:
         raise ValueError("Saved Jobs employment type is invalid")
     cleaned["employment_type"] = employment_type
+    skill = value.get("skill", "")
+    if not isinstance(skill, str) or len(skill) > 100:
+        raise ValueError("Saved Jobs skill is invalid")
+    canonical_skill = canonical_skill_id(skill) if skill else None
+    if skill and canonical_skill is None:
+        raise ValueError("Saved Jobs skill is not in the supported taxonomy")
+    cleaned["skill"] = canonical_skill or ""
     for key, allowed in JOB_FILTERS.items():
         if not isinstance(value[key], str) or value[key] not in allowed:
             raise ValueError(f"Saved Jobs {key} is invalid")
