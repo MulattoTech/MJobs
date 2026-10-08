@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-08T07:05:57Z",
+  "issue": 178,
+  "requirement_id": "MJ-REQ-177",
+  "result": "PARTIAL",
+  "scoped_acceptance": "PASS",
+  "base_commit": "908e5de2cfcbf1cfbd1ca10388e90a3cdf9bbef0",
+  "acceptance_oracle": "For APPLY_MOCK terminal records, emit the ATS provider only when resolved from the persisted application-to-route relationship and recognized by the existing ATS provider registry. Provider lookup is best effort after durable terminal-state persistence; missing, unknown, malformed, or unavailable context is omitted without changing the operation outcome. Never serialize operation params, application content, credentials, URLs, or exception diagnostics.",
+  "implementation": [
+    "Resolve application_routes.provider through the persisted applications.route_id relation after the worker terminal-state transaction commits.",
+    "Catch provider lookup failures as optional log-enrichment failures; preserve the already-persisted operation result.",
+    "Allow only providers in KNOWN_ATS_PROVIDERS plus mock-ats, and emit the accepted value in the JSON ats field for APPLY_MOCK only.",
+    "Unit and worker lifecycle tests cover provider allowlisting, malformed and secret-shaped values, non-APPLY_MOCK omission, private parameter exclusion, terminal persistence before log emission, and lookup failure isolation."
+  ],
+  "test_first": {
+    "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.unit.test_structured_logging.StructuredOperationLoggingTests.test_apply_mock_logs_only_a_known_persisted_ats_provider -v",
+    "result": "EXPECTED_FAILURE_BEFORE_IMPLEMENTATION",
+    "observed": "The new assertion failed because the terminal record had no ats field: None != 'greenhouse'."
+  },
+  "validation": [
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest -q tests.unit.test_structured_logging tests.integration.test_worker_lifecycle",
+      "result": "PASS",
+      "counts": {
+        "passed": 28,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 1
+      },
+      "skip_detail": "PostgreSQLWorkerCrashRecoveryTests skipped because MJOBS_WORKER_RECOVERY_POSTGRES_URL is unset."
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m compileall -q workers/tasks.py workers/structured_logging.py tests/unit/test_structured_logging.py tests/integration/test_worker_lifecycle.py",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "tested_source_sha256": {
+    "workers/tasks.py": "c0bddf7012395eae1c3c33a4046a12ebc227d6342790a806abc6e6d8ba2053e0",
+    "workers/structured_logging.py": "a9981795bb6809440e7073d0d599fda89bd27a7c219c5b9c36cd7ee4ff1ffa98",
+    "tests/unit/test_structured_logging.py": "d0f6a8f48c627f7591d02f557c4357be22a0448d68757797fc6453c37cc69487",
+    "tests/integration/test_worker_lifecycle.py": "60cee8cba9b61f878b30ea189ae2697b453baebfaebad69930fc81dd51a2cd70"
+  },
+  "environment": {
+    "os": "Windows 11",
+    "python": "CPython 3.12.10",
+    "database": "Temporary SQLite databases in worker lifecycle tests",
+    "hosted_checks": "NOT_RUN_BY_USER_POLICY",
+    "postgresql_worker_runtime": "NOT_RUN; optional integration class skipped",
+    "external_submission": "OFF"
+  },
+  "limitations": [
+    "This is one additional APPLY_MOCK ATS-context slice; MJ-REQ-177 remains OPEN/PARTIAL and broader posting, company, ATS, and synchronous-operation log context is incomplete.",
+    "No live Redis/RQ worker, Docker Compose, PostgreSQL runtime, full repository suite, or hosted checks were run."
+  ]
+}

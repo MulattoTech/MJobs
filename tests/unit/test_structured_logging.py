@@ -73,6 +73,51 @@ class StructuredOperationLoggingTests(unittest.TestCase):
             self.assertNotIn("private", message)
             self.assertNotIn("api-key-secret-value", message)
 
+    def test_apply_mock_logs_only_a_known_persisted_ats_provider(self):
+        with self.assertLogs("mjobs.operations", level="INFO") as captured:
+            log_operation_finished({
+                "id": "operation-apply", "kind": "APPLY_MOCK",
+                "entity_id": "application-123",
+                "ats_provider": "greenhouse",
+                "params": {"submit": True, "ats": "https://host.test/?token=private",
+                           "private_answer": "private application data"},
+            }, "COMPLETED", None, 0.01)
+
+        message = captured.records[0].getMessage()
+        record = json.loads(message)
+        self.assertEqual(record["application_id"], "application-123")
+        self.assertEqual(record.get("ats"), "greenhouse")
+        self.assertNotIn("params", record)
+        self.assertNotIn("submit", message)
+        self.assertNotIn("host.test", message)
+        self.assertNotIn("token=private", message)
+        self.assertNotIn("private application data", message)
+
+    def test_apply_mock_omits_unknown_malformed_and_secret_shaped_ats_values(self):
+        for provider in (None, "unknown-provider", "https://ats.test/?api_key=private",
+                         "api-key-secret-value", "greenhouse\npassword=private"):
+            with self.subTest(provider=provider), self.assertLogs("mjobs.operations", level="INFO") as captured:
+                log_operation_finished({
+                    "id": "operation-apply", "kind": "APPLY_MOCK",
+                    "ats_provider": provider,
+                    "entity_id": "application-123", "params": {"submit": True},
+                }, "BLOCKED", "SAFE_ERROR", 0.01)
+
+            message = captured.records[0].getMessage()
+            record = json.loads(message)
+            self.assertNotIn("ats", record)
+            self.assertNotIn("private", message)
+            self.assertNotIn("ats.test", message)
+
+    def test_other_operation_kinds_never_log_ats_context(self):
+        with self.assertLogs("mjobs.operations", level="INFO") as captured:
+            log_operation_finished({
+                "id": "operation-prepare", "kind": "PREPARE", "params": {"job_id": "job-1"},
+                "ats_provider": "greenhouse",
+            }, "COMPLETED", None, 0.01)
+
+        self.assertNotIn("ats", json.loads(captured.records[0].getMessage()))
+
     def test_prepare_log_contains_safe_context_but_never_serializes_params(self):
         operation = {
             "id": "a" * 64,

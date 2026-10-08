@@ -7,6 +7,8 @@ import logging
 import re
 import sys
 
+from services.ats_detection.detector import KNOWN_ATS_PROVIDERS
+
 
 _LOGGER = logging.getLogger("mjobs.operations")
 _OPERATION_KINDS = {
@@ -19,6 +21,7 @@ _SECRET_SHAPED_IDENTIFIER = re.compile(
     re.IGNORECASE,
 )
 _SAFE_ERROR_CODE = re.compile(r"[A-Z][A-Z0-9_]{0,79}\Z")
+_SAFE_ATS_PROVIDERS = KNOWN_ATS_PROVIDERS | {"mock-ats"}
 
 
 def _safe_identifier(value):
@@ -47,6 +50,10 @@ def _safe_discovery_source_id(operation):
 
 def _safe_error_code(value):
     return value if isinstance(value, str) and _SAFE_ERROR_CODE.fullmatch(value) else None
+
+
+def _safe_ats_provider(value):
+    return value if isinstance(value, str) and value in _SAFE_ATS_PROVIDERS else None
 
 
 def configure_operation_logger(stream=None):
@@ -94,6 +101,9 @@ def log_operation_finished(operation, result, error_code, duration_seconds):
         application_id = _safe_identifier(operation.get("entity_id"))
         if application_id:
             record["application_id"] = application_id
+        ats_provider = _safe_ats_provider(operation.get("ats_provider"))
+        if ats_provider:
+            record["ats"] = ats_provider
 
     safe_code = _safe_error_code(error_code)
     if safe_code:

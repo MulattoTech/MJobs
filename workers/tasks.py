@@ -177,7 +177,25 @@ def execute_operation(operation_id):
                 record_application_preparation_event(
                     connection, "APPLICATION_FAILED", operation["entity_id"],
                     operation["params"]["job_id"], operation_id)
-        log_operation_finished(operation, state, error, time.monotonic() - started_at)
+        logged_operation = operation
+        if operation["kind"] == "APPLY_MOCK":
+            try:
+                ats_provider = _resolve_application_ats_provider(store, operation)
+            except Exception:
+                # Logging context is best effort and cannot change a persisted outcome.
+                ats_provider = None
+            logged_operation = {**operation, "ats_provider": ats_provider}
+        log_operation_finished(logged_operation, state, error, time.monotonic() - started_at)
         return {"operation_id": operation_id, "status": state, "error_category": error}
     finally:
         store.engine.dispose()
+
+
+def _resolve_application_ats_provider(store, operation):
+    """Read only the persisted route provider for APPLY_MOCK log context."""
+    if operation.get("kind") != "APPLY_MOCK":
+        return None
+    with store.engine.connect() as connection:
+        return connection.execute(select(m.routes.c.provider).select_from(
+            m.applications.join(m.routes, m.applications.c.route_id == m.routes.c.id)
+        ).where(m.applications.c.id == operation.get("entity_id"))).scalar_one_or_none()

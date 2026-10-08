@@ -222,6 +222,64 @@ class WorkerLifecycleTests(unittest.TestCase):
         self.assertEqual(record["result"], "COMPLETED")
         self.assertNotIn("error_code", record)
 
+    def test_apply_mock_logs_persisted_ats_provider_after_terminal_persistence(self):
+        with fixture_server() as origin:
+            discover(self.store, origin, "fixture")
+        application_id = prepare(self.store, self.store.jobs("fixture")[0]["id"], "fixture", self.root)
+        operation = enqueue_operation(self.store, "APPLY_MOCK", application_id, {
+            "submit": False, "api_key": "synthetic-secret", "answer": "private application answer",
+        })
+
+        from workers.structured_logging import log_operation_finished
+        from workers import tasks
+
+        def assert_persisted_then_log(record, result, error_code, duration_seconds):
+            self.assertEqual(self.read(operation)["state"], result)
+            log_operation_finished(record, result, error_code, duration_seconds)
+
+        with patch.dict("os.environ", MJOBS_DATABASE_URL=self.store.url,
+                        MJOBS_MOCK_ORIGIN=origin, MJOBS_OUTPUT_DIR=str(self.root),
+                        MJOBS_OPERATION_MODE="FIXTURE"), \
+                self.assertLogs("mjobs.operations", level="INFO") as captured, \
+                patch("workers.tasks.apply_mock", return_value={"state": "DRY_RUN_COMPLETE"}), \
+                patch("workers.tasks.log_operation_finished", side_effect=assert_persisted_then_log):
+            result = execute_operation(operation)
+
+        self.assertEqual(result["status"], "COMPLETED")
+        self.assertEqual(self.read(operation)["state"], "COMPLETED")
+        message = captured.records[0].getMessage()
+        record = json.loads(message)
+        self.assertEqual(record["application_id"], application_id)
+        self.assertEqual(record.get("ats"), "mock-ats")
+        self.assertNotIn("api_key", message)
+        self.assertNotIn("synthetic-secret", message)
+        self.assertNotIn("private application answer", message)
+        self.assertNotIn("submit", message)
+
+    def test_apply_mock_ats_lookup_failure_does_not_change_outcome_or_log_diagnostics(self):
+        operation = enqueue_operation(self.store, "APPLY_MOCK", "missing-application", {
+            "submit": False, "private_answer": "private answer",
+        })
+        from workers import tasks
+
+        with patch.dict("os.environ", MJOBS_DATABASE_URL=self.store.url,
+                        MJOBS_MOCK_ORIGIN="http://127.0.0.1:8090", MJOBS_OUTPUT_DIR=str(self.root),
+                        MJOBS_OPERATION_MODE="FIXTURE"), \
+                self.assertLogs("mjobs.operations", level="INFO") as captured, \
+                patch("workers.tasks.apply_mock", return_value={"state": "DRY_RUN_COMPLETE"}), \
+                patch.object(tasks, "_resolve_application_ats_provider", create=True,
+                              side_effect=RuntimeError("private database diagnostic")) as resolve_provider:
+            result = execute_operation(operation)
+
+        resolve_provider.assert_called_once()
+        self.assertEqual(result["status"], "COMPLETED")
+        self.assertEqual(self.read(operation)["state"], "COMPLETED")
+        message = captured.records[0].getMessage()
+        record = json.loads(message)
+        self.assertNotIn("ats", record)
+        self.assertNotIn("private database diagnostic", message)
+        self.assertNotIn("private answer", message)
+
     def test_terminal_prepare_failure_is_recorded_without_rewrite_payload(self):
         with fixture_server() as origin:
             discover(self.store, origin, "fixture")
