@@ -1,0 +1,55 @@
+{
+  "timestamp": "2026-10-08T18:47:38Z",
+  "target": "MJ-REQ-142 / issue #143 bounded MOCK AUTH_REQUIRED manual sign-in and separate explicit rerun",
+  "result": "PASS",
+  "source_commit": "ef02b012e8a1450069877bd82e2319864c546b28",
+  "source_tree": "1beece5ec4ca82c601d54e0f98f34971ab44be41",
+  "acceptance": "In FIXTURE mode, an AUTH_REQUIRED MOCK application exposes a user-started same-attempt sign-in action and a separate non-submitting rerun. While sign-in refresh is pending, rerun is disabled. The application remains AUTH_REQUIRED until explicit rerun, and no external request or submission occurs.",
+  "source_sha256": {
+    "apps/api/main.py": "289c32210685a3eb8703db7c59cf3c7c66de6a5cdfbe1049fc9a4be687fa799d",
+    "apps/api/manual_auth.py": "036974b8845069ba0ef84658f0ef615bf464f97d0df596135daf3de02148364a",
+    "services/applications/manual_auth.py": "a77e7a19cd2e07aedb451979bf2760c3a080a2b1f1b2777244ce5bed5c14afa7",
+    "apps/web/src/main.tsx": "ab0be2ec9a271ae71976067f16697cf71555848e44c1a58ed4c2db6c23e33f31",
+    "apps/web/src/manual-mock-authentication.tsx": "464cf3da163134561e3edcf9849aceb206d76d9a37c378127ba45afb461a9ba8",
+    "apps/web/src/manual-mock-authentication.test.tsx": "ff11ee98cfbf2ee9751ba6f05db1df887305cba061f9f93ca61ee6a5a6b09a29",
+    "tests/integration/test_manual_auth_router_mount.py": "71c505f02e0f0d7413836d6624888af43325132d4fbee147bce650c642c4faa9",
+    "tests/integration/test_manual_auth_session.py": "964ca62e2cb3407ffb8a2307c419c0186b14722fec68e67d95c1da666cec2b95",
+    "tests/browser/test_manual_auth_session_connected.py": "7340d47712bff86b42d254d59bf2f039a837af289bd668f37647273b7040fce4"
+  },
+  "checks": [
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS"
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run",
+      "result": "PASS",
+      "test_files": 27,
+      "tests": 142
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_manual_auth_session tests.integration.test_manual_auth_router_mount -v",
+      "result": "PASS",
+      "tests": 7
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.browser.test_manual_auth_session_connected -v",
+      "result": "PASS",
+      "tests": 1
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m py_compile apps/api/main.py apps/api/manual_auth.py services/applications/manual_auth.py tests/integration/test_manual_auth_router_mount.py tests/browser/test_manual_auth_session_connected.py",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "limitations": [
+    "This proves the bounded MOCK manual-auth/review gate, not the full MJ-REQ-142 or application-automation requirements.",
+    "Only a synthetic local fixture was used; real ATS sign-in and external submission remain disabled.",
+    "GitHub-hosted checks and reviews, PostgreSQL, and full repository release validation are NOT_RUN under local-only policy."
+  ],
+  "external_submission_enabled": false
+}
