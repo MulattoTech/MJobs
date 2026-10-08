@@ -52,7 +52,7 @@ class ApplicationPipelineSearchFilterBrowserTests(unittest.TestCase):
 
             operations_before = store.count("worker_operations")
             applications_before = store.count("applications")
-            attempts_before = store.count("attempts")
+            attempts_before = store.count("application_attempts")
             with store.engine.connect() as connection:
                 job_ids_before = connection.execute(select(m.jobs.c.id).order_by(m.jobs.c.id)).all()
                 events_before = connection.execute(select(m.audit.c.id).where(
@@ -157,7 +157,7 @@ class ApplicationPipelineSearchFilterBrowserTests(unittest.TestCase):
 
                 self.assertEqual(store.count("worker_operations"), operations_before)
                 self.assertEqual(store.count("applications"), applications_before)
-                self.assertEqual(store.count("attempts"), attempts_before)
+                self.assertEqual(store.count("application_attempts"), attempts_before)
                 self.assertIsNone(store.application(python_application)["confirmation"])
                 with store.engine.connect() as connection:
                     self.assertEqual(connection.execute(select(m.jobs.c.id).order_by(m.jobs.c.id)).all(),

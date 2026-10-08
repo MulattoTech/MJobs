@@ -114,7 +114,7 @@ class ApplicationPipelineSearchFilterApiTests(unittest.TestCase):
         self._report("fixture", "Python Developer", "APPLIED", "saved-applied")
         operations_before = self.store.count("worker_operations")
         applications_before = self.store.count("applications")
-        attempts_before = self.store.count("attempts")
+        attempts_before = self.store.count("application_attempts")
         with self.store.engine.connect() as connection:
             jobs_before = connection.execute(select(m.jobs.c.id).order_by(m.jobs.c.id)).all()
             status_events_before = connection.execute(select(m.audit.c.id).where(
@@ -145,7 +145,7 @@ class ApplicationPipelineSearchFilterApiTests(unittest.TestCase):
 
         self.assertEqual(self.store.count("worker_operations"), operations_before)
         self.assertEqual(self.store.count("applications"), applications_before)
-        self.assertEqual(self.store.count("attempts"), attempts_before)
+        self.assertEqual(self.store.count("application_attempts"), attempts_before)
         with self.store.engine.connect() as connection:
             self.assertEqual(connection.execute(select(m.jobs.c.id).order_by(m.jobs.c.id)).all(), jobs_before)
             self.assertEqual(connection.execute(select(m.audit.c.id).where(
