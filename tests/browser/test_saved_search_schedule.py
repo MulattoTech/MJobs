@@ -114,6 +114,9 @@ class SavedSearchScheduleBrowserTests(unittest.TestCase):
                     enabled.check()
                     interval.fill("900")
                     page.get_by_role("button", name="Save schedule", exact=True).click()
+                    expect(page.get_by_role("button", name="Save schedule", exact=True)).to_have_count(0)
+                    expect(enabled).to_be_checked()
+                    expect(interval).to_have_value("900")
                     persisted = page.request.get(
                         origin + "/search-profiles", params={"profile_id": profile_id})
                     self.assertEqual(persisted.status, 200, persisted.text())
@@ -132,10 +135,16 @@ class SavedSearchScheduleBrowserTests(unittest.TestCase):
                     # A separate interval edit persists, then the user can turn scheduling off.
                     schedule.get_by_label("Interval (seconds)", exact=True).fill("1200")
                     page.get_by_role("button", name="Save schedule", exact=True).click()
+                    expect(page.get_by_role("button", name="Save schedule", exact=True)).to_have_count(0)
+                    expect(enabled).to_be_checked()
+                    expect(interval).to_have_value("1200")
                     disabled = schedule.get_by_label("Enable scheduled discovery", exact=True)
                     disabled.uncheck()
                     expect(disabled).not_to_be_checked()
                     page.get_by_role("button", name="Save schedule", exact=True).click()
+                    expect(page.get_by_role("button", name="Save schedule", exact=True)).to_have_count(0)
+                    expect(disabled).not_to_be_checked()
+                    expect(interval).to_have_value("1200")
                     disable_payload = search_profile_puts[-1]
                     self.assertEqual(disable_payload.get("scheduler"),
                                      {"enabled": False, "interval_seconds": 1200},
@@ -166,19 +175,25 @@ class SavedSearchScheduleBrowserTests(unittest.TestCase):
                     browser.close()
             finally:
                 server.should_exit = True
-                thread.join(timeout=5)
+                thread.join(timeout=10)
+                if thread.is_alive():
+                    server.force_exit = True
+                    thread.join(timeout=5)
                 sock.close()
                 store.engine.dispose()
 
-            self.assertFalse(thread.is_alive(), "Isolated saved-search scheduler API did not stop")
-            self.assertEqual(store.count("worker_operations"), operations_before)
-            self.assertEqual(store.count("canonical_jobs"), jobs_before)
-            self.assertEqual(store.count("job_postings"), postings_before)
-            with store.engine.connect() as connection:
-                source_after = dict(connection.execute(select(m.job_sources).where(
-                    m.job_sources.c.id == source_id)).mappings().one())
-            self.assertEqual(source_after["last_attempt"], source_before["last_attempt"])
-            self.assertEqual(source_after["poll_interval"], source_before["poll_interval"])
+            try:
+                self.assertFalse(thread.is_alive(), "Isolated saved-search scheduler API did not stop")
+                self.assertEqual(store.count("worker_operations"), operations_before)
+                self.assertEqual(store.count("canonical_jobs"), jobs_before)
+                self.assertEqual(store.count("job_postings"), postings_before)
+                with store.engine.connect() as connection:
+                    source_after = dict(connection.execute(select(m.job_sources).where(
+                        m.job_sources.c.id == source_id)).mappings().one())
+                self.assertEqual(source_after["last_attempt"], source_before["last_attempt"])
+                self.assertEqual(source_after["poll_interval"], source_before["poll_interval"])
+            finally:
+                store.engine.dispose()
 
 
 if __name__ == "__main__":
