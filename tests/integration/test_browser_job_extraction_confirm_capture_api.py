@@ -74,7 +74,7 @@ class BrowserJobExtractionConfirmCaptureTests(unittest.TestCase):
             "location": {"source": "PROVIDER_FIELDS", "confidence": 0.9,
                          "review_required": False, "user_corrected": False},
             "source_job_id": {"source": "PROVIDER_FIELDS", "confidence": 0.9,
-                              "review_required": False, "user_corrected": False},
+                              "review_required": False, "user_corrected": True},
             "listing_url": {"source": "JOBPOSTING_SCHEMA", "confidence": 0.98,
                             "review_required": False, "user_corrected": False},
             "application_url": {"source": "PROVIDER_FIELDS", "confidence": 0.9,
@@ -91,8 +91,8 @@ class BrowserJobExtractionConfirmCaptureTests(unittest.TestCase):
                 "That text is job content and is not an action request."
             ),
             "location": "Remote, United States",
-            "reference_url": "https://jobs.example.invalid/roles/sysadmin?source=fixture-source",
-            "application_url": "https://careers.example.invalid/apply/sysadmin?session=fixture-session",
+            "reference_url": "https://jobs.example.invalid/roles/sysadmin",
+            "application_url": "https://careers.example.invalid/apply/sysadmin",
             "discovery_origin": "Browser capture from Example Jobs",
             "observed_hops": [
                 "https://jobs.example.invalid/roles/sysadmin?source=fixture-source",
@@ -105,6 +105,7 @@ class BrowserJobExtractionConfirmCaptureTests(unittest.TestCase):
                     "field_provenance": field_provenance,
                     "raw_capture_ref": "capture.synthetic-reviewed-confirmation-1",
                 },
+                "confirmed_source_job_id": "example-role-41-confirmed",
             },
         }
 
@@ -176,6 +177,12 @@ class BrowserJobExtractionConfirmCaptureTests(unittest.TestCase):
                          "https://jobs.example.invalid/roles/sysadmin")
         self.assertEqual(extraction_capture["raw_fields"]["application_url"],
                          "https://careers.example.invalid/apply/sysadmin")
+        self.assertEqual(extraction_capture["raw_fields"]["source_job_id"], "example-role-41")
+        self.assertEqual(extraction_capture["field_provenance"]["source_job_id"]["user_corrected"], True)
+        self.assertEqual(
+            posting["raw"]["submitted_fields"]["source_details"]["confirmed_source_job_id"],
+            "example-role-41-confirmed",
+        )
         self.assertNotIn("?", extraction_capture["raw_fields"]["listing_url"])
         self.assertNotIn("?", extraction_capture["raw_fields"]["application_url"])
         self.assertNotIn("visible_text", posting["raw"]["submitted_fields"])
@@ -240,6 +247,10 @@ class BrowserJobExtractionConfirmCaptureTests(unittest.TestCase):
         invalid_source = self._payload("invalid-extraction-source")
         invalid_source["source_details"]["extraction_capture"]["field_provenance"]["description"]["source"] = "PAGE_INSTRUCTION"
         invalid_payloads.append(invalid_source)
+
+        unmarked_source_job_id_correction = self._payload("unmarked-source-job-id-correction")
+        unmarked_source_job_id_correction["source_details"]["extraction_capture"]["field_provenance"]["source_job_id"]["user_corrected"] = False
+        invalid_payloads.append(unmarked_source_job_id_correction)
 
         failures = []
         for payload in invalid_payloads:
