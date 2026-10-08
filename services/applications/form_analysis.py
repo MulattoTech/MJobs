@@ -32,20 +32,13 @@ _SENSITIVE_TEXT = re.compile(
 )
 
 _DOM_METADATA_SCRIPT = r"""form => {
-  const cleanText = node => {
-    if (!node) return null;
-    const clone = node.cloneNode(true);
-    clone.querySelectorAll('input,select,textarea,button,[contenteditable="true"],span,output,[aria-live],[role="status"],[role="alert"]').forEach(child => child.remove());
-    const text = String(clone.innerText || clone.textContent || '').replace(/\s+/g, ' ').trim();
-    return text ? text.slice(0, 501) : null;
-  };
-  const hasDynamicText = node => Boolean(node && node.querySelector(
-    'span,output,[aria-live],[role="status"],[role="alert"]'));
+  // Rendered semantic text can be static copy or a current answer. Detect only
+  // whether it exists; never return its content.
+  const hasRenderedText = node => Boolean(node && String(node.textContent || '').trim());
   const controls = Array.from(form.querySelectorAll('input,select,textarea')).slice(0, 101);
   return controls.map(element => {
     const tag = element.tagName.toLowerCase();
     const labelNodes = Array.from(element.labels || []);
-    const labels = labelNodes.map(cleanText).filter(Boolean).slice(0, 20);
     const fieldset = element.closest('fieldset');
     let section = element.parentElement;
     let heading = null;
@@ -57,18 +50,18 @@ _DOM_METADATA_SCRIPT = r"""form => {
       section = section.parentElement;
     }
     const legend = fieldset && fieldset.querySelector('legend');
-    const unsafeText = labelNodes.some(hasDynamicText) || hasDynamicText(heading) || hasDynamicText(legend);
+    const unsafeText = labelNodes.some(hasRenderedText) || hasRenderedText(heading) || hasRenderedText(legend);
     return {
       tag,
-      labels,
+      labels: [],
       name: element.getAttribute('name'),
       id: element.getAttribute('id'),
       placeholder: element.getAttribute('placeholder'),
       aria_label: element.getAttribute('aria-label'),
       input_type: tag === 'input' ? (element.getAttribute('type') || 'text') : null,
       nearby_text: null,
-      section_heading: cleanText(heading),
-      fieldset_legend: cleanText(legend),
+      section_heading: null,
+      fieldset_legend: null,
       unsafe_text_context: unsafeText,
       options: tag === 'select'
         ? Array.from(element.options).slice(0, 101).map(option => option.label)

@@ -53,21 +53,21 @@ class MockApplicationTests(unittest.TestCase):
         from playwright.sync_api import sync_playwright
 
         html = """<!doctype html><html><body><form>
-          <section><h2>Contact details</h2>
-            <fieldset><legend>Applicant identity</legend>
-              <label for="person-name">Legal name</label>
+          <section><h2></h2>
+            <fieldset><legend></legend>
+              <label for="person-name"></label>
               <input id="person-name" name="full_name" type="text"
                      placeholder="Enter your name" aria-label="Applicant name"
                      value="PRIVATE_CURRENT_VALUE">
               <p>Use the name on your resume</p>
-              <label for="country">Country of residence</label>
+              <label for="country"></label>
               <select id="country" name="country">
                 <option value="private-us">United States</option>
                 <option value="private-ca">Canada</option>
               </select>
-              <label for="ssn">Social Security number</label>
-              <input id="ssn" name="ssn" type="text" value="PRIVATE_SSN_VALUE">
-              <label for="password">Account password</label>
+              <label for="ssn"></label>
+              <input id="ssn" name="ssn" type="text" aria-label="Social Security number" value="PRIVATE_SSN_VALUE">
+              <label for="password"></label>
               <input id="password" name="password" type="password" value="PRIVATE_PASSWORD_VALUE">
             </fieldset>
           </section>
@@ -87,14 +87,14 @@ class MockApplicationTests(unittest.TestCase):
                 self.assertEqual(result["status"], "PASS")
                 by_id = {field["id"]: field for field in result["fields"]}
                 person = by_id["person-name"]
-                self.assertEqual(person["labels"], ["Legal name"])
+                self.assertEqual(person["labels"], [])
                 self.assertEqual(person["name"], "full_name")
                 self.assertEqual(person["placeholder"], "Enter your name")
                 self.assertEqual(person["aria_label"], "Applicant name")
                 self.assertEqual(person["input_type"], "text")
                 self.assertIsNone(person["nearby_text"])
-                self.assertEqual(person["section_heading"], "Contact details")
-                self.assertEqual(person["fieldset_legend"], "Applicant identity")
+                self.assertIsNone(person["section_heading"])
+                self.assertIsNone(person["fieldset_legend"])
                 self.assertEqual(by_id["country"]["options"], ["United States", "Canada"])
                 self.assertEqual(by_id["ssn"]["sensitivity"], "SENSITIVE")
                 self.assertEqual(by_id["password"]["sensitivity"], "CREDENTIAL")
@@ -148,6 +148,39 @@ class MockApplicationTests(unittest.TestCase):
                 self.assertEqual(result["reason"], "UNSAFE_TEXT_CONTEXT")
                 self.assertNotIn("PRIVATE_LABEL_RENDERED_ANSWER", json.dumps(result))
                 self.assertNotIn("PRIVATE_LABEL_OUTPUT_ANSWER", json.dumps(result))
+            finally:
+                browser.close()
+
+    def test_read_only_form_analysis_fails_closed_on_plain_rendered_label_heading_and_legend_text(self):
+        from playwright.sync_api import sync_playwright
+
+        cases = (
+            (
+                """<form><label for="field">PRIVATE_DIRECT_LABEL_ANSWER</label>
+                   <input id="field" name="field"></form>""",
+                ("PRIVATE_DIRECT_LABEL_ANSWER",),
+            ),
+            (
+                """<form><section><h2>PRIVATE_DIRECT_HEADING_ANSWER</h2>
+                   <fieldset><legend>PRIVATE_DIRECT_LEGEND_ANSWER</legend>
+                   <input id="field" name="field"></fieldset></section></form>""",
+                ("PRIVATE_DIRECT_HEADING_ANSWER", "PRIVATE_DIRECT_LEGEND_ANSWER"),
+            ),
+        )
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch(headless=True)
+            try:
+                for html, markers in cases:
+                    with self.subTest(markers=markers):
+                        page = browser.new_page()
+                        page.set_content(f"<!doctype html><html><body>{html}</body></html>")
+                        result = analyze_form_page(page)
+                        self.assertEqual(result["status"], "UNKNOWN")
+                        self.assertEqual(result["reason"], "UNSAFE_TEXT_CONTEXT")
+                        serialized = json.dumps(result)
+                        for marker in markers:
+                            self.assertNotIn(marker, serialized)
+                        page.close()
             finally:
                 browser.close()
 
