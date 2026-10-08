@@ -39,6 +39,20 @@ class RequirementParserTests(unittest.TestCase):
              "AZURE": "UNKNOWN"},
         )
 
+    def test_same_skill_required_and_negated_required_in_one_clause_is_unknown(self):
+        description = "Windows Server is required, but Windows Server is not required."
+        rows = parse_skill_requirements(description, extract_skill_mentions(description))
+        self.assertEqual({row["id"]: row["strength"] for row in rows},
+                         {"WINDOWS_SERVER": "UNKNOWN"})
+
+    def test_explicit_and_negated_skills_keep_distinct_strengths_in_one_clause(self):
+        description = "Windows Server required, Active Directory is not required."
+        rows = parse_skill_requirements(description, extract_skill_mentions(description))
+        self.assertEqual(
+            {row["id"]: row["strength"] for row in rows},
+            {"WINDOWS_SERVER": "REQUIRED", "ACTIVE_DIRECTORY": "UNKNOWN"},
+        )
+
     def test_skill_aliases_keep_canonical_identity_and_strength_scope(self):
         description = "AD required. Azure AD preferred."
         rows = parse_skill_requirements(description, extract_skill_mentions(description))

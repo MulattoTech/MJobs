@@ -139,9 +139,9 @@ def _skill_cue_strength(value):
     """Classify only explicit, non-conflicting local cues."""
     records = _skill_cue_records(value)
     matches = [row["strength"] for row in records if not row["negated"]]
-    negated = any(row["negated"] for row in records)
+    negated = {row["strength"] for row in records if row["negated"]}
     classes = set(matches)
-    if len(classes) == 1:
+    if len(classes) == 1 and not classes.intersection(negated):
         return next(iter(classes))
     if classes or negated:
         return "UNKNOWN"
@@ -177,11 +177,16 @@ def _skill_clause_rows(clause, occurrences):
     for index, occurrence in enumerate(occurrences):
         assigned = assignments[index]
         classes = {row["strength"] for row in assigned if not row["negated"]}
-        strength = (next(iter(classes)) if len(classes) == 1 and index not in ambiguous
+        negated_classes = {row["strength"] for row in assigned if row["negated"]}
+        strength = (next(iter(classes)) if len(classes) == 1
+                    and not classes.intersection(negated_classes) and index not in ambiguous
                     else "UNKNOWN")
         strengths.append(strength)
         per_id.setdefault(occurrence["id"], []).append(strength)
-    if "UNKNOWN" in strengths:
+    # A skill with no nearby qualifier makes the comma/list scope ambiguous.
+    # Explicitly negated cues are scoped evidence and should not erase a
+    # different skill's independently classified strength.
+    if any(not assignments[index] for index in range(len(occurrences))):
         return {identifier: ["UNKNOWN"] * len(values)
                 for identifier, values in per_id.items()}
     return per_id

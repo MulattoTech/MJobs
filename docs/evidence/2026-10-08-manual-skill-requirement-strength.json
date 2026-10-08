@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-10-08T09:07:46Z",
+  "timestamp": "2026-10-08T09:10:14Z",
   "result": "PARTIAL",
   "scope": "MJ-REQ-115 / issue #116 manual skill requirement strength",
   "branch": "codex/mj-req115-skill-strength-20261008",
@@ -27,7 +27,7 @@
       "command": ".venv/Scripts/python.exe -m unittest tests.unit.test_requirement_parsers",
       "failures": 0,
       "result": "PASS",
-      "tests": 22,
+      "tests": 24,
       "skips": 0
     },
     {
@@ -55,10 +55,25 @@
     "Broader MJ-REQ-115 and PR-031 acceptance remain incomplete; issue #116 remains OPEN/PARTIAL."
   ],
   "source_sha256": {
-    "services/discovery/requirement_parsers.py": "92A1B032E68BEFEAAECAB83FA6CBA835ADD52D6AD0518D9B1AB40A4598809870",
+    "services/discovery/requirement_parsers.py": "F645402041230526B47884C89166B3141DF17F0DFA9027FC134E55E2B8D82D7A",
     "services/discovery/manual_capture.py": "882EE802ADC5303CC4F45B82A69CE6558B2ECA522DA4D09CE27E431FD7EDDACE",
     "services/discovery/matching.py": "4626F73E8E8D82E09D9631EE4F17BA4CB0B2D6454531D7ECE8EFC5DD34048990",
-    "tests/unit/test_requirement_parsers.py": "DEDA2CE9C908BEB8A6BCB7EB7A74F69E88404A8439F6B16FE2E0BF078087D6A4",
+    "tests/unit/test_requirement_parsers.py": "E566C8A82A20092B7A80CA943B90501C20902DD2CA9F0C4908F58A03E842E8CC",
     "tests/integration/test_explainable_matching.py": "B6725D10087598729D1B1B43232033382F376724EBE1492E3F670D02685C456F"
+  },
+  "review_followup": {
+    "reviewed_commit": "d2e8f3eb9e158b11b3061b3fc3ccd58173bfc947",
+    "findings": [
+      "Same-skill positive and negated matching qualifier incorrectly retained positive classification.",
+      "A negated skill in a comma clause incorrectly forced a separate explicit skill to UNKNOWN."
+    ],
+    "red_result": "Both new regression tests failed on the reviewed commit with those observed mismatches.",
+    "fix": "Matching positive and negated cues for the same class now yield UNKNOWN. Explicitly negated per-skill cues no longer erase a different skill strength; a list item with no scoped cue still makes the ambiguous clause UNKNOWN.",
+    "checks": [
+      "24 parser unit tests PASS",
+      "11 explainable matching integration tests PASS",
+      "py_compile PASS",
+      "git diff --check PASS"
+    ]
   }
 }
