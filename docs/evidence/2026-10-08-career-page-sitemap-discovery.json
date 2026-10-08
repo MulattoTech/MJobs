@@ -1,0 +1,47 @@
+{
+  "evidence_id": "MJ-REQ-061-career-page-sitemap-discovery-20261008",
+  "status": "PASS",
+  "issue": "https://github.com/MulattoTech/MJobs/issues/62",
+  "issue_state": "OPEN/PARTIAL",
+  "requirement": "MJ-REQ-061 career page discovery; bounded same-origin sitemap discovery",
+  "branch": "main",
+  "base_commit": "22f2ca4e007f14b5fb44bd21eae3f0ab6333eefc",
+  "source_commit": "d9f92cfdd9b9f5e1bc683004e2c713ac0a9c9d88",
+  "tested_source_tree_oid": "d07d273c49f330b1573f0b032a73d9749224fc8b",
+  "integrated_child_commits": [
+    "bae893fdffa761c74aa386987bbb35ca51c743c9",
+    "abbabdf6db0cdd736b4809e8e489e83cecc834d8",
+    "85e9f2f386f0ecf2d9e97b59e17dda5d301a8837",
+    "7c84e059d4459bb2d1b7d84a39ef5fe167fc0ce7"
+  ],
+  "tested_source_files": [
+    {"path":"services/company_discovery/career_pages.py","worktree_sha256":"e3d6e9b27301dac27a1a7b4536696bb535b4c7b376789087e2dd1c246cdb16a7","git_blob_oid":"2c5438bd4432848fd959d0ec366b4ff9907537a0"},
+    {"path":"services/company_discovery/flywheel.py","worktree_sha256":"211e94181d604584db40e6851d7954a3417f95caac44ea87909c08780ccf4819","git_blob_oid":"3680fb428e2b59928b3208966220e6199a199bed"},
+    {"path":"tests/unit/test_career_page_sitemaps.py","worktree_sha256":"70c05b1d1ee931da9edd9ace00693a59e17cca0bdbc97f532015249e1ca7dc7b","git_blob_oid":"db246840f2c2b8fcba642ac1b6af67d1415d16de"},
+    {"path":"tests/integration/test_company_discovery_sitemaps.py","worktree_sha256":"29b351156bc96bd339a7a0af5a542f55c2b7ee2d5fc5d73d31aa6aa2e507b001","git_blob_oid":"f4c159e733f7a911befbfa5c42c6d81236f12fde"},
+    {"path":"tests/integration/test_company_discovery_sitemap_safety.py","worktree_sha256":"86b9ebc3b0f294c1008584577723a44b0636e96f7a36f3d0d31f4a239067d754","git_blob_oid":"a8c5f99a09e91d835246c34b795cf9725f4754da"},
+    {"path":"tests/browser/test_company_discovery_sitemap.py","worktree_sha256":"8a0533e17221287d21cefb405db9ef60db26bf78b9413566bc63508c439ebb98","git_blob_oid":"6f3d04bdc27279bc5f4fbfd3fc3407dbb5242d03"},
+    {"path":"tests/integration/test_public_company_discovery.py","worktree_sha256":"4fce474bbc72d9b5cc9dd5f419a6c8860a146abd90bc138eb2a539bd6a4b7f38","git_blob_oid":"047108477e2d2fd45ae3091389b206060bf6bee4"}
+  ],
+  "checks": [
+    {"command":".venv/Scripts/python.exe -m unittest tests.unit.test_career_page_sitemaps tests.integration.test_company_discovery_sitemaps tests.integration.test_company_discovery_sitemap_safety -v","result":"PASS","detail":"17 parser, discovery-flow and negative safety tests passed."},
+    {"command":".venv/Scripts/python.exe -m unittest tests.integration.test_company_discovery tests.integration.test_public_company_discovery tests.unit.test_career_page_sitemaps tests.integration.test_company_discovery_sitemaps tests.integration.test_company_discovery_sitemap_safety -v","result":"PASS","detail":"49 focused discovery regression tests passed on the integrated source."},
+    {"command":".venv/Scripts/python.exe -m unittest tests.browser.test_company_discovery_sitemap -v","result":"PASS","detail":"Connected synthetic Chromium discovery completed; the Jobs and Companies views showed imported data after reload. No browser requests escaped the local API, and all employer fetches stayed on the synthetic HTTPS origin."},
+    {"command":".venv/Scripts/python.exe -m py_compile services/company_discovery/career_pages.py services/company_discovery/flywheel.py tests/unit/test_career_page_sitemaps.py tests/integration/test_company_discovery_sitemaps.py tests/integration/test_company_discovery_sitemap_safety.py tests/integration/test_public_company_discovery.py","result":"PASS"},
+    {"command":"git diff --check","result":"PASS"}
+  ],
+  "acceptance": [
+    "Same-origin sitemap hints and the conventional /sitemap.xml route are fetched only through the bounded company public-fetch policy.",
+    "Bounded XML parsing rejects malformed, oversized, DTD/entity, credentialed, unsupported and over-limit inputs; sitemap-index traversal is bounded.",
+    "Only same-origin career-like sitemap locations proceed to ordinary page corroboration and feed discovery.",
+    "Malformed, irrelevant, off-origin and robots-denied sitemap cases retain safe fallback behavior and do not enroll invalid sources.",
+    "A connected browser workflow imports a synthetic employer posting and reads the job and source back after reload."
+  ],
+  "limitations": [
+    "The broad MJ-REQ-061 requirement remains PARTIAL: real employer sources, broader domain acquisition and full production source coverage were not tested.",
+    "PostgreSQL was not exercised.",
+    "Hosted checks and review were NOT_RUN_BY_USER_POLICY; real external application submission remains OFF."
+  ],
+  "environment": "Windows, Python 3.12 project virtual environment, isolated SQLite, synthetic Chromium and employer transport",
+  "recorded_utc": "2026-10-08T17:02:26Z"
+}

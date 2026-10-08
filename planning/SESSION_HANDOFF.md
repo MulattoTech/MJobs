@@ -1,3 +1,22 @@
+# MJobs session handoff — 2026-10-08 17:02Z
+
+Current local main: `d9f92cfdd9b9f5e1bc683004e2c713ac0a9c9d88` (tree `d07d273c49f330b1573f0b032a73d9749224fc8b`); `origin/main` remains `22f2ca4e007f14b5fb44bd21eae3f0ab6333eefc` pending tracker checkpoint and ordinary non-force synchronization. The Codex integration lock is live. Preserve Antigravity #302 and Ollama #318 claims. GitHub Actions disabled; hosted checks/review NOT_RUN_BY_USER_POLICY; external application submission OFF.
+
+## Accepted feature checkpoint
+
+- #62 / MJ-REQ-061 now follows bounded same-origin sitemap hints and conventional `/sitemap.xml`, parses bounded urlsets/indexes, corroborates career pages before normal feed discovery, and retains existing fallbacks. Connected synthetic browser discovery displayed the imported job and source after reload. Evidence: `docs/evidence/2026-10-08-career-page-sitemap-discovery.json`. Focused Python discovery: 49/49 PASS; connected browser: 1/1 PASS; compilation and diff checks PASS. The broad original requirement remains PARTIAL; real employer coverage and PostgreSQL are unverified.
+- Four Rogue Squadron source/test commits are integrated locally; all four claims are released. Root-owned source and tracker checkpoint is awaiting remote synchronization.
+
+## Star Wars squad staffing
+
+The previous #62 four-person squad is complete. No Star Wars workers are currently active; next assignments require confirming independent issue/path ownership before dispatch. Candidate areas to reconcile: remaining #190 job-filter criteria, #192 saved-search-specific scheduling, #199 document archiving, and #200 jobseeker dashboard metrics. Do not count completed audit/worker agents as active. No candidate is assigned until its live issue, dependency, paths, and acceptance test are confirmed.
+
+## Next action
+
+Validate tracker/dashboard state, commit the accepted #62 evidence/state batch, fetch and confirm origin ancestry, perform the allowed non-force fast-forward synchronization, verify local/origin/GitHub main, then select the next independent core feature. Reconcile claims and worktrees first; do not remove historical worktrees or touch personal runtime data.
+
+---
+
 # MJobs session handoff — 2026-10-08 15:52Z
 
 Current local/origin/GitHub main: `5834f224b918eb21d9c9aaa4e086fcc36c7b7731` (tree `df42bc80b6840348b344be1f4695f51467842b61`), verified synchronized. The product source fast-forwards are #394 at `1870f34273b4e57c0017d3e2d8a10f1eb5ebaff8` and #190 at `a2ddaee0cb31b4e539f27173a2baf911d3847d4d`; the tracker checkpoint is included in current main. Root holds the live Codex integration lock. GitHub Actions disabled, main unprotected, no open PRs at last read. Hosted checks/review NOT_RUN; external submission OFF.

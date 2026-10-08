@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-08T16:47:22Z",
+  "timestamp": "2026-10-08T17:02:26Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -568,9 +568,10 @@
       "requirement_id": "MJ-REQ-061",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-01-company-alias-domain-career-discovery.json"
+        "docs/evidence/2026-10-01-company-alias-domain-career-discovery.json",
+        "docs/evidence/2026-10-08-career-page-sitemap-discovery.json"
       ],
-      "note": "Fixture discovery inspects same-origin navigation/footer/internal links, sitemap XML and JSON-LD URL hints, probes common routes only with ATS-content corroboration, and blocks private/off-origin fetch targets. Sitemap fetching, production site acquisition and broader employer acceptance remain open."
+      "note": "Integrated bounded same-origin sitemap fetching and career-page parsing, conventional /sitemap.xml fallback, URL/index/size/entity limits, normal career/feed corroboration, fail-closed cross-origin/robots/malformed behavior, and connected browser reload proof. 49 focused discovery regressions and 1 synthetic Chromium flow PASS; source metadata and exact tree are recorded in docs/evidence/2026-10-08-career-page-sitemap-discovery.json. Real employer coverage and broad acquisition remain unverified; requirement stays PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-062",
