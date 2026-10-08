@@ -28,13 +28,21 @@ _PROFILE_PATHS = {
 _LEGAL_PROFILE_PATHS = {
     "preferences.work_authorization", "preferences.sponsorship_needs",
 }
-_WORK_AUTHORIZATION_QUESTION = re.compile(
-    r"\b(work authorization|employment authorization|work eligibility|right to work|"
-    r"eligible to work|authorized to work|permitted to work|permission to work|"
-    r"legally authorized(?: for employment| to work))\b", re.IGNORECASE)
-_SPONSORSHIP_QUESTION = re.compile(r"\bsponsorship\b", re.IGNORECASE)
+_SUPPORTED_WORK_AUTHORIZATION_QUESTION = re.compile(
+    r"^\s*(?:(?:are you\s+)?(?:legally\s+)?authorized to work|"
+    r"(?:are you\s+)?legally authorized for employment|"
+    r"(?:are you\s+)?(?:eligible|permitted) to work|"
+    r"(?:do you have\s+)?legal permission to work|"
+    r"(?:what is your\s+)?work authorization)(?:\s+in\s+(?:the\s+)?"
+    r"(?:u\.?s\.?a?\.?|united states|canada|country of employment))?\s*[?.!]?$",
+    re.IGNORECASE)
+_SUPPORTED_SPONSORSHIP_QUESTION = re.compile(
+    r"^\s*(?:do|will|would) you (?:(?:now|currently)(?: or in the future)? )?"
+    r"(?:need|require) (?:employer )?(?:visa )?sponsorship"
+    r"(?: for (?:employment )?visa(?: status)?)?\s*[?.!]?$", re.IGNORECASE)
 _AMBIGUOUS_WORK_AUTHORIZATION = re.compile(
     r"\b(?:unknown|unspecified|not specified|not sure|unsure|uncertain|maybe|"
+    r"i think|i believe|probably|likely|possibly|might be|may be|could be|"
     r"prefer not to answer|decline to answer|do not know|don't know)\b", re.IGNORECASE)
 _FACT_KEYS = {"fact_ids", "answer_ids", "profile_paths", "document_kinds", "application_context"}
 _DOCUMENT_KINDS = {"resume", "cover-letter"}
@@ -225,8 +233,8 @@ def _legal_profile_mapping(question, mapping):
         return None
     path = paths[0]
     label = question["label"]
-    has_work_authorization = _WORK_AUTHORIZATION_QUESTION.search(label) is not None
-    has_sponsorship = _SPONSORSHIP_QUESTION.search(label) is not None
+    has_work_authorization = _SUPPORTED_WORK_AUTHORIZATION_QUESTION.fullmatch(label) is not None
+    has_sponsorship = _SUPPORTED_SPONSORSHIP_QUESTION.fullmatch(label) is not None
     # A compound question requires two answers. This preflight intentionally
     # supports only one legal answer class per structured question.
     if has_work_authorization == has_sponsorship:

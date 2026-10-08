@@ -75,7 +75,9 @@ class LegalQuestionPreflightTests(unittest.TestCase):
     def test_missing_or_ambiguous_values_remain_unknown(self):
         item = question("Are you authorized to work in the United States?",
                         "preferences.work_authorization")
-        for value in ("", "not sure", "unknown", "I am not sure whether I am authorized"):
+        for value in (
+                "", "not sure", "unknown", "I am not sure whether I am authorized",
+                "I think I am authorized to work", "probably authorized to work"):
             with self.subTest(value=value):
                 result = self.evaluate(self.profile(work_authorization=value), item)
                 self.assertEqual(result["result"], "UNKNOWN")
@@ -95,8 +97,16 @@ class LegalQuestionPreflightTests(unittest.TestCase):
         cases = (
             question("Have you ever been convicted of a felony?",
                      "preferences.work_authorization", "criminal-history"),
+            question("Are you authorized to work in the US, and have you ever been convicted of a felony?",
+                     "preferences.work_authorization", "authorization-and-criminal-history"),
+            question("Are you legally authorized to work in the US, and are you at least 18 years old?",
+                     "preferences.work_authorization", "authorization-and-age"),
+            question("Are you authorized to work in the US, and are you a US citizen?",
+                     "preferences.work_authorization", "authorization-and-citizenship"),
             question("Are you authorized to work in the United States?",
                      "preferences.sponsorship_needs", "wrong-field"),
+            question("Did you require sponsorship in a prior job?",
+                     "preferences.sponsorship_needs", "historical-sponsorship"),
             {
                 "id": "combined-fields", "label": "Are you authorized to work in the United States?",
                 "required": True,
@@ -113,6 +123,51 @@ class LegalQuestionPreflightTests(unittest.TestCase):
                 self.assertIn(result["reason"], {
                     "UNEXPECTED_SENSITIVE_REQUIRED_QUESTION", "UNMAPPED_REQUIRED_QUESTION",
                 })
+
+    def test_authorization_plus_unrelated_legal_clause_stops_before_browser(self):
+        authorization = "SYNTHETIC_AUTHORIZATION_VALUE_DO_NOT_ECHO"
+        with tempfile.TemporaryDirectory() as directory, fixture_server() as origin:
+            root = Path(directory)
+            store = Store(f"sqlite:///{(root / 'test.db').as_posix()}")
+            store.migrate()
+            store.save_profile(self.profile(work_authorization=authorization))
+            discover(store, origin, "fixture")
+            job = next(row for row in store.jobs() if row["requisition"] == "B")
+            application_id = prepare(store, job["id"], "fixture", root)
+
+            item = question(
+                "Are you authorized to work in the US, and have you ever been convicted of a felony?",
+                "preferences.work_authorization", "authorization-and-criminal-history")
+            metadata = questionnaire(item)
+
+            class Response:
+                status_code = 200
+
+                @staticmethod
+                def json():
+                    return metadata
+
+            original_get = MockClient.get
+
+            def get_with_legal_question(client, url):
+                if "/ats/questions/" in url:
+                    return Response()
+                return original_get(client, url)
+
+            try:
+                with patch.object(MockClient, "get", get_with_legal_question), \
+                     patch.object(mock_adapter, "sync_playwright",
+                                  side_effect=AssertionError("browser must not start")) as browser:
+                    application = mock_adapter.apply_mock(
+                        store, application_id, origin, root, submit=False)
+                self.assertEqual(application["state"], "REVIEW_REQUIRED")
+                self.assertEqual(store.count("application_attempts"), 0)
+                browser.assert_not_called()
+                stored = latest_preflight(store, application_id)
+                self.assertEqual(stored["result"], "UNKNOWN")
+                self.assertNotIn(authorization, str(stored))
+            finally:
+                store.engine.dispose()
 
     def test_combined_work_authorization_and_sponsorship_requires_both_classes(self):
         label = "Are you authorized to work in the US, and will you require sponsorship?"
