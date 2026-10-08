@@ -592,13 +592,14 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "commit": "6ade66fd9ad2d35362264df403cacfa493a9b416",
-    "tree": "a245a619c7b8881385d4d17f39a91c904450fa18",
-    "result": "PASS for bounded #134 / MJ-REQ-133 MOCK dynamic conditional required-field handling; broader dynamic-form requirement remains PARTIAL; hosted/PostgreSQL/live ATS/full-suite gates NOT_RUN.",
+    "commit": "ffa52d5c5e1897c7f8a969c45c36c8871bd44557",
+    "tree": "2077418adb718a8ce78c9f815e383a9b7875b88f",
+    "result": "PASS for bounded, independently verified #190 education filtering and #116 section-scoped requirement explanation slices; MJ-REQ-189, MJ-REQ-115 and whole-product release remain PARTIAL/UNKNOWN. This is focused local verification, not full-suite/PostgreSQL/hosted acceptance.",
     "evidence": [
-      "docs/evidence/2026-10-08-dynamic-form-conditional-field.json"
+      "docs/evidence/2026-10-08-education-search-filter.json",
+      "docs/evidence/2026-10-08-section-scoped-requirement-strength.json"
     ],
-    "verified_at_utc": "2026-10-08T12:21:30Z"
+    "verified_at_utc": "2026-10-08T13:39:46Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -699,16 +700,16 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "57e667761de038f5a7ee1692e1053f6c4d5b95eb",
+  "last_implementation_commit": "ffa52d5c5e1897c7f8a969c45c36c8871bd44557",
   "publication": {
-    "result": "PASS - bounded core product slices integrated and synchronized; overall release remains UNKNOWN",
-    "integration_method": "NON_FORCE_FAST_FORWARD under root integration lock; exact source candidates locally verified",
-    "integration_commit": "980f89c78d384ec3098e083616b48c8c713089f3",
-    "prior_main": "ba540570f0ffe138fa5656bb674d570e464bcc7d",
+    "result": "PASS - two bounded core product slices integrated and synchronized; overall release remains UNKNOWN",
+    "integration_method": "NON_FORCE_FAST_FORWARD under root integration lock after exact-source local verification",
+    "integration_commit": "ffa52d5c5e1897c7f8a969c45c36c8871bd44557",
+    "prior_main": "52f4cf41184b62068b567981539afec240673e49",
     "pr_number": null,
     "pr_state": "NOT_OPENED_LOCAL_ONLY",
     "github_reports_merged": false,
-    "note": "#190/MJ-REQ-189 normalized experience filter; #115/MJ-REQ-114 informational salary factor; and #191/MJ-REQ-190 annual USD salary sort are integrated on synchronized main. Issues remain OPEN/PARTIAL. Hosted checks and PostgreSQL NOT_RUN; external submission OFF."
+    "note": "#190/MJ-REQ-189 parser-classified education facet and #116/MJ-REQ-115 section-scoped qualification strengths are integrated as bounded PARTIAL slices. Local/origin/GitHub main synchronized. PostgreSQL/full repository suite/hosted checks NOT_RUN; external submission OFF."
   },
   "optional_afk_journal": {
     "result": "PASS",
@@ -11919,13 +11920,13 @@
   "active_development_issue": {
     "issue": 190,
     "requirement_id": "MJ-REQ-189",
-    "title": "Job Filter Sidebar - education requirement facet",
+    "title": "Job Filter Sidebar - clearance requirement facet",
     "state": "ACTIVE_IMPLEMENTATION",
-    "branch": "codex/mj-req189-education-filter-20261008",
-    "worktree": ".worktrees/codex-mj-req189-education-filter-20261008",
-    "base_commit": "57e667761de038f5a7ee1692e1053f6c4d5b95eb",
-    "issue_claim_comment": "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6060829902",
-    "acceptance": "Connected exact classification filter using parser-emitted education requirements, before result LIMIT, saved-search lifecycle and profile scope, with a connected browser readback and no side effects."
+    "branch": "codex/mj-req189-clearance-filter-20261008",
+    "worktree": ".worktrees/codex-mj-req189-clearance-filter-20261008",
+    "base_commit": "ffa52d5c5e1897c7f8a969c45c36c8871bd44557",
+    "issue_claim_comment": "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6061084684",
+    "acceptance": "Connected exact parsed job-posting clearance-level facet before LIMIT, fail-closed for missing/malformed classifications, profile-scoped saved-search round trip/clear/legacy compatibility and no side effects; user clearance is never inferred."
   },
   "historical_control_snapshots": [
     {
@@ -13081,7 +13082,7 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-08T13:24:37Z",
-  "current_verified_local_state": "Product source commit 57e667761de038f5a7ee1692e1053f6c4d5b95eb (tree 550dd8c21b16a3f256444b4db1fe5eaddff7f8fe) adds the taxonomy-backed skill facet to local main; planning batch at 4819fd00704abbcb438797e12ae9a5ae31055817 records the active education-filter child. Exact source validation: 17 API/integration/browser tests, frontend 103, build, compilation, skills, source hashes and diff PASS; local delegated review no material findings.",
-  "current_verified_github_state": "After the accepted skill-filter and tracker batch, local main, origin/main, and GitHub default main were verified equal at 4819fd00704abbcb438797e12ae9a5ae31055817. Product source is 57e667761de038f5a7ee1692e1053f6c4d5b95eb; #190 integration receipt https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6060801276 and claim release https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6060814548. Hosted checks remain disabled; external submission OFF."
+  "updated_at": "2026-10-08T13:39:46Z",
+  "current_verified_local_state": "Local main is ffa52d5c5e1897c7f8a969c45c36c8871bd44557 (tree 2077418adb718a8ce78c9f815e383a9b7875b88f). Education filter exact source 00c2b602dd689558a2490682bad090cd5b12c2bf passed 19 connected API/browser tests, frontend 103, build, validators and hashes. Section-scoped match parser exact source 43437fcffc873316f0f60859aba3a5b9bd4173e2 passed 50 parser/match/browser tests, frontend 103, build, validators and hashes after review findings were fixed. Both remain bounded slices; their original requirements remain PARTIAL.",
+  "current_verified_github_state": "Local main, origin/main, and GitHub default main were verified synchronized at ffa52d5c5e1897c7f8a969c45c36c8871bd44557. #190 education receipt: https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6061031310; #116 section parser receipt/correction: https://github.com/MulattoTech/MJobs/issues/116#issuecomment-6061134617. Hosted checks remain disabled; external submission OFF."
 }
