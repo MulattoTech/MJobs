@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-08T12:30:08Z",
+  "generated_at": "2026-10-08T13:15:25Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -11,7 +11,7 @@
     "current_verified_github_state": "Local main, origin/main and GitHub default main synchronized at 980f89c78d384ec3098e083616b48c8c713089f3; receipts posted for #115 and #191. Hosted checks/reviews remain NOT_RUN_BY_USER_POLICY.",
     "current_verified_at": "2026-10-08T12:10:15Z"
   },
-  "current_milestone": "CORE-FEATURE-BATCH-20261008-M",
+  "current_milestone": "CORE-FEATURE-BATCH-20261008-N",
   "current_objective": "Advance connected jobseeker search, explainable matching, truthful documents, and consent-safe application preparation through dependency-ready vertical slices.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -145,7 +145,9 @@
     "MJ-REQ-107: exact mapped work-authorization and current/future sponsorship values are supported only as private preflight checks; mixed, hedged, historical or unrelated legal questions remain UNKNOWN before Playwright. Broader legal fields remain PARTIAL.",
     "MJ-REQ-136: durable job/company/route/resume/cover-letter/reviewed-answer application preview with visible UNKNOWN blockers/confidence; selection survives reload and viewing performs only local GET reads. Broader automation remains PARTIAL.",
     "Profile-scoped persisted application Review Queue shows and explains UNKNOWN/FAIL question preflight blockers and navigates read-only to the existing review; other blocker categories remain unsupported and full MJ-REQ-196 remains PARTIAL.",
-    "MOCK dynamic application form: exact reviewed dependent-dropdown mapping and durable fail-closed user review for unknown required fields (MJ-REQ-133); full requirement remains PARTIAL."
+    "MOCK dynamic application form: exact reviewed dependent-dropdown mapping and durable fail-closed user review for unknown required fields (MJ-REQ-133); full requirement remains PARTIAL.",
+    "Connected Jobs employment-type filter is integrated locally at 65914db2da7fb13c65fa2c115259017ee585f097: exact canonical categories and UNKNOWN composition persist in saved searches; evidence docs/evidence/2026-10-08-employment-type-search-filter.json.",
+    "MOCK authentication-required attempts persist AUTH_REQUIRED and can resume after deliberate fixture authentication at 5ca978be11a78a71cf93a8be5755f7fede319e12; product UI still lacks a saved-profile sign-in opener, so MJ-REQ-142 remains PARTIAL."
   ],
   "blocked_capabilities": [],
   "active_requirements": [
@@ -168,7 +170,8 @@
     "MJ-REQ-189",
     "MJ-REQ-107",
     "MJ-REQ-136",
-    "MJ-REQ-101"
+    "MJ-REQ-101",
+    "MJ-REQ-142"
   ],
   "active_prs": [],
   "tests_passed": [
@@ -440,7 +443,9 @@
     "Issue #96 / MJ-REQ-095: rebased exact-source unit/integration/browser suite 20/20; py_compile and TypeScript/Vite build PASS; exact Git blob hashes, evidence JSON, diff check and LOCAL_DELEGATED_REVIEW PASS.",
     "Issue #105 exact rebased source: 33 Python unit/integration, 101 frontend, 4 connected browser tests, TypeScript/Vite build, py_compile, source hashes and diff check PASS; LOCAL_DELEGATED_REVIEW no material findings.",
     "Issue #190 exact rebased source: 2 Python integration, 1 connected browser, 2 Vitest tests, TypeScript/Vite build, py_compile, agent-skill validation, source hashes and diff check PASS; LOCAL_DELEGATED_REVIEW no material findings.",
-    "Issue #134 / MJ-REQ-133 exact-main candidate: browser, application pipeline and preflight suites 42/42 PASS; connected MOCK dependent-field behavior, persisted unknown-field review/readback, zero review/submit POSTs for unknown fields. py_compile, evidence input hashes, evidence JSON, agent-skill validator and git diff --check PASS. Hosted/PostgreSQL/live ATS/full repo remain NOT_RUN; external submission OFF."
+    "Issue #134 / MJ-REQ-133 exact-main candidate: browser, application pipeline and preflight suites 42/42 PASS; connected MOCK dependent-field behavior, persisted unknown-field review/readback, zero review/submit POSTs for unknown fields. py_compile, evidence input hashes, evidence JSON, agent-skill validator and git diff --check PASS. Hosted/PostgreSQL/live ATS/full repo remain NOT_RUN; external submission OFF.",
+    "Root exact integrated search-filter checks: 15 Python integration/browser tests PASS; 103 frontend tests PASS; TypeScript/Vite production build PASS for employment type; authentication pipeline/browser suites 34/34 PASS; compile, skills, evidence hashes and git diff checks PASS. Local delegated reviews found no material issues.",
+    "Requirement tracker/dashboard validators are rerun at accepted integration checkpoints; PostgreSQL/hosted/live ATS NOT_RUN; external application submission OFF."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -657,7 +662,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "After synchronizing this accepted checkpoint and refreshing the tracker, select a dependency-ready core feature from live issue state and active claim bus. Prefer truthful resume tailoring/document review or application-preparation improvements; preserve external submission OFF and PR-052 dependency constraints.",
+  "recommended_resume_step": "Continue the active #190/MJ-REQ-189 skill taxonomy filter worker. After its exact-head validation and integration, pick the next non-overlapping connected feature in truthful resume tailoring, explainable ranking, or manual application preparation.",
   "release_readiness": "UNKNOWN",
   "migrations_applied": [
     "92f0997f753e",
@@ -691,7 +696,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "980f89c78d384ec3098e083616b48c8c713089f3",
+  "last_implementation_commit": "5ca978be11a78a71cf93a8be5755f7fede319e12",
   "publication": {
     "result": "PASS - bounded core product slices integrated and synchronized; overall release remains UNKNOWN",
     "integration_method": "NON_FORCE_FAST_FORWARD under root integration lock; exact source candidates locally verified",
@@ -11464,15 +11469,78 @@
         "integration_receipt": "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6060235796",
         "note": "Local and origin main synchronized at 7a6130610e1a2baa6c36f24ea5d51f856e4629b1; posted-date feature acceptance is recorded at code checkpoint 09449f4, evidence pins exact source 6f2f722."
       }
+    },
+    {
+      "milestone_id": "CORE-FEATURE-BATCH-20261008-N",
+      "current_phase": "CORE_FEATURE_IMPLEMENTATION",
+      "timestamp": "2026-10-08T13:13:25Z",
+      "completed_steps": [
+        "Integrated #190 / MJ-REQ-189 connected profile-scoped employment-type facet on local main; whole requirement remains PARTIAL.",
+        "Integrated #143 / MJ-REQ-142 bounded durable MOCK AUTH_REQUIRED recovery on local main; whole requirement remains PARTIAL because the UI cannot open the saved browser profile for user sign-in.",
+        "Recorded exact focused checks and limitations; root retains integration lock while the independent skill facet worker continues."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-08-employment-type-search-filter.json",
+        "docs/evidence/2026-10-08-authentication-resume.json"
+      ],
+      "files_modified": [
+        "apps/api/main.py",
+        "apps/web/src/main.tsx",
+        "fixtures/mock_server.py",
+        "packages/persistence/store.py",
+        "services/applications/mock_adapter.py",
+        "services/discovery/search_profiles.py",
+        "tests/browser/test_mock_application.py",
+        "tests/browser/test_saved_search_filters.py",
+        "tests/integration/test_application_pipeline.py",
+        "tests/integration/test_saved_search_filters.py",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md",
+        "docs/PROGRESS_DASHBOARD.md"
+      ],
+      "tests_completed": [
+        "Employment type: exact integrated saved-filter Python integration/browser suite 15/15 PASS, frontend 103/103 PASS, TypeScript/Vite build PASS; source hashes and diff check PASS; local delegated review no material findings.",
+        "Auth-required MOCK recovery: exact integrated application pipeline/browser suite 34/34 PASS, compile/evidence hashes/diff check PASS; local delegated review no material findings.",
+        "Catalogue validation PASS; progress journal validation PASS; progress dashboard unit tests 4/4 PASS; lane coordination validation PASS; final dashboard check pending."
+      ],
+      "tests_remaining": [
+        "PostgreSQL, live ATS, hosted checks/reviews, full repository suite, and user-facing saved-profile sign-in workflow."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "MJ-REQ-189 remains PARTIAL: normalized skill and other search facets incomplete; PostgreSQL/hosted NOT_RUN.",
+        "MJ-REQ-142 remains PARTIAL: no user-facing saved-profile sign-in opener; real ATS auth not exercised. External application submission OFF."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "5ca978be11a78a71cf93a8be5755f7fede319e12",
+        "tree": "789964a2383dcbc29d2297bea183a66251dae531",
+        "branch": "main",
+        "issue": "#190 / MJ-REQ-189 and #143 / MJ-REQ-142",
+        "evidence_path": "docs/evidence/2026-10-08-employment-type-search-filter.json",
+        "integration_receipt": "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6060684280",
+        "note": "Employment-type filtering and bounded MOCK AUTH_REQUIRED recovery are on local main and verified. Whole requirements remain PARTIAL; the product still lacks a user-facing saved-profile sign-in opener.",
+        "additional_integration_receipts": [
+          "https://github.com/MulattoTech/MJobs/issues/143#issuecomment-6060684640"
+        ]
+      }
     }
   ],
   "current_phase": "CORE_FEATURE_IMPLEMENTATION",
   "last_safe_checkpoint": {
-    "git_commit": "09449f4cc3b14cf5f7f351b1fb9d845580deb7f3",
-    "tree": "e04f31ef44d3bb66952bfb4a95279f6eeb09d781",
-    "evidence_path": "docs/evidence/2026-10-08-posted-date-search-filter.json",
-    "integration_receipt": "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6060235796",
-    "note": "Local and origin main synchronized at 7a6130610e1a2baa6c36f24ea5d51f856e4629b1; posted-date feature acceptance is recorded at code checkpoint 09449f4, evidence pins exact source 6f2f722."
+    "git_commit": "5ca978be11a78a71cf93a8be5755f7fede319e12",
+    "tree": "789964a2383dcbc29d2297bea183a66251dae531",
+    "branch": "main",
+    "issue": "#190 / MJ-REQ-189 and #143 / MJ-REQ-142",
+    "evidence_path": "docs/evidence/2026-10-08-employment-type-search-filter.json",
+    "integration_receipt": "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6060684280",
+    "note": "Employment-type filtering and bounded MOCK AUTH_REQUIRED recovery are on local main and verified. Whole requirements remain PARTIAL; the product still lacks a user-facing saved-profile sign-in opener.",
+    "additional_integration_receipts": [
+      "https://github.com/MulattoTech/MJobs/issues/143#issuecomment-6060684640"
+    ]
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -11800,16 +11868,11 @@
   "active_development_issue": {
     "issue": 190,
     "requirement_id": "MJ-REQ-189",
-    "title": "Job Filter Sidebar - posted-date facet",
-    "state": "Bounded connected posted-within filter integrated PARTIAL; full sidebar requirement remains PARTIAL.",
-    "branch": "codex/mj-req189-posted-date-filter-20261008",
-    "worktree": ".worktrees/codex-mj-req189-posted-date-filter-20261008",
-    "base_commit": "cf415ef649ad33b45e83afcddf36bf3d9769d506",
-    "integrated_source_commit": "6f2f722df3d893c3d0c33ca0420fdfb78238468b",
-    "integrated_tree": "ebb24f2746d1557492271248f34b55903cc12884",
-    "integration_commit": "09449f4cc3b14cf5f7f351b1fb9d845580deb7f3",
-    "evidence_path": "docs/evidence/2026-10-08-posted-date-search-filter.json",
-    "acceptance": "Profile-scoped posted-within 1/3/7/14/30 day filter; known reported dates only, before result limit, with missing/malformed/relative/impossible/future values excluded; select/clear refresh and saved-search reload verified. PostgreSQL and hosted checks NOT_RUN."
+    "branch": "codex/mj-req189-skill-filter-20261008",
+    "worktree": ".worktrees/codex-mj-req189-skill-filter-20261008",
+    "base": "5ca978be11a78a71cf93a8be5755f7fede319e12",
+    "status": "ACTIVE_IMPLEMENTATION",
+    "acceptance": "Connected canonical skill facet with persisted profile save/restore/clear, SQL filtering before LIMIT, browser readback, and no job/application side effects."
   },
   "historical_control_snapshots": [
     {
@@ -12965,7 +13028,7 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-08T12:49:05Z",
-  "current_verified_local_state": "Main and origin/main were verified synchronized at 7a6130610e1a2baa6c36f24ea5d51f856e4629b1 after #190 / MJ-REQ-189 integration; the source feature is at 09449f4cc3b14cf5f7f351b1fb9d845580deb7f3 and exact tested code source 6f2f722df3d893c3d0c33ca0420fdfb78238468b. Tests: 12 saved-filter integration, 1 connected browser, 103 frontend, build/compile/skills/evidence/diff checks/local review PASS. Tracker is current at 83 PASS / 92 PARTIAL / 191 NOT_RUN; PostgreSQL/hosted NOT_RUN.",
-  "current_verified_github_state": "Verified GitHub default main and origin/main equal local main at 7a6130610e1a2baa6c36f24ea5d51f856e4629b1 after the accepted fast-forward. Integration receipt https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6060235796; #190 remains OPEN/PARTIAL; hosted automation/reviews disabled and submission OFF."
+  "updated_at": "2026-10-08T13:15:25Z",
+  "current_verified_local_state": "Local main and origin/main are synchronized at 5ca978be11a78a71cf93a8be5755f7fede319e12 (tree 789964a2383dcbc29d2297bea183a66251dae531). Connected profile-scoped employment-type filtering and bounded persisted MOCK AUTH_REQUIRED recovery are integrated. Search filter suite 15 PASS, frontend 103 PASS/build PASS, auth/pipeline 34 PASS, evidence hashes, compilation, skills, progress journal, catalogue, lane validation and dashboard tests PASS. Active Codex child: #190 skill facet. Whole requirements remain PARTIAL; PostgreSQL/hosted/real ATS NOT_RUN; external submission OFF.",
+  "current_verified_github_state": "GitHub default main and origin/main verified at 5ca978be11a78a71cf93a8be5755f7fede319e12. Receipts: #190 https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6060684280 and #143 https://github.com/MulattoTech/MJobs/issues/143#issuecomment-6060684640. Both issues remain OPEN/PARTIAL; hosted checks disabled and external submission OFF."
 }

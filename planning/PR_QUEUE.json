@@ -1288,6 +1288,30 @@
           },
           "issue_state": "OPEN/PARTIAL",
           "external_submission": "OFF"
+        },
+        {
+          "name": "Persist and resume a MOCK authentication-required application attempt",
+          "issue": 143,
+          "requirement_id": "MJ-REQ-142",
+          "status": "INTEGRATED_PARTIAL",
+          "depends_on": [],
+          "parent_dependencies_preserved": [
+            "MJ-PR-038",
+            "MJ-PR-030"
+          ],
+          "evidence_path": "docs/evidence/2026-10-08-authentication-resume.json",
+          "integrated_main": "5ca978be11a78a71cf93a8be5755f7fede319e12",
+          "validation": {
+            "application_pipeline_and_browser": "PASS 34/34",
+            "compile_and_evidence_hashes": "PASS",
+            "local_delegated_review": "PASS; no material findings",
+            "hosted": "NOT_RUN_BY_USER_POLICY",
+            "real_ats": "NOT_RUN"
+          },
+          "limitations": [
+            "No user-visible saved-profile opener for manual sign-in",
+            "Real ATS auth and external submission remain out of scope/off"
+          ]
         }
       ]
     },
@@ -1764,6 +1788,19 @@
           "limitations": [
             "Other sidebar facets (experience/date/employment/skills/education/clearance/ATS/application state) remain incomplete.",
             "PostgreSQL and hosted checks NOT_RUN_BY_POLICY; external submission OFF."
+          ]
+        },
+        {
+          "name": "Profile-scoped employment-type filter with UNKNOWN option",
+          "issue": 190,
+          "requirement_id": "MJ-REQ-189",
+          "status": "INTEGRATED_PARTIAL",
+          "integrated_main": "65914db2da7fb13c65fa2c115259017ee585f097",
+          "evidence_path": "docs/evidence/2026-10-08-employment-type-search-filter.json",
+          "validation": "Root exact-main search filter suites 15/15; frontend 103/103 and TypeScript/Vite build PASS; local delegated review no material findings.",
+          "limitations": [
+            "Skills and other facets remain incomplete; PR-052 dependencies/status unchanged.",
+            "PostgreSQL and hosted checks NOT_RUN_BY_USER_POLICY."
           ]
         }
       ]
@@ -4381,5 +4418,5 @@
       "claim_release_comment": "https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053395464"
     }
   ],
-  "generated_at": "2026-10-08T12:21:30Z"
+  "generated_at": "2026-10-08T13:13:25Z"
 }
