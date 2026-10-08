@@ -83,7 +83,7 @@ def experience_requirement_summary(text):
         "preferred_years": max((row["preferred_years"] for row in preferred if row["preferred_years"] is not None), default=None),
         "equivalent_experience_accepted": equivalent,
     }
-def _cert_strength(clause):
+def _cert_strength(clause, certification_mention):
     folded = clause.casefold()
     for match in re.finditer(r"\b(required|must|mandatory|shall)\b", folded):
         prefix = folded[max(0, match.start() - 40):match.start()]
@@ -95,6 +95,13 @@ def _cert_strength(clause):
                 r"\b(?:isn't|aren't|wasn't|weren't)\s+$|"
                 r"\b(?:not|never)\s+(?:strictly\s+)?(?:required|mandatory)\s+(?:or|and)\s+(?:(?:is|are)\s+)?$",
                 prefix,
+            ))
+        ) or (
+            match.group(0) == "required"
+            and bool(re.match(
+                r"^\s*no\s+" + re.escape(certification_mention.casefold())
+                + r"(?:\s+certification)?\s+(?:is\s+)?$",
+                folded[:match.start()],
             ))
         ) or (
             match.group(0) in {"must", "shall"}
@@ -122,7 +129,7 @@ def parse_certifications(text):
             found.append({
                 "id": identifier,
                 "name": name,
-                "strength": _cert_strength(clause),
+                "strength": _cert_strength(clause, match.group(0)),
                 "raw": _clean(match.group(0)),
                 "clause": clause,
             })

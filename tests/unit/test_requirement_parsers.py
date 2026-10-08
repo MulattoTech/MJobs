@@ -82,6 +82,15 @@ class RequirementParserTests(unittest.TestCase):
         self.assertEqual(by_id["CCNA"]["strength"], "UNKNOWN")
         self.assertEqual(by_id["COMPTIA_SECURITY_PLUS"]["strength"], "UNKNOWN")
 
+    def test_no_certification_required_phrasings_are_unknown_without_changing_positive(self):
+        rows = parse_certifications(
+            "CCNA required. No CCNA required. No Security+ certification is required."
+        )
+        ccna = [row["strength"] for row in rows if row["id"] == "CCNA"]
+        security_plus = [row for row in rows if row["id"] == "COMPTIA_SECURITY_PLUS"]
+        self.assertEqual(ccna, ["REQUIRED", "UNKNOWN"])
+        self.assertEqual([row["strength"] for row in security_plus], ["UNKNOWN"])
+
     def test_clearance_distinguishes_levels_and_none_stated(self):
         self.assertEqual(parse_clearance("Active TS/SCI clearance required.")["level"], "TS_SCI")
         self.assertEqual(parse_clearance("Ability to obtain a Public Trust.")["level"], "PUBLIC_TRUST")
