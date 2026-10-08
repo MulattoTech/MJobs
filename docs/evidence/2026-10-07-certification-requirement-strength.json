@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "issue": 116,
+  "requirement_id": "MJ-REQ-115",
+  "status": "PARTIAL",
+  "base_sha": "b94999bb66537eb2b28df26e648db96e36d0d6b2",
+  "target": "codex/mj-req115-certification-strength-20261007",
+  "observed_at_utc": "2026-10-08T04:34:18Z",
+  "behavior": {
+    "unqualified_certification": "UNKNOWN",
+    "explicit_strengths_preserved": [
+      "REQUIRED",
+      "PREFERRED",
+      "NICE_TO_HAVE"
+    ],
+    "persistence": "Manual capture stores parsed certification mentions in existing job attributes; reopened SQLite Store readback preserves all strengths.",
+    "connected_ui": "Jobs detail displays certification name and stated strength; UNKNOWN is described as unstated wording and remains UNKNOWN after browser reload.",
+    "scope_note": "This is one narrow MJ-REQ-115 slice; the broader matching requirement group remains incomplete."
+  },
+  "verification": [
+    {
+      "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_requirement_parsers tests.integration.test_explainable_matching",
+      "result": "PASS",
+      "summary": "15 tests passed, including explicit and unknown strengths plus reopened-store persistence."
+    },
+    {
+      "command": "npm ci --prefix apps/web --no-audit --no-fund",
+      "result": "PASS_WITH_WARNING",
+      "summary": "44 locked packages installed; npm reported Vitest's declared engine excludes host Node v25.9.0."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "summary": "TypeScript check and Vite production build passed."
+    },
+    {
+      "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_manual_job_capture",
+      "result": "PASS",
+      "summary": "1 connected synthetic Chromium/API test passed; parser strengths persisted and appeared after reload; non-origin requests were blocked and none observed."
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run",
+      "result": "PASS",
+      "summary": "13 files and 63 tests passed."
+    },
+    {
+      "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p 'test_*.py'",
+      "result": "PARTIAL",
+      "summary": "971 tests ran, 59 errors, 8 skipped. The errors report Alembic MultipleHeads for revisions 9b6d40aaf163 and f37a0c2e91b5 when test setup requests upgrade to 'head'. The same existing process was resumed after interruption and completed; no duplicate suite was started."
+    },
+    {
+      "command": "python -m tools.verification.agent_skills; python -m tools.verification.catalogue; python -m tools.verification.progress validate; python -m tools.coordination.lane_coordination validate; python -m compileall -q services/discovery/requirement_parsers.py services/discovery/manual_capture.py tests/unit/test_requirement_parsers.py tests/integration/test_explainable_matching.py tests/browser/test_manual_job_capture.py; git diff --check",
+      "result": "PASS",
+      "summary": "All repository validators, compileall and diff check passed."
+    }
+  ],
+  "limitations": {
+    "postgresql": "NOT_RUN",
+    "hosted_checks_and_review": "NOT_RUN_BY_USER_POLICY",
+    "live_providers": "NOT_RUN",
+    "external_submission": "OFF",
+    "release_readiness": "NOT_ESTABLISHED"
+  }
+}

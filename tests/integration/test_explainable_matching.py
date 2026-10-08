@@ -60,6 +60,27 @@ class ExplainableMatchingTests(unittest.TestCase):
         self.assertIn("does not state", requirements[0]["explanation"].lower())
         self.assertEqual(match["missing"], ["Windows Server"])
 
+    def test_manual_capture_persists_certification_strengths_for_reloaded_job(self):
+        captured = capture_manual_job(self.store, {
+            "request_id": "certification-strength-test", "title": "Systems Administrator",
+            "company": "Example Infrastructure",
+            "description": "CCNA. Security+ required. AZ-104 preferred. ITIL is a bonus.",
+            "reference_url": "https://jobs.example.invalid/certifications/1",
+        })["job"]
+
+        self.store.engine.dispose()
+        reopened = Store(self.store.url)
+        try:
+            requirements = reopened.job(captured["id"])["attributes"]["certifications"]
+        finally:
+            reopened.engine.dispose()
+
+        self.assertEqual(
+            {row["id"]: row["strength"] for row in requirements},
+            {"CCNA": "UNKNOWN", "COMPTIA_SECURITY_PLUS": "REQUIRED",
+             "AZ_104": "PREFERRED", "ITIL": "NICE_TO_HAVE"},
+        )
+
     def test_explicit_preferred_requirement_has_lower_weight_than_required(self):
         from services.discovery.matching import build_explanation
 

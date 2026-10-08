@@ -98,7 +98,7 @@ class ManualJobCaptureBrowserTests(unittest.TestCase):
                     page.get_by_label("Job title", exact=True).fill("Systems Administrator")
                     page.get_by_label("Company", exact=True).fill("Example Infrastructure")
                     page.get_by_label("Job description", exact=True).fill(
-                        "Responsibilities:\nMaintain Windows Server and Active Directory with Python automation.\nSupport Windows Server deployments.\nTroubleshoot Active Directory access.\nMonitor Windows Server tools.\nUnknown field: preserve verbatim.")
+                        "Responsibilities:\nMaintain Windows Server and Active Directory with Python automation.\nSupport Windows Server deployments.\nTroubleshoot Active Directory access.\nMonitor Windows Server tools.\nCCNA. Security+ required. AZ-104 preferred. ITIL is a bonus.\nUnknown field: preserve verbatim.")
                     page.get_by_label("Location", exact=True).fill("Tulsa, OK")
                     page.get_by_label("Job reference URL", exact=True).fill(
                         private_reference_url)
@@ -128,11 +128,21 @@ class ManualJobCaptureBrowserTests(unittest.TestCase):
                     expect(detail.get_by_role("list", name="Skill match explanation")).to_contain_text("UNKNOWN")
                     expect(detail.get_by_role("list", name="Skill match explanation")).to_contain_text("Active Directory")
                     expect(detail.get_by_role("list", name="Skill match explanation")).to_contain_text("Windows Server")
+                    certification_strengths = detail.get_by_role("list", name="Certification requirement strength")
+                    expect(certification_strengths).to_contain_text("CCNA — UNKNOWN")
+                    expect(certification_strengths).to_contain_text("CompTIA Security+ — REQUIRED")
+                    expect(certification_strengths).to_contain_text("AZ-104 — PREFERRED")
+                    expect(certification_strengths).to_contain_text("ITIL — NICE TO HAVE")
+                    self.assertEqual(
+                        {row["id"]: row["strength"] for row in first["job"]["attributes"]["certifications"]},
+                        {"CCNA": "UNKNOWN", "COMPTIA_SECURITY_PLUS": "REQUIRED",
+                         "AZ_104": "PREFERRED", "ITIL": "NICE_TO_HAVE"},
+                    )
                     self.assertEqual(first["job"]["skills"], ["Windows Server", "Active Directory", "Python"])
                     expect(detail.get_by_role("link", name="Open employer application", exact=False)).to_have_attribute(
                         "href", "https://apply.example.invalid/role/42")
                     self.assertEqual(store.job(first_id)["description"],
-                                     "Responsibilities:\nMaintain Windows Server and Active Directory with Python automation.\nSupport Windows Server deployments.\nTroubleshoot Active Directory access.\nMonitor Windows Server tools.\nUnknown field: preserve verbatim.")
+                                     "Responsibilities:\nMaintain Windows Server and Active Directory with Python automation.\nSupport Windows Server deployments.\nTroubleshoot Active Directory access.\nMonitor Windows Server tools.\nCCNA. Security+ required. AZ-104 preferred. ITIL is a bonus.\nUnknown field: preserve verbatim.")
                     persisted_match = store.job(first_id, profile_id="fixture")["match"]
                     self.assertEqual([row["strength"] for row in persisted_match["components"]["requirements"]],
                                      ["UNKNOWN", "UNKNOWN", "UNKNOWN"])
@@ -195,6 +205,10 @@ class ManualJobCaptureBrowserTests(unittest.TestCase):
                     expect(card).to_be_visible()
                     card.click()
                     expect(page.locator(".job-detail").get_by_role("list", name="Skill match explanation")).to_contain_text("no approved profile evidence")
+                    reloaded_certifications = page.locator(".job-detail").get_by_role(
+                        "list", name="Certification requirement strength")
+                    expect(reloaded_certifications).to_contain_text("CCNA — UNKNOWN")
+                    expect(reloaded_certifications).to_contain_text("CompTIA Security+ — REQUIRED")
                     card = page.locator(".job-card").filter(
                         has_text="Reference only operator role").first
                     expect(card).to_be_visible()

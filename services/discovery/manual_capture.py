@@ -10,6 +10,7 @@ from packages.persistence import models as m
 from packages.persistence.store import identity, now, upsert
 from services.discovery.sources.collect import persist_posting
 from services.discovery.skill_taxonomy import extract_skills
+from services.discovery.requirement_parsers import parse_certifications
 
 
 class ManualCaptureConflict(ValueError):
@@ -92,6 +93,7 @@ def capture_manual_job(store, submitted: dict) -> dict:
                 "skill_evidence": "description_mentions",
                 "skill_ids": skill_data["ids"],
                 "skill_mentions": skill_data["mentions"],
+                "certifications": parse_certifications(description),
             }
             upsert(connection, m.jobs, {
                 "id": job_id,

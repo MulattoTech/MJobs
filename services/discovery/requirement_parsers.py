@@ -91,7 +91,7 @@ def _cert_strength(clause):
         return "PREFERRED"
     if re.search(r"\b(nice\s+to\s+have|plus|bonus)\b", folded):
         return "NICE_TO_HAVE"
-    return "NICE_TO_HAVE"
+    return "UNKNOWN"
 
 def parse_certifications(text):
     value = str(text or "")
