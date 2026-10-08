@@ -856,6 +856,33 @@
       "released_at": "2026-10-07T22:19:26Z",
       "integrated_main": "2d5dcaba6b20012df93de8546f216ecdd5a26d3c",
       "issue_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6048007349"
+    },
+    {
+      "issue": 517,
+      "requirement_id": "MJ-FEATURE-DISCOVERED-JOB-SOURCE-CATALOGUE",
+      "branch": "codex/mj517-structured-source-review-20261007",
+      "worktree": ".worktrees/codex-mj517-structured-source-review-20261007",
+      "head": "94de9869be86f32d3f815dc318d4d5e9a95e1219",
+      "paths": [
+        "services/source_candidates/catalogue.py",
+        "packages/persistence/models.py",
+        "migrations/versions/9b6d40aaf163_source_candidate_review_evaluation.py",
+        "apps/api/main.py",
+        "apps/web/src/main.tsx",
+        "tests/integration/test_source_candidates.py",
+        "tests/browser/test_source_candidates.py",
+        "docs/evidence/2026-10-07-source-candidate-review-evaluation.json",
+        "planning/lanes/codex/**"
+      ],
+      "status": "RELEASED",
+      "claimed_at": "2026-10-08T04:09:24Z",
+      "head_integrated": "94de9869be86f32d3f815dc318d4d5e9a95e1219",
+      "evidence_path": "docs/evidence/2026-10-07-source-candidate-review-evaluation.json",
+      "claim_comment": "https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6052010620",
+      "integrated_main": "94de9869be86f32d3f815dc318d4d5e9a95e1219",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6052123718",
+      "release_comment": "https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6052125143",
+      "released_at": "2026-10-08T04:19:16Z"
     }
   ]
 }

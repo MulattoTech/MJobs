@@ -1048,3 +1048,14 @@ Claim release readback for the MJ-REQ-176 JOB_MERGED slice: https://github.com/M
 - Result: scoped transport-disconnect cancellation PASS; issue #5 and MJ-REQ-004 remain OPEN/PARTIAL. A real loopback client half-close during active native parser work is observed; child is terminated/reaped; durable operation is CANCELLED; profile, uploaded resume and revision history are unchanged.
 - Validation: 58 focused Python unit/integration/connected Chromium tests PASS; frontend 63 tests/build and repository validators PASS. PostgreSQL/Docker NOT_APPLICABLE; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF. Client cannot receive wire HTTP 499 after half-close; direct route probe retains that assertion.
 - Release the Codex claim, then reconcile current main and all claims/worktrees before selecting the next highest-value unclaimed dependency-ready issue.
+
+
+## Issue #517 structured source-review evaluation — integrated PARTIAL — 2026-10-08
+
+Main: `94de9869be86f32d3f815dc318d4d5e9a95e1219` (base `3476f4c8b4594f18dc21f61e9ee7fce165da5826`); branch `codex/mj517-structured-source-review-20261007`; evidence `docs/evidence/2026-10-07-source-candidate-review-evaluation.json`.
+
+Candidate review events persist source kind, explicit API/feed evidence status and safe public reference, access/terms, capabilities/limits, expected value/maintenance notes, and append-only profile-scoped history. Sources UI supports save and reload readback. Collection remains disabled; review makes no source request. Exact source-input hashes match evidence.
+
+Validation: 7 focused source-candidate integration/browser tests PASS (root exact-candidate rerun); frontend 63 tests and TypeScript/Vite build PASS; agent-skills/catalogue/progress/lane validators, compileall and diff check PASS; temporary SQLite migration backfill and downgrade-preservation PASS. PostgreSQL/Docker, live source inspection and hosted checks/review NOT_RUN; external submission OFF. Issue #517 remains OPEN/PARTIAL for provider/browser intake and bounded integration-task/provider-issue linkage. Review attribution is profile/event/time because authenticated reviewer identity is unavailable.
+
+Integration checkpoint: https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6052123718; claim release: https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6052125143. Next: reconcile #302/#318 and select an unclaimed supported discovery/browser intake path, or complete bounded integration-task/provider-issue linkage.

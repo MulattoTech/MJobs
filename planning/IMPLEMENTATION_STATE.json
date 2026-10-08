@@ -11,7 +11,7 @@
     "current_verified_github_state": "Issue #179 / MJ-REQ-178 log retention acceptance PASS at 8bea57e595e19e638913405a8ec1cd3aa0ebde32; full product remains PARTIAL.",
     "current_verified_at": "2026-10-07T15:27:43Z"
   },
-  "current_milestone": "MJ-REQ-176-COMPANY-SOURCE-WATCH-AUDIT-20261007",
+  "current_milestone": "MJ-FEATURE-517-STRUCTURED-EVALUATION-20261008",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -124,7 +124,8 @@
     "Issue #517 / discovered job-source catalogue PARTIAL: manual capture and external application reports persist profile-scoped sanitized provenance, destination site-type assessments, review history and explicit unknown hops. Source commit 5b49d595ff48615c8a82a3e383a8ac3d82261578; evidence docs/evidence/2026-10-07-source-candidate-catalogue.json. Full Python 954 run/8 skipped, frontend 63/build, focused 10 API/browser, disposable SQLite migration and local validators PASS. Provider/browser discovery hooks, documented source evaluation/integration task linkage, PostgreSQL/Docker and live source evidence remain NOT_RUN/incomplete. Issue remains OPEN/PARTIAL; external submission OFF.",
     "Issue #517 / discovered job-source catalogue follow-up PARTIAL: a URL-only profile-scoped source report now works without title/company/job metadata and creates no job or application. Source commit 20e6835308209c7ae8366d7791215db642ec9ad0; evidence docs/evidence/2026-10-07-source-candidate-catalogue.json. Full Python 955 run/8 skipped, 12 focused API/browser workflow tests, frontend 63/build and local validators PASS. Supported provider/browser capture entry points, documented source evaluation and bounded integration task remain open; hosted, PostgreSQL/Docker and live-source checks NOT_RUN.",
     "Local MOCK ATS submission history now records APPLICATION_SUBMITTED separately from receipt-backed APPLICATION_CONFIRMED; missing receipt remains SUBMISSION_UNCONFIRMED (MJ-REQ-176 / issue #177 PARTIAL).",
-    "Native resume extraction transport-disconnect cancellation is verified against a real loopback HTTP client abort, including child reaping and durable no-mutation state; broader external-operation categories remain open (MJ-REQ-004 PARTIAL)."
+    "Native resume extraction transport-disconnect cancellation is verified against a real loopback HTTP client abort, including child reaping and durable no-mutation state; broader external-operation categories remain open (MJ-REQ-004 PARTIAL).",
+    "Issue #517 structured source-review evaluation integrated PARTIAL at main 94de9869be86f32d3f815dc318d4d5e9a95e1219; review history stores source kind, API/feed evidence status/reference, access/terms, capabilities/limits and expected value/maintenance notes. Sources UI save/reload, profile isolation, idempotency, safe URL sanitization, collection OFF and no-network behavior verified. Evidence docs/evidence/2026-10-07-source-candidate-review-evaluation.json. Focused API/browser 7 PASS; frontend 63/build, validators and temporary SQLite migration-preservation check PASS. PostgreSQL/Docker, live source inspection and hosted checks NOT_RUN. Provider/browser intake and bounded integration-task linkage remain open."
   ],
   "blocked_capabilities": [],
   "active_requirements": [
@@ -367,7 +368,8 @@
     "Scoped real loopback resume-extraction transport-disconnect cancellation: parser child terminated/reaped; operation CANCELLED; profile, uploaded resume and revision history unchanged; 58 focused Python tests, frontend 63/build and local validators PASS. See docs/evidence/2026-10-07-live-http-resume-disconnect-cancel.json. Requirement #5 remains PARTIAL.",
     "MJ-REQ-176 search-profile settings audit: targeted integration/browser 10 PASS; full Python suite 966 PASS, 8 skipped; frontend 63 PASS and production build PASS; local validators PASS; evidence docs/evidence/2026-10-07-search-profile-audit-history.json; issue #177 remains OPEN/PARTIAL at integrated main d4fd68c73acfeab3c47d523ac2de822c0c1e841f.",
     "MJ-REQ-176 AI cost-policy setting audit: 35 focused integration/browser tests PASS; full Python suite 967 PASS, 8 skipped; frontend 63 PASS and TypeScript/Vite build PASS; local validators PASS. Evidence docs/evidence/2026-10-07-ai-cost-policy-audit.json; scoped issue remains OPEN/PARTIAL at 2d5dcaba6b20012df93de8546f216ecdd5a26d3c.",
-    "Issue #177 company-source settings Activity slice: 21 focused integration tests, 2 connected Chromium tests, frontend 63/build, full Python 968 run/8 skipped, validators, compileall and diff check PASS; evidence docs/evidence/2026-10-07-company-source-setting-audit.json."
+    "Issue #177 company-source settings Activity slice: 21 focused integration tests, 2 connected Chromium tests, frontend 63/build, full Python 968 run/8 skipped, validators, compileall and diff check PASS; evidence docs/evidence/2026-10-07-company-source-setting-audit.json.",
+    "MJ-FEATURE-517 structured source evaluation: 7 focused integration/browser tests; frontend 63/build; local validators; temporary SQLite migration preservation PASS at exact source 94de9869be86f32d3f815dc318d4d5e9a95e1219."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -448,7 +450,8 @@
     "Issue #517 feed source-candidate slice: full Python suite NOT_RUN; frontend unit suite NOT_RUN (no frontend source changed); hosted Actions/review NOT_RUN_BY_USER_POLICY; external submission OFF.",
     "Issue #166: GitHub Actions/hosted review NOT_RUN_BY_USER_POLICY; live providers NOT_RUN; external submission OFF.",
     "MJ-REQ-176 mock submission audit: PostgreSQL/Docker/migrations NOT_APPLICABLE (no schema change); hosted Actions/reviews NOT_RUN_BY_USER_POLICY; production providers/employer sites NOT_RUN; external submission OFF.",
-    "GitHub Actions, hosted tests and independent review NOT_RUN_BY_USER_POLICY; PostgreSQL/Docker NOT_RUN (no schema change); external submission OFF."
+    "GitHub Actions, hosted tests and independent review NOT_RUN_BY_USER_POLICY; PostgreSQL/Docker NOT_RUN (no schema change); external submission OFF.",
+    "MJ-FEATURE-517 PostgreSQL/Docker migration runtime, live source inspection, and hosted Actions/review NOT_RUN; external submission OFF."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -557,7 +560,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Issue #177 / MJ-REQ-176 remains OPEN/PARTIAL after the company-source pin/enabled settings slice integrated at 68a0630b690cfa855e43829bc4f1836cf6add246. Effective changes emit generic empty-payload profile SETTING_CHANGED events to profiles with recorded enrollment links; no-op and unlinked-source changes are silent. Evidence docs/evidence/2026-10-07-company-source-setting-audit.json. Reconcile current main, claims, issue comments and worktrees, then select the next remaining audit-event gap; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
+  "recommended_resume_step": "Issue #517 remains OPEN/PARTIAL after structured source evaluation integrated at main 94de9869be86f32d3f815dc318d4d5e9a95e1219. Evidence docs/evidence/2026-10-07-source-candidate-review-evaluation.json. Select the next supported provider/browser intake path only after reconciling active #302/#318 ownership, or implement bounded integration-task/provider-issue linkage. Hosted checks NOT_RUN_BY_USER_POLICY; PostgreSQL/Docker and live source checks NOT_RUN; external submission OFF.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -573,7 +576,8 @@
     "c4f8912d6a10",
     "d5a9c38e21f4",
     "cb72f9041d6a",
-    "e14ac893620f"
+    "e14ac893620f",
+    "Issue #517 structured candidate review evaluation migration 9b6d40aaf163; temporary SQLite upgrade/backfill/downgrade-preservation verified; retained personal database untouched."
   ],
   "unfinished_work_evidence": "docs/evidence/2026-10-06-mock-ats-action-budget.json\nMJ-REQ-095 issue #96 responsibility-bullet emphasis locally verified on e6c47515aa20596ed6ec3263c809af26b4cf3910; broader summary adjustment and factual rephrasing remain PARTIAL. Evidence: docs/evidence/2026-10-06-resume-bullet-emphasis.json\nMJ-REQ-095 issue #96 extractive summary tailoring locally verified on d5309972c04062c721ee72986008b04a1f572e03; factual bullet rephrasing and broad AI rewriting remain PARTIAL. Evidence: docs/evidence/2026-10-06-target-summary-tailoring.json\nMJ-REQ-007 issue #8 local config initialization slice c7306774884ad08e5172bfec7ab365dc261f77b3; issue remains PARTIAL pending actual protected-configuration migration recovery. Evidence: docs/evidence/2026-10-06-atomic-env-initialization.json\nMJ-REQ-007 scoped atomic .env initialization integrated at 494e15f46a93b70530755811888ece6046dc98aa; GitHub issue #8 remains OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6019785804. Evidence: docs/evidence/2026-10-06-atomic-env-initialization.json\nMJ-REQ-008 issue #9 isolated container crash/resume proof: docs/evidence/2026-10-06-progress-container-crash-recovery.json; host restart remains unverified.\nMJ-REQ-004 uploaded-original resume comparison cancellation candidate 8a469b03bb7c57448118be9e1b761d8608d179ab; issue #5 remains OPEN/PARTIAL for remaining external-operation categories and multi-replica cancellation. Evidence: docs/evidence/2026-10-06-uploaded-comparison-cancellation.json\nMJ-REQ-004 cancellation acknowledgement truthfulness candidate 6abd58aec2562fddaff1367fa8c60417d98b5ebb; issue #5 remains OPEN/PARTIAL for cross-replica signaling and remaining operation classes. Evidence: docs/evidence/2026-10-06-comparison-cancel-acknowledgement.json\nMJ-REQ-004 mock ATS questionnaire/receipt HTTP calls now honor worker cancellation/deadline; submission receipt uncertainty remains safe. Evidence: docs/evidence/2026-10-06-mock-ats-http-cancellation.json\nMJ-REQ-109 persisted provider/model selections are connected to a profile-scoped API and AI Settings UI, but no production task consumer or live inference is verified; issue #110 remains PARTIAL/OPEN (docs/evidence/2026-10-06-ai-task-settings-persistence.json).\nMJ-REQ-008 issue #9 product-worker crash recovery/stale-attempt fencing integrated as a scoped PARTIAL slice at source d516834ac3bd48352ef3aa8885a1de1fffe53419; evidence docs/evidence/2026-10-07-product-worker-crash-recovery.json. Physical host restart, browser-process crash, other worker operation types and live PostgreSQL remain unverified.\n\nMJ-REQ-179 issue #180 debug capture scoped implementation PARTIAL: docs/evidence/2026-10-07-safe-browser-debug-capture.json\nMJ-REF-033 issue #403 page permits integrated PARTIAL at 01596a7a093bbfc359e9ded49076aac3cb95d94d; evidence docs/evidence/2026-10-07-agent-page-budget.json. Browser/source entrypoint integration, bounded diagnostic reruns, and preemption of already-running synchronous handlers remain incomplete.\nMJ-REQ-176 AI cost-policy SETTING_CHANGED slice integrated PARTIAL at 2d5dcaba6b20012df93de8546f216ecdd5a26d3c, source 612a697b47dbf9a9c695261835727445dd699b1b; effective existing-profile changes emit one empty-payload audit event in the same transaction, default-equivalent and repeated saves emit none. Evidence docs/evidence/2026-10-07-ai-cost-policy-audit.json; 35 focused tests, full Python 967 PASS/8 skipped, frontend 63/build and validators PASS. Issue #177 remains OPEN/PARTIAL for remaining settings and full event lifecycle; hosted NOT_RUN_BY_USER_POLICY; external submission OFF.",
   "authorization": "User explicitly provided 100% Git and GitHub authorization on 2026-09-30; still verify native permissions and required checks",
@@ -594,7 +598,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "68a0630b690cfa855e43829bc4f1836cf6add246",
+  "last_implementation_commit": "94de9869be86f32d3f815dc318d4d5e9a95e1219",
   "publication": {
     "result": "PASS",
     "integration_method": "NON_FORCE_FAST_FORWARD",
@@ -9536,12 +9540,64 @@
         "evidence_path": "docs/evidence/2026-10-07-company-source-watch-audit.json"
       },
       "source_test_commit": "d054731aaffe0ba849bd0deabfe016f522bf931e"
+    },
+    {
+      "milestone_id": "MJ-FEATURE-517-STRUCTURED-EVALUATION-20261008",
+      "timestamp": "2026-10-08T04:19:16Z",
+      "current_phase": "MJ_FEATURE_517_STRUCTURED_SOURCE_EVALUATION_INTEGRATED_PARTIAL",
+      "completed_steps": [
+        "Added persisted, profile-scoped source kind and structured API/feed/access/capability/value evaluation to append-only candidate review events.",
+        "Connected Sources UI save/readback after reload; collection remains disabled and review makes no source request.",
+        "Fast-forward integrated and synchronized source/evidence at main 94de9869be86f32d3f815dc318d4d5e9a95e1219; issue #517 remains OPEN/PARTIAL."
+      ],
+      "files_added": [
+        "migrations/versions/9b6d40aaf163_source_candidate_review_evaluation.py",
+        "docs/evidence/2026-10-07-source-candidate-review-evaluation.json"
+      ],
+      "files_modified": [
+        "apps/api/main.py",
+        "apps/web/src/main.tsx",
+        "packages/persistence/models.py",
+        "services/source_candidates/catalogue.py",
+        "tests/integration/test_source_candidates.py",
+        "tests/browser/test_source_candidates.py",
+        "planning/lanes/codex/SESSION_HANDOFF.md",
+        "planning/lanes/codex/CLAIMS.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Source-candidate integration/browser suites: 7 PASS; exact candidate rerun 7 PASS.",
+        "Frontend: 63 tests PASS; TypeScript check and Vite production build PASS.",
+        "Agent-skills, catalogue, progress, lane coordination, compileall and git diff checks PASS.",
+        "Temporary SQLite migration upgrade/backfill and evidence-preserving downgrade refusal PASS."
+      ],
+      "tests_remaining": [
+        "PostgreSQL/Docker migration runtime and live source inspection NOT_RUN.",
+        "Hosted Actions/review NOT_RUN_BY_USER_POLICY; external submission OFF.",
+        "Issue #517 provider/browser capture entry points and bounded integration-task/provider-issue linkage remain incomplete."
+      ],
+      "migrations_applied": [
+        "9b6d40aaf163"
+      ],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "Issue #517 remains OPEN/PARTIAL; this slice does not complete the additive feature request.",
+        "Review attribution is profile/event/time because no authenticated named reviewer principal exists.",
+        "Hosted verification and PostgreSQL/Docker runtime remain NOT_RUN; live source access was intentionally not attempted."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "94de9869be86f32d3f815dc318d4d5e9a95e1219",
+        "evidence_path": "docs/evidence/2026-10-07-source-candidate-review-evaluation.json"
+      }
     }
   ],
-  "current_phase": "MJ_REQ_176_COMPANY_SOURCE_WATCH_AUDIT_INTEGRATED_PARTIAL",
+  "current_phase": "MJ_FEATURE_517_STRUCTURED_SOURCE_EVALUATION_INTEGRATED_PARTIAL",
   "last_safe_checkpoint": {
-    "git_commit": "0629a30c98c4921241ed6de61e948672fdb2ae2c",
-    "evidence_path": "docs/evidence/2026-10-07-company-source-watch-audit.json"
+    "git_commit": "94de9869be86f32d3f815dc318d4d5e9a95e1219",
+    "evidence_path": "docs/evidence/2026-10-07-source-candidate-review-evaluation.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -9852,22 +9908,22 @@
     "next_issue": "Release #398 and select the next dependency-ready unclaimed issue after live claim/worktree reconciliation."
   },
   "active_development_issue": {
-    "issue": 177,
-    "requirement_id": "MJ-REQ-176",
-    "title": "Audit Log",
+    "issue": 517,
+    "requirement_id": "MJ-FEATURE-DISCOVERED-JOB-SOURCE-CATALOGUE",
+    "title": "Discovered job-source catalogue and integration review",
     "state": "INTEGRATED_PARTIAL",
-    "base": "e78359f699ef9e678084eae795d99b8bc19c7d3f",
-    "branch": "codex/mj-req176-ai-cost-policy-audit-20261007",
-    "candidate": "2d5dcaba6b20012df93de8546f216ecdd5a26d3c",
-    "integrated_main": "2d5dcaba6b20012df93de8546f216ecdd5a26d3c",
-    "source_commit": "612a697b47dbf9a9c695261835727445dd699b1b",
-    "source_tree": "4ce56334dcdd71470a11ab682aa738032c0c35d6",
-    "validated_tree": "4ce56334dcdd71470a11ab682aa738032c0c35d6",
-    "evidence": "docs/evidence/2026-10-07-ai-cost-policy-audit.json",
-    "issue_state": "OPEN",
-    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6048007349",
-    "release_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6048007349",
-    "next_action": "Reconcile live main and issue/worktree claims; continue the remaining dependency-ready audit history gaps without broadening this slice beyond its tested scope."
+    "base": "3476f4c8b4594f18dc21f61e9ee7fce165da5826",
+    "branch": "codex/mj517-structured-source-review-20261007",
+    "candidate": "94de9869be86f32d3f815dc318d4d5e9a95e1219",
+    "integrated_main": "94de9869be86f32d3f815dc318d4d5e9a95e1219",
+    "source_commit": "94de9869be86f32d3f815dc318d4d5e9a95e1219",
+    "source_tree": "80c22054e2801986b4cbc1632c4aeb954f847651",
+    "validated_tree": "bea4c99bca9e3194e105a717b58dd472432ca8d4",
+    "evidence": "docs/evidence/2026-10-07-source-candidate-review-evaluation.json",
+    "issue_state": "OPEN/PARTIAL",
+    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6052123718",
+    "release_comment": "https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6052125143",
+    "next_action": "Reconcile claims and select a supported discovery/browser intake path that does not overlap active #302/#318 adapter ownership, or complete bounded integration-task/provider-issue linkage."
   },
   "historical_control_snapshots": [
     {
@@ -11011,5 +11067,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-07T23:33:02Z"
+  "updated_at": "2026-10-08T04:19:16Z"
 }
