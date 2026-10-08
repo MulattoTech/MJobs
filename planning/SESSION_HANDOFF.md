@@ -1,3 +1,24 @@
+# MJobs session handoff — 2026-10-08 18:03Z
+
+Current local/origin/GitHub main source checkpoint: `0214b4bf022cee4bb8498468aa7535decb71392e` (tree `b5c7e67a9ba5b1ba1e96879641dd2f919a3a160c`), synchronized. Root owns the live integration lock (PID 36820); preserve all active claims/worktrees. GitHub Actions/hosted checks/reviews disabled by policy; external application submission OFF.
+
+## Accepted feature checkpoint
+
+- #192 / MJ-REQ-191 per-saved-search cadence scheduling is integrated: users can enable, edit, save, and disable durable profile-scoped discovery schedules; scheduler enqueues only DISCOVER operations, preserves saved filters/source criteria, and does not create application attempts. Exact evidence: `docs/evidence/2026-10-08-saved-search-scheduler.json`. Focused Python 26/26, connected Chromium 1/1, frontend 136/136, build and local validators PASS. Parent MJ-PR-052 remains QUEUED behind MJ-PR-051 and MJ-PR-043; the broad requirement remains PARTIAL.
+- #96 / MJ-REQ-095 uploaded-base comparison follow-up is active but not ready: the service regression is fixed for a responsibility-only target bullet, but Tech reproduced HTTP 409 in the connected API v5 skill-order path after Store reopen. Diagnose that exact failure before integration.
+
+## Star Wars staffing and queue
+
+- Current native child roster: 1 active child (Tech, Clone Force 99); the other contributors on #96 have completed their assigned commits. This is below the 20-agent goal. Do not count completed agents or active claim records as running agents.
+- Existing claim groups: #96 uploaded resume comparison; #199 document archive; #143 MOCK manual authentication; #83 source activity. Respect their isolated path claims; root serializes app entrypoint wiring because `apps/api/main.py` and `apps/web/src/main.tsx` are shared.
+- Ready root integration candidates after #96 is reconciled: #199, #143, #83. Phoenix and Rogue need fresh dependency/path checks before new features; no filler claims.
+
+## Next action
+
+Reproduce and resolve the connected #96 API 409 with Tech/Hunter, rerun the exact unit/API/browser acceptance, then integrate one qualified candidate at a time. Update canonical trackers/dashboard only at the next accepted integration batch. Preserve all other worktrees and claims.
+
+---
+
 # MJobs session handoff — 2026-10-08 17:02Z
 
 Current local/origin/GitHub main: `88f408c57a5fd09ca1b4f5da15fcd28640bfe012` (source commit `d9f92cfdd9b9f5e1bc683004e2c713ac0a9c9d88`, tree `d07d273c49f330b1573f0b032a73d9749224fc8b`); synchronized by ordinary non-force fast-forward. The Codex integration lock is live. Preserve Antigravity #302 and Ollama #318 claims. GitHub Actions disabled; hosted checks/review NOT_RUN_BY_USER_POLICY; external application submission OFF.
@@ -1529,3 +1550,7 @@ Next ready slice: #62 / MJ-REQ-061 same-origin sitemap career-page discovery; pr
 Tested source and local main: `08715b516dd8fe9d109102b969f4f77eacd311cd` (tree `2ed36e932dcf0598f25302cd74fb20f6b4906ced`), non-force fast-forwarded from `1a82f1fc1c76470e9a8bd7f61fb56e86cd108949`. The Jobs screen now filters exact persisted application routes by current adapter capability (`FIXTURE_ONLY`, `UNSUPPORTED`, `REVIEW_REQUIRED`, `UNKNOWN`), applies filtering before the result limit, and saves/restores/clears the selection per profile. No employer requests or application side effects occur. Evidence: `docs/evidence/2026-10-08-application-capability-search-filter.json`.
 
 Exact-source checks: 13 focused Python/unit/API/Chromium tests, 130 frontend tests, TypeScript/Vite build, catalogue/progress/agent-skill validators, and diff check PASS. PostgreSQL runtime, full Python suite, hosted checks, live ATS and whole-product release eligibility NOT_RUN; external submission OFF. MJ-REQ-189 and MJ-PR-052 remain PARTIAL/QUEUED; parent dependencies unchanged. Current root-owned integration queue: #192 per-search scheduler, #199 document archive, #143 MOCK manual sign-in, #83 company-discovery activity. First 20-agent squad wave completed its assigned components; no squad worker is currently active while root integrates. Preserve Antigravity #302 and Ollama #318 claims.
+
+## 2026-10-08 — Batched progress tracker branch reconciliation
+
+Reconciled `origin/docs/batched-progress-tracker-core-sprint-20261008` at `64957998bda79b419a8e160847d429fd85dfd134` against current local main (`f20f54a1ec23c0530fe11b2e1c8d792cb9ad7c53`) under the active root integration lock. The branch is based on common checkpoint `454217533bf23b88c80c4fdfbf6b604d07c59bea`; every path changed by that branch already has identical content on current local main except the generated dashboard. Its staged dashboard and matrix would have rolled back 11 newer original requirement results. The root's current canonical matrices, queue, implementation state, and handoff were preserved, and the dashboard was regenerated from those inputs. Local catalogue, progress-journal, dashboard, and dashboard-unit validation all passed. This reconciliation does not synchronize GitHub main; hosted checks remain disabled by policy.

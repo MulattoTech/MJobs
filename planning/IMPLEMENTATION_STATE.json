@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-08T13:24:37Z",
+  "generated_at": "2026-10-08T18:03:37Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -11,7 +11,7 @@
     "current_verified_github_state": "Local/origin/GitHub main synchronized at 5834f224b918eb21d9c9aaa4e086fcc36c7b7731 (tree df42bc80b6840348b344be1f4695f51467842b61). #394 receipt https://github.com/MulattoTech/MJobs/issues/394#issuecomment-6063734760; #190 receipt/claim release https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6063736008. GitHub Actions remain disabled, main protection is off, no open PRs were observed. Hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF.",
     "current_verified_at": "2026-10-08T17:23:55Z"
   },
-  "current_milestone": "CORE-FEATURE-BATCH-20261008-APPLICATION-CAPABILITY-FILTER",
+  "current_milestone": "CORE-FEATURE-BATCH-20261008-SAVED-SEARCH-SCHEDULER",
   "current_objective": "Continue dependency-ready core product features after the connected application-capability saved-search filter.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -596,13 +596,13 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "commit": "d9f92cfdd9b9f5e1bc683004e2c713ac0a9c9d88",
-    "tree": "d07d273c49f330b1573f0b032a73d9749224fc8b",
-    "result": "PASS for bounded connected #62 / MJ-REQ-061 same-origin sitemap career discovery; broad requirement remains PARTIAL and release readiness UNKNOWN.",
+    "commit": "0214b4bf022cee4bb8498468aa7535decb71392e",
+    "tree": "b5c7e67a9ba5b1ba1e96879641dd2f919a3a160c",
+    "result": "PASS for bounded connected #192 / MJ-REQ-191 saved-search scheduler; issue remains OPEN/PARTIAL and release eligibility UNKNOWN.",
     "evidence": [
-      "docs/evidence/2026-10-08-career-page-sitemap-discovery.json"
+      "docs/evidence/2026-10-08-saved-search-scheduler.json"
     ],
-    "verified_at_utc": "2026-10-08T17:02:26Z"
+    "verified_at_utc": "2026-10-08T17:57:14Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -669,7 +669,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Synchronize and verify the accepted #62 sitemap-discovery source and tracker checkpoint; release its four local child claims; then select the next live, independently claimable core feature while preserving Antigravity #302 and Ollama #318.",
+  "recommended_resume_step": "Resolve the exact #96 uploaded-base resume-comparison API failure against the active candidate before integration; then advance ready integration candidates #199, #143 and #83 in serialized order, rechecking main.tsx/main.py ownership at each boundary. Keep the Star Wars roster honest and replenish only with useful, non-overlapping assignments.",
   "release_readiness": "UNKNOWN",
   "migrations_applied": [
     "92f0997f753e",
@@ -705,14 +705,14 @@
   },
   "last_implementation_commit": "d9f92cfdd9b9f5e1bc683004e2c713ac0a9c9d88",
   "publication": {
-    "result": "PASS_LOCAL_SOURCE_AND_TRACKER_VALIDATION; REMOTE_SYNC_PENDING",
-    "integration_method": "Local root integration under the live integration lock; candidate main is a fast-forward of origin/main. No PR opened.",
-    "integration_commit": "9287de43eba3168f2c4d5f3ecd3e9e7c2f21f1d8",
-    "prior_main": "5d55050d3acfa2561d9bf4508c3a8c40817f9d3d",
+    "result": "PASS_SOURCE_SYNC_AT_CHECKPOINT; TRACKER_BATCH_LOCAL",
+    "integration_method": "Ordinary non-force fast-forward under the root integration lock; no PR opened.",
+    "integration_commit": "0214b4bf022cee4bb8498468aa7535decb71392e",
+    "prior_main": "e1048dd2a8eb988c9f351007659192a2d837b539",
     "pr_number": null,
     "pr_state": "NOT_OPENED_LOCAL_ONLY",
     "github_reports_merged": false,
-    "note": "GitHub Actions are disabled and main is unprotected. No hosted checks/review were run; synchronization must remain ordinary non-force and exact hashes must be read back."
+    "note": "The #192 source and evidence were synchronized to origin/main and GitHub main at this checkpoint. This planning/dashboard batch is being validated and committed locally; hosted Actions/reviews remain disabled by policy."
   },
   "optional_afk_journal": {
     "result": "PASS",
@@ -11986,16 +11986,71 @@
         "evidence_path": "docs/evidence/2026-10-08-career-page-sitemap-discovery.json",
         "note": "The exact product source passed 49 focused Python discovery tests, connected synthetic Chromium 1/1, py_compile and diff check. Tracker/dashboard validators pass. Local, origin and GitHub main synchronize at 88f408c57a5fd09ca1b4f5da15fcd28640bfe012. Broad requirement remains PARTIAL."
       }
+    },
+    {
+      "milestone_id": "CORE-FEATURE-BATCH-20261008-SAVED-SEARCH-SCHEDULER",
+      "current_phase": "CORE_FEATURE_IMPLEMENTATION",
+      "timestamp": "2026-10-08T18:03:37Z",
+      "completed_steps": [
+        "Integrated and synchronized #192 / MJ-REQ-191 per-saved-search scheduling with enable/edit/disable controls and profile-scoped durable discovery enqueue.",
+        "Verified exact connected save/readback, cadence persistence, disable behavior, idempotency, side-effect controls and fallback compatibility.",
+        "Kept #192 OPEN/PARTIAL and MJ-PR-052 QUEUED behind MJ-PR-051 and MJ-PR-043; broader filter/ranking and release claims remain incomplete."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-08-saved-search-scheduler.json"
+      ],
+      "files_modified": [
+        "apps/api/main.py",
+        "apps/web/src/main.tsx",
+        "services/discovery/scheduler.py",
+        "services/discovery/search_profiles.py",
+        "tests/browser/test_saved_search_schedule.py",
+        "tests/integration/test_saved_search_schedule.py",
+        "tests/integration/test_saved_search_schedule_api.py",
+        "tests/integration/test_saved_search_schedule_disable_api.py",
+        "tests/integration/test_saved_search_schedule_validation_api.py",
+        "tests/unit/test_saved_search_scheduler.py",
+        "tests/unit/test_saved_search_scheduler_validation.py"
+      ],
+      "tests_completed": [
+        "Focused Python scheduler/API/source-policy tests: 26/26 PASS.",
+        "Connected Chromium saved-search schedule workflow: 1/1 PASS.",
+        "Frontend suite: 136/136 PASS; TypeScript/Vite production build PASS.",
+        "Agent-skill, catalogue, progress, lane and diff validators PASS."
+      ],
+      "tests_remaining": [
+        "PostgreSQL runtime and full repository suite NOT_RUN.",
+        "Hosted Actions/reviews NOT_RUN_BY_USER_POLICY; external job application submission OFF."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Synthetic connected UI/API/worker/database save and reload path on local isolated state."
+      ],
+      "known_errors": [
+        "The follow-on #96 uploaded-base comparison API v5 skill-order case still returns HTTP 409 in Tech’s connected reproduction; fix and exact-candidate verification remain pending."
+      ],
+      "known_limitations": [
+        "MJ-REQ-191 and issue #192 remain PARTIAL; broader filter sidebar and ranking requirements remain incomplete.",
+        "Release eligibility UNKNOWN."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "0214b4bf022cee4bb8498468aa7535decb71392e",
+        "tree": "b5c7e67a9ba5b1ba1e96879641dd2f919a3a160c",
+        "branch": "main",
+        "issue": "#192 / MJ-REQ-191 saved-search scheduler",
+        "evidence_path": "docs/evidence/2026-10-08-saved-search-scheduler.json",
+        "note": "Exact local checks PASS and source checkpoint synchronized; this requirement remains PARTIAL."
+      }
     }
   ],
   "current_phase": "CORE_FEATURE_IMPLEMENTATION",
   "last_safe_checkpoint": {
-    "git_commit": "d9f92cfdd9b9f5e1bc683004e2c713ac0a9c9d88",
-    "tree": "d07d273c49f330b1573f0b032a73d9749224fc8b",
+    "git_commit": "0214b4bf022cee4bb8498468aa7535decb71392e",
+    "tree": "b5c7e67a9ba5b1ba1e96879641dd2f919a3a160c",
     "branch": "main",
-    "issue": "#62 / MJ-REQ-061 same-origin sitemap career discovery",
-    "evidence_path": "docs/evidence/2026-10-08-career-page-sitemap-discovery.json",
-    "note": "The exact product source passed 49 focused Python discovery tests, connected synthetic Chromium 1/1, py_compile and diff check. Tracker/dashboard validators pass. Local, origin and GitHub main synchronize at 88f408c57a5fd09ca1b4f5da15fcd28640bfe012. Broad requirement remains PARTIAL."
+    "issue": "#192 / MJ-REQ-191 saved-search scheduler",
+    "evidence_path": "docs/evidence/2026-10-08-saved-search-scheduler.json",
+    "note": "Exact local checks PASS and source checkpoint synchronized; this requirement remains PARTIAL."
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -12353,14 +12408,16 @@
     "integration": "Locally integrated/tested source; tracker checkpoint current; remote sync pending."
   },
   "active_development_issue": {
-    "issue": "#62",
-    "requirement_id": "MJ-REQ-061",
-    "title": "Career Page Discovery — same-origin sitemap discovery",
-    "state": "BOUNDED_SLICE_VERIFIED_LOCAL_UMBRELLA_PARTIAL",
-    "active_codex_children": [],
-    "latest_integrated_issue": 62,
-    "latest_integrated_requirement": "MJ-REQ-061",
-    "latest_integrated_head": "d9f92cfdd9b9f5e1bc683004e2c713ac0a9c9d88"
+    "issue": "#96",
+    "requirement_id": "MJ-REQ-095",
+    "title": "Truthful uploaded-base resume comparison for responsibility-selected target bullets",
+    "state": "ACTIVE_IMPLEMENTATION; API v5 skill-order acceptance is still failing and must be diagnosed before integration.",
+    "active_codex_children": [
+      "Clone Force 99 — Tech (API connected acceptance); Hunter/Echo/Wrecker contributions are committed and awaiting root revalidation."
+    ],
+    "latest_integrated_issue": 192,
+    "latest_integrated_requirement": "MJ-REQ-191",
+    "latest_integrated_head": "0214b4bf022cee4bb8498468aa7535decb71392e"
   },
   "historical_control_snapshots": [
     {
@@ -13518,29 +13575,29 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-08T17:02:26Z",
-  "current_verified_local_state": "Local main is d9f92cfdd9b9f5e1bc683004e2c713ac0a9c9d88 (tree d07d273c49f330b1573f0b032a73d9749224fc8b); #62/MJ-REQ-061 now reads same-origin sitemap hints and bounded conventional /sitemap.xml, accepts only corroborated careers pages, preserves safe route fallback, and imports a synthetic employer job visible after UI reload. 49 focused Python discovery tests, connected synthetic Chromium, py_compile and diff check PASS. Evidence: docs/evidence/2026-10-08-career-page-sitemap-discovery.json. Requirement PARTIAL.",
-  "current_verified_github_state": "Local main, origin/main and GitHub main are synchronized at 88f408c57a5fd09ca1b4f5da15fcd28640bfe012. #62 issue receipt posted with exact evidence and checks; Actions disabled, hosted checks NOT_RUN_BY_USER_POLICY, external application submission OFF.",
+  "updated_at": "2026-10-08T18:03:37Z",
+  "current_verified_local_state": "Local main source checkpoint 0214b4bf022cee4bb8498468aa7535decb71392e (tree b5c7e67a9ba5b1ba1e96879641dd2f919a3a160c) includes the #192 per-saved-search cadence scheduler: enable/edit/disable, profile-scoped durable DISCOVER enqueue, idempotency/recovery, and connected UI save/readback. Exact evidence is docs/evidence/2026-10-08-saved-search-scheduler.json. 26 focused Python tests, Chromium 1/1, frontend 136/136, build and local validators PASS. #96 uploaded-base comparison follow-up remains unintegrated; Tech reports the API v5 skill-order case still returns 409 and needs diagnosis.",
+  "current_verified_github_state": "Local main, origin/main and GitHub main synchronized at 0214b4bf022cee4bb8498468aa7535decb71392e for the #192 source checkpoint. The scheduler issue receipt is recorded at https://github.com/MulattoTech/MJobs/issues/192#issuecomment-6065967967. GitHub Actions/hosted checks remain disabled or NOT_RUN_BY_POLICY; external application submission OFF.",
   "next_candidates": [
     {
-      "issue": 192,
-      "requirement_id": "MJ-REQ-191",
-      "status": "ready for root integration: per-saved-search cadence scheduler, UI component, service tests and API acceptance assembled on isolated branches; connected API/UI/browser integration remains."
+      "issue": 96,
+      "requirement_id": "MJ-REQ-095",
+      "status": "ACTIVE_IMPLEMENTATION: exact API v5 uploaded-base skill-order comparison still fails 409; diagnose before integrating."
     },
     {
       "issue": 199,
       "requirement_id": "MJ-REQ-198",
-      "status": "ready for root integration: durable append-only document archive service/UI/test slices complete; API/UI wiring and connected readback remain."
+      "status": "READY_FOR_ROOT_INTEGRATION: durable archive service/UI/test contributions prepared; API/UI wiring and connected readback remain."
     },
     {
       "issue": 143,
       "requirement_id": "MJ-REQ-142",
-      "status": "ready for root integration: explicit MOCK manual-auth service/adapter/API/UI/test slices complete; main.py/main.tsx wiring and exact connected revalidation remain."
+      "status": "READY_FOR_ROOT_INTEGRATION: MOCK-only manual-auth service/adapter/API/UI/test contributions prepared; app entrypoint wiring and connected revalidation remain."
     },
     {
       "issue": 83,
       "requirement_id": "MJ-REQ-082",
-      "status": "ready for root integration: sanitized company-discovery activity service/formatter/UI/tests complete; API/main screen wiring and connected validation remain."
+      "status": "READY_FOR_ROOT_INTEGRATION: sanitized source-activity service/formatter/UI/test contributions prepared; API/main screen wiring and connected validation remain."
     }
   ]
 }

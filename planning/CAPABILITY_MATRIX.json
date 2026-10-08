@@ -1685,9 +1685,10 @@
       "requirement_id": "MJ-REQ-191",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-08-saved-job-filters.json"
+        "docs/evidence/2026-10-08-saved-job-filters.json",
+        "docs/evidence/2026-10-08-saved-search-scheduler.json"
       ],
-      "note": "Bounded locally verified slice: save and restore currently supported Jobs controls in a profile-scoped durable saved search with connected reload/results and scheduling disabled. Broader filter-sidebar criteria and an independent saved-search scheduler remain incomplete; issue #192 remains OPEN/PARTIAL; hosted/PostgreSQL NOT_RUN."
+      "note": "Bounded locally verified slices: profile-scoped saved Jobs controls and per-saved-search durable cadence scheduling with enable/edit/disable controls, connected save/readback and idempotent discovery enqueue. Broader filter-sidebar criteria and search/ranking scope remain incomplete; issue #192 remains OPEN/PARTIAL; hosted/PostgreSQL NOT_RUN."
     },
     {
       "requirement_id": "MJ-REQ-192",
