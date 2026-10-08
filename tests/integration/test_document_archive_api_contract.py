@@ -45,9 +45,10 @@ class DocumentArchiveApiContractTests(unittest.TestCase):
             self.store, "http://127.0.0.1:1", self.output_dir,
             "redis://127.0.0.1:1/0", operation_mode="PERSONAL",
         )
-        archive_path = "/profiles/{profile_id}/document-library/{document_id}/archive"
-        if not any(route.path == archive_path for route in app.routes):
-            app.include_router(create_document_archive_router(self.store))
+        # Register the factory directly as the contract under test. On a branch
+        # where main.py already mounts it, the duplicate routes have the same
+        # handlers/store and preserve compatibility across FastAPI router APIs.
+        app.include_router(create_document_archive_router(self.store))
         self.client = TestClient(app)
         self.addCleanup(self.client.close)
 
