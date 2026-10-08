@@ -42,7 +42,8 @@ _SUPPORTED_SPONSORSHIP_QUESTION = re.compile(
     r"(?: for (?:employment )?visa(?: status)?)?\s*[?.!]?$", re.IGNORECASE)
 _AMBIGUOUS_WORK_AUTHORIZATION = re.compile(
     r"\b(?:unknown|unspecified|not specified|not sure|unsure|uncertain|maybe|"
-    r"i think|i believe|probably|likely|possibly|might be|may be|could be|"
+    r"i think|i believe|i expect|i hope|i guess|i assume|think|believe|expect|hope|guess|assume|"
+    r"probably|likely|possibly|potentially|might|may|could|should|"
     r"prefer not to answer|decline to answer|do not know|don't know)\b", re.IGNORECASE)
 _FACT_KEYS = {"fact_ids", "answer_ids", "profile_paths", "document_kinds", "application_context"}
 _DOCUMENT_KINDS = {"resume", "cover-letter"}

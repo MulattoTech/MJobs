@@ -77,7 +77,8 @@ class LegalQuestionPreflightTests(unittest.TestCase):
                         "preferences.work_authorization")
         for value in (
                 "", "not sure", "unknown", "I am not sure whether I am authorized",
-                "I think I am authorized to work", "probably authorized to work"):
+                "I think I am authorized to work", "probably authorized to work",
+                "I expect to be authorized to work"):
             with self.subTest(value=value):
                 result = self.evaluate(self.profile(work_authorization=value), item)
                 self.assertEqual(result["result"], "UNKNOWN")
