@@ -634,7 +634,7 @@ class Store:
              title="", company="", location="", salary_min=None, salary_max=None,
              min_match_score=None, experience_level=None, employment_type=None, skill_id=None,
              education_requirement=None, clearance_level=None, posted_after=None, posted_before=None,
-             ats_provider=None):
+             ats_provider=None, application_link_status=None):
         profile = self.profile(profile_id) if profile_id else None
         with self.engine.connect() as connection:
             counts = select(m.postings.c.job_id, func.count().label("posting_count")).group_by(m.postings.c.job_id).subquery()
@@ -700,6 +700,22 @@ class Store:
                     matching_identity_count == 1,
                 ).correlate(m.jobs).exists()
                 statement = statement.where(exact_ats_route)
+            if application_link_status:
+                link_status_values = {
+                    "AVAILABLE": "PROVIDER_SUPPLIED",
+                    "UNAVAILABLE": "UNAVAILABLE",
+                }
+                if application_link_status not in link_status_values:
+                    raise ValueError("application_link_status must be AVAILABLE or UNAVAILABLE")
+                # The search facet describes source-reported URL availability only.
+                # It does not imply ATS support or that an application can be submitted.
+                # as_string() compiles to JSON text extraction on both SQLite and
+                # PostgreSQL; exact equality keeps absent, non-string, and unknown
+                # metadata out of either selected result set before LIMIT.
+                statement = statement.where(
+                    m.jobs.c.attributes["application_url_status"].as_string()
+                    == link_status_values[application_link_status]
+                )
             if q:
                 if self.engine.dialect.name == "postgresql":
                     search_config = literal_column("'simple'::regconfig")
