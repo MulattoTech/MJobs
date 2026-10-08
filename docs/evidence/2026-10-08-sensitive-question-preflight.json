@@ -7,8 +7,8 @@
   "result": "PASS",
   "requirement_status": "PARTIAL",
   "branch": "codex/mj-req135-sensitive-question-preflight-20261008",
-  "base_commit": "760271a9a1205858cda2e99980e37783f49dedc6",
-  "tested_parent_commit": "0d6c3890b4be6cd7b299f208279dd12659a0b90e",
+  "base_commit": "7e2eb983c400c382e6dafa95ac7d06dc8b9bf497",
+  "tested_parent_commit": "7e2eb983c400c382e6dafa95ac7d06dc8b9bf497",
   "test_environment": {
     "os": "Windows",
     "python": "repository .venv Python 3.12",
@@ -63,5 +63,13 @@
     "external_submission": "OFF",
     "full_repository_suite": "NOT_RUN",
     "browser_review_queue": "SKIPPED: requires apps/web build"
+  },
+  "root_verification": {
+    "recorded_at_utc": "2026-10-08T09:52:24Z",
+    "candidate_source_head": "3b8ea0a379280997dbab0f0f7ad6ebc84f107bfe",
+    "candidate_source_tree": "d6583ea714a6935bfa18a37de49a10448e0063ba",
+    "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_application_preflight tests.browser.test_mock_application tests.integration.test_application_answer_export tests.browser.test_application_review_queue -q",
+    "result": "PASS: 48 tests run, 47 passed, 1 skipped because the browser review-queue test requires an apps/web build; run on exact rebased candidate source.",
+    "evidence_input_hashes": "PASS: all source_inputs_sha256 match current candidate bytes."
   }
 }
