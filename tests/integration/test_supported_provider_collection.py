@@ -1,18 +1,21 @@
 """Supported provider collection passively records third-party source candidates."""
 from pathlib import Path
+import os
 import tempfile
 import unittest
 from unittest.mock import patch
 
-from sqlalchemy import select, update
+from sqlalchemy import select
 
 from packages.persistence import models as m
 from packages.persistence.store import Store
-from services.discovery.sources.collect import collect_source, configure_source
+from services.discovery.sources.collect import configure_source
 from services.discovery.sources.contract import SearchBatch, SourceCompany, SourceItem
 from services.discovery.sources.remoteok import RemoteOK
 from services.source_candidates.catalogue import list_candidates
 from tests.integration.test_spine import PROFILE
+from workers.dispatch import enqueue_operation
+from workers.tasks import execute_operation
 
 
 class SupportedProviderCollectionTests(unittest.TestCase):
@@ -55,28 +58,26 @@ class SupportedProviderCollectionTests(unittest.TestCase):
         self.store.engine.dispose()
         self.temp.cleanup()
 
-    def _collect_with_stubbed_provider(self, profile_id, adapter):
-        with self.store.engine.begin() as connection:
-            connection.execute(update(m.job_sources).where(
-                m.job_sources.c.id == self.source_id
-            ).values(last_attempt=None))
-        with patch("services.discovery.sources.collect.source_adapter", return_value=adapter):
-            return collect_source(self.store, self.source_id, profile_id)
-
     def test_supported_collection_records_profile_scoped_candidate_without_extra_provider_call(self):
         adapter = RemoteOK(transport=None)
+        operation_id = enqueue_operation(self.store, "DISCOVER", "fixture", {
+            "source_id": self.source_id,
+            "profile_ids": ["fixture", "other"],
+        })
+        environment = {
+            "MJOBS_DATABASE_URL": self.store.url,
+            "MJOBS_MOCK_ORIGIN": "http://127.0.0.1:8090",
+            "MJOBS_OUTPUT_DIR": str(self.root),
+            "MJOBS_OPERATION_MODE": "FIXTURE",
+        }
         with patch.object(adapter, "search", return_value=self.batch) as search:
-            result = self._collect_with_stubbed_provider("fixture", adapter)
-            self.assertEqual(result["jobs_seen"], 2)
+            with patch("services.discovery.sources.collect.source_adapter", return_value=adapter), \
+                    patch.dict(os.environ, environment):
+                result = execute_operation(operation_id)
+                self.assertEqual(result["status"], "COMPLETED", result)
+                replay = execute_operation(operation_id)
+            self.assertEqual(replay["status"], "ALREADY_CLAIMED_OR_CAPACITY")
             search.assert_called_once_with()
-
-            # Replaying the same collection is idempotent at the catalogue boundary.
-            self._collect_with_stubbed_provider("fixture", adapter)
-            self.assertEqual(search.call_count, 2)
-
-            # The same supported collection under another profile remains isolated.
-            self._collect_with_stubbed_provider("other", adapter)
-            self.assertEqual(search.call_count, 3)
 
         fixture_candidates = list_candidates(self.store, "fixture")["candidates"]
         other_candidates = list_candidates(self.store, "other")["candidates"]
