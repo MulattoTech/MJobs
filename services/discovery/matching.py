@@ -431,8 +431,36 @@ def build_explanation(job, profile):
     }
 
 
-def recalculate(store, profile_id, profile_version=None, check=None):
+MAX_CANDIDATE_JOB_IDS = 10_000
+MAX_JOB_ID_LENGTH = 128
+JOB_ID_QUERY_CHUNK_SIZE = 500
+
+
+def _normalize_candidate_job_ids(candidate_job_ids):
+    if candidate_job_ids is None:
+        return None
+    if not isinstance(candidate_job_ids, (list, tuple)) or len(candidate_job_ids) > MAX_CANDIDATE_JOB_IDS:
+        raise ValueError("Candidate job IDs must be a bounded list of IDs")
+    if any(not isinstance(job_id, str) or not job_id or len(job_id) > MAX_JOB_ID_LENGTH
+           for job_id in candidate_job_ids):
+        raise ValueError("Candidate job IDs must contain non-empty IDs up to 128 characters")
+    return sorted(set(candidate_job_ids))
+
+
+def _candidate_jobs(connection, candidate_job_ids):
+    if candidate_job_ids is None:
+        return list(connection.execute(select(m.jobs).order_by(m.jobs.c.id)).mappings())
+    jobs = []
+    for offset in range(0, len(candidate_job_ids), JOB_ID_QUERY_CHUNK_SIZE):
+        chunk = candidate_job_ids[offset:offset + JOB_ID_QUERY_CHUNK_SIZE]
+        jobs.extend(connection.execute(select(m.jobs).where(
+            m.jobs.c.id.in_(chunk))).mappings())
+    return sorted(jobs, key=lambda job: job["id"])
+
+
+def recalculate(store, profile_id, profile_version=None, check=None, *, candidate_job_ids=None):
     check = check or (lambda: None)
+    candidate_job_ids = _normalize_candidate_job_ids(candidate_job_ids)
     with store.engine.begin() as connection:
         if connection.dialect.name == 'sqlite':
             connection.exec_driver_sql('BEGIN IMMEDIATE')
@@ -442,7 +470,7 @@ def recalculate(store, profile_id, profile_version=None, check=None):
             ).with_for_update()).scalar_one()
         profile = store.profile(profile_id, profile_version, connection=connection)
         job_ids = []
-        for job in connection.execute(select(m.jobs).order_by(m.jobs.c.id)).mappings():
+        for job in _candidate_jobs(connection, candidate_job_ids):
             check()
             explanation = build_explanation(job, profile)
             had_profile_match = connection.execute(select(m.matches.c.id).where(

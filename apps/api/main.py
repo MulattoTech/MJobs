@@ -581,6 +581,18 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     app.include_router(create_manual_auth_router(store, mock_origin, output_dir, operation_mode))
     from apps.api.company_discovery_activity import create_company_discovery_activity_router
     app.include_router(create_company_discovery_activity_router(store))
+    from apps.api.skill_gap_heatmap import create_skill_gap_heatmap_router
+    app.include_router(create_skill_gap_heatmap_router(store))
+    from apps.api.search_profile_suggestions import create_search_profile_suggestions_router
+    app.include_router(create_search_profile_suggestions_router(store))
+    from apps.api.cheap_prefilter import create_cheap_prefilter_router
+    app.include_router(create_cheap_prefilter_router(store))
+    from apps.api.resume_page_fit import create_resume_page_fit_router
+    app.include_router(create_resume_page_fit_router(store, output_dir))
+    from apps.api.career_story_bank import create_career_story_bank_router
+    app.include_router(create_career_story_bank_router(store))
+    from apps.api.career_story_selection import create_career_story_selection_router
+    app.include_router(create_career_story_selection_router(store))
     app.state.resume_extraction_events = {}
     app.state.resume_extraction_lock = threading.Lock()
     app.state.uploaded_comparison_events = {}

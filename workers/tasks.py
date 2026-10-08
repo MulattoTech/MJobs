@@ -52,6 +52,47 @@ def _record_supported_collection_candidates(store, operation_id, source_id, prof
                 )
 
 
+def _load_saved_search_for_discovery(store, source_id, profile_id, search_profile_id):
+    from services.discovery.search_profiles import get_search_profile
+
+    if not isinstance(search_profile_id, str) or not search_profile_id:
+        raise ValueError("DISCOVER_SEARCH_PROFILE_ID_INVALID")
+    search_profile = get_search_profile(store, search_profile_id)
+    if search_profile["profile_id"] != profile_id:
+        raise ValueError("DISCOVER_SEARCH_PROFILE_PROFILE_MISMATCH")
+    if not search_profile["enabled"]:
+        raise ValueError("DISCOVER_SEARCH_PROFILE_DISABLED")
+    if search_profile["source_ids"] and source_id not in search_profile["source_ids"]:
+        raise ValueError("DISCOVER_SEARCH_PROFILE_SOURCE_MISMATCH")
+    return search_profile
+
+
+def _saved_search_candidate_job_ids(store, source_id, search_profile):
+    """Return source-scoped jobs admitted by the persisted saved-search criteria."""
+    from services.discovery.cheap_prefilter_pipeline import prefilter_search_profile_postings
+
+    statement = select(
+        m.postings.c.id,
+        m.postings.c.job_id,
+        m.jobs.c.title,
+        m.companies.c.name.label("company"),
+        m.jobs.c.description,
+        m.jobs.c.location,
+        m.jobs.c.skills,
+    ).select_from(
+        m.postings.join(m.jobs, m.jobs.c.id == m.postings.c.job_id).join(
+            m.companies, m.companies.c.id == m.jobs.c.company_id,
+        )
+    ).where(
+        m.jobs.c.attributes["source_id"].as_string() == source_id,
+        m.jobs.c.attributes["source_endpoint"].as_string() == m.postings.c.source_url,
+    ).order_by(m.postings.c.id)
+    with store.engine.connect() as connection:
+        postings = [dict(row) for row in connection.execute(statement).mappings()]
+    result = prefilter_search_profile_postings(postings, search_profile)
+    return tuple(sorted({posting["job_id"] for posting in result["candidates"]}))
+
+
 def execute_operation(operation_id):
     operation_mode = operation_mode_from_env()
     store = Store(os.environ["MJOBS_DATABASE_URL"])
@@ -103,10 +144,24 @@ def execute_operation(operation_id):
                             not isinstance(profile_id, str) or not profile_id for profile_id in profile_ids):
                         raise ValueError("Invalid scheduled profile set")
                     primary = profile_ids[0]
+                    search_profile = (
+                        _load_saved_search_for_discovery(
+                            store, params["source_id"], primary, params["search_profile_id"]
+                        )
+                        if "search_profile_id" in params else None
+                    )
                     collect_source(store, params["source_id"], primary, check=check,
                                    profile_version=params.get("profile_version"))
                     _record_supported_collection_candidates(
                         store, operation_id, params["source_id"], profile_ids)
+                    if search_profile is not None:
+                        candidate_job_ids = _saved_search_candidate_job_ids(
+                            store, params["source_id"], search_profile
+                        )
+                        recalculate(
+                            store, primary, profile_version=params.get("profile_version"),
+                            check=check, candidate_job_ids=candidate_job_ids,
+                        )
                     for profile_id in profile_ids[1:]:
                         check()
                         recalculate(store, profile_id, check=check)
