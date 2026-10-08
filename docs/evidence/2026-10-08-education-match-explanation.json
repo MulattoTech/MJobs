@@ -1,0 +1,82 @@
+{
+  "evidence_id": "MJ-REQ-114-education-fit-factor-20261008",
+  "status": "PASS",
+  "issue": "https://github.com/MulattoTech/MJobs/issues/115",
+  "issue_state": "OPEN/PARTIAL",
+  "requirement": "MJ-REQ-114 explainable matching; score-neutral education fit factor",
+  "branch": "codex/mj-req114-education-fit-factor-20261008",
+  "base_commit": "cf205874485b5e9ad2b162aa28c9e1ee405f4ff1",
+  "tested_source_tree_oid": "83259eb7063df7827a5719f8d7ef7f20df92752f",
+  "tested_source_files": [
+    {
+      "path": "services/discovery/matching.py",
+      "worktree_sha256": "bf98920dc3a2866ab9b8b8720116ce30fff82ded062b57c28370d7a5d33a5bde",
+      "git_blob_oid": "bf0e34f91cb6a2c50e2d1c7a64bab97042588276"
+    },
+    {
+      "path": "tests/integration/test_explainable_matching.py",
+      "worktree_sha256": "22b64c33e2d132dc77c5edbeba0543c6b4ac25b71e47206fa6335b0cf66801d0",
+      "git_blob_oid": "bc57138278ae4a54c29af5c4f8e3c7b78f5fe07a"
+    },
+    {
+      "path": "tests/browser/test_education_match_explanation.py",
+      "worktree_sha256": "cd27386445c24fb8051e422adaa3a6d1f7c7848024a4c153b9c9448bbdcecbbe",
+      "git_blob_oid": "1d4338470312db493279d18c15cdf4b00d84f9e5"
+    }
+  ],
+  "checks": [
+    {
+      "command": "..\\\\..\\\\.venv\\\\Scripts\\\\python.exe -m unittest tests.integration.test_explainable_matching",
+      "result": "PASS",
+      "detail": "22 tests passed"
+    },
+    {
+      "command": "..\\\\..\\\\.venv\\\\Scripts\\\\python.exe -m unittest tests.browser.test_education_match_explanation",
+      "result": "PASS",
+      "detail": "1 synthetic Chromium test passed; Job Detail rendered the generic Education fit factor from the connected persisted match response; external request list empty"
+    },
+    {
+      "command": "npm run build (apps/web)",
+      "result": "PASS",
+      "detail": "TypeScript check and Vite production build completed"
+    },
+    {
+      "command": "npm test (apps/web)",
+      "result": "PASS",
+      "detail": "18 files, 103 tests passed"
+    },
+    {
+      "command": "..\\\\..\\\\.venv\\\\Scripts\\\\python.exe -m py_compile services/discovery/matching.py tests/integration/test_explainable_matching.py tests/browser/test_education_match_explanation.py",
+      "result": "PASS"
+    },
+    {
+      "command": "..\\\\..\\\\.venv\\\\Scripts\\\\python.exe -m tools.verification.agent_skills",
+      "result": "PASS",
+      "detail": "Agent skill validation: PASS"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "accepted_behavior": [
+    "Only supported persisted education classifications produce an interpretable comparison; present unsupported classifications produce UNKNOWN.",
+    "Bachelors required/preferred strength is preserved in the factor label.",
+    "Affirmative and mismatch claims require verified, user-approved education facts with nonempty source and confidence >= 80.",
+    "Missing, rejected, low-confidence, ambiguous, conflicting, equivalent-experience, and unsupported cases remain UNKNOWN; no missing record implies lack of a degree.",
+    "Every education factor has score_effect NONE and score remains unchanged.",
+    "Connected SQLite rescore/readback after approval revocation returns UNKNOWN and remains isolated by profile."
+  ],
+  "limitations": [
+    "PostgreSQL was not exercised.",
+    "Hosted CI/review and live third-party providers were not run by local-only policy.",
+    "Issue remains OPEN/PARTIAL because this bounded slice does not complete the broader explainable-matching requirement."
+  ],
+  "environment": "Windows, Python 3.12 project virtual environment, SQLite FIXTURE workspace, synthetic Chromium, local-only network guard",
+  "recorded_utc": "2026-10-08T14:34:28Z",
+  "red_test_observation": {
+    "command": "..\\\\..\\\\.venv\\\\Scripts\\\\python.exe -m unittest tests.integration.test_explainable_matching.ExplainableMatchingTests.test_education_fit_requires_supported_job_classification_and_approved_evidence tests.integration.test_explainable_matching.ExplainableMatchingTests.test_education_fit_conflicting_facts_are_unknown_and_do_not_change_score tests.integration.test_explainable_matching.ExplainableMatchingTests.test_education_fit_is_durably_rescored_and_isolated_by_profile",
+    "result": "EXPECTED_FAILURE_BEFORE_IMPLEMENTATION",
+    "detail": "3 failing tests: fit-factor rows were absent for supported education classifications"
+  }
+}

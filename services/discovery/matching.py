@@ -20,6 +20,20 @@ _SALARY_RANGE = re.compile(
     r"(?:-|–|—|to)\s*\$?\s*\d[\d,]*(?:\.\d+)?\s*(?P<high_scale>[kK])?\b",
     re.I,
 )
+_BACHELOR_MENTION = re.compile(r"\bbachelor(?:'s|s)?(?:\s+degree)?\b|\bbachelor\s+of\s+[a-z][a-z -]{0,40}\b", re.I)
+_BACHELOR_NEGATION = re.compile(
+    r"\b(?:do\s+not|don't|does\s+not|doesn't|did\s+not|didn't|have\s+not|haven't|has\s+not|hasn't|never)\s+"
+    r"(?:currently\s+)?(?:have|hold|earned?|obtain(?:ed)?|complete(?:d)?|receive(?:d)?|possess)?\s*"
+    r"(?:a\s+)?(?:bachelor(?:'s|s)?(?:\s+degree)?|bachelor\s+of\s+[a-z][a-z -]{0,40})\b|"
+    r"\bno\s+(?:bachelor(?:'s|s)?(?:\s+degree)?|bachelor\s+of\s+[a-z][a-z -]{0,40})\b|"
+    r"\b(?:lack|lacking)\s+(?:a\s+)?(?:bachelor(?:'s|s)?(?:\s+degree)?|bachelor\s+of\s+[a-z][a-z -]{0,40})\b",
+    re.I,
+)
+_EDUCATION_AMBIGUITY = re.compile(
+    r"\b(?:in\s+progress|working\s+toward|pursuing|candidate\s+for|expected\s+(?:to\s+)?(?:graduate|complete|earn)|"
+    r"not\s+yet\s+(?:earned|completed)|or\s+equivalent\s+experience)\b",
+    re.I,
+)
 
 
 def _has_mixed_salary_range_scale(text):
@@ -179,6 +193,86 @@ def _certification_fit_factors(job, profile):
     } for factor in factors_by_id.values()]
 
 
+def _education_fit_factors(job, profile):
+    """Compare only explicitly classified bachelor requirements and approved education facts."""
+    classification = (job.get("attributes") or {}).get("education_requirement")
+    supported = {
+        "BACHELORS_REQUIRED": ("REQUIRED", "bachelors"),
+        "BACHELORS_PREFERRED": ("PREFERRED", "bachelors"),
+        "BACHELORS_OR_EQUIVALENT_EXPERIENCE": ("UNKNOWN", "bachelors"),
+        "DEGREE_PREFERRED": ("PREFERRED", "degree"),
+    }
+    requirement = supported.get(classification)
+    if classification in (None, "", "NONE_SPECIFIED"):
+        return []
+    if requirement is None:
+        return [{
+            "id": "education:unsupported",
+            "label": "Education requirement (UNKNOWN)",
+            "status": "UNKNOWN",
+            "explanation": "The persisted education classification is unsupported, so no education fit claim is made.",
+            "score_effect": "NONE",
+        }]
+
+    strength, identity = requirement
+    positive = False
+    negative = False
+    ambiguous = False
+    for fact in profile.get("facts", []) if identity == "bachelors" else []:
+        if not isinstance(fact, dict) or fact.get("kind") != "education":
+            continue
+        confidence = fact.get("confidence")
+        text = fact.get("text")
+        source = fact.get("source")
+        if (fact.get("verified") is not True or fact.get("user_approved") is not True
+                or type(confidence) not in (int, float) or confidence < 80
+                or not isinstance(text, str) or not text.strip()
+                or not isinstance(source, str) or not source.strip()):
+            continue
+        if not _BACHELOR_MENTION.search(text):
+            continue
+        if _EDUCATION_AMBIGUITY.search(text):
+            ambiguous = True
+        elif _BACHELOR_NEGATION.search(text):
+            negative = True
+        else:
+            positive = True
+
+    if strength == "UNKNOWN":
+        status = "UNKNOWN"
+        explanation = (
+            "The persisted education classification includes equivalent experience, so this factor "
+            "does not determine whether degree evidence alone fits."
+        )
+    elif positive and negative:
+        status = "UNKNOWN"
+        explanation = "Approved education facts conflict about bachelor's degree evidence."
+    elif ambiguous:
+        status = "UNKNOWN"
+        explanation = "Approved education evidence mentions a bachelor's degree but does not clearly establish completion."
+    elif positive:
+        status = "ALIGNS"
+        explanation = "An approved, sufficiently confident education fact explicitly records a bachelor's degree."
+    elif negative:
+        status = "NO_DIRECT_MATCH"
+        explanation = "An approved, sufficiently confident education fact explicitly states no bachelor's degree; this is not inferred from missing records."
+    elif identity == "degree":
+        status = "UNKNOWN"
+        explanation = "The job states a preferred degree without identifying a degree type that can be compared safely."
+    else:
+        status = "UNKNOWN"
+        explanation = "No approved, sufficiently confident bachelor's degree evidence is available; this does not establish that the person lacks a degree."
+
+    name = "Bachelor's degree" if identity == "bachelors" else "Degree"
+    return [{
+        "id": f"education:{identity}",
+        "label": f"Education: {name} ({strength.replace('_', ' ')})",
+        "status": status,
+        "explanation": explanation,
+        "score_effect": "NONE",
+    }]
+
+
 def _fit_factors(job, profile):
     """Describe directly comparable profile preferences and job attributes."""
     attributes = job.get("attributes") or {}
@@ -254,6 +348,7 @@ def _fit_factors(job, profile):
     factors.append({"id": "employment_type", "label": "Employment type", "status": status,
                     "explanation": explanation, "score_effect": "NONE"})
     factors.extend(_certification_fit_factors(job, profile))
+    factors.extend(_education_fit_factors(job, profile))
     return factors
 
 

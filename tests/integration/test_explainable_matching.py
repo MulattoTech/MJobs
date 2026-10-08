@@ -207,6 +207,147 @@ class ExplainableMatchingTests(unittest.TestCase):
             self.assertIn("no approved evidence", factors[f"certification:{certification_id}"]["explanation"].lower())
             self.assertIn("does not establish", factors[f"certification:{certification_id}"]["explanation"].lower())
 
+    def test_education_fit_requires_supported_job_classification_and_approved_evidence(self):
+        from services.discovery.matching import build_explanation
+
+        def factor(classification, facts):
+            result = build_explanation({
+                "skills": [],
+                "attributes": {"education_requirement": classification},
+            }, {"facts": facts})
+            rows = [row for row in result["components"]["fit_factors"]
+                    if row["id"].startswith("education:")]
+            return result, rows[0] if rows else None
+
+        approved_bachelors = {
+            "kind": "education", "text": "Bachelor of Science, North Valley University, 2018.",
+            "source": "user-approved education record", "confidence": 95,
+            "verified": True, "user_approved": True,
+        }
+        result, required = factor("BACHELORS_REQUIRED", [approved_bachelors])
+        self.assertEqual(required["status"], "ALIGNS")
+        self.assertIn("REQUIRED", required["label"])
+        self.assertEqual(required["score_effect"], "NONE")
+        self.assertEqual(result["score"], 0)
+
+        _, preferred = factor("BACHELORS_PREFERRED", [approved_bachelors])
+        self.assertEqual(preferred["status"], "ALIGNS")
+        self.assertIn("PREFERRED", preferred["label"])
+
+        for unapproved in (
+            {**approved_bachelors, "user_approved": False},
+            {**approved_bachelors, "verified": False},
+            {**approved_bachelors, "confidence": 79},
+            {**approved_bachelors, "source": ""},
+        ):
+            with self.subTest(fact=unapproved):
+                _, row = factor("BACHELORS_REQUIRED", [unapproved])
+                self.assertEqual(row["status"], "UNKNOWN")
+                self.assertEqual(row["score_effect"], "NONE")
+
+        _, no_evidence = factor("BACHELORS_REQUIRED", [])
+        self.assertEqual(no_evidence["status"], "UNKNOWN")
+        self.assertIn("does not establish", no_evidence["explanation"].lower())
+        explicitly_no_bachelors = {
+            **approved_bachelors, "text": "I do not have a bachelor's degree.",
+        }
+        _, explicit_mismatch = factor("BACHELORS_REQUIRED", [explicitly_no_bachelors])
+        self.assertEqual(explicit_mismatch["status"], "NO_DIRECT_MATCH")
+        self.assertIn("explicitly states", explicit_mismatch["explanation"].lower())
+        in_progress = {
+            **approved_bachelors, "text": "Bachelor's degree in progress.",
+        }
+        _, ambiguous = factor("BACHELORS_REQUIRED", [in_progress])
+        self.assertEqual(ambiguous["status"], "UNKNOWN")
+        _, generic_degree = factor("DEGREE_PREFERRED", [approved_bachelors])
+        self.assertEqual(generic_degree["status"], "UNKNOWN")
+        _, equivalent_experience = factor("BACHELORS_OR_EQUIVALENT_EXPERIENCE", [approved_bachelors])
+        self.assertEqual(equivalent_experience["status"], "UNKNOWN")
+        _, unsupported_job = factor("DOCTORATE_REQUIRED", [approved_bachelors])
+        self.assertEqual(unsupported_job["status"], "UNKNOWN")
+        self.assertEqual(unsupported_job["score_effect"], "NONE")
+
+    def test_education_fit_conflicting_facts_are_unknown_and_do_not_change_score(self):
+        from services.discovery.matching import build_explanation
+
+        positive = {
+            "kind": "education", "text": "Bachelor of Science in Computer Science.",
+            "source": "approved transcript", "confidence": 100,
+            "verified": True, "user_approved": True,
+        }
+        explicit_negative = {
+            **positive, "id": "no-bachelors", "text": "I do not have a bachelor's degree.",
+        }
+        result = build_explanation({"skills": [], "attributes": {
+            "education_requirement": "BACHELORS_REQUIRED",
+        }}, {"facts": [positive, explicit_negative]})
+        factor = next(row for row in result["components"]["fit_factors"]
+                      if row["id"] == "education:bachelors")
+        self.assertEqual(factor["status"], "UNKNOWN")
+        self.assertIn("conflict", factor["explanation"].lower())
+        self.assertEqual(factor["score_effect"], "NONE")
+        self.assertEqual(result["score"], 0)
+
+    def test_education_fit_is_durably_rescored_and_isolated_by_profile(self):
+        from services.discovery.matching import recalculate
+
+        education = {
+            "id": "approved-bachelors", "kind": "education",
+            "text": "Bachelor of Science, North Valley University, 2018.",
+            "source": "user-approved education record", "confidence": 95,
+            "verified": True, "user_approved": True,
+        }
+        profile = copy.deepcopy(self.profile)
+        profile["facts"].append(education)
+        self.store.save_profile(profile)
+        other = copy.deepcopy(profile)
+        other.update(id="other-profile", name="Other Profile", email="other@example.invalid")
+        other["facts"] = []
+        self.store.save_profile(other)
+        captured = capture_manual_job(self.store, {
+            "request_id": "education-fit-readback", "title": "Systems Administrator",
+            "company": "Example Infrastructure", "description": "Bachelor's degree required.",
+            "reference_url": "https://jobs.example.invalid/education/required",
+            "profile_id": "fixture",
+        })["job"]
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.id == captured["id"]).values(
+                attributes={**captured["attributes"],
+                            "education_requirement": "BACHELORS_REQUIRED",
+                            "education_requirement_raw": "Bachelor's degree required."}))
+
+        recalculate(self.store, "fixture")
+        recalculate(self.store, "other-profile")
+        approved_match = self.store.job(captured["id"], profile_id="fixture")["match"]
+        other_match = self.store.job(captured["id"], profile_id="other-profile")["match"]
+        approved_factor = next(row for row in approved_match["components"]["fit_factors"]
+                               if row["id"] == "education:bachelors")
+        other_factor = next(row for row in other_match["components"]["fit_factors"]
+                            if row["id"] == "education:bachelors")
+        self.assertEqual(approved_factor["status"], "ALIGNS")
+        self.assertEqual(other_factor["status"], "UNKNOWN")
+        self.assertEqual(approved_match["score"], other_match["score"])
+
+        changed = copy.deepcopy(profile)
+        changed["facts"] = [{**fact, "user_approved": False, "verified": False}
+                             if fact["id"] == "approved-bachelors" else fact
+                             for fact in changed["facts"]]
+        current_version = self.store.save_profile(changed)
+        recalculate(self.store, "fixture")
+        database_url = self.store.url
+        self.store.engine.dispose()
+        reopened = Store(database_url)
+        try:
+            stored = reopened.job(captured["id"], profile_id="fixture")["match"]
+            after = next(row for row in stored["components"]["fit_factors"]
+                         if row["id"] == "education:bachelors")
+            self.assertEqual(stored["profile_version"], current_version)
+            self.assertEqual(stored["score"], approved_match["score"])
+            self.assertEqual(after["status"], "UNKNOWN")
+            self.assertEqual(after["score_effect"], "NONE")
+        finally:
+            reopened.engine.dispose()
+
     def test_certification_factor_is_durably_rescored_after_approval_is_revoked(self):
         profile = copy.deepcopy(self.profile)
         profile["facts"].append({
