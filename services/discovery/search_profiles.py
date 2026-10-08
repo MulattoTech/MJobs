@@ -21,12 +21,18 @@ JOB_FILTERS = {"remote_type": {"", "REMOTE", "HYBRID", "ONSITE", "UNKNOWN"},
 def _clean_job_filters(value):
     if value is None:
         return None
-    if not isinstance(value, dict) or set(value) != {"q", "remote_type", "provider", "sort"}:
+    required = {"q", "remote_type", "provider", "sort"}
+    if not isinstance(value, dict) or not required <= set(value) or set(value) - required - {"title", "company"}:
         raise ValueError("Saved Jobs filters must include q, remote_type, provider, and sort")
     query = value["q"]
     if not isinstance(query, str) or len(query) > 200:
         raise ValueError("Saved Jobs query must be text up to 200 characters")
     cleaned = {"q": query}
+    for key in ("title", "company"):
+        item = value.get(key, "")
+        if not isinstance(item, str) or len(item) > 200:
+            raise ValueError(f"Saved Jobs {key} must be text up to 200 characters")
+        cleaned[key] = item
     for key, allowed in JOB_FILTERS.items():
         if not isinstance(value[key], str) or value[key] not in allowed:
             raise ValueError(f"Saved Jobs {key} is invalid")

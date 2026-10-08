@@ -628,7 +628,8 @@ class Store:
             if reviewed is None:
                 raise ValueError("AI_DOCUMENT_CANDIDATE_NOT_REVIEWED")
 
-    def jobs(self, profile_id=None, q="", remote_type=None, provider=None, sort="score", limit=200):
+    def jobs(self, profile_id=None, q="", remote_type=None, provider=None, sort="score", limit=200,
+             title="", company=""):
         profile = self.profile(profile_id) if profile_id else None
         with self.engine.connect() as connection:
             counts = select(m.postings.c.job_id, func.count().label("posting_count")).group_by(m.postings.c.job_id).subquery()
@@ -666,6 +667,10 @@ class Store:
                         cast(m.jobs.c.skills, String).icontains(q, autoescape=True) |
                         m.jobs.c.location.icontains(q, autoescape=True)
                     )
+            if title:
+                statement = statement.where(m.jobs.c.title.icontains(title, autoescape=True))
+            if company:
+                statement = statement.where(m.companies.c.name.icontains(company, autoescape=True))
             if remote_type:
                 if remote_type == "REMOTE":
                     statement = statement.where(m.jobs.c.remote_type.in_(("REMOTE", "REMOTE_WORLDWIDE", "REMOTE_US", "REMOTE_COUNTRY", "REMOTE_SPECIFIC_STATES")))

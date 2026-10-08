@@ -75,6 +75,8 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                     expect(page.get_by_label("Active profile", exact=True)).to_have_value("fixture")
 
                     page.get_by_label("Search jobs", exact=True).fill("Developer")
+                    page.get_by_label("Job title", exact=True).fill("Python")
+                    page.get_by_label("Company", exact=True).fill("Example Systems")
                     page.get_by_label("Work location", exact=True).select_option("REMOTE")
                     page.get_by_label("Source", exact=True).select_option("mock-ats")
                     with page.expect_response(lambda response:
@@ -95,6 +97,8 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                     with page.expect_response(lambda response:
                             response.url.startswith(origin + "/jobs?")
                             and "q=Developer" in response.url
+                            and "title=Python" in response.url
+                            and "company=Example+Systems" in response.url
                             and "remote_type=REMOTE" in response.url
                             and "provider=mock-ats" in response.url
                             and "sort=title" in response.url) as restored_jobs:
@@ -102,6 +106,8 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                     self.assertEqual([job["title"] for job in restored_jobs.value.json()["jobs"]],
                                      ["Python Developer"])
                     expect(page.get_by_label("Search jobs", exact=True)).to_have_value("Developer")
+                    expect(page.get_by_label("Job title", exact=True)).to_have_value("Python")
+                    expect(page.get_by_label("Company", exact=True)).to_have_value("Example Systems")
                     expect(page.get_by_label("Work location", exact=True)).to_have_value("REMOTE")
                     expect(page.get_by_label("Source", exact=True)).to_have_value("mock-ats")
                     expect(page.get_by_label("Sort", exact=True)).to_have_value("title")
@@ -111,12 +117,16 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                     with page.expect_response(lambda response:
                             response.url.startswith(origin + "/jobs?")
                             and "q=" in response.url
+                            and "title=" not in response.url
+                            and "company=" not in response.url
                             and "remote_type=" not in response.url
                             and "provider=" not in response.url
                             and "sort=score" in response.url) as cleared_jobs:
                         saved.select_option("")
                     self.assertEqual(len(cleared_jobs.value.json()["jobs"]), 2)
                     expect(page.get_by_label("Search jobs", exact=True)).to_have_value("")
+                    expect(page.get_by_label("Job title", exact=True)).to_have_value("")
+                    expect(page.get_by_label("Company", exact=True)).to_have_value("")
                     expect(page.get_by_label("Work location", exact=True)).to_have_value("")
                     expect(page.get_by_label("Source", exact=True)).to_have_value("")
                     expect(page.get_by_label("Sort", exact=True)).to_have_value("score")
