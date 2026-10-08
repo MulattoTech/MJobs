@@ -1,0 +1,123 @@
+{
+  "schema_version": 1,
+  "issue": 190,
+  "requirement_id": "MJ-REQ-189",
+  "slice": "connected application-link availability facet in Jobs saved searches",
+  "result": "PARTIAL",
+  "base_commit": "1870f34273b4e57c0017d3e2d8a10f1eb5ebaff8",
+  "source_commit": "04391f2540964fcae1953d2b007f1c31c28a716a",
+  "source_tree": "1a418631771127998cbc7174909715b62fa5779a",
+  "validated_at_utc": "2026-10-08T15:44:51Z",
+  "environment": {
+    "platform": "Windows",
+    "python": "3.12",
+    "node": "v25.9.0",
+    "database": "temporary SQLite; PostgreSQL dialect compilation only",
+    "browser": "local Chromium, synthetic fixtures"
+  },
+  "behavior": {
+    "implemented": [
+      "Jobs provides an accessible Application link facet with All, Available, and Unavailable choices.",
+      "Available includes only exact persisted application_url_status PROVIDER_SUPPLIED; Unavailable includes only exact UNAVAILABLE. Missing, inferred, unknown, and malformed values fail closed when a facet is selected.",
+      "The database predicate composes with other filters before LIMIT; saved-search validation and persistence accept the optional supported enum while retaining legacy payload compatibility.",
+      "The connected UI sends the filter, saves and restores it per profile, and lets an explicit empty request override a saved value without changing the saved value.",
+      "Connected Chromium verified available/unavailable/unknown/missing results, saved-search reload and restore, UUID-based search identity, and clearing a saved AVAILABLE filter back to all statuses.",
+      "Filtering causes no discovery scheduling, application creation, external requests, or submission side effects."
+    ],
+    "remaining": "Other MJ-REQ-189 facets and connected product requirements remain incomplete. PostgreSQL runtime and live job-source behavior remain unverified; this slice does not complete issue #190 or MJ-REQ-189.",
+    "external_submission": "OFF"
+  },
+  "tests": [
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_application_link_filter tests.integration.test_saved_search_filters tests.unit.test_application_link_search_filter_validation tests.unit.test_application_link_filter_store -v",
+      "result": "PASS",
+      "detail": "34 focused integration and unit tests passed, including exact classification, fail-closed cases, AND composition before limit, saved-search reopen/profile isolation/clear, legacy payloads, and PostgreSQL dialect compilation."
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.browser.test_application_link_filter -v",
+      "result": "PASS",
+      "detail": "1 connected Chromium workflow passed against the candidate build, including save/reload/restore and explicit clearing while the AVAILABLE saved search remains selected."
+    },
+    {
+      "command": "npm test -- --run src/application-link-filter.test.tsx",
+      "result": "PASS",
+      "detail": "3 focused frontend tests passed."
+    },
+    {
+      "command": "npm run build",
+      "result": "PASS",
+      "detail": "TypeScript check and Vite production build passed. Vitest reports Node v25.9.0 outside its declared supported range."
+    },
+    {
+      "command": "Python 3.12 py_compile for API, persistence, saved-profile service, integration, and browser modules",
+      "result": "PASS"
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.agent_skills",
+      "result": "PASS"
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.coordination.lane_coordination validate",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    },
+    {
+      "command": "test_application_link_filter API regressions on the pre-wiring candidate",
+      "result": "PASS",
+      "detail": "Expected RED observed: the API ignored the selected filter and saved-search filter, confirming the missing route wiring."
+    }
+  ],
+  "input_hashes": {
+    "apps/api/main.py": {
+      "checkout_sha256": "cd54edea937fcdfc543c13a6af30d63b1597237a9666f0415122e3b56e114162",
+      "git_blob_oid": "ac9ac5677c3a401c7c55c341719d6fbd84d8d3e4"
+    },
+    "apps/web/src/main.tsx": {
+      "checkout_sha256": "660f71a31758461b6e551aa14e8f8b27110a920a59667da7fb5ccf300ba53e34",
+      "git_blob_oid": "9553af0082d9abb54d196b4d4783d811ebd6fa88"
+    },
+    "apps/web/src/application-link-filter.tsx": {
+      "checkout_sha256": "5b4612f3f1f648a8e38a92f40aa12b880bc0b8380288098e7415e18c7a679dbb",
+      "git_blob_oid": "c69d84c0bae17531f1175f69e23edbf0cc4bc66c"
+    },
+    "apps/web/src/application-link-filter.test.tsx": {
+      "checkout_sha256": "d62cb05cb99b1a828d6508437b819f3bac250a5470e0a70b01e212e4c960fc45",
+      "git_blob_oid": "0b2f9a4b00c20cd9ccbb5a00e26d2b31da79a56b"
+    },
+    "services/discovery/search_profiles.py": {
+      "checkout_sha256": "3d8d23b773678c1c086c02365a579c3d9b89547ecba4e52be58f8a099f4d7204",
+      "git_blob_oid": "cbcf3111e4eb67b8f30dbac733455c0f54286f8a"
+    },
+    "packages/persistence/store.py": {
+      "checkout_sha256": "77536412d55c938917d520790c304e86e07c2a64f3f6b2592a1a4adef642a902",
+      "git_blob_oid": "cd7be48b90b589829f3e9458244a29a6a8cb586f"
+    },
+    "tests/unit/test_application_link_search_filter_validation.py": {
+      "checkout_sha256": "f3a16f67c8dbc7da1761cf2f91b23e84c6217f0bcc9c38adfc5a7db085c4fd50",
+      "git_blob_oid": "70f865d7120e2b9c39174a982a522bb33f3ddb97"
+    },
+    "tests/unit/test_application_link_filter_store.py": {
+      "checkout_sha256": "4a0ee28c522b2b87b55485a195fe854cc38f4c429925ba2dd8a719a820d6f535",
+      "git_blob_oid": "a405d6bd13f05f5ff0312fe44eb117f308937f1e"
+    },
+    "tests/integration/test_application_link_filter.py": {
+      "checkout_sha256": "d37f121f515564740ba8e26492ed955f2c77f0d05dec35d7b89ae9bc247e1f46",
+      "git_blob_oid": "b45aae8f2419a35045f297ebcb9ab38b473f096e"
+    },
+    "tests/browser/test_application_link_filter.py": {
+      "checkout_sha256": "bfc30ebcc81d0e9e44c1e8bb0d1cd265f80dc631f812ec23722634da5ce2b308",
+      "git_blob_oid": "f6f92b19f570a39b9eb4c48a8ffa211c14a50cbf"
+    }
+  },
+  "not_run": [
+    "PostgreSQL runtime verification",
+    "Hosted GitHub checks and hosted review, disabled by local-only policy",
+    "Live production job sources and real ATS behavior",
+    "Full repository test suite"
+  ],
+  "review": "LOCAL_DELEGATED_REVIEW by Hera Syndulla found no material code findings on candidate 3311c9953d61acc72436e38c5e5c8f9bdac00ffd. Hera noted absent request-level coverage for an explicit empty value overriding a saved AVAILABLE filter; Ezra Bridger added the connected clear-override regression in a9b044df7f2bff9983fea2ca2e43f701cf13de49 and the root reran it successfully. This is local delegated review, not hosted CI or external certification.",
+  "integration": "Root candidate branch only at source commit 04391f2540964fcae1953d2b007f1c31c28a716a, based on local main 1870f34273b4e57c0017d3e2d8a10f1eb5ebaff8. Local fast-forward, GitHub main sync, and canonical tracker updates remain pending."
+}
