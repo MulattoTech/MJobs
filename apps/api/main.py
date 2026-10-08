@@ -1357,6 +1357,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
              skill: str | None = Query(default=None, max_length=100),
              education_requirement: str | None = Query(default=None, max_length=64),
              clearance_level: str | None = Query(default=None, max_length=32),
+             application_link_status: Literal["", "AVAILABLE", "UNAVAILABLE"] | None = Query(default=None, max_length=16),
              posted_within_days: int | None = Query(default=None, ge=1, le=30),
              override_saved_match_score: bool = False,
              search_profile_id: str | None = Query(default=None, max_length=128),
@@ -1390,6 +1391,12 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             effective_match_score = min_match_score
         saved_posted_within = ((search_profile["criteria"].get("job_filters") or {}).get("posted_within_days", "")
                                if search_profile else "")
+        saved_application_link_status = ((search_profile["criteria"].get("job_filters") or {}).get("application_link_status")
+                                         if search_profile else None)
+        effective_application_link_status = (application_link_status if application_link_status is not None
+                                             else saved_application_link_status)
+        if effective_application_link_status == "":
+            effective_application_link_status = None
         effective_posted_within = posted_within_days if posted_within_days is not None else (
             int(saved_posted_within) if saved_posted_within else None)
         posted_before = datetime.now(timezone.utc) if effective_posted_within is not None else None
@@ -1403,6 +1410,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                           skill_id=skill_id,
                           education_requirement=education_requirement,
                           clearance_level=clearance_level,
+                          application_link_status=effective_application_link_status,
                           posted_after=posted_after, posted_before=posted_before)
         if search_profile_id:
             rows = filter_jobs(rows, search_profile["criteria"])
