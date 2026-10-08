@@ -1,0 +1,73 @@
+{
+  "timestamp": "2026-10-08T08:44:15Z",
+  "result": "PARTIAL",
+  "scope": "MJ-REQ-114 bounded explainable matching slice",
+  "branch": "codex/mj-req114-explainable-factors-20261008",
+  "worktree": ".worktrees/codex-mj-req114-explainable-factors-20261008",
+  "base_commit": "1f4c7771d01b5918943cb1569c5aae84a9e53181",
+  "base_tree": "ff75f55b102b250255fc4407baaa0d8a4ef9a2f6",
+  "remote_main_at_check": "1f4c7771d01b5918943cb1569c5aae84a9e53181",
+  "target": "Synthetic profile, explicit profile preferences, synthetic job attributes, temporary SQLite database, isolated Chromium browser",
+  "behavior": [
+    "Match explanations now include title-family, work-arrangement, and employment-type signals from explicit profile preferences and known job attributes.",
+    "Unknown profile or job inputs are reported as UNKNOWN. Known non-alignment is informational and does not affect the match score.",
+    "The existing 0-100 score remains weighted coverage of detected skill evidence; fit factors declare score_effect NONE.",
+    "Skill evidence continues to use the existing verified, approved, confidence, and source eligibility checks."
+  ],
+  "red_green": {
+    "red_command": "python -m unittest tests.integration.test_explainable_matching.ExplainableMatchingTests.test_title_and_work_arrangement_fit_are_explained_without_changing_skill_score tests.integration.test_explainable_matching.ExplainableMatchingTests.test_unavailable_fit_inputs_are_unknown_and_never_penalize_score",
+    "red_result": "FAIL as expected: both assertions reported the absent fit_factors component before implementation.",
+    "green_result": "Both tests pass in the final focused integration run."
+  },
+  "checks": [
+    {
+      "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_explainable_matching",
+      "result": "PASS",
+      "tests": 10
+    },
+    {
+      "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_manual_job_capture.ManualJobCaptureBrowserTests.test_manual_capture_persists_distinct_jobs_and_prepares_without_fetching",
+      "result": "PASS",
+      "tests": 1,
+      "browser": "Chromium",
+      "journey": "manual job capture, saved detail view, neutral unknown fit factors and existing preparation workflow"
+    },
+    {
+      "command": "apps/web/node_modules/.bin/tsc.cmd --noEmit",
+      "result": "PASS"
+    },
+    {
+      "command": "apps/web/node_modules/.bin/vite.cmd build",
+      "result": "PASS",
+      "output": "worktree apps/web/dist"
+    },
+    {
+      "command": "apps/web/node_modules/.bin/vitest.cmd run",
+      "result": "PASS",
+      "test_files": 16,
+      "tests": 94
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    },
+    {
+      "command": "git ls-remote origin refs/heads/main",
+      "result": "PASS",
+      "observed_sha": "1f4c7771d01b5918943cb1569c5aae84a9e53181"
+    }
+  ],
+  "setup_note": "The initial browser attempt was blocked because the isolated worktree had no apps/web/dist for the API static mount. A worktree-local build using existing root frontend binaries created the isolated UI bundle; the browser test then passed. Shared dependency contents were not modified.",
+  "hosted_checks": "NOT_RUN by repository policy",
+  "unverified": [
+    "Full Python suite and full product acceptance were not run.",
+    "No hosted CI, hosted review, or release eligibility is claimed.",
+    "MJ-REQ-114 and parent PR-031 remain PARTIAL."
+  ],
+  "source_sha256": {
+    "services/discovery/matching.py": "1A414D2BA8DD6D61328FBD81665C18677BB44D45D45A64B1FB11A046561F6F2E",
+    "apps/web/src/main.tsx": "68D8CEB8ACFFB65ADDDC7B77198C8EAE8B1F26AF38C6C2E09710F7D3004B7A85",
+    "tests/integration/test_explainable_matching.py": "676C4A6A6AE0150F65DCED722F9AE2A928DFA324A7D89F1DE78F11E61C8BCB6C",
+    "tests/browser/test_manual_job_capture.py": "6391ECC3C01A62A84DA59458D019A23C7D35C4BEE76B2742978E7BC3D1D402A7"
+  }
+}

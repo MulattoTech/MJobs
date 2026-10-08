@@ -141,6 +141,51 @@ class ExplainableMatchingTests(unittest.TestCase):
         self.assertEqual(result["score"], 100)
         self.assertEqual(result["components"]["matched"], ["Active Directory"])
 
+    def test_title_and_work_arrangement_fit_are_explained_without_changing_skill_score(self):
+        from services.discovery.matching import build_explanation
+
+        result = build_explanation({
+            "title": "Senior Windows Sysadmin",
+            "remote_type": "UNKNOWN",
+            "skills": ["Active Directory"],
+            "attributes": {"skill_evidence": "description_mentions", "remote_indicated": True,
+                           "employment_type": "FULL_TIME"},
+        }, {
+            "facts": [{
+                "kind": "skill", "text": "Active Directory", "source": "approved",
+                "confidence": 100, "verified": True, "user_approved": True,
+            }],
+            "preferences": {
+                "desired_roles": ["Systems Administrator"],
+                "work_arrangements": ["REMOTE"],
+                "employment_types": ["FULL_TIME"],
+            },
+        })
+
+        self.assertEqual(result["score"], 100)
+        self.assertIn("fit_factors", result["components"])
+        factors = {row["id"]: row for row in result["components"]["fit_factors"]}
+        self.assertEqual(factors["title"]["status"], "ALIGNS")
+        self.assertIn("Systems Administrator", factors["title"]["explanation"])
+        self.assertEqual(factors["work_arrangement"]["status"], "ALIGNS")
+        self.assertEqual(factors["employment_type"]["status"], "ALIGNS")
+
+    def test_unavailable_fit_inputs_are_unknown_and_never_penalize_score(self):
+        from services.discovery.matching import build_explanation
+
+        result = build_explanation({
+            "title": "Systems Administrator", "remote_type": "UNKNOWN",
+            "skills": ["Active Directory"],
+            "attributes": {"skill_evidence": "description_mentions"},
+        }, {"facts": [], "preferences": {}})
+
+        self.assertEqual(result["score"], 0)
+        self.assertIn("fit_factors", result["components"])
+        factors = {row["id"]: row for row in result["components"]["fit_factors"]}
+        self.assertEqual(factors["title"]["status"], "UNKNOWN")
+        self.assertEqual(factors["work_arrangement"]["status"], "UNKNOWN")
+        self.assertTrue(all(row["score_effect"] == "NONE" for row in factors.values()))
+
     def test_queued_rescore_uses_latest_profile_version_after_approval_changes(self):
         job = capture_manual_job(self.store, {
             "request_id": "stale-rescore-test", "title": "Systems Administrator",
