@@ -1,3 +1,11 @@
+## 2026-10-08T13:23:13Z — taxonomy-backed skill facet integrated; education facet active
+
+Local `main` fast-forward integrated the connected #190 / MJ-REQ-189 skill facet at `57e667761de038f5a7ee1692e1053f6c4d5b95eb` (tree `550dd8c21b16a3f256444b4db1fe5eaddff7f8fe`). Evidence `docs/evidence/2026-10-08-skill-search-filter.json`; root exact rebased candidate passed 17 API/integration/browser tests, 103 frontend tests, TypeScript/Vite build, compilation, skill validation, eight input hashes and diff checks. Local delegated review found no material findings. Receipt https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6060801276; claim release https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6060814548. The filter normalizes taxonomy aliases, matches exact skill IDs/labels before LIMIT, fails closed for missing/unrecognized values, and saves/restores/clears within profile-scoped saved searches. #190 remains OPEN/PARTIAL for education and other facets.
+
+Active Codex child: #190 / MJ-REQ-189 Education facet, branch `codex/mj-req189-education-filter-20261008`, worktree `.worktrees/codex-mj-req189-education-filter-20261008`, base `57e667761de038f5a7ee1692e1053f6c4d5b95eb`. Claim/acceptance https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6060829902. Root retains integration lock. External claims #302 and #318 remain separate. Original totals **83 PASS / 93 PARTIAL / 190 NOT_RUN**; references **13 PASS / 1 PARTIAL / 45 NOT_RUN**; release UNKNOWN. PostgreSQL/hosted/live ATS NOT_RUN; external submission OFF.
+
+---
+
 ## 2026-10-08T13:13:25Z — employment filter and MOCK auth recovery integrated locally
 
 Local `main` is `5ca978be11a78a71cf93a8be5755f7fede319e12` (tree to be recorded after tracker/dashboard commit); `origin/main` is still `5ca978be11a78a71cf93a8be5755f7fede319e12` and is pending ordinary non-force fast-forward. The employment-type facet is connected through API, store, Jobs UI and profile-scoped saved searches, including canonical known values, explicit/missing/invalid `UNKNOWN`, filtering before LIMIT, and AND composition. Evidence: `docs/evidence/2026-10-08-employment-type-search-filter.json`; 15 focused Python tests, 103 frontend tests, build, local review and hash checks PASS. #190/MJ-REQ-189 remains PARTIAL for skills and other facets.

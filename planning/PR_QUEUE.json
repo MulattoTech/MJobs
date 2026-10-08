@@ -1802,6 +1802,27 @@
             "Skills and other facets remain incomplete; PR-052 dependencies/status unchanged.",
             "PostgreSQL and hosted checks NOT_RUN_BY_USER_POLICY."
           ]
+        },
+        {
+          "name": "Taxonomy-backed profile-scoped skill filter",
+          "issue": 190,
+          "requirement_id": "MJ-REQ-189",
+          "status": "INTEGRATED_PARTIAL",
+          "base": "516fd4bffb4e22110573a6a7a406a19d6af76ec4",
+          "source_head": "0696b749d7775d0c0a13f453e11b1f6ae3a803e2",
+          "source_tree": "57dff5408c694ce38274b0fdf731b86945cff609",
+          "integrated_head": "57e667761de038f5a7ee1692e1053f6c4d5b95eb",
+          "integrated_tree": "550dd8c21b16a3f256444b4db1fe5eaddff7f8fe",
+          "evidence_path": "docs/evidence/2026-10-08-skill-search-filter.json",
+          "integration_method": "NON_FORCE_FAST_FORWARD",
+          "validation": "Root exact rebased candidate: 17 API/integration/browser tests; frontend 103/103; TypeScript/Vite build, compile, agent skills, eight input hashes and diff check PASS; LOCAL_DELEGATED_REVIEW no material findings on immutable code diff.",
+          "issue_state": "OPEN/PARTIAL",
+          "issue_comment": "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6060801276",
+          "claim_release_comment": "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6060814548",
+          "limitations": [
+            "Education, clearance, ATS, application capability/state facets remain outstanding.",
+            "PostgreSQL and hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF."
+          ]
         }
       ]
     },
@@ -4418,5 +4439,5 @@
       "claim_release_comment": "https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053395464"
     }
   ],
-  "generated_at": "2026-10-08T13:13:25Z"
+  "generated_at": "2026-10-08T13:23:13Z"
 }

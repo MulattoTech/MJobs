@@ -1238,9 +1238,12 @@
         "tests/browser/test_resume_tailoring_facts.py",
         "docs/evidence/2026-10-08-resume-reviewed-fact-tailoring.json"
       ],
-      "status": "ACTIVE",
+      "status": "RELEASED",
       "claimed_at": "2026-10-08T11:12:52Z",
-      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6058600212"
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6058851286",
+      "released_at": "2026-10-08T12:49:05Z",
+      "integrated_main": "44bc300eacb28010e3ff3486264222e13ae42342",
+      "release_receipt": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6060269525"
     },
     {
       "issue": 197,
