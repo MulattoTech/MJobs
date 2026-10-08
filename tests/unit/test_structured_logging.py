@@ -33,6 +33,46 @@ class StructuredOperationLoggingTests(unittest.TestCase):
             logger.setLevel(prior_level)
             logger.propagate = prior_propagate
 
+    def test_discovery_logs_include_only_the_persisted_source_identifier(self):
+        cases = (
+            ("DISCOVER", {"source_id": "source-123"}, "source-123"),
+            ("COMPANY_DISCOVER", {"monitoring_source_id": "source-456"}, "source-456"),
+            ("COMPANY_SOURCE_REFRESH", {"source_id": "source-789"}, "source-789"),
+        )
+        for kind, params, expected_source_id in cases:
+            with self.subTest(kind=kind), self.assertLogs("mjobs.operations", level="INFO") as captured:
+                log_operation_finished({
+                    "id": "operation-1", "kind": kind, "entity_id": "entity-1",
+                    "params": {**params, "candidate": {"company_name": "private company"},
+                               "api_key": "synthetic-secret-value"},
+                }, "COMPLETED", None, 0.01)
+
+            message = captured.records[0].getMessage()
+            record = json.loads(message)
+            self.assertEqual(record.get("source_id"), expected_source_id)
+            self.assertNotIn("params", record)
+            self.assertNotIn("candidate", record)
+            self.assertNotIn("private company", message)
+            self.assertNotIn("synthetic-secret-value", message)
+
+    def test_discovery_omits_missing_malformed_and_secret_shaped_source_identifiers(self):
+        cases = (
+            ("missing", {}),
+            ("malformed", {"source_id": "https://example.test/jobs?token=private"}),
+            ("secret-shaped", {"source_id": "api-key-secret-value"}),
+        )
+        for case, params in cases:
+            with self.subTest(case=case), self.assertLogs("mjobs.operations", level="INFO") as captured:
+                log_operation_finished({
+                    "id": "operation-1", "kind": "DISCOVER", "params": params,
+                }, "COMPLETED", None, 0.01)
+
+            message = captured.records[0].getMessage()
+            record = json.loads(message)
+            self.assertNotIn("source_id", record)
+            self.assertNotIn("private", message)
+            self.assertNotIn("api-key-secret-value", message)
+
     def test_prepare_log_contains_safe_context_but_never_serializes_params(self):
         operation = {
             "id": "a" * 64,
@@ -40,6 +80,7 @@ class StructuredOperationLoggingTests(unittest.TestCase):
             "entity_id": "profile-id",
             "params": {
                 "job_id": "job-123",
+                "source_id": "source-must-not-appear-for-prepare",
                 "api_key": "synthetic-secret-value",
                 "tailor_fact_rewrites": [{"text": "private resume content"}],
             },
@@ -56,6 +97,7 @@ class StructuredOperationLoggingTests(unittest.TestCase):
         self.assertEqual(record["worker"], "mjobs-worker")
         self.assertEqual(record["result"], "DEAD_LETTERED")
         self.assertEqual(record["error_code"], "DOCUMENT_GENERATION_FAILED")
+        self.assertNotIn("source_id", record)
         self.assertEqual(record["duration_ms"], 25)
         self.assertTrue(record["timestamp"].endswith("Z"))
         self.assertNotIn("params", record)

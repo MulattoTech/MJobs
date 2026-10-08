@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-08T05:55:19.386079Z",
+  "issue": 178,
+  "requirement_id": "MJ-REQ-177",
+  "result": "PARTIAL",
+  "scoped_acceptance": "PASS",
+  "base_commit": "f34131a4047467284bb25b37138f872bf5f14a42",
+  "tested_code_and_test_tree": "a8c50630a4c458febf583d6603e88fc342368d28",
+  "tested_source_sha256": {
+    "workers/structured_logging.py": "31c6ad71296a46860dd6292497184bbe547d274895f22f716a7f6a21ba006383",
+    "tests/unit/test_structured_logging.py": "ae303bc490fe593cb1082f725ac84ea48c017539d6e3ffc7d59ff36be1f173d9",
+    "tests/integration/test_worker_lifecycle.py": "24bd8c82f3e32b58bcaf348d4f45196aa5b1c0d9b5a7e7f5d3ed738f53e4e702"
+  },
+  "acceptance_oracle": "For supported discovery operation kinds, terminal JSON records may include only an explicit source identifier persisted in the operation parameters: DISCOVER.source_id, COMPANY_DISCOVER.monitoring_source_id, or COMPANY_SOURCE_REFRESH.source_id. The identifier must pass the existing fixed identifier syntax and must not contain credential markers. Logging remains after durable terminal-state persistence; params, candidate fields, URLs, secrets, and arbitrary payload values are never serialized.",
+  "implementation": [
+    "Added a discovery-kind allowlist mapping persisted source identifier fields to the source_id log field.",
+    "Malformed values and identifiers containing API key, access key/token, secret, token, password, or credential markers are omitted.",
+    "Unit tests cover all three supported discovery mappings and missing, URL-shaped, and secret-shaped values; the existing PREPARE privacy test confirms discovery context is not emitted for PREPARE operations.",
+    "The worker lifecycle test persists a DISCOVER operation with a source_id, executes the worker, and verifies the completed durable state and corresponding terminal log record."
+  ],
+  "test_first": {
+    "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.unit.test_structured_logging.StructuredOperationLoggingTests.test_discovery_logs_include_only_the_persisted_source_identifier -v",
+    "result": "EXPECTED_FAILURE_BEFORE_IMPLEMENTATION",
+    "observed": "With the production enrichment temporarily absent, the test failed its source_id assertion: None != 'source-123'. The implementation was restored and the same behavior passed in the final focused run."
+  },
+  "validation": [
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.unit.test_structured_logging tests.integration.test_worker_lifecycle -v",
+      "result": "PASS",
+      "counts": {
+        "passed": 24,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 1
+      },
+      "skip_detail": "PostgreSQLWorkerCrashRecoveryTests skipped because MJOBS_WORKER_RECOVERY_POSTGRES_URL is unset."
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m compileall -q workers/structured_logging.py tests/unit/test_structured_logging.py tests/integration/test_worker_lifecycle.py",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.agent_skills",
+      "result": "PASS"
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.catalogue",
+      "result": "PASS"
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m tools.verification.progress validate",
+      "result": "PASS"
+    }
+  ],
+  "environment": {
+    "os": "Windows 11 (10.0.26300)",
+    "python": "CPython 3.12.10",
+    "database": "Temporary SQLite databases in unit/integration tests",
+    "hosted_checks": "NOT_RUN_BY_USER_POLICY",
+    "external_submission": "OFF"
+  },
+  "limitations": [
+    "This scoped improvement exposes only a persisted source identifier. It does not infer source provider, ATS, job, posting, or additional company attributes from candidate input or worker results.",
+    "Posting and ATS context are not available as safe identifiers on the terminal operation rows/params covered by this slice; remaining MJ-REQ-177 context is incomplete and the issue remains PARTIAL.",
+    "The optional PostgreSQL worker recovery class and the full Python suite were NOT_RUN; no live Redis/RQ service was used.",
+    "GitHub-hosted checks remain NOT_RUN under local-only policy."
+  ]
+}

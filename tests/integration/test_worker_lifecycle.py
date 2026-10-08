@@ -205,17 +205,20 @@ class WorkerLifecycleTests(unittest.TestCase):
         self.assertEqual(saved["error"], "OPERATION_TIMEOUT")
 
     def test_worker_logs_successful_operation_as_structured_record(self):
-        operation = enqueue_operation(self.store, "DISCOVER", "fixture", {"rescore_only": True})
+        operation = enqueue_operation(self.store, "DISCOVER", "fixture", {"source_id": "source-123"})
         with patch.dict("os.environ", MJOBS_DATABASE_URL=self.store.url,
                         MJOBS_MOCK_ORIGIN="http://127.0.0.1:8090", MJOBS_OUTPUT_DIR=str(self.root),
                         MJOBS_OPERATION_MODE="FIXTURE"), \
-                self.assertLogs("mjobs.operations", level="INFO") as captured:
+                self.assertLogs("mjobs.operations", level="INFO") as captured, \
+                patch("workers.tasks.collect_source"):
             result = execute_operation(operation)
 
         self.assertEqual(result["status"], "COMPLETED")
+        self.assertEqual(self.read(operation)["state"], "COMPLETED")
         record = json.loads(captured.records[0].getMessage())
         self.assertEqual(record["operation_id"], operation)
         self.assertEqual(record["operation_kind"], "DISCOVER")
+        self.assertEqual(record["source_id"], "source-123")
         self.assertEqual(record["result"], "COMPLETED")
         self.assertNotIn("error_code", record)
 

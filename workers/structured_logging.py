@@ -14,11 +14,35 @@ _OPERATION_KINDS = {
 }
 _RESULTS = {"COMPLETED", "BLOCKED", "CANCELLED", "DEAD_LETTERED"}
 _SAFE_IDENTIFIER = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,127}\Z")
+_SECRET_SHAPED_IDENTIFIER = re.compile(
+    r"(?:^|[._:-])(?:api[_-]?key|access[_-]?(?:key|token)|secret|token|password|credential)(?:$|[._:-])",
+    re.IGNORECASE,
+)
 _SAFE_ERROR_CODE = re.compile(r"[A-Z][A-Z0-9_]{0,79}\Z")
 
 
 def _safe_identifier(value):
     return value if isinstance(value, str) and _SAFE_IDENTIFIER.fullmatch(value) else None
+
+
+def _safe_discovery_source_id(operation):
+    """Return only an explicit persisted source identifier for a discovery kind."""
+    params = operation.get("params")
+    if not isinstance(params, dict):
+        return None
+
+    kind = operation.get("kind")
+    if kind == "DISCOVER" or kind == "COMPANY_SOURCE_REFRESH":
+        value = params.get("source_id")
+    elif kind == "COMPANY_DISCOVER":
+        value = params.get("monitoring_source_id")
+    else:
+        return None
+
+    identifier = _safe_identifier(value)
+    if identifier and not _SECRET_SHAPED_IDENTIFIER.search(identifier):
+        return identifier
+    return None
 
 
 def _safe_error_code(value):
@@ -54,6 +78,10 @@ def log_operation_finished(operation, result, error_code, duration_seconds):
         "result": result,
     }
     params = operation.get("params")
+    source_id = _safe_discovery_source_id(operation)
+    if source_id:
+        record["source_id"] = source_id
+
     if kind == "PREPARE" and isinstance(params, dict):
         job_id = _safe_identifier(params.get("job_id"))
         if job_id:
