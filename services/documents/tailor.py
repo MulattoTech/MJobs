@@ -277,18 +277,42 @@ def select_summary_rows(facts, job):
     """Keep exact approved summary facts that mention target skills when any match."""
     summaries=[row for row in facts if row['kind']=='summary']
     matches=matched_labels(summaries,job)
-    selected_ids=[row['fact_id'] for row in summaries if matches[row['fact_id']]]
-    adjusted=bool(selected_ids)
-    selected=set(selected_ids) if adjusted else {row['fact_id'] for row in summaries}
+    skill_selected=[row['fact_id'] for row in summaries if matches[row['fact_id']]]
+    responsibility_phrases=target_responsibilities(job)
+    responsibility_matches=matched_responsibility_phrases(summaries,responsibility_phrases)
+    responsibility_selected=[row['fact_id'] for row in summaries
+                             if responsibility_matches[row['fact_id']]]
+    if skill_selected:
+        selected_ids=skill_selected
+        mode='EXACT_TARGET_SKILL_SUMMARY_FACTS'
+    elif responsibility_selected:
+        selected_ids=responsibility_selected
+        mode='EXACT_TARGET_RESPONSIBILITY_PHRASE_SUMMARY_FACTS'
+    else:
+        selected_ids=[row['fact_id'] for row in summaries]
+        mode='EXACT_TARGET_SKILL_SUMMARY_FACTS'
+    adjusted=len(selected_ids)!=len(summaries)
+    selected=set(selected_ids)
     result=[row for row in facts if row['kind']!='summary' or row['fact_id'] in selected]
-    return result,{
-        'mode':'EXACT_TARGET_SKILL_SUMMARY_FACTS',
+    context={
+        'mode':mode,
         'adjusted':adjusted,
         'original_summary_fact_ids':[row['fact_id'] for row in summaries],
         'selected_summary_fact_ids':[row['fact_id'] for row in summaries if row['fact_id'] in selected],
         'omitted_summary_fact_ids':[row['fact_id'] for row in summaries if row['fact_id'] not in selected],
         'matched_skills':matches,
     }
+    if mode=='EXACT_TARGET_RESPONSIBILITY_PHRASE_SUMMARY_FACTS':
+        context.update(
+            target_responsibilities=responsibility_phrases,
+            matched_responsibilities=responsibility_matches,
+            source_fact_fingerprints={row['fact_id']:source_fact_fingerprint(row) for row in summaries},
+            target_description_sha256=hashlib.sha256(
+                str(job.get('description') or '').encode('utf-8')).hexdigest(),
+            target_responsibility_snapshot_sha256=hashlib.sha256(json.dumps(
+                responsibility_phrases,ensure_ascii=False,separators=(',',':')).encode('utf-8')).hexdigest(),
+        )
+    return result,context
 
 
 def select_bullet_rows(facts, job):

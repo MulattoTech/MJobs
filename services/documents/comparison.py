@@ -130,7 +130,9 @@ def tailored_context(target, target_source_facts=None):
         original=adjustment.get('original_summary_fact_ids');selected=adjustment.get('selected_summary_fact_ids')
         omitted=adjustment.get('omitted_summary_fact_ids');summary_matches=adjustment.get('matched_skills')
         target_summaries=[row['fact_id'] for row in target['facts_used'] if row['kind']=='summary']
-        if (adjustment.get('mode')!='EXACT_TARGET_SKILL_SUMMARY_FACTS' or
+        responsibility_mode=adjustment.get('mode')=='EXACT_TARGET_RESPONSIBILITY_PHRASE_SUMMARY_FACTS'
+        if (adjustment.get('mode') not in ('EXACT_TARGET_SKILL_SUMMARY_FACTS',
+                'EXACT_TARGET_RESPONSIBILITY_PHRASE_SUMMARY_FACTS') or
             type(adjustment.get('adjusted')) is not bool or not isinstance(original,list) or
             not isinstance(selected,list) or not isinstance(omitted,list) or
             any(not isinstance(value,str) for value in [*original,*selected,*omitted]) or
@@ -140,10 +142,47 @@ def tailored_context(target, target_source_facts=None):
             not isinstance(summary_matches,dict) or set(summary_matches)!=set(original) or
             any(not isinstance(labels,list) or any(not isinstance(label,str) for label in labels)
                 for labels in summary_matches.values()) or
-            (adjustment['adjusted'] and (not selected or any(not summary_matches[value] for value in selected)
+            (not responsibility_mode and adjustment['adjusted'] and (not selected or any(not summary_matches[value] for value in selected)
                 or any(summary_matches[value] for value in omitted))) or
-            (not adjustment['adjusted'] and (selected!=original or omitted or any(summary_matches.values())))):
+            (not responsibility_mode and not adjustment['adjusted'] and
+                (selected!=original or omitted or any(summary_matches.values())))):
             raise ComparisonUnavailable('Original summary adjustment context is unavailable')
+        if responsibility_mode:
+            skills=context.get('job_skills')
+            target_responsibilities=adjustment.get('target_responsibilities')
+            recorded_responsibilities=adjustment.get('matched_responsibilities')
+            source_fingerprints=adjustment.get('source_fact_fingerprints')
+            description_sha256=adjustment.get('target_description_sha256')
+            if (not isinstance(skills,list) or any(not isinstance(value,str) for value in skills) or
+                not isinstance(target_responsibilities,list) or
+                any(not isinstance(value,str) for value in target_responsibilities) or
+                not isinstance(description_sha256,str) or len(description_sha256)!=64 or
+                adjustment.get('target_responsibility_snapshot_sha256')!=hashlib.sha256(
+                    json.dumps(target_responsibilities,ensure_ascii=False,separators=(',',':')).encode('utf-8')).hexdigest() or
+                not isinstance(recorded_responsibilities,dict) or set(recorded_responsibilities)!=set(original) or
+                any(not isinstance(phrases,list) or any(not isinstance(value,str) for value in phrases)
+                    for phrases in recorded_responsibilities.values()) or
+                not isinstance(source_fingerprints,dict) or set(source_fingerprints)!=set(original) or
+                any(not isinstance(value,str) or len(value)!=64 for value in source_fingerprints.values()) or
+                context.get('target_fingerprint')!=tailor.target_snapshot_fingerprint(
+                    context.get('job_id'),context.get('job_title'),skills,description_sha256,target_responsibilities)):
+                raise ComparisonUnavailable('Original summary responsibility snapshot is unavailable')
+            if target_source_facts is not None:
+                source_summaries=[row for row in target_source_facts if row['kind']=='summary']
+                source_ids=[row['fact_id'] for row in source_summaries]
+                source_skills=tailor.matched_labels(source_summaries,{'skills':skills})
+                source_responsibilities=tailor.matched_responsibility_phrases(
+                    source_summaries,target_responsibilities)
+                expected_selected=[row['fact_id'] for row in source_summaries
+                                   if source_responsibilities[row['fact_id']]]
+                expected_fingerprints={row['fact_id']:tailor.source_fact_fingerprint(row)
+                                       for row in source_summaries}
+                if (source_ids!=original or any(source_skills.values()) or not expected_selected or
+                    adjustment['adjusted']!=(expected_selected!=source_ids) or
+                    selected!=expected_selected or omitted!=[value for value in source_ids if value not in set(expected_selected)] or
+                    summary_matches!=source_skills or recorded_responsibilities!=source_responsibilities or
+                    source_fingerprints!=expected_fingerprints):
+                    raise ComparisonUnavailable('Original summary responsibility provenance is unavailable')
     if target['template'] in TARGET_BULLET_TAILORING_TEMPLATES:
         adjustment=context.get('bullet_adjustment')
         if not isinstance(adjustment,dict):

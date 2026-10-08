@@ -36,6 +36,44 @@ class SkillOrderTests(unittest.TestCase):
         self.assertEqual(context['selected_summary_fact_ids'],['summary'])
         self.assertEqual(context['omitted_summary_fact_ids'],[])
 
+    def test_summary_selection_uses_exact_target_responsibility_when_no_skill_matches(self):
+        duty='Manage backup systems across regional offices and document recovery plans'
+        rows=[
+            {'fact_id':'summary-backups','kind':'summary','text':f'Experienced administrator. {duty}.'},
+            {'fact_id':'summary-sales','kind':'summary','text':'Experienced retail sales associate.'},
+            {'fact_id':'skill-python','kind':'skill','text':'Python'},
+        ]
+        job={'id':'job-1','title':'Infrastructure manager','skills':['Python'],
+             'description':f'Responsibilities:\n- {duty}\nRequirements:\n- Five years of experience.'}
+        selected,context=self.select_summary_rows(rows,job)
+
+        self.assertEqual([row['fact_id'] for row in selected],['summary-backups','skill-python'])
+        self.assertEqual([row['text'] for row in selected],[rows[0]['text'],rows[2]['text']])
+        self.assertEqual(context['mode'],'EXACT_TARGET_RESPONSIBILITY_PHRASE_SUMMARY_FACTS')
+        self.assertTrue(context['adjusted'])
+        self.assertEqual(context['selected_summary_fact_ids'],['summary-backups'])
+        self.assertEqual(context['omitted_summary_fact_ids'],['summary-sales'])
+        self.assertEqual(context['matched_responsibilities'],{'summary-backups':[duty.casefold()],
+            'summary-sales':[]})
+        self.assertEqual(context['target_responsibilities'],[duty.casefold()])
+        self.assertEqual(context['source_fact_fingerprints']['summary-backups'],
+            tailor.source_fact_fingerprint({**rows[0],'text':rows[0]['text']}))
+
+    def test_summary_responsibility_near_match_keeps_all_summary_facts(self):
+        rows=[
+            {'fact_id':'summary-paraphrase','kind':'summary',
+             'text':'Coordinated backup services for offices and wrote recovery procedures.'},
+            {'fact_id':'summary-other','kind':'summary','text':'Experienced retail sales associate.'},
+        ]
+        job={'id':'job-2','title':'Infrastructure manager','skills':['Python'],
+             'description':'Responsibilities:\n- Manage backup systems across regional offices and document recovery plans'}
+        selected,context=self.select_summary_rows(rows,job)
+
+        self.assertEqual(selected,rows)
+        self.assertFalse(context['adjusted'])
+        self.assertEqual(context['selected_summary_fact_ids'],['summary-paraphrase','summary-other'])
+        self.assertEqual(context['omitted_summary_fact_ids'],[])
+
     def test_only_skill_slots_move_and_all_text_is_unchanged(self):
         rows=[{'fact_id':str(i),'kind':kind,'text':text} for i,(kind,text) in enumerate([
             ('skill','SQL'),('experience','Example | Engineer | 2020-2024'),

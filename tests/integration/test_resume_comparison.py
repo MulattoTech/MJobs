@@ -8,6 +8,7 @@ from fixtures.mock_server import fixture_server
 from services.discovery.pipeline import discover
 from services.documents.generate import prepare
 from services.documents.history import application_documents
+from services.documents.comparison import compare_resumes,ComparisonUnavailable
 from tests.integration import test_document_provenance as fixtures
 from tests.integration.test_spine import PROFILE
 
@@ -188,6 +189,38 @@ class ResumeComparisonTests(unittest.TestCase):
             self.assertEqual(result['summary_changes'],[]);self.assertEqual(result['bullet_changes'],[])
             self.assertEqual(result['omitted'],[]);self.assertEqual(result['added'],[])
             self.assertEqual({r['fact_id'] for r in result['reordered']},{'python','sql'})
+
+    def test_summary_responsibility_provenance_is_revalidated_from_approved_source_facts(self):
+        duty='Manage backup systems across regional offices and document recovery plans'
+        facts=[
+            dict(PROFILE['facts'][0],id='summary-duty',kind='summary',text=f'Infrastructure administrator. {duty}.'),
+            dict(PROFILE['facts'][0],id='summary-other',kind='summary',text='Experienced retail sales associate.'),
+            PROFILE['facts'][0],PROFILE['facts'][1],
+        ]
+        self.store.save_profile(dict(PROFILE,facts=facts))
+        with fixture_server() as origin:
+            discover(self.store,origin,'fixture')
+        job=self.store.jobs()[0]
+        description=f'Responsibilities:\n- {duty}\nRequirements:\n- Five years of experience.'
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.id==job['id']).values(
+                skills=['Python'],description=description))
+        app=prepare(self.store,job['id'],'fixture',self.root)
+        prepare(self.store,job['id'],'fixture',self.root,tailor_resume=True)
+        rows=application_documents(self.store,app)
+        base=next(row for row in rows if row['kind']=='resume' and row['version']==1)
+        tailored=next(row for row in rows if row['kind']=='resume' and row['version']==2)
+        context=tailored['generation_context']
+        adjustment=context['summary_adjustment']
+        self.assertEqual(tailored['fact_ids'],['summary-duty','python','sql'])
+
+        tampered={**context,'summary_adjustment':{**adjustment,
+            'matched_responsibilities':{'summary-duty':[],'summary-other':[]}}}
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.documents).where(m.documents.c.id==tailored['id']).values(
+                generation_context=tampered))
+        with self.assertRaises(ComparisonUnavailable):
+            compare_resumes(self.store,self.root,app,base['id'],tailored['id'])
             self.assertEqual(result['emphasized_skills'][0]['job_skills'],['Python'])
             self.assertEqual(result['base']['text'],(self.root/app/base['files']['txt']).read_text(encoding='utf-8'))
             self.store.save_profile(dict(PROFILE,name='Changed live identity',facts=[dict(PROFILE['facts'][0],text='Changed live text')]))

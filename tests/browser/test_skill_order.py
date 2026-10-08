@@ -439,4 +439,73 @@ class SkillOrderBrowserTests(unittest.TestCase):
                     context.close();browser.close()
             finally:
                 server.should_exit=True;thread.join(timeout=10);sock.close();store.engine.dispose()
+
+    def test_responsibility_matched_summary_survives_prepare_reload_and_comparison(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory);store=Store(f"sqlite:///{(root/'responsibility-summary.db').as_posix()}")
+            store.migrate();store.bind_workspace_mode('FIXTURE')
+            duty='Manage backup systems across regional offices and document recovery plans'
+            facts=[
+                dict(PROFILE['facts'][0],id='summary-duty',kind='summary',text=f'Infrastructure administrator. {duty}.'),
+                dict(PROFILE['facts'][0],id='summary-sales',kind='summary',text='Experienced retail sales associate.'),
+                PROFILE['facts'][0],PROFILE['facts'][1],
+            ]
+            store.save_profile(dict(PROFILE,facts=facts));before=store.profile('fixture')
+            with fixture_server() as fixture:discover(store,fixture,'fixture')
+            job=store.jobs()[0]
+            description=f'Responsibilities:\n- {duty}\nRequirements:\n- Five years of experience.'
+            with store.engine.begin() as connection:
+                connection.execute(update(m.jobs).where(m.jobs.c.id==job['id']).values(
+                    skills=['Python'],description=description))
+            application_id=prepare(store,job['id'],'fixture',root)
+            base_letter=next(row for row in application_documents(store,application_id)
+                             if row['kind']=='cover-letter')
+            base_letter_bytes=(root/application_id/base_letter['files']['txt']).read_bytes()
+            sock=bound_browser_socket();origin=f'http://127.0.0.1:{sock.getsockname()[1]}'
+            app=create_app(store,'http://127.0.0.1:1',root,'redis://127.0.0.1:1/0',operation_mode='FIXTURE')
+            server=uvicorn.Server(uvicorn.Config(app,log_level='error'))
+            thread=threading.Thread(target=server.run,kwargs={'sockets':[sock]},daemon=True);thread.start()
+            try:
+                deadline=time.monotonic()+10
+                while not server.started:
+                    if not thread.is_alive() or time.monotonic()>deadline:self.fail('Responsibility-summary API did not start')
+                    time.sleep(.02)
+                with sync_playwright() as playwright:
+                    browser=playwright.chromium.launch(headless=True);context=browser.new_context(accept_downloads=True)
+                    external=[]
+                    def local_only(route):
+                        if urlsplit(route.request.url).netloc!=urlsplit(origin).netloc:
+                            external.append(route.request.url);route.abort()
+                        else:route.continue_()
+                    context.route('**/*',local_only)
+                    page=context.new_page();page.set_default_timeout(5000);page.goto(origin)
+                    page.evaluate("localStorage.setItem('mjobs-profile','fixture')");page.reload()
+                    page.get_by_role('button').filter(has=page.get_by_role('heading',name=job['title'],exact=True)).click()
+                    page.get_by_label('Order approved skills for this job',exact=True).check()
+                    with page.expect_response(lambda response:response.url==origin+'/applications' and
+                                              response.request.method=='POST') as event:
+                        page.get_by_role('button',name='Prepare documents',exact=True).click()
+                    operation=event.value.json()
+                    with patch.dict('os.environ',MJOBS_DATABASE_URL=store.url,MJOBS_MOCK_ORIGIN='http://127.0.0.1:1',
+                                    MJOBS_OUTPUT_DIR=str(root),MJOBS_OPERATION_MODE='FIXTURE'):
+                        self.assertEqual(execute_operation(operation['operation_id'])['status'],'COMPLETED')
+                    resume=page.get_by_role('region',name='resume version 2',exact=True)
+                    with page.expect_download() as download:resume.get_by_role('link',name='Download TXT',exact=True).click()
+                    rendered=Path(download.value.path()).read_text(encoding='utf-8')
+                    self.assertIn(duty,rendered);self.assertNotIn('Experienced retail sales associate.',rendered)
+                    page.reload()
+                    page.get_by_role('navigation').get_by_role('button',name='Applications',exact=False).first.click()
+                    page.locator('.job-card').first.click()
+                    comparison=page.get_by_role('region',name='Compare base and tailored resumes',exact=True)
+                    comparison.get_by_role('button',name='Compare selected resumes',exact=True).click()
+                    omitted=comparison.get_by_role('region',name='Content omitted',exact=True)
+                    expect(omitted).to_contain_text('Experienced retail sales associate.')
+                    self.assertEqual(store.profile('fixture'),before)
+                    letter=next(row for row in application_documents(store,application_id)
+                                if row['kind']=='cover-letter')
+                    self.assertEqual((root/application_id/letter['files']['txt']).read_bytes(),base_letter_bytes)
+                    self.assertFalse(external)
+                    context.close();browser.close()
+            finally:
+                server.should_exit=True;thread.join(timeout=10);sock.close();store.engine.dispose()
                 self.assertFalse(thread.is_alive())
