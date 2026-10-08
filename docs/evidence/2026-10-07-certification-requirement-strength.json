@@ -122,5 +122,62 @@
     "live_providers": "NOT_RUN",
     "external_submission": "OFF",
     "release_readiness": "NOT_ESTABLISHED"
+  },
+  "root_integration_reconciliation": {
+    "verified_at_utc": "2026-10-08T05:06:28Z",
+    "candidate_commit": "ddfe79e8d5ee563e1e83a2e4d0bbcd82c13db0fa",
+    "candidate_tree": "ac268e5a04dc2f595421073ea18944a91f83a348",
+    "base_commit": "f5800086b5cf8d4a92876a94d6fee2ad63f5d89d",
+    "rebased_input_sha256": {
+      "apps/web/src/main.tsx": "d124eb42f6a06bc68a4b2f6fc1fbb997da74472bbaf28a0d1810e7e61f34d286",
+      "services/discovery/manual_capture.py": "fbdb4d616188a75db5944c2cc4fba2f137f539a59e0f3a3230994de8e14ec47d",
+      "services/discovery/requirement_parsers.py": "7a48a29023838f633ad9078364cdb718794f02e440e3a1ffe096d2ad80731211",
+      "tests/browser/test_manual_job_capture.py": "56dc109a3213f952b1a6e2c2cea0ea32f5aaff08f0b33ff610d8c7b4703aaf3a",
+      "tests/integration/test_explainable_matching.py": "fb608895b7a786b57e17f533d17e22ae08310956051b4a415c24d03d960ffefe",
+      "tests/unit/test_requirement_parsers.py": "2e2ae2aaa348c2eeebc12ba9445c84601faaa0aa4df0d2cd84141aeae35396e2"
+    },
+    "checks_on_rebased_candidate": [
+      {
+        "command": "python -m unittest tests.unit.test_requirement_parsers -v",
+        "result": "PASS",
+        "count": "16 tests",
+        "platform": "Windows PowerShell, Python 3.12.10"
+      },
+      {
+        "command": "python -m unittest tests.integration.test_explainable_matching -v",
+        "result": "BLOCKED_ENVIRONMENT",
+        "count": "0 tests",
+        "detail": "Python 3.12.10 lacks SQLAlchemy; import failed before test execution."
+      },
+      {
+        "command": "npm run build --prefix apps/web",
+        "result": "PASS",
+        "detail": "TypeScript and Vite 8.3.1 production build; Node 25.9.0 is within Vite engine range."
+      },
+      {
+        "command": "python -m unittest tests.browser.test_manual_job_capture -v",
+        "result": "BLOCKED_ENVIRONMENT",
+        "count": "0 tests",
+        "detail": "Python 3.12.10 lacks Playwright; import failed before test execution."
+      },
+      {
+        "command": "git diff --check origin/main...HEAD",
+        "result": "PASS"
+      }
+    ],
+    "prior_candidate_results": "The worker recorded 23 parser plus matching-integration tests PASS before rebase, and source/test code hashes above were recomputed unchanged after rebasing only onto the planning checkpoint. The worker also recorded earlier 1 connected Chromium, 63 frontend tests, and build PASS before the final parser-only corrections. Those earlier browser/frontend results do not replace the blocked post-correction browser attempt recorded above.",
+    "review": {
+      "classification": "LOCAL_DELEGATED_REVIEW",
+      "reviewed_source_commit": "38b9d87b061d79d2b508ae5154f251d7f52a5b67",
+      "result": "No code blocker; reviewer requested rebase to current main. The current candidate contains identical reviewed parser/UI/test source inputs, with the above hashes verified."
+    },
+    "limitations": {
+      "integration_test": "BLOCKED_ENVIRONMENT",
+      "connected_browser_after_latest_parser_fixes": "BLOCKED_ENVIRONMENT",
+      "browser_build_after_latest_parser_fixes": "NOT_RUN_BY_SCOPE",
+      "hosted_checks": "NOT_RUN_BY_USER_POLICY",
+      "full_suite": "PARTIAL; baseline Alembic multi-head failures remain",
+      "issue": "OPEN/PARTIAL"
+    }
   }
 }
