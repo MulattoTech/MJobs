@@ -1,8 +1,71 @@
 import unittest
 from services.documents.comparison import compare_facts
+from services.documents.comparison import ComparisonUnavailable, tailored_context
 
 
 class ResumeComparisonUnitTests(unittest.TestCase):
+    @staticmethod
+    def _uploaded_target_with_valid_bullet_snapshot():
+        from services.documents import tailor
+        from services.documents.templates import TARGET_BULLET_V4_MODEL, TARGET_BULLET_V4_TEMPLATE
+
+        source_facts = [
+            {'fact_id': 'summary', 'kind': 'summary',
+             'text': 'Infrastructure systems professional.'},
+            {'fact_id': 'python', 'kind': 'skill', 'text': 'Python'},
+            {'fact_id': 'matched-duty', 'kind': 'responsibility',
+             'text': 'Built Python APIs for internal teams.'},
+            {'fact_id': 'omitted-project', 'kind': 'project',
+             'text': 'Documented Hyper-V lab procedures.'},
+        ]
+        job = {
+            'id': 'synthetic-job-id', 'title': 'Synthetic Python role',
+            'skills': ['Python'], 'description': 'Build and maintain Python services.',
+        }
+        rows, summary_adjustment = tailor.select_summary_rows(source_facts, job)
+        rows, bullet_adjustment = tailor.select_bullet_rows(rows, job)
+        ordered, context = tailor.order_skills(rows, job, include_responsibilities=True)
+        context['emphasized_fact_ids'] = tailor.emphasis(
+            ordered, job, include_responsibilities=True)
+        context['summary_adjustment'] = summary_adjustment
+        context['bullet_adjustment'] = bullet_adjustment
+        return {
+            'kind': 'resume',
+            'template': TARGET_BULLET_V4_TEMPLATE,
+            'generation_model': TARGET_BULLET_V4_MODEL,
+            'generation_context': context,
+            'facts_used': ordered,
+            'fact_ids': [row['fact_id'] for row in ordered],
+            'job_id': job['id'],
+        }
+
+    def test_incomplete_uploaded_target_bullet_context_fails_closed(self):
+        target = self._uploaded_target_with_valid_bullet_snapshot()
+        del target['generation_context']['bullet_adjustment']['source_fact_fingerprints']
+
+        with self.assertRaises(ComparisonUnavailable):
+            tailored_context(target)
+
+    def test_tampered_uploaded_target_bullet_context_fails_closed(self):
+        target = self._uploaded_target_with_valid_bullet_snapshot()
+        target['generation_context']['bullet_adjustment']['matched_skills']['matched-duty'] = []
+
+        with self.assertRaises(ComparisonUnavailable):
+            tailored_context(target)
+
+    def test_uploaded_base_can_validate_target_from_immutable_generated_snapshot_alone(self):
+        target = self._uploaded_target_with_valid_bullet_snapshot()
+
+        # Uploaded-source comparison has no complete approved source-fact set to
+        # re-read. The target's saved generated snapshot is still sufficient.
+        validated = tailored_context(target, target_source_facts=None)
+
+        self.assertIs(validated, target['generation_context'])
+        self.assertEqual(validated['bullet_adjustment']['selected_bullet_fact_ids'],
+                         ['matched-duty'])
+        self.assertEqual(validated['bullet_adjustment']['omitted_bullet_fact_ids'],
+                         ['omitted-project'])
+
     def test_target_bullet_selection_uses_exact_skill_boundaries_and_falls_back(self):
         from services.documents.tailor import select_bullet_rows
 
