@@ -61,10 +61,21 @@ function summaryFor(kind: unknown, summary: unknown): string | null {
   return null;
 }
 
+function recordedSourceSummary(row: Record<string, unknown>): string | null {
+  if (row.action !== 'COMPANY_FEED_IMPORT_COMPLETE') return null;
+  const details = record(row.details);
+  const imported = details?.jobs_imported;
+  const enumerated = details?.jobs_enumerated;
+  const isCount = (value: unknown): value is number => Number.isSafeInteger(value) && Number(value) >= 0 && Number(value) <= 1_000_000_000;
+  if (!isCount(imported) || !isCount(enumerated)) return 'Feed import completed.';
+  return `Imported ${imported} jobs from ${enumerated} feed records.`;
+}
+
 /**
  * The server returns profile-scoped events newest first. Preserve that stable
- * order, including equal timestamps, and ignore every field outside the
- * sanitized event contract.
+ * order, including equal timestamps. Prefer the sanitized summary contract;
+ * the legacy source provenance contract is reduced through one allowlisted
+ * action and bounded counts. Ignore all remaining raw fields.
  */
 export function discoveryActivity(events: unknown): DiscoveryActivity[] {
   if (!Array.isArray(events)) return [];
@@ -72,7 +83,7 @@ export function discoveryActivity(events: unknown): DiscoveryActivity[] {
   for (const candidate of events.slice(0, 20)) {
     const row = record(candidate);
     if (!row || typeof row.id !== 'string' || !row.id || row.id.length > 128) continue;
-    const message = summaryFor(row.event_type, row.summary);
+    const message = summaryFor(row.event_type, row.summary) ?? recordedSourceSummary(row);
     if (!message) continue;
     output.push({id: row.id, message, timestamp: timestamp(row.timestamp)});
   }

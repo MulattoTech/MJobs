@@ -85,7 +85,7 @@ class CompanyDiscoveryActivityApiTests(unittest.TestCase):
              for event in events],
             [
                 ("COMPANY_DISCOVERED", "Discovered Northstar Labs", "2026-10-08T09:10:00+00:00"),
-                ("COMPANY_SOURCE_ENROLLED", "Added a direct employer source", "2026-10-08T09:05:00+00:00"),
+                ("COMPANY_SOURCE_ENROLLED", "Added direct employer source for Acme Systems", "2026-10-08T09:05:00+00:00"),
             ],
         )
 
@@ -104,14 +104,20 @@ class CompanyDiscoveryActivityApiTests(unittest.TestCase):
         self.assertEqual(body["profile_id"], "fixture")
         self.assertEqual(len(events), 3)
         self.assertEqual(
-            [event["id"] for event in events],
-            ["activity-b-discovered", "activity-a-enrolled", "activity-a-discovered"],
+            [(event["event_type"], event["summary"]) for event in events],
+            [
+                ("COMPANY_DISCOVERED", "Discovered Northstar Labs"),
+                ("COMPANY_SOURCE_ENROLLED", "Added direct employer source for Acme Systems"),
+                ("COMPANY_DISCOVERED", "Discovered Acme Systems"),
+            ],
         )
 
         other = self.client.get("/profiles/other/company-discovery/activity")
         self.assertEqual(other.status_code, 200, other.text)
         other_events = other.json()["events"]
-        self.assertEqual([event["id"] for event in other_events], ["activity-other-profile"])
+        self.assertEqual([(event["event_type"], event["summary"]) for event in other_events], [
+            ("COMPANY_DISCOVERED", "Discovered Northstar Labs"),
+        ])
 
         serialized = response.text
         for private_value in (
@@ -125,7 +131,7 @@ class CompanyDiscoveryActivityApiTests(unittest.TestCase):
             "matched_profile_count",
         ):
             self.assertNotIn(private_value, serialized)
-        self.assertTrue(all(set(event) == {"id", "timestamp", "event_type", "summary"}
+        self.assertTrue(all(set(event) == {"timestamp", "event_type", "summary"}
                             for event in events))
         self.assertTrue(all(event["event_type"] != "COMPANY_DISCOVERY_DIAGNOSTIC"
                             for event in events))

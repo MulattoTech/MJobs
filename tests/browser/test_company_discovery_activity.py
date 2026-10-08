@@ -97,7 +97,7 @@ class CompanyDiscoveryActivityBrowserTests(unittest.TestCase):
                     expect(activity).not_to_contain_text("unknown")
 
                     with page.expect_response(lambda response: response.request.method == "GET"
-                                               and response.url.endswith("/company-discovery/activity")):
+                                               and urlsplit(response.url).path.endswith("/company-discovery/activity")):
                         page.get_by_role("button", name="Refresh activity", exact=True).click()
                     expect(activity).to_contain_text("Discovered Acme Systems")
                     page.reload(wait_until="domcontentloaded")

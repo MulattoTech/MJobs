@@ -2,6 +2,17 @@ import { describe, expect, it } from 'vitest';
 import { discoveryActivity } from './company-activity';
 
 describe('source-linked discovery activity', () => {
+  it('converts recorded feed import counts into a safe readable summary', () => {
+    const rows = discoveryActivity([{
+      id: 'legacy-import', action: 'COMPANY_FEED_IMPORT_COMPLETE',
+      timestamp: '2026-10-02T10:00:00Z',
+      details: {jobs_imported: 3, jobs_enumerated: 5, private_payload: 'PRIVATE'},
+    }]);
+
+    expect(rows.map(row => row.message)).toEqual(['Imported 3 jobs from 5 feed records.']);
+    expect(JSON.stringify(rows)).not.toContain('PRIVATE');
+  });
+
   it('maps known event types to safe summaries and ignores raw event details', () => {
     const rows = discoveryActivity([
       {

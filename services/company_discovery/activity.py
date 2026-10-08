@@ -124,7 +124,7 @@ def list_company_discovery_activity(store, profile_id: str, *, limit: int = 100)
             if row["action"] == "COMPANY_DISCOVERED":
                 event_type, summary = "COMPANY_DISCOVERED", f"Discovered {company}"
             else:
-                event_type, summary = "COMPANY_SOURCE_ENROLLED", "Added a direct employer source"
+                event_type, summary = "COMPANY_SOURCE_ENROLLED", f"Added direct employer source for {company}"
             result.append(_event(row["id"], row["timestamp"], event_type, summary))
 
         for request in requests:
@@ -193,4 +193,7 @@ def list_company_discovery_activity(store, profile_id: str, *, limit: int = 100)
                     ))
 
     result.sort(key=lambda row: (str(row["timestamp"] or ""), row["id"]), reverse=True)
-    return result[:limit]
+    # Keep durable identifiers for deterministic ordering, but never expose raw
+    # audit/source IDs in the user-facing activity projection.
+    return [{key: value for key, value in event.items() if key != "id"}
+            for event in result[:limit]]
