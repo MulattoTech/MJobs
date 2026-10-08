@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REQ-191-SAVED-SEARCH-SCHEDULER-20261008",
+  "issue": 192,
+  "requirement_id": "MJ-REQ-191",
+  "result": "PARTIAL",
+  "recorded_at_utc": "2026-10-08T17:57:14Z",
+  "branch": "codex/sw-rogue-search-schedule-integration-20261008",
+  "base_commit": "e1048dd2a8eb988c9f351007659192a2d837b539",
+  "implementation_commit": "c90a89748081d914edf131042d14758edcd0cdf3",
+  "implementation_tree": "50d6c2c2d84e8a32c30a245bd2e099347a9645bc",
+  "input_sha256": {
+    "apps/api/main.py": "b6f3fcb7ef6cc186342fb0b769d25f2720e249472ae19da543bd20bc4b4dafaf",
+    "apps/web/src/main.tsx": "cc01c7ae565844ab8ff742c1a372b3cb7a13b3207f5d6cf8a0873c4b54b07cc2",
+    "apps/web/src/saved-search-schedule.test.tsx": "41eecb64dbada0a618733039c4d0c35b01dc9d7c8ff6d8bc4a22d48efc188789",
+    "apps/web/src/saved-search-schedule.tsx": "6a48832bde0a4a098a9247b8ae435e71bcd055476fcf613387c58715e5d6e500",
+    "services/discovery/scheduler.py": "3f6108c691e3749feebdf189d74d705b7b2515979d743f143e703a2c6126a77d",
+    "services/discovery/search_profiles.py": "2402a6b539b32bf1564fe94ecd0344f85f871e7d55ae9582b5fa743c310fd657",
+    "tests/browser/test_saved_search_schedule.py": "cd8a877ca83547bfd11d8f6b3122578965e5d4653e77bd44029fc6e213d26563",
+    "tests/integration/test_saved_search_schedule.py": "e95956552cfd95ecd5f29fa17e8179a590a241057b644c80cc729327a5638d6f",
+    "tests/integration/test_saved_search_schedule_api.py": "ab5b6313d36949043a0cbb249965f80444b60f4fe672f59bab7f70e04cf2b69b",
+    "tests/integration/test_saved_search_schedule_disable_api.py": "1c6741365df94f91360fb18b4ddc334d2072daea365961c5ba091c4303e0a996",
+    "tests/integration/test_saved_search_schedule_validation_api.py": "a6a6c141dde6a73f0dde1831e1e79c6de7468182f295794a19ea2e72ac31737f",
+    "tests/unit/test_saved_search_scheduler.py": "905a90f56bfbc1ae6445621b5e8ee5447d8876efad36b902c15db7253f45ce35",
+    "tests/unit/test_saved_search_scheduler_validation.py": "cca119f5b8820dea47c296d8ff4f34bf72b17afdb62a5839334808ed6bd0f186"
+  },
+  "acceptance": {
+    "per_saved_search_cadence": "PASS - Each saved search stores an enabled flag and 300-604800 second interval; due searches enqueue profile-scoped discovery operations independently.",
+    "durability_and_idempotency": "PASS - SQLite-backed tests cover restart readback, duplicate ticks, same-source serialization and retry after failure.",
+    "scope_and_source_policy": "PASS - Scheduler-only updates preserve source IDs, saved filters, profile enabled state and existing criteria. Disabled, malformed, stale or too-early schedules do not enqueue work.",
+    "user_controls": "PASS - The Jobs screen can enable, edit, save and disable a schedule; after each save, refreshed checkbox and interval values match persisted API state.",
+    "side_effects": "PASS - Updating schedule settings does not create an application attempt or submit to an employer; scheduler service only places DISCOVER operations in the local durable queue.",
+    "external_application_submission": "OFF"
+  },
+  "validation": {
+    "focused_python_command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_saved_search_schedule_disable_api tests.integration.test_saved_search_schedule_api tests.integration.test_saved_search_schedule tests.integration.test_saved_search_schedule_validation_api tests.unit.test_saved_search_scheduler tests.unit.test_saved_search_scheduler_validation tests.integration.test_source_policy_scheduler -v",
+    "focused_python_result": "PASS - 26 tests.",
+    "connected_browser_command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m pytest tests/browser/test_saved_search_schedule.py -q",
+    "connected_browser_result": "PASS - 1 Chromium test; assertions wait for completed UI save/readback before querying persisted state.",
+    "frontend_command": "npm test -- --run (apps/web)",
+    "frontend_result": "PASS - 25 files, 136 tests.",
+    "frontend_build": "PASS - npm run build (apps/web), TypeScript and Vite production bundle.",
+    "agent_skills": "PASS - python -m tools.verification.agent_skills.",
+    "catalogue": "PASS - python -m tools.verification.catalogue.",
+    "progress_validation": "PASS - python -m tools.verification.progress validate.",
+    "lane_validation": "PASS - python -m tools.coordination.lane_coordination validate.",
+    "diff_check": "PASS - git diff --check main...candidate.",
+    "hosted_checks_and_reviews": "NOT_RUN_BY_POLICY",
+    "postgresql": "NOT_RUN",
+    "full_repository_suite": "NOT_RUN"
+  },
+  "remaining": {
+    "issue_status": "OPEN/PARTIAL",
+    "parent_dependencies": "MJ-PR-052 remains QUEUED behind MJ-PR-051 and MJ-PR-043; broader saved-search filters and ranking scope is not promoted by this slice.",
+    "release_eligibility": "UNKNOWN"
+  }
+}
