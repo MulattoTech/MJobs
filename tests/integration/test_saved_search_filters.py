@@ -310,6 +310,12 @@ class SavedSearchFiltersApiTests(unittest.TestCase):
         malformed = self.client.get("/jobs", params={"posted_within_days": 7})
         self.assertEqual(malformed.status_code, 200, malformed.text)
         self.assertEqual(malformed.json()["jobs"], [])
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.id == recent_id).values(
+                attributes={"reported_posted_at": "now"}))
+        relative_response = self.client.get("/jobs", params={"posted_within_days": 7})
+        self.assertEqual(relative_response.status_code, 200, relative_response.text)
+        self.assertEqual(relative_response.json()["jobs"], [])
         future = (datetime.now(timezone.utc) + timedelta(days=1)).isoformat()
         with self.store.engine.begin() as connection:
             connection.execute(update(m.jobs).where(m.jobs.c.id == recent_id).values(

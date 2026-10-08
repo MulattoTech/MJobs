@@ -8,7 +8,7 @@ import json
 from uuid import uuid4
 
 from sqlalchemy import (
-    DateTime, String, Text, case, cast, create_engine, event, func, literal, literal_column, or_,
+    DateTime, String, Text, and_, case, cast, create_engine, event, func, literal, literal_column, or_,
     select, text, update,
 )
 from sqlalchemy.dialects.postgresql import insert as postgres_insert
@@ -701,15 +701,31 @@ class Store:
             if posted_after is not None:
                 reported_at = m.jobs.c.attributes["reported_posted_at"].as_string()
                 if self.engine.dialect.name == "postgresql":
-                    # Third-party JSON is untrusted input. Gate PostgreSQL's cast
-                    # so malformed legacy dates behave as unknown, not query errors.
-                    valid_posted_at = func.pg_input_is_valid(reported_at, "timestamp with time zone")
+                    # Third-party JSON is untrusted input. Accept only the normalized
+                    # ISO timestamps produced by source adapters; PostgreSQL also
+                    # considers relative strings such as "now" valid timestamps.
+                    iso_timestamp = reported_at.op("~")(
+                        r"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?([Zz]|[+-][0-9]{2}:[0-9]{2})$")
+                    valid_posted_at = and_(
+                        iso_timestamp,
+                        func.pg_input_is_valid(reported_at, "timestamp with time zone"),
+                    )
                     parsed_posted_at = case(
                         (valid_posted_at, cast(reported_at, DateTime(timezone=True))), else_=None)
                     cutoff = posted_after
                     upper_bound = posted_before
                 else:
                     parsed_posted_at = func.datetime(reported_at)
+                    iso_timestamp = reported_at.op("GLOB")(
+                        "[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T"
+                        "[0-9][0-9]:[0-9][0-9]:[0-9][0-9]*")
+                    timezone_suffix = or_(
+                        reported_at.op("GLOB")("*[+-][0-9][0-9]:[0-9][0-9]"),
+                        reported_at.op("GLOB")("*Z"),
+                        reported_at.op("GLOB")("*z"),
+                    )
+                    parsed_posted_at = case(
+                        (and_(iso_timestamp, timezone_suffix), parsed_posted_at), else_=None)
                     cutoff = posted_after.strftime("%Y-%m-%d %H:%M:%S")
                     upper_bound = posted_before.strftime("%Y-%m-%d %H:%M:%S") if posted_before else None
                 # Posting time is source-reported. first_seen_at records collection
