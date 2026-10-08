@@ -225,9 +225,15 @@ def _legal_profile_mapping(question, mapping):
         return None
     path = paths[0]
     label = question["label"]
-    if path == "preferences.work_authorization" and _WORK_AUTHORIZATION_QUESTION.search(label):
+    has_work_authorization = _WORK_AUTHORIZATION_QUESTION.search(label) is not None
+    has_sponsorship = _SPONSORSHIP_QUESTION.search(label) is not None
+    # A compound question requires two answers. This preflight intentionally
+    # supports only one legal answer class per structured question.
+    if has_work_authorization == has_sponsorship:
+        return None
+    if path == "preferences.work_authorization" and has_work_authorization:
         return path
-    if path == "preferences.sponsorship_needs" and _SPONSORSHIP_QUESTION.search(label):
+    if path == "preferences.sponsorship_needs" and has_sponsorship:
         return path
     return None
 
