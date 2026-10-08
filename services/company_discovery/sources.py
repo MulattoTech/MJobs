@@ -392,6 +392,14 @@ def list_company_source_view(store, profile_id=None):
             (m.jobs.c.id == m.postings.c.job_id) & (m.jobs.c.company_id == m.company_sources.c.company_id))
         count_query = select(m.company_sources.c.id, func.count(func.distinct(m.jobs.c.id))).select_from(linked).group_by(m.company_sources.c.id)
         found = dict(c.execute(count_query).all())
+        applications_query = select(
+            m.jobs.c.company_id,
+            func.count(func.distinct(m.applications.c.id)),
+        ).select_from(m.applications.join(m.jobs, m.jobs.c.id == m.applications.c.job_id)) \
+            .where(m.jobs.c.company_id.in_(company_ids))
+        if profile_id is not None:
+            applications_query = applications_query.where(m.applications.c.profile_id == profile_id)
+        applications = dict(c.execute(applications_query.group_by(m.jobs.c.company_id)).all())
         relevant = {}
         if profile:
             matched = linked.join(m.matches, (m.matches.c.job_id == m.jobs.c.id)
@@ -448,6 +456,7 @@ def list_company_source_view(store, profile_id=None):
             "discovered_automatically": row["discovered_automatically"],
             "status": "COMPANY_SOURCE_REVIEW_REQUIRED" if review else ("ENABLED" if row["enabled"] else "DISABLED"),
             "jobs_found": found.get(row["id"], 0), "relevant_jobs": relevant.get(row["id"], 0),
+            "applications": applications.get(row["company_id"], 0),
             "last_checked": row["last_validation"], "last_success": row["last_success"],
             "next_check": monitors.get(row['id'], {}).get('next_due'),
             "source_version": source_version(row), "monitoring_supported": supported_source(row),

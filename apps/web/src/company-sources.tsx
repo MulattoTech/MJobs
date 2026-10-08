@@ -24,6 +24,7 @@ export type CompanySourceView = {
   status: string;
   jobs_found: number;
   relevant_jobs: number;
+  applications: number;
   last_checked: string | null;
   last_success?: string | null;
   next_check: string | null;
@@ -139,6 +140,8 @@ export function CompanySources({rows, busy, profileSelected, onSet, onMonitor, o
     {rows.map(row => {
       const pinned = row.priority === 'USER_PINNED';
       const watched = row.origin === 'USER_WATCHED';
+      const preference = [pinned ? 'Pinned' : 'Not pinned', row.enabled ? 'Enabled' : 'Disabled',
+        watched ? 'Watched' : 'Not watched'].join(' · ');
       const careerLink = safeLink(row.career_url);
       const activity = discoveryActivity(row.provenance.events);
       const confidence = row.confidence !== null && Number.isFinite(row.confidence)
@@ -147,16 +150,18 @@ export function CompanySources({rows, busy, profileSelected, onSet, onMonitor, o
         <h3>{row.company_name}</h3>
         <dl className="company-source-facts">
           <div><dt>Company</dt><dd>{row.company_name}</dd></div>
-          <div><dt>Official Domain</dt><dd>{row.official_domain || 'Not verified'}</dd></div>
-          <div><dt>Careers URL</dt><dd>{careerLink
+          <div><dt>Domain</dt><dd>{row.official_domain || 'Not verified'}</dd></div>
+          <div><dt>Career Site</dt><dd>{careerLink
             ? <a href={careerLink} target="_blank" rel="noreferrer">{row.career_url}</a> : 'Unavailable'}</dd></div>
           <div><dt>ATS</dt><dd>{row.provider} / {row.tenant}</dd></div>
           <div><dt>Source Type</dt><dd>{row.collection_strategy} &#183; {row.origin}</dd></div>
           <div><dt>Confidence</dt><dd>{confidence}</dd></div>
-          <div><dt>Priority</dt><dd>{row.priority}</dd></div>
+          <div><dt>Source Priority</dt><dd>{row.priority}</dd></div>
           <div><dt>Status</dt><dd>{row.status}{!row.enabled && row.status !== 'DISABLED' ? ' \u00b7 DISABLED' : ''}</dd></div>
           <div><dt>Jobs Found</dt><dd>{row.jobs_found}</dd></div>
           <div><dt>Relevant Jobs</dt><dd>{profileSelected ? row.relevant_jobs : 0}</dd></div>
+          <div><dt>Applications</dt><dd>{row.applications}</dd></div>
+          <div><dt>User Preference</dt><dd>{preference}</dd></div>
           <div><dt>Last Checked</dt><dd>{timestamp(row.last_checked)}</dd></div>
           <div><dt>Next Check</dt><dd>{row.next_check ? timestamp(row.next_check) : 'Not scheduled'}</dd></div>
         </dl>

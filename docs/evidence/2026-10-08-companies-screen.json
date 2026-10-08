@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "issue": 195,
+  "requirement_id": "MJ-REQ-194",
+  "title": "Companies Screen",
+  "status": "PARTIAL",
+  "standalone_slice_result": "PASS",
+  "issue_state": "OPEN/PARTIAL",
+  "rebase_base_commit": "b86b22c4213a431ba46f9519c7134cb56f0c5533",
+  "rebase_base_tree": "532fbe71527e06ba2d6e689bb6d1b813892c5662",
+  "tested_source_commit": "b627d35b1951ea641c354c910913b65ba5032e96",
+  "tested_source_tree": "26901d03f987014e1899a240b063607b57350913",
+  "branch": "codex/issue195-companies-screen-20261008",
+  "worktree": ".worktrees/codex-issue195-companies-screen-20261008",
+  "acceptance": {
+    "displayed_fields": ["Company", "Domain", "Career Site", "ATS", "Source Priority", "Relevant Jobs", "Applications", "User Preference"],
+    "applications": "Counted from durable application records joined to canonical jobs by company identity; profile-scoped when a profile is selected and aggregate otherwise.",
+    "user_preference": "Displays pinned state, enabled state, and watched state from persisted company source preferences."
+  },
+  "validation": {
+    "timestamp_utc": "2026-10-08T08:09:59Z",
+    "python": {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_company_source_view",
+      "result": "PASS",
+      "tests": 8
+    },
+    "web_tests": {
+      "command": "npm test",
+      "result": "PASS",
+      "files": 16,
+      "tests": 94,
+      "runtime": "Node v25.9.0; npm 11.12.1",
+      "runtime_note": "Node 25.9.0 is outside Vitest 5.0.3 declared engine range; tests passed."
+    },
+    "web_build": {
+      "command": "npm run build",
+      "result": "PASS",
+      "runtime": "TypeScript 7.0.2 and Vite 8.3.1"
+    },
+    "git_diff_check": "PASS",
+    "connected_browser": "NOT_RUN",
+    "postgresql": "NOT_RUN",
+    "hosted_checks": "NOT_RUN_BY_USER_POLICY",
+    "external_submission": "OFF"
+  },
+  "input_sha256": {
+    "apps/web/src/company-sources.tsx": "384bbd6112b06bbfa7c582d57a382a071abf5510edf3059ab9a22f93db98ebb9",
+    "apps/web/src/company-sources.test.tsx": "bb9a342d026d6593304141493a284669b5d8acd22549c8723cf7c2b9108fa55f",
+    "services/company_discovery/sources.py": "22ee57d08258d7cac9a9a686edb29697f8f3c2707e812a3f8caeab455dac4149",
+    "tests/integration/test_company_source_view.py": "1e164e1a255770bbb8dd69b827f55aa4e3f44574262a50f37fcef76aa93c28e9"
+  },
+  "parent_queue_dependencies": "MJ-PR-053 / MJ-PR-052 / MJ-PR-043 unchanged; issue and requirement remain PARTIAL."
+}

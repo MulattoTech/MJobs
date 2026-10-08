@@ -10,19 +10,21 @@ async function render(rows: unknown[]) {
 }
 const source = {id:'source-1', company_id:'acme', profile_id:'fixture', profile_company_associated:true, company_name:'Acme', official_domain:null,
   career_url:'https://careers.example/jobs', provider:'rss', tenant:'acme', collection_strategy:'RSS',
-  confidence:0.45, priority:'NORMAL', enabled:true, origin:'AUTO_DISCOVERED', discovered_automatically:true,
-  status:'COMPANY_SOURCE_REVIEW_REQUIRED', jobs_found:2, relevant_jobs:1, last_checked:null, next_check:null,
+  confidence:0.45, priority:'USER_PINNED', enabled:true, origin:'USER_WATCHED', discovered_automatically:true,
+  status:'COMPANY_SOURCE_REVIEW_REQUIRED', jobs_found:2, relevant_jobs:1, applications:3, last_checked:null, next_check:null,
   provenance:{events:[], tenant_evidence:[], source_linked_history_available:false}};
 
 describe('Companies/Sources view', () => {
   it('renders evidence-based fields, real controls and explicit unavailable actions', async () => {
     const html=await render([source]);
-    for (const label of ['Company','Official Domain','Careers URL','ATS','Source Type','Confidence','Priority',
-      'Status','Jobs Found','Relevant Jobs','Last Checked','Next Check','Not scheduled','Not verified',
+    for (const label of ['Company','Domain','Career Site','ATS','Source Priority','Relevant Jobs','Applications','User Preference',
+      'Status','Jobs Found','Last Checked','Next Check','Not scheduled','Not verified',
       'Pin','Disable','Watch','View Evidence','Run Now','Rediscover','Verify','Edit','unavailable']) expect(html).toContain(label);
     expect(html).toContain('Company notes');
     expect(html).toContain('COMPANY_SOURCE_REVIEW_REQUIRED');
     expect(html).toContain('45%');
+    expect(html).toContain('>3</dd>');
+    expect(html).toContain('Pinned · Enabled · Watched');
     expect(html).toContain('data-source-id="source-1"');
   });
   it('escapes external names and refuses unsafe career links', async () => {

@@ -86,6 +86,40 @@ class CompanySourceViewTests(unittest.TestCase):
         self.assertEqual((rows[b['id']]['jobs_found'], rows[b['id']]['relevant_jobs']), (1,1))
         self.assertEqual({r['relevant_jobs'] for r in self.view()}, {0})
 
+    def test_application_counts_are_company_and_profile_scoped(self):
+        source = self.source()
+        profile_two = copy.deepcopy(PROFILE)
+        profile_two['id'] = 'fixture-two'
+        self.store.save_profile(profile_two)
+        self.job(source, 'application-job', 'application-posting')
+        with self.store.engine.begin() as c:
+            upsert(c, m.companies, {'id':'other-company', 'name':'Other Company', 'domain':''})
+            upsert(c, m.jobs, {'id':'other-application-job', 'company_id':'other-company',
+                'requisition':'other-application-job', 'title':'Engineer', 'description':'Python',
+                'skills':['Python'], 'location':'Unknown', 'remote_type':'UNKNOWN', 'attributes':{}})
+            upsert(c, m.routes, {'id':'application-route', 'job_id':'application-job',
+                'company_id':'acme', 'provider':'rss', 'tenant':'acme', 'requisition':'application-job',
+                'url':'https://careers.example/jobs/application-job'})
+            upsert(c, m.routes, {'id':'other-application-route', 'job_id':'other-application-job',
+                'company_id':'other-company', 'provider':'rss', 'tenant':'other',
+                'requisition':'other-application-job', 'url':'https://other.example/jobs/1'})
+            for profile_id in ('fixture', 'fixture-two'):
+                upsert(c, m.applications, {'id':'application-'+profile_id, 'job_id':'application-job',
+                    'route_id':'application-route', 'profile_id':profile_id,
+                    'profile_version':self.store.profile(profile_id)['version'], 'state':'PREPARED',
+                    'target':'MOCK', 'fact_ids':[], 'trace':[], 'created_at':'2026-10-08T00:00:00Z'})
+            upsert(c, m.applications, {'id':'application-other-company', 'job_id':'other-application-job',
+                'route_id':'other-application-route', 'profile_id':'fixture',
+                'profile_version':self.store.profile('fixture')['version'], 'state':'PREPARED',
+                'target':'MOCK', 'fact_ids':[], 'trace':[], 'created_at':'2026-10-08T00:00:01Z'})
+        self.assertEqual(self.view('fixture')[0]['applications'], 1)
+        self.assertEqual(self.view('fixture-two')[0]['applications'], 1)
+        self.assertEqual(self.view()[0]['applications'], 2)
+        with TestClient(self.app) as client:
+            response = client.get('/company-sources/view?profile_id=fixture')
+            self.assertEqual(response.status_code, 200, response.text)
+            self.assertEqual(response.json()['company_sources'][0]['applications'], 1)
+
     def test_import_activity_records_distinct_matches_for_current_profile(self):
         source = self.source()
         profile_two = copy.deepcopy(PROFILE)
