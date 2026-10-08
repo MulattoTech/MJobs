@@ -29,7 +29,7 @@ const semanticQuestionKey = (value:string) => {
   const normalized=normalizeAnswerQuestion(value);
   // This is a deliberately exact, ordinary availability paraphrase. Do not
   // generalize it to adjacent scheduling questions or infer an answer.
-  if(normalized==='are you available to work weekends'||normalized==='can you work weekends')
+  if(normalized==='are you available to work weekends'||normalized==='can you work weekends'||normalized==='can you work on weekends')
     return 'can you work weekends';
   return normalizeAnswerQuestion(normalized
     .replace(/\b(coding|software development)\s+languages?\b/gi,'programming languages')
