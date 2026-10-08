@@ -1,9 +1,14 @@
 """Source candidate capture remains passive and profile scoped."""
+import os
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
+from alembic import command
+from alembic.config import Config
 from fastapi.testclient import TestClient
+from sqlalchemy import create_engine, select
 
 from apps.api.main import create_app
 from packages.persistence import models as m
@@ -291,6 +296,137 @@ class SourceCandidateCaptureTests(unittest.TestCase):
         reread = self.client.get("/source-candidates", params={"profile_id": "fixture"}).json()["candidates"][0]
         self.assertEqual(len(reread["observations"]), 1)
         self.assertEqual(len(reread["review_history"]), 2)
+
+    def test_queued_review_links_existing_issue_with_unverified_provenance_and_replay(self):
+        captured = self.client.post("/source-candidates", json={
+            "profile_id": "fixture", "request_id": "issue-link-candidate",
+            "source_url": "https://candidate.example.invalid/jobs/123",
+        })
+        self.assertEqual(captured.status_code, 201, captured.text)
+        candidate_id = captured.json()["candidate"]["id"]
+        url = f"/profiles/fixture/source-candidates/{candidate_id}/review"
+        payload = {
+            "state": "INTEGRATION_QUEUED", "site_type": "JOB_BOARD",
+            "reason": "Existing provider issue tracks a compliant adapter evaluation.",
+            "api_feed_evidence_status": "PUBLIC_DOCUMENTED",
+            "api_feed_evidence_reference": "https://docs.example.invalid/jobs",
+            "api_feed_evidence_note": "A documented public listing feed is available.",
+            "access_terms_note": "The published terms permit read-only feed use.",
+            "capabilities_limits_note": "Listings are public; application submission is unsupported.",
+            "expected_value_maintenance_note": "The source is relevant and feed maintenance is bounded.",
+            "integration_issue": 302,
+            "request_id": "issue-link-review-1",
+        }
+
+        queued = self.client.put(url, json=payload)
+
+        self.assertEqual(queued.status_code, 200, queued.text)
+        candidate = queued.json()
+        self.assertEqual(candidate["state"], "INTEGRATION_QUEUED")
+        self.assertEqual(candidate["integration_issue"], 302)
+        self.assertEqual(candidate["integration_issue_status"], "USER_SUPPLIED_UNVERIFIED")
+        self.assertFalse(candidate["collection_enabled"])
+        self.assertEqual(candidate["review_history"][0]["integration_issue"], 302)
+        self.assertEqual(candidate["review_history"][0]["integration_issue_status"],
+                         "USER_SUPPLIED_UNVERIFIED")
+
+        replay = self.client.put(url, json=payload)
+        self.assertEqual(replay.status_code, 200, replay.text)
+        self.assertEqual(len(replay.json()["review_history"]), 1)
+        conflicting_replay = self.client.put(url, json={**payload, "integration_issue": 318})
+        self.assertEqual(conflicting_replay.status_code, 409, conflicting_replay.text)
+
+        non_queued = self.client.put(url, json={
+            **payload, "state": "NEEDS_REVIEW", "integration_issue": 304,
+            "request_id": "issue-link-non-queued",
+        })
+        self.assertEqual(non_queued.status_code, 422, non_queued.text)
+        invalid_reference = self.client.put(url, json={
+            **payload, "integration_issue": 0, "request_id": "issue-link-invalid",
+        })
+        self.assertEqual(invalid_reference.status_code, 422, invalid_reference.text)
+        boolean_reference = self.client.put(url, json={
+            **payload, "integration_issue": True, "request_id": "issue-link-boolean",
+        })
+        self.assertEqual(boolean_reference.status_code, 422, boolean_reference.text)
+        oversized_reference = self.client.put(url, json={
+            **payload, "integration_issue": 2147483648,
+            "request_id": "issue-link-oversized",
+        })
+        self.assertEqual(oversized_reference.status_code, 422, oversized_reference.text)
+
+        foreign_profile = self.client.put(
+            f"/profiles/other/source-candidates/{candidate_id}/review", json=payload)
+        self.assertEqual(foreign_profile.status_code, 404, foreign_profile.text)
+
+        needs_review = self.client.put(url, json={
+            **payload, "state": "NEEDS_REVIEW", "integration_issue": None,
+            "request_id": "issue-link-review-2",
+        })
+        self.assertEqual(needs_review.status_code, 200, needs_review.text)
+        latest = needs_review.json()
+        self.assertIsNone(latest["integration_issue"])
+        self.assertEqual(latest["integration_issue_status"], "NOT_LINKED")
+        self.assertEqual(latest["review_history"][0]["integration_issue"], 302)
+        self.assertEqual(latest["review_history"][1]["integration_issue"], None)
+        self.assertFalse(latest["collection_enabled"])
+        old_replay = self.client.put(url, json=payload)
+        self.assertEqual(old_replay.status_code, 200, old_replay.text)
+        self.assertEqual(old_replay.json()["review_history"][0]["integration_issue"], 302)
+
+
+class SourceCandidateIssueLinkMigrationTests(unittest.TestCase):
+    def _config(self, url):
+        root = Path(__file__).resolve().parents[2]
+        config = Config(str(root / "alembic.ini"))
+        config.set_main_option("script_location", str(root / "migrations"))
+        config.set_main_option("sqlalchemy.url", url.replace("%", "%%"))
+        return config
+
+    def test_upgrade_preserves_legacy_history_and_references_and_guards_downgrade(self):
+        with tempfile.TemporaryDirectory() as directory:
+            url = f"sqlite:///{(Path(directory) / 'legacy.db').as_posix()}"
+            config = self._config(url)
+            engine = create_engine(url)
+            try:
+                with patch.dict(os.environ, {"MJOBS_DATABASE_URL": url}):
+                    command.upgrade(config, "e2a4c9d0b721")
+                    with engine.begin() as connection:
+                        connection.execute(m.profiles.insert().values(
+                            id="profile", name="Synthetic", email="synthetic@example.test", version="v1"))
+                        connection.execute(m.source_candidates.insert().values(
+                            id="candidate", profile_id="profile", domain="jobs.example.test",
+                            display_name="Jobs", first_seen_at="2026-10-08T00:00:00Z",
+                            last_seen_at="2026-10-08T00:00:00Z", collection_enabled=False))
+                        connection.execute(m.source_candidate_reviews.insert().values(
+                            id="legacy-review", candidate_id="candidate", profile_id="profile",
+                            state="INTEGRATION_QUEUED", site_type="JOB_BOARD",
+                            reason="Legacy review", api_feed_evidence_status="UNKNOWN",
+                            api_feed_evidence_reference=None, api_feed_evidence_note="Unknown",
+                            access_terms_note="Unknown", capabilities_limits_note="Unknown",
+                            expected_value_maintenance_note="Unknown",
+                            reviewed_at="2026-10-08T00:00:00Z"))
+                    command.upgrade(config, "head")
+                    with engine.connect() as connection:
+                        legacy = connection.execute(select(m.source_candidate_reviews)).mappings().one()
+                        self.assertIsNone(legacy["integration_issue"])
+                    with engine.begin() as connection:
+                        connection.execute(m.source_candidate_reviews.insert().values(
+                            id="linked-review", candidate_id="candidate", profile_id="profile",
+                            state="INTEGRATION_QUEUED", site_type="JOB_BOARD",
+                            reason="Linked review", api_feed_evidence_status="UNKNOWN",
+                            api_feed_evidence_reference=None, api_feed_evidence_note="Unknown",
+                            access_terms_note="Unknown", capabilities_limits_note="Unknown",
+                            expected_value_maintenance_note="Unknown", integration_issue=302,
+                            reviewed_at="2026-10-08T00:01:00Z"))
+                    with self.assertRaisesRegex(RuntimeError, "Refusing to discard source-candidate provider issue references"):
+                        command.downgrade(config, "e2a4c9d0b721")
+                    with engine.connect() as connection:
+                        linked = connection.execute(select(m.source_candidate_reviews).where(
+                            m.source_candidate_reviews.c.id == "linked-review")).mappings().one()
+                        self.assertEqual(linked["integration_issue"], 302)
+            finally:
+                engine.dispose()
 
 
 if __name__ == "__main__":

@@ -241,6 +241,7 @@ class SourceCandidateReviewInput(BaseModel):
     access_terms_note: str = Field(min_length=1, max_length=1000)
     capabilities_limits_note: str = Field(min_length=1, max_length=1000)
     expected_value_maintenance_note: str = Field(min_length=1, max_length=1000)
+    integration_issue: int | None = Field(default=None, strict=True, ge=1, le=2147483647)
     request_id: str = Field(min_length=1, max_length=128)
 
     @model_validator(mode="after")
@@ -252,6 +253,8 @@ class SourceCandidateReviewInput(BaseModel):
             raise ValueError("Every source evaluation note and unpadded request identifier are required")
         if self.api_feed_evidence_status == "PUBLIC_DOCUMENTED" and not self.api_feed_evidence_reference:
             raise ValueError("Public documented API/feed evidence requires a reference URL")
+        if self.integration_issue is not None and self.state != "INTEGRATION_QUEUED":
+            raise ValueError("An existing provider issue may only be linked while queueing integration")
         return self
 
 
@@ -1229,7 +1232,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                                     value.api_feed_evidence_status, value.api_feed_evidence_reference,
                                     value.api_feed_evidence_note, value.access_terms_note,
                                     value.capabilities_limits_note,
-                                    value.expected_value_maintenance_note)
+                                    value.expected_value_maintenance_note,
+                                    value.integration_issue)
         except NoResultFound:
             raise HTTPException(404, "Source candidate not found") from None
         except ValueError as error:

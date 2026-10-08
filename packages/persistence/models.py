@@ -303,6 +303,7 @@ source_candidate_reviews = table(
     Column("access_terms_note", String(1000), nullable=False),
     Column("capabilities_limits_note", String(1000), nullable=False),
     Column("expected_value_maintenance_note", String(1000), nullable=False),
+    Column("integration_issue", Integer),
     Column("reviewed_at", String(64), nullable=False),
     constraints=(CheckConstraint("state IN ('NEEDS_REVIEW', 'INTEGRATION_QUEUED', 'INTEGRATED', 'BLOCKED', 'REJECTED')",
                                  name="ck_source_candidate_review_state"),

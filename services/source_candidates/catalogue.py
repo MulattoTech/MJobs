@@ -14,6 +14,10 @@ class SourceCandidateConflict(ValueError):
     """A review request identifier was reused with different content."""
 
 
+def _integration_issue_status(issue: int | None) -> str:
+    return "USER_SUPPLIED_UNVERIFIED" if issue is not None else "NOT_LINKED"
+
+
 def _safe_url(value: str | None) -> str | None:
     if not value:
         return None
@@ -152,6 +156,8 @@ def list_candidates(store, profile_id: str):
                        m.source_candidates.c.domain)
         ).mappings()]
         for candidate in candidates:
+            candidate["integration_issue_status"] = _integration_issue_status(
+                candidate["integration_issue"])
             candidate["observations"] = [dict(row) for row in connection.execute(
                 select(m.source_candidate_observations).where(
                     m.source_candidate_observations.c.candidate_id == candidate["id"],
@@ -166,6 +172,9 @@ def list_candidates(store, profile_id: str):
                 ).order_by(m.source_candidate_reviews.c.reviewed_at,
                            m.source_candidate_reviews.c.id)
             ).mappings()]
+            for review in candidate["review_history"]:
+                review["integration_issue_status"] = _integration_issue_status(
+                    review["integration_issue"])
         return {"candidates": candidates}
 
 
@@ -208,7 +217,8 @@ def review_candidate(store, profile_id: str, candidate_id: str,
                      api_feed_evidence_status: str, api_feed_evidence_reference: str | None,
                      api_feed_evidence_note: str,
                      access_terms_note: str, capabilities_limits_note: str,
-                     expected_value_maintenance_note: str):
+                     expected_value_maintenance_note: str,
+                     integration_issue: int | None = None):
     store.profile(profile_id)
     reason = _review_note(reason)
     request_id = request_id.strip()
@@ -217,6 +227,11 @@ def review_candidate(store, profile_id: str, candidate_id: str,
             or api_feed_evidence_status not in {"PUBLIC_DOCUMENTED", "UNKNOWN", "BLOCKED"}
             or not request_id):
         raise ValueError("SOURCE_CANDIDATE_REVIEW_INVALID")
+    if (integration_issue is not None
+            and (type(integration_issue) is not int or not 1 <= integration_issue <= 2147483647)):
+        raise ValueError("SOURCE_CANDIDATE_INTEGRATION_ISSUE_INVALID")
+    if integration_issue is not None and state != "INTEGRATION_QUEUED":
+        raise ValueError("SOURCE_CANDIDATE_INTEGRATION_ISSUE_REQUIRES_QUEUED_STATE")
     api_feed_evidence_note = _review_note(api_feed_evidence_note)
     raw_reference = api_feed_evidence_reference
     api_feed_evidence_reference = _safe_url(raw_reference)
@@ -246,7 +261,8 @@ def review_candidate(store, profile_id: str, candidate_id: str,
                     or previous["api_feed_evidence_note"] != api_feed_evidence_note
                     or previous["access_terms_note"] != access_terms_note
                     or previous["capabilities_limits_note"] != capabilities_limits_note
-                    or previous["expected_value_maintenance_note"] != expected_value_maintenance_note):
+                    or previous["expected_value_maintenance_note"] != expected_value_maintenance_note
+                    or previous["integration_issue"] != integration_issue):
                 raise SourceCandidateConflict("Source candidate review request was reused for different content")
         else:
             timestamp = now()
@@ -259,12 +275,15 @@ def review_candidate(store, profile_id: str, candidate_id: str,
                 access_terms_note=access_terms_note,
                 capabilities_limits_note=capabilities_limits_note,
                 expected_value_maintenance_note=expected_value_maintenance_note,
+                integration_issue=integration_issue,
                 reviewed_at=timestamp,
             ))
             connection.execute(update(m.source_candidates).where(
                 m.source_candidates.c.id == candidate_id,
                 m.source_candidates.c.profile_id == profile_id,
-            ).values(state=state, site_type=site_type, review_reason=reason))
+            ).values(state=state, site_type=site_type, review_reason=reason,
+                     integration_issue=(integration_issue
+                                        if state == "INTEGRATION_QUEUED" else None)))
     candidate = next(row for row in list_candidates(store, profile_id)["candidates"]
                      if row["id"] == candidate_id)
     return candidate
