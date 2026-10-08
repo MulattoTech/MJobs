@@ -7,7 +7,9 @@ from services.discovery.skill_taxonomy import canonical_skill_id, extract_skill_
 from services.documents.templates import TAILORED_TEMPLATE as TEMPLATE, TAILORED_MODEL as MODEL
 from services.documents.errors import PreparationError
 
-REWRITABLE_RESUME_FACT_KINDS = {'summary', 'responsibility', 'accomplishment', 'project', 'technology_experience'}
+REWRITABLE_RESUME_FACT_KINDS = {
+    'summary', 'responsibility', 'experience', 'accomplishment', 'project', 'technology_experience'
+}
 
 
 def _validate_user_rewrites(facts, selected_fact_ids, rewrites, *, allowed_kinds, include_kind):

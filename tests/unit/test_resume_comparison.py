@@ -3,6 +3,58 @@ from services.documents.comparison import compare_facts
 
 
 class ResumeComparisonUnitTests(unittest.TestCase):
+    def test_user_reviewed_experience_rewrite_is_source_bound_and_fact_safe(self):
+        import hashlib
+        from services.documents.tailor import apply_saved_user_rewrites, validate_user_rewrites
+        from services.documents.errors import PreparationError
+
+        facts = [{"fact_id": "experience", "kind": "experience",
+                  "text": "Supported 12 clinics with Linux systems from 2020-2024.",
+                  "verified": True, "user_approved": True, "confidence": 95,
+                  "source": "User verified"}]
+        wording = "Maintained Linux systems for 12 clinics from 2020-2024."
+
+        rewritten, provenance = validate_user_rewrites(facts, ["experience"], [{
+            "fact_id": "experience", "text": wording, "reviewed": True,
+        }])
+
+        self.assertEqual(rewritten[0]["text"], wording)
+        self.assertEqual(provenance, [{
+            "fact_id": "experience", "fact_kind": "experience",
+            "source_text_sha256": hashlib.sha256(facts[0]["text"].encode()).hexdigest(),
+            "text": wording, "reviewed": True,
+            "review_policy": "USER_CONFIRMED_FACTUAL_PARAPHRASE",
+        }])
+        self.assertEqual(apply_saved_user_rewrites(facts, ["experience"], provenance), rewritten)
+        self.assertEqual(facts[0]["text"], "Supported 12 clinics with Linux systems from 2020-2024.")
+
+        invalid = [
+            (facts, ["experience"], {"fact_id": "experience", "text": wording, "reviewed": False},
+             "RESUME_REPHRASE_REVIEW_REQUIRED"),
+            (facts, ["other"], {"fact_id": "experience", "text": wording, "reviewed": True},
+             "RESUME_REPHRASE_FACT_INVALID"),
+            ([dict(facts[0], user_approved=False)], ["experience"],
+             {"fact_id": "experience", "text": wording, "reviewed": True},
+             "RESUME_REPHRASE_FACT_INVALID"),
+            ([dict(facts[0], text="Supported 12 clinics with Linux systems from 2021-2024.")],
+             ["experience"], {"fact_id": "experience", "text": wording, "reviewed": True},
+             "RESUME_REPHRASE_FACTS_CHANGED"),
+            (facts, ["experience"],
+             {"fact_id": "experience", "text": "Maintained Linux systems for 120 clinics from 2020-2024.", "reviewed": True},
+             "RESUME_REPHRASE_FACTS_CHANGED"),
+        ]
+        for source_facts, selected, request, code in invalid:
+            with self.subTest(code=code, source_facts=source_facts, selected=selected):
+                with self.assertRaises(PreparationError) as raised:
+                    validate_user_rewrites(source_facts, selected, [request])
+                self.assertEqual(raised.exception.code, code)
+
+        with self.assertRaises(PreparationError) as stale:
+            apply_saved_user_rewrites(
+                [dict(facts[0], text="Supported 12 clinics with Linux systems throughout 2020-2024.")],
+                ["experience"], provenance)
+        self.assertEqual(stale.exception.code, "RESUME_REPHRASE_SOURCE_CHANGED")
+
     def test_user_reviewed_technology_experience_rewrite_is_source_bound_and_fact_safe(self):
         import hashlib
         from services.documents.tailor import apply_saved_user_rewrites, validate_user_rewrites

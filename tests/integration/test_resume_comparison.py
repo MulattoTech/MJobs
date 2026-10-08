@@ -81,11 +81,11 @@ class ResumeComparisonTests(unittest.TestCase):
         self.assertEqual(result,app)
         rows=application_documents(self.store,app)
         target=next(row for row in rows if row['kind']=='resume' and row['version']==2)
+        cover=next(row for row in rows if row['kind']=='cover-letter' and row['version']==2)
         self.assertEqual(target['generation_context']['fact_rephrases'][0]['fact_id'],'duty')
         self.assertEqual(target['generation_context']['claim_validation']['strategy'],
             'USER_REVIEWED_FACTUAL_PARAPHRASE_WITH_EXACT_NUMERIC_PRESERVATION')
         self.assertIn(wording,(self.root/app/target['files']['txt']).read_text(encoding='utf-8'))
-        cover=next(row for row in rows if row['kind']=='cover-letter' and row['version']==2)
         self.assertNotIn(wording,(self.root/app/cover['files']['txt']).read_text(encoding='utf-8'))
         with TestClient(create_app(self.store,'http://127.0.0.1:1',self.root,operation_mode='FIXTURE')) as client:
             url=f'/profiles/fixture/applications/{app}/document-comparison'
@@ -199,6 +199,78 @@ class ResumeComparisonTests(unittest.TestCase):
             current=dict(project,text='Changed current project profile text')
             self.store.save_profile(dict(original_profile,facts=[current,achievement,technology,skill]))
             self.assertEqual(client.get(url,params=params).json(),comparison)
+
+    def test_user_reviewed_experience_rewrite_survives_history_and_comparison(self):
+        import hashlib
+        experience=dict(PROFILE['facts'][0],id='experience',kind='experience',
+            text='Supported 12 clinics with Linux systems from 2020-2024.')
+        skill=dict(PROFILE['facts'][0],id='linux',kind='skill',text='Linux')
+        original_profile=dict(PROFILE,facts=[experience,skill])
+        self.store.save_profile(original_profile)
+        profile_version=self.store.profile('fixture')['version']
+        with fixture_server() as origin:
+            discover(self.store,origin,'fixture')
+        job=self.store.jobs()[0]
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.id==job['id']).values(skills=['Linux']))
+        app=prepare(self.store,job['id'],'fixture',self.root)
+        base=next(row for row in application_documents(self.store,app) if row['kind']=='resume')
+        wording='Maintained Linux systems for 12 clinics from 2020-2024.'
+        rewrites=[{'fact_id':'experience','text':wording,'reviewed':True}]
+        prepare(self.store,job['id'],'fixture',self.root,tailor_resume=True,
+            tailor_fact_ids=['experience'],tailor_fact_rewrites=rewrites,
+            profile_version=profile_version)
+        rows=application_documents(self.store,app)
+        target=next(row for row in rows if row['kind']=='resume' and row['version']==2)
+        cover=next(row for row in rows if row['kind']=='cover-letter' and row['version']==2)
+        context=target['generation_context']['fact_rephrases'][0]
+        self.assertEqual(context,{
+            'fact_id':'experience','fact_kind':'experience',
+            'source_text_sha256':hashlib.sha256(experience['text'].encode()).hexdigest(),
+            'text':wording,'reviewed':True,
+            'review_policy':'USER_CONFIRMED_FACTUAL_PARAPHRASE',
+        })
+        target_text=(self.root/app/target['files']['txt']).read_text(encoding='utf-8')
+        cover_text=(self.root/app/cover['files']['txt']).read_text(encoding='utf-8')
+        self.assertIn(wording,target_text)
+        self.assertNotIn(experience['text'],target_text)
+        self.assertNotIn(wording,cover_text)
+        self.assertEqual(self.store.profile('fixture')['facts'][0]['text'],experience['text'])
+        self.assertEqual(self.store.profile('fixture')['version'],profile_version)
+        with TestClient(create_app(self.store,'http://127.0.0.1:1',self.root,operation_mode='FIXTURE')) as client:
+            url=f'/profiles/fixture/applications/{app}/document-comparison'
+            params={'base_document_id':base['id'],'tailored_document_id':target['id']}
+            comparison_response=client.get(url,params=params)
+            self.assertEqual(comparison_response.status_code,200,comparison_response.text)
+            comparison=comparison_response.json()
+            change=next(item for item in comparison['bullet_changes'] if item['before']['fact_id']=='experience')
+            self.assertEqual(change['before']['text'],experience['text'])
+            self.assertEqual(change['after']['text'],wording)
+            self.store.save_profile(dict(original_profile,facts=[
+                dict(experience,text='Supported 12 clinics with Linux platforms from 2020-2024.'),skill]))
+            self.assertEqual(client.get(url,params=params).json(),comparison)
+            stale=client.post('/applications',json={
+                'profile_id':'fixture','job_id':job['id'],'tailor_resume':True,
+                'tailor_fact_ids':['experience'],'expected_profile_version':profile_version,
+                'tailor_fact_rewrites':rewrites,
+            })
+            self.assertEqual(stale.status_code,409)
+            unreviewed=client.post('/applications',json={
+                'profile_id':'fixture','job_id':job['id'],'tailor_resume':True,
+                'tailor_fact_ids':['experience'],
+                'expected_profile_version':self.store.profile('fixture')['version'],
+                'tailor_fact_rewrites':[dict(rewrites[0],reviewed=False)],
+            })
+            self.assertEqual(unreviewed.status_code,409)
+            unselected=client.post('/applications',json={
+                'profile_id':'fixture','job_id':job['id'],'tailor_resume':True,
+                'tailor_fact_ids':['linux'],
+                'expected_profile_version':self.store.profile('fixture')['version'],
+                'tailor_fact_rewrites':rewrites,
+            })
+            self.assertEqual(unselected.status_code,409)
+        self.assertEqual(self.store.profile('fixture')['facts'][0]['text'],
+            'Supported 12 clinics with Linux platforms from 2020-2024.')
 
     def test_unavailable_or_wrong_history_is_not_reported_as_unchanged(self):
         app,base,target=self.pair()

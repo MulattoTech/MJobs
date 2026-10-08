@@ -4,6 +4,15 @@ import {api,eligible} from './api';
 type Fact={fact_id:string;kind:string;text:string;source:string;verified:boolean;user_approved:boolean;confidence:number};
 export type ResumeFactRewrite={fact_id:string;text:string;reviewed:boolean};
 export type ResumeFactChoice={profileId:string;jobId:string;version:string;ids:string[];rewrites:ResumeFactRewrite[]};
+export const REWRITABLE_RESUME_FACT_KINDS=['summary','responsibility','experience','accomplishment','project','technology_experience'] as const;
+export function resumeFactRewriteLabel(kind:string){
+  if(kind==='summary')return 'summary';
+  if(kind==='technology_experience')return 'technology experience';
+  if(kind==='experience')return 'experience';
+  if(kind==='project')return 'project bullet';
+  if(kind==='accomplishment')return 'accomplishment bullet';
+  return 'bullet';
+}
 
 export function ResumeFactSelection({profileId,jobId,disabled,onChange}:{profileId:string;jobId:string;disabled:boolean;onChange:(choice:ResumeFactChoice|null)=>void}) {
   const [choose,setChoose]=useState(false);const [facts,setFacts]=useState<Fact[]>([]);
@@ -45,8 +54,8 @@ export function ResumeFactSelection({profileId,jobId,disabled,onChange}:{profile
       {!loading&&!error&&<><p>{ids.length} of {facts.length} approved facts selected. Choose at least one.</p>
         {facts.map(fact=><div key={fact.fact_id}>
           <label className="consent"><input type="checkbox" aria-label={'Include '+fact.text} checked={ids.includes(fact.fact_id)} disabled={disabled} onChange={event=>select(fact.fact_id,event.target.checked)}/><span>{fact.kind}: {fact.text}</span></label>
-          {ids.includes(fact.fact_id)&&['summary','responsibility','accomplishment','project','technology_experience'].includes(fact.kind)&&<div className="form-row">
-            <label>Rewrite this {fact.kind==='summary'?'summary':fact.kind==='technology_experience'?'technology experience':fact.kind==='project'?'project bullet':fact.kind==='accomplishment'?'accomplishment bullet':'bullet'} for this application<textarea aria-label={'Rewrite this '+(fact.kind==='summary'?'summary':fact.kind==='technology_experience'?'technology experience':fact.kind==='project'?'project bullet':fact.kind==='accomplishment'?'accomplishment bullet':'bullet')+': '+fact.text} value={rewrites[fact.fact_id]?.text||''} disabled={disabled} maxLength={10000} onChange={event=>editRewrite(fact,event.target.value)}/></label>
+          {ids.includes(fact.fact_id)&&REWRITABLE_RESUME_FACT_KINDS.includes(fact.kind as typeof REWRITABLE_RESUME_FACT_KINDS[number])&&<div className="form-row">
+            <label>Rewrite this {resumeFactRewriteLabel(fact.kind)} for this application<textarea aria-label={'Rewrite this '+resumeFactRewriteLabel(fact.kind)+': '+fact.text} value={rewrites[fact.fact_id]?.text||''} disabled={disabled} maxLength={10000} onChange={event=>editRewrite(fact,event.target.value)}/></label>
             {Boolean(rewrites[fact.fact_id]?.text.trim())&&<label className="consent"><input type="checkbox" aria-label={'I reviewed this rewrite: '+fact.text} checked={rewrites[fact.fact_id]?.reviewed||false} disabled={disabled} onChange={event=>reviewRewrite(fact,event.target.checked)}/>I reviewed this wording and confirm it preserves the selected approved fact.</label>}
           </div>}
         </div>)}
