@@ -95,6 +95,37 @@ class RequirementParserTests(unittest.TestCase):
              "PYTHON": "UNKNOWN"},
         )
 
+    def test_skill_containing_unknown_heading_closes_inherited_qualification_scope(self):
+        description = (
+            "Required Qualifications\nWindows Server\n"
+            "Experience With Active Directory\nPowerShell"
+        )
+        rows = parse_skill_requirements(description, extract_skill_mentions(description))
+        self.assertEqual(
+            {row["id"]: row["strength"] for row in rows},
+            {"WINDOWS_SERVER": "REQUIRED", "ACTIVE_DIRECTORY": "UNKNOWN",
+             "POWERSHELL": "UNKNOWN"},
+        )
+
+    def test_recognized_skill_bullets_in_sections_are_not_misread_as_headings(self):
+        description = "Required Qualifications\nActive Directory\nWindows Server"
+        rows = parse_skill_requirements(description, extract_skill_mentions(description))
+        self.assertEqual(
+            {row["id"]: row["strength"] for row in rows},
+            {"ACTIVE_DIRECTORY": "REQUIRED", "WINDOWS_SERVER": "REQUIRED"},
+        )
+
+    def test_inline_qualification_heading_classifies_following_skill_and_conflict_fails_closed(self):
+        descriptions = (
+            ("Required Qualifications: Windows Server", {"WINDOWS_SERVER": "REQUIRED"}),
+            ("Preferred Qualifications: Active Directory", {"ACTIVE_DIRECTORY": "PREFERRED"}),
+            ("Required Qualifications: Windows Server is preferred", {"WINDOWS_SERVER": "UNKNOWN"}),
+        )
+        for description, expected in descriptions:
+            with self.subTest(description=description):
+                rows = parse_skill_requirements(description, extract_skill_mentions(description))
+                self.assertEqual({row["id"]: row["strength"] for row in rows}, expected)
+
     def test_heading_inference_fails_closed_for_unlabelled_conflicting_and_inline_text(self):
         descriptions = (
             ("Windows Server\nPowerShell", {"WINDOWS_SERVER": "UNKNOWN", "POWERSHELL": "UNKNOWN"}),

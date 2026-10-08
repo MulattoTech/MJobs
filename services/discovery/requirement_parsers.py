@@ -214,8 +214,16 @@ def _qualification_sections(text, occurrences):
         markdown = bool(re.match(r"^#{1,6}\s+", raw))
         title = re.sub(r"^#{1,6}\s+", "", raw).strip()
         title = re.sub(r"^(?:\*\*|__)(.*?)(?:\*\*|__)$", r"\1", title)
-        title = title.rstrip(":").strip()
-        strength = _QUALIFICATION_HEADINGS.get(title.casefold())
+        inline_content = None
+        inline_heading = title.split(":", 1)[0].strip() if ":" in title else None
+        strength = (_QUALIFICATION_HEADINGS.get(inline_heading.casefold())
+                    if inline_heading is not None else None)
+        if strength is not None:
+            leading_space = len(match.group(0)) - len(match.group(0).lstrip())
+            inline_content = match.start() + leading_space + raw.index(":") + 1
+        else:
+            title = title.rstrip(":").strip()
+            strength = _QUALIFICATION_HEADINGS.get(title.casefold())
         contains_skill = any(
             occurrence["start"] < match.end() and occurrence["end"] > match.start()
             for occurrence in occurrences
@@ -224,12 +232,13 @@ def _qualification_sections(text, occurrences):
         title_case_heading = (
             2 <= len(title_words) <= 8
             and not re.search(r"[.!?]$", title)
-            and all(word[0].isupper() or word.casefold() in {"and", "of", "for", "to"}
+            and all(word[0].isupper() or word.casefold() in {"and", "of", "for", "to", "with"}
                     for word in title_words if word)
         )
+        skill_heading = contains_skill and len(title_words) >= 3 and title_case_heading
         explicit_heading = markdown or raw.endswith(":")
-        if strength is not None or (not contains_skill and (explicit_heading or title_case_heading)):
-            headings.append((match.start(), match.end(), strength))
+        if strength is not None or skill_heading or (not contains_skill and (explicit_heading or title_case_heading)):
+            headings.append((match.start(), inline_content if inline_content is not None else match.end(), strength))
 
     sections = []
     for index, (start, end, strength) in enumerate(headings):
