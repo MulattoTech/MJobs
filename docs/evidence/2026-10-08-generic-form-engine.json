@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "evidence_id": "MJ-REQ-128-GENERIC-FORM-ENGINE-LOCAL-20261008",
-  "recorded_at_utc": "2026-10-08T10:35:58Z",
+  "recorded_at_utc": "2026-10-08T10:47:53Z",
   "result": "PASS",
   "issue": 129,
   "requirement_id": "MJ-REQ-128",
@@ -10,8 +10,12 @@
     "repository": "MulattoTech/MJobs",
     "issue_url": "https://github.com/MulattoTech/MJobs/issues/129",
     "branch": "codex/mj-req128-generic-form-engine-20261008",
-    "test_snapshot_parent": "a3a9c1421fdf6d2280636c10341e8e2ceedce93f",
-    "test_snapshot_parent_tree": "cf3c2d59f1283faa9c4700fd8cd96655f84aedea"
+    "test_snapshot_parent": "347d4e7e53058135246f734aa1c7e850be25e51d",
+    "test_snapshot_parent_tree": "3b34163e8ec9c6d72ecda9c04604e4b7055d3af3",
+    "historical_red_first_parent": "a3a9c1421fdf6d2280636c10341e8e2ceedce93f",
+    "historical_red_first_parent_tree": "cf3c2d59f1283faa9c4700fd8cd96655f84aedea",
+    "candidate_source_head": "db44b111e22cb0e64c582e2ba0e5f5d34f180957",
+    "candidate_source_tree": "1a7503fef8ae9b53293d603e8fd2414395efbf0a"
   },
   "environment": {
     "platform": "Windows PowerShell",
@@ -21,17 +25,22 @@
   },
   "verification_window_utc": {
     "start": "NOT_RECORDED",
-    "end": "2026-10-08T10:35:58Z"
+    "end": "2026-10-08T10:47:53Z"
   },
   "checks": [
     {
       "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_application_form_analysis tests.integration.test_application_form_analysis tests.browser.test_mock_application",
       "target": "bounded metadata parser, synthetic mock preflight integration, durable audit readback, and mock browser regression suite",
       "result": "PASS",
-      "tests": 26,
+      "tests": 30,
       "failures": 0,
       "skips": 0,
-      "details": "Includes label/name/id/placeholder/ARIA/input type/nearby text/section heading/fieldset legend/options, combined metadata, malformed and ambiguous controls, size bounds, sensitive and credential classification, no value capture, no DOM interaction, review gating, and audit readback after reopening SQLite."
+      "details": "Includes all allowed metadata inputs, combined metadata, malformed/ambiguous controls and bounds, sensitive/credential classification, no value capture or DOM interaction, analyzer-specific rejection of malformed optional metadata while legal preflight is asserted PASS, zero attempts/receipts, and durable audit readback."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m py_compile services/applications/form_analysis.py services/applications/mock_adapter.py tests/unit/test_application_form_analysis.py tests/integration/test_application_form_analysis.py tests/browser/test_mock_application.py",
+      "target": "changed analyzer, mock integration, and tests",
+      "result": "PASS"
     },
     {
       "command": "git diff --check",
@@ -42,22 +51,23 @@
       "command": "Red-first unit and integration tests before implementation",
       "target": "missing analyzer and mock-preflight connection",
       "result": "EXPECTED_FAILURE",
-      "details": "Initial unit run failed because form_analysis.py was absent. Initial integration run showed missing audit metadata and a sensitive question passing preflight."
+      "details": "Initial unit run failed because form_analysis.py was absent; initial integration run showed missing audit metadata and a sensitive question passing preflight. On the rebased source, the new sibling span/output regression failed because rendered text was included; the analyzer-specific optional-control preflight regression passed before the privacy fix."
     }
   ],
   "source_inputs_sha256": {
-    "services/applications/form_analysis.py": "1ac4bb76b2c2c44104a4f83f16b0961e539229f244aeaa418990f8552c7dc679",
+    "services/applications/form_analysis.py": "ebefdc8e60fe7c394d82b86277954a7e6cfc13b2c1ff708fabd5316123f82b09",
     "services/applications/mock_adapter.py": "df534755fcfc241c591545d81333f66b4900a934c9dbe79c18861c12318c4a5c",
-    "tests/unit/test_application_form_analysis.py": "7d879fbb0115e8bf3baaf1e10c3bf96fed5a8a91ce59b88ac55ab9e8f1f14036",
+    "services/applications/preflight.py": "6e3ff722dce90e4ed479106e9eabc539bdbcf986ba0c2b394ac046b744983a8a",
+    "tests/unit/test_application_form_analysis.py": "6ce7ffd2e14bf649102a9798910a5edca1a00263692528b5c09145888dad23ab",
     "tests/integration/test_application_form_analysis.py": "c84b18ebf86a18bfbc460deae093295ee9d1f97821388e881823ca253d588326",
-    "tests/browser/test_mock_application.py": "70111831e544c8893ccf4e6508482088f1cdd7c25cbcaccaf02a6f28bc7f81ed"
+    "tests/browser/test_mock_application.py": "e78fe1742775934c9bf7a1ae2b5681d4293528f8030c0f412b0eb2915d7836d7"
   },
   "acceptance": {
-    "metadata_sources": "PASS; extractor returns only bounded label, name, id, placeholder, ARIA label, input type, nearby text, section heading, fieldset legend, and dropdown option labels.",
+    "metadata_sources": "PASS for bounded label, name, id, placeholder, ARIA label, input type, section heading, fieldset legend, dropdown option labels, and structured mock nearby text. The browser DOM analyzer omits arbitrary nearby sibling text because it cannot reliably distinguish static help from rendered answers.",
     "read_only_behavior": "PASS; extractor only queries DOM metadata; synthetic browser test observed zero click, input, change, or submit events.",
-    "privacy": "PASS; current values, option values, password values, cookies, and credentials are never returned; sensitive controls retain classification metadata without values.",
-    "mock_preflight_connection": "PASS; local mock questionnaire analysis is durably audited; ambiguous, malformed, sensitive, credential, or unknown analysis blocks browser startup and requires review.",
-    "scope": "PARTIAL; implements the deterministic metadata extraction slice only."
+    "privacy": "PASS; current values, option values, password values, cookies, and credentials are never returned. Dynamic span/output text inside labels, headings, or legends is omitted and marks analysis UNKNOWN.",
+    "mock_preflight_connection": "PASS; a malformed optional control leaves legal preflight otherwise PASS, while analyzer UNKNOWN blocks browser startup and yields REVIEW_REQUIRED with zero attempts and receipts; audit readback remains durable.",
+    "scope": "PARTIAL; live DOM nearby text is intentionally unavailable to preserve the no-current-answer guarantee; the deterministic extractor and mock integration remain limited to metadata analysis."
   },
   "limitations": {
     "live_employer_access": "NOT_RUN; prohibited by scope.",
