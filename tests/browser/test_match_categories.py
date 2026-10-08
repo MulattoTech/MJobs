@@ -30,7 +30,7 @@ class MatchCategoriesBrowserTests(unittest.TestCase):
             root = Path(directory)
             store = Store(f"sqlite:///{(root / 'categories.db').as_posix()}")
             store.migrate()
-            store.bind_workspace_mode("PERSONAL")
+            store.bind_workspace_mode("FIXTURE")
             store.save_profile(copy.deepcopy(PROFILE))
             second_profile = copy.deepcopy(PROFILE)
             second_profile.update(id="second-profile", name="Second Profile",
@@ -68,7 +68,7 @@ class MatchCategoriesBrowserTests(unittest.TestCase):
                 ))
 
             app = create_app(store, "http://127.0.0.1:1", root,
-                             "redis://127.0.0.1:1/0", operation_mode="PERSONAL")
+                             "redis://127.0.0.1:1/0", operation_mode="FIXTURE")
             sock = bound_browser_socket()
             origin = f"http://127.0.0.1:{sock.getsockname()[1]}"
             server = uvicorn.Server(uvicorn.Config(app, log_level="error"))
