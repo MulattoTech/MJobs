@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REQ-095-RESPONSIBILITY-PHRASE-TAILORING-20261008",
+  "issue": 96,
+  "requirement_id": "MJ-REQ-095",
+  "result": "PARTIAL",
+  "recorded_at_utc": "2026-10-08T09:18:22Z",
+  "branch": "codex/mj-req095-responsibility-phrases-20261008",
+  "base_commit": "41f5fb7eb8b6d802a1f9e8c84365a0d526d448a9",
+  "implementation_commit": "68a5748235c6a2565284ff4fb8ed6768d0fe4041",
+  "implementation_tree": "5c710d652dff63e02b92fc0e2a681e06cc8c75ca",
+  "input_sha256": {
+    "services/documents/tailor.py": "6fe6c3b8243aef6b0496c535857f02c09143ec37393b6dfe298a444ca9ab2ccf",
+    "services/documents/comparison.py": "d82bdc9603d7144eeacc1ee9583a22add9be47c762c9f18f5abdc87d3c1fd313",
+    "services/documents/history.py": "5af2fc8dcbb374ee1121cb41870c4ac7cfb2a92585774fcff22acdb760dc9244",
+    "apps/web/src/document-history.tsx": "35d815755fed8536ee505c1f8e2d02bc054f985e50d81e8ce060320a3a9e436d",
+    "apps/web/src/document-history.test.tsx": "ee2054176b25b93755dbd0f7f22350dc81a19c0c2d559b4553fce8555868e27f",
+    "tests/integration/test_responsibility_tailoring.py": "5d775b19382baec9830bfd7d886c876df8e9004b2b587ad7347bf0059dae451d",
+    "tests/browser/test_responsibility_tailoring.py": "75f067635d88de3cf2a1d19591044c9bc87ecc45920b340ff0f38b80ca867b16"
+  },
+  "acceptance": {
+    "deterministic_responsibility_signal": "PASS - Exact, normalized multiword phrases are taken from the target posting's responsibility excerpt. A phrase must contain at least five tokens and three informative tokens; generic, one-word and short ambiguous examples leave all eligible bullets in the fallback.",
+    "skill_and_phrase_selection": "PASS - Existing exact skill matches remain selected, with exact responsibility matches added in stable source order. Per-fact selected reasons distinguish skill evidence, responsibility evidence and all-eligible fallback.",
+    "explicit_selection_and_user_rewrites": "PASS - Existing explicit fact selection bypasses automatic selection. Rewrites remain user-reviewed and source-bound; profile facts are unchanged.",
+    "snapshot_and_provenance_integrity": "PASS - Generation context records the target description SHA-256, responsibility phrase snapshot digest, full target fingerprint, selected reason per fact and source-fact fingerprints. History and comparisons revalidate target identity, phrase selection and source facts; tampered or stale provenance is rejected or hidden as invalid.",
+    "durable_prepare_and_compare": "PASS - Synthetic exact job/profile preparation selected the approved matching duty, omitted the unrelated approved fact, preserved source facts, survived a storage close/reopen, and returned the expected comparison history.",
+    "history_user_reason": "PASS - Synthetic local Chromium browser displayed the exact responsibility phrase that selected the fact. Browser requests to non-local origins were blocked."
+  },
+  "test_first": {
+    "result": "PASS",
+    "selection_red": "The exact-duty regression failed because the existing selector retained all eligible bullets; the new selection logic made it select only responsibility-relevant bullets when no skill match existed.",
+    "union_red": "A regression with a separate exact skill match failed because the responsibility fact was omitted; the new selector adds both evidence-backed fact sets.",
+    "history_red": "The UI reason assertion failed when its rendering branch was removed, then passed after the selected reason was rendered."
+  },
+  "validation": {
+    "focused_command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_resume_comparison tests.integration.test_resume_comparison tests.integration.test_responsibility_tailoring tests.browser.test_responsibility_tailoring -q",
+    "focused_result": "PASS - 21 tests, 0 failures, 0 errors, 0 skips. Includes temporary SQLite persistence/reopen, stale/tampered context, exact skill compatibility, and local Chromium history assertion.",
+    "frontend_command": "Vitest run --root apps/web --config vite.config.ts src/document-history.test.tsx",
+    "frontend_result": "PASS - 1 file, 10 tests.",
+    "frontend_build": "PASS - TypeScript check and Vite production build.",
+    "py_compile": "PASS - Compiled changed Python modules and new Python tests using repository .venv Python 3.12.10.",
+    "agent_skills": "PASS - C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.agent_skills.",
+    "sha256_check": "PASS - Input file SHA-256 values captured from implementation commit 68a5748235c6a2565284ff4fb8ed6768d0fe4041.",
+    "diff_check": "PASS - git diff --check and committed-tree check.",
+    "postgresql": "NOT_RUN",
+    "hosted_checks_and_review": "NOT_RUN_BY_USER_POLICY"
+  },
+  "environment": {
+    "os": "Windows",
+    "python": "Repository .venv Python 3.12.10",
+    "node": "v25.9.0",
+    "database": "Temporary SQLite only; synthetic fixture profile/job data",
+    "browser": "Local Chromium through Playwright",
+    "external_submission": "OFF",
+    "production_credentials": "NOT_USED",
+    "job_provider_access": "NONE"
+  },
+  "limitations": [
+    "PostgreSQL behavior and broader end-to-end production workflows were not run.",
+    "Hosted CI and external review remain NOT_RUN_BY_USER_POLICY.",
+    "This is a bounded tailoring slice; issue #96 remains OPEN/PARTIAL and has not been promoted to requirement PASS."
+  ],
+  "external_submission": "OFF"
+}
