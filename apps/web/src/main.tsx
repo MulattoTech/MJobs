@@ -34,6 +34,8 @@ import { CareerStoryBankConnected } from './career-story-bank-connected';
 import { RoleLensSelectionLoader } from './role-lens-selection';
 import type { RoleLensChoice } from './role-lens-picker';
 import { BrowserJobExtraction } from './browser-job-extraction';
+import { createBrowserJobExtractionCaptureClient } from './browser-job-extraction-capture';
+import type { BrowserJobExtractionConfirmedPayload } from './browser-job-extraction-confirmation';
 import './style.css';
 
 type Fact = { id: string; fact_id?: string; kind: string; text: string; source: string; confidence: number; verified: boolean; user_approved: boolean };
@@ -270,6 +272,7 @@ function App() {
   const [busy,setBusy]=useState(''); const [error,setError]=useState(''); const [notice,setNotice]=useState('');
   const [activeOp,setActiveOp]=useState('');
   const profileRef = useRef(profileId); profileRef.current = profileId;
+  const browserCaptureClients = useRef(new Map<string, ReturnType<typeof createBrowserJobExtractionCaptureClient>>());
   const searchScheduleDraftsRef = useRef<Record<string,{enabled:boolean;interval:number}>>({});
   function updateSearchScheduleDraft(searchId:string,saved:{enabled:boolean;interval:number},next:{enabled:boolean;interval:number}) {
     const updated={...searchScheduleDraftsRef.current};
@@ -594,6 +597,31 @@ function App() {
     const sequence=++detailSequence.current;const selected=profileRef.current;
     const result=await api<Job>('/jobs/'+id+(selected?'?profile_id='+encodeURIComponent(selected):''));
     if(sequence===detailSequence.current&&selected===profileRef.current)setDetail(result);
+  }
+  async function captureReviewedBrowserJob(payload:BrowserJobExtractionConfirmedPayload) {
+    const selectedProfile=profileRef.current;
+    if(!selectedProfile||payload.preview.profile_id!==selectedProfile)
+      throw new Error('The active profile changed. Reopen the job and review its extracted details again.');
+    let client=browserCaptureClients.current.get(selectedProfile);
+    if(!client){client=createBrowserJobExtractionCaptureClient(selectedProfile);browserCaptureClients.current.set(selectedProfile,client);}
+    await action('Saving reviewed browser capture',async()=>{
+      if(profileRef.current!==selectedProfile)throw new Error('The active profile changed before this capture could be saved.');
+      let result;
+      try {
+        result=await client.capture(payload,payload.manualDetails);
+      } catch(error) {
+        // A POST may have committed before a later readback failed. Refresh visible state,
+        // then let the user retry with the same in-memory idempotency key.
+        await refresh(selectedProfile).catch(()=>undefined);
+        await loadJobs(selectedProfile).catch(()=>undefined);
+        throw error;
+      }
+      if(profileRef.current!==selectedProfile)throw new Error('The active profile changed while the capture was being read back.');
+      await showJob(result.job.id);
+      setNotice(result.created
+        ? `Reviewed capture saved as ${String(result.job.title||'job')} at ${String(result.job.company||'company')}. Job and source-candidate records were read back in this profile. No employer site was opened and no application was submitted.`
+        : `This reviewed capture was already saved as ${String(result.job.title||'job')}. Job and source-candidate records were read back in this profile; no application was submitted.`);
+    });
   }
   async function previewResumePageFit(jobId:string,targetPages:number) {
     if(!profileId||!jobId)return;

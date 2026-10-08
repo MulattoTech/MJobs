@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { api } from './api';
+import { BrowserJobExtractionConfirmationStep, type BrowserJobExtractionConfirmedPayload } from './browser-job-extraction-confirmation';
 
 export type BrowserCaptureDraft = {
   rawCaptureRef: string;
@@ -297,13 +298,15 @@ export function BrowserJobExtractionPanel(props: PanelProps) {
   </section>;
 }
 
-export function BrowserJobExtraction({ profileId, jobId, onConfirm }: { profileId: string; jobId: string; onConfirm: (confirmation: BrowserJobExtractionConfirmation) => void }) {
+export function BrowserJobExtraction({ profileId, jobId, onConfirm }: { profileId: string; jobId: string; onConfirm: (confirmation: BrowserJobExtractionConfirmedPayload) => void }) {
   const [draft, setDraft] = useState<BrowserCaptureDraft>(emptyDraft);
   const [result, setResult] = useState<BrowserJobExtractionResponse>();
   const [corrections, setCorrections] = useState<BrowserJobExtractionCorrections>({});
   const [pending, setPending] = useState(false);
   const [previewError, setPreviewError] = useState('');
   const [confirmedFields, setConfirmedFields] = useState<string[]>([]);
+  const [confirmationStep, setConfirmationStep] = useState(false);
+  const [manualDescription, setManualDescription] = useState('');
   const requestId = useRef(0);
 
   useEffect(() => {
@@ -314,11 +317,13 @@ export function BrowserJobExtraction({ profileId, jobId, onConfirm }: { profileI
     setPending(false);
     setPreviewError('');
     setConfirmedFields([]);
+    setConfirmationStep(false);
+    setManualDescription('');
   }, [profileId, jobId]);
 
   const preview = async () => {
     const id = ++requestId.current;
-    setPending(true); setPreviewError(''); setResult(undefined); setCorrections({}); setConfirmedFields([]);
+    setPending(true); setPreviewError(''); setResult(undefined); setCorrections({}); setConfirmedFields([]); setConfirmationStep(false); setManualDescription('');
     try {
       const response = await requestBrowserJobExtractionPreview(profileId, jobId, draft);
       if (requestId.current === id) setResult(response);
@@ -333,11 +338,26 @@ export function BrowserJobExtraction({ profileId, jobId, onConfirm }: { profileI
   };
   const correctField = (field: BrowserJobExtractionFieldName, value: string) => {
     setCorrections((current) => ({ ...current, [field]: value }));
-    if (result) {
-      setConfirmedFields((current) => confirmationsAfterCorrection(result, current, field));
-    }
+    if (result) setConfirmedFields((current) => current.filter(item => item !== field));
   };
-  return <BrowserJobExtractionPanel profileId={profileId} jobId={jobId} draft={draft} result={result} pending={pending}
-    corrections={corrections} previewError={previewError} confirmedFields={confirmedFields} onDraftChange={setDraft} onPreview={preview}
-    onCorrectionChange={correctField} onReviewFieldChange={reviewField} onConfirm={onConfirm} />;
+  const continueToConfirmation = (confirmation: BrowserJobExtractionConfirmation) => {
+    setManualDescription(confirmation.preview.fields.description.value || '');
+    setConfirmationStep(true);
+  };
+  return <>
+    <BrowserJobExtractionPanel profileId={profileId} jobId={jobId} draft={draft} result={result} pending={pending}
+      corrections={corrections} previewError={previewError} confirmedFields={confirmedFields} onDraftChange={setDraft} onPreview={preview}
+      onCorrectionChange={correctField} onReviewFieldChange={reviewField} onConfirm={continueToConfirmation} />
+    {confirmationStep && result && <BrowserJobExtractionConfirmationStep
+      preview={result}
+      description={manualDescription}
+      corrections={corrections}
+      confirmedFields={confirmedFields as BrowserJobExtractionFieldName[]}
+      pending={pending}
+      onDescriptionChange={setManualDescription}
+      onCorrectionChange={correctField}
+      onReviewFieldChange={reviewField}
+      onConfirm={onConfirm}
+    />}
+  </>;
 }
