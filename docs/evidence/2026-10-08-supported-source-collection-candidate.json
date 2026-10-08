@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "issue": 517,
+  "requirement_id": "MJ-FEATURE-DISCOVERED-JOB-SOURCE-CATALOGUE",
+  "result": "PASS",
+  "verification_time_utc": "2026-10-08T19:28:46Z",
+  "tested_base": "b118ee9431d89588f8a72cc4cc43c470204bd5cd",
+  "tested_source_commit": "f8946813256852c0126651ce13f0b2b6599f4ff0",
+  "tested_source_tree": "fae6673669c83303ab5ca59c5ce68db532b2f675",
+  "user_visible_behavior": "After a supported source collection persists postings, cross-domain application links are passively recorded as profile-scoped source candidates with sanitized URLs and PARTIAL or UNKNOWN provenance. Candidate collection remains disabled until user review. Replaying the worker operation creates no duplicate observation and capture makes no additional provider request.",
+  "checks": [
+    {
+      "command": "python -m unittest tests.unit.test_supported_source_capture tests.integration.test_supported_provider_collection tests.integration.test_compose_recovery_guardrails tests.integration.test_compose_recovery_target tests.unit.test_compose_recovery_target -v",
+      "result": "PASS",
+      "passed": 15
+    },
+    {
+      "command": "python -m unittest tests.browser.test_supported_provider_candidate -v",
+      "result": "PASS",
+      "passed": 1,
+      "mode": "FIXTURE",
+      "network": "provider calls use a strict synthetic in-memory transport; browser outbound requests are loopback-only"
+    },
+    {
+      "command": "npm --prefix apps/web run build",
+      "result": "PASS",
+      "notes": "Used a temporary junction to the existing local node_modules directory; verified and removed the junction after the build."
+    },
+    {
+      "command": "python -m py_compile workers/tasks.py cli/compose_recovery.py; git diff main...HEAD --check",
+      "result": "PASS"
+    }
+  ],
+  "input_sha256": {
+    "workers/tasks.py": "F44864E04F4F7A28B66321AD1056BA492348E4D4FC07EA489215D81456277B7C",
+    "tests/unit/test_supported_source_capture.py": "D37D4374325797D75B18034F51D28226737B91EEEF57AB5A31F2BFB8C70D6FC2",
+    "tests/integration/test_supported_provider_collection.py": "256EA4E97C325DD375C9BB6CE0A9EDF1010075A296D17E52E448F9A8B08BD36B",
+    "tests/browser/test_supported_provider_candidate.py": "B86449801C3DD151F2E790B634BB731EF8D689A8FBC2BD6301B0079116EC9CCA"
+  },
+  "limitations": [
+    "The source adapter did not produce an application URL in the Greenhouse fixture; the test seeded an existing cross-domain posting URL before worker collection. Adapter URL extraction is not claimed.",
+    "Docker/Compose and PostgreSQL runtime recovery were not run.",
+    "Hosted checks and external application submission were not run; submission remains OFF."
+  ],
+  "issue_status": "OPEN/PARTIAL"
+}
