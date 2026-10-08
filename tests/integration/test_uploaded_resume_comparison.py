@@ -130,6 +130,58 @@ class UploadedResumeComparisonTests(unittest.TestCase):
         finally:
             reloaded_store.engine.dispose()
 
+    def test_uploaded_comparison_rejects_tampered_omitted_fingerprint_after_store_reopen(self):
+        source=PROFILE['facts'][0]
+        facts=[
+            dict(source,id='summary',kind='summary',text='Infrastructure systems professional.'),
+            dict(source,id='python',kind='skill',text='Python'),
+            dict(source,id='matched-duty',kind='responsibility',text='Built Python APIs for internal teams.'),
+            dict(source,id='omitted-project',kind='project',text='Documented Hyper-V lab procedures.'),
+        ]
+        self.store.save_profile(dict(PROFILE,facts=facts))
+        with fixture_server() as origin:discover(self.store,origin,'fixture')
+        job=self.store.jobs()[0]
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.id==job['id']).values(
+                skills=['Python'],description='Build and maintain Python services.'))
+        app=prepare(self.store,job['id'],'fixture',self.root,tailor_resume=True)
+        uploaded_text=('Alex Fixture\nSkills\nSQL\nSource note: UPLOADED_ONLY_NOT_APPROVED_2941\n'
+                       'Documented Hyper-V lab procedures.\n')
+        upload=save_resume(self.store,self.root,'fixture','original.txt','text/plain',uploaded_text.encode())
+        before=self.store.profile('fixture')
+        target=next(row for row in application_documents(self.store,app) if row['kind']=='resume')
+        adjustment=target['generation_context']['bullet_adjustment']
+        omitted_ids=adjustment['omitted_bullet_fact_ids']
+        self.assertEqual(omitted_ids,['omitted-project'])
+        self.assertNotIn('omitted-project',{row['fact_id'] for row in target['facts_used']})
+        fingerprints=adjustment['source_fact_fingerprints']
+        original_fingerprint=fingerprints['omitted-project']
+        tampered_fingerprint=('0'*64 if original_fingerprint!='0'*64 else 'f'*64)
+        tampered_context={**target['generation_context'],
+            'bullet_adjustment':{**adjustment,
+                'source_fact_fingerprints':{**fingerprints,'omitted-project':tampered_fingerprint}}}
+        self.assertEqual(set(tampered_context),set(target['generation_context']))
+        self.assertEqual(set(tampered_context['bullet_adjustment']),set(adjustment))
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.documents).where(m.documents.c.id==target['id']).values(
+                generation_context=tampered_context))
+        database_url=str(self.store.engine.url)
+        self.store.engine.dispose()
+        reloaded_store=Store(database_url)
+        url=f'/profiles/fixture/applications/{app}/uploaded-resume-comparison'
+        params={'base_revision_id':upload['revision_id'],'tailored_document_id':target['id']}
+        try:
+            with TestClient(create_app(reloaded_store,'http://127.0.0.1:1',self.root,operation_mode='FIXTURE')) as client:
+                response=client.get(url,params=params)
+                self.assertEqual(response.status_code,409,response.text)
+                self.assertNotIn('UPLOADED_ONLY_NOT_APPROVED_2941',response.text)
+            reloaded_profile=reloaded_store.profile('fixture')
+            self.assertEqual(reloaded_profile,before)
+            self.assertNotIn('UPLOADED_ONLY_NOT_APPROVED_2941',
+                             '\n'.join(str(row.get('text','')) for row in reloaded_profile['facts']))
+        finally:
+            reloaded_store.engine.dispose()
+
     def test_wrong_membership_and_tampered_original_fail_closed(self):
         app,target=self.target()
         self.store.save_profile(dict(PROFILE,id='other'))
