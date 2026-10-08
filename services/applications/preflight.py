@@ -12,6 +12,14 @@ from packages.persistence.store import now
 
 
 _IDENTIFIER = re.compile(r"^[A-Za-z0-9_-]{1,80}$")
+_UNEXPECTED_SENSITIVE_QUESTION = re.compile(
+    r"\b(race|ethnic\w*|gender|sex|sexual orientation|disabilit\w*|veteran\w*|relig\w*|"
+    r"date of birth|birth date|social security(?: number)?|ssn|national id|national origin|"
+    r"age|marital|citizenship|citizen|authoriz\w*|work authorization|"
+    r"eligible to work|work eligibility|right to work|visa|sponsorship|criminal|convict\w*|"
+    r"felon\w*|background check|legally authorized|salary expectation\w*|salary range|"
+    r"desired compensation|compensation expectation\w*|non[ -]?compete|conflict\w* of interest|"
+    r"minimum age|attest\w*|certif\w* under penalty)\b", re.IGNORECASE)
 _PROFILE_PATHS = {"name", "email"}
 _FACT_KEYS = {"fact_ids", "answer_ids", "profile_paths", "document_kinds", "application_context"}
 _DOCUMENT_KINDS = {"resume", "cover-letter"}
@@ -132,6 +140,13 @@ def build_preflight_result(profile: dict, route: dict, questionnaire: dict | Non
                 or question["id"] in seen):
             return _unknown(profile, route, questionnaire, document_kinds, "INVALID_QUESTION_METADATA")
         seen.add(question["id"])
+        if question["required"] and _is_unexpected_sensitive_question(question):
+            sensitive = _unknown(profile, route, questionnaire, document_kinds,
+                                 "UNEXPECTED_SENSITIVE_REQUIRED_QUESTION")
+            sensitive["missing"] = [{
+                "question_id": question["id"], "question": question["label"],
+            }]
+            return sensitive
         mapping = _valid_mapping(question)
         if mapping is None:
             if question["required"]:
@@ -168,6 +183,11 @@ def build_preflight_result(profile: dict, route: dict, questionnaire: dict | Non
 def _profile_value(profile, path):
     value = profile.get(path)
     return isinstance(value, str) and bool(value.strip())
+
+
+def _is_unexpected_sensitive_question(question):
+    """Recognize high-risk/legal question wording without evaluating any answers."""
+    return _UNEXPECTED_SENSITIVE_QUESTION.search(question["label"]) is not None
 
 
 def persist_preflight(store, application_id: str, result: dict) -> None:

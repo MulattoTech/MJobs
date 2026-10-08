@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-08T09:43:17Z",
+  "requirement_id": "MJ-REQ-135",
+  "issue": 136,
+  "scope": "Bounded fail-closed validation for required structured ATS questions recognized as sensitive or legal.",
+  "result": "PASS",
+  "requirement_status": "PARTIAL",
+  "branch": "codex/mj-req135-sensitive-question-preflight-20261008",
+  "base_commit": "a33ecc497c412a3ee547ac35930b43de6fe274d4",
+  "test_environment": {
+    "os": "Windows",
+    "python": "repository .venv Python 3.12",
+    "database": "isolated temporary SQLite",
+    "ats": "local synthetic mock fixture"
+  },
+  "source_inputs_sha256": {
+    "services/applications/preflight.py": "2FB9F26584FE6C3D2FC08AFCFA4D4E60FEA64E12C89A3E691A73284E566D2854",
+    "tests/integration/test_application_preflight.py": "EBDE77C6A183B0DEFA88CDEEE07FAC5CACDF46A1D31CE2DA12366F0D139443BE",
+    "tests/browser/test_mock_application.py": "103F7F2D4BEE90124FC939171E61CB5770BA1DCF264FD4400E53A15503B74890"
+  },
+  "validations": [
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_application_preflight tests.browser.test_mock_application tests.integration.test_application_answer_export tests.browser.test_application_review_queue -v",
+      "result": "PASS",
+      "summary": "47 tests run; 46 passed; 1 skipped because the browser review-queue test requires an apps/web build."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m py_compile services/applications/preflight.py tests/integration/test_application_preflight.py tests/browser/test_mock_application.py",
+      "result": "PASS"
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m tools.verification.agent_skills",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "acceptance_observations": {
+    "sensitive_required_question": "Persisted UNKNOWN with stable reason UNEXPECTED_SENSITIVE_REQUIRED_QUESTION even when answer mapping is valid.",
+    "candidate_answer_values": "Absent from preflight result and audit event; tests use synthetic sentinel text.",
+    "application_lifecycle": "MOCK apply transitions to REVIEW_REQUIRED and exposes the question and reason in application detail.",
+    "browser_and_attempts": "Playwright launch was not called; zero application attempts were created; mock receipt remained not_found.",
+    "request_origin": "All apply_mock MockClient requests observed by the regression test used the configured fixture origin.",
+    "ordinary_questions": "Existing required mappings pass; unanswered optional ordinary questions remain nonblocking."
+  },
+  "not_run_or_limited": {
+    "hosted_checks": "NOT_RUN_BY_USER_POLICY",
+    "postgresql": "NOT_RUN",
+    "live_ats": "NOT_RUN",
+    "external_submission": "OFF",
+    "full_repository_suite": "NOT_RUN",
+    "browser_review_queue": "SKIPPED: requires apps/web build"
+  }
+}

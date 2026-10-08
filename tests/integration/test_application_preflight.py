@@ -112,6 +112,69 @@ class ApplicationPreflightTests(unittest.TestCase):
         self.assertEqual(result["reason"], "UNMAPPED_REQUIRED_QUESTION")
         self.assertNotEqual(questionnaire_fingerprint(first), questionnaire_fingerprint(changed))
 
+    def test_required_sensitive_question_is_unknown_even_with_valid_mapping_and_no_answer_values(self):
+        sensitive_answer = "SYNTHETIC_CANDIDATE_ANSWER_MUST_NOT_BE_AUDITED"
+        profile = dict(PROFILE, answers=[*PROFILE["answers"], {
+            "id": "gender-answer", "question": "What is your gender?",
+            "text": sensitive_answer, "source": "Synthetic test", "verified": True,
+            "user_approved": True, "confidence": 100,
+        }])
+        questionnaire = {
+            "provider": "mock-ats", "tenant": "example", "requisition": "B", "revision": 1,
+            "questions": [
+                {"id": "country", "label": "Country", "required": True,
+                 "requirements": {"answer_ids": ["country"]}},
+                {"id": "gender", "label": "What is your gender?", "required": True,
+                 "requirements": {"answer_ids": ["gender-answer"]}},
+            ],
+        }
+
+        result = build_preflight_result(profile, {"provider": "mock-ats", "tenant": "example",
+                                                  "requisition": "B"}, questionnaire,
+                                       {"resume", "cover-letter"})
+
+        self.assertEqual(result["result"], "UNKNOWN")
+        self.assertEqual(result["reason"], "UNEXPECTED_SENSITIVE_REQUIRED_QUESTION")
+        self.assertEqual(result["missing"], [{
+            "question_id": "gender", "question": "What is your gender?",
+        }])
+        self.assertNotIn(sensitive_answer, str(result))
+
+        with fixture_server() as origin:
+            discover(self.store, origin, "fixture")
+            job = next(row for row in self.store.jobs() if row["requisition"] == "B")
+            application_id = prepare(self.store, job["id"], "fixture", self.root)
+            persisted = dict(result, document_version=self.store.application(application_id)["document_version"])
+            persist_preflight(self.store, application_id, persisted)
+
+        stored = latest_preflight(self.store, application_id)
+        with self.store.engine.connect() as connection:
+            event = connection.execute(m.audit.select().where(
+                m.audit.c.entity_id == application_id,
+                m.audit.c.action == "APPLICATION_QUESTION_PREFLIGHT")).mappings().one()
+        self.assertEqual(stored["result"], "UNKNOWN")
+        self.assertEqual(stored["reason"], "UNEXPECTED_SENSITIVE_REQUIRED_QUESTION")
+        self.assertEqual(stored["missing"][0]["question_id"], "gender")
+        self.assertNotIn(sensitive_answer, str(stored))
+        self.assertNotIn(sensitive_answer, str(event["payload"]))
+
+    def test_sensitive_identity_questions_are_classified_without_answer_evaluation(self):
+        route = {"provider": "mock-ats", "tenant": "example", "requisition": "B"}
+        for question_id, label in (
+            ("ssn", "What is your Social Security number?"),
+            ("birth-date", "What is your date of birth?"),
+        ):
+            with self.subTest(label=label):
+                questionnaire = {
+                    "provider": "mock-ats", "tenant": "example", "requisition": "B", "revision": 1,
+                    "questions": [{"id": question_id, "label": label, "required": True,
+                                   "requirements": {"answer_ids": ["country"]}}],
+                }
+                result = build_preflight_result(PROFILE, route, questionnaire,
+                                                {"resume", "cover-letter"})
+                self.assertEqual(result["result"], "UNKNOWN")
+                self.assertEqual(result["reason"], "UNEXPECTED_SENSITIVE_REQUIRED_QUESTION")
+
     def test_preflight_is_persisted_and_readable_without_answer_values(self):
         with fixture_server() as origin:
             discover(self.store, origin, "fixture")

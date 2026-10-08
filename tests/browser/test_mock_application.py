@@ -3,9 +3,10 @@ from datetime import datetime
 import tempfile
 import unittest
 import json
+from urllib.parse import urlsplit
 
 import httpx
-from sqlalchemy import update
+from sqlalchemy import func, select, update
 from fastapi.testclient import TestClient
 
 from apps.api.main import create_app
@@ -338,6 +339,66 @@ class MockApplicationTests(unittest.TestCase):
             self.assertEqual(report["result"], "FAIL")
             self.assertEqual(report["missing"][0]["question_id"], "remote")
             self.assertEqual(report["missing"][0]["answer_ids"], ["remote"])
+
+    def test_sensitive_required_question_persists_review_and_stops_before_browser(self):
+        from unittest.mock import patch
+        from services.applications.preflight import latest_preflight
+
+        answer_value = "SYNTHETIC_SENSITIVE_CANDIDATE_ANSWER"
+        profile = dict(PROFILE, answers=[*PROFILE["answers"], {
+            "id": "gender-answer", "question": "What is your gender?",
+            "text": answer_value, "source": "Synthetic test", "verified": True,
+            "user_approved": True, "confidence": 100,
+        }])
+        with fixture_server() as origin:
+            app_id = self.prepared(origin, profile)
+            original_get = MockClient.get
+            requested_urls = []
+
+            def add_sensitive_question(client, url):
+                requested_urls.append(url)
+                response = original_get(client, url)
+                if "/ats/questions/" not in url:
+                    return response
+                questionnaire = response.json()
+                questionnaire["questions"].append({
+                    "id": "gender", "label": "What is your gender?", "required": True,
+                    "requirements": {"answer_ids": ["gender-answer"]},
+                })
+                return httpx.Response(response.status_code, json=questionnaire,
+                                      request=response.request)
+
+            with patch.object(MockClient, "get", add_sensitive_question), \
+                    patch("services.applications.mock_adapter.sync_playwright") as browser:
+                result = apply_mock(self.store, app_id, origin, self.root, submit=True)
+
+            self.assertEqual(result["state"], "REVIEW_REQUIRED")
+            browser.assert_not_called()
+            self.assertTrue(requested_urls)
+            self.assertTrue(all(urlsplit(url).scheme + "://" + urlsplit(url).netloc == origin
+                                for url in requested_urls), requested_urls)
+            with self.store.engine.connect() as connection:
+                attempts = connection.execute(select(func.count()).select_from(m.attempts).where(
+                    m.attempts.c.application_id == app_id)).scalar_one()
+            self.assertEqual(attempts, 0)
+            self.assertEqual(httpx.get(origin + "/ats/receipts/" + app_id).json(),
+                             {"status": "not_found"})
+            report = latest_preflight(self.store, app_id)
+            self.assertEqual(report["result"], "UNKNOWN")
+            self.assertEqual(report["reason"], "UNEXPECTED_SENSITIVE_REQUIRED_QUESTION")
+            self.assertEqual(report["missing"], [{
+                "question_id": "gender", "question": "What is your gender?",
+            }])
+            self.assertNotIn(answer_value, json.dumps(report))
+
+            with TestClient(create_app(self.store, "http://127.0.0.1:1", self.root,
+                                       operation_mode="FIXTURE")) as client:
+                detail = client.get(f"/profiles/fixture/applications/{app_id}")
+            self.assertEqual(detail.status_code, 200, detail.text)
+            self.assertEqual(detail.json()["question_preflight"]["reason"],
+                             "UNEXPECTED_SENSITIVE_REQUIRED_QUESTION")
+            self.assertEqual(detail.json()["question_preflight"]["missing"][0]["question"],
+                             "What is your gender?")
 
     def test_changed_questionnaire_stops_before_browser_as_stale(self):
         from unittest.mock import patch
