@@ -21,6 +21,13 @@ describe('application answer question matching',()=>{
     )).toEqual({method:'CURATED_SEMANTIC',score:0.95});
   });
 
+  it('labels a safe cloud provider/platform paraphrase as curated semantic',()=>{
+    expect(matchAnswerQuestion(
+      'What cloud providers have you used?',
+      'Which cloud platforms have you worked with?',
+    )).toEqual({method:'CURATED_SEMANTIC',score:0.95});
+  });
+
   it('rejects a near miss and every sensitive or legal prompt',()=>{
     expect(matchAnswerQuestion(
       'How many years of education?',

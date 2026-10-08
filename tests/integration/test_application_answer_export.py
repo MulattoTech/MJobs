@@ -283,6 +283,13 @@ class ApplicationAnswerExportTests(unittest.TestCase):
                 'source': 'Synthetic project inventory',
                 'verified': True, 'user_approved': True, 'confidence': 91,
             },
+            {
+                'id': 'cloud-platforms',
+                'question': 'Which cloud platforms have you worked with?',
+                'text': 'Synthetic experience with two cloud platforms',
+                'source': 'Synthetic infrastructure inventory',
+                'verified': True, 'user_approved': True, 'confidence': 92,
+            },
         ])
         saved = self.put_profile(profile)
         self.assertEqual(saved.status_code, 200, saved.text)
@@ -299,6 +306,12 @@ class ApplicationAnswerExportTests(unittest.TestCase):
                     'question': 'What coding languages have you worked with?',
                     'answer_id': 'programming-languages',
                     'text': 'Python and TypeScript in synthetic projects',
+                    'reviewed': True,
+                },
+                {
+                    'question': 'What cloud providers have you used?',
+                    'answer_id': 'cloud-platforms',
+                    'text': 'Synthetic experience with two cloud platforms',
                     'reviewed': True,
                 },
             ],
@@ -325,6 +338,11 @@ class ApplicationAnswerExportTests(unittest.TestCase):
                          'Which programming languages have you used?')
         self.assertEqual(entries[1]['source'], 'Synthetic project inventory')
         self.assertEqual(entries[1]['confidence'], 91)
+        self.assertEqual(entries[2]['answer_id'], 'cloud-platforms')
+        self.assertEqual(entries[2]['match_method'], 'CURATED_SEMANTIC')
+        self.assertEqual(entries[2]['match_score'], 0.95)
+        self.assertEqual(entries[2]['saved_question'],
+                         'Which cloud platforms have you worked with?')
         exported = self.client.get(f'/profiles/fixture/documents/{document_id}/txt')
         self.assertEqual(exported.status_code, 200)
         self.assertEqual(row['sha256']['txt'], hashlib.sha256(exported.content).hexdigest())

@@ -102,6 +102,10 @@ def normalize_question(value):
 _SEMANTIC_QUESTION_REWRITES = (
     (re.compile(r"\b(coding|software development)\s+languages?\b", re.IGNORECASE),
      "programming languages"),
+    # "Provider" and "platform" are interchangeable here only as part of the
+    # ordinary cloud experience prompt. This bounded rewrite is not a general
+    # semantic model; sensitive and legal prompts remain excluded separately.
+    (re.compile(r"\bcloud providers\b", re.IGNORECASE), "cloud platforms"),
     (re.compile(r"\b(what|which)\b", re.IGNORECASE), "which"),
     (re.compile(r"\bworked with\b", re.IGNORECASE), "used"),
 )

@@ -50,6 +50,14 @@ class AnswerMatchingTests(unittest.TestCase):
 
         self.assertEqual(result, {"method": "CURATED_SEMANTIC", "score": 0.95})
 
+    def test_cloud_provider_and_platform_wording_is_a_curated_ordinary_match(self):
+        result = self.matcher()(
+            "What cloud providers have you used?",
+            "Which cloud platforms have you worked with?",
+        )
+
+        self.assertEqual(result, {"method": "CURATED_SEMANTIC", "score": 0.95})
+
     def test_unrelated_near_miss_does_not_match(self):
         result = self.matcher()(
             "How many years of education?",
