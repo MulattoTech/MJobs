@@ -8,7 +8,8 @@ from unittest.mock import patch
 from alembic import command
 from alembic.config import Config
 from alembic.script import ScriptDirectory
-from sqlalchemy import CheckConstraint, create_engine, inspect, text
+from sqlalchemy import CheckConstraint, create_engine, event, inspect, text
+from sqlalchemy.exc import IntegrityError
 
 from packages.persistence import models as m
 
@@ -53,6 +54,15 @@ class InterviewPreparationMigrationTests(unittest.TestCase):
                 "'[\"story-revision-1\"]', '[\"question\"]', '[\"talking point\"]', "
                 "'[\"STAR prompt\"]', '[]', 'Synthetic export', '2026-10-08T00:00:00Z')"
             ))
+
+    def _foreign_key_engine(self, url):
+        engine = create_engine(url)
+        event.listen(
+            engine,
+            "connect",
+            lambda connection, _: connection.execute("PRAGMA foreign_keys=ON"),
+        )
+        return engine
 
     def test_single_head_adds_profile_scoped_versioned_pack_schema_and_empty_downgrade(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -140,6 +150,74 @@ class InterviewPreparationMigrationTests(unittest.TestCase):
                     self.assertEqual(connection.execute(text(
                         "SELECT version_num FROM alembic_version"
                     )).scalar_one(), EXPECTED_MIGRATION)
+            finally:
+                engine.dispose()
+
+    def test_pack_versions_are_unique_and_foreign_keys_preserve_profile_isolation(self):
+        with tempfile.TemporaryDirectory() as directory:
+            url = f"sqlite:///{(Path(directory) / 'interview-prep-constraints.db').as_posix()}"
+            config = self._config(url)
+            self._upgrade(config, url)
+            engine = self._foreign_key_engine(url)
+            try:
+                self._insert_pack(engine)
+                with self.assertRaises(IntegrityError):
+                    with engine.begin() as connection:
+                        connection.execute(text(
+                            "INSERT INTO interview_prep_packs "
+                            "SELECT 'pack-duplicate', profile_id, job_id, pack_version, "
+                            "profile_version, job_fingerprint, selected_story_revision_ids, "
+                            "questions, talking_points, star_prompts, missing_evidence, "
+                            "'Changed export', created_at FROM interview_prep_packs "
+                            "WHERE id = 'pack-1'"
+                        ))
+                with engine.connect() as connection:
+                    original = connection.execute(text(
+                        "SELECT id, pack_version, export_text FROM interview_prep_packs "
+                        "WHERE profile_id = 'profile-1' AND job_id = 'job-1'"
+                    )).one()
+                    self.assertEqual(tuple(original), ("pack-1", 1, "Synthetic export"))
+
+                with self.assertRaises(IntegrityError):
+                    with engine.begin() as connection:
+                        connection.execute(text(
+                            "INSERT INTO interview_prep_packs "
+                            "SELECT 'pack-invalid-version', profile_id, job_id, 0, "
+                            "profile_version, job_fingerprint, selected_story_revision_ids, "
+                            "questions, talking_points, star_prompts, missing_evidence, "
+                            "export_text, created_at FROM interview_prep_packs "
+                            "WHERE id = 'pack-1'"
+                        ))
+
+                with self.assertRaises(IntegrityError):
+                    with engine.begin() as connection:
+                        connection.execute(text(
+                            "DELETE FROM canonical_jobs WHERE id = 'job-1'"
+                        ))
+
+                with engine.begin() as connection:
+                    connection.execute(text(
+                        "INSERT INTO career_profiles (id, name, email, version) "
+                        "VALUES ('profile-2', 'Other synthetic', 'other@example.test', 'profile-v1')"
+                    ))
+                    connection.execute(text(
+                        "INSERT INTO interview_prep_packs "
+                        "SELECT 'pack-other-profile', 'profile-2', job_id, 1, profile_version, "
+                        "job_fingerprint, selected_story_revision_ids, questions, talking_points, "
+                        "star_prompts, missing_evidence, export_text, created_at "
+                        "FROM interview_prep_packs WHERE id = 'pack-1'"
+                    ))
+                    connection.execute(text(
+                        "DELETE FROM career_profiles WHERE id = 'profile-1'"
+                    ))
+                with engine.connect() as connection:
+                    self.assertEqual(connection.execute(text(
+                        "SELECT count(*) FROM interview_prep_packs WHERE id = 'pack-1'"
+                    )).scalar_one(), 0)
+                    self.assertEqual(connection.execute(text(
+                        "SELECT count(*) FROM interview_prep_packs "
+                        "WHERE id = 'pack-other-profile' AND profile_id = 'profile-2'"
+                    )).scalar_one(), 1)
             finally:
                 engine.dispose()
 
