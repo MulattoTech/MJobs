@@ -1,12 +1,13 @@
 {
   "schema_version": 1,
-  "recorded_at_utc": "2026-10-08T05:55:19.386079Z",
+  "recorded_at_utc": "2026-10-08T05:59:22.816934Z",
   "issue": 178,
   "requirement_id": "MJ-REQ-177",
   "result": "PARTIAL",
   "scoped_acceptance": "PASS",
-  "base_commit": "f34131a4047467284bb25b37138f872bf5f14a42",
-  "tested_code_and_test_tree": "a8c50630a4c458febf583d6603e88fc342368d28",
+  "base_commit": "8096b6c81250c5c8012f99e29f19c19e36220083",
+  "tested_candidate_commit": "0678aafc1ac21b347441d824144f4dd860f4c89e",
+  "tested_candidate_tree": "c9df6f20c54457b71ba0d985360f592ec4a7aee5",
   "tested_source_sha256": {
     "workers/structured_logging.py": "31c6ad71296a46860dd6292497184bbe547d274895f22f716a7f6a21ba006383",
     "tests/unit/test_structured_logging.py": "ae303bc490fe593cb1082f725ac84ea48c017539d6e3ffc7d59ff36be1f173d9",
