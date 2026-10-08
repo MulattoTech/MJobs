@@ -1,4 +1,5 @@
 from pathlib import Path
+from datetime import datetime
 import tempfile
 import unittest
 import json
@@ -126,10 +127,19 @@ class MockApplicationTests(unittest.TestCase):
             result = apply_mock(self.store, app_id, origin, self.root, submit=True)
             self.assertEqual(result["state"], "CONFIRMED")
             self.assertIn("VERIFY_CONFIRMATION", result["trace"])
+            confirmation = result["confirmation"]
+            self.assertEqual(confirmation["confirmation_url"], origin + "/ats/submit/B")
+            self.assertIn("Thank you for applying", confirmation["confirmation_text"])
+            self.assertIn("Application received", confirmation["confirmation_text"])
+            self.assertEqual(confirmation["reference_number"], confirmation["receipt"])
+            self.assertIn(confirmation["reference_number"], confirmation["confirmation_text"])
+            captured_at = datetime.fromisoformat(confirmation["timestamp"])
+            self.assertIsNotNone(captured_at.tzinfo)
             reopened = Store(self.store.url)
             try:
                 again = apply_mock(reopened, app_id, origin, self.root, submit=True)
                 self.assertEqual(again["state"], "CONFIRMED")
+                self.assertEqual(again["confirmation"], confirmation)
                 self.assertEqual(httpx.get(origin + "/ats/receipts/" + app_id).json()["submission_count"], 1)
                 history = self.history(store=reopened)
                 lifecycle = [event for event in history
@@ -142,6 +152,28 @@ class MockApplicationTests(unittest.TestCase):
                                      for event in self.history("other", reopened)))
             finally:
                 reopened.engine.dispose()
+
+    def test_unrecognized_confirmation_text_is_not_persisted_as_confirmed(self):
+        from unittest.mock import patch
+
+        with fixture_server() as origin:
+            app_id = self.prepared(origin)
+            original_get = MockClient.get
+
+            def alter_confirmation(client, url):
+                response = original_get(client, url)
+                if "/ats/receipts/" in url:
+                    payload = response.json()
+                    payload["confirmation_text"] = "Your application is still being processed."
+                    return httpx.Response(response.status_code, json=payload, request=response.request)
+                return response
+
+            with patch.object(MockClient, "get", alter_confirmation):
+                with self.assertRaisesRegex(ValueError, "Mock receipt missing"):
+                    apply_mock(self.store, app_id, origin, self.root, submit=True)
+            application = self.store.application(app_id)
+            self.assertEqual(application["state"], "SUBMISSION_UNCONFIRMED")
+            self.assertIsNone(application["confirmation"])
 
     def test_timeout_after_submission_reservation_prevents_submit_click(self):
         from workers.operations import OperationTimedOut

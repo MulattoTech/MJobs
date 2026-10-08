@@ -1,5 +1,6 @@
 """Explicit fictional local ATS/aggregator fixtures, never production job data."""
 from contextlib import contextmanager
+from datetime import datetime, timezone
 import json
 from pathlib import Path
 import socket
@@ -128,9 +129,18 @@ def create_mock_app(receipt_file=None):
             await form.close()
             return HTMLResponse('<p role="alert">Validation failed</p>', status_code=422)
         application_id = str(form["application_id"])
+        reference_number = "MOCK-" + application_id[:16]
+        confirmation_text = (
+            f"Thank you for applying. Application received. Application reference: {reference_number}"
+        )
         with lock:
             receipts.setdefault(application_id, {"application_id": application_id, "requisition": requisition,
-                                                  "receipt": "MOCK-" + application_id[:16], "submission_count": 1})
+                                                  "receipt": reference_number,
+                                                  "timestamp": datetime.now(timezone.utc).isoformat(),
+                                                  "confirmation_url": str(request.url),
+                                                  "confirmation_text": confirmation_text,
+                                                  "reference_number": reference_number,
+                                                  "submission_count": 1})
             if receipt_file:
                 path = Path(receipt_file)
                 path.parent.mkdir(parents=True, exist_ok=True)
@@ -138,7 +148,10 @@ def create_mock_app(receipt_file=None):
                 temporary.write_text(json.dumps(receipts), encoding="utf-8")
                 temporary.replace(path)
         await form.close()
-        return f'<h1 data-confirmation="{receipts[application_id]["receipt"]}">Mock application confirmed</h1>'
+        receipt = receipts[application_id]
+        return (f'<h1 data-confirmation="{receipt["reference_number"]}">Thank you for applying.</h1>'
+                f'<p>Application received.</p><p>Application reference: '
+                f'{receipt["reference_number"]}</p>')
 
     @app.get("/ats/receipts/{application_id}")
     def receipt(application_id: str):

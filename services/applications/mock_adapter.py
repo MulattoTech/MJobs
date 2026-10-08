@@ -45,7 +45,8 @@ def _playwright_action_timeout_ms(check, maximum_ms=10000):
     return min(maximum_ms, timeout_ms)
 
 
-def _receipt(client, application, requisition):
+def _receipt(client, application, requisition, *, observed_url=None,
+             observed_text=None, observed_reference=None):
     try:
         receipt = client.get(client.origin + "/ats/receipts/" + application["id"]).json()
     except (httpx.HTTPError, ValueError):
@@ -56,10 +57,41 @@ def _receipt(client, application, requisition):
         except Exception:
             return None
         raise
-    if (isinstance(receipt, dict) and receipt.get("application_id") == application["id"] and receipt.get("requisition") == requisition
-            and isinstance(receipt.get("receipt"), str) and receipt["receipt"].startswith("MOCK-")):
-        return receipt
-    return None
+    if not (isinstance(receipt, dict) and receipt.get("application_id") == application["id"]
+            and receipt.get("requisition") == requisition
+            and isinstance(receipt.get("receipt"), str)
+            and receipt["receipt"].startswith("MOCK-")):
+        return None
+    reference = receipt.get("reference_number")
+    confirmation_text = receipt.get("confirmation_text")
+    confirmation_url = receipt.get("confirmation_url")
+    captured_at = receipt.get("timestamp")
+    if (not isinstance(reference, str) or not reference or reference != receipt["receipt"]
+            or not isinstance(confirmation_text, str) or not confirmation_text.strip()
+            or len(confirmation_text) > 10000
+            or not isinstance(confirmation_url, str) or not client.allowed(confirmation_url)
+            or not isinstance(captured_at, str)):
+        return None
+    try:
+        timestamp = datetime.fromisoformat(captured_at.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if timestamp.tzinfo is None:
+        return None
+    normalized_text = " ".join(confirmation_text.split()).casefold()
+    if not any(phrase in normalized_text for phrase in (
+            "thank you for applying", "application received",
+            "we've received your application", "confirmation id", "application reference")):
+        return None
+    if reference.casefold() not in normalized_text:
+        return None
+    if observed_url is not None and confirmation_url != observed_url:
+        return None
+    if observed_text is not None and " ".join(observed_text.split()) != " ".join(confirmation_text.split()):
+        return None
+    if observed_reference is not None and observed_reference != reference:
+        return None
+    return receipt
 
 
 def _authorize(store, application_id, confidence, policy=Policy(), check=None):
@@ -316,11 +348,16 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
                     page.get_by_role("button", name="Submit mock application", exact=True).click()
                     record_mock_application_submitted(store, application_id)
                     page.set_default_timeout(_playwright_action_timeout_ms(check))
-                    page.locator("[data-confirmation]").wait_for(
+                    confirmation = page.locator("[data-confirmation]")
+                    confirmation.wait_for(
                         timeout=_playwright_action_timeout_ms(check))
-                    receipt = _receipt(client, application, route["requisition"])
+                    receipt = _receipt(
+                        client, application, route["requisition"],
+                        observed_url=page.url,
+                        observed_text=" ".join(page.locator("body").inner_text().split()),
+                        observed_reference=confirmation.get_attribute("data-confirmation"))
                     if receipt is None:
-                        raise ValueError("Mock receipt missing after submission")
+                        raise ValueError("Mock receipt missing or invalid after submission")
                     store.transition(application_id, ["SUBMITTING"], "CONFIRMED", "VERIFY_CONFIRMATION", receipt)
                     return store.application(application_id)
                 except Exception as error:

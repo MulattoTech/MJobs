@@ -18,6 +18,7 @@ from fixtures.mock_server import fixture_server
 from packages.persistence.store import Store
 from services.discovery.pipeline import discover
 from services.documents.generate import prepare
+from services.applications.mock_adapter import apply_mock
 from tests.integration.test_spine import PROFILE
 
 
@@ -27,6 +28,98 @@ ROOT = Path(__file__).resolve().parents[2]
 @unittest.skipUnless((ROOT / "apps/web/dist/index.html").is_file(),
                      "Build apps/web before browser acceptance")
 class ApplicationPipelineBrowserTests(unittest.TestCase):
+    def test_mock_confirmation_fields_read_back_in_ui_after_store_reopen(self):
+        with tempfile.TemporaryDirectory(prefix="mjobs-confirmation-browser-") as directory:
+            root = Path(directory)
+            database = root / "browser.db"
+            store = Store(f"sqlite:///{database.as_posix()}")
+            store.migrate()
+            store.bind_workspace_mode("FIXTURE")
+            store.save_profile(dict(PROFILE))
+            with fixture_server() as fixture:
+                discover(store, fixture, "fixture")
+                job = store.jobs("fixture")[0]
+                application_id = prepare(store, job["id"], "fixture", root)
+                confirmed = apply_mock(store, application_id, fixture, root, submit=True)
+                self.assertEqual(confirmed["state"], "CONFIRMED")
+                confirmation = confirmed["confirmation"]
+                self.assertEqual(confirmation["reference_number"], confirmation["receipt"])
+
+                store.engine.dispose()
+                reopened = Store(f"sqlite:///{database.as_posix()}")
+                reopened.migrate()
+                reopened.bind_workspace_mode("FIXTURE")
+                persisted = reopened.application(application_id)["confirmation"]
+                self.assertEqual(persisted, confirmation)
+
+                app = create_app(reopened, fixture, root,
+                                 "redis://127.0.0.1:1/0", operation_mode="FIXTURE")
+                sock = bound_browser_socket()
+                origin = f"http://127.0.0.1:{sock.getsockname()[1]}"
+                server = uvicorn.Server(uvicorn.Config(app, log_level="error"))
+                thread = threading.Thread(target=server.run, kwargs={"sockets": [sock]}, daemon=True)
+                thread.start()
+                try:
+                    deadline = time.monotonic() + 10
+                    while not server.started:
+                        if not thread.is_alive() or time.monotonic() > deadline:
+                            self.fail("Isolated confirmation API did not start")
+                        time.sleep(0.02)
+                    with sync_playwright() as playwright:
+                        browser = playwright.chromium.launch(headless=True)
+                        context = browser.new_context()
+                        external = []
+
+                        def local_only(route):
+                            if urlsplit(route.request.url).netloc != urlsplit(origin).netloc:
+                                external.append(route.request.url)
+                                route.abort()
+                            else:
+                                route.continue_()
+
+                        context.route("**/*", local_only)
+                        page = context.new_page()
+                        page.set_default_timeout(8000)
+                        page.goto(origin, wait_until="domcontentloaded")
+                        page.evaluate("localStorage.setItem('mjobs-profile', 'fixture')")
+                        page.reload(wait_until="domcontentloaded")
+                        page.get_by_role("button", name="Applications", exact=False).click()
+                        board = page.get_by_role("region", name="Application pipeline")
+                        card = board.get_by_role("region", name="Not tracked", exact=True).get_by_role(
+                            "button", name=job["title"], exact=False)
+                        expect(card).to_be_visible()
+                        card.click()
+                        confirmation_view = page.locator("pre").filter(
+                            has_text=confirmation["reference_number"])
+                        expect(confirmation_view).to_contain_text("timestamp")
+                        expect(confirmation_view).to_contain_text("confirmation_url")
+                        expect(confirmation_view).to_contain_text("confirmation_text")
+                        expect(confirmation_view).to_contain_text("reference_number")
+                        expect(confirmation_view).to_contain_text("Thank you for applying")
+                        expect(confirmation_view).to_contain_text(confirmation["timestamp"])
+                        expect(confirmation_view).to_contain_text(confirmation["reference_number"])
+                        self.assertFalse(external)
+
+                        page.reload(wait_until="domcontentloaded")
+                        page.get_by_role("button", name="Applications", exact=False).click()
+                        board = page.get_by_role("region", name="Application pipeline")
+                        card = board.get_by_role("region", name="Not tracked", exact=True).get_by_role(
+                            "button", name=job["title"], exact=False)
+                        card.click()
+                        expect(page.locator("pre").filter(
+                            has_text=confirmation["reference_number"])).to_contain_text(
+                                confirmation["confirmation_url"])
+                        self.assertEqual(reopened.application(application_id)["confirmation"], confirmation)
+                        self.assertFalse(external)
+                        context.close()
+                        browser.close()
+                finally:
+                    server.should_exit = True
+                    thread.join(timeout=10)
+                    sock.close()
+                    reopened.engine.dispose()
+                    self.assertFalse(thread.is_alive())
+
     def test_user_reported_stage_and_note_survive_reload_with_documents_linked(self):
         with tempfile.TemporaryDirectory(prefix="mjobs-application-pipeline-browser-") as directory:
             root = Path(directory)
