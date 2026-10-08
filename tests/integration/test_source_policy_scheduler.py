@@ -1,5 +1,6 @@
 """Source capability, policy, search-profile and scheduler acceptance."""
 from datetime import datetime, timedelta, timezone
+import json
 import os
 from pathlib import Path
 import subprocess
@@ -179,15 +180,20 @@ class SourcePolicySchedulerTests(unittest.TestCase):
             "enabled": True, "include_titles": ["Engineer"], "remote": "ANY",
             "employment_types": [], "source_ids": [source_id],
         })
-        at = datetime(2026, 10, 8, 12, 0, tzinfo=timezone.utc)
-
-        initial = schedule_due_sources(self.store, at)
-        self.assertEqual(len(initial["scheduled"]), 1)
-        operation_id = initial["scheduled"][0]["operation_id"]
         self.store.engine.dispose()
 
         scheduler_once = """
+import json
+import os
+from pathlib import Path
 from services.discovery import scheduler
+schedule_due_sources = scheduler.schedule_due_sources
+def capture_tick(*args, **kwargs):
+    result = schedule_due_sources(*args, **kwargs)
+    Path(os.environ["MJOBS_SCHEDULER_TICK_REPORT"]).write_text(
+        json.dumps(result, sort_keys=True), encoding="utf-8")
+    return result
+scheduler.schedule_due_sources = capture_tick
 def stop_after_tick(_seconds):
     raise SystemExit(0)
 scheduler.time.sleep = stop_after_tick
@@ -205,38 +211,90 @@ scheduler.run_forever()
         })
         project_root = Path(__file__).resolve().parents[2]
 
-        def run_scheduler_process():
+        def run_scheduler_process(name):
+            report_path = self.root / f"{name}-tick.json"
+            report_path.unlink(missing_ok=True)
+            process_environment = {**environment, "MJOBS_SCHEDULER_TICK_REPORT": str(report_path)}
             completed = subprocess.run(
-                [sys.executable, "-c", scheduler_once], cwd=project_root, env=environment,
+                [sys.executable, "-c", scheduler_once], cwd=project_root, env=process_environment,
                 capture_output=True, text=True, timeout=15,
             )
             self.assertEqual(completed.returncode, 0, completed.stderr)
+            self.assertTrue(report_path.is_file(), "scheduler process did not execute a tick")
+            return json.loads(report_path.read_text(encoding="utf-8"))
 
-        run_scheduler_process()
+        first_tick = run_scheduler_process("scheduler-first")
         restarted = Store(self.store.url)
         try:
-            run_scheduler_process()
-            self.assertEqual(restarted.count("worker_operations"), 1)
+            self.assertEqual(len(first_tick["scheduled"]), 1)
+            self.assertEqual(first_tick["scheduled"][0]["source_id"], source_id)
+            with restarted.engine.connect() as connection:
+                operations = list(connection.execute(select(m.operations)).mappings())
+            self.assertEqual(len(operations), 1, "first scheduler restart must persist one operation")
+            operation_id = operations[0]["id"]
+            self.assertEqual(operations[0]["state"], "QUEUED")
+            self.assertEqual(operations[0]["params"]["source_id"], source_id)
 
-            environment = {
-                "MJOBS_DATABASE_URL": restarted.url,
+            restarted.engine.dispose()
+            second_tick = run_scheduler_process("scheduler-restarted")
+            self.assertEqual(second_tick["scheduled"], [])
+            self.assertIn({"source_id": source_id, "reason": "ACTIVE_OPERATION"}, second_tick["skipped"])
+            with restarted.engine.connect() as connection:
+                self.assertEqual(connection.execute(select(m.operations.c.id)).all(), [(operation_id,)])
+
+            worker_once = """
+import json
+import os
+from pathlib import Path
+from sqlalchemy import update
+from packages.persistence import models as m
+from packages.persistence.store import now
+from workers import tasks
+def synthetic_collect(store, source_id, profile_id, profile_version=None, check=None, transport=None):
+    if check:
+        check()
+    with store.engine.begin() as connection:
+        connection.execute(update(m.job_sources).where(m.job_sources.c.id == source_id).values(
+            last_attempt=now(), health_status="HEALTHY", consecutive_failures=0,
+            last_error=None, backoff_until=None))
+    return {"status": "SYNTHETIC_NO_NETWORK"}
+tasks.collect_source = synthetic_collect
+result = tasks.execute_operation(os.environ["MJOBS_TEST_OPERATION_ID"])
+Path(os.environ["MJOBS_WORKER_REPORT"]).write_text(
+    json.dumps(result, sort_keys=True), encoding="utf-8")
+"""
+            worker_report = self.root / "worker-result.json"
+            worker_environment = {
+                key: os.environ[key]
+                for key in ("PATH", "SYSTEMROOT", "WINDIR", "TEMP", "TMP")
+                if key in os.environ
+            }
+            worker_environment.update({
+                "MJOBS_DATABASE_URL": self.store.url,
                 "MJOBS_MOCK_ORIGIN": "http://127.0.0.1:8090",
                 "MJOBS_OUTPUT_DIR": str(self.root),
                 "MJOBS_OPERATION_MODE": "PERSONAL",
-            }
-            with patch.dict("os.environ", environment), \
-                    patch("workers.tasks.collect_source") as collect, \
-                    patch("workers.tasks.recalculate") as recalculate:
-                collect.return_value = {"status": "synthetic"}
-                result = execute_operation(operation_id)
+                "MJOBS_TEST_OPERATION_ID": operation_id,
+                "MJOBS_WORKER_REPORT": str(worker_report),
+            })
+            worker = subprocess.run(
+                [sys.executable, "-c", worker_once], cwd=project_root, env=worker_environment,
+                capture_output=True, text=True, timeout=15,
+            )
+            self.assertEqual(worker.returncode, 0, worker.stderr)
+            self.assertTrue(worker_report.is_file(), "worker process did not complete the operation")
+            worker_result = json.loads(worker_report.read_text(encoding="utf-8"))
+            self.assertEqual(worker_result["status"], "COMPLETED")
 
-            self.assertEqual(result["status"], "COMPLETED")
-            collect.assert_called_once()
-            recalculate.assert_not_called()
+            final_tick = run_scheduler_process("scheduler-after-worker-restart")
+            self.assertEqual(final_tick["scheduled"], [])
+            self.assertTrue(any(row["source_id"] == source_id and row["reason"] == "NOT_DUE"
+                                for row in final_tick["skipped"]))
             with restarted.engine.connect() as connection:
-                saved = connection.execute(select(m.operations).where(
+                completed = connection.execute(select(m.operations).where(
                     m.operations.c.id == operation_id)).mappings().one()
-            self.assertEqual(saved["state"], "COMPLETED")
+                self.assertEqual(connection.execute(select(m.operations.c.id)).all(), [(operation_id,)])
+            self.assertEqual(completed["state"], "COMPLETED")
         finally:
             restarted.engine.dispose()
 
