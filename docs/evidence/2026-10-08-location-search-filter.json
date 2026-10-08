@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-189",
+  "issue": 190,
+  "scope": "Explicit free-text substring filtering against stored job location, composed with supported Jobs filters and profile-scoped saved searches",
+  "scope_result": "PASS",
+  "requirement_result": "PARTIAL",
+  "base_commit": "760271a9a1205858cda2e99980e37783f49dedc6",
+  "verified_source_head": "bb390b94afade18996b27e2663767f43659a96ce",
+  "verified_source_tree": "67e8017b663f30b9c24a4fa6877fae96bc50361b",
+  "verified_at_utc": "2026-10-08T09:45:17Z",
+  "environment": {
+    "python": "Repository virtual environment at C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe (Python 3.12.10)",
+    "node": "v25.9.0",
+    "npm": "11.12.1",
+    "database": "Isolated SQLite fixture databases",
+    "browser": "Local Chromium through Playwright",
+    "frontend_dependencies": "Existing main-checkout node_modules linked temporarily into this worktree; link removed after validation"
+  },
+  "source_sha256": {
+    "apps/api/main.py": "895BE59EE53BCCEBCE38D0A2733BE138008DA9A67F7C45F15F3B4011515802F0",
+    "apps/web/src/main.tsx": "473710446B5D0A14BE3A39F922523FE79A6842FA371E12DA72D5E1AD92FD728E",
+    "packages/persistence/store.py": "05BBC770985DA60D019AE050FC9C0BC89DE0EC2414D131511BA550CFD88053FB",
+    "services/discovery/search_profiles.py": "878365F46DC80474769245EE99E81B817D7CA490E4E0AC8E4CAA3A931855CA68",
+    "tests/integration/test_saved_search_filters.py": "52AA77C70D33C672C418B66B97EFD4D3DDED7C29F3962B4D09BEAFB08BCFB6A9",
+    "tests/browser/test_saved_search_filters.py": "D0C06703948169C01A178B2ADFDEF24ECB9B4D76267A221455D1EDB55C860D38"
+  },
+  "checks": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_saved_search_filters tests.integration.test_source_policy_scheduler tests.integration.test_job_sorting tests.browser.test_saved_search_filters tests.browser.test_search_profile_selection -v",
+      "result": "PASS",
+      "summary": "18 tests passed. Covers stored-location-only matching, case-insensitive literal matching including escaped percent/underscore, positive/negative results, pre-limit filtering, combination with q/title/company/remote/source/sort, legacy saved-search compatibility, profile isolation, restore after reload, clearing, and no discovery scheduling side effect."
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run",
+      "result": "PASS",
+      "summary": "16 frontend test files and 96 tests passed."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "summary": "TypeScript check and Vite production build passed."
+    },
+    {
+      "command": "git diff --check HEAD^ HEAD",
+      "result": "PASS",
+      "summary": "No whitespace errors in the verified source commit."
+    },
+    {
+      "command": "Get-FileHash on all six source and test inputs listed above",
+      "result": "PASS",
+      "summary": "All SHA-256 values match the committed verified source head."
+    }
+  ],
+  "safety_and_limits": {
+    "external_application_submission": "OFF; none attempted",
+    "discovery_scheduling": "No schedule created; saved Jobs filters remain disabled for provider scheduling",
+    "database_migration": "None; older saved-filter objects without location remain accepted with an empty location default",
+    "postgresql_validation": "NOT_RUN",
+    "hosted_ci_and_reviews": "NOT_RUN by local-only policy",
+    "remaining_requirement": "The broader MJ-REQ-189 facets including salary, experience, date, employment type, skills, education, clearance, match score, ATS and application capability/state remain incomplete."
+  }
+}
