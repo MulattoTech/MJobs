@@ -1614,7 +1614,38 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-065-performance-learning-history",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting.",
+      "active_slice": {
+        "issue": 240,
+        "requirement_id": "MJ-REQ-239",
+        "slice": "profile-scoped company notes connected through the existing CompanySources component",
+        "dependencies": [],
+        "parent_dependencies_preserved": [
+          "MJ-PR-064",
+          "MJ-PR-057"
+        ],
+        "branch": "codex/mj-req239-company-notes-20261008",
+        "worktree": ".worktrees/codex-mj-req239-company-notes-20261008",
+        "owned_paths": [
+          "services/tracking/companies.py",
+          "services/company_discovery/sources.py",
+          "apps/api/main.py",
+          "apps/web/src/company-sources.tsx",
+          "apps/web/src/company-sources.test.tsx",
+          "tests/integration/test_company_tracking.py",
+          "tests/browser/test_company_tracking.py",
+          "docs/evidence/2026-10-08-company-notes.json"
+        ],
+        "acceptance": [
+          "A company with an existing profile-company association can have multiple private notes added and read back after reload; notes append and never overwrite.",
+          "A different profile cannot read or write the notes unless it has its own valid association; reject blank/oversize input.",
+          "Idempotent same-request replay returns the same result without a duplicate event; conflicting replay is rejected; distinct concurrent writes retain unique sequence.",
+          "The mounted CompanySources component displays only the current profile/company notes, discards stale responses/drafts on profile/company switch, and exposes useful failure states.",
+          "Application Applied remains user-reported, operational state/confirmation are unchanged, and the feature performs no application submission or external request."
+        ],
+        "status": "ACTIVE",
+        "rationale": "Jobs and applications already support durable profile-scoped notes; companies are the remaining user-facing entity. Existing company rows can carry profile_id, allowing a complete UI/API/storage/readback flow without the active #116 main.tsx path."
+      }
     },
     {
       "id": "MJ-PR-066",
@@ -3668,5 +3699,5 @@
       "notes": "Scoped user-reviewed rewrite for approved technology_experience facts is integrated. Five unit plus one integration test and one connected Chromium test previously passed against the exact executable/test input SHA-256 values rechecked at the candidate. Current focused Python revalidation was BLOCKED_ENVIRONMENT (0 tests; Python 3.12 lacks SQLAlchemy and repository .venv lacks pytest); no dependencies installed. TypeScript/Vite build passed on Node 25.9.0. Local delegated review found no code blocker. Issue #96 / MJ-REQ-095 remains PARTIAL for other tailoring modes and semantic-equivalence proof; hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF."
     }
   ],
-  "generated_at": "2026-10-08T05:00:30Z"
+  "generated_at": "2026-10-08T05:02:07Z"
 }

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-08T05:00:30Z",
+  "generated_at": "2026-10-08T05:02:07Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -139,7 +139,8 @@
     "MJ-REQ-170",
     "MJ-REQ-176",
     "MJ-REQ-177",
-    "MJ-REQ-198"
+    "MJ-REQ-198",
+    "MJ-REQ-239"
   ],
   "active_prs": [],
   "tests_passed": [
@@ -569,7 +570,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Continue the active #199 / MJ-REQ-198 cover-letter history comparison child slice and review its exact source/tests/evidence when returned. The fresh local review of #116 / MJ-REQ-115 found a remaining no-but comma-list classification false positive; a bounded TDD follow-up is assigned on the existing branch. After #116 releases apps/web/src/main.tsx, reassess #240 / MJ-REQ-239 company notes as the next user-visible gap. #117 remains behind MJ-PR-031/MJ-PR-025 and #517 remains blocked by active provider/UI claims. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
+  "recommended_resume_step": "Integrate the active #199 / MJ-REQ-198 cover-letter history comparison when delegated review completes; continue #116 / MJ-REQ-115 scoped parser correction and review; #240 / MJ-REQ-239 company notes is now a dependency-independent child slice that avoids main.tsx and is queued for an isolated Luna High worker. Keep PR-065 dependencies MJ-PR-064/MJ-PR-057 unchanged. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
