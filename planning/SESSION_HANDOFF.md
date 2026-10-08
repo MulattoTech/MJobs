@@ -1,3 +1,13 @@
+## 2026-10-08T09:38:20.747897Z — connected search filters integrated; two core slices active
+
+Local `main` is at `a33ecc497c412a3ee547ac35930b43de6fe274d4` (tree `9f4d23b024e2746c1ac1448464cd344ee847007a`); origin is at `13426c6d5f9630133dfdf8184c84005cc01436b9` before this tracker checkpoint push. #190/MJ-REQ-189 has separate case-insensitive title/company filters in the connected Jobs UI/API; they compose with existing query/location/source/sort, filter before limits, and persist/restore in profile-scoped saved searches. Company sort is saveable and restorable. Root verified API integration 4, connected browser 2, frontend 96/96, build, hashes and diff; local delegated review found no material issue. Requirement remains PARTIAL. Current original matrix: 83 PASS, 87 PARTIAL, 196 NOT_RUN. PostgreSQL/hosted checks and overall release remain NOT_RUN; external submission OFF.
+
+Active Luna High writers: #115/MJ-REQ-114 certification match explanations (`services/discovery/matching.py`, explainable matching tests) and #136/MJ-REQ-135 fail-closed sensitive-question preflight (`services/applications/preflight.py`, application preflight/mock browser tests). #190 claim is released. Antigravity #302 and Ollama #318 stay active on their established paths.
+
+Next integrate active candidates sequentially after exact-head tests/review; preserve queued umbrella dependencies. Root remains sole integrator and holds the integration lock.
+
+---
+
 ## 2026-10-08T09:28:27.190192Z — core-feature integration batch and active filter slice
 
 Local and origin main were verified at `4a538003dc151a97d03d615d6ea2ee34802d20aa` (tree `feebe8fb04d267a4a4aac06aa272b68d532c4f30`) after the tracker checkpoint push. #116/MJ-REQ-115 required/preferred skill-strength classification, #198/MJ-REQ-197 application question review with consent-safe Answer Bank reuse, and #96/MJ-REQ-095 exact responsibility-phrase resume tailoring are integrated locally. Original requirement totals: 83 PASS, 86 PARTIAL, 197 NOT_RUN; release eligibility remains NOT_RUN. Root exact local checks: combined #116/#198 Python 59 PASS, frontend 95/95 and build PASS; #96 Python/Chromium 21, frontend 10, build, py_compile, skill validation and hashes PASS. PostgreSQL/hosted checks and live ATS remain NOT_RUN; external submission OFF.

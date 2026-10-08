@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-08T09:23:01.774980Z",
+  "generated_at": "2026-10-08T09:37:57.285378Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -11,8 +11,8 @@
     "current_verified_github_state": "Local and origin main synchronized at e211f013801849a4fe2cf24c855313b8fcfc3978; latest integrated scoped slice is #144/MJ-REQ-143 MOCK-only confirmation capture; whole release remains PARTIAL.",
     "current_verified_at": "2026-10-08T08:24:33Z"
   },
-  "current_milestone": "CORE-FEATURE-BATCH-20261008-B",
-  "current_objective": "Advance connected jobseeker discovery, truthful job-specific documents, and consent-safe application preparation through dependency-ready core slices.",
+  "current_milestone": "CORE-FEATURE-BATCH-20261008-C",
+  "current_objective": "Advance connected jobseeker search, matching, truthful documents, and consent-safe application preparation through dependency-ready vertical slices.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -553,11 +553,11 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "commit": "4861439ba189502b8f0b6ed26b16b37c17ba87dc",
-    "tree": "72a7c772bac5bf1ae9b2385b03e194f530c93e85",
-    "result": "PASS scoped local core feature batch; whole product/release remains PARTIAL/NOT_RUN.",
-    "evidence": "docs/evidence/2026-10-08-responsibility-phrase-tailoring.json",
-    "verified_at_utc": "2026-10-08T09:23:01.774980Z"
+    "commit": "a33ecc497c412a3ee547ac35930b43de6fe274d4",
+    "tree": "9f4d23b024e2746c1ac1448464cd344ee847007a",
+    "result": "PASS scoped connected title/company saved-filter slice; whole product/release remains PARTIAL/NOT_RUN.",
+    "evidence": "docs/evidence/2026-10-08-title-company-search-filters.json",
+    "verified_at_utc": "2026-10-08T09:37:57.285378Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -624,7 +624,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Select the highest-value dependency-ready original core feature from live issue/spec state; favor connected discovery/search/matching or ATS preparation. Keep hosted Actions/review disabled and external submission OFF.",
+  "recommended_resume_step": "Continue active #115/MJ-REQ-114 certification explanations and #136/MJ-REQ-135 sensitive-question preflight gate in isolated worktrees; reconcile, verify and integrate sequentially.",
   "release_readiness": "NOT_RUN",
   "migrations_applied": [
     "92f0997f753e",
@@ -658,7 +658,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "4861439ba189502b8f0b6ed26b16b37c17ba87dc",
+  "last_implementation_commit": "a33ecc497c412a3ee547ac35930b43de6fe274d4",
   "publication": {
     "result": "PASS - scoped local product slices integrated; overall release remains PARTIAL/NOT_RUN",
     "integration_method": "NON_FORCE_FAST_FORWARD with exact worker commits cherry-picked where needed",
@@ -11038,14 +11038,61 @@
         "evidence_path": "docs/evidence/2026-10-08-responsibility-phrase-tailoring.json",
         "note": "Meaningful core-feature integration batch: application review/Answer Bank safety, explicit skill-strength classification and truthful resume responsibility matching; origin sync and release eligibility are recorded separately."
       }
+    },
+    {
+      "milestone_id": "CORE-FEATURE-BATCH-20261008-C",
+      "timestamp": "2026-10-08T09:37:57.285378Z",
+      "current_phase": "CORE_FEATURE_IMPLEMENTATION",
+      "completed_steps": [
+        "Integrated separate title/company substring filters across connected Jobs UI, API, SQL query, and profile-scoped saved searches.",
+        "Verified company sort remains saveable/restorable with the new filter fields; preserved parent queue dependencies.",
+        "Ran root exact candidate integration/browser/frontend/build checks and local delegated review; retained other original filter gaps as PARTIAL."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-08-title-company-search-filters.json"
+      ],
+      "files_modified": [
+        "apps/api/main.py",
+        "packages/persistence/store.py",
+        "services/discovery/search_profiles.py",
+        "apps/web/src/main.tsx",
+        "tests/integration/test_saved_search_filters.py",
+        "tests/browser/test_saved_search_filters.py",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "planning/IMPLEMENTATION_STATE.json"
+      ],
+      "tests_completed": [
+        "Issue #190 focused API integration and existing search compatibility: 4 PASS.",
+        "Issue #190 connected browser saved search/reload/reset/profile-isolation: 2 PASS.",
+        "Frontend suite: 96/96 PASS; TypeScript/Vite build PASS.",
+        "Evidence source hashes, git diff --check, progress/dashboard, catalogue, lane coordination and agent skills validators PASS.",
+        "LOCAL_DELEGATED_REVIEW: no material findings; root also reviewed saved Company sort failure and regression fix."
+      ],
+      "tests_remaining": [
+        "PostgreSQL filter semantics, broader end-to-end product regression, hosted checks/review and release eligibility remain NOT_RUN."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "Only title/company plus previously supported keyword/location/source/sort are covered; remaining filter categories in MJ-REQ-189 remain incomplete.",
+        "MJ-PR-052 dependencies MJ-PR-051/MJ-PR-043 remain unchanged; hosted Actions/review and PostgreSQL NOT_RUN. External submission OFF."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "a33ecc497c412a3ee547ac35930b43de6fe274d4",
+        "tree": "9f4d23b024e2746c1ac1448464cd344ee847007a",
+        "evidence_path": "docs/evidence/2026-10-08-title-company-search-filters.json",
+        "note": "Accepted bounded connected job-filter slice. Broader sidebar and release remain PARTIAL/NOT_RUN."
+      }
     }
   ],
   "current_phase": "CORE_FEATURE_IMPLEMENTATION",
   "last_safe_checkpoint": {
-    "git_commit": "4861439ba189502b8f0b6ed26b16b37c17ba87dc",
-    "tree": "72a7c772bac5bf1ae9b2385b03e194f530c93e85",
-    "evidence_path": "docs/evidence/2026-10-08-responsibility-phrase-tailoring.json",
-    "note": "Meaningful core-feature integration batch: application review/Answer Bank safety, explicit skill-strength classification and truthful resume responsibility matching; origin sync and release eligibility are recorded separately."
+    "git_commit": "a33ecc497c412a3ee547ac35930b43de6fe274d4",
+    "tree": "9f4d23b024e2746c1ac1448464cd344ee847007a",
+    "evidence_path": "docs/evidence/2026-10-08-title-company-search-filters.json",
+    "note": "Accepted bounded connected job-filter slice. Broader sidebar and release remain PARTIAL/NOT_RUN."
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -11371,23 +11418,21 @@
     "next_issue": "Release #398 and select the next dependency-ready unclaimed issue after live claim/worktree reconciliation."
   },
   "active_development_issue": {
-    "issue": 96,
-    "requirement_id": "MJ-REQ-095",
-    "title": "Job-specific responsibility phrase resume selection",
-    "state": "Scoped implementation integrated locally; issue remains OPEN/PARTIAL pending broader requirement acceptance.",
-    "branch": "codex/mj-req095-responsibility-phrases-20261008",
-    "worktree": ".worktrees/codex-mj-req095-responsibility-phrases-20261008",
-    "base_commit": "a1de18b8ab9538f0441c8f4ac95aff480f9916ea",
+    "issue": 136,
+    "requirement_id": "MJ-REQ-135",
+    "title": "Sensitive ATS question preflight validation",
+    "state": "Active isolated implementation.",
+    "branch": "codex/mj-req135-sensitive-question-preflight-20261008",
+    "worktree": ".worktrees/codex-mj-req135-sensitive-question-preflight-20261008",
+    "base_commit": "a33ecc497c412a3ee547ac35930b43de6fe274d4",
     "owned_paths": [
-      "services/documents/tailor.py",
-      "services/documents/comparison.py",
-      "services/documents/history.py",
-      "apps/web/src/document-history.tsx",
-      "tests/integration/test_responsibility_tailoring.py",
-      "tests/browser/test_responsibility_tailoring.py"
+      "services/applications/preflight.py",
+      "tests/integration/test_application_preflight.py",
+      "tests/browser/test_mock_application.py",
+      "docs/evidence/2026-10-08-sensitive-question-preflight.json"
     ],
-    "acceptance": "Scoped candidate verified and integrated at current checkpoint; continue with a different dependency-ready core issue after reconciling open claims.",
-    "child_id": null
+    "acceptance": "Unexpected required sensitive question must fail closed before browser startup and remain reviewable without exposing answers.",
+    "child_id": "req135-sensitive-question-preflight"
   },
   "historical_control_snapshots": [
     {
@@ -12543,5 +12588,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-08T09:23:01.774980Z"
+  "updated_at": "2026-10-08T09:37:57.285378Z"
 }

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-08T09:23:01.774980Z",
+  "timestamp": "2026-10-08T09:37:57.285378Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -1629,9 +1629,11 @@
     },
     {
       "requirement_id": "MJ-REQ-189",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-08-title-company-search-filters.json"
+      ],
+      "note": "A bounded connected title/company filter slice is verified: separate case-insensitive literal substring filters compose with keyword, location, source and sort; filtering runs before result limits; named profile-scoped saved searches retain and restore the fields and supported Company sort after reload. Reset, cross-profile ownership/isolation, wildcard literals, existing query behavior, no discovery scheduling, and no off-origin requests are covered. Evidence docs/evidence/2026-10-08-title-company-search-filters.json. Issue #190/MJ-REQ-189 remains PARTIAL; salary, experience, date, employment type, skills, education, clearance, match score, ATS, application capability/state filters and hosted/PostgreSQL checks remain NOT_RUN."
     },
     {
       "requirement_id": "MJ-REQ-190",

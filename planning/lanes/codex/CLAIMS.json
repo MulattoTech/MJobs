@@ -997,7 +997,7 @@
       "requirement_id": "MJ-REQ-189",
       "branch": "codex/mj-req189-title-company-filters-20261008",
       "worktree": ".worktrees/codex-mj-req189-title-company-filters-20261008",
-      "head": null,
+      "head": "a33ecc497c412a3ee547ac35930b43de6fe274d4",
       "paths": [
         "apps/api/main.py",
         "packages/persistence/store.py",
@@ -1007,10 +1007,14 @@
         "tests/browser/test_saved_search_filters.py",
         "docs/evidence/2026-10-08-title-company-search-filters.json"
       ],
-      "status": "ACTIVE",
+      "status": "RELEASED",
       "claimed_at": "2026-10-08T09:27:28Z",
       "claim_comment": "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6056870469",
-      "acceptance": "Connected title and company substring filters compose with existing job-search controls, persist in profile-scoped saved searches, and survive reload; verify literal matching, result ordering/limit, isolation, clear, and no scheduling/submission side effects."
+      "acceptance": "Connected title and company substring filters compose with existing job-search controls, persist in profile-scoped saved searches, and survive reload; verify literal matching, result ordering/limit, isolation, clear, and no scheduling/submission side effects.",
+      "evidence_path": "docs/evidence/2026-10-08-title-company-search-filters.json",
+      "integrated_main": "a33ecc497c412a3ee547ac35930b43de6fe274d4",
+      "result": "INTEGRATED_PARTIAL; issue #190 remains OPEN/PARTIAL",
+      "released_at": "2026-10-08T09:38:20.747897Z"
     }
   ]
 }

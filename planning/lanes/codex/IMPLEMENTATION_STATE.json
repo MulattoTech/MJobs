@@ -2,14 +2,14 @@
   "schema_version": 1,
   "lane": "codex",
   "status": "ACTIVE",
-  "base_main": "4861439ba189502b8f0b6ed26b16b37c17ba87dc",
-  "current_issue": 190,
-  "requirement_id": "MJ-REQ-189",
-  "branch": "codex/mj-req189-title-company-filters-20261008",
-  "head": "4861439ba189502b8f0b6ed26b16b37c17ba87dc",
-  "worktree": ".worktrees/codex-mj-req189-title-company-filters-20261008",
-  "result": "Implementation assigned; connected title/company filters with durable saved-search round-trip are in progress.",
-  "evidence_path": "docs/evidence/2026-10-08-title-company-search-filters.json",
+  "base_main": "a33ecc497c412a3ee547ac35930b43de6fe274d4",
+  "current_issue": 136,
+  "requirement_id": "MJ-REQ-135",
+  "branch": "codex/mj-req135-sensitive-question-preflight-20261008",
+  "head": "a33ecc497c412a3ee547ac35930b43de6fe274d4",
+  "worktree": ".worktrees/codex-mj-req135-sensitive-question-preflight-20261008",
+  "result": "Active isolated safety-gate implementation; no browser startup for unexpected sensitive required ATS questions.",
+  "evidence_path": "docs/evidence/2026-10-08-sensitive-question-preflight.json",
   "last_completed": {
     "issue": 180,
     "requirement_id": "MJ-REQ-179",
@@ -29,9 +29,9 @@
     "canonical planning and main outside integration lock"
   ],
   "resume_instruction": "Interactive session handed off at user request. Local/origin main was e211f013801849a4fe2cf24c855313b8fcfc3978 before local metadata checkpoint. No Codex child claims remain active. Antigravity #302 and Ollama #318 are preserved. Next issue #191 Salary remains BLOCKED_DESIGN; inspect fresh state before selecting another unclaimed dependency-ready task. Keep hosted checks disabled and external submission OFF.",
-  "last_verified_head": "4a538003dc151a97d03d615d6ea2ee34802d20aa",
-  "last_verified_tree": "feebe8fb04d267a4a4aac06aa272b68d532c4f30",
-  "last_verified_at_utc": "2026-10-08T09:28:27.190192Z",
+  "last_verified_head": "a33ecc497c412a3ee547ac35930b43de6fe274d4",
+  "last_verified_tree": "9f4d23b024e2746c1ac1448464cd344ee847007a",
+  "last_verified_at_utc": "2026-10-08T09:38:20.747897Z",
   "started_at_utc": "2026-10-07T04:24:01Z",
   "validation": {
     "result": "PASS (bounded local slice; issue remains PARTIAL)",
@@ -43,15 +43,15 @@
     "hosted_checks": "NOT_RUN_BY_USER_POLICY",
     "external_submission": "OFF"
   },
-  "last_integrated_head": "4a538003dc151a97d03d615d6ea2ee34802d20aa",
-  "last_verified_result": "PASS scoped feature evidence plus progress/dashboard/catalogue/coordination/skills validation. Root origin sync confirmed at current checkpoint.",
-  "updated_at": "2026-10-08T09:28:27.190192Z",
-  "integrated_main": "4a538003dc151a97d03d615d6ea2ee34802d20aa",
-  "last_integrated_issue": 96,
-  "last_integrated_requirement": "MJ-REQ-095",
-  "last_integrated_evidence": "docs/evidence/2026-10-08-responsibility-phrase-tailoring.json",
+  "last_integrated_head": "a33ecc497c412a3ee547ac35930b43de6fe274d4",
+  "last_verified_result": "PASS scoped connected title/company filters; requirement remains PARTIAL.",
+  "updated_at": "2026-10-08T09:38:20.747897Z",
+  "integrated_main": "a33ecc497c412a3ee547ac35930b43de6fe274d4",
+  "last_integrated_issue": 190,
+  "last_integrated_requirement": "MJ-REQ-189",
+  "last_integrated_evidence": "docs/evidence/2026-10-08-title-company-search-filters.json",
   "canonical_main_at_pause": "e211f013801849a4fe2cf24c855313b8fcfc3978",
-  "last_completed_issue": 96,
+  "last_completed_issue": 190,
   "last_completed_requirement": "MJ-REQ-194 Companies Screen accepted and issue closed PASS; aggregate PR-053 queued",
   "next_issue": 191,
   "next_requirement": "MJ-REQ-190",
@@ -70,17 +70,24 @@
   "acceptance": "No active claim. Preserve exact issue acceptance and dependencies. #191 Salary direction/range/unit semantics require resolution; do not infer unknown compensation.",
   "active_children": [
     {
-      "child_id": "req189-title-company-filters",
-      "issue": 190,
+      "child_id": "req114-certification-explanation",
+      "issue": 115,
       "status": "ACTIVE",
       "paths": [
-        "apps/api/main.py",
-        "packages/persistence/store.py",
-        "services/discovery/search_profiles.py",
-        "apps/web/src/main.tsx",
-        "tests/integration/test_saved_search_filters.py",
-        "tests/browser/test_saved_search_filters.py",
-        "docs/evidence/2026-10-08-title-company-search-filters.json"
+        "services/discovery/matching.py",
+        "tests/integration/test_explainable_matching.py",
+        "docs/evidence/2026-10-08-certification-match-explanation.json"
+      ]
+    },
+    {
+      "child_id": "req135-sensitive-question-preflight",
+      "issue": 136,
+      "status": "ACTIVE",
+      "paths": [
+        "services/applications/preflight.py",
+        "tests/integration/test_application_preflight.py",
+        "tests/browser/test_mock_application.py",
+        "docs/evidence/2026-10-08-sensitive-question-preflight.json"
       ]
     }
   ]

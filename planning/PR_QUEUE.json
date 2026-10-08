@@ -1549,7 +1549,7 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-052-web-api-analytics",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting.",
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Additional slice #190 / MJ-REQ-189 title/company filters integrated locally at a33ecc497c412a3ee547ac35930b43de6fe274d4; see docs/evidence/2026-10-08-title-company-search-filters.json. Original PR-052 dependencies/status unchanged.",
       "active_slice": {
         "name": "Save and restore supported Jobs filters in a profile-scoped saved search",
         "issue": 192,
@@ -1680,6 +1680,18 @@
           "limitations": [
             "SQLite lower/trim coverage only ASCII names and ordinary spaces; Unicode normalization and PostgreSQL unverified.",
             "Application Priority, Salary, and broader MJ-REQ-190 acceptance remain incomplete."
+          ]
+        },
+        {
+          "name": "Connected title/company search filters persisted in saved searches",
+          "issue": 190,
+          "requirement_id": "MJ-REQ-189",
+          "status": "INTEGRATED_PARTIAL",
+          "integrated_main": "a33ecc497c412a3ee547ac35930b43de6fe274d4",
+          "evidence_path": "docs/evidence/2026-10-08-title-company-search-filters.json",
+          "validation": "Root exact candidate: integration 4 PASS, connected browser 2 PASS, frontend 96/96 PASS, TypeScript/Vite build PASS, evidence hashes and diff-check PASS; delegated local review no material findings.",
+          "limitations": [
+            "Other authoritative sidebar facets remain outstanding; PostgreSQL/hosted NOT_RUN."
           ]
         }
       ]
@@ -4260,5 +4272,5 @@
       "claim_release_comment": "https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053395464"
     }
   ],
-  "generated_at": "2026-10-08T09:30:06.596421Z"
+  "generated_at": "2026-10-08T09:37:57.285378Z"
 }
