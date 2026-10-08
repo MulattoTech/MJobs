@@ -1,15 +1,14 @@
 ---
 name: mjobs-delivery
 description: "Use in MulattoTech/MJobs for repository delivery work: reconcile live Git/GitHub state, select dependency-ready slices, route recurring high-risk changes to the matching playbook, verify evidence, and publish only exact-head-backed PRs. Skip unrelated repositories and read-only questions."
-version: 0.4.0
+version: 0.4.1
 compatibility: Codex Agent Skills SKILL.md
 ---
 
 > **Current budget policy:** GitHub Actions, hosted tests, bot/cloud-agent reviews
-> and extra AI reviewer sessions are disabled by the user. Older hosted-review/CI
-> gates and expired deadlines below are historical where they conflict with
-> AGENTS.md's active local-only policy. Use explicit local verification; missing
-> hosted checks are NOT_RUN, never PASS. Do not restore billing or automation.
+> and paid/hosted AI reviewers remain disabled. Up to 50 user-authorized local
+> GPT-6 Luna High child agents are permitted for independent work and local review.
+> AGENTS.md controls budgets; hosted checks are NOT_RUN, never PASS.
 
 # MJobs Delivery
 
@@ -82,11 +81,17 @@ Use only when relevant:
 - `test-driven-development` for new behavior/regression repair;
 - `systematic-debugging` for observed failures;
 - `using-git-worktrees` for isolation;
-- no delegated/reviewer agents while the active budget policy prohibits them;
-- primary-session diff inspection; do not invoke `requesting-code-review` while budget policy is active;
+- bounded Luna High child delegation when user-authorized and safely claimable (up to 50 concurrently);
+- scoped diff review, including optional local Luna child review; never request paid/hosted GitHub reviews;
 - `verification-before-completion` before completion claims.
 
-Normally skip PMM in MJobs because repository state is already durable. If `afk-dev` is enabled, use its existing retry/recovery journal only as subordinate operational state. `release-live-monitor` is read-only; `.release-monitor.json` maps current repository evidence. See `prompts/ASTRA_START_HERE.md` for focused XHigh/Max/Ultra profiles. If `afk-dev` is enabled, use its existing retry/recovery journal only as subordinate operational state. `release-live-monitor` is read-only; `.release-monitor.json` maps current repository evidence. See `prompts/ASTRA_START_HERE.md` for focused XHigh/Max/Ultra profiles.
+Normally skip PMM because MJobs has durable planning state. Optional local afk-dev journals and release-live-monitor are subordinate/read-only observations, not new task authorization. Use `prompts/LOCAL_ONLY_LUNA_ITERATION.md`; for the user's next core sprint use `prompts/LUNA_CORE_FEATURE_SPRINT.md` only after an explicit fresh user invocation.
+
+## Batched progress tracker (all coding agents)
+
+All implementations and closeouts follow `docs/PROGRESS_TRACKING.md`.
+Workers report a compact claim/issue, evidence, exact source SHA, outcome and remaining gaps to the root; **no worker edits the canonical matrices or readable dashboard**.
+Only the root holding the integration lock updates accepted MJ-REQ/MJ-REF statuses, queue/state and handoff. After each **accepted integration batch** (not each turn or every tiny commit), run `python -m tools.verification.progress_dashboard --write`. At session end do the same only when accepted inputs materially changed, otherwise run `--check`. A stale tracker must be reported as pending if another owner holds the lock. Do not create background watchers or launch AI just to refresh percentages.
 
 ## Safety invariants
 

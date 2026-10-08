@@ -12,7 +12,7 @@ The user's 2026-10-05 instruction supersedes earlier requirements for independen
 review and exact-head push/PR Actions. Do not retry a billing-blocked job. Read old
 logs only as historical evidence. Do not invoke reviewer agents anywhere.
 
-Use one local writer, explicit focused commands, and synthetic temporary data. Build
+Use distinct isolated local writers only with exclusive file/issue claims, and one lock-owning integration writer. Use explicit focused commands and synthetic temporary data. Build
 before browser checks. Require actual non-skipped acceptance and negative controls.
 Preserve immutable history, profile boundaries and external-submission OFF. Never
 relabel unavailable Docker/PostgreSQL tests as SQLite coverage or broad release PASS.
@@ -22,6 +22,17 @@ counts, result and limitations under docs/evidence. Raw CLI transcripts are priv
 Run existing catalogue/progress/skill checks when their inputs change. Documentation
 edits after a product test require unchanged executable-input proof and metadata
 checks; changes to executable inputs need new affected local evidence.
+
+
+## Batched progress dashboard (agent-neutral)
+
+At accepted **integration batches** and after the final completed-session checkpoint, the
+integration-lock owner updates affected canonical requirement statuses and source evidence, then
+runs `python -m tools.verification.progress_dashboard --write` once. At handoff run
+`python -m tools.verification.progress_dashboard --check`; if the matrices did not materially change,
+do not rewrite the dashboard. Workers only report concise evidence and lane-local handoffs.
+See `docs/PROGRESS_TRACKING.md`. Never regenerate on every model turn, test, commit, or agent message.
+A stale dashboard does not authorize taking another writer's lock or committing dirty shared files.
 
 ## Publication
 

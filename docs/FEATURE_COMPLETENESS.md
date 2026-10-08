@@ -1,3 +1,9 @@
+# Historical feature-completeness notes (not the current tracker)
+
+> **CURRENT STATUS:** Read the [generated progress dashboard](PROGRESS_DASHBOARD.md) and its [batched-refresh policy](PROGRESS_TRACKING.md). The old numbers below are dated historical snapshots and must not be cited as current. Only the integration owner refreshes the dashboard after an accepted batch or changed session closeout, not on every turn.
+
+## Preserved October 7 snapshot
+
 # Current feature accounting — 2026-10-07
 
 64 PASS / 76 PARTIAL / 226 NOT_RUN across 366 original requirements; no original requirement status changed. Reference requirements: 12 PASS / 1 PARTIAL / 46 NOT_RUN across 59. The bounded combined synthetic journey passes locally; full release remains NOT_RUN. See [the current dashboard](PROGRESS_DASHBOARD.md) and [local-only delivery policy](GITHUB_WORKFLOW.md).

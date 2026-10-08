@@ -94,6 +94,18 @@ For metadata-only changes after a tested source checkpoint, prove all executable
 
 After integration, verify GitHub main and the local integration checkout agree; retain history and raw private files. Close an issue only when ALL its acceptance has evidence. If local-only verification cannot satisfy a provider/runtime/manual-owner requirement, keep it PARTIAL/BLOCKED and move to another safe dependency-ready item. Never inflate full-spec release readiness.
 
+## Mandatory batched tracker, no per-turn overhead
+
+All agent implementations and closeouts follow `docs/PROGRESS_TRACKING.md`.
+Children return only their specific issue/requirement, exact source SHA, actual tests, sanitized evidence and
+remaining gaps. The root, while owning the existing integration lock, updates the *affected*
+MJ-REQ/MJ-REF matrix entries and authoritative queue/state after an **accepted integration batch**.
+Run `python -m tools.verification.progress_dashboard --write` once for that batch, not
+per worker, turn, test, tiny docs commit or model message. At final handoff, use `--check`
+and regenerate only if there are accepted changes. No hooks, watchers, scheduled refresh,
+hosted workflows, or extra model calls merely to recalculate counts.
+If lock ownership is ambiguous, leave existing canonical files unchanged and report TRACKER_REFRESH_PENDING.
+
 ## End each invocation with a usable handoff
 
 Report completed user actions, merged/source-synchronized SHAs, remaining drafts, exact local checks and limitations, unchanged protected data, and the single best next issue. Give the correct tested launch/retest instructions with PERSONAL versus FIXTURE mode identified; do not deploy merely to make the handoff look finished. Recompute progress from authoritative matrices, keeping original requirements, additive references and release acceptance separate.

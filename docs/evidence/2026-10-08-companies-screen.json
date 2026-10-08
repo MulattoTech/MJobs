@@ -3,9 +3,9 @@
   "issue": 195,
   "requirement_id": "MJ-REQ-194",
   "title": "Companies Screen",
-  "status": "PARTIAL",
+  "status": "PASS",
   "standalone_slice_result": "PASS",
-  "issue_state": "OPEN/PARTIAL",
+  "issue_state": "CLOSED/PASS",
   "rebase_base_commit": "b86b22c4213a431ba46f9519c7134cb56f0c5533",
   "rebase_base_tree": "532fbe71527e06ba2d6e689bb6d1b813892c5662",
   "tested_source_commit": "b627d35b1951ea641c354c910913b65ba5032e96",
@@ -13,7 +13,16 @@
   "branch": "codex/issue195-companies-screen-20261008",
   "worktree": ".worktrees/codex-issue195-companies-screen-20261008",
   "acceptance": {
-    "displayed_fields": ["Company", "Domain", "Career Site", "ATS", "Source Priority", "Relevant Jobs", "Applications", "User Preference"],
+    "displayed_fields": [
+      "Company",
+      "Domain",
+      "Career Site",
+      "ATS",
+      "Source Priority",
+      "Relevant Jobs",
+      "Applications",
+      "User Preference"
+    ],
     "applications": "Counted from durable application records joined to canonical jobs by company identity; profile-scoped when a profile is selected and aggregate otherwise.",
     "user_preference": "Displays pinned state, enabled state, and watched state from persisted company source preferences."
   },
@@ -38,7 +47,7 @@
       "runtime": "TypeScript 7.0.2 and Vite 8.3.1"
     },
     "git_diff_check": "PASS",
-    "connected_browser": "NOT_RUN",
+    "connected_browser": "PASS: 1 test on exact integrated main e211f013801849a4fe2cf24c855313b8fcfc3978, using synthetic records in an isolated temporary SQLite store; this existing browser journey exercises persisted company-source controls and prevents submission.",
     "postgresql": "NOT_RUN",
     "hosted_checks": "NOT_RUN_BY_USER_POLICY",
     "external_submission": "OFF"
@@ -49,5 +58,20 @@
     "services/company_discovery/sources.py": "22ee57d08258d7cac9a9a686edb29697f8f3c2707e812a3f8caeab455dac4149",
     "tests/integration/test_company_source_view.py": "1e164e1a255770bbb8dd69b827f55aa4e3f44574262a50f37fcef76aa93c28e9"
   },
-  "parent_queue_dependencies": "MJ-PR-053 / MJ-PR-052 / MJ-PR-043 unchanged; issue and requirement remain PARTIAL."
+  "parent_queue_dependencies": "MJ-PR-053 / MJ-PR-052 / MJ-PR-043 unchanged; issue and requirement remain PARTIAL.",
+  "root_integration_validation": {
+    "verified_at_utc": "2026-10-08T08:23Z",
+    "integrated_head": "e211f013801849a4fe2cf24c855313b8fcfc3978",
+    "integrated_tree": "7af80d749f045c2fc6489810581cb6282bc53588",
+    "connected_browser": {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_company_source_view -v",
+      "result": "PASS",
+      "tests": 1,
+      "mode": "PERSONAL operation-mode assertion with synthetic records and isolated temporary SQLite store; no retained personal store, external requests, or submissions."
+    },
+    "browser_input_sha256": "a0154ac7dbc8ab039366d1987833cbd44d63ba327341bf786c9254cf6688cf75",
+    "combined_validation": "Company source API/integration 8/8 PASS, web 94/94 PASS, TypeScript/Vite build PASS, connected browser 1/1 PASS, evidence hashes 4/4 PASS, diff check PASS.",
+    "delegated_review": "LOCAL_DELEGATED_REVIEW found no blocker."
+  },
+  "issue_close_receipt": "https://github.com/MulattoTech/MJobs/issues/195#issuecomment-6055840362"
 }

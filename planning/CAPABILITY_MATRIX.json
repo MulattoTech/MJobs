@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-08T07:37:22Z",
+  "timestamp": "2026-10-08T08:24:33Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -895,9 +895,10 @@
         "docs/evidence/2026-10-07-resume-user-reviewed-summary-adjustment.json",
         "docs/evidence/2026-10-07-resume-reviewed-achievement-rewrites.json",
         "docs/evidence/2026-10-08-resume-technology-experience-rewrites.json",
-        "docs/evidence/2026-10-08-resume-experience-rewrites.json"
+        "docs/evidence/2026-10-08-resume-experience-rewrites.json",
+        "docs/evidence/2026-10-08-resume-target-bullet-selection.json"
       ],
-      "note": "Ordering, explicit fact selection/omission, technology emphasis, optional contact header, responsibility bullet emphasis, deterministic exact-skill summary selection/fallback, and per-application user-reviewed responsibility and summary rephrasing are locally verified. Rewrites retain immutable source IDs/hashes, preserve exact date/numeric tokens, and are reconstructable in historical comparison. Broader factual bullet rephrasing remains incomplete; user review is not automated semantic proof; hosted checks NOT_RUN. Additional locally verified vertical slice: approved project and accomplishment resume bullets support user-authored individually reviewed rewrites. API, generated resume, immutable source hash/fact-kind provenance, exact date/number preservation, profile/cover-letter isolation and historical comparison after reload/profile changes pass; evidence docs/evidence/2026-10-07-resume-reviewed-achievement-rewrites.json, integrated at main cc9fc3832f47e45cb9e60615c56b430692c3c614, issue readback https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6037769866. Focused 12; full Python/browser 908 PASS, 5 skipped; frontend 63/build and validators PASS. User attestation is not automated semantic-equivalence proof. Broader MJ-REQ-095 remains PARTIAL. Additional scoped PASS integrated at main 7d08a2b0bb260abc251d6d7f9a79f132390a48a7: selected approved technology_experience facts allow user-authored attested rewrites with source provenance, exact date/number preservation, stale-version rejection, immutable history and historical comparison. Exact source/test hashes match prior focused 5 unit + 1 integration + 1 connected Chromium PASS; current local Python revalidation was BLOCKED_ENVIRONMENT because SQLAlchemy/pytest dependencies are unavailable. Candidate TypeScript/Vite build PASS on Node 25.9.0. Evidence docs/evidence/2026-10-08-resume-technology-experience-rewrites.json; integration receipt https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6052638566. Issue remains OPEN/PARTIAL; other tailoring modes and semantic-equivalence proof remain incomplete; hosted checks NOT_RUN_BY_USER_POLICY. Additional scoped PASS integrated at main 5dfce5eec8e2e6c56442631725c0993c7ce12a29: selected approved experience facts support individually reviewed user-authored rewrites with source identity, date/number preservation, stale-version rejection, immutable history and comparison after reload. Evidence docs/evidence/2026-10-08-resume-experience-rewrites.json. Broader MJ-REQ-095 remains PARTIAL; semantic equivalence is user-attested, not automated."
+      "note": "Ordering, explicit fact selection/omission, technology emphasis, optional contact header, responsibility bullet emphasis, deterministic exact-skill summary selection/fallback, and per-application user-reviewed responsibility and summary rephrasing are locally verified. Rewrites retain immutable source IDs/hashes, preserve exact date/numeric tokens, and are reconstructable in historical comparison. Broader factual bullet rephrasing remains incomplete; user review is not automated semantic proof; hosted checks NOT_RUN. Additional locally verified vertical slice: approved project and accomplishment resume bullets support user-authored individually reviewed rewrites. API, generated resume, immutable source hash/fact-kind provenance, exact date/number preservation, profile/cover-letter isolation and historical comparison after reload/profile changes pass; evidence docs/evidence/2026-10-07-resume-reviewed-achievement-rewrites.json, integrated at main cc9fc3832f47e45cb9e60615c56b430692c3c614, issue readback https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6037769866. Focused 12; full Python/browser 908 PASS, 5 skipped; frontend 63/build and validators PASS. User attestation is not automated semantic-equivalence proof. Broader MJ-REQ-095 remains PARTIAL. Additional scoped PASS integrated at main 7d08a2b0bb260abc251d6d7f9a79f132390a48a7: selected approved technology_experience facts allow user-authored attested rewrites with source provenance, exact date/number preservation, stale-version rejection, immutable history and historical comparison. Exact source/test hashes match prior focused 5 unit + 1 integration + 1 connected Chromium PASS; current local Python revalidation was BLOCKED_ENVIRONMENT because SQLAlchemy/pytest dependencies are unavailable. Candidate TypeScript/Vite build PASS on Node 25.9.0. Evidence docs/evidence/2026-10-08-resume-technology-experience-rewrites.json; integration receipt https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6052638566. Issue remains OPEN/PARTIAL; other tailoring modes and semantic-equivalence proof remain incomplete; hosted checks NOT_RUN_BY_USER_POLICY. Additional scoped PASS integrated at main 5dfce5eec8e2e6c56442631725c0993c7ce12a29: selected approved experience facts support individually reviewed user-authored rewrites with source identity, date/number preservation, stale-version rejection, immutable history and comparison after reload. Evidence docs/evidence/2026-10-08-resume-experience-rewrites.json. Broader MJ-REQ-095 remains PARTIAL; semantic equivalence is user-attested, not automated. Additional scoped local PASS integrated at main 454217533bf23b88c80c4fdfbf6b604d07c59bea: exact target-skill matches select approved responsibility/experience/project/accomplishment bullets; no-match fallback preserves eligible bullets; explicit selection takes precedence; immutable omission provenance survives comparison after reload. Python unit/integration/browser 19/19, focused Vitest 3/3, build and nine source hashes PASS. Evidence docs/evidence/2026-10-08-resume-target-bullet-selection.json. Node 25.9.0 unsupported for Vitest; full suite, Node 24, PostgreSQL, hosted/release checks NOT_RUN. Issue #96 remains OPEN/PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-096",
@@ -1260,9 +1261,11 @@
     },
     {
       "requirement_id": "MJ-REQ-143",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-08-application-confirmation.json"
+      ],
+      "note": "Synthetic MOCK confirmation captures and persists timestamp, local URL, observed text and reference; invalid evidence remains SUBMISSION_UNCONFIRMED. Real ATS support remains PARTIAL; submission OFF."
     },
     {
       "requirement_id": "MJ-REQ-144",
@@ -1516,9 +1519,10 @@
         "docs/evidence/2026-10-07-structured-worker-operation-logs.json",
         "docs/evidence/2026-10-08-worker-context-logs.json",
         "docs/evidence/2026-10-08-apply-mock-ats-logs.json",
-        "docs/evidence/2026-10-08-company-source-refresh-company-context.json"
+        "docs/evidence/2026-10-08-company-source-refresh-company-context.json",
+        "docs/evidence/2026-10-08-apply-mock-job-company-context.json"
       ],
-      "note": "Durable worker terminal outcomes now emit JSON-only allowlisted records after persistence, with operation id/kind, fixed worker label, duration, truthful result, safe error code and applicable internal entity id. Synthetic private resume content, operation parameters and exception text are excluded. Focused worker/logging suite: 21 PASS, 1 PostgreSQL-only skip; full Python suite: 932 PASS, 8 skipped; frontend 63/build and repository validators PASS. Evidence docs/evidence/2026-10-07-structured-worker-operation-logs.json. Broader posting/source/ATS and other operation-context coverage remains incomplete; live Redis/RQ and PostgreSQL runtime NOT_RUN; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF. Issue #178 remains OPEN/PARTIAL. Additional narrow worker-log context slice integrated at c2346e1d813e7b052f4779be0525bf495ecaa54d from tested source 0678aafc1ac21b347441d824144f4dd860f4c89e: only strictly validated persisted opaque source IDs for three discovery kinds are added after persistence; params, URLs, candidate content and exception text remain excluded. Root exact integrated-head focused run: 24 PASS, 1 optional PostgreSQL class skipped; local delegated review no blocker. Evidence docs/evidence/2026-10-08-worker-context-logs.json. Broader context, PostgreSQL/RQ, full-suite and hosted checks remain NOT_RUN; requirement and issue #178 remain PARTIAL; external submission OFF. Additional APPLY_MOCK provider context slice integrated at 047a780be248c94e802cba3068e884b7edf20428 (tested source 2e9c17012a8d27ddcfacd3432d00dc4a9ba46ead, tree e65995eb40d4e2e61f1745e95039cb7fa2bbb6b5); provider is resolved only from the persisted application route and fixed allowlist after terminal persistence. Exact combined-tree worker/logging suite: 28 PASS, 1 optional PostgreSQL class skipped; compile, diff, catalogue, progress and lane checks PASS; local delegated review no blocker. Evidence docs/evidence/2026-10-08-apply-mock-ats-logs.json. Issue #178 remains OPEN/PARTIAL; PostgreSQL/RQ, broader worker context, full suite and hosted checks remain NOT_RUN; external submission OFF. Additional COMPANY_SOURCE_REFRESH context slice integrated at 95c8b5291b13f6a7bc03c4687bc13dc4d8f3cd79 from tested source 634190c8acc7574ee0bdc225599082ac7db5c28d: only a validated opaque company_id read from the persisted company-source FK after terminal persistence is logged; lookup failure does not change the result. Evidence docs/evidence/2026-10-08-company-source-refresh-company-context.json. Focused suite 32 PASS/1 optional PostgreSQL skip; local delegated review PASS. Live Redis/RQ, PostgreSQL, full suite and hosted checks remain NOT_RUN. Issue #178 and MJ-REQ-177 remain PARTIAL."
+      "note": "Additional APPLY_MOCK job/company context logs validated from persisted relations after terminal state; 33 tests PASS, one optional PostgreSQL class skipped. Broader structured logging remains PARTIAL; PostgreSQL/RQ/full suite/hosted NOT_RUN."
     },
     {
       "requirement_id": "MJ-REQ-178",
@@ -1658,9 +1662,11 @@
     },
     {
       "requirement_id": "MJ-REQ-194",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-08-companies-screen.json"
+      ],
+      "note": "All eight Companies Screen fields and connected durable count/preference behavior verified; issue #195 CLOSED/PASS. This does not promote MJ-PR-053 or its queued dependencies; PostgreSQL/hosted/release NOT_RUN."
     },
     {
       "requirement_id": "MJ-REQ-195",

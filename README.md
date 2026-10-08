@@ -1,5 +1,7 @@
 # MJobs
 
+> **Agent guidance and live tracker:** Every AI working on MJobs should read [AGENTS.md](AGENTS.md) and [batched progress-tracking policy](docs/PROGRESS_TRACKING.md). [The generated progress dashboard](docs/PROGRESS_DASHBOARD.md) is refreshed only at accepted integration checkpoints and closeout, not every turn. The next user-invoked core-feature sprint prompt is [here](prompts/LUNA_CORE_FEATURE_SPRINT.md).
+
 > **Local-only development:** GitHub Actions and agent reviews are disabled by the user. Start with [the local Luna iteration prompt](prompts/LOCAL_ONLY_LUNA_ITERATION.md) and [current handoff](planning/SESSION_HANDOFF.md). Local verification, requirement completion and release acceptance are distinct.
 
 Local-first job discovery, factual document preparation, and application tracking.

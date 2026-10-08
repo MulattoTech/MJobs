@@ -37,6 +37,16 @@ October 5 trial-deadline instructions. GitHub remains source/issue/PR storage.
 
 See docs/GITHUB_WORKFLOW.md and prompts/LOCAL_ONLY_LUNA_ITERATION.md.
 
+## Mandatory low-overhead progress tracking — every AI, every session
+
+All writers (Codex/Luna, Claude, Gemini/Antigravity, Ollama, and other agents) must follow `docs/PROGRESS_TRACKING.md`, whether or not their client auto-loads this file. The root must include that policy in any child handoff.
+- Child agents record **only their own** accepted scope, tests, SHA, and concise sanitized evidence; they do not update the canonical matrices or the readable dashboard.
+- Only the designated **integration-lock holder** updates `planning/CAPABILITY_MATRIX.json`, `planning/REFERENCE_GAP_MATRIX.json` (when MJ-REF acceptance changes), canonical PR/state/handoff files, and `docs/PROGRESS_DASHBOARD.md`.
+- Update these at a **meaningful accepted integration batch**, then **once at session closeout if acceptance has changed**. Group completed worker results. Never refresh after every turn, test, speculative claim, draft, or single evidence-only commit.
+- Run `python -m tools.verification.progress_dashboard --write` once per owned checkpoint and `--check` before a final handoff. The renderer is deterministic, checks all requirement IDs, and avoids writing byte-identical output. This is an explicit local command, not a watcher, hook, scheduled task, or hosted automation.
+- A stale dashboard or lack of the integration lock means **TRACKER_REFRESH_PENDING**, not fabricated progress or permission to overwrite a concurrent integrator's changes. The tracker never changes PASS/PARTIAL/NOT_RUN statuses automatically.
+
+
 ## Current Luna-led parallel release-sprint workflow
 
 For an explicitly invoked MJobs implementation session, one GPT-6 Luna High primary agent may lead

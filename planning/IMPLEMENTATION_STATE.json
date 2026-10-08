@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-08T07:26:55Z",
+  "generated_at": "2026-10-08T08:26:10Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -8,10 +8,10 @@
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
     "current_verified_local_state": "Issue #179 / MJ-REQ-178 log retention acceptance PASS at 8bea57e595e19e638913405a8ec1cd3aa0ebde32; full product remains PARTIAL.",
-    "current_verified_github_state": "Issue #179 / MJ-REQ-178 log retention acceptance PASS at 8bea57e595e19e638913405a8ec1cd3aa0ebde32; full product remains PARTIAL.",
-    "current_verified_at": "2026-10-07T15:27:43Z"
+    "current_verified_github_state": "Local and origin main synchronized at e211f013801849a4fe2cf24c855313b8fcfc3978; latest integrated scoped slice is #144/MJ-REQ-143 MOCK-only confirmation capture; whole release remains PARTIAL.",
+    "current_verified_at": "2026-10-08T08:24:33Z"
   },
-  "current_milestone": "MJ-REQ-190-COMPANY-SORT-SLICE-INTEGRATED-20261008",
+  "current_milestone": "MJ-REQ-194-COMPANIES-SCREEN-BROWSER-REVALIDATED-20261008",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -74,7 +74,8 @@
     "MJ-REQ-165 / issue #166 Full-Text Search PASS: PostgreSQL GIN full-text indexes cover title, description, JSON skills and location plus company names; GET /jobs?q= searches all five required fields, with connected UI/API readback and saved-search compatibility. Evidence: docs/evidence/2026-10-07-full-text-search.json. Source 108c502ce0b2c8aa92a4868b09687b4b4a0206f1; integrated code/evidence at 59039a51701258a35c93fc7deca6fbf85d72fddd. Full Python 962 tests/8 skipped, frontend 63/build, connected Chromium, SQLite/PostgreSQL migrations and index-plan checks PASS. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
     "MJ-REQ-173 upload security across all seven supported document kinds; evidence docs/evidence/2026-10-07-seven-kind-upload-security.json",
     "Issue #117 / MJ-REQ-116 Match Categories locally verified PASS at docs/evidence/2026-10-08-match-categories.json; parent MJ-PR-032 and other matching requirements remain queued/partial.",
-    "MJ-REQ-195 / issue #196 application tracker: all ten documented stages in a user-reported Kanban pipeline with profile-scoped durable status/history and explicit no-submission distinction; evidence docs/evidence/2026-10-08-application-tracker-current-main.json."
+    "MJ-REQ-195 / issue #196 application tracker: all ten documented stages in a user-reported Kanban pipeline with profile-scoped durable status/history and explicit no-submission distinction; evidence docs/evidence/2026-10-08-application-tracker-current-main.json.",
+    "MJ-REQ-194 / issue #195 Companies Screen: all eight exact fields, profile-scoped durable Applications count, persisted User Preference; full issue acceptance verified and issue closed PASS. Aggregate MJ-PR-053 remains queued."
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
@@ -133,7 +134,9 @@
     "Issue #199 / MJ-REQ-198 comparison increment locally integrated PASS at 41513c0f3c2c75970bfc8173f0ca8576acb63519; evidence docs/evidence/2026-10-08-cover-letter-history-comparison.json. Full requirement remains PARTIAL; no change to MJ-PR-054 dependencies, core workflow, or release acceptance.",
     "MJ-REQ-095: selected approved experience facts now support the existing individually reviewed, user-authored rewrite flow with source identity, immutable history, reload and comparison; this is a scoped local PASS, not full tailoring or semantic-equivalence proof.",
     "MJ-REQ-274: due discovery operation scheduling survives actual SQLite scheduler process restart; second tick deduplicates; a separate synthetic worker completes the single operation. Compose/PostgreSQL and broader persistence/application restart remain unverified.",
-    "MJ-REQ-191: current supported Jobs filters (query, location, source, sort) save and restore through profile-scoped persistence with reload/readback and scheduler-disabled behavior; broader filter sidebar/saved-search cadence remains open."
+    "MJ-REQ-191: current supported Jobs filters (query, location, source, sort) save and restore through profile-scoped persistence with reload/readback and scheduler-disabled behavior; broader filter sidebar/saved-search cadence remains open.",
+    "MJ-REQ-177 / issue #178: APPLY_MOCK logs now include validated persisted application/job/company IDs and allowlisted ATS after terminal persistence; failure isolation and privacy validated; broader logging context remains PARTIAL.",
+    "MJ-REQ-143 / issue #144: MOCK-only timestamp, local confirmation URL, observed text and reference persist/read back; invalid receipts remain SUBMISSION_UNCONFIRMED; real ATS confirmation remains PARTIAL."
   ],
   "blocked_capabilities": [],
   "active_requirements": [
@@ -403,7 +406,11 @@
     "Integrated issue #192/MJ-REQ-191 saved-filter acceptance: related API/integration/browser regressions 12 PASS; dedicated saved-filter integration and connected browser checks 3 PASS; web 94/94 and TypeScript/Vite build PASS at 908e5de2cfcbf1cfbd1ca10388e90a3cdf9bbef0.",
     "Issue #196 / MJ-REQ-195 exact current-main tracker acceptance: 10 integration/browser tests PASS on 17f0170841c2fa089e10b700deea11dbfd7e8167; all ten stages, profile ownership, ordered/concurrent history, reopen/reload, crash/lost-response recovery and user-reported Applied without submission confirmation. TypeScript/Vite build PASS.",
     "Issue #116 / MJ-REQ-115 negated must-have scoped slice: 25 parser/matching unit+integration tests, 1 synthetic Chromium manual-capture/reopen test, TypeScript/Vite build, py_compile and source-hash/evidence validation PASS on tested source 12ac4048f92f59423a08d5f4af49453f4949f570.",
-    "Issue #191 / MJ-REQ-190 Company sort: on rebased source eba9f77a0cd54468fb91e2f6406777e25cb4e5a3, focused API+browser 6/6, web 94/94, TypeScript/Vite build and git diff --check PASS; evidence docs/evidence/2026-10-08-job-sorting-company.json."
+    "Issue #191 / MJ-REQ-190 Company sort: on rebased source eba9f77a0cd54468fb91e2f6406777e25cb4e5a3, focused API+browser 6/6, web 94/94, TypeScript/Vite build and git diff --check PASS; evidence docs/evidence/2026-10-08-job-sorting-company.json.",
+    "Issue #96 bounded target-relevant bullets: Python unit/integration/connected synthetic browser 19/19; focused Vitest 3/3; TypeScript/Vite build; nine exact input hashes and diff check PASS on tested source 18263e4fa0b29b4b9fbda51ea1c2b3f8882782a9; LOCAL_DELEGATED_REVIEW no blocker.",
+    "Issue #195 / MJ-REQ-194: company-source integration 8/8, connected synthetic browser 1/1, web 94/94, TypeScript/Vite build, input hashes and diff check PASS; LOCAL_DELEGATED_REVIEW no blockers.",
+    "Issue #178 / MJ-REQ-177 APPLY_MOCK context: integrated worker/logging suite 33 passed, 1 optional PostgreSQL skip (34 discovered), compileall, evidence hashes and diff check PASS; LOCAL_DELEGATED_REVIEW no blockers.",
+    "Issue #144 / MJ-REQ-143 MOCK confirmation: integrated mock/application-pipeline browser suites 22/22 PASS; py_compile, four evidence hashes and diff check PASS; connected readback after reopen/reload and web build PASS."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -500,7 +507,11 @@
     "Issue #192 full Python discovery and PostgreSQL validation NOT_RUN; hosted checks/review NOT_RUN_BY_USER_POLICY. Vitest 5 ran on Node 25.9.0 outside its declared supported range.",
     "Issue #196 tracker closeout: PostgreSQL-specific tracker runtime and hosted Actions/review NOT_RUN_BY_USER_POLICY; this does not limit the stated SQLite/browser Kanban acceptance but is not release certification.",
     "Issue #116: Vitest not run because available Node 25.9.0 is outside Vitest 5 declared engine range; hosted checks/review NOT_RUN_BY_USER_POLICY; broader MJ-REQ-115 acceptance remains PARTIAL.",
-    "Issue #191: PostgreSQL and full Python discovery not run for Company slice; full Python discovery prior capped attempt remains incomplete. Vitest 5 executed on Node 25.9.0 outside its declared engine range; supported-Node run and hosted checks/review NOT_RUN_BY_USER_POLICY."
+    "Issue #191: PostgreSQL and full Python discovery not run for Company slice; full Python discovery prior capped attempt remains incomplete. Vitest 5 executed on Node 25.9.0 outside its declared engine range; supported-Node run and hosted checks/review NOT_RUN_BY_USER_POLICY.",
+    "Issue #96: full Python regression, supported Node 24 Vitest, PostgreSQL, hosted verification/review and release eligibility NOT_RUN; hosted gates NOT_RUN_BY_USER_POLICY.",
+    "Issue #195: PostgreSQL and hosted/release checks NOT_RUN; issue acceptance closed independently; MJ-PR-053 remains QUEUED with dependencies intact.",
+    "Issue #178: PostgreSQL/RQ runtime, full Python suite and hosted checks/review NOT_RUN; broader MJ-REQ-177 remains PARTIAL.",
+    "Issue #144: real employer ATS, PostgreSQL, hosted checks/review and full suite NOT_RUN; no employer site contacted; external submission OFF."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -540,11 +551,11 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "commit": "89b9a5e24087183717c4359282db544bb48b8fef",
-    "tree": "bdd134e1654ed9a8954e64169e2d0449c4f34fc8",
-    "result": "PARTIAL - scoped synthetic debug capture privacy regression PASS; real ATS/browser adapter and overall release remain incomplete.",
-    "evidence": "docs/evidence/2026-10-08-debug-capture-package-privacy.json",
-    "verified_at_utc": "2026-10-08T07:21:00Z"
+    "commit": "f0eab7d3c6c23e21bc68ea39fe720b6084218b51",
+    "tree": "707b75310dac66e1280c468fbdd9fca2e4a8a36d",
+    "result": "PASS bounded synthetic MOCK confirmation capture/readback slice; 22 integrated browser tests PASS; full MJ-REQ-143 and release remain PARTIAL.",
+    "evidence": "docs/evidence/2026-10-08-application-confirmation.json",
+    "verified_at_utc": "2026-10-08T08:24:33Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -611,7 +622,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Continue the active #96 / MJ-REQ-095 target-relevant-bullet child in its isolated worktree. After #191 integration, send the child exact synchronized main fcddebedd6f238271ecd59ef171c2ce1e5e4245b and permit one base reconciliation followed by focused unit/integration/browser/build/hash evidence refresh. Preserve all approval/version/history invariants and broad requirement PARTIAL. Once that candidate is accepted, select the next issue only after checking live claims and PR dependencies; hosted checks remain NOT_RUN_BY_USER_POLICY.",
+  "recommended_resume_step": "User requested clean handoff for a new goal. Current local/origin main at handoff is e211f013801849a4fe2cf24c855313b8fcfc3978. No implementation child claims remain active; preserve Antigravity #302 and Ollama #318 claims. Reconcile exact checkout and planning status first. Highest recent gap #191 Salary is BLOCKED_DESIGN because direction, partial-range endpoint, and mixed currency/period ordering are unspecified; #101 and #118 retain formal dependencies/path constraints. Hosted/release checks remain NOT_RUN_BY_USER_POLICY.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -649,7 +660,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "fcddebedd6f238271ecd59ef171c2ce1e5e4245b",
+  "last_implementation_commit": "e211f013801849a4fe2cf24c855313b8fcfc3978",
   "publication": {
     "result": "PASS — local-only non-force fast-forward integration",
     "integration_method": "NON_FORCE_FAST_FORWARD",
@@ -10666,21 +10677,284 @@
         "at_utc": "2026-10-08T07:49:05Z",
         "note": "Connected Jobs Company sort uses canonical company names, case-insensitive ordering, blank-last handling, stable job-ID ties, and ordering before database limit. Exact rebased source passed focused API/browser and frontend/build checks; broad issue remains PARTIAL."
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-095-TARGET-RELEVANT-BULLET-SELECTION-INTEGRATED-20261008",
+      "timestamp": "2026-10-08T08:01:32Z",
+      "current_phase": "MJ_REQ_095_TARGET_RELEVANT_BULLET_SELECTION_INTEGRATED_PARTIAL",
+      "completed_steps": [
+        "Integrated issue #96 target-relevant bullet selection by non-force fast-forward at main 454217533bf23b88c80c4fdfbf6b604d07c59bea; local main and origin/main agree.",
+        "Exact tested source 18263e4fa0b29b4b9fbda51ea1c2b3f8882782a9 / tree cbe65103fb9c6037c06413e731f75543d3b5272e was based on 01ad8cfccf80eed94f5b6673693a5c94f0a129ae; integrated tree 2e1ade82168b857e1f1b313440a870c20fc1e084.",
+        "Root exact-candidate Python unit/integration/browser 19/19, focused Vitest 3/3, TypeScript/Vite build, nine changed-input hashes and diff check passed; LOCAL_DELEGATED_REVIEW found no blocker.",
+        "Posted issue integration receipt and child-claim release; broader issue #96 / MJ-REQ-095 remains OPEN/PARTIAL."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-08-resume-target-bullet-selection.json"
+      ],
+      "files_modified": [
+        "services/documents/tailor.py",
+        "services/documents/generate.py",
+        "services/documents/templates.py",
+        "services/documents/comparison.py",
+        "apps/web/src/resume-comparison.tsx",
+        "apps/web/src/resume-comparison.test.tsx",
+        "tests/unit/test_resume_comparison.py",
+        "tests/integration/test_resume_comparison.py",
+        "tests/browser/test_skill_order.py"
+      ],
+      "tests_completed": [
+        "Python 3.12: tests.unit.test_resume_comparison + tests.integration.test_resume_comparison + tests.browser.test_skill_order — 19/19 PASS on exact source candidate; synthetic FIXTURE/loopback Chromium.",
+        "apps/web focused resume-comparison Vitest — 3/3 PASS; TypeScript/Vite production build PASS.",
+        "All nine changed-input SHA-256 values match; git diff --check PASS; LOCAL_DELEGATED_REVIEW no blocker."
+      ],
+      "tests_remaining": [
+        "Full Python regression, supported Node 24 Vitest, PostgreSQL and hosted checks/review were NOT_RUN for this slice; release eligibility NOT_RUN."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "Node 25.9.0 is outside the locked Vitest package supported range; local focused run is recorded but is not supported-Node proof.",
+        "Semantic equivalence and other resume tailoring modes remain incomplete; hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF."
+      ],
+      "issue": 96,
+      "requirement_id": "MJ-REQ-095",
+      "integration_commit": "454217533bf23b88c80c4fdfbf6b604d07c59bea",
+      "integration_tree": "2e1ade82168b857e1f1b313440a870c20fc1e084",
+      "evidence_path": "docs/evidence/2026-10-08-resume-target-bullet-selection.json",
+      "issue_state": "OPEN/PARTIAL",
+      "issue_claim": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6054846648",
+      "integration_receipt": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6055421425",
+      "release_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6055480482",
+      "external_submission": "OFF",
+      "last_safe_checkpoint": {
+        "git_commit": "454217533bf23b88c80c4fdfbf6b604d07c59bea",
+        "tree": "2e1ade82168b857e1f1b313440a870c20fc1e084",
+        "branch": "main",
+        "issue": "#96 / MJ-REQ-095",
+        "issue_state": "OPEN/PARTIAL",
+        "evidence_path": "docs/evidence/2026-10-08-resume-target-bullet-selection.json",
+        "issue_claim": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6054846648",
+        "integration_receipt": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6055421425",
+        "release_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6055480482",
+        "at_utc": "2026-10-08T08:01:32Z",
+        "note": "Deterministic target-relevant bullet selection preserves approved source text/identity, explicit-selection priority, no-match fallback, immutable comparison provenance, and profile/cover-letter state. Narrow local scope PASS; broader tailoring remains PARTIAL."
+      }
+    },
+    {
+      "milestone_id": "MJ-REQ-194-COMPANIES-SCREEN-ACCEPTANCE-CLOSED-20261008",
+      "timestamp": "2026-10-08T08:12:39Z",
+      "current_phase": "MJ_REQ_194_COMPANIES_SCREEN_ACCEPTANCE_PASS",
+      "completed_steps": [
+        "Integrated by non-force fast-forward at main ea801ec09e24fcc22075b29789fffe40bbd9c5a2; later commits were disjoint from company screen inputs.",
+        "All eight issue/spec fields are rendered; application counts join durable applications through canonical company/job identity and scope by selected profile; preferences reflect persisted pin/enabled/watch values.",
+        "Root checks: integration 8/8, web 94/94, TypeScript/Vite build PASS, connected browser 1/1 PASS on main e211f013801849a4fe2cf24c855313b8fcfc3978; four input hashes match; LOCAL_DELEGATED_REVIEW no blocker.",
+        "Issue #195 closed PASS; MJ-PR-053 and dependencies remain queued."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-08-companies-screen.json"
+      ],
+      "files_modified": [
+        "services/company_discovery/sources.py",
+        "apps/web/src/company-sources.tsx",
+        "apps/web/src/company-sources.test.tsx",
+        "tests/integration/test_company_source_view.py"
+      ],
+      "tests_completed": [
+        "Company source integration 8/8 PASS; company screen browser 1/1 PASS; web 94/94 PASS; TypeScript/Vite build PASS; evidence hashes and diff check PASS."
+      ],
+      "tests_remaining": [
+        "PostgreSQL and hosted/release checks NOT_RUN; aggregate PR-053 remains dependency-blocked."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "Web tests ran on Node 25.9.0, outside Vitest 5.0.3 declared range; PostgreSQL and hosted checks were not run."
+      ],
+      "issue": 195,
+      "requirement_id": "MJ-REQ-194",
+      "integration_commit": "e211f013801849a4fe2cf24c855313b8fcfc3978",
+      "integration_tree": "7af80d749f045c2fc6489810581cb6282bc53588",
+      "evidence_path": "docs/evidence/2026-10-08-companies-screen.json",
+      "issue_state": "CLOSED/PASS",
+      "issue_claim": "https://github.com/MulattoTech/MJobs/issues/195#issuecomment-6055487874",
+      "integration_receipt": "https://github.com/MulattoTech/MJobs/issues/195#issuecomment-6055662865",
+      "release_comment": "https://github.com/MulattoTech/MJobs/issues/195#issuecomment-6055840362",
+      "external_submission": "OFF",
+      "last_safe_checkpoint": {
+        "git_commit": "e211f013801849a4fe2cf24c855313b8fcfc3978",
+        "tree": "7af80d749f045c2fc6489810581cb6282bc53588",
+        "issue": "#195 / MJ-REQ-194",
+        "issue_state": "CLOSED/PASS",
+        "evidence_path": "docs/evidence/2026-10-08-companies-screen.json"
+      }
+    },
+    {
+      "milestone_id": "MJ-REQ-177-APPLY-MOCK-CONTEXT-INTEGRATED-20261008",
+      "timestamp": "2026-10-08T08:16:51Z",
+      "current_phase": "MJ_REQ_177_APPLY_MOCK_CONTEXT_INTEGRATED_PARTIAL",
+      "completed_steps": [
+        "Integrated at main 86d7bb580c03ed0b0dc0d807e147b5ecea29be7e, descendant of verified #195 screen main.",
+        "APPLY_MOCK structured logs resolve validated persisted application/job/company IDs and allowlisted ATS after terminal persistence.",
+        "Root exact integration rerun: 33 passed, one optional PostgreSQL recovery class skipped (34 discovered); compileall, hashes and diff check PASS; LOCAL_DELEGATED_REVIEW no blocker.",
+        "Claim released; issue #178 remains OPEN/PARTIAL."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-08-apply-mock-job-company-context.json"
+      ],
+      "files_modified": [
+        "workers/tasks.py",
+        "workers/structured_logging.py",
+        "tests/unit/test_structured_logging.py",
+        "tests/integration/test_worker_lifecycle.py"
+      ],
+      "tests_completed": [
+        "33 passed, 1 skipped, 34 discovered; compileall, evidence hashes, diff check PASS."
+      ],
+      "tests_remaining": [
+        "PostgreSQL/RQ runtime, full Python suite, hosted checks/review NOT_RUN."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "No posting ID is inferred because stored routes do not identify a unique posting."
+      ],
+      "issue": 178,
+      "requirement_id": "MJ-REQ-177",
+      "integration_commit": "86d7bb580c03ed0b0dc0d807e147b5ecea29be7e",
+      "integration_tree": "ec0f835924b4f4ef69b8e3dad7ca2ece79d10ac9",
+      "evidence_path": "docs/evidence/2026-10-08-apply-mock-job-company-context.json",
+      "issue_state": "OPEN/PARTIAL",
+      "issue_claim": "https://github.com/MulattoTech/MJobs/issues/178#issuecomment-6055561875",
+      "integration_receipt": "https://github.com/MulattoTech/MJobs/issues/178#issuecomment-6055726845",
+      "release_comment": "https://github.com/MulattoTech/MJobs/issues/178#issuecomment-6055730318",
+      "external_submission": "OFF",
+      "last_safe_checkpoint": {
+        "git_commit": "86d7bb580c03ed0b0dc0d807e147b5ecea29be7e",
+        "tree": "ec0f835924b4f4ef69b8e3dad7ca2ece79d10ac9",
+        "issue": "#178 / MJ-REQ-177",
+        "issue_state": "OPEN/PARTIAL",
+        "evidence_path": "docs/evidence/2026-10-08-apply-mock-job-company-context.json"
+      }
+    },
+    {
+      "milestone_id": "MJ-REQ-143-MOCK-CONFIRMATION-INTEGRATED-20261008",
+      "timestamp": "2026-10-08T08:21:15Z",
+      "current_phase": "MJ_REQ_143_MOCK_CONFIRMATION_INTEGRATED_PARTIAL",
+      "completed_steps": [
+        "Integrated at main e211f013801849a4fe2cf24c855313b8fcfc3978 by non-force fast-forward from exact rebased main 86d7bb580c03ed0b0dc0d807e147b5ecea29be7e.",
+        "MOCK confirmation captures timezone-aware timestamp, allowlisted local URL, matched observed confirmation phrase/text and reference; invalid confirmation remains SUBMISSION_UNCONFIRMED and receipt is persisted idempotently.",
+        "Root exact integrated-tree mock/application-pipeline browser suites 22/22 PASS, py_compile, four input hashes and diff check PASS; child build and connected DB/browser reload readback PASS; LOCAL_DELEGATED_REVIEW no blocker.",
+        "No employer site contacted; claim released; issue #144 remains OPEN/PARTIAL."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-08-application-confirmation.json"
+      ],
+      "files_modified": [
+        "fixtures/mock_server.py",
+        "services/applications/mock_adapter.py",
+        "tests/browser/test_mock_application.py",
+        "tests/browser/test_application_pipeline.py"
+      ],
+      "tests_completed": [
+        "Integrated mock-application and application-pipeline browser suites: 22/22 PASS; child focused test 1/1 PASS; build and source/evidence checks PASS."
+      ],
+      "tests_remaining": [
+        "Real ATS confirmation, PostgreSQL, full suite, hosted checks/review NOT_RUN."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "Synthetic MOCK only; no real employer ATS verification."
+      ],
+      "issue": 144,
+      "requirement_id": "MJ-REQ-143",
+      "integration_commit": "e211f013801849a4fe2cf24c855313b8fcfc3978",
+      "integration_tree": "7af80d749f045c2fc6489810581cb6282bc53588",
+      "evidence_path": "docs/evidence/2026-10-08-application-confirmation.json",
+      "issue_state": "OPEN/PARTIAL",
+      "issue_claim": "https://github.com/MulattoTech/MJobs/issues/144#issuecomment-6055562597",
+      "integration_receipt": "https://github.com/MulattoTech/MJobs/issues/144#issuecomment-6055793580",
+      "release_comment": "https://github.com/MulattoTech/MJobs/issues/144#issuecomment-6055795344",
+      "external_submission": "OFF",
+      "last_safe_checkpoint": {
+        "git_commit": "e211f013801849a4fe2cf24c855313b8fcfc3978",
+        "tree": "7af80d749f045c2fc6489810581cb6282bc53588",
+        "branch": "main",
+        "issue": "#144 / MJ-REQ-143",
+        "issue_state": "OPEN/PARTIAL",
+        "evidence_path": "docs/evidence/2026-10-08-application-confirmation.json",
+        "issue_claim": "https://github.com/MulattoTech/MJobs/issues/144#issuecomment-6055562597",
+        "integration_receipt": "https://github.com/MulattoTech/MJobs/issues/144#issuecomment-6055793580",
+        "release_comment": "https://github.com/MulattoTech/MJobs/issues/144#issuecomment-6055795344",
+        "at_utc": "2026-10-08T08:24:33Z",
+        "note": "Synthetic MOCK-only receipt capture validates timezone-aware timestamp, local confirmation URL, observed confirmation text and reference. Invalid evidence remains SUBMISSION_UNCONFIRMED. Root integrated browser modules passed 22/22; broader real-ATS confirmation remains incomplete; external submission OFF."
+      }
+    },
+    {
+      "milestone_id": "MJ-REQ-194-COMPANIES-SCREEN-BROWSER-REVALIDATED-20261008",
+      "timestamp": "2026-10-08T08:24:19Z",
+      "current_phase": "MJ_REQ_194_COMPANIES_SCREEN_ACCEPTANCE_PASS",
+      "completed_steps": [
+        "Root reconciled the exact #195 issue and area-spec acceptance: all eight listed Companies Screen fields are present and supported by tests.",
+        "Connected browser journey passed 1/1 at integrated main e211f013801849a4fe2cf24c855313b8fcfc3978 using synthetic rows in a temporary SQLite store; API 8/8, web 94/94 and build PASS; LOCAL_DELEGATED_REVIEW no blockers.",
+        "Issue #195 closed PASS with receipt https://github.com/MulattoTech/MJobs/issues/195#issuecomment-6055840362. MJ-PR-053 and dependencies remain QUEUED."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-08-companies-screen.json"
+      ],
+      "files_modified": [],
+      "tests_completed": [
+        "Connected browser 1/1 PASS on exact integrated main; source input hashes unchanged and all evidence hashes validate."
+      ],
+      "tests_remaining": [
+        "PostgreSQL, hosted checks/review and release readiness NOT_RUN."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "Root connected browser journey asserts persisted company-source controls and no submission; direct exact-field labels/data are asserted in component and integration suites."
+      ],
+      "issue": 195,
+      "requirement_id": "MJ-REQ-194",
+      "integration_commit": "e211f013801849a4fe2cf24c855313b8fcfc3978",
+      "integration_tree": "7af80d749f045c2fc6489810581cb6282bc53588",
+      "evidence_path": "docs/evidence/2026-10-08-companies-screen.json",
+      "issue_state": "CLOSED/PASS",
+      "issue_claim": "https://github.com/MulattoTech/MJobs/issues/195#issuecomment-6055487874",
+      "integration_receipt": "https://github.com/MulattoTech/MJobs/issues/195#issuecomment-6055662865",
+      "release_comment": "https://github.com/MulattoTech/MJobs/issues/195#issuecomment-6055840362",
+      "external_submission": "OFF",
+      "last_safe_checkpoint": {
+        "git_commit": "e211f013801849a4fe2cf24c855313b8fcfc3978",
+        "tree": "7af80d749f045c2fc6489810581cb6282bc53588",
+        "branch": "main",
+        "issue": "#195 / MJ-REQ-194",
+        "issue_state": "CLOSED/PASS",
+        "evidence_path": "docs/evidence/2026-10-08-companies-screen.json",
+        "integration_receipt": "https://github.com/MulattoTech/MJobs/issues/195#issuecomment-6055662865",
+        "release_comment": "https://github.com/MulattoTech/MJobs/issues/195#issuecomment-6055840362",
+        "at_utc": "2026-10-08T08:24:19Z",
+        "note": "All eight exact issue fields plus durable company/profile application counts and persisted preference display passed; broader release gates remain NOT_RUN."
+      }
     }
   ],
-  "current_phase": "MJ_REQ_190_COMPANY_SORT_SLICE_INTEGRATED_PARTIAL",
+  "current_phase": "MJ_REQ_194_COMPANIES_SCREEN_ACCEPTANCE_PASS",
   "last_safe_checkpoint": {
-    "git_commit": "fcddebedd6f238271ecd59ef171c2ce1e5e4245b",
-    "tree": "6b53c18d92ed07f5ec7e12574604a90c15ffd970",
+    "git_commit": "e211f013801849a4fe2cf24c855313b8fcfc3978",
+    "tree": "7af80d749f045c2fc6489810581cb6282bc53588",
     "branch": "main",
-    "issue": "#191 / MJ-REQ-190",
-    "issue_state": "OPEN/PARTIAL",
-    "evidence_path": "docs/evidence/2026-10-08-job-sorting-company.json",
-    "issue_claim": "https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6054990476",
-    "integration_receipt": "https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6055292637",
-    "release_comment": "https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6055051769",
-    "at_utc": "2026-10-08T07:49:05Z",
-    "note": "Connected Jobs Company sort uses canonical company names, case-insensitive ordering, blank-last handling, stable job-ID ties, and ordering before database limit. Exact rebased source passed focused API/browser and frontend/build checks; broad issue remains PARTIAL."
+    "issue": "#195 / MJ-REQ-194",
+    "issue_state": "CLOSED/PASS",
+    "evidence_path": "docs/evidence/2026-10-08-companies-screen.json",
+    "integration_receipt": "https://github.com/MulattoTech/MJobs/issues/195#issuecomment-6055662865",
+    "release_comment": "https://github.com/MulattoTech/MJobs/issues/195#issuecomment-6055840362",
+    "at_utc": "2026-10-08T08:24:19Z",
+    "note": "All eight exact issue fields plus durable company/profile application counts and persisted preference display passed; broader release gates remain NOT_RUN."
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -11006,29 +11280,16 @@
     "next_issue": "Release #398 and select the next dependency-ready unclaimed issue after live claim/worktree reconciliation."
   },
   "active_development_issue": {
-    "issue": 96,
-    "requirement_id": "MJ-REQ-095",
-    "title": "Resume Tailoring Engine",
-    "state": "ACTIVE_LOCAL_CLAIMED; target-relevant bullets now include the claimed v4 comparison UI mapping and reload regression.",
-    "branch": "codex/mj-req095-target-relevant-bullets-20261008",
-    "worktree": ".worktrees/codex-mj-req095-target-relevant-bullets-20261008",
-    "base_commit": "ef47fc9a2b05cc2027c0445116960b43d6d4b2eb",
-    "owned_paths": [
-      "services/documents/tailor.py",
-      "services/documents/generate.py",
-      "services/documents/templates.py",
-      "services/documents/comparison.py",
-      "tests/unit/test_skill_order.py",
-      "tests/integration/test_skill_order.py",
-      "tests/integration/test_resume_comparison.py",
-      "tests/browser/test_skill_order.py",
-      "docs/evidence/2026-10-08-resume-target-bullet-selection.json",
-      "apps/web/src/resume-comparison.tsx",
-      "apps/web/src/resume-comparison.test.tsx"
-    ],
-    "issue_claim_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6054981272",
-    "acceptance": "Default tailored generation selects only approved exact target-skill-matching responsibility/experience/project/accomplishment bullets; all eligible bullets remain if none match; explicit user selection takes precedence. Preserve immutable facts/history/comparison and profile/cover-letter data; no generated wording/provider use.",
-    "child_id": "req095-target-relevant-bullets-v2"
+    "issue": 191,
+    "requirement_id": "MJ-REQ-190",
+    "title": "Job Sorting",
+    "state": "BLOCKED_DESIGN at user handoff; Salary ordering direction/range endpoint/currency-period semantics are unspecified; Application Priority remains incomplete and its scoring factors are not settled. No active Codex writer or claim.",
+    "branch": null,
+    "worktree": null,
+    "base_commit": "e211f013801849a4fe2cf24c855313b8fcfc3978",
+    "owned_paths": [],
+    "acceptance": "Resume only after selecting an already-specified safe dependency-ready slice or resolving the existing documented design ambiguity; keep MJ-PR-052 dependencies unchanged.",
+    "child_id": null
   },
   "historical_control_snapshots": [
     {
@@ -12165,7 +12426,11 @@
     "Issue #178 / MJ-REQ-177 company-source-refresh logging slice integrated at main 95c8b5291b13f6a7bc03c4687bc13dc4d8f3cd79 (tree 482a2e4a36e36c83a98625b91e284960939fe9d1); tested source 634190c8acc7574ee0bdc225599082ac7db5c28d (tree 20a8718ee118d3fa2303e5c832a91483cd40485e). Root exact focused worker/logging rerun: 33 tests, 32 PASS, 1 optional PostgreSQL class skip; compileall, evidence source hashes, diff check and LOCAL_DELEGATED_REVIEW PASS. Evidence docs/evidence/2026-10-08-company-source-refresh-company-context.json. Temporary SQLite and stubbed refresh only; live Redis/RQ, PostgreSQL, full suite and hosted checks NOT_RUN; issue remains OPEN/PARTIAL.",
     "Planning checkpoint for #178 company-source refresh context at 2026-10-08T07:39:07Z: issue #178/MJ-REQ-177 remains OPEN/PARTIAL, evidence docs/evidence/2026-10-08-company-source-refresh-company-context.json; core/release acceptance remains PARTIAL.",
     "MJ-REQ-115 negated must-have slice integrated at c05d6c90b660508417ba7c17a0aa24a4116fded3; tested candidate 12ac4048f92f59423a08d5f4af49453f4949f570 tree 23f5220012726c5eac91f711428d80e8f72f3a0b. Repository Python parser + explainable-matching unit/integration: 25/25 PASS; synthetic Chromium manual-capture/reopen: 1/1 PASS after local offline frontend install/build; TS/Vite build, py_compile, evidence hashes/JSON and diff check PASS. Vitest not run (Node 25.9 outside declared Vitest 5 range); hosted checks/review NOT_RUN_BY_USER_POLICY; full requirement remains PARTIAL.",
-    "Issue #191 / MJ-REQ-190 Company-sort slice integrated at fcddebedd6f238271ecd59ef171c2ce1e5e4245b tree 6b53c18d92ed07f5ec7e12574604a90c15ffd970; tested executable/test source eba9f77a0cd54468fb91e2f6406777e25cb4e5a3 tree a3c96974d1112af01da72cd9edd98b8cf0e5181e. Root reran focused API+browser 6/6 (5 API/integration, 1 connected synthetic browser), web 94/94, TypeScript/Vite build, and diff check PASS. Exact input hashes and evidence are recorded at docs/evidence/2026-10-08-job-sorting-company.json. LOCAL_DELEGATED_REVIEW found no blocker; ASCII/ordinary-space SQL normalization coverage only, PostgreSQL/full Python/hosted checks remain NOT_RUN or incomplete. Issue remains OPEN/PARTIAL."
+    "Issue #191 / MJ-REQ-190 Company-sort slice integrated at fcddebedd6f238271ecd59ef171c2ce1e5e4245b tree 6b53c18d92ed07f5ec7e12574604a90c15ffd970; tested executable/test source eba9f77a0cd54468fb91e2f6406777e25cb4e5a3 tree a3c96974d1112af01da72cd9edd98b8cf0e5181e. Root reran focused API+browser 6/6 (5 API/integration, 1 connected synthetic browser), web 94/94, TypeScript/Vite build, and diff check PASS. Exact input hashes and evidence are recorded at docs/evidence/2026-10-08-job-sorting-company.json. LOCAL_DELEGATED_REVIEW found no blocker; ASCII/ordinary-space SQL normalization coverage only, PostgreSQL/full Python/hosted checks remain NOT_RUN or incomplete. Issue remains OPEN/PARTIAL.",
+    "Issue #96 target-relevant bullet selection integrated at 454217533bf23b88c80c4fdfbf6b604d07c59bea: exact candidate local tests 19 Python + 3 Vitest PASS, TypeScript/Vite build PASS, nine input hashes and diff check PASS; Node 25.9.0 is outside Vitest support; full Python, Node 24, PostgreSQL, hosted and release validation remain NOT_RUN; requirement PARTIAL.",
+    "Issue #195 / MJ-REQ-194 all eight Companies Screen fields are integrated and verified; root connected browser 1/1 on main e211; issue #195 CLOSED/PASS. Parent MJ-PR-053 stays QUEUED; release remains PARTIAL.",
+    "Issue #178 / MJ-REQ-177 APPLY_MOCK persisted job/company log context integrated at main 86d7bb580c03ed0b0dc0d807e147b5ecea29be7e; exact root rerun 33 PASS/1 optional PostgreSQL skip; issue remains OPEN/PARTIAL.",
+    "Issue #144 / MJ-REQ-143 MOCK-only receipt capture integrated at main e211f013801849a4fe2cf24c855313b8fcfc3978; 22 browser tests PASS and durable connected receipt readback PASS; real ATS/full requirement remains PARTIAL."
   ],
   "ownership": "Issue #177 / MJ-REQ-176 company-source setting Activity slice source 0c76b225f48a882e8aa90b5e7686d22a8891425e, source tree 3d7733e26c5d4d097518d3c911d6029c7f1c5e86, evidence and tests integrated at synchronized local/GitHub main 68a0630b690cfa855e43829bc4f1836cf6add246 under the Codex integration lock. GitHub issue checkpoint: https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6048627184. The issue remains OPEN/PARTIAL; hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL/Docker NOT_RUN; external submission OFF.",
   "delivery_policy": {
@@ -12180,5 +12445,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-08T07:39:07Z"
+  "updated_at": "2026-10-08T08:26:10Z"
 }

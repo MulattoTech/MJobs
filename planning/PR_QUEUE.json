@@ -758,7 +758,7 @@
       "status": "PARTIAL",
       "branch": null,
       "draft_until_verified": true,
-      "notes": "MJ092/093/094 accepted. MJ095 ordering, explicit approved selection, technology emphasis, optional contact header, responsibility bullet emphasis and extractive target-skill summary selection/fallback are locally verified. Broader factual bullet and summary rephrasing remain PARTIAL. Fact-editor regression #503 is accepted in PR504. Local-only evidence: docs/evidence/2026-10-06-target-summary-tailoring.json; hosted verification NOT_RUN. User-reviewed selected responsibility bullet rewriting is integrated at bf3c8bc1868987c59661a69184537272c2f8d422; evidence docs/evidence/2026-10-07-resume-user-reviewed-bullet-rephrasing.json. Issue #96 remains OPEN/PARTIAL because broader summary and other factual bullet rewriting are not complete; hosted checks NOT_RUN_BY_USER_POLICY. Previous approved experience-fact rewrite slice integrated on main at 5dfce5eec8e2e6c56442631725c0993c7ce12a29 (tested source c6eb1cd604d1372800bc798b7454aa9fe40d9d91), evidence docs/evidence/2026-10-08-resume-experience-rewrites.json; issue remains OPEN/PARTIAL. New local child slice #96/MJ-REQ-095 target-relevant bullet selection claimed at https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6054751589. Parent dependencies MJ-PR-025/MJ-PR-024 remain unchanged; this child does not promote parent status.",
+      "notes": "MJ092/093/094 accepted. MJ095 ordering, explicit approved selection, technology emphasis, optional contact header, responsibility bullet emphasis and extractive target-skill summary selection/fallback are locally verified. Broader factual bullet and summary rephrasing remain PARTIAL. Fact-editor regression #503 is accepted in PR504. Local-only evidence: docs/evidence/2026-10-06-target-summary-tailoring.json; hosted verification NOT_RUN. User-reviewed selected responsibility bullet rewriting is integrated at bf3c8bc1868987c59661a69184537272c2f8d422; evidence docs/evidence/2026-10-07-resume-user-reviewed-bullet-rephrasing.json. Issue #96 remains OPEN/PARTIAL because broader summary and other factual bullet rewriting are not complete; hosted checks NOT_RUN_BY_USER_POLICY. Previous approved experience-fact rewrite slice integrated on main at 5dfce5eec8e2e6c56442631725c0993c7ce12a29 (tested source c6eb1cd604d1372800bc798b7454aa9fe40d9d91), evidence docs/evidence/2026-10-08-resume-experience-rewrites.json; issue remains OPEN/PARTIAL. New local child slice #96/MJ-REQ-095 target-relevant bullet selection claimed at https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6054751589. Parent dependencies MJ-PR-025/MJ-PR-024 remain unchanged; this child does not promote parent status. Latest bounded slice integrated locally at 454217533bf23b88c80c4fdfbf6b604d07c59bea: deterministic exact-skill target bullet selection with no-match fallback and explicit selection priority; immutable omission provenance survives reload. Evidence docs/evidence/2026-10-08-resume-target-bullet-selection.json. Issue #96 remains OPEN/PARTIAL; parent dependencies preserved.",
       "feedback_slice": {
         "branch": "codex/resume-driven-profile",
         "result": "PARTIAL",
@@ -789,8 +789,8 @@
         "name": "Deterministic target-relevant bullet selection",
         "issue": 96,
         "requirement_id": "MJ-REQ-095",
-        "status": "ACTIVE_LOCAL_CLAIMED",
-        "publication_state": "LOCAL_WORK_IN_PROGRESS",
+        "status": "INTEGRATED_PARTIAL",
+        "publication_state": "INTEGRATED_LOCAL_ONLY",
         "base_commit": "ef47fc9a2b05cc2027c0445116960b43d6d4b2eb",
         "depends_on": [],
         "parent_dependencies_preserved": [
@@ -812,25 +812,35 @@
         "rationale": "Current-source audit found tailored generation keeps every approved bullet absent explicit selection. Issue/spec authorize target-relevant bullet choice; deterministic exact skill matching permits safe selection without inventing wording. Keep all eligible bullets on no-match fallback and honor deliberate explicit selection.",
         "branch": "codex/mj-req095-target-relevant-bullets-20261008",
         "worktree": ".worktrees/codex-mj-req095-target-relevant-bullets-20261008",
-        "issue_claim_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6054751589",
+        "issue_claim_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6054846648",
         "child_id": "req095-target-relevant-bullets-v2",
         "issue_claim_comment_update": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6054846648",
-        "scope_update_reason": "Versioned output identity and immutable comparison validation require owned template and comparison-validator paths; child paused after initial claim mismatch and root reconciled current lane claims before resuming."
+        "scope_update_reason": "Versioned output identity and immutable comparison validation require owned template and comparison-validator paths; child paused after initial claim mismatch and root reconciled current lane claims before resuming.",
+        "source_commit": "18263e4fa0b29b4b9fbda51ea1c2b3f8882782a9",
+        "source_tree": "cbe65103fb9c6037c06413e731f75543d3b5272e",
+        "integration_commit": "454217533bf23b88c80c4fdfbf6b604d07c59bea",
+        "integration_tree": "2e1ade82168b857e1f1b313440a870c20fc1e084",
+        "evidence_path": "docs/evidence/2026-10-08-resume-target-bullet-selection.json",
+        "issue_integration_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6055421425",
+        "issue_release_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6055480482",
+        "verified_at_utc": "2026-10-08T08:01:32Z",
+        "tests": "Root exact candidate: Python 19/19; focused Vitest 3/3; build; nine hashes and diff check PASS. LOCAL_DELEGATED_REVIEW no blocker.",
+        "limitations": "Node 25.9.0 is outside Vitest supported range; full suite, supported Node 24, PostgreSQL, hosted checks/review and release eligibility NOT_RUN. #96 remains OPEN/PARTIAL."
       },
-      "latest_slice_source_commit": "c6eb1cd604d1372800bc798b7454aa9fe40d9d91",
-      "latest_slice_integration_commit": "5dfce5eec8e2e6c56442631725c0993c7ce12a29",
-      "latest_slice_evidence": "docs/evidence/2026-10-08-resume-experience-rewrites.json",
+      "latest_slice_source_commit": "18263e4fa0b29b4b9fbda51ea1c2b3f8882782a9",
+      "latest_slice_integration_commit": "454217533bf23b88c80c4fdfbf6b604d07c59bea",
+      "latest_slice_evidence": "docs/evidence/2026-10-08-resume-target-bullet-selection.json",
       "latest_slice_issue": 96,
       "latest_slice_requirement": "MJ-REQ-095",
       "latest_slice_status": "PARTIAL",
-      "latest_slice_validated_head": "c6eb1cd604d1372800bc798b7454aa9fe40d9d91",
-      "latest_slice_validated_tree": "9be02589f74ba57622a2a7aa69b7d87602353136",
-      "latest_slice_issue_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6053321247",
+      "latest_slice_validated_head": "18263e4fa0b29b4b9fbda51ea1c2b3f8882782a9",
+      "latest_slice_validated_tree": "cbe65103fb9c6037c06413e731f75543d3b5272e",
+      "latest_slice_issue_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6055421425",
       "latest_slice_base": "f34131a4047467284bb25b37138f872bf5f14a42",
       "latest_slice_branch": "codex/mj-req095-experience-rewrite-20261008",
       "latest_slice_scope_complete": false,
-      "latest_slice_tests": "13 unit/integration, 1 connected Chromium, 1 Vitest and build PASS on tested source head; Node 25.9.0 unsupported for Vitest; current focused Python revalidation BLOCKED_ENVIRONMENT in prior checkpoint; hosted NOT_RUN.",
-      "latest_slice_release_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6053343083"
+      "latest_slice_tests": "Python 19/19; focused Vitest 3/3; TypeScript/Vite build; nine changed-input hashes; diff check PASS on exact source; LOCAL_DELEGATED_REVIEW no blocker. Node 25.9.0 unsupported; full suite, PostgreSQL and hosted checks NOT_RUN.",
+      "latest_slice_release_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6055480482"
     },
     {
       "id": "MJ-PR-027",
@@ -1122,7 +1132,31 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-039-application-automation",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting.",
+      "slice_history": [
+        {
+          "name": "Synthetic MOCK application confirmation capture/readback",
+          "issue": 144,
+          "requirement_id": "MJ-REQ-143",
+          "status": "PARTIAL",
+          "depends_on": [],
+          "parent_dependencies_preserved": [
+            "MJ-PR-038",
+            "MJ-PR-030"
+          ],
+          "evidence_path": "docs/evidence/2026-10-08-application-confirmation.json",
+          "source_head": "e211f013801849a4fe2cf24c855313b8fcfc3978",
+          "source_tree": "7af80d749f045c2fc6489810581cb6282bc53588",
+          "validation": {
+            "integrated_browser": "PASS 22/22",
+            "connected_readback": "PASS",
+            "real_ats": "NOT_RUN",
+            "hosted": "NOT_RUN_BY_USER_POLICY"
+          },
+          "issue_state": "OPEN/PARTIAL",
+          "external_submission": "OFF"
+        }
+      ]
     },
     {
       "id": "MJ-PR-040",
@@ -1326,7 +1360,30 @@
       "latest_slice_branch": "codex/mj-req177-company-source-refresh-context-20261008",
       "latest_slice_scope_complete": false,
       "latest_slice_tests": "Root exact focused worker/logging rerun: 33 run, 32 PASS, 1 optional PostgreSQL class skipped; compileall, exact source SHA-256 checks, diff check, evidence JSON and LOCAL_DELEGATED_REVIEW PASS. Temporary SQLite, refresh stubbed. Live Redis/RQ, PostgreSQL, full suite and hosted checks NOT_RUN.",
-      "active_slice": null
+      "active_slice": null,
+      "slice_history": [
+        {
+          "name": "APPLY_MOCK persisted job/company structured log context",
+          "issue": 178,
+          "requirement_id": "MJ-REQ-177",
+          "status": "PARTIAL",
+          "depends_on": [],
+          "parent_dependencies_preserved": [
+            "MJ-PR-047",
+            "MJ-PR-034"
+          ],
+          "evidence_path": "docs/evidence/2026-10-08-apply-mock-job-company-context.json",
+          "source_head": "86d7bb580c03ed0b0dc0d807e147b5ecea29be7e",
+          "source_tree": "ec0f835924b4f4ef69b8e3dad7ca2ece79d10ac9",
+          "validation": {
+            "focused_worker_logging": "33 PASS, 1 PostgreSQL skip",
+            "postgresql_rq": "NOT_RUN",
+            "hosted": "NOT_RUN_BY_USER_POLICY"
+          },
+          "issue_state": "OPEN/PARTIAL",
+          "external_submission": "OFF"
+        }
+      ]
     },
     {
       "id": "MJ-PR-049",
@@ -1569,7 +1626,7 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-053-web-api-analytics",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Issue #196 / MJ-REQ-195 full standalone acceptance is independently verified PASS at main 17f0170841c2fa089e10b700deea11dbfd7e8167; evidence docs/evidence/2026-10-08-application-tracker-current-main.json. This does not promote bundled MJ-PR-053; dependencies MJ-PR-052/MJ-PR-043 remain QUEUED and other requirements remain incomplete.",
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Issue #196 / MJ-REQ-195 full standalone acceptance is independently verified PASS at main 17f0170841c2fa089e10b700deea11dbfd7e8167; evidence docs/evidence/2026-10-08-application-tracker-current-main.json. This does not promote bundled MJ-PR-053; dependencies MJ-PR-052/MJ-PR-043 remain QUEUED and other requirements remain incomplete. Issue #195/MJ-REQ-194 full direct acceptance is PASS/CLOSED at main e211f013801849a4fe2cf24c855313b8fcfc3978; evidence docs/evidence/2026-10-08-companies-screen.json. Parent dependencies remain QUEUED and bundle is not promoted.",
       "slice_history": [
         {
           "name": "Full application tracker/Kanban acceptance verified at current main",
@@ -1592,6 +1649,32 @@
           },
           "acceptance": "All ten documented stages render in the Applications Kanban; profile-scoped manual status and notes persist with ordered history across store/browser reopen; user-reported Applied is not a submission receipt.",
           "issue_state_before_close": "OPEN"
+        },
+        {
+          "name": "Companies Screen requirement acceptance closed independently",
+          "issue": 195,
+          "requirement_id": "MJ-REQ-194",
+          "status": "PASS",
+          "depends_on": [],
+          "parent_dependencies_preserved": [
+            "MJ-PR-052",
+            "MJ-PR-043"
+          ],
+          "evidence_path": "docs/evidence/2026-10-08-companies-screen.json",
+          "source_head": "e211f013801849a4fe2cf24c855313b8fcfc3978",
+          "source_tree": "7af80d749f045c2fc6489810581cb6282bc53588",
+          "validation": {
+            "company_integration": "PASS 8/8",
+            "connected_browser": "PASS 1/1",
+            "web": "PASS 94/94",
+            "build": "PASS",
+            "postgresql": "NOT_RUN",
+            "hosted": "NOT_RUN_BY_USER_POLICY"
+          },
+          "issue_state": "CLOSED",
+          "issue_close_comment": "https://github.com/MulattoTech/MJobs/issues/195#issuecomment-6055840362",
+          "acceptance": "All eight required display fields; canonical-company/profile-scoped durable Applications count; persisted User Preference display.",
+          "external_submission": "OFF"
         }
       ]
     },
@@ -4085,5 +4168,5 @@
       "claim_release_comment": "https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053395464"
     }
   ],
-  "generated_at": "2026-10-08T07:37:22Z"
+  "generated_at": "2026-10-08T08:24:33Z"
 }
