@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-07T20:08:51Z",
+  "generated_at": "2026-10-08T05:00:30Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -372,7 +372,10 @@
     "MJ-REQ-176 AI cost-policy setting audit: 35 focused integration/browser tests PASS; full Python suite 967 PASS, 8 skipped; frontend 63 PASS and TypeScript/Vite build PASS; local validators PASS. Evidence docs/evidence/2026-10-07-ai-cost-policy-audit.json; scoped issue remains OPEN/PARTIAL at 2d5dcaba6b20012df93de8546f216ecdd5a26d3c.",
     "Issue #177 company-source settings Activity slice: 21 focused integration tests, 2 connected Chromium tests, frontend 63/build, full Python 968 run/8 skipped, validators, compileall and diff check PASS; evidence docs/evidence/2026-10-07-company-source-setting-audit.json.",
     "MJ-FEATURE-517 structured source evaluation: 7 focused integration/browser tests; frontend 63/build; local validators; temporary SQLite migration preservation PASS at exact source 94de9869be86f32d3f815dc318d4d5e9a95e1219.",
-    "Integrated main 0a7400d2bf7f8f449d69a81fde84a4f107faf06f: tests.integration.test_migration_graph and tests.integration.test_resume_comparison; 7 PASS, 0 failures/skips. Normal SQLite upgrade-to-head and resume comparison migration setup succeeded. Evidence docs/evidence/2026-10-08-alembic-merge-heads.json."
+    "Integrated main 0a7400d2bf7f8f449d69a81fde84a4f107faf06f: tests.integration.test_migration_graph and tests.integration.test_resume_comparison; 7 PASS, 0 failures/skips. Normal SQLite upgrade-to-head and resume comparison migration setup succeeded. Evidence docs/evidence/2026-10-08-alembic-merge-heads.json.",
+    "MJ-REQ-095 scoped technology_experience rewrite: 5 unit + 1 integration + 1 connected Chromium tests PASS on exact recorded executable/test hashes; current revalidation BLOCKED_ENVIRONMENT (missing Python SQLAlchemy/pytest).",
+    "MJ-REQ-095 web TypeScript check and Vite production build PASS on Node 25.9.0 (Vite 8.3.1).",
+    "Local delegated review of MJ-REQ-095 candidate: no code blocker; hosted review NOT_RUN_BY_USER_POLICY."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -455,7 +458,9 @@
     "MJ-REQ-176 mock submission audit: PostgreSQL/Docker/migrations NOT_APPLICABLE (no schema change); hosted Actions/reviews NOT_RUN_BY_USER_POLICY; production providers/employer sites NOT_RUN; external submission OFF.",
     "GitHub Actions, hosted tests and independent review NOT_RUN_BY_USER_POLICY; PostgreSQL/Docker NOT_RUN (no schema change); external submission OFF.",
     "MJ-FEATURE-517 PostgreSQL/Docker migration runtime, live source inspection, and hosted Actions/review NOT_RUN; external submission OFF.",
-    "Issue #167 / MJ-REQ-166 scoped merge-head repair: PostgreSQL execution of the full-text index migration, Docker/PostgreSQL, destructive migration backup/restore and broader database-migration acceptance NOT_RUN; hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF."
+    "Issue #167 / MJ-REQ-166 scoped merge-head repair: PostgreSQL execution of the full-text index migration, Docker/PostgreSQL, destructive migration backup/restore and broader database-migration acceptance NOT_RUN; hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF.",
+    "MJ-REQ-095 exact-tree Python test revalidation: BLOCKED_ENVIRONMENT, 0 tests collected; available Python 3.12 lacks SQLAlchemy and repository .venv lacks pytest. Prior exact-input-hash results remain in docs/evidence/2026-10-08-resume-technology-experience-rewrites.json.",
+    "Hosted Actions/CI and external review remain NOT_RUN_BY_USER_POLICY; full-spec release acceptance remains NOT_RUN."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -494,10 +499,10 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "commit": "0a7400d2bf7f8f449d69a81fde84a4f107faf06f",
+    "commit": "7d08a2b0bb260abc251d6d7f9a79f132390a48a7",
     "result": "PARTIAL",
-    "evidence": "docs/evidence/2026-10-08-alembic-merge-heads.json",
-    "verified_at_utc": "2026-10-08T04:46:34Z"
+    "evidence": "docs/evidence/2026-10-08-resume-technology-experience-rewrites.json",
+    "verified_at_utc": "2026-10-08T05:00:30Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -564,7 +569,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Issue #517 remains OPEN/PARTIAL after structured source evaluation integrated at main 94de9869be86f32d3f815dc318d4d5e9a95e1219. Evidence docs/evidence/2026-10-07-source-candidate-review-evaluation.json. Select the next supported provider/browser intake path only after reconciling active #302/#318 ownership, or implement bounded integration-task/provider-issue linkage. Hosted checks NOT_RUN_BY_USER_POLICY; PostgreSQL/Docker and live source checks NOT_RUN; external submission OFF.",
+  "recommended_resume_step": "Continue the active #199 / MJ-REQ-198 cover-letter history comparison child slice and review its exact source/tests/evidence when returned. The fresh local review of #116 / MJ-REQ-115 found a remaining no-but comma-list classification false positive; a bounded TDD follow-up is assigned on the existing branch. After #116 releases apps/web/src/main.tsx, reassess #240 / MJ-REQ-239 company notes as the next user-visible gap. #117 remains behind MJ-PR-031/MJ-PR-025 and #517 remains blocked by active provider/UI claims. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],

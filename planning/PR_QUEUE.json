@@ -3635,7 +3635,38 @@
       "notes": "At source 56b9ad997c154ff5b2ddacf98ab43c9fd7725cdc, a real loopback HTTP client disconnect during native resume parsing is observed; the parser child is terminated and reaped; durable operation state is CANCELLED; profile, resume bytes and revision history are unchanged. 58 focused Python unit/integration/connected-browser tests, frontend 63/build and local validators pass. Full MJ-REQ-004 remains PARTIAL; issue #5 remains OPEN. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
       "issue_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6045946420",
       "issue_release_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6045955420"
+    },
+    {
+      "id": "MJ-PR-168",
+      "title": "MJ-REQ-095 approved technology-experience rewrite",
+      "domain": "resume_tailoring",
+      "requirements": [
+        "MJ-REQ-095"
+      ],
+      "issues": [
+        96
+      ],
+      "reference_gaps": [],
+      "target_area": "services/documents/tailor.py; apps/web/src/resume-fact-selection.tsx; resume comparison unit/integration/browser tests",
+      "depends_on": [],
+      "status": "INTEGRATED_PARTIAL",
+      "branch": "codex/mj-req095-technology-rewrite-20261008",
+      "draft_until_verified": true,
+      "issue_number": 96,
+      "evidence_path": "docs/evidence/2026-10-08-resume-technology-experience-rewrites.json",
+      "base": "9aa502a9df222dc517e6e9a3f46ed5ad4002cd00",
+      "candidate": "7d08a2b0bb260abc251d6d7f9a79f132390a48a7",
+      "integration_method": "NON_FORCE_FAST_FORWARD",
+      "pr_state": "NOT_OPENED_LOCAL_ONLY",
+      "scope_complete": false,
+      "scope_result": "PASS",
+      "source_commit": "3fa915cb18c33dc25fb3f9b4016d0ae2f0ca0c80",
+      "integration_commit": "7d08a2b0bb260abc251d6d7f9a79f132390a48a7",
+      "integrated_at": "2026-10-08T05:00:30Z",
+      "issue_state": "OPEN/PARTIAL",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6052638566",
+      "notes": "Scoped user-reviewed rewrite for approved technology_experience facts is integrated. Five unit plus one integration test and one connected Chromium test previously passed against the exact executable/test input SHA-256 values rechecked at the candidate. Current focused Python revalidation was BLOCKED_ENVIRONMENT (0 tests; Python 3.12 lacks SQLAlchemy and repository .venv lacks pytest); no dependencies installed. TypeScript/Vite build passed on Node 25.9.0. Local delegated review found no code blocker. Issue #96 / MJ-REQ-095 remains PARTIAL for other tailoring modes and semantic-equivalence proof; hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF."
     }
   ],
-  "generated_at": "2026-10-08T04:19:16Z"
+  "generated_at": "2026-10-08T05:00:30Z"
 }

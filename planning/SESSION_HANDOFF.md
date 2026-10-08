@@ -1,3 +1,13 @@
+## 2026-10-08 — local delivery checkpoint (scoped #96 integration)
+
+The technology-experience rewrite slice for issue #96 / MJ-REQ-095 is integrated by non-force fast-forward. Source/evidence candidate `7d08a2b0bb260abc251d6d7f9a79f132390a48a7` was pushed and read back as `origin/main`; a canonical planning checkpoint follows this source checkpoint. Receipt: https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6052638566. Evidence: `docs/evidence/2026-10-08-resume-technology-experience-rewrites.json`. Local delegated review found no code blocker. Five unit + one integration test and one connected Chromium test previously passed against the exact five executable/test input hashes, which were rechecked at the candidate. The current local Python attempt could collect zero tests because SQLAlchemy is missing; the repository `.venv` also lacks pytest. No dependencies were installed. TypeScript/Vite build passed on Node 25.9.0. This scoped slice is PASS; #96 and MJ-REQ-095 remain OPEN/PARTIAL for other tailoring modes and semantic-equivalence proof. Hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF.
+
+Active work: #199 / MJ-REQ-198 cover-letter history comparison is in `.worktrees/codex-mj-req198-cover-letter-comparison-20261008` on `codex/mj-req198-cover-letter-comparison-20261008`; its owned paths are `document-history.tsx`, its tests, browser test and unique evidence. #116 / MJ-REQ-115 remains active on its claimed parser/UI paths; a local review found `Security+ required, CCNA preferred.` (without “but”) can still misclassify the second item, and a bounded test-first follow-up is underway. Preserve its untracked `events.jsonl`. #240 company notes and #517 provider/task linkage currently need the #116 UI claim released; #117 also remains behind PR-031/PR-025 and #116. Antigravity #302 and Ollama #318 claims remain untouched.
+
+Main workspace remains local-only: Actions/hosted checks and external review are disabled/NOT_RUN by policy, external submission remains OFF. The root owns canonical planning and serialized integration; keep broad requirements and release readiness separate from scoped slice results.
+
+---
+
 ## 2026-10-08 — parallel Codex claims enabled; delivery roster checkpoint
 
 Root/local `main` and `origin/main` are synchronized at `920e679aaedee1a580085f75c635ee81a25439fb`. This checkpoint adds per-child Codex claims to the machine-local common-Git bus while retaining legacy lane claims. Claim transactions use a cross-process lock; active overlaps (including same-lane overlaps) and duplicate child IDs are rejected; child releases do not remove other claims. The Codex root owns shared `planning/lanes/codex/**` files while children work only in exclusive source/test/evidence paths.
