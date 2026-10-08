@@ -303,12 +303,12 @@ def save_search_profile(store, data):
             else:
                 criteria = new_criteria
         else:
-            scheduler = _clean_search_scheduler(
-                (existing["criteria"].get("scheduler") if existing else None)
-                or DEFAULT_SEARCH_SCHEDULER.copy()
-            )
+            previous_scheduler = existing["criteria"].get("scheduler") if existing else None
+            scheduler = (_clean_search_scheduler(previous_scheduler)
+                         if previous_scheduler is not None else None)
             criteria = new_criteria
-        criteria["scheduler"] = scheduler
+        if scheduler is not None:
+            criteria["scheduler"] = scheduler
         created_at = existing["created_at"] if existing else timestamp
         changed = existing is not None and any((
             existing["profile_id"] != data["profile_id"],

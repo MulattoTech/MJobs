@@ -24,24 +24,28 @@ class SavedSearchScheduleTests(unittest.TestCase):
         self.store.save_profile(dict(PROFILE))
         self.store.save_profile({**PROFILE, "id": "other", "name": "Other Fixture",
                                  "email": "other@example.test"})
-        self.source_id = configure_source(self.store, "saved-search-scheduler", jitter_seconds=0)
-        # Keep the source-level poller not due so these assertions isolate per-search cadence.
+        self.source_id = configure_source(
+            self.store, "saved-search-scheduler-fixture", poll_interval=300, jitter_seconds=0)
+        self.other_source_id = configure_source(
+            self.store, "saved-search-scheduler-other", poll_interval=300, jitter_seconds=0)
+        # Make each source due at the first tick. Per-search cadence still respects
+        # each source's lower-bound poll interval.
         with self.store.engine.begin() as connection:
-            connection.execute(update(m.job_sources).where(m.job_sources.c.id == self.source_id).values(
-                last_attempt="2099-01-01T00:00:00+00:00", jitter_seconds=0))
+            connection.execute(update(m.job_sources).values(
+                last_attempt="2026-10-08T11:55:00+00:00", jitter_seconds=0))
 
     def tearDown(self):
         self.store.engine.dispose()
         self.directory.cleanup()
 
-    def _save_search(self, search_id, profile_id, scheduler=None):
+    def _save_search(self, search_id, profile_id, scheduler=None, *, source_id=None):
         data = {
             "id": search_id,
             "profile_id": profile_id,
             "name": f"Saved search {search_id}",
             "enabled": True,
             "include_titles": ["System Administrator"],
-            "source_ids": [self.source_id],
+            "source_ids": [source_id or self.source_id],
         }
         if scheduler is not None:
             data["scheduler"] = scheduler
@@ -74,7 +78,8 @@ class SavedSearchScheduleTests(unittest.TestCase):
         # A legacy profile with no scheduler setting stays disabled after persistence.
         self._save_search("legacy-search", "fixture")
         self._save_search("lower-bound", "fixture", {"enabled": True, "interval_seconds": 300})
-        self._save_search("upper-bound", "other", {"enabled": True, "interval_seconds": 604800})
+        self._save_search("upper-bound", "other", {"enabled": True, "interval_seconds": 604800},
+                          source_id=self.other_source_id)
         self._save_search("explicitly-disabled", "other", {"enabled": False, "interval_seconds": 300})
         self.assertNotIn("scheduler", self._saved_search("legacy-search")["criteria"])
         self.assertEqual(self._saved_search("lower-bound")["criteria"]["scheduler"],
@@ -83,18 +88,19 @@ class SavedSearchScheduleTests(unittest.TestCase):
                          {"enabled": True, "interval_seconds": 604800})
 
         at = datetime(2026, 10, 8, 12, tzinfo=timezone.utc)
-        schedule_due_sources(self.store, at)
+        from services.discovery.scheduler import schedule_due_search_profiles
+        schedule_due_search_profiles(self.store, at)
 
         operations = self._search_operations()
         self.assertEqual({row["params"]["search_profile_id"] for row in operations},
                          {"lower-bound", "upper-bound"})
         self.assertEqual({event["entity_id"] for event in self._schedule_events()},
                          {"lower-bound", "upper-bound"})
-        self.assertEqual(self.store.count("jobs"), 0)
+        self.assertEqual(self.store.count("job_postings"), 0)
         with self.store.engine.connect() as connection:
             source = connection.execute(select(m.job_sources).where(
                 m.job_sources.c.id == self.source_id)).mappings().one()
-        self.assertEqual(source["last_attempt"], "2099-01-01T00:00:00+00:00")
+        self.assertEqual(source["last_attempt"], "2026-10-08T11:55:00+00:00")
 
     def test_scheduler_interval_outside_bounds_is_rejected_without_saving(self):
         for search_id, interval in (("below-bound", 299), ("above-bound", 604801)):
@@ -107,8 +113,8 @@ class SavedSearchScheduleTests(unittest.TestCase):
 
     def test_profile_isolation_duplicate_ticks_schedule_changes_and_restart_readback(self):
         self._save_search("fixture-quick", "fixture", {"enabled": True, "interval_seconds": 600})
-        self._save_search("other-slow", "other", {"enabled": True, "interval_seconds": 604800})
-        self._save_search("legacy-search", "fixture")
+        self._save_search("other-slow", "other", {"enabled": True, "interval_seconds": 604800},
+                          source_id=self.other_source_id)
         at = datetime(2026, 10, 8, 12, tzinfo=timezone.utc)
 
         schedule_due_sources(self.store, at)
@@ -119,12 +125,13 @@ class SavedSearchScheduleTests(unittest.TestCase):
         self.assertEqual(by_search["other-slow"]["params"]["profile_ids"], ["other"])
         for search_id, expected_profile in (("fixture-quick", "fixture"), ("other-slow", "other")):
             row = by_search[search_id]
-            self.assertEqual(row["params"]["source_id"], self.source_id)
+            expected_source = (self.source_id if search_id == "fixture-quick" else self.other_source_id)
+            self.assertEqual(row["params"]["source_id"], expected_source)
             self.assertTrue(row["params"]["scheduler"])
             self.assertEqual(row["params"]["scheduled_for"], at.isoformat())
             event, = self._schedule_events(search_id)
             self.assertEqual(event["payload"]["profile_id"], expected_profile)
-            self.assertEqual(event["payload"]["source_id"], self.source_id)
+            self.assertEqual(event["payload"]["source_id"], expected_source)
             self.assertEqual(event["payload"]["scheduled_for"], at.isoformat())
 
         # Reopen the persistent store to simulate a scheduler process restart.
@@ -162,7 +169,7 @@ class SavedSearchScheduleTests(unittest.TestCase):
         self.assertEqual(len(self._search_operations()), 4)
         self.assertEqual(len(self._schedule_events("fixture-quick")), 3)
         self.assertEqual(len(self._schedule_events("other-slow")), 1)
-        self.assertEqual(self.store.count("jobs"), 0)
+        self.assertEqual(self.store.count("job_postings"), 0)
 
 
 if __name__ == "__main__":

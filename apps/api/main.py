@@ -526,6 +526,7 @@ class SearchProfileInput(BaseModel):
     name: str = Field(min_length=1, max_length=200)
     enabled: bool = True
     job_filters: dict[str, object] | None = None
+    scheduler: dict[str, object] | None = None
     include_titles: list[str] = Field(default_factory=list, max_length=100)
     exclude_titles: list[str] = Field(default_factory=list, max_length=100)
     required_keywords: list[str] = Field(default_factory=list, max_length=100)
@@ -1270,7 +1271,9 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     @app.put("/search-profiles")
     def search_profile_save(value: SearchProfileInput):
         try:
-            return {"id": save_search_profile(store, value.model_dump())}
+            # Keep omitted fields omitted: saved-search cadence updates are partial,
+            # and must not reset a profile's existing filters or scheduler settings.
+            return {"id": save_search_profile(store, value.model_dump(exclude_unset=True))}
         except ValueError as error:
             if str(error) == "Search profile belongs to a different career profile":
                 raise HTTPException(409, str(error)) from error
