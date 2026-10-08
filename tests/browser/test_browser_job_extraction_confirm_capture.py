@@ -36,6 +36,11 @@ class SourceReferenceProbe(BaseHTTPRequestHandler):
 
 
 ROOT = Path(__file__).resolve().parents[2]
+EXTRACTION_FIELDS = (
+    "title", "company", "description", "location", "employment_type",
+    "date_posted", "valid_through", "source_job_id", "listing_url",
+    "application_url",
+)
 
 
 @unittest.skipUnless((ROOT / "apps/web/dist/index.html").is_file(),
@@ -88,21 +93,6 @@ class BrowserJobExtractionConfirmCaptureTests(unittest.TestCase):
                         ).scalar_one()
                         for table in m.metadata.sorted_tables
                     }
-
-            def find_confirmation(value):
-                if isinstance(value, dict):
-                    if {"preview", "corrections", "reviewed_fields"}.issubset(value):
-                        return value
-                    for nested in value.values():
-                        found = find_confirmation(nested)
-                        if found is not None:
-                            return found
-                elif isinstance(value, list):
-                    for nested in value:
-                        found = find_confirmation(nested)
-                        if found is not None:
-                            return found
-                return None
 
             try:
                 thread.start()
@@ -169,7 +159,6 @@ class BrowserJobExtractionConfirmCaptureTests(unittest.TestCase):
                     hostile_text = (
                         "Title: Provisional Systems Administrator\n"
                         "Company: Provisional Synthetic Employer\n"
-                        "Description: Maintain synthetic Linux infrastructure.\n"
                         "Location: Tulsa, OK\n"
                         "Job ID: provisional-job-123\n"
                         f"Listing URL: {reference_url}\n"
@@ -202,6 +191,10 @@ class BrowserJobExtractionConfirmCaptureTests(unittest.TestCase):
                     self.assertEqual(result["fields"]["source_job_id"]["confidence"], 0.65)
                     self.assertEqual(result["fields"]["listing_url"]["confidence"], 0.65)
                     self.assertEqual(result["fields"]["application_url"]["confidence"], 0.65)
+                    self.assertEqual(result["fields"]["description"], {
+                        "value": None, "source": "UNKNOWN", "confidence": 0.0,
+                        "review_required": False,
+                    })
                     self.assertEqual(result["review_required"], [
                         "title", "company", "source_job_id", "listing_url",
                         "application_url",
@@ -243,16 +236,40 @@ class BrowserJobExtractionConfirmCaptureTests(unittest.TestCase):
                     review_boxes = [page.get_by_label(
                         f"Confirm low-confidence {label}", exact=True,
                     ) for label in review_labels]
-                    for checkbox in review_boxes:
+                    for checkbox in review_boxes[:-1]:
                         checkbox.check()
-                    expect(confirm_button).to_be_enabled()
-                    review_boxes[0].uncheck()
-                    expect(confirm_button).to_be_disabled()
-                    review_boxes[0].check()
-                    review_boxes[-1].uncheck()
-                    expect(confirm_button).to_be_disabled()
+                        expect(confirm_button).to_be_disabled()
+                        self.assertEqual(manual_posts, [])
                     review_boxes[-1].check()
                     expect(confirm_button).to_be_enabled()
+                    for checkbox in review_boxes:
+                        checkbox.uncheck()
+                        expect(confirm_button).to_be_disabled()
+                        self.assertEqual(manual_posts, [])
+                        checkbox.check()
+                        expect(confirm_button).to_be_enabled()
+
+                    # The preview omits a description. Confirming the review is not
+                    # permission to invent one or to write before the user supplies it.
+                    confirm_button.click()
+                    self.assertEqual(manual_posts, [])
+                    manual_description = page.get_by_label(
+                        re.compile(r"manual.*description|job description", re.I),
+                    )
+                    if manual_description.count() == 0:
+                        body_excerpt = page.locator("body").inner_text()[-1200:]
+                        self.fail(
+                            "Reviewed extraction did not expose the required manual "
+                            "description before capture; no POST /jobs/manual was sent. "
+                            f"manual_posts={manual_posts!r}; page_errors={page_errors!r}; "
+                            "body_tail="
+                            f"{body_excerpt.encode('ascii', 'backslashreplace').decode()}"
+                        )
+                    expect(manual_description).to_be_visible()
+                    manual_description.fill(
+                        "Maintain synthetic Linux infrastructure after user review."
+                    )
+                    self.assertEqual(manual_posts, [])
 
                     before_save = table_counts()
                     try:
@@ -286,6 +303,10 @@ class BrowserJobExtractionConfirmCaptureTests(unittest.TestCase):
                         self.assertEqual(failed_payload[target_field], value)
                     self.assertEqual(failed_payload["profile_id"], profile_id)
                     self.assertEqual(failed_payload["application_url"], application_url)
+                    self.assertEqual(
+                        failed_payload["description"],
+                        "Maintain synthetic Linux infrastructure after user review.",
+                    )
                     expect(page.get_by_role("alert")).to_contain_text(
                         "Synthetic manual capture unavailable",
                     )
@@ -301,6 +322,9 @@ class BrowserJobExtractionConfirmCaptureTests(unittest.TestCase):
                         )).to_have_value(value)
                     for checkbox in review_boxes:
                         expect(checkbox).to_be_checked()
+                    expect(manual_description).to_have_value(
+                        "Maintain synthetic Linux infrastructure after user review."
+                    )
                     expect(confirm_button).to_be_enabled()
 
                     with page.expect_response(
@@ -340,8 +364,10 @@ class BrowserJobExtractionConfirmCaptureTests(unittest.TestCase):
                     stored_job = job_readback["body"]
                     self.assertEqual(stored_job["title"], corrections["title"])
                     self.assertEqual(stored_job["company"], corrections["company"])
-                    self.assertEqual(stored_job["description"],
-                                     "Maintain synthetic Linux infrastructure.")
+                    self.assertEqual(
+                        stored_job["description"],
+                        "Maintain synthetic Linux infrastructure after user review.",
+                    )
                     manual_posting = next(
                         posting for posting in stored_job["postings"]
                         if posting["source"] == "manual"
@@ -350,26 +376,41 @@ class BrowserJobExtractionConfirmCaptureTests(unittest.TestCase):
                     self.assertEqual(submitted["reference_url"], reference_url)
                     self.assertEqual(submitted["application_url"], application_url)
                     source_details = submitted["source_details"]
-                    confirmation = find_confirmation(source_details)
-                    self.assertIsNotNone(
-                        confirmation,
-                        "Durable capture must retain extraction provenance and corrections",
-                    )
+                    extraction_capture = source_details["extraction_capture"]
+                    self.assertEqual(set(extraction_capture), {
+                        "schema_version", "raw_fields", "field_provenance",
+                        "raw_capture_ref",
+                    })
+                    self.assertEqual(extraction_capture["schema_version"], 1)
+                    self.assertEqual(extraction_capture["raw_capture_ref"], raw_capture_ref)
+                    self.assertEqual(set(extraction_capture["raw_fields"]),
+                                     set(EXTRACTION_FIELDS))
+                    self.assertEqual(set(extraction_capture["field_provenance"]),
+                                     set(EXTRACTION_FIELDS))
+                    self.assertEqual(extraction_capture["raw_fields"], {
+                        name: result["fields"][name]["value"]
+                        for name in EXTRACTION_FIELDS
+                    })
+                    expected_provenance = {
+                        name: {
+                            "source": result["fields"][name]["source"],
+                            "confidence": result["fields"][name]["confidence"],
+                            "review_required": result["fields"][name]["review_required"],
+                            "user_corrected": (
+                                name in corrections
+                                and corrections[name] != result["fields"][name]["value"]
+                            ),
+                        }
+                        for name in EXTRACTION_FIELDS
+                    }
+                    self.assertEqual(extraction_capture["field_provenance"],
+                                     expected_provenance)
                     self.assertEqual(
-                        confirmation["preview"]["raw_capture_ref"], raw_capture_ref,
+                        submitted["description"],
+                        "Maintain synthetic Linux infrastructure after user review.",
                     )
-                    self.assertEqual(confirmation["corrections"], corrections)
-                    self.assertEqual(set(confirmation["reviewed_fields"]),
-                                     set(result["review_required"]))
-                    for field in corrections:
-                        self.assertEqual(
-                            confirmation["preview"]["fields"][field]["source"],
-                            "VISIBLE_TEXT",
-                        )
-                        self.assertEqual(
-                            confirmation["preview"]["fields"][field]["confidence"],
-                            0.65,
-                        )
+                    self.assertNotIn("visible_text", submitted)
+                    self.assertNotIn("raw_page", submitted)
 
                     candidate_readback = page.evaluate("""async profileId => {
                       const response = await fetch(`/source-candidates?profile_id=${encodeURIComponent(profileId)}`);
