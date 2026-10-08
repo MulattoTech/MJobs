@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 import argparse
+from contextlib import contextmanager
 import json
 import os
+import re
 import subprocess
-import sys
+import threading
+import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -48,9 +51,38 @@ def load_claims(root: Path) -> dict:
 
 def save_claims(root: Path, data: dict) -> None:
     path = claims_path(root)
-    tmp = path.with_suffix(".tmp")
+    tmp = path.with_name(f"{path.name}.{os.getpid()}.{threading.get_ident()}.{uuid.uuid4().hex}.tmp")
     tmp.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
     os.replace(tmp, path)
+
+
+@contextmanager
+def claims_lock(root: Path):
+    """Serialize claim read/modify/write transactions across local processes."""
+    path = bus_dir(root) / "claims.lock"
+    with path.open("a+b") as stream:
+        stream.seek(0, os.SEEK_END)
+        if stream.tell() == 0:
+            stream.write(b"\0")
+            stream.flush()
+        stream.seek(0)
+        if os.name == "nt":
+            import msvcrt
+
+            msvcrt.locking(stream.fileno(), msvcrt.LK_LOCK, 1)
+            try:
+                yield
+            finally:
+                stream.seek(0)
+                msvcrt.locking(stream.fileno(), msvcrt.LK_UNLCK, 1)
+        else:
+            import fcntl
+
+            fcntl.flock(stream.fileno(), fcntl.LOCK_EX)
+            try:
+                yield
+            finally:
+                fcntl.flock(stream.fileno(), fcntl.LOCK_UN)
 
 
 def lock_dir(root: Path) -> Path:
@@ -127,64 +159,114 @@ def paths_overlap(a: str, b: str) -> bool:
     return False
 
 
-def claim(root: Path, args) -> int:
-    data = load_claims(root)
-    current = data["claims"]
-    requested_paths = args.path or []
-    conflicts = []
-    for other_lane, other in current.items():
-        if other_lane == args.lane or other.get("status") not in ("ACTIVE", "PAUSED_READY"):
-            continue
-        for rp in requested_paths:
-            for op in other.get("paths", []):
-                if paths_overlap(rp, op):
-                    conflicts.append({"lane": other_lane, "requested": rp, "claimed": op, "issue": other.get("issue")})
-    if conflicts:
-        print(json.dumps({"result": "CONFLICT", "conflicts": conflicts}, indent=2))
-        return 3
-    current[args.lane] = {
-        "lane": args.lane,
+def claim_key(lane: str, child_id: str | None = None) -> str:
+    if child_id is None:
+        return lane
+    if lane != "codex":
+        raise ValueError("child-scoped claims are currently supported only for the Codex lane")
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,63}", child_id):
+        raise ValueError("child id must be 1-64 letters, digits, dots, underscores, or hyphens")
+    return f"{lane}:{child_id}"
+
+
+def claim_record(lane: str, issue: int, requirement: str, branch: str, worktree: str, paths: list[str], head: str | None = None, pid: int | None = None) -> dict:
+    return {
+        "lane": lane,
         "status": "ACTIVE",
-        "issue": args.issue,
-        "requirement_id": args.requirement,
-        "branch": args.branch,
-        "worktree": args.worktree,
-        "paths": requested_paths,
-        "head": args.head,
+        "issue": issue,
+        "requirement_id": requirement,
+        "branch": branch,
+        "worktree": worktree,
+        "paths": paths,
+        "head": head,
         "claimed_at": utc_now(),
-        "pid": args.pid,
+        "pid": pid,
     }
-    save_claims(root, data)
-    print(json.dumps({"result": "CLAIMED", "claim": current[args.lane]}, indent=2))
+
+
+def put_claim(root: Path, key: str, record: dict) -> tuple[str, list[dict]]:
+    with claims_lock(root):
+        data = load_claims(root)
+        current = data.setdefault("claims", {})
+        if key in current:
+            return "CLAIM_EXISTS", [{"claim_key": key, "issue": current[key].get("issue")}]
+        conflicts = []
+        requested_paths = record.get("paths", [])
+        for other_key, other in current.items():
+            if other.get("status") not in ("ACTIVE", "PAUSED_READY"):
+                continue
+            for requested in requested_paths:
+                for existing in other.get("paths", []):
+                    if paths_overlap(requested, existing):
+                        conflicts.append({
+                            "claim_key": other_key,
+                            "lane": other.get("lane", other_key),
+                            "requested": requested,
+                            "claimed": existing,
+                            "issue": other.get("issue"),
+                        })
+        if conflicts:
+            return "CONFLICT", conflicts
+        current[key] = record
+        save_claims(root, data)
+        return "CLAIMED", []
+
+
+def release_claim_key(root: Path, key: str) -> dict | None:
+    with claims_lock(root):
+        data = load_claims(root)
+        old = data.setdefault("claims", {}).pop(key, None)
+        save_claims(root, data)
+        return old
+
+
+def claim(root: Path, args) -> int:
+    try:
+        key = claim_key(args.lane, getattr(args, "child_id", None))
+    except ValueError as exc:
+        print(json.dumps({"result": "INVALID", "reason": str(exc)}, indent=2))
+        return 2
+    record = claim_record(args.lane, args.issue, args.requirement, args.branch, args.worktree,
+                          args.path or [], args.head, args.pid)
+    result, conflicts = put_claim(root, key, record)
+    if result != "CLAIMED":
+        print(json.dumps({"result": result, "conflicts": conflicts}, indent=2))
+        return 3 if result == "CONFLICT" else 2
+    print(json.dumps({"result": result, "claim_key": key, "claim": record}, indent=2))
     return 0
 
 
-def release_claim(root: Path, lane: str) -> int:
-    data = load_claims(root)
-    old = data["claims"].pop(lane, None)
-    save_claims(root, data)
-    print(json.dumps({"result": "RELEASED" if old else "ALREADY_FREE", "old": old}, indent=2))
+def release_claim(root: Path, lane: str, child_id: str | None = None) -> int:
+    try:
+        key = claim_key(lane, child_id)
+    except ValueError as exc:
+        print(json.dumps({"result": "INVALID", "reason": str(exc)}, indent=2))
+        return 2
+    old = release_claim_key(root, key)
+    print(json.dumps({"result": "RELEASED" if old else "ALREADY_FREE", "claim_key": key, "old": old}, indent=2))
     return 0
 
 
 def seed_claims(root: Path) -> int:
-    data = {"schema_version": SCHEMA_VERSION, "claims": {}}
-    for lane in LANES:
-        lane_file = root / "planning" / "lanes" / lane / "CLAIMS.json"
-        if not lane_file.exists():
-            continue
-        obj = json.loads(lane_file.read_text(encoding="utf-8"))
-        claims = obj.get("claims", [])
-        if claims:
-            claim0 = claims[0]
-            if claim0.get("status") in ("ACTIVE", "PAUSED_READY"):
-                data["claims"][lane] = {
-                    **claim0,
-                    "lane": lane,
-                    "claimed_at": utc_now(),
-                    "seeded_from": str(lane_file.relative_to(root)),
-                }
-    save_claims(root, data)
+    with claims_lock(root):
+        data = load_claims(root)
+        data.setdefault("claims", {})
+        for lane in LANES:
+            lane_file = root / "planning" / "lanes" / lane / "CLAIMS.json"
+            if not lane_file.exists():
+                continue
+            obj = json.loads(lane_file.read_text(encoding="utf-8"))
+            claims = obj.get("claims", [])
+            if lane not in data["claims"] and claims:
+                claim0 = claims[0]
+                if claim0.get("status") in ("ACTIVE", "PAUSED_READY"):
+                    data["claims"][lane] = {
+                        **claim0,
+                        "lane": lane,
+                        "claimed_at": utc_now(),
+                        "seeded_from": str(lane_file.relative_to(root)),
+                    }
+        save_claims(root, data)
     print(json.dumps({"result": "SEEDED", **data}, indent=2))
     return 0
 
@@ -253,10 +335,12 @@ def parser() -> argparse.ArgumentParser:
     c.add_argument("--worktree", required=True)
     c.add_argument("--head")
     c.add_argument("--pid", type=int)
+    c.add_argument("--child-id", help="stable per-child key (Codex only); legacy lane claims remain supported")
     c.add_argument("--path", action="append", default=[])
 
     rc = sub.add_parser("release-claim")
     rc.add_argument("--lane", required=True, choices=LANES)
+    rc.add_argument("--child-id", help="release only this Codex child claim")
     return p
 
 
@@ -279,7 +363,7 @@ def main() -> int:
     if args.cmd == "claim":
         return claim(root, args)
     if args.cmd == "release-claim":
-        return release_claim(root, args.lane)
+        return release_claim(root, args.lane, args.child_id)
     raise AssertionError(args.cmd)
 
 

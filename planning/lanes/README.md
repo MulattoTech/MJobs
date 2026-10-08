@@ -54,11 +54,19 @@ Before source mutation, record a lane claim and post the same sanitized claim on
 GitHub issue. Claims must include issue, requirement, branch, worktree and expected
 paths. Do not choose work overlapping another lane's active paths.
 
+The local claim bus supports multiple concurrent Codex children by a stable child ID.
+Keep the legacy lane-level claim for existing sessions; use `--child-id` for each new
+Codex child, and release only that child with the same ID. Claim updates are serialized
+across local processes, active path overlap is rejected across all lanes, and an
+existing claim ID cannot be replaced in place.
+
 Run:
 
 ```powershell
 python -m tools.coordination.lane_coordination validate
 python -m tools.coordination.lane_coordination status
+python -m tools.coordination.lane_coordination claim --lane codex --child-id req095-tech-rewrite --issue 96 --requirement MJ-REQ-095 --branch codex/mj-req095-tech-rewrite --worktree .worktrees/codex-mj-req095-tech-rewrite --path services/documents/tailor.py
+python -m tools.coordination.lane_coordination release-claim --lane codex --child-id req095-tech-rewrite
 ```
 
 before selecting each new issue and before integration.
