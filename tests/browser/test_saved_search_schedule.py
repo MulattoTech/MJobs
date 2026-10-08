@@ -1,5 +1,6 @@
 """Connected Chromium acceptance for saved-search cadence editing."""
 from pathlib import Path
+import json
 import tempfile
 import threading
 import time
@@ -69,6 +70,7 @@ class SavedSearchScheduleBrowserTests(unittest.TestCase):
 
                 external = []
                 requests = []
+                search_profile_puts = []
                 with sync_playwright() as playwright:
                     browser = playwright.chromium.launch(headless=True)
                     context = browser.new_context()
@@ -81,8 +83,12 @@ class SavedSearchScheduleBrowserTests(unittest.TestCase):
                             route.continue_()
 
                     context.route("**/*", local_only)
-                    context.on("request", lambda request: requests.append(
-                        (request.method, request.url)))
+                    def capture_request(request):
+                        requests.append((request.method, request.url))
+                        if request.method == "PUT" and urlsplit(request.url).path == "/search-profiles":
+                            search_profile_puts.append(json.loads(request.post_data or "{}"))
+
+                    context.on("request", capture_request)
                     page = context.new_page()
                     page.set_default_timeout(8000)
                     page.goto(origin, wait_until="domcontentloaded")
@@ -126,8 +132,14 @@ class SavedSearchScheduleBrowserTests(unittest.TestCase):
                     # A separate interval edit persists, then the user can turn scheduling off.
                     schedule.get_by_label("Interval (seconds)", exact=True).fill("1200")
                     page.get_by_role("button", name="Save schedule", exact=True).click()
-                    schedule.get_by_label("Enable scheduled discovery", exact=True).uncheck()
+                    disabled = schedule.get_by_label("Enable scheduled discovery", exact=True)
+                    disabled.uncheck()
+                    expect(disabled).not_to_be_checked()
                     page.get_by_role("button", name="Save schedule", exact=True).click()
+                    disable_payload = search_profile_puts[-1]
+                    self.assertEqual(disable_payload.get("scheduler"),
+                                     {"enabled": False, "interval_seconds": 1200},
+                                     json.dumps(disable_payload, sort_keys=True))
                     persisted = page.request.get(
                         origin + "/search-profiles", params={"profile_id": profile_id})
                     record, = [row for row in persisted.json()["search_profiles"]
