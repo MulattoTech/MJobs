@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REQ-197-APPLICATION-REVIEW-UX-20261008",
+  "recorded_at_utc": "2026-10-08T09:07:30Z",
+  "result": "PARTIAL",
+  "issue": 198,
+  "requirement_id": "MJ-REQ-197",
+  "scope": "Make persisted unresolved required questions actionable in the selected application: expose the exact question and unresolved reason, route it into per-job review without duplicates, preserve suggestion provenance and deliberate review, and add a separate confirmed Answer Bank save with profile version protection.",
+  "authority": {
+    "repository": "MulattoTech/MJobs",
+    "issue_url": "https://github.com/MulattoTech/MJobs/issues/198",
+    "issue_state": "OPEN",
+    "branch": "codex/mj-req197-application-review-ux-20261008",
+    "worktree": ".worktrees/codex-mj-req197-application-review-ux-20261008",
+    "base_head": "41f5fb7eb8b6d802a1f9e8c84365a0d526d448a9",
+    "source_base_head": "41f5fb7eb8b6d802a1f9e8c84365a0d526d448a9",
+    "tested_source_tree": "e906b671822de7618e3373c18c1bb94224060f09"
+  },
+  "acceptance": {
+    "unresolved_question_routing": "PASS; the persisted preflight question, missing-answer reason and exact text are visible, and the deliberate review action carries that text into the selected application's answer form without a duplicate row.",
+    "answer_review_and_provenance": "PASS; existing exact-match method, score and source remain visible; edits clear per-job approval and require a fresh review before local export.",
+    "confirmed_answer_bank_save": "PASS; user selects a confidence and explicitly confirms accuracy and future reuse. The UI submits only supported profile fields with expected_version, replaces a matching normalized bank question using a new revision identity, and retains the concurrent-version conflict guard.",
+    "sensitive_answers": "PASS; sensitive/legal questions do not receive reusable suggestions or expose an Answer Bank action. A manually entered answer can proceed only through explicit per-job review and local export.",
+    "durability_and_side_effects": "PASS; the answer-bank entry and source/confidence read back after browser reload; reviewed answers export to application document history; synthetic acceptance observed no application attempts, state transition, confirmation or external network request.",
+    "whole_requirement": "PARTIAL; no external ATS session was exercised and the full example workflow including a separately named Continue action is not claimed complete. External submission was not attempted."
+  },
+  "red_first_observation": {
+    "result": "FAIL_BEFORE_IMPLEMENTATION",
+    "details": "The connected acceptance first found the persisted per-question missing-answer reason and actionable routing were absent from the application review screen."
+  },
+  "checks": [
+    {
+      "command": "npm run build",
+      "target": "apps/web TypeScript check and Vite production build",
+      "result": "PASS",
+      "details": "33 modules transformed using the temporary worktree-local junction to existing root npm dependencies."
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.browser.test_application_review_queue tests.browser.test_application_answer_export -v",
+      "target": "synthetic connected Chromium/API application review, answer-bank save, conflict, sensitive-answer and export workflows",
+      "result": "PASS",
+      "tests": 4,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_application_answer_export -v",
+      "target": "synthetic SQLite/API answer approval, profile conflict and durable export integration coverage",
+      "result": "PASS",
+      "tests": 20,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "npm test -- --reporter=dot",
+      "target": "apps/web complete local frontend suite",
+      "result": "PASS",
+      "tests": 95,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "git diff --check",
+      "target": "owned implementation and test changes",
+      "result": "PASS"
+    }
+  ],
+  "environment": {
+    "platform": "Windows PowerShell",
+    "python": "3.12 repository .venv",
+    "node": "25.9.0",
+    "npm": "11.12.1",
+    "dependencies": "Existing local root npm dependencies reused through a temporary worktree-local junction; shared dependency contents were not modified."
+  },
+  "hosted_checks": "NOT_RUN by repository policy",
+  "external_submission": "NOT_RUN; external submission remains OFF",
+  "source_sha256": {
+    "apps/web/src/main.tsx": "0ED2BC4E131F2583E89CC380BD78FF1BE5E2F153409EA694B6107DE0D9B15F7E",
+    "tests/browser/test_application_review_queue.py": "79B0F6DA01FB9A74A5261EB52F1749F8BA5CF235107DED08BCCD002EBF993087"
+  },
+  "limitations": [
+    "Only the issue's bounded application-review UX slice is implemented; the canonical requirement remains PARTIAL.",
+    "Tests use a synthetic local fixture and do not establish compatibility with a live employer ATS.",
+    "Hosted CI, hosted review and release eligibility are NOT_RUN by policy."
+  ]
+}
