@@ -1,6 +1,6 @@
 {
   "evidence_id": "MJ-REQ-114-CERTIFICATION-MATCH-EXPLANATION",
-  "recorded_at": "2026-10-08T09:44:39Z",
+  "recorded_at": "2026-10-08T09:47:56Z",
   "result": "PARTIAL",
   "scope": "Certification evidence factors in the existing deterministic match explanation and persisted Job Detail read model",
   "authority": {
@@ -9,12 +9,12 @@
     "requirements": ["MJ-REQ-114"],
     "base_main": "760271a9a1205858cda2e99980e37783f49dedc6",
     "task_branch": "codex/mj-req114-certification-explanation-20261008",
-    "implementation_commit": "157073fe95fbdf8fc63f7942e74e48ea32236906",
-    "implementation_tree": "76f1fc6ba3b6896a1bd1ea86b8428c3d9853b8b3",
-    "implementation_parent": "29f566a12a19526adfac4b423e00bfadd5d3e00a",
+    "implementation_commit": "6218db3a76a2608af5671defe0549559c4ae028c",
+    "implementation_tree": "a90726d427ed80405d20e520283140249f29c173",
+    "implementation_parent": "772551ec5f83f184761930baf2eabc05ff445ab3",
     "source_hashes_sha256": {
-      "services/discovery/matching.py": "4faa2d34efd4db568d97c9229075a3bc689adbdc5be795211576dfc1ce66a01f",
-      "tests/integration/test_explainable_matching.py": "6b59a71ec14ab326e1c35df62f7922515f2e2115c6a4dc5973e2a1963d0c82d9"
+      "services/discovery/matching.py": "bd3a0417e90fa2d59f6332c03e0755e668e302e7c5a259913f3a1bfd1edbf7ce",
+      "tests/integration/test_explainable_matching.py": "200c044d0c3f7d5a070cb35ae9a84cd05a72b98a0592155341be0c12132504eb"
     }
   },
   "observations": [
@@ -65,6 +65,24 @@
       "command": "Test-Path apps/web/dist/index.html; Test-Path apps/web/node_modules",
       "target": "Commit 157073fe95fbdf8fc63f7942e74e48ea32236906 worktree",
       "result": "NOT_RUN: both required local web build artifacts and dependencies remain absent; no browser rerun was attempted"
+    },
+    {
+      "action": "Run red-first regressions for historical current-status wording",
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_explainable_matching.ExplainableMatchingTests.test_no_longer_certified_or_current_facts_do_not_align",
+      "target": "Rebased candidate 772551ec5f83f184761930baf2eabc05ff445ab3 with regression test added",
+      "result": "EXPECTED RED: both “I am no longer certified in CCNA” and “AZ-104 certification is no longer current” incorrectly returned ALIGNS"
+    },
+    {
+      "action": "Run focused matching integration and parser tests on the exact latest implementation commit",
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_explainable_matching tests.unit.test_requirement_parsers",
+      "target": "Commit 6218db3a76a2608af5671defe0549559c4ae028c; temporary SQLite databases and synthetic facts/job descriptions",
+      "result": "PASS: 40 tests, including no-longer-certified and no-longer-current facts, formerly/previously held facts, ITIL v3/v4 identity, strength preservation, score_effect NONE, and persisted rescore/readback"
+    },
+    {
+      "action": "Compile the changed Python modules and check the exact correction patch",
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m py_compile services/discovery/matching.py tests/integration/test_explainable_matching.py; git diff HEAD^ HEAD --check",
+      "target": "Commit 6218db3a76a2608af5671defe0549559c4ae028c",
+      "result": "PASS"
     }
   ],
   "verified_behavior": [
@@ -73,6 +91,7 @@
     "The factor preserves REQUIRED, PREFERRED, NICE TO HAVE, or UNKNOWN strength in its response and visible label; conflicting repeated strengths resolve to UNKNOWN.",
     "ITIL version and Foundation suffixes remain part of exact certification identity and the visible label; ITIL v3 does not align with v4 or vice versa.",
     "Explicit historical facts, including no-longer-held, formerly-held, previously-held, and used-to-hold wording, do not establish current certification evidence.",
+    "Current-status negations including no-longer-certified, no-longer-current, and not-current wording are excluded from approved match evidence.",
     "A factor always has score_effect NONE and does not change the existing skill evidence score.",
     "When no approved evidence matches, the explanation states that no approved evidence is present and that this does not establish the person lacks the certification.",
     "A rescore after certification-fact approval is revoked replaces the previous result; the new factor and profile version survive Store close and reopen."
