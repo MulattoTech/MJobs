@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "issue": 190,
+  "requirement_id": "MJ-REQ-189",
+  "slice": "profile-scoped Jobs employment-type filter",
+  "result": "PARTIAL",
+  "base_commit": "118b121afa4ffe12867f1024247ab6722a618d8b",
+  "source_commit": "0c423764712fce4bd3d5dbb12e7c201abe6e1916",
+  "source_tree": "6e2908a3a0c8c02ac3a02e5c8457bdf3b0a2fad0",
+  "validated_at_utc": "2026-10-08T12:58:26Z",
+  "environment": {
+    "platform": "Windows",
+    "python": "3.12.10",
+    "node": "v25.9.0",
+    "database": "temporary SQLite",
+    "browser": "local Chromium, synthetic fixture"
+  },
+  "behavior": {
+    "implemented": [
+      "Jobs exposes the normalized FULL_TIME, PART_TIME, CONTRACT, CONTRACT_TO_HIRE, TEMPORARY, INTERNSHIP, OTHER, and UNKNOWN values.",
+      "Selected employment type filters exact normalized job attributes in the database before LIMIT; absent and unrecognized values do not match known types.",
+      "The filter composes with existing Jobs query, location, salary, experience, reported-date, match-score, source, and sort filters.",
+      "Saved searches persist the value with legacy records defaulting to All; the browser restores it after reload and can clear it while the saved search remains selected.",
+      "Saved-search access remains profile scoped; no discovery scheduling or application/submission side effects were observed."
+    ],
+    "remaining": "The broader requirement is incomplete; skills, education, clearance, ATS, application capability, and application-state facets remain outside this slice.",
+    "external_submission": "OFF"
+  },
+  "tests": [
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_saved_search_filters tests.browser.test_saved_search_filters",
+      "result": "PASS",
+      "detail": "15 tests passed: 14 connected API/integration cases and 1 local Chromium workflow."
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run",
+      "result": "PASS",
+      "detail": "18 files and 103 frontend tests passed."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "detail": "TypeScript check and Vite production build passed."
+    },
+    {
+      "command": "Python 3.12 py_compile for the changed API, store, search-profile service, and saved-filter tests",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.agent_skills",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    },
+    {
+      "command": "Test-first employment-type API and saved-profile regressions on repository Python",
+      "result": "PASS",
+      "detail": "Before implementation, supported query type did not filter results and saved-filter validation rejected the new field."
+    }
+  ],
+  "input_sha256": {
+    "apps/api/main.py": "258f8e2f53d6390c3b8574263317eabad923d85cd34877e48750b2982d42feee",
+    "apps/web/src/main.tsx": "52d9e2ca440e32e31ee936508979fb8139b9a80f866d416ed3277071c257c5e4",
+    "apps/web/package.json": "40063ee6deb9570a868a6c93b5ff42999353c7fcecc921ce44b6ef20eb500f04",
+    "apps/web/package-lock.json": "453d036596f964fc6a3c19ed0682a34d08c5eec4e64dbaf8c5898046d9c4358a",
+    "packages/persistence/store.py": "9833d92513164042edb406d85c9bcebed2e259f78155a37aeb80dcea62ddc3e5",
+    "services/discovery/search_profiles.py": "ecb30e8bc6ee9c91618e1303b04474385b0761acbd536800af2478394b58b141",
+    "tests/integration/test_saved_search_filters.py": "bcd5e67adbba924c7782c640c4f0deccaba0f728fefec3f95ac3cd29ceb5526a",
+    "tests/browser/test_saved_search_filters.py": "6e278a0cd8253db0722f1d9304cbf53c6fcac754ad48953bc98c6ea06951835e"
+  },
+  "not_run": [
+    "PostgreSQL runtime verification",
+    "Hosted GitHub checks and hosted review, disabled by local-only policy",
+    "Live production job sources and real ATS behavior",
+    "Full repository test suite"
+  ],
+  "integration": "Local implementation commit only; awaiting root review and serialized integration."
+}
