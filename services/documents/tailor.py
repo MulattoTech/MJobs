@@ -11,6 +11,40 @@ REWRITABLE_RESUME_FACT_KINDS = {
     'summary', 'responsibility', 'experience', 'accomplishment', 'project', 'technology_experience'
 }
 TARGET_BULLET_FACT_KINDS = {'responsibility', 'experience', 'project', 'accomplishment'}
+_NAMED_FACT_TOKEN = re.compile(
+    r'(?<![\w])(?:[A-Z][A-Z0-9]{1,}(?:[.+/#-][A-Z0-9]+)*|'
+    r'[A-Z][a-z0-9]+[A-Z][A-Za-z0-9]*(?:[+#])?|[A-Za-z]+[+#])(?![\w])'
+)
+_PROPER_WORD = re.compile(r'[A-Z][a-z][A-Za-z0-9]*')
+_CREDENTIAL_CONTEXT = re.compile(r'\b(?:certification|certified|certificate|credential|license|licensed)\b', re.I)
+_COMMON_SENTENCE_STARTS = {
+    'a', 'an', 'the', 'i', 'we', 'my', 'our', 'managed', 'supported', 'administered',
+    'maintained', 'built', 'developed', 'created', 'led', 'used', 'provided', 'oversaw',
+    'implemented', 'designed', 'configured', 'troubleshot', 'resolved', 'delivered',
+    'worked', 'assisted', 'coordinated', 'wrote', 'performed', 'monitored', 'ensured',
+    'conducted', 'helped', 'improved', 'automated', 'migrated', 'deployed', 'established',
+    'reduced', 'increased', 'cut', 'saved', 'achieved', 'owned',
+}
+
+
+def _named_source_tokens(text):
+    """Return conservative named/acronym tokens that reviewed wording must retain."""
+    tokens = []
+    if _CREDENTIAL_CONTEXT.search(text):
+        # Certification-bearing facts can contain proper-case issuer and award
+        # names without an acronym (for example, "Microsoft Azure Administrator").
+        tokens.extend(word for word in _PROPER_WORD.findall(text)
+                      if word.casefold() not in _COMMON_SENTENCE_STARTS)
+    for match in _NAMED_FACT_TOKEN.finditer(text):
+        prefix = text[:match.start()]
+        # A proper-case issuer immediately before an acronym/credential identifier
+        # is part of its name too (for example, "Cisco CCNA" or "Red Hat RHCE").
+        issuer = re.search(r'((?:' + _PROPER_WORD.pattern + r'\s+){1,3})$', prefix)
+        if issuer:
+            tokens.extend(word for word in _PROPER_WORD.findall(issuer.group(1))
+                          if word.casefold() not in _COMMON_SENTENCE_STARTS)
+        tokens.append(match.group(0))
+    return list(dict.fromkeys(tokens))
 
 
 def _validate_user_rewrites(facts, selected_fact_ids, rewrites, *, allowed_kinds, include_kind):
@@ -43,8 +77,11 @@ def _validate_user_rewrites(facts, selected_fact_ids, rewrites, *, allowed_kinds
         if (sorted(value.casefold() for value in _DATE_TOKEN.findall(text)) !=
                 sorted(value.casefold() for value in _DATE_TOKEN.findall(source['text'])) or
                 sorted(value.casefold() for value in _NUMBER_TOKEN.findall(text)) !=
-                sorted(value.casefold() for value in _NUMBER_TOKEN.findall(source['text']))):
-            raise PreparationError('RESUME_REPHRASE_FACTS_CHANGED', 'Rewritten wording must preserve every source date and number exactly')
+                sorted(value.casefold() for value in _NUMBER_TOKEN.findall(source['text'])) or
+                any(not re.search(r'(?<![\w.+/#-])' + re.escape(token) + r'(?![\w.+/#-])', text)
+                    for token in _named_source_tokens(source['text']))):
+            raise PreparationError('RESUME_REPHRASE_FACTS_CHANGED',
+                'Rewritten wording must preserve every source date and number exactly; named source tokens are also immutable')
         replacement_text[fact_id] = text
         record = {
             'fact_id': fact_id,

@@ -1,0 +1,49 @@
+{
+  "issue": "#96",
+  "requirement": "MJ-REQ-095",
+  "status": "PARTIAL",
+  "scope": "Reviewed resume fact wording must retain recognizable credential, issuer, acronym, date, and number tokens from the selected approved source fact.",
+  "branch": "codex/mj-req095-reviewed-fact-tailoring-20261008",
+  "base_commit": "b633578112a9553cc29dcbda7e7e21d88f1547c5",
+  "base_tree": "2f5e7eb25dcba76f7260919e03cebdc8e6826abc",
+  "verified_source_tree": "406d34b34a4d4f7ec38dfe53649ae7e127e6a8e2",
+  "verified_at_utc": "2026-10-08T11:27:08Z",
+  "behavior": [
+    "Reviewed wording that drops Cisco or CCNA, CompTIA or Security+, or a certification-context issuer/credential name is rejected with RESUME_REPHRASE_FACTS_CHANGED.",
+    "Rewording remains user-authored and explicitly reviewed; no paraphrase provider or generated wording was added.",
+    "Dates and numbers remain exact, current source-fact hashes continue to bind immutable rewrite history, and a failed preparation creates no tailored document version.",
+    "Existing UI review state resets after wording edits; browser coverage verifies the user sees the backend rejection through the existing job preparation flow."
+  ],
+  "verification": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_resume_tailoring_facts tests.integration.test_resume_tailoring_facts tests.browser.test_resume_tailoring_facts tests.unit.test_resume_comparison tests.integration.test_resume_comparison",
+      "result": "PASS",
+      "details": "20 tests passed, including durable no-new-version behavior and local Chromium UI recovery. The browser test injects a terminal worker failure payload matching the integration contract; it does not claim to execute the worker in-browser."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m py_compile services/documents/tailor.py tests/unit/test_resume_tailoring_facts.py tests/integration/test_resume_tailoring_facts.py tests/browser/test_resume_tailoring_facts.py",
+      "result": "PASS"
+    },
+    {
+      "command": "npm run build (apps/web)",
+      "result": "PASS",
+      "details": "TypeScript check and Vite production build passed using the existing local dependency cache; no web application source was changed."
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "input_sha256": {
+    "services/documents/tailor.py": "73eb3d4c6dd5d44881abb88a2a9aec01ba2719dfcd380e0aa3e9617d1da70441",
+    "tests/unit/test_resume_tailoring_facts.py": "e8799853417f22f455083e86dff6ca5a0b2e543b66811a0837c64ca15d28faad",
+    "tests/integration/test_resume_tailoring_facts.py": "e0b22db2a2175350e540aa22e7462c94523f3b5e83ee64923bdfc68a21b3fb97",
+    "tests/browser/test_resume_tailoring_facts.py": "8bb3c09a144ebb68d51e75ba755982a176f98a470ed1abaff4d8792dbc80823b"
+  },
+  "limitations": [
+    "Credential/issuer recognition is intentionally conservative: acronym and symbol-bearing names, internally capitalized names, and proper-case names in certification-bearing facts are protected. Unusual issuer/name casing outside these recognizable forms may need additional reviewed examples.",
+    "The umbrella requirement remains OPEN/PARTIAL; this does not prove semantic equivalence, add automatic rewrite, or complete tailoring and ATS workflows.",
+    "PostgreSQL and live employer/ATS behavior, hosted checks/review, and whole-product release eligibility were NOT_RUN. External application submission remains OFF."
+  ],
+  "verified_source_commit": "d8ed9a34399cb65769c51e45c5c97423c6abe63b"
+}
