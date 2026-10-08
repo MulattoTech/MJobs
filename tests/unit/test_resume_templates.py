@@ -1,6 +1,7 @@
 """Heading structure is fixed, versioned and independent of factual wording."""
 import unittest
-from services.documents.templates import BASE_TEMPLATE, BASE_MODEL, TAILORED_TEMPLATE, CONTRACTS, contract_role, resume_layout
+from services.documents.templates import (BASE_TEMPLATE, BASE_MODEL, TAILORED_TEMPLATE, TAILORED_MODEL,
+    CONTRACTS, contract_role, resume_layout)
 from services.documents.validation import validate_assertions
 from services.documents.errors import PreparationError
 
@@ -36,3 +37,19 @@ class ResumeTemplateTests(unittest.TestCase):
         for template,model in ((BASE_TEMPLATE,None),(BASE_TEMPLATE,'deterministic-fact-copy-v1'),('invented',BASE_MODEL)):
             self.assertIsNone(contract_role(template,model,allow_legacy_unrecorded=True))
         with self.assertRaises(PreparationError):resume_layout(profile,profile['facts'],'invented')
+
+    def test_responsibility_selection_has_immutable_v5_identity_and_preserves_v4_history(self):
+        self.assertEqual((TAILORED_TEMPLATE, TAILORED_MODEL), (
+            'approved-target-relevant-bullets-summary-skill-responsibility-and-bullet-emphasis-v5',
+            'deterministic-target-relevant-bullets-summary-skill-responsibility-order-v4'))
+        self.assertEqual(contract_role(TAILORED_TEMPLATE, TAILORED_MODEL), 'TAILORED')
+        self.assertEqual(contract_role(
+            'approved-target-relevant-bullets-summary-skill-and-bullet-emphasis-v4',
+            'deterministic-target-relevant-bullets-summary-skill-order-v3'), 'TAILORED')
+        self.assertEqual(contract_role(
+            'approved-contact-target-relevant-bullets-summary-skill-and-bullet-emphasis-v4',
+            'deterministic-contact-target-relevant-bullets-summary-skill-order-v3'), 'TAILORED')
+        self.assertEqual(contract_role(
+            'approved-contact-target-relevant-bullets-summary-skill-responsibility-and-bullet-emphasis-v5',
+            'deterministic-contact-target-relevant-bullets-summary-skill-responsibility-order-v4'), 'TAILORED')
+        self.assertIsNone(contract_role(TAILORED_TEMPLATE, 'deterministic-target-relevant-bullets-summary-skill-order-v3'))

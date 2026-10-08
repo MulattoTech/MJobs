@@ -9,7 +9,7 @@ from services.documents.validation import validate_assertions
 from services.documents.errors import PreparationError
 from services.documents.templates import (contract_role, resume_layout, SELECTION_TEMPLATES,
     EMPHASIS_TEMPLATES, CONTACT_TEMPLATES, RESPONSIBILITY_EMPHASIS_TEMPLATES,
-    SUMMARY_TAILORING_TEMPLATES, TARGET_BULLET_TAILORING_TEMPLATES,
+    SUMMARY_TAILORING_TEMPLATES, TARGET_BULLET_TAILORING_TEMPLATES, UNION_SUMMARY_TEMPLATES,
     REPHRASE_TEMPLATE, LEGACY_REPHRASE_TEMPLATE,
     CONTACT_PAIRS, LEGACY_CONTACT_PAIRS, contact_header)
 from services.documents import tailor
@@ -133,6 +133,8 @@ def tailored_context(target, target_source_facts=None):
         summary_mode=adjustment.get('mode')
         responsibility_mode=summary_mode in ('EXACT_TARGET_RESPONSIBILITY_PHRASE_SUMMARY_FACTS',
             'EXACT_TARGET_SKILL_AND_RESPONSIBILITY_SUMMARY_FACTS')
+        if responsibility_mode and target['template'] not in UNION_SUMMARY_TEMPLATES:
+            raise ComparisonUnavailable('Responsibility-based summary selection requires the v5 generation contract')
         if (adjustment.get('mode') not in ('EXACT_TARGET_SKILL_SUMMARY_FACTS',
                 'EXACT_TARGET_RESPONSIBILITY_PHRASE_SUMMARY_FACTS',
                 'EXACT_TARGET_SKILL_AND_RESPONSIBILITY_SUMMARY_FACTS') or

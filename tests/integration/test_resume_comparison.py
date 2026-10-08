@@ -217,6 +217,19 @@ class ResumeComparisonTests(unittest.TestCase):
         self.assertEqual(context['summary_adjustment']['mode'],
                          'EXACT_TARGET_SKILL_AND_RESPONSIBILITY_SUMMARY_FACTS')
 
+        self.assertEqual([row['fact_id'] for row in compare_resumes(
+            self.store,self.root,app,base['id'],tailored['id'])['summary_changes']],['summary-other'])
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.documents).where(m.documents.c.id==tailored['id']).values(
+                template='approved-target-relevant-bullets-summary-skill-and-bullet-emphasis-v4',
+                generation_model='deterministic-target-relevant-bullets-summary-skill-order-v3'))
+        with self.assertRaises(ComparisonUnavailable):
+            compare_resumes(self.store,self.root,app,base['id'],tailored['id'])
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.documents).where(m.documents.c.id==tailored['id']).values(
+                template='approved-target-relevant-bullets-summary-skill-responsibility-and-bullet-emphasis-v5',
+                generation_model='deterministic-target-relevant-bullets-summary-skill-responsibility-order-v4'))
+
         tampered={**context,'summary_adjustment':{**adjustment,
             'matched_responsibilities':{'summary-duty':[],'summary-other':[],'summary-python':[]}}}
         with self.store.engine.begin() as connection:

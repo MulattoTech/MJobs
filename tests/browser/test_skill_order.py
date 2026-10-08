@@ -489,6 +489,11 @@ class SkillOrderBrowserTests(unittest.TestCase):
                     with patch.dict('os.environ',MJOBS_DATABASE_URL=store.url,MJOBS_MOCK_ORIGIN='http://127.0.0.1:1',
                                     MJOBS_OUTPUT_DIR=str(root),MJOBS_OPERATION_MODE='FIXTURE'):
                         self.assertEqual(execute_operation(operation['operation_id'])['status'],'COMPLETED')
+                    persisted_resume=next(row for row in application_documents(store,application_id)
+                                          if row['kind']=='resume' and row['version']==2)
+                    self.assertEqual((persisted_resume['template'],persisted_resume['generation_model']),
+                        ('approved-target-relevant-bullets-summary-skill-responsibility-and-bullet-emphasis-v5',
+                         'deterministic-target-relevant-bullets-summary-skill-responsibility-order-v4'))
                     resume=page.get_by_role('region',name='resume version 2',exact=True)
                     with page.expect_download() as download:resume.get_by_role('link',name='Download TXT',exact=True).click()
                     rendered=Path(download.value.path()).read_text(encoding='utf-8')

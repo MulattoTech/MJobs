@@ -46,8 +46,8 @@ class SkillOrderIntegrationTests(unittest.TestCase):
         omitted=next(row for row in comparison['omitted'] if row['fact_id']=='summary-sales')
         self.assertEqual(omitted['text'],'Experienced retail sales associate.')
         self.assertEqual((tailored['template'],tailored['generation_model']),
-            ('approved-target-relevant-bullets-summary-skill-and-bullet-emphasis-v4',
-             'deterministic-target-relevant-bullets-summary-skill-order-v3'))
+            ('approved-target-relevant-bullets-summary-skill-responsibility-and-bullet-emphasis-v5',
+             'deterministic-target-relevant-bullets-summary-skill-responsibility-order-v4'))
         self.assertEqual(self.store.application(app)['document_version'],2)
         prepare(self.store,job['id'],'fixture',self.root,tailor_resume=True)
         self.assertEqual(self.store.application(app)['document_version'],2)
@@ -161,8 +161,8 @@ class SkillOrderIntegrationTests(unittest.TestCase):
             self.assertEqual(resume['generation_context']['job_skills'],['Python'])
             self.assertEqual(resume['generation_context']['original_fact_ids'],['sql','role','duty','python'])
             self.assertEqual((resume['template'],resume['generation_model']),
-                             ('approved-target-relevant-bullets-summary-skill-and-bullet-emphasis-v4',
-                              'deterministic-target-relevant-bullets-summary-skill-order-v3'))
+                             ('approved-target-relevant-bullets-summary-skill-responsibility-and-bullet-emphasis-v5',
+                              'deterministic-target-relevant-bullets-summary-skill-responsibility-order-v4'))
             self.assertEqual([r for r in rows if r['version']==1],original)
             for fmt in ('txt','docx','pdf'):
                 self.assertEqual(client.get(f"/profiles/fixture/documents/{resume['id']}/{fmt}").status_code,200)
