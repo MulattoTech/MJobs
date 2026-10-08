@@ -88,7 +88,7 @@ class ApplicationAnswerExportBrowserTests(unittest.TestCase):
                 store.engine.dispose()
                 self.assertFalse(thread.is_alive())
 
-    def test_exact_suggestion_requires_review_and_export_survives_reload(self):
+    def test_fuzzy_suggestion_requires_review_and_export_survives_reload(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             store = Store(f"sqlite:///{(root/'browser.db').as_posix()}")
@@ -126,7 +126,7 @@ class ApplicationAnswerExportBrowserTests(unittest.TestCase):
                     page.goto(origin)
                     page.evaluate("localStorage.setItem('mjobs-profile','fixture')")
                     page.reload()
-                    question = 'How many years of experience?'
+                    question = 'How many years of professional experience do you have?'
                     answer = 'Five years of user-confirmed experience.'
                     page.get_by_role('button', name='Profile', exact=True).click()
                     expect(page.get_by_role('button', name='Add answer', exact=True)).to_be_enabled(timeout=10000)
@@ -166,12 +166,31 @@ class ApplicationAnswerExportBrowserTests(unittest.TestCase):
                     self.assertEqual(page.get_by_role('button', name='Use saved answer (review required)', exact=True).count(), 0)
                     page.get_by_role('button', name='Remove question', exact=True).click()
                     page.get_by_role('button', name='Add question', exact=True).click()
-                    page.get_by_label('Employer question').fill('HOW MANY YEARS OF EXPERIENCE?')
+                    page.get_by_label('Employer question').fill(
+                        'How many years of professional experience have you had?')
+                    expect(page.get_by_text('Fuzzy wording match · match score 78%', exact=False)).to_be_visible()
+                    expect(page.get_by_text('Saved question: How many years of professional experience do you have? · Provenance: Reviewed synthetic profile', exact=False)).to_be_visible()
+                    expect(page.get_by_role('textbox', name='Answer', exact=True)).to_have_value('')
                     page.get_by_role('button', name='Use saved answer (review required)', exact=True).click()
                     expect(page.get_by_role('textbox', name='Answer', exact=True)).to_have_value(answer)
                     export = page.get_by_role('button', name='Save reviewed answers and export TXT', exact=True)
                     expect(export).to_be_disabled()
-                    page.get_by_label('I reviewed this exact answer for this job').check()
+                    reviewed = page.get_by_label('I reviewed this exact answer for this job')
+                    reviewed.check()
+                    expect(export).to_be_enabled()
+                    prompt = page.get_by_label('Employer question')
+                    prompt.fill('How many years of professional experience have you gained?')
+                    expect(reviewed).not_to_be_checked()
+                    expect(export).to_be_disabled()
+                    prompt.fill('How many years of professional experience have you had?')
+                    page.get_by_role('button', name='Use saved answer (review required)', exact=True).click()
+                    expect(reviewed).not_to_be_checked()
+                    page.get_by_role('textbox', name='Answer', exact=True).fill('Edited synthetic answer')
+                    expect(reviewed).not_to_be_checked()
+                    expect(export).to_be_disabled()
+                    page.get_by_role('textbox', name='Answer', exact=True).fill(answer)
+                    page.get_by_role('button', name='Use saved answer (review required)', exact=True).click()
+                    reviewed.check()
                     expect(export).to_be_enabled()
                     export.click()
                     document = page.get_by_role('region', name='application-answer-export version 1', exact=True)

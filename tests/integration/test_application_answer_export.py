@@ -147,6 +147,86 @@ class ApplicationAnswerExportTests(unittest.TestCase):
         self.assertEqual(row['generation_context']['items'][0]['answer_id'], 'years-experience')
         self.assertEqual(row['profile_version'], self.client.get('/profiles/fixture').json()['version'])
 
+    def test_fuzzy_and_curated_semantic_matches_export_with_recomputed_provenance(self):
+        profile = dict(PROFILE, answers=[
+            {
+                'id': 'experience-years',
+                'question': 'How many years of professional experience do you have?',
+                'text': 'Seven synthetic years', 'source': 'Synthetic profile record',
+                'verified': True, 'user_approved': True, 'confidence': 94,
+            },
+            {
+                'id': 'programming-languages',
+                'question': 'Which programming languages have you used?',
+                'text': 'Python and TypeScript in synthetic projects',
+                'source': 'Synthetic project inventory',
+                'verified': True, 'user_approved': True, 'confidence': 91,
+            },
+        ])
+        saved = self.put_profile(profile)
+        self.assertEqual(saved.status_code, 200, saved.text)
+
+        response = self.client.post(self.export_url, json={
+            'profile_id': 'fixture',
+            'items': [
+                {
+                    'question': 'How many years of professional experience have you had?',
+                    'answer_id': 'experience-years', 'text': 'Seven synthetic years',
+                    'reviewed': True,
+                },
+                {
+                    'question': 'What coding languages have you worked with?',
+                    'answer_id': 'programming-languages',
+                    'text': 'Python and TypeScript in synthetic projects',
+                    'reviewed': True,
+                },
+            ],
+        })
+        self.assertEqual(response.status_code, 201, response.text)
+
+        document_id = response.json()['document_id']
+        documents = self.client.get(
+            f'/profiles/fixture/applications/{self.application_id}/documents'
+        ).json()['documents']
+        row = next(item for item in documents if item['id'] == document_id)
+        entries = row['generation_context']['items']
+        self.assertEqual(entries[0]['answer_id'], 'experience-years')
+        self.assertEqual(entries[0]['match_method'], 'FUZZY')
+        self.assertGreaterEqual(entries[0]['match_score'], 0.75)
+        self.assertEqual(entries[0]['saved_question'],
+                         'How many years of professional experience do you have?')
+        self.assertEqual(entries[0]['source'], 'Synthetic profile record')
+        self.assertEqual(entries[0]['confidence'], 94)
+        self.assertEqual(entries[1]['answer_id'], 'programming-languages')
+        self.assertEqual(entries[1]['match_method'], 'CURATED_SEMANTIC')
+        self.assertEqual(entries[1]['match_score'], 0.95)
+        self.assertEqual(entries[1]['saved_question'],
+                         'Which programming languages have you used?')
+        self.assertEqual(entries[1]['source'], 'Synthetic project inventory')
+        self.assertEqual(entries[1]['confidence'], 91)
+        exported = self.client.get(f'/profiles/fixture/documents/{document_id}/txt')
+        self.assertEqual(exported.status_code, 200)
+        self.assertEqual(row['sha256']['txt'], hashlib.sha256(exported.content).hexdigest())
+        self.assertEqual(row['profile_version'], saved.json()['version'])
+        self.assertEqual(self.client.get(
+            f'/profiles/other/documents/{document_id}/txt').status_code, 404)
+
+        profile['answers'][0]['source'] = 'Changed source requires new review'
+        updated = self.put_profile(profile)
+        self.assertEqual(updated.status_code, 200, updated.text)
+        self.assertFalse(self.client.get('/profiles/fixture').json()['answers'][0]['user_approved'])
+        stale_export = self.client.post(self.export_url, json={
+            'profile_id': 'fixture',
+            'items': [{
+                'question': 'How many years of professional experience have you had?',
+                'answer_id': 'experience-years', 'text': 'Seven synthetic years',
+                'reviewed': True,
+            }],
+        })
+        self.assertEqual(stale_export.status_code, 422, stale_export.text)
+        still_historical = self.client.get(f'/profiles/fixture/documents/{document_id}/txt')
+        self.assertEqual(hashlib.sha256(still_historical.content).hexdigest(), row['sha256']['txt'])
+
     def test_avoid_list_blocks_reviewed_answer_before_export_and_does_not_leak_other_answers(self):
         profile = dict(PROFILE, preferences={'avoid_terms': ['North Star']}, answers=[{
             'id': 'years-experience', 'question': 'How many years of experience?',

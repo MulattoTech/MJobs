@@ -34,7 +34,68 @@ def _export_lock(application_id):
 
 
 def normalize_question(value):
-    return " ".join(re.findall(r"[a-z0-9]+", value.casefold()))
+    # Keep the ASCII token behavior identical to the browser matcher.
+    return " ".join(re.findall(r"[a-z0-9]+", value.lower()))
+
+
+_SEMANTIC_QUESTION_REWRITES = (
+    (re.compile(r"\b(coding|software development)\s+languages?\b", re.IGNORECASE),
+     "programming languages"),
+    (re.compile(r"\b(what|which)\b", re.IGNORECASE), "which"),
+    (re.compile(r"\bworked with\b", re.IGNORECASE), "used"),
+)
+
+
+def _semantic_question_key(value):
+    canonical = value
+    for pattern, replacement in _SEMANTIC_QUESTION_REWRITES:
+        canonical = pattern.sub(replacement, canonical)
+    return normalize_question(canonical)
+
+
+def _token_edit_distance(left, right):
+    """Levenshtein distance over bounded question tokens, using linear memory."""
+    previous = list(range(len(right) + 1))
+    for row, left_token in enumerate(left, start=1):
+        current = [row]
+        for column, right_token in enumerate(right, start=1):
+            current.append(min(
+                current[-1] + 1,
+                previous[column] + 1,
+                previous[column - 1] + (left_token != right_token),
+            ))
+        previous = current
+    return previous[-1]
+
+
+def match_answer_question(question, saved_question):
+    """Return a transparent local question match, or None when no safe match exists.
+
+    The semantic tier covers only the explicit synonym rewrites above. It is not
+    a general language model and does not classify answer meaning or sensitivity.
+    """
+    if not isinstance(question, str) or not isinstance(saved_question, str):
+        return None
+    if _SENSITIVE_TERMS.search(question) or _SENSITIVE_TERMS.search(saved_question):
+        return None
+    normalized = normalize_question(question)
+    saved_normalized = normalize_question(saved_question)
+    if not normalized or not saved_normalized:
+        return None
+    if normalized == saved_normalized:
+        return {"method": "EXACT_NORMALIZATION", "score": 1.0}
+    if _semantic_question_key(question) == _semantic_question_key(saved_question):
+        return {"method": "CURATED_SEMANTIC", "score": 0.95}
+
+    left = normalized.split()
+    right = saved_normalized.split()
+    if max(len(left), len(right)) > 40 or min(len(left), len(right)) < 5:
+        return None
+    overlap = len(set(left) & set(right)) / len(set(left) | set(right))
+    score = 1 - _token_edit_distance(left, right) / max(len(left), len(right))
+    if overlap < 0.7 or score < 0.75:
+        return None
+    return {"method": "FUZZY", "score": round(score, 3)}
 
 
 def export_answers(store, application_id, output_dir, items):
@@ -81,20 +142,24 @@ def export_answers(store, application_id, output_dir, items):
                     raise ValueError("Each application question must be present once")
                 used_questions.add(normalized)
                 answer_id = item.answer_id
+                saved_question = None
+                match = None
                 if answer_id:
                     reusable = bank.get(answer_id)
                     if reusable is None or not reusable.get("question"):
                         raise ValueError("Reusable answer is unavailable in this application profile snapshot")
-                    if normalize_question(reusable["question"]) != normalized:
-                        raise ValueError("Reusable answer question does not match this application question")
-                    if _SENSITIVE_TERMS.search(question):
+                    if _SENSITIVE_TERMS.search(question) or _SENSITIVE_TERMS.search(reusable["question"]):
                         raise ValueError("Sensitive or legal questions require an answer entered for this application")
+                    match = match_answer_question(question, reusable["question"])
+                    if match is None:
+                        raise ValueError("Reusable answer question did not meet a supported match threshold")
                     if not reusable["verified"] or not reusable["user_approved"] or reusable["confidence"] < 80:
                         raise ValueError("Reusable answer needs deliberate verification and approval first")
                     if reusable["text"].strip() != answer:
                         raise ValueError("Review the saved answer text before exporting it")
                     source = reusable["source"]
                     confidence = reusable["confidence"]
+                    saved_question = reusable["question"]
                 else:
                     source = "Entered and reviewed for this application"
                     confidence = None
@@ -103,7 +168,10 @@ def export_answers(store, application_id, output_dir, items):
                 exported.extend((f"Question: {question}", f"Answer: {answer}", ""))
                 manifest.append({"question": question, "answer_id": answer_id,
                                  "source": source, "confidence": confidence,
-                                 "answer_mode": "REVIEWED_REUSE" if answer_id else "USER_ENTERED"})
+                                 "answer_mode": "REVIEWED_REUSE" if answer_id else "USER_ENTERED",
+                                 "saved_question": saved_question,
+                                 "match_method": match["method"] if match else None,
+                                 "match_score": match["score"] if match else None})
 
             content = ("\n".join(exported).rstrip() + "\n").encode("utf-8")
             latest = connection.execute(select(func.max(m.documents.c.version)).where(
