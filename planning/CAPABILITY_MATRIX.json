@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-08T06:02:18Z",
+  "timestamp": "2026-10-08T06:06:49Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -982,9 +982,10 @@
       "requirement_id": "MJ-REQ-104",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-05-reviewed-application-answers.json"
+        "docs/evidence/2026-10-05-reviewed-application-answers.json",
+        "docs/evidence/2026-10-08-answer-matching.json"
       ],
-      "note": "Question-aware, versioned answer review and application-linked export merged in PR #511 at fb8ab73. Exact candidate 22d9a36 had passing independent review, push 37307763776 and pull_request 37307771220 Verification, nine PASS reports per artifact, and matching GitHub artifact digests. These requirements remain PARTIAL for fuzzy/semantic matching, configurable confidence, full sensitive/legal controls, and durable unexported drafts."
+      "note": "Question-aware, versioned answer review and application-linked export merged in PR #511 at fb8ab73. Exact candidate 22d9a36 had passing independent review, push 37307763776 and pull_request 37307771220 Verification, nine PASS reports per artifact, and matching GitHub artifact digests. These requirements remain PARTIAL for fuzzy/semantic matching, configurable confidence, full sensitive/legal controls, and durable unexported drafts. Bounded answer matching slice integrated at e77b9be0f6703b7451caffeb961cbbbf2365aca0 (tree bafcd32072fa7892217b3d2fcc5ea1f72ab5fc46), based on 2b3c1996a121af5584caa79653896dc572d46ac8. Exact, bounded fuzzy and one curated synonym matcher are visibly distinguished with provenance; per-job review is deliberate and export recomputes against the locked current profile before immutable local output. 21 Python, 2 Chromium/API, 5 frontend tests and build PASS; local delegated review no blocker. Evidence docs/evidence/2026-10-08-answer-matching.json. Broader semantic matching/configurable thresholds PARTIAL; Node 25.9 outside Vitest declared range; PostgreSQL and hosted checks NOT_RUN; external submission OFF."
     },
     {
       "requirement_id": "MJ-REQ-105",

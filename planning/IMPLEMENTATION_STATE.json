@@ -391,7 +391,8 @@
     "Issue #117 / MJ-REQ-116 match categories integrated at main f1afad5541ebcad1cd07e35b5366b78df4e1f637. Root exact integrated-source checks: 23 focused helper cases PASS; TypeScript/Vite build PASS; connected FIXTURE-mode Chromium 1/1 PASS. Local delegated review found no blocker; Node 25.9 outside Vitest 5 supported engine range.",
     "Issue #96 / MJ-REQ-095 experience-fact rewrite integrated at main 5dfce5eec8e2e6c56442631725c0993c7ce12a29; tested source commit c6eb1cd604d1372800bc798b7454aa9fe40d9d91. Exact source test run: 13 unit/integration + 1 connected synthetic Chromium; targeted Vitest 1; TypeScript/Vite build PASS. Evidence hash/JSON/progress/diff validation PASS. Vitest used Node 25.9.0 outside its declared support range. Evidence docs/evidence/2026-10-08-resume-experience-rewrites.json; issue https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6053321247. Broader requirement remains PARTIAL.",
     "Issue #275 / MJ-REQ-274 scheduled-source restart slice integrated at main 7d91b3104a2e21d400bdc1a2f59de289e5bbc2b6; tested source bc547e251eef7ed7a97556fde3396cc2655eb718. Root reran the focused scheduler module: 6 PASS, 0 failures/errors/skips. Actual scheduler subprocesses used an isolated temporary SQLite database and synthetic collection stub. Local delegated review found no blocker. Compose was not invoked; default project/fixed port isolation is BLOCKED_ENVIRONMENT; PostgreSQL NOT_RUN. Evidence docs/evidence/2026-10-08-scheduled-source-restart.json; issue https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053378645; requirement remains PARTIAL.",
-    "Issue #178 / MJ-REQ-177 exact synchronized-main candidate c2346e1d813e7b052f4779be0525bf495ecaa54d (tree e877098891c090c73b3a4e6612fa068ac5bd054c), tested code source 0678aafc1ac21b347441d824144f4dd860f4c89e: root reran tests.unit.test_structured_logging and tests.integration.test_worker_lifecycle, 24 passed, 0 failures/errors, one optional PostgreSQL class skipped. JSON/compile/diff/agent_skills/catalogue/progress/lane checks passed; LOCAL_DELEGATED_REVIEW no blocker. Evidence docs/evidence/2026-10-08-worker-context-logs.json; issue #178 remains OPEN/PARTIAL; hosted/PostgreSQL/RQ NOT_RUN; external submission OFF."
+    "Issue #178 / MJ-REQ-177 exact synchronized-main candidate c2346e1d813e7b052f4779be0525bf495ecaa54d (tree e877098891c090c73b3a4e6612fa068ac5bd054c), tested code source 0678aafc1ac21b347441d824144f4dd860f4c89e: root reran tests.unit.test_structured_logging and tests.integration.test_worker_lifecycle, 24 passed, 0 failures/errors, one optional PostgreSQL class skipped. JSON/compile/diff/agent_skills/catalogue/progress/lane checks passed; LOCAL_DELEGATED_REVIEW no blocker. Evidence docs/evidence/2026-10-08-worker-context-logs.json; issue #178 remains OPEN/PARTIAL; hosted/PostgreSQL/RQ NOT_RUN; external submission OFF.",
+    "Issue #105 / MJ-REQ-104 exact candidate e77b9be0f6703b7451caffeb961cbbbf2365aca0 (tree bafcd32072fa7892217b3d2fcc5ea1f72ab5fc46), based on main 2b3c1996a121af5584caa79653896dc572d46ac8: root reran 21 Python unit/integration tests, 2 connected Chromium/API tests, 5 focused Vitest tests and TypeScript/Vite build; all PASS. Seven evidence source hashes and Git blob IDs match. LOCAL_DELEGATED_REVIEW on exact head found no blocker. Evidence docs/evidence/2026-10-08-answer-matching.json; issue #105 remains OPEN/PARTIAL."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -483,7 +484,8 @@
     "MJ-REQ-103 PostgreSQL and hosted Actions/CI/review NOT_RUN; overall core-workflow and release acceptance remain PARTIAL.",
     "Issue #199 full Python suite and hosted checks/review NOT_RUN; this is a scoped comparison condition and MJ-REQ-198 remains PARTIAL.",
     "MJ-REQ-116 PostgreSQL not applicable to this display-only increment; hosted checks/review NOT_RUN_BY_USER_POLICY; matching aggregate/release remain PARTIAL.",
-    "Issue #178 / MJ-REQ-177: PostgreSQL worker recovery, live Redis/RQ, full Python suite, hosted checks/review NOT_RUN_BY_USER_POLICY; new discovery context remains a narrow local acceptance and broader requirement PARTIAL."
+    "Issue #178 / MJ-REQ-177: PostgreSQL worker recovery, live Redis/RQ, full Python suite, hosted checks/review NOT_RUN_BY_USER_POLICY; new discovery context remains a narrow local acceptance and broader requirement PARTIAL.",
+    "Issue #105 / MJ-REQ-104: PostgreSQL and hosted checks/review NOT_RUN_BY_USER_POLICY. Vitest 5 executed on Node 25.9.0 outside its declared supported Node range. Broad semantic matching/configurable thresholds remain incomplete; external submission OFF."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -522,10 +524,10 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "commit": "c2346e1d813e7b052f4779be0525bf495ecaa54d",
+    "commit": "e77b9be0f6703b7451caffeb961cbbbf2365aca0",
     "result": "PARTIAL",
-    "evidence": "docs/evidence/2026-10-08-worker-context-logs.json",
-    "verified_at_utc": "2026-10-08T06:02:18Z"
+    "evidence": "docs/evidence/2026-10-08-answer-matching.json",
+    "verified_at_utc": "2026-10-08T06:06:49Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -592,7 +594,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Local and remote main are synchronized at c2346e1d813e7b052f4779be0525bf495ecaa54d. Issue #178 / MJ-REQ-177 safe persisted discovery-source context is integrated as a narrow PARTIAL slice with evidence docs/evidence/2026-10-08-worker-context-logs.json and issue receipt https://github.com/MulattoTech/MJobs/issues/178#issuecomment-6053465780; claim released at https://github.com/MulattoTech/MJobs/issues/178#issuecomment-6053470173. #105 / MJ-REQ-104 candidate 2593790e57f4fb65b759ad4e2498afa926fe90d0 is rebased, scoped tests pass, and local delegated review found no blocker; perform its serialized exact-candidate integration next. Five read-only scouts are auditing #118, #191, #192, #196 and #197. Antigravity #302 and Ollama #318 remain active and untouched. #517 UI/task linkage remains blocked by the #105 main.tsx ownership until that claim releases. Hosted checks/reviews NOT_RUN_BY_USER_POLICY; PostgreSQL/RQ NOT_RUN; external submission OFF; whole core workflow and release remain PARTIAL.",
+  "recommended_resume_step": "Local/origin/GitHub main synchronized at e77b9be0f6703b7451caffeb961cbbbf2365aca0. #105 / MJ-REQ-104 answer-matching slice is integrated PARTIAL with evidence docs/evidence/2026-10-08-answer-matching.json, acceptance https://github.com/MulattoTech/MJobs/issues/105#issuecomment-6053516000 and claim release https://github.com/MulattoTech/MJobs/issues/105#issuecomment-6053523191. The bounded #517 existing provider issue-reference slice is active under child claim req517-issue-link on codex/mj-feature-517-issue-link-20261008 in .worktrees/codex-mj-feature-517-issue-link-20261008. The agent is confirming review-event idempotency semantics before implementation; preserve the no-network/no-auto-collection boundary. Five current audits: #118 configurable weights is queued behind scorer dependencies; #191 sorting lacks four behaviors and a true application-priority rule, but its queue dependencies and former main.tsx claim must be preserved; #192 saved filters remain transient and also depend on queued PRs; #196 tracker UI already exists; #197 review queue lacks several authoritative producers and is queued behind dependencies. Antigravity #302 and Ollama #318 remain active and untouched. Full workflow/release remains PARTIAL; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -630,16 +632,16 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "c2346e1d813e7b052f4779be0525bf495ecaa54d",
+  "last_implementation_commit": "e77b9be0f6703b7451caffeb961cbbbf2365aca0",
   "publication": {
     "result": "PASS",
     "integration_method": "NON_FORCE_FAST_FORWARD",
-    "integration_commit": "c2346e1d813e7b052f4779be0525bf495ecaa54d",
-    "prior_main": "8096b6c81250c5c8012f99e29f19c19e36220083",
+    "integration_commit": "e77b9be0f6703b7451caffeb961cbbbf2365aca0",
+    "prior_main": "2b3c1996a121af5584caa79653896dc572d46ac8",
     "pr_number": null,
     "pr_state": "NOT_OPENED_LOCAL_ONLY",
     "github_reports_merged": false,
-    "note": "Issue #178 / MJ-REQ-177 safe structured worker discovery context integrated at synchronized local/origin main. The issue remains OPEN/PARTIAL; hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL/RQ and full-suite acceptance NOT_RUN; external submission OFF."
+    "note": "Issue #105 / MJ-REQ-104 reviewed answer-matching slice integrated under the Codex lock at synchronized local/origin main. Issue remains OPEN/PARTIAL; hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL NOT_RUN; external submission OFF."
   },
   "optional_afk_journal": {
     "result": "PASS",
@@ -9977,16 +9979,68 @@
       "live_integrations_tested": [
         "Temporary local synthetic unit/integration databases only; no PostgreSQL, Redis/RQ, live provider or external system was exercised."
       ]
+    },
+    {
+      "milestone_id": "MJ-REQ-104-ANSWER-MATCHING-20261008",
+      "timestamp": "2026-10-08T06:06:49Z",
+      "current_phase": "MJ_REQ_104_REVIEWED_ANSWER_MATCHING_PARTIAL",
+      "completed_steps": [
+        "Rebased candidate onto exact synchronized main 2b3c1996a121af5584caa79653896dc572d46ac8 and refreshed exact candidate evidence.",
+        "Root reran 21 Python unit/integration tests, 2 Chromium/API tests, 5 frontend tests and TypeScript/Vite build; all passed.",
+        "LOCAL_DELEGATED_REVIEW on final e77b9be found no blocker and confirmed all seven source SHA-256/Git blob pairs.",
+        "Non-force fast-forwarded to main and synchronized origin/GitHub; posted issue acceptance and claim-release receipts; released child claim."
+      ],
+      "files_added": [
+        "apps/web/src/answer-matching.ts",
+        "apps/web/src/answer-matching.test.ts",
+        "docs/evidence/2026-10-08-answer-matching.json",
+        "tests/unit/test_answer_matching.py"
+      ],
+      "files_modified": [
+        "apps/web/src/main.tsx",
+        "services/documents/answers.py",
+        "tests/integration/test_application_answer_export.py",
+        "tests/browser/test_application_answer_export.py"
+      ],
+      "tests_completed": [
+        ".venv\\Scripts\\python.exe -m unittest tests.unit.test_answer_matching tests.integration.test_application_answer_export -v — 21 passed.",
+        ".venv\\Scripts\\python.exe -m unittest tests.browser.test_application_answer_export -v — 2 passed.",
+        "npm run test -- --run src/answer-matching.test.ts — 5 passed; Node 25.9.0 is outside Vitest declared support.",
+        "npm run build — TypeScript check and Vite production build passed.",
+        "Evidence SHA-256 and Git blob checks (7/7), candidate diff check, and delegated review passed."
+      ],
+      "tests_remaining": [
+        "PostgreSQL and hosted verification NOT_RUN_BY_USER_POLICY.",
+        "Broad semantic matching/configurable thresholds and full MJ-REQ-104 remain incomplete; external submission OFF."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Synthetic local database/API and loopback Chromium only; no external AI, provider or application-submission call."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "Sensitive/legal classification is finite lexical screening; broader semantic classification is not claimed.",
+        "Issue #105 / MJ-REQ-104 remains OPEN/PARTIAL; no core-workflow or release PASS implied."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "e77b9be0f6703b7451caffeb961cbbbf2365aca0",
+        "tree": "bafcd32072fa7892217b3d2fcc5ea1f72ab5fc46",
+        "source_commit": "361c0469bcc5dcd34554a030743fe240552e7515",
+        "evidence_path": "docs/evidence/2026-10-08-answer-matching.json",
+        "issue_receipt": "https://github.com/MulattoTech/MJobs/issues/105#issuecomment-6053516000",
+        "claim_release_receipt": "https://github.com/MulattoTech/MJobs/issues/105#issuecomment-6053523191",
+        "issue_state_after_readback": "OPEN"
+      }
     }
   ],
-  "current_phase": "MJ_REQ_177_WORKER_CONTEXT_LOGGING_PARTIAL",
+  "current_phase": "MJ_REQ_104_REVIEWED_ANSWER_MATCHING_PARTIAL",
   "last_safe_checkpoint": {
-    "git_commit": "c2346e1d813e7b052f4779be0525bf495ecaa54d",
-    "tree": "e877098891c090c73b3a4e6612fa068ac5bd054c",
-    "source_commit": "0678aafc1ac21b347441d824144f4dd860f4c89e",
-    "evidence_path": "docs/evidence/2026-10-08-worker-context-logs.json",
-    "issue_receipt": "https://github.com/MulattoTech/MJobs/issues/178#issuecomment-6053465780",
-    "claim_release_receipt": "https://github.com/MulattoTech/MJobs/issues/178#issuecomment-6053470173",
+    "git_commit": "e77b9be0f6703b7451caffeb961cbbbf2365aca0",
+    "tree": "bafcd32072fa7892217b3d2fcc5ea1f72ab5fc46",
+    "source_commit": "361c0469bcc5dcd34554a030743fe240552e7515",
+    "evidence_path": "docs/evidence/2026-10-08-answer-matching.json",
+    "issue_receipt": "https://github.com/MulattoTech/MJobs/issues/105#issuecomment-6053516000",
+    "claim_release_receipt": "https://github.com/MulattoTech/MJobs/issues/105#issuecomment-6053523191",
     "issue_state_after_readback": "OPEN"
   },
   "live_integrations_tested": [
@@ -10298,13 +10352,13 @@
     "next_issue": "Release #398 and select the next dependency-ready unclaimed issue after live claim/worktree reconciliation."
   },
   "active_development_issue": {
-    "issue": 105,
-    "requirement_id": "MJ-REQ-104",
-    "title": "Answer matching and reviewed reuse",
-    "state": "READY FOR SERIALIZED INTEGRATION REVIEW",
-    "branch": "codex/mj-req104-answer-matching-20261008",
-    "worktree": ".worktrees/codex-mj-req104-answer-matching-20261008",
-    "next_action": "Verify delegated review and exact candidate evidence; integrate candidate 2593790e57f4fb65b759ad4e2498afa926fe90d0 one at a time if it still matches main and scoped checks pass."
+    "issue": 517,
+    "requirement_id": "MJ-FEATURE-517",
+    "title": "Catalogue discovered job sites and queue source integrations",
+    "state": "ACTIVE / CLAIMED — bounded existing-provider issue reference",
+    "branch": "codex/mj-feature-517-issue-link-20261008",
+    "worktree": ".worktrees/codex-mj-feature-517-issue-link-20261008",
+    "next_action": "Implement optional profile-scoped issue-reference linkage only with deliberate INTEGRATION_QUEUED review; preserve history and collection_enabled=false; do not make GitHub API/network calls or create tasks automatically."
   },
   "historical_control_snapshots": [
     {
@@ -11451,5 +11505,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-08T06:02:18Z"
+  "updated_at": "2026-10-08T06:06:49Z"
 }
