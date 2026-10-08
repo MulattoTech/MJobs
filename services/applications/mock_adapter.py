@@ -19,6 +19,7 @@ from services.applications.preflight import (
     persist_preflight,
     questionnaire_fingerprint,
 )
+from services.applications.form_analysis import analyze_questionnaire
 from services.applications.debug_capture import (
     append_diagnostic_event,
     append_console_error,
@@ -142,8 +143,18 @@ def _read_questionnaire(client, route):
 
 def _preflight(store, application, route, profile, document_kinds, client):
     questionnaire = _read_questionnaire(client, route)
+    form_analysis = analyze_questionnaire(questionnaire)
+    # Persist only the analyzer's allowlisted, value-free metadata projection.
+    # Keep it separate from the legal preflight payload and implementation.
+    with store.engine.begin() as connection:
+        store._audit(connection, application["id"], "APPLICATION_FORM_ANALYSIS", form_analysis)
     result = build_preflight_result(profile, route, questionnaire, document_kinds,
                                     application_id=application["id"])
+    if result["result"] == "PASS" and (
+            form_analysis["status"] != "PASS"
+            or any(field["sensitivity"] != "STANDARD" or field["ambiguous"]
+                   for field in form_analysis["fields"])):
+        result.update({"result": "UNKNOWN", "reason": "FORM_ANALYSIS_REQUIRES_REVIEW"})
     result["document_version"] = application["document_version"]
     persist_preflight(store, application["id"], result)
     if result["result"] != "PASS":

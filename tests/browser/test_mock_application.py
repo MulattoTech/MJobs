@@ -14,6 +14,7 @@ from fixtures.mock_server import fixture_server
 from packages.persistence import models as m
 from packages.persistence.store import Store
 from services.applications.mock_adapter import apply_mock
+from services.applications.form_analysis import analyze_form_page
 from services.discovery.pipeline import discover, MockClient
 from services.documents.generate import prepare
 from tests.integration.test_spine import PROFILE
@@ -46,6 +47,63 @@ class MockApplicationTests(unittest.TestCase):
             response = client.get(f"/profiles/{profile_id}/audit-history")
             self.assertEqual(response.status_code, 200, response.text)
             return response.json()["events"]
+
+    def test_read_only_form_analysis_extracts_synthetic_dom_without_interaction_or_values(self):
+        from playwright.sync_api import sync_playwright
+
+        html = """<!doctype html><html><body><form>
+          <section><h2>Contact details</h2>
+            <fieldset><legend>Applicant identity</legend>
+              <label for="person-name">Legal name</label>
+              <input id="person-name" name="full_name" type="text"
+                     placeholder="Enter your name" aria-label="Applicant name"
+                     value="PRIVATE_CURRENT_VALUE">
+              <p>Use the name on your resume</p>
+              <label for="country">Country of residence</label>
+              <select id="country" name="country">
+                <option value="private-us">United States</option>
+                <option value="private-ca">Canada</option>
+              </select>
+              <label for="ssn">Social Security number</label>
+              <input id="ssn" name="ssn" type="text" value="PRIVATE_SSN_VALUE">
+              <label for="password">Account password</label>
+              <input id="password" name="password" type="password" value="PRIVATE_PASSWORD_VALUE">
+            </fieldset>
+          </section>
+          <button type="submit">Submit</button>
+        </form><script>
+          window.formEvents = 0;
+          for (const eventName of ['click', 'input', 'change', 'submit']) {
+            document.addEventListener(eventName, () => window.formEvents++, true);
+          }
+        </script></body></html>"""
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch(headless=True)
+            try:
+                page = browser.new_page()
+                page.set_content(html)
+                result = analyze_form_page(page)
+                self.assertEqual(result["status"], "PASS")
+                by_id = {field["id"]: field for field in result["fields"]}
+                person = by_id["person-name"]
+                self.assertEqual(person["labels"], ["Legal name"])
+                self.assertEqual(person["name"], "full_name")
+                self.assertEqual(person["placeholder"], "Enter your name")
+                self.assertEqual(person["aria_label"], "Applicant name")
+                self.assertEqual(person["input_type"], "text")
+                self.assertIn("Use the name on your resume", person["nearby_text"])
+                self.assertEqual(person["section_heading"], "Contact details")
+                self.assertEqual(person["fieldset_legend"], "Applicant identity")
+                self.assertEqual(by_id["country"]["options"], ["United States", "Canada"])
+                self.assertEqual(by_id["ssn"]["sensitivity"], "SENSITIVE")
+                self.assertEqual(by_id["password"]["sensitivity"], "CREDENTIAL")
+                serialized = json.dumps(result)
+                for private_value in ("PRIVATE_CURRENT_VALUE", "PRIVATE_SSN_VALUE",
+                                      "PRIVATE_PASSWORD_VALUE", "private-us", "private-ca"):
+                    self.assertNotIn(private_value, serialized)
+                self.assertEqual(page.evaluate("window.formEvents"), 0)
+            finally:
+                browser.close()
 
     def test_dry_run_fills_two_pages_uploads_and_stops_before_submit(self):
         with fixture_server() as origin:
