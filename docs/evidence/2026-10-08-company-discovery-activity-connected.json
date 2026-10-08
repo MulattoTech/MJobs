@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "issue": 83,
+  "requirement_id": "MJ-REQ-082",
+  "slice": "profile-scoped company discovery activity API and connected timeline",
+  "result": "PARTIAL",
+  "base_commit": "4ae3948363fcc0d4c6a4d4af33036dfe186a3c55",
+  "source_commit": "8239fbe3968b0c13dc945394db29972d664b332b",
+  "source_tree": "b76d4c2261ea896f1bdfa58ecc1c5df8e83fbf24",
+  "validated_at_utc": "2026-10-08T18:58:21Z",
+  "environment": {
+    "python": "3.12",
+    "database": "temporary SQLite",
+    "browser": "local Chromium with synthetic profiles",
+    "node": "v25.9.0",
+    "platform": "Windows"
+  },
+  "behavior": {
+    "implemented": [
+      "Profile-scoped read-only GET timeline returns allowlisted company discovery/source events in newest-first order with bounded results and no raw storage IDs or payloads.",
+      "Activity tab loads from the durable API, refreshes explicitly, and reads the same profile data after page reload; changing profiles isolates events.",
+      "Legacy source-import history is converted only from one allowlisted action and bounded integer counts into safe plain language."
+    ],
+    "external_submission": "OFF",
+    "remaining": "Broader company discovery chronology, domain resolution, ATS detection and all useful source/import event kinds remain incomplete; this bounded slice does not complete MJ-REQ-082."
+  },
+  "tests": [
+    {
+      "result": "PASS",
+      "detail": "3 API/projection tests passed, including readback, profile isolation, ordering, limit, raw-data/ID exclusion.",
+      "command": "python -m unittest tests.integration.test_company_discovery_activity tests.integration.test_company_discovery_activity_api -v"
+    },
+    {
+      "result": "PASS",
+      "detail": "145 frontend tests passed across 28 files.",
+      "command": "npm test --prefix apps/web -- --run"
+    },
+    {
+      "result": "PASS",
+      "detail": "TypeScript check and Vite production build passed.",
+      "command": "npm run build --prefix apps/web"
+    },
+    {
+      "result": "PASS",
+      "detail": "1 connected Chromium workflow passed: refresh request, reload readback, profile isolation, no external requests, raw marker exclusion.",
+      "command": "python -m pytest tests/browser/test_company_discovery_activity.py -q"
+    },
+    {
+      "result": "PASS",
+      "command": "python -m py_compile apps/api/company_discovery_activity.py apps/api/main.py services/company_discovery/activity.py tests/integration/test_company_discovery_activity.py tests/integration/test_company_discovery_activity_api.py tests/browser/test_company_discovery_activity.py"
+    },
+    {
+      "result": "PASS",
+      "command": "git diff --check"
+    }
+  ],
+  "source_hashes": {
+    "apps/api/company_discovery_activity.py": {
+      "sha256": "9beb6f6f0634b478a901a2cfbe374c6383d66fdfa756b59ed42390d4fde7d496",
+      "git_blob_oid": "bf774b2156a05417b467ac92dd2087c9c148d6df"
+    },
+    "apps/api/main.py": {
+      "sha256": "fad3e0cbec52f77f334d018c9675691220a400f59218ba39bb28116143f37750",
+      "git_blob_oid": "5386e790282450abf7cd4b977f94e137893b91e9"
+    },
+    "apps/web/src/company-activity.ts": {
+      "sha256": "4ac71f30de4f139b66408359587de4ad22ed10d0200a32fab5582798ee7bfc37",
+      "git_blob_oid": "db974b9b67114ffa7bf07efbfff2ce0ca23d139e"
+    },
+    "apps/web/src/main.tsx": {
+      "sha256": "ca81f33b02318bf87c6483380aa5ea052f08427bb7ebc1f61c880ba1ef3b1f76",
+      "git_blob_oid": "0cb820300b13016c204d8ea1ab2d29950a07eeca"
+    },
+    "services/company_discovery/activity.py": {
+      "sha256": "9e5c862e89a7b75d816a5011762701b5d79ddafcf7ee2c7de5d4b9412143123c",
+      "git_blob_oid": "78df8b1d071f6c2a0c1a3fe55cea88565d35caa4"
+    },
+    "tests/integration/test_company_discovery_activity_api.py": {
+      "sha256": "74770102007c01eb6c612275ac5dda427947d6fd8dbdfe7ea096915d64a6dd68",
+      "git_blob_oid": "fc5afc09be17398d5d668b193eaef1bb4e53da76"
+    },
+    "tests/browser/test_company_discovery_activity.py": {
+      "sha256": "0504265a9af6f451b74ddcdb7fc659b6ab39cca21727d69d2bd5fd86077d5a9c",
+      "git_blob_oid": "0fe53dfb5724b9ed61c2d873a66f0ae978cc6376"
+    }
+  },
+  "not_run": [
+    "PostgreSQL runtime verification",
+    "Hosted GitHub checks/reviews (disabled by local-only policy)",
+    "Live employer sources/ATS behavior",
+    "Full repository Python suite"
+  ],
+  "review": "Root exact-diff self-review. No independent delegated review was performed.",
+  "integration": "Candidate has passed local checks; local main fast-forward and tracker batch are pending. No push.",
+  "external_submission_enabled": false
+}
