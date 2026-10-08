@@ -1,3 +1,13 @@
+## 2026-10-08 — #116 certification strength slice integrated PARTIAL
+
+Issue #116 / MJ-REQ-115 candidate source snapshot `ddfe79e8d5ee563e1e83a2e4d0bbcd82c13db0fa` (tested source tree `ac268e5a04dc2f595421073ea18944a91f83a348`) was rebased onto main `f5800086b5cf8d4a92876a94d6fee2ad63f5d89d` and integrated by non-force fast-forward. Current source integration checkpoint: `ef618ac11de79bd751609b691897a516e1ddfa52`; remote main was read back at this SHA. Receipt: https://github.com/MulattoTech/MJobs/issues/116#issuecomment-6052743128. Evidence: `docs/evidence/2026-10-07-certification-requirement-strength.json`. Exact executable/test hashes are in the evidence; an evidence-only descendant clarifies tested-source versus evidence scope.
+
+Recognized certification strengths are scoped over comma, comma-but, comma-and and plain-and lists in both orders. Ambiguous mentions remain UNKNOWN; standalone negations and preferred/bonus cases are preserved. Worker recorded 23 focused parser+matching integration tests PASS against those source inputs; root reran 16 parser unit tests PASS and TypeScript/Vite build PASS. Current post-rebase integration and browser attempts are BLOCKED_ENVIRONMENT (missing SQLAlchemy/Playwright), so scope remains PARTIAL. Browser/build after the final parser edits are NOT_RUN; earlier browser evidence predates them. The issue and requirement remain OPEN/PARTIAL; hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF.
+
+#240 / MJ-REQ-239 company notes remains active on `codex/mj-req239-company-notes-20261008`; #199 / MJ-REQ-198 cover-letter history comparison has a stale-result fix on its branch, with integration awaiting rebase/retest; active provider claims #302/#318 remain untouched. #117 match configuration/category work remains behind existing PR dependencies. Keep old #116 remote feature ref and its untracked `events.jsonl` untouched; no force push.
+
+---
+
 ## 2026-10-08 — dependency-independent #240 company-notes slice queued
 
 Current base at selection: `4a7e62c4dc3b6e7d9b438f141d8da505e71ecb2b`, local `main` and `origin/main` synchronized. Issue #240 / MJ-REQ-239 is OPEN; jobs and applications already have profile-scoped append-only notes, companies do not. The live #116 claim owns `apps/web/src/main.tsx`, but the mounted `CompanySources` component already receives profile-filtered rows and rejects stale profile refreshes. The new slice can pass `profile_id` in each view row and complete company-note service/API/component/reload behavior without editing `main.tsx`.

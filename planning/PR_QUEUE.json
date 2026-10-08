@@ -3697,7 +3697,43 @@
       "issue_state": "OPEN/PARTIAL",
       "issue_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6052638566",
       "notes": "Scoped user-reviewed rewrite for approved technology_experience facts is integrated. Five unit plus one integration test and one connected Chromium test previously passed against the exact executable/test input SHA-256 values rechecked at the candidate. Current focused Python revalidation was BLOCKED_ENVIRONMENT (0 tests; Python 3.12 lacks SQLAlchemy and repository .venv lacks pytest); no dependencies installed. TypeScript/Vite build passed on Node 25.9.0. Local delegated review found no code blocker. Issue #96 / MJ-REQ-095 remains PARTIAL for other tailoring modes and semantic-equivalence proof; hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF."
+    },
+    {
+      "id": "MJ-PR-169",
+      "title": "MJ-REQ-115 per-certification strength clause scoping",
+      "domain": "matching_ai",
+      "requirements": [
+        "MJ-REQ-115"
+      ],
+      "issues": [
+        116
+      ],
+      "reference_gaps": [],
+      "parent_queue_item": "MJ-PR-031",
+      "parent_dependencies_preserved": [
+        "MJ-PR-030",
+        "MJ-PR-025"
+      ],
+      "target_area": "services/discovery/requirement_parsers.py; services/discovery/manual_capture.py; apps/web/src/main.tsx; matching parser unit/integration/browser tests",
+      "depends_on": [],
+      "status": "INTEGRATED_PARTIAL",
+      "branch": "codex/mj-req115-certification-strength-20261007",
+      "draft_until_verified": true,
+      "issue_number": 116,
+      "evidence_path": "docs/evidence/2026-10-07-certification-requirement-strength.json",
+      "base": "f5800086b5cf8d4a92876a94d6fee2ad63f5d89d",
+      "candidate": "ddfe79e8d5ee563e1e83a2e4d0bbcd82c13db0fa",
+      "integration_method": "NON_FORCE_FAST_FORWARD",
+      "pr_state": "NOT_OPENED_LOCAL_ONLY",
+      "scope_complete": false,
+      "scope_result": "PARTIAL",
+      "source_commit": "ddfe79e8d5ee563e1e83a2e4d0bbcd82c13db0fa",
+      "integration_commit": "ef618ac11de79bd751609b691897a516e1ddfa52",
+      "integrated_at": "2026-10-08T05:08:27Z",
+      "issue_state": "OPEN/PARTIAL",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/116#issuecomment-6052743128",
+      "notes": "Scoped certification REQUIRED/PREFERRED/NICE_TO_HAVE/UNKNOWN parsing covers recognized comma, comma-but, comma-and and plain-and clauses in both orders, with ambiguous and negation controls. Worker recorded 23 parser+matching integration tests PASS with exact inputs rechecked after rebase; root reran 16 parser unit tests PASS and TypeScript/Vite build PASS. Current matching-integration rerun (0 tests; SQLAlchemy missing) and connected-browser rerun (0 tests; Playwright missing) are BLOCKED_ENVIRONMENT. Earlier browser evidence predates final parser corrections. Local delegated review found no code blocker. Broad MJ-REQ-115/#116 remains OPEN/PARTIAL; parent MJ-PR-031 dependencies are unchanged; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF."
     }
   ],
-  "generated_at": "2026-10-08T05:02:07Z"
+  "generated_at": "2026-10-08T05:08:27Z"
 }
