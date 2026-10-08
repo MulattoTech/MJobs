@@ -7,7 +7,7 @@ from sqlalchemy import select, update
 
 from packages.domain.operation_mode import operation_mode_from_env
 from packages.persistence import models as m
-from packages.persistence.store import Store, now
+from packages.persistence.store import Store, identity, now
 from services.applications.mock_adapter import apply_mock
 from services.discovery.pipeline import discover, MockClient
 from services.company_discovery.flywheel import discover_company_source
@@ -24,6 +24,32 @@ from workers.structured_logging import log_operation_finished
 
 class FixtureOperationDisabled(Exception):
     """A queued fixture task must not run after switching to personal mode."""
+
+
+def _record_supported_collection_candidates(store, operation_id, source_id, profile_ids):
+    """Catalogue persisted cross-domain posting links for the authorized profiles."""
+    from services.source_candidates.catalogue import record_supported_collection
+
+    with store.engine.begin() as connection:
+        rows = connection.execute(select(
+            m.postings.c.id, m.postings.c.job_id, m.postings.c.source_url,
+            m.postings.c.application_url, m.jobs.c.attributes,
+        ).select_from(m.postings.join(
+            m.jobs, m.jobs.c.id == m.postings.c.job_id,
+        )).where(
+            m.jobs.c.attributes["source_id"].as_string() == source_id,
+            m.jobs.c.attributes["source_endpoint"].as_string() == m.postings.c.source_url,
+        )).mappings()
+        persisted = [dict(row) for row in rows]
+        for profile_id in profile_ids:
+            for posting in persisted:
+                record_supported_collection(
+                    connection, profile_id=profile_id,
+                    request_id=identity("supported-collection", operation_id, source_id,
+                                         profile_id, posting["id"]),
+                    job_id=posting["job_id"], source_url=posting["source_url"],
+                    application_url=posting["application_url"],
+                )
 
 
 def execute_operation(operation_id):
@@ -79,6 +105,8 @@ def execute_operation(operation_id):
                     primary = profile_ids[0]
                     collect_source(store, params["source_id"], primary, check=check,
                                    profile_version=params.get("profile_version"))
+                    _record_supported_collection_candidates(
+                        store, operation_id, params["source_id"], profile_ids)
                     for profile_id in profile_ids[1:]:
                         check()
                         recalculate(store, profile_id, check=check)
