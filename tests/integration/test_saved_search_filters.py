@@ -68,7 +68,7 @@ class SavedSearchFiltersApiTests(unittest.TestCase):
         self.assertEqual(row["criteria"]["job_filters"], {
             "q": "network", "title": "Developer", "location": "Boston", "company": "Example",
             "experience_level": "", "employment_type": "", "posted_within_days": "", "remote_type": "REMOTE", "provider": "greenhouse", "sort": "company",
-            "salary_min": "", "salary_max": "", "skill": ""})
+            "salary_min": "", "salary_max": "", "skill": "", "education_requirement": ""})
         self.assertFalse(row["enabled"])
         self.assertEqual(self.client.get("/search-profiles", params={"profile_id": "other"})
                          .json()["search_profiles"], [])
@@ -303,6 +303,90 @@ class SavedSearchFiltersApiTests(unittest.TestCase):
         self.assertEqual(schedule_due_sources(self.store)["scheduled"], [])
         self.assertEqual(self.store.count("worker_operations"), operations_before)
 
+    def test_education_filter_uses_parser_classifications_and_filters_before_limit(self):
+        from services.discovery.search_semantics import parse_education_requirement
+
+        classifications = {
+            parse_education_requirement("Bachelor's degree required") ["classification"],
+            parse_education_requirement("Bachelor's degree preferred") ["classification"],
+            parse_education_requirement("Bachelor's degree or equivalent experience") ["classification"],
+            parse_education_requirement("College degree preferred") ["classification"],
+            parse_education_requirement("No education details here") ["classification"],
+        }
+        self.assertEqual(classifications, {
+            "BACHELORS_REQUIRED", "BACHELORS_PREFERRED", "BACHELORS_OR_EQUIVALENT_EXPERIENCE",
+            "DEGREE_PREFERRED", "NONE_SPECIFIED",
+        })
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.title == "Python Developer").values(
+                title="A unrecognized education", attributes={"education_requirement": "ASSOCIATE_REQUIRED"}))
+            connection.execute(update(m.jobs).where(m.jobs.c.title == "Data Engineer").values(
+                title="B bachelor's requirement", attributes={"education_requirement": "BACHELORS_REQUIRED"}))
+        selected = self.client.get("/jobs", params={"education_requirement": "BACHELORS_REQUIRED",
+                                                      "sort": "title", "limit": 1})
+        self.assertEqual(selected.status_code, 200, selected.text)
+        self.assertEqual([job["title"] for job in selected.json()["jobs"]], ["B bachelor's requirement"])
+        normalized = self.client.get("/jobs", params={"education_requirement": " bachelors_required ",
+                                                        "sort": "title", "limit": 1})
+        self.assertEqual([job["title"] for job in normalized.json()["jobs"]], ["B bachelor's requirement"])
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.title == "A unrecognized education").values(
+                attributes={}))
+        missing_excluded = self.client.get("/jobs", params={"education_requirement": "BACHELORS_REQUIRED",
+                                                               "sort": "title", "limit": 1})
+        self.assertEqual([job["title"] for job in missing_excluded.json()["jobs"]],
+                         ["B bachelor's requirement"])
+        invalid = self.client.get("/jobs", params={"education_requirement": "ASSOCIATE_REQUIRED"})
+        self.assertEqual(invalid.status_code, 422)
+
+    def test_education_filter_saved_search_normalizes_round_trips_and_composes(self):
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.title == "Data Engineer").values(
+                attributes={"education_requirement": "BACHELORS_REQUIRED"}))
+        filters = {"q": "", "title": "", "company": "", "location": "", "salary_min": "",
+                   "salary_max": "", "min_match_score": "", "experience_level": "",
+                   "employment_type": "", "posted_within_days": "", "skill": "",
+                   "education_requirement": "bachelors_required",
+                   "remote_type": "", "provider": "", "sort": "score"}
+        saved = self.client.put("/search-profiles", json={**self._profile(job_filters=filters),
+                                                            "include_titles": [], "remote": "ANY"})
+        self.assertEqual(saved.status_code, 200, saved.text)
+        row = next(item for item in self.client.get("/search-profiles", params={
+            "profile_id": "fixture"}).json()["search_profiles"] if item["id"] == "saved-filter")
+        self.assertEqual(row["criteria"]["job_filters"]["education_requirement"], "BACHELORS_REQUIRED")
+        result = self.client.get("/jobs", params={"profile_id": "fixture", "search_profile_id": "saved-filter",
+                                                   "education_requirement": "BACHELORS_REQUIRED"})
+        self.assertEqual(result.status_code, 200, result.text)
+        self.assertEqual([job["title"] for job in result.json()["jobs"]], ["Data Engineer"])
+        contradictory = self.client.put("/search-profiles", json={**self._profile(job_filters=filters),
+            "include_titles": [], "remote": "ANY", "required_skills": ["RUST"]})
+        self.assertEqual(contradictory.status_code, 200, contradictory.text)
+        result = self.client.get("/jobs", params={"profile_id": "fixture", "search_profile_id": "saved-filter",
+                                                   "education_requirement": "BACHELORS_REQUIRED"})
+        self.assertEqual(result.json()["jobs"], [])
+        self.assertEqual(self.client.get("/search-profiles", params={"profile_id": "other"})
+                         .json()["search_profiles"], [])
+        legacy = self.client.put("/search-profiles", json=self._profile(
+            identifier="education-legacy", job_filters={"q": "", "remote_type": "", "provider": "",
+                                                           "sort": "score"}))
+        self.assertEqual(legacy.status_code, 200, legacy.text)
+        legacy_row = next(item for item in self.client.get("/search-profiles", params={
+            "profile_id": "fixture"}).json()["search_profiles"] if item["id"] == "education-legacy")
+        self.assertEqual(legacy_row["criteria"]["job_filters"]["education_requirement"], "")
+        cleared = self.client.put("/search-profiles", json={**self._profile(job_filters={
+            **filters, "education_requirement": ""}), "include_titles": [], "remote": "ANY"})
+        self.assertEqual(cleared.status_code, 200, cleared.text)
+        cleared_row = next(item for item in self.client.get("/search-profiles", params={
+            "profile_id": "fixture"}).json()["search_profiles"] if item["id"] == "saved-filter")
+        self.assertEqual(cleared_row["criteria"]["job_filters"]["education_requirement"], "")
+        invalid = self.client.put("/search-profiles", json={**self._profile(
+            identifier="education-invalid", job_filters={**filters, "education_requirement": "ASSOCIATE_REQUIRED"}),
+            "include_titles": [], "remote": "ANY"})
+        self.assertEqual(invalid.status_code, 422)
+        operations_before = self.store.count("worker_operations")
+        self.assertEqual(schedule_due_sources(self.store)["scheduled"], [])
+        self.assertEqual(self.store.count("worker_operations"), operations_before)
+
     def test_saved_filter_validation_and_cross_profile_update_rejection(self):
         self.client.put("/search-profiles", json=self._profile()).raise_for_status()
         malformed = self.client.put("/search-profiles", json=self._profile(
@@ -403,7 +487,8 @@ class SavedSearchFiltersApiTests(unittest.TestCase):
         filters = {"q": "network", "title": "Developer", "location": "Boston", "company": "Example",
                    "remote_type": "REMOTE", "provider": "greenhouse", "sort": "company",
                    "salary_min": "85000", "salary_max": "130000", "experience_level": "",
-                   "employment_type": "", "posted_within_days": "", "skill": ""}
+                   "employment_type": "", "posted_within_days": "", "skill": "",
+                   "education_requirement": ""}
         operations_before = self.store.count("worker_operations")
         response = self.client.put("/search-profiles", json=self._profile(job_filters=filters))
         self.assertEqual(response.status_code, 200, response.text)

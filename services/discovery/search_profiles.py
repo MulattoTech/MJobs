@@ -16,6 +16,10 @@ from services.discovery.skill_taxonomy import canonical_skill_id
 
 REMOTE_PREFERENCES = {"ANY", "REQUIRED", "EXCLUDED"}
 WORK_ARRANGEMENTS = {"REMOTE", "HYBRID", "ONSITE"}
+EDUCATION_REQUIREMENTS = {
+    "BACHELORS_OR_EQUIVALENT_EXPERIENCE", "BACHELORS_PREFERRED", "BACHELORS_REQUIRED",
+    "DEGREE_PREFERRED", "NONE_SPECIFIED",
+}
 JOB_FILTERS = {"remote_type": {"", "REMOTE", "HYBRID", "ONSITE", "UNKNOWN"},
                "provider": {"", "mock-ats", "greenhouse"},
                "sort": {"score", "newest", "company", "title", "salary_high", "salary_low"}}
@@ -26,7 +30,7 @@ def _clean_job_filters(value):
         return None
     required = {"q", "remote_type", "provider", "sort"}
     optional = {"title", "company", "location", "salary_min", "salary_max", "min_match_score",
-                "experience_level", "posted_within_days", "employment_type", "skill"}
+                "experience_level", "posted_within_days", "employment_type", "skill", "education_requirement"}
     if not isinstance(value, dict) or not required <= set(value) or set(value) - required - optional:
         raise ValueError("Saved Jobs filters must include q, remote_type, provider, and sort")
     query = value["q"]
@@ -84,6 +88,13 @@ def _clean_job_filters(value):
     if skill and canonical_skill is None:
         raise ValueError("Saved Jobs skill is not in the supported taxonomy")
     cleaned["skill"] = canonical_skill or ""
+    education_requirement = value.get("education_requirement", "")
+    if not isinstance(education_requirement, str) or len(education_requirement) > 64:
+        raise ValueError("Saved Jobs education requirement is invalid")
+    education_requirement = education_requirement.strip().upper()
+    if education_requirement and education_requirement not in EDUCATION_REQUIREMENTS:
+        raise ValueError("Saved Jobs education requirement is invalid")
+    cleaned["education_requirement"] = education_requirement
     for key, allowed in JOB_FILTERS.items():
         if not isinstance(value[key], str) or value[key] not in allowed:
             raise ValueError(f"Saved Jobs {key} is invalid")
