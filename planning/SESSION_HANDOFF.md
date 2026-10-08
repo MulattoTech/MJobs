@@ -1150,3 +1150,10 @@ GitHub closeout readback for issue #104 / MJ-REQ-103: CLOSED with local acceptan
 - Readable Added/Removed comparison for same-application cover-letter revisions is locally verified. Exact integrated-tree checks: focused Vitest 9/9, Vite build PASS, connected Chromium 2/2; local delegated review no material findings. Evidence: `docs/evidence/2026-10-08-cover-letter-history-comparison.json`.
 - Issue #199 remains OPEN/PARTIAL; hosted checks and full Python suite NOT_RUN; Node 25.9 outside Vitest 5 supported range. Claim released after receipts: https://github.com/MulattoTech/MJobs/issues/199#issuecomment-6053176187. Parent MJ-PR-054 still QUEUED behind PR-053 and PR-043. External submission OFF.
 - Next: #117 and #96 candidates need reconciliation with current main; #275/MJ-REQ-274 recovery implementation is independently claimed.
+
+
+## 2026-10-08 issue #117 / MJ-REQ-116 Match Categories integration
+
+- Integrated and synchronized `main`/`origin/main`: `f1afad5541ebcad1cd07e35b5366b78df4e1f637` (tree `d06f94ac25071c34b8ac031562966a732b621cba`), fast-forward from `382cb6707de47b32ca3876907bd1154d017fc707`.
+- All category boundaries and invalid/unscored controls pass; connected FIXTURE-mode browser verifies persisted profile scores through reload, no score/tracking mutation and External submission OFF. Root checks: 23 helper tests, Vite build, Chromium 1/1 PASS. Evidence: `docs/evidence/2026-10-08-match-categories.json`.
+- LOCAL_DELEGATED_REVIEW no blocking findings. Issue #117 is still OPEN pending exact evidence receipt and close readback. Node 25.9 is outside Vitest 5 supported range; hosted checks NOT_RUN_BY_USER_POLICY. Parent MJ-PR-032 dependencies unchanged.

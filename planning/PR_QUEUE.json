@@ -933,13 +933,13 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-032-matching-ai",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting.",
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Issue #117 / MJ-REQ-116 match-category display integrated locally at f1afad5541ebcad1cd07e35b5366b78df4e1f637 and accepted PASS with docs/evidence/2026-10-08-match-categories.json. Issue closeout/readback pending. Parent MJ-PR-032 remains QUEUED with MJ-PR-031 and MJ-PR-025 dependencies unchanged; no other grouped requirement promoted.",
       "active_slice": {
         "name": "Display deterministic match category alongside the persisted score",
         "issue": 117,
         "requirement_id": "MJ-REQ-116",
-        "status": "ACTIVE",
-        "publication_state": "LOCAL_WORK_IN_PROGRESS",
+        "status": "INTEGRATED_PASS",
+        "publication_state": "LOCAL_MAIN_FAST_FORWARD",
         "base_commit": "1e8dca63d37849ead245dd34c9c1374d52c0089a",
         "depends_on": [],
         "parent_dependencies_preserved": [
@@ -953,7 +953,12 @@
           "tests/browser/test_match_categories.py"
         ],
         "acceptance": "Derive labels from the existing persisted match score using the issue bands (95-100 Exceptional, 85-94 Excellent, 75-84 Strong, 60-74 Possible, 40-59 Weak, 0-39 Poor); leave null/unscored jobs unclassified; test all inclusive boundaries and connected reload/profile selection without mutating score or tracking state.",
-        "rationale": "This is a UI display increment using existing match scores and needs no new API, persistence or scoring dimension. Parent MJ-PR-032 remains QUEUED with original dependencies; this child does not promote the umbrella or denominator."
+        "rationale": "This is a UI display increment using existing match scores and needs no new API, persistence or scoring dimension. Parent MJ-PR-032 remains QUEUED with original dependencies; this child does not promote the umbrella or denominator.",
+        "integrated_main": "f1afad5541ebcad1cd07e35b5366b78df4e1f637",
+        "integrated_tree": "d06f94ac25071c34b8ac031562966a732b621cba",
+        "evidence_path": "docs/evidence/2026-10-08-match-categories.json",
+        "verification": "LOCAL: match-category helper 23/23, TypeScript/Vite build PASS, connected synthetic Chromium 1/1; LOCAL_DELEGATED_REVIEW found no blocking findings. Root reran checks on exact rebased integrated source.",
+        "issue_closeout": "PENDING evidence commit, comment and GitHub closed-state readback."
       }
     },
     {

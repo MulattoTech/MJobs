@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-08T05:40:30Z",
+  "generated_at": "2026-10-08T05:42:14Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -11,7 +11,7 @@
     "current_verified_github_state": "Issue #179 / MJ-REQ-178 log retention acceptance PASS at 8bea57e595e19e638913405a8ec1cd3aa0ebde32; full product remains PARTIAL.",
     "current_verified_at": "2026-10-07T15:27:43Z"
   },
-  "current_milestone": "MJ-REQ-198-COVER-LETTER-COMPARISON-20261008",
+  "current_milestone": "MJ-REQ-116-MATCH-CATEGORIES-20261008",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -72,7 +72,8 @@
     "MJ-REQ-180 / issue #181 acceptance PASS: all discovered production CLI screenshot artifact paths route through screenshot-only content masking; arbitrary DOM and pseudo-element text plus embedded image/canvas/video/frame content are suppressed, sensitive controls remain blacked out, and the live page remains unchanged. No product HTML snapshot/trace persistence found. Evidence docs/evidence/2026-10-07-feedback-screenshot-content-masking.json. Connected UI E2E NOT_RUN; hosted checks NOT_RUN_BY_USER_POLICY; overall product/release remains PARTIAL.",
     "MJ-REQ-178 / issue #179 Log Retention PASS: all nine Compose services configure bounded json-file rotation (10 MiB × 5). Isolated no-network Docker runtime test proved rollover: 50 large synthetic lines emitted, 11 retained with 1 MiB × 2 cap, exit 0, temporary container removed; personal MJobs stack untouched. Existing evidence/tests confirm feedback sessions expire after 30 days, raw Playwright traces are not written and no product HTML snapshot writer exists. Related suite 20 PASS; Compose render and validators PASS. Evidence docs/evidence/2026-10-07-compose-log-rotation.json. Issue CLOSED/readback verified; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
     "MJ-REQ-165 / issue #166 Full-Text Search PASS: PostgreSQL GIN full-text indexes cover title, description, JSON skills and location plus company names; GET /jobs?q= searches all five required fields, with connected UI/API readback and saved-search compatibility. Evidence: docs/evidence/2026-10-07-full-text-search.json. Source 108c502ce0b2c8aa92a4868b09687b4b4a0206f1; integrated code/evidence at 59039a51701258a35c93fc7deca6fbf85d72fddd. Full Python 962 tests/8 skipped, frontend 63/build, connected Chromium, SQLite/PostgreSQL migrations and index-plan checks PASS. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
-    "MJ-REQ-173 upload security across all seven supported document kinds; evidence docs/evidence/2026-10-07-seven-kind-upload-security.json"
+    "MJ-REQ-173 upload security across all seven supported document kinds; evidence docs/evidence/2026-10-07-seven-kind-upload-security.json",
+    "Issue #117 / MJ-REQ-116 Match Categories locally verified PASS at docs/evidence/2026-10-08-match-categories.json; parent MJ-PR-032 and other matching requirements remain queued/partial."
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
@@ -142,7 +143,7 @@
     "MJ-REQ-176",
     "MJ-REQ-177",
     "MJ-REQ-115",
-    "MJ-REQ-116"
+    "MJ-REQ-274"
   ],
   "active_prs": [],
   "tests_passed": [
@@ -383,7 +384,8 @@
     "MJ-REQ-115 TypeScript check and Vite production build PASS on Node 25.9.0; Vite 8.3.1 supports this runtime.",
     "Local delegated review of #116 candidate: no code blocker; branch rebased onto current main and exact source-input hashes rechecked.",
     "Issue #104 / MJ-REQ-103 answer bank exact-head evidence revalidated against current main: 15 synthetic SQLite integration tests, 2 connected synthetic Chromium tests, web build PASS; input diff from tested snapshot 77a7d36 to d8caa90 contains no executable/test/build inputs. Node 25.9 is outside Vitest 5 declared engine range.",
-    "Issue #199 / MJ-REQ-198 readable comparison source/test inputs integrated at main 41513c0f3c2c75970bfc8173f0ca8576acb63519. Root exact-integrated-tree recheck: focused Vitest 9/9; TypeScript/Vite build PASS; connected synthetic Chromium document-history 2/2. LOCAL_DELEGATED_REVIEW no material findings; Node 25.9 outside Vitest 5 declared range."
+    "Issue #199 / MJ-REQ-198 readable comparison source/test inputs integrated at main 41513c0f3c2c75970bfc8173f0ca8576acb63519. Root exact-integrated-tree recheck: focused Vitest 9/9; TypeScript/Vite build PASS; connected synthetic Chromium document-history 2/2. LOCAL_DELEGATED_REVIEW no material findings; Node 25.9 outside Vitest 5 declared range.",
+    "Issue #117 / MJ-REQ-116 match categories integrated at main f1afad5541ebcad1cd07e35b5366b78df4e1f637. Root exact integrated-source checks: 23 focused helper cases PASS; TypeScript/Vite build PASS; connected FIXTURE-mode Chromium 1/1 PASS. Local delegated review found no blocker; Node 25.9 outside Vitest 5 supported engine range."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -473,7 +475,8 @@
     "MJ-REQ-115 post-correction connected browser rerun BLOCKED_ENVIRONMENT (0 tests; Playwright missing); earlier browser evidence predates the last parser corrections.",
     "Hosted checks/review NOT_RUN_BY_USER_POLICY; broader MJ-REQ-115 acceptance and release readiness remain PARTIAL/NOT_RUN.",
     "MJ-REQ-103 PostgreSQL and hosted Actions/CI/review NOT_RUN; overall core-workflow and release acceptance remain PARTIAL.",
-    "Issue #199 full Python suite and hosted checks/review NOT_RUN; this is a scoped comparison condition and MJ-REQ-198 remains PARTIAL."
+    "Issue #199 full Python suite and hosted checks/review NOT_RUN; this is a scoped comparison condition and MJ-REQ-198 remains PARTIAL.",
+    "MJ-REQ-116 PostgreSQL not applicable to this display-only increment; hosted checks/review NOT_RUN_BY_USER_POLICY; matching aggregate/release remain PARTIAL."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -582,7 +585,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Rebase and locally revalidate completed #117/MJ-REQ-116 and #96/MJ-REQ-095 candidates after each main movement, integrate one exact candidate at a time, and release only after GitHub receipts. Independent #275/MJ-REQ-274 scheduled-source restart work has been assigned a dedicated claim after live recheck; root reconciles its result. Five read-only leads found no other safe lane without #117 UI ownership or #302/#318 claims. #199 is OPEN/PARTIAL; #104 is CLOSED/PASS. Core workflow/release remain PARTIAL; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
+  "recommended_resume_step": "Complete the issue #117 evidence receipt, close and read back only #117 / MJ-REQ-116, then release its path claim. Reconcile the #96/MJ-REQ-095 candidate onto current main and verify exact source/test inputs before integrating. #275/MJ-REQ-274 is a separate active recovery implementation claim. After #117 releases apps/web/src/main.tsx, assign the best user-visible next slice from refreshed leads (#105 answer matching or #197 review queue or #517 integration linkage) only after dependency and path checks. #104 CLOSED/PASS; #199 OPEN/PARTIAL; parent queues/core workflow/release remain PARTIAL. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -9773,17 +9776,65 @@
         "claim_release_receipt": "https://github.com/MulattoTech/MJobs/issues/199#issuecomment-6053176187",
         "issue_state_after_readback": "OPEN; scoped acceptance only"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-116-MATCH-CATEGORIES-20261008",
+      "timestamp": "2026-10-08T05:42:14Z",
+      "current_phase": "MJ_REQ_116_CATEGORIES_INTEGRATED_LOCAL_PASS_CLOSEOUT_PENDING",
+      "completed_steps": [
+        "Added deterministic category labels to Jobs cards and match detail using existing persisted score values; invalid and unscored values remain unclassified.",
+        "Used an isolated FIXTURE store/browser profile, outside-origin requests blocked, external submission OFF, and verified profile switching/reload without score or tracking mutation.",
+        "Root reran 23 helper boundary cases, TypeScript/Vite production build, and connected synthetic Chromium 1/1 on exact rebased integrated source f1afad5541ebcad1cd07e35b5366b78df4e1f637.",
+        "LOCAL_DELEGATED_REVIEW found no blocking findings. Issue receipt and closeout remain pending."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-08-match-categories.json",
+        "apps/web/src/match-category.ts",
+        "apps/web/src/match-category.test.ts",
+        "tests/browser/test_match_categories.py"
+      ],
+      "files_modified": [
+        "apps/web/src/main.tsx",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "npm test -- --run src/match-category.test.ts: 23 PASS.",
+        "npm run build: TypeScript and Vite PASS.",
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_match_categories -v: 1 PASS, 0 skips/failures."
+      ],
+      "tests_remaining": [
+        "Hosted Actions/CI/review NOT_RUN_BY_USER_POLICY.",
+        "Broader matching, core workflow and release acceptance remain PARTIAL.",
+        "Node 25.9.0 outside Vitest 5 engine range."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Synthetic profile-specific scores in temporary SQLite and connected loopback Chromium only; external requests blocked; no external application submission."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "This display slice reads persisted match scores; it does not establish scoring correctness or configurable weights.",
+        "Hosted checks/review remain NOT_RUN."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "f1afad5541ebcad1cd07e35b5366b78df4e1f637",
+        "tree": "d06f94ac25071c34b8ac031562966a732b621cba",
+        "source_commit": "f1afad5541ebcad1cd07e35b5366b78df4e1f637",
+        "evidence_path": "docs/evidence/2026-10-08-match-categories.json",
+        "issue_state_at_checkpoint": "OPEN; closeout pending evidence checkpoint and exact receipt."
+      }
     }
   ],
-  "current_phase": "MJ_REQ_198_SAME_APPLICATION_READABLE_DIFF_INTEGRATED_LOCAL_SCOPE_PASS",
+  "current_phase": "MJ_REQ_116_CATEGORIES_INTEGRATED_LOCAL_PASS_CLOSEOUT_PENDING",
   "last_safe_checkpoint": {
-    "git_commit": "41513c0f3c2c75970bfc8173f0ca8576acb63519",
-    "tree": "468cd613533706ab96e8de97813fe9fd8c105d02",
-    "source_commit": "41513c0f3c2c75970bfc8173f0ca8576acb63519",
-    "evidence_path": "docs/evidence/2026-10-08-cover-letter-history-comparison.json",
-    "issue_receipt": "https://github.com/MulattoTech/MJobs/issues/199#issuecomment-6053174608",
-    "claim_release_receipt": "https://github.com/MulattoTech/MJobs/issues/199#issuecomment-6053176187",
-    "issue_state_after_readback": "OPEN; scoped acceptance only"
+    "git_commit": "f1afad5541ebcad1cd07e35b5366b78df4e1f637",
+    "tree": "d06f94ac25071c34b8ac031562966a732b621cba",
+    "source_commit": "f1afad5541ebcad1cd07e35b5366b78df4e1f637",
+    "evidence_path": "docs/evidence/2026-10-08-match-categories.json",
+    "issue_state_at_checkpoint": "OPEN; closeout pending evidence checkpoint and exact receipt."
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -11248,5 +11299,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-08T05:40:30Z"
+  "updated_at": "2026-10-08T05:42:14Z"
 }

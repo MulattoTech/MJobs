@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REQ-116-MATCH-CATEGORIES-LOCAL-20261008",
+  "recorded_at_utc": "2026-10-08T05:42:14Z",
+  "verification_window_utc": {
+    "start": "2026-10-08T05:41:08Z",
+    "end": "2026-10-08T05:41:37Z"
+  },
+  "result": "PASS",
+  "issue": 117,
+  "requirement_id": "MJ-REQ-116",
+  "scope": "Display a deterministic category from each existing persisted match score in Jobs cards and detail; leave unscored and invalid values unclassified.",
+  "authority": {
+    "repository": "MulattoTech/MJobs",
+    "issue_url": "https://github.com/MulattoTech/MJobs/issues/117",
+    "issue_state_at_verification": "OPEN",
+    "test_source_commit": "f1afad5541ebcad1cd07e35b5366b78df4e1f637",
+    "test_source_tree": "d06f94ac25071c34b8ac031562966a732b621cba",
+    "base_commit": "382cb6707de47b32ca3876907bd1154d017fc707",
+    "base_tree": "468cd613533706ab96e8de97813fe9fd8c105d02"
+  },
+  "acceptance": {
+    "category_boundaries": "PASS; helper uses 95-100 Exceptional, 85-94 Excellent, 75-84 Strong, 60-74 Possible, 40-59 Weak, 0-39 Poor; null, non-finite, and out-of-range values remain unclassified.",
+    "persisted_display_only": "PASS; job cards read `job.match_score`, detail reads `detail.match.score`; no score or tracking write/API was added.",
+    "reload_and_profile": "PASS; connected FIXTURE browser uses isolated temporary SQLite data and checks profile-specific scores and labels after switching and reloading, while reading saved scores unchanged.",
+    "safety": "PASS; external submission OFF is asserted; browser route aborts requests outside local origin; no provider/external request."
+  },
+  "source_inputs": {
+    "apps/web/src/main.tsx": {
+      "git_blob": "774e33a3e879f19d27c09f453aae503f67aaa0e6",
+      "git_object_content_sha256": "922201a52865185260a94e3bf99037d8a92a00f9bd09186440aeef7ed782a44f"
+    },
+    "apps/web/src/match-category.ts": {
+      "git_blob": "ae4269e82b69b5fac59369406d19f8ae5ddb7a13",
+      "git_object_content_sha256": "f9e2a116fd3e9afde63fc9adf9d9c514e7b3519b6b90d00b7cbb354b4bd83d25"
+    },
+    "apps/web/src/match-category.test.ts": {
+      "git_blob": "a49c48c7afb114d8e394da43911cc0e41c6123e8",
+      "git_object_content_sha256": "436fc5a3611645889de3687b406d586ee0447531bdef90d689fe8dc0ba6c1c9a"
+    },
+    "tests/browser/test_match_categories.py": {
+      "git_blob": "ebb1ab2ef3c12aedbf9459c47e8877779ab0c5c1",
+      "git_object_content_sha256": "40419566fdd62b121fc45f6a20218b20ffcbcfb0b060779bc11fc43af20a66ab"
+    }
+  },
+  "environment": {
+    "platform": "Windows PowerShell",
+    "python": "3.12.10 via repository .venv",
+    "node": "v25.9.0",
+    "npm": "11.12.1",
+    "vitest_engine_limit": "Vitest 5.0.3 declares ^22.12.0 || ^24.0.0 || >=26.0.0; installed Node 25.9.0 is outside range."
+  },
+  "checks": [
+    {
+      "command": "npm test -- --run src/match-category.test.ts",
+      "target": "category thresholds and invalid/unscored values",
+      "result": "PASS",
+      "tests": 23,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "npm run build",
+      "target": "TypeScript check and Vite production build",
+      "result": "PASS",
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_match_categories -v",
+      "target": "isolated FIXTURE profile/store, loopback API and Chromium",
+      "result": "PASS",
+      "tests": 1,
+      "failures": 0,
+      "skips": 0
+    }
+  ],
+  "review": {
+    "result": "LOCAL_DELEGATED_REVIEW",
+    "reviewed_source_candidate": "caffac6de4d5ae88c8d31dc77d3dceb111c8bdb1",
+    "reviewed_tree": "6bfcbf8f2576aed6d103b66bf8f9b7e320436dc6",
+    "base_at_review": "9752bf0fb14ace771d7d1d6b94a1b73f4fe12973",
+    "finding": "No blocking findings. The rebased final candidate retains hash-identical owned source/test files; root reran the focused tests/build/browser checks at f1afad5."
+  },
+  "limitations": {
+    "postgresql": "NOT_RUN; no persistence or migration change.",
+    "hosted_checks": "NOT_RUN_BY_USER_POLICY",
+    "overall_release_readiness": "NOT_ESTABLISHED; this evidence accepts only MJ-REQ-116."
+  },
+  "issue_closeout": "Pending evidence/planning commit and receipt readback."
+}

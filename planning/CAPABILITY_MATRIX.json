@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-08T05:40:30Z",
+  "timestamp": "2026-10-08T05:42:14Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -1087,9 +1087,11 @@
     },
     {
       "requirement_id": "MJ-REQ-116",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-08-match-categories.json"
+      ],
+      "note": "Issue #117 / MJ-REQ-116 category display passes locally at main f1afad5541ebcad1cd07e35b5366b78df4e1f637. All inclusive issue bands, null/non-finite/out-of-range rejection, persisted score display, profile switch/reload and unchanged scores are covered. Parent MJ-PR-032 remains QUEUED with dependencies MJ-PR-031 and MJ-PR-025; overall matching/release remains PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-117",
