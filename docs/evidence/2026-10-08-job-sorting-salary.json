@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-190",
+  "issue": 191,
+  "slice": "connected annual USD salary sort",
+  "slice_status": "PASS",
+  "requirement_status": "PARTIAL",
+  "branch": "codex/mj-req190-salary-sort-20261008",
+  "worktree": ".worktrees/codex-mj-req190-salary-sort-20261008",
+  "base_commit": "6aae6cbe26df53eb303f22fc8dab0634ee2acc13",
+  "tested_source_commit": "8884286bb404a172953b29dc2570910855b11a25",
+  "tested_source_tree": "ed66b989d5032eb46a647ee8e056b521fbdca789",
+  "validation_completed_at_utc": "2026-10-08T12:00:37Z",
+  "environment": {
+    "python": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe",
+    "database": "temporary SQLite fixture database",
+    "browser": "local Playwright Chromium; all page requests restricted to isolated local API",
+    "frontend": "Node v25.9.0; existing root app node_modules reused through ignored worktree junction",
+    "external_submission": "OFF",
+    "hosted_checks_and_reviews": "NOT_RUN_BY_POLICY",
+    "postgresql": "NOT_RUN"
+  },
+  "acceptance": {
+    "sort_options": ["salary_high", "salary_low"],
+    "comparable_salary": "Numeric, non-negative salary endpoint(s), salary_period YEAR, and salary_currency USD only.",
+    "range_scalar": "Use numeric salary_max when present; otherwise numeric salary_min. An inverted numeric band is ineligible.",
+    "unknown_values": "Missing, malformed, negative, inverted, hourly, and non-USD salaries sort last in both directions.",
+    "tie_break": "Comparable equal salaries and all ineligible salaries tie-break by stable job ID.",
+    "limit": "SQL order is applied before result LIMIT.",
+    "saved_search": "Profile-scoped sort selection validates, persists, survives Store reopen, and is restored in the connected UI.",
+    "side_effects": "Sorting does not edit job attributes, match scores, schedule sources, or submit applications."
+  },
+  "checks": [
+    {"command": "python -m unittest tests.integration.test_job_sorting", "result": "PASS", "observed": "7 tests; salary endpoints/ranges, annual USD eligibility, missing/malformed/inverted/hourly/non-USD last, stable ties, LIMIT-after-sort, invalid query and saved-sort rejection, profile-scoped saved-search reopen; existing sort regression checks."},
+    {"command": "python -m unittest tests.browser.test_job_sorting", "result": "PASS", "observed": "1 connected browser test; saved high-to-low order restored from profile search, low-to-high produces visible reordered results, helper text is visible, and browser is restricted to the isolated local API."},
+    {"command": "npm test --prefix apps/web -- --run", "result": "PASS", "observed": "18 test files; 103 tests passed."},
+    {"command": "npm run build --prefix apps/web", "result": "PASS", "observed": "TypeScript and Vite production build passed."},
+    {"command": "python -m compileall -q apps/api/main.py packages/persistence/store.py services/discovery/search_profiles.py tests/integration/test_job_sorting.py tests/browser/test_job_sorting.py", "result": "PASS"},
+    {"command": "python -m tools.verification.agent_skills", "result": "PASS"},
+    {"command": "git diff HEAD --check", "result": "PASS"}
+  ],
+  "input_sha256": {
+    "apps/api/main.py": "6BE631388AAA76AFBAF3F15DC1E16D1B26970CB44F52F04BFF87AB4543E64D67",
+    "packages/persistence/store.py": "9256B1FB6F510E52639EC07B74828BC378AB4D7E49F19280EB636666799E93A4",
+    "services/discovery/search_profiles.py": "0B35CD648F5AA65293C67BECC2141AF4600AB1F02879C0BD1ADCD8D79346DC52",
+    "apps/web/src/main.tsx": "2DA247DBECA7E071C2628CFA77ECD7F721721CED68CFDF161B97326470498E54",
+    "tests/integration/test_job_sorting.py": "5109444255FCC22FDCE3A79357277B1058284982CEBAB1C946DA41B583E367C9",
+    "tests/browser/test_job_sorting.py": "0C1ACE24E02B47E6B489F3EA7AFCB66554F29134DBD4A97D4C8B51173AD8720E"
+  },
+  "known_gaps": [
+    "Application Priority sort policy remains undefined and is not implemented by this slice.",
+    "Requirement MJ-REQ-190 remains PARTIAL overall."
+  ]
+}
