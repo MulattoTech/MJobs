@@ -25,14 +25,21 @@ const isNegatedQuestion = (value:string) => questionNegation.test(value);
 
 export const normalizeAnswerQuestion = (value:string) => value.toLowerCase().match(/[a-z0-9]+/g)?.join(' ')||'';
 
-const semanticQuestionKey = (value:string) => normalizeAnswerQuestion(value
-  .replace(/\b(coding|software development)\s+languages?\b/gi,'programming languages')
-  // A narrow ordinary-question synonym; this is not a general semantic model.
-  .replace(/\bcloud providers\b/gi,'cloud platforms')
-  // Expand only the standard ITSM acronym, not adjacent service-desk wording.
-  .replace(/\bitsm\b/gi,'it service management')
-  .replace(/\b(what|which)\b/gi,'which')
-  .replace(/\bworked with\b/gi,'used'));
+const semanticQuestionKey = (value:string) => {
+  const normalized=normalizeAnswerQuestion(value);
+  // This is a deliberately exact, ordinary availability paraphrase. Do not
+  // generalize it to adjacent scheduling questions or infer an answer.
+  if(normalized==='are you available to work weekends'||normalized==='can you work weekends')
+    return 'can you work weekends';
+  return normalizeAnswerQuestion(normalized
+    .replace(/\b(coding|software development)\s+languages?\b/gi,'programming languages')
+    // A narrow ordinary-question synonym; this is not a general semantic model.
+    .replace(/\bcloud providers\b/gi,'cloud platforms')
+    // Expand only the standard ITSM acronym, not adjacent service-desk wording.
+    .replace(/\bitsm\b/gi,'it service management')
+    .replace(/\b(what|which)\b/gi,'which')
+    .replace(/\bworked with\b/gi,'used'));
+};
 
 const tokenEditDistance = (left:string[],right:string[]) => {
   let previous=Array.from({length:right.length+1},(_,index)=>index);
