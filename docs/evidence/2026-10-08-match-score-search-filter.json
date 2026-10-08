@@ -1,0 +1,69 @@
+{
+  "requirement": "MJ-REQ-189",
+  "issue": 190,
+  "slice_status": "PASS",
+  "requirement_status": "PARTIAL",
+  "recorded_at_utc": "2026-10-08T11:31:41Z",
+  "branch": "codex/mj-req189-match-score-filter-20261008",
+  "base_commit": "b633578112a9553cc29dcbda7e7e21d88f1547c5",
+  "source_head_at_validation": "b633578112a9553cc29dcbda7e7e21d88f1547c5",
+  "environment": {
+    "workspace_mode": "FIXTURE",
+    "database": "isolated SQLite fixture database",
+    "browser": "local Playwright Chromium",
+    "external_requests": "blocked; none observed",
+    "migrations": "none",
+    "hosted_ci": "NOT_RUN by local-only policy",
+    "external_submission": "OFF",
+    "score_generation_or_model_work": "none"
+  },
+  "acceptance": {
+    "minimum_score_range": "integer 0 through 100 inclusive",
+    "score_source": "persisted matches.score for current profile version",
+    "unknown_scores": "excluded while threshold is active",
+    "database_limit_order": "score predicate applied in SQL before result LIMIT",
+    "saved_search": "profile-scoped persistence, reload/restore, clear, legacy payload compatibility",
+    "profile_isolation": "cross-profile saved-search use rejected with HTTP 409",
+    "scheduler_or_submission_side_effect": "none"
+  },
+  "checks": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_match_score_search_filter",
+      "result": "PASS",
+      "observed": "2 tests; inclusive endpoints, below/above/no-match, stale-version exclusion, NULL exclusion, SQL-before-limit, malformed query/saved bounds, saved profile scope, legacy compatibility, and no worker operation mutation"
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run src/job-match-score-filter.test.tsx",
+      "result": "PASS",
+      "observed": "2 Vitest tests"
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "observed": "TypeScript check and Vite production build completed"
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_match_score_search_filter",
+      "result": "PASS",
+      "observed": "1 connected browser test; visible result change, save/reload/reselect, clear, profile isolation, no external requests, unchanged persisted match rows, and no scheduler side effect"
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.agent_skills",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "source_sha256": {
+    "apps/api/main.py": "5247159E2ADA2115AF8F2ECDF64F1D17B411A7810FC89EB5331FCACFB79212D8",
+    "packages/persistence/store.py": "8AD62775D71A66A38F24A573B2E4DAE3CDD36963585A5E2E77A8E5F15A5B49B1",
+    "services/discovery/search_profiles.py": "D9C7F55C25193D03539E0FD1D11FE7866DD8BDBAD951A59A038E1F9D13ABDE9A",
+    "apps/web/src/main.tsx": "D346EB61A10C58E35DACA2903BB9FA0817D64E9A511B8C90D252B5E2444ED9CC",
+    "apps/web/src/job-match-score-filter.tsx": "8EF8D42067DA8DF480D0377EFD2B78EF8A931DB7CDC8B90C35667F1744D0C942",
+    "apps/web/src/job-match-score-filter.test.tsx": "9707D02A9474B02CA3802D3E65E79498F52776F52BAB734C23847D5C581E614C",
+    "tests/integration/test_match_score_search_filter.py": "200D4FE8C3C7CB286069AD13FF76081EF51346D39BCB159EE910955A74A5324D",
+    "tests/browser/test_match_score_search_filter.py": "A813883E1C275A0DC93CBB41C66723CD2B59EFB62223FEF9D1BCC563742C28C8"
+  }
+}

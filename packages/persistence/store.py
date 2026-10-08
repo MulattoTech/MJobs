@@ -629,7 +629,8 @@ class Store:
                 raise ValueError("AI_DOCUMENT_CANDIDATE_NOT_REVIEWED")
 
     def jobs(self, profile_id=None, q="", remote_type=None, provider=None, sort="score", limit=200,
-             title="", company="", location="", salary_min=None, salary_max=None):
+             title="", company="", location="", salary_min=None, salary_max=None,
+             min_match_score=None):
         profile = self.profile(profile_id) if profile_id else None
         with self.engine.connect() as connection:
             counts = select(m.postings.c.job_id, func.count().label("posting_count")).group_by(m.postings.c.job_id).subquery()
@@ -690,6 +691,10 @@ class Store:
                     statement = statement.where(high_is_number, offer_max >= salary_min)
                 if salary_max is not None:
                     statement = statement.where(low_is_number, offer_min <= salary_max)
+            if min_match_score is not None:
+                # The outer join is restricted to the active profile version above;
+                # this predicate also fails closed for unscored jobs and runs before LIMIT.
+                statement = statement.where(m.matches.c.score >= min_match_score)
             if remote_type:
                 if remote_type == "REMOTE":
                     statement = statement.where(m.jobs.c.remote_type.in_(("REMOTE", "REMOTE_WORLDWIDE", "REMOTE_US", "REMOTE_COUNTRY", "REMOTE_SPECIFIC_STATES")))

@@ -1334,18 +1334,23 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
              provider: Literal["mock-ats", "greenhouse"] | None = None, sort: Literal["score", "newest", "company", "title"] = "score",
              salary_min: float | None = Query(default=None, ge=0, le=100000000),
              salary_max: float | None = Query(default=None, ge=0, le=100000000),
+             min_match_score: int | None = Query(default=None, ge=0, le=100),
              search_profile_id: str | None = Query(default=None, max_length=128),
              include_dismissed: bool = False,
              limit: int = Query(default=200, ge=1, le=500)):
         if salary_min is not None and salary_max is not None and salary_min > salary_max:
             raise HTTPException(422, "Minimum annual USD salary cannot exceed maximum annual USD salary")
+        search_profile = get_search_profile(store, search_profile_id) if search_profile_id else None
+        if search_profile and search_profile["profile_id"] != profile_id:
+            raise HTTPException(409, "Search profile belongs to a different career profile")
+        saved_score = ((search_profile["criteria"].get("job_filters") or {}).get("min_match_score", "")
+                       if search_profile else "")
+        effective_match_score = max(min_match_score or 0, int(saved_score)) if saved_score else min_match_score
         rows = store.jobs(profile_id, q, remote_type, provider, sort, limit,
                           title=title, company=company, location=location,
-                          salary_min=salary_min, salary_max=salary_max)
+                          salary_min=salary_min, salary_max=salary_max,
+                          min_match_score=effective_match_score)
         if search_profile_id:
-            search_profile = get_search_profile(store, search_profile_id)
-            if search_profile["profile_id"] != profile_id:
-                raise HTTPException(409, "Search profile belongs to a different career profile")
             rows = filter_jobs(rows, search_profile["criteria"])
         if profile_id:
             from services.tracking.jobs import list_job_tracking
