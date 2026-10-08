@@ -1,0 +1,133 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REQ-105-ANSWER-CONFIDENCE-THRESHOLDS-LOCAL-20261008",
+  "recorded_at_utc": "2026-10-08T08:03:22Z",
+  "result": "PARTIAL",
+  "issue": 106,
+  "requirement_id": "MJ-REQ-105",
+  "scope": "Adds durable, profile-scoped minimum saved-answer and question-match confidence settings. Defaults preserve the current 80% saved-answer and 75% question-match gates. The UI saves and reloads settings, filters suggestions, and disables export when selected saved answers fall below the active profile policy; the API rechecks policy at export. Existing verified and user-approved saved-answer requirements, per-job review, sensitive/legal exclusions, profile isolation, stale-version checks, immutable local export and external-submission-off behavior remain enforced.",
+  "authority": {
+    "repository": "MulattoTech/MJobs",
+    "issue_url": "https://github.com/MulattoTech/MJobs/issues/106",
+    "issue_state": "OPEN",
+    "branch": "codex/mj-req105-answer-confidence-thresholds-20261008",
+    "worktree": ".worktrees/codex-mj-req105-answer-confidence-thresholds-20261008",
+    "base_main": "454217533bf23b88c80c4fdfbf6b604d07c59bea",
+    "tested_commit": "88b8b8ca65f692013fb86fd1e60cbe50dc9b2e93",
+    "tested_tree": "86b3d9ac528331ee45c5e0cbe37cb1a40c2ec0ab",
+    "evidence_commit_note": "This record is documentation-only and is committed after the tested source commit; executable and test inputs are identified by the tested commit/tree and source hashes below."
+  },
+  "acceptance": {
+    "threshold_configuration": "PASS; strict API and service validation reject invalid values and preserve current 80/75 defaults. Settings are stored per profile, reloaded after Store reopen, and unknown profiles return 404.",
+    "threshold_enforcement": "PASS; server export rechecks both saved-answer confidence and match score against the active profile policy. Positive boundary equality passes; one-point answer and match-score increases fail. A manual answer with deliberate per-job review remains exportable at maximum thresholds.",
+    "safety_invariants": "PASS in focused API/integration checks; saved answers still require verified and explicitly approved status and deliberate per-job review; sensitive/legal answers remain blocked by existing tests; stale approval/version checks remain in the export path; export reports external_submission OFF.",
+    "profile_isolation_and_durability": "PASS in API/integration checks; separate profiles have separate policies, and saved thresholds survive closing and reopening the SQLite Store.",
+    "connected_browser_workflow": "PARTIAL; a connected loopback Chromium test was added for profile-scoped controls, reload, suggestion filtering, manual answer export, and zero external requests, but the local Playwright Chromium executable was absent, so runtime UI verification could not complete.",
+    "queue_scope": "MJ-PR-029 remains QUEUED; no canonical planning or dependency queue files were changed. This evidence covers only the narrow MJ-REQ-105 child slice."
+  },
+  "checks": [
+    {
+      "command": "pytest tests/unit/test_answer_matching.py tests/integration/test_application_answer_export.py -q",
+      "target": "focused matcher tests and synthetic SQLite/API export workflow",
+      "result": "PASS",
+      "tests": 27,
+      "subtests": 8,
+      "failures": 0,
+      "skips": 0,
+      "observed": "27 passed, 8 subtests passed in 21.49s"
+    },
+    {
+      "command": "pytest tests/browser/test_application_answer_export.py -q",
+      "target": "connected loopback Chromium workflow",
+      "result": "BLOCKED_ENVIRONMENT",
+      "tests": 3,
+      "failures": 3,
+      "skips": 0,
+      "observed": "Playwright Python package loaded, but browser launch failed because C:\\Users\\Dylan\\AppData\\Local\\ms-playwright\\chromium_headless_shell-1234\\chrome-headless-shell-win64\\chrome-headless-shell.exe was absent. No browser installation or download was attempted."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "target": "web TypeScript and Vite production build",
+      "result": "PASS",
+      "observed": "TypeScript check passed; Vite transformed 33 modules and built the production bundle. The ignored node_modules junction used to reuse existing dependencies was removed after the build."
+    },
+    {
+      "command": "temporary SQLite Alembic script: upgrade 8e2f4c6a1b93 to head; empty downgrade; populated downgrade guard and row preservation",
+      "target": "new answer confidence migration upgrade/reversibility",
+      "result": "PASS",
+      "observed": "New table created; empty rollback removed it; populated rollback raised the intended RuntimeError and preserved the policy row."
+    },
+    {
+      "command": "alembic heads",
+      "target": "migration graph",
+      "result": "PASS",
+      "observed": "a3e19d7c4b26 (head)"
+    },
+    {
+      "command": "git diff --check",
+      "target": "tested candidate before evidence-only commit",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m unittest tests.unit.test_answer_matching tests.integration.test_application_answer_export -v",
+      "target": "Python 3.12 environment probe",
+      "result": "BLOCKED_ENVIRONMENT",
+      "observed": "The default Python 3.12 environment lacks SQLAlchemy and Redis. The same focused suites passed under the installed Python 3.11 pytest environment."
+    }
+  ],
+  "environment": {
+    "platform": "Windows PowerShell",
+    "python_for_passed_pytest": "3.11 (pytest launcher)",
+    "default_python_probe": "3.12.10; unavailable SQLAlchemy and Redis dependencies",
+    "node": "25.9.0",
+    "npm": "11.12.1",
+    "database": "temporary SQLite only",
+    "dependencies": "Existing local node_modules reused through a temporary junction for build; junction removed. No dependency installation, browser download, hosted runner, or external AI inference."
+  },
+  "source_inputs": {
+    "apps/api/main.py": {
+      "git_blob": "a91cda29fa2786ba56d60b78c038466219ba37ab",
+      "sha256": "D208CE2A49E4D09CF5D5B9450774579A2B09EF20ED7A923E01035E283A04EBC5"
+    },
+    "apps/web/src/main.tsx": {
+      "git_blob": "b81a7c22ffe787aefd39c34b38f65247237095be",
+      "sha256": "E96597C068C61CE5826AB029EE63D6AAAE3EC9D32721E88CE94A3CA2D04FA7B4"
+    },
+    "packages/persistence/models.py": {
+      "git_blob": "23671e54e87748f58caa55ce11372479e8f773c2",
+      "sha256": "3F22A10141CED52593DA385A974F777D19E244B777C497766EAB2DDF29D871D9"
+    },
+    "services/documents/answers.py": {
+      "git_blob": "c63a5b6f63437fa5a03b31477abd7778fcd7021c",
+      "sha256": "F65FC241A66C382075176EBCA195CFA458E75762101CEC2A47885EE3C19D59FB"
+    },
+    "migrations/versions/20261008_answer_confidence_thresholds.py": {
+      "git_blob": "d74de53f405ad2932a91e861a3160be7d796c1e8",
+      "sha256": "82748BA31F0EE29A4448826622EDDB3DB943D8C96F92E3785395A68D78EE43DA"
+    },
+    "tests/unit/test_answer_matching.py": {
+      "git_blob": "3898d1f5a824222b5cd8fbbb4ff404c4503b1f2b",
+      "sha256": "4A7D87C36BC8CC079A153F2CD986EDB22432DC79D82B9D76BD441BB478E70B63"
+    },
+    "tests/integration/test_application_answer_export.py": {
+      "git_blob": "281e64bb5e3d5cdebf36c142218d96ab86e738a5",
+      "sha256": "8E4230A1316B4D600959D5F66922C497B12F942A3178AA35AB00E32237DADDB9"
+    },
+    "tests/browser/test_application_answer_export.py": {
+      "git_blob": "c7481c4efcab24cb4bead35ada3483c4b37055a4",
+      "sha256": "6A31D9FCAC8E4D927FA7532BA5A158E5E9801470AED728726B5AB43BAFDBDF61"
+    }
+  },
+  "limitations": {
+    "postgresql": "NOT_RUN",
+    "hosted_actions_review_ci": "NOT_RUN_BY_USER_POLICY",
+    "browser_runtime": "BLOCKED_ENVIRONMENT: local Playwright Chromium binary missing",
+    "whole_requirement": "PARTIAL; focused API/storage and build checks pass, but browser runtime and PostgreSQL were not verified.",
+    "external_application_submission": "OFF",
+    "external_requests": "NONE"
+  },
+  "red_first_observation": {
+    "result": "FAIL_BEFORE_IMPLEMENTATION",
+    "details": "The new matcher test first failed because match_answer_question did not accept minimum_confidence; new API integration tests first returned 404 for the missing thresholds endpoint. Those failures exposed the behavior this slice adds."
+  }
+}
