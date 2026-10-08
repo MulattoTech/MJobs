@@ -758,7 +758,7 @@
       "status": "PARTIAL",
       "branch": null,
       "draft_until_verified": true,
-      "notes": "MJ092/093/094 accepted. MJ095 ordering, explicit approved selection, technology emphasis, optional contact header, responsibility bullet emphasis and extractive target-skill summary selection/fallback are locally verified. Broader factual bullet and summary rephrasing remain PARTIAL. Fact-editor regression #503 is accepted in PR504. Local-only evidence: docs/evidence/2026-10-06-target-summary-tailoring.json; hosted verification NOT_RUN. User-reviewed selected responsibility bullet rewriting is integrated at bf3c8bc1868987c59661a69184537272c2f8d422; evidence docs/evidence/2026-10-07-resume-user-reviewed-bullet-rephrasing.json. Issue #96 remains OPEN/PARTIAL because broader summary and other factual bullet rewriting are not complete; hosted checks NOT_RUN_BY_USER_POLICY. Previous approved experience-fact rewrite slice integrated on main at 5dfce5eec8e2e6c56442631725c0993c7ce12a29 (tested source c6eb1cd604d1372800bc798b7454aa9fe40d9d91), evidence docs/evidence/2026-10-08-resume-experience-rewrites.json; issue remains OPEN/PARTIAL. New local child slice #96/MJ-REQ-095 target-relevant bullet selection claimed at https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6054751589. Parent dependencies MJ-PR-025/MJ-PR-024 remain unchanged; this child does not promote parent status. Latest bounded slice integrated locally at 454217533bf23b88c80c4fdfbf6b604d07c59bea: deterministic exact-skill target bullet selection with no-match fallback and explicit selection priority; immutable omission provenance survives reload. Evidence docs/evidence/2026-10-08-resume-target-bullet-selection.json. Issue #96 remains OPEN/PARTIAL; parent dependencies preserved.",
+      "notes": "MJ092/093/094 accepted. MJ095 ordering, explicit approved selection, technology emphasis, optional contact header, responsibility bullet emphasis and extractive target-skill summary selection/fallback are locally verified. Broader factual bullet and summary rephrasing remain PARTIAL. Fact-editor regression #503 is accepted in PR504. Local-only evidence: docs/evidence/2026-10-06-target-summary-tailoring.json; hosted verification NOT_RUN. User-reviewed selected responsibility bullet rewriting is integrated at bf3c8bc1868987c59661a69184537272c2f8d422; evidence docs/evidence/2026-10-07-resume-user-reviewed-bullet-rephrasing.json. Issue #96 remains OPEN/PARTIAL because broader summary and other factual bullet rewriting are not complete; hosted checks NOT_RUN_BY_USER_POLICY. Previous approved experience-fact rewrite slice integrated on main at 5dfce5eec8e2e6c56442631725c0993c7ce12a29 (tested source c6eb1cd604d1372800bc798b7454aa9fe40d9d91), evidence docs/evidence/2026-10-08-resume-experience-rewrites.json; issue remains OPEN/PARTIAL. New local child slice #96/MJ-REQ-095 target-relevant bullet selection claimed at https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6054751589. Parent dependencies MJ-PR-025/MJ-PR-024 remain unchanged; this child does not promote parent status. Latest bounded slice integrated locally at 454217533bf23b88c80c4fdfbf6b604d07c59bea: deterministic exact-skill target bullet selection with no-match fallback and explicit selection priority; immutable omission provenance survives reload. Evidence docs/evidence/2026-10-08-resume-target-bullet-selection.json. Issue #96 remains OPEN/PARTIAL; parent dependencies preserved. Latest local feature slice #96 / MJ-REQ-095 integrated on main 4861439ba189502b8f0b6ed26b16b37c17ba87dc; evidence docs/evidence/2026-10-08-responsibility-phrase-tailoring.json. Exact job-responsibility phrase matches add conservative resume-selection evidence and explain selection in durable comparison history; issue remains OPEN/PARTIAL.",
       "feedback_slice": {
         "branch": "codex/resume-driven-profile",
         "result": "PARTIAL",
@@ -840,7 +840,22 @@
       "latest_slice_branch": "codex/mj-req095-experience-rewrite-20261008",
       "latest_slice_scope_complete": false,
       "latest_slice_tests": "Python 19/19; focused Vitest 3/3; TypeScript/Vite build; nine changed-input hashes; diff check PASS on exact source; LOCAL_DELEGATED_REVIEW no blocker. Node 25.9.0 unsupported; full suite, PostgreSQL and hosted checks NOT_RUN.",
-      "latest_slice_release_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6055480482"
+      "latest_slice_release_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6055480482",
+      "slice_history": [
+        {
+          "name": "Exact job-responsibility phrase resume selection with immutable provenance",
+          "issue": 96,
+          "requirement_id": "MJ-REQ-095",
+          "status": "INTEGRATED_PARTIAL",
+          "candidate_head": "4861439ba189502b8f0b6ed26b16b37c17ba87dc",
+          "integrated_main": "4861439ba189502b8f0b6ed26b16b37c17ba87dc",
+          "evidence_path": "docs/evidence/2026-10-08-responsibility-phrase-tailoring.json",
+          "validation": "Root exact rebased candidate: 21 focused Python/Chromium PASS; 10 frontend PASS; build, py_compile, agent skill validation and evidence hashes PASS.",
+          "limitations": [
+            "Whole MJ-REQ-095 remains PARTIAL; broader factual rephrasing and PostgreSQL/hosted checks NOT_RUN."
+          ]
+        }
+      ]
     },
     {
       "id": "MJ-PR-027",
@@ -975,7 +990,7 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-031-matching-ai",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Latest scoped #116 / MJ-REQ-115 negated-must-have slice integrated at c05d6c90b660508417ba7c17a0aa24a4116fded3; tested source 12ac4048f92f59423a08d5f4af49453f4949f570 / tree 23f5220012726c5eac91f711428d80e8f72f3a0b. Root: 25 parser/matching tests and 1 synthetic Chromium manual-capture/reopen test PASS; TypeScript/Vite build, py_compile and exact evidence hashes PASS. Vitest NOT_RUN (Node 25 outside declared range); hosted checks/review NOT_RUN_BY_USER_POLICY. Evidence docs/evidence/2026-10-08-required-vs-preferred-negated-must-have.json; #116 and PR-031 remain OPEN/PARTIAL; dependencies unchanged. Latest bounded local slice 115 / MJ-REQ-114 integrated on tested candidate b96700264ac660c91b5be0093b979607ddfd6267; evidence docs/evidence/2026-10-08-explainable-match-factors.json. Parent aggregate status and dependencies are unchanged; broader acceptance remains PARTIAL.",
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Latest scoped #116 / MJ-REQ-115 negated-must-have slice integrated at c05d6c90b660508417ba7c17a0aa24a4116fded3; tested source 12ac4048f92f59423a08d5f4af49453f4949f570 / tree 23f5220012726c5eac91f711428d80e8f72f3a0b. Root: 25 parser/matching tests and 1 synthetic Chromium manual-capture/reopen test PASS; TypeScript/Vite build, py_compile and exact evidence hashes PASS. Vitest NOT_RUN (Node 25 outside declared range); hosted checks/review NOT_RUN_BY_USER_POLICY. Evidence docs/evidence/2026-10-08-required-vs-preferred-negated-must-have.json; #116 and PR-031 remain OPEN/PARTIAL; dependencies unchanged. Latest bounded local slice 115 / MJ-REQ-114 integrated on tested candidate b96700264ac660c91b5be0093b979607ddfd6267; evidence docs/evidence/2026-10-08-explainable-match-factors.json. Parent aggregate status and dependencies are unchanged; broader acceptance remains PARTIAL. Additional #116 / MJ-REQ-115 required-versus-preferred skill slice integrated at 4861439ba189502b8f0b6ed26b16b37c17ba87dc; evidence docs/evidence/2026-10-08-manual-skill-requirement-strength.json. Parent and dependency state unchanged; issue remains OPEN/PARTIAL.",
       "slice_history": [
         {
           "name": "Explain title, arrangement and employment fit factors",
@@ -988,6 +1003,18 @@
           "limitations": [
             "Factors are informational and do not change the skill-coverage score; unknown inputs remain UNKNOWN.",
             "Full match-factor acceptance and hosted checks remain NOT_RUN."
+          ]
+        },
+        {
+          "name": "Classify known skills by explicit required/preferred strength",
+          "issue": 116,
+          "requirement_id": "MJ-REQ-115",
+          "status": "INTEGRATED_PARTIAL",
+          "integrated_main": "4861439ba189502b8f0b6ed26b16b37c17ba87dc",
+          "evidence_path": "docs/evidence/2026-10-08-manual-skill-requirement-strength.json",
+          "validation": "Root combined parser, explainable-matching, application-answer and review-queue suite 59 PASS; web build and 95 frontend tests PASS before this batch; rebase exact evidence retained.",
+          "limitations": [
+            "Unknown/ambiguous requirements remain UNKNOWN; broader matching requirement and hosted checks NOT_RUN."
           ]
         }
       ]
@@ -1741,7 +1768,7 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-054-web-api-analytics",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Narrow issue #199/MJ-REQ-198 same-application comparison condition integrated locally at 41513c0f3c2c75970bfc8173f0ca8576acb63519; readable Added/Removed line output is covered. This slice remains PARTIAL for MJ-REQ-198; issue #199 OPEN. Evidence docs/evidence/2026-10-08-cover-letter-history-comparison.json. Parent MJ-PR-054 remains QUEUED with original dependencies MJ-PR-053 and MJ-PR-043 unchanged.",
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Narrow issue #199/MJ-REQ-198 same-application comparison condition integrated locally at 41513c0f3c2c75970bfc8173f0ca8576acb63519; readable Added/Removed line output is covered. This slice remains PARTIAL for MJ-REQ-198; issue #199 OPEN. Evidence docs/evidence/2026-10-08-cover-letter-history-comparison.json. Parent MJ-PR-054 remains QUEUED with original dependencies MJ-PR-053 and MJ-PR-043 unchanged. Additional #198 / MJ-REQ-197 application-review slice integrated at 4861439ba189502b8f0b6ed26b16b37c17ba87dc; evidence docs/evidence/2026-10-08-application-review-ux.json. Existing #199 active_slice and parent dependencies preserved; issue remains OPEN/PARTIAL.",
       "active_slice": {
         "name": "Compare two integrity-validated cover-letter revisions in Documents history",
         "issue": 199,
@@ -1768,7 +1795,21 @@
         "issue_receipt": "https://github.com/MulattoTech/MJobs/issues/199#issuecomment-6053174608",
         "claim_release_receipt": "https://github.com/MulattoTech/MJobs/issues/199#issuecomment-6053176187",
         "verification": "LOCAL: Vitest 9/9, TypeScript/Vite build, connected Chromium 2/2; LOCAL_DELEGATED_REVIEW no material findings. Root reran exact candidate after metadata-only rebase."
-      }
+      },
+      "slice_history": [
+        {
+          "name": "Actionable application question review and consent-safe Answer Bank reuse",
+          "issue": 198,
+          "requirement_id": "MJ-REQ-197",
+          "status": "INTEGRATED_PARTIAL",
+          "integrated_main": "4861439ba189502b8f0b6ed26b16b37c17ba87dc",
+          "evidence_path": "docs/evidence/2026-10-08-application-review-ux.json",
+          "validation": "Root combined Python 59 PASS, frontend 95/95, TypeScript/Vite build PASS; exact source hashes reconciled after rebase.",
+          "limitations": [
+            "No live ATS or full Continue action; hosted checks NOT_RUN."
+          ]
+        }
+      ]
     },
     {
       "id": "MJ-PR-055",
@@ -4213,5 +4254,5 @@
       "claim_release_comment": "https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053395464"
     }
   ],
-  "generated_at": "2026-10-08T08:24:33Z"
+  "generated_at": "2026-10-08T09:23:01.774980Z"
 }

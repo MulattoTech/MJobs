@@ -929,6 +929,82 @@
       "evidence_path": "docs/evidence/2026-10-08-saved-job-filters.json",
       "issue_comment": "https://github.com/MulattoTech/MJobs/issues/192#issuecomment-6054442666",
       "released_at": "2026-10-08T07:02:54Z"
+    },
+    {
+      "issue": 116,
+      "requirement_id": "MJ-REQ-115",
+      "branch": "codex/mj-req115-skill-strength-20261008",
+      "worktree": ".worktrees/codex-mj-req115-skill-strength-20261008",
+      "head": "2ff9d8a7971e23c45aeeda51d6e86cbc7cba7dc0",
+      "paths": [
+        "services/matching/requirement_parsers.py",
+        "tests/unit/test_requirement_parsers.py",
+        "tests/integration/test_explainable_matching.py",
+        "docs/evidence/2026-10-08-manual-skill-requirement-strength.json"
+      ],
+      "status": "RELEASED",
+      "claimed_at": "2026-10-08T08:46:00Z",
+      "evidence_path": "docs/evidence/2026-10-08-manual-skill-requirement-strength.json",
+      "integrated_main": "4861439ba189502b8f0b6ed26b16b37c17ba87dc",
+      "result": "INTEGRATED_PARTIAL; issue #116 remains OPEN/PARTIAL"
+    },
+    {
+      "issue": 198,
+      "requirement_id": "MJ-REQ-197",
+      "branch": "codex/mj-req197-application-review-ux-20261008",
+      "worktree": ".worktrees/codex-mj-req197-application-review-ux-20261008",
+      "head": "a1de18b8ab9538f0441c8f4ac95aff480f9916ea",
+      "paths": [
+        "apps/web/src/main.tsx",
+        "tests/browser/test_application_review_queue.py",
+        "docs/evidence/2026-10-08-application-review-ux.json"
+      ],
+      "status": "RELEASED",
+      "claimed_at": "2026-10-08T08:54:59Z",
+      "evidence_path": "docs/evidence/2026-10-08-application-review-ux.json",
+      "integrated_main": "4861439ba189502b8f0b6ed26b16b37c17ba87dc",
+      "result": "INTEGRATED_PARTIAL; issue #198 remains OPEN/PARTIAL"
+    },
+    {
+      "issue": 96,
+      "requirement_id": "MJ-REQ-095",
+      "branch": "codex/mj-req095-responsibility-phrases-20261008",
+      "worktree": ".worktrees/codex-mj-req095-responsibility-phrases-20261008",
+      "head": "4861439ba189502b8f0b6ed26b16b37c17ba87dc",
+      "paths": [
+        "services/documents/tailor.py",
+        "services/documents/comparison.py",
+        "services/documents/history.py",
+        "apps/web/src/document-history.tsx",
+        "tests/integration/test_responsibility_tailoring.py",
+        "tests/browser/test_responsibility_tailoring.py",
+        "docs/evidence/2026-10-08-responsibility-phrase-tailoring.json"
+      ],
+      "status": "RELEASED",
+      "claimed_at": "2026-10-08T09:05:01Z",
+      "evidence_path": "docs/evidence/2026-10-08-responsibility-phrase-tailoring.json",
+      "integrated_main": "4861439ba189502b8f0b6ed26b16b37c17ba87dc",
+      "result": "INTEGRATED_PARTIAL; issue #96 remains OPEN/PARTIAL"
+    },
+    {
+      "issue": 190,
+      "requirement_id": "MJ-REQ-189",
+      "branch": "codex/mj-req189-title-company-filters-20261008",
+      "worktree": ".worktrees/codex-mj-req189-title-company-filters-20261008",
+      "head": null,
+      "paths": [
+        "apps/api/main.py",
+        "packages/persistence/store.py",
+        "services/discovery/search_profiles.py",
+        "apps/web/src/main.tsx",
+        "tests/integration/test_saved_search_filters.py",
+        "tests/browser/test_saved_search_filters.py",
+        "docs/evidence/2026-10-08-title-company-search-filters.json"
+      ],
+      "status": "ACTIVE",
+      "claimed_at": "2026-10-08T09:27:28Z",
+      "claim_comment": "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6056870469",
+      "acceptance": "Connected title and company substring filters compose with existing job-search controls, persist in profile-scoped saved searches, and survive reload; verify literal matching, result ordering/limit, isolation, clear, and no scheduling/submission side effects."
     }
   ]
 }

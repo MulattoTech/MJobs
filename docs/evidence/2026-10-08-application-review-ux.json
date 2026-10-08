@@ -14,7 +14,10 @@
     "worktree": ".worktrees/codex-mj-req197-application-review-ux-20261008",
     "base_head": "41f5fb7eb8b6d802a1f9e8c84365a0d526d448a9",
     "source_base_head": "99557bcf279121d15812b13480638a1a8ce3418a",
-    "tested_source_tree": "661b9f10f24e28b4cccd2a809830ad55e05536fa"
+    "tested_source_tree": "661b9f10f24e28b4cccd2a809830ad55e05536fa",
+    "integrated_head": "4861439ba189502b8f0b6ed26b16b37c17ba87dc",
+    "integrated_tree": "72a7c772bac5bf1ae9b2385b03e194f530c93e85",
+    "integration_note": "Root reran the combined acceptance suite on the pre-tailoring integration head; the later resume-tailoring slice did not change these application-review inputs. Root source hashes below match the integrated checkout."
   },
   "acceptance": {
     "unresolved_question_routing": "PASS; the persisted preflight question, missing-answer reason and exact text are visible, and the deliberate review action carries that text into the selected application's answer form without a duplicate row.",
@@ -76,12 +79,16 @@
   "hosted_checks": "NOT_RUN by repository policy",
   "external_submission": "NOT_RUN; external submission remains OFF",
   "source_sha256": {
-    "apps/web/src/main.tsx": "71FE17A0B1F02D44B574BE581EB4152A3AB1DB64E887D331A3B4DAB011DEEA91",
+    "apps/web/src/main.tsx": "9FF9B5F2B579B4FD13F544B7F814395AE3E5C0436044F1E6815474DB7833F6CE",
     "tests/browser/test_application_review_queue.py": "17AEB4A71341F46BE5D7F4B3E449CBCDC2A4515FA7E20CC7B411CD33E236011A"
   },
   "limitations": [
     "Only the issue's bounded application-review UX slice is implemented; the canonical requirement remains PARTIAL.",
     "Tests use a synthetic local fixture and do not establish compatibility with a live employer ATS.",
     "Hosted CI, hosted review and release eligibility are NOT_RUN by policy."
-  ]
+  ],
+  "worker_source_sha256": {
+    "apps/web/src/main.tsx": "71FE17A0B1F02D44B574BE581EB4152A3AB1DB64E887D331A3B4DAB011DEEA91",
+    "tests/browser/test_application_review_queue.py": "17AEB4A71341F46BE5D7F4B3E449CBCDC2A4515FA7E20CC7B411CD33E236011A"
+  }
 }

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-08T08:26:10Z",
+  "generated_at": "2026-10-08T09:23:01.774980Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -11,8 +11,8 @@
     "current_verified_github_state": "Local and origin main synchronized at e211f013801849a4fe2cf24c855313b8fcfc3978; latest integrated scoped slice is #144/MJ-REQ-143 MOCK-only confirmation capture; whole release remains PARTIAL.",
     "current_verified_at": "2026-10-08T08:24:33Z"
   },
-  "current_milestone": "MJ-REQ-194-COMPANIES-SCREEN-BROWSER-REVALIDATED-20261008",
-  "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
+  "current_milestone": "CORE-FEATURE-BATCH-20261008-B",
+  "current_objective": "Advance connected jobseeker discovery, truthful job-specific documents, and consent-safe application preparation through dependency-ready core slices.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -553,11 +553,11 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "commit": "b96700264ac660c91b5be0093b979607ddfd6267",
-    "tree": "94a31caece7fbcc8cb3cefa4775529d2d99df349",
-    "result": "PASS scoped local candidate: 47 Python, 95 frontend, TypeScript/Vite build and one synthetic connected Chromium test; broader product/release remains PARTIAL/NOT_RUN.",
-    "evidence": "docs/evidence/2026-10-08-cover-letter-relevance-ranking.json",
-    "verified_at_utc": "2026-10-08T08:49:55Z"
+    "commit": "4861439ba189502b8f0b6ed26b16b37c17ba87dc",
+    "tree": "72a7c772bac5bf1ae9b2385b03e194f530c93e85",
+    "result": "PASS scoped local core feature batch; whole product/release remains PARTIAL/NOT_RUN.",
+    "evidence": "docs/evidence/2026-10-08-responsibility-phrase-tailoring.json",
+    "verified_at_utc": "2026-10-08T09:23:01.774980Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -624,12 +624,8 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Finish this integration checkpoint: regenerate and validate the dashboard, push local-only main by ordinary fast-forward, read back synchronized local/GitHub main, then post truthful issue integration receipts and release only these Codex claims. Continue this explicit core-feature sprint with the next dependency-ready jobseeker workflow slice; preserve Antigravity #302 and Ollama #318 claims. Hosted Actions/reviews and external submission remain OFF.",
-  "release_readiness": {
-    "result": "NOT_RUN",
-    "evidence": [],
-    "note": "Full-spec release acceptance is separate from merged milestone and CI checks"
-  },
+  "recommended_resume_step": "Select the highest-value dependency-ready original core feature from live issue/spec state; favor connected discovery/search/matching or ATS preparation. Keep hosted Actions/review disabled and external submission OFF.",
+  "release_readiness": "NOT_RUN",
   "migrations_applied": [
     "92f0997f753e",
     "098f12099319",
@@ -662,7 +658,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "b96700264ac660c91b5be0093b979607ddfd6267",
+  "last_implementation_commit": "4861439ba189502b8f0b6ed26b16b37c17ba87dc",
   "publication": {
     "result": "PASS - scoped local product slices integrated; overall release remains PARTIAL/NOT_RUN",
     "integration_method": "NON_FORCE_FAST_FORWARD with exact worker commits cherry-picked where needed",
@@ -10991,14 +10987,65 @@
         "evidence_path": "docs/evidence/2026-10-08-cover-letter-relevance-ranking.json",
         "note": "Related acceptance evidence is also recorded in docs/evidence/2026-10-08-answer-semantic-matching.json and docs/evidence/2026-10-08-explainable-match-factors.json. Original requirements remain PARTIAL."
       }
+    },
+    {
+      "milestone_id": "CORE-FEATURE-BATCH-20261008-B",
+      "timestamp": "2026-10-08T09:23:01.774980Z",
+      "current_phase": "CORE_FEATURE_IMPLEMENTATION",
+      "completed_steps": [
+        "Integrated #116/MJ-REQ-115 conservative required/preferred strength classification with exact known-skill evidence.",
+        "Integrated #198/MJ-REQ-197 per-application unresolved-question routing, deliberate answer review, and consent/version-safe Answer Bank reuse.",
+        "Integrated #96/MJ-REQ-095 exact responsibility phrase resume selection with durable reason and provenance validation.",
+        "Root verified the combined main candidate plus the rebased responsibility-tailoring slice; all source/evidence hashes reconciled."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-08-required-vs-preferred-negated-must-have.json",
+        "docs/evidence/2026-10-08-application-review-ux.json",
+        "docs/evidence/2026-10-08-responsibility-phrase-tailoring.json",
+        "tests/integration/test_responsibility_tailoring.py",
+        "tests/browser/test_responsibility_tailoring.py"
+      ],
+      "files_modified": [
+        "services/matching/requirement_parsers.py",
+        "services/documents/tailor.py",
+        "services/documents/comparison.py",
+        "services/documents/history.py",
+        "apps/web/src/main.tsx",
+        "apps/web/src/document-history.tsx",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "planning/IMPLEMENTATION_STATE.json"
+      ],
+      "tests_completed": [
+        "On combined #116/#198 main candidate: parser/matching/application export/review queue 59 PASS, frontend 95/95 PASS, TypeScript/Vite build PASS.",
+        "On rebased #96 candidate: focused Python unit/integration/Chromium 21 PASS; document-history Vitest 10 PASS; TypeScript/Vite build, py_compile, agent skill validation and evidence input hashes PASS.",
+        "Local delegated review for #198 and #96: no code findings; #96 evidence rebase mismatch was corrected and root verification rerun.",
+        "git diff --check and evidence SHA-256 reconciliation PASS."
+      ],
+      "tests_remaining": [
+        "Whole Python/browser regression, PostgreSQL behavior, live ATS compatibility, hosted checks/review and release eligibility remain NOT_RUN."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "MJ-REQ-095, MJ-REQ-115 and MJ-REQ-197 remain PARTIAL; their parent umbrellas/dependencies are unchanged.",
+        "Hosted Actions/reviews, PostgreSQL and live ATS are NOT_RUN by local-only policy/environment. External submission remains OFF."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "4861439ba189502b8f0b6ed26b16b37c17ba87dc",
+        "tree": "72a7c772bac5bf1ae9b2385b03e194f530c93e85",
+        "evidence_path": "docs/evidence/2026-10-08-responsibility-phrase-tailoring.json",
+        "note": "Meaningful core-feature integration batch: application review/Answer Bank safety, explicit skill-strength classification and truthful resume responsibility matching; origin sync and release eligibility are recorded separately."
+      }
     }
   ],
   "current_phase": "CORE_FEATURE_IMPLEMENTATION",
   "last_safe_checkpoint": {
-    "git_commit": "b96700264ac660c91b5be0093b979607ddfd6267",
-    "tree": "94a31caece7fbcc8cb3cefa4775529d2d99df349",
-    "evidence_path": "docs/evidence/2026-10-08-cover-letter-relevance-ranking.json",
-    "note": "Related acceptance evidence is also recorded in docs/evidence/2026-10-08-answer-semantic-matching.json and docs/evidence/2026-10-08-explainable-match-factors.json. Original requirements remain PARTIAL."
+    "git_commit": "4861439ba189502b8f0b6ed26b16b37c17ba87dc",
+    "tree": "72a7c772bac5bf1ae9b2385b03e194f530c93e85",
+    "evidence_path": "docs/evidence/2026-10-08-responsibility-phrase-tailoring.json",
+    "note": "Meaningful core-feature integration batch: application review/Answer Bank safety, explicit skill-strength classification and truthful resume responsibility matching; origin sync and release eligibility are recorded separately."
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -11324,15 +11371,22 @@
     "next_issue": "Release #398 and select the next dependency-ready unclaimed issue after live claim/worktree reconciliation."
   },
   "active_development_issue": {
-    "issue": 191,
-    "requirement_id": "MJ-REQ-190",
-    "title": "Job Sorting",
-    "state": "BLOCKED_DESIGN at user handoff; Salary ordering direction/range endpoint/currency-period semantics are unspecified; Application Priority remains incomplete and its scoring factors are not settled. No active Codex writer or claim.",
-    "branch": null,
-    "worktree": null,
-    "base_commit": "e211f013801849a4fe2cf24c855313b8fcfc3978",
-    "owned_paths": [],
-    "acceptance": "Resume only after selecting an already-specified safe dependency-ready slice or resolving the existing documented design ambiguity; keep MJ-PR-052 dependencies unchanged.",
+    "issue": 96,
+    "requirement_id": "MJ-REQ-095",
+    "title": "Job-specific responsibility phrase resume selection",
+    "state": "Scoped implementation integrated locally; issue remains OPEN/PARTIAL pending broader requirement acceptance.",
+    "branch": "codex/mj-req095-responsibility-phrases-20261008",
+    "worktree": ".worktrees/codex-mj-req095-responsibility-phrases-20261008",
+    "base_commit": "a1de18b8ab9538f0441c8f4ac95aff480f9916ea",
+    "owned_paths": [
+      "services/documents/tailor.py",
+      "services/documents/comparison.py",
+      "services/documents/history.py",
+      "apps/web/src/document-history.tsx",
+      "tests/integration/test_responsibility_tailoring.py",
+      "tests/browser/test_responsibility_tailoring.py"
+    ],
+    "acceptance": "Scoped candidate verified and integrated at current checkpoint; continue with a different dependency-ready core issue after reconciling open claims.",
     "child_id": null
   },
   "historical_control_snapshots": [
@@ -12489,5 +12543,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-08T08:49:55Z"
+  "updated_at": "2026-10-08T09:23:01.774980Z"
 }

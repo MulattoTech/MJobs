@@ -1,15 +1,15 @@
 {
   "schema_version": 1,
   "lane": "codex",
-  "status": "IDLE_READY",
-  "base_main": "e211f013801849a4fe2cf24c855313b8fcfc3978",
-  "current_issue": 191,
-  "requirement_id": "MJ-REQ-190",
-  "branch": null,
-  "head": "e211f013801849a4fe2cf24c855313b8fcfc3978",
-  "worktree": null,
-  "result": "USER_HANDOFF; no active Codex child claims. Next candidate #191 Salary sort is BLOCKED_DESIGN because ordering semantics are unspecified.",
-  "evidence_path": "docs/evidence/2026-10-08-application-confirmation.json",
+  "status": "ACTIVE",
+  "base_main": "4861439ba189502b8f0b6ed26b16b37c17ba87dc",
+  "current_issue": 190,
+  "requirement_id": "MJ-REQ-189",
+  "branch": "codex/mj-req189-title-company-filters-20261008",
+  "head": "4861439ba189502b8f0b6ed26b16b37c17ba87dc",
+  "worktree": ".worktrees/codex-mj-req189-title-company-filters-20261008",
+  "result": "Implementation assigned; connected title/company filters with durable saved-search round-trip are in progress.",
+  "evidence_path": "docs/evidence/2026-10-08-title-company-search-filters.json",
   "last_completed": {
     "issue": 180,
     "requirement_id": "MJ-REQ-179",
@@ -29,9 +29,9 @@
     "canonical planning and main outside integration lock"
   ],
   "resume_instruction": "Interactive session handed off at user request. Local/origin main was e211f013801849a4fe2cf24c855313b8fcfc3978 before local metadata checkpoint. No Codex child claims remain active. Antigravity #302 and Ollama #318 are preserved. Next issue #191 Salary remains BLOCKED_DESIGN; inspect fresh state before selecting another unclaimed dependency-ready task. Keep hosted checks disabled and external submission OFF.",
-  "last_verified_head": "454217533bf23b88c80c4fdfbf6b604d07c59bea",
-  "last_verified_tree": "2e1ade82168b857e1f1b313440a870c20fc1e084",
-  "last_verified_at_utc": "2026-10-08T08:01:32Z",
+  "last_verified_head": "4861439ba189502b8f0b6ed26b16b37c17ba87dc",
+  "last_verified_tree": "72a7c772bac5bf1ae9b2385b03e194f530c93e85",
+  "last_verified_at_utc": "2026-10-08T09:28:27.190192Z",
   "started_at_utc": "2026-10-07T04:24:01Z",
   "validation": {
     "result": "PASS (bounded local slice; issue remains PARTIAL)",
@@ -43,15 +43,15 @@
     "hosted_checks": "NOT_RUN_BY_USER_POLICY",
     "external_submission": "OFF"
   },
-  "last_integrated_head": "e211f013801849a4fe2cf24c855313b8fcfc3978",
-  "last_verified_result": "PASS bounded local scope #96; issue remains PARTIAL; hosted/release NOT_RUN.",
-  "updated_at": "2026-10-08T08:24:33Z",
-  "integrated_main": "e211f013801849a4fe2cf24c855313b8fcfc3978",
-  "last_integrated_issue": 144,
-  "last_integrated_requirement": "MJ-REQ-143",
-  "last_integrated_evidence": "docs/evidence/2026-10-08-application-confirmation.json",
+  "last_integrated_head": "4861439ba189502b8f0b6ed26b16b37c17ba87dc",
+  "last_verified_result": "PASS scoped local batch; #95 #115 #197 requirements remain PARTIAL.",
+  "updated_at": "2026-10-08T09:28:27.190192Z",
+  "integrated_main": "4861439ba189502b8f0b6ed26b16b37c17ba87dc",
+  "last_integrated_issue": 96,
+  "last_integrated_requirement": "MJ-REQ-095",
+  "last_integrated_evidence": "docs/evidence/2026-10-08-responsibility-phrase-tailoring.json",
   "canonical_main_at_pause": "e211f013801849a4fe2cf24c855313b8fcfc3978",
-  "last_completed_issue": 195,
+  "last_completed_issue": 96,
   "last_completed_requirement": "MJ-REQ-194 Companies Screen accepted and issue closed PASS; aggregate PR-053 queued",
   "next_issue": 191,
   "next_requirement": "MJ-REQ-190",
@@ -68,5 +68,20 @@
   "issue_claim_comment": null,
   "owned_paths": [],
   "acceptance": "No active claim. Preserve exact issue acceptance and dependencies. #191 Salary direction/range/unit semantics require resolution; do not infer unknown compensation.",
-  "active_children": []
+  "active_children": [
+    {
+      "child_id": "req189-title-company-filters",
+      "issue": 190,
+      "status": "ACTIVE",
+      "paths": [
+        "apps/api/main.py",
+        "packages/persistence/store.py",
+        "services/discovery/search_profiles.py",
+        "apps/web/src/main.tsx",
+        "tests/integration/test_saved_search_filters.py",
+        "tests/browser/test_saved_search_filters.py",
+        "docs/evidence/2026-10-08-title-company-search-filters.json"
+      ]
+    }
+  ]
 }

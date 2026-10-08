@@ -1,3 +1,13 @@
+## 2026-10-08T09:28:27.190192Z — core-feature integration batch and active filter slice
+
+Local `main` is at `4861439ba189502b8f0b6ed26b16b37c17ba87dc` (tree `72a7c772bac5bf1ae9b2385b03e194f530c93e85`); origin is still at `41f5fb7eb8b6d802a1f9e8c84365a0d526d448a9` before the tracker checkpoint push. #116/MJ-REQ-115 required/preferred skill-strength classification, #198/MJ-REQ-197 application question review with consent-safe Answer Bank reuse, and #96/MJ-REQ-095 exact responsibility-phrase resume tailoring are integrated locally. Original requirement totals: 83 PASS, 86 PARTIAL, 197 NOT_RUN; release eligibility remains NOT_RUN. Root exact local checks: combined #116/#198 Python 59 PASS, frontend 95/95 and build PASS; #96 Python/Chromium 21, frontend 10, build, py_compile, skill validation and hashes PASS. PostgreSQL/hosted checks and live ATS remain NOT_RUN; external submission OFF.
+
+Active writer: issue #190/MJ-REQ-189 title/company filters on branch `codex/mj-req189-title-company-filters-20261008`, worktree `.worktrees/codex-mj-req189-title-company-filters-20261008`, base 4861439. Claim: https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6056870469. Acceptance is connected, separate literal title/company filters with profile-scoped saved-search persistence/reload and negative/isolation checks. The old #191 Newest-sort worktree is clean and its commit is already an ancestor of main; preserve it. Antigravity #302 and Ollama #318 remain active on their exclusive paths. Salary ordering and application-priority scoring remain unspecified/blocked.
+
+The batched progress dashboard and local validators passed. Continue the same interactive sprint; root owns planning/main and integration lock.
+
+---
+
 ## 2026-10-08T08:24:19Z — user-directed closeout; #195 accepted, #178 and #144 integrated
 
 Local and origin main were synchronized at `e211f013801849a4fe2cf24c855313b8fcfc3978` (tree `7af80d749f045c2fc6489810581cb6282bc53588`) before this canonical metadata checkpoint. During the five-agent batch, root integrated #195/MJ-REQ-194 Companies Screen, #178/MJ-REQ-177 APPLY_MOCK job/company log context, and #144/MJ-REQ-143 synthetic MOCK confirmation by non-force fast-forward, with exact local evidence and no hosted automation. #195 direct eight-field acceptance is CLOSED/PASS; aggregate MJ-PR-053 remains QUEUED with dependencies unchanged. #178 remains OPEN/PARTIAL (33 tests passed, one optional PostgreSQL class skipped). #144 remains OPEN/PARTIAL (22 integrated browser tests pass; real ATS confirmation NOT_RUN). External submission OFF.
