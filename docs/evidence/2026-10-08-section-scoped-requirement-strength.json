@@ -1,16 +1,18 @@
 {
-  "timestamp": "2026-10-08T13:33:22Z",
+  "timestamp": "2026-10-08T13:37:24Z",
   "result": "PARTIAL",
   "scope": "MJ-REQ-115 / issue #116 section-scoped skill qualification strength",
   "branch": "codex/mj-req115-section-scoped-strength-20261008",
   "worktree": ".worktrees/codex-mj-req115-section-scoped-strength-20261008",
-  "base_commit": "52f4cf41184b62068b567981539afec240673e49",
-  "verified_source_commit": "a64b33ea3d39d711ee239778edda197b0f73aecd",
-  "verified_source_tree": "484eb8f2cb5e33b5e7de8a133740d3f6c85ea7c4",
+  "base_commit": "7df9552a351b78534fda07d8bef1ecd579973335",
+  "verified_source_commit": "43437fcffc873316f0f60859aba3a5b9bd4173e2",
+  "verified_source_tree": "10bdb89be47358cf5ba041659e5a8e21008c3bf2",
   "target": "Synthetic manually entered job description and fictional approved profile in temporary SQLite; isolated connected Chromium app",
   "behavior": [
     "Recognized skills inherit REQUIRED in explicit Required, Minimum, or Basic Qualifications sections and PREFERRED in explicit Preferred or Desired Qualifications sections.",
     "A new standalone heading ends the current section; unknown headings and unlabelled narrative do not infer strength.",
+    "Title-case unknown headings that contain a recognized skill close prior section scope while single/two-word skill bullets remain content.",
+    "Inline recognized qualification headings classify following skills, and conflicting inline cues remain UNKNOWN.",
     "Conflicting local cues remain UNKNOWN, and a prose reference to a heading label is not interpreted as a section heading or strength cue.",
     "Manual capture stores the resulting required/preferred skill lists; after SQLite close/reopen, explainable match details retain the strength and profile evidence explanation.",
     "Connected Jobs detail renders REQUIRED and PREFERRED strengths after capture and match refresh."
@@ -18,7 +20,8 @@
   "red_green": {
     "red_command": ".venv/Scripts/python.exe -m unittest tests.unit.test_requirement_parsers.RequirementParserTests.test_qualification_section_headings_scope_unqualified_skill_bullets tests.unit.test_requirement_parsers.RequirementParserTests.test_qualification_heading_scope_stops_at_next_heading_and_unknown_heading tests.unit.test_requirement_parsers.RequirementParserTests.test_heading_inference_fails_closed_for_unlabelled_conflicting_and_inline_text",
     "red_result": "FAIL as expected before parser implementation: three new tests reported four assertion failures for missing section inference, an inline section-label phrase being treated as a cue, and missing boundary behavior.",
-    "green_result": "All three new parser cases and the subsequent integration/browser assertions passed on verified_source_commit."
+    "green_result": "All three new parser cases and the subsequent integration/browser assertions passed on verified_source_commit.",
+    "review_followup": "Addressed root LOCAL_DELEGATED_REVIEW findings: skill-containing title-case unknown headings now terminate inherited scope; recognized inline heading labels establish scope after the colon; skill bullets and conflicting/prose cases are covered."
   },
   "runtime": {
     "os": "Windows PowerShell",
@@ -30,7 +33,7 @@
   "checks": [
     {
       "command": ".venv/Scripts/python.exe -m unittest tests.unit.test_requirement_parsers tests.integration.test_explainable_matching tests.browser.test_manual_requirement_section_strength",
-      "tests": 47,
+      "tests": 50,
       "failures": 0,
       "skips": 0,
       "result": "PASS"
@@ -64,8 +67,8 @@
     }
   ],
   "source_sha256": {
-    "services/discovery/requirement_parsers.py": "EB45E7A2F426A50E092E1EEE5A57CF55E9D9E942EFE895A12319E359532D7B27",
-    "tests/unit/test_requirement_parsers.py": "5875D537C8FC8C6BD8EBC52752B9973D1D9430967D2CBF3A10ED5D90AFF7ACD6",
+    "services/discovery/requirement_parsers.py": "F2CB5C1385DFD8B48B71B72F96722627E5F4B6E45CEDBE89A203222E159D6DDE",
+    "tests/unit/test_requirement_parsers.py": "3FBBC5E70B1E841BC8DBF127B746C7939E1432F8853063DBB1CDC8F5A56CEEBE",
     "tests/integration/test_explainable_matching.py": "3833F5B3951CA13AB1B5EE7311E731C6E29E9948C466EE25662A1E57DC3DC46D",
     "tests/browser/test_manual_requirement_section_strength.py": "197BCA82E7435C2357315F52044396D0965DABF9F4FFFD055D0D215549C397E3"
   },
