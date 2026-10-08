@@ -1,3 +1,9 @@
+## 2026-10-08T12:47:30Z — #190 posted-date filter integrated locally
+
+Local main checkpoint `09449f4cc3b14cf5f7f351b1fb9d845580deb7f3`; origin sync and receipt pending. Evidence `docs/evidence/2026-10-08-posted-date-search-filter.json` pins tested source `6f2f722df3d893c3d0c33ca0420fdfb78238468b`. Integration 12/12, connected browser 1/1, frontend 103/103/build, compile, evidence hashes, skills, dashboard/catalogue/progress validators, local delegated review PASS. PostgreSQL and hosted checks NOT_RUN; full #190 remains OPEN/PARTIAL. Global Codex children: none active. #96/MJ-REQ-095 has a completed, unintegrated worker branch that needs root exact-base reconciliation; preserve its active ownership until safely resolved. #197 review queue claim reconciled RELEASED from its integration receipt at b633578. Preserve external lane claims #302/#318 and submission OFF.
+
+---
+
 ## 2026-10-08T11:42:38Z — #105 and #190 integrated
 
 Synchronized main: `d6a8f519ccc8cf6de3943effb2afc037fd89920b` (tree `c53080d034f7514d1a7fee994d5294f0cd77dec5`). #105 polarity guard and #190 editable match-score saved-search facet are integrated PARTIAL; evidence: `docs/evidence/2026-10-08-answer-match-polarity-guard.json`, `docs/evidence/2026-10-08-match-score-search-filter.json`. Exact-source tests and local delegated reviews PASS; hosted/PostgreSQL NOT_RUN, external submission OFF. No active Codex child claims. Next: select dependency-ready connected product work; #123 Greenhouse is high value but PR-034 waits on PR-030. Preserve #302/#318.

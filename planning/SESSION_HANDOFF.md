@@ -1,3 +1,9 @@
+## 2026-10-08T12:44:26Z — #190 / MJ-REQ-189 posted-date filter integrated locally
+
+Local main fast-forwarded from `cf415ef649ad33b45e83afcddf36bf3d9769d506` to `09449f4cc3b14cf5f7f351b1fb9d845580deb7f3` (tree `e04f31ef44d3bb66952bfb4a95279f6eeb09d781`); origin synchronization and batched dashboard refresh are pending. Exact code source: `6f2f722df3d893c3d0c33ca0420fdfb78238468b` (tree `ebb24f2746d1557492271248f34b55903cc12884`). The connected Jobs filter accepts 1/3/7/14/30 days, uses source-reported dates before LIMIT, excludes unknown, malformed, relative, impossible-calendar and future dates, persists in profile-scoped searches, reloads, clears, and refreshes when selected/cleared. Evidence: `docs/evidence/2026-10-08-posted-date-search-filter.json`. Exact local validation: 12 integration, 1 connected browser, 103 frontend tests, frontend build, compile, skill validator, evidence hashes and diff checks PASS; read-only local delegated review PASS. PostgreSQL runtime and hosted checks NOT_RUN; issue #190 remains OPEN/PARTIAL; submission OFF. Root owns integration lock; no Codex worker remains active. Preserve Antigravity #302 and Ollama #318. Next select a dependency-ready resume/document or application-preparation feature after live issue/claim reconciliation; PR-052 remains behind its declared dependencies.
+
+---
+
 ## 2026-10-08T11:42:38Z — #105 answer polarity and #190 match-score filters integrated
 
 Local and origin/main are synchronized at `d6a8f519ccc8cf6de3943effb2afc037fd89920b` (tree `c53080d034f7514d1a7fee994d5294f0cd77dec5`). #105/MJ-REQ-104 blocks saved-answer reuse across common explicit polarity negation; rejected export creates no document, and manual per-job reviewed answers remain available. #190/MJ-REQ-189 adds current-profile-version minimum match-score filtering in SQL before LIMIT; saved filters restore, and the visible cutoff can be lowered or cleared while the selected saved search remains active.

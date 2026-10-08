@@ -11,7 +11,7 @@
     "current_verified_github_state": "Local main, origin/main and GitHub default main synchronized at 980f89c78d384ec3098e083616b48c8c713089f3; receipts posted for #115 and #191. Hosted checks/reviews remain NOT_RUN_BY_USER_POLICY.",
     "current_verified_at": "2026-10-08T12:10:15Z"
   },
-  "current_milestone": "CORE-FEATURE-BATCH-20261008-L",
+  "current_milestone": "CORE-FEATURE-BATCH-20261008-M",
   "current_objective": "Advance connected jobseeker search, explainable matching, truthful documents, and consent-safe application preparation through dependency-ready vertical slices.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -657,7 +657,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Resume with the preserved #190 / MJ-REQ-189 branch codex/mj-req189-posted-date-filter-20261008. Build frontend and run connected browser/Vitest validation on exact source 985e53e214e24277a9d1110cdac8273dcf7aabf1, verify evidence hashes, then integrate only if accepted; otherwise retain PARTIAL and select the next dependency-ready core issue.",
+  "recommended_resume_step": "After synchronizing this accepted checkpoint and refreshing the tracker, select a dependency-ready core feature from live issue state and active claim bus. Prefer truthful resume tailoring/document review or application-preparation improvements; preserve external submission OFF and PR-052 dependency constraints.",
   "release_readiness": "UNKNOWN",
   "migrations_applied": [
     "92f0997f753e",
@@ -11414,17 +11414,61 @@
         "integration_receipt": "https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6059500447",
         "note": "Main and origin/main synchronized at this checkpoint. #115 salary fit receipt: https://github.com/MulattoTech/MJobs/issues/115#issuecomment-6059458494. #190 experience facet receipt: https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6059304313. Bounded requirements remain PARTIAL; hosted/PostgreSQL NOT_RUN; release UNKNOWN; external submission OFF."
       }
+    },
+    {
+      "milestone_id": "CORE-FEATURE-BATCH-20261008-M",
+      "current_phase": "CORE_FEATURE_IMPLEMENTATION",
+      "timestamp": "2026-10-08T12:46:53Z",
+      "completed_steps": [
+        "Integrated #190 / MJ-REQ-189 profile-scoped posted-date filter on local main 09449f4cc3b14cf5f7f351b1fb9d845580deb7f3.",
+        "Verified source-reported normalized dates before LIMIT, exclusion of unknown/invalid/relative/impossible/future timestamps, save/reload/clear behavior and isolated UI refresh.",
+        "Completed exact-source delegated review and local connected integration/browser, frontend, build, compilation and evidence/hash checks; kept full requirement PARTIAL."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-08-posted-date-search-filter.json"
+      ],
+      "files_modified": [
+        "apps/api/main.py",
+        "apps/web/src/main.tsx",
+        "packages/persistence/store.py",
+        "services/discovery/search_profiles.py",
+        "tests/integration/test_saved_search_filters.py",
+        "tests/browser/test_saved_search_filters.py",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "12 saved-filter API integration tests PASS on exact source commit 6f2f722df3d893c3d0c33ca0420fdfb78238468b.",
+        "1 connected Chromium saved-filter browser test PASS.",
+        "18 frontend files / 103 Vitest tests PASS; TypeScript/Vite production build PASS.",
+        "compileall, agent-skill validation, evidence JSON and six source SHA-256 checks, git diff --check and local delegated review PASS.",
+        "Catalogue validation and four progress-dashboard unit tests PASS; generated dashboard is CURRENT with unchanged authoritative totals."
+      ],
+      "tests_remaining": [
+        "PostgreSQL runtime NOT_RUN because MJOBS_TEST_POSTGRES_URL is not configured.",
+        "Hosted checks/review NOT_RUN by user policy; real ATS/manual checks and full release acceptance remain incomplete."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "MJ-REQ-189 remains PARTIAL with other facets incomplete.",
+        "External application submission remains OFF."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "09449f4cc3b14cf5f7f351b1fb9d845580deb7f3",
+        "tree": "e04f31ef44d3bb66952bfb4a95279f6eeb09d781",
+        "evidence_path": "docs/evidence/2026-10-08-posted-date-search-filter.json"
+      }
     }
   ],
   "current_phase": "CORE_FEATURE_IMPLEMENTATION",
   "last_safe_checkpoint": {
-    "git_commit": "980f89c78d384ec3098e083616b48c8c713089f3",
-    "tree": "23e7c7f9b9a2b471a9078e3047bb420846194abc",
-    "branch": "main",
-    "issue": "#115 / MJ-REQ-114 and #191 / MJ-REQ-190; prior #190 / MJ-REQ-189 experience facet",
-    "evidence_path": "docs/evidence/2026-10-08-job-sorting-salary.json",
-    "integration_receipt": "https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6059500447",
-    "note": "Main and origin/main synchronized at this checkpoint. #115 salary fit receipt: https://github.com/MulattoTech/MJobs/issues/115#issuecomment-6059458494. #190 experience facet receipt: https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6059304313. Bounded requirements remain PARTIAL; hosted/PostgreSQL NOT_RUN; release UNKNOWN; external submission OFF."
+    "git_commit": "09449f4cc3b14cf5f7f351b1fb9d845580deb7f3",
+    "tree": "e04f31ef44d3bb66952bfb4a95279f6eeb09d781",
+    "evidence_path": "docs/evidence/2026-10-08-posted-date-search-filter.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -11750,21 +11794,18 @@
     "next_issue": "Release #398 and select the next dependency-ready unclaimed issue after live claim/worktree reconciliation."
   },
   "active_development_issue": {
-    "issue": 134,
-    "requirement_id": "MJ-REQ-133",
-    "title": "Dynamic Forms",
-    "state": "Bounded synthetic-ATS conditional-field slice claimed and active; full requirement remains NOT_RUN until verified.",
-    "branch": "codex/mj-req133-dynamic-conditional-field-20261008",
-    "worktree": ".worktrees/codex-mj-req133-dynamic-conditional-field-20261008",
-    "base_commit": "ba540570f0ffe138fa5656bb674d570e464bcc7d",
-    "owned_paths": [
-      "services/applications/mock_adapter.py",
-      "fixtures/mock_server.py",
-      "tests/integration/test_application_pipeline.py",
-      "tests/browser/test_mock_application.py",
-      "docs/evidence/2026-10-08-dynamic-form-conditional-field.json"
-    ],
-    "acceptance": "After a known approved answer reveals one country-dependent field, re-read form state and fill only a confidently mapped answer; persist REVIEW_REQUIRED and stop before mock submit for an unknown required field."
+    "issue": 190,
+    "requirement_id": "MJ-REQ-189",
+    "title": "Job Filter Sidebar - posted-date facet",
+    "state": "Bounded connected posted-within filter integrated PARTIAL; full sidebar requirement remains PARTIAL.",
+    "branch": "codex/mj-req189-posted-date-filter-20261008",
+    "worktree": ".worktrees/codex-mj-req189-posted-date-filter-20261008",
+    "base_commit": "cf415ef649ad33b45e83afcddf36bf3d9769d506",
+    "integrated_source_commit": "6f2f722df3d893c3d0c33ca0420fdfb78238468b",
+    "integrated_tree": "ebb24f2746d1557492271248f34b55903cc12884",
+    "integration_commit": "09449f4cc3b14cf5f7f351b1fb9d845580deb7f3",
+    "evidence_path": "docs/evidence/2026-10-08-posted-date-search-filter.json",
+    "acceptance": "Profile-scoped posted-within 1/3/7/14/30 day filter; known reported dates only, before result limit, with missing/malformed/relative/impossible/future values excluded; select/clear refresh and saved-search reload verified. PostgreSQL and hosted checks NOT_RUN."
   },
   "historical_control_snapshots": [
     {
@@ -12920,7 +12961,7 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-08T12:30:08Z",
-  "current_verified_local_state": "Main/origin synchronized at 0ebf4616250d9f06df85b0464099d6ea9d56c088. Integrated #134 / MJ-REQ-133 bounded MOCK dynamic dependent-field slice; requirement remains PARTIAL. Separate #190 / MJ-REQ-189 reported-date filter candidate is committed with 12/12 saved-filter integration tests but remains unmerged pending browser/Vitest validation.",
-  "current_verified_github_state": "Local main, origin/main and GitHub default main synchronized at 0ebf4616250d9f06df85b0464099d6ea9d56c088; #134 receipt https://github.com/MulattoTech/MJobs/issues/134#issuecomment-6059749511. Hosted checks/reviews remain NOT_RUN_BY_USER_POLICY."
+  "updated_at": "2026-10-08T12:44:26Z",
+  "current_verified_local_state": "Root integrated #190 / MJ-REQ-189 posted-date filter at local main 09449f4cc3b14cf5f7f351b1fb9d845580deb7f3 (tree e04f31ef44d3bb66952bfb4a95279f6eeb09d781); evidence pins tested code 6f2f722df3d893c3d0c33ca0420fdfb78238468b/tree ebb24f2746d1557492271248f34b55903cc12884. Tests: saved-filter integration 12/12, connected browser 1/1, frontend 103/103, build/compile/skills PASS; local review PASS. PostgreSQL/hosted NOT_RUN. Local origin push and tracker checkpoint in progress.",
+  "current_verified_github_state": "Origin/GitHub main remains cf415ef649ad33b45e83afcddf36bf3d9769d506 pending the accepted local-only fast-forward publication; no hosted Actions/review requested or enabled. Issue #190 remains OPEN/PARTIAL; external submission OFF."
 }

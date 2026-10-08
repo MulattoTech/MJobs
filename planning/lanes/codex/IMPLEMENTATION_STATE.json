@@ -2,34 +2,29 @@
   "schema_version": 1,
   "lane": "codex",
   "status": "ACTIVE_CORE_FEATURE_SPRINT",
-  "base_main": "d6a8f519ccc8cf6de3943effb2afc037fd89920b",
+  "base_main": "09449f4cc3b14cf5f7f351b1fb9d845580deb7f3",
   "current_issue": 190,
   "requirement_id": "MJ-REQ-189",
-  "branch": "codex/mj-req189-match-score-filter-20261008",
-  "head": "d6a8f519ccc8cf6de3943effb2afc037fd89920b",
-  "worktree": ".worktrees/codex-mj-req189-match-score-filter-20261008",
-  "result": "Integrated bounded minimum match-score filter with saved-search restore and editable lower/clear behavior; broader requirement PARTIAL.",
-  "evidence_path": "docs/evidence/2026-10-08-match-score-search-filter.json",
+  "branch": "codex/mj-req189-posted-date-filter-20261008",
+  "head": "09449f4cc3b14cf5f7f351b1fb9d845580deb7f3",
+  "worktree": ".worktrees/codex-mj-req189-posted-date-filter-20261008",
+  "result": "Integrated profile-scoped posted-date filter; parent requirement remains PARTIAL.",
+  "evidence_path": "docs/evidence/2026-10-08-posted-date-search-filter.json",
   "last_completed": {
     "issue": 190,
     "requirement_id": "MJ-REQ-189",
-    "integrated_main": "d6a8f519ccc8cf6de3943effb2afc037fd89920b",
-    "integrated_tree": "c53080d034f7514d1a7fee994d5294f0cd77dec5",
+    "integrated_main": "09449f4cc3b14cf5f7f351b1fb9d845580deb7f3",
     "issue_state": "OPEN/PARTIAL",
     "evidence_paths": [
-      "docs/evidence/2026-10-08-match-score-search-filter.json",
-      "docs/evidence/2026-10-08-answer-match-polarity-guard.json"
+      "docs/evidence/2026-10-08-posted-date-search-filter.json"
     ],
-    "integration_comments": [
-      "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6059055310",
-      "https://github.com/MulattoTech/MJobs/issues/105#issuecomment-6059001909"
-    ]
+    "validation": "12 integration, 1 browser, 103 frontend, build and local review PASS; PostgreSQL/hosted NOT_RUN."
   },
   "next_candidates": [
     {
-      "issue": 190,
-      "requirement_id": "MJ-REQ-189",
-      "status": "ACTIVE bounded minimum match-score filter; other facets remain PARTIAL."
+      "issue": 96,
+      "requirement_id": "MJ-REQ-095",
+      "status": "Worker branch complete but not integrated; root must reconcile stale-base candidate and verify exact current-head evidence before integration."
     }
   ],
   "do_not_overlap": [
@@ -37,7 +32,7 @@
     "Ollama/OpenCode active issue #318 paths: services/ats_detection/** and detector tests",
     "canonical planning and main outside integration lock"
   ],
-  "resume_instruction": "No active Codex child claims. Continue selecting dependency-ready, connected core jobseeker workflows from live GitHub issues and specs. Preserve PR dependencies and #302/#318 claims; external application submission stays OFF.",
+  "resume_instruction": "Local main feature checkpoint 09449f4 is integrated; tracker validation passes and progress is 83 PASS / 92 PARTIAL / 191 NOT_RUN. Sync origin and post issue receipt, then reconcile ready core candidates with GitHub/local claims. Issue #96 resume tailoring branch remains an active no-writer integration candidate. Preserve #302/#318; external submission OFF.",
   "last_verified_head": "d6a8f519ccc8cf6de3943effb2afc037fd89920b",
   "last_verified_tree": "c53080d034f7514d1a7fee994d5294f0cd77dec5",
   "last_verified_at_utc": "2026-10-08T11:42:38Z",
@@ -49,16 +44,16 @@
     "hosted_checks": "NOT_RUN_BY_USER_POLICY",
     "external_submission": "OFF"
   },
-  "last_integrated_head": "d6a8f519ccc8cf6de3943effb2afc037fd89920b",
+  "last_integrated_head": "09449f4cc3b14cf5f7f351b1fb9d845580deb7f3",
   "last_verified_result": "PASS bounded #105 and #190 slices integrated/synchronized; full requirements remain PARTIAL.",
-  "updated_at": "2026-10-08T11:42:38Z",
-  "integrated_main": "d6a8f519ccc8cf6de3943effb2afc037fd89920b",
-  "last_integrated_issue": 96,
-  "last_integrated_requirement": "MJ-REQ-095",
-  "last_integrated_evidence": "docs/evidence/2026-10-08-resume-reviewed-fact-tailoring.json",
+  "updated_at": "2026-10-08T12:47:30Z",
+  "integrated_main": "09449f4cc3b14cf5f7f351b1fb9d845580deb7f3",
+  "last_integrated_issue": 190,
+  "last_integrated_requirement": "MJ-REQ-189",
+  "last_integrated_evidence": "docs/evidence/2026-10-08-posted-date-search-filter.json",
   "canonical_main_at_pause": "d6a8f519ccc8cf6de3943effb2afc037fd89920b",
   "last_completed_issue": 190,
-  "last_completed_requirement": "MJ-REQ-189 bounded minimum match-score saved-search filter; broader requirement PARTIAL.",
+  "last_completed_requirement": "MJ-REQ-189 bounded posted-date filter; whole requirement PARTIAL.",
   "next_issue": 123,
   "next_requirement": "MJ-REQ-122",
   "last_validated_head": "4a3c16563c1dd389c6222c9751dacfbe1728d509",

@@ -1255,9 +1255,34 @@
         "tests/browser/test_application_review_queue.py",
         "docs/evidence/2026-10-08-application-review-queue.json"
       ],
-      "status": "ACTIVE",
+      "status": "RELEASED",
       "claimed_at": "2026-10-08T11:12:52Z",
-      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/197#issuecomment-6058592727"
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/197#issuecomment-6058592727",
+      "released_at": "2026-10-08T12:47:30Z",
+      "integrated_main": "b633578112a9553cc29dcbda7e7e21d88f1547c5",
+      "release_receipt": "https://github.com/MulattoTech/MJobs/issues/197#issuecomment-6058824741"
+    },
+    {
+      "issue": 190,
+      "requirement_id": "MJ-REQ-189",
+      "branch": "codex/mj-req189-posted-date-filter-20261008",
+      "worktree": ".worktrees/codex-mj-req189-posted-date-filter-20261008",
+      "head": "09449f4cc3b14cf5f7f351b1fb9d845580deb7f3",
+      "paths": [
+        "apps/api/main.py",
+        "apps/web/src/main.tsx",
+        "packages/persistence/store.py",
+        "services/discovery/search_profiles.py",
+        "tests/integration/test_saved_search_filters.py",
+        "tests/browser/test_saved_search_filters.py",
+        "docs/evidence/2026-10-08-posted-date-search-filter.json"
+      ],
+      "status": "RELEASED",
+      "claimed_at": "2026-10-08T12:35:00Z",
+      "evidence_path": "docs/evidence/2026-10-08-posted-date-search-filter.json",
+      "integrated_main": "09449f4cc3b14cf5f7f351b1fb9d845580deb7f3",
+      "released_at": "2026-10-08T12:47:30Z",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6059983388"
     }
   ]
 }
