@@ -107,6 +107,10 @@ def normalize_question(value):
 
 
 _SEMANTIC_QUESTION_REWRITES = (
+    # Curate only this ordinary scheduling pair. Weekday availability and
+    # sensitive/legal questions stay outside this equivalence.
+    (re.compile(r"\b(are you available to work weekends|can you work weekends)\b", re.IGNORECASE),
+     "can you work weekends"),
     (re.compile(r"\b(coding|software development)\s+languages?\b", re.IGNORECASE),
      "programming languages"),
     # "Provider" and "platform" are interchangeable here only as part of the
