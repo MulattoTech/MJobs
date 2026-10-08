@@ -254,6 +254,16 @@ class ExplainableMatchingTests(unittest.TestCase):
         _, explicit_mismatch = factor("BACHELORS_REQUIRED", [explicitly_no_bachelors])
         self.assertEqual(explicit_mismatch["status"], "NO_DIRECT_MATCH")
         self.assertIn("explicitly states", explicit_mismatch["explanation"].lower())
+        for text in (
+            "Bachelor's degree not completed.",
+            "Bachelor's degree incomplete.",
+            "Bachelor's degree unfinished.",
+        ):
+            with self.subTest(noncompletion=text):
+                _, incomplete = factor("BACHELORS_REQUIRED", [{**approved_bachelors, "text": text}])
+                self.assertEqual(incomplete["status"], "NO_DIRECT_MATCH")
+                self.assertEqual(incomplete["score_effect"], "NONE")
+                self.assertIn("explicitly states", incomplete["explanation"].lower())
         in_progress = {
             **approved_bachelors, "text": "Bachelor's degree in progress.",
         }

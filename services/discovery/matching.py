@@ -29,6 +29,12 @@ _BACHELOR_NEGATION = re.compile(
     r"\b(?:lack|lacking)\s+(?:a\s+)?(?:bachelor(?:'s|s)?(?:\s+degree)?|bachelor\s+of\s+[a-z][a-z -]{0,40})\b",
     re.I,
 )
+_BACHELOR_NONCOMPLETION = re.compile(
+    r"\b(?:bachelor(?:'s|s)?(?:\s+degree)?|bachelor\s+of\s+[a-z][a-z -]{0,40})"
+    r"[^.;\n]{0,80}\b(?:not\s+(?:yet\s+)?(?:completed|complete|earned|finished|obtained)|incomplete|unfinished)\b|"
+    r"\b(?:incomplete|unfinished)\s+(?:a\s+)?(?:bachelor(?:'s|s)?(?:\s+degree)?|bachelor\s+of\s+[a-z][a-z -]{0,40})\b",
+    re.I,
+)
 _EDUCATION_AMBIGUITY = re.compile(
     r"\b(?:in\s+progress|working\s+toward|pursuing|candidate\s+for|expected\s+(?:to\s+)?(?:graduate|complete|earn)|"
     r"not\s+yet\s+(?:earned|completed)|or\s+equivalent\s+experience)\b",
@@ -231,10 +237,10 @@ def _education_fit_factors(job, profile):
             continue
         if not _BACHELOR_MENTION.search(text):
             continue
-        if _EDUCATION_AMBIGUITY.search(text):
-            ambiguous = True
-        elif _BACHELOR_NEGATION.search(text):
+        if _BACHELOR_NONCOMPLETION.search(text) or _BACHELOR_NEGATION.search(text):
             negative = True
+        elif _EDUCATION_AMBIGUITY.search(text):
+            ambiguous = True
         else:
             positive = True
 
@@ -255,7 +261,7 @@ def _education_fit_factors(job, profile):
         explanation = "An approved, sufficiently confident education fact explicitly records a bachelor's degree."
     elif negative:
         status = "NO_DIRECT_MATCH"
-        explanation = "An approved, sufficiently confident education fact explicitly states no bachelor's degree; this is not inferred from missing records."
+        explanation = "An approved, sufficiently confident education fact explicitly states that a bachelor's degree was not completed; this is not inferred from missing records."
     elif identity == "degree":
         status = "UNKNOWN"
         explanation = "The job states a preferred degree without identifying a degree type that can be compared safely."
