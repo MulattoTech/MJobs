@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-08T05:56:34Z",
+  "generated_at": "2026-10-08T05:57:34Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -628,7 +628,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "7d91b3104a2e21d400bdc1a2f59de289e5bbc2b6",
+  "last_implementation_commit": "4d9ee79f19bc2a5395482fee9a88b99e84e74ea7",
   "publication": {
     "result": "PASS",
     "integration_method": "NON_FORCE_FAST_FORWARD",
@@ -9921,22 +9921,25 @@
         "Compose runner isolation is not established; retained personal runtime was not touched."
       ],
       "last_safe_checkpoint": {
-        "git_commit": "7d91b3104a2e21d400bdc1a2f59de289e5bbc2b6",
-        "tree": "db177eb26e4883efea94ce3302f2567527e6341b",
-        "source_commit": "bc547e251eef7ed7a97556fde3396cc2655eb718",
+        "git_commit": "4d9ee79f19bc2a5395482fee9a88b99e84e74ea7",
+        "tree": "c81919d181409c06b6ab49bbd62ef2421195d96c",
+        "source_commit": "7d91b3104a2e21d400bdc1a2f59de289e5bbc2b6",
         "evidence_path": "docs/evidence/2026-10-08-scheduled-source-restart.json",
         "issue_receipt": "https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053378645",
+        "claim_release_receipt": "https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053395464",
         "issue_state_after_readback": "OPEN"
-      }
+      },
+      "metadata_only_sync_sha": "4d9ee79f19bc2a5395482fee9a88b99e84e74ea7"
     }
   ],
   "current_phase": "MJ_REQ_274_SCHEDULED_SOURCE_RESTART_SQLITE_PARTIAL",
   "last_safe_checkpoint": {
-    "git_commit": "7d91b3104a2e21d400bdc1a2f59de289e5bbc2b6",
-    "tree": "db177eb26e4883efea94ce3302f2567527e6341b",
-    "source_commit": "bc547e251eef7ed7a97556fde3396cc2655eb718",
+    "git_commit": "4d9ee79f19bc2a5395482fee9a88b99e84e74ea7",
+    "tree": "c81919d181409c06b6ab49bbd62ef2421195d96c",
+    "source_commit": "7d91b3104a2e21d400bdc1a2f59de289e5bbc2b6",
     "evidence_path": "docs/evidence/2026-10-08-scheduled-source-restart.json",
     "issue_receipt": "https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053378645",
+    "claim_release_receipt": "https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053395464",
     "issue_state_after_readback": "OPEN"
   },
   "live_integrations_tested": [

@@ -1,3 +1,11 @@
+## 2026-10-08 05:57Z — #275 closeout synchronized; workers continue
+
+Local main, origin/main and GitHub main agree at `4d9ee79f19bc2a5395482fee9a88b99e84e74ea7` (tree `c81919d181409c06b6ab49bbd62ef2421195d96c`). Source/test integration remains `7d91b3104a2e21d400bdc1a2f59de289e5bbc2b6`; this checkpoint updates canonical planning and records issue #275 receipt https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053378645 and released-claim receipt https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053395464. Issue #275 / MJ-REQ-274 remains OPEN/PARTIAL. Exact affected test evidence is in `docs/evidence/2026-10-08-scheduled-source-restart.json`; PostgreSQL and actual Compose restart remain NOT_RUN/BLOCKED_ENVIRONMENT. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.
+
+Active Codex child tasks: #105 / MJ-REQ-104 answer matching and #178 / MJ-REQ-177 safe worker log context; both are revalidating against current main in isolated worktrees. Antigravity #302 and Ollama #318 claims remain preserved. #96 and #275 child claims are released. Continue serialized integration; overall core workflow and release remain PARTIAL.
+
+---
+
 ## 2026-10-08 05:56Z — #275 scheduled-source SQLite recovery integrated
 
 Local and remote main are synchronized at `7d91b3104a2e21d400bdc1a2f59de289e5bbc2b6` (tree `db177eb26e4883efea94ce3302f2567527e6341b`). The corrected #275 / MJ-REQ-274 slice proves a due scheduled source is queued exactly once by actual scheduler subprocesses, survives restart, and completes with a separate synthetic worker against temporary SQLite. Root exact evidence-final rerun: 6 focused tests PASS; local delegated review no blocker. Evidence `docs/evidence/2026-10-08-scheduled-source-restart.json`; tested source `bc547e251eef7ed7a97556fde3396cc2655eb718`. Compose/PostgreSQL restart remain NOT_RUN/BLOCKED_ENVIRONMENT; no Compose or personal runtime was touched. Issue remains OPEN/PARTIAL. Receipt: https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053378645. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.
