@@ -7,11 +7,13 @@ import unittest
 from urllib.parse import urlsplit
 
 from playwright.sync_api import expect, sync_playwright
+from sqlalchemy import update
 import uvicorn
 
 from apps.api.main import create_app
 from fixtures.browser_ports import bound_browser_socket
 from fixtures.mock_server import fixture_server
+from packages.persistence import models as m
 from packages.persistence.store import Store
 from services.discovery.pipeline import discover
 from services.discovery.scheduler import schedule_due_sources
@@ -35,6 +37,11 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                                 "email": "other@example.test"})
             with fixture_server() as source_origin:
                 discover(store, source_origin, "fixture")
+            with store.engine.begin() as connection:
+                connection.execute(update(m.jobs).where(m.jobs.c.title == "Python Developer")
+                                   .values(location="Boston, MA"))
+                connection.execute(update(m.jobs).where(m.jobs.c.title == "Data Engineer")
+                                   .values(location="Berlin"))
             operations_before = store.count("worker_operations")
             store.engine.dispose()
             store = Store(database_url)
@@ -77,6 +84,7 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                     page.get_by_label("Search jobs", exact=True).fill("Developer")
                     page.get_by_label("Job title", exact=True).fill("Python")
                     page.get_by_label("Company", exact=True).fill("Example Systems")
+                    page.get_by_label("Location text", exact=True).fill("bOsToN")
                     page.get_by_label("Work location", exact=True).select_option("REMOTE")
                     page.get_by_label("Source", exact=True).select_option("mock-ats")
                     with page.expect_response(lambda response:
@@ -99,6 +107,7 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                             and "q=Developer" in response.url
                             and "title=Python" in response.url
                             and "company=Example+Systems" in response.url
+                            and "location=bOsToN" in response.url
                             and "remote_type=REMOTE" in response.url
                             and "provider=mock-ats" in response.url
                             and "sort=company" in response.url) as restored_jobs:
@@ -108,6 +117,7 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                     expect(page.get_by_label("Search jobs", exact=True)).to_have_value("Developer")
                     expect(page.get_by_label("Job title", exact=True)).to_have_value("Python")
                     expect(page.get_by_label("Company", exact=True)).to_have_value("Example Systems")
+                    expect(page.get_by_label("Location text", exact=True)).to_have_value("bOsToN")
                     expect(page.get_by_label("Work location", exact=True)).to_have_value("REMOTE")
                     expect(page.get_by_label("Source", exact=True)).to_have_value("mock-ats")
                     expect(page.get_by_label("Sort", exact=True)).to_have_value("company")
@@ -119,6 +129,7 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                             and "q=" in response.url
                             and "title=" not in response.url
                             and "company=" not in response.url
+                            and "location=" not in response.url
                             and "remote_type=" not in response.url
                             and "provider=" not in response.url
                             and "sort=score" in response.url) as cleared_jobs:
@@ -127,6 +138,7 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                     expect(page.get_by_label("Search jobs", exact=True)).to_have_value("")
                     expect(page.get_by_label("Job title", exact=True)).to_have_value("")
                     expect(page.get_by_label("Company", exact=True)).to_have_value("")
+                    expect(page.get_by_label("Location text", exact=True)).to_have_value("")
                     expect(page.get_by_label("Work location", exact=True)).to_have_value("")
                     expect(page.get_by_label("Source", exact=True)).to_have_value("")
                     expect(page.get_by_label("Sort", exact=True)).to_have_value("score")

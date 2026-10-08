@@ -1279,13 +1279,14 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     def jobs(profile_id: str | None = None, q: str = Query(default="", max_length=200),
              title: str = Query(default="", max_length=200),
              company: str = Query(default="", max_length=200),
+             location: str = Query(default="", max_length=200),
              remote_type: str | None = Query(default=None, max_length=32),
              provider: Literal["mock-ats", "greenhouse"] | None = None, sort: Literal["score", "newest", "company", "title"] = "score",
              search_profile_id: str | None = Query(default=None, max_length=128),
              include_dismissed: bool = False,
              limit: int = Query(default=200, ge=1, le=500)):
         rows = store.jobs(profile_id, q, remote_type, provider, sort, limit,
-                          title=title, company=company)
+                          title=title, company=company, location=location)
         if search_profile_id:
             search_profile = get_search_profile(store, search_profile_id)
             if search_profile["profile_id"] != profile_id:

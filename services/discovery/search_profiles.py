@@ -22,13 +22,13 @@ def _clean_job_filters(value):
     if value is None:
         return None
     required = {"q", "remote_type", "provider", "sort"}
-    if not isinstance(value, dict) or not required <= set(value) or set(value) - required - {"title", "company"}:
+    if not isinstance(value, dict) or not required <= set(value) or set(value) - required - {"title", "company", "location"}:
         raise ValueError("Saved Jobs filters must include q, remote_type, provider, and sort")
     query = value["q"]
     if not isinstance(query, str) or len(query) > 200:
         raise ValueError("Saved Jobs query must be text up to 200 characters")
     cleaned = {"q": query}
-    for key in ("title", "company"):
+    for key in ("title", "company", "location"):
         item = value.get(key, "")
         if not isinstance(item, str) or len(item) > 200:
             raise ValueError(f"Saved Jobs {key} must be text up to 200 characters")

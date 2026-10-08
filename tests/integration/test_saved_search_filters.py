@@ -4,9 +4,11 @@ import tempfile
 import unittest
 
 from fastapi.testclient import TestClient
+from sqlalchemy import update
 
 from apps.api.main import create_app
 from fixtures.mock_server import fixture_server
+from packages.persistence import models as m
 from packages.persistence.store import Store
 from services.discovery.scheduler import schedule_due_sources
 from services.discovery.pipeline import discover
@@ -27,6 +29,11 @@ class SavedSearchFiltersApiTests(unittest.TestCase):
         self.source_id = configure_source(self.store, "saved-filter-source")
         with fixture_server() as origin:
             discover(self.store, origin, "fixture")
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.title == "Python Developer")
+                               .values(location="Boston, MA"))
+            connection.execute(update(m.jobs).where(m.jobs.c.title == "Data Engineer")
+                               .values(location="Berlin"))
         self.client = TestClient(create_app(
             self.store, "http://127.0.0.1:1", self.root,
             "redis://127.0.0.1:1/0", operation_mode="FIXTURE"))
@@ -41,7 +48,7 @@ class SavedSearchFiltersApiTests(unittest.TestCase):
             "id": identifier, "profile_id": profile_id, "name": "Remote admin roles",
             "enabled": False, "include_titles": ["System Administrator"],
             "remote": "REQUIRED", "employment_types": [], "source_ids": [],
-            "job_filters": job_filters or {"q": "network", "title": "Developer",
+            "job_filters": job_filters or {"q": "network", "title": "Developer", "location": "Boston",
                                            "company": "Example", "remote_type": "REMOTE",
                                            "provider": "greenhouse", "sort": "company"},
         }
@@ -57,16 +64,26 @@ class SavedSearchFiltersApiTests(unittest.TestCase):
         self.assertEqual(row["criteria"]["include_titles"], ["System Administrator"])
         self.assertEqual(row["criteria"]["remote"], "REQUIRED")
         self.assertEqual(row["criteria"]["job_filters"], {
-            "q": "network", "title": "Developer", "company": "Example",
+            "q": "network", "title": "Developer", "location": "Boston", "company": "Example",
             "remote_type": "REMOTE", "provider": "greenhouse", "sort": "company"})
         self.assertFalse(row["enabled"])
         self.assertEqual(self.client.get("/search-profiles", params={"profile_id": "other"})
                          .json()["search_profiles"], [])
-
         before = self.store.count("worker_operations")
         tick = schedule_due_sources(self.store)
         self.assertEqual(tick["scheduled"], [])
         self.assertEqual(self.store.count("worker_operations"), before)
+
+    def test_old_saved_job_filters_without_location_remain_valid(self):
+        response = self.client.put("/search-profiles", json=self._profile(
+            identifier="old-saved-filter",
+            job_filters={"q": "network", "title": "Developer", "company": "Example",
+                         "remote_type": "REMOTE", "provider": "greenhouse", "sort": "company"}))
+        self.assertEqual(response.status_code, 200, response.text)
+        row = next(item for item in self.client.get("/search-profiles", params={
+            "profile_id": "fixture"}).json()["search_profiles"]
+                   if item["id"] == "old-saved-filter")
+        self.assertEqual(row["criteria"]["job_filters"]["location"], "")
 
     def test_saved_filter_validation_and_cross_profile_update_rejection(self):
         self.client.put("/search-profiles", json=self._profile()).raise_for_status()
@@ -100,6 +117,25 @@ class SavedSearchFiltersApiTests(unittest.TestCase):
 
         combined = self.client.get("/jobs", params={
             "q": "Python", "title": "Developer", "company": "Example", "limit": 10})
+        self.assertEqual(combined.status_code, 200, combined.text)
+        self.assertEqual([job["title"] for job in combined.json()["jobs"]], ["Python Developer"])
+
+    def test_location_text_is_literal_case_insensitive_and_filters_before_limit(self):
+        response = self.client.get("/jobs", params={
+            "location": "bOsToN", "sort": "title", "limit": 1})
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual([job["title"] for job in response.json()["jobs"]], ["Python Developer"])
+
+        for literal in ("%", "_", "Seattle", "REMOTE"):
+            with self.subTest(location=literal):
+                unmatched = self.client.get("/jobs", params={"location": literal})
+                self.assertEqual(unmatched.status_code, 200, unmatched.text)
+                self.assertEqual(unmatched.json()["jobs"], [])
+
+        combined = self.client.get("/jobs", params={
+            "q": "Python", "title": "Developer", "company": "Example",
+            "location": "Boston", "remote_type": "REMOTE", "provider": "mock-ats",
+            "sort": "title", "limit": 1})
         self.assertEqual(combined.status_code, 200, combined.text)
         self.assertEqual([job["title"] for job in combined.json()["jobs"]], ["Python Developer"])
 
