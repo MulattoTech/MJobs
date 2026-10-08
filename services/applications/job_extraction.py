@@ -5,13 +5,14 @@ from collections.abc import Mapping
 from html import unescape
 import json
 import re
-from urllib.parse import urlsplit
+from urllib.parse import unquote, urlsplit, urlunsplit
 
 
 MAX_SCHEMA_JSON_CHARS = 100_000
 MAX_CAPTURE_TEXT_CHARS = 20_000
 MAX_PROVIDER_FIELDS = 100
 MAX_RAW_CAPTURE_REF_CHARS = 256
+MAX_FIELD_URL_CHARS = 2000
 
 FIELD_NAMES = (
     "title", "company", "description", "location", "employment_type",
@@ -55,12 +56,55 @@ def _plain_text(value):
     if not isinstance(value, str):
         return None
     text = value[:MAX_CAPTURE_TEXT_CHARS]
+    # Decode bounded HTML entities before stripping markup so encoded script
+    # and formatting tags cannot leak into canonical scalar fields.
+    for _ in range(3):
+        decoded = unescape(text)
+        if decoded == text:
+            break
+        text = decoded
     if "<" in text and ">" in text:
         text = _SCRIPT_STYLE.sub(" ", text)
         text = _TAGS.sub(" ", text)
-    text = unescape(text)
     text = " ".join(text.split())
     return text or None
+
+
+def _safe_field_url(value):
+    if not isinstance(value, str):
+        return None
+    value = value.strip()
+    if (not value or len(value) > MAX_FIELD_URL_CHARS
+            or any(character.isspace() or ord(character) < 32 for character in value)):
+        return None
+    try:
+        parsed = urlsplit(value)
+        scheme = parsed.scheme.casefold()
+        hostname = parsed.hostname
+        port = parsed.port
+        if (scheme not in {"http", "https"} or not hostname
+                or parsed.username is not None or parsed.password is not None
+                or (port is not None and not 1 <= port <= 65535)):
+            return None
+        host = hostname.encode("idna").decode("ascii").casefold().rstrip(".")
+    except (UnicodeError, ValueError):
+        return None
+    if not host:
+        return None
+    if port == (80 if scheme == "http" else 443):
+        port = None
+    authority_host = f"[{host}]" if ":" in host else host
+    netloc = authority_host if port is None else f"{authority_host}:{port}"
+
+    segments = parsed.path.split("/")
+    sensitive_segments = {
+        "token", "session", "auth", "password", "secret", "credential", "access_key",
+    }
+    for index, segment in enumerate(segments[:-1]):
+        if unquote(segment).casefold() in sensitive_segments:
+            segments[index + 1] = "[REDACTED]"
+    safe_url = urlunsplit((scheme, netloc, "/".join(segments), "", ""))
+    return safe_url if len(safe_url) <= MAX_FIELD_URL_CHARS else None
 
 
 def _scalar(value, field):
@@ -74,19 +118,11 @@ def _scalar(value, field):
         value = str(value)
     if not isinstance(value, str):
         return None
-    value = " ".join(value[:MAX_CAPTURE_TEXT_CHARS].split())
+    if field in {"listing_url", "application_url"}:
+        return _safe_field_url(value[:MAX_CAPTURE_TEXT_CHARS])
+    value = _plain_text(value)
     if not value:
         return None
-    if field in {"listing_url", "application_url"}:
-        try:
-            parsed = urlsplit(value)
-            port = parsed.port
-        except ValueError:
-            return None
-        if (parsed.scheme.casefold() not in {"http", "https"} or not parsed.hostname
-                or parsed.username is not None or parsed.password is not None
-                or (port is not None and not 1 <= port <= 65535)):
-            return None
     return value
 
 
