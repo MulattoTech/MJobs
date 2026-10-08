@@ -1510,6 +1510,15 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                 row["external_reports"] = value.get("external_reports", [])
         return {"applications": rows}
 
+    @app.get("/profiles/{profile_id}/application-follow-up-drafts")
+    def application_follow_up_drafts(
+            profile_id: str, quiet_days: int = Query(default=7, ge=1, le=90)):
+        from services.tracking.follow_up_drafts import draft_follow_up_candidates
+        try:
+            return draft_follow_up_candidates(store, profile_id, quiet_days)
+        except NoResultFound:
+            raise HTTPException(404, "Profile or application not found") from None
+
     @app.post("/applications/external")
     def external_application_create(value: ExternalApplicationInput, response: Response):
         from services.applications.external_capture import (
