@@ -1,10 +1,10 @@
 {
-  "timestamp": "2026-10-08T10:52:46Z",
+  "timestamp": "2026-10-08T11:06:11Z",
   "result": "PARTIAL",
-  "requirement_state": "MJ-REQ-100 / issue #101 remains OPEN/PARTIAL; this local slice is not integrated",
+  "requirement_state": "MJ-REQ-100 / issue #101 remains OPEN/PARTIAL; exact-current-main candidate locally revalidated; not yet integrated.",
   "branch": "codex/mj-req100-verified-company-context-20261008",
   "worktree": ".worktrees/codex-mj-req100-verified-company-context-20261008",
-  "base_commit": "1020cd10444caded2bc3d7aa40dc91ce2ad20102",
+  "base_commit": "d52d8fee94a10619e7bbcb199bb5fed39c8073d9",
   "acceptance": [
     "Company context saves as USER_PROVIDED with durable content_status UNVERIFIED, exact source attribution, content SHA256, and a version bound to one existing company source.",
     "Source identity is eligible only when one uniquely ranked persisted verified company domain exists and both the source career URL host and user-entered context URL host are under it. Accepted verification methods come from services.company_discovery.domains.VERIFIED_METHODS. No URL is fetched.",
@@ -92,8 +92,8 @@
   ],
   "source_sha256": {
     "apps/api/main.py": "6518F40BBFAFB37B15757B00F831A8CB55AA9FF2274E013F6516210A9B08BC1D",
-    "apps/web/src/company-sources.tsx": "AF90631B2D1CF969C10FD5A4A222A730A6A9295CCEB2602C1AD49D1134E56D88",
-    "apps/web/src/company-sources.test.tsx": "B5B081A5BDEEB73897035F56C37A0CC202162D72DD5944BC4419A8713F4B6448",
+    "apps/web/src/company-sources.tsx": "E0D2C26F4339ADDB09B5815995779067BA4236233F932F91C9D13E5387DBFB10",
+    "apps/web/src/company-sources.test.tsx": "0E95D81B26428CF81E5F7D66B01E7B8585526C1BF3D18525D021AC63E326A289",
     "packages/persistence/models.py": "A4823C3A572B912120B8085B736FA8824605EC0D95462B41838E5A1350B3F23E",
     "migrations/versions/c7d4a91e205f_verified_company_context.py": "155C4D135C9A50F78EBA3E51D8E8AB105FC5403E2299BDC5E2D50BAA6FBDDDEC",
     "services/company_discovery/company_context.py": "41419F1FBAA35AB81AA752BC2AB853AAEB57F2AC6930C435067F17A6149DB691",
@@ -108,5 +108,36 @@
     "Full repository test suite",
     "Hosted CI/review, per local-only policy",
     "External employer/provider access and application submission; none were attempted"
-  ]
+  ],
+  "tested_source_commit": "911fe4f4ed84257e8f1283e283276767a94789f6",
+  "tested_source_tree": "fbb655305d35d1de42be9f60ba2a00b55aa4cbd6",
+  "validation_run": {
+    "runtime": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe; Node v? local apps/web dependencies; Windows PowerShell",
+    "timestamp_utc": "2026-10-08T11:06:11Z",
+    "commands": [
+      "python -m unittest tests.integration.test_company_context tests.integration.test_company_context_documents tests.integration.test_company_source_view tests.integration.test_cover_letter_workflow",
+      "npm test -- --run src/company-sources.test.tsx",
+      "npm run build",
+      "python -m unittest tests.browser.test_company_context",
+      "fresh temporary SQLite Alembic upgrade, schema readback and single-head check",
+      "python -m py_compile on scoped source/tests",
+      "git diff --check"
+    ],
+    "results": [
+      "19 Python integration tests PASS",
+      "5 frontend tests PASS",
+      "TypeScript and Vite production build PASS",
+      "1 connected browser test PASS; local-only user flow, no external requests",
+      "fresh temporary SQLite migration and schema readback PASS; one Alembic head c7d4a91e205f",
+      "py_compile and diff checks PASS"
+    ],
+    "limitations": [
+      "The first root migration invocation used a non-existent worktree outputs folder and failed to open the DB; it was corrected to an OS temporary directory and then passed. This is recorded as a command setup issue, not a product failure."
+    ]
+  },
+  "local_review": {
+    "result": "LOCAL_DELEGATED_REVIEW: no material findings",
+    "reviewed_source_commit": "911fe4f4ed84257e8f1283e283276767a94789f6",
+    "review_scope": "Truthfulness/provenance, source identity, user approval/hash freshness, version suppression, document history, privacy, migration, UI/API."
+  }
 }
