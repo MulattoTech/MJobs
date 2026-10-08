@@ -91,7 +91,7 @@ def _cert_strength(clause):
         negated = (
             match.group(0) in {"required", "mandatory"}
             and bool(re.search(
-                r"\b(?:not|never)\s+(?:(?:strictly|necessarily|a|an|the|usually|generally|always)\s+)*(?:be\s+)?$|"
+                r"\b(?:not|never|no longer)\s+(?:(?:strictly|necessarily|a|an|the|usually|generally|always)\s+)*(?:be\s+)?$|"
                 r"\b(?:isn't|aren't|wasn't|weren't)\s+$|"
                 r"\b(?:not|never)\s+(?:strictly\s+)?(?:required|mandatory)\s+(?:or|and)\s+(?:(?:is|are)\s+)?$",
                 prefix,

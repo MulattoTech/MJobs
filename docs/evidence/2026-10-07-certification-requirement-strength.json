@@ -5,13 +5,15 @@
   "status": "PARTIAL",
   "base_sha": "b94999bb66537eb2b28df26e648db96e36d0d6b2",
   "target": "codex/mj-req115-certification-strength-20261007",
-  "observed_at_utc": "2026-10-08T04:44:35Z",
+  "observed_at_utc": "2026-10-08T04:48:50Z",
   "behavior": {
     "unqualified_certification": "UNKNOWN",
     "negated_strength_wording": {
       "not_required_alone": "UNKNOWN",
       "not_mandatory_alone": "UNKNOWN",
       "not_required_or_mandatory": "UNKNOWN",
+      "no_longer_required": "UNKNOWN",
+      "contracted_isnt_required": "UNKNOWN",
       "not_required_but_preferred": "PREFERRED",
       "not_required_but_bonus_or_nice_to_have": "NICE_TO_HAVE"
     },
@@ -25,6 +27,11 @@
     "scope_note": "This is one narrow MJ-REQ-115 slice; the broader matching requirement group remains incomplete."
   },
   "verification": [
+    {
+      "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_requirement_parsers tests.integration.test_explainable_matching",
+      "result": "PASS",
+      "summary": "Latest negation follow-up: 19 tests passed. Test-first regression reproduced 'CCNA is no longer required' as REQUIRED; it and contracted 'isn't required' now resolve UNKNOWN. Existing positive and preferred/bonus/nice-to-have controls remain in the same suite."
+    },
     {
       "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_requirement_parsers tests.integration.test_explainable_matching",
       "result": "PASS",
