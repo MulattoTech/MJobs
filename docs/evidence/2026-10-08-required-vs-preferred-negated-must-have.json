@@ -3,7 +3,7 @@
   "requirement": "MJ-REQ-115",
   "issue": 116,
   "slice": "negated must-have certification wording",
-  "base_commit": "7ea461ab02cbdfd314e9be07970b96765fba4e6f",
+  "base_commit": "c1208b09f95b75f1237a02280197e41a762f78c1",
   "branch": "codex/mjreq115-negated-must-have-20261008",
   "worktree": ".worktrees/codex-mjreq115-negated-must-have-20261008",
   "scope_result": "PASS",
@@ -37,12 +37,54 @@
     {
       "command": "git diff --check",
       "result": "PASS"
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.unit.test_requirement_parsers tests.integration.test_explainable_matching",
+      "result": "PASS",
+      "observed": "25 tests passed on rebased candidate; 17 parser unit and 8 explainable-matching integration tests, including capture and Store reopen."
+    },
+    {
+      "command": "Initial C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.browser.test_manual_job_capture -v",
+      "result": "BLOCKED_ENVIRONMENT",
+      "observed": "The isolated worktree had no apps/web/dist/index.html and the API shell returned {\"detail\":\"Not Found\"}; test did not reach manual capture."
+    },
+    {
+      "command": "npm ci --offline --no-audit --no-fund --prefer-offline; npm run build (apps/web in candidate worktree)",
+      "result": "PASS",
+      "observed": "44 locked packages installed from local cache; TypeScript and Vite 8.3.1 production build passed. Node v25.9.0 warning: Vitest 5.0.3 excludes Node 25; Vitest was not run."
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.browser.test_manual_job_capture -v (after worktree-local web build)",
+      "result": "PASS",
+      "observed": "1 connected synthetic Chromium/API manual-capture test passed; fixture-only, external requests blocked."
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m py_compile services/discovery/requirement_parsers.py tests/unit/test_requirement_parsers.py tests/integration/test_explainable_matching.py; git diff --check main...HEAD",
+      "result": "PASS"
     }
   ],
-  "verified_at_utc": "2026-10-08T07:35:21Z",
+  "verified_at_utc": "2026-10-08T07:42:43Z",
   "limitations": {
-    "integration_matching": "BLOCKED_ENVIRONMENT",
-    "connected_browser": "NOT_RUN",
+    "integration_matching": "PASS (25 unit/integration tests on tested_candidate_commit)",
+    "connected_browser": "PASS (1 synthetic manual-capture browser test; isolated worktree frontend built first)",
+    "hosted_checks_and_review": "NOT_RUN_BY_USER_POLICY",
+    "live_providers": "NOT_RUN",
+    "external_submission": "OFF",
+    "broad_requirement_and_release": "PARTIAL",
+    "vitest": "NOT_RUN: installed Node v25.9.0 is excluded by Vitest 5.0.3 engine range"
+  },
+  "tested_candidate_commit": "12ac4048f92f59423a08d5f4af49453f4949f570",
+  "tested_candidate_tree": "23f5220012726c5eac91f711428d80e8f72f3a0b",
+  "tested_candidate_parent": "c1208b09f95b75f1237a02280197e41a762f78c1",
+  "tested_source_commits": [
+    "df1133f (parser fix)",
+    "12ac404 (persistence/reload test)"
+  ],
+  "validation_scope": {
+    "unit_and_integration": "PASS: 25 tests",
+    "connected_browser": "PASS: 1 synthetic test after building this worktree frontend",
+    "frontend_build": "PASS; Node v25.9.0, Vitest not run due declared engine range",
+    "local_delegated_review": "PASS, reviewed exact source/test blobs on pre-rebase candidate; rebase changed no source/test blobs",
     "hosted_checks_and_review": "NOT_RUN_BY_USER_POLICY",
     "live_providers": "NOT_RUN",
     "external_submission": "OFF",
