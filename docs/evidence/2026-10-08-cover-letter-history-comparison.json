@@ -5,10 +5,10 @@
   "result": "PASS",
   "scope": "Compare two immutable cover-letter revisions belonging to the same application using only preview text freshly returned by the existing profile-scoped application documents endpoint.",
   "branch": "codex/mj-req198-cover-letter-comparison-20261008",
-  "base_commit": "77a7d3670d7cbe3c3fb771dc2e8083b9fbaca66",
-  "base_git_tree": "f143c2367df10b9ba755e45218e7fdeeb899d49b",
-  "rebase_result": "CLEAN; rebased all three feature commits onto exact synchronized main; no conflicts.",
-  "rebased_pre_evidence_git_tree": "abf25bb086dc5a79db78433a02559018f4be979f",
+  "base_commit": "1defb5d76f7d0c1050a5936a7077eb222acdd86a",
+  "base_git_tree": "32ae925c5034c3c0129e742a0c299a187ec72454",
+  "rebase_result": "CLEAN; rebased all four feature commits onto the latest exact synchronized main; no conflicts.",
+  "rebased_pre_evidence_git_tree": "9ba8853e1235e7ded336e671e8e6d1933f23f9b8",
   "tested_candidate_commit_before_metadata_rebase": "dc9e00205c4ba666c17d75f1dba99407051ffdfd",
   "tested_candidate_git_tree_before_metadata_rebase": "33ceb3d16138f37df4b1f5f2af005dfa296f55f7",
   "tested_source_commit_before_evidence_refresh": "78a0eb6fbfd80a60decde87a1daed9f2252d9f82",
@@ -26,14 +26,14 @@
     "browser_test_git_blob_tested_and_final": "619d67a7d844be6b753d3bbd0a640fbc20121ef3",
     "comparison_command": "git diff --quiet dc9e00205c4ba666c17d75f1dba99407051ffdfd HEAD -- apps/web tests/browser/test_document_history.py apps/api/main.py services/documents/history.py services/documents/generate.py fixtures/browser_ports.py fixtures/mock_server.py packages/persistence packages/domain",
     "comparison_result": "PASS; exit code 0",
-    "only_paths_changed_by_new_main_since_tested_base": [
+    "only_paths_changed_by_latest_main_since_tested_base": [
       "planning/IMPLEMENTATION_STATE.json",
       "planning/PR_QUEUE.json",
       "planning/SESSION_HANDOFF.md"
     ]
   },
   "final_evidence_tree_note": "Source/input hashes above are independent of the final evidence commit tree. The final branch commit/tree are reported in the handoff to avoid self-referential commit hashes.",
-  "verified_at_utc": "2026-10-08T05:28:45Z",
+  "verified_at_utc": "2026-10-08T05:29:31Z",
   "environment": {
     "os": "Windows PowerShell",
     "node": "v25.9.0",
