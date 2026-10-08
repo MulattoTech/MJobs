@@ -8,7 +8,7 @@ Additional reference gaps: **14 PASS / 1 PARTIAL / 44 NOT_RUN** (59 total; 23.7%
 Full-spec release readiness: **UNKNOWN** (separate from local slice tests).
 
 Original matrix as of: `2026-10-08T15:49:20Z`. Reference matrix as of: `2026-10-08T15:49:20Z`.
-Latest recorded implementation milestone: `CORE-FEATURE-BATCH-20261008-R`.
+Latest recorded implementation milestone: `CORE-FEATURE-BATCH-20261008-PIPELINE-STATUS`.
 
 PASS requires evidence for the whole acceptance contract of that ID. PARTIAL is not a percentage. NOT_RUN does not necessarily mean no code exists. Local PASS is not hosted CI or full release acceptance.
 

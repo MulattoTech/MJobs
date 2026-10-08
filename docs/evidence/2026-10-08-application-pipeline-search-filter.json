@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "issue": 190,
+  "requirement_id": "MJ-REQ-189",
+  "slice": "connected user-reported application pipeline status search facet",
+  "result": "PARTIAL",
+  "base_commit": "251240dee129a5765df933056d5aa724fd8e8c85",
+  "source_commit": "e0a0b9d5591165976f8a590ba906c6afcf60190c",
+  "source_tree": "30c5477a4ae75fd471a78d3e501908a900b49ab4",
+  "validated_at_utc": "2026-10-08T16:11:11Z",
+  "environment": {
+    "platform": "Windows",
+    "python": "3.12",
+    "node": "v25.9.0",
+    "database": "temporary SQLite",
+    "browser": "local Chromium with synthetic fixtures"
+  },
+  "behavior": {
+    "implemented": [
+      "Jobs filters by the latest explicitly user-reported application pipeline status, including NOT_TRACKED, with a visible label that identifies it as a report.",
+      "The status predicate is profile-scoped and applied before result limits; status filtering composes with saved searches and remains independent from operational application state.",
+      "Saved searches preserve, restore, and clear status filters; an explicit empty UI selection overrides the saved status while that saved search remains selected.",
+      "The connected workflow is read-only with respect to applications, attempts, worker operations, job rows, and status audit events."
+    ],
+    "remaining": "Other MJ-REQ-189 search facets and broader discovery/matching acceptance remain incomplete. PostgreSQL runtime, hosted checks, live provider behavior, and full repository suite are unverified; this does not complete issue #190 or MJ-REQ-189.",
+    "external_submission": "OFF"
+  },
+  "tests": [
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_application_pipeline_search_filter tests.browser.test_application_pipeline_search_filter -v",
+      "result": "PASS",
+      "detail": "4 API integration tests and 1 connected Chromium workflow passed; includes latest status, NOT_TRACKED, profile isolation, saved-search reload/restore/clear, filtering before LIMIT, and no application side effects."
+    },
+    {
+      "command": "npm test --prefix apps/web",
+      "result": "PASS",
+      "detail": "116 frontend tests passed across 21 files."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "detail": "TypeScript check and Vite production build passed."
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_saved_search_filters -v",
+      "result": "PASS",
+      "detail": "23 existing saved-search integration tests passed on the candidate before the final label and explicit-clear changes."
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS",
+      "detail": "Clean for the integrated changes."
+    }
+  ],
+  "input_hashes": {
+    "apps/api/main.py": {
+      "checkout_sha256": "c448b0f48c7a11da25c69f481567f79b7cfc39334ea2120d5b8449e37921b9db",
+      "git_blob_oid": "c5b8e14dc663f9cb0492adaa0af5e600b883777b"
+    },
+    "apps/web/src/main.tsx": {
+      "checkout_sha256": "ecabc0f813987c3a35e7961d3b03762ca4216786680cd064286222321fe908fd",
+      "git_blob_oid": "d7087102d2c0bbd460597121988ba8441b178f4a"
+    },
+    "apps/web/src/application-pipeline-status-filter.tsx": {
+      "checkout_sha256": "d6da85b2eae691cad3ea94a8732b2b76c47a690122443e4c7db444b3f01fb908",
+      "git_blob_oid": "2eb4ea3dcd078608f5b0d07ffd0d134bed84f98e"
+    },
+    "apps/web/src/application-pipeline-status-filter.test.tsx": {
+      "checkout_sha256": "1750fb31b90c046c785b5e94f13bff08961cf639cda31a4885f2db05f5f1bbc5",
+      "git_blob_oid": "b6b62187ed48797dcf7c4082d52a05162ded9fcb"
+    },
+    "packages/persistence/store.py": {
+      "checkout_sha256": "f7ec6e78fc1b6788039bea5701c3a231e4fc9430c9bc37a7d6987198c2af62d5",
+      "git_blob_oid": "eb568e61e754c2f240ef54b63b580ae746d6fce3"
+    },
+    "services/discovery/search_profiles.py": {
+      "checkout_sha256": "feff596bbc3a2c65fa69e5a9dced4c66d07cc2ddc8df5801a2e55b21824632b3",
+      "git_blob_oid": "ac59bff617c177f974bcdc280c37239492704f3b"
+    },
+    "tests/integration/test_application_pipeline_search_filter.py": {
+      "checkout_sha256": "94bc2b11731b7c2c24cd6c341d74691628192fe5bf0c2f22186bd26cd75aa94b",
+      "git_blob_oid": "c9e1bc1d52bebc92bae896219aef8f6d704ee7ea"
+    },
+    "tests/browser/test_application_pipeline_search_filter.py": {
+      "checkout_sha256": "9aff1773ba5bc3dcf7aec33404543f38acb60c5b0f0ad56be79e156288b24aae",
+      "git_blob_oid": "4264bb1b9e49de79caaa916d764342c429dcf4f6"
+    }
+  },
+  "not_run": [
+    "PostgreSQL runtime verification",
+    "Hosted GitHub checks/review (disabled by local-only policy)",
+    "Live job sources and production ATS behavior",
+    "Full repository test suite"
+  ],
+  "review": "LOCAL_DELEGATED_REVIEW by Hera Syndulla found no material issue in the persistence query; the exact connected browser test additionally verifies the final UI behavior. Local review is not hosted CI or external certification.",
+  "integration": "Integrated into local main by non-force fast-forward for worker branches plus root-owned fix commit e0a0b9d5591165976f8a590ba906c6afcf60190c. Local main is ahead of origin; synchronization and issue receipt remain pending."
+}

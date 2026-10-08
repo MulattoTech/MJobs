@@ -11,7 +11,7 @@
     "current_verified_github_state": "Local/origin/GitHub main synchronized at 5834f224b918eb21d9c9aaa4e086fcc36c7b7731 (tree df42bc80b6840348b344be1f4695f51467842b61). #394 receipt https://github.com/MulattoTech/MJobs/issues/394#issuecomment-6063734760; #190 receipt/claim release https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6063736008. GitHub Actions remain disabled, main protection is off, no open PRs were observed. Hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF.",
     "current_verified_at": "2026-10-08T12:10:15Z"
   },
-  "current_milestone": "CORE-FEATURE-BATCH-20261008-R",
+  "current_milestone": "CORE-FEATURE-BATCH-20261008-PIPELINE-STATUS",
   "current_objective": "Advance connected jobseeker search, explainable matching, truthful documents, consent-safe application preparation and tracking through dependency-ready vertical slices.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -669,7 +669,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Reconcile live issue claims, worktrees, PR dependencies and area specs, then select the next dependency-ready user-facing core feature. Recheck whether application capability/state is a distinct, accurately classifiable search facet; #517 waits on source-owner #302 and #145/#118 remain dependency constrained. Do not fill the 20 Star Wars positions with duplicate or overlapping work; the last live staffing checkpoint was 0/20.",
+  "recommended_resume_step": "Continue core product implementation with the source-vs-ATS provenance Jobs display (#262) after the status-filter checkpoint; then wire reviewed sensitive-answer policies (#107). Preserve active Antigravity #302 and Ollama #318 path claims.",
   "release_readiness": "UNKNOWN",
   "migrations_applied": [
     "92f0997f753e",
@@ -703,7 +703,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "0863e55d1617b708906e7c865118105c841a6d18",
+  "last_implementation_commit": "e0a0b9d5591165976f8a590ba906c6afcf60190c",
   "publication": {
     "result": "PASS - two bounded core product slices integrated and synchronized; original requirements remain PARTIAL and release readiness UNKNOWN",
     "integration_method": "NON_FORCE_FAST_FORWARD under root integration lock after exact-source local verification",
@@ -11784,20 +11784,66 @@
         ],
         "note": "Local, origin and GitHub main are synchronized. MJ-REF-024 is PASS and #394 CLOSED; MJ-REQ-189 remains PARTIAL and #190 OPEN. Release readiness remains UNKNOWN."
       }
+    },
+    {
+      "milestone_id": "CORE-FEATURE-BATCH-20261008-PIPELINE-STATUS",
+      "current_phase": "CORE_FEATURE_IMPLEMENTATION",
+      "timestamp": "2026-10-08T16:14:07Z",
+      "completed_steps": [
+        "Integrated #190/MJ-REQ-189 user-reported application pipeline status search facet and the explicit saved-search clear-override correction into local main.",
+        "Verified the connected local SQLite/Chromium flow, API integration cases, complete frontend suite and TypeScript/Vite build.",
+        "Preserved #190 OPEN/PARTIAL and MJ-PR-052 QUEUED with MJ-PR-051/MJ-PR-043 dependencies unchanged; real submission remains OFF."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-08-application-pipeline-search-filter.json"
+      ],
+      "files_modified": [
+        "apps/api/main.py",
+        "apps/web/src/main.tsx",
+        "apps/web/src/application-pipeline-status-filter.tsx",
+        "apps/web/src/application-pipeline-status-filter.test.tsx",
+        "packages/persistence/store.py",
+        "services/discovery/search_profiles.py",
+        "tests/integration/test_application_pipeline_search_filter.py",
+        "tests/browser/test_application_pipeline_search_filter.py",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "planning/IMPLEMENTATION_STATE.json"
+      ],
+      "tests_completed": [
+        "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_application_pipeline_search_filter tests.browser.test_application_pipeline_search_filter -v: 5/5 PASS.",
+        "npm test --prefix apps/web: 116/116 PASS across 21 files; npm run build --prefix apps/web: TypeScript/Vite PASS.",
+        "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_saved_search_filters -v: 23/23 PASS on the integrated feature before the final UI-only clear correction."
+      ],
+      "tests_remaining": [
+        "PostgreSQL runtime, live job providers and full repository suite NOT_RUN.",
+        "Hosted checks/reviews NOT_RUN_BY_USER_POLICY; GitHub Actions remain disabled."
+      ],
+      "known_limitations": [
+        "MJ-REQ-189 remains PARTIAL and MJ-PR-052 remains QUEUED; application capability/state facets and other original search requirements are incomplete.",
+        "No five independent safe feature lanes were verified; Star Wars worker staffing is below the 20-agent target. Do not pad the roster with duplicate or blocked assignments."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "e0a0b9d5591165976f8a590ba906c6afcf60190c",
+        "tree": "30c5477a4ae75fd471a78d3e501908a900b49ab4",
+        "branch": "main",
+        "issue": "#190 / MJ-REQ-189 user-reported application pipeline status facet",
+        "evidence_path": "docs/evidence/2026-10-08-application-pipeline-search-filter.json",
+        "note": "Local feature source verified; canonical tracker/dashboard commit and GitHub main synchronization remain pending."
+      },
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": []
     }
   ],
   "current_phase": "CORE_FEATURE_IMPLEMENTATION",
   "last_safe_checkpoint": {
-    "git_commit": "5834f224b918eb21d9c9aaa4e086fcc36c7b7731",
-    "tree": "df42bc80b6840348b344be1f4695f51467842b61",
+    "git_commit": "e0a0b9d5591165976f8a590ba906c6afcf60190c",
+    "tree": "30c5477a4ae75fd471a78d3e501908a900b49ab4",
     "branch": "main",
-    "issue": "#394 / MJ-REF-024 and #190 / MJ-REQ-189 application-link availability",
-    "evidence_path": "docs/evidence/2026-10-08-application-link-search-filter.json",
-    "integration_receipts": [
-      "https://github.com/MulattoTech/MJobs/issues/394#issuecomment-6063734760",
-      "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6063736008"
-    ],
-    "note": "Local, origin and GitHub main are synchronized. MJ-REF-024 is PASS and #394 CLOSED; MJ-REQ-189 remains PARTIAL and #190 OPEN. Release readiness remains UNKNOWN."
+    "issue": "#190 / MJ-REQ-189 user-reported application pipeline status facet",
+    "evidence_path": "docs/evidence/2026-10-08-application-pipeline-search-filter.json",
+    "note": "Local feature source verified; canonical tracker/dashboard commit and GitHub main synchronization remain pending."
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -13306,7 +13352,8 @@
     "Issue #96 target-relevant bullet selection integrated at 454217533bf23b88c80c4fdfbf6b604d07c59bea: exact candidate local tests 19 Python + 3 Vitest PASS, TypeScript/Vite build PASS, nine input hashes and diff check PASS; Node 25.9.0 is outside Vitest support; full Python, Node 24, PostgreSQL, hosted and release validation remain NOT_RUN; requirement PARTIAL.",
     "Issue #195 / MJ-REQ-194 all eight Companies Screen fields are integrated and verified; root connected browser 1/1 on main e211; issue #195 CLOSED/PASS. Parent MJ-PR-053 stays QUEUED; release remains PARTIAL.",
     "Issue #178 / MJ-REQ-177 APPLY_MOCK persisted job/company log context integrated at main 86d7bb580c03ed0b0dc0d807e147b5ecea29be7e; exact root rerun 33 PASS/1 optional PostgreSQL skip; issue remains OPEN/PARTIAL.",
-    "Issue #144 / MJ-REQ-143 MOCK-only receipt capture integrated at main e211f013801849a4fe2cf24c855313b8fcfc3978; 22 browser tests PASS and durable connected receipt readback PASS; real ATS/full requirement remains PARTIAL."
+    "Issue #144 / MJ-REQ-143 MOCK-only receipt capture integrated at main e211f013801849a4fe2cf24c855313b8fcfc3978; 22 browser tests PASS and durable connected receipt readback PASS; real ATS/full requirement remains PARTIAL.",
+    "Issue #190 / MJ-REQ-189 user-reported pipeline status facet integrated at local source e0a0b9d5591165976f8a590ba906c6afcf60190c (tree 30c5477a4ae75fd471a78d3e501908a900b49ab4); evidence docs/evidence/2026-10-08-application-pipeline-search-filter.json; API + connected browser 5/5, frontend 116/116, TypeScript/Vite build and diff check PASS. PostgreSQL, live providers, full suite and hosted checks NOT_RUN; issue and requirement remain OPEN/PARTIAL; external submission OFF."
   ],
   "ownership": "Issue #177 / MJ-REQ-176 company-source setting Activity slice source 0c76b225f48a882e8aa90b5e7686d22a8891425e, source tree 3d7733e26c5d4d097518d3c911d6029c7f1c5e86, evidence and tests integrated at synchronized local/GitHub main 68a0630b690cfa855e43829bc4f1836cf6add246 under the Codex integration lock. GitHub issue checkpoint: https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6048627184. The issue remains OPEN/PARTIAL; hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL/Docker NOT_RUN; external submission OFF.",
   "delivery_policy": {
@@ -13321,7 +13368,7 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-08T15:52:00Z",
-  "current_verified_local_state": "Local main is 5834f224b918eb21d9c9aaa4e086fcc36c7b7731 (tree df42bc80b6840348b344be1f4695f51467842b61), synchronized with origin/main and live GitHub main after a non-force push. It includes #394/MJ-REF-024 grounded follow-up drafts (reference acceptance PASS; issue CLOSED) and the #190/MJ-REQ-189 application-link availability facet (bounded slice verified; umbrella OPEN/PARTIAL). Focused #190 checks: 34 Python, Chromium 1/1, frontend 3/3, build, compilation, validators, source hashes/blob IDs and local delegated review PASS. PostgreSQL/live providers/full repository suite and hosted checks NOT_RUN; external submission OFF.",
-  "current_verified_github_state": "Local/origin/GitHub main synchronized at 5834f224b918eb21d9c9aaa4e086fcc36c7b7731 (tree df42bc80b6840348b344be1f4695f51467842b61). #394 receipt https://github.com/MulattoTech/MJobs/issues/394#issuecomment-6063734760; #190 receipt/claim release https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6063736008. GitHub Actions remain disabled, main protection is off, no open PRs were observed. Hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF."
+  "updated_at": "2026-10-08T16:14:07Z",
+  "current_verified_local_state": "Local main contains the #190/MJ-REQ-189 connected user-reported pipeline status filter source at e0a0b9d5591165976f8a590ba906c6afcf60190c (tree 30c5477a4ae75fd471a78d3e501908a900b49ab4); its evidence and canonical tracker/dashboard refresh are being committed in this integration checkpoint. Exact local API/browser acceptance 5/5, frontend 116/116 and build PASS. PostgreSQL/live provider/full suite and hosted checks NOT_RUN; issue #190 and requirement MJ-REQ-189 remain OPEN/PARTIAL; external submission OFF.",
+  "current_verified_github_state": "Local main is ahead of origin/main by the currently integrated local-only feature commits; GitHub main has not yet been updated for this checkpoint. Hosted Actions/review remain disabled by policy."
 }
