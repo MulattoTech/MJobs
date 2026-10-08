@@ -1,0 +1,36 @@
+{
+  "requirement_id": "MJ-REQ-100",
+  "issue": 101,
+  "result": "PARTIAL",
+  "scope": "Deterministically rank approved cover-letter career facts by exact normalized token overlap with posting skills and responsibilities; retain source order for ties.",
+  "recorded_at_utc": "2026-10-08T08:42:45Z",
+  "branch": "codex/mj-req100-cover-letter-ranking-20261008",
+  "base_sha": "1f4c7771d01b5918943cb1569c5aae84a9e53181",
+  "tests": [
+    {
+      "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_cover_letter tests.integration.test_cover_letter_workflow",
+      "result": "PASS",
+      "details": "9 tests passed, including strongest-overlap-first, stable tie order, unapproved/unsourced/low-confidence no-match fail-closed behavior, and ranked generation-history readback from reopened SQLite storage."
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS",
+      "details": "No whitespace errors."
+    }
+  ],
+  "source_sha256": {
+    "services/documents/cover_letter.py": "7fd79aaf8963b0bde6c398287a26c99522be9ee3f05d5ff3dfa32a3684ae21aa",
+    "tests/unit/test_cover_letter.py": "1b0794eb402ee6885c092aa9e5639470403adc5f9cba97d1ec7fccb9f0ee4775",
+    "tests/integration/test_cover_letter_workflow.py": "5187f00f1fbf6045ddc2357460d7703725625a72d227a49a322f7937b409ff86"
+  },
+  "preserved_invariants": [
+    "Only verified, user-approved, sufficiently confident, sourced facts with stable fact IDs are eligible.",
+    "Fact wording, job snapshot, preview validation, and review/download gates remain intact.",
+    "No employer context is inferred or invented; existing source-listed company identity behavior is unchanged."
+  ],
+  "limitations": [
+    "This is a bounded improvement and does not satisfy the full MJ-REQ-100 acceptance contract, including verified company context.",
+    "Tests use synthetic fixture data and local SQLite only.",
+    "Hosted checks, manual browser review, and real application submission were not run; submission remains off."
+  ]
+}

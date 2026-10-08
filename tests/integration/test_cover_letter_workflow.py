@@ -120,6 +120,34 @@ class CoverLetterWorkflowTests(unittest.TestCase):
             self.assertIn("Application for " + job["title"], legacy["preview_text"])
             self.assertEqual(response.content, files["txt"].read_bytes())
 
+    def test_relevance_ranking_is_preserved_in_durable_generation_history(self):
+        profile = copy.deepcopy(PROFILE)
+        profile["facts"] = [
+            {"id": "python-low", "text": "Python", "kind": "skill", "source": "fictional-test-profile",
+             "verified": True, "user_approved": True, "confidence": 100},
+            {"id": "python-sql-project", "text": "Build and support Python services and SQL systems.",
+             "kind": "accomplishment", "source": "fictional-test-profile", "verified": True,
+             "user_approved": True, "confidence": 100},
+        ]
+        self.store.save_profile(profile)
+
+        with fixture_server() as origin:
+            discover(self.store, origin, "fixture")
+            job = next(row for row in self.store.jobs() if row["requisition"] == "B")
+            application_id = prepare(self.store, job["id"], "fixture", self.root)
+
+        reopened = Store(f"sqlite:///{(self.root / 'trial.db').as_posix()}")
+        try:
+            history = application_documents(reopened, application_id, self.root)
+        finally:
+            reopened.engine.dispose()
+        letter = next(row for row in history if row["kind"] == "cover-letter")
+        self.assertEqual(letter["fact_ids"], ["python-sql-project", "python-low"])
+        self.assertEqual(letter["generation_context"]["matched_terms"]["python-sql-project"],
+                         ["build", "python", "sql", "support", "systems"])
+        self.assertIn("Build and support Python services and SQL systems.", letter["preview_text"])
+        self.assertIsNone(letter["preview_error"])
+
 
 if __name__ == "__main__":
     unittest.main()

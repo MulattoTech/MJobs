@@ -60,6 +60,42 @@ class CoverLetterTests(unittest.TestCase):
             build_cover_letter(PROFILE, JOB, [FACTS[-1]])
         self.assertEqual(missing_match.exception.code, "COVER_LETTER_RELEVANT_FACTS_MISSING")
 
+    def test_facts_are_ranked_by_exact_posting_token_overlap_with_stable_ties(self):
+        facts = [
+            {"fact_id": "tie-first", "text": "Python troubleshooting", "source": "reviewed resume",
+             "verified": True, "user_approved": True, "confidence": 100},
+            {"fact_id": "best", "text": "Build Python reporting services with SQL", "source": "reviewed resume",
+             "verified": True, "user_approved": True, "confidence": 100},
+            {"fact_id": "tie-second", "text": "SQL troubleshooting", "source": "reviewed resume",
+             "verified": True, "user_approved": True, "confidence": 100},
+        ]
+
+        _, context = build_cover_letter(PROFILE, JOB, facts)
+
+        self.assertEqual(context["fact_ids"], ["best", "tie-first", "tie-second"])
+        self.assertEqual(context["matched_terms"], {
+            "best": ["build", "python", "reporting", "services", "sql"],
+            "tie-first": ["python"],
+            "tie-second": ["sql"],
+        })
+
+    def test_only_approved_sourced_confident_facts_can_rank_and_no_match_fails_closed(self):
+        invalid = [
+            {"fact_id": "unverified", "text": "Python SQL", "source": "reviewed resume",
+             "verified": False, "user_approved": True, "confidence": 100},
+            {"fact_id": "unapproved", "text": "Python SQL", "source": "reviewed resume",
+             "verified": True, "user_approved": False, "confidence": 100},
+            {"fact_id": "weak", "text": "Python SQL", "source": "reviewed resume",
+             "verified": True, "user_approved": True, "confidence": 79},
+            {"fact_id": "unsourced", "text": "Python SQL", "source": " ",
+             "verified": True, "user_approved": True, "confidence": 100},
+        ]
+
+        with self.assertRaises(PreparationError) as error:
+            build_cover_letter(PROFILE, JOB, invalid)
+
+        self.assertEqual(error.exception.code, "COVER_LETTER_RELEVANT_FACTS_MISSING")
+
     def test_unsupported_style_is_rejected(self):
         with self.assertRaises(PreparationError) as error:
             build_cover_letter(PROFILE, JOB, FACTS, "overjoyed", "normal")

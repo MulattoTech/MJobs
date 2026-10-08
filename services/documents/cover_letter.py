@@ -77,7 +77,8 @@ def _responsibilities(description):
 
 
 def _tokens(value):
-    return {word.casefold() for word in _WORD.findall(str(value or "")) if word.casefold() not in _STOP}
+    return {token for word in _WORD.findall(str(value or ""))
+            if (token := word.casefold().rstrip(".")) and token not in _STOP}
 
 
 def build_cover_letter(profile, job, facts, style="professional", length="normal"):
@@ -116,7 +117,9 @@ def build_cover_letter(profile, job, facts, style="professional", length="normal
             normalized = {**fact, "fact_id": fact.get("fact_id") or fact.get("id")}
             if normalized["fact_id"]:
                 ranked.append((-len(overlap), index, normalized, sorted(overlap)))
-    ranked.sort(key=lambda row: row[1])
+    # Rank by the count of exact normalized posting tokens, retaining source
+    # order for equal scores so identical inputs always produce identical drafts.
+    ranked.sort(key=lambda row: (row[0], row[1]))
     if not ranked:
         raise PreparationError("COVER_LETTER_RELEVANT_FACTS_MISSING",
                                "No approved, sourced career fact matches these posting details; review facts or choose another job")
