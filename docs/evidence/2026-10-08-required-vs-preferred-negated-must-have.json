@@ -11,7 +11,8 @@
   "behavior": "The negated not-a-must-have form remains UNKNOWN; a negative phrase does not imply PREFERRED or NICE_TO_HAVE.",
   "tested_inputs": {
     "services/discovery/requirement_parsers.py": "FD430EF0B1469385D4CDBA309D2DD5BC6456F5A4907689915A376A458F6A8D62",
-    "tests/unit/test_requirement_parsers.py": "C7B273EE15FA661E7F2B3F678BAA5C062B0809F16027B399C4D4F1E1A79CA281"
+    "tests/unit/test_requirement_parsers.py": "C7B273EE15FA661E7F2B3F678BAA5C062B0809F16027B399C4D4F1E1A79CA281",
+    "tests/integration/test_explainable_matching.py": "DF8058246009D6E70D9D2EE15BFFCE82B2C0AD3B96243A5E5C0BF0F3600C1186"
   },
   "checks": [
     {
@@ -30,7 +31,7 @@
       "observed": "0 tests ran; Python 3.12.10 environment lacks SQLAlchemy."
     },
     {
-      "command": "python -m py_compile services/discovery/requirement_parsers.py tests/unit/test_requirement_parsers.py",
+      "command": "python -m py_compile services/discovery/requirement_parsers.py tests/unit/test_requirement_parsers.py tests/integration/test_explainable_matching.py",
       "result": "PASS"
     },
     {
@@ -38,7 +39,7 @@
       "result": "PASS"
     }
   ],
-  "verified_at_utc": "2026-10-08T07:34:05Z",
+  "verified_at_utc": "2026-10-08T07:35:21Z",
   "limitations": {
     "integration_matching": "BLOCKED_ENVIRONMENT",
     "connected_browser": "NOT_RUN",

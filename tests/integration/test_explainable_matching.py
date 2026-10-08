@@ -81,6 +81,26 @@ class ExplainableMatchingTests(unittest.TestCase):
              "AZ_104": "PREFERRED", "ITIL": "NICE_TO_HAVE"},
         )
 
+    def test_manual_capture_preserves_negated_must_have_as_unknown_after_reload(self):
+        captured = capture_manual_job(self.store, {
+            "request_id": "negated-must-have-test", "title": "Systems Administrator",
+            "company": "Example Infrastructure",
+            "description": "CCNA is not a must-have. Security+ is a must-have.",
+            "reference_url": "https://jobs.example.invalid/certifications/negated-must-have",
+        })["job"]
+
+        self.store.engine.dispose()
+        reopened = Store(self.store.url)
+        try:
+            requirements = reopened.job(captured["id"])["attributes"]["certifications"]
+        finally:
+            reopened.engine.dispose()
+
+        self.assertEqual(
+            {row["id"]: row["strength"] for row in requirements},
+            {"CCNA": "UNKNOWN", "COMPTIA_SECURITY_PLUS": "REQUIRED"},
+        )
+
     def test_explicit_preferred_requirement_has_lower_weight_than_required(self):
         from services.discovery.matching import build_explanation
 
