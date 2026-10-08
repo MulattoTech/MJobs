@@ -8,9 +8,9 @@
   "branch": "codex/mj-req190-salary-sort-20261008",
   "worktree": ".worktrees/codex-mj-req190-salary-sort-20261008",
   "base_commit": "6aae6cbe26df53eb303f22fc8dab0634ee2acc13",
-  "tested_source_commit": "8884286bb404a172953b29dc2570910855b11a25",
-  "tested_source_tree": "ed66b989d5032eb46a647ee8e056b521fbdca789",
-  "validation_completed_at_utc": "2026-10-08T12:00:37Z",
+  "tested_source_commit": "f096ba54eb89b39f95dde6b46b47292169f73585",
+  "tested_source_tree": "beb81d5000b06966d59eb0d1db929c9d2090b5f6",
+  "validation_completed_at_utc": "2026-10-08T12:03:40Z",
   "environment": {
     "python": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe",
     "database": "temporary SQLite fixture database",
@@ -21,34 +21,73 @@
     "postgresql": "NOT_RUN"
   },
   "acceptance": {
-    "sort_options": ["salary_high", "salary_low"],
+    "sort_options": [
+      "salary_high",
+      "salary_low"
+    ],
     "comparable_salary": "Numeric, non-negative salary endpoint(s), salary_period YEAR, and salary_currency USD only.",
     "range_scalar": "Use numeric salary_max when present; otherwise numeric salary_min. An inverted numeric band is ineligible.",
-    "unknown_values": "Missing, malformed, negative, inverted, hourly, and non-USD salaries sort last in both directions.",
+    "unknown_values": "Missing, malformed or negative supplied endpoints, inverted bands, hourly, and non-USD salaries sort last in both directions; a missing or JSON-null single endpoint is allowed.",
     "tie_break": "Comparable equal salaries and all ineligible salaries tie-break by stable job ID.",
     "limit": "SQL order is applied before result LIMIT.",
     "saved_search": "Profile-scoped sort selection validates, persists, survives Store reopen, and is restored in the connected UI.",
     "side_effects": "Sorting does not edit job attributes, match scores, schedule sources, or submit applications."
   },
   "checks": [
-    {"command": "python -m unittest tests.integration.test_job_sorting", "result": "PASS", "observed": "7 tests; salary endpoints/ranges, annual USD eligibility, missing/malformed/inverted/hourly/non-USD last, stable ties, LIMIT-after-sort, invalid query and saved-sort rejection, profile-scoped saved-search reopen; existing sort regression checks."},
-    {"command": "python -m unittest tests.browser.test_job_sorting", "result": "PASS", "observed": "1 connected browser test; saved high-to-low order restored from profile search, low-to-high produces visible reordered results, helper text is visible, and browser is restricted to the isolated local API."},
-    {"command": "npm test --prefix apps/web -- --run", "result": "PASS", "observed": "18 test files; 103 tests passed."},
-    {"command": "npm run build --prefix apps/web", "result": "PASS", "observed": "TypeScript and Vite production build passed."},
-    {"command": "python -m compileall -q apps/api/main.py packages/persistence/store.py services/discovery/search_profiles.py tests/integration/test_job_sorting.py tests/browser/test_job_sorting.py", "result": "PASS"},
-    {"command": "python -m tools.verification.agent_skills", "result": "PASS"},
-    {"command": "git diff HEAD --check", "result": "PASS"}
+    {
+      "command": "python -m unittest tests.integration.test_job_sorting",
+      "result": "PASS",
+      "observed": "7 tests; salary endpoints/ranges, annual USD eligibility, missing/malformed/negative/inverted/hourly/non-USD last in both directions, stable ties, LIMIT-after-sort, invalid query and saved-sort rejection, profile-scoped saved-search reopen; existing sort regression checks."
+    },
+    {
+      "command": "python -m unittest tests.browser.test_job_sorting",
+      "result": "PASS",
+      "observed": "1 connected browser test; saved high-to-low order restored from profile search, low-to-high produces visible reordered results, helper text is visible, and browser is restricted to the isolated local API."
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run",
+      "result": "PASS",
+      "observed": "18 test files; 103 tests passed."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "observed": "TypeScript and Vite production build passed."
+    },
+    {
+      "command": "python -m compileall -q apps/api/main.py packages/persistence/store.py services/discovery/search_profiles.py tests/integration/test_job_sorting.py tests/browser/test_job_sorting.py",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.agent_skills",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff HEAD --check",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m unittest tests.integration.test_job_sorting.JobSortingApiTests.test_salary_sort_uses_highest_disclosed_annual_usd_endpoint_and_keeps_unknown_last",
+      "result": "PASS",
+      "observed": "Red-first follow-up regression covers negative min with numeric max, numeric min with negative max, negative-only endpoint, both salary directions, unknown-last, and null one-sided ranges."
+    }
   ],
   "input_sha256": {
     "apps/api/main.py": "6BE631388AAA76AFBAF3F15DC1E16D1B26970CB44F52F04BFF87AB4543E64D67",
-    "packages/persistence/store.py": "9256B1FB6F510E52639EC07B74828BC378AB4D7E49F19280EB636666799E93A4",
+    "packages/persistence/store.py": "8A15228BEB21E4AF3CBBBDBB1F5CC4CDC27F9314169D3B3769CE4CE914A9F242",
     "services/discovery/search_profiles.py": "0B35CD648F5AA65293C67BECC2141AF4600AB1F02879C0BD1ADCD8D79346DC52",
     "apps/web/src/main.tsx": "2DA247DBECA7E071C2628CFA77ECD7F721721CED68CFDF161B97326470498E54",
-    "tests/integration/test_job_sorting.py": "5109444255FCC22FDCE3A79357277B1058284982CEBAB1C946DA41B583E367C9",
+    "tests/integration/test_job_sorting.py": "E4C260B3B5F168947AC89BDA1FB5FFD9C2923DFF00CB6F7D15D442549A9A83C4",
     "tests/browser/test_job_sorting.py": "0C1ACE24E02B47E6B489F3EA7AFCB66554F29134DBD4A97D4C8B51173AD8720E"
   },
   "known_gaps": [
     "Application Priority sort policy remains undefined and is not implemented by this slice.",
     "Requirement MJ-REQ-190 remains PARTIAL overall."
-  ]
+  ],
+  "follow_up": {
+    "review_finding": "A negative supplied endpoint could previously be ignored when the opposite endpoint was numeric.",
+    "fix": "Fail the entire salary record closed when either supplied endpoint is malformed or negative; absent and JSON-null endpoints remain valid for one-sided disclosures.",
+    "commit": "f096ba54eb89b39f95dde6b46b47292169f73585",
+    "tested_tree": "beb81d5000b06966d59eb0d1db929c9d2090b5f6"
+  }
 }
