@@ -3,7 +3,7 @@
   "issue": 240,
   "scope": "profile-scoped company notes through CompanySources UI and API",
   "result": "PASS",
-  "recorded_at_utc": "2026-10-08T05:19:22Z",
+  "recorded_at_utc": "2026-10-08T05:21:10Z",
   "base_commit": "bba96c0cac3d81d579bf2819eb7b48e4e5392e86",
   "candidate_commit": "1173bf792f0bd4092d638662d982c9bf8e225f9a",
   "worktree": ".worktrees/codex-mj-req239-company-notes-20261008",
@@ -98,8 +98,6 @@
   "candidate_tree": "bf1400d35701eedaf60bbc569881d622692cb3fb",
   "evidence_scope": "candidate_commit identifies the tested source and test tree; the evidence metadata update is a descendant commit.",
   "source_manifest_format": "SHA-256 of UTF-8 LF-joined, ordinal-path-sorted lines: <path><space><SHA-256 of file bytes>.",
-  "integration_head": "5211ff3cabd66b56d9ed3d86e065708137d6a9c7",
-  "integration_tree": "5f3d7364e0cbe2edccbfee05386a1e9591c791f3",
   "requirement_coverage": {
     "requirement_id": "MJ-REQ-239",
     "result": "PASS",
@@ -114,5 +112,9 @@
       "docs/evidence/2026-10-05-application-pipeline.json"
     ],
     "statement": "All three entities have profile-scoped note workflows with persistence/readback evidence; this does not change the broader tracking, history, core-workflow, or release results."
-  }
+  },
+  "tested_integration_head": "5211ff3cabd66b56d9ed3d86e065708137d6a9c7",
+  "tested_integration_tree": "5f3d7364e0cbe2edccbfee05386a1e9591c791f3",
+  "integrated_main_commit": "aa777e3a243c55fbde54df9af57d4dc33f16bbf9",
+  "integrated_main_tree": "2c963b3922cc4009dedd044b3498d2f11afa2107"
 }
