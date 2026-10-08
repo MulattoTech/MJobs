@@ -4,10 +4,10 @@
   "requirement_id": "MJ-REQ-189",
   "slice": "canonical taxonomy skill facet in Jobs saved searches",
   "result": "PARTIAL",
-  "base_commit": "5ca978be11a78a71cf93a8be5755f7fede319e12",
-  "source_commit": "6593915e507d4925a037a721e67564969df3f7e6",
-  "source_tree": "dff25f33efaa6442388b6aedb47609009a473ac9",
-  "validated_at_utc": "2026-10-08T13:17:30Z",
+  "base_commit": "516fd4bffb4e22110573a6a7a406a19d6af76ec4",
+  "source_commit": "0696b749d7775d0c0a13f453e11b1f6ae3a803e2",
+  "source_tree": "57dff5408c694ce38274b0fdf731b86945cff609",
+  "validated_at_utc": "2026-10-08T13:19:48Z",
   "environment": {
     "platform": "Windows",
     "python": "3.12.10",
@@ -31,17 +31,17 @@
     {
       "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_saved_search_filters tests.browser.test_saved_search_filters",
       "result": "PASS",
-      "detail": "17 tests passed: 16 connected API/integration tests and 1 Chromium workflow. Covers taxonomy/alias normalization, exact ID and label matches, unrecognized values, pre-LIMIT filtering, saved-search round-trip/clear/profile isolation, legacy payloads, semantic AND composition, and no scheduling side effects."
+      "detail": "Root rerun on the rebased exact candidate: 17 tests passed (16 connected API/integration cases and 1 Chromium workflow)."
     },
     {
       "command": "npm test --prefix apps/web -- --run",
       "result": "PASS",
-      "detail": "18 files and 103 frontend tests passed."
+      "detail": "Root rerun on the rebased exact candidate passed 18 files and 103 frontend tests."
     },
     {
       "command": "npm run build --prefix apps/web",
       "result": "PASS",
-      "detail": "TypeScript check and Vite production build passed after all runtime changes; only integration-test assertions changed afterward."
+      "detail": "Root rerun on the rebased exact candidate passed TypeScript check and Vite production build."
     },
     {
       "command": "Python 3.12 py_compile for the changed API, store, search-profile service, and saved-filter tests",
@@ -82,5 +82,5 @@
     "Live production job sources and real ATS behavior",
     "Full repository test suite"
   ],
-  "integration": "Local feature commit only; awaiting root review and serialized integration."
+  "integration": "Rebased onto exact main 516fd4b; root reran the connected API/Chromium suite (17/17), frontend suite (103/103), TypeScript/Vite build, py_compile, agent-skill validation, source hashes and diff check. Awaiting serialized root integration."
 }
