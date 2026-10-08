@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "evidence_id": "MJ-REQ-104-ANSWER-MATCHING-LOCAL-20261008",
-  "recorded_at_utc": "2026-10-08T05:58:21Z",
+  "recorded_at_utc": "2026-10-08T05:59:39Z",
   "result": "PARTIAL",
   "issue": 105,
   "requirement_id": "MJ-REQ-104",
@@ -12,9 +12,9 @@
     "issue_state": "OPEN",
     "branch": "codex/mj-req104-answer-matching-20261008",
     "worktree": ".worktrees/codex-mj-req104-answer-matching-20261008",
-    "base_main": "1545a4f0e9bc08422e1f68adb28a6d0be70adb05",
-    "tested_commit": "338884ec1ec75ce1c7d9ee9cc697370c6477baea",
-    "tested_tree": "a7602f30e59ad9c3aa1c93c84d09b6aba2942a62"
+    "base_main": "8096b6c81250c5c8012f99e29f19c19e36220083",
+    "tested_commit": "9a217f15a304cd175c4eb56c379470f8a7b5cc12",
+    "tested_tree": "78ed33c8d7562f50dedce399e2fe38e93e4e3204"
   },
   "acceptance": {
     "exact_normalization": "PASS; case and punctuation variants produce EXACT_NORMALIZATION with score 1.0.",
