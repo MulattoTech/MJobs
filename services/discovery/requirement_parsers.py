@@ -85,8 +85,21 @@ def experience_requirement_summary(text):
     }
 def _cert_strength(clause):
     folded = clause.casefold()
-    if re.search(r"\b(required|must|mandatory|shall|required to have)\b", folded):
-        return "REQUIRED"
+    for match in re.finditer(r"\b(required|must|mandatory|shall)\b", folded):
+        prefix = folded[max(0, match.start() - 40):match.start()]
+        suffix = folded[match.end():match.end() + 12]
+        negated = (
+            match.group(0) in {"required", "mandatory"}
+            and bool(re.search(
+                r"\b(?:not|never)\s+(?:strictly\s+)?(?:be\s+)?$|\b(?:isn't|aren't|wasn't|weren't)\s+$",
+                prefix,
+            ))
+        ) or (
+            match.group(0) in {"must", "shall"}
+            and bool(re.match(r"\s+not\b", suffix))
+        )
+        if not negated:
+            return "REQUIRED"
     if re.search(r"\b(preferred|desired|strongly preferred)\b", folded):
         return "PREFERRED"
     if re.search(r"\b(nice\s+to\s+have|plus|bonus)\b", folded):
