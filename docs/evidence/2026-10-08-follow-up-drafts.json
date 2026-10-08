@@ -2,15 +2,16 @@
   "schema_version": 1,
   "issue": 394,
   "requirement": "MJ-REF-024",
-  "result": "PARTIAL",
-  "acceptance_status": "PARTIAL",
+  "result": "PASS",
+  "acceptance_status": "PASS",
+  "scope": "Synthetic connected follow-up draft acceptance; sending, external traffic and real application activity are excluded.",
   "branch": "codex/mj-ref024-follow-up-tests-20261008",
   "tested_candidate": {
     "branch": "codex/root-mj-ref024-follow-up-review-20261008",
-    "source_sha": "31e5f2e76d3a557ea37fd7bb8ac59e1ce35ea6b3",
-    "source_tree": "dbe445a73f9a122ddc93d0e37cff3cb6822f97ef"
+    "source_sha": "15be9f2e6eae4c8dd1488f631693dea07ea36568",
+    "source_tree": "19561d56ed035434597cbff9864cf2efc0d04243"
   },
-  "tested_at_utc": "2026-10-08T15:22:54Z",
+  "tested_at_utc": "2026-10-08T15:27:42Z",
   "tested_inputs": [
     {
       "path": "apps/api/main.py",
@@ -34,7 +35,7 @@
     },
     {
       "path": "tests/browser/test_application_follow_up_drafts.py",
-      "sha256": "87760768c2b12d275ea3041ed5872e6d65b787d0e7c4b460731e3c44feb52718"
+      "sha256": "4c11c9094ba4f79e64448eefcc31748429d30b14bc306293ed370b1a4c12f29d"
     }
   ],
   "validation": {
@@ -45,22 +46,21 @@
       "summary": "3 passed, 0 failed, 0 skipped"
     },
     "browser_test": {
-      "result": "NOT_RUN",
-      "reason": "Awaiting the root candidate with the UI navigation accessible-name fix; do not treat this as browser acceptance."
+      "result": "PASS",
+      "count": 1,
+      "command": "$env:MJOBS_TEST_ROOT = 'C:\\Tools\\Dev\\MJobs\\.worktrees\\codex-root-mj-ref024-follow-up-review-20261008'; ..\\..\\.venv\\Scripts\\python.exe -c \"import importlib.util,sys,unittest; sys.path.insert(0, r'C:\\Tools\\Dev\\MJobs\\.worktrees\\codex-root-mj-ref024-follow-up-review-20261008'); spec=importlib.util.spec_from_file_location('test_application_follow_up_drafts_browser', r'C:\\Tools\\Dev\\MJobs\\.worktrees\\codex-mj-ref024-follow-up-tests-20261008\\tests\\browser\\test_application_follow_up_drafts.py'); module=importlib.util.module_from_spec(spec); spec.loader.exec_module(module); suite=unittest.defaultTestLoader.loadTestsFromModule(module); result=unittest.TextTestRunner(verbosity=2).run(suite); sys.exit(not result.wasSuccessful())\"",
+      "summary": "1 passed, 0 failed, 0 skipped"
     },
     "py_compile": "PASS for both owned test modules",
     "evidence_json_parse": "PASS",
-    "diff_check": "PASS"
+    "six_input_sha256_check": "PASS",
+    "git_diff_check": "PASS"
   },
   "privacy": {
     "data": "synthetic only",
+    "network": "loopback fixture API and mock ATS only",
     "external_network": "NOT_USED",
-    "fixture_network": "LOCALHOST_ONLY",
     "submission": "SYNTHETIC_MOCK_ONLY",
     "send_path": "NOT_USED"
-  },
-  "remaining": [
-    "Run the connected loopback browser test against the exact root candidate after its UI fix is cherry-picked.",
-    "Refresh the candidate SHA/tree and tested input hashes if the root candidate changes before browser validation."
-  ]
+  }
 }

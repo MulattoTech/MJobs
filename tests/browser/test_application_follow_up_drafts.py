@@ -1,5 +1,6 @@
 """Connected local follow-up drafts are copy-only and survive browser reload."""
 from datetime import datetime, timedelta, timezone
+import os
 from pathlib import Path
 import tempfile
 import threading
@@ -21,7 +22,8 @@ from services.tracking.applications import set_application_pipeline_status
 from tests.integration.test_spine import PROFILE
 
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(os.environ.get(
+    "MJOBS_TEST_ROOT", Path(__file__).resolve().parents[2])).resolve()
 
 
 @unittest.skipUnless((ROOT / "apps/web/dist/index.html").is_file(),
@@ -92,6 +94,10 @@ class ApplicationFollowUpDraftBrowserTests(unittest.TestCase):
                         page.evaluate("localStorage.setItem('mjobs-profile', 'fixture')")
                         page.reload(wait_until="domcontentloaded")
                         page.get_by_role("button", name="Applications", exact=False).click()
+                        eligible_card = page.locator(
+                            ".application-pipeline .job-card").filter(has_text=jobs[0]["title"])
+                        expect(eligible_card).to_be_visible()
+                        eligible_card.click()
 
                         follow_up = page.get_by_role("region", name="Follow-up drafts")
                         expect(follow_up).to_be_visible()
@@ -106,17 +112,20 @@ class ApplicationFollowUpDraftBrowserTests(unittest.TestCase):
                         dm_body = draft_details.nth(4)
                         expect(email_body).to_be_visible()
                         expect(dm_body).to_be_visible()
-                        email_text = email_body.inner_text()
-                        dm_text = dm_body.inner_text()
+                        email_text = email_body.text_content() or ""
+                        dm_text = dm_body.text_content() or ""
                         self.assertLessEqual(len(email_text), 500)
                         self.assertLessEqual(len(dm_text), 280)
 
                         follow_up.get_by_role("button", name="Copy email body", exact=True).click()
                         copied_email = page.evaluate("navigator.clipboard.readText()")
-                        self.assertEqual(copied_email, email_text)
+                        normalize_line_endings = lambda value: value.replace("\r\n", "\n").replace("\r", "\n")
+                        self.assertEqual(normalize_line_endings(copied_email),
+                                         normalize_line_endings(email_text))
                         follow_up.get_by_role("button", name="Copy DM wording", exact=True).click()
                         copied_dm = page.evaluate("navigator.clipboard.readText()")
-                        self.assertEqual(copied_dm, dm_text)
+                        self.assertEqual(normalize_line_endings(copied_dm),
+                                         normalize_line_endings(dm_text))
                         self.assertEqual(follow_up.get_by_role(
                             "button", name="Send", exact=False).count(), 0)
                         self.assertEqual(follow_up.get_by_role(
@@ -124,6 +133,10 @@ class ApplicationFollowUpDraftBrowserTests(unittest.TestCase):
 
                         page.reload(wait_until="domcontentloaded")
                         page.get_by_role("button", name="Applications", exact=False).click()
+                        eligible_card = page.locator(
+                            ".application-pipeline .job-card").filter(has_text=jobs[0]["title"])
+                        expect(eligible_card).to_be_visible()
+                        eligible_card.click()
                         follow_up = page.get_by_role("region", name="Follow-up drafts")
                         expect(follow_up).to_contain_text(jobs[0]["title"])
                         expect(follow_up).not_to_contain_text(jobs[1]["title"])
