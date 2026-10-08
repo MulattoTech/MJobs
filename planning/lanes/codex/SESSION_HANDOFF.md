@@ -1,3 +1,11 @@
+## 2026-10-08T11:12:52Z — #101 company-context cover-letter flow integrated; core product lanes active
+
+Local and origin main are synchronized at `fe4f2dc488b882d1cdf49a2faf3629d77ddc89be` (tree `aea714e1e0a554f2fdc2e45944b4c06406d02ae2`). #101/MJ-REQ-100 adds user-reviewed, versioned context tied to an exact company source identity, visibly labeled `USER_PROVIDED` / `CONTENT UNVERIFIED`, with a cited immutable per-job cover-letter snapshot. Evidence `docs/evidence/2026-10-08-verified-company-context.json`; 19 Python integration, 5 frontend, 1 browser tests, build, fresh temporary SQLite migration/schema readback, source hashes, diff and local delegated review PASS. Full requirement remains PARTIAL. Original progress is 83 PASS / 90 PARTIAL / 193 NOT_RUN; reference 13 PASS / 1 PARTIAL / 45 NOT_RUN; release UNKNOWN.
+
+Active Codex feature workers: #96/MJ-REQ-095 reviewed fact-tailoring and #197/MJ-REQ-196 persisted question-preflight review queue, isolated to non-overlapping paths. Their claims and exact acceptance are in `planning/lanes/codex/CLAIMS.json` and live issue comments. Preserve Antigravity #302 and Ollama #318. Hosted Actions/review and live employer systems remain NOT_RUN by policy; external application submission OFF.
+
+---
+
 ## 2026-10-08T10:36:50Z — connected legal preflight and application preview synchronized
 
 Local and origin main are synchronized at `347d4e7e53058135246f734aa1c7e850be25e51d` (tree `3b34163e8ec9c6d72ecda9c04604e4b7055d3af3`). #108/MJ-REQ-107 exact legal profile-value preflight and #137/MJ-REQ-136 connected read-only application preview are integrated, evidence-backed, and remain OPEN/PARTIAL. Root exact combined preflight/preview suite 22/22 PASS; frontend 96/96 and TypeScript/Vite build PASS; py_compile, evidence hashes, diff check and skills validator PASS. Local delegated reviews found no remaining material issues. Original totals now: 83 PASS, 89 PARTIAL, 194 NOT_RUN; release remains UNKNOWN. Hosted Actions/review and live ATS are NOT_RUN; external submission OFF.

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-08T11:03:14Z",
+  "timestamp": "2026-10-08T11:12:52Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -951,9 +951,10 @@
       "evidence": [
         "docs/evidence/2026-10-05-job-specific-cover-letter.json",
         "docs/evidence/2026-10-05-core-workflow-trial-combined.json",
-        "docs/evidence/2026-10-08-cover-letter-relevance-ranking.json"
+        "docs/evidence/2026-10-08-cover-letter-relevance-ranking.json",
+        "docs/evidence/2026-10-08-verified-company-context.json"
       ],
-      "note": "Combined journey prepares a job-specific cover letter from approved facts and evidence; broader context/content acceptance remains PARTIAL. Additional bounded local slice integrated on exact tested main candidate b96700264ac660c91b5be0093b979607ddfd6267: generated cover letters rank eligible approved facts by exact posting-token overlap with stable input-order ties; durable generation-history readback and no-match fail-closed checks pass. Root exact candidate combined Python scope includes 9 cover-letter tests; root input hashes are recorded in the new evidence. Full requirement remains PARTIAL because verified company context and broader acceptance remain incomplete. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF."
+      "note": "Connected job-specific cover-letter slice now accepts only context tied to the exact job company source and current user-approved content hash; UI labels context USER_PROVIDED / CONTENT UNVERIFIED, source attribution is retained, and generation snapshots persist through immutable document history. No employer URL fetch or external application submission occurred. Full MJ-REQ-100 remains PARTIAL; hosted/provider checks NOT_RUN."
     },
     {
       "requirement_id": "MJ-REQ-101",

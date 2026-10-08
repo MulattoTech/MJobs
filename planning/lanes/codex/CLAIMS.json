@@ -1199,7 +1199,7 @@
       "requirement_id": "MJ-REQ-100",
       "branch": "codex/mj-req100-verified-company-context-20261008",
       "worktree": ".worktrees/codex-mj-req100-verified-company-context-20261008",
-      "head": null,
+      "head": "fe4f2dc488b882d1cdf49a2faf3629d77ddc89be",
       "paths": [
         "services/company_discovery/company_context.py",
         "packages/persistence/models.py",
@@ -1214,11 +1214,50 @@
         "tests/browser/test_verified_company_context.py",
         "docs/evidence/2026-10-08-verified-company-context.json"
       ],
-      "status": "ACTIVE",
+      "status": "RELEASED",
       "claimed_at": "2026-10-08T10:31:52Z",
       "claim_comment": "https://github.com/MulattoTech/MJobs/issues/101#issuecomment-6057933252",
       "acceptance": "Persist/review provenance-backed context tied to an unambiguous verified company/source; arbitrary user input stays USER_PROVIDED/UNVERIFIED; only approved, verified-source context may appear in immutable job-specific letter history; absent/unverified context adds no employer claims.",
-      "evidence_path": "docs/evidence/2026-10-08-verified-company-context.json"
+      "evidence_path": "docs/evidence/2026-10-08-verified-company-context.json",
+      "integrated_main": "fe4f2dc488b882d1cdf49a2faf3629d77ddc89be",
+      "released_at": "2026-10-08T11:12:52Z",
+      "issue_state": "OPEN/PARTIAL",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/101#issuecomment-6058528849"
+    },
+    {
+      "issue": 96,
+      "requirement_id": "MJ-REQ-095",
+      "branch": "codex/mj-req095-reviewed-fact-tailoring-20261008",
+      "worktree": ".worktrees/codex-mj-req095-reviewed-fact-tailoring-20261008",
+      "head": null,
+      "paths": [
+        "services/documents/tailor.py",
+        "apps/web/src/resume-fact-selection.tsx",
+        "tests/unit/test_resume_tailoring_facts.py",
+        "tests/integration/test_resume_tailoring_facts.py",
+        "tests/browser/test_resume_tailoring_facts.py",
+        "docs/evidence/2026-10-08-resume-reviewed-fact-tailoring.json"
+      ],
+      "status": "ACTIVE",
+      "claimed_at": "2026-10-08T11:12:52Z",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6058600212"
+    },
+    {
+      "issue": 197,
+      "requirement_id": "MJ-REQ-196",
+      "branch": "codex/mj-req196-review-queue-20261008",
+      "worktree": ".worktrees/codex-mj-req196-review-queue-20261008",
+      "head": null,
+      "paths": [
+        "apps/web/src/main.tsx",
+        "apps/web/src/application-review-queue.tsx",
+        "apps/web/src/application-review-queue.test.tsx",
+        "tests/browser/test_application_review_queue.py",
+        "docs/evidence/2026-10-08-application-review-queue.json"
+      ],
+      "status": "ACTIVE",
+      "claimed_at": "2026-10-08T11:12:52Z",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/197#issuecomment-6058592727"
     }
   ]
 }

@@ -1,17 +1,17 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-08T11:03:14Z",
+  "generated_at": "2026-10-08T11:12:52Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Product source is exact-main synchronized at 010764caf6720ca2ea946268473b6c03ed89d3cc (tree cdc7abf97ecf51007be25e4b07504ef775bdac67); answer matching and generic mock-form analysis scoped slices accepted PARTIAL. Local tracker integration is in progress.",
-    "current_verified_github_state": "origin/main synchronized at 010764caf6720ca2ea946268473b6c03ed89d3cc; answer-matching and generic mock-form-analysis receipts posted. Tracker publication pending.",
-    "current_verified_at": "2026-10-08T11:03:14Z"
+    "current_verified_local_state": "Exact synchronized main fe4f2dc488b882d1cdf49a2faf3629d77ddc89be (tree aea714e1e0a554f2fdc2e45944b4c06406d02ae2); bounded company-context cover-letter flow integrated PARTIAL with local integration, browser and fresh SQLite migration evidence.",
+    "current_verified_github_state": "Local main, origin/main and GitHub default main synchronized at fe4f2dc488b882d1cdf49a2faf3629d77ddc89be; #101 integration receipt posted. Hosted tests/reviews remain NOT_RUN_BY_USER_POLICY.",
+    "current_verified_at": "2026-10-08T11:12:52Z"
   },
-  "current_milestone": "CORE-FEATURE-BATCH-20261008-G",
+  "current_milestone": "CORE-FEATURE-BATCH-20261008-H",
   "current_objective": "Advance connected jobseeker search, explainable matching, truthful documents, and consent-safe application preparation through dependency-ready vertical slices.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -79,7 +79,8 @@
     "Connected location search filter, certification-fit explanation, and sensitive-question preflight slices integrated on local main e5fee45c0c3e074154ef523d252a2e78a2ffa2de; all requirements remain PARTIAL.",
     "Durable privacy-safe application step trace and annual USD salary search filters integrated on tested local main source 7f8f76f8d33eb1dc1f4fce91e86e1f6139ccbe56; scoped issues #140/MJ-REQ-139 and #190/MJ-REQ-189 remain PARTIAL.",
     "MJ-REQ-104 bounded ITSM semantic match with explicit per-job review and durable export provenance; PARTIAL acceptance only.",
-    "MJ-REQ-128 read-only safe metadata analysis for synthetic mock application forms; ambiguous rendered context fails closed; PARTIAL acceptance only."
+    "MJ-REQ-128 read-only safe metadata analysis for synthetic mock application forms; ambiguous rendered context fails closed; PARTIAL acceptance only.",
+    "MJ-REQ-100 bounded company-context workflow: source-identity binding, explicit content-hash review, labeled unverified context and immutable per-job letter history; PARTIAL only."
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
@@ -165,7 +166,8 @@
     "MJ-REQ-189",
     "MJ-REQ-107",
     "MJ-REQ-136",
-    "MJ-REQ-101"
+    "MJ-REQ-101",
+    "MJ-REQ-196"
   ],
   "active_prs": [],
   "tests_passed": [
@@ -575,14 +577,13 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "commit": "010764caf6720ca2ea946268473b6c03ed89d3cc",
-    "tree": "cdc7abf97ecf51007be25e4b07504ef775bdac67",
-    "result": "PASS scoped exact-main answer semantic-match refinement and mock form analyzer; original requirements remain PARTIAL; live ATS and hosted checks NOT_RUN by policy.",
+    "commit": "fe4f2dc488b882d1cdf49a2faf3629d77ddc89be",
+    "tree": "aea714e1e0a554f2fdc2e45944b4c06406d02ae2",
+    "result": "PASS bounded company-context review and immutable cover-letter generation workflow; full requirement remains PARTIAL; provider/hosted gates NOT_RUN by policy.",
     "evidence": [
-      "docs/evidence/2026-10-08-answer-semantic-match-refinement.json",
-      "docs/evidence/2026-10-08-generic-form-engine.json"
+      "docs/evidence/2026-10-08-verified-company-context.json"
     ],
-    "verified_at_utc": "2026-10-08T11:03:14Z"
+    "verified_at_utc": "2026-10-08T11:12:52Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -649,7 +650,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Continue the core-feature sprint by finishing exact-main verification and integration of #101/MJ-REQ-100 company-context cover letters; then select the next dependency-ready discovery/filter, document, or supported application-preparation gap. Refresh the tracker only at the next accepted batch.",
+  "recommended_resume_step": "Continue dependency-ready user-facing core work in active isolated #96/MJ-REQ-095 and #197/MJ-REQ-196 slices. Keep MJobs external submission OFF; review exact changed bytes, integrate qualified slices sequentially, and batch-refresh progress at the next accepted checkpoint.",
   "release_readiness": "NOT_RUN",
   "migrations_applied": [
     "92f0997f753e",
@@ -683,7 +684,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "010764caf6720ca2ea946268473b6c03ed89d3cc",
+  "last_implementation_commit": "fe4f2dc488b882d1cdf49a2faf3629d77ddc89be",
   "publication": {
     "result": "PASS - bounded local feature batch integrated and synchronized; overall release remains PARTIAL/UNKNOWN",
     "integration_method": "NON_FORCE_FAST_FORWARD; exact tested worker commits integrated under the root lock",
@@ -11198,16 +11199,67 @@
         "evidence_path": "docs/evidence/2026-10-08-generic-form-engine.json",
         "note": "Both bounded product slices are integrated and synchronized; tracker counts remain requirement-level PARTIAL and release UNKNOWN."
       }
+    },
+    {
+      "milestone_id": "CORE-FEATURE-BATCH-20261008-H",
+      "current_phase": "CORE_FEATURE_IMPLEMENTATION",
+      "timestamp": "2026-10-08T11:12:52Z",
+      "completed_steps": [
+        "Integrated #101/MJ-REQ-100 company-context workflow as a connected, provenance-labeled cover-letter capability; whole requirement remains PARTIAL.",
+        "Verified local main and origin/main at the exact integrated source/evidence head and recorded issue receipt.",
+        "Started independent user-facing resume-tailoring and application-review queue slices on separate branches."
+      ],
+      "files_added": [
+        "services/company_discovery/company_context.py",
+        "migrations/versions/c7d4a91e205f_verified_company_context.py",
+        "tests/integration/test_company_context.py",
+        "tests/integration/test_company_context_documents.py",
+        "tests/browser/test_company_context.py"
+      ],
+      "files_modified": [
+        "apps/api/main.py",
+        "apps/web/src/company-sources.tsx",
+        "packages/persistence/models.py",
+        "services/documents/cover_letter.py",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json"
+      ],
+      "tests_completed": [
+        "19 scoped Python integration tests PASS; 5 frontend tests PASS; 1 connected browser test PASS; TypeScript/Vite build PASS; fresh temporary SQLite upgrade/schema readback and one Alembic head PASS; py_compile, 12 source hashes and diff check PASS; LOCAL_DELEGATED_REVIEW no material findings."
+      ],
+      "tests_remaining": [
+        "Full repository suite, PostgreSQL, live employer systems and hosted checks/review."
+      ],
+      "migrations_applied": [
+        "Fresh temporary SQLite upgrade to c7d4a91e205f; no user database touched."
+      ],
+      "live_integrations_tested": [],
+      "known_errors": [
+        "Initial root migration command pointed at a nonexistent worktree outputs folder; the corrected OS-temp SQLite run passed."
+      ],
+      "known_limitations": [
+        "Company context remains USER_PROVIDED / CONTENT UNVERIFIED; only source identity and review provenance are verified. No employer context fetched. Whole cover-letter requirement remains PARTIAL. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "fe4f2dc488b882d1cdf49a2faf3629d77ddc89be",
+        "tree": "aea714e1e0a554f2fdc2e45944b4c06406d02ae2",
+        "branch": "main",
+        "issue": "#101 / MJ-REQ-100",
+        "evidence_path": "docs/evidence/2026-10-08-verified-company-context.json",
+        "integration_receipt": "https://github.com/MulattoTech/MJobs/issues/101#issuecomment-6058528849",
+        "note": "Connected source-context review and immutable cover-letter history are integrated and synchronized; release remains UNKNOWN."
+      }
     }
   ],
   "current_phase": "CORE_FEATURE_IMPLEMENTATION",
   "last_safe_checkpoint": {
-    "git_commit": "010764caf6720ca2ea946268473b6c03ed89d3cc",
-    "tree": "cdc7abf97ecf51007be25e4b07504ef775bdac67",
+    "git_commit": "fe4f2dc488b882d1cdf49a2faf3629d77ddc89be",
+    "tree": "aea714e1e0a554f2fdc2e45944b4c06406d02ae2",
     "branch": "main",
-    "issue": "#105 / MJ-REQ-104 and #129 / MJ-REQ-128",
-    "evidence_path": "docs/evidence/2026-10-08-generic-form-engine.json",
-    "note": "Both bounded product slices are integrated and synchronized; tracker counts remain requirement-level PARTIAL and release UNKNOWN."
+    "issue": "#101 / MJ-REQ-100",
+    "evidence_path": "docs/evidence/2026-10-08-verified-company-context.json",
+    "integration_receipt": "https://github.com/MulattoTech/MJobs/issues/101#issuecomment-6058528849",
+    "note": "Connected source-context review and immutable cover-letter history are integrated and synchronized; release remains UNKNOWN."
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -11533,14 +11585,22 @@
     "next_issue": "Release #398 and select the next dependency-ready unclaimed issue after live claim/worktree reconciliation."
   },
   "active_development_issue": {
-    "issue": 101,
-    "requirement_id": "MJ-REQ-100",
-    "title": "Cover Letter Engine",
-    "state": "Active isolated implementation; exact-current-main validation and integration pending.",
-    "branch": "codex/mj-req100-verified-company-context-20261008",
-    "worktree": ".worktrees/codex-mj-req100-verified-company-context-20261008",
-    "base_commit": "010764caf6720ca2ea946268473b6c03ed89d3cc",
-    "acceptance": "Use exact company-source identity and user-reviewed provenance-backed company context, position/JD and approved career facts to produce truthful versioned job-specific letters; unverified context remains labeled and no unsupported employer facts are introduced."
+    "issue": 96,
+    "requirement_id": "MJ-REQ-095",
+    "title": "Resume Tailoring Engine",
+    "state": "Active bounded implementation; other independent #197 review queue slice also active.",
+    "branch": "codex/mj-req095-reviewed-fact-tailoring-20261008",
+    "worktree": ".worktrees/codex-mj-req095-reviewed-fact-tailoring-20261008",
+    "base_commit": "fe4f2dc488b882d1cdf49a2faf3629d77ddc89be",
+    "owned_paths": [
+      "services/documents/tailor.py",
+      "apps/web/src/resume-fact-selection.tsx",
+      "tests/unit/test_resume_tailoring_facts.py",
+      "tests/integration/test_resume_tailoring_facts.py",
+      "tests/browser/test_resume_tailoring_facts.py",
+      "docs/evidence/2026-10-08-resume-reviewed-fact-tailoring.json"
+    ],
+    "acceptance": "Reproduce and implement one safe remaining job-specific user-reviewed rewrite behavior grounded in approved source fact, preserving dates/numbers/named credential tokens and exact source hash; otherwise retain issue PARTIAL without speculative edits."
   },
   "historical_control_snapshots": [
     {
@@ -12696,7 +12756,7 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-08T11:03:14Z",
-  "current_verified_local_state": "Product source is exact-main synchronized at 010764caf6720ca2ea946268473b6c03ed89d3cc (tree cdc7abf97ecf51007be25e4b07504ef775bdac67); answer matching and generic mock-form analysis scoped slices accepted PARTIAL. Local tracker integration is in progress.",
-  "current_verified_github_state": "origin/main synchronized at 010764caf6720ca2ea946268473b6c03ed89d3cc; answer-matching and generic mock-form-analysis receipts posted. Tracker publication pending."
+  "updated_at": "2026-10-08T11:12:52Z",
+  "current_verified_local_state": "Exact synchronized main fe4f2dc488b882d1cdf49a2faf3629d77ddc89be (tree aea714e1e0a554f2fdc2e45944b4c06406d02ae2); bounded company-context cover-letter flow integrated PARTIAL with local integration, browser and fresh SQLite migration evidence.",
+  "current_verified_github_state": "Local main, origin/main and GitHub default main synchronized at fe4f2dc488b882d1cdf49a2faf3629d77ddc89be; #101 integration receipt posted. Hosted tests/reviews remain NOT_RUN_BY_USER_POLICY."
 }
