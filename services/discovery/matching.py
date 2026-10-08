@@ -15,6 +15,16 @@ from services.audit_history import record_job_discovered, record_match_scored
 
 _STRENGTH_WEIGHT = {"REQUIRED": 1.0, "PREFERRED": 0.5, "NICE_TO_HAVE": 0.25, "UNKNOWN": 0.25}
 _CURRENCY_CODES = re.compile(r"\b(?:USD|CAD|AUD|NZD|EUR|GBP|JPY|CNY|INR|CHF|MXN|BRL|SEK|NOK|DKK|ZAR)\b", re.I)
+_SALARY_RANGE = re.compile(
+    r"\$?\s*\d[\d,]*(?:\.\d+)?\s*(?P<low_scale>[kK])?\s*"
+    r"(?:-|–|—|to)\s*\$?\s*\d[\d,]*(?:\.\d+)?\s*(?P<high_scale>[kK])?\b",
+    re.I,
+)
+
+
+def _has_mixed_salary_range_scale(text):
+    match = _SALARY_RANGE.search(text)
+    return bool(match and bool(match.group("low_scale")) != bool(match.group("high_scale")))
 
 
 def _annual_usd_interval(value, *, job=False):
@@ -37,6 +47,11 @@ def _annual_usd_interval(value, *, job=False):
     if currencies - {"USD"} or len(currencies) > 1 or not ("USD" in currencies or has_dollar):
         return None
     parse_text = _CURRENCY_CODES.sub(lambda match: "$" if match.group(0).upper() == "USD" else match.group(0), text)
+    # The shared parser scales only the endpoint carrying "k" (for example
+    # 90-110k becomes 90-110000). The intended shared scale is ambiguous, so
+    # leave mixed-suffix ranges unknown rather than infer the user's meaning.
+    if _has_mixed_salary_range_scale(parse_text):
+        return None
     parsed = parse_salary(parse_text)
     low, high = parsed["salary_min"], parsed["salary_max"]
     if (parsed["salary_period"] != "YEAR" or type(low) not in (int, float)

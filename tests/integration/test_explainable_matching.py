@@ -449,12 +449,15 @@ class ExplainableMatchingTests(unittest.TestCase):
         self.assertEqual(overlap["score_effect"], "NONE")
         self.assertEqual(factor("USD 125000-140000 annually")["status"], "NO_DIRECT_MATCH")
         self.assertEqual(factor("USD 110000 annually")["status"], "ALIGNS")
+        self.assertEqual(factor("USD 90k-110k annually")["status"], "ALIGNS")
         self.assertEqual(factor("USD 90000-100000 annually")["status"], "ALIGNS",
                          "Closed range endpoints that touch count as overlap.")
 
         unknown_inputs = (
             ("USD 90000+ annually", 100000, 120000, "YEAR", "USD"),
             ("USD 90000-110000 annually", None, 120000, "YEAR", "USD"),
+            ("USD 90-110k annually", 80000, 89000, "YEAR", "USD"),
+            ("USD 90k-110000 annually", 80000, 89000, "YEAR", "USD"),
             ("CAD 90000-110000 annually", 100000, 120000, "YEAR", "USD"),
             ("USD 90000-110000 hourly", 100000, 120000, "YEAR", "USD"),
             ("USD 90000-110000 annually", 100000, 120000, "HOUR", "USD"),
