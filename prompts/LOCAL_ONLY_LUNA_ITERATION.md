@@ -1,22 +1,50 @@
 # MJobs: local-only iterative delivery toward evidence-backed completion
 
-Use GPT-6 Luna with High reasoning as selected by the user. Do not substitute a different model, buy API credits, or launch another agent/reviewer to work around a usage limit.
+Use GPT-6 Luna High for the primary and each spawned child. The user explicitly authorizes up to **50 simultaneously active local Luna High subagents**, subject to real Codex/account/host limits. Do not substitute Astra/Sol, buy API credits, or evade a usage limit with another process, provider, or account. Fifty Luna children are not a demonstrated token-cost equivalent to an Astra worker.
 
 ## Current authorization and outcome
 
-This prompt authorizes implementation of successive dependency-ready MJobs issues in the current interactive Codex CLI session. Work in C:\Tools\Dev\MJobs against current MulattoTech/MJobs main. Continue after each accepted slice without asking for routine permission to continue. Prefer complete user-visible behavior over issue counts, framework work, cosmetic changes, or repeated planning.
+This prompt authorizes the Luna High root and up to 50 concurrently spawned Luna High children to implement dependency-ready MJobs issues in the current interactive Codex CLI session. Work in C:\Tools\Dev\MJobs against current MulattoTech/MJobs main. Continue after each accepted slice without asking for routine permission to continue. Prefer complete user-visible behavior over issue counts, framework work, cosmetic changes, or repeated planning.
 
 The destination is genuine evidence-backed 100% - PASS, not a guarantee for this session. Keep original MJ-REQ completion, additive MJ-REF completion, core-workflow trial acceptance, and release readiness separate. Never shrink a denominator, delete a requirement, close an umbrella for a narrow slice, count an unavailable provider as working, or turn an unrun check into PASS. No new deadline is implied by older October 5 afternoon prompts: those deadlines are historical.
 
-Keep this one bounded session: checkpoint at every coherent slice; after at most three completed slices or four hours, finish/preserve the current safe checkpoint, synchronize, report, and stop for the next user invocation. Stop sooner on a user interruption, unresolved checkout ownership, exhausted current-session allowance, or a permission-dependent blocker. Do not create scheduled tasks, unattended loops, watchdogs, recursive invocations, or automatic resumes.
+Keep this one bounded interactive session: checkpoint each completed child slice and integrate in dependency order. The old three-slice ceiling no longer applies; multiple independent slices may be in flight concurrently across up to 50 child agents. After four hours, user interruption, exhausted account/session allowance, unsafe ownership, or an authorization blocker, stop assigning new work, let task-owned mutations reach safe checkpoints when possible, preserve work, report and stop for the next user invocation. Do not create scheduled tasks, unattended loops, watchdogs, recursive invocations or automatic resumes.
 
 ## Hard budget boundary
 
-GitHub is source storage, issues, PR metadata and historical evidence only. Repository Actions and every workflow must remain disabled. Do not enable, dispatch, rerun, schedule, retry or poll for new Actions; do not move the same job to a GitHub self-hosted runner, another cloud CI, or a Codespace. Do not request GitHub/Copilot/Codex code review, assign an issue to a cloud agent, invoke bot mentions, or start reviewer/subagent sessions. Do not raise spending limits or change billing. No paid product-AI calls, large model downloads, credential repurposing or private-data transmission.
+GitHub is source storage, issues, PR metadata and historical evidence only. Repository Actions and every workflow must remain disabled. Do not enable, dispatch, rerun, schedule, retry or poll for new Actions; do not move the same job to a GitHub self-hosted runner, another cloud CI, or a Codespace. Do not request GitHub/Copilot/hosted code review, assign an issue to a cloud agent, invoke bot mentions, or launch unrelated paid sessions. Up to fifty **local GPT-6 Luna High spawned children** inside this one root session are permitted for implementation, tests, and local delegated review; they are not a workaround for GitHub billing. Do not raise spending limits or change billing. No paid product-AI calls, large model downloads, credential repurposing or private-data transmission.
 
 Use ordinary explicitly invoked deterministic local commands on the authorized PC for tests, compilation and synthetic browser/database proof. These are not GitHub jobs and require no additional AI reviewer. Do not install automatic test/watch hooks or unattended test services. If the user separately forbids local testing, honor that and leave affected acceptance NOT_RUN/PARTIAL rather than lower the standard.
 
-Inspect your own changes and challenge failure cases as part of implementation; do not represent self-inspection as independent review. Hosted verification and independent AI review are NOT_RUN under the budget policy, not silently PASS. A correctly scoped local PASS can support local-only integration; it is not hosted certification or full release acceptance.
+Inspect changes and challenge failure cases as part of implementation. Luna child reviewers can provide local delegated review evidence, but neither their work nor root self-inspection counts as hosted or third-party independent review. Hosted verification and paid/hosted independent review are NOT_RUN under the budget policy, not silently PASS. A correctly scoped local PASS can support local-only integration; it is not hosted certification or full release acceptance.
+
+## Concurrent Luna High fan-out contract (up to 50 active at once)
+
+The root is allowed to spawn all fifty children simultaneously **when fifty independently scoped,
+dependency-ready tasks actually exist** and the installed runtime/account/host permit that many.
+Do not artificially restrict fan-out to four, but do not invent tiny work to fill slots.
+Use the root's configured GPT-6 Luna High model for every child, including chore/default workers.
+The hard runtime limit, account quota, and safe host memory/CPU constraints override this target.
+
+1. Reconcile every local worktree, GitHub branch/issue claim and the canonical backlog before dispatch.
+   Read `planning/lanes/README.md` and run its normal coordination/lock checks.
+2. Build a dependency DAG. Select distinct ready issues; group coupled changes under one owner and
+   dispatch independent user-visible vertical slices with narrow accepted file paths.
+3. For each writing child, establish a dedicated worktree/branch/issue claim with explicit ownership,
+   acceptance/tests, expected output and no recursive delegation. Research-only agents are read-only.
+   Never allow fifty workers to race against root main, shared migrations or canonical planning files.
+4. Use all safely available runtime slots up to fifty; track claimed, running, verified, blocked and done
+   work in a small root roster. Refill available slots after completion while the session remains authorized.
+5. Workers execute scoped local deterministic tests and return concise evidence plus exact changed SHA,
+   affected input hashes and failing cases. Local child reviews are labeled LOCAL_DELEGATED_REVIEW.
+6. Primary integrates verified dependency-ready child work **one candidate at a time** under the local
+   integration lock; rerun affected integration tests against the combined tree. Keep at most four active
+   implementation PRs under this repository policy, even if more branches/worktrees are under development.
+7. On conflicting claims, failing tests, rate-limit warnings, declining machine responsiveness, worker
+   failures, or user interruption: stop/reduce fan-out, preserve unmerged worker branches and checkpoint.
+   Never raise billing, change models, evade the Codex limit, or start new independent CLI sessions.
+8. Child concurrency is separate from the number of qualified completed slices. Retain the four-hour
+   interactive-session stop and evidence-bound acceptance; do not claim 100% PASS from agent count.
 
 ## Start with repository truth and checkout ownership
 
@@ -24,7 +52,7 @@ Read, in order: current user instruction; AGENTS.md including the active local-o
 
 Inspect branch, HEAD, origin, staged/unstaged/untracked files, worktrees, open PRs and active writers. Check current GitHub main and its ancestry. A terminal process merely present is not necessarily an active task; use lifecycle/ownership evidence, never kill another process by name. Stop on unexpected concurrent changes. Preserve the Codespaces checkout and all private files.
 
-When the checkout is clean and ownership is established, fetch and fast-forward main normally, then use a new coherent branch. Never reset --hard, git clean, force-push, blindly stash, stage all files, or publish another writer's unfinished changes. Keep one writer and one integration owner. The root checkout must finish on synchronized main when safe; otherwise explicitly name the preserved branch and why it cannot be switched.
+When the checkout is clean and ownership is established, fetch and fast-forward main normally, then use a new coherent branch. Never reset --hard, git clean, force-push, blindly stash, stage all files, or publish another writer's unfinished changes. Keep one writer per claimed file set/worktree and one primary integration owner. Parallel children may write only mutually exclusive branches/paths. The root checkout must finish on synchronized main when safe; otherwise explicitly name the preserved branch and why it cannot be switched.
 
 Read the repository Actions setting once before publication. If it is enabled, do not trigger work or silently change account settings: apply the repository-scoped disablement already authorized by AGENTS or stop with the exact access blocker. Inspect whether opening/readying a PR could invoke a separately configured external reviewer. When that cannot be ruled out, use the documented non-force fast-forward integration path after local validation rather than triggering a review event. Never bypass an actual branch protection rule; record the blocker.
 
@@ -70,4 +98,4 @@ After integration, verify GitHub main and the local integration checkout agree; 
 
 Report completed user actions, merged/source-synchronized SHAs, remaining drafts, exact local checks and limitations, unchanged protected data, and the single best next issue. Give the correct tested launch/retest instructions with PERSONAL versus FIXTURE mode identified; do not deploy merely to make the handoff look finished. Recompute progress from authoritative matrices, keeping original requirements, additive references and release acceptance separate.
 
-Begin with a compact current-state assessment and then implement the first dependency-ready slice. Do not stop at another plan unless an actual ownership, permission or safety boundary prevents writing.
+Begin with a compact current-state assessment, then select and delegate the largest safe independent batch of ready slices (up to fifty concurrent Luna High children). Let each child implement and verify its slice, serialize root integration and continue within the authorized session. Do not stop at another plan unless an actual ownership, permission or safety boundary prevents writing.
