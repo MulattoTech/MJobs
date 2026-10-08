@@ -634,14 +634,28 @@ class Store:
              title="", company="", location="", salary_min=None, salary_max=None,
              min_match_score=None, experience_level=None, employment_type=None, skill_id=None,
              education_requirement=None, clearance_level=None, posted_after=None, posted_before=None,
-             ats_provider=None, application_link_status=None, application_pipeline_status=None):
+             ats_provider=None, application_link_status=None, application_pipeline_status=None,
+             application_capability=None):
+        if application_capability == "":
+            application_capability = None
+        if application_capability is not None:
+            valid_capabilities = {"FIXTURE_ONLY", "UNSUPPORTED", "REVIEW_REQUIRED", "UNKNOWN"}
+            if application_capability not in valid_capabilities:
+                raise ValueError("application_capability must be a known application capability")
         profile = self.profile(profile_id) if profile_id else None
         with self.engine.connect() as connection:
             counts = select(m.postings.c.job_id, func.count().label("posting_count")).group_by(m.postings.c.job_id).subquery()
             display_routes = select(m.routes.c.job_id, func.min(m.routes.c.id).label("route_id")).group_by(m.routes.c.job_id).subquery()
-            statement = select(m.jobs, m.companies.c.name.label("company"), m.routes.c.provider, m.routes.c.url.label("application_url"),
+            selected_columns = [m.jobs, m.companies.c.name.label("company"), m.routes.c.provider,
+                m.routes.c.url.label("application_url"),
                 counts.c.posting_count, m.matches.c.score.label("match_score"), m.matches.c.components.label("match_components"), m.matches.c.missing,
-                m.applications.c.state.label("application_state"), m.applications.c.id.label("application_id")).select_from(
+                m.applications.c.state.label("application_state"), m.applications.c.id.label("application_id")]
+            if application_capability is not None:
+                # The displayed provider and URL come from this exact persisted
+                # route. Carry its ID so capability uses the same identity instead
+                # of inferring an adapter from a source/provider label.
+                selected_columns.append(m.routes.c.id.label("application_route_id"))
+            statement = select(*selected_columns).select_from(
                 m.jobs.join(m.companies, m.jobs.c.company_id == m.companies.c.id)
                 .join(display_routes, display_routes.c.job_id == m.jobs.c.id)
                 .join(m.routes, m.routes.c.id == display_routes.c.route_id)
@@ -956,7 +970,14 @@ class Store:
                                       key=lambda row: row["id"])
                 dated_rows.sort(key=lambda item: item[1]["id"])
                 dated_rows.sort(key=lambda item: item[0], reverse=True)
-                return [row for _, row in dated_rows[:limit]] + unknown_rows[:max(0, limit - len(dated_rows))]
+                ordered_rows = [row for _, row in dated_rows] + unknown_rows
+                if application_capability is not None:
+                    ordered_rows = self._filter_job_application_capability(
+                        connection, ordered_rows, application_capability, limit,
+                    )
+                else:
+                    ordered_rows = ordered_rows[:limit]
+                return ordered_rows
             elif sort in {"salary_high", "salary_low"}:
                 attributes = m.jobs.c.attributes
                 currency_is_usd = attributes["salary_currency"].as_string() == "USD"
@@ -992,7 +1013,35 @@ class Store:
                     sortable_salary.desc().nulls_last() if sort == "salary_high" else sortable_salary.asc().nulls_last(),
                     m.jobs.c.id,
                 )
+            if application_capability is not None:
+                rows = (canonical_job_view(dict(row)) for row in connection.execute(statement).mappings())
+                return self._filter_job_application_capability(
+                    connection, rows, application_capability, limit,
+                )
             return [canonical_job_view(dict(row)) for row in connection.execute(statement.limit(limit)).mappings()]
+
+    @staticmethod
+    def _filter_job_application_capability(connection, rows, expected, limit):
+        """Apply route-derived capability before the result limit is consumed."""
+        if limit <= 0:
+            return []
+        from services.applications.capability_filter import effective_application_capability
+
+        selected = []
+        for row in rows:
+            route_id = row.get("application_route_id")
+            if route_id is None:
+                # Only capability-filtered queries select this key. Fail closed if
+                # a malformed row somehow lacks the exact route identity.
+                continue
+            if effective_application_capability(connection, route_id) != expected:
+                continue
+            result = dict(row)
+            result.pop("application_route_id", None)
+            selected.append(result)
+            if len(selected) >= limit:
+                break
+        return selected
 
     def job(self, job_id, profile_id=None):
         profile = self.profile(profile_id) if profile_id else None
