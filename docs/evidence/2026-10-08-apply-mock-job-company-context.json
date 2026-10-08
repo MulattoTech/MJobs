@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-10-08T08:13:14Z",
+  "issue": 178,
+  "requirement_id": "MJ-REQ-177",
+  "slice": "APPLY_MOCK persisted job and company context",
+  "scope_result": "PASS",
+  "issue_result": "OPEN/PARTIAL",
+  "branch": "codex/mj-req177-apply-job-company-context-20261008",
+  "base_commit": "ea801ec09e24fcc22075b29789fffe40bbd9c5a2",
+  "tested_source_commit": "0bda9be62bcaf4e9b71cffce3b62353152e8cead",
+  "tested_source_tree": "3ca861c39cc09077047f2e83bf2110bfe197127b",
+  "evidence_inputs": {
+    "workers/tasks.py": "25d25724985274a4208c6a6c4e1a1dc7fb0c8d4923222de2e466472483e36d96",
+    "workers/structured_logging.py": "1e6d4f0f2c37dbdb13d7d8fc589f04d933b8e1167c4b7c5d44cbea1e6538a43a",
+    "tests/unit/test_structured_logging.py": "5f682e22a1fb65046ecc3383784b84def5cdfE654b9db4e0283c5e2355fc1ac6",
+    "tests/integration/test_worker_lifecycle.py": "157d812c3bd9048d48f2e2f25f8965dbaaf24888f89a692370a7ddd921b1249f"
+  },
+  "validation": {
+    "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_structured_logging tests.integration.test_worker_lifecycle",
+    "runtime": "Python 3.12.10; SQLAlchemy 2.1.1; synthetic SQLite fixture",
+    "result": "PASS: 34 tests, 0 failures/errors, 1 optional PostgreSQL recovery class skipped",
+    "skip_reason": "MJOBS_WORKER_RECOVERY_POSTGRES_URL is unset",
+    "additional_checks": {
+      "git_diff_check": "PASS",
+      "compileall_changed_python": "PASS"
+    },
+    "red_green": "Before implementation, the new APPLY_MOCK context test failed because job_id was absent from the structured record."
+  },
+  "behavior": [
+    "APPLY_MOCK logs job_id and company_id read from the persisted application-to-canonical-job relation, alongside existing application_id and allowlisted ATS.",
+    "Context lookup runs after terminal persistence and is best effort; lookup failure leaves the terminal result unchanged and emits no diagnostic text.",
+    "Malformed and secret-shaped identifiers are omitted; params, URLs, answers, and secret values remain excluded.",
+    "posting_id is omitted because persisted application routes do not identify one unique job posting."
+  ],
+  "not_run": [
+    "PostgreSQL/RQ runtime",
+    "full Python suite",
+    "hosted checks and review"
+  ],
+  "external_submission": "OFF",
+  "rebased_onto": "ea801ec09e24fcc22075b29789fffe40bbd9c5a2"
+}
