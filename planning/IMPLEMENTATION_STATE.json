@@ -7,12 +7,12 @@
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Local main is 5834f224b918eb21d9c9aaa4e086fcc36c7b7731 (tree df42bc80b6840348b344be1f4695f51467842b61), synchronized with origin/main and live GitHub main after a non-force push. It includes #394/MJ-REF-024 grounded follow-up drafts (reference acceptance PASS; issue CLOSED) and the #190/MJ-REQ-189 application-link availability facet (bounded slice verified; umbrella OPEN/PARTIAL). Focused #190 checks: 34 Python, Chromium 1/1, frontend 3/3, build, compilation, validators, source hashes/blob IDs and local delegated review PASS. PostgreSQL/live providers/full repository suite and hosted checks NOT_RUN; external submission OFF.",
+    "current_verified_local_state": "Local main at 08715b516dd8fe9d109102b969f4f77eacd311cd (tree 2ed36e932dcf0598f25302cd74fb20f6b4906ced) after connected #190/MJ-REQ-189 application-capability facet integration; local tracker/dashboard checkpoint pending in this batch.",
     "current_verified_github_state": "Local/origin/GitHub main synchronized at 5834f224b918eb21d9c9aaa4e086fcc36c7b7731 (tree df42bc80b6840348b344be1f4695f51467842b61). #394 receipt https://github.com/MulattoTech/MJobs/issues/394#issuecomment-6063734760; #190 receipt/claim release https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6063736008. GitHub Actions remain disabled, main protection is off, no open PRs were observed. Hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF.",
-    "current_verified_at": "2026-10-08T12:10:15Z"
+    "current_verified_at": "2026-10-08T17:23:55Z"
   },
-  "current_milestone": "CORE-FEATURE-BATCH-20261008-SITEMAP-CAREER-DISCOVERY",
-  "current_objective": "Complete bounded same-origin sitemap career discovery and continue with independent job search, document, tracking, or application-preparation slices.",
+  "current_milestone": "CORE-FEATURE-BATCH-20261008-APPLICATION-CAPABILITY-FILTER",
+  "current_objective": "Continue dependency-ready core product features after the connected application-capability saved-search filter.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -80,7 +80,8 @@
     "Durable privacy-safe application step trace and annual USD salary search filters integrated on tested local main source 7f8f76f8d33eb1dc1f4fce91e86e1f6139ccbe56; scoped issues #140/MJ-REQ-139 and #190/MJ-REQ-189 remain PARTIAL.",
     "MJ-REQ-104 bounded ITSM semantic match with explicit per-job review and durable export provenance; PARTIAL acceptance only.",
     "MJ-REQ-128 read-only safe metadata analysis for synthetic mock application forms; ambiguous rendered context fails closed; PARTIAL acceptance only.",
-    "MJ-REQ-100 bounded company-context workflow: source-identity binding, explicit content-hash review, labeled unverified context and immutable per-job letter history; PARTIAL only."
+    "MJ-REQ-100 bounded company-context workflow: source-identity binding, explicit content-hash review, labeled unverified context and immutable per-job letter history; PARTIAL only.",
+    "Connected #190/MJ-REQ-189 application-capability Jobs facet integrated at 08715b516dd8fe9d109102b969f4f77eacd311cd: exact persisted route/current adapter knowledge, pre-LIMIT filtering, profile-scoped save/restore/clear; evidence docs/evidence/2026-10-08-application-capability-search-filter.json."
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
@@ -13519,5 +13520,27 @@
   },
   "updated_at": "2026-10-08T17:02:26Z",
   "current_verified_local_state": "Local main is d9f92cfdd9b9f5e1bc683004e2c713ac0a9c9d88 (tree d07d273c49f330b1573f0b032a73d9749224fc8b); #62/MJ-REQ-061 now reads same-origin sitemap hints and bounded conventional /sitemap.xml, accepts only corroborated careers pages, preserves safe route fallback, and imports a synthetic employer job visible after UI reload. 49 focused Python discovery tests, connected synthetic Chromium, py_compile and diff check PASS. Evidence: docs/evidence/2026-10-08-career-page-sitemap-discovery.json. Requirement PARTIAL.",
-  "current_verified_github_state": "Local main, origin/main and GitHub main are synchronized at 88f408c57a5fd09ca1b4f5da15fcd28640bfe012. #62 issue receipt posted with exact evidence and checks; Actions disabled, hosted checks NOT_RUN_BY_USER_POLICY, external application submission OFF."
+  "current_verified_github_state": "Local main, origin/main and GitHub main are synchronized at 88f408c57a5fd09ca1b4f5da15fcd28640bfe012. #62 issue receipt posted with exact evidence and checks; Actions disabled, hosted checks NOT_RUN_BY_USER_POLICY, external application submission OFF.",
+  "next_candidates": [
+    {
+      "issue": 192,
+      "requirement_id": "MJ-REQ-191",
+      "status": "ready for root integration: per-saved-search cadence scheduler, UI component, service tests and API acceptance assembled on isolated branches; connected API/UI/browser integration remains."
+    },
+    {
+      "issue": 199,
+      "requirement_id": "MJ-REQ-198",
+      "status": "ready for root integration: durable append-only document archive service/UI/test slices complete; API/UI wiring and connected readback remain."
+    },
+    {
+      "issue": 143,
+      "requirement_id": "MJ-REQ-142",
+      "status": "ready for root integration: explicit MOCK manual-auth service/adapter/API/UI/test slices complete; main.py/main.tsx wiring and exact connected revalidation remain."
+    },
+    {
+      "issue": 83,
+      "requirement_id": "MJ-REQ-082",
+      "status": "ready for root integration: sanitized company-discovery activity service/formatter/UI/tests complete; API/main screen wiring and connected validation remain."
+    }
+  ]
 }

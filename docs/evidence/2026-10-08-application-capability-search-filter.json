@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "issue": 190,
+  "requirement_id": "MJ-REQ-189",
+  "slice": "connected exact-route application capability filter in Jobs and saved searches",
+  "result": "PARTIAL",
+  "base_commit": "1a82f1fc1c76470e9a8bd7f61fb56e86cd108949",
+  "source_commit": "08715b516dd8fe9d109102b969f4f77eacd311cd",
+  "source_tree": "2ed36e932dcf0598f25302cd74fb20f6b4906ced",
+  "validated_at_utc": "2026-10-08T17:23:55Z",
+  "environment": {
+    "platform": "Windows",
+    "python": "3.12",
+    "node": "v25.9.0",
+    "database": "temporary SQLite; PostgreSQL runtime NOT_RUN",
+    "browser": "local Chromium with synthetic fixtures"
+  },
+  "behavior": {
+    "implemented": [
+      "Jobs exposes distinct FIXTURE_ONLY, UNSUPPORTED, REVIEW_REQUIRED, and UNKNOWN application capability values.",
+      "Capability is derived from the exact persisted route and current stored adapter knowledge; provider text is not used to infer support, and no employer request or ATS rediscovery occurs.",
+      "The database filter is applied before LIMIT and removes its internal route identifier from returned jobs.",
+      "The filter saves and restores with profile-scoped named searches; an explicit empty selection clears the current override without rewriting the saved search.",
+      "Acceptance covers all four statuses, no-route exclusion, profile isolation, FIXTURE_ONLY behavior by workspace mode, invalid input, limit ordering, and no application/worker side effects."
+    ],
+    "remaining": "Other MJ-REQ-189 facets and whole-product acceptance remain incomplete. PostgreSQL runtime, live provider behavior, full Python suite, hosted checks, and whole-product release eligibility were not run.",
+    "external_submission": "OFF"
+  },
+  "tests": [
+    {
+      "command": ".venv/Scripts/python.exe -m unittest tests.unit.test_application_link_search_filter_validation tests.unit.test_application_link_filter_store tests.integration.test_application_capability_filter tests.browser.test_application_capability_filter -v",
+      "result": "PASS",
+      "detail": "13 unit, API integration, and connected Chromium tests passed on the exact source commit."
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run",
+      "result": "PASS",
+      "detail": "130 frontend tests passed across 24 files."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "detail": "TypeScript and Vite production build passed; Node 25.9.0 is outside Vitest 5 supported engine ranges."
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m tools.verification.agent_skills",
+      "result": "PASS"
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m tools.verification.progress validate",
+      "result": "PASS"
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m tools.verification.catalogue",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    },
+    {
+      "command": "pre-wiring API regression baseline",
+      "result": "PASS_EXPECTED_RED",
+      "detail": "The three acceptance tests reproduced ignored capability filtering, missing invalid-value rejection, and saved-search validation rejection before integration."
+    }
+  ],
+  "input_hashes": {
+    "apps/api/main.py": {
+      "checkout_sha256": "61671a0635886a886db6e4baa9be37bb634e1c445dd6cfabdff6f89c27a9a4b1",
+      "git_blob_oid": "7ad844f2e4f7b60b9cb68dfe0b2bfaa4159a5a04"
+    },
+    "apps/web/src/main.tsx": {
+      "checkout_sha256": "12a8e376c18f52bf1865ac2990a58d56921b7a231bdcfc5d1d19e9155561c5d7",
+      "git_blob_oid": "d980b8575bec1ec90863f8a159e027f97c25a45b"
+    },
+    "apps/web/src/application-capability-filter.tsx": {
+      "checkout_sha256": "0fd60cb6c27044fd177c7bd977deb1f1364221b5be3bcc8cebaa973c627b5696",
+      "git_blob_oid": "ff29782e79731da6003c137e2a789b410eb39696"
+    },
+    "apps/web/src/application-capability-filter.test.tsx": {
+      "checkout_sha256": "15b0b451b4397b37709d46c359e31aa68f7af89894d3f5b772d73340121accae",
+      "git_blob_oid": "7482196e288a2b50a732cc4bc971a78d0626c609"
+    },
+    "packages/persistence/store.py": {
+      "checkout_sha256": "6d24e45c3a7881a4ae2e81d80f040b7ab2a9d8b728f1702950a05ff93c8019af",
+      "git_blob_oid": "9e3bbba1ae05945908fb138fc02136ae9f595fb2"
+    },
+    "services/applications/capability_filter.py": {
+      "checkout_sha256": "ec7ce7d37653c215c9158ef89f27b04b0a190990d131f2f4b1a2556aaf675420",
+      "git_blob_oid": "87b82045ab937f2648750dd4005dea31189c1e6d"
+    },
+    "services/discovery/search_profiles.py": {
+      "checkout_sha256": "03021e51bd781aa9ac29820731cf50d57e1a284513be537dd27cf1315c923240",
+      "git_blob_oid": "fd603d6664ba2dced32655b59f335298c47921d6"
+    },
+    "tests/integration/test_application_capability_filter.py": {
+      "checkout_sha256": "0a0aac70e333ae6f6dfcb5f757d8ad5b3d7c46f785a5234812be737dafa33673",
+      "git_blob_oid": "34d3fa2ee0fb12114a730a424e83da7c90001764"
+    },
+    "tests/browser/test_application_capability_filter.py": {
+      "checkout_sha256": "412d37a2c786bb86242c8ba6782870b7ca110f5b51455f32ece760ba9e0fe662",
+      "git_blob_oid": "e6ab2dbff47e86f19965279593d1b16794f9c49e"
+    }
+  },
+  "not_run": [
+    "PostgreSQL runtime",
+    "Hosted GitHub Actions, checks and reviews (disabled by local-only policy)",
+    "Live production sources or real ATS behavior",
+    "Full repository Python suite",
+    "Whole-product release eligibility"
+  ],
+  "review": "Root reviewed the exact integration diff and acceptance contract. No separate delegated review was performed; this is not an independent review.",
+  "integration": {
+    "method": "NON_FORCE_FAST_FORWARD",
+    "local_main_source_commit": "08715b516dd8fe9d109102b969f4f77eacd311cd",
+    "synchronized_base": "1a82f1fc1c76470e9a8bd7f61fb56e86cd108949",
+    "hosted_checks": "NOT_RUN_BY_USER_POLICY"
+  }
+}
