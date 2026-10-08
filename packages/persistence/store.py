@@ -634,7 +634,7 @@ class Store:
              title="", company="", location="", salary_min=None, salary_max=None,
              min_match_score=None, experience_level=None, employment_type=None, skill_id=None,
              education_requirement=None, clearance_level=None, posted_after=None, posted_before=None,
-             ats_provider=None, application_link_status=None):
+             ats_provider=None, application_link_status=None, application_pipeline_status=None):
         profile = self.profile(profile_id) if profile_id else None
         with self.engine.connect() as connection:
             counts = select(m.postings.c.job_id, func.count().label("posting_count")).group_by(m.postings.c.job_id).subquery()
@@ -716,6 +716,84 @@ class Store:
                     m.jobs.c.attributes["application_url_status"].as_string()
                     == link_status_values[application_link_status]
                 )
+            if application_pipeline_status is not None:
+                if not profile_id:
+                    raise ValueError("application_pipeline_status requires a profile")
+                from services.tracking.applications import PIPELINE_STATUSES
+
+                if (not isinstance(application_pipeline_status, str)
+                        or (application_pipeline_status != "NOT_TRACKED"
+                            and application_pipeline_status not in PIPELINE_STATUSES)):
+                    raise ValueError("application_pipeline_status must be a known pipeline status or NOT_TRACKED")
+
+                # Tracking events use a profile/application hash as entity_id, so
+                # resolve only this profile's applications before querying their
+                # events. The resulting job-id predicate remains in SQL and is
+                # applied before LIMIT; application state and posting metadata do
+                # not participate in this user-reported facet.
+                applications = connection.execute(select(
+                    m.applications.c.id, m.applications.c.job_id,
+                ).where(m.applications.c.profile_id == profile_id)).mappings().all()
+                application_by_entity = {
+                    identity("application-tracking", profile_id, row["id"]): row["job_id"]
+                    for row in applications
+                }
+                entity_ids = list(application_by_entity)
+                latest_by_entity = {}
+                # Keep each IN list below SQLite's historical bind limit.
+                for offset in range(0, len(entity_ids), 900):
+                    entity_batch = entity_ids[offset:offset + 900]
+                    events = connection.execute(select(
+                        m.audit.c.id, m.audit.c.entity_id, m.audit.c.payload, m.audit.c.timestamp,
+                    ).where(
+                        m.audit.c.entity_id.in_(entity_batch),
+                        m.audit.c.action == "APPLICATION_PIPELINE_STATUS",
+                    )).mappings()
+                    for event_row in events:
+                        payload = event_row["payload"]
+                        sequence = payload.get("sequence", 0) if isinstance(payload, dict) else 0
+                        if not isinstance(sequence, (int, float)) or isinstance(sequence, bool):
+                            sequence = 0
+                        order = (sequence, event_row["timestamp"] or "", event_row["id"])
+                        previous = latest_by_entity.get(event_row["entity_id"])
+                        if previous is None or order > previous[0]:
+                            status = payload.get("status") if isinstance(payload, dict) else None
+                            latest_by_entity[event_row["entity_id"]] = (order, status)
+
+                current_status_by_job = {
+                    job_id: latest_by_entity[entity_id][1]
+                    for entity_id, job_id in application_by_entity.items()
+                    if (entity_id in latest_by_entity
+                        and latest_by_entity[entity_id][1] in PIPELINE_STATUSES)
+                }
+
+                def job_ids_query(job_ids, alias_name):
+                    encoded_ids = literal(json.dumps(sorted(job_ids)))
+                    if self.engine.dialect.name == "postgresql":
+                        values = func.jsonb_array_elements_text(
+                            cast(encoded_ids, JSONB)).table_valued("value").alias(alias_name)
+                    else:
+                        values = func.json_each(encoded_ids).table_valued(
+                            "key", "value").alias(alias_name)
+                    return select(values.c.value)
+
+                if application_pipeline_status == "NOT_TRACKED":
+                    # Jobs without an application row also have no recognized
+                    # user-reported status event for this profile.
+                    tracked_job_ids = set(current_status_by_job)
+                    if tracked_job_ids:
+                        statement = statement.where(m.jobs.c.id.not_in(
+                            job_ids_query(tracked_job_ids, "tracked_job_ids")))
+                else:
+                    matching_job_ids = {
+                        job_id for job_id, status in current_status_by_job.items()
+                        if status == application_pipeline_status
+                    }
+                    if not matching_job_ids:
+                        statement = statement.where(literal(False))
+                    else:
+                        statement = statement.where(m.jobs.c.id.in_(
+                            job_ids_query(matching_job_ids, "matching_job_ids")))
             if q:
                 if self.engine.dialect.name == "postgresql":
                     search_config = literal_column("'simple'::regconfig")
