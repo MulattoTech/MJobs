@@ -6,6 +6,8 @@ import { CompanySources, type CompanySourceView } from './company-sources';
 import { CompanyDiscovery } from './company-discovery';
 import { CompanyDiscoveryRequests, type DiscoveryRequest } from './company-discovery-requests';
 import { CompanyDiscoveryActivity } from './company-discovery-activity';
+import { SourceCandidateReviewPanel } from './source-candidate-review-panel';
+import { createSourceCandidateReviewClient, type SourceCandidateReview } from './source-candidate-review-client';
 import type { DiscoveryActivity } from './company-activity';
 import { addSelectedExtraction, cleanLines } from './profile-import';
 import { ResumeLibrary, type Resume, type Extraction } from './resume-library';
@@ -37,6 +39,8 @@ import { BrowserJobExtraction } from './browser-job-extraction';
 import { createBrowserJobExtractionCaptureClient } from './browser-job-extraction-capture';
 import type { BrowserJobExtractionConfirmedPayload } from './browser-job-extraction-confirmation';
 import './style.css';
+
+const sourceCandidateReviewClient = createSourceCandidateReviewClient();
 
 type Fact = { id: string; fact_id?: string; kind: string; text: string; source: string; confidence: number; verified: boolean; user_approved: boolean };
 type Answer = Omit<Fact, 'kind' | 'fact_id'> & {question?:string};
@@ -79,9 +83,7 @@ type Operation = {id:string; kind:string; state:string; error:string|null;attemp
 type AuditEvent = {id:string;type:string;summary:string;subject:string;company:string;timestamp:string};
 type CompanyDiscoveryActivityEvent = {timestamp:string|null;event_type:string;summary:string};
 type Source = {id:string;provider:string;tenant:string;name:string;enabled:boolean;health_status:string;jobs_seen:number;last_error:string|null;last_success:string|null;backoff_until:string|null;poll_interval:number;concurrency:number;request_timeout:number;rate_limit:number;jitter_seconds:number;strategy:string;capabilities:{capabilities:string[]}};
-type SourceCandidateReview = {id:string;profile_id:string;state:string;site_type:string;reason:string;api_feed_evidence_status:'PUBLIC_DOCUMENTED'|'UNKNOWN'|'BLOCKED';api_feed_evidence_reference:string|null;api_feed_evidence_note:string;access_terms_note:string;capabilities_limits_note:string;expected_value_maintenance_note:string;integration_issue:number|null;integration_issue_status:'USER_SUPPLIED_UNVERIFIED'|'NOT_LINKED';reviewed_at:string};
 type SourceCandidate = {id:string;domain:string;display_name:string;site_type:string;state:string;first_seen_at:string;last_seen_at:string;collection_enabled:boolean;review_reason:string|null;integration_issue:number|null;integration_issue_status:'USER_SUPPLIED_UNVERIFIED'|'NOT_LINKED';observations:{id:string;job_id:string|null;application_id:string|null;discovery_origin:string|null;origin_attribution:string;source_url:string|null;application_url:string|null;observed_hops:(string|{state:string})[];capture_method:string;evidence_status:string;observed_at:string}[];review_history:SourceCandidateReview[]};
-type SourceCandidateEvaluationDraft = {api_feed_evidence_status:'PUBLIC_DOCUMENTED'|'UNKNOWN'|'BLOCKED';api_feed_evidence_reference:string;api_feed_evidence_note:string;access_terms_note:string;capabilities_limits_note:string;expected_value_maintenance_note:string};
 type ExperienceLevel='INTERNSHIP'|'ENTRY'|'JUNIOR'|'ASSOCIATE'|'MID'|'SENIOR'|'LEAD'|'MANAGER'|'DIRECTOR'|'EXECUTIVE'|'UNKNOWN';
 type EmploymentType='FULL_TIME'|'PART_TIME'|'CONTRACT'|'CONTRACT_TO_HIRE'|'TEMPORARY'|'INTERNSHIP'|'OTHER'|'UNKNOWN';
 type EducationRequirement='BACHELORS_OR_EQUIVALENT_EXPERIENCE'|'BACHELORS_PREFERRED'|'BACHELORS_REQUIRED'|'DEGREE_PREFERRED'|'NONE_SPECIFIED';
@@ -189,10 +191,6 @@ function App() {
   const externalCaptureRequestId=useRef(crypto.randomUUID());
   const [sources,setSources] = useState<Source[]>([]);
   const [sourceCandidates,setSourceCandidates] = useState<SourceCandidate[]>([]);
-  const [sourceCandidateReviewDraft,setSourceCandidateReviewDraft] = useState<Record<string,string>>({});
-  const [sourceCandidateIssueDraft,setSourceCandidateIssueDraft] = useState<Record<string,string>>({});
-  const [sourceCandidateSiteTypeDraft,setSourceCandidateSiteTypeDraft] = useState<Record<string,SourceCandidate['site_type']>>({});
-  const [sourceCandidateEvaluationDraft,setSourceCandidateEvaluationDraft] = useState<Record<string,SourceCandidateEvaluationDraft>>({});
   const [sourceReportUrl,setSourceReportUrl] = useState('');
   const [sourceReportOrigin,setSourceReportOrigin] = useState('');
   const [aiTaskSettings,setAITaskSettings] = useState<AITaskSettings>(defaultAITaskSettings);
@@ -237,7 +235,7 @@ function App() {
   const [pageFitGenerated,setPageFitGenerated]=useState<ResumePageFitGenerated|null>(null);
   const [pageFitError,setPageFitError]=useState('');
   useEffect(()=>{setTailorResume(false);setIncludeResumeContact(false);setResumeSelection(null);setResumeAlignmentPreview(null);setPageFitPreview(null);setPageFitGenerated(null);setPageFitError('');setRoleLensSelection(null);setJobNoteDraft('');setJobNoteRequestId(crypto.randomUUID());jobDispositionRequestIds.current.clear();},[detail?.id,profileId]);
-  useEffect(()=>{setSourceCandidates([]);setSourceCandidateReviewDraft({});setSourceCandidateIssueDraft({});setExternalOrigin('');setExternalSourceUrl('');},[profileId]);
+  useEffect(()=>{setSourceCandidates([]);setExternalOrigin('');setExternalSourceUrl('');},[profileId]);
   const [selectedApp,setSelectedApp]=useState<Application|null>(null);
   const [reviewQueueApplications,setReviewQueueApplications]=useState<ReviewQueueApplication[]>([]);
   const [reviewQueueLoading,setReviewQueueLoading]=useState(false);
@@ -757,31 +755,6 @@ function App() {
     setExternalAppliedAt(localDateTimeInput());
     setNotice(result.created?'External application report recorded. This is your report, not confirmation from the employer.':'This external application report was already recorded.');
   }
-  async function reviewSourceCandidate(candidate:SourceCandidate,state:'NEEDS_REVIEW'|'INTEGRATION_QUEUED'|'BLOCKED'|'REJECTED') {
-    if(!profileId)throw new Error('Select a career profile before reviewing a source candidate.');
-    const reason=(sourceCandidateReviewDraft[candidate.id]||'').trim();
-    if(!reason)throw new Error('Enter the evidence or reason for this review decision.');
-    const evaluation=sourceCandidateEvaluationDraft[candidate.id];
-    if(!evaluation||![evaluation.api_feed_evidence_note,evaluation.access_terms_note,evaluation.capabilities_limits_note,evaluation.expected_value_maintenance_note].every(value=>value.trim()))throw new Error('Complete each source evaluation note before saving the review.');
-    if(evaluation.api_feed_evidence_status==='PUBLIC_DOCUMENTED'&&!evaluation.api_feed_evidence_reference.trim())throw new Error('Add a reference URL for documented public API or feed evidence.');
-    const issueText=sourceCandidateIssueDraft[candidate.id]?.trim()||'';
-    const issueNumber=state==='INTEGRATION_QUEUED'&&issueText?Number(issueText):null;
-    if(issueText&&state==='INTEGRATION_QUEUED'&&(issueNumber===null||!Number.isSafeInteger(issueNumber)||issueNumber<1||issueNumber>2147483647))throw new Error('Enter a positive whole provider issue number. This reference is not checked externally.');
-    await action('Saving source-candidate review',async()=>{
-      await api(`/profiles/${encodeURIComponent(profileId)}/source-candidates/${encodeURIComponent(candidate.id)}/review`,{
-        method:'PUT',body:JSON.stringify({state,site_type:sourceCandidateSiteTypeDraft[candidate.id]||candidate.site_type,reason,...evaluation,api_feed_evidence_reference:evaluation.api_feed_evidence_reference.trim()||null,integration_issue:issueNumber,request_id:crypto.randomUUID()}),
-      });
-      setNotice(issueNumber===null?'Source-candidate review saved. Collection remains disabled.':`Provider issue #${issueNumber} recorded as user supplied and not externally verified. Collection remains disabled.`);
-    });
-  }
-  function updateSourceCandidateEvaluation(candidate:SourceCandidate,field:keyof SourceCandidateEvaluationDraft,value:string) {
-    const candidateId=candidate.id;
-    setSourceCandidateEvaluationDraft(current=>{
-      const latest=candidate.review_history[candidate.review_history.length-1];
-      const saved=current[candidateId]||{api_feed_evidence_status:latest?.api_feed_evidence_status||'UNKNOWN',api_feed_evidence_reference:latest?.api_feed_evidence_reference||'',api_feed_evidence_note:latest?.api_feed_evidence_note||'',access_terms_note:latest?.access_terms_note||'',capabilities_limits_note:latest?.capabilities_limits_note||'',expected_value_maintenance_note:latest?.expected_value_maintenance_note||''};
-      return {...current,[candidateId]:{...saved,[field]:value}};
-    });
-  }
   async function reportSourceCandidate() {
     if(!profileId)throw new Error('Select a profile before recording a source URL.');
     if(!sourceReportUrl.trim())throw new Error('Enter the source or application URL you want to catalogue.');
@@ -804,7 +777,7 @@ function App() {
     ++companySourcesSequence.current;++jobsSequence.current;++detailSequence.current;
     ++appSequence.current;++editorSequence.current;
     profileBaselineRef.current=null;
-    setDetail(null);setJobs([]);setJobNoteDraft('');setJobNoteRequestId(crypto.randomUUID());setAIDocumentPreparation(null);setAIDocumentReviewConsent({});setSourceCandidates([]);setSourceCandidateReviewDraft({});setSourceCandidateIssueDraft({});setSourceCandidateSiteTypeDraft({});setSourceReportUrl('');setSourceReportOrigin('');
+    setDetail(null);setJobs([]);setJobNoteDraft('');setJobNoteRequestId(crypto.randomUUID());setAIDocumentPreparation(null);setAIDocumentReviewConsent({});setSourceCandidates([]);setSourceReportUrl('');setSourceReportOrigin('');
     jobDispositionRequestIds.current.clear();applicationStatusRequestIds.current.clear();setSelectedApp(null);setAnswerExportText(null);applicationRestoreProfile.current='';setApplicationTracking(null);setApplicationStatusDraft('');setApplicationNoteDraft('');setApplicationNoteRequestId(crypto.randomUUID());externalCaptureRequestId.current=crypto.randomUUID();setExternalCompany('');setExternalTitle('');setExternalUrl('');setExternalSourceUrl('');setExternalOrigin('');setExternalDescription('');setExternalAppliedAt(localDateTimeInput());setAnswerDrafts([]);
     setApps([]);setDocs([]);setResumes([]);setOps([]);setCompanySources([]);
     setDiscoveryRequests([]);setSearchProfiles([]);clearSearchScheduleDrafts();setMockConsent(false);setActiveOp('');
@@ -1151,47 +1124,8 @@ function App() {
             <div className="two-col"><label>Source site URL<input aria-label="Source site URL" type="url" maxLength={2000} required disabled={!!busy||!profileId} value={sourceReportUrl} onChange={event=>setSourceReportUrl(event.target.value)}/></label><label>Reported discovery origin<input aria-label="Reported discovery origin for source site" maxLength={253} disabled={!!busy||!profileId} value={sourceReportOrigin} onChange={event=>setSourceReportOrigin(event.target.value)} placeholder="For example, LinkedIn"/></label></div>
             <button className="primary" disabled={!!busy||!profileId||!sourceReportUrl.trim()}>Record source URL</button>
           </form>
-          {!profileId?<p className="muted">Select a profile to view its source candidates.</p>:!sourceCandidates.length?<p>No third-party source candidates are recorded for this profile.</p>:sourceCandidates.map(candidate=>{
-            const latestReview=candidate.review_history[candidate.review_history.length-1];
-            const evaluation=sourceCandidateEvaluationDraft[candidate.id]||{
-              api_feed_evidence_status:latestReview?.api_feed_evidence_status||'UNKNOWN',
-              api_feed_evidence_reference:latestReview?.api_feed_evidence_reference||'',
-              api_feed_evidence_note:latestReview?.api_feed_evidence_note||'',
-              access_terms_note:latestReview?.access_terms_note||'',
-              capabilities_limits_note:latestReview?.capabilities_limits_note||'',
-              expected_value_maintenance_note:latestReview?.expected_value_maintenance_note||'',
-            };
-            const completeEvaluation=[evaluation.api_feed_evidence_note,evaluation.access_terms_note,evaluation.capabilities_limits_note,evaluation.expected_value_maintenance_note].every(value=>value.trim())&&(evaluation.api_feed_evidence_status!=='PUBLIC_DOCUMENTED'||!!evaluation.api_feed_evidence_reference.trim());
-            const canSave=!!sourceCandidateReviewDraft[candidate.id]?.trim()&&completeEvaluation;
-            const issueDraft=sourceCandidateIssueDraft[candidate.id]??(candidate.integration_issue===null?'':String(candidate.integration_issue));
-            const issueNumber=issueDraft.trim()?Number(issueDraft):null;
-            const validIssueNumber=issueNumber===null||(Number.isSafeInteger(issueNumber)&&issueNumber>=1&&issueNumber<=2147483647);
-            return <article className="fact" key={candidate.id} aria-label={`Source candidate ${candidate.domain}`}>
-              <div className="toolbar"><div><h3>{candidate.display_name}</h3><p><code>{candidate.domain}</code> · {candidate.site_type.replaceAll('_',' ')} · first seen {stamp(candidate.first_seen_at)} · last seen {stamp(candidate.last_seen_at)}</p></div><span className="tag">{candidate.state.replaceAll('_',' ')}</span></div>
-              <p className="muted">Collection {candidate.collection_enabled?'enabled':'disabled'} · reviewed suitability does not authorize collection.</p>
-              {candidate.integration_issue===null?<p>No provider issue linked</p>:<p>Provider issue #{candidate.integration_issue} · user supplied; not externally verified</p>}
-              {candidate.observations.map(observation=><div className="provenance" key={observation.id}><p>{observation.capture_method.replaceAll('_',' ')} · {observation.evidence_status.replaceAll('_',' ')} · {stamp(observation.observed_at)}</p><p>Discovery origin: {observation.discovery_origin||'Unknown'} ({observation.origin_attribution.replaceAll('_',' ').toLowerCase()})</p><p>Source URL: <code>{observation.source_url||'Unknown'}</code></p><p>Application URL: <code>{observation.application_url||'Unknown'}</code></p><p>Observed hops: {observation.observed_hops.map(hop=>typeof hop==='string'?hop:hop.state).join(' → ')||'Unknown'}</p><p>Linked job: {observation.job_id||'None'} · application: {observation.application_id||'None'}</p></div>)}
-              {!!latestReview&&<div className="provenance" aria-label={`Latest source evaluation for ${candidate.domain}`}>
-                <h4>Latest source evaluation · {latestReview.site_type.replaceAll('_',' ')}</h4>
-                <p>API/feed evidence: {latestReview.api_feed_evidence_status.replaceAll('_',' ')}{latestReview.api_feed_evidence_reference&&<> · <code>{latestReview.api_feed_evidence_reference}</code></>}</p>
-                <p>{latestReview.api_feed_evidence_note}</p><p>Access and terms: {latestReview.access_terms_note}</p>
-                <p>Capabilities and limits: {latestReview.capabilities_limits_note}</p>
-                <p>Expected value and maintenance: {latestReview.expected_value_maintenance_note}</p>
-              </div>}
-              <label>Reviewed source kind<select aria-label={`Site type assessment for ${candidate.domain}`} value={sourceCandidateSiteTypeDraft[candidate.id]||candidate.site_type} disabled={!!busy} onChange={event=>setSourceCandidateSiteTypeDraft(current=>({...current,[candidate.id]:event.target.value as SourceCandidate['site_type']}))}><option value="UNKNOWN">Unknown</option><option value="JOB_BOARD">Job board or aggregator</option><option value="EMPLOYER">Employer source</option><option value="ATS">ATS or application destination</option></select></label>
-              <label>Review outcome reason<textarea aria-label={`Review reason for ${candidate.domain}`} maxLength={1000} value={sourceCandidateReviewDraft[candidate.id]||candidate.review_reason||''} disabled={!!busy} onChange={event=>setSourceCandidateReviewDraft(current=>({...current,[candidate.id]:event.target.value}))}/></label>
-              <label>Existing provider issue number (optional)<input aria-label="Existing provider issue number" type="number" min="1" max="2147483647" step="1" value={issueDraft} disabled={!!busy} onChange={event=>setSourceCandidateIssueDraft(current=>({...current,[candidate.id]:event.target.value}))}/></label>
-              <p className="muted">Used only when queueing integration. The number is user supplied and is not checked externally.</p>
-              <label>Public API or feed evidence status<select aria-label={`API or feed evidence status for ${candidate.domain}`} value={evaluation.api_feed_evidence_status} disabled={!!busy} onChange={event=>updateSourceCandidateEvaluation(candidate,'api_feed_evidence_status',event.target.value)}><option value="UNKNOWN">Unknown / not verified</option><option value="PUBLIC_DOCUMENTED">Public documented evidence</option><option value="BLOCKED">Blocked or access denied</option></select></label>
-              <label>Public documentation or feed reference<input aria-label={`API or feed evidence reference for ${candidate.domain}`} type="url" maxLength={2000} value={evaluation.api_feed_evidence_reference} disabled={!!busy} onChange={event=>updateSourceCandidateEvaluation(candidate,'api_feed_evidence_reference',event.target.value)}/></label>
-              <label>Evidence note<textarea aria-label={`API or feed evidence note for ${candidate.domain}`} maxLength={1000} value={evaluation.api_feed_evidence_note} disabled={!!busy} onChange={event=>updateSourceCandidateEvaluation(candidate,'api_feed_evidence_note',event.target.value)}/></label>
-              <label>Access and terms note<textarea aria-label={`Access and terms note for ${candidate.domain}`} maxLength={1000} value={evaluation.access_terms_note} disabled={!!busy} onChange={event=>updateSourceCandidateEvaluation(candidate,'access_terms_note',event.target.value)}/></label>
-              <label>Capabilities and limits note<textarea aria-label={`Capabilities and limits note for ${candidate.domain}`} maxLength={1000} value={evaluation.capabilities_limits_note} disabled={!!busy} onChange={event=>updateSourceCandidateEvaluation(candidate,'capabilities_limits_note',event.target.value)}/></label>
-              <label>Expected value and maintenance note<textarea aria-label={`Expected value and maintenance note for ${candidate.domain}`} maxLength={1000} value={evaluation.expected_value_maintenance_note} disabled={!!busy} onChange={event=>updateSourceCandidateEvaluation(candidate,'expected_value_maintenance_note',event.target.value)}/></label>
-              <div className="toolbar"><button type="button" disabled={!!busy||!canSave} onClick={()=>void reviewSourceCandidate(candidate,'NEEDS_REVIEW')}>Keep needs review</button><button type="button" disabled={!!busy||!canSave||!validIssueNumber} onClick={()=>void reviewSourceCandidate(candidate,'INTEGRATION_QUEUED')}>Queue integration review</button><button type="button" disabled={!!busy||!canSave} onClick={()=>void reviewSourceCandidate(candidate,'BLOCKED')}>Mark blocked</button><button type="button" className="quiet" disabled={!!busy||!canSave} onClick={()=>void reviewSourceCandidate(candidate,'REJECTED')}>Reject candidate</button></div>
-              {!!candidate.review_history.length&&<details><summary>Review history ({candidate.review_history.length})</summary><ol>{candidate.review_history.map((review,index)=><li key={`${review.reviewed_at}-${index}`}><time>{stamp(review.reviewed_at)}</time> · {review.state.replaceAll('_',' ')} · {review.site_type.replaceAll('_',' ')} · {review.api_feed_evidence_status.replaceAll('_',' ')} · {review.reason}. {review.integration_issue===null?'No provider issue linked':`Provider issue #${review.integration_issue} · user supplied; not externally verified`}. {review.api_feed_evidence_note} Access/terms: {review.access_terms_note} Capabilities/limits: {review.capabilities_limits_note} Value/maintenance: {review.expected_value_maintenance_note}</li>)}</ol></details>}
-            </article>;
-          })}
+          <SourceCandidateReviewPanel profileId={profileId||null} client={sourceCandidateReviewClient}
+            refreshToken={sourceCandidates.map(candidate=>`${candidate.id}:${candidate.last_seen_at}:${candidate.state}`).join('|')}/>
           <p className="safety">Review status is not collection authorization. No source is enabled by capture or review.</p>
         </section>
         {operationMode==='PERSONAL'&&<CompanyDiscoveryRequests rows={discoveryRequests} busy={!!busy}
