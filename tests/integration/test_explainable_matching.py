@@ -277,6 +277,31 @@ class ExplainableMatchingTests(unittest.TestCase):
                 self.assertEqual(factor["status"], "NO_DIRECT_MATCH")
                 self.assertIn("no approved evidence", factor["explanation"].lower())
 
+    def test_no_longer_certified_or_current_facts_do_not_align(self):
+        from services.discovery.matching import build_explanation
+        from services.discovery.requirement_parsers import parse_certifications
+
+        for fact_text, job_text in (
+            ("I am no longer certified in CCNA.", "CCNA required."),
+            ("My AZ-104 certification is no longer current.", "AZ-104 preferred."),
+        ):
+            with self.subTest(fact=fact_text, job=job_text):
+                result = build_explanation({
+                    "skills": [],
+                    "attributes": {"certifications": parse_certifications(job_text)},
+                }, {"facts": [{
+                    "kind": "certification", "text": fact_text,
+                    "source": "user-confirmed certification history", "confidence": 100,
+                    "verified": True, "user_approved": True,
+                }]})
+                factor = next(
+                    row for row in result["components"]["fit_factors"]
+                    if row["id"].startswith("certification:")
+                )
+
+                self.assertEqual(factor["status"], "NO_DIRECT_MATCH")
+                self.assertIn("no approved evidence", factor["explanation"].lower())
+
     def test_manual_skill_strengths_survive_reopen_and_weight_explainable_match(self):
         description = (
             "Windows Server is required. Active Directory is preferred. "

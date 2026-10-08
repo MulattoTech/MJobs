@@ -40,7 +40,8 @@ def _certification_fact_is_explicitly_negative(clause, mention):
     negative = bool(re.search(
         r"\b(?:do\s+not|don't|does\s+not|doesn't|did\s+not|didn't|have\s+not|haven't|has\s+not|hasn't)"
         r"\s+(?:currently\s+)?(?:hold|have|possess|earned?|obtained?)\b|"
-        r"\bno\s+longer\s+(?:currently\s+)?(?:hold|have|possess|earned?|obtained?|valid|active)\b|"
+        r"\bno\s+longer\s+(?:currently\s+)?(?:hold|have|possess|earned?|obtained?|valid|active|current|certified|credentialed|licensed)\b|"
+        r"\bnot\s+(?:(?:currently|presently)\s+)?(?:certified|current|active|valid|credentialed|licensed)\b|"
         r"\b(?:formerly|previously)\s+(?:held|had|possessed|certified|earned?|obtained?)\b|"
         r"\bused\s+to\s+(?:hold|have|possess|be\s+certified)\b|"
         r"\b(?:am|is|are|was|were)\s+not\s+(?:currently\s+)?certified\b|"
