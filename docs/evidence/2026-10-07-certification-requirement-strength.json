@@ -125,8 +125,6 @@
   },
   "root_integration_reconciliation": {
     "verified_at_utc": "2026-10-08T05:06:28Z",
-    "candidate_commit": "ddfe79e8d5ee563e1e83a2e4d0bbcd82c13db0fa",
-    "candidate_tree": "ac268e5a04dc2f595421073ea18944a91f83a348",
     "base_commit": "f5800086b5cf8d4a92876a94d6fee2ad63f5d89d",
     "rebased_input_sha256": {
       "apps/web/src/main.tsx": "d124eb42f6a06bc68a4b2f6fc1fbb997da74472bbaf28a0d1810e7e61f34d286",
@@ -178,6 +176,9 @@
       "hosted_checks": "NOT_RUN_BY_USER_POLICY",
       "full_suite": "PARTIAL; baseline Alembic multi-head failures remain",
       "issue": "OPEN/PARTIAL"
-    }
+    },
+    "tested_source_commit": "ddfe79e8d5ee563e1e83a2e4d0bbcd82c13db0fa",
+    "tested_source_tree": "ac268e5a04dc2f595421073ea18944a91f83a348",
+    "scope_note": "The tested_source_commit/tree identify the executable and test content whose six source-input hashes are listed above. This evidence record was then amended as metadata only; the candidate branch is an evidence-only descendant, with no runtime or test input changes. The final integration SHA is recorded in the issue receipt rather than embedded recursively here."
   }
 }
