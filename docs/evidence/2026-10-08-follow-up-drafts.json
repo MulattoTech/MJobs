@@ -2,26 +2,65 @@
   "schema_version": 1,
   "issue": 394,
   "requirement": "MJ-REF-024",
-  "result": "NOT_RUN",
+  "result": "PARTIAL",
   "acceptance_status": "PARTIAL",
   "branch": "codex/mj-ref024-follow-up-tests-20261008",
-  "source_sha": "9808cdce34ab0302bf5231b09d6ae5fd56a33b81",
-  "source_tree": "7c897d4e3dcf4f3bc32f88677d3f542638b49809",
-  "tested_inputs": [],
+  "tested_candidate": {
+    "branch": "codex/root-mj-ref024-follow-up-review-20261008",
+    "source_sha": "31e5f2e76d3a557ea37fd7bb8ac59e1ce35ea6b3",
+    "source_tree": "dbe445a73f9a122ddc93d0e37cff3cb6822f97ef"
+  },
+  "tested_at_utc": "2026-10-08T15:22:54Z",
+  "tested_inputs": [
+    {
+      "path": "apps/api/main.py",
+      "sha256": "988072560e3aefc69b7db2db1a34a3f69b6a6afc32c795d5daa69b215cdbffca"
+    },
+    {
+      "path": "services/tracking/follow_up_drafts.py",
+      "sha256": "3d5d0f060fa491802bd3b682decb413b3edf2c6df49cb31e17b32715a43fe655"
+    },
+    {
+      "path": "apps/web/src/main.tsx",
+      "sha256": "0baacb9dbf2eb57f60b080565d21139e758e1a8de1a368022e599fefecfdf649"
+    },
+    {
+      "path": "apps/web/src/application-follow-up-drafts.tsx",
+      "sha256": "735238890dae703a547b3514c94fc4103748126a5b6b7a45f6844a4ac48431c4"
+    },
+    {
+      "path": "tests/integration/test_application_follow_up_drafts.py",
+      "sha256": "7a07c49322fd277a0608e335519ff596a2c8a2d0c3a68c049a69c4feebac53fe"
+    },
+    {
+      "path": "tests/browser/test_application_follow_up_drafts.py",
+      "sha256": "87760768c2b12d275ea3041ed5872e6d65b787d0e7c4b460731e3c44feb52718"
+    }
+  ],
   "validation": {
-    "integration_tests": "NOT_RUN",
-    "browser_test": "NOT_RUN",
-    "reason": "Test code is awaiting integration with the independently implemented route, service and UI slices; this record does not claim those paths ran or passed."
+    "integration_tests": {
+      "result": "PASS",
+      "count": 3,
+      "command": "..\\..\\.venv\\Scripts\\python.exe -c \"import importlib.util,sys,unittest; sys.path.insert(0, r'C:\\Tools\\Dev\\MJobs\\.worktrees\\codex-root-mj-ref024-follow-up-review-20261008'); spec=importlib.util.spec_from_file_location('test_application_follow_up_drafts', r'C:\\Tools\\Dev\\MJobs\\.worktrees\\codex-mj-ref024-follow-up-tests-20261008\\tests\\integration\\test_application_follow_up_drafts.py'); module=importlib.util.module_from_spec(spec); spec.loader.exec_module(module); suite=unittest.defaultTestLoader.loadTestsFromModule(module); result=unittest.TextTestRunner(verbosity=2).run(suite); sys.exit(not result.wasSuccessful())\"",
+      "summary": "3 passed, 0 failed, 0 skipped"
+    },
+    "browser_test": {
+      "result": "NOT_RUN",
+      "reason": "Awaiting the root candidate with the UI navigation accessible-name fix; do not treat this as browser acceptance."
+    },
+    "py_compile": "PASS for both owned test modules",
+    "evidence_json_parse": "PASS",
+    "diff_check": "PASS"
   },
   "privacy": {
     "data": "synthetic only",
     "external_network": "NOT_USED",
-    "submission": "NOT_USED",
+    "fixture_network": "LOCALHOST_ONLY",
+    "submission": "SYNTHETIC_MOCK_ONLY",
     "send_path": "NOT_USED"
   },
   "remaining": [
-    "Reconcile the combined candidate and exact six source/test input paths with the integration owner.",
-    "Run the focused synthetic integration tests and connected loopback browser test against the exact combined candidate.",
-    "Record actual commands, UTC timestamps, source/tree hashes, skips, failures and results before changing this evidence status."
+    "Run the connected loopback browser test against the exact root candidate after its UI fix is cherry-picked.",
+    "Refresh the candidate SHA/tree and tested input hashes if the root candidate changes before browser validation."
   ]
 }

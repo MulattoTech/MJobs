@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 import tempfile
 import unittest
+from urllib.parse import urlsplit, urlunsplit
 
 from fastapi.testclient import TestClient
 from sqlalchemy import select, update
@@ -184,23 +185,38 @@ class ApplicationFollowUpDraftTests(unittest.TestCase):
             self.assertEqual(response.status_code, 200, response.text)
             self.assertEqual(response.json()["quiet_days"], valid)
 
-        application_id = self._prepare("other", self.jobs[1])
+        application_id = self._prepare("fixture", self.jobs[1])
         with fixture_server() as origin:
+            application = self.store.application(application_id)
+            with self.store.engine.begin() as connection:
+                route = connection.execute(select(m.routes).where(
+                    m.routes.c.id == application["route_id"])).mappings().one()
+                old_url = urlsplit(route["url"])
+                live_origin = urlsplit(origin)
+                connection.execute(update(m.routes).where(
+                    m.routes.c.id == application["route_id"]).values(
+                        url=urlunsplit((live_origin.scheme, live_origin.netloc,
+                                        old_url.path, old_url.query, old_url.fragment))))
             submitted = apply_mock(self.store, application_id, origin, self.root, submit=True)
         self.assertEqual(submitted["state"], "CONFIRMED")
+        attempts_before_read = self.store.count("application_attempts")
+        self.assertEqual(attempts_before_read, 1)
         response = self.client.get(
-            "/profiles/other/application-follow-up-drafts?quiet_days=1")
+            "/profiles/fixture/application-follow-up-drafts?quiet_days=1")
         self.assertEqual(response.status_code, 200, response.text)
         self.assertNotIn(application_id, {
             row["application_id"] for row in response.json()["candidates"]
         }, "automation-only confirmation is not user-reported follow-up history")
         self.assertEqual(self.store.count("worker_operations"), 0)
-        self.assertEqual(self.store.count("application_attempts"), 0)
+        self.assertEqual(self.store.count("application_attempts"), attempts_before_read)
 
     def test_profile_error_and_candidate_store_reopen_do_not_need_mutating_route(self):
         application_id = self._prepare("fixture", self.jobs[0])
         self.assertEqual(self._set_status(
             "fixture", application_id, "APPLIED", "follow-up-reopen-applied").status_code, 200)
+        self._backdate_status(
+            "fixture", application_id, "APPLIED", "follow-up-reopen-applied",
+            datetime.now(timezone.utc) - timedelta(days=2))
         self.client.close()
         self.store.engine.dispose()
         self.store = Store(f"sqlite:///{(self.root / 'follow-up.db').as_posix()}")

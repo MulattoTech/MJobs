@@ -91,7 +91,7 @@ class ApplicationFollowUpDraftBrowserTests(unittest.TestCase):
                         page.goto(origin, wait_until="domcontentloaded")
                         page.evaluate("localStorage.setItem('mjobs-profile', 'fixture')")
                         page.reload(wait_until="domcontentloaded")
-                        page.get_by_role("button", name="Applications", exact=True).click()
+                        page.get_by_role("button", name="Applications", exact=False).click()
 
                         follow_up = page.get_by_role("region", name="Follow-up drafts")
                         expect(follow_up).to_be_visible()
@@ -123,7 +123,7 @@ class ApplicationFollowUpDraftBrowserTests(unittest.TestCase):
                             "button", name="Submit", exact=False).count(), 0)
 
                         page.reload(wait_until="domcontentloaded")
-                        page.get_by_role("button", name="Applications", exact=True).click()
+                        page.get_by_role("button", name="Applications", exact=False).click()
                         follow_up = page.get_by_role("region", name="Follow-up drafts")
                         expect(follow_up).to_contain_text(jobs[0]["title"])
                         expect(follow_up).not_to_contain_text(jobs[1]["title"])
