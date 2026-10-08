@@ -839,7 +839,7 @@ function App() {
                 {suggestions.map(({answer,match})=><div key={answer.id}>
                   <p>{answerMatchLabel(match.method)} · match score {Math.round(match.score*100)}% · saved-answer confidence {answer.confidence}%</p>
                   <p>Saved question: {answer.question} · Provenance: {answer.source}</p>
-                  <button type="button" onClick={()=>setAnswerDrafts(rows=>rows.map((row,i)=>i===index?{...row,text:answer.text,answer_id:answer.id,reviewed:false}:row))}>Use saved answer (review required)</button>
+                  <button type="button" onClick={()=>setAnswerDrafts(rows=>rows.map((row,i)=>i===index?{...row,text:answer.text,answer_id:answer.id,reviewed:false,bankConsent:false,bankConfidence:undefined}:row))}>Use saved answer (review required)</button>
                 </div>)}
               </div>}
               <label>Answer<textarea maxLength={10000} value={draft.text} onChange={e=>setAnswerDrafts(rows=>rows.map((row,i)=>i===index?{...row,text:e.target.value,answer_id:undefined,reviewed:false,bankConsent:false}:row))}/></label>

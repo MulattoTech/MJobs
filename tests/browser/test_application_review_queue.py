@@ -38,6 +38,12 @@ class ApplicationReviewQueueBrowserTests(unittest.TestCase):
                 "text": "I managed Azure subscriptions in a fictional lab.",
                 "source": "Synthetic profile", "confidence": 92,
                 "verified": True, "user_approved": True,
+            }, {
+                "id": "azure-alternate-answer",
+                "question": "Describe your experience managing Azure subscriptions at work.",
+                "text": "An alternate synthetic answer from the profile bank.",
+                "source": "Synthetic alternate profile", "confidence": 91,
+                "verified": True, "user_approved": True,
             }]))
             with fixture_server() as fixture:
                 discover(store, fixture, "fixture")
@@ -116,7 +122,7 @@ class ApplicationReviewQueueBrowserTests(unittest.TestCase):
                     expect(answer_review).to_contain_text("Exact normalized match")
                     expect(answer_review).to_contain_text("match score 100%")
                     expect(answer_review).to_contain_text("Synthetic profile")
-                    answer_review.get_by_role("button", name="Use saved answer (review required)").click()
+                    answer_review.get_by_role("button", name="Use saved answer (review required)").first.click()
                     answer_review.get_by_role("textbox", name="Answer", exact=True).fill(
                         "In a synthetic lab, I managed Azure subscriptions and reviewed access scopes.")
                     page.get_by_label("I reviewed this exact answer for this job", exact=True).check()
@@ -132,6 +138,19 @@ class ApplicationReviewQueueBrowserTests(unittest.TestCase):
                     answer_review.get_by_role("textbox", name="Answer", exact=True).fill(
                         "In a synthetic lab, I managed Azure subscriptions and reviewed access scopes.")
                     answer_review.get_by_label("I reviewed this exact answer for this job").check()
+                    answer_review.get_by_label("I confirm this answer is accurate and may be reused", exact=True).check()
+
+                    # Switching to another saved answer must discard prior text-specific reuse consent.
+                    answer_review.get_by_role("button", name="Use saved answer (review required)").nth(1).click()
+                    expect(answer_review.get_by_label("I reviewed this exact answer for this job")).not_to_be_checked()
+                    expect(answer_review.get_by_role("button", name="Confirm and save to Answer Bank", exact=True)).to_have_count(0)
+                    expect(answer_review.get_by_role("button", name="Save to Answer Bank", exact=True)).to_be_disabled()
+                    answer_review.get_by_label("I reviewed this exact answer for this job").check()
+                    answer_review.get_by_role("button", name="Save to Answer Bank", exact=True).click()
+                    expect(answer_review.get_by_label("Answer bank confidence (%)", exact=True)).to_have_value("80")
+                    expect(answer_review.get_by_label("I confirm this answer is accurate and may be reused", exact=True)).not_to_be_checked()
+                    expect(answer_review.get_by_role("button", name="Confirm and save to Answer Bank")).to_be_disabled()
+                    answer_review.get_by_label("Answer bank confidence (%)", exact=True).fill("88")
                     answer_review.get_by_label("I confirm this answer is accurate and may be reused", exact=True).check()
 
                     # Simulate a concurrent profile edit after the UI's expected version is read.
@@ -164,7 +183,7 @@ class ApplicationReviewQueueBrowserTests(unittest.TestCase):
                     azure = next(item for item in saved["answers"] if item.get("question") == QUESTION)
                     self.assertEqual(azure["confidence"], 88)
                     self.assertTrue(azure["verified"] and azure["user_approved"])
-                    self.assertIn("Azure subscriptions", azure["text"])
+                    self.assertEqual(azure["text"], "An alternate synthetic answer from the profile bank.")
                     self.assertTrue(any(item["id"] == "concurrent-answer" for item in saved["answers"]))
 
                     page.reload(wait_until="domcontentloaded")
@@ -182,7 +201,7 @@ class ApplicationReviewQueueBrowserTests(unittest.TestCase):
                     expect(sensitive).to_contain_text("Sensitive or legal question")
                     expect(sensitive.get_by_role("button", name="Save to Answer Bank", exact=True)).to_have_count(0)
                     azure_review = page.get_by_role("group", name="Question 1")
-                    azure_review.get_by_role("button", name="Use saved answer (review required)").click()
+                    azure_review.get_by_role("button", name="Use saved answer (review required)").first.click()
                     azure_review.get_by_label("I reviewed this exact answer for this job").check()
                     sensitive.get_by_role("textbox", name="Answer", exact=True).fill(
                         "Synthetic application-only response, provided explicitly by the user.")

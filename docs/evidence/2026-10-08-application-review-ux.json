@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "evidence_id": "MJ-REQ-197-APPLICATION-REVIEW-UX-20261008",
-  "recorded_at_utc": "2026-10-08T09:07:30Z",
+  "recorded_at_utc": "2026-10-08T09:13:40Z",
   "result": "PARTIAL",
   "issue": 198,
   "requirement_id": "MJ-REQ-197",
@@ -13,12 +13,13 @@
     "branch": "codex/mj-req197-application-review-ux-20261008",
     "worktree": ".worktrees/codex-mj-req197-application-review-ux-20261008",
     "base_head": "41f5fb7eb8b6d802a1f9e8c84365a0d526d448a9",
-    "source_base_head": "41f5fb7eb8b6d802a1f9e8c84365a0d526d448a9",
-    "tested_source_tree": "e906b671822de7618e3373c18c1bb94224060f09"
+    "source_base_head": "99557bcf279121d15812b13480638a1a8ce3418a",
+    "tested_source_tree": "661b9f10f24e28b4cccd2a809830ad55e05536fa"
   },
   "acceptance": {
     "unresolved_question_routing": "PASS; the persisted preflight question, missing-answer reason and exact text are visible, and the deliberate review action carries that text into the selected application's answer form without a duplicate row.",
     "answer_review_and_provenance": "PASS; existing exact-match method, score and source remain visible; edits clear per-job approval and require a fresh review before local export.",
+    "answer_selection_consent_binding": "PASS; selecting a different saved answer clears the prior application's review, Answer Bank reuse consent and selected confidence. The save confirmation must be reopened, confidence reselected and consent reconfirmed before another bank save.",
     "confirmed_answer_bank_save": "PASS; user selects a confidence and explicitly confirms accuracy and future reuse. The UI submits only supported profile fields with expected_version, replaces a matching normalized bank question using a new revision identity, and retains the concurrent-version conflict guard.",
     "sensitive_answers": "PASS; sensitive/legal questions do not receive reusable suggestions or expose an Answer Bank action. A manually entered answer can proceed only through explicit per-job review and local export.",
     "durability_and_side_effects": "PASS; the answer-bank entry and source/confidence read back after browser reload; reviewed answers export to application document history; synthetic acceptance observed no application attempts, state transition, confirmation or external network request.",
@@ -26,7 +27,7 @@
   },
   "red_first_observation": {
     "result": "FAIL_BEFORE_IMPLEMENTATION",
-    "details": "The connected acceptance first found the persisted per-question missing-answer reason and actionable routing were absent from the application review screen."
+    "details": "The original connected acceptance found the persisted per-question missing-answer reason and actionable routing absent. The added regression then reproduced that selecting a second approved answer retained the first answer's checked future-reuse consent and confidence; after the fix, the consent panel is cleared and save remains unavailable until renewed review, confidence and consent."
   },
   "checks": [
     {
@@ -75,8 +76,8 @@
   "hosted_checks": "NOT_RUN by repository policy",
   "external_submission": "NOT_RUN; external submission remains OFF",
   "source_sha256": {
-    "apps/web/src/main.tsx": "0ED2BC4E131F2583E89CC380BD78FF1BE5E2F153409EA694B6107DE0D9B15F7E",
-    "tests/browser/test_application_review_queue.py": "79B0F6DA01FB9A74A5261EB52F1749F8BA5CF235107DED08BCCD002EBF993087"
+    "apps/web/src/main.tsx": "71FE17A0B1F02D44B574BE581EB4152A3AB1DB64E887D331A3B4DAB011DEEA91",
+    "tests/browser/test_application_review_queue.py": "17AEB4A71341F46BE5D7F4B3E449CBCDC2A4515FA7E20CC7B411CD33E236011A"
   },
   "limitations": [
     "Only the issue's bounded application-review UX slice is implemented; the canonical requirement remains PARTIAL.",
