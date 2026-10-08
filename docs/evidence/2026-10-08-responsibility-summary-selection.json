@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "created_at_utc": "2026-10-08T14:11:12Z",
+  "created_at_utc": "2026-10-08T14:17:06Z",
   "requirement_id": "MJ-REQ-095",
   "issue": 96,
   "result": "PARTIAL",
@@ -8,21 +8,21 @@
   "branch": "codex/mj-req095-responsibility-summary-20261008",
   "worktree": ".worktrees/codex-mj-req095-responsibility-summary-20261008",
   "base": {
-    "commit": "3d7ff2c6fb0a6151026ebbe23033b4b5c5022937",
-    "tree": "6c421600785b9d54874c60c51456b3b0b7bd06f9"
+    "commit": "6a35d1a3d4216e13c34c0c8a29c038c46bb5aa17",
+    "tree": "e8833dd46482b4bdd76f737a65804cceaa332ea6"
   },
-  "candidate_state": "Product code and tests are committed; this evidence artifact is an evidence-only descendant.",
+  "candidate_state": "Product source and v5 contract are committed on top of current main; this evidence refresh will be an evidence-only descendant.",
   "product_source": {
-    "commit": "64800d6487a0c4e491ae6e04d35a82c6857dc53a",
-    "tree": "993bff6b0b532400fc7c3a9cdf3c527c466c6435",
-    "parent": "8c1084069ca6eb1e0830694ebbbf4acd80b7bf9b"
+    "commit": "e2ba8821158c7c15fac73175419723eef0e86b5b",
+    "tree": "1e5bff99c1ec04ce29206d8ae936ffc1886f5527",
+    "parent": "125b3bc704b39736add11f4835965bdbaea7435f"
   },
   "source_inputs_sha256": {
     "services/documents/tailor.py": "85ebfecfaec26a12251274711ca356317cd79d897c27d9a45a6d7d17889991fd",
     "services/documents/comparison.py": "da90e07f681d95f49b652cb53c72777dbb4a6fc0399363c0b701852f91279b49",
     "services/documents/templates.py": "52a4ecc0f01791bb4487973231d817e3dd550328684767239bb93e471d3bd45b",
-    "apps/web/src/resume-comparison.tsx": "a4c0396652b575acac468566cd9686f66c00c8e95ed33ef59931355ad2c23b41",
-    "apps/web/src/resume-comparison.test.tsx": "7177dfc67e455c53e84202840d820b8215e18244f4f13ba20c9266c217dadfa8",
+    "apps/web/src/resume-comparison.tsx": "6339511ff2c880088fb438b96c19da3af40f5de624f2d03d5d69a3164cfad291",
+    "apps/web/src/resume-comparison.test.tsx": "89a3b18eb6707e4fe84da6f8dbfbacca3d85aa3a9dd3167b70f3c2148331d46b",
     "tests/unit/test_skill_order.py": "9b0295e4b93e6edc6c19afb96f485d97a245ae581b112b54a2d271cc046f3d89",
     "tests/unit/test_resume_templates.py": "6a0b1dcc3243862eb7f6db4ba695563b06347c7f3ce18821df23df1d4cb82fdb",
     "tests/integration/test_skill_order.py": "3a9b2f70e6cac394bdd75f1a3f64d45f473659445b0d1d3c6c7313d3a6eedc92",
@@ -40,15 +40,17 @@
   ],
   "validation": {
     "focused_command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_skill_order tests.integration.test_skill_order tests.integration.test_resume_comparison tests.browser.test_skill_order -v",
-    "focused_result": "PARTIAL: 27 tests ran; 26 passed. One unchanged-main baseline browser test failed.",
+    "focused_result": "PARTIAL: exact focused command ran 27 tests; 26 passed and one confirmed unchanged-main baseline browser test failed.",
     "passing_new_acceptance": "Responsibility-only and mixed skill+responsibility union selection, paraphrase fallback, stable order, durable reopen/comparison, tamper rejection including rejection under a v4 identity, unchanged profile/cover letter, connected Chromium reload/comparison, and v5/contact-v5 comparison list rendering passed.",
-    "baseline_failure": "tests.browser.test_skill_order.SkillOrderBrowserTests.test_explicit_ordering_reaches_worker_and_download fails on unchanged main 3d7ff2c6fb0a6151026ebbe23033b4b5c5022937 with Comparison unavailable: Original target-bullet adjustment context is unavailable; exact focused rerun retained the same failure. This is unrelated to responsibility summary selection.",
-    "compile": "python -m py_compile for services/documents/templates.py, services/documents/comparison.py, and the changed Python test modules: PASS.",
-    "diff_check": "git diff --check: PASS.",
-    "web_build": "npm run build --prefix apps/web using local dependencies: PASS.",
+    "baseline_failure": "tests.browser.test_skill_order.SkillOrderBrowserTests.test_explicit_ordering_reaches_worker_and_download fails with Comparison unavailable: Original target-bullet adjustment context is unavailable. This is the same failure confirmed on current main 6a35d1a3d4216e13c34c0c8a29c038c46bb5aa17 and is unrelated to responsibility summary selection.",
+    "compile": "python -m py_compile for services/documents/templates.py, services/documents/comparison.py, and changed Python test modules: PASS on rebased source.",
+    "diff_check": "git diff --check: PASS on rebased source.",
+    "web_build": "npm run build --prefix apps/web using local dependencies on rebased source: PASS.",
     "hosted_checks": "NOT_RUN_BY_USER_POLICY",
     "postgresql": "NOT_RUN",
-    "web_tests": "npm test --prefix apps/web -- --run: 103 passed across 18 files."
+    "web_tests": "npm test --prefix apps/web -- --run: 103 passed across 18 files on rebased source.",
+    "rebase": "PASS: rebased product and evidence commits onto main 6a35d1a3d4216e13c34c0c8a29c038c46bb5aa17 without conflicts.",
+    "focused_excluding_baseline": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_skill_order tests.integration.test_skill_order tests.integration.test_resume_comparison tests.browser.test_skill_order.SkillOrderBrowserTests.test_target_bullet_fallback_explicit_precedence_and_reload tests.browser.test_skill_order.SkillOrderBrowserTests.test_user_reviewed_technology_experience_rewrite_survives_reload tests.browser.test_skill_order.SkillOrderBrowserTests.test_responsibility_matched_summary_survives_prepare_reload_and_comparison -v: 26 passed."
   },
   "claim": {
     "child_id": "req095-responsibility-summary-selection",
