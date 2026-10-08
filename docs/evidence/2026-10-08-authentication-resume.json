@@ -5,7 +5,7 @@
   "acceptance": "PARTIAL",
   "branch": "codex/mj-req142-auth-resume-20261008",
   "tested_base_head": "118b121afa4ffe12867f1024247ab6722a618d8b",
-  "implementation_commit_sha": "PENDING_CODE_COMMIT",
+  "implementation_commit_sha": "0f768f458ff8a6bd064c731e121fcb526ff68c0f",
   "tested_source_set_sha256": "dc85c06a92848ad1efc9bc5929fe0afd65dc98ecfaedf0f7a474cedea015e4a5",
   "tested_source_files": {
     "fixtures/mock_server.py": "14688bd9580c9cbeb2cd03b09cfbe8f6ab08bbebb72f256ffaa6f8ebafa527a8",
