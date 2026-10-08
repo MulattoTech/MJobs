@@ -2,7 +2,7 @@
 from contextlib import asynccontextmanager
 import asyncio
 from dataclasses import asdict
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 import hashlib
 import json
 import os
@@ -1337,12 +1337,15 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
              min_match_score: int | None = Query(default=None, ge=0, le=100),
              experience_level: Literal["INTERNSHIP", "ENTRY", "JUNIOR", "ASSOCIATE", "MID", "SENIOR",
                                        "LEAD", "MANAGER", "DIRECTOR", "EXECUTIVE", "UNKNOWN"] | None = None,
+             posted_within_days: int | None = Query(default=None, ge=1, le=30),
              override_saved_match_score: bool = False,
              search_profile_id: str | None = Query(default=None, max_length=128),
              include_dismissed: bool = False,
              limit: int = Query(default=200, ge=1, le=500)):
         if salary_min is not None and salary_max is not None and salary_min > salary_max:
             raise HTTPException(422, "Minimum annual USD salary cannot exceed maximum annual USD salary")
+        if posted_within_days is not None and posted_within_days not in {1, 3, 7, 14, 30}:
+            raise HTTPException(422, "Posted-within window must be 1, 3, 7, 14, or 30 days")
         search_profile = get_search_profile(store, search_profile_id) if search_profile_id else None
         if search_profile and search_profile["profile_id"] != profile_id:
             raise HTTPException(409, "Search profile belongs to a different career profile")
@@ -1354,10 +1357,17 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             effective_match_score = max(min_match_score or 0, int(saved_score))
         else:
             effective_match_score = min_match_score
+        saved_posted_within = ((search_profile["criteria"].get("job_filters") or {}).get("posted_within_days", "")
+                               if search_profile else "")
+        effective_posted_within = posted_within_days if posted_within_days is not None else (
+            int(saved_posted_within) if saved_posted_within else None)
+        posted_after = (datetime.now(timezone.utc) - timedelta(days=effective_posted_within)
+                        if effective_posted_within is not None else None)
         rows = store.jobs(profile_id, q, remote_type, provider, sort, limit,
                           title=title, company=company, location=location,
                           salary_min=salary_min, salary_max=salary_max,
-                          min_match_score=effective_match_score, experience_level=experience_level)
+                          min_match_score=effective_match_score, experience_level=experience_level,
+                          posted_after=posted_after)
         if search_profile_id:
             rows = filter_jobs(rows, search_profile["criteria"])
         if profile_id:

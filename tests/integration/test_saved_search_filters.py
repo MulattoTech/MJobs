@@ -66,7 +66,7 @@ class SavedSearchFiltersApiTests(unittest.TestCase):
         self.assertEqual(row["criteria"]["remote"], "REQUIRED")
         self.assertEqual(row["criteria"]["job_filters"], {
             "q": "network", "title": "Developer", "location": "Boston", "company": "Example",
-            "experience_level": "", "remote_type": "REMOTE", "provider": "greenhouse", "sort": "company",
+            "experience_level": "", "posted_within_days": "", "remote_type": "REMOTE", "provider": "greenhouse", "sort": "company",
             "salary_min": "", "salary_max": ""})
         self.assertFalse(row["enabled"])
         self.assertEqual(self.client.get("/search-profiles", params={"profile_id": "other"})
@@ -266,7 +266,8 @@ class SavedSearchFiltersApiTests(unittest.TestCase):
     def test_salary_bounds_round_trip_as_profile_scoped_filters_without_side_effects(self):
         filters = {"q": "network", "title": "Developer", "location": "Boston", "company": "Example",
                    "remote_type": "REMOTE", "provider": "greenhouse", "sort": "company",
-                   "salary_min": "85000", "salary_max": "130000", "experience_level": ""}
+                   "salary_min": "85000", "salary_max": "130000", "experience_level": "",
+                   "posted_within_days": ""}
         operations_before = self.store.count("worker_operations")
         response = self.client.put("/search-profiles", json=self._profile(job_filters=filters))
         self.assertEqual(response.status_code, 200, response.text)
@@ -281,6 +282,43 @@ class SavedSearchFiltersApiTests(unittest.TestCase):
         self.assertEqual(self.store.count("worker_operations"), operations_before)
         self.assertEqual(schedule_due_sources(self.store)["scheduled"], [])
         self.assertEqual(self.store.count("worker_operations"), operations_before)
+
+    def test_posted_within_filters_before_limit_and_excludes_unknown_posting_dates(self):
+        jobs = {row["title"]: row for row in self.store.jobs()}
+        old_id = jobs["Python Developer"]["id"]
+        recent_id = jobs["Data Engineer"]["id"]
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.id == old_id).values(
+                title="A old posting", attributes={"reported_posted_at": "2026-09-01T00:00:00+00:00",
+                                                     "first_seen_at": "2026-10-08T00:00:00+00:00"}))
+            connection.execute(update(m.jobs).where(m.jobs.c.id == recent_id).values(
+                title="Z recent posting", attributes={"reported_posted_at": "2026-10-07T00:00:00+00:00"}))
+        response = self.client.get("/jobs", params={"sort": "title", "limit": 1,
+                                                      "posted_within_days": 7})
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual([row["id"] for row in response.json()["jobs"]], [recent_id])
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.id == recent_id).values(
+                attributes={"reported_posted_at": None, "first_seen_at": "2026-10-08T00:00:00+00:00"}))
+        unknown = self.client.get("/jobs", params={"posted_within_days": 7})
+        self.assertEqual(unknown.status_code, 200, unknown.text)
+        self.assertEqual(unknown.json()["jobs"], [])
+
+    def test_posted_within_search_filter_round_trips_profile_scoped(self):
+        filters = {"q": "", "title": "", "company": "", "location": "", "salary_min": "",
+                   "salary_max": "", "min_match_score": "", "experience_level": "",
+                   "posted_within_days": "7", "remote_type": "", "provider": "", "sort": "score"}
+        response = self.client.put("/search-profiles", json=self._profile(job_filters=filters))
+        self.assertEqual(response.status_code, 200, response.text)
+        row = next(item for item in self.client.get("/search-profiles", params={"profile_id": "fixture"})
+                   .json()["search_profiles"] if item["id"] == "saved-filter")
+        self.assertEqual(row["criteria"]["job_filters"]["posted_within_days"], "7")
+        cleared = {**filters, "posted_within_days": ""}
+        response = self.client.put("/search-profiles", json=self._profile(job_filters=cleared))
+        self.assertEqual(response.status_code, 200, response.text)
+        row = next(item for item in self.client.get("/search-profiles", params={"profile_id": "fixture"})
+                   .json()["search_profiles"] if item["id"] == "saved-filter")
+        self.assertEqual(row["criteria"]["job_filters"]["posted_within_days"], "")
 
 
 if __name__ == "__main__":

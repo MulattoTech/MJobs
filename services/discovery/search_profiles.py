@@ -25,7 +25,7 @@ def _clean_job_filters(value):
         return None
     required = {"q", "remote_type", "provider", "sort"}
     optional = {"title", "company", "location", "salary_min", "salary_max", "min_match_score",
-                "experience_level"}
+                "experience_level", "posted_within_days"}
     if not isinstance(value, dict) or not required <= set(value) or set(value) - required - optional:
         raise ValueError("Saved Jobs filters must include q, remote_type, provider, and sort")
     query = value["q"]
@@ -68,6 +68,10 @@ def _clean_job_filters(value):
     if not isinstance(experience_level, str) or experience_level not in {"", *EXPERIENCE_LEVELS}:
         raise ValueError("Saved Jobs experience level is invalid")
     cleaned["experience_level"] = experience_level
+    posted_within_days = value.get("posted_within_days", "")
+    if not isinstance(posted_within_days, str) or posted_within_days not in {"", "1", "3", "7", "14", "30"}:
+        raise ValueError("Saved Jobs posted-within window is invalid")
+    cleaned["posted_within_days"] = posted_within_days
     for key, allowed in JOB_FILTERS.items():
         if not isinstance(value[key], str) or value[key] not in allowed:
             raise ValueError(f"Saved Jobs {key} is invalid")

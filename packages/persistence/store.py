@@ -8,7 +8,7 @@ import json
 from uuid import uuid4
 
 from sqlalchemy import (
-    String, Text, case, cast, create_engine, event, func, literal, literal_column, or_,
+    DateTime, String, Text, case, cast, create_engine, event, func, literal, literal_column, or_,
     select, text, update,
 )
 from sqlalchemy.dialects.postgresql import insert as postgres_insert
@@ -630,7 +630,7 @@ class Store:
 
     def jobs(self, profile_id=None, q="", remote_type=None, provider=None, sort="score", limit=200,
              title="", company="", location="", salary_min=None, salary_max=None,
-             min_match_score=None, experience_level=None):
+             min_match_score=None, experience_level=None, posted_after=None):
         profile = self.profile(profile_id) if profile_id else None
         with self.engine.connect() as connection:
             counts = select(m.postings.c.job_id, func.count().label("posting_count")).group_by(m.postings.c.job_id).subquery()
@@ -698,6 +698,17 @@ class Store:
             if experience_level:
                 # Exact normalized-value matching excludes absent and unrecognized metadata before LIMIT.
                 statement = statement.where(m.jobs.c.attributes["experience_level"].as_string() == experience_level)
+            if posted_after is not None:
+                reported_at = m.jobs.c.attributes["reported_posted_at"].as_string()
+                if self.engine.dialect.name == "postgresql":
+                    parsed_posted_at = cast(reported_at, DateTime(timezone=True))
+                    cutoff = posted_after
+                else:
+                    parsed_posted_at = func.datetime(reported_at)
+                    cutoff = posted_after.strftime("%Y-%m-%d %H:%M:%S")
+                # Posting time is source-reported. first_seen_at records collection
+                # time and must never make an undated job appear newly posted.
+                statement = statement.where(parsed_posted_at >= cutoff)
             if remote_type:
                 if remote_type == "REMOTE":
                     statement = statement.where(m.jobs.c.remote_type.in_(("REMOTE", "REMOTE_WORLDWIDE", "REMOTE_US", "REMOTE_COUNTRY", "REMOTE_SPECIFIC_STATES")))
