@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "evidence_id": "MJ-REQ-128-GENERIC-FORM-ENGINE-LOCAL-20261008",
-  "recorded_at_utc": "2026-10-08T10:52:26Z",
+  "recorded_at_utc": "2026-10-08T10:57:19Z",
   "result": "PASS",
   "issue": 129,
   "requirement_id": "MJ-REQ-128",
@@ -10,12 +10,12 @@
     "repository": "MulattoTech/MJobs",
     "issue_url": "https://github.com/MulattoTech/MJobs/issues/129",
     "branch": "codex/mj-req128-generic-form-engine-20261008",
-    "test_snapshot_parent": "347d4e7e53058135246f734aa1c7e850be25e51d",
-    "test_snapshot_parent_tree": "3b34163e8ec9c6d72ecda9c04604e4b7055d3af3",
+    "test_snapshot_parent": "d7568edcf388ce415fdffb54be6f6eb6192ae87a",
+    "test_snapshot_parent_tree": "8534670bd328470d61e560eaf3a4db7d8694b86e",
     "historical_red_first_parent": "a3a9c1421fdf6d2280636c10341e8e2ceedce93f",
     "historical_red_first_parent_tree": "cf3c2d59f1283faa9c4700fd8cd96655f84aedea",
-    "candidate_source_head": "c7cd616efd4a837ec0600e3c8bbbde87afff9092",
-    "candidate_source_tree": "f06185a4845b67f78e8356608943be26bdf9e388"
+    "candidate_source_head": "f99ccee0e576386716e96c8c78d1209f3816450a",
+    "candidate_source_tree": "c56812e7a8acfe1ea49e9228a20b19535641e10a"
   },
   "environment": {
     "platform": "Windows PowerShell",
@@ -25,7 +25,7 @@
   },
   "verification_window_utc": {
     "start": "NOT_RECORDED",
-    "end": "2026-10-08T10:52:26Z"
+    "end": "2026-10-08T10:57:19Z"
   },
   "checks": [
     {
@@ -35,7 +35,7 @@
       "tests": 31,
       "failures": 0,
       "skips": 0,
-      "details": "Includes structured metadata inputs, attribute and option extraction, direct label/heading/legend text fail-closed behavior, nested and sibling span/output answer exclusion, malformed/ambiguous controls and bounds, sensitive/credential classification, no DOM interaction, analyzer-specific rejection of malformed optional metadata while legal preflight is asserted PASS, zero attempts/receipts, and durable audit readback."
+      "details": "Root exact rebased candidate rerun: unit/integration 9/9 and browser 22/22 pass, 31 total. An initial combined run had test_playwright_actions_never_exceed_remaining_worker_budget fail at the existing 250 ms Chromium launch timeout; the isolated test then passed on both candidate and base main, and the full browser suite passed on repeat without code changes. Includes structured metadata inputs, attribute and option extraction, direct label/heading/legend text fail-closed behavior, nested and sibling span/output answer exclusion, malformed/ambiguous controls and bounds, sensitive/credential classification, no DOM interaction, analyzer-specific preflight gate, zero attempts/receipts, and durable audit readback."
     },
     {
       "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m py_compile services/applications/form_analysis.py services/applications/mock_adapter.py tests/unit/test_application_form_analysis.py tests/integration/test_application_form_analysis.py tests/browser/test_mock_application.py",
