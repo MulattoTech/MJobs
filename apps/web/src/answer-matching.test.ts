@@ -75,6 +75,10 @@ describe('application answer question matching',()=>{
     )).toEqual({method:'CURATED_SEMANTIC',score:0.95});
     expect(matchAnswerQuestion(
       'Are you available to work weekends?',
+      'Can you work on weekends?',
+    )).toEqual({method:'CURATED_SEMANTIC',score:0.95});
+    expect(matchAnswerQuestion(
+      'Are you available to work weekends?',
       'Are you unavailable to work weekends?',
     )).toBeNull();
     expect(matchAnswerQuestion(
