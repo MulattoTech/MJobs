@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-143",
+  "issue": "https://github.com/MulattoTech/MJobs/issues/144",
+  "result": "PARTIAL",
+  "slice_result": "PASS",
+  "scope": "Explicit local MOCK adapter and synthetic fixture confirmation capture, validation, durable readback, and UI display.",
+  "base_commit": "454217533bf23b88c80c4fdfbf6b604d07c59bea",
+  "tested_source_commit": "0f8f2c37a2bfc3db7d8f402c8b5b4de256efe1a4",
+  "tested_source_tree": "0c6252d66df30ecd4dbcaa3bd4b3b6364d0bdefd",
+  "tested_at_utc": "2026-10-08T08:11:04Z",
+  "branch": "codex/mj-req143-application-confirmation-20261008",
+  "worktree": ".worktrees/codex-mj-req143-application-confirmation-20261008",
+  "captured_and_validated": [
+    "UTC timestamp with timezone",
+    "Confirmation URL constrained to the configured local mock origin and matched to the observed browser URL",
+    "Confirmation text containing an accepted confirmation phrase and matching the observed browser body",
+    "Reference number matching both the mock receipt and observed confirmation marker"
+  ],
+  "verification": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_mock_application.MockApplicationTests.test_mock_submission_confirmed_once_and_survives_restart tests.browser.test_mock_application.MockApplicationTests.test_unrecognized_confirmation_text_is_not_persisted_as_confirmed",
+      "result": "PASS",
+      "details": "2 tests; valid confirmation fields persist across SQLite reopen; invalid confirmation text remains SUBMISSION_UNCONFIRMED with no stored confirmation."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_mock_application",
+      "result": "PASS",
+      "details": "16 tests; existing mock submission, failure, idempotence, and safety behavior remains green."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_application_pipeline.ApplicationPipelineBrowserTests.test_mock_confirmation_fields_read_back_in_ui_after_store_reopen",
+      "result": "PASS",
+      "details": "Connected local Chromium and API read the durable confirmation fields after store reopen and browser reload; outbound non-local browser requests were blocked."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_application_pipeline",
+      "result": "PASS",
+      "details": "6 tests; full application pipeline browser module passed. The later-added exact timestamp/reference assertions were rerun in the focused UI test above."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "details": "TypeScript and Vite production build passed using existing local node_modules via an ignored worktree junction; no dependency install."
+    },
+    {
+      "command": "python -m tools.verification.agent_skills",
+      "result": "PASS",
+      "details": "Agent skill validation passed."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m py_compile fixtures/mock_server.py services/applications/mock_adapter.py tests/browser/test_mock_application.py tests/browser/test_application_pipeline.py; git diff --check",
+      "result": "PASS",
+      "details": "Python syntax compilation and whitespace checks passed."
+    }
+  ],
+  "source_sha256": {
+    "fixtures/mock_server.py": "5f84f77e99362f827e012bdf40db04b999b696eb1a970911380ebaa1691cf62b",
+    "services/applications/mock_adapter.py": "d2be712924be720a5f21980bf857979b35a28695a6af9186bb335e81d2985127",
+    "tests/browser/test_mock_application.py": "2aefddfb1bd1f1e3a8abfc184314009ca9251693cd11e4fdbb8cc9a1f9b8d0878",
+    "tests/browser/test_application_pipeline.py": "691809e7831421107c73cbb425d3096e88c8a6207e7bea378a6288f7b0956141"
+  },
+  "limitations": [
+    "This is a synthetic MOCK fixture slice; confirmation behavior at real employer sites was not tested and no employer site was contacted.",
+    "The full issue remains PARTIAL pending broader provider-neutral ATS confirmation support.",
+    "Hosted CI and hosted review are NOT_RUN_BY_USER_POLICY; external submission remains OFF."
+  ],
+  "issue_state": "OPEN/PARTIAL",
+  "publication_state": "LOCAL_COMMIT_ONLY"
+}
