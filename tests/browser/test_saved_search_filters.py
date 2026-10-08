@@ -81,8 +81,8 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                     page.get_by_label("Source", exact=True).select_option("mock-ats")
                     with page.expect_response(lambda response:
                             response.url.startswith(origin + "/jobs?")
-                            and "sort=title" in response.url) as sorted_jobs:
-                        page.get_by_label("Sort", exact=True).select_option("title")
+                            and "sort=company" in response.url) as sorted_jobs:
+                        page.get_by_label("Sort", exact=True).select_option("company")
                     self.assertEqual([job["title"] for job in sorted_jobs.value.json()["jobs"]],
                                      ["Python Developer"])
                     page.get_by_label("Saved search name", exact=True).fill("Remote Python roles")
@@ -101,7 +101,7 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                             and "company=Example+Systems" in response.url
                             and "remote_type=REMOTE" in response.url
                             and "provider=mock-ats" in response.url
-                            and "sort=title" in response.url) as restored_jobs:
+                            and "sort=company" in response.url) as restored_jobs:
                         saved.select_option(saved.locator("option", has_text="Remote Python roles").get_attribute("value"))
                     self.assertEqual([job["title"] for job in restored_jobs.value.json()["jobs"]],
                                      ["Python Developer"])
@@ -110,7 +110,7 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                     expect(page.get_by_label("Company", exact=True)).to_have_value("Example Systems")
                     expect(page.get_by_label("Work location", exact=True)).to_have_value("REMOTE")
                     expect(page.get_by_label("Source", exact=True)).to_have_value("mock-ats")
-                    expect(page.get_by_label("Sort", exact=True)).to_have_value("title")
+                    expect(page.get_by_label("Sort", exact=True)).to_have_value("company")
                     expect(page.locator(".job-card").filter(has_text="Python Developer")).to_be_visible()
                     expect(page.locator(".job-card").filter(has_text="Data Engineer")).to_have_count(0)
 

@@ -43,7 +43,7 @@ class SavedSearchFiltersApiTests(unittest.TestCase):
             "remote": "REQUIRED", "employment_types": [], "source_ids": [],
             "job_filters": job_filters or {"q": "network", "title": "Developer",
                                            "company": "Example", "remote_type": "REMOTE",
-                                           "provider": "greenhouse", "sort": "newest"},
+                                           "provider": "greenhouse", "sort": "company"},
         }
 
     def test_saved_jobs_filters_persist_profile_scope_and_do_not_schedule_discovery(self):
@@ -58,7 +58,7 @@ class SavedSearchFiltersApiTests(unittest.TestCase):
         self.assertEqual(row["criteria"]["remote"], "REQUIRED")
         self.assertEqual(row["criteria"]["job_filters"], {
             "q": "network", "title": "Developer", "company": "Example",
-            "remote_type": "REMOTE", "provider": "greenhouse", "sort": "newest"})
+            "remote_type": "REMOTE", "provider": "greenhouse", "sort": "company"})
         self.assertFalse(row["enabled"])
         self.assertEqual(self.client.get("/search-profiles", params={"profile_id": "other"})
                          .json()["search_profiles"], [])

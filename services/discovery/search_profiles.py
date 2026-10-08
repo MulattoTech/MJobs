@@ -15,7 +15,7 @@ REMOTE_PREFERENCES = {"ANY", "REQUIRED", "EXCLUDED"}
 WORK_ARRANGEMENTS = {"REMOTE", "HYBRID", "ONSITE"}
 JOB_FILTERS = {"remote_type": {"", "REMOTE", "HYBRID", "ONSITE", "UNKNOWN"},
                "provider": {"", "mock-ats", "greenhouse"},
-               "sort": {"score", "newest", "title"}}
+               "sort": {"score", "newest", "company", "title"}}
 
 
 def _clean_job_filters(value):
