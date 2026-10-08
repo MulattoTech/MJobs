@@ -107,6 +107,28 @@ class ResumeComparisonUnitTests(unittest.TestCase):
         self.assertEqual(validated['bullet_adjustment']['omitted_bullet_fact_ids'],
                          ['omitted-project'])
 
+    def test_omitted_bullet_fingerprint_tampering_fails_against_immutable_source_rows(self):
+        source_facts = [
+            {'fact_id': 'summary', 'kind': 'summary',
+             'text': 'Infrastructure systems professional.'},
+            {'fact_id': 'python', 'kind': 'skill', 'text': 'Python'},
+            {'fact_id': 'matched-duty', 'kind': 'responsibility',
+             'text': 'Built Python APIs for internal teams.'},
+            {'fact_id': 'omitted-project', 'kind': 'project',
+             'text': 'Documented Hyper-V lab procedures.'},
+        ]
+        target = self._uploaded_target_with_valid_bullet_snapshot()
+        adjustment = target['generation_context']['bullet_adjustment']
+        self.assertIn('omitted-project', adjustment['omitted_bullet_fact_ids'])
+        self.assertIs(tailored_context(target, source_facts), target['generation_context'])
+
+        tampered = deepcopy(target)
+        tampered['generation_context']['bullet_adjustment'][
+            'source_fact_fingerprints']['omitted-project'] = '0' * 64
+
+        with self.assertRaises(ComparisonUnavailable):
+            tailored_context(tampered, source_facts)
+
     def test_uploaded_target_accepts_responsibility_only_selected_bullet_snapshot(self):
         target = self._uploaded_target_with_responsibility_only_bullet_snapshot()
         adjustment = target['generation_context']['bullet_adjustment']
