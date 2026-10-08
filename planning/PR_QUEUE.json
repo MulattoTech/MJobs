@@ -935,7 +935,7 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-031-matching-ai",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Latest scoped #116 / MJ-REQ-115 negated-must-have slice integrated at c05d6c90b660508417ba7c17a0aa24a4116fded3; tested source 12ac4048f92f59423a08d5f4af49453f4949f570 / tree 23f5220012726c5eac91f711428d80e8f72f3a0b. Root: 25 parser/matching tests and 1 synthetic Chromium manual-capture/reopen test PASS; TypeScript/Vite build, py_compile and exact evidence hashes PASS. Vitest NOT_RUN (Node 25 outside declared range); hosted checks/review NOT_RUN_BY_USER_POLICY. Evidence docs/evidence/2026-10-08-required-vs-preferred-negated-must-have.json; #116 and PR-031 remain OPEN/PARTIAL; dependencies unchanged."
     },
     {
       "id": "MJ-PR-032",
