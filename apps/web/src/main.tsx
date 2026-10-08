@@ -11,6 +11,7 @@ import { SourceValueEvidence, type SourceValueResolution } from './source-value-
 import { JobRouteProvenance } from './job-route-provenance';
 import { DocumentHistory, type GeneratedDocument } from './document-history';
 import { DocumentLibrary } from './document-library';
+import { DocumentArchive, type ArchivableDocument } from './document-archive';
 import { ResumeFactSelection,type ResumeFactChoice } from './resume-fact-selection';
 import { matchCategory } from './match-category';
 import { JobMatchScoreFilter } from './job-match-score-filter';
@@ -38,6 +39,29 @@ type AnswerConfidencePolicy = {minimum_saved_answer_confidence:number;minimum_qu
 type SensitiveAnswerSuggestion = {category:string|null;response:string;mode:'PREFER_NOT_TO_ANSWER'|'USE_CONFIGURED_RESPONSE'|'ALWAYS_REQUIRE_REVIEW';source?:'PROFILE_CONFIGURATION';review_required:true};
 type AnswerDraft = {question:string;text:string;answer_id?:string;reviewed:boolean;bankConfidence?:number;bankConsent?:boolean;sensitivePolicySuggestion?:SensitiveAnswerSuggestion};
 type Doc = GeneratedDocument;
+type DocumentArchiveLibrary = {
+  uploaded: (Resume & {revision_id?:string;document_kind?:string;archived_at?:string|null})[];
+  generated: (GeneratedDocument & {application_id:string;job_title:string;company:string;archived_at?:string|null})[];
+};
+function archiveableDocuments(library:DocumentArchiveLibrary,profileId:string):ArchivableDocument[] {
+  const rows:ArchivableDocument[]=[];
+  for(const row of library.uploaded||[]) {
+    if(row.profile_id!==profileId||!row.revision_id)continue;
+    const kind=row.document_kind==='COVER_LETTER'?'cover letter':
+      ['BASE_RESUME','MASTER_RESUME','TAILORED_RESUME'].includes(row.document_kind||'')?'resume':null;
+    if(!kind)continue;
+    rows.push({id:row.revision_id,profileId,applicationId:null,revisionId:row.revision_id,
+      label:`${row.label||row.filename} · version ${row.version}`,kind,
+      archivedAt:typeof row.archived_at==='string'?row.archived_at:null});
+  }
+  for(const row of library.generated||[]) {
+    if(row.profile_id!==profileId||!row.application_id||!['resume','cover-letter'].includes(row.kind))continue;
+    rows.push({id:row.id,profileId,applicationId:row.application_id,revisionId:row.id,
+      label:`${row.job_title} · ${row.kind==='resume'?'resume':'cover letter'} v${row.version}`,kind:row.kind==='resume'?'resume':'cover letter',
+      archivedAt:typeof row.archived_at==='string'?row.archived_at:null});
+  }
+  return rows;
+}
 type Operation = {id:string; kind:string; state:string; error:string|null;attempt_count:number;cancel_requested:boolean;updated_at:string;last_attempt_at?:string|null;dead_lettered_at?:string|null;discarded_at?:string|null;retryable?:boolean;retry_blocked_reason?:string};
 type AuditEvent = {id:string;type:string;summary:string;subject:string;company:string;timestamp:string};
 type Source = {id:string;provider:string;tenant:string;name:string;enabled:boolean;health_status:string;jobs_seen:number;last_error:string|null;last_success:string|null;backoff_until:string|null;poll_interval:number;concurrency:number;request_timeout:number;rate_limit:number;jitter_seconds:number;strategy:string;capabilities:{capabilities:string[]}};
@@ -212,6 +236,10 @@ function App() {
   const [answerConfidencePolicyDraft,setAnswerConfidencePolicyDraft]=useState<AnswerConfidencePolicy>(defaultAnswerConfidencePolicy);
   const [answerConfidencePolicyProfileId,setAnswerConfidencePolicyProfileId]=useState('');
   const [docs,setDocs]=useState<Doc[]>([]);
+  const [documentArchive,setDocumentArchive]=useState<ArchivableDocument[]>([]);
+  const [documentArchiveLoading,setDocumentArchiveLoading]=useState(false);
+  const [documentArchiveBusy,setDocumentArchiveBusy]=useState(false);
+  const [documentArchiveError,setDocumentArchiveError]=useState('');
   const [resumes,setResumes]=useState<Resume[]>([]);
   const [tenant,setTenant]=useState(''); const [sourceIntervalMinutes,setSourceIntervalMinutes]=useState(30); const [sourceConcurrency,setSourceConcurrency]=useState(1); const [sourceTimeout,setSourceTimeout]=useState(10); const [sourceRate,setSourceRate]=useState(60); const [sourceJitter,setSourceJitter]=useState(30);
   const [searchProfiles,setSearchProfiles]=useState<SearchProfile[]>([]); const [searchScheduleDrafts,setSearchScheduleDrafts]=useState<Record<string,{enabled:boolean;interval:number}>>({}); const [selectedSearchProfileId,setSelectedSearchProfileId]=useState(''); const [searchName,setSearchName]=useState(''); const [searchTitles,setSearchTitles]=useState(''); const [searchRemote,setSearchRemote]=useState<'ANY'|'REQUIRED'|'EXCLUDED'>('ANY'); const [searchEmployment,setSearchEmployment]=useState('FULL_TIME'); const [searchSource,setSearchSource]=useState(''); const [savedJobSearchName,setSavedJobSearchName]=useState('');
@@ -234,7 +262,7 @@ function App() {
   }
   const profileBaselineRef = useRef<Profile|null>(null);
   const queryRef = useRef({q,title,company,locationText,salaryMin,salaryMax,minMatchScore,experienceLevel,employmentType,skillId,educationRequirement,clearanceLevel,applicationLinkStatus,applicationPipelineStatus,applicationCapability,postedWithinDays,atsProvider,sort,remote,provider,showDismissed,searchProfileId:selectedSearchProfileId}); queryRef.current={q,title,company,locationText,salaryMin,salaryMax,minMatchScore,experienceLevel,employmentType,skillId,educationRequirement,clearanceLevel,applicationLinkStatus,applicationPipelineStatus,applicationCapability,postedWithinDays,atsProvider,sort,remote,provider,showDismissed,searchProfileId:selectedSearchProfileId};
-  const jobsSequence = useRef(0); const detailSequence = useRef(0); const appSequence = useRef(0); const editorSequence = useRef(0); const applicationRestoreProfile = useRef(''); const reviewQueueSequence = useRef(0);
+  const jobsSequence = useRef(0); const detailSequence = useRef(0); const appSequence = useRef(0); const editorSequence = useRef(0); const applicationRestoreProfile = useRef(''); const reviewQueueSequence = useRef(0); const documentArchiveSequence = useRef(0);
 
   async function refresh(id=profileId) {
     const restoreApplication = !!id&&applicationRestoreProfile.current!==id
@@ -344,6 +372,53 @@ function App() {
     if(busy)return;setBusy(label);setError('');setNotice('');
     try {await fn();await refresh(profileRef.current);await loadJobs(profileRef.current);}catch(e){setError(e instanceof Error?e.message:String(e));}finally{setBusy('');setActiveOp('');}
   }
+  async function loadDocumentArchive(id=profileId, failureMessage='Could not load the document archive.') {
+    if(!id)return false;
+    const sequence=++documentArchiveSequence.current;
+    setDocumentArchiveLoading(true);setDocumentArchiveError('');
+    try {
+      const library=await api<DocumentArchiveLibrary>(`/profiles/${encodeURIComponent(id)}/document-library?include_archived=true`);
+      if(sequence!==documentArchiveSequence.current||profileRef.current!==id)return false;
+      setDocumentArchive(archiveableDocuments(library,id));
+      return true;
+    } catch(e) {
+      if(sequence===documentArchiveSequence.current&&profileRef.current===id)
+        setDocumentArchiveError(`${failureMessage} ${e instanceof Error?e.message:String(e)}`);
+      return false;
+    } finally {
+      if(sequence===documentArchiveSequence.current)setDocumentArchiveLoading(false);
+    }
+  }
+  async function setDocumentArchived(document:ArchivableDocument,archived:boolean) {
+    const id=document.profileId,revisionId=document.revisionId;
+    if(!id||id!==profileRef.current||!revisionId||documentArchiveBusy)return;
+    setDocumentArchiveBusy(true);setDocumentArchiveError('');
+    try {
+      let receipt:{profile_id?:string;document_id?:string;archived?:boolean};
+      try {
+        receipt=await api(`/profiles/${encodeURIComponent(id)}/document-library/${encodeURIComponent(revisionId)}/${archived?'archive':'restore'}`,{
+          method:'POST',headers:{'Idempotency-Key':crypto.randomUUID()},
+        });
+      } catch(e) {
+        if(profileRef.current===id)setDocumentArchiveError(`Could not confirm ${archived?'archiving':'restoring'} ${document.label}. The visible archive state was retained. ${e instanceof Error?e.message:String(e)}`);
+        return;
+      }
+      if(receipt.profile_id!==id||receipt.document_id!==revisionId||receipt.archived!==archived) {
+        if(profileRef.current===id)setDocumentArchiveError(`The server did not confirm ${archived?'archiving':'restoring'} ${document.label}. The visible archive state was retained.`);
+        return;
+      }
+      if(profileRef.current!==id)return;
+      const refreshed=await loadDocumentArchive(id,`The server confirmed ${archived?'archiving':'restoring'} ${document.label}, but the document list could not be refreshed.`);
+      if(refreshed&&profileRef.current===id)setNotice(`${archived?'Archived':'Restored'} ${document.label}.`);
+    } finally {
+      setDocumentArchiveBusy(false);
+    }
+  }
+  useEffect(()=>{
+    ++documentArchiveSequence.current;
+    setDocumentArchive([]);setDocumentArchiveError('');setDocumentArchiveLoading(false);
+    if(tab==='Profile'&&profileId)void loadDocumentArchive(profileId);
+  },[tab,profileId]);
   async function queue(path:string, body:unknown) {
     const result=await api<{operation_id:string;application_id?:string}>(path,{method:'POST',body:JSON.stringify(body)});
     setActiveOp(result.operation_id);
@@ -832,6 +907,12 @@ function App() {
         <section className="panel"><div className="toolbar"><div><h2>Reusable application answers</h2><p>Matching methods only suggest saved answers. Any substantive edit resets approval.</p></div><button type="button" onClick={()=>setEditor({...editor,answers:[...editor.answers,newAnswer()]})}>Add answer</button></div>{editor.answers.map((answer,i)=><fieldset className="fact" key={answer.id}><legend>Answer {i+1} <span className="tag">{answer.verified&&answer.user_approved&&answer.confidence>=80&&answer.question?'Approved':'Pending'}</span></legend><label>Question this answer addresses<input maxLength={2000} value={answer.question||''} onChange={e=>editAnswer(i,{question:e.target.value})} placeholder="Exact employer question"/></label><label>Answer text<textarea maxLength={10000} value={answer.text} onChange={e=>editAnswer(i,{text:e.target.value})}/></label><div className="two-col"><label>Provenance<input maxLength={1000} value={answer.source} onChange={e=>editAnswer(i,{source:e.target.value})}/></label><label>Confidence (0–100)<input type="number" min={0} max={100} value={answer.confidence} onChange={e=>editAnswer(i,{confidence:Number(e.target.value)})}/></label></div><div className="approvals"><label><input type="checkbox" checked={answer.verified} onChange={e=>editAnswer(i,{verified:e.target.checked})}/> I reviewed and verified this answer</label><label><input type="checkbox" checked={answer.user_approved} onChange={e=>editAnswer(i,{user_approved:e.target.checked})}/> I approve exact reuse for this question</label><button type="button" className="quiet" onClick={()=>setEditor({...editor,answers:editor.answers.filter((_,index)=>index!==i)})}>Remove</button></div>{!answer.question&&<p className="muted">Legacy answer: retained for its original fictional test path, and unavailable for question matching until you provide its source question.</p>}</fieldset>)}<button className="primary" disabled={!!busy}>Save profile and answers</button></section>
         <ResumeLibrary key={editor.id} profileId={editor.id} saved={profileId===editor.id&&profiles.some(p=>p.id===editor.id)} resumes={editor.id===profileId?resumes:[]} busy={!!busy} action={action} onStored={rows=>{setResumes(rows);setNotice('Resume stored locally. Use Extract and review to populate your profile.');}} onApply={addExtraction}/>
         <DocumentLibrary key={'library-'+editor.id} profileId={editor.id} saved={profileId===editor.id&&profiles.some(p=>p.id===editor.id)} baseResumes={resumes} busy={!!busy} action={action} onBaseStored={async()=>{const rows=await api<{resumes:Resume[]}>('/profiles/'+encodeURIComponent(editor.id)+'/resumes');if(editor.id===profileRef.current)setResumes(rows.resumes);}}/>
+        {profileId===editor.id&&profiles.some(p=>p.id===editor.id)&&<>
+          {documentArchiveLoading&&<p role="status">Loading active and archived document revisions…</p>}
+          {documentArchiveError&&<div role="alert" className="alert"><p>{documentArchiveError}</p><button type="button" disabled={documentArchiveLoading||documentArchiveBusy} onClick={()=>void loadDocumentArchive(editor.id)}>Refresh document archive</button></div>}
+          {(documentArchive.length>0||(!documentArchiveLoading&&!documentArchiveError))&&<DocumentArchive documents={documentArchive} busy={!!busy||documentArchiveBusy}
+            onArchive={document=>void setDocumentArchived(document,true)} onRestore={document=>void setDocumentArchived(document,false)}/>}
+        </>}
         {operationMode==='FIXTURE'&&<section className="panel"><h2>Try the local demo</h2><p>Creates a separate fictional profile and two fictional jobs. It never overwrites your profile.</p><button type="button" disabled={!!busy} onClick={()=>void action('Loading fictional demo',demo)}>Load fictional demo</button></section>}
         </fieldset>
       </form>}
