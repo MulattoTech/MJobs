@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REQ-104-WEEKEND-AVAILABILITY-SEMANTIC-MATCH-20261008",
+  "issue": 105,
+  "requirement_id": "MJ-REQ-104",
+  "result": "PARTIAL",
+  "recorded_at_utc": "2026-10-08T15:07:46Z",
+  "branch": "codex/mj-req104-weekend-availability-20261008",
+  "base_commit": "766a319ef59d4904f9fe529f5e22ef8c7bb54051",
+  "implementation_commit": "5a12e9319c3330d62fd608c09f572ce016fb24d0",
+  "implementation_tree": "4c389acb998cbb12b7051bcb42e5589deb8514c5",
+  "input_sha256": {
+    "services/documents/answers.py": "8e61c02c86cb2315c2401c14803875f717b289b7f74bc6d97aebfee75bb2ff4f",
+    "apps/web/src/answer-matching.ts": "341e76f5182c62f7494b1baf034c537eefd09edb87fcc8d06b80232c78462e88",
+    "tests/unit/test_answer_matching.py": "33bd1e81b31a0f474eea7622fcd576cbc972fd83d3b9658f2c3fbcd017741eb9",
+    "tests/integration/test_application_answer_export.py": "d9eb784166c4583d7e7a9c041683c9d0c7525b8213f4f3db27fa100954807102",
+    "apps/web/src/answer-matching.test.ts": "2aae93980b413292371151e346fe87d20732e1330d7e51afe2adfdd019df9ce5",
+    "tests/browser/test_application_answer_export.py": "1b7b4fe8267b1ac64efcbd64f322d991bd1000c9f239176b03c9d9527016843f"
+  },
+  "input_git_blob_oid": {
+    "services/documents/answers.py": "da7a70a8549d8278f93a751e2d4f08592890d6c5",
+    "apps/web/src/answer-matching.ts": "2538c22868b31c87a706b5d2d482565379785985",
+    "tests/unit/test_answer_matching.py": "5c6d3b2de33eb3f6218614de01bbbb0a37d0932a",
+    "tests/integration/test_application_answer_export.py": "dff425767111ffde0a33323a03490ef67597c383",
+    "apps/web/src/answer-matching.test.ts": "4675f69a2ee14f556655c589e1b21b593dc5c035",
+    "tests/browser/test_application_answer_export.py": "eb5013af1f70b427987de27c133399edeec93771"
+  },
+  "acceptance": {
+    "curated_weekend_aliases": "PASS - Both “Are you available to work weekends?” and “Can you work [on] weekends?” receive CURATED_SEMANTIC 0.95 in Python and TypeScript; exact aliases only.",
+    "near_miss_and_polarity": "PASS - Weekday substitution, explicit unavailable polarity and not/never reversals do not match.",
+    "sensitive_questions": "PASS - Work authorization, sponsorship, demographic and other existing sensitive/legal gates remain blocked from reusable answer suggestions.",
+    "review_gate": "PASS - Connected synthetic browser flow leaves the job question blank until the user selects a saved answer and requires per-job review before export.",
+    "recomputed_export_provenance": "PASS - API recomputes match method/score and threshold, then the durable answer export records reviewed source, method and score; stale/invalid selections do not write.",
+    "history_reload": "PASS - Browser downloads the exported bytes and verifies the same immutable history is available after reload.",
+    "network_and_submission": "PASS - Browser test blocks non-local requests; no provider, employer or submission endpoint is called."
+  },
+  "test_first": {
+    "result": "PASS",
+    "unit_red": "Before changes, the weekend alias had no curated result and was rejected; a polarity case returned FUZZY 0.833; export returned HTTP 422.",
+    "green": "After changes, targeted Python, API and browser acceptance pass with curated score/provenance and explicit review."
+  },
+  "validation": {
+    "python_unit_and_integration": "PASS - C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_answer_matching tests.integration.test_application_answer_export -v; 39 tests.",
+    "connected_browser_feature": "PASS - C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_application_answer_export.ApplicationAnswerExportBrowserTests.test_fuzzy_suggestion_requires_review_and_export_survives_reload -v; 1 test.",
+    "related_browser_module": "PARTIAL - 3 of 4 tests passed. Existing profile-scoped confidence-threshold browser test failed during API-server shutdown (`thread.is_alive()` after timeout, WinError 10054); this test path is outside this weekend matcher change and remains unresolved.",
+    "frontend": "PASS - npm test --prefix apps/web -- --run; 18 files, 104 tests.",
+    "frontend_build": "PASS - npm run build --prefix apps/web; TypeScript and Vite production build.",
+    "python_compile": "PASS - Python compile for service and affected unit/integration/browser tests.",
+    "diff_check": "PASS - git diff main...HEAD --check.",
+    "input_hashes": "PASS - Raw worktree SHA-256 and canonical Git blob IDs are recorded for all six implementation/test inputs.",
+    "postgresql": "NOT_RUN",
+    "full_repository_suite": "NOT_RUN",
+    "hosted_checks_and_review": "NOT_RUN_BY_USER_POLICY"
+  },
+  "environment": {
+    "os": "Windows",
+    "python": "Repository .venv Python 3.12",
+    "node": "v25.9.0; local Vitest/Vite",
+    "database": "Synthetic temporary SQLite fixtures",
+    "browser": "Local Chromium via Playwright; non-local requests blocked",
+    "external_submission": "OFF",
+    "production_credentials": "NOT_USED",
+    "job_provider_access": "NONE"
+  },
+  "limitations": [
+    "This adds only one exact ordinary weekend-availability equivalence; general answer-question semantic coverage remains incomplete and this does not imply whole MJ-REQ-104 or issue #105 is complete.",
+    "The related profile-scoped confidence-threshold browser test still fails during its local server shutdown assertion; no changes were made to that path.",
+    "PostgreSQL, full repository suite, hosted checks/review and live employer integrations were not run."
+  ],
+  "external_submission": "OFF"
+}
