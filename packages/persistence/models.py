@@ -160,6 +160,26 @@ career_stories = table(
 )
 Index("ix_career_stories_profile_created", career_stories.c.profile_id,
       career_stories.c.created_at)
+interview_prep_packs = table(
+    "interview_prep_packs",
+    Column("profile_id", ForeignKey("career_profiles.id", ondelete="CASCADE"), nullable=False),
+    Column("job_id", ForeignKey("canonical_jobs.id"), nullable=False),
+    Column("pack_version", Integer, nullable=False),
+    Column("profile_version", String(64), nullable=False),
+    Column("job_fingerprint", String(64), nullable=False),
+    Column("selected_story_revision_ids", JSON, nullable=False),
+    Column("questions", JSON, nullable=False),
+    Column("talking_points", JSON, nullable=False),
+    Column("star_prompts", JSON, nullable=False),
+    Column("missing_evidence", JSON, nullable=False),
+    Column("export_text", Text, nullable=False),
+    Column("created_at", String(64), nullable=False),
+    constraints=(
+        UniqueConstraint("profile_id", "job_id", "pack_version",
+                         name="uq_interview_prep_pack_profile_job_version"),
+        CheckConstraint("pack_version >= 1", name="ck_interview_prep_pack_version_positive"),
+    ),
+)
 uploaded_resumes = table("uploaded_resumes", Column("profile_id", ForeignKey("career_profiles.id"), nullable=False),
                          Column("filename", String(200), nullable=False), Column("format", String(8), nullable=False),
                          Column("media_type", String(128), nullable=False), Column("size_bytes", Integer, nullable=False),
