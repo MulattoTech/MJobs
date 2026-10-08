@@ -1,3 +1,11 @@
+## 2026-10-08T06:23:57Z — #517 issue-reference slice integrated PARTIAL
+
+Integrated product source checkpoint: `dbc9e573680fcf32498131afe3bee75e72213371` (tree `12d277b97734f28e1e1ac37b2fc5101ada693e5c`); planning closeout is a subsequent metadata-only checkpoint. Re-read current main before resuming. Evidence: `docs/evidence/2026-10-08-source-candidate-issue-link.json`. Root exact-tree verification: 9 focused source-candidate API/integration/browser/migration tests PASS; 94 web tests and Vite build PASS; seven evidence hashes match; temporary SQLite migration upgrade/readback/guarded downgrade PASS. LOCAL_DELEGATED_REVIEW found no blocker. PostgreSQL and hosted checks NOT_RUN_BY_USER_POLICY. #517 remains OPEN/PARTIAL. Receipt: https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6053758883; claim release: https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6053719038. Collection and external submission OFF.
+
+No Codex writer is active. Preserve Antigravity #302 and Ollama #318. Reconcile current claims/dependencies and select the next highest-value dependency-ready user-visible slice; do not change queued dependencies or denominator.
+
+---
+
 # Codex lane handoff
 
 Status: **IDLE_READY / #177 MJ-REQ-176 partial slice integrated at bd251813996deac05010d1d080a7ec5671a0dbd9**

@@ -362,7 +362,25 @@
       "issue_comment": "https://github.com/MulattoTech/MJobs/issues/174#issuecomment-6045710354",
       "release_comment": "https://github.com/MulattoTech/MJobs/issues/174#issuecomment-6045730683",
       "note": "16 affected Python integration/connected Chromium tests pass; frontend 63 tests/build, SQLite migration preservation and local validators pass. Hosted NOT_RUN_BY_USER_POLICY; PostgreSQL/Docker NOT_APPLICABLE; external submission OFF."
+    },
+    {
+      "issue": 517,
+      "requirement_id": "MJ-FEATURE-517",
+      "status": "INTEGRATED_PARTIAL",
+      "priority": 2,
+      "target_area": "services/source_candidates; persistence migration; API and Sources UI",
+      "depends_on": [],
+      "evidence_path": "docs/evidence/2026-10-08-source-candidate-issue-link.json",
+      "scope_complete": false,
+      "branch": "codex/mj-feature-517-issue-link-20261008",
+      "candidate": "dbc9e573680fcf32498131afe3bee75e72213371",
+      "integrated_main": "dbc9e573680fcf32498131afe3bee75e72213371",
+      "tree": "12d277b97734f28e1e1ac37b2fc5101ada693e5c",
+      "issue_state": "OPEN/PARTIAL",
+      "integration_comment": "https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6053758883",
+      "release_comment": "https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6053719038",
+      "note": "User-supplied issue reference on deliberately queued candidate review; durable profile-scoped history, strict validation, replay/conflict controls, reload and guarded SQLite migration verified. No provider lookup/task creation/collection/application submission. Broader #517 remains PARTIAL; hosted/PostgreSQL NOT_RUN."
     }
   ],
-  "generated_at": "2026-10-07T19:57:54Z"
+  "generated_at": "2026-10-08T06:23:57Z"
 }
