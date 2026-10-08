@@ -1,3 +1,13 @@
+## 2026-10-08T11:42:38Z — #105 answer polarity and #190 match-score filters integrated
+
+Local and origin/main are synchronized at `d6a8f519ccc8cf6de3943effb2afc037fd89920b` (tree `c53080d034f7514d1a7fee994d5294f0cd77dec5`). #105/MJ-REQ-104 blocks saved-answer reuse across common explicit polarity negation; rejected export creates no document, and manual per-job reviewed answers remain available. #190/MJ-REQ-189 adds current-profile-version minimum match-score filtering in SQL before LIMIT; saved filters restore, and the visible cutoff can be lowered or cleared while the selected saved search remains active.
+
+Exact tested source candidates: #105 `331d7bb45ce982f6ed31096e6db0664c1571a93c` (tree `88c642c047b04213f4cc0b3ece13309a00a9f4a8`), #190 `4a3c16563c1dd389c6222c9751dacfbe1728d509` (tree `06e7ddedf14fcfca3f7e1f0313dfcc2f1eaddca4`). Root checks: #105 33 Python unit/integration, 101 frontend, 4 connected browser, build/compile/hashes PASS; #190 2 integration, 1 connected browser, 2 Vitest, build/compile/skill/hashes PASS. Local delegated reviews found no material findings. Issue receipts: https://github.com/MulattoTech/MJobs/issues/105#issuecomment-6059001909; https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6059055310.
+
+Original totals remain **83 PASS / 91 PARTIAL / 192 NOT_RUN**; reference **13 PASS / 1 PARTIAL / 45 NOT_RUN**; release UNKNOWN. Hosted/PostgreSQL/live ATS remain NOT_RUN; external submission OFF. No Codex feature worker is active. Highest-value next candidate from live scan: #123/MJ-REQ-122 Greenhouse adapter, but parent PR-034 remains queued behind PR-030; select another dependency-ready connected feature or report that dependency blocker precisely. Preserve active Antigravity #302 and Ollama #318 claims.
+
+---
+
 ## 2026-10-08T11:28:23Z — #197 review queue and #96 resume fact guard integrated; core feature lanes active
 
 Local and origin/main are synchronized at `44bc300eacb28010e3ff3486264222e13ae42342` (tree `709b3e29dee99b0a8d242974cd2be3f7e755e8d7`). #197/MJ-REQ-196 adds a profile-scoped queue for persisted UNKNOWN/FAIL question preflight, with blocker details and read-only navigation into existing review. Evidence `docs/evidence/2026-10-08-application-review-queue.json`; root exact-main checks: frontend 100/100, build, connected browser 1/1, source blob hashes/diff; local delegated review found no material blocker. Whole requirement remains OPEN/PARTIAL.

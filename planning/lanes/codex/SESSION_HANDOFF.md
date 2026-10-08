@@ -1,3 +1,9 @@
+## 2026-10-08T11:42:38Z — #105 and #190 integrated
+
+Synchronized main: `d6a8f519ccc8cf6de3943effb2afc037fd89920b` (tree `c53080d034f7514d1a7fee994d5294f0cd77dec5`). #105 polarity guard and #190 editable match-score saved-search facet are integrated PARTIAL; evidence: `docs/evidence/2026-10-08-answer-match-polarity-guard.json`, `docs/evidence/2026-10-08-match-score-search-filter.json`. Exact-source tests and local delegated reviews PASS; hosted/PostgreSQL NOT_RUN, external submission OFF. No active Codex child claims. Next: select dependency-ready connected product work; #123 Greenhouse is high value but PR-034 waits on PR-030. Preserve #302/#318.
+
+---
+
 ## 2026-10-08T11:28:23Z — #197 review queue and #96 resume fact guard integrated; core feature lanes active
 
 Local and origin/main are synchronized at `44bc300eacb28010e3ff3486264222e13ae42342` (tree `709b3e29dee99b0a8d242974cd2be3f7e755e8d7`). #197/MJ-REQ-196 adds a profile-scoped queue for persisted UNKNOWN/FAIL question preflight, with blocker details and read-only navigation into existing review. Evidence `docs/evidence/2026-10-08-application-review-queue.json`; root exact-main checks: frontend 100/100, build, connected browser 1/1, source blob hashes/diff; local delegated review found no material blocker. Whole requirement remains OPEN/PARTIAL.

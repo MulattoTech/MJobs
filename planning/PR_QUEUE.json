@@ -938,7 +938,7 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-029-career-profile-documents",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Latest bounded local slice 105 / MJ-REQ-104 integrated on tested candidate b96700264ac660c91b5be0093b979607ddfd6267; evidence docs/evidence/2026-10-08-answer-semantic-matching.json. Parent aggregate status and dependencies are unchanged; broader acceptance remains PARTIAL. Additional #108 / MJ-REQ-107 exact legal profile-value preflight integrated and synchronized at 347d4e7e53058135246f734aa1c7e850be25e51d; evidence docs/evidence/2026-10-08-legal-question-preflight.json. Broader legal fields, matching and combined workflow remain PARTIAL; dependencies/status unchanged.",
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Latest bounded local slice 105 / MJ-REQ-104 integrated on tested candidate b96700264ac660c91b5be0093b979607ddfd6267; evidence docs/evidence/2026-10-08-answer-semantic-matching.json. Parent aggregate status and dependencies are unchanged; broader acceptance remains PARTIAL. Additional #108 / MJ-REQ-107 exact legal profile-value preflight integrated and synchronized at 347d4e7e53058135246f734aa1c7e850be25e51d; evidence docs/evidence/2026-10-08-legal-question-preflight.json. Broader legal fields, matching and combined workflow remain PARTIAL; dependencies/status unchanged. Additional #105 / MJ-REQ-104 opposite-polarity guard integrated on synchronized main d6a8f519ccc8cf6de3943effb2afc037fd89920b; evidence docs/evidence/2026-10-08-answer-match-polarity-guard.json. Exact source tests: 33 Python unit/integration, 101 frontend, 4 browser, TypeScript/Vite build, py_compile and source hashes PASS; local delegated review found no material blocker. Common explicit negation only; parent dependencies/status unchanged and requirement remains PARTIAL.",
       "slice_history": [
         {
           "name": "Curated cloud question paraphrase",
@@ -964,6 +964,21 @@
           "limitations": [
             "Other legal profile fields, live employer ATS validation, hosted checks and whole-requirement acceptance remain incomplete.",
             "External application submission remains OFF."
+          ]
+        },
+        {
+          "name": "Block opposite-polarity saved-answer reuse",
+          "issue": 105,
+          "requirement_id": "MJ-REQ-104",
+          "status": "INTEGRATED_PARTIAL",
+          "candidate_head": "331d7bb45ce982f6ed31096e6db0664c1571a93c",
+          "candidate_tree": "88c642c047b04213f4cc0b3ece13309a00a9f4a8",
+          "integrated_head": "d6a8f519ccc8cf6de3943effb2afc037fd89920b",
+          "evidence_path": "docs/evidence/2026-10-08-answer-match-polarity-guard.json",
+          "validation": "PASS: 33 Python unit/integration; 101 frontend; 4 connected browser tests; TypeScript/Vite build, py_compile, exact input hashes and diff check; LOCAL_DELEGATED_REVIEW no material findings.",
+          "limitations": [
+            "Common explicit negation cues only; implied, morphological and multi-clause polarity remain outside this slice.",
+            "PostgreSQL and hosted checks NOT_RUN_BY_POLICY; external submission OFF."
           ]
         }
       ]
@@ -1577,7 +1592,7 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-052-web-api-analytics",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Additional slice #190 / MJ-REQ-189 title/company filters integrated locally at a33ecc497c412a3ee547ac35930b43de6fe274d4; see docs/evidence/2026-10-08-title-company-search-filters.json. Original PR-052 dependencies/status unchanged. Additional #190 / MJ-REQ-189 location filter slice integrated at e5fee45c0c3e074154ef523d252a2e78a2ffa2de; evidence docs/evidence/2026-10-08-location-search-filter.json. Other search-profile criteria remain post-limit and salary/other facets are outstanding; dependencies/status unchanged. Issue #190 / MJ-REQ-189 annual USD salary-bound filters integrated locally at 7f8f76f8d33eb1dc1f4fce91e86e1f6139ccbe56; evidence docs/evidence/2026-10-08-salary-job-search-filter.json. SQL-before-limit, saved-search restore/clear and unknown-pay exclusions verified; root combined search/trace suite 44/44 PASS, frontend 96/96/build PASS; PR status/dependencies unchanged. New independent bounded #190/MJ-REQ-189 minimum match-score facet is ACTIVE on codex/mj-req189-match-score-filter-20261008; uses current profile-version persisted score, applies threshold before result limit, persists through saved searches. Parent dependencies MJ-PR-051/MJ-PR-043 remain QUEUED.",
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Additional slice #190 / MJ-REQ-189 title/company filters integrated locally at a33ecc497c412a3ee547ac35930b43de6fe274d4; see docs/evidence/2026-10-08-title-company-search-filters.json. Original PR-052 dependencies/status unchanged. Additional #190 / MJ-REQ-189 location filter slice integrated at e5fee45c0c3e074154ef523d252a2e78a2ffa2de; evidence docs/evidence/2026-10-08-location-search-filter.json. Other search-profile criteria remain post-limit and salary/other facets are outstanding; dependencies/status unchanged. Issue #190 / MJ-REQ-189 annual USD salary-bound filters integrated locally at 7f8f76f8d33eb1dc1f4fce91e86e1f6139ccbe56; evidence docs/evidence/2026-10-08-salary-job-search-filter.json. SQL-before-limit, saved-search restore/clear and unknown-pay exclusions verified; root combined search/trace suite 44/44 PASS, frontend 96/96/build PASS; PR status/dependencies unchanged. Bounded #190/MJ-REQ-189 minimum match-score facet integrated on synchronized main d6a8f519ccc8cf6de3943effb2afc037fd89920b; uses current profile-version persisted score, applies threshold before result limit, persists/restores through saved searches, and honors visible lower/clear changes while a saved search remains selected. Evidence docs/evidence/2026-10-08-match-score-search-filter.json. Exact source checks: 2 integration, 1 browser, 2 Vitest, TypeScript/Vite build, py_compile, skill validation and hashes PASS; LOCAL_DELEGATED_REVIEW no material findings. Other sidebar facets and PR dependencies remain incomplete. Parent dependencies MJ-PR-051/MJ-PR-043 remain QUEUED.",
       "active_slice": {
         "name": "Save and restore supported Jobs filters in a profile-scoped saved search",
         "issue": 192,
@@ -1720,6 +1735,21 @@
           "validation": "Root exact candidate: integration 4 PASS, connected browser 2 PASS, frontend 96/96 PASS, TypeScript/Vite build PASS, evidence hashes and diff-check PASS; delegated local review no material findings.",
           "limitations": [
             "Other authoritative sidebar facets remain outstanding; PostgreSQL/hosted NOT_RUN."
+          ]
+        },
+        {
+          "name": "Profile-version minimum match-score filter",
+          "issue": 190,
+          "requirement_id": "MJ-REQ-189",
+          "status": "INTEGRATED_PARTIAL",
+          "candidate_head": "4a3c16563c1dd389c6222c9751dacfbe1728d509",
+          "candidate_tree": "06e7ddedf14fcfca3f7e1f0313dfcc2f1eaddca4",
+          "integrated_head": "d6a8f519ccc8cf6de3943effb2afc037fd89920b",
+          "evidence_path": "docs/evidence/2026-10-08-match-score-search-filter.json",
+          "validation": "PASS: 2 Python integration, 1 connected browser, 2 Vitest tests; TypeScript/Vite build; py_compile, agent-skill validator, source hashes and diff check; LOCAL_DELEGATED_REVIEW no material findings.",
+          "limitations": [
+            "Other sidebar facets (experience/date/employment/skills/education/clearance/ATS/application state) remain incomplete.",
+            "PostgreSQL and hosted checks NOT_RUN_BY_POLICY; external submission OFF."
           ]
         }
       ]
@@ -4337,5 +4367,5 @@
       "claim_release_comment": "https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053395464"
     }
   ],
-  "generated_at": "2026-10-08T11:28:23Z"
+  "generated_at": "2026-10-08T11:42:38Z"
 }

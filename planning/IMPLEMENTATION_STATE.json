@@ -1,17 +1,17 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-08T11:28:23Z",
+  "generated_at": "2026-10-08T11:42:38Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Exact synchronized main 44bc300eacb28010e3ff3486264222e13ae42342 (tree 709b3e29dee99b0a8d242974cd2be3f7e755e8d7); #197 profile-scoped read-only question review queue and #96 source-grounded reviewed resume rewrite guard are integrated PARTIAL with local evidence.",
-    "current_verified_github_state": "Local main, origin/main and GitHub default main synchronized at 44bc300eacb28010e3ff3486264222e13ae42342; receipts posted for #197 and #96. Hosted checks/reviews remain NOT_RUN_BY_USER_POLICY.",
-    "current_verified_at": "2026-10-08T11:28:23Z"
+    "current_verified_local_state": "Exact synchronized main d6a8f519ccc8cf6de3943effb2afc037fd89920b (tree c53080d034f7514d1a7fee994d5294f0cd77dec5); #105/MJ-REQ-104 opposite-polarity answer guard and #190/MJ-REQ-189 current-version minimum score filter are integrated bounded PARTIAL slices with local evidence.",
+    "current_verified_github_state": "Local main, origin/main and GitHub default main synchronized at d6a8f519ccc8cf6de3943effb2afc037fd89920b; integration receipts posted for #105 and #190. Hosted checks/reviews remain NOT_RUN_BY_USER_POLICY.",
+    "current_verified_at": "2026-10-08T11:42:38Z"
   },
-  "current_milestone": "CORE-FEATURE-BATCH-20261008-I",
+  "current_milestone": "CORE-FEATURE-BATCH-20261008-J",
   "current_objective": "Advance connected jobseeker search, explainable matching, truthful documents, and consent-safe application preparation through dependency-ready vertical slices.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -436,7 +436,9 @@
     "Exact integrated-main frontend suite: 96/96 PASS; TypeScript check and Vite production build PASS.",
     "Legal profile preflight py_compile, evidence SHA-256 comparisons, and diff check PASS; application preview evidence hashes and local delegated review PASS.",
     "Issue #197 / MJ-REQ-196: integrated main frontend 100/100; TypeScript/Vite build PASS; connected synthetic Chromium/API review queue 1/1; Git blob source hashes, evidence JSON, diff check and LOCAL_DELEGATED_REVIEW PASS.",
-    "Issue #96 / MJ-REQ-095: rebased exact-source unit/integration/browser suite 20/20; py_compile and TypeScript/Vite build PASS; exact Git blob hashes, evidence JSON, diff check and LOCAL_DELEGATED_REVIEW PASS."
+    "Issue #96 / MJ-REQ-095: rebased exact-source unit/integration/browser suite 20/20; py_compile and TypeScript/Vite build PASS; exact Git blob hashes, evidence JSON, diff check and LOCAL_DELEGATED_REVIEW PASS.",
+    "Issue #105 exact rebased source: 33 Python unit/integration, 101 frontend, 4 connected browser tests, TypeScript/Vite build, py_compile, source hashes and diff check PASS; LOCAL_DELEGATED_REVIEW no material findings.",
+    "Issue #190 exact rebased source: 2 Python integration, 1 connected browser, 2 Vitest tests, TypeScript/Vite build, py_compile, agent-skill validation, source hashes and diff check PASS; LOCAL_DELEGATED_REVIEW no material findings."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -579,14 +581,14 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "commit": "44bc300eacb28010e3ff3486264222e13ae42342",
-    "tree": "709b3e29dee99b0a8d242974cd2be3f7e755e8d7",
-    "result": "PASS for bounded #197 persisted application review queue and #96 reviewed factual credential-token preservation; both broader requirements remain PARTIAL; hosted/PostgreSQL/live ATS gates NOT_RUN by policy.",
+    "commit": "d6a8f519ccc8cf6de3943effb2afc037fd89920b",
+    "tree": "c53080d034f7514d1a7fee994d5294f0cd77dec5",
+    "result": "PASS for bounded #105 answer polarity guard and #190 match-score search filter; broader requirements remain PARTIAL; hosted/PostgreSQL/live ATS gates NOT_RUN by policy.",
     "evidence": [
-      "docs/evidence/2026-10-08-application-review-queue.json",
-      "docs/evidence/2026-10-08-resume-reviewed-fact-tailoring.json"
+      "docs/evidence/2026-10-08-answer-match-polarity-guard.json",
+      "docs/evidence/2026-10-08-match-score-search-filter.json"
     ],
-    "verified_at_utc": "2026-10-08T11:28:23Z"
+    "verified_at_utc": "2026-10-08T11:42:38Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -653,7 +655,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Continue active, isolated #105/MJ-REQ-104 opposite-polarity answer-match guard and #190/MJ-REQ-189 minimum match-score search filter. Preserve parent dependencies and external submission OFF; root integrates exact-head verified candidates sequentially and batches tracker updates.",
+  "recommended_resume_step": "Select the next dependency-ready connected user-facing feature from live GitHub issues/specs after reconciling claims. Preserve PR dependencies; do not build an adapter scaffold disconnected from UI/API/storage. Highest-value Greenhouse adapter work under MJ-REQ-122 currently sits behind queued parent dependencies.",
   "release_readiness": "NOT_RUN",
   "migrations_applied": [
     "92f0997f753e",
@@ -687,16 +689,16 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "44bc300eacb28010e3ff3486264222e13ae42342",
+  "last_implementation_commit": "d6a8f519ccc8cf6de3943effb2afc037fd89920b",
   "publication": {
-    "result": "PASS - two bounded local feature slices integrated and synchronized; overall release remains PARTIAL/UNKNOWN",
-    "integration_method": "NON_FORCE_FAST_FORWARD under root integration lock; exact rebased candidates locally verified",
-    "integration_commit": "44bc300eacb28010e3ff3486264222e13ae42342",
-    "prior_main": "b633578112a9553cc29dcbda7e7e21d88f1547c5",
+    "result": "PASS - two bounded local product slices integrated and synchronized; overall release remains PARTIAL/UNKNOWN",
+    "integration_method": "NON_FORCE_FAST_FORWARD under root integration lock; exact rebased candidates locally verified and locally delegated-reviewed",
+    "integration_commit": "d6a8f519ccc8cf6de3943effb2afc037fd89920b",
+    "prior_main": "8d89cb6d6ae33c034fe1094919fbbb4950cb2c03",
     "pr_number": null,
     "pr_state": "NOT_OPENED_LOCAL_ONLY",
     "github_reports_merged": false,
-    "note": "Issue #197/MJ-REQ-196 review queue and #96/MJ-REQ-095 credential-preserving reviewed rewrite guard are integrated on synchronized main. Local hosted checks remain NOT_RUN_BY_USER_POLICY; external submission OFF."
+    "note": "#105/MJ-REQ-104 answer polarity guard and #190/MJ-REQ-189 minimum match-score filter are integrated on synchronized main. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF."
   },
   "optional_afk_journal": {
     "result": "PASS",
@@ -11302,17 +11304,77 @@
         "integration_receipt": "https://github.com/MulattoTech/MJobs/issues/197#issuecomment-6058796580",
         "note": "Both feature slices are integrated and synchronized. #96 receipt: https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6058851286. Release remains UNKNOWN."
       }
+    },
+    {
+      "milestone_id": "CORE-FEATURE-BATCH-20261008-J",
+      "current_phase": "CORE_FEATURE_IMPLEMENTATION",
+      "timestamp": "2026-10-08T11:42:38Z",
+      "completed_steps": [
+        "Integrated #105/MJ-REQ-104 opposite-polarity answer reuse guard as PARTIAL.",
+        "Integrated #190/MJ-REQ-189 minimum match-score facet with editable saved-search threshold as PARTIAL.",
+        "Reconciled exact source evidence, local delegated reviews, GitHub receipts, and synchronized main."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-08-answer-match-polarity-guard.json",
+        "docs/evidence/2026-10-08-match-score-search-filter.json",
+        "apps/web/src/job-match-score-filter.tsx",
+        "apps/web/src/job-match-score-filter.test.tsx",
+        "tests/integration/test_match_score_search_filter.py",
+        "tests/browser/test_match_score_search_filter.py"
+      ],
+      "files_modified": [
+        "services/documents/answers.py",
+        "apps/web/src/answer-matching.ts",
+        "apps/api/main.py",
+        "apps/web/src/main.tsx",
+        "packages/persistence/store.py",
+        "services/discovery/search_profiles.py",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/SESSION_HANDOFF.md",
+        "planning/lanes/codex/CLAIMS.json",
+        "planning/lanes/codex/IMPLEMENTATION_STATE.json",
+        "planning/lanes/codex/CONTINUATION.json",
+        "docs/PROGRESS_DASHBOARD.md"
+      ],
+      "tests_completed": [
+        "#105: 33 Python unit/integration, 101 frontend, 4 connected browser tests; TypeScript/Vite build; py_compile; source hashes and diff check PASS.",
+        "#190: 2 Python integration, 1 connected browser, 2 Vitest tests; TypeScript/Vite build; py_compile; agent-skill validation; source hashes and diff check PASS.",
+        "LOCAL_DELEGATED_REVIEW no material findings for both candidates; hosted validation NOT_RUN_BY_USER_POLICY."
+      ],
+      "tests_remaining": [
+        "Full repository suite; PostgreSQL/live ATS; hosted checks/reviews."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [
+        "Initial root rerun could not use the worktree-local .venv shorthand; the repository venv was then invoked by absolute path and the exact tests passed."
+      ],
+      "known_limitations": [
+        "MJ-REQ-104 negation guard covers common explicit negation only; whole answer matching remains PARTIAL.",
+        "MJ-REQ-189 other sidebar facets remain incomplete; PostgreSQL/hosted checks NOT_RUN; external submission OFF."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "d6a8f519ccc8cf6de3943effb2afc037fd89920b",
+        "tree": "c53080d034f7514d1a7fee994d5294f0cd77dec5",
+        "branch": "main",
+        "issue": "#105 / MJ-REQ-104 and #190 / MJ-REQ-189",
+        "evidence_path": "docs/evidence/2026-10-08-match-score-search-filter.json",
+        "integration_receipt": "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6059055310",
+        "note": "Both user-facing bounded slices are integrated and synchronized. #105 receipt: https://github.com/MulattoTech/MJobs/issues/105#issuecomment-6059001909. Requirement-level totals remain unchanged; release remains UNKNOWN."
+      }
     }
   ],
   "current_phase": "CORE_FEATURE_IMPLEMENTATION",
   "last_safe_checkpoint": {
-    "git_commit": "44bc300eacb28010e3ff3486264222e13ae42342",
-    "tree": "709b3e29dee99b0a8d242974cd2be3f7e755e8d7",
+    "git_commit": "d6a8f519ccc8cf6de3943effb2afc037fd89920b",
+    "tree": "c53080d034f7514d1a7fee994d5294f0cd77dec5",
     "branch": "main",
-    "issue": "#96 / MJ-REQ-095 plus #197 / MJ-REQ-196",
-    "evidence_path": "docs/evidence/2026-10-08-application-review-queue.json",
-    "integration_receipt": "https://github.com/MulattoTech/MJobs/issues/197#issuecomment-6058796580",
-    "note": "Both feature slices are integrated and synchronized. #96 receipt: https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6058851286. Release remains UNKNOWN."
+    "issue": "#105 / MJ-REQ-104 and #190 / MJ-REQ-189",
+    "evidence_path": "docs/evidence/2026-10-08-match-score-search-filter.json",
+    "integration_receipt": "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6059055310",
+    "note": "Both user-facing bounded slices are integrated and synchronized. #105 receipt: https://github.com/MulattoTech/MJobs/issues/105#issuecomment-6059001909. Requirement-level totals remain unchanged; release remains UNKNOWN."
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -11638,23 +11700,15 @@
     "next_issue": "Release #398 and select the next dependency-ready unclaimed issue after live claim/worktree reconciliation."
   },
   "active_development_issue": {
-    "issue": 105,
-    "requirement_id": "MJ-REQ-104",
-    "title": "Answer Matching",
-    "state": "Active bounded implementation; independent #190 score filter also active.",
-    "branch": "codex/mj-req104-polarity-guard-20261008",
-    "worktree": ".worktrees/codex-mj-req104-polarity-guard-20261008",
-    "base_commit": "44bc300eacb28010e3ff3486264222e13ae42342",
-    "owned_paths": [
-      "services/documents/answers.py",
-      "apps/web/src/answer-matching.ts",
-      "apps/web/src/answer-matching.test.ts",
-      "tests/unit/test_answer_matching.py",
-      "tests/integration/test_application_answer_export.py",
-      "tests/browser/test_application_answer_export.py",
-      "docs/evidence/2026-10-08-answer-match-polarity-guard.json"
-    ],
-    "acceptance": "Reject opposite-polarity fuzzy answer suggestions and export reuse while preserving same-polarity matches, deliberate review and sensitive/legal guards; no document is created on rejected export."
+    "issue": 190,
+    "requirement_id": "MJ-REQ-189",
+    "title": "Job Filter Sidebar",
+    "state": "Bounded minimum-score slice integrated; no active Codex child. Other filter facets remain incomplete.",
+    "branch": "codex/mj-req189-match-score-filter-20261008",
+    "worktree": ".worktrees/codex-mj-req189-match-score-filter-20261008",
+    "base_commit": "8d89cb6d6ae33c034fe1094919fbbb4950cb2c03",
+    "owned_paths": [],
+    "acceptance": "Persisted current-profile-version match scores can be filtered before LIMIT; selected saved search exposes an editable threshold including clear; profile isolation, stale/NULL score exclusion and no discovery/scheduler mutation are verified."
   },
   "historical_control_snapshots": [
     {
@@ -12810,7 +12864,7 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-08T11:28:23Z",
-  "current_verified_local_state": "Exact synchronized main 44bc300eacb28010e3ff3486264222e13ae42342 (tree 709b3e29dee99b0a8d242974cd2be3f7e755e8d7); #197 profile-scoped read-only question review queue and #96 source-grounded reviewed resume rewrite guard are integrated PARTIAL with local evidence.",
-  "current_verified_github_state": "Local main, origin/main and GitHub default main synchronized at 44bc300eacb28010e3ff3486264222e13ae42342; receipts posted for #197 and #96. Hosted checks/reviews remain NOT_RUN_BY_USER_POLICY."
+  "updated_at": "2026-10-08T11:42:38Z",
+  "current_verified_local_state": "Exact synchronized main d6a8f519ccc8cf6de3943effb2afc037fd89920b (tree c53080d034f7514d1a7fee994d5294f0cd77dec5); #105/MJ-REQ-104 opposite-polarity answer guard and #190/MJ-REQ-189 current-version minimum score filter are integrated bounded PARTIAL slices with local evidence.",
+  "current_verified_github_state": "Local main, origin/main and GitHub default main synchronized at d6a8f519ccc8cf6de3943effb2afc037fd89920b; integration receipts posted for #105 and #190. Hosted checks/reviews remain NOT_RUN_BY_USER_POLICY."
 }

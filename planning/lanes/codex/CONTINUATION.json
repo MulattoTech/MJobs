@@ -5,27 +5,27 @@
   "preferred_model": "gpt-6-luna",
   "preferred_reasoning": "high",
   "session_id": "01a10ed8-5445-7b61-8293-43be1895ecc5",
-  "canonical_main_at_pause": "44bc300eacb28010e3ff3486264222e13ae42342",
-  "last_completed_issue": 96,
-  "last_completed_requirement": "MJ-REQ-095 bounded reviewed resume credential/issuer token preservation; full requirement PARTIAL.",
-  "last_integrated_head": "44bc300eacb28010e3ff3486264222e13ae42342",
-  "next_issue": 105,
-  "next_requirement": "MJ-REQ-104",
-  "resume_instruction": "Continue the currently active #105 opposite-polarity answer reuse guard and #190 minimum match-score search facet. Root is sole integrator; claims and exact owned paths are current in planning/lanes/codex/CLAIMS.json. Preserve #302/#318.",
+  "canonical_main_at_pause": "d6a8f519ccc8cf6de3943effb2afc037fd89920b",
+  "last_completed_issue": 190,
+  "last_completed_requirement": "MJ-REQ-189 bounded minimum match-score filtering; whole requirement PARTIAL.",
+  "last_integrated_head": "d6a8f519ccc8cf6de3943effb2afc037fd89920b",
+  "next_issue": 123,
+  "next_requirement": "MJ-REQ-122",
+  "resume_instruction": "Root holds the current integration lock. #105 and #190 are integrated at synchronized main d6a8f519ccc8cf6de3943effb2afc037fd89920b. Select the next dependency-ready connected core feature; preserve #302/#318 and keep external submission OFF.",
   "external_submission_enabled": false,
   "github_actions_enabled": false,
-  "last_validated_head": "44bc300eacb28010e3ff3486264222e13ae42342",
-  "last_validated_tree": "709b3e29dee99b0a8d242974cd2be3f7e755e8d7",
-  "last_validated_at_utc": "2026-10-08T11:28:23Z",
-  "last_validated_result": "PASS #197 frontend 100/100, build, browser 1/1; #96 focused 20/20, compile and build; exact evidence hashes and reviews PASS.",
-  "base_main": "44bc300eacb28010e3ff3486264222e13ae42342",
-  "current_issue": 105,
-  "requirement_id": "MJ-REQ-104",
-  "branch": "codex/mj-req104-polarity-guard-20261008",
-  "head": null,
-  "worktree": ".worktrees/codex-mj-req104-polarity-guard-20261008",
-  "result": "ACTIVE; explicit saved work-authorization/sponsorship profile values for legal-question preflight, with fail-closed review gates.",
-  "evidence_path": "docs/evidence/2026-10-08-legal-question-preflight.json",
+  "last_validated_head": "4a3c16563c1dd389c6222c9751dacfbe1728d509",
+  "last_validated_tree": "06e7ddedf14fcfca3f7e1f0313dfcc2f1eaddca4",
+  "last_validated_at_utc": "2026-10-08T11:42:38Z",
+  "last_validated_result": "PASS on exact rebased sources: #105 33 Python/101 web/4 browser; #190 2 integration/1 browser/2 Vitest, builds and validation; delegated review PASS.",
+  "base_main": "d6a8f519ccc8cf6de3943effb2afc037fd89920b",
+  "current_issue": 190,
+  "requirement_id": "MJ-REQ-189",
+  "branch": "codex/mj-req189-match-score-filter-20261008",
+  "head": "d6a8f519ccc8cf6de3943effb2afc037fd89920b",
+  "worktree": ".worktrees/codex-mj-req189-match-score-filter-20261008",
+  "result": "Integrated #105 and #190 bounded slices; no active Codex child workers.",
+  "evidence_path": "docs/evidence/2026-10-08-match-score-search-filter.json",
   "next_candidates": [
     {
       "issue": 191,
@@ -37,16 +37,20 @@
   "last_verified_tree": "72a7c772bac5bf1ae9b2385b03e194f530c93e85",
   "last_verified_at_utc": "2026-10-08T09:28:27.190192Z",
   "last_verified_result": "Scoped root verification: application review combined suite 59 Python, 95 frontend, build; resume tailoring 21 focused Python/Chromium, 10 frontend, build and provenance checks; see integrated evidence.",
-  "updated_at": "2026-10-08T11:12:52Z",
+  "updated_at": "2026-10-08T11:42:38Z",
   "last_completed": {
-    "issue": 137,
-    "requirement_id": "MJ-REQ-136",
-    "integrated_main": "347d4e7e53058135246f734aa1c7e850be25e51d",
-    "integrated_tree": "3b34163e8ec9c6d72ecda9c04604e4b7055d3af3",
+    "issue": 190,
+    "requirement_id": "MJ-REQ-189",
+    "integrated_main": "d6a8f519ccc8cf6de3943effb2afc037fd89920b",
+    "integrated_tree": "c53080d034f7514d1a7fee994d5294f0cd77dec5",
     "issue_state": "OPEN/PARTIAL",
     "evidence_paths": [
-      "docs/evidence/2026-10-08-application-preview.json",
-      "docs/evidence/2026-10-08-legal-question-preflight.json"
+      "docs/evidence/2026-10-08-match-score-search-filter.json",
+      "docs/evidence/2026-10-08-answer-match-polarity-guard.json"
+    ],
+    "integration_comments": [
+      "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6059055310",
+      "https://github.com/MulattoTech/MJobs/issues/105#issuecomment-6059001909"
     ]
   },
   "current_requirement": "MJ-REQ-095",
@@ -68,39 +72,6 @@
     "external_submission": "OFF"
   },
   "issue_claim_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6058600212",
-  "active_children": [
-    {
-      "issue": 105,
-      "requirement_id": "MJ-REQ-104",
-      "branch": "codex/mj-req104-polarity-guard-20261008",
-      "status": "ACTIVE",
-      "paths": [
-        "services/documents/answers.py",
-        "apps/web/src/answer-matching.ts",
-        "apps/web/src/answer-matching.test.ts",
-        "tests/unit/test_answer_matching.py",
-        "tests/integration/test_application_answer_export.py",
-        "tests/browser/test_application_answer_export.py",
-        "docs/evidence/2026-10-08-answer-match-polarity-guard.json"
-      ]
-    },
-    {
-      "issue": 190,
-      "requirement_id": "MJ-REQ-189",
-      "branch": "codex/mj-req189-match-score-filter-20261008",
-      "status": "ACTIVE",
-      "paths": [
-        "apps/api/main.py",
-        "packages/persistence/store.py",
-        "services/discovery/search_profiles.py",
-        "apps/web/src/main.tsx",
-        "apps/web/src/job-match-score-filter.tsx",
-        "apps/web/src/job-match-score-filter.test.tsx",
-        "tests/integration/test_match_score_search_filter.py",
-        "tests/browser/test_match_score_search_filter.py",
-        "docs/evidence/2026-10-08-match-score-search-filter.json"
-      ]
-    }
-  ],
+  "active_children": [],
   "last_issue_comment": "https://github.com/MulattoTech/MJobs/issues/137#issuecomment-6058001677"
 }
