@@ -1,15 +1,15 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-08T10:05:18Z",
+  "generated_at": "2026-10-08T10:14:44Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "CORE-FEATURE-BATCH-20261008-D local source integration at e5fee45c0c3e074154ef523d252a2e78a2ffa2de; three scoped core features accepted and requirements remain PARTIAL.",
-    "current_verified_github_state": "origin/main at 760271a9a1205858cda2e99980e37783f49dedc6 while authorized local tracker checkpoint awaits fast-forward publication.",
-    "current_verified_at": "2026-10-08T10:01:03Z"
+    "current_verified_local_state": "Core feature batch D source at e5fee45c0c3e074154ef523d252a2e78a2ffa2de; tracker and evidence receipt checkpoint da52067f3278a5415d05c4631b280d407ca26037; three scoped slices integrated PARTIAL.",
+    "current_verified_github_state": "Local main, origin/main, and GitHub default main synchronized at da52067f3278a5415d05c4631b280d407ca26037; issue receipts posted for #115, #136, and #190 location slice.",
+    "current_verified_at": "2026-10-08T10:06:44Z"
   },
   "current_milestone": "CORE-FEATURE-BATCH-20261008-D",
   "current_objective": "Advance connected jobseeker search, explainable matching, truthful documents, and consent-safe application preparation through dependency-ready vertical slices.",
@@ -76,7 +76,8 @@
     "Issue #117 / MJ-REQ-116 Match Categories locally verified PASS at docs/evidence/2026-10-08-match-categories.json; parent MJ-PR-032 and other matching requirements remain queued/partial.",
     "MJ-REQ-195 / issue #196 application tracker: all ten documented stages in a user-reported Kanban pipeline with profile-scoped durable status/history and explicit no-submission distinction; evidence docs/evidence/2026-10-08-application-tracker-current-main.json.",
     "MJ-REQ-194 / issue #195 Companies Screen: all eight exact fields, profile-scoped durable Applications count, persisted User Preference; full issue acceptance verified and issue closed PASS. Aggregate MJ-PR-053 remains queued.",
-    "Connected location search filter, certification-fit explanation, and sensitive-question preflight slices integrated on local main e5fee45c0c3e074154ef523d252a2e78a2ffa2de; all requirements remain PARTIAL."
+    "Connected location search filter, certification-fit explanation, and sensitive-question preflight slices integrated on local main e5fee45c0c3e074154ef523d252a2e78a2ffa2de; all requirements remain PARTIAL.",
+    "Durable privacy-safe application step trace and annual USD salary search filters integrated on tested local main source 7f8f76f8d33eb1dc1f4fce91e86e1f6139ccbe56; scoped issues #140/MJ-REQ-139 and #190/MJ-REQ-189 remain PARTIAL."
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
@@ -418,7 +419,10 @@
     "Root exact-main location integration/browser checks: 12 PASS; worker frontend tests 96 PASS and production build PASS.",
     "Root exact-main explainable-matching and requirement-parser checks: 40 PASS.",
     "Root exact-main application preflight/mock-browser/review queue checks: 47 PASS, 1 SKIP (review-queue browser test requires apps/web build).",
-    "Root exact-main application preflight/mock-browser/answer-export/review-queue suite: 48/48 PASS after building current apps/web; evidence docs/evidence/2026-10-08-sensitive-question-preflight.json."
+    "Root exact-main application preflight/mock-browser/answer-export/review-queue suite: 48/48 PASS after building current apps/web; evidence docs/evidence/2026-10-08-sensitive-question-preflight.json.",
+    "Root exact-main combined search, salary, application trace, browser, and privacy suite: 44/44 PASS.",
+    "Root exact-main frontend suite: 96/96 PASS; TypeScript/Vite production build PASS.",
+    "Local delegated review of #140 trace and #190 salary slices: no material findings."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -561,15 +565,14 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "commit": "e5fee45c0c3e074154ef523d252a2e78a2ffa2de",
-    "tree": "1364af93793e56fdc17fa79487032b7647dba844",
-    "result": "PASS for three scoped local slices; connected location search, certification factor explanations, and sensitive question preflight. Overall product/release remains PARTIAL; hosted and full-stack checks NOT_RUN.",
+    "commit": "7f8f76f8d33eb1dc1f4fce91e86e1f6139ccbe56",
+    "tree": "543046df156f6c9c4597b7cdae0050b70592c05c",
+    "result": "PASS scoped exact-main integration for durable application step tracing and annual USD saved-search salary bounds; broader product/release remains PARTIAL; hosted checks NOT_RUN.",
     "evidence": [
-      "docs/evidence/2026-10-08-location-search-filter.json",
-      "docs/evidence/2026-10-08-certification-match-explanation.json",
-      "docs/evidence/2026-10-08-sensitive-question-preflight.json"
+      "docs/evidence/2026-10-08-application-step-trace.json",
+      "docs/evidence/2026-10-08-salary-job-search-filter.json"
     ],
-    "verified_at_utc": "2026-10-08T09:59:27Z"
+    "verified_at_utc": "2026-10-08T10:14:44Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -12601,6 +12604,6 @@
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
   "updated_at": "2026-10-08T09:37:57.285378Z",
-  "current_verified_local_state": "CORE-FEATURE-BATCH-20261008-D: three scoped jobseeker search/matching/application-preflight slices integrated locally on main e5fee45c0c3e074154ef523d252a2e78a2ffa2de; requirements remain PARTIAL.",
-  "current_verified_github_state": "GitHub main remains at 760271a9 until local-only fast-forward publication of the accepted batch and tracker checkpoint; no hosted automation or real submissions."
+  "current_verified_local_state": "Accepted core feature source batch at 7f8f76f8d33eb1dc1f4fce91e86e1f6139ccbe56; durable application phase trace and annual USD saved salary filters locally verified; scoped requirements remain PARTIAL.",
+  "current_verified_github_state": "GitHub main remains at da52067f3278a5415d05c4631b280d407ca26037 pending local-only fast-forward of this feature and tracker batch."
 }

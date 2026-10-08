@@ -1188,7 +1188,7 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-038-application-automation",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Issue #140 / MJ-REQ-139 bounded durable MOCK application step-trace/failure-phase slice integrated locally at 7f8f76f8d33eb1dc1f4fce91e86e1f6139ccbe56; evidence docs/evidence/2026-10-08-application-step-trace.json. Root combined trace/debug/privacy/application suite 36/36 PASS; broader requirement remains PARTIAL and PR status/dependencies unchanged."
     },
     {
       "id": "MJ-PR-039",
@@ -1549,7 +1549,7 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-052-web-api-analytics",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Additional slice #190 / MJ-REQ-189 title/company filters integrated locally at a33ecc497c412a3ee547ac35930b43de6fe274d4; see docs/evidence/2026-10-08-title-company-search-filters.json. Original PR-052 dependencies/status unchanged. Additional #190 / MJ-REQ-189 location filter slice integrated at e5fee45c0c3e074154ef523d252a2e78a2ffa2de; evidence docs/evidence/2026-10-08-location-search-filter.json. Other search-profile criteria remain post-limit and salary/other facets are outstanding; dependencies/status unchanged.",
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Additional slice #190 / MJ-REQ-189 title/company filters integrated locally at a33ecc497c412a3ee547ac35930b43de6fe274d4; see docs/evidence/2026-10-08-title-company-search-filters.json. Original PR-052 dependencies/status unchanged. Additional #190 / MJ-REQ-189 location filter slice integrated at e5fee45c0c3e074154ef523d252a2e78a2ffa2de; evidence docs/evidence/2026-10-08-location-search-filter.json. Other search-profile criteria remain post-limit and salary/other facets are outstanding; dependencies/status unchanged. Issue #190 / MJ-REQ-189 annual USD salary-bound filters integrated locally at 7f8f76f8d33eb1dc1f4fce91e86e1f6139ccbe56; evidence docs/evidence/2026-10-08-salary-job-search-filter.json. SQL-before-limit, saved-search restore/clear and unknown-pay exclusions verified; root combined search/trace suite 44/44 PASS, frontend 96/96/build PASS; PR status/dependencies unchanged.",
       "active_slice": {
         "name": "Save and restore supported Jobs filters in a profile-scoped saved search",
         "issue": 192,

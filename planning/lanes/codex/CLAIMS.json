@@ -1033,7 +1033,8 @@
       "integrated_main": "e5fee45c0c3e074154ef523d252a2e78a2ffa2de",
       "result": "INTEGRATED_PARTIAL; issue #115 and MJ-REQ-114 remain OPEN/PARTIAL; root focused matching/parser suite 40 PASS; hosted NOT_RUN_BY_POLICY.",
       "local_review": "PASS; no material findings",
-      "released_at": "2026-10-08T09:59:27Z"
+      "released_at": "2026-10-08T10:06:44Z",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/115#issuecomment-6057507834"
     },
     {
       "issue": 136,
@@ -1051,7 +1052,8 @@
       "evidence_path": "docs/evidence/2026-10-08-sensitive-question-preflight.json",
       "integrated_main": "e5fee45c0c3e074154ef523d252a2e78a2ffa2de",
       "result": "INTEGRATED_PARTIAL; issue #136 and MJ-REQ-135 remain OPEN/PARTIAL; root exact-main suite 48/48 PASS; hosted NOT_RUN_BY_POLICY.",
-      "released_at": "2026-10-08T09:59:27Z"
+      "released_at": "2026-10-08T09:59:27Z",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/136#issuecomment-6057508294"
     },
     {
       "issue": 190,
@@ -1073,7 +1075,53 @@
       "integrated_main": "e5fee45c0c3e074154ef523d252a2e78a2ffa2de",
       "result": "INTEGRATED_PARTIAL; issue #190 and MJ-REQ-189 remain OPEN/PARTIAL; root integration/browser suite 12 PASS, worker frontend 96 PASS and build PASS; hosted NOT_RUN_BY_POLICY.",
       "limitation": "Other search_profile_id semantics remain post-limit; direct location filter runs before limit.",
-      "released_at": "2026-10-08T09:59:27Z"
+      "released_at": "2026-10-08T09:59:27Z",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6057508705"
+    },
+    {
+      "issue": 140,
+      "requirement_id": "MJ-REQ-139",
+      "branch": "codex/mj-req139-application-step-trace-20261008",
+      "worktree": ".worktrees/codex-mj-req139-application-step-trace-20261008",
+      "head": "a9c8a60aba8852f11a38f7d5a3768c77adaf2b5b",
+      "paths": [
+        "services/applications/mock_adapter.py",
+        "services/applications/debug_capture.py",
+        "tests/integration/test_application_pipeline.py",
+        "tests/browser/test_application_pipeline.py",
+        "tests/browser/test_mock_application.py",
+        "tests/unit/test_browser_debug_capture.py",
+        "tests/browser/test_debug_capture_privacy.py",
+        "docs/evidence/2026-10-08-application-step-trace.json"
+      ],
+      "status": "INTEGRATED_PARTIAL_PENDING_SYNC",
+      "evidence_path": "docs/evidence/2026-10-08-application-step-trace.json",
+      "integrated_main": "7f8f76f8d33eb1dc1f4fce91e86e1f6139ccbe56",
+      "result": "Root exact-source and combined-main suite 36/36 PASS; local delegated review no material findings; issue #140/MJ-REQ-139 remains OPEN/PARTIAL; pending origin sync and issue receipt.",
+      "local_review": "PASS; no material findings",
+      "integrated_at": "2026-10-08T10:14:44Z"
+    },
+    {
+      "issue": 190,
+      "requirement_id": "MJ-REQ-189",
+      "branch": "codex/mj-req189-salary-filter-20261008",
+      "worktree": ".worktrees/codex-mj-req189-salary-filter-20261008",
+      "head": "b14e528b5f1f85e104f10bb5b2c9ea445e9400ee",
+      "paths": [
+        "apps/api/main.py",
+        "packages/persistence/store.py",
+        "services/discovery/search_profiles.py",
+        "apps/web/src/main.tsx",
+        "tests/integration/test_saved_search_filters.py",
+        "tests/browser/test_saved_search_filters.py",
+        "docs/evidence/2026-10-08-salary-job-search-filter.json"
+      ],
+      "status": "INTEGRATED_PARTIAL_PENDING_SYNC",
+      "evidence_path": "docs/evidence/2026-10-08-salary-job-search-filter.json",
+      "integrated_main": "7f8f76f8d33eb1dc1f4fce91e86e1f6139ccbe56",
+      "result": "Root exact-main combined suite 44/44 PASS; frontend 96/96/build PASS; local delegated review no material findings; issue #190/MJ-REQ-189 remains OPEN/PARTIAL; pending origin sync and issue receipt.",
+      "local_review": "PASS; no material findings",
+      "integrated_at": "2026-10-08T10:14:44Z"
     }
   ]
 }

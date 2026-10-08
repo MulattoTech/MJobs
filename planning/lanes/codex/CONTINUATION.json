@@ -5,27 +5,27 @@
   "preferred_model": "gpt-6-luna",
   "preferred_reasoning": "high",
   "session_id": "01a10ed8-5445-7b61-8293-43be1895ecc5",
-  "canonical_main_at_pause": "e5fee45c0c3e074154ef523d252a2e78a2ffa2de",
-  "last_completed_issue": 136,
-  "last_completed_requirement": "MJ-REQ-135 sensitive question preflight integrated PARTIAL; location and certification slices also accepted in current batch.",
-  "last_integrated_head": "e5fee45c0c3e074154ef523d252a2e78a2ffa2de",
-  "next_issue": 140,
-  "next_requirement": "MJ-REQ-139",
-  "resume_instruction": "Root holds integration ownership and is finishing the accepted tracker batch. Current main is e5fee45c0c3e074154ef523d252a2e78a2ffa2de, origin main still 760271a9 pending authorized fast-forward push. Active isolated workers #140 (step trace/debug phase fix) and #190 salary filters; do not overlap their paths. Preserve all dirty Antigravity/Ollama and unrelated worktrees. Hosted checks/review NOT_RUN; external submission OFF.",
+  "canonical_main_at_pause": "7f8f76f8d33eb1dc1f4fce91e86e1f6139ccbe56",
+  "last_completed_issue": 190,
+  "last_completed_requirement": "MJ-REQ-189 annual USD salary bounds and MJ-REQ-139 durable application step trace integrated locally; both scoped and PARTIAL.",
+  "last_integrated_head": "7f8f76f8d33eb1dc1f4fce91e86e1f6139ccbe56",
+  "next_issue": 108,
+  "next_requirement": "MJ-REQ-107",
+  "resume_instruction": "Root integrated #140 and #190 salary locally on source 7f8f76f8d33eb1dc1f4fce91e86e1f6139ccbe56; exact combined 44 tests, frontend 96 tests/build and delegated local reviews passed. Tracker/dashboard batch is being validated before safe fast-forward publication. Active writer #108/MJ-REQ-107 has exclusive preflight.py/new integration test/evidence paths; preserve #104 other-branch claim and Antigravity #302/Ollama #318. Hosted checks/review NOT_RUN, real submission OFF.",
   "external_submission_enabled": false,
   "github_actions_enabled": false,
-  "last_validated_head": "e5fee45c0c3e074154ef523d252a2e78a2ffa2de",
-  "last_validated_tree": "1364af93793e56fdc17fa79487032b7647dba844",
-  "last_validated_at_utc": "2026-10-08T10:05:18Z",
-  "last_validated_result": "PASS for 3 scoped accepted slices; root exact-main replay 12 search and 48 preflight/application review tests PASS; broad product and hosted validation remain PARTIAL/NOT_RUN.",
-  "base_main": "e5fee45c0c3e074154ef523d252a2e78a2ffa2de",
-  "current_issue": 140,
-  "requirement_id": "MJ-REQ-139",
-  "branch": "codex/mj-req139-application-step-trace-20261008",
-  "head": "e5fee45c0c3e074154ef523d252a2e78a2ffa2de",
-  "worktree": ".worktrees/codex-mj-req139-application-step-trace-20261008",
-  "result": "ACTIVE; correcting failure diagnostics to persist the actual active step with privacy-safe fixed labels.",
-  "evidence_path": "docs/evidence/2026-10-08-application-step-trace.json",
+  "last_validated_head": "7f8f76f8d33eb1dc1f4fce91e86e1f6139ccbe56",
+  "last_validated_tree": "543046df156f6c9c4597b7cdae0050b70592c05c",
+  "last_validated_at_utc": "2026-10-08T10:14:44Z",
+  "last_validated_result": "PASS exact combined main search/salary/application-trace integration suite 44/44; frontend 96/96/build PASS; tracker checkpoint pending.",
+  "base_main": "7f8f76f8d33eb1dc1f4fce91e86e1f6139ccbe56",
+  "current_issue": 108,
+  "requirement_id": "MJ-REQ-107",
+  "branch": "codex/mj-req107-legal-question-profile-values-20261008",
+  "head": "7f8f76f8d33eb1dc1f4fce91e86e1f6139ccbe56",
+  "worktree": ".worktrees/codex-mj-req107-legal-question-profile-values-20261008",
+  "result": "ACTIVE; explicit saved work-authorization/sponsorship profile values for legal-question preflight, with fail-closed review gates.",
+  "evidence_path": "docs/evidence/2026-10-08-legal-question-preflight.json",
   "next_candidates": [
     {
       "issue": 191,
@@ -37,7 +37,7 @@
   "last_verified_tree": "72a7c772bac5bf1ae9b2385b03e194f530c93e85",
   "last_verified_at_utc": "2026-10-08T09:28:27.190192Z",
   "last_verified_result": "Scoped root verification: application review combined suite 59 Python, 95 frontend, build; resume tailoring 21 focused Python/Chromium, 10 frontend, build and provenance checks; see integrated evidence.",
-  "updated_at": "2026-10-08T10:05:18Z",
+  "updated_at": "2026-10-08T10:14:44Z",
   "last_completed": {
     "issue": 136,
     "requirement_id": "MJ-REQ-135",
@@ -71,16 +71,10 @@
   "issue_claim_comment": "https://github.com/MulattoTech/MJobs/issues/178#issuecomment-6054437313",
   "active_children": [
     {
-      "issue": 140,
-      "requirement_id": "MJ-REQ-139",
-      "branch": "codex/mj-req139-application-step-trace-20261008",
-      "status": "ACTIVE; debug active phase regression under focused test; worker rebasing/fixing."
-    },
-    {
-      "issue": 190,
-      "requirement_id": "MJ-REQ-189",
-      "branch": "codex/mj-req189-salary-filter-20261008",
-      "status": "ACTIVE; annual-USD minimum/maximum saved-search filtering."
+      "issue": 108,
+      "requirement_id": "MJ-REQ-107",
+      "branch": "codex/mj-req107-legal-question-profile-values-20261008",
+      "status": "ACTIVE; exact mapped work authorization/sponsorship values only; fail closed otherwise."
     }
   ]
 }

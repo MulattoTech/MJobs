@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-08T10:01:03Z",
+  "timestamp": "2026-10-08T10:14:44Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -1245,9 +1245,10 @@
       "requirement_id": "MJ-REQ-139",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-09-29-mock-spine.md"
+        "docs/evidence/2026-09-29-mock-spine.md",
+        "docs/evidence/2026-10-08-application-step-trace.json"
       ],
-      "note": "Initial scoped behavior only; full requirement remains open"
+      "note": "Scoped durable MOCK application step trace: required phases and STARTED/COMPLETED/FAILED statuses persist through SQLite reopen and API readback; failure diagnostics report the active fixed phase and retain privacy allowlists. Root exact-main combined trace/debug/privacy/application suite 36/36 PASS; local delegated review no material findings. Real ATS, hosted checks and full application-automation acceptance remain NOT_RUN; MJ-REQ-139 stays PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-140",
@@ -1635,9 +1636,10 @@
       "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-10-08-title-company-search-filters.json",
-        "docs/evidence/2026-10-08-location-search-filter.json"
+        "docs/evidence/2026-10-08-location-search-filter.json",
+        "docs/evidence/2026-10-08-salary-job-search-filter.json"
       ],
-      "note": "A bounded connected title/company filter slice is verified: separate case-insensitive literal substring filters compose with keyword, location, source and sort; filtering runs before result limits; named profile-scoped saved searches retain and restore the fields and supported Company sort after reload. Reset, cross-profile ownership/isolation, wildcard literals, existing query behavior, no discovery scheduling, and no off-origin requests are covered. Evidence docs/evidence/2026-10-08-title-company-search-filters.json. Issue #190/MJ-REQ-189 remains PARTIAL; salary, experience, date, employment type, skills, education, clearance, match score, ATS, application capability/state filters and hosted/PostgreSQL checks remain NOT_RUN. Additional connected location filter slice: escaped case-insensitive literal stored-location match composes with keyword/title/company/remote/source/sort before LIMIT and saves/restores with profile-scoped saved searches. Root integration/browser tests 12 PASS; worker frontend tests 96 PASS and production build PASS. Salary and other facets remain incomplete; semantic search-profile criteria besides direct filter parameters are still applied after LIMIT."
+      "note": "A bounded connected title/company filter slice is verified: separate case-insensitive literal substring filters compose with keyword, location, source and sort; filtering runs before result limits; named profile-scoped saved searches retain and restore the fields and supported Company sort after reload. Reset, cross-profile ownership/isolation, wildcard literals, existing query behavior, no discovery scheduling, and no off-origin requests are covered. Evidence docs/evidence/2026-10-08-title-company-search-filters.json. Issue #190/MJ-REQ-189 remains PARTIAL; salary, experience, date, employment type, skills, education, clearance, match score, ATS, application capability/state filters and hosted/PostgreSQL checks remain NOT_RUN. Additional connected location filter slice: escaped case-insensitive literal stored-location match composes with keyword/title/company/remote/source/sort before LIMIT and saves/restores with profile-scoped saved searches. Root integration/browser tests 12 PASS; worker frontend tests 96 PASS and production build PASS. Salary and other facets remain incomplete; semantic search-profile criteria besides direct filter parameters are still applied after LIMIT. Additional salary slice: inclusive annual USD bounds compose in SQL before limits; only numeric USD/YEAR endpoints participate, and missing/malformed/nonannual/non-USD data fails closed while bounds are active. Named saved searches persist/restore/clear bounds per profile with old-record compatibility. Root exact-main integrated search+trace/browser suite was 44/44 PASS; frontend 96/96 and production build PASS. Delegated review found no material findings. PostgreSQL/hosted NOT_RUN; remaining filter facets keep the requirement PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-190",
