@@ -4,16 +4,16 @@
   "issue": 96,
   "requirement_id": "MJ-REQ-095",
   "result": "PARTIAL",
-  "recorded_at_utc": "2026-10-08T14:50:20Z",
+  "recorded_at_utc": "2026-10-08T14:58:46Z",
   "branch": "codex/mj-req095-alignment-preview-20261008",
-  "base_commit": "cf205874485b5e9ad2b162aa28c9e1ee405f4ff1",
-  "implementation_commit": "189159f865ca30173dc928282922e36e4df43c71",
-  "implementation_tree": "5394ff8e6b9450089479fcfda09ac25506bf6299",
+  "base_commit": "17f9abc0f7e03dab215739b4a3477a1f4c2ca7a7",
+  "implementation_commit": "a926800694e466e5a14c9dbf3bff6cabaf04e931",
+  "implementation_tree": "688e1d9efcf78f33d26a6a1bc657b90030c7dc57",
   "input_sha256": {
     "services/documents/alignment_preview.py": "620217c4aac089d731b4a423ba0767d57ae9527d9d9f4e4ba01b316f5065f47b",
     "apps/api/main.py": "030766fed36772f0bcfa725053b66568f1bde204846cab91b66b0ea6aa542d60",
-    "apps/web/src/main.tsx": "0f60fbde57763eabe29394c20bd6a5fab81126d6a02dd5b3c41db0d4e3d524a2",
-    "apps/web/src/resume-fact-selection.tsx": "cc33919768b3d68e8f9aa0bf839dd9cc376b907933dc27a1c4afddf46ceecae6",
+    "apps/web/src/main.tsx": "17396de608bd67c720dc4182d512cfc41ad108f1aa910e3c0d1e9e9c1f4ec18f",
+    "apps/web/src/resume-fact-selection.tsx": "31ffa76e46a019cb7e7e0b09738d86b10ae3a9b637fa592108ffebc765c263b8",
     "tests/unit/test_resume_alignment_preview.py": "bec157225ce307e5e1d78c2bbd60d1754d903463143d654cc07654ccf63d6dc4",
     "tests/integration/test_resume_alignment_preview.py": "753c4bb5b3e8be8d783158a14e56b893e286ffc600bb383418da883833d50ffa",
     "tests/browser/test_resume_alignment_preview.py": "b53ac7c704dd0600ab2aaec63a2d3d05b82ecc2e5c3afef7dca920a7690ddc23"
@@ -45,7 +45,7 @@
     "catalogue": "PASS - python -m tools.verification.catalogue.",
     "progress_validation": "PASS - python -m tools.verification.progress validate; no canonical progress files changed.",
     "diff_check": "PASS - git diff --check.",
-    "source_sha256": "PASS - All seven implementation/test input hashes above were captured from implementation commit 189159f865ca30173dc928282922e36e4df43c71 (tree 5394ff8e6b9450089479fcfda09ac25506bf6299).",
+    "source_sha256": "PASS - Raw worktree SHA-256 values above were refreshed after rebase; input_git_blob_oid records the canonical Git blob for each path at a926800694e466e5a14c9dbf3bff6cabaf04e931, tree 688e1d9efcf78f33d26a6a1bc657b90030c7dc57. The two web files have identical canonical blobs to the pre-rebase source; only checkout line endings changed.",
     "adjacent_out_of_slice_check": {
       "result": "NOT_PASS_OUT_OF_SLICE",
       "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_skill_order.SkillOrderBrowserTests.test_explicit_ordering_reaches_worker_and_download -v",
@@ -70,5 +70,14 @@
     "PostgreSQL, the full repository suite, hosted checks/review and live employer integrations were not run.",
     "This is one bounded #96 / MJ-REQ-095 increment; the wider resume-tailoring requirement and PR026 remain PARTIAL."
   ],
-  "external_submission": "OFF"
+  "external_submission": "OFF",
+  "input_git_blob_oid": {
+    "services/documents/alignment_preview.py": "47e873f18d81009122b251162a7c6e3d1b4af50d",
+    "apps/api/main.py": "9cecf603c5af4f127c6afd750322c4141c7de388",
+    "apps/web/src/main.tsx": "5e15f33fd2979966b8c95aa164c1db2f89c790e1",
+    "apps/web/src/resume-fact-selection.tsx": "bdb747280cfcc9a9e3e9b9fdcbbbae840e5934c8",
+    "tests/unit/test_resume_alignment_preview.py": "cb3a1619065a6beae972abdcd8c508c8a0077b96",
+    "tests/integration/test_resume_alignment_preview.py": "1c5917c5e6ece89b6314766db35e7c3e0c8ab086",
+    "tests/browser/test_resume_alignment_preview.py": "d8f7e8e32d8548a29a678808c20135fa3e1448dc"
+  }
 }
