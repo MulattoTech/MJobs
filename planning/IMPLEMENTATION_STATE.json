@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-08T05:52:46Z",
+  "generated_at": "2026-10-08T05:56:34Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -130,7 +130,8 @@
     "Issue #167 / MJ-REQ-166 migration graph repair PARTIAL: added merge revision e2a4c9d0b721 joining existing Alembic heads 9b6d40aaf163 and f37a0c2e91b5. Normal `upgrade('head')` now succeeds on a fresh temporary SQLite database and resumes comparison integration setup. Source commit 0a7400d2bf7f8f449d69a81fde84a4f107faf06f; evidence docs/evidence/2026-10-08-alembic-merge-heads.json. Seven focused migration/resume integration tests PASS. Broader database migration, PostgreSQL index runtime, backup/restore acceptance and dependencies remain incomplete; issue #167/MJ-REQ-166 remains OPEN/PARTIAL.",
     "Issue #104 / MJ-REQ-103 answer bank acceptance is PASS (docs/evidence/2026-10-08-answer-bank-acceptance.json); parent MJ-PR-028 requirements MJ-REQ-100..102 and MJ-REQ-104..107 are not promoted. Aggregate core workflow/release remain PARTIAL.",
     "Issue #199 / MJ-REQ-198 comparison increment locally integrated PASS at 41513c0f3c2c75970bfc8173f0ca8576acb63519; evidence docs/evidence/2026-10-08-cover-letter-history-comparison.json. Full requirement remains PARTIAL; no change to MJ-PR-054 dependencies, core workflow, or release acceptance.",
-    "MJ-REQ-095: selected approved experience facts now support the existing individually reviewed, user-authored rewrite flow with source identity, immutable history, reload and comparison; this is a scoped local PASS, not full tailoring or semantic-equivalence proof."
+    "MJ-REQ-095: selected approved experience facts now support the existing individually reviewed, user-authored rewrite flow with source identity, immutable history, reload and comparison; this is a scoped local PASS, not full tailoring or semantic-equivalence proof.",
+    "MJ-REQ-274: due discovery operation scheduling survives actual SQLite scheduler process restart; second tick deduplicates; a separate synthetic worker completes the single operation. Compose/PostgreSQL and broader persistence/application restart remain unverified."
   ],
   "blocked_capabilities": [],
   "active_requirements": [
@@ -388,7 +389,8 @@
     "Issue #104 / MJ-REQ-103 answer bank exact-head evidence revalidated against current main: 15 synthetic SQLite integration tests, 2 connected synthetic Chromium tests, web build PASS; input diff from tested snapshot 77a7d36 to d8caa90 contains no executable/test/build inputs. Node 25.9 is outside Vitest 5 declared engine range.",
     "Issue #199 / MJ-REQ-198 readable comparison source/test inputs integrated at main 41513c0f3c2c75970bfc8173f0ca8576acb63519. Root exact-integrated-tree recheck: focused Vitest 9/9; TypeScript/Vite build PASS; connected synthetic Chromium document-history 2/2. LOCAL_DELEGATED_REVIEW no material findings; Node 25.9 outside Vitest 5 declared range.",
     "Issue #117 / MJ-REQ-116 match categories integrated at main f1afad5541ebcad1cd07e35b5366b78df4e1f637. Root exact integrated-source checks: 23 focused helper cases PASS; TypeScript/Vite build PASS; connected FIXTURE-mode Chromium 1/1 PASS. Local delegated review found no blocker; Node 25.9 outside Vitest 5 supported engine range.",
-    "Issue #96 / MJ-REQ-095 experience-fact rewrite integrated at main 5dfce5eec8e2e6c56442631725c0993c7ce12a29; tested source commit c6eb1cd604d1372800bc798b7454aa9fe40d9d91. Exact source test run: 13 unit/integration + 1 connected synthetic Chromium; targeted Vitest 1; TypeScript/Vite build PASS. Evidence hash/JSON/progress/diff validation PASS. Vitest used Node 25.9.0 outside its declared support range. Evidence docs/evidence/2026-10-08-resume-experience-rewrites.json; issue https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6053321247. Broader requirement remains PARTIAL."
+    "Issue #96 / MJ-REQ-095 experience-fact rewrite integrated at main 5dfce5eec8e2e6c56442631725c0993c7ce12a29; tested source commit c6eb1cd604d1372800bc798b7454aa9fe40d9d91. Exact source test run: 13 unit/integration + 1 connected synthetic Chromium; targeted Vitest 1; TypeScript/Vite build PASS. Evidence hash/JSON/progress/diff validation PASS. Vitest used Node 25.9.0 outside its declared support range. Evidence docs/evidence/2026-10-08-resume-experience-rewrites.json; issue https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6053321247. Broader requirement remains PARTIAL.",
+    "Issue #275 / MJ-REQ-274 scheduled-source restart slice integrated at main 7d91b3104a2e21d400bdc1a2f59de289e5bbc2b6; tested source bc547e251eef7ed7a97556fde3396cc2655eb718. Root reran the focused scheduler module: 6 PASS, 0 failures/errors/skips. Actual scheduler subprocesses used an isolated temporary SQLite database and synthetic collection stub. Local delegated review found no blocker. Compose was not invoked; default project/fixed port isolation is BLOCKED_ENVIRONMENT; PostgreSQL NOT_RUN. Evidence docs/evidence/2026-10-08-scheduled-source-restart.json; issue https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053378645; requirement remains PARTIAL."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -588,7 +590,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Main and origin/main are synchronized at 5dfce5eec8e2e6c56442631725c0993c7ce12a29. Issue #96 / MJ-REQ-095 approved experience-fact rewrite is locally PASS for its narrow scope and integrated; broader tailoring remains PARTIAL. Current Codex workers: #105 / MJ-REQ-104 answer matching, #275 / MJ-REQ-274 scheduler process restart, and #178 / MJ-REQ-177 safe discovery context in worker logs. Reconcile their claims and candidate hashes; integrate one qualified branch at a time. Keep #517 UI linkage deferred while #105 owns apps/web/src/main.tsx. Antigravity #302 and Ollama #318 remain active; do not disturb their paths. Hosted checks/reviews NOT_RUN_BY_USER_POLICY, external submission OFF, core workflow and release remain PARTIAL.",
+  "recommended_resume_step": "Local and remote main are synchronized at 7d91b3104a2e21d400bdc1a2f59de289e5bbc2b6. Issue #96 / MJ-REQ-095 approved experience-fact rewrite and issue #275 / MJ-REQ-274 scheduled-source process restart have scoped local PASS checkpoints integrated; both umbrellas remain OPEN/PARTIAL. Current Codex worker: #105 / MJ-REQ-104 answer matching, with candidate rebase/checks in progress. Issue #178 / MJ-REQ-177 worker-context logging is independently claimed. Antigravity #302 and Ollama #318 remain active and untouched. Continue serialized integration only after exact candidate/hash/evidence verification. #517 task linkage remains blocked on the Sources UI main.tsx ownership. Hosted checks/reviews NOT_RUN_BY_USER_POLICY; PostgreSQL/Compose restart NOT_RUN or BLOCKED_ENVIRONMENT; external submission OFF; core-workflow and release remain PARTIAL.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -626,7 +628,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "5dfce5eec8e2e6c56442631725c0993c7ce12a29",
+  "last_implementation_commit": "7d91b3104a2e21d400bdc1a2f59de289e5bbc2b6",
   "publication": {
     "result": "PASS",
     "integration_method": "NON_FORCE_FAST_FORWARD",
@@ -9882,17 +9884,60 @@
         "issue_state_after_readback": "OPEN",
         "claim_release_receipt": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6053343083"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-274-SCHEDULED-SOURCE-RESTART-20261008",
+      "timestamp": "2026-10-08T05:56:34Z",
+      "current_phase": "MJ_REQ_274_SCHEDULED_SOURCE_RESTART_SQLITE_PARTIAL",
+      "completed_steps": [
+        "Corrected test-first oracle to seed a due source/profile without pre-enqueueing; actual scheduler subprocess creates one durable operation after restart.",
+        "Second scheduler process confirms active-operation deduplication; synthetic worker subprocess completes it without network; third scheduler tick sees NOT_DUE and no duplicate.",
+        "Added scheduler to the explicitly enumerated Compose recovery restart service list; only mocked command-contract check run, no Compose lifecycle command.",
+        "Root reran exact evidence-final candidate focused module: 6 PASS, 0 failure/error/skip; local delegated review found no blocker.",
+        "Integrated by non-force fast-forward and synchronized main; posted exact local acceptance receipt."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-08-scheduled-source-restart.json",
+        "tests/integration/test_source_policy_scheduler.py"
+      ],
+      "files_modified": [
+        "cli/compose_recovery.py"
+      ],
+      "tests_completed": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_source_policy_scheduler -v: 6 PASS, 0 failures/errors/skips on final evidence candidate.",
+        "agent_skills, lane_coordination, compileall, evidence JSON parse and git diff --check PASS."
+      ],
+      "tests_remaining": [
+        "PostgreSQL persistence and actual Compose service-restart acceptance NOT_RUN/BLOCKED_ENVIRONMENT; runner selects default Compose project and fixed port 127.0.0.1:18700, so no Compose command was invoked.",
+        "Broader MJ-REQ-274 restart acceptance and core workflow remain PARTIAL; hosted checks/review NOT_RUN_BY_USER_POLICY."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Temporary SQLite only, actual scheduler/worker subprocesses, synthetic source/profile, collector stub; no external network, provider call, Compose, or retained personal runtime."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "This proves SQLite scheduler process restart and single-operation completion, not PostgreSQL/service-container restart or document/application state persistence.",
+        "Compose runner isolation is not established; retained personal runtime was not touched."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "7d91b3104a2e21d400bdc1a2f59de289e5bbc2b6",
+        "tree": "db177eb26e4883efea94ce3302f2567527e6341b",
+        "source_commit": "bc547e251eef7ed7a97556fde3396cc2655eb718",
+        "evidence_path": "docs/evidence/2026-10-08-scheduled-source-restart.json",
+        "issue_receipt": "https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053378645",
+        "issue_state_after_readback": "OPEN"
+      }
     }
   ],
-  "current_phase": "MJ_REQ_095_EXPERIENCE_REWRITE_INTEGRATED_LOCAL_PASS",
+  "current_phase": "MJ_REQ_274_SCHEDULED_SOURCE_RESTART_SQLITE_PARTIAL",
   "last_safe_checkpoint": {
-    "git_commit": "5dfce5eec8e2e6c56442631725c0993c7ce12a29",
-    "tree": "098ed915656564bbcc2e1e3d986a4f9534de5a8b",
-    "source_commit": "c6eb1cd604d1372800bc798b7454aa9fe40d9d91",
-    "evidence_path": "docs/evidence/2026-10-08-resume-experience-rewrites.json",
-    "issue_receipt": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6053321247",
-    "issue_state_after_readback": "OPEN",
-    "claim_release_receipt": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6053343083"
+    "git_commit": "7d91b3104a2e21d400bdc1a2f59de289e5bbc2b6",
+    "tree": "db177eb26e4883efea94ce3302f2567527e6341b",
+    "source_commit": "bc547e251eef7ed7a97556fde3396cc2655eb718",
+    "evidence_path": "docs/evidence/2026-10-08-scheduled-source-restart.json",
+    "issue_receipt": "https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053378645",
+    "issue_state_after_readback": "OPEN"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -10206,10 +10251,10 @@
     "issue": 105,
     "requirement_id": "MJ-REQ-104",
     "title": "Answer matching and reviewed reuse",
-    "state": "ACTIVE / IMPLEMENTATION",
+    "state": "ACTIVE / EXACT-BASE REVALIDATION",
     "branch": "codex/mj-req104-answer-matching-20261008",
     "worktree": ".worktrees/codex-mj-req104-answer-matching-20261008",
-    "next_action": "Finish the deterministic match-suggestion slice, then rebase on current main and rerun scoped checks. Preserve the legal/sensitive-answer no-inference policy."
+    "next_action": "Reconcile the latest main SHA, perform one final rebase if the candidate base is stale, and rerun affected scoped checks. Preserve sensitive/legal-answer no-inference policy."
   },
   "historical_control_snapshots": [
     {
@@ -11340,7 +11385,8 @@
     "Issue #403 / MJ-REF-033 page-budget slice: source 79b29ee0fe61af0906772f182c0ac280f73fc2f4 (443fb463d97b5ee45a558e8db06581f0c5d6b333), integrated candidate 01596a7a093bbfc359e9ded49076aac3cb95d94d (f55ee218fe0bb32249cef537ea66700b235280c5); 25 focused agent tests, compileall, agent_skills/catalogue/progress/reference_provenance/lane_coordination and diff checks PASS. Browser/source entrypoint, full Python suite, PostgreSQL/Docker and hosted checks NOT_RUN or NOT_APPLICABLE as recorded in docs/evidence/2026-10-07-agent-page-budget.json. Issue remains OPEN/PARTIAL.",
     "Issue #166 / MJ-REQ-165 fully accepted and integrated at 59039a51701258a35c93fc7deca6fbf85d72fddd from source 108c502ce0b2c8aa92a4868b09687b4b4a0206f1. Search now covers title, company, description, skills and location; PostgreSQL GIN full-text indexes support job and company search. Full Python 962/8 skipped, frontend 63/build, connected Chromium, SQLite/PostgreSQL migrations, PostgreSQL API/index-plan checks and local validators PASS. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF. Evidence docs/evidence/2026-10-07-full-text-search.json.",
     "2026-10-08 #240 / MJ-REQ-239: integrated source/test candidate 1173bf792f0bd4092d638662d982c9bf8e225f9a, tree bf1400d35701eedaf60bbc569881d622692cb3fb; non-force fast-forward local main source/evidence checkpoint bed4f3e6aff9639a30d6ba3f1ded640a5b2dc77a, tree 88df6fa5709efa0daadf139385ce83a7aabfc8fe; the 18-test run was on integrated tree 5f3d7364e0cbe2edccbfee05386a1e9591c791f3. Jobs/company/application note integration/browser suites 18 PASS; company UI 4 tests executed PASS under Node 25.9.0 outside Vitest engine range; TypeScript/Vite build PASS. Requirement MJ-REQ-239 PASS; core-workflow trial/release remain PARTIAL; hosted and PostgreSQL NOT_RUN; external submission OFF.",
-    "Issue #96 / MJ-REQ-095 experience-fact rewrite integrated at main 5dfce5eec8e2e6c56442631725c0993c7ce12a29; tested source commit c6eb1cd604d1372800bc798b7454aa9fe40d9d91. Exact source test run: 13 unit/integration + 1 connected synthetic Chromium; targeted Vitest 1; TypeScript/Vite build PASS. Evidence hash/JSON/progress/diff validation PASS. Vitest used Node 25.9.0 outside its declared support range. Evidence docs/evidence/2026-10-08-resume-experience-rewrites.json; issue https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6053321247. Broader requirement remains PARTIAL."
+    "Issue #96 / MJ-REQ-095 experience-fact rewrite integrated at main 5dfce5eec8e2e6c56442631725c0993c7ce12a29; tested source commit c6eb1cd604d1372800bc798b7454aa9fe40d9d91. Exact source test run: 13 unit/integration + 1 connected synthetic Chromium; targeted Vitest 1; TypeScript/Vite build PASS. Evidence hash/JSON/progress/diff validation PASS. Vitest used Node 25.9.0 outside its declared support range. Evidence docs/evidence/2026-10-08-resume-experience-rewrites.json; issue https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6053321247. Broader requirement remains PARTIAL.",
+    "Issue #275 / MJ-REQ-274 scheduled-source restart slice integrated at main 7d91b3104a2e21d400bdc1a2f59de289e5bbc2b6; tested source bc547e251eef7ed7a97556fde3396cc2655eb718. Root reran the focused scheduler module: 6 PASS, 0 failures/errors/skips. Actual scheduler subprocesses used an isolated temporary SQLite database and synthetic collection stub. Local delegated review found no blocker. Compose was not invoked; default project/fixed port isolation is BLOCKED_ENVIRONMENT; PostgreSQL NOT_RUN. Evidence docs/evidence/2026-10-08-scheduled-source-restart.json; issue https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053378645; requirement remains PARTIAL."
   ],
   "ownership": "Issue #177 / MJ-REQ-176 company-source setting Activity slice source 0c76b225f48a882e8aa90b5e7686d22a8891425e, source tree 3d7733e26c5d4d097518d3c911d6029c7f1c5e86, evidence and tests integrated at synchronized local/GitHub main 68a0630b690cfa855e43829bc4f1836cf6add246 under the Codex integration lock. GitHub issue checkpoint: https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6048627184. The issue remains OPEN/PARTIAL; hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL/Docker NOT_RUN; external submission OFF.",
   "delivery_policy": {

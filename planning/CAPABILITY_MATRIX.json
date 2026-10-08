@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-08T05:52:46Z",
+  "timestamp": "2026-10-08T05:56:34Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -2162,9 +2162,10 @@
       "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-09-30-user-testing.md",
-        "docs/evidence/2026-09-30-ci-370.json"
+        "docs/evidence/2026-09-30-ci-370.json",
+        "docs/evidence/2026-10-08-scheduled-source-restart.json"
       ],
-      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open"
+      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open. Additional scoped PASS at main 7d91b3104a2e21d400bdc1a2f59de289e5bbc2b6: due source scheduling and worker completion verified across actual scheduler/worker process restarts on temporary SQLite with no network; focused module 6 PASS. Evidence docs/evidence/2026-10-08-scheduled-source-restart.json. Compose/PostgreSQL restart remain BLOCKED_ENVIRONMENT/NOT_RUN; broader requirement remains PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-275",

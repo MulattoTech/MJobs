@@ -1,3 +1,11 @@
+## 2026-10-08 05:56Z — #275 scheduled-source SQLite recovery integrated
+
+Local and remote main are synchronized at `7d91b3104a2e21d400bdc1a2f59de289e5bbc2b6` (tree `db177eb26e4883efea94ce3302f2567527e6341b`). The corrected #275 / MJ-REQ-274 slice proves a due scheduled source is queued exactly once by actual scheduler subprocesses, survives restart, and completes with a separate synthetic worker against temporary SQLite. Root exact evidence-final rerun: 6 focused tests PASS; local delegated review no blocker. Evidence `docs/evidence/2026-10-08-scheduled-source-restart.json`; tested source `bc547e251eef7ed7a97556fde3396cc2655eb718`. Compose/PostgreSQL restart remain NOT_RUN/BLOCKED_ENVIRONMENT; no Compose or personal runtime was touched. Issue remains OPEN/PARTIAL. Receipt: https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053378645. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.
+
+Active Codex workers: #105 answer matching is reconciling final base; #178 adds only safe persisted discovery context to worker logs. Antigravity #302 and Ollama #318 remain active. #96 claim is released; #275 will be released after this canonical checkpoint/readback. Core workflow/release remain PARTIAL.
+
+---
+
 ## 2026-10-08 05:52Z — #96 experience rewrite integrated; parallel workers active
 
 Local main and origin/main are synchronized at `5dfce5eec8e2e6c56442631725c0993c7ce12a29` (tree `098ed915656564bbcc2e1e3d986a4f9534de5a8b`). Issue #96 / MJ-REQ-095 selected approved experience-fact rewrite slice is locally PASS and integrated by non-force fast-forward. Evidence: `docs/evidence/2026-10-08-resume-experience-rewrites.json`; tested source `c6eb1cd604d1372800bc798b7454aa9fe40d9d91`. Exact scoped checks: Python unit/integration/browser 14 PASS, focused Vitest 1 PASS, TypeScript/Vite build PASS, evidence hash/JSON/progress/diff checks PASS. Node 25.9.0 is outside Vitest declared support. Issue #96 remains OPEN/PARTIAL; broader tailoring and semantic equivalence remain incomplete. Receipt: https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6053321247. Hosted checks NOT_RUN_BY_USER_POLICY; provider/DB external checks NOT_RUN; external submission OFF.

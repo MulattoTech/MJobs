@@ -3843,7 +3843,38 @@
       "issue_state": "OPEN/PARTIAL",
       "issue_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6053321247",
       "notes": "Scoped user-authored, individually reviewed rewrites for selected approved experience facts are integrated with source identity/hash, exact date/number preservation, stale profile/source rejection, immutable provenance and historical comparison after reload. Root exact-candidate local checks: Python 14 (13 unit/integration plus 1 connected Chromium), focused Vitest 1, TypeScript/Vite build; evidence/hash/JSON/progress/diff checks pass. Node 25.9.0 is outside Vitest declared support. Issue #96 remains PARTIAL for other tailoring modes and semantic-equivalence proof; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF."
+    },
+    {
+      "id": "MJ-PR-171",
+      "title": "MJ-REQ-274 scheduled discovery restart recovery",
+      "domain": "operations_ux_ci",
+      "requirements": [
+        "MJ-REQ-274"
+      ],
+      "issues": [
+        275
+      ],
+      "reference_gaps": [],
+      "target_area": "cli/compose_recovery.py; tests/integration/test_source_policy_scheduler.py",
+      "depends_on": [],
+      "status": "INTEGRATED_PARTIAL",
+      "branch": "codex/mj-req274-scheduled-restart-20261008",
+      "draft_until_verified": true,
+      "issue_number": 275,
+      "evidence_path": "docs/evidence/2026-10-08-scheduled-source-restart.json",
+      "base": "33fcafb820317a7917e97d1753b00d068feacde7",
+      "candidate": "bc547e251eef7ed7a97556fde3396cc2655eb718",
+      "source_commit": "bc547e251eef7ed7a97556fde3396cc2655eb718",
+      "integration_commit": "7d91b3104a2e21d400bdc1a2f59de289e5bbc2b6",
+      "integration_method": "NON_FORCE_FAST_FORWARD",
+      "pr_state": "NOT_OPENED_LOCAL_ONLY",
+      "integrated_at": "2026-10-08T05:56:34Z",
+      "scope_complete": false,
+      "scope_result": "PASS",
+      "issue_state": "OPEN/PARTIAL",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053378645",
+      "notes": "Actual subprocess scheduler restart, durable SQLite operation deduplication and synthetic worker completion are locally verified (focused module 6 PASS; root reran exact evidence-final candidate). Mocked command test confirms scheduler is in the Compose recovery service list; Compose itself was not run. PostgreSQL restart is NOT_RUN. Default Compose project/fixed port 127.0.0.1:18700 isolation is unverified; retained personal runtime was not touched. Issue #275/MJ-REQ-274 remains PARTIAL; aggregate MJ-PR-074 dependencies unchanged; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF."
     }
   ],
-  "generated_at": "2026-10-08T05:52:46Z"
+  "generated_at": "2026-10-08T05:56:34Z"
 }
