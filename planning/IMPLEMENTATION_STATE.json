@@ -1,17 +1,17 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-08T11:42:38Z",
+  "generated_at": "2026-10-08T12:10:15Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Exact synchronized main d6a8f519ccc8cf6de3943effb2afc037fd89920b (tree c53080d034f7514d1a7fee994d5294f0cd77dec5); #105/MJ-REQ-104 opposite-polarity answer guard and #190/MJ-REQ-189 current-version minimum score filter are integrated bounded PARTIAL slices with local evidence.",
-    "current_verified_github_state": "Local main, origin/main and GitHub default main synchronized at d6a8f519ccc8cf6de3943effb2afc037fd89920b; integration receipts posted for #105 and #190. Hosted checks/reviews remain NOT_RUN_BY_USER_POLICY.",
-    "current_verified_at": "2026-10-08T11:42:38Z"
+    "current_verified_local_state": "Exact synchronized main 980f89c78d384ec3098e083616b48c8c713089f3 (tree 23e7c7f9b9a2b471a9078e3047bb420846194abc); bounded #190 experience-level filter, #115 score-neutral salary-fit explanation, and #191 annual USD salary sort are integrated with local evidence.",
+    "current_verified_github_state": "Local main, origin/main and GitHub default main synchronized at 980f89c78d384ec3098e083616b48c8c713089f3; receipts posted for #115 and #191. Hosted checks/reviews remain NOT_RUN_BY_USER_POLICY.",
+    "current_verified_at": "2026-10-08T12:10:15Z"
   },
-  "current_milestone": "CORE-FEATURE-BATCH-20261008-J",
+  "current_milestone": "CORE-FEATURE-BATCH-20261008-K",
   "current_objective": "Advance connected jobseeker search, explainable matching, truthful documents, and consent-safe application preparation through dependency-ready vertical slices.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -689,16 +689,16 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "d6a8f519ccc8cf6de3943effb2afc037fd89920b",
+  "last_implementation_commit": "980f89c78d384ec3098e083616b48c8c713089f3",
   "publication": {
-    "result": "PASS - two bounded local product slices integrated and synchronized; overall release remains PARTIAL/UNKNOWN",
-    "integration_method": "NON_FORCE_FAST_FORWARD under root integration lock; exact rebased candidates locally verified and locally delegated-reviewed",
-    "integration_commit": "d6a8f519ccc8cf6de3943effb2afc037fd89920b",
-    "prior_main": "8d89cb6d6ae33c034fe1094919fbbb4950cb2c03",
+    "result": "PASS - bounded core product slices integrated and synchronized; overall release remains UNKNOWN",
+    "integration_method": "NON_FORCE_FAST_FORWARD under root integration lock; exact source candidates locally verified",
+    "integration_commit": "980f89c78d384ec3098e083616b48c8c713089f3",
+    "prior_main": "ba540570f0ffe138fa5656bb674d570e464bcc7d",
     "pr_number": null,
     "pr_state": "NOT_OPENED_LOCAL_ONLY",
     "github_reports_merged": false,
-    "note": "#105/MJ-REQ-104 answer polarity guard and #190/MJ-REQ-189 minimum match-score filter are integrated on synchronized main. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF."
+    "note": "#190/MJ-REQ-189 normalized experience filter; #115/MJ-REQ-114 informational salary factor; and #191/MJ-REQ-190 annual USD salary sort are integrated on synchronized main. Issues remain OPEN/PARTIAL. Hosted checks and PostgreSQL NOT_RUN; external submission OFF."
   },
   "optional_afk_journal": {
     "result": "PASS",
@@ -11364,17 +11364,65 @@
         "integration_receipt": "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6059055310",
         "note": "Both user-facing bounded slices are integrated and synchronized. #105 receipt: https://github.com/MulattoTech/MJobs/issues/105#issuecomment-6059001909. Requirement-level totals remain unchanged; release remains UNKNOWN."
       }
+    },
+    {
+      "milestone_id": "CORE-FEATURE-BATCH-20261008-K",
+      "current_phase": "CORE_FEATURE_IMPLEMENTATION",
+      "timestamp": "2026-10-08T12:10:15Z",
+      "completed_steps": [
+        "Integrated #190 / MJ-REQ-189 normalized experience-level filtering at main 6aae6cbe26df53eb303f22fc8dab0634ee2acc13.",
+        "Integrated #115 / MJ-REQ-114 informational annual USD salary fit explanation at main ba540570f0ffe138fa5656bb674d570e464bcc7d.",
+        "Integrated #191 / MJ-REQ-190 annual USD salary sorting at main 980f89c78d384ec3098e083616b48c8c713089f3.",
+        "Verified local/origin main synchronization and posted issue receipts; started independent #134 / MJ-REQ-133 conditional-field implementation."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-08-experience-level-search-filter.json",
+        "docs/evidence/2026-10-08-salary-match-explanation.json",
+        "docs/evidence/2026-10-08-job-sorting-salary.json"
+      ],
+      "files_modified": [
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "docs/PROGRESS_DASHBOARD.md"
+      ],
+      "tests_completed": [
+        "Experience filter: 10 SQLite/API integration tests, 1 connected browser test, 103 frontend tests, production build, compile and agent-skill validation PASS.",
+        "Salary explanation: root exact-source 40 integration tests and 1 connected browser test PASS; web build, skill/lane validation and five evidence hash checks PASS.",
+        "Salary sorting: root exact-source 7 integration tests and 1 connected browser test PASS; worker exact source also passed 103 frontend tests, production build, compile, skill/lane validation and six evidence hash checks."
+      ],
+      "tests_remaining": [
+        "Full repository regression, PostgreSQL, real ATS integration, hosted checks and release acceptance remain NOT_RUN or incomplete by policy/environment."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "MJ-REQ-189 has additional incomplete facets.",
+        "MJ-REQ-114 remains PARTIAL; salary matching is score-neutral and only covers explicit annual USD intervals.",
+        "MJ-REQ-190 remains PARTIAL; Application Priority policy is undefined.",
+        "MJ-REQ-133 conditional dynamic-form slice is in progress and is not yet accepted."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "980f89c78d384ec3098e083616b48c8c713089f3",
+        "tree": "23e7c7f9b9a2b471a9078e3047bb420846194abc",
+        "branch": "main",
+        "issue": "#115 / MJ-REQ-114 and #191 / MJ-REQ-190; prior #190 / MJ-REQ-189 experience facet",
+        "evidence_path": "docs/evidence/2026-10-08-job-sorting-salary.json",
+        "integration_receipt": "https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6059500447",
+        "note": "Main and origin/main synchronized at this checkpoint. #115 salary fit receipt: https://github.com/MulattoTech/MJobs/issues/115#issuecomment-6059458494. #190 experience facet receipt: https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6059304313. Bounded requirements remain PARTIAL; hosted/PostgreSQL NOT_RUN; release UNKNOWN; external submission OFF."
+      }
     }
   ],
   "current_phase": "CORE_FEATURE_IMPLEMENTATION",
   "last_safe_checkpoint": {
-    "git_commit": "d6a8f519ccc8cf6de3943effb2afc037fd89920b",
-    "tree": "c53080d034f7514d1a7fee994d5294f0cd77dec5",
+    "git_commit": "980f89c78d384ec3098e083616b48c8c713089f3",
+    "tree": "23e7c7f9b9a2b471a9078e3047bb420846194abc",
     "branch": "main",
-    "issue": "#105 / MJ-REQ-104 and #190 / MJ-REQ-189",
-    "evidence_path": "docs/evidence/2026-10-08-match-score-search-filter.json",
-    "integration_receipt": "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6059055310",
-    "note": "Both user-facing bounded slices are integrated and synchronized. #105 receipt: https://github.com/MulattoTech/MJobs/issues/105#issuecomment-6059001909. Requirement-level totals remain unchanged; release remains UNKNOWN."
+    "issue": "#115 / MJ-REQ-114 and #191 / MJ-REQ-190; prior #190 / MJ-REQ-189 experience facet",
+    "evidence_path": "docs/evidence/2026-10-08-job-sorting-salary.json",
+    "integration_receipt": "https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6059500447",
+    "note": "Main and origin/main synchronized at this checkpoint. #115 salary fit receipt: https://github.com/MulattoTech/MJobs/issues/115#issuecomment-6059458494. #190 experience facet receipt: https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6059304313. Bounded requirements remain PARTIAL; hosted/PostgreSQL NOT_RUN; release UNKNOWN; external submission OFF."
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -11700,15 +11748,21 @@
     "next_issue": "Release #398 and select the next dependency-ready unclaimed issue after live claim/worktree reconciliation."
   },
   "active_development_issue": {
-    "issue": 190,
-    "requirement_id": "MJ-REQ-189",
-    "title": "Job Filter Sidebar",
-    "state": "Bounded minimum-score slice integrated; no active Codex child. Other filter facets remain incomplete.",
-    "branch": "codex/mj-req189-match-score-filter-20261008",
-    "worktree": ".worktrees/codex-mj-req189-match-score-filter-20261008",
-    "base_commit": "8d89cb6d6ae33c034fe1094919fbbb4950cb2c03",
-    "owned_paths": [],
-    "acceptance": "Persisted current-profile-version match scores can be filtered before LIMIT; selected saved search exposes an editable threshold including clear; profile isolation, stale/NULL score exclusion and no discovery/scheduler mutation are verified."
+    "issue": 134,
+    "requirement_id": "MJ-REQ-133",
+    "title": "Dynamic Forms",
+    "state": "Bounded synthetic-ATS conditional-field slice claimed and active; full requirement remains NOT_RUN until verified.",
+    "branch": "codex/mj-req133-dynamic-conditional-field-20261008",
+    "worktree": ".worktrees/codex-mj-req133-dynamic-conditional-field-20261008",
+    "base_commit": "ba540570f0ffe138fa5656bb674d570e464bcc7d",
+    "owned_paths": [
+      "services/applications/mock_adapter.py",
+      "fixtures/mock_server.py",
+      "tests/integration/test_application_pipeline.py",
+      "tests/browser/test_mock_application.py",
+      "docs/evidence/2026-10-08-dynamic-form-conditional-field.json"
+    ],
+    "acceptance": "After a known approved answer reveals one country-dependent field, re-read form state and fill only a confidently mapped answer; persist REVIEW_REQUIRED and stop before mock submit for an unknown required field."
   },
   "historical_control_snapshots": [
     {
@@ -12864,7 +12918,8 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-08T11:42:38Z",
-  "current_verified_local_state": "Exact synchronized main d6a8f519ccc8cf6de3943effb2afc037fd89920b (tree c53080d034f7514d1a7fee994d5294f0cd77dec5); #105/MJ-REQ-104 opposite-polarity answer guard and #190/MJ-REQ-189 current-version minimum score filter are integrated bounded PARTIAL slices with local evidence.",
-  "current_verified_github_state": "Local main, origin/main and GitHub default main synchronized at d6a8f519ccc8cf6de3943effb2afc037fd89920b; integration receipts posted for #105 and #190. Hosted checks/reviews remain NOT_RUN_BY_USER_POLICY."
+  "release_readiness": "UNKNOWN",
+  "updated_at": "2026-10-08T12:10:15Z",
+  "current_verified_local_state": "Exact synchronized main 980f89c78d384ec3098e083616b48c8c713089f3; bounded normalized experience filter, score-neutral annual USD salary match explanation, and annual USD salary sorting are integrated with exact local evidence. All remain requirement-level PARTIAL; the #134 dynamic-form slice is active in its isolated worktree.",
+  "current_verified_github_state": "Local main, origin/main and GitHub default main synchronized at 980f89c78d384ec3098e083616b48c8c713089f3. Integration receipts posted for #115 and #191; hosted checks/reviews remain NOT_RUN_BY_USER_POLICY."
 }
