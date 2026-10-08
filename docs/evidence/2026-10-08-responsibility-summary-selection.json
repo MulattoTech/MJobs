@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
-  "created_at_utc": "2026-10-08T13:57:07Z",
+  "created_at_utc": "2026-10-08T14:03:15Z",
   "requirement_id": "MJ-REQ-095",
   "issue": 96,
   "result": "PARTIAL",
-  "scope": "Select approved summary facts by exact target-job responsibility phrases only when no summary fact matches an exact target skill; preserve all summaries when neither signal matches.",
+  "scope": "Select the stable source-order union of approved summary facts matching exact target-job skills or exact extracted responsibilities; preserve all summaries only when neither signal matches.",
   "branch": "codex/mj-req095-responsibility-summary-20261008",
   "worktree": ".worktrees/codex-mj-req095-responsibility-summary-20261008",
   "base": {
@@ -13,30 +13,31 @@
   },
   "candidate_state": "Product code and tests are committed; this evidence artifact will be committed as an evidence-only descendant.",
   "product_source": {
-    "commit": "c3328ce6fcdf1e05006f65a33a60db39d4cd2efd",
-    "tree": "c59709b9599af66621d4452de9a3211674f8c25c",
+    "commit": "74e5b35b30f85369faf5431db77f717cce7c77f1",
+    "tree": "8bb2a7964afccbb6a40d583f61cc200ce869d47d",
     "parent": "3d7ff2c6fb0a6151026ebbe23033b4b5c5022937"
   },
   "source_inputs_sha256": {
-    "services/documents/tailor.py": "baa2ba8a1b1fc18b78f7c74326b6274ed4f463c5950c1cb5811e607f77925c8a",
-    "services/documents/comparison.py": "15bc7003d74d47e0034ceb459ca547856a314c9a648637ecb424df168916dfe8",
-    "tests/unit/test_skill_order.py": "ff71edb76814b11b53d3c1da8c26eb7dbf3ca927214072283e8333baab894768",
-    "tests/integration/test_skill_order.py": "7d4d5b96dbd15a5b4df9d515a348fd2a6d268ad409a5acfecdd05f831936e384",
-    "tests/integration/test_resume_comparison.py": "927ca705b24147e6b3ffb9431185726f172e2f66d573cc7cfc3fb89bef7074f0",
+    "services/documents/tailor.py": "85ebfecfaec26a12251274711ca356317cd79d897c27d9a45a6d7d17889991fd",
+    "services/documents/comparison.py": "6cf5de87da5361c59993319a566ffb662a5c139b6d6c2fced65de419439842d3",
+    "tests/unit/test_skill_order.py": "9b0295e4b93e6edc6c19afb96f485d97a245ae581b112b54a2d271cc046f3d89",
+    "tests/integration/test_skill_order.py": "1b77bfb907e54557a0e0feb15f6b189d22bf72868b7ea4fe274745499dad1a5c",
+    "tests/integration/test_resume_comparison.py": "6e905a6b13453e37d1bc6413658ecafdbc90d9cff74ab0ee794186ce5a3a083d",
     "tests/browser/test_skill_order.py": "04e3f9a2edde13c511b17382f6881de91c8cb739a001973d0d7e00d3fedd23c4"
   },
   "behavior_verified": [
-    "Exact extracted multiword duty evidence selects only matching approved summary facts when no canonical skill match exists.",
+    "Exact extracted multiword duty evidence selects matching approved summary facts when exact skill matches also exist.",
+    "Exact skill and responsibility evidence is combined in stable source order and recorded in a distinct union mode with both match maps.",
     "A near or paraphrased duty miss keeps every approved summary fact.",
-    "Existing exact skill selection remains the first choice and source wording is unchanged.",
+    "Existing exact skill selection remains intact and source wording is unchanged.",
     "Immutable responsibility target and source-fact provenance survives database reopen and is revalidated by comparison; tampered match provenance is rejected.",
     "The browser prepare, durable revision, reload, download, and comparison flow shows the selected and omitted summaries.",
     "Profile facts and cover-letter TXT hash remain unchanged."
   ],
   "validation": {
     "focused_command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_skill_order tests.integration.test_skill_order tests.integration.test_resume_comparison tests.browser.test_skill_order -v",
-    "focused_result": "PARTIAL: 26 tests ran; 25 passed and one unchanged-main baseline browser test failed.",
-    "passing_new_acceptance": "Exact responsibility selection, paraphrase fallback, durable reopen/comparison, tamper rejection, unchanged profile/cover letter, and connected Chromium flow passed.",
+    "focused_result": "PARTIAL: 27 tests ran; 26 passed and one unchanged-main baseline browser test failed.",
+    "passing_new_acceptance": "Responsibility-only and mixed skill+responsibility union selection, paraphrase fallback, stable order, durable reopen/comparison, tamper rejection, unchanged profile/cover letter, and connected Chromium flow passed.",
     "baseline_failure": "tests.browser.test_skill_order.SkillOrderBrowserTests.test_explicit_ordering_reaches_worker_and_download fails on unchanged main 3d7ff2c6fb0a6151026ebbe23033b4b5c5022937 with Comparison unavailable: Original target-bullet adjustment context is unavailable. This reproduces outside this branch and is unrelated to summary responsibility selection.",
     "compile": "python -m py_compile for both changed services and all four changed test modules: PASS.",
     "diff_check": "git diff --check: PASS.",
@@ -49,7 +50,8 @@
     "lane_claim_key": "codex:req095-responsibility-summary-selection",
     "github_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6061276273",
     "status": "ACTIVE_THROUGH_ROOT_INTEGRATION_READBACK",
-    "correction_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6061491635"
+    "correction_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6061491635",
+    "scope_update_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6061578686"
   },
   "external_submission": "OFF"
 }
