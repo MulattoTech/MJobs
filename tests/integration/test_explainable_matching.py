@@ -272,6 +272,16 @@ class ExplainableMatchingTests(unittest.TestCase):
         }
         _, ambiguous = factor("BACHELORS_REQUIRED", [in_progress])
         self.assertEqual(ambiguous["status"], "UNKNOWN")
+        for text in (
+            "Bachelor's degree not yet completed.",
+            "Bachelor's degree not yet earned.",
+        ):
+            with self.subTest(not_yet=text):
+                _, uncertain_completion = factor("BACHELORS_REQUIRED", [
+                    {**approved_bachelors, "text": text},
+                ])
+                self.assertEqual(uncertain_completion["status"], "UNKNOWN")
+                self.assertEqual(uncertain_completion["score_effect"], "NONE")
         _, generic_degree = factor("DEGREE_PREFERRED", [approved_bachelors])
         self.assertEqual(generic_degree["status"], "UNKNOWN")
         _, equivalent_experience = factor("BACHELORS_OR_EQUIVALENT_EXPERIENCE", [approved_bachelors])

@@ -237,10 +237,10 @@ def _education_fit_factors(job, profile):
             continue
         if not _BACHELOR_MENTION.search(text):
             continue
-        if _BACHELOR_NONCOMPLETION.search(text) or _BACHELOR_NEGATION.search(text):
-            negative = True
-        elif _EDUCATION_AMBIGUITY.search(text):
+        if _EDUCATION_AMBIGUITY.search(text):
             ambiguous = True
+        elif _BACHELOR_NONCOMPLETION.search(text) or _BACHELOR_NEGATION.search(text):
+            negative = True
         else:
             positive = True
 

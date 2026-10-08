@@ -6,18 +6,18 @@
   "requirement": "MJ-REQ-114 explainable matching; score-neutral education fit factor",
   "branch": "codex/mj-req114-education-fit-factor-20261008",
   "base_commit": "cf205874485b5e9ad2b162aa28c9e1ee405f4ff1",
-  "previous_commit": "5176a61a57956064d460131b357788fe5dca5fa6",
-  "tested_source_tree_oid": "06232df78a979c8f3ecccd173b15ae545a781bf4",
+  "previous_commit": "82dc7a383ea195857ecec04faeb78937d2ef0f87",
+  "tested_source_tree_oid": "1203e84dc0b031e266317172a4b1fa722364abd5",
   "tested_source_files": [
     {
       "path": "services/discovery/matching.py",
-      "worktree_sha256": "8444c96e4bfdd695e359199706a38eb0b79d161ac446d5345a526ada5947090f",
-      "git_blob_oid": "3eaaf58b3f03d4a9b71974cbc3506d7946cdb228"
+      "worktree_sha256": "010356ad13f0a8df70bf9fa40bc83589f86ef7389f8092ff4eabc29ed531915f",
+      "git_blob_oid": "2ca3553e893b4c93d9b3056d0c731cc62dc46356"
     },
     {
       "path": "tests/integration/test_explainable_matching.py",
-      "worktree_sha256": "9a66c4c70e7f2e4898f610280d751acca52f1e0af337f807c92438455dec64fc",
-      "git_blob_oid": "f42c04ee4e725ab014b0ba01b822fbce2e7525f0"
+      "worktree_sha256": "61d901cf8c362c4e960f4250364356c80d8f45bef162afe8c57fa7d9c13c9430",
+      "git_blob_oid": "45884fe59a24c7ae0f20e33f45ed941ffcabc9b6"
     },
     {
       "path": "tests/browser/test_education_match_explanation.py",
@@ -34,7 +34,7 @@
     {
       "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_explainable_matching",
       "result": "PASS",
-      "detail": "22 tests passed, including required/preferred, explicit negation/noncompletion (not completed, never completed, not finished, not earned, incomplete, unfinished), ambiguous, conflict, durable readback, revocation and profile-isolation cases."
+      "detail": "22 tests passed, including explicit completed-denial/noncompletion phrases, not-yet ambiguity precedence, required/preferred strength, conflicts, durable readback, revocation and profile isolation."
     },
     {
       "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_education_match_explanation",
@@ -69,19 +69,19 @@
     "Only supported persisted education classifications produce an interpretable comparison; present unsupported classifications produce UNKNOWN.",
     "Bachelors required/preferred strength is preserved in the factor label.",
     "Affirmative and mismatch claims require verified, user-approved education facts with nonempty source and confidence >= 80.",
-    "Missing, rejected, low-confidence, ambiguous, conflicting, equivalent-experience, and unsupported cases remain UNKNOWN; no missing record implies lack of a degree.",
+    "Missing, rejected, low-confidence, ambiguous (including not yet completed/earned), conflicting, equivalent-experience, and unsupported cases remain UNKNOWN; no missing record implies lack of a degree.",
     "Explicit degree noncompletion statements such as not completed, never completed, not finished, not earned, incomplete, and unfinished return NO_DIRECT_MATCH based on explicit approved evidence.",
     "Every education factor has score_effect NONE and score remains unchanged.",
     "Connected SQLite rescore/readback after approval revocation returns UNKNOWN and remains isolated by profile."
   ],
-  "review_finding": "Resolved: explicit trailing noncompletion wording (not completed, never completed, not finished, not earned, incomplete, unfinished) no longer produces ALIGNS; all such outcomes remain score-neutral.",
+  "review_finding": "Resolved: explicit completed-denial statements remain score-neutral NO_DIRECT_MATCH while not-yet/ongoing phrases take ambiguity precedence and remain UNKNOWN.",
   "limitations": [
     "PostgreSQL was not exercised.",
     "Hosted CI/review and live third-party providers were not run by local-only policy.",
     "Issue remains OPEN/PARTIAL because this bounded slice does not complete the broader explainable-matching requirement."
   ],
   "environment": "Windows, Python 3.12 project virtual environment, SQLite FIXTURE workspace, synthetic Chromium, local-only network guard",
-  "recorded_utc": "2026-10-08T14:39:40Z",
+  "recorded_utc": "2026-10-08T14:42:09Z",
   "initial_red_test_observation": {
     "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_explainable_matching.ExplainableMatchingTests.test_education_fit_requires_supported_job_classification_and_approved_evidence tests.integration.test_explainable_matching.ExplainableMatchingTests.test_education_fit_conflicting_facts_are_unknown_and_do_not_change_score tests.integration.test_explainable_matching.ExplainableMatchingTests.test_education_fit_is_durably_rescored_and_isolated_by_profile",
     "result": "EXPECTED_FAILURE_BEFORE_IMPLEMENTATION",
@@ -91,5 +91,10 @@
     "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_explainable_matching.ExplainableMatchingTests.test_education_fit_requires_supported_job_classification_and_approved_evidence",
     "result": "EXPECTED_FAILURE_BEFORE_FIX",
     "detail": "Bachelor's degree never completed returned ALIGNS; not finished and not earned variants already returned NO_DIRECT_MATCH."
+  },
+  "precedence_regression_red": {
+    "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_explainable_matching.ExplainableMatchingTests.test_education_fit_requires_supported_job_classification_and_approved_evidence",
+    "result": "EXPECTED_FAILURE_BEFORE_FIX",
+    "detail": "Not yet completed and not yet earned both returned NO_DIRECT_MATCH; expected UNKNOWN."
   }
 }
