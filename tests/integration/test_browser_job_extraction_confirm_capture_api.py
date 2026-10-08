@@ -56,7 +56,7 @@ class BrowserJobExtractionConfirmCaptureTests(unittest.TestCase):
             ),
             "location": "Remote, United States",
             "source_job_id": "example-role-41",
-            "listing_url": "https://jobs.example.invalid/roles/sysadmin?source=fixture-source",
+            "listing_url": "https://jobs.example.invalid/roles/sysadmin?token=fixture-token",
             "application_url": "https://careers.example.invalid/apply/sysadmin?session=fixture-session",
         })
         field_provenance = {
@@ -152,7 +152,16 @@ class BrowserJobExtractionConfirmCaptureTests(unittest.TestCase):
                 m.postings.c.job_id == job_id,
             )).mappings().one()
         extraction_capture = posting["raw"]["submitted_fields"]["source_details"]["extraction_capture"]
-        self.assertEqual(extraction_capture, payload["source_details"]["extraction_capture"])
+        expected_extraction_capture = deepcopy(
+            payload["source_details"]["extraction_capture"],
+        )
+        expected_extraction_capture["raw_fields"]["listing_url"] = (
+            "https://jobs.example.invalid/roles/sysadmin"
+        )
+        expected_extraction_capture["raw_fields"]["application_url"] = (
+            "https://careers.example.invalid/apply/sysadmin"
+        )
+        self.assertEqual(extraction_capture, expected_extraction_capture)
         self.assertEqual(extraction_capture["schema_version"], 1)
         self.assertEqual(set(extraction_capture["raw_fields"]), set(_EXTRACTION_FIELDS))
         self.assertEqual(set(extraction_capture["field_provenance"]), set(_EXTRACTION_FIELDS))
@@ -163,6 +172,12 @@ class BrowserJobExtractionConfirmCaptureTests(unittest.TestCase):
         self.assertEqual(extraction_capture["raw_capture_ref"],
                          "capture.synthetic-reviewed-confirmation-1")
         self.assertEqual(extraction_capture["field_provenance"]["title"]["user_corrected"], True)
+        self.assertEqual(extraction_capture["raw_fields"]["listing_url"],
+                         "https://jobs.example.invalid/roles/sysadmin")
+        self.assertEqual(extraction_capture["raw_fields"]["application_url"],
+                         "https://careers.example.invalid/apply/sysadmin")
+        self.assertNotIn("?", extraction_capture["raw_fields"]["listing_url"])
+        self.assertNotIn("?", extraction_capture["raw_fields"]["application_url"])
         self.assertNotIn("visible_text", posting["raw"]["submitted_fields"])
         self.assertNotIn("raw_page", posting["raw"]["submitted_fields"])
 
