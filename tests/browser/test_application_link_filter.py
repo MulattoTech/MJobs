@@ -1,5 +1,6 @@
 """Connected browser acceptance for saved application-link availability."""
 from pathlib import Path
+import os
 import tempfile
 import threading
 import time
@@ -18,7 +19,7 @@ from packages.persistence.store import Store, upsert
 from services.discovery.pipeline import discover
 from tests.integration.test_spine import PROFILE
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(os.environ.get("MJOBS_BROWSER_APP_ROOT", Path(__file__).resolve().parents[2]))
 
 
 @unittest.skipUnless((ROOT / "apps/web/dist/index.html").is_file(),
@@ -141,9 +142,10 @@ class ApplicationLinkFilterBrowserTests(unittest.TestCase):
                     expect(saved.locator("option", has_text="Available application links")).to_have_count(1)
                     selected_value = saved.locator(
                         "option", has_text="Available application links").get_attribute("value")
+                    self.assertTrue(selected_value, "Saved search option must expose its persisted ID")
                     with page.expect_response(lambda response:
                             response.url.startswith(origin + "/jobs?")
-                            and "search_profile_id=application-link-saved-search" in response.url
+                            and f"search_profile_id={selected_value}" in response.url
                             and "application_link_status=AVAILABLE" in response.url) as restored:
                         saved.select_option(selected_value)
                     self.assertEqual([row["id"] for row in restored.value.json()["jobs"]],
