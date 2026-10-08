@@ -57,54 +57,55 @@ class CompanyTrackingBrowserTests(unittest.TestCase):
                 with sync_playwright() as pw:
                     browser = pw.chromium.launch(headless=True)
                     context = browser.new_context(viewport={'width':1280,'height':900})
-                    context.add_init_script("""
-                      const realFetch = window.fetch.bind(window);
-                      window.releaseCompanyTrackingRead = null;
-                      window.fetch = (input, init={}) => {
-                        const requestUrl = new URL(typeof input === 'string' ? input : input.url, location.href);
-                        if (requestUrl.pathname === '/profiles/fixture/companies/browser-acme/tracking' &&
-                            (!init.method || init.method === 'GET')) {
-                          return new Promise(resolve => {
-                            window.releaseCompanyTrackingRead = () => realFetch(input, init).then(resolve);
-                          });
-                        }
-                        return realFetch(input, init);
-                      };
-                    """)
                     external = []
+                    held_company_reads = []
+                    hold_next_company_read = {'enabled': False}
+                    tracking_path = '/profiles/fixture/companies/browser-acme/tracking'
                     def local_only(route):
                         if urlsplit(route.request.url).netloc != urlsplit(origin).netloc:
                             external.append(route.request.url)
                             route.abort()
+                        elif (hold_next_company_read['enabled'] and
+                              urlsplit(route.request.url).path == tracking_path and
+                              route.request.method == 'GET'):
+                            hold_next_company_read['enabled'] = False
+                            held_company_reads.append(route)
                         else:
                             route.continue_()
                     context.route('**/*', local_only)
+
+                    def hold_company_read_during(action):
+                        hold_next_company_read['enabled'] = True
+                        with page.expect_request(
+                            lambda request: urlsplit(request.url).path == tracking_path and request.method == 'GET'
+                        ):
+                            action()
+                        self.assertEqual(len(held_company_reads), 1)
+                        return held_company_reads.pop()
+
                     page = context.new_page()
                     errors = []
                     page.on('pageerror', lambda error: errors.append(str(error)))
                     page.goto(origin, wait_until='domcontentloaded')
                     page.locator('#active-profile').select_option('fixture')
-                    page.get_by_role('button', name='Sources', exact=True).click()
+                    stale_read = hold_company_read_during(
+                        lambda: page.get_by_role('button', name='Sources', exact=True).click()
+                    )
                     card = page.locator(f'[data-source-id="{source["id"]}"]')
                     expect(card).to_be_visible()
-                    page.wait_for_function('window.releaseCompanyTrackingRead !== null')
                     page.locator('#active-profile').select_option('fixture-two')
                     expect(card.locator('.company-notes')).to_contain_text('No notes saved')
-                    page.evaluate('window.releaseCompanyTrackingRead()')
+                    stale_read.continue_()
                     expect(card.locator('.company-notes')).not_to_contain_text('Saved only for first profile.')
                     second_note = card.get_by_role('textbox', name='Add a note for Browser Acme')
                     second_note.fill('Unsaved second-profile draft.')
                     page.locator('#active-profile').select_option('fixture')
-                    page.wait_for_function('window.releaseCompanyTrackingRead !== null')
-                    page.evaluate('window.releaseCompanyTrackingRead()')
                     expect(card.locator('.company-notes')).to_contain_text('Saved only for first profile.')
                     first_note = card.get_by_role('textbox', name='Add a note for Browser Acme')
                     expect(first_note).to_have_value('')
                     page.locator('#active-profile').select_option('fixture-two')
                     expect(card.get_by_role('textbox', name='Add a note for Browser Acme')).to_have_value('')
                     page.locator('#active-profile').select_option('fixture')
-                    page.wait_for_function('window.releaseCompanyTrackingRead !== null')
-                    page.evaluate('window.releaseCompanyTrackingRead()')
                     expect(card.locator('.company-notes')).to_contain_text('Saved only for first profile.')
                     first_note = card.get_by_role('textbox', name='Add a note for Browser Acme')
                     first_note.fill('Added through the browser.')
@@ -114,8 +115,6 @@ class CompanyTrackingBrowserTests(unittest.TestCase):
                     page.locator('#active-profile').select_option('fixture')
                     page.get_by_role('button', name='Sources', exact=True).click()
                     reloaded_card = page.locator(f'[data-source-id="{source["id"]}"]')
-                    page.wait_for_function('window.releaseCompanyTrackingRead !== null')
-                    page.evaluate('window.releaseCompanyTrackingRead()')
                     expect(reloaded_card.locator('.company-notes')).to_contain_text('Saved only for first profile.')
                     expect(reloaded_card.locator('.company-notes')).to_contain_text('Added through the browser.')
                     self.assertEqual(external, [])
