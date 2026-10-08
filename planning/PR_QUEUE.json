@@ -3812,7 +3812,38 @@
       "issue_state": "OPEN/PARTIAL",
       "issue_comment": "https://github.com/MulattoTech/MJobs/issues/116#issuecomment-6052743128",
       "notes": "Scoped certification REQUIRED/PREFERRED/NICE_TO_HAVE/UNKNOWN parsing covers recognized comma, comma-but, comma-and and plain-and clauses in both orders, with ambiguous and negation controls. Worker recorded 23 parser+matching integration tests PASS with exact inputs rechecked after rebase; root reran 16 parser unit tests PASS and TypeScript/Vite build PASS. Current matching-integration rerun (0 tests; SQLAlchemy missing) and connected-browser rerun (0 tests; Playwright missing) are BLOCKED_ENVIRONMENT. Earlier browser evidence predates final parser corrections. Local delegated review found no code blocker. Broad MJ-REQ-115/#116 remains OPEN/PARTIAL; parent MJ-PR-031 dependencies are unchanged; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF."
+    },
+    {
+      "id": "MJ-PR-170",
+      "title": "MJ-REQ-095 approved experience-fact rewrite",
+      "domain": "resume_tailoring",
+      "requirements": [
+        "MJ-REQ-095"
+      ],
+      "issues": [
+        96
+      ],
+      "reference_gaps": [],
+      "target_area": "services/documents/tailor.py; apps/web/src/resume-fact-selection.tsx; resume comparison unit/integration/browser tests",
+      "depends_on": [],
+      "status": "INTEGRATED_PARTIAL",
+      "branch": "codex/mj-req095-experience-rewrite-20261008",
+      "draft_until_verified": true,
+      "issue_number": 96,
+      "evidence_path": "docs/evidence/2026-10-08-resume-experience-rewrites.json",
+      "base": "f34131a4047467284bb25b37138f872bf5f14a42",
+      "candidate": "c6eb1cd604d1372800bc798b7454aa9fe40d9d91",
+      "source_commit": "c6eb1cd604d1372800bc798b7454aa9fe40d9d91",
+      "integration_commit": "5dfce5eec8e2e6c56442631725c0993c7ce12a29",
+      "integration_method": "NON_FORCE_FAST_FORWARD",
+      "pr_state": "NOT_OPENED_LOCAL_ONLY",
+      "integrated_at": "2026-10-08T05:52:46Z",
+      "scope_complete": false,
+      "scope_result": "PASS",
+      "issue_state": "OPEN/PARTIAL",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6053321247",
+      "notes": "Scoped user-authored, individually reviewed rewrites for selected approved experience facts are integrated with source identity/hash, exact date/number preservation, stale profile/source rejection, immutable provenance and historical comparison after reload. Root exact-candidate local checks: Python 14 (13 unit/integration plus 1 connected Chromium), focused Vitest 1, TypeScript/Vite build; evidence/hash/JSON/progress/diff checks pass. Node 25.9.0 is outside Vitest declared support. Issue #96 remains PARTIAL for other tailoring modes and semantic-equivalence proof; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF."
     }
   ],
-  "generated_at": "2026-10-08T05:21:23Z"
+  "generated_at": "2026-10-08T05:52:46Z"
 }

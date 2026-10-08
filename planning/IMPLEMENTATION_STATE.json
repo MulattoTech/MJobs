@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-08T05:43:46Z",
+  "generated_at": "2026-10-08T05:52:46Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -129,7 +129,8 @@
     "Issue #517 structured source-review evaluation integrated PARTIAL at main 94de9869be86f32d3f815dc318d4d5e9a95e1219; review history stores source kind, API/feed evidence status/reference, access/terms, capabilities/limits and expected value/maintenance notes. Sources UI save/reload, profile isolation, idempotency, safe URL sanitization, collection OFF and no-network behavior verified. Evidence docs/evidence/2026-10-07-source-candidate-review-evaluation.json. Focused API/browser 7 PASS; frontend 63/build, validators and temporary SQLite migration-preservation check PASS. PostgreSQL/Docker, live source inspection and hosted checks NOT_RUN. Provider/browser intake and bounded integration-task linkage remain open.",
     "Issue #167 / MJ-REQ-166 migration graph repair PARTIAL: added merge revision e2a4c9d0b721 joining existing Alembic heads 9b6d40aaf163 and f37a0c2e91b5. Normal `upgrade('head')` now succeeds on a fresh temporary SQLite database and resumes comparison integration setup. Source commit 0a7400d2bf7f8f449d69a81fde84a4f107faf06f; evidence docs/evidence/2026-10-08-alembic-merge-heads.json. Seven focused migration/resume integration tests PASS. Broader database migration, PostgreSQL index runtime, backup/restore acceptance and dependencies remain incomplete; issue #167/MJ-REQ-166 remains OPEN/PARTIAL.",
     "Issue #104 / MJ-REQ-103 answer bank acceptance is PASS (docs/evidence/2026-10-08-answer-bank-acceptance.json); parent MJ-PR-028 requirements MJ-REQ-100..102 and MJ-REQ-104..107 are not promoted. Aggregate core workflow/release remain PARTIAL.",
-    "Issue #199 / MJ-REQ-198 comparison increment locally integrated PASS at 41513c0f3c2c75970bfc8173f0ca8576acb63519; evidence docs/evidence/2026-10-08-cover-letter-history-comparison.json. Full requirement remains PARTIAL; no change to MJ-PR-054 dependencies, core workflow, or release acceptance."
+    "Issue #199 / MJ-REQ-198 comparison increment locally integrated PASS at 41513c0f3c2c75970bfc8173f0ca8576acb63519; evidence docs/evidence/2026-10-08-cover-letter-history-comparison.json. Full requirement remains PARTIAL; no change to MJ-PR-054 dependencies, core workflow, or release acceptance.",
+    "MJ-REQ-095: selected approved experience facts now support the existing individually reviewed, user-authored rewrite flow with source identity, immutable history, reload and comparison; this is a scoped local PASS, not full tailoring or semantic-equivalence proof."
   ],
   "blocked_capabilities": [],
   "active_requirements": [
@@ -143,7 +144,8 @@
     "MJ-REQ-176",
     "MJ-REQ-177",
     "MJ-REQ-115",
-    "MJ-REQ-274"
+    "MJ-REQ-274",
+    "MJ-REQ-104"
   ],
   "active_prs": [],
   "tests_passed": [
@@ -385,7 +387,8 @@
     "Local delegated review of #116 candidate: no code blocker; branch rebased onto current main and exact source-input hashes rechecked.",
     "Issue #104 / MJ-REQ-103 answer bank exact-head evidence revalidated against current main: 15 synthetic SQLite integration tests, 2 connected synthetic Chromium tests, web build PASS; input diff from tested snapshot 77a7d36 to d8caa90 contains no executable/test/build inputs. Node 25.9 is outside Vitest 5 declared engine range.",
     "Issue #199 / MJ-REQ-198 readable comparison source/test inputs integrated at main 41513c0f3c2c75970bfc8173f0ca8576acb63519. Root exact-integrated-tree recheck: focused Vitest 9/9; TypeScript/Vite build PASS; connected synthetic Chromium document-history 2/2. LOCAL_DELEGATED_REVIEW no material findings; Node 25.9 outside Vitest 5 declared range.",
-    "Issue #117 / MJ-REQ-116 match categories integrated at main f1afad5541ebcad1cd07e35b5366b78df4e1f637. Root exact integrated-source checks: 23 focused helper cases PASS; TypeScript/Vite build PASS; connected FIXTURE-mode Chromium 1/1 PASS. Local delegated review found no blocker; Node 25.9 outside Vitest 5 supported engine range."
+    "Issue #117 / MJ-REQ-116 match categories integrated at main f1afad5541ebcad1cd07e35b5366b78df4e1f637. Root exact integrated-source checks: 23 focused helper cases PASS; TypeScript/Vite build PASS; connected FIXTURE-mode Chromium 1/1 PASS. Local delegated review found no blocker; Node 25.9 outside Vitest 5 supported engine range.",
+    "Issue #96 / MJ-REQ-095 experience-fact rewrite integrated at main 5dfce5eec8e2e6c56442631725c0993c7ce12a29; tested source commit c6eb1cd604d1372800bc798b7454aa9fe40d9d91. Exact source test run: 13 unit/integration + 1 connected synthetic Chromium; targeted Vitest 1; TypeScript/Vite build PASS. Evidence hash/JSON/progress/diff validation PASS. Vitest used Node 25.9.0 outside its declared support range. Evidence docs/evidence/2026-10-08-resume-experience-rewrites.json; issue https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6053321247. Broader requirement remains PARTIAL."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -585,7 +588,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "#117 / MJ-REQ-116 is CLOSED/PASS and its main.tsx claim is released. Current implementation workers: #96/MJ-REQ-095 reviewed experience rewrite, #105/MJ-REQ-104 answer matching (newly claimed), and #275/MJ-REQ-274 scheduled-source restart recovery; integrate candidates one at a time after exact-base revalidation. Five read-only task leads found #118 blocked by queue/model prerequisites, #197 and #517 UI-dependent on #117 (now reconsider these using current base); #105 was selected as an additive answer-only slice while preserving MJ-PR-029 aggregate dependencies. #104 CLOSED/PASS; #199 OPEN/PARTIAL. Core workflow and release remain PARTIAL; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
+  "recommended_resume_step": "Main and origin/main are synchronized at 5dfce5eec8e2e6c56442631725c0993c7ce12a29. Issue #96 / MJ-REQ-095 approved experience-fact rewrite is locally PASS for its narrow scope and integrated; broader tailoring remains PARTIAL. Current Codex workers: #105 / MJ-REQ-104 answer matching, #275 / MJ-REQ-274 scheduler process restart, and #178 / MJ-REQ-177 safe discovery context in worker logs. Reconcile their claims and candidate hashes; integrate one qualified branch at a time. Keep #517 UI linkage deferred while #105 owns apps/web/src/main.tsx. Antigravity #302 and Ollama #318 remain active; do not disturb their paths. Hosted checks/reviews NOT_RUN_BY_USER_POLICY, external submission OFF, core workflow and release remain PARTIAL.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -623,7 +626,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "1173bf792f0bd4092d638662d982c9bf8e225f9a",
+  "last_implementation_commit": "5dfce5eec8e2e6c56442631725c0993c7ce12a29",
   "publication": {
     "result": "PASS",
     "integration_method": "NON_FORCE_FAST_FORWARD",
@@ -9829,17 +9832,67 @@
         "claim_release_receipt": "https://github.com/MulattoTech/MJobs/issues/117#issuecomment-6053209106",
         "issue_state_after_readback": "CLOSED"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-095-EXPERIENCE-REWRITE-20261008",
+      "timestamp": "2026-10-08T05:52:46Z",
+      "current_phase": "MJ_REQ_095_EXPERIENCE_REWRITE_INTEGRATED_LOCAL_PASS",
+      "completed_steps": [
+        "Integrated selected approved experience-fact rewrites in the per-application reviewed resume flow; CareerFacts and cover-letter text remain unchanged.",
+        "Corrected evidence to identify exact source candidate c6eb1cd604d1372800bc798b7454aa9fe40d9d91 and candidate working-copy hashes separately from test-input hashes; verified Git blobs match tested inputs.",
+        "Root verified exact candidate checks: 13 unit/integration tests, one connected synthetic Chromium test, one focused Vitest test, and TypeScript/Vite build PASS.",
+        "Fast-forwarded owned candidate into local main and origin/main at 5dfce5eec8e2e6c56442631725c0993c7ce12a29; posted and read back scoped issue receipt; issue remains OPEN."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-08-resume-experience-rewrites.json",
+        "tests/browser/test_resume_experience_rewrite.py",
+        "apps/web/src/resume-fact-selection.test.tsx"
+      ],
+      "files_modified": [
+        "services/documents/tailor.py",
+        "apps/web/src/resume-fact-selection.tsx",
+        "tests/unit/test_resume_comparison.py",
+        "tests/integration/test_resume_comparison.py"
+      ],
+      "tests_completed": [
+        "Python unit/integration/browser: 14 PASS total (13 unit/integration and 1 connected synthetic Chromium).",
+        "Targeted Vitest: 1 PASS under Node 25.9.0, outside declared support range.",
+        "TypeScript check and Vite production build PASS.",
+        "Evidence source-hash comparison, JSON parse, progress validator and git diff --check PASS."
+      ],
+      "tests_remaining": [
+        "Broader MJ-REQ-095 acceptance remains PARTIAL; user attestation is not automated semantic equivalence.",
+        "Hosted CI/review NOT_RUN_BY_USER_POLICY; supported Node Vitest NOT_RUN; PostgreSQL/provider checks NOT_RUN."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Synthetic temporary SQLite and connected loopback Chromium only; external requests/providers and real application submission OFF."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "Issue #96 and MJ-REQ-095 remain PARTIAL for other tailoring modes and semantic-equivalence proof.",
+        "Vitest ran with Node 25.9.0, outside declared support range."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "5dfce5eec8e2e6c56442631725c0993c7ce12a29",
+        "tree": "098ed915656564bbcc2e1e3d986a4f9534de5a8b",
+        "source_commit": "c6eb1cd604d1372800bc798b7454aa9fe40d9d91",
+        "evidence_path": "docs/evidence/2026-10-08-resume-experience-rewrites.json",
+        "issue_receipt": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6053321247",
+        "issue_state_after_readback": "OPEN",
+        "claim_release_receipt": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6053343083"
+      }
     }
   ],
-  "current_phase": "MJ_REQ_116_CATEGORIES_INTEGRATED_LOCAL_PASS_CLOSEOUT_PENDING",
+  "current_phase": "MJ_REQ_095_EXPERIENCE_REWRITE_INTEGRATED_LOCAL_PASS",
   "last_safe_checkpoint": {
-    "git_commit": "467470e4f0ffc87aebe3a3950d9ebc031508ee07",
-    "tree": "199d556c190e82a5961ead1be1bd9401ed195009",
-    "source_commit": "f1afad5541ebcad1cd07e35b5366b78df4e1f637",
-    "evidence_path": "docs/evidence/2026-10-08-match-categories.json",
-    "issue_receipt": "https://github.com/MulattoTech/MJobs/issues/117#issuecomment-6053208027",
-    "claim_release_receipt": "https://github.com/MulattoTech/MJobs/issues/117#issuecomment-6053209106",
-    "issue_state_after_readback": "CLOSED"
+    "git_commit": "5dfce5eec8e2e6c56442631725c0993c7ce12a29",
+    "tree": "098ed915656564bbcc2e1e3d986a4f9534de5a8b",
+    "source_commit": "c6eb1cd604d1372800bc798b7454aa9fe40d9d91",
+    "evidence_path": "docs/evidence/2026-10-08-resume-experience-rewrites.json",
+    "issue_receipt": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6053321247",
+    "issue_state_after_readback": "OPEN",
+    "claim_release_receipt": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6053343083"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -10150,16 +10203,13 @@
     "next_issue": "Release #398 and select the next dependency-ready unclaimed issue after live claim/worktree reconciliation."
   },
   "active_development_issue": {
-    "issue": 199,
-    "requirement_id": "MJ-REQ-198",
-    "title": "Cover-letter revision comparison",
-    "state": "OPEN / CANDIDATE_REVALIDATION",
-    "candidate": "1d9493f734e35107248267940fe6b4332bb1a52c",
-    "candidate_original_base": "9aa502a9df222dc517e6e9a3f46ed5ad4002cd00",
-    "target_main": "77a7d3670d7cbe3c3fb771dc2e8083b9fbaca66e",
-    "branch": "codex/mj-req198-cover-letter-comparison-20261008",
-    "worktree": ".worktrees/codex-mj-req198-cover-letter-comparison-20261008",
-    "next_action": "Rebase and rerun exact-head checks; no integration yet."
+    "issue": 105,
+    "requirement_id": "MJ-REQ-104",
+    "title": "Answer matching and reviewed reuse",
+    "state": "ACTIVE / IMPLEMENTATION",
+    "branch": "codex/mj-req104-answer-matching-20261008",
+    "worktree": ".worktrees/codex-mj-req104-answer-matching-20261008",
+    "next_action": "Finish the deterministic match-suggestion slice, then rebase on current main and rerun scoped checks. Preserve the legal/sensitive-answer no-inference policy."
   },
   "historical_control_snapshots": [
     {
@@ -11289,7 +11339,8 @@
     "Issue #179 / MJ-REQ-178 fully accepted and integrated at 8bea57e595e19e638913405a8ec1cd3aa0ebde32. All nine Compose services render 10m/5 file rotation; disposable Docker rollover emitted 50 and retained 11 lines under 1m/2; existing feedback retention and no raw trace/HTML storage verified. 20 focused tests and validators PASS. Evidence docs/evidence/2026-10-07-compose-log-rotation.json.",
     "Issue #403 / MJ-REF-033 page-budget slice: source 79b29ee0fe61af0906772f182c0ac280f73fc2f4 (443fb463d97b5ee45a558e8db06581f0c5d6b333), integrated candidate 01596a7a093bbfc359e9ded49076aac3cb95d94d (f55ee218fe0bb32249cef537ea66700b235280c5); 25 focused agent tests, compileall, agent_skills/catalogue/progress/reference_provenance/lane_coordination and diff checks PASS. Browser/source entrypoint, full Python suite, PostgreSQL/Docker and hosted checks NOT_RUN or NOT_APPLICABLE as recorded in docs/evidence/2026-10-07-agent-page-budget.json. Issue remains OPEN/PARTIAL.",
     "Issue #166 / MJ-REQ-165 fully accepted and integrated at 59039a51701258a35c93fc7deca6fbf85d72fddd from source 108c502ce0b2c8aa92a4868b09687b4b4a0206f1. Search now covers title, company, description, skills and location; PostgreSQL GIN full-text indexes support job and company search. Full Python 962/8 skipped, frontend 63/build, connected Chromium, SQLite/PostgreSQL migrations, PostgreSQL API/index-plan checks and local validators PASS. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF. Evidence docs/evidence/2026-10-07-full-text-search.json.",
-    "2026-10-08 #240 / MJ-REQ-239: integrated source/test candidate 1173bf792f0bd4092d638662d982c9bf8e225f9a, tree bf1400d35701eedaf60bbc569881d622692cb3fb; non-force fast-forward local main source/evidence checkpoint bed4f3e6aff9639a30d6ba3f1ded640a5b2dc77a, tree 88df6fa5709efa0daadf139385ce83a7aabfc8fe; the 18-test run was on integrated tree 5f3d7364e0cbe2edccbfee05386a1e9591c791f3. Jobs/company/application note integration/browser suites 18 PASS; company UI 4 tests executed PASS under Node 25.9.0 outside Vitest engine range; TypeScript/Vite build PASS. Requirement MJ-REQ-239 PASS; core-workflow trial/release remain PARTIAL; hosted and PostgreSQL NOT_RUN; external submission OFF."
+    "2026-10-08 #240 / MJ-REQ-239: integrated source/test candidate 1173bf792f0bd4092d638662d982c9bf8e225f9a, tree bf1400d35701eedaf60bbc569881d622692cb3fb; non-force fast-forward local main source/evidence checkpoint bed4f3e6aff9639a30d6ba3f1ded640a5b2dc77a, tree 88df6fa5709efa0daadf139385ce83a7aabfc8fe; the 18-test run was on integrated tree 5f3d7364e0cbe2edccbfee05386a1e9591c791f3. Jobs/company/application note integration/browser suites 18 PASS; company UI 4 tests executed PASS under Node 25.9.0 outside Vitest engine range; TypeScript/Vite build PASS. Requirement MJ-REQ-239 PASS; core-workflow trial/release remain PARTIAL; hosted and PostgreSQL NOT_RUN; external submission OFF.",
+    "Issue #96 / MJ-REQ-095 experience-fact rewrite integrated at main 5dfce5eec8e2e6c56442631725c0993c7ce12a29; tested source commit c6eb1cd604d1372800bc798b7454aa9fe40d9d91. Exact source test run: 13 unit/integration + 1 connected synthetic Chromium; targeted Vitest 1; TypeScript/Vite build PASS. Evidence hash/JSON/progress/diff validation PASS. Vitest used Node 25.9.0 outside its declared support range. Evidence docs/evidence/2026-10-08-resume-experience-rewrites.json; issue https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6053321247. Broader requirement remains PARTIAL."
   ],
   "ownership": "Issue #177 / MJ-REQ-176 company-source setting Activity slice source 0c76b225f48a882e8aa90b5e7686d22a8891425e, source tree 3d7733e26c5d4d097518d3c911d6029c7f1c5e86, evidence and tests integrated at synchronized local/GitHub main 68a0630b690cfa855e43829bc4f1836cf6add246 under the Codex integration lock. GitHub issue checkpoint: https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6048627184. The issue remains OPEN/PARTIAL; hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL/Docker NOT_RUN; external submission OFF.",
   "delivery_policy": {
