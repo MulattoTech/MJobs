@@ -290,6 +290,13 @@ class ApplicationAnswerExportTests(unittest.TestCase):
                 'source': 'Synthetic infrastructure inventory',
                 'verified': True, 'user_approved': True, 'confidence': 92,
             },
+            {
+                'id': 'itsm-tools',
+                'question': 'Which IT service management tools have you used?',
+                'text': 'Synthetic experience with a sample service desk platform',
+                'source': 'Synthetic IT operations inventory',
+                'verified': True, 'user_approved': True, 'confidence': 93,
+            },
         ])
         saved = self.put_profile(profile)
         self.assertEqual(saved.status_code, 200, saved.text)
@@ -312,6 +319,12 @@ class ApplicationAnswerExportTests(unittest.TestCase):
                     'question': 'What cloud providers have you used?',
                     'answer_id': 'cloud-platforms',
                     'text': 'Synthetic experience with two cloud platforms',
+                    'reviewed': True,
+                },
+                {
+                    'question': 'Which ITSM tools have you used?',
+                    'answer_id': 'itsm-tools',
+                    'text': 'Synthetic experience with a sample service desk platform',
                     'reviewed': True,
                 },
             ],
@@ -343,6 +356,13 @@ class ApplicationAnswerExportTests(unittest.TestCase):
         self.assertEqual(entries[2]['match_score'], 0.95)
         self.assertEqual(entries[2]['saved_question'],
                          'Which cloud platforms have you worked with?')
+        self.assertEqual(entries[3]['answer_id'], 'itsm-tools')
+        self.assertEqual(entries[3]['match_method'], 'CURATED_SEMANTIC')
+        self.assertEqual(entries[3]['match_score'], 0.95)
+        self.assertEqual(entries[3]['saved_question'],
+                         'Which IT service management tools have you used?')
+        self.assertEqual(entries[3]['source'], 'Synthetic IT operations inventory')
+        self.assertEqual(entries[3]['confidence'], 93)
         exported = self.client.get(f'/profiles/fixture/documents/{document_id}/txt')
         self.assertEqual(exported.status_code, 200)
         self.assertEqual(row['sha256']['txt'], hashlib.sha256(exported.content).hexdigest())

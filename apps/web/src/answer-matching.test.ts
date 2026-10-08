@@ -28,6 +28,22 @@ describe('application answer question matching',()=>{
     )).toEqual({method:'CURATED_SEMANTIC',score:0.95});
   });
 
+  it('labels the ITSM acronym expansion as curated semantic and rejects a service-desk near miss',()=>{
+    expect(matchAnswerQuestion(
+      'Which ITSM tools have you used?',
+      'Which IT service management tools have you used?',
+    )).toEqual({method:'CURATED_SEMANTIC',score:0.95});
+    expect(matchAnswerQuestion(
+      'Which ITSM tools have you used?',
+      'Which IT service desk tools have you used?',
+    )).toBeNull();
+    expect(suggestAnswers('Which ITSM tools have you used?',[{
+      id:'itsm-tools',question:'Which IT service management tools have you used?',
+      text:'Synthetic reviewed answer',source:'Synthetic IT operations inventory',
+      confidence:93,verified:true,user_approved:true,
+    }])).toMatchObject([{answer:{id:'itsm-tools'},match:{method:'CURATED_SEMANTIC',score:0.95}}]);
+  });
+
   it('rejects a near miss and every sensitive or legal prompt',()=>{
     expect(matchAnswerQuestion(
       'How many years of education?',
@@ -52,5 +68,6 @@ describe('application answer question matching',()=>{
       ['fuzzy','FUZZY',0.778],
     ]);
     expect(suggestAnswers('Are you authorized to work in the US?',bank)).toEqual([]);
+    expect(suggestAnswers('Have you ever been convicted of a crime?',bank)).toEqual([]);
   });
 });

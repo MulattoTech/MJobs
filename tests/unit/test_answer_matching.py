@@ -58,6 +58,22 @@ class AnswerMatchingTests(unittest.TestCase):
 
         self.assertEqual(result, {"method": "CURATED_SEMANTIC", "score": 0.95})
 
+    def test_itsm_acronym_and_expansion_are_a_curated_ordinary_match(self):
+        result = self.matcher()(
+            "Which ITSM tools have you used?",
+            "Which IT service management tools have you used?",
+        )
+
+        self.assertEqual(result, {"method": "CURATED_SEMANTIC", "score": 0.95})
+
+    def test_itsm_does_not_expand_to_the_near_miss_service_desk_term(self):
+        result = self.matcher()(
+            "Which ITSM tools have you used?",
+            "Which IT service desk tools have you used?",
+        )
+
+        self.assertIsNone(result)
+
     def test_unrelated_near_miss_does_not_match(self):
         result = self.matcher()(
             "How many years of education?",

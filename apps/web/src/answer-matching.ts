@@ -27,6 +27,8 @@ const semanticQuestionKey = (value:string) => normalizeAnswerQuestion(value
   .replace(/\b(coding|software development)\s+languages?\b/gi,'programming languages')
   // A narrow ordinary-question synonym; this is not a general semantic model.
   .replace(/\bcloud providers\b/gi,'cloud platforms')
+  // Expand only the standard ITSM acronym, not adjacent service-desk wording.
+  .replace(/\bitsm\b/gi,'it service management')
   .replace(/\b(what|which)\b/gi,'which')
   .replace(/\bworked with\b/gi,'used'));
 

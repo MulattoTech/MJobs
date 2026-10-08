@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REQ-104-ITSM-SEMANTIC-MATCH-REFINEMENT-20261008",
+  "recorded_at_utc": "2026-10-08T10:49:17Z",
+  "result": "PARTIAL",
+  "accepted_slice_result": "PASS",
+  "issue": 105,
+  "requirement_id": "MJ-REQ-104",
+  "scope": "Add a bounded ITSM acronym expansion to the existing deterministic reviewed-answer matcher. ‘ITSM’ and ‘IT service management’ match as CURATED_SEMANTIC with score 0.95; adjacent ‘service desk’ wording remains a near miss. Existing UI presents method and score, requires deliberate per-job selection and review, and records export provenance.",
+  "authority": {
+    "repository": "MulattoTech/MJobs",
+    "issue_url": "https://github.com/MulattoTech/MJobs/issues/105",
+    "issue_state": "OPEN",
+    "branch": "codex/mj-req104-semantic-match-refinement-20261008",
+    "worktree": ".worktrees/codex-mj-req104-semantic-match-refinement-20261008",
+    "base_head": "347d4e7e53058135246f734aa1c7e850be25e51d"
+  },
+  "acceptance": {
+    "curated_semantic_equivalence": "PASS; only the standard ITSM acronym expands to IT service management in both Python and TypeScript matchers.",
+    "near_miss": "PASS; IT service desk wording is not treated as IT service management.",
+    "suggestion_and_review": "PASS; the browser flow displays CURATED_SEMANTIC and 95%, starts with an empty answer, requires the user to select the saved answer and separately review it for the current job.",
+    "durable_provenance": "PASS; synthetic SQLite/API integration readback records answer id, saved question, source, confidence, CURATED_SEMANTIC method and 0.95 score. Browser export text remains downloadable after reload.",
+    "sensitive_and_legal": "PASS; legal authorization and criminal-history prompts still produce no inferred suggestion; sensitive-answer reuse is rejected at export.",
+    "automatic_answer_selection": "OFF; matching only suggests. User selection and per-job review are required."
+  },
+  "red_first_observation": {
+    "result": "FAIL_BEFORE_IMPLEMENTATION",
+    "details": "New Python matcher and export integration cases failed because ITSM had no supported curated rule. The service-desk near miss already returned no match."
+  },
+  "checks": [
+    {
+      "command": ".venv/Scripts/python.exe -m unittest tests.unit.test_answer_matching tests.integration.test_application_answer_export -v",
+      "target": "deterministic answer matcher and synthetic SQLite/API answer export/readback",
+      "result": "PASS",
+      "tests": 30,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "apps/web: npm test -- --run",
+      "target": "complete local frontend Vitest suite",
+      "result": "PASS",
+      "tests": 97,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "apps/web: npm run build",
+      "target": "TypeScript check and Vite production build",
+      "result": "PASS",
+      "details": "33 modules transformed. Reused existing local dependencies through a temporary worktree-local junction, removed after the run."
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m unittest tests.browser.test_application_answer_export -v",
+      "target": "local synthetic Chromium/API answer suggestion, explicit selection/review, export and reload workflow",
+      "result": "PASS",
+      "tests": 3,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "git diff --check 347d4e7e53058135246f734aa1c7e850be25e51d",
+      "target": "candidate diff whitespace and patch integrity",
+      "result": "PASS"
+    }
+  ],
+  "source_inputs_sha256": {
+    "services/documents/answers.py": "BAB45A0A72130FB39448BCBDEF547632B5353FC6FAFEFE719CE4AA3E7BB0769D",
+    "apps/web/src/answer-matching.ts": "9CE261C9F917FD7CE9CFE291719405557A93AA5E637AB92DF5D216A7D34956CB",
+    "apps/web/src/answer-matching.test.ts": "7412A80E0CC947910D7823487070DAC8FB8506F7D26F36A70F13881569FF22D7",
+    "tests/unit/test_answer_matching.py": "EAAE28AB5881BF73A958799675E9C300D8D21A42B69BAA6A06A7A84A5DA18488",
+    "tests/integration/test_application_answer_export.py": "A222D5FCDD3E13EC03EEB4D8F31320E59C778125CDDD6FD1666A1DB2674DBC83",
+    "tests/browser/test_application_answer_export.py": "55B7C692A2C768D48AEBD4DC62B0ECB45AA29F52D495BE88A5E575592042AD05"
+  },
+  "environment": {
+    "platform": "Windows PowerShell",
+    "python": "3.12 repository .venv",
+    "node": "25.9.0",
+    "npm": "11.12.1",
+    "data": "synthetic local fixtures and temporary SQLite; no external requests or personal application data"
+  },
+  "limitations": {
+    "semantic_scope": "Only deterministic curated rules are supported; this is not a general semantic model and does not infer answer content.",
+    "hosted_actions_and_reviews": "NOT_RUN_BY_USER_POLICY",
+    "postgresql": "NOT_RUN",
+    "external_application_submission": "OFF",
+    "issue_status": "OPEN/PARTIAL; broader MJ-REQ-104 acceptance remains incomplete"
+  }
+}

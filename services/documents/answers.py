@@ -106,6 +106,9 @@ _SEMANTIC_QUESTION_REWRITES = (
     # ordinary cloud experience prompt. This bounded rewrite is not a general
     # semantic model; sensitive and legal prompts remain excluded separately.
     (re.compile(r"\bcloud providers\b", re.IGNORECASE), "cloud platforms"),
+    # Expand one standard IT operations acronym; do not equate adjacent fields
+    # such as service desk or service delivery with service management.
+    (re.compile(r"\bitsm\b", re.IGNORECASE), "it service management"),
     (re.compile(r"\b(what|which)\b", re.IGNORECASE), "which"),
     (re.compile(r"\bworked with\b", re.IGNORECASE), "used"),
 )
