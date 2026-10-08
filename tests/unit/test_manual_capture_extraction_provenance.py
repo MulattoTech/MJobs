@@ -50,7 +50,7 @@ def _extraction_capture():
                 "source": source,
                 "confidence": confidence,
                 "review_required": review_required,
-                "user_corrected": field in {"title", "description", "application_url"},
+                "user_corrected": field in {"title", "description", "listing_url", "application_url"},
             }
             for field, (source, confidence, review_required) in source_by_field.items()
         },
@@ -202,6 +202,36 @@ class ManualCaptureExtractionProvenanceTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "must be marked as user corrected"):
             capture_manual_job(self.store, payload)
         self.assertEqual(self.store.count("job_postings"), 0)
+
+    def test_corrected_source_job_id_is_readable_and_requires_provenance(self):
+        payload = _payload("manual-extraction-source-id-correction")
+        extraction = payload["source_details"]["extraction_capture"]
+        extraction["raw_fields"]["source_job_id"] = "extracted-role-42"
+        extraction["field_provenance"]["source_job_id"] = {
+            "source": "PROVIDER_FIELDS", "confidence": 0.86,
+            "review_required": False, "user_corrected": True,
+        }
+        payload["source_details"]["confirmed_source_job_id"] = "confirmed-role-99"
+
+        capture_manual_job(self.store, payload)
+
+        stored = self._posting_raw(payload["request_id"])["submitted_fields"]
+        self.assertEqual(stored["source_details"]["confirmed_source_job_id"], "confirmed-role-99")
+        self.assertEqual(
+            stored["source_details"]["extraction_capture"]["raw_fields"]["source_job_id"],
+            "extracted-role-42",
+        )
+
+        invalid = _payload("manual-extraction-source-id-unmarked-correction")
+        invalid["source_details"]["extraction_capture"]["raw_fields"]["source_job_id"] = "extracted-role-42"
+        invalid["source_details"]["extraction_capture"]["field_provenance"]["source_job_id"] = {
+            "source": "PROVIDER_FIELDS", "confidence": 0.86,
+            "review_required": False, "user_corrected": False,
+        }
+        invalid["source_details"]["confirmed_source_job_id"] = "confirmed-role-99"
+        with self.assertRaisesRegex(ValueError, "must be marked as user corrected"):
+            capture_manual_job(self.store, invalid)
+        self.assertEqual(self.store.count("job_postings"), 1)
 
     def test_low_confidence_identity_cannot_be_marked_as_reviewed(self):
         payload = _payload("manual-extraction-low-confidence")

@@ -216,6 +216,12 @@ def _sanitize_source_details(value) -> dict:
         elif key == "discovery_origin":
             if item is not None:
                 sanitized[key] = _plain_capture_text(item, key, 253)
+        elif key == "confirmed_source_job_id":
+            sanitized[key] = (
+                _plain_capture_text(
+                    item, "Confirmed source job ID", _EXTRACTION_FIELD_LIMITS["source_job_id"])
+                if item is not None else None
+            )
         elif key in {"source_url", "reference_url", "listing_url", "application_url"}:
             sanitized[key] = _url(item, key) if item is not None else None
         elif item is None or type(item) in {bool, int}:
@@ -240,13 +246,19 @@ def _validate_user_corrections(data: dict, source_details: dict) -> None:
         "company": data["company"],
         "description": data["description"],
         "location": data.get("location"),
+        "source_job_id": source_details.get("confirmed_source_job_id"),
+        "listing_url": data.get("reference_url"),
         "application_url": data.get("application_url"),
     }
     for field, final_value in final_values.items():
         extracted_value = extraction["raw_fields"][field]
-        if extracted_value is None or final_value is None:
+        if extracted_value is None:
             continue
-        if field == "application_url":
+        if final_value is None:
+            if not extraction["field_provenance"][field]["user_corrected"]:
+                raise ValueError(f"Changed extracted value for {field} must be marked as user corrected")
+            continue
+        if field in {"application_url", "listing_url"}:
             confirmed = final_value
         else:
             confirmed = _plain_capture_text(
