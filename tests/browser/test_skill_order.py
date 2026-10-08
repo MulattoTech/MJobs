@@ -227,8 +227,10 @@ class SkillOrderBrowserTests(unittest.TestCase):
                 text='Built a local-first recovery harness for 3 environments in 2021.')
             achievement=dict(PROFILE['facts'][0],id='recovery-achievement',kind='accomplishment',
                 text='Reduced recovery time by 25% in 2022.')
+            technology=dict(PROFILE['facts'][0],id='postgres-experience',kind='technology_experience',
+                text='Administered PostgreSQL databases for 6 teams from 2020-2024.')
             skill=dict(PROFILE['facts'][0],id='linux',kind='skill',text='Linux')
-            store.save_profile(dict(PROFILE,facts=[summary,project,achievement,skill]))
+            store.save_profile(dict(PROFILE,facts=[summary,project,achievement,technology,skill]))
             with fixture_server() as fixture:discover(store,fixture,'fixture')
             job=store.jobs()[0]
             with store.engine.begin() as connection:
@@ -261,6 +263,7 @@ class SkillOrderBrowserTests(unittest.TestCase):
                         (summary,'Linux systems engineer with 12 years of experience, 2012-2024.','summary'),
                         (project,'Created a recovery harness for 3 environments in 2021.','project bullet'),
                         (achievement,'Cut recovery time by 25% in 2022.','accomplishment bullet'),
+                        (technology,'Managed PostgreSQL databases for 6 teams from 2020-2024.','technology experience'),
                     ]
                     for fact,wording,label in rewrites:
                         page.get_by_label('Include '+fact['text'],exact=True).check()

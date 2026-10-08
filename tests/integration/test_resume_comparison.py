@@ -151,8 +151,10 @@ class ResumeComparisonTests(unittest.TestCase):
             text='Built a local-first recovery harness for 3 environments in 2021.')
         achievement=dict(PROFILE['facts'][0],id='achievement',kind='accomplishment',
             text='Reduced recovery time by 25% in 2022.')
+        technology=dict(PROFILE['facts'][0],id='technology',kind='technology_experience',
+            text='Administered PostgreSQL databases for 6 teams from 2020-2024.')
         skill=dict(PROFILE['facts'][0],id='linux',kind='skill',text='Linux')
-        original_profile=dict(PROFILE,facts=[project,achievement,skill])
+        original_profile=dict(PROFILE,facts=[project,achievement,technology,skill])
         self.store.save_profile(original_profile)
         profile_version=self.store.profile('fixture')['version']
         with fixture_server() as origin:
@@ -165,18 +167,19 @@ class ResumeComparisonTests(unittest.TestCase):
         rewrites=[
             {'fact_id':'project','text':'Created a recovery harness for 3 environments in 2021.','reviewed':True},
             {'fact_id':'achievement','text':'Cut recovery time by 25% in 2022.','reviewed':True},
+            {'fact_id':'technology','text':'Managed PostgreSQL databases for 6 teams from 2020-2024.','reviewed':True},
         ]
         prepare(self.store,job['id'],'fixture',self.root,tailor_resume=True,
-            tailor_fact_ids=['project','achievement'],tailor_fact_rewrites=rewrites,
+            tailor_fact_ids=['project','achievement','technology'],tailor_fact_rewrites=rewrites,
             profile_version=self.store.profile('fixture')['version'])
         rows=application_documents(self.store,app)
         target=next(row for row in rows if row['kind']=='resume' and row['version']==2)
         cover=next(row for row in rows if row['kind']=='cover-letter' and row['version']==2)
         self.assertEqual([item['fact_kind'] for item in target['generation_context']['fact_rephrases']],
-            ['project','accomplishment'])
+            ['project','accomplishment','technology_experience'])
         target_text=(self.root/app/target['files']['txt']).read_text(encoding='utf-8')
         cover_text=(self.root/app/cover['files']['txt']).read_text(encoding='utf-8')
-        for item,source in zip(rewrites,[project,achievement]):
+        for item,source in zip(rewrites,[project,achievement,technology]):
             self.assertIn(item['text'],target_text)
             self.assertNotIn(source['text'],target_text)
             self.assertNotIn(item['text'],cover_text)
@@ -190,11 +193,11 @@ class ResumeComparisonTests(unittest.TestCase):
             self.assertEqual(response.status_code,200,response.text)
             comparison=response.json()
             changes={item['before']['fact_id']:item for item in comparison['bullet_changes']}
-            for item,source in zip(rewrites,[project,achievement]):
+            for item,source in zip(rewrites,[project,achievement,technology]):
                 self.assertEqual(changes[source['id']]['before']['text'],source['text'])
                 self.assertEqual(changes[source['id']]['after']['text'],item['text'])
             current=dict(project,text='Changed current project profile text')
-            self.store.save_profile(dict(original_profile,facts=[current,achievement]))
+            self.store.save_profile(dict(original_profile,facts=[current,achievement,technology,skill]))
             self.assertEqual(client.get(url,params=params).json(),comparison)
 
     def test_unavailable_or_wrong_history_is_not_reported_as_unchanged(self):

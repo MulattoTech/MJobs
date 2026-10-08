@@ -3,6 +3,43 @@ from services.documents.comparison import compare_facts
 
 
 class ResumeComparisonUnitTests(unittest.TestCase):
+    def test_user_reviewed_technology_experience_rewrite_is_source_bound_and_fact_safe(self):
+        import hashlib
+        from services.documents.tailor import apply_saved_user_rewrites, validate_user_rewrites
+        from services.documents.errors import PreparationError
+
+        facts = [{"fact_id": "technology", "kind": "technology_experience",
+                  "text": "Administered PostgreSQL databases for 6 teams from 2020-2024.",
+                  "verified": True, "user_approved": True, "confidence": 95,
+                  "source": "User verified"}]
+        wording = "Managed PostgreSQL databases for 6 teams from 2020-2024."
+        rewritten, provenance = validate_user_rewrites(facts, ["technology"], [{
+            "fact_id": "technology", "text": wording, "reviewed": True,
+        }])
+
+        self.assertEqual(rewritten[0]["text"], wording)
+        self.assertEqual(provenance, [{
+            "fact_id": "technology", "fact_kind": "technology_experience",
+            "source_text_sha256": hashlib.sha256(facts[0]["text"].encode()).hexdigest(),
+            "text": wording, "reviewed": True,
+            "review_policy": "USER_CONFIRMED_FACTUAL_PARAPHRASE",
+        }])
+        self.assertEqual(apply_saved_user_rewrites(facts, ["technology"], provenance), rewritten)
+        self.assertEqual(facts[0]["text"], "Administered PostgreSQL databases for 6 teams from 2020-2024.")
+
+        with self.assertRaises(PreparationError) as changed_error:
+            validate_user_rewrites(facts, ["technology"], [{
+                "fact_id": "technology", "text": "Managed PostgreSQL databases for 60 teams from 2020-2024.",
+                "reviewed": True,
+            }])
+        self.assertEqual(changed_error.exception.code, "RESUME_REPHRASE_FACTS_CHANGED")
+        unsupported = dict(facts[0], kind="education")
+        with self.assertRaises(PreparationError) as unsupported_error:
+            validate_user_rewrites([unsupported], ["technology"], [{
+                "fact_id": "technology", "text": wording, "reviewed": True,
+            }])
+        self.assertEqual(unsupported_error.exception.code, "RESUME_REPHRASE_FACT_INVALID")
+
     def test_user_reviewed_project_and_accomplishment_rewrites_are_source_bound(self):
         import hashlib
         from services.documents.tailor import apply_saved_user_rewrites, validate_user_rewrites
