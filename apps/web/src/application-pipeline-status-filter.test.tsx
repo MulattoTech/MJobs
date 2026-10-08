@@ -9,7 +9,8 @@ describe('reported application pipeline status filter', () => {
       <ApplicationPipelineStatusFilter value="" onChange={() => {}} />,
     );
 
-    expect(html).toContain('Reported application pipeline status');
+    expect(html).toContain('<label for="reported-application-pipeline-status">Application pipeline status (reported by you)</label>');
+    expect(html).toContain('aria-label="Application pipeline status (reported by you)"');
     expect(html).toContain('<option value="" selected="">All / clear</option>');
     for (const stage of [
       'SAVED', 'READY', 'APPLIED', 'RECRUITER_CONTACT', 'INTERVIEW',
@@ -29,7 +30,7 @@ describe('reported application pipeline status filter', () => {
       <ApplicationPipelineStatusFilter value="NOT_TRACKED" onChange={() => {}} disabled />,
     );
 
-    expect(html).toContain('aria-label="Reported application pipeline status" disabled=""');
+    expect(html).toContain('aria-label="Application pipeline status (reported by you)" disabled=""');
     expect(html).toContain('<option value="NOT_TRACKED" selected="">Not tracked</option>');
   });
 

@@ -33,10 +33,10 @@ export function ApplicationPipelineStatusFilter({
   disabled = false,
 }: ApplicationPipelineStatusFilterProps) {
   return <div className="filter-control">
-    <label htmlFor="reported-application-pipeline-status">Reported application pipeline status</label>
+    <label htmlFor="reported-application-pipeline-status">Application pipeline status (reported by you)</label>
     <select
       id="reported-application-pipeline-status"
-      aria-label="Reported application pipeline status"
+      aria-label="Application pipeline status (reported by you)"
       value={value}
       disabled={disabled}
       onChange={event => onChange(event.target.value as ApplicationPipelineStatusFilterValue)}
