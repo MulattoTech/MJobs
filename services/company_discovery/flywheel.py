@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import re
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlsplit
 
 from bs4 import BeautifulSoup
 import httpx
@@ -10,7 +10,9 @@ from sqlalchemy import select, update
 
 from packages.persistence import models as m
 from packages.persistence.store import now, upsert
-from services.company_discovery.career_pages import common_career_routes, internal_career_links
+from services.company_discovery.career_pages import (
+    common_career_routes, internal_career_links, parse_sitemap, sitemap_locations,
+)
 from services.company_discovery.domains import normalize_domain, record_company_domain
 from services.company_discovery.endpoints import machine_readable_job_endpoints, parse_public_job_feed
 from services.company_discovery.fetch_policy import bounded_get
@@ -24,6 +26,78 @@ from services.ats_detection.detector import detect_ats
 
 
 _LEGAL_NAME_WORDS = {"inc", "incorporated", "corp", "corporation", "llc", "ltd", "limited", "company", "co"}
+_MAX_SITEMAP_FETCHES = 5
+_MAX_CHILD_SITEMAPS = 3
+_MAX_SITEMAP_CAREER_PAGES = 10
+
+
+def _same_origin(left, right):
+    """Return whether two HTTP URLs share an origin, including default-port normalization."""
+    try:
+        def origin(value):
+            parsed = urlsplit(str(value or ""))
+            if (parsed.scheme.casefold() not in {"http", "https"} or not parsed.hostname
+                    or parsed.username is not None or parsed.password is not None):
+                return None
+            scheme = parsed.scheme.casefold()
+            port = parsed.port or (443 if scheme == "https" else 80)
+            return scheme, parsed.hostname.casefold().rstrip("."), port
+        return origin(left) is not None and origin(left) == origin(right)
+    except ValueError:
+        return False
+
+
+def _sitemap_career_candidates(homepage, client, check):
+    """Read a bounded same-origin sitemap chain and return career URL candidates."""
+    homepage_url = str(homepage.url)
+    sitemap_queue = []
+    for location in sitemap_locations(homepage_url, homepage.text)[:_MAX_SITEMAP_FETCHES]:
+        if _same_origin(homepage_url, location) and location not in sitemap_queue:
+            sitemap_queue.append(location)
+    candidates = []
+    child_count = 0
+    fetched = 0
+    while sitemap_queue and fetched < _MAX_SITEMAP_FETCHES:
+        sitemap_url = sitemap_queue.pop(0)
+        if not _same_origin(homepage_url, sitemap_url):
+            continue
+        check()
+        try:
+            response = bounded_get(client, sitemap_url, homepage_url)
+            fetched += 1
+            parsed = parse_sitemap(str(response.url), response.text)
+        except (httpx.HTTPError, ValueError, PublicFetchError):
+            # A missing, malformed, denied, or stale sitemap should leave the existing
+            # career-link and common-route discovery paths available.
+            fetched += 1
+            continue
+        if not isinstance(parsed, dict):
+            continue
+        for career_url in parsed.get("career_pages", ()):
+            if _same_origin(homepage_url, career_url) and career_url not in candidates:
+                candidates.append(career_url)
+                if len(candidates) >= _MAX_SITEMAP_CAREER_PAGES:
+                    break
+        for child_url in parsed.get("child_sitemaps", ()):
+            if (child_count >= _MAX_CHILD_SITEMAPS or fetched + len(sitemap_queue) >= _MAX_SITEMAP_FETCHES):
+                break
+            if _same_origin(homepage_url, child_url) and child_url not in sitemap_queue:
+                sitemap_queue.append(child_url)
+                child_count += 1
+    return candidates
+
+
+def _career_page_is_corroborated(page, fixture):
+    html = page.text
+    fixture_ats = BeautifulSoup(html, "html.parser").find(
+        "a", attrs={"data-provider": True, "data-tenant": True}
+    )
+    detected = detect_ats(
+        str(page.url), html,
+        redirect_chain=[str(response.url) for response in getattr(page, "history", ())],
+    )
+    return ((fixture and fixture_ats is not None) or detected.status == "MATCH"
+            or bool(machine_readable_job_endpoints(str(page.url), html)))
 
 
 def _company_name_appears(company_name, html):
@@ -125,8 +199,28 @@ def discover_company_source(store, candidate, client, check=None, search_provide
     careers_url = careers_links[0] if careers_links else ""
     if careers_url:
         check()
-        careers = bounded_get(client, careers_url, str(homepage.url))
-    else:
+        try:
+            careers = bounded_get(client, careers_url, str(homepage.url))
+        except (httpx.HTTPStatusError, PublicHTTPStatusError) as error:
+            status = error.status_code if isinstance(error, PublicHTTPStatusError) else error.response.status_code
+            if status not in {404, 410}:
+                raise
+            careers_url = ""
+    # A linked careers page remains authoritative when its content exposes an ATS or
+    # supported public feed. If it is absent or too thin to identify either, inspect
+    # a small same-origin sitemap chain before trying low-confidence common routes.
+    if careers is None or not _career_page_is_corroborated(careers, fixture):
+        sitemap_candidates = _sitemap_career_candidates(homepage, client, check)
+        for sitemap_candidate in sitemap_candidates:
+            check()
+            try:
+                candidate_page = bounded_get(client, sitemap_candidate, str(homepage.url))
+            except (httpx.HTTPError, ValueError, PublicFetchError):
+                continue
+            if _career_page_is_corroborated(candidate_page, fixture):
+                careers_url, careers = str(candidate_page.url), candidate_page
+                break
+    if careers is None or not _career_page_is_corroborated(careers, fixture):
         # Guesses are low-confidence probes only. A guessed route is accepted only
         # after its fetched content exposes a supported ATS integration.
         for guessed_url in common_career_routes(str(homepage.url)):
@@ -138,14 +232,7 @@ def discover_company_source(store, candidate, client, check=None, search_provide
                 if status == 404:
                     continue
                 raise
-            guessed_ats = BeautifulSoup(guessed_page.text, "html.parser").find(
-                "a", attrs={"data-provider": True, "data-tenant": True}
-            )
-            guessed_detection = detect_ats(
-                str(guessed_page.url), guessed_page.text,
-                redirect_chain=[str(response.url) for response in getattr(guessed_page, "history", ())],
-            )
-            if (fixture and guessed_ats is not None) or guessed_detection.status == "MATCH" or machine_readable_job_endpoints(str(guessed_page.url), guessed_page.text):
+            if _career_page_is_corroborated(guessed_page, fixture):
                 careers_url, careers = str(guessed_page.url), guessed_page
                 break
     if careers is None:
