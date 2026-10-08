@@ -145,6 +145,11 @@ class ApplicationAnswerExportTests(unittest.TestCase):
         self.assertEqual(row['kind'], 'application-answer-export')
         self.assertEqual(row['sha256']['txt'], hashlib.sha256(exported.content).hexdigest())
         self.assertEqual(row['generation_context']['items'][0]['answer_id'], 'years-experience')
+        self.assertEqual(row['generation_context']['items'][0]['saved_question'],
+                         'How many years of experience?')
+        self.assertEqual(row['generation_context']['items'][0]['match_method'],
+                         'EXACT_NORMALIZATION')
+        self.assertEqual(row['generation_context']['items'][0]['match_score'], 1.0)
         self.assertEqual(row['profile_version'], self.client.get('/profiles/fixture').json()['version'])
 
     def test_fuzzy_and_curated_semantic_matches_export_with_recomputed_provenance(self):
