@@ -480,6 +480,7 @@ class SearchProfileInput(BaseModel):
     profile_id: str = Field(min_length=1, max_length=128)
     name: str = Field(min_length=1, max_length=200)
     enabled: bool = True
+    job_filters: dict[str, str] | None = None
     include_titles: list[str] = Field(default_factory=list, max_length=100)
     exclude_titles: list[str] = Field(default_factory=list, max_length=100)
     required_keywords: list[str] = Field(default_factory=list, max_length=100)
@@ -1169,7 +1170,12 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
 
     @app.put("/search-profiles")
     def search_profile_save(value: SearchProfileInput):
-        return {"id": save_search_profile(store, value.model_dump())}
+        try:
+            return {"id": save_search_profile(store, value.model_dump())}
+        except ValueError as error:
+            if str(error) == "Search profile belongs to a different career profile":
+                raise HTTPException(409, str(error)) from error
+            raise HTTPException(422, str(error)) from error
 
     @app.put("/sources")
     def source_configure(value: SourceInput):
@@ -1249,7 +1255,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         rows = store.jobs(profile_id, q, remote_type, provider, sort, limit)
         if search_profile_id:
             search_profile = get_search_profile(store, search_profile_id)
-            if profile_id and search_profile["profile_id"] != profile_id:
+            if search_profile["profile_id"] != profile_id:
                 raise HTTPException(409, "Search profile belongs to a different career profile")
             rows = filter_jobs(rows, search_profile["criteria"])
         if profile_id:

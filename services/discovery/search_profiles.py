@@ -13,6 +13,25 @@ from services.discovery.negative_filters import NEGATIVE_CONDITIONS
 
 REMOTE_PREFERENCES = {"ANY", "REQUIRED", "EXCLUDED"}
 WORK_ARRANGEMENTS = {"REMOTE", "HYBRID", "ONSITE"}
+JOB_FILTERS = {"remote_type": {"", "REMOTE", "HYBRID", "ONSITE", "UNKNOWN"},
+               "provider": {"", "mock-ats", "greenhouse"},
+               "sort": {"score", "newest", "title"}}
+
+
+def _clean_job_filters(value):
+    if value is None:
+        return None
+    if not isinstance(value, dict) or set(value) != {"q", "remote_type", "provider", "sort"}:
+        raise ValueError("Saved Jobs filters must include q, remote_type, provider, and sort")
+    query = value["q"]
+    if not isinstance(query, str) or len(query) > 200:
+        raise ValueError("Saved Jobs query must be text up to 200 characters")
+    cleaned = {"q": query}
+    for key, allowed in JOB_FILTERS.items():
+        if not isinstance(value[key], str) or value[key] not in allowed:
+            raise ValueError(f"Saved Jobs {key} is invalid")
+        cleaned[key] = value[key]
+    return cleaned
 
 
 def _clean_strings(values, *, limit=100, length=200):
@@ -60,6 +79,9 @@ def save_search_profile(store, data):
         raise ValueError("Search profile identity or name is too long")
     if type(data.get("enabled", True)) is not bool:
         raise ValueError("Search profile enabled must be boolean")
+    job_filters = _clean_job_filters(data.get("job_filters"))
+    if job_filters is not None and data.get("enabled", True):
+        raise ValueError("Saved Jobs filters must be disabled for provider scheduling")
 
     remote = data.get("remote", "ANY")
     if remote not in REMOTE_PREFERENCES:
@@ -146,6 +168,8 @@ def save_search_profile(store, data):
         "radius_latitude": _bounded_float(data.get("radius_latitude"), -90, 90, "Search latitude"),
         "radius_longitude": _bounded_float(data.get("radius_longitude"), -180, 180, "Search longitude"),
     }
+    if job_filters is not None:
+        criteria["job_filters"] = job_filters
     radius_values = (criteria["radius_miles"], criteria["radius_latitude"], criteria["radius_longitude"])
     if any(value is not None for value in radius_values) and any(value is None for value in radius_values):
         raise ValueError("Radius filtering requires miles, latitude, and longitude together")
@@ -161,6 +185,8 @@ def save_search_profile(store, data):
                 raise ValueError("Search profile references an unknown source")
         existing = connection.execute(select(m.search_profiles).where(
             m.search_profiles.c.id == data["id"])).mappings().one_or_none()
+        if existing and existing["profile_id"] != data["profile_id"]:
+            raise ValueError("Search profile belongs to a different career profile")
         created_at = existing["created_at"] if existing else timestamp
         changed = existing is not None and any((
             existing["profile_id"] != data["profile_id"],

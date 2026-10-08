@@ -1,0 +1,143 @@
+"""Connected FIXTURE browser acceptance for saved Jobs filters."""
+from pathlib import Path
+import tempfile
+import threading
+import time
+import unittest
+from urllib.parse import urlsplit
+
+from playwright.sync_api import expect, sync_playwright
+import uvicorn
+
+from apps.api.main import create_app
+from fixtures.browser_ports import bound_browser_socket
+from fixtures.mock_server import fixture_server
+from packages.persistence.store import Store
+from services.discovery.pipeline import discover
+from services.discovery.scheduler import schedule_due_sources
+from tests.integration.test_spine import PROFILE
+
+ROOT = Path(__file__).resolve().parents[2]
+
+
+@unittest.skipUnless((ROOT / "apps/web/dist/index.html").is_file(),
+                     "Build apps/web before browser acceptance")
+class SavedSearchFiltersBrowserTests(unittest.TestCase):
+    def test_saved_filters_restore_controls_results_and_clear_with_profile_isolation(self):
+        with tempfile.TemporaryDirectory(prefix="mjobs-saved-filters-browser-") as directory:
+            root = Path(directory)
+            database_url = f"sqlite:///{(root / 'browser.db').as_posix()}"
+            store = Store(database_url)
+            store.migrate()
+            store.bind_workspace_mode("FIXTURE")
+            store.save_profile(dict(PROFILE))
+            store.save_profile({**PROFILE, "id": "other", "name": "Other Fixture",
+                                "email": "other@example.test"})
+            with fixture_server() as source_origin:
+                discover(store, source_origin, "fixture")
+            operations_before = store.count("worker_operations")
+            store.engine.dispose()
+            store = Store(database_url)
+
+            sock = bound_browser_socket()
+            origin = f"http://127.0.0.1:{sock.getsockname()[1]}"
+            server = uvicorn.Server(uvicorn.Config(
+                create_app(store, "http://127.0.0.1:1", root,
+                           "redis://127.0.0.1:1/0", operation_mode="FIXTURE"),
+                log_level="error"))
+            try:
+                thread = threading.Thread(target=server.run, kwargs={"sockets": [sock]}, daemon=True)
+                thread.start()
+                deadline = time.monotonic() + 10
+                while not server.started:
+                    if not thread.is_alive() or time.monotonic() > deadline:
+                        self.fail("Isolated saved-search API did not start")
+                    time.sleep(0.02)
+
+                external = []
+                with sync_playwright() as playwright:
+                    browser = playwright.chromium.launch(headless=True)
+                    context = browser.new_context()
+
+                    def local_only(route):
+                        if urlsplit(route.request.url).netloc != urlsplit(origin).netloc:
+                            external.append(route.request.url)
+                            route.abort()
+                        else:
+                            route.continue_()
+
+                    context.route("**/*", local_only)
+                    page = context.new_page()
+                    page.set_default_timeout(8000)
+                    page.goto(origin, wait_until="domcontentloaded")
+                    page.evaluate("localStorage.setItem('mjobs-profile', 'fixture')")
+                    page.reload(wait_until="domcontentloaded")
+                    expect(page.get_by_label("Active profile", exact=True)).to_have_value("fixture")
+
+                    page.get_by_label("Search jobs", exact=True).fill("Developer")
+                    page.get_by_label("Work location", exact=True).select_option("REMOTE")
+                    page.get_by_label("Source", exact=True).select_option("mock-ats")
+                    with page.expect_response(lambda response:
+                            response.url.startswith(origin + "/jobs?")
+                            and "sort=title" in response.url) as sorted_jobs:
+                        page.get_by_label("Sort", exact=True).select_option("title")
+                    self.assertEqual([job["title"] for job in sorted_jobs.value.json()["jobs"]],
+                                     ["Python Developer"])
+                    page.get_by_label("Saved search name", exact=True).fill("Remote Python roles")
+                    page.get_by_role("button", name="Save current filters", exact=True).click()
+                    saved = page.get_by_label("Saved search profile", exact=True)
+                    expect(saved.locator("option", has_text="Remote Python roles")).to_have_count(1)
+
+                    page.reload(wait_until="domcontentloaded")
+                    expect(page.get_by_label("Active profile", exact=True)).to_have_value("fixture")
+                    saved = page.get_by_label("Saved search profile", exact=True)
+                    expect(saved.locator("option", has_text="Remote Python roles")).to_have_count(1)
+                    with page.expect_response(lambda response:
+                            response.url.startswith(origin + "/jobs?")
+                            and "q=Developer" in response.url
+                            and "remote_type=REMOTE" in response.url
+                            and "provider=mock-ats" in response.url
+                            and "sort=title" in response.url) as restored_jobs:
+                        saved.select_option(saved.locator("option", has_text="Remote Python roles").get_attribute("value"))
+                    self.assertEqual([job["title"] for job in restored_jobs.value.json()["jobs"]],
+                                     ["Python Developer"])
+                    expect(page.get_by_label("Search jobs", exact=True)).to_have_value("Developer")
+                    expect(page.get_by_label("Work location", exact=True)).to_have_value("REMOTE")
+                    expect(page.get_by_label("Source", exact=True)).to_have_value("mock-ats")
+                    expect(page.get_by_label("Sort", exact=True)).to_have_value("title")
+                    expect(page.locator(".job-card").filter(has_text="Python Developer")).to_be_visible()
+                    expect(page.locator(".job-card").filter(has_text="Data Engineer")).to_have_count(0)
+
+                    with page.expect_response(lambda response:
+                            response.url.startswith(origin + "/jobs?")
+                            and "q=" in response.url
+                            and "remote_type=" not in response.url
+                            and "provider=" not in response.url
+                            and "sort=score" in response.url) as cleared_jobs:
+                        saved.select_option("")
+                    self.assertEqual(len(cleared_jobs.value.json()["jobs"]), 2)
+                    expect(page.get_by_label("Search jobs", exact=True)).to_have_value("")
+                    expect(page.get_by_label("Work location", exact=True)).to_have_value("")
+                    expect(page.get_by_label("Source", exact=True)).to_have_value("")
+                    expect(page.get_by_label("Sort", exact=True)).to_have_value("score")
+
+                    page.get_by_label("Active profile", exact=True).select_option("other")
+                    isolated_search = page.get_by_label("Saved search profile", exact=True)
+                    expect(isolated_search).to_have_value("")
+                    expect(isolated_search.locator("option", has_text="Remote Python roles")).to_have_count(0)
+                    self.assertEqual(external, [])
+                    context.close()
+                    browser.close()
+                self.assertEqual(store.count("worker_operations"), operations_before)
+                self.assertEqual(schedule_due_sources(store)["scheduled"], [])
+            finally:
+                server.should_exit = True
+                if 'thread' in locals():
+                    thread.join(timeout=5)
+                sock.close()
+                store.engine.dispose()
+            self.assertFalse(thread.is_alive(), "Isolated saved-search API did not stop")
+
+
+if __name__ == "__main__":
+    unittest.main()

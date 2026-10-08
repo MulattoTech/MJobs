@@ -1,23 +1,74 @@
 {
   "schema_version": 1,
-  "recorded_at_utc": "2026-10-08T06:53:07Z",
+  "recorded_at_utc": "2026-10-08T07:00:13Z",
   "issue": 192,
   "requirement": "MJ-REQ-191",
-  "result": "NOT_RUN",
+  "result": "PASS (bounded local slice)",
   "slice": "Persist and restore supported current Jobs filters",
   "branch": "codex/mj-req191-save-filters-20261008",
   "worktree": ".worktrees/codex/mj-req191-save-filters-20261008",
   "base": {
-    "commit": "bce7866e87aa71b7658d7000e2e8b66452187254",
-    "tree": "973442af06d62f5104dcdd36cc4cca62b31c1ccc"
+    "claim_commit": "bce7866e87aa71b7658d7000e2e8b66452187254",
+    "claim_tree": "973442af06d62f5104dcdd36cc4cca62b31c1ccc",
+    "implementation_commit": "4532b35d196cba120c5a0de3b6137651dd968c2d",
+    "implementation_tree": "0a982f159f71030a10c4fb9a792262205cb2c56a"
   },
   "acceptance": "Save q, work location, source and sort in a named active-profile saved search; restore controls and connected results after reload; prove profile isolation, malformed/cross-profile rejection, clearing selection and no scheduler side effect. Preserve semantic criteria.",
   "validation": {
-    "result": "NOT_RUN",
-    "tests": [],
+    "result": "PASS (bounded local slice)",
+    "runtime": "Windows PowerShell; Python repository environment C:/Tools/Dev/MJobs/.venv; Node dependencies reused from canonical checkout via a local apps/web/node_modules junction; Chromium Playwright FIXTURE mode.",
+    "tests": [
+      {
+        "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_saved_search_filters -v",
+        "result": "PASS",
+        "counts": "2 tests passed",
+        "covers": "Saved filter persistence, semantic criteria preservation, malformed filter rejection, profile isolation, and no scheduler/operation side effect."
+      },
+      {
+        "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_saved_search_filters tests.browser.test_saved_search_filters -v",
+        "result": "PASS",
+        "counts": "3 tests passed",
+        "covers": "Connected filter save, reload/select restoration, connected matching results, clear selection, active-profile isolation, and local-only browser traffic."
+      },
+      {
+        "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_source_policy_scheduler tests.integration.test_job_sorting tests.browser.test_search_profile_selection -v",
+        "result": "PASS",
+        "counts": "10 tests passed"
+      },
+      {
+        "command": "npm run build --prefix apps/web",
+        "result": "PASS",
+        "counts": "TypeScript check and Vite production build passed."
+      },
+      {
+        "command": "npm test --prefix apps/web -- --run",
+        "result": "PASS",
+        "counts": "16 files, 94 tests passed."
+      },
+      {
+        "command": "git diff --check",
+        "result": "PASS"
+      }
+    ],
+    "red_test": "Before implementation, test_saved_jobs_filters_persist_profile_scope_and_do_not_schedule_discovery failed with HTTP 422 extra_forbidden for job_filters, confirming missing API support.",
+    "fixture_correction": "The browser fixture's shared job description contains Python for both postings. The search term was narrowed to Developer so the connected result assertion tests the intended single posting.",
+    "attempt_notes": [
+      "The worktree does not contain .venv-test; reran with the existing canonical C:/Tools/Dev/MJobs/.venv Python environment.",
+      "An initial test harness count used operations instead of the persisted worker_operations table; corrected before the passing runs."
+    ],
+    "source_inputs": [
+      {"path": "apps/api/main.py", "sha256": "36ad0af340ca045c5f649c00ac4bccedc0d4d58eb3c7172411da6e9147e98e37"},
+      {"path": "apps/web/src/main.tsx", "sha256": "14b7e4848522baed5cd73fdd6bb9341e0510490f1d27347041ff7c75eaf05d80"},
+      {"path": "services/discovery/search_profiles.py", "sha256": "05ec839a9c15a76a8ba86df2c68cad99b58dc8e4d9968593cd13416d380e52cf"},
+      {"path": "tests/integration/test_saved_search_filters.py", "sha256": "6e23531453fea917a1f326a368cd2dd2c502fcca582d94fd087f2bbc361c668a"},
+      {"path": "tests/browser/test_saved_search_filters.py", "sha256": "5ec0faaa3784d29e088614cd3e1046e53271a0b3097856b996768e5e2b178f35"
+      }
+    ],
+    "full_suite": "NOT_RUN",
+    "hosted_checks": "NOT_RUN_BY_USER_POLICY",
     "limitations": [
-      "Implementation and verification pending; no PASS claimed.",
       "Scheduler cadence and broader MJ-REQ-191 acceptance are outside this slice.",
+      "Full Python suite and PostgreSQL validation were not run.",
       "Parent MJ-PR-052 remains QUEUED with MJ-PR-051 and MJ-PR-043 dependencies unchanged."
     ]
   },
