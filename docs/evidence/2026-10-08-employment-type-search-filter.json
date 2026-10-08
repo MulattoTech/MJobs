@@ -5,9 +5,9 @@
   "slice": "profile-scoped Jobs employment-type filter",
   "result": "PARTIAL",
   "base_commit": "118b121afa4ffe12867f1024247ab6722a618d8b",
-  "source_commit": "0c423764712fce4bd3d5dbb12e7c201abe6e1916",
-  "source_tree": "6e2908a3a0c8c02ac3a02e5c8457bdf3b0a2fad0",
-  "validated_at_utc": "2026-10-08T12:58:26Z",
+  "source_commit": "570d37fefaa384fe1b0e7658166273663f570c33",
+  "source_tree": "610d104dddfe9e756929939a0854da3c433613da",
+  "validated_at_utc": "2026-10-08T13:04:27Z",
   "environment": {
     "platform": "Windows",
     "python": "3.12.10",
@@ -18,10 +18,11 @@
   "behavior": {
     "implemented": [
       "Jobs exposes the normalized FULL_TIME, PART_TIME, CONTRACT, CONTRACT_TO_HIRE, TEMPORARY, INTERNSHIP, OTHER, and UNKNOWN values.",
-      "Selected employment type filters exact normalized job attributes in the database before LIMIT; absent and unrecognized values do not match known types.",
+      "Known employment types match exact normalized job attributes before LIMIT; selecting UNKNOWN includes explicit UNKNOWN, absent, null, malformed, and unrecognized stored values.",
       "The filter composes with existing Jobs query, location, salary, experience, reported-date, match-score, source, and sort filters.",
       "Saved searches persist the value with legacy records defaulting to All; the browser restores it after reload and can clear it while the saved search remains selected.",
-      "Saved-search access remains profile scoped; no discovery scheduling or application/submission side effects were observed."
+      "Saved-search access remains profile scoped; no discovery scheduling or application/submission side effects were observed.",
+      "A saved semantic employment preference composes with the Jobs facet using AND semantics; contradictory FULL_TIME and PART_TIME criteria return no rows."
     ],
     "remaining": "The broader requirement is incomplete; skills, education, clearance, ATS, application capability, and application-state facets remain outside this slice.",
     "external_submission": "OFF"
@@ -30,7 +31,7 @@
     {
       "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_saved_search_filters tests.browser.test_saved_search_filters",
       "result": "PASS",
-      "detail": "15 tests passed: 14 connected API/integration cases and 1 local Chromium workflow."
+      "detail": "15 tests passed: 14 connected API/integration cases and 1 local Chromium workflow. Regressions cover missing and unrecognized values under UNKNOWN, exact known-type exclusion, filtering before LIMIT, saved semantic preference conflicts, profile scope, and clearing the selector."
     },
     {
       "command": "npm test --prefix apps/web -- --run",
@@ -65,9 +66,9 @@
     "apps/web/src/main.tsx": "52d9e2ca440e32e31ee936508979fb8139b9a80f866d416ed3277071c257c5e4",
     "apps/web/package.json": "40063ee6deb9570a868a6c93b5ff42999353c7fcecc921ce44b6ef20eb500f04",
     "apps/web/package-lock.json": "453d036596f964fc6a3c19ed0682a34d08c5eec4e64dbaf8c5898046d9c4358a",
-    "packages/persistence/store.py": "9833d92513164042edb406d85c9bcebed2e259f78155a37aeb80dcea62ddc3e5",
+    "packages/persistence/store.py": "865f66fbf0e0f1aa70c22f03a43bfaa310d01d1c4860d832102e9e4d0e34a9a6",
     "services/discovery/search_profiles.py": "ecb30e8bc6ee9c91618e1303b04474385b0761acbd536800af2478394b58b141",
-    "tests/integration/test_saved_search_filters.py": "bcd5e67adbba924c7782c640c4f0deccaba0f728fefec3f95ac3cd29ceb5526a",
+    "tests/integration/test_saved_search_filters.py": "a2f7d46b30931566649189cbe9f7f3d77074f5f2ed34f4094b7e02b8844e05bc",
     "tests/browser/test_saved_search_filters.py": "6e278a0cd8253db0722f1d9304cbf53c6fcac754ad48953bc98c6ea06951835e"
   },
   "not_run": [
@@ -76,5 +77,5 @@
     "Live production job sources and real ATS behavior",
     "Full repository test suite"
   ],
-  "integration": "Local implementation commit only; awaiting root review and serialized integration."
+  "integration": "Local implementation and review-fix commits only; awaiting root review and serialized integration."
 }
