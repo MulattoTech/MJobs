@@ -1,5 +1,5 @@
 """Relational authority for the initial product spine."""
-from sqlalchemy import Boolean, CheckConstraint, Column, Float, ForeignKey, Index, Integer, JSON, LargeBinary, MetaData, String, Table, UniqueConstraint, false, true
+from sqlalchemy import Boolean, CheckConstraint, Column, Float, ForeignKey, Index, Integer, JSON, LargeBinary, MetaData, String, Table, Text, UniqueConstraint, false, true
 
 metadata = MetaData()
 
@@ -175,6 +175,38 @@ company_sources = table(
     Column("last_validation", String(64)), Column("last_success", String(64)),
     Column("collector_source_id", ForeignKey("job_sources.id")),
     constraints=(UniqueConstraint("company_id", "provider", "tenant", "career_url"),),
+)
+company_contexts = table(
+    "company_contexts",
+    Column("company_id", ForeignKey("companies.id"), nullable=False),
+    Column("company_source_id", ForeignKey("company_job_sources.id"), nullable=False),
+    Column("version", Integer, nullable=False),
+    Column("request_id", String(64), nullable=False),
+    Column("content", Text, nullable=False),
+    Column("content_origin", String(32), nullable=False, server_default="USER_PROVIDED"),
+    Column("content_status", String(16), nullable=False, server_default="UNVERIFIED"),
+    Column("content_sha256", String(64), nullable=False),
+    Column("source_url", String(2000), nullable=False),
+    Column("source_host", String(253), nullable=False),
+    Column("verified_domain", String(253)),
+    Column("source_identity_method", String(64)),
+    Column("identity_status", String(16), nullable=False),
+    Column("user_reviewed", Boolean, nullable=False, server_default=false()),
+    Column("user_approved", Boolean, nullable=False, server_default=false()),
+    Column("reviewed_at", String(64)),
+    Column("created_at", String(64), nullable=False),
+    constraints=(UniqueConstraint("company_source_id", "version",
+                                  name="uq_company_context_source_version"),
+                 UniqueConstraint("company_source_id", "request_id",
+                                  name="uq_company_context_source_request"),
+                 CheckConstraint("content_origin = 'USER_PROVIDED'",
+                                 name="ck_company_context_origin"),
+                 CheckConstraint("content_status = 'UNVERIFIED'",
+                                 name="ck_company_context_content_status"),
+                 CheckConstraint("identity_status IN ('VERIFIED','UNVERIFIED')",
+                                 name="ck_company_context_identity_status"),
+                 CheckConstraint("user_approved = false OR (user_reviewed = true AND identity_status = 'VERIFIED')",
+                                 name="ck_company_context_approval_gate")),
 )
 jobs = table("canonical_jobs", Column("company_id", ForeignKey("companies.id"), nullable=False),
              Column("requisition", String(128), nullable=False), Column("title", String(500), nullable=False),

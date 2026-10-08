@@ -78,6 +78,11 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
         job = dict(connection.execute(select(m.jobs, m.companies.c.name.label("company")).join(
             m.companies, m.companies.c.id == m.jobs.c.company_id).where(m.jobs.c.id == job_id)
             .with_for_update(of=m.jobs)).mappings().one())
+        from services.company_discovery.company_context import approved_company_context_for_job
+        job_attributes = dict(job.get("attributes") or {})
+        job_attributes["approved_company_context"] = approved_company_context_for_job(
+            connection, job_id, job["company_id"])
+        job["attributes"] = job_attributes
         try:
             require_route_review(connection, job_id, route_mode, route_id)
         except ValueError as error:

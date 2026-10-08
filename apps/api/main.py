@@ -389,6 +389,27 @@ class CompanyNoteInput(BaseModel):
         return self
 
 
+class CompanyContextInput(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+    text: str = Field(min_length=1, max_length=4000)
+    source_url: str = Field(min_length=1, max_length=2000)
+    request_id: str = Field(min_length=1, max_length=64)
+
+    @model_validator(mode="after")
+    def bounded_company_context(self):
+        if not self.text.strip() or self.text != self.text.strip():
+            raise ValueError("Company context must contain 1 to 4000 trimmed characters")
+        if self.request_id != self.request_id.strip():
+            raise ValueError("Company context request identifier cannot have surrounding whitespace")
+        return self
+
+
+class CompanyContextReviewInput(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+    approved: bool
+    content_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+
+
 class ApplicationPipelineStatusInput(BaseModel):
     model_config = ConfigDict(strict=True, extra="forbid")
     status: Literal["SAVED", "READY", "APPLIED", "RECRUITER_CONTACT", "INTERVIEW",
@@ -1117,7 +1138,36 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
 
     @app.get("/company-sources/view")
     def company_source_view(profile_id: str | None = Query(default=None, min_length=1, max_length=128)):
-        return {"company_sources": list_company_source_view(store, profile_id)}
+        from services.company_discovery.company_context import list_company_contexts
+        rows = list_company_source_view(store, profile_id)
+        for row in rows:
+            row["company_contexts"] = list_company_contexts(store, row["id"])
+        return {"company_sources": rows}
+
+    @app.post("/company-sources/{source_id}/contexts", status_code=201)
+    def company_context_save(source_id: str, value: CompanyContextInput):
+        from services.company_discovery.company_context import save_company_context
+        try:
+            return save_company_context(store, source_id, **value.model_dump())
+        except ValueError as exc:
+            code = str(exc)
+            status = 404 if code == "COMPANY_CONTEXT_SOURCE_NOT_FOUND" else (
+                409 if code == "COMPANY_CONTEXT_REQUEST_CONFLICT" else 422)
+            raise HTTPException(status, code) from exc
+
+    @app.post("/company-sources/{source_id}/contexts/{context_id}/review")
+    def company_context_review(source_id: str, context_id: str,
+                               value: CompanyContextReviewInput):
+        from services.company_discovery.company_context import review_company_context
+        try:
+            return review_company_context(store, context_id, company_source_id=source_id,
+                                          **value.model_dump())
+        except ValueError as exc:
+            code = str(exc)
+            status = 404 if code == "COMPANY_CONTEXT_NOT_FOUND" else (
+                409 if code in {"COMPANY_CONTEXT_SOURCE_UNVERIFIED",
+                                "COMPANY_CONTEXT_CONTENT_CHANGED"} else 422)
+            raise HTTPException(status, code) from exc
 
     @app.get('/company-discovery/requests')
     def discovery_requests():

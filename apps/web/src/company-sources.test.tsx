@@ -43,4 +43,19 @@ describe('Companies/Sources view', () => {
   it('shows an honest empty state', async () => {
     expect(await render([])).toContain('No company sources enrolled');
   });
+  it('labels user-entered company context and keeps unverified context out of letters', async () => {
+    const html = await render([{...source, company_contexts:[{
+      id:'context-1', version:1, content:'Acme has regional operations.', content_origin:'USER_PROVIDED', content_status:'UNVERIFIED',
+      source_url:'https://careers.example/about', identity_status:'UNVERIFIED',
+      content_sha256:'a'.repeat(64), user_reviewed:false, user_approved:false,
+    }]}]);
+    expect(html).toContain('Context is user-provided and unverified');
+    expect(html).toContain('USER_PROVIDED');
+    expect(html).toContain('CONTENT UNVERIFIED');
+    expect(html).toContain('UNVERIFIED');
+    expect(html).toContain('Unverified source identity; this context will not be used in letters.');
+    expect(html).toContain('Context text from the source');
+    expect(html).toContain('Source URL');
+    expect(html).toContain('Save user-provided context');
+  });
 });

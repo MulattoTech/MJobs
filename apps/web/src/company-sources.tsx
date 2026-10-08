@@ -39,6 +39,13 @@ export type CompanySourceView = {
     events: unknown[];
     source_linked_history_available: boolean;
   };
+  company_contexts?: CompanyContext[];
+};
+type CompanyContext = {
+  id: string; version: number; content: string; content_origin: 'USER_PROVIDED';
+  content_status: 'UNVERIFIED';
+  source_url: string; identity_status: 'VERIFIED' | 'UNVERIFIED';
+  content_sha256: string; user_reviewed: boolean; user_approved: boolean;
 };
 type CompanyNote = {id: string; text: string; sequence: number; timestamp: string};
 type CompanyTracking = {notes: CompanyNote[]; history: {type: 'note'; id: string; text: string; sequence: number; timestamp: string}[]};
@@ -124,6 +131,77 @@ function CompanyNotes({row}: {row: CompanySourceView}) {
   </section>;
 }
 
+function CompanyContextPanel({row}: {row: CompanySourceView}) {
+  const [contexts, setContexts] = useState<CompanyContext[]>(row.company_contexts || []);
+  const [text, setText] = useState('');
+  const [sourceUrl, setSourceUrl] = useState('');
+  const [acknowledged, setAcknowledged] = useState<Record<string, boolean>>({});
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const requestId = useRef<string | null>(null);
+
+  useEffect(() => { setContexts(row.company_contexts || []); }, [row.company_contexts]);
+
+  async function save(event: React.FormEvent) {
+    event.preventDefault();
+    if (saving || !text.trim() || !sourceUrl.trim()) return;
+    requestId.current ||= crypto.randomUUID();
+    setSaving(true); setError('');
+    try {
+      const value = await api<CompanyContext>(`/company-sources/${encodeURIComponent(row.id)}/contexts`, {
+        method: 'POST', body: JSON.stringify({text: text.trim(), source_url: sourceUrl.trim(), request_id: requestId.current}),
+      });
+      setContexts(current => [value, ...current.filter(item => item.id !== value.id)]);
+      setText(''); setSourceUrl(''); requestId.current = null;
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Company context could not be saved.');
+    } finally { setSaving(false); }
+  }
+
+  async function review(context: CompanyContext, approved: boolean) {
+    setSaving(true); setError('');
+    try {
+      const value = await api<CompanyContext>(
+        `/company-sources/${encodeURIComponent(row.id)}/contexts/${encodeURIComponent(context.id)}/review`,
+        {method: 'POST', body: JSON.stringify({approved, content_sha256: context.content_sha256})});
+      setContexts(current => current.map(item => item.id === value.id ? value : item));
+      setAcknowledged(current => ({...current, [context.id]: false}));
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Company context review could not be saved.');
+    } finally { setSaving(false); }
+  }
+
+  return <section className="company-context" aria-label={`Company context for ${row.company_name}`}>
+    <h4>Company context</h4>
+    <p className="muted">Context is user-provided and unverified until its source identity is verified and you review and approve it.</p>
+    {contexts.length === 0 ? <p className="muted">No company context saved.</p> :
+      <ol>{contexts.map(context => <li key={context.id}>
+        <p>{context.content}</p>
+        <p><small>{context.content_origin} · CONTENT {context.content_status} · SOURCE IDENTITY {context.identity_status} · Version {context.version} · Source: {context.source_url}</small></p>
+        {context.identity_status !== 'VERIFIED' && <p role="status">Unverified source identity; this context will not be used in letters.</p>}
+        {context.user_approved
+          ? <p role="status">Reviewed and approved for job-specific letters.</p>
+          : <>
+            <label><input type="checkbox" checked={!!acknowledged[context.id]}
+              onChange={event => setAcknowledged(current => ({...current, [context.id]: event.target.checked}))}
+              disabled={saving || context.identity_status !== 'VERIFIED'}/>
+              I reviewed this USER_PROVIDED context and approve its use in job-specific letters.
+            </label>
+            <button type="button" disabled={saving || context.identity_status !== 'VERIFIED' || !acknowledged[context.id]}
+              onClick={() => void review(context, true)}>Approve context</button>
+          </>}
+      </li>)}</ol>}
+    <form onSubmit={event => void save(event)}>
+      <label>Context text from the source<textarea aria-label={`Company context for ${row.company_name}`}
+        maxLength={4000} value={text} onChange={event => setText(event.target.value)} disabled={saving}/></label>
+      <label>Source URL<input aria-label={`Company context source URL for ${row.company_name}`} type="url"
+        maxLength={2000} value={sourceUrl} onChange={event => setSourceUrl(event.target.value)} disabled={saving}/></label>
+      <button type="submit" disabled={saving || !text.trim() || !sourceUrl.trim()}>Save user-provided context</button>
+    </form>
+    {error && <p role="alert">{error}</p>}
+  </section>;
+}
+
 export function CompanySources({rows, busy, profileSelected, onSet, onMonitor, onRun}: Props) {
   return <section className="panel company-sources" aria-labelledby="company-sources-heading">
     <div className="toolbar">
@@ -167,6 +245,7 @@ export function CompanySources({rows, busy, profileSelected, onSet, onMonitor, o
         </dl>
         <SourceLinkEvidence evidence={row.quality?.link_verification} />
         <SourceQuality quality={row.quality} />
+        <CompanyContextPanel key={`${row.id}:company-context`} row={row} />
         {onMonitor && onRun && <CompanySourceMonitoring sourceId={row.id} sourceVersion={row.source_version || ''}
           sourceEnabled={row.enabled} supported={!!row.monitoring_supported} monitoring={row.monitoring || null}
           busy={busy} profileSelected={profileSelected} onMonitor={interval=>onMonitor(row,interval)} onRun={()=>onRun(row)}/>}

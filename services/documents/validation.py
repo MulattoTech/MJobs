@@ -146,7 +146,9 @@ def validate_assertions(kind, paragraphs, profile, fact_ids, job_title=None, tem
                 context.get('style'), context.get('length'))
         except PreparationError as error:
             raise PreparationError('UNSUPPORTED_CLAIM', 'Cover letter evidence is no longer valid') from error
-        _reject_novel_tokens([paragraphs[5]] if len(paragraphs) > 5 else [],
+        fact_paragraphs = [value for value in paragraphs
+                           if value.startswith('Approved career facts relevant to these details:')]
+        _reject_novel_tokens(fact_paragraphs,
                              [eligible[identifier] for identifier in expected_context['fact_ids']])
         if (paragraphs != expected or fact_ids != expected_context['fact_ids']
                 or context.get('fact_ids') != expected_context['fact_ids']):

@@ -1,0 +1,112 @@
+{
+  "timestamp": "2026-10-08T10:52:46Z",
+  "result": "PARTIAL",
+  "requirement_state": "MJ-REQ-100 / issue #101 remains OPEN/PARTIAL; this local slice is not integrated",
+  "branch": "codex/mj-req100-verified-company-context-20261008",
+  "worktree": ".worktrees/codex-mj-req100-verified-company-context-20261008",
+  "base_commit": "1020cd10444caded2bc3d7aa40dc91ce2ad20102",
+  "acceptance": [
+    "Company context saves as USER_PROVIDED with durable content_status UNVERIFIED, exact source attribution, content SHA256, and a version bound to one existing company source.",
+    "Source identity is eligible only when one uniquely ranked persisted verified company domain exists and both the source career URL host and user-entered context URL host are under it. Accepted verification methods come from services.company_discovery.domains.VERIFIED_METHODS. No URL is fetched.",
+    "Approval requires an explicit user review, matching content SHA256, and a fresh source-identity check. An unverified or cross-company source cannot be approved or used.",
+    "Only the newest context version for the exact company-feed source linked to a job can be selected. A newer unreviewed version, ambiguous domain, mismatched source, or changed content suppresses context use.",
+    "A generated letter labels company text USER_PROVIDED and CONTENT UNVERIFIED, cites the source URL, and stores its reviewed context in the immutable job/document generation snapshot. Later context changes create a new document version; prior validated history survives database reopen."
+  ],
+  "red_first": {
+    "commands": [
+      "python -m unittest tests.integration.test_company_context",
+      "python -m unittest tests.integration.test_company_context_documents"
+    ],
+    "result": "FAIL as expected before implementation: context test import reported missing company_context service; letter tests lacked attributed context paragraph and snapshot fields."
+  },
+  "runtime": {
+    "os": "Windows PowerShell",
+    "python": "Python 3.12.10",
+    "python_executable": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+    "web_runtime": "Node dependencies from the existing local apps/web installation, linked read-only into this isolated worktree for local checks"
+  },
+  "checks": [
+    {
+      "command": "python -m unittest tests.integration.test_company_context",
+      "result": "PASS",
+      "tests": 5,
+      "failures": 0,
+      "skips": 0,
+      "coverage": "unverified source, wrong source host, approval/content hash gate, latest-version suppression, API save/review/view and SQLite reopen"
+    },
+    {
+      "command": "python -m unittest tests.integration.test_company_context_documents",
+      "result": "PASS",
+      "tests": 3,
+      "failures": 0,
+      "skips": 0,
+      "coverage": "letter attribution/grounding, absent/unverified/unapproved omission, regeneration and immutable history after SQLite reopen"
+    },
+    {
+      "command": "python -m unittest tests.integration.test_company_source_view",
+      "result": "PASS",
+      "tests": 8,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "python -m unittest tests.integration.test_cover_letter_workflow",
+      "result": "PASS",
+      "tests": 3,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "python -m unittest tests.browser.test_company_context",
+      "result": "PASS",
+      "tests": 1,
+      "failures": 0,
+      "skips": 0,
+      "coverage": "local browser-to-API save, explicit approval, page reload/readback; observed zero external requests and zero page errors"
+    },
+    {
+      "command": "npm test -- src/company-sources.test.tsx",
+      "result": "PASS",
+      "tests": 5,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "npm run build",
+      "result": "PASS",
+      "details": "TypeScript no-emit check and Vite production build"
+    },
+    {
+      "command": "python -m py_compile services/company_discovery/company_context.py packages/persistence/models.py migrations/versions/c7d4a91e205f_verified_company_context.py apps/api/main.py services/documents/cover_letter.py services/documents/generate.py services/documents/validation.py tests/integration/test_company_context.py tests/integration/test_company_context_documents.py tests/browser/test_company_context.py",
+      "result": "PASS"
+    },
+    {
+      "command": "alembic upgrade head on a fresh temporary SQLite database; inspect company_contexts/content_status; alembic heads",
+      "result": "PASS",
+      "head": "c7d4a91e205f"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "source_sha256": {
+    "apps/api/main.py": "6518F40BBFAFB37B15757B00F831A8CB55AA9FF2274E013F6516210A9B08BC1D",
+    "apps/web/src/company-sources.tsx": "AF90631B2D1CF969C10FD5A4A222A730A6A9295CCEB2602C1AD49D1134E56D88",
+    "apps/web/src/company-sources.test.tsx": "B5B081A5BDEEB73897035F56C37A0CC202162D72DD5944BC4419A8713F4B6448",
+    "packages/persistence/models.py": "A4823C3A572B912120B8085B736FA8824605EC0D95462B41838E5A1350B3F23E",
+    "migrations/versions/c7d4a91e205f_verified_company_context.py": "155C4D135C9A50F78EBA3E51D8E8AB105FC5403E2299BDC5E2D50BAA6FBDDDEC",
+    "services/company_discovery/company_context.py": "41419F1FBAA35AB81AA752BC2AB853AAEB57F2AC6930C435067F17A6149DB691",
+    "services/documents/cover_letter.py": "BB13233A84BA2B94DC7948476DEFC58E7F93090255ACDFAA8D8BE4062BFEE683",
+    "services/documents/generate.py": "564A961D9D2B23F2A65B81E2D73FDD9D66CEA9716911C26A703F61D1F6BB54FD",
+    "services/documents/validation.py": "80211AFA9F44337101FB70E2314B4E0D02796AD7CC68FF70114AE741BFA8F551",
+    "tests/integration/test_company_context.py": "337EB0E4C18397B1BD292215D58AF1876EAB71A2BF2583EDE40EDA37314157F7",
+    "tests/integration/test_company_context_documents.py": "D1FDAF2D0681F156C56D8F99B35F57FAC09D81346299607B0A8F7B4140852D1B",
+    "tests/browser/test_company_context.py": "0AFB05B0A88F8A23F60FB6FA8C129C245AF5C4EC326C8061122E0F868701A56D"
+  },
+  "not_run": [
+    "Full repository test suite",
+    "Hosted CI/review, per local-only policy",
+    "External employer/provider access and application submission; none were attempted"
+  ]
+}

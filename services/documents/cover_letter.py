@@ -1,5 +1,7 @@
 """Deterministic, evidence-bound cover-letter drafts."""
+import hashlib
 import re
+from urllib.parse import urlsplit
 
 from services.documents.errors import PreparationError
 
@@ -36,6 +38,51 @@ _ACTION_VERBS = {
 }
 _STOP = {"and", "are", "for", "from", "have", "into", "that", "the", "their", "this", "with", "your"}
 _WORD = re.compile(r"[a-z0-9+#.]{2,}", re.I)
+
+
+def _approved_company_context(job):
+    attributes = job.get("attributes") if isinstance(job.get("attributes"), dict) else {}
+    context = attributes.get("approved_company_context")
+    if not isinstance(context, dict):
+        return None
+    required = ("id", "company_id", "company_source_id", "version", "content_origin",
+                "content_status", "source_host",
+                "content", "source_url", "verified_domain", "source_identity_method",
+                "identity_status", "content_sha256", "reviewed_at")
+    if any(context.get(key) in (None, "") for key in required):
+        return None
+    content = context.get("content")
+    if (context.get("content_origin") != "USER_PROVIDED"
+            or context.get("content_status") != "UNVERIFIED"
+            or context.get("identity_status") != "VERIFIED"
+            or context.get("user_reviewed") is not True
+            or context.get("user_approved") is not True
+            or not isinstance(content, str) or not content.strip() or len(content) > 4000
+            or type(context.get("version")) is not int or context["version"] < 1
+            or (job.get("company_id") and context.get("company_id") != job.get("company_id"))):
+        return None
+    if context.get("source_identity_method") not in {
+        "FIRST_PARTY_JOB_LINK", "VERIFIED_EXISTING_DOMAIN", "ATS_COMPANY_METADATA",
+        "OFFICIAL_CAREER_REDIRECT", "OFFICIAL_STRUCTURED_METADATA",
+    }:
+        return None
+    try:
+        parsed = urlsplit(context["source_url"])
+        host = (parsed.hostname or "").casefold().rstrip(".").removeprefix("www.")
+        port = parsed.port
+    except (TypeError, ValueError):
+        return None
+    domain = str(context["verified_domain"]).casefold().rstrip(".").removeprefix("www.")
+    if (parsed.scheme.casefold() not in {"http", "https"} or not host or not domain
+            or parsed.username is not None or parsed.password is not None
+            or port not in (None, 80, 443)
+            or context["source_host"] != host
+            or not (host == domain or host.endswith("." + domain))):
+        return None
+    digest = hashlib.sha256(content.encode("utf-8")).hexdigest()
+    if not re.fullmatch(r"[0-9a-f]{64}", str(context["content_sha256"])) or digest != context["content_sha256"]:
+        return None
+    return dict(context)
 
 
 def _normalized_choice(value, choices):
@@ -128,6 +175,7 @@ def build_cover_letter(profile, job, facts, style="professional", length="normal
     chosen_responsibilities = responsibilities[:responsibility_limit]
     chosen_skills = list(dict.fromkeys(required + preferred + skills))[:skill_limit]
     chosen_facts = ranked[:fact_limit]
+    company_context = _approved_company_context(job)
     if required:
         skill_paragraph = "The posting explicitly requires: " + "; ".join(required[:skill_limit]) + "."
     elif preferred:
@@ -142,6 +190,9 @@ def build_cover_letter(profile, job, facts, style="professional", length="normal
         "The posting describes this work: " + " ".join(chosen_responsibilities),
         skill_paragraph,
         "Approved career facts relevant to these details: " + "; ".join(row[2]["text"] for row in chosen_facts) + ".",
+        *(["Company context (USER_PROVIDED; CONTENT UNVERIFIED; SOURCE IDENTITY VERIFIED; reviewed by you; source: "
+           + company_context["source_url"] + "): " + company_context["content"]]
+          if company_context else []),
         _CLOSINGS[style],
     ]
     context = {
@@ -155,10 +206,13 @@ def build_cover_letter(profile, job, facts, style="professional", length="normal
         "skill_strengths": {value: "REQUIRED" if value in required else "PREFERRED" if value in preferred else "UNKNOWN"
                             for value in chosen_skills},
         "company_identity": attributes.get("company_identity", "SOURCE_LISTED"),
+        "company_context": company_context,
         "job_snapshot": {"title": title, "company": company, "skills": skills,
+                         "company_context": company_context,
                          "attributes": {"skill_evidence": attributes.get("skill_evidence"),
                                         "company_identity": attributes.get("company_identity", "SOURCE_LISTED"),
-                                        "required_skills": required, "preferred_skills": preferred},
+                                        "required_skills": required, "preferred_skills": preferred,
+                                        "approved_company_context": company_context},
                          "responsibility_evidence": responsibilities},
     }
     return paragraphs, context
