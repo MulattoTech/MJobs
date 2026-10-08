@@ -272,13 +272,13 @@ def tailored_context(target, target_source_facts=None):
                 any(adjustment['source_fact_fingerprints'][identifier] != target_fingerprints[identifier] for identifier in target_bullets) or
                 ('target_responsibilities' in adjustment and any(recorded_responsibilities[identifier] != target_responsibility_matches[identifier] for identifier in target_bullets)) or
                 (adjustment.get('selected_reasons') is not None and
-                    (any(adjustment['selected_reasons'][identifier]!=target_reasons[identifier] for identifier in target_bullets) or
-                     (len(target_bullets)==len(recorded_selected) and adjustment.get('mode')!=target_mode))) or
+                    any(adjustment['selected_reasons'][identifier]!=target_reasons[identifier] for identifier in target_bullets)) or
+                (len(target_bullets)==len(recorded_selected) and adjustment.get('mode')!=target_mode) or
                 (adjustment['adjusted'] and (not recorded_selected or
                     any(not recorded_matches[identifier] for identifier in recorded_selected) or
                     any(recorded_matches[identifier] for identifier in recorded_omitted))) or
                 (not adjustment['adjusted'] and (recorded_selected != recorded_original or
-                    recorded_omitted or any(recorded_matches.values())))):
+                    recorded_omitted))):
                 raise ComparisonUnavailable('Original target-bullet adjustment context is unavailable')
     return context
 
