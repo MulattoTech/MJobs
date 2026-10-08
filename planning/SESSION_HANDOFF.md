@@ -1,3 +1,13 @@
+## 2026-10-08T06:50:23Z — issue #191 / MJ-REQ-190 Newest-only sort integrated PARTIAL
+
+Source commit `0bb8e5048b45bd8324e938b197e39a9242cdaa1f` (tree `3cd995f118a3dfa2ee88dc5af3aee7ab542dd361`) was non-force fast-forwarded from `d0f594fc77e6f70e441738992ce70889034b22f1` and pushed to GitHub main. Evidence: `docs/evidence/2026-10-08-job-sorting-newest.json`. The user can select Newest in Jobs; ordering uses persisted effective posted time, first-seen fallback, unknown dates last, stable job-ID ties, and limits after sorting. Best Match and Title remain unchanged. The candidate branch/worktree is preserved as a clean historical pointer.
+
+Root exact integrated-tree checks: API 3/3 PASS; TypeScript/Vite production build PASS; connected synthetic Chromium/API browser test 1/1 PASS. Candidate frontend 94/94, validators and `LOCAL_DELEGATED_REVIEW` PASS; evidence input hashes match. Full Python discovery is **PARTIAL_NOT_COMPLETE**: stopped at the 600-second cap after `F` and `ss`, with no traceback/final count; do not report full-suite PASS or attribute the unknown failure to this slice. PostgreSQL and hosted checks/reviews are NOT_RUN. Issue #191 remains OPEN/PARTIAL; Application Priority and Salary sort acceptance remains incomplete, and parent MJ-PR-052 stays QUEUED with MJ-PR-051/MJ-PR-043 dependencies unchanged. External submission OFF.
+
+Integration receipt: https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6054211064; claim release: https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6054214275. Next candidate: #192 / MJ-REQ-191 saved Jobs filters, after live issue/dependency/claim reconciliation.
+
+---
+
 ## 2026-10-08T06:27:03Z — issue #191 / MJ-REQ-190 Newest sort slice assigned
 
 Bounded Newest-sort implementation is claimed on `codex/mj-req190-newest-20261008` in `.worktrees/codex-mj-req190-newest-20261008`, based on main `877110ea89170043b5cb6ede64f8d0749d9fc430`. The user action is selecting Newest in Jobs; use the persisted effective posted timestamp with first-seen fallback, order unknown dates last, and keep stable ties. Existing Best Match and Title behavior must remain. Application Priority and Salary are outside this slice because their rules/data are not yet established. The parent `MJ-PR-052` remains QUEUED with dependencies `MJ-PR-051` and `MJ-PR-043` unchanged. Claim: https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6053825467. No provider calls or external submission.

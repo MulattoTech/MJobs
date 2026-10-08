@@ -1,34 +1,42 @@
 {
   "schema_version": 1,
   "lane": "codex",
-  "status": "ACTIVE",
-  "base_main": "877110ea89170043b5cb6ede64f8d0749d9fc430",
-  "current_issue": 191,
-  "requirement_id": "MJ-REQ-190",
-  "branch": "codex/mj-req190-newest-20261008",
+  "status": "IDLE_READY",
+  "base_main": "0bb8e5048b45bd8324e938b197e39a9242cdaa1f",
+  "current_issue": null,
+  "requirement_id": null,
+  "branch": null,
   "head": null,
-  "worktree": ".worktrees/codex-mj-req190-newest-20261008",
-  "result": "ACTIVE_LOCAL_CLAIMED; bounded Newest sort slice; parent dependencies preserved",
+  "worktree": null,
+  "result": "Issue #191 Newest-only slice integrated PARTIAL; issue remains OPEN/PARTIAL; claim released.",
   "evidence_path": "docs/evidence/2026-10-08-job-sorting-newest.json",
   "last_completed": {
-    "issue": 517,
-    "requirement_id": "MJ-FEATURE-517",
-    "integrated_main": "dbc9e573680fcf32498131afe3bee75e72213371",
+    "issue": 191,
+    "requirement_id": "MJ-REQ-190",
+    "integrated_main": "0bb8e5048b45bd8324e938b197e39a9242cdaa1f",
+    "integrated_tree": "3cd995f118a3dfa2ee88dc5af3aee7ab542dd361",
     "issue_state": "OPEN/PARTIAL",
-    "evidence_path": "docs/evidence/2026-10-08-source-candidate-issue-link.json",
-    "integration_comment": "https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6053758883",
-    "release_comment": "https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6053719038"
+    "evidence_path": "docs/evidence/2026-10-08-job-sorting-newest.json",
+    "integration_comment": "https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6054211064",
+    "release_comment": "https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6054214275"
   },
-  "next_candidates": [],
+  "next_candidates": [
+    {
+      "issue": 192,
+      "requirement_id": "MJ-REQ-191",
+      "title": "Saved Jobs filters",
+      "state": "CANDIDATE_REQUIRES_LIVE_DEPENDENCY_AND_CLAIM_RECONCILIATION"
+    }
+  ],
   "do_not_overlap": [
     "Antigravity active issue #302 paths: services/discovery/sources/** and tests/integration/test_dice.py",
     "Ollama/OpenCode active issue #318 paths: services/ats_detection/** and detector tests",
     "canonical planning and main outside integration lock"
   ],
-  "resume_instruction": "Issue #191 / MJ-REQ-190 bounded Newest-sort slice is claimed on codex/mj-req190-newest-20261008 at base 877110ea89170043b5cb6ede64f8d0749d9fc430 in .worktrees/codex-mj-req190-newest-20261008. Implement only Newest ordering from persisted effective posted time with first-seen fallback, unknown last and stable ties; add API/storage/browser verification. Preserve MJ-PR-052 dependencies MJ-PR-051 and MJ-PR-043; do not promote the umbrella. Claim: https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6053825467. Issue #517 link slice is integrated PARTIAL at dbc9e573680fcf32498131afe3bee75e72213371; hosted/PostgreSQL NOT_RUN; external submission OFF.",
-  "last_verified_head": "dbc9e573680fcf32498131afe3bee75e72213371",
-  "last_verified_tree": "12d277b97734f28e1e1ac37b2fc5101ada693e5c",
-  "last_verified_at_utc": "2026-10-08T06:23:57Z",
+  "resume_instruction": "Issue #191 / MJ-REQ-190 Newest-only slice is integrated at main 0bb8e5048b45bd8324e938b197e39a9242cdaa1f (tree 3cd995f118a3dfa2ee88dc5af3aee7ab542dd361), evidence docs/evidence/2026-10-08-job-sorting-newest.json; issue remains OPEN/PARTIAL. Root reran API 3/3, frontend 94/94, build and browser 1/1 PASS; full Python discovery stopped after 600s with F/ss and no traceback/count, so PARTIAL_NOT_COMPLETE. Hosted/PostgreSQL NOT_RUN. Claim released. Next candidate is #192/MJ-REQ-191 saved Jobs filters; re-read live issue/dependencies/claims before any claim, preserve PR-052 dependencies MJ-PR-051/MJ-PR-043. Main must sync with origin before next slice. External submission OFF.",
+  "last_verified_head": "0bb8e5048b45bd8324e938b197e39a9242cdaa1f",
+  "last_verified_tree": "3cd995f118a3dfa2ee88dc5af3aee7ab542dd361",
+  "last_verified_at_utc": "2026-10-08T06:50:23Z",
   "started_at_utc": "2026-10-07T04:24:01Z",
   "validation": {
     "result": "PASS (bounded local slice; issue remains PARTIAL)",
@@ -41,8 +49,8 @@
     "external_submission": "OFF"
   },
   "last_integrated_head": "dbc9e573680fcf32498131afe3bee75e72213371",
-  "last_verified_result": "PASS bounded slice; 9 focused Python/API/browser/migration tests, 94 web tests/build, migration preservation and local delegated review pass; hosted/PostgreSQL NOT_RUN; #517 remains PARTIAL.",
-  "updated_at": "2026-10-08T06:27:03Z",
+  "last_verified_result": "PARTIAL (bounded Newest slice integrated; full discovery incomplete F/ss at 600s).",
+  "updated_at": "2026-10-08T06:50:23Z",
   "integrated_main": "dbc9e573680fcf32498131afe3bee75e72213371",
   "last_integrated_issue": 517,
   "last_integrated_requirement": "MJ-FEATURE-517",

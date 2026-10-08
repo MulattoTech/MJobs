@@ -79,8 +79,36 @@
   },
   "not_run": {
     "hosted_checks": "NOT_RUN_BY_USER_POLICY",
-    "postgresql": "NOT_RUN",
-    "issue_or_queue_updates": "NOT_RUN; issue #191 remains OPEN/PARTIAL and MJ-PR-052/dependencies were not modified."
+    "postgresql": "NOT_RUN"
   },
-  "publication": "Local candidate only; not pushed, merged, or opened as a pull request."
+  "publication": "Non-force fast-forwarded and pushed to GitHub main at 0bb8e5048b45bd8324e938b197e39a9242cdaa1f; issue remains OPEN/PARTIAL.",
+  "candidate": {
+    "commit": "0bb8e5048b45bd8324e938b197e39a9242cdaa1f",
+    "tree": "3cd995f118a3dfa2ee88dc5af3aee7ab542dd361",
+    "base": "d0f594fc77e6f70e441738992ce70889034b22f1",
+    "integration_method": "NON_FORCE_FAST_FORWARD"
+  },
+  "root_integrated_tree_revalidation": {
+    "window_utc": "2026-10-08T06:47:55Z/2026-10-08T06:49:14Z",
+    "target": "main at 0bb8e5048b45bd8324e938b197e39a9242cdaa1f (3cd995f118a3dfa2ee88dc5af3aee7ab542dd361)",
+    "commands": [
+      ".venv\\Scripts\\python.exe -m unittest tests.integration.test_job_sorting -v — PASS, 3 tests",
+      "npm run build --prefix apps/web — PASS, TypeScript and Vite production build",
+      ".venv\\Scripts\\python.exe -m unittest tests.browser.test_job_sorting -v — PASS, 1 connected synthetic Chromium/API test"
+    ],
+    "limitations": [
+      "First root Python command used an invalid relative venv path and ran zero tests; corrected command above passed.",
+      "PostgreSQL NOT_RUN. Hosted checks/review NOT_RUN_BY_USER_POLICY. Full Python discovery remains PARTIAL_NOT_COMPLETE as recorded below."
+    ]
+  },
+  "local_delegated_review": {
+    "result": "PASS",
+    "reviewer": "local GPT-6 Luna child",
+    "scope": "Candidate diff, sort semantics, test/evidence hashes, scope/dependency truth; not hosted or third-party review."
+  },
+  "integration_reconciliation": {
+    "issue": "#191 remains OPEN/PARTIAL; integration and claim-release receipts posted.",
+    "parent_queue": "MJ-PR-052 remains QUEUED; dependencies MJ-PR-051 and MJ-PR-043 unchanged.",
+    "external_submission": "OFF"
+  }
 }

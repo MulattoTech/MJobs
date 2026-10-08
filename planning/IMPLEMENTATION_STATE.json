@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-08T05:58:10Z",
+  "generated_at": "2026-10-08T06:50:23Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -11,7 +11,7 @@
     "current_verified_github_state": "Issue #179 / MJ-REQ-178 log retention acceptance PASS at 8bea57e595e19e638913405a8ec1cd3aa0ebde32; full product remains PARTIAL.",
     "current_verified_at": "2026-10-07T15:27:43Z"
   },
-  "current_milestone": "MJ-REQ-116-MATCH-CATEGORIES-20261008",
+  "current_milestone": "MJ-REQ-190-NEWEST-SORT-20261008",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -392,7 +392,10 @@
     "Issue #96 / MJ-REQ-095 experience-fact rewrite integrated at main 5dfce5eec8e2e6c56442631725c0993c7ce12a29; tested source commit c6eb1cd604d1372800bc798b7454aa9fe40d9d91. Exact source test run: 13 unit/integration + 1 connected synthetic Chromium; targeted Vitest 1; TypeScript/Vite build PASS. Evidence hash/JSON/progress/diff validation PASS. Vitest used Node 25.9.0 outside its declared support range. Evidence docs/evidence/2026-10-08-resume-experience-rewrites.json; issue https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6053321247. Broader requirement remains PARTIAL.",
     "Issue #275 / MJ-REQ-274 scheduled-source restart slice integrated at main 7d91b3104a2e21d400bdc1a2f59de289e5bbc2b6; tested source bc547e251eef7ed7a97556fde3396cc2655eb718. Root reran the focused scheduler module: 6 PASS, 0 failures/errors/skips. Actual scheduler subprocesses used an isolated temporary SQLite database and synthetic collection stub. Local delegated review found no blocker. Compose was not invoked; default project/fixed port isolation is BLOCKED_ENVIRONMENT; PostgreSQL NOT_RUN. Evidence docs/evidence/2026-10-08-scheduled-source-restart.json; issue https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053378645; requirement remains PARTIAL.",
     "Issue #178 / MJ-REQ-177 exact synchronized-main candidate c2346e1d813e7b052f4779be0525bf495ecaa54d (tree e877098891c090c73b3a4e6612fa068ac5bd054c), tested code source 0678aafc1ac21b347441d824144f4dd860f4c89e: root reran tests.unit.test_structured_logging and tests.integration.test_worker_lifecycle, 24 passed, 0 failures/errors, one optional PostgreSQL class skipped. JSON/compile/diff/agent_skills/catalogue/progress/lane checks passed; LOCAL_DELEGATED_REVIEW no blocker. Evidence docs/evidence/2026-10-08-worker-context-logs.json; issue #178 remains OPEN/PARTIAL; hosted/PostgreSQL/RQ NOT_RUN; external submission OFF.",
-    "Issue #105 / MJ-REQ-104 exact candidate e77b9be0f6703b7451caffeb961cbbbf2365aca0 (tree bafcd32072fa7892217b3d2fcc5ea1f72ab5fc46), based on main 2b3c1996a121af5584caa79653896dc572d46ac8: root reran 21 Python unit/integration tests, 2 connected Chromium/API tests, 5 focused Vitest tests and TypeScript/Vite build; all PASS. Seven evidence source hashes and Git blob IDs match. LOCAL_DELEGATED_REVIEW on exact head found no blocker. Evidence docs/evidence/2026-10-08-answer-matching.json; issue #105 remains OPEN/PARTIAL."
+    "Issue #105 / MJ-REQ-104 exact candidate e77b9be0f6703b7451caffeb961cbbbf2365aca0 (tree bafcd32072fa7892217b3d2fcc5ea1f72ab5fc46), based on main 2b3c1996a121af5584caa79653896dc572d46ac8: root reran 21 Python unit/integration tests, 2 connected Chromium/API tests, 5 focused Vitest tests and TypeScript/Vite build; all PASS. Seven evidence source hashes and Git blob IDs match. LOCAL_DELEGATED_REVIEW on exact head found no blocker. Evidence docs/evidence/2026-10-08-answer-matching.json; issue #105 remains OPEN/PARTIAL.",
+    "Issue #191 exact integrated-tree API sorting suite: 3/3 PASS; root rerun after non-force fast-forward at 0bb8e5048b45bd8324e938b197e39a9242cdaa1f.",
+    "Issue #191 exact integrated-tree connected synthetic browser test: 1/1 PASS after TypeScript/Vite production build.",
+    "Issue #191 candidate frontend suite: 94/94 PASS; production build PASS; validators PASS; local delegated review PASS."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -524,10 +527,11 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "commit": "dbc9e573680fcf32498131afe3bee75e72213371",
-    "result": "PARTIAL — scoped #517 slice locally verified and integrated; issue remains open",
-    "evidence": "docs/evidence/2026-10-08-source-candidate-issue-link.json",
-    "verified_at_utc": "2026-10-08T06:23:18Z"
+    "commit": "0bb8e5048b45bd8324e938b197e39a9242cdaa1f",
+    "tree": "3cd995f118a3dfa2ee88dc5af3aee7ab542dd361",
+    "result": "PARTIAL — Newest-only slice locally verified and integrated; full Python discovery incomplete after F/ss; issue remains OPEN/PARTIAL.",
+    "evidence": "docs/evidence/2026-10-08-job-sorting-newest.json",
+    "verified_at_utc": "2026-10-08T06:50:23Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -10031,16 +10035,68 @@
         "claim_release_receipt": "https://github.com/MulattoTech/MJobs/issues/105#issuecomment-6053523191",
         "issue_state_after_readback": "OPEN"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-190-NEWEST-SORT-20261008",
+      "timestamp": "2026-10-08T06:50:23Z",
+      "current_phase": "MJ_REQ_190_NEWEST_ONLY_INTEGRATED_PARTIAL",
+      "completed_steps": [
+        "Reproduced missing API option with an expected 422 before implementation; delivered Newest in Jobs UI/API/persistence using effective posted time, first-seen fallback, unknown-last ordering, stable ID ties, then limit.",
+        "Candidate API 3/3, connected browser 1/1, frontend 94/94, TypeScript/Vite build and catalogue/skills/progress/lane validators passed; all five recorded source/test hashes match.",
+        "LOCAL_DELEGATED_REVIEW PASS; root reran integrated API 3/3, rebuilt web client, and reran connected browser 1/1 on the exact main tree.",
+        "Non-force fast-forwarded and pushed source commit; posted integration and claim-release receipts. Issue remains OPEN/PARTIAL."
+      ],
+      "files_added": [
+        "tests/integration/test_job_sorting.py",
+        "tests/browser/test_job_sorting.py",
+        "docs/evidence/2026-10-08-job-sorting-newest.json"
+      ],
+      "files_modified": [
+        "apps/api/main.py",
+        "apps/web/src/main.tsx",
+        "packages/persistence/store.py"
+      ],
+      "tests_completed": [
+        ".venv\\Scripts\\python.exe -m unittest tests.integration.test_job_sorting -v — PASS, 3 tests on integrated main.",
+        "npm run build --prefix apps/web — PASS, TypeScript check and Vite production build.",
+        ".venv\\Scripts\\python.exe -m unittest tests.browser.test_job_sorting -v — PASS, 1 connected synthetic Chromium/API test.",
+        "npm test --prefix apps/web — PASS, 94 tests across 16 files on candidate.",
+        "Agent-skills, catalogue, progress and lane validators PASS; LOCAL_DELEGATED_REVIEW PASS; evidence SHA-256 inputs match."
+      ],
+      "tests_remaining": [
+        "Full Python discovery did not complete within 600 seconds; it showed one F marker and two skips without a traceback/final count, and was stopped. Status PARTIAL_NOT_COMPLETE; no rerun.",
+        "PostgreSQL and hosted checks/review NOT_RUN_BY_USER_POLICY.",
+        "Application Priority/Salary sorts and broader MJ-REQ-190 remain incomplete; parent MJ-PR-052 remains queued with original dependencies."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Temporary synthetic SQLite, connected loopback API/Chromium only; no provider/network or application submission."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "Full Python discovery failure marker is unclassified; do not attribute it to this slice or report a full-suite PASS.",
+        "Node 25.9.0 is outside Vitest declared engine support; 94 frontend tests and build passed with this caveat.",
+        "Issue #191 / MJ-REQ-190 remains OPEN/PARTIAL; hosted/PostgreSQL and release acceptance remain unverified."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "0bb8e5048b45bd8324e938b197e39a9242cdaa1f",
+        "tree": "3cd995f118a3dfa2ee88dc5af3aee7ab542dd361",
+        "source_commit": "0bb8e5048b45bd8324e938b197e39a9242cdaa1f",
+        "evidence_path": "docs/evidence/2026-10-08-job-sorting-newest.json",
+        "issue_receipt": "https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6054211064",
+        "claim_release_receipt": "https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6054214275",
+        "issue_state_after_readback": "OPEN"
+      }
     }
   ],
-  "current_phase": "MJ_REQ_104_REVIEWED_ANSWER_MATCHING_PARTIAL",
+  "current_phase": "MJ_REQ_190_NEWEST_ONLY_INTEGRATED_PARTIAL",
   "last_safe_checkpoint": {
-    "git_commit": "e77b9be0f6703b7451caffeb961cbbbf2365aca0",
-    "tree": "bafcd32072fa7892217b3d2fcc5ea1f72ab5fc46",
-    "source_commit": "361c0469bcc5dcd34554a030743fe240552e7515",
-    "evidence_path": "docs/evidence/2026-10-08-answer-matching.json",
-    "issue_receipt": "https://github.com/MulattoTech/MJobs/issues/105#issuecomment-6053516000",
-    "claim_release_receipt": "https://github.com/MulattoTech/MJobs/issues/105#issuecomment-6053523191",
+    "git_commit": "0bb8e5048b45bd8324e938b197e39a9242cdaa1f",
+    "tree": "3cd995f118a3dfa2ee88dc5af3aee7ab542dd361",
+    "source_commit": "0bb8e5048b45bd8324e938b197e39a9242cdaa1f",
+    "evidence_path": "docs/evidence/2026-10-08-job-sorting-newest.json",
+    "issue_receipt": "https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6054211064",
+    "claim_release_receipt": "https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6054214275",
     "issue_state_after_readback": "OPEN"
   },
   "live_integrations_tested": [
@@ -10338,6 +10394,21 @@
       "issue_state": "OPEN/PARTIAL",
       "integrated_at_utc": "2026-10-07T23:04:30Z",
       "scope_complete": false
+    },
+    {
+      "issue": 191,
+      "requirement_id": "MJ-REQ-190",
+      "source_commit": "0bb8e5048b45bd8324e938b197e39a9242cdaa1f",
+      "source_tree": "3cd995f118a3dfa2ee88dc5af3aee7ab542dd361",
+      "integration_commit": "0bb8e5048b45bd8324e938b197e39a9242cdaa1f",
+      "prior_main": "d0f594fc77e6f70e441738992ce70889034b22f1",
+      "integration_method": "NON_FORCE_FAST_FORWARD",
+      "evidence_path": "docs/evidence/2026-10-08-job-sorting-newest.json",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6054211064",
+      "claim_release_comment": "https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6054214275",
+      "issue_state": "OPEN/PARTIAL",
+      "integrated_at_utc": "2026-10-08T06:50:23Z",
+      "scope_complete": false
     }
   ],
   "live_reconciliation": {
@@ -10355,10 +10426,13 @@
     "issue": 191,
     "requirement_id": "MJ-REQ-190",
     "title": "Job Sorting",
-    "state": "ACTIVE / CLAIMED — bounded Newest sort slice; parent dependencies preserved",
+    "state": "INTEGRATED PARTIAL; GitHub issue OPEN/PARTIAL",
     "branch": "codex/mj-req190-newest-20261008",
     "worktree": ".worktrees/codex-mj-req190-newest-20261008",
-    "base_commit": "877110ea89170043b5cb6ede64f8d0749d9fc430",
+    "base_commit": "d0f594fc77e6f70e441738992ce70889034b22f1",
+    "source_commit": "0bb8e5048b45bd8324e938b197e39a9242cdaa1f",
+    "integrated_main": "0bb8e5048b45bd8324e938b197e39a9242cdaa1f",
+    "integrated_tree": "3cd995f118a3dfa2ee88dc5af3aee7ab542dd361",
     "owned_paths": [
       "apps/api/main.py",
       "apps/web/src/main.tsx",
@@ -10367,7 +10441,10 @@
       "tests/browser/test_job_sorting.py",
       "docs/evidence/2026-10-08-job-sorting-newest.json"
     ],
-    "next_action": "Implement the Newest sort as a complete API/storage/browser path with stable tie order and unknown dates last. Keep Application Priority and Salary semantics out of this slice unless their authoritative data rules are already persisted and unambiguous; keep Best Match/Title unchanged and PR-052 dependencies intact. No submission/provider calls."
+    "evidence_path": "docs/evidence/2026-10-08-job-sorting-newest.json",
+    "integration_comment": "https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6054211064",
+    "claim_release_comment": "https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6054214275",
+    "next_action": "Reconcile current dependencies/claims, then select the next independent user-visible slice. Preserve MJ-PR-052 dependencies and keep external submission OFF."
   },
   "historical_control_snapshots": [
     {

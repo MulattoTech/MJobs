@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-08T06:27:03Z",
+  "timestamp": "2026-10-08T06:50:23Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -1622,9 +1622,11 @@
     },
     {
       "requirement_id": "MJ-REQ-190",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-08-job-sorting-newest.json"
+      ],
+      "note": "Newest-only Jobs ordering locally verified on exact integrated main (API/browser/build); Best Match and Title preserved. Application Priority and Salary sorts plus full MJ-REQ-190 acceptance remain incomplete. Full Python discovery was PARTIAL_NOT_COMPLETE (F/ss at 600s, no summary); hosted/PostgreSQL NOT_RUN."
     },
     {
       "requirement_id": "MJ-REQ-191",

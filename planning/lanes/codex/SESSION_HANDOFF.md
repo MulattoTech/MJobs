@@ -1,3 +1,11 @@
+## 2026-10-08T06:50:23Z — #191 Newest-only sorting integrated PARTIAL
+
+Main/source checkpoint: `0bb8e5048b45bd8324e938b197e39a9242cdaa1f` tree `3cd995f118a3dfa2ee88dc5af3aee7ab542dd361`; pushed and synchronized. Evidence `docs/evidence/2026-10-08-job-sorting-newest.json`. Exact integrated API 3/3, TypeScript/Vite build, connected synthetic browser 1/1 PASS; frontend 94/94, validators and local delegated review PASS. Full Python discovery stopped after 600 seconds with `F` and `ss`, no traceback/count: PARTIAL_NOT_COMPLETE. PostgreSQL and hosted checks NOT_RUN. Issue remains OPEN/PARTIAL and parent dependencies remain unchanged. Claim released.
+
+Next candidate #192 / MJ-REQ-191: re-read live issue/spec/dependencies/claims before claiming saved Jobs filter persistence; preserve `MJ-PR-052` -> `MJ-PR-051`, `MJ-PR-043`. External submission OFF.
+
+---
+
 ## 2026-10-08T06:27:03Z — issue #191 / MJ-REQ-190 Newest sort slice assigned
 
 Bounded Newest-sort implementation is claimed on `codex/mj-req190-newest-20261008` in `.worktrees/codex-mj-req190-newest-20261008`, based on main `877110ea89170043b5cb6ede64f8d0749d9fc430`. The user action is selecting Newest in Jobs; use the persisted effective posted timestamp with first-seen fallback, order unknown dates last, and keep stable ties. Existing Best Match and Title behavior must remain. Application Priority and Salary are outside this slice because their rules/data are not yet established. The parent `MJ-PR-052` remains QUEUED with dependencies `MJ-PR-051` and `MJ-PR-043` unchanged. Claim: https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6053825467. No provider calls or external submission.

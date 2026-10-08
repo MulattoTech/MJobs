@@ -1397,7 +1397,7 @@
         "name": "Add deterministic Newest ordering to Jobs results",
         "issue": 191,
         "requirement_id": "MJ-REQ-190",
-        "status": "ACTIVE_LOCAL_CLAIMED",
+        "status": "INTEGRATED_PARTIAL",
         "depends_on": [],
         "parent_dependencies_preserved": [
           "MJ-PR-051",
@@ -1411,12 +1411,29 @@
           "tests/browser/test_job_sorting.py",
           "docs/evidence/2026-10-08-job-sorting-newest.json"
         ],
-        "acceptance": "User can select Newest; API and durable query order by persisted effective posting timestamp (reported_posted_at then first_seen_at fallback), unknown/unparseable timestamps last, stable ties; browser verifies exact order after reload/profile selection without changing scores or tracker state. Best Match and Title remain unchanged. This bounded child does not claim Application Priority or Salary and does not promote the parent.",
-        "rationale": "Existing persisted posting timestamps make this a deterministic independently testable user-visible increment; PR-052 remains QUEUED pending MJ-PR-051 and MJ-PR-043.",
+        "acceptance": "Newest uses persisted effective posted timestamp (reported_posted_at then first_seen_at fallback), unknown/unparseable last, stable job-ID ties, and applies limit after order. Browser proves connected order after reload; Best Match and Title unchanged. This bounded child does not complete Application Priority, Salary or MJ-REQ-190 and does not promote the parent.",
+        "rationale": "Locally verified and non-force fast-forward integrated; broad suite incomplete and hosted/PostgreSQL remain unavailable/not run.",
         "branch": "codex/mj-req190-newest-20261008",
         "worktree": ".worktrees/codex-mj-req190-newest-20261008",
-        "base": "877110ea89170043b5cb6ede64f8d0749d9fc430",
-        "issue_claim_comment": "https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6053825467"
+        "base": "d0f594fc77e6f70e441738992ce70889034b22f1",
+        "head": "0bb8e5048b45bd8324e938b197e39a9242cdaa1f",
+        "tree": "3cd995f118a3dfa2ee88dc5af3aee7ab542dd361",
+        "integration_method": "NON_FORCE_FAST_FORWARD",
+        "evidence_path": "docs/evidence/2026-10-08-job-sorting-newest.json",
+        "issue_claim_comment": "https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6053825467",
+        "integration_comment": "https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6054211064",
+        "claim_release_comment": "https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6054214275",
+        "issue_state": "OPEN/PARTIAL",
+        "validation": {
+          "api": "PASS 3/3 on integrated tree",
+          "browser": "PASS 1/1 on integrated tree after build",
+          "frontend": "PASS 94/94 on candidate",
+          "build": "PASS",
+          "full_python_discovery": "PARTIAL_NOT_COMPLETE: 600s, F ss observed, no traceback/count",
+          "hosted": "NOT_RUN_BY_USER_POLICY",
+          "postgresql": "NOT_RUN",
+          "review": "LOCAL_DELEGATED_REVIEW PASS"
+        }
       }
     },
     {
@@ -3929,5 +3946,5 @@
       "claim_release_comment": "https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053395464"
     }
   ],
-  "generated_at": "2026-10-08T06:27:03Z"
+  "generated_at": "2026-10-08T06:50:23Z"
 }

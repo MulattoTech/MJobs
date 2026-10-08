@@ -883,6 +883,29 @@
       "issue_comment": "https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6052123718",
       "release_comment": "https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6052125143",
       "released_at": "2026-10-08T04:19:16Z"
+    },
+    {
+      "issue": 191,
+      "requirement_id": "MJ-REQ-190",
+      "branch": "codex/mj-req190-newest-20261008",
+      "worktree": ".worktrees/codex-mj-req190-newest-20261008",
+      "head": "0bb8e5048b45bd8324e938b197e39a9242cdaa1f",
+      "paths": [
+        "apps/api/main.py",
+        "apps/web/src/main.tsx",
+        "packages/persistence/store.py",
+        "tests/integration/test_job_sorting.py",
+        "tests/browser/test_job_sorting.py",
+        "docs/evidence/2026-10-08-job-sorting-newest.json"
+      ],
+      "status": "RELEASED",
+      "claimed_at": "2026-10-08T06:26:27Z",
+      "released_at": "2026-10-08T06:50:23Z",
+      "integrated_main": "0bb8e5048b45bd8324e938b197e39a9242cdaa1f",
+      "evidence_path": "docs/evidence/2026-10-08-job-sorting-newest.json",
+      "claim_comment": "https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6053825467",
+      "integration_comment": "https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6054211064",
+      "release_comment": "https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6054214275"
     }
   ]
 }

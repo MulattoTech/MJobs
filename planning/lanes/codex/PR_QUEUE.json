@@ -384,7 +384,7 @@
     {
       "issue": 191,
       "requirement_id": "MJ-REQ-190",
-      "status": "ACTIVE_LOCAL_CLAIMED",
+      "status": "INTEGRATED_PARTIAL",
       "priority": 5,
       "target_area": "packages/persistence/store.py; apps/api/main.py; apps/web/src/main.tsx",
       "depends_on": [],
@@ -394,11 +394,14 @@
       ],
       "branch": "codex/mj-req190-newest-20261008",
       "worktree": ".worktrees/codex-mj-req190-newest-20261008",
-      "base": "877110ea89170043b5cb6ede64f8d0749d9fc430",
+      "base": "d0f594fc77e6f70e441738992ce70889034b22f1",
       "evidence_path": "docs/evidence/2026-10-08-job-sorting-newest.json",
       "issue_claim_comment": "https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6053825467",
       "scope_complete": false,
-      "note": "Narrow Newest ordering only; effective persisted posted timestamp then first_seen_at fallback, unknown last, stable ties. Preserve other sort requirements and parent queue dependencies."
+      "note": "Newest-only ordering integrated and locally verified; exact results in evidence. Full suite PARTIAL_NOT_COMPLETE (600s, F/ss unclassified), hosted/PostgreSQL NOT_RUN. Issue remains OPEN/PARTIAL; parent dependencies preserved.",
+      "head": "0bb8e5048b45bd8324e938b197e39a9242cdaa1f",
+      "integrated_main": "0bb8e5048b45bd8324e938b197e39a9242cdaa1f",
+      "integrated_tree": "3cd995f118a3dfa2ee88dc5af3aee7ab542dd361"
     }
   ],
   "generated_at": "2026-10-08T06:27:03Z"
