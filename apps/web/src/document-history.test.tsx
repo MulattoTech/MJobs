@@ -59,4 +59,14 @@ describe('document provenance',()=>{
     expect(html).toContain('Legacy letter: its original title is preserved from the saved document; the current job title may differ.');
     expect(html).toContain('Application for Earlier Title');
   });
+  it('offers only same-application immutable cover-letter revisions for comparison',()=>{
+    const first={...historical,id:'letter-1',application_id:'application-a',profile_id:'fixture',kind:'cover-letter',version:1,preview_text:'Earlier letter',files:{txt:'letter-1.txt'},missing_fact_ids:[]};
+    const second={...first,id:'letter-2',version:2,preview_text:'Later letter'};
+    const other={...first,id:'other-app-letter',application_id:'application-b',version:3,preview_text:'Different application'};
+    const html=renderToStaticMarkup(<DocumentHistory documents={[first,second]}/>);
+    expect(html).toContain('Compare cover-letter revisions');expect(html).toContain('Earlier cover-letter version');
+    expect(html).toContain('Version 1');expect(html).toContain('Version 2');
+    const mixed=renderToStaticMarkup(<DocumentHistory documents={[first,second,other]}/>);
+    expect(mixed).toContain('Open one application’s document history');expect(mixed).not.toContain('Earlier cover-letter version');
+  });
 });
