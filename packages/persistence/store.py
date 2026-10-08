@@ -19,7 +19,7 @@ from packages.domain.profile import ContactDetails, JobPreferences
 from packages.domain.operation_mode import WorkspaceModeError, parse_operation_mode
 from packages.persistence import models as m
 from services.normalization.jobs import canonical_job_view, raw_posting_view
-from services.discovery.search_semantics import effective_job_timestamp
+from services.discovery.search_semantics import EMPLOYMENT_TYPES, effective_job_timestamp
 
 
 class ProfileVersionConflict(Exception):
@@ -699,8 +699,17 @@ class Store:
                 # Exact normalized-value matching excludes absent and unrecognized metadata before LIMIT.
                 statement = statement.where(m.jobs.c.attributes["experience_level"].as_string() == experience_level)
             if employment_type:
-                # Exact normalized-value matching excludes absent and unrecognized metadata before LIMIT.
-                statement = statement.where(m.jobs.c.attributes["employment_type"].as_string() == employment_type)
+                # Known choices match their normalized value exactly. UNKNOWN also
+                # covers missing and unrecognized source metadata before LIMIT.
+                reported_employment_type = m.jobs.c.attributes["employment_type"].as_string()
+                if employment_type == "UNKNOWN":
+                    known_types = EMPLOYMENT_TYPES - {"UNKNOWN"}
+                    statement = statement.where(or_(
+                        reported_employment_type.is_(None),
+                        reported_employment_type.notin_(known_types),
+                    ))
+                else:
+                    statement = statement.where(reported_employment_type == employment_type)
             if posted_after is not None:
                 reported_at = m.jobs.c.attributes["reported_posted_at"].as_string()
                 if self.engine.dialect.name == "postgresql":
