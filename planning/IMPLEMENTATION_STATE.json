@@ -11,7 +11,7 @@
     "current_verified_github_state": "Issue #179 / MJ-REQ-178 log retention acceptance PASS at 8bea57e595e19e638913405a8ec1cd3aa0ebde32; full product remains PARTIAL.",
     "current_verified_at": "2026-10-07T15:27:43Z"
   },
-  "current_milestone": "MJ-FEATURE-517-STRUCTURED-EVALUATION-20261008",
+  "current_milestone": "MJ-REQ-239-COMPANY-NOTES-20261008",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -577,7 +577,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Continue #199 / MJ-REQ-198 after the local delegated review found and verified the application-switch stale-result fix; rebase its candidate from the older base onto current main and rerun affected web/browser checks before integration. Continue active #240 / MJ-REQ-239 company-note implementation in its isolated worktree. After #240/#199, re-evaluate remaining user-visible requirements; #117 remains behind unchanged PR-031 dependencies, while #517 provider/task linkage remains blocked by active #302/#318 claims. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
+  "recommended_resume_step": "Continue issue #199 / MJ-REQ-198: rebase the reviewed cover-letter comparison candidate from its older base onto current main, refresh exact source/evidence metadata, rerun the connected browser and affected frontend checks, then serialize integration. Keep #240 / MJ-REQ-239 PASS separate from CORE-WORKFLOW-TRIAL and release readiness, which remain PARTIAL. #117 remains behind PR-031/PR-025. Reconcile #517 after active Antigravity #302 and Ollama #318 claims; do not overlap their adapter/ATS paths. Hosted checks NOT_RUN_BY_USER_POLICY; PostgreSQL NOT_RUN; external submission OFF.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -615,7 +615,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "94de9869be86f32d3f815dc318d4d5e9a95e1219",
+  "last_implementation_commit": "1173bf792f0bd4092d638662d982c9bf8e225f9a",
   "publication": {
     "result": "PASS",
     "integration_method": "NON_FORCE_FAST_FORWARD",
@@ -9609,12 +9609,70 @@
         "git_commit": "94de9869be86f32d3f815dc318d4d5e9a95e1219",
         "evidence_path": "docs/evidence/2026-10-07-source-candidate-review-evaluation.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-239-COMPANY-NOTES-20261008",
+      "timestamp": "2026-10-08T05:20:11Z",
+      "current_phase": "MJ_REQ_239_ALL_THREE_NOTE_ENTITIES_LOCAL_ACCEPTANCE_PASS",
+      "completed_steps": [
+        "Completed company notes through profile-associated company rows, API/service authorization, append-only audit storage, connected CompanySources UI, and post-reload readback.",
+        "Verified blank/oversize input rejection, wrong-profile/unassociated denial, idempotent and conflicting replay handling, concurrent note ordering, and profile/company draft and stale-response isolation.",
+        "Replaced test-only JavaScript evaluation with CSP-compatible Playwright route interception; product CSP and code behavior were not weakened.",
+        "Re-ran job, company, and application note integration/browser suites on the combined tree: 18 PASS; company UI tests 4 executed PASS; TypeScript/Vite build PASS.",
+        "Marked only MJ-REQ-239 PASS; broader tracking, core workflow, additive references, and release readiness remain separately classified."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-08-company-notes.json",
+        "services/tracking/companies.py",
+        "tests/integration/test_company_tracking.py",
+        "tests/browser/test_company_tracking.py"
+      ],
+      "files_modified": [
+        "apps/api/main.py",
+        "apps/web/src/company-sources.tsx",
+        "apps/web/src/company-sources.test.tsx",
+        "services/company_discovery/sources.py",
+        "tests/browser/test_company_tracking.py",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Six issue-scope integration/browser modules for job, company and application notes: 18 PASS on integrated tree 5f3d7364e0cbe2edccbfee05386a1e9591c791f3.",
+        "CompanySources UI: 4 tests executed PASS on Node 25.9.0; Vitest declares ^22.12.0 || ^24.0.0 || >=26.0.0, so this is not supported-runtime acceptance.",
+        "TypeScript and Vite production build PASS on Node 25.9.0.",
+        "Lane coordination validation, progress validation, JSON checks and git diff --check to run after canonical update."
+      ],
+      "tests_remaining": [
+        "PostgreSQL concurrency NOT_RUN.",
+        "Hosted CI/review NOT_RUN_BY_USER_POLICY.",
+        "Core-workflow trial and overall release acceptance remain PARTIAL."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Synthetic SQLite fixtures and connected Chromium on loopback; no external requests; no application submission."
+      ],
+      "known_errors": [
+        "Initial combined-tree browser attempt used stale root apps/web/dist and test-only string evaluation was blocked by the active CSP; rebuilt before rerun and replaced the test hook with route interception. Final affected suites passed."
+      ],
+      "known_limitations": [
+        "SQLite only; PostgreSQL concurrency NOT_RUN.",
+        "Vitest executed outside its declared Node engine range.",
+        "Hosted checks/review NOT_RUN_BY_USER_POLICY; core-workflow and release acceptance remain PARTIAL."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "bed4f3e6aff9639a30d6ba3f1ded640a5b2dc77a",
+        "source_commit": "1173bf792f0bd4092d638662d982c9bf8e225f9a",
+        "evidence_path": "docs/evidence/2026-10-08-company-notes.json"
+      }
     }
   ],
-  "current_phase": "MJ_FEATURE_517_STRUCTURED_SOURCE_EVALUATION_INTEGRATED_PARTIAL",
+  "current_phase": "MJ_REQ_239_ALL_THREE_NOTE_ENTITIES_LOCAL_ACCEPTANCE_PASS",
   "last_safe_checkpoint": {
-    "git_commit": "94de9869be86f32d3f815dc318d4d5e9a95e1219",
-    "evidence_path": "docs/evidence/2026-10-07-source-candidate-review-evaluation.json"
+    "git_commit": "bed4f3e6aff9639a30d6ba3f1ded640a5b2dc77a",
+    "source_commit": "1173bf792f0bd4092d638662d982c9bf8e225f9a",
+    "evidence_path": "docs/evidence/2026-10-08-company-notes.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -9925,22 +9983,16 @@
     "next_issue": "Release #398 and select the next dependency-ready unclaimed issue after live claim/worktree reconciliation."
   },
   "active_development_issue": {
-    "issue": 517,
-    "requirement_id": "MJ-FEATURE-DISCOVERED-JOB-SOURCE-CATALOGUE",
-    "title": "Discovered job-source catalogue and integration review",
-    "state": "INTEGRATED_PARTIAL",
-    "base": "3476f4c8b4594f18dc21f61e9ee7fce165da5826",
-    "branch": "codex/mj517-structured-source-review-20261007",
-    "candidate": "94de9869be86f32d3f815dc318d4d5e9a95e1219",
-    "integrated_main": "94de9869be86f32d3f815dc318d4d5e9a95e1219",
-    "source_commit": "94de9869be86f32d3f815dc318d4d5e9a95e1219",
-    "source_tree": "80c22054e2801986b4cbc1632c4aeb954f847651",
-    "validated_tree": "bea4c99bca9e3194e105a717b58dd472432ca8d4",
-    "evidence": "docs/evidence/2026-10-07-source-candidate-review-evaluation.json",
-    "issue_state": "OPEN/PARTIAL",
-    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6052123718",
-    "release_comment": "https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6052125143",
-    "next_action": "Reconcile claims and select a supported discovery/browser intake path that does not overlap active #302/#318 adapter ownership, or complete bounded integration-task/provider-issue linkage."
+    "issue": 199,
+    "requirement_id": "MJ-REQ-198",
+    "title": "Cover-letter revision comparison",
+    "state": "OPEN / CANDIDATE_REVALIDATION",
+    "candidate": "1d9493f734e35107248267940fe6b4332bb1a52c",
+    "candidate_original_base": "9aa502a9df222dc517e6e9a3f46ed5ad4002cd00",
+    "target_main": "aa777e3a243c55fbde54df9af57d4dc33f16bbf9",
+    "branch": "codex/mj-req198-cover-letter-comparison-20261008",
+    "worktree": ".worktrees/codex-mj-req198-cover-letter-comparison-20261008",
+    "next_action": "Rebase and rerun exact-head checks; no integration yet."
   },
   "historical_control_snapshots": [
     {
@@ -11069,7 +11121,8 @@
     "Issue #178 / MJ-REQ-177 structured worker logging integrated at 169c3f110978c10af45e4f7e6ef4d950a727d4ae; 21 focused PASS/1 PostgreSQL skip, full Python 932 PASS/8 skipped, frontend 63/build and local validators PASS. Evidence docs/evidence/2026-10-07-structured-worker-operation-logs.json. Remaining scope and unavailable runtime/hosted checks remain PARTIAL/NOT_RUN.",
     "Issue #179 / MJ-REQ-178 fully accepted and integrated at 8bea57e595e19e638913405a8ec1cd3aa0ebde32. All nine Compose services render 10m/5 file rotation; disposable Docker rollover emitted 50 and retained 11 lines under 1m/2; existing feedback retention and no raw trace/HTML storage verified. 20 focused tests and validators PASS. Evidence docs/evidence/2026-10-07-compose-log-rotation.json.",
     "Issue #403 / MJ-REF-033 page-budget slice: source 79b29ee0fe61af0906772f182c0ac280f73fc2f4 (443fb463d97b5ee45a558e8db06581f0c5d6b333), integrated candidate 01596a7a093bbfc359e9ded49076aac3cb95d94d (f55ee218fe0bb32249cef537ea66700b235280c5); 25 focused agent tests, compileall, agent_skills/catalogue/progress/reference_provenance/lane_coordination and diff checks PASS. Browser/source entrypoint, full Python suite, PostgreSQL/Docker and hosted checks NOT_RUN or NOT_APPLICABLE as recorded in docs/evidence/2026-10-07-agent-page-budget.json. Issue remains OPEN/PARTIAL.",
-    "Issue #166 / MJ-REQ-165 fully accepted and integrated at 59039a51701258a35c93fc7deca6fbf85d72fddd from source 108c502ce0b2c8aa92a4868b09687b4b4a0206f1. Search now covers title, company, description, skills and location; PostgreSQL GIN full-text indexes support job and company search. Full Python 962/8 skipped, frontend 63/build, connected Chromium, SQLite/PostgreSQL migrations, PostgreSQL API/index-plan checks and local validators PASS. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF. Evidence docs/evidence/2026-10-07-full-text-search.json."
+    "Issue #166 / MJ-REQ-165 fully accepted and integrated at 59039a51701258a35c93fc7deca6fbf85d72fddd from source 108c502ce0b2c8aa92a4868b09687b4b4a0206f1. Search now covers title, company, description, skills and location; PostgreSQL GIN full-text indexes support job and company search. Full Python 962/8 skipped, frontend 63/build, connected Chromium, SQLite/PostgreSQL migrations, PostgreSQL API/index-plan checks and local validators PASS. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF. Evidence docs/evidence/2026-10-07-full-text-search.json.",
+    "2026-10-08 #240 / MJ-REQ-239: integrated source/test candidate 1173bf792f0bd4092d638662d982c9bf8e225f9a, tree bf1400d35701eedaf60bbc569881d622692cb3fb; non-force fast-forward local main source/evidence checkpoint bed4f3e6aff9639a30d6ba3f1ded640a5b2dc77a, tree 88df6fa5709efa0daadf139385ce83a7aabfc8fe; the 18-test run was on integrated tree 5f3d7364e0cbe2edccbfee05386a1e9591c791f3. Jobs/company/application note integration/browser suites 18 PASS; company UI 4 tests executed PASS under Node 25.9.0 outside Vitest engine range; TypeScript/Vite build PASS. Requirement MJ-REQ-239 PASS; core-workflow trial/release remain PARTIAL; hosted and PostgreSQL NOT_RUN; external submission OFF."
   ],
   "ownership": "Issue #177 / MJ-REQ-176 company-source setting Activity slice source 0c76b225f48a882e8aa90b5e7686d22a8891425e, source tree 3d7733e26c5d4d097518d3c911d6029c7f1c5e86, evidence and tests integrated at synchronized local/GitHub main 68a0630b690cfa855e43829bc4f1836cf6add246 under the Codex integration lock. GitHub issue checkpoint: https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6048627184. The issue remains OPEN/PARTIAL; hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL/Docker NOT_RUN; external submission OFF.",
   "delivery_policy": {
@@ -11084,5 +11137,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-08T04:19:16Z"
+  "updated_at": "2026-10-08T05:21:23Z"
 }

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-08T05:08:27Z",
+  "timestamp": "2026-10-08T05:21:23Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -1940,13 +1940,13 @@
     },
     {
       "requirement_id": "MJ-REQ-239",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
         "docs/evidence/2026-10-05-job-dispositions-notes.json",
-        "docs/evidence/2026-10-05-application-pipeline.json",
-        "docs/evidence/2026-10-05-core-workflow-trial-combined.json"
+        "docs/evidence/2026-10-08-company-notes.json",
+        "docs/evidence/2026-10-05-application-pipeline.json"
       ],
-      "note": "Connected application notes/history persist through reopen; company notes and broad history requirements remain PARTIAL."
+      "note": "Profile-scoped notes on jobs, companies and applications have connected persistence/readback evidence; the six current-tree integration/browser modules pass 18/18. This does not promote broader tracking, history, core-workflow trial, or release acceptance."
     },
     {
       "requirement_id": "MJ-REQ-240",

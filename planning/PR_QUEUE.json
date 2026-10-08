@@ -1614,7 +1614,7 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-065-performance-learning-history",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting.",
+      "notes": "Parent remains QUEUED with dependencies MJ-PR-064 and MJ-PR-057 unchanged. The dependency-independent issue #240 / MJ-REQ-239 notes slice is integrated PASS; other parent requirements remain incomplete.",
       "active_slice": {
         "issue": 240,
         "requirement_id": "MJ-REQ-239",
@@ -1643,8 +1643,24 @@
           "The mounted CompanySources component displays only the current profile/company notes, discards stale responses/drafts on profile/company switch, and exposes useful failure states.",
           "Application Applied remains user-reported, operational state/confirmation are unchanged, and the feature performs no application submission or external request."
         ],
-        "status": "ACTIVE",
-        "rationale": "Jobs and applications already support durable profile-scoped notes; companies are the remaining user-facing entity. Existing company rows can carry profile_id, allowing a complete UI/API/storage/readback flow without the active #116 main.tsx path."
+        "status": "INTEGRATED_PASS",
+        "rationale": "Jobs and applications already support durable profile-scoped notes; companies are the remaining user-facing entity. Existing company rows can carry profile_id, allowing a complete UI/API/storage/readback flow without the active #116 main.tsx path.",
+        "result": "PASS",
+        "source_commit": "1173bf792f0bd4092d638662d982c9bf8e225f9a",
+        "source_tree": "bf1400d35701eedaf60bbc569881d622692cb3fb",
+        "integration_commit": "bed4f3e6aff9639a30d6ba3f1ded640a5b2dc77a",
+        "integration_tree": "88df6fa5709efa0daadf139385ce83a7aabfc8fe",
+        "integration_method": "NON_FORCE_FAST_FORWARD",
+        "evidence_path": "docs/evidence/2026-10-08-company-notes.json",
+        "issue_state_at_checkpoint": "OPEN; local acceptance verified before issue readback",
+        "local_validation": {
+          "python_integration_browser_tests": "18 PASS",
+          "company_ui_tests": "4 executed PASS; Node 25.9.0 is outside Vitest 5.0.3 declared engine range",
+          "typescript_vite_build": "PASS",
+          "hosted_checks": "NOT_RUN_BY_USER_POLICY",
+          "postgresql": "NOT_RUN"
+        },
+        "tested_tree": "5f3d7364e0cbe2edccbfee05386a1e9591c791f3"
       }
     },
     {
@@ -3735,5 +3751,5 @@
       "notes": "Scoped certification REQUIRED/PREFERRED/NICE_TO_HAVE/UNKNOWN parsing covers recognized comma, comma-but, comma-and and plain-and clauses in both orders, with ambiguous and negation controls. Worker recorded 23 parser+matching integration tests PASS with exact inputs rechecked after rebase; root reran 16 parser unit tests PASS and TypeScript/Vite build PASS. Current matching-integration rerun (0 tests; SQLAlchemy missing) and connected-browser rerun (0 tests; Playwright missing) are BLOCKED_ENVIRONMENT. Earlier browser evidence predates final parser corrections. Local delegated review found no code blocker. Broad MJ-REQ-115/#116 remains OPEN/PARTIAL; parent MJ-PR-031 dependencies are unchanged; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF."
     }
   ],
-  "generated_at": "2026-10-08T05:08:27Z"
+  "generated_at": "2026-10-08T05:21:23Z"
 }
