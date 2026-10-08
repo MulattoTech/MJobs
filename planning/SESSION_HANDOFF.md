@@ -1136,6 +1136,9 @@ Integration checkpoint: https://github.com/MulattoTech/MJobs/issues/517#issuecom
 
 - Current base: synchronized `main`/`origin/main` `d8caa9093138faba04d62f4f6474b4d19bcb02ae` before this evidence/planning commit.
 - Scoped result: **PASS** for MJ-REQ-103 only. Evidence: `docs/evidence/2026-10-08-answer-bank-acceptance.json`; tested source snapshot `77a7d3670d7cbe3c3fb771dc2e8083b9fbaca66e` with no executable/test/build input changes through current main. Fifteen integration, two connected synthetic Chromium tests, and web build PASS. Node 25.9 is outside Vitest 5 supported engines.
-- PostgreSQL and hosted checks/review NOT_RUN; core workflow and release remain PARTIAL. External requests/submission NONE/OFF. Issue #104 closeout receipt is pending evidence checkpoint and GitHub readback.
+- PostgreSQL and hosted checks/review NOT_RUN; core workflow and release remain PARTIAL. External requests/submission NONE/OFF. Issue #104 is CLOSED after exact-head evidence readback; receipt: https://github.com/MulattoTech/MJobs/issues/104#issuecomment-6053137172.
 - Active implementation claims: #96 reviewed experience rewrite; #117 match categories; #199 readable validated cover-letter diff. Five Luna High task leads are refreshing matching, tracking, discovery, documents and recovery issue readiness read-only. Antigravity #302 and Ollama #318 remain active; no overlap assigned.
 - Next integration: serialize one exact-head candidate at a time under the local lock; preserve all parent queue dependencies and issue denominators.
+
+
+GitHub closeout readback for issue #104 / MJ-REQ-103: CLOSED with local acceptance receipt https://github.com/MulattoTech/MJobs/issues/104#issuecomment-6053137172. Evidence/planning checkpoint source HEAD before this metadata update: `118d3cc486aecd96f4601b7820f1b82b3c5ff1e3` (tree `9630549af8875dc1293126545b393363346d15d4`).
