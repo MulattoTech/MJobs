@@ -464,6 +464,29 @@ class MockApplicationTests(unittest.TestCase):
             result = apply_mock(self.store, app_id, origin, self.root, submit=True)
             self.assertEqual(result["state"], "USER_INTERVENTION_REQUIRED")
 
+    def test_expired_mock_login_is_auth_required_not_a_challenge_and_never_submits(self):
+        from sqlalchemy import select
+        with fixture_server() as origin:
+            app_id = self.prepared(origin)
+            with self.store.engine.begin() as connection:
+                connection.execute(update(m.routes).where(
+                    m.routes.c.id == self.store.application(app_id)["route_id"]
+                ).values(url=origin + "/ats/apply/B?auth_expired=true"))
+
+            result = apply_mock(self.store, app_id, origin, self.root, submit=True)
+
+            self.assertEqual(result["state"], "AUTH_REQUIRED")
+            self.assertIn("AUTH_REQUIRED", result["trace"])
+            with self.store.engine.connect() as connection:
+                attempt = connection.execute(select(m.attempts).where(
+                    m.attempts.c.application_id == app_id
+                )).mappings().one()
+            self.assertEqual(attempt["state"], "AUTH_REQUIRED")
+            self.assertIn("NAVIGATE:COMPLETED", attempt["steps"])
+            self.assertIn("DETECT_FORM:COMPLETED", attempt["steps"])
+            self.assertEqual(httpx.get(origin + "/_test/request-counts").json(),
+                             {"review": 0, "submit": 0})
+
     def test_nonlocal_mock_origin_is_rejected_before_any_request(self):
         with self.assertRaises(ValueError):
             MockClient("https://example.com")

@@ -320,7 +320,8 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
             elif application["state"] == "SUBMITTING":
                 store.transition(application_id, ["SUBMITTING"], "SUBMISSION_UNCONFIRMED")
             return store.application(application_id)
-        if application["state"] not in ("PREPARED", "DRY_RUN_COMPLETE", "REVIEW_REQUIRED"):
+        if application["state"] not in (
+                "PREPARED", "DRY_RUN_COMPLETE", "REVIEW_REQUIRED", "AUTH_REQUIRED"):
             return application
         check()
         profile = store.profile(application["profile_id"], application["profile_version"])
@@ -466,8 +467,13 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
                     finish_step("COMPLETED")
                     page.set_default_timeout(_playwright_action_timeout_ms(check))
                     start_step("DETECT_FORM")
+                    auth_required_detected = page.locator("[data-auth-required]").count() > 0
                     intervention_detected = page.locator("[data-intervention]").count() > 0
                     finish_step("COMPLETED")
+                    if auth_required_detected:
+                        store.transition(application_id, ["FILLING"], "AUTH_REQUIRED",
+                                         "AUTH_REQUIRED")
+                        return store.application(application_id)
                     if intervention_detected:
                         store.transition(application_id, ["FILLING"], "USER_INTERVENTION_REQUIRED", "CHALLENGE_DETECTED")
                         return store.application(application_id)

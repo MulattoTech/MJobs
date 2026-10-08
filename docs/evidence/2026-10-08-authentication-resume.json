@@ -1,0 +1,66 @@
+{
+  "requirement_id": "MJ-REQ-142",
+  "issue": 143,
+  "area": "application_automation",
+  "acceptance": "PARTIAL",
+  "branch": "codex/mj-req142-auth-resume-20261008",
+  "tested_base_head": "118b121afa4ffe12867f1024247ab6722a618d8b",
+  "implementation_commit_sha": "PENDING_CODE_COMMIT",
+  "tested_source_set_sha256": "dc85c06a92848ad1efc9bc5929fe0afd65dc98ecfaedf0f7a474cedea015e4a5",
+  "tested_source_files": {
+    "fixtures/mock_server.py": "14688bd9580c9cbeb2cd03b09cfbe8f6ab08bbebb72f256ffaa6f8ebafa527a8",
+    "services/applications/mock_adapter.py": "a3c7bfb4b2044b0c5b7544fd01476d53d7d75e102f8c666055169181073b30ed",
+    "tests/browser/test_mock_application.py": "a82b2b6f160dcf510048be162d4dcb59a94b9d19a1297cd16542b68129bac3d1",
+    "tests/integration/test_application_pipeline.py": "0ed3c517da5f330666c34d7c80de9989b8ec9453800a621da23198276108e258"
+  },
+  "validated_at_utc": "2026-10-08T13:04:16Z",
+  "environment": {
+    "os": "Windows",
+    "python": "3.12",
+    "browser": "Playwright Chromium",
+    "database": "SQLite synthetic fixture",
+    "external_ats_contacted": false
+  },
+  "behavior": {
+    "expired_login_detected_as": "AUTH_REQUIRED",
+    "captcha_remains": "USER_INTERVENTION_REQUIRED",
+    "submission_while_auth_required": "none",
+    "application_readback_after_restart": "AUTH_REQUIRED with saved trace and attempt phases",
+    "persistent_mock_profile_manual_login": "verified with a local fixture and reopened Chromium profile",
+    "existing_mock_run_rerun_after_login": "confirmed once through the fixture",
+    "end_user_manual_login_access": "BLOCKED: product UI has no user-visible action to open the persistent browser profile for manual sign-in"
+  },
+  "commands": [
+    {
+      "command": "python -m unittest tests.browser.test_mock_application -v",
+      "result": "PASS",
+      "output": "Ran 25 tests in 46.190s; OK"
+    },
+    {
+      "command": "python -m unittest tests.integration.test_application_pipeline -v",
+      "result": "PASS",
+      "output": "Ran 9 tests in 19.017s; OK"
+    },
+    {
+      "command": "python -m compileall -q services/applications/mock_adapter.py fixtures/mock_server.py tests/browser/test_mock_application.py tests/integration/test_application_pipeline.py",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.agent_skills",
+      "result": "PASS",
+      "output": "Agent skill validation: PASS"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "limitations": {
+    "end_user_manual_sign_in": "PARTIAL pending a user-visible way to open the saved local mock browser profile; current verification opens the existing profile from the test harness",
+    "postgres": "NOT_RUN",
+    "hosted_ci_and_reviews": "NOT_RUN by local-only policy",
+    "frontend_build": "NOT_RUN; no frontend files were changed and the missing profile opener is outside this lane's owned paths",
+    "external_submission": "disabled; only the fictional local fixture was submitted after an explicit test action"
+  },
+  "issue_status": "OPEN/PARTIAL"
+}

@@ -92,9 +92,13 @@ def create_mock_app(receipt_file=None):
         }
 
     @app.get("/ats/apply/{requisition}", response_class=HTMLResponse)
-    def application(requisition: str, challenge: bool = False, dynamic: str | None = None):
+    def application(requisition: str, request: Request, challenge: bool = False,
+                    dynamic: str | None = None, auth_expired: bool = False):
         if challenge:
             return '<h1 data-intervention="CAPTCHA">Manual challenge required</h1>'
+        if auth_expired and request.cookies.get("mock_session") != "fixture-authenticated":
+            return (f'<h1 data-auth-required="true">Sign in required</h1>'
+                    f'<a href="/ats/login/{requisition}">Sign in manually</a>')
         dynamic_mode = dynamic if dynamic in {"known", "unknown"} else None
         dynamic_field = ""
         if dynamic_mode == "known":
@@ -129,6 +133,32 @@ def create_mock_app(receipt_file=None):
           }}
         }});
         </script>''' if dynamic_mode else ''}'''
+
+    @app.get("/ats/login/{requisition}", response_class=HTMLResponse)
+    def login_page(requisition: str):
+        if requisition not in ("A", "B"):
+            return HTMLResponse("Unknown fixture application", status_code=404)
+        return f'''<h1>Fictional mock ATS sign in</h1>
+        <form method="post" action="/ats/login/{requisition}">
+          <label>Fixture username<input name="username" required></label>
+          <label>Fixture password<input name="password" type="password" required></label>
+          <button type="submit">Sign in</button>
+        </form>'''
+
+    @app.post("/ats/login/{requisition}")
+    async def login(requisition: str, request: Request):
+        if requisition not in ("A", "B"):
+            return HTMLResponse("Unknown fixture application", status_code=404)
+        form = await request.form()
+        authenticated = bool(form.get("username") and form.get("password"))
+        await form.close()
+        if not authenticated:
+            return HTMLResponse("Fixture sign in is required", status_code=401)
+        response = RedirectResponse(
+            f"/ats/apply/{requisition}?auth_expired=true", status_code=303)
+        response.set_cookie("mock_session", "fixture-authenticated", max_age=3600,
+                            httponly=True, samesite="strict")
+        return response
 
     @app.post("/ats/review/{requisition}", response_class=HTMLResponse)
     async def review(requisition: str, request: Request):

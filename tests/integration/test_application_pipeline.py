@@ -4,6 +4,7 @@ from concurrent.futures import ThreadPoolExecutor
 from threading import Barrier
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 from sqlalchemy import select, update
@@ -155,6 +156,94 @@ class ApplicationPipelineTests(unittest.TestCase):
                              "UNKNOWN_DYNAMIC_REQUIRED_FIELD")
         finally:
             reopened.engine.dispose()
+
+    def test_auth_required_survives_restart_and_resumes_after_manual_mock_login(self):
+        from playwright.sync_api import sync_playwright
+        from services.applications.mock_adapter import apply_mock
+
+        with fixture_server() as origin:
+            with self.store.engine.begin() as connection:
+                route = connection.execute(select(m.routes).where(
+                    m.routes.c.id == self.store.application(self.application_id)["route_id"]
+                )).mappings().one()
+                connection.execute(update(m.routes).where(m.routes.c.id == route["id"]).values(
+                    url=f"{origin}/ats/apply/{route['requisition']}?auth_expired=true"))
+
+            paused = apply_mock(self.store, self.application_id, origin, self.root,
+                                submit=True)
+            self.assertEqual(paused["state"], "AUTH_REQUIRED")
+            self.assertIn("AUTH_REQUIRED", paused["trace"])
+            self.assertEqual(__import__("httpx").get(origin + "/_test/request-counts").json(),
+                             {"review": 0, "submit": 0})
+
+            self.client.close()
+            self.store.engine.dispose()
+            reopened = Store(f"sqlite:///{self.database.as_posix()}")
+            try:
+                reopened.migrate()
+                reopened.bind_workspace_mode("FIXTURE")
+                with TestClient(create_app(reopened, "http://127.0.0.1:1", self.root,
+                                           operation_mode="FIXTURE")) as client:
+                    detail = client.get(
+                        f"/profiles/fixture/applications/{self.application_id}")
+                self.assertEqual(detail.status_code, 200, detail.text)
+                self.assertEqual(detail.json()["state"], "AUTH_REQUIRED")
+                self.assertIn("AUTH_REQUIRED", detail.json()["trace"])
+                self.assertIn("NAVIGATE:COMPLETED", detail.json()["attempts"][0]["steps"])
+
+                # The user signs into the fictional fixture manually using the
+                # same private persistent browser profile that the mock adapter uses.
+                with sync_playwright() as playwright:
+                    context = playwright.chromium.launch_persistent_context(
+                        str(self.root / self.application_id / "browser-profile"),
+                        headless=True)
+                    try:
+                        page = context.new_page()
+                        page.goto(origin + f"/ats/login/{route['requisition']}")
+                        page.get_by_label("Fixture username", exact=True).fill("fixture-user")
+                        page.get_by_label("Fixture password", exact=True).fill("fixture-password")
+                        page.get_by_role("button", name="Sign in", exact=True).click()
+                        page.wait_for_url("**/ats/apply/**")
+                        self.assertTrue(any(cookie["name"] == "mock_session"
+                                            for cookie in context.cookies(origin)))
+                    finally:
+                        context.close()
+
+                with sync_playwright() as playwright:
+                    context = playwright.chromium.launch_persistent_context(
+                        str(self.root / self.application_id / "browser-profile"),
+                        headless=True)
+                    try:
+                        self.assertTrue(any(cookie["name"] == "mock_session"
+                                            for cookie in context.cookies(origin)))
+                    finally:
+                        context.close()
+
+                # The same existing local mock-run action is the deliberate rerun.
+                with TestClient(create_app(reopened, origin, self.root,
+                                           operation_mode="FIXTURE")) as client:
+                    queued = client.post(
+                        f"/profiles/fixture/applications/{self.application_id}/mock-run",
+                        json={"submit": True})
+                self.assertEqual(queued.status_code, 202, queued.text)
+                from workers.tasks import execute_operation
+                with patch.dict("os.environ", {
+                    "MJOBS_DATABASE_URL": f"sqlite:///{self.database.as_posix()}",
+                    "MJOBS_OUTPUT_DIR": str(self.root),
+                    "MJOBS_MOCK_ORIGIN": origin,
+                    "MJOBS_OPERATION_MODE": "FIXTURE",
+                }):
+                    operation = execute_operation(queued.json()["operation_id"])
+                self.assertEqual(operation["status"], "COMPLETED")
+                self.assertEqual(reopened.application(self.application_id)["state"],
+                                 "CONFIRMED")
+                self.assertGreaterEqual(
+                    len(reopened.application(self.application_id)["trace"]),
+                    len(paused["trace"]))
+                counts = __import__("httpx").get(origin + "/_test/request-counts").json()
+                self.assertEqual(counts, {"review": 1, "submit": 1})
+            finally:
+                reopened.engine.dispose()
 
     def test_supported_manual_stages_are_listed_and_request_ids_cannot_change_meaning(self):
         stages = ["SAVED", "READY", "APPLIED", "RECRUITER_CONTACT", "INTERVIEW",
