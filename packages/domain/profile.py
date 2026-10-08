@@ -2,10 +2,23 @@
 from typing import Annotated, Literal
 from urllib.parse import urlsplit
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 ShortText = Annotated[str, Field(max_length=300)]
 AvoidTerm = Annotated[str, Field(min_length=1, max_length=120)]
+SensitiveAnswerCategory = Literal[
+    'RACE_ETHNICITY',
+    'RELIGION',
+    'SEX_GENDER',
+    'DISABILITY',
+    'VETERAN_STATUS',
+    'OTHER_VOLUNTARY_DEMOGRAPHIC',
+]
+SensitiveAnswerMode = Literal[
+    'PREFER_NOT_TO_ANSWER',
+    'USE_CONFIGURED_RESPONSE',
+    'ALWAYS_REQUIRE_REVIEW',
+]
 
 
 class ContactDetails(BaseModel):
@@ -50,6 +63,13 @@ class JobPreferences(BaseModel):
     sponsorship_needs: Literal['NOT_SPECIFIED', 'REQUIRED', 'NOT_REQUIRED'] = 'NOT_SPECIFIED'
     career_goals: str = Field(default='', max_length=3000)
     avoid_terms: list[AvoidTerm] = Field(default_factory=list, max_length=50)
+    sensitive_answer_policies: dict[SensitiveAnswerCategory, 'SensitiveAnswerPolicy'] = Field(
+        default_factory=dict, max_length=6,
+    )
+
+    def sensitive_answer_policy_for(self, category: SensitiveAnswerCategory) -> 'SensitiveAnswerPolicy':
+        """Return the stored policy or the safe review-required default."""
+        return self.sensitive_answer_policies.get(category, SensitiveAnswerPolicy())
 
     @field_validator('avoid_terms')
     @classmethod
@@ -65,3 +85,29 @@ class JobPreferences(BaseModel):
                 normalized.append(term)
                 seen.add(key)
         return normalized
+
+
+class SensitiveAnswerPolicy(BaseModel):
+    """Explicit user preference for one sensitive application-answer category."""
+
+    model_config = ConfigDict(strict=True, extra='forbid')
+    mode: SensitiveAnswerMode = 'ALWAYS_REQUIRE_REVIEW'
+    response: str | None = Field(default=None, max_length=500)
+
+    @field_validator('response')
+    @classmethod
+    def normalize_response(cls, value):
+        if value is None:
+            return value
+        value = value.strip()
+        if not value:
+            raise ValueError('Configured response cannot be blank')
+        return value
+
+    @model_validator(mode='after')
+    def validate_response_mode(self):
+        if self.mode == 'USE_CONFIGURED_RESPONSE' and self.response is None:
+            raise ValueError('USE_CONFIGURED_RESPONSE requires an explicit response')
+        if self.mode != 'USE_CONFIGURED_RESPONSE' and self.response is not None:
+            raise ValueError('A response is allowed only for USE_CONFIGURED_RESPONSE')
+        return self
