@@ -397,13 +397,13 @@ class ApplicationAnswerExportBrowserTests(unittest.TestCase):
                     expect(export).to_be_enabled()
                     page.get_by_role('button', name='Add question', exact=True).click()
                     page.get_by_label('Employer question').last.fill('Which ITSM tools have you used?')
-                    expect(page.get_by_text(
+                    itsm_question = page.get_by_role('group', name='Question 2')
+                    expect(itsm_question.get_by_text(
                         'Curated semantic synonym match (local rules) · match score 95% · saved-answer confidence 100%',
                         exact=False)).to_be_visible()
-                    expect(page.get_by_text(
+                    expect(itsm_question.get_by_text(
                         'Saved question: Which IT service management tools have you used? · Provenance: Synthetic IT operations inventory',
                         exact=False)).to_be_visible()
-                    itsm_question = page.get_by_role('group', name='Question 2')
                     expect(itsm_question.get_by_role('textbox', name='Answer', exact=True)).to_have_value('')
                     page.get_by_role('button', name='Use saved answer (review required)', exact=True).last.click()
                     expect(itsm_question.get_by_role('textbox', name='Answer', exact=True)).to_have_value(itsm_answer)
@@ -412,13 +412,13 @@ class ApplicationAnswerExportBrowserTests(unittest.TestCase):
                     expect(export).to_be_enabled()
                     page.get_by_role('button', name='Add question', exact=True).click()
                     page.get_by_label('Employer question').last.fill('Are you available to work weekends?')
-                    expect(page.get_by_text(
+                    weekend_question = page.get_by_role('group', name='Question 3')
+                    expect(weekend_question.get_by_text(
                         'Curated semantic synonym match (local rules) · match score 95% · saved-answer confidence 100%',
                         exact=False)).to_be_visible()
-                    expect(page.get_by_text(
+                    expect(weekend_question.get_by_text(
                         'Saved question: Can you work weekends? · Provenance: Synthetic availability profile',
                         exact=False)).to_be_visible()
-                    weekend_question = page.get_by_role('group', name='Question 3')
                     expect(weekend_question.get_by_role('textbox', name='Answer', exact=True)).to_have_value('')
                     page.get_by_role('button', name='Use saved answer (review required)', exact=True).last.click()
                     expect(weekend_question.get_by_role('textbox', name='Answer', exact=True)).to_have_value(weekend_answer)
