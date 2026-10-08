@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "evidence_id": "MJ-REQ-107-LEGAL-QUESTION-PREFLIGHT-20261008",
-  "recorded_at_utc": "2026-10-08T10:17:32Z",
+  "recorded_at_utc": "2026-10-08T10:23:47Z",
   "result": "PARTIAL",
   "issue": 108,
   "requirement_id": "MJ-REQ-107",
@@ -11,31 +11,31 @@
     "issue_state": "OPEN",
     "branch": "codex/mj-req107-legal-question-profile-values-20261008",
     "worktree": ".worktrees/codex-mj-req107-legal-question-profile-values-20261008",
-    "base_head": "7f8f76f8d33eb1dc1f4fce91e86e1f6139ccbe56",
-    "base_tree": "543046df156f6c9c4597b7cdae0050b70592c05c",
-    "source_head": "5fa7fced50e980ad8603155e01280621472347eb",
-    "source_tree": "255ed046fd4a35660c84f66f6f22de175d5df018"
+    "base_head": "a3a9c1421fdf6d2280636c10341e8e2ceedce93f",
+    "base_tree": "cf3c2d59f1283faa9c4700fd8cd96655f84aedea",
+    "source_head": "ee3d0afa786e482c3ee23844a046b11df0a11aeb",
+    "source_tree": "6ec184568afdea2198d493dda79110e90f07c205"
   },
   "scope": "Preflight supports only exact structured mappings from work-authorization and sponsorship questions to their explicit saved career-profile preference fields. It does not infer, echo, or fill either response.",
   "acceptance": {
-    "explicit_structured_values": "PASS; legally authorized-for-employment questions mapped only to preferences.work_authorization and sponsorship questions mapped only to preferences.sponsorship_needs pass when their saved values are explicit and unambiguous.",
-    "missing_or_ambiguous_values": "PASS; blank, unknown, unspecified, maybe, and not-sure work-authorization values plus NOT_SPECIFIED sponsorship remain UNKNOWN with LEGAL_PROFILE_VALUE_UNAVAILABLE and a question-only missing record.",
-    "unrelated_legal_attestations": "PASS; criminal-history, mismapped fields, combined work-authorization/sponsorship labels, and unsupported paths remain UNKNOWN or UNMAPPED_REQUIRED_QUESTION.",
+    "explicit_structured_values": "PASS; only full-label supported work-authorization and present/future sponsorship question forms with the exact corresponding preference path pass when saved values are explicit and unambiguous.",
+    "missing_or_ambiguous_values": "PASS; blank, unknown, unspecified, modal/uncertain, maybe, probably, and not-sure work-authorization values plus NOT_SPECIFIED sponsorship remain UNKNOWN with LEGAL_PROFILE_VALUE_UNAVAILABLE and a question-only missing record.",
+    "unrelated_legal_attestations": "PASS; criminal-history, age, citizenship, mismapped fields, compound work-authorization/sponsorship questions, historical-only sponsorship questions, and unsupported paths remain UNKNOWN or UNMAPPED_REQUIRED_QUESTION.",
     "ordinary_question_control": "PASS; an ordinary question satisfied by the existing approved answer mapping remains PASS.",
     "persistence_and_redaction": "PASS; a connected preflight audit/readback persists the supported mapping but neither explicit profile value appears in the result or audit payload.",
-    "pre_browser_stop": "PASS; unrelated and combined required legal attestations transition the synthetic application to REVIEW_REQUIRED before Playwright, with zero application-attempt rows.",
+    "pre_browser_stop": "PASS; unrelated legal clauses combined with a supported authorization question, and mixed-class required legal questions, transition the synthetic application to REVIEW_REQUIRED before Playwright, with zero application-attempt rows.",
     "submission_safety": "PASS; no external application submission path was invoked."
   },
   "red_first_observation": {
     "result": "FAIL_BEFORE_IMPLEMENTATION",
-    "details": "Initial feature tests failed because dotted preference paths were rejected. The local delegated review regression then showed that a combined authorization-and-sponsorship label passed with either single mapped profile path and reached the browser launcher. Added red-first tests for both single-path mappings and the connected pre-browser gate; both now remain UNKNOWN without echoing profile values."
+    "details": "Red-first regressions reproduced false PASS for compound authorization-plus-felony/background, age, and citizenship clauses; work-authorization values prefixed by 'I think' or 'probably'; and historical-only sponsorship wording. The connected compound-question regression also showed Playwright was reached. These cases now remain UNKNOWN without echoing profile values or starting the browser. Earlier missing-path and mixed authorization/sponsorship class findings are preserved in prior verification records."
   },
   "checks": [
     {
       "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_legal_question_preflight tests.integration.test_application_preflight -v",
-      "target": "Synthetic SQLite/API preflight, durable audit readback, redaction, ordinary control, mixed-class mapping denial, and pre-browser stop",
+      "target": "Synthetic SQLite/API preflight, durable audit readback, redaction, ordinary control, exact supported question forms, ambiguity denial, mixed/unrelated clause denial, and pre-browser stop",
       "result": "PASS",
-      "tests": 18,
+      "tests": 19,
       "failures": 0,
       "skips": 0
     },
@@ -51,8 +51,8 @@
     }
   ],
   "source_sha256": {
-    "services/applications/preflight.py": "6df339a1cd2405e5c80e3a8456cee3b6ab300bd97fc225ae662a190e85518b72",
-    "tests/integration/test_legal_question_preflight.py": "57738f6ff389b350bb3289bde007af70a6bae689bc4bdc8d8b8a45a93ed1ff8a"
+    "services/applications/preflight.py": "6e3ff722dce90e4ed479106e9eabc539bdbcf986ba0c2b394ac046b744983a8a",
+    "tests/integration/test_legal_question_preflight.py": "89ffd586f916c1c12f8460d1f794c309d9cd94e8a7f0708cd0fb151b5a0d3255"
   },
   "environment": {
     "platform": "Windows PowerShell",
@@ -75,7 +75,7 @@
     "result": "PASS: 16/16 tests on the previous exact rebased candidate and latest integrated main base.",
     "evidence_input_hashes": "PASS: both source_sha256 values match candidate source/test bytes."
   },
-  "follow_up_verification": {
+  "previous_follow_up_verification": {
     "recorded_at_utc": "2026-10-08T10:17:32Z",
     "finding": "Combined work-authorization and sponsorship labels could incorrectly pass when only one profile path was mapped.",
     "candidate_source_head": "5fa7fced50e980ad8603155e01280621472347eb",
@@ -84,5 +84,26 @@
     "result": "PASS: 18/18 tests on the exact source commit; focused combined-question regressions failed before the fix and passed after it.",
     "additional_checks": "py_compile PASS; evidence JSON/hash comparison PASS; git diff --check PASS.",
     "source_hashes": "PASS: both source_sha256 values match the source commit inputs."
+  },
+  "review_follow_up_verification": {
+    "recorded_at_utc": "2026-10-08T10:22:36Z",
+    "finding": "Fail closed on composite unrelated legal clauses, modal uncertainty in saved work-authorization text, and sponsorship questions limited to historical employment.",
+    "candidate_base_head": "a3a9c1421fdf6d2280636c10341e8e2ceedce93f",
+    "candidate_source_head": "10b2c6e7ffcd8810d0832fba482d0eaf67f9dc3d",
+    "candidate_source_tree": "16855790b857f90a104034525a6df1c573abda4c",
+    "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_legal_question_preflight tests.integration.test_application_preflight -v",
+    "result": "PASS: 19/19 tests on exact rebased source; all new defect reproductions failed before the fix and passed after it.",
+    "additional_checks": "py_compile PASS; evidence JSON/hash comparison PASS; git diff --check PASS.",
+    "source_hashes": "PASS: source_sha256 values match exact tested source and test bytes."
+  },
+  "final_reverification": {
+    "recorded_at_utc": "2026-10-08T10:23:47Z",
+    "candidate_base_head": "a3a9c1421fdf6d2280636c10341e8e2ceedce93f",
+    "candidate_source_head": "ee3d0afa786e482c3ee23844a046b11df0a11aeb",
+    "candidate_source_tree": "6ec184568afdea2198d493dda79110e90f07c205",
+    "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_legal_question_preflight tests.integration.test_application_preflight -v",
+    "result": "PASS: 19/19 tests on the exact source commit; including modal uncertainty variants 'I think', 'probably', and 'I expect'.",
+    "additional_checks": "py_compile PASS; evidence JSON/hash comparison PASS; git diff --check PASS.",
+    "source_hashes": "PASS: source_sha256 values match exact tested source and test bytes."
   }
 }
