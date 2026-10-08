@@ -22,7 +22,7 @@ _SENSITIVE_TERMS = re.compile(
     r"salary expectation\w*|salary range|desired compensation|compensation expectation\w*|"
     r"non[ -]?compete|conflict\w* of interest|minimum age|attest\w*|certif\w* under penalty)\b", re.IGNORECASE)
 _QUESTION_NEGATION = re.compile(
-    r"\b(?:no|not|never|without|neither|nor|cannot|"
+    r"\b(?:no|not|never|without|neither|nor|cannot|unavailable|"
     r"can['’]t|won['’]t|wouldn['’]t|shouldn['’]t|couldn['’]t|"
     r"didn['’]t|doesn['’]t|don['’]t|isn['’]t|aren['’]t|"
     r"wasn['’]t|weren['’]t|haven['’]t|hasn['’]t|hadn['’]t|mustn['’]t)\b",
